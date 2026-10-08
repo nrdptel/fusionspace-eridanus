@@ -24,10 +24,12 @@
 //! and `CHANGELOG.md`; and the banners' `project.json`.
 //!
 //! A mention is allowed only by an entry of [`ALLOW`]: a file, the exact text around the
-//! mention, and why it stays. An entry covers a mention only inside its text, so a new mention on
-//! the same line still fails, and an entry that covers nothing fails as stale. An entry is one
-//! line of at most [`MAX_ALLOW_TEXT`] bytes; only an ADR up to ADR-205, or the roadmap's archive,
-//! may be allowed whole ([`Scope::Page`]).
+//! mention, how many mentions it covers, and why it stays. An entry covers a mention only inside
+//! its text, so a new mention on the same line still fails, and so does a new one in a copy of its
+//! text, since its count no longer matches; an entry that covers nothing fails as stale. An entry
+//! is one line of at most [`MAX_ALLOW_TEXT`] bytes with at least [`MIN_ALLOW_CONTEXT`] beyond its
+//! mentions; only an ADR up to ADR-205, or the roadmap's archive, may be allowed whole
+//! ([`Scope::Page`]).
 
 use std::ops::Range;
 use std::path::Path;
@@ -52,6 +54,10 @@ const LANDING: &str = "docs/start-here.md";
 /// The longest text an [`Allow`] entry may give: about a line of prose.
 const MAX_ALLOW_TEXT: usize = 120;
 
+/// The least text an [`Allow`] entry gives beyond the mentions in it, so that an entry names a
+/// place and not just the name: a bare `hpr-sim` would allow every one in its file.
+const MIN_ALLOW_CONTEXT: usize = 8;
+
 /// The newest decision record that may be allowed whole: the one that set the rule.
 const LAST_WHOLE_ADR: u32 = 205;
 
@@ -73,6 +79,8 @@ pub enum Scope {
 pub struct Allow {
     pub file: &'static str,
     pub scope: Scope,
+    /// How many mentions it covers: one more in its text, or one fewer, fails.
+    pub count: usize,
     pub why: &'static str,
 }
 
@@ -80,107 +88,164 @@ pub struct Allow {
 pub const ALLOW: &[Allow] = &[
     Allow {
         file: "CHANGELOG.md",
-        scope: Scope::Text("(called hpr-sim before 0.1)"),
+        scope: Scope::Text("(called hpr-sim before release 0.1)"),
+        count: 1,
         why: "history: the name the project had until release 0.1",
     },
     Allow {
         file: "CHANGELOG.md",
         scope: Scope::Text("ork.html#how-many-configurations-hpr-sim-flies"),
+        count: 1,
         why: "an anchor: the heading names the `hpr sim` command",
     },
     Allow {
         file: "README.md",
-        scope: Scope::Text("(hpr-sim before release 0.1's rename)"),
+        scope: Scope::Text("(called hpr-sim before release 0.1)"),
+        count: 1,
         why: "history: the name a reader may know it by",
     },
     Allow {
         file: "README.md",
         scope: Scope::Text("cli.html#hpr-sim)"),
+        count: 1,
         why: "an anchor: the heading names the `hpr sim` command",
     },
     Allow {
         file: "docs/start-here.md",
-        scope: Scope::Text("(HPR Sim, or hpr-sim before release 0.1's rename)"),
+        scope: Scope::Text("HPR Sim (called hpr-sim before release 0.1) simulates"),
+        count: 1,
         why: "history: the name a reader may know it by",
     },
     Allow {
         file: "docs/start-here.md",
         scope: Scope::Text("(cli.md#hpr-sim)"),
+        count: 2,
+        why: "an anchor: the heading names the `hpr sim` command",
+    },
+    Allow {
+        file: "docs/start-here.md",
+        scope: Scope::Text("(format/ork.md#how-many-configurations-hpr-sim-flies)"),
+        count: 1,
         why: "an anchor: the heading names the `hpr sim` command",
     },
     Allow {
         file: "THIRD-PARTY-NOTICES.md",
         scope: Scope::Text("`crates/hpr-sim/tests/data/"),
+        count: 1,
         why: "a path under `crates/hpr-sim/`, the flight engine's folder",
     },
     Allow {
         file: "THIRD-PARTY-NOTICES.md",
         scope: Scope::Text("| `hpr-sim-fixtures` | `nrdptel/hpr-sim-fixtures` |"),
+        count: 2,
         why: "`hpr-sim-fixtures`, the private fixtures repository, which kept its name (ADR-151)",
     },
     Allow {
         file: "THIRD-PARTY-NOTICES.md",
-        scope: Scope::Text("`hpr-sim`"),
+        scope: Scope::Text("| `bytes` | MIT | `hpr-sim` (tests only) |"),
+        count: 1,
+        why: "a crate id: the table names each crate by its folder, as `hpr-cli`",
+    },
+    Allow {
+        file: "THIRD-PARTY-NOTICES.md",
+        scope: Scope::Text("| MIT | `hpr-sim`, `hpr-cli` (tests only) |"),
+        count: 1,
+        why: "a crate id: the table names each crate by its folder, as `hpr-cli`",
+    },
+    Allow {
+        file: "THIRD-PARTY-NOTICES.md",
+        scope: Scope::Text("| Apache-2.0 | `hpr-sim` (tests only, as `parquet-reader`) |"),
+        count: 1,
+        why: "a crate id: the table names each crate by its folder, as `hpr-cli`",
+    },
+    Allow {
+        file: "THIRD-PARTY-NOTICES.md",
+        scope: Scope::Text("the Parquet files `hpr-sim` writes"),
+        count: 1,
+        why: "a crate id: the table names each crate by its folder, as `hpr-cli`",
+    },
+    Allow {
+        file: "THIRD-PARTY-NOTICES.md",
+        scope: Scope::Text("`hpr-io`; `hpr-sim` (tests only)"),
+        count: 1,
+        why: "a crate id: the table names each crate by its folder, as `hpr-cli`",
+    },
+    Allow {
+        file: "THIRD-PARTY-NOTICES.md",
+        scope: Scope::Text("`hpr-motor`, `hpr-sim` (JSON and GeoJSON exports)"),
+        count: 1,
         why: "a crate id: the table names each crate by its folder, as `hpr-cli`",
     },
     Allow {
         file: "crates/hpr-core/src/tool.rs",
         scope: Scope::Text("which readers still recognize: `hpr-sim`"),
+        count: 1,
         why: "an old stamp that must still read: files written before the rename carry it (ADR-199 §4)",
     },
     Allow {
         file: "crates/hpr-core/src/tool.rs",
         scope: Scope::Text("pub const EARLIER_NAME: &str = \"hpr-sim\";"),
+        count: 1,
         why: "an old stamp that must still read: files written before the rename carry it (ADR-199 §4)",
     },
     Allow {
         file: "crates/hpr-motor/src/eng.rs",
         scope: Scope::Text("the earlier name `hpr-sim` with either designation"),
+        count: 1,
         why: "an old stamp that must still read: files written before the rename carry it (ADR-199 §4)",
     },
     Allow {
         file: "crates/hpr-net/src/cache.rs",
         scope: Scope::Text("the `hpr-sim` folders earlier builds used"),
+        count: 1,
         why: "history: the cache folders builds before the rename used, named to say they are not read",
     },
     Allow {
         file: "crates/hpr-format/src/lib.rs",
         scope: Scope::Text("(`hpr-sim` in a document an earlier build wrote)"),
+        count: 1,
         why: "an old stamp that must still read: files written before the rename carry it (ADR-199 §4)",
     },
     Allow {
         file: "schema/format/hpr-design-0.2.schema.json",
         scope: Scope::Text("(`hpr-sim` in a document an earlier build wrote)"),
+        count: 1,
         why: "an old stamp that must still read: files written before the rename carry it (ADR-199 §4); generated from `hpr-format`",
     },
     Allow {
         file: "schema/format/python/hpr_design.py",
         scope: Scope::Text("(`hpr-sim` in a document an earlier build wrote)"),
+        count: 1,
         why: "an old stamp that must still read: files written before the rename carry it (ADR-199 §4); generated from the schema",
     },
     Allow {
         file: "schema/format/typescript/hpr-design.ts",
         scope: Scope::Text("(`hpr-sim` in a document an earlier build wrote)"),
+        count: 1,
         why: "an old stamp that must still read: files written before the rename carry it (ADR-199 §4); generated from the schema",
     },
     Allow {
         file: "schema/format/hpr-design-0.1.schema.json",
         scope: Scope::Text("The program, such as `hpr-sim`."),
-        why: "history: version 0.1's schema, kept as it was, describes the documents builds wrote then",
+        count: 1,
+        why: "history: version 0.1's schema names the program as the builds that wrote 0.1 documents did",
     },
     Allow {
         file: "crates/hpr-io/src/ork/staging.rs",
         scope: Scope::Text("0165-an-unpowered-separation-in-hpr-sim.md"),
+        count: 1,
         why: "an ADR's file name, which keeps the name it was written under",
     },
     Allow {
         file: "crates/hpr/src/ork.rs",
         scope: Scope::Text("0165-an-unpowered-separation-in-hpr-sim.md"),
+        count: 4,
         why: "an ADR's file name, which keeps the name it was written under",
     },
     Allow {
         file: "crates/hpr/src/ork.rs",
         scope: Scope::Text("0159-a-powered-separation-in-hpr-sim.md"),
+        count: 1,
         why: "an ADR's file name, which keeps the name it was written under",
     },
 ];
@@ -412,6 +477,13 @@ fn problems_of(read: &Read, allow: &[Allow]) -> Vec<String> {
                 describe(entry.scope),
                 entry.why
             ));
+        } else if count != entry.count {
+            found.push(format!(
+                "{}: the allowlist's entry {} covers {count} mention(s), not the {} it says",
+                entry.file,
+                describe(entry.scope),
+                entry.count
+            ));
         }
     }
     found.extend(read.landing.iter().cloned());
@@ -471,11 +543,20 @@ fn allowlist_problems(allow: &[Allow], files: &[String]) -> Vec<String> {
                         text.chars().take(40).collect::<String>()
                     ));
                 }
-                if old_names(text, 0..text.len()).is_empty()
-                    && bare_hprs(text, 0..text.len(), Held::Prose).is_empty()
-                {
+                let inside: usize = old_names(text, 0..text.len())
+                    .into_iter()
+                    .chain(bare_hprs(text, 0..text.len(), Held::Prose))
+                    .map(|mention| mention.at.len())
+                    .sum();
+                if inside == 0 {
                     found.push(format!(
                         "{}: the allowlist's entry `{text}` holds no mention to allow",
+                        entry.file
+                    ));
+                } else if text.len() - inside < MIN_ALLOW_CONTEXT {
+                    found.push(format!(
+                        "{}: the allowlist's entry `{text}` is little more than its mention: give \
+                         it {MIN_ALLOW_CONTEXT} bytes of the text around it",
                         entry.file
                     ));
                 }
@@ -604,11 +685,16 @@ fn ranges(kind: Kind, text: &str) -> Vec<(Range<usize>, Held)> {
             );
             found
         }
-        Kind::Json => json_strings(text)
-            .into_iter()
-            .filter(|(key, _)| key.is_some())
-            .flat_map(|(_, range)| prose_within(text, range))
-            .collect(),
+        Kind::Json => {
+            let mut found = vec![(whole, Held::OldName)];
+            found.extend(
+                json_strings(text)
+                    .into_iter()
+                    .filter(|(key, _)| key.is_some())
+                    .flat_map(|(_, range)| prose_within(text, range)),
+            );
+            found
+        }
         Kind::CargoManifest => toml_values(
             text,
             &[
@@ -676,7 +762,11 @@ fn bare_hprs(text: &str, range: Range<usize>, held: Held) -> Vec<Mention> {
     for (offset, _) in slice.match_indices("hpr").chain(slice.match_indices("Hpr")) {
         let at = range.start + offset;
         let end = at + 3;
-        if text[..at].chars().next_back().is_some_and(joins_before) {
+        // An escape such as `\n` ends the word before it, though its letter is alphanumeric.
+        let escaped = ["\\n", "\\t", "\\r", "\\0"]
+            .iter()
+            .any(|escape| text[..at].ends_with(escape));
+        if !escaped && text[..at].chars().next_back().is_some_and(joins_before) {
             continue;
         }
         let after = &text[end..];
@@ -713,7 +803,11 @@ fn is_the_command(literal: &str, at: usize) -> bool {
     if rest.len() == literal[at + 3..].len() {
         return false;
     }
-    if rest.starts_with('-') || rest.starts_with('{') {
+    let flag = rest.starts_with("--")
+        || rest
+            .strip_prefix('-')
+            .is_some_and(|after| after.starts_with(|c: char| c.is_ascii_alphabetic()));
+    if flag || rest.starts_with('{') {
         return true;
     }
     let word: String = rest
@@ -792,10 +886,10 @@ fn rust_test_modules(text: &str) -> Vec<String> {
 fn rust_lex(text: &str) -> (Vec<(Range<usize>, Held)>, Vec<String>) {
     let mut found = Vec::new();
     let mut test_modules = Vec::new();
-    // The braces open in code; where the `#[cfg(test)]` item being read began, if one is; and
-    // while inside such an item, the depth its body closes at.
+    // The braces open in code; where the `#[cfg(test)]` item being read began and at what depth,
+    // if one is; and while inside such an item, the depth its body closes at.
     let mut depth = 0_usize;
-    let mut test_item: Option<usize> = None;
+    let mut test_item: Option<(usize, usize)> = None;
     let mut skip_to: Option<usize> = None;
     // Each run of consecutive rustdoc lines: the Markdown read from them, and for each line where
     // its text starts in the file and in the Markdown.
@@ -803,10 +897,19 @@ fn rust_lex(text: &str) -> (Vec<(Range<usize>, Held)>, Vec<String>) {
     let mut starts: Vec<(usize, usize)> = Vec::new();
     let flush = |doc: &mut String, starts: &mut Vec<(usize, usize)>, found: &mut Vec<_>| {
         for range in markdown_prose(doc) {
-            let line = starts.partition_point(|(_, in_doc)| *in_doc <= range.start) - 1;
-            let (in_file, in_doc) = starts[line];
-            let start = in_file + range.start - in_doc;
-            found.push((start..start + range.len(), Held::Prose));
+            // Each line's part of the range, mapped to where that line's text is in the file.
+            let mut line = starts.partition_point(|(_, in_doc)| *in_doc <= range.start) - 1;
+            let mut from = range.start;
+            while from < range.end && line < starts.len() {
+                let (in_file, in_doc) = starts[line];
+                let line_end = starts.get(line + 1).map_or(doc.len(), |next| next.1 - 1);
+                let to = range.end.min(line_end);
+                if from < to {
+                    found.push((in_file + from - in_doc..in_file + to - in_doc, Held::Prose));
+                }
+                line += 1;
+                from = starts.get(line).map_or(range.end, |next| next.1);
+            }
         }
         doc.clear();
         starts.clear();
@@ -818,18 +921,24 @@ fn rust_lex(text: &str) -> (Vec<(Range<usize>, Held)>, Vec<String>) {
         let skipping = skip_to.is_some();
         if rest.starts_with("#[cfg(test)]") {
             if !skipping {
-                test_item = Some(i);
+                test_item = Some((i, depth));
             }
             i += "#[cfg(test)]".len();
+        } else if test_item.is_some_and(|(_, at)| at == depth) && bytes[i] == b',' {
+            // The attribute was on a field, a variant or a match arm, which ends here: nothing
+            // braced after it is test-only.
+            test_item = None;
+            i += 1;
         } else if test_item.is_some() && (bytes[i] == b'{' || bytes[i] == b';') {
             if bytes[i] == b'{' {
                 skip_to = Some(depth);
                 depth += 1;
-            } else if let Some(start) = test_item {
+            } else if let Some((start, _)) = test_item {
                 // `mod name;` after the attribute (and any others) declares a file of its own.
                 let item = text[start..i].rsplit(']').next().unwrap_or("").trim();
                 if let Some(name) = item
                     .strip_prefix("pub(crate) mod ")
+                    .or_else(|| item.strip_prefix("pub(super) mod "))
                     .or_else(|| item.strip_prefix("pub mod "))
                     .or_else(|| item.strip_prefix("mod "))
                 {
@@ -845,6 +954,10 @@ fn rust_lex(text: &str) -> (Vec<(Range<usize>, Held)>, Vec<String>) {
             depth = depth.saturating_sub(1);
             if skip_to == Some(depth) {
                 skip_to = None;
+            }
+            // A last field or variant under the attribute ends with its enclosing braces.
+            if test_item.is_some_and(|(_, at)| depth < at) {
+                test_item = None;
             }
             i += 1;
         } else if rest.starts_with("//") {
@@ -872,21 +985,31 @@ fn rust_lex(text: &str) -> (Vec<(Range<usize>, Held)>, Vec<String>) {
             }
             i = line_end;
         } else if rest.starts_with("/*") {
-            let mut depth = 0_usize;
+            // Compared byte by byte: a comment's text may hold any character.
+            let mut nested = 0_usize;
             let mut j = i;
             while j < bytes.len() {
-                if text[j..].starts_with("/*") {
-                    depth += 1;
+                if bytes[j..].starts_with(b"/*") {
+                    nested += 1;
                     j += 2;
-                } else if text[j..].starts_with("*/") {
-                    depth -= 1;
+                } else if bytes[j..].starts_with(b"*/") {
+                    nested -= 1;
                     j += 2;
-                    if depth == 0 {
+                    if nested == 0 {
                         break;
                     }
                 } else {
                     j += 1;
                 }
+            }
+            // `/** … */` and `/*! … */` are rustdoc, as `///` and `//!` are.
+            let is_doc =
+                (rest.starts_with("/**") && !rest.starts_with("/***") && !rest.starts_with("/**/"))
+                    || rest.starts_with("/*!");
+            if is_doc && !skipping && j >= i + 5 {
+                let inside = i + 3..j - 2;
+                found.push((inside.clone(), Held::OldName));
+                found.extend(prose_within(text, inside));
             }
             i = j;
         } else if let Some((content, end)) = raw_string(text, i) {
@@ -1220,10 +1343,150 @@ mod tests {
                 "[project]\ndescription = \"Python for hpr\"\n".to_owned(),
             ),
         ];
-        for (kind, text) in &planted {
+        let more: Vec<(Kind, String)> = vec![
+            // The old name in a JSON document's code span and as a key.
+            (Kind::Json, format!("{{\"subtitle\": \"`{old}` 0.1\"}}")),
+            (Kind::Json, format!("{{\"{old}\": \"x\"}}")),
+            // An escape's letter before the name doesn't join it.
+            (Kind::Rust, "fn f() { eprintln!(\"bad input:\\nhpr reads only .ork files\"); }\n".to_owned()),
+            (Kind::Schema, "{\"description\": \"Line.\\nhpr reads it\"}".to_owned()),
+            // A `#[cfg(test)]` field ends at its comma; what follows is read.
+            (
+                Kind::Rust,
+                "struct S {\n    #[cfg(test)]\n    probe: bool,\n}\nimpl S { fn f() -> &'static str { \"a format hpr reads\" } }\n"
+                    .to_owned(),
+            ),
+            // So does a last field, at its struct's closing brace, and a match arm.
+            (
+                Kind::Rust,
+                "enum E {\n    #[cfg(test)]\n    Probe\n}\nfn f() -> &'static str { \"a format hpr reads\" }\n".to_owned(),
+            ),
+            (
+                Kind::Rust,
+                "fn g(x: u8) -> u8 { match x {\n #[cfg(test)]\n 9 => 1,\n _ => 0 } }\nfn f() -> &'static str { \"hpr reads it\" }\n".to_owned(),
+            ),
+            // A match arm under the attribute ends at its comma, so the next arm's block is read.
+            (
+                Kind::Rust,
+                "fn g(x: u8) -> &'static str { match x {\n #[cfg(test)]\n 9 => \"\",\n _ => { \"hpr reads it\" } } }\n"
+                    .to_owned(),
+            ),
+            // Block rustdoc is rustdoc.
+            (Kind::Rust, "/** Flies as hpr does. */\nfn f() {}\n".to_owned()),
+            (Kind::Rust, format!("/*! The {old} library. */\n")),
+            // A dash and a space after `hpr` is no flag.
+            (Kind::Rust, "fn f() -> &'static str { \"hpr - a rocket simulator\" }\n".to_owned()),
+        ];
+        for (kind, text) in planted.iter().chain(&more) {
             let mut used = [];
             let found = problems_in("x", *kind, text, &[], &mut used);
             assert_eq!(found.len(), 1, "{kind:?}: {text:?}: {found:?}");
+            // Each planted text holds one mention, of the old name or a bare `hpr`.
+            let lower = text.to_lowercase();
+            let rule = if lower.contains(&old) || lower.contains(&nbh) {
+                "the old name"
+            } else {
+                "a bare `hpr`"
+            };
+            assert!(found[0].contains(rule), "{kind:?}: {text:?}: {found:?}");
+        }
+    }
+
+    /// Test-only code ships nothing: an item under `#[cfg(test)]` is skipped, and a module file
+    /// declared under it is not a surface.
+    #[test]
+    fn test_only_code_is_not_read() {
+        let skipped = [
+            "#[cfg(test)]\nmod tests {\n    fn f() -> &'static str { \"hpr reads\" }\n}\n",
+            "#[cfg(test)]\n#[allow(dead_code)]\nfn probe() -> &'static str { \"hpr reads\" }\n",
+            "fn g(x: u8) -> u8 { match x {\n #[cfg(test)]\n 9 => { let _ = \"hpr reads\"; 1 }\n _ => 0 } }\n",
+        ];
+        for text in skipped {
+            let mut used = [];
+            assert_eq!(
+                problems_in("x", Kind::Rust, text, &[], &mut used),
+                Vec::<String>::new(),
+                "{text:?}"
+            );
+        }
+        assert_eq!(
+            rust_test_modules(
+                "#[cfg(test)]\nmod tests;\n#[cfg(test)]\npub(super) mod probe;\nmod real;\n"
+            ),
+            ["tests", "probe"]
+        );
+        assert_eq!(
+            module_paths("crates/x/src/lib.rs", "tests"),
+            ["crates/x/src/tests.rs", "crates/x/src/tests/"]
+        );
+        assert_eq!(
+            module_paths("crates/x/src/ork.rs", "tests"),
+            ["crates/x/src/ork/tests.rs", "crates/x/src/ork/tests/"]
+        );
+    }
+
+    /// Every kind of surface ADR-206 §1 lists is read at a file of the real tree, by its kind; an
+    /// unpublished crate's sources and test-only module files are not.
+    #[test]
+    fn every_listed_surface_is_read() {
+        let root = crate::designs::root().unwrap();
+        let read = surfaces(&root, &tracked(&root).unwrap());
+        let kind_of = |path: &str| {
+            read.iter()
+                .find(|(surface, _)| surface == path)
+                .map(|(_, kind)| *kind)
+        };
+        let expected = [
+            ("README.md", Kind::Markdown),
+            ("docs/start-here.md", Kind::Markdown),
+            ("CHANGELOG.md", Kind::Markdown),
+            ("THIRD-PARTY-NOTICES.md", Kind::Markdown),
+            ("crates/hpr-py/README.md", Kind::Markdown),
+            ("LICENSE-MIT", Kind::Text),
+            ("LICENSE-APACHE", Kind::Text),
+            ("crates/hpr-sim/LICENSE-MIT", Kind::Text),
+            ("crates/hpr-sim/LICENSE-APACHE", Kind::Text),
+            ("scripts/release/licenses.hbs", Kind::Text),
+            ("crates/hpr/Cargo.toml", Kind::CargoManifest),
+            ("crates/hpr-cli/Cargo.toml", Kind::CargoManifest),
+            ("crates/hpr-py/pyproject.toml", Kind::PyProject),
+            (
+                "crates/hpr-py/python/fusionspace/hpr/__init__.py",
+                Kind::Python,
+            ),
+            ("crates/hpr/src/lib.rs", Kind::Rust),
+            ("crates/hpr-cli/src/main.rs", Kind::Rust),
+            ("crates/hpr-aero/src/lib.rs", Kind::Rust),
+            ("crates/hpr-py/src/rocket.rs", Kind::Rust),
+            ("schema/format/hpr-design-0.2.schema.json", Kind::Schema),
+            ("schema/cli/sim.schema.json", Kind::Schema),
+            ("schema/format/python/hpr_design.py", Kind::Python),
+            ("schema/format/typescript/hpr-design.ts", Kind::TypeScript),
+            (".github/brand/project.json", Kind::Json),
+        ];
+        for (path, kind) in expected {
+            assert_eq!(kind_of(path), Some(kind), "{path}");
+        }
+        for path in [
+            "crates/hpr-validate/src/lib.rs",
+            "crates/hpr-ffi/src/lib.rs",
+            "crates/hpr-sim/src/tests.rs",
+            "crates/hpr-io/src/ork/tests.rs",
+            "crates/hpr-sim/tests/cli.rs",
+            "docs/cli.md",
+        ] {
+            assert_eq!(kind_of(path), None, "{path}");
+        }
+        // Every published crate's sources are read.
+        for (path, _) in read
+            .iter()
+            .filter(|(path, _)| path.ends_with("/Cargo.toml"))
+        {
+            let manifest = std::fs::read_to_string(root.join(path)).unwrap();
+            let lib = path.replace("Cargo.toml", "src/lib.rs");
+            if published(&manifest) && root.join(&lib).exists() {
+                assert_eq!(kind_of(&lib), Some(Kind::Rust), "{lib}");
+            }
         }
     }
 
@@ -1232,7 +1495,7 @@ mod tests {
     #[test]
     fn other_names_and_code_are_not_mentions() {
         let old = old();
-        let clean: [(Kind, String); 10] = [
+        let clean: [(Kind, String); 11] = [
             (
                 Kind::Markdown,
                 "Run `hpr sim`; read `.hpr`, hpr.fusionspace.co, `hpr::sim`, hpr-core, hpr_sim.\n"
@@ -1255,6 +1518,8 @@ mod tests {
             (Kind::Python, "from fusionspace import hpr\n\"\"\"Uses ``hpr.Rocket``.\"\"\"\n".to_owned()),
             (Kind::CargoManifest, "name = \"fusionspace-hpr-sim\"\nhpr = { path = \"../hpr\" }\n".to_owned()),
             (Kind::Text, format!("see fusionspace-{old} and fusionspace\u{2011}{old}\n")),
+            // A plain block comment, with any character in it, is no surface.
+            (Kind::Rust, "/* 15° — hpr's own */\nfn f() {}\n".to_owned()),
         ];
         for (kind, text) in &clean {
             let mut used = [];
@@ -1272,17 +1537,18 @@ mod tests {
         let old = old();
         let allow = [Allow {
             file: "README.md",
-            scope: Scope::Text("(hpr-sim before release 0.1's rename)"),
+            scope: Scope::Text("(called hpr-sim before release 0.1)"),
+            count: 1,
             why: "history",
         }];
-        let line = format!("HPR Sim ({old} before release 0.1's rename) flies.\n");
+        let line = format!("HPR Sim (called {old} before release 0.1) flies.\n");
         let mut used = [0];
         assert_eq!(
             problems_in("README.md", Kind::Markdown, &line, &allow, &mut used),
             Vec::<String>::new()
         );
         assert_eq!(used, [1]);
-        let grown = format!("HPR Sim ({old} before release 0.1's rename) and {old} fly.\n");
+        let grown = format!("HPR Sim (called {old} before release 0.1) and {old} fly.\n");
         assert_eq!(
             problems_in("README.md", Kind::Markdown, &grown, &allow, &mut used).len(),
             1
@@ -1348,6 +1614,7 @@ mod tests {
         stale.push(Allow {
             file: "README.md",
             scope: Scope::Text("the hpr-sim of nowhere"),
+            count: 1,
             why: "a test",
         });
         let found = problems_of(&read, &stale);
@@ -1355,10 +1622,31 @@ mod tests {
             found.iter().any(|p| p.contains("covers nothing")),
             "{found:?}"
         );
+        // An entry no wider than its mention would allow every one in its file.
+        let mut bare = ALLOW.to_vec();
+        bare[2].scope = Scope::Text("`hpr-sim`");
+        let found = allowlist_problems(&bare, &files);
+        assert!(
+            found
+                .iter()
+                .any(|p| p.contains("little more than its mention")),
+            "{found:?}"
+        );
+        // One more mention in an entry's text than it says fails, and so does one fewer.
+        for change in [1_isize, -1] {
+            let mut counted = ALLOW.to_vec();
+            counted[2].count = counted[2].count.saturating_add_signed(change);
+            let found = problems_of(&read, &counted);
+            assert!(
+                found.iter().any(|p| p.contains("it says")),
+                "{change}: {found:?}"
+            );
+        }
         let mut empty = ALLOW.to_vec();
         empty.push(Allow {
             file: "README.md",
             scope: Scope::Text("FusionSpace"),
+            count: 1,
             why: "",
         });
         let found = allowlist_problems(&empty, &files);

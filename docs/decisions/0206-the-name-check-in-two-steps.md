@@ -6,10 +6,11 @@
 [adr-199]: 0199-the-2026-10-07-fusionspace-hpr.md
 [adr-205]: 0205-the-2026-10-08-one-name-one-design.md
 
-**Context.** Measured on `main` before the change, the surfaces ADR-205 §1 lists held about 680
-mentions outside the site's pages (62 of the old name, the rest a bare lowercase name in prose) and
-about 2,300 more on the 62 pages `SUMMARY.md` renders, 430 of them on the `.ork` format page and
-400 on the aerodynamics page. Each rewrite is small, but each is a sentence a reader sees, and a
+**Context.** Measured on `main` at `aeae382` with the finished check, the surfaces ADR-205 §1 lists
+outside the site's pages held 644 mentions in 111 files that its allowlist doesn't cover (52 of
+the old name, 592 a bare lowercase name in prose), and the landing page's first paragraph named the
+product but not the suite. The 62 pages `SUMMARY.md` renders held about 2,300 bare mentions more,
+430 of them on the `.ork` format page and 400 on the aerodynamics page. Each rewrite is small, but each is a sentence a reader sees, and a
 review can read a few hundred, not three thousand, in one pull request. The two halves differ in
 one way that matters: crates.io and PyPI keep the text a version was published with, while the
 site is rebuilt from `main` on every merge.
@@ -43,10 +44,13 @@ site is rebuilt from `main` on every merge.
    - an item under `#[cfg(test)]`, and a module file declared under it (`mod tests;`), is compiled
      only for tests and ships nothing, so neither is read;
    - an unpublished crate's description is checked too, since it costs nothing.
-5. **The format's name.** Prose calls the design format "the HPR design format", by the suite's
+5. **The allowlist's entries are narrow by rule** (chosen): each gives at least 8 bytes of text
+   beyond the mentions in it, so an entry names a place and not just the name, and states how many
+   mentions it covers, so a new mention inside a copy of its text fails too.
+6. **The format's name.** Prose calls the design format "the HPR design format", by the suite's
    name in capitals, which the check allows; its files stay `.hpr` and `.hprz`.
 
-**Consequences.** M0.9a1's allowlist has 21 entries: history ("called … before 0.1"), old stamps
+**Consequences.** M0.9a1's allowlist has 27 entries, covering 32 mentions: history ("called … before 0.1"), old stamps
 that must still read, the anchors of headings that name the `hpr sim` command, ADR file names, the
 private fixtures repository's name and the flight engine crate's folder. M0.9a2 will add the
 site's history and anchors under the same rules. A heading written "HPR Sim" gets an anchor that

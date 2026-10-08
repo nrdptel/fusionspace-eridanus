@@ -1,6 +1,6 @@
 # Changelog
 
-Each release of FusionSpace HPR (called hpr-sim before 0.1) has an entry here: what it holds, what works, how far to trust it, and the
+Each release of FusionSpace HPR (called hpr-sim before release 0.1) has an entry here: what it holds, what works, how far to trust it, and the
 gaps known when it was built. One version number covers every crate, the `hpr` command line and
 the Python package. Until 1.0, a new minor version (0.2, 0.3) may change the library's API; a
 patch release (0.1.1) carries only a fix for a critical issue
@@ -50,8 +50,8 @@ how to install each.
   (*How far to trust it*, below).
 - **Flight:** six degrees of freedom from the rail to the ground, with staging, separations,
   parachutes, streamers and tumbling.
-- **Design files:** OpenRocket `.ork` files read and flown, and written back; HPR Sim's own `.hpr`
-  format; OpenRocket's parts catalog built in. `hpr sim` flies 136 of the 170 motor configurations
+- **Design files:** OpenRocket `.ork` files read and flown, and written back; the HPR design
+  format (`.hpr`); OpenRocket's parts catalog built in. `hpr sim` flies 136 of the 170 motor configurations
   in the reference library and OpenRocket's examples as saved
   ([`.ork` design files](https://hpr.fusionspace.co/format/ork.html#how-many-configurations-hpr-sim-flies)).
 - **Flight logs:** a PerfectFlite `.pf2` log read on its own, with liftoff, apogee, top speed and

@@ -533,7 +533,7 @@ impl IssueWarning {
             ),
             KnownIssue::SupersonicPressureDrag => format!(
                 "supersonic pressure drag on an ogive nose or airfoil fins is about twice \
-                 OpenRocket's, and which is right is unresolved: if HPR Sim's is high, {low}"
+                 OpenRocket's, and which is right is unresolved: if HPR Sim's drag is high, {low}"
             ),
             KnownIssue::RadiusStepFallback
             | KnownIssue::LongLipFallback
@@ -577,7 +577,7 @@ impl IssueWarning {
             ),
             KnownIssue::TurbulentFriction => format!(
                 "skin friction is taken as fully turbulent, but on a smooth surface the flow stays \
-                 laminar near the nose, where friction is lower: HPR Sim's reads high by \
+                 laminar near the nose, where friction is lower: HPR Sim's drag reads high by \
                  {LAMINAR_FRICTION_PERCENT}% on RocketPy's Calisto at Mach 0.3; if this surface \
                  is that smooth, the drag reads high, {low}"
             ),
