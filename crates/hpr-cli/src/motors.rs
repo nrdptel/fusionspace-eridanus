@@ -29,7 +29,7 @@ pub enum MotorsCommand {
     Show(ShowArgs),
     /// Search motor.fusionspace.co's motors, with who has them in stock and at what price
     Search(crate::motor_search::SearchArgs),
-    /// Fetch a motor's thrust curve from ThrustCurve.org into the cache, so hpr sim flies it
+    /// Fetch a motor's thrust curve from ThrustCurve.org into the cache, so `hpr sim` flies it
     /// offline
     Fetch(crate::motor_fetch::FetchArgs),
 }
@@ -215,7 +215,7 @@ fn listed(motor: &CatalogMotor) -> Result<ListedMotor, Failure> {
 /// `hpr_motor`'s enums are non-exhaustive. A kind this build doesn't know is refused, not given
 /// the name of another.
 fn unknown(what: &str, value: impl std::fmt::Debug) -> Failure {
-    Failure::Input(format!("{what} {value:?} is new to this build of hpr"))
+    Failure::Input(format!("{what} {value:?} is new to this build of HPR Sim"))
 }
 
 fn kind(motor_type: MotorType) -> Result<MotorKind, Failure> {

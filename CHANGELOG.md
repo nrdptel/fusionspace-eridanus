@@ -1,6 +1,6 @@
 # Changelog
 
-Each release of FusionSpace HPR (called hpr-sim before 0.1) has an entry here: what it holds, what works, how far to trust it, and the
+Each release of FusionSpace HPR (called hpr-sim before release 0.1) has an entry here: what it holds, what works, how far to trust it, and the
 gaps known when it was built. One version number covers every crate, the `hpr` command line and
 the Python package. Until 1.0, a new minor version (0.2, 0.3) may change the library's API; a
 patch release (0.1.1) carries only a fix for a critical issue
@@ -28,7 +28,7 @@ officer decide.
 - **The library: 13 crates on crates.io,** `fusionspace-hpr`, the front door (`use hpr::…` in
   code), and the `fusionspace-hpr-*` crates under it
   ([the API reference](https://hpr.fusionspace.co/api.html)).
-- **The license files.** Each archive and wheel carries hpr-sim's two licenses, MIT and
+- **The license files.** Each archive and wheel carries FusionSpace HPR's two licenses, MIT and
   Apache-2.0, its notices of outside sources, and the license texts of every crate compiled in;
   each crate on crates.io carries the two licenses
   ([How a release is built](https://hpr.fusionspace.co/releasing.html)).
@@ -50,8 +50,8 @@ how to install each.
   (*How far to trust it*, below).
 - **Flight:** six degrees of freedom from the rail to the ground, with staging, separations,
   parachutes, streamers and tumbling.
-- **Design files:** OpenRocket `.ork` files read and flown, and written back; hpr's own `.hpr`
-  format; OpenRocket's parts catalog built in. `hpr sim` flies 136 of the 170 motor configurations
+- **Design files:** OpenRocket `.ork` files read and flown, and written back; the HPR design
+  format (`.hpr`); OpenRocket's parts catalog built in. `hpr sim` flies 136 of the 170 motor configurations
   in the reference library and OpenRocket's examples as saved
   ([`.ork` design files](https://hpr.fusionspace.co/format/ork.html#how-many-configurations-hpr-sim-flies)).
 - **Flight logs:** a PerfectFlite `.pf2` log read on its own, with liftoff, apogee, top speed and
@@ -67,9 +67,9 @@ its pages.
 [Accuracy](https://hpr.fusionspace.co/accuracy.html) has every comparison, gaps included.
 In brief:
 
-- **Against seven public real flights, hpr's apogees miss by 6.04% on average,** outside the 5%
+- **Against seven public real flights, HPR Sim's apogees miss by 6.04% on average,** outside the 5%
   target ([real flights](https://hpr.fusionspace.co/accuracy.html#real-flights)).
-- **Against 55 flights of a private collection, hpr's apogees are 9.83% above the logs on
+- **Against 55 flights of a private collection, HPR Sim's apogees are 9.83% above the logs on
   average, and OpenRocket's 9.00%** ([private collection](https://hpr.fusionspace.co/accuracy.html#real-flights-of-the-private-collection)).
 - **Given the same drag, whole flights match RocketPy's within 3%** in apogee, speeds, burnout and
   flight time on six of its example rockets
@@ -104,18 +104,18 @@ drift printed.
 | [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326) | a kinked freeform fin's center of pressure, the rest of that example's gap | the margin | yes, on every freeform fin set, at any speed |
 | [#64](https://github.com/nrdptel/fusionspace-eridanus/issues/64) | a forward-swept fin's supersonic lift reads high | the margin, past Mach 1 | yes |
 | [#367](https://github.com/nrdptel/fusionspace-eridanus/issues/367) | a packed mass drawn too wide for a nose cone's or a shoulder's room, where its center of gravity can't sit | the margin | yes, in the design checks' warning |
-| [#18](https://github.com/nrdptel/fusionspace-eridanus/issues/18) | skin friction is taken as fully turbulent: on a smooth surface the drag reads high, by about 2% on RocketPy's Calisto at Mach 0.3 | the apogee and top speed | yes, on every flight on hpr's drag |
+| [#18](https://github.com/nrdptel/fusionspace-eridanus/issues/18) | skin friction is taken as fully turbulent: on a smooth surface the drag reads high, by about 2% on RocketPy's Calisto at Mach 0.3 | the apogee and top speed | yes, on every flight on HPR Sim's drag |
 | [#73](https://github.com/nrdptel/fusionspace-eridanus/issues/73) | the subsonic boattail rule: no drag for a long boattail where measurements give some, and on 16° ones from 40.8% too low to 41.7% too high | the apogee and top speed, below Mach 1, where it reads high | yes, for a boattail steeper than 9.5° (`atan(1/6)`), where the rule starts to give it drag |
 | [#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179) | a booster dropped at a separation tumbles side-on from the split, with no airframe drag, where a real one first coasts nose-first | the booster's peak and drift, which likely read short | yes, on every flight that drops a booster, at any speed |
 | [#354](https://github.com/nrdptel/fusionspace-eridanus/issues/354) | a separated part has no drag at all until its first device opens | its drift, which likely reads short for a falling part | yes, when a separated part starts with nothing open; `hpr mc` warns only for its nominal flight, not for a drawn lag |
-| [#219](https://github.com/nrdptel/fusionspace-eridanus/issues/219) | a center of gravity off the axis, as an off-axis lug, rail button or pod puts it: hpr flies the moment the thrust makes about it, OpenRocket doesn't, and no reference sizes it | the apogee or the drift, low or high by which side the offset faces | yes, when the center of gravity sits more than 1e-9 m off the axis, which most designs with a lug or a rail button do |
+| [#219](https://github.com/nrdptel/fusionspace-eridanus/issues/219) | a center of gravity off the axis, as an off-axis lug, rail button or pod puts it: HPR Sim flies the moment the thrust makes about it, OpenRocket doesn't, and no reference sizes it | the apogee or the drift, low or high by which side the offset faces | yes, when the center of gravity sits more than 1e-9 m off the axis, which most designs with a lug or a rail button do |
 | [#213](https://github.com/nrdptel/fusionspace-eridanus/issues/213) | a single pod's drag and normal force act on the axis, so their moments are left out | the apogee or the drift, low or high by which side the pod faces | yes, on a pod set of one pod off the axis that holds a part |
 | [#106](https://github.com/nrdptel/fusionspace-eridanus/issues/106) | inside the supersonic join, a body part's pitch and yaw damping is sampled away from its own center of pressure; the margins don't use it | the apogee or the drift, either way, unsized | yes, past the join's start, Mach 1.2 or later |
 | [#8](https://github.com/nrdptel/fusionspace-eridanus/issues/8) | a near-calm wind level, 1.5 m/s or less, still turns the interpolated direction | the drift, likely short where the other levels share one direction, and the apogee | yes, from the library, on a wind table whose near-calm level turns inside the flight's heights |
 
 **Four of the rows above err either way.** [#8](https://github.com/nrdptel/fusionspace-eridanus/issues/8), [#106](https://github.com/nrdptel/fusionspace-eridanus/issues/106), [#213](https://github.com/nrdptel/fusionspace-eridanus/issues/213) and [#219](https://github.com/nrdptel/fusionspace-eridanus/issues/219) can read low on some flights and high on others, so each warns as if it flattered, as a `warning: flight:` line. They give a direction, not a size: where the apogee or the drift sits near a limit, leave room on both sides.
 
-**Three print no wrong number.** hpr never prints [#104](https://github.com/nrdptel/fusionspace-eridanus/issues/104)'s figure, a body part's own center of pressure (every one it prints is the whole rocket's), and its `.ork` reader refuses a file whose surface finish ([#360](https://github.com/nrdptel/fusionspace-eridanus/issues/360)) or pair of mass-override flags ([#361](https://github.com/nrdptel/fusionspace-eridanus/issues/361)) it can't read, rather than flying it.
+**Three print no wrong number.** HPR Sim never prints [#104](https://github.com/nrdptel/fusionspace-eridanus/issues/104)'s figure, a body part's own center of pressure (every one it prints is the whole rocket's), and its `.ork` reader refuses a file whose surface finish ([#360](https://github.com/nrdptel/fusionspace-eridanus/issues/360)) or pair of mass-override flags ([#361](https://github.com/nrdptel/fusionspace-eridanus/issues/361)) it can't read, rather than flying it.
 
 **Near the speed of sound,** between Mach 0.8 and 1.2, the center of pressure sits up to 2.36
 calibers off NASA's wind-tunnel data, behind it wherever it misses by more than half a caliber, so
@@ -126,7 +126,7 @@ the margin there reads high. A flight past the validated speed carries a flag
 is flagged: `hpr sim` says its apogee is not a prediction
 ([#335](https://github.com/nrdptel/fusionspace-eridanus/issues/335);
 [Unstable under power](https://hpr.fusionspace.co/physics/metrics.html#unstable-under-power)).
-Where hpr can give no margin, a pitching moment that turns the rocket away under power raises
+Where HPR Sim can give no margin, a pitching moment that turns the rocket away under power raises
 the same warning. A margin that turns negative only after burnout is printed but not flagged.
 
 **Not in this release:**

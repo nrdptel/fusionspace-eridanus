@@ -216,7 +216,7 @@ pub struct ShockExpansionBody {
 #[non_exhaustive]
 pub enum HandoverStart {
     /// As the method starts at a pointed vertex: the flow on the cone tangent to the body at the
-    /// handover, that cone's loading and no pressure gradient (TN 3527 sketch (a), p. 6). hpr's
+    /// handover, that cone's loading and no pressure gradient (TN 3527 sketch (a), p. 6). HPR Sim's
     /// choice, and what a flight takes.
     #[default]
     TangentCone,
@@ -740,14 +740,14 @@ impl ShockExpansionBody {
     /// **It is a flag, not a verdict, at either end.** A count of zero does not promise an answer
     /// settled: whether a crossing is seen depends on the mesh, and the count is not even
     /// monotone in it: readings that cross at 40 and 160 elements per curve can show none at 10.
-    /// Nor does a count above zero promise the answer never settles: one reading of hpr's own
+    /// Nor does a count above zero promise the answer never settles: one reading of HPR Sim's own
     /// sweep crosses at every mesh and still holds to 0.003 per radian from 60 elements on. What
     /// is measured is that over 10, 40 and 160 elements the crossings, and only the crossings,
     /// mark the readings that move
     /// ([ADR-044](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md)). Nothing in a
     /// flight calls this: it is a tool for studying a body, not a guard.
     ///
-    /// The fineness-3 ogive TN 3527 prints values for never crosses at the Mach numbers hpr can
+    /// The fineness-3 ogive TN 3527 prints values for never crosses at the Mach numbers HPR Sim can
     /// check it at; there `η < 0` comes from the gradient changing sign with the gap all one way,
     /// which is bounded and settles. So this count, not [`Self::reduced_elements`], is the one to
     /// read when an answer moves with the element count; see
@@ -1215,7 +1215,7 @@ impl ElementFlow {
     /// The rate `η` grows at along the element. The exponential form holds only where the
     /// gradient behind the corner has the sign of `p_c − p₂`, `η ≥ 0` (TN 3527 p. 13), which the
     /// report states as a condition of the method without saying how it continued where the
-    /// condition fails. hpr's reading, not the report's rule: there it takes `η = 0`, where "all
+    /// condition fails. HPR Sim's reading, not the report's rule: there it takes `η = 0`, where "all
     /// equations reduce to those given by the generalized shock-expansion method" (p. 13), so the
     /// pressure and loading stay at their values behind the corner and no gradient is passed to
     /// the next corner (the generalized method's constant pressure along an element, p. 5).

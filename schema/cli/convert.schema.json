@@ -64,7 +64,7 @@
           "$ref": "#/$defs/DesignFilePath"
         },
         "migrated_from": {
-          "description": "The version of the hpr design format a `.hpr` or `.hprz` input was written in, when it was\nolder than the version written and was migrated to it; `null` otherwise.",
+          "description": "The version of the HPR design format a `.hpr` or `.hprz` input was written in, when it was\nolder than the version written and was migrated to it; `null` otherwise.",
           "type": [
             "string",
             "null"
@@ -179,12 +179,12 @@
           "const": "hpr_json"
         },
         {
-          "description": "A document of the hpr design format (`.hpr`).",
+          "description": "A document of the HPR design format (`.hpr`).",
           "type": "string",
           "const": "hpr"
         },
         {
-          "description": "A design in the hpr design format's zip container (`.hprz`).",
+          "description": "A design in the HPR design format's zip container (`.hprz`).",
           "type": "string",
           "const": "hprz"
         }

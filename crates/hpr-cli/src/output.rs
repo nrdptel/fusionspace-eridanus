@@ -103,7 +103,7 @@ pub enum MotorKind {
     SingleUse,
     /// A reload for a reusable case.
     Reload,
-    /// A hybrid: listed, but hpr models solid motors only.
+    /// A hybrid: listed, but HPR Sim models solid motors only.
     Hybrid,
 }
 
@@ -131,11 +131,11 @@ pub struct MotorSearch {
 pub struct MotorFetch {
     /// ThrustCurve.org's credit, shown with every fetched motor.
     pub attribution: Vec<String>,
-    /// The motor, and the curve file hpr flies it by.
+    /// The motor, and the curve file HPR Sim flies it by.
     pub motor: ThrustCurveMotor,
 }
 
-/// A motor found on ThrustCurve.org by name, and the curve file hpr flies it by: the first RASP
+/// A motor found on ThrustCurve.org by name, and the curve file HPR Sim flies it by: the first RASP
 /// file that reads, ranked by who measured it (a certification test, the manufacturer, a user),
 /// else the first RockSim file the same way.
 #[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
@@ -224,7 +224,7 @@ pub struct MotorShow {
     pub warnings: Vec<Warning>,
 }
 
-/// One motor's figures, worked out by hpr from its thrust curve.
+/// One motor's figures, worked out by HPR Sim from its thrust curve.
 #[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
 pub struct MotorFigures {
     /// The motor's name: the catalog's designation, or the file's.
@@ -357,10 +357,10 @@ pub struct SimFlight {
     /// What the design's or the motor file's reader accepted with a caveat, and what the design's
     /// checks found unusual but buildable.
     pub warnings: Vec<InputWarning>,
-    /// Where the flight went past what hpr's numbers have been checked for (the operating
+    /// Where the flight went past what HPR Sim's numbers have been checked for (the operating
     /// envelope, decision record ADR-179): empty for a flight inside it all.
     pub flags: Vec<SimFlag>,
-    /// The known errors in hpr's drag the flight meets, each by its issue number (decision
+    /// The known errors in HPR Sim's drag the flight meets, each by its issue number (decision
     /// record ADR-180): empty for a flight that meets none.
     pub issues: Vec<SimIssue>,
 }
@@ -398,7 +398,7 @@ pub struct McRun {
     pub landing: McLanding,
     /// The operating envelope's flags the flights raise, each with how many raised it.
     pub flags: Vec<McFlag>,
-    /// The known errors in hpr's drag or stability that the nominal flight meets.
+    /// The known errors in HPR Sim's drag or stability that the nominal flight meets.
     pub issues: Vec<SimIssue>,
     /// The `--export` file of every flight's draw and outcome, if one was written.
     pub export: Option<Export>,
@@ -593,7 +593,7 @@ pub struct SimFlag {
     pub message: String,
 }
 
-/// A known error in hpr's drag, stability or flight path that the flight meets.
+/// A known error in HPR Sim's drag, stability or flight path that the flight meets.
 #[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
 pub struct SimIssue {
     /// The issue's number on GitHub: 18, 67, 68, 70, 72, 73 or 222 for drag; 179 or 354 for a
@@ -651,11 +651,11 @@ pub enum FlagKind {
     /// not a prediction.
     UnstableUnderPower,
     /// A pitch-moment slope C_mα above zero, from the rail exit to apogee or the first
-    /// deployment while a motor burns, where hpr can give no static margin: the rocket is
+    /// deployment while a motor burns, where HPR Sim can give no static margin: the rocket is
     /// unstable under power, and its apogee is not a prediction. Raised only when
     /// `unstable_under_power` isn't.
     UnstableWithoutMargin,
-    /// Faster than the fastest public flight hpr has been compared with an independent
+    /// Faster than the fastest public flight HPR Sim has been compared with an independent
     /// reference on.
     BeyondValidatedRange,
     /// Above 15° more than 1 s after the rail exit and before apogee or the first deployment,
@@ -716,9 +716,9 @@ pub enum DesignFormat {
     Ork,
     /// A rocket's JSON (`.json`): a `hpr_design::Rocket` alone.
     HprJson,
-    /// A document of the hpr design format (`.hpr`).
+    /// A document of the HPR design format (`.hpr`).
     Hpr,
-    /// A design in the hpr design format's zip container (`.hprz`).
+    /// A design in the HPR design format's zip container (`.hprz`).
     Hprz,
 }
 
@@ -730,8 +730,8 @@ pub struct SimDevice {
     /// The part that carries it: `null` for the rocket, or the sustainer that keeps its nose;
     /// otherwise the index of the part that came apart from it, as a landing's `body` numbers it.
     pub body: Option<usize>,
-    /// Whether hpr added it rather than read it from the file: a tumble a separated part needs,
-    /// as a part flies alone with only its devices' drag. It brakes no fall hpr counts as
+    /// Whether HPR Sim added it rather than read it from the file: a tumble a separated part needs,
+    /// as a part flies alone with only its devices' drag. It brakes no fall HPR Sim counts as
     /// predicted.
     pub added: bool,
     /// What opens it.
@@ -1141,7 +1141,7 @@ pub struct ConvertDesign {
     pub rocket: String,
     /// How many motor configurations the design holds, flyable or not.
     pub configurations: usize,
-    /// The version of the hpr design format a `.hpr` or `.hprz` input was written in, when it was
+    /// The version of the HPR design format a `.hpr` or `.hprz` input was written in, when it was
     /// older than the version written and was migrated to it; `null` otherwise.
     pub migrated_from: Option<String>,
     /// The files written into a `.hprz` beside the design, by name, in order; empty for any other
@@ -1328,7 +1328,7 @@ impl DropReason {
 pub struct Analyze {
     /// The log read.
     pub log: AnalyzedLog,
-    /// What the file states about the flight: the logger's own figures, printed beside hpr's
+    /// What the file states about the flight: the logger's own figures, printed beside HPR Sim's
     /// readings and never in place of them.
     pub stated: LoggerStated,
     /// How the readings were taken.

@@ -28,7 +28,7 @@
 //!
 //! The thresholds are Debrief's (`lib/analyze/index.ts`, MIT, the project owner's own), set on its
 //! corpus of flight logs rather than taken from a published source; the running median in place of
-//! Debrief's Hampel filter is hpr's, for the reason on [`MEDIAN_WINDOW_S`].
+//! Debrief's Hampel filter is HPR Sim's, for the reason on [`MEDIAN_WINDOW_S`].
 
 use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
 use serde::{Deserialize, Serialize};
@@ -37,7 +37,7 @@ use crate::filter::{median, running_median};
 use crate::log::{FlightLog, LogFormat};
 
 /// The running median's span, s: 0.3 s, Debrief's despiking window. Debrief runs a Hampel filter
-/// over it ([`crate::filter::hampel`], threshold 4); hpr takes the plain median (threshold 0). On
+/// over it ([`crate::filter::hampel`], threshold 4); HPR Sim takes the plain median (threshold 0). On
 /// the public Pnut log Debrief ships, the ejection charge's pulse peaks at 1,028 ft, against the
 /// 1,009 ft apogee the logger states. The samples around the pulse, a dip before it and a lasting
 /// drop after it, widen its window's spread until the Hampel filter keeps it, and an apogee read
@@ -46,14 +46,14 @@ use crate::log::{FlightLog, LogFormat};
 /// [`peak_bound_m`] low, 0.077 m at 20 Hz. The Pnut numbers are checked only where the log has been
 /// fetched into `refs/` (it isn't committed); CI checks an invented log of the same shape.
 pub const MEDIAN_WINDOW_S: f64 = 0.3;
-/// The most samples either side of its center the running median takes: hpr's choice, the
-/// [`MEDIAN_WINDOW_S`] window at over 6 kHz, faster than any logger hpr reads. A log sampled
+/// The most samples either side of its center the running median takes: HPR Sim's choice, the
+/// [`MEDIAN_WINDOW_S`] window at over 6 kHz, faster than any logger HPR Sim reads. A log sampled
 /// faster is withheld ([`Reason::SampledTooFast`]): the median's cost grows with its window.
 pub const MAX_MEDIAN_HALF_WINDOW: usize = 1000;
 /// The climb above the pad that marks a flight, m (Debrief's 3 m).
 pub const LIFTOFF_HEIGHT_M: f64 = 3.0;
 /// The pad is the median of the samples before the altitude first rises this far above where the
-/// log starts, m: hpr's choice, a third of [`LIFTOFF_HEIGHT_M`], so that a log which begins just
+/// log starts, m: HPR Sim's choice, a third of [`LIFTOFF_HEIGHT_M`], so that a log which begins just
 /// before liftoff lends the pad few samples that are already climbing.
 pub const PAD_RISE_M: f64 = 1.0;
 /// How close to the pad the altitude must come to mark landing, m (Debrief's 2 m).
@@ -314,7 +314,7 @@ pub fn read(log: &FlightLog) -> Readings {
             &format!(
                 "the log's samples come every {interval:.3e} s, so a {MEDIAN_WINDOW_S} s running \
                  median would take more than {MAX_MEDIAN_HALF_WINDOW} samples either side: faster \
-                 than any logger hpr reads"
+                 than any logger HPR Sim reads"
             ),
         );
         readings.sample_interval_s = Some(interval);
@@ -514,7 +514,7 @@ fn arg_max(values: &[f64]) -> Option<usize> {
 fn no_accelerometer(log: &FlightLog) -> Reading<MaxAcceleration> {
     let detail = match log.format {
         LogFormat::PerfectFlitePf2 => {
-            "a PerfectFlite logger has no accelerometer; hpr doesn't difference the altitude \
+            "a PerfectFlite logger has no accelerometer; HPR Sim doesn't difference the altitude \
              twice to make one, as its one-foot steps would read as spikes of many g"
         }
     };
@@ -531,7 +531,7 @@ fn max_speed(
     let Some(speed) = &log.vertical_speed_m_s else {
         return Reading::withheld(
             Reason::NoSpeedColumn,
-            "the log has no speed column, and hpr doesn't difference the altitude to make one yet",
+            "the log has no speed column, and HPR Sim doesn't difference the altitude to make one yet",
         );
     };
     let Some(offset) = speed.get(liftoff..=apogee).and_then(arg_max) else {

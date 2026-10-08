@@ -55,7 +55,7 @@ fn window_len(half: usize, len: usize) -> usize {
 /// 2015, §2, eqs. 1 and 2, with `K = half` and `t = threshold`). Windows are cut short at the ends
 /// and skip `NaN`s, as in [`running_median`], which is this filter at `threshold = 0`.
 ///
-/// hpr reads heights after [`running_median`] instead (see
+/// HPR Sim reads heights after [`running_median`] instead (see
 /// [`MEDIAN_WINDOW_S`](crate::readings::MEDIAN_WINDOW_S)); this is here to show why: a pulse
 /// among other large departures, as an ejection charge's is, widens its own window's spread until
 /// the filter keeps it.

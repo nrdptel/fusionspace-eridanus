@@ -1163,7 +1163,7 @@ fn parts_no_milestone_reads_yet_are_reported_not_dropped() {
     let spine = component::rocket(&read.value.document);
     let warnings: Vec<&str> = spine.warnings.iter().map(|w| w.message.as_str()).collect();
     assert_eq!(warnings.len(), 3, "{warnings:?}");
-    let named = "a parallel stage on a rocket of more than one axial stage, which hpr does not \
+    let named = "a parallel stage on a rocket of more than one axial stage, which HPR Sim does not \
                  read yet; it was left out";
     assert_eq!(
         warnings.iter().filter(|w| **w == named).count(),
@@ -1842,7 +1842,7 @@ fn a_part_that_cannot_be_read_honestly_is_left_out_with_its_reason() {
              <material type=\"bulk\" density=\"680.0\">Cardboard</material></launchlug>\
              </subcomponents>"
                 .to_owned(),
-            "hpr attaches one only to a body tube",
+            "HPR Sim attaches one only to a body tube",
         ),
         // A freeform fin on a nose cone whose outline ends off the surface, by 2 µm.
         (
@@ -4943,7 +4943,7 @@ fn ignitions_and_one_powered_separation_are_read_as_hpr_flies_them() {
     refused(
         "sepword",
         NotFlown::SeparationNotFlown,
-        "separates at `sometime`, which hpr has no trigger for",
+        "separates at `sometime`, which HPR Sim has no trigger for",
     );
     refused(
         "late",

@@ -2,11 +2,11 @@
 //!
 //! [`super::design`] records while it reads the rocket: every lookup of a child tag by name, on
 //! the element it was looked up in, whether the tag was there or not. A tag of a part the walk read
-//! that no reader ever asked for is one hpr does not model, and is kept whole.
+//! that no reader ever asked for is one HPR Sim does not model, and is kept whole.
 //!
-//! A reader that asks for a tag and then drops or simplifies what it says (a count hpr caps, a
+//! A reader that asks for a tag and then drops or simplifies what it says (a count HPR Sim caps, a
 //! word it has no reading for, a value it does not model) [`forget`]s it, and the tag is kept
-//! whole too: the design then holds what the file said even where hpr does not read it, and an
+//! whole too: the design then holds what the file said even where HPR Sim does not read it, and an
 //! export writes it back as it was. A tag forgotten anywhere in the read stays forgotten, whoever
 //! else asks for it.
 //!

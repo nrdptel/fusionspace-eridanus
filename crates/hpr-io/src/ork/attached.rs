@@ -188,7 +188,7 @@ fn one(
         values.warn_at(
             WarningKind::Skipped,
             format!(
-                "a {} sits on a {}, and hpr attaches one only to a body tube; it was left out{}",
+                "a {} sits on a {}, and HPR Sim attaches one only to a body tube; it was left out{}",
                 spoken(&part),
                 spoken(parent),
                 and_what_was_inside(element)
@@ -242,7 +242,7 @@ fn one(
             WarningKind::Unusual,
             format!(
                 "the {} sits inside a {} {} m off the body's axis: OpenRocket places it from that \
-                 tube's axis, and hpr from the body's axis (issue #181){}",
+                 tube's axis, and HPR Sim from the body's axis (issue #181){}",
                 spoken(&part),
                 spoken(parent),
                 x.hypot(y),
@@ -280,7 +280,7 @@ fn one(
             let (kind, inside) = (spoken(&part), and_what_was_inside(element));
             values.warn_at(
                 WarningKind::Skipped,
-                format!("a {kind} holds no parts in hpr; it was read without{inside}"),
+                format!("a {kind} holds no parts in HPR Sim; it was read without{inside}"),
             );
         }
         Vec::new()
@@ -362,7 +362,7 @@ fn pod_set(
         values.warn_at(
             WarningKind::Skipped,
             format!(
-                "a pod set hangs from a {}, and hpr hangs one only from a body tube; it was left \
+                "a pod set hangs from a {}, and HPR Sim hangs one only from a body tube; it was left \
                  out{}",
                 spoken(parent),
                 and_what_was_inside(element)
@@ -376,7 +376,7 @@ fn pod_set(
         values.warn_at(
             WarningKind::Skipped,
             format!(
-                "a pod set inside a pod, which hpr does not nest; it was left out{}",
+                "a pod set inside a pod, which HPR Sim does not nest; it was left out{}",
                 and_what_was_inside(element)
             ),
         );
@@ -403,7 +403,7 @@ fn pod_set(
             Values::new(child, &at, warnings).warn_at(
                 WarningKind::Skipped,
                 format!(
-                    "a `{tag}` directly inside a pod set, where hpr's pod is a stack of nose \
+                    "a `{tag}` directly inside a pod set, where HPR Sim's pod is a stack of nose \
                      cones, body tubes and transitions; it was left out{}",
                     and_what_was_inside(child)
                 ),
@@ -423,7 +423,7 @@ fn pod_set(
             WarningKind::Skipped,
             format!(
                 "a pod with a nose cone or transition of no length, or a part of negative length, \
-                 which hpr cannot lay out; the pod set was left out{}",
+                 which HPR Sim cannot lay out; the pod set was left out{}",
                 and_what_was_inside(element)
             ),
         );
@@ -518,7 +518,7 @@ fn pod_set(
             values.warn_at(
                 WarningKind::Skipped,
                 format!(
-                    "the tube's radius is automatic with no number cached, and hpr places pods at \
+                    "the tube's radius is automatic with no number cached, and HPR Sim places pods at \
                      a fixed distance from the axis, so where they sit is not known; the pod set \
                      was left out{}",
                     and_what_was_inside(element)
@@ -529,7 +529,7 @@ fn pod_set(
         values.warn_at(
             WarningKind::Unusual,
             format!(
-                "the tube's radius is automatic, and hpr places pods at a fixed distance from the \
+                "the tube's radius is automatic, and HPR Sim places pods at a fixed distance from the \
                  axis: they were placed {radial_offset_m} m from it, by the tube radius OpenRocket \
                  cached, {tube_radius_m} m"
             ),
@@ -643,7 +643,7 @@ fn parallel_stage(
         Values::new(element, at, warnings).warn_at(
             WarningKind::Skipped,
             format!(
-                "a parallel stage {why}, which hpr does not read yet; it was left out{}",
+                "a parallel stage {why}, which HPR Sim does not read yet; it was left out{}",
                 and_what_was_inside(element)
             ),
         );
@@ -743,7 +743,7 @@ fn inner_tube(tag: &str, values: &mut Values<'_>, auto: &mut Vec<AutoDimension>)
 ///
 /// `[x, y]ₖ = 2 R s · Rot(θ − ρ) · pₖ`
 ///
-/// with OpenRocket's `(y, z)` read as hpr's `(x, y)`, as the roll angle is ([`roll_angle`]). No
+/// with OpenRocket's `(y, z)` read as HPR Sim's `(x, y)`, as the roll angle is ([`roll_angle`]). No
 /// document gives the patterns or this rule; OpenRocket 24.12 was asked, as an external oracle, on
 /// probes of every pattern, of a scale, a rotation, a radial offset and all three at once
 /// (`validation/oracles/openrocket/clusters.py`), and `hpr_validate`'s tests hold every tube of
@@ -1022,14 +1022,14 @@ fn follow_the_body(
     })?;
     if fins.tab.is_some() || fins.fillet.is_some() {
         return Err(format!(
-            "a fin set with a tab or a fillet on a {on}, which hpr models only on a body tube; it \
+            "a fin set with a tab or a fillet on a {on}, which HPR Sim models only on a body tube; it \
              was left out"
         ));
     }
     let chord = fins.planform.root_chord_m();
     let FinPlanform::Freeform { points_m, root_m } = &mut fins.planform else {
         return Err(format!(
-            "a {} fin set on a {on}: OpenRocket runs its root along the surface, which hpr reads \
+            "a {} fin set on a {on}: OpenRocket runs its root along the surface, which HPR Sim reads \
              only from a freeform outline; it was left out",
             match fins.planform {
                 FinPlanform::Trapezoidal { .. } => "trapezoidal",
@@ -1063,7 +1063,7 @@ fn follow_the_body(
     let stations = (1..=ROOT_PIECES).map(|i| chord * f64::from(i) / pieces);
     if stations.clone().any(|x| rise(x) < 0.0) {
         return Err(format!(
-            "a fin set on a {on} that narrows along its root, which hpr reads only where the body \
+            "a fin set on a {on} that narrows along its root, which HPR Sim reads only where the body \
              holds or grows; it was left out"
         ));
     }
@@ -1265,7 +1265,7 @@ fn launch_lug(values: &mut Values<'_>) -> Option<Part> {
         // written this way.
         values.warn_at(
             WarningKind::Skipped,
-            "a launch lug whose radius OpenRocket works out for itself; hpr does not resolve that, \
+            "a launch lug whose radius OpenRocket works out for itself; HPR Sim does not resolve that, \
              so it was left out",
         );
         return None;
@@ -1407,7 +1407,7 @@ fn instances(values: &mut Values<'_>, what: &str) -> Option<u32> {
         values.warn_at(
             WarningKind::Skipped,
             format!(
-                "a {what} of {count}, where hpr builds each one and adds them up; it was left out \
+                "a {what} of {count}, where HPR Sim builds each one and adds them up; it was left out \
                  rather than asked for"
             ),
         );
@@ -1437,7 +1437,7 @@ fn off_the_axis(values: &mut Values<'_>, what: &str) {
         let what = what.to_owned();
         values.warn_at(
             WarningKind::Dropped,
-            format!("a {what} off the body axis was read on it; hpr keeps one on the axis"),
+            format!("a {what} off the body axis was read on it; HPR Sim keeps one on the axis"),
         );
         values.forget(&["radialposition"]);
     }
@@ -1590,7 +1590,7 @@ pub(super) fn finish(values: &mut Values<'_>) -> Option<Finish> {
                 WarningKind::Unusual,
                 format!(
                     "`{other}` is not a surface finish this reader has a roughness for; the part \
-                     took hpr's default"
+                     took HPR Sim's default"
                 ),
             );
             values.forget(&["finish"]);

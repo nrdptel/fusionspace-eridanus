@@ -1,6 +1,6 @@
 # Third-party notices
 
-hpr-sim is licensed under either of MIT or Apache-2.0, at your option. This file records every
+FusionSpace HPR is licensed under either of MIT or Apache-2.0, at your option. This file records every
 outside source the project uses, its license, and how it is used. Update it in the same PR that
 adds a source.
 
@@ -45,7 +45,7 @@ adds a source.
   product system's WOFF2 subsets from `product/web/fonts/` at `f45454f`, unchanged, under the SIL
   Open Font License 1.1, whose texts sit beside them (`OFL-Archivo.txt`: The Archivo Project
   Authors; `OFL-CascadiaMono.txt`: Microsoft Corporation, Reserved Font Name Cascadia Code). The
-  `@font-face` rules in `theme/fonts/fonts.css` are hpr-sim's own.
+  `@font-face` rules in `theme/fonts/fonts.css` are FusionSpace HPR's own.
 
 - **ThrustCurve.org thrust curves** (`crates/hpr-motor/data/thrustcurve/curves/`, compiled into
   `hpr-motor`): 32 files that ThrustCurve.org marks public domain (license `PD`), unchanged. The
@@ -103,7 +103,7 @@ adds a source.
 - **Comparisons with RocketPy's drag curves** (ADR-009): `cargo xtask aero` reads the Calisto,
   Juno III, Cavour and Valetudo curves from the `refs/rocketpy` checkout and commits only derived
   numbers to `validation/fixtures/aero/rocketpy-drag-curves.json` (each curve's value at Mach 0.3,
-  hpr's drag coefficients, the relative errors and each file's sha256; from Mach 0.1 to 2.0, hpr's
+  HPR Sim's drag coefficients, the relative errors and each file's sha256; from Mach 0.1 to 2.0, HPR Sim's
   values and the errors, which together give each curve's value back at the sampled Mach numbers,
   147 in all, ADR-029). The curve files themselves carry
   their own terms and are **not** committed. The designs' drag inputs cite RASAero II's Users
@@ -209,7 +209,7 @@ adds a source.
   one record naming AeroTech's F27R/L by its maker, designation, common name, class and type with
   the F27R/L download's id; an empty search; a download of four invented curve files for the
   invented Z10-INVENTED, with a RockSim download of two invented files for it (M4.5g2), one under
-  the id of the Estes A8 file hpr's table of OpenRocket's curves names; and an
+  the id of the Estes A8 file HPR Sim's table of OpenRocket's curves names; and an
   empty download answer, standing in for F27R/L's RASP files so the RockSim answer above is read
   ([ADR-154](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0154-motors-fetched-from-thrustcurve-by-name.md)).
   The searches recorded on 2026-10-01 remain in the repository's history before 2026-10-03, which
@@ -433,7 +433,7 @@ same license and mode.
 | `openrocket-database` | `openrocket/openrocket-database` (`.orc` parts) | Apache-2.0 | fetched | its 16 `.orc` files are bundled unchanged (see Bundled, M5.5a). `validation/fixtures/ork/openrocket-automatic-radius.json` records the four radii OpenRocket resolves in its `ork/parachutes.ork`, and nothing else from the file |
 | `fusionspace-loft` | `nrdptel/fusionspace-loft` (the project owner's own) | MIT | fetched | ported with a note; its seven `fixtures/demo-*.ork` designs are committed as test data (below) |
 | `fusionspace-debrief` | `nrdptel/fusionspace-debrief` (the project owner's own) | MIT | fetched | ported with a note; the flight-log format knowledge behind Phase 5. Its twelve public flight-log fixtures come from publicly shared flights whose upstream terms are unrecorded, so none is committed; a test reads its Pnut log where it is fetched (ADR-108) |
-| `fusionspace-design` | `nrdptel/fusionspace-design` (the project owner's own), product system Rev A | Apache-2.0 (code-like files); brand files all rights reserved | fetched | the design rules hpr's CLI, docs site, plots and apps follow (ADR-164); its Apache-2.0 files (tokens, stylesheets, CLI styles) may be copied in with their SPDX lines and a row under Bundled; its brand files only as listed under Bundled |
+| `fusionspace-design` | `nrdptel/fusionspace-design` (the project owner's own), product system Rev A | Apache-2.0 (code-like files); brand files all rights reserved | fetched | the design rules HPR Sim's CLI, docs site, plots and apps follow (ADR-164); its Apache-2.0 files (tokens, stylesheets, CLI styles) may be copied in with their SPDX lines and a row under Bundled; its brand files only as listed under Bundled |
 | `loft-fixtures` | `nrdptel/loft-fixtures` | private; third-party design files | fetched | never committed; only derived statistics are published |
 | `debrief-fixtures` | `nrdptel/debrief-fixtures` | private; third-party flight logs | fetched | never committed; only derived statistics and anonymised case ids are published |
 | `hpr-sim-fixtures` | `nrdptel/hpr-sim-fixtures` | private; third-party designs paired with flight logs | fetched | never committed; only aggregate statistics are published, crediting the sources collectively (its `LICENSING.md`). Its flight ids carry the rocket's name, so they are not anonymised case ids. Its ERA5 files are Copernicus data under the CDS licence: anything derived from them carries the Copernicus attribution and the ERA5 citation its `LICENSING.md` gives (ADR-151) |
@@ -450,7 +450,7 @@ same license and mode.
 | `nasa-tn-d-4014` | C. D. Babb and D. E. Fuller, Static stability investigation of a sounding-rocket vehicle at Mach numbers from 1.50 to 4.63, NASA TN D-4014, 1967 | US government work | fetched | cited; M1.8a reads its plotted normal-force slopes and centres of pressure, M1.8b1 its plotted axial and chamber axial force, and M1.8c its plotted roll effectiveness (Fig. 14), into `validation/fixtures/aero/arcas-robin-wind-tunnel.json`, with figure and page; M1.8e6 reads its fins-off normal force above +4° and pitching moment into `arcas-robin-high-alpha.json` and `arcas-robin-fins-off-moment.json` |
 | `nasa-tr-r-100-stoney-1961` | W. E. Stoney, Collection of zero-lift drag data on bodies of revolution from free-flight investigations, NASA TR R-100, 1961 | US government work | fetched | cited; M1.8b1 reads Figure 12's nose pressure-drag curves (fineness 3) as points into `crates/hpr-aero/src/nose_drag.rs`, with panel and configuration; no text copied |
 | `naca-tn-2114` | S. M. Harmon and I. Jeffreys, Theoretical lift and damping in roll of thin wings with arbitrary sweep and taper at supersonic speeds: supersonic leading and trailing edges, NACA TN 2114, 1950 | US government work | fetched | cited for linear theory's lift of tapered fins (M1.8a); no text copied |
-| `rocketpy-calisto-rasaero-2018` | RocketPy data/calisto/CD Test.CSV at its first commit da91db9e (2018): a RASAero II export for Calisto | MIT; data files carry their own terms | fetched | never committed; `cargo xtask aero` commits hpr's values, its errors and the export's values at the compared Mach numbers only, as for the drag curves (ADR-009) |
+| `rocketpy-calisto-rasaero-2018` | RocketPy data/calisto/CD Test.CSV at its first commit da91db9e (2018): a RASAero II export for Calisto | MIT; data files carry their own terms | fetched | never committed; `cargo xtask aero` commits HPR Sim's values, its errors and the export's values at the compared Mach numbers only, as for the drag curves (ADR-009) |
 | `galejs-wind-instability` | R. Galejs, Wind Instability: What Barrowman Left Out, Sentinel 39 (about 1999) | unknown terms | fetched | cited, not copied or redistributed |
 | `mil-hdbk-762` | MIL-HDBK-762(MI), Design of Aerodynamically Stabilized Free Rockets, 1990 (Distribution A) | US government work | fetched | cited; M1.8b2 transcribes its sample drag calculation (Table 5-4, pp. 5-58 to 5-66) and the rocket's geometry (Fig. 5-155) into `validation/fixtures/aero/mil-hdbk-762-sample-drag.json`, with page; no text copied |
 | `nfpa-1125-2021-first-revisions` | NFPA 1125, Code for the Manufacture of Model Rocket and High Power Rocket Motors, revision cycle A2021: First Draft Report, First Revisions (FR-7, FR-8: §8.1.7 and §8.2.7) | NFPA copyright | fetched | cited for motor tolerances on the Monte Carlo page, `docs/monte-carlo.md` (M6.1a): two sentences quoted, nothing else copied |
@@ -510,7 +510,7 @@ same license and mode.
 | `hairer-dopri5` | E. Hairer and G. Wanner, DOPRI5: explicit Runge-Kutta method of order (4)5 due to Dormand and Prince, with step size control and dense output (Fortran, version of 2004) | BSD-2-Clause | fetched | ported to `hpr_sim::integrator` (M1.6a); see Ported |
 | `hairer-licence` | Licence of E. Hairer's ODE codes, Copyright (c) 2004, UNIGE | BSD-2-Clause | fetched | the terms of `hairer-dopri5` (M1.6a) |
 | `thrustcurve-metadata` | ThrustCurve.org API v1 `metadata.json` | unstated terms | fetched | attribution to ThrustCurve.org wherever the data is used; each curve file has its own data license |
-| `thrustcurve-motors` | ThrustCurve.org API v1 `search.json` (all motors) | unstated terms | fetched | kept under `refs/` only: used to choose the 32 bundled curve files (M1.3), and by `cargo xtask motor-catalog` to measure how far their figures are from ThrustCurve.org's; none of its statistics is bundled (issue #295), and `docs/physics/motor.md` and ADR-186 quote a few of them, or how far a header is from them, only where they explain why hpr flies the header's value; attribution to ThrustCurve.org wherever the data is used |
+| `thrustcurve-motors` | ThrustCurve.org API v1 `search.json` (all motors) | unstated terms | fetched | kept under `refs/` only: used to choose the 32 bundled curve files (M1.3), and by `cargo xtask motor-catalog` to measure how far their figures are from ThrustCurve.org's; none of its statistics is bundled (issue #295), and `docs/physics/motor.md` and ADR-186 quote a few of them, or how far a header is from them, only where they explain why HPR Sim flies the header's value; attribution to ThrustCurve.org wherever the data is used |
 | `thrustcurve-rasp-format` | ThrustCurve.org "RASP File Format" page | unstated terms | fetched | cited for the `.eng` format (M1.3, `docs/format/eng.md`) |
 | `thrustcurve-glossary` | ThrustCurve.org glossary page | unstated terms | fetched | cited for burn time, average thrust, loaded weight and delays (M1.3) |
 | `thrustcurve-motorstats` | ThrustCurve.org "Motor Statistics" page | unstated terms | fetched | cited for the NFPA 1125 burn-time normalization (M1.3) |
@@ -540,9 +540,9 @@ Nothing here is bundled.
 | `xarray` 2026.7.0 | Apache-2.0 | run-only | runs the guide's conversion of a netCDF-4 ERA5 file to the classic format (`validation/oracles/netcdf/era5.py`) |
 | `rasterio` 1.5.2 | BSD-3-Clause; its wheel bundles GDAL 3.12.2 (MIT) and the libraries GDAL links | run-only | writes the GeoTIFF fixtures and records the reading `hpr_io::geotiff` is checked against (`validation/oracles/geotiff/`) |
 | `cma` 4.5.0 (pycma) | BSD-3-Clause | run-only | N. Hansen's CMA-ES, run on four test functions as the reference `hpr_analysis::optimize::cmaes` is held to (`validation/oracles/cmaes/pycma_runs.py`); none of its code is ported |
-| `cmaes` 0.13.1 (CyberAgent) | MIT | run-only | its `CMAwM`, CMA-ES with margin, run on three mixed-integer test functions as the reference hpr's integer variables are held to (`validation/oracles/cmawm/cmawm_runs.py`); its `_cmawm.py` was read to check the paper's equations against, none of its code is ported |
-| `pymoo` 0.6.2 (J. Blank, K. Deb) | Apache-2.0 | run-only; equations read | its NSGA-II, run on ZDT1 to ZDT3 as the reference `hpr_analysis::optimize::nsga2` is held to (`validation/oracles/nsga2/pymoo_runs.py`); its `operators/crossover/sbx.py` and `operators/mutation/pm.py` were read for the bounded SBX and polynomial-mutation equations, which no paper we could reach prints, and `problems/multi/zdt.py` for ZDT3's piece ends; hpr's code follows the equations, derived again in its comments, not pymoo's code |
-| `moocore` 0.3.2 | LGPL-2.1-or-later | run-only | installed as a dependency of pymoo in the oracles' environment only, where it computes pymoo's non-dominated ranks during the oracle's runs; never linked, read or ported, and its indicators are not used (hpr computes IGD itself) |
+| `cmaes` 0.13.1 (CyberAgent) | MIT | run-only | its `CMAwM`, CMA-ES with margin, run on three mixed-integer test functions as the reference HPR Sim's integer variables are held to (`validation/oracles/cmawm/cmawm_runs.py`); its `_cmawm.py` was read to check the paper's equations against, none of its code is ported |
+| `pymoo` 0.6.2 (J. Blank, K. Deb) | Apache-2.0 | run-only; equations read | its NSGA-II, run on ZDT1 to ZDT3 as the reference `hpr_analysis::optimize::nsga2` is held to (`validation/oracles/nsga2/pymoo_runs.py`); its `operators/crossover/sbx.py` and `operators/mutation/pm.py` were read for the bounded SBX and polynomial-mutation equations, which no paper we could reach prints, and `problems/multi/zdt.py` for ZDT3's piece ends; HPR Sim's code follows the equations, derived again in its comments, not pymoo's code |
+| `moocore` 0.3.2 | LGPL-2.1-or-later | run-only | installed as a dependency of pymoo in the oracles' environment only, where it computes pymoo's non-dominated ranks during the oracle's runs; never linked, read or ported, and its indicators are not used (HPR Sim computes IGD itself) |
 | the dependencies `uv.lock` pins (numpy, scipy, matplotlib, netCDF4 and others) | as each package states | run-only | installed only as the oracles' runtime |
 | a Java 17 runtime (for example `brew install openjdk@17`) | GPL-2.0 WITH Classpath-exception-2.0 | run-only | installed by the user, not fetched; `refs doctor` finds it |
 
@@ -553,7 +553,7 @@ installed with `--no-deps` from that file (M3.1d2, ADR-059). Nothing in it is co
 
 | package | license | mode | notes |
 |---|---|---|---|
-| `rocketserializer` at `66d8ca8` (after release 0.2.0) | MIT | run, source read | a second reader of `.ork` files: its extractors are called one by one on each design, and `cargo xtask ork` holds hpr's key geometry to theirs. Its declared dependency `orhelper` (GPL-2.0) is not installed |
+| `rocketserializer` at `66d8ca8` (after release 0.2.0) | MIT | run, source read | a second reader of `.ork` files: its extractors are called one by one on each design, and `cargo xtask ork` holds HPR Sim's key geometry to theirs. Its declared dependency `orhelper` (GPL-2.0) is not installed |
 | `JPype1` 1.7.1 | Apache-2.0 | run-only | starts the JVM for OpenRocket, as in the oracle environment |
 | `numpy`, `beautifulsoup4`, `soupsieve`, `typing-extensions`, `lxml`, `packaging` | as each package states | run-only | what the extractors and JPype import |
 

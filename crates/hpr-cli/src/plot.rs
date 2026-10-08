@@ -17,7 +17,7 @@
 //! through them, and each event a row of the table below, with its time, altitude and name. Where
 //! the rocket falls on its airframe alone after apogee, with no recovery device open within
 //! [`crate::sim::BRAKED_WITHIN_S`] of it, the panels are hatched and labeled "not a prediction":
-//! hpr's aerodynamics hold only at small angles of attack.
+//! HPR Sim's aerodynamics hold only at small angles of attack.
 //!
 //! The figure follows the FusionSpace product system's chart rules (ADR-175): its colors are the
 //! light theme's roles, every series is simulated and so dashed in the predicted color, the

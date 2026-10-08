@@ -77,8 +77,8 @@ const VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), " · FS-ACHERNAR · SW 
 const DISPLAY_NAME: &str = hpr::hpr_core::tool::NAME;
 
 /// The command line as clap parses it: [`Cli`]'s derived command, with [`DISPLAY_NAME`] on it and
-/// on every command under it. Without that, clap names a command's version `hpr-sim`, its
-/// binary's name and the command's joined.
+/// on every command under it. Without that, clap names a command's version by its
+/// binary's name and the command's, joined with a hyphen.
 pub fn command() -> clap::Command {
     fn named(command: clap::Command) -> clap::Command {
         command.display_name(DISPLAY_NAME).mut_subcommands(named)
@@ -172,7 +172,7 @@ pub enum Command {
     Analyze(analyze::AnalyzeArgs),
     /// Diagnose what went wrong in a flight from its log (not available yet)
     Diagnose(Planned),
-    /// Print a shell completion script for hpr
+    /// Print a shell completion script for `hpr`
     Completions(CompletionsArgs),
 }
 

@@ -1,7 +1,7 @@
-//! The hpr open design format: a rocket design as one JSON document, with its JSON Schema.
+//! The HPR open design format: a rocket design as one JSON document, with its JSON Schema.
 //!
 //! **Guide:** [the format's page][guide-format] says what a document holds, how it is versioned,
-//! and how it was checked. Version 0.1 is a draft until hpr's first release: it can change in
+//! and how it was checked. Version 0.1 is a draft until HPR Sim's first release: it can change in
 //! place, so keep the source `.ork` too.
 //!
 //! A document is a [`DesignFile`]: a header naming the format ([`FORMAT`]), its version
@@ -9,9 +9,9 @@
 //! [`hpr_io::ork`] reads it from a `.ork`, then every other entry of that file's archive, such as
 //! an embedded thrust curve or a decal image. The design holds the rocket, every motor
 //! configuration, the recovery events, the simulations stored with it, and what the source file
-//! holds that hpr does not model, kept under a namespaced extension (`x-openrocket`). A `.ork`
-//! written from a document is the `.ork` hpr writes from the file it was read from, byte for
-//! byte, as checked on the 73 designs hpr's `.ork` checks read ([ADR-111][adr-111]).
+//! holds that HPR Sim does not model, kept under a namespaced extension (`x-openrocket`). A `.ork`
+//! written from a document is the `.ork` HPR Sim writes from the file it was read from, byte for
+//! byte, as checked on the 73 designs HPR Sim's `.ork` checks read ([ADR-111][adr-111]).
 //!
 //! [`to_json`] writes the canonical text: two-space indents, keys in the order the types declare
 //! them, and a final newline, so the same design always gives the same bytes and a change shows as
@@ -75,7 +75,7 @@ pub const CONTAINER_EXTENSION: &str = "hprz";
 /// [adr-199]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0199-the-2026-10-07-fusionspace-hpr.md
 pub const MEDIA_TYPE: &str = "application/vnd.fusionspace.hpr+json";
 
-/// A design as one document of the hpr design format.
+/// A design as one document of the HPR design format.
 ///
 /// The keys are written in this order. The design's own parts are those of [`hpr_io::ork::Design`],
 /// whose documentation says what each holds.
@@ -83,8 +83,8 @@ pub const MEDIA_TYPE: &str = "application/vnd.fusionspace.hpr+json";
 #[serde(deny_unknown_fields)]
 #[non_exhaustive]
 #[schemars(
-    title = "hpr design",
-    description = "A rocket design in the hpr design format."
+    title = "HPR design",
+    description = "A rocket design in the HPR design format."
 )]
 pub struct DesignFile {
     /// Always `hpr-design`.
@@ -101,7 +101,7 @@ pub struct DesignFile {
     pub recovery: Recovery,
     /// The simulations the source file stored, with their conditions and results.
     pub simulations: Vec<StoredSimulation>,
-    /// What the source file holds that hpr does not model, by namespace, kept for writing it
+    /// What the source file holds that HPR Sim does not model, by namespace, kept for writing it
     /// back.
     pub extensions: Extensions,
     /// The source file's other files, in the order it held them: a `.ork` archive's entries
@@ -145,7 +145,7 @@ impl DesignFile {
     ///
     /// # Errors
     ///
-    /// [`OrkError`] when the bytes are not a `.ork` hpr can read.
+    /// [`OrkError`] when the bytes are not a `.ork` HPR Sim can read.
     pub fn from_ork(bytes: &[u8]) -> Result<Imported<Self>, OrkError> {
         let file = ork::read(bytes)?;
         let design = ork::design(&file.value);
@@ -202,7 +202,7 @@ impl DesignFile {
     }
 
     /// The design written as a `.ork` ([`hpr_io::ork::export::write`]) with the source file's
-    /// other files, so it is the `.ork` hpr writes from the source file itself.
+    /// other files, so it is the `.ork` HPR Sim writes from the source file itself.
     ///
     /// # Errors
     ///
@@ -395,7 +395,7 @@ pub struct Provenance {
     pub tool_version: String,
     /// The program's designation in the FusionSpace product system, such as
     /// `FS-ACHERNAR · SW · TOOL 001` (`FS · SW · TOOL 005` in a document an earlier build wrote);
-    /// absent in a document written before hpr-sim 0.1's first release.
+    /// absent in a document written before the first release, 0.1.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub designation: Option<String>,
     /// The file the design was read from, if it was read from one.
@@ -463,7 +463,7 @@ pub struct Source {
 
 impl Source {
     /// The schema's pattern for [`Source::sha256`], `^[0-9a-f]{64}$`, which a `String` alone
-    /// doesn't hold to: exactly 64 lowercase hexadecimal digits, so a document hpr reads passes
+    /// doesn't hold to: exactly 64 lowercase hexadecimal digits, so a document HPR Sim reads passes
     /// the schema.
     fn check(&self) -> Result<(), FormatError> {
         let digits = self.sha256.len() == 64
@@ -518,7 +518,7 @@ pub enum FormatError {
     #[error("not JSON: {0}")]
     Json(String),
     /// The JSON is not a document of this format: its `format` is missing or another.
-    #[error("not an hpr design: the document's \"format\" is {found}, not \"hpr-design\"")]
+    #[error("not an HPR design: the document's \"format\" is {found}, not \"hpr-design\"")]
     NotADesign {
         /// What the document holds, as JSON, or `missing`.
         found: String,
@@ -539,7 +539,7 @@ pub enum FormatError {
         supported: Version,
     },
     /// The document names the format and version but does not follow the schema.
-    #[error("not a valid hpr design {VERSION}: {0}")]
+    #[error("not a valid HPR design {VERSION}: {0}")]
     Invalid(String),
     /// The design holds a value JSON cannot carry exactly, such as a number that is not finite,
     /// so the text would not read back as the same design.
@@ -588,7 +588,7 @@ pub fn to_json(document: &DesignFile) -> Result<String, FormatError> {
 ///
 /// # Errors
 ///
-/// [`FormatError`]: not JSON, not an hpr design, a version this reader doesn't take, or not
+/// [`FormatError`]: not JSON, not an HPR design, a version this reader doesn't take, or not
 /// valid.
 pub fn from_json(text: &str) -> Result<DesignFile, FormatError> {
     read_json(text).map(|opened| opened.value)
@@ -618,7 +618,7 @@ pub struct Opened<T> {
 ///
 /// # Errors
 ///
-/// [`FormatError`]: not JSON, not an hpr design, a version this reader doesn't take, or not
+/// [`FormatError`]: not JSON, not an HPR design, a version this reader doesn't take, or not
 /// valid.
 pub fn read_json(text: &str) -> Result<Opened<DesignFile>, FormatError> {
     // A byte-order mark, which some Windows editors write at the start of UTF-8, is not JSON.
@@ -683,9 +683,9 @@ pub fn read_json(text: &str) -> Result<Opened<DesignFile>, FormatError> {
 /// Refuses a document whose JSON holds an array where `document`, written back, holds an object.
 ///
 /// serde reads a struct, or a variant of an enum tagged inside its object, from an array of its
-/// fields in order (`"provenance": ["hpr-sim", "0.1.0"]`), and a struct whose fields all have
+/// fields in order (`"provenance": ["FusionSpace HPR", "0.1.0"]`), and a struct whose fields all have
 /// defaults from `[]`. The schema wants an object there, so the reader refuses it too: every
-/// object hpr writes is one in the text it reads.
+/// object HPR Sim writes is one in the text it reads.
 ///
 /// # Errors
 ///

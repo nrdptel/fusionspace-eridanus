@@ -39,6 +39,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.6d3 The crates' em dashes ([Phase 0](#phase-0-foundations))
 - M0.6e US names ([Phase 0](#phase-0-foundations))
 - M0.7a1 The no-clipping checks ([Phase 0](#phase-0-foundations))
+- M0.9a1 The packages' text ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -352,6 +353,11 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M0.7a1 The no-clipping checks** (ADR-204). *Done when:* M0.7a's three checks fail as
       stated, each with its test; CI runs them on every SVG under `docs/`, each `--plot` that
       `xtask cli` writes and every page of the site; all pass, fixed by layout, not cropping.
+- **M0.9** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+  - **M0.9a** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+    - [x] **M0.9a1 The packages' text** (ADR-206). *Done when:* M0.9a's check, allowlist rules
+      and three tests hold on every ADR-205 §1 surface but the site's pages, the landing page
+      included, with its first-paragraph test.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

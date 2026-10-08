@@ -6,7 +6,7 @@
 //!
 //! The file is written from the [`Design`] alone: its rocket, its motors, when its recovery
 //! opens and its stages separate, and the simulations OpenRocket last ran, each written as the
-//! tags [`super::design`] reads them from. Everything the design keeps but hpr does not model
+//! tags [`super::design`] reads them from. Everything the design keeps but HPR Sim does not model
 //! (its [`super::Extensions`], such as a pod set, a part's color or a simulation's extension) is
 //! put back where it was. So a `.ork` read and written again reads back as the same design, which
 //! is how `cargo xtask ork` checks this on every file in the reference library

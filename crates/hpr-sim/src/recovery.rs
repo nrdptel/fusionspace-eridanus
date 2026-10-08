@@ -87,8 +87,8 @@ impl CanopyType {
         }
     }
 
-    /// The middle of [`Self::drag_coefficient_range`], which is what hpr uses when the user gives
-    /// no `C_D0`. Knacke prints a range for every type and no single value; the middle is hpr's
+    /// The middle of [`Self::drag_coefficient_range`], which is what HPR Sim uses when the user gives
+    /// no `C_D0`. Knacke prints a range for every type and no single value; the middle is HPR Sim's
     /// choice, not his (the decision record on recovery, [ADR-012][adr-012]).
     ///
     /// [adr-012]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-012-recovery-drag-areas-triggers-inflation-and-the-descent-phase-2026-09-17
@@ -144,7 +144,7 @@ impl CanopyType {
     }
 
     /// The infinite-mass opening-force coefficient `C_x = F_x/F_c` (Tables 5-1 and 5-2; the cross
-    /// canopy's printed 1.1 to 1.2 is taken at its middle). hpr reports it; it is not used in the
+    /// canopy's printed 1.1 to 1.2 is taken at its middle). HPR Sim reports it; it is not used in the
     /// equations, which integrate the opening force instead.
     #[must_use]
     pub const fn opening_force_coefficient(self) -> f64 {
@@ -190,8 +190,8 @@ pub enum StreamerModel {
     ///   does not repeat as an equation),
     /// - `C_D = 0.405 AR^−0.494` at `S = 0.075 m²` (eq. 1; Figure 4 reads `0.4046 AR^−0.494`).
     ///
-    /// hpr interpolates between **neighbouring** curves linearly in `ln S` and holds the end
-    /// curve outside the fitted range. That interpolation is hpr's, not the paper's. All three
+    /// HPR Sim interpolates between **neighbouring** curves linearly in `ln S` and holds the end
+    /// curve outside the fitted range. That interpolation is HPR Sim's, not the paper's. All three
     /// are needed because `C_D` is far from linear in `ln S`: at `AR = 3.3` the middle curve sits
     /// 0.3% *below* the smallest area's rather than 63% of the way to the largest's, so blending
     /// only the extremes reads 18% low there.

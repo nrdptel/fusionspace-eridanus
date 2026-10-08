@@ -92,7 +92,7 @@ impl OrkFile {
     }
 }
 
-/// A `.ork` design read whole: its rocket, carrying every motor configuration hpr can fly as
+/// A `.ork` design read whole: its rocket, carrying every motor configuration HPR Sim can fly as
 /// written, and everything the file says about its motors.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
 #[non_exhaustive]
@@ -111,13 +111,13 @@ pub struct Design {
     pub recovery: Recovery,
     /// The simulations OpenRocket last ran on the design, with their conditions and results.
     pub simulations: Vec<StoredSimulation>,
-    /// What the file holds that hpr does not model, kept whole for an export to put back.
+    /// What the file holds that HPR Sim does not model, kept whole for an export to put back.
     #[serde(default)]
     pub extensions: Extensions,
 }
 
 impl Design {
-    /// A design from its parts, as the hpr design format holds them (`hpr_format::DesignFile`).
+    /// A design from its parts, as the HPR design format holds them (`hpr_format::DesignFile`).
     pub fn new(
         rocket: hpr_design::Rocket,
         motors: Motors,
@@ -135,7 +135,7 @@ impl Design {
     }
 
     /// Whether the rocket is reduced: the file describes parts of it (a pod, a parallel stage, a
-    /// part hpr cannot shape) that are kept in [`Design::extensions`] rather than read into it.
+    /// part HPR Sim cannot shape) that are kept in [`Design::extensions`] rather than read into it.
     ///
     /// The flag is on the `Design`, not on [`Design::rocket`]: check it before using the rocket on
     /// its own. A part read as something simpler, such as a cluster of tubes read as one, does not
@@ -149,7 +149,7 @@ impl Design {
 
     /// Returns why `simulation` cannot be used as a reference for this design.
     ///
-    /// This combines the stored-result screen with hpr's design-reproduction screen. Use
+    /// This combines the stored-result screen with HPR Sim's design-reproduction screen. Use
     /// [`StoredSimulation::reference_exclusion`] and [`Self::reproduction_exclusion`] separately
     /// when those two questions need to be reported independently.
     #[must_use]
@@ -162,11 +162,11 @@ impl Design {
             .or_else(|| self.reproduction_exclusion(simulation))
     }
 
-    /// Returns why hpr cannot reproduce the design named by a stored launch configuration.
+    /// Returns why HPR Sim cannot reproduce the design named by a stored launch configuration.
     ///
     /// This is deliberately separate from [`StoredSimulation::reference_exclusion`]: a complete
-    /// OpenRocket result can be a useful stored reference even when hpr does not yet have its
-    /// motor curve or full airframe model. A caller that needs a result hpr can fly should apply
+    /// OpenRocket result can be a useful stored reference even when HPR Sim does not yet have its
+    /// motor curve or full airframe model. A caller that needs a result HPR Sim can fly should apply
     /// both classifiers.
     #[must_use]
     pub fn reproduction_exclusion(

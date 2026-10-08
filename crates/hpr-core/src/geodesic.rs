@@ -37,7 +37,7 @@ use crate::geodesy::{Ellipsoid, Geodetic};
 
 /// The largest flattening the geodesics accept, 1/150: Karney 2013 (page 9) shows the sixth-order
 /// series' truncation below `f64` round-off up to there. GeographicLib's own error table for the
-/// series grows to 10 µm at `f` = 0.05 and 0.3 m at 0.2. Every planet-like body hpr flies on is
+/// series grows to 10 µm at `f` = 0.05 and 0.3 m at 0.2. Every planet-like body HPR Sim flies on is
 /// inside: WGS 84's `f` is 1/298.257.
 pub const GEODESIC_MAX_FLATTENING: f64 = 1.0 / 150.0;
 

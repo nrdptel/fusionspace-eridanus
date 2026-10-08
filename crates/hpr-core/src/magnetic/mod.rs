@@ -97,7 +97,7 @@ pub enum CompassZone {
 /// The magnetic elements at one place and time, and their rates of change.
 ///
 /// Components are in the local geodetic north-east-down frame of the WGS 84 ellipsoid, as the
-/// report gives them (hpr's launch frame is east-north-up: see [`MagneticField::enu_nt`]); angles
+/// report gives them (HPR Sim's launch frame is east-north-up: see [`MagneticField::enu_nt`]); angles
 /// are in radians; rates are per year.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -136,7 +136,7 @@ pub struct MagneticField {
 }
 
 impl MagneticField {
-    /// The field as east, north and up components, nT: `(Y, X, −Z)`, the axes of hpr's launch
+    /// The field as east, north and up components, nT: `(Y, X, −Z)`, the axes of HPR Sim's launch
     /// frame (`docs/physics/frames.md`).
     #[must_use]
     pub fn enu_nt(&self) -> DVec3 {

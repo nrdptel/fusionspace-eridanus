@@ -1153,7 +1153,7 @@ fn sim_flies_a_payload_dropped_with_nothing_left_to_burn_as_the_library_does() {
     assert!(!message.contains("recovery is not flown"), "{message}");
     assert!(
         message.ends_with(
-            "set one of them to open at the lower stage's separation, with no delay, for hpr to \
+            "set one of them to open at the lower stage's separation, with no delay, for HPR Sim to \
              fly it"
         ),
         "{message}"
@@ -1699,7 +1699,7 @@ fn sim_refuses_what_it_cant_fly() {
     );
     refused(
         &["sim", &probe, "--motor", "Z9999"],
-        "Z9999 is not in hpr's cache of ThrustCurve.org, and the run is offline (HPR_OFFLINE is \
+        "Z9999 is not in HPR Sim's cache of ThrustCurve.org, and the run is offline (HPR_OFFLINE is \
          set)\nhelp: with a network connection, `hpr motors fetch Z9999` fetches it into the cache",
     );
     refused(
@@ -1722,7 +1722,7 @@ fn sim_refuses_what_it_cant_fly() {
     refused(&["sim", "missing.ork"], "missing.ork");
     refused(
         &["sim", "design.rkt"],
-        "reads an OpenRocket .ork file, an hpr design (.hpr or .hprz), or a rocket's JSON (.json)",
+        "reads an OpenRocket .ork file, an HPR design (.hpr or .hprz), or a rocket's JSON (.json)",
     );
     let not_json = folder.path().join("design.json");
     std::fs::write(&not_json, "{}").unwrap();
@@ -1844,7 +1844,7 @@ fn sim_refuses_what_it_cant_fly() {
     );
     assert!(
         flown["notes"].as_array().unwrap().iter().any(|note| note
-            == "the file has parts hpr keeps aside instead of flying, such as a parallel stage: \
+            == "the file has parts HPR Sim keeps aside instead of flying, such as a parallel stage: \
                 the rocket flown is the rest of it"),
         "{flown:#}"
     );
@@ -2313,7 +2313,7 @@ fn sim_offline_flag_alone_reads_the_cache_only() {
     let stderr = text(&output.stderr);
     assert!(
         stderr.contains(
-            "error: F27R/L is not in hpr's cache of ThrustCurve.org, and the run is offline\n\
+            "error: F27R/L is not in HPR Sim's cache of ThrustCurve.org, and the run is offline\n\
              help: with a network connection, `hpr motors fetch F27R/L` fetches it into the \
              cache\n"
         ),
@@ -3824,7 +3824,7 @@ fn convert_takes_a_design_through_every_format() {
         "{printed}"
     );
     assert!(
-        printed.contains("2 motor configurations, hpr design format 0.2"),
+        printed.contains("2 motor configurations, HPR design format 0.2"),
         "{printed}"
     );
     assert!(
@@ -3933,7 +3933,7 @@ fn convert_refuses_a_design_it_cant_write() {
         &["convert", &ork, &path("out.hprz"), "--attach", &design],
         "which is the design's entry",
     );
-    refused(&["convert", &design, &path("out.ork")], "not an hpr design");
+    refused(&["convert", &design, &path("out.ork")], "not an HPR design");
     std::fs::write(path("bad.hprz"), b"PK\x03\x04 and no more").unwrap();
     refused(
         &["convert", &path("bad.hprz"), &path("out.hpr")],
@@ -3985,7 +3985,7 @@ fn sim_flies_an_hpr_design_as_its_ork() {
     let flown = json(&["sim", &old.to_string_lossy()], 0, "sim.schema.json");
     assert_eq!(
         flown["notes"][0],
-        "the design is version 0.1 of the hpr design format, read as version 0.2"
+        "the design is version 0.1 of the HPR design format, read as version 0.2"
     );
     assert_eq!(flown["motors"][0]["designation"], "H128W");
 }

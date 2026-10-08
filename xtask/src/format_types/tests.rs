@@ -414,7 +414,7 @@ fn both_readers_agree_with_the_schema_on_mutations() {
     }
     assert!(
         hpr_takes_what_the_schema_refuses.is_empty(),
-        "hpr reads {} mutations the schema refuses, first:\n{}",
+        "HPR Sim reads {} mutations the schema refuses, first:\n{}",
         hpr_takes_what_the_schema_refuses.len(),
         hpr_takes_what_the_schema_refuses
             .iter()
@@ -513,8 +513,8 @@ fn both_readers_at_the_edges() {
         (
             "other.hpr",
             good.replacen("\"hpr-design\"", "\"hpr-other\"", 1),
-            "refused other.hpr: not an hpr design",
-            "refused other.hpr: not an hpr design",
+            "refused other.hpr: not an HPR design",
+            "refused other.hpr: not an HPR design",
             Some(true),
         ),
         (
@@ -683,7 +683,7 @@ fn both_readers_at_the_edges() {
         assert!(py[i].starts_with(&py_start), "Python, {name}: {}", py[i]);
         if let Some(refuses) = hpr_refuses {
             let hpr = hpr_format::read_json(text);
-            assert_eq!(hpr.is_err(), *refuses, "hpr, {name}: {:?}", hpr.err());
+            assert_eq!(hpr.is_err(), *refuses, "HPR Sim, {name}: {:?}", hpr.err());
         }
     }
     // hpr's reader stops at the same depth, for the same reason.

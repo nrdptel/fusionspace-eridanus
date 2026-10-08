@@ -1,4 +1,4 @@
-/** A document the reader refused: not JSON, not an hpr design, another version, or not valid. */
+/** A document the reader refused: not JSON, not an HPR design, another version, or not valid. */
 export class DesignFormatError extends Error {
   constructor(message: string) {
     super(message);
@@ -13,11 +13,11 @@ export class DesignFormatError extends Error {
  * back has the types above.
  *
  * It checks what the schema says: every required key present, no unknown key, each value of its
- * type, each tagged union one of its forms. hpr's own reader checks a few things more that no
- * schema can say, such as that two source files don't share a name, so hpr can still refuse a
- * document this takes. Like hpr, it refuses a number too large for a 64-bit float, a lone UTF-16
+ * type, each tagged union one of its forms. HPR Sim's own reader checks a few things more that no
+ * schema can say, such as that two source files don't share a name, so HPR Sim can still refuse a
+ * document this takes. Like HPR Sim, it refuses a number too large for a 64-bit float, a lone UTF-16
  * surrogate (`"\ud800"`), and nesting 128 levels deep. `JSON.parse` keeps the last of two equal
- * keys, where hpr refuses them, and can't tell `2.0` from `2`, which hpr refuses where it wants a
+ * keys, where HPR Sim refuses them, and can't tell `2.0` from `2`, which HPR Sim refuses where it wants a
  * whole number; and a whole number of 2^53 or more, which it would round, is refused.
  *
  * @throws {DesignFormatError} The document is not one of this version.
@@ -35,7 +35,7 @@ export function readDesign(text: string): DesignFile {
     throw new DesignFormatError(`not JSON: ${unread}`);
   }
   if (!isObject(value) || value.format !== FORMAT) {
-    throw new DesignFormatError(`not an hpr design: its "format" is not "${FORMAT}"`);
+    throw new DesignFormatError(`not an HPR design: its "format" is not "${FORMAT}"`);
   }
   if (value.version !== VERSION) {
     throw new DesignFormatError(versionMessage(value.version));
@@ -92,13 +92,13 @@ interface Problem {
   expected?: string[];
 }
 
-/** The deepest nesting hpr reads: serde_json refuses a 128th level of arrays and objects. */
+/** The deepest nesting HPR Sim reads: serde_json refuses a 128th level of arrays and objects. */
 const MOST_LEVELS = 127;
 
-/** A lone UTF-16 surrogate, which JSON can escape (`"\ud800"`) but hpr refuses. */
+/** A lone UTF-16 surrogate, which JSON can escape (`"\ud800"`) but HPR Sim refuses. */
 const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:^|[^\uD800-\uDBFF])[\uDC00-\uDFFF]/;
 
-/** Why hpr couldn't read `value` as JSON although `JSON.parse` did, or `null`. */
+/** Why HPR Sim couldn't read `value` as JSON although `JSON.parse` did, or `null`. */
 function scan(value: unknown): string | null {
   const stack: Array<[unknown, number]> = [[value, 0]];
   while (stack.length > 0) {
@@ -242,7 +242,7 @@ function check(value: unknown, node: SchemaNode, path: string): Problem | null {
     if (node.minimum !== undefined && value < node.minimum) {
       return { path, message: `is ${value}, less than ${node.minimum}` };
     }
-    // A `uint` is 64 bits in hpr, but JavaScript holds whole numbers exactly only below 2^53.
+    // A `uint` is 64 bits in HPR Sim, but JavaScript holds whole numbers exactly only below 2^53.
     const most = node.format === "uint32" ? 4294967295 : node.format === "uint" ? Number.MAX_SAFE_INTEGER : null;
     if (most !== null && value > most) {
       return { path, message: `is ${value}, more than ${node.format} holds exactly here (${most})` };

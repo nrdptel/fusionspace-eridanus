@@ -40,7 +40,7 @@
 //! - **The base behind a boattail** ([`boattail_base_pressure_ratio`]): MIL-HDBK-762 Fig. 5-141
 //!   (printed p. 5-210, after Rubin, Brazzel and Henderson, 1970) correlates a boattail's base
 //!   pressure with a cylinder's at Mach 2.5 to 3.5 as `p_cyl/p_bt = 0.442 + 0.558 a_b`, with
-//!   `a_b` the base's area over the cylinder's. hpr takes the cylinder's pressure from Love's
+//!   `a_b` the base's area over the cylinder's. HPR Sim takes the cylinder's pressure from Love's
 //!   correlation (Fig. 5-139, printed p. 5-208; NACA TN 3819) and scales its own base drag by the
 //!   ratio of the two coefficients, `k = C_p,bt/C_p,cyl`. Below Mach 2.5, where the correlation
 //!   over-predicts the relief of the measured bases, `k` is held at its Mach 2.5 value, which
@@ -416,7 +416,7 @@ impl Boattail {
     /// A boattail of `length_m` narrowing from `fore_diameter_m` to `aft_diameter_m`, compared as
     /// the cone through the same ends. For one length, area ratio and Mach number Jack found the
     /// cone's wave drag the smallest of conical, tangent-parabolic and secant-parabolic boattails
-    /// (NACA TN 2972 p. 1), so a curved boattail likely drags more than hpr gives; its steeper
+    /// (NACA TN 2972 p. 1), so a curved boattail likely drags more than HPR Sim gives; its steeper
     /// aft end may also separate where the cone's chord angle doesn't.
     ///
     /// # Errors

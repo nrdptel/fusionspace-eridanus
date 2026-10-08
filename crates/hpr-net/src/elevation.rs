@@ -9,7 +9,7 @@
 //! a *surface* model: its heights include buildings and vegetation, so over a tree line or
 //! buildings they sit above the bare ground. Its heights are above the EGM2008 geoid (mean sea
 //! level), not the WGS 84 ellipsoid (§1.2.1, p. 13): a site's ellipsoidal height is `h = H + N`,
-//! with `N` the geoid undulation there, which hpr has no model for ([geodesy notes][geodesy]).
+//! with `N` the geoid undulation there, which HPR Sim has no model for ([geodesy notes][geodesy]).
 //! The ocean has no tiles and reads 0 m.
 //!
 //! An [`ElevationRequest`] names the places; [`parse`] reads the answer, refusing one with the

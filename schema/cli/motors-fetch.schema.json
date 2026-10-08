@@ -12,7 +12,7 @@
       }
     },
     "motor": {
-      "description": "The motor, and the curve file hpr flies it by.",
+      "description": "The motor, and the curve file HPR Sim flies it by.",
       "$ref": "#/$defs/ThrustCurveMotor"
     },
     "tool": {
@@ -152,7 +152,7 @@
       ]
     },
     "ThrustCurveMotor": {
-      "description": "A motor found on ThrustCurve.org by name, and the curve file hpr flies it by: the first RASP\nfile that reads, ranked by who measured it (a certification test, the manufacturer, a user),\nelse the first RockSim file the same way.",
+      "description": "A motor found on ThrustCurve.org by name, and the curve file HPR Sim flies it by: the first RASP\nfile that reads, ranked by who measured it (a certification test, the manufacturer, a user),\nelse the first RockSim file the same way.",
       "type": "object",
       "properties": {
         "common_name": {

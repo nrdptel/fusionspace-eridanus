@@ -813,7 +813,7 @@ fn a_document_of_another_version_is_not_written() {
         assert_eq!(
             to_json(&read).unwrap_err().to_string(),
             format!(
-                "not a valid hpr design 0.2: its \"version\" is {version}, and this program \
+                "not a valid HPR design 0.2: its \"version\" is {version}, and this program \
                  writes only 0.2"
             )
         );
@@ -1028,14 +1028,14 @@ fn an_older_document_that_does_not_migrate_is_refused() {
     };
     assert_eq!(
         swap("\"attachments\":", "\"not_attachments\":"),
-        "not a valid hpr design 0.2: as a 0.1 document, it has no \"attachments\""
+        "not a valid HPR design 0.2: as a 0.1 document, it has no \"attachments\""
     );
     assert_eq!(
         swap(
             "\"attachments\":",
             "\"source_files\": [],\n  \"attachments\":"
         ),
-        "not a valid hpr design 0.2: as a 0.1 document, it has a \"source_files\", which 0.1 \
+        "not a valid HPR design 0.2: as a 0.1 document, it has a \"source_files\", which 0.1 \
          doesn't define"
     );
     let unknown = swap(
@@ -1697,7 +1697,7 @@ fn the_migration_recovers_the_airframes_reason_from_the_configurations() {
     value["provenance"]["source"]["airframe_not_as_written"] = serde_json::json!("x");
     assert_eq!(
         from_json(&value.to_string()).unwrap_err().to_string(),
-        "not a valid hpr design 0.2: as a 0.1 document, its source has an \
+        "not a valid HPR design 0.2: as a 0.1 document, its source has an \
          \"airframe_not_as_written\", which 0.1 doesn't define"
     );
 }

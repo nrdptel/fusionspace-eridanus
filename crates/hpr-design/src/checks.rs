@@ -25,7 +25,7 @@ pub const DRAWING_TOLERANCE_M: f64 = 0.005 * 0.0254;
 /// ISO 2768-1:1989, table 1, tolerance class *c* (coarse): the permissible deviation of a linear
 /// dimension with no tolerance of its own. Each entry is `(upper size, ± deviation)`, m, for sizes
 /// above the previous entry's and up to and including this one's; the first band starts at
-/// 0.5 mm, included, below which the standard sets none. The standard is for machined parts; hpr borrows
+/// 0.5 mm, included, below which the standard sets none. The standard is for machined parts; HPR Sim borrows
 /// its coarse class for hobby airframe parts, which no standard covers.
 pub const COARSE_GENERAL_TOLERANCE_M: [(f64, f64); 8] = [
     (0.003, 0.0002),
@@ -61,7 +61,7 @@ pub fn fit_tolerance_m(room_m: f64) -> f64 {
 /// and HP RMS-29/120, archived from aerotech-rocketry.com in 2005; inches, `.XXX` to
 /// [`DRAWING_TOLERANCE_M`]) give the cases as 0.698, 0.938 and 1.125 in across, so at most 0.703,
 /// 0.943 and 1.130 in. Each entry is `(nominal size, largest case)`. ThrustCurve.org and RASP
-/// files carry the nominal size, so a "29 mm" motor is 29 mm in hpr, and an AeroTech RMS-29 case
+/// files carry the nominal size, so a "29 mm" motor is 29 mm in HPR Sim, and an AeroTech RMS-29 case
 /// at most 28.70 mm in the hand; other makers' cases may differ. The same drawings give 38, 54,
 /// 75 and 98 mm cases as 1.500, 2.125, 2.965 and 3.870 in, so at the +0.005 in limit each is at
 /// least as wide as its name, and those sizes get no slack.
@@ -751,7 +751,7 @@ struct Room {
 /// nose cone's or transition's inside radius along the part (#313). That is the profile's outer
 /// radius less its wall (none when filled, and none where the wall closes in at a tip), its least
 /// and most over the part's span within the profile: the span's two ends and [`ROOM_SAMPLES`]
-/// stations between them. Every profile hpr draws is concave (its radius never dips between two
+/// stations between them. Every profile HPR Sim draws is concave (its radius never dips between two
 /// stations), so the least is at an end; the samples guard that claim. The wall is measured
 /// normal to the surface, so outer less wall overstates the inside radius by `t (1/cos θ − 1)` on
 /// a slope `θ`: 1% of the wall at 8°, 0.1 mm of a 3 mm wall at 15°. An automatic radius in a

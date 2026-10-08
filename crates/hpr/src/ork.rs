@@ -91,7 +91,7 @@ pub struct Recovered {
     pub devices: Vec<Device>,
     /// The devices that never deploy in this configuration, by name, with why.
     pub not_deployed: Vec<(String, NeverDeploys)>,
-    /// How many devices at the end of `devices` hpr added rather than read from the file: the
+    /// How many devices at the end of `devices` HPR Sim added rather than read from the file: the
     /// tumbles [`separated_recovery`] adds ([`tumbling`]). Zero from [`recovery`].
     #[serde(default)]
     pub added: usize,
@@ -134,8 +134,8 @@ impl NeverDeploys {
 #[derive(Debug, Clone, PartialEq, thiserror::Error)]
 #[non_exhaustive]
 pub enum RecoveryRefused {
-    /// A parachute or streamer inside a part hpr does not read, such as a pod.
-    #[error("a {tag} at {at} is inside a `{inside}`, which hpr does not read")]
+    /// A parachute or streamer inside a part HPR Sim does not read, such as a pod.
+    #[error("a {tag} at {at} is inside a `{inside}`, which HPR Sim does not read")]
     Unread {
         /// `parachute` or `streamer`.
         tag: String,
@@ -148,15 +148,15 @@ pub enum RecoveryRefused {
     /// separation with nothing ahead of it left to burn: [`separated_recovery`] opens one at that
     /// split alone ([ADR-165](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0165-an-unpowered-separation-in-hpr-sim.md)).
     #[error(
-        "`{name}` deploys at the lower stage's separation, which hpr flies only when that stage \
+        "`{name}` deploys at the lower stage's separation, which HPR Sim flies only when that stage \
          drops away with nothing ahead of it left to burn"
     )]
     AtSeparation {
         /// The device's name.
         name: String,
     },
-    /// A deployment event hpr does not know, or none.
-    #[error("`{name}` deploys at `{word}`, an event hpr does not know")]
+    /// A deployment event HPR Sim does not know, or none.
+    #[error("`{name}` deploys at `{word}`, an event HPR Sim does not know")]
     UnknownEvent {
         /// The device's name.
         name: String,
@@ -194,9 +194,9 @@ pub enum RecoveryRefused {
     /// [ADR-165](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0165-an-unpowered-separation-in-hpr-sim.md)).
     #[error(
         "{name}, the part that keeps the nose, would coast with no drag from the separation at \
-         {time_s:.3} s: with nothing ahead of it left to burn, hpr flies it as a point with only \
+         {time_s:.3} s: with nothing ahead of it left to burn, HPR Sim flies it as a point with only \
          its own devices' drag, and none of them is open by then; set one of them to open at \
-         the lower stage's separation, with no delay, for hpr to fly it"
+         the lower stage's separation, with no delay, for HPR Sim to fly it"
     )]
     Coasts {
         /// The part, after its first stage.
@@ -236,7 +236,7 @@ pub enum RecoveryRefused {
 ///
 /// # Errors
 ///
-/// [`RecoveryRefused`]: a device in a part hpr does not read, one deployed at a separation or
+/// [`RecoveryRefused`]: a device in a part HPR Sim does not read, one deployed at a separation or
 /// by an unknown event, at the charge of a stage with no lit motor, a part not in `assembly`,
 /// or a number outside its domain.
 pub fn recovery(
@@ -529,7 +529,7 @@ fn map_devices(
             Some(Dimension::Automatic { .. }) | None => None,
             Some(_) => {
                 return Err(domain(
-                    "drag coefficient (a kind hpr does not know)",
+                    "drag coefficient (a kind HPR Sim does not know)",
                     f64::NAN,
                 ));
             }

@@ -807,7 +807,7 @@
             "sections": [],
             "tags": []
           },
-          "description": "What the design holds that hpr does not model."
+          "description": "What the design holds that HPR Sim does not model."
         }
       },
       "type": "object"
@@ -1948,7 +1948,7 @@
           "description": "The separation it flies first, for one among the rocket's configurations that has one\n([`staging`]): powered, or with nothing ahead of it left to burn, its only one. The rocket's configuration does not carry it: give it to the flight\n(`hpr::ork::separations` maps [`Self::stagings`] onto the flight's), with a recovery device\non each part."
         },
         "unread": {
-          "description": "Its motors in parts hpr does not read.",
+          "description": "Its motors in parts HPR Sim does not read.",
           "items": {
             "$ref": "#/$defs/UnreadMotor"
           },
@@ -2061,7 +2061,7 @@
       "oneOf": [
         {
           "const": "hybrid",
-          "description": "A hybrid: hpr flies commercial solid motors only.",
+          "description": "A hybrid: HPR Sim flies commercial solid motors only.",
           "type": "string"
         },
         {
@@ -2321,7 +2321,7 @@
       "oneOf": [
         {
           "const": "unread_motor",
-          "description": "A motor is in a part hpr does not read, such as a pod.",
+          "description": "A motor is in a part HPR Sim does not read, such as a pod.",
           "type": "string"
         },
         {
@@ -2331,7 +2331,7 @@
         },
         {
           "const": "inactive_stage",
-          "description": "It marks a stage inactive, and hpr flies every stage.",
+          "description": "It marks a stage inactive, and HPR Sim flies every stage.",
           "type": "string"
         },
         {
@@ -2346,17 +2346,17 @@
         },
         {
           "const": "ignition_not_flown",
-          "description": "A motor lights when hpr can't light it: at a word hpr does not know, after a negative\ndelay, at the ejection charge of a motor below that states no delay, or at an event of a\nstage below that holds no motor, or motors in more than one mount; or no motor of the\nconfiguration lights at all ([`staging`]). A motor that never lights beside one that does is flown unlit.",
+          "description": "A motor lights when HPR Sim can't light it: at a word HPR Sim does not know, after a negative\ndelay, at the ejection charge of a motor below that states no delay, or at an event of a\nstage below that holds no motor, or motors in more than one mount; or no motor of the\nconfiguration lights at all ([`staging`]). A motor that never lights beside one that does is flown unlit.",
           "type": "string"
         },
         {
           "const": "airframe_not_as_written",
-          "description": "The airframe or a motor mount was not read exactly as written: reading it raised a\nwarning. A part was left out (a pod set hpr cannot lay out, a parallel stage, a part hpr\ncould not give a shape), a value was dropped or simplified (a rail button's screw\nhead, a material that could not be read), or something was assumed (a shape hpr does not know read\nas a cone). Flying it would fly a\nrocket the design may not be.",
+          "description": "The airframe or a motor mount was not read exactly as written: reading it raised a\nwarning. A part was left out (a pod set HPR Sim cannot lay out, a parallel stage, a part HPR Sim\ncould not give a shape), a value was dropped or simplified (a rail button's screw\nhead, a material that could not be read), or something was assumed (a shape HPR Sim does not know read\nas a cone). Flying it would fly a\nrocket the design may not be.",
           "type": "string"
         },
         {
           "const": "separation_not_flown",
-          "description": "Its stages come apart in a way hpr doesn't fly: one with no motor ahead of it still burning\nor yet to light when it fires, beside another; one with a motor behind it not yet spent;\none at or after apogee beside another; one that comes before the\nseparation behind it; one at launch, or at the ignition of a motor that never lights; a\nnegative delay; or an event hpr has no trigger for ([`staging`]).",
+          "description": "Its stages come apart in a way HPR Sim doesn't fly: one with no motor ahead of it still burning\nor yet to light when it fires, beside another; one with a motor behind it not yet spent;\none at or after apogee beside another; one that comes before the\nseparation behind it; one at launch, or at the ignition of a motor that never lights; a\nnegative delay; or an event HPR Sim has no trigger for ([`staging`]).",
           "type": "string"
         }
       ]
@@ -2371,7 +2371,7 @@
           "type": "number"
         },
         "reference_pressure_pa": {
-          "description": "The ambient pressure the thrust curve was measured at, Pa: the static test site's. The\nthrust is then corrected to the ambient pressure in flight.\n\n`None` flies the curve as it is at every ambient pressure, with no correction. That is\nRocketPy's default (`Motor(reference_pressure=None)`, whose `pressure_thrust` is then zero,\n`motor.py:1188-1189`), so a RocketPy input transcribed into hpr says `None`.\n\nWhich to give: motor files don't record where the curve was measured. For a motor tested\nnear sea level, [`STANDARD_SEA_LEVEL_PRESSURE_PA`] adds the thrust a higher site gains\n(16 kPa × `A_e` at 1,400 m); `None` leaves it out. A design must say which: the field is\nrequired, as `null` for `None`, so leaving it out is an error rather than a silent choice.\nMotors read from `.eng` or `.rse` files, or from the catalog, carry no nozzle and so no\ncorrection.",
+          "description": "The ambient pressure the thrust curve was measured at, Pa: the static test site's. The\nthrust is then corrected to the ambient pressure in flight.\n\n`None` flies the curve as it is at every ambient pressure, with no correction. That is\nRocketPy's default (`Motor(reference_pressure=None)`, whose `pressure_thrust` is then zero,\n`motor.py:1188-1189`), so a RocketPy input transcribed into HPR Sim says `None`.\n\nWhich to give: motor files don't record where the curve was measured. For a motor tested\nnear sea level, [`STANDARD_SEA_LEVEL_PRESSURE_PA`] adds the thrust a higher site gains\n(16 kPa × `A_e` at 1,400 m); `None` leaves it out. A design must say which: the field is\nrequired, as `null` for `None`, so leaving it out is an error rather than a silent choice.\nMotors read from `.eng` or `.rse` files, or from the catalog, carry no nozzle and so no\ncorrection.",
           "format": "double",
           "type": [
             "number",
@@ -2395,11 +2395,11 @@
     },
     "OpenRocketExtension": {
       "additionalProperties": false,
-      "description": "The `x-openrocket` extension: the parts and sections of a `.ork` that hpr does not read, each\nkept whole where it was.",
+      "description": "The `x-openrocket` extension: the parts and sections of a `.ork` that HPR Sim does not read, each\nkept whole where it was.",
       "properties": {
         "attributes": {
           "default": [],
-          "description": "The attributes hpr does not read on an element it does read, such as a material's\n`group`, and those whose value a reader dropped, such as a material's declared `type` where\nthe part needs another.",
+          "description": "The attributes HPR Sim does not read on an element it does read, such as a material's\n`group`, and those whose value a reader dropped, such as a material's declared `type` where\nthe part needs another.",
           "items": {
             "$ref": "#/$defs/KeptAttribute"
           },
@@ -2407,7 +2407,7 @@
         },
         "parts": {
           "default": [],
-          "description": "The parts hpr does not read, in file order.",
+          "description": "The parts HPR Sim does not read, in file order.",
           "items": {
             "$ref": "#/$defs/Kept"
           },
@@ -2415,7 +2415,7 @@
         },
         "sections": {
           "default": [],
-          "description": "The sections of the document hpr does not read, in file order.",
+          "description": "The sections of the document HPR Sim does not read, in file order.",
           "items": {
             "$ref": "#/$defs/Kept"
           },
@@ -2423,7 +2423,7 @@
         },
         "tags": {
           "default": [],
-          "description": "The tags hpr does not read in an element it does read (a part, a stage, the rocket, a\nstored simulation, or a tag inside any of those that a reader asked for), such as a part's\n`<appearance>`; and those a reader asked for and dropped or simplified, such as a ring's\n`<instancecount>` past one, which the design does not hold.",
+          "description": "The tags HPR Sim does not read in an element it does read (a part, a stage, the rocket, a\nstored simulation, or a tag inside any of those that a reader asked for), such as a part's\n`<appearance>`; and those a reader asked for and dropped or simplified, such as a ring's\n`<instancecount>` past one, which the design does not hold.",
           "items": {
             "$ref": "#/$defs/Kept"
           },
@@ -3117,7 +3117,7 @@
       "description": "Which program wrote a document, and from what.",
       "properties": {
         "designation": {
-          "description": "The program's designation in the FusionSpace product system, such as\n`FS-ACHERNAR · SW · TOOL 001` (`FS · SW · TOOL 005` in a document an earlier build wrote);\nabsent in a document written before hpr-sim 0.1's first release.",
+          "description": "The program's designation in the FusionSpace product system, such as\n`FS-ACHERNAR · SW · TOOL 001` (`FS · SW · TOOL 005` in a document an earlier build wrote);\nabsent in a document written before the first release, 0.1.",
           "type": [
             "string",
             "null"
@@ -3237,14 +3237,14 @@
           "type": "array"
         },
         "unread": {
-          "description": "The parachutes and streamers in parts hpr does not read.",
+          "description": "The parachutes and streamers in parts HPR Sim does not read.",
           "items": {
             "$ref": "#/$defs/UnreadDevice"
           },
           "type": "array"
         },
         "unread_separations": {
-          "description": "The parallel stages that state a separation, in parts hpr did not read.",
+          "description": "The parallel stages that state a separation, in parts HPR Sim did not read.",
           "items": {
             "$ref": "#/$defs/UnreadDevice"
           },
@@ -3730,7 +3730,7 @@
       "type": "object"
     },
     "StagingTrigger": {
-      "description": "When a separation fires, in the terms of hpr's flight triggers\n(`hpr_sim::recovery::Trigger`, which this crate does not depend on).",
+      "description": "When a separation fires, in the terms of HPR Sim's flight triggers\n(`hpr_sim::recovery::Trigger`, which this crate does not depend on).",
       "oneOf": [
         {
           "additionalProperties": false,
@@ -4200,7 +4200,7 @@
     },
     "UnreadDevice": {
       "additionalProperties": false,
-      "description": "A parachute or streamer inside a part hpr does not read, such as a pod.",
+      "description": "A parachute or streamer inside a part HPR Sim does not read, such as a pod.",
       "properties": {
         "at": {
           "description": "Where it is in the file.",
@@ -4224,7 +4224,7 @@
     },
     "UnreadMotor": {
       "additionalProperties": false,
-      "description": "A `<motor>` inside a part hpr does not read, such as a pod's mount.",
+      "description": "A `<motor>` inside a part HPR Sim does not read, such as a pod's mount.",
       "properties": {
         "at": {
           "description": "Where its mount is in the file.",
@@ -4337,11 +4337,11 @@
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "A rocket design in the hpr design format.",
+  "description": "A rocket design in the HPR design format.",
   "properties": {
     "extensions": {
       "$ref": "#/$defs/Extensions",
-      "description": "What the source file holds that hpr does not model, by namespace, kept for writing it\nback."
+      "description": "What the source file holds that HPR Sim does not model, by namespace, kept for writing it\nback."
     },
     "format": {
       "$ref": "#/$defs/Format",
@@ -4393,6 +4393,6 @@
     "extensions",
     "source_files"
   ],
-  "title": "hpr design",
+  "title": "HPR design",
   "type": "object"
 }

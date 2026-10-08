@@ -41,6 +41,7 @@ mod format_types;
 mod grib2;
 mod layering;
 mod motor_catalog;
+mod names;
 mod ork;
 mod ork_cli;
 mod ork_corpus_flights;
@@ -103,6 +104,7 @@ Commands:
 {RECORDS}
 {ROADMAP_CURRENT}
 {MOTOR_CATALOG}
+{NAMES}
   help                     Print this message.";
 
 fn usage() -> String {
@@ -130,6 +132,7 @@ fn usage() -> String {
         .replace("{RECORDS}", records::USAGE)
         .replace("{ROADMAP_CURRENT}", roadmap::CURRENT_USAGE)
         .replace("{MOTOR_CATALOG}", motor_catalog::USAGE)
+        .replace("{NAMES}", names::USAGE)
 }
 
 fn main() -> ExitCode {
@@ -159,6 +162,7 @@ fn main() -> ExitCode {
         Some("records") => records::run(&args.collect::<Vec<_>>()),
         Some("roadmap-current") => roadmap::run_current(&args.collect::<Vec<_>>()),
         Some("motor-catalog") => motor_catalog::run(&args.collect::<Vec<_>>()),
+        Some("names") => names::run(&args.collect::<Vec<_>>()),
         Some("help" | "-h" | "--help") => {
             println!("{}", usage());
             Ok(())

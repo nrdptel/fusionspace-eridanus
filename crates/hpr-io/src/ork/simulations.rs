@@ -108,13 +108,13 @@ pub enum StoredReferenceExclusion {
     FatalEvent,
     /// A stored time series has rows but no recognized time or altitude column.
     UninspectableSeries,
-    /// The containing design is reduced, so hpr cannot reproduce its full geometry.
+    /// The containing design is reduced, so HPR Sim cannot reproduce its full geometry.
     ReducedDesign,
     /// The stored run does not name a motor configuration.
     MissingConfiguration,
     /// The stored run names a configuration absent from the design.
     UnknownConfiguration,
-    /// The named configuration cannot be flown by hpr as read.
+    /// The named configuration cannot be flown by HPR Sim as read.
     UnflyableConfiguration,
 }
 

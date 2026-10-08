@@ -1,11 +1,11 @@
-//! When a `.ork` design's motors light and where its stack comes apart, in the terms hpr's flight
+//! When a `.ork` design's motors light and where its stack comes apart, in the terms HPR Sim's flight
 //! takes ([M1.9c][m1-9c], decision [ADR-076][adr-076]).
 //!
 //! **Ignition.** Each motor's `<ignitionevent>` and `<ignitiondelay>` ([`Ignition`]) become an
 //! [`hpr_design::Ignition`]. OpenRocket's words are measured by a committed probe (the
 //! [`.ork` format page][format]):
 //!
-//! | the file says | hpr lights the motor |
+//! | the file says | HPR Sim lights the motor |
 //! |---|---|
 //! | `launch` plus `d` | at `t = d` |
 //! | `automatic` plus `d`, in the bottom stage | at `t = d` |
@@ -29,9 +29,9 @@
 //! negative delay, or when no motor of it lights at all.
 //!
 //! **Separation.** A stage's `<separationevent>` says when it drops away from the stage ahead of
-//! it. hpr flies a separation, as a [`Staging`], when its time is known before the flight (a time
+//! it. HPR Sim flies a separation, as a [`Staging`], when its time is known before the flight (a time
 //! after launch, or a motor's burnout or ejection charge). When the part ahead of it still has a
-//! motor to burn then, burning or due to light, that part is a sustainer, and hpr flies it on
+//! motor to burn then, burning or due to light, that part is a sustainer, and HPR Sim flies it on
 //! ([Staging][staging]). The motors of the part that drops away must have burned out by then, but
 //! at a stage's own `burnout` (its first) under power: there the stage's other motors drop still
 //! burning, as in OpenRocket, and the flight leaves their thrust out of the part's flight as a
@@ -39,16 +39,16 @@
 //!
 //! A separation at its own motor's burnout or ejection charge, when that motor never lights, never
 //! comes, as in the probes, and is left out. One at the ignition of a motor that never lights, or
-//! at launch (hpr's flight fires a separation only once the rocket is off the rod), is not flown.
+//! at launch (HPR Sim's flight fires a separation only once the rocket is off the rod), is not flown.
 //!
 //! A separation at `apogee` or at a height on the way down can only come at or after apogee, so the
 //! climb is the whole stack's in both programs, as long as every motor is spent by then, and the
-//! separation belongs to the descent, which hpr's flights of a `.ork` do not fly yet (the decision
+//! separation belongs to the descent, which HPR Sim's flights of a `.ork` do not fly yet (the decision
 //! record on reading recovery, [ADR-056][adr-056]): it is left out, and the configuration flies
 //! whole. Whether every motor is spent by apogee is known only once flown; `cargo xtask
 //! ork-flights` checks it of every flight it reports. Any other separation with nothing ahead of
 //! it left to burn, such as a payload's at the booster's ejection charge, is read when it is the
-//! configuration's only one: hpr's flight flies each part from it as a point with its devices'
+//! configuration's only one: HPR Sim's flight flies each part from it as a point with its devices'
 //! drag alone (the decision record on separation, [ADR-014][adr-014]), so `hpr::ork::tumbling`
 //! flies it only when the part keeping the nose has a device of its own open from the split
 //! ([ADR-165][adr-165]). Beside another separation it is not flown, as each of several must hand
@@ -76,7 +76,7 @@ use serde::{Deserialize, Serialize};
 use super::motors::{Ignition, IgnitionEvent, OrkMotor};
 use super::recovery::{SeparationEvent, StageSeparation};
 
-/// When a separation fires, in the terms of hpr's flight triggers
+/// When a separation fires, in the terms of HPR Sim's flight triggers
 /// (`hpr_sim::recovery::Trigger`, which this crate does not depend on).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "snake_case", deny_unknown_fields)]
@@ -139,8 +139,8 @@ fn one_mount(motors: &[OrkMotor], stage: usize) -> Result<Option<&OrkMotor>, Str
     Ok(Some(first))
 }
 
-/// Each of `motors`' ignition in hpr's terms, in their order, given the stage each stage hangs on
-/// (`None` for a stage on the axis, [`hpr_design::ParallelStage`]); or, for each, why hpr can't
+/// Each of `motors`' ignition in HPR Sim's terms, in their order, given the stage each stage hangs on
+/// (`None` for a stage on the axis, [`hpr_design::ParallelStage`]); or, for each, why HPR Sim can't
 /// light it as the file says ([`ignition`]).
 ///
 /// A motor lit at the stage below's `burnout` waits on that stage's first burnout, as OpenRocket
@@ -180,7 +180,7 @@ pub(super) fn ignitions(
                     .map(|waited_s| waited_s.map(|waited_s| waited_s + delay_s)),
                 Ok(hpr_design::Ignition::Never) => Ok(None),
                 Ok(_) => Err(format!(
-                    "{} lights at an event hpr can't time",
+                    "{} lights at an event HPR Sim can't time",
                     motors[i].designation
                 )),
                 Err(why) => Err(why.clone()),
@@ -231,9 +231,9 @@ fn delay(delay_s: f64, what: &str) -> Result<f64, String> {
     }
 }
 
-/// When `motor` lights in hpr's terms, given every motor of its configuration, the stage each
+/// When `motor` lights in HPR Sim's terms, given every motor of its configuration, the stage each
 /// stage hangs on (`None` for a stage on the axis, [`hpr_design::ParallelStage`]) and the first
-/// burnout of each stage aft of `motor`'s ([`ignitions`]); or why hpr can't light it as the file
+/// burnout of each stage aft of `motor`'s ([`ignitions`]); or why HPR Sim can't light it as the file
 /// says.
 ///
 /// The stage below is the next stage on the axis: a parallel stage is beside its stage, not below
@@ -266,7 +266,7 @@ fn ignition(
             IgnitionEvent::Never => Ok(hpr_design::Ignition::Never),
             IgnitionEvent::Other(word) => Err(format!("its ignition event `{word}` is not known")),
             _ => Err(format!(
-                "it lights at `{}` in a parallel stage, which hpr has no reading for",
+                "it lights at `{}` in a parallel stage, which HPR Sim has no reading for",
                 event.as_str()
             )),
         };
@@ -405,7 +405,7 @@ pub(super) fn never_when_waiting_on_never(
 
 /// Whether each of `motors`, lit by `lit` in the same order, never lights: it is set so
 /// ([`hpr_design::Ignition::Never`]), or lit by the burnout of a mount whose motors never light,
-/// as hpr's flight lights it.
+/// as HPR Sim's flight lights it.
 fn never_lit(motors: &[OrkMotor], lit: &[hpr_design::Ignition]) -> Vec<bool> {
     let mut never: Vec<bool> = lit
         .iter()
@@ -477,7 +477,7 @@ fn lit_at(
 }
 
 /// The separations configuration `id` flies, in the order they fire (from the tail
-/// forward), none when it flies none, or why hpr can't fly its stages as the file says. `motors`
+/// forward), none when it flies none, or why HPR Sim can't fly its stages as the file says. `motors`
 /// are its motors and `lit` their ignitions, in order; `stages` is the count of the rocket's
 /// stages.
 pub(super) fn staging(
@@ -529,7 +529,7 @@ pub(super) fn staging(
         && let Some((stage, ..)) = active.iter().find(|(_, event, _)| late(event))
     {
         return Err(format!(
-            "{} stages separate, stage {stage} at or after apogee, and hpr flies more than one \
+            "{} stages separate, stage {stage} at or after apogee, and HPR Sim flies more than one \
              separation only under power",
             active.len()
         ));
@@ -543,7 +543,7 @@ pub(super) fn staging(
             && matches!(event, SeparationEvent::UpperIgnition)
         {
             return Err(format!(
-                "stage {stage}, a parallel stage, separates at `{}`, which hpr has no reading for",
+                "stage {stage}, a parallel stage, separates at `{}`, which HPR Sim has no reading for",
                 event.as_str()
             ));
         }
@@ -564,7 +564,7 @@ pub(super) fn staging(
     Ok(flown)
 }
 
-/// The separation at the boundary ahead of stage `stage` on `event`, or why hpr can't fly it as
+/// The separation at the boundary ahead of stage `stage` on `event`, or why HPR Sim can't fly it as
 /// the file says. `alone` says it is the configuration's only one: only then may it come with
 /// nothing ahead of it left to burn.
 fn separation(
@@ -635,12 +635,12 @@ fn separation(
         }
         SeparationEvent::AltitudeAscending => {
             return Err(format!(
-                "stage {stage} separates at a height on the way up, which hpr has no trigger for"
+                "stage {stage} separates at a height on the way up, which HPR Sim has no trigger for"
             ));
         }
         _ => {
             return Err(format!(
-                "stage {stage} separates at `{}`, which hpr has no trigger for",
+                "stage {stage} separates at `{}`, which HPR Sim has no trigger for",
                 event.as_str()
             ));
         }
@@ -668,7 +668,7 @@ fn separation(
     if !alone && !powered {
         return Err(format!(
             "stage {stage} separates at {time_s} s with no motor ahead of it left to burn, beside \
-             another separation, and hpr flies more than one separation only under power"
+             another separation, and HPR Sim flies more than one separation only under power"
         ));
     }
     // At its stage's first burnout under power, the stage's other motors may still burn, as
@@ -693,7 +693,7 @@ fn separation(
     // launch would come late.
     if time_s <= 0.0 {
         return Err(format!(
-            "stage {stage} separates at launch, on the pad, where hpr's flight fires no separation"
+            "stage {stage} separates at launch, on the pad, where HPR Sim's flight fires no separation"
         ));
     }
     let drops_burning = (0..motors.len()).any(|i| motors[i].stage >= stage && burning(i));

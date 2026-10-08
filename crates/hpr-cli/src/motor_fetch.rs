@@ -74,7 +74,7 @@ pub(crate) fn run(args: &FetchArgs, to: &mut Out<'_>) -> Result<(), Failure> {
 /// What flies the motor fetched: `hpr sim --motor` names a motor alone, so a fetch by maker also
 /// caches the search for its designation alone, when that finds the same motor. A name the
 /// bundled catalog has flies the catalog's curve, which comes first. A file taken by `--file`
-/// flies only for a `.ork` motor hpr matches to it: `hpr sim --motor` takes files in the usual
+/// flies only for a `.ork` motor HPR Sim matches to it: `hpr sim --motor` takes files in the usual
 /// order. A `--file` file not taken says so, ahead of the usual line.
 ///
 /// Each is a line with its prefix: what flies it a `help:` line, a file not taken a `note:`.
@@ -88,7 +88,7 @@ fn sim_lines(
         Some(asked) if *asked == fetched.file_id => {
             return vec![(
                 Level::Help,
-                "kept in the cache: a .ork motor hpr matches to this file flies it, offline too"
+                "kept in the cache: a .ork motor HPR Sim matches to this file flies it, offline too"
                     .to_owned(),
             )];
         }
@@ -98,8 +98,8 @@ fn sim_lines(
             let mut lines = vec![(
                 Level::Note,
                 format!(
-                    "file {} was not taken: it is not among the motor's files hpr read, or \
-                     makes no motor hpr flies; this is the first by the usual order",
+                    "file {} was not taken: it is not among the motor's files HPR Sim read, or \
+                     makes no motor HPR Sim flies; this is the first by the usual order",
                     printable(asked)
                 ),
             )];
@@ -135,7 +135,7 @@ fn sim_lines(
 }
 
 /// `wanted`, found on ThrustCurve.org through the platform's cache (offline, the cache alone),
-/// with the first file, in [`on_demand::find`]'s order, that makes a motor hpr flies; `command`
+/// with the first file, in [`on_demand::find`]'s order, that makes a motor HPR Sim flies; `command`
 /// names the command running, for a refusal.
 pub(crate) fn fetch(
     wanted: &Wanted,
@@ -149,7 +149,7 @@ pub(crate) fn fetch(
             Format::Rasp => Motor::from_eng(&text),
             Format::RockSim => Motor::from_rse(&text),
             // `find_with` asks for these two formats alone.
-            other => return Err(format!("{} is not a format hpr reads", other.as_str())),
+            other => return Err(format!("{} is not a format HPR Sim reads", other.as_str())),
         }
         .map_err(|error| error.to_string())
     };
@@ -195,7 +195,7 @@ pub(crate) fn refused(wanted: &Wanted, error: &FindError) -> Failure {
         };
         Failure::helped(
             printable(&format!(
-                "{words} is not in hpr's cache of ThrustCurve.org, and the run is offline{why}"
+                "{words} is not in HPR Sim's cache of ThrustCurve.org, and the run is offline{why}"
             )),
             printable(&hint()),
         )

@@ -205,7 +205,7 @@ def test_notes_from_reading_a_design(repo):
     )
     assert json_design.notes == []
     older = hpr.Rocket.from_file(repo / "crates/hpr-format/fixtures/embedded-curve-0.1.hpr")
-    assert any("version 0.1 of the hpr design format" in note for note in older.notes)
+    assert any("version 0.1 of the HPR design format" in note for note in older.notes)
     staged = hpr.Rocket.from_file(
         repo / "validation/designs/synthetic-two-stage-75mm-54mm.json", "j760-i175"
     )

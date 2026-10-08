@@ -23,14 +23,14 @@
       }
     },
     "flags": {
-      "description": "Where the flight went past what hpr's numbers have been checked for (the operating\nenvelope, decision record ADR-179): empty for a flight inside it all.",
+      "description": "Where the flight went past what HPR Sim's numbers have been checked for (the operating\nenvelope, decision record ADR-179): empty for a flight inside it all.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/SimFlag"
       }
     },
     "issues": {
-      "description": "The known errors in hpr's drag the flight meets, each by its issue number (decision\nrecord ADR-180): empty for a flight that meets none.",
+      "description": "The known errors in HPR Sim's drag the flight meets, each by its issue number (decision\nrecord ADR-180): empty for a flight that meets none.",
       "type": "array",
       "items": {
         "$ref": "#/$defs/SimIssue"
@@ -245,12 +245,12 @@
           "const": "hpr_json"
         },
         {
-          "description": "A document of the hpr design format (`.hpr`).",
+          "description": "A document of the HPR design format (`.hpr`).",
           "type": "string",
           "const": "hpr"
         },
         {
-          "description": "A design in the hpr design format's zip container (`.hprz`).",
+          "description": "A design in the HPR design format's zip container (`.hprz`).",
           "type": "string",
           "const": "hprz"
         }
@@ -452,12 +452,12 @@
           "const": "unstable_under_power"
         },
         {
-          "description": "A pitch-moment slope C_mα above zero, from the rail exit to apogee or the first\ndeployment while a motor burns, where hpr can give no static margin: the rocket is\nunstable under power, and its apogee is not a prediction. Raised only when\n`unstable_under_power` isn't.",
+          "description": "A pitch-moment slope C_mα above zero, from the rail exit to apogee or the first\ndeployment while a motor burns, where HPR Sim can give no static margin: the rocket is\nunstable under power, and its apogee is not a prediction. Raised only when\n`unstable_under_power` isn't.",
           "type": "string",
           "const": "unstable_without_margin"
         },
         {
-          "description": "Faster than the fastest public flight hpr has been compared with an independent\nreference on.",
+          "description": "Faster than the fastest public flight HPR Sim has been compared with an independent\nreference on.",
           "type": "string",
           "const": "beyond_validated_range"
         },
@@ -879,7 +879,7 @@
       "type": "object",
       "properties": {
         "added": {
-          "description": "Whether hpr added it rather than read it from the file: a tumble a separated part needs,\nas a part flies alone with only its devices' drag. It brakes no fall hpr counts as\npredicted.",
+          "description": "Whether HPR Sim added it rather than read it from the file: a tumble a separated part needs,\nas a part flies alone with only its devices' drag. It brakes no fall HPR Sim counts as\npredicted.",
           "type": "boolean"
         },
         "body": {
@@ -1004,7 +1004,7 @@
       ]
     },
     "SimIssue": {
-      "description": "A known error in hpr's drag, stability or flight path that the flight meets.",
+      "description": "A known error in HPR Sim's drag, stability or flight path that the flight meets.",
       "type": "object",
       "properties": {
         "issue": {
@@ -1444,7 +1444,7 @@
       ]
     },
     "ThrustCurveMotor": {
-      "description": "A motor found on ThrustCurve.org by name, and the curve file hpr flies it by: the first RASP\nfile that reads, ranked by who measured it (a certification test, the manufacturer, a user),\nelse the first RockSim file the same way.",
+      "description": "A motor found on ThrustCurve.org by name, and the curve file HPR Sim flies it by: the first RASP\nfile that reads, ranked by who measured it (a certification test, the manufacturer, a user),\nelse the first RockSim file the same way.",
       "type": "object",
       "properties": {
         "common_name": {

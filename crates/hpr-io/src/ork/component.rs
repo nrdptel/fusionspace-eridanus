@@ -62,9 +62,9 @@ struct BodyRead {
 /// lone nose cone and lone transition at 0.025 m and ignores any number cached after `auto`
 /// (`validation/fixtures/ork/openrocket-automatic-radius.json`, [ADR-054][adr-054]).
 ///
-/// hpr departs from OpenRocket in one place, on purpose: where a nose cone's base or a transition's
+/// HPR Sim departs from OpenRocket in one place, on purpose: where a nose cone's base or a transition's
 /// end looks at another automatic radius, OpenRocket 24.12 settles on −1 m, which no geometry can
-/// take. hpr gives it this default too, so the chain is one radius end to end.
+/// take. HPR Sim gives it this default too, so the chain is one radius end to end.
 ///
 /// [adr-054]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-054-an-automatic-radius-with-nothing-to-take-is-openrockets-default-and-a-rocket-with-no-stage-or-component-holds-no-design-2026-09-20
 pub const OPENROCKET_DEFAULT_RADIUS_M: f64 = 0.025;
@@ -204,7 +204,7 @@ pub(super) fn walk(document: &Document) -> (Imported<Rocket>, Walked) {
             at,
             WarningKind::Skipped,
             format!(
-                "{note} were left out: tags hpr does not read where they are written (a \
+                "{note} were left out: tags HPR Sim does not read where they are written (a \
                  parallel stage is read only inside a body tube)"
             ),
         ));
@@ -802,7 +802,7 @@ pub(super) fn overrides(values: &mut Values<'_>) -> (Overrides, bool, Option<Dra
             WarningKind::Dropped,
             format!(
                 "the mass override covers the parts inside this one ({mass_flag}) and \
-                 the center-of-gravity override does not agree; hpr states it once, so \
+                 the center-of-gravity override does not agree; HPR Sim states it once, so \
                  the mass flag was taken"
             ),
         );

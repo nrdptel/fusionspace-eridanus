@@ -285,7 +285,7 @@ impl FlutterPanel {
     /// The whole flight's peak is used for every fin set on it. A booster's fins leave at the
     /// separation, so the peak can come after they have gone; their true ratio is then at least
     /// the one given, as long as the booster's own dynamic pressure after the separation stays
-    /// below the flight's peak, which hpr doesn't check.
+    /// below the flight's peak, which HPR Sim doesn't check.
     ///
     /// # Errors
     ///

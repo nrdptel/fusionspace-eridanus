@@ -19,7 +19,7 @@ pub struct FlightLog {
     pub firmware: Option<String>,
     /// The flight's number in the logger's memory, as the file states it.
     pub flight_number: Option<u32>,
-    /// What the file states about the flight: the logger's own figures, kept beside hpr's
+    /// What the file states about the flight: the logger's own figures, kept beside HPR Sim's
     /// readings and never in place of them.
     pub stated: Stated,
     /// Each sample's time, s, from the logger's own zero. Strictly increasing.

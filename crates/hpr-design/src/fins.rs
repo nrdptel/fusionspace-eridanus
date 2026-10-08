@@ -659,7 +659,7 @@ impl FinSet {
     /// The set's mass properties build one body per fin and add them up, so a count is an
     /// allocation and a loop: four billion fins would ask for hundreds of gigabytes and never
     /// return, where a refusal is an error. 64 is far more than any rocket carries: the most fins
-    /// in one set among the `.ork` designs hpr's checks read is 8 (a one-off count over 78
+    /// in one set among the `.ork` designs HPR Sim's checks read is 8 (a one-off count over 78
     /// designs, not a committed survey), the aerodynamics take
     /// 1 to 8 (the fin–fin interference factors of the OpenRocket technical documentation 13.05,
     /// eq. 3.54, from MIL-HDBK-762(MI) p. 5-24, and its tumbling efficiencies, Table 3.4, stop at

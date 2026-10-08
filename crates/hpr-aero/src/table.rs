@@ -1,4 +1,4 @@
-//! Override tables: coefficients from another tool or a measurement in place of hpr's own.
+//! Override tables: coefficients from another tool or a measurement in place of HPR Sim's own.
 //!
 //! An override lets the flight engine fly with an oracle's aerodynamics, so that a comparison
 //! isolates the dynamics, the environment and the motor from the aerodynamic prediction
@@ -9,7 +9,7 @@
 //! - A [`NormalForceTable`] gives the normal force and its center of pressure against Mach number
 //!   and angle of attack, read from RASAero II's aerodynamic export
 //!   ([`NormalForceTable::from_rasaero_csv`]); [`crate::AeroModel::normal_force`] returns it in
-//!   place of the Barrowman sum. The export carries no damping, so a flight keeps hpr's own
+//!   place of the Barrowman sum. The export carries no damping, so a flight keeps HPR Sim's own
 //!   (`docs/physics/flight.md`).
 //!
 //! [m2-1]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-1
@@ -284,7 +284,7 @@ impl NormalForceColumn {
 }
 
 /// The normal force and its center of pressure against Mach number and angle of attack, from
-/// another tool, in place of hpr's own ([`crate::AeroModel::with_normal_force_table`]).
+/// another tool, in place of HPR Sim's own ([`crate::AeroModel::with_normal_force_table`]).
 ///
 /// A table is a set of columns, one per angle of attack, each holding `C_N/α` and the center of
 /// pressure against Mach number. A lookup at Mach `M` and angle `α`:
@@ -298,7 +298,7 @@ impl NormalForceColumn {
 ///   within 0.2% to 4°; faster, it grows more slowly, and the quadratic between the columns is an
 ///   assumption.
 /// - Past the last column's angle `α_n`, with `s = sin α / sin α_n`, the force at `α_n` grows
-///   as `s` at the last column's center of pressure, as hpr's own fins follow `sin α` (the
+///   as `s` at the last column's center of pressure, as HPR Sim's own fins follow `sin α` (the
 ///   decision record on flight, [ADR-011][adr-011]). When the table starts at 0°, the part of
 ///   that force beyond the 0° slope's linear share (`(C_N/α)(0) · α_n`), the rest `R`, grows
 ///   faster, as `s²`, the cross flow's form (Galejs; Niskanen 2009 eq. 3.26), which RASAero II's
@@ -596,7 +596,7 @@ impl NormalForceTable {
     ///   it starts from 0° isn't in the export, and leaving it out is an assumption). The center of pressure is the export's at
     ///   `α = 0`.
     /// - `CP` is in inches (the manual, p. 13) from the nose tip ("distance measured from the
-    ///   nose", p. 114), converted at 0.0254 m to the inch. hpr's stations are also aft of the
+    ///   nose", p. 114), converted at 0.0254 m to the inch. HPR Sim's stations are also aft of the
     ///   nose tip, so the design must start at the same nose tip as RASAero II's.
     /// - The coefficients are on RASAero II's reference area, the largest cross-section of the
     ///   body (p. 72): the table's reference is [`TableReference::LargestBody`], which

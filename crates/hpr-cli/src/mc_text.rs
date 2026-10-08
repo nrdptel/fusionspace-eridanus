@@ -199,7 +199,7 @@ fn flag_words(flag: FlagKind) -> &'static str {
             "a pitching moment that turns it away under power, with no margin"
         }
         FlagKind::BeyondValidatedRange => {
-            "faster than any public flight hpr has been checked against"
+            "faster than any public flight HPR Sim has been checked against"
         }
         FlagKind::HighAngleOfAttack => "above 15° angle of attack after the rail",
         FlagKind::OutsideCoreBand => "past Mach 2.5, the core band's top",

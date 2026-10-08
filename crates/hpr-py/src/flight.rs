@@ -104,8 +104,8 @@ impl Environment {
     }
 }
 
-/// `builder` with the drag given in place of hpr's own: a `DragTable`, or a Python function bound
-/// to `raised`; neither leaves hpr's.
+/// `builder` with the drag given in place of HPR Sim's own: a `DragTable`, or a Python function bound
+/// to `raised`; neither leaves HPR Sim's.
 pub(crate) fn with_drag<'a>(
     builder: hpr::FlightBuilder<'a>,
     drag_table: Option<&DragTable>,
@@ -195,7 +195,7 @@ fn rows_to_curve(what: &str, rows: &[Vec<f64>]) -> PyResult<Table1D> {
     .map_err(|problem| error(format!("{what}: {problem}")))
 }
 
-/// A zero-lift drag coefficient `C_D0` against Mach number, flown in place of hpr's own drag
+/// A zero-lift drag coefficient `C_D0` against Mach number, flown in place of HPR Sim's own drag
 /// (`Flight(..., drag_table=...)`), as RocketPy's `power_off_drag` and `power_on_drag` are.
 ///
 /// `DragTable(power_off, power_on=None, *, reference_diameter_m=None)`: each curve is a sequence
@@ -205,7 +205,7 @@ fn rows_to_curve(what: &str, rows: &[Vec<f64>]) -> PyResult<Table1D> {
 /// interpolated linearly; past the ends it holds the end values. The coefficients are on the
 /// rocket's reference area, a circle of its largest body diameter, unless
 /// `reference_diameter_m` names another; then they are rescaled by the ratio of the two areas.
-/// Only the drag is replaced: the normal force, center of pressure and damping stay hpr's.
+/// Only the drag is replaced: the normal force, center of pressure and damping stay HPR Sim's.
 ///
 /// `DragTable.from_csv(power_off, power_on=None, *, reference_diameter_m=None)` reads each curve
 /// from a CSV file of two columns, Mach number and `C_D0`, under an optional header row, as
@@ -321,7 +321,7 @@ impl DragTable {
 /// north. The flight is recorded every `interval_s` seconds, at least 0.001 s, and at every event;
 /// or at every step of the integrator when that is left out. The rocket is copied as the flight
 /// starts, and a flight runs to its end: it can't be interrupted. A `DragTable` given as
-/// `drag_table` is flown in place of hpr's own drag, and so is a Python function given as `drag`:
+/// `drag_table` is flown in place of HPR Sim's own drag, and so is a Python function given as `drag`:
 /// called as `drag(mach, thrusting)`, with `thrusting` true while a motor burns, it returns the
 /// rocket's zero-lift drag coefficient `C_D0` on the rocket's reference area. An exception a
 /// function raises, the drag's or the environment's wind's, stops the flight, even at a trial
@@ -442,7 +442,7 @@ impl Flight {
         to_python(py, &self.flight.landing())
     }
 
-    /// The known errors in hpr's drag, stability or flight path this flight meets, each a
+    /// The known errors in HPR Sim's drag, stability or flight path this flight meets, each a
     /// dictionary: its `issue` number on GitHub (18, 67, 68, 70, 72, 73 or 222 for drag; 179 or
     /// 354, a separated part's, also drag; 64, 87, 120, 121, 172, 325 or 326 for stability; 8,
     /// 106, 213 or 219 for the flight's path, whose signs depend on the case), its `kind`
