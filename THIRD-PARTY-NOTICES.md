@@ -74,7 +74,8 @@ adds a source.
   `hpr-io` as `hpr_io::orc::BUNDLED_FILES`): the 16 `.orc` files of the `openrocket-database`
   project (<https://github.com/openrocket/openrocket-database>) at commit `1512874a` (2025-07-27),
   unchanged, with the project's `LICENSE` beside them. Licensed under the Apache License 2.0; the
-  project has no `NOTICE` file. Created by Dave Cook and maintained by the OpenRocket team. Their
+  project has no `NOTICE` file. Because they ship inside it, `fusionspace-hpr-io` and the Python
+  package declare `(MIT OR Apache-2.0) AND Apache-2.0`. Created by Dave Cook and maintained by the OpenRocket team. Their
   part data is the makers'; the project's README warns that it may be wrong and that real parts
   should be weighed. OpenRocket 24.12's reading of every part (and of each file with its stated
   masses removed), and of 37 probe files written by `validation/oracles/openrocket/orc_presets.py`,

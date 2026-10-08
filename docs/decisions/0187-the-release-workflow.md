@@ -1,6 +1,6 @@
 # ADR-187: The release workflow, its license texts, and `hpr validate` left to xtask (2026-10-06)
 
-- **Status:** accepted
+- **Status:** accepted; on 2026-10-08 Neer approved `(MIT OR Apache-2.0) AND Apache-2.0` for `fusionspace-hpr-io` and the Python package, which bundle OpenRocket's Apache-2.0 parts catalog
 - **Summary:** M10.1c: a `Release` workflow builds and smoke-tests the command line's archives for three operating systems, the Python package's abi3 wheels and its source package, each carrying both licenses, THIRD-PARTY-NOTICES.md and its dependencies' license texts written by cargo-about; it publishes only from a dispatch that asks to, after approval in the `release` environment. Every library crate and `hpr-cli` become publishable. `hpr validate` leaves the command line, because a published crate can't depend on the unpublished harness; `cargo xtask validate --check` makes the same check.
 
 **Context.** [ADR-162](0162-the-suite-and-its-releases.md) §2's checklist asks that every release

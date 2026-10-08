@@ -34,7 +34,7 @@ scripts/release/licenses.sh "$package/Cargo.toml" "$package" >&2
 # The pyproject.toml in the checkout names no license files, so a test build needs none; this one
 # names the four just staged, after the line with its license expression.
 if ! grep -q '^license-files' "$package/pyproject.toml"; then
-  sed -i.orig "s/^license = \"MIT OR Apache-2.0\"\$/&\\
+  sed -i.orig "s/^license = \".*\"\$/&\\
 license-files = $licenses/" "$package/pyproject.toml"
   rm -f "$package/pyproject.toml.orig"
 fi

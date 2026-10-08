@@ -11,7 +11,7 @@ name = "fusionspace-hpr"
 description = "A flight simulator for hobby and high-power rockets."
 readme = "README.md"
 requires-python = ">=3.10"
-license = "MIT OR Apache-2.0"
+license = "(MIT OR Apache-2.0) AND Apache-2.0"
 dependencies = ["numpy>=1.22"]
 classifiers = [
     "Programming Language :: Rust",

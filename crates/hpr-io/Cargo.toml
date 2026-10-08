@@ -4,7 +4,9 @@ description = "Foreign formats: OpenRocket `.ork`, RockSim `.rkt`, RASAero `.CDX
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
-license.workspace = true
+# The crate bundles OpenRocket's parts catalog (data/openrocket-database/, Apache-2.0), so its
+# license is the project's and the catalog's together (ADR-187).
+license = "(MIT OR Apache-2.0) AND Apache-2.0"
 repository.workspace = true
 
 # The library keeps its Rust name, `hpr_io`, under the package's FusionSpace name (ADR-199).
