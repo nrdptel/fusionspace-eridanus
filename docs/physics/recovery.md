@@ -246,7 +246,7 @@ near 0.79 where the model prints 0.56.
 The text pins neither the body-profile nor the fin-area convention (exactly which areas to
 measure). So either the simulator reads the areas differently from whoever fitted the constants, or
 the claim is not reproducible. The table above is what the simulator can demonstrate, so it is what
-it states.
+the simulator states.
 
 **Where it stops being true.** The fit covers 44 to 103 mm bodies of 6.8 to 160 g descending at
 5.0 to 6.6 m/s. A high-power booster is far outside it: Valetudo tumbling comes out at 36 m/s.

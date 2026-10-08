@@ -17,7 +17,7 @@ reads every part OpenRocket reads, in the same order. Of the 18,306 sizes, masse
 compared, 17,911 come out equal to the last bit. The other 395 (185 masses in ounces, 207
 densities and 3 undefined materials) are counted, and so are the 252 parts whose maker OpenRocket
 names otherwise; each has a known cause
-([Where this reader and OpenRocket's differ](#where-this-reader-and-openrockets-differ)). A
+([Where the simulator's reader and OpenRocket's differ](#where-the-simulators-reader-and-openrockets-differ)). A
 part is only as right as its file, though. The database's README warns that its data may be
 wrong for your rocket and that you should weigh your real parts.
 
@@ -187,7 +187,7 @@ published schema. The fields and units below are the ones the database project d
 
 Any part may also state its `Mass`; 229 of the built-in parts do: 207 solid parts, and 22
 parachutes and streamers. Unlike a solid part's (see
-[Where this reader and OpenRocket's differ](#where-this-reader-and-openrockets-differ)), a
+[Where the simulator's reader and OpenRocket's differ](#where-the-simulators-reader-and-openrockets-differ)), a
 parachute's or streamer's stated mass leaves its fabric's density as written, in HPR Sim's reading
 and in OpenRocket's. When the part goes into a rocket, OpenRocket gives a parachute its stated
 mass as an override and ignores a streamer's; the builder scales either one's density to give it.
@@ -228,7 +228,7 @@ is 0.0254 m, the foot 0.3048 m, the pound 0.45359237 kg and the ounce a sixteent
   ten say `Filled` is false, so they agree: a hollow part with that wall. A file that said filled
   with a wall would leave which one counts open; HPR Sim keeps both, as OpenRocket's reading does.
 
-## Where this reader and OpenRocket's differ
+## Where the simulator's reader and OpenRocket's differ
 
 The test [`crates/hpr-io/tests/orc_openrocket.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-io/tests/orc_openrocket.rs) reads every built-in part and compares it with
 OpenRocket 24.12's reading, value by value. The two agree everywhere except in these places. Each

@@ -217,7 +217,7 @@ its axis, and for most rockets the margin is the same in every one. A fin set of
 breaks that: it carries `Σ sin²(φ − θ_k)` of its force in the plane at roll angle `φ`, for fins at
 angles `θ_k` (Niskanen 2009, eq. 3.51, as in [Fins](aero.md#fins)). So a rocket with one has a margin for
 each direction, and the simulator gives the least, the direction it was found in as `roll_rad`.
-Until [#329](https://github.com/nrdptel/fusionspace-eridanus/issues/329), its margins were the 0°
+Until [#329](https://github.com/nrdptel/fusionspace-eridanus/issues/329), the simulator's margins were the 0°
 direction's alone, which can be the strongest. A rocket whose fin sets each have three or more fins,
 or that flies a normal-force table, keeps its one margin, bit for bit.
 
@@ -232,7 +232,7 @@ calibres and is now −4.21, at 0.86 s. That is the sustainer's margin at the sp
 the booster drops, with its own motor just lit and still full and the air at Mach 0.07; the −3.44 is
 a later instant, at Mach 0.2. In the conditions of OpenRocket's record, both programs' flights of
 that configuration turn over before apogee: its site is at 28.61° N, where the Earth's rotation tips
-HPR Sim's flight, and its angle of attack passes 90° at 2.25 s. At `hpr sim`'s default site, on the
+HPR Sim's flight, and HPR Sim's angle of attack passes 90° at 2.25 s. At `hpr sim`'s default site, on the
 equator, nothing tips HPR Sim's flight: it stays upright and reaches 251.3 m
 ([the format guide](../format/ork.md#the-simulators-flights-against-openrockets)).
 

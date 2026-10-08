@@ -291,7 +291,7 @@ You don't have to take these numbers on trust. Four ways to test them:
 - **Compare with a flight of your own, by hand.** Build your rocket as
   [Your own rocket](your-own-rocket.md) does, with the motor you flew
   ([Solid motors](physics/motor.md#using-a-motor) shows how to read its thrust-curve file). Set the
-  rail and the wind to match the day, and set HPR Sim's apogee beside your altimeter's. Its apogee
+  rail and the wind to match the day, and set HPR Sim's apogee beside your altimeter's. HPR Sim's apogee
   is the height of the rocket's center of gravity above the pad. Most hobby altimeters measure air
   pressure and turn it into height with the standard atmosphere, so on a day warmer or colder than
   standard they read off by roughly 3 to 4% of the height for every 10 °C of difference. Give the

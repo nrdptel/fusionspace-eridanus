@@ -19,7 +19,7 @@
   1e-15 in mass and center of mass on nine probe designs, with the probes' pitch inertia up to
   0.638% apart ([below](#fin-fillets)). The roll
   inertia is a median 1.619% apart, and that is explained: OpenRocket takes a shortcut for fins that
-  HPR Sim does not, and its figure is the exact one for the fin as drawn
+  HPR Sim does not, and HPR Sim's figure is the exact one for the fin as drawn
   ([below](#fins-rail-buttons-and-roll-inertia)); on the four files with a cluster (two designs by content), OpenRocket
   also stacks the tubes on the cluster's axis ([below](#clusters-and-fillets)). A ring of tube fins
   departs twice: OpenRocket's roll inertia for it is more than any mass inside the ring could have,
@@ -288,7 +288,7 @@ content as below, and fails if a file outside has none:
 | airfoil fin sections | integrates the airfoil's section, 0.6851 of a square slab ([below](#fins-rail-buttons-and-roll-inertia)) | weighs the outline times the thickness times 0.85 | 1 |
 
 The fin-section cause is sized, not only present. HPR Sim gives no warning for it, since the section
-is its own choice. So `cargo xtask ork` weighs the design again with its rounded and airfoil fins
+is HPR Sim's own choice. So `cargo xtask ork` weighs the design again with its rounded and airfoil fins
 weighed OpenRocket's way: square, at 0.99 or 0.85 of their density. It names the cause only if the
 design then comes within both thresholds. The one design it names is a private one: `C06` in
 HPR Sim's flights of the private designs. There HPR Sim's center of mass sits forward of

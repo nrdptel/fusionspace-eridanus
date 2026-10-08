@@ -73,8 +73,10 @@ They don't conflict with the rules above; they add these:
   | dates in prose; in tables and files | October 4, 2026; 2026-10-04 |
 - **FusionSpace** is one word.
 - **The product's name** ([ADR-199, the public name](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0199-the-2026-10-07-fusionspace-hpr.md) §1):
-  "FusionSpace HPR" is the suite; "FusionSpace HPR · Sim" is the simulator at its first mention
-  on a page, "HPR Sim" or "the simulator" after it. `hpr`, in code formatting, is the command
+  "FusionSpace HPR" is the suite; "FusionSpace HPR · Sim" or "HPR Sim" is the simulator at its
+  first mention on a page, "HPR Sim" or "the simulator" after it. Write "HPR Sim" wherever "the
+  simulator" could mean OpenRocket, RocketPy or RASAero too: in comparisons, tables and column
+  headers. "This project" or "FusionSpace HPR" is the project, its tests or its licenses. `hpr`, in code formatting, is the command
   and the Rust library, never the product in prose. Call the design format "the HPR design
   format". A heading someone links to says "the simulator", since "HPR Sim" in a heading makes
   an anchor that spells the old name.
@@ -93,8 +95,8 @@ They don't conflict with the rules above; they add these:
   (history, an old stamp files still carry, an anchor) goes on the allowlist, `ALLOW` in
   `xtask/src/names.rs`: the file, the exact text around the mention (one line, at most 120
   bytes, at least 8 beyond the mention), how many mentions it covers, and why it stays. An entry
-  that matches nothing, or a different number of mentions, fails; no page may be allowed whole.
-  On the records page, a decision record's row, which gives the record's summary as it was
+  that matches nothing, or a different number of mentions, fails. No page of this site may be
+  allowed whole; only a decision record or the roadmap's archive may be. On the records page, a decision record's row, which gives the record's summary as it was
   written, inherits that record's allowance. A record up to
   [ADR-205, the decision that set the rule](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0205-the-2026-10-08-one-name-one-design.md)
   may be allowed whole, and its row with it; no other row or line there inherits anything.

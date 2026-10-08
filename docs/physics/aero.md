@@ -2832,7 +2832,7 @@ airframe's radius would move a margin by some 0.04 calibres. The whole table is 
 [committed report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md#pod-probes).
 
 The first probes stated no surface finish, and HPR Sim flew them 6.0% to 7.3% high: OpenRocket reads
-a part with no finish as regular paint, 60 µm, and HPR Sim's reader gives it its own default,
+a part with no finish as regular paint, 60 µm, and HPR Sim's reader gives it HPR Sim's own default,
 20 µm ([issue #216](https://github.com/nrdptel/fusionspace-eridanus/issues/216), which gives the
 run). The probes now state their finish.
 

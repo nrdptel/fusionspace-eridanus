@@ -34,7 +34,7 @@
 //! mentions; only an ADR up to ADR-205, or the roadmap's archive, may be allowed whole
 //! ([`Scope::Page`]). Neither is a surface, but on the records page a decision record's row,
 //! which gives its summary, inherits its record's allowance; no other line there does
-//! (ADR-206 §2).
+//! (ADR-206 §2, ADR-207 §3).
 
 use std::ops::Range;
 use std::path::Path;
@@ -1172,11 +1172,26 @@ fn uncovered(
 fn another_name(text: &str, mention: &Mention, records: &[&str]) -> bool {
     let at = &mention.at;
     mention.rule == Rule::OldName
-        && (text[..at.start].ends_with("crates/") && text[at.end..].starts_with('/')
+        && (in_engine_folder(text, at)
             || records.iter().any(|name| {
                 text.match_indices(name)
                     .any(|(start, _)| start <= at.start && at.end <= start + name.len())
             }))
+}
+
+/// Whether `text[at]` is the flight engine's folder in a path: exactly `hpr-sim`, as the folder is
+/// spelled (no other case, no other hyphen), after a path's `crates/` and before a `/`. The
+/// `crates/` starts the path or follows a `/`, so `notcrates/` is no such path.
+fn in_engine_folder(text: &str, at: &Range<usize>) -> bool {
+    let Some(before) = text[..at.start].strip_suffix("crates/") else {
+        return false;
+    };
+    &text[at.clone()] == "hpr-sim"
+        && text[at.end..].starts_with('/')
+        && before
+            .chars()
+            .next_back()
+            .is_none_or(|c| !(c.is_alphanumeric() || matches!(c, '-' | '_' | '.')))
 }
 
 /// The line of `text` that holds the byte `at`.
@@ -2409,7 +2424,8 @@ mod tests {
     }
 
     /// On the records page, a decision record's row inherits its record's allowance; another
-    /// record's row, a later link to the record, a milestone's row and prose don't (ADR-206 §2).
+    /// record's row, a later link to the record, a milestone's row and prose don't (ADR-206 §2,
+    /// ADR-207 §3).
     #[test]
     fn a_records_row_inherits_only_its_records_allowance() {
         let allow = [Allow {
@@ -2444,6 +2460,7 @@ mod tests {
             "| [ADR-69: Flights][adr-069] | hpr flies them | |\n",
             "| [ADR-070: Flights][adr-069] | hpr flies them | |\n",
             "As [ADR-069: Flights][adr-069] says, hpr flies them.\n",
+            "[ADR-069: Flights][adr-069] says hpr flies them.\n",
         ] {
             let mut used = [0];
             assert_eq!(
@@ -2471,6 +2488,7 @@ mod tests {
             format!("See [the record](decisions/0157-{old}-plot.md) for it.\n"),
             format!("Read `crates/{old}/src/lib.rs` for it.\n"),
             format!("<!-- quote: crates/{old}/examples/a.rs -->\n"),
+            format!("[it](https://example.org/blob/main/crates/{old}/src/a.rs)\n"),
         ] {
             let found = mentions(Kind::Markdown, &text);
             assert_eq!(found.len(), 1, "{text}");
@@ -2481,6 +2499,12 @@ mod tests {
             format!("Read `crates/{old}` for it.\n"),
             format!("Read `crates/{old}-x/src` for it.\n"),
             format!("Read `src/{old}/lib.rs` for it.\n"),
+            format!("Read `crates/{}/src` for it.\n", old.to_uppercase()),
+            format!(
+                "Read `crates/{}/src` for it.\n",
+                old.replace('-', "\u{2011}")
+            ),
+            format!("Read `notcrates/{old}/src` for it.\n"),
             format!("The {old} crate, in `crates/{old}/`.\n"),
         ] {
             let found = mentions(Kind::Markdown, &text);

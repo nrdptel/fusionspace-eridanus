@@ -1,7 +1,7 @@
 # ADR-207: The name check on the site's pages (2026-10-08)
 
 - **Status:** accepted; carries out [ADR-206, the name check in two steps][adr-206] §2
-- **Summary:** M0.9a2 holds every page `SUMMARY.md` renders, and `SUMMARY.md` itself, to `cargo xtask names`. About 2,350 mentions were rewritten: comparisons and tables say "HPR Sim", other prose "the simulator" or "this project", the command and library `hpr` in code. Two names keep the old one by rule, not by entry: a decision record's file name and the flight engine's folder in a path, `crates/hpr-sim/`. On the records page, a decision record's row inherits a whole-page allowance of the record its first cell's `[adr-NNN]` link names, and nothing else there inherits. 15 entries keep the site's anchors, stamps and history, and 73 records up to ADR-205 are allowed whole for their rows. 15 headings that said `hpr` were renamed, with every link to them.
+- **Summary:** M0.9a2 holds every page `SUMMARY.md` renders, and `SUMMARY.md` itself, to `cargo xtask names`. About 2,280 mentions were rewritten: comparisons and tables say "HPR Sim", other prose "the simulator" or "this project", the command and library `hpr` in code. Two names keep the old one by rule, not by entry: a decision record's file name and the flight engine's folder in a path, `crates/hpr-sim/`. On the records page, a decision record's row inherits a whole-page allowance of the record its first cell's `[adr-NNN]` link names, and nothing else there inherits. 15 entries keep the site's anchors, stamps and history, and 73 records up to ADR-205 are allowed whole for their rows. 16 headings that said `hpr` were rewritten, 15 of them with new anchors, and every link to those changed.
 
 [adr-199]: 0199-the-2026-10-07-fusionspace-hpr.md
 [adr-203]: 0203-the-fusionspace-hpr-packages.md
@@ -32,7 +32,8 @@ check had to say which of those may stay, and how a records-page row inherits an
    whole-page entry for that record's file, which only a record up to ADR-205 may have.
    A link to a record later in a row, a milestone's or a lesson's row, and the page's prose
    inherit nothing. The 73 records whose rows held 119 mentions are allowed whole. Their rows
-   give each record's summary as it was written, which is history. A dropped entry fails on the
+   give each record's summary as it was written, which is history; two rows that shared a phrase
+   with a milestone's row lost one mention each to its rewrite. A dropped entry fails on the
    records page.
 4. **How the pages were rewritten** (chosen, following [ADR-199][adr-199] §1 and
    `docs/writing.md`). "HPR Sim" names the simulator wherever "the simulator" could mean
@@ -41,8 +42,8 @@ check had to say which of those may stay, and how a records-page row inherits an
    first mention says "HPR Sim" and later ones "the simulator". The command a reader types and the
    Rust library are `hpr` in code. "This project" or "FusionSpace HPR" is the project, its tests or
    its licenses. The flight-log page names FusionSpace HPR · Analyzer. Headings say "the
-   simulator", since "HPR Sim" in a heading makes an anchor that spells the old name; 15 headings
-   changed, and every link to them, including the two OpenRocket flight reports' links and their
+   simulator", since "HPR Sim" in a heading makes an anchor that spells the old name; 16 headings
+   changed, 15 of them with new anchors, and every link to those, including the two OpenRocket flight reports' links and their
    generators.
 5. **What stays, by entry.** 15 entries on the site's pages cover 17 mentions. Most are anchors of
    headings that name the `hpr sim` command (`cli.md#hpr-sim`). The rest are old stamps that must
