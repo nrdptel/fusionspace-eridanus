@@ -14,11 +14,11 @@
   slows a fall, so no real descent is faster.
 - **How well it is validated:** against an invented flight whose every reading is known exactly,
   each reading lands within the bound the log's rounding and the filter allow
-  ([Checked against](#checked-against)). On a real log, Debrief's public Pnut file, hpr reads
-  1,010 ft where the altimeter's own software states 1,009 ft: one flight, and two readings of one
-  pressure trace rather than a measurement of the height. That log isn't committed, so this check
-  runs only where it has been fetched, not in CI. The private collection of logs Debrief was built
-  on hasn't been read yet: that is [M7.1](../decisions-and-roadmap.md#m7-1)'s work.
+  ([Checked against](#checked-against)). On a real log, Debrief's public Pnut file, FusionSpace HPR
+  reads 1,010 ft where the altimeter's own software states 1,009 ft: one flight, and two readings of
+  one pressure trace rather than a measurement of the height. That log isn't committed, so this
+  check runs only where it has been fetched, not in CI. The private collection of logs Debrief was
+  built on hasn't been read yet: that is [M7.1](../decisions-and-roadmap.md#m7-1)'s work.
 - **What it leaves out:** the drogue and main descent rates each on its own, Mach number,
   dynamic pressure, burnout, and anything an accelerometer or GPS would give. It takes the
   logger's altitude as the logger converted it, with no correction for the day's air, and has no
@@ -46,7 +46,7 @@ swing, and each reading has a rule that says when the log can't support it.
 ## The running median
 
 The running median replaces each sample with the median of the samples within `K` places of it,
-the window cut short at either end of the log. hpr sets `K` from the log's own sample interval
+the window cut short at either end of the log. The code sets `K` from the log's own sample interval
 `Δt` so that the window spans 0.3 s: at a PerfectFlite's 20 samples a second, `K = 3`, seven
 samples.
 
@@ -72,9 +72,9 @@ Two properties make it the right tool here:
   A property test checks this for every `K` from 1 to 6 and every place the peak can fall between
   samples.
 
-Debrief uses the Hampel filter at `t = 4` over the same window. hpr doesn't, because of what
-the public Pnut log shows. Around its ejection pulse the trace dips below itself just before the
-pulse and stays lower after it. Those samples sit in the pulse's own window and widen its scale
+Debrief uses the Hampel filter at `t = 4` over the same window. FusionSpace HPR doesn't, because of
+what the public Pnut log shows. Around its ejection pulse the trace dips below itself just before
+the pulse and stays lower after it. Those samples sit in the pulse's own window and widen its scale
 `S_k`, and the Hampel filter keeps the pulse: its highest value is the pulse's 1,028 ft, against
 the 1,009 ft the altimeter states. After the running median, the apogee reads 1,010 ft. The
 invented flight below repeats that shape, so the tests show the difference where anyone can run
@@ -84,8 +84,8 @@ them.
 
 In the rules below, the **climb** begins at the first sample whose filtered altitude is 3 m above
 where the log starts. The **pad** is the median of the altitude before it first rises 1 m, so no
-one sample's jitter sets it. hpr chose 1 m, a third of the 3 m climb. It is low so that a log
-starting just before liftoff counts few climbing samples as pad. A PerfectFlite
+one sample's jitter sets it. This project chose 1 m, a third of the 3 m climb. It is low so that a
+log starting just before liftoff counts few climbing samples as pad. A PerfectFlite
 zeroes its altitude on the pad, so a pad more than 3 m from zero means the log didn't start there.
 
 | reading | rule | where it comes from |
@@ -152,7 +152,7 @@ reading is known in closed form. The
 [tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-flightdata/src/synthetic.rs)
 hold each within the bound worked out beside it:
 
-| reading | true | hpr reads | allowed |
+| reading | true | FusionSpace HPR reads | allowed |
 |---|---|---|---|
 | liftoff | 0.50 s | 0.55 s | from 0.50 s to 0.578 s, when the height first rounds to a foot |
 | apogee | 390.31 m (1,280.5 ft) | 390.14 m (1,280 ft) | 0.23 m: half a foot of rounding and the median's 0.077 m |
@@ -160,7 +160,7 @@ hold each within the bound worked out beside it:
 | time to apogee | 9.758 s | 9.725 s | follows from the two rows above; not tested on its own |
 | top speed | 80.0 m/s at 2.10 s | 79.9 m/s (262 ft/s) at 2.10 s | half a foot per second |
 | landing | 46.14 s, touchdown | 45.85 s | up to 0.38 s early: 2 m at 6 m/s is 0.33 s, and the test allows a sample more |
-| mean descent rate | 10.92 m/s over hpr's span, 10.275 s to 45.85 s | 10.92 m/s | the two heights' bounds over the span |
+| mean descent rate | 10.92 m/s over FusionSpace HPR's span, 10.275 s to 45.85 s | 10.92 m/s | the two heights' bounds over the span |
 
 The middle of the flat run at the top falls between two samples here, so the apogee time is
 10.275 s. [`hpr analyze`](../cli.md#hpr-analyze) prints times to two decimals, as 10.28 s and
@@ -178,15 +178,15 @@ it has been fetched (`cargo xtask refs fetch`), a
 [test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs) reads it and
 holds these numbers:
 
-| | the altimeter states | hpr reads |
+| | the altimeter states | FusionSpace HPR reads |
 |---|---|---|
 | apogee | 1,009 ft | 1,010 ft (307.8 m) |
 | highest sample | | 1,028 ft, the ejection pulse, set aside |
 | top speed | | 257 ft/s (78.3 m/s) |
 | liftoff | | 0.15 s |
 
-The altimeter's apogee comes from the same pressure trace, so the agreement shows that hpr reads
-the trace as the altimeter does, not that either is the true height.
+The altimeter's apogee comes from the same pressure trace, so the agreement shows that
+FusionSpace HPR reads the trace as the altimeter does, not that either is the true height.
 
 A Featherweight Raven flew on the same flight, and Debrief reports it agreeing at about 1,009 ft.
 Reading the Raven's file is [M7.1](../decisions-and-roadmap.md#m7-1)'s work.
@@ -196,14 +196,14 @@ Reading the Raven's file is [M7.1](../decisions-and-roadmap.md#m7-1)'s work.
 - **The day's air.** The altitude is the logger's own conversion of its pressure, which assumes a
   standard atmosphere. On a warm day a barometric altimeter reads low, 6.5% on a day 20 K warmer
   than standard ([Atmosphere](atmosphere.md#pressure-altitude-what-a-barometric-altimeter-reads)).
-  hpr prints what the logger recorded and doesn't correct it.
+  FusionSpace HPR prints what the logger recorded and doesn't correct it.
 - **Fast flights.** Debrief stops trusting a barometer's altitude above Mach 0.9, about 300 m/s
   (1,000 ft/s) near the ground
   ([the readings note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/debrief-flight-readings.md)).
-  hpr has no such check yet. On a flight that may have come that close to the speed of sound,
-  judged from its simulation or motor rather than from the log, the altitude near the top speed
-  may be off, and so may the top speed, which the logger works out from that altitude and which
-  can itself read low.
+  FusionSpace HPR has no such check yet. On a flight that may have come that close to the speed of
+  sound, judged from its simulation or motor rather than from the log, the altitude near the top
+  speed may be off, and so may the top speed, which the logger works out from that altitude and
+  which can itself read low.
 - **Noise and wide pulses.** On a noisy trace the highest of the medians can read above the true
   peak, and a pulse wider than half the window passes the median. Neither is flagged. Noise of a
   foot or two can also trip `faster_than_free_fall` on a low flight that fell with little drag,

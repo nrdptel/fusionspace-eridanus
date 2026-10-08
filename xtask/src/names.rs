@@ -14,8 +14,8 @@
 //!   something else. In a string literal, which has no code formatting, `hpr` is the command
 //!   when a subcommand, a flag or a `{}` placeholder follows it, or when it is the whole literal.
 //!
-//! The surfaces, from ADR-205 §1 (M0.9a1; the site's pages join in M0.9a2): the README and the
-//! landing page, `docs/start-here.md`; every
+//! The surfaces, from ADR-205 §1 (M0.9a1, M0.9a2): every page the site renders, as
+//! `docs/SUMMARY.md` lists them, and `SUMMARY.md` itself, the site's sidebar; the README; every
 //! crate's `Cargo.toml` description and README; the rustdoc and string literals (help text and
 //! messages) under each published crate's `src/` and the Python bindings' (whose rustdoc is the
 //! package's docstrings); the Python package's docstrings and `pyproject.toml`; the schemas'
@@ -23,13 +23,18 @@
 //! `LICENSE-APACHE` and their copies, the release's license template, `THIRD-PARTY-NOTICES.md`
 //! and `CHANGELOG.md`; and the banners' `project.json`.
 //!
+//! Two names keep the old name and are not mentions (ADR-207): a decision record's file name, since
+//! records are never renamed, and the flight engine crate's folder in a path, `crates/hpr-sim/`.
+//!
 //! A mention is allowed only by an entry of [`ALLOW`]: a file, the exact text around the
 //! mention, how many mentions it covers, and why it stays. An entry covers a mention only inside
 //! its text, so a new mention on the same line still fails, and so does a new one in a copy of its
 //! text, since its count no longer matches; an entry that covers nothing fails as stale. An entry
 //! is one line of at most [`MAX_ALLOW_TEXT`] bytes with at least [`MIN_ALLOW_CONTEXT`] beyond its
 //! mentions; only an ADR up to ADR-205, or the roadmap's archive, may be allowed whole
-//! ([`Scope::Page`]).
+//! ([`Scope::Page`]). Neither is a surface, but on the records page a decision record's row,
+//! which gives its summary, inherits its record's allowance; no other line there does
+//! (ADR-206 §2).
 
 use std::ops::Range;
 use std::path::Path;
@@ -51,6 +56,14 @@ pub const SUITE: &str = "FusionSpace HPR";
 /// The landing page.
 const LANDING: &str = "docs/start-here.md";
 
+/// The site's table of contents, itself the site's sidebar: it and every page it lists are
+/// surfaces (M0.9a2).
+const SUMMARY: &str = "docs/SUMMARY.md";
+
+/// The records page, one of the site's pages, whose rows of decision records inherit their
+/// records' allowance (ADR-206 §2).
+const RECORDS_PAGE: &str = crate::records::RECORDS_PAGE;
+
 /// The longest text an [`Allow`] entry may give: about a line of prose.
 const MAX_ALLOW_TEXT: usize = 120;
 
@@ -66,11 +79,9 @@ const LAST_WHOLE_ADR: u32 = 205;
 pub enum Scope {
     /// The mentions inside each occurrence of this exact text.
     Text(&'static str),
-    /// The whole file: only an ADR up to [`LAST_WHOLE_ADR`], or the roadmap's archive.
-    #[cfg_attr(
-        not(test),
-        expect(dead_code, reason = "no surface checked yet is a record allowed whole")
-    )]
+    /// The whole file: only an ADR up to [`LAST_WHOLE_ADR`], or the roadmap's archive. An
+    /// ADR is not a surface, but its row on the records page, which gives its summary, inherits
+    /// this allowance; no other line there does.
     Page,
 }
 
@@ -127,12 +138,6 @@ pub const ALLOW: &[Allow] = &[
         scope: Scope::Text("(format/ork.md#how-many-configurations-hpr-sim-flies)"),
         count: 1,
         why: "an anchor: the heading names the `hpr sim` command",
-    },
-    Allow {
-        file: "THIRD-PARTY-NOTICES.md",
-        scope: Scope::Text("`crates/hpr-sim/tests/data/"),
-        count: 1,
-        why: "a path under `crates/hpr-sim/`, the flight engine's folder",
     },
     Allow {
         file: "THIRD-PARTY-NOTICES.md",
@@ -231,22 +236,532 @@ pub const ALLOW: &[Allow] = &[
         why: "history: version 0.1's schema names the program as the builds that wrote 0.1 documents did",
     },
     Allow {
-        file: "crates/hpr-io/src/ork/staging.rs",
-        scope: Scope::Text("0165-an-unpowered-separation-in-hpr-sim.md"),
+        file: "docs/VALIDATION.md",
+        scope: Scope::Text("- **`nrdptel/hpr-sim-fixtures`** (private)"),
         count: 1,
-        why: "an ADR's file name, which keeps the name it was written under",
+        why: "`hpr-sim-fixtures`, the private fixtures repository, which kept its name (ADR-151)",
     },
     Allow {
-        file: "crates/hpr/src/ork.rs",
-        scope: Scope::Text("0165-an-unpowered-separation-in-hpr-sim.md"),
+        file: "docs/cli.md",
+        scope: Scope::Text("(#what-hpr-sim-doesnt-fly-yet)"),
+        count: 2,
+        why: "an anchor: the heading names the `hpr sim` command",
+    },
+    Allow {
+        file: "docs/cli.md",
+        scope: Scope::Text("[`hpr sim`](#hpr-sim) reads"),
+        count: 1,
+        why: "an anchor: the heading names the `hpr sim` command",
+    },
+    Allow {
+        file: "docs/cli.md",
+        scope: Scope::Text("([how to use it](cli.md#hpr-sim))"),
+        count: 1,
+        why: "an anchor: the heading names the `hpr sim` command; the row is written from the command registry",
+    },
+    Allow {
+        file: "docs/decisions-and-roadmap.md",
+        scope: Scope::Text("[The command line](cli.md#hpr-sim)) | done |"),
+        count: 1,
+        why: "an anchor: the heading names the `hpr sim` command",
+    },
+    Allow {
+        file: "docs/format/eng.md",
+        scope: Scope::Text("the earlier name `hpr-sim` with that"),
+        count: 1,
+        why: "an old stamp that must still read: files written before the rename carry it (ADR-199 §4)",
+    },
+    Allow {
+        file: "docs/format/ork.md",
+        scope: Scope::Text("[`hpr sim`](../cli.md#hpr-sim)"),
+        count: 2,
+        why: "an anchor: the heading names the `hpr sim` command",
+    },
+    Allow {
+        file: "docs/format/ork.md",
+        scope: Scope::Text("([the count](#how-many-configurations-hpr-sim-flies))"),
+        count: 1,
+        why: "an anchor: the heading names the `hpr sim` command",
+    },
+    Allow {
+        file: "docs/format/ork.md",
+        scope: Scope::Text("TOOL 001\"` (`hpr-sim` before release 0.1's"),
+        count: 1,
+        why: "an old stamp that must still read: files written before the rename carry it (ADR-199 §4)",
+    },
+    Allow {
+        file: "docs/format/pf2.md",
+        scope: Scope::Text("Comments: invented for hpr-sim's tests"),
+        count: 1,
+        why: "a quote of a committed test log's header, which keeps the words it was written with",
+    },
+    Allow {
+        file: "docs/monte-carlo.md",
+        scope: Scope::Text("[`hpr sim`](cli.md#hpr-sim) flies"),
+        count: 1,
+        why: "an anchor: the heading names the `hpr sim` command",
+    },
+    Allow {
+        file: "docs/online-data.md",
+        scope: Scope::Text("used folders named `hpr-sim`; those are not read"),
+        count: 1,
+        why: "history: the cache folders builds before the rename used, named to say they are not read",
+    },
+    Allow {
+        file: "docs/physics/recovery.md",
+        scope: Scope::Text("[`hpr sim`](../cli.md#hpr-sim) flies"),
+        count: 1,
+        why: "an anchor: the heading names the `hpr sim` command",
+    },
+    Allow {
+        file: "docs/your-own-rocket.md",
+        scope: Scope::Text("[`hpr sim`](cli.md#hpr-sim) flies the JSON file"),
+        count: 1,
+        why: "an anchor: the heading names the `hpr sim` command",
+    },
+    Allow {
+        file: "docs/writing.md",
+        scope: Scope::Text("fails on the old name, `hpr-sim`, in any"),
+        count: 1,
+        why: "the house style's statement of the rule, which names the old name",
+    },
+    Allow {
+        file: "docs/decisions/0021-whole-flights-against-rocketpy-what-is-compared.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0023-predicted-mode-each-codes-own-drag-reported.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0026-the-path-in-wind-rocketpys-corrected-equations.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0029-drag-against-rasaero-ii-through-mach-2-the-gap.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0032-normal-force-overrides-from-rasaero-ii-the.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0036-the-arcas-robins-supersonic-body-gap-judged-as.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0040-a-steep-boattail-reads-its-measured-correlation.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0046-debrief-folded-in-and-flight-log-analysis-that.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0054-an-automatic-radius-with-nothing-to-take-is.md",
+        scope: Scope::Page,
+        count: 3,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0055-m3-1c-split-and-the-motors-a-ork-flies-its-own.md",
+        scope: Scope::Page,
+        count: 2,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0057-a-ork-designs-stored-simulations-read-back-as.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0058-what-a-ork-holds-that-hpr-does-not-model-kept.md",
+        scope: Scope::Page,
+        count: 3,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0059-the-rocketserializer-cross-check-three-readers.md",
+        scope: Scope::Page,
+        count: 2,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0061-what-a-ork-leaves-unsaid-read-as-openrocket.md",
+        scope: Scope::Page,
+        count: 2,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0062-fins-and-rail-buttons-against-openrocket-roll.md",
+        scope: Scope::Page,
+        count: 2,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0065-stored-results-are-references-only-when-current.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0066-every-curve-hpr-flies-is-integrated-as.md",
+        scope: Scope::Page,
         count: 4,
-        why: "an ADR's file name, which keeps the name it was written under",
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
     },
     Allow {
-        file: "crates/hpr/src/ork.rs",
-        scope: Scope::Text("0159-a-powered-separation-in-hpr-sim.md"),
+        file: "docs/decisions/0067-curves-come-from-openrockets-own-database-by.md",
+        scope: Scope::Page,
         count: 1,
-        why: "an ADR's file name, which keeps the name it was written under",
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0069-hprs-flights-of-the-public-designs-against.md",
+        scope: Scope::Page,
+        count: 6,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0070-m2-2e-split-mass-and-centre-of-mass-first-then.md",
+        scope: Scope::Page,
+        count: 3,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0071-the-corpus-openrocket-flies-is-its-ork-files.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0072-hprs-flights-of-the-private-library-under.md",
+        scope: Scope::Page,
+        count: 3,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0073-each-named-cause-sized-by-openrockets-own-flight.md",
+        scope: Scope::Page,
+        count: 2,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0075-a-cluster-is-one-tube-repeated-and-a-motor-in-it.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0076-a-ork-files-ignitions-and-one-powered-separation.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0078-fin-flutter-by-naca-tn-4197-the-lower-reading.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0080-parquet-written-in-house-read-back-by-apaches.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0081-era5-weather-read-from-netcdf-classic-in-hpr-io.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0082-real-flights-read-from-refs-compared-over-the.md",
+        scope: Scope::Page,
+        count: 2,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0084-the-accuracy-census-the-reports-numbers-held-to.md",
+        scope: Scope::Page,
+        count: 2,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0089-a-pod-is-a-stack-of-body-components-repeated.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0094-a-tilted-launch-rod-flown-as-openrocket-records.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0095-the-single-pre-1-9-override-flag-read-as.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0096-fin-fillets-and-an-automatic-radius-inside-a.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0097-a-cause-in-the-drag-sized-by-hpr-flying.md",
+        scope: Scope::Page,
+        count: 5,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0098-a-tube-fin-sets-automatic-radius-read-as.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0099-tube-fins-flown-as-ring-wings.md",
+        scope: Scope::Page,
+        count: 4,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0101-openrockets-mass-conventions-rolled-up-m2-2-left.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0102-tube-fins-centre-of-pressure-measured-against.md",
+        scope: Scope::Page,
+        count: 4,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0104-a-drag-model-replaces-the-zero-lift-drag-only-as.md",
+        scope: Scope::Page,
+        count: 3,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0106-hpr-sim-flies-the-librarys-flight-the-stack.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0109-m3-2-split-and-a-ork-written-from-the-design.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0110-m3-2b-openrocket-flies-the-export-only-counts.md",
+        scope: Scope::Page,
+        count: 2,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0111-m3-3-the-hpr-design-format-its-extensions.md",
+        scope: Scope::Page,
+        count: 2,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0112-m3-3b-the-hprz-container-and-migrations.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0116-m4-3c-drag-and-wind-as-python-functions.md",
+        scope: Scope::Page,
+        count: 2,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0121-gfs-and-rap-from-nomads-grib-filter-read-by-an.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0123-complex-packing-and-a-whole-gfs-file.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0124-jpeg-2000-packing-through-hayro-jpeg2000.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0143-the-operating-envelope-and-a-stop-rule-for.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0151-hpr-sim-fixtures-joins-the-reference-library-as.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0153-a-orks-recovery-flown-as-openrocket-flies-it.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0158-how-to-guides.md",
+        scope: Scope::Page,
+        count: 2,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0162-the-suite-and-its-releases.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0164-the-fusionspace-product-system.md",
+        scope: Scope::Page,
+        count: 2,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0167-a-part-s-drag-override-as-openrocket-flies-it.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0171-a-parallel-stage-is-a-pod-set-that-separates.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0172-a-stage-s-first-burnout.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0174-the-command-line-s-colors-hints-and-title-block.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0181-the-stability-issue-warnings.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0182-hpr-mc-monte-carlo-from-the-command-line.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0184-logged-apogees-of-the-private-collection.md",
+        scope: Scope::Page,
+        count: 2,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0190-the-friction-and-freeform-fin-warnings.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0191-the-2026-10-06-ideas-web-tools-watches-repo-layout-hardware.md",
+        scope: Scope::Page,
+        count: 2,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0192-the-2026-10-06-follow-up-best-over-first-and-export-control.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0193-the-2026-10-07-control-scope-drag-only-brakes-roll-only-surfaces.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0195-the-2026-10-07-guides-rocketry-explained.md",
+        scope: Scope::Page,
+        count: 3,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0196-the-2026-10-07-product-guides.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0197-the-2026-10-07-parts-catalog.md",
+        scope: Scope::Page,
+        count: 2,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0198-the-2026-10-07-project-eridanus.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0199-the-2026-10-07-fusionspace-hpr.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0203-the-fusionspace-hpr-packages.md",
+        scope: Scope::Page,
+        count: 1,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
+    },
+    Allow {
+        file: "docs/decisions/0205-the-2026-10-08-one-name-one-design.md",
+        scope: Scope::Page,
+        count: 2,
+        why: "a decision record, history: its row on the records page says what it decided as it was written",
     },
 ];
 
@@ -364,12 +879,14 @@ fn surfaces(root: &Path, files: &[String]) -> Vec<(String, Kind)> {
                     .is_ok_and(|manifest| published(&manifest))
         })
         .collect();
+    let pages = site_pages(root);
     let mut found = Vec::new();
     for path in files {
-        let kind = if matches!(
-            path.as_str(),
-            "README.md" | "CHANGELOG.md" | "THIRD-PARTY-NOTICES.md" | LANDING
-        ) {
+        let kind = if pages.contains(path)
+            || matches!(
+                path.as_str(),
+                "README.md" | "CHANGELOG.md" | "THIRD-PARTY-NOTICES.md" | LANDING | SUMMARY
+            ) {
             Some(Kind::Markdown)
         } else if path == ".github/brand/project.json" {
             Some(Kind::Json)
@@ -429,6 +946,21 @@ fn surfaces(root: &Path, files: &[String]) -> Vec<(String, Kind)> {
     found
 }
 
+/// The pages `SUMMARY.md` renders on the site, as paths from `root`.
+fn site_pages(root: &Path) -> Vec<String> {
+    let Ok(summary) = std::fs::read_to_string(root.join(SUMMARY)) else {
+        return Vec::new();
+    };
+    Parser::new(&summary)
+        .filter_map(|event| match event {
+            Event::Start(Tag::Link { dest_url, .. }) if !dest_url.is_empty() => {
+                Some(format!("docs/{dest_url}"))
+            }
+            _ => None,
+        })
+        .collect()
+}
+
 /// The surfaces at `root`, read: the tracked files, and each surface's path, text and mentions.
 struct Read {
     files: Vec<String>,
@@ -439,6 +971,14 @@ struct Read {
 /// Reads every surface at `root` once, so that allowlists can be tried against it.
 fn read(root: &Path) -> Result<Read, String> {
     let files = tracked(root)?;
+    // A decision record's file name keeps the name it was written under, since records are never
+    // renamed: the old name inside one, linked or quoted, names the record.
+    let records: Vec<&str> = files
+        .iter()
+        .filter(|path| adr_number(path).is_some())
+        .filter_map(|path| path.strip_prefix("docs/decisions/"))
+        .filter(|name| !old_names(name, 0..name.len()).is_empty())
+        .collect();
     let mut surfaces = Vec::new();
     for (path, kind) in self::surfaces(root, &files) {
         // A file deleted in the working tree but not yet from the index names nothing.
@@ -446,7 +986,8 @@ fn read(root: &Path) -> Result<Read, String> {
             continue;
         };
         let text = String::from_utf8_lossy(&bytes).into_owned();
-        let found = mentions(kind, &text);
+        let mut found = mentions(kind, &text);
+        found.retain(|mention| !another_name(&text, mention, &records));
         surfaces.push((path, text, found));
     }
     Ok(Read {
@@ -504,10 +1045,7 @@ fn may_be_whole(path: &str) -> bool {
     if path == "docs/roadmap-done.md" {
         return true;
     }
-    path.strip_prefix("docs/decisions/")
-        .and_then(|name| name.get(..4))
-        .and_then(|number| number.parse::<u32>().ok())
-        .is_some_and(|number| number <= LAST_WHOLE_ADR)
+    adr_number(path).is_some_and(|number| number <= LAST_WHOLE_ADR)
 }
 
 /// The entries of `allow` that aren't narrow, or name a file that isn't tracked.
@@ -590,14 +1128,20 @@ fn uncovered(
 ) -> Vec<String> {
     let mut problems = Vec::new();
     for mention in mentions {
-        let covered = allow.iter().position(|entry| {
-            entry.file == path
-                && match entry.scope {
-                    Scope::Page => true,
-                    Scope::Text(allowed) => text.match_indices(allowed).any(|(at, _)| {
+        let record = (path == RECORDS_PAGE)
+            .then(|| record_of_row(line_at(text, mention.at.start)))
+            .flatten();
+        let covered = allow.iter().position(|entry| match entry.scope {
+            Scope::Page => {
+                entry.file == path
+                    || record.is_some_and(|number| adr_number(entry.file) == Some(number))
+            }
+            Scope::Text(allowed) => {
+                entry.file == path
+                    && text.match_indices(allowed).any(|(at, _)| {
                         at <= mention.at.start && mention.at.end <= at + allowed.len()
-                    }),
-                }
+                    })
+            }
         });
         match covered {
             Some(index) => used[index] += 1,
@@ -619,6 +1163,52 @@ fn uncovered(
         }
     }
     problems
+}
+
+/// Whether `mention` in `text` is the old name spelling another name that keeps it (ADR-207):
+/// the flight engine crate's folder in a path, `crates/hpr-sim/…`, which kept its name when the
+/// package was renamed (ADR-203); or inside one of `records`, the file names of the decision
+/// records that spell it, since a record is never renamed.
+fn another_name(text: &str, mention: &Mention, records: &[&str]) -> bool {
+    let at = &mention.at;
+    mention.rule == Rule::OldName
+        && (text[..at.start].ends_with("crates/") && text[at.end..].starts_with('/')
+            || records.iter().any(|name| {
+                text.match_indices(name)
+                    .any(|(start, _)| start <= at.start && at.end <= start + name.len())
+            }))
+}
+
+/// The line of `text` that holds the byte `at`.
+fn line_at(text: &str, at: usize) -> &str {
+    let start = text[..at].rfind('\n').map_or(0, |found| found + 1);
+    let end = text[at..].find('\n').map_or(text.len(), |found| at + found);
+    &text[start..end]
+}
+
+/// The decision record whose row of the records page `line` is: the number of the `[adr-NNN]`
+/// link that opens its first cell, the record's own title (a note such as "superseded by" may
+/// follow it). Any other line, a milestone's or a lesson's row or prose, is no record's, and so
+/// is a link to a record later in the row.
+fn record_of_row(line: &str) -> Option<u32> {
+    let first = line.strip_prefix('|')?.split('|').next()?;
+    let title = first.trim().strip_prefix("[ADR-")?;
+    let (label, rest) = title.split_once("][adr-")?;
+    let (number, _) = rest.split_once(']')?;
+    // The link's label is the record's own: `ADR-NNN: its title`, the same number.
+    let (labelled, _) = label.split_once(':')?;
+    (labelled == number && number.len() == 3 && number.bytes().all(|b| b.is_ascii_digit()))
+        .then(|| number.parse().ok())
+        .flatten()
+}
+
+/// The number of the decision record at `path`, if it is one: `docs/decisions/NNNN-….md`.
+fn adr_number(path: &str) -> Option<u32> {
+    let name = path.strip_prefix("docs/decisions/")?;
+    let (number, rest) = name.split_once('-')?;
+    (number.len() == 4 && rest.ends_with(".md") && number.bytes().all(|b| b.is_ascii_digit()))
+        .then(|| number.parse().ok())
+        .flatten()
 }
 
 /// Every mention in a surface of kind `kind` with the text `text`, in order.
@@ -1593,6 +2183,11 @@ mod tests {
             ("schema/format/python/hpr_design.py", Kind::Python),
             ("schema/format/typescript/hpr-design.ts", Kind::TypeScript),
             (".github/brand/project.json", Kind::Json),
+            ("docs/SUMMARY.md", Kind::Markdown),
+            ("docs/cli.md", Kind::Markdown),
+            ("docs/physics/aero.md", Kind::Markdown),
+            ("docs/format/ork.md", Kind::Markdown),
+            ("docs/decisions-and-roadmap.md", Kind::Markdown),
         ];
         for (path, kind) in expected {
             assert_eq!(kind_of(path), Some(kind), "{path}");
@@ -1603,9 +2198,18 @@ mod tests {
             "crates/hpr-sim/src/tests.rs",
             "crates/hpr-io/src/ork/tests.rs",
             "crates/hpr-sim/tests/cli.rs",
-            "docs/cli.md",
+            "docs/ROADMAP.md",
+            "docs/DECISIONS.md",
+            "docs/research/working-notes.md",
+            "docs/decisions/0205-the-2026-10-08-one-name-one-design.md",
         ] {
             assert_eq!(kind_of(path), None, "{path}");
+        }
+        // Every page the site renders is read: the table of contents lists more than 60.
+        let pages = site_pages(&root);
+        assert!(pages.len() > 60, "{}", pages.len());
+        for page in &pages {
+            assert_eq!(kind_of(page), Some(Kind::Markdown), "{page}");
         }
         // Every published crate's sources are read.
         for (path, _) in read
@@ -1697,10 +2301,14 @@ mod tests {
             let mut fewer = ALLOW.to_vec();
             let dropped = fewer.remove(index);
             let found = problems_of(&read, &fewer);
+            // A record's allowance is used by its row on the records page, which then fails.
+            let fails = if adr_number(dropped.file).is_some() {
+                RECORDS_PAGE
+            } else {
+                dropped.file
+            };
             assert!(
-                found
-                    .iter()
-                    .any(|problem| problem.starts_with(dropped.file)),
+                found.iter().any(|problem| problem.starts_with(fails)),
                 "dropping {:?} found nothing: {found:?}",
                 dropped.scope
             );
@@ -1798,5 +2406,96 @@ mod tests {
         assert_eq!(landing_problems_in(suite_only).len(), SHIPPED.len());
         let later = "# Start here\n\nA suite.\n\nFusionSpace HPR · Sim and FusionSpace HPR.\n";
         assert_eq!(landing_problems_in(later).len(), SHIPPED.len() + 1);
+    }
+
+    /// On the records page, a decision record's row inherits its record's allowance; another
+    /// record's row, a later link to the record, a milestone's row and prose don't (ADR-206 §2).
+    #[test]
+    fn a_records_row_inherits_only_its_records_allowance() {
+        let allow = [Allow {
+            file: "docs/decisions/0069-x.md",
+            scope: Scope::Page,
+            count: 1,
+            why: "a test",
+        }];
+        let row = "| [ADR-069: Flights against OpenRocket's][adr-069] | hpr flies them | |\n";
+        let mut used = [0];
+        assert_eq!(
+            problems_in(RECORDS_PAGE, Kind::Markdown, row, &allow, &mut used),
+            Vec::<String>::new()
+        );
+        assert_eq!(used, [1]);
+        let superseded =
+            "| [ADR-069: Flights][adr-069] (superseded by [ADR-070][adr-070]) | hpr flies | |\n";
+        let mut used = [0];
+        assert!(
+            problems_in(RECORDS_PAGE, Kind::Markdown, superseded, &allow, &mut used).is_empty()
+        );
+        assert_eq!(used, [1]);
+        // Without its record's allowance, the row fails.
+        assert_eq!(
+            problems_in(RECORDS_PAGE, Kind::Markdown, row, &[], &mut []).len(),
+            1
+        );
+        for text in [
+            "| [ADR-070: Something][adr-070] | hpr flies them, as [ADR-069][adr-069] says | |\n",
+            "| [ADR-070: Something][adr-070] (superseded by [ADR-069][adr-069]) | hpr flies | |\n",
+            "| <a id=\"m2-2d2\"></a>[M2.2d2][done-1] | hpr flies them ([ADR-069][adr-069]) | done |\n",
+            "| [ADR-69: Flights][adr-069] | hpr flies them | |\n",
+            "| [ADR-070: Flights][adr-069] | hpr flies them | |\n",
+            "As [ADR-069: Flights][adr-069] says, hpr flies them.\n",
+        ] {
+            let mut used = [0];
+            assert_eq!(
+                problems_in(RECORDS_PAGE, Kind::Markdown, text, &allow, &mut used).len(),
+                1,
+                "{text}"
+            );
+            assert_eq!(used, [0], "{text}");
+        }
+        // On any other page, the row inherits nothing.
+        assert_eq!(
+            problems_in("docs/accuracy.md", Kind::Markdown, row, &allow, &mut [0]).len(),
+            1
+        );
+    }
+
+    /// A decision record's file name and the flight engine's folder in a path keep the old name;
+    /// the old name anywhere else, even beside them, is still a mention (ADR-207).
+    #[test]
+    fn record_names_and_the_engine_folder_are_other_names() {
+        let old = old();
+        let record = format!("0157-{old}-plot.md");
+        let records = [record.as_str()];
+        for text in [
+            format!("See [the record](decisions/0157-{old}-plot.md) for it.\n"),
+            format!("Read `crates/{old}/src/lib.rs` for it.\n"),
+            format!("<!-- quote: crates/{old}/examples/a.rs -->\n"),
+        ] {
+            let found = mentions(Kind::Markdown, &text);
+            assert_eq!(found.len(), 1, "{text}");
+            assert!(another_name(&text, &found[0], &records), "{text}");
+        }
+        for text in [
+            format!("See [the record](decisions/0158-{old}-plot.md) for it.\n"),
+            format!("Read `crates/{old}` for it.\n"),
+            format!("Read `crates/{old}-x/src` for it.\n"),
+            format!("Read `src/{old}/lib.rs` for it.\n"),
+            format!("The {old} crate, in `crates/{old}/`.\n"),
+        ] {
+            let found = mentions(Kind::Markdown, &text);
+            assert!(
+                found.iter().any(|m| !another_name(&text, m, &records)),
+                "{text}"
+            );
+        }
+        // A bare `hpr` beside a record's name is still one.
+        let text = format!("hpr flies it ([the record](decisions/0157-{old}-plot.md)).\n");
+        let found = mentions(Kind::Markdown, &text);
+        assert!(
+            found
+                .iter()
+                .any(|m| m.rule == Rule::BareHpr && !another_name(&text, m, &records))
+        );
     }
 }

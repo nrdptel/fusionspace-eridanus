@@ -1,6 +1,6 @@
 # Writing these pages
 
-**This page is the house style for hpr-sim's documentation.** It is for anyone who writes or
+**This page is the house style for FusionSpace HPR's documentation.** It is for anyone who writes or
 edits a page of this site, a model page, or a doc comment. It applies to every new page and to
 every page a change touches. Older pages move to it as they are edited, not all at once.
 
@@ -80,19 +80,23 @@ They don't conflict with the rules above; they add these:
   an anchor that spells the old name.
 - **The name is checked** (since [M0.9a1, the packages' text](decisions-and-roadmap.md#m0-9a1)):
   `cargo xtask names`, which `cargo test -p xtask` runs, fails on the old name, `hpr-sim`, in any
-  case and with a non-breaking hyphen too, and on a lowercase `hpr` standing for the product in prose. It reads
-  the text that ships in a package: the README and this site's first page, the crates'
-  descriptions, READMEs, rustdoc and messages, the Python package, the schemas and their
-  bindings, the licenses, the notices and the CHANGELOG. A word joined to the name (`hpr-core`,
-  `.hpr`, `hpr.fusionspace.co`) is another name, and in a message `hpr` followed by a
-  subcommand is the command. Each problem prints as its file, line and rule, such as
-  `README.md:14: a bare `hpr` for the product: …`. A mention that must stay (history, an old
-  stamp files still carry, an anchor, a file name) goes on the allowlist, `ALLOW` in
+  case and with a non-breaking hyphen too, and on a lowercase `hpr` standing for the product in
+  prose. It reads the text that ships in a package (the README, the crates' descriptions,
+  READMEs, rustdoc and messages, the Python package, the schemas and their bindings, the
+  licenses, the notices and the CHANGELOG) and, since
+  [M0.9a2, the site's pages](decisions-and-roadmap.md#m0-9a2), every page of this site and its
+  table of contents. A word joined to the name (`hpr-core`, `.hpr`, `hpr.fusionspace.co`) is
+  another name, and in a message `hpr` followed by a subcommand is the command. Two names are
+  never mentions: a decision record's file name, which keeps the name it was written under, and
+  the flight engine's folder in a path, `crates/hpr-sim/`. Each problem prints as its file, line
+  and rule, such as ``README.md:14: a bare `hpr` for the product: …``. A mention that must stay
+  (history, an old stamp files still carry, an anchor) goes on the allowlist, `ALLOW` in
   `xtask/src/names.rs`: the file, the exact text around the mention (one line, at most 120
   bytes, at least 8 beyond the mention), how many mentions it covers, and why it stays. An entry
-  that matches nothing, or a different number of mentions, fails; no page but an old decision
-  record or the roadmap's archive may be allowed whole. The site's other pages join the check in
-  [M0.9a2, the site's pages](decisions-and-roadmap.md#m0-9a2).
+  that matches nothing, or a different number of mentions, fails; no page may be allowed whole.
+  On the records page, a decision record's row, which gives the record's summary as it was
+  written, inherits that record's allowance: a record up to ADR-205 may be allowed whole, and its
+  row with it; no other row or line there inherits anything.
 
 Older pages move to these rules as they are edited. [M0.6](decisions-and-roadmap.md#m0-6), the
 product system milestone, added the check for the first two. Nothing checks the non-breaking

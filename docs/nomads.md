@@ -2,27 +2,27 @@
 
 This page covers fetching the United States weather service's own forecasts over a launch site
 and flying a rocket through them. NOAA's National Centers for Environmental Prediction (NCEP) run
-two weather models whose output hpr reads:
+two weather models whose output HPR Sim reads:
 
 - the **Global Forecast System (GFS)**, which covers the whole Earth on a grid a quarter of a
   degree apart (about 28 km), and
 - the **Rapid Refresh (RAP)**, which covers the contiguous United States and nearby parts of
   Canada and Mexico on a grid 13 km apart, and is started again every hour.
 
-hpr asks NOAA's download server, NOMADS (NOAA Operational Model Archive and Distribution System),
-for a small piece of one forecast around the site. The piece arrives as a [GRIB2](glossary.md#grib2)
-file, the World Meteorological Organization's binary format for weather on a grid, and hpr reads
-it with its own decoder. The result is a [sounding](glossary.md#sounding): temperature, pressure,
-humidity and wind at a column of heights, from the ground up to about 31 km (GFS) or 16 km (RAP).
-You can also download a whole GFS file and read it offline, which goes up to about 79 km
-([A whole GFS file](#a-whole-gfs-file)).
+The simulator asks NOAA's download server, NOMADS (NOAA Operational Model Archive and Distribution
+System), for a small piece of one forecast around the site. The piece arrives as a
+[GRIB2](glossary.md#grib2) file, the World Meteorological Organization's binary format for weather
+on a grid, and the simulator reads it with its own decoder. The result is a
+[sounding](glossary.md#sounding): temperature, pressure, humidity and wind at a column of heights,
+from the ground up to about 31 km (GFS) or 16 km (RAP). You can also download a whole GFS file and
+read it offline, which goes up to about 79 km ([A whole GFS file](#a-whole-gfs-file)).
 This page is for anyone who wants a flight in a named NOAA model's forecast, rather than
 Open-Meteo's choice of model ([Launch-day weather](weather.md)) or a weather balloon's
 measurement ([Weather-balloon soundings](soundings.md)).
 
 **How far to trust it.**
 
-- hpr's decoder gives every value in the two recorded files that ecCodes, the European weather
+- HPR Sim's decoder gives every value in the two recorded files that ecCodes, the European weather
   center's reference decoder, gives: all 6,123 values within 2.2e-16 of each other, relatively
   (one rounding in the last binary digit). The profile gives back those values, interpolated to
   the site, at every level it keeps. That is checked below.
@@ -51,7 +51,7 @@ and
 [ADR-123: Complex packing, and a whole GFS file](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0123-complex-packing-and-a-whole-gfs-file.md),
 and [ADR-124: JPEG 2000 packing](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0124-jpeg-2000-packing-through-hayro-jpeg2000.md).
 
-## What hpr asks for
+## What the simulator asks for
 
 A forecast comes from a *run*: the model starts from the weather observed at one hour, its
 [cycle](glossary.md#forecast-run-cycle), and steps forward. Each *forecast hour* is the forecast
@@ -67,15 +67,16 @@ sea-level pressure is about 1013 hPa). A *pressure level* is a height named by t
 `NomadsRequest::new(latitude, longitude, model, cycle, forecast_hour)` says what to ask for; it
 can't fail. The request's `url()`, and so `nomads::fetch`, refuse a cycle the model doesn't run
 or a forecast hour its run doesn't have (`NomadsModel::has_forecast_hour(cycle_hour, hour)` says
-which it has). hpr picks neither for you: to fly at 18 UTC, ask for GFS's 00 UTC run at hour 18,
-say, or RAP's 12 UTC run at hour 6. A site outside the model's grid is refused once the answer arrives.
+which it has). The simulator picks neither for you: to fly at 18 UTC, ask for GFS's 00 UTC run at
+hour 18, say, or RAP's 12 UTC run at hour 6. A site outside the model's grid is refused once the
+answer arrives.
 
 The request's address is NOMADS' *grib filter*, a web form that cuts chosen variables, levels and
-a box of latitude and longitude out of a run's file. hpr asks for a box 0.3° each way around the
-site, which holds 9 GFS or about 25 RAP [grid points](glossary.md#grid-point), among them the four
-around the site: about 28 KB for GFS and 40 KB for RAP. The box's edges are written to hundredths
-of a degree, worked out from the site rounded to 5 decimals (about 1 m). So a site given to 8
-decimals or fewer, which your program keeps in radians and turns back into degrees (that can
+a box of latitude and longitude out of a run's file. The simulator asks for a box 0.3° each way
+around the site, which holds 9 GFS or about 25 RAP [grid points](glossary.md#grid-point), among them
+the four around the site: about 28 KB for GFS and 40 KB for RAP. The box's edges are written to
+hundredths of a degree, worked out from the site rounded to 5 decimals (about 1 m). So a site given
+to 8 decimals or fewer, which your program keeps in radians and turns back into degrees (that can
 change its last digits), asks for the same box and finds its saved answer. It asks for:
 
 | variable | where |
@@ -86,8 +87,8 @@ change its last digits), asks for the same box and finds its saved answer. It as
 | wind, as two components | 10 m above the ground and each pressure level |
 
 GRIB2 fixes each variable's unit, so there are no units to check. The filter also sends the
-ground's own (skin) temperature, since it asks for temperature at the surface; hpr decodes it but
-doesn't use it. With it, a cut holds 147 GFS or 192 RAP
+ground's own (skin) temperature, since it asks for temperature at the surface; the simulator decodes
+it but doesn't use it. With it, a cut holds 147 GFS or 192 RAP
 [messages](glossary.md#grib2), one variable on one level each. A cut of more than 1,000 is
 refused unread.
 
@@ -106,9 +107,9 @@ NCEP's forecasts are U.S. government works, free of copyright. Every answer carr
 
 ## How the answer becomes a sounding
 
-**Between grid points.** A model gives each value only at its grid points. hpr takes the four
-around the site and blends them *bilinearly*: each point's weight grows as the site nears it, in
-the grid's own rows and columns, and the four weights add up to 1. A cut whose grid steps and
+**Between grid points.** A model gives each value only at its grid points. The simulator takes the
+four around the site and blends them *bilinearly*: each point's weight grows as the site nears it,
+in the grid's own rows and columns, and the four weights add up to 1. A cut whose grid steps and
 projection aren't the model's (GFS's 0.25° steps, RAP's 13,545 m cells about 265° E) is refused
 and not saved.
 
@@ -125,11 +126,12 @@ out too. At Spaceport America, about 1,400 m up, six levels are underground in e
 1000 to 850 hPa in GFS and 1000 to 875 hPa in RAP. GFS keeps 22 of its 28 levels and RAP 31 of
 its 37. The profile lists every level it left out, and why.
 
-**Heights.** GRIB2 gives heights in geopotential meters, which hpr converts to heights above sea
-level at the site's latitude with the World Meteorological Organization's formula (WMO-No. 8 eq.
-12.16, as the [atmosphere page](physics/atmosphere.md) explains). The model's terrain height is also given in
-geopotential meters and converted the same way. At this latitude that adds about 2 m: GFS's
-1,474.4 gpm becomes 1,476.4 m. If the model's terrain were really a height above sea level, as for
+**Heights.** GRIB2 gives heights in geopotential meters, which the simulator converts to heights
+above sea level at the site's latitude with the World Meteorological Organization's formula
+(WMO-No. 8 eq. 12.16, as the [atmosphere page](physics/atmosphere.md) explains). The model's
+terrain height is also given in geopotential meters and converted the same way. At this latitude
+that adds about 2 m: GFS's 1,474.4 gpm becomes 1,476.4 m. If the model's terrain were really a
+height above sea level, as for
 [Open-Meteo's elevation](weather.md#how-the-answer-becomes-a-sounding), the ground would sit about
 2 m too high.
 
@@ -146,8 +148,8 @@ distance from 95° W:
 
 Here `λ` is the site's longitude, and 25° N is where RAP's cone touches the Earth. At Spaceport
 America, 106.97° W (253.03° E), `θ = 0.4226 × (253.03° − 265°) = −5.06°`: the map's "up" points
-5.06° west of true north. hpr turns the wind by that angle, with `u` and `v` the components along
-the map's rows and columns:
+5.06° west of true north. The simulator turns the wind by that angle, with `u` and `v` the
+components along the map's rows and columns:
 
 ```text
 east  =  u cos θ + v sin θ
@@ -256,47 +258,48 @@ https://noaa-gfs-bdp-pds.s3.amazonaws.com/gfs.20260930/00/atmos/gfs.t00z.pgrb2.0
 
 Here `20260930/00` and `t00z` are the run (00 UTC on 30 September 2026) and `f018` the forecast
 hour. Only the 0.25° files (`pgrb2.0p25`) read: the smaller 0.5° and 1° files are refused, since
-hpr checks the file is on GFS's 0.25° grid. The [command line](cli.md#hpr-weather) reads the file
-as it reads a saved cut, with the site you want:
+the simulator checks the file is on GFS's 0.25° grid. The [command line](cli.md#hpr-weather) reads
+the file as it reads a saved cut, with the site you want:
 `hpr weather gfs --latitude 32.99 --longitude -106.97 --cycle 2026-09-30T00Z --hour 18 --from
 gfs.t00z.pgrb2.0p25.f018 --output profile.json`. It took about a third of a second on a Mac.
 
 NCEP packs whole files more tightly than the grib filter's cuts, with GRIB2's *complex packing*:
 the values are split into groups, each with its own smallest value and number of bits, and most
 fields store the differences between neighbouring values rather than the values (*spatial
-differencing*). GRIB2 numbers these packings as templates 5.2 and 5.3; hpr's decoder reads both.
-A whole file also holds 743 [messages](glossary.md#grib2) where a cut holds 147:
+differencing*). GRIB2 numbers these packings as templates 5.2 and 5.3; the simulator's decoder reads
+both. A whole file also holds 743 [messages](glossary.md#grib2) where a cut holds 147:
 
 - totals and averages over a time span, such as the rain that fell in the last six hours, which
-  hpr reads but the profile doesn't use;
+  the simulator reads but the profile doesn't use;
 - values for a layer between two heights, such as the humidity from the ground to mid-air, which
-  hpr skips because they don't belong to one level;
+  the simulator skips because they don't belong to one level;
 - every pressure level up to 0.01 hPa, so the profile goes on above 10 hPa, where a cut stops.
-  In the profile hpr writes from this file, the 0.01 hPa level is 79.2 km above sea level. The highest levels are near the top of the
-  model, and nothing here checks how good its forecast is there.
+  In the profile the simulator writes from this file, the 0.01 hPa level is 79.2 km above sea level.
+  The highest levels are near the top of the model, and nothing here checks how good its forecast is
+  there.
 
-The grid runs all the way round the Earth, so hpr joins its last column to its first: a site
-between 359.75° and 0° of longitude still has four grid points around it (checked by
+The grid runs all the way round the Earth, so the simulator joins its last column to its first: a
+site between 359.75° and 0° of longitude still has four grid points around it (checked by
 `a_grid_round_the_earth_wraps_its_columns` in `crates/hpr-net/tests/nomads.rs`).
 
 For that run and hour at Spaceport America, the whole file's profile has the cut's 22 levels,
 within 1.04e-7 of each value, relatively, and 13 more above them. Why they differ at all: NOMADS
-packs its cuts again in fewer bits. Read with ecCodes, without hpr, the two files already differ
+packs its cuts again in fewer bits. Read with ecCodes, without HPR Sim, the two files already differ
 by up to 2.4e-6, relatively, at the cut's grid points.
 
 ## Files in JPEG 2000
 
 Some of NCEP's files compress each field as a picture: the packed whole numbers become a
 greyscale image, stored in the JPEG 2000 image format (GRIB2's template 5.40). RAP's whole
-pressure-level files are packed this way. hpr decodes them with
+pressure-level files are packed this way. The simulator decodes them with
 [`hayro-jpeg2000`](https://crates.io/crates/hayro-jpeg2000), a JPEG 2000 decoder written in Rust,
 then turns each whole number into a value as it does for the other packings.
 
 A *lossless* image gives back exactly the numbers packed into it; a *lossy* one gives back
-approximations. hpr reads lossless images of up to 21 bits a value, coded the way NCEP codes
-them; the four RAP fields below have 6 to 16 bits. Anything else is refused, naming what it is: a
-lossy image, one with more bits, or one coded some other way. The limit of 21 bits comes from the
-decoder's arithmetic: it works in 32-bit floats, which keep whole numbers exact only up to
+approximations. The simulator reads lossless images of up to 21 bits a value, coded the way NCEP
+codes them; the four RAP fields below have 6 to 16 bits. Anything else is refused, naming what it
+is: a lossy image, one with more bits, or one coded some other way. The limit of 21 bits comes from
+the decoder's arithmetic: it works in 32-bit floats, which keep whole numbers exact only up to
 16,777,216, and its intermediate sums run about 8 times larger than the values. A field with a
 bitmap is stored as one row of its values, and the decoder takes at most 60,000 in a row, so such a
 field of more values is refused too.
@@ -327,8 +330,8 @@ Linux and Windows.
 - **Every value.** Each of the 147 GFS messages (9 grid points each) and 192 RAP messages (25 grid
   points each) names the same variable, level and times as ecCodes, and all 6,123 values are within
   2.2e-16 of ecCodes', relatively (bound 2.5e-16). That is one rounding: ecCodes multiplies by an
-  inexact `10^−D` where hpr divides by an exact `10^D`. It uses only basic arithmetic, which is the
-  same on every platform.
+  inexact `10^−D` where HPR Sim divides by an exact `10^D`. It uses only basic arithmetic, which is
+  the same on every platform.
 - **Every grid point's position** is within 5.7e-14° of ecCodes' (bound 1e-12°, since
   other platforms' maths libraries can differ in the last digits). The four points' weights add
   up to 1, and the blend of their positions is the site, to 1e-5°.
@@ -405,7 +408,8 @@ Linux and Windows.
   ([Files in JPEG 2000](#files-in-jpeg-2000)).
 - **Whole RAP files.** Their packing is read, but a whole file has not been run through
   `hpr weather`.
-- **Coarser GFS files.** GFS's 0.5° and 1° files are refused: hpr checks for the 0.25° grid.
+- **Coarser GFS files.** GFS's 0.5° and 1° files are refused: the simulator checks for the 0.25°
+  grid.
 - **Forecast accuracy.** Nothing here checks a forecast against the weather that came.
 - **Time.** One forecast hour per request, with no interpolation between hours: you pick the run
   and the hour closest to your launch.
@@ -420,7 +424,7 @@ Linux and Windows.
   of them has that level underground. In the RAP cut, 850 hPa takes 13% of its weight from a point
   whose ground is at 845.8 hPa; the effect here is about 0.02 K, and larger in steep terrain.
 - **The ground.** The pad is placed on the model's smoothed terrain, not the site's real height;
-  hpr doesn't shift the profile to the real ground.
+  the simulator doesn't shift the profile to the real ground.
 - **Humidity over ice.** Whether NCEP gives humidity over ice at cold levels is unsettled here; it
   moves the density by under 0.1%.
 - **The live connection** to NOMADS is not tested in CI, and nothing tells you which runs NOMADS

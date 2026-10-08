@@ -1,4 +1,4 @@
-//! Motors: the thrust curves that come with hpr-sim, and a motor read from a RASP `.eng` file
+//! Motors: the thrust curves that come with HPR Sim, and a motor read from a RASP `.eng` file
 //! like the ones ThrustCurve.org serves, put in a rocket's motor mount and flown.
 //!
 //! Run it from anywhere in the repository:

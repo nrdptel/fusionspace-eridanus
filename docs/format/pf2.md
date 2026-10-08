@@ -10,7 +10,7 @@ has a barometer and no accelerometer, so every height and speed in it comes from
 **To read a flight from one**, run [`hpr analyze`](../cli.md#hpr-analyze) on it, or see
 [Flight-log readings](../physics/log-readings.md) for what is read and how.
 
-This page is the reference for hpr's reader. PerfectFlite publishes no specification of the
+This page is the reference for HPR Sim's reader. PerfectFlite publishes no specification of the
 format, so everything here was learned from exported files, by Debrief, the project owner's
 earlier flight-log analyzer, whose reader this one follows. One real file has been read: Debrief's
 public Pnut log. **How far to trust it:** the layout below is what that file and Debrief's
@@ -43,7 +43,7 @@ Data: (Time, Altitude, Velocity, Temperature (F), Voltage)
 That is the head of the [invented log](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/logs/synthetic-pnut.pf2)
 the tests and the [command-line guide](../cli.md#hpr-analyze) read.
 
-| part | what hpr reads |
+| part | what HPR Sim reads |
 |---|---|
 | first line | the altimeter's name. It must contain `PerfectFlite`, or the file is refused |
 | `Apogee:` | the apogee the altimeter worked out, in feet above the pad, marked `'`, `ft` or `feet`. A value that isn't a plain number of feet, such as `PWRLOSS` (the power failed in flight) or `1,009'`, is noted, not read |
@@ -57,7 +57,7 @@ Other `Key: value` lines, such as `Software:` and `Comments:`, are skipped.
 
 The columns and their units:
 
-| column | unit in the file | hpr's unit |
+| column | unit in the file | HPR Sim's unit |
 |---|---|---|
 | `Time` | seconds from the altimeter's start | s |
 | `Altitude` | feet above the altimeter's reading on the pad | m |
@@ -79,8 +79,8 @@ A file is refused, with its line number, when:
 - a time doesn't come after the one before it;
 - a row stops before its time or its altitude;
 - the `Data:` line names no time or no altitude column, or names one twice;
-- a stated height is marked with another unit, such as `m`: hpr knows only feet, and won't read
-  meters as feet;
+- a stated height is marked with another unit, such as `m`: the reader knows only feet, and won't
+  read meters as feet;
 - a line after the rows began isn't a row.
 
 These are noted and read around. [`hpr analyze`](../cli.md#hpr-analyze) prints each note as a
@@ -97,12 +97,12 @@ keeps the first 20 notes about them and counts the rest in one more:
 ## Where this comes from
 
 Debrief's `lib/parsers/perfectflite.ts` (MIT, the project owner's own) reads the same layout. It
-was written from exported files and cites no document. hpr's reader differs in these ways:
+was written from exported files and cites no document. HPR Sim's reader differs in these ways:
 
-- Debrief assumes the column order; hpr takes it from the `Data:` line when there is one.
-- Debrief skips any line that isn't a row; hpr refuses one after the rows have begun.
-- Debrief reads a stated apogee only when it is marked `'`; hpr also accepts `ft` and `feet`, and
-  refuses a height marked with another unit.
+- Debrief assumes the column order; HPR Sim takes it from the `Data:` line when there is one.
+- Debrief skips any line that isn't a row; HPR Sim refuses one after the rows have begun.
+- Debrief reads a stated apogee only when it is marked `'`; HPR Sim also accepts `ft` and `feet`,
+  and refuses a height marked with another unit.
 
 The public Pnut log marks its apogee with `'`, as `1009' AGL`, and its rows agree with that
 figure ([Flight-log readings](../physics/log-readings.md#checked-against)).

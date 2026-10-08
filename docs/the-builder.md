@@ -1,6 +1,6 @@
 # The builder
 
-This page shows the shortest way to fly a rocket of your own with hpr-sim. The `hpr`
+This page shows the shortest way to fly a rocket of your own with HPR Sim. The `hpr`
 [crate](glossary.md#crate) has four types for it: `Environment`, `Motor`, `Rocket` and `Flight`.
 Add it with `cargo add fusionspace-hpr`; your code says `use hpr::…`.
 You describe the rocket part by part from the nose back, put a motor in it, and fly it from a
@@ -16,7 +16,7 @@ rail. The page runs four example programs and walks through them. It needs the s
 > So what that page says about trusting its numbers holds here. The masses come from each part's
 > shape and a published density, so glue, paint and hardware are missing until you weigh the
 > parts. This rocket has never been flown for real, so no flight checks it. Where it lands in a
-> wind is the least certain number of all: on two of RocketPy's example rockets, hpr's drift and
+> wind is the least certain number of all: on two of RocketPy's example rockets, HPR Sim's drift and
 > RocketPy's differ by 11 to 43%
 > ([Getting started](getting-started.md#how-far-to-trust-it) explains why).
 
@@ -75,8 +75,8 @@ It takes four steps: the motor, the rocket, the weighing and the flight.
 
 ### The motor
 
-`Motor::from_catalog("H54")` takes a motor from the catalog built into hpr-sim. It finds the motor
-by its designation, such as `168H54-10A`, or by its common name, the short form such as `H54`,
+`Motor::from_catalog("H54")` takes a motor from the catalog built into the simulator. It finds the
+motor by its designation, such as `168H54-10A`, or by its common name, the short form such as `H54`,
 and ignores case, spaces and hyphens. Only the 32 motors that come with a thrust curve can be
 found; the [motor page](physics/motor.md) lists them. A name that matches two motors, as `I175`
 does, is refused with both listed rather than guessed. The delay is never read from the
@@ -150,7 +150,7 @@ describes.
 
 ## Which motor
 
-The second example flies the same rocket on each 29 mm motor that comes with hpr-sim, from a
+The second example flies the same rocket on each 29 mm motor that comes with the simulator, from a
 vertical rail, with the parachute opening at apogee whatever the delay:
 
 ```bash
@@ -223,7 +223,7 @@ Because a rocket is a value built by a function, a design study is a loop. The e
 
 ## Parts from a catalog
 
-A rocket can also be built from a maker's parts, as sold, from a parts catalog. hpr-sim bundles
+A rocket can also be built from a maker's parts, as sold, from a parts catalog. HPR Sim bundles
 the one OpenRocket ships: 3,449 parts from Estes, LOC Precision and a dozen more makers, read as
 the [`.orc` page](format/orc.md) explains. The fourth example finds LOC Precision's 2.56 in
 (65 mm) airframe parts in it by maker and part number, builds the rocket from them, and flies it on
@@ -345,30 +345,30 @@ The tolerances were set before measuring. Every part is in one row:
 | Filled nose cones and transitions | 1,029 | 1e-3 of the mass; center 1e-3 of the length | 2.0e-4 of the mass, or 8.8e-10 in ounces; center 7.0e-5 of the length |
 | Hollow nose cones and transitions, shoulders taken out | 181 | the same | 6.3e-4 of the mass, or 8.8e-10 in ounces; center 9.7e-4 of the length |
 | Hollow elliptical nose cones whose walls differ | 4 | counted | up to 0.48% heavier here; center up to 1.7e-3 of the length |
-| A streamer that states its mass | 1 | counted | hpr weighs the stated mass; OpenRocket ignores it |
+| A streamer that states its mass | 1 | counted | HPR Sim weighs the stated mass; OpenRocket ignores it |
 | Refused by the builder | 4 | counted | OpenRocket weighs each as nothing |
 | **All** | **3,449** | | |
 
 Where the masses differ, the test checks each cause:
 
 - **OpenRocket's volumes are close, not exact.** Even a cone, whose volume has a formula, differs a
-  little. The test holds hpr's 85 filled cones to that formula, so the difference is
+  little. The test holds HPR Sim's 85 filled cones to that formula, so the difference is
   OpenRocket's.
-- **Hollow shoulders.** A hollow part's shoulders are taken out of hpr's mass and center, each
+- **Hollow shoulders.** A hollow part's shoulders are taken out of HPR Sim's mass and center, each
   worked out on its own as a tube of the part's wall. That leaves the body, which is what
   OpenRocket weighs.
-- **Two walls.** hpr's wall is every point within its thickness of the outer surface. OpenRocket's
-  masses follow a wall measured across each [station](glossary.md#station) instead, whose inner
-  radius is `r − t √(1 + r′²)` (`r` the radius, `t` the thickness, `r′` the slope). The test works
-  out both on its own. All 185 hollow parts' OpenRocket centers agree with the station-wise wall
-  to 1.1e-4 of the length, and their masses to 2.5e-4, on the 111 that state no mass (a stated
-  mass is OpenRocket's whatever the wall). hpr's 113 hollow conical, tangent-ogive and elliptical
-  nose cones agree with integrals of its own wall, in volume and center, to 1e-9. The other 72
-  hollow parts (Haack and parabolic noses, and transitions) have no such integral: they are
-  checked only against OpenRocket, within the tolerance. The two walls differ most on short,
-  blunt nose cones. Four elliptical ones fall outside the tolerance: three up to 0.48% heavier
-  here, their centers up to 1.7e-3 of their length apart, and one, which states its mass, by its
-  center alone, 1.0e-3 of its length.
+- **Two walls.** HPR Sim's wall is every point within its thickness of the outer surface.
+  OpenRocket's masses follow a wall measured across each [station](glossary.md#station) instead,
+  whose inner radius is `r − t √(1 + r′²)` (`r` the radius, `t` the thickness, `r′` the slope). The
+  test works out both on its own. All 185 hollow parts' OpenRocket centers agree with the
+  station-wise wall to 1.1e-4 of the length, and their masses to 2.5e-4, on the 111 that state no
+  mass (a stated mass is OpenRocket's whatever the wall). HPR Sim's 113 hollow conical,
+  tangent-ogive and elliptical nose cones agree with integrals of its own wall, in volume and
+  center, to 1e-9. The other 72 hollow parts (Haack and parabolic noses, and transitions) have no
+  such integral: they are checked only against OpenRocket, within the tolerance. The two walls
+  differ most on short, blunt nose cones. Four elliptical ones fall outside the tolerance: three up
+  to 0.48% heavier here, their centers up to 1.7e-3 of their length apart, and one, which states its
+  mass, by its center alone, 1.0e-3 of its length.
 - **Masses stated in ounces,** on 185 parts of every kind (a different 185 from the hollow parts
   above), differ by OpenRocket's rounded ounce, 8.8e-10 of the mass.
 - **The 4 refused parts.** One nose cone names a material its file doesn't define. Three tubes or
@@ -438,8 +438,8 @@ any body tube, and a part that isn't a fitting.
 
 ## Where next
 
-- [Models of your own](custom-models.md) flies a drag model and a wind of your own in hpr-sim's
-  place.
+- [Models of your own](custom-models.md) flies a drag model and a wind of your own in the
+  simulator's place.
 - The API reference's [`guide`](api/hpr/guide/index.html) module is this page's walk-through in
   five short chapters, each with code that CI runs.
 - [The API reference](api.md) documents every method, starting at the `hpr` crate.

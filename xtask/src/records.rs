@@ -39,7 +39,7 @@ pub const DECISIONS_DIR: &str = "docs/decisions";
 /// The generated index of decision records, relative to the workspace root.
 pub const DECISIONS_INDEX: &str = "docs/DECISIONS.md";
 /// The site's page of records, relative to the workspace root.
-const RECORDS_PAGE: &str = "docs/decisions-and-roadmap.md";
+pub(crate) const RECORDS_PAGE: &str = "docs/decisions-and-roadmap.md";
 /// How a GitHub URL names a file of this repository on `main`.
 const BLOB: &str = "https://github.com/nrdptel/fusionspace-eridanus/blob/main/";
 

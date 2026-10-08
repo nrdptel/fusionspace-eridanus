@@ -51,13 +51,13 @@ The part is any internal component of your design, such as a mass component. Eac
 starts is recorded as an `EventKind::Shift` event. `Simulation::mass_properties(flight, t)` gives
 the mass, center of mass and inertia the flight had at any time.
 
-Shifts of one part add up. hpr can't know before the flight which triggers will fire, so it adds
-all of a part's moves toward the nose, and separately all of its moves toward the tail, and
+Shifts of one part add up. The simulator can't know before the flight which triggers will fire, so
+it adds all of a part's moves toward the nose, and separately all of its moves toward the tail, and
 refuses either total if it would take the part out of the component that holds it. A part the
 design already places partly outside its holder, such as a weight in a nose cone's shoulder, may
 go as far as it already reaches.
 
-Some parts can't move, and hpr says which rule a refused one breaks:
+Some parts can't move, and the simulator says which rule a refused one breaks:
 
 - a body component, or a part on the outside of the airframe;
 - a part holding a motor, since the motor would not go with it;
@@ -69,9 +69,9 @@ Some parts can't move, and hpr says which rule a refused one breaks:
 
 A flight with a separation or ejections can't have shifts yet. A shift can't start before the
 rocket leaves the rail either: the rail has no stop at its foot, so a part thrown toward the tail
-on the pad could push the rocket up the rail and leave it hanging there. hpr stops the flight
-with an error if one would. A shift timed close to the rail exit can therefore fly in one flight
-and stop another that leaves the rail later; time it from the burnout or the apogee instead.
+on the pad could push the rocket up the rail and leave it hanging there. The simulator stops the
+flight with an error if one would. A shift timed close to the rail exit can therefore fly in one
+flight and stop another that leaves the rail later; time it from the burnout or the apogee instead.
 
 **The motion.** A part doesn't jump from one place to the next. It follows a cycloid, the curve a
 cam designer calls cycloidal motion. It starts at rest, speeds up, and slows to rest again. Its
@@ -101,8 +101,8 @@ part's and `Δ` how far it has moved:
 center of mass moves by  m Δ / M
 ```
 
-The inertia changes as well. hpr takes the part's contribution out where it was and puts it back
-where it is, both about the new center of mass, by the parallel-axis theorem. The part's own
+The inertia changes as well. The simulator takes the part's contribution out where it was and puts
+it back where it is, both about the new center of mass, by the parallel-axis theorem. The part's own
 inertia about its own center goes with it unchanged. Write `c₀` for the part's center where the
 design puts it, `δ` for the move, `cg_new` for the rocket's new center, `I_new` for its inertia
 about that center, and `J(v) = |v|² E − v vᵀ` (with `E` the unit matrix):
@@ -115,7 +115,7 @@ I_new = (the rocket's inertia with the part where it was, taken about cg_new)
 As a check by hand, think of the rocket as two bodies: the part and everything else. About the
 center of mass, the rocket's inertia is the sum of the two bodies' own inertias plus `μ J(L)`. Here `μ = m (M − m) / M` is the
 reduced mass and `L` is the line from the rest's center to the part's. Moving the part changes
-only `L`. The tests check hpr's inertia against this formula.
+only `L`. The tests check the simulator's inertia against this formula.
 
 **The stability margin.** The static margin is the distance from the center of mass back to the
 [center of pressure](../glossary.md#center-of-pressure-cp), in calibres of the rocket's diameter
@@ -152,14 +152,14 @@ nothing more. In the moment equation it gives `I′ ω`, and also this term:
 `h` is the moving parts' angular momentum about the nose tip, relative to the airframe. `ρ` is a
 part's center and `ρ′` its velocity inside the airframe. A part only slides, so every point of it
 moves at the same `ρ′`. When the part is on the axis, `ρ` and `ρ′` both lie along the axis and `h`
-is zero. When it is off the axis, `h` is not zero, and hpr carries it. The sum is over the parts
-that move, each with its own `m`, `ρ` and `ρ′`. On the Rigid-body flight page, `T21` is the name
-the equations (from RocketPy's documentation) give the sum of the moments about the nose tip;
+is zero. When it is off the axis, `h` is not zero, and the simulator carries it. The sum is over the
+parts that move, each with its own `m`, `ρ` and `ρ′`. On the Rigid-body flight page, `T21` is the
+name the equations (from RocketPy's documentation) give the sum of the moments about the nose tip;
 it subtracts `ω × h + h′`.
 
-hpr works out how fast the center of mass and the inertia change exactly, from the cycloid. For a
-burning motor it still estimates them from points 0.1 ms apart. The two add, so a part can move
-while the motor burns:
+The simulator works out how fast the center of mass and the inertia change exactly, from the
+cycloid. For a burning motor it still estimates them from points 0.1 ms apart. The two add, so a
+part can move while the motor burns:
 
 ```text
 r′ = r_a′ + Σ m (δ′/M − δ M′/M²)
@@ -248,8 +248,8 @@ Every refusal has a test that checks which rule fired, in `shifts_that_cannot_be
   design puts it. It can't move across the axis or turn.
 - **Stops.** The cycloid brings the part to rest smoothly. A real mechanism may stop it with a
   shock, which a rigid airframe can't model.
-- **Warnings.** hpr doesn't warn when a shift takes the margin below a safe value; read the margin
-  from the flight's metrics ([Flight metrics](metrics.md#stability-margins)).
+- **Warnings.** The simulator doesn't warn when a shift takes the margin below a safe value; read
+  the margin from the flight's metrics ([Flight metrics](metrics.md#stability-margins)).
 
 The decision record is [ADR-087][adr-087].
 

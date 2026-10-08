@@ -18,7 +18,7 @@ HTTPS was checked by hand, against Open-Meteo and then through the command line'
 
 ## What it promises
 
-hpr's simulation itself never touches the network ([the architecture's pure-core rule: no filesystem, network or clock](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/ARCHITECTURE.md#principles)).
+The simulation itself never touches the network ([the architecture's pure-core rule: no filesystem, network or clock](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/ARCHITECTURE.md#principles)).
 Anything fetched from the internet goes through a *client*, which puts a *cache* (a folder of
 saved responses) in front of a *transport* (the thing that actually fetches). The client runs in
 one of two modes:
@@ -155,14 +155,14 @@ environment names. They check that:
 
 - a fetch saves the sample in the cache, a second fetch inside the time to live sends no request,
   and offline mode answers from the cache without a request while the server is still running;
-- a compressed answer arrives unpacked, and the request names hpr-sim and asks for gzip;
+- a compressed answer arrives unpacked, and the request names `fusionspace-hpr` and asks for gzip;
 - a redirect is followed and saved under the address asked for;
 - a 404 and a 304 are failed fetches and save nothing;
 - an answer one byte over the limit is refused and one at the limit passes, and a megabyte of
   zeros that compresses to under 64 KiB is refused at a 64 KiB limit;
 - a server that never answers is cut off at a 0.3 s limit (the test requires under 5 s; the
   server stalls for 10 s), and a timeout of `Duration::MAX` (the usual way to say "no limit"),
-  which hpr treats as 30 days, does not crash;
+  which the transport treats as 30 days, does not crash;
 - when the server hangs up without answering, an old copy comes back marked stale, with the
   reason.
 

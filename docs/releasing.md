@@ -46,7 +46,7 @@ repository and run `cargo xtask validate --check` ([Accuracy](accuracy.md#the-ce
 ## The license files
 
 **Each archive, wheel and source package carries four license files:** `LICENSE-MIT` and
-`LICENSE-APACHE`, hpr-sim's two licenses, either at your option; `THIRD-PARTY-NOTICES.md`, every
+`LICENSE-APACHE`, the project's two licenses, either at your option; `THIRD-PARTY-NOTICES.md`, every
 outside source the project uses, such as bundled data; and `THIRD-PARTY-LICENSES.txt`, the license
 texts of the Rust crates compiled in. An archive has them beside `hpr`. A wheel has them in its
 metadata folder, `fusionspace_hpr-<version>.dist-info/licenses/`, where `pip show -f fusionspace-hpr`
@@ -60,7 +60,7 @@ if a copy differs from the repository's by a byte.
 `THIRD-PARTY-LICENSES.txt` is written for each build by
 [cargo-about](https://github.com/EmbarkStudios/cargo-about) from the crates' own license files. It
 lists each license once, with its text and the crates that use it. Built on 2026-10-06, the
-command line's file listed 114 crates under 7 licenses, 100 of them from outside hpr-sim; the
+command line's file listed 114 crates under 7 licenses, 100 of them from outside the project; the
 Python package's listed 90 under 5, 77 from outside. A crate may appear under several texts, as
 `ring` does under 18 ISC notices. The licenses it accepts are the ones the project's dependency check
 allows, all permissive, so a crate under any other license stops the build.

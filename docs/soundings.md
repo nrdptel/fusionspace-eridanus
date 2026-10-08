@@ -13,7 +13,7 @@ instead of a forecast ([Launch-day weather](weather.md),
 
 **How far to trust it.**
 
-- hpr turns the archive's answer into a profile that gives back the pressure, temperature,
+- HPR Sim turns the archive's answer into a profile that gives back the pressure, temperature,
   humidity and wind of every level it keeps, to rounding error. That is checked on three recorded
   soundings, below.
 - A sounding is a measurement, but only at its station and time. The nearest station can be
@@ -35,7 +35,7 @@ second weather increment, [M5.2b](decisions-and-roadmap.md#m5-2b). It needs the 
 the `hpr` crate. The choices are in
 [ADR-120: University of Wyoming soundings](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0120-university-of-wyoming-soundings.md).
 
-## What hpr asks for
+## What the simulator asks for
 
 A request names a station and the sounding's hour. The station is its World Meteorological
 Organization (WMO) number, such as 72364 for Santa Teresa, New Mexico; the archive's page has a
@@ -43,8 +43,8 @@ map of them. `WyomingRequest::latest_before(station, launch_time)` picks the las
 sounding at or before a launch, with times in seconds since 1 January 1970 UTC (Unix time). The
 balloon goes up about an hour before that hour.
 
-hpr asks for the archive's comma-separated text, one row per level, and reads these columns.
-Pressures are in hectopascals (hPa, 100 Pa; sea-level pressure is about 1013 hPa).
+The simulator asks for the archive's comma-separated text, one row per level, and reads these
+columns. Pressures are in hectopascals (hPa, 100 Pa; sea-level pressure is about 1013 hPa).
 
 | column | read as |
 |---|---|
@@ -56,8 +56,8 @@ Pressures are in hectopascals (hPa, 100 Pa; sea-level pressure is about 1013 hPa
 | relative humidity, in % | its humidity, relative to liquid water (the file gives it relative to ice too) |
 | wind direction, in degrees, and wind speed, in m/s | the wind, and where it blows from, clockwise from north |
 
-The units are in the column names, and hpr refuses a file with any other. The archive serves two
-versions of most soundings:
+The units are in the column names, and the simulator refuses a file with any other. The archive
+serves two versions of most soundings:
 
 | version | what it is | rows |
 |---|---|---|
@@ -77,17 +77,18 @@ station's later messages arrive:
 | under a day | an hour |
 | over a day | 30 days, if it was saved after the sounding's first day; an earlier copy is fetched again |
 
-Offline mode answers from the disk only, however old the copy. An answer hpr can't read is never saved, so it can't replace a good
-copy. A sounding the archive doesn't have comes back as an HTTP error (404, or 400 for a BUFR file
-the station doesn't send), which the request reports; no test covers that.
+Offline mode answers from the disk only, however old the copy. An answer the simulator can't read is
+never saved, so it can't replace a good copy. A sounding the archive doesn't have comes back as an
+HTTP error (404, or 400 for a BUFR file the station doesn't send), which the request reports; no
+test covers that.
 
 The archive states no terms of use. Show the credit "Sounding from the University of Wyoming's
 radiosonde archive" wherever you show the sounding. Every answer carries it.
 
 ## How the answer becomes a sounding
 
-**Heights.** The file gives geopotential meters, which hpr converts to heights above sea level
-at the first row's latitude with the World Meteorological Organization's formula (WMO-No. 8,
+**Heights.** The file gives geopotential meters, which the simulator converts to heights above sea
+level at the first row's latitude with the World Meteorological Organization's formula (WMO-No. 8,
 its *Guide to Instruments and Methods of Observation*, eqs. 12.15 and 12.16, as the
 [atmosphere page](physics/atmosphere.md) explains). The balloon drifts as it climbs. Converting at the latitude it reached instead would move a height by about
 0.8 m per degree of drift at 10 km, and 2.5 m at 30 km; the example's balloon drifted 0.06°.
@@ -125,8 +126,8 @@ elsewhere. For example, from the coded message's row at 557 hPa to the next at 5
 | recorded | 5,151 m − 5,035 m = 116 m, a miss of 0.9 m |
 | allowance | 5.8 m (5%) + 14.4 m (rounding each pressure by 0.5 hPa) + 30 m = 50.1 m |
 
-**Rows are kept from a chain.** hpr looks for the longest *chain* of rows from the ground in
-which each row fits the one before it in the chain. The chain may pass by up to 10 rows at a
+**Rows are kept from a chain.** The simulator looks for the longest *chain* of rows from the ground
+in which each row fits the one before it in the chain. The chain may pass by up to 10 rows at a
 time, and the rows it passes by are left out. Of two chains equally long, it takes the one whose
 layers fit more closely: the smaller total of each layer's miss as a share of its allowance (a
 miss of 25 m with an allowance of 50 m is a share of 0.5).
@@ -152,7 +153,7 @@ the 30 m and the 5% are margin, and the check is for gross errors, not small one
   room for a layer whose inner rows have no temperature, where the mean of its two ends'
   temperatures gives its thickness less well.
 
-Then hpr keeps:
+Then the simulator keeps:
 
 - **The ground, the first row**: the pressure, temperature, humidity and wind at the station
   when the balloon was released. A first row with a value missing or impossible refuses the
@@ -176,7 +177,7 @@ It leaves out:
 
 The profile lists every row it left out, and why. Two things refuse the answer:
 
-- **A ground the rows after it disagree with.** No row before the ground checks it, so hpr also
+- **A ground the rows after it disagree with.** No row before the ground checks it, so HPR Sim also
   looks for chains that start after it, at one of the next 11 rows with a pressure, height and
   temperature within the bounds. If one of them beats every chain from the ground (it is longer, or
   as long and fits more closely), the ground is taken as wrong. Bad rows right after a good ground
@@ -186,11 +187,11 @@ The profile lists every row it left out, and why. Two things refuse the answer:
   allowance: in the BUFR file, whose first layers are about 8 m thick, two rows 31 m high refuse the
   answer, but not 20 m high (they fit the ground and are kept) or 35 m (they fit nothing but each
   other, and are passed by); in the winter coded message, three rows 45 m high. So do 11 bad rows
-  that fit each other, however far off. hpr can't tell these from a bad ground, and refuses the
+  that fit each other, however far off. HPR Sim can't tell these from a bad ground, and refuses the
   answer. Rows grossly off (850 m, say) fit nothing above them and are passed by, up to 10.
 - **More than 10 rows after the chain's end.** The chain can pass by only 10 rows at a time, so
-  11 bad rows in a row end it. hpr takes that to mean the chain's end is wrong, or all of them are
-  (a block of heights 1 km off). A long run of rows with no temperature can also refuse the
+  11 bad rows in a row end it. HPR Sim takes that to mean the chain's end is wrong, or all of them
+  are (a block of heights 1 km off). A long run of rows with no temperature can also refuse the
   answer: the layer across the run is then too thick for its two ends' temperatures to give. In a
   BUFR file 10 rows are about 10 s of the climb, some 50 m; in a coded message they can span
   kilometers.

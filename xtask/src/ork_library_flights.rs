@@ -901,7 +901,7 @@ pub(crate) fn page(report: &Value) -> String {
          [m2-2e2]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-2e2\n\
          [m2-2e5]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-2e5\n\
          [adr-072]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-072-hprs-flights-of-the-private-library-under-anonymised-ids-2026-09-25\n\
-         [site]: https://hpr.fusionspace.co/format/ork.html#hprs-flights-of-the-private-designs\n\n",
+         [site]: https://hpr.fusionspace.co/format/ork.html#the-simulators-flights-of-the-private-designs\n\n",
     ));
     out.push_str(&summary_lines(report));
     out.push_str(

@@ -14,7 +14,7 @@
 - **What it leaves out:** OpenRocket's documentation doesn't say how it measures wall thickness.
   Measuring it radially instead of square to the surface changes wall volume by 1.4% on a cone
   three calibres (base diameters) long. Where a steep end is cut square to the axis, rather than
-  following the wall's inner corner as hpr does, the part gains up to 2.24% of wall mass in this
+  following the wall's inner corner as HPR Sim does, the part gains up to 2.24% of wall mass in this
   page's examples. The OpenRocket comparison ([M2.2](../decisions-and-roadmap.md#m2-2)) is to check both.
 
 ## Code and sources
@@ -63,15 +63,16 @@ shape is a normalized curve `g(ξ)` with `g(0) = 0` at the tip and `g(1) = 1` at
   von Kármán (LD-Haack) ogive and `C = 1/3` the LV-Haack. [TD] limits `C` to `1/3` in the program.
 - **Two shapes without drag data.** A Haack nose or widening transition above `C = 1/3`, and a
   bulged secant ogive (arc radius below the tangent ogive's), have no drag data faster than
-  sound, so hpr's drag buildup refuses them since [M1.8b1](../decisions-and-roadmap.md#m1-8b1).
-  Their shapes, mass properties and center of pressure are unaffected, and a drag table stands in
-  for the drag ([Aerodynamics](aero.md#drag-through-mach-1)).
+  sound, so the simulator's drag buildup refuses them since
+  [M1.8b1](../decisions-and-roadmap.md#m1-8b1). Their shapes, mass properties and center of pressure
+  are unaffected, and a drag table stands in for the drag
+  ([Aerodynamics](aero.md#drag-through-mach-1)).
 - **Blunt tips.** The elliptical, power-series (`n < 1`) and Haack slopes are infinite at the tip.
   `n = 0` (a flat cylinder) is rejected; model it as a tube and a bulkhead.
 - **Errors in [CR].** Its prose says "greater than twice the length" for the bulged secant ogive,
   against its own formula. Its ogive and ellipsoid areas are wrong, and the author marked them so.
   Its elliptical formula measures `x` from the base, and its ellipse CP ratio should read `2L/3`.
-  hpr uses none of those.
+  HPR Sim uses none of those.
 
 ### Transitions
 

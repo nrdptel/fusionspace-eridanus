@@ -18,7 +18,7 @@
   every 500th line and the 21 mirror lines; the whole set is checked where it has been
   downloaded, and has been measured on macOS.
 - **What it leaves out:** height above sea level, which needs the geoid, up to about 100 m from
-  the ellipsoid ([Frames](frames.md#earth-centered-earth-fixed-ecef)). hpr has no geoid model; a
+  the ellipsoid ([Frames](frames.md#earth-centered-earth-fixed-ecef)). HPR Sim has no geoid model; a
   flight takes that difference at the site as an input. Nothing in a flight uses distance and
   bearing yet: the landing distance `hpr` prints is measured on a flat map from the pad's east and
   north offsets, and there is no command for geodesics.
@@ -134,16 +134,16 @@ on arrival, so the bearing back to the start is `α₂ ± π`; over a long path 
 surface, and the direct problem's end has no height until you give it one.
 
 **Method.** The code is Karney's GeographicLib, as georust's `geographiclib-rs` 0.2.7 (MIT) ports
-it. hpr uses the crate rather than a port of its own, so the code is Karney's line for line
-([ADR-127 decision record][adr-127]). [Karney2013] maps the ellipsoid onto an auxiliary sphere,
+it. The simulator uses the crate rather than a port of its own, so the code is Karney's line for
+line ([ADR-127 decision record][adr-127]). [Karney2013] maps the ellipsoid onto an auxiliary sphere,
 where a geodesic is a great circle (the sphere's shortest path), and corrects distance and
 longitude with series in the flattening to sixth order (§2). The inverse finds `α₁` by Newton's
 method (§4), from a starting guess (§5). Karney states that round-off stays under 15 nm in both
 problems on WGS 84 (§7, page 10), and that up to a flattening of 1/150 the series' truncation is
-smaller still (page 9). Past 1/150 the series lose accuracy, so hpr refuses such an ellipsoid;
-WGS 84's flattening is 1/298. The familiar haversine formula treats the Earth as a sphere, which
-the Earth is not; Vincenty's ellipsoidal method is less accurate than Karney's, and its inverse
-sometimes fails to converge (§7).
+smaller still (page 9). Past 1/150 the series lose accuracy, so the simulator refuses such an
+ellipsoid; WGS 84's flattening is 1/298. The familiar haversine formula treats the Earth as a
+sphere, which the Earth is not; Vincenty's ellipsoidal method is less accurate than Karney's, and
+its inverse sometimes fails to converge (§7).
 
 **Worked example.** A pad at 32.9904° N, 106.9750° W and a landing at 33.0000° N, 106.9680° W:
 
@@ -185,10 +185,10 @@ first's negated (`φ₂ = −φ₁`) and the two azimuths differ (`α₁ ≠ α�
 length join the places, one the mirror of the other, and the second has `α₁` and `α₂` swapped
 (GeographicLib's `GeodSolve` manual, *Multiple solutions*). Either answer is right. Where
 `α₁ = α₂`, as on the between-vertices lines, the geodesic is unique. The set has 21 mirror lines
-once its numbers are read as `f64` (the 64-bit floating-point numbers hpr computes in). They are
-all nearly antipodal, with `m₁₂` under a centimeter, so their azimuths are nearly undetermined.
-On these lines the test scores hpr's answer against whichever pair it is nearer to, and that
-error is within 15 nm on all 21; on 4 the nearer pair is the swapped one.
+once its numbers are read as `f64` (the 64-bit floating-point numbers the simulator computes in).
+They are all nearly antipodal, with `m₁₂` under a centimeter, so their azimuths are nearly
+undetermined. On these lines the test scores the simulator's answer against whichever pair it is
+nearer to, and that error is within 15 nm on all 21; on 4 the nearer pair is the swapped one.
 
 CI checks every 500th line (1,000 of them) and the 21 mirror lines, which are committed. The
 whole set is checked where `cargo xtask refs fetch` has downloaded it, against the committed
@@ -198,9 +198,9 @@ holds the 15 nm bound without comparing the table.
 
 **What it leaves out.** Heights: two places at 3,000 m are as far apart as the same places at
 sea level. Only WGS 84 is measured; on any other ellipsoid up to a flattening of 1/150, the
-accuracy is Karney's claim, not something hpr has measured. A distance of many trips round the
-Earth carries its own rounding, one step of `f64` in the distance (at least 15 nm past 67,109 km). Nothing
-in a flight uses geodesics yet, and `hpr` has no command for them.
+accuracy is Karney's claim, not something this project has measured. A distance of many trips round
+the Earth carries its own rounding, one step of `f64` in the distance (at least 15 nm past 67,109
+km). Nothing in a flight uses geodesics yet, and `hpr` has no command for them.
 
 [Karney2013]: https://arxiv.org/abs/1109.4448
 [GeodTest]: https://doi.org/10.5281/zenodo.32156

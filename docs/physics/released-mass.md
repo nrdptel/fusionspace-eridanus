@@ -20,7 +20,7 @@
 - **What it leaves out:** a push that throws the part out; a release in a flight that also
   separates, ejects pieces or moves a mass; a release before the rocket leaves the rail;
   parachutes on the part; and the part's own spin once it is out. Where and how fast the part
-  lands depends on its [drag area](../glossary.md#drag-area), which you give. hpr doesn't warn
+  lands depends on its [drag area](../glossary.md#drag-area), which you give. HPR Sim doesn't warn
   when a release leaves the rocket unstable: dropping a part forward of the center of mass moves
   the center aft, and the [stability margin](../glossary.md#stability-margin) falls by 1.683
   [calibres](../glossary.md#calibre-caliber) in the example below. Read it from the flight's
@@ -136,9 +136,9 @@ The drag area is yours to give. For a part tumbling at random, the tumble model'
 ([Recovery: tumble](recovery.md#tumble)). That is half the `1.12` of a cylinder broadside. It was
 fitted to whole rockets 44 to 103 mm across falling at 5 to 6.6 m/s, and its one drop test without
 fins wanted 0.79, which gives a speed 16% lower. So treat a tumbling part's landing speed as
-uncertain by at least that much. hpr doesn't build the area for you, because its tumble model
-needs body tubes and fins, and a released part has neither. If the part carries a parachute, give
-the parachute's drag area; it is taken as open from the instant the part leaves.
+uncertain by at least that much. The simulator doesn't build the area for you, because its tumble
+model needs body tubes and fins, and a released part has neither. If the part carries a parachute,
+give the parachute's drag area; it is taken as open from the instant the part leaves.
 
 ## Reading a release back
 
@@ -213,7 +213,7 @@ test measured, where its comments record one, and in brackets the bound it holds
 | `parts_waiting_for_the_apogee_all_leave_at_it` | two parts let go at apogee off the tilted rail, listed either way round, both leave at the flight's one apogee | exactly one |
 | `a_main_set_above_the_apogee_opens_there_whatever_leaves` | off the tilted rail, in wind, a main set 1600 m up, above the 1533 m apogee, opens at the apogee with a part let go there, and a part set to 1600 m leaves there too, listed either way round | at the apogee; landing under 10 m/s |
 | `a_release_that_puts_the_rest_on_the_ground_lands_it` | under a drogue, a release 5 cm above the ground steps the rest's center 9.5 cm down, below it: the rocket lands at the release; climbing, the release is refused | 1e-8 m, 1e-15 kg |
-| `the_optimum_delay_holds_a_release_on_the_motor_s_charge` | a release or a mass shift fired by the motor's ejection charge is held with the charge when hpr works out the [optimum delay](metrics.md#optimum-ejection-delay) (the delay that fires the charge at apogee), so the answer doesn't depend on the delay flown | equal |
+| `the_optimum_delay_holds_a_release_on_the_motor_s_charge` | a release or a mass shift fired by the motor's ejection charge is held with the charge when the simulator works out the [optimum delay](metrics.md#optimum-ejection-delay) (the delay that fires the charge at apogee), so the answer doesn't depend on the delay flown | equal |
 | `a_release_and_its_flight_read_back_as_written` | a release, and a flight with a released part, write to JSON and read back unchanged | equal |
 | `a_part_let_go_at_the_ground_has_landed` | a part let go as the rocket hits the ground, already at or below it, has landed | n/a |
 
@@ -231,13 +231,13 @@ Every refusal has a test that checks which rule fired, in `releases_that_cannot_
 - **A push.** Nothing throws the part out: a spring or a charge would add to its velocity and
   take from the rocket's, as an ejection's impulse does
   ([Recovery: ejected pieces](recovery.md#ejected-pieces)).
-- **Releases with a separation, ejections or mass shifts.** hpr can't combine these yet.
+- **Releases with a separation, ejections or mass shifts.** The simulator can't combine these yet.
 - **Releases on the pad or the rail**, as above.
 - **Parachutes on the part.** It falls under one drag area from the instant it leaves; it has no
   devices of its own, and no opening time.
 - **The part's spin.** Its spin is dropped: 1.5e-3 of the rocket's angular momentum in the
   free-flight test.
-- **Warnings.** hpr doesn't warn when a release leaves the rocket unstable, as above.
+- **Warnings.** The simulator doesn't warn when a release leaves the rocket unstable, as above.
 
 The decision record, [ADR-088][adr-088], sets out these choices: the rest flying on from the same
 state, the part leaving at its own velocity and falling under a drag area you give, and what is

@@ -6,7 +6,7 @@ The weather arrives as a [sounding](glossary.md#sounding): temperature, pressure
 at a column of heights, from the ground up to about 24 km. It is for anyone who wants a flight in a
 day's forecast instead of the [standard atmosphere](glossary.md#standard-atmosphere) with one wind.
 
-**How far to trust it.** hpr turns Open-Meteo's answer into a profile that gives back the
+**How far to trust it.** HPR Sim turns Open-Meteo's answer into a profile that gives back the
 pressure, temperature, humidity and wind of every level it keeps, to rounding error. That is
 checked on two recorded answers, below. How good the forecast is depends on the weather model
 behind it, and nothing here measures that: no flight has been flown in Open-Meteo's weather and
@@ -22,7 +22,7 @@ of the `hpr` crate. Weather from a file you download is on
 [NOAA forecasts: GFS and RAP](nomads.md). The choices are in
 [ADR-119: Open-Meteo's pressure levels as a sounding](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0119-m5-2-split-open-meteos-pressure-levels-as-a.md).
 
-## What hpr asks for
+## What the simulator asks for
 
 Open-Meteo has two services with winds above the ground ([its documentation](https://open-meteo.com/en/docs)).
 Both give the output of numerical weather models, hour by hour, on 19 *pressure levels*: heights
@@ -34,20 +34,20 @@ run from 1000 hPa, about sea level, to 30 hPa, about 24 km up.
 | Forecast | about 16 days ahead and 3 months back | 1 hour |
 | Historical forecast | the same forecasts, archived, for a past launch | 30 days |
 
-hpr asks for the two whole hours around the launch time, in UTC (universal time, the time at
-Greenwich). On each level it asks for the temperature, relative humidity, wind speed and
+The simulator asks for the two whole hours around the launch time, in UTC (universal time, the time
+at Greenwich). On each level it asks for the temperature, relative humidity, wind speed and
 direction, and the level's [geopotential height](glossary.md#geopotential-height). At the ground
 it asks for the pressure, the temperature and humidity 2 m up, and the wind 10 m up. The request
-names the units, and hpr refuses an answer in any other. Wind directions are where the wind blows
-from, clockwise from north, as weather services give them.
+names the units, and the simulator refuses an answer in any other. Wind directions are where the
+wind blows from, clockwise from north, as weather services give them.
 
 The answer goes through `hpr-net`'s cache ([Online data and the cache](online-data.md)), so a
 second request within the "stays fresh" time above is answered from the disk, and offline mode
-answers from the disk only. An answer hpr can't read is never saved, so it can't replace a good
-copy. hpr writes the site's latitude and longitude to 5 decimal places, about 1 m on the ground
-and far finer than any model's grid. So a site given to 8 decimals or fewer, which your program
-keeps in radians and turns back into degrees (that can change its last digits), still finds its
-saved answer. Open-Meteo's data is licensed
+answers from the disk only. An answer the simulator can't read is never saved, so it can't replace a
+good copy. The simulator writes the site's latitude and longitude to 5 decimal places, about 1 m on
+the ground and far finer than any model's grid. So a site given to 8 decimals or fewer, which your
+program keeps in radians and turns back into degrees (that can change its last digits), still finds
+its saved answer. Open-Meteo's data is licensed
 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): show the credit "Weather data by
 Open-Meteo.com (CC BY 4.0)" wherever you show the weather. Every answer carries it. The free
 service is for non-commercial use, under 10,000 calls a day
@@ -66,10 +66,10 @@ in for Open-Meteo's own: set the request's `endpoint`.
   pressure and its height is above the ground. A level with a missing value at either hour is left
   out too, and so is one whose relative humidity is outside 0 to 100%. The profile lists every
   level it left out, and why.
-- **Heights.** The models give a level's height in geopotential meters, which hpr converts to
-  heights above sea level at the site's latitude with the World Meteorological Organization's
+- **Heights.** The models give a level's height in geopotential meters, which the simulator converts
+  to heights above sea level at the site's latitude with the World Meteorological Organization's
   formula (WMO-No. 8 eq. 12.16, as the [atmosphere page](physics/atmosphere.md) explains).
-  Open-Meteo's documentation calls the value an altitude above sea level, so hpr checks which it
+  Open-Meteo's documentation calls the value an altitude above sea level, so HPR Sim checks which it
   is on the two recorded answers. Air pressure falls with height at a rate set by the air's
   temperature and humidity (the *hypsometric equation*), which fixes how thick each layer between
   two levels must be, in geopotential meters. From 500 to 30 hPa, the recorded layers match that

@@ -1,9 +1,9 @@
 # Reading a flight log
 
 This page is for anyone with an altimeter's log who wants to know what their rocket did: how high
-it went, how fast it climbed, when it landed. hpr reads the log on its own. It needs no design
-file and runs no simulation, so it works whatever the rocket was designed in, or if it was never
-designed on a computer at all.
+it went, how fast it climbed, when it landed. FusionSpace HPR · Analyzer reads the log on its own.
+It needs no design file and runs no simulation, so it works whatever the rocket was designed in, or
+if it was never designed on a computer at all.
 
 **What works today:** logs from PerfectFlite altimeters in their `.pf2` format. The one real
 file read so far is a Pnut's; the StratoLogger and StratoLoggerCF are expected to write the same
@@ -15,12 +15,13 @@ Debrief, the project owner's earlier flight-log analyzer, read.
 within a quarter of a meter and one sample of the truth, and liftoff within a tenth of a second.
 The landing is read at the first sample within 2 m of the pad, so early by the time the last 2 m
 take: 0.33 s at 6 m/s, 0.5 s at 4 m/s. On one real flight, a public log that isn't committed here
-and so isn't checked in CI, hpr reads 1,010 ft where the altimeter states 1,009 ft. hpr has no
-check yet for a barometer's errors near the speed of sound. If the flight may have come near Mach
-0.9, about 300 m/s (1,000 ft/s), treat the top speed and the heights near it with care: the
-barometer's error can pull the top speed down too, so a low reading doesn't clear it. The rules behind each reading are on
-[Flight-log readings](physics/log-readings.md), with what they were checked against. A reading
-the log can't support is left out and says why, rather than printed as a number.
+and so isn't checked in CI, the analyzer reads 1,010 ft where the altimeter states 1,009 ft. The
+analyzer has no check yet for a barometer's errors near the speed of sound. If the flight may have
+come near Mach 0.9, about 300 m/s (1,000 ft/s), treat the top speed and the heights near it with
+care: the barometer's error can pull the top speed down too, so a low reading doesn't clear it. The
+rules behind each reading are on [Flight-log readings](physics/log-readings.md), with what they were
+checked against. A reading the log can't support is left out and says why, rather than printed as a
+number.
 
 ## From the command line
 
@@ -169,7 +170,7 @@ start of the log, and a coast with no drag to 390.3 m (1,280.5 ft) at 10.26 s.
 - **Liftoff**, 0.55 s: the last sample before the altitude shows the rocket moving. The rocket
   left the pad at 0.50 s, but its first 0.15 m rounds to 0 ft.
 - **Apogee**, 390.1 m (1,280 ft) at 10.28 s, which is 10.275 s rounded: the top is flat over
-  several samples, and hpr takes the middle. It is the top of the altitude after a 0.3 s
+  several samples, and the analyzer takes the middle. It is the top of the altitude after a 0.3 s
   [running median](glossary.md#running-median). It is 0.17 m below the true apogee: the file
   rounds to whole feet.
 - **The highest sample**, 400.5 m, a second after apogee, is the ejection charge's pressure
@@ -184,7 +185,7 @@ start of the log, and a coast with no drag to 390.3 m (1,280.5 ft) at 10.26 s.
   taken, drogue and main together.
 
 What the file states about itself, such as the altimeter's own apogee of 1,281 ft, is kept in
-`log.stated`, beside hpr's readings and never in their place. The codes, such as
+`log.stated`, beside the analyzer's readings and never in their place. The codes, such as
 `no_accelerometer` and `barometer`, are the ones the JSON output of `hpr analyze` uses. The top
 speed is `max_speed` in both.
 
@@ -195,7 +196,7 @@ speed is `max_speed` in both.
   Mach number and dynamic pressure ([M7.2](decisions-and-roadmap.md#m7-2)).
 - Compare a flight with its simulation ([M7.3](decisions-and-roadmap.md#m7-3)).
 - Check a barometric reading near the speed of sound. Debrief stops trusting one above Mach 0.9;
-  hpr doesn't check yet.
+  the analyzer doesn't check yet.
 - Correct a barometric altitude for the day's air. The altitude is the altimeter's own
   conversion, which assumes a standard atmosphere
   ([Barometric altimeter](glossary.md#barometric-altimeter)).

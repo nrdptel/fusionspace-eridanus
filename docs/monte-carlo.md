@@ -11,7 +11,7 @@ the numbers. Its examples need some Rust and follow on from [The builder](the-bu
 ([below](#from-the-command-line)), and `hpr.MonteCarlo` from Python ([From Python](#from-python)).
 
 > **How far to trust it.** The sampling is tested; the spread it gives is only as good as the
-> uncertainties you give it and hpr-sim's flight models, which are not yet validated against real
+> uncertainties you give it and HPR Sim's flight models, which are not yet validated against real
 > flights ([Accuracy](accuracy.md)).
 >
 > - **Tested:** the same [seed](glossary.md#seed) gives the same run, bit for bit, however many
@@ -153,7 +153,7 @@ distribution](glossary.md#normal-distribution), and it is only as good as the ru
 which carry the flight models' errors and those of the dispersions you chose; neither has been
 compared with real flights yet. The section ends with how to tell when the landings aren't normal.
 
-hpr-sim draws the ellipse from the run's landing points ([`Run::landing`], then
+The simulator draws the ellipse from the run's landing points ([`Run::landing`], then
 [`Scatter::ellipse`]) in three steps. Its *semi-major* and *semi-minor* axes are its half-lengths
 along its long and its short direction.
 
@@ -179,8 +179,8 @@ because a landing can stray in two directions at once.
 
 **Heading** is the major axis's direction, clockwise from north, between 0° and 180°: here 131°,
 running from north-west to south-east. With axes this close to equal the heading means little: a
-few landings more or less could turn it a long way. A circle has no heading at all; hpr-sim then
-reports 90°, east.
+few landings more or less could turn it a long way. A circle has no heading at all; the simulator
+then reports 90°, east.
 
 **The next flight.** The mean and covariance of 200 flights are only estimates, so an ellipse
 drawn from them holds a little less than its level of the flights still to come. For normal
@@ -220,8 +220,8 @@ for the lower bound and inside for the upper ([Failed flights are counted](#fail
 ## What each dispersion does
 
 Each dispersion is a standard deviation: zero, the default, leaves its input at the nominal value.
-For each flight hpr-sim draws a standard normal number `z` (mean 0, standard deviation 1) for each
-input and moves the input by `σ z`, with `σ` the standard deviation you gave. A rocket built of
+For each flight the simulator draws a standard normal number `z` (mean 0, standard deviation 1) for
+each input and moves the input by `σ z`, with `σ` the standard deviation you gave. A rocket built of
 more than one stage gets a draw for each stage, whether its stages fly together or separate; each
 motor and each parachute gets its own draw too.
 
@@ -229,7 +229,7 @@ motor and each parachute gets its own draw too.
 |---|---|
 | `dry_mass_sd_fraction` | Each stage's mass without motors times `1 + σ z`. Its moments of inertia scale with it. |
 | `cg_sd_m` | Each stage's [center of mass](glossary.md#center-of-gravity-cg) moved `σ z` meters towards the tail (towards the nose when negative). |
-| `drag_sd_fraction` | The rocket's zero-lift [drag coefficient](glossary.md#drag-coefficient) times `1 + σ z`, whether hpr-sim's own, a drag table's or a [drag model's](custom-models.md). |
+| `drag_sd_fraction` | The rocket's zero-lift [drag coefficient](glossary.md#drag-coefficient) times `1 + σ z`, whether HPR Sim's own, a drag table's or a [drag model's](custom-models.md). |
 | `impulse_sd_fraction` | Each motor's thrust and propellant mass, both times `1 + σ z`. Its [total impulse](glossary.md#total-impulse) changes and its specific impulse doesn't, as for a motor that holds a little more or less of the same propellant. |
 | `burn_time_sd_fraction` | Each motor's thrust curve stretched in time by `1 + σ z` and its thrust divided by the same: a longer, softer burn of the same impulse. |
 | `ejection_delay_sd_s` | Each motor's [ejection delay](glossary.md#ejection-delay) plus `σ z` seconds, never below zero. |
@@ -237,7 +237,7 @@ motor and each parachute gets its own draw too.
 | `wind_heading_sd_rad` | The wind at every height turned `σ z` clockwise: the forecast's direction, give or take. |
 | `rail_elevation_sd_rad` | The rail's angle above the horizon plus `σ z`. Past vertical, it leans the other way. |
 | `rail_azimuth_sd_rad` | The rail's heading plus `σ z`, clockwise. |
-| `deployment_lag_sd_s` | Each recovery device's lag after its trigger plus `σ z` seconds, never below zero. A part's [tumble](glossary.md#tumble-recovery), which hpr-sim adds to a separated part with no device open, starts at the split and has no lag to scatter. |
+| `deployment_lag_sd_s` | Each recovery device's lag after its trigger plus `σ z` seconds, never below zero. A part's [tumble](glossary.md#tumble-recovery), which the simulator adds to a separated part with no device open, starts at the split and has no lag to scatter. |
 
 Four cases need a word:
 
@@ -246,8 +246,8 @@ Four cases need a word:
   kept in the run as failed, with its reason, and counted (next section). The two delays and the
   wind's speed are the exceptions: a charge can't fire before its event and a wind can't blow at
   less than calm, so a draw below zero is flown as zero.
-- **A [cluster](glossary.md#cluster) is one draw.** hpr-sim holds a cluster as one motor in a mount
-  with several tubes, so all its motors get the same impulse and burn time.
+- **A [cluster](glossary.md#cluster) is one draw.** The simulator holds a cluster as one motor in a
+  mount with several tubes, so all its motors get the same impulse and burn time.
 - **A vertical rail leans along one line.** The elevation is dispersed in the plane of the rail's
   heading, so on a vertical rail with only its elevation dispersed every flight leans towards or
   away from that heading, never sideways. RocketPy disperses its rail the same way, an inclination
@@ -263,8 +263,8 @@ Four cases need a word:
   ejection charge, and the parachute it fires, but not a split the file times in seconds.
 - **A part dropped on the way up needs its device open.** After a split with nothing left to
   burn, each part flies as a point with only its open devices' drag. A part whose device fired by
-  the split but waits out a dispersed lag would climb through the lag with no drag at all, so hpr
-  refuses that flight, and it counts as failed.
+  the split but waits out a dispersed lag would climb through the lag with no drag at all, so the
+  simulator refuses that flight, and it counts as failed.
 
 ## Failed flights are counted
 
@@ -292,9 +292,9 @@ seed, the flight's number in the run and the input it is for. So:
   [`run_parallel`]);
 - turning a dispersion on or off doesn't change what the other inputs draw.
 
-To fly on several threads, turn on the `parallel` feature where your program depends on hpr, as
-[Using it from your own program](api.md#using-it-from-your-own-program) describes, and call
-`run_parallel` instead of `run`:
+To fly on several threads, turn on the `parallel` feature where your program depends on the `hpr`
+library, as [Using it from your own program](api.md#using-it-from-your-own-program) describes, and
+call `run_parallel` instead of `run`:
 
 ```toml
 [dependencies]
@@ -372,7 +372,7 @@ The spread a run gives is the spread you put in. Some places to start:
   and try a larger value to see whether it matters to your flight.
 - **Mass, center of mass and drag** depend on how well you know your rocket. A rocket weighed
   ready to fly needs a smaller mass dispersion than one weighed on paper. Drag is usually the least
-  certain of the three: [Accuracy](accuracy.md) shows how far hpr-sim's drag sits from other
+  certain of the three: [Accuracy](accuracy.md) shows how far HPR Sim's drag sits from other
   programs' and from wind-tunnel data.
 - **Wind** depends on the forecast, its age and the hour. A [sounding](glossary.md#sounding) of the
   day, or a forecast's spread between models, is a better guide than a guess.

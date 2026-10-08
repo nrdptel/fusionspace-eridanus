@@ -9,7 +9,7 @@
 - **How well it is validated:** the derived constants reproduce the standard's printed values to
   their last digit. At 11 points, both poles and heights up to 200 km included, gravity's
   strength matches the published formulas, evaluated in 40-digit arithmetic, within 2e-14
-  relative. hpr's copy of RocketPy's formula matches RocketPy at 8 points, to under 1e-12
+  relative. HPR Sim's copy of RocketPy's formula matches RocketPy at 8 points, to under 1e-12
   relative. No real-flight check.
 - **What it leaves out:** the real Earth's gravity anomalies, typically within ±1e-4 relative.
   RocketPy's formula, an option for like-for-like comparisons, differs from the exact field by

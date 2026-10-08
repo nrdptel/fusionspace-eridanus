@@ -30,55 +30,54 @@ The order of work after the `P-critical` issues (ADR-144 §2, amended by ADR-162
 line is `N. M<id> title`, with an id from this file; `cargo test -p xtask` fails on any other list
 line here, or on an id that is missing or done.
 
-1. M0.9a One name, one design: the name everywhere
-2. M0.9b One name, one design: the design audit
-3. M0.7a Rocketry explained: the format and four guides
-4. M0.8a Product guides: the simulator
-5. M7.1 Flight log importers
-6. M7.2 Readings, reconstruction and ghost data
-7. M7.3 A flight against its simulation
-8. M10.2 Release 0.2: the flight analyzer
-9. M2.3c2 Logged traces
-10. M1.14 Accuracy inside the envelope
-11. M7.4 Fault diagnosis
-12. M10.3 Release 0.3: accuracy and diagnosis
-13. M6.3 Challenge specs and presets
-14. M6.4 Airbrakes
-15. M6.2e Robust mode
-16. M6.6 Submission packs
-17. M6.7 Ejection charges
-18. M3.5 RASAero `.CDX1` import/export
-19. M3.6 RocketPy interop
-20. M6.8 Field kit: checklists, the settings check and the ground-test log
-21. M0.7b Rocketry explained: recovery, wind and motors
-22. M10.4 Release 0.4: the competition kit
-23. M4.4 C ABI and WASM
-24. M9.0 UI architecture ADR plus a spike
-25. M9.2 3D flight replay with a ghost
-26. M10.5 Release 0.5: the app preview
-27. M0.7c Rocketry explained: live figures
-28. M5.6a A catalog of hpr's own: format, search and a parts list
-29. M8.2 Edit model for UIs
-30. M9.1 Desktop app shell
-31. M5.6b Parachutes and recovery hardware
-32. M8.1 Design assistant
-33. M5.6c Motor hardware and rail buttons
-34. M5.6d More makers and electronics
-35. M3.4 RockSim `.rkt` import/export
-36. M9.3 Web PWA
-37. M10.6 Release 1.0: the app
-38. M0.7d Rocketry explained: the rest of the hobby
-39. M11.1 A motor of your own
-40. M11.2 Experimental solids
-41. M12.1 Parachute gores
-42. M12.2 Opening loads
-43. M9.4 Mobile
-44. M9.6 The four web tools, rebuilt
-45. M6.5 Roll control: tail-fin tabs and canards
-46. M13.3 Flight computer logic
-47. M13.1 Ground station
-48. M13.2 GPS tracker logic
-49. M9.7 Field equipment and frequencies
+1. M0.9b One name, one design: the design audit
+2. M0.7a Rocketry explained: the format and four guides
+3. M0.8a Product guides: the simulator
+4. M7.1 Flight log importers
+5. M7.2 Readings, reconstruction and ghost data
+6. M7.3 A flight against its simulation
+7. M10.2 Release 0.2: the flight analyzer
+8. M2.3c2 Logged traces
+9. M1.14 Accuracy inside the envelope
+10. M7.4 Fault diagnosis
+11. M10.3 Release 0.3: accuracy and diagnosis
+12. M6.3 Challenge specs and presets
+13. M6.4 Airbrakes
+14. M6.2e Robust mode
+15. M6.6 Submission packs
+16. M6.7 Ejection charges
+17. M3.5 RASAero `.CDX1` import/export
+18. M3.6 RocketPy interop
+19. M6.8 Field kit: checklists, the settings check and the ground-test log
+20. M0.7b Rocketry explained: recovery, wind and motors
+21. M10.4 Release 0.4: the competition kit
+22. M4.4 C ABI and WASM
+23. M9.0 UI architecture ADR plus a spike
+24. M9.2 3D flight replay with a ghost
+25. M10.5 Release 0.5: the app preview
+26. M0.7c Rocketry explained: live figures
+27. M5.6a A catalog of hpr's own: format, search and a parts list
+28. M8.2 Edit model for UIs
+29. M9.1 Desktop app shell
+30. M5.6b Parachutes and recovery hardware
+31. M8.1 Design assistant
+32. M5.6c Motor hardware and rail buttons
+33. M5.6d More makers and electronics
+34. M3.4 RockSim `.rkt` import/export
+35. M9.3 Web PWA
+36. M10.6 Release 1.0: the app
+37. M0.7d Rocketry explained: the rest of the hobby
+38. M11.1 A motor of your own
+39. M11.2 Experimental solids
+40. M12.1 Parachute gores
+41. M12.2 Opening loads
+42. M9.4 Mobile
+43. M9.6 The four web tools, rebuilt
+44. M6.5 Roll control: tail-fin tabs and canards
+45. M13.3 Flight computer logic
+46. M13.1 Ground station
+47. M13.2 GPS tracker logic
+48. M9.7 Field equipment and frequencies
 
 ## Phase 0: Foundations
 
@@ -133,15 +132,6 @@ line here, or on an id that is missing or done.
     test and failing when stale (a test each).
 - [ ] **M0.9 One name, one design** (ADR-205; Neer, 2026-10-08). Every surface says FusionSpace
   HPR as ADR-199 §1 has it, and follows the pinned design system rule by rule, each checked.
-  - [ ] **M0.9a The name everywhere,** before 0.1 publishes. *Done when:* `cargo xtask names` fails
-    on `hpr-sim` (any case, U+2011 too), or a lowercase `hpr` outside code formatting, on every
-    surface ADR-205 §1 lists, the published package text included, outside an allowlist of
-    narrow, reasoned entries that must each match; tests plant a mention per surface kind, drop
-    an entry and widen one to a page, each failing; a test fails unless the landing page's
-    first paragraph names FusionSpace HPR and each shipped product.
-    - [ ] **M0.9a2 The site's pages** (ADR-206). *Done when:* the check covers every page
-      `SUMMARY.md` renders, the records page's rows inheriting only their linked ADR's
-      allowance (a test each way), so M0.9a is met.
   - [ ] **M0.9b The design audit.** *Done when:* `docs/research/design-conformance.md` names the
     pinned commit and rows every `##` section of the 14 `product/` files as ADR-205 §2 says,
     each applying row met (a named test, or reviewed at the commit) or in an issue with a

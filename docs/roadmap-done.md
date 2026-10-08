@@ -39,7 +39,9 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.6d3 The crates' em dashes ([Phase 0](#phase-0-foundations))
 - M0.6e US names ([Phase 0](#phase-0-foundations))
 - M0.7a1 The no-clipping checks ([Phase 0](#phase-0-foundations))
+- M0.9a The name everywhere ([Phase 0](#phase-0-foundations))
 - M0.9a1 The packages' text ([Phase 0](#phase-0-foundations))
+- M0.9a2 The site's pages ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -354,10 +356,18 @@ One line per milestone or increment, in the order it was archived within its pha
       stated, each with its test; CI runs them on every SVG under `docs/`, each `--plot` that
       `xtask cli` writes and every page of the site; all pass, fixed by layout, not cropping.
 - **M0.9** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
-  - **M0.9a** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+  - [x] **M0.9a The name everywhere,** before 0.1 publishes. *Done when:* `cargo xtask names` fails
+    on `hpr-sim` (any case, U+2011 too), or a lowercase `hpr` outside code formatting, on every
+    surface ADR-205 §1 lists, the published package text included, outside an allowlist of
+    narrow, reasoned entries that must each match; tests plant a mention per surface kind, drop
+    an entry and widen one to a page, each failing; a test fails unless the landing page's
+    first paragraph names FusionSpace HPR and each shipped product.
     - [x] **M0.9a1 The packages' text** (ADR-206). *Done when:* M0.9a's check, allowlist rules
       and three tests hold on every ADR-205 §1 surface but the site's pages, the landing page
       included, with its first-paragraph test.
+    - [x] **M0.9a2 The site's pages** (ADR-206, ADR-207). *Done when:* the check covers every page
+      `SUMMARY.md` renders, the records page's rows inheriting only their linked ADR's
+      allowance (a test each way), so M0.9a is met.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

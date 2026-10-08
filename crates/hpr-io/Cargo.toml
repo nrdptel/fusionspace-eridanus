@@ -29,7 +29,7 @@ hpr-core.workspace = true
 hpr-design.workspace = true
 hpr-motor.workspace = true
 roxmltree.workspace = true
-# The hpr design format's JSON Schema covers what a `.ork` design keeps (M3.3).
+# The HPR design format's JSON Schema covers what a `.ork` design keeps (M3.3).
 schemars.workspace = true
 # `rc`: a variable's dimension names share one allocation per dimension.
 serde = { workspace = true, features = ["rc"] }

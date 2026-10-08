@@ -1,8 +1,8 @@
 # Checking a claim
 
-Every number hpr-sim computes, and every number on this site, should lead back to three things: the
-published source of the model behind it, a test that pins it, and, where one exists, a comparison
-with another program or a real flight. This page shows how to follow that trail, with two worked
+Every number HPR Sim computes, and every number on this site, should lead back to three things:
+the published source of the model behind it, a test that pins it, and, where one exists, a
+comparison with another program or a real flight. This page shows how to follow that trail, with two worked
 examples. It is for anyone who would rather check a claim than trust it. If a trail breaks, that is
 a bug, and the last section says how to report it.
 
@@ -44,7 +44,7 @@ The [Accuracy](accuracy.md) page gathers every result from steps 3 and 4 in one 
 
 ## Example: gravity at the equator
 
-**The claim.** hpr's gravity on the equator, on the [WGS 84](glossary.md#wgs-84) ellipsoid, is
+**The claim.** The simulator's gravity on the equator, on the [WGS 84](glossary.md#wgs-84) ellipsoid, is
 9.7803253359 m/s². That is at height 0 above the ellipsoid, which is not quite sea level (see
 [ellipsoidal height](glossary.md#ellipsoidal-height)).
 
@@ -74,11 +74,11 @@ The [Accuracy](accuracy.md) page gathers every result from steps 3 and 4 in one 
 ## Example: how far a rocket drifts under its parachute
 
 **The claim.** For the NDRT 2020 rocket, one of RocketPy's
-[example rockets](glossary.md#example-rockets), hpr's north [drift](glossary.md#drift) under the
+[example rockets](glossary.md#example-rockets), HPR Sim's north [drift](glossary.md#drift) under the
 parachute differs from RocketPy's by +2.865%, inside the 3% tolerance its case allows.
 
 1. **The report.** The [validation report][report] has a row for the case
-   `descent-ndrt-2020-nose-to-tail` and the metric `drift_north_m`: hpr −50.83 m, RocketPy
+   `descent-ndrt-2020-nose-to-tail` and the metric `drift_north_m`: HPR Sim −50.83 m, RocketPy
    −49.42 m, a difference of +2.865%, a tolerance of 3.000%, and the verdict *pass*.
 2. **The case.** [`descent-ndrt-2020-nose-to-tail.toml`][ndrt-case] names the rocket's design and
    the reference file, and holds each [metric](glossary.md#metric) to 3%. Its opening comment
@@ -91,11 +91,11 @@ parachute differs from RocketPy's by +2.865%, inside the 3% tolerance its case a
    one exact version of its code. The reference file's first lines say what RocketPy computes, and
    what the comparison overrides (both codes start from the same state, with the first parachute
    opening at once).
-4. **The model.** [Recovery](physics/recovery.md) explains hpr's descent, and its section
+4. **The model.** [Recovery](physics/recovery.md) explains HPR Sim's descent, and its section
    [Against RocketPy](physics/recovery.md#against-rocketpy) explains the differences that remain.
    The likely cause is [added mass](glossary.md#added-mass): RocketPy treats the air a canopy
-   drags along as extra mass, 15.9 kg for NDRT's main against the rocket's 20.8 kg, and hpr has no
-   such term. It slows the response to the opening, which most likely moves this small drift
+   drags along as extra mass, 15.9 kg for NDRT's main against the rocket's 20.8 kg, and HPR Sim has
+   no such term. It slows the response to the opening, which most likely moves this small drift
    component by 2.86%. That fits the size of the gap, but no test has isolated it yet.
 5. **The test.** `recovery::tests::descent_matches_rocketpy_examples` in
    [`crates/hpr-sim/src/recovery.rs`][recovery-rs] replays all five cases on every change, and

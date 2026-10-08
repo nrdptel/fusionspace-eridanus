@@ -3,13 +3,13 @@
 A [Monte Carlo](glossary.md#monte-carlo) run shows how far a rocket's apogee spreads. It doesn't
 say which input causes the spread. [Sensitivity analysis](glossary.md#sensitivity-analysis) does:
 it ranks the uncertain inputs by how much each moves a result, so you know which to measure more
-carefully and which you can stop worrying about. This page shows hpr-sim's two methods. They are
+carefully and which you can stop worrying about. This page shows HPR Sim's two methods. They are
 Morris's screening, which is cheap, and Sobol' indices, which cost more and say more. It runs
 both on two test functions whose answers are known, then screens a rocket's apogee and landing.
 It needs some Rust, and follows on from [Monte Carlo dispersion](monte-carlo.md).
 
 > **How far to trust it.** The two methods are tested against answers known in closed form. On a
-> rocket, the ranking they give is only as good as the ranges you give and hpr-sim's flight
+> rocket, the ranking they give is only as good as the ranges you give and the simulator's flight
 > models, which are not yet validated against real flights ([Accuracy](accuracy.md)).
 >
 > - **Tested:** both methods match the known answers of two standard test functions within four

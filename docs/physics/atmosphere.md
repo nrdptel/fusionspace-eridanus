@@ -107,7 +107,7 @@ Field conditions suit flights of a few kilometers; higher flights need a soundin
 A [barometric altimeter](../glossary.md#barometric-altimeter) measures pressure, not height. It
 turns the pressure into the height at which the 1976 standard has that pressure, its **pressure
 altitude**, and subtracts the pad's. `Ussa76::pressure_altitude_m(P)` computes the same number,
-so hpr can read its own flight the way a logged flight was read
+so HPR Sim can read its own flight the way a logged flight was read
 ([Accuracy: real flights](../accuracy.md#real-flights)).
 
 It inverts eqs. 33a and 33b in the layer whose base pressures bracket `P`:
@@ -128,11 +128,11 @@ with the same sea-level pressure, the same two pressures lie 3318.0 m′ apart: 
 less dense, so pressure falls more slowly with height. In the troposphere, with the sea-level
 pressure unchanged, the ratio is exactly `(T₀ + ΔT) / T₀` = 308.15 / 288.15.
 
-**Where it is used.** hpr's flights don't use it: they fly in the air of the day. The real-flight
-comparison reads hpr's height through it, from the ERA5 pressure at the center of mass, when the log
-is barometric (`hpr_validate::real_flight::Barometer`). Two logs that record their pressure,
-Prometheus's and Juno III's, are this reading less the first row's, to 0.195 m and 1.321 m over the
-rows compared
+**Where it is used.** The simulator's flights don't use it: they fly in the air of the day. The
+real-flight comparison reads the simulator's height through it, from the ERA5 pressure at the center
+of mass, when the log is barometric (`hpr_validate::real_flight::Barometer`). Two logs that record
+their pressure, Prometheus's and Juno III's, are this reading less the first row's, to 0.195 m and
+1.321 m over the rows compared
 ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md)).
 
 ## Moist air

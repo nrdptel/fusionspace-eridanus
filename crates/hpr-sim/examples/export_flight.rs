@@ -9,7 +9,7 @@
 //! cargo run --example export_flight -p fusionspace-hpr-sim --features parquet -- my-flight
 //! ```
 //!
-//! Without a folder it writes them to `hpr-sim-export` in the system's temporary folder. The
+//! Without a folder it writes them to `fusionspace-hpr-export` in the system's temporary folder. The
 //! documentation site's *Exporting a flight* page (`docs/exporting-a-flight.md`) walks through it.
 //! What it prints is kept next to it in `export_flight.output.txt`, and CI checks that the two
 //! still agree (`cargo xtask examples --check`).
@@ -103,7 +103,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     ];
     let folder = match std::env::args_os().nth(1) {
         Some(folder) => PathBuf::from(folder),
-        None => std::env::temp_dir().join("hpr-sim-export"),
+        None => std::env::temp_dir().join("fusionspace-hpr-export"),
     };
     std::fs::create_dir_all(&folder)?;
     for (name, contents) in &files {

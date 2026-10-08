@@ -1177,7 +1177,7 @@ mod tests {
             .fold((f64::INFINITY, f64::NEG_INFINITY), |(a, b), &e| {
                 (a.min(e), b.max(e))
             });
-        rows.push(format!("hpr reads {} to {}", pct(low), pct(high)));
+        rows.push(format!("HPR Sim reads {} to {}", pct(low), pct(high)));
         let cap_sweep = fixture["handover_caps"]["sphere_cone"]["rows"]
             .as_array()
             .unwrap()

@@ -489,7 +489,7 @@ mod tests {
             }
         }
         let quote = format!(
-            "hpr put it {:.2} to {:.2} calibres aft of the tunnel's on the short model and {:.2} \
+            "HPR Sim put it {:.2} to {:.2} calibres aft of the tunnel's on the short model and {:.2} \
              to {:.2} on the long; now {} to {} and {} to {}",
             errors[0][0],
             errors[0][1],

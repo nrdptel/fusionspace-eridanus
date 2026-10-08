@@ -13,16 +13,16 @@
   agree on height, speed, time and acceleration within 3%; the largest scored difference is
   +1.783%, a peak acceleration on the rail ([validation report][report],
   [whole flights against RocketPy](#whole-flights-against-rocketpy)). So does the path, except
-  for rockets that leave the rail slowly in a wind. There hpr's
+  for rockets that leave the rail slowly in a wind. There HPR Sim's
   [body lift](../glossary.md#body-lift), which RocketPy's normal force leaves out, its later
   release from the rail and, for Juno III, its simpler fin model put the apogee drift −4.333% to
   −38.158% from RocketPy's ([validation report][report]; the causes in [ADR-026][adr-026]). A
   sixth, Prometheus 2022, passes Mach 1 on its drag table
-  and agrees as well, its drifts again apart from RocketPy's by body lift. With hpr's own drag, against RocketPy flying the drag its
-  examples ship, hpr's heights differ from RocketPy's by −7.280% to +10.302%
+  and agrees as well, its drifts again apart from RocketPy's by body lift. With HPR Sim's own drag, against RocketPy flying the drag its
+  examples ship, HPR Sim's heights differ from RocketPy's by −7.280% to +10.302%
   ([validation report][report]), the larger gaps where
-  the two drags differ most: hpr's is well below the example's for two rockets, and above it at
-  high speed for Prometheus 2022, which flies through Mach 1 on hpr's drag since
+  the two drags differ most: HPR Sim's is well below the example's for two rockets, and above it at
+  high speed for Prometheus 2022, which flies through Mach 1 on HPR Sim's drag since
   [M1.8b1](../decisions-and-roadmap.md#m1-8b1) (drag through Mach 1)
   ([Accuracy](../accuracy.md#whole-flights-with-each-codes-own-drag)). Seven flights have been
   compared with their teams' altitude logs, apogee and climb only
@@ -35,7 +35,7 @@
 
 ## What the equations do
 
-At each instant of a flight, hpr adds up every force on the rocket and every turning effect (a
+At each instant of a flight, HPR Sim adds up every force on the rocket and every turning effect (a
 moment): the thrust, the weight, the air's forces, and the effects of the propellant burning away.
 From those it works out how fast the rocket speeds up and how fast its turning changes. The
 integrator ([Time integration](integration.md)) then carries the rocket forward, one short step
@@ -167,7 +167,7 @@ q̇   = ½ q ⊗ (0, ω)
   `T_exit − dP_int/dt`, where `P_int = m r′ − ṁ(n − r)` is the internal momentum of the burning
   propellant, so a `.eng` curve already contains it. `T04` subtracts `−m r″ − 2ṁ r′ + m̈(n − r)`
   again.
-  - hpr keeps the terms as RocketPy does, for parity in the RocketPy comparison ([M2.1](../decisions-and-roadmap.md#m2-1)).
+  - HPR Sim keeps the terms as RocketPy does, for parity in the RocketPy comparison ([M2.1](../decisions-and-roadmap.md#m2-1)).
     The form is exact for the [RP-EOM] model, not for a measured curve.
   - The size of the double count on Valetudo: it lifts off at 1.56 ms with 73 N of thrust against
     95 N of weight, 21 N coming from `m̈(n − r)`, and it changes the burnout speed by at most
@@ -271,7 +271,7 @@ q̇   = ½ q ⊗ (0, ω)
 - **Rail geometry.**
   - A button's axial extent is its outer diameter, and a lug's is its length.
   - The rocket leaves after travelling `L − (s_aft − s_guide)`. RocketPy ends its rail phase when
-    the forward button reaches the top (`flight.py:1716-1730`, `effective_1rl`). hpr keeps the
+    the forward button reaches the top (`flight.py:1716-1730`, `effective_1rl`). HPR Sim keeps the
     rocket guided to the last guide ([Loft lesson L26](../decisions-and-roadmap.md#l26)).
   - The pivot about the last guide ("tip-off") is not modeled, and the rocket leaves the rail
     with no angular velocity.
@@ -375,14 +375,14 @@ default settings. The numbers were measured on 2026-09-17.
 - **[Loft lesson L26](../decisions-and-roadmap.md#l26).** On a 3 m rail tilted to 1.3 rad, the rail exit comes at the last
   button's travel to 1e-6 m. Across the rail the rocket stays within 1e-9 m, with no rotation.
   Friction (`μ = 0.3`) delays the exit and slows it.
-- **A tilted rail against OpenRocket.** From a 1 m rod tilted 5 to 20 degrees, hpr's rocket is on
+- **A tilted rail against OpenRocket.** From a 1 m rod tilted 5 to 20 degrees, HPR Sim's rocket is on
   OpenRocket's bearing at apogee to within 0.03 degrees and loses the same apogee to within 0.27
   percentage points ([`.ork`: a tilted launch rod](../format/ork.md#a-tilted-launch-rod)).
 - **Events and recorder.** Events come in order: liftoff, rail exit, burnout, apogee, ground hit.
   Apogee's vertical speed is below 1e-6 m/s and ground contact's height below 1e-6 m. Recorder rows
   fall on the interval or at events.
-- **Through Mach 1.** The synthetic 54 mm rocket on an I175 passes Mach 1 and lands, both on hpr's
-  own drag and on a constant drag table.
+- **Through Mach 1.** The synthetic 54 mm rocket on an I175 passes Mach 1 and lands, both on
+  HPR Sim's own drag and on a constant drag table.
 - **Cost.** About 1.1 ms per Valetudo flight to the ground (`docs/perf.md`).
 
 ### Whole flights against RocketPy
@@ -391,7 +391,7 @@ default settings. The numbers were measured on 2026-09-17.
 compares fifteen numbers of each with RocketPy 1.13.0's own flight
 ([ADR-021][adr-021], the whole-flight comparison). Both codes fly one declared drag coefficient,
 a constant `C_D0` of 0.5 on the same reference area. So what is compared is the equations of
-motion, the motor and the air, not the drag. The rest is RocketPy's where hpr has it: its gravity
+motion, the motor and the air, not the drag. The rest is RocketPy's where HPR Sim has it: its gravity
 formula, standard atmosphere, frictionless rail, the example's rail angles, parachutes and motor,
 and a declared wind.
 
@@ -400,47 +400,47 @@ and a declared wind.
 | cases scored | 6, one of them (Prometheus 2022) past Mach 1, since [M1.8a](../decisions-and-roadmap.md#m1-8a) |
 | height, speed, time, acceleration | all scored, all within 3% of RocketPy's |
 | largest of those | +1.783%, Bella Lui's peak acceleration, on the rail |
-| largest in apogee | +1.208%, Prometheus 2022; RocketPy flown with hpr's body lift and rail release comes within 0.01% ([case file](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/cases/flight-prometheus-2022-generic-motor.toml)) |
+| largest in apogee | +1.208%, Prometheus 2022; RocketPy flown with HPR Sim's body lift and rail release comes within 0.01% ([case file](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/cases/flight-prometheus-2022-generic-motor.toml)) |
 | path without wind (drift of apogee and landing) | all scored, within 1.9% (largest −1.811%, Valetudo's landing, in still air) |
-| path in wind | Calisto's scored (largest +1.257%), and NDRT 2020's landing; Juno III's, Bella Lui's and Prometheus 2022's, and NDRT 2020's apogee drift, differ by 4.3 to 38% and are reported, not scored: hpr's body lift and rail release, and Juno III's fin slope ([ADR-026][adr-026]) |
+| path in wind | Calisto's scored (largest +1.257%), and NDRT 2020's landing; Juno III's, Bella Lui's and Prometheus 2022's, and NDRT 2020's apogee drift, differ by 4.3 to 38% and are reported, not scored: HPR Sim's body lift and rail release, and Juno III's fin slope ([ADR-026][adr-026]) |
 
 What the two codes still do differently, and how much it moves:
 
 - **The wind.** A rocket that leaves the rail slowly in a wind meets the air at a steep angle:
-  Juno III at 18 m/s in an 8.5 m/s wind, 26° off the airflow. There hpr's normal force includes
+  Juno III at 18 m/s in an 8.5 m/s wind, 26° off the airflow. There HPR Sim's normal force includes
   body lift ([Aerodynamics](aero.md#bodies-of-revolution)), which RocketPy's leaves out. Much of
   it acts ahead of the center of mass, the nose's above all, so it moves the center of pressure
-  forward and weakens the turn into the wind, and hpr turns into it less: Juno III's apogee is
-  245.3 m from the pad in hpr and 396.6 m in RocketPy. Given hpr's body lift, its rail release and
-  its flat-plate fin slope (it cannot model the airfoil lift curve Juno III's example gives its
-  fins), RocketPy puts it 248.3 m out, and every windy drift within 1.3% of hpr's
-  ([ADR-026][adr-026]). hpr's growth of drag with the angle of attack moves no drift by more than
+  forward and weakens the turn into the wind, and HPR Sim turns into it less: Juno III's apogee
+  is 245.3 m from the pad in HPR Sim and 396.6 m in RocketPy. Given HPR Sim's body lift, its rail
+  release and its flat-plate fin slope (it cannot model the airfoil lift curve Juno III's example
+  gives its fins), RocketPy puts it 248.3 m out, and every windy drift within 1.3% of HPR Sim's
+  ([ADR-026][adr-026]). HPR Sim's growth of drag with the angle of attack moves no drift by more than
   0.1%.
-- **RocketPy's equations, corrected.** hpr's equations of motion follow RocketPy's technical
+- **RocketPy's equations, corrected.** HPR Sim's equations of motion follow RocketPy's technical
   documentation, which measures the center of mass from the
   [center of dry mass](../glossary.md#center-of-dry-mass). RocketPy 1.13.0's code reads that
   vector the other way round, so during the burn it takes the turning moments about the wrong point
   and its rockets turn into the wind too far. The fix is proposed in [a pull request to RocketPy](https://github.com/RocketPy-Team/RocketPy/pull/1196),
   still open, built on [one that is merged](https://github.com/RocketPy-Team/RocketPy/pull/1188) but not yet released; RocketPy 1.13.0 as installed still has
   the error, and the comparison applies both fixes. Without them,
-  hpr's drifts in wind were up to −60.8% short of RocketPy's at apogee and +151% beyond it at
+  HPR Sim's drifts in wind were up to −60.8% short of RocketPy's at apogee and +151% beyond it at
   landing ([ADR-026][adr-026],
   [issue #50](https://github.com/nrdptel/fusionspace-eridanus/issues/50)).
-- **The rail.** hpr's rail equation keeps the terms for the center of mass moving inside the
+- **The rail.** HPR Sim's rail equation keeps the terms for the center of mass moving inside the
   body as the propellant burns. RocketPy's rail equation (`udot_rail1`) leaves them out. At a
-  sharp ignition spike, with thrust and mass the same to five digits, hpr's acceleration is 1.2
-  to 1.3 m/s² higher. hpr also guides the rocket until its last rail button leaves, where
+  sharp ignition spike, with thrust and mass the same to five digits, HPR Sim's acceleration is 1.2
+  to 1.3 m/s² higher. HPR Sim also guides the rocket until its last rail button leaves, where
   RocketPy frees it at the first.
-- **Calisto's two peaks.** Its acceleration peaks twice, 0.9% apart, and the rail terms make hpr's
-  maximum the other peak. So the time of the peak (−96.8%) is reported but not scored.
-- **The parachutes.** RocketPy counts the air a canopy drags along (added mass); hpr has none. So
-  the peak deceleration as NDRT 2020's main opens is 83% higher in hpr, and that number is
+- **Calisto's two peaks.** Its acceleration peaks twice, 0.9% apart, and the rail terms make
+  HPR Sim's maximum the other peak. So the time of the peak (−96.8%) is reported but not scored.
+- **The parachutes.** RocketPy counts the air a canopy drags along (added mass); HPR Sim has none. So
+  the peak deceleration as NDRT 2020's main opens is 83% higher in HPR Sim, and that number is
   reported but not scored. The speeds at landing agree within 0.03%.
 
 The metrics are measured as RocketPy defines them: speeds and accelerations at the center of dry
 mass; heights from that point's height at launch, since RocketPy's starts at the ground; and the
 rail exit when the rocket has travelled RocketPy's `effective_1rl`, the forward button at the top
-of the rail, where hpr's own rail-exit event waits for the last one. Each case file argues its
+of the rail, where HPR Sim's own rail-exit event waits for the last one. Each case file argues its
 tolerances; [Accuracy][accuracy] gives every result.
 
 [adr-007]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0007-design-tree-stations-placement-automatic-radii.md

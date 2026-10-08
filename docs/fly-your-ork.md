@@ -3,7 +3,7 @@
 **This guide flies a rocket you designed in [OpenRocket](glossary.md#openrocket) with `hpr sim`,
 from the command line, and says how to read what it prints.** It is for a flier who has a `.ork`
 file and wants a second simulator's view of it. Every flight here is a model's estimate, not a
-measurement: [Accuracy](accuracy.md) says how close hpr comes to OpenRocket and to real flights,
+measurement: [Accuracy](accuracy.md) says how close HPR Sim comes to OpenRocket and to real flights,
 and its summary sits at the top of the [README](https://github.com/nrdptel/fusionspace-eridanus#accuracy-at-a-glance).
 The outputs on this page are made by running each command, and CI checks that they still match
 what `hpr` prints.
@@ -12,9 +12,9 @@ The steps:
 
 1. [Fly the file as it is](#fly-the-file-as-it-is).
 2. [Choose the configuration and the launch](#choose-the-configuration-and-the-launch).
-3. [Fetch a motor hpr doesn't have](#fetch-a-motor-hpr-doesnt-have).
+3. [Fetch a motor the simulator doesn't have](#fetch-a-motor-the-simulator-doesnt-have).
 4. [Plot it, or save the numbers](#plot-it-or-save-the-numbers).
-5. [When hpr refuses](#when-hpr-refuses).
+5. [When the simulator refuses](#when-the-simulator-refuses).
 
 You need `hpr` installed: the README's
 [Install and first flight](https://github.com/nrdptel/fusionspace-eridanus#install-and-first-flight) takes a
@@ -27,8 +27,8 @@ the commands from a copy of the repository, or put your own file's path in its p
 ## Fly the file as it is
 
 **`hpr sim` with the file's name flies its default configuration, with the motors, delays and
-parachutes the file holds.** The guide rocket's motors are among the 32 built into hpr, so it
-flies with no network:
+parachutes the file holds.** The guide rocket's motors are among the 32 built into the simulator, so
+it flies with no network:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/guides/level-1.ork`; written by `cargo xtask cli`; do not edit -->
 
@@ -77,7 +77,7 @@ The five lines under the configuration are the ones to read first:
   behind the [center of gravity](glossary.md#center-of-gravity-cg), in body diameters
   ([calibres](glossary.md#calibre-caliber)), as the rocket leaves the rail, and its least value
   before apogee. A rocket with a fin set of one or two fins has a different margin for each
-  direction the air crosses it, and hpr prints the least
+  direction the air crosses it, and `hpr sim` prints the least
   ([Flight metrics](physics/metrics.md#stability-margins)). [Check stability for a certification flight](stability-for-certification.md)
   says how to use it.
 - **`apogee`**: the highest point of the center of gravity, above the launch site.
@@ -152,12 +152,12 @@ landing               755.8 m from the pad at 246.17 s, at 6.3 m/s
 gives the same rail as 5°, from the vertical), and `--heading 270` leans it toward the west, into the wind. The wind is the same at every
 height. [The launch](cli.md#the-launch) lists every option and its default.
 
-## Fetch a motor hpr doesn't have
+## Fetch a motor the simulator doesn't have
 
-**A motor outside hpr's 32 is fetched from [ThrustCurve.org](glossary.md#thrustcurveorg) the
-first time you fly it, then kept in hpr's cache, so it flies offline after.** A `.ork` names its
-motor but rarely carries its [thrust curve](glossary.md#thrust-curve). With no network, and no
-copy in the cache, `hpr sim` refuses and prints the command that fetches it. This test rocket
+**A motor outside the simulator's 32 is fetched from [ThrustCurve.org](glossary.md#thrustcurveorg)
+the first time you fly it, then kept in the simulator's cache, so it flies offline after.** A `.ork`
+names its motor but rarely carries its [thrust curve](glossary.md#thrust-curve). With no network,
+and no copy in the cache, `hpr sim` refuses and prints the command that fetches it. This test rocket
 names an AeroTech H128W:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --offline`, exits 1; written by `cargo xtask cli`; do not edit -->
@@ -180,11 +180,11 @@ hpr motors fetch --manufacturer AeroTech H128W
 ```
 
 The curve is ThrustCurve's, found by the file's manufacturer and designation. For the motors of
-OpenRocket's own example designs, hpr knows which file holds the curve OpenRocket flies and takes
-it; for any other motor, the file may not be the one OpenRocket flies. A note under the flight
+OpenRocket's own example designs, HPR Sim knows which file holds the curve OpenRocket flies and
+takes it; for any other motor, the file may not be the one OpenRocket flies. A note under the flight
 names the curve file, who measured it, and which of the two it is.
-[Motors from ThrustCurve.org](cli.md#motors-from-thrustcurveorg) says how hpr picks one. If you
-have the motor's `.eng` or `.rse` file, fly it with `--motor`:
+[Motors from ThrustCurve.org](cli.md#motors-from-thrustcurveorg) says how the simulator picks one.
+If you have the motor's `.eng` or `.rse` file, fly it with `--motor`:
 `hpr sim my-rocket.ork --motor AeroTech_H128W.eng`.
 
 ## Plot it, or save the numbers
@@ -197,21 +197,21 @@ hpr sim validation/fixtures/ork/guides/level-1.ork --plot level-1.svg --export l
 
 The plot is one fixed figure: altitude, speed and acceleration against time, each event marked.
 An SVG opens in any web browser; [Plotting the flight](cli.md#plotting-the-flight) shows one. The
-export holds every quantity hpr tracks, every 0.01 s; the file's extension picks the format
-(`.csv`, `.json`, `.parquet`, `.geojson` or `.kml`), and
+export holds every quantity the simulator tracks, every 0.01 s; the file's extension picks the
+format (`.csv`, `.json`, `.parquet`, `.geojson` or `.kml`), and
 [Exporting a flight](exporting-a-flight.md) says what each column means. `--json` prints the
 summary itself as data, for a script to read.
 
-## When hpr refuses
+## When the simulator refuses
 
 **`hpr sim` refuses, with the reason, rather than fly something other than your design.** The
 common reasons, and what to do:
 
 | it says | what to do |
 |---|---|
-| no thrust curve for the motor, and the run is offline | fetch it once online, as [above](#fetch-a-motor-hpr-doesnt-have), or give a motor file with `--motor` |
+| no thrust curve for the motor, and the run is offline | fetch it once online, as [above](#fetch-a-motor-the-simulator-doesnt-have), or give a motor file with `--motor` |
 | the design's checks found errors | each error names the parts, such as a motor wider than its mount. Fix the design; or, to fly it anyway, add `--accept-design-errors`, and the flight's notes list the errors |
-| a part hpr couldn't read exactly as written | hpr flies only what it reads exactly. The message names the part; the [`.ork` page](format/ork.md) lists what hpr reads |
+| a part the simulator couldn't read exactly as written | The simulator flies only what it reads exactly. The message names the part; the [`.ork` page](format/ork.md) lists what it reads |
 | a stage that separates, a second motor lit in flight | powered separations fly without `--motor`, one or several in turn, as on a three-stage rocket ([Separation](cli.md#separation)); with `--motor`, drop the option to fly the file's own motors. A payload dropped with nothing left to burn flies when its own parachute opens at the split; one that would coast with no drag first is refused: set one of the payload's devices to open at "Lower stage separation" with no delay ([M4.5g3](decisions-and-roadmap.md#m4-5g3), a payload's split) |
 | it can't tell which configuration to fly | the file has several and no default: name one with `--config` |
 
@@ -227,5 +227,5 @@ but buildable, such as a motor longer than its mount tube, and the flight goes o
   ([#265](https://github.com/nrdptel/fusionspace-eridanus/issues/265), flying a weather profile).
 - **A fall with no parachute open.** The landing is then marked "not a prediction"
   ([the landing](cli.md#the-landing)).
-- **A verdict.** hpr prints estimates. Whether a rocket is fit to fly is for you, the motor's
-  printed data and your range safety officer to decide.
+- **A verdict.** The simulator prints estimates. Whether a rocket is fit to fly is for you, the
+  motor's printed data and your range safety officer to decide.

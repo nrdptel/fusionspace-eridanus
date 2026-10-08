@@ -1,8 +1,8 @@
 # Plan
 
-**This page says what each hpr-sim release holds, in what order, and how likely each goal is to
-work out.** It was made on October 6, 2026, from the roadmap as it stood that day. It goes out of
-date as work ships or the roadmap changes. It gives no dates: releases come at product
+**This page says what each FusionSpace HPR release holds, in what order, and how likely each goal
+is to work out.** It was made on October 6, 2026, from the roadmap as it stood that day. It goes
+out of date as work ships or the roadmap changes. It gives no dates: releases come at product
 boundaries.
 
 > **How far to trust it.**
@@ -46,7 +46,7 @@ any changes that use turns up.
 | goal | outlook | why |
 |---|---|---|
 | A simulation library on par with RocketPy | high; mostly done | The physics, staging, pods, Monte Carlo, optimization and Python bindings have shipped. |
-| Accuracy: 5% mean apogee error on real flights, at least as good as OpenRocket | medium | Against seven real flights, hpr's apogees miss by 6.04% on average ([Accuracy](accuracy.md#real-flights)). Against 55 more from a private collection, hpr's apogees are +9.83% above the logs on average and OpenRocket's +9.00%: neither meets 5%, and hpr is close to OpenRocket ([Accuracy](accuracy.md#real-flights-of-the-private-collection)). On real flights, the inputs limit accuracy too: motors vary in impulse, logged masses are off, the weather is uncertain. Matching OpenRocket is likely; the 5% mean may not hold everywhere. If the campaign stalls, its gaps are written down rather than hidden ([the stopping rule](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0143-the-operating-envelope-and-a-stop-rule-for.md)). |
+| Accuracy: 5% mean apogee error on real flights, at least as good as OpenRocket | medium | Against seven real flights, HPR Sim's apogees miss by 6.04% on average ([Accuracy](accuracy.md#real-flights)). Against 55 more from a private collection, HPR Sim's apogees are +9.83% above the logs on average and OpenRocket's +9.00%: neither meets 5%, and HPR Sim is close to OpenRocket ([Accuracy](accuracy.md#real-flights-of-the-private-collection)). On real flights, the inputs limit accuracy too: motors vary in impulse, logged masses are off, the weather is uncertain. Matching OpenRocket is likely; the 5% mean may not hold everywhere. If the campaign stalls, its gaps are written down rather than hidden ([the stopping rule](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0143-the-operating-envelope-and-a-stop-rule-for.md)). |
 | Accuracy above Mach 1 | medium | Few real flights go supersonic. None of the seven public flights does. In the project's private collection of flight logs (not published), 5 of the 42 flights that state a top speed reach about Mach 1 or more, and more may show up when the rest of its logs are read. Flights near Mach 2 are rare. |
 | File interop: OpenRocket, RockSim, RASAero, RocketPy | high | OpenRocket's files fly today. The others follow known formats and earlier work. |
 | Competition design and submission packs | high | Mostly well-defined calculations from cited models. Testing that each safety number errs the safe way adds work, not risk. |
@@ -82,4 +82,4 @@ Release 1.0 is the simulator, the flight analyzer, the competition kit and the d
 Phone apps, accounts, canards, CAD files and the Mach 2.5–3.5 band come after 1.0. Motor, parachute
 and avionics design come after that, one at a time ([the suite decision
 record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0162-the-suite-and-its-releases.md)).
-Until 1.0, hpr flies only commercial solid motors.
+Until 1.0, HPR Sim flies only commercial solid motors.

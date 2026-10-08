@@ -1,12 +1,12 @@
 # Check stability for a certification flight
 
-**This guide reads hpr's stability numbers for a rocket you plan to fly for a certification, checks
-them with every motor you might use, and says how far to trust them.** It is for a flier preparing
-a certification flight; the rules it quotes are Level 1's. hpr gives no verdict: the safety codes
-ask *you* to check stability, and the range safety officer (RSO) and your certifying member
-decide. hpr's margin at rod clearance agrees with OpenRocket 24.12's to within 0.016
+**This guide reads HPR Sim's stability numbers for a rocket you plan to fly for a certification,
+checks them with every motor you might use, and says how far to trust them.** It is for a flier
+preparing a certification flight; the rules it quotes are Level 1's. HPR Sim gives no verdict: the
+safety codes ask *you* to check stability, and the range safety officer (RSO) and your certifying
+member decide. HPR Sim's margin at rod clearance agrees with OpenRocket 24.12's to within 0.016
 [calibres](glossary.md#calibre-caliber) on 41 of OpenRocket's 53 example flights, but no margin
-of hpr's has been checked against a measured rocket. On OpenRocket's two pod examples it reads
+of HPR Sim's has been checked against a measured rocket. On OpenRocket's two pod examples it reads
 0.07 calibres above OpenRocket's, and near the speed of sound its flight margin reads high
 ([how far to trust it](#how-far-to-trust-the-margin)). The outputs on this page
 are made by running each command, and CI checks that they still match what `hpr` prints.
@@ -38,8 +38,8 @@ legal or regulatory advice.
   "a single certified H or I motor". Neither page states a margin.
 
 The NAR's procedures add that the candidate may be asked about "the model's center of gravity and
-center of pressure, methods used to determine model stability". hpr's output gives both points'
-separation; `--json` and `--export` give more.
+center of pressure, methods used to determine model stability". The output of `hpr sim` gives both
+points' separation; `--json` and `--export` give more.
 
 ## Read the margin
 
@@ -92,8 +92,8 @@ landing               0.7 m from the pad at 245.78 s, at 4.4 m/s
 <!-- cli: end -->
 
 A calibre here is the rocket's widest body diameter, 66 mm, so a margin of 1.70 calibres puts the
-center of pressure 1.70 × 66 mm ≈ 112 mm behind the center of gravity. hpr computes the static
-margin at Mach 0, with the air along the rocket's axis. The margin grows
+center of pressure 1.70 × 66 mm ≈ 112 mm behind the center of gravity. The simulator computes the
+static margin at Mach 0, with the air along the rocket's axis. The margin grows
 as propellant burns and the center of gravity moves forward, so its least value is usually the
 one at the rail. `--json` also gives the flight margin, at the flight's own Mach number
 (`min_flight_margin_cal`), and where each least value falls
@@ -155,7 +155,7 @@ where the guidance below asks for more.
 ## Compare with published guidance
 
 **Published rules of thumb set a lower bound of one calibre, and more for fast flights; these are
-the sources' guidance, not hpr's judgement.**
+the sources' guidance, not the simulator's judgement.**
 
 - James Barrowman, who devised the standard way to find the center of pressure, wrote: "A good
   rule of thumb is to have the static margin equal to the largest diameter of the rocket", and
@@ -187,9 +187,10 @@ The reason is the wind. Just off the rail, a crosswind meets the rocket at an an
 is the wind speed over the rocket's speed. At the guide rocket's 26.3 m/s in a 4 m/s crosswind,
 that is about 8.6°, since 4 / 26.3 = 0.152 and the angle whose tangent is 0.152 is 8.6°. The
 larger that [angle of attack](glossary.md#angle-of-attack), the further the rocket turns into the
-wind, and hpr's aerodynamics hold only at small angles. Both of hpr's margins are taken with the air
-along the axis, at no angle at all. A longer rail raises the exit speed: `--rail-length` sets it,
-and `--wind` the wind ([Fly your .ork](fly-your-ork.md#choose-the-configuration-and-the-launch)).
+wind, and the simulator's aerodynamics hold only at small angles. Both of its margins are taken with
+the air along the axis, at no angle at all. A longer rail raises the exit speed: `--rail-length`
+sets it, and `--wind` the wind
+([Fly your .ork](fly-your-ork.md#choose-the-configuration-and-the-launch)).
 
 ## Fly the rocket you built
 
@@ -197,31 +198,31 @@ and `--wind` the wind ([Fly your .ork](fly-your-ork.md#choose-the-configuration-
 codes ask you to demonstrate it.** Weigh the finished rocket, ready to fly but without its motor,
 and balance it to find its center of gravity. In OpenRocket, set that mass and center of gravity
 as [overrides](glossary.md#override) on the stage, covering its parts, save, and fly the file
-again in hpr, which reads those overrides ([the `.ork` page](format/ork.md)). Leave the motor out
-of the measurement: an override never covers a motor, in hpr or OpenRocket, and both add the
-motor's own mass, so a rocket weighed with its motor in would carry it twice. The margin then
-rests on your rocket's measured mass, not the drawing's.
+again with `hpr sim`, which reads those overrides ([the `.ork` page](format/ork.md)). Leave the
+motor out of the measurement: an override never covers a motor, in HPR Sim or OpenRocket, and both
+add the motor's own mass, so a rocket weighed with its motor in would carry it twice. The margin
+then rests on your rocket's measured mass, not the drawing's.
 
 ## How far to trust the margin
 
-**hpr's margin has been compared with OpenRocket's, not with a measured rocket.** Both programs
-start from Barrowman's method, so agreement says hpr computes it as OpenRocket does, not that
+**HPR Sim's margin has been compared with OpenRocket's, not with a measured rocket.** Both programs
+start from Barrowman's method, so agreement says HPR Sim computes it as OpenRocket does, not that
 either is right ([Accuracy](accuracy.md#the-census)).
 
-- **OpenRocket's examples:** within 0.016 calibres on 41 of 53 flights, with hpr's margin taken
-  with the air along the rocket's axis, as OpenRocket's is. The margin hpr prints is the weakest
-  plane's, which on a rocket with a fin set of one or two fins can be lower.
-- **The three-stage example:** on its three flights hpr's margin is 0.039 to 0.058 calibres below
-  OpenRocket's. hpr's center of mass at rod clearance sits 0.043 to 0.062 calibres further aft
-  than OpenRocket's there, where OpenRocket's recorded mass reads light
+- **OpenRocket's examples:** within 0.016 calibres on 41 of 53 flights, with HPR Sim's margin taken
+  with the air along the rocket's axis, as OpenRocket's is. The margin `hpr sim` prints is the
+  weakest plane's, which on a rocket with a fin set of one or two fins can be lower.
+- **The three-stage example:** on its three flights HPR Sim's margin is 0.039 to 0.058 calibres
+  below OpenRocket's. HPR Sim's center of mass at rod clearance sits 0.043 to 0.062 calibres further
+  aft than OpenRocket's there, where OpenRocket's recorded mass reads light
   ([#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185)); that cause is not yet sized.
-- **The tube-fin example:** a rocket with tube fins is 1.08 calibres below OpenRocket's: hpr
+- **The tube-fin example:** a rocket with tube fins is 1.08 calibres below OpenRocket's: HPR Sim
   gives 0.79 calibres to OpenRocket's 1.87.
   Neither program has been checked against a measured tube-fin rocket; check such a design in both
   and treat the smaller margin as the more cautious figure, not a bound.
-- **The pods-and-winglets example:** on the five flights of *Pods--airframes and winglets*, hpr's
-  margin is 0.071 to 0.076 calibres *above* OpenRocket's, the flattering side: hpr calls the
-  rocket more stable than OpenRocket does. Two causes are open: how the two programs count fins
+- **The pods-and-winglets example:** on the five flights of *Pods--airframes and winglets*,
+  HPR Sim's margin is 0.071 to 0.076 calibres *above* OpenRocket's, the flattering side: HPR Sim
+  calls the rocket more stable than OpenRocket does. Two causes are open: how the two programs count fins
   that interfere across sets ([#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325)), and the
   center of pressure of its kinked freeform wings
   ([#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326)). A flight whose fin sets share a
@@ -230,15 +231,15 @@ either is right ([Accuracy](accuracy.md#the-census)).
   fins, check the margin in both and treat the smaller as the more cautious figure, not a bound.
   The three flights of *Pods--powered with recovery deployment* read 0.070 calibres above
   OpenRocket's too, cause not yet traced.
-- **Private designs:** on 35 flights of 11 designs, hpr's margin runs from 0.0166 calibres below
-  OpenRocket's to 0.1108 above. Four designs read 0.0350 to 0.1108 calibres more stable in hpr
+- **Private designs:** on 35 flights of 11 designs, HPR Sim's margin runs from 0.0166 calibres below
+  OpenRocket's to 0.1108 above. Four designs read 0.0350 to 0.1108 calibres more stable in HPR Sim
   than in OpenRocket, none with a measured cause yet
   ([#172](https://github.com/nrdptel/fusionspace-eridanus/issues/172) and
   [#186](https://github.com/nrdptel/fusionspace-eridanus/issues/186), two of the open causes;
-  [the private designs](format/ork.md#hprs-flights-of-the-private-designs)). A fifth, launched
+  [the private designs](format/ork.md#the-simulators-flights-of-the-private-designs)). A fifth, launched
   from a tilted rod, reads 0.0125 to 0.0366 above, most of it traced to the tilt. Reading more
   stable is the flattering side, so leave room for it near any limit.
-- **Near the speed of sound:** between Mach 0.8 and 1.2, hpr's center of pressure is up to 2.36
+- **Near the speed of sound:** between Mach 0.8 and 1.2, HPR Sim's center of pressure is up to 2.36
   calibres behind NASA's wind-tunnel data, and wherever it misses by more than half a calibre it
   sits behind, so the flight margin there reads high: the flattering side
   ([Known gaps](accuracy.md#known-gaps)). The static margin is computed at Mach 0, so it says

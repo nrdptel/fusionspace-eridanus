@@ -10,14 +10,14 @@ the two formats [ThrustCurve.org](../glossary.md#thrustcurveorg) serves (the oth
 [A motor from a file](../physics/motor.md#a-motor-from-a-file) on the Solid motors page. It reads a
 file, builds the motor and puts it in a rocket, with a program that CI runs.
 
-This page is the reference for hpr's reader and writer: what the published spec says, what real
-files do, and what hpr does with each. All 889 RASP files ThrustCurve.org held on 2026-09-17
+This page is the reference for HPR Sim's reader and writer: what the published spec says, what
+real files do, and what it does with each. All 889 RASP files ThrustCurve.org held on 2026-09-17
 read, and write back with every value unchanged
 ([Checked against real files](#checked-against-real-files)).
 
 Code: `hpr_motor::eng` ([API reference](../api/hpr_motor/eng/index.html)), written for the
 solid-motor milestone ([M1.3](../decisions-and-roadmap.md#m1-3)). The rules below are from the spec unless marked
-**Observed** (seen in real files) or **Policy** (hpr's own choice).
+**Observed** (seen in real files) or **Policy** (the simulator's own choice).
 
 ## Sources
 
@@ -147,11 +147,12 @@ next header.
    (read as it stands).
 9. Comments: store the text after `;` verbatim, but drop comments that are empty after trimming.
    Comments between two entries belong to the next entry; comments after the last entry are file
-   trailer comments. **Policy:** a comment that names hpr as the program that wrote the file
-   (`hpr-sim`, a version, then `FS-ACHERNAR · SW · TOOL 001`; see the writer policy) is dropped
-   when reading, because it says who wrote the file, not anything about the motor. So is such a
-   line ending in `FS · SW · TOOL 005`, the designation builds wrote before FusionSpace named its
-   products after stars in October 2026
+   trailer comments. **Policy:** a comment that names the simulator as the program that wrote the
+   file (`FusionSpace HPR`, a version, then `FS-ACHERNAR · SW · TOOL 001`; see the writer policy)
+   is dropped when reading, because it says who wrote the file, not anything about the motor. So
+   is the line builds before release 0.1's rename wrote, the earlier name `hpr-sim` with that
+   designation or with `FS · SW · TOOL 005`, the designation builds wrote before FusionSpace named
+   its products after stars in October 2026
    ([M10.1d7, the new designation](../decisions-and-roadmap.md#m10-1d7);
    [ADR-198, project Eridanus](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0198-the-2026-10-07-project-eridanus.md)
    §4), so a file they stamped writes back with one stamp, this build's. Like any comment, it
@@ -163,16 +164,17 @@ an error there.
 
 ## Writer policy (strict, round-trip stable)
 
-Round-trip stable: a file hpr writes reads back to exactly the values it was written from.
+Round-trip stable: a file the simulator writes reads back to exactly the values it was written from.
 
 - **Policy:** the first line is a comment naming the program that wrote the file, its version and
-  its designation in the FusionSpace product system, as every file hpr writes does:
+  its designation in the FusionSpace product system, as every file the simulator writes does:
   `; FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001`. The `·` is a middle dot, the file's
   only non-ASCII character unless its comments hold others; the file is UTF-8. A comment carried
   over from the source that is itself such a line, from any version, is left out, and so is the
-  line builds before release 0.1's rename wrote, `hpr-sim` with either designation
-  (`FS-ACHERNAR · SW · TOOL 001` or `FS · SW · TOOL 005`), so a file converted again holds one such line, not two. Whether other programs (RockSim, OpenRocket, a flight computer's
-  tools) accept the middle dot in a comment has not been checked.
+  line builds before release 0.1's rename wrote under the earlier name, with either designation
+  (`FS-ACHERNAR · SW · TOOL 001` or `FS · SW · TOOL 005`; rule 9 of the reader policy above), so
+  a file converted again holds one such line, not two. Whether other programs (RockSim,
+  OpenRocket, a flight computer's tools) accept the middle dot in a comment has not been checked.
 - Each entry: its comments as `;text`, then the header with single spaces, then one `   t F` line
   per point, then a lone `;`. Finally the trailer comments. LF endings, a final newline, UTF-8.
 - The name must be one token that doesn't start with `;` (the line would read as a comment), and

@@ -42,8 +42,8 @@ A **geodetic position** `(φ, λ, h)` gives the latitude `φ` (positive north, i
 the longitude `λ` (positive east), and the height `h` above the ellipsoid along its normal.
 `h` is **ellipsoidal height, not height above mean sea level**. The two differ by the geoid
 undulation `N` (`h = H + N`, with `|N|` up to about 100 m). Inputs quoted above sea level must be
-converted before use. hpr has no geoid model, so a flight takes `N` at the launch site as an input;
-[Atmosphere](atmosphere.md#height-datum) shows where it is used.
+converted before use. HPR Sim has no geoid model, so a flight takes `N` at the launch site as an
+input; [Atmosphere](atmosphere.md#height-datum) shows where it is used.
 
 ## Launch frame `L` (East-North-Up)
 
