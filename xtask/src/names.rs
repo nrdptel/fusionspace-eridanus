@@ -1519,7 +1519,7 @@ mod tests {
             (Kind::CargoManifest, "name = \"fusionspace-hpr-sim\"\nhpr = { path = \"../hpr\" }\n".to_owned()),
             (Kind::Text, format!("see fusionspace-{old} and fusionspace\u{2011}{old}\n")),
             // A plain block comment, with any character in it, is no surface.
-            (Kind::Rust, "/* 15° — hpr's own */\nfn f() {}\n".to_owned()),
+            (Kind::Rust, "/* 15° in Zürich, hpr's own */\nfn f() {}\n".to_owned()),
         ];
         for (kind, text) in &clean {
             let mut used = [];
