@@ -479,7 +479,7 @@ mod tests {
 
     fn rows_ok() -> String {
         "| `cli.md` | Output | CLI | met | `xtask/src/cli.rs::help_fits` |\n\
-         | `cli.md` | Color | CLI, site | not met | #401, M0.7a: the colour is off |\n\
+         | `cli.md` | Color | CLI, site | not met | #401, M0.7a: the hue is off |\n\
          | `watch.md` | Screens | none | later | M9.4 |\n"
             .to_owned()
     }
