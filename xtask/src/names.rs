@@ -1052,14 +1052,14 @@ enum Test {
     Body,
 }
 
-/// The words that begin an item, which a `#[cfg(test)]` before them makes test-only whole.
-const ITEM_KEYWORDS: [&str; 13] = [
+/// The words that begin an item, which a `#[cfg(test)]` before them makes test-only whole. `union`
+/// is left out: it is also a name a variable or a match arm can have, and a test-only union is rare.
+const ITEM_KEYWORDS: [&str; 12] = [
     "fn",
     "impl",
     "mod",
     "struct",
     "enum",
-    "union",
     "trait",
     "use",
     "const",
