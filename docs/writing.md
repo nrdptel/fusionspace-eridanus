@@ -95,8 +95,9 @@ They don't conflict with the rules above; they add these:
   bytes, at least 8 beyond the mention), how many mentions it covers, and why it stays. An entry
   that matches nothing, or a different number of mentions, fails; no page may be allowed whole.
   On the records page, a decision record's row, which gives the record's summary as it was
-  written, inherits that record's allowance: a record up to ADR-205 may be allowed whole, and its
-  row with it; no other row or line there inherits anything.
+  written, inherits that record's allowance. A record up to
+  [ADR-205, the decision that set the rule](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0205-the-2026-10-08-one-name-one-design.md)
+  may be allowed whole, and its row with it; no other row or line there inherits anything.
 
 Older pages move to these rules as they are edited. [M0.6](decisions-and-roadmap.md#m0-6), the
 product system milestone, added the check for the first two. Nothing checks the non-breaking

@@ -112,6 +112,18 @@ enum Reason {
 /// The matches allowed to stay: the file, a phrase on one line of it that holds the match, and
 /// why. Every match inside the phrase is allowed, on every line of the file that holds it.
 const ALLOWED: &[(&str, &str, Reason)] = &[
+    // Two decision records' file names, frozen with the records, which the name check's
+    // allowlist names.
+    (
+        "xtask/src/names.rs",
+        "0070-m2-2e-split-mass-and-centre-of-mass-first-then.md",
+        Reason::Name,
+    ),
+    (
+        "xtask/src/names.rs",
+        "0102-tube-fins-centre-of-pressure-measured-against.md",
+        Reason::Name,
+    ),
     (
         "docs/format/era5.md",
         "European Centre for Medium-Range Weather Forecasts",
