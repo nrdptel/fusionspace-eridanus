@@ -85,7 +85,7 @@
 
 # File formats
 
-- [The hpr design format (`.hpr` and `.hprz`)](format/hpr.md)
+- [The HPR design format (`.hpr` and `.hprz`)](format/hpr.md)
 - [OpenRocket `.ork` design files](format/ork.md)
 - [OpenRocket `.orc` parts catalogs](format/orc.md)
 - [RASP `.eng` motor files](format/eng.md)

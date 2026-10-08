@@ -1,7 +1,7 @@
 # Your own rocket
 
 This page builds a rocket of your own in Rust, part by part: your dimensions, your materials, and a
-motor from the catalog that comes with hpr-sim. It then finds the rocket's
+motor from the catalog that comes with HPR Sim. It then finds the rocket's
 [center of gravity](glossary.md#center-of-gravity-cg) (CG), its
 [center of pressure](glossary.md#center-of-pressure-cp) (CP) and its
 [stability margin](glossary.md#stability-margin), flies it, and turns it into a
@@ -9,8 +9,8 @@ motor from the catalog that comes with hpr-sim. It then finds the rocket's
 [Getting started](getting-started.md), and some Rust.
 
 > **How far to trust it.** The CP comes from [Barrowman's method](glossary.md#barrowmans-method),
-> which hpr checks against Barrowman's own worked examples at Mach 0. hpr's CP agrees with all five
-> within 1%; for one of them, a six-fin rocket, hpr's
+> which HPR Sim checks against Barrowman's own worked examples at Mach 0. Its CP agrees with all
+> five within 1%; for one of them, a six-fin rocket, its
 > [normal-force slope](glossary.md#normal-force-slope) is 2.87% high
 > ([Aerodynamics](physics/aero.md#verification)). The mass and CG come from each part's shape and a
 > published density, so glue, paint and hardware are missing until you weigh the parts and enter
@@ -132,15 +132,15 @@ propellant is gone.
   [calibres](glossary.md#calibre-caliber), that is, in body diameters. At liftoff it is
   (0.779 − 0.671) m ÷ 0.0563 m ≈ 1.9; the program works from the unrounded values and prints 1.92.
   At burnout the CG has moved forward, so the margin has grown to 2.99. This program works the
-  margin out by hand; hpr also gives it from the rail exit to apogee or the first deployment, with an optimum ejection
-  delay, as [Flight metrics](physics/metrics.md) shows.
+  margin out by hand; the simulator also gives it from the rail exit to apogee or the first
+  deployment, with an optimum ejection delay, as [Flight metrics](physics/metrics.md) shows.
 
 A positive margin means that when something tips the rocket, the air turns its nose back into the
 oncoming air. That oncoming air is the *relative wind*: the airflow the rocket feels, from its
 motion over the ground combined with the wind. In a crosswind, the same turn swings the rocket upwind
 ([weathercocking](glossary.md#weathercocking)).
 
-hpr doesn't judge whether a margin is enough; your club's or range's rules do.
+The simulator doesn't judge whether a margin is enough; your club's or range's rules do.
 
 ### Where the center of pressure comes from
 
@@ -161,22 +161,22 @@ So the CP is 5.313 ÷ 6.82 ≈ 0.779 m. The fins sit far aft and have more than 
 slope, so they pull the CP toward the tail. Moving the CP aft (bigger fins, or fins farther aft)
 or the CG forward (a heavier nose) raises the margin; run the program to see by how much.
 
-**How speed moves the CP.** In hpr, only a fin set's terms change with the Mach number: its slope
-grows as the rocket speeds up toward Mach 1, and from Mach 0.8 its own CP moves aft too. The
-slopes and CPs of nose cones, transitions and body tubes stay where they are
+**How speed moves the CP.** In the simulator, only a fin set's terms change with the Mach number:
+its slope grows as the rocket speeds up toward Mach 1, and from Mach 0.8 its own CP moves aft too.
+The slopes and CPs of nose cones, transitions and body tubes stay where they are
 ([Aerodynamics](physics/aero.md#your-rockets-center-of-pressure)).
 
 - With the fins at the tail, as here, the growing fin slope pulls the rocket's CP aft as it speeds
   up.
 - A rocket with canards (a second fin set near the nose) is different. The canards' slope grows
   too and pulls the CP forward, so which way the CP moves depends on both fin sets.
-- hpr keeps each fin set's CP a quarter of the way back along its
+- HPR Sim keeps each fin set's CP a quarter of the way back along its
   [mean aerodynamic chord](glossary.md#mean-aerodynamic-chord-mac), a kind of average chord, up to
   Mach 0.8, and moves it aft from there toward where supersonic linear theory puts it
-  ([Aerodynamics](physics/aero.md#fins-through-mach-1)). Niskanen's 2009 thesis, which hpr's
-  aerodynamics also draw on, starts moving it at Mach 0.5; NASA's wind tunnel found an Arcas Robin
-  rocket's CP moving forward, not aft, between Mach 0.6 and 0.8, so hpr doesn't. This rocket's top
-  speed, Mach 0.56, is well below either.
+  ([Aerodynamics](physics/aero.md#fins-through-mach-1)). Niskanen's 2009 thesis, which the
+  simulator's aerodynamics also draw on, starts moving it at Mach 0.5; NASA's wind tunnel found an
+  Arcas Robin rocket's CP moving forward, not aft, between Mach 0.6 and 0.8, so HPR Sim doesn't.
+  This rocket's top speed, Mach 0.56, is well below either.
 
 `Flow::axial(0.0)` in place of `Flow::axial(0.3)` gives the low-speed value that Barrowman's method
 gives by hand.
@@ -187,26 +187,28 @@ The rocket flies from a 1.8 m vertical rail, 1,400 m up in New Mexico, with no w
 parachute, 0.9 m across ([nominal diameter](glossary.md#nominal-area)), which opens when the
 motor's ejection charge fires.
 
-- **Rail exit:** 21.7 m/s. The design has no rail buttons, so hpr takes the rocket as off the rail
-  when its aft end passes the top ([rail exit](glossary.md#rail-exit-and-rail-exit-velocity)).
+- **Rail exit:** 21.7 m/s. The design has no rail buttons, so the simulator takes the rocket as off
+  the rail when its aft end passes the top
+  ([rail exit](glossary.md#rail-exit-and-rail-exit-velocity)).
 - **Apogee:** 1144.5 m above the pad, 13.92 s after ignition ([apogee](glossary.md#apogee)).
 - **Top speed:** 187 m/s, Mach 0.56: the fastest airspeed at the end of any of the
   [time steps](glossary.md#adaptive-time-step) the flight was computed in. With no wind, the
   airspeed is also the speed over the ground.
 - **Ejection:** at 13.50 s, at 5.5 m/s. The charge fires the 10 s delay after
-  [burnout](glossary.md#burnout), which in hpr is the time of the thrust curve's last point, 3.50 s
-  for this motor. That is 0.42 s before apogee, while the rocket is still climbing slowly.
+  [burnout](glossary.md#burnout), which in the simulator is the time of the thrust curve's last
+  point, 3.50 s for this motor. That is 0.42 s before apogee, while the rocket is still climbing
+  slowly.
 
 This motor has three times near the end of its burn, and they measure different things:
 
 | time | what it is | where it comes from |
 |---|---|---|
 | 3.12 s | the [burn time](glossary.md#burn-time) [ThrustCurve.org](glossary.md#thrustcurveorg) publishes for the motor | the bundled catalog, which copies ThrustCurve.org's values |
-| 3.13 s | the burn time hpr works out from this motor's thrust curve, by the same [NFPA 1125](glossary.md#nfpa-1125) rule: from when the thrust first reaches 5% of its peak to when it last falls to 5% | [Solid motors](physics/motor.md#the-bundled-motors) lists it |
+| 3.13 s | the burn time the simulator works out from this motor's thrust curve, by the same [NFPA 1125](glossary.md#nfpa-1125) rule: from when the thrust first reaches 5% of its peak to when it last falls to 5% | [Solid motors](physics/motor.md#the-bundled-motors) lists it |
 | 3.50 s | [burnout](glossary.md#burnout): the curve's last point, where the thrust reaches zero | the thrust curve; the ejection delay counts from here |
 
-- The first two differ by 0.01 s. hpr bundles a motor only if its computed burn time is within 1%
-  of ThrustCurve.org's ([Solid motors](physics/motor.md#the-bundled-motors)).
+- The first two differ by 0.01 s. The simulator bundles a motor only if its computed burn time is
+  within 1% of ThrustCurve.org's ([Solid motors](physics/motor.md#the-bundled-motors)).
 - From 3.13 s to 3.50 s the motor still pushes, with under 5% of its peak thrust (the curve's peak
   is 103 N, so under about 5 N). The burn time leaves that tail out; the flight doesn't.
 
@@ -531,9 +533,9 @@ It has eight steps.
      `overhang_m` is how far the nozzle sits aft of the mount's end.
    - <a id="packing"></a>**Packing.** A
      [`MassComponent`](api/hpr_design/parts/struct.MassComponent.html) is a mass and its
-     [`Packing`](api/hpr_design/parts/struct.Packing.html): the size of the solid cylinder hpr
-     spreads the mass through. Here it is 0.15 m long with `radius_m` 0.025, so 50 mm across,
-     inside the airframe's 54 mm bore.
+     [`Packing`](api/hpr_design/parts/struct.Packing.html): the size of the solid cylinder the
+     simulator spreads the mass through. Here it is 0.15 m long with `radius_m` 0.025, so 50 mm
+     across, inside the airframe's 54 mm bore.
      - The length places the mass. Its CG is the cylinder's middle, 0.145 m below the airframe's
        top, since the cylinder starts 7 cm down.
      - Of the mass properties, the radius changes only the moments of inertia: how hard the mass
@@ -544,12 +546,12 @@ It has eight steps.
        bore instead.
      - `radial_offset_m` and `angle_rad` move it off the rocket's axis. Parachutes, streamers and
        shock cords have a packing too.
-3. **Materials.** `material("abs")` looks up one of hpr's 49 built-in materials by its id, each
-   with the source of its density ([Mass properties](physics/mass.md#materials)). The
+3. **Materials.** `material("abs")` looks up one of the simulator's 49 built-in materials by its id,
+   each with the source of its density ([Mass properties](physics/mass.md#materials)). The
    [`materials`](api/hpr_design/materials/index.html) page of the API reference lists them. For a
    material of your own, `Material::bulk(name, kg_m3)` takes a name and a density in kg/m³.
 4. **The motor.** `Catalog::bundled()` is the catalog of 32
-   [ThrustCurve.org](glossary.md#thrustcurveorg) motors that comes with hpr.
+   [ThrustCurve.org](glossary.md#thrustcurveorg) motors that comes with the simulator.
    [`find`](api/hpr_motor/catalog/struct.Catalog.html#method.find) looks one up by its
    [designation](glossary.md#motor-designation) or common name, ignoring case, spaces and hyphens,
    so `"h54"` finds this one too. `bundled_motor()` builds the motor from its thrust curve and the
@@ -560,12 +562,12 @@ It has eight steps.
    The design checks compare the case with its mount: a case wider than the mount's bore is an
    error, but a nominal 29 mm motor in a 1.140 in (28.956 mm) tube only warns, since the real
    case is narrower than its name ([a nominal motor in its matching
-   tube](physics/design.md#a-nominal-motor-in-its-matching-tube)). While the motor burns, hpr also uses the case's diameter for the
-   [base drag](glossary.md#base-drag), the drag on the rocket's flat aft end: the part of that end
-   the burning case covers gets none. [Solid motors](physics/motor.md#using-a-motor)
-   lists [the bundled motors](physics/motor.md#the-bundled-motors), and shows how to use
-   [a motor file of your own](physics/motor.md#a-motor-from-a-file), such as one from
-   ThrustCurve.org, instead.
+   tube](physics/design.md#a-nominal-motor-in-its-matching-tube)). While the motor burns, the
+   simulator also uses the case's diameter for the [base drag](glossary.md#base-drag), the drag on
+   the rocket's flat aft end: the part of that end the burning case covers gets none. [Solid
+   motors](physics/motor.md#using-a-motor) lists [the bundled
+   motors](physics/motor.md#the-bundled-motors), and shows how to use [a motor file of your
+   own](physics/motor.md#a-motor-from-a-file), such as one from ThrustCurve.org, instead.
 5. **The rocket.** A [`Rocket`](api/hpr_design/tree/struct.Rocket.html) holds its stages (one
    here), how its reference diameter is chosen, and its
    [configurations](glossary.md#configuration). `ReferenceDiameter::Maximum {}` takes the widest
@@ -610,7 +612,7 @@ It has eight steps.
 
 A design file is a rocket written as text, to keep, share or edit outside Rust. Here it is the
 rocket's JSON, which is also the `rocket` key of a document of
-[the hpr design format](format/hpr.md), the form that adds a versioned header, the motor
+[the HPR design format](format/hpr.md), the form that adds a versioned header, the motor
 configurations, recovery and what a `.ork` held:
 
 - `serde_json::to_string_pretty(&rocket)` gives the text, and `std::fs::write` saves it to a file.
@@ -638,7 +640,8 @@ at the end of the output shows the rules:
   which is why the output above has no `fillet` key. In Rust it is, for example,
   `fillet: Some(FinFillet { radius_m: 0.005, material: material("epoxy")? })`, with `FinFillet`
   added to the `use hpr_design::{…}` list.
-- A key hpr doesn't know is refused, so a misspelt key is an error rather than silently ignored.
+- A key the simulator doesn't know is refused, so a misspelt key is an error rather than silently
+  ignored.
 - A mounted motor is stored whole: its thrust curve, masses and size. Its `designation` is only a
   label, so a design file doesn't depend on the catalog.
 
@@ -647,9 +650,9 @@ shock cord as parts, on a 38 mm Cesaroni I175, see
 [`synthetic-54mm-three-fin.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/synthetic-54mm-three-fin.json).
 A program in the repository writes the files in that folder, so edit a copy rather than the file.
 
-**The format is provisional.** It is hpr's own, and the open design format ([M3.3](decisions-and-roadmap.md#m3-3), a
-documented and versioned design file with a schema) will replace it and convert the repository's
-own designs.
+**The format is provisional.** It is the simulator's own, and the open design format
+([M3.3](decisions-and-roadmap.md#m3-3), a documented and versioned design file with a schema) will
+replace it and convert the repository's own designs.
 
 ## What else a design can hold
 
@@ -680,13 +683,13 @@ The example leaves out several kinds of part and setting that a design can have:
   (their parachutes and streamers fly as OpenRocket flies them); RockSim `.rkt` files
   ([M3.4](decisions-and-roadmap.md#m3-4), RockSim import) can't be read yet.
 - **Drag near and past Mach 1 is lightly checked.** Since
-  [M1.8b1](decisions-and-roadmap.md#m1-8b1) (drag through Mach 1), hpr's own drag, like its normal
-  force, carries a flight from Mach 0 to 5, and a flight that reaches Mach 5 stops with an error.
-  Near and above the speed of sound the drag has been checked against one wind tunnel, which
-  measured from Mach 0.6 to 4.63. hpr reads high there at most speeds, most of all with fins past
-  Mach 1 ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)). Against a
-  worked example in a U.S. Army design handbook, the body alone reads a little low faster than
-  sound. Against [RASAero II](glossary.md#rasaero-ii)'s drag for a rocket with a short, steep
+  [M1.8b1](decisions-and-roadmap.md#m1-8b1) (drag through Mach 1), the simulator's own drag, like
+  its normal force, carries a flight from Mach 0 to 5, and a flight that reaches Mach 5 stops with
+  an error. Near and above the speed of sound the drag has been checked against one wind tunnel,
+  which measured from Mach 0.6 to 4.63. The simulator reads high there at most speeds, most of all
+  with fins past Mach 1 ([Aerodynamics](physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)).
+  Against a worked example in a U.S. Army design handbook, the body alone reads a little low faster
+  than sound. Against [RASAero II](glossary.md#rasaero-ii)'s drag for a rocket with a short, steep
   [boattail](glossary.md#boattail), the whole rocket reads about a quarter low faster than sound,
   for reasons not yet pinned down
   ([Aerodynamics](physics/aero.md#drag-against-rasaero-ii-through-mach-2)). So if your rocket
@@ -699,8 +702,8 @@ The example leaves out several kinds of part and setting that a design can have:
   ignition and the flight a separation ([Staging](physics/staging.md)). A `.ork` file's own
   ignitions and powered separations are read for you. The ignitions come with the rocket, but
   the separations don't: turn the configuration's `stagings()` into the flight's separations with
-  `hpr::ork::separations` and pass them to the flight, with a recovery device on each part, since hpr
-  refuses the flight without them. The example
+  `hpr::ork::separations` and pass them to the flight, with a recovery device on each part, since
+  the simulator refuses the flight without them. The example
   [`ork_two_stage.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/ork_two_stage.rs)
   does both. Staged, clustered and air-start flights of OpenRocket's examples are within 5% of
   OpenRocket's apogee and largest speed. Three cluster apogees are compared with OpenRocket's
@@ -708,9 +711,9 @@ The example leaves out several kinds of part and setting that a design can have:
   ([M1.9c](decisions-and-roadmap.md#m1-9c), a two-stage and a cluster design against OpenRocket;
   [results](format/ork.md#staged-clustered-and-air-start-flights)).
 - **Pieces that land on their own are yours to declare.** A nose cone on a shock cord comes down
-  with its rocket, and that is what hpr flies unless you say otherwise. To fly a nose cone, a
-  section or a payload that leaves and lands on its own, give the flight an `Ejection` for each,
-  and a recovery device on each piece: a parachute, or its own tumble
+  with its rocket, and that is what the simulator flies unless you say otherwise. To fly a nose
+  cone, a section or a payload that leaves and lands on its own, give the flight an `Ejection` for
+  each, and a recovery device on each piece: a parachute, or its own tumble
   (`Simulation::tumbling_piece`). An ejection can push the pieces apart with the charge's impulse
   (`Ejection::with_impulse`). A `.ork` file's recovery settings don't make them for you.
   A stage whose mass is overridden can't be parted inside: remove the override, or put it on the
@@ -732,18 +735,18 @@ The example leaves out several kinds of part and setting that a design can have:
   and the part's own drag area once it is out. The rest flies on without it, and the part falls
   to the ground on its own (`FlightResult::released`). A release must come after the rocket
   leaves the rail, and a flight can't combine one with a separation, ejected pieces or a mass
-  shift yet. Check the stability margin after it: hpr doesn't warn. This is checked against exact
-  answers only ([Released mass](physics/released-mass.md), with the example
+  shift yet. Check the stability margin after it: the simulator doesn't warn. This is checked
+  against exact answers only ([Released mass](physics/released-mass.md), with the example
   [`released_ballast.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/released_ballast.rs)).
 - **Commercial solid motors only** ([COTS motors](glossary.md#cots-motor)). With only catalog data,
   a motor's own CG stays at its mid-length, full or spent ([Solid motors](physics/motor.md)).
 - **Tube fins fly as ring wings, below Mach 0.8, with three tubes or more.** Tube fins are open
   tubes that run along the body, touching it, in place of flat fins. Each tube's slope comes from
   a cited ring-wing formula. Its center of pressure comes from Fletcher's wind-tunnel rings for
-  short tubes and from hpr's own derivation for tubes longer than 1.5 diameters, a judgement.
-  The drag applies the flat fins' rules. No tube fin rocket has been checked against a
-  measurement. hpr's tube-fin drag probably reads low, so treat an apogee as high. On
-  OpenRocket's example hpr's margin is 0.79 calibres against OpenRocket's 1.87; nothing measured
+  short tubes and from this project's own derivation for tubes longer than 1.5 diameters, a
+  judgement. The drag applies the flat fins' rules. No tube fin rocket has been checked against a
+  measurement. HPR Sim's tube-fin drag probably reads low, so treat an apogee as high. On
+  OpenRocket's example HPR Sim's margin is 0.79 calibres against OpenRocket's 1.87; nothing measured
   says which is right. A flight that reaches Mach 0.8 stops with the tube-fin model's error. Also
   refused: fewer than three tubes, solid tubes, tubes that overlap each other, a tube shorter
   than a third of its diameter, tube fins on a pod, and a tumbling airframe with tube fins
@@ -753,19 +756,19 @@ The example leaves out several kinds of part and setting that a design can have:
   per pod, as if the airframe did not disturb the air around them. Nothing measured checks it yet,
   and a single pod's off-axis moments are left out ([aerodynamics: Pods](physics/aero.md#pods)).
   Canted fins on a pod are refused.
-- **Two nose shapes have no drag of hpr's own**, on a nose cone or on a transition that widens,
-  because no drag data covers them: a bulged secant ogive (`NoseShape::Ogive` with a
+- **Two nose shapes have no drag of the simulator's own**, on a nose cone or on a transition that
+  widens, because no drag data covers them: a bulged secant ogive (`NoseShape::Ogive` with a
   `radius_ratio` below 1, which bulges wider than the body just ahead of its base) and a Haack
   shape whose parameter `C` is above 1/3, past the LV-Haack ([Shapes](physics/shapes.md#profiles)).
   Since [M1.8b1](decisions-and-roadmap.md#m1-8b1), the drag through Mach 1, the drag buildup
   refuses them, naming the part. The CP still works, and so does a flight on a drag table from
-  another tool; a flight on hpr's own drag stops with that error.
+  another tool; a flight on the simulator's own drag stops with that error.
 - **Fin sections and supersonic drag.** Faster than sound, every fin section takes a blunt
   leading edge's drag: the square section a flat face's, the rounded and airfoil sections a
   rounded edge's. The airfoil section differs from the rounded only in having no trailing-edge
-  base drag. That reads far high for thin, sharp fins, and the one wind tunnel hpr has been
-  measured against tested only double-wedge fins, so how well square or rounded edges fare is
-  unmeasured ([Drag limits](physics/aero.md#drag-limits)).
+  base drag. That reads far high for thin, sharp fins, and the one wind tunnel the
+  simulator has been measured against tested only double-wedge fins, so how well square or rounded
+  edges fare is unmeasured ([Drag limits](physics/aero.md#drag-limits)).
 
 ## Where next
 

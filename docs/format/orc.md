@@ -7,16 +7,17 @@ sell them, each under its maker and part number, with its sizes and its material
 ships 16 of them, from the `openrocket-database` project: 3,449 parts from Estes, LOC Precision,
 Giant Leap, Madcow, SEMROC and others.
 
-hpr has those 16 files built in. A program can look a part up by maker and part number, or search
-for one. This page is the reference for that reader: what a file holds, how each value is read,
-and where hpr's reading differs from OpenRocket's.
+HPR Sim has those 16 files built in. A program can look a part up by maker and part number, or
+search for one. This page is the reference for that reader: what a file holds, how each value is
+read, and where HPR Sim's reading differs from OpenRocket's.
 
 **How far to trust it.** OpenRocket's own reader was run on the same files as an
-[oracle](../glossary.md#oracle), a program whose answers hpr is checked against. hpr reads every
-part OpenRocket reads, in the same order. Of the 18,306 sizes, masses and densities compared,
-17,911 come out equal to the last bit. The other 395 (185 masses in ounces, 207 densities and 3
-undefined materials) are counted, and so are the 252 parts whose maker OpenRocket names otherwise;
-each has a known cause ([Where hpr and OpenRocket differ](#where-hpr-and-openrocket-differ)). A
+[oracle](../glossary.md#oracle), a program whose answers HPR Sim is checked against. HPR Sim
+reads every part OpenRocket reads, in the same order. Of the 18,306 sizes, masses and densities
+compared, 17,911 come out equal to the last bit. The other 395 (185 masses in ounces, 207
+densities and 3 undefined materials) are counted, and so are the 252 parts whose maker OpenRocket
+names otherwise; each has a known cause
+([Where the simulator's reader and OpenRocket's differ](#where-the-simulators-reader-and-openrockets-differ)). A
 part is only as right as its file, though. The database's README warns that its data may be
 wrong for your rocket and that you should weigh your real parts.
 
@@ -186,10 +187,10 @@ published schema. The fields and units below are the ones the database project d
 
 Any part may also state its `Mass`; 229 of the built-in parts do: 207 solid parts, and 22
 parachutes and streamers. Unlike a solid part's (see
-[Where hpr and OpenRocket differ](#where-hpr-and-openrocket-differ)), a parachute's or streamer's
-stated mass leaves its fabric's density as written, in hpr's reading and in OpenRocket's. When
-the part goes into a rocket, OpenRocket gives a parachute its stated mass as an override and
-ignores a streamer's; the builder scales either one's density to give it.
+[Where the simulator's reader and OpenRocket's differ](#where-the-simulators-reader-and-openrockets-differ)), a
+parachute's or streamer's stated mass leaves its fabric's density as written, in HPR Sim's reading
+and in OpenRocket's. When the part goes into a rocket, OpenRocket gives a parachute its stated
+mass as an override and ignores a streamer's; the builder scales either one's density to give it.
 
 A centering ring's length is its thickness. A coupler with an inside diameter of zero is a solid nose block.
 
@@ -225,15 +226,15 @@ is 0.0254 m, the foot 0.3048 m, the pound 0.45359237 kg and the ounce a sixteent
 - **A filled part's walls.** `Filled` says a nose cone or transition is solid. Where it is absent,
   a `Thickness` gives the wall instead. Eight nose cones and two transitions give both, and all
   ten say `Filled` is false, so they agree: a hollow part with that wall. A file that said filled
-  with a wall would leave which one counts open; hpr keeps both, as OpenRocket's reading does.
+  with a wall would leave which one counts open; HPR Sim keeps both, as OpenRocket's reading does.
 
-## Where hpr and OpenRocket differ
+## Where the simulator's reader and OpenRocket's differ
 
 The test [`crates/hpr-io/tests/orc_openrocket.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-io/tests/orc_openrocket.rs) reads every built-in part and compares it with
 OpenRocket 24.12's reading, value by value. The two agree everywhere except in these places. Each
 is counted, and each count is checked:
 
-| what | parts | hpr | OpenRocket |
+| what | parts | HPR Sim | OpenRocket |
 |---|---|---|---|
 | a mass stated in ounces | 185 | the exact ounce, 0.028349523125 kg | 0.0283495231 kg, so 8.8 parts in 10 billion lighter |
 | two makers' names | 252 | as the file writes them | "LOC/Precision" and "Public Missiles, Ltd." for "LOC Precision" and "Public Missiles" |
@@ -242,10 +243,10 @@ is counted, and each count is checked:
 
 The third row is the one that matters for a rocket's weight. For example, an Estes balsa nose cone
 that states its mass gets, in OpenRocket, a balsa density that makes the cone weigh exactly that.
-hpr keeps both numbers.
+HPR Sim keeps both numbers.
 
 The test shows that a stated mass is the cause on all 207. The oracle also reads each file with
-every `<Mass>` taken out, and then OpenRocket's density equals hpr's on every part, these 207
+every `<Mass>` taken out, and then OpenRocket's density equals HPR Sim's on every part, these 207
 included. On the 54 of them that are simple solids (7 body tubes, 4 bulkheads, and 43 filled
 conical parts: 34 nose cones and 9 transitions), the test also checks that OpenRocket's replaced density times the
 part's volume gives the stated mass, to 1 part in 10¹⁵.
@@ -257,8 +258,8 @@ or foot, pounds per square foot, and ounces per foot. No built-in file uses them
 
 ## Warnings, not failures
 
-Only three things make hpr refuse a whole file: text that isn't XML, a top element that isn't
-`<OpenRocketComponent>`, and elements nested more than 16 deep, which no catalog needs and which
+Only three things make HPR Sim refuse a whole file: text that isn't XML, a top element that
+isn't `<OpenRocketComponent>`, and elements nested more than 16 deep, which no catalog needs and which
 is refused before the XML is read. Anything else that can't be read is left out with a warning,
 and reading goes on:
 
@@ -309,7 +310,8 @@ that. `bundled()` drops these warnings; `read` each of `BUNDLED_FILES` to see th
 
 [`validation/oracles/openrocket/orc_presets.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/orc_presets.py) runs OpenRocket 24.12's preset loader, its public
 API (run, never read: its source is GPL), on each of the 16 files. It first checks that the jar's
-copy of each file is byte for byte the one built into hpr. It records every value of every part to
+copy of each file is byte for byte the one built into HPR Sim. It records every value of every
+part to
 [`crates/hpr-io/tests/fixtures/orc/openrocket-presets.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-io/tests/fixtures/orc/openrocket-presets.json),
 one part to a line, and each part's densities as OpenRocket reads the file with its masses taken
 out.
@@ -322,12 +324,12 @@ probe:
 | probes | result |
 |---|---|
 | 23 | read as OpenRocket reads them, to the bit |
-| 6 | in a unit whose factor OpenRocket rounds: within 2 parts in 10⁹, by hpr's exact factor |
-| 4 | OpenRocket refuses the file; hpr leaves the part out (for `oz/in`, ounces per inch, a cord density neither reads, hpr leaves the material out and reads the part without the cord's density) |
-| 4 | OpenRocket reads the part (`in/64` as inches, a length of `ten` as zero, a material of the wrong kind with a density of zero, `BT<b>-</b>20` as `20`); hpr leaves it out |
+| 6 | in a unit whose factor OpenRocket rounds: within 2 parts in 10⁹, by HPR Sim's exact factor |
+| 4 | OpenRocket refuses the file; HPR Sim leaves the part out (for `oz/in`, ounces per inch, a cord density neither reads, HPR Sim leaves the material out and reads the part without the cord's density) |
+| 4 | OpenRocket reads the part (`in/64` as inches, a length of `ten` as zero, a material of the wrong kind with a density of zero, `BT<b>-</b>20` as `20`); HPR Sim leaves it out |
 
-As a check that the tests can fail, moving hpr's inch to the next number a 64-bit float can hold
-above 0.0254 was tried by hand: both the catalog comparison and the probe test failed.
+As a check that the tests can fail, moving HPR Sim's inch to the next number a 64-bit float can
+hold above 0.0254 was tried by hand: both the catalog comparison and the probe test failed.
 
 ## Sources and license
 
@@ -335,7 +337,7 @@ above 0.0254 was tried by hand: both the catalog comparison and the probe test f
   at commit `1512874a` (2025-07-27), pinned as `openrocket-database` in the
   [reference lock file](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/refs.lock.toml).
   Apache License 2.0. Created by Dave Cook and maintained by the OpenRocket team. They are built
-  into hpr unchanged, in
+  into HPR Sim unchanged, in
   [`crates/hpr-io/data/openrocket-database/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/crates/hpr-io/data/openrocket-database)
   with the project's `LICENSE`.
 - **The format:** the project's `docs/TechnicalInfo.md` and `docs/Usage.md` at that commit.

@@ -14,7 +14,7 @@ This report compares hpr's flights of 11 of the library's 12 private designs wit
 [m2-2e2]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-2e2
 [m2-2e5]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-2e5
 [adr-072]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-072-hprs-flights-of-the-private-library-under-anonymised-ids-2026-09-25
-[site]: https://hpr.fusionspace.co/format/ork.html#hprs-flights-of-the-private-designs
+[site]: https://hpr.fusionspace.co/format/ork.html#the-simulators-flights-of-the-private-designs
 
 - designs: 27 files in the library; 0 OpenRocket did not open, 15 public designs (the same file, or an edited copy of the same rocket) left to the public report, 0 found twice; 12 private designs, 11 with a flight compared in all five spreads
 - with the public report's 15, 26 designs in all, against [M2.2][m2-2]'s bar of 20 (met)

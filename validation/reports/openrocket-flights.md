@@ -7,7 +7,7 @@ Written by `cargo xtask ork-flights` ([M2.2d2][m2-2d2], hpr's flights against Op
 [m2-2e1]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-2e1
 [adr-069]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-069-hprs-flights-of-the-public-designs-against-openrockets-2026-09-25
 [adr-070]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-070-m22e-split-mass-and-centre-of-mass-first-then-the-corpus-2026-09-25
-[site]: https://hpr.fusionspace.co/format/ork.html#hprs-flights-against-openrockets
+[site]: https://hpr.fusionspace.co/format/ork.html#the-simulators-flights-against-openrockets
 
 - configurations flown: 54 (3 the record holds are not flown by hpr); apogee more than 5% from OpenRocket's: 8
 - fastest: Dual parachute deployment [J570W-P], OpenRocket's largest Mach number 1.147

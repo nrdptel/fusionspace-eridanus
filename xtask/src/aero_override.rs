@@ -523,7 +523,7 @@ mod tests {
             .iter()
             .fold((f64::MAX, f64::MIN), |(a, b), &p| (a.min(p), b.max(p)));
         let row = format!(
-            "the export: apogee {} m against {} m, {upwind:.1} m further into the wind. hpr's own \
+            "the export: apogee {} m against {} m, {upwind:.1} m further into the wind. HPR Sim's own \
              as a table moves it {moved:.2} m: the table's method, apart from its numbers. Each \
              flight spends {lo:.1} to {hi:.1} s past 4° before apogee",
             comma(f(export, "apogee_m")),

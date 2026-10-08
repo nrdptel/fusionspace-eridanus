@@ -10,15 +10,15 @@ as attributes, and a table of thrust, mass and [center of gravity](../glossary.m
 [A motor from a file](../physics/motor.md#a-motor-from-a-file) on the Solid motors page. It reads a
 `.eng` file, and says what changes for a `.rse` one.
 
-This page is the reference for hpr's reader and writer. The spec is thin and disagrees with every
-real file on element and attribute names, so a reader must follow the observed structure. Of the
-823 RockSim files ThrustCurve.org held on 2026-09-17, 821 read and write back with every value
+This page is the reference for HPR Sim's reader and writer. The spec is thin and disagrees with
+every real file on element and attribute names, so a reader must follow the observed structure. Of
+the 823 RockSim files ThrustCurve.org held on 2026-09-17, 821 read and write back with every value
 unchanged; the other two have a time that goes backwards
 ([Checked against real files](#checked-against-real-files)).
 
 Code: `hpr_motor::rse` ([API reference](../api/hpr_motor/rse/index.html)), written for the
 solid-motor milestone ([M1.3](../decisions-and-roadmap.md#m1-3)). The rules below are from the spec unless marked
-**Observed** (seen in real files) or **Policy** (hpr's own choice).
+**Observed** (seen in real files) or **Policy** (the simulator's own choice).
 
 ## Sources
 
@@ -96,7 +96,7 @@ The smallest `initWt` is a 1.2 g micro motor.
 | `cg` | no | mm | Motor CG over time [P p.1], [S]. **Observed:** constant = `len`/2 in 685 of 715. The datum (forward or aft end) is stated nowhere: **unverified**. |
 
 With every observed file setting both auto-calc flags to `1`, RockSim may ignore `m` and `cg`
-[P p.2]. **Policy:** hpr-sim preserves them for round trips but derives mass and CG itself.
+[P p.2]. **Policy:** the simulator preserves them for round trips but derives mass and CG itself.
 
 ## Thrust curve
 
@@ -162,16 +162,17 @@ With every observed file setting both auto-calc flags to `1`, RockSim may ignore
 
 ## Writer policy (strict, round-trip stable)
 
-Round-trip stable: a file hpr writes reads back to exactly the values it was written from.
+Round-trip stable: a file the simulator writes reads back to exactly the values it was written from.
 
 - Emit `<engine-database>`, `<engine-list>` and one `<engine>` per motor. Use 2-space indent, LF
   endings, a final newline, UTF-8, and no XML declaration (none was observed; whether RockSim
   accepts one is unverified).
 - **Policy:** the first line is an XML comment naming the program that wrote the file, its version
-  and its designation in the FusionSpace product system, as every file hpr writes does:
-  `<!-- FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001 -->`. XML readers skip comments, hpr's too,
-  so the file reads back to the same values and writing it again gives the same bytes. Whether RockSim
-  and OpenRocket accept a comment before `<engine-database>` has not been checked.
+  and its designation in the FusionSpace product system, as every file the simulator writes
+  does: `<!-- FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001 -->`. XML readers skip comments,
+  the simulator's too, so the file reads back to the same values and writing it again gives the
+  same bytes. Whether RockSim and OpenRocket accept a comment before `<engine-database>` has not
+  been checked.
 - Write attributes in RockSim's order: `mfg code Type dia len initWt propWt delays auto-calc-mass
   auto-calc-cg avgThrust peakThrust throatDia exitDia Itot burn-time massFrac Isp tDiv tStep tFix
   FDiv FStep FFix mDiv mStep mFix cgDiv cgStep cgFix`. Write only the ones present in the model.
@@ -205,7 +206,7 @@ Round-trip stable: a file hpr writes reads back to exactly the values it was wri
   Delays trade `-` for `,` and `P` for `1000`. Masses move from kg to g by moving the decimal
   point in their shortest digits, not by multiplying. Converting to `.eng` drops the attributes
   above, plus `throatDia` and `exitDia`, each named in a warning. It refuses a hybrid, and a
-  motor with no delays hpr can read until `--delays` gives them.
+  motor with no delays the simulator can read until `--delays` gives them.
   OpenRocket 24.12 opens every file converted from the bundled curves
   ([`motor_files.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/motor_files.py));
   whether RockSim does is unverified.

@@ -284,7 +284,7 @@ impl FormatTally {
     /// Prints the counts under the rest of the survey.
     pub(crate) fn print(&self) {
         println!(
-            "  through the hpr design format: {} design(s); {} valid against {SCHEMA}, {} read \
+            "  through the HPR design format: {} design(s); {} valid against {SCHEMA}, {} read \
              back the same, {} write the .ork hpr writes from the file, {} read back from it the same, \
              {} migrate from 0.1 the same; {} failed",
             self.designs,
@@ -334,7 +334,7 @@ impl FormatTally {
         let wrong = !self.wrong_reason.is_empty();
         (short || wrong || !self.apart.is_empty() || !self.failed.is_empty()).then(|| {
             format!(
-                "through the hpr design format, of {} design(s): {} valid, {} read back the same, \
+                "through the HPR design format, of {} design(s): {} valid, {} read back the same, \
                  {} write the same .ork, {} read back from it the same, {} migrate from 0.1 the \
                  same, {} with a wrong airframe reason; {} configuration(s) apart; {} failed",
                 self.designs,

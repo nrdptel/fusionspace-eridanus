@@ -18,7 +18,7 @@
   and inertias agree within 1e-4 of their values at ignition. OpenRocket 24.12, handed the same
   curve files, reads exactly the same total impulse, peak thrust, burn-time window and curve
   duration on all 32 bundled curves; its average thrust divides by the same window but counts only
-  the impulse inside it, so hpr's is +0.0107% to +0.3147% higher. Nothing else in this model is
+  the impulse inside it, so HPR Sim's is +0.0107% to +0.3147% higher. Nothing else in this model is
   compared with OpenRocket (not the propellant's burn-back, its mass and inertias, or the delays),
   and nothing here is compared with a real flight.
 - **What it leaves out:** anything but [commercial off-the-shelf](../glossary.md#cots-motor)
@@ -31,7 +31,7 @@
 
 A flight needs a motor in the rocket's motor mount. There are two ways to get one:
 
-- take one of the 32 motors that come with hpr-sim, or
+- take one of the 32 motors that come with HPR Sim, or
 - read a thrust-curve file, such as one downloaded from
   [ThrustCurve.org](../glossary.md#thrustcurveorg), by hand or through the library
   ([Matching motors to ThrustCurve.org](../motor-stock.md#matching-motors-to-thrustcurveorg)).
@@ -117,12 +117,12 @@ one differs.
 | designation | The motor's full name ([motor designation](../glossary.md#motor-designation)) | the motor's name, as ThrustCurve.org lists the file |
 | maker | The manufacturer, abbreviated | as ThrustCurve.org lists the file |
 | type | `single-use`, or `reload`: a propellant load for a reusable case | as ThrustCurve.org lists the file |
-| class | The [impulse class](../glossary.md#impulse-class) letter | hpr, from the curve |
+| class | The [impulse class](../glossary.md#impulse-class) letter | HPR Sim, from the curve |
 | dia, length | The case's diameter and length, mm | the file's header |
 | loaded mass | The motor ready to fly, g. For a reload this includes the case | the file's header |
-| total impulse | [Total impulse](../glossary.md#total-impulse), N·s | hpr, from the curve |
-| average thrust | [Average thrust](../glossary.md#average-thrust), N | hpr, from the curve |
-| burn time | [Burn time](../glossary.md#burn-time), s | hpr, from the curve |
+| total impulse | [Total impulse](../glossary.md#total-impulse), N·s | HPR Sim, from the curve |
+| average thrust | [Average thrust](../glossary.md#average-thrust), N | HPR Sim, from the curve |
+| burn time | [Burn time](../glossary.md#burn-time), s | HPR Sim, from the curve |
 
 How the 32 were chosen:
 
@@ -135,9 +135,9 @@ How the 32 were chosen:
   from 0.95% below to 0.99% above. Peak thrust is not held to it: it runs from 16.7% below
   (Cesaroni 26E31-15A) to 2.1% above (Loki M1378LR).
 - The files' headers differ from ThrustCurve.org's records in a few places, and the header is
-  what hpr flies: 5 lengths differ (from 1.2% shorter, the B4, to 1.3% longer, the N3300R), 7
-  propellant masses (from 2.7% lighter, the C5, to 52% heavier, the 26E31-15A) and 6 loaded masses
-  (from 4.0% lighter, the C5, to 2.3% heavier, the D5). For the 26E31-15A the header is the
+  what the simulator flies: 5 lengths differ (from 1.2% shorter, the B4, to 1.3% longer, the
+  N3300R), 7 propellant masses (from 2.7% lighter, the C5, to 52% heavier, the 26E31-15A) and 6
+  loaded masses (from 4.0% lighter, the C5, to 2.3% heavier, the D5). For the 26E31-15A the header is the
   likelier: its 16.9 g of propellant gives 26.1 N·s at an effective exhaust velocity of 1,543 m/s,
   where the record's 11.1 g would need 2,350 m/s, more than every other bundled motor but the
   K400C. The delays are the header's too, which often lists fewer
@@ -152,8 +152,8 @@ by its designation or common name, ignoring case, spaces and hyphens. It returns
 `I175` finds both the AeroTech I175WS and the Cesaroni 411I175-14A. Then
 `entry.bundled_motor()` builds the motor
 ([`CatalogMotor`](../api/hpr_motor/catalog/struct.CatalogMotor.html)), with the catalog's size and
-masses. The catalog doesn't say where inside the motor its mass sits, so hpr uses a rough guess,
-the *envelope default*: the propellant and the rest of the motor (case, nozzle and closures) are
+masses. The catalog doesn't say where inside the motor its mass sits, so the simulator uses a
+rough guess, the *envelope default*: the propellant and the rest of the motor (case, nozzle and closures) are
 each spread evenly along its length, so the center of mass stays at mid-length as it burns
 ([The whole motor](#the-whole-motor) gives the details).
 
@@ -169,7 +169,7 @@ Motor files come in two formats, and ThrustCurve.org serves both:
 The example reads a `.eng` file in four steps:
 
 1. **Read the text.** For a file you downloaded, use `std::fs::read_to_string("my-motor.eng")?`.
-   hpr's motor crate never opens files itself. The example builds one of the bundled files into
+   The motor crate never opens files itself. The example builds one of the bundled files into
    the program with `include_str!` instead, so that it runs anywhere.
 2. **Parse it.** `eng::parse(&text)?` ([`eng::parse`](../api/hpr_motor/eng/fn.parse.html))
    returns the file's entries, one per motor (a file can hold several), and a list of warnings.
@@ -268,7 +268,7 @@ under the name given, so anyone can fetch the same copy ([Checking a claim](../c
 - **[TC-S]** ThrustCurve.org's ["Motor Statistics" page][tc-s], pinned as `thrustcurve-motorstats`.
 - **[TC-A]** ThrustCurve.org's statistics code, [`simulate/analyze/analyze.js`][tc-a] in the
   site's source at commit `577afa6`, pinned as `thrustcurve3-analyze`. It is under the ISC
-  license, a permissive open-source license like MIT, so hpr may read it and run it.
+  license, a permissive open-source license like MIT, so this project may read it and run it.
 - **[RP]** RocketPy 1.13.0 (MIT), [`rocketpy/motors/motor.py`][rp-motor] and
   [`solid_motor.py`][rp-solid], pinned as `rocketpy`. Notes:
   [rocketpy-solid-motor.md](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/rocketpy-solid-motor.md).
@@ -317,10 +317,10 @@ lists it.
   whose statistics change (the [ADR-150 decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0150-peak-thrust-and-burn-time-crossings-from-delivered.md)
   has the counts).
 - **Where [TC-A] differs.** Before integrating, ThrustCurve's code drops leading points below
-  500 µN and averages points closer than 50 µs ([lines 40–91][tc-a-40]); hpr keeps leading zeros
-  and treats equal times as steps. The results are identical on every bundled curve. ThrustCurve.org
+  500 µN and averages points closer than 50 µs ([lines 40–91][tc-a-40]); HPR Sim keeps leading
+  zeros and treats equal times as steps. The results are identical on every bundled curve. ThrustCurve.org
   held 1712 solid-motor files when surveyed. On the 1710 of them that read, the two agree to 1e-9
-  except 17 with repeated times, where they differ by up to 1.1% in average thrust. hpr keeps the
+  except 17 with repeated times, where they differ by up to 1.1% in average thrust. HPR Sim keeps the
   step because a vertical drop is what the file draws.
 - **Total impulse:** the exact integral of the lines, `I = Σ ½ (F_i + F_{i+1}) (t_{i+1} − t_i)`
   ([SP] glossary p. 96: `I = ∫F dt`). `I(t)` is the same sum up to `t`, with the partial interval.
@@ -335,7 +335,7 @@ lists it.
   - [TC-S] says instead "the total impulse during the 5%-defined burn time". The two differ by the
     impulse outside the window, a median 0.13% on ThrustCurve's public-domain curves
     ([data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md)).
-    hpr follows the glossary and the site's code.
+    HPR Sim follows the glossary and the site's code.
 - **Impulse class:** each letter covers twice the total impulse of the one before. `A` goes up to
   2.5 N·s, `B` to 5, `C` to 10, and so on: `upper(k) = 1.25 · 2^k N·s`, from `1/8A` (`k = −2`) to
   `O` (`k = 15`), and on to `Z` by doubling. **Upper limits are inclusive:** [NAR] states `C` as
@@ -393,7 +393,7 @@ c = I / m_p0,    ṁ(t) = F(t) / c,    m_p(t) = m_p0 (1 − I(t)/I)
 
   - [RP] integrates `ṙ = −V̇/A_b`, `ḣ = −2ṙ` in time, with `A_b` the burning area, using LSODA: a
     general-purpose solver for ordinary differential equations (ODEs), from the Python library
-    SciPy. Because `dV/dx = −A_b`, that ODE is the relation above. hpr solves it for `x` by
+    SciPy. Because `dV/dx = −A_b`, that ODE is the relation above. HPR Sim solves it for `x` by
     safeguarded Newton iteration, exactly at any time. That is Newton's method, which improves a
     guess using the slope, kept inside an interval known to hold the answer: a step that would
     leave the interval halves it instead.
@@ -425,13 +425,13 @@ c = I / m_p0,    ṁ(t) = F(t) / c,    m_p(t) = m_p0 (1 − I(t)/I)
     `I_t = m (r²/2 + L²/12)`, also centered at `L/2`.
 
   **These are crude:** the center of mass stays at `L/2` throughout. Loft fixed the CG at the
-  midpoint with no inertia of its own ([Loft lesson L40](../decisions-and-roadmap.md#l40)); hpr gives the parts inertia,
-  and moves the CG as soon as the dry and propellant centers differ.
+  midpoint with no inertia of its own ([Loft lesson L40](../decisions-and-roadmap.md#l40)); HPR Sim gives
+  the parts inertia, and moves the CG as soon as the dry and propellant centers differ.
   - ThrustCurve's loaded mass includes the reusable case ([TC-G] "Total Weight": "propellant and
     case").
   - [RP] `GenericMotor.load_from_eng` sets its chamber radius to the motor **diameter**
     ([`motor.py:1759-1761`][rp-1759]), which quadruples the `r²` inertia terms (and the default
-    nozzle area it derives from that radius). hpr uses `D/2`.
+    nozzle area it derives from that radius). HPR Sim uses `D/2`.
 - **Catalog envelope:** diameter, length and masses are the curve file's header values;
   `cargo xtask motor-catalog` refuses a reload whose case names another diameter than its header
   ([Loft lesson L43](../decisions-and-roadmap.md#l43): one header said 75 mm for a 54 mm motor).
@@ -496,7 +496,7 @@ F(p_a) = F_curve + (p_ref − p_a) A_e,    A_e = π r_e²
 - It holds while the exhaust fills the nozzle to its exit. A nozzle made for high altitude, tested
   at sea level, can have its flow come away from the nozzle wall (separate), and then it doesn't
   ([SP] pp. 32–34).
-- hpr applies it strictly inside the burn, `0 < t < t_end` (`t_end` the curve's last time), as
+- HPR Sim applies it strictly inside the burn, `0 < t < t_end` (`t_end` the curve's last time), as
   RocketPy's flight does ([`simulation/flight.py:1936-1956`][rp-flight]), but only where the
   curve's thrust is positive (RocketPy also adds it inside zero-thrust gaps, where nothing flows),
   and never lets thrust go negative. Without a known nozzle it returns the curve. Commercial motor
@@ -529,7 +529,7 @@ charge, which deploys the recovery. [TC-G] lists every achievable delay, adjusta
 A plugged motor has no ejection charge, and files mark it `P`. See
 [`hpr_motor::delay`](../api/hpr_motor/delay/index.html) and [`.eng` files](../format/eng.md) for
 the markers files use. A `0` is read as its own "zero or plugged" setting, because the RASP spec
-says it means ejection at burnout but most files mean plugged. hpr never turns it into an
+says it means ejection at burnout but most files mean plugged. HPR Sim never turns it into an
 ejection event by itself: the user has to decide.
 
 ## Validation
@@ -551,7 +551,7 @@ ejection event by itself: the user has to decide.
   runs [TC-A] unchanged on every bundled curve, and writes its results to a
   [fixture](../glossary.md#reference-value-and-fixture),
   [`validation/fixtures/motor/thrustcurve-analyze-stats.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/motor/thrustcurve-analyze-stats.json).
-  hpr's impulse, burn window, burn time, average and peak thrust agree to 1.8e-15, so the
+  HPR Sim's impulse, burn window, burn time, average and peak thrust agree to 1.8e-15, so the
   definitions, not only the 1% rule, are checked.
 - **OpenRocket** (`catalog::tests::openrocket_s_total_impulse_matches_every_bundled_curve`):
   [`validation/oracles/openrocket/motors.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/motors.py)
@@ -569,14 +569,14 @@ ejection event by itself: the user has to decide.
   match as well and nothing rounds differently.
   - **One definition genuinely differs**, and is recorded rather than held
     ([ADR-066][adr-066]): the **average thrust**. Both codes divide by the same 5% window, but
-    OpenRocket's numerator is the impulse *inside* it while hpr's, following [TC-A], is the whole
-    curve's. The tails below 5% are the difference, so hpr's average is the higher on every one of
-    the 32, by **+0.0107% to +0.3147%** (median +0.0965%); the test prints all three. Carrying an
+    OpenRocket's numerator is the impulse *inside* it while HPR Sim's, following [TC-A], is the
+    whole curve's. The tails below 5% are the difference, so HPR Sim's average is the higher on
+    every one of the 32, by **+0.0107% to +0.3147%** (median +0.0965%); the test prints all three. Carrying an
     average thrust between the two codes means saying which numerator it used.
   - **Curves outside this repository are held to the same bound.** They are not committed, so
     `cargo xtask ork` checks them on the machine that has them, and fails if one is outside 0.1%
     ([M2.2c2](../decisions-and-roadmap.md#m2-2c2), [ADR-067][adr-067]):
-    - **The curves the reference library's designs embed**, which are other people's data. hpr
+    - **The curves the reference library's designs embed**, which are other people's data. HPR Sim
       parses each file itself, so these are real checks. All 3 agree to the last bit.
     - **Every solid curve in the motor database OpenRocket 24.12 ships**: 1,288 of its 1,452
       motors, the rest hybrids. The survey supplies them to designs that name a curve by
@@ -617,7 +617,7 @@ line for line the file CI runs. [Using a motor](#using-a-motor) walks through wh
 
 <!-- quote: crates/hpr-sim/examples/motors.rs -->
 ```rust
-//! Motors: the thrust curves that come with hpr-sim, and a motor read from a RASP `.eng` file
+//! Motors: the thrust curves that come with HPR Sim, and a motor read from a RASP `.eng` file
 //! like the ones ThrustCurve.org serves, put in a rocket's motor mount and flown.
 //!
 //! Run it from anywhere in the repository:

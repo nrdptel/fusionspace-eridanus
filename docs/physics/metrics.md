@@ -16,14 +16,14 @@
   (to Mach 0.8; faster, as [Aerodynamics](aero.md#your-rockets-center-of-pressure) describes)
   against the [center of mass](../glossary.md#center-of-gravity-cg) (the CG), defined as [RocketPy](../glossary.md#rocketpy) defines its static
   margin and stability margin. The peak search is Kiefer's golden-section search
-  ([References](#references)). Latitude and longitude come from hpr's WGS 84 conversions
+  ([References](#references)). Latitude and longitude come from HPR Sim's WGS 84 conversions
   ([Geodesy](geodesy.md)).
 - **How well it is validated:** each number is only as good as the flight it comes from. The
   flight is checked against RocketPy and OpenRocket ([Accuracy](../accuracy.md)), and the metrics
-  add no physics of their own. Tests check each against a hand calculation or against hpr's own
-  models evaluated directly ([Tests](#tests)). The margin in the weakest plane is checked against
-  hpr's own scan of 3,600 planes in a test, and against one OpenRocket run that is not committed.
-  None is validated against a real flight.
+  add no physics of their own. Tests check each against a hand calculation or against the simulator's
+  own models evaluated directly ([Tests](#tests)). The margin in the weakest plane is checked against
+  the simulator's own scan of 3,600 planes in a test, and against one OpenRocket run that is not
+  committed. None is validated against a real flight.
 - **What it leaves out:**
   - Fin flutter, which has its own page: [Fin flutter](flutter.md). Its margin comes from the
     max q found here.
@@ -34,10 +34,10 @@
   - A damping ratio: how fast a wobble dies out. Both margins here are static quantities.
   - The margin at the flight's [angle of attack](../glossary.md#angle-of-attack). Both margins
     take the air along the rocket's axis, in the weakest direction it can cross
-    ([Stability margins](#stability-margins)). In hpr's model a rocket meeting the air at an angle, as
-    it does leaving a rail in wind, can have a smaller or a larger margin than these, depending on
-    where its body's lift acts ([Stability margins](#stability-margins) says why they leave it
-    out).
+    ([Stability margins](#stability-margins)). In the simulator's model a rocket meeting the air at
+    an angle, as it does leaving a rail in wind, can have a smaller or a larger margin than these,
+    depending on where its body's lift acts ([Stability margins](#stability-margins) says why they
+    leave it out).
 
 ## Why these rules
 
@@ -107,9 +107,9 @@ The 6 s delay is too short:
 - So the optimum delay is 10.6 s. The opening shock, 153.4 m/s², is three times the boost's
   47.2 m/s², and it is not counted as the boost's peak.
 - Don't size a shock cord from the 153.4 m/s²; it is no bound either way. The canopy reaches
-  full drag at line stretch, 0.5 s after the charge, with no filling time (hpr's default), so the
-  rocket doesn't slow while it fills: that reads high. hpr also leaves out a canopy's drag
-  overshoot near the end of filling: that reads low
+  full drag at line stretch, 0.5 s after the charge, with no filling time (the simulator's default),
+  so the rocket doesn't slow while it fills: that reads high. The simulator also leaves out a
+  canopy's drag overshoot near the end of filling: that reads low
   ([The opening load](recovery.md#the-opening-load)).
 
 Top speed comes at 3.00 s, before the 3.26 s burnout, because in the thrust curve's last moments
@@ -154,9 +154,9 @@ much: the watcher's peak matches the hand value from the motor and the masses wi
 | Top Mach number | The airspeed over the local speed of sound |
 | Max q | The largest dynamic pressure, ½ρv² on the airspeed |
 | Boost acceleration | The largest acceleration of the nose tip, from liftoff until a recovery device opens |
-| Opening shock | The largest acceleration while a device is open, the [opening load](../glossary.md#opening-load) over the mass. It follows hpr's inflation model ([Recovery](recovery.md)) |
+| Opening shock | The largest acceleration while a device is open, the [opening load](../glossary.md#opening-load) over the mass. It follows the simulator's inflation model ([Recovery](recovery.md)) |
 
-The accelerations are of the nose tip, which is the body's origin in hpr's
+The accelerations are of the nose tip, which is the body's origin in the simulator's
 [frames](frames.md). It differs from the center of mass's only by the rocket's turning, which is
 small in a straight boost, and by the center of mass's slow drift forward as propellant burns. The accelerations are relative to the
 [launch frame](../glossary.md#launch-frame-enu) and straight from the equations of motion, so they
@@ -176,30 +176,32 @@ margin = (x_cp − x_cg) / d,    x_cp = Σ C_Nα,i x_i / Σ C_Nα,i
 ```
 
 Here `x` is a station measured aft of the nose tip, and `C_Nα,i` is component `i`'s
-[normal-force slope](../glossary.md#normal-force-slope). hpr gives two margins at each instant:
+[normal-force slope](../glossary.md#normal-force-slope). The simulator gives two margins at each
+instant:
 
 - **Static margin:** the center of pressure at zero angle of attack and Mach 0, against the center
   of mass of that instant. This is RocketPy's `static_margin`. It changes only as propellant burns.
 - **Flight margin:** the center of pressure at the flight's own Mach number, still with the air
   along the axis, against the center of mass of that instant. It is defined as RocketPy's
   `stability_margin` is. RocketPy's `min_stability_margin` takes the least over its whole flight,
-  on the rail and in the descent too, at its solver's steps, so it can differ from hpr's least
-  below. No page compares hpr's margins with RocketPy's yet. Against OpenRocket, in calm air at
-  rod clearance, where a rocket is still slow, hpr's margin at the flight's Mach number is within
-  0.016 calibres on 41 of the 53 flights of OpenRocket's own examples. This comparison takes hpr's
-  margin with the air along the rocket's axis (the 0° plane), as OpenRocket's margin is, not in
-  hpr's weakest plane (below). On `[C6-7; B6-0]` of *Pods--powered with recovery deployment*,
-  hpr's margin at rod clearance in the report is +3.74 calibres along the axis, while `hpr sim`
-  prints a least margin of −4.21 in the weakest plane. Where the two programs differ: on the
-  *Tube fin rocket* hpr's is 1.08 calibres below OpenRocket's, [tube fins](aero.md#tube-fins); on the three-stage
-  example's three flights 0.039 to 0.058 below, cause not yet sized,
-  [#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185); and on the five of *Pods--airframes and
-  winglets* 0.071 to 0.076 above, the flattering side,
+  on the rail and in the descent too, at its solver's steps, so it can differ from HPR Sim's least
+  below. No page compares HPR Sim's margins with RocketPy's yet. Against OpenRocket, in calm air at
+  rod clearance, where a rocket is still slow, HPR Sim's margin at the flight's Mach number is
+  within 0.016 calibres on 41 of the 53 flights of OpenRocket's own examples. This comparison takes
+  HPR Sim's margin with the air along the rocket's axis (the 0° plane), as OpenRocket's margin is,
+  not in HPR Sim's weakest plane (below). On `[C6-7; B6-0]` of *Pods--powered with recovery
+  deployment*, HPR Sim's margin at rod clearance in the report is +3.74 calibres along the axis,
+  while `hpr sim` prints a least margin of −4.21 in the weakest plane. Where the two programs
+  differ: on the *Tube fin rocket* HPR Sim's is 1.08 calibres below OpenRocket's,
+  [tube fins](aero.md#tube-fins); on the three-stage example's three flights 0.039 to 0.058 below,
+  cause not yet sized, [#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185); and on
+  the five of *Pods--airframes and winglets* 0.071 to 0.076 above, the flattering side,
   [#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325) and
-  [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326); and on the three of *Pods--powered with
-  recovery deployment* 0.070 above, also not yet traced. On 35 flights of private designs it is
-  from 0.017 lower to 0.11 higher, cause not yet traced ([Accuracy](../accuracy.md)). Near Mach 1
-  hpr puts the Arcas Robin's center of pressure up to 2.36 calibres behind the wind tunnel's
+  [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326); and on the three of
+  *Pods--powered with recovery deployment* 0.070 above, also not yet traced. On 35 flights of
+  private designs it is from 0.017 lower to 0.11 higher, cause not yet traced
+  ([Accuracy](../accuracy.md)). Near Mach 1 HPR Sim puts the Arcas Robin's center of pressure up to
+  2.36 calibres behind the wind tunnel's
   ([Normal force through Mach 1](aero.md#normal-force-through-mach-1)), so there its flight margin
   reads high.
 
@@ -214,27 +216,27 @@ Here `x` is a station measured aft of the nose tip, and `C_Nα,i` is component `
 its axis, and for most rockets the margin is the same in every one. A fin set of one or two fins
 breaks that: it carries `Σ sin²(φ − θ_k)` of its force in the plane at roll angle `φ`, for fins at
 angles `θ_k` (Niskanen 2009, eq. 3.51, as in [Fins](aero.md#fins)). So a rocket with one has a margin for
-each direction, and hpr gives the least, the direction it was found in as `roll_rad`. Until
-[#329](https://github.com/nrdptel/fusionspace-eridanus/issues/329), hpr's margins were the 0° direction's
-alone, which can be the strongest. A rocket whose fin sets each have three or more fins, or that
-flies a normal-force table, keeps its one margin, bit for bit.
+each direction, and the simulator gives the least, the direction it was found in as `roll_rad`.
+Until [#329](https://github.com/nrdptel/fusionspace-eridanus/issues/329), the simulator's margins were the 0°
+direction's alone, which can be the strongest. A rocket whose fin sets each have three or more fins,
+or that flies a normal-force table, keeps its one margin, bit for bit.
 
 A worked case: the sustainer of OpenRocket's *Pods--powered with recovery deployment* example has
 a single fin at 0° and a two-fin strake set at 90°. At Mach 0.2, after the booster drops, its
 margin is +1.86 calibres with the air crossing at 0°, where the single fin lies edge-on and the
 strakes carry the force. At 45° it is +0.17. At 90° the strakes lie edge-on and only the single
-fin works: −3.44, unstable. OpenRocket 24.12, asked for that sustainer at 90° in a scratch run
-(not committed), puts its center of pressure at 0.2954 m with `C_Nα` 3.49; hpr's are 0.2993 m and
+fin works: −3.44, unstable. OpenRocket 24.12, asked for that sustainer at 90° in a scratch run (not
+committed), puts its center of pressure at 0.2954 m with `C_Nα` 3.49; HPR Sim's are 0.2993 m and
 3.47. For one of its staged configurations, `[C6-7; B6-0]`, `hpr sim`'s least margin was +1.56
-calibres and is now −4.21, at 0.86 s. That is the sustainer's margin at the split itself, the
-moment the booster drops, with its own motor just lit and still full and the air at Mach 0.07;
-the −3.44 is a later instant, at Mach 0.2. In the conditions of OpenRocket's record, both programs' flights of that
-configuration turn over before apogee: its site is at 28.61° N, where the Earth's rotation tips
-hpr's flight, and hpr's angle of attack passes 90° at 2.25 s. At `hpr sim`'s default site, on the
-equator, nothing tips hpr's flight: it stays upright and reaches 251.3 m
-([the format guide](../format/ork.md#hprs-flights-against-openrockets)).
+calibres and is now −4.21, at 0.86 s. That is the sustainer's margin at the split itself, the moment
+the booster drops, with its own motor just lit and still full and the air at Mach 0.07; the −3.44 is
+a later instant, at Mach 0.2. In the conditions of OpenRocket's record, both programs' flights of
+that configuration turn over before apogee: its site is at 28.61° N, where the Earth's rotation tips
+HPR Sim's flight, and HPR Sim's angle of attack passes 90° at 2.25 s. At `hpr sim`'s default site, on the
+equator, nothing tips HPR Sim's flight: it stays upright and reaches 251.3 m
+([the format guide](../format/ork.md#the-simulators-flights-against-openrockets)).
 
-hpr finds the least in closed form, not by a scan
+The simulator finds the least in closed form, not by a scan
 ([`weakest_margin`](../api/hpr_sim/metrics/fn.weakest_margin.html)). Each part's slope varies as
 `a + b cos 2φ + c sin 2φ`, so the net slope `S(φ)` and its moment `M(φ) = Σ C_Nα,i x_i` do too.
 Three directions, 0°, 60° and 120°, give each sum's `a`, `b` and `c`. The center of pressure `M/S`
@@ -248,16 +250,16 @@ with `m` and `s` the coefficients of `M` and `S`. The margin's conditioning (bel
 its own worst direction the same way. Each root and the 0° direction are evaluated through the
 model, and a direction where no margin can be given wins over any number.
 
-Both margins leave out the [angle of attack](../glossary.md#angle-of-attack). In hpr,
+Both margins leave out the [angle of attack](../glossary.md#angle-of-attack). In the simulator,
 [body lift](aero.md#body-lift) grows with the angle and acts at each body's side-view centroid, and
 the center of pressure moves toward it. Where that centroid lies ahead of the zero-angle center of
 pressure, the margin at an angle shrinks; on a long body with small fins it can lie behind, and the
 margin grows. No test pins either direction. But the angle is not a steady property of
 the rocket. Valetudo leaves its rail 17.2° off the oncoming air in the example's 5 m/s crosswind,
 and near apogee the angle swings toward 90° as the rocket slows and tips over. If the least margin
-followed the angle, it would land wherever hpr chose to stop counting large angles, and hpr models
-no fin [stall](../glossary.md#stall) that could say where that is. For the margin at a given
-angle, call [`margin`](../api/hpr_sim/metrics/fn.margin.html) with
+followed the angle, it would land wherever the simulator chose to stop counting large angles, and
+the simulator models no fin [stall](../glossary.md#stall) that could say where that is. For the
+margin at a given angle, call [`margin`](../api/hpr_sim/metrics/fn.margin.html) with
 [`Flow::new(mach, angle_rad, roll_rad)`](../api/hpr_aero/model/struct.Flow.html#method.new).
 
 The watcher keeps both margins in `FlightMetrics::stability()`. The series starts at the rail exit
@@ -286,7 +288,7 @@ As the net slope `Σ C_Nα,i` goes to zero, the air's loads become a pure couple
 with no line of action. The quotient `x_cp` then runs away. That is how Loft came to publish
 margins of ±12 to 15 calibres.
 
-hpr judges the net slope against the sum of its terms' sizes:
+The simulator judges the net slope against the sum of its terms' sizes:
 
 ```text
 κ = Σ |C_Nα,i| / Σ C_Nα,i
@@ -302,8 +304,8 @@ is a pure couple on its own (below) has no station, and `κ` doesn't count it.
   [`validation/designs/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/validation/designs) stay
   below 1.5 at Mach 0, 0.3, 0.8, 1.2 and 2 and at angles of attack of 0°, 5°, 10° and 20°.
 - At `κ = √10 = 3.16`, a 1% error in one slope can move the center of pressure by a tenth of the
-  rocket. Past that, or when the net slope is not positive, hpr gives no margin and no center of
-  pressure: `None`. The limit is a chosen bound on that sensitivity, not a measurement.
+  rocket. Past that, or when the net slope is not positive, the simulator gives no margin and no
+  center of pressure: `None`. The limit is a chosen bound on that sensitivity, not a measurement.
 
 The pitch-moment slope about the center of mass is always given, because it stays finite:
 
@@ -369,35 +371,35 @@ weight, and the flag is raised. On the tests' RocketPy rockets, turn-overs give 
 wind layers met at speed 62% to 141%; the fifth, chosen rather than measured, sits between. The
 tests `a_tilted_calm_climb_passes_15_degrees_only_with_too_little_force`,
 `a_wind_layer_met_at_speed_raises_the_high_angle_flag` and
-`a_wind_layer_met_in_a_fast_coast_raises_the_high_angle_flag` (in `hpr-sim`'s `metrics.rs`) fly
+`a_wind_layer_met_in_a_fast_coast_raises_the_high_angle_flag` (in the flight engine's `metrics.rs`) fly
 these cases.
 
 ## Unstable under power
 
 A flight that is unstable while a motor burns raises one of two flags, and its apogee is not a
 prediction ([#335](https://github.com/nrdptel/fusionspace-eridanus/issues/335)). Unstable means the air turns
-the rocket away from its path instead of back. Where it ends up then depends on small
-disturbances, and on aerodynamics that hold only at small angles of attack. hpr still flies it,
-and the flag changes no number: it marks the flight's path and apogee as not a prediction. A
-flight raises at most one of the two flags.
+the rocket away from its path instead of back. Where it ends up then depends on small disturbances,
+and on aerodynamics that hold only at small angles of attack. The simulator still flies it, and the
+flag changes no number: it marks the flight's path and apogee as not a prediction. A flight raises
+at most one of the two flags.
 
 - `unstable_under_power`: the static margin falls below zero while a motor burns. The center of
   pressure is then ahead of the center of mass.
-- `unstable_without_margin`: where hpr can give no static margin while a motor burns
+- `unstable_without_margin`: where the simulator can give no static margin while a motor burns
   ([When there is no margin](#when-there-is-no-margin)), the pitching moment's slope `C_mα` is
   above zero. It is raised only when the first flag isn't.
 
 `min_powered_static_margin_cal` is the margin the first flag reads. It is the least static margin,
 in the weakest plane ([Stability margins](#stability-margins)), from the rail exit to apogee or
 the first deployment, over the moments a motor burns. It is found inside steps, as the other least
-margins are. A step counts when the thrust at its middle is above zero. hpr ends a step at every
-ignition, thrust-curve point and burnout, so a motor that burns at a step's middle burns through
-all of it, and the margin at the burnout itself counts. A margin of exactly zero raises nothing;
-any margin below it does.
+margins are. A step counts when the thrust at its middle is above zero. The simulator ends a step at
+every ignition, thrust-curve point and burnout, so a motor that burns at a step's middle burns
+through all of it, and the margin at the burnout itself counts. A margin of exactly zero raises
+nothing; any margin below it does.
 
 `max_powered_moment_slope_per_rad` is what the second flag reads. Where the parts' normal-force
-slopes nearly cancel, or their sum is not positive, hpr gives no margin, since the center of
-pressure would be noise. The moment about the center of mass is still well defined there:
+slopes nearly cancel, or their sum is not positive, the simulator gives no margin, since the center
+of pressure would be noise. The moment about the center of mass is still well defined there:
 
 ```text
 C_mα = −(Σ C_Nα,i x_i − C_Nα x_cg) / d
@@ -405,12 +407,11 @@ C_mα = −(Σ C_Nα,i x_i − C_Nα x_cg) / d
 
 with `C_Nα,i` and `x_i` the normal-force slope and station of part `i`, `C_Nα` their sum, `x_cg`
 the center of mass, every station aft of the nose tip, and `d` the reference diameter. A negative
-`C_mα` turns
-the rocket back toward its path; a positive one turns it away. hpr keeps the largest `C_mα` at
-each powered step's start, middle and end where the margin is undefined, without searching
-between them. A `C_mα` of exactly zero raises nothing; any above it does. Without this flag, a
-rocket so unstable that its margin is undefined would raise no warning at all, while a milder one
-would.
+`C_mα` turns the rocket back toward its path; a positive one turns it away. The simulator keeps the
+largest `C_mα` at each powered step's start, middle and end where the margin is undefined, without
+searching between them. A `C_mα` of exactly zero raises nothing; any above it does. Without this
+flag, a rocket so unstable that its margin is undefined would raise no warning at all, while a
+milder one would.
 
 Only the moments under power count. A rocket that turns then is driven along its new heading by
 its own motor, so the path flown follows the turn. A rocket that is unstable only in the coast,
@@ -461,7 +462,7 @@ What it leaves out:
 
 The tests `the_powered_margin_counts_only_while_a_motor_burns`,
 `a_moment_slope_without_a_margin_counts_only_while_a_motor_burns` and
-`a_rocket_without_fins_is_unstable_under_power` (in `hpr-sim`'s `metrics.rs`), and
+`a_rocket_without_fins_is_unstable_under_power` (in the flight engine's `metrics.rs`), and
 `the_stability_flag_starts_just_below_a_zero_margin` and
 `the_moment_flag_starts_just_above_zero_and_only_without_the_margin_flag` (in `envelope.rs`) pin
 it: a margin of −2⁻³⁰ calibres at a burnout raises the flag, +2⁻³⁰ doesn't, nor does −1 calibre
@@ -476,7 +477,7 @@ the top. [`optimum_delays`](../api/hpr_sim/metrics/fn.optimum_delays.html) flies
 with every recovery charge held, so that it coasts to the apogee it would reach untouched. So the
 answer belongs to the rocket, its motors and its air, not to the delay flown. A charge that fires
 too early cuts the coast short. Loft's optimum then came out too short as well, which advised an
-even shorter delay. hpr gives the same optimum for delays of 1 s and 20 s.
+even shorter delay. HPR Sim gives the same optimum for delays of 1 s and 20 s.
 
 - A [separation](../glossary.md#separation) with nothing ahead of it left to burn is part of the
   recovery, so it is held too. A two-stage rocket that separates some seconds after its last burnout gets

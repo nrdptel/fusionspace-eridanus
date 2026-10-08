@@ -4,7 +4,7 @@ Sometimes you know the result you want and need the design that gives it: that i
 [optimization](glossary.md#optimization). That might be a rocket
 that reaches exactly 3,048 m (10,000 ft) for a competition, or the lightest fins that keep it
 stable. An *optimizer* searches for that design. It tries designs, flies each one, and uses what
-it learns to choose better ones, until it finds the best it can. This page shows hpr-sim's
+it learns to choose better ones, until it finds the best it can. This page shows HPR Sim's
 optimizer, [CMA-ES](glossary.md#cma-es). It runs on test functions whose answers are known, then
 finds the nose ballast and body length that send a rocket to 3,048 m with a chosen stability
 margin. Then it chooses a motor and a catalog nose cone as well, within a competition's limits
@@ -14,8 +14,9 @@ of stability costs. A third, [EGO](#few-evaluations-ego), is for models so slow 
 of evaluations can be afforded. It needs some Rust.
 
 > **How far to trust it.** All three optimizers are tested against answers known exactly; CMA-ES
-> and NSGA-II also against outside implementations, EGO not yet. On a rocket, their answers are only as good as hpr-sim's
-> flight models, which are not yet validated against real flights ([Accuracy](accuracy.md)).
+> and NSGA-II also against outside implementations, EGO not yet. On a rocket, their answers are only
+> as good as the simulator's flight models, which are not yet validated against real flights
+> ([Accuracy](accuracy.md)).
 >
 > - **Tested:** four standard test functions of ten variables are run from 20 seeds each. Every
 >   run reaches a value of 10⁻¹⁰ or less, which puts its best point within 10⁻⁵ of the known
@@ -48,7 +49,7 @@ of evaluations can be afforded. It needs some Rust.
 > - **Trade-offs** between goals (a [Pareto front](glossary.md#pareto-front)): NSGA-II is held to
 >   three test problems whose fronts are known exactly, from 20 seeds each, and to pymoo, an
 >   outside implementation run with the same settings. Every run's front lies within twice
->   pymoo's worst distance from the true front (the test's bound). At the median, hpr-sim's
+>   pymoo's worst distance from the true front (the test's bound). At the median, HPR Sim's
 >   fronts lie 1% to 8% closer to the true front than pymoo's, and cover it as evenly, within 3%
 >   (the test allows a factor of 1.25 either way; [Trade-offs](#trade-offs-a-pareto-front)). The third
 >   example's front designs are flown again and give the same apogee and margin to the bit:
@@ -104,7 +105,7 @@ change, which would spoil a slope.
 
 The formulas and default settings are the tutorial's (Appendix A and Table 1). Table 1 also gives
 the worse half of each generation negative weights, which push the cloud away from them: the
-*active* variant. hpr-sim gives them zero weight, as the tutorial's own code does.
+*active* variant. HPR Sim gives them zero weight, as the tutorial's own code does.
 
 The cloud is shaped in each variable divided by its step, so variables in meters and in
 kilograms start on an equal footing, as the tutorial advises.
@@ -161,12 +162,12 @@ run each function from 20 seeds and check:
   minimum near `(−1, 1, …, 1)`. The test requires at least 17. CMA-ES's authors note that local
   minimum, and report 1 to 3 runs of 20 missing the global one at 4 to 16 variables (Kern, Hansen
   and Koumoutsakos, 2006). pycma ends in the local minimum in 1 of 20. Measured once over seeds
-  1 to 300, hpr-sim reaches the global minimum in 290 (97%), so 17 of 20 is at the low end of what
+  1 to 300, HPR Sim reaches the global minimum in 290 (97%), so 17 of 20 is at the low end of what
   chance gives.
 - The median number of evaluations is within 25% of pycma's from the same starts (the test's
   bound). Measured, they are within 5%:
 
-| Function | hpr-sim | pycma 4.5.0 |
+| Function | HPR Sim | pycma 4.5.0 |
 |---|---|---|
 | sphere | 1,635 | 1,640 |
 | ellipsoid | 5,920 | 5,910 |
@@ -492,9 +493,9 @@ would take minutes. The example shows how to share the table, in its `Flyer::fly
 The winning plastic nose cone gets no table at all. The catalog lists it 0.05 mm narrower than
 the tube (2.638 in against 2.640 in), and the method behind the table doesn't yet take a step in
 the body's outline larger than a millionth of its area ([issue #87](https://github.com/nrdptel/fusionspace-eridanus/issues/87)).
-So for the short stretch of its flight past Mach 1.2 (its top speed is Mach 1.23) hpr-sim falls
-back on slender-body theory for the body's normal force, its lift at an angle ([Bodies faster than
-sound](physics/aero.md#bodies-faster-than-sound)). How much that moves the apogee hasn't been
+So for the short stretch of its flight past Mach 1.2 (its top speed is Mach 1.23) the simulator
+falls back on slender-body theory for the body's normal force, its lift at an angle ([Bodies faster
+than sound](physics/aero.md#bodies-faster-than-sound)). How much that moves the apogee hasn't been
 measured; the flight spends only a moment above Mach 1.2.
 
 ### Checked against
@@ -513,11 +514,11 @@ Each runs with 10 and with 20 variables, from 20 seeds, to a value of 10⁻¹⁰
 settings are those of
 [`validation/oracles/cmawm/cmawm_runs.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/cmawm/cmawm_runs.py),
 which runs the same functions with `cmaes` 0.13.1, an outside implementation (MIT) adapted from
-the method's authors' code, with its active weights off as hpr-sim's are. Every run of every case
+the method's authors' code, with its active weights off as HPR Sim's are. Every run of every case
 reaches the minimum, with each whole number exactly right. The median evaluations are within the
 test's 25% of the outside implementation's, and measured within 5%:
 
-| Function | Variables | hpr-sim | `cmaes` 0.13.1 |
+| Function | Variables | HPR Sim | `cmaes` 0.13.1 |
 |---|---|---|---|
 | SphereInt | 10 | 1,855 | 1,850 |
 | SphereInt | 20 | 3,870 | 3,798 |
@@ -545,7 +546,7 @@ front](glossary.md#pareto-front). A design *dominates* another when it is no wor
 and better in at least one; the front is the designs nothing dominates. Knowing the front shows
 what each extra calibre of stability costs, before you pick one design from it.
 
-CMA-ES finds one design. For a front, hpr-sim has [NSGA-II](glossary.md#nsga-ii), a genetic
+CMA-ES finds one design. For a front, HPR Sim has [NSGA-II](glossary.md#nsga-ii), a genetic
 algorithm by K. Deb and co-authors (2002). It keeps a population of designs and, each
 generation:
 
@@ -666,19 +667,19 @@ evaluations. Two numbers measure a run's front against the true one:
   the true one, evenly. The points are at 1,000 evenly spaced `f₁`; on ZDT3, the 265 of them
   that fall on its pieces.
 
-hpr-sim measures GD to the true front's curve itself, not to points along it. The same problems
+HPR Sim measures GD to the true front's curve itself, not to points along it. The same problems
 are run with pymoo 0.6.2, an outside implementation (Apache-2.0) by J. Blank and K. Deb, set up
 as the paper describes, from seeds 1 to 20
 ([`pymoo_runs.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/nsga2/pymoo_runs.py)).
-Both sets of columns below are scored by hpr-sim's measures; the pymoo columns are pymoo's
-fronts. The rules were set from pymoo's runs before hpr-sim's were measured: every hpr-sim run
-within twice pymoo's worst, and hpr-sim's median at most 25% above pymoo's, the margin CMA-ES's
+Both sets of columns below are scored by HPR Sim's measures; the pymoo columns are pymoo's
+fronts. The rules were set from pymoo's runs before HPR Sim's were measured: every HPR Sim run
+within twice pymoo's worst, and HPR Sim's median at most 25% above pymoo's, the margin CMA-ES's
 tests allow against pycma. Review of the first results added a second rule: the median at most
 20% below pymoo's, a factor of 1.25 either way. On these problems every variable but the first
 is best at its lower bound, and an optimizer that drifts toward its bounds would score better
 than pymoo without being better. Measured:
 
-| Problem | Measure | hpr-sim median | hpr-sim worst | pymoo median | pymoo worst | Bound on every run |
+| Problem | Measure | HPR Sim median | HPR Sim worst | pymoo median | pymoo worst | Bound on every run |
 |---|---|---|---|---|---|---|
 | ZDT1 | GD | 1.07e-3 | 1.36e-3 | 1.10e-3 | 1.46e-3 | 2.92e-3 |
 | ZDT1 | IGD | 4.90e-3 | 5.66e-3 | 4.96e-3 | 5.48e-3 | 1.10e-2 |
@@ -687,15 +688,15 @@ than pymoo without being better. Measured:
 | ZDT3 | GD | 4.13e-4 | 7.02e-4 | 4.50e-4 | 6.53e-4 | 1.31e-3 |
 | ZDT3 | IGD | 5.38e-3 | 3.40e-2 | 5.51e-3 | 3.39e-2 | 6.78e-2 |
 
-At the median, hpr-sim's fronts lie 1% to 8% closer to the true front than pymoo's, and cover it
-as evenly (IGD 1.3% to 2.3% smaller). Each problem's worst hpr-sim run is 1.9 to 2.1 times inside
+At the median, HPR Sim's fronts lie 1% to 8% closer to the true front than pymoo's, and cover it
+as evenly (IGD 1.3% to 2.3% smaller). Each problem's worst HPR Sim run is 1.9 to 2.1 times inside
 its bound. The
 worst ZDT3 run of each has an IGD six times its median: it missed part of the front, a known
 hazard on a front in pieces. The per-run bound on ZDT3's IGD is loose for the same reason, set by
 pymoo's one such run; the median rule is what holds ZDT3's coverage. These come from
 `cargo test -p fusionspace-hpr-analysis --test nsga2 -- --nocapture`
 ([`tests/nsga2.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/tests/nsga2.rs)).
-The same test checks hpr-sim's [`generational_distance`] against pymoo's own, on pymoo's fronts
+The same test checks HPR Sim's [`generational_distance`] against pymoo's own, on pymoo's fronts
 and 500 reference points, to 10⁻¹².
 
 Deb and co-authors' own runs (their Table II) report a mean distance of 0.033, 0.072 and 0.115
@@ -790,9 +791,9 @@ expected improvement are all on the `z` scale, as in the paper; the best point, 
 result stay in the model's units. `−ln(−y)` turns −3.32 into −1.20 and −0.01 into 4.6: it pulls
 the deep wells close together and pushes the near-zero plateau far out, so the wells no longer
 look like narrow spikes against a flat floor. Jones and co-authors chose it after checking the fit (§4.2)
-and give no deeper reason; neither does hpr-sim. A value outside the
-transform's range (zero or positive under `−ln(−y)`) is an error, not something to fit. hpr-sim
-doesn't choose a transform for you: it runs none of the paper's checks of the fit.
+and give no deeper reason; neither does HPR Sim. A value outside the
+transform's range (zero or positive under `−ln(−y)`) is an error, not something to fit. The
+simulator doesn't choose a transform for you: it runs none of the paper's checks of the fit.
 
 A worked example: Hartmann's six-variable function from seed 10, in 100 evaluations, the initial
 design's 60 included. Its second-lowest minimum is −3.20316, a well 3.6% above the deepest one.

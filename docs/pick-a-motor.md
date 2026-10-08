@@ -2,7 +2,7 @@
 
 **This guide shortlists the motors that fit a rocket, flies the rocket on each, and picks an
 ejection delay, all with `hpr` on the command line.** It is for a flier choosing a motor for a
-design they already have. hpr's figures are estimates from a model:
+design they already have. HPR Sim's figures are estimates from a model:
 [Accuracy](accuracy.md) says how close they come, and the motor's printed data and your range
 safety officer have the last word. The outputs on this page are made by running each command, and
 CI checks that they still match what `hpr` prints.
@@ -23,7 +23,7 @@ with a 38 mm motor mount; [Fly your .ork](fly-your-ork.md) introduces it.
 
 **Start from the mount's diameter: a motor's case must match it.** In OpenRocket, the motor mount
 tube's inner diameter is the size; a 38 mm mount takes 38 mm motors. `hpr motors list` filters
-the 32 motors built into hpr by diameter, impulse class or maker:
+the 32 motors built into the simulator by diameter, impulse class or maker:
 
 <!-- cli: example `hpr motors list --diameter 38`; written by `cargo xtask cli`; do not edit -->
 
@@ -43,21 +43,21 @@ I377-CT      Loki      I          38     292        525.8  377.9    1.39  8-18
 <!-- cli: end -->
 
 The figures are worked out from each motor's public-domain ThrustCurve.org curve file, the curve
-hpr flies ([The bundled motors](physics/motor.md#the-bundled-motors)). The `delays` column lists
-the ejection delays as the file's header writes them, in seconds after burnout, with `-` between
-settings (`5-9-13` is 5, 9 and 13 s; `8-18` is 8 and 18 s), which can be fewer than the maker
-sells: check the motor's instructions. `P` (or `1000`) is a plugged motor with no
+the simulator flies ([The bundled motors](physics/motor.md#the-bundled-motors)). The `delays` column
+lists the ejection delays as the file's header writes them, in seconds after burnout, with `-`
+between settings (`5-9-13` is 5, 9 and 13 s; `8-18` is 8 and 18 s), which can be fewer than the
+maker sells: check the motor's instructions. `P` (or `1000`) is a plugged motor with no
 ejection charge. A
 Level 1 certification flight uses an H or I motor (NAR and Tripoli's Level 1 rules;
 [Check stability for a certification flight](stability-for-certification.md#what-the-rules-ask)
 quotes them).
 
 **Many more motors exist than the 32 built in.** Name any motor ThrustCurve.org lists, such as
-`--motor H128W`, and hpr fetches its thrust curve once online and keeps it
-([Fetch a motor hpr doesn't have](fly-your-ork.md#fetch-a-motor-hpr-doesnt-have)).
+`--motor H128W`, and the simulator fetches its thrust curve once online and keeps it
+([Fetch a motor the simulator doesn't have](fly-your-ork.md#fetch-a-motor-the-simulator-doesnt-have)).
 `hpr motors search` lists what vendors have in stock and at what price
 ([Motors you can buy](cli.md#motors-you-can-buy)). `hpr motors show` gives one motor's figures as
-hpr reads its curve:
+the simulator reads its curve:
 
 <!-- cli: example `hpr motors show I175WS`; written by `cargo xtask cli`; do not edit -->
 
@@ -170,16 +170,18 @@ landing               0.8 m from the pad at 269.86 s, at 5.0 m/s
 <!-- cli: end -->
 
 The `warning` says the I377's 292 mm case, which sits 10 mm out of the back of the rocket's
-260 mm mount tube, reaches 22.1 mm past the tube's forward end. hpr flies it as drawn; whether it fits the real rocket is for you to check.
-`--motor` replaces the motor of the configuration flown, so `--config` picks which of the file's
-configurations it goes in, and `--mount` which mount, if the design has several.
+260 mm mount tube, reaches 22.1 mm past the tube's forward end. The simulator flies it as drawn;
+whether it fits the real rocket is for you to check. `--motor` replaces the motor of the
+configuration flown, so `--config` picks which of the file's configurations it goes in, and
+`--mount` which mount, if the design has several.
 
 ## Compare them
 
 **Read the same five lines for each motor: margin, apogee, rail exit speed, delay and descent.**
 Between the two flights above:
 
-- **Apogee.** The I377 climbs higher. If your field has a ceiling, its waiver sets it, not hpr.
+- **Apogee.** The I377 climbs higher. If your field has a ceiling, its waiver sets it, not the
+  simulator.
 - **Rail exit speed.** The I377 leaves the rail much faster. The safety codes ask for a speed
   that ensures a stable flight but give no number; competitions set their own, such as 25 m/s
   for the Spaceport America Cup
@@ -190,8 +192,8 @@ Between the two flights above:
   fly ([Check stability for a certification flight](stability-for-certification.md)).
 - **Top Mach number.** The I377 takes the rocket past the speed of sound, Mach 1; the H125
   stays well below it, and the H170M, at Mach 0.842, just reaches the range below. Between Mach
-  0.8 and 1.2, hpr's center of pressure is up to 2.36 calibres behind NASA's wind-tunnel data, so
-  its margin there reads high ([Known gaps](accuracy.md#known-gaps)), and published guidance asks
+  0.8 and 1.2, HPR Sim's center of pressure is up to 2.36 calibres behind NASA's wind-tunnel data,
+  so its margin there reads high ([Known gaps](accuracy.md#known-gaps)), and published guidance asks
   for a larger margin
   ([Compare with published guidance](stability-for-certification.md#compare-with-published-guidance)).
 
@@ -207,10 +209,10 @@ gives the speed at that moment: the further the charge is from apogee, the faste
 moves when the parachute comes out.
 
 In the H125 flight above, the coast is 9.42 s, and the 10 s delay fires the charge 0.58 s after
-apogee. The H125's delays are 8, 10, 12, 14 and 18 s, so 10 s is the nearest. hpr flies any
-delay you give; give one the maker sells, or one your motor's delay can be adjusted to. A delay is a
-burning fuse, and real ones vary from motor to motor; hpr flies the stated time exactly.
-[Monte Carlo dispersion](monte-carlo.md), in the library, can scatter it.
+apogee. The H125's delays are 8, 10, 12, 14 and 18 s, so 10 s is the nearest. The simulator flies
+any delay you give; give one the maker sells, or one your motor's delay can be adjusted to. A delay
+is a burning fuse, and real ones vary from motor to motor; the simulator flies the stated time
+exactly. [Monte Carlo dispersion](monte-carlo.md), in the library, can scatter it.
 
 The guide rocket's own second configuration, `[I175WS-9]`, is an example where the set delay
 fires before apogee:
@@ -258,15 +260,15 @@ landing               0.7 m from the pad at 247.48 s, at 4.5 m/s
 
 ## Put the choice in your design
 
-**hpr doesn't change your `.ork` file: set the motor and its delay in OpenRocket, save, and fly
-the file again.** Without `--motor`, `hpr sim` flies the motors and delays the file holds, as
-[Fly your .ork](fly-your-ork.md) shows, and its `delay` line checks the delay you set.
+**The simulator doesn't change your `.ork` file: set the motor and its delay in OpenRocket, save,
+and fly the file again.** Without `--motor`, `hpr sim` flies the motors and delays the file holds,
+as [Fly your .ork](fly-your-ork.md) shows, and its `delay` line checks the delay you set.
 
 ## What it leaves out
 
 - **Motor-to-motor differences.** Each motor flies one thrust curve, ThrustCurve.org's, and its
   stated delay exactly. Real motors differ a little from their published curves.
-- **Fit.** hpr's design checks flag a motor wider than its mount, and warn on one longer than its
-  tube; they don't know your motor retainer, thrust ring or closure.
-- **A verdict.** hpr ranks nothing as safe or unsafe. The motor's printed data, the safety codes
-  and your range safety officer decide.
+- **Fit.** The simulator's design checks flag a motor wider than its mount, and warn on one longer
+  than its tube; they don't know your motor retainer, thrust ring or closure.
+- **A verdict.** The simulator ranks nothing as safe or unsafe. The motor's printed data, the safety
+  codes and your range safety officer decide.

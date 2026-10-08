@@ -1,11 +1,11 @@
 # How a flight is simulated
 
-This page follows a flight from ignition to landing, and says in plain words what hpr computes at
-each stage and which model does it. Read it to learn what lies behind a number hpr prints, before
-the model pages it links. It describes the method, not how well it works. When both codes fly
-the same drag, whole flights match RocketPy's in height, speed and time, and in where they go,
-except for rockets that leave the rail slowly in a wind
-([Accuracy](accuracy.md#whole-flights-against-rocketpy)). With hpr's own drag, against RocketPy
+This page follows a flight from ignition to landing, and says in plain words what HPR Sim computes
+at each stage and which model does it. Read it to learn what lies behind a number the simulator
+prints, before the model pages it links. It describes the method, not how well it works. When both
+codes fly the same drag, whole flights match RocketPy's in height, speed and time, and in where they
+go, except for rockets that leave the rail slowly in a wind
+([Accuracy](accuracy.md#whole-flights-against-rocketpy)). With HPR Sim's own drag, against RocketPy
 flying the drag its examples ship, heights differ by −7.280% to +10.302%
 ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md);
 [Accuracy](accuracy.md#whole-flights-with-each-codes-own-drag)). [Accuracy](accuracy.md) keeps
@@ -21,7 +21,7 @@ scale: its apogee is 779 m up and 86 m west of the pad, and it lands 94 m east o
 Building a simulation gathers five inputs, and works out once everything that doesn't change
 during the flight.
 
-| input | what hpr takes from it | pages |
+| input | what the simulator takes from it | pages |
 |---|---|---|
 | the rocket | A tree of parts, such as a nose cone, body tubes and a fin set, with their positions. Their shapes and materials give each part's mass, [center of gravity](glossary.md#center-of-gravity-cg) and inertia. The design's checks run first, and a rocket that can't exist, such as one with a motor wider than its mount, is refused | [Design tree](physics/design.md), [Shapes](physics/shapes.md), [Mass properties](physics/mass.md) |
 | the motor | The thrust at every instant, from its thrust curve. Its mass, center of gravity and inertia as its propellant burns away, so the whole rocket gets lighter, and its center of gravity moves, during the burn | [Solid motors](physics/motor.md) |
@@ -46,7 +46,7 @@ The numbers match the drawing.
    that stops on the rail comes to rest there ([Rigid-body flight](physics/flight.md#phases)).
 3. **Powered flight, to burnout.** Off the rail, the rocket is a rigid body free to move and turn
    in every direction, the six degrees of freedom of a
-   [6-DOF](glossary.md#6-dof-six-degrees-of-freedom) simulator. At every instant hpr adds up the
+   [6-DOF](glossary.md#6-dof-six-degrees-of-freedom) simulator. At every instant HPR Sim adds up the
    forces and their turning effects:
    - the thrust of each burning motor, along the rocket's axis. So a
      [cluster](glossary.md#cluster) of motors that all light at once is flown, with their thrusts
@@ -83,7 +83,7 @@ The numbers match the drawing.
 7. **Landing.** The flight ends when the center of gravity comes back down to the launch site's
    height. The ground is flat, at the height of the pad: there is no terrain.
 
-A flight can also end in other ways, and hpr reports each by name
+A flight can also end in other ways, and the simulator reports each by name
 ([Rigid-body flight](physics/flight.md#events-and-termination)):
 
 | ending | what happened |
@@ -100,9 +100,9 @@ up as the step limit ([Time integration](physics/integration.md#defaults-and-lim
 are fields of `FlightSettings` (`max_time_s` and `step_limit`), and a program can change them.
 
 Anything else that stops a flight is an error: reaching Mach 5, for example, the top of the
-speeds hpr's normal force and drag cover.
+speeds the simulator's normal force and drag cover.
 
-## How hpr steps through time
+## How the simulator steps through time
 
 At any instant, the rocket's state is 13 numbers: where it is (three), how fast it moves (three),
 which way it points (four, as a quaternion, a compact way to store a rotation) and how fast it
@@ -110,12 +110,12 @@ turns (three). The equations above turn a state into its rate of change. An
 integrator builds the flight from them by stepping forward in time, one short step after another
 ([Time integration](physics/integration.md)).
 
-- **Steps that size themselves.** hpr's default method is
+- **Steps that size themselves.** The simulator's default method is
   [Dormand–Prince 5(4)](glossary.md#dormandprince-and-rk4). On each step it makes two estimates of
   the new state, one of fifth order and one of fourth; that is the "5(4)". The higher a method's
-  order, the faster its error shrinks as the step gets shorter. hpr keeps the fifth-order estimate,
-  and takes the difference between the two as the step's error. It sizes the next step to keep that
-  error within a [tolerance](glossary.md#tolerance). Steps are short where things
+  order, the faster its error shrinks as the step gets shorter. HPR Sim keeps the fifth-order
+  estimate, and takes the difference between the two as the step's error. It sizes the next step to
+  keep that error within a [tolerance](glossary.md#tolerance). Steps are short where things
   change fast, at liftoff and burnout, and long in a steady descent
   ([adaptive time step](glossary.md#adaptive-time-step)). At the default settings, the Getting
   started flight's apogee is within about a micrometer of the answer at much tighter settings,
@@ -126,8 +126,8 @@ integrator builds the flight from them by stepping forward in time, one short st
   there, so none straddles a jump.
 - **Events.** Moments found during the flight, such as liftoff, rail exit, apogee, an altitude
   trigger and landing, are [events](glossary.md#event). When the quantity that defines one changes
-  sign within a step (the vertical speed, for apogee), hpr finds the instant it crossed zero inside
-  that step.
+  sign within a step (the vertical speed, for apogee), the simulator finds the instant it crossed
+  zero inside that step.
 - **What you get back.** Every event, with a snapshot of the flight at that instant: time,
   position, velocity, height, airspeed, Mach number, angle of attack, thrust, mass and more. A
   program can also watch every step as it happens, as
@@ -173,11 +173,11 @@ flight:
   ([Roll: forcing and damping](physics/aero.md#roll-forcing-and-damping)).
 - **One term counted twice.** A thrust curve measured on a test stand already includes the
   propellant's [internal momentum](glossary.md#internal-momentum), and the equations of motion add
-  it again, as RocketPy's do. hpr keeps it so that the two codes can be compared like for like. On
-  the Getting started rocket it adds 21 N to the push at liftoff and changes the burnout speed by
+  it again, as RocketPy's do. HPR Sim keeps it so that the two codes can be compared like for like.
+  On the Getting started rocket it adds 21 N to the push at liftoff and changes the burnout speed by
   at most 0.05 m/s ([Rigid-body flight](physics/flight.md#equations-of-motion)).
-- **Under a parachute:** the drag overshoot as a canopy fills, so the opening load hpr reports is
-  no safe bound (by default a canopy opens at once); the air carried along with it
+- **Under a parachute:** the drag overshoot as a canopy fills, so the opening load the simulator
+  reports is no safe bound (by default a canopy opens at once); the air carried along with it
   ([added mass](glossary.md#added-mass)); the airframe's own drag; and the rocket swinging below
   the canopy ([Recovery](physics/recovery.md)).
 - **Terrain.** The ground is flat, at the pad's height.

@@ -124,9 +124,9 @@ Sources:
 - A stiff flight phase shows up as `StepTooSmall` or the step limit.
 - **A fixed step has to respect the drag's own time scale.** Quadratic drag `v̇ = −k|v|v`, with
   `k = ρ (C_D S)/2m`, linearises to `λ = 2k|v|`, and RK4 is stable only for `h ≲ 2.78/λ`. A light
-  body under a big canopy is the worst case in hpr: a 0.55 kg sustainer arriving at 168 m/s under
-  2 m² gives `λ ≈ 740 1/s`, so RK4 needs `h ≲ 3.8 ms` and diverges at 10 ms (found in review; it
-  surfaces as a geodesy error from an absurd position, not as a stability message). The adaptive
+  body under a big canopy is the worst case in HPR Sim: a 0.55 kg sustainer arriving at 168 m/s
+  under 2 m² gives `λ ≈ 740 1/s`, so RK4 needs `h ≲ 3.8 ms` and diverges at 10 ms (found in review;
+  it surfaces as a geodesy error from an absurd position, not as a stability message). The adaptive
   method has no such limit. Recovery descents are the place this bites, because a separated body
   can be a tenth of the stack's mass under a canopy sized for it.
 - Integration runs forward only. `t_stop` may be infinite, to run until an event or a stop from

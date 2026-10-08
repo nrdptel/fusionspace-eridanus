@@ -10,8 +10,8 @@
   Organization's observing guide WMO-No. 8 (2023).
 - **How well it is validated:** tests with exact answers pin each model: with speed and direction interpolated
   separately (the default), halfway between 4 m/s from 350° and 12 m/s from 30° a table gives 8 m/s
-  from 10°. In [RocketPy](../glossary.md#rocketpy)'s parachute descents, hpr's wind, interpolated
-  by components as RocketPy does, matches RocketPy's samples to 1e-9 m/s (in
+  from 10°. In [RocketPy](../glossary.md#rocketpy)'s parachute descents, HPR Sim's wind,
+  interpolated by components as RocketPy does, matches RocketPy's samples to 1e-9 m/s (in
   [scientific notation](../glossary.md#scientific-notation): a thousand-millionth of a meter per
   second). That includes the wind of NDRT 2020, one of the
   [example rockets](../glossary.md#example-rockets), which changes with height. In the four
@@ -78,7 +78,7 @@ station. Each law blows from one direction at every height.
   and is zero at and below the ground. A height below the ground is [flagged](#conventions).
   - `α` is the exponent: the larger it is, the faster the wind grows with height.
   - [TM] eq. 2.1 gives the law for peak winds below 150 m, with `z_ref = 18.3 m`. A peak wind is
-    the strongest speed over a period, gusts included, not the steady mean wind hpr flies.
+    the strongest speed over a period, gusts included, not the steady mean wind the simulator flies.
   - [TM] Table 2-1: `α = 0.2` for 7–22 m/s and 0.14 above 22 m/s. Eq. 2.22 gives `1/7` with
     `z_ref = 10 m` for strong 10 m winds.
   - Those exponents describe profiles of peak winds, and of strong 10 m winds. No single value
@@ -98,10 +98,10 @@ station. Each law blows from one direction at every height.
     2.8 with `Ψ = 0`), written through a reference wind. There `u*` is the friction velocity, a
     speed that measures how hard the wind drags on the ground, and `κ` is the von Kármán
     constant, a fixed number of the theory. Writing the law through the wind measured at `z_ref`
-    cancels both, so hpr needs neither.
+    cancels both, so the simulator needs neither.
   - `Ψ` in [TM] eq. 2.8 corrects for the air's stability: air warmed from below mixes more, and
     air cooled from below mixes less, which changes how the wind grows with height. `Ψ = 0` is
-    neutral air, where neither happens. hpr has only the neutral law.
+    neutral air, where neither happens. The simulator has only the neutral law.
   - [8785C] §3.7.3.2 uses it with `z_ref = 20 ft`.
   - Roughness lengths: 0.03 m for open flat terrain with grass ([WMO]; this is class 3 of the
     Davenport–Wieringa classification there, which gives a roughness length for each kind of
@@ -137,9 +137,9 @@ station. Each law blows from one direction at every height.
 - **`WindModel`:** any one of the four, as a flight or a file takes it. In JSON its `model` field
   names which one ([In JSON](#in-json)).
 
-**[Loft lesson L6](../decisions-and-roadmap.md#l6)**, a mistake found in Loft, the project before hpr-sim: design-file
-runs used one wind vector, and forecast profiles stepped at the lowest level instead of blending
-from the surface.
+**[Loft lesson L6](../decisions-and-roadmap.md#l6)**, a mistake found in Loft, the project before
+FusionSpace HPR: design-file runs used one wind vector, and forecast profiles stepped at the lowest
+level instead of blending from the surface.
 
 ## Which height?
 
@@ -169,10 +169,10 @@ level's 12.0 m/s from 300° from 100 m up. Above that, every sample is
 **What to enter for your field's elevation.** The launch site's height, the third number in
 `Geodetic::from_degrees(latitude, longitude, height)`, is an
 [ellipsoidal height](../glossary.md#ellipsoidal-height): height above the
-[WGS 84](../glossary.md#wgs-84) ellipsoid, the smooth shape hpr gives the Earth. A field's
+[WGS 84](../glossary.md#wgs-84) ellipsoid, the smooth shape the simulator gives the Earth. A field's
 elevation, as a map gives it, is height above sea level instead. The two differ by the geoid
 undulation `N`, the height of sea level above the ellipsoid at that place, which can be up to
-about 100 m. hpr has no map of `N`, so there are two ways to set up a site:
+about 100 m. The simulator has no map of `N`, so there are two ways to set up a site:
 
 - **The simple way, which the examples take.** Enter your field's elevation above sea level as
   the site's height, and leave `N` at 0, as `Environment::standard` sets it. The air and the wind
@@ -463,7 +463,7 @@ levels aloft. The planned weather milestone ([M5.2](../decisions-and-roadmap.md#
   written to JSON and read back gives the same wind.
 - **Against RocketPy**, in the recovery test `descent_matches_rocketpy_examples`
   ([Recovery](recovery.md#against-rocketpy)):
-  - At every height its parachute descents sample, hpr's wind matches RocketPy's within 1e-9 m/s
+  - At every height its parachute descents sample, HPR Sim's wind matches RocketPy's within 1e-9 m/s
     in its east and north parts.
   - Four of the five descents fly in wind: Calisto, NDRT 2020, Prometheus and Juno III. Their total
     drift agrees within 0.28%, and each east or north part within 2.9%. The largest gap is the

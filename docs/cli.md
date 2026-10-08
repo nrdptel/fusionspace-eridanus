@@ -1,19 +1,20 @@
 # The command line
 
-`hpr` is hpr-sim's command-line tool. This page is for anyone who wants to use it from a terminal
+`hpr` is HPR Sim's command-line tool. This page is for anyone who wants to use it from a terminal
 or a script. It says what each command does, shows its output, and lists the exit codes.
 
 Today `hpr` does eight things:
 
-- It flies a design, read from an OpenRocket file or an hpr
-  [design file](glossary.md#design-file), and prints how the flight went.
+- It flies a design, read from an OpenRocket file or a
+  [design file](glossary.md#design-file) in the HPR design format, and prints how the flight went.
 - It flies a design many times, its uncertain inputs scattered at random
   ([Monte Carlo](monte-carlo.md)), and prints how far its apogee and landing spread.
 - It looks up motors, from the catalog built into it or from a motor file of your own, and
   searches vendors' stock and prices from [motor.fusionspace.co](https://motor.fusionspace.co).
 - It converts motor files between the two common formats, and designs between OpenRocket's `.ork`
-  and [hpr's own format](format/hpr.md) (`.hpr`, and `.hprz` with other files beside the design).
-- It re-runs hpr-sim's validation against RocketPy and checks the results against the
+  and [the HPR design format](format/hpr.md) (`.hpr`, and `.hprz` with other files beside the
+  design).
+- It re-runs the simulator's validation against RocketPy and checks the results against the
   published ones.
 - It reads a flight log from an altimeter and prints what it says about the flight, with no
   design file and no simulation.
@@ -46,12 +47,12 @@ Its other commands are registered but not available yet: each refuses and names 
 >   the bundled motors, worked out by the same code from the same
 >   [ThrustCurve.org](glossary.md#thrustcurveorg) files.
 > - `hpr convert` keeps the thrust curve, the size and the masses. On all 32 bundled motor files,
->   converting to the other format and back gives each of them again as hpr reads the file, bit
->   for bit, except two masses written with 17 digits, each flagged by a warning
+>   converting to the other format and back gives each of them again as the simulator reads the
+>   file, bit for bit, except two masses written with 17 digits, each flagged by a warning
 >   ([test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-motor/src/convert.rs)).
->   OpenRocket 24.12 opens all 32 converted files and reads 29 as it reads the originals; the
->   other three differ only in the motor's type or a delay
->   ([other programs](#what-a-conversion-keeps)). Whether RockSim opens them is not checked.
+>   OpenRocket 24.12 opens all 32 converted files and reads 29 as it reads the originals; the other
+>   three differ only in the motor's type or a delay ([other programs](#what-a-conversion-keeps)).
+>   Whether RockSim opens them is not checked.
 > - `hpr` doesn't re-run the validation cases. To run the check the project's automated tests
 >   make on every change, clone the repository and run `cargo xtask validate --check`
 >   ([what it checks](accuracy.md#the-census)).
@@ -84,10 +85,10 @@ hpr --help
 `hpr --version` prints its version and its designation, `FS-ACHERNAR · SW · TOOL 001`: Achernar,
 the simulator's internal name among FusionSpace's products, then its number as a software tool
 ([ADR-198, project Eridanus](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0198-the-2026-10-07-project-eridanus.md)).
-FusionSpace is the family of programs whose design rules hpr follows
+FusionSpace is the family of programs whose design rules the simulator follows
 ([ADR-164](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0164-the-fusionspace-product-system.md)).
 Until FusionSpace named its products after the stars of project Eridanus, in October 2026
-([M10.1d7, the new designation](decisions-and-roadmap.md#m10-1d7)), hpr wrote
+([M10.1d7, the new designation](decisions-and-roadmap.md#m10-1d7)), the simulator wrote
 `FS · SW · TOOL 005`; files stamped that way still read.
 
 ### Colors and messages
@@ -149,7 +150,7 @@ only the files each command really reads. "Not yet" commands exit with
 [ejection delay](glossary.md#ejection-delay) suits the climb, how fast it comes down, its
 [events](glossary.md#event), its top speed, and where it came down. It
 reads an [OpenRocket](glossary.md#openrocket) `.ork` file, a design in
-[the hpr design format](format/hpr.md) (`.hpr`, or a `.hprz` with its attachments), or a rocket's
+[the HPR design format](format/hpr.md) (`.hpr`, or a `.hprz` with its attachments), or a rocket's
 JSON (`.json`, the tree [Your own rocket](your-own-rocket.md) describes). A `.hpr` or `.hprz`
 flies exactly as the `.ork` it was converted from ([converting a design](#converting-a-design)),
 though it doesn't print the `.ork` reader's warnings, which `hpr convert` printed.
@@ -159,8 +160,8 @@ Rust library, so a Rust program flying the same design gets the same numbers.
 ### Flying a design
 
 This flies one of the repository's own test rockets, a small single-stage OpenRocket design. Its
-file names an AeroTech H128W, which isn't among the 32 motors built into hpr, so `--motor H54`
-puts the catalog's Cesaroni H54 in its motor mount instead:
+file names an AeroTech H128W, which isn't among the 32 motors built into the simulator, so
+`--motor H54` puts the catalog's Cesaroni H54 in its motor mount instead:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54`; written by `cargo xtask cli`; do not edit -->
 
@@ -202,7 +203,7 @@ What each part says:
 | lines | what they say |
 |---|---|
 | the first two | the rocket's name and its file; the [configuration](glossary.md#configuration) flown, by its number in the file and its name ([below](#the-motor-and-the-configuration)). `[H128W-0]` is the file's unnamed configuration, called by the motor it holds, and `with --motor H54` says the H54 flew in its place. The file's other configurations follow, each with why it doesn't fly as read, if it doesn't |
-| `static margin` | the [static margin](glossary.md#stability-margin) as the rocket leaves the rail, in [calibres](glossary.md#calibre-caliber), at Mach 0, and its least value from there to apogee. Each is the weakest direction's: a rocket with a fin set of one or two fins has a different margin for each direction the air crosses it, and hpr prints the least; the JSON's `roll_rad` gives that direction ([Flight metrics](physics/metrics.md#stability-margins)) |
+| `static margin` | the [static margin](glossary.md#stability-margin) as the rocket leaves the rail, in [calibres](glossary.md#calibre-caliber), at Mach 0, and its least value from there to apogee. Each is the weakest direction's: a rocket with a fin set of one or two fins has a different margin for each direction the air crosses it, and the simulator prints the least; the JSON's `roll_rad` gives that direction ([Flight metrics](physics/metrics.md#stability-margins)) |
 | `apogee` | the [apogee](glossary.md#apogee): the height of the center of gravity above the site, and when |
 | `rail exit speed` | the speed at [rail exit](glossary.md#rail-exit-and-rail-exit-velocity) |
 | `delay` | the coast: the time from burnout to apogee. For one motor lit at launch, a delay no longer than that fires at or before apogee. Then the delay the design sets for its motor, if it sets one, and, for one motor lit at launch, how many seconds before or after apogee its charge fires. `--motor` sets no delay without `--delay`, so the example shows the coast alone; OpenRocket's example *A simple model rocket*, with its C6-5, prints `apogee 5.49 s after burnout; the motor's set delay: 5 s; its charge fires 0.49 s before apogee` |
@@ -211,10 +212,10 @@ What each part says:
 | `recovery: ...` | each parachute or streamer the file flies: its name, its event and delay, its drag area, and when it opened, such as ``recovery: `Drogue parachute` at apogee, 0.133 m² of drag area, opened at 9.12 s`` (`recovery` in the JSON, [below](#the-landing)); the example's file has none |
 | `launched at ...` | the site, the rail and the wind, [below](#the-launch) |
 | `note:` | what the flight leaves out of the design, and which numbers that spoils |
-| `warning:` | what hpr's `.ork` or motor-file reader accepted with a caveat, such as a part it left out, and what the [design's checks](physics/design.md#checks) found unusual but buildable, each in a sentence naming the parts; the same words about several parts of one name are printed once, with a count such as `(×2)` |
-| `warning: unstable:` | the rocket is unstable while a motor burns, before apogee or the first deployment, and the `apogee` figure says it is not a prediction ([Flight metrics: unstable under power](physics/metrics.md#unstable-under-power)). Either the static margin falls below zero, or, where hpr can give no margin, the pitching moment's slope `C_mα` is above zero; a flight prints one of the two. A `help:` line links that page. In the JSON, `flags` lists the first as `unstable_under_power`, its `peak` the least margin under power in calibres, which the summary also has as `min_powered_static_margin_cal`; and the second as `unstable_without_margin`, its `peak` the largest `C_mα` per radian where the margin is undefined under power, which the summary also has as `max_powered_moment_slope_per_rad` |
-| `warning: envelope:` | a flag of the [operating envelope](VALIDATION.md#operating-envelope): the flight went faster than any public flight hpr has been compared with a reference on (currently Mach 1.15; it rises as references are added), past the core band (Mach 2.5) or the envelope (Mach 3.5), or flew above 15° angle of attack while the air was strong enough to matter. Each says when, and a `help:` line links the page. A flag changes no number. In the JSON, `flags` lists them, each with its `flag`, the `peak` that raised it (its `value`, a Mach number or an angle in radians, with its `time_s` and height, as every peak has) and its `message` |
-| `warning: drag:`, `warning: stability:`, `warning: flight:` | a known error in hpr's drag (#18, #67, #68, #70, #72, #73 or #222), in a separated part's drag (#179 or #354, [when they warn](VALIDATION.md#the-separated-parts-warnings)), in the stability margin (#64, #87, #120, #121, #172, #325 or #326) or in the flight's path (#8, #106, #213 or #219, [when they warn](VALIDATION.md#the-flight-path-warnings)) that the flight meets, by its issue number ([the list, with each one's condition](VALIDATION.md#operating-envelope)). Each says which way its numbers lean. A flight on a drag table of your own prints no drag warning except #179 and #354, which concern a separated part and not your table, and keeps the stability and flight warnings; a normal-force table of its own prints no stability warning. In the JSON, `issues` lists them, each with its `issue` number, its `kind` (`drag`, `stability` or `flight`), `url`, the flight's `max_mach` peak, the `parts` that meet it (their ids; none for #8, #18, #68, #121, #172, #179, #219 or #354) and its `message` |
+| `warning:` | what the simulator's `.ork` or motor-file reader accepted with a caveat, such as a part it left out, and what the [design's checks](physics/design.md#checks) found unusual but buildable, each in a sentence naming the parts; the same words about several parts of one name are printed once, with a count such as `(×2)` |
+| `warning: unstable:` | the rocket is unstable while a motor burns, before apogee or the first deployment, and the `apogee` figure says it is not a prediction ([Flight metrics: unstable under power](physics/metrics.md#unstable-under-power)). Either the static margin falls below zero, or, where the simulator can give no margin, the pitching moment's slope `C_mα` is above zero; a flight prints one of the two. A `help:` line links that page. In the JSON, `flags` lists the first as `unstable_under_power`, its `peak` the least margin under power in calibres, which the summary also has as `min_powered_static_margin_cal`; and the second as `unstable_without_margin`, its `peak` the largest `C_mα` per radian where the margin is undefined under power, which the summary also has as `max_powered_moment_slope_per_rad` |
+| `warning: envelope:` | a flag of the [operating envelope](VALIDATION.md#operating-envelope): the flight went faster than any public flight the simulator has been compared with a reference on (currently Mach 1.15; it rises as references are added), past the core band (Mach 2.5) or the envelope (Mach 3.5), or flew above 15° angle of attack while the air was strong enough to matter. Each says when, and a `help:` line links the page. A flag changes no number. In the JSON, `flags` lists them, each with its `flag`, the `peak` that raised it (its `value`, a Mach number or an angle in radians, with its `time_s` and height, as every peak has) and its `message` |
+| `warning: drag:`, `warning: stability:`, `warning: flight:` | a known error in the simulator's drag (#18, #67, #68, #70, #72, #73 or #222), in a separated part's drag (#179 or #354, [when they warn](VALIDATION.md#the-separated-parts-warnings)), in the stability margin (#64, #87, #120, #121, #172, #325 or #326) or in the flight's path (#8, #106, #213 or #219, [when they warn](VALIDATION.md#the-flight-path-warnings)) that the flight meets, by its issue number ([the list, with each one's condition](VALIDATION.md#operating-envelope)). Each says which way its numbers lean. A flight on a drag table of your own prints no drag warning except #179 and #354, which concern a separated part and not your table, and keeps the stability and flight warnings; a normal-force table of its own prints no stability warning. In the JSON, `issues` lists them, each with its `issue` number, its `kind` (`drag`, `stability` or `flight`), `url`, the flight's `max_mach` peak, the `parts` that meet it (their ids; none for #8, #18, #68, #121, #172, #179, #219 or #354) and its `message` |
 | the events | each [event](glossary.md#event)'s time, the height of the [center of gravity](glossary.md#center-of-gravity-cg) above the launch site, and the speed over the ground; the height at liftoff isn't zero, as the rocket stands on the rail |
 | the last figures | the top speed and [Mach number](glossary.md#mach-number), and the landing |
 
@@ -223,16 +224,16 @@ OpenRocket file gives them; a part with no name is called by its id. `--json` pr
 flight as data, with the ids beside the names: each configuration's `id`, `name` and `label`, the
 label being what the text calls it, and each motor's `mount` and `mount_name`.
 
-**A missing motor is fetched, then kept: it flies offline from the cache.** A `.ork` file names its motor but rarely
-carries its [thrust curve](glossary.md#thrust-curve), and hpr's catalog holds 32 motors. When the
-file embeds no curve and the catalog lacks the motor, `hpr sim` finds it on
-[ThrustCurve.org](glossary.md#thrustcurveorg) by the file's manufacturer and designation, keeps
-it in hpr's cache, and flies it; a note names the curve file, who measured it and its license
-([Motors from ThrustCurve.org](#motors-from-thrustcurveorg)). For the motors of OpenRocket's own
-example designs, hpr takes the ThrustCurve file that holds OpenRocket's curve; for any other motor
-the curve may not be the one OpenRocket flies, and no such flight has been compared with
-OpenRocket's own curve yet. With `--offline`, or no network,
-and no copy in the cache, `hpr sim` refuses and names the command that fetches it (abridged):
+**A missing motor is fetched, then kept: it flies offline from the cache.** A `.ork` file names its
+motor but rarely carries its [thrust curve](glossary.md#thrust-curve), and the simulator's catalog
+holds 32 motors. When the file embeds no curve and the catalog lacks the motor, `hpr sim` finds it
+on [ThrustCurve.org](glossary.md#thrustcurveorg) by the file's manufacturer and designation, keeps
+it in the simulator's cache, and flies it; a note names the curve file, who measured it and its
+license ([Motors from ThrustCurve.org](#motors-from-thrustcurveorg)). For the motors of OpenRocket's
+own example designs, HPR Sim takes the ThrustCurve file that holds OpenRocket's curve; for any other
+motor the curve may not be the one OpenRocket flies, and no such flight has been compared with
+OpenRocket's own curve yet. With `--offline`, or no network, and no copy in the cache, `hpr sim`
+refuses and names the command that fetches it (abridged):
 
 ```text
 $ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --offline
@@ -246,26 +247,26 @@ flies offline after. Or give a motor file you have: `hpr sim my-rocket.ork --mot
 
 ### The landing
 
-**A `.ork` file's parachutes and streamers fly, as OpenRocket flies them.** So do those of a
-`.hpr` or `.hprz` converted from a `.ork`. `hpr sim` flies them through
+**A `.ork` file's parachutes and streamers fly, as OpenRocket flies them.** So do those of a `.hpr`
+or `.hprz` converted from a `.ork`. `hpr sim` flies them through
 [`hpr::ork::recovery`](api/hpr/ork/fn.recovery.html), so its numbers are the library's. Each opens
 fully at once, the file's delay after its event, and the rocket then comes down under the open
-devices' drag alone. That lands within 0.02% of OpenRocket's landing speed on 50 of its 53
-example flights, and within 0.12% on all 53
-([Recovery](physics/recovery.md#from-an-openrocket-file)). Those flights are in calm air: they
-check how fast and how long the rocket comes down, not where wind drifts it. When the first device
-opens within 1 s of apogee, the landing is no longer marked "not a prediction", and neither is a
-peak set once a device is open. A later first opening, such as a main alone at 150 m, keeps the
-mark on the landing and on any peak in the fall before it, and a note says how long the rocket fell
-first: where and how fast the device opens come from that fall, on the airframe alone, as below. The JSON's `recovery` list gives each device's `name`, `body` (the
-part that carries it, [below](#separation)), `opens_at` (`apogee`, `altitude`, `ejection`,
-`launch` or `separation`), `height_above_ground_m`, `delay_s`,
-`drag_area_m2` and `opened_s`. A device the file sets to `never`, or to an ejection charge a
-plugged motor doesn't fire, opens nothing, and a note says so. So does one set to its stage's
-ejection charge in a stage where no motor lights, as in OpenRocket: the note says "`Main` never
-opens: it opens at its stage's ejection charge, and no motor of its stage lights", and the other
-devices fly. A device hpr can't fly as written, such as one inside a part hpr doesn't read, is
-refused: the rocket then flies with none, and a note says why.
+devices' drag alone. That lands within 0.02% of OpenRocket's landing speed on 50 of its 53 example
+flights, and within 0.12% on all 53 ([Recovery](physics/recovery.md#from-an-openrocket-file)). Those
+flights are in calm air: they check how fast and how long the rocket comes down, not where wind
+drifts it. When the first device opens within 1 s of apogee, the landing is no longer marked "not a
+prediction", and neither is a peak set once a device is open. A later first opening, such as a main
+alone at 150 m, keeps the mark on the landing and on any peak in the fall before it, and a note says
+how long the rocket fell first: where and how fast the device opens come from that fall, on the
+airframe alone, as below. The JSON's `recovery` list gives each device's `name`, `body` (the part
+that carries it, [below](#separation)), `opens_at` (`apogee`, `altitude`, `ejection`, `launch` or
+`separation`), `height_above_ground_m`, `delay_s`, `drag_area_m2` and `opened_s`. A device the file
+sets to `never`, or to an ejection charge a plugged motor doesn't fire, opens nothing, and a note
+says so. So does one set to its stage's ejection charge in a stage where no motor lights, as in
+OpenRocket: the note says "`Main` never opens: it opens at its stage's ejection charge, and no motor
+of its stage lights", and the other devices fly. A device the simulator can't fly as written, such
+as one inside a part it doesn't read, is refused: the rocket then flies with none, and a note says
+why.
 
 This flies the repository's dual-deploy test rocket, a drogue at apogee and a main at 150 m,
 with the catalog's H54 in place of its own motor; the `descent` line gives the speed under the
@@ -312,14 +313,14 @@ landing               0.4 m from the pad at 53.94 s, at 4.7 m/s
 
 <!-- cli: end -->
 
-**With no device open soon after apogee, the landing is not a prediction.** The rocket then
-falls from apogee on its airframe alone, as the example's does. hpr's aerodynamics hold only at small
-[angles of attack](glossary.md#angle-of-attack), and a falling airframe turns far past them, so
-where it lands, and how fast, are artifacts of the model; one test design glides tail-first far
-from the pad in calm air (issue [#241](https://github.com/nrdptel/fusionspace-eridanus/issues/241)). So is a
-top speed or Mach number set in the fall: a rocket that falls faster than it climbed shows its
-top speed after apogee, and `hpr sim` marks it "in the fall: not a prediction" (`after_apogee` in
-the JSON). The ascent, up to apogee, is what to read.
+**With no device open soon after apogee, the landing is not a prediction.** The rocket then falls
+from apogee on its airframe alone, as the example's does. The simulator's aerodynamics hold only at
+small [angles of attack](glossary.md#angle-of-attack), and a falling airframe turns far past them,
+so where it lands, and how fast, are artifacts of the model; one test design glides tail-first far
+from the pad in calm air (issue [#241](https://github.com/nrdptel/fusionspace-eridanus/issues/241)).
+So is a top speed or Mach number set in the fall: a rocket that falls faster than it climbed shows
+its top speed after apogee, and `hpr sim` marks it "in the fall: not a prediction" (`after_apogee`
+in the JSON). The ascent, up to apogee, is what to read.
 
 ### Separation
 
@@ -336,15 +337,15 @@ apogee is 1.79% lower and OpenRocket opens 8.9 m below the set height ([Staging]
 
 After the split, each part flies as a point, with only its devices' drag. So the booster
 [tumbles](glossary.md#tumble-recovery) from the split until its first own device opens, and a
-sustainer with no device tumbles from its apogee. A real booster flies nose-first for a while,
-so its peak and landing are likely too low and too close to the pad (issue
-[#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179)); a note says so, and a map export draws
-no pin for it. The sustainer, which keeps the nose, is part 0; the booster is part 1. Each device
-line names its part (`on part 1`), and the booster's landing is printed as `landing, part 1`,
-marked rough. A tumble hpr adds counts as no recovery device for the landing's caveat, so a
-sustainer that only tumbles lands with "not a prediction". In the JSON, a device's `body` is
-`null` for the sustainer and the part's index otherwise, `added` is true for a tumble hpr added,
-and a tumble opened at the split has `opens_at` `separation`. The
+sustainer with no device tumbles from its apogee. A real booster flies nose-first for a while, so
+its peak and landing are likely too low and too close to the pad (issue
+[#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179)); a note says so, and a map
+export draws no pin for it. The sustainer, which keeps the nose, is part 0; the booster is part 1.
+Each device line names its part (`on part 1`), and the booster's landing is printed as
+`landing, part 1`, marked rough. A tumble the simulator adds counts as no recovery device for the
+landing's caveat, so a sustainer that only tumbles lands with "not a prediction". In the JSON, a
+device's `body` is `null` for the sustainer and the part's index otherwise, `added` is true for a
+tumble the simulator added, and a tumble opened at the split has `opens_at` `separation`. The
 [M4.5g1 milestone](decisions-and-roadmap.md#m4-5g1) shipped this; the
 [decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0159-a-powered-separation-in-hpr-sim.md)
 says why each part needs a device.
@@ -396,7 +397,7 @@ stage, sustainer first, the stages separated by `;`), the note begins "part 1 dr
 with `A3`, `A3` still burning". The impulse it gives, 0.509 N·s, is the one the report's
 [*Parts dropped still burning*](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md#parts-dropped-still-burning)
 section holds. This sustainer is unstable, with a least margin of −4.21 calibres. In the
-conditions of OpenRocket's record, a 0.15 m rod at 28.61° N with no wind, hpr's sustainer turns
+conditions of OpenRocket's record, a 0.15 m rod at 28.61° N with no wind, HPR Sim's sustainer turns
 over at 2.04 s. From `hpr sim`'s defaults, a 1.5 m rail with no wind, it does not, so the apogee
 printed assumes it stays upright, and why the two differ is not traced. `hpr sim` warns that the
 rocket is unstable under power and marks that apogee as not a prediction
@@ -555,17 +556,17 @@ way, so its climb tips away from the vertical. The wind does most of it.
   `.json`;
 - with `--motor`, a `.ork` rocket of more than one stage, or a configuration that switches a
   stage off;
-- a `.ork` rocket hpr couldn't read exactly as written, such as one with a parallel stage on a
-  rocket of several stages;
+- a `.ork` rocket the simulator couldn't read exactly as written, such as one with a parallel stage
+  on a rocket of several stages;
 - a design whose checks find errors, unless `--accept-design-errors` is given;
-- a hybrid motor in a `.rse` file, which says so: hpr flies solid motors only. A `.eng` file
-  doesn't say what kind of motor it holds, so a hybrid's is flown as a solid; check the motor.
+- a hybrid motor in a `.rse` file, which says so: the simulator flies solid motors only. A `.eng`
+  file doesn't say what kind of motor it holds, so a hybrid's is flown as a solid; check the motor.
 
 ### Exporting the recording
 
-`--export FILE` writes the flight's recording: every quantity hpr tracks, every 0.01 s (set it
-with `--interval`, down to 0.001 s), and at every event. The file's extension picks the format;
-repeat `--export` for several files. `hpr sim` won't write over a file it reads.
+`--export FILE` writes the flight's recording: every quantity the simulator tracks, every 0.01 s
+(set it with `--interval`, down to 0.001 s), and at every event. The file's extension picks the
+format; repeat `--export` for several files. `hpr sim` won't write over a file it reads.
 
 | extension | what it holds |
 |---|---|
@@ -599,8 +600,8 @@ text: for the data itself, or a plot of your own, use `--export` (above). The na
 - **Speed:** the center of gravity's speed over the ground, whose peak is the `top speed` line,
   and its vertical speed (the thin line, up positive), whose value under the parachutes is the
   `descent` line's rate.
-- **Acceleration:** the size of the nose tip's acceleration, and its vertical part (the thin
-  line, up positive). The nose tip is the point hpr's equations of motion track, and the peak
+- **Acceleration:** the size of the nose tip's acceleration, and its vertical part (the thin line,
+  up positive). The nose tip is the point the simulator's equations of motion track, and the peak
   acceleration of the `--json` summary is taken there too; for a rocket that isn't turning, every
   point of it accelerates alike. A recovery device opens fully at once
   ([the landing](#the-landing)), so its opening shows as a sharp spike.
@@ -616,14 +617,14 @@ text: for the data itself, or a plot of your own, use `--export` (above). The na
   has no hatching, as its drogue opens at apogee.
 
 The figure is drawn in the chart style of the FusionSpace product system, the design rules
-shared by hpr and its sister tools
+shared by HPR Sim and its sister tools
 ([ADR-164](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0164-the-fusionspace-product-system.md),
 the decision to follow them). In that style, magenta marks a prediction, and every line here is
 one. There is no legend box; a caption under the title says once what the lines mean:
 
 | Line | Means |
 |---|---|
-| Dashed magenta, thick | A quantity's size, simulated by hpr |
+| Dashed magenta, thick | A quantity's size, simulated by HPR Sim |
 | Dashed magenta, thin | Its vertical part, up positive, so below zero on the way down |
 | Chain (long dash, dot) | The ground, in the altitude panel; the other panels' zero lines are solid |
 | Dotted | An event, under its numbered balloon |
@@ -698,8 +699,8 @@ method, what each dispersion does and how to choose the numbers.
 
 > **How far to trust it.** The run is the Rust library's: a test flies the same design through
 > `MonteCarlo::run` and gets the same flights, bit for bit, on one platform. The spread is only as
-> good as the standard deviations you give and hpr's flight models, which are not yet validated
-> against repeated real flights ([Accuracy](accuracy.md)).
+> good as the standard deviations you give and the simulator's flight models, which are not yet
+> validated against repeated real flights ([Accuracy](accuracy.md)).
 
 ### Scattering a flight
 
@@ -797,18 +798,18 @@ The same table is `hpr_analysis::table::RunTable` in the Rust library.
 
 ### What the output warns of
 
-Failed flights are counted, never dropped: each reason is printed once, with how many flights
-failed so and the first one's index, its row in the export. The
+Failed flights are counted, never dropped: each reason is printed once, with how many flights failed
+so and the first one's index, its row in the export. The
 [operating envelope](VALIDATION.md#operating-envelope)'s flags, and the flag for a rocket
 [unstable under power](physics/metrics.md#unstable-under-power), are counted over the flights, and
-the known issues in hpr's drag, stability and flight path are the nominal flight's, as `hpr sim` prints them.
-So are `hpr sim`'s notes on the flight's own numbers, such as a fall from apogee before a device
-opened, each beginning "the nominal flight:".
+the known issues in the simulator's drag, stability and flight path are the nominal flight's, as
+`hpr sim` prints them. So are `hpr sim`'s notes on the flight's own numbers, such as a fall from
+apogee before a device opened, each beginning "the nominal flight:".
 
 A staged flight can fail where its nominal flight flies, and is counted with its reason:
 
-- A separation timed in seconds isn't scattered, so a flight whose drawn burn is longer still
-  burns at it, which hpr refuses unless the split may drop a burning motor. A separation at a
+- A separation timed in seconds isn't scattered, so a flight whose drawn burn is longer still burns
+  at it, which the simulator refuses unless the split may drop a burning motor. A separation at a
   burnout follows the drawn burn.
 - A part dropped on the way up with nothing left to burn, by a separation or an ejection charge,
   flies as a point, with only its open devices' drag. If its device fired by the split but waits
@@ -819,11 +820,11 @@ A staged flight can fail where its nominal flight flies, and is counted with its
 
 ## `hpr motors`
 
-`hpr motors` looks motors up. The catalog built into hpr holds 32 motors, from class B to class O,
-each with a public-domain thrust curve from ThrustCurve.org
+`hpr motors` looks motors up. The catalog built into the simulator holds 32 motors, from class B to
+class O, each with a public-domain thrust curve from ThrustCurve.org
 ([Solid motors](physics/motor.md#the-bundled-motors) says how they were chosen). `hpr motors fetch`
-fetches any other motor's curve from ThrustCurve.org into hpr's cache, for `hpr sim` to fly
-([Motors from ThrustCurve.org](#motors-from-thrustcurveorg)); or download its `.eng` or `.rse`
+fetches any other motor's curve from ThrustCurve.org into the simulator's cache, for `hpr sim` to
+fly ([Motors from ThrustCurve.org](#motors-from-thrustcurveorg)); or download its `.eng` or `.rse`
 file ([RASP and RockSim files](glossary.md#rasp-and-rocksim-files)) and show that.
 `hpr motors search` lists the motors vendors have in stock, with their prices
 ([Motors you can buy](#motors-you-can-buy)).
@@ -881,12 +882,12 @@ file:
 
 For a catalog motor, the last line names the public-domain curve file the figures come from.
 `hpr motors list` gives the same figures, as a
-[test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs) checks:
-ThrustCurve.org's own published figures are not bundled, as it states no terms for them
-([issue #295](https://github.com/nrdptel/fusionspace-eridanus/issues/295)). When the 32 were chosen, their
-total impulse, average thrust and burn time agreed with ThrustCurve.org's within 1%, and hpr's
-peak, the curve file's highest point, runs from 16.7% below ThrustCurve.org's (Cesaroni 26E31-15A)
-to 2.1% above (Loki M1378LR) ([Solid motors](physics/motor.md#the-bundled-motors)).
+[test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/cli.rs)
+checks: ThrustCurve.org's own published figures are not bundled, as it states no terms for them
+([issue #295](https://github.com/nrdptel/fusionspace-eridanus/issues/295)). When the 32 were chosen,
+their total impulse, average thrust and burn time agreed with ThrustCurve.org's within 1%, and the
+simulator's peak, the curve file's highest point, runs from 16.7% below ThrustCurve.org's (Cesaroni
+26E31-15A) to 2.1% above (Loki M1378LR) ([Solid motors](physics/motor.md#the-bundled-motors)).
 
 <!-- cli: example `hpr motors show J760`; written by `cargo xtask cli`; do not edit -->
 
@@ -914,8 +915,8 @@ hpr motors show crates/hpr-motor/data/thrustcurve/curves/5f4294d20002e9000000072
 ```
 
 Some motor data is ambiguous. A delay of `0` can mean an ejection charge at burnout, or a plugged
-motor with no charge. hpr shows it as "0 (at burnout, or plugged)" and ends the output with a
-warning; the Estes F15 in the catalog is one example. The warning's "RASP spec" is the `.eng`
+motor with no charge. The simulator shows it as "0 (at burnout, or plugged)" and ends the output
+with a warning; the Estes F15 in the catalog is one example. The warning's "RASP spec" is the `.eng`
 format's description ([RASP and RockSim files](glossary.md#rasp-and-rocksim-files)).
 
 ### Motors you can buy
@@ -924,7 +925,7 @@ format's description ([RASP and RockSim files](glossary.md#rasp-and-rocksim-file
 at what price. The list comes from [motor.fusionspace.co](https://motor.fusionspace.co), a free
 site that reads a dozen vendors' public listings every hour and covers AeroTech, Cesaroni and Loki
 motors of class D and up ([Motor stock and prices](motor-stock.md) says what it publishes and how
-hpr reads it). Five filters narrow the list, and each one given must match:
+the simulator reads it). Five filters narrow the list, and each one given must match:
 
 - `--in-stock` keeps the motors at least one vendor has in stock.
 - `--class` takes an [impulse class](glossary.md#impulse-class), such as `L`.
@@ -947,14 +948,14 @@ line names the cheapest motor in stock that the other filters keep, and its pric
 what one costs.
 
 The list is fetched and saved as `hpr weather`'s answers are
-([Online, offline, and saved answers](#online-offline-and-saved-answers)): the first search
-fetches it over HTTPS and keeps a copy in hpr's cache folder, a search within the hour reads the
+([Online, offline, and saved answers](#online-offline-and-saved-answers)): the first search fetches
+it over HTTPS and keeps a copy in the simulator's cache folder, a search within the hour reads the
 copy, and `--offline` reads the copy however old it is. `--from FILE` reads a list saved earlier,
 the site's `motors.json` or `in-stock.json`, and touches neither the network nor the cache. With
-`--in-stock` or `--max-price`, which keep only motors in stock, hpr fetches the site's list of
-motors in stock (about 1 MB); otherwise, the whole list (about 1.6 MB). The two are saved
-separately. Offline, a search of motors in stock reads the whole list's copy when it has no copy
-of the in-stock one; a search of every motor needs the whole list's copy.
+`--in-stock` or `--max-price`, which keep only motors in stock, the simulator fetches the site's
+list of motors in stock (about 1 MB); otherwise, the whole list (about 1.6 MB). The two are saved
+separately. Offline, a search of motors in stock reads the whole list's copy when it has no copy of
+the in-stock one; a search of every motor needs the whole list's copy.
 
 Every list, even an empty one, carries two credit lines, under its first two lines: the site's,
 "Motor stock data from motor.fusionspace.co", which its data license (CC BY 4.0) asks for, with
@@ -1005,11 +1006,11 @@ None costs $150.00 or less: of the 20 motors in stock the other filters pass, th
 
 > **How far to trust it.** `hpr motors search` gives back the site's values unchanged, and reads
 > the list with the same checks the library makes on every answer from the site
-> ([What hpr refuses](motor-stock.md#what-hpr-refuses)). The tests in
+> ([What the simulator refuses](motor-stock.md#what-the-simulator-refuses)). The tests in
 > [`crates/hpr-cli/tests/motors_search.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-cli/tests/motors_search.rs)
 > run it offline on the recorded lists, from the file and from the cache, and check every motor
 > it lists, and their order, against the recording's own JSON, filtered by the test itself, not by
-> hpr's code. With
+> the simulator's code. With
 > one L motor's price edited to $149.99 in a copy, the `--max-price 150` search lists exactly that
 > motor. Fetching online is not tested automatically. Whether a vendor really has a motor at that
 > price is the vendor's to say. A list fetched now, or read from a copy under an hour old, can be
@@ -1018,12 +1019,12 @@ None costs $150.00 or less: of the 20 motors in stock the other filters pass, th
 
 ### Motors from ThrustCurve.org
 
-`hpr motors fetch NAME` finds a motor on [ThrustCurve.org](glossary.md#thrustcurveorg) and keeps
-its curve in hpr's cache ([Where the cache lives](online-data.md#where-the-cache-lives)), so
-`hpr sim` flies it with no network after. It is for a motor hpr's 32-motor catalog lacks; `hpr sim`
-fetches on its own too, so the command matters most before a trip with no signal. This is
-ThrustCurve's data, as its contributors uploaded it: hpr checks that a file makes a motor it can
-fly, not that its curve is right.
+`hpr motors fetch NAME` finds a motor on [ThrustCurve.org](glossary.md#thrustcurveorg) and keeps its
+curve in the simulator's cache ([Where the cache lives](online-data.md#where-the-cache-lives)), so
+`hpr sim` flies it with no network after. It is for a motor the simulator's 32-motor catalog lacks;
+`hpr sim` fetches on its own too, so the command matters most before a trip with no signal. This is
+ThrustCurve's data, as its contributors uploaded it: the simulator checks that a file makes a motor
+it can fly, not that its curve is right.
 
 - **Before a trip.** For a `.ork`, run the command `hpr sim --offline` prints for it, which names
   the motor's manufacturer as the file writes it (`hpr motors fetch --manufacturer AeroTech
@@ -1032,12 +1033,12 @@ fly, not that its curve is right.
   `hpr sim --motor H128W` instead.
 - **Which motor.** `NAME` is a [designation](glossary.md#motor-designation) (`F27R/L`) or common
   name (`F27`), as ThrustCurve.org spells it; `--manufacturer` adds the maker, by name or
-  abbreviation. ThrustCurve matches a designation exactly, any case; if no motor has it, hpr asks
-  for the common name. Exactly one motor must answer: `J450` names four makers' motors, and the
-  refusal lists them, so give the designation or `--manufacturer`. A hybrid is refused, as hpr
-  flies solid motors only.
-- **Which curve.** A motor can have several curve files. hpr takes the first RASP (`.eng`) file
-  that makes a motor hpr flies, ranked by who measured it: a certification test, then the
+  abbreviation. ThrustCurve matches a designation exactly, any case; if no motor has it, the
+  simulator asks for the common name. Exactly one motor must answer: `J450` names four makers'
+  motors, and the refusal lists them, so give the designation or `--manufacturer`. A hybrid is
+  refused, as the simulator flies solid motors only.
+- **Which curve.** A motor can have several curve files. The simulator takes the first RASP (`.eng`)
+  file that makes a motor it flies, ranked by who measured it: a certification test, then the
   manufacturer, then a user, then a file that names no source; with none, a RockSim (`.rse`) file
   the same way. `--file ID` takes the file of that ThrustCurve id first, when the motor has it
   and it reads; the id is the one `hpr motors fetch` prints on its `curve file` line, and an
@@ -1058,11 +1059,11 @@ fly, not that its curve is right.
   change, `cargo xtask ork-curves` rewrites it.
 - **Offline.** `--offline`, or `HPR_OFFLINE=1`, reads the cache alone, and a copy of any age flies;
   with no copy, the command fails with exit status 1. Online, a copy stays fresh for a day; after
-  that hpr asks again, and keeps the old copy if the network fails.
+  that the simulator asks again, and keeps the old copy if the network fails.
 
 A fetch with a network connection printed this on 2026-10-04 (pasted by hand, not run in CI; its
-`help:` line as hpr writes it since [M0.6b](decisions-and-roadmap.md#m0-6b), which made each hint a
-`help:` line):
+`help:` line as the simulator writes it since [M0.6b](decisions-and-roadmap.md#m0-6b), which made
+each hint a `help:` line):
 
 ```text
 $ hpr motors fetch F27R/L
@@ -1087,9 +1088,10 @@ $ echo $?
 
 <!-- cli: end -->
 
-hpr bundles none of these curves: ThrustCurve.org grants no license for its motor records, and
-each file carries its contributor's own license. The decision record on fetching motors,
-[ADR-154](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0154-motors-fetched-from-thrustcurve-by-name.md), has the reasoning.
+The simulator bundles none of these curves: ThrustCurve.org grants no license for its motor records,
+and each file carries its contributor's own license. The decision record on fetching motors,
+[ADR-154](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0154-motors-fetched-from-thrustcurve-by-name.md),
+has the reasoning.
 
 ## `hpr convert`
 
@@ -1103,14 +1105,14 @@ motor of the bundled catalog by its name:
 hpr convert H170M H170M.eng
 ```
 
-A catalog motor is written with the size and masses the catalog gives, which are the ones hpr
-flies; where its curve file's header says otherwise, a warning says so. Written as `.rse`, the
-figures worked out from them (the mass fraction, the specific impulse, and the mass and center of
-gravity at each point) are rescaled to match, and a warning says that too. The delays are the
+A catalog motor is written with the size and masses the catalog gives, which are the ones the
+simulator flies; where its curve file's header says otherwise, a warning says so. Written as `.rse`,
+the figures worked out from them (the mass fraction, the specific impulse, and the mass and center
+of gravity at each point) are rescaled to match, and a warning says that too. The delays are the
 curve file's, which can differ from the ones `hpr motors show` lists. An existing file of the
-output's name is replaced, but never the file being read: to rewrite a `.eng` file in hpr's
-layout, convert it to a new `.eng` file name. Here the Estes F15's `.rse` file, from the catalog's
-curves, becomes a `.eng` file:
+output's name is replaced, but never the file being read: to rewrite a `.eng` file in the
+simulator's layout, convert it to a new `.eng` file name. Here the Estes F15's `.rse` file, from the
+catalog's curves, becomes a `.eng` file:
 
 <!-- cli: example `hpr convert crates/hpr-motor/data/thrustcurve/curves/5f923edb1bca5800041716ab.rse F15.eng`; written by `cargo xtask cli`; do not edit -->
 
@@ -1128,10 +1130,11 @@ warning: F15: dropped Type, auto-calc-mass, auto-calc-cg, avgThrust, peakThrust,
 
 ### What a conversion keeps
 
-Both formats give a motor's name, maker, diameter and length, its loaded and propellant masses,
-its delays, and its [thrust curve](glossary.md#thrust-curve). The curve, the size and the masses
-are kept: converting a file and converting the result back gives each of them again as hpr reads
-the file, bit for bit, but for a mass of 16 or 17 digits (below). The formats write some things differently, and `hpr convert` translates:
+Both formats give a motor's name, maker, diameter and length, its loaded and propellant masses, its
+delays, and its [thrust curve](glossary.md#thrust-curve). The curve, the size and the masses are
+kept: converting a file and converting the result back gives each of them again as the simulator
+reads the file, bit for bit, but for a mass of 16 or 17 digits (below). The formats write some
+things differently, and `hpr convert` translates:
 
 | | `.eng` | `.rse` |
 |---|---|---|
@@ -1150,8 +1153,8 @@ last digit, a part in 10¹⁶.
 
 Some things come back written differently, though they mean the same:
 
-- Delays spelled `p`, `1000` or with spaces come back in the table's spelling. hpr reads them as
-  the same delays.
+- Delays spelled `p`, `1000` or with spaces come back in the table's spelling. The simulator
+  reads them as the same delays.
 - A name or maker of several words comes back with `_` between the words, in any `.eng` file
   `hpr convert` writes. A `.eng` header is seven fields split by spaces, and OpenRocket 24.12
   refuses one of eight ([the script](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/motor_files.py) checks it); a warning says so.
@@ -1162,20 +1165,20 @@ Some things come back written differently, though they mean the same:
 
 A `.rse` file also gives figures a `.eng` file has no place for: the motor's type, its total
 impulse, average and peak thrust, burn time, mass fraction,
-[specific impulse](glossary.md#specific-impulse), nozzle throat and exit diameters, two flags
-saying whether RockSim works the mass and center of gravity out itself, and the mass and center of
-gravity at each point of the curve. Going to `.eng`, they are dropped, and a warning names them.
-hpr doesn't use them for a solid motor: it works the mass and center of gravity out from the curve
-and the masses, whichever format it reads. Going to `.rse`, they are filled in the way
+[specific impulse](glossary.md#specific-impulse), nozzle throat and exit diameters, two flags saying
+whether RockSim works the mass and center of gravity out itself, and the mass and center of gravity
+at each point of the curve. Going to `.eng`, they are dropped, and a warning names them. The
+simulator doesn't use them for a solid motor: it works the mass and center of gravity out from the
+curve and the masses, whichever format it reads. Going to `.rse`, they are filled in the way
 ThrustCurve.org's `.rse` files are: the total impulse by adding up the curve, the remaining
 propellant falling in step with the impulse delivered, the center of gravity at half the length,
-both flags set, and the type `unspecified`. The rules, and the counts of real files behind them,
-are in the [`.rse` format notes](format/rse.md#writer-policy-strict-round-trip-stable).
+both flags set, and the type `unspecified`. The rules, and the counts of real files behind them, are
+in the [`.rse` format notes](format/rse.md#writer-policy-strict-round-trip-stable).
 
-`hpr convert` refuses to write a hybrid motor as `.eng`, which couldn't mark it as a hybrid (hpr
-models solid motors only). A `.eng` header must give delays, so a `.rse` motor without them is
-refused until `--delays` gives them, such as `--delays P` for a plugged motor. `--delays` fills
-only the motors that give none.
+`hpr convert` refuses to write a hybrid motor as `.eng`, which couldn't mark it as a hybrid (the
+simulator models solid motors only). A `.eng` header must give delays, so a `.rse` motor without
+them is refused until `--delays` gives them, such as `--delays P` for a plugged motor. `--delays`
+fills only the motors that give none.
 
 **Other programs.** OpenRocket 24.12 opens all 32 files `hpr convert` writes from the bundled
 curves. A [script](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/openrocket/motor_files.py) compares what OpenRocket reads from each converted file with what it
@@ -1184,10 +1187,10 @@ length, the launch and burnout masses, the curve's points, and the delays. 29 of
 same.
 
 - Two are `.rse` files that say the motor is reloadable or single-use. A `.eng` file can't say
-  it, so OpenRocket reads the converted files' type as unknown. hpr flies both types alike.
+  it, so OpenRocket reads the converted files' type as unknown. HPR Sim flies both types alike.
 - The third is the Aerotech G69N's `.eng` file, which writes its plugged delay as `1000`.
   OpenRocket reads no delay from that original, but a plugged motor from the converted `.rse`.
-  hpr reads both as plugged, so the difference is in OpenRocket's reading of the original, not
+  HPR Sim reads both as plugged, so the difference is in OpenRocket's reading of the original, not
   in what `hpr convert` wrote.
 
 The project's automated tests don't run the script, as they have no OpenRocket. Whether RockSim
@@ -1196,7 +1199,7 @@ opens the files is not checked.
 ### Converting a design
 
 Given design files, `hpr convert` takes a design between OpenRocket's `.ork` and
-[the hpr design format](format/hpr.md): `.hpr`, one JSON document, or `.hprz`, a zip archive of the
+[the HPR design format](format/hpr.md): `.hpr`, one JSON document, or `.hprz`, a zip archive of the
 document with other files beside it. The extensions pick the formats, any of the three to any.
 Here one of the repository's public designs becomes a `.hpr`:
 
@@ -1210,13 +1213,14 @@ wrote  demo.hpr: "Loft Demo 38mm — motor comparison", 2 motor configurations, 
 
 <!-- cli: end -->
 
-The document holds everything hpr read from the `.ork`, including what hpr doesn't model, so
-`hpr convert demo.hpr demo.ork` writes the `.ork` hpr would write from the original, byte for byte.
-`hpr sim demo.hpr` flies it to the same flight as the `.ork`, but without the `.ork` reader's
-warnings, which hpr prints only when it reads the `.ork` itself. A document of an older version of the format is migrated
-as it is read, and the output says from which version. `hpr sim` may refuse `--motor` for a
-version 0.1 document, which didn't record whether the rocket was read exactly as written; converting
-the `.ork` again fixes that ([versions](format/hpr.md#versions)).
+The document holds everything the simulator read from the `.ork`, including what it doesn't model,
+so `hpr convert demo.hpr demo.ork` writes the `.ork` the simulator would write from the original,
+byte for byte. `hpr sim demo.hpr` flies it to the same flight as the `.ork`, but without the `.ork`
+reader's warnings, which the simulator prints only when it reads the `.ork` itself. A document of an
+older version of the format is migrated as it is read, and the output says from which version.
+`hpr sim` may refuse `--motor` for a version 0.1 document, which didn't record whether the rocket
+was read exactly as written; converting the `.ork` again fixes that
+([versions](format/hpr.md#versions)).
 
 `--attach` adds a file to a `.hprz`, once for each file: a flight log, a photograph, anything, up
 to 256 MiB for the whole container. Each goes at the top of the container, under its file name,
@@ -1255,13 +1259,13 @@ hpr analyze flight.pf2
 
 Each reading is either a value that says where it came from, or `withheld` with the reason the log
 can't support it. The text output gives the reason as a sentence; the JSON output adds its code,
-listed on [Flight-log readings](physics/log-readings.md#when-a-reading-is-withheld). A log read
-with readings withheld still exits with 0; a file hpr can't read exits with 1
-([Exit codes](#exit-codes)). A PerfectFlite has a barometer and no accelerometer, so the top acceleration is
-always withheld: working it out from the altitude would turn the altitude's one-foot steps into
-spikes of many g. What the file states about itself, such as the altimeter's own apogee, is
-printed beside hpr's readings, never in their place. Heights are meters above the altimeter's
-reading on the pad, with feet in brackets; times are seconds on the log's clock.
+listed on [Flight-log readings](physics/log-readings.md#when-a-reading-is-withheld). A log read with
+readings withheld still exits with 0; a file the simulator can't read exits with 1
+([Exit codes](#exit-codes)). A PerfectFlite has a barometer and no accelerometer, so the top
+acceleration is always withheld: working it out from the altitude would turn the altitude's one-foot
+steps into spikes of many g. What the file states about itself, such as the altimeter's own apogee,
+is printed beside the simulator's readings, never in their place. Heights are meters above the
+altimeter's reading on the pad, with feet in brackets; times are seconds on the log's clock.
 
 This example log is invented, so every reading can be checked against the flight it was made
 from ([Reading a flight log](reading-a-flight-log.md) works through it). Its true apogee is
@@ -1330,24 +1334,24 @@ flies Calisto, RocketPy's example rocket, through the weather it fetched.
 - **Open-Meteo** reads the forecast at `--time`, between the two hours around it. Add
   `--historical` for a launch already gone: that asks Open-Meteo's archive of past forecasts.
   `--model` names one of Open-Meteo's weather models, by the name its documentation gives; by
-  default it picks one ([What hpr asks for](weather.md#what-hpr-asks-for)).
+  default it picks one ([What the simulator asks for](weather.md#what-the-simulator-asks-for)).
 - **Wyoming** takes the [station](glossary.md#station)'s number, such as 72364 for Santa Teresa,
-  New Mexico ([finding a station](soundings.md#what-hpr-asks-for)), and your launch `--time`. It
+  New Mexico ([finding a station](soundings.md#what-the-simulator-asks-for)), and your launch `--time`. It
   fetches that station's latest sounding before the launch. Soundings are named for 00 and 12 UTC,
   and the balloon goes up about an hour before: the example's 12 UTC sounding left at 11:02.
   `--bufr` asks for the detailed version, a row every second or two of the climb.
 - **GFS and RAP** take the [forecast run](glossary.md#forecast-run-cycle) and the hour: `--cycle` is
-  when the run started, and `--hour` is how many hours after it the forecast is for. GFS runs
-  every 6 hours and RAP every hour. [What hpr asks for](nomads.md#what-hpr-asks-for) lists the
-  hours each run covers, and how long NOAA keeps them.
+  when the run started, and `--hour` is how many hours after it the forecast is for. GFS runs every
+  6 hours and RAP every hour. [What the simulator asks for](nomads.md#what-the-simulator-asks-for)
+  lists the hours each run covers, and how long NOAA keeps them.
 - **ERA5** reads a file you downloaded, at your site and time
   ([Getting a file](format/era5.md#getting-a-file)).
 
 ### Online, offline, and saved answers
 
-The first time you ask, `hpr weather` fetches the answer over HTTPS and keeps a copy in hpr's cache
-folder ([Where the cache lives](online-data.md#where-the-cache-lives); `HPR_CACHE_DIR` moves it).
-Ask again and it reads the copy while that is fresh
+The first time you ask, `hpr weather` fetches the answer over HTTPS and keeps a copy in the
+simulator's cache folder ([Where the cache lives](online-data.md#where-the-cache-lives);
+`HPR_CACHE_DIR` moves it). Ask again and it reads the copy while that is fresh
 ([How long a copy stays fresh](online-data.md#how-long-a-copy-stays-fresh)). If the network fails,
 it falls back to an older copy, and the output says so.
 
@@ -1364,8 +1368,8 @@ it falls back to an older copy, and the output says so.
   the output, which says where and when the profile is for.
 - `--output FILE` (or `-o`) writes the profile as JSON, described below.
 
-hpr reads the small GRIB2 files that NOAA's download server, NOMADS, cuts out around a site, and
-whole GFS files you download yourself, which are packed more tightly
+The simulator reads the small GRIB2 files that NOAA's download server, NOMADS, cuts out around a
+site, and whole GFS files you download yourself, which are packed more tightly
 ([A whole GFS file](nomads.md#a-whole-gfs-file)). The decoder also reads fields compressed as JPEG
 2000 images, which RAP's whole files use, but no whole RAP file has been run through `hpr weather`
 yet ([Files in JPEG 2000](nomads.md#files-in-jpeg-2000)).
@@ -1429,7 +1433,7 @@ lowest up, each with:
 | `height_msl_m` | meters above sea level |
 | `temperature_k` | kelvin |
 | `pressure_pa` | pascals (100 Pa = 1 hPa) |
-| `relative_humidity` | a fraction: 0.18 is 18%; `null` for ERA5, which hpr reads as dry air |
+| `relative_humidity` | a fraction: 0.18 is 18%; `null` for ERA5, which the simulator reads as dry air |
 | `wind_speed_m_s` | meters per second |
 | `wind_direction_from_rad` | radians clockwise from true north, where the wind comes from |
 
@@ -1445,7 +1449,7 @@ checks. The text output and `--json` give the same levels with the direction in 
 - **The site's real ground.** A forecast's ground is its model's smoothed terrain, not your pad's
   height, and an ERA5 file has no ground at all: its levels start at 1000 hPa, which can lie
   below a high site.
-- **Humidity in ERA5.** hpr doesn't read it yet, so ERA5's profile is dry air.
+- **Humidity in ERA5.** The simulator doesn't read it yet, so ERA5's profile is dry air.
 - **Above the top level**, the library carries the air on as the standard atmosphere and holds
   the top wind; each source's page gives its top.
 
@@ -1484,8 +1488,8 @@ site's millimeters and cents (`diameter_mm`, `unit_price_cents`). Numbers are no
 digits such as `0.0036000000000000003`; a motor's figures carry no more precision than its curve
 file.
 
-hpr is pre-alpha, so the fields may still change. The schemas are published beside the code, and a
-change to a document changes its schema in the same commit.
+FusionSpace HPR is pre-alpha, so the fields may still change. The schemas are published beside the
+code, and a change to a document changes its schema in the same commit.
 
 <!-- cli: example `hpr motors show B4 --json`; written by `cargo xtask cli`; do not edit -->
 
@@ -1602,8 +1606,9 @@ you press Tab. Save it where your shell looks for completions:
 - **One log format.** `hpr analyze` reads PerfectFlite's `.pf2` so far; other loggers' files,
   and readings such as the drogue and main descent rates and the Mach number, come with
   [M7.1](decisions-and-roadmap.md#m7-1) and [M7.2](decisions-and-roadmap.md#m7-2).
-- **Only OpenRocket's and hpr's own design files.** `hpr convert` and `hpr sim` read OpenRocket's
-  `.ork` and hpr's `.hpr` and `.hprz`, not RockSim's `.rkt` or RASAero's `.CDX1`
+- **Only OpenRocket's design files and the HPR design format.** `hpr convert` and `hpr sim` read
+  OpenRocket's `.ork` and the HPR design format's `.hpr` and `.hprz`, not RockSim's `.rkt` or
+  RASAero's `.CDX1`
   ([how the formats compare](format/hpr.md#how-it-compares-with-other-design-formats)).
 - **No validation check.** The validation cases and their reference results are files in the
   repository, not part of the tool. To re-run them, clone the repository and run

@@ -6,8 +6,8 @@ landing (GeoJSON or KML, which Google Earth, QGIS and most web maps open). It fl
 [Getting started](getting-started.md) again and writes all five files. It needs the first page's
 setup, and a little Rust.
 
-Without writing Rust, `hpr sim --export` writes the same five formats for a `.ork` or hpr design
-file, every quantity hpr tracks in each ([The command line](cli.md#exporting-the-recording)).
+Without writing Rust, `hpr sim --export` writes the same five formats for a `.ork` or HPR design
+file, every quantity HPR Sim tracks in each ([The command line](cli.md#exporting-the-recording)).
 Its maps mark the landing when a parachute or streamer opened, as a `.ork` file's do, and no
 landing otherwise ([the landing](cli.md#the-landing)).
 
@@ -24,12 +24,12 @@ cargo run --example export_flight -p fusionspace-hpr-sim --features parquet -- m
 
 This runs
 [`crates/hpr-sim/examples/export_flight.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/export_flight.rs),
-which writes five files into the folder `my-flight` (without a folder, into `hpr-sim-export` in
+which writes five files into the folder `my-flight` (without a folder, into `fusionspace-hpr-export` in
 the system's temporary folder) and prints what it wrote. Parquet is an optional
-[feature](https://doc.rust-lang.org/cargo/reference/features.html) of `hpr-sim`, named `parquet`,
-so the command turns it on; without it, cargo says the example needs it. The feature adds no other
-library; it is optional so that a program with no use for a binary file format leaves it out. In
-your own program, turn it on in `Cargo.toml` with
+[feature](https://doc.rust-lang.org/cargo/reference/features.html) of `fusionspace-hpr-sim`, named
+`parquet`, so the command turns it on; without it, cargo says the example needs it. The feature adds
+no other library; it is optional so that a program with no use for a binary file format leaves it
+out. In your own program, turn it on in `Cargo.toml` with
 `fusionspace-hpr-sim = { ..., features = ["parquet"] }` (the crate your code calls `hpr_sim`).
 
 <!-- quote: crates/hpr-sim/examples/export_flight.output.txt -->
@@ -114,8 +114,8 @@ their standards say so:
   [OGC KML 2.2, 07-147r2](https://www.ogc.org/standard/kml/)).
 
 Sea level sits above or below the ellipsoid by the
-[geoid undulation](glossary.md#height-above-sea-level-msl) `N`, up to about 100 m. hpr has no
-model of it, so it uses the value the flight was given (`Environment::with_geoid_undulation_m`,
+[geoid undulation](glossary.md#height-above-sea-level-msl) `N`, up to about 100 m. The simulator has
+no model of it, so it uses the value the flight was given (`Environment::with_geoid_undulation_m`,
 zero unless set), the same for every point of the flight. The geoid's slope, about 5 cm per
 kilometer and up to some 30 cm in mountains, moves it by centimeters to decimeters over a rocket's
 few kilometers. For example, at a site where sea level
@@ -135,7 +135,7 @@ trust.
   before latitude as the standard requires. A test also shows the check rejects a broken file.
 - **KML:** parsed by a strict XML parser, and checked for the KML 2.2 namespace, the height mode
   and every coordinate.
-- **Parquet:** hpr-sim writes the file itself, from the format's specification. The tests read it
+- **Parquet:** HPR Sim writes the file itself, from the format's specification. The tests read it
   back with an independent reader, Apache's own Parquet library for Rust, and compare every number
   bit for bit. One test uses a recording of every channel (30 columns today) long enough to fill at
   least three [data pages](glossary.md#parquet-data-page) per column, and another compares a small
@@ -187,7 +187,7 @@ explains step by step.
 //! cargo run --example export_flight -p fusionspace-hpr-sim --features parquet -- my-flight
 //! ```
 //!
-//! Without a folder it writes them to `hpr-sim-export` in the system's temporary folder. The
+//! Without a folder it writes them to `fusionspace-hpr-export` in the system's temporary folder. The
 //! documentation site's *Exporting a flight* page (`docs/exporting-a-flight.md`) walks through it.
 //! What it prints is kept next to it in `export_flight.output.txt`, and CI checks that the two
 //! still agree (`cargo xtask examples --check`).
@@ -281,7 +281,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     ];
     let folder = match std::env::args_os().nth(1) {
         Some(folder) => PathBuf::from(folder),
-        None => std::env::temp_dir().join("hpr-sim-export"),
+        None => std::env::temp_dir().join("fusionspace-hpr-export"),
     };
     std::fs::create_dir_all(&folder)?;
     for (name, contents) in &files {

@@ -3,7 +3,7 @@
 ## In short
 
 - **What it models:** whether a fin may [flutter](../glossary.md#flutter), meaning its bending and
-  twisting feed each other until the fin shakes itself apart. hpr gives two readings of one
+  twisting feed each other until the fin shakes itself apart. HPR Sim gives two readings of one
   criterion. The first is Martin's own chart check: is the fin on the flutter side of the line his
   flight data draws? The second is the ratio of the criterion's flutter speed to the rocket's
   airspeed at the flight's peak [dynamic pressure](../glossary.md#dynamic-pressure). The first
@@ -11,15 +11,15 @@
 - **Sources:** D. J. Martin's criterion in NACA TN 4197 (1958), eq. 18, and his figure 3, which
   separates missile and wind-tunnel wings that fluttered from those that didn't
   ([References](#references)). The fin's stiffness enters as its
-  [shear modulus](../glossary.md#shear-modulus); hpr has one, with its source, for 14 of its
-  built-in materials.
-- **How well it is validated:** hpr reproduces Martin's formula and both of his worked examples,
+  [shear modulus](../glossary.md#shear-modulus); the simulator has one, with its source, for 14 of
+  its built-in materials.
+- **How well it is validated:** HPR Sim reproduces Martin's formula and both of his worked examples,
   including his verdicts on three metals and his titanium design ([Tests](#tests)). His
-  safe/unsafe line is a band that hpr measured off his printed chart: 0.25 to 0.31
+  safe/unsafe line is a band that this project measured off his printed chart: 0.25 to 0.31
   ([The line in Martin's data](#the-line-in-martins-data)). His unfailed wings flew to at least
-  Mach 1.3; nothing here is checked against a hobby rocket. Where the source allows two readings, hpr takes
-  the one with the lower flutter speed. That doesn't make the whole result conservative: nothing
-  shows that it is.
+  Mach 1.3; nothing here is checked against a hobby rocket. Where the source allows two readings,
+  the simulator takes the one with the lower flutter speed. That doesn't make the whole result
+  conservative: nothing shows that it is.
 - **What it leaves out:** sweep, and how the fin is mounted: Martin's wings were clamped at the
   root, and a fin glued to a tube is less stiff there. Also left out are stall flutter at high
   angles of attack, Mach-number effects such as a dip near Mach 1, the rocket body's own bending,
@@ -78,11 +78,11 @@ Eq. 18's `V_f` is not the speed at which a fin is known to flutter. Martin plots
 for missiles and wind-tunnel models (his figure 3). Wings that fluttered or failed lie above a
 shaded band, and wings that flew to at least Mach 1.3 without known failure lie below it.
 
-hpr measured the band on a 250 dots-per-inch scan of the figure. Both log axes were calibrated on
-their tick marks, and the band's edges were traced in 69 pixel columns from `G_E` = 0.05 to
-10 × 10⁶ psi. The band runs at `D / G_E` = 0.25 to 0.31 all along that range, from wood to steel. In eq. 18's terms that is
-`(V_f/a)²` = 3.2 to 4.0, so Martin's line sits where `V_f` is 1.8 to 2.0 times the speed of sound.
-hpr calls this ratio `D / G_E` the *figure 3 ratio*:
+This project measured the band on a 250 dots-per-inch scan of the figure. Both log axes were
+calibrated on their tick marks, and the band's edges were traced in 69 pixel columns from `G_E` =
+0.05 to 10 × 10⁶ psi. The band runs at `D / G_E` = 0.25 to 0.31 all along that range, from wood to
+steel. In eq. 18's terms that is `(V_f/a)²` = 3.2 to 4.0, so Martin's line sits where `V_f` is 1.8
+to 2.0 times the speed of sound. HPR Sim calls this ratio `D / G_E` the *figure 3 ratio*:
 
 | Figure 3 ratio `D / G_E` | Martin's data |
 |---|---|
@@ -102,9 +102,9 @@ about 2.0/M: 1.5 at Mach 1.3, but 4.0 at Mach 0.5.
 Martin's data show nothing about a fin above the band on a rocket slower than Mach 1.3: treat it as
 not shown to be safe.
 
-**Loft's mistake.** Loft, hpr's predecessor, wrote the constant as `1.337 · (λ + 1)/2` per psi,
-half of `39.3 / 14.696 = 2.674`. So its flutter speeds were `√2` too high, about 41%, on the unsafe
-side ([L32](../decisions-and-roadmap.md#l32), a lesson from Loft).
+**Loft's mistake.** Loft, this project's predecessor, wrote the constant as `1.337 · (λ + 1)/2` per
+psi, half of `39.3 / 14.696 = 2.674`. So its flutter speeds were `√2` too high, about 41%, on the
+unsafe side ([L32](../decisions-and-roadmap.md#l32), a lesson from Loft).
 
 ## Martin's worked examples
 
@@ -114,7 +114,7 @@ material. The second picks titanium and holds figure 3's ordinate to 0.8 × 10�
 titanium's modulus, "to allow a reasonable margin of safety". It then asks how thick the wing must
 be at each aspect ratio.
 
-| Example | Martin | hpr, from eq. 19 | Difference |
+| Example | Martin | HPR Sim, from eq. 19 | Difference |
 |---|---|---|---|
 | `X` for `A = 2`, 4% thick | "about 1.25 × 10⁶" psi | 1.228 × 10⁶ psi | −1.8% |
 | Titanium at 0.8 × 10⁶ psi, `A = 1` | 2.5% thick | 2.54% | +1.6% |
@@ -122,11 +122,11 @@ be at each aspect ratio.
 | Same, `A = 3` | "about 6.5"% | 6.43% | −1.1% |
 
 Martin read these off a log-scale chart and printed them on grids of 0.05 × 10⁶ psi and half a
-percent (his thicknesses all end in .5). Each of hpr's values rounds to his on that grid.
+percent (his thicknesses all end in .5). Each of HPR Sim's values rounds to his on that grid.
 
 His verdicts on the first wing are the margin half of the example; the titanium row is his second
-example, at the ordinate he chose. hpr checks them with the moduli Martin marks on figure 3's axis,
-each a small box read off the same scan:
+example, at the ordinate he chose. HPR Sim checks them with the moduli Martin marks on figure 3's
+axis, each a small box read off the same scan:
 
 | Material | Martin's mark, 10⁶ psi | Figure 3 ratio | Martin says | Against the band |
 |---|---|---|---|---|
@@ -191,23 +191,23 @@ Most of these give the lower of the flutter speeds the source allows. Two can go
 an airfoiled fin's modulus, and a booster's max q.
 
 - **Thickness ratio at the root.** Martin's wings keep one thickness ratio from root to tip. A
-  hobby fin keeps one thickness, so its ratio grows toward the tip. hpr takes the root's, the
-  smallest.
+  hobby fin keeps one thickness, so its ratio grows toward the tip. The simulator takes the root's,
+  the smallest.
 - **A solid fin's `G_E` is its material's `G`.** Martin says a solid wing of aluminium plots at
-  aluminium's modulus (p. 6), and hpr does the same. His definition, `G_E = 6 J G / (c t³)` (eq.
-  12), assumes a thin airfoil's torsion constant `J ≈ c t³/6` (eq. 10). A flat plate's is `c t³/3`,
-  which would double `G_E` and raise the flutter speed by `√2`. hpr keeps the lower reading. The
-  exception runs the other way: for a fin with an airfoil section, eq. 12 gives `0.946 G`, so hpr's
-  `V_f` for such a fin is up to 2.7% high.
+  aluminium's modulus (p. 6), and the simulator does the same. His definition,
+  `G_E = 6 J G / (c t³)` (eq. 12), assumes a thin airfoil's torsion constant `J ≈ c t³/6` (eq. 10).
+  A flat plate's is `c t³/3`, which would double `G_E` and raise the flutter speed by `√2`. The
+  simulator keeps the lower reading. The exception runs the other way: for a fin with an airfoil
+  section, eq. 12 gives `0.946 G`, so the simulator's `V_f` for such a fin is up to 2.7% high.
 - **Martin's taper factor.** His derivation carries a factor `1/(f₁² f₂²)`. Here `f₁` corrects the
   twisting frequency for taper (his eq. 8) and `f₂` gives the chord three-quarters of the way out
   (his eq. 14). He replaces the factor with `(λ + 1)/2`. The two agree at `λ = 1` and are 3% apart
   at `λ = 0`. Between, `(λ + 1)/2` is up to 47% larger (at `λ ≈ 0.31`), which lowers `V_f` there by
-  up to 17.5%. hpr keeps his form, since his figure 3 was drawn with it.
+  up to 17.5%. The simulator keeps his form, since his figure 3 was drawn with it.
 - **Every fin set sees the whole flight's max q.** A booster's fins leave at the separation, so the
   flight's max q can come after they are gone. Their true `V_f / V` is then at least the one given,
   as long as the booster's own dynamic pressure after the separation stays below the flight's
-  peak. hpr doesn't check that.
+  peak. The simulator doesn't check that.
 
 ## Shear moduli
 
@@ -237,11 +237,11 @@ range, the lower value is kept. Metals are given in ksi (1000 psi) and Msi (10�
 How the derived values are made:
 
 - **Woods:** `G_LT` is the shear modulus in the plane along the grain and along the growth rings.
-  hpr takes the Wood Handbook's ratio `G_LT / E_L` (Table 5-1) and multiplies it by the wood's
-  bending modulus at 12% moisture raised by 10%, which is how the table's footnote says to estimate
-  the stiffness along the grain, `E_L`. `G_LT` is the smaller of the two in-plane ratios for every
-  wood listed. Eastern white pine is not in Table 5-1, so it has none. Martin marks solid wood at
-  0.070 to 0.120 × 10⁶ psi (0.48 to 0.83 GPa); the handbook's birch and oak are above that.
+  The simulator takes the Wood Handbook's ratio `G_LT / E_L` (Table 5-1) and multiplies it by the
+  wood's bending modulus at 12% moisture raised by 10%, which is how the table's footnote says to
+  estimate the stiffness along the grain, `E_L`. `G_LT` is the smaller of the two in-plane ratios
+  for every wood listed. Eastern white pine is not in Table 5-1, so it has none. Martin marks solid
+  wood at 0.070 to 0.120 × 10⁶ psi (0.48 to 0.83 GPa); the handbook's birch and oak are above that.
 - **Plastics:** an unfilled plastic taken as isotropic (the same in every direction), from its data
   sheet's tensile modulus `E` and Poisson's ratio `ν`. Nylon soaks up water. Its *conditioned*
   value, measured after it has, is less than half the dry one.
@@ -274,7 +274,7 @@ In `crates/hpr-sim/src/flutter.rs`, unless named otherwise:
   figures 3 and 4, p. 19.
 - T. Theodorsen and I. E. Garrick, *Mechanism of Flutter: A Theoretical and Experimental
   Investigation of the Flutter Problem*, NACA Report 685, 1940. Martin's ref. 6, the source of his
-  eq. 1; not read for hpr.
+  eq. 1; not read for this project.
 - MIL-HDBK-5J, *Metallic Materials and Elements for Aerospace Vehicle Structures*, 2003.
 - Forest Products Laboratory, *Wood Handbook*, FPL-GTR-190, 2010, Tables 5-1, 5-3a and 5-5a.
 - NCAMP, *Hexcel 8552 AS4 Unidirectional Prepreg Qualification Statistical Analysis Report*,

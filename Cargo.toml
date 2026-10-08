@@ -71,7 +71,7 @@ proptest = "1.11.0"
 pyo3 = { version = "0.29.2", default-features = false, features = ["macros", "abi3-py310"] }
 # `hpr-py`: a flight's recording and a motor's thrust curve handed to Python as NumPy arrays.
 numpy = "0.29.0"
-# The hpr design format carries a design file's binary attachments, such as a `.ork`'s decal images, as
+# The HPR design format carries a design file's binary attachments, such as a `.ork`'s decal images, as
 # base64 text (RFC 4648).
 base64 = { version = "0.22.1", default-features = false, features = ["alloc"] }
 # xtask only: reads the documentation site's Markdown with the parser mdBook itself uses, to check

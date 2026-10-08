@@ -1,12 +1,12 @@
 # Motor stock and prices
 
-This page covers where hpr gets motor stock and prices: [motor.fusionspace.co](https://motor.fusionspace.co)
+This page covers where HPR Sim gets motor stock and prices: [motor.fusionspace.co](https://motor.fusionspace.co)
 (the *motor finder*), a free site that reads a dozen U.S. vendors' public listings every hour and publishes, for every
 AeroTech, Cesaroni and Loki motor of [impulse class](glossary.md#impulse-class) D and up that they
-carry, who has it in stock and at what price. hpr reads the site's public data API (its
+carry, who has it in stock and at what price. The simulator reads the site's public data API (its
 machine-readable files) and saves each answer, so the same list works later with no network. It
 is for anyone choosing a motor they can actually buy: "which L motors are in stock, and what does
-one cost?" hpr then matches each motor in stock to its record on
+one cost?" The simulator then matches each motor in stock to its record on
 [ThrustCurve.org](glossary.md#thrustcurveorg), the public database of motor data, and can download
 that record's [thrust curve](glossary.md#thrust-curve), so a motor you can buy is a motor you can
 fly ([A motor from a file](physics/motor.md#a-motor-from-a-file)). At the command line,
@@ -14,14 +14,14 @@ fly ([A motor from a file](physics/motor.md#a-motor-from-a-file)). At the comman
 price ([Motors you can buy](cli.md#motors-you-can-buy)); a Rust program calls the library, as
 below.
 
-**How far to trust it.** hpr gives back the site's values unchanged, and the saved copy gives them
-back offline. That is checked on recorded answers, below: eight from motor.fusionspace.co and two
-curve files from ThrustCurve.org, beside three stand-in searches in ThrustCurve.org's shape, since
-ThrustCurve.org grants no license for its motor records (its site reads "All rights under
+**How far to trust it.** The simulator gives back the site's values unchanged, and the saved copy
+gives them back offline. That is checked on recorded answers, below: eight from motor.fusionspace.co
+and two curve files from ThrustCurve.org, beside three stand-in searches in ThrustCurve.org's shape,
+since ThrustCurve.org grants no license for its motor records (its site reads "All rights under
 copyright reserved"). Whether a vendor really has a motor, at that price, is the vendor's to say. The site's data is up to about an hour old when it is built,
-and hpr counts its saved copy as fresh for another hour, so a fresh answer can be two hours behind
-the vendor's page; a stale copy is as old as its date says. (ThrustCurve.org's answers count as
-fresh for a day.) The site's terms ask you to check stock
+and the simulator counts its saved copy as fresh for another hour, so a fresh answer can be two
+hours behind the vendor's page; a stale copy is as old as its date says. (ThrustCurve.org's answers
+count as fresh for a day.) The site's terms ask you to check stock
 and price on the vendor's own page before relying on them. Prices are in U.S. dollars.
 
 The match is by name. On ThrustCurve.org's answers of 1 October 2026, all 282 motors in stock
@@ -45,8 +45,8 @@ and
 [ADR-130: ThrustCurve.org and the match](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0130-m5-4b-thrustcurve-searches-and-curves-through.md).
 `hpr motors search` was added by [M5.4c](decisions-and-roadmap.md#m5-4c), the third; its choices are in
 [ADR-131: the command](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0131-m5-4c-hpr-motors-search-stock-and-prices-at-the.md).
-How saved answers work is on [Online data and the cache](online-data.md). The motors hpr carries
-with it, with their thrust curves, are on [Solid motors](physics/motor.md).
+How saved answers work is on [Online data and the cache](online-data.md). The motors the simulator
+carries with it, with their thrust curves, are on [Solid motors](physics/motor.md).
 
 ## What the site publishes
 
@@ -83,7 +83,7 @@ Prices are whole cents. The price of one motor is the sticker price over the pac
 nearest cent: a $38.49 two-pack is $19.25 a motor (the 263 of the 3,685 listings that fall on a
 half cent all round up).
 
-### What hpr refuses
+### What the simulator refuses
 
 An answer is refused, and not saved, when:
 
@@ -100,32 +100,32 @@ An answer is refused, and not saved, when:
 - `in-stock.json` holds a motor out of stock;
 - a motor's own page holds another motor.
 
-One broken value refuses the whole file: hpr keeps its last good copy rather than a list it can't
-trust, and online it hands that copy back, marked stale, with the reason. Two things the API
-allows are read, not refused: a cheapest offer with no price (when no vendor with the motor in
+One broken value refuses the whole file: the simulator keeps its last good copy rather than a list
+it can't trust, and online it hands that copy back, marked stale, with the reason. Two things the
+API allows are read, not refused: a cheapest offer with no price (when no vendor with the motor in
 stock shows one), and a listing status the API adds later, which reads as *unknown*.
 
-Asking for a motor the site doesn't list gets the site's "not found" page; hpr returns it as an
-error naming the address, and doesn't save it. The makers can be named in full or in short:
+Asking for a motor the site doesn't list gets the site's "not found" page; the simulator returns it
+as an error naming the address, and doesn't save it. The makers can be named in full or in short:
 `aerotech`, `cesaroni` and `loki`, in any case.
 
 ## Matching motors to ThrustCurve.org
 
 The motor finder carries no thrust curves, and no ThrustCurve.org id. ThrustCurve.org has both: it
 aims to hold a record for every certified motor, each with its own id (24 hexadecimal digits, such as
-`5f4294d2000231000000044f`), and the simulator files people have uploaded for it. hpr asks its
+`5f4294d2000231000000044f`), and the simulator files people have uploaded for it. HPR Sim asks its
 [public API](https://www.thrustcurve.org/info/api.html) two things:
 
-| Request | What it gives | hpr's call |
+| Request | What it gives | HPR Sim's call |
 |---|---|---|
 | a *search* | motor records: id, maker, designation, class, diameter, impulse, burn time, delays, how many data files | `thrustcurve::fetch_search` |
 | a *download* | one motor's data files in one format, [RASP (`.eng`) or RockSim (`.rse`)](glossary.md#rasp-and-rocksim-files), each with who measured it and its license | `thrustcurve::fetch_download` |
 
-**The match.** The finder spells each designation exactly as ThrustCurve.org does. So hpr matches a
-motor in stock to the record whose maker (full name, such as `Cesaroni Technology`) and
+**The match.** The finder spells each designation exactly as ThrustCurve.org does. So the simulator
+matches a motor in stock to the record whose maker (full name, such as `Cesaroni Technology`) and
 designation are the same, character for character. If no record has that name, or more than one
 does, the motor is a *miss*, and the match's report (`Join::report()`) lists it with the reason.
-hpr doesn't guess: it doesn't compare impulse or diameter, or try other spellings. A motor
+The simulator doesn't guess: it doesn't compare impulse or diameter, or try other spellings. A motor
 ThrustCurve.org spells differently is reported as a miss, never matched by a guess. (The report
 and the code call a matched motor *mapped*.) `thrustcurve::fetch_finder_records`
 fetches the records the match needs, one search for each of the three makers the finder reads,
@@ -175,11 +175,11 @@ the file's format, and
 [`Curve::thrust_curve()`](api/hpr_net/thrustcurve/enum.Curve.html#method.thrust_curve) gives the
 first motor's curve. Each file says who measured it (`cert`, a certification test; `mfr`, the
 maker; or `user`) and its license: `PD` for public domain, `free` or `other`, or none given.
-ThrustCurve.org's API doesn't define `free` and `other`, and hpr doesn't interpret them; only
-`PD` files are recorded for the tests. An answer with no files gives an empty list, not an error;
-that is how the API answered an unknown id when tried by hand on 1 October 2026.
+ThrustCurve.org's API doesn't define `free` and `other`, and the simulator doesn't interpret them;
+only `PD` files are recorded for the tests. An answer with no files gives an empty list, not an
+error; that is how the API answered an unknown id when tried by hand on 1 October 2026.
 
-**What hpr refuses.** A search or download is refused, and not saved, when:
+**What the simulator refuses.** A search or download is refused, and not saved, when:
 
 - it carries the API's error message, on the answer or on one of the search's terms;
 - a search returns more motors than it says match;
@@ -217,7 +217,7 @@ and reads one curve. It makes these calls:
    three makers, and `thrustcurve::join(&in_stock.motors, &records)` matches the motors in stock.
 6. `Download::new(id, Format::Rasp)` and `thrustcurve::fetch_download` fetch AeroTech J450DM's
    `.eng` file by its matched id, and `read()?.thrust_curve()?` reads it. It uses J450DM because
-   the tests record only public-domain files, and this is one hpr already carries.
+   the tests record only public-domain files, and this is one the simulator already carries.
 
 Run it from a copy of the repository with
 `cargo run --example motor_stock -p fusionspace-hpr --features net`. It prints:
@@ -253,10 +253,11 @@ cheapest was $260.99.
 The last lines come from ThrustCurve.org, under its own credit line, except the records: the 297
 are the stand-in searches ([above](#matching-motors-to-thrustcurveorg)), so the count is theirs,
 and the match runs on the finder's own copy of ThrustCurve.org's figures. J450DM's file is a real
-answer: the certification test's curve (`source cert`), public domain, and the very file hpr
-already carries for J450DM ([Solid motors](physics/motor.md)). Its curve starts at zero thrust at
-ignition, then follows the file's 36 points. hpr works its figures out from those points, so they
-differ from the published figures on the record (here the motor finder's copy of them):
+answer: the certification test's curve (`source cert`), public domain, and the very file the
+simulator already carries for J450DM ([Solid motors](physics/motor.md)). Its curve starts at zero
+thrust at ignition, then follows the file's 36 points. The simulator works its figures out from
+those points, so they differ from the published figures on the record (here the motor finder's copy
+of them):
 
 | | from the file | on the record | difference |
 |---|---:|---:|---:|
@@ -275,20 +276,20 @@ credit "Motor stock data from motor.fusionspace.co", and allows keeping recorded
 the test recordings below ([its API page](https://motor.fusionspace.co/api), "Data licence"). The
 data is gathered from public vendor listings and from ThrustCurve.org, and comes as is, with no
 warranty.
-hpr puts its credit line, `motor_finder::ATTRIBUTION`, on every answer, fetched or saved; the
-example above prints it first, and `hpr motors search` prints it at the top of every list, in
+The simulator puts its credit line, `motor_finder::ATTRIBUTION`, on every answer, fetched or saved;
+the example above prints it first, and `hpr motors search` prints it at the top of every list, in
 text and in JSON, with ThrustCurve.org's below it. The site asks programs to use its files rather
-than read the vendors' pages themselves, and to keep a copy rather than fetch on every use: hpr's saved copy
-counts as fresh for an hour, as often as the site rebuilds.
+than read the vendors' pages themselves, and to keep a copy rather than fetch on every use: the
+simulator's saved copy counts as fresh for an hour, as often as the site rebuilds.
 
 ### ThrustCurve.org
 
-ThrustCurve.org grants no license for its motor records; its site reads "All rights under copyright reserved", and its API asks for no particular credit. hpr puts
-`thrustcurve::ATTRIBUTION`, "Motor data and thrust curves courtesy of ThrustCurve.org", on every
-answer, as it credits the 32 curves it carries. Each data file has its own license, set by whoever
-uploaded it: check it before passing a file on. hpr's saved copy counts as fresh for a day, so a
-program that asks again within the day doesn't ask the site again, since motor records and
-curves change seldom.
+ThrustCurve.org grants no license for its motor records; its site reads "All rights under copyright
+reserved", and its API asks for no particular credit. The simulator puts `thrustcurve::ATTRIBUTION`,
+"Motor data and thrust curves courtesy of ThrustCurve.org", on every answer, as it credits the 32
+curves it carries. Each data file has its own license, set by whoever uploaded it: check it before
+passing a file on. The simulator's saved copy counts as fresh for a day, so a program that asks
+again within the day doesn't ask the site again, since motor records and curves change seldom.
 
 ## How it is checked
 
@@ -317,10 +318,10 @@ the recordings themselves, not through the code being tested, and check that:
 - a page holding another motor is refused and not saved;
 - offline, a file never fetched is an error naming its address.
 
-Some of the site's rules hpr doesn't enforce when it reads an answer. The tests confirm that the
-recording keeps them: each motor's page is at the address it names, the price of one motor is the
-sticker price over the pack, the cheapest offer is the lowest-priced listing in stock, a motor is
-in stock exactly when one of its listings is, and the vendor counts count distinct vendors.
+Some of the site's rules the simulator doesn't enforce when it reads an answer. The tests confirm
+that the recording keeps them: each motor's page is at the address it names, the price of one motor
+is the sticker price over the pack, the cheapest offer is the lowest-priced listing in stock, a
+motor is in stock exactly when one of its listings is, and the vendor counts count distinct vendors.
 
 The tests in [`crates/hpr-net/tests/thrustcurve.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-net/tests/thrustcurve.rs)
 replay two answers recorded from ThrustCurve.org on 1 October 2026 at 08:22 UTC, AeroTech J450DM's
@@ -337,8 +338,8 @@ described [above](#matching-motors-to-thrustcurveorg). They check that:
   reason, and the report lists it with its counts; the same record given twice counts once, and
   another maker's record of the same designation doesn't disturb the match;
 - J450DM, a matched motor in stock, has its downloaded file read by `hpr_motor` to the points in
-  its lines, and the file is byte for byte the one hpr carries; F27R/L's `.rse` file reads to the
-  points in its XML;
+  its lines, and the file is byte for byte the one the simulator carries; F27R/L's `.rse` file reads
+  to the points in its XML;
 - each refusal above refuses an answer changed to break it, naming the field, and a record with
   only an id, maker and designation reads;
 - a download of another motor or format, a search cut short and a search holding another
@@ -355,14 +356,14 @@ which runs the command on the recorded lists, from the file and offline from the
 - **No curves at the command line.** `hpr motors search` lists stock and prices; it doesn't
   match motors to ThrustCurve.org or download their curves. A program does, as in the example.
 - **A match by name only.** A motor ThrustCurve.org spells differently from the finder is a miss;
-  hpr doesn't fall back on impulse or size. None missed on the recording.
+  the simulator doesn't fall back on impulse or size. None missed on the recording.
 - **The first motor of a file.** `Curve::thrust_curve()` reads a file's first motor; the two
   recorded files hold one each.
 - **No choice among files.** A motor may have several files in one format (from a certification
-  test, the maker or a user); hpr gives them all, in the API's order, and leaves the choice to the
-  program.
-- **Prices as listed.** hpr shows a price as the site gives it, and doesn't screen out a shop's
-  placeholder price.
+  test, the maker or a user); the simulator gives them all, in the API's order, and leaves the
+  choice to the program.
+- **Prices as listed.** The simulator shows a price as the site gives it, and doesn't screen out a
+  shop's placeholder price.
 - **U.S. vendors and dollars only,** and only the three makers the site reads.
-- **No history.** Each answer is the stock of one hour; hpr keeps only the latest copy of each
-  file.
+- **No history.** Each answer is the stock of one hour; the simulator keeps only the latest copy of
+  each file.

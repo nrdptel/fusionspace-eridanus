@@ -29,12 +29,13 @@
   The flight of a dropped booster or middle stage after its split is not validated at all.
 - **What it leaves out:**
   - **The booster's own airframe drag.** After the split the booster is a point: a mass with only
-    its recovery device's drag. So hpr requires a device on it that opens at the separation,
-    usually [tumbling](../glossary.md#tumble-recovery), and refuses the flight otherwise. hpr
-    tumbles the booster side-on from the instant it separates, while a real finned booster flies
-    nose-first for a while first, so it slows far faster than a real one would. Treat the
-    booster's peak and landing point as rough, likely too low and too close to the pad ([#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179), a model of the booster's own
-    drag).
+    its recovery device's drag. So the simulator requires a device on it that opens at the
+    separation, usually [tumbling](../glossary.md#tumble-recovery), and refuses the flight
+    otherwise. It tumbles the booster side-on from the instant it separates, while a real finned
+    booster flies nose-first for a while first, so it slows far faster than a real one would. Treat
+    the booster's peak and landing point as rough, likely too low and too close to the pad
+    ([#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179), a model of the booster's
+    own drag).
   - Any push from the separation (no charge or spring), the air flowing between the parts as they
     come apart, and the booster's orientation as it falls.
   - A drag or normal-force table from another program (`Simulation::with_drag_table`), or a drag
@@ -78,8 +79,8 @@ clock from its ignition, so its thrust curve and its mass are its own curve shif
 | `separation` | a delay after the separation that drops the stages behind this motor's stage | `"ignition": {"separation": {"delay_s": 0.5}}` |
 | `never` | never: it rides loaded, as a motor that fails to light does | `"ignition": "never"` |
 
-**A design that says nothing lights every motor on the pad**, the sustainer's too, and hpr does not
-warn. For a staged flight, give the sustainer's motor its `ignition` and the flight a
+**A design that says nothing lights every motor on the pad**, the sustainer's too, and the simulator
+does not warn. For a staged flight, give the sustainer's motor its `ignition` and the flight a
 `Separation`.
 
 Before a motor lights it is **loaded**: its full propellant mass sits in the rocket, and it gives
@@ -100,7 +101,7 @@ apogee, a height on the way down, a time, and a motor's [ejection
 delay](../glossary.md#ejection-delay), it can now fire a delay after a motor's burnout
 (`Trigger::Burnout`).
 
-When it fires, hpr looks at the forward part, body 0, which keeps the nose:
+When it fires, the simulator looks at the forward part, body 0, which keeps the nose:
 
 - **If it still has a motor to burn**, it is a sustainer. That covers a motor burning now, one due
   to light at a known time, and one lit by this separation. The sustainer flies on in [six degrees
@@ -108,7 +109,7 @@ When it fires, hpr looks at the forward part, body 0, which keeps the nose:
   under its own device.
 - **If it has nothing to burn**, both parts descend under their devices, as before.
 
-What hpr refuses:
+What the simulator refuses:
 
 - **A booster still burning.** Its motors must have burned out, unless the separation is told it
   may drop one ([A booster dropped still burning](#a-booster-dropped-still-burning)). If the
@@ -121,14 +122,14 @@ What hpr refuses:
 - **A separation that could never fire**, such as one timed from the burnout of the sustainer it
   lights.
 
-**Why the state carries straight across.** hpr's flight state is the motion of the nose tip, not
-of the center of mass ([Rigid-body flight](flight.md)). The sustainer keeps the nose, so the nose
-tip's position, velocity, attitude and rotation rate are all still right for it. What changes is
-the rocket they belong to:
+**Why the state carries straight across.** The simulator's flight state is the motion of the nose
+tip, not of the center of mass ([Rigid-body flight](flight.md)). The sustainer keeps the nose, so
+the nose tip's position, velocity, attitude and rotation rate are all still right for it. What
+changes is the rocket they belong to:
 
 - **Mass.** The mass drops by exactly the booster's: its stages plus its spent motors. The center
   of mass and the inertia are the sustainer's own stages and motors.
-- **Aerodynamics.** hpr builds the sustainer's aerodynamics from the design cut after the
+- **Aerodynamics.** The simulator builds the sustainer's aerodynamics from the design cut after the
   stage boundary: the design with the booster's stages removed. It is an ordinary rocket with a
   nose and its own aft end, so its drag includes its own [base](../glossary.md#base-drag). Its
   [reference area](../glossary.md#reference-area) can be smaller than the stack's (the widest body
@@ -144,7 +145,7 @@ already had, `v_O + ω × r`, where `r` runs from the nose tip to that center. S
 up to the stack's, `m v = m_s v_s + m_b v_b`. A test checks this to 1e-9 of the stack's momentum
 on a flight launched 10° off vertical, whose sustainer is not yet lit. With the sustainer burning,
 `m v` is not simply additive, because the center of mass also moves inside the body as propellant
-burns, so hpr makes no claim for that case.
+burns, so the simulator makes no claim for that case.
 
 **Events.** Along with the separation, the flight records an `Ignition` event for each motor lit
 after launch. `Burnout` is recorded when no motor is burning or due to light at a known time. In
@@ -241,9 +242,9 @@ beyond the tests below.
 
 **A rocket of three stages or more flies, dropping its stages under power one after another, from
 the tail forward.** At each split the stages behind it drop away and descend to their own
-landing, and the rest flies on as a new sustainer. hpr cuts that sustainer from the whole design
-at the new boundary, as it cut the first, and carries the nose tip's state straight across, as in
-[Powered separation](#powered-separation). This is checked against OpenRocket's three-stage
+landing, and the rest flies on as a new sustainer. The simulator cuts that sustainer from the whole
+design at the new boundary, as it cut the first, and carries the nose tip's state straight across,
+as in [Powered separation](#powered-separation). This is checked against OpenRocket's three-stage
 example, not against a real flight, and the dropped stages' own flights are not validated. The
 decision record is [ADR-160][adr-160] (several powered separations).
 
@@ -283,9 +284,9 @@ rocket* drops its booster at the booster's burnout, as the middle stage lights. 
 middle stage at that stage's own burnout, as the sustainer lights. Each configuration is written
 sustainer first: [A8-5; B6-0; B6-0] is an A8-5 in the sustainer above B6-0s in the middle stage
 and the booster. `cargo xtask ork-flights` flies each configuration on OpenRocket's own thrust
-curves, matched by their digests. Δ is hpr less OpenRocket, in per cent of OpenRocket's:
+curves, matched by their digests. Δ is HPR Sim less OpenRocket, in per cent of OpenRocket's:
 
-| motors | apogee, OpenRocket (m) | Δ apogee | Δ largest speed | separations, OpenRocket / hpr (s) | notes |
+| motors | apogee, OpenRocket (m) | Δ apogee | Δ largest speed | separations, OpenRocket / HPR Sim (s) | notes |
 |---|---:|---:|---:|---|---|
 | A8-5, B6-0, B6-0 | 277.1 | −1.37% | +0.25% | 0.857 / 0.857; 1.714 / 1.714 | nothing deployed |
 | C6-5, B6-0, B6-0 | 505.4 | −0.95% | +1.51% | 0.857 / 0.857; 1.714 / 1.714 | nothing deployed |
@@ -304,10 +305,10 @@ How to read it:
   ([Recovery](recovery.md#from-an-openrocket-file)).
 - **The mass off the rod.** OpenRocket's recorded mass falls as if every motor of the booster's
   type burned from launch ([#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185)). From launch to
-  rod clearance it drops 2.0000, 1.9998 and 2.9944 times as much as hpr's: the count of such
-  motors in each configuration. So hpr reads 1.80% to 3.26% heavier as the rocket leaves the rod,
-  though the launch masses agree within 0.054%. At that moment hpr's stability margin is 0.039 to
-  0.058 calibres shorter than OpenRocket's, about as much as hpr's center of mass sits further
+  rod clearance it drops 2.0000, 1.9998 and 2.9944 times as much as HPR Sim's: the count of such
+  motors in each configuration. So HPR Sim reads 1.80% to 3.26% heavier as the rocket leaves the rod,
+  though the launch masses agree within 0.054%. At that moment HPR Sim's stability margin is 0.039 to
+  0.058 calibres shorter than OpenRocket's, about as much as HPR Sim's center of mass sits further
   aft, 0.043 to 0.062 calibres. Whether OpenRocket's light mass accounts for that is not sized.
 - **With the curves `hpr sim` fetches.** The file holds no curves, so `hpr sim` fetches them from
   ThrustCurve.org ([Motors from ThrustCurve.org](../cli.md#motors-from-thrustcurveorg)), taking
@@ -317,7 +318,7 @@ How to read it:
   OpenRocket's: 78.61, 121.55 and 132.02 m/s. The apogees, flown with the file's parachutes,
   read 1.15%, 0.58% and 1.37% below OpenRocket's own record, which opens them too; against its
   flight with nothing deployed, the table's figures, the first two read 1.28% and 2.48% below.
-  Before hpr kept a table of which ThrustCurve file holds each OpenRocket curve, the first
+  Before HPR Sim kept a table of which ThrustCurve file holds each OpenRocket curve, the first
   configuration flew another A8 file, which burns out 0.536 s after lighting where OpenRocket's
   burns 0.73 s, and its largest speed read 5.7% high.
 
@@ -373,7 +374,7 @@ separates, as OpenRocket flies a descent (its technical documentation v13.05, §
   reaches.
 
 **A worked example.** OpenRocket's *Deployable payload* on a C6-3 drops its booster at the
-charge, 4.86 s after launch. In hpr's flight, from
+charge, 4.86 s after launch. In HPR Sim's flight, from
 `hpr sim "Deployable payload.ork" --config "[C6-3]"`, the stack is then
 230.4 m up and still rising at 27.6 m/s (OpenRocket's record: 27.9 m/s). The payload's 10 in
 (0.254 m) parachute, set to `lowerstageseparation` in the file, opens at that instant, and the
@@ -390,7 +391,7 @@ record, measured from where each tool's flight starts, and every descent meets t
 Each Δ is taken from the report's unrounded heights, so it can differ in the last digit from
 the rounded ones shown.
 
-| motors | split (s) | payload's apogee, OpenRocket / hpr (m) | Δ | coasting with no drag: OpenRocket's free payload / hpr (m) | Δ |
+| motors | split (s) | payload's apogee, OpenRocket / HPR Sim (m) | Δ | coasting with no drag: OpenRocket's free payload / HPR Sim (m) | Δ |
 |---|---:|---|---:|---|---:|
 | C6-3 | 4.86 | 233.2 / 233.3 | +0.04% | 258.5 / 268.8 | +4.00% |
 | C6-5 | 6.86 | 265.3 / 264.4 | −0.32% | 266.6 / 265.4 | −0.43% |
@@ -410,8 +411,8 @@ new physics is involved. The stack flies whole until
 the split, and the split is a powered separation like any other
 ([Powered separation](#powered-separation)): the core flies on with its own shape and mass, and
 the boosters fly as a point with only their devices' drag, tumbling side-on from the split, as a
-dropped booster does in hpr. Their own flight after the split is not validated: their peak and
-landing are likely too low and too close to the pad
+dropped booster does in the simulator. Their own flight after the split is not validated: their peak
+and landing are likely too low and too close to the pad
 ([#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179)).
 
 - **Which separation drops them.** A separation after stage *k* drops every stage after *k*, so
@@ -440,7 +441,7 @@ configuration under OpenRocket's stored conditions instead (a 1 m rod, at its la
 [flights report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md),
 recovery as saved:
 
-| motors | split (s), OpenRocket / hpr | apogee, OpenRocket / hpr (m) | Δ | largest speed Δ |
+| motors | split (s), OpenRocket / HPR Sim | apogee, OpenRocket / HPR Sim (m) | Δ | largest speed Δ |
 |---|---|---|---:|---:|
 | I115W-10 and 2× E12-0 | 2.44 / 2.44 | 1123.6 / 1137.5 | +1.23% | +3.25% |
 | I115W-10, boosters empty | none / none | 851.8 / 857.6 | +0.68% | +1.56% |
@@ -454,8 +455,8 @@ traced. [M4.5m](../decisions-and-roadmap.md#m4-5m) shipped this; its decision re
 
 **A powered separation may drop a booster whose motors still burn, when it is told to. The
 dropped part then flies with no thrust, so its flight leaves out the impulse those motors had
-left.** This is how hpr flies a `.ork` stage with motors in more than one mount. OpenRocket 24.12
-separates such a stage at its first motor's burnout, measured by a committed probe
+left.** This is how the simulator flies a `.ork` stage with motors in more than one mount.
+OpenRocket 24.12 separates such a stage at its first motor's burnout, measured by a committed probe
 ([Delays and ignition](../format/ork.md#delays-and-ignition)), and drops the stage's other motors
 still burning ([M4.5n](../decisions-and-roadmap.md#m4-5n), a stage's first burnout;
 [ADR-172][adr-172]).
@@ -492,7 +493,7 @@ program. The dropped booster's own flight is not validated
 
 ## Against OpenRocket
 
-**In short.** hpr reads when each motor lights and when the stages come apart from an OpenRocket
+**In short.** HPR Sim reads when each motor lights and when the stages come apart from an OpenRocket
 `.ork` file, and flies OpenRocket's own two-stage, three-stage, cluster and air-start examples.
 Every one of their 15 flights is within 5% of OpenRocket's in apogee and in largest speed, a
 tolerance written down before any of them was flown
@@ -502,27 +503,27 @@ Five apogees, three of the cluster's and two of the three-stage example's, are c
 OpenRocket's flight with no parachute, since its parachute opened before apogee.
 This is agreement with another program, not with a real flight.
 
-**What hpr reads.** A `.ork` file says when each motor lights with a word and a delay
+**What HPR Sim reads.** A `.ork` file says when each motor lights with a word and a delay
 ([Delays and ignition](../format/ork.md#delays-and-ignition)), and when each stage drops away with
 another ([When parachutes open and stages separate](../format/ork.md#when-parachutes-open-and-stages-separate)).
-hpr turns them into its own:
+HPR Sim turns them into its own:
 
-| the file says | hpr flies |
+| the file says | HPR Sim flies |
 |---|---|
 | a motor lit at `launch`, or `automatic` in the bottom stage, plus a delay `d` | lit at `t = d`: an air start when `d` is not 0 |
 | a motor lit at `burnout` of the stage below, plus `d` | lit `d` after the stage below's first burnout: the first of its motors to burn out, by each one's ignition and curve, in whichever mount ([ADR-172][adr-172]) |
 | `ejectioncharge`, or `automatic` in a stage above | lit at the stage below's ejection charge: its burnout plus its ejection delay, plus `d` |
 | `never`; `burnout` or `ejectioncharge` in the bottom stage; `ejectioncharge` or `automatic` over a plugged motor; or a motor lit by one of these | never lit: carried loaded, with no thrust |
 | a stage separating at `launch` plus a delay, at its motor's `ignition`, `burnout` or `ejection`, or at the `upperignition` of the stage above | a separation at that instant, plus its delay, if at that moment a motor ahead of it is burning or has yet to light (one timed before the rocket leaves the rod fires as it leaves, [#231](https://github.com/nrdptel/fusionspace-eridanus/issues/231)) |
-| a stage separating at `apogee`, or at a height on the way down (`altitudedescending`) | no separation: it belongs to the descent, which hpr's flights of a `.ork` don't fly yet, so the configuration flies whole |
+| a stage separating at `apogee`, or at a height on the way down (`altitudedescending`) | no separation: it belongs to the descent, which HPR Sim's flights of a `.ork` don't fly yet, so the configuration flies whole |
 
-hpr flies such a separation when it is powered: at its time a motor ahead of it is burning or has
+HPR Sim flies such a separation when it is powered: at its time a motor ahead of it is burning or has
 yet to light, and no motor behind it is. A powered separation at its own stage's first `burnout`
 may also drop the stage's other motors still burning, as OpenRocket does
 ([A booster dropped still burning](#a-booster-dropped-still-burning)). A configuration with several flies them all, from the
 tail forward ([Several separations](#several-separations)), as long as each is powered. An `apogee` or `altitudedescending` separation is left to
 the descent only on the assumption that every motor is spent by apogee; `cargo xtask ork-flights`
-checks that of every flight it reports. When flown, hpr refuses a powered separation that fires
+checks that of every flight it reports. When flown, HPR Sim refuses a powered separation that fires
 after a recovery device on the part with the nose has opened. A configuration it can't fly as
 written is left out with its reason, never flown some other way:
 
@@ -537,12 +538,12 @@ written is left out with its reason, never flown some other way:
 - a separation while a motor behind it is still burning or yet to light, but for a powered one at
   its own stage's first `burnout`, which may drop the stage's own other motors still burning if
   they lit strictly before the split (the reader marks it `drops_burning`);
-- a separation at a height on the way up (`altitudeascending`), which hpr has no trigger for;
-- a negative delay on a separation hpr would fly;
-- a motor lit at a word hpr does not know, by a stage below that holds no motor, by the charge of
+- a separation at a height on the way up (`altitudeascending`), which HPR Sim has no trigger for;
+- a negative delay on a separation HPR Sim would fly;
+- a motor lit at a word HPR Sim does not know, by a stage below that holds no motor, by the charge of
   a stage below with motors in more than one mount (which fires its charge first is not
   measured), or by the charge of a motor below that states no delay;
-- a separation at the ignition of a motor that never lights, or at launch, since hpr's flight
+- a separation at the ignition of a motor that never lights, or at launch, since HPR Sim's flight
   fires a separation only once the rocket is off the rod;
 - a configuration in which no motor lights.
 
@@ -555,15 +556,15 @@ OpenRocket's reading of it has not been probed.
 
 A cluster flies with a motor in every tube ([Clusters](design.md#clusters)).
 
-**The tolerance.** A design is within when every configuration of it that hpr flies has its apogee
-and its largest speed within 5% of OpenRocket's. Where OpenRocket's parachute opened before its apogee,
-which lowers it, the apogee is compared with OpenRocket's flight of the same configuration with
-nothing deployed. OpenRocket's *record* is the set of flights OpenRocket 24.12 flew for this
-comparison, committed as
+**The tolerance.** A design is within when every configuration of it that HPR Sim flies has its
+apogee and its largest speed within 5% of OpenRocket's. Where OpenRocket's parachute opened before
+its apogee, which lowers it, the apogee is compared with OpenRocket's flight of the same
+configuration with nothing deployed. OpenRocket's *record* is the set of flights OpenRocket 24.12
+flew for this comparison, committed as
 [`openrocket-flights.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/openrocket-flights.json).
 It holds the flight of the part that keeps the nose, so both numbers are the sustainer's.
 
-**The result.** Δ is hpr less OpenRocket, in per cent of OpenRocket's.
+**The result.** Δ is HPR Sim less OpenRocket, in per cent of OpenRocket's.
 
 | OpenRocket's example | motors | apogee, OpenRocket (m) | Δ apogee | Δ largest speed | notes |
 |---|---|---:|---:|---:|---|
@@ -590,17 +591,17 @@ The test `a_two_stage_and_a_cluster_design_are_within_5_percent_of_openrocket` i
 
 **A flight OpenRocket aborted is checked up to the abort.** OpenRocket stops its own flight of
 *Pods--powered with recovery deployment*'s first configuration at 1.81 s ("Stage began to tumble
-under thrust"), so it has no apogee to compare. Instead, `cargo xtask ork-flights` compares hpr's
+under thrust"), so it has no apogee to compare. Instead, `cargo xtask ork-flights` compares HPR Sim's
 height and speed with OpenRocket's just after the separation and at OpenRocket's last row. It
-needs the splits at one time and each value within 5%. Both separate at 0.86 s, where hpr is
-1.17% lower (22.18 m against 22.44 m) and 0.04% slower. At 1.81 s hpr is 1.18% lower (84.0 m
+needs the splits at one time and each value within 5%. Both separate at 0.86 s, where HPR Sim is
+1.17% lower (22.18 m against 22.44 m) and 0.04% slower. At 1.81 s HPR Sim is 1.18% lower (84.0 m
 against 85.0 m) and 4.02% faster (79.9 m/s against 76.8 m/s), so it is met
 ([the report's section](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md#flights-openrocket-aborted);
 [`.ork`: Flights OpenRocket aborted](../format/ork.md#flights-openrocket-aborted)). This is
 weaker evidence than an apogee: two points on the way up, the second where OpenRocket's flight is
 breaking up. When OpenRocket aborts is its own call, too: its probe of the same configuration
 with nothing deployed aborts at 2.40 s, not 1.81 s. The sustainer's least static margin is −4.21
-calibres at the split. In the record's conditions, a 0.15 m rod at 28.61° N with no wind, hpr's
+calibres at the split. In the record's conditions, a 0.15 m rod at 28.61° N with no wind, HPR Sim's
 sustainer turns over at 2.04 s. From `hpr sim`'s defaults, a 1.5 m rail with no wind, it does
 not, and why the two differ is not traced. `hpr sim` warns that the sustainer is unstable under
 power and that its apogee is not a prediction
@@ -609,18 +610,18 @@ power and that its apogee is not a prediction
 
 **What is not settled.**
 
-- On the first two-stage flight, OpenRocket's mass falls about twice as fast as hpr's before the
+- On the first two-stage flight, OpenRocket's mass falls about twice as fast as HPR Sim's before the
   sustainer lights: by 0.0823 kg against 0.0412 kg from launch to the end of the rod, as if both
   H148R motors lost propellant from launch. On the second, with two different motors, the masses
   agree to about 1 part in a million. The three-stage example shows the same fault: OpenRocket's
-  drop to the end of the rod is 2.0000, 1.9998 and 2.9944 times hpr's, the count of motors of the
+  drop to the end of the rod is 2.0000, 1.9998 and 2.9944 times HPR Sim's, the count of motors of the
   booster's type ([Several separations](#several-separations)). What that does to the apogee has
   not been sized ([#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185)).
-- hpr's apogee is its center of mass's, which jumps forward at the split from the whole stack's to
-  the sustainer's. Whether OpenRocket's altitude jumps the same way is not measured
-  ([#187](https://github.com/nrdptel/fusionspace-eridanus/issues/187)). The jump is under 1.32 m on the
-  two-stage flights, less than 0.2% of either apogee.
-- hpr's descent of a separated part needs a recovery device on each part. So the climb's
+- HPR Sim's apogee is its center of mass's, which jumps forward at the split from the whole stack's
+  to the sustainer's. Whether OpenRocket's altitude jumps the same way is not measured
+  ([#187](https://github.com/nrdptel/fusionspace-eridanus/issues/187)). The jump is under 1.32 m on
+  the two-stage flights, less than 0.2% of either apogee.
+- HPR Sim's descent of a separated part needs a recovery device on each part. So the climb's
   comparison tumbles the booster from the split and the sustainer from its apogee; neither acts on
   the climb, which flies no parachute. A second flight, for the
   [descent](recovery.md#from-an-openrocket-file), flies the file's own devices, each on its part
@@ -656,8 +657,8 @@ and adds the tumbles a part needs; `hpr sim` flies a `.ork` that way
 In `crates/hpr-sim/src/staging.rs` and `crates/hpr-design/src/config.rs`:
 
 - `serial_plan_timing_and_mass_step` ([Loft lesson L93](../decisions-and-roadmap.md#l93), a check
-  carried over from hpr's predecessor): the sustainer lights at the booster's burnout plus its
-  delay, to 1e-12 s, and the mass steps down by exactly the booster's, to 1e-12 of the mass, and
+  carried over from this project's predecessor): the sustainer lights at the booster's burnout plus
+  its delay, to 1e-12 s, and the mass steps down by exactly the booster's, to 1e-12 of the mass, and
   holds until the sustainer lights. It also checks a sustainer whose separation never comes: it
   never lights, and it lands loaded.
 - `a_sustainer_set_never_to_light_flies_as_a_motor_out` and

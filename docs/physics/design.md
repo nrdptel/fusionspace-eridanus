@@ -75,10 +75,10 @@ Sources:
   ([wider than its parent](#wider-than-its-parent)).
 
 Most of this file defines conventions rather than physical models. OpenRocket has its own
-conventions for positions, automatic radii and overrides. hpr never reads OpenRocket's source
-code, whose license (GPL) is incompatible with hpr's (the clean-room rule). So the planned
-OpenRocket import ([M3.1](../decisions-and-roadmap.md#m3-1), reading `.ork` files) and comparison ([M2.2](../decisions-and-roadmap.md#m2-2)) will
-map them by running OpenRocket itself.
+conventions for positions, automatic radii and overrides. This project never reads OpenRocket's
+source code, whose license (GPL) is incompatible with this project's (the clean-room rule). So the
+planned OpenRocket import ([M3.1](../decisions-and-roadmap.md#m3-1), reading `.ork` files) and
+comparison ([M2.2](../decisions-and-roadmap.md#m2-2)) will map them by running OpenRocket itself.
 
 ## Stations and the body origin
 
@@ -137,9 +137,10 @@ Each [`Stage`](../api/hpr_design/tree/struct.Stage.html) lists **body components
   refused (`DesignError::Domain`, "fin count (1 to 64)", or "instance count (1 to 64)" for lugs
   and buttons). Each fin, tube, pod, lug or button is weighed one by one, so the bound stops a
   file's mistyped count from asking for billions of them. It is far above any real rocket: the most fins in one set among the
-  `.ork` designs hpr's checks read is 8 (a one-off count over 78 designs, not a committed survey;
-  the `.ork` reader [leaves out a part counted more than 64 times](../format/ork.md)). The aerodynamics take 1 to 8 fins in a set
-  ([aerodynamics: fin count](aero.md#fins)), so 9 to 64 fins are weighed but don't fly.
+  `.ork` designs the project's checks read is 8 (a one-off count over 78 designs, not a committed
+  survey; the `.ork` reader [leaves out a part counted more than 64 times](../format/ork.md)). The
+  aerodynamics take 1 to 8 fins in a set ([aerodynamics: fin count](aero.md#fins)), so 9 to 64 fins
+  are weighed but don't fly.
 
 ## Positions
 
@@ -218,7 +219,7 @@ Errors inside a stage or component name it (`DesignError::InComponent`).
 - Scaling the tensor with the mass keeps the radii of gyration (`√(I/m)`: how far out, on
   average, the mass sits). That is the natural reading of
   "this part weighs more than its geometry says".
-- OpenRocket differs in two ways, which hpr keeps as measured departures: it scales only the
+- OpenRocket differs in two ways, which HPR Sim keeps as measured departures: it scales only the
   overriding part's own inertia, and when a mass override covers the parts inside and gives no
   center, it puts the center at the overriding part's own. Which override wins, and where a center
   override is measured from, the two agree on
@@ -230,8 +231,8 @@ Errors inside a stage or component name it (`DesignError::InComponent`).
 
 - `maximum` (the default): twice the largest outer radius of any body component in any stage,
   including a bulged ogive's peak (`Profile::max_radius_m`). Internal parts, shoulders, fins, tube
-  fins, lugs and rail buttons never count. In Loft, the project before hpr-sim, an internal part
-  could set it ([Loft lesson L47](../decisions-and-roadmap.md#l47)).
+  fins, lugs and rail buttons never count. In Loft, the project before FusionSpace HPR, an internal
+  part could set it ([Loft lesson L47](../decisions-and-roadmap.md#l47)).
 - `nose_base`: the first nose cone's base diameter.
 - `custom`: a given diameter.
 
@@ -271,12 +272,13 @@ The reference area is `π d²/4`.
     launch, booster and sustainer together, unless it says otherwise.
 - **Against RocketPy** [RP]: `total_mass(t)` and `center_of_mass(t)` are the same combination.
   RocketPy names the moment of inertia in pitch and yaw `I_11` and the one in roll `I_33`. Its
-  `I_11(t)` is taken about the center of dry mass (the rocket without propellant), so hpr's tensor
-  is moved there before comparing. `I_33` sums the axial moments (every element is on the axis).
+  `I_11(t)` is taken about the center of dry mass (the rocket without propellant), so HPR Sim's
+  tensor is moved there before comparing. `I_33` sums the axial moments (every element is on the
+  axis).
 
 ## Clusters
 
-A cluster is several like motors side by side. In hpr it is one inner tube repeated: the tube's
+A cluster is several like motors side by side. In HPR Sim it is one inner tube repeated: the tube's
 [`cluster_m`](../api/hpr_design/parts/struct.InnerTube.html#structfield.cluster_m) lists each
 tube's axis, `[x, y]` in meters in [body axes](frames.md), measured from the point the tube's
 `radial_offset_m` and `angle_rad` set (the body's axis when both are 0). An empty list is one tube.
@@ -341,11 +343,11 @@ full inertia tensor, not only `I_yy`, turns the moment into a turn); the differe
 mass-flow terms (the center of mass moving as two motors burn and one doesn't, and the jets). With
 all three lit, the thrusts balance, and the rocket turns 225 times slower (0.186 rad/s²), from its
 center of mass sitting 0.033 mm off the axis. The numbers are pinned by the test
-`cluster_motor_out_produces_pitch_moment` in `hpr-sim`.
+`cluster_motor_out_produces_pitch_moment` in `fusionspace-hpr-sim`.
 
 ## Pods
 
-A pod is a body beside the airframe: a side pod, or an outboard motor pod. In hpr a
+A pod is a body beside the airframe: a side pod, or an outboard motor pod. In HPR Sim a
 [`PodSet`](../api/hpr_design/parts/struct.PodSet.html) is attached to a body tube like a fin set,
 with a position along it. Its children are the pod's own body components (a nose cone, body tubes,
 a transition), which stack aft from that position along the pod's axis, and take their automatic
@@ -410,8 +412,9 @@ the layout and weight, and [ADR-092][adr-092] for the aerodynamics.
   - Check a pod's geometry: nothing warns when pods overlap the airframe or each other, or when a
     pod's radius steps ([#206](https://github.com/nrdptel/fusionspace-eridanus/issues/206)).
 
-  The refusals are pinned by tests in `hpr-aero` (`unsupported_inputs_are_refused`) and `hpr-sim`
-  (`a_pod_s_parts_are_located_as_the_airframe_s_are`, `partings_the_design_cant_make_are_refused`).
+  The refusals are pinned by tests in `hpr-aero` (`unsupported_inputs_are_refused`) and
+  `fusionspace-hpr-sim` (`a_pod_s_parts_are_located_as_the_airframe_s_are`,
+  `partings_the_design_cant_make_are_refused`).
 
 In a JSON design, this component goes in a body tube's `children` list. It holds two pods 50 mm
 from the axis (`angle_rad` is optional and 0 by default), each a 0.3 m tube, 0.1 m aft of the top
@@ -475,7 +478,7 @@ where its center is at `z = −0.39041` m, the pod's
 ## Parallel stages
 
 A parallel stage is a stage strapped beside the airframe instead of stacked behind it: a set of
-boosters around a sustainer, burning beside it and dropping at a separation of their own. In hpr
+boosters around a sustainer, burning beside it and dropping at a separation of their own. In HPR Sim
 it is a [`Stage`](../api/hpr_design/tree/struct.Stage.html) whose `parallel` field is set (a
 [`ParallelStage`](../api/hpr_design/tree/struct.ParallelStage.html)): the id of the body tube it
 hangs on, in an axial stage before it, where along that tube, and its copies as a
@@ -503,8 +506,8 @@ shipped it.
   mass override that covers what its tube holds, or the whole stage the tube is in, and a drag
   override on a parallel stage or covering the stage it hangs on: none says whether it covers the
   parallel stage, and no probe has measured how OpenRocket reads one. An override on the
-  parallel stage itself is its total, every copy's, as a pod set's is; that reading is hpr's, not
-  measured against OpenRocket.
+  parallel stage itself is its total, every copy's, as a pod set's is; that reading is HPR Sim's,
+  not measured against OpenRocket.
 
 **Worked example.** The two pods of [Pods](#pods)' worked example, made a parallel stage instead
 (134.25 g, at 0° and 180°, 50 mm from the axis): the stage weighs 134.25 g, the airframe tube's
@@ -587,14 +590,14 @@ slack (`LENGTH_TOLERANCE_M`), so round-off never raises one.
 
 ### Wider than its parent
 
-A part drawn a little wider than the bore it sits in is a fit the builder sands. hpr flies it and
-warns, `internal_part_tight_in_parent`, and the mass where the part crosses its parent's wall
+A part drawn a little wider than the bore it sits in is a fit the builder sands. The simulator flies
+it and warns, `internal_part_tight_in_parent`, and the mass where the part crosses its parent's wall
 counts twice. How much wider is the *fit tolerance*
 ([`fit_tolerance_m`](../api/hpr_design/checks/fn.fit_tolerance_m.html)): the general tolerance
 ISO 2768-1 sets for a dimension of the bore's diameter in its coarse class, ±0.5 mm for 6 to
 30 mm, ±0.8 mm for 30 to 120 mm and ±1.2 mm for 120 to 400 mm. A bore made at its upper limit
 and a part made at its lower one close a radial overlap of that much. The standard is for
-machined parts; no standard covers hobby airframes, so hpr borrows its coarse class
+machined parts; no standard covers hobby airframes, so the simulator borrows its coarse class
 ([ADR-155][adr-155], the decision on which fits warn). Past the tolerance, the part can't be where
 it is drawn: an error, `internal_part_wider_than_parent`, unless it is a
 [packed part](#a-packed-part-wider-than-its-bore). Fix it by typing the part's diameter to
@@ -631,23 +634,23 @@ part that fits.
 
 A nose cone or transition narrows along its length, so the room a part has depends on where it
 sits. This is a design convention, checked by unit tests and by counting findings over real
-designs, not by comparison with a built rocket or with OpenRocket. hpr measures the room from the
-*profile*, the part's outline (its radius against distance from the forward end): the outer
+designs, not by comparison with a built rocket or with OpenRocket. The simulator measures the room
+from the *profile*, the part's outline (its radius against distance from the forward end): the outer
 radius less the wall (none when the part is filled), over the part's own length. It takes two
 numbers from it, the least room along the part and the most
 ([#313](https://github.com/nrdptel/fusionspace-eridanus/issues/313), a part measured against the cone's widest
-radius). Before that fix, hpr used the largest outer radius anywhere on the part, so a bulkhead
-20 mm in radius at the tip of a cone 27 mm in radius at its base passed, though the cone has no
-room for it there. Drawn there, a part sits forward of where it can, which moves the center of
-gravity forward and raises the stability margin.
+radius). Before that fix, the simulator used the largest outer radius anywhere on the part, so a
+bulkhead 20 mm in radius at the tip of a cone 27 mm in radius at its base passed, though the cone
+has no room for it there. Drawn there, a part sits forward of where it can, which moves the center
+of gravity forward and raises the stability margin.
 
 - **Too wide where it is widest:** past the [fit tolerance](#wider-than-its-parent) of the most
   room along it, a part is `internal_part_wider_than_parent`, an error, as in a tube.
 - **Wedged:** a part that fits where the profile is widest along it, but runs into the wall where
   it narrows past the tolerance of the least room, is `internal_part_wedged_in_parent`, a
-  warning. It can't slide that far in as drawn, and hpr flies it where it is drawn. The usual case
-  is a coupler (a short inner tube that joins two sections) drawn reaching into a nose cone from
-  its base.
+  warning. It can't slide that far in as drawn, and the simulator flies it where it is drawn. The
+  usual case is a coupler (a short inner tube that joins two sections) drawn reaching into a nose
+  cone from its base.
 - **Packed parts** are measured against the least room, with the
   [packed-part rule](#a-packed-part-wider-than-its-bore): a warning while the part's center is in
   that room, an error once it is out. A mass on the axis at a cone's tip warns, since the room
@@ -657,9 +660,9 @@ gravity forward and raises the stability margin.
   `t (1/cos θ − 1)`: 1% of the wall at 8°, 0.1 mm of a 3 mm wall at 15°. An automatic radius in a
   profile is already its room at the part's narrower end ([ADR-096][adr-096], automatic radii in
   a profile), so it fits.
-- **Why the ends decide.** Every profile hpr draws is concave: its radius never dips between two
-  stations, so the least room along a part is at one of its ends. The check samples 31 stations
-  between the ends as well.
+- **Why the ends decide.** Every profile the simulator draws is concave: its radius never dips
+  between two stations, so the least room along a part is at one of its ends. The check samples 31
+  stations between the ends as well.
 - **Past the ends:** a part running past the profile's end is measured over the length inside it.
   One wholly past an end, or touching it only, is measured against the largest outer radius, as
   before; `internal_part_past_parent_end` already names it.
@@ -686,15 +689,15 @@ tight-fit, 33 wedged and 240 packed-part warnings.
 own inertia; on the one OpenRocket example that has one, that moves the apogee by 12 µm at most.
 
 A mass component, parachute, streamer or shock cord is a *packed part*
-([Packed parts](mass.md#packed-parts)): hpr takes its mass `m` as stated, and its packed length
-`L` and [station](#stations-and-the-body-origin) say where that mass sits. Its packed radius `r`
-enters the flight in one place, the part's own moment of inertia, that of a solid cylinder:
+([Packed parts](mass.md#packed-parts)): the simulator takes its mass `m` as stated, and its packed
+length `L` and [station](#stations-and-the-body-origin) say where that mass sits. Its packed radius
+`r` enters the flight in one place, the part's own moment of inertia, that of a solid cylinder:
 `m r²/2` about its axis and `m (3r² + L²)/12` across it, about its center.
 
 - **The warning.** A packed part that reaches past its parent's bore is
   `packed_part_wider_than_parent`, by any amount, while its center is inside the bore: its
   radial offset from the parent's axis is no more than the bore's radius. It can't go in as
-  drawn, and hpr flies it as drawn, as OpenRocket does. Packed into the room it has, radius
+  drawn, and HPR Sim flies it as drawn, as OpenRocket does. Packed into the room it has, radius
   `r_room`, at the same mass, length and station, it would change the rocket's moments of inertia
   by `m (r² − r_room²)/2` about its axis and `m (r² − r_room²)/4` across it, and nothing else.
 - **No limit.** The warning has no upper limit. A part typed far too wide, such as ballast 400 mm
@@ -717,9 +720,9 @@ differ by 12 µm at most, 7.5e-8 of the apogee, and their landing times agree to
 
 ### A nominal motor in its matching tube
 
-A motor's diameter in hpr is its nominal size, as ThrustCurve.org and RASP files give it: 29 mm
-for every 29 mm motor. The cases are not all that wide. AeroTech's RMS dimensional drawings give
-the case's outside as 0.698 in for 18 mm, 0.938 in for 24 mm and 1.125 in for 29 mm, each to
+A motor's diameter in the simulator is its nominal size, as ThrustCurve.org and RASP files give it:
+29 mm for every 29 mm motor. The cases are not all that wide. AeroTech's RMS dimensional drawings
+give the case's outside as 0.698 in for 18 mm, 0.938 in for 24 mm and 1.125 in for 29 mm, each to
 ±0.005 in, so a "29 mm" case is at most 1.130 in, 28.702 mm, across. A size whose case is
 narrower than its name gets that difference as slack
 ([`motor_fit_slack_m`](../api/hpr_design/checks/fn.motor_fit_slack_m.html)): 0.144 mm at 18 mm,
@@ -734,8 +737,8 @@ it, the real case can't go in and it is an error.
 - The same drawings give 38, 54, 75 and 98 mm cases as 1.500, 2.125, 2.965 and 3.870 in, so at
   the +0.005 in limit each is at least as wide as its name. Those sizes get no slack, so a 38 mm
   motor in a 37.9 mm bore is an error, as its 38.10 mm case would be. Fix it with a wider mount
-  or a smaller motor. hpr doesn't yet warn when a nominal size fits the bore but its wider case
-  wouldn't, such as 38 mm in a 38.1 mm bore
+  or a smaller motor. The simulator doesn't yet warn when a nominal size fits the bore but its wider
+  case wouldn't, such as 38 mm in a 38.1 mm bore
   ([#312](https://github.com/nrdptel/fusionspace-eridanus/issues/312)).
 - These are one maker's cases, drawn in 2003 and 2004 and archived from its site in 2005
   ([AT], under *Code and sources*). No published standard gives a diameter tolerance: the NAR's
@@ -804,7 +807,7 @@ unless the caller sets
     Prometheus's `GenericMotor` (RocketPy's motor described by its masses alone, with no grain
     geometry). Cavour (added for its drag
     curve in [M1.5b](../decisions-and-roadmap.md#m1-5b), the drag milestone) has no motor dry mass; its design gives the
-    motor 1e-15 kg, since hpr needs a positive one.
+    motor 1e-15 kg, since HPR Sim needs a positive one.
     [`docs/research/rocketpy-rocket-mass.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/rocketpy-rocket-mass.md)
     gives the curve substitution and the examples left out.
   - The test derives the stage override, nozzle station and motor inputs from the fixture itself,
@@ -829,7 +832,7 @@ unless the caller sets
 
   - At RocketPy's knots, agreement is the ODE solver's own accuracy (rtol 1e-11).
   - Between knots, the residual is RocketPy's resampling: it interpolates grain volumes linearly
-    between LSODA knots and samples `GenericMotor` inertias at thrust knots. hpr's values are
+    between LSODA knots and samples `GenericMotor` inertias at thrust knots. HPR Sim's values are
     exact for a piecewise-linear curve.
   - The comparison sets mass, center and inertia together. So the override steps (rescaling the
     tensor with mass, moving the center) are checked by hand-worked tests, not against RocketPy.

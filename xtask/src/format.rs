@@ -1,4 +1,4 @@
-//! `cargo xtask format`: writes the hpr design format's JSON Schema (M3.3a) from its types, and
+//! `cargo xtask format`: writes the HPR design format's JSON Schema (M3.3a) from its types, and
 //! the TypeScript and Python types generated from the schema (M3.3c).
 
 use std::path::Path;
@@ -6,7 +6,7 @@ use std::path::Path;
 /// The command's line in `cargo xtask help`.
 pub const USAGE: &str = "  \
 format [--check|--typecheck]
-                           Write the hpr design format's JSON Schema to
+                           Write the HPR design format's JSON Schema to
                            schema/format/hpr-design-<version>.schema.json from its types, and
                            the TypeScript and Python types generated from it (M3.3c) to
                            schema/format/typescript/ and schema/format/python/.

@@ -2649,7 +2649,7 @@ pub(crate) fn page(report: &Value) -> String {
          [m2-2e1]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-2e1\n\
          [adr-069]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-069-hprs-flights-of-the-public-designs-against-openrockets-2026-09-25\n\
          [adr-070]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-070-m22e-split-mass-and-centre-of-mass-first-then-the-corpus-2026-09-25\n\
-         [site]: https://hpr.fusionspace.co/format/ork.html#hprs-flights-against-openrockets\n\n",
+         [site]: https://hpr.fusionspace.co/format/ork.html#the-simulators-flights-against-openrockets\n\n",
     );
     out.push_str(&summary_lines(report));
     out.push('\n');
