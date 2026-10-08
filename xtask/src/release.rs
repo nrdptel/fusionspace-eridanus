@@ -163,9 +163,16 @@ mod tests {
                     .get(key)
                     .and_then(|v| v.get("workspace"))
                     .and_then(Value::as_bool);
-                assert_eq!(
-                    inherited,
-                    Some(true),
+                // A crate that bundles third-party data states the project's license and the
+                // data's together (`fusionspace-hpr-io`, ADR-187): the project's stays a term.
+                let shared_key = shared[key].as_str().unwrap_or_default();
+                let joined = key == "license"
+                    && package.get(key).and_then(Value::as_str).is_some_and(|own| {
+                        own.strip_prefix(&format!("({shared_key}) AND "))
+                            .is_some_and(|rest| !rest.trim().is_empty())
+                    });
+                assert!(
+                    inherited == Some(true) || joined,
                     "{name} doesn't take {key} from the workspace"
                 );
             }
