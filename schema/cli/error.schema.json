@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ErrorDocument",
+  "description": "What `--json` prints when a command fails.",
+  "type": "object",
+  "properties": {
+    "error": {
+      "description": "The failure.",
+      "$ref": "#/$defs/ErrorBody"
+    },
+    "tool": {
+      "title": "Tool",
+      "description": "The program that wrote a document or a file: the title block every `--json` document, every\nfile `hpr` writes and `hpr --version` carry (ADR-164; the product system's `data.md`: \"Every\nexport carries the designation and version of the tool that made it\").",
+      "type": "object",
+      "properties": {
+        "designation": {
+          "description": "Its designation in the FusionSpace product system: `FS-ACHERNAR · SW · TOOL 001`.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The program: `FusionSpace HPR`.",
+          "type": "string"
+        },
+        "version": {
+          "description": "Its version, such as `0.1.0`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "designation"
+      ]
+    }
+  },
+  "required": [
+    "tool",
+    "error"
+  ],
+  "$defs": {
+    "ErrorBody": {
+      "description": "A failure.",
+      "type": "object",
+      "properties": {
+        "command": {
+          "description": "The command that failed; `null` for a usage error, where the command line may name none.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "help": {
+          "description": "What to do about it, each a sentence a person reads, the most useful last; empty when\nthere is nothing to suggest. The text output writes each as a `help:` line.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "kind": {
+          "description": "What kind of failure it is; the exit status says the same.",
+          "$ref": "#/$defs/ErrorKind"
+        },
+        "message": {
+          "description": "What went wrong, for a person.",
+          "type": "string"
+        },
+        "milestone": {
+          "description": "For `not_available`, the milestone that brings the command, such as `M4.2b`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "message",
+        "help"
+      ]
+    },
+    "ErrorKind": {
+      "description": "What kind of failure an error document reports, with its exit status.",
+      "oneOf": [
+        {
+          "description": "Exit 1: an input was missing, unreadable or refused.",
+          "type": "string",
+          "const": "input"
+        },
+        {
+          "description": "Exit 2: the command line was wrong.",
+          "type": "string",
+          "const": "usage"
+        },
+        {
+          "description": "Exit 3: the command's milestone hasn't come yet.",
+          "type": "string",
+          "const": "not_available"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "criteria": [
+    {
+      "name": "commonName",
+      "value": "G41",
+      "matches": 2
+    }
+  ],
+  "matches": 2,
+  "results": [
+    {
+      "motorId": "e00000000000000000000001",
+      "manufacturer": "AeroTech",
+      "manufacturerAbbrev": "AeroTech",
+      "designation": "G41-INVENTED",
+      "commonName": "G41",
+      "impulseClass": "G",
+      "type": "SU"
+    },
+    {
+      "motorId": "e000000000000000000000f1",
+      "manufacturer": "Invented Motors",
+      "manufacturerAbbrev": "Invented",
+      "designation": "G41-OTHER",
+      "commonName": "G41",
+      "impulseClass": "G",
+      "type": "reload"
+    }
+  ],
+  "source_url": "http://www.thrustcurve.org/motors/search.html"
+}

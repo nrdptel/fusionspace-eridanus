@@ -1,0 +1,21 @@
+{
+  "criteria": [
+    {
+      "name": "designation",
+      "value": "F27R/L",
+      "matches": 1
+    }
+  ],
+  "matches": 1,
+  "results": [
+    {
+      "motorId": "5f4294d200023100000001d4",
+      "manufacturer": "AeroTech",
+      "designation": "F27R/L",
+      "commonName": "F27",
+      "impulseClass": "F",
+      "type": "SU"
+    }
+  ],
+  "source_url": "http://www.thrustcurve.org/motors/search.html"
+}

@@ -1,0 +1,302 @@
+name: CI
+
+# Runs on every pull request, with no path filters, so docs-only PRs also get checks to merge on.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  # Line tables only: panics and backtraces keep their file and line, and the link step has less to
+  # write. Optimization, debug assertions and overflow checks are untouched, so every number a test
+  # compares comes out the same.
+  CARGO_PROFILE_DEV_DEBUG: line-tables-only
+  CARGO_PROFILE_TEST_DEBUG: line-tables-only
+
+jobs:
+  fmt:
+    name: fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # rustup installs the toolchain, components and targets pinned in rust-toolchain.toml.
+      - run: rustup toolchain install
+      - run: cargo fmt --all --check
+
+  clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          # Only main saves: pull requests restore main's cache, and the repository stays under
+          # GitHub's 10 GB cache limit instead of evicting main's entries.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+
+  # The tests run in two halves per OS, side by side: each half builds the workspace and runs
+  # every other test (nextest's `count:` partition), so every test still runs once on each OS.
+  # The doctests run in the first half.
+  test-part:
+    name: test (${{ matrix.os }}, ${{ matrix.part }}/2)
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        part: [1, 2]
+    runs-on: ${{ matrix.os }}
+    env:
+      # Warnings that only appear on macOS or Windows fail too (clippy covers Linux).
+      RUSTFLAGS: -D warnings
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      # The design format's generated TypeScript and Python readers run in xtask's tests (M3.3c):
+      # Node.js runs TypeScript as it is from 22.18, and the Python needs 3.11.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      # nextest runs each test as its own process, in parallel (ADR-149). It doesn't run doctests,
+      # so `cargo test --doc` runs in the first half. Together they run what `cargo test` runs.
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+      - run: cargo nextest run --workspace --all-features --locked --no-fail-fast --partition count:${{ matrix.part }}/2
+      - if: matrix.part == 1
+        run: cargo test --workspace --all-features --locked --doc
+
+  # The checks branch protection requires are `test (<os>)`: each passes only when both halves
+  # passed on every OS, so a failing half shows by name above and fails these too.
+  test:
+    name: test (${{ matrix.os }})
+    needs: test-part
+    if: always()
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Both halves passed
+        run: test "${{ needs.test-part.result }}" = success
+
+  # Runs every example program, such as the Getting started page's first flight, and checks that
+  # it prints what its committed `<name>.output.txt` says, on each OS. A job of its own, beside
+  # test: in test it added up to 10 minutes to CI's slowest job (ADR-149).
+  examples:
+    name: examples (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      RUSTFLAGS: -D warnings
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          # Only main saves: pull requests restore main's cache, and the repository stays under
+          # GitHub's 10 GB cache limit instead of evicting main's entries.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - run: cargo run --locked --quiet --package xtask -- examples --check --locked
+
+  # Checks every public design's document, written as a literal of the generated `DesignFile`
+  # type, with `tsc --strict` and `mypy --strict` at pinned versions (M3.3c, ADR-113). The
+  # compilers come from npm and PyPI, so this runs once, on Linux.
+  types:
+    name: types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          # Only main saves: pull requests restore main's cache, and the repository stays under
+          # GitHub's 10 GB cache limit instead of evicting main's entries.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      # setup-uv publishes no moving major tag, so it is pinned to a release's commit.
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+      - run: cargo run --locked --quiet --package xtask -- format --typecheck
+
+  # Builds the Python package's abi3 wheel with maturin on each OS and runs its pytest suite on the
+  # installed wheel, on CPython 3.10 and 3.13 (M4.3a, scripts/python-tests.sh). The wheels are not
+  # kept: a wheel handed out is a binary distribution, which needs its licence texts first (ADR-114).
+  python:
+    name: python (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      # The only job that compiles hpr-py (its Rust test binary is off), so its warnings fail here.
+      RUSTFLAGS: -D warnings
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          # Only main saves: pull requests restore main's cache, and the repository stays under
+          # GitHub's 10 GB cache limit instead of evicting main's entries.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      # The Python maturin builds against: on Windows the abi3 module links its `python3.lib`.
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      # setup-uv publishes no moving major tag, so it is pinned to a release's commit.
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+      - run: scripts/python-tests.sh
+        shell: bash
+
+  # Runs every case in the validation lock against its committed reference, with no oracle and no
+  # network, and fails if a metric is outside its tolerance or if the committed report is not this
+  # run's, to the digits the platforms share (M2.1c1, ADR-015, ADR-022). The references themselves
+  # are regenerated only by hand, by the `Regenerate references` workflow.
+  validate:
+    name: validate (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          # Only main saves: pull requests restore main's cache, and the repository stays under
+          # GitHub's 10 GB cache limit instead of evicting main's entries.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - run: cargo run --locked --quiet --package xtask -- validate --check
+
+  doc:
+    name: doc
+    runs-on: ubuntu-latest
+    env:
+      RUSTDOCFLAGS: -D warnings
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          # Only main saves: pull requests restore main's cache, and the repository stays under
+          # GitHub's 10 GB cache limit instead of evicting main's entries.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - run: cargo doc --workspace --no-deps --all-features --locked
+
+  wasm-check:
+    name: wasm-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          # Only main saves: pull requests restore main's cache, and the repository stays under
+          # GitHub's 10 GB cache limit instead of evicting main's entries.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      # `cargo xtask` without its alias, so the xtask build itself is --locked too.
+      - run: cargo run --locked --quiet --package xtask -- wasm-check --locked
+
+  deny:
+    name: deny
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: taiki-e/install-action@v2
+        with:
+          # deny.toml is written for this version; bump both together.
+          tool: cargo-deny@0.20.2
+      - run: cargo deny check
+
+  site:
+    name: site
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Only to ask whether GitHub Pages is on, below.
+      pages: read
+    outputs:
+      pages: ${{ steps.pages.outputs.on }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          # Only main saves: pull requests restore main's cache, and the repository stays under
+          # GitHub's 10 GB cache limit instead of evicting main's entries.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - uses: taiki-e/install-action@v2
+        with:
+          # book.toml is written for this version (ADR-016); bump both together.
+          tool: mdbook@0.5.4
+      # Checks the pages' links and labels, builds the site with mdBook into target/site and the
+      # workspace's rustdoc into target/site/api, and checks every link in the built HTML.
+      - run: cargo run --locked --quiet --package xtask -- site --locked
+      # The built site, packed as GitHub Pages takes it. The deploy job publishes it from main.
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: target/site
+      # Pages must be on, deploying from GitHub Actions, for the deploy job to work (ADR-019).
+      # Until the owner turns it on, the site is built and checked but not deployed, and CI says
+      # so with a warning rather than failing on main. Only main deploys, so only main asks.
+      - name: Is GitHub Pages on?
+        id: pages
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if source=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq .build_type 2>"$RUNNER_TEMP/pages.err"); then
+            :
+          elif grep -q "HTTP 404" "$RUNNER_TEMP/pages.err"; then
+            source=off
+          else
+            echo "::error::could not ask GitHub whether Pages is on: $(cat "$RUNNER_TEMP/pages.err")"
+            exit 1
+          fi
+          if [[ $source == workflow ]]; then
+            echo "on=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "on=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=The site is not deployed::GitHub Pages is '$source'. Turn it on in Settings, Pages, Build and deployment, Source: GitHub Actions; the next run on main deploys."
+          fi
+
+  # Publishes the site and the API reference to GitHub Pages, from main only, and only once every
+  # other check has passed on that commit.
+  deploy:
+    name: deploy
+    needs: [fmt, clippy, test, examples, python, validate, doc, wasm-check, deny, site]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && needs.site.outputs.pages == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

@@ -1,0 +1,48 @@
+[package]
+name = "fusionspace-hpr-cli"
+description = "The `hpr` command-line tool."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# The commands, their output types and the registry the README's command table is generated from.
+# The binary is a thin `main` over `hpr_cli::run`, so tests and `cargo xtask cli` run the same code.
+# No rustdoc: the tool's reference is the guide's page (docs/cli.md), and its derived clap impls
+# link into clap's pages, which the site doesn't build.
+[lib]
+name = "hpr_cli"
+path = "src/lib.rs"
+doc = false
+
+[[bin]]
+name = "hpr"
+path = "src/main.rs"
+# The facade library is also called `hpr`; documenting both would collide in target/doc.
+doc = false
+
+[lints]
+workspace = true
+
+[dependencies]
+# `parquet`: `hpr sim --export` writes Parquet; the writer adds no dependency. `net`: `hpr weather`
+# fetches through `hpr_net`'s cache over HTTPS (ADR-122). `parallel`: `hpr mc` flies its samples on
+# every core, each sample's numbers the same on any thread.
+hpr = { workspace = true, features = ["parquet", "net", "parallel"] }
+# The product system's terminal styles (`src/fs_style.rs`, ADR-164) and their color decision.
+anstream.workspace = true
+anstyle.workspace = true
+clap.workspace = true
+clap_complete.workspace = true
+schemars.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+assert_cmd.workspace = true
+# The `--plot` figure's snapshot, and a reader that checks it is well-formed XML.
+insta.workspace = true
+jsonschema.workspace = true
+roxmltree.workspace = true
+tempfile.workspace = true

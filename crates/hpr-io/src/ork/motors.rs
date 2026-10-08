@@ -1,0 +1,1269 @@
+//! The motors a `.ork` design flies: its motor configurations, the motor each mount holds in each
+//! of them, when that motor ignites, its ejection delay, and the thrust curve it flies on.
+//!
+//! **Where a `.ork` keeps them.** A design declares its configurations once, under `<rocket>`, as
+//! `<motorconfiguration configid="…">` elements with a name, a `default` flag and the stages that
+//! fly. The motors themselves are not there: each body tube or inner tube that is a motor mount
+//! carries a `<motormount>`, and that holds one `<motor configid="…">` per configuration it is
+//! loaded in (a manufacturer, a designation, a `digest`, a case diameter and length and a delay),
+//! plus when it ignites, as a default for the mount and an `<ignitionconfiguration>` per
+//! configuration that changes it ([the file specification][spec], *Motor Mount*). So a
+//! configuration is read by collecting every mount's motor with its id ([Loft lesson L65][l65]:
+//! Loft read only one of the two places).
+//!
+//! **The thrust curve.** A `<motor>` names a motor; it does not describe one. From schema 1.11 the
+//! archive can carry the curve itself as `thrustcurves/<digest>.rse` ([the file
+//! specification][spec], *Embedded Thrust Curve Data*). That curve is used first: it is the one
+//! the design was saved with, named by the file's own digest ([Loft lesson L57][l57]: Loft threw
+//! such curves away). Next come any curves the caller supplies by digest ([`SuppliedCurves`],
+//! [`design_with`](super::design_with)), such as OpenRocket's own motor database: a digest names
+//! the curve exactly, so a supplied curve is the one the design was saved with too. Last, the
+//! motor is looked up in the bundled catalog by manufacturer and designation. A motor found in none
+//! of these places is read with its reason, and nothing is invented for it.
+//!
+//! **What hpr flies.** A configuration whose every motor has a curve and a size, in a mount hpr
+//! reads, and lights when hpr can light it, becomes one of the rocket's configurations, with each
+//! motor's ignition and its separations read as the [`staging`]
+//! module says ([M1.9c][m1-9], decision [ADR-076][adr-076]). Every other one is kept here, whole,
+//! with the reason it is not flown.
+//!
+//! [spec]: https://openrocket.readthedocs.io/en/latest/dev_guide/file_specification.html
+//! [m1-9]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-9c
+//! [adr-076]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-076-a-ork-files-ignitions-and-one-powered-separation-flown-against-openrocket-2026-09-25
+//! [l57]: https://hpr.fusionspace.co/decisions-and-roadmap.html#l57
+//! [l65]: https://hpr.fusionspace.co/decisions-and-roadmap.html#l65
+
+use std::collections::{BTreeMap, BTreeSet};
+
+use hpr_design::{Configuration, MountedMotor, Rocket};
+use hpr_motor::catalog::bundled_curve_text;
+use hpr_motor::{Catalog, Delay, MotorError, SolidMotor, rse};
+use serde::{Deserialize, Serialize};
+
+use super::recovery::StageSeparation;
+use super::staging::{self, Staging};
+
+use super::component::subcomponents;
+use super::container::Attachment;
+use super::document::Element;
+use super::value::Values;
+use super::warning::{Warning, WarningKind};
+
+/// Where a `<motor>` element's thrust curve came from.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(tag = "source", rename_all = "snake_case")]
+#[non_exhaustive]
+#[serde(deny_unknown_fields)]
+pub enum Curve {
+    /// The archive's own `thrustcurves/<digest>.rse` entry.
+    Embedded {
+        /// The archive entry, such as `thrustcurves/<digest>.rse`.
+        entry: String,
+        /// The motor built from it.
+        motor: Box<SolidMotor>,
+    },
+    /// A curve the caller supplied for the motor's digest ([`SuppliedCurves`]).
+    Supplied {
+        /// The digest the design records, which the curve was supplied for.
+        digest: String,
+        /// Where the supplied curves came from ([`SuppliedCurves::source`]).
+        from: String,
+        /// The motor supplied.
+        motor: Box<SolidMotor>,
+    },
+    /// The bundled ThrustCurve.org catalog ([`Catalog::bundled`]).
+    Catalog {
+        /// ThrustCurve.org's motor id.
+        motor_id: String,
+        /// ThrustCurve.org's id of the curve file flown.
+        simfile_id: String,
+        /// The motor built from it.
+        motor: Box<SolidMotor>,
+    },
+    /// No curve, and why.
+    Unresolved {
+        /// Why no curve was found.
+        why: NoCurve,
+        /// The same, in words.
+        reason: String,
+    },
+}
+
+/// Why a motor has no thrust curve.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum NoCurve {
+    /// A hybrid: hpr flies commercial solid motors only.
+    Hybrid,
+    /// The `<motor>` names no designation to look up.
+    NoDesignation,
+    /// Neither an embedded curve, a supplied one nor the bundled catalog has it.
+    NotFound,
+    /// More than one motor in the bundled catalog has its manufacturer and designation.
+    Ambiguous,
+    /// A curve was found and could not be used: an embedded `.rse` that does not read, or a
+    /// catalog curve that fails.
+    Unusable,
+}
+
+/// Thrust curves the caller supplies, each for the OpenRocket digest a `<motor>` records.
+///
+/// A `.ork` motor records a *digest*: OpenRocket's fingerprint (a hash) of its curve's data, which
+/// "uniquely identifies the functional characteristics" of the curve ([OpenRocket's GitHub
+/// wiki][wiki], file format 1.2), though OpenRocket 24.12's own database holds a few digests that
+/// two different motors share. Most designs do not embed the curve itself: OpenRocket finds it
+/// in the motor database its program ships. hpr's reader does no I/O and bundles only a small
+/// catalog, so a caller holding such a database hands its curves in here: `cargo xtask ork`
+/// supplies OpenRocket's own, for the milestone that measured the design library's curves
+/// ([M2.2c2][m2-2c2]).
+///
+/// A curve is used only for its own digest, never by name, which can match several curves. Supply
+/// solid motors only: hpr flies commercial solid motors, and a [`SolidMotor`] carries no motor
+/// type to refuse a hybrid by. A `<motor>` whose own `<type>` says `hybrid` is refused before any
+/// curve is looked up.
+///
+/// [wiki]: https://github.com/openrocket/openrocket/wiki/File-format
+/// [m2-2c2]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-2c2
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct SuppliedCurves {
+    source: String,
+    by_digest: BTreeMap<String, SuppliedCurve>,
+}
+
+/// The case a supplied curve describes: where its motor's size comes from, to compare with the
+/// size the design gives the motor.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct CaseSize {
+    /// The case diameter, m.
+    pub diameter_m: f64,
+    /// The case length, m.
+    pub length_m: f64,
+}
+
+/// One supplied curve: the motor built from it and the case it describes.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct SuppliedCurve {
+    case: CaseSize,
+    motor: SolidMotor,
+}
+
+impl SuppliedCurves {
+    /// No curves yet, from `source`: words a reason can quote, such as `OpenRocket 24.12's motor
+    /// database`.
+    pub fn new(source: impl Into<String>) -> Self {
+        Self {
+            source: source.into(),
+            by_digest: BTreeMap::new(),
+        }
+    }
+
+    /// Supplies `motor`, whose case is `case`, for `digest`; returns the motor it replaces, if any.
+    ///
+    /// # Errors
+    ///
+    /// [`MotorError::Domain`] when the case's diameter or length is not finite and positive; the
+    /// curves are left as they were.
+    pub fn insert(
+        &mut self,
+        digest: impl Into<String>,
+        case: CaseSize,
+        motor: SolidMotor,
+    ) -> Result<Option<SolidMotor>, MotorError> {
+        for (value, what) in [
+            (case.diameter_m, "supplied case diameter (m)"),
+            (case.length_m, "supplied case length (m)"),
+        ] {
+            if !(value.is_finite() && value > 0.0) {
+                return Err(MotorError::Domain { what, value });
+            }
+        }
+        Ok(self
+            .by_digest
+            .insert(digest.into(), SuppliedCurve { case, motor })
+            .map(|replaced| replaced.motor))
+    }
+
+    /// Where the curves came from, as given to [`SuppliedCurves::new`]; `the supplied curves`
+    /// when none was given.
+    pub fn source(&self) -> &str {
+        if self.source.is_empty() {
+            "the supplied curves"
+        } else {
+            &self.source
+        }
+    }
+
+    /// The motor supplied for `digest`.
+    pub fn get(&self, digest: &str) -> Option<&SolidMotor> {
+        self.by_digest.get(digest).map(|curve| &curve.motor)
+    }
+
+    /// How many digests have a curve.
+    pub fn len(&self) -> usize {
+        self.by_digest.len()
+    }
+
+    /// Whether no curve is supplied.
+    pub fn is_empty(&self) -> bool {
+        self.by_digest.is_empty()
+    }
+}
+
+impl Curve {
+    /// The motor, when a curve was found.
+    pub fn motor(&self) -> Option<&SolidMotor> {
+        match self {
+            Self::Embedded { motor, .. }
+            | Self::Supplied { motor, .. }
+            | Self::Catalog { motor, .. } => Some(motor),
+            Self::Unresolved { .. } => None,
+        }
+    }
+}
+
+/// When a motor ignites, as `<ignitionevent>` names it.
+///
+/// OpenRocket's file-format page shows only `automatic`. The five values here are the ones
+/// OpenRocket 24.12 writes, each measured by setting it and saving; the meanings are its own
+/// labels, and for `automatic` its FAQ ("How do I create a staged rocket?"). Anything else is kept
+/// as written.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum IgnitionEvent {
+    /// `automatic`, "Automatic (launch or ejection charge)": the lowest stage at launch, and each
+    /// stage above it at the ejection charge of the stage below.
+    Automatic,
+    /// `launch`: at launch.
+    Launch,
+    /// `ejectioncharge`: at the first ejection charge of the stage below.
+    EjectionCharge,
+    /// `burnout`: at the first burnout of the stage below.
+    Burnout,
+    /// `never`.
+    Never,
+    /// A value not listed here, kept as written.
+    Other(String),
+}
+
+impl IgnitionEvent {
+    /// Reads an `<ignitionevent>`'s text.
+    pub fn parse(text: &str) -> Self {
+        match text.trim() {
+            "automatic" => Self::Automatic,
+            "launch" => Self::Launch,
+            "ejectioncharge" => Self::EjectionCharge,
+            "burnout" => Self::Burnout,
+            "never" => Self::Never,
+            other => Self::Other(other.to_owned()),
+        }
+    }
+
+    /// The word the file wrote.
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::Automatic => "automatic",
+            Self::Launch => "launch",
+            Self::EjectionCharge => "ejectioncharge",
+            Self::Burnout => "burnout",
+            Self::Never => "never",
+            Self::Other(text) => text,
+        }
+    }
+}
+
+/// When a motor ignites: an event and a delay after it.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+// Named apart from `hpr_design::Ignition` in the design format's schema.
+#[schemars(rename = "OrkIgnition")]
+pub struct Ignition {
+    /// The event.
+    pub event: IgnitionEvent,
+    /// Seconds after the event, s.
+    pub delay_s: f64,
+}
+
+impl Default for Ignition {
+    /// `automatic`, at no delay: what a mount says when it says nothing.
+    fn default() -> Self {
+        Self {
+            event: IgnitionEvent::Automatic,
+            delay_s: 0.0,
+        }
+    }
+}
+
+/// A motor in a mount, in one configuration: what the `<motor>` element says, when it ignites in
+/// that configuration, and the curve it flies on.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[non_exhaustive]
+#[serde(deny_unknown_fields)]
+pub struct OrkMotor {
+    /// The id of the mount component in the rocket.
+    pub mount: String,
+    /// The index of the mount's stage in [`Rocket::stages`].
+    pub stage: usize,
+    /// `<type>` as written: `single`, `reload` or `hybrid`.
+    pub kind: Option<String>,
+    /// `<manufacturer>`.
+    pub manufacturer: String,
+    /// `<designation>`, such as `H148R`.
+    pub designation: String,
+    /// `<digest>`: OpenRocket's key for the thrust curve, which names an embedded curve.
+    pub digest: Option<String>,
+    /// `<diameter>`: the case diameter, m.
+    pub diameter_m: Option<f64>,
+    /// `<length>`: the case length, m.
+    pub length_m: Option<f64>,
+    /// `<delay>`: `none` is a plugged motor, with no ejection charge; a number is the seconds from
+    /// burnout to the charge, and `0` fires it at burnout (OpenRocket's technical documentation,
+    /// pages 8 and 10).
+    pub delay: Option<Delay>,
+    /// When it ignites in this configuration: the configuration's `<ignitionconfiguration>` where
+    /// the mount has one, the mount's own default where it does not.
+    pub ignition: Ignition,
+    /// The thrust curve.
+    pub curve: Curve,
+}
+
+/// A `<motor>` inside a part hpr does not read, such as a pod's mount.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
+#[non_exhaustive]
+#[serde(deny_unknown_fields)]
+pub struct UnreadMotor {
+    /// Where its mount is in the file.
+    pub at: String,
+    /// `<designation>`.
+    pub designation: String,
+    /// The tag of the part that was not read: the outermost `podset` or `parallelstage` around
+    /// the mount, or else the mount's own tag.
+    pub inside: String,
+    /// Why its mount was not read, in words.
+    pub reason: String,
+}
+
+/// A motor configuration: what the rocket declares, and every motor the mounts put in it.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[non_exhaustive]
+#[serde(deny_unknown_fields)]
+pub struct MotorConfiguration {
+    /// `configid`.
+    pub id: String,
+    /// `<name>`, which may be empty.
+    pub name: String,
+    /// Whether the file marks it `default="true"`.
+    pub default: bool,
+    /// Whether `<rocket>` declares it; one only a mount names is read all the same.
+    pub declared: bool,
+    /// The `<stage number>`s the configuration marks `active="false"`; `None` for one whose number
+    /// is missing or not a count, which is switched off all the same.
+    pub inactive_stages: Vec<Option<u32>>,
+    /// Its motors, in the order their mounts appear in the file.
+    pub motors: Vec<OrkMotor>,
+    /// Its motors in parts hpr does not read.
+    pub unread: Vec<UnreadMotor>,
+    /// Why it is not among the rocket's configurations, or `None` when it is.
+    pub left_out: Option<LeftOut>,
+    /// The separation it flies first, for one among the rocket's configurations that has one
+    /// ([`staging`]): powered, or with nothing ahead of it left to burn, its only one. The rocket's configuration does not carry it: give it to the flight
+    /// (`hpr::ork::separations` maps [`Self::stagings`] onto the flight's), with a recovery device
+    /// on each part.
+    pub staging: Option<Staging>,
+    /// The powered separations it flies after [`Self::staging`], in the order they fire, each
+    /// further forward: a three-stage rocket's middle stage dropping as its sustainer lights.
+    /// Empty for one with one separation or none.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub later_stagings: Vec<Staging>,
+}
+
+impl MotorConfiguration {
+    /// Every separation it flies, in the order they fire: [`Self::staging`], then
+    /// [`Self::later_stagings`].
+    pub fn stagings(&self) -> impl Iterator<Item = &Staging> {
+        self.staging.iter().chain(&self.later_stagings)
+    }
+}
+
+/// Why a configuration is not among the rocket's.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
+#[non_exhaustive]
+#[serde(deny_unknown_fields)]
+pub struct LeftOut {
+    /// The reason.
+    pub why: NotFlown,
+    /// The same, in words, naming the motor.
+    pub message: String,
+}
+
+/// The reasons a configuration cannot be flown as written, in the order they are checked; each is
+/// checked across every motor before the next, so the one given is the first on this list that
+/// applies.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum NotFlown {
+    /// A motor is in a part hpr does not read, such as a pod.
+    UnreadMotor,
+    /// It holds no motor.
+    NoMotor,
+    /// It marks a stage inactive, and hpr flies every stage.
+    InactiveStage,
+    /// A motor has no thrust curve.
+    NoCurve,
+    /// A motor has no case diameter or length.
+    NoSize,
+    /// A motor lights when hpr can't light it: at a word hpr does not know, after a negative
+    /// delay, at the ejection charge of a motor below that states no delay, or at an event of a
+    /// stage below that holds no motor, or motors in more than one mount; or no motor of the
+    /// configuration lights at all ([`staging`]). A motor that never lights beside one that does is flown unlit.
+    IgnitionNotFlown,
+    /// The airframe or a motor mount was not read exactly as written: reading it raised a
+    /// warning. A part was left out (a pod set hpr cannot lay out, a parallel stage, a part hpr
+    /// could not give a shape), a value was dropped or simplified (a rail button's screw
+    /// head, a material that could not be read), or something was assumed (a shape hpr does not know read
+    /// as a cone). Flying it would fly a
+    /// rocket the design may not be.
+    AirframeNotAsWritten,
+    /// Its stages come apart in a way hpr doesn't fly: one with no motor ahead of it still burning
+    /// or yet to light when it fires, beside another; one with a motor behind it not yet spent;
+    /// one at or after apogee beside another; one that comes before the
+    /// separation behind it; one at launch, or at the ignition of a motor that never lights; a
+    /// negative delay; or an event hpr has no trigger for ([`staging`]).
+    SeparationNotFlown,
+}
+
+/// Every motor configuration a `.ork` design holds.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[non_exhaustive]
+#[serde(deny_unknown_fields)]
+pub struct Motors {
+    /// The configurations: those `<rocket>` declares in its order, then any only a mount names.
+    pub configurations: Vec<MotorConfiguration>,
+}
+
+impl Motors {
+    /// The configuration the file marks as its default, if any.
+    pub fn default_configuration(&self) -> Option<&MotorConfiguration> {
+        self.configurations.iter().find(|c| c.default)
+    }
+}
+
+/// A `<motor>` element, read.
+#[derive(Debug, Clone, PartialEq)]
+struct MotorRead {
+    kind: Option<String>,
+    manufacturer: String,
+    designation: String,
+    digest: Option<String>,
+    diameter_m: Option<f64>,
+    length_m: Option<f64>,
+    delay: Option<Delay>,
+}
+
+/// A `<motormount>`, read while its component is: the walk that builds the rocket hands these to
+/// [`read`] with the id it gave the component.
+#[derive(Debug, Clone, PartialEq)]
+pub(super) struct MountRead {
+    /// Where the mount component is in the file.
+    pub at: String,
+    /// `<overhang>`, m.
+    pub overhang_m: f64,
+    /// The mount's own ignition, for a configuration with no override.
+    default_ignition: Ignition,
+    /// `<ignitionconfiguration>`s: an event and a delay, either of which may be missing.
+    ignitions: BTreeMap<String, (Option<IgnitionEvent>, Option<f64>)>,
+    /// `<motor>`s, by configuration id, in file order.
+    motors: Vec<(String, MotorRead)>,
+    /// Second motors for a configuration that already has one here, which cannot be placed.
+    doubled: Vec<(String, UnreadMotor)>,
+    /// The tube's `clusterconfiguration`, when it is a cluster rather than one tube.
+    cluster: Option<String>,
+}
+
+/// Reads the `<motormount>` of `element`, a body tube or inner tube at `at`, if it has one.
+pub(super) fn mount(element: &Element, at: &str, warnings: &mut Vec<Warning>) -> Option<MountRead> {
+    super::reads::note(element, "motormount");
+    super::reads::note(element, "clusterconfiguration");
+    let mount = element.child("motormount")?;
+    let here = format!("{at}/motormount");
+    let mut values = Values::new(mount, &here, warnings);
+    let overhang_m = values.number(&["overhang"]).unwrap_or_default();
+    let default_ignition = Ignition {
+        event: values
+            .word(&["ignitionevent"])
+            .map_or(IgnitionEvent::Automatic, |text| IgnitionEvent::parse(&text)),
+        delay_s: values.number(&["ignitiondelay"]).unwrap_or_default(),
+    };
+    let mut ignitions = BTreeMap::new();
+    let mut motors = Vec::new();
+    let mut doubled = Vec::new();
+    super::reads::note(mount, "motor");
+    super::reads::note(mount, "ignitionconfiguration");
+    for child in mount.elements() {
+        if !matches!(child.name.as_str(), "motor" | "ignitionconfiguration") {
+            continue;
+        }
+        let at = format!("{here}/{}", child.name);
+        let Some(config) = configid(child) else {
+            warnings.push(Warning::new(
+                at,
+                WarningKind::Dropped,
+                format!(
+                    "a `{}` with no `configid` belongs to no configuration; it was ignored",
+                    child.name
+                ),
+            ));
+            continue;
+        };
+        if child.name == "motor" && motors.iter().any(|(c, _)| *c == config) {
+            // Which of the two OpenRocket would fly is not known, so neither flies: the second is
+            // kept as a motor this reader could not place, and its configuration is left out.
+            warnings.push(Warning::new(
+                at.clone(),
+                WarningKind::Dropped,
+                format!(
+                    "a second motor for configuration `{config}` in one mount, which holds one; \
+                     the configuration is not flown"
+                ),
+            ));
+            doubled.push((
+                config,
+                UnreadMotor {
+                    at,
+                    designation: child
+                        .child("designation")
+                        .map(|d| d.text().trim().to_owned())
+                        .unwrap_or_default(),
+                    inside: element.name.clone(),
+                    reason: "a second motor for this configuration in the same mount".to_owned(),
+                },
+            ));
+            continue;
+        }
+        match child.name.as_str() {
+            "ignitionconfiguration" => {
+                let mut values = Values::new(child, &at, warnings);
+                let event = values
+                    .word(&["ignitionevent"])
+                    .map(|text| IgnitionEvent::parse(&text));
+                let delay_s = values.number(&["ignitiondelay"]);
+                ignitions.insert(config, (event, delay_s));
+            }
+            "motor" => motors.push((config, motor(child, &at, warnings))),
+            _ => {}
+        }
+    }
+    let cluster = element
+        .child("clusterconfiguration")
+        .map(|c| c.text().trim().to_owned())
+        // A pattern of one tube, or a name OpenRocket doesn't know (read as one tube, with a
+        // warning), is no cluster.
+        .filter(|c| super::attached::cluster_pattern(c).is_some_and(|tubes| tubes.len() > 1));
+    Some(MountRead {
+        at: at.to_owned(),
+        overhang_m,
+        default_ignition,
+        ignitions,
+        motors,
+        doubled,
+        cluster,
+    })
+}
+
+/// An element's `configid`, when it has one that is not blank.
+fn configid(element: &Element) -> Option<String> {
+    element
+        .attribute("configid")
+        .map(str::trim)
+        .filter(|id| !id.is_empty())
+        .map(str::to_owned)
+}
+
+/// Reads one `<motor>`.
+fn motor(element: &Element, at: &str, warnings: &mut Vec<Warning>) -> MotorRead {
+    let mut values = Values::new(element, at, warnings);
+    let delay = match values.word(&["delay"]) {
+        None => None,
+        Some(text) => delay(&text, &mut values),
+    };
+    MotorRead {
+        kind: values.word(&["type"]),
+        manufacturer: values.word(&["manufacturer"]).unwrap_or_default(),
+        designation: values.word(&["designation"]).unwrap_or_default(),
+        digest: values.word(&["digest"]).filter(|digest| !digest.is_empty()),
+        diameter_m: values.number(&["diameter"]),
+        length_m: values.number(&["length"]),
+        delay,
+    }
+}
+
+/// A `<delay>`: `none` is a plugged motor, a number the seconds to the ejection charge.
+fn delay(text: &str, values: &mut Values<'_>) -> Option<Delay> {
+    if text.eq_ignore_ascii_case("none") {
+        return Some(Delay::Plugged);
+    }
+    match text.parse::<f64>() {
+        Ok(seconds) if seconds.is_finite() && seconds >= 0.0 => Some(Delay::Seconds(seconds)),
+        _ => {
+            values.warn_at(
+                WarningKind::Dropped,
+                format!(
+                    "`delay` says `{text}`, which is neither `none` nor a delay; it was ignored"
+                ),
+            );
+            values.forget(&["delay"]);
+            None
+        }
+    }
+}
+
+/// Reads every motor configuration: the ones `<rocket>` declares, filled with the motors in
+/// `mounts` (each with the id the rocket gave its component), plus the motors in parts the rocket
+/// does not read, found in `rocket_element`. Curves come from `attachments`, `supplied` or the
+/// bundled catalog.
+///
+/// Every configuration whose motors can all be flown as written is added to `rocket`.
+pub(super) fn read(
+    rocket_element: &Element,
+    rocket: &mut Rocket,
+    airframe: Airframe<'_>,
+    mounts: &[(String, MountRead)],
+    attachments: &[Attachment],
+    supplied: &SuppliedCurves,
+    warnings: &mut Vec<Warning>,
+) -> Motors {
+    let at = "openrocket/rocket";
+    let mut configurations: Vec<MotorConfiguration> = Vec::new();
+    super::reads::note(rocket_element, "motorconfiguration");
+    for element in rocket_element.children_named("motorconfiguration") {
+        let Some(id) = configid(element) else {
+            warnings.push(Warning::new(
+                format!("{at}/motorconfiguration"),
+                WarningKind::Dropped,
+                "a motor configuration with no `configid` can hold no motor; it was ignored",
+            ));
+            continue;
+        };
+        if configurations.iter().any(|c| c.id == id) {
+            warnings.push(Warning::new(
+                format!("{at}/motorconfiguration"),
+                WarningKind::Dropped,
+                format!("motor configuration `{id}` is declared twice; the first was kept"),
+            ));
+            continue;
+        }
+        super::reads::note(element, "stage");
+        super::reads::note(element, "name");
+        let inactive_stages = element
+            .children_named("stage")
+            .filter(|stage| stage.attribute("active") == Some("false"))
+            .map(|stage| {
+                stage
+                    .attribute("number")
+                    .and_then(|n| n.trim().parse().ok())
+            })
+            .collect();
+        configurations.push(MotorConfiguration {
+            id,
+            name: element
+                .child("name")
+                .map(|name| name.text().trim().to_owned())
+                .unwrap_or_default(),
+            default: element.attribute("default") == Some("true"),
+            declared: true,
+            inactive_stages,
+            motors: Vec::new(),
+            unread: Vec::new(),
+            left_out: None,
+            staging: None,
+            later_stagings: Vec::new(),
+        });
+    }
+
+    let catalog = match Catalog::bundled() {
+        Ok(catalog) => Some(catalog),
+        Err(error) => {
+            warnings.push(Warning::new(
+                at,
+                WarningKind::Unusual,
+                format!("the bundled motor catalog could not be read ({error}); no motor was looked up in it"),
+            ));
+            None
+        }
+    };
+    let mut placed: BTreeSet<&str> = BTreeSet::new();
+    for (mount_id, mount) in mounts {
+        // A mount the rocket does not hold is left to the scan for unread motors below, which
+        // says so, rather than being given a stage it is not in (Loft lesson L65).
+        let Some(stage) = stage_of(rocket, mount_id) else {
+            continue;
+        };
+        placed.insert(mount.at.as_str());
+        for (config, motor) in &mount.doubled {
+            let index = configuration(&mut configurations, config, at, warnings);
+            configurations[index].unread.push(motor.clone());
+        }
+        for (config, read) in &mount.motors {
+            let index = configuration(&mut configurations, config, at, warnings);
+            let ignition = match mount.ignitions.get(config) {
+                Some((event, delay_s)) => Ignition {
+                    event: event
+                        .clone()
+                        .unwrap_or_else(|| mount.default_ignition.event.clone()),
+                    delay_s: delay_s.unwrap_or(mount.default_ignition.delay_s),
+                },
+                None => mount.default_ignition.clone(),
+            };
+            let curve = curve(
+                read,
+                attachments,
+                supplied,
+                catalog.as_ref(),
+                &mount.at,
+                warnings,
+            );
+            configurations[index].motors.push(OrkMotor {
+                mount: mount_id.clone(),
+                stage,
+                kind: read.kind.clone(),
+                manufacturer: read.manufacturer.clone(),
+                designation: read.designation.clone(),
+                digest: read.digest.clone(),
+                diameter_m: read.diameter_m,
+                length_m: read.length_m,
+                delay: read.delay,
+                ignition,
+                curve,
+            });
+        }
+    }
+
+    let mut unread = Vec::new();
+    for (index, stage) in subcomponents(rocket_element).enumerate() {
+        let path = format!("{at}/{}[{index}]", stage.name);
+        unread_motors(stage, &path, None, &placed, &mut unread, warnings);
+    }
+    for (config, motor) in unread {
+        let index = configuration(&mut configurations, &config, at, warnings);
+        configurations[index].unread.push(motor);
+    }
+
+    // The stage each parallel stage hangs on; `None` for a stage on the axis.
+    let hung_on: Vec<Option<usize>> = rocket
+        .stages
+        .iter()
+        .map(|stage| {
+            let parallel = stage.parallel.as_ref()?;
+            stage_of(rocket, &parallel.on)
+        })
+        .collect();
+    for configuration in &mut configurations {
+        match flyable(configuration, &hung_on, airframe) {
+            Ok((lit, stagings)) => {
+                rocket.configurations.push(flown(configuration, lit));
+                let mut stagings = stagings.into_iter();
+                configuration.staging = stagings.next();
+                configuration.later_stagings = stagings.collect();
+            }
+            Err(out) => configuration.left_out = Some(out),
+        }
+    }
+    Motors { configurations }
+}
+
+/// The index of configuration `id`, adding it, with a warning, when `<rocket>` does not declare it.
+fn configuration(
+    configurations: &mut Vec<MotorConfiguration>,
+    id: &str,
+    at: &str,
+    warnings: &mut Vec<Warning>,
+) -> usize {
+    if let Some(index) = configurations.iter().position(|c| c.id == id) {
+        return index;
+    }
+    warnings.push(Warning::new(
+        at,
+        WarningKind::Unusual,
+        format!(
+            "a mount puts a motor in configuration `{id}`, which the rocket does not declare; it \
+             was read as a configuration of its own"
+        ),
+    ));
+    configurations.push(MotorConfiguration {
+        id: id.to_owned(),
+        name: String::new(),
+        default: false,
+        declared: false,
+        inactive_stages: Vec::new(),
+        motors: Vec::new(),
+        unread: Vec::new(),
+        left_out: None,
+        staging: None,
+        later_stagings: Vec::new(),
+    });
+    configurations.len() - 1
+}
+
+/// Every `<motor>` under `element` whose mount is not among `read`, with its configuration id.
+/// `inside` is the outermost part on the way down that hpr does not read, if any.
+fn unread_motors(
+    element: &Element,
+    at: &str,
+    inside: Option<&str>,
+    read: &BTreeSet<&str>,
+    found: &mut Vec<(String, UnreadMotor)>,
+    warnings: &mut Vec<Warning>,
+) {
+    let inside = inside.or(match element.name.as_str() {
+        tag @ ("podset" | "parallelstage") => Some(tag),
+        _ => None,
+    });
+    if let Some(mount) = element.child("motormount")
+        && !read.contains(at)
+    {
+        let reason = match inside {
+            Some("podset") => {
+                "its mount is inside a pod set, in a part hpr did not read".to_owned()
+            }
+            Some(_) => {
+                "its mount is inside a parallel stage, in a part hpr did not read".to_owned()
+            }
+            None => format!("its mount, a `{}`, was not read", element.name),
+        };
+        let part = inside.unwrap_or(element.name.as_str());
+        for motor in mount.children_named("motor") {
+            // A motor in no configuration flies in none, so it is no configuration's loss.
+            let Some(config) = configid(motor) else {
+                warnings.push(Warning::new(
+                    format!("{at}/motormount/motor"),
+                    WarningKind::Dropped,
+                    "a `motor` with no `configid` belongs to no configuration; it was ignored",
+                ));
+                continue;
+            };
+            found.push((
+                config,
+                UnreadMotor {
+                    at: at.to_owned(),
+                    designation: motor
+                        .child("designation")
+                        .map(|d| d.text().trim().to_owned())
+                        .unwrap_or_default(),
+                    inside: part.to_owned(),
+                    reason: reason.clone(),
+                },
+            ));
+        }
+    }
+    for (index, child) in subcomponents(element).enumerate() {
+        let path = format!("{at}/{}[{index}]", child.name);
+        unread_motors(child, &path, inside, read, found, warnings);
+    }
+}
+
+/// The index of the stage holding the component with id `id`.
+pub(super) fn stage_of(rocket: &Rocket, id: &str) -> Option<usize> {
+    fn holds(components: &[hpr_design::Component], id: &str) -> bool {
+        components
+            .iter()
+            .any(|c| c.id == id || holds(&c.children, id))
+    }
+    rocket
+        .stages
+        .iter()
+        .position(|stage| holds(&stage.components, id))
+}
+
+/// Lowercase letters and digits only, for comparing names written two ways.
+fn key(text: &str) -> String {
+    text.chars()
+        .filter(char::is_ascii_alphanumeric)
+        .map(|c| c.to_ascii_lowercase())
+        .collect()
+}
+
+/// The thrust curve for `motor`: its embedded `.rse` first, then a curve supplied for its digest,
+/// then the bundled catalog.
+fn curve(
+    motor: &MotorRead,
+    attachments: &[Attachment],
+    supplied: &SuppliedCurves,
+    catalog: Option<&Catalog>,
+    at: &str,
+    warnings: &mut Vec<Warning>,
+) -> Curve {
+    let unresolved = |why: NoCurve, reason: String| Curve::Unresolved { why, reason };
+    if motor.kind.as_deref() == Some("hybrid") {
+        return unresolved(
+            NoCurve::Hybrid,
+            "a hybrid motor; hpr flies commercial solid motors only".to_owned(),
+        );
+    }
+    if motor.designation.is_empty() {
+        return unresolved(
+            NoCurve::NoDesignation,
+            "the motor has no designation".to_owned(),
+        );
+    }
+    let mut embedded_failed = None;
+    if let Some(digest) = &motor.digest {
+        let entry = format!("thrustcurves/{digest}.rse");
+        if let Some(attachment) = attachments.iter().find(|a| a.name == entry) {
+            match embedded(attachment, motor, at, warnings) {
+                Ok(solid) => {
+                    return Curve::Embedded {
+                        entry,
+                        motor: Box::new(solid),
+                    };
+                }
+                // A hybrid is refused whichever file says so, the design or its own curve.
+                Err(Refused::Hybrid) => {
+                    return unresolved(
+                        NoCurve::Hybrid,
+                        format!(
+                            "its embedded curve {entry} is a hybrid's; hpr flies commercial solid motors only"
+                        ),
+                    );
+                }
+                Err(Refused::Unusable(reason)) => {
+                    warnings.push(Warning::new(
+                        entry.clone(),
+                        WarningKind::Dropped,
+                        format!(
+                            "the embedded curve for {} was not used: {reason}",
+                            motor.designation
+                        ),
+                    ));
+                    embedded_failed = Some(format!("its embedded curve {entry} could not be used"));
+                }
+            }
+        }
+    }
+    if let Some(digest) = &motor.digest
+        && let Some(found) = supplied.by_digest.get(digest)
+    {
+        sizes_agree(
+            motor,
+            found.case.diameter_m * 1e3,
+            found.case.length_m * 1e3,
+            supplied.source(),
+            at,
+            warnings,
+        );
+        return Curve::Supplied {
+            digest: digest.clone(),
+            from: supplied.source().to_owned(),
+            motor: Box::new(found.motor.clone()),
+        };
+    }
+    // What the supplied curves said, when there were any to look in.
+    let not_supplied = if supplied.is_empty() {
+        String::new()
+    } else if motor.digest.is_some() {
+        format!(", {} has no curve for its digest", supplied.source())
+    } else {
+        ", it records no digest to look up in the supplied curves".to_owned()
+    };
+    let Some(catalog) = catalog else {
+        return match embedded_failed {
+            Some(reason) => unresolved(NoCurve::Unusable, format!("{reason}{not_supplied}")),
+            None => unresolved(
+                NoCurve::NotFound,
+                format!("no embedded curve{not_supplied}"),
+            ),
+        };
+    };
+    let maker = key(&motor.manufacturer);
+    let matches: Vec<_> = catalog
+        .find(&motor.designation)
+        .filter(|m| key(&m.manufacturer) == maker || key(&m.manufacturer_abbrev) == maker)
+        .collect();
+    // A curve that was there and failed says more about the file than a catalog that lacks it.
+    let not_found = |kind: NoCurve, why: &str| match &embedded_failed {
+        Some(lead) => unresolved(
+            NoCurve::Unusable,
+            format!("{lead}{not_supplied}, and {why}"),
+        ),
+        None => unresolved(kind, format!("no embedded curve{not_supplied}, and {why}")),
+    };
+    match matches.as_slice() {
+        [] => not_found(
+            NoCurve::NotFound,
+            "no motor of that manufacturer and designation in the bundled catalog",
+        ),
+        [found] => {
+            let Some((curve, text)) = found
+                .curves
+                .iter()
+                .find_map(|curve| Some((curve, bundled_curve_text(&curve.file)?)))
+            else {
+                return not_found(
+                    NoCurve::NotFound,
+                    "the bundled catalog lists it without a curve",
+                );
+            };
+            sizes_agree(
+                motor,
+                found.diameter_mm,
+                found.length_mm,
+                "the bundled catalog",
+                at,
+                warnings,
+            );
+            match found.motor(curve, text) {
+                Ok(solid) => Curve::Catalog {
+                    motor_id: found.motor_id.clone(),
+                    simfile_id: curve.simfile_id.clone(),
+                    motor: Box::new(solid),
+                },
+                Err(error) => not_found(
+                    NoCurve::Unusable,
+                    &format!("the bundled catalog's curve failed: {error}"),
+                ),
+            }
+        }
+        several => not_found(
+            NoCurve::Ambiguous,
+            &format!(
+                "{} motors of that manufacturer and designation are in the bundled catalog",
+                several.len()
+            ),
+        ),
+    }
+}
+
+/// Warns when the case the `.ork` places differs by more than a millimeter from the one the curve
+/// describes (`diameter_mm`, `length_mm`, from `source`): the first sets where the motor sits, the
+/// second its mass.
+fn sizes_agree(
+    motor: &MotorRead,
+    diameter_mm: f64,
+    length_mm: f64,
+    source: &str,
+    at: &str,
+    warnings: &mut Vec<Warning>,
+) {
+    let apart = |ork_m: Option<f64>, mm: f64| ork_m.is_some_and(|m| (m * 1e3 - mm).abs() > 1.0);
+    if apart(motor.diameter_m, diameter_mm) || apart(motor.length_m, length_mm) {
+        warnings.push(Warning::new(
+            at,
+            WarningKind::Unusual,
+            format!(
+                "{} is {} by {} mm in the design and {diameter_mm} by {length_mm} mm in {source}; \
+                 the design's size places it, and the curve's gives its mass",
+                motor.designation,
+                motor.diameter_m.map_or(f64::NAN, |m| m * 1e3),
+                motor.length_m.map_or(f64::NAN, |m| m * 1e3),
+            ),
+        ));
+    }
+}
+
+/// Why an embedded curve was not used.
+enum Refused {
+    /// Its own header says it is a hybrid's.
+    Hybrid,
+    /// It could not be read or built, and why.
+    Unusable(String),
+}
+
+/// The motor an embedded `.rse` entry describes, built as the catalog builds one
+/// ([`SolidMotor::from_envelope`] from the file's diameter, length and masses).
+fn embedded(
+    attachment: &Attachment,
+    motor: &MotorRead,
+    at: &str,
+    warnings: &mut Vec<Warning>,
+) -> Result<SolidMotor, Refused> {
+    let unusable = |reason: String| Refused::Unusable(reason);
+    let text = std::str::from_utf8(&attachment.bytes)
+        .map_err(|_| unusable("it is not UTF-8 text".to_owned()))?;
+    let parsed = rse::parse(text).map_err(|error| unusable(error.to_string()))?;
+    for warning in &parsed.warnings {
+        warnings.push(Warning::new(
+            attachment.name.clone(),
+            WarningKind::Unusual,
+            format!("line {}: {}", warning.line, warning.message),
+        ));
+    }
+    let [engine] = parsed.value.engines.as_slice() else {
+        return Err(unusable(format!(
+            "it holds {} engines, not one",
+            parsed.value.engines.len()
+        )));
+    };
+    if engine
+        .motor_type
+        .as_deref()
+        .is_some_and(|kind| kind.trim().eq_ignore_ascii_case("hybrid"))
+    {
+        return Err(Refused::Hybrid);
+    }
+    if key(&engine.code) != key(&motor.designation) {
+        warnings.push(Warning::new(
+            at,
+            WarningKind::Unusual,
+            format!(
+                "the embedded curve its digest names is for `{}`, and the motor says `{}`; the \
+                 curve was used",
+                engine.code, motor.designation
+            ),
+        ));
+    }
+    sizes_agree(
+        motor,
+        engine.diameter_mm,
+        engine.length_mm,
+        "its embedded curve",
+        at,
+        warnings,
+    );
+    let thrust = engine
+        .thrust_curve()
+        .map_err(|error| unusable(error.to_string()))?;
+    SolidMotor::from_envelope(
+        thrust,
+        engine.diameter_mm * 1e-3,
+        engine.length_mm * 1e-3,
+        engine.propellant_mass_g * 1e-3,
+        engine.initial_mass_g * 1e-3,
+    )
+    .map_err(|error| unusable(error.to_string()))
+}
+
+/// What the rocket's reading says about flying any of its configurations.
+#[derive(Debug, Clone, Copy)]
+pub(super) struct Airframe<'a> {
+    /// What was not read exactly as written, if anything: then no configuration flies.
+    pub(super) incomplete: Option<&'a str>,
+    /// The stages' separations.
+    pub(super) separations: &'a [StageSeparation],
+}
+
+/// Each motor's ignition and the separations `configuration` flies, in the order they
+/// fire, or the first reason on [`NotFlown`]'s list that it can't be flown as written.
+fn flyable(
+    configuration: &MotorConfiguration,
+    hung_on: &[Option<usize>],
+    airframe: Airframe<'_>,
+) -> Result<(Vec<hpr_design::Ignition>, Vec<Staging>), LeftOut> {
+    if let Some(out) = left_out(configuration) {
+        return Err(out);
+    }
+    let motors = &configuration.motors;
+    let lit = motors
+        .iter()
+        .zip(staging::ignitions(motors, hung_on))
+        .map(|(motor, lit)| {
+            lit.map_err(|why| LeftOut {
+                why: NotFlown::IgnitionNotFlown,
+                message: format!(
+                    "{}, in stage {}, can't be lit as written: {why}",
+                    motor.designation, motor.stage
+                ),
+            })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    // A motor lit by one that never lights never lights either: say so, so every reader of the
+    // ignitions agrees. A configuration with no motor that lights would not leave the pad.
+    let lit = staging::never_when_waiting_on_never(motors, lit).map_err(|why| LeftOut {
+        why: NotFlown::IgnitionNotFlown,
+        message: why,
+    })?;
+    // Part of the airframe left out: no configuration of the rocket flies, whatever its motors.
+    if let Some(what) = airframe.incomplete {
+        return Err(LeftOut {
+            why: NotFlown::AirframeNotAsWritten,
+            message: format!("the airframe was not read exactly as written: {what}"),
+        });
+    }
+    let staging = staging::staging(
+        &configuration.id,
+        motors,
+        &lit,
+        airframe.separations,
+        hung_on,
+    )
+    .map_err(|why| LeftOut {
+        why: NotFlown::SeparationNotFlown,
+        message: format!("its stages can't be flown apart as written: {why}"),
+    })?;
+    Ok((lit, staging))
+}
+
+/// Why `configuration`'s motors cannot be flown as written, or `None` when they can: every motor
+/// read, with a curve and a size, and every stage flying.
+fn left_out(configuration: &MotorConfiguration) -> Option<LeftOut> {
+    let out = |why: NotFlown, message: String| Some(LeftOut { why, message });
+    if let Some(unread) = configuration.unread.first() {
+        return out(
+            NotFlown::UnreadMotor,
+            format!(
+                "{} of its motors is in a part hpr does not read ({}: {})",
+                configuration.unread.len(),
+                unread.designation,
+                unread.reason
+            ),
+        );
+    }
+    if configuration.motors.is_empty() {
+        return out(NotFlown::NoMotor, "it holds no motor".to_owned());
+    }
+    if !configuration.inactive_stages.is_empty() {
+        return out(
+            NotFlown::InactiveStage,
+            format!(
+                "it flies without stage {:?}, and hpr flies every stage",
+                configuration.inactive_stages
+            ),
+        );
+    }
+    let motors = &configuration.motors;
+    if let Some((motor, reason)) = motors.iter().find_map(|m| match &m.curve {
+        Curve::Unresolved { reason, .. } => Some((m, reason)),
+        _ => None,
+    }) {
+        return out(
+            NotFlown::NoCurve,
+            format!("no thrust curve for {}: {reason}", motor.designation),
+        );
+    }
+    if let Some(motor) = motors
+        .iter()
+        .find(|m| !m.diameter_m.is_some_and(|d| d > 0.0) || !m.length_m.is_some_and(|l| l > 0.0))
+    {
+        return out(
+            NotFlown::NoSize,
+            format!("{} has no case diameter and length", motor.designation),
+        );
+    }
+    None
+}
+
+/// `configuration` as a [`Configuration`] for [`Rocket::assemble`], each motor lit at `lit`; every
+/// motor has a curve and a size, which [`left_out`] checked.
+fn flown(configuration: &MotorConfiguration, lit: Vec<hpr_design::Ignition>) -> Configuration {
+    Configuration {
+        id: configuration.id.clone(),
+        name: configuration.name.clone(),
+        motors: configuration
+            .motors
+            .iter()
+            .zip(lit)
+            .filter_map(|(motor, ignition)| {
+                Some(MountedMotor {
+                    mount: motor.mount.clone(),
+                    designation: motor.designation.clone(),
+                    diameter_m: motor.diameter_m?,
+                    length_m: motor.length_m?,
+                    motor: motor.curve.motor()?.clone(),
+                    delay: motor.delay,
+                    ignition,
+                    failed_tubes: Vec::new(),
+                })
+            })
+            .collect(),
+    }
+}

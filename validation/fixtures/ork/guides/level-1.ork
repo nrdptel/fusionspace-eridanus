@@ -1,0 +1,132 @@
+<?xml version='1.0' encoding='utf-8'?>
+<openrocket version="1.10" creator="hpr-sim guide rocket (hand-authored, OpenRocket 1.10 schema)">
+  <rocket>
+    <name>Level 1 guide rocket</name>
+    <id>6a1d0000-0000-4000-8000-000000000001</id>
+    <designer>hpr-sim's how-to guides</designer>
+    <motorconfiguration configid="6a1d0000-0000-4000-8000-0000000000c1" default="true">
+      <stage number="0" active="true"/>
+    </motorconfiguration>
+    <motorconfiguration configid="6a1d0000-0000-4000-8000-0000000000c2">
+      <stage number="0" active="true"/>
+    </motorconfiguration>
+    <referencetype>maximum</referencetype>
+    <subcomponents>
+      <stage>
+        <name>Sustainer</name>
+        <id>6a1d0000-0000-4000-8000-000000000002</id>
+        <subcomponents>
+          <nosecone>
+            <name>Nose cone</name>
+            <id>6a1d0000-0000-4000-8000-000000000003</id>
+            <finish>normal</finish>
+            <material type="bulk" density="1050.0">Polystyrene</material>
+            <length>0.28</length>
+            <thickness>0.002</thickness>
+            <shape>ogive</shape>
+            <shapeparameter>1.0</shapeparameter>
+            <aftradius>0.033</aftradius>
+          </nosecone>
+          <bodytube>
+            <name>Airframe</name>
+            <id>6a1d0000-0000-4000-8000-000000000004</id>
+            <finish>normal</finish>
+            <material type="bulk" density="950.0">Kraft phenolic</material>
+            <length>0.90</length>
+            <thickness>0.0012</thickness>
+            <radius>0.033</radius>
+            <subcomponents>
+              <parachute>
+                <name>Parachute</name>
+                <id>6a1d0000-0000-4000-8000-000000000005</id>
+                <axialoffset method="top">0.05</axialoffset>
+                <packedlength>0.10</packedlength>
+                <packedradius>0.03</packedradius>
+                <cd>0.8</cd>
+                <material type="surface" density="0.067">Ripstop nylon</material>
+                <deployevent>ejection</deployevent>
+                <deploydelay>0.0</deploydelay>
+                <diameter>0.91</diameter>
+                <linecount>8</linecount>
+                <linelength>0.9</linelength>
+                <linematerial type="line" density="0.0025">Tubular nylon</linematerial>
+              </parachute>
+              <masscomponent>
+                <name>Shock cord</name>
+                <id>6a1d0000-0000-4000-8000-000000000006</id>
+                <axialoffset method="top">0.16</axialoffset>
+                <packedlength>0.06</packedlength>
+                <packedradius>0.025</packedradius>
+                <mass>0.06</mass>
+              </masscomponent>
+              <innertube>
+                <name>Motor mount tube</name>
+                <id>6a1d0000-0000-4000-8000-000000000007</id>
+                <axialoffset method="bottom">0.0</axialoffset>
+                <material type="bulk" density="950.0">Kraft phenolic</material>
+                <length>0.26</length>
+                <outerradius>0.0205</outerradius>
+                <thickness>0.001</thickness>
+                <motormount>
+                  <ignitionevent>automatic</ignitionevent>
+                  <ignitiondelay>0.0</ignitiondelay>
+                  <overhang>0.01</overhang>
+                  <motor configid="6a1d0000-0000-4000-8000-0000000000c1">
+                    <type>reload</type>
+                    <manufacturer>AeroTech</manufacturer>
+                    <designation>H170M</designation>
+                    <diameter>0.038</diameter>
+                    <length>0.191</length>
+                    <delay>10.0</delay>
+                  </motor>
+                  <motor configid="6a1d0000-0000-4000-8000-0000000000c2">
+                    <type>single</type>
+                    <manufacturer>AeroTech</manufacturer>
+                    <designation>I175WS</designation>
+                    <diameter>0.038</diameter>
+                    <length>0.214</length>
+                    <delay>9.0</delay>
+                  </motor>
+                </motormount>
+              </innertube>
+              <centeringring>
+                <name>Forward centering ring</name>
+                <id>6a1d0000-0000-4000-8000-000000000008</id>
+                <axialoffset method="bottom">-0.25</axialoffset>
+                <material type="bulk" density="630.0">Birch plywood</material>
+                <length>0.006</length>
+                <outerradius>0.0318</outerradius>
+                <innerradius>0.0205</innerradius>
+              </centeringring>
+              <centeringring>
+                <name>Aft centering ring</name>
+                <id>6a1d0000-0000-4000-8000-000000000009</id>
+                <axialoffset method="bottom">0.0</axialoffset>
+                <material type="bulk" density="630.0">Birch plywood</material>
+                <length>0.006</length>
+                <outerradius>0.0318</outerradius>
+                <innerradius>0.0205</innerradius>
+              </centeringring>
+              <trapezoidfinset>
+                <name>Fins</name>
+                <id>6a1d0000-0000-4000-8000-00000000000a</id>
+                <fincount>3</fincount>
+                <instancecount>3</instancecount>
+                <axialoffset method="bottom">0.0</axialoffset>
+                <finish>normal</finish>
+                <material type="bulk" density="630.0">Birch plywood</material>
+                <thickness>0.003</thickness>
+                <crosssection>square</crosssection>
+                <cant>0.0</cant>
+                <rootchord>0.13</rootchord>
+                <tipchord>0.06</tipchord>
+                <sweeplength>0.07</sweeplength>
+                <height>0.075</height>
+              </trapezoidfinset>
+            </subcomponents>
+          </bodytube>
+        </subcomponents>
+      </stage>
+    </subcomponents>
+  </rocket>
+</openrocket>

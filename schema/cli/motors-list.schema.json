@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MotorList",
+  "description": "`hpr motors list`: the bundled catalog's motors, with the figures their curve files give.",
+  "type": "object",
+  "properties": {
+    "catalog": {
+      "description": "Where the catalog comes from.",
+      "$ref": "#/$defs/CatalogInfo"
+    },
+    "motors": {
+      "description": "The motors that pass the filters, in catalog order (by impulse class).",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ListedMotor"
+      }
+    },
+    "tool": {
+      "title": "Tool",
+      "description": "The program that wrote a document or a file: the title block every `--json` document, every\nfile `hpr` writes and `hpr --version` carry (ADR-164; the product system's `data.md`: \"Every\nexport carries the designation and version of the tool that made it\").",
+      "type": "object",
+      "properties": {
+        "designation": {
+          "description": "Its designation in the FusionSpace product system: `FS-ACHERNAR · SW · TOOL 001`.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The program: `FusionSpace HPR`.",
+          "type": "string"
+        },
+        "version": {
+          "description": "Its version, such as `0.1.0`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "designation"
+      ]
+    }
+  },
+  "required": [
+    "tool",
+    "catalog",
+    "motors"
+  ],
+  "$defs": {
+    "CatalogInfo": {
+      "description": "Where the bundled catalog comes from.",
+      "type": "object",
+      "properties": {
+        "captured": {
+          "description": "The date the curve files were downloaded, `YYYY-MM-DD`.",
+          "type": "string"
+        },
+        "selection": {
+          "description": "Which motors were taken, and why.",
+          "type": "string"
+        },
+        "source": {
+          "description": "The source, such as `ThrustCurve.org data files marked public domain`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "captured",
+        "selection"
+      ]
+    },
+    "ListedMotor": {
+      "description": "One motor in the catalog: size and delays from its curve file's header, impulse, thrust and burn\ntime worked out from its curve, as `hpr motors show` and the simulator work them out.",
+      "type": "object",
+      "properties": {
+        "average_thrust_n": {
+          "description": "Average thrust, N, from the curve: total impulse over the burn time.",
+          "type": "number",
+          "format": "double"
+        },
+        "burn_time_s": {
+          "description": "Burn time, s, from the curve, by NFPA 1125.",
+          "type": "number",
+          "format": "double"
+        },
+        "common_name": {
+          "description": "The common name, such as `J760`.",
+          "type": "string"
+        },
+        "delays": {
+          "description": "The delays as the curve file's header writes them, such as `6,8,10`, `4-6` or `P`\n(plugged).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "designation": {
+          "description": "The manufacturer's full designation, such as `1266J760-19A`.",
+          "type": "string"
+        },
+        "diameter_mm": {
+          "description": "Casing diameter, mm.",
+          "type": "number",
+          "format": "double"
+        },
+        "impulse_class": {
+          "description": "The impulse class, such as `J`.",
+          "type": "string"
+        },
+        "length_mm": {
+          "description": "Casing length, mm.",
+          "type": "number",
+          "format": "double"
+        },
+        "manufacturer": {
+          "description": "The manufacturer.",
+          "type": "string"
+        },
+        "manufacturer_abbrev": {
+          "description": "The manufacturer's abbreviation, such as `CTI`.",
+          "type": "string"
+        },
+        "motor_type": {
+          "description": "`single_use`, `reload` or `hybrid`.",
+          "$ref": "#/$defs/MotorKind"
+        },
+        "total_impulse_ns": {
+          "description": "Total impulse, N·s, from the curve.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "designation",
+        "common_name",
+        "manufacturer",
+        "manufacturer_abbrev",
+        "impulse_class",
+        "motor_type",
+        "diameter_mm",
+        "length_mm",
+        "total_impulse_ns",
+        "average_thrust_n",
+        "burn_time_s"
+      ]
+    },
+    "MotorKind": {
+      "description": "Whether a motor is used once or reloaded into a reusable case.",
+      "oneOf": [
+        {
+          "description": "A single-use motor.",
+          "type": "string",
+          "const": "single_use"
+        },
+        {
+          "description": "A reload for a reusable case.",
+          "type": "string",
+          "const": "reload"
+        },
+        {
+          "description": "A hybrid: listed, but hpr models solid motors only.",
+          "type": "string",
+          "const": "hybrid"
+        }
+      ]
+    }
+  }
+}

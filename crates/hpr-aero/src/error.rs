@@ -1,0 +1,92 @@
+//! Error types for the aerodynamic models.
+
+use hpr_core::CoreError;
+use hpr_design::DesignError;
+use thiserror::Error;
+
+/// An error from the aerodynamic models: an input outside the models' domain, a design they can't
+/// describe, or an error from the design itself.
+#[derive(Debug, Clone, PartialEq, Error)]
+#[non_exhaustive]
+pub enum AeroError {
+    /// An input outside its domain, such as a negative span or a non-finite angle.
+    #[error("{what} is outside its domain: {value}")]
+    Domain {
+        /// What the value is.
+        what: &'static str,
+        /// The offending value.
+        value: f64,
+    },
+    /// A Mach number past the range of the model asked: `0 ≤ M < 5` for the normal force
+    /// ([`crate::model::NORMAL_FORCE_MACH_LIMIT`]) and the drag buildup
+    /// ([`crate::drag::BUILDUP_MACH_LIMIT`]); an override table takes any Mach number.
+    #[error("Mach {mach} is outside {model}'s range [0, {limit})")]
+    Mach {
+        /// The Mach number.
+        mach: f64,
+        /// The top of the model's range, which it doesn't reach.
+        limit: f64,
+        /// The model that refused it, such as "the drag buildup".
+        model: &'static str,
+    },
+    /// A part the models have no cited method for, such as tube fins.
+    #[error("no aerodynamic model: {0}")]
+    Unsupported(String),
+    /// A layout that doesn't hold together for the aerodynamic models, such as a fin set without
+    /// the radius of its body tube.
+    #[error("inconsistent layout: {0}")]
+    Layout(String),
+    /// An error in one component, with its id.
+    #[error("{id}: {source}")]
+    InComponent {
+        /// The component's id.
+        id: String,
+        /// The error.
+        source: Box<AeroError>,
+    },
+    /// An error from a drag model of a program's own ([`crate::custom::DragModel`]), as it gave
+    /// it: its own refusal, or one of hpr's it passed on.
+    #[error("drag model: {source}")]
+    DragModel {
+        /// The error.
+        source: Box<AeroError>,
+    },
+    /// An error from the design model, such as a profile whose volume integral fails.
+    #[error(transparent)]
+    Design(#[from] DesignError),
+    /// CSV text that doesn't read as a table, with its 1-based line (0 when the text has no
+    /// rows).
+    #[error("CSV line {line}: {message}")]
+    Csv {
+        /// The line, counting from 1.
+        line: usize,
+        /// What is wrong.
+        message: String,
+    },
+    /// A table that doesn't hold together, such as Mach numbers that don't increase.
+    #[error(transparent)]
+    Table(#[from] CoreError),
+}
+
+/// Checks that `value` is finite and positive (or non-negative when `allow_zero`).
+pub(crate) fn check_dimension(
+    what: &'static str,
+    value: f64,
+    allow_zero: bool,
+) -> Result<(), AeroError> {
+    let ok = value.is_finite() && (value > 0.0 || (allow_zero && value == 0.0));
+    if ok {
+        Ok(())
+    } else {
+        Err(AeroError::Domain { what, value })
+    }
+}
+
+/// Checks a Mach number in `[0, limit)` for `model`.
+pub(crate) fn check_mach(mach: f64, limit: f64, model: &'static str) -> Result<(), AeroError> {
+    if mach.is_finite() && (0.0..limit).contains(&mach) {
+        Ok(())
+    } else {
+        Err(AeroError::Mach { mach, limit, model })
+    }
+}

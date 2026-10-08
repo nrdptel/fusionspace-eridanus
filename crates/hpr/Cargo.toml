@@ -1,0 +1,74 @@
+[package]
+name = "fusionspace-hpr"
+description = "The hpr-sim library facade: re-exports of the workspace crates and a builder API for environments, motors, rockets and flights."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# The library keeps its Rust name, `hpr`, under the package's FusionSpace name (ADR-199).
+[lib]
+name = "hpr"
+
+[lints]
+workspace = true
+
+# Pure crate: no I/O, and it must build for wasm32-unknown-unknown (`cargo xtask wasm-check`).
+[package.metadata.hpr]
+wasm = true
+
+[dependencies]
+hpr-core.workspace = true
+hpr-atmos.workspace = true
+hpr-motor.workspace = true
+hpr-design.workspace = true
+hpr-aero.workspace = true
+hpr-sim.workspace = true
+hpr-analysis.workspace = true
+hpr-flightdata.workspace = true
+hpr-forensics.workspace = true
+hpr-format.workspace = true
+hpr-io.workspace = true
+hpr-net = { workspace = true, optional = true }
+serde.workspace = true
+thiserror.workspace = true
+
+[features]
+default = []
+# Online data sources with an on-disk cache and the HTTP transport (does I/O, so not for wasm32).
+net = ["dep:hpr-net", "hpr-net/http"]
+# `hpr_sim::export::parquet`: a recording as an Apache Parquet file.
+parquet = ["hpr-sim/parquet"]
+# `hpr_analysis::montecarlo::MonteCarlo::run_parallel`: Monte Carlo samples on worker threads.
+parallel = ["hpr-analysis/parallel"]
+
+[dev-dependencies]
+# The ten_thousand bench prints the threads of rayon's pool.
+rayon.workspace = true
+serde_json.workspace = true
+
+[[example]]
+name = "nomads_forecast"
+required-features = ["net"]
+
+[[example]]
+name = "open_meteo_weather"
+required-features = ["net"]
+
+[[example]]
+name = "site_elevation"
+required-features = ["net"]
+
+[[example]]
+name = "motor_stock"
+required-features = ["net"]
+
+[[example]]
+name = "wyoming_sounding"
+required-features = ["net"]
+
+[[bench]]
+name = "ten_thousand"
+harness = false
+required-features = ["parallel"]

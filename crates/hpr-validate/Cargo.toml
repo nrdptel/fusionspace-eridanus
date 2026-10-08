@@ -1,0 +1,29 @@
+[package]
+name = "hpr-validate"
+description = "The validation harness: case files, oracle references, metrics and reports."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+hpr-sim.workspace = true
+hpr-aero.workspace = true
+sha2.workspace = true
+hpr-design.workspace = true
+hpr-atmos.workspace = true
+hpr-core.workspace = true
+hpr-io.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+toml.workspace = true
+
+[dev-dependencies]
+# A spoiled copy of the repository's validation files, for `committed::check`'s end-to-end test.
+tempfile.workspace = true

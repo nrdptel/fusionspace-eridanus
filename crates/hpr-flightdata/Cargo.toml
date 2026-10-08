@@ -1,0 +1,35 @@
+[package]
+name = "fusionspace-hpr-flightdata"
+description = "Flight-log importers, filtering and smoothing, time alignment, parameter identification and fault diagnosis."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# The library keeps its Rust name, `hpr_flightdata`, under the package's FusionSpace name (ADR-199).
+[lib]
+name = "hpr_flightdata"
+
+[lints]
+workspace = true
+
+# Pure crate: no I/O, and it must build for wasm32-unknown-unknown (`cargo xtask wasm-check`).
+#
+# `forbids` is the layering rule of ADR-046: analyzing a flight log is a use of this project in
+# its own right, so nothing here may need the simulator. Readings that compare a flight with a
+# simulation of it belong in `hpr-forensics`. `hpr-atmos` is here because a few readings (Mach
+# number, dynamic pressure, pressure altitude) are meaningless without an atmosphere.
+[package.metadata.hpr]
+wasm = true
+forbids = ["fusionspace-hpr-sim"]
+
+[dependencies]
+hpr-core.workspace = true
+hpr-atmos.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+serde_json.workspace = true

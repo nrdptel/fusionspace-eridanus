@@ -1,0 +1,41 @@
+[package]
+name = "fusionspace-hpr-design"
+description = "The canonical rocket design model: component tree, shapes, materials, mass properties, stages and configurations, and design checks."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# The library keeps its Rust name, `hpr_design`, under the package's FusionSpace name (ADR-199).
+[lib]
+name = "hpr_design"
+
+[lints]
+workspace = true
+
+# Pure crate: no I/O, and it must build for wasm32-unknown-unknown (`cargo xtask wasm-check`).
+[package.metadata.hpr]
+wasm = true
+
+[dependencies]
+hpr-core.workspace = true
+hpr-motor.workspace = true
+# The hpr design format's JSON Schema is generated from the design's types (M3.3).
+schemars.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+glam.workspace = true
+proptest.workspace = true
+serde_json.workspace = true
+
+[[bench]]
+name = "mass"
+harness = false
+
+[[bench]]
+name = "design"
+harness = false

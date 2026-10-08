@@ -1,0 +1,396 @@
+{
+  "about": "Every motor configuration of every .ork in `cargo xtask ork`'s survey, flown by `hpr sim --offline` after one fetch. Written by `cargo xtask ork-cli`.",
+  "total": {
+    "files": 75,
+    "unreadable": 2,
+    "no_configuration": 10,
+    "configurations": 170,
+    "flies": 136,
+    "flies_with_flag": 9,
+    "refused": {
+      "a hybrid motor (out of scope until release 1.0)": 3,
+      "a motor with no curve fetched: ThrustCurve.org had none by its name, or the fetch failed": 1,
+      "a motor with no curve whose file records no digest, so none is fetched": 20,
+      "a separation hpr doesn't fly": 1
+    }
+  },
+  "sources": {
+    "OpenRocket's examples": {
+      "files": 17,
+      "unreadable": 0,
+      "no_configuration": 0,
+      "configurations": 56,
+      "flies": 54,
+      "flies_with_flag": 0,
+      "refused": {
+        "a hybrid motor (out of scope until release 1.0)": 2
+      }
+    },
+    "elsewhere under refs/": {
+      "files": 31,
+      "unreadable": 2,
+      "no_configuration": 10,
+      "configurations": 25,
+      "flies": 5,
+      "flies_with_flag": 0,
+      "refused": {
+        "a motor with no curve whose file records no digest, so none is fetched": 20
+      }
+    },
+    "refs/loft-fixtures": {
+      "files": 27,
+      "unreadable": 0,
+      "no_configuration": 0,
+      "configurations": 89,
+      "flies": 77,
+      "flies_with_flag": 9,
+      "refused": {
+        "a hybrid motor (out of scope until release 1.0)": 1,
+        "a motor with no curve fetched: ThrustCurve.org had none by its name, or the fetch failed": 1,
+        "a separation hpr doesn't fly": 1
+      }
+    }
+  },
+  "examples": [
+    {
+      "file": "3D printable nose cone and fins.ork",
+      "configuration": 1,
+      "motors": "A8",
+      "outcome": "flies"
+    },
+    {
+      "file": "3D printable nose cone and fins.ork",
+      "configuration": 2,
+      "motors": "B6",
+      "outcome": "flies"
+    },
+    {
+      "file": "3D printable nose cone and fins.ork",
+      "configuration": 3,
+      "motors": "C6",
+      "outcome": "flies"
+    },
+    {
+      "file": "3D printable nose cone and fins.ork",
+      "configuration": 4,
+      "motors": "C6",
+      "outcome": "flies"
+    },
+    {
+      "file": "3D printable nose cone and fins.ork",
+      "configuration": 5,
+      "motors": "C6",
+      "outcome": "flies"
+    },
+    {
+      "file": "A simple model rocket.ork",
+      "configuration": 1,
+      "motors": "A8",
+      "outcome": "flies"
+    },
+    {
+      "file": "A simple model rocket.ork",
+      "configuration": 2,
+      "motors": "B4",
+      "outcome": "flies"
+    },
+    {
+      "file": "A simple model rocket.ork",
+      "configuration": 3,
+      "motors": "C6",
+      "outcome": "flies"
+    },
+    {
+      "file": "A simple model rocket.ork",
+      "configuration": 4,
+      "motors": "C6",
+      "outcome": "flies"
+    },
+    {
+      "file": "A simple model rocket.ork",
+      "configuration": 5,
+      "motors": "C6",
+      "outcome": "flies"
+    },
+    {
+      "file": "ARC payload rocket.ork",
+      "configuration": 1,
+      "motors": "F50T",
+      "outcome": "flies"
+    },
+    {
+      "file": "Airstart timing.ork",
+      "configuration": 1,
+      "motors": "K550W; I211W",
+      "outcome": "flies"
+    },
+    {
+      "file": "Airstart timing.ork",
+      "configuration": 2,
+      "motors": "K550W; I211W",
+      "outcome": "flies"
+    },
+    {
+      "file": "Airstart timing.ork",
+      "configuration": 3,
+      "motors": "K550W; I211W",
+      "outcome": "flies"
+    },
+    {
+      "file": "Airstart timing.ork",
+      "configuration": 4,
+      "motors": "K550W; I211W",
+      "outcome": "flies"
+    },
+    {
+      "file": "Airstart timing.ork",
+      "configuration": 5,
+      "motors": "K550W; I211W",
+      "outcome": "flies"
+    },
+    {
+      "file": "Base drag hack (short-wide).ork",
+      "configuration": 1,
+      "motors": "C11",
+      "outcome": "flies"
+    },
+    {
+      "file": "Base drag hack (short-wide).ork",
+      "configuration": 2,
+      "motors": "D12",
+      "outcome": "flies"
+    },
+    {
+      "file": "Base drag hack (short-wide).ork",
+      "configuration": 3,
+      "motors": "E12",
+      "outcome": "flies"
+    },
+    {
+      "file": "Chute release.ork",
+      "configuration": 1,
+      "motors": "G40W",
+      "outcome": "flies"
+    },
+    {
+      "file": "Chute release.ork",
+      "configuration": 2,
+      "motors": "G80T",
+      "outcome": "flies"
+    },
+    {
+      "file": "Clustered motors.ork",
+      "configuration": 1,
+      "motors": "A8",
+      "outcome": "flies"
+    },
+    {
+      "file": "Clustered motors.ork",
+      "configuration": 2,
+      "motors": "B4",
+      "outcome": "flies"
+    },
+    {
+      "file": "Clustered motors.ork",
+      "configuration": 3,
+      "motors": "C6",
+      "outcome": "flies"
+    },
+    {
+      "file": "Clustered motors.ork",
+      "configuration": 4,
+      "motors": "C6",
+      "outcome": "flies"
+    },
+    {
+      "file": "Clustered motors.ork",
+      "configuration": 5,
+      "motors": "C6",
+      "outcome": "flies"
+    },
+    {
+      "file": "Deployable payload.ork",
+      "configuration": 1,
+      "motors": "A8",
+      "outcome": "flies"
+    },
+    {
+      "file": "Deployable payload.ork",
+      "configuration": 2,
+      "motors": "B4",
+      "outcome": "flies"
+    },
+    {
+      "file": "Deployable payload.ork",
+      "configuration": 3,
+      "motors": "C6",
+      "outcome": "flies"
+    },
+    {
+      "file": "Deployable payload.ork",
+      "configuration": 4,
+      "motors": "C6",
+      "outcome": "flies"
+    },
+    {
+      "file": "Deployable payload.ork",
+      "configuration": 5,
+      "motors": "C6",
+      "outcome": "flies"
+    },
+    {
+      "file": "Dual parachute deployment.ork",
+      "configuration": 1,
+      "motors": "H669N",
+      "outcome": "flies"
+    },
+    {
+      "file": "Dual parachute deployment.ork",
+      "configuration": 2,
+      "motors": "H242T",
+      "outcome": "flies"
+    },
+    {
+      "file": "Dual parachute deployment.ork",
+      "configuration": 3,
+      "motors": "J570W",
+      "outcome": "flies"
+    },
+    {
+      "file": "Dual parachute deployment.ork",
+      "configuration": 4,
+      "motors": "H999N",
+      "outcome": "flies"
+    },
+    {
+      "file": "Dual parachute deployment.ork",
+      "configuration": 5,
+      "motors": "I1299N",
+      "outcome": "flies"
+    },
+    {
+      "file": "Dual parachute deployment.ork",
+      "configuration": 6,
+      "motors": "G64W",
+      "outcome": "flies"
+    },
+    {
+      "file": "Parallel booster staging.ork",
+      "configuration": 1,
+      "motors": "E12; I115W",
+      "outcome": "flies"
+    },
+    {
+      "file": "Parallel booster staging.ork",
+      "configuration": 2,
+      "motors": "I115W",
+      "outcome": "flies"
+    },
+    {
+      "file": "Pods--airframes and winglets.ork",
+      "configuration": 1,
+      "motors": "A8",
+      "outcome": "flies"
+    },
+    {
+      "file": "Pods--airframes and winglets.ork",
+      "configuration": 2,
+      "motors": "B6",
+      "outcome": "flies"
+    },
+    {
+      "file": "Pods--airframes and winglets.ork",
+      "configuration": 3,
+      "motors": "C6",
+      "outcome": "flies"
+    },
+    {
+      "file": "Pods--airframes and winglets.ork",
+      "configuration": 4,
+      "motors": "C12",
+      "outcome": "flies"
+    },
+    {
+      "file": "Pods--airframes and winglets.ork",
+      "configuration": 5,
+      "motors": "D16",
+      "outcome": "flies"
+    },
+    {
+      "file": "Pods--powered with recovery deployment.ork",
+      "configuration": 1,
+      "motors": "C6; B6; A3; A3",
+      "outcome": "flies"
+    },
+    {
+      "file": "Pods--powered with recovery deployment.ork",
+      "configuration": 2,
+      "motors": "C6; B6",
+      "outcome": "flies"
+    },
+    {
+      "file": "Pods--powered with recovery deployment.ork",
+      "configuration": 3,
+      "motors": "C6",
+      "outcome": "flies"
+    },
+    {
+      "file": "Pods--powered with recovery deployment.ork",
+      "configuration": 4,
+      "motors": "B6; A10; A10",
+      "outcome": "flies"
+    },
+    {
+      "file": "Simulation extensions.ork",
+      "configuration": 1,
+      "motors": "2800CC172L-L540",
+      "outcome": {
+        "refused": "a hybrid motor (out of scope until release 1.0)"
+      }
+    },
+    {
+      "file": "Simulation scripting.ork",
+      "configuration": 1,
+      "motors": "2800CC172L-L540",
+      "outcome": {
+        "refused": "a hybrid motor (out of scope until release 1.0)"
+      }
+    },
+    {
+      "file": "Three stage low power rocket.ork",
+      "configuration": 1,
+      "motors": "A8; B6; B6",
+      "outcome": "flies"
+    },
+    {
+      "file": "Three stage low power rocket.ork",
+      "configuration": 2,
+      "motors": "C6; B6; B6",
+      "outcome": "flies"
+    },
+    {
+      "file": "Three stage low power rocket.ork",
+      "configuration": 3,
+      "motors": "C6; C6; C6",
+      "outcome": "flies"
+    },
+    {
+      "file": "Tube fin rocket.ork",
+      "configuration": 1,
+      "motors": "D12",
+      "outcome": "flies"
+    },
+    {
+      "file": "Two stage high power rocket.ork",
+      "configuration": 1,
+      "motors": "H148R; H148R",
+      "outcome": "flies"
+    },
+    {
+      "file": "Two stage high power rocket.ork",
+      "configuration": 2,
+      "motors": "I59WN; I357T",
+      "outcome": "flies"
+    }
+  ]
+}

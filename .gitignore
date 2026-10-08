@@ -1,0 +1,45 @@
+# Rust
+/target/
+**/*.rs.bk
+
+# Reference library and private corpora: never commit these (see CONTRIBUTING.md rules 3–4)
+/refs/
+/corpus/
+/corpus-out/
+
+# Python / Node tooling used by the oracles and bindings
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+/dist/
+*.whl
+
+# A `--fast` validation run's report: partial, local, and never the suite's record (ADR-015).
+validation/reports/latest-fast.*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# insta's pending snapshots, reviewed before any is accepted
+*.snap.new
+*.pending-snap
+
+# The Python package's native module, as `maturin develop` leaves it in the source tree
+crates/hpr-py/python/fusionspace/hpr/*.so
+crates/hpr-py/python/fusionspace/hpr/*.pyd
+# Where builds before the FusionSpace HPR rename put the module.
+crates/hpr-py/python/hpr/*.so
+crates/hpr-py/python/hpr/*.pyd
+
+# The license files scripts/release/python.sh puts beside the Python package for a release build
+/crates/hpr-py/LICENSE-MIT
+/crates/hpr-py/LICENSE-APACHE
+/crates/hpr-py/THIRD-PARTY-NOTICES.md
+/crates/hpr-py/THIRD-PARTY-LICENSES.txt
+/crates/hpr-py/pyproject.toml.checkout

@@ -1,0 +1,361 @@
+{
+  "about": "For each motor of OpenRocket 24.12's examples, by the digest a .ork records, the ThrustCurve.org data file holding the curve OpenRocket flies: written by `cargo xtask ork-curves` (ADR-161). largest_difference is the largest difference in thrust from OpenRocket's curve, over its peak thrust; mass_difference the larger difference of the propellant's and the dry motor's mass from OpenRocket's, over its loaded mass; others_differences the thrust difference for the motor's other files.",
+  "files": [
+    {
+      "designation": "F50T",
+      "digest": "019164167fce99d0709c22dc0e410ad7",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "AeroTech",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0
+      ],
+      "simfile_id": "5f4294d20002e9000000045b"
+    },
+    {
+      "designation": "A10",
+      "digest": "04f131c5d7f2ec4f0ec0d259dd838bf1",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "Estes",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.552273,
+        0.552273
+      ],
+      "simfile_id": "624aff26a49a690004b83002"
+    },
+    {
+      "designation": "J570W",
+      "digest": "14373c65485521035497b1db20e110d3",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "AeroTech",
+      "mass_difference": 0.0,
+      "others_differences": [
+        4e-6
+      ],
+      "simfile_id": "5f4294d20002e9000000005d"
+    },
+    {
+      "designation": "C12",
+      "digest": "14b080b33be165c3309254a604bcecba",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "Quest",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0
+      ],
+      "simfile_id": "5f4294d20002e900000008a4"
+    },
+    {
+      "designation": "H148R",
+      "digest": "18271c30f81ec3213a037e53a5b678dc",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "AeroTech",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.04013
+      ],
+      "simfile_id": "5f4294d20002e9000000000f"
+    },
+    {
+      "designation": "I115W",
+      "digest": "18b10160746afa88aa571c950221cb06",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "AeroTech",
+      "mass_difference": 0.0,
+      "others_differences": [],
+      "simfile_id": "5f4294d20002e90000000423"
+    },
+    {
+      "designation": "A8",
+      "digest": "22aec01287ea1e3b8c6f66b26fe5fea6",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "Estes",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0,
+        0.427223
+      ],
+      "simfile_id": "5f4294d20002e900000004e3"
+    },
+    {
+      "designation": "E12",
+      "digest": "27575268e95ac6983801956efb389764",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "Estes",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0
+      ],
+      "simfile_id": "5f4294d20002e900000007ad"
+    },
+    {
+      "designation": "A3",
+      "digest": "4dc031a0d591966f87e840f87da6f42c",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "Estes",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0
+      ],
+      "simfile_id": "5f4294d20002e900000004e2"
+    },
+    {
+      "designation": "C11",
+      "digest": "4f0059c416964ba2528c83551e6a6839",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "Estes",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0
+      ],
+      "simfile_id": "5f4294d20002e900000004e8"
+    },
+    {
+      "designation": "B6",
+      "digest": "524787762ca4da7db6dbfb7e43b4cd09",
+      "format": "RockSim",
+      "largest_difference": 0.0,
+      "manufacturer": "Estes",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.027151
+      ],
+      "simfile_id": "5f4294d20002e9000000036b"
+    },
+    {
+      "designation": "I1299N",
+      "digest": "6b4aebccc355196a4e289ce84d517b0e",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "AeroTech",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0
+      ],
+      "simfile_id": "5f4294d20002e90000000273"
+    },
+    {
+      "decided_by_mass": true,
+      "designation": "I211W",
+      "digest": "6f055ac96725164ac5814d96f109b8d5",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "AeroTech",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0
+      ],
+      "simfile_id": "5f4294d20002e90000000035"
+    },
+    {
+      "decided_by_mass": true,
+      "designation": "K550W",
+      "digest": "822e1d4ed7924f9dea7a62b5f5ff2823",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "AeroTech",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0
+      ],
+      "simfile_id": "5f4294d20002e90000000071"
+    },
+    {
+      "designation": "G40W",
+      "digest": "96f84e3d549cb6ae6e52df6732fe1bfc",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "AeroTech",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0
+      ],
+      "simfile_id": "5f4294d20002e90000000463"
+    },
+    {
+      "designation": "I59WN",
+      "digest": "98ae79d6746a616fdd637d75f4c97eb6",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "AeroTech",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0
+      ],
+      "simfile_id": "5f4294d20002e90000000660"
+    },
+    {
+      "designation": "D16",
+      "digest": "99efdce542a60845c9b82c846fb59d4c",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "Quest",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0
+      ],
+      "simfile_id": "5f4294d20002e90000000893"
+    },
+    {
+      "designation": "G80T",
+      "digest": "bc77ef06b0e4f9471985fe24e1d7fbd6",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "AeroTech",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.462942,
+        0.462942,
+        0.979774
+      ],
+      "simfile_id": "5f4294d20002e9000000044a"
+    },
+    {
+      "designation": "B4",
+      "digest": "c15b9b96bf06e0ab896394787da3c47e",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "Estes",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0,
+        0.6212
+      ],
+      "simfile_id": "5f4294d20002e900000004e5"
+    },
+    {
+      "decided_by_mass": true,
+      "designation": "I357T",
+      "digest": "c18a3e543f11f1c7369459f239a3477e",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "AeroTech",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0
+      ],
+      "simfile_id": "5f4294d20002e9000000003f"
+    },
+    {
+      "designation": "C6",
+      "digest": "c8743ef3fa99e14a89885cbe0ead47b2",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "Estes",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0,
+        0.0,
+        0.342936
+      ],
+      "simfile_id": "69eb2379c7d63000021d8c29"
+    },
+    {
+      "designation": "G64W",
+      "digest": "d72e5f01400ce95e40c3f4f4990a67f8",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "AeroTech",
+      "mass_difference": 0.0,
+      "others_differences": [],
+      "simfile_id": "5f4294d20002e9000000081a"
+    },
+    {
+      "designation": "H669N",
+      "digest": "dfeac53db6e18bc3583856fb9f06272e",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "AeroTech",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0
+      ],
+      "simfile_id": "5f4294d20002e9000000026a"
+    },
+    {
+      "decided_by_mass": true,
+      "designation": "H242T",
+      "digest": "e49249080ef9c1671ec2a86418848af9",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "AeroTech",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0,
+        0.497872
+      ],
+      "simfile_id": "5f4294d20002e9000000001b"
+    },
+    {
+      "designation": "H999N",
+      "digest": "e8c8cdd09c63c4fc3d6790252de6049a",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "AeroTech",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0,
+        0.48651
+      ],
+      "simfile_id": "5f4294d20002e9000000026b"
+    },
+    {
+      "designation": "B6",
+      "digest": "ebc2af7f8c6f8665d1bec720ddc2b5e1",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "Estes",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.027131
+      ],
+      "simfile_id": "5f4294d20002e90000000414"
+    },
+    {
+      "designation": "D12",
+      "digest": "ec683e131a2b32950561abfe011b0afc",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "Estes",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.0
+      ],
+      "simfile_id": "5f4294d20002e900000004ea"
+    },
+    {
+      "designation": "A8",
+      "digest": "f3a785e1523935caf239c7366cf81fee",
+      "format": "RASP",
+      "largest_difference": 0.0,
+      "manufacturer": "Estes",
+      "mass_difference": 0.0,
+      "others_differences": [
+        0.435047,
+        0.435047
+      ],
+      "simfile_id": "5f4294d20002e90000000897"
+    }
+  ],
+  "match_bound": 0.01,
+  "openrocket": "24.12",
+  "unmatched": [
+    {
+      "designation": "2800CC172L-L540",
+      "digest": "08bbc968cab39e437cf3721ae4fac3f1",
+      "manufacturer": "HyperTEK",
+      "why": "OpenRocket's database has no solid curve for the digest"
+    }
+  ]
+}

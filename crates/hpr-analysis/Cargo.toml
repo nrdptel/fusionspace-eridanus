@@ -1,0 +1,46 @@
+[package]
+name = "fusionspace-hpr-analysis"
+description = "Monte Carlo dispersion, sensitivity analysis, optimization and challenge specifications."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# The library keeps its Rust name, `hpr_analysis`, under the package's FusionSpace name (ADR-199).
+[lib]
+name = "hpr_analysis"
+
+[lints]
+workspace = true
+
+# Pure crate: no I/O, and it must build for wasm32-unknown-unknown (`cargo xtask wasm-check`).
+[package.metadata.hpr]
+wasm = true
+
+[dependencies]
+hpr-aero.workspace = true
+hpr-atmos.workspace = true
+hpr-core.workspace = true
+hpr-design.workspace = true
+hpr-motor.workspace = true
+hpr-sim.workspace = true
+libm.workspace = true
+rayon = { workspace = true, optional = true }
+serde.workspace = true
+thiserror.workspace = true
+
+[features]
+# `MonteCarlo::run_parallel`: samples on worker threads (rayon). Off by default and never built
+# for wasm32 (`cargo xtask wasm-check` builds default features).
+parallel = ["dep:rayon"]
+
+[dev-dependencies]
+proptest.workspace = true
+serde_json.workspace = true
+
+# M6.2d2's measurement, 20 runs of EGO on Hartmann's six-variable function: minutes in a release
+# build, so `cargo bench` runs it, not `cargo test` (ADR-152).
+[[bench]]
+name = "ego_hartmann6"
+harness = false

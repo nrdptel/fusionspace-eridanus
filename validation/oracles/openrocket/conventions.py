@@ -1,0 +1,866 @@
+"""What OpenRocket 24.12 weighs when a `.ork` leaves something unsaid or says it twice.
+
+M2.2a held each design's structure to OpenRocket's and found the files outside a threshold fall
+into a handful of causes (ADR-060). Some of them are not physics but readings: what a shoulder
+written with no wall weighs, what a part written with no material is made of, where a centre of
+gravity override is measured from, and which override wins when a part and the parts inside it
+both have one. OpenRocket's answer is what the file means, so this script measures it (M2.2b):
+it writes small probe designs, each asking one question, has OpenRocket 24.12 read them, and
+records its structure (mass, centre of mass, inertias) and its own per-part breakdown. hpr's test
+`hpr_validate::openrocket::tests` reads the same documents and holds hpr to the answers.
+
+It also records the material OpenRocket gives each kind of part that names none, read through the
+part's public `getMaterial` and `getLineMaterial`. M2.2b2 added probes of one tube and one part
+each (every kind of part, fin outlines, sections, a tab, fillets, a cant, rail buttons from each
+end), so that a part's roll inertia is the probe's less the tube's (ADR-062). M2.2e6 added
+probes of the single subcomponent-override flag written before schema 1.9, with the flags
+OpenRocket reads each part with. M2.2e7 added probes of fillets and of an automatic outer radius
+inside a nose cone or transition (ADR-096). M2.2e8 added probes of tube fin sets, among them
+sets whose radius OpenRocket works out from the body (#133).
+
+OpenRocket is run, never read: its source is GPL, and nothing here comes from it. The class and
+method names used are the public API `javap` prints for the jar. Each probe is saved once, to a
+throwaway, before it is read, as `mass.py` does, so that every automatic dimension is settled.
+
+OpenRocket 24.12 needs Java 17 exactly; see `automatic_radius.py`. Run from the repository root:
+
+    refs/venv/bin/python validation/oracles/openrocket/conventions.py \\
+        validation/fixtures/ork/openrocket-conventions.json
+
+The fixture is written to the path given, not to standard output, which OpenRocket logs to.
+"""
+
+import hashlib
+import json
+import logging
+import sys
+import tempfile
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import automatic_radius  # noqa: E402 - the JVM start, the loader and the settling save
+import mass  # noqa: E402 - the structure and the per-part breakdown, asked the same way
+
+
+# Provenance written into the fixture (docs/VALIDATION.md). Update when regenerating.
+GENERATED = "2026-09-28"
+
+
+def uid(n):
+    """A fixed id, so that hpr and OpenRocket name each part the same way."""
+    return f"00000000-0000-4000-8000-{n:012d}"
+
+
+# One material for every part that names one: 1,000 kg/m³, so masses read as volumes.
+MATERIAL = '<material type="bulk" density="1000.0">Probe</material>'
+
+
+def nose(extra="", thickness="0.002", material=MATERIAL, shape="conical", children=""):
+    """A conical nose, 0.3 m long on a 50 mm base, with a 2 mm wall."""
+    inside = f"<subcomponents>{children}</subcomponents>" if children else ""
+    return (
+        f"<nosecone><name>Nose</name><id>{uid(1)}</id><length>0.3</length>"
+        f"<thickness>{thickness}</thickness><shape>{shape}</shape><aftradius>0.05</aftradius>"
+        f"{extra}{material}{inside}</nosecone>"
+    )
+
+
+def shoulder(end, thickness, capped="false"):
+    """A shoulder 0.1 m long, 48 mm in radius, at one end of a nose or transition."""
+    return (
+        f"<{end}shoulderradius>0.048</{end}shoulderradius>"
+        f"<{end}shoulderlength>0.1</{end}shoulderlength>"
+        f"<{end}shoulderthickness>{thickness}</{end}shoulderthickness>"
+        f"<{end}shouldercapped>{capped}</{end}shouldercapped>"
+    )
+
+
+def tube(extra="", children="", thickness="0.002", material=MATERIAL):
+    """A body tube 0.5 m long, 50 mm in radius, with a 2 mm wall."""
+    inside = f"<subcomponents>{children}</subcomponents>" if children else ""
+    return (
+        f"<bodytube><name>Tube</name><id>{uid(2)}</id><length>0.5</length>"
+        f"<thickness>{thickness}</thickness><radius>0.05</radius>{extra}{material}{inside}"
+        "</bodytube>"
+    )
+
+
+def transition(extra="", thickness="0.002", material=MATERIAL, children=""):
+    """A transition 0.1 m long from 50 mm to 40 mm, with a 2 mm wall."""
+    inside = f"<subcomponents>{children}</subcomponents>" if children else ""
+    return (
+        f"<transition><name>Transition</name><id>{uid(3)}</id><length>0.1</length>"
+        f"<thickness>{thickness}</thickness><shape>conical</shape>"
+        f"<foreradius>0.05</foreradius><aftradius>0.04</aftradius>{extra}{material}{inside}"
+        "</transition>"
+    )
+
+
+def attached_tube(tag, n, name, thickness, material=MATERIAL):
+    """An inner tube, coupler or engine block 0.1 m long and 20 mm in radius, 0.1 m below the top
+    of its tube; `thickness` is written as given, or left out when it is `None`."""
+    wall = "" if thickness is None else f"<thickness>{thickness}</thickness>"
+    return (
+        f"<{tag}><name>{name}</name><id>{uid(n)}</id><position type=\"top\">0.1</position>"
+        f"<length>0.1</length><outerradius>0.02</outerradius>{wall}{material}</{tag}>"
+    )
+
+
+def lug(thickness, material=MATERIAL):
+    """A launch lug 50 mm long and 5 mm in radius, 0.1 m below the top of its tube."""
+    wall = "" if thickness is None else f"<thickness>{thickness}</thickness>"
+    return (
+        f"<launchlug><name>Lug</name><id>{uid(8)}</id><position type=\"top\">0.1</position>"
+        f"<length>0.05</length><radius>0.005</radius>{wall}{material}</launchlug>"
+    )
+
+
+def attached_tubes(thickness):
+    """One inner tube, one coupler and one lug, all with the same wall."""
+    return (
+        attached_tube("innertube", 4, "Inner", thickness)
+        + attached_tube("tubecoupler", 13, "Coupler", thickness)
+        + lug(thickness)
+    )
+
+
+# More kinds that name no material: a coupler, an engine block, an elliptical and a freeform fin
+# set, each placed 0.1 m below the top of its tube.
+MORE_NO_MATERIAL_CHILDREN = (
+    attached_tube("tubecoupler", 13, "Coupler", "0.001", material="")
+    + attached_tube("engineblock", 14, "Block", "0.005", material="")
+    + f"<ellipticalfinset><name>Elliptical</name><id>{uid(15)}</id>"
+    '<position type="top">0.1</position><fincount>3</fincount><rootchord>0.1</rootchord>'
+    "<height>0.05</height><thickness>0.003</thickness><crosssection>square</crosssection>"
+    "</ellipticalfinset>"
+    f"<freeformfinset><name>Freeform</name><id>{uid(16)}</id>"
+    '<position type="top">0.1</position><fincount>3</fincount><thickness>0.003</thickness>'
+    '<crosssection>square</crosssection><finpoints><point x="0.0" y="0.0"/>'
+    '<point x="0.05" y="0.05"/><point x="0.1" y="0.05"/><point x="0.1" y="0.0"/></finpoints>'
+    "</freeformfinset>"
+)
+
+
+def inner(extra="", material=MATERIAL):
+    """An inner tube 0.2 m long, 20 mm in radius, 1 mm wall, 0.1 m below its parent's top."""
+    return (
+        f"<innertube><name>Inner</name><id>{uid(4)}</id><position type=\"top\">0.1</position>"
+        "<length>0.2</length><outerradius>0.02</outerradius><thickness>0.001</thickness>"
+        f"{extra}{material}</innertube>"
+    )
+
+
+def overrides(mass_kg=None, cg_m=None, children_mass=None, children_cg=None):
+    """The override tags, each written only when given."""
+    tags = []
+    if mass_kg is not None:
+        tags.append(f"<overridemass>{mass_kg}</overridemass>")
+    if cg_m is not None:
+        tags.append(f"<overridecg>{cg_m}</overridecg>")
+    if children_mass is not None:
+        tags.append(f"<overridesubcomponentsmass>{children_mass}</overridesubcomponentsmass>")
+    if children_cg is not None:
+        tags.append(f"<overridesubcomponentscg>{children_cg}</overridesubcomponentscg>")
+    return "".join(tags)
+
+
+# The parts that name no material, for the defaults: one of each kind hpr reads, each placed
+# 0.1 m below the top of its tube so that only the material is in question.
+NO_MATERIAL_CHILDREN = (
+    f"<innertube><name>Inner</name><id>{uid(4)}</id><position type=\"top\">0.1</position>"
+    "<length>0.2</length><outerradius>0.02</outerradius><thickness>0.001</thickness></innertube>"
+    f"<trapezoidfinset><name>Fins</name><id>{uid(5)}</id><position type=\"top\">0.1</position><fincount>3</fincount>"
+    "<rootchord>0.1</rootchord><tipchord>0.05</tipchord><sweeplength>0.05</sweeplength>"
+    "<height>0.05</height><thickness>0.003</thickness><crosssection>square</crosssection>"
+    "</trapezoidfinset>"
+    f"<centeringring><name>Ring</name><id>{uid(6)}</id><position type=\"top\">0.1</position><length>0.01</length>"
+    "<outerradius>auto</outerradius><innerradius>0.02</innerradius></centeringring>"
+    f"<bulkhead><name>Bulkhead</name><id>{uid(7)}</id><position type=\"top\">0.1</position><length>0.01</length>"
+    "<outerradius>auto</outerradius></bulkhead>"
+    f"<launchlug><name>Lug</name><id>{uid(8)}</id><position type=\"top\">0.1</position><length>0.05</length>"
+    "<radius>0.005</radius><thickness>0.001</thickness></launchlug>"
+    f"<parachute><name>Chute</name><id>{uid(9)}</id><position type=\"top\">0.1</position><packedlength>0.05</packedlength>"
+    "<packedradius>0.02</packedradius><diameter>0.5</diameter><linecount>6</linecount><linelength>0.5</linelength></parachute>"
+    f"<shockcord><name>Cord</name><id>{uid(10)}</id><position type=\"top\">0.1</position><packedlength>0.05</packedlength>"
+    "<packedradius>0.01</packedradius><cordlength>1.0</cordlength></shockcord>"
+    f"<streamer><name>Streamer</name><id>{uid(11)}</id><position type=\"top\">0.1</position><packedlength>0.05</packedlength>"
+    "<packedradius>0.01</packedradius><striplength>1.0</striplength><stripwidth>0.05</stripwidth></streamer>"
+    f"<railbutton><name>Button</name><id>{uid(12)}</id><position type=\"top\">0.1</position><outerdiameter>0.01</outerdiameter>"
+    "<innerdiameter>0.006</innerdiameter><height>0.008</height><baseheight>0.002</baseheight>"
+    "<flangeheight>0.002</flangeheight><instancecount>1</instancecount></railbutton>"
+)
+
+# Each probe: what it asks, and the stage's parts. A probe of several stages gives a list of them.
+PROBES = {
+    # Shoulders and walls.
+    "a nose with no shoulder": [nose()],
+    "a nose with a walled shoulder": [nose(shoulder("aft", "0.002"))],
+    "a nose whose shoulder has no wall": [nose(shoulder("aft", "0.0"))],
+    "a nose whose shoulder has no wall, capped": [nose(shoulder("aft", "0.0", "true"))],
+    "a filled nose whose shoulder has no wall": [nose(shoulder("aft", "0.0"), "filled")],
+    "a filled nose with a walled shoulder": [nose(shoulder("aft", "0.002"), "filled")],
+    "a transition whose shoulders have no wall": [
+        transition(shoulder("fore", "0.0") + shoulder("aft", "0.0"))
+    ],
+    "a nose of no wall": [nose(thickness="0.0")],
+    "a transition of no wall": [transition(thickness="0.0")],
+    "a tube of no wall": [tube(thickness="0.0")],
+    "a nose, a shoulder and a tube that write no thickness at all": [
+        nose(shoulder("aft", "0.002").replace(
+            "<aftshoulderthickness>0.002</aftshoulderthickness>", ""
+        ), thickness="").replace("<thickness></thickness>", ""),
+        tube(thickness="").replace("<thickness></thickness>", ""),
+    ],
+    "a narrower nose and tube that write no thickness at all": [
+        nose(thickness="").replace("<thickness></thickness>", "").replace(
+            "<aftradius>0.05</aftradius>", "<aftradius>0.03</aftradius>"
+        ),
+        tube(thickness="").replace("<thickness></thickness>", "").replace(
+            "<radius>0.05</radius>", "<radius>0.03</radius>"
+        ),
+    ],
+    "a transition that writes no thickness at all": [
+        tube(),
+        transition(thickness="").replace("<thickness></thickness>", ""),
+    ],
+    "a tube holding an inner tube, a coupler and a lug of no wall": [
+        tube(children=attached_tubes("0.0"))
+    ],
+    "a tube holding an inner tube, a coupler and a lug that write no thickness": [
+        tube(children=attached_tubes(None))
+    ],
+    "a mass override on a nose of no wall": [nose(overrides(mass_kg=0.1), thickness="0.0")],
+    # Materials.
+    "a nose and a tube that name no material, with one part of each kind inside": [
+        nose(material=""),
+        tube(children=NO_MATERIAL_CHILDREN, material=""),
+    ],
+    "a transition, and more kinds inside a tube, that name no material": [
+        tube(children=MORE_NO_MATERIAL_CHILDREN),
+        transition(material=""),
+    ],
+    # Overrides on a part with a shoulder (Loft lesson L51).
+    "a centre of gravity override on a nose with a shoulder": [
+        nose(shoulder("aft", "0.002") + overrides(cg_m=0.25))
+    ],
+    "a mass override on a nose with a shoulder": [
+        nose(shoulder("aft", "0.002") + overrides(mass_kg=0.5))
+    ],
+    "a centre of gravity override on a transition with a fore shoulder": [
+        tube(),
+        transition(shoulder("fore", "0.002") + overrides(cg_m=0.02)),
+    ],
+    # Overrides on a part with a part inside.
+    "a mass override on a tube, not the part inside": [
+        tube(overrides(mass_kg=0.5, children_mass="false"), inner())
+    ],
+    "a mass override on a tube and the part inside": [
+        tube(overrides(mass_kg=0.5, children_mass="true"), inner())
+    ],
+    "a centre of gravity override on a tube, not the part inside": [
+        tube(overrides(cg_m=0.1, children_cg="false"), inner())
+    ],
+    "a centre of gravity override on a tube and the part inside": [
+        tube(overrides(cg_m=0.1, children_cg="true"), inner())
+    ],
+    "both overrides on a tube, the mass covering the part inside and the centre not": [
+        tube(overrides(0.5, 0.1, "true", "false"), inner())
+    ],
+    "both overrides on a tube, the centre covering the part inside and the mass not": [
+        tube(overrides(0.5, 0.1, "false", "true"), inner())
+    ],
+    "a mass override on a tube and the part inside, which has its own": [
+        tube(overrides(mass_kg=0.5, children_mass="true"), inner(overrides(mass_kg=0.2)))
+    ],
+    "a mass override on the part inside only": [tube(children=inner(overrides(mass_kg=0.2)))],
+}
+
+# Stage overrides are written on the stage, so these probes carry the stage's tags too.
+STAGE_PROBES = {
+    "a mass override on the stage": (overrides(mass_kg=2.0, children_mass="true"), [nose(), tube()]),
+    "both overrides on the stage": (
+        overrides(2.0, 0.4, "true", "true"),
+        [nose(), tube()],
+    ),
+    "a stage override over a part's own": (
+        overrides(mass_kg=2.0, children_mass="true"),
+        [nose(overrides(mass_kg=0.5)), tube()],
+    ),
+}
+
+
+def automatic_tube(tag, n, name, position, length="0.1", thickness="0.001", children=""):
+    """An inner tube, coupler or engine block of automatic outer radius, 1 mm wall by default,
+    placed by `position`, a whole `<position>` tag."""
+    inside = f"<subcomponents>{children}</subcomponents>" if children else ""
+    return (
+        f"<{tag}><name>{name}</name><id>{uid(n)}</id>{position}<length>{length}</length>"
+        f"<outerradius>auto</outerradius><thickness>{thickness}</thickness>{MATERIAL}{inside}"
+        f"</{tag}>"
+    )
+
+
+def at(kind, offset):
+    return f'<position type="{kind}">{offset}</position>'
+
+
+# M2.2e7: an automatic outer radius inside a nose cone or transition, whose bore narrows along it,
+# and an `innertube` written `auto` (ADR-096). The nose is `nose()`, 0.3 m long on a 50 mm base.
+BORE_PROBES = {
+    "a nose holding a coupler of automatic radius at its bottom": [
+        nose(children=automatic_tube("tubecoupler", 13, "Coupler", at("bottom", "0.0"))), tube()
+    ],
+    "an ogive nose holding a coupler of automatic radius at its bottom": [
+        nose(shape="ogive", children=automatic_tube("tubecoupler", 13, "Coupler", at("bottom", "0.0"))),
+        tube(),
+    ],
+    "a nose holding a coupler of automatic radius past its base": [
+        nose(children=automatic_tube("tubecoupler", 13, "Coupler", at("bottom", "0.05"))), tube()
+    ],
+    "a nose with a shoulder, holding a coupler of automatic radius past its base": [
+        nose(
+            shoulder("aft", "0.002"),
+            children=automatic_tube("tubecoupler", 13, "Coupler", at("bottom", "0.05")),
+        ),
+        tube(),
+    ],
+    "a nose holding a long coupler of automatic radius from its middle": [
+        nose(children=automatic_tube("tubecoupler", 13, "Coupler", at("middle", "0.0"), length="0.2")),
+        tube(),
+    ],
+    "a nose holding an engine block of automatic radius": [
+        nose(children=automatic_tube("engineblock", 14, "Block", at("bottom", "0.0"))), tube()
+    ],
+    "a nose holding a centering ring and a bulkhead of automatic radius": [
+        nose(
+            children=f"<centeringring><name>Ring</name><id>{uid(6)}</id>{at('bottom', '0.0')}"
+            "<length>0.01</length><outerradius>auto</outerradius><innerradius>0.005</innerradius>"
+            f"{MATERIAL}</centeringring>"
+            f"<bulkhead><name>Bulkhead</name><id>{uid(7)}</id>{at('top', '0.2')}"
+            f"<length>0.01</length><outerradius>auto</outerradius>{MATERIAL}</bulkhead>"
+        ),
+        tube(),
+    ],
+    "a nose holding a coupler of automatic radius and a wall thicker than its bore": [
+        nose(children=automatic_tube("tubecoupler", 13, "Coupler", at("bottom", "0.0"), thickness="0.05")),
+        tube(),
+    ],
+    "a nose holding a coupler of automatic radius with a mass inside": [
+        nose(
+            children=automatic_tube(
+                "tubecoupler", 13, "Coupler", at("bottom", "0.0"),
+                children=f"<masscomponent><name>Mass</name><id>{uid(17)}</id>{at('top', '0.02')}"
+                "<packedlength>0.05</packedlength><packedradius>auto</packedradius><mass>0.1</mass>"
+                "</masscomponent>",
+            )
+        ),
+        tube(),
+    ],
+    "a transition holding a coupler of automatic radius": [
+        tube(),
+        transition(children=automatic_tube("tubecoupler", 13, "Coupler", at("top", "0.0"), length="0.05")),
+    ],
+    "a tube holding a coupler of automatic radius and a wall thicker than its bore": [
+        tube(children=automatic_tube("tubecoupler", 13, "Coupler", at("top", "0.1"), thickness="0.06"))
+    ],
+    "a tube holding an inner tube of automatic radius": [
+        tube(children=automatic_tube("innertube", 4, "Inner", at("top", "0.1")))
+    ],
+    "a nose holding an inner tube of automatic radius": [
+        nose(children=automatic_tube("innertube", 4, "Inner", at("bottom", "0.0"))), tube()
+    ],
+    "a nose holding a coupler of automatic radius at its tip": [
+        nose(children=automatic_tube("tubecoupler", 13, "Coupler", at("top", "0.0"))), tube()
+    ],
+}
+
+
+def old_flag(value):
+    """The single subcomponent-override flag written before schema 1.9."""
+    return f"<overridesubcomponents>{value}</overridesubcomponents>"
+
+
+# The single flag the three per-quantity ones replaced before schema 1.9 (M2.2e6): what OpenRocket
+# reads it as, in the schema versions the library's files were written in and the current one,
+# alone and beside a per-quantity flag in either order. Each probe: its schema version, the stage's
+# tags, and the stage's parts. The flags OpenRocket reads each part with are recorded too.
+OLD_FLAG_PROBES = {
+    "the old flag on both of a stage's overrides, schema 1.4": (
+        "1.4",
+        overrides(2.0, 0.4) + old_flag("true"),
+        [nose(), tube()],
+    ),
+    "the old flag on a tube's mass override, schema 1.4": (
+        "1.4",
+        "",
+        [tube(overrides(mass_kg=0.5) + old_flag("true"), inner())],
+    ),
+    "the old flag on a tube's mass override, schema 1.8": (
+        "1.8",
+        "",
+        [tube(overrides(mass_kg=0.5) + old_flag("true"), inner())],
+    ),
+    "the old flag, false, on a tube's mass override, schema 1.8": (
+        "1.8",
+        "",
+        [tube(overrides(mass_kg=0.5) + old_flag("false"), inner())],
+    ),
+    "the old flag on a tube's mass override, schema 1.10": (
+        "1.10",
+        "",
+        [tube(overrides(mass_kg=0.5) + old_flag("true"), inner())],
+    ),
+    "the old flag after a mass flag that says false": (
+        "1.10",
+        "",
+        [tube(overrides(mass_kg=0.5, children_mass="false") + old_flag("true"), inner())],
+    ),
+    "the old flag before a mass flag that says false": (
+        "1.10",
+        "",
+        [tube(overrides(mass_kg=0.5) + old_flag("true") + "<overridesubcomponentsmass>false</overridesubcomponentsmass>", inner())],
+    ),
+    "the old flag before a drag flag that says false": (
+        "1.10",
+        "",
+        [tube(overrides(mass_kg=0.5) + "<overridecd>0.5</overridecd>" + old_flag("true") + "<overridesubcomponentscd>false</overridesubcomponentscd>", inner())],
+    ),
+    "the old flag after a drag flag that says false": (
+        "1.10",
+        "",
+        [tube(overrides(mass_kg=0.5) + "<overridecd>0.5</overridecd><overridesubcomponentscd>false</overridesubcomponentscd>" + old_flag("true"), inner())],
+    ),
+    "the old flag, false, after a centre flag that says true": (
+        "1.10",
+        "",
+        [tube(overrides(cg_m=0.1, children_cg="true") + old_flag("false"), inner())],
+    ),
+    "the old flag, false, before a centre flag that says true": (
+        "1.10",
+        "",
+        [tube(overrides(cg_m=0.1) + old_flag("false") + "<overridesubcomponentscg>true</overridesubcomponentscg>", inner())],
+    ),
+}
+
+
+def fins(section="square", extra="", thickness="0.003", outline=("0.1", "0.05", "0.05", "0.05"), count=3):
+    """Trapezoidal fins, three by default, 0.1 m below the top of their tube: by default 0.1 m root,
+    and 0.05 m tip, sweep and span; `outline` is root, tip, sweep and span."""
+    root, tip, sweep, span = outline
+    return (
+        f"<trapezoidfinset><name>Fins</name><id>{uid(5)}</id>"
+        f'<position type="top">0.1</position><fincount>{count}</fincount>'
+        f"<rootchord>{root}</rootchord><tipchord>{tip}</tipchord><sweeplength>{sweep}</sweeplength>"
+        f"<height>{span}</height><thickness>{thickness}</thickness>"
+        f"<crosssection>{section}</crosssection>{extra}{MATERIAL}</trapezoidfinset>"
+    )
+
+
+def fillets(radius, density="1000.0"):
+    return (
+        f"<filletradius>{radius}</filletradius>"
+        f'<filletmaterial type="bulk" density="{density}">Probe</filletmaterial>'
+    )
+
+
+def placed(tag, n, name, body):
+    """A part `tag` 0.1 m below the top of its tube, of the probe material."""
+    return (
+        f"<{tag}><name>{name}</name><id>{uid(n)}</id><position type=\"top\">0.1</position>"
+        f"{body}{MATERIAL}</{tag}>"
+    )
+
+
+def button(end, offset, count):
+    """A 10 mm rail button, or a row of them 0.1 m apart, placed from the tube's `end`."""
+    return (
+        f"<railbutton><name>Button</name><id>{uid(12)}</id>"
+        f'<position type="{end}">{offset}</position><outerdiameter>0.01</outerdiameter>'
+        "<innerdiameter>0.006</innerdiameter><height>0.008</height><baseheight>0.002</baseheight>"
+        f"<flangeheight>0.002</flangeheight><instancecount>{count}</instancecount>"
+        f"<instanceseparation>0.1</instanceseparation>{MATERIAL}</railbutton>"
+    )
+
+
+# Each probe (M2.2b2): one tube and one part, so the part's roll inertia is the probe's less the
+# tube's, and the tube alone is held to OpenRocket's already.
+PART_PROBES = {
+    "a tube and a fin set of square section": fins(),
+    "a tube and a fin set of rounded section": fins("rounded"),
+    "a tube and a fin set of airfoil section": fins("airfoil"),
+    "a tube and a thicker fin set of airfoil section": fins("airfoil", thickness="0.006"),
+    "a tube and a fin set with fillets": fins(extra=fillets("0.005")),
+    "a tube and a fin set with wider fillets": fins(extra=fillets("0.01")),
+    # M2.2e7: what fillets weigh, measured further (ADR-096).
+    "a tube and a fin set with fillets of 30 mm": fins(extra=fillets("0.03")),
+    "a tube and a fin set with fillets of their own material": fins(extra=fillets("0.005", "2000.0")),
+    "a tube and a fin set with fillets that name no material": fins(
+        extra="<filletradius>0.005</filletradius>"
+    ),
+    "a tube and a single fin with fillets": fins(extra=fillets("0.005"), count=1),
+    "a tube and four fins of rounded section with fillets": fins("rounded", extra=fillets("0.005"), count=4),
+    "a tube and a freeform fin set with fillets": placed(
+        "freeformfinset", 16, "Freeform",
+        "<fincount>3</fincount><thickness>0.003</thickness><crosssection>square</crosssection>"
+        + fillets("0.005")
+        + '<finpoints><point x="0.0" y="0.0"/><point x="0.05" y="0.05"/>'
+        '<point x="0.12" y="0.05"/><point x="0.1" y="0.0"/></finpoints>',
+    ),
+    "a tube and a fin set with a tab": fins(
+        extra="<tabheight>0.01</tabheight><tablength>0.05</tablength>"
+        '<tabposition relativeto="front">0.02</tabposition>'
+    ),
+    "a tube and a canted fin set": fins(extra="<cant>5.0</cant>"),
+    "a tube and rectangular fins": fins(outline=("0.1", "0.1", "0.0", "0.05")),
+    "a tube and rectangular fins of twice the chord": fins(outline=("0.2", "0.2", "0.0", "0.05")),
+    "a tube and rectangular fins of twice the span": fins(outline=("0.1", "0.1", "0.0", "0.1")),
+    "a tube and triangular fins": fins(outline=("0.1", "0.0", "0.0", "0.05")),
+    "a tube and a single fin": fins(count=1),
+    "a tube and an elliptical fin set": placed(
+        "ellipticalfinset", 15, "Elliptical",
+        "<fincount>3</fincount><rootchord>0.1</rootchord><height>0.05</height>"
+        "<thickness>0.003</thickness><crosssection>square</crosssection>",
+    ),
+    "a tube and a freeform fin set": placed(
+        "freeformfinset", 16, "Freeform",
+        "<fincount>3</fincount><thickness>0.003</thickness><crosssection>square</crosssection>"
+        '<finpoints><point x="0.0" y="0.0"/><point x="0.05" y="0.05"/>'
+        '<point x="0.1" y="0.05"/><point x="0.1" y="0.0"/></finpoints>',
+    ),
+    "a tube and an inner tube": inner(),
+    "a tube and a clustered inner tube": inner(
+        extra="<clusterconfiguration>3-ring</clusterconfiguration>"
+        "<clusterscale>1.0</clusterscale><clusterrotation>0.0</clusterrotation>"
+    ),
+    "a tube and a centering ring": placed(
+        "centeringring", 6, "Ring",
+        "<length>0.01</length><outerradius>0.048</outerradius><innerradius>0.02</innerradius>",
+    ),
+    "a tube and a bulkhead": placed(
+        "bulkhead", 7, "Bulkhead", "<length>0.01</length><outerradius>0.048</outerradius>"
+    ),
+    "a tube and a launch lug": lug("0.001"),
+    "a tube and a rail button": placed(
+        "railbutton", 12, "Button",
+        "<outerdiameter>0.01</outerdiameter><innerdiameter>0.006</innerdiameter>"
+        "<height>0.008</height><baseheight>0.002</baseheight><flangeheight>0.002</flangeheight>"
+        "<instancecount>1</instancecount>",
+    ),
+    **{
+        f"a tube and {what} from the {end}": button(end, offset, count)
+        for what, count in [("a rail button", 1), ("a row of two rail buttons", 2)]
+        for end, offset in [("top", "0.1"), ("middle", "0.0"), ("bottom", "-0.1")]
+        if (what, end) != ("a rail button", "top")
+    },
+    "a tube and a parachute": (
+        f"<parachute><name>Chute</name><id>{uid(9)}</id><position type=\"top\">0.1</position>"
+        "<packedlength>0.05</packedlength><packedradius>0.02</packedradius><diameter>0.5</diameter>"
+        "<linecount>6</linecount><linelength>0.5</linelength>"
+        '<material type="surface" density="0.05">Probe</material>'
+        '<linematerial type="line" density="0.002">Probe</linematerial></parachute>'
+    ),
+    "a tube and a parachute with a mass override": (
+        f"<parachute><name>Chute</name><id>{uid(9)}</id><position type=\"top\">0.1</position>"
+        "<packedlength>0.05</packedlength><packedradius>0.02</packedradius><diameter>0.5</diameter>"
+        "<linecount>6</linecount><linelength>0.5</linelength>"
+        '<material type="surface" density="0.05">Probe</material>'
+        '<linematerial type="line" density="0.002">Probe</linematerial>'
+        f"{overrides(mass_kg=0.03)}</parachute>"
+    ),
+    "a tube and a parachute of no canopy, under a mass override": (
+        f"<parachute><name>Chute</name><id>{uid(9)}</id><position type=\"top\">0.1</position>"
+        "<packedlength>0.05</packedlength><packedradius>0.02</packedradius><diameter>0.0</diameter>"
+        "<linecount>0</linecount><linelength>0.0</linelength>"
+        '<material type="surface" density="0.05">Probe</material>'
+        '<linematerial type="line" density="0.002">Probe</linematerial>'
+        f"{overrides(mass_kg=0.03)}</parachute>"
+    ),
+    "a tube and a parachute that writes no packed size": (
+        f"<parachute><name>Chute</name><id>{uid(9)}</id><position type=\"top\">0.1</position>"
+        "<diameter>0.5</diameter><linecount>6</linecount><linelength>0.5</linelength>"
+        '<material type="surface" density="0.05">Probe</material>'
+        '<linematerial type="line" density="0.002">Probe</linematerial></parachute>'
+    ),
+    "a tube and a streamer": (
+        f"<streamer><name>Streamer</name><id>{uid(11)}</id><position type=\"top\">0.1</position>"
+        "<packedlength>0.05</packedlength><packedradius>0.01</packedradius>"
+        "<striplength>1.0</striplength><stripwidth>0.05</stripwidth>"
+        '<material type="surface" density="0.05">Probe</material></streamer>'
+    ),
+    "a tube and a shock cord": (
+        f"<shockcord><name>Cord</name><id>{uid(10)}</id><position type=\"top\">0.1</position>"
+        "<packedlength>0.05</packedlength><packedradius>0.01</packedradius>"
+        '<cordlength>1.0</cordlength><material type="line" density="0.002">Probe</material>'
+        "</shockcord>"
+    ),
+    "a tube and a mass component": (
+        f"<masscomponent><name>Mass</name><id>{uid(17)}</id><position type=\"top\">0.1</position>"
+        "<packedlength>0.05</packedlength><packedradius>0.02</packedradius><mass>0.1</mass>"
+        "</masscomponent>"
+    ),
+    # M2.2b3: the packed size each kind takes when the file writes none, or half of one, and an
+    # override on each kind that weighs nothing (ADR-063).
+    "a tube and a parachute that writes only a packed length": (
+        f"<parachute><name>Chute</name><id>{uid(9)}</id><position type=\"top\">0.1</position>"
+        "<packedlength>0.05</packedlength><diameter>0.5</diameter>"
+        "<linecount>6</linecount><linelength>0.5</linelength>"
+        '<material type="surface" density="0.05">Probe</material>'
+        '<linematerial type="line" density="0.002">Probe</linematerial></parachute>'
+    ),
+    "a tube and a parachute that writes only a packed radius": (
+        f"<parachute><name>Chute</name><id>{uid(9)}</id><position type=\"top\">0.1</position>"
+        "<packedradius>0.02</packedradius><diameter>0.5</diameter>"
+        "<linecount>6</linecount><linelength>0.5</linelength>"
+        '<material type="surface" density="0.05">Probe</material>'
+        '<linematerial type="line" density="0.002">Probe</linematerial></parachute>'
+    ),
+    "a tube and a streamer that writes no packed size": (
+        f"<streamer><name>Streamer</name><id>{uid(11)}</id><position type=\"top\">0.1</position>"
+        "<striplength>1.0</striplength><stripwidth>0.05</stripwidth>"
+        '<material type="surface" density="0.05">Probe</material></streamer>'
+    ),
+    "a tube and a shock cord that writes no packed size": (
+        f"<shockcord><name>Cord</name><id>{uid(10)}</id><position type=\"top\">0.1</position>"
+        '<cordlength>1.0</cordlength><material type="line" density="0.002">Probe</material>'
+        "</shockcord>"
+    ),
+    "a tube and a mass component that writes no packed size": (
+        f"<masscomponent><name>Mass</name><id>{uid(17)}</id><position type=\"top\">0.1</position>"
+        "<mass>0.1</mass></masscomponent>"
+    ),
+    "a tube and a mass component of no mass, under a mass override": (
+        f"<masscomponent><name>Mass</name><id>{uid(17)}</id><position type=\"top\">0.1</position>"
+        "<packedlength>0.05</packedlength><packedradius>0.02</packedradius><mass>0.0</mass>"
+        f"{overrides(mass_kg=0.03)}</masscomponent>"
+    ),
+    "a tube and a shock cord of no length, under a mass override": (
+        f"<shockcord><name>Cord</name><id>{uid(10)}</id><position type=\"top\">0.1</position>"
+        "<packedlength>0.05</packedlength><packedradius>0.01</packedradius>"
+        '<cordlength>0.0</cordlength><material type="line" density="0.002">Probe</material>'
+        f"{overrides(mass_kg=0.03)}</shockcord>"
+    ),
+}
+
+
+def tube_fin_set(count, radius="auto", thickness="0.001", offset=""):
+    """`count` tubes 0.1 m long at the bottom of their tube, written as OpenRocket's example writes
+    them, with `radius` and a `thickness` wall."""
+    offset = offset or '<radiusoffset method="coaxial">0.0</radiusoffset>'
+    return (
+        f"<tubefinset><name>Tube fins</name><id>{uid(30)}</id>"
+        f'<position type="bottom">0.0</position><instancecount>{count}</instancecount>'
+        f"<fincount>{count}</fincount>{offset}<rotation>30</rotation><radius>{radius}</radius>"
+        f"<length>0.1</length><thickness>{thickness}</thickness>{MATERIAL}</tubefinset>"
+    )
+
+
+# M2.2e8: a tube fin set whose radius OpenRocket works out from the body it rings (#133). The
+# tube is `tube()`, 50 mm in radius, and a 20 mm one; the counts run past the ones a ring can close,
+# 1 and 2, and past 8.
+TUBE_FIN_PROBES = {
+    **{
+        f"a tube and {count} tube fins of automatic radius": [tube(children=tube_fin_set(count))]
+        for count in [1, 2, 3, 4, 5, 6, 8, 9, 12, 20]
+    },
+    "a tube and 6 tube fins of a stated radius": [tube(children=tube_fin_set(6, radius="0.02"))],
+    "a tube and 12 tube fins of a stated radius": [tube(children=tube_fin_set(12, radius="0.02"))],
+    "a tube and 100 tube fins of automatic radius": [tube(children=tube_fin_set(100))],
+    **{
+        f"a 20 mm tube and {count} tube fins of automatic radius": [
+            tube(children=tube_fin_set(count)).replace("<radius>0.05</radius>", "<radius>0.02</radius>", 1)
+        ]
+        for count in [1, 2, 5]
+    },
+    "a tube and 6 tube fins of automatic radius and a wall thicker than it": [
+        tube(children=tube_fin_set(6, thickness="0.1"))
+    ],
+    "a tube and 6 tube fins of a stated radius, offset from the body": [
+        tube(children=tube_fin_set(6, radius="0.02", offset='<radiusoffset method="surface">0.01</radiusoffset>'))
+    ],
+    "a tube of automatic radius and 4 tube fins of automatic radius": [
+        nose(),
+        tube(children=tube_fin_set(4)).replace("<radius>0.05</radius>", "<radius>auto</radius>", 1),
+    ],
+}
+
+
+def tube_fins(component, found):
+    """Each tube fin set as OpenRocket resolved it, by id, through its public getters: the radius it
+    works out when the file says `auto`, the wall, the count, the set's centre and unit inertias,
+    and its instance offsets, which are points on the body's surface, not the tubes' axes."""
+    if str(component.getClass().getSimpleName()) == "TubeFinSet":
+        found[str(component.getID())] = {
+            "automatic": bool(component.isOuterRadiusAutomatic()),
+            "outer_radius_m": float(component.getOuterRadius()),
+            "inner_radius_m": float(component.getInnerRadius()),
+            "thickness_m": float(component.getThickness()),
+            "body_radius_m": float(component.getBodyRadius()),
+            "count": int(component.getFinCount()),
+            "instance_offsets_yz_m": [[float(c.y), float(c.z)] for c in component.getInstanceOffsets()],
+            "component_mass_kg": float(component.getComponentMass()),
+            "component_cg_xyz_m": [float(v) for v in (lambda c: (c.x, c.y, c.z))(component.getComponentCG())],
+            "rotational_unit_inertia_m2": float(component.getRotationalUnitInertia()),
+            "longitudinal_unit_inertia_m2": float(component.getLongitudinalUnitInertia()),
+        }
+    for child in component.getChildren():
+        tube_fins(child, found)
+
+
+def document(parts, stage_tags="", version="1.10"):
+    return (
+        "<?xml version='1.0' encoding='utf-8'?>\n"
+        f'<openrocket version="{version}" creator="hpr-sim conventions probe">'
+        f"<rocket><name>Probe</name><id>{uid(98)}</id><subcomponents>"
+        f"<stage><name>Stage</name><id>{uid(99)}</id>{stage_tags}<subcomponents>"
+        + "".join(parts)
+        + "</subcomponents></stage></subcomponents></rocket></openrocket>\n"
+    )
+
+
+def materials(component, found):
+    """The material each part is read with, by id, through its public getters."""
+    entry = {}
+    for getter, key in [("getMaterial", "material"), ("getLineMaterial", "line_material")]:
+        if hasattr(component, getter):
+            material = getattr(component, getter)()
+            entry[key] = {
+                "name": str(material.getName()),
+                "density": float(material.getDensity()),
+                "kind": str(material.getType()).lower(),
+            }
+    if entry:
+        found[str(component.getID())] = {
+            "class": str(component.getClass().getSimpleName()),
+            **entry,
+        }
+    for child in component.getChildren():
+        materials(child, found)
+
+
+def override_flags(component, found):
+    """Whether each part's mass, centre of gravity and drag overrides cover the parts inside it,
+    as OpenRocket read them, by id, through its public getters."""
+    found[str(component.getID())] = {
+        "mass": bool(component.isSubcomponentsOverriddenMass()),
+        "cg": bool(component.isSubcomponentsOverriddenCG()),
+        "cd": bool(component.isSubcomponentsOverriddenCD()),
+    }
+    for child in component.getChildren():
+        override_flags(child, found)
+
+
+def measure(text, scratch, name, flags=False):
+    path = Path(scratch) / f"{name}.ork"
+    path.write_text(text, encoding="utf-8")
+    document_ = automatic_radius.load(path)
+    automatic_radius.saved_radii(document_)
+    found = {}
+    materials(document_.getRocket(), found)
+    parts, skipped = mass.parts(document_)
+    measured = {
+        "document": text,
+        "structure": mass.structure(document_),
+        "parts": parts,
+        "parts_skipped": skipped,
+        "materials": found,
+    }
+    rings = {}
+    tube_fins(document_.getRocket(), rings)
+    if rings:
+        measured["tube_fins"] = rings
+    if flags:
+        measured["override_flags"] = {}
+        for stage in document_.getRocket().getChildren():
+            override_flags(stage, measured["override_flags"])
+    return measured
+
+
+def saved_materials():
+    """The default materials this user has saved in OpenRocket's preferences, by key. OpenRocket
+    keeps a part's default material there once someone changes it; with none saved, the defaults
+    this script records are the ones a fresh install gives."""
+    from java.util.prefs import Preferences
+
+    root = Preferences.userRoot()
+    if not root.nodeExists("OpenRocket/componentMaterials"):
+        return {}
+    node = root.node("OpenRocket/componentMaterials")
+    return {str(key): str(node.get(key, "")) for key in node.keys()}
+
+
+def main():
+    if len(sys.argv) != 2:
+        sys.exit("usage: conventions.py OUTPUT.json")
+    output = Path(sys.argv[1])
+    logging.disable(logging.CRITICAL)
+    automatic_radius.start()
+    import jpype
+    from info.openrocket.core.util import BuildProperties
+    from java.lang import System
+
+    saved = saved_materials()
+    if saved:
+        sys.exit(f"OpenRocket has saved default materials, so its defaults are not a fresh install's: {saved}")
+
+    probes = {}
+    with tempfile.TemporaryDirectory() as scratch:
+        everything = [(q, document(parts)) for q, parts in PROBES.items()]
+        everything += [(q, document(parts)) for q, parts in BORE_PROBES.items()]
+        everything += [(q, document(parts)) for q, parts in TUBE_FIN_PROBES.items()]
+        everything += [(q, document(parts, tags)) for q, (tags, parts) in STAGE_PROBES.items()]
+        everything += [(q, document([tube(children=part)])) for q, part in PART_PROBES.items()]
+        # The body's radius, for the fins' roll inertia: rectangular fins on a tube twice as wide.
+        wide = tube(children=fins(outline=("0.1", "0.1", "0.0", "0.05")))
+        wide = wide.replace("<radius>0.05</radius>", "<radius>0.1</radius>")
+        everything += [("a wider tube and rectangular fins", document([wide]))]
+        # And fillets on it (M2.2e7): the fillet's section depends on the body's radius.
+        wide = tube(children=fins(extra=fillets("0.01")))
+        wide = wide.replace("<radius>0.05</radius>", "<radius>0.1</radius>")
+        everything += [("a wider tube and a fin set with fillets", document([wide]))]
+        # An unwritten packed size in a tube twice as wide, and in one whose 8 mm bore is narrower
+        # than the packing OpenRocket gives (ADR-063): fixed numbers, or the tube's?
+        for question, radius in [("a wider", "0.1"), ("a narrow", "0.01")]:
+            chute = PART_PROBES["a tube and a parachute that writes no packed size"]
+            text = tube(children=chute).replace("<radius>0.05</radius>", f"<radius>{radius}</radius>")
+            everything += [(f"{question} tube and a parachute that writes no packed size", document([text]))]
+        for k, (question, text) in enumerate(everything):
+            probes[question] = measure(text, scratch, f"probe-{k}")
+        for k, (question, (version, tags, parts)) in enumerate(OLD_FLAG_PROBES.items()):
+            text = document(parts, tags, version)
+            probes[question] = measure(text, scratch, f"old-flag-{k}", flags=True)
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(
+        json.dumps(
+            {
+                "source": "validation/oracles/openrocket/conventions.py",
+                "command": " ".join(
+                    ["refs/venv/bin/python", "validation/oracles/openrocket/conventions.py"]
+                    + sys.argv[1:]
+                ),
+                "openrocket": str(BuildProperties.getVersion()),
+                "jar_sha256": hashlib.sha256(automatic_radius.JAR.read_bytes()).hexdigest(),
+                "java": str(System.getProperty("java.version")),
+                "jpype": jpype.__version__,
+                "generated": GENERATED,
+                "inputs_sha256": {
+                    "conventions.py": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                    "automatic_radius.py": hashlib.sha256(
+                        Path(automatic_radius.__file__).read_bytes()
+                    ).hexdigest(),
+                    "mass.py": hashlib.sha256(Path(mass.__file__).read_bytes()).hexdigest(),
+                },
+                "saved_default_materials": saved,
+                "probes": probes,
+            },
+            indent=1,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+if __name__ == "__main__":
+    main()

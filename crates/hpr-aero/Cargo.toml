@@ -1,0 +1,39 @@
+[package]
+name = "fusionspace-hpr-aero"
+description = "Aerodynamics: Barrowman normal force and center of pressure with extensions, drag buildup, compressibility, damping and override tables."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# The library keeps its Rust name, `hpr_aero`, under the package's FusionSpace name (ADR-199).
+[lib]
+name = "hpr_aero"
+
+[lints]
+workspace = true
+
+# Pure crate: no I/O, and it must build for wasm32-unknown-unknown (`cargo xtask wasm-check`).
+[package.metadata.hpr]
+wasm = true
+
+[dependencies]
+hpr-core.workspace = true
+hpr-design.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+hpr-atmos.workspace = true
+proptest.workspace = true
+serde_json.workspace = true
+
+[[bench]]
+name = "normal_force"
+harness = false
+
+[[bench]]
+name = "drag"
+harness = false

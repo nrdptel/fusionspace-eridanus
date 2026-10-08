@@ -1,0 +1,22 @@
+{
+  "criteria": [
+    {
+      "name": "designation",
+      "value": "H100-HYBRID",
+      "matches": 1
+    }
+  ],
+  "matches": 1,
+  "results": [
+    {
+      "motorId": "e000000000000000000000f2",
+      "manufacturer": "Invented Hybrids",
+      "manufacturerAbbrev": "Invented Hybrids",
+      "designation": "H100-HYBRID",
+      "commonName": "H100",
+      "impulseClass": "H",
+      "type": "hybrid"
+    }
+  ],
+  "source_url": "http://www.thrustcurve.org/motors/search.html"
+}

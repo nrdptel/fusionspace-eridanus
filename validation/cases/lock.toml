@@ -1,0 +1,30 @@
+# The cases `cargo xtask validate` must run, in report order (Loft lesson L78: a suite that
+# silently skips a case and reports green is worse than a red one, so the harness fails if a
+# locked case is missing).
+
+cases = [
+    "descent-calisto-tests-motor-at-minus-1.373",
+    "descent-valetudo",
+    "descent-ndrt-2020-nose-to-tail",
+    "descent-prometheus-2022-generic-motor",
+    "descent-juno-iii",
+    "flight-calisto-tests-motor-at-minus-1.373",
+    "flight-valetudo",
+    "flight-ndrt-2020-nose-to-tail",
+    "flight-prometheus-2022-generic-motor",
+    "flight-juno-iii",
+    "flight-bella-lui",
+    "flight-juno-iii-calm",
+    "flight-calisto-tests-motor-at-minus-1.373-calm",
+    "flight-bella-lui-calm",
+    "predicted-calisto-tests-motor-at-minus-1.373",
+    "predicted-valetudo",
+    "predicted-ndrt-2020-nose-to-tail",
+    "predicted-prometheus-2022-generic-motor",
+    "predicted-juno-iii",
+    "predicted-bella-lui",
+]
+
+# Cases `--fast` may leave out. None yet: every case, whole flights included, runs in well under a
+# second.
+slow = []

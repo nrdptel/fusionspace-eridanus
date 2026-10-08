@@ -1,0 +1,102 @@
+# Prometheus 2022: RocketPy's example flown from the pad to the ground, each code with its own drag
+# (`validation/oracles/rocketpy/flight.py --own-drag`, M2.1c2).
+#
+# Predicted mode (ADR-023): hpr flies its own drag, from the design's geometry, where the same-drag
+# case flies the declared table (its normal force is its own in both modes, so only the drag
+# differs); the reference is RocketPy flying the example's own drag as RocketPy 1.13.0 flies the
+# example (`prometheus_cd_at_ma` from RocketPy's tests, and 1.02 times it power-on), with RocketPy's
+# own normal force. Everything else is the same-drag case's
+# (`flight-prometheus-2022-generic-motor.toml`): the site, the declared wind, the rail, the
+# parachutes, the motor, RocketPy's gravity and atmosphere, and the same checks that hpr's design is
+# the rocket the reference flew. So a difference here is the same-drag difference plus the two
+# codes' drag, and neither drag is the truth. hpr's is for the design as transcribed: its fin
+# thickness and edges and its surface finish are placeholders where RocketPy's example records none
+# (`xtask/src/designs.rs`), so a miss is not a gap for hpr to close toward the example's drag.
+#
+# Every metric carries M2.1's 3% as a target: reported as within or outside it, never gated, so a
+# miss does not fail the run and a number that moves still shows in the committed report. The
+# misses, and why:
+#
+# - apogee_agl_m (-7.28%), apogee_time_s (-4.92%), flight_time_s (-4.98%) and landing_drift_m
+#   (-6.17%): the drag. hpr flies this rocket through Mach 1 since M1.8b1 (ADR-028), and its
+#   coasting C_D0 rises from about 0.41 at Mach 0.1 (the example's 0.42) to 0.49 at Mach 0.8 and
+#   0.54 at Mach 1, mostly base drag (0.12 + 0.13 M^2 on the base, eq. 3.94), where the example's
+#   falls to 0.30 at Mach 0.82 and is 0.37 at 0.99. Under power hpr takes the motor's area off the
+#   base, so it burns out 1.8% faster and peaks at Mach 1.060 against 1.048 (both within target),
+#   then coasts 313 m lower. Flown on the same drag the two codes agree on the apogee to +1.208%
+#   (`flight-prometheus-2022-generic-motor.toml`), so the rest is the drag: a lower apogee means a
+#   shorter descent and less time to drift.
+# - apogee_drift_m (-17.64%): the same drag on the coast, on top of the same-drag case's -7.29%,
+#   which `wind_response.py` measured as hpr's body lift and rail release (ADR-026) and which is not
+#   scored there.
+# - series_height_rms_m (263.9 m, target 128.8): the same drag over the whole trace: hpr peaks 313 m
+#   lower and lands 11.2 s sooner. Its speed RMS, 7.2 m/s, is within its 10.3 m/s target.
+# - max_acceleration_m_s2 (+19.06%) and max_acceleration_time_s (-6.90%): the whole flight's
+#   maximum is the main parachute opening, not a flight load. RocketPy counts the canopy's added
+#   mass and hpr has none (ADR-012), which is why the same-drag case doesn't score it; here it comes
+#   11.3 s sooner because the apogee is lower.
+id = "predicted-prometheus-2022-generic-motor"
+title = "Prometheus 2022 from the pad to the ground, predicted: hpr's own aerodynamics"
+reference = "validation/fixtures/flight/rocketpy-whole-flight-own-drag.json"
+reference_case = "prometheus-2022-generic-motor"
+
+[flight.whole_flight]
+design = "rocketpy-prometheus-2022-generic-motor"
+configuration = "example"
+mode = "predicted"
+
+[metrics.apogee_agl_m]
+relative = 0.03
+
+[metrics.apogee_time_s]
+relative = 0.03
+
+[metrics.max_speed_m_s]
+relative = 0.03
+
+[metrics.max_mach]
+relative = 0.03
+
+[metrics.max_acceleration_m_s2]
+relative = 0.03
+
+[metrics.max_acceleration_time_s]
+relative = 0.03
+
+[metrics.max_acceleration_power_on_m_s2]
+relative = 0.03
+
+[metrics.rail_exit_speed_m_s]
+relative = 0.03
+
+[metrics.rail_exit_time_s]
+relative = 0.03
+
+[metrics.burnout_altitude_agl_m]
+relative = 0.03
+
+[metrics.burnout_speed_m_s]
+relative = 0.03
+
+[metrics.flight_time_s]
+relative = 0.03
+
+[metrics.apogee_drift_m]
+relative = 0.03
+
+[metrics.landing_drift_m]
+relative = 0.03
+
+[metrics.impact_speed_m_s]
+relative = 0.03
+
+# The time-series RMS (M2.1d1): hpr's height and speed at the reference's 120 series times, from
+# ignition until hpr lands, less RocketPy's; the reference value is 0, exact agreement. Each is held
+# (a target) to 3% of the scale of its trace, the reference's apogee (4293.6 m) and max speed
+# (345.0 m/s), rounded down to 0.1: M2.1's 3% for a point metric, applied to a whole trace, so a
+# trace passes only if it is on average no further off than its peak may be.
+[metrics.series_height_rms_m]
+absolute = 128.8
+
+[metrics.series_speed_rms_m_s]
+absolute = 10.3

@@ -1,0 +1,95 @@
+//! The 6-DOF flight engine: state, launch rail phase, integrators, events, recovery, separation and
+//! the recorder.
+//!
+//! **Guide:** [How a flight is simulated][guide-flight], [Rigid-body flight][guide-rigid-body],
+//! [Time integration][guide-integration] and [Recovery][guide-recovery]: the models, their sources,
+//! how well they are validated and what they leave out.
+//!
+//! [guide-flight]: https://hpr.fusionspace.co/how-a-flight-is-simulated.html
+//! [guide-rigid-body]: https://hpr.fusionspace.co/physics/flight.html
+//! [guide-integration]: https://hpr.fusionspace.co/physics/integration.html
+//! [guide-recovery]: https://hpr.fusionspace.co/physics/recovery.html
+//! [roadmap]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/ROADMAP.md
+//! [m2-2e10]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-2e10
+//!
+//! - [`flight`]: a [`Simulation`] of a rocket, its [`Environment`] and its [`Rail`], flown from
+//!   ignition through the pad, rail and free-flight phases to the ground.
+//! - [`dynamics`]: the rigid-body equations of motion with varying mass and jet damping.
+//! - [`rail`]: the rail's geometry and friction, and where a design's guides leave it.
+//! - [`recovery`]: recovery devices, their triggers and inflation, the descent under them, and
+//!   separation into bodies that each fly to their own landing.
+//! - [`shifts`]: mass that moves along the airframe in flight, and what it does to the mass
+//!   properties.
+//! - [`releases`]: mass released in flight, the rest flying on and the part falling on its own.
+//! - [`recorder`]: the [`Observer`] trait, flight [`Sample`]s and the channel [`Recorder`].
+//! - [`integrator`]: adaptive Dormand–Prince 5(4) with dense output, and fixed-step RK4, advancing
+//!   to stop times and events.
+//! - [`events`]: event directions and Brent's root finder.
+//! - [`metrics`]: what a flight comes to: its peaks, apogee, stability margins, optimum ejection
+//!   delays and landings.
+//! - [`envelope`]: the operating envelope's four flags: past the validated range, at high angle of
+//!   attack, outside the core band and beyond the envelope.
+//! - [`flutter`]: a fin's flutter speed and margin by NACA TN 4197's criterion.
+//! - [`export`]: a recording as CSV or JSON, and the flight path and landings as GeoJSON or KML.
+//!
+//! Status: the flight from the pad to the ground under parachutes, streamers or tumbling, a
+//! separation whose bodies each land, and staging: each motor lights at its own time, and a
+//! separation with the nose's body still to burn lets that body fly on as a sustainer while the
+//! booster descends ([`flight`]). A cluster flies one motor in each of its tubes, a tube or a
+//! motor can be set never to light, and a `.ork` file's staging settings and clusters fly too
+//! (milestone [M1.9][roadmap] of the roadmap, and [M2.2e10][m2-2e10] for a motor that never
+//! lights).
+
+pub mod dynamics;
+pub mod envelope;
+pub mod environment;
+pub mod error;
+pub mod events;
+pub mod export;
+pub mod flight;
+pub mod flutter;
+pub mod integrator;
+pub mod issues;
+pub mod metrics;
+pub mod pieces;
+pub mod rail;
+pub mod recorder;
+pub mod recovery;
+pub mod releases;
+pub mod shifts;
+mod staging;
+pub mod state;
+
+pub use dynamics::Phase;
+pub use envelope::EnvelopeFlag;
+pub use environment::Environment;
+pub use error::SimError;
+pub use events::{Direction, EVENT_TIME_RESOLUTION_S, RootError, find_root};
+pub use export::TrackPoint;
+pub use flight::{
+    EventKind, FlightEvent, FlightResult, FlightSettings, Simulation, Termination, UserEvent,
+};
+pub use flutter::{FlutterMargin, FlutterPanel};
+pub use integrator::{
+    Adaptive, Advance, DEFAULT_STEP_LIMIT, IntegrationError, Integrator, Method, OdeSystem,
+    SettingsError, Stats, Step,
+};
+pub use issues::{IssueWarning, KnownIssue};
+pub use metrics::{FlightMetrics, FlightSummary};
+pub use pieces::{Ejection, Parting};
+pub use rail::{Guides, Rail};
+pub use recorder::{Channel, FlightStep, Observer, Recorder, Sample};
+pub use recovery::{
+    BodyEvent, BodyFlight, BodySample, CanopyType, Device, DeviceDrag, Inflation, Separation,
+    StreamerModel, Trigger, terminal_speed_m_s,
+};
+pub use releases::{MassRelease, ReleasedFlight};
+pub use shifts::{MIN_SHIFT_DURATION_S, MassShift};
+pub use staging::FlownVehicle;
+pub use state::{STATE_LEN, State};
+
+#[cfg(test)]
+mod testing;
+
+#[cfg(test)]
+mod tests;

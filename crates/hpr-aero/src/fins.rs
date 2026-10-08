@@ -1,0 +1,1967 @@
+//! Fin sets: Barrowman's subsonic normal-force slope and center of pressure, with the
+//! Prandtl–Glauert factor; supersonic linear theory and the transonic join between them
+//! ([`FinAero`]); the fin-count and roll terms, and fin–body interference.
+//!
+//! - **One fin** (Diederich's planform correlation as Barrowman applies it; Barrowman 1967
+//!   eq. 3-6, Niskanen 2009 eq. 3.40):
+//!   `(C_Nα)₁ = 2π (s²/A_ref) / (1 + √(1 + (β s² / (A_fin cos Γ_c))²))`, `β = √(1 − M²)`,
+//!   with `s` the span from the body surface, `A_fin` one fin's area and `Γ_c` the mid-chord
+//!   sweep. At `M = 0` it is Barrowman 1966 eq. 50 (eq. 57 for a trapezoid, where
+//!   `s²/(A_fin cos Γ_c) = 2ℓ/(c_r + c_t)`). At `M → 1` it tends to `π s²/A_ref`.
+//! - **Mean aerodynamic chord** (Niskanen eq. 3.30–3.32): `c̄ = (1/A)∫c² dy`,
+//!   `y_MAC = (1/A)∫y c dy`, `x_MAC,LE = (1/A)∫x_LE c dy`, and the center of pressure at the
+//!   quarter chord `X_f = x_MAC,LE + c̄/4`, fixed through subsonic flow (Barrowman 1967 p. 6). For a
+//!   trapezoid these give Barrowman 1966 eq. 76a (Niskanen eq. 3.34); for an ellipse on its root
+//!   chord `X_f = (½ − 2/(3π)) c_r`.
+//! - **Freeform fins** (Niskanen pp. 27–29): the chord runs from the leading edge to the trailing
+//!   edge, so the gap of a jagged edge counts toward the center of pressure but not toward the
+//!   area in `(C_Nα)₁`; `Γ_c` is the span average of the angle between the mid-chord points.
+//! - **N fins** (Niskanen eq. 3.51–3.53, OpenRocket technical documentation 13.05 eq. 3.54): a fin
+//!   at angle `Λ` to the lateral airflow adds `(C_Nα)₁ sin² Λ` in the plane of the flow, and
+//!   `Σ sin² Λ_k = N/2` for three or more even fins. Fin–fin interference scales 5, 6, 7 and 8
+//!   fins by 0.948, 0.913, 0.854 and 0.810: six and eight fins give 1.37 and 1.62 times four fins
+//!   (MIL-HDBK-762(MI) p. 5-24), five and seven are interpolated. More than eight fins have no
+//!   source and are refused.
+//! - **Fin–body interference** (Barrowman 1966 eq. 77, Niskanen eq. 3.56):
+//!   `K_T(B) = 1 + r_t/(s + r_t)`, with `r_t` the body radius at the fins.
+//! - **Supersonic** ([`FinOutline::supersonic`]; Barrowman 1967 appendix A, first order): the
+//!   flat plate's load `4α/β`, `β = √(M² − 1)`, halved inside the tip's Mach cone, with the root a
+//!   reflection plane: `(C_Nα)₁ = (4/β)(A_fin − A_cone/2)/A_ref` at the load's centroid.
+//! - **Through Mach 1** ([`FinAero`]): the subsonic method to Mach 0.8, linear theory from
+//!   `M_s = max(1.2, 1/cos Γ_L, 1/cos Γ_T, √(1 + 1/A²), √(1 + (c_t/2s)²))`, and slope and CP
+//!   linear in `M` between
+//!   ([ADR-027, the normal force through Mach 1][adr-027]).
+//!
+//! See `docs/physics/aero.md`.
+//!
+//! [adr-027]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-027-the-normal-force-through-mach-1-supersonic-linear-theory-a-transonic-join-and-the-measured-references-2026-09-18
+
+use std::f64::consts::{PI, TAU};
+
+use hpr_design::FinPlanform;
+use serde::{Deserialize, Serialize};
+
+use crate::error::{AeroError, check_dimension, check_mach};
+
+/// A fin's aerodynamic geometry.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct FinGeometry {
+    /// Span from the root (body surface) to the tip, m.
+    pub span_m: f64,
+    /// Area of one side of one fin, m²; the area in the normal-force slope.
+    pub area_m2: f64,
+    /// Mid-chord sweep `Γ_c`, rad, positive with the tip aft.
+    pub midchord_sweep_rad: f64,
+    /// Leading-edge sweep `Γ_L`, rad, positive with the tip aft; the span average of the edge's
+    /// angle when it is curved or kinked (Niskanen 2009 eq. 3.91).
+    pub leading_edge_sweep_rad: f64,
+    /// Trailing-edge sweep, rad, positive with the tip aft; the span average of the edge's angle
+    /// when it is curved or kinked. Negative for a trailing edge that sweeps forward to the tip.
+    pub trailing_edge_sweep_rad: f64,
+    /// Length of the mean aerodynamic chord `c̄`, m.
+    pub mac_length_m: f64,
+    /// Leading edge of the mean aerodynamic chord, m aft of the root leading edge.
+    pub mac_leading_edge_m: f64,
+    /// Spanwise station of the mean aerodynamic chord, m from the root.
+    pub mac_span_m: f64,
+}
+
+impl FinGeometry {
+    /// The geometry of a planform (Niskanen 2009 eq. 3.30–3.34; see the module docs).
+    ///
+    /// # Errors
+    ///
+    /// The planform's own validation errors, and [`AeroError::Domain`] for a fin without area.
+    pub fn from_planform(planform: &FinPlanform) -> Result<Self, AeroError> {
+        planform.validate()?;
+        match *planform {
+            FinPlanform::Trapezoidal {
+                root_chord_m: c_r,
+                tip_chord_m: c_t,
+                span_m: s,
+                sweep_m: x_t,
+            } => {
+                let sum = c_r + c_t;
+                let y_mac = s / 3.0 * (c_r + 2.0 * c_t) / sum;
+                Ok(Self {
+                    span_m: s,
+                    area_m2: 0.5 * s * sum,
+                    midchord_sweep_rad: (x_t + 0.5 * c_t - 0.5 * c_r).atan2(s),
+                    leading_edge_sweep_rad: x_t.atan2(s),
+                    trailing_edge_sweep_rad: (x_t + c_t - c_r).atan2(s),
+                    mac_length_m: 2.0 / 3.0 * (c_r * c_r + c_r * c_t + c_t * c_t) / sum,
+                    mac_leading_edge_m: x_t * y_mac / s,
+                    mac_span_m: y_mac,
+                })
+            }
+            FinPlanform::Elliptical {
+                root_chord_m: c_r,
+                span_m: s,
+            } => {
+                let mac = 8.0 * c_r / (3.0 * PI);
+                Ok(Self {
+                    span_m: s,
+                    area_m2: 0.25 * PI * c_r * s,
+                    midchord_sweep_rad: 0.0,
+                    leading_edge_sweep_rad: elliptical_leading_edge_sweep(0.5 * c_r / s),
+                    // The trailing edge is the leading edge's mirror across mid-chord.
+                    trailing_edge_sweep_rad: -elliptical_leading_edge_sweep(0.5 * c_r / s),
+                    mac_length_m: mac,
+                    mac_leading_edge_m: 0.5 * (c_r - mac),
+                    mac_span_m: 4.0 * s / (3.0 * PI),
+                })
+            }
+            FinPlanform::Freeform {
+                ref points_m,
+                ref root_m,
+            } => Self::freeform(planform, points_m.iter().chain(root_m)),
+            _ => Err(AeroError::Unsupported("this fin planform".to_owned())),
+        }
+    }
+
+    /// A freeform outline, integrated band by band between vertex heights. Edges of a simple
+    /// polygon don't cross, so inside a band the leading and trailing edges are single straight
+    /// edges: every integrand is a quadratic in `y`, and the three-point Gauss rule is exact.
+    fn freeform<'a>(
+        planform: &FinPlanform,
+        points: impl Iterator<Item = &'a [f64; 2]>,
+    ) -> Result<Self, AeroError> {
+        let mut heights: Vec<f64> = points.map(|p| p[1]).collect();
+        heights.sort_by(f64::total_cmp);
+        heights.dedup();
+        let span = planform.span_m();
+        // Gauss–Legendre nodes and weights on [−1, 1].
+        let nodes = [
+            (-(0.6f64).sqrt(), 5.0 / 9.0),
+            (0.0, 8.0 / 9.0),
+            ((0.6f64).sqrt(), 5.0 / 9.0),
+        ];
+        let mut chords = Vec::new();
+        let (mut area, mut filled, mut c2, mut yc, mut xc, mut sweep, mut le_sweep, mut te_sweep) =
+            (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+        for band in heights.windows(2) {
+            let (lo, hi) = (band[0], band[1]);
+            // Vertex heights a few rounding steps apart (a tip given in inches and in meters) make
+            // a band too thin for its Gauss points to land inside it. Its share of any integral is
+            // below 1e-12 of the fin's.
+            if hi - lo <= 1e-12 * span {
+                continue;
+            }
+            let half = 0.5 * (hi - lo);
+            let mid = 0.5 * (hi + lo);
+            let mut mids = [0.0; 2];
+            let mut leading = [0.0; 2];
+            let mut trailing = [0.0; 2];
+            for (k, &(t, w)) in nodes.iter().enumerate() {
+                let y = mid + half * t;
+                planform.chords_at(y, &mut chords);
+                let (Some(first), Some(last)) = (chords.first(), chords.last()) else {
+                    // A valid outline has chords at every height inside its span.
+                    return Err(AeroError::Domain {
+                        what: "freeform fin height without a chord",
+                        value: y,
+                    });
+                };
+                let (le, te) = (first.0, last.1);
+                let c = te - le;
+                let wh = w * half;
+                area += wh * chords.iter().map(|(a, b)| b - a).sum::<f64>();
+                filled += wh * c;
+                c2 += wh * c * c;
+                yc += wh * y * c;
+                xc += wh * le * c;
+                if k != 1 {
+                    mids[k / 2] = 0.5 * (le + te);
+                    leading[k / 2] = le;
+                    trailing[k / 2] = te;
+                }
+            }
+            // The mid-chord line is straight in the band: its angle from the outer two nodes.
+            let dy = 2.0 * half * (0.6f64).sqrt();
+            sweep += (hi - lo) * (mids[1] - mids[0]).atan2(dy);
+            le_sweep += (hi - lo) * (leading[1] - leading[0]).atan2(dy);
+            te_sweep += (hi - lo) * (trailing[1] - trailing[0]).atan2(dy);
+        }
+        if !(area > 0.0 && filled > 0.0 && span > 0.0) {
+            return Err(AeroError::Domain {
+                what: "fin area",
+                value: area,
+            });
+        }
+        Ok(Self {
+            span_m: span,
+            area_m2: area,
+            midchord_sweep_rad: sweep / span,
+            leading_edge_sweep_rad: le_sweep / span,
+            trailing_edge_sweep_rad: te_sweep / span,
+            mac_length_m: c2 / filled,
+            mac_leading_edge_m: xc / filled,
+            mac_span_m: yc / filled,
+        })
+    }
+
+    /// Center of pressure at the quarter mean aerodynamic chord, m aft of the root leading edge
+    /// (Niskanen 2009, `X_f = x_MAC,LE + 0.25 c̄`; Barrowman 1966 eq. 76a for a trapezoid).
+    pub fn center_of_pressure_m(&self) -> f64 {
+        self.mac_leading_edge_m + 0.25 * self.mac_length_m
+    }
+
+    /// Normal-force slope of one fin, per radian of the angle between the flow and the fin
+    /// (Barrowman 1967 eq. 3-6; Niskanen 2009 eq. 3.40).
+    ///
+    /// # Errors
+    ///
+    /// [`AeroError::Mach`] outside `[0, 1)`, and [`AeroError::Domain`] for a non-positive
+    /// reference area.
+    pub fn single_fin_slope(&self, reference_area_m2: f64, mach: f64) -> Result<f64, AeroError> {
+        check_mach(mach, 1.0, "the subsonic fin slope")?;
+        check_dimension("reference area", reference_area_m2, false)?;
+        Ok(self.slope_at((1.0 - mach * mach).sqrt(), reference_area_m2))
+    }
+
+    /// [`FinGeometry::single_fin_slope`] at the Prandtl–Glauert factor `beta`, unchecked.
+    pub(crate) fn slope_at(&self, beta: f64, reference_area_m2: f64) -> f64 {
+        let s2 = self.span_m * self.span_m;
+        let f = beta * s2 / (self.area_m2 * self.midchord_sweep_rad.cos());
+        TAU * s2 / reference_area_m2 / (1.0 + (1.0 + f * f).sqrt())
+    }
+}
+
+/// The span-averaged leading-edge angle of an elliptical fin whose root chord is `2k` spans.
+///
+/// The leading edge `x = (c_r/2)(1 − √(1 − η²))`, `η = y/s`, has the angle
+/// `Γ(η) = atan(k η/√(1 − η²))`. Integrating by parts with `η = sin t`,
+/// `∫₀¹ Γ dη = π/2 − ∫₀¹ k du/(k² + (1 − k²)u²)`, which is `π/2 − acos(k)/√(1 − k²)` for `k < 1`,
+/// `π/2 − 1` at `k = 1`, and `π/2 − acosh(k)/√(k² − 1)` for `k > 1`.
+fn elliptical_leading_edge_sweep(k: f64) -> f64 {
+    let d = 1.0 - k * k;
+    let integral = if d.abs() < 1e-6 {
+        // Series about k = 1 in d = 1 − k², the same on both sides: 1 + d/6 + 3d²/40 + ….
+        1.0 + d / 6.0 + 0.075 * d * d
+    } else if d > 0.0 {
+        k.acos() / d.sqrt()
+    } else {
+        k.acosh() / (-d).sqrt()
+    };
+    std::f64::consts::FRAC_PI_2 - integral
+}
+
+/// Fin–body interference factor `K_T(B) = 1 + r_t/(s + r_t)` (Barrowman 1966 eq. 77; Niskanen 2009
+/// eq. 3.56), with `s` the span from the body surface and `r_t` the body radius at the fins.
+///
+/// # Errors
+///
+/// [`AeroError::Domain`] for a non-positive span or a negative body radius.
+pub fn interference_factor(span_m: f64, body_radius_m: f64) -> Result<f64, AeroError> {
+    check_dimension("fin span", span_m, false)?;
+    check_dimension("body radius at the fins", body_radius_m, true)?;
+    Ok(1.0 + body_radius_m / (span_m + body_radius_m))
+}
+
+/// Fin–fin interference factor for `count` fins in one set (OpenRocket technical documentation
+/// 13.05 eq. 3.54, from MIL-HDBK-762(MI) p. 5-24): 1 up to four fins, then 0.948, 0.913, 0.854
+/// and 0.810.
+///
+/// # Errors
+///
+/// [`AeroError::Domain`] for no fins or more than eight: the documentation's 0.750 for more than
+/// eight fins has no data behind it.
+pub fn fin_count_factor(count: u32) -> Result<f64, AeroError> {
+    match count {
+        1..=4 => Ok(1.0),
+        5 => Ok(0.948),
+        6 => Ok(0.913),
+        7 => Ok(0.854),
+        8 => Ok(0.810),
+        _ => Err(AeroError::Domain {
+            what: "fin count (1 to 8 have a normal-force model)",
+            value: f64::from(count),
+        }),
+    }
+}
+
+/// `Σ sin² Λ_k` over `count` evenly spaced fins, where `Λ_k` is the angle from the lateral airflow
+/// to fin `k` (Niskanen 2009 eq. 3.51–3.53). The first fin is at `base_angle_rad` and the airflow at
+/// `flow_roll_rad`, both from `x_B` toward `y_B`. Three or more fins give exactly `N/2` at any roll.
+pub fn roll_sum(count: u32, base_angle_rad: f64, flow_roll_rad: f64) -> f64 {
+    if count >= 3 {
+        return 0.5 * f64::from(count);
+    }
+    (0..count)
+        .map(|k| {
+            let lambda = base_angle_rad + TAU * f64::from(k) / f64::from(count) - flow_roll_rad;
+            lambda.sin().powi(2)
+        })
+        .sum()
+}
+
+/// `Σ sin(φ − θ_k) cos(φ − θ_k)` over `count` evenly spaced fins at `θ_k` in a lateral airflow at
+/// `φ`: the side-force share, perpendicular to the flow's plane. Each fin sees the local angle
+/// `α sin Λ_k` (Niskanen 2009 eq. 3.50) and pushes along its own normal; eq. 3.51 keeps the part of
+/// that push in the flow's plane, `sin² Λ_k`, and this is the part across it. The sum vanishes for
+/// three or more fins; for one or two it doesn't: two fins at 45° to the flow push along their
+/// common normal, `√2` times their in-plane share. Derived here from eq. 3.50; Niskanen drops it.
+pub fn side_sum(count: u32, base_angle_rad: f64, flow_roll_rad: f64) -> f64 {
+    if count >= 3 {
+        return 0.0;
+    }
+    (0..count)
+        .map(|k| {
+            let lambda = base_angle_rad + TAU * f64::from(k) / f64::from(count) - flow_roll_rad;
+            -lambda.sin() * lambda.cos()
+        })
+        .sum()
+}
+
+/// Sides of the polygon that stands for an elliptical fin in [`FinOutline`]: its area is
+/// `1 − (π/n)²/6` of the ellipse's to first order, 2.5e-5 short at 256.
+const ELLIPSE_SIDES: u32 = 256;
+
+/// A fin's outline in its own plane, for supersonic linear theory: a simple polygon of `[x, y]`
+/// vertices, m, with `x` aft of the root leading edge and `y` out from the root, closed along the
+/// root.
+///
+/// Serialize-only: an outline is built from a planform by [`FinOutline::from_planform`], which
+/// checks it.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct FinOutline {
+    points_m: Vec<[f64; 2]>,
+    tip_leading_edge_m: [f64; 2],
+    tip_chord_m: f64,
+    area_m2: f64,
+    centroid_m: f64,
+}
+
+impl FinOutline {
+    /// The vertices, m, from the root leading edge `[0, 0]` around to the root trailing edge.
+    pub fn points_m(&self) -> &[[f64; 2]] {
+        &self.points_m
+    }
+
+    /// The tip's leading edge, m: the foremost point at the full span, where the tip's Mach cone
+    /// starts.
+    pub fn tip_leading_edge_m(&self) -> [f64; 2] {
+        self.tip_leading_edge_m
+    }
+
+    /// The tip's chord, m: the outline's length along the flow at the full span (0 for a pointed
+    /// tip).
+    pub fn tip_chord_m(&self) -> f64 {
+        self.tip_chord_m
+    }
+
+    /// The polygon's area, m².
+    pub fn area_m2(&self) -> f64 {
+        self.area_m2
+    }
+
+    /// Its area centroid, m aft of the root leading edge.
+    pub fn centroid_m(&self) -> f64 {
+        self.centroid_m
+    }
+
+    /// The outline of a planform: a trapezoid's four corners, a freeform fin's own points, and an
+    /// ellipse as a polygon of 256 sides.
+    ///
+    /// # Errors
+    ///
+    /// The planform's own validation errors, [`AeroError::Unsupported`] for a planform this model
+    /// doesn't know, and [`AeroError::Domain`] for an outline without area.
+    pub fn from_planform(planform: &FinPlanform) -> Result<Self, AeroError> {
+        planform.validate()?;
+        let points = match *planform {
+            FinPlanform::Trapezoidal {
+                root_chord_m: c_r,
+                tip_chord_m: c_t,
+                span_m: s,
+                sweep_m: x_t,
+            } => vec![[0.0, 0.0], [x_t, s], [x_t + c_t, s], [c_r, 0.0]],
+            FinPlanform::Elliptical {
+                root_chord_m: c_r,
+                span_m: s,
+            } => (0..=ELLIPSE_SIDES)
+                .map(|i| {
+                    let t = PI * f64::from(i) / f64::from(ELLIPSE_SIDES);
+                    [0.5 * c_r * (1.0 - t.cos()), s * t.sin()]
+                })
+                .collect(),
+            FinPlanform::Freeform {
+                ref points_m,
+                ref root_m,
+            } => points_m.iter().chain(root_m).copied().collect(),
+            _ => return Err(AeroError::Unsupported("this fin planform".to_owned())),
+        };
+        let span = points.iter().fold(0.0_f64, |m, p| m.max(p[1]));
+        // The same tolerance as a freeform fin's bands: tip vertices a few rounding steps apart
+        // are one tip.
+        let at_tip = || points.iter().filter(|p| p[1] >= span * (1.0 - 1e-12));
+        let tip_x = at_tip().fold(f64::INFINITY, |m, p| m.min(p[0]));
+        let tip_end = at_tip().fold(f64::NEG_INFINITY, |m, p| m.max(p[0]));
+        let (area, moment) = area_and_moment(&points);
+        if !(area > 0.0 && tip_x.is_finite()) {
+            return Err(AeroError::Domain {
+                what: "fin area",
+                value: area,
+            });
+        }
+        Ok(Self {
+            tip_leading_edge_m: [tip_x, span],
+            tip_chord_m: tip_end - tip_x,
+            area_m2: area,
+            centroid_m: moment / area,
+            points_m: points,
+        })
+    }
+
+    /// The area, m², and its centroid, m aft of the root leading edge, of the part of the fin
+    /// inside the Mach cone from the tip's leading edge at `β = √(M² − 1)`: aft of the Mach line
+    /// `x − x_T = β (s − y)`, which runs inboard from the tip at the Mach angle `atan(1/β)`.
+    ///
+    /// The root is a reflection plane, so a cone that crosses it comes back: the part of the cone
+    /// over the fin's mirror image counts too, as the mirror fin's cone crossing onto this one.
+    ///
+    /// `beta` must be positive and finite; [`FinAero::loading`] checks the Mach number it comes
+    /// from.
+    pub fn tip_cone(&self, beta: f64) -> (f64, f64) {
+        debug_assert!(beta > 0.0 && beta.is_finite(), "beta {beta}");
+        let [x_t, s] = self.tip_leading_edge_m;
+        // Signed distance aft of the Mach line, in x: non-negative inside the cone.
+        let aft = |p: [f64; 2]| p[0] - x_t - beta * (s - p[1]);
+        let (area, moment) = clipped_area_and_moment(&self.points_m, 1.0, aft);
+        let (area_back, moment_back) = clipped_area_and_moment(&self.points_m, -1.0, aft);
+        let (area, moment) = (area + area_back, moment + moment_back);
+        if area > 0.0 {
+            (area, moment / area)
+        } else {
+            (0.0, x_t)
+        }
+    }
+
+    /// One fin's supersonic normal-force slope per radian, on `reference_area_m2`, and its center
+    /// of pressure, m aft of the root leading edge, at `β = √(M² − 1)`.
+    ///
+    /// Linear (Ackeret) theory for a flat plate: each surface carries the pressure coefficient
+    /// `∓2α/β`, so the loading is `4α/β` over the fin, uniform along every chord. Inside the Mach
+    /// cone from the tip's leading edge it is halved, as Barrowman 1967 (appendix A, p. 84) does
+    /// for each strip; for a rectangular tip that is linear theory's exact loss,
+    /// `C_Lα = (4/β)(1 − 1/(2βA))`. The root is a reflection plane (the body). So
+    /// `(C_Nα)₁ = (4/β)(A_fin − A_cone/2)/A_ref`, and the CP is the loading's centroid.
+    ///
+    /// `beta` must be positive and finite, as for [`FinOutline::tip_cone`].
+    pub fn supersonic(&self, beta: f64, reference_area_m2: f64) -> (f64, f64) {
+        let (cone, cone_x) = self.tip_cone(beta);
+        let loaded = self.area_m2 - 0.5 * cone;
+        let moment = self.area_m2 * self.centroid_m - 0.5 * cone * cone_x;
+        (4.0 / beta * loaded / reference_area_m2, moment / loaded)
+    }
+}
+
+impl FinOutline {
+    /// The first and second moments of the fin's area about the body axis, `∫ξ dA` (m³) and
+    /// `∫ξ² dA` (m⁴), with `ξ = r_t + y` the distance from the axis and `r_t` the body radius
+    /// at the fins. For a fin on a pod, `r_t` is how far its root lies along its span from the
+    /// rocket's axis, which may be negative.
+    pub fn axis_moments(&self, body_radius_m: f64) -> (f64, f64) {
+        debug_assert!(body_radius_m.is_finite(), "body radius {body_radius_m}");
+        let m = clipped_moments(&self.points_m, 1.0, |_| 0.0);
+        about_axis(m, body_radius_m)
+    }
+
+    /// [`FinOutline::axis_moments`] of the part of the fin inside the tip's Mach cone at
+    /// `β = √(M² − 1)`, with the mirror fin's cone crossing the root, as [`FinOutline::tip_cone`]
+    /// takes it.
+    ///
+    /// `beta` must be positive and finite, as for [`FinOutline::tip_cone`].
+    pub fn tip_cone_axis_moments(&self, beta: f64, body_radius_m: f64) -> (f64, f64) {
+        debug_assert!(beta > 0.0 && beta.is_finite(), "beta {beta}");
+        debug_assert!(body_radius_m.is_finite(), "body radius {body_radius_m}");
+        let [x_t, s] = self.tip_leading_edge_m;
+        let aft = |p: [f64; 2]| p[0] - x_t - beta * (s - p[1]);
+        let here = about_axis(clipped_moments(&self.points_m, 1.0, aft), body_radius_m);
+        // The mirror image's part lies at `−y`; on this fin it is at `+y`.
+        let mut back = clipped_moments(&self.points_m, -1.0, aft);
+        back.y = -back.y;
+        let back = about_axis(back, body_radius_m);
+        (here.0 + back.0, here.1 + back.1)
+    }
+}
+
+/// `∫ξ dA` and `∫ξ² dA` with `ξ = r + y`, from the area's moments in `y`.
+fn about_axis(m: Moments, r: f64) -> (f64, f64) {
+    (r * m.area + m.y, r * r * m.area + 2.0 * r * m.y + m.yy)
+}
+
+/// One fin's rolling moment at one Mach number, about the body axis, on the reference area
+/// `A_ref` and diameter `d` ([`FinAero::roll`]); the body's interference is the fin set's
+/// ([`roll_forcing_interference`], [`roll_damping_interference`]).
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct FinRoll {
+    /// `∂C_l/∂δ` per radian of the fin's incidence, its cant, in the sense its lift turns the
+    /// rocket: positive.
+    pub forcing_per_rad: f64,
+    /// `C_lp = ∂C_l/∂(p d/2V)`, per unit of the roll rate `p` made dimensionless by the airspeed
+    /// `V`: it opposes the roll, so it is negative.
+    pub damping: f64,
+}
+
+/// One fin's roll terms on one body that don't change with Mach ([`FinAero::roll_terms`]): its
+/// span moments about the axis and the ends of the transonic join, built once per fin set.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
+#[non_exhaustive]
+pub struct FinRollTerms {
+    /// Radius of the body at the fins, m: where the strips start from the axis. For a fin on a
+    /// pod, taken about the rocket's axis, its root's offset from that axis along its span.
+    pub body_radius_m: f64,
+    /// Reference diameter, m.
+    pub reference_diameter_m: f64,
+    /// `∫ξ dA`, m³ ([`FinOutline::axis_moments`]).
+    pub first_moment_m3: f64,
+    /// `∫ξ² dA`, m⁴.
+    pub second_moment_m4: f64,
+    /// The roll at Mach 0.8, where the join starts.
+    pub transonic_start: FinRoll,
+    /// The roll at `M_s`, where linear theory starts.
+    pub supersonic_start: FinRoll,
+}
+
+/// Where the fin slope and CP leave the subsonic method: the top of the subsonic region, Mach 0.8
+/// (Niskanen 2009 Table 3.1, p. 19).
+pub const TRANSONIC_START_MACH: f64 = 0.8;
+
+/// The lowest Mach number for supersonic linear theory: Mach 1.2, the bottom of the supersonic
+/// region (Niskanen 2009 Table 3.1, p. 19).
+pub const SUPERSONIC_START_MACH: f64 = 1.2;
+
+/// One fin's normal-force slope and center of pressure at one Mach number.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct FinLoading {
+    /// Normal-force slope per radian of the angle between the flow and the fin, on the reference
+    /// area.
+    pub slope_per_rad: f64,
+    /// Center of pressure, m aft of the root leading edge.
+    pub cp_m: f64,
+}
+
+/// One fin's normal force through the speed regimes: its geometry and outline, and the two ends
+/// of its transonic join, computed once.
+///
+/// - **Subsonic**, `M ≤ 0.8`: Diederich's slope with Prandtl–Glauert
+///   ([`FinGeometry::single_fin_slope`]) at the quarter mean aerodynamic chord.
+/// - **Supersonic**, from `M_s = max(1.2, 1/cos Γ_L, 1/cos Γ_T, √(1 + 1/A²), √(1 + (c_t/2s)²))`:
+///   linear theory ([`FinOutline::supersonic`]). Its strips need supersonic leading and trailing
+///   edges, whose Mach numbers square to the edge, `M cos Γ_L` and `M cos Γ_T`, are past 1 (NACA
+///   TN 2114's case). Its half-load tip cone holds while the mirror fin's
+///   cone stays off this fin's tip, `β ≥ c_t/(2s)` with `c_t` the tip chord, and while
+///   `βA ≥ 1`, with `A = 2s²/A_fin` the aspect ratio of the fin and its mirror image (for a
+///   rectangle the two agree, and the slope peaks there at `2A`). So a swept, stubby or
+///   inverse-tapered fin starts later than Mach 1.2.
+/// - **Transonic**, between: slope and CP each linear in `M` between their values at the two
+///   ends. No method in the sources gives this region in closed form (MIL-HDBK-762 reads it from
+///   transonic-similarity charts, pp. 5-104–5-105); the join keeps both continuous, with the
+///   slope's peak at `M_s`, where linear theory takes over.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct FinAero {
+    geometry: FinGeometry,
+    outline: FinOutline,
+    reference_area_m2: f64,
+    supersonic_mach: f64,
+    transonic_start: FinLoading,
+    supersonic_start: FinLoading,
+}
+
+impl FinAero {
+    /// The fin's subsonic geometry.
+    pub fn geometry(&self) -> &FinGeometry {
+        &self.geometry
+    }
+
+    /// Its outline.
+    pub fn outline(&self) -> &FinOutline {
+        &self.outline
+    }
+
+    /// The reference area of the slopes, m².
+    pub fn reference_area_m2(&self) -> f64 {
+        self.reference_area_m2
+    }
+
+    /// Where supersonic linear theory starts, `M_s`. It can pass Mach 5 for a stubby or a very
+    /// swept fin (a strake 0.5 m long and 0.02 m tall starts at Mach 12.5); the fin's slope and CP
+    /// then stay on the join toward that value up to the normal force's limit, and linear theory
+    /// is never used.
+    pub fn supersonic_mach(&self) -> f64 {
+        self.supersonic_mach
+    }
+
+    /// A planform's normal force on `reference_area_m2`.
+    ///
+    /// # Errors
+    ///
+    /// As [`FinGeometry::from_planform`] and [`FinOutline::from_planform`], and
+    /// [`AeroError::Domain`] for a non-positive reference area.
+    pub fn new(planform: &FinPlanform, reference_area_m2: f64) -> Result<Self, AeroError> {
+        check_dimension("reference area", reference_area_m2, false)?;
+        let geometry = FinGeometry::from_planform(planform)?;
+        let outline = FinOutline::from_planform(planform)?;
+        let aspect = 2.0 * geometry.span_m * geometry.span_m / geometry.area_m2;
+        let tip_ratio = outline.tip_chord_m / (2.0 * outline.tip_leading_edge_m[1]);
+        let supersonic_mach = SUPERSONIC_START_MACH
+            .max(1.0 / geometry.leading_edge_sweep_rad.cos())
+            .max(1.0 / geometry.trailing_edge_sweep_rad.cos())
+            .max((1.0 + 1.0 / (aspect * aspect)).sqrt())
+            .max((1.0 + tip_ratio * tip_ratio).sqrt());
+        let beta_sub = (1.0 - TRANSONIC_START_MACH * TRANSONIC_START_MACH).sqrt();
+        let transonic_start = FinLoading {
+            slope_per_rad: geometry.slope_at(beta_sub, reference_area_m2),
+            cp_m: geometry.center_of_pressure_m(),
+        };
+        let (slope_per_rad, cp_m) = outline.supersonic(
+            (supersonic_mach * supersonic_mach - 1.0).sqrt(),
+            reference_area_m2,
+        );
+        Ok(Self {
+            geometry,
+            outline,
+            reference_area_m2,
+            supersonic_mach,
+            transonic_start,
+            supersonic_start: FinLoading {
+                slope_per_rad,
+                cp_m,
+            },
+        })
+    }
+
+    /// The fin's slope and CP at `mach`.
+    ///
+    /// # Errors
+    ///
+    /// [`AeroError::Mach`] outside `[0, 5)` ([`crate::model::NORMAL_FORCE_MACH_LIMIT`]).
+    pub fn loading(&self, mach: f64) -> Result<FinLoading, AeroError> {
+        check_mach(
+            mach,
+            crate::model::NORMAL_FORCE_MACH_LIMIT,
+            "the normal force",
+        )?;
+        Ok(self.loading_at(mach))
+    }
+
+    /// [`FinAero::loading`] at a checked Mach number.
+    pub(crate) fn loading_at(&self, mach: f64) -> FinLoading {
+        if mach <= TRANSONIC_START_MACH {
+            FinLoading {
+                slope_per_rad: self
+                    .geometry
+                    .slope_at((1.0 - mach * mach).sqrt(), self.reference_area_m2),
+                cp_m: self.geometry.center_of_pressure_m(),
+            }
+        } else if mach >= self.supersonic_mach {
+            let (slope_per_rad, cp_m) = self
+                .outline
+                .supersonic((mach * mach - 1.0).sqrt(), self.reference_area_m2);
+            FinLoading {
+                slope_per_rad,
+                cp_m,
+            }
+        } else {
+            let t = (mach - TRANSONIC_START_MACH) / (self.supersonic_mach - TRANSONIC_START_MACH);
+            let (a, b) = (self.transonic_start, self.supersonic_start);
+            FinLoading {
+                slope_per_rad: a.slope_per_rad + t * (b.slope_per_rad - a.slope_per_rad),
+                cp_m: a.cp_m + t * (b.cp_m - a.cp_m),
+            }
+        }
+    }
+}
+
+impl FinAero {
+    /// One fin's roll forcing and damping at `mach` on a body of radius `body_radius_m`, on the
+    /// reference area and the reference diameter `reference_diameter_m`, by strip theory
+    /// (Barrowman 1967 §3.13–3.14 and appendix A; Niskanen 2009 §3.3):
+    ///
+    /// - **Subsonic**, to Mach 0.8: the fin's lift at its mean aerodynamic chord,
+    ///   `C_lδ = (C_Nα)₁ (r_t + y_MAC)/d` (Barrowman eq. 3-35, Niskanen eq. 3.66), and each strip
+    ///   at the local incidence `−pξ/V` with the fin's own slope per unit area,
+    ///   `a = (C_Nα)₁ A_ref/A_fin`: `C_lp = −2a ∫ξ² dA/(A_ref d²)` (Barrowman eq. 3-40–3-48,
+    ///   Niskanen eq. 3.67–3.70). Barrowman's text writes the airfoil's `C_Nα0` for `a`; his
+    ///   computed curve for the Basic Finner, −34.2 at Mach 0 (Fig. 5-7), is this, −33.5, not the
+    ///   airfoil's −69 ([the roll decision, ADR-031][adr-031]).
+    /// - **Supersonic**, from `M_s` ([`FinAero::supersonic_mach`]): the load `4α/β` of
+    ///   [`FinOutline::supersonic`], halved in the tip's Mach cone,
+    ///   `C_lδ = (4/β)(∫ξ dA − ½∫_cone ξ dA)/(A_ref d)` and
+    ///   `C_lp = −(8/β)(∫ξ² dA − ½∫_cone ξ² dA)/(A_ref d²)` (Barrowman appendix A, first order).
+    /// - **Transonic**, between: each linear in `M`, as the fin's slope is.
+    ///
+    /// `ξ = r_t + y` is the distance from the body axis.
+    ///
+    /// # Errors
+    ///
+    /// [`AeroError::Mach`] outside `[0, 5)`, as [`FinAero::loading`], and [`AeroError::Domain`]
+    /// for a negative body radius or a non-positive reference diameter.
+    ///
+    /// [adr-031]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-031-roll-from-canted-fins-and-roll-damping-by-barrowmans-strip-theory-2026-09-19
+    pub fn roll(
+        &self,
+        mach: f64,
+        body_radius_m: f64,
+        reference_diameter_m: f64,
+    ) -> Result<FinRoll, AeroError> {
+        let terms = self.roll_terms(body_radius_m, reference_diameter_m)?;
+        check_mach(
+            mach,
+            crate::model::NORMAL_FORCE_MACH_LIMIT,
+            "the roll moment",
+        )?;
+        Ok(self.roll_with(&terms, mach))
+    }
+
+    /// The terms of [`FinAero::roll`] that don't change with Mach, on a body of radius
+    /// `body_radius_m` and the reference diameter `reference_diameter_m`.
+    ///
+    /// # Errors
+    ///
+    /// [`AeroError::Domain`] for a negative body radius or a non-positive reference diameter.
+    pub fn roll_terms(
+        &self,
+        body_radius_m: f64,
+        reference_diameter_m: f64,
+    ) -> Result<FinRollTerms, AeroError> {
+        check_dimension("body radius at the fins", body_radius_m, true)?;
+        self.roll_terms_about(body_radius_m, reference_diameter_m)
+    }
+
+    /// [`FinAero::roll_terms`] for a fin whose root lies `root_offset_m` from the rocket's axis
+    /// along its span, which may be negative: a fin on a pod. The strips' distance from the axis
+    /// is then `root_offset_m + y`, and so is each strip's arm about it: a fin element at `P`
+    /// moves across its own plane at `p (P · ê)` under the roll rate `p`, `ê` the fin's spanwise
+    /// direction, and its normal force turns the rocket with the same arm `P · ê`. Only the
+    /// damping of such terms means anything: the forcing's arm assumes a root on the axis.
+    ///
+    /// # Errors
+    ///
+    /// [`AeroError::Domain`] for a root offset that isn't finite or a non-positive reference
+    /// diameter.
+    pub(crate) fn roll_terms_about(
+        &self,
+        root_offset_m: f64,
+        reference_diameter_m: f64,
+    ) -> Result<FinRollTerms, AeroError> {
+        if !root_offset_m.is_finite() {
+            return Err(AeroError::Domain {
+                what: "fin root offset from the axis",
+                value: root_offset_m,
+            });
+        }
+        let body_radius_m = root_offset_m;
+        check_dimension("reference diameter", reference_diameter_m, false)?;
+        let (first, second) = self.outline.axis_moments(body_radius_m);
+        let mut terms = FinRollTerms {
+            body_radius_m,
+            reference_diameter_m,
+            first_moment_m3: first,
+            second_moment_m4: second,
+            transonic_start: FinRoll {
+                forcing_per_rad: 0.0,
+                damping: 0.0,
+            },
+            supersonic_start: FinRoll {
+                forcing_per_rad: 0.0,
+                damping: 0.0,
+            },
+        };
+        let beta_sub = (1.0 - TRANSONIC_START_MACH * TRANSONIC_START_MACH).sqrt();
+        let m_s = self.supersonic_mach;
+        terms.transonic_start = self.subsonic_roll(beta_sub, &terms);
+        terms.supersonic_start = self.supersonic_roll((m_s * m_s - 1.0).sqrt(), &terms);
+        Ok(terms)
+    }
+
+    /// [`FinAero::roll`] with its terms built, at a checked Mach number.
+    pub(crate) fn roll_with(&self, terms: &FinRollTerms, mach: f64) -> FinRoll {
+        if mach <= TRANSONIC_START_MACH {
+            self.subsonic_roll((1.0 - mach * mach).sqrt(), terms)
+        } else if mach >= self.supersonic_mach {
+            self.supersonic_roll((mach * mach - 1.0).sqrt(), terms)
+        } else {
+            let (a, b) = (terms.transonic_start, terms.supersonic_start);
+            let t = (mach - TRANSONIC_START_MACH) / (self.supersonic_mach - TRANSONIC_START_MACH);
+            FinRoll {
+                forcing_per_rad: a.forcing_per_rad + t * (b.forcing_per_rad - a.forcing_per_rad),
+                damping: a.damping + t * (b.damping - a.damping),
+            }
+        }
+    }
+
+    fn subsonic_roll(&self, beta: f64, terms: &FinRollTerms) -> FinRoll {
+        let (r, d) = (terms.body_radius_m, terms.reference_diameter_m);
+        let slope = self.geometry.slope_at(beta, self.reference_area_m2);
+        let per_area = slope * self.reference_area_m2 / self.geometry.area_m2;
+        FinRoll {
+            forcing_per_rad: slope * (r + self.geometry.mac_span_m) / d,
+            damping: -2.0 * per_area * terms.second_moment_m4 / (self.reference_area_m2 * d * d),
+        }
+    }
+
+    fn supersonic_roll(&self, beta: f64, terms: &FinRollTerms) -> FinRoll {
+        let (r, d) = (terms.body_radius_m, terms.reference_diameter_m);
+        let (cone_first, cone_second) = self.outline.tip_cone_axis_moments(beta, r);
+        let load = 4.0 / beta / self.reference_area_m2;
+        FinRoll {
+            forcing_per_rad: load * (terms.first_moment_m3 - 0.5 * cone_first) / d,
+            damping: -2.0 * load * (terms.second_moment_m4 - 0.5 * cone_second) / (d * d),
+        }
+    }
+}
+
+/// The body's interference with the roll forcing of canted fins (Barrowman 1967 eq. 3-95 and
+/// 3-105, from slender-body theory, his reference 23), with `τ = (s + r_t)/r_t`:
+///
+/// ```text
+/// k_T(B) = (1/π²)[ (π²/4)(τ + 1)²/τ² + π(τ² + 1)²/(τ²(τ − 1)²) asin((τ² − 1)/(τ² + 1))
+///          − 2π(τ + 1)/(τ(τ − 1)) + (τ² + 1)²/(τ²(τ − 1)²) asin²((τ² − 1)/(τ² + 1))
+///          − 4(τ + 1)/(τ(τ − 1)) asin((τ² − 1)/(τ² + 1)) + 8/(τ − 1)² ln((τ² + 1)/2τ) ]
+/// ```
+///
+/// It is 1 with no body (`r_t = 0`), 0.940 at `τ = 2` and 0.935 for the Arcas Robin's fins
+/// (`τ = 2.87`). Below `τ = 1.001`, a fin shorter than a thousandth of the body's radius, the
+/// terms cancel to rounding, and past `τ = 10⁶` they overflow; it is held at its value at each.
+///
+/// # Errors
+///
+/// [`AeroError::Domain`] for a non-positive span or a negative body radius.
+pub fn roll_forcing_interference(span_m: f64, body_radius_m: f64) -> Result<f64, AeroError> {
+    check_dimension("fin span", span_m, false)?;
+    check_dimension("body radius at the fins", body_radius_m, true)?;
+    if body_radius_m == 0.0 {
+        return Ok(1.0);
+    }
+    let t = ((span_m + body_radius_m) / body_radius_m).clamp(1.001, 1e6);
+    let (t2, u) = (t * t, t - 1.0);
+    let a = ((t2 - 1.0) / (t2 + 1.0)).asin();
+    let q = (t2 + 1.0) * (t2 + 1.0) / (t2 * u * u);
+    let p = (t + 1.0) / (t * u);
+    Ok(
+        (PI * PI / 4.0 * (t + 1.0) * (t + 1.0) / t2 + PI * q * a - 2.0 * PI * p + q * a * a
+            - 4.0 * p * a
+            + 8.0 / (u * u) * ((t2 + 1.0) / (2.0 * t)).ln())
+            / (PI * PI),
+    )
+}
+
+/// The body's interference with the roll damping (Barrowman 1967 eq. 3-122 and 3-123), with
+/// `τ = (s + r_t)/r_t` and `λ = c_t/c_r`, for a chord falling linearly from root to tip:
+///
+/// ```text
+/// k_R(B) = 1 + ((τ − λ)/τ − (1 − λ) ln τ/(τ − 1)) / ((τ + 1)(τ − λ)/2 − (1 − λ)(τ² + τ + 1)/3)
+/// ```
+///
+/// the integral `1 + r_t³∫c/ξ² dξ / ∫ξ c dξ` over the span (eq. 3-121). It is 1 with no body, 2
+/// as the span goes to 0, and 1.20 for the Arcas Robin's fins. A fin of another shape takes it
+/// at its tip-to-root chord ratio: an elliptical fin as a triangle, about 5.5% too much damping.
+/// Below `τ = 1.001` and past `τ = 10⁶` it is held at its value there, as
+/// [`roll_forcing_interference`] is.
+///
+/// # Errors
+///
+/// [`AeroError::Domain`] for a non-positive span, a negative body radius, or a negative or
+/// non-finite taper ratio (an inverse taper, above 1, is allowed).
+pub fn roll_damping_interference(
+    span_m: f64,
+    body_radius_m: f64,
+    taper_ratio: f64,
+) -> Result<f64, AeroError> {
+    check_dimension("fin span", span_m, false)?;
+    check_dimension("body radius at the fins", body_radius_m, true)?;
+    check_dimension("fin taper ratio", taper_ratio, true)?;
+    if body_radius_m == 0.0 {
+        return Ok(1.0);
+    }
+    let (t, l) = (
+        ((span_m + body_radius_m) / body_radius_m).clamp(1.001, 1e6),
+        taper_ratio,
+    );
+    let u = t - 1.0;
+    let log_ratio = u.ln_1p() / u;
+    Ok(1.0
+        + ((t - l) / t - (1.0 - l) * log_ratio)
+            / ((t + 1.0) * (t - l) / 2.0 - (1.0 - l) * (t * t + t + 1.0) / 3.0))
+}
+
+/// The polygon's area and first moment `∫x dA` by the shoelace formula, oriented to a positive
+/// area.
+fn area_and_moment(points: &[[f64; 2]]) -> (f64, f64) {
+    clipped_area_and_moment(points, 1.0, |_| 0.0)
+}
+
+/// The area and first moment `∫x dA` of the polygon, with `y` scaled by `flip` (−1 for its mirror
+/// image across the root), cut to where `inside(p) ≥ 0`: Sutherland–Hodgman against one line,
+/// its vertices summed by the shoelace formula as they come, without storing them. A concave
+/// polygon may come back with edges doubled along the line, which carry no area, so the sums are
+/// exact.
+fn clipped_area_and_moment(
+    points: &[[f64; 2]],
+    flip: f64,
+    inside: impl Fn([f64; 2]) -> f64,
+) -> (f64, f64) {
+    let m = clipped_moments(points, flip, inside);
+    (m.area, m.x)
+}
+
+/// A polygon's area and moments, oriented to a positive area.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+struct Moments {
+    /// `∫dA`.
+    area: f64,
+    /// `∫x dA`.
+    x: f64,
+    /// `∫y dA`.
+    y: f64,
+    /// `∫y² dA`.
+    yy: f64,
+}
+
+/// [`clipped_area_and_moment`] with the span moments too.
+fn clipped_moments(points: &[[f64; 2]], flip: f64, inside: impl Fn([f64; 2]) -> f64) -> Moments {
+    let mut sums = Shoelace::default();
+    let n = points.len();
+    for (i, p) in points.iter().enumerate() {
+        let q = points[(i + 1) % n];
+        let (p, q) = ([p[0], flip * p[1]], [q[0], flip * q[1]]);
+        let (dp, dq) = (inside(p), inside(q));
+        if dp >= 0.0 {
+            sums.push(p);
+        }
+        if (dp >= 0.0) != (dq >= 0.0) {
+            let t = dp / (dp - dq);
+            sums.push([p[0] + t * (q[0] - p[0]), p[1] + t * (q[1] - p[1])]);
+        }
+    }
+    sums.finish()
+}
+
+/// Running shoelace sums over a polygon's vertices in order.
+#[derive(Default)]
+struct Shoelace {
+    first: Option<[f64; 2]>,
+    last: [f64; 2],
+    twice_area: f64,
+    six_moment: f64,
+    six_y_moment: f64,
+    twelve_yy_moment: f64,
+}
+
+impl Shoelace {
+    fn push(&mut self, v: [f64; 2]) {
+        if self.first.is_some() {
+            self.edge(self.last, v);
+        } else {
+            self.first = Some(v);
+        }
+        self.last = v;
+    }
+
+    fn edge(&mut self, p: [f64; 2], q: [f64; 2]) {
+        let cross = p[0] * q[1] - q[0] * p[1];
+        self.twice_area += cross;
+        self.six_moment += (p[0] + q[0]) * cross;
+        self.six_y_moment += (p[1] + q[1]) * cross;
+        self.twelve_yy_moment += (p[1] * p[1] + p[1] * q[1] + q[1] * q[1]) * cross;
+    }
+
+    /// Closes the polygon: its area, positive, and moments.
+    fn finish(mut self) -> Moments {
+        if let Some(first) = self.first {
+            self.edge(self.last, first);
+        }
+        let sign = self.twice_area.signum();
+        Moments {
+            area: 0.5 * self.twice_area * sign,
+            x: self.six_moment * sign / 6.0,
+            y: self.six_y_moment * sign / 6.0,
+            yy: self.twelve_yy_moment * sign / 12.0,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::f64::consts::FRAC_1_SQRT_2;
+
+    use super::*;
+
+    fn close(got: f64, want: f64, rel: f64, what: &str) {
+        let err = if want == 0.0 {
+            got.abs()
+        } else {
+            ((got - want) / want).abs()
+        };
+        assert!(
+            err <= rel,
+            "{what}: got {got}, want {want}, rel err {err:e}"
+        );
+    }
+
+    fn trapezoid(c_r: f64, c_t: f64, s: f64, x_t: f64) -> FinPlanform {
+        FinPlanform::Trapezoidal {
+            root_chord_m: c_r,
+            tip_chord_m: c_t,
+            span_m: s,
+            sweep_m: x_t,
+        }
+    }
+
+    /// Barrowman 1966 eq. 57, for four fins with `N/2` applied by hand: `8 (s/d)² / (1 + √(1 +
+    /// (2ℓ/(c_r + c_t))²))` per fin, with `ℓ` the mid-chord line's length.
+    fn eq57(c_r: f64, c_t: f64, s: f64, x_t: f64, d: f64) -> f64 {
+        let ell = (s * s + (x_t + 0.5 * c_t - 0.5 * c_r).powi(2)).sqrt();
+        8.0 * (s / d).powi(2) / (1.0 + (1.0 + (2.0 * ell / (c_r + c_t)).powi(2)).sqrt())
+    }
+
+    /// Loft lesson L8: fin-set slopes don't grow linearly past four fins. Six and eight fins give
+    /// 1.37 and 1.62 times four (MIL-HDBK-762(MI) p. 5-24); five and seven sit between.
+    #[test]
+    fn six_fin_cna_applies_fin_count_factor() {
+        let set = |n: u32| roll_sum(n, 0.3, 1.1) * fin_count_factor(n).unwrap();
+        close(set(6) / set(4), 1.37, 5e-4, "six over four");
+        close(set(8) / set(4), 1.62, 1e-12, "eight over four");
+        close(set(5), 2.37, 1e-12, "five");
+        // Niskanen's thesis prints three figures: 3.5 × 0.854 = 2.989.
+        close(set(7), 2.99, 5e-4, "seven");
+        assert!(set(6) < 1.5 * set(4));
+        for n in [1, 2, 3, 4] {
+            assert_eq!(fin_count_factor(n).unwrap(), 1.0);
+        }
+        assert!(fin_count_factor(0).is_err());
+        assert!(fin_count_factor(9).is_err());
+    }
+
+    /// Loft lesson L10: an elliptical fin's mid-chord line is straight along the root's middle, so
+    /// `Γ_c = 0` and its slope uses its own area, not an equal-area trapezoid's sweep.
+    #[test]
+    fn elliptical_fin_cna_uses_zero_midchord_sweep() {
+        let (c_r, s, d) = (0.1, 0.06, 0.05);
+        let a_ref = 0.25 * PI * d * d;
+        let ellipse = FinGeometry::from_planform(&FinPlanform::Elliptical {
+            root_chord_m: c_r,
+            span_m: s,
+        })
+        .unwrap();
+        assert_eq!(ellipse.midchord_sweep_rad, 0.0);
+        let area = 0.25 * PI * c_r * s;
+        let f = s * s / area;
+        let want = TAU * s * s / a_ref / (1.0 + (1.0 + f * f).sqrt());
+        close(
+            ellipse.single_fin_slope(a_ref, 0.0).unwrap(),
+            want,
+            1e-15,
+            "slope",
+        );
+
+        // Loft's equal-area trapezoid (tip 2A/s − c_r, sweep 0) moves the mid-chord and is 1.3%
+        // low.
+        let loft =
+            FinGeometry::from_planform(&trapezoid(c_r, 2.0 * area / s - c_r, s, 0.0)).unwrap();
+        let ratio = loft.single_fin_slope(a_ref, 0.0).unwrap() / want;
+        assert!((0.985..0.99).contains(&ratio), "{ratio}");
+
+        // A 2000-gon ellipse converges on the same sweep, slope and CP.
+        let n = 2000;
+        let points: Vec<[f64; 2]> = (0..=n)
+            .map(|i| {
+                let t = PI * f64::from(i) / f64::from(n);
+                let x = 0.5 * c_r * (1.0 - t.cos());
+                [x, s * t.sin()]
+            })
+            .map(|[x, y]| [x, if y.abs() < 1e-15 { 0.0 } else { y }])
+            .collect();
+        let polygon = FinGeometry::from_planform(&FinPlanform::Freeform {
+            points_m: points,
+            root_m: Vec::new(),
+        })
+        .unwrap();
+        assert!(
+            polygon.midchord_sweep_rad.abs() < 1e-12,
+            "{}",
+            polygon.midchord_sweep_rad
+        );
+        close(
+            polygon.single_fin_slope(a_ref, 0.0).unwrap(),
+            want,
+            1e-5,
+            "polygon slope",
+        );
+        close(
+            polygon.center_of_pressure_m(),
+            ellipse.center_of_pressure_m(),
+            1e-5,
+            "polygon CP",
+        );
+    }
+
+    /// M4.5g4 (ADR-166): a root that follows a nose cone is part of the fin's outline. Its area,
+    /// subsonic and supersonic, is the whole polygon's (shoelace), not the outline's closed
+    /// straight along a chord; a straight root drawn through points on it is the same fin.
+    #[test]
+    fn a_root_along_the_body_bounds_the_fin() {
+        let outline = vec![[0.0, 0.0], [0.01, 0.03], [0.04, 0.03], [0.05, 0.01]];
+        // A root that bulges out of its chord, as a nose cone's surface does.
+        let root = vec![[0.04, 0.0095], [0.025, 0.0075], [0.01, 0.0035]];
+        let shoelace = |points: &[[f64; 2]]| {
+            0.5 * (0..points.len())
+                .map(|i| {
+                    let (p, q) = (points[i], points[(i + 1) % points.len()]);
+                    q[0] * p[1] - p[0] * q[1]
+                })
+                .sum::<f64>()
+        };
+        let whole: Vec<[f64; 2]> = outline.iter().chain(&root).copied().collect();
+        let curved = FinPlanform::Freeform {
+            points_m: outline.clone(),
+            root_m: root,
+        };
+        let fin = FinGeometry::from_planform(&curved).unwrap();
+        close(fin.area_m2, shoelace(&whole), 1e-14, "subsonic area");
+        let supersonic = FinOutline::from_planform(&curved).unwrap();
+        close(
+            supersonic.area_m2,
+            shoelace(&whole),
+            1e-14,
+            "supersonic area",
+        );
+        assert!(
+            shoelace(&whole) < shoelace(&outline) - 1e-5,
+            "the bulge is not the chord"
+        );
+        // A straight root through points on it.
+        let straight = |root_m: Vec<[f64; 2]>| {
+            FinGeometry::from_planform(&FinPlanform::Freeform {
+                points_m: outline.clone(),
+                root_m,
+            })
+            .unwrap()
+        };
+        let (bare, drawn) = (
+            straight(Vec::new()),
+            straight(vec![[0.04, 0.008], [0.025, 0.005], [0.01, 0.002]]),
+        );
+        for (got, want, what) in [
+            (drawn.area_m2, bare.area_m2, "area"),
+            (
+                drawn.center_of_pressure_m(),
+                bare.center_of_pressure_m(),
+                "CP",
+            ),
+            (drawn.mac_length_m, bare.mac_length_m, "MAC"),
+            (drawn.midchord_sweep_rad, bare.midchord_sweep_rad, "sweep"),
+        ] {
+            close(got, want, 1e-12, what);
+        }
+    }
+
+    /// M4.5g4 (ADR-166): the gap the cockpit of OpenRocket's *Pods--airframes and winglets* leaves,
+    /// pinned so a change to it is seen. One fin across the airflow (OpenRocket's wind direction
+    /// θ = 90°) at Mach 0.3, on the reference area of the nose's base, 16.8275 mm in radius:
+    /// OpenRocket 24.12's `BarrowmanCalculator` gives the component 0.21167 per radian at 0.09842 m
+    /// from the tip (run through JPype, ADR-166). hpr gives 31.5% more, 0.2784, at its quarter
+    /// mean chord 0.13 mm from OpenRocket's. Its root along the ogive is not the cause: closed
+    /// straight along the chord, hpr's is 0.2802. Its extra normal force is forward of the center
+    /// of mass, so it shortens hpr's margin, on the safe side (issue #326 sizes the same model's
+    /// gap on the example's wings).
+    #[test]
+    fn the_pods_cockpit_reads_above_openrocket_across_the_airflow() {
+        let nose = hpr_design::Profile::nose(
+            hpr_design::NoseShape::Ogive { radius_ratio: 1.0 },
+            0.136525,
+            0.0168275,
+        )
+        .unwrap();
+        let (chord, fore) = (0.05, 0.136525 - 0.05);
+        let base = nose.radius_m(fore);
+        let root_m = (1..64)
+            .rev()
+            .map(|i| {
+                let x = chord * f64::from(i) / 64.0;
+                [x, nose.radius_m(fore + x) - base]
+            })
+            .collect();
+        let fin = FinGeometry::from_planform(&FinPlanform::Freeform {
+            points_m: vec![
+                [0.0, 0.0],
+                [0.009347826086956524, 0.006956521739130436],
+                [chord, 0.0022276567072510058],
+            ],
+            root_m,
+        })
+        .unwrap();
+        let a_ref = PI * 0.0168275 * 0.0168275;
+        let slope = fin.single_fin_slope(a_ref, 0.3).unwrap()
+            * interference_factor(fin.span_m, base).unwrap();
+        close(slope, 0.2784, 1e-3, "hpr's cockpit");
+        close(slope / 0.21167, 1.315, 2e-3, "against OpenRocket's");
+        close(
+            fore + fin.center_of_pressure_m(),
+            0.09842,
+            2e-3,
+            "OpenRocket's CP from the tip",
+        );
+    }
+
+    /// Trapezoids match Barrowman 1966's closed forms (eq. 57 slope, eq. 76a CP), and the same
+    /// outline as a freeform polygon matches them to round-off.
+    #[test]
+    fn trapezoid_matches_barrowman_and_its_polygon() {
+        let (c_r, c_t, s, x_t, d) = (3.0, 2.0, 1.5, 1.5, 0.976);
+        let a_ref = 0.25 * PI * d * d;
+        let fin = FinGeometry::from_planform(&trapezoid(c_r, c_t, s, x_t)).unwrap();
+        close(
+            fin.single_fin_slope(a_ref, 0.0).unwrap(),
+            eq57(c_r, c_t, s, x_t, d),
+            1e-15,
+            "eq. 57",
+        );
+        let eq76a = x_t / 3.0 * (c_r + 2.0 * c_t) / (c_r + c_t)
+            + (c_r + c_t - c_r * c_t / (c_r + c_t)) / 6.0;
+        close(fin.center_of_pressure_m(), eq76a, 1e-15, "eq. 76a");
+        // Testbed II's hand value, X_F = 1.333 in (NARAM-8 p. 43).
+        close(fin.center_of_pressure_m(), 1.333, 3e-4, "Testbed II X_F");
+
+        let polygon = FinGeometry::from_planform(&FinPlanform::Freeform {
+            points_m: vec![[0.0, 0.0], [x_t, s], [x_t + c_t, s], [c_r, 0.0]],
+            root_m: Vec::new(),
+        })
+        .unwrap();
+        for (got, want, what) in [
+            (polygon.area_m2, fin.area_m2, "area"),
+            (polygon.midchord_sweep_rad, fin.midchord_sweep_rad, "sweep"),
+            (polygon.mac_length_m, fin.mac_length_m, "MAC"),
+            (polygon.mac_leading_edge_m, fin.mac_leading_edge_m, "MAC LE"),
+            (polygon.mac_span_m, fin.mac_span_m, "MAC span"),
+        ] {
+            close(got, want, 1e-13, what);
+        }
+        // A pointed (delta) fin and a rectangle.
+        let delta = FinGeometry::from_planform(&trapezoid(0.2, 0.0, 0.1, 0.2)).unwrap();
+        close(
+            delta.center_of_pressure_m(),
+            0.2 / 3.0 * 1.0 + 0.2 / 6.0,
+            1e-15,
+            "delta CP",
+        );
+        let rectangle = FinGeometry::from_planform(&trapezoid(0.1, 0.1, 0.05, 0.0)).unwrap();
+        assert_eq!(rectangle.midchord_sweep_rad, 0.0);
+        close(
+            rectangle.center_of_pressure_m(),
+            0.025,
+            1e-15,
+            "rectangle CP",
+        );
+    }
+
+    /// A jagged freeform fin: the notch counts toward the CP's chord but not the slope's area
+    /// (Niskanen 2009 pp. 27–28).
+    #[test]
+    fn jagged_fin_fills_its_gap_for_the_cp_only() {
+        // A 0.1 × 0.1 square with a 0.04-wide, 0.05-deep slot cut into its tip.
+        let points = vec![
+            [0.0, 0.0],
+            [0.0, 0.1],
+            [0.03, 0.1],
+            [0.03, 0.05],
+            [0.07, 0.05],
+            [0.07, 0.1],
+            [0.1, 0.1],
+            [0.1, 0.0],
+        ];
+        let fin = FinGeometry::from_planform(&FinPlanform::Freeform {
+            points_m: points,
+            root_m: Vec::new(),
+        })
+        .unwrap();
+        close(
+            fin.area_m2,
+            0.01 - 0.04 * 0.05,
+            1e-14,
+            "area without the slot",
+        );
+        close(fin.mac_length_m, 0.1, 1e-14, "filled chord");
+        close(fin.mac_leading_edge_m, 0.0, 1e-14, "LE");
+        close(fin.mac_span_m, 0.05, 1e-14, "filled centroid span");
+        assert_eq!(fin.midchord_sweep_rad, 0.0);
+    }
+
+    /// Prandtl–Glauert: the slope rises with Mach, equals Barrowman 1967 eq. 3-6 written in the
+    /// aspect ratio `AR = 2s²/A_fin`, and tends to `π s²/A_ref` as `M → 1`.
+    #[test]
+    fn fin_slope_follows_prandtl_glauert() {
+        let fin = FinGeometry::from_planform(&trapezoid(0.12, 0.06, 0.08, 0.05)).unwrap();
+        let a_ref = 0.25 * PI * 0.1 * 0.1;
+        let mut last = 0.0;
+        for mach in [0.0, 0.2, 0.5, 0.8, 0.95, 0.999] {
+            let slope = fin.single_fin_slope(a_ref, mach).unwrap();
+            assert!(slope > last, "{mach}");
+            last = slope;
+            let beta = (1.0 - mach * mach).sqrt();
+            let ar = 2.0 * fin.span_m * fin.span_m / fin.area_m2;
+            let eq36 = TAU * ar * (fin.area_m2 / a_ref)
+                / (2.0 + (4.0 + (beta * ar / fin.midchord_sweep_rad.cos()).powi(2)).sqrt());
+            close(slope, eq36, 1e-14, "eq. 3-6");
+        }
+        let near_one = fin.single_fin_slope(a_ref, 1.0 - 1e-12).unwrap();
+        close(
+            near_one,
+            PI * fin.span_m * fin.span_m / a_ref,
+            1e-5,
+            "M → 1",
+        );
+        assert!(fin.single_fin_slope(a_ref, 1.0).is_err());
+        assert!(fin.single_fin_slope(a_ref, -0.1).is_err());
+        assert!(fin.single_fin_slope(a_ref, f64::NAN).is_err());
+    }
+
+    /// Interference at its limits (no body: 1; a vanishing span: 2), and the roll sum: `N/2` for
+    /// three or more fins at any roll, `sin²` terms for one and two.
+    #[test]
+    fn interference_and_roll_limits() {
+        assert_eq!(interference_factor(0.1, 0.0).unwrap(), 1.0);
+        close(
+            interference_factor(1e-12, 0.05).unwrap(),
+            2.0,
+            1e-10,
+            "tiny span",
+        );
+        close(
+            interference_factor(1.5, 0.368).unwrap(),
+            1.197,
+            1e-3,
+            "Testbed II K",
+        );
+        assert!(interference_factor(0.0, 0.05).is_err());
+        assert!(interference_factor(0.1, -0.01).is_err());
+
+        for n in 3..=8 {
+            for roll in [0.0, 0.1, 0.7, 2.0, -3.0] {
+                let direct: f64 = (0..n)
+                    .map(|k| {
+                        (0.2 + TAU * f64::from(k) / f64::from(n) - roll)
+                            .sin()
+                            .powi(2)
+                    })
+                    .sum();
+                close(roll_sum(n, 0.2, roll), direct, 1e-14, "direct sum");
+            }
+        }
+        for n in 3..=8 {
+            assert_eq!(side_sum(n, 0.2, 0.9), 0.0);
+        }
+        // Two fins along x_B, flow at 45°: in-plane and side shares of 1 each, a push along y_B.
+        close(side_sum(2, 0.0, PI / 4.0), 1.0, 1e-15, "two fins, side");
+        close(roll_sum(2, 0.0, PI / 4.0), 1.0, 1e-15, "two fins, in plane");
+        assert!(side_sum(2, 0.0, 0.0).abs() < 1e-15 && side_sum(2, 0.0, PI / 2.0).abs() < 1e-15);
+        assert_eq!(roll_sum(1, 0.0, 0.0), 0.0);
+        close(
+            roll_sum(1, 0.0, PI / 2.0),
+            1.0,
+            1e-15,
+            "one fin across the flow",
+        );
+        close(
+            roll_sum(2, 0.0, PI / 2.0),
+            2.0,
+            1e-15,
+            "two fins across the flow",
+        );
+        close(roll_sum(2, 0.0, PI / 4.0), 1.0, 1e-15, "two fins at 45°");
+    }
+
+    /// A tip whose two vertices are a few rounding steps apart (3.5 in written in meters and
+    /// converted from inches) is still one tip: the sliver band between them is skipped.
+    #[test]
+    fn nearly_level_tip_vertices_are_one_tip() {
+        let tip = 3.5 * 0.0254;
+        assert_ne!(tip, 0.0889);
+        let nudged = FinPlanform::Freeform {
+            points_m: vec![[0.0, 0.0], [0.03, 0.0889], [0.06, tip], [0.1, 0.0]],
+            root_m: Vec::new(),
+        };
+        let level = FinPlanform::Freeform {
+            points_m: vec![[0.0, 0.0], [0.03, 0.0889], [0.06, 0.0889], [0.1, 0.0]],
+            root_m: Vec::new(),
+        };
+        let (a, b) = (
+            FinGeometry::from_planform(&nudged).unwrap(),
+            FinGeometry::from_planform(&level).unwrap(),
+        );
+        close(a.area_m2, b.area_m2, 1e-12, "area");
+        close(
+            a.center_of_pressure_m(),
+            b.center_of_pressure_m(),
+            1e-12,
+            "CP",
+        );
+        close(a.midchord_sweep_rad, b.midchord_sweep_rad, 1e-12, "sweep");
+    }
+
+    proptest::proptest! {
+        /// Four-point outlines, with the tip vertices nudged by up to three rounding steps: the
+        /// area and the area centroid's span match hpr-design's own quadrature of the planform.
+        #[test]
+        fn freeform_integrals_match_the_design_quadrature(
+            x1 in -0.05f64..0.15,
+            tip in 0.0f64..0.1,
+            y1 in 0.01f64..0.2,
+            y2_ratio in 0.5f64..1.5,
+            root in 0.02f64..0.3,
+            steps in -3i32..=3,
+            level in proptest::bool::ANY,
+        ) {
+            let mut y2 = if level { y1 } else { y1 * y2_ratio };
+            for _ in 0..steps.unsigned_abs() {
+                y2 = if steps > 0 { y2.next_up() } else { y2.next_down() };
+            }
+            let planform = FinPlanform::Freeform {
+                points_m: vec![[0.0, 0.0], [x1, y1], [x1 + tip, y2], [root, 0.0]],
+                root_m: Vec::new(),
+            };
+            proptest::prop_assume!(planform.validate().is_ok());
+            let reference = planform.geometry().unwrap();
+            let fin = FinGeometry::from_planform(&planform).unwrap();
+            proptest::prop_assert!((fin.area_m2 / reference.area_m2 - 1.0).abs() < 1e-9);
+            proptest::prop_assert!(
+                (fin.mac_span_m / reference.centroid_span_m - 1.0).abs() < 1e-9
+            );
+        }
+    }
+
+    /// The roll and side sums rebuild the direct per-fin vector sum: fin `k` at `θ_k` pushes along
+    /// its normal `n_k = (−sin θ_k, cos θ_k)` in proportion to the air crossing it, `sin(φ − θ_k)`,
+    /// and `Σ sin(φ − θ_k) n_k = roll_sum · ŵ + side_sum · (z_B × ŵ)` with `ŵ = (cos φ, sin φ)`
+    /// (`frames.md`, force directions). Two fins along `x_B` in a 45° flow push along `+y_B`.
+    #[test]
+    fn roll_and_side_sums_rebuild_the_per_fin_vector() {
+        for n in 1..=8u32 {
+            for base in [0.0, 0.7, 1.0] {
+                for roll in [0.0, 0.4, PI / 4.0, 2.5, -1.2] {
+                    let direct = (0..n).fold([0.0, 0.0], |acc, k| {
+                        let theta = base + TAU * f64::from(k) / f64::from(n);
+                        let push = (roll - theta).sin();
+                        [acc[0] - push * theta.sin(), acc[1] + push * theta.cos()]
+                    });
+                    let (c_n, c_y) = (roll_sum(n, base, roll), side_sum(n, base, roll));
+                    let rebuilt = [
+                        c_n * roll.cos() - c_y * roll.sin(),
+                        c_n * roll.sin() + c_y * roll.cos(),
+                    ];
+                    for (got, want) in rebuilt.iter().zip(direct) {
+                        assert!(
+                            (got - want).abs() < 1e-14,
+                            "{n} {base} {roll}: {rebuilt:?} {direct:?}"
+                        );
+                    }
+                }
+            }
+        }
+        let (c_n, c_y) = (roll_sum(2, 0.0, PI / 4.0), side_sum(2, 0.0, PI / 4.0));
+        let push = [
+            c_n * FRAC_1_SQRT_2 - c_y * FRAC_1_SQRT_2,
+            c_n * FRAC_1_SQRT_2 + c_y * FRAC_1_SQRT_2,
+        ];
+        assert!(
+            push[0].abs() < 1e-15 && (push[1] - 2.0 * FRAC_1_SQRT_2).abs() < 1e-15,
+            "{push:?}"
+        );
+    }
+
+    /// Loft lesson L7: Loft's fin slope had no compressibility factor, so the slope and the CP never
+    /// changed with Mach. Here both are Barrowman's at Mach 0, the slope follows Prandtl–Glauert
+    /// through subsonic flow at a fixed CP, and past Mach 0.8 the CP moves aft to linear theory's,
+    /// both continuous at the two ends of the transonic join.
+    #[test]
+    fn fin_cna_compressibility_reduces_to_barrowman_at_m0() {
+        let (c_r, c_t, s, x_t, d) = (0.12, 0.04, 0.1, 0.08, 0.127);
+        let a_ref = 0.25 * PI * d * d;
+        let fin = FinAero::new(&trapezoid(c_r, c_t, s, x_t), a_ref).unwrap();
+        let at = |mach: f64| fin.loading(mach).unwrap();
+        // Barrowman 1966 eq. 57 per fin, and eq. 76a.
+        close(
+            at(0.0).slope_per_rad,
+            eq57(c_r, c_t, s, x_t, d),
+            1e-15,
+            "M0 slope",
+        );
+        let eq76a = x_t / 3.0 * (c_r + 2.0 * c_t) / (c_r + c_t)
+            + (c_r + c_t - c_r * c_t / (c_r + c_t)) / 6.0;
+        close(at(0.0).cp_m, eq76a, 1e-15, "M0 CP");
+        // Subsonic: Prandtl–Glauert on the slope, the CP fixed.
+        close(
+            at(0.6).slope_per_rad,
+            fin.geometry().single_fin_slope(a_ref, 0.6).unwrap(),
+            1e-15,
+            "M0.6 slope",
+        );
+        assert!(at(0.6).slope_per_rad > 1.05 * at(0.0).slope_per_rad);
+        assert_eq!(at(0.6).cp_m, at(0.0).cp_m);
+        // The leading edge, swept 38.7°, becomes supersonic at 1/cos Γ_L = 1.281.
+        let m_s = fin.supersonic_mach();
+        close(m_s, (1.0 + (x_t / s).powi(2)).sqrt(), 1e-15, "M_s");
+        // Continuous at both ends of the join; the CP moves aft through it.
+        for m in [TRANSONIC_START_MACH, m_s] {
+            let (below, above) = (at(m - 1e-9), at(m + 1e-9));
+            close(below.slope_per_rad, above.slope_per_rad, 1e-7, "slope join");
+            close(below.cp_m, above.cp_m, 1e-7, "CP join");
+        }
+        assert!(at(1.0).cp_m > at(0.8).cp_m && at(m_s).cp_m > at(1.0).cp_m);
+        // Supersonic: linear theory, the slope falling roughly as 1/β.
+        // At Mach 2, by hand: the trailing edge is unswept, so the tip cone is the triangle
+        // `c_t²/(2β)` with its centroid `2c_t/3` aft of the tip's leading edge.
+        let beta = 3.0_f64.sqrt();
+        let (area, centroid) = (0.5 * s * (c_r + c_t), fins_centroid(c_r, c_t, s, x_t));
+        let cone = c_t * c_t / (2.0 * beta);
+        let loaded = area - 0.5 * cone;
+        close(
+            at(2.0).slope_per_rad,
+            4.0 / beta * loaded / a_ref,
+            1e-13,
+            "Mach 2 slope",
+        );
+        close(
+            at(2.0).cp_m,
+            (area * centroid - 0.5 * cone * (x_t + 2.0 * c_t / 3.0)) / loaded,
+            1e-13,
+            "Mach 2 CP",
+        );
+        assert!(at(2.0).slope_per_rad < at(m_s).slope_per_rad);
+        assert!(fin.loading(5.0).is_err() && fin.loading(-0.1).is_err());
+    }
+
+    /// The worked example of `docs/physics/aero.md` ("Fins through Mach 1"), Calisto's 2018 fins on
+    /// a 0.127 m reference: `M_s`, the tip cone at Mach 2, and the table of slopes and CPs, each to
+    /// the digits the page prints.
+    #[test]
+    fn the_guide_s_worked_example() {
+        let a_ref = 0.25 * PI * 0.127 * 0.127;
+        let fin = FinAero::new(&trapezoid(0.12, 0.04, 0.1, 0.08), a_ref).unwrap();
+        let round = |x: f64, digits: i32| (x * 10f64.powi(digits)).round() / 10f64.powi(digits);
+        assert_eq!(round(a_ref, 6), 0.012668);
+        assert_eq!(
+            round(fin.geometry().leading_edge_sweep_rad.to_degrees(), 2),
+            38.66
+        );
+        assert_eq!(round(fin.supersonic_mach(), 4), 1.2806);
+        let beta = 3.0_f64.sqrt();
+        let (cone, _) = fin.outline().tip_cone(beta);
+        assert_eq!(round(cone, 6), 0.000462);
+        assert_eq!(round(0.04 / beta, 4), 0.0231);
+        let table = [
+            (0.0, 1.853, 0.0550),
+            (0.8, 2.170, 0.0550),
+            (1.0, 2.499, 0.0632),
+            (fin.supersonic_mach(), 2.960, 0.0747),
+            (1.5, 2.158, 0.0753),
+            (2.0, 1.416, 0.0758),
+            (3.0, 0.877, 0.0761),
+        ];
+        for (mach, slope, cp) in table {
+            let loading = fin.loading(mach).unwrap();
+            assert_eq!(round(loading.slope_per_rad, 3), slope, "Mach {mach}");
+            assert_eq!(round(loading.cp_m, 4), cp, "Mach {mach}");
+        }
+    }
+
+    /// A trapezoid's area centroid, aft of its root leading edge.
+    fn fins_centroid(c_r: f64, c_t: f64, s: f64, x_t: f64) -> f64 {
+        // Chords `c(y)` from `x_LE = x_t y/s`: ∫(x_LE + c/2) c dy / ∫c dy, by three-point Gauss.
+        let nodes = [
+            (-(0.6f64).sqrt(), 5.0 / 9.0),
+            (0.0, 8.0 / 9.0),
+            ((0.6f64).sqrt(), 5.0 / 9.0),
+        ];
+        let (mut first, mut area) = (0.0, 0.0);
+        for (t, w) in nodes {
+            let y = 0.5 * s * (1.0 + t);
+            let c = c_r + (c_t - c_r) * y / s;
+            first += w * (x_t * y / s + 0.5 * c) * c;
+            area += w * c;
+        }
+        first / area
+    }
+
+    /// An inverse taper, its tip chord longer than its root: the mirror fin's tip cone reaches this
+    /// fin's tip until `β ≥ c_t/(2s)`, so linear theory starts there (Mach 1.6 for this fin, where
+    /// `βA ≥ 1` alone would give 1.27), and from there the slope falls with Mach and the cone
+    /// never takes more than the fin and its mirror.
+    #[test]
+    fn an_inverse_taper_waits_for_its_tip_cones_to_part() {
+        let fin = FinAero::new(
+            &FinPlanform::Freeform {
+                points_m: vec![[0.0, 0.0], [-0.05, 0.08], [0.15, 0.08], [0.05, 0.0]],
+                root_m: Vec::new(),
+            },
+            0.01,
+        )
+        .unwrap();
+        close(fin.outline().tip_chord_m(), 0.2, 1e-15, "tip chord");
+        close(
+            fin.supersonic_mach(),
+            (1.0 + 1.25_f64 * 1.25).sqrt(),
+            1e-15,
+            "M_s",
+        );
+        let mut last = fin.loading(fin.supersonic_mach()).unwrap().slope_per_rad;
+        for i in 1..=30 {
+            let mach = fin.supersonic_mach() + 0.1 * f64::from(i);
+            if mach >= 5.0 {
+                break;
+            }
+            let slope = fin.loading(mach).unwrap().slope_per_rad;
+            assert!(slope < last, "Mach {mach}: {slope} after {last}");
+            last = slope;
+            let beta = (mach * mach - 1.0).sqrt();
+            assert!(fin.outline().tip_cone(beta).0 <= 2.0 * fin.outline().area_m2());
+        }
+    }
+
+    /// A stubby strake: `βA ≥ 1` puts linear theory's start past Mach 5, so the slope and CP
+    /// stay on the join, finite and continuous, up to the normal force's limit.
+    #[test]
+    fn a_strake_never_reaches_linear_theory() {
+        let fin = FinAero::new(&trapezoid(0.5, 0.5, 0.02, 0.0), 0.01).unwrap();
+        close(
+            fin.supersonic_mach(),
+            (1.0 + (0.5_f64 / 0.04).powi(2)).sqrt(),
+            1e-15,
+            "M_s",
+        );
+        assert!(fin.supersonic_mach() > 12.0);
+        let mut last = fin.loading(0.8).unwrap();
+        for i in 1..=419 {
+            let loading = fin.loading(0.8 + 0.01 * f64::from(i)).unwrap();
+            assert!(loading.slope_per_rad.is_finite() && loading.cp_m.is_finite());
+            assert!((loading.slope_per_rad - last.slope_per_rad).abs() < 1e-3 * last.slope_per_rad);
+            last = loading;
+        }
+        assert!(fin.loading(5.0).is_err());
+    }
+
+    /// A concave outline: a 0.1 m square with a slot 0.04 m wide and 0.05 m deep cut into its tip,
+    /// at Mach √5 (`β = 2`). The Mach line from the tip's leading edge, `y = 0.1 − x/2`, cuts the
+    /// triangle 0.0025 m² from the square, of which the slot takes `∫x/2 dx` over its width,
+    /// 0.001 m².
+    #[test]
+    fn a_concave_fin_clips_exactly() {
+        let outline = FinOutline::from_planform(&FinPlanform::Freeform {
+            points_m: vec![
+                [0.0, 0.0],
+                [0.0, 0.1],
+                [0.03, 0.1],
+                [0.03, 0.05],
+                [0.07, 0.05],
+                [0.07, 0.1],
+                [0.1, 0.1],
+                [0.1, 0.0],
+            ],
+            root_m: Vec::new(),
+        })
+        .unwrap();
+        assert_eq!(outline.tip_leading_edge_m(), [0.0, 0.1]);
+        let (area, centroid) = outline.tip_cone(2.0);
+        close(area, 0.0015, 1e-13, "cone area");
+        // First moments: the triangle's, `0.0025 · 2(0.1)/3`, less the slot's `∫x²/2 dx`.
+        let moment = 0.0025 * 0.2 / 3.0 - (0.07_f64.powi(3) - 0.03_f64.powi(3)) / 6.0;
+        close(centroid, moment / 0.0015, 1e-12, "cone centroid");
+    }
+
+    proptest::proptest! {
+        /// Any trapezoid with its leading edge straight or swept aft (up to 65°), tapered either
+        /// way, with its trailing edge swept either way, at any Mach number from linear theory's
+        /// start: the cone takes no more than the fin and its mirror, the slope is positive and
+        /// falls with Mach (a rectangle's peaks exactly at `M_s`, where `βA = 1`), and the CP stays
+        /// inside the outline's chord. Leading edges swept forward are outside the half-load's
+        /// domain (`docs/physics/aero.md`).
+        #[test]
+        fn supersonic_loading_stays_inside_the_fin(
+            c_r in 0.02..0.4_f64,
+            taper in 0.0..2.0_f64,
+            s in 0.02..0.3_f64,
+            sweep_deg in 0.0..65.0_f64,
+            extra in 0.0..3.0_f64,
+        ) {
+            let c_t = taper * c_r;
+            let sweep = s * sweep_deg.to_radians().tan();
+            let fin = FinAero::new(&trapezoid(c_r, c_t, s, sweep), 0.01).unwrap();
+            let mach = fin.supersonic_mach() + extra;
+            if mach >= 5.0 {
+                // Past the normal force's range: nothing to check.
+                return Ok(());
+            }
+            let beta = (mach * mach - 1.0).sqrt();
+            let (cone, _) = fin.outline().tip_cone(beta);
+            let area = fin.outline().area_m2();
+            proptest::prop_assert!((0.0..=2.0 * area * (1.0 + 1e-12)).contains(&cone));
+            let loading = fin.loading(mach).unwrap();
+            proptest::prop_assert!(loading.slope_per_rad > 0.0);
+            if mach + 0.01 < 5.0 {
+                let faster = fin.loading(mach + 0.01).unwrap();
+                proptest::prop_assert!(faster.slope_per_rad < loading.slope_per_rad);
+            }
+            let xs: Vec<f64> = fin.outline().points_m().iter().map(|p| p[0]).collect();
+            let (lo, hi) = xs.iter().fold((f64::INFINITY, f64::NEG_INFINITY), |(a, b), &x| (a.min(x), b.max(x)));
+            proptest::prop_assert!(loading.cp_m >= lo - 1e-12 && loading.cp_m <= hi + 1e-12);
+        }
+    }
+
+    /// Where linear theory starts: Mach 1.2 for an unswept, slender fin; later for a swept leading
+    /// edge (`1/cos Γ_L`) or a stubby fin (`βA ≥ 1`).
+    #[test]
+    fn supersonic_start_follows_the_leading_edge_and_the_aspect_ratio() {
+        let a_ref = 0.01;
+        let start = |p: FinPlanform| FinAero::new(&p, a_ref).unwrap().supersonic_mach();
+        assert_eq!(
+            start(trapezoid(0.05, 0.05, 0.1, 0.0)),
+            SUPERSONIC_START_MACH
+        );
+        close(
+            start(trapezoid(0.1, 0.05, 0.1, 0.1)),
+            2.0_f64.sqrt(),
+            1e-15,
+            "45° leading edge",
+        );
+        // A 0.2 × 0.05 rectangle: A = 2s²/A_fin = 0.5, so βA ≥ 1 from M = √5.
+        close(
+            start(trapezoid(0.2, 0.2, 0.05, 0.0)),
+            5.0_f64.sqrt(),
+            1e-15,
+            "stubby",
+        );
+    }
+
+    /// Supersonic linear theory on a rectangle: the tip cone is the triangle `c²/(2β)`, so the
+    /// slope is `(4/β)(1 − 1/(2βA))` with `A = 2s/c` the aspect ratio of the fin and its mirror
+    /// image (the exact linear-theory result for a rectangular wing, `βA ≥ 1`), and the CP moves
+    /// forward of mid-chord by the missing half of the triangle's load. At Mach 1.6 the cone
+    /// crosses the root (`c/β > s`) and the part past it comes back from the mirror image.
+    #[test]
+    fn supersonic_rectangle_matches_linear_theory() {
+        let (c, s) = (0.1, 0.08);
+        let outline = FinOutline::from_planform(&trapezoid(c, c, s, 0.0)).unwrap();
+        assert_eq!(outline.tip_leading_edge_m(), [0.0, s]);
+        let a_ref = 0.25 * PI * 0.05 * 0.05;
+        // At Mach 1.217 the cone crosses well past the root (`c/β = 1.8 s`, still `βA ≥ 1`).
+        for mach in [1.217_f64, 1.6, 2.0, 3.0, 4.5] {
+            let beta = (mach * mach - 1.0).sqrt();
+            let aspect = 2.0 * s / c;
+            let (slope, cp) = outline.supersonic(beta, a_ref);
+            let exact = 4.0 / beta * (1.0 - 1.0 / (2.0 * beta * aspect)) * c * s / a_ref;
+            close(slope, exact, 1e-14, "slope");
+            // The triangle's centroid is 2c/3 aft; half its load is missing.
+            let cone = c * c / (2.0 * beta);
+            let want = (c * s * 0.5 * c - 0.5 * cone * 2.0 * c / 3.0) / (c * s - 0.5 * cone);
+            close(cp, want, 1e-14, "CP");
+            assert!(cp < 0.5 * c);
+        }
+        // A cone that misses the fin: a pointed tip swept far aft of its own Mach line.
+        let delta = FinOutline::from_planform(&trapezoid(0.1, 0.0, 0.05, 0.1)).unwrap();
+        assert_eq!(delta.tip_cone(2.0), (0.0, 0.1));
+    }
+
+    /// The same trapezoid as a freeform polygon has the same outline integrals, and an ellipse's
+    /// 256-gon has the ellipse's area to 2.5e-5 and its centroid on the root's middle.
+    #[test]
+    fn outlines_of_each_planform_agree() {
+        let (c_r, c_t, s, x_t) = (0.12, 0.04, 0.1, 0.08);
+        let trapezoid_outline = FinOutline::from_planform(&trapezoid(c_r, c_t, s, x_t)).unwrap();
+        let polygon = FinOutline::from_planform(&FinPlanform::Freeform {
+            points_m: vec![[0.0, 0.0], [x_t, s], [x_t + c_t, s], [c_r, 0.0]],
+            root_m: Vec::new(),
+        })
+        .unwrap();
+        assert_eq!(trapezoid_outline, polygon);
+        close(polygon.area_m2(), 0.5 * s * (c_r + c_t), 1e-15, "area");
+        for beta in [0.8, 1.2, 2.5] {
+            let (a, x) = polygon.tip_cone(beta);
+            // The cone reaches the unswept trailing edge `c_r` at `y = s − c_t/β`.
+            close(a, 0.5 * c_t * c_t / beta, 1e-13, "cone area");
+            close(x, x_t + 2.0 * c_t / 3.0, 1e-13, "cone centroid");
+        }
+        let ellipse = FinOutline::from_planform(&FinPlanform::Elliptical {
+            root_chord_m: 0.1,
+            span_m: 0.06,
+        })
+        .unwrap();
+        let area = 0.25 * PI * 0.1 * 0.06;
+        assert!((1.0 - ellipse.area_m2() / area - 2.5e-5).abs() < 1e-6);
+        close(ellipse.centroid_m(), 0.05, 1e-12, "ellipse centroid");
+        close(ellipse.tip_leading_edge_m()[0], 0.05, 1e-12, "ellipse tip");
+    }
+
+    /// The span moments about the body axis against the trapezoid's and the ellipse's integrals,
+    /// `Σ = ∫ξ² c dξ` (Niskanen 2009 eq. 3.70–3.71, Barrowman 1967 eq. 3-47) and
+    /// `∫ξ c dξ = r A + s²(c_r + 2c_t)/6`.
+    #[test]
+    fn roll_moments_match_the_planform_integrals() {
+        let (c_r, c_t, s, x_t, r) = (0.15, 0.05, 0.1, 0.09, 0.04);
+        let outline = FinOutline::from_planform(&trapezoid(c_r, c_t, s, x_t)).unwrap();
+        let (first, second) = outline.axis_moments(r);
+        close(
+            first,
+            r * 0.5 * s * (c_r + c_t) + s * s * (c_r + 2.0 * c_t) / 6.0,
+            1e-14,
+            "first",
+        );
+        let sigma = 0.5 * (c_r + c_t) * r * r * s
+            + (c_r + 2.0 * c_t) / 3.0 * r * s * s
+            + (c_r + 3.0 * c_t) / 12.0 * s * s * s;
+        close(second, sigma, 1e-14, "trapezoid Σ");
+        let ellipse = FinOutline::from_planform(&FinPlanform::Elliptical {
+            root_chord_m: c_r,
+            span_m: s,
+        })
+        .unwrap();
+        let sigma = c_r * (PI / 4.0 * r * r * s + 2.0 / 3.0 * r * s * s + PI / 16.0 * s * s * s);
+        // The 256-sided polygon inside the ellipse.
+        close(ellipse.axis_moments(r).1, sigma, 2e-4, "ellipse Σ");
+    }
+
+    /// The supersonic roll by the polygon's moments against a strip-by-strip integral of the
+    /// same load, `4α/β` halved inside the tip's Mach cone and the mirror fin's, on the Arcas
+    /// Robin's swept fin from Mach 1.5 to 4.63.
+    #[test]
+    fn supersonic_roll_matches_its_strips() {
+        let (c_r, c_t, s, x_t) = (0.085852, 0.054991, 0.0534162, 0.030861);
+        let (r, d) = (0.028575, 0.05715);
+        let a_ref = 0.25 * PI * d * d;
+        let fin = FinAero::new(&trapezoid(c_r, c_t, s, x_t), a_ref).unwrap();
+        for mach in [1.5, 1.8, 2.3, 2.96, 3.96, 4.63_f64] {
+            let beta = (mach * mach - 1.0).sqrt();
+            let strips = 20_000;
+            let (mut forcing, mut damping) = (0.0, 0.0);
+            for i in 0..strips {
+                let y = s * (f64::from(i) + 0.5) / f64::from(strips);
+                let (le, te) = (x_t * y / s, c_r + (x_t + c_t - c_r) * y / s);
+                // The chord's length aft of a line at `x`.
+                let aft_of = |x: f64| (te - x.max(le)).max(0.0);
+                let load = (te - le)
+                    - 0.5 * aft_of(x_t + beta * (s - y))
+                    - 0.5 * aft_of(x_t + beta * (s + y));
+                let xi = r + y;
+                let dy = s / f64::from(strips);
+                forcing += 4.0 / beta / a_ref * xi * load * dy / d;
+                damping -= 8.0 / beta / a_ref * xi * xi * load * dy / (d * d);
+            }
+            let roll = fin.roll(mach, r, d).unwrap();
+            let what = format!("Mach {mach}");
+            close(roll.forcing_per_rad, forcing, 1e-7, &what);
+            close(roll.damping, damping, 1e-7, &what);
+        }
+    }
+
+    /// The subsonic roll is Barrowman's (eq. 3-35 and 3-48 with the fin's own slope): the slope
+    /// at the mean aerodynamic chord, and the strips' damping; and both are continuous at Mach
+    /// 0.8 and at `M_s`.
+    #[test]
+    fn subsonic_roll_is_barrowman_s_and_joins_linear_theory() {
+        let (c_r, c_t, s, x_t) = (0.058, 0.018, 0.077, 0.04);
+        let (r, d) = (0.035, 0.07);
+        let a_ref = 0.25 * PI * d * d;
+        let fin = FinAero::new(&trapezoid(c_r, c_t, s, x_t), a_ref).unwrap();
+        let area = 0.5 * s * (c_r + c_t);
+        let y_mac = s * (c_r + 2.0 * c_t) / (3.0 * (c_r + c_t));
+        let sigma = 0.5 * (c_r + c_t) * r * r * s
+            + (c_r + 2.0 * c_t) / 3.0 * r * s * s
+            + (c_r + 3.0 * c_t) / 12.0 * s * s * s;
+        for mach in [0.0, 0.3, 0.6, 0.8] {
+            let slope = fin.geometry().single_fin_slope(a_ref, mach).unwrap();
+            let roll = fin.roll(mach, r, d).unwrap();
+            let what = format!("Mach {mach}");
+            close(roll.forcing_per_rad, slope * (r + y_mac) / d, 1e-14, &what);
+            let per_area = slope * a_ref / area;
+            close(
+                roll.damping,
+                -2.0 * per_area * sigma / (a_ref * d * d),
+                1e-13,
+                &what,
+            );
+        }
+        for edge in [TRANSONIC_START_MACH, fin.supersonic_mach()] {
+            let (a, b) = (
+                fin.roll(edge - 1e-9, r, d).unwrap(),
+                fin.roll(edge + 1e-9, r, d).unwrap(),
+            );
+            close(a.forcing_per_rad, b.forcing_per_rad, 1e-7, "forcing");
+            close(a.damping, b.damping, 1e-7, "damping");
+        }
+        assert!(fin.roll(5.0, r, d).is_err() && fin.roll(0.5, -r, d).is_err());
+    }
+
+    /// Barrowman's roll damping interference, eq. 3-122, against its integral, eq. 3-121,
+    /// `1 + r³∫c/ξ² dξ / ∫ξ c dξ` by Simpson's rule; both factors are 1 without a body, and the
+    /// damping's tends to 2 as the span goes to 0.
+    #[test]
+    fn roll_interference_follows_barrowman() {
+        for (t, l) in [(1.2, 0.3), (2.0, 1.0), (2.87, 0.64), (4.0, 0.0), (7.0, 1.4)] {
+            let (r, s) = (1.0, t - 1.0);
+            let chord = |xi: f64| 1.0 - (1.0 - l) * (xi - r) / s;
+            let simpson = |f: &dyn Fn(f64) -> f64| {
+                let n = 2000;
+                let h = s / f64::from(n);
+                (0..=n)
+                    .map(|i| {
+                        let w = if i == 0 || i == n {
+                            1.0
+                        } else if i % 2 == 1 {
+                            4.0
+                        } else {
+                            2.0
+                        };
+                        w * f(r + h * f64::from(i))
+                    })
+                    .sum::<f64>()
+                    * h
+                    / 3.0
+            };
+            let integral =
+                1.0 + simpson(&|xi| chord(xi) / (xi * xi)) / simpson(&|xi| xi * chord(xi));
+            close(
+                roll_damping_interference(s, r, l).unwrap(),
+                integral,
+                1e-10,
+                &format!("τ {t}, λ {l}"),
+            );
+        }
+        assert_eq!(roll_damping_interference(0.1, 0.0, 0.5).unwrap(), 1.0);
+        assert_eq!(roll_forcing_interference(0.1, 0.0).unwrap(), 1.0);
+        close(
+            roll_damping_interference(1e-6, 1.0, 0.5).unwrap(),
+            2.0,
+            2e-3,
+            "no span",
+        );
+        close(
+            roll_forcing_interference(1e3, 1.0).unwrap(),
+            1.0,
+            2e-3,
+            "no body",
+        );
+        for t in [1.001, 1.5, 2.0, 2.87, 5.0, 20.0] {
+            let k = roll_forcing_interference(t - 1.0, 1.0).unwrap();
+            assert!(k > 0.9 && k <= 1.0, "τ {t}: {k}");
+        }
+        assert!(roll_damping_interference(0.1, 0.05, -0.1).is_err());
+    }
+
+    /// Barrowman's own computed roll damping for the Basic Finner, four square fins one diameter
+    /// in chord and span on a body one diameter across (Figs. 5-6 and 5-7), read at Mach 0.07 as
+    /// −34.21: hpr's strips with the fin's own slope give −33.5, where the airfoil's `2π` would
+    /// give about −81 (ADR-031).
+    #[test]
+    fn the_basic_finner_damps_as_barrowman_computed() {
+        let d = 1.0;
+        let a_ref = 0.25 * PI * d * d;
+        let fin = FinAero::new(&trapezoid(d, d, d, 0.0), a_ref).unwrap();
+        let k_r = roll_damping_interference(d, 0.5 * d, 1.0).unwrap();
+        let clp = 4.0 * fin.roll(0.07, 0.5 * d, d).unwrap().damping * k_r;
+        close(clp, -34.21, 0.03, "C_lp at Mach 0.07");
+    }
+}

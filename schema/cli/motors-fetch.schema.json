@@ -1,0 +1,221 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MotorFetch",
+  "description": "`hpr motors fetch`: a motor fetched from ThrustCurve.org into the cache, so `hpr sim` flies it\nwith no network after.",
+  "type": "object",
+  "properties": {
+    "attribution": {
+      "description": "ThrustCurve.org's credit, shown with every fetched motor.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "motor": {
+      "description": "The motor, and the curve file hpr flies it by.",
+      "$ref": "#/$defs/ThrustCurveMotor"
+    },
+    "tool": {
+      "title": "Tool",
+      "description": "The program that wrote a document or a file: the title block every `--json` document, every\nfile `hpr` writes and `hpr --version` carry (ADR-164; the product system's `data.md`: \"Every\nexport carries the designation and version of the tool that made it\").",
+      "type": "object",
+      "properties": {
+        "designation": {
+          "description": "Its designation in the FusionSpace product system: `FS-ACHERNAR · SW · TOOL 001`.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The program: `FusionSpace HPR`.",
+          "type": "string"
+        },
+        "version": {
+          "description": "Its version, such as `0.1.0`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "designation"
+      ]
+    }
+  },
+  "required": [
+    "tool",
+    "attribution",
+    "motor"
+  ],
+  "$defs": {
+    "FileFormat": {
+      "description": "A motor file format.",
+      "oneOf": [
+        {
+          "description": "RASP `.eng`.",
+          "type": "string",
+          "const": "eng"
+        },
+        {
+          "description": "RockSim `.rse`.",
+          "type": "string",
+          "const": "rse"
+        }
+      ]
+    },
+    "ReadFrom": {
+      "description": "Where a source's answer was read from.",
+      "oneOf": [
+        {
+          "description": "A file given on the command line: `--from`, or an ERA5 file.",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "file"
+            },
+            "path": {
+              "description": "The path as given.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "path"
+          ]
+        },
+        {
+          "description": "Fetched now, and saved in the cache.",
+          "type": "object",
+          "properties": {
+            "fetched_at_unix_s": {
+              "description": "When, in seconds since the Unix epoch.",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            },
+            "kind": {
+              "type": "string",
+              "const": "network"
+            }
+          },
+          "required": [
+            "kind",
+            "fetched_at_unix_s"
+          ]
+        },
+        {
+          "description": "The cache, still fresh.",
+          "type": "object",
+          "properties": {
+            "fetched_at_unix_s": {
+              "description": "When the copy was fetched, in seconds since the Unix epoch.",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            },
+            "kind": {
+              "type": "string",
+              "const": "cache"
+            }
+          },
+          "required": [
+            "kind",
+            "fetched_at_unix_s"
+          ]
+        },
+        {
+          "description": "The cache, older than the source keeps a copy fresh: offline, or the fetch failed.",
+          "type": "object",
+          "properties": {
+            "fetched_at_unix_s": {
+              "description": "When the copy was fetched, in seconds since the Unix epoch.",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            },
+            "kind": {
+              "type": "string",
+              "const": "stale_cache"
+            },
+            "reason": {
+              "description": "Online, why the fetch failed or its answer was refused.",
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "fetched_at_unix_s"
+          ]
+        }
+      ]
+    },
+    "ThrustCurveMotor": {
+      "description": "A motor found on ThrustCurve.org by name, and the curve file hpr flies it by: the first RASP\nfile that reads, ranked by who measured it (a certification test, the manufacturer, a user),\nelse the first RockSim file the same way.",
+      "type": "object",
+      "properties": {
+        "common_name": {
+          "description": "The common name, such as `F27`, when ThrustCurve.org gives one.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "designation": {
+          "description": "The designation, as ThrustCurve.org spells it, such as `F27R/L`.",
+          "type": "string"
+        },
+        "file_id": {
+          "description": "ThrustCurve.org's id of the curve file flown.",
+          "type": "string"
+        },
+        "format": {
+          "description": "The file's format: `eng` or `rse`.",
+          "$ref": "#/$defs/FileFormat"
+        },
+        "license": {
+          "description": "The file's license, as ThrustCurve.org says: `PD` (public domain), `free` or `other`;\n`null` when its contributor named none.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "manufacturer": {
+          "description": "The manufacturer, as ThrustCurve.org names it, such as `AeroTech`.",
+          "type": "string"
+        },
+        "measured_by": {
+          "description": "Who measured the curve, as ThrustCurve.org says: `cert` (a certification test), `mfr`\n(the manufacturer) or `user`; `null` when it doesn't say.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "motor_id": {
+          "description": "ThrustCurve.org's id of the motor.",
+          "type": "string"
+        },
+        "page": {
+          "description": "The file's page on ThrustCurve.org, when it gives one.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "read_from": {
+          "description": "Where the file was read from: fetched now, or the cache.",
+          "$ref": "#/$defs/ReadFrom"
+        }
+      },
+      "required": [
+        "manufacturer",
+        "designation",
+        "motor_id",
+        "file_id",
+        "format",
+        "read_from"
+      ]
+    }
+  }
+}

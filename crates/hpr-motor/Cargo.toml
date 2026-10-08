@@ -1,0 +1,37 @@
+[package]
+name = "fusionspace-hpr-motor"
+description = "Solid rocket motor model (thrust, propellant mass, CG and inertia over time), `.eng`/`.rse` reading and writing, and catalog types."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# The library keeps its Rust name, `hpr_motor`, under the package's FusionSpace name (ADR-199).
+[lib]
+name = "hpr_motor"
+
+[lints]
+workspace = true
+
+# Pure crate: no I/O, and it must build for wasm32-unknown-unknown (`cargo xtask wasm-check`).
+[package.metadata.hpr]
+wasm = true
+
+[dependencies]
+hpr-core.workspace = true
+roxmltree.workspace = true
+# The hpr design format's JSON Schema covers the motors a design embeds (M3.3).
+schemars.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+proptest.workspace = true
+sha2.workspace = true
+
+[[bench]]
+name = "motor"
+harness = false

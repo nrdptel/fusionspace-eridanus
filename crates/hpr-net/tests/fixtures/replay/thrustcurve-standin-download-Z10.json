@@ -1,0 +1,44 @@
+{
+  "results": [
+    {
+      "motorId": "e000000000000000000000f3",
+      "simfileId": "f000000000000000000000a1",
+      "format": "RASP",
+      "source": "user",
+      "license": "PD",
+      "data": "OyBJbnZlbnRlZCBzdGFuZC1pbiBjdXJ2ZSAoQURSLTE1NCksIG5vIHJlYWwgbW90b3IncwpaMTAgMjkgMTAwIFAgMC4wMDggMC4wNTAgSW52ZW50ZWQKMC4wNSAyMC4wCjAuNSAxNS4wCjEuMCAwLjAK",
+      "infoUrl": "/simfiles/f000000000000000000000a1/",
+      "dataUrl": "/simfiles/f000000000000000000000a1/download/data.eng"
+    },
+    {
+      "motorId": "e000000000000000000000f3",
+      "simfileId": "f000000000000000000000a2",
+      "format": "RASP",
+      "source": "cert",
+      "license": "PD",
+      "data": "bm90IGEgbW90b3IgZmlsZQo=",
+      "infoUrl": "/simfiles/f000000000000000000000a2/",
+      "dataUrl": "/simfiles/f000000000000000000000a2/download/data.eng"
+    },
+    {
+      "motorId": "e000000000000000000000f3",
+      "simfileId": "f000000000000000000000a4",
+      "format": "RASP",
+      "source": "cert",
+      "license": "PD",
+      "data": "OyBJbnZlbnRlZCBzdGFuZC1pbiBjdXJ2ZSAoQURSLTE1NCksIG5vIHJlYWwgbW90b3IncwpaMTAgMjkgMTAwIFAgMC4wMDggMC4wNTAgSW52ZW50ZWQKMC4wNSAxLjAKMC41IDAuNzUKMS4wIDAuMAo=",
+      "infoUrl": "/simfiles/f000000000000000000000a4/",
+      "dataUrl": "/simfiles/f000000000000000000000a4/download/data.eng"
+    },
+    {
+      "motorId": "e000000000000000000000f3",
+      "simfileId": "f000000000000000000000a3",
+      "format": "RASP",
+      "source": "mfr",
+      "license": "PD",
+      "data": "OyBJbnZlbnRlZCBzdGFuZC1pbiBjdXJ2ZSAoQURSLTE1NCksIG5vIHJlYWwgbW90b3IncwpaMTAgMjkgMTAwIFAgMC4wMDggMC4wNTAgSW52ZW50ZWQKMC4wNSAyMi4wCjAuNSAxNi41CjEuMCAwLjAK",
+      "infoUrl": "/simfiles/f000000000000000000000a3/",
+      "dataUrl": "/simfiles/f000000000000000000000a3/download/data.eng"
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "McExportMeta",
+  "description": "The sidecar `hpr mc --export` writes beside its CSV, `runs.meta.json` for `runs.csv`: the\nprogram that wrote it and the run it holds (the product system's `data.md`, ADR-174).",
+  "type": "object",
+  "properties": {
+    "configuration": {
+      "description": "The configuration flown, as `hpr mc` names it, such as `[C6-5]`.",
+      "type": "string"
+    },
+    "design": {
+      "description": "The design flown, by its file name.",
+      "type": "string"
+    },
+    "dispersion": {
+      "description": "One standard deviation of each scattered input.",
+      "$ref": "#/$defs/McDispersion"
+    },
+    "file": {
+      "description": "The CSV, by its file name.",
+      "type": "string"
+    },
+    "runs": {
+      "description": "The flights tried: the CSV's rows after its header.",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "seed": {
+      "description": "The run's seed.",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "tool": {
+      "title": "Tool",
+      "description": "The program that wrote a document or a file: the title block every `--json` document, every\nfile `hpr` writes and `hpr --version` carry (ADR-164; the product system's `data.md`: \"Every\nexport carries the designation and version of the tool that made it\").",
+      "type": "object",
+      "properties": {
+        "designation": {
+          "description": "Its designation in the FusionSpace product system: `FS-ACHERNAR · SW · TOOL 001`.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The program: `FusionSpace HPR`.",
+          "type": "string"
+        },
+        "version": {
+          "description": "Its version, such as `0.1.0`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "designation"
+      ]
+    }
+  },
+  "required": [
+    "tool",
+    "file",
+    "design",
+    "configuration",
+    "seed",
+    "runs",
+    "dispersion"
+  ],
+  "$defs": {
+    "McDispersion": {
+      "description": "One standard deviation of each input `hpr mc` scatters, in the units of its option.",
+      "type": "object",
+      "properties": {
+        "burn_time_sd_fraction": {
+          "description": "Each motor's burn time, as a fraction of it, at the same impulse.",
+          "type": "number",
+          "format": "double"
+        },
+        "cg_sd_m": {
+          "description": "Each stage's center of mass along the axis, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "delay_sd_s": {
+          "description": "Each motor's ejection delay, s.",
+          "type": "number",
+          "format": "double"
+        },
+        "deployment_lag_sd_s": {
+          "description": "Each recovery device's lag after its trigger, s.",
+          "type": "number",
+          "format": "double"
+        },
+        "drag_sd_fraction": {
+          "description": "The rocket's zero-lift drag coefficient, as a fraction of it.",
+          "type": "number",
+          "format": "double"
+        },
+        "heading_sd_deg": {
+          "description": "The rail's heading, degrees.",
+          "type": "number",
+          "format": "double"
+        },
+        "impulse_sd_fraction": {
+          "description": "Each motor's total impulse, as a fraction of it, its propellant mass with it.",
+          "type": "number",
+          "format": "double"
+        },
+        "inclination_sd_deg": {
+          "description": "The rail's angle above the horizon, degrees.",
+          "type": "number",
+          "format": "double"
+        },
+        "mass_sd_fraction": {
+          "description": "Each stage's mass without motors, as a fraction of it (0.02 is 2%).",
+          "type": "number",
+          "format": "double"
+        },
+        "wind_from_sd_deg": {
+          "description": "The wind's direction, degrees, about the nominal one.",
+          "type": "number",
+          "format": "double"
+        },
+        "wind_sd_fraction": {
+          "description": "The wind's speed at every height, as a fraction of it.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "mass_sd_fraction",
+        "cg_sd_m",
+        "drag_sd_fraction",
+        "impulse_sd_fraction",
+        "burn_time_sd_fraction",
+        "delay_sd_s",
+        "wind_sd_fraction",
+        "wind_from_sd_deg",
+        "inclination_sd_deg",
+        "heading_sd_deg",
+        "deployment_lag_sd_s"
+      ]
+    }
+  }
+}

@@ -1,0 +1,131 @@
+[workspace]
+resolver = "3"
+members = ["crates/*", "xtask"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.98.1"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/nrdptel/fusionspace-eridanus"
+
+[workspace.dependencies]
+# Workspace crates. Crates in the pure core must not depend on hpr-net, hpr-cli, hpr-py, hpr-ffi
+# or hpr-validate; `cargo xtask wasm-check` enforces this. It also enforces the rules a crate
+# declares in `[package.metadata.hpr] forbids`, which is how hpr-flightdata keeps the simulator
+# out of flight-log analysis (ADR-046).
+hpr = { path = "crates/hpr", version = "0.1.0", package = "fusionspace-hpr" }
+hpr-aero = { path = "crates/hpr-aero", version = "0.1.0", package = "fusionspace-hpr-aero" }
+hpr-analysis = { path = "crates/hpr-analysis", version = "0.1.0", package = "fusionspace-hpr-analysis" }
+hpr-atmos = { path = "crates/hpr-atmos", version = "0.1.0", package = "fusionspace-hpr-atmos" }
+hpr-cli = { path = "crates/hpr-cli", version = "0.1.0", package = "fusionspace-hpr-cli" }
+hpr-core = { path = "crates/hpr-core", version = "0.1.0", package = "fusionspace-hpr-core" }
+hpr-design = { path = "crates/hpr-design", version = "0.1.0", package = "fusionspace-hpr-design" }
+hpr-flightdata = { path = "crates/hpr-flightdata", version = "0.1.0", package = "fusionspace-hpr-flightdata" }
+hpr-forensics = { path = "crates/hpr-forensics", version = "0.1.0", package = "fusionspace-hpr-forensics" }
+hpr-format = { path = "crates/hpr-format", version = "0.1.0", package = "fusionspace-hpr-format" }
+hpr-io = { path = "crates/hpr-io", version = "0.1.0", package = "fusionspace-hpr-io" }
+hpr-motor = { path = "crates/hpr-motor", version = "0.1.0", package = "fusionspace-hpr-motor" }
+hpr-net = { path = "crates/hpr-net", version = "0.1.0", package = "fusionspace-hpr-net" }
+hpr-sim = { path = "crates/hpr-sim", version = "0.1.0", package = "fusionspace-hpr-sim" }
+hpr-validate = { path = "crates/hpr-validate", version = "0.1.0" }
+
+# Third-party crates. Each one needs a line of justification in the PR that adds it.
+# The `hpr` command line's colors: the product system's `fs_style.rs` writes its roles as `anstyle`
+# styles, and `anstream` names the color decision and turns on Windows consoles' escape codes.
+# Both already come with clap.
+anstream = "1.0.0"
+anstyle = "1.0.14"
+# Tests only: runs the `hpr` binary as a user would, with its exit code, stdout and stderr.
+assert_cmd = "2.2.2"
+# Tests only: the byte buffer Apache's Parquet reader (`parquet-reader`) reads a file from.
+bytes = "1.12.1"
+# The `hpr` command line: parsing, help and usage errors, from derived argument types.
+clap = { version = "4.6.7", features = ["derive"] }
+# `hpr completions`: shell completion scripts generated from the same argument types.
+clap_complete = "4.6.11"
+# Benchmarks only: statistics and the cargo bench harness, without the plotting and rayon defaults.
+criterion = { version = "0.8.2", default-features = false, features = ["cargo_bench_support"] }
+glam = { version = "0.33.7", default-features = false, features = ["f64", "serde", "std"] }
+# Geodesics on an ellipsoid: georust's port of Karney's GeographicLib (MIT). No default features,
+# so not the `accurate` crate (polygon areas only); `libm` is its one dependency.
+geographiclib-rs = { version = "0.2.7", default-features = false }
+# `erfc` for the normal distribution in the optimizer's integer margin: the rust-lang port of
+# musl's libm (MIT OR Apache-2.0), already in the tree through geographiclib-rs.
+libm = "0.2.16"
+# `.ork` designs are gzip streams, and the entries inside their zip container are deflated. The
+# pure-Rust backend (miniz_oxide) keeps `hpr-io` building for wasm32 and links no C.
+flate2 = { version = "1.1.10", default-features = false, features = ["rust_backend"] }
+# GRIB2 fields packed in JPEG 2000 (template 5.40). Pure Rust, no unsafe without `simd`; no
+# default features, so no image or colour-management crates and nothing that stops wasm32.
+hayro-jpeg2000 = { version = "0.4.0", default-features = false, features = ["std"] }
+insta = { version = "1.48.0", default-features = false, features = ["json"] }
+# Tests only: checks exported GeoJSON against the published GeoJSON schema. No default features:
+# they fetch remote `$ref`s over HTTP and read files.
+jsonschema = { version = "0.58.0", default-features = false }
+# Tests only: Apache's own Parquet implementation reads back the files `hpr_sim::export` writes
+# by hand. No default features: no Arrow, no compression codecs, just the file reader.
+parquet-reader = { package = "parquet", version = "60.0.0", default-features = false }
+proptest = "1.11.0"
+# `hpr-py`: the Python bindings. One abi3 wheel per operating system serves CPython 3.10 and later.
+pyo3 = { version = "0.29.2", default-features = false, features = ["macros", "abi3-py310"] }
+# `hpr-py`: a flight's recording and a motor's thrust curve handed to Python as NumPy arrays.
+numpy = "0.29.0"
+# The hpr design format carries a design file's binary attachments, such as a `.ork`'s decal images, as
+# base64 text (RFC 4648).
+base64 = { version = "0.22.1", default-features = false, features = ["alloc"] }
+# xtask only: reads the documentation site's Markdown with the parser mdBook itself uses, to check
+# its links and labels. Parser only: no HTML renderer, no command-line tool.
+pulldown-cmark = { version = "0.13.4", default-features = false }
+# Tests only: an independent xoshiro256++ and SplitMix64 to check `hpr_core::random` against.
+rand_core = "0.10"
+rand_xoshiro = "0.8.1"
+# `hpr-analysis`'s `parallel` feature: Monte Carlo samples on a work-stealing thread pool. The
+# de facto standard (MIT OR Apache-2.0); its `collect` keeps the samples in order.
+rayon = "1.11"
+# `.rse` motor files (and later `.ork` designs): a strict, read-only XML 1.0 parser with no
+# dependencies that refuses DTDs by default.
+roxmltree = "0.21.1"
+# The published JSON Schemas of the `hpr` command's `--json` output, from its output types.
+schemars = "1.2.2"
+serde = { version = "1.0.229", features = ["derive"] }
+# `float_roundtrip` parses every float back to the exact f64 it was written from.
+serde_json = { version = "1.0.151", features = ["float_roundtrip"] }
+sha2 = "0.11.0"
+tempfile = "3.27.0"
+# A user's GeoTIFF elevation file (M5.3c2): image-rs's TIFF decoder, pure Rust. Only the LZW and
+# Deflate codecs, the two a DEM is written with; the others pull in JPEG, fax and zstd (C) code.
+tiff = { version = "0.11.3", default-features = false, features = ["deflate", "lzw"] }
+thiserror = "2.0.20"
+toml = "1.1.6"
+# The `.hprz` container compares attachment names in canonical decomposition (NFD), as macOS
+# does, so two spellings of one accented letter are refused as one name. Pure Rust, no I/O.
+unicode-normalization = { version = "0.1.25", default-features = false }
+# `hpr-net`'s HTTP transport, behind its `http` feature: blocking HTTP/1.1 over rustls with the
+# ring provider and Mozilla's roots (webpki-roots), so no OpenSSL or platform TLS library.
+ureq = { version = "3.4.2", default-features = false, features = ["rustls", "gzip"] }
+# `.ork` designs are zip archives. Read-only, no encryption and no compression method but deflate,
+# which is all OpenRocket writes; the default features pull bzip2, lzma, zstd and AES.
+zip = { version = "8.6.0", default-features = false, features = ["deflate-flate2"] }
+
+[workspace.lints.rust]
+missing_debug_implementations = "warn"
+missing_docs = "warn"
+# Only the binding crates (hpr-py, hpr-ffi, hpr-wasm) may opt out, per item, with a reason.
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+# Library code does not panic except to state an invariant, with a comment saying why
+# (`#[expect(clippy::expect_used, reason = "...")]`). clippy.toml relaxes these in tests.
+expect_used = "warn"
+panic = "warn"
+unwrap_used = "warn"
+# Library code does no I/O; binaries opt out at the crate root.
+print_stderr = "warn"
+print_stdout = "warn"
+# Every `allow` or `expect` says why.
+allow_attributes_without_reason = "warn"
+# Leftovers that must not reach main.
+dbg_macro = "warn"
+todo = "warn"
+unimplemented = "warn"

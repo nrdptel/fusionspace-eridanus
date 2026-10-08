@@ -1,0 +1,7446 @@
+//! A rocket's normal force and center of pressure: every component's terms, built once from a
+//! [`Layout`] and summed at each flow condition.
+//!
+//! The coefficient at an angle of attack `α` is `C_N = C_Nα(α) α`, with the slope defined as
+//! `C_N/α` (Niskanen 2009 eq. 3.8) and the center of pressure as the moment sum
+//! `X = Σ C_Nα,i X_i / Σ C_Nα,i` (Barrowman 1966 p. 38; Niskanen eq. 3.29). The terms:
+//!
+//! - bodies of revolution, `(2/A_ref)ΔA · sin α/α` at `X_B` ([`crate::body`]), plus body lift
+//!   `η C_dn (A_plan/A_ref) sin² α / α` at the planform centroid, Jorgensen's crossflow term
+//!   ([`crate::crossflow`]);
+//! - a step in radius where one body component meets the next, `(2/A_ref)ΔA · sin α/α` at the
+//!   joint, reported with the aft component. This extrapolates Barrowman 1966 eq. 10 over the whole
+//!   body to a transition of zero length; Barrowman 1967 p. 18 assumes no discontinuities;
+//! - fin sets, `(C_Nα)₁ Σ sin² Λ_k · f_N · K_T(B)` at the fin's center of pressure, both at the
+//!   flow's Mach number ([`crate::fins::FinAero`]), and for one or two fins the side force
+//!   `(C_Nα)₁ Σ sin Λ cos Λ · K_T(B)` across the flow's plane ([`crate::fins::side_sum`]);
+//! - tube fin sets, `N` ring wings' slope at the ring's center of pressure below Mach 0.8
+//!   ([`crate::tube_fins`]), with no roll dependence or side force.
+//!
+//! Below the speed of sound the bodies' potential-flow terms don't change with Mach:
+//! slender-body theory's slope and center of pressure hold at any Mach number (Barrowman 1967
+//! p. 18). Body lift changes with the crossflow Mach number `M sin α` at any speed. Faster than
+//! sound, a pointed nose and the cylinders straight behind it take their potential-flow slope and
+//! moment from the second-order shock-expansion method ([`crate::shock_expansion`], NACA TN
+//! 3527), and a boattail behind them Washington and Pettis's measured increment
+//! ([`crate::supersonic_boattail`]), joined to slender-body theory linearly in Mach
+//! ([`SupersonicBody`]; the decision records on flying them, [ADR-034][adr-034] and
+//! [ADR-037][adr-037]).
+//! Other bodies keep slender-body theory's terms. [`BodyModel`] chooses the body-lift and boattail
+//! rules; the default is hpr's current one.
+//!
+//! Launch lugs and rail buttons add drag only, and internal parts sit inside the body. Any part
+//! kind this model doesn't know is refused. Stations are meters aft of the nose tip.
+//!
+//! [adr-034]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-034-the-bodys-supersonic-normal-force-in-flight-tabulated-shock-expansion-shares-joined-linearly-from-mach-12-2026-09-19
+//! [adr-037]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-037-body-lift-by-jorgensens-crossflow-at-every-speed-and-a-boattails-measured-share-faster-than-sound-2026-09-19
+
+use std::f64::consts::PI;
+use std::sync::{Arc, OnceLock};
+
+use hpr_design::{Layout, NoseShape, Part, PlacedComponent};
+use serde::{Deserialize, Serialize};
+
+use crate::afterbody::SEPARATION_ONSET_RAD;
+use crate::body::{BodyGeometry, sinc};
+use crate::crossflow::BodyLift;
+use crate::custom::{DragModel, DragQuery, SharedDragModel};
+use crate::drag::{
+    BUILDUP_MACH_LIMIT, ComponentDrag, ComponentDragTerms, Drag, DragConditions, MOTOR_POD_SETS,
+    axial_drag_alpha_factor, body_friction_form_factor, couple_afterbody,
+};
+use crate::error::{AeroError, check_dimension, check_mach};
+use crate::fins::{
+    FinAero, FinLoading, FinRollTerms, fin_count_factor, interference_factor,
+    roll_damping_interference, roll_forcing_interference, roll_sum, side_sum,
+};
+use crate::shock_expansion::{
+    BodySegment, DEFAULT_ELEMENTS_PER_CURVE, SegmentSlope, ShockExpansionBody,
+    flare_corner_limit_rad,
+};
+use crate::supersonic_boattail::{wp_center_fraction, wp_slope};
+use crate::table::{DragTable, NormalForceLookup, NormalForceTable, TableReference};
+use crate::tube_fins::{TubeFinSetAero, check_tube_fin_mach};
+
+/// The largest fin cant the roll model takes, 15°: past it a fin stalls, where its lift stops
+/// growing with the angle, a judgement ([`AeroModel::roll`]).
+pub const MAX_CANT_RAD: f64 = 15.0 * std::f64::consts::PI / 180.0;
+
+/// The top of the normal force's range: Mach 5, where the hypersonic region begins (Niskanen 2009
+/// Table 3.1, p. 19). [`AeroModel::normal_force`] refuses it and anything faster.
+pub const NORMAL_FORCE_MACH_LIMIT: f64 = 5.0;
+
+/// The lowest Mach number at which the body's supersonic join can start ([`SupersonicBody`]):
+/// below it every body keeps slender-body theory's terms. A judgement: the first body that TN
+/// 3527's method covers and TN D-4014 measured is at Mach 1.5, the join's end from here.
+pub const SUPERSONIC_JOIN_START_MACH: f64 = 1.2;
+
+/// Steps of the shock-expansion table per unit Mach: one row every 0.05.
+const SUPERSONIC_STEPS_PER_MACH: f64 = 20.0;
+
+/// The table's first row, Mach 1.2 ([`SUPERSONIC_JOIN_START_MACH`]).
+const SUPERSONIC_FIRST_STEP: usize = 24;
+
+/// The table's last row, Mach 5 ([`NORMAL_FORCE_MACH_LIMIT`]).
+const SUPERSONIC_LAST_STEP: usize = 100;
+
+/// Rows across the join.
+const SUPERSONIC_JOIN_STEPS: usize = 6;
+
+/// The most halvings of the 0.05 step in which the method starts to hold. Bisection stops sooner,
+/// after about 48, when no `f64` lies between its ends: the join's start is then as exact as the
+/// number allows, so it moves with the body's shape, not in 0.05 steps
+/// ([issue #87](https://github.com/nrdptel/fusionspace-eridanus/issues/87)). It has to be that exact: the
+/// shares climb from zero like `√(M − M_start)` there, so a start off by `δ` puts `√δ`-sized
+/// shares in the table's first row.
+const SUPERSONIC_JOIN_BISECTIONS: usize = 64;
+
+/// The smallest share of shelter worth a table: below this a lip counts as out of its boattail's
+/// wake, since weighing the method in at under a millionth changes no number anyone can read and
+/// building the table costs half a second ([`SupersonicBody::shape_weight`]).
+const SUPERSONIC_SHELTER_FLOOR: f64 = 1e-6;
+
+/// The width of the body's supersonic join in Mach, 0.3: over it the shock-expansion shares
+/// replace slender-body theory's linearly ([`SupersonicBody`]).
+pub const SUPERSONIC_JOIN_WIDTH_MACH: f64 =
+    SUPERSONIC_JOIN_STEPS as f64 / SUPERSONIC_STEPS_PER_MACH;
+
+/// Why the shock-expansion method doesn't fly a body faster than sound, so that slender-body
+/// theory flies it whole: the first switch along the body that stopped the run
+/// ([`AeroModel::supersonic_fallback`], [ADR-181][adr-181]). Each of the three named switches
+/// overstates the normal force's lever arm (center of pressure aft) and has its issue.
+///
+/// [adr-181]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0181-the-stability-issue-warnings.md
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case", tag = "switch")]
+#[non_exhaustive]
+pub enum SupersonicFallback {
+    /// [Issue #87](https://github.com/nrdptel/fusionspace-eridanus/issues/87): a step in area at the
+    /// component's fore end larger than a millionth of that area.
+    RadiusStep {
+        /// The component's id.
+        component: String,
+    },
+    /// [Issue #120](https://github.com/nrdptel/fusionspace-eridanus/issues/120): a lip in a boattail's wake
+    /// longer than the boattail's drop in diameter.
+    LongLip {
+        /// The component's id.
+        component: String,
+    },
+    /// [Issue #121](https://github.com/nrdptel/fusionspace-eridanus/issues/121): a pointed tip cone steeper
+    /// than the cone tables' 30° ([`crate::blunt_tip::CONE_TABLE_CAP_RAD`]).
+    SteepTip,
+    /// Any other rule: a shape the run doesn't take, or the method failing past its tables.
+    Other,
+}
+
+/// The second-order shock-expansion method's share of each body component it covers, tabulated in
+/// Mach, and where it joins slender-body theory (the decision record on flying it,
+/// [ADR-034][adr-034]).
+///
+/// The method ([`crate::shock_expansion`]) covers a pointed nose, the cylinders straight behind
+/// it, and boattails and cylinders behind those, up to the first other body (a flare), step in
+/// radius or gap. It flies only if no body after them has a potential-flow slope of its own (a
+/// flare, a step). A boattail doesn't take slender-body theory's share: the method's nose and
+/// cylinder beside slender-body theory's boattail would put the body's center of pressure further
+/// off than slender-body theory alone (milestone
+/// [M1.8e4](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e4)). By default
+/// ([`SupersonicBoattail::WashingtonPettis`]) it takes the share the method gives a cylinder of
+/// its length and fore radius in its place, plus Washington and Pettis's measured increment at
+/// their center of pressure ([`crate::supersonic_boattail`]); [`SupersonicBoattail::Footnote8`]
+/// keeps the method's own, TN 3527 footnote 8. Cylinders behind a boattail take the method's
+/// shares either way. A boattail's share, and a cylinder's behind it, may cross zero, so those
+/// parts keep slender-body theory's station ([`AeroModel::component_station_m`]).
+///
+/// The method is too slow to run at each step of a flight, so [`AeroModel::supersonic_body`] tabulates each covered segment's slope and moment
+/// every 0.05 in Mach, from Mach 5 down to the lowest Mach from which the method holds, and a
+/// flight interpolates linearly between rows. Where the method stops holding above
+/// [`SUPERSONIC_JOIN_START_MACH`], bisection finds that Mach to the last bit of an `f64` and the
+/// table gains a row there, so the join's start moves with the body's shape rather than in 0.05 steps.
+/// The join starts at that Mach, or at
+/// [`SUPERSONIC_JOIN_START_MACH`] if higher: at Mach `M`, a covered component's potential-flow
+/// slope and moment, and a nose's or cylinder's station, are slender-body theory's plus
+/// `w (shock-expansion − slender-body)`, `w = `[`SupersonicBody::weight`]`(M)`: the join's own
+/// `(M − M_join)/`[`SUPERSONIC_JOIN_WIDTH_MACH`] clamped to `[0, 1]`, times
+/// [`SupersonicBody::shape_weight`], which is 1 unless a lip rides along only partly inside its
+/// boattail's wake. Everything is linear in Mach and in that share of shape, so nothing jumps.
+///
+/// [adr-034]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-034-the-bodys-supersonic-normal-force-in-flight-tabulated-shock-expansion-shares-joined-linearly-from-mach-12-2026-09-19
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[non_exhaustive]
+pub struct SupersonicBody {
+    /// How many body components the method covers: the first entries of [`AeroModel::bodies`].
+    /// The last of them may be lips in a covered boattail's wake, which the method doesn't march:
+    /// the method gives them nothing at any Mach number, so what such a lip carries is
+    /// `(1 − `[`SupersonicBody::weight`]`(M))` of slender-body theory's share, none of it above
+    /// the join where the wake covers it wholly ([`crate::drag::WakeTerm`]; the decision record on
+    /// the lip, [ADR-039][adr-039]).
+    ///
+    /// [adr-039]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-039-a-lip-in-a-boattails-wake-carries-nothing-faster-than-sound-2026-09-19
+    pub covered: usize,
+    /// The Mach number where the join starts; the shares count in full from
+    /// [`SUPERSONIC_JOIN_WIDTH_MACH`] above it.
+    pub join_start_mach: f64,
+    /// The table's first even row is at Mach `first_step / 20`.
+    first_step: usize,
+    /// Each even row's shares, one per covered component: slope per radian and its moment about
+    /// the nose tip, m per radian. Every share with a station is positive.
+    rows: Vec<Vec<SegmentSlope>>,
+    /// Whether each covered component's share has a station of its own: a nose's and a
+    /// cylinder's do, a boattail's and those behind it don't (they may cross zero).
+    stationed: Vec<bool>,
+    /// The shares at `join_start_mach`, where the method starts to hold, when that lies between
+    /// even rows: the table's first row.
+    lead: Option<Vec<SegmentSlope>>,
+    /// How much of the method the body's shape takes, in `(0, 1]`, which multiplies the join's
+    /// weight: below 1 where a lip rides along only partly inside its boattail's wake
+    /// ([`crate::drag::WakeTerm`], [issue #87: the body's normal force jumps with small changes of
+    /// shape](https://github.com/nrdptel/fusionspace-eridanus/issues/87), [ADR-041: a lip's shelter weighed,
+    /// not switched][adr-041]). Slender-body theory takes the rest, so a
+    /// lip drawn a hair taller moves the body between the models continuously instead of
+    /// switching it.
+    ///
+    /// [adr-041]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-041-a-lips-shelter-is-weighed-as-the-drag-buildup-weighs-it-not-switched-at-a-threshold-2026-09-20
+    pub shape_weight: f64,
+}
+
+/// How a boattail that the shock-expansion method covers takes its share of the normal force
+/// faster than sound ([`SupersonicBody`]).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum SupersonicBoattail {
+    /// The share the method gives a cylinder of the boattail's length and fore radius in its
+    /// place, plus Washington and Pettis's measured increment at their center of pressure
+    /// ([`crate::supersonic_boattail`]): hpr's rule since [M1.8e6](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e6) (the decision
+    /// record, [ADR-037](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-037-body-lift-by-jorgensens-crossflow-at-every-speed-and-a-boattails-measured-share-faster-than-sound-2026-09-19)).
+    #[default]
+    WashingtonPettis,
+    /// The method's own share, TN 3527 footnote 8's tangent cone: hpr's rule from the milestone
+    /// that first flew a boattail by the method ([M1.8e4](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e4)) until
+    /// [M1.8e6](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e6).
+    Footnote8,
+}
+
+/// How a flare (a transition that widens the body) takes its share of the normal force faster
+/// than sound ([`SupersonicBody`]).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum SupersonicFlare {
+    /// The shock-expansion method's own share, marched through the flare's corner where the shock
+    /// there is attached: hpr's rule since [M1.8e17](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e17) (the decision record,
+    /// [ADR-047](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-047-a-flare-flies-the-method-where-its-corners-shock-is-attached-and-is-read-drawn-out-where-it-is-not-2026-09-20)).
+    /// Only a **conical** flare, flush with the part ahead of it and not behind a boattail, joins
+    /// the run, which then ends at it. A widening part behind a boattail is a lip in its wake and
+    /// keeps [`SupersonicBody::shape_weight`]'s rule instead; any other widening shape ends the
+    /// run without joining it, as every flare did before that milestone.
+    #[default]
+    Marched,
+    /// None: a flare ends the method's run, so the whole body takes slender-body theory's share
+    /// at every Mach number. hpr's rule until [M1.8e17](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e17).
+    SlenderBody,
+}
+
+/// The choices in the bodies' normal-force model ([`AeroModel::with_body_model`]). The default is
+/// hpr's current model, [`BodyModel::CURRENT`]; [`BodyModel::BEFORE_M1_8E6`] reproduces earlier
+/// results. Change one choice with [`BodyModel::with_body_lift`],
+/// [`BodyModel::with_supersonic_boattail`] or [`BodyModel::with_supersonic_flare`]. In JSON, for
+/// example `{"body_lift": {"kind": "galejs", "k": 1.1}, "supersonic_boattail": "footnote8"}`; a
+/// missing field takes the current choice.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+#[non_exhaustive]
+pub struct BodyModel {
+    /// How body lift is sized.
+    pub body_lift: BodyLift,
+    /// How a boattail takes its share faster than sound.
+    pub supersonic_boattail: SupersonicBoattail,
+    /// How a flare takes its share faster than sound.
+    pub supersonic_flare: SupersonicFlare,
+}
+
+impl BodyModel {
+    /// hpr's current body model: Jorgensen's body lift, Washington and Pettis's boattail and a
+    /// marched flare.
+    pub const CURRENT: Self = Self {
+        body_lift: BodyLift::JORGENSEN,
+        supersonic_boattail: SupersonicBoattail::WashingtonPettis,
+        supersonic_flare: SupersonicFlare::Marched,
+    };
+
+    /// hpr's body model before [M1.8e6](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e6) sized body lift and the boattail: Galejs's
+    /// `K` = 1.1, TN 3527 footnote 8's boattail, and a flare that ends the method's run rather
+    /// than flying it ([`SupersonicFlare::SlenderBody`], as before [M1.8e17](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e17)).
+    pub const BEFORE_M1_8E6: Self = Self {
+        body_lift: BodyLift::GALEJS,
+        supersonic_boattail: SupersonicBoattail::Footnote8,
+        supersonic_flare: SupersonicFlare::SlenderBody,
+    };
+
+    /// This model with body lift sized by `body_lift`.
+    #[must_use]
+    pub const fn with_body_lift(mut self, body_lift: BodyLift) -> Self {
+        self.body_lift = body_lift;
+        self
+    }
+
+    /// This model with a supersonic boattail's share by `supersonic_boattail`.
+    #[must_use]
+    pub const fn with_supersonic_boattail(
+        mut self,
+        supersonic_boattail: SupersonicBoattail,
+    ) -> Self {
+        self.supersonic_boattail = supersonic_boattail;
+        self
+    }
+
+    /// This model with a supersonic flare's share by `supersonic_flare`.
+    #[must_use]
+    pub const fn with_supersonic_flare(mut self, supersonic_flare: SupersonicFlare) -> Self {
+        self.supersonic_flare = supersonic_flare;
+        self
+    }
+}
+
+/// A boattail in the shock-expansion run, for Washington and Pettis's increment: the method's
+/// body with a cylinder of the boattail's length and fore radius in its place (its last segment),
+/// and the boattail's radii and length, m.
+#[derive(Debug, Clone, PartialEq)]
+struct RunBoattail {
+    in_its_place: Vec<BodySegment>,
+    fore_radius_m: f64,
+    aft_radius_m: f64,
+    length_m: f64,
+}
+
+/// A flare in the shock-expansion run (always its last segment) and the run ahead of it, whose
+/// march delivers the flow its corner turns ([`ShockExpansionBody::aft_flow`]). Its radii and
+/// length are the real flare's; where the corner's shock would be detached the method reads one
+/// of the same radii drawn out to the steepest attached turn ([`flare_corner_limit_rad`]).
+#[derive(Debug, Clone, PartialEq)]
+struct RunFlare {
+    /// Which segment of the run the flare is: always its last.
+    index: usize,
+    ahead: Vec<BodySegment>,
+    fore_radius_m: f64,
+    aft_radius_m: f64,
+    length_m: f64,
+    clipped: bool,
+}
+
+/// The segments the shock-expansion method covers, the station of the nose's tip, and each
+/// segment's fore and aft stations, m aft of the nose tip: `None` for a boattail and anything
+/// behind it, whose shares can be negative or cross zero (TN 3527 footnote 8, or Washington and
+/// Pettis's increment) and so needn't have a station on their segments.
+#[derive(Debug, Clone, PartialEq)]
+struct SupersonicRun {
+    segments: Vec<BodySegment>,
+    vertex_m: f64,
+    bounds_m: Vec<Option<(f64, f64)>>,
+    /// Each segment's fore station, m aft of the nose tip.
+    fore_m: Vec<f64>,
+    /// Each segment that is a boattail, when its share is Washington and Pettis's.
+    boattails: Vec<Option<RunBoattail>>,
+    /// The flare that ends the run, where one does ([`SupersonicFlare::Marched`]).
+    flare: Option<RunFlare>,
+    /// How many bodies behind the marched segments are lips wholly in a covered boattail's wake
+    /// ([`crate::drag::WakeTerm`]): they widen the body, carry nothing faster than sound, and so
+    /// the run covers them with a share of zero.
+    sheltered_lips: usize,
+    /// How much of the run's shape the method takes, in `(0, 1]`: the smallest share of the wake
+    /// covering a sheltered lip: its rise, the tube between it and the boattail, and anything
+    /// else in the way (issue #87). One where no lip rides along, or where the wake covers it
+    /// wholly.
+    shape_weight: f64,
+    // `segments`, `bounds_m`, `fore_m` and `boattails` hold one entry per segment: `from_design`
+    // pushes all four in the same branch, and `shares` indexes them together; `shares` then adds
+    // one zero for each sheltered lip.
+}
+
+impl SupersonicRun {
+    /// The method's shares at `mach`, moments about the nose tip, or `None` where it fails or a
+    /// nose's or cylinder's share isn't positive with its station on its own segment (a share
+    /// that crosses zero has no station, and one that is positive but small could put a part's
+    /// damping station far off the rocket). A boattail's share, and those behind it, may take
+    /// either sign: their damping stations stay slender-body theory's
+    /// ([`AeroModel::component_station_m`]). A boattail with `in_its_place`, the method's body
+    /// with a cylinder in its place, takes that cylinder's share plus Washington and Pettis's
+    /// increment ([`SupersonicBoattail::WashingtonPettis`]).
+    fn shares(
+        &self,
+        body: &ShockExpansionBody,
+        in_its_place: &[Option<ShockExpansionBody>],
+        ahead: Option<&ShockExpansionBody>,
+        mach: f64,
+        reference_area_m2: f64,
+    ) -> Option<Vec<SegmentSlope>> {
+        let vertex_m = self.vertex_m;
+        // A flare steeper than its corner's shock can stay attached to is read as one of the same
+        // radii drawn out to that turn (ADR-047 in `docs/DECISIONS.md`). The march is
+        // downstream-only, so the flow reaching the corner comes from the run ahead of the flare,
+        // and the drawn-out body differs from the real one in its last segment alone.
+        let held = match (&self.flare, ahead) {
+            // `SupersonicBody::new` builds one whenever the run has a flare; a run that has one
+            // without it would read the real flare however steep, so refuse the row instead.
+            (Some(_), None) => return None,
+            (Some(flare), Some(ahead)) => {
+                let aft = ahead.aft_flow(mach).ok()?;
+                let rise_m = flare.aft_radius_m - flare.fore_radius_m;
+                let angle_rad = (rise_m / flare.length_m).atan();
+                // The corner's turn is bounded by the shock staying attached; the flare's own
+                // surface angle by the cone tables, which an element's tangent cone is looked up
+                // by. They are bounds on different things, so each caps its own quantity.
+                let turn_limit_rad = flare_corner_limit_rad(aft.surface_mach).ok()?;
+                let angle_limit_rad =
+                    (turn_limit_rad + aft.angle_rad).min(crate::blunt_tip::CONE_TABLE_CAP_RAD);
+                if angle_rad > angle_limit_rad {
+                    // A surface ahead already steeper than the limit turns the flow past it
+                    // however the flare is drawn, and a flare drawn to nothing has no length:
+                    // the method has no reading there. Unreachable while only a flare not behind
+                    // a boattail joins the run, since the angle ahead is then zero or positive.
+                    if angle_limit_rad <= 0.0 || !angle_limit_rad.is_finite() {
+                        return None;
+                    }
+                    let length_m = rise_m / angle_limit_rad.tan();
+                    let mut segments = flare.ahead.clone();
+                    segments.push(BodySegment::Profile {
+                        profile: hpr_design::Profile::transition(
+                            NoseShape::Conical {},
+                            length_m,
+                            flare.fore_radius_m,
+                            flare.aft_radius_m,
+                            flare.clipped,
+                        )
+                        .ok()?,
+                    });
+                    Some((
+                        ShockExpansionBody::new(&segments, DEFAULT_ELEMENTS_PER_CURVE).ok()?,
+                        length_m,
+                    ))
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        };
+        let mut shares = match &held {
+            Some((drawn, _)) => drawn.segment_slopes(mach, reference_area_m2).ok()?,
+            None => body.segment_slopes(mach, reference_area_m2).ok()?,
+        };
+        // The length only enters the march: the center of pressure stays on the real flare, at
+        // the same fraction along it as the drawn-out one reads. At the limit the two lengths are
+        // equal, so this is continuous in the flare's angle and in the Mach number.
+        if let (Some(flare), Some((_, drawn_length_m))) = (&self.flare, &held) {
+            let index = flare.index;
+            let share = *shares.get(index)?;
+            if share.slope_per_rad > 0.0 {
+                let fore_m = self.fore_m[index] - vertex_m;
+                let along = (share.moment_slope_m / share.slope_per_rad - fore_m) / drawn_length_m;
+                shares[index].moment_slope_m =
+                    share.slope_per_rad * (fore_m + along * flare.length_m);
+            }
+        }
+        // A lip in a boattail's wake carries nothing faster than sound (ADR-039).
+        shares.extend(std::iter::repeat_n(
+            SegmentSlope::default(),
+            self.sheltered_lips,
+        ));
+        for (index, (boattail, cylinder_body)) in
+            self.boattails.iter().zip(in_its_place).enumerate()
+        {
+            let (Some(boattail), Some(cylinder_body)) = (boattail, cylinder_body) else {
+                continue;
+            };
+            // The cylinder in its place is that body's last segment; its moment is about the
+            // vertex, as the method's shares are.
+            let cylinder = *cylinder_body
+                .segment_slopes(mach, reference_area_m2)
+                .ok()?
+                .last()?;
+            let fore_radius_m = boattail.fore_radius_m;
+            // Issue #90's cap. Washington and Pettis measured boattails of 4° to 9.5°, whose
+            // flow follows the surface; past about 16° it separates (Cubbage, the angle the drag
+            // buildup uses, `crate::afterbody::SEPARATION_ONSET_RAD`) and nothing measures what
+            // the body then carries. So the correlation is read no steeper than 16°: a boattail
+            // past it takes the increment of one of the same radii drawn out to that angle. The
+            // length only enters the correlation; the center of pressure stays on the real
+            // boattail. Continuous in shape (at 16° the two lengths are equal), and it holds the
+            // lift the boattail takes off rather than letting it go to zero, which would move the
+            // center of pressure aft and make a steep boattail look more stable than measured.
+            let drop_m = fore_radius_m - boattail.aft_radius_m;
+            let read = |length_m| wp_slope(mach, fore_radius_m, boattail.aft_radius_m, length_m);
+            let at_true_angle = read(boattail.length_m).ok()?;
+            let held = read(boattail.length_m.max(drop_m / SEPARATION_ONSET_RAD.tan())).ok()?;
+            // How far the holding may go. Reading a longer boattail walks Fig. 5's argument
+            // toward zero, where the curve comes from the report's lowest supersonic runs
+            // (`crate::supersonic_boattail`) and passes Munk's slender-body line, which
+            // RD-TM-68-5 plots for comparison at subsonic speeds (p. 3). hpr does not invent a
+            // length and then read that branch: the *extra* the holding removes stops at
+            // potential flow's `2 (A_aft − A_fore)/A_fore`. A boattail's read at its own length
+            // is never clipped, whatever it says: that is the correlation as published, and a
+            // genuinely long boattail reads the same branch unbounded. At 16° the two reads are
+            // equal, so this is continuous in shape.
+            let ratio = boattail.aft_radius_m / fore_radius_m;
+            let measured = held.max(at_true_angle.min(2.0 * (ratio * ratio - 1.0)));
+            let increment = measured * PI * fore_radius_m * fore_radius_m / reference_area_m2;
+            let center_m =
+                self.fore_m[index] + wp_center_fraction(mach) * boattail.length_m - vertex_m;
+            shares[index] = SegmentSlope {
+                slope_per_rad: cylinder.slope_per_rad + increment,
+                moment_slope_m: cylinder.moment_slope_m + increment * center_m,
+            };
+        }
+        let on_segment = shares.iter().zip(&self.bounds_m).all(|(s, bounds)| {
+            let Some((fore, aft)) = *bounds else {
+                return s.slope_per_rad.is_finite() && s.moment_slope_m.is_finite();
+            };
+            let station = (s.moment_slope_m + s.slope_per_rad * vertex_m) / s.slope_per_rad;
+            let slack = 1e-9 * (aft - vertex_m);
+            s.slope_per_rad > 0.0 && station >= fore - slack && station <= aft + slack
+        });
+        on_segment.then(|| {
+            shares
+                .into_iter()
+                .map(|s| SegmentSlope {
+                    slope_per_rad: s.slope_per_rad,
+                    moment_slope_m: s.moment_slope_m + s.slope_per_rad * vertex_m,
+                })
+                .collect()
+        })
+    }
+}
+
+/// The table, built once and shared by a model's clones. It follows from the covered segments, so
+/// two models compare equal whether or not either has built it.
+#[derive(Debug, Clone, Default)]
+struct SupersonicTable(Arc<OnceLock<Option<SupersonicBody>>>);
+
+impl PartialEq for SupersonicTable {
+    fn eq(&self, _: &Self) -> bool {
+        true
+    }
+}
+
+impl SupersonicBody {
+    /// Tabulates the method's shares of `run`'s segments, whose vertex is at `run.vertex_m` aft
+    /// of the nose tip, or `None` where the method can't take the body or doesn't hold across a
+    /// whole join below Mach 5.
+    fn new(run: &SupersonicRun, reference_area_m2: f64) -> Option<Self> {
+        let body = ShockExpansionBody::new(&run.segments, DEFAULT_ELEMENTS_PER_CURVE).ok()?;
+        let ahead = match &run.flare {
+            Some(flare) => {
+                Some(ShockExpansionBody::new(&flare.ahead, DEFAULT_ELEMENTS_PER_CURVE).ok()?)
+            }
+            None => None,
+        };
+        let mut in_its_place = Vec::with_capacity(run.boattails.len());
+        for boattail in &run.boattails {
+            in_its_place.push(match boattail {
+                Some(b) => Some(
+                    ShockExpansionBody::new(&b.in_its_place, DEFAULT_ELEMENTS_PER_CURVE).ok()?,
+                ),
+                None => None,
+            });
+        }
+        let at = |step: f64| {
+            run.shares(
+                &body,
+                &in_its_place,
+                ahead.as_ref(),
+                step / SUPERSONIC_STEPS_PER_MACH,
+                reference_area_m2,
+            )
+        };
+        let mut rows = Vec::new();
+        let mut first_step = SUPERSONIC_LAST_STEP + 1;
+        // From Mach 5 down, until the method first fails or a share isn't on its segment.
+        for step in (SUPERSONIC_FIRST_STEP..=SUPERSONIC_LAST_STEP).rev() {
+            let Some(row) = at(step as f64) else {
+                break;
+            };
+            rows.push(row);
+            first_step = step;
+        }
+        rows.reverse();
+        // The join needs its whole width inside the table.
+        if first_step + SUPERSONIC_JOIN_STEPS > SUPERSONIC_LAST_STEP {
+            return None;
+        }
+        // Where the method stops holding between two rows, bisect for that Mach: `high` holds,
+        // `low` doesn't. The join's start then moves continuously with the body's shape, except
+        // where the table itself appears or vanishes: the guard above near Mach 4.7, and the
+        // model switches of issue #87.
+        let mut lead = None;
+        let mut join_start_mach = first_step as f64 / SUPERSONIC_STEPS_PER_MACH;
+        if first_step > SUPERSONIC_FIRST_STEP {
+            let (mut low, mut high) = (first_step as f64 - 1.0, first_step as f64);
+            let mut held = None;
+            for _ in 0..SUPERSONIC_JOIN_BISECTIONS {
+                let mid = 0.5 * (low + high);
+                if mid <= low || mid >= high {
+                    break;
+                }
+                match at(mid) {
+                    Some(row) => {
+                        high = mid;
+                        held = Some(row);
+                    }
+                    None => low = mid,
+                }
+            }
+            if let Some(row) = held {
+                join_start_mach = high / SUPERSONIC_STEPS_PER_MACH;
+                lead = Some(row);
+            }
+        }
+        Some(Self {
+            covered: run.segments.len() + run.sheltered_lips,
+            join_start_mach,
+            first_step,
+            rows,
+            lead,
+            shape_weight: run.shape_weight,
+            stationed: run
+                .bounds_m
+                .iter()
+                .map(Option::is_some)
+                // A sheltered lip keeps slender-body theory's station, as a boattail does.
+                .chain(std::iter::repeat_n(false, run.sheltered_lips))
+                .collect(),
+        })
+    }
+
+    /// How much of the method the body takes at `mach`, in `[0, 1]`: the join's own weight, 0 at
+    /// [`Self::join_start_mach`] and below and 1 from [`SUPERSONIC_JOIN_WIDTH_MACH`] above it,
+    /// times [`Self::shape_weight`]. Slender-body theory takes the rest, so this is the single
+    /// definition of how the two models blend.
+    #[must_use]
+    pub fn weight(&self, mach: f64) -> f64 {
+        self.shape_weight
+            * ((mach - self.join_start_mach) / SUPERSONIC_JOIN_WIDTH_MACH).clamp(0.0, 1.0)
+    }
+
+    /// Whether covered component `index` takes a station of its own from the method past the
+    /// join's start ([`AeroModel::component_station_m`]): a nose's and a cylinder's ahead of any
+    /// boattail do, joined from slender-body theory's station to the method's center of pressure
+    /// as the weight rises. A boattail's, a cylinder's behind it and a sheltered lip's keep
+    /// slender-body theory's station at every Mach number, since their shares may cross zero.
+    /// `false` past [`Self::covered`].
+    #[must_use]
+    pub fn has_station(&self, index: usize) -> bool {
+        self.stationed.get(index).copied().unwrap_or(false)
+    }
+
+    /// Covered component `index`'s share at `mach`, interpolated linearly between rows (clamped
+    /// to the table's ends): slope per radian and moment about the nose tip, m per radian. A
+    /// boattail's share, and a cylinder's behind it, may be negative or cross zero, so their
+    /// moment over slope need not lie on the part.
+    pub fn share(&self, index: usize, mach: f64) -> Option<(f64, f64)> {
+        let x = mach * SUPERSONIC_STEPS_PER_MACH - self.first_step as f64;
+        let (a, b, t) = match &self.lead {
+            // Between the lead row and the first even row.
+            Some(lead) if x < 0.0 => {
+                let lead_x =
+                    self.join_start_mach * SUPERSONIC_STEPS_PER_MACH - self.first_step as f64;
+                let t = ((x - lead_x) / -lead_x).clamp(0.0, 1.0);
+                (lead.get(index)?, self.rows[0].get(index)?, t)
+            }
+            _ => {
+                // `new` keeps at least `SUPERSONIC_JOIN_STEPS + 1` even rows.
+                let i = (x.floor().max(0.0) as usize).min(self.rows.len() - 2);
+                let t = (x - i as f64).clamp(0.0, 1.0);
+                (self.rows[i].get(index)?, self.rows[i + 1].get(index)?, t)
+            }
+        };
+        Some((
+            a.slope_per_rad + t * (b.slope_per_rad - a.slope_per_rad),
+            a.moment_slope_m + t * (b.moment_slope_m - a.moment_slope_m),
+        ))
+    }
+}
+
+/// The whole rocket's rolling moment coefficients at one Mach number ([`AeroModel::roll`]).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct Roll {
+    /// `C_l0`: the rolling moment about `+z_B` at no roll rate, from the fins' cant.
+    pub forcing: f64,
+    /// `C_lp = ∂C_l/∂(p d/2V)`, negative: the damping.
+    pub damping: f64,
+}
+
+/// The air-relative flow at one instant.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+#[non_exhaustive]
+pub struct Flow {
+    /// Mach number: in `[0, 5)` for the normal force and the drag buildup.
+    pub mach: f64,
+    /// Total angle of attack between the body axis `+z_B` and the air-relative velocity, rad, in
+    /// `[0, π]`. The models are small-angle models (see `docs/physics/aero.md`).
+    pub alpha_rad: f64,
+    /// Roll angle of the lateral airflow, rad from `x_B` toward `y_B`: the direction in which the
+    /// air crosses the body. Only fin sets of one or two fins depend on it.
+    pub roll_rad: f64,
+}
+
+impl Flow {
+    /// A flow at `mach`, angle of attack `alpha_rad` and lateral-flow roll `roll_rad`. Checked
+    /// when used ([`Flow::validate`]).
+    pub fn new(mach: f64, alpha_rad: f64, roll_rad: f64) -> Self {
+        Self {
+            mach,
+            alpha_rad,
+            roll_rad,
+        }
+    }
+
+    /// Straight into the wind at `mach`.
+    pub fn axial(mach: f64) -> Self {
+        Self::new(mach, 0.0, 0.0)
+    }
+
+    /// Checks the Mach number against the normal force's range, and the angles.
+    ///
+    /// # Errors
+    ///
+    /// [`AeroError::Mach`] outside `[0, 5)` ([`NORMAL_FORCE_MACH_LIMIT`]), and
+    /// [`AeroError::Domain`] for an angle of attack outside `[0, π]` or a non-finite roll.
+    pub fn validate(&self) -> Result<(), AeroError> {
+        check_mach(self.mach, NORMAL_FORCE_MACH_LIMIT, "the normal force")?;
+        self.validate_angles()
+    }
+
+    /// As [`Flow::validate`], for the drag buildup's range `[0, 5)`, which names the buildup when
+    /// it refuses.
+    fn validate_for_buildup(&self) -> Result<(), AeroError> {
+        check_mach(self.mach, BUILDUP_MACH_LIMIT, "the drag buildup")?;
+        self.validate_angles()
+    }
+
+    /// Checks the angles only.
+    fn validate_angles(&self) -> Result<(), AeroError> {
+        if !(0.0..=PI).contains(&self.alpha_rad) {
+            return Err(AeroError::Domain {
+                what: "angle of attack",
+                value: self.alpha_rad,
+            });
+        }
+        if !self.roll_rad.is_finite() {
+            return Err(AeroError::Domain {
+                what: "flow roll angle",
+                value: self.roll_rad,
+            });
+        }
+        Ok(())
+    }
+}
+
+/// The normal force of a whole rocket, or of one component, at a flow condition.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct NormalForce {
+    /// Normal-force coefficient `C_N` on the reference area, in the plane of the flow.
+    pub coefficient: f64,
+    /// `C_N/α` per radian; at `α = 0`, the slope `∂C_N/∂α`.
+    pub slope_per_rad: f64,
+    /// `Σ C_N,i X_i`, m: the normal force's moment about the nose tip per unit dynamic pressure and
+    /// reference area, defined even when the net force is zero.
+    pub moment_m: f64,
+    /// `Σ (C_N,i/α) X_i`, m per radian: [`Self::moment_m`] per radian of angle of attack, and at
+    /// `α = 0` its slope `Σ C_Nα,i X_i`. It is defined when the slopes cancel, where the center of
+    /// pressure is not: the loads are then a pure couple.
+    pub moment_slope_m: f64,
+    /// Center of pressure, m aft of the nose tip; `None` when the slope is zero, or so small
+    /// against its terms (below 1e-12 of `Σ |C_Nα,i|`) that the ratio would be noise.
+    pub cp_station_m: Option<f64>,
+    /// Side-force coefficient across the plane of the flow, along `z_B` × the lateral-flow
+    /// direction. Only fin sets of one or two fins produce it ([`crate::fins::side_sum`]).
+    pub side_coefficient: f64,
+    /// `Σ C_Y,i X_i`, m: the side force's moment about the nose tip per unit dynamic pressure and
+    /// reference area.
+    pub side_moment_m: f64,
+    /// The override table's lookup, on the table's reference area, when the whole rocket's normal
+    /// force came from one ([`AeroModel::with_normal_force_table`]): whether the Mach number was
+    /// outside a column's range, or the angle past the last column's.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub table: Option<NormalForceLookup>,
+}
+
+/// One component's contributions per radian: slope, moment slope about the nose tip, side slope
+/// and side moment slope, and `Σ |terms|` of the slope to judge cancellation.
+#[derive(Clone, Copy, Default)]
+struct Term {
+    slope: f64,
+    moment: f64,
+    side: f64,
+    side_moment: f64,
+    scale: f64,
+}
+
+impl Term {
+    /// This term `k` times over: `k` copies of a component.
+    fn times(self, k: f64) -> Term {
+        Term {
+            slope: k * self.slope,
+            moment: k * self.moment,
+            side: k * self.side,
+            side_moment: k * self.side_moment,
+            scale: k * self.scale,
+        }
+    }
+
+    fn add(self, other: Term) -> Term {
+        Term {
+            slope: self.slope + other.slope,
+            moment: self.moment + other.moment,
+            side: self.side + other.side,
+            side_moment: self.side_moment + other.side_moment,
+            scale: self.scale + other.scale,
+        }
+    }
+}
+
+impl NormalForce {
+    fn new(term: Term, alpha_rad: f64) -> Self {
+        let cancelled = term.slope.abs() <= 1e-12 * term.scale;
+        Self {
+            coefficient: term.slope * alpha_rad,
+            slope_per_rad: term.slope,
+            moment_m: term.moment * alpha_rad,
+            moment_slope_m: term.moment,
+            cp_station_m: (term.slope != 0.0 && !cancelled).then(|| term.moment / term.slope),
+            side_coefficient: term.side * alpha_rad,
+            side_moment_m: term.side_moment * alpha_rad,
+            table: None,
+        }
+    }
+}
+
+/// One component's share of the normal force.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct ComponentNormalForce {
+    /// The component's id.
+    pub id: String,
+    /// Its normal force.
+    pub normal_force: NormalForce,
+}
+
+/// A body component's precomputed terms.
+///
+/// Serialize-only, like [`AeroModel`]: the terms are computed by [`AeroModel::new`], not read.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[non_exhaustive]
+pub struct BodyAero {
+    /// The component's id.
+    pub id: String,
+    /// Station of its fore end, m.
+    pub fore_station_m: f64,
+    /// Its geometry.
+    pub geometry: BodyGeometry,
+    /// The step in cross-section area from the previous body component's aft end to this one's
+    /// fore end, m² (zero for the first body component).
+    pub step_area_m2: f64,
+    /// Slender-body theory's potential-flow slope at `α → 0`, per radian, with the step. Faster
+    /// than sound a body the shock-expansion method covers takes its share instead
+    /// ([`SupersonicBody`]).
+    pub slope_per_rad: f64,
+    /// Slender-body theory's potential-flow moment slope about the nose tip, m per radian, with
+    /// the step.
+    pub moment_slope_m: f64,
+    /// Its planform over the reference area, `A_plan / A_ref`: body lift is
+    /// `C_N = factor · planform_ratio · sin² α`, the factor from the model's [`BodyLift`].
+    pub planform_ratio: f64,
+    /// Station of the body lift, m.
+    pub lift_station_m: f64,
+}
+
+/// A fin set's precomputed terms.
+///
+/// Serialize-only, like [`AeroModel`].
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[non_exhaustive]
+pub struct FinSetAero {
+    /// The component's id.
+    pub id: String,
+    /// Number of fins.
+    pub count: u32,
+    /// Roll angle of the first fin, rad.
+    pub base_angle_rad: f64,
+    /// One fin's normal force through the speed regimes, and its geometry.
+    pub fin: FinAero,
+    /// Fin–fin factor `f_N`.
+    pub count_factor: f64,
+    /// Fin–body interference `K_T(B)`.
+    pub interference: f64,
+    /// Station of the fins' root leading edge, m aft of the nose tip.
+    pub fore_station_m: f64,
+    /// Cant, rad: positive turns fin 0's leading edge toward `−y_B` (`hpr_design::FinSet`).
+    pub cant_rad: f64,
+    /// Radius of the body tube at the fins, m.
+    pub body_radius_m: f64,
+    /// The body's interference with the roll forcing, `k_T(B)` ([`roll_forcing_interference`]).
+    pub roll_forcing_interference: f64,
+    /// The body's interference with the roll damping, `k_R(B)` ([`roll_damping_interference`]).
+    pub roll_damping_interference: f64,
+    /// One fin's roll terms on this body ([`FinAero::roll_terms`]).
+    pub roll: FinRollTerms,
+    /// For a fin set in a pod set, its copies: one per pod. `None` for the airframe's.
+    pub pods: Option<PodFins>,
+}
+
+/// A pod's fin set flown once per pod ([`FinSetAero::pods`]).
+///
+/// Serialize-only, like [`AeroModel`].
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[non_exhaustive]
+pub struct PodFins {
+    /// Each copy's turn about the rocket's axis, rad, from `x_B` toward `y_B`: a pod turns what it
+    /// holds with it ([`hpr_design::Placement`]), so copy `k`'s fin `j` stands at
+    /// `θ_j + roll_k`.
+    pub roll_rad: Vec<f64>,
+    /// Every fin of every copy, `N` of them, is `ρ_i` from the rocket's axis at its root, along
+    /// its span: `ρ = o · ê + r_t`, with `o` the copy's offset, `ê` the fin's direction and `r_t`
+    /// the pod's tube radius. A fin's roll damping is quadratic in `ρ`
+    /// ([`FinAero::roll_terms`], `∫(ρ + y)² …`), so the sum over the fins is `N/2` times the
+    /// damping at `μ + σ` plus that at `μ − σ`, with `μ` and `σ` the mean and the standard
+    /// deviation of the `ρ_i`: these two terms, exactly. Their `body_radius_m` is that offset,
+    /// which may be negative, and only their damping means anything: a pod's fins are never
+    /// canted. [`FinSetAero::roll`] is not used for a pod's fins. The whole sum takes the pod
+    /// tube's roll-damping interference `k_R(B)`, exact for fins on a pod of no radius, where it
+    /// is 1 (`docs/physics/aero.md`, *Pods*).
+    pub axis_roll: [FinRollTerms; 2],
+    /// `N`, the fins over all the copies.
+    pub fins: u32,
+}
+
+/// A pod set's precomputed terms: one pod's body components, flown once per pod.
+///
+/// Each copy's force acts on the rocket's axis at its station. For two pods or more, which stand
+/// evenly around the axis, the copies' offsets add to zero, so the sum of their forces there has
+/// the same moment as each at its own pod; the roll damping their offsets give is added in
+/// [`AeroModel::roll`]. A single pod's drag and normal force off the axis make a moment the model
+/// leaves out (`docs/physics/aero.md`, *Pods*).
+///
+/// Serialize-only, like [`AeroModel`].
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[non_exhaustive]
+pub struct PodSetAero {
+    /// The pod set's id.
+    pub id: String,
+    /// How many pods fly.
+    pub copies: u32,
+    /// `Σ |o_k|²` over the pods, m²: each one's squared distance from the rocket's axis.
+    pub offset_squares_m2: f64,
+    /// One pod's length over its largest diameter, which sets its body lift's `η`; 0 for a pod
+    /// with no body of any size.
+    pub fineness: f64,
+    /// Fig. 4's `η` at that fineness.
+    crossflow_eta_low: f64,
+    /// One pod's body components, fore to aft, each one copy's terms, at stations along the
+    /// rocket's axis. The pod's first body has no step in its normal force, as the airframe's
+    /// first has none; its drag counts its bare front face.
+    pub bodies: Vec<BodyAero>,
+}
+
+impl FinSetAero {
+    /// The set's center of pressure at `mach`, m aft of the nose tip.
+    ///
+    /// # Errors
+    ///
+    /// As [`FinAero::loading`].
+    pub fn cp_station_m(&self, mach: f64) -> Result<f64, AeroError> {
+        Ok(self.fore_station_m + self.fin.loading(mach)?.cp_m)
+    }
+}
+
+/// A rocket's aerodynamic model: normal force, center of pressure and drag.
+///
+/// Serialize-only, for inspection: a model is built from a [`Layout`] by [`AeroModel::new`], which
+/// checks what it builds.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct AeroModel {
+    reference_area_m2: f64,
+    reference_diameter_m: f64,
+    length_m: f64,
+    /// The largest radius of the bodies, m: RASAero II's reference.
+    max_body_radius_m: f64,
+    /// The body's length over its largest diameter, for body lift's `η` ([`crate::crossflow`]).
+    fineness: f64,
+    /// Fig. 4's `η` at that fineness, computed once.
+    crossflow_eta_low: f64,
+    /// The body-lift and boattail rules.
+    body_model: BodyModel,
+    bodies: Vec<BodyAero>,
+    /// The pod sets that hold a body component.
+    pods: Vec<PodSetAero>,
+    /// The nose, the cylinders and boattails behind it, for the shock-expansion method.
+    #[serde(skip)]
+    supersonic_run: Option<SupersonicRun>,
+    /// Why there is no run, when there is none ([`Self::supersonic_fallback`]).
+    #[serde(skip)]
+    supersonic_stop: Option<SupersonicFallback>,
+    /// Their tabulated shares, built the first time a flow faster than
+    /// [`SUPERSONIC_JOIN_START_MACH`] needs them: building takes up to about 125 runs of the
+    /// method.
+    #[serde(skip)]
+    supersonic: SupersonicTable,
+    fin_sets: Vec<FinSetAero>,
+    tube_fin_sets: Vec<TubeFinSetAero>,
+    drag_terms: Vec<ComponentDragTerms>,
+    drag_table: Option<DragTable>,
+    /// A program's own drag model ([`crate::custom`]), in place of the buildup and any table:
+    /// serialized as its `Debug` text, and left out when there is none.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    drag_model: Option<SharedDragModel>,
+    normal_force_table: Option<NormalForceTable>,
+    /// Whether the aft base keeps its whole drag while a motor burns
+    /// ([`AeroModel::with_full_base_drag_under_power`]).
+    full_base_drag_under_power: bool,
+    /// The factor on every zero-lift drag coefficient this model gives
+    /// ([`AeroModel::with_drag_scale`]); left out when it is 1.
+    #[serde(skip_serializing_if = "is_one")]
+    drag_scale: f64,
+}
+
+/// Whether a drag scale is 1, the factor that changes nothing (by reference, as serde's
+/// `skip_serializing_if` asks).
+fn is_one(scale: &f64) -> bool {
+    *scale == 1.0
+}
+
+/// `drag` with its zero-lift coefficient and its five parts multiplied by `scale`
+/// ([`AeroModel::with_drag_scale`]).
+fn scaled(mut drag: Drag, scale: f64) -> Drag {
+    if scale != 1.0 {
+        for part in [
+            &mut drag.zero_lift_coefficient,
+            &mut drag.friction,
+            &mut drag.pressure,
+            &mut drag.base,
+            &mut drag.parasitic,
+            &mut drag.stated,
+        ] {
+            *part *= scale;
+        }
+    }
+    drag
+}
+
+/// Puts the drag coefficients the layout's components and stages state in place of their own
+/// drag ([`hpr_design::DragOverride`], ADR-167): each overridden component's terms take its
+/// coefficient times its instances, a part its parent's or stage's override covers takes zero,
+/// a step down behind an overridden body component goes with it, and a stage's coefficient is a
+/// term of its own. `body_terms` are the airframe's body components' terms, fore to aft.
+///
+/// # Errors
+///
+/// [`AeroError::Domain`] for a stated coefficient that is negative or not finite, on any
+/// component or stage, and [`AeroError::Unsupported`] for one OpenRocket hasn't been measured
+/// on: on a pod set or in a pod, covering one, on a tube fin set, on a parallel stage, or covering
+/// a stage one hangs on.
+fn apply_drag_overrides(
+    layout: &Layout,
+    drag_terms: &mut Vec<ComponentDragTerms>,
+    body_terms: &[(usize, BodyGeometry)],
+) -> Result<(), AeroError> {
+    let check = |id: &str, coefficient: f64| {
+        if coefficient.is_finite() && coefficient >= 0.0 {
+            Ok(coefficient)
+        } else {
+            Err(AeroError::InComponent {
+                id: id.to_owned(),
+                source: Box::new(AeroError::Domain {
+                    what: "stated drag coefficient",
+                    value: coefficient,
+                }),
+            })
+        }
+    };
+    let unsupported = |id: &str, what: &str| AeroError::InComponent {
+        id: id.to_owned(),
+        source: Box::new(AeroError::Unsupported(what.to_owned())),
+    };
+    for (k, stage) in layout.stages.iter().enumerate() {
+        if let Some(stated) = stage.drag_override {
+            check(&stage.id, stated.coefficient)?;
+            // A parallel stage is laid out as a pod set, and how OpenRocket flies an override on
+            // one, or one covering a stage that holds one, hasn't been measured (ADR-171).
+            if stage.hung_on.is_some() {
+                return Err(unsupported(
+                    &stage.id,
+                    "a drag override on a parallel stage",
+                ));
+            }
+            if stated.include_children && layout.stages.iter().any(|s| s.hung_on == Some(k)) {
+                return Err(unsupported(
+                    &stage.id,
+                    "a drag override covering a stage a parallel stage hangs on",
+                ));
+            }
+        }
+    }
+    // Whether each component is covered by a parent's override or its stage's, whatever it
+    // states itself. The walk up takes at most one step per component, as
+    // `Layout::pod_set_of`'s does, so a layout whose parents loop ends it.
+    let mut covered = Vec::with_capacity(layout.components.len());
+    for (index, component) in layout.components.iter().enumerate() {
+        if let Some(stated) = component.drag_override {
+            check(&component.id, stated.coefficient)?;
+        }
+        let mut covers = layout
+            .stages
+            .get(component.stage)
+            .and_then(|s| s.drag_override)
+            .is_some_and(|o| o.include_children);
+        let mut parent = component.parent;
+        for _ in 0..layout.components.len() {
+            let Some(up) = parent.and_then(|at| layout.components.get(at)) else {
+                break;
+            };
+            covers |= up.drag_override.is_some_and(|o| o.include_children);
+            parent = up.parent;
+        }
+        let in_pod =
+            layout.pod_set_of(index).is_some() || matches!(component.part, Part::PodSet(_));
+        if in_pod && component.drag_override.is_some() {
+            return Err(unsupported(
+                &component.id,
+                "a drag override on a pod set or in a pod",
+            ));
+        }
+        if in_pod && covers {
+            return Err(unsupported(
+                &component.id,
+                "a drag override covering a pod set",
+            ));
+        }
+        if component.drag_override.is_some() && matches!(component.part, Part::TubeFinSet(_)) {
+            return Err(unsupported(
+                &component.id,
+                "a drag override on a tube fin set",
+            ));
+        }
+        covered.push(covers);
+    }
+    for terms in drag_terms.iter_mut() {
+        let Some((index, component)) = layout.find(&terms.id) else {
+            continue;
+        };
+        terms.stated = if covered[index] {
+            Some(0.0)
+        } else if let Some(stated) = component.drag_override {
+            let instances = match &component.part {
+                Part::FinSet(set) => set.count,
+                Part::LaunchLug(lug) => lug.count,
+                Part::RailButton(button) => button.count,
+                _ => 1,
+            };
+            Some(stated.coefficient * f64::from(instances))
+        } else {
+            None
+        };
+    }
+    // A step down is the aft face of the part ahead of it: it goes with that part's drag.
+    for pair in body_terms.windows(2) {
+        let (ahead, behind) = (pair[0].0, pair[1].0);
+        if drag_terms[ahead].stated.is_some() {
+            let terms = &mut drag_terms[behind];
+            terms.boattail_area_ratio -= terms.fore_step_down_area_ratio;
+            terms.fore_step_down_area_ratio = 0.0;
+        }
+    }
+    for stage in &layout.stages {
+        if let Some(stated) = stage.drag_override {
+            drag_terms.push(ComponentDragTerms::stage(&stage.id, stated.coefficient));
+        }
+    }
+    Ok(())
+}
+
+/// `drag` with its axial coefficient at an angle of attack whose factor is `factor`
+/// ([`axial_drag_alpha_factor`]): `C_A = C_D0 f(α)`.
+///
+/// # Errors
+///
+/// [`AeroError::Domain`] if either coefficient isn't finite.
+fn with_axial(mut drag: Drag, factor: f64) -> Result<Drag, AeroError> {
+    drag.axial_coefficient = drag.zero_lift_coefficient * factor;
+    if !(drag.zero_lift_coefficient.is_finite() && drag.axial_coefficient.is_finite()) {
+        return Err(AeroError::Domain {
+            what: "drag coefficient",
+            value: drag.zero_lift_coefficient,
+        });
+    }
+    Ok(drag)
+}
+
+impl AeroModel {
+    /// Builds the terms of every component of `layout`, with hpr's current body model
+    /// ([`BodyModel::default`]).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::with_body_model`].
+    pub fn new(layout: &Layout) -> Result<Self, AeroError> {
+        Self::with_body_model(layout, BodyModel::default())
+    }
+
+    /// Builds the terms of every component of `layout`, its bodies' lift and supersonic boattails
+    /// by `body_model`.
+    ///
+    /// # Errors
+    ///
+    /// - [`AeroError::Domain`] for a non-positive reference diameter, rocket length or body radius.
+    /// - [`AeroError::InComponent`] naming the component, around:
+    ///   - [`AeroError::Unsupported`] for tube fins the ring-wing model doesn't take (fewer than
+    ///     three, solid, shorter than a third of their diameter, overlapping, or on a pod),
+    ///     canted fins on a pod, a pod's tube of no length with a radius (a flat disc), or a part
+    ///     kind or fin cross-section this model doesn't know (a nose shape the drag buildup has
+    ///     no data for builds, and the buildup refuses it when asked: [`AeroModel::drag`]);
+    ///   - [`AeroError::Domain`] for a fin set of more than eight fins, a non-finite station, a
+    ///     pod's body with no fineness, or a drag input out of range (a negative fin thickness, a
+    ///     launch lug's wall thicker than its radius, a rail button's base and flange taller than
+    ///     the button, a negative roughness);
+    ///   - [`AeroError::Layout`] for a fin set or tube fin set without the radius of its body
+    ///     tube, or a pod's body component listed before its pod set;
+    ///   - design errors from a profile, a planform, a volume integral or a pod set's placements.
+    /// - [`AeroError::Unsupported`] for motor mounts in more than [`MOTOR_POD_SETS`] pod sets,
+    ///   whose thrusting areas [`DragConditions`] can't tell apart.
+    /// - [`AeroError::Domain`] for a body-lift `K` that isn't finite and non-negative.
+    pub fn with_body_model(layout: &Layout, body_model: BodyModel) -> Result<Self, AeroError> {
+        body_model.body_lift.validate()?;
+        check_dimension("reference diameter", layout.reference_diameter_m, false)?;
+        let reference_area_m2 = layout.reference_area_m2();
+        let length_m = layout.length_m;
+        check_dimension("rocket length", length_m, false)?;
+        let mut max_radius: f64 = 0.0;
+        for component in layout.body() {
+            if let Some(radius) = component.part.max_radius_m()? {
+                max_radius = max_radius.max(radius);
+            }
+        }
+        check_dimension("maximum body radius", max_radius, false)?;
+        let fineness = length_m / (2.0 * max_radius);
+        let form_factor = body_friction_form_factor(fineness)?;
+        let mut bodies = Vec::new();
+        let mut fin_sets = Vec::new();
+        let mut tube_fin_sets = Vec::new();
+        let mut drag_terms = Vec::new();
+        let mut previous_aft_area: Option<f64> = None;
+        let mut body_terms_at = Vec::new();
+        let mut last_body_terms: Option<usize> = None;
+        // The nose, the cylinders and boattails behind it, for the shock-expansion method: the
+        // run stops at the first other body (a flare), step in radius or gap.
+        let mut supersonic_segments = Vec::new();
+        let mut supersonic_bounds = Vec::new();
+        let mut supersonic_fore = Vec::new();
+        let mut supersonic_boattails = Vec::new();
+        let mut flare: Option<RunFlare> = None;
+        let mut proposed_flare: Option<&hpr_design::Transition> = None;
+        let mut supersonic_open = true;
+        let mut behind_boattail = false;
+        let (mut vertex_m, mut supersonic_end_m) = (0.0, 0.0);
+        // The pod sets being built, and where each pod set of the layout is among them.
+        let mut pods: Vec<PodBuild> = Vec::new();
+        let mut pod_at: Vec<Option<usize>> = vec![None; layout.components.len()];
+        // The pod sets that hold motor mounts: each one's bases take its thrusting motors' area
+        // ([`DragConditions::thrusting_pod_motor_areas_m2`]).
+        let motor_pod_sets = motor_pod_sets(layout)?;
+        for (index, component) in layout.components.iter().enumerate() {
+            let in_component = |e: AeroError| AeroError::InComponent {
+                id: component.id.clone(),
+                source: Box::new(e),
+            };
+            if !component.fore_station_m.is_finite() {
+                return Err(in_component(AeroError::Domain {
+                    what: "component station",
+                    value: component.fore_station_m,
+                }));
+            }
+            // A pod's parts: its body components build the pod's own terms, never the airframe's.
+            let pod = layout.pod_set_of(index).map(|set| pod_at[set]);
+            let first_new_drag_term = drag_terms.len();
+            if let Some(at) = pod
+                && matches!(
+                    component.part,
+                    Part::NoseCone(_) | Part::Transition(_) | Part::BodyTube(_)
+                )
+            {
+                // A pod set comes before what it holds, depth first.
+                let build = at.and_then(|at| pods.get_mut(at)).ok_or_else(|| {
+                    in_component(AeroError::Layout(
+                        "a pod's body component before its pod set".to_owned(),
+                    ))
+                })?;
+                build
+                    .add_body(component, &mut drag_terms, length_m, reference_area_m2)
+                    .map_err(in_component)?;
+                continue;
+            }
+            let body = match &component.part {
+                Part::NoseCone(nose) => Some(
+                    nose.profile()
+                        .map_err(AeroError::from)
+                        .and_then(|p| BodyGeometry::from_profile(&p)),
+                ),
+                Part::Transition(transition) => Some(
+                    transition
+                        .profile()
+                        .map_err(AeroError::from)
+                        .and_then(|p| BodyGeometry::from_profile(&p)),
+                ),
+                Part::BodyTube(tube) => {
+                    Some(BodyGeometry::cylinder(tube.length_m, tube.outer_radius_m))
+                }
+                Part::FinSet(set) => {
+                    let mut terms = (|| {
+                        let fin = FinAero::new(&set.planform, reference_area_m2)?;
+                        let body_radius = component.body_radius_m.ok_or_else(|| {
+                            AeroError::Layout(
+                                "a fin set needs the radius of the body tube it is on".to_owned(),
+                            )
+                        })?;
+                        // Past 15° a fin stalls, where the linear roll model means nothing, and a
+                        // single canted fin pushes sideways, which the model doesn't carry.
+                        if !set.cant_rad.is_finite() || set.cant_rad.abs() > MAX_CANT_RAD {
+                            return Err(AeroError::Domain {
+                                what: "fin cant",
+                                value: set.cant_rad,
+                            });
+                        }
+                        if set.count < 2 && set.cant_rad != 0.0 {
+                            return Err(AeroError::Unsupported(
+                                "cant on a single fin, whose side force isn't modeled".to_owned(),
+                            ));
+                        }
+                        let span = fin.geometry().span_m;
+                        let taper = fin.outline().tip_chord_m() / set.planform.root_chord_m();
+                        let roll = fin.roll_terms(body_radius, layout.reference_diameter_m)?;
+                        Ok(FinSetAero {
+                            id: component.id.clone(),
+                            count: set.count,
+                            base_angle_rad: set.base_angle_rad,
+                            count_factor: fin_count_factor(set.count)?,
+                            interference: interference_factor(span, body_radius)?,
+                            fore_station_m: component.fore_station_m,
+                            cant_rad: set.cant_rad,
+                            body_radius_m: body_radius,
+                            roll_forcing_interference: roll_forcing_interference(
+                                span,
+                                body_radius,
+                            )?,
+                            roll_damping_interference: roll_damping_interference(
+                                span,
+                                body_radius,
+                                taper,
+                            )?,
+                            roll,
+                            fin,
+                            pods: None,
+                        })
+                    })()
+                    .map_err(in_component)?;
+                    if pod.is_some() {
+                        terms.pods = Some(
+                            pod_fins(set, component, &terms, layout.reference_diameter_m)
+                                .map_err(in_component)?,
+                        );
+                    }
+                    drag_terms.push(
+                        ComponentDragTerms::fins(
+                            component,
+                            set,
+                            terms.fin.geometry(),
+                            length_m,
+                            reference_area_m2,
+                        )
+                        .map_err(in_component)?,
+                    );
+                    fin_sets.push(terms);
+                    None
+                }
+                Part::TubeFinSet(set) => {
+                    if pod.is_some() {
+                        return Err(in_component(AeroError::Unsupported(
+                            "tube fins on a pod".to_owned(),
+                        )));
+                    }
+                    let terms = TubeFinSetAero::new(component, set, reference_area_m2)
+                        .map_err(in_component)?;
+                    drag_terms.push(
+                        ComponentDragTerms::tube_fins(component, set, length_m, reference_area_m2)
+                            .map_err(in_component)?,
+                    );
+                    tube_fin_sets.push(terms);
+                    None
+                }
+                // A pod set that holds nothing adds no force.
+                Part::PodSet(_) if !layout.components.iter().any(|c| c.parent == Some(index)) => {
+                    None
+                }
+                Part::PodSet(_) => {
+                    pod_at[index] = Some(pods.len());
+                    let mut build =
+                        PodBuild::new(layout, index, component).map_err(in_component)?;
+                    build.motor_pod_set = motor_pod_sets.iter().position(|&set| set == index);
+                    pods.push(build);
+                    None
+                }
+                // Drag only.
+                Part::LaunchLug(lug) => {
+                    drag_terms.push(
+                        ComponentDragTerms::launch_lugs(
+                            component,
+                            lug,
+                            length_m,
+                            reference_area_m2,
+                        )
+                        .map_err(in_component)?,
+                    );
+                    None
+                }
+                Part::RailButton(button) => {
+                    drag_terms.push(
+                        ComponentDragTerms::rail_buttons(
+                            component,
+                            button,
+                            length_m,
+                            reference_area_m2,
+                        )
+                        .map_err(in_component)?,
+                    );
+                    None
+                }
+                // Inside the body.
+                Part::InnerTube(_)
+                | Part::CenteringRing(_)
+                | Part::MassComponent(_)
+                | Part::Parachute(_)
+                | Part::Streamer(_)
+                | Part::ShockCord(_) => None,
+                other => {
+                    return Err(in_component(AeroError::Unsupported(format!(
+                        "a {} part",
+                        other.kind_name()
+                    ))));
+                }
+            };
+            // A pod's fins, lugs and buttons drag once per pod.
+            if pod.is_some() {
+                let copies = copy_count(component).map_err(in_component)?;
+                for terms in &mut drag_terms[first_new_drag_term..] {
+                    terms.copies = copies;
+                    terms.in_pod = true;
+                }
+            }
+            if let Some(geometry) = body {
+                let geometry = geometry.map_err(in_component)?;
+                let step = previous_aft_area.map_or(0.0, |aft| geometry.fore_area_m2 - aft);
+                last_body_terms = Some(drag_terms.len());
+                drag_terms.push(
+                    ComponentDragTerms::body(
+                        component,
+                        &geometry,
+                        match &component.part {
+                            Part::NoseCone(nose) => Some(nose.shape),
+                            Part::Transition(transition) => Some(transition.shape),
+                            _ => None,
+                        },
+                        previous_aft_area,
+                        form_factor,
+                        length_m,
+                        reference_area_m2,
+                    )
+                    .map_err(in_component)?,
+                );
+                body_terms_at.push((drag_terms.len() - 1, geometry));
+                let segment = match &component.part {
+                    Part::NoseCone(nose) if bodies.is_empty() => nose
+                        .profile()
+                        .ok()
+                        .map(|profile| BodySegment::Profile { profile }),
+                    Part::BodyTube(tube)
+                        if !bodies.is_empty()
+                            && step.abs() <= 1e-6 * geometry.fore_area_m2
+                            && (component.fore_station_m - supersonic_end_m).abs()
+                                <= 1e-9 * length_m =>
+                    {
+                        Some(BodySegment::Cylinder {
+                            length_m: tube.length_m,
+                            radius_m: tube.outer_radius_m,
+                        })
+                    }
+                    // A boattail: footnote 8's tangent cone for its elements.
+                    Part::Transition(transition)
+                        if !bodies.is_empty()
+                            && transition.aft_radius_m < transition.fore_radius_m
+                            && step.abs() <= 1e-6 * geometry.fore_area_m2
+                            && (component.fore_station_m - supersonic_end_m).abs()
+                                <= 1e-9 * length_m =>
+                    {
+                        transition
+                            .profile()
+                            .ok()
+                            .map(|profile| BodySegment::Profile { profile })
+                    }
+                    // A conical flare: the march turns the flow at its corner, and the run ends
+                    // there (ADR-047). Any other widening shape ends the run without joining it,
+                    // as every flare did before M1.8e17: the corner's turn is then the profile's
+                    // own slope at its fore end, which the attachment test is not written for.
+                    // A widening part behind a boattail is not a flare in the free stream but a
+                    // lip in the boattail's wake, whose flow the march does not compute: it keeps
+                    // its own rule (ADR-039, `sheltered_lips` below).
+                    Part::Transition(transition)
+                        if !bodies.is_empty()
+                            && !behind_boattail
+                            && transition.aft_radius_m > transition.fore_radius_m
+                            && matches!(transition.shape, NoseShape::Conical {})
+                            && body_model.supersonic_flare == SupersonicFlare::Marched
+                            && step.abs() <= 1e-6 * geometry.fore_area_m2
+                            && (component.fore_station_m - supersonic_end_m).abs()
+                                <= 1e-9 * length_m =>
+                    {
+                        proposed_flare = Some(transition);
+                        transition
+                            .profile()
+                            .ok()
+                            .map(|profile| BodySegment::Profile { profile })
+                    }
+                    _ => None,
+                };
+                match segment {
+                    Some(segment) if supersonic_open => {
+                        if supersonic_segments.is_empty() {
+                            vertex_m = component.fore_station_m;
+                        }
+                        // Only a segment the run actually takes is the run's flare, and its index
+                        // is the one `shares` reads its share and station back at.
+                        if let Some(transition) = proposed_flare.take() {
+                            flare = Some(RunFlare {
+                                index: supersonic_segments.len(),
+                                ahead: supersonic_segments.clone(),
+                                fore_radius_m: transition.fore_radius_m,
+                                aft_radius_m: transition.aft_radius_m,
+                                length_m: transition.length_m,
+                                clipped: transition.clipped,
+                            });
+                        }
+                        // Washington and Pettis's boattail: the run so far with a cylinder of its
+                        // length and fore radius in its place.
+                        supersonic_boattails.push(match (&component.part, body_model) {
+                            (
+                                Part::Transition(transition),
+                                BodyModel {
+                                    supersonic_boattail: SupersonicBoattail::WashingtonPettis,
+                                    ..
+                                },
+                            ) if transition.aft_radius_m < transition.fore_radius_m => {
+                                let mut in_its_place = supersonic_segments.clone();
+                                in_its_place.push(BodySegment::Cylinder {
+                                    length_m: transition.length_m,
+                                    radius_m: transition.fore_radius_m,
+                                });
+                                Some(RunBoattail {
+                                    in_its_place,
+                                    fore_radius_m: transition.fore_radius_m,
+                                    aft_radius_m: transition.aft_radius_m,
+                                    length_m: transition.length_m,
+                                })
+                            }
+                            _ => None,
+                        });
+                        supersonic_segments.push(segment);
+                        let fore_m = component.fore_station_m;
+                        supersonic_fore.push(fore_m);
+                        supersonic_end_m = fore_m + geometry.length_m;
+                        // From a boattail aft, the shares may cross zero: the tail behind it
+                        // carries the decay of the boattail's expansion. A flare's share does
+                        // not: it is positive with a station on the flare, and the run ends
+                        // there, so nothing behind it is marched.
+                        behind_boattail |= matches!(&component.part, Part::Transition(t)
+                            if t.aft_radius_m < t.fore_radius_m);
+                        supersonic_bounds
+                            .push((!behind_boattail).then_some((fore_m, supersonic_end_m)));
+                        // The run ends at the flare it just took.
+                        supersonic_open &= flare.is_none();
+                    }
+                    _ => supersonic_open = false,
+                }
+                previous_aft_area = Some(geometry.aft_area_m2);
+                bodies.push(body_terms(component, geometry, step, reference_area_m2));
+            }
+        }
+        // The aft base belongs to the last body component.
+        if let (Some(index), Some(last)) = (last_body_terms, bodies.last()) {
+            drag_terms[index].base_area_m2 = last.geometry.aft_area_m2;
+        }
+        // Boattails, a lip in a boattail's wake, and the base behind them.
+        couple_afterbody(&mut drag_terms, &body_terms_at, reference_area_m2)?;
+        // Each pod's the same, among its own body components.
+        let mut pod_sets = Vec::new();
+        for build in pods {
+            if let Some((index, geometry)) = build.terms_at.last() {
+                drag_terms[*index].base_area_m2 = geometry.aft_area_m2;
+            }
+            couple_afterbody(&mut drag_terms, &build.terms_at, reference_area_m2)?;
+            if !build.aero.bodies.is_empty() {
+                pod_sets.push(build.aero);
+            }
+        }
+        // Drag coefficients stated in place of the parts' own (ADR-167).
+        apply_drag_overrides(layout, &mut drag_terms, &body_terms_at)?;
+        // The method flies only a body it covers to the end, or whose later bodies carry no
+        // potential-flow slope: its shares beside slender-body theory's for a flare or step would
+        // mix the models the way a boattail did before M1.8e4 (physics review, ADR-034).
+        let marched = supersonic_segments.len();
+        // A lip wholly in a covered boattail's wake carries nothing faster than sound (ADR-039),
+        // so the run may cover it; the drag buildup's wake already measures the shelter
+        // ([`crate::drag::WakeTerm`]), and takes the lip's own drag away at the same threshold.
+        let mut shelter_weight = 1.0_f64;
+        // Whether the lip rule last refused a lip for its length (issue #120): the take stops
+        // there, so it speaks for the first body the run doesn't cover.
+        let mut lip_too_long = false;
+        let sheltered_lips = (marched..bodies.len())
+            .take_while(|&index| {
+                let (term, geometry) = body_terms_at[index];
+                // A lip widens the body: a narrowing part behind the run is a boattail the method
+                // hasn't covered, whatever its drag takes from the wake, and it keeps its
+                // slender-body share.
+                if bodies[index].slope_per_rad <= 0.0 {
+                    return false;
+                }
+                // It must be short enough to stay in the wake, whose scale is the boattail's own
+                // drop in diameter; a longer flare grows out of it.
+                let Some(wake) = drag_terms[term].in_wake_of else {
+                    return false;
+                };
+                let boattail = &wake.boattail;
+                if geometry.length_m > boattail.fore_diameter_m - boattail.aft_diameter_m {
+                    lip_too_long = true;
+                    return false;
+                }
+                // Whatever it widens by, a step at its fore end or its own shoulder, must be
+                // wholly in the wake. The geometry says which it has: a drag term can be missing
+                // for reasons of its own (a shape the buildup has no curve for).
+                let steps = body_terms_at[index.saturating_sub(1)]
+                    .1
+                    .aft_area_m2
+                    .lt(&geometry.fore_area_m2);
+                let shoulders = geometry.aft_area_m2 > geometry.fore_area_m2;
+                // How much of it the wake covers: the drag buildup's whole fraction, which fades
+                // with the lip's rise (a quarter of the boattail's drop in diameter to a half),
+                // with any tube between it and the boattail, and with anything else in the way
+                // (`crate::drag::WakeTerm`). The normal force now reads the same
+                // number rather than a threshold on it: the method's share is weighed by it
+                // ([`SupersonicBody::weight`]), so a lip drawn a hair taller no longer switches
+                // the whole body between the two models (issue #87, ADR-041 in DECISIONS.md).
+                let mut covered = 1.0_f64;
+                if steps {
+                    covered = covered.min(wake.step_fraction);
+                }
+                if shoulders {
+                    covered = covered.min(wake.shoulder_fraction);
+                }
+                // Not `<=`, so a share that somehow came out NaN falls out of the wake rather
+                // than reading as full shelter through `f64::min`.
+                if !covered.is_finite() || covered <= SUPERSONIC_SHELTER_FLOOR {
+                    return false;
+                }
+                shelter_weight = shelter_weight.min(covered);
+                true
+            })
+            .count();
+        let covered = marched + sheltered_lips;
+        let rest_carries_nothing = bodies[covered..]
+            .iter()
+            .all(|body| body.slope_per_rad.abs() <= 1e-9);
+        // Why the run doesn't fly the body (ADR-181), from the body `rest_carries_nothing` fails
+        // on: the first one past the run that carries a slope (a NaN counting), not merely the
+        // first past it, which may be a flush tube behind a flare.
+        let carrying = (covered..bodies.len()).find(|&index| {
+            let nothing = bodies[index].slope_per_rad.abs() <= 1e-9;
+            !nothing
+        });
+        let supersonic_stop = if marched > 0 && rest_carries_nothing {
+            None
+        } else {
+            Some(match carrying.map(|index| (index, &bodies[index])) {
+                Some((index, body)) if lip_too_long && index == covered => {
+                    SupersonicFallback::LongLip {
+                        component: body.id.clone(),
+                    }
+                }
+                // Written as the run's own test, negated, so a NaN step counts as a step.
+                Some((_, body))
+                    if marched > 0
+                        && (body.step_area_m2.abs() > 1e-6 * body.geometry.fore_area_m2
+                            || body.step_area_m2.is_nan()) =>
+                {
+                    SupersonicFallback::RadiusStep {
+                        component: body.id.clone(),
+                    }
+                }
+                _ => SupersonicFallback::Other,
+            })
+        };
+        let supersonic_run = (marched > 0 && rest_carries_nothing).then_some(SupersonicRun {
+            segments: supersonic_segments,
+            vertex_m,
+            bounds_m: supersonic_bounds,
+            fore_m: supersonic_fore,
+            boattails: supersonic_boattails,
+            flare,
+            sheltered_lips,
+            shape_weight: shelter_weight,
+        });
+        Ok(Self {
+            reference_area_m2,
+            reference_diameter_m: layout.reference_diameter_m,
+            length_m,
+            max_body_radius_m: max_radius,
+            fineness,
+            crossflow_eta_low: crate::crossflow::crossflow_eta_low(fineness),
+            body_model,
+            bodies,
+            pods: pod_sets,
+            supersonic_run,
+            supersonic_stop,
+            supersonic: SupersonicTable::default(),
+            fin_sets,
+            tube_fin_sets,
+            drag_terms,
+            drag_table: None,
+            drag_model: None,
+            normal_force_table: None,
+            full_base_drag_under_power: false,
+            drag_scale: 1.0,
+        })
+    }
+
+    /// This model with `table` replacing the drag buildup's zero-lift drag
+    /// ([`crate::table`]), and any drag model ([`AeroModel::with_drag_model`]).
+    #[must_use]
+    pub fn with_drag_table(mut self, table: DragTable) -> Self {
+        self.drag_table = Some(table);
+        self.drag_model = None;
+        self
+    }
+
+    /// The drag override table, if any.
+    pub fn drag_table(&self) -> Option<&DragTable> {
+        self.drag_table.as_ref()
+    }
+
+    /// This model with `model` replacing the drag buildup's zero-lift drag, and any drag table
+    /// ([`crate::custom`]). The normal force, center of pressure and roll stay this model's.
+    #[must_use]
+    pub fn with_drag_model(self, model: impl DragModel + 'static) -> Self {
+        self.with_shared_drag_model(Arc::new(model))
+    }
+
+    /// As [`AeroModel::with_drag_model`], with a model already shared: models that hold the same
+    /// one are equal.
+    #[must_use]
+    pub fn with_shared_drag_model(mut self, model: Arc<dyn DragModel>) -> Self {
+        self.drag_model = Some(SharedDragModel(model));
+        self.drag_table = None;
+        self
+    }
+
+    /// The drag model in place of the buildup, if any.
+    pub fn drag_model(&self) -> Option<&Arc<dyn DragModel>> {
+        self.drag_model.as_ref().map(|shared| &shared.0)
+    }
+
+    /// This model with the aft base's drag kept whole while a motor burns: the thrusting motors'
+    /// cross-section is not taken off the base ([`DragConditions::thrusting_motor_area_m2`] and
+    /// the pods' are read as zero), and a burning motor still selects a table's power-on curve.
+    ///
+    /// hpr's own buildup takes it off, as Niskanen describes (2009, pp. 50–51: "if the base is
+    /// the same size as the motor itself, no base drag"). OpenRocket 24.12 does not: on every one
+    /// of its example designs' flights of one branch, powered pods among them, its base-drag
+    /// column is the whole base's coefficient while a motor burns, as after, where the motors
+    /// cover up to 94% of the reference area (`validation/fixtures/ork/openrocket-base-drag.json`,
+    /// [ADR-097][adr-097]). This is how a comparison with OpenRocket sizes that difference; it is
+    /// not a better model. Neither rule has been checked against a measured flight.
+    ///
+    /// [adr-097]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-097-a-cause-in-the-drag-sized-by-hpr-flying-openrockets-drag-2026-09-28
+    #[must_use]
+    pub fn with_full_base_drag_under_power(mut self) -> Self {
+        self.full_base_drag_under_power = true;
+        self
+    }
+
+    /// Whether the aft base keeps its whole drag while a motor burns
+    /// ([`AeroModel::with_full_base_drag_under_power`]).
+    pub fn full_base_drag_under_power(&self) -> bool {
+        self.full_base_drag_under_power
+    }
+
+    /// Multiplies every zero-lift drag coefficient [`AeroModel::drag`] gives by `scale`: the
+    /// buildup's (each of its five parts too), an override table's or a drag model's. A Monte
+    /// Carlo run disperses drag this way, as RocketPy's `power_off_drag_factor` and
+    /// `power_on_drag_factor` do (`rocketpy/stochastic/stochastic_rocket.py:745-746`); the angle of
+    /// attack's factor, the normal force and the moments are not scaled. A table's
+    /// [`Drag::table`] lookup stays the table's own value, and [`AeroModel::buildup_drag`], what a
+    /// drag model is given to adjust, stays unscaled.
+    ///
+    /// # Errors
+    ///
+    /// [`AeroError::Domain`] for a scale that is negative or not finite.
+    pub fn with_drag_scale(mut self, scale: f64) -> Result<Self, AeroError> {
+        if !(scale.is_finite() && scale >= 0.0) {
+            return Err(AeroError::Domain {
+                what: "drag scale",
+                value: scale,
+            });
+        }
+        self.drag_scale = scale;
+        Ok(self)
+    }
+
+    /// The factor on every zero-lift drag coefficient ([`AeroModel::with_drag_scale`]); 1 unless
+    /// set.
+    pub fn drag_scale(&self) -> f64 {
+        self.drag_scale
+    }
+
+    /// Whether the supersonic table ([`AeroModel::supersonic_body`]) has been built, by this
+    /// model or by one sharing it ([`AeroModel::share_supersonic_table`]). A flight builds it the
+    /// first time its flow passes Mach 1.2.
+    pub fn supersonic_table_built(&self) -> bool {
+        self.supersonic.0.get().is_some()
+    }
+
+    /// Takes `other`'s supersonic table ([`AeroModel::supersonic_body`]) in place of this model's
+    /// own, when the two would build the same table: when they cover the same segments on the
+    /// same reference area, the only inputs the table is built from. Then whichever model first
+    /// needs the table builds it once for both, and for every clone of either, and the flights
+    /// they fly are unchanged, bit for bit. Building the table takes up to about 125 runs of the
+    /// shock-expansion method, a fifth of a second or more, so many flights of one airframe
+    /// share it this way: a Monte Carlo run, whose samples change masses, motors, drag scale and
+    /// weather but not the shape.
+    ///
+    /// Returns `true` if the table is now shared. It returns `false`, and changes nothing, for
+    /// another shape or reference area, or for a model with no table to build: one whose body
+    /// the shock-expansion method doesn't cover from the nose (a blunt nose, for one), which
+    /// keeps slender-body theory past Mach 1.2.
+    pub fn share_supersonic_table(&mut self, other: &AeroModel) -> bool {
+        let shared = self.supersonic_run.is_some()
+            && self.supersonic_run == other.supersonic_run
+            && self.reference_area_m2 == other.reference_area_m2;
+        if shared {
+            self.supersonic = other.supersonic.clone();
+        }
+        shared
+    }
+
+    /// `conditions` as this model reads them: with no motor area under power when the base keeps
+    /// its whole drag.
+    fn read(&self, conditions: &DragConditions) -> DragConditions {
+        if self.full_base_drag_under_power {
+            DragConditions {
+                thrusting_motor_area_m2: 0.0,
+                thrusting_pod_motor_areas_m2: [0.0; MOTOR_POD_SETS],
+                ..*conditions
+            }
+        } else {
+            *conditions
+        }
+    }
+
+    /// This model with `table` replacing the whole rocket's normal force and center of pressure
+    /// ([`AeroModel::normal_force`]). Each component's own terms stay hpr's
+    /// ([`AeroModel::components`], [`AeroModel::component_normal_force`]): a flight engine takes
+    /// its pitch and yaw damping from them, which a table doesn't give.
+    ///
+    /// # Errors
+    ///
+    /// [`AeroError::Domain`] for a center of pressure in the table outside the rocket, from its
+    /// nose tip to its aft end: the sign of a length in the wrong unit or from another datum. Only
+    /// the Mach numbers a flight can use are checked, up to [`NORMAL_FORCE_MACH_LIMIT`] and the
+    /// first past it; a hypersonic row may move where it likes.
+    pub fn with_normal_force_table(mut self, table: NormalForceTable) -> Result<Self, AeroError> {
+        for column in table.columns() {
+            let knots = column.cp_station_m.xs();
+            let used = knots.partition_point(|&mach| mach <= NORMAL_FORCE_MACH_LIMIT) + 1;
+            for &cp in column.cp_station_m.ys().iter().take(used) {
+                if !(0.0..=self.length_m).contains(&cp) {
+                    return Err(AeroError::Domain {
+                        what: "normal-force table center of pressure, m aft of the nose tip",
+                        value: cp,
+                    });
+                }
+            }
+        }
+        self.normal_force_table = Some(table);
+        Ok(self)
+    }
+
+    /// The normal-force override table, if any.
+    pub fn normal_force_table(&self) -> Option<&NormalForceTable> {
+        self.normal_force_table.as_ref()
+    }
+
+    /// The components' precomputed drag terms, in layout order.
+    pub fn drag_terms(&self) -> &[ComponentDragTerms] {
+        &self.drag_terms
+    }
+
+    /// Rocket length for the Reynolds number: nose tip to the aft end of the last body component,
+    /// m.
+    pub fn length_m(&self) -> f64 {
+        self.length_m
+    }
+
+    /// The whole rocket's drag at `flow` and `conditions`: the zero-lift drag of the buildup, or of
+    /// the override table or drag model when there is one, and the axial coefficient at the
+    /// flow's angle of attack.
+    ///
+    /// # Errors
+    ///
+    /// - [`AeroError::Mach`] outside `[0, 5)` for the buildup
+    ///   ([`crate::drag::BUILDUP_MACH_LIMIT`]), and from Mach 0.8 around a tube fin set's
+    ///   ([`crate::tube_fins::TUBE_FIN_MACH_LIMIT`]); with an override table or a drag model any
+    ///   finite Mach number from 0 is accepted ([`AeroError::Domain`] otherwise).
+    /// - [`AeroError::DragModel`] around whatever a drag model returns, and [`AeroError::Domain`]
+    ///   for a coefficient from it that is negative or not finite.
+    /// - Without a table, [`AeroError::InComponent`] around [`AeroError::Unsupported`] for a nose or
+    ///   shoulder shape the buildup has no drag data for
+    ///   ([`crate::drag::ComponentDragTerms::unsupported`]).
+    /// - [`AeroError::Domain`] for an angle of attack outside `[0, π]` or a non-finite roll.
+    /// - As [`DragConditions::validate`].
+    /// - [`AeroError::Table`] from the table lookup, and [`AeroError::Domain`] for a table's
+    ///   coefficient that is negative at the flow's Mach number, or a drag that isn't finite.
+    pub fn drag(&self, flow: &Flow, conditions: &DragConditions) -> Result<Drag, AeroError> {
+        conditions.validate()?;
+        let conditions = &self.read(conditions);
+        let factor = axial_drag_alpha_factor(flow.alpha_rad)?;
+        let drag = if let Some(custom) = &self.drag_model {
+            flow.validate_angles()?;
+            if !(flow.mach.is_finite() && flow.mach >= 0.0) {
+                return Err(AeroError::Domain {
+                    what: "Mach number for a drag model",
+                    value: flow.mach,
+                });
+            }
+            let coefficient = custom
+                .0
+                .zero_lift_drag(&DragQuery::new(flow, conditions, self))
+                .map_err(|source| AeroError::DragModel {
+                    source: Box::new(source),
+                })?;
+            if !(coefficient.is_finite() && coefficient >= 0.0) {
+                return Err(AeroError::Domain {
+                    what: "zero-lift drag coefficient from a drag model",
+                    value: coefficient,
+                });
+            }
+            Drag {
+                zero_lift_coefficient: coefficient,
+                ..Drag::default()
+            }
+        } else if let Some(table) = &self.drag_table {
+            flow.validate_angles()?;
+            let lookup = table.lookup(flow.mach, conditions.thrusting)?;
+            // A table's rows are finite, but one can hold a negative row, or give a negative
+            // value past its rows or between them (linear extrapolation, a cubic): drag that
+            // would push the rocket along (#257).
+            if lookup.value < 0.0 {
+                return Err(AeroError::Domain {
+                    what: "zero-lift drag coefficient from a drag table",
+                    value: lookup.value,
+                });
+            }
+            let scale = match table.reference_diameter_m {
+                Some(d) => {
+                    check_dimension("drag table reference diameter", d, false)?;
+                    0.25 * PI * d * d / self.reference_area_m2
+                }
+                None => 1.0,
+            };
+            Drag {
+                zero_lift_coefficient: lookup.value * scale,
+                table: Some(lookup),
+                ..Drag::default()
+            }
+        } else {
+            self.buildup_sum(flow, conditions)?
+        };
+        with_axial(scaled(drag, self.drag_scale), factor)
+    }
+
+    /// The drag buildup's drag at `flow` and `conditions`, whatever override the model has: the
+    /// sum of every component's zero-lift terms, and the axial coefficient at the flow's angle of
+    /// attack. Without an override it is [`AeroModel::drag`]; with one, what the override
+    /// replaces, which a drag model can adjust ([`crate::custom::DragQuery::buildup`]).
+    ///
+    /// # Errors
+    ///
+    /// As [`AeroModel::drag`] without an override.
+    pub fn buildup_drag(
+        &self,
+        flow: &Flow,
+        conditions: &DragConditions,
+    ) -> Result<Drag, AeroError> {
+        conditions.validate()?;
+        let conditions = &self.read(conditions);
+        let factor = axial_drag_alpha_factor(flow.alpha_rad)?;
+        with_axial(self.buildup_sum(flow, conditions)?, factor)
+    }
+
+    /// The buildup's zero-lift terms and their sum at `flow`, on conditions already read
+    /// ([`AeroModel::read`]); the axial coefficient is left for the caller.
+    fn buildup_sum(&self, flow: &Flow, conditions: &DragConditions) -> Result<Drag, AeroError> {
+        flow.validate_for_buildup()?;
+        // Refused here as in the normal force, not wrapped in the tubes' component.
+        self.check_tube_fins(flow.mach)?;
+        let reynolds = conditions.reynolds_per_m * self.length_m;
+        let mut sum = Drag::default();
+        for terms in &self.drag_terms {
+            let d = terms.evaluate(reynolds, flow.mach, conditions, self.reference_area_m2)?;
+            sum.friction += d.friction;
+            sum.pressure += d.pressure;
+            sum.base += d.base;
+            sum.parasitic += d.parasitic;
+            sum.stated += d.stated;
+        }
+        sum.zero_lift_coefficient =
+            sum.friction + sum.pressure + sum.base + sum.parasitic + sum.stated;
+        Ok(sum)
+    }
+
+    /// Each component's share of the drag buildup at `flow` and `conditions`, in layout order: its
+    /// zero-lift coefficient and parts, and its axial coefficient at the flow's angle of attack.
+    ///
+    /// These are always the buildup's terms. With an override table or a drag model,
+    /// [`AeroModel::drag`] returns its value instead of their sum, so they don't add up to it.
+    ///
+    /// # Errors
+    ///
+    /// As [`AeroModel::drag`] without a table, and [`DragConditions::validate`].
+    pub fn buildup_components(
+        &self,
+        flow: &Flow,
+        conditions: &DragConditions,
+    ) -> Result<Vec<ComponentDrag>, AeroError> {
+        flow.validate_for_buildup()?;
+        self.check_tube_fins(flow.mach)?;
+        conditions.validate()?;
+        let conditions = &self.read(conditions);
+        let factor = axial_drag_alpha_factor(flow.alpha_rad)?;
+        let reynolds = conditions.reynolds_per_m * self.length_m;
+        self.drag_terms
+            .iter()
+            .map(|terms| {
+                let mut drag =
+                    terms.evaluate(reynolds, flow.mach, conditions, self.reference_area_m2)?;
+                drag.axial_coefficient *= factor;
+                Ok(ComponentDrag {
+                    id: terms.id.clone(),
+                    drag,
+                })
+            })
+            .collect()
+    }
+
+    /// Reference area, m².
+    pub fn reference_area_m2(&self) -> f64 {
+        self.reference_area_m2
+    }
+
+    /// Reference diameter, m: the length the rolling moment is taken on.
+    pub fn reference_diameter_m(&self) -> f64 {
+        self.reference_diameter_m
+    }
+
+    /// The whole rocket's rolling moment at `mach` about `+z_B`, on the reference area and
+    /// diameter: `C_l = C_l0 + C_lp (p d/2V)`, with `p` the roll rate about `+z_B` and `V` the
+    /// airspeed. Each fin set adds `C_l0 = −N C_lδ k_T(B) δ` and `N C_lp k_R(B)` ([`FinAero::roll`],
+    /// [`roll_forcing_interference`], [`roll_damping_interference`]); a positive cant `δ` turns
+    /// each fin's leading edge toward `−y_B` at fin 0, so its lift rolls the rocket toward `−z_B`.
+    /// Fin–fin interference is not applied to roll, as in Niskanen 2009 eq. 3.66. The airframe's
+    /// bodies of revolution add nothing. A pod's body parts damp the roll by
+    /// `C_lp = −2 C_Nα ρ²/d²` per pod, `ρ` its distance from the axis, and a pod's fins damp it by
+    /// the strips' distance from the rocket's axis ([`PodFins`]); a pod adds no forcing.
+    ///
+    /// # Errors
+    ///
+    /// [`AeroError::Mach`] outside `[0, 5)`, as [`AeroModel::normal_force`], and [`AeroError::Mach`] at Mach 0.8 and above on a rocket with tube fins
+    /// ([`crate::tube_fins::TUBE_FIN_MACH_LIMIT`]).
+    pub fn roll(&self, mach: f64) -> Result<Roll, AeroError> {
+        check_mach(mach, NORMAL_FORCE_MACH_LIMIT, "the roll moment")?;
+        let mut roll = Roll::default();
+        for set in &self.fin_sets {
+            if let Some(pods) = &set.pods {
+                // Taken about the rocket's axis; a pod's fins are never canted.
+                let [a, b] = &pods.axis_roll;
+                let damping =
+                    0.5 * (set.fin.roll_with(a, mach).damping + set.fin.roll_with(b, mach).damping);
+                roll.damping += f64::from(pods.fins) * damping * set.roll_damping_interference;
+                continue;
+            }
+            let fin = set.fin.roll_with(&set.roll, mach);
+            let n = f64::from(set.count);
+            roll.forcing -= n * fin.forcing_per_rad * set.roll_forcing_interference * set.cant_rad;
+            roll.damping += n * fin.damping * set.roll_damping_interference;
+        }
+        // A pod's body crosses the air at `p ρ` under the roll rate `p`, `ρ` its distance from
+        // the axis: its normal force `q A C_Nα p ρ/V` about the axis gives
+        // `C_lp = −2 C_Nα ρ²/d²` per copy.
+        let d = self.reference_diameter_m;
+        for pod in &self.pods {
+            for body in &pod.bodies {
+                roll.damping -= 2.0 * body.slope_per_rad * pod.offset_squares_m2 / (d * d);
+            }
+        }
+        // Each tube likewise, about its own axis's distance ([`TubeFinSetAero::roll_damping`]).
+        for set in &self.tube_fin_sets {
+            roll.damping += set.roll_damping(mach, d)?;
+        }
+        Ok(roll)
+    }
+
+    /// The steady roll rate about `+z_B`, rad/s, at `mach` and airspeed `speed_m_s` in axial flow:
+    /// where the fins' forcing and damping balance, `p = −(C_l0/C_lp)(2V/d)`. Zero with no fins.
+    ///
+    /// # Errors
+    ///
+    /// As [`AeroModel::roll`], and [`AeroError::Domain`] for a negative or non-finite airspeed.
+    pub fn steady_roll_rate_rad_s(&self, mach: f64, speed_m_s: f64) -> Result<f64, AeroError> {
+        check_dimension("airspeed", speed_m_s, true)?;
+        let roll = self.roll(mach)?;
+        Ok(if roll.damping < 0.0 {
+            -roll.forcing / roll.damping * 2.0 * speed_m_s / self.reference_diameter_m
+        } else {
+            0.0
+        })
+    }
+
+    /// The airframe's body components' terms; a pod's are in [`Self::pod_sets`].
+    pub fn bodies(&self) -> &[BodyAero] {
+        &self.bodies
+    }
+
+    /// The shock-expansion method's shares of the nose, the cylinders and boattails behind it,
+    /// and where they join slender-body theory; `None` where the method can't take the body (a nose
+    /// steeper than a blunt tip's handover all the way to its base, a tangent cone past TN 3527's
+    /// Fig. 2, a later body with a slope of its own such as a flare) or doesn't hold across a
+    /// whole join below Mach 5.
+    ///
+    /// The first call builds the table, which takes up to about 125 runs of the method; a flow no
+    /// faster than [`SUPERSONIC_JOIN_START_MACH`] never needs it.
+    pub fn supersonic_body(&self) -> Option<&SupersonicBody> {
+        let run = self.supersonic_run.as_ref()?;
+        self.supersonic
+            .0
+            .get_or_init(|| SupersonicBody::new(run, self.reference_area_m2))
+            .as_ref()
+    }
+
+    /// Why the shock-expansion method doesn't fly this body faster than sound, or `None` when it
+    /// does ([`Self::supersonic_body`] is `Some`). Like that, the first call may build the table.
+    /// A body with no run at all, such as one read back from JSON, gives `Other`.
+    pub fn supersonic_fallback(&self) -> Option<SupersonicFallback> {
+        if self.supersonic_run.is_none() {
+            return Some(
+                self.supersonic_stop
+                    .clone()
+                    .unwrap_or(SupersonicFallback::Other),
+            );
+        }
+        if self.supersonic_body().is_some() {
+            return None;
+        }
+        // A pointed tip past the cone tables fails the method at every Mach number (#121).
+        let steep_tip = self.supersonic_run.as_ref().is_some_and(|run| {
+            ShockExpansionBody::new(&run.segments, DEFAULT_ELEMENTS_PER_CURVE).is_ok_and(|body| {
+                !body.has_blunt_tip()
+                    && crate::shock_expansion::past_cone_tables(body.vertex_angle_rad())
+            })
+        });
+        if steep_tip {
+            return Some(SupersonicFallback::SteepTip);
+        }
+        // A step the run's coverage gate (a millionth of the area) lets through can still be
+        // more than the march merges (a billionth of the radius, `shock_expansion::lay_out`):
+        // the table then fails, and the step is why (#87).
+        let marched = self
+            .supersonic_run
+            .as_ref()
+            .map_or(0, |run| run.segments.len());
+        let stepped = self
+            .bodies
+            .iter()
+            .take(marched)
+            .find(|body| body.step_area_m2 != 0.0);
+        Some(match stepped {
+            Some(body) => SupersonicFallback::RadiusStep {
+                component: body.id.clone(),
+            },
+            None => SupersonicFallback::Other,
+        })
+    }
+
+    /// [`Self::supersonic_body`] where `mach` is past the earliest join, and `None` below it
+    /// without building the table.
+    fn supersonic_at(&self, mach: f64) -> Option<&SupersonicBody> {
+        (mach > SUPERSONIC_JOIN_START_MACH)
+            .then(|| self.supersonic_body())
+            .flatten()
+    }
+
+    /// Body `index`'s potential-flow slope (per radian) and moment slope about the nose tip (m per
+    /// radian) at a checked `mach`: slender-body theory's, joined to the shock-expansion share
+    /// where the method covers it ([`SupersonicBody`]).
+    fn body_potential(&self, index: usize, body: &BodyAero, mach: f64) -> (f64, f64) {
+        let (slope, moment) = (body.slope_per_rad, body.moment_slope_m);
+        match self.supersonic_at(mach) {
+            Some(s) if index < s.covered && mach > s.join_start_mach => {
+                let w = s.weight(mach);
+                let Some((se_slope, se_moment)) = s.share(index, mach) else {
+                    return (slope, moment);
+                };
+                (
+                    slope + w * (se_slope - slope),
+                    moment + w * (se_moment - moment),
+                )
+            }
+            _ => (slope, moment),
+        }
+    }
+
+    /// The body-lift factor at `flow`, on `(A_plan/A_ref) sin² α`: Jorgensen's `η C_dn` at the
+    /// body's fineness and the crossflow Mach number `M sin α`, or Galejs's `K`
+    /// ([`BodyModel::body_lift`]).
+    pub fn body_lift_factor(&self, flow: &Flow) -> f64 {
+        self.lift_factor_at(flow.mach, flow.alpha_rad.sin())
+    }
+
+    /// [`Self::body_lift_factor`] at `mach` and `sin α`.
+    fn lift_factor_at(&self, mach: f64, sin_alpha: f64) -> f64 {
+        self.lift_factor_of(self.fineness, self.crossflow_eta_low, mach, sin_alpha)
+    }
+
+    /// The body-lift factor of a body of `fineness`, whose Fig. 4 `η` is `eta_low`, at `mach`
+    /// and `sin α`: the airframe's, or a pod's.
+    fn lift_factor_of(&self, fineness: f64, eta_low: f64, mach: f64, sin_alpha: f64) -> f64 {
+        let crossflow_mach = mach * sin_alpha.abs();
+        match self.body_model.body_lift {
+            BodyLift::Jorgensen {} => {
+                crate::crossflow::crossflow_factor_from_eta_low(eta_low, crossflow_mach)
+            }
+            other => other.factor(fineness, crossflow_mach),
+        }
+    }
+
+    /// The per-radian potential-flow and body-lift factors at `flow` ([`alpha_factors`]), the
+    /// second with the model's body-lift factor, skipped where it multiplies nothing.
+    fn body_factors(&self, flow: &Flow) -> (f64, f64) {
+        let (potential, lift, sin_alpha) = alpha_factors(flow.alpha_rad);
+        if lift == 0.0 {
+            (potential, 0.0)
+        } else {
+            (potential, lift * self.lift_factor_at(flow.mach, sin_alpha))
+        }
+    }
+
+    /// [`Self::body_factors`] for `pod`'s bodies: the body-lift factor at the pod's fineness.
+    fn pod_factors(&self, pod: &PodSetAero, flow: &Flow) -> (f64, f64) {
+        let (potential, lift, sin_alpha) = alpha_factors(flow.alpha_rad);
+        if lift == 0.0 {
+            (potential, 0.0)
+        } else {
+            let factor =
+                self.lift_factor_of(pod.fineness, pod.crossflow_eta_low, flow.mach, sin_alpha);
+            (potential, lift * factor)
+        }
+    }
+
+    /// The pod body at `index` among every pod's bodies, in the order of [`Self::components`],
+    /// and its pod set.
+    fn pod_body(&self, index: usize) -> Option<(&PodSetAero, &BodyAero)> {
+        let mut index = index;
+        for pod in &self.pods {
+            match pod.bodies.get(index) {
+                Some(body) => return Some((pod, body)),
+                None => index -= pod.bodies.len(),
+            }
+        }
+        None
+    }
+
+    /// Every pod's bodies, one copy's terms each, with their pod sets.
+    fn pod_bodies(&self) -> impl Iterator<Item = (&PodSetAero, &BodyAero)> {
+        self.pods
+            .iter()
+            .flat_map(|pod| pod.bodies.iter().map(move |body| (pod, body)))
+    }
+
+    /// The body model: its body-lift and supersonic-boattail rules.
+    pub fn body_model(&self) -> BodyModel {
+        self.body_model
+    }
+
+    /// The body's length over its largest diameter, which sets body lift's `η`.
+    pub fn fineness(&self) -> f64 {
+        self.fineness
+    }
+
+    /// The fin sets' terms.
+    pub fn fin_sets(&self) -> &[FinSetAero] {
+        &self.fin_sets
+    }
+
+    /// Whether the normal force depends on the direction the air crosses the rocket: a fin set
+    /// of one or two fins, whose share of its force in a plane varies with the plane
+    /// ([`crate::roll_sum`]), and no normal-force table, which gives one force in every plane.
+    pub fn rolls(&self) -> bool {
+        self.normal_force_table.is_none() && self.fin_sets.iter().any(|set| set.count < 3)
+    }
+
+    /// The tube fin sets' terms.
+    pub fn tube_fin_sets(&self) -> &[TubeFinSetAero] {
+        &self.tube_fin_sets
+    }
+
+    /// Checks `mach` against the tube-fin model's range when the rocket has tube fins.
+    fn check_tube_fins(&self, mach: f64) -> Result<(), AeroError> {
+        if self.tube_fin_sets.is_empty() {
+            Ok(())
+        } else {
+            check_tube_fin_mach(mach)
+        }
+    }
+
+    /// The pod sets' terms: those whose pods hold a body component with a size.
+    pub fn pod_sets(&self) -> &[PodSetAero] {
+        &self.pods
+    }
+
+    /// Each component's id and contributions at a validated `flow`, and a Mach number the tube
+    /// fins take ([`Self::check_tube_fins`]): the airframe's bodies first, then the pods' bodies,
+    /// then fin sets, then tube fin sets, in layout order.
+    fn terms<'a>(&'a self, flow: &Flow) -> impl Iterator<Item = (&'a str, Term)> + 'a {
+        let (potential, lift) = self.body_factors(flow);
+        let (mach, roll) = (flow.mach, flow.roll_rad);
+        let bodies = self.bodies.iter().enumerate().map(move |(index, body)| {
+            let (slope, moment) = self.body_potential(index, body, mach);
+            (
+                body.id.as_str(),
+                body_term(body, slope, moment, potential, lift),
+            )
+        });
+        let flow = *flow;
+        let pods = self
+            .pod_bodies()
+            .map(move |(pod, body)| (body.id.as_str(), self.pod_body_term(pod, body, &flow)));
+        let fins = self
+            .fin_sets
+            .iter()
+            .map(move |set| (set.id.as_str(), fin_term(set, mach, roll)));
+        let tubes = self
+            .tube_fin_sets
+            .iter()
+            .map(move |set| (set.id.as_str(), tube_fin_term(set, mach)));
+        bodies.chain(pods).chain(fins).chain(tubes)
+    }
+
+    /// A pod body's contribution at `flow`, over every pod: slender-body theory's slope at every
+    /// Mach number (the shock-expansion method covers the airframe alone) and the pod's body lift.
+    fn pod_body_term(&self, pod: &PodSetAero, body: &BodyAero, flow: &Flow) -> Term {
+        let (potential, lift) = self.pod_factors(pod, flow);
+        body_term(
+            body,
+            body.slope_per_rad,
+            body.moment_slope_m,
+            potential,
+            lift,
+        )
+        .times(f64::from(pod.copies))
+    }
+
+    /// The number of components with a normal-force term: the airframe's bodies, the pods'
+    /// bodies, the fin sets, then the tube fin sets, in the order of [`Self::components`].
+    pub fn component_count(&self) -> usize {
+        self.tube_fin_set_start() + self.tube_fin_sets.len()
+    }
+
+    /// The index of the first tube fin set among the components ([`Self::components`]): the
+    /// bodies and the fin sets come before.
+    pub fn tube_fin_set_start(&self) -> usize {
+        self.fin_set_start() + self.fin_sets.len()
+    }
+
+    /// The index of the first fin set among the components ([`Self::components`]): the bodies,
+    /// the airframe's and the pods', come before. Every component from here is a lifting surface:
+    /// the fin sets, then the tube fin sets ([`Self::tube_fin_set_start`]).
+    pub fn fin_set_start(&self) -> usize {
+        self.bodies.len() + self.pods.iter().map(|pod| pod.bodies.len()).sum::<usize>()
+    }
+
+    /// Component `index`'s normal force at `flow`, in the order of [`Self::components`], without
+    /// allocating. A flight engine evaluates each component at its own local flow, which includes
+    /// the airspeed the body's rotation adds at the component.
+    ///
+    /// # Errors
+    ///
+    /// As [`Flow::validate`], [`AeroError::Mach`] at Mach 0.8 and above for a tube fin set, and
+    /// [`AeroError::Domain`] for an index past [`Self::component_count`].
+    pub fn component_normal_force(
+        &self,
+        index: usize,
+        flow: &Flow,
+    ) -> Result<NormalForce, AeroError> {
+        flow.validate()?;
+        let term = if let Some(body) = self.bodies.get(index) {
+            let (potential, lift) = self.body_factors(flow);
+            let (slope, moment) = self.body_potential(index, body, flow.mach);
+            body_term(body, slope, moment, potential, lift)
+        } else if let Some((pod, body)) = self.pod_body(index - self.bodies.len()) {
+            self.pod_body_term(pod, body, flow)
+        } else if let Some(set) = self.fin_sets.get(index - self.fin_set_start()) {
+            fin_term(set, flow.mach, flow.roll_rad)
+        } else if let Some(set) = self.tube_fin_sets.get(index - self.tube_fin_set_start()) {
+            check_tube_fin_mach(flow.mach)?;
+            tube_fin_term(set, flow.mach)
+        } else {
+            return Err(AeroError::Domain {
+                what: "component index",
+                value: index as f64,
+            });
+        };
+        Ok(NormalForce::new(term, flow.alpha_rad))
+    }
+
+    /// The station, m aft of the nose tip, where a flight engine takes component `index`'s local
+    /// airspeed at `mach`.
+    ///
+    /// It is the component's small-angle center of pressure wherever one model carries it: a fin
+    /// set's own, and a body's `moment_slope / slope`, or its body-lift station where it has no
+    /// potential-flow slope (a cylinder). Where two models share it, it is not: faster than sound
+    /// a nose's or cylinder's station is joined linearly from slender-body theory's to the
+    /// method's as the weight rises ([`SupersonicBody`]), while the force blends slopes and
+    /// moments, so the two agree only at the ends of the join. On a lip riding half in its
+    /// boattail's wake, which never reaches an end, the tests' tube sits 0.114 m (about two
+    /// calibres) behind its own center of pressure
+    /// ([issue #106](https://github.com/nrdptel/fusionspace-eridanus/issues/106), which measures it and holds
+    /// what a fix has to settle). A covered boattail, and a cylinder behind it, keep
+    /// slender-body theory's station: their shares may cross zero, where a station would run off
+    /// to infinity.
+    ///
+    /// # Errors
+    ///
+    /// [`AeroError::Mach`] outside `[0, 5)`, or `[0, 0.8)` for a tube fin set
+    /// ([`crate::tube_fins::TUBE_FIN_MACH_LIMIT`]), and [`AeroError::Domain`] for an index past
+    /// [`Self::component_count`].
+    pub fn component_station_m(&self, index: usize, mach: f64) -> Result<f64, AeroError> {
+        check_mach(mach, NORMAL_FORCE_MACH_LIMIT, "the normal force")?;
+        if let Some(body) = self.bodies.get(index) {
+            let station = slender_station_m(body, self.reference_area_m2);
+            // A boattail's share, and those behind it, may cross zero, so their stations stay
+            // slender-body theory's, on their own segments, while slopes and moments take the
+            // method's.
+            Ok(match self.supersonic_at(mach) {
+                Some(s) if index < s.covered && s.stationed[index] && mach > s.join_start_mach => {
+                    match s.share(index, mach) {
+                        // Every tabulated share with a station is positive, so the interpolated
+                        // one is.
+                        Some((slope, moment)) => {
+                            station + s.weight(mach) * (moment / slope - station)
+                        }
+                        None => station,
+                    }
+                }
+                _ => station,
+            })
+        } else if let Some((_, body)) = self.pod_body(index - self.bodies.len()) {
+            Ok(slender_station_m(body, self.reference_area_m2))
+        } else if let Some(set) = self.fin_sets.get(index - self.fin_set_start()) {
+            Ok(set.fore_station_m + set.fin.loading_at(mach).cp_m)
+        } else {
+            let set = self
+                .tube_fin_sets
+                .get(index - self.tube_fin_set_start())
+                .ok_or(AeroError::Domain {
+                    what: "component index",
+                    value: index as f64,
+                })?;
+            check_tube_fin_mach(mach)?;
+            Ok(set.loading_at(mach).1)
+        }
+    }
+
+    /// The whole rocket's normal force at `flow`: the sum of its components, or the override
+    /// table's when there is one ([`AeroModel::with_normal_force_table`]).
+    ///
+    /// A table's normal force acts in the plane of the flow at the table's center of pressure,
+    /// with no side force; its coefficients are rescaled to the rocket's reference area from the
+    /// table's ([`crate::table::TableReference`]).
+    ///
+    /// # Errors
+    ///
+    /// As [`Flow::validate`], and without a table [`AeroError::Mach`] at Mach 0.8 and above on a rocket with tube fins
+    /// ([`crate::tube_fins::TUBE_FIN_MACH_LIMIT`]). With a table, any finite
+    /// Mach number from 0 is accepted ([`AeroError::Domain`] otherwise), and table errors are
+    /// returned.
+    pub fn normal_force(&self, flow: &Flow) -> Result<NormalForce, AeroError> {
+        if let Some(table) = &self.normal_force_table {
+            flow.validate_angles()?;
+            let lookup = table.lookup_within(flow.mach, flow.alpha_rad, (0.0, self.length_m))?;
+            let area_m2 = match table.reference() {
+                TableReference::Diameter { diameter_m } => 0.25 * PI * diameter_m * diameter_m,
+                TableReference::LargestBody => PI * self.max_body_radius_m * self.max_body_radius_m,
+                // `TableReference` is non-exhaustive only for other crates.
+                TableReference::Rocket => self.reference_area_m2,
+            };
+            let scale = area_m2 / self.reference_area_m2;
+            let coefficient = lookup.coefficient * scale;
+            let slope = lookup.slope_per_rad * scale;
+            return Ok(NormalForce {
+                coefficient,
+                slope_per_rad: slope,
+                moment_m: coefficient * lookup.cp_station_m,
+                moment_slope_m: slope * lookup.cp_station_m,
+                cp_station_m: (slope != 0.0).then_some(lookup.cp_station_m),
+                side_coefficient: 0.0,
+                side_moment_m: 0.0,
+                table: Some(lookup),
+            });
+        }
+        flow.validate()?;
+        self.check_tube_fins(flow.mach)?;
+        let total = self
+            .terms(flow)
+            .fold(Term::default(), |sum, (_, term)| sum.add(term));
+        Ok(NormalForce::new(total, flow.alpha_rad))
+    }
+
+    /// Each component's normal force at `flow`: the airframe's bodies, then the pods' bodies (each
+    /// over all its pods), then fin sets, then tube fin sets, each in layout order. A
+    /// step in radius is part of the component aft of it.
+    ///
+    /// These are always hpr's own terms. With a normal-force table, [`AeroModel::normal_force`]
+    /// returns the table's value instead of their sum.
+    ///
+    /// # Errors
+    ///
+    /// As [`Flow::validate`], and [`AeroError::Mach`] at Mach 0.8 and above on a rocket with tube fins
+    /// ([`crate::tube_fins::TUBE_FIN_MACH_LIMIT`]).
+    pub fn components(&self, flow: &Flow) -> Result<Vec<ComponentNormalForce>, AeroError> {
+        flow.validate()?;
+        self.check_tube_fins(flow.mach)?;
+        Ok(self
+            .terms(flow)
+            .map(|(id, term)| ComponentNormalForce {
+                id: id.to_owned(),
+                normal_force: NormalForce::new(term, flow.alpha_rad),
+            })
+            .collect())
+    }
+}
+
+/// A body's small-angle center of pressure in slender-body theory, m aft of the nose tip: its
+/// `moment_slope / slope`, or its body-lift station where it has no potential-flow slope (a
+/// cylinder). As `NormalForce`'s CP, a slope that cancels to rounding (a step in radius offsetting
+/// a taper) has no potential-flow station.
+fn slender_station_m(body: &BodyAero, reference_area_m2: f64) -> f64 {
+    let step_slope = 2.0 * body.step_area_m2 / reference_area_m2;
+    let scale = (body.slope_per_rad - step_slope).abs() + step_slope.abs();
+    if body.slope_per_rad.abs() <= 1e-12 * scale {
+        body.lift_station_m
+    } else {
+        body.moment_slope_m / body.slope_per_rad
+    }
+}
+
+/// A fin set's contribution at a checked `mach` and flow roll `roll`, per radian of `α`: over
+/// every pod for a pod's fins, each pod's turned by its roll.
+fn fin_term(set: &FinSetAero, mach: f64, roll: f64) -> Term {
+    let FinLoading {
+        slope_per_rad,
+        cp_m,
+    } = set.fin.loading_at(mach);
+    let per_set = slope_per_rad * set.count_factor * set.interference;
+    let station = set.fore_station_m + cp_m;
+    let (roll_share, side_share) = match &set.pods {
+        None => (
+            roll_sum(set.count, set.base_angle_rad, roll),
+            side_sum(set.count, set.base_angle_rad, roll),
+        ),
+        Some(pods) => pods.roll_rad.iter().fold((0.0, 0.0), |(r, s), turn| {
+            let base = set.base_angle_rad + turn;
+            (
+                r + roll_sum(set.count, base, roll),
+                s + side_sum(set.count, base, roll),
+            )
+        }),
+    };
+    let slope = per_set * roll_share;
+    let side = per_set * side_share;
+    Term {
+        slope,
+        moment: slope * station,
+        side,
+        side_moment: side * station,
+        scale: slope.abs(),
+    }
+}
+
+/// A tube fin set's contribution at a checked `mach`, per radian of `α`: a ring wing lifts the
+/// same whichever way the flow crosses it, so the set has no roll dependence and no side force.
+fn tube_fin_term(set: &TubeFinSetAero, mach: f64) -> Term {
+    let (slope, station) = set.loading_at(mach);
+    Term {
+        slope,
+        moment: slope * station,
+        side: 0.0,
+        side_moment: 0.0,
+        scale: slope.abs(),
+    }
+}
+
+/// A body's contribution from its potential-flow `slope` and `moment` slope at the flow's Mach
+/// number ([`AeroModel::body_potential`]), at the potential-flow factor of [`alpha_factors`] and
+/// its body-lift factor times the model's ([`AeroModel::body_lift_factor`]).
+fn body_term(body: &BodyAero, slope: f64, moment: f64, potential: f64, lift: f64) -> Term {
+    let (attached, lift) = (slope * potential, body.planform_ratio * lift);
+    Term {
+        slope: attached + lift,
+        moment: moment * potential + lift * body.lift_station_m,
+        scale: attached.abs() + lift.abs(),
+        ..Term::default()
+    }
+}
+
+/// The per-radian factors of the potential-flow term (`sin α/α`) and of body lift
+/// (`sin² α/α = sin α · sin α/α`), and `sin α`.
+fn alpha_factors(alpha_rad: f64) -> (f64, f64, f64) {
+    let (s, sin) = (sinc(alpha_rad), alpha_rad.sin());
+    (s, sin * s, sin)
+}
+
+/// The pod sets of `layout` that hold motor mounts ([`Layout::motor_pod_sets`]).
+///
+/// # Errors
+///
+/// [`AeroError::Unsupported`] for motor mounts in more than [`MOTOR_POD_SETS`] pod sets, whose
+/// bases' thrusting motor areas the drag conditions don't tell apart
+/// ([`DragConditions::thrusting_pod_motor_areas_m2`]).
+fn motor_pod_sets(layout: &Layout) -> Result<Vec<usize>, AeroError> {
+    let sets = layout.motor_pod_sets();
+    if sets.len() > MOTOR_POD_SETS {
+        return Err(AeroError::Unsupported(format!(
+            "motor mounts in {} pod sets; the drag tells apart the thrusting motors' areas of at \
+             most {MOTOR_POD_SETS}",
+            sets.len()
+        )));
+    }
+    Ok(sets)
+}
+
+/// How many copies of `component` fly: one per pod for a part in a pod set.
+fn copy_count(component: &PlacedComponent) -> Result<u32, AeroError> {
+    u32::try_from(component.copies.len()).map_err(|_| AeroError::Domain {
+        what: "copies of a component",
+        value: component.copies.len() as f64,
+    })
+}
+
+/// A pod set's terms while [`AeroModel::with_body_model`] builds them.
+struct PodBuild {
+    aero: PodSetAero,
+    /// The friction form factor at the pod's fineness; `None` for a pod with no body of any size.
+    form_factor: Option<f64>,
+    /// Where the pod set is among those holding motor mounts ([`Layout::motor_pod_sets`]), if it
+    /// is one: its pods' bases then take that set's thrusting motors' area.
+    motor_pod_set: Option<usize>,
+    previous_aft_area: Option<f64>,
+    /// Each body component's index in the drag terms, and its geometry, fore to aft.
+    terms_at: Vec<(usize, BodyGeometry)>,
+}
+
+impl PodBuild {
+    /// The pod set at `index` of `layout`, before its body components.
+    fn new(layout: &Layout, index: usize, component: &PlacedComponent) -> Result<Self, AeroError> {
+        let copies = component.contents_copies()?;
+        let offset_squares_m2 = copies
+            .iter()
+            .map(|c| c.offset_m[0] * c.offset_m[0] + c.offset_m[1] * c.offset_m[1])
+            .sum();
+        let mut max_radius: f64 = 0.0;
+        for child in layout.components.iter().filter(|c| c.parent == Some(index)) {
+            if let Some(radius) = child.part.max_radius_m()? {
+                max_radius = max_radius.max(radius);
+            }
+        }
+        // A pod set's length is its pod's.
+        let fineness = if max_radius > 0.0 && component.length_m > 0.0 {
+            component.length_m / (2.0 * max_radius)
+        } else {
+            0.0
+        };
+        let form_factor = if fineness > 0.0 {
+            Some(body_friction_form_factor(fineness)?)
+        } else {
+            None
+        };
+        Ok(Self {
+            aero: PodSetAero {
+                id: component.id.clone(),
+                copies: u32::try_from(copies.len()).map_err(|_| AeroError::Domain {
+                    what: "pods in a pod set",
+                    value: copies.len() as f64,
+                })?,
+                offset_squares_m2,
+                fineness,
+                crossflow_eta_low: if fineness > 0.0 {
+                    crate::crossflow::crossflow_eta_low(fineness)
+                } else {
+                    0.0
+                },
+                bodies: Vec::new(),
+            },
+            form_factor,
+            motor_pod_set: None,
+            previous_aft_area: None,
+            terms_at: Vec::new(),
+        })
+    }
+
+    /// Adds one of the pod's body components, fore to aft: its normal-force terms, and its drag
+    /// terms to `drag_terms`, both one copy's. A tube of no length and no radius, the phantom body
+    /// a pod of fins hangs them from (ADR-091), adds nothing.
+    fn add_body(
+        &mut self,
+        component: &PlacedComponent,
+        drag_terms: &mut Vec<ComponentDragTerms>,
+        length_m: f64,
+        reference_area_m2: f64,
+    ) -> Result<(), AeroError> {
+        let (geometry, shape) = match &component.part {
+            Part::NoseCone(nose) => (
+                BodyGeometry::from_profile(&nose.profile()?)?,
+                Some(nose.shape),
+            ),
+            Part::Transition(transition) => (
+                BodyGeometry::from_profile(&transition.profile()?)?,
+                Some(transition.shape),
+            ),
+            Part::BodyTube(tube) if tube.length_m == 0.0 => {
+                if tube.outer_radius_m == 0.0 {
+                    return Ok(());
+                }
+                return Err(AeroError::Unsupported(
+                    "a pod's tube of no length with a radius: a flat disc, which the drag buildup \
+                     has no term for"
+                        .to_owned(),
+                ));
+            }
+            Part::BodyTube(tube) => (
+                BodyGeometry::cylinder(tube.length_m, tube.outer_radius_m)?,
+                None,
+            ),
+            _ => return Ok(()),
+        };
+        // A body with a length and an area makes the pod's fineness positive.
+        let form_factor = self.form_factor.ok_or(AeroError::Domain {
+            what: "pod fineness",
+            value: self.aero.fineness,
+        })?;
+        let step = self
+            .previous_aft_area
+            .map_or(0.0, |aft| geometry.fore_area_m2 - aft);
+        let mut terms = ComponentDragTerms::body(
+            component,
+            &geometry,
+            shape,
+            self.previous_aft_area,
+            form_factor,
+            length_m,
+            reference_area_m2,
+        )?;
+        terms.copies = self.aero.copies;
+        terms.in_pod = true;
+        terms.motor_pod_set = self.motor_pod_set;
+        drag_terms.push(terms);
+        self.terms_at.push((drag_terms.len() - 1, geometry));
+        self.previous_aft_area = Some(geometry.aft_area_m2);
+        self.aero
+            .bodies
+            .push(body_terms(component, geometry, step, reference_area_m2));
+        Ok(())
+    }
+}
+
+/// A pod's fin set's copies, one per pod, and its roll damping about the rocket's axis
+/// ([`PodFins`]).
+///
+/// # Errors
+///
+/// [`AeroError::Unsupported`] for canted fins: their roll forcing about the rocket's axis, with
+/// the root off it, is not modeled. [`AeroError::Domain`] from [`FinAero::roll_terms_about`].
+fn pod_fins(
+    set: &hpr_design::FinSet,
+    component: &PlacedComponent,
+    terms: &FinSetAero,
+    reference_diameter_m: f64,
+) -> Result<PodFins, AeroError> {
+    use std::f64::consts::TAU;
+    if set.cant_rad != 0.0 {
+        return Err(AeroError::Unsupported(
+            "cant on a pod's fins, whose roll forcing about the rocket's axis isn't modeled"
+                .to_owned(),
+        ));
+    }
+    let mut offsets = Vec::new();
+    for copy in &component.copies {
+        for j in 0..set.count {
+            let angle =
+                set.base_angle_rad + TAU * f64::from(j) / f64::from(set.count) + copy.roll_rad;
+            let (sin, cos) = angle.sin_cos();
+            offsets.push(copy.offset_m[0] * cos + copy.offset_m[1] * sin + terms.body_radius_m);
+        }
+    }
+    let fins = u32::try_from(offsets.len()).map_err(|_| AeroError::Domain {
+        what: "fins over a pod set's pods",
+        value: offsets.len() as f64,
+    })?;
+    let (mean, deviation) = if offsets.is_empty() {
+        (0.0, 0.0)
+    } else {
+        let n = f64::from(fins);
+        let mean = offsets.iter().sum::<f64>() / n;
+        let variance = offsets.iter().map(|o| (o - mean) * (o - mean)).sum::<f64>() / n;
+        (mean, variance.sqrt())
+    };
+    Ok(PodFins {
+        roll_rad: component.copies.iter().map(|c| c.roll_rad).collect(),
+        axis_roll: [
+            terms
+                .fin
+                .roll_terms_about(mean + deviation, reference_diameter_m)?,
+            terms
+                .fin
+                .roll_terms_about(mean - deviation, reference_diameter_m)?,
+        ],
+        fins,
+    })
+}
+
+fn body_terms(
+    component: &PlacedComponent,
+    geometry: BodyGeometry,
+    step_area_m2: f64,
+    a_ref: f64,
+) -> BodyAero {
+    let station = component.fore_station_m;
+    let step_slope = 2.0 * step_area_m2 / a_ref;
+    let slope = geometry.normal_force_slope(a_ref);
+    BodyAero {
+        id: component.id.clone(),
+        fore_station_m: station,
+        geometry,
+        step_area_m2,
+        slope_per_rad: slope + step_slope,
+        moment_slope_m: (slope + step_slope) * station + geometry.moment_slope_m(a_ref),
+        planform_ratio: geometry.planform_area_m2 / a_ref,
+        lift_station_m: station + geometry.planform_centroid_m,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::f64::consts::{FRAC_PI_2, FRAC_PI_4};
+
+    use hpr_design::{
+        FinPlanform, LaunchLug, NoseShape, Part, PodSet, Position, RailButton, ReferenceDiameter,
+        TubeFinSet,
+    };
+    use proptest::prelude::*;
+
+    use super::*;
+    use crate::BODY_LIFT_K;
+    use crate::drag::base_drag_coefficient;
+    use crate::testing::{body_part, component, fin_set, finned_rocket, material, nose, one_stage};
+
+    fn close(got: f64, want: f64, rel: f64, what: &str) {
+        let err = if want == 0.0 {
+            got.abs()
+        } else {
+            ((got - want) / want).abs()
+        };
+        assert!(
+            err <= rel,
+            "{what}: got {got}, want {want}, rel err {err:e}"
+        );
+    }
+
+    fn model(rocket: &hpr_design::Rocket) -> AeroModel {
+        AeroModel::new(&rocket.layout().unwrap()).unwrap()
+    }
+
+    /// `finned_rocket(4)` with `count` pods on its body tube, 0.1 m aft of the tube's top and
+    /// 0.04 m from the axis: each a conical nose 0.05 m long on a tube 0.2 m long, 10 mm in radius.
+    fn podded_rocket(count: u32) -> hpr_design::Rocket {
+        let mut rocket = finned_rocket(4);
+        let mut pods = component(
+            "pods",
+            Part::PodSet(PodSet {
+                count,
+                radial_offset_m: 0.04,
+                angle_rad: 0.3,
+            }),
+            Some(Position::Top { aft_offset_m: 0.1 }),
+        );
+        pods.children = vec![
+            component("pod-nose", nose(NoseShape::Conical {}, 0.05, 0.01), None),
+            component("pod-tube", body_part(0.2, 0.01, 0.01), None),
+        ];
+        rocket.stages[0].components[1].children.push(pods);
+        rocket
+    }
+
+    /// A small trapezoidal fin for pods.
+    fn pod_fin_planform() -> FinPlanform {
+        FinPlanform::Trapezoidal {
+            root_chord_m: 0.06,
+            tip_chord_m: 0.03,
+            span_m: 0.04,
+            sweep_m: 0.02,
+        }
+    }
+
+    /// `finned_rocket(4)` with two pods of no length 0.05 m from the axis at roll 0 and π, each
+    /// holding `fins` fins of [`pod_fin_planform`] on its phantom body (ADR-091), the first at
+    /// `base_angle_rad` in the pod.
+    fn winglet_rocket(fins: u32, base_angle_rad: f64) -> hpr_design::Rocket {
+        let mut rocket = finned_rocket(4);
+        let mut pods = component(
+            "pods",
+            Part::PodSet(PodSet {
+                count: 2,
+                radial_offset_m: 0.05,
+                angle_rad: 0.0,
+            }),
+            Some(Position::Top { aft_offset_m: 0.3 }),
+        );
+        let mut phantom = component("phantom", body_part(0.0, 0.0, 0.0), None);
+        let mut set = component(
+            "winglets",
+            fin_set(fins, pod_fin_planform()),
+            Some(Position::Top { aft_offset_m: 0.0 }),
+        );
+        if let Part::FinSet(fin_set) = &mut set.part {
+            fin_set.base_angle_rad = base_angle_rad;
+        }
+        phantom.children = vec![set];
+        pods.children = vec![phantom];
+        rocket.stages[0].components[1].children.push(pods);
+        rocket
+    }
+
+    /// A pod's body components are Barrowman's, once per pod (ADR-092): a cone's slope
+    /// `2 A_base/A_ref` at `2L/3` from its tip, a tube of one radius none, slender-body theory's at
+    /// every Mach number, added to the airframe's unchanged. Worked by hand: two pods of
+    /// 10 mm radius on a 27 mm reference radius add `2 · 2 (10/27)²` = 0.548697 per radian.
+    #[test]
+    fn a_pod_adds_its_bodies_slopes_once_per_pod() {
+        let bare = model(&finned_rocket(4));
+        let area_ratio = (0.01_f64 / 0.027).powi(2);
+        for count in [1, 2, 3] {
+            let m = model(&podded_rocket(count));
+            assert_eq!(m.pod_sets().len(), 1);
+            let pod = &m.pod_sets()[0];
+            assert_eq!(pod.copies, count);
+            close(pod.fineness, 0.25 / 0.02, 1e-15, "pod fineness");
+            close(
+                pod.offset_squares_m2,
+                f64::from(count) * 0.04 * 0.04,
+                1e-14,
+                "offsets",
+            );
+            let n = f64::from(count);
+            for mach in [0.3, 0.95, 2.0, 3.5] {
+                let what = format!("{count} pods, Mach {mach}");
+                let parts = m.components(&Flow::axial(mach)).unwrap();
+                let find = |id: &str| {
+                    parts
+                        .iter()
+                        .find(|c| c.id == id)
+                        .map(|c| c.normal_force)
+                        .unwrap()
+                };
+                let cone = find("pod-nose");
+                close(cone.slope_per_rad, n * 2.0 * area_ratio, 1e-12, &what);
+                // The pod set is 0.1 m aft of the body tube's top, 0.25 m from the tip.
+                close(
+                    cone.cp_station_m.unwrap(),
+                    0.35 + 2.0 / 3.0 * 0.05,
+                    1e-12,
+                    &what,
+                );
+                close(find("pod-tube").slope_per_rad, 0.0, 1e-15, &what);
+                let with = m.normal_force(&Flow::axial(mach)).unwrap();
+                let without = bare.normal_force(&Flow::axial(mach)).unwrap();
+                close(
+                    with.slope_per_rad - without.slope_per_rad,
+                    n * 2.0 * area_ratio,
+                    1e-11,
+                    &what,
+                );
+                close(
+                    with.moment_slope_m - without.moment_slope_m,
+                    n * 2.0 * area_ratio * (0.35 + 2.0 / 3.0 * 0.05),
+                    1e-11,
+                    &what,
+                );
+                // The flight engine's stations and indices see them between the bodies and fins.
+                let index = parts.iter().position(|c| c.id == "pod-nose").unwrap();
+                assert_eq!(index, bare.bodies().len());
+                assert_eq!(m.fin_set_start(), bare.bodies().len() + 2);
+                close(
+                    m.component_station_m(index, mach).unwrap(),
+                    0.35 + 2.0 / 3.0 * 0.05,
+                    1e-12,
+                    &what,
+                );
+                let one = m.component_normal_force(index, &Flow::axial(mach)).unwrap();
+                assert_eq!(one, cone);
+            }
+        }
+    }
+
+    /// A pod's body lift is its own: Jorgensen's `η C_dn` at the pod's fineness, on its
+    /// planform, once per pod.
+    #[test]
+    fn a_pod_s_body_lift_takes_its_own_fineness() {
+        let m = model(&podded_rocket(3));
+        let pod = &m.pod_sets()[0];
+        let (mach, alpha) = (0.5, 0.2_f64);
+        let parts = m.components(&flow(mach, alpha, 0.0)).unwrap();
+        let tube = parts.iter().find(|c| c.id == "pod-tube").unwrap();
+        let factor = m.lift_factor_of(
+            12.5,
+            crate::crossflow::crossflow_eta_low(12.5),
+            mach,
+            alpha.sin(),
+        );
+        assert!(
+            (factor - m.lift_factor_of(m.fineness(), m.crossflow_eta_low, mach, alpha.sin())).abs()
+                > 1e-3,
+            "the pod's fineness must matter"
+        );
+        let planform = 2.0 * 0.01 * 0.2 / m.reference_area_m2();
+        close(
+            tube.normal_force.coefficient,
+            3.0 * factor * planform * alpha.sin().powi(2),
+            1e-12,
+            "pod tube's body lift",
+        );
+        close(pod.fineness, 12.5, 1e-15, "fineness");
+    }
+
+    /// A pod drags once per pod: friction on its surface at its own fineness's form factor, and
+    /// its whole base, which a thrusting motor never relieves (the motors' area is the
+    /// airframe's).
+    #[test]
+    fn a_pod_drags_once_per_pod() {
+        let (mach, reynolds_per_m) = (0.4, 5e6);
+        for count in [1_u32, 2, 3] {
+            let m = model(&podded_rocket(count));
+            let n = f64::from(count);
+            let a_ref = m.reference_area_m2();
+            for conditions in [
+                DragConditions::coasting(reynolds_per_m),
+                DragConditions::thrusting(reynolds_per_m, 2e-4),
+            ] {
+                let parts = m
+                    .buildup_components(&Flow::axial(mach), &conditions)
+                    .unwrap();
+                let find = |id: &str| parts.iter().find(|c| c.id == id).unwrap().drag;
+                let (body, tube) = (find("body"), find("pod-tube"));
+                // The same finish and Reynolds number: the friction coefficients cancel.
+                let ratio = n * body_friction_form_factor(12.5).unwrap()
+                    / body_friction_form_factor(m.fineness()).unwrap()
+                    * (0.01 * 0.2)
+                    / (0.027 * 0.7);
+                close(tube.friction, ratio * body.friction, 1e-12, "pod friction");
+                close(
+                    tube.base,
+                    n * base_drag_coefficient(mach).unwrap() * PI * 0.01 * 0.01 / a_ref,
+                    1e-12,
+                    "pod base",
+                );
+                // The nose's own pressure drag, and no base.
+                let cone = find("pod-nose");
+                assert_eq!(cone.base, 0.0);
+                assert!(cone.pressure > 0.0);
+                let one = model(&podded_rocket(1));
+                let single = one
+                    .buildup_components(&Flow::axial(mach), &conditions)
+                    .unwrap();
+                let single_cone = single.iter().find(|c| c.id == "pod-nose").unwrap().drag;
+                close(cone.pressure, n * single_cone.pressure, 1e-14, "pod nose");
+                let total = m.drag(&Flow::axial(mach), &conditions).unwrap();
+                let sum: f64 = parts.iter().map(|c| c.drag.zero_lift_coefficient).sum();
+                close(total.zero_lift_coefficient, sum, 1e-14, "total");
+            }
+        }
+    }
+
+    /// A pod that holds a motor mount takes its share of the thrusting pod motors' area off its own
+    /// base; the airframe's base takes only the airframe's motors, and a pod set without mounts
+    /// keeps its whole base. With mounts in two pod sets, each set's pods take their own set's
+    /// area (ADR-168).
+    #[test]
+    fn a_pod_s_base_takes_its_own_motors_area() {
+        let (mach, reynolds_per_m) = (0.4, 5e6);
+        let mut rocket = podded_rocket(2);
+        let pods = rocket.stages[0].components[1].children.last_mut().unwrap();
+        pods.children[1].motor_mount = Some(hpr_design::MotorMount::default());
+        let m = model(&rocket);
+        let a_ref = m.reference_area_m2();
+        let base = |conditions: &DragConditions, id: &str| {
+            m.buildup_components(&Flow::axial(mach), conditions)
+                .unwrap()
+                .into_iter()
+                .find(|c| c.id == id)
+                .unwrap()
+                .drag
+                .base
+        };
+        let pod_area = PI * 0.01 * 0.01;
+        let c_b = base_drag_coefficient(mach).unwrap();
+        let coasting = DragConditions::coasting(reynolds_per_m);
+        close(
+            base(&coasting, "pod-tube"),
+            2.0 * c_b * pod_area / a_ref,
+            1e-14,
+            "coasting",
+        );
+        // Two pod motors of 16 mm burning: each pod's base loses one motor's area.
+        let motor = PI * 0.008 * 0.008;
+        let thrusting = DragConditions::thrusting(reynolds_per_m, 0.0).with_pod_motors([
+            2.0 * motor,
+            0.0,
+            0.0,
+            0.0,
+        ]);
+        close(
+            base(&thrusting, "pod-tube"),
+            2.0 * c_b * (pod_area - motor) / a_ref,
+            1e-14,
+            "pod motors",
+        );
+        assert_eq!(base(&thrusting, "tail"), base(&coasting, "tail"));
+        // The airframe's motor leaves the pods' bases whole.
+        let core = DragConditions::thrusting(reynolds_per_m, 1e-4);
+        assert_eq!(base(&core, "pod-tube"), base(&coasting, "pod-tube"));
+        assert!(base(&core, "tail") < base(&coasting, "tail"));
+        // A second pod set with a mount: each set's pods take their own set's area alone.
+        let mut second = component(
+            "more-pods",
+            Part::PodSet(PodSet {
+                count: 2,
+                radial_offset_m: 0.04,
+                angle_rad: 1.8,
+            }),
+            Some(Position::Top { aft_offset_m: 0.4 }),
+        );
+        let mut tube = component("more-pod-tube", body_part(0.1, 0.01, 0.01), None);
+        tube.motor_mount = Some(hpr_design::MotorMount::default());
+        second.children = vec![tube];
+        rocket.stages[0].components[1].children.push(second);
+        let two = model(&rocket);
+        let base = |conditions: &DragConditions, id: &str| {
+            two.buildup_components(&Flow::axial(mach), conditions)
+                .unwrap()
+                .into_iter()
+                .find(|c| c.id == id)
+                .unwrap()
+                .drag
+                .base
+        };
+        let motor = PI * 0.004 * 0.004;
+        let first = DragConditions::thrusting(reynolds_per_m, 0.0).with_pod_motors([
+            2.0 * motor,
+            0.0,
+            0.0,
+            0.0,
+        ]);
+        let second = DragConditions::thrusting(reynolds_per_m, 0.0).with_pod_motors([
+            0.0,
+            2.0 * motor,
+            0.0,
+            0.0,
+        ]);
+        for (conditions, relieved, whole) in [
+            (&first, "pod-tube", "more-pod-tube"),
+            (&second, "more-pod-tube", "pod-tube"),
+        ] {
+            close(
+                base(conditions, relieved),
+                2.0 * c_b * (pod_area - motor) / a_ref,
+                1e-14,
+                relieved,
+            );
+            assert_eq!(base(conditions, whole), base(&coasting, whole), "{whole}");
+        }
+    }
+
+    /// With the base's drag kept whole under power (OpenRocket's rule, ADR-097), neither the
+    /// airframe's nor a pod's base loses its burning motor's area, in the whole rocket's drag or
+    /// by component; without it both do. Coasting is the same either way.
+    #[test]
+    fn a_whole_base_under_power_keeps_the_motors_area() {
+        let mach = 0.4;
+        let mut rocket = podded_rocket(2);
+        let pods = rocket.stages[0].components[1].children.last_mut().unwrap();
+        pods.children[1].motor_mount = Some(hpr_design::MotorMount::default());
+        let relieved = model(&rocket);
+        assert!(!relieved.full_base_drag_under_power());
+        let whole = relieved.clone().with_full_base_drag_under_power();
+        assert!(whole.full_base_drag_under_power());
+        let flow = Flow::axial(mach);
+        let coasting = DragConditions::coasting(5e6);
+        let thrusting = DragConditions::thrusting(5e6, 1e-4).with_pod_motors([2e-4, 0.0, 0.0, 0.0]);
+        let base =
+            |m: &AeroModel, conditions: &DragConditions| m.drag(&flow, conditions).unwrap().base;
+        assert_eq!(base(&whole, &thrusting), base(&whole, &coasting));
+        assert_eq!(base(&whole, &coasting), base(&relieved, &coasting));
+        assert!(base(&relieved, &thrusting) < base(&relieved, &coasting));
+        for id in ["tail", "pod-tube"] {
+            let part = |m: &AeroModel, conditions: &DragConditions| {
+                m.buildup_components(&flow, conditions)
+                    .unwrap()
+                    .into_iter()
+                    .find(|c| c.id == id)
+                    .unwrap()
+                    .drag
+                    .base
+            };
+            assert_eq!(part(&whole, &thrusting), part(&whole, &coasting), "{id}");
+            assert!(
+                part(&relieved, &thrusting) < part(&relieved, &coasting),
+                "{id}"
+            );
+        }
+        // Bad conditions are still refused before they are read.
+        let bad = DragConditions::thrusting(5e6, -1e-4);
+        assert!(whole.drag(&flow, &bad).is_err());
+        assert!(whole.buildup_components(&flow, &bad).is_err());
+    }
+
+    /// A pod's fins turn with it: two pods at π/4 and 5π/4, each holding one fin pointing out,
+    /// take no angle in a flow rolled to π/4, along their span, and the full angle in one rolled
+    /// to −π/4, across it. Fins that didn't turn would stand at 0 and π and take half in each.
+    #[test]
+    fn a_pod_s_fins_turn_with_their_pod() {
+        let bare = model(&finned_rocket(4));
+        let mut rocket = winglet_rocket(1, 0.0);
+        if let Part::PodSet(pods) = &mut rocket.stages[0].components[1]
+            .children
+            .last_mut()
+            .unwrap()
+            .part
+        {
+            pods.angle_rad = FRAC_PI_4;
+        }
+        let m = model(&rocket);
+        let mach = 0.3;
+        let slope = FinAero::new(&pod_fin_planform(), m.reference_area_m2())
+            .unwrap()
+            .loading(mach)
+            .unwrap()
+            .slope_per_rad;
+        for (roll, share) in [(FRAC_PI_4, 0.0), (-FRAC_PI_4, 2.0)] {
+            let with = m.normal_force(&flow(mach, 0.0, roll)).unwrap();
+            let without = bare.normal_force(&flow(mach, 0.0, roll)).unwrap();
+            close(
+                with.slope_per_rad - without.slope_per_rad,
+                share * slope,
+                1e-12,
+                &format!("roll {roll}"),
+            );
+        }
+    }
+
+    /// Each component, by index, is the one [`AeroModel::components`] lists at that place, with
+    /// the station a flight takes: the airframe's bodies, two pod sets' bodies in turn, then the
+    /// fin sets, a pod's among them.
+    #[test]
+    fn every_component_index_maps_to_its_own_terms_with_pods() {
+        let mut rocket = podded_rocket(3);
+        let winglets = winglet_rocket(2, 0.3);
+        let mut pods = winglets.stages[0].components[1]
+            .children
+            .last()
+            .unwrap()
+            .clone();
+        pods.id = "winglet-pods".to_owned();
+        rocket.stages[0].components[1].children.push(pods);
+        let mut second = component(
+            "aft-pods",
+            Part::PodSet(PodSet {
+                count: 2,
+                radial_offset_m: 0.05,
+                angle_rad: 1.0,
+            }),
+            Some(Position::Top { aft_offset_m: 0.45 }),
+        );
+        second.children = vec![
+            component(
+                "aft-pod-nose",
+                nose(NoseShape::Conical {}, 0.04, 0.012),
+                None,
+            ),
+            component("aft-pod-tube", body_part(0.1, 0.012, 0.012), None),
+            component("aft-pod-tail", body_part(0.03, 0.012, 0.008), None),
+        ];
+        rocket.stages[0].components[1].children.push(second);
+        let m = model(&rocket);
+        assert_eq!(m.pod_sets().len(), 2);
+        assert_eq!(m.fin_set_start(), m.bodies().len() + 5);
+        assert_eq!(m.component_count(), m.fin_set_start() + 2);
+        for mach in [0.3, 2.0] {
+            let f = flow(mach, 0.1, 0.4);
+            let parts = m.components(&f).unwrap();
+            assert_eq!(parts.len(), m.component_count());
+            for (index, part) in parts.iter().enumerate() {
+                let one = m.component_normal_force(index, &f).unwrap();
+                assert_eq!(one, part.normal_force, "{} at {index}", part.id);
+                let station = m.component_station_m(index, mach).unwrap();
+                if let Some(cp) = m.components(&flow(mach, 0.0, 0.4)).unwrap()[index]
+                    .normal_force
+                    .cp_station_m
+                    && index >= m.bodies().len()
+                {
+                    close(station, cp, 1e-12, &part.id);
+                }
+            }
+            let ids: Vec<&str> = parts.iter().map(|p| p.id.as_str()).collect();
+            let at = |id: &str| ids.iter().position(|i| *i == id).unwrap();
+            assert!(at("pod-tube") < at("aft-pod-nose") && at("aft-pod-tail") < at("winglets"));
+            assert!(m.component_normal_force(m.component_count(), &f).is_err());
+        }
+    }
+
+    /// The aero page's worked example (`docs/physics/aero.md`, *Pods*): three pods on the tests'
+    /// rocket at Mach 0.3 and 5e6 per meter, to the digits the page prints.
+    #[test]
+    fn the_aero_page_s_pod_example() {
+        let (bare, pods) = (model(&finned_rocket(4)), model(&podded_rocket(3)));
+        let at = |m: &AeroModel| {
+            let n = m.normal_force(&Flow::axial(0.3)).unwrap();
+            let c = DragConditions::coasting(5e6);
+            let d = m.drag(&Flow::axial(0.3), &c).unwrap();
+            (
+                n.slope_per_rad,
+                n.cp_station_m.unwrap(),
+                d.zero_lift_coefficient,
+                m.roll(0.3).unwrap().damping,
+            )
+        };
+        let round = |x: f64, digits: i32| (x * 10_f64.powi(digits)).round() / 10_f64.powi(digits);
+        let (slope, cp, drag, damping) = at(&bare);
+        assert_eq!(
+            [
+                round(slope, 3),
+                round(cp, 4),
+                round(drag, 4),
+                round(damping, 3)
+            ],
+            [12.374, 1.0662, 0.5051, -35.215]
+        );
+        let (slope, cp, drag, damping) = at(&pods);
+        assert_eq!(
+            [
+                round(slope, 3),
+                round(cp, 4),
+                round(drag, 4),
+                round(damping, 3)
+            ],
+            [13.197, 1.0237, 0.6386, -36.118]
+        );
+        let parts = pods
+            .buildup_components(&Flow::axial(0.3), &DragConditions::coasting(5e6))
+            .unwrap();
+        let find = |id: &str| parts.iter().find(|c| c.id == id).unwrap().drag;
+        let (cone, tube) = (find("pod-nose"), find("pod-tube"));
+        assert_eq!(
+            [
+                round(cone.friction, 4),
+                round(cone.pressure, 4),
+                round(tube.friction, 4),
+                round(tube.base, 4)
+            ],
+            [0.0074, 0.0127, 0.0592, 0.0542]
+        );
+        let single = model(&podded_rocket(1))
+            .buildup_components(&Flow::axial(0.3), &DragConditions::coasting(5e6))
+            .unwrap();
+        let one_pod: f64 = single
+            .iter()
+            .filter(|c| c.id.starts_with("pod"))
+            .map(|c| c.drag.zero_lift_coefficient)
+            .sum();
+        assert_eq!(round(one_pod, 4), 0.0445);
+        let one_slope = model(&podded_rocket(1))
+            .normal_force(&Flow::axial(0.3))
+            .unwrap()
+            .slope_per_rad;
+        assert_eq!(round(one_slope, 2), 12.65);
+    }
+
+    /// A pod's body under the roll rate `p` crosses the air at `p ρ`: its normal force about the
+    /// axis damps the roll by `C_lp = −2 C_Nα ρ²/d²` per pod. Worked by hand for three pods of
+    /// cone slope `2 (10/27)²` = 0.2743 at 40 mm on a 54 mm reference diameter:
+    /// `−2 · 0.2743 · 3 · 0.04²/0.054²` = −0.903 in all.
+    #[test]
+    fn a_pod_s_bodies_damp_the_roll() {
+        let bare = model(&finned_rocket(4));
+        let m = model(&podded_rocket(3));
+        let slope = 2.0 * (0.01_f64 / 0.027).powi(2);
+        let want = -2.0 * slope * 3.0 * 0.04 * 0.04 / (0.054 * 0.054);
+        close(want, -0.9032_f64, 1e-4, "worked number");
+        for mach in [0.3, 1.5] {
+            let got = m.roll(mach).unwrap().damping - bare.roll(mach).unwrap().damping;
+            close(got, want, 1e-12, "pod roll damping");
+            assert_eq!(
+                m.roll(mach).unwrap().forcing,
+                bare.roll(mach).unwrap().forcing
+            );
+        }
+    }
+
+    /// A pod's fins: each pod's turned with its pod, fin–fin interference among one pod's fins,
+    /// no body interference on a phantom body, and roll damping by the strips' distance from the
+    /// rocket's axis.
+    #[test]
+    fn a_pod_s_fins_are_the_pod_s_turned_with_it() {
+        let bare = model(&finned_rocket(4));
+        let a_ref = bare.reference_area_m2();
+        let d = 0.054;
+        let fin = FinAero::new(&pod_fin_planform(), a_ref).unwrap();
+        // One fin per pod, pointing out from the axis on both pods: across a flow rolled to π/2
+        // both take the full angle; along it, neither.
+        let m = model(&winglet_rocket(1, 0.0));
+        assert!(m.pod_sets().is_empty(), "a phantom body has no body terms");
+        for mach in [0.3, 1.8] {
+            let slope = fin.loading(mach).unwrap().slope_per_rad;
+            let across = m.normal_force(&flow(mach, 0.0, FRAC_PI_2)).unwrap();
+            let bare_across = bare.normal_force(&flow(mach, 0.0, FRAC_PI_2)).unwrap();
+            close(
+                across.slope_per_rad - bare_across.slope_per_rad,
+                2.0 * slope,
+                1e-12,
+                "across",
+            );
+            let along = m.normal_force(&flow(mach, 0.0, 0.0)).unwrap();
+            let bare_along = bare.normal_force(&flow(mach, 0.0, 0.0)).unwrap();
+            close(
+                along.slope_per_rad - bare_along.slope_per_rad,
+                0.0,
+                1e-12,
+                "along",
+            );
+            // Both roots 0.05 m out along their spans: twice a fin on a 0.05 m body, with no
+            // body interference.
+            let damping = m.roll(mach).unwrap().damping - bare.roll(mach).unwrap().damping;
+            close(
+                damping,
+                2.0 * fin.roll(mach, 0.05, d).unwrap().damping,
+                1e-12,
+                "damping",
+            );
+        }
+        // Two fins per pod, one out and one in: roots at +0.05 and −0.05 m along their spans.
+        // Barrowman's strips (eq. 3-48) at Mach 0.5, summed by hand over the four fins.
+        let m = model(&winglet_rocket(2, 0.0));
+        let mach = 0.5;
+        let (c_r, c_t, s) = (0.06, 0.03, 0.04);
+        let area = 0.5 * s * (c_r + c_t);
+        let per_area = fin.loading(mach).unwrap().slope_per_rad * a_ref / area;
+        let strips = 20_000;
+        let mut second = 0.0;
+        for i in 0..strips {
+            let y = s * (f64::from(i) + 0.5) / f64::from(strips);
+            let chord = c_r + (c_t - c_r) * y / s;
+            for root in [0.05, -0.05] {
+                second += 2.0 * (root + y) * (root + y) * chord * s / f64::from(strips);
+            }
+        }
+        let want = -2.0 * per_area * second / (a_ref * d * d);
+        let got = m.roll(mach).unwrap().damping - bare.roll(mach).unwrap().damping;
+        close(got, want, 1e-7, "strips");
+        let set = m.fin_sets().iter().find(|s| s.id == "winglets").unwrap();
+        let pods = set.pods.as_ref().unwrap();
+        assert_eq!(pods.fins, 4);
+        assert_eq!(pods.roll_rad.len(), 2);
+    }
+
+    fn flow(mach: f64, alpha_rad: f64, roll_rad: f64) -> Flow {
+        Flow::new(mach, alpha_rad, roll_rad)
+    }
+
+    /// A cone on a cylinder, broadside and at small angles: the potential term scales with
+    /// `sin α`, body lift with `sin² α` at the planform centroids (a cone's `½ L D` at `2L/3`, a
+    /// cylinder's `L D` at its middle; Galejs Table 1) times the model's factor at the flow's
+    /// crossflow Mach number, and the slope at `α → 0` is the sum of the Barrowman slopes.
+    #[test]
+    fn angle_of_attack_terms() {
+        let (l_n, l_t, r) = (0.2, 0.8, 0.03);
+        let rocket = one_stage(
+            vec![
+                component("nose", nose(NoseShape::Conical {}, l_n, r), None),
+                component("tube", body_part(l_t, r, r), None),
+            ],
+            ReferenceDiameter::Maximum {},
+        );
+        let m = model(&rocket);
+        let a_ref = PI * r * r;
+        // Jorgensen's η C_dn at fineness 1.0/0.06 and the crossflow Mach number M sin α.
+        let k = |alpha: f64| crate::crossflow::crossflow_factor(1.0 / 0.06, 0.3 * alpha.sin());
+        close(m.fineness(), 1.0 / 0.06, 1e-15, "fineness");
+        let lift_nose = k(FRAC_PI_2) * r * l_n / a_ref;
+        let lift_tube = k(FRAC_PI_2) * 2.0 * r * l_t / a_ref;
+
+        let broadside = m.normal_force(&flow(0.3, FRAC_PI_2, 0.0)).unwrap();
+        let want = 2.0 + lift_nose + lift_tube;
+        close(broadside.coefficient, want, 1e-10, "C_N at 90°");
+        let moment =
+            2.0 * (2.0 * l_n / 3.0) + lift_nose * (2.0 * l_n / 3.0) + lift_tube * (l_n + 0.5 * l_t);
+        close(
+            broadside.cp_station_m.unwrap(),
+            moment / want,
+            1e-10,
+            "CP at 90°",
+        );
+
+        let zero = m.normal_force(&Flow::axial(0.3)).unwrap();
+        assert_eq!(zero.coefficient, 0.0);
+        close(zero.slope_per_rad, 2.0, 1e-15, "slope at 0");
+        // C_N(α)/α tends to the slope, with body lift adding (η C_dn A_plan/A_ref) α.
+        for alpha in [1e-6, 1e-3, 0.05] {
+            let f = m.normal_force(&flow(0.3, alpha, 0.0)).unwrap();
+            let lift = (lift_nose + lift_tube) * k(alpha) / k(FRAC_PI_2);
+            let want = 2.0 * alpha.sin() + lift * alpha.sin().powi(2);
+            close(f.coefficient, want, 1e-12, "C_N");
+            close(f.slope_per_rad, want / alpha, 1e-12, "C_N/α");
+        }
+        // Body lift pulls the CP aft as α grows.
+        let cp = |alpha| {
+            m.normal_force(&flow(0.3, alpha, 0.0))
+                .unwrap()
+                .cp_station_m
+                .unwrap()
+        };
+        assert!(cp(0.02) > cp(0.0) && cp(0.2) > cp(0.02));
+        // The components add up.
+        let parts = m.components(&flow(0.3, 0.2, 0.0)).unwrap();
+        let total = m.normal_force(&flow(0.3, 0.2, 0.0)).unwrap();
+        let sum: f64 = parts.iter().map(|c| c.normal_force.coefficient).sum();
+        close(sum, total.coefficient, 1e-14, "component sum");
+    }
+
+    /// Galejs's constant, hpr's body lift before M1.8e6, is `K` = 1.1 at any flow; Jorgensen's
+    /// is below it at low crossflow Mach number and above it near `M sin α` = 1.
+    #[test]
+    fn body_lift_models() {
+        let rocket = one_stage(
+            vec![
+                component("nose", nose(NoseShape::Conical {}, 0.2, 0.03), None),
+                component("tube", body_part(0.8, 0.03, 0.03), None),
+            ],
+            ReferenceDiameter::Maximum {},
+        );
+        let layout = rocket.layout().unwrap();
+        let old = AeroModel::with_body_model(&layout, BodyModel::BEFORE_M1_8E6).unwrap();
+        let new = AeroModel::new(&layout).unwrap();
+        assert_eq!(new.body_model(), BodyModel::default());
+        for (mach, alpha) in [(0.3, 0.1), (2.0, 0.5), (4.0, 1.2)] {
+            assert_eq!(old.body_lift_factor(&flow(mach, alpha, 0.0)), BODY_LIFT_K);
+        }
+        let slow = new.body_lift_factor(&flow(0.3, 0.1, 0.0));
+        assert!(slow > 0.85 && slow < 0.9, "{slow}");
+        let near_one = new.body_lift_factor(&flow(2.0, 0.5, 0.0));
+        assert!(near_one > 1.4, "{near_one}");
+        let k = BodyModel::BEFORE_M1_8E6.with_body_lift(BodyLift::Galejs { k: -0.5 });
+        assert!(AeroModel::with_body_model(&layout, k).is_err());
+        // The precomputed Fig. 4 `η` gives the library function's factor.
+        for (mach, alpha) in [(0.3, 0.1), (2.0, 0.5), (4.0, 1.2)] {
+            let f = flow(mach, alpha, 0.0);
+            assert_eq!(
+                new.body_lift_factor(&f),
+                crate::crossflow::crossflow_factor(new.fineness(), mach * alpha.sin())
+            );
+        }
+    }
+
+    /// The body model's JSON form is a file format: it round-trips, a missing field takes the
+    /// current choice, and an unknown one is refused.
+    #[test]
+    fn body_model_in_json() {
+        assert_eq!(BodyModel::default(), BodyModel::CURRENT);
+        let old = serde_json::to_string(&BodyModel::BEFORE_M1_8E6).unwrap();
+        assert_eq!(
+            old,
+            r#"{"body_lift":{"kind":"galejs","k":1.1},"supersonic_boattail":"footnote8","supersonic_flare":"slender_body"}"#
+        );
+        // A document stored before M1.8e17 has no `supersonic_flare`, so it now reads as a
+        // marched flare rather than the rule it was stored under. Deliberate (a missing field
+        // takes the current choice), and stated here so it cannot change silently.
+        let before_m1_8e17 =
+            r#"{"body_lift":{"kind":"galejs","k":1.1},"supersonic_boattail":"footnote8"}"#;
+        assert_eq!(
+            serde_json::from_str::<BodyModel>(before_m1_8e17)
+                .unwrap()
+                .supersonic_flare,
+            SupersonicFlare::Marched
+        );
+        assert_eq!(
+            serde_json::from_str::<BodyModel>(&old).unwrap(),
+            BodyModel::BEFORE_M1_8E6
+        );
+        assert_eq!(
+            serde_json::from_str::<BodyModel>(r#"{"supersonic_boattail":"washington_pettis"}"#)
+                .unwrap(),
+            BodyModel::CURRENT
+        );
+        assert_eq!(
+            serde_json::from_str::<BodyModel>("{}").unwrap(),
+            BodyModel::CURRENT
+        );
+        for bad in [
+            r#"{"boattail":"footnote8"}"#,
+            r#"{"supersonic_boattail":"slender_body"}"#,
+        ] {
+            assert!(serde_json::from_str::<BodyModel>(bad).is_err(), "{bad}");
+        }
+    }
+
+    /// Through subsonic flow, Mach changes the fins' slope by Prandtl–Glauert and nothing else;
+    /// the bodies and every CP stay put.
+    #[test]
+    fn mach_changes_only_the_fins() {
+        let m = model(&finned_rocket(4));
+        let at = |mach| m.components(&Flow::axial(mach)).unwrap();
+        let (slow, fast) = (at(0.0), at(0.8));
+        for (a, b) in slow.iter().zip(&fast) {
+            assert_eq!(
+                a.normal_force.cp_station_m, b.normal_force.cp_station_m,
+                "{}",
+                a.id
+            );
+            if a.id == "fins" {
+                let set = &m.fin_sets()[0];
+                let ratio = set
+                    .fin
+                    .geometry()
+                    .single_fin_slope(m.reference_area_m2(), 0.8)
+                    .unwrap()
+                    / set
+                        .fin
+                        .geometry()
+                        .single_fin_slope(m.reference_area_m2(), 0.0)
+                        .unwrap();
+                assert!(ratio > 1.05, "{ratio}");
+                close(
+                    b.normal_force.slope_per_rad / a.normal_force.slope_per_rad,
+                    ratio,
+                    1e-14,
+                    "fin ratio",
+                );
+            } else {
+                assert_eq!(
+                    a.normal_force.slope_per_rad, b.normal_force.slope_per_rad,
+                    "{}",
+                    a.id
+                );
+            }
+        }
+    }
+
+    /// Four fins don't care about roll; two fins lift only when the flow crosses them.
+    #[test]
+    fn two_fin_sets_depend_on_roll() {
+        let four = model(&finned_rocket(4));
+        let slope =
+            |m: &AeroModel, roll| m.normal_force(&flow(0.2, 0.0, roll)).unwrap().slope_per_rad;
+        close(slope(&four, 0.0), slope(&four, 0.4), 1e-15, "four fins");
+
+        let two = model(&finned_rocket(2));
+        let bodies: f64 = two.bodies().iter().map(|b| b.slope_per_rad).sum();
+        let set = &two.fin_sets()[0];
+        let one_fin = set
+            .fin
+            .geometry()
+            .single_fin_slope(two.reference_area_m2(), 0.2)
+            .unwrap()
+            * set.interference;
+        // Flow along the fins' plane: no fin force. Across it: both fins at sin² = 1.
+        close(slope(&two, 0.0), bodies, 1e-13, "along the fins");
+        close(
+            slope(&two, FRAC_PI_2),
+            bodies + 2.0 * one_fin,
+            1e-13,
+            "across the fins",
+        );
+        // A two-fin set across the flow matches four fins' N/2 = 2.
+        close(
+            slope(&two, FRAC_PI_2),
+            slope(&four, 0.0),
+            1e-13,
+            "two across = four",
+        );
+    }
+
+    /// `finned_rocket(4)` with `count` tube fins at the foot of its tail, 22 mm in radius:
+    /// `length_m` long, of outer radius `outer_radius_m` and wall `thickness_m`.
+    fn tube_finned_rocket(
+        count: u32,
+        length_m: f64,
+        outer_radius_m: f64,
+        thickness_m: f64,
+    ) -> hpr_design::Rocket {
+        let mut rocket = crate::testing::finned_rocket(4);
+        rocket.stages[0].components[3].children.push(component(
+            "tube-fins",
+            Part::TubeFinSet(TubeFinSet {
+                count,
+                length_m,
+                outer_radius_m,
+                thickness_m,
+                base_angle_rad: 0.3,
+                material: material(),
+            }),
+            Some(Position::Bottom { aft_offset_m: 0.0 }),
+        ));
+        rocket
+    }
+
+    #[test]
+    fn tube_fins_add_their_rings_slopes_at_fletcher_s_center() {
+        let plain = model(&crate::testing::finned_rocket(4));
+        let (count, length, outer, wall) = (6_u32, 0.1, 0.022, 0.0005);
+        let m = model(&tube_finned_rocket(count, length, outer, wall));
+        let a_ref = m.reference_area_m2();
+        let d = 2.0 * outer - wall;
+        // The tubes' leading edges: the tail's foot, 1.3 m aft of the tip, less their length.
+        let fore = 1.3 - length;
+        assert_eq!(m.component_count(), plain.component_count() + 1);
+        assert_eq!(m.tube_fin_set_start(), plain.component_count());
+        for (mach, roll) in [(0.0_f64, 0.0), (0.3, 0.4), (0.7, 1.1)] {
+            let beta = (1.0 - mach * mach).sqrt();
+            let lambda = length / d;
+            // Weissinger's slope at `λ/β`, over `β`, and Fletcher's center at `β d/L`, by hand.
+            let slope = f64::from(count)
+                * (PI * PI
+                    / (1.0
+                        + 0.5 * PI * lambda / beta
+                        + lambda / beta * (1.2 * lambda / beta).atan()))
+                / beta
+                * d
+                * length
+                / a_ref;
+            // On the line from the leading edge at A = 0 to Fletcher's 0.143 at A = 2/3.
+            let a = beta * d / length;
+            assert!(a < 2.0 / 3.0);
+            let center = 0.143 * a / (2.0 / 3.0);
+            let station = fore + center * length;
+            let flow = Flow::new(mach, 0.05, roll);
+            let (with, without) = (
+                m.normal_force(&flow).unwrap(),
+                plain.normal_force(&flow).unwrap(),
+            );
+            close(
+                with.slope_per_rad - without.slope_per_rad,
+                slope,
+                1e-12,
+                "slope",
+            );
+            close(
+                with.moment_slope_m - without.moment_slope_m,
+                slope * station,
+                1e-12,
+                "moment",
+            );
+            // A ring lifts the same whichever way the flow crosses it.
+            close(
+                with.side_coefficient,
+                without.side_coefficient,
+                1e-12,
+                "side",
+            );
+            let index = m.tube_fin_set_start();
+            let own = m.component_normal_force(index, &flow).unwrap();
+            close(own.slope_per_rad, slope, 1e-12, "component slope");
+            close(
+                m.component_station_m(index, mach).unwrap(),
+                station,
+                1e-12,
+                "station",
+            );
+            let listed = m.components(&flow).unwrap();
+            assert_eq!(listed[index].id, "tube-fins");
+            close(
+                listed[index].normal_force.slope_per_rad,
+                slope,
+                1e-12,
+                "listed",
+            );
+            // Each tube damps the roll about its axis's distance, 22 mm + 22 mm.
+            let rho = 0.022 + outer;
+            let damping = -2.0 * slope * rho * rho / (0.054 * 0.054);
+            close(
+                m.roll(mach).unwrap().damping - plain.roll(mach).unwrap().damping,
+                damping,
+                1e-12,
+                "roll damping",
+            );
+            assert_eq!(m.roll(mach).unwrap().forcing, 0.0);
+        }
+    }
+
+    #[test]
+    fn short_tube_fins_take_fletcher_s_measured_center() {
+        // 20 mm long at a 43.5 mm mean diameter: A = 2.175 at Mach 0, between Fletcher's 1.5 and
+        // 3, and β A = 1.740 at Mach 0.6. The slope on `d L`, by hand from Weissinger's formula at
+        // λ = 0.4598 and, stretched by Göthert's rule, at λ/β = 0.5747 over β = 0.8: 5.0510 and
+        // 5.4837 per radian.
+        let (length, outer, wall) = (0.02, 0.022, 0.0005);
+        let m = model(&tube_finned_rocket(6, length, outer, wall));
+        let d = 2.0 * outer - wall;
+        let index = m.tube_fin_set_start();
+        for (mach, a, by_hand) in [(0.0, d / length, 5.0510), (0.6, 0.8 * d / length, 5.4837)] {
+            let fraction = 0.253 + (0.355 - 0.253) * (a - 1.5) / 1.5;
+            let station = 1.3 - length + fraction * length;
+            close(
+                m.component_station_m(index, mach).unwrap(),
+                station,
+                1e-12,
+                "station",
+            );
+            let slope = m
+                .component_normal_force(index, &Flow::new(mach, 0.05, 0.0))
+                .unwrap()
+                .slope_per_rad;
+            let per_ring = slope / 6.0 * m.reference_area_m2() / (d * length);
+            close(per_ring, by_hand, 1e-4, "slope on d L");
+        }
+    }
+
+    /// The guide's worked example (`docs/physics/aero.md`, *Tube fins*): OpenRocket's *Tube fin
+    /// rocket*'s six tubes, 76.2 mm long, 12.3952 mm in radius with a 0.3302 mm wall, on a body of
+    /// the same radius.
+    #[test]
+    fn the_guide_s_tube_fin_example() {
+        let r = 0.012_395_2;
+        let mut tail = component("tail", body_part(0.4572, r, r), None);
+        tail.children = vec![component(
+            "tube-fins",
+            Part::TubeFinSet(TubeFinSet {
+                count: 6,
+                length_m: 0.0762,
+                outer_radius_m: r,
+                thickness_m: 0.000_330_2,
+                base_angle_rad: 0.0,
+                material: material(),
+            }),
+            Some(Position::Bottom { aft_offset_m: 0.0 }),
+        )];
+        let rocket = one_stage(
+            vec![
+                component(
+                    "nose",
+                    nose(NoseShape::Ogive { radius_ratio: 1.0 }, 0.119_888, r),
+                    None,
+                ),
+                tail,
+            ],
+            hpr_design::ReferenceDiameter::Maximum {},
+        );
+        let m = model(&rocket);
+        close(m.reference_area_m2(), 4.827e-4, 1e-4, "reference area");
+        let set = &m.tube_fin_sets()[0];
+        close(set.mean_diameter_m, 0.024_460_2, 1e-12, "d");
+        close(set.length_m / set.mean_diameter_m, 3.115, 1e-3, "λ");
+        let (slope, station) = set.loading(0.0).unwrap();
+        close(slope, 22.93, 1e-3, "slope at Mach 0");
+        close(
+            set.loading(0.35).unwrap().0,
+            22.96,
+            1e-3,
+            "slope at Mach 0.35",
+        );
+        close(
+            (station - set.fore_station_m) / set.length_m,
+            0.0689,
+            1e-3,
+            "center",
+        );
+        let terms = m.drag_terms.iter().find(|t| t.id == "tube-fins").unwrap();
+        close(terms.friction_area_ratio, 145.6, 1e-3, "friction area");
+        close(
+            terms.fins.as_ref().unwrap().frontal_area_ratio,
+            0.3154,
+            1e-3,
+            "wall area",
+        );
+    }
+
+    #[test]
+    fn tube_fins_drag_inside_and_out_and_on_their_walls() {
+        let (count, length, outer, wall) = (6_u32, 0.1, 0.022, 0.0005);
+        let m = model(&tube_finned_rocket(count, length, outer, wall));
+        let a_ref = m.reference_area_m2();
+        let n = f64::from(count);
+        let inner = outer - wall;
+        let (mach, reynolds_per_m) = (0.5, 4e6);
+        let conditions = DragConditions::coasting(reynolds_per_m);
+        let parts = m
+            .buildup_components(&Flow::axial(mach), &conditions)
+            .unwrap();
+        let tubes = parts.iter().find(|c| c.id == "tube-fins").unwrap().drag;
+        // `C_fc` at the rocket's Reynolds number and the tubes' finish on its length.
+        let terms = m.drag_terms.iter().find(|t| t.id == "tube-fins").unwrap();
+        let cf = crate::drag::skin_friction_coefficient(
+            reynolds_per_m * m.length_m,
+            terms.relative_roughness,
+            mach,
+        )
+        .unwrap();
+        let wetted = n * 2.0 * PI * length * (outer + inner);
+        close(tubes.friction, cf * wetted / a_ref, 1e-12, "friction");
+        // Stagnation on the leading edge and base drag behind the trailing edge, on the walls.
+        let annulus = n * PI * (outer * outer - inner * inner);
+        let square = crate::drag::stagnation_drag_coefficient(mach).unwrap()
+            + base_drag_coefficient(mach).unwrap();
+        close(tubes.pressure, square * annulus / a_ref, 1e-12, "pressure");
+        assert_eq!((tubes.base, tubes.parasitic), (0.0, 0.0));
+    }
+
+    #[test]
+    fn tube_fins_refuse_mach_0_8() {
+        let m = model(&tube_finned_rocket(6, 0.1, 0.022, 0.0005));
+        // Every call refuses in the same shape, so a flight stops with the same error whichever
+        // call reaches the limit first.
+        let refused = |e: AeroError| {
+            matches!(e, AeroError::Mach { mach, limit, model }
+                if mach == 0.8 && limit == 0.8 && model == "the tube-fin model")
+        };
+        let flow = Flow::new(0.8, 0.05, 0.0);
+        let index = m.tube_fin_set_start();
+        assert!(refused(m.normal_force(&flow).unwrap_err()));
+        assert!(refused(m.components(&flow).unwrap_err()));
+        assert!(refused(m.component_normal_force(index, &flow).unwrap_err()));
+        assert!(refused(m.component_station_m(index, 0.8).unwrap_err()));
+        assert!(refused(m.roll(0.8).unwrap_err()));
+        let coasting = DragConditions::coasting(4e6);
+        assert!(refused(m.drag(&Flow::axial(0.8), &coasting).unwrap_err()));
+        assert!(refused(
+            m.buildup_components(&Flow::axial(0.8), &coasting)
+                .unwrap_err()
+        ));
+        // The tubes' own drag terms refuse too, called on their own, naming the component.
+        let terms = m.drag_terms().iter().find(|t| t.id == "tube-fins").unwrap();
+        let own = terms.evaluate(4e6, 0.8, &coasting, m.reference_area_m2());
+        assert!(matches!(own, Err(AeroError::InComponent { id, source })
+            if id == "tube-fins" && matches!(*source, AeroError::Mach { limit, .. } if limit == 0.8)));
+        // The other components still answer faster than that.
+        assert!(m.component_normal_force(0, &flow).is_ok());
+        // Just below, every one answers.
+        let below = Flow::new(0.8 - 1e-9, 0.05, 0.0);
+        assert!(m.normal_force(&below).is_ok());
+        assert!(m.drag(&below, &coasting).is_ok());
+    }
+
+    /// Refusals: tube fins the ring-wing model doesn't take, pods, nine fins, Mach 5, angles
+    /// outside `[0, π]`. Lugs add no normal force.
+    #[test]
+    fn unsupported_inputs_are_refused() {
+        // Two tube fins, around which the body's flow doesn't cancel, and solid ones.
+        // Six on the 22 mm tail close the ring at 22 mm, so 23 mm overlap; 5 mm long at 22 mm is
+        // past Fletcher's A = 3.
+        for (count, length_m, outer_radius_m, thickness_m, why) in [
+            (2, 0.1, 0.01, 0.001, "2 tube fins"),
+            (6, 0.1, 0.01, 0.01, "solid tube fins"),
+            (6, 0.1, 0.023, 0.001, "tube fins that overlap"),
+            (6, 0.005, 0.022, 0.001, "tube fins shorter than a third"),
+        ] {
+            let rocket = tube_finned_rocket(count, length_m, outer_radius_m, thickness_m);
+            let err = AeroModel::new(&rocket.layout().unwrap()).unwrap_err();
+            assert!(
+                matches!(&err, AeroError::InComponent { id, source } if id == "tube-fins"
+                    && matches!(&**source, AeroError::Unsupported(what) if what.starts_with(why))),
+                "{err}"
+            );
+        }
+
+        // Pods: canted fins on a pod, whose roll forcing about the rocket's axis isn't modeled,
+        // and a pod's tube of no length with a radius, a flat disc.
+        let mut rocket = podded_rocket(2);
+        let pods = rocket.stages[0].components[1].children.last_mut().unwrap();
+        pods.children[1].children.push(component(
+            "pod-fins",
+            fin_set(3, pod_fin_planform()),
+            Some(Position::Bottom { aft_offset_m: 0.0 }),
+        ));
+        if let Part::FinSet(set) = &mut pods.children[1].children[0].part {
+            set.cant_rad = 0.01;
+        }
+        let err = AeroModel::new(&rocket.layout().unwrap()).unwrap_err();
+        assert!(
+            matches!(&err, AeroError::InComponent { id, source } if id == "pod-fins"
+                && matches!(&**source, AeroError::Unsupported(what) if what.starts_with("cant on a pod"))),
+            "{err}"
+        );
+        let mut rocket = podded_rocket(2);
+        let pods = rocket.stages[0].components[1].children.last_mut().unwrap();
+        pods.children
+            .push(component("pod-disc", body_part(0.0, 0.01, 0.01), None));
+        let err = AeroModel::new(&rocket.layout().unwrap()).unwrap_err();
+        assert!(
+            matches!(&err, AeroError::InComponent { id, source } if id == "pod-disc"
+                && matches!(&**source, AeroError::Unsupported(what) if what.contains("flat disc"))),
+            "{err}"
+        );
+        // A pod set that holds nothing adds nothing, and flies.
+        let bare = AeroModel::new(&crate::testing::finned_rocket(4).layout().unwrap()).unwrap();
+        let mut rocket = podded_rocket(2);
+        let pods = rocket.stages[0].components[1].children.last_mut().unwrap();
+        pods.children.clear();
+        let empty = AeroModel::new(&rocket.layout().unwrap()).unwrap();
+        assert_eq!(format!("{empty:?}"), format!("{bare:?}"));
+
+        let err = AeroModel::new(&finned_rocket(9).layout().unwrap()).unwrap_err();
+        assert!(
+            matches!(&err, AeroError::InComponent { id, .. } if id == "fins"),
+            "{err}"
+        );
+
+        let m = model(&finned_rocket(4));
+        for bad in [
+            flow(NORMAL_FORCE_MACH_LIMIT, 0.0, 0.0),
+            flow(-0.01, 0.0, 0.0),
+            flow(f64::NAN, 0.0, 0.0),
+        ] {
+            assert!(matches!(
+                m.normal_force(&bad),
+                Err(AeroError::Mach { limit, .. }) if limit == NORMAL_FORCE_MACH_LIMIT
+            ));
+        }
+        // Both fly on past Mach 1 and stop at 5, each naming itself (since M1.8b1).
+        assert!(m.normal_force(&flow(1.0, 0.1, 0.0)).is_ok());
+        let coasting = DragConditions::coasting(1e7);
+        assert!(m.drag(&flow(1.0, 0.0, 0.0), &coasting).is_ok());
+        assert!(matches!(
+            m.drag(&flow(5.0, 0.0, 0.0), &coasting),
+            Err(AeroError::Mach { limit, model, .. })
+                if limit == BUILDUP_MACH_LIMIT && model == "the drag buildup"
+        ));
+        assert!(
+            m.buildup_components(&flow(5.0, 0.0, 0.0), &coasting)
+                .is_err()
+        );
+        for bad in [
+            flow(0.3, -1e-9, 0.0),
+            flow(0.3, PI + 1e-9, 0.0),
+            flow(0.3, f64::NAN, 0.0),
+            flow(0.3, 0.1, f64::INFINITY),
+        ] {
+            assert!(matches!(
+                m.normal_force(&bad),
+                Err(AeroError::Domain { .. })
+            ));
+            assert!(m.components(&bad).is_err());
+        }
+
+        let mut lugged = finned_rocket(4);
+        lugged.stages[0].components[1].children.push(component(
+            "lug",
+            Part::LaunchLug(LaunchLug {
+                length_m: 0.05,
+                outer_radius_m: 0.004,
+                thickness_m: 0.0005,
+                angle_rad: 0.0,
+                count: 1,
+                spacing_m: 0.0,
+                material: material(),
+            }),
+            Some(Position::Middle { aft_offset_m: 0.0 }),
+        ));
+        let with = model(&lugged).normal_force(&flow(0.3, 0.1, 0.0)).unwrap();
+        assert_eq!(with, m.normal_force(&flow(0.3, 0.1, 0.0)).unwrap());
+    }
+
+    /// A bare tube has no normal force, and so no CP, at `α = 0`; body lift gives it one at its
+    /// middle at any other angle.
+    #[test]
+    fn a_bare_tube_has_no_cp_at_zero_incidence() {
+        let tube = one_stage(
+            vec![component("tube", body_part(1.0, 0.05, 0.05), None)],
+            ReferenceDiameter::Maximum {},
+        );
+        let m = model(&tube);
+        assert_eq!(
+            m.normal_force(&Flow::axial(0.5)).unwrap().cp_station_m,
+            None
+        );
+        let f = m.normal_force(&flow(0.5, 0.1, 0.0)).unwrap();
+        close(f.cp_station_m.unwrap(), 0.5, 1e-15, "tube lift CP");
+    }
+
+    proptest! {
+        /// Barrowman's coefficients are dimensionless: scaling every length by `k` leaves the slope
+        /// alone and scales the CP by `k`. A custom reference diameter scales the slope by
+        /// `(d/d′)²` and leaves the CP alone.
+        #[test]
+        fn components_sum_to_the_total(
+            count in 1u32..=8,
+            mach in 0.0f64..0.99,
+            alpha in 0.0f64..PI,
+            roll in -4.0f64..4.0,
+        ) {
+            let m = model(&finned_rocket(count));
+            let f = flow(mach, alpha, roll);
+            let total = m.normal_force(&f).unwrap();
+            let parts = m.components(&f).unwrap();
+            let (c, moment) = parts.iter().fold((0.0, 0.0), |(c, x), p| {
+                (c + p.normal_force.coefficient, x + p.normal_force.moment_m)
+            });
+            let tol = 1e-12 * (1.0 + total.coefficient.abs());
+            prop_assert!((c - total.coefficient).abs() <= tol);
+            prop_assert!((moment - total.moment_m).abs() <= 1e-12 * (1.0 + total.moment_m.abs()));
+            let side: f64 = parts.iter().map(|p| p.normal_force.side_coefficient).sum();
+            prop_assert!((side - total.side_coefficient).abs() <= 1e-12 * (1.0 + total.side_coefficient.abs()));
+            let slope: f64 = parts.iter().map(|p| p.normal_force.slope_per_rad).sum();
+            prop_assert!((slope - total.slope_per_rad).abs() <= 1e-12 * total.slope_per_rad.abs());
+            // The allocation-free per-component path gives the same terms, and each component's
+            // small-angle station is its center of pressure as α → 0.
+            prop_assert_eq!(m.component_count(), parts.len());
+            let small = flow(mach, 1e-6, roll);
+            for (index, part) in parts.iter().enumerate() {
+                prop_assert_eq!(&m.component_normal_force(index, &f).unwrap(), &part.normal_force);
+                let station = m.component_station_m(index, mach).unwrap();
+                if let Some(cp) = m.component_normal_force(index, &small).unwrap().cp_station_m {
+                    prop_assert!((station - cp).abs() <= 1e-6 * (1.0 + cp.abs()));
+                }
+            }
+            prop_assert!(m.component_normal_force(parts.len(), &f).is_err());
+            prop_assert!(m.component_station_m(parts.len(), mach).is_err());
+        }
+
+        #[test]
+        fn scaling_leaves_slopes_and_scales_the_cp(
+            k in 0.1f64..10.0,
+            nose_fineness in 1.5f64..8.0,
+            radius in 0.01f64..0.1,
+            root in 0.02f64..0.3,
+            tip_ratio in 0.0f64..1.0,
+            span in 0.01f64..0.3,
+            sweep in -0.1f64..0.3,
+            count in 1u32..=8,
+            alpha in 0.0f64..0.5,
+            reference in 0.5f64..2.0,
+        ) {
+            let build = |s: f64, custom: Option<f64>| {
+                let (r, l) = (s * radius, s * (root + 0.5));
+                let mut tube = component("tube", body_part(l, r, r), None);
+                let planform = FinPlanform::Trapezoidal {
+                    root_chord_m: s * root,
+                    tip_chord_m: s * root * tip_ratio,
+                    span_m: s * span,
+                    sweep_m: s * sweep,
+                };
+                tube.children = vec![component(
+                    "fins",
+                    fin_set(count, planform),
+                    Some(Position::Bottom { aft_offset_m: 0.0 }),
+                )];
+                let ogive = NoseShape::Ogive { radius_ratio: 1.0 };
+                let nose = component("nose", nose(ogive, 2.0 * nose_fineness * r, r), None);
+                let mut rocket = one_stage(vec![nose, tube], ReferenceDiameter::Maximum {});
+                if let Some(d) = custom {
+                    rocket.reference_diameter = ReferenceDiameter::Custom { diameter_m: d };
+                }
+                model(&rocket).normal_force(&flow(0.4, alpha, 0.3)).unwrap()
+            };
+            let rel = |a: f64, b: f64| (a / b - 1.0).abs();
+            let base = build(1.0, None);
+            let base_cp = base.cp_station_m.unwrap();
+            let scaled = build(k, None);
+            prop_assert!(rel(scaled.slope_per_rad, base.slope_per_rad) < 1e-9);
+            prop_assert!(rel(scaled.cp_station_m.unwrap(), k * base_cp) < 1e-9);
+            let d = 2.0 * radius * reference;
+            let custom = build(1.0, Some(d));
+            let factor = (2.0 * radius / d).powi(2);
+            prop_assert!(rel(custom.slope_per_rad, factor * base.slope_per_rad) < 1e-12);
+            prop_assert!(rel(custom.cp_station_m.unwrap(), base_cp) < 1e-12);
+        }
+    }
+
+    /// A step in radius where two body components meet counts as a zero-length transition at the
+    /// joint, so the body's total slope is Barrowman 1966 eq. 10 over the whole body: `2` for any
+    /// pointed body however its radii step.
+    #[test]
+    fn radius_steps_count_at_the_joint() {
+        let rocket = one_stage(
+            vec![
+                component("nose", nose(NoseShape::Conical {}, 0.2, 0.027), None),
+                component("tube", body_part(0.5, 0.029, 0.029), None),
+                component("tail", body_part(0.3, 0.025, 0.025), None),
+            ],
+            ReferenceDiameter::Maximum {},
+        );
+        let m = model(&rocket);
+        let a_ref = PI * 0.029 * 0.029;
+        let total = m.normal_force(&Flow::axial(0.3)).unwrap();
+        close(
+            total.slope_per_rad,
+            2.0 * PI * 0.025 * 0.025 / a_ref,
+            1e-14,
+            "eq. 10",
+        );
+        let parts = m.components(&Flow::axial(0.3)).unwrap();
+        let tube = parts[1].normal_force;
+        close(
+            tube.slope_per_rad,
+            2.0 * PI * (0.029f64.powi(2) - 0.027f64.powi(2)) / a_ref,
+            1e-14,
+            "step up",
+        );
+        close(
+            tube.cp_station_m.unwrap(),
+            0.2,
+            1e-14,
+            "step up at the joint",
+        );
+        let tail = parts[2].normal_force;
+        assert!(tail.slope_per_rad < 0.0);
+        close(
+            tail.cp_station_m.unwrap(),
+            0.7,
+            1e-14,
+            "step down at the joint",
+        );
+        assert_eq!(m.bodies()[0].step_area_m2, 0.0);
+    }
+
+    /// A freeform fin set through the model equals the same trapezoid given as a trapezoid.
+    #[test]
+    fn freeform_fins_through_the_model() {
+        let trapezoid = finned_rocket(3);
+        let mut freeform = trapezoid.clone();
+        if let Part::FinSet(set) = &mut freeform.stages[0].components[3].children[0].part {
+            set.planform = FinPlanform::Freeform {
+                points_m: vec![[0.0, 0.0], [0.07, 0.06], [0.12, 0.06], [0.12, 0.0]],
+                root_m: Vec::new(),
+            };
+        }
+        let (a, b) = (model(&trapezoid), model(&freeform));
+        let f = flow(0.7, 0.1, 0.0);
+        let (fa, fb) = (a.normal_force(&f).unwrap(), b.normal_force(&f).unwrap());
+        close(fb.coefficient, fa.coefficient, 1e-13, "C_N");
+        close(
+            fb.cp_station_m.unwrap(),
+            fa.cp_station_m.unwrap(),
+            1e-13,
+            "CP",
+        );
+    }
+
+    /// `Flow` and `NormalForce` round-trip through JSON, and a misspelt flow field is refused.
+    #[test]
+    fn flow_and_results_round_trip() {
+        let f = flow(0.3, 0.1, -0.2);
+        let back: Flow = serde_json::from_str(&serde_json::to_string(&f).unwrap()).unwrap();
+        assert_eq!(back, f);
+        assert!(
+            serde_json::from_str::<Flow>(
+                r#"{"mach":0.3,"alpha_rad":0.1,"roll_rad":0,"aoa_deg":5}"#
+            )
+            .is_err()
+        );
+        let n = model(&finned_rocket(4)).normal_force(&f).unwrap();
+        let back: NormalForce = serde_json::from_str(&serde_json::to_string(&n).unwrap()).unwrap();
+        assert_eq!(back, n);
+    }
+
+    /// Layouts that don't hold together: fins without a body radius, a non-finite station.
+    #[test]
+    fn inconsistent_layouts_are_refused() {
+        let layout = finned_rocket(4).layout().unwrap();
+        let (fins, _) = layout.find("fins").unwrap();
+        let mut no_radius = layout.clone();
+        no_radius.components[fins].body_radius_m = None;
+        let err = AeroModel::new(&no_radius).unwrap_err();
+        assert!(
+            matches!(&err, AeroError::InComponent { id, source } if id == "fins"
+                && matches!(**source, AeroError::Layout(_))),
+            "{err}"
+        );
+        assert_eq!(err, err.clone());
+        let mut nan = layout;
+        nan.components[0].fore_station_m = f64::NAN;
+        assert!(matches!(
+            AeroModel::new(&nan),
+            Err(AeroError::InComponent { .. })
+        ));
+    }
+
+    /// A two-fin set pushes along its fins' common normal: at 45° to the flow its side share
+    /// equals its in-plane share, with the side moment at the fins' CP. Four fins have none.
+    #[test]
+    fn two_fin_sets_push_across_the_flow() {
+        let two = model(&finned_rocket(2));
+        let set = &two.fin_sets()[0];
+        let alpha = 0.05;
+        let f = two.normal_force(&flow(0.4, alpha, FRAC_PI_4)).unwrap();
+        let one_fin = set
+            .fin
+            .geometry()
+            .single_fin_slope(two.reference_area_m2(), 0.4)
+            .unwrap()
+            * set.interference;
+        close(f.side_coefficient, one_fin * alpha, 1e-13, "side");
+        close(
+            f.side_moment_m,
+            one_fin * alpha * set.cp_station_m(0.4).unwrap(),
+            1e-13,
+            "side moment",
+        );
+        let fins = &two.components(&flow(0.4, alpha, FRAC_PI_4)).unwrap()[4];
+        close(
+            fins.normal_force.coefficient,
+            one_fin * alpha,
+            1e-13,
+            "in plane",
+        );
+        let four = model(&finned_rocket(4))
+            .normal_force(&flow(0.4, alpha, 0.3))
+            .unwrap();
+        assert_eq!((four.side_coefficient, four.side_moment_m), (0.0, 0.0));
+    }
+
+    /// A body whose areas cancel to round-off has no CP rather than a CP at 1e14 m; its moment is
+    /// still reported.
+    #[test]
+    fn a_cancelled_slope_has_no_cp() {
+        let rocket = one_stage(
+            vec![
+                component("nose", nose(NoseShape::Conical {}, 0.2, 0.0254), None),
+                component("tube", body_part(0.5, 0.0254, 0.0254), None),
+                component("tail", body_part(0.3, 0.0254, 1e-9), None),
+            ],
+            ReferenceDiameter::Maximum {},
+        );
+        let m = model(&rocket);
+        let f = m.normal_force(&Flow::axial(0.3)).unwrap();
+        assert!(f.slope_per_rad.abs() < 1e-12, "{}", f.slope_per_rad);
+        assert_eq!(f.cp_station_m, None);
+        let moving = m.normal_force(&flow(0.3, 0.01, 0.0)).unwrap();
+        assert!(moving.moment_m.is_finite() && moving.cp_station_m.is_some());
+    }
+
+    /// A normal-force table replaces the whole rocket's normal force and center of pressure, on
+    /// its own reference area; the components stay hpr's, for the flight's damping.
+    #[test]
+    fn a_normal_force_table_replaces_the_sum() {
+        use crate::table::{NormalForceColumn, NormalForceTable};
+        use hpr_core::interp::{Extrapolation, Interpolation, Table1D};
+
+        let m = model(&finned_rocket(4));
+        let flat = |value| {
+            Table1D::new(
+                vec![0.0, 2.0],
+                vec![value, value],
+                Interpolation::Linear,
+                Extrapolation::Clamp,
+            )
+            .unwrap()
+        };
+        let table = NormalForceTable::new(vec![NormalForceColumn::new(0.0, flat(10.0), flat(0.9))])
+            .unwrap();
+        let with = m.clone().with_normal_force_table(table.clone()).unwrap();
+        let at = flow(0.5, 0.02, 0.3);
+        let replaced = with.normal_force(&at).unwrap();
+        close(replaced.coefficient, 10.0 * 0.02_f64.sin(), 1e-15, "C_N");
+        close(
+            replaced.moment_m,
+            replaced.coefficient * 0.9,
+            1e-15,
+            "moment",
+        );
+        assert_eq!(replaced.cp_station_m, Some(0.9));
+        assert_eq!(
+            (replaced.side_coefficient, replaced.side_moment_m),
+            (0.0, 0.0)
+        );
+        // One column at 0°, so any angle is past it, and the lookup says so.
+        assert!(replaced.table.is_some_and(|lookup| lookup.beyond_alpha));
+        assert_eq!(m.normal_force(&at).unwrap().table, None);
+        assert_eq!(with.components(&at).unwrap(), m.components(&at).unwrap());
+        assert_eq!(
+            with.component_normal_force(3, &at).unwrap(),
+            m.component_normal_force(3, &at).unwrap()
+        );
+        assert_ne!(m.normal_force(&at).unwrap(), replaced);
+        // A table on a 108 mm reference, twice the rocket's 54 mm, gives four times the coefficient.
+        let wider = m
+            .clone()
+            .with_normal_force_table(table.clone().with_reference_diameter_m(0.108).unwrap())
+            .unwrap();
+        let scaled = wider.normal_force(&at).unwrap();
+        close(
+            scaled.coefficient,
+            4.0 * replaced.coefficient,
+            1e-14,
+            "rescaled",
+        );
+        assert_eq!(scaled.cp_station_m, Some(0.9));
+        // RASAero II's reference, the largest body: 54 mm here, the rocket's own.
+        let largest = m
+            .clone()
+            .with_normal_force_table(
+                table
+                    .clone()
+                    .with_reference(TableReference::LargestBody)
+                    .unwrap(),
+            )
+            .unwrap();
+        close(
+            largest.normal_force(&at).unwrap().coefficient,
+            replaced.coefficient,
+            1e-14,
+            "largest body",
+        );
+        // On a rocket whose reference is half its largest body, RASAero II's reference, the
+        // largest body, is four times the area.
+        let mut half = finned_rocket(4);
+        half.reference_diameter = ReferenceDiameter::Custom { diameter_m: 0.027 };
+        let half = model(&half)
+            .with_normal_force_table(
+                table
+                    .clone()
+                    .with_reference(TableReference::LargestBody)
+                    .unwrap(),
+            )
+            .unwrap();
+        close(
+            half.normal_force(&at).unwrap().coefficient,
+            4.0 * replaced.coefficient,
+            1e-14,
+            "largest body on a half-size reference",
+        );
+        // Past Mach 5 a center of pressure may leave the rocket; below, it may not.
+        let hypersonic = |cp_at_6: f64| {
+            let cps = Table1D::new(
+                vec![0.0, 5.0, 6.0, 25.0],
+                vec![0.9, 0.9, cp_at_6, -3.0],
+                Interpolation::Linear,
+                Extrapolation::Clamp,
+            )
+            .unwrap();
+            NormalForceTable::new(vec![NormalForceColumn::new(0.0, flat(10.0), cps)]).unwrap()
+        };
+        assert!(m.clone().with_normal_force_table(hypersonic(0.8)).is_ok());
+        assert!(m.clone().with_normal_force_table(hypersonic(-0.1)).is_err());
+        // A center of pressure behind the tail or ahead of the nose is refused.
+        for cp in [-0.01, 1.4] {
+            let outside =
+                NormalForceTable::new(vec![NormalForceColumn::new(0.0, flat(10.0), flat(cp))])
+                    .unwrap();
+            assert!(matches!(
+                m.clone().with_normal_force_table(outside),
+                Err(AeroError::Domain { .. })
+            ));
+        }
+        // A table takes any Mach number; hpr's own normal force stops at Mach 5.
+        assert!(with.normal_force(&flow(6.0, 0.02, 0.0)).is_ok());
+        assert!(matches!(
+            m.normal_force(&flow(6.0, 0.02, 0.0)),
+            Err(AeroError::Mach { .. })
+        ));
+    }
+
+    /// The finned rocket with its boattail and tail at the body's radius: a nose and three
+    /// cylinders, which the shock-expansion method covers to the end.
+    fn straight_rocket() -> hpr_design::Rocket {
+        let mut rocket = crate::testing::finned_rocket(4);
+        rocket.stages[0].components[2].part = body_part(0.05, 0.027, 0.027);
+        rocket.stages[0].components[3].part = body_part(0.3, 0.027, 0.027);
+        rocket
+    }
+
+    /// The straight rocket's body as the method takes it.
+    fn straight_rocket_body() -> ShockExpansionBody {
+        let nose =
+            hpr_design::Profile::nose(NoseShape::Ogive { radius_ratio: 1.0 }, 0.25, 0.027).unwrap();
+        let cylinder = |length_m| BodySegment::Cylinder {
+            length_m,
+            radius_m: 0.027,
+        };
+        ShockExpansionBody::new(
+            &[
+                BodySegment::Profile { profile: nose },
+                cylinder(0.7),
+                cylinder(0.05),
+                cylinder(0.3),
+            ],
+            DEFAULT_ELEMENTS_PER_CURVE,
+        )
+        .unwrap()
+    }
+
+    /// Each body's slope and moment slope at `α = 0` (body lift vanishes there), and its station.
+    fn body_values(model: &AeroModel, mach: f64) -> Vec<[f64; 3]> {
+        (0..model.bodies().len())
+            .map(|index| {
+                let force = model
+                    .component_normal_force(index, &flow(mach, 0.0, 0.0))
+                    .unwrap();
+                // At `α = 0` the moment is zero; the slope's moment is the CP times the slope.
+                let moment = force
+                    .cp_station_m
+                    .map_or(0.0, |cp| cp * force.slope_per_rad);
+                [
+                    force.slope_per_rad,
+                    moment,
+                    model.component_station_m(index, mach).unwrap(),
+                ]
+            })
+            .collect()
+    }
+
+    /// Asserts that no body's slope, moment or station jumps across `mach` at ±1e-9.
+    fn no_jump(model: &AeroModel, mach: f64) {
+        let below = body_values(model, mach - 1e-9);
+        let above = body_values(model, mach + 1e-9);
+        for (b, a) in below.iter().zip(&above) {
+            for k in 0..3 {
+                let scale = b[k].abs().max(a[k].abs()).max(1.0);
+                assert!(
+                    (a[k] - b[k]).abs() <= 1e-7 * scale,
+                    "a jump at Mach {mach}: {b:?} to {a:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn the_supersonic_join_has_no_jump() {
+        let model = model(&straight_rocket());
+        let join = model.supersonic_body().unwrap();
+        assert_eq!(join.covered, 4);
+        assert_eq!(join.join_start_mach, SUPERSONIC_JOIN_START_MACH);
+        // The join's ends, rows of the table, points between rows, and the table's last row.
+        let start = join.join_start_mach;
+        for mach in [
+            start,
+            start + SUPERSONIC_JOIN_WIDTH_MACH,
+            1.35,
+            2.0,
+            2.05,
+            3.0,
+            4.63,
+            4.95,
+            4.999,
+        ] {
+            no_jump(&model, mach);
+        }
+        // The join moves the body: the cylinder carries lift past it.
+        let (low, high) = (body_values(&model, 1.0), body_values(&model, 2.0));
+        assert_eq!(low[1][0], 0.0);
+        assert!(high[1][0] > 0.1, "{:?}", high[1]);
+    }
+
+    /// M1.8e6's done-when: at an angle of attack, where body lift acts, the whole rocket's
+    /// normal force and center of pressure don't jump at ±1e-9 in Mach: across the supersonic
+    /// join, the table's rows, and every Mach number where the crossflow Mach number `M sin α`
+    /// meets a row of Jorgensen's tables, with either boattail rule.
+    #[test]
+    fn crossflow_and_the_boattail_fly_without_a_jump() {
+        use crate::crossflow::{CROSSFLOW_DRAG_MACHS, ETA_MACHS};
+        let layout = finned_rocket(4).layout().unwrap();
+        for boattail in [
+            SupersonicBoattail::WashingtonPettis,
+            SupersonicBoattail::Footnote8,
+        ] {
+            let model = AeroModel::with_body_model(
+                &layout,
+                BodyModel::CURRENT.with_supersonic_boattail(boattail),
+            )
+            .unwrap();
+            let start = model.supersonic_body().unwrap().join_start_mach;
+            for alpha_deg in [10.0_f64, 30.0] {
+                let s = alpha_deg.to_radians().sin();
+                let mut machs = vec![start, start + SUPERSONIC_JOIN_WIDTH_MACH, 2.0, 2.05, 4.999];
+                machs.extend(
+                    CROSSFLOW_DRAG_MACHS
+                        .iter()
+                        .chain(&ETA_MACHS)
+                        .map(|m| m / s)
+                        .filter(|&m| m > 1e-3 && m < 4.999),
+                );
+                for mach in machs {
+                    let at = |m: f64| {
+                        let f = model
+                            .normal_force(&flow(m, alpha_deg.to_radians(), 0.0))
+                            .unwrap();
+                        [f.coefficient, f.cp_station_m.unwrap()]
+                    };
+                    let (below, above) = (at(mach - 1e-9), at(mach + 1e-9));
+                    for k in 0..2 {
+                        let scale = below[k].abs().max(1.0);
+                        assert!(
+                            (above[k] - below[k]).abs() <= 1e-7 * scale,
+                            "{boattail:?} at {alpha_deg}° and Mach {mach}: {below:?} to {above:?}"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    /// Vertical tips (power-series noses below `n` = 1, the von Kármán and L-V Haack, an
+    /// elliptical nose) fly the method behind TN D-4865's Newtonian cap (M1.8e7), with a boattail
+    /// and without, and nothing jumps at ±1e-9 in Mach: across the join, every row of the table, three
+    /// points between each pair of rows,
+    /// and Mach 2.1, near where the cap's handover reaches Fig. 2's 24°.
+    #[test]
+    fn vertical_tips_fly_the_method_without_a_jump() {
+        for shape in [
+            NoseShape::PowerSeries { exponent: 0.6369 },
+            NoseShape::PowerSeries { exponent: 0.5 },
+            NoseShape::VON_KARMAN,
+            NoseShape::LV_HAACK,
+            NoseShape::Elliptical {},
+        ] {
+            for boattail in [true, false] {
+                let mut rocket = if boattail {
+                    finned_rocket(4)
+                } else {
+                    straight_rocket()
+                };
+                rocket.stages[0].components[0].part = nose(shape, 0.25, 0.027);
+                let model = model(&rocket);
+                let table = model
+                    .supersonic_body()
+                    .unwrap_or_else(|| panic!("{shape:?}: no table"));
+                assert_eq!(table.covered, 4, "{shape:?}");
+                // On a row, the straight body's shares are the method's own.
+                if !boattail {
+                    let Part::NoseCone(cone) = &rocket.stages[0].components[0].part else {
+                        unreachable!("`nose` builds a nose cone")
+                    };
+                    let cylinder = |length_m| BodySegment::Cylinder {
+                        length_m,
+                        radius_m: 0.027,
+                    };
+                    let body = ShockExpansionBody::new(
+                        &[
+                            BodySegment::Profile {
+                                profile: cone.profile().unwrap(),
+                            },
+                            cylinder(0.7),
+                            cylinder(0.05),
+                            cylinder(0.3),
+                        ],
+                        DEFAULT_ELEMENTS_PER_CURVE,
+                    )
+                    .unwrap();
+                    let method = body.segment_slopes(3.0, model.reference_area_m2()).unwrap();
+                    let (nose_slope, _) = table.share(0, 3.0).unwrap();
+                    assert!(
+                        (nose_slope - method[0].slope_per_rad).abs() <= 1e-12,
+                        "{shape:?}: {nose_slope} against {:?}",
+                        method[0]
+                    );
+                }
+                let start = table.join_start_mach;
+                let mut machs = vec![start, start + SUPERSONIC_JOIN_WIDTH_MACH, 2.1, 4.999];
+                // Every row of the table, and three points between each pair: a jump could hide
+                // at a row, and between them the model is more than the interpolation (body lift
+                // takes the flow's own Mach number).
+                machs.extend(
+                    (SUPERSONIC_FIRST_STEP..SUPERSONIC_LAST_STEP).flat_map(|step| {
+                        let row = step as f64 / SUPERSONIC_STEPS_PER_MACH;
+                        [row, row + 0.013, row + 0.027, row + 0.041]
+                    }),
+                );
+                for alpha_deg in [1.0_f64, 10.0] {
+                    for &mach in &machs {
+                        let at = |m: f64| {
+                            let f = model
+                                .normal_force(&flow(m, alpha_deg.to_radians(), 0.0))
+                                .unwrap();
+                            [f.coefficient, f.cp_station_m.unwrap()]
+                        };
+                        let (below, above) = (at(mach - 1e-9), at(mach + 1e-9));
+                        for k in 0..2 {
+                            let scale = below[k].abs().max(1.0);
+                            assert!(
+                                (above[k] - below[k]).abs() <= 1e-7 * scale,
+                                "{shape:?} at {alpha_deg}° and Mach {mach}: {below:?} to {above:?}"
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /// A blunt tip's join starts where its cap first ends on the nose: at the Mach number whose
+    /// handover angle is the nose's slope at its base, found without the method from
+    /// [`crate::blunt_tip::handover_angle_rad`]. The method holds on one side of it only, with no
+    /// flicker from corners too close to place (the handover packs the nose's elements into
+    /// nanometers there; issue found when CI's Linux and Windows runs bisected a different start).
+    #[test]
+    fn a_blunt_tips_join_starts_where_its_cap_first_ends_on_the_nose() {
+        let mut rocket = crate::testing::committed_design("wind-tunnel-arcas-robin-short.json");
+        // The nose, the cylinder and the boattail; the lip left off.
+        rocket.stages[0].components.truncate(3);
+        let model = model(&rocket);
+        let table = model.supersonic_body().unwrap();
+        let Part::NoseCone(cone) = &rocket.stages[0].components[0].part else {
+            unreachable!("the committed design starts with its nose")
+        };
+        let profile = cone.profile().unwrap();
+        let base_angle = profile.radius_and_slope(profile.length_m()).1.atan();
+        let (mut low, mut high) = (1.0 + 1e-9, 2.0);
+        for _ in 0..200 {
+            let mid = 0.5 * (low + high);
+            if crate::blunt_tip::handover_angle_rad(mid).unwrap() < base_angle {
+                low = mid;
+            } else {
+                high = mid;
+            }
+        }
+        assert!(
+            (table.join_start_mach - high).abs() <= 1e-12,
+            "{} against {high}",
+            table.join_start_mach
+        );
+        let run = model.supersonic_run.as_ref().unwrap();
+        let body = ShockExpansionBody::new(&run.segments, DEFAULT_ELEMENTS_PER_CURVE).unwrap();
+        let in_its_place: Vec<Option<ShockExpansionBody>> = run
+            .boattails
+            .iter()
+            .map(|b| {
+                b.as_ref().map(|b| {
+                    ShockExpansionBody::new(&b.in_its_place, DEFAULT_ELEMENTS_PER_CURVE).unwrap()
+                })
+            })
+            .collect();
+        let holds = |m: f64| {
+            run.shares(&body, &in_its_place, None, m, model.reference_area_m2())
+                .is_some()
+        };
+        for i in 1..=2000 {
+            let d = f64::from(i) * 1e-10;
+            assert!(
+                !holds(table.join_start_mach - d),
+                "holds {d} below the start"
+            );
+            assert!(
+                holds(table.join_start_mach + d),
+                "fails {d} above the start"
+            );
+        }
+    }
+
+    #[test]
+    fn a_long_lip_is_reported_as_the_runs_fallback() {
+        // A lip drawn longer than its boattail's drop in diameter is the run's fallback (issue
+        // #120, ADR-181); one a hair shorter keeps the run.
+        let rocket = crate::testing::committed_design("wind-tunnel-arcas-robin-short.json");
+        let components = &rocket.stages[0].components;
+        let drop_m = components
+            .iter()
+            .find_map(|c| match &c.part {
+                Part::Transition(t) if t.aft_radius_m < t.fore_radius_m => {
+                    Some(2.0 * (t.fore_radius_m - t.aft_radius_m))
+                }
+                _ => None,
+            })
+            .unwrap();
+        let lip_index = components.iter().position(|c| c.id == "lip").unwrap();
+        let with_lip = |length_m: f64| {
+            let mut rocket = rocket.clone();
+            let lip = &mut rocket.stages[0].components[lip_index];
+            match &mut lip.part {
+                Part::Transition(t) => t.length_m = length_m,
+                Part::BodyTube(t) => t.length_m = length_m,
+                other => panic!("the lip is a {}", other.kind_name()),
+            }
+            model(&rocket).supersonic_fallback()
+        };
+        assert_eq!(with_lip(drop_m * (1.0 - 1e-9)), None);
+        assert_eq!(
+            with_lip(drop_m * (1.0 + 1e-9)),
+            Some(SupersonicFallback::LongLip {
+                component: "lip".to_owned()
+            })
+        );
+    }
+
+    /// A lip in a boattail's wake carries nothing faster than sound (M1.8e8): the committed Arcas
+    /// Robin designs fly the method to their base, the lip's share is zero above the join and
+    /// slender-body theory's below it, and nothing jumps at ±1e-9 in Mach. A lip that rises too
+    /// far out of the wake still keeps the whole body on slender-body theory.
+    #[test]
+    fn a_lip_in_a_boattails_wake_carries_nothing() {
+        for name in [
+            "wind-tunnel-arcas-robin-short.json",
+            "wind-tunnel-arcas-robin-long.json",
+        ] {
+            let rocket = crate::testing::committed_design(name);
+            let model = model(&rocket);
+            let table = model
+                .supersonic_body()
+                .unwrap_or_else(|| panic!("{name}: no table"));
+            // The nose, the tube, the boattail and the lip.
+            assert_eq!(table.covered, 4, "{name}");
+            let lip = model.bodies().last().unwrap();
+            assert!(lip.slope_per_rad > 0.1, "{name}: the lip is a flare");
+            for mach in [1.3, 2.0, 3.0, 5.0] {
+                let (slope, moment) = table.share(3, mach).unwrap();
+                assert_eq!((slope, moment), (0.0, 0.0), "{name} at Mach {mach}");
+            }
+            // Below the join the lip keeps slender-body theory's share; above it, nothing.
+            let start = table.join_start_mach;
+            // At zero angle body lift vanishes, so this is the potential-flow share alone.
+            let lip_slope = |mach: f64| {
+                model
+                    .components(&Flow::axial(mach))
+                    .unwrap()
+                    .into_iter()
+                    .find(|c| c.id == "lip")
+                    .unwrap()
+                    .normal_force
+                    .slope_per_rad
+            };
+            let below = lip_slope(1.0);
+            assert!(
+                (below - lip.slope_per_rad).abs() <= 0.01 * lip.slope_per_rad,
+                "{name}: {below} against slender-body theory's {}",
+                lip.slope_per_rad
+            );
+            let above = lip_slope(start + SUPERSONIC_JOIN_WIDTH_MACH);
+            assert!(above.abs() <= 1e-12, "{name}: {above} above the join");
+            for alpha_deg in [1.0_f64, 10.0] {
+                let mut machs = vec![start, start + SUPERSONIC_JOIN_WIDTH_MACH, 4.999];
+                machs.extend(
+                    (SUPERSONIC_FIRST_STEP..SUPERSONIC_LAST_STEP).flat_map(|step| {
+                        let row = step as f64 / SUPERSONIC_STEPS_PER_MACH;
+                        [row, row + 0.017, row + 0.033]
+                    }),
+                );
+                for mach in machs {
+                    let at = |m: f64| {
+                        let f = model
+                            .normal_force(&flow(m, alpha_deg.to_radians(), 0.0))
+                            .unwrap();
+                        [f.coefficient, f.cp_station_m.unwrap()]
+                    };
+                    let (below, above) = (at(mach - 1e-9), at(mach + 1e-9));
+                    for k in 0..2 {
+                        let scale = below[k].abs().max(1.0);
+                        assert!(
+                            (above[k] - below[k]).abs() <= 1e-7 * scale,
+                            "{name} at {alpha_deg}° and Mach {mach}: {below:?} to {above:?}"
+                        );
+                    }
+                }
+            }
+        }
+        // The shelter, weighed. The drag buildup's wake takes a lip rising a quarter of the
+        // boattail's drop in diameter wholly (`crate::drag::WAKE_FULL_RISE`) and one rising half
+        // of it not at all, grading between; the method reads the same number as its weight, so
+        // the body moves between the two models continuously as the lip is drawn taller.
+        let lipped = |rise: f64| {
+            let mut rocket = crate::testing::finned_rocket(4);
+            // The nose, the tube and the boattail, which drops from 0.027 m to 0.022 m in radius:
+            // 0.010 m in diameter. The lip sits straight behind it, since a wake fades over any
+            // tube between them.
+            rocket.stages[0].components.truncate(3);
+            rocket.stages[0].components.push(component(
+                "lip",
+                body_part(0.01, 0.022, 0.022 + 0.5 * rise * 0.010),
+                None,
+            ));
+            model(&rocket)
+        };
+        assert_eq!(lipped(0.2).supersonic_body().map(|t| t.covered), Some(4));
+        assert!(lipped(0.6).supersonic_body().is_none());
+        let at = |rise: f64| {
+            let model = lipped(rise);
+            let f = model
+                .normal_force(&flow(3.0, 4f64.to_radians(), 0.0))
+                .unwrap();
+            (f.coefficient, f.cp_station_m.unwrap())
+        };
+        // Across the old threshold, a quarter of the drop: before M1.8e10 the whole rocket's
+        // normal force fell by a third here and its center of pressure jumped 1.8 calibres
+        // forward (issue #87). What is left is the weight ramping off its clamp, proportional to
+        // the change in shape: a ten-thousandth of the force over a ten-thousandth of the drop.
+        let (below, above) = (at(0.2499), at(0.2501));
+        assert!(
+            (above.0 - below.0).abs() <= 2e-4 * below.0.abs()
+                && (above.1 - below.1).abs() <= 2e-4 * below.1.abs(),
+            "{below:?} to {above:?} across the wake's full-shelter rise"
+        );
+        // How far apart the two models are at one shape, which is what a lip in the band is
+        // uncertain by: take the same rocket out of the wake by making the lip a hair longer
+        // than the boattail's drop, which changes no radius and no angle.
+        let out_of_wake = {
+            let mut rocket = crate::testing::finned_rocket(4);
+            rocket.stages[0].components.truncate(3);
+            rocket.stages[0].components.push(component(
+                "lip",
+                body_part(0.0101, 0.022, 0.022 + 0.5 * 0.25 * 0.010),
+                None,
+            ));
+            let m = model(&rocket);
+            assert!(
+                m.supersonic_body().is_none(),
+                "out of the wake by its length"
+            );
+            let f = m.normal_force(&flow(3.0, 4f64.to_radians(), 0.0)).unwrap();
+            (
+                f.coefficient,
+                f.cp_station_m.unwrap() / m.reference_diameter_m(),
+            )
+        };
+        let in_wake = at(0.25);
+        let diameter_m = model(&crate::testing::finned_rocket(4)).reference_diameter_m();
+        let gap_force = out_of_wake.0 / in_wake.0 - 1.0;
+        let gap_calibers = out_of_wake.1 - in_wake.1 / diameter_m;
+        assert!(
+            (gap_force + 0.3295).abs() < 5e-4 && (gap_calibers + 1.774).abs() < 5e-3,
+            "at one shape the two models differ by {gap_force} in force and {gap_calibers} \
+             calibres in center of pressure"
+        );
+        // What the band is worth, end to end: the jump is gone, but the same difference between
+        // the two models is spread over it, and the guide quotes these numbers.
+        let (full, nearly_none) = (at(0.25), at(0.4999));
+        let calibers = (nearly_none.1 - full.1) / diameter_m;
+        assert!(
+            (nearly_none.0 / full.0 - 1.0 + 0.291).abs() < 5e-4 && (calibers + 0.932).abs() < 5e-3,
+            "across the band: {full:?} to {nearly_none:?}, {calibers} calibres"
+        );
+        // The weight is the wake's own share, and it carries the body to slender-body theory by
+        // the far edge: at half the drop the method is gone, and just inside it is nearly gone.
+        assert!((lipped(0.25).supersonic_body().unwrap().shape_weight - 1.0).abs() < 1e-12);
+        // The ramp's shape, not just its ends: linear in the rise, as the wake's own fraction
+        // is. A smoothstep through the same ends would read 0.896 at a rise of 0.3.
+        for (rise, want) in [(0.3_f64, 0.8_f64), (0.375, 0.5), (0.45, 0.2)] {
+            let weight = lipped(rise).supersonic_body().unwrap().shape_weight;
+            assert!(
+                (weight - want).abs() < 1e-9,
+                "at a rise of {rise} the wake covers {weight}, not {want}"
+            );
+        }
+        // Just inside the far edge the weight is all but gone; at the edge itself there is no
+        // run, since a share of shelter under a millionth is not worth a table.
+        assert!(
+            lipped(0.49999).supersonic_body().unwrap().shape_weight < 1e-4,
+            "a hair inside the wake's far edge the method has almost no weight left"
+        );
+        assert!(
+            lipped(0.5).supersonic_body().is_none(),
+            "at the wake's far edge there is no run"
+        );
+        // The rise is not the only way out of the wake: it fades with any tube between the
+        // boattail and the lip, and the weight follows that too.
+        let gapped = |gap_m: f64| {
+            let mut rocket = crate::testing::finned_rocket(4);
+            rocket.stages[0].components.truncate(3);
+            rocket.stages[0].components.push(component(
+                "gap",
+                body_part(gap_m, 0.022, 0.022),
+                None,
+            ));
+            rocket.stages[0].components.push(component(
+                "lip",
+                body_part(0.01, 0.022, 0.022 + 0.5 * 0.17 * 0.010),
+                None,
+            ));
+            let m = model(&rocket);
+            let weight = m.supersonic_body().map_or(0.0, |t| t.shape_weight);
+            let f = m.normal_force(&flow(3.0, 4f64.to_radians(), 0.0)).unwrap();
+            (
+                weight,
+                f.coefficient,
+                f.cp_station_m.unwrap() / m.reference_diameter_m(),
+            )
+        };
+        let (near, far) = (gapped(1e-6), gapped(0.010));
+        assert!(
+            near.0 > 0.999 && far.0 == 0.0,
+            "a tube of the boattail's own drop in diameter carries the lip out of the wake: \
+             {near:?} to {far:?}"
+        );
+        assert!(
+            (far.2 - near.2 + 1.973).abs() < 0.01 && (far.1 / near.1 - 1.0 + 0.3381).abs() < 5e-4,
+            "over that tube the force moves {} and the center of pressure {} calibres",
+            far.1 / near.1 - 1.0,
+            far.2 - near.2
+        );
+        // Where the method is weighed in only partly, a component's station and its own center of
+        // pressure part company: the station blends stations, the force blends slopes and
+        // moments, and the two agree only at the ends (issue #106). At half weight the tube's
+        // station sits 0.114 m (about two calibres) behind its own center of pressure.
+        let half = lipped(0.375);
+        let tube = half
+            .component_normal_force(1, &flow(3.0, 0.0, 0.0))
+            .unwrap();
+        let station = half.component_station_m(1, 3.0).unwrap();
+        assert!(
+            (station - tube.cp_station_m.unwrap() - 0.1142).abs() < 5e-4,
+            "the tube's station {station} against its center of pressure {:?}",
+            tube.cp_station_m
+        );
+        assert!(
+            lipped(0.55).supersonic_body().is_none(),
+            "past the wake there is no run at all"
+        );
+        // And no jump anywhere across the band, at either end or inside it.
+        for rise in [0.2499_f64, 0.25, 0.3, 0.375, 0.45, 0.4999] {
+            let (low, high) = (at(rise - 1e-9), at(rise + 1e-9));
+            assert!(
+                (high.0 - low.0).abs() <= 1e-7 * low.0.abs().max(1.0)
+                    && (high.1 - low.1).abs() <= 1e-7 * low.1.abs().max(1.0),
+                "at a rise of {rise}: {low:?} to {high:?}"
+            );
+        }
+        // The shelter follows the geometry, not the drag buildup's tables: a lip out of the wake
+        // is refused whatever its shape, including one whose drag curve the buildup has none for
+        // (a Haack series past C = 1/3; the physics review found this).
+        for shape in [NoseShape::Conical {}, NoseShape::Haack { parameter: 0.5 }] {
+            let mut rocket = crate::testing::committed_design("wind-tunnel-arcas-robin-short.json");
+            let components = &mut rocket.stages[0].components;
+            let last = components.len() - 1;
+            let Part::Transition(lip) = &mut components[last].part else {
+                unreachable!("the committed design ends in its lip")
+            };
+            // Raised to 0.60 of the boattail's drop, past the wake's far edge.
+            lip.aft_radius_m = lip.fore_radius_m + 0.60 * (0.028575 - 0.0166116);
+            lip.shape = shape;
+            assert!(
+                model(&rocket).supersonic_body().is_none(),
+                "{shape:?} out of the wake"
+            );
+        }
+        // A flare longer than the boattail's drop in diameter grows out of the wake, however
+        // little it rises.
+        let mut rocket = finned_rocket(4);
+        rocket.stages[0].components.truncate(3);
+        rocket.stages[0].components.push(component(
+            "long flare",
+            body_part(1.0, 0.022, 0.0229),
+            None,
+        ));
+        assert!(model(&rocket).supersonic_body().is_none());
+        // A narrowing part behind the run is a boattail the method hasn't covered, not a lip,
+        // even where the wake takes its drag: it keeps slender-body theory's share.
+        let mut rocket = finned_rocket(4);
+        rocket.stages[0].components.truncate(3);
+        rocket.stages[0].components.push(component(
+            "second boattail",
+            body_part(0.03, 0.0231, 0.021),
+            None,
+        ));
+        let narrowing = model(&rocket);
+        assert!(narrowing.bodies().last().unwrap().slope_per_rad < 0.0);
+        assert!(narrowing.supersonic_body().is_none());
+    }
+
+    /// Washington and Pettis's correlation is read no steeper than the angle where the flow
+    /// separates, 16° (Cubbage, [issue #90](https://github.com/nrdptel/fusionspace-eridanus/issues/90)): a
+    /// steeper boattail takes the increment of one of the same radii drawn out to 16°. Shallower
+    /// boattails are untouched, the increment is continuous in the angle, and it never runs away
+    /// or falls to zero, which would move the center of pressure aft of where anything measured.
+    #[test]
+    fn a_separating_boattail_reads_the_correlation_at_its_steepest_measured_angle() {
+        // Mach 1.5, where the held read and the true reads at 17° and 23° sit on Fig. 5's curve
+        // (30° and 40° run past its last entry and clamp, but against a held read that does not).
+        // At Mach 3 every read clamps to the same number and the assertions below would all be
+        // identities: the test then passes with the hold deleted, inverted or moved.
+        let mach = 1.5;
+        let ogive = nose(NoseShape::Ogive { radius_ratio: 1.0 }, 0.25, 0.027);
+        let Part::NoseCone(ogive) = ogive else {
+            unreachable!("`nose` builds a nose cone")
+        };
+        // The test rocket's boattail redrawn at each angle from the same fore radius, and what the
+        // method gives a cylinder of the same length in its place.
+        let kept_pair = |at: f64, half_angle_deg: f64| {
+            let length_m = (0.027 - 0.022) / half_angle_deg.to_radians().tan();
+            let mut rocket = finned_rocket(4);
+            rocket.stages[0].components[2].part = body_part(length_m, 0.027, 0.022);
+            let model = model(&rocket);
+            let a_ref = model.reference_area_m2();
+            let table = model
+                .supersonic_body()
+                .unwrap_or_else(|| panic!("a table at {half_angle_deg}°"));
+            let share = table.share(2, at).expect("the boattail's share").0;
+            let in_its_place = ShockExpansionBody::new(
+                &[
+                    BodySegment::Profile {
+                        profile: ogive.profile().unwrap(),
+                    },
+                    BodySegment::Cylinder {
+                        length_m: 0.7,
+                        radius_m: 0.027,
+                    },
+                    BodySegment::Cylinder {
+                        length_m,
+                        radius_m: 0.027,
+                    },
+                ],
+                DEFAULT_ELEMENTS_PER_CURVE,
+            )
+            .unwrap();
+            let cylinder = in_its_place.segment_slopes(at, a_ref).unwrap()[2].slope_per_rad;
+            let raw = |l: f64| {
+                crate::supersonic_boattail::wp_slope(at, 0.027, 0.022, l).unwrap()
+                    * PI
+                    * 0.027
+                    * 0.027
+                    / a_ref
+            };
+            // The increment the rocket flies, over the correlation read at the true angle.
+            (share - cylinder, raw(length_m))
+        };
+        let kept = |half_angle_deg: f64| kept_pair(mach, half_angle_deg);
+        let kept_at = |at: f64, half_angle_deg: f64| kept_pair(at, half_angle_deg).0;
+        let at_16 = (0.027 - 0.022) / 16.0_f64.to_radians().tan();
+        let close = |got: f64, want: f64, what: &str| {
+            assert!(
+                (got - want).abs() < 0.02 * want.abs(),
+                "{what}: {got} against {want}"
+            );
+        };
+        // Shallower than the onset: the correlation as measured, untouched.
+        for angle in [8.0, 15.0, 16.0] {
+            let (flown, raw) = kept(angle);
+            close(flown, raw, "read at the true angle");
+        }
+        // Steeper: held at the 16° geometry, the same for every angle past it, never zero, and
+        // strictly more lift taken off than reading the true angle would give. Past about 45° the
+        // method no longer covers the body at all and the rocket keeps slender-body theory (a
+        // switch of its own, issue #87), so the cap is read below that.
+        // Scaled onto the rocket's reference area, as the flown increment is.
+        let a_ref = model(&finned_rocket(4)).reference_area_m2();
+        let at_16_read = crate::supersonic_boattail::wp_slope(mach, 0.027, 0.022, at_16).unwrap()
+            * PI
+            * 0.027
+            * 0.027
+            / a_ref;
+        for angle in [17.0, 23.0, 30.0, 40.0] {
+            let (flown, raw) = kept(angle);
+            let (held, _) = kept(16.0);
+            close(flown, held, "held at 16°");
+            // The cap's own angle, read straight from the correlation at the 16° length.
+            close(flown, at_16_read, "the correlation at the 16° geometry");
+            assert!(flown < 0.0, "{angle}°: the boattail still takes lift off");
+            // The correlation read at the true angle takes off strictly less, which is the
+            // optimistic side: holding it keeps the center of pressure forward of that.
+            assert!(flown < raw, "{angle}°: {flown} against {raw} read raw");
+        }
+        // What the choice is worth, and which way it runs: the body's center of pressure with the
+        // increment held at 16°, against the same body with the boattail's increment faded to
+        // nothing (the other honest limit for separated flow, a cylinder's share alone). Letting
+        // it fade moves the center of pressure aft, so the rocket reads more stable.
+        let length_m = (0.027 - 0.022) / 30.0_f64.to_radians().tan();
+        let mut steep = finned_rocket(4);
+        steep.stages[0].components[2].part = body_part(length_m, 0.027, 0.022);
+        steep.stages[0].components.truncate(3);
+        let steep = model(&steep);
+        let body_cp_calibers = |at: f64, increment_kept: bool| {
+            let parts = steep.components(&Flow::axial(at)).unwrap();
+            let (mut slope, mut moment) = (0.0, 0.0);
+            for (index, part) in parts.iter().take(steep.bodies().len()).enumerate() {
+                let mut share = part.normal_force.slope_per_rad;
+                let station = part.normal_force.cp_station_m.unwrap_or(0.0);
+                if index == 2 && !increment_kept {
+                    share -= kept_at(at, 30.0);
+                }
+                slope += share;
+                moment += share * station;
+            }
+            moment / slope / steep.reference_diameter_m()
+        };
+        // The gap grows as the speed falls, so it is quoted as a range, not one number.
+        let gaps: Vec<(f64, f64)> = [1.5_f64, 2.0, 3.0, 4.63]
+            .iter()
+            .map(|at| {
+                (
+                    *at,
+                    body_cp_calibers(*at, false) - body_cp_calibers(*at, true),
+                )
+            })
+            .collect();
+        for (at, gap) in &gaps {
+            assert!(
+                *gap > 0.6,
+                "Mach {at}: the fading rule sits {gap} calibres aft"
+            );
+        }
+        // Every value the guide's table quotes, pinned.
+        for (at, want) in [(1.5, 1.35), (2.0, 0.91), (3.0, 0.75), (4.63, 0.67)] {
+            let got = gaps
+                .iter()
+                .find(|(m, _)| (m - at).abs() < 1e-9)
+                .expect("a measured gap")
+                .1;
+            assert!(
+                (got - want).abs() < 0.02,
+                "Mach {at}: the gap is {got} calibres, the guide says {want}"
+            );
+        }
+        // Continuous in the angle, at the cap and either side of it. Below the cap the read
+        // moves with the angle, so this is not zero: over ±1e-6 of a degree it is a few times
+        // 1e-8, where a switch at the cap would show as the 7e-3 that separates the held and raw
+        // reads just past 16°.
+        for angle in [15.9_f64, 16.0, 16.1] {
+            let (below, above) = (kept(angle - 1e-6).0, kept(angle + 1e-6).0);
+            assert!((above - below).abs() < 1e-6, "{angle}°: {below} to {above}");
+        }
+        assert!((at_16 - (0.027 - 0.022) / 16.0_f64.to_radians().tan()).abs() < 1e-15);
+    }
+
+    /// Holding the correlation at 16° reads it at a longer boattail, which walks left along
+    /// Fig. 5 toward the peak near Mach 1 its points come from. That branch passes Munk's
+    /// slender-body line, so the extra the holding takes off stops at potential flow. The read at
+    /// the boattail's true angle is never clipped: that is the measurement, wherever it sits.
+    #[test]
+    fn holding_the_correlation_stops_at_potential_flow() {
+        // A 30° boattail to a twentieth of the radius at Mach 1.42: held −2.077, true −0.981
+        // and potential flow −1.995 per radian on the boattail's own area, so the bound bites.
+        // The window is narrow (this shape's table starts at Mach 1.3906 and the held read
+        // stops passing potential flow at 1.4509), so the Mach is checked against the join.
+        let (fore_radius_m, aft_radius_m, mach) = (0.027_f64, 0.05 * 0.027_f64, 1.42_f64);
+        let slender = 2.0 * ((aft_radius_m / fore_radius_m).powi(2) - 1.0);
+        let length_m = (fore_radius_m - aft_radius_m) / 30.0_f64.to_radians().tan();
+        let mut rocket = finned_rocket(4);
+        rocket.stages[0].components[2].part = body_part(length_m, fore_radius_m, aft_radius_m);
+        rocket.stages[0].components[3].part = body_part(0.3, aft_radius_m, aft_radius_m);
+        let steep = model(&rocket);
+        let a_ref = steep.reference_area_m2();
+        let per_boattail_area = PI * fore_radius_m * fore_radius_m / a_ref;
+        let table = steep.supersonic_body().expect("the method covers it");
+        // Inside the table: below its start `share` clamps to the lead row, and the numbers
+        // above would belong to a Mach number the assertions never touch.
+        assert!(
+            mach > table.join_start_mach,
+            "Mach {mach} is below the table's start, {}",
+            table.join_start_mach
+        );
+        let cylinder = ShockExpansionBody::new(
+            &[
+                BodySegment::Profile {
+                    profile: match nose(NoseShape::Ogive { radius_ratio: 1.0 }, 0.25, 0.027) {
+                        Part::NoseCone(ogive) => ogive.profile().unwrap(),
+                        _ => unreachable!("`nose` builds a nose cone"),
+                    },
+                },
+                BodySegment::Cylinder {
+                    length_m: 0.7,
+                    radius_m: fore_radius_m,
+                },
+                BodySegment::Cylinder {
+                    length_m,
+                    radius_m: fore_radius_m,
+                },
+            ],
+            DEFAULT_ELEMENTS_PER_CURVE,
+        )
+        .unwrap()
+        .segment_slopes(mach, a_ref)
+        .unwrap()[2]
+            .slope_per_rad;
+        let flown = table.share(2, mach).expect("the boattail's share").0 - cylinder;
+        // It flies potential flow's value exactly, not the held read that would pass it.
+        assert!(
+            (flown / per_boattail_area - slender).abs() < 2e-3,
+            "{} against potential flow's {slender}",
+            flown / per_boattail_area
+        );
+        let held = crate::supersonic_boattail::wp_slope(
+            mach,
+            fore_radius_m,
+            aft_radius_m,
+            (fore_radius_m - aft_radius_m) / SEPARATION_ONSET_RAD.tan(),
+        )
+        .unwrap();
+        assert!(
+            held < slender - 0.05,
+            "the held read {held} must pass the bound's {slender} to pin it"
+        );
+        // And a boattail inside the measured angles keeps its own read, even where that read is
+        // itself past potential flow: the bound belongs to the holding, not to the measurement.
+        let gentle_m = (fore_radius_m - 0.6 * fore_radius_m) / 4.0_f64.to_radians().tan();
+        let gentle =
+            crate::supersonic_boattail::wp_slope(1.5, fore_radius_m, 0.6 * fore_radius_m, gentle_m)
+                .unwrap();
+        let gentle_slender = 2.0 * (0.6_f64.powi(2) - 1.0);
+        assert!(
+            gentle < gentle_slender,
+            "the 4° read {gentle} should pass {gentle_slender}"
+        );
+        let mut gentle_rocket = finned_rocket(4);
+        gentle_rocket.stages[0].components[2].part =
+            body_part(gentle_m, fore_radius_m, 0.6 * fore_radius_m);
+        gentle_rocket.stages[0].components[3].part =
+            body_part(0.3, 0.6 * fore_radius_m, 0.6 * fore_radius_m);
+        let gentle_model = model(&gentle_rocket);
+        let gentle_table = gentle_model.supersonic_body().expect("a table");
+        let gentle_cylinder = ShockExpansionBody::new(
+            &[
+                BodySegment::Profile {
+                    profile: match nose(NoseShape::Ogive { radius_ratio: 1.0 }, 0.25, 0.027) {
+                        Part::NoseCone(ogive) => ogive.profile().unwrap(),
+                        _ => unreachable!("`nose` builds a nose cone"),
+                    },
+                },
+                BodySegment::Cylinder {
+                    length_m: 0.7,
+                    radius_m: fore_radius_m,
+                },
+                BodySegment::Cylinder {
+                    length_m: gentle_m,
+                    radius_m: fore_radius_m,
+                },
+            ],
+            DEFAULT_ELEMENTS_PER_CURVE,
+        )
+        .unwrap()
+        .segment_slopes(1.5, gentle_model.reference_area_m2())
+        .unwrap()[2]
+            .slope_per_rad;
+        let gentle_flown = gentle_table.share(2, 1.5).expect("the share").0 - gentle_cylinder;
+        let gentle_area = PI * fore_radius_m * fore_radius_m / gentle_model.reference_area_m2();
+        assert!(
+            (gentle_flown / gentle_area - gentle).abs() < 2e-3,
+            "the 4° boattail flies {} and its correlation reads {gentle}",
+            gentle_flown / gentle_area
+        );
+    }
+
+    /// How far the potential-flow bound reaches, read back out of the table rather than
+    /// recomputed. Over the boattails swept below (16° to 53.6°, narrowing to between a
+    /// thousandth and three tenths of the fore radius), this pins three things: at the table's
+    /// rows a boattail never takes off more than potential flow, **except** where its own read
+    /// already passes it, since the bound never clips that; there, the table carries the
+    /// correlation as published; and the most the bound moves a **printed** coefficient, after
+    /// the join's weight. Deleting the bound fails this, and so does clipping the floor.
+    #[test]
+    fn what_the_potential_flow_bound_reaches() {
+        let fore_radius_m = 0.027_f64;
+        let ogive = nose(NoseShape::Ogive { radius_ratio: 1.0 }, 0.25, 0.027);
+        let Part::NoseCone(ogive) = ogive else {
+            unreachable!("`nose` builds a nose cone")
+        };
+        let mut worst = (0.0_f64, 0.0_f64, 0.0_f64, 0.0_f64);
+        let mut steepest_tabled = 0.0_f64;
+        let mut floor_angles: Vec<f64> = Vec::new();
+        for angle_deg in [16.0_f64, 16.5, 17.0, 17.25, 17.5, 30.0, 53.0, 53.5, 53.6] {
+            for ratio in [0.001_f64, 0.02, 0.25, 0.3] {
+                let aft_radius_m = ratio * fore_radius_m;
+                let drop_m = fore_radius_m - aft_radius_m;
+                let length_m = drop_m / angle_deg.to_radians().tan();
+                let held_length_m = drop_m / SEPARATION_ONSET_RAD.tan();
+                let ceiling = 2.0 * (ratio * ratio - 1.0);
+                let read = |mach: f64, length: f64| {
+                    crate::supersonic_boattail::wp_slope(mach, fore_radius_m, aft_radius_m, length)
+                        .unwrap()
+                };
+                // Skip shapes the bound cannot touch at any Mach the table covers: building a
+                // supersonic table is the expensive part of this sweep.
+                if read(1.2, held_length_m) >= ceiling {
+                    continue;
+                }
+                let mut rocket = finned_rocket(4);
+                rocket.stages[0].components[2].part =
+                    body_part(length_m, fore_radius_m, aft_radius_m);
+                rocket.stages[0].components[3].part = body_part(0.3, aft_radius_m, aft_radius_m);
+                let flown = model(&rocket);
+                let Some(table) = flown.supersonic_body() else {
+                    continue;
+                };
+                steepest_tabled = steepest_tabled.max(angle_deg);
+                let a_ref = flown.reference_area_m2();
+                let per_area = PI * fore_radius_m * fore_radius_m / a_ref;
+                // The method's share for a cylinder of the boattail's length in its place, which
+                // the flown share is the increment on top of.
+                let cylinder_body = ShockExpansionBody::new(
+                    &[
+                        BodySegment::Profile {
+                            profile: ogive.profile().unwrap(),
+                        },
+                        BodySegment::Cylinder {
+                            length_m: 0.7,
+                            radius_m: fore_radius_m,
+                        },
+                        BodySegment::Cylinder {
+                            length_m,
+                            radius_m: fore_radius_m,
+                        },
+                    ],
+                    DEFAULT_ELEMENTS_PER_CURVE,
+                )
+                .unwrap();
+                // The shares are computed at the table's rows: its lead row at the join, then
+                // every 0.05 Mach. Between rows the table interpolates, so a printed value can
+                // sit a little past the ceiling beside a row on the floor branch below; the
+                // guarantee belongs to the rows.
+                let mut rows = vec![table.join_start_mach];
+                let mut step = (table.join_start_mach * SUPERSONIC_STEPS_PER_MACH).ceil();
+                while step / SUPERSONIC_STEPS_PER_MACH <= 1.55 {
+                    rows.push(step / SUPERSONIC_STEPS_PER_MACH);
+                    step += 1.0;
+                }
+                for mach in rows {
+                    let Some((share, _)) = table.share(2, mach) else {
+                        break;
+                    };
+                    let cylinder =
+                        cylinder_body.segment_slopes(mach, a_ref).unwrap()[2].slope_per_rad;
+                    let increment = (share - cylinder) / per_area;
+                    if read(mach, length_m) >= ceiling {
+                        // The usual case: the boattail's own read is inside potential flow, so
+                        // the bound is what stops the hold. Read out of the table, the share a
+                        // rocket flies never passes potential flow.
+                        assert!(
+                            increment >= ceiling - 1e-12,
+                            "{angle_deg}° to {ratio} of the radius at Mach {mach}: the boattail \
+                             takes {increment} off, past potential flow's {ceiling}"
+                        );
+                    } else {
+                        // The floor: the boattail's own read already passes potential flow, and
+                        // that read is never clipped, so the hold does nothing here.
+                        assert!(
+                            increment <= ceiling,
+                            "{angle_deg}° to {ratio} at Mach {mach}: {increment} against {ceiling}"
+                        );
+                        // The boattail's own read, as published: the bound never clips it, so
+                        // the table carries the correlation itself here.
+                        let published = read(mach, length_m);
+                        assert!(
+                            (increment - published).abs() < 1e-9,
+                            "{angle_deg}° to {ratio} at Mach {mach}: {increment} against the \
+                             correlation's own {published}"
+                        );
+                        if !floor_angles.contains(&angle_deg) {
+                            floor_angles.push(angle_deg);
+                        }
+                    }
+                    // And how much of the holding that costs, against the unbounded read.
+                    let moved = (increment - read(mach, held_length_m)).abs()
+                        * per_area
+                        * table.weight(mach);
+                    if moved > worst.0 {
+                        worst = (moved, angle_deg, ratio, mach);
+                    }
+                }
+            }
+        }
+        // The floor is a sliver just above the hold's own angle, on the angles swept: the
+        // condition is that the boattail's own read passes the curve's Munk crossing, so it
+        // closes as the angle or the Mach number rises.
+        assert_eq!(
+            floor_angles,
+            [16.0, 16.5, 17.0, 17.25],
+            "the swept angles where a boattail's own read already passes potential flow"
+        );
+        // The steepest shape this sweep both tables and can bind: the method refuses steeper
+        // bodies, at an angle that depends on how far the boattail narrows.
+        assert!(
+            (steepest_tabled - 53.5).abs() < 1e-12,
+            "the steepest boattail swept that the method tables is {steepest_tabled}°"
+        );
+        assert!(
+            (worst.0 - 0.060).abs() < 5e-4,
+            "the bound moves a printed coefficient by at most {:.4} per rad, at {}° to {} of the \
+             radius at Mach {:.3}",
+            worst.0,
+            worst.1,
+            worst.2,
+            worst.3
+        );
+    }
+
+    /// Footnote 8's size, by hand, on a boattail **and the tube behind it**
+    /// ([issue #90](https://github.com/nrdptel/fusionspace-eridanus/issues/90)). On each straight element the
+    /// method's loading is `Λ(x) = (1 − e^(−η)) Λ_c + e^(−η) Λ₂`, `x` axial from its corner, and
+    /// `C_Nα = (2π/A_ref) ∫ Λ r dx` over it (TN 3527 eqs. 8, 9, 19). Footnote 8 gives a boattail
+    /// element the free stream's pressure and a tangent cone of 2 per radian (p. 12), checked
+    /// here against hard-coded values; the tube behind relaxes from the boattail's loading toward
+    /// `Λ_c = 0`, so its share is set by the decay rate alone.
+    ///
+    /// What this pins: the integration, the footnote's two tangent-cone terms, and that the two
+    /// segments' shares follow from the reported flow. What it does not pin: the decay rate `η`
+    /// itself, which comes from eq. 9 and is read from the method here.
+    #[test]
+    fn footnote_eights_boattail_share_by_hand() {
+        let a_ref = PI * 0.027 * 0.027;
+        let ogive = nose(NoseShape::Ogive { radius_ratio: 1.0 }, 0.25, 0.027);
+        let Part::NoseCone(ogive) = ogive else {
+            unreachable!("`nose` builds a nose cone")
+        };
+        let (length_m, fore_radius_m, aft_radius_m) = (0.05, 0.027, 0.022);
+        const TUBE_LENGTH_M: f64 = 0.2;
+        let body = ShockExpansionBody::new(
+            &[
+                BodySegment::Profile {
+                    profile: ogive.profile().unwrap(),
+                },
+                BodySegment::Cylinder {
+                    length_m: 0.7,
+                    radius_m: 0.027,
+                },
+                BodySegment::Profile {
+                    profile: hpr_design::Profile::transition(
+                        NoseShape::Conical {},
+                        length_m,
+                        fore_radius_m,
+                        aft_radius_m,
+                        false,
+                    )
+                    .unwrap(),
+                },
+                BodySegment::Cylinder {
+                    length_m: TUBE_LENGTH_M,
+                    radius_m: aft_radius_m,
+                },
+            ],
+            DEFAULT_ELEMENTS_PER_CURVE,
+        )
+        .unwrap();
+        let mach = 2.0;
+        let shares = body.segment_slopes(mach, a_ref).unwrap();
+        // The boattail is one straight element: the corner at its fore end, then a cone of
+        // half-angle −δ to its aft end.
+        let flows = body.element_flows(mach).unwrap();
+        let boattail = flows
+            .iter()
+            .rev()
+            .nth(1)
+            .copied()
+            .expect("the boattail's element");
+        let (load, decay) = (boattail.loading_per_rad, boattail.decay_per_m);
+        // Eq. 19's `r` at the corner is the boattail's fore radius.
+        assert!((boattail.corner_radius_m - fore_radius_m).abs() < 1e-12);
+        // Footnote 8 gives a boattail element the free stream's pressure and a tangent cone of 2
+        // per radian, so its loading relaxes toward `tan δ · 2`.
+        let delta = ((aft_radius_m - fore_radius_m) / length_m).atan();
+        let cone_load = delta.tan() * 2.0;
+        assert!((boattail.tangent_cone_loading_per_rad - cone_load).abs() < 1e-12);
+        assert!((boattail.tangent_cone_pressure_ratio - 1.0).abs() < 1e-12);
+        // C_Nα = (2π/A_ref) ∫ Λ(x) r(x) dx over a segment, by Simpson's rule on 4001 points.
+        let integrate = |span_m: f64, fore_r: f64, aft_r: f64, load: f64, cone: f64, decay: f64| {
+            let steps = 4000;
+            let mut sum = 0.0;
+            for i in 0..=steps {
+                let t = f64::from(i) / f64::from(steps);
+                let x = t * span_m;
+                let r = fore_r + (aft_r - fore_r) * t;
+                let e = (-decay * x).exp();
+                let lambda = (1.0 - e) * cone + e * load;
+                let weight = if i == 0 || i == steps {
+                    1.0
+                } else if i % 2 == 1 {
+                    4.0
+                } else {
+                    2.0
+                };
+                sum += weight * lambda * r;
+            }
+            2.0 * PI * (sum * span_m / (3.0 * f64::from(steps))) / a_ref
+        };
+        let by_hand = integrate(
+            length_m,
+            fore_radius_m,
+            aft_radius_m,
+            load,
+            cone_load,
+            decay,
+        );
+        assert!(
+            (shares[2].slope_per_rad - by_hand).abs() < 1e-6,
+            "{} against {by_hand}",
+            shares[2].slope_per_rad
+        );
+        // The tube behind it, which issue #90 asks for too: a cylinder's tangent cone carries no
+        // loading, so the decay alone takes its share from the boattail's exit loading to zero.
+        let tube = flows.last().expect("the tube's element");
+        assert!(tube.angle_rad.abs() < 1e-12 && tube.tangent_cone_loading_per_rad.abs() < 1e-12);
+        let tube_by_hand = integrate(
+            TUBE_LENGTH_M,
+            aft_radius_m,
+            aft_radius_m,
+            tube.loading_per_rad,
+            0.0,
+            tube.decay_per_m,
+        );
+        assert!(
+            (shares[3].slope_per_rad - tube_by_hand).abs() < 1e-6,
+            "the tube: {} against {tube_by_hand}",
+            shares[3].slope_per_rad
+        );
+        // The tube carries the larger part of the pair, so the decay sets most of the answer.
+        assert!(
+            tube_by_hand < by_hand && tube_by_hand < 0.0,
+            "the tube's {tube_by_hand} against the boattail's {by_hand}"
+        );
+        // And its size: footnote 8 takes far less lift off than slender-body theory's
+        // 2 (A_aft − A_fore)/A_ref.
+        let slender = 2.0 * (aft_radius_m.powi(2) - fore_radius_m.powi(2)) / (0.027 * 0.027);
+        assert!(
+            by_hand < 0.0 && by_hand / slender < 0.2,
+            "{by_hand} against slender-body theory's {slender}"
+        );
+    }
+
+    /// Washington and Pettis's boattail: the method's share for a cylinder of the boattail's
+    /// length and fore radius in its place, plus the measured increment at its center of
+    /// pressure; footnote 8's is the method's own segment share.
+    #[test]
+    fn the_boattail_takes_washington_and_pettis_increment() {
+        let layout = finned_rocket(4).layout().unwrap();
+        let current = AeroModel::new(&layout).unwrap();
+        let before = AeroModel::with_body_model(&layout, BodyModel::BEFORE_M1_8E6).unwrap();
+        let a_ref = current.reference_area_m2();
+        let ogive = nose(NoseShape::Ogive { radius_ratio: 1.0 }, 0.25, 0.027);
+        let Part::NoseCone(ogive) = ogive else {
+            unreachable!("`nose` builds a nose cone")
+        };
+        let segments = |last: BodySegment| {
+            [
+                BodySegment::Profile {
+                    profile: ogive.profile().unwrap(),
+                },
+                BodySegment::Cylinder {
+                    length_m: 0.7,
+                    radius_m: 0.027,
+                },
+                last,
+            ]
+        };
+        let in_its_place = ShockExpansionBody::new(
+            &segments(BodySegment::Cylinder {
+                length_m: 0.05,
+                radius_m: 0.027,
+            }),
+            DEFAULT_ELEMENTS_PER_CURVE,
+        )
+        .unwrap();
+        let rocket = finned_rocket(4);
+        let Part::Transition(tail) = &rocket.stages[0].components[2].part else {
+            unreachable!("the test rocket's third part is its boattail")
+        };
+        let with_boattail = ShockExpansionBody::new(
+            &segments(BodySegment::Profile {
+                profile: tail.profile().unwrap(),
+            }),
+            DEFAULT_ELEMENTS_PER_CURVE,
+        )
+        .unwrap();
+        for mach in [2.0, 3.0, 4.5] {
+            let cylinder = in_its_place.segment_slopes(mach, a_ref).unwrap()[2];
+            let increment = crate::supersonic_boattail::wp_slope(mach, 0.027, 0.022, 0.05).unwrap()
+                * PI
+                * 0.027
+                * 0.027
+                / a_ref;
+            let center = 0.25 + 0.7 + wp_center_fraction(mach) * 0.05;
+            let (slope, moment) = current.supersonic_body().unwrap().share(2, mach).unwrap();
+            close(
+                slope,
+                cylinder.slope_per_rad + increment,
+                1e-12,
+                "W&P slope",
+            );
+            close(
+                moment,
+                cylinder.moment_slope_m + increment * center,
+                1e-12,
+                "W&P moment",
+            );
+            // The increment is most of it: the nose's lift has decayed along the cylinder.
+            assert!(increment < 0.0 && cylinder.slope_per_rad.abs() < 0.1 * increment.abs());
+            let footnote_8 = with_boattail.segment_slopes(mach, a_ref).unwrap()[2];
+            let (old, _) = before.supersonic_body().unwrap().share(2, mach).unwrap();
+            close(old, footnote_8.slope_per_rad, 1e-12, "footnote 8");
+            // The measured increment takes off more lift than footnote 8, less than
+            // slender-body theory's -2[1 - (0.022/0.027)^2].
+            let slender = -2.0 * (1.0 - (0.022_f64 / 0.027).powi(2));
+            assert!(slender < slope && slope < old, "Mach {mach}: {slope} {old}");
+        }
+    }
+
+    /// Two boattails in one run, the second last: each takes the method's share for a cylinder
+    /// of its length and fore radius in its place plus its own Washington and Pettis increment,
+    /// and the tube between them keeps the method's share, marched through the first boattail by
+    /// footnote 8. The nose and first tube are the method's either way.
+    #[test]
+    fn two_boattails_each_take_their_own_increment() {
+        let (l_n, l_1, l_b1, l_2, l_b2) = (0.25, 0.4, 0.05, 0.3, 0.04);
+        let (r_0, r_1, r_2) = (0.027, 0.024, 0.02);
+        let rocket = one_stage(
+            vec![
+                component(
+                    "nose",
+                    nose(NoseShape::Ogive { radius_ratio: 1.0 }, l_n, r_0),
+                    None,
+                ),
+                component("tube", body_part(l_1, r_0, r_0), None),
+                component("boattail", body_part(l_b1, r_0, r_1), None),
+                component("waist", body_part(l_2, r_1, r_1), None),
+                component("tail", body_part(l_b2, r_1, r_2), None),
+            ],
+            ReferenceDiameter::Maximum {},
+        );
+        let model = AeroModel::new(&rocket.layout().unwrap()).unwrap();
+        let before =
+            AeroModel::with_body_model(&rocket.layout().unwrap(), BodyModel::BEFORE_M1_8E6)
+                .unwrap();
+        let table = model.supersonic_body().unwrap();
+        assert_eq!(table.covered, 5);
+        let a_ref = model.reference_area_m2();
+        let profile = |part: &Part| match part {
+            Part::NoseCone(n) => n.profile().unwrap(),
+            Part::Transition(t) => t.profile().unwrap(),
+            _ => unreachable!("the test's profiled parts are a nose and transitions"),
+        };
+        let parts: Vec<Part> = rocket.stages[0]
+            .components
+            .iter()
+            .map(|c| c.part.clone())
+            .collect();
+        let cylinder = |length_m, radius_m| BodySegment::Cylinder { length_m, radius_m };
+        let profiled = |i: usize| BodySegment::Profile {
+            profile: profile(&parts[i]),
+        };
+        let body = |segments: &[BodySegment]| {
+            ShockExpansionBody::new(segments, DEFAULT_ELEMENTS_PER_CURVE).unwrap()
+        };
+        let whole = body(&[
+            profiled(0),
+            cylinder(l_1, r_0),
+            profiled(2),
+            cylinder(l_2, r_1),
+            profiled(4),
+        ]);
+        let first_in_place = body(&[profiled(0), cylinder(l_1, r_0), cylinder(l_b1, r_0)]);
+        let second_in_place = body(&[
+            profiled(0),
+            cylinder(l_1, r_0),
+            profiled(2),
+            cylinder(l_2, r_1),
+            cylinder(l_b2, r_1),
+        ]);
+        let increment = |mach: f64, fore: f64, aft: f64, length: f64| {
+            crate::supersonic_boattail::wp_slope(mach, fore, aft, length).unwrap()
+                * PI
+                * fore
+                * fore
+                / a_ref
+        };
+        for mach in [2.0, 3.5] {
+            let method = whole.segment_slopes(mach, a_ref).unwrap();
+            let share = |i| table.share(i, mach).unwrap().0;
+            for i in [0, 1, 3] {
+                close(
+                    share(i),
+                    method[i].slope_per_rad,
+                    1e-12,
+                    "the method's share",
+                );
+            }
+            let first = first_in_place.segment_slopes(mach, a_ref).unwrap()[2].slope_per_rad
+                + increment(mach, r_0, r_1, l_b1);
+            let second = second_in_place.segment_slopes(mach, a_ref).unwrap()[4].slope_per_rad
+                + increment(mach, r_1, r_2, l_b2);
+            close(share(2), first, 1e-12, "first boattail");
+            close(share(4), second, 1e-12, "second boattail");
+            // Footnote 8 is the method's own share for both.
+            let old = before.supersonic_body().unwrap();
+            close(
+                old.share(2, mach).unwrap().0,
+                method[2].slope_per_rad,
+                1e-12,
+                "fn 8",
+            );
+            close(
+                old.share(4, mach).unwrap().0,
+                method[4].slope_per_rad,
+                1e-12,
+                "fn 8",
+            );
+            assert!(share(2) < method[2].slope_per_rad && share(4) < method[4].slope_per_rad);
+        }
+    }
+
+    #[test]
+    fn a_boattailed_body_flies_the_method_without_a_jump() {
+        // M1.8e4: the finned rocket's 5.7° boattail and the tail behind it join the covered run;
+        // since M1.8e6 the boattail takes Washington and Pettis's share, which takes lift off.
+        let model = model(&finned_rocket(4));
+        let join = model.supersonic_body().unwrap();
+        assert_eq!(join.covered, 4);
+        let start = join.join_start_mach;
+        for mach in [
+            start,
+            start + SUPERSONIC_JOIN_WIDTH_MACH,
+            1.35,
+            2.0,
+            2.05,
+            3.0,
+            4.63,
+            4.95,
+            4.999,
+        ] {
+            no_jump(&model, mach);
+        }
+        let (low, high) = (body_values(&model, 1.0), body_values(&model, 2.0));
+        let (boattail, share) = (&model.bodies()[2], join.share(2, 2.0).unwrap());
+        assert!(boattail.slope_per_rad < 0.0 && share.0 < 0.0, "{share:?}");
+        // The join's weight is 1 at Mach 2; the rest is the join's rounding.
+        assert!(
+            (high[2][0] - share.0).abs() <= 1e-12 * share.0.abs(),
+            "{share:?}"
+        );
+        // Its station stays slender-body theory's, on its own segment, at every Mach number;
+        // the tail's, behind it, is its body-lift station, while its share is negative too.
+        assert_eq!(low[2][2], high[2][2]);
+        assert!((0.95..=1.0).contains(&high[2][2]), "{:?}", high[2]);
+        assert!(high[3][0] < 0.0, "{:?}", high[3]);
+        for mach in [1.2, 1.3, 1.5, 3.0, 4.999] {
+            let at = body_values(&model, mach);
+            assert_eq!((at[2][2], at[3][2]), (low[2][2], low[3][2]), "Mach {mach}");
+        }
+        assert!((1.0..=1.3).contains(&low[3][2]), "{:?}", low[3]);
+        // The cylinder behind the nose carries lift past the join, as on a straight body.
+        assert_eq!(low[1][0], 0.0);
+        assert!(high[1][0] > 0.1, "{:?}", high[1]);
+    }
+
+    #[test]
+    fn a_blunter_cone_joins_where_the_method_starts_to_hold() {
+        // A 20° cone's shock detaches, or its surface flow turns subsonic, above Mach 1.2, so its
+        // join starts at the table's first row and still doesn't jump.
+        let mut rocket = straight_rocket();
+        let length = 0.027 / 20.0_f64.to_radians().tan();
+        rocket.stages[0].components[0].part = nose(NoseShape::Conical {}, length, 0.027);
+        let model = model(&rocket);
+        let join = model.supersonic_body().unwrap();
+        let start = join.join_start_mach;
+        assert!(start > SUPERSONIC_JOIN_START_MACH, "{start}");
+        for mach in [start, start + SUPERSONIC_JOIN_WIDTH_MACH, start + 0.5] {
+            no_jump(&model, mach);
+        }
+        // Below its join the terms are slender-body theory's.
+        assert_eq!(body_values(&model, start), body_values(&model, 0.5));
+    }
+
+    #[test]
+    fn the_joins_start_moves_with_the_nose_not_in_steps() {
+        // Issue #87: the start used to snap to the table's 0.05 grid in Mach, so a steeper cone
+        // moved it in steps. It now sits where the method starts to hold.
+        let start_at = |degrees: f64| {
+            let mut rocket = straight_rocket();
+            let length = 0.027 / degrees.to_radians().tan();
+            rocket.stages[0].components[0].part = nose(NoseShape::Conical {}, length, 0.027);
+            let model = model(&rocket);
+            let start = model.supersonic_body().unwrap().join_start_mach;
+            (model, start)
+        };
+        let (model, start) = start_at(20.0);
+        let grid = start * SUPERSONIC_STEPS_PER_MACH;
+        assert!((grid - grid.round()).abs() > 1e-3, "on the grid: {start}");
+        // Nothing jumps at the start, at the first even row after it, or across the join.
+        let first_row = grid.ceil() / SUPERSONIC_STEPS_PER_MACH;
+        for mach in [start, first_row, start + SUPERSONIC_JOIN_WIDTH_MACH] {
+            no_jump(&model, mach);
+        }
+        assert_eq!(body_values(&model, start), body_values(&model, 0.5));
+        // The start the aerodynamics page quotes, found by the method, not on the grid (1.35).
+        assert!((start - 1.341910).abs() < 1e-6, "{start}");
+        // The lead row is the method's own run there, where the cylinder's share climbs from zero
+        // like the root of the distance in Mach (0.41 per radian at the first even row), not a
+        // copy of that row. A start exact to the last bit leaves about 1e-7; 24 halvings of the
+        // 0.05 step left 2.2e-5 to 2.5e-4, a sawtooth as the nose changed (issue #87).
+        let join = model.supersonic_body().unwrap();
+        let (lead, row) = (
+            join.share(1, start).unwrap(),
+            join.share(1, first_row).unwrap(),
+        );
+        assert!(lead.0 < 1e-5 && row.0 > 0.3, "{lead:?} against {row:?}");
+        // A millionth of a degree moves the start by 2.7e-8.
+        let (_, nudged) = start_at(20.0 + 1e-6);
+        assert!((nudged - start).abs() < 1e-7, "{start} to {nudged}");
+        // Steeper cones start later, each a little: no two share a grid row's Mach.
+        let starts: Vec<f64> = [20.0, 20.1, 20.2, 20.3, 20.4, 20.5]
+            .into_iter()
+            .map(|degrees| start_at(degrees).1)
+            .collect();
+        assert!((starts[5] - 1.355500).abs() < 1e-6, "{starts:?}");
+        for pair in starts.windows(2) {
+            assert!(pair[1] > pair[0] && pair[1] - pair[0] < 0.02, "{starts:?}");
+        }
+    }
+
+    #[test]
+    fn below_the_join_the_bodies_keep_slender_body_terms() {
+        let model = model(&straight_rocket());
+        let slender: Vec<[f64; 3]> = model
+            .bodies()
+            .iter()
+            .enumerate()
+            .map(|(index, body)| {
+                [
+                    body.slope_per_rad,
+                    body.moment_slope_m,
+                    model.component_station_m(index, 0.0).unwrap(),
+                ]
+            })
+            .collect();
+        for mach in [0.0, 0.5, 0.99, 1.1, SUPERSONIC_JOIN_START_MACH] {
+            let got = body_values(&model, mach);
+            for (index, (g, want)) in got.iter().zip(&slender).enumerate() {
+                assert_eq!(g[0], want[0], "body {index} at Mach {mach}");
+                assert_eq!(g[2], want[2], "body {index} at Mach {mach}");
+                if want[0] != 0.0 {
+                    close(g[1], want[1], 1e-14, "moment");
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn past_the_join_the_covered_bodies_take_the_method() {
+        let model = model(&straight_rocket());
+        let area = model.reference_area_m2();
+        let body = straight_rocket_body();
+        let join_end = SUPERSONIC_JOIN_START_MACH + SUPERSONIC_JOIN_WIDTH_MACH;
+        // On the table's rows, the method itself; between them, within interpolation.
+        for (mach, rel) in [
+            (1.5, 1e-12),
+            (2.0, 1e-12),
+            (3.0, 1e-12),
+            (4.95, 1e-12),
+            (2.96, 1e-3),
+        ] {
+            assert!(mach >= join_end);
+            let want = body.slope(mach, area).unwrap();
+            let values = body_values(&model, mach);
+            let slope: f64 = values.iter().map(|v| v[0]).sum();
+            let moment: f64 = values.iter().map(|v| v[1]).sum();
+            close(slope, want.slope_per_rad, rel, "slope");
+            close(
+                moment / slope,
+                want.center_of_pressure_m,
+                rel,
+                "center of pressure",
+            );
+            // Each covered body's station is its share's center of pressure, on its segment.
+            let bounds = [(0.0, 0.25), (0.25, 0.95), (0.95, 1.0), (1.0, 1.3)];
+            for (v, (fore, aft)) in values.iter().zip(bounds) {
+                assert!(v[2] > fore && v[2] < aft, "{v:?} not in {fore} to {aft}");
+            }
+        }
+    }
+
+    /// A nose, a tube, a conical flare of `flare_deg`, a tail tube and four fins: the shape
+    /// M1.8e17 flies through the method.
+    fn flared_rocket(flare_deg: f64) -> hpr_design::Rocket {
+        let (fore_r, flare_l) = (0.027, 0.3);
+        let aft_r = fore_r + flare_l * flare_deg.to_radians().tan();
+        let mut tail = component("tail", body_part(0.2, aft_r, aft_r), None);
+        tail.children = vec![component(
+            "fins",
+            fin_set(
+                4,
+                FinPlanform::Trapezoidal {
+                    root_chord_m: 0.12,
+                    tip_chord_m: 0.05,
+                    span_m: 0.06,
+                    sweep_m: 0.07,
+                },
+            ),
+            Some(Position::Bottom { aft_offset_m: 0.0 }),
+        )];
+        one_stage(
+            vec![
+                component(
+                    "nose",
+                    nose(NoseShape::Ogive { radius_ratio: 1.0 }, 0.25, fore_r),
+                    None,
+                ),
+                component("body", body_part(0.7, fore_r, fore_r), None),
+                component("flare", body_part(flare_l, fore_r, aft_r), None),
+                tail,
+            ],
+            ReferenceDiameter::Maximum {},
+        )
+    }
+
+    /// The whole rocket's normal-force slope and center of pressure, m aft of the nose tip, at
+    /// `mach` and a small angle of attack.
+    fn flared_at(rocket: &hpr_design::Rocket, mach: f64) -> (f64, f64) {
+        let model = model(rocket);
+        let force = model.normal_force(&flow(mach, 1e-4, 0.0)).unwrap();
+        (force.coefficient / 1e-4, force.cp_station_m.unwrap())
+    }
+
+    /// The run's flare, the march of the body ahead of it, and the reference area: what the
+    /// flare's corner turns at a Mach number.
+    fn flared_run(rocket: &hpr_design::Rocket) -> ShockExpansionBody {
+        let model = model(rocket);
+        let run = model.supersonic_run.as_ref().expect("a run with a flare");
+        let flare = run.flare.as_ref().expect("the flare in the run");
+        ShockExpansionBody::new(&flare.ahead, DEFAULT_ELEMENTS_PER_CURVE).unwrap()
+    }
+
+    /// The steepest **surface angle** the flare is read at, degrees, at `mach`: the corner's turn
+    /// limit on the flow `ahead` delivers to it, taken from that surface's own angle, under the
+    /// cone tables' 30°.
+    fn corner_limit_deg(ahead: &ShockExpansionBody, mach: f64) -> f64 {
+        let aft = ahead.aft_flow(mach).unwrap();
+        (crate::shock_expansion::flare_corner_limit_rad(aft.surface_mach).unwrap() + aft.angle_rad)
+            .min(crate::blunt_tip::CONE_TABLE_CAP_RAD)
+            .to_degrees()
+    }
+
+    /// A flared body flies the shock-expansion method (M1.8e17, ADR-047). Before it, a flare
+    /// anywhere behind the run took the whole body off the method at every Mach number; now the
+    /// run marches through the flare's corner and ends there, and the flare's own share is
+    /// positive with its center of pressure on the flare.
+    #[test]
+    fn a_flared_body_flies_the_method() {
+        let rocket = flared_rocket(10.0);
+        let model = model(&rocket);
+        let body = model
+            .supersonic_body()
+            .expect("the method covers the flare");
+        // Nose, tube and flare: the run ends at the flare, and the tail tube behind it carries no
+        // slender-body slope of its own.
+        assert_eq!(body.covered, 3);
+        let old = AeroModel::with_body_model(
+            &rocket.layout().unwrap(),
+            BodyModel::CURRENT.with_supersonic_flare(SupersonicFlare::SlenderBody),
+        )
+        .unwrap();
+        assert!(old.supersonic_body().is_none());
+        // The flare's share, and where it acts: on the flare, which runs from 0.95 m to 1.25 m.
+        for mach in [2.0, 3.0, 4.95] {
+            let (slope, moment) = body.share(2, mach).unwrap();
+            assert!(slope > 0.0, "the flare's share at Mach {mach} is {slope}");
+            let station = moment / slope;
+            assert!(
+                (0.95..=1.25).contains(&station),
+                "the flare's share acts at {station} m at Mach {mach}"
+            );
+        }
+        // What the method says the rocket is worth, against slender-body theory's answer: the
+        // slope per radian, the center of pressure in calibres of the 0.1598 m reference, and how
+        // far forward of slender-body theory's the method puts it. The guide quotes these.
+        let diameter_m = model.reference_diameter_m();
+        assert!((diameter_m - 0.159_796).abs() < 5e-7, "{diameter_m} m");
+        for (mach, want_slope, want_calibers, want_old_slope, want_forward) in [
+            (2.0, 3.537_087_3, 7.365_003, 3.715_259_2, 0.089_048),
+            (3.0, 2.889_886_8, 7.014_772, 3.081_544_6, 0.168_593),
+            (4.95, 2.488_028_5, 6.680_843, 2.643_091_4, 0.237_654),
+        ] {
+            let (slope, station_m) = flared_at(&rocket, mach);
+            let old = old.normal_force(&flow(mach, 1e-4, 0.0)).unwrap();
+            let forward = (old.cp_station_m.unwrap() - station_m) / diameter_m;
+            assert!(
+                (slope - want_slope).abs() < 5e-7
+                    && (station_m / diameter_m - want_calibers).abs() < 5e-6,
+                "Mach {mach}: {slope} per rad at {} calibres",
+                station_m / diameter_m
+            );
+            assert!(
+                (old.coefficient / 1e-4 - want_old_slope).abs() < 5e-7
+                    && (forward - want_forward).abs() < 5e-6,
+                "Mach {mach} on slender-body theory: {} per rad, the method {forward} calibres \
+                 forward",
+                old.coefficient / 1e-4
+            );
+        }
+    }
+
+    /// The flare's corner is read no steeper than the turn its shock stays attached through, and
+    /// a steeper flare reads one of the same radii drawn out to that turn, with its center of
+    /// pressure on the real flare (M1.8e17, ADR-047).
+    ///
+    /// The limit is [`crate::shock_expansion::flare_corner_limit_rad`] at the flow the march
+    /// delivers to the corner, which is a little faster than the free stream: the nose and the
+    /// tube ahead of the flare have expanded it.
+    #[test]
+    fn a_flare_is_read_no_steeper_than_its_corners_shock_holds() {
+        let ahead = flared_run(&flared_rocket(18.5));
+        for (mach, want_surface_mach, want_limit_deg) in [
+            (1.5, 1.499_968_751_529, 12.111_850_220_062),
+            (2.0, 1.999_780_928_628, 22.969_761_173_077),
+            (2.5, 2.498_954_764_087, 29.786_310_648_004),
+            // From about Mach 2.51 the cone tables' 30° binds, not the shock (ADR-042).
+            (3.0, 2.996_526_706_276, 30.0),
+            (4.95, 4.892_298_698_955, 30.0),
+        ] {
+            let aft = ahead.aft_flow(mach).unwrap();
+            assert!(
+                (aft.surface_mach - want_surface_mach).abs() < 5e-10 && aft.angle_rad == 0.0,
+                "Mach {mach}: the corner turns Mach {} at {} rad",
+                aft.surface_mach,
+                aft.angle_rad
+            );
+            let limit = corner_limit_deg(&ahead, mach);
+            assert!(
+                (limit - want_limit_deg).abs() < 5e-10,
+                "Mach {mach}: the corner is read to {limit}°"
+            );
+        }
+        // At Mach 2 a 30° flare is read drawn out to 22.97°: the same radii, a longer flare.
+        let steep = model(&flared_rocket(30.0));
+        let run = steep.supersonic_run.as_ref().unwrap();
+        let flare = run.flare.as_ref().unwrap();
+        let rise_m = flare.aft_radius_m - flare.fore_radius_m;
+        let drawn_length_m = rise_m / corner_limit_deg(&ahead, 2.0).to_radians().tan();
+        assert!(drawn_length_m > flare.length_m);
+        let mut segments = flare.ahead.clone();
+        segments.push(BodySegment::Profile {
+            profile: hpr_design::Profile::transition(
+                NoseShape::Conical {},
+                drawn_length_m,
+                flare.fore_radius_m,
+                flare.aft_radius_m,
+                false,
+            )
+            .unwrap(),
+        });
+        let drawn = ShockExpansionBody::new(&segments, DEFAULT_ELEMENTS_PER_CURVE).unwrap();
+        let area = steep.reference_area_m2();
+        let want = *drawn.segment_slopes(2.0, area).unwrap().last().unwrap();
+        let body = steep.supersonic_body().unwrap();
+        let (slope, moment) = body.share(2, 2.0).unwrap();
+        assert!(
+            (slope - want.slope_per_rad).abs() < 1e-12 * want.slope_per_rad,
+            "the held share is {slope}, the drawn-out flare's {}",
+            want.slope_per_rad
+        );
+        // The length only enters the march: the center of pressure comes back onto the real
+        // flare. The drawn-out one's own station lies behind the real flare's aft end, so this is
+        // a real move and not an identity.
+        let (fore_m, aft_m) = (run.fore_m[2], run.fore_m[2] + flare.length_m);
+        let drawn_station_m = want.moment_slope_m / want.slope_per_rad;
+        let station_m = moment / slope;
+        assert!(
+            station_m > fore_m && station_m < aft_m,
+            "the held share acts at {station_m}, off the flare's {fore_m} to {aft_m}"
+        );
+        // The drawn-out flare is 0.409 m long against the real 0.3 m, so its own station sits
+        // further aft of the corner than anywhere on the real flare it maps to.
+        assert!(
+            (drawn_station_m - 1.207_758).abs() < 5e-6 && station_m < drawn_station_m - 0.05,
+            "the drawn-out share acts at {drawn_station_m}, the mapped one at {station_m}"
+        );
+        // Above the limit the reading is held: the drawn body follows the radii and the flow
+        // ahead, not the angle. The guide quotes what that costs at the extreme: a 75° flare, an
+        // annular face a detached bow shock would stand in front of, read 18.5% below
+        // slender-body theory, where the truth is above both.
+        let at = |deg: f64| {
+            let rocket = flared_rocket(deg);
+            let new = model(&rocket).normal_force(&flow(2.0, 1e-4, 0.0)).unwrap();
+            let old = AeroModel::with_body_model(
+                &rocket.layout().unwrap(),
+                BodyModel::CURRENT.with_supersonic_flare(SupersonicFlare::SlenderBody),
+            )
+            .unwrap()
+            .normal_force(&flow(2.0, 1e-4, 0.0))
+            .unwrap();
+            (new.coefficient / 1e-4, old.coefficient / 1e-4)
+        };
+        for (deg, want_method, want_slender) in
+            [(30.0, 1.946_513, 2.307_693), (75.0, 1.637_856, 2.010_350)]
+        {
+            let (method, slender) = at(deg);
+            assert!(
+                (method - want_method).abs() < 5e-6 && (slender - want_slender).abs() < 5e-6,
+                "{deg}°: the method reads {method}, slender-body theory {slender}"
+            );
+            assert!(
+                method < slender,
+                "{deg}° should read below slender-body theory"
+            );
+        }
+        // At the limit angle itself the drawn-out flare *is* the real flare, so the reading is
+        // the march's own, station included, with nothing mapped.
+        let at_limit = model(&flared_rocket(corner_limit_deg(&ahead, 2.0)));
+        let limit_run = at_limit.supersonic_run.as_ref().unwrap();
+        let limit_body =
+            ShockExpansionBody::new(&limit_run.segments, DEFAULT_ELEMENTS_PER_CURVE).unwrap();
+        let marched = *limit_body
+            .segment_slopes(2.0, at_limit.reference_area_m2())
+            .unwrap()
+            .last()
+            .unwrap();
+        let (limit_slope, limit_moment) =
+            at_limit.supersonic_body().unwrap().share(2, 2.0).unwrap();
+        assert!(
+            (limit_slope - marched.slope_per_rad).abs() < 1e-12 * marched.slope_per_rad
+                && (limit_moment - marched.moment_slope_m).abs() < 1e-12 * marched.moment_slope_m,
+            "at the limit the reading is {limit_slope} at {}, the march's {} at {}",
+            limit_moment / limit_slope,
+            marched.slope_per_rad,
+            marched.moment_slope_m / marched.slope_per_rad
+        );
+    }
+
+    /// **The milestone's own check.** Nothing jumps where the flare's shock detaches: neither in
+    /// the flare's angle at a fixed Mach number, nor in the Mach number at a fixed angle
+    /// (M1.8e17, ADR-047).
+    ///
+    /// The reading is continuous because it is built that way (at the limit the drawn-out flare
+    /// *is* the real flare, so the two branches meet), and the test shows it as a probe either
+    /// side of the boundary: the gap falls with the probe, a thousandfold over three decades, so
+    /// the slope is continuous across it too and not merely the value.
+    #[test]
+    fn nothing_jumps_where_the_flares_shock_detaches() {
+        // In the flare's angle, at Mach 2, where the boundary is the corner's own limit. Mach 2
+        // is a row of the table, so the reading there is that row's and not an interpolation.
+        let ahead = flared_run(&flared_rocket(18.5));
+        let boundary_deg = corner_limit_deg(&ahead, 2.0);
+        assert!((boundary_deg - 22.969_761_173_077).abs() < 5e-12);
+        for (epsilon, want) in [(1e-9, 4.527e-11), (1e-7, 4.527e-9), (1e-5, 4.527e-7)] {
+            let below = flared_at(&flared_rocket(boundary_deg - epsilon), 2.0);
+            let above = flared_at(&flared_rocket(boundary_deg + epsilon), 2.0);
+            let gap = (above.0 / below.0 - 1.0).abs();
+            assert!(
+                (gap - want).abs() < 0.01 * want,
+                "±{epsilon}° across the boundary moves the slope by {gap}, not {want}"
+            );
+            assert!(
+                (above.1 - below.1).abs() < 2e-3 * epsilon,
+                "the station moves"
+            );
+        }
+        // In the Mach number, at 18.5°: the angle TN D-4865's model 2 carries, whose shock holds
+        // from Mach 1.7677 on this body.
+        //
+        // This half probes the **rows** the table is built from, not a reading interpolated
+        // between them. The crossing falls between the Mach 1.75 and 1.80 rows, and
+        // [`SupersonicBody::share`] runs a straight line across a whole row interval, so a
+        // reading taken there would be linear whatever the two branches did at the crossing, so
+        // the probe has to ask the row's own function.
+        let rocket = flared_rocket(18.5);
+        let model = model(&rocket);
+        let run = model.supersonic_run.as_ref().expect("a run with a flare");
+        let body = ShockExpansionBody::new(&run.segments, DEFAULT_ELEMENTS_PER_CURVE).unwrap();
+        let in_its_place: Vec<Option<ShockExpansionBody>> =
+            run.segments.iter().map(|_| None).collect();
+        let area = model.reference_area_m2();
+        let (mut low, mut high) = (1.2_f64, 5.0_f64);
+        for _ in 0..80 {
+            let mid = 0.5 * (low + high);
+            if corner_limit_deg(&ahead, mid) < 18.5 {
+                low = mid;
+            } else {
+                high = mid;
+            }
+        }
+        assert!(
+            (high - 1.767_666_917_849).abs() < 5e-12,
+            "18.5° attaches from Mach {high}"
+        );
+        // Either side of the crossing the flare really is read from two different bodies: below
+        // it the drawn-out one, above it the flare as drawn.
+        assert!(corner_limit_deg(&ahead, high - 1e-9) < 18.5);
+        assert!(corner_limit_deg(&ahead, high + 1e-9) > 18.5);
+        let flare_share = |mach: f64| {
+            let shares = run
+                .shares(&body, &in_its_place, Some(&ahead), mach, area)
+                .expect("the row holds either side of the crossing");
+            shares[2]
+        };
+        for (epsilon, want) in [(1e-9, 3.622e-10), (1e-7, 3.622e-8), (1e-5, 3.622e-6)] {
+            let (below, above) = (flare_share(high - epsilon), flare_share(high + epsilon));
+            let gap = (above.slope_per_rad / below.slope_per_rad - 1.0).abs();
+            assert!(
+                (gap - want).abs() < 0.01 * want,
+                "±{epsilon} in Mach across the boundary moves the flare's share by {gap}, not \
+                 {want}"
+            );
+            // Its station moves with it, and stays on the flare.
+            let station = |s: SegmentSlope| s.moment_slope_m / s.slope_per_rad;
+            assert!(
+                (station(above) - station(below)).abs() < 0.1 * epsilon
+                    && (0.95..=1.25).contains(&station(below)),
+                "the flare's share acts at {} then {}",
+                station(below),
+                station(above)
+            );
+        }
+        // And the whole rocket's reading is continuous there too, interpolation and all.
+        for epsilon in [1e-9, 1e-7, 1e-5] {
+            let below = flared_at(&rocket, high - epsilon);
+            let above = flared_at(&rocket, high + epsilon);
+            assert!(
+                (above.0 / below.0 - 1.0).abs() < 2.0 * epsilon,
+                "±{epsilon} in Mach moves the rocket's slope by {}",
+                above.0 / below.0 - 1.0
+            );
+        }
+    }
+
+    /// A near-flat flare is marched at every row, and what dropping it would still cost.
+    ///
+    /// Before M1.8e19 the march refused a run of Mach rows on a flare of about 0.03816° to
+    /// 0.05882°, because its one element is reduced ([issue
+    /// #81](https://github.com/nrdptel/fusionspace-eridanus/issues/81)) and hpr read a reduced element aft of
+    /// the nose as a refusal. The table is built downward from Mach 5 and needs the join's whole
+    /// width inside it, so the body then fell back to slender-body theory at **every** Mach
+    /// number. The march now reads those elements by the generalized method, as it always has on
+    /// the nose, so every row marches and the table is whole.
+    ///
+    /// The size of what that switch was worth is still here, because it is the size of the
+    /// fallback: [`SupersonicFlare::SlenderBody`] is the reading the model used to drop to.
+    /// Against the method, at 4° on this rocket, it is −8.30% of the normal force and 1.16
+    /// calibres at Mach 3 and −4.62% and 0.75 calibres at Mach 2, which is what the two edges
+    /// [issue #117](https://github.com/nrdptel/fusionspace-eridanus/issues/117) reported used to cross.
+    ///
+    /// The low-Mach band is a different thing and has not moved: below about Mach 1.56 on this
+    /// body the corner's isentropic turn runs out before its shock detaches (ADR-045), the table
+    /// simply starts there, and the join carries the reading across in Mach
+    /// ([`where_the_corners_turn_runs_out_the_join_carries_the_reading`]).
+    #[test]
+    fn a_near_flat_flare_marches_every_row_and_the_fallback_is_still_measured() {
+        // Every row from Mach 1.2 to Mach 5 marches, at the angles that used to lose whole runs
+        // of them and at two inside the region Mach 3's own corner reduces.
+        let ahead = flared_run(&flared_rocket(1.0));
+        let at_mach_3 =
+            crate::shock_expansion::flare_reduction_turns_rad(&ahead.aft_flow(3.0).unwrap())
+                .unwrap();
+        let reduced_at_mach_3 =
+            at_mach_3.crossing_rad.to_degrees()..at_mach_3.balance_rad.to_degrees();
+        assert!(
+            reduced_at_mach_3.contains(&0.007) && reduced_at_mach_3.contains(&0.008),
+            "Mach 3 reduces {reduced_at_mach_3:?}, which was meant to hold 0.007° and 0.008°"
+        );
+        for deg in [0.001, 0.007, 0.008, 0.01, 0.03, 0.038_17, 0.045, 0.0589] {
+            let model = model(&flared_rocket(deg));
+            let run = model.supersonic_run.as_ref().expect("a run with a flare");
+            let body = ShockExpansionBody::new(&run.segments, DEFAULT_ELEMENTS_PER_CURVE).unwrap();
+            let area = model.reference_area_m2();
+            let refused = (SUPERSONIC_FIRST_STEP..=SUPERSONIC_LAST_STEP).find(|step| {
+                body.slope(*step as f64 / SUPERSONIC_STEPS_PER_MACH, area)
+                    .is_err()
+            });
+            assert_eq!(
+                refused,
+                None,
+                "a {deg}° flare loses Mach {:?}",
+                refused.map(|step| step as f64 / SUPERSONIC_STEPS_PER_MACH)
+            );
+            // And the march reduces the flare's element exactly on the region Mach 3's corner
+            // gives, which is what makes these rows the region's rows and not an ordinary march.
+            let flows = body.element_flows(3.0).unwrap();
+            assert_eq!(
+                flows[flows.len() - 1].decay_per_m == 0.0,
+                reduced_at_mach_3.contains(&deg),
+                "a {deg}° flare at Mach 3, where the region is {reduced_at_mach_3:?}"
+            );
+        }
+        // What the model used to fall back to, and what that is worth against the method: the
+        // sizes the two edges of the band used to switch by.
+        let dropped = |deg: f64, mach: f64| {
+            let rocket = flared_rocket(deg);
+            let layout = rocket.layout().unwrap();
+            let read = |model: AeroModel| {
+                let force = model
+                    .normal_force(&flow(mach, 4f64.to_radians(), 0.0))
+                    .unwrap();
+                (
+                    force.coefficient,
+                    force.cp_station_m.unwrap() / model.reference_diameter_m(),
+                )
+            };
+            let method = read(AeroModel::new(&layout).unwrap());
+            let bare = read(
+                AeroModel::with_body_model(
+                    &layout,
+                    BodyModel::CURRENT.with_supersonic_flare(SupersonicFlare::SlenderBody),
+                )
+                .unwrap(),
+            );
+            (bare.0 / method.0 - 1.0, bare.1 - method.1)
+        };
+        let (force, calibers) = dropped(0.058_820_517_4, 3.0);
+        assert!(
+            (force + 0.083_0).abs() < 5e-5 && (calibers - 1.157_4).abs() < 5e-5,
+            "at the band's steep edge the fallback moves the force {force:.4} and the center of \
+             pressure {calibers:.4} calibres"
+        );
+        let (force, calibers) = dropped(9.018_246_55e-4, 2.0);
+        assert!(
+            (force + 0.046_2).abs() < 5e-4 && (calibers - 0.752_2).abs() < 5e-4,
+            "at the join's shallowest step the fallback moves the force {force:.4} and the center \
+             of pressure {calibers:.4} calibres"
+        );
+    }
+
+    /// The low-Mach band moves the join, and the join moves the reading continuously: below the
+    /// Mach number where the march first takes the flare there is no table row, and the weight
+    /// the method's share carries rises from zero over [`SUPERSONIC_JOIN_WIDTH_MACH`].
+    #[test]
+    fn where_the_corners_turn_runs_out_the_join_carries_the_reading() {
+        let model = model(&flared_rocket(18.5));
+        let body = model.supersonic_body().unwrap();
+        assert!(
+            (body.join_start_mach - 1.555_220_046_128_9).abs() < 5e-13,
+            "the table starts at Mach {}",
+            body.join_start_mach
+        );
+        // No lip rides along here, so the join is the whole of the method's weight: zero at the
+        // start and the shape's full share a join's width above it.
+        assert_eq!(body.shape_weight, 1.0);
+        assert_eq!(body.weight(body.join_start_mach), 0.0);
+        assert_eq!(
+            body.weight(body.join_start_mach + SUPERSONIC_JOIN_WIDTH_MACH),
+            1.0
+        );
+        // At the join's start the method carries nothing, so the reading is slender-body
+        // theory's, and it stays continuous through it.
+        let old = AeroModel::with_body_model(
+            &flared_rocket(18.5).layout().unwrap(),
+            BodyModel::CURRENT.with_supersonic_flare(SupersonicFlare::SlenderBody),
+        )
+        .unwrap();
+        let at = |model: &AeroModel, mach| {
+            model
+                .normal_force(&flow(mach, 1e-4, 0.0))
+                .unwrap()
+                .coefficient
+                / 1e-4
+        };
+        assert!((at(&model, body.join_start_mach) - at(&old, body.join_start_mach)).abs() < 1e-12);
+        for (epsilon, want) in [
+            (1e-9, 8.547_36e-10),
+            (1e-7, 8.547_36e-8),
+            (1e-5, 8.547_38e-6),
+        ] {
+            let below = at(&model, body.join_start_mach - epsilon);
+            let above = at(&model, body.join_start_mach + epsilon);
+            let gap = (above / below - 1.0).abs();
+            assert!(
+                (gap - want).abs() < 1e-5 * want,
+                "±{epsilon} across the join's start moves the slope by {gap}, not {want}"
+            );
+        }
+    }
+
+    /// **What the drawn-out rule does not give: a smooth first derivative.** The reading is
+    /// continuous in value across the attachment boundary (that is
+    /// [`nothing_jumps_where_the_flares_shock_detaches`] and the milestone's own check), but a cap
+    /// makes a kink, and this measures it so the guide does not have to claim otherwise.
+    ///
+    /// Below the boundary the flare's angle moves the body the march sees; above it, only the
+    /// radii do, so the slope of the reading changes. On the tests' flared rocket at Mach 2 the
+    /// whole rocket's `dC_Nα/dδ` changes by −31.4% there and the flare's own share's by −141.6%,
+    /// which is a change of sign. The marched branch is not smooth in the flare's angle either:
+    /// the same probe at 20°, away from any boundary, finds +3.5% and +41.1%.
+    #[test]
+    fn the_cap_makes_a_kink_in_the_slope_even_though_the_reading_holds() {
+        let ahead = flared_run(&flared_rocket(18.5));
+        let boundary_deg = corner_limit_deg(&ahead, 2.0);
+        let whole = |deg: f64| flared_at(&flared_rocket(deg), 2.0).0;
+        let share = |deg: f64| {
+            model(&flared_rocket(deg))
+                .supersonic_body()
+                .unwrap()
+                .share(2, 2.0)
+                .unwrap()
+                .0
+        };
+        let kink = |f: &dyn Fn(f64) -> f64, at: f64| {
+            let epsilon = 1e-6;
+            let (down, up) = (
+                (f(at) - f(at - epsilon)) / epsilon,
+                (f(at + epsilon) - f(at)) / epsilon,
+            );
+            up / down - 1.0
+        };
+        for (what, f, at_boundary, at_20, at_26) in [
+            (
+                "the whole rocket",
+                &whole as &dyn Fn(f64) -> f64,
+                -0.313_9,
+                0.035_0,
+                0.0,
+            ),
+            ("the flare's share", &share, -1.415_6, 0.410_6, 0.0),
+        ] {
+            assert!(
+                (kink(f, boundary_deg) - at_boundary).abs() < 5e-4,
+                "{what} kinks {} at the boundary",
+                kink(f, boundary_deg)
+            );
+            assert!(
+                (kink(f, 20.0) - at_20).abs() < 5e-4,
+                "{what} kinks {} at 20°",
+                kink(f, 20.0)
+            );
+            // Well past the boundary both sides are drawn out, and the slope is smooth again.
+            assert!(
+                (kink(f, 26.0) - at_26).abs() < 1e-6,
+                "{what} kinks {} at 26°",
+                kink(f, 26.0)
+            );
+        }
+    }
+
+    /// A near-flat flare is read through, and what is left of the region is the corner's
+    /// crossing.
+    ///
+    /// The march reduces the flare's one element to the generalized method between the two turns
+    /// [`crate::shock_expansion::flare_reduction_turns_rad`] solves for, and hpr now reads it
+    /// there as it always has on the nose ([issue #81](https://github.com/nrdptel/fusionspace-eridanus/issues/81),
+    /// M1.8e19) instead of refusing the row. So the table starts at
+    /// [`SUPERSONIC_JOIN_START_MACH`] at every angle across the region, and the two switches
+    /// [issue #117](https://github.com/nrdptel/fusionspace-eridanus/issues/117) measured are gone:
+    ///
+    /// | crossing it | was worth | is worth |
+    /// |---|---|---|
+    /// | the band's steep edge, 0.05882052°, at Mach 3 and 4° | −8.30% and 1.1574 calibres | nothing |
+    /// | the join's shallowest step, 0.00090182°, at Mach 2 and 4° | −4.62% and 0.7522 calibres | nothing |
+    ///
+    /// What is left is the crossing itself, and it is small. At the turn where the pressure
+    /// behind the corner lands on its tangent cone's, `η` has a pole: an angle a hair below it
+    /// relaxes the loading onto the tangent cone's within the element, and a hair above it holds
+    /// the corner's. The pressure rides through (the gap it is multiplied by is zero there), but
+    /// the loading steps, by the gap between the two. That step does not shrink with the probe,
+    /// so it is a step and not a slope, and it is the same open question as the loading through a
+    /// crossing inside a segment ([issue #108](https://github.com/nrdptel/fusionspace-eridanus/issues/108),
+    /// ADR-044). Measured on this rocket at 4°, it is worth well under a tenth of a percent.
+    #[test]
+    fn a_near_flat_flare_reads_through_and_leaves_only_the_corners_crossing() {
+        let join = |deg: f64| {
+            model(&flared_rocket(deg))
+                .supersonic_body()
+                .map(|body| body.join_start_mach)
+        };
+        // The table starts at the floor everywhere across the region, including the two edges of
+        // the band that used to take it away and the three angles whose start was not monotone.
+        for deg in [
+            0.0,
+            2.4e-4,
+            2.5e-4,
+            3e-4,
+            9.018_246_55e-4,
+            0.001,
+            0.01,
+            0.03,
+            0.038_161_270_2,
+            0.045,
+            0.05,
+            0.058_820_517_4,
+            0.06,
+            0.1,
+            1.0,
+        ] {
+            assert_eq!(
+                join(deg),
+                Some(SUPERSONIC_JOIN_START_MACH),
+                "a {deg}° flare starts its table at {:?}",
+                join(deg)
+            );
+        }
+        // The whole rocket either side of an angle, as `issue_87s_switches_are_this_big` reads
+        // the switches it lists: the force's fraction and the center of pressure in calibres.
+        let at = |deg: f64, mach: f64| {
+            let model = model(&flared_rocket(deg));
+            let force = model
+                .normal_force(&flow(mach, 4f64.to_radians(), 0.0))
+                .unwrap();
+            (
+                force.coefficient,
+                force.cp_station_m.unwrap() / model.reference_diameter_m(),
+            )
+        };
+        let across = |deg: f64, mach: f64, epsilon: f64| {
+            let (below, above) = (at(deg - epsilon, mach), at(deg + epsilon, mach));
+            (above.0 / below.0 - 1.0, above.1 - below.1)
+        };
+        // The two switches issue #117 measured, where it measured them.
+        for (deg, mach) in [(0.058_820_517_4, 3.0), (9.018_246_55e-4, 2.0)] {
+            let (force, calibers) = across(deg, mach, 1e-9);
+            assert!(
+                force.abs() < 1e-7 && calibers.abs() < 1e-7,
+                "crossing {deg}° at Mach {mach} moves the force {force:.3e} and the center of \
+                 pressure {calibers:.3e} calibres"
+            );
+        }
+        // What is left: the corner's crossing, at the row it belongs to. It is a step, so it
+        // holds its size as the probe shrinks, and it grows with the Mach number because the
+        // crossing itself moves to a steeper flare there.
+        let ahead = flared_run(&flared_rocket(1.0));
+        let turns = |mach: f64| {
+            crate::shock_expansion::flare_reduction_turns_rad(&ahead.aft_flow(mach).unwrap())
+                .unwrap()
+        };
+        for (mach, force_want, caliber_want) in [
+            (2.0_f64, 3.234e-6, -1.589e-6),
+            (3.0, 1.1369e-4, 1.8258e-4),
+            (4.0, 5.5377e-4, 1.6709e-3),
+            (4.95, 1.2874e-3, 5.1095e-3),
+        ] {
+            let crossing = turns(mach).crossing_rad.to_degrees();
+            // A hundredfold in the probe leaves the step where it is, except at Mach 2, where
+            // 3.2e-6 is already what the reading itself moves over a 1e-7° probe.
+            let probes: &[f64] = if mach > 2.0 { &[1e-9, 1e-7] } else { &[1e-9] };
+            for epsilon in probes {
+                let (force, calibers) = across(crossing, mach, *epsilon);
+                assert!(
+                    (force - force_want).abs() < 0.02 * force_want.abs()
+                        && (calibers - caliber_want).abs() < 0.02 * caliber_want.abs(),
+                    "Mach {mach}: ±{epsilon}° across the crossing at {crossing}° moves the force \
+                     {force:.4e} and the center of pressure {calibers:.4e} calibres"
+                );
+            }
+            // The region's other edge, the balance, is where `η` is zero: the exponential form
+            // and the generalized method are the same reading there, so nothing steps.
+            let balance = turns(mach).balance_rad.to_degrees();
+            let (force, calibers) = across(balance, mach, 1e-9);
+            assert!(
+                force.abs() < 1e-7 && calibers.abs() < 1e-7,
+                "Mach {mach}: the balance at {balance}° moves the force {force:.3e} and the \
+                 center of pressure {calibers:.3e} calibres"
+            );
+        }
+        // And the reading really does move smoothly through the whole region, which is what the
+        // switch it replaced did not: swept in twenty steps from a cylinder to well past the
+        // region's steep end, no neighbouring pair moves the force by a fifth of a percent, and
+        // the reading falls all the way, bar the one pair that straddles the crossing.
+        let machs = [3.0, 4.0];
+        let step = 0.08 / 16.0;
+        let swept: Vec<[f64; 2]> = (0..=16)
+            .map(|index| {
+                let model = model(&flared_rocket(index as f64 * step));
+                machs.map(|mach| {
+                    model
+                        .normal_force(&flow(mach, 4f64.to_radians(), 0.0))
+                        .unwrap()
+                        .coefficient
+                })
+            })
+            .collect();
+        for (column, mach) in machs.iter().enumerate() {
+            let crossing = turns(*mach).crossing_rad.to_degrees();
+            let mut rises = Vec::new();
+            for index in 1..swept.len() {
+                let moved = swept[index][column] / swept[index - 1][column] - 1.0;
+                let deg = index as f64 * step;
+                assert!(
+                    moved.abs() < 2e-3,
+                    "Mach {mach}: from {}° to {deg}° the force moves {moved:.4}",
+                    deg - step
+                );
+                if moved > 0.0 {
+                    rises.push(deg);
+                }
+            }
+            assert!(
+                rises.len() <= 1
+                    && rises
+                        .first()
+                        .is_none_or(|deg| (deg - step..*deg).contains(&crossing)),
+                "Mach {mach}: the force rises over {rises:?}, against a crossing at {crossing}°"
+            );
+        }
+    }
+
+    /// The size of each switch issue #87 lists, measured at Mach 3 and 4° on two test bodies: the
+    /// flare behind a boattail on a finless body (`finned_rocket(4)` with its tail and fins cut
+    /// off, then a bare flare), so its share is of a body's normal force alone; the other three on
+    /// the straight rocket, which keeps its four fins. Each is the whole test body's normal force
+    /// and center of pressure either side of the threshold, as a share and in calibres. The lip's is gone since M1.8e10; these are what remain, and
+    /// ADR-041 and the guide quote them from here.
+    #[test]
+    fn issue_87s_switches_are_this_big() {
+        let at = |rocket: &hpr_design::Rocket| {
+            let model = model(rocket);
+            let force = model
+                .normal_force(&flow(3.0, 4f64.to_radians(), 0.0))
+                .unwrap();
+            (
+                force.coefficient,
+                force.cp_station_m.unwrap() / model.reference_diameter_m(),
+                model.supersonic_body().is_some(),
+            )
+        };
+        // A step in radius, past a millionth of the cylinder's area: the run stops at it.
+        let stepped = |drop_m: f64| {
+            let mut rocket = straight_rocket();
+            // The nose and its first tubes stay at 0.027 m; the last tube steps down, which is
+            // where the run stops once the step passes a millionth of the cylinder's area.
+            rocket.stages[0].components[3].part = body_part(0.3, 0.027 - drop_m, 0.027 - drop_m);
+            rocket
+        };
+        // A flare behind a boattail, however small: not a flare in the free stream but a lip in
+        // the boattail's wake, and too long for the wake to cover, so the run stops at it
+        // (ADR-039). A conical flare not behind a boattail flies the method since M1.8e17.
+        let flared = |rise_m: f64| {
+            let mut rocket = crate::testing::finned_rocket(4);
+            rocket.stages[0].components.truncate(3);
+            rocket.stages[0].components.push(component(
+                "flare",
+                body_part(1.0, 0.022, 0.022 + rise_m),
+                None,
+            ));
+            rocket
+        };
+        // A pointed tip at TN 3527 Fig. 2's edge, 24°.
+        let coned = |half_angle_deg: f64| {
+            let mut rocket = straight_rocket();
+            rocket.stages[0].components[0].part = nose(
+                NoseShape::Conical {},
+                0.027 / half_angle_deg.to_radians().tan(),
+                0.027,
+            );
+            rocket
+        };
+        // A vertical tip whose base slope is steeper than the cap's handover, at 24°.
+        let blunt = |length_m: f64| {
+            let mut rocket = straight_rocket();
+            rocket.stages[0].components[0].part =
+                nose(NoseShape::PowerSeries { exponent: 0.5 }, length_m, 0.027);
+            rocket
+        };
+        let at_16 = 0.027 / 24.0_f64.to_radians().tan();
+        // Where the step's threshold sits, bracketed: a billionth of the radius, which is the
+        // tangent body's own tolerance for two elements parallel but apart
+        // (`shock_expansion::lay_out`), not the coverage gate's millionth of the area.
+        assert!(model(&stepped(2.6e-11)).supersonic_body().is_some());
+        assert!(model(&stepped(2.8e-11)).supersonic_body().is_none());
+        // (what it is, the covered side, the bare side, what the docs say it is worth); a side
+        // is (force, calibres, covered), and the expected pair is signed: bare over covered less
+        // one, and bare's center of pressure less covered's, in calibres.
+        type Side = (f64, f64, bool);
+        let switches: [(&str, Side, Side, (f64, f64)); 4] = [
+            (
+                "a step in radius",
+                at(&stepped(1e-12)),
+                at(&stepped(1e-9)),
+                (-0.0865, 1.0285),
+            ),
+            (
+                "a flare behind a boattail",
+                at(&flared(1e-12)),
+                at(&flared(1e-9)),
+                (-0.2749, 0.2872),
+            ),
+            (
+                "a pointed tip past the cone tables' 30°",
+                at(&coned(29.999)),
+                at(&coned(30.002)),
+                (-0.0770, 0.8107),
+            ),
+            (
+                "a vertical tip steeper than the handover",
+                at(&blunt(0.5 * at_16 * 1.0002)),
+                at(&blunt(0.5 * at_16 * 0.9998)),
+                (-0.0699, 0.6383),
+            ),
+        ];
+        // Since M1.8e11 the cone tables reach 30°, so a tip at TN 3527 Fig. 2's old 24° edge no
+        // longer switches anything: both sides fly the method and agree to a part in a million.
+        let (below, above) = (at(&coned(23.999)), at(&coned(24.002)));
+        assert!(
+            below.2 && above.2,
+            "a 24° tip flies the method on both sides now"
+        );
+        assert!(
+            (above.0 / below.0 - 1.0).abs() < 1e-4 && (above.1 - below.1).abs() < 1e-4,
+            "across Fig. 2's old edge: {below:?} to {above:?}"
+        );
+        for (what, covered, bare, (want_force, want_calibers)) in switches {
+            assert!(
+                covered.2 && !bare.2,
+                "{what}: the method should cover one side only ({covered:?}, {bare:?})"
+            );
+            let force = bare.0 / covered.0 - 1.0;
+            let calibers = bare.1 - covered.1;
+            assert!(
+                (force - want_force).abs() < 5e-4 && (calibers - want_calibers).abs() < 5e-4,
+                "{what}: the force moves {force:.4} and the center of pressure {calibers:.4} \
+                 calibres, against {want_force} and {want_calibers}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_steep_tip_is_reported_as_the_runs_fallback() {
+        // A pointed conical tip a hair steeper than the cone tables' 30° is the run's fallback
+        // (issue #121, ADR-181); one a hair shallower keeps the run.
+        let with_tip = |half_angle_deg: f64| {
+            let mut rocket = straight_rocket();
+            let Part::NoseCone(nose) = &mut rocket.stages[0].components[0].part else {
+                panic!("the first part is the nose");
+            };
+            nose.shape = NoseShape::Conical {};
+            nose.length_m = nose.base_radius_m / half_angle_deg.to_radians().tan();
+            model(&rocket).supersonic_fallback()
+        };
+        assert_eq!(with_tip(29.99), None);
+        assert_eq!(with_tip(30.01), Some(SupersonicFallback::SteepTip));
+    }
+
+    #[test]
+    fn a_step_is_reported_as_the_runs_fallback() {
+        // The fallback names the first stepped part (issue #87, ADR-181), and only once the step
+        // is past the run's millionth of the area; a flush body has none.
+        let stepped = |drop_m: f64| {
+            let mut rocket = straight_rocket();
+            for (i, length_m) in [0.0, 0.7, 0.05, 0.3].iter().enumerate().skip(2) {
+                rocket.stages[0].components[i].part =
+                    body_part(*length_m, 0.027 - drop_m, 0.027 - drop_m);
+            }
+            let id = rocket.stages[0].components[2].id.clone();
+            (model(&rocket).supersonic_fallback(), id)
+        };
+        assert_eq!(stepped(0.0).0, None);
+        let (fallback, id) = stepped(1e-3);
+        assert_eq!(
+            fallback,
+            Some(SupersonicFallback::RadiusStep { component: id })
+        );
+        let (fallback, id) = stepped(-1e-3);
+        assert_eq!(
+            fallback,
+            Some(SupersonicFallback::RadiusStep { component: id })
+        );
+        // At the edge, where the march refuses a step (a billionth of the 0.027 m radius, pinned
+        // by `a_step_takes_the_whole_body_off_the_method`), and between it and the run's looser
+        // gate (13.5 nm here), where the table is what fails.
+        assert_eq!(stepped(2.6e-11).0, None);
+        for drop_m in [2.8e-11, 1e-9, -1e-9, 1e-8] {
+            let (fallback, id) = stepped(drop_m);
+            assert_eq!(
+                fallback,
+                Some(SupersonicFallback::RadiusStep { component: id }),
+                "a step of {drop_m} m"
+            );
+        }
+    }
+
+    /// What a **step in radius** costs, measured (M1.8e15, ADR-049).
+    ///
+    /// A step is a joint where one component's fore radius does not match the previous one's aft
+    /// radius. The march cannot cross one (its tangent body needs a profile without a jump in it),
+    /// and the model around it then takes the *whole* body off the method, because mixing the
+    /// method's shares with slender-body theory's is what ADR-034 rejected.
+    ///
+    /// This pins where that switch sits and what it is worth, so that a fix can be measured
+    /// against it rather than argued about.
+    /// What a **step in radius** costs, and where the march refuses one (M1.8e15, ADR-049).
+    ///
+    /// A step is a joint where one part's radius does not match the next one's. The tangent body
+    /// the march walks needs a profile without a jump in it, so a step takes the **whole** body
+    /// back to slender-body theory, at every speed. Nothing measures a stepped body faster than
+    /// sound, so the size of that switch is published rather than modeled.
+    #[test]
+    fn a_step_takes_the_whole_body_off_the_method() {
+        use hpr_design::ReferenceDiameter;
+        // The tests' straight rocket: a tangent-ogive nose 0.25 m and three tubes, 0.7, 0.05 and
+        // 0.3 m, all at 0.027 m. `joint` is which tube the step is at: 1 is the nose's own joint,
+        // 3 the last. A positive `drop_m` steps the body **down** from that joint aft, a negative
+        // one steps it **up**. The reference is pinned at 54 mm so that every row is divided by
+        // the same area: left on `Maximum`, a step up would widen the reference with it and the
+        // rows would not be comparable.
+        let at_joint = |joint: usize, drop_m: f64| {
+            let mut rocket = straight_rocket();
+            rocket.reference_diameter = ReferenceDiameter::Custom { diameter_m: 0.054 };
+            let lengths = [0.0, 0.7, 0.05, 0.3];
+            for (i, length_m) in lengths.iter().enumerate().skip(joint) {
+                rocket.stages[0].components[i].part =
+                    body_part(*length_m, 0.027 - drop_m, 0.027 - drop_m);
+            }
+            rocket
+        };
+        let read = |joint: usize, drop_m: f64| {
+            let rocket = at_joint(joint, drop_m);
+            let model = model(&rocket);
+            let force = model
+                .normal_force(&flow(3.0, 4f64.to_radians(), 0.0))
+                .unwrap();
+            (
+                force.coefficient,
+                force.cp_station_m.unwrap() / model.reference_diameter_m(),
+                model.supersonic_body().is_some(),
+            )
+        };
+        let (flush, flush_cp, marched) = read(3, 0.0);
+        assert!(marched, "with no step the method covers the body");
+        assert!(
+            (flush - 0.899_591_695).abs() < 5e-7 && (flush_cp - 16.949_177_4).abs() < 5e-5,
+            "the flush rocket reads {flush} at {flush_cp} calibres"
+        );
+
+        // What it costs. At the threshold the body is flush to a part in 1e9, so the whole
+        // difference is the method itself: the same −8.65% and 1.03 calibres wherever the step is
+        // and whichever way it goes. It grows with a step **down**, which takes area off the body;
+        // it shrinks with a step **up**, because the area a step up adds carries slender-body
+        // normal force of its own. Either way the center of pressure moves aft.
+        for (joint, drop_m, want_force, want_calibers) in [
+            (1, 2.8e-11, -0.086_518_790, 1.028_480_4),
+            (2, 2.8e-11, -0.086_518_790, 1.028_480_4),
+            (3, 2.8e-11, -0.086_518_789, 1.028_480_4),
+            (1, 1e-3, -0.106_197_868, 1.193_751_6),
+            (3, 1e-3, -0.102_873_512, 0.994_855_8),
+            (1, 2e-3, -0.125_539_709, 1.359_310_7),
+            (3, 2e-3, -0.118_890_998, 0.959_745_0),
+            (1, -2.8e-11, -0.086_518_788, 1.028_480_4),
+            (3, -2.8e-11, -0.086_518_789, 1.028_480_4),
+            (1, -1e-3, -0.067_194_034, 0.867_387_3),
+            (3, -1e-3, -0.070_503_028, 1.064_443_7),
+            (1, -2e-3, -0.047_519_789, 0.706_432_7),
+            (3, -2e-3, -0.054_109_172, 1.098_652_0),
+        ] {
+            let (force, cp, marched) = read(joint, drop_m);
+            assert!(
+                !marched,
+                "a {drop_m} m step at joint {joint} kept the method"
+            );
+            let (force, calibers) = (force / flush - 1.0, cp - flush_cp);
+            assert!(
+                (force - want_force).abs() < 5e-6 && (calibers - want_calibers).abs() < 5e-5,
+                "a {drop_m} m step at joint {joint} moves the force {force:.9} and the center of \
+                 pressure {calibers:.7} calibres, against {want_force} and {want_calibers}"
+            );
+        }
+
+        // Where the switch sits at a joint whose slope does not change: the tangent body merges
+        // two elements within a billionth of the radius of each other and refuses them past that
+        // (`shock_expansion::lay_out`), so the step the march refuses is 1e-9 × 0.027 m. Bisected
+        // at the last joint to a part in 1e6; the other joints and the other direction are
+        // bracketed either side of it, which is what "wherever it sits, whichever way" means.
+        let (mut low, mut high) = (1e-13, 1e-8);
+        assert!(
+            read(3, low).2 && !read(3, high).2,
+            "the bisection has to start with the march covering one end and refusing the other"
+        );
+        while high - low > 1e-6 * high {
+            let mid = 0.5 * (low + high);
+            if read(3, mid).2 {
+                low = mid
+            } else {
+                high = mid
+            }
+        }
+        assert!(
+            (high / 2.7e-11 - 1.0).abs() < 2e-6,
+            "the march refuses a step of {high} m, not a billionth of the 0.027 m radius"
+        );
+        for joint in [1, 2, 3] {
+            for sign in [1.0, -1.0] {
+                assert!(
+                    read(joint, sign * 2.6e-11).2 && !read(joint, sign * 2.8e-11).2,
+                    "at joint {joint} with sign {sign} the switch is not at 2.7e-11 m"
+                );
+            }
+        }
+
+        // The run's own coverage gate is a different, much looser test (a millionth of the fore
+        // area, 13.5 nm of radius here), and it owns every step anyone could draw. Below it the
+        // stepped tube still joins the run and `lay_out` is what refuses the body; above it the
+        // run never forms. Both give the same reading, so this pins which one owns which range.
+        let run_segments = |drop_m: f64| {
+            let rocket = at_joint(3, drop_m);
+            model(&rocket)
+                .supersonic_run
+                .as_ref()
+                .map(|run| run.segments.len())
+        };
+        for drop_m in [1e-8, -1e-8] {
+            assert_eq!(
+                run_segments(drop_m),
+                Some(4),
+                "{drop_m} m is inside the gate"
+            );
+        }
+        for drop_m in [2e-8, -2e-8] {
+            assert_eq!(run_segments(drop_m), None, "{drop_m} m is outside the gate");
+        }
+
+        // At a joint where the slope **does** change, the binding constraint is not the merge
+        // tolerance but the corner ordering (`shock_expansion::lay_out`'s `corner_x <= x + 1e-12 *
+        // length_m`), so a step **up** is refused at 1e-12 × the body's length × the change of
+        // slope. On the tests' finned rocket (the same body with a 0.027 → 0.022 m boattail, so
+        // 1.3 m and a slope change of 0.1), that is 1.3e-13 m, 208× finer than the 2.7e-11 m a
+        // tube-to-tube joint needs, and it costs more: −11.34% and 1.095 calibres. The threshold
+        // is a pair, not a number, and this is the common shape it bites on.
+        let boattail = |drop_m: f64| {
+            let mut rocket = crate::testing::finned_rocket(4);
+            rocket.reference_diameter = ReferenceDiameter::Custom { diameter_m: 0.054 };
+            rocket.stages[0].components[2].part = body_part(0.05, 0.027 - drop_m, 0.022);
+            let model = model(&rocket);
+            let force = model
+                .normal_force(&flow(3.0, 4f64.to_radians(), 0.0))
+                .unwrap();
+            (
+                force.coefficient,
+                force.cp_station_m.unwrap() / model.reference_diameter_m(),
+                model.supersonic_body().is_some(),
+            )
+        };
+        let (boattail_flush, boattail_flush_cp, marched) = boattail(0.0);
+        assert!(marched, "flush, the method covers the boattailed body too");
+        let (mut low, mut high) = (1e-18, 1e-8);
+        assert!(boattail(-low).2 && !boattail(-high).2);
+        while high - low > 1e-6 * high {
+            let mid = 0.5 * (low + high);
+            if boattail(-mid).2 {
+                low = mid
+            } else {
+                high = mid
+            }
+        }
+        assert!(
+            (high / (1e-12 * 1.3 * 0.1) - 1.0).abs() < 2e-4,
+            "a step up at the boattail's joint is refused at {high} m, not 1e-12 × 1.3 m × 0.1"
+        );
+        assert!(
+            boattail(2.6e-11).2 && !boattail(2.8e-11).2,
+            "stepping down at that joint, the merge tolerance still binds"
+        );
+        for drop_m in [-1.4e-13, -2.8e-11, 2.8e-11] {
+            let (force, cp, marched) = boattail(drop_m);
+            assert!(
+                !marched,
+                "a {drop_m} m step at the boattail kept the method"
+            );
+            let (force, calibers) = (force / boattail_flush - 1.0, cp - boattail_flush_cp);
+            assert!(
+                (force + 0.113_409_121).abs() < 5e-6 && (calibers - 1.095_116_4).abs() < 5e-5,
+                "a {drop_m} m step at the boattail moves the force {force:.9} and the center of \
+                 pressure {calibers:.7} calibres"
+            );
+        }
+    }
+
+    #[test]
+    fn a_body_the_method_cannot_finish_keeps_slender_body_terms() {
+        let at = |m: &AeroModel, mach| body_values(m, mach);
+        // A flare the method cannot take (a boattail flies it since M1.8e4, a conical flare
+        // since M1.8e17), a vertical tip steeper than the blunt tip's handover all the way to
+        // its base (a power-series nose one radius long;
+        // longer ones fly the method since M1.8e7), a step in radius behind the nose.
+        let mut rocket = straight_rocket();
+        // A conical flare flies the method since M1.8e17
+        // (`a_flared_body_flies_the_method`); any other widening shape still ends the run.
+        rocket.stages[0].components[2].part = body_part(0.05, 0.027, 0.032);
+        if let Part::Transition(transition) = &mut rocket.stages[0].components[2].part {
+            transition.shape = NoseShape::Ogive { radius_ratio: 1.0 };
+        }
+        rocket.stages[0].components[3].part = body_part(0.3, 0.032, 0.032);
+        let flared = model(&rocket);
+        // A boattail followed by a flare (a lip), and a boattail at a step down: each leaves a
+        // body with a slope of its own behind the run.
+        let mut rocket = crate::testing::finned_rocket(4);
+        rocket.stages[0]
+            .components
+            .push(component("lip", body_part(0.01, 0.022, 0.025), None));
+        let lipped = model(&rocket);
+        let mut rocket = crate::testing::finned_rocket(4);
+        rocket.stages[0].components[2].part = body_part(0.05, 0.026, 0.022);
+        let stepped_boattail = model(&rocket);
+        let mut rocket = straight_rocket();
+        rocket.stages[0].components[0].part =
+            nose(NoseShape::PowerSeries { exponent: 0.5 }, 0.027, 0.027);
+        let blunt = model(&rocket);
+        let mut rocket = straight_rocket();
+        rocket.stages[0].components[1].part = body_part(0.7, 0.03, 0.03);
+        let stepped = model(&rocket);
+        for model in [&flared, &lipped, &stepped_boattail, &blunt, &stepped] {
+            assert!(model.supersonic_body().is_none());
+            assert_eq!(at(model, 3.0), at(model, 0.5));
+        }
+    }
+
+    #[test]
+    fn clones_share_the_table_and_compare_equal() {
+        let model = model(&straight_rocket());
+        let clone = model.clone();
+        assert_eq!(model, clone);
+        let built = model.supersonic_body().unwrap() as *const SupersonicBody;
+        assert_eq!(model, clone);
+        assert!(std::ptr::eq(built, clone.supersonic_body().unwrap()));
+    }
+
+    /// Two models built apart share a table only where the table follows from the same segments
+    /// and reference area: a drag scale doesn't stop it; another shape, another reference area or
+    /// a body the method doesn't take does.
+    #[test]
+    fn models_built_apart_share_the_table_only_on_the_same_body() {
+        let rocket = straight_rocket();
+        let nominal = model(&rocket);
+        let alone = model(&rocket).with_drag_scale(1.1).unwrap();
+        let built = nominal.supersonic_body().unwrap() as *const SupersonicBody;
+        assert!(!std::ptr::eq(built, alone.supersonic_body().unwrap()));
+        let mut scaled = model(&rocket).with_drag_scale(1.1).unwrap();
+        assert!(!scaled.supersonic_table_built());
+        assert!(scaled.share_supersonic_table(&nominal));
+        assert!(scaled.supersonic_table_built());
+        assert!(std::ptr::eq(built, scaled.supersonic_body().unwrap()));
+        // The other way round: the model that shares builds the table for the one it shares.
+        let first = model(&rocket);
+        let mut second = model(&rocket);
+        assert!(second.share_supersonic_table(&first));
+        assert!(!first.supersonic_table_built());
+        let built = second.supersonic_body().unwrap() as *const SupersonicBody;
+        assert!(first.supersonic_table_built());
+        assert!(std::ptr::eq(built, first.supersonic_body().unwrap()));
+        // A longer nose covers other segments; a blunt one has no table.
+        let mut longer = rocket.clone();
+        longer.stages[0].components[0].part =
+            nose(NoseShape::Ogive { radius_ratio: 1.0 }, 0.4, 0.027);
+        let mut longer = model(&longer);
+        assert!(!longer.share_supersonic_table(&nominal));
+        assert!(!std::ptr::eq(
+            nominal.supersonic_body().unwrap(),
+            longer.supersonic_body().unwrap()
+        ));
+        // The same shape on another reference area: the table's shares are per that area.
+        let mut wider = rocket.clone();
+        wider.reference_diameter = ReferenceDiameter::Custom { diameter_m: 0.07 };
+        let mut wider = model(&wider);
+        assert!(!wider.share_supersonic_table(&nominal));
+        assert!(!wider.supersonic_table_built());
+        let mut blunt = rocket;
+        blunt.stages[0].components[0].part =
+            nose(NoseShape::PowerSeries { exponent: 0.5 }, 0.027, 0.027);
+        let mut blunt = model(&blunt);
+        assert!(!blunt.share_supersonic_table(&nominal));
+        assert!(blunt.supersonic_body().is_none());
+    }
+
+    /// Each part's share of the drag at Mach 0.3 at sea level, by id, and their sum.
+    fn shares(rocket: &hpr_design::Rocket) -> (Vec<(String, Drag)>, f64) {
+        let m = model(rocket);
+        let conditions = DragConditions::coasting(0.3 * 340.294 / 1.4607e-5);
+        let parts: Vec<(String, Drag)> = m
+            .buildup_components(&Flow::axial(0.3), &conditions)
+            .unwrap()
+            .into_iter()
+            .map(|part| (part.id, part.drag))
+            .collect();
+        let total = m.drag(&Flow::axial(0.3), &conditions).unwrap();
+        let sum: f64 = parts.iter().map(|(_, d)| d.zero_lift_coefficient).sum();
+        close(total.zero_lift_coefficient, sum, 1e-12, "the parts add up");
+        (parts, total.zero_lift_coefficient)
+    }
+
+    fn share(parts: &[(String, Drag)], id: &str) -> Drag {
+        parts
+            .iter()
+            .find(|(i, _)| i == id)
+            .map(|(_, d)| *d)
+            .unwrap()
+    }
+
+    fn stated(coefficient: f64, include_children: bool) -> Option<hpr_design::DragOverride> {
+        Some(hpr_design::DragOverride {
+            coefficient,
+            include_children,
+        })
+    }
+
+    /// A nose, a tube 27 mm in radius and a tube 22 mm in radius behind it, a step down between
+    /// them, three fins on the aft tube.
+    fn stepped_rocket() -> hpr_design::Rocket {
+        let mut rocket = finned_rocket(3);
+        let components = &mut rocket.stages[0].components;
+        components.remove(2);
+        rocket
+    }
+
+    /// ADR-167: a stated coefficient replaces all of a part's own drag, on the reference area, once
+    /// per fin; a step down goes with the part ahead of it, whose aft face it is; a part covered
+    /// by its parent's override has none; a stage's is a term of its own.
+    #[test]
+    fn a_stated_drag_coefficient_replaces_the_part_s_own() {
+        let plain = stepped_rocket();
+        let (before, total) = shares(&plain);
+        let step = base_drag_coefficient(0.3).unwrap() * (1.0 - (0.022_f64 / 0.027).powi(2));
+        // The tail's share holds the step down from the body, a flat face's base drag.
+        assert!(
+            share(&before, "tail").pressure >= step,
+            "{:?}",
+            share(&before, "tail")
+        );
+
+        // Three fins at 0.5: 1.5 in place of the fins' own drag.
+        let mut fins = plain.clone();
+        fins.stages[0].components[2].children[0].drag_override = stated(0.5, false);
+        let (after, with) = shares(&fins);
+        close(share(&after, "fins").stated, 1.5, 1e-15, "per fin");
+        close(
+            with,
+            total - share(&before, "fins").zero_lift_coefficient + 1.5,
+            1e-12,
+            "fins",
+        );
+
+        // The body at 0.2: the step down behind it goes too.
+        let mut body = plain.clone();
+        body.stages[0].components[1].drag_override = stated(0.2, false);
+        let (after, with) = shares(&body);
+        close(
+            share(&after, "body").zero_lift_coefficient,
+            0.2,
+            1e-15,
+            "body",
+        );
+        close(
+            share(&before, "tail").zero_lift_coefficient
+                - share(&after, "tail").zero_lift_coefficient,
+            step,
+            1e-12,
+            "the step goes with the body",
+        );
+        close(
+            with,
+            total - share(&before, "body").zero_lift_coefficient - step + 0.2,
+            1e-12,
+            "body",
+        );
+
+        // The tail at 0.2: the step down ahead of it stays, its base and fins do not change.
+        let mut tail = plain.clone();
+        tail.stages[0].components[2].drag_override = stated(0.2, false);
+        let (after, with_tail) = shares(&tail);
+        let own = share(&after, "tail");
+        close(own.stated, 0.2, 1e-15, "tail");
+        close(own.pressure, step, 1e-12, "the step stays");
+        assert_eq!((own.friction, own.base, own.parasitic), (0.0, 0.0, 0.0));
+        assert_eq!(share(&after, "fins"), share(&before, "fins"));
+        close(
+            with_tail,
+            total - share(&before, "tail").zero_lift_coefficient + step + 0.2,
+            1e-12,
+            "tail",
+        );
+
+        // Covering its children, the fins go too.
+        tail.stages[0].components[2].drag_override = stated(0.2, true);
+        let (after, _) = shares(&tail);
+        assert_eq!(share(&after, "fins").zero_lift_coefficient, 0.0);
+
+        // A lug and two buttons on the body: each counted per instance when stated, and gone
+        // with the body's drag when it covers its children.
+        let mut rails = plain.clone();
+        rails.stages[0].components[1].children = vec![
+            component(
+                "lug",
+                Part::LaunchLug(LaunchLug {
+                    length_m: 0.05,
+                    outer_radius_m: 0.004,
+                    thickness_m: 0.0005,
+                    angle_rad: 0.0,
+                    count: 1,
+                    spacing_m: 0.0,
+                    material: material(),
+                }),
+                Some(Position::Middle { aft_offset_m: 0.0 }),
+            ),
+            component(
+                "buttons",
+                Part::RailButton(RailButton {
+                    outer_diameter_m: 0.01,
+                    inner_diameter_m: 0.006,
+                    height_m: 0.008,
+                    base_height_m: 0.002,
+                    flange_height_m: 0.002,
+                    screw_height_m: 0.0,
+                    angle_rad: 0.0,
+                    count: 2,
+                    spacing_m: 0.2,
+                    material: material(),
+                }),
+                Some(Position::Middle { aft_offset_m: 0.0 }),
+            ),
+        ];
+        let (before_rails, total_rails) = shares(&rails);
+        for id in ["lug", "buttons"] {
+            assert!(share(&before_rails, id).zero_lift_coefficient > 0.0, "{id}");
+        }
+        rails.stages[0].components[1].children[1].drag_override = stated(0.5, false);
+        let (after, _) = shares(&rails);
+        close(share(&after, "buttons").stated, 1.0, 1e-15, "per button");
+        rails.stages[0].components[1].children[1].drag_override = None;
+        rails.stages[0].components[1].drag_override = stated(0.2, true);
+        let (after, with) = shares(&rails);
+        for id in ["lug", "buttons"] {
+            assert_eq!(share(&after, id).zero_lift_coefficient, 0.0, "{id}");
+        }
+        close(
+            with,
+            total_rails
+                - share(&before_rails, "body").zero_lift_coefficient
+                - share(&before_rails, "lug").zero_lift_coefficient
+                - share(&before_rails, "buttons").zero_lift_coefficient
+                - step
+                + 0.2,
+            1e-12,
+            "body covering its lug and buttons",
+        );
+
+        // A stage's coefficient adds a term; covering everything, it is the whole drag.
+        let mut stage = plain.clone();
+        stage.stages[0].drag_override = stated(0.1, false);
+        let (after, with) = shares(&stage);
+        close(share(&after, "stage").stated, 0.1, 1e-15, "stage");
+        close(with, total + 0.1, 1e-12, "stage added");
+        stage.stages[0].drag_override = stated(0.1, true);
+        let (_, with) = shares(&stage);
+        close(with, 0.1, 1e-15, "stage alone");
+
+        // The drag scale scales it with the rest.
+        let m = model(&stage).with_drag_scale(2.0).unwrap();
+        let conditions = DragConditions::coasting(0.3 * 340.294 / 1.4607e-5);
+        let scaled = m.drag(&Flow::axial(0.3), &conditions).unwrap();
+        close(scaled.zero_lift_coefficient, 0.2, 1e-15, "scaled");
+    }
+
+    /// A stated coefficient that is negative or not a number is refused by name, and so is one on
+    /// a pod set or in a pod, which OpenRocket hasn't been measured on (ADR-167).
+    #[test]
+    fn a_stated_drag_coefficient_out_of_range_or_in_a_pod_is_refused() {
+        for bad in [-0.1, f64::NAN, f64::INFINITY] {
+            let mut rocket = stepped_rocket();
+            rocket.stages[0].components[1].drag_override = stated(bad, false);
+            match AeroModel::new(&rocket.layout().unwrap()) {
+                Err(AeroError::InComponent { id, source }) => {
+                    assert_eq!(id, "body");
+                    assert!(
+                        matches!(
+                            *source,
+                            AeroError::Domain {
+                                what: "stated drag coefficient",
+                                ..
+                            }
+                        ),
+                        "{source:?}"
+                    );
+                }
+                other => panic!("{bad}: {other:?}"),
+            }
+        }
+        let mut rocket = stepped_rocket();
+        rocket.stages[0].drag_override = stated(-1.0, true);
+        assert!(matches!(
+            AeroModel::new(&rocket.layout().unwrap()),
+            Err(AeroError::InComponent { ref id, .. }) if id == "stage"
+        ));
+        // Refused wherever it is, even where it would change nothing: an inner part, a covered
+        // fin set.
+        let mut rocket = stepped_rocket();
+        rocket.stages[0].components[2].drag_override = stated(0.1, true);
+        rocket.stages[0].components[2].children[0].drag_override = stated(f64::NAN, false);
+        assert!(matches!(
+            AeroModel::new(&rocket.layout().unwrap()),
+            Err(AeroError::InComponent { ref id, .. }) if id == "fins"
+        ));
+        let refused = |rocket: &hpr_design::Rocket, why: &str| match AeroModel::new(
+            &rocket.layout().unwrap(),
+        ) {
+            Err(AeroError::InComponent { source, .. }) => {
+                assert!(
+                    matches!(*source, AeroError::Unsupported(ref what) if what == why),
+                    "{source:?}"
+                );
+            }
+            other => panic!("{why}: {other:?}"),
+        };
+        for (pod_set, part) in [(true, 0), (false, 1)] {
+            let mut rocket = podded_rocket(2);
+            let pods = rocket.stages[0].components[1].children.last_mut().unwrap();
+            if pod_set {
+                pods.drag_override = stated(0.1, true);
+            } else {
+                pods.children[part].drag_override = stated(0.1, false);
+            }
+            refused(&rocket, "a drag override on a pod set or in a pod");
+        }
+        // Covering a pod set, from the body it is on or from the stage.
+        let mut rocket = podded_rocket(2);
+        rocket.stages[0].components[1].drag_override = stated(0.1, true);
+        refused(&rocket, "a drag override covering a pod set");
+        let mut rocket = podded_rocket(2);
+        rocket.stages[0].drag_override = stated(0.1, true);
+        refused(&rocket, "a drag override covering a pod set");
+        // Not covering, the pods keep their own drag.
+        let mut rocket = podded_rocket(2);
+        rocket.stages[0].components[1].drag_override = stated(0.1, false);
+        assert!(AeroModel::new(&rocket.layout().unwrap()).is_ok());
+        // A tube fin set's, never measured.
+        let mut rocket = tube_finned_rocket(6, 0.0762, 0.011, 0.0005);
+        rocket.stages[0].components[3].children[1].drag_override = stated(0.1, false);
+        refused(&rocket, "a drag override on a tube fin set");
+    }
+
+    /// A layout whose parents loop, which `Rocket::layout` never makes, still builds a model in
+    /// finite time: the walk up to a covering override stops after one step per component.
+    #[test]
+    fn a_looped_layout_does_not_hang_the_override_walk() {
+        let mut lugged = stepped_rocket();
+        lugged.stages[0].components[1].children.push(component(
+            "lug",
+            Part::LaunchLug(LaunchLug {
+                length_m: 0.05,
+                outer_radius_m: 0.004,
+                thickness_m: 0.0005,
+                angle_rad: 0.0,
+                count: 1,
+                spacing_m: 0.0,
+                material: material(),
+            }),
+            Some(Position::Middle { aft_offset_m: 0.0 }),
+        ));
+        let mut layout = lugged.layout().unwrap();
+        let (lug, _) = layout.find("lug").unwrap();
+        layout.components[lug].parent = Some(lug);
+        // Built or refused, it returns.
+        let _ = AeroModel::new(&layout);
+    }
+
+    /// A part whose drag is stated is never computed: a shape the buildup has no curve for flies.
+    #[test]
+    fn a_stated_drag_coefficient_flies_a_shape_the_buildup_refuses() {
+        let mut rocket = stepped_rocket();
+        // A bulged secant ogive, which the buildup refuses (ADR-028).
+        rocket.stages[0].components[0].part =
+            nose(NoseShape::Ogive { radius_ratio: 0.8 }, 0.25, 0.027);
+        let conditions = DragConditions::coasting(0.3 * 340.294 / 1.4607e-5);
+        assert!(matches!(
+            model(&rocket).drag(&Flow::axial(0.3), &conditions),
+            Err(AeroError::InComponent { .. })
+        ));
+        rocket.stages[0].components[0].drag_override = stated(0.3, false);
+        let (parts, _) = shares(&rocket);
+        close(
+            share(&parts, "nose").zero_lift_coefficient,
+            0.3,
+            1e-15,
+            "nose",
+        );
+    }
+}

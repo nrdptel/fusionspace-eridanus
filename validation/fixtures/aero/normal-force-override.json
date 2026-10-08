@@ -1,0 +1,188 @@
+{
+  "columns": [
+    {
+      "alpha_deg": 0.0,
+      "mach_from": 0.01,
+      "mach_numbers": 2500,
+      "mach_to": 25.0
+    },
+    {
+      "alpha_deg": 2.0,
+      "mach_from": 0.01,
+      "mach_numbers": 2500,
+      "mach_to": 25.0
+    },
+    {
+      "alpha_deg": 4.0,
+      "mach_from": 0.01,
+      "mach_numbers": 2499,
+      "mach_to": 24.99
+    }
+  ],
+  "compared_rows": [
+    {
+      "cp_station_m": 1.6826008581984613,
+      "mach": 0.1,
+      "slope_per_rad": 6.090126475974632
+    },
+    {
+      "cp_station_m": 1.6826008581984613,
+      "mach": 0.3,
+      "slope_per_rad": 6.090126475974632
+    },
+    {
+      "cp_station_m": 1.6826008581984613,
+      "mach": 0.5,
+      "slope_per_rad": 6.090126475974632
+    },
+    {
+      "cp_station_m": 1.6826008581984613,
+      "mach": 0.7,
+      "slope_per_rad": 6.090126475974632
+    },
+    {
+      "cp_station_m": 1.6826008581984613,
+      "mach": 0.8,
+      "slope_per_rad": 6.090126475974632
+    },
+    {
+      "cp_station_m": 1.6826008581984613,
+      "mach": 0.9,
+      "slope_per_rad": 6.090126475974632
+    },
+    {
+      "cp_station_m": 1.755924521109215,
+      "mach": 0.95,
+      "slope_per_rad": 6.942430497072833
+    },
+    {
+      "cp_station_m": 1.8292481840199648,
+      "mach": 1.0,
+      "slope_per_rad": 7.794734518171045
+    },
+    {
+      "cp_station_m": 1.9025718469307185,
+      "mach": 1.05,
+      "slope_per_rad": 8.647038539269234
+    },
+    {
+      "cp_station_m": 1.8870142551765707,
+      "mach": 1.1,
+      "slope_per_rad": 8.484465241962369
+    },
+    {
+      "cp_station_m": 1.8578467446935918,
+      "mach": 1.2,
+      "slope_per_rad": 8.170669252670871
+    },
+    {
+      "cp_station_m": 1.8293102287202425,
+      "mach": 1.3,
+      "slope_per_rad": 7.871886947739566
+    },
+    {
+      "cp_station_m": 1.756511281458346,
+      "mach": 1.5,
+      "slope_per_rad": 7.15232077869202
+    },
+    {
+      "cp_station_m": 1.663377387969674,
+      "mach": 1.75,
+      "slope_per_rad": 6.399248066614547
+    },
+    {
+      "cp_station_m": 1.5808454744208833,
+      "mach": 2.0,
+      "slope_per_rad": 5.857701420476399
+    }
+  ],
+  "design": "rocketpy-calisto-tests-motor-at-minus-1.373.json",
+  "flights": [
+    {
+      "apogee_east_m": -243.61000965804487,
+      "apogee_m": 2794.209607047742,
+      "apogee_north_m": 485.3710227727228,
+      "apogee_time_s": 23.80940594056768,
+      "burnout_angle_of_attack_deg": 0.04622109697002471,
+      "max_mach": 0.7463233636976543,
+      "normal_force": "hpr's own",
+      "past_4_degrees_s": 2.114667586795959
+    },
+    {
+      "apogee_east_m": -243.59151181573378,
+      "apogee_m": 2794.208627501863,
+      "apogee_north_m": 485.38491052083583,
+      "apogee_time_s": 23.80934960360194,
+      "burnout_angle_of_attack_deg": 0.045943576463699426,
+      "max_mach": 0.7463235099466099,
+      "normal_force": "hpr's own as a table at the export's angles and Mach numbers",
+      "past_4_degrees_s": 2.175665676126335
+    },
+    {
+      "apogee_east_m": -255.9790097137715,
+      "apogee_m": 2793.094570373818,
+      "apogee_north_m": 485.4358472477068,
+      "apogee_time_s": 23.79056277630766,
+      "burnout_angle_of_attack_deg": 0.04633635155266366,
+      "max_mach": 0.7463476636133487,
+      "normal_force": "the RASAero II export",
+      "past_4_degrees_s": 2.207515509013059
+    },
+    {
+      "apogee_east_m": -255.9100689304894,
+      "apogee_m": 2793.1001500685115,
+      "apogee_north_m": 485.433867564162,
+      "apogee_time_s": 23.79057536282178,
+      "burnout_angle_of_attack_deg": 0.046352261961863886,
+      "max_mach": 0.7463475648661787,
+      "normal_force": "the export's 0 degree column at the compared Mach numbers",
+      "past_4_degrees_s": 2.2051377777671437
+    }
+  ],
+  "generator": "cargo xtask aero",
+  "note": "RASAero II's Calisto export read by hpr_aero::NormalForceTable::from_rasaero_csv (slopes per radian on RASAero II's reference, the largest body section, which is Calisto's; centers of pressure m aft of the nose tip), and Calisto flown four ways. compared_rows hold the 0 degree column at the Mach numbers of normal-force-vs-mach.json, which must match its reference values. reread is every row of the export at a positive angle read again apart from the library: the largest relative difference of the table's CN and CP from the row's. table_sha256 hashes the table as serialized. potential_slope_spread is the largest relative difference of the export's CN Potential over the angle between 2 and 4 degrees; viscous_growth is CN Viscous at 4 degrees over 2 degrees (4 for a part in the square of the angle).",
+  "potential_slope_spread": 2.3314683517128287e-15,
+  "reread": {
+    "cn_max_rel": 2.220446049250313e-16,
+    "cp_max_rel": 0.0,
+    "rows": 4999
+  },
+  "setup": "Calisto (the design M1.8a compared) on its own motor, from a 5.2 m rail at 85 degrees heading north at Spaceport America (32.990254 N, 106.974998 W, 1400 m), in the 1976 standard atmosphere with a constant 5 m/s wind from the west, hpr's own drag; the largest Mach number, and the time in free flight before apogee past 4 degrees (the export's last angle), are taken at the integrator's step ends.",
+  "source": "RASAero II export for Calisto with the 2018 notebook's fins, RocketPy's first commit's data/calisto/CD Test.CSV (da91db9e, 2018). A code, not a measurement.",
+  "source_sha256": "a739d313f54f298ce02011fb35e73c2a71bb876468233870a3777127b85e8114",
+  "table_sha256": "cff12b592211a52a53040ecb80fa16423037752c6d6b2090cc1ff7e438ef24c3",
+  "viscous_growth": [
+    {
+      "mach": 0.91,
+      "ratio": 3.9951281005196453
+    },
+    {
+      "mach": 1.0,
+      "ratio": 3.9951281005196626
+    },
+    {
+      "mach": 1.1,
+      "ratio": 3.9951281005196564
+    },
+    {
+      "mach": 1.3,
+      "ratio": 3.9951281005196564
+    },
+    {
+      "mach": 1.5,
+      "ratio": 3.897403381133617
+    },
+    {
+      "mach": 2.0,
+      "ratio": 3.1619818643950066
+    },
+    {
+      "mach": 3.0,
+      "ratio": 1.7341413513916804
+    },
+    {
+      "mach": 4.0,
+      "ratio": 1.052221459220798
+    }
+  ]
+}

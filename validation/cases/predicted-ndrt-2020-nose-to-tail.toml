@@ -1,0 +1,100 @@
+# NDRT 2020: RocketPy's example flown from the pad to the ground, each code with its own drag
+# (`validation/oracles/rocketpy/flight.py --own-drag`, M2.1c2).
+#
+# Predicted mode (ADR-023): hpr flies its own drag, from the design's geometry, where the same-drag
+# case flies the declared table (its normal force is its own in both modes, so only the drag
+# differs); the reference is RocketPy flying the example's own drag as RocketPy 1.13.0 flies the
+# example (a constant C_D 0.44, power-on and power-off), with RocketPy's own normal force.
+# Everything else is the same-drag case's (`flight-ndrt-2020-nose-to-tail.toml`): the site, the
+# declared wind, the rail, the parachutes, the motor, RocketPy's gravity and atmosphere, and the
+# same checks that hpr's design is the rocket the reference flew. So a difference here is the
+# same-drag difference plus the two codes' drag, and neither drag is the truth. hpr's is for the
+# design as transcribed: its fin thickness and edges and its surface finish are placeholders where
+# RocketPy's example records none (`xtask/src/designs.rs`), so a miss is not a gap for hpr to close
+# toward the example's drag.
+#
+# Every metric carries M2.1's 3% as a target: reported as within or outside it, never gated, so a
+# miss does not fail the run and a number that moves still shows in the committed report. The
+# misses, and why:
+#
+# - apogee_agl_m (+10.30%), apogee_time_s (+6.53%), flight_time_s (+6.87%), apogee_drift_m
+#   (+12.26%) and landing_drift_m (+12.65%): the drag. hpr's coasting C_D0 at Mach 0.3, sea level,
+#   is 0.318 (computed as `cargo xtask aero` computes it, pinned by
+#   `aero::tests::the_drags_the_predicted_cases_quote_are_hpr_s`), 28% below the example's 0.44.
+#   Flown on the same drag the apogees agree to +0.064% (`flight-ndrt-2020-nose-to-tail.toml`). So
+#   it flies 10% higher and comes down later and further. On the same drag the apogee drift is
+#   -4.33%, a measured model difference (ADR-026), which the drag's extra height more than offsets
+#   here.
+# - max_acceleration_m_s2 (+83.06%) and max_acceleration_time_s (+9.65%): the whole flight's peak is
+#   the main parachute opening, where RocketPy counts the canopy's added mass and hpr does not
+#   (ADR-012; +83.06% and not scored in the same-drag case). Its time is later because the apogee
+#   is. The power-on peak, the flight load, is within target at +0.66%.
+# - series_height_rms_m (116.1 m, target 38.1) and series_speed_rms_m_s (6.8 m/s, target 5.5): the
+#   drag again, over the whole trace: hpr climbs 131 m higher and lands 5.9 s later, and while
+#   RocketPy's rocket is already under its main hpr's is still falling faster under the drogue.
+#   Flown on the same drag they are 2.4 m and 0.12 m/s.
+id = "predicted-ndrt-2020-nose-to-tail"
+title = "NDRT 2020 from the pad to the ground, predicted: hpr's own aerodynamics"
+reference = "validation/fixtures/flight/rocketpy-whole-flight-own-drag.json"
+reference_case = "ndrt-2020-nose-to-tail"
+
+[flight.whole_flight]
+design = "rocketpy-ndrt-2020-nose-to-tail"
+configuration = "example"
+mode = "predicted"
+
+[metrics.apogee_agl_m]
+relative = 0.03
+
+[metrics.apogee_time_s]
+relative = 0.03
+
+[metrics.max_speed_m_s]
+relative = 0.03
+
+[metrics.max_mach]
+relative = 0.03
+
+[metrics.max_acceleration_m_s2]
+relative = 0.03
+
+[metrics.max_acceleration_time_s]
+relative = 0.03
+
+[metrics.max_acceleration_power_on_m_s2]
+relative = 0.03
+
+[metrics.rail_exit_speed_m_s]
+relative = 0.03
+
+[metrics.rail_exit_time_s]
+relative = 0.03
+
+[metrics.burnout_altitude_agl_m]
+relative = 0.03
+
+[metrics.burnout_speed_m_s]
+relative = 0.03
+
+[metrics.flight_time_s]
+relative = 0.03
+
+[metrics.apogee_drift_m]
+relative = 0.03
+
+[metrics.landing_drift_m]
+relative = 0.03
+
+[metrics.impact_speed_m_s]
+relative = 0.03
+
+# The time-series RMS (M2.1d1): hpr's height and speed at the reference's 120 series times, from
+# ignition until hpr lands, less RocketPy's; the reference value is 0, exact agreement. Each is held
+# (a target) to 3% of the scale of its trace, the reference's apogee (1272.7 m) and max speed
+# (184.1 m/s), rounded down to 0.1: M2.1's 3% for a point metric, applied to a whole trace, so a
+# trace passes only if it is on average no further off than its peak may be.
+[metrics.series_height_rms_m]
+absolute = 38.1
+
+[metrics.series_speed_rms_m_s]
+absolute = 5.5

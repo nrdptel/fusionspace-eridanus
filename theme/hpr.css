@@ -1,0 +1,24 @@
+/* SPDX-License-Identifier: MIT OR Apache-2.0 */
+/* hpr-sim's additions to the product system's mdBook theme (ADR-164). The title block that ends
+   the landing page: a 2 px ink border, as the system's line table gives the title block, and its
+   fields in Cascadia Mono, as data. */
+.title-block { margin-top: 3em; border: 2px solid var(--fg); }
+.title-block table { width: 100%; margin: 0; }
+.title-block thead { display: none; }
+.title-block td { padding: 0.35em 0.8em; vertical-align: top; border-top: 1px solid var(--table-border-color); }
+.title-block tr:first-child td { border-top: 0; }
+.title-block td:first-child { width: 9em; font-family: 'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.06em; padding-top: 0.6em; }
+.title-block tbody tr:nth-child(2n) { background: transparent; }
+
+/* Nothing cut off at any width (M0.7a1; `cargo xtask site` checks every page from 320 to 1,920 px).
+   The menu bar's title: between the buttons, mdBook cuts it short with an ellipsis on a window
+   narrower than about 500 px. There it takes a row of its own under the buttons, which mdBook's
+   menu bar already wraps to, and a heading jumped to clears the taller bar. */
+@media only screen and (max-width: 519px) {
+    #mdbook-menu-bar .menu-title { order: 1; flex: 1 0 100%; white-space: normal; overflow: visible; line-height: 1.4; padding-block-end: 0.3em; }
+    #mdbook-menu-bar .right-buttons { margin-inline-start: auto; }
+    :target { scroll-margin-top: calc(var(--menu-bar-height) + 45px); }
+}
+/* Table cells get the paragraphs' line height, so a superscript (2⁵³), which mdBook gives no line
+   height of its own, stays inside its line instead of rising into the one above. */
+.content td, .content th { line-height: 1.45em; }

@@ -1,0 +1,28 @@
+[package]
+name = "hpr-py"
+description = "Python bindings for hpr-sim."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+name = "hpr_py"
+crate-type = ["cdylib"]
+# The bindings are tested from Python (`crates/hpr-py/tests/`, run by pytest on a wheel maturin
+# built). A Rust test binary of this crate would have to find libpython when it runs.
+test = false
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+# `parallel`: `MonteCarlo` flies its flights on every core, as `hpr mc` does (ADR-183).
+hpr = { workspace = true, features = ["parallel"] }
+numpy.workspace = true
+pyo3.workspace = true
+serde.workspace = true
+serde_json.workspace = true

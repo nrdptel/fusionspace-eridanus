@@ -1,0 +1,1533 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SimFlight",
+  "description": "`hpr sim`: what was flown, from where, and how the flight went.",
+  "type": "object",
+  "properties": {
+    "design": {
+      "description": "The design and the configuration flown.",
+      "$ref": "#/$defs/SimDesign"
+    },
+    "events": {
+      "description": "The flight's events, in order.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/SimEvent"
+      }
+    },
+    "exports": {
+      "description": "The recording files written, in the order given.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Export"
+      }
+    },
+    "flags": {
+      "description": "Where the flight went past what hpr's numbers have been checked for (the operating\nenvelope, decision record ADR-179): empty for a flight inside it all.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/SimFlag"
+      }
+    },
+    "issues": {
+      "description": "The known errors in hpr's drag the flight meets, each by its issue number (decision\nrecord ADR-180): empty for a flight that meets none.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/SimIssue"
+      }
+    },
+    "launch": {
+      "description": "The launch site, rail and wind.",
+      "$ref": "#/$defs/Launch"
+    },
+    "motors": {
+      "description": "The motors flown.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/SimMotor"
+      }
+    },
+    "notes": {
+      "description": "What the flight leaves out of the design, such as its parachutes, and what to make of the\nnumbers it leaves out.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "plot": {
+      "description": "The `--plot` figure written, if one was: an SVG of the altitude, speed and acceleration\nagainst time, the events marked.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "recovery": {
+      "description": "The recovery devices flown, in the file's order: a `.ork`'s parachutes and streamers as\nOpenRocket flies them (decision record ADR-153). Empty when none is flown; the notes say\nwhy.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/SimDevice"
+      }
+    },
+    "summary": {
+      "description": "The flight's metrics.",
+      "$ref": "#/$defs/Summary"
+    },
+    "tool": {
+      "title": "Tool",
+      "description": "The program that wrote a document or a file: the title block every `--json` document, every\nfile `hpr` writes and `hpr --version` carry (ADR-164; the product system's `data.md`: \"Every\nexport carries the designation and version of the tool that made it\").",
+      "type": "object",
+      "properties": {
+        "designation": {
+          "description": "Its designation in the FusionSpace product system: `FS-ACHERNAR · SW · TOOL 001`.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The program: `FusionSpace HPR`.",
+          "type": "string"
+        },
+        "version": {
+          "description": "Its version, such as `0.1.0`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "designation"
+      ]
+    },
+    "warnings": {
+      "description": "What the design's or the motor file's reader accepted with a caveat, and what the design's\nchecks found unusual but buildable.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/InputWarning"
+      }
+    }
+  },
+  "required": [
+    "tool",
+    "design",
+    "motors",
+    "recovery",
+    "launch",
+    "summary",
+    "events",
+    "exports",
+    "notes",
+    "warnings",
+    "flags",
+    "issues"
+  ],
+  "$defs": {
+    "Apogee": {
+      "description": "The highest point.",
+      "type": "object",
+      "properties": {
+        "gain_m": {
+          "description": "The height gained from where the center of gravity stood at launch, m, as OpenRocket's\naltitude counts.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "height_above_ground_m": {
+          "description": "The height above the launch site, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "time_s": {
+          "description": "When, s after launch.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "height_above_ground_m"
+      ]
+    },
+    "Delay": {
+      "description": "One ejection delay setting.",
+      "oneOf": [
+        {
+          "description": "The ejection charge fires this many seconds after burnout.",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "seconds"
+            },
+            "value": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ]
+        },
+        {
+          "description": "No ejection charge: the forward closure is plugged.",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "plugged"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "description": "A `0`: the RASP format means a charge at burnout, but most files mean plugged.",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "zero_or_plugged"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        }
+      ]
+    },
+    "DesignConfiguration": {
+      "description": "A motor configuration of the design file.",
+      "type": "object",
+      "properties": {
+        "flies": {
+          "description": "Whether `hpr sim` flies it as the file has it, without `--motor`, with the curves this\nrun read: a motor whose curve wasn't fetched in this run leaves it out.",
+          "type": "boolean"
+        },
+        "id": {
+          "description": "Its id, which `--config` also takes.",
+          "type": "string"
+        },
+        "label": {
+          "description": "What the text output calls it: its name, or where it has none its motors and delays in\nbrackets, such as `[H128W-14]`. `--config` takes it, its id, or its place in this list\ncounting from 1.",
+          "type": "string"
+        },
+        "name": {
+          "description": "Its name, as the file writes it; often empty.",
+          "type": "string"
+        },
+        "not_flown": {
+          "description": "Why it isn't flown as read, in a few words, such as `its motor's curve to fetch`; `None`\nwhen it flies.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "label",
+        "flies"
+      ]
+    },
+    "DesignFormat": {
+      "description": "A design file format.",
+      "oneOf": [
+        {
+          "description": "An OpenRocket `.ork` file.",
+          "type": "string",
+          "const": "ork"
+        },
+        {
+          "description": "A rocket's JSON (`.json`): a `hpr_design::Rocket` alone.",
+          "type": "string",
+          "const": "hpr_json"
+        },
+        {
+          "description": "A document of the hpr design format (`.hpr`).",
+          "type": "string",
+          "const": "hpr"
+        },
+        {
+          "description": "A design in the hpr design format's zip container (`.hprz`).",
+          "type": "string",
+          "const": "hprz"
+        }
+      ]
+    },
+    "DeviceEvent": {
+      "description": "What opens a recovery device.",
+      "oneOf": [
+        {
+          "description": "The apogee.",
+          "type": "string",
+          "const": "apogee"
+        },
+        {
+          "description": "A height on the way down, or the apogee if that is lower.",
+          "type": "string",
+          "const": "altitude"
+        },
+        {
+          "description": "The ejection charge of its stage's motor.",
+          "type": "string",
+          "const": "ejection"
+        },
+        {
+          "description": "The launch.",
+          "type": "string",
+          "const": "launch"
+        },
+        {
+          "description": "The separation that frees its part, when the part flies on its own.",
+          "type": "string",
+          "const": "separation"
+        }
+      ]
+    },
+    "EventKind": {
+      "description": "What happened at an event.",
+      "oneOf": [
+        {
+          "description": "The rocket started to move along the rail.",
+          "type": "string",
+          "const": "liftoff"
+        },
+        {
+          "description": "The rocket left the rail.",
+          "type": "string",
+          "const": "rail_exit"
+        },
+        {
+          "description": "Every motor lit, or due to light at a known time, has burned out.",
+          "type": "string",
+          "const": "burnout"
+        },
+        {
+          "description": "The highest point.",
+          "type": "string",
+          "const": "apogee"
+        },
+        {
+          "description": "The center of mass came down to the launch site's height.",
+          "type": "string",
+          "const": "ground_hit"
+        },
+        {
+          "description": "A recovery device's charge fired.",
+          "type": "string",
+          "const": "trigger"
+        },
+        {
+          "description": "A recovery device deployed.",
+          "type": "string",
+          "const": "deployment"
+        },
+        {
+          "description": "A recovery device was released.",
+          "type": "string",
+          "const": "release"
+        },
+        {
+          "description": "The stack came apart.",
+          "type": "string",
+          "const": "separation"
+        },
+        {
+          "description": "A piece left the airframe at an ejection.",
+          "type": "string",
+          "const": "ejection"
+        },
+        {
+          "description": "A part started to move along the airframe.",
+          "type": "string",
+          "const": "shift"
+        },
+        {
+          "description": "A part left the airframe.",
+          "type": "string",
+          "const": "mass_release"
+        },
+        {
+          "description": "A user event.",
+          "type": "string",
+          "const": "user"
+        },
+        {
+          "description": "A motor lit after launch.",
+          "type": "string",
+          "const": "ignition"
+        },
+        {
+          "description": "An event this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "Export": {
+      "description": "A recording file written.",
+      "type": "object",
+      "properties": {
+        "format": {
+          "description": "The file's format.",
+          "$ref": "#/$defs/ExportFormat"
+        },
+        "meta": {
+          "description": "For a CSV file, the sidecar written beside it, which names the program that wrote it\n([`ExportMeta`]); `null` for the other formats, which name it inside.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "path": {
+          "description": "The path as given.",
+          "type": "string"
+        },
+        "rows": {
+          "description": "The rows recorded: one every `--interval` seconds and one at every event.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "path",
+        "format",
+        "rows"
+      ]
+    },
+    "ExportFormat": {
+      "description": "A recording file's format, from its extension.",
+      "oneOf": [
+        {
+          "description": "`.csv`: a header of column names with their units, then one line per row.",
+          "type": "string",
+          "const": "csv"
+        },
+        {
+          "description": "`.json`: `{\"columns\": [...], \"rows\": [[...], ...]}`.",
+          "type": "string",
+          "const": "json"
+        },
+        {
+          "description": "`.parquet`: Apache Parquet.",
+          "type": "string",
+          "const": "parquet"
+        },
+        {
+          "description": "`.geojson`: the center of mass's path on the Earth.",
+          "type": "string",
+          "const": "geojson"
+        },
+        {
+          "description": "`.kml`: the same path, for Google Earth.",
+          "type": "string",
+          "const": "kml"
+        }
+      ]
+    },
+    "FileFormat": {
+      "description": "A motor file format.",
+      "oneOf": [
+        {
+          "description": "RASP `.eng`.",
+          "type": "string",
+          "const": "eng"
+        },
+        {
+          "description": "RockSim `.rse`.",
+          "type": "string",
+          "const": "rse"
+        }
+      ]
+    },
+    "FlagKind": {
+      "description": "The flags a flight raises: the operating envelope's (decision records ADR-143 and ADR-179),\nand a rocket unstable under power (issue 335), by its static margin or, where it has none, by\nits pitching moment.",
+      "oneOf": [
+        {
+          "description": "A static margin below zero, in the weakest plane, from the rail exit to apogee or the\nfirst deployment while a motor burns: the rocket is unstable under power, and its apogee is\nnot a prediction.",
+          "type": "string",
+          "const": "unstable_under_power"
+        },
+        {
+          "description": "A pitch-moment slope C_mα above zero, from the rail exit to apogee or the first\ndeployment while a motor burns, where hpr can give no static margin: the rocket is\nunstable under power, and its apogee is not a prediction. Raised only when\n`unstable_under_power` isn't.",
+          "type": "string",
+          "const": "unstable_without_margin"
+        },
+        {
+          "description": "Faster than the fastest public flight hpr has been compared with an independent\nreference on.",
+          "type": "string",
+          "const": "beyond_validated_range"
+        },
+        {
+          "description": "Above 15° more than 1 s after the rail exit and before apogee or the first deployment,\nwhere a 15° angle would give a normal force of at least a fifth of the rocket's weight.",
+          "type": "string",
+          "const": "high_angle_of_attack"
+        },
+        {
+          "description": "Past Mach 2.5, the core band's top.",
+          "type": "string",
+          "const": "outside_core_band"
+        },
+        {
+          "description": "Past Mach 3.5, the envelope's top.",
+          "type": "string",
+          "const": "beyond_envelope"
+        }
+      ]
+    },
+    "InputWarning": {
+      "description": "Something a reader accepted with a caveat, or the design's checks found unusual.",
+      "type": "object",
+      "properties": {
+        "at": {
+          "description": "Where: in a `.ork` file, a path of element names from the root or a zip entry's name; in a\nmotor file, its name and line; `design checks` for a check's finding.",
+          "type": "string"
+        },
+        "kind": {
+          "description": "How serious it is.",
+          "$ref": "#/$defs/WarningKind"
+        },
+        "message": {
+          "description": "What was found, and how it was read.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "at",
+        "kind",
+        "message"
+      ]
+    },
+    "IssueKind": {
+      "description": "Which numbers a known issue bears on.",
+      "oneOf": [
+        {
+          "description": "The drag: the apogee, the top speed, the drift, the flutter margin.",
+          "type": "string",
+          "const": "drag"
+        },
+        {
+          "description": "The stability margin and the center of pressure.",
+          "type": "string",
+          "const": "stability"
+        },
+        {
+          "description": "The flight's path, through something other than the drag or the margin (a moment, the\ndamping, the wind): the apogee and the drift.",
+          "type": "string",
+          "const": "flight"
+        }
+      ]
+    },
+    "Landing": {
+      "description": "Where and how fast a body landed: where its center of mass came down to the launch site's\nheight on the ellipsoid. There is no terrain.",
+      "type": "object",
+      "properties": {
+        "body": {
+          "description": "The body: `null` for the rocket, or the index of a part that came apart from it.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0
+        },
+        "descent_rate_m_s": {
+          "description": "The rate of descent at the ground, m/s.",
+          "type": "number",
+          "format": "double"
+        },
+        "distance_m": {
+          "description": "Horizontal distance from the launch site, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "east_m": {
+          "description": "Distance east of the launch site, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "ground_hit_speed_m_s": {
+          "description": "The speed at the ground, m/s.",
+          "type": "number",
+          "format": "double"
+        },
+        "latitude_deg": {
+          "description": "Latitude, degrees north.",
+          "type": "number",
+          "format": "double"
+        },
+        "longitude_deg": {
+          "description": "Longitude, degrees east.",
+          "type": "number",
+          "format": "double"
+        },
+        "north_m": {
+          "description": "Distance north of the launch site, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "time_s": {
+          "description": "When, s after launch.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "latitude_deg",
+        "longitude_deg",
+        "east_m",
+        "north_m",
+        "distance_m",
+        "ground_hit_speed_m_s",
+        "descent_rate_m_s"
+      ]
+    },
+    "Launch": {
+      "description": "Where and how the rocket was launched.",
+      "type": "object",
+      "properties": {
+        "atmosphere": {
+          "description": "The atmosphere: always `standard`, the 1976 US Standard Atmosphere.",
+          "type": "string"
+        },
+        "elevation_m": {
+          "description": "The site's elevation above sea level, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "heading_deg": {
+          "description": "The direction the rail leans toward, clockwise from true north, degrees.",
+          "type": "number",
+          "format": "double"
+        },
+        "inclination_deg": {
+          "description": "The rail's angle above the horizon, degrees: 90 is vertical.",
+          "type": "number",
+          "format": "double"
+        },
+        "latitude_deg": {
+          "description": "The site's latitude, degrees north.",
+          "type": "number",
+          "format": "double"
+        },
+        "longitude_deg": {
+          "description": "The site's longitude, degrees east.",
+          "type": "number",
+          "format": "double"
+        },
+        "rail_length_m": {
+          "description": "The rail's length, m, from the rocket's aft end at the start to the rail's top.",
+          "type": "number",
+          "format": "double"
+        },
+        "wind_from_deg": {
+          "description": "The direction the wind blows from, clockwise from true north, degrees.",
+          "type": "number",
+          "format": "double"
+        },
+        "wind_speed_m_s": {
+          "description": "The wind's speed, m/s, the same at every height; 0 for calm air.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "latitude_deg",
+        "longitude_deg",
+        "elevation_m",
+        "rail_length_m",
+        "inclination_deg",
+        "heading_deg",
+        "wind_speed_m_s",
+        "wind_from_deg",
+        "atmosphere"
+      ]
+    },
+    "Margin": {
+      "description": "A stability margin and what it rests on.",
+      "type": "object",
+      "properties": {
+        "angle_of_attack_rad": {
+          "description": "The total angle of attack, rad.",
+          "type": "number",
+          "format": "double"
+        },
+        "cp_station_m": {
+          "description": "The center of pressure, m aft of the nose tip; `null` when the margin is.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "mach": {
+          "description": "The Mach number.",
+          "type": "number",
+          "format": "double"
+        },
+        "margin_cal": {
+          "description": "The margin, calibres: positive with the center of pressure aft of the center of mass;\n`null` when the net slope is too small for the quotient to mean anything.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "normal_force_slope_per_rad": {
+          "description": "The normal-force slope `C_Nα` on the reference area, per radian.",
+          "type": "number",
+          "format": "double"
+        },
+        "pitch_moment_slope_per_rad": {
+          "description": "The pitch-moment slope about the center of mass, per radian; negative restores.",
+          "type": "number",
+          "format": "double"
+        },
+        "roll_rad": {
+          "description": "The direction the air crosses the rocket in, rad from the body's `x` axis toward its `y`:\nthe weakest plane's. A rocket with a fin set of one or two fins has a margin in each\nplane, and this is its least; any other has one margin, given at 0.",
+          "type": "number",
+          "format": "double"
+        },
+        "slope_magnitude_sum_per_rad": {
+          "description": "The sum of the parts' slope magnitudes, per radian: the scale the net slope is judged by.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "mach",
+        "angle_of_attack_rad",
+        "roll_rad",
+        "normal_force_slope_per_rad",
+        "slope_magnitude_sum_per_rad",
+        "pitch_moment_slope_per_rad"
+      ]
+    },
+    "Peak": {
+      "description": "A metric's extreme and when it came.",
+      "type": "object",
+      "properties": {
+        "after_apogee": {
+          "description": "Whether it came after apogee, in the fall. With no recovery device opened, a peak in the\nfall is not a prediction: the fall rests on small-angle aerodynamics far outside their\nrange.",
+          "type": "boolean"
+        },
+        "height_above_ground_m": {
+          "description": "The height above the launch site then, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "time_s": {
+          "description": "When, s after launch.",
+          "type": "number",
+          "format": "double"
+        },
+        "value": {
+          "description": "The value, in the unit the field's name gives.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "value",
+        "time_s",
+        "height_above_ground_m",
+        "after_apogee"
+      ]
+    },
+    "ReadFrom": {
+      "description": "Where a source's answer was read from.",
+      "oneOf": [
+        {
+          "description": "A file given on the command line: `--from`, or an ERA5 file.",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "file"
+            },
+            "path": {
+              "description": "The path as given.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "path"
+          ]
+        },
+        {
+          "description": "Fetched now, and saved in the cache.",
+          "type": "object",
+          "properties": {
+            "fetched_at_unix_s": {
+              "description": "When, in seconds since the Unix epoch.",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            },
+            "kind": {
+              "type": "string",
+              "const": "network"
+            }
+          },
+          "required": [
+            "kind",
+            "fetched_at_unix_s"
+          ]
+        },
+        {
+          "description": "The cache, still fresh.",
+          "type": "object",
+          "properties": {
+            "fetched_at_unix_s": {
+              "description": "When the copy was fetched, in seconds since the Unix epoch.",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            },
+            "kind": {
+              "type": "string",
+              "const": "cache"
+            }
+          },
+          "required": [
+            "kind",
+            "fetched_at_unix_s"
+          ]
+        },
+        {
+          "description": "The cache, older than the source keeps a copy fresh: offline, or the fetch failed.",
+          "type": "object",
+          "properties": {
+            "fetched_at_unix_s": {
+              "description": "When the copy was fetched, in seconds since the Unix epoch.",
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0
+            },
+            "kind": {
+              "type": "string",
+              "const": "stale_cache"
+            },
+            "reason": {
+              "description": "Online, why the fetch failed or its answer was refused.",
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "fetched_at_unix_s"
+          ]
+        }
+      ]
+    },
+    "SimDesign": {
+      "description": "The design flown.",
+      "type": "object",
+      "properties": {
+        "configuration": {
+          "description": "The id of the motor configuration flown.",
+          "type": "string"
+        },
+        "configuration_label": {
+          "description": "What the text output calls it: its name, or where it has none its motors and delays in\nbrackets, such as `[H128W-14]`. After `--motor`, the file's configuration and the motor\ngiven, such as `[H128W-14] with --motor H54`, or the motor's name where the file has none.",
+          "type": "string"
+        },
+        "configuration_name": {
+          "description": "Its name, as the file writes it; often empty.",
+          "type": "string"
+        },
+        "configurations": {
+          "description": "Every motor configuration the file holds, the one flown among them, before `--motor`\nchanged any.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DesignConfiguration"
+          }
+        },
+        "file": {
+          "description": "The file's name, without its folder.",
+          "type": "string"
+        },
+        "format": {
+          "description": "The file's format.",
+          "$ref": "#/$defs/DesignFormat"
+        },
+        "name": {
+          "description": "The rocket's name, as the file writes it.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "file",
+        "format",
+        "name",
+        "configuration",
+        "configuration_name",
+        "configuration_label",
+        "configurations"
+      ]
+    },
+    "SimDevice": {
+      "description": "A recovery device flown.",
+      "type": "object",
+      "properties": {
+        "added": {
+          "description": "Whether hpr added it rather than read it from the file: a tumble a separated part needs,\nas a part flies alone with only its devices' drag. It brakes no fall hpr counts as\npredicted.",
+          "type": "boolean"
+        },
+        "body": {
+          "description": "The part that carries it: `null` for the rocket, or the sustainer that keeps its nose;\notherwise the index of the part that came apart from it, as a landing's `body` numbers it.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0
+        },
+        "delay_s": {
+          "description": "Seconds from its event to its opening; for `launch`, from the launch.",
+          "type": "number",
+          "format": "double"
+        },
+        "drag_area_m2": {
+          "description": "Its drag area once open, `C_D S`, m².",
+          "type": "number",
+          "format": "double"
+        },
+        "height_above_ground_m": {
+          "description": "For a device set to a height, that height above the launch site, m.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "name": {
+          "description": "Its name, as the file writes it, or its id where the name is empty.",
+          "type": "string"
+        },
+        "opened_s": {
+          "description": "When it opened, s after launch; `None` if it never did in this flight.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "opens_at": {
+          "description": "What opens it.",
+          "$ref": "#/$defs/DeviceEvent"
+        }
+      },
+      "required": [
+        "name",
+        "added",
+        "opens_at",
+        "delay_s",
+        "drag_area_m2"
+      ]
+    },
+    "SimEvent": {
+      "description": "One event of a flight.",
+      "type": "object",
+      "properties": {
+        "height_above_ground_m": {
+          "description": "The center of gravity's height above the launch site, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "index": {
+          "description": "The device, part or motor it is about, by its index, for the kinds that have one.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0
+        },
+        "kind": {
+          "description": "What happened.",
+          "$ref": "#/$defs/EventKind"
+        },
+        "speed_m_s": {
+          "description": "The speed relative to the ground, m/s.",
+          "type": "number",
+          "format": "double"
+        },
+        "time_s": {
+          "description": "When, s after launch.",
+          "type": "number",
+          "format": "double"
+        },
+        "vertical_velocity_m_s": {
+          "description": "The center of gravity's vertical velocity, m/s, positive up: a descent's rate is its\nnegative.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "kind",
+        "time_s",
+        "height_above_ground_m",
+        "speed_m_s",
+        "vertical_velocity_m_s"
+      ]
+    },
+    "SimFlag": {
+      "description": "A flag the flight raises, with the peak that raised it.",
+      "type": "object",
+      "properties": {
+        "flag": {
+          "description": "Which flag.",
+          "$ref": "#/$defs/FlagKind"
+        },
+        "message": {
+          "description": "What the flag means for this flight, in a sentence.",
+          "type": "string"
+        },
+        "peak": {
+          "description": "The peak that raised it: the top Mach number, for `high_angle_of_attack` the largest\nangle of attack that counts, rad, for `unstable_under_power` the least static margin\nwhile a motor burns, calibres, or for `unstable_without_margin` the largest pitch-moment\nslope C_mα where the margin is undefined while a motor burns, per radian.",
+          "$ref": "#/$defs/Peak"
+        }
+      },
+      "required": [
+        "flag",
+        "peak",
+        "message"
+      ]
+    },
+    "SimIssue": {
+      "description": "A known error in hpr's drag, stability or flight path that the flight meets.",
+      "type": "object",
+      "properties": {
+        "issue": {
+          "description": "The issue's number on GitHub: 18, 67, 68, 70, 72, 73 or 222 for drag; 179 or 354 for a\nseparated part's drag, also of kind drag; 64, 87, 120, 121, 172, 325 or 326 for stability;\n8, 106, 213 or 219 for the flight's path, whose signs depend on the case.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "kind": {
+          "description": "Which numbers it bears on.",
+          "$ref": "#/$defs/IssueKind"
+        },
+        "max_mach": {
+          "description": "The flight's top Mach number.",
+          "$ref": "#/$defs/Peak"
+        },
+        "message": {
+          "description": "What the issue means for this flight, with which way its numbers lean.",
+          "type": "string"
+        },
+        "parts": {
+          "description": "The ids of the parts whose shape meets the issue's condition; empty for base drag (68)\nand friction (18), which every rocket has, for 121 and 172, for a separated part's\n(179, 354), and for the wind's (8) and the center of gravity's (219). For 213 the single\npod sets, for 106 the body parts the supersonic join covers.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "url": {
+          "description": "The issue's address.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "issue",
+        "kind",
+        "url",
+        "max_mach",
+        "parts",
+        "message"
+      ]
+    },
+    "SimMotor": {
+      "description": "One motor flown.",
+      "type": "object",
+      "properties": {
+        "count": {
+          "description": "How many of it fly: one per tube of a cluster, and one per pod of a pod set.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "delay": {
+          "description": "Its ejection delay as the design sets it, if it does; `--motor` sets none.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Delay"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "designation": {
+          "description": "Its designation, such as `168H54-10A`.",
+          "type": "string"
+        },
+        "ignition": {
+          "description": "When it lights, in words: `at launch`, or as the design says.",
+          "type": "string"
+        },
+        "mount": {
+          "description": "The id of the motor mount it is in, which `--mount` takes, as it takes the mount's name.",
+          "type": "string"
+        },
+        "mount_name": {
+          "description": "The mount's name, as the file writes it.",
+          "type": "string"
+        },
+        "source": {
+          "description": "Where it comes from.",
+          "$ref": "#/$defs/SimMotorSource"
+        },
+        "unlit": {
+          "description": "How many of those never light: in a tube the design marks failed, or set never to light.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "designation",
+        "mount",
+        "mount_name",
+        "count",
+        "unlit",
+        "source",
+        "ignition"
+      ]
+    },
+    "SimMotorSource": {
+      "description": "Where a flown motor comes from.",
+      "oneOf": [
+        {
+          "description": "The design file's own configuration.",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "design"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "description": "The bundled catalog, named with `--motor`.",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "catalog"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "description": "A motor file named with `--motor`.",
+          "type": "object",
+          "properties": {
+            "file": {
+              "description": "The file's name, without its folder.",
+              "type": "string"
+            },
+            "format": {
+              "description": "The file's format: `eng` or `rse`.",
+              "$ref": "#/$defs/FileFormat"
+            },
+            "kind": {
+              "type": "string",
+              "const": "file"
+            }
+          },
+          "required": [
+            "kind",
+            "file",
+            "format"
+          ]
+        },
+        {
+          "description": "A curve fetched from ThrustCurve.org: a `--motor` name the bundled catalog lacks, or a\ndesign's motor with no curve of its own, found by its manufacturer and designation.",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "thrust_curve"
+            }
+          },
+          "$ref": "#/$defs/ThrustCurveMotor",
+          "required": [
+            "kind"
+          ]
+        }
+      ]
+    },
+    "Stability": {
+      "description": "The rocket's stability at one instant.",
+      "type": "object",
+      "properties": {
+        "cg_station_m": {
+          "description": "The center of gravity, m aft of the nose tip.",
+          "type": "number",
+          "format": "double"
+        },
+        "dynamic_pressure_pa": {
+          "description": "The dynamic pressure, Pa.",
+          "type": "number",
+          "format": "double"
+        },
+        "flight_margin": {
+          "description": "The flight margin: the air along the axis, at the flight's Mach number, in the rocket's\nweakest plane. The angle of attack is left out.",
+          "$ref": "#/$defs/Margin"
+        },
+        "height_above_ground_m": {
+          "description": "The height above the launch site, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "reference_diameter_m": {
+          "description": "The reference diameter the margins are counted in, m.",
+          "type": "number",
+          "format": "double"
+        },
+        "static_margin": {
+          "description": "The static margin: the air along the axis, at Mach 0, in the rocket's weakest plane.",
+          "$ref": "#/$defs/Margin"
+        },
+        "time_s": {
+          "description": "When, s after launch.",
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "time_s",
+        "height_above_ground_m",
+        "dynamic_pressure_pa",
+        "cg_station_m",
+        "reference_diameter_m",
+        "static_margin",
+        "flight_margin"
+      ]
+    },
+    "Summary": {
+      "description": "A flight's metrics, as the library's `hpr_sim::metrics::FlightSummary` gives them, each peak\nmarked if it came after apogee. Heights are the center of gravity's above the launch site;\nspeeds are relative to the ground.",
+      "type": "object",
+      "properties": {
+        "apogee": {
+          "description": "The highest point.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Apogee"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "body_landings": {
+          "description": "Where each part that came apart from the rocket landed, if any did.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Landing"
+          }
+        },
+        "landing": {
+          "description": "Where and how fast the rocket landed. With no recovery device opened, the fall from apogee\nrests on small-angle aerodynamics far outside their range: not a prediction (the notes say\nso).",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Landing"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "launch_height_m": {
+          "description": "The center of gravity's height above the launch site at launch, m: not zero, as the rocket\nstands on the rail.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "max_acceleration_m_s2": {
+          "description": "The top acceleration of the nose tip relative to the launch site's frame, from liftoff\nuntil a recovery device opens, m/s²: the motion's, not what an accelerometer reads.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Peak"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_angle_of_attack_rad": {
+          "description": "The largest angle of attack, rad, more than 1 s after the rail exit and before apogee or\nthe first deployment, counting only instants where a 15° angle would give a normal force of\nat least a fifth of the rocket's weight.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Peak"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_descent_acceleration_m_s2": {
+          "description": "The top acceleration under the recovery devices, m/s²: the opening shock.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Peak"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_dynamic_pressure_pa": {
+          "description": "The top dynamic pressure, Pa.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Peak"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_mach": {
+          "description": "The top Mach number.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Peak"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_powered_moment_slope_per_rad": {
+          "description": "The largest pitch-moment slope C_mα, per radian, over the same span while a motor burns,\nat instants where the static margin is undefined; null when the margin is defined at\nevery such instant. Above zero, the air turns the rocket away from its path and `flags`\nhas `unstable_without_margin`.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Peak"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_speed_m_s": {
+          "description": "The top speed, m/s.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Peak"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "min_flight_margin_cal": {
+          "description": "The least flight margin, calibres, over the same span: the margin at the flight's Mach\nnumber, along the axis.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Peak"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "min_powered_static_margin_cal": {
+          "description": "The least static margin, calibres, over the same span while a motor burns: below zero, the\nrocket is unstable under power and `flags` has `unstable_under_power`.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Peak"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "min_static_margin_cal": {
+          "description": "The least static stability margin, calibres, from the rail exit to apogee or the first\ndeployment.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Peak"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rail_exit_speed_m_s": {
+          "description": "The speed as the rocket left the rail, m/s.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Peak"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rail_exit_stability": {
+          "description": "The stability as the rocket left the rail.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Stability"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "termination": {
+          "description": "Why the flight ended.",
+          "$ref": "#/$defs/Termination"
+        }
+      },
+      "required": [
+        "termination",
+        "body_landings"
+      ]
+    },
+    "Termination": {
+      "description": "Why a flight ended.",
+      "oneOf": [
+        {
+          "description": "The center of mass reached the ground.",
+          "type": "string",
+          "const": "ground_hit"
+        },
+        {
+          "description": "Every motor burned out before the rocket lifted off.",
+          "type": "string",
+          "const": "no_liftoff"
+        },
+        {
+          "description": "The rocket lifted off but stopped on the rail after every motor burned out.",
+          "type": "string",
+          "const": "stalled_on_rail"
+        },
+        {
+          "description": "The time cap was reached.",
+          "type": "string",
+          "const": "time_cap"
+        },
+        {
+          "description": "The integrator's step limit was reached.",
+          "type": "string",
+          "const": "step_limit"
+        },
+        {
+          "description": "The stack separated, and each part flew on as its own descent.",
+          "type": "string",
+          "const": "separated"
+        },
+        {
+          "description": "A way of ending this build of `hpr` doesn't name.",
+          "type": "string",
+          "const": "other"
+        }
+      ]
+    },
+    "ThrustCurveMotor": {
+      "description": "A motor found on ThrustCurve.org by name, and the curve file hpr flies it by: the first RASP\nfile that reads, ranked by who measured it (a certification test, the manufacturer, a user),\nelse the first RockSim file the same way.",
+      "type": "object",
+      "properties": {
+        "common_name": {
+          "description": "The common name, such as `F27`, when ThrustCurve.org gives one.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "designation": {
+          "description": "The designation, as ThrustCurve.org spells it, such as `F27R/L`.",
+          "type": "string"
+        },
+        "file_id": {
+          "description": "ThrustCurve.org's id of the curve file flown.",
+          "type": "string"
+        },
+        "format": {
+          "description": "The file's format: `eng` or `rse`.",
+          "$ref": "#/$defs/FileFormat"
+        },
+        "license": {
+          "description": "The file's license, as ThrustCurve.org says: `PD` (public domain), `free` or `other`;\n`null` when its contributor named none.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "manufacturer": {
+          "description": "The manufacturer, as ThrustCurve.org names it, such as `AeroTech`.",
+          "type": "string"
+        },
+        "measured_by": {
+          "description": "Who measured the curve, as ThrustCurve.org says: `cert` (a certification test), `mfr`\n(the manufacturer) or `user`; `null` when it doesn't say.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "motor_id": {
+          "description": "ThrustCurve.org's id of the motor.",
+          "type": "string"
+        },
+        "page": {
+          "description": "The file's page on ThrustCurve.org, when it gives one.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "read_from": {
+          "description": "Where the file was read from: fetched now, or the cache.",
+          "$ref": "#/$defs/ReadFrom"
+        }
+      },
+      "required": [
+        "manufacturer",
+        "designation",
+        "motor_id",
+        "file_id",
+        "format",
+        "read_from"
+      ]
+    },
+    "WarningKind": {
+      "description": "How serious a warning is.",
+      "oneOf": [
+        {
+          "description": "A whole motor had an error and was left out.",
+          "type": "string",
+          "const": "skipped"
+        },
+        {
+          "description": "A value was dropped or ignored.",
+          "type": "string",
+          "const": "dropped"
+        },
+        {
+          "description": "Something unusual was read as it stands.",
+          "type": "string",
+          "const": "unusual"
+        }
+      ]
+    }
+  }
+}

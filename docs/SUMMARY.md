@@ -1,0 +1,105 @@
+# Summary
+
+[Start here](start-here.md)
+
+[Getting started](getting-started.md)
+
+[Fly your .ork](fly-your-ork.md)
+
+[Pick a motor](pick-a-motor.md)
+
+[Check stability for a certification flight](stability-for-certification.md)
+
+[Recording a trajectory](recording-a-trajectory.md)
+
+[Exporting a flight](exporting-a-flight.md)
+
+[The builder](the-builder.md)
+
+[Python](python.md)
+
+[Models of your own](custom-models.md)
+
+[Monte Carlo dispersion](monte-carlo.md)
+
+[Sensitivity analysis](sensitivity.md)
+
+[Optimization](optimization.md)
+
+[The command line](cli.md)
+
+[Online data and the cache](online-data.md)
+
+[Launch-day weather](weather.md)
+
+[Weather-balloon soundings](soundings.md)
+
+[NOAA forecasts: GFS and RAP](nomads.md)
+
+[A launch site's elevation](elevation.md)
+
+[Motor stock and prices](motor-stock.md)
+
+[Reading a flight log](reading-a-flight-log.md)
+
+[Your own rocket](your-own-rocket.md)
+
+[How a flight is simulated](how-a-flight-is-simulated.md)
+
+[Accuracy](accuracy.md)
+
+# The environment
+
+- [Frames and sign conventions](physics/frames.md)
+- [Geodesy: the ellipsoid, coordinates, distance and bearing](physics/geodesy.md)
+- [Gravity and Earth rotation](physics/gravity.md)
+- [The magnetic field and declination](physics/magnetic.md)
+- [Atmosphere](physics/atmosphere.md)
+- [Wind](physics/wind.md)
+- [Turbulence](physics/turbulence.md)
+
+# The rocket
+
+- [The design tree, configurations and checks](physics/design.md)
+- [Nose cones, transitions and solids of revolution](physics/shapes.md)
+- [Mass properties of components](physics/mass.md)
+- [Solid motors](physics/motor.md)
+- [Aerodynamics](physics/aero.md)
+
+# The flight
+
+- [Rigid-body flight](physics/flight.md)
+- [Time integration and events](physics/integration.md)
+- [Recovery](physics/recovery.md)
+- [Staging](physics/staging.md)
+- [Moving mass](physics/moving-mass.md)
+- [Released mass](physics/released-mass.md)
+- [Flight metrics](physics/metrics.md)
+- [Fin flutter](physics/flutter.md)
+- [Flight-log readings](physics/log-readings.md)
+
+# Numerical tools
+
+- [Interpolation tables](physics/interpolation.md)
+- [Adaptive quadrature](physics/quadrature.md)
+
+# File formats
+
+- [The hpr design format (`.hpr` and `.hprz`)](format/hpr.md)
+- [OpenRocket `.ork` design files](format/ork.md)
+- [OpenRocket `.orc` parts catalogs](format/orc.md)
+- [RASP `.eng` motor files](format/eng.md)
+- [RockSim `.rse` motor files](format/rse.md)
+- [ERA5 weather files](format/era5.md)
+- [PerfectFlite `.pf2` flight logs](format/pf2.md)
+
+# Reference
+
+- [Checking a claim](checking-a-claim.md)
+- [Validation plan and reference inventory](VALIDATION.md)
+- [The API reference](api.md)
+- [How a release is built](releasing.md)
+- [Glossary](glossary.md)
+- [Writing these pages](writing.md)
+- [Decisions and the roadmap](decisions-and-roadmap.md)
+- [Plan](plan.md)

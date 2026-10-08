@@ -1,0 +1,1757 @@
+//! The parts on and inside the body: what hangs off a `.ork` design's spine.
+//!
+//! [`super::component`] reads the spine: the stages and the body components stacked in them.
+//! Everything else in a design hangs off that trunk, and this module reads it: the tubes, couplers,
+//! rings and bulkheads **inside** a body component, the fins, tube fins, launch lugs and rail
+//! buttons **on** it, and the mass objects, parachutes, streamers and shock cords **packed** in it.
+//!
+//! Three things run through all of them.
+//!
+//! - **Where a part sits** is an offset along its parent and the end it is measured from, which is
+//!   [`Position`]. OpenRocket writes the end under `method` on the newer tag name and `type` on the
+//!   older one, with the same five words.
+//! - **What a part takes from its parent** is an automatic dimension: a coupler's outer radius is
+//!   the tube's bore, a ring's is too, a ring's own bore is the motor tube inside it, and a packed
+//!   part fills whatever room is left. None of that is worked out here:
+//!   [`hpr_design::Rocket::layout`] does it, once, for every reader ([Loft lesson L60][lessons]:
+//!   Loft resolved these as it walked, so the answer depended on the order the siblings were
+//!   written in, and a bulkhead inside a coupler came out as `NaN`).
+//! - **Angles are degrees in the file and radians in `hpr-design`**, which is easy to miss because
+//!   nothing in the file says so: read as radians, `<angleoffset>180</angleoffset>` is more than
+//!   twenty-eight turns instead of half of one. Of the 188 angles in the reference corpus that are
+//!   not zero, 178 are larger than 2π, so they cannot be radians.
+//!
+//! A part this reader cannot give `hpr-design` an honest shape for is **left out with a warning**
+//! rather than guessed at, so the rest of the design still opens. The guide lists every such rule:
+//! [OpenRocket `.ork` design files][guide].
+//!
+//! [guide]: https://hpr.fusionspace.co/format/ork.html
+//! [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
+
+use hpr_design::fins::{FinCrossSection, FinFillet, FinPlanform, FinSet, FinTab, TubeFinSet};
+use hpr_design::parts::{
+    CenteringRing, InnerTube, LaunchLug, MassComponent, Packing, Parachute, PodSet, RailButton,
+    ShockCord, Streamer,
+};
+use hpr_design::tree::{AutoDimension, Component, Overrides, ParallelStage, Part, Position, Stage};
+use hpr_design::{Finish, MotorMount, Wall};
+
+use super::component::{
+    BODY_TAGS, Ids, UNNAMED_RAIL_BUTTON, body, material, material_or, overrides, stated_radius,
+    subcomponents,
+};
+use super::document::Element;
+use super::motors;
+use super::recovery;
+use super::value::{AXIAL_OFFSET, INSTANCE_COUNT, OVERRIDE_FLAGS, Values};
+use super::warning::{Warning, WarningKind};
+
+/// The tags that hang off the spine and hold another part inside them.
+const TUBES: [&str; 3] = ["innertube", "tubecoupler", "engineblock"];
+
+/// Every tag this module knows how to read. A tag outside it belongs to a later milestone, and is
+/// tallied by the caller rather than warned about one by one.
+///
+/// A slice, not an array: this list grows every time a milestone reads another kind of part, and
+/// its length should not be part of the public API.
+pub const ATTACHED_TAGS: &[&str] = &[
+    "innertube",
+    "tubecoupler",
+    "engineblock",
+    "centeringring",
+    "bulkhead",
+    "trapezoidfinset",
+    "ellipticalfinset",
+    "freeformfinset",
+    "tubefinset",
+    "launchlug",
+    "railbutton",
+    "masscomponent",
+    "parachute",
+    "streamer",
+    "shockcord",
+    "podset",
+    "parallelstage",
+];
+
+/// How many of one part a design may say there are.
+///
+/// `hpr-design` builds one body per instance and adds them up, so a count is an allocation: a file
+/// saying `<fincount>4000000000</fincount>` would ask for hundreds of gigabytes, and running out
+/// of memory is an abort rather than an error. The reader is the boundary with a file it did not
+/// write, so the bound lives here, beside the unpacking and nesting limits the container and the
+/// document already carry. The most instanced part in the reference library is a set of 8 fins.
+const MOST_INSTANCES: u32 = 64;
+
+/// How many parts are nested inside `element`, at any depth. A part left out takes them with it,
+/// and a warning that does not say so is a mass quietly missing.
+fn nested(element: &Element) -> usize {
+    subcomponents(element).map(|child| 1 + nested(child)).sum()
+}
+
+/// `", and the 2 parts inside it"`, or nothing when there are none.
+fn and_what_was_inside(element: &Element) -> String {
+    match nested(element) {
+        0 => String::new(),
+        1 => ", and the one part inside it".to_owned(),
+        many => format!(", and the {many} parts inside it"),
+    }
+}
+
+/// A part kind's name as a reader would say it: `inner tube`, not `inner_tube`.
+fn spoken(part: &Part) -> String {
+    part.kind_name().replace('_', " ")
+}
+
+/// Reads everything in `element`'s `<subcomponents>` that belongs to a body component or a tube.
+///
+/// `parent` is what the parent was read as, which decides two things a child cannot decide for
+/// itself: whether an external part may attach here at all, and whether an automatic radius has a
+/// bore to take. `parent_auto` is which of its dimensions were automatic, which a pod set's
+/// distance from the axis needs to know ([`pod_set`]). Anything left out is counted into
+/// `skipped` or warned about, never dropped in silence.
+pub(super) fn children(
+    element: &Element,
+    parent: &Part,
+    parent_auto: &[AutoDimension],
+    at: &str,
+    ids: &mut Ids,
+    skipped: &mut Vec<String>,
+    warnings: &mut Vec<Warning>,
+) -> Vec<Component> {
+    let mut components = Vec::new();
+    for (index, child) in subcomponents(element).enumerate() {
+        let at = format!("{at}/{}[{index}]", child.name);
+        let read = if child.name == "podset" {
+            pod_set(child, parent, parent_auto, &at, ids, skipped, warnings)
+        } else if child.name == "parallelstage" {
+            // A stage of its own, beside this tube: the stage reader takes it from `ids`.
+            if let Some(stage) =
+                parallel_stage(child, parent, parent_auto, &at, ids, skipped, warnings)
+            {
+                ids.parallel.push(stage);
+            }
+            continue;
+        } else {
+            one(child, parent, parent_auto, &at, ids, skipped, warnings)
+        };
+        match read {
+            Some(component) => components.push(component),
+            // A part this module knows and could not read has already said so, with its reason;
+            // only a tag no milestone reads yet goes into the tally.
+            None => {
+                if !ATTACHED_TAGS.contains(&child.name.as_str()) {
+                    skipped.push(child.name.clone());
+                }
+            }
+        }
+    }
+    components
+}
+
+/// Reads one attached part, or leaves it out.
+fn one(
+    element: &Element,
+    parent: &Part,
+    parent_auto: &[AutoDimension],
+    at: &str,
+    ids: &mut Ids,
+    skipped: &mut Vec<String>,
+    warnings: &mut Vec<Warning>,
+) -> Option<Component> {
+    let mut auto = Vec::new();
+    let mut values = Values::new(element, at, warnings);
+    let part = match element.name.as_str() {
+        tag if TUBES.contains(&tag) => inner_tube(tag, &mut values, &mut auto),
+        "centeringring" => ring(&mut values, &mut auto, true),
+        "bulkhead" => ring(&mut values, &mut auto, false),
+        "trapezoidfinset" | "ellipticalfinset" | "freeformfinset" => fin_set(element, &mut values),
+        "tubefinset" => tube_fins(&mut values, &mut auto),
+        "launchlug" => launch_lug(&mut values),
+        "railbutton" => rail_button(&mut values),
+        "masscomponent" => mass_component(&mut values, &mut auto),
+        "parachute" => parachute(&mut values, &mut auto),
+        "streamer" => streamer(&mut values, &mut auto),
+        "shockcord" => shock_cord(&mut values, &mut auto),
+        // A pod set is read by `pod_set` and a parallel stage by `parallel_stage`, before this;
+        // anything else is a tag this reader has never seen, counted by the caller.
+        _ => return None,
+    }?;
+
+    // `hpr-design` attaches fins, tube fins, lugs and rail buttons to a body tube, and a fin set to
+    // a nose cone or a transition too, its root along the surface ([`follow_the_body`]).
+    // OpenRocket lets the others sit on a nose cone or a transition, where their root is not a
+    // straight line; reading one onto a tube would put it on a body it does not have.
+    let on_a_surface = matches!(part, Part::FinSet(_))
+        && matches!(parent, Part::NoseCone(_) | Part::Transition(_));
+    if part.is_external() && !matches!(parent, Part::BodyTube(_)) && !on_a_surface {
+        values.warn_at(
+            WarningKind::Skipped,
+            format!(
+                "a {} sits on a {}, and hpr attaches one only to a body tube; it was left out{}",
+                spoken(&part),
+                spoken(parent),
+                and_what_was_inside(element)
+            ),
+        );
+        return None;
+    }
+    // An automatic outer or packed radius is the parent's bore. A hollow nose cone's or
+    // transition's bore narrows along it, and the layout takes an outer radius at the part's
+    // narrower end, as OpenRocket 24.12 does (ADR-096); a packed radius in one, or anything
+    // automatic in a solid one or any other part, has no bore to take. The layout would refuse the
+    // whole design over it, so the part goes instead. A part in a hollow nose whose bore narrows
+    // to nothing at its end (at the tip) stays, and the layout refuses the design: OpenRocket
+    // weighs it as nothing, which hpr does not yet do (ADR-096). A ring's automatic *bore* is not in this
+    // list: it comes from the ring's siblings, and is zero when none of them is a motor tube, so
+    // it needs nothing of the parent.
+    let hollow = |wall: &Wall| matches!(wall, Wall::Shell { .. });
+    let bore_along = match parent {
+        Part::BodyTube(_) | Part::InnerTube(_) => true,
+        Part::NoseCone(nose) => hollow(&nose.wall),
+        Part::Transition(transition) => hollow(&transition.wall),
+        _ => false,
+    };
+    // A tube fin set's automatic radius comes from the body it rings, not a bore; it sits on a body
+    // tube, whose `bore_along` is true, or was left out above.
+    let needs_a_bore = auto.iter().any(|dimension| match dimension {
+        AutoDimension::OuterRadius => !bore_along,
+        AutoDimension::PackedRadius => !matches!(parent, Part::BodyTube(_) | Part::InnerTube(_)),
+        _ => false,
+    });
+    if needs_a_bore {
+        values.warn_at(
+            WarningKind::Skipped,
+            format!(
+                "the {} takes an automatic radius from its parent's bore, and a {} has none; it \
+                 was left out{}",
+                spoken(&part),
+                spoken(parent),
+                and_what_was_inside(element)
+            ),
+        );
+        return None;
+    }
+
+    // OpenRocket places a part inside an inner tube from that tube's axis; `hpr-design` measures
+    // every part's offset from the body's axis, and this reader does not compose the two yet
+    // (#181). Nothing in the reference library does this, so it is said out loud.
+    let [x, y] = parent.axis_offset_m();
+    if !part.is_external() && (x != 0.0 || y != 0.0) {
+        values.warn_at(
+            WarningKind::Unusual,
+            format!(
+                "the {} sits inside a {} {} m off the body's axis: OpenRocket places it from that \
+                 tube's axis, and hpr from the body's axis (issue #181){}",
+                spoken(&part),
+                spoken(parent),
+                x.hypot(y),
+                match nested(element) {
+                    0 => String::new(),
+                    1 => "; so is the one part inside it".to_owned(),
+                    many => format!("; so are the {many} parts inside it"),
+                }
+            ),
+        );
+    }
+
+    let name = values.word(&["name"]).unwrap_or_default();
+    let position = match &part {
+        Part::RailButton(button) => centered_on_its_position(position(&mut values), button),
+        _ => position(&mut values),
+    };
+    let part = match follow_the_body(part, parent, parent_auto, position) {
+        Ok(part) => part,
+        Err(why) => {
+            values.warn_at(WarningKind::Skipped, why);
+            return None;
+        }
+    };
+    let finish = finish(&mut values);
+    let (overrides, include_children, drag_override) = overrides(&mut values);
+    radial_offset_on_the_surface(&mut values, &part);
+    // Only a tube holds other parts. `hpr-design` says the same, so anything written inside
+    // another kind is said out loud here rather than tallied with the parallel stages, whose tally
+    // carries a message about a spine of their own. Nothing in the reference library does this.
+    let children = if matches!(part, Part::InnerTube(_)) {
+        children(element, &part, &auto, at, ids, skipped, warnings)
+    } else {
+        if subcomponents(element).next().is_some() {
+            let (kind, inside) = (spoken(&part), and_what_was_inside(element));
+            values.warn_at(
+                WarningKind::Skipped,
+                format!("a {kind} holds no parts in hpr; it was read without{inside}"),
+            );
+        }
+        Vec::new()
+    };
+    let mount = match part {
+        Part::InnerTube(_) => motors::mount(element, at, warnings),
+        _ => None,
+    };
+    let device = match part {
+        Part::Parachute(_) | Part::Streamer(_) => Some(recovery::device(element, at, warnings)),
+        _ => None,
+    };
+    let id = ids.take(
+        &mut Values::new(element, at, warnings),
+        &element.name.clone(),
+    );
+    let motor_mount = mount.map(|mount| {
+        let spec = MotorMount {
+            overhang_m: mount.overhang_m,
+        };
+        ids.mounts.push((id.clone(), mount));
+        spec
+    });
+    if let Some(device) = device {
+        ids.devices.push((id.clone(), device));
+    }
+    ids.read.insert(at.to_owned());
+    Some(Component {
+        id,
+        name,
+        part,
+        position: Some(position),
+        auto,
+        motor_mount,
+        finish,
+        overrides,
+        overrides_include_children: include_children,
+        drag_override,
+        children,
+    })
+}
+
+/// Reads one pod set (ADR-089, ADR-090), or leaves it out with a warning.
+///
+/// A pod set holds pods beside its body tube, each the stack of nose cones, body tubes and
+/// transitions written inside it, with everything on and in them; `hpr-design`'s
+/// [`PodSet`] repeats that stack `instancecount` times around the axis. Its roll angle is the
+/// `angleoffset` read as every angle is ([`roll_angle`]); the angle's `method` changes nothing for
+/// a pod set on a body tube, which sits on the axis.
+///
+/// **The distance from the axis** is not in any document. OpenRocket 24.12 was asked, as an
+/// external oracle, on probes (`validation/oracles/openrocket/pods.py`, recorded in
+/// `validation/fixtures/ork/openrocket-pods.json`), and puts a pod's axis at
+///
+/// | `radiusoffset` method | distance of each pod's axis from the body's |
+/// | --- | --- |
+/// | `relative` | `R + ρ + v` |
+/// | `surface` | `R + ρ`, the number ignored |
+/// | `free` | `v` |
+///
+/// for the tube's outer radius `R`, the written number `v`, and `ρ` the **widest** radius of the
+/// pod's own body components: a probe whose widest tube is aft of a stated narrower nose and tube,
+/// and ahead of another narrower tube, puts the pod at the widest radius, which neither the first
+/// part, the first tube nor the last part gives. An automatic radius in a pod can only take a
+/// radius stated in the pod, so `ρ` is the widest stated one, and a pod with none is left out.
+/// `hpr-design` holds a pod set at a fixed distance, so when the tube's radius is automatic, the
+/// number OpenRocket cached for it is taken, and said; with none cached, the pod set is left out.
+fn pod_set(
+    element: &Element,
+    parent: &Part,
+    parent_auto: &[AutoDimension],
+    at: &str,
+    ids: &mut Ids,
+    skipped: &mut Vec<String>,
+    warnings: &mut Vec<Warning>,
+) -> Option<Component> {
+    let mut values = Values::new(element, at, warnings);
+    let Part::BodyTube(tube) = parent else {
+        values.warn_at(
+            WarningKind::Skipped,
+            format!(
+                "a pod set hangs from a {}, and hpr hangs one only from a body tube; it was left \
+                 out{}",
+                spoken(parent),
+                and_what_was_inside(element)
+            ),
+        );
+        return None;
+    };
+    // The path names every pod set and parallel stage above this one, and this one: one inside a
+    // pod would multiply its copies by the outer set's, and `hpr-design` refuses it.
+    if at.matches("/podset[").count() + at.matches("/parallelstage[").count() > 1 {
+        values.warn_at(
+            WarningKind::Skipped,
+            format!(
+                "a pod set inside a pod, which hpr does not nest; it was left out{}",
+                and_what_was_inside(element)
+            ),
+        );
+        return None;
+    }
+    let count = instances(&mut values, "pod set")?;
+    let name = values.word(&["name"]).unwrap_or_default();
+    let position = position(&mut values);
+    let (mut overrides, include_children, mut drag_override) = overrides(&mut values);
+    let angle_rad = roll_angle(&mut values);
+    let method = values
+        .element(&["radiusoffset"])
+        .map(|offset| offset.attribute("method").unwrap_or("relative").to_owned());
+    let number = values.number(&["radiusoffset"]);
+    let id = ids.take(&mut Values::new(element, at, warnings), &element.name);
+
+    let mut pods = Vec::new();
+    for (index, child) in subcomponents(element).enumerate() {
+        let at = format!("{at}/{}[{index}]", child.name);
+        if BODY_TAGS.contains(&child.name.as_str()) {
+            pods.push(body(child, &at, ids, skipped, warnings).0);
+        } else {
+            let tag = child.name.clone();
+            Values::new(child, &at, warnings).warn_at(
+                WarningKind::Skipped,
+                format!(
+                    "a `{tag}` directly inside a pod set, where hpr's pod is a stack of nose \
+                     cones, body tubes and transitions; it was left out{}",
+                    and_what_was_inside(child)
+                ),
+            );
+        }
+    }
+    let mut values = Values::new(element, at, warnings);
+    // OpenRocket draws a pod of a tube with no length, radius or wall (its "phantom body") to hang
+    // fins or a lug off the axis, and `hpr-design` weighs such a tube as nothing. A nose cone or a
+    // transition of no length, or a part of negative length, is no shape `hpr-design` has, so
+    // that pod set goes rather than the whole design.
+    if pods.iter().any(|pod| {
+        let length_m = pod.part.length_m();
+        length_m < 0.0 || (length_m == 0.0 && !matches!(pod.part, Part::BodyTube(_)))
+    }) {
+        values.warn_at(
+            WarningKind::Skipped,
+            format!(
+                "a pod with a nose cone or transition of no length, or a part of negative length, \
+                 which hpr cannot lay out; the pod set was left out{}",
+                and_what_was_inside(element)
+            ),
+        );
+        return None;
+    }
+    // A tube of no length has no room inside it.
+    let flat = |pod: &Component| pod.part.length_m() == 0.0;
+    if pods
+        .iter()
+        .any(|pod| flat(pod) && pod.children.iter().any(|c| !c.part.is_external()))
+    {
+        values.warn_at(
+            WarningKind::Skipped,
+            format!(
+                "a pod's tube of no length with a part inside it, where it has no room; the pod set \
+                 was left out{}",
+                and_what_was_inside(element)
+            ),
+        );
+        return None;
+    }
+    // The widest stated radius of the pod: an automatic one can only take a stated one in the pod.
+    let mut widest: Option<f64> = None;
+    for pod in &pods {
+        let radii: &[(f64, AutoDimension)] = match &pod.part {
+            Part::NoseCone(nose) => &[(nose.base_radius_m, AutoDimension::BaseRadius)],
+            Part::BodyTube(tube) => &[(tube.outer_radius_m, AutoDimension::OuterRadius)],
+            Part::Transition(t) => &[
+                (t.fore_radius_m, AutoDimension::ForeRadius),
+                (t.aft_radius_m, AutoDimension::AftRadius),
+            ],
+            _ => &[],
+        };
+        for &(radius_m, dimension) in radii {
+            if !pod.auto.contains(&dimension) {
+                widest = Some(widest.map_or(radius_m, |w: f64| w.max(radius_m)));
+            }
+        }
+    }
+    // A pod set that holds nothing weighs nothing, and its radius is no matter.
+    let Some(pod_radius_m) = widest.or(pods.is_empty().then_some(0.0)) else {
+        values.warn_at(
+            WarningKind::Skipped,
+            format!(
+                "a pod whose radii are all automatic, with no fixed radius in the pod to take; \
+                 the pod set was left out{}",
+                and_what_was_inside(element)
+            ),
+        );
+        return None;
+    };
+    let tube_radius_m = tube.outer_radius_m;
+    let method = method.unwrap_or_else(|| {
+        values.warn_at(
+            WarningKind::Unusual,
+            "no `radiusoffset`, so the pods were read touching the tube",
+        );
+        "surface".to_owned()
+    });
+    // `relative` and `surface` with no number are the pods touching the tube; `free` with none is
+    // no place at all.
+    let Some(number) = number.or((method != "free").then_some(0.0)) else {
+        values.warn_at(
+            WarningKind::Skipped,
+            format!(
+                "a `free` `radiusoffset` with no number, so where the pods sit is not known; the \
+                 pod set was left out{}",
+                and_what_was_inside(element)
+            ),
+        );
+        return None;
+    };
+    let radial_offset_m = match method.as_str() {
+        "relative" => tube_radius_m + pod_radius_m + number,
+        "surface" => tube_radius_m + pod_radius_m,
+        "free" => number,
+        other => {
+            values.warn_at(
+                WarningKind::Unusual,
+                format!(
+                    "a `radiusoffset` measured by `{other}`, which this reader does not know; it \
+                     was read as `relative`, from the tube's surface to the pod's"
+                ),
+            );
+            // The design holds a distance from the axis, not this word: kept as written.
+            values.forget(&["radiusoffset"]);
+            tube_radius_m + pod_radius_m + number
+        }
+    };
+    if method != "free" && parent_auto.contains(&AutoDimension::OuterRadius) {
+        if tube_radius_m <= 0.0 {
+            values.warn_at(
+                WarningKind::Skipped,
+                format!(
+                    "the tube's radius is automatic with no number cached, and hpr places pods at \
+                     a fixed distance from the axis, so where they sit is not known; the pod set \
+                     was left out{}",
+                    and_what_was_inside(element)
+                ),
+            );
+            return None;
+        }
+        values.warn_at(
+            WarningKind::Unusual,
+            format!(
+                "the tube's radius is automatic, and hpr places pods at a fixed distance from the \
+                 axis: they were placed {radial_offset_m} m from it, by the tube radius OpenRocket \
+                 cached, {tube_radius_m} m"
+            ),
+        );
+        // The design holds the distance this cached radius gives, where the file says the pods
+        // follow the tube: the file's offset is kept as written.
+        values.forget(&["radiusoffset"]);
+    }
+    if !(radial_offset_m >= 0.0 && radial_offset_m.is_finite()) {
+        values.warn_at(
+            WarningKind::Skipped,
+            format!(
+                "the pods would sit {radial_offset_m} m from the axis, which is no distance; the \
+                 pod set was left out{}",
+                and_what_was_inside(element)
+            ),
+        );
+        return None;
+    }
+
+    // Only now that the pod set is read: what is dropped from it next.
+    if pods.is_empty() && (overrides != Overrides::default() || drag_override.is_some()) {
+        // OpenRocket 24.12 puts an override on a pod set that holds nothing at the rocket's tip,
+        // on the axis (`pods.py`), which no design means.
+        overrides = Overrides::default();
+        drag_override = None;
+        values.warn_at(
+            WarningKind::Dropped,
+            "an override on a pod set that holds nothing, which OpenRocket weighs at the rocket's \
+             tip; it was left out",
+        );
+        values.forget(&["overridemass", "overridecg", "overridecd"]);
+        values.forget(&OVERRIDE_FLAGS);
+    } else if overrides != Overrides::default() && !include_children {
+        // A pod set weighs nothing of its own, so an override on it can only be its pods' total,
+        // as a stage's is; `hpr-design` refuses one that does not say it covers them.
+        values.warn_at(
+            WarningKind::Dropped,
+            "an override on a pod set that does not cover its pods; a pod set weighs nothing of \
+             its own, so it was read as covering them",
+        );
+        values.forget(&OVERRIDE_FLAGS);
+    }
+    // A tube of no length has no wall for a fin's tab to sit in either: the tab would reach below
+    // the tube's radius.
+    for pod in pods.iter_mut().filter(|pod| flat(pod)) {
+        let radius_m = match &pod.part {
+            Part::BodyTube(tube) => tube.outer_radius_m,
+            _ => 0.0,
+        };
+        for child in &mut pod.children {
+            if let Part::FinSet(fins) = &mut child.part
+                && fins.tab.as_ref().is_some_and(|tab| tab.height_m > radius_m)
+            {
+                fins.tab = None;
+                values.warn_at(
+                    WarningKind::Dropped,
+                    format!(
+                        "a tab on the fins `{}` on a pod's tube of no length, deeper than the \
+                         tube's radius ({radius_m} m); the tab was left out, and the fins read \
+                         without it",
+                        child.id
+                    ),
+                );
+            }
+        }
+    }
+
+    ids.read.insert(at.to_owned());
+    Some(Component {
+        id,
+        name,
+        part: Part::PodSet(PodSet {
+            count,
+            radial_offset_m,
+            angle_rad,
+        }),
+        position: Some(position),
+        auto: Vec::new(),
+        motor_mount: None,
+        finish: None,
+        overrides,
+        overrides_include_children: true,
+        drag_override,
+        children: pods,
+    })
+}
+
+/// Reads one parallel stage (ADR-171), or leaves it out with a warning: a stage of its own,
+/// strapped beside the body tube it is written in, as boosters are.
+///
+/// OpenRocket's parallel stage places its copies as a pod set places its pods, by the same
+/// `instancecount`, `angleoffset`, `radiusoffset` and axial offset, so it is read by [`pod_set`]'s
+/// rules, its warnings saying "parallel stage". It becomes a [`Stage`] with
+/// [`ParallelStage`] set, its body components the pod's stack, its overrides the stage's, and its
+/// separation read as a stage's is; the tube's id, taken after its children are read, is filled
+/// in by [`body`]. The stage reader puts it right after the stage it hangs on, which is where
+/// OpenRocket numbers it on a rocket of one axial stage. On a rocket of several, inside a pod or
+/// another parallel stage, with no body component in it, or placed after the part before it, it
+/// is left out.
+fn parallel_stage(
+    element: &Element,
+    parent: &Part,
+    parent_auto: &[AutoDimension],
+    at: &str,
+    ids: &mut Ids,
+    skipped: &mut Vec<String>,
+    warnings: &mut Vec<Warning>,
+) -> Option<Stage> {
+    let leave_out = |why: &str, warnings: &mut Vec<Warning>| {
+        Values::new(element, at, warnings).warn_at(
+            WarningKind::Skipped,
+            format!(
+                "a parallel stage {why}, which hpr does not read yet; it was left out{}",
+                and_what_was_inside(element)
+            ),
+        );
+    };
+    if !ids.parallel_stages_read {
+        leave_out("on a rocket of more than one axial stage", warnings);
+        return None;
+    }
+    if at.matches("/podset[").count() + at.matches("/parallelstage[").count() > 1 {
+        leave_out("inside a pod or another parallel stage", warnings);
+        return None;
+    }
+    // A stage is a stack of at least one body component (`hpr-design`).
+    if !subcomponents(element).any(|child| BODY_TAGS.contains(&child.name.as_str())) {
+        leave_out("with no nose cone, body tube or transition in it", warnings);
+        return None;
+    }
+    // Looked at before anything inside it is read, so a stage left out leaves no mount behind;
+    // `pod_set` reads the position again, and says what it says about it then.
+    let mut scratch = Vec::new();
+    if matches!(
+        position(&mut Values::new(element, at, &mut scratch)),
+        Position::After { .. }
+    ) {
+        leave_out("placed after the part before it", warnings);
+        return None;
+    }
+    let first = warnings.len();
+    let pods = pod_set(element, parent, parent_auto, at, ids, skipped, warnings);
+    for warning in &mut warnings[first..] {
+        if warning.at == at {
+            warning.message = warning.message.replace("pod set", "parallel stage");
+        }
+    }
+    let pods = pods?;
+    let Part::PodSet(set) = pods.part else {
+        unreachable!("`pod_set` reads a pod set")
+    };
+    // `pod_set` always places what it reads, and not after a sibling, as looked at above.
+    let position = pods.position.unwrap_or(Position::Top { aft_offset_m: 0.0 });
+    if let Some(separation) = recovery::separation(element, at, warnings) {
+        ids.separations.push((pods.id.clone(), separation));
+    }
+    Some(Stage {
+        id: pods.id,
+        name: pods.name,
+        components: pods.children,
+        overrides: pods.overrides,
+        drag_override: pods.drag_override,
+        parallel: Some(ParallelStage {
+            on: String::new(),
+            position,
+            pods: set,
+        }),
+    })
+}
+
+/// The radius OpenRocket 24.12 gives an `innertube` whose outer radius is written `auto`: its
+/// inner tube has no automatic radius, so it keeps the 9.5 mm it starts with, in a body tube or a
+/// nose cone alike, where a coupler or an engine block fills its parent. Measured on probe designs
+/// (`validation/oracles/openrocket/conventions.py`, [ADR-096][adr-096]).
+///
+/// [adr-096]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-096-fin-fillets-and-an-automatic-radius-inside-a-nose-cone-read-as-openrocket-reads-them-2026-09-28
+const INNER_TUBE_UNRESOLVED_M: f64 = 0.0095;
+
+/// An inner tube, tube coupler or engine block: all three are a tube inside another one.
+fn inner_tube(tag: &str, values: &mut Values<'_>, auto: &mut Vec<AutoDimension>) -> Option<Part> {
+    let length_m = values.number(&["length"]).unwrap_or_default();
+    let (mut stated_m, mut outer_radius_m) =
+        stated_radius(values, &["outerradius"], AutoDimension::OuterRadius, auto);
+    if tag == "innertube" && auto.contains(&AutoDimension::OuterRadius) {
+        auto.retain(|dimension| *dimension != AutoDimension::OuterRadius);
+        // OpenRocket's own reading, measured, so no warning: one would keep the design from
+        // flying (ADR-055) for a part read exactly as OpenRocket reads it.
+        (stated_m, outer_radius_m) = (Some(INNER_TUBE_UNRESOLVED_M), INNER_TUBE_UNRESOLVED_M);
+    }
+    let thickness_m = tube_wall(values, stated_m)?;
+    let angle_rad = roll_angle(values);
+    let cluster_m = cluster(values, outer_radius_m, angle_rad);
+    Some(Part::InnerTube(InnerTube {
+        length_m,
+        outer_radius_m,
+        thickness_m,
+        radial_offset_m: values.number(&["radialposition"]).unwrap_or_default(),
+        angle_rad,
+        material: material(values, &["material"], "bulk"),
+        cluster_m,
+    }))
+}
+
+/// A clustered tube's places ([`InnerTube::cluster_m`]), or none for one tube.
+///
+/// `clusterconfiguration` names one of OpenRocket's patterns ([`cluster_pattern`]), whose points
+/// are in units of the separation between neighbouring tubes' axes: `2 R s`, for the tube's outer
+/// radius `R` and `clusterscale` `s` (1 unless written), so tubes of scale 1 touch. The pattern is
+/// turned by the tube's roll angle `θ` less `clusterrotation` `ρ` (degrees, as every `.ork` angle):
+///
+/// `[x, y]ₖ = 2 R s · Rot(θ − ρ) · pₖ`
+///
+/// with OpenRocket's `(y, z)` read as hpr's `(x, y)`, as the roll angle is ([`roll_angle`]). No
+/// document gives the patterns or this rule; OpenRocket 24.12 was asked, as an external oracle, on
+/// probes of every pattern, of a scale, a rotation, a radial offset and all three at once
+/// (`validation/oracles/openrocket/clusters.py`), and `hpr_validate`'s tests hold every tube of
+/// its record to this reading. A name OpenRocket has no pattern for, it reads as one tube; so does
+/// this reader, with a warning.
+fn cluster(values: &mut Values<'_>, outer_radius_m: f64, angle_rad: f64) -> Vec<[f64; 2]> {
+    let Some(name) = values.word(&["clusterconfiguration"]) else {
+        return Vec::new();
+    };
+    let Some(points) = cluster_pattern(&name) else {
+        values.warn_at(
+            WarningKind::Dropped,
+            format!(
+                "`{name}` is not one of OpenRocket's cluster patterns, so the tube is read as one \
+                 tube, as OpenRocket reads it"
+            ),
+        );
+        values.forget(&["clusterconfiguration"]);
+        return Vec::new();
+    };
+    let scale = values.number(&["clusterscale"]).unwrap_or(1.0);
+    let rotation_rad = values
+        .number(&["clusterrotation"])
+        .unwrap_or_default()
+        .to_radians();
+    if name == "single" {
+        return Vec::new();
+    }
+    let separation_m = 2.0 * outer_radius_m * scale;
+    let (sin, cos) = (angle_rad - rotation_rad).sin_cos();
+    points
+        .iter()
+        .map(|&[u, v]| {
+            [
+                separation_m * (u * cos - v * sin),
+                separation_m * (u * sin + v * cos),
+            ]
+        })
+        .collect()
+}
+
+/// OpenRocket's cluster pattern called `name` in a `.ork`: each tube's place in units of the
+/// separation between neighbouring tubes' axes, in the order OpenRocket lists them. These are the
+/// points OpenRocket 24.12 gives, as measured by `validation/oracles/openrocket/clusters.py`
+/// (`validation/fixtures/ork/openrocket-clusters.json`), written as the figures they are: rows
+/// one apart, a triangle and a square of side one, rings of radius one round a center tube (the
+/// stars), a pentagon of side one, and a grid and an eight-ring of spacing 1.4. `None` for a name
+/// OpenRocket has no pattern for.
+pub(crate) fn cluster_pattern(name: &str) -> Option<Vec<[f64; 2]>> {
+    // `n` places on a circle of radius `r`, the first at `start` degrees, running clockwise.
+    let ring = |n: u32, r: f64, start: f64| -> Vec<[f64; 2]> {
+        (0..n)
+            .map(|k| {
+                let (sin, cos) = (start - 360.0 * f64::from(k) / f64::from(n))
+                    .to_radians()
+                    .sin_cos();
+                [r * cos, r * sin]
+            })
+            .collect()
+    };
+    let star = |mut points: Vec<[f64; 2]>| {
+        points.insert(0, [0.0, 0.0]);
+        points
+    };
+    let third = 3.0_f64.sqrt() / 6.0;
+    Some(match name {
+        "single" => vec![[0.0, 0.0]],
+        "double" => vec![[-0.5, 0.0], [0.5, 0.0]],
+        "3-row" => vec![[-1.0, 0.0], [0.0, 0.0], [1.0, 0.0]],
+        "3-ring" => vec![[-0.5, -third], [0.5, -third], [0.0, 2.0 * third]],
+        "3-star" => star(ring(3, 1.0, 90.0)),
+        "4-row" => vec![[-1.5, 0.0], [-0.5, 0.0], [0.5, 0.0], [1.5, 0.0]],
+        "4-ring" => vec![[-0.5, 0.5], [0.5, 0.5], [0.5, -0.5], [-0.5, -0.5]],
+        "4-star" => star(ring(4, 1.0, 135.0)),
+        // A pentagon of side one has circumradius 1 / (2 sin 36°).
+        "5-ring" => ring(5, 0.5 / 36.0_f64.to_radians().sin(), 90.0),
+        "5-star" => star(ring(5, 1.0, 90.0)),
+        "6-ring" => ring(6, 1.0, 90.0),
+        "6-star" => star(ring(6, 1.0, 90.0)),
+        "9-grid" => [1.4, 0.0, -1.4]
+            .into_iter()
+            .flat_map(|y| [-1.4, 0.0, 1.4].map(|x| [x, y]))
+            .collect(),
+        "9-star" => star(ring(8, 1.4, 0.0)),
+        _ => return None,
+    })
+}
+
+/// A tube's wall, in meters, or `None` when the tube cannot be read at all.
+///
+/// A tube of **no** wall thickness is read as exactly that, and carries no mass: OpenRocket 24.12
+/// gives an inner tube, a coupler and a lug of no wall no mass either, measured on a probe design
+/// ([ADR-061][adr-061]), so it is read as written and not warned of. Reading it as solid would
+/// invent the mass: a solid coupler filling a 50 mm airframe for 180 mm is a few hundred grams the
+/// design never had. Seven tube couplers in the reference corpus are written this way, three of
+/// them in two of OpenRocket's own example designs, and four launch lugs say the same of
+/// themselves.
+///
+/// [adr-061]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-061-what-a-ork-leaves-unsaid-read-as-openrocket-reads-it-overrides-measured-two-departures-kept-2026-09-21
+fn tube_wall(values: &mut Values<'_>, outer_radius_m: Option<f64>) -> Option<f64> {
+    if values.word(&["thickness"]).as_deref() == Some("filled") {
+        return match outer_radius_m {
+            Some(radius_m) => Some(radius_m),
+            None => {
+                values.warn_at(
+                    WarningKind::Skipped,
+                    "a filled tube whose outer radius is automatic; there is no radius to fill \
+                     until the layout resolves one, so it was left out",
+                );
+                None
+            }
+        };
+    }
+    let Some(thickness_m) = values.number(&["thickness"]) else {
+        // A *stated* zero is OpenRocket saying the bore reaches the rim. A missing tag says
+        // nothing at all. OpenRocket 24.12 gives it a wall of its own: on the probe design, 0.5 mm
+        // for a 20 mm inner tube, 1 mm for a 5 mm lug, and none for a coupler (ADR-061). One size
+        // each does not say whether that wall follows the radius, and nothing in the reference
+        // library omits it, so it is read as a tube of no wall, out loud, and the test
+        // `hpr_validate::openrocket::tests` pins the difference.
+        values.warn_at(
+            WarningKind::Dropped,
+            "a tube with no wall thickness at all; it was read as a tube of no wall, which \
+             carries no mass, rather than as the solid rod a filled one would be",
+        );
+        return Some(0.0);
+    };
+    if thickness_m == 0.0 {
+        return Some(0.0);
+    }
+    if thickness_m < 0.0 {
+        values.warn_at(
+            WarningKind::Skipped,
+            "a tube of negative wall thickness; it was left out",
+        );
+        return None;
+    }
+    // A wall thicker than the tube is the tube solid. With an automatic radius there is no number
+    // to compare against yet, so the wall stands as written and the layout decides.
+    Some(match outer_radius_m {
+        Some(radius_m) => thickness_m.min(radius_m),
+        None => thickness_m,
+    })
+}
+
+/// A centering ring, or a bulkhead, which is a ring with no bore.
+fn ring(values: &mut Values<'_>, auto: &mut Vec<AutoDimension>, bored: bool) -> Option<Part> {
+    let length_m = values.number(&["length"]).unwrap_or_default();
+    let (_, outer_radius_m) =
+        stated_radius(values, &["outerradius"], AutoDimension::OuterRadius, auto);
+    let inner_radius_m = if bored {
+        stated_radius(values, &["innerradius"], AutoDimension::InnerRadius, auto).1
+    } else {
+        0.0
+    };
+    if inner_radius_m > outer_radius_m && !auto.contains(&AutoDimension::OuterRadius) {
+        values.warn_at(
+            WarningKind::Skipped,
+            "a ring whose bore is wider than the ring; it was left out",
+        );
+        return None;
+    }
+    instanced_once(values, "ring");
+    off_the_axis(values, "ring");
+    Some(Part::CenteringRing(CenteringRing {
+        length_m,
+        outer_radius_m,
+        inner_radius_m,
+        material: material(values, &["material"], "bulk"),
+    }))
+}
+
+/// A fin set of any of the three outlines OpenRocket writes.
+fn fin_set(element: &Element, values: &mut Values<'_>) -> Option<Part> {
+    let planform = match element.name.as_str() {
+        "trapezoidfinset" => FinPlanform::Trapezoidal {
+            root_chord_m: values.number(&["rootchord"]).unwrap_or_default(),
+            tip_chord_m: values.number(&["tipchord"]).unwrap_or_default(),
+            span_m: values.number(&["height"]).unwrap_or_default(),
+            sweep_m: values.number(&["sweeplength"]).unwrap_or_default(),
+        },
+        "ellipticalfinset" => FinPlanform::Elliptical {
+            root_chord_m: values.number(&["rootchord"]).unwrap_or_default(),
+            span_m: values.number(&["height"]).unwrap_or_default(),
+        },
+        _ => outline(values)?,
+    };
+    let count = instances(values, "fin set")?;
+    // Fillets weigh what OpenRocket 24.12 weighs them, in their own material, which is cardboard
+    // when none is named, as for any solid part (ADR-096).
+    let fillet = values
+        .number(&["filletradius"])
+        .filter(|radius_m| *radius_m > 0.0)
+        .map(|radius_m| FinFillet {
+            radius_m,
+            material: material(values, &["filletmaterial"], "bulk"),
+        });
+    Some(Part::FinSet(FinSet {
+        count,
+        thickness_m: values.number(&["thickness"]).unwrap_or_default(),
+        cross_section: cross_section(values),
+        tab: tab(values, planform.root_chord_m()),
+        fillet,
+        // Degrees, like every other angle in the file (see `roll_angle`). The corpus's two
+        // non-zero cants are 1.0 and -3.98, which as radians would be 57° and 228°: a fin turned
+        // more than half a turn from the airflow, which is not a cant anyone builds and which
+        // OpenRocket's own roll model (Niskanen eq. 3.10, `δ` small) would not mean.
+        cant_rad: values.number(&["cant"]).unwrap_or_default().to_radians(),
+        base_angle_rad: roll_angle(values),
+        material: material(values, &["material"], "bulk"),
+        planform,
+    }))
+}
+
+/// How many straight pieces [`follow_the_body`] reads a fin's root along a nose cone or a
+/// transition as. On the *Pods--airframes and winglets* example's cockpit, an ogive's last 50 mm,
+/// the chord of each piece stands at most 0.14 µm inside the curve.
+pub(super) const ROOT_PIECES: u32 = 64;
+
+/// A fin set's root, read where it sits ([ADR-166][adr-166]).
+///
+/// OpenRocket measures a fin's points from the body's surface at the root leading edge and runs
+/// the root along the surface, so on a body tube the outline ends at `h = 0`, and on a nose cone or
+/// a transition it ends on the surface: `h = r(x_LE + c) − r(x_LE)`. On a body tube an outline that
+/// ends anywhere else is a fin whose trailing edge stands clear of the body, and there is no honest
+/// way to read it as a fin that touches: closing it along the root would add planform the design
+/// does not have. On a nose cone or a transition the root is drawn through [`ROOT_PIECES`] − 1
+/// points on the surface, and checked as `hpr-design`'s layout checks it
+/// ([`FinSet::root_radius_on`]), so a root this reads never fails the layout. Only a freeform fin
+/// set placed from its parent's ends or middle, with no tab or fillet, on a body of stated radii
+/// that does not narrow along its root, is read there; anything else says why. An automatic
+/// radius is the layout's to resolve from the parts around it, after this reader has drawn the
+/// root: a root drawn on the radius OpenRocket cached could stand off the surface the layout
+/// settles on.
+///
+/// [adr-166]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0166-a-fin-root-that-follows-the-body.md
+fn follow_the_body(
+    part: Part,
+    parent: &Part,
+    parent_auto: &[AutoDimension],
+    position: Position,
+) -> Result<Part, String> {
+    let Part::FinSet(mut fins) = part else {
+        return Ok(part);
+    };
+    let surface = match parent {
+        Part::NoseCone(nose) => nose.profile(),
+        Part::Transition(transition) => transition.profile(),
+        _ => {
+            return match fins.check_level_root() {
+                Ok(()) => Ok(Part::FinSet(fins)),
+                Err(_) => Err(
+                    "a freeform fin outline that does not run from the root leading \
+                     edge to the root trailing edge; it was left out rather than closed along a \
+                     root it never touches"
+                        .to_owned(),
+                ),
+            };
+        }
+    };
+    let on = spoken(parent);
+    let automatic = parent_auto.iter().any(|dimension| {
+        matches!(
+            dimension,
+            AutoDimension::BaseRadius | AutoDimension::ForeRadius | AutoDimension::AftRadius
+        )
+    });
+    if automatic {
+        return Err(format!(
+            "a fin set on a {on} of automatic radius, whose surface the layout settles only after \
+             this reader draws the root; it was left out"
+        ));
+    }
+    let surface = surface.map_err(|e| {
+        format!("a fin set on a {on} whose surface is unreadable ({e}); it was left out")
+    })?;
+    if fins.tab.is_some() || fins.fillet.is_some() {
+        return Err(format!(
+            "a fin set with a tab or a fillet on a {on}, which hpr models only on a body tube; it \
+             was left out"
+        ));
+    }
+    let chord = fins.planform.root_chord_m();
+    let FinPlanform::Freeform { points_m, root_m } = &mut fins.planform else {
+        return Err(format!(
+            "a {} fin set on a {on}: OpenRocket runs its root along the surface, which hpr reads \
+             only from a freeform outline; it was left out",
+            match fins.planform {
+                FinPlanform::Trapezoidal { .. } => "trapezoidal",
+                FinPlanform::Elliptical { .. } => "elliptical",
+                _ => "non-freeform",
+            }
+        ));
+    };
+    let length = surface.length_m();
+    let fore = match position {
+        Position::Top { aft_offset_m } => aft_offset_m,
+        Position::Middle { aft_offset_m } => 0.5 * (length - chord) + aft_offset_m,
+        Position::Bottom { aft_offset_m } => length - chord + aft_offset_m,
+        Position::After { .. } | Position::Absolute { .. } => {
+            return Err(format!(
+                "a fin set on a {on} placed after its sibling or at an absolute station, where this \
+                 reader can't find the surface its root follows; it was left out"
+            ));
+        }
+    };
+    // The layout's own slack: `length − chord + chord` can round a ulp past the end.
+    let slack = FinSet::ROOT_ON_SURFACE_M;
+    if !(fore >= -slack && fore + chord <= length + slack) {
+        return Err(format!(
+            "a fin set whose root runs past the ends of the {on} it sits on; it was left out"
+        ));
+    }
+    let base = surface.radius_m(fore);
+    let rise = |x: f64| surface.radius_m(fore + x) - base;
+    let pieces = f64::from(ROOT_PIECES);
+    let stations = (1..=ROOT_PIECES).map(|i| chord * f64::from(i) / pieces);
+    if stations.clone().any(|x| rise(x) < 0.0) {
+        return Err(format!(
+            "a fin set on a {on} that narrows along its root, which hpr reads only where the body \
+             holds or grows; it was left out"
+        ));
+    }
+    let end = points_m.last().copied().unwrap_or_default();
+    let miss = end[1] - rise(chord);
+    if miss.abs() > FinSet::ROOT_ON_SURFACE_M {
+        return Err(format!(
+            "a freeform fin outline on a {on} that ends {miss} m off its surface, where \
+             OpenRocket's root ends; it was left out"
+        ));
+    }
+    *root_m = stations
+        .take(ROOT_PIECES as usize - 1)
+        .map(|x| [x, rise(x)])
+        .collect();
+    root_m.reverse();
+    // The layout's check, so that what this reads lays out: a root's slivers across the curve,
+    // and anything the checks above did not foresee.
+    fins.root_radius_on(&surface, fore).map_err(|e| {
+        format!("a fin set on a {on} whose root can't be drawn on it ({e}); it was left out")
+    })?;
+    Ok(Part::FinSet(fins))
+}
+
+/// A freeform fin's outline, as `[x, h]` from the root leading edge, ending at the root trailing
+/// edge, which [`follow_the_body`] checks against the body the fin sits on.
+fn outline(values: &mut Values<'_>) -> Option<FinPlanform> {
+    let Some(points) = values.element(&["finpoints"]) else {
+        values.warn_at(
+            WarningKind::Skipped,
+            "a freeform fin set with no outline; it was left out",
+        );
+        return None;
+    };
+    let mut points_m = Vec::new();
+    super::reads::note(points, "point");
+    for point in points.elements().filter(|point| point.name == "point") {
+        let read = |name: &str| {
+            point
+                .attribute(name)
+                .and_then(|text| text.parse::<f64>().ok())
+                .filter(|value| value.is_finite())
+        };
+        match (read("x"), read("y")) {
+            (Some(x), Some(h)) => points_m.push([x, h]),
+            _ => {
+                values.warn_at(
+                    WarningKind::Skipped,
+                    "a freeform fin outline with a point that is not two numbers; it was left out",
+                );
+                return None;
+            }
+        }
+    }
+    if points_m.len() < 3 {
+        values.warn_at(
+            WarningKind::Skipped,
+            "a freeform fin outline of fewer than three points, which encloses no fin; it was \
+             left out",
+        );
+        return None;
+    }
+    let ends_aft = matches!(points_m.last(), Some(last) if last[0] > 0.0);
+    if points_m.first() != Some(&[0.0, 0.0]) || !ends_aft {
+        values.warn_at(
+            WarningKind::Skipped,
+            "a freeform fin outline that does not run from the root leading edge to the root \
+             trailing edge; it was left out rather than closed along a root it never touches",
+        );
+        return None;
+    }
+    Some(FinPlanform::Freeform {
+        points_m,
+        root_m: Vec::new(),
+    })
+}
+
+/// The section shape along a fin's chord.
+fn cross_section(values: &mut Values<'_>) -> FinCrossSection {
+    match values.word(&["crosssection"]).as_deref() {
+        Some("rounded") => FinCrossSection::Rounded,
+        Some("airfoil") => FinCrossSection::Airfoil,
+        None | Some("square") => FinCrossSection::Square,
+        Some(other) => {
+            let other = other.to_owned();
+            values.warn_at(
+                WarningKind::Unusual,
+                format!("`{other}` is not a fin section this reader knows; it was read as square"),
+            );
+            values.forget(&["crosssection"]);
+            FinCrossSection::Square
+        }
+    }
+}
+
+/// The tab below a fin's root, if it has one.
+///
+/// OpenRocket measures the tab from the fin's front, its center or its end, saying which in
+/// `relativeto`; `hpr-design` states one thing, the distance from the root leading edge aft to the
+/// tab's leading edge.
+///
+/// **What each word measures from is read off the corpus, not a specification.** `center` is taken
+/// as center-to-center, which is the only reading under which the corpus's eight non-zero offsets
+/// land inside their root chords. Any other puts a tab off the end of the fin, which
+/// `FinSet::validate` refuses. `end` is the mirror of `front` and appears in no file at all, so
+/// that arm rests on symmetry alone.
+fn tab(values: &mut Values<'_>, root_chord_m: f64) -> Option<FinTab> {
+    let height_m = values.number(&["tabheight"])?;
+    let length_m = values.number(&["tablength"]).unwrap_or_default();
+    if height_m <= 0.0 || length_m <= 0.0 {
+        return None;
+    }
+    let element = values.element(&["tabposition"]);
+    let relative_to = element
+        .and_then(|element| element.attribute("relativeto"))
+        .unwrap_or("front")
+        .to_owned();
+    let offset_m = values.number(&["tabposition"]).unwrap_or_default();
+    let offset_m = match relative_to.as_str() {
+        // OpenRocket writes `<tabposition>` twice, the newer name's frame first. The older
+        // vocabulary is the same three places under the names the axial offset uses, and across
+        // the reference library the two elements always carry the same number, so either spelling
+        // means the same tab.
+        "front" | "top" => offset_m,
+        "center" | "middle" => 0.5 * (root_chord_m - length_m) + offset_m,
+        "end" | "bottom" => root_chord_m - length_m + offset_m,
+        other => {
+            values.warn_at(
+                WarningKind::Unusual,
+                format!(
+                    "a fin tab measured from `{other}`, which this reader does not know; it was \
+                     read from the root leading edge"
+                ),
+            );
+            values.forget(&["tabposition"]);
+            offset_m
+        }
+    };
+    Some(FinTab {
+        height_m,
+        length_m,
+        offset_m,
+    })
+}
+
+/// OpenRocket 24.12 reads a tube fin set of more than this many tubes as this many, whether its
+/// radius is stated or `auto`: 9, 12, 20 and 100 all read as 8 on its probes (ADR-098).
+const MOST_TUBE_FINS: u32 = 8;
+
+/// A ring of tubes around the body. An `auto` radius is the one at which the tubes close the ring
+/// around the body tube, which the layout resolves (`AutoDimension::OuterRadius`, ADR-098).
+fn tube_fins(values: &mut Values<'_>, auto: &mut Vec<AutoDimension>) -> Option<Part> {
+    let (stated_m, outer_radius_m) =
+        stated_radius(values, &["radius"], AutoDimension::OuterRadius, auto);
+    let thickness_m = tube_wall(values, stated_m)?;
+    // The count is read once, and capped before `MOST_INSTANCES` could leave the set out, so that
+    // a count past it reads as 8 too, as OpenRocket reads 100 on its probe.
+    let count = match values.count(&INSTANCE_COUNT).unwrap_or(1) {
+        0 => {
+            values.warn_at(
+                WarningKind::Skipped,
+                "a tube fin set of none; it was left out",
+            );
+            return None;
+        }
+        written if written > MOST_TUBE_FINS => {
+            values.warn_at(
+                WarningKind::Dropped,
+                format!(
+                    "a tube fin set of {written} tubes; OpenRocket 24.12 reads at most \
+                     {MOST_TUBE_FINS}, so it was read as {MOST_TUBE_FINS}"
+                ),
+            );
+            values.forget(&INSTANCE_COUNT);
+            MOST_TUBE_FINS
+        }
+        written => written,
+    };
+    Some(Part::TubeFinSet(TubeFinSet {
+        count,
+        length_m: values.number(&["length"]).unwrap_or_default(),
+        outer_radius_m,
+        thickness_m,
+        base_angle_rad: roll_angle(values),
+        material: material(values, &["material"], "bulk"),
+    }))
+}
+
+/// A launch lug, or a row of them.
+fn launch_lug(values: &mut Values<'_>) -> Option<Part> {
+    let mut auto = Vec::new();
+    let (stated_m, outer_radius_m) =
+        stated_radius(values, &["radius"], AutoDimension::OuterRadius, &mut auto);
+    if stated_m.is_none() {
+        // A lug has no automatic radius in `hpr-design`, and the number OpenRocket cached is the
+        // rod it last had, which may not be this one's. Reading it would put a stated radius where
+        // the file says "work it out", and a bare `auto` would leave a lug of no radius that the
+        // layout refuses, taking the whole design with it. No lug in the reference library is
+        // written this way.
+        values.warn_at(
+            WarningKind::Skipped,
+            "a launch lug whose radius OpenRocket works out for itself; hpr does not resolve that, \
+             so it was left out",
+        );
+        return None;
+    }
+    let thickness_m = tube_wall(values, stated_m)?;
+    let (count, spacing_m) = row(values, "row of launch lugs")?;
+    Some(Part::LaunchLug(LaunchLug {
+        length_m: values.number(&["length"]).unwrap_or_default(),
+        outer_radius_m,
+        thickness_m,
+        angle_rad: roll_angle(values),
+        count,
+        spacing_m,
+        material: material(values, &["material"], "bulk"),
+    }))
+}
+
+/// A rail button, or a row of them.
+fn rail_button(values: &mut Values<'_>) -> Option<Part> {
+    let (count, spacing_m) = row(values, "row of rail buttons")?;
+    Some(Part::RailButton(RailButton {
+        outer_diameter_m: values.number(&["outerdiameter"]).unwrap_or_default(),
+        inner_diameter_m: values.number(&["innerdiameter"]).unwrap_or_default(),
+        height_m: values.number(&["height"]).unwrap_or_default(),
+        base_height_m: values.number(&["baseheight"]).unwrap_or_default(),
+        flange_height_m: values.number(&["flangeheight"]).unwrap_or_default(),
+        screw_height_m: values.number(&["screwheight"]).unwrap_or_default(),
+        angle_rad: roll_angle(values),
+        count,
+        spacing_m,
+        material: material_or(values, &["material"], "bulk", UNNAMED_RAIL_BUTTON),
+    }))
+}
+
+/// A lump of mass with no geometry of its own beyond how it is packed.
+fn mass_component(values: &mut Values<'_>, auto: &mut Vec<AutoDimension>) -> Option<Part> {
+    Some(Part::MassComponent(MassComponent {
+        mass_kg: values.number(&["mass"]).unwrap_or_default(),
+        packing: packing(values, auto),
+    }))
+}
+
+/// A parachute: a canopy of fabric on a set of shroud lines, packed into the body.
+fn parachute(values: &mut Values<'_>, auto: &mut Vec<AutoDimension>) -> Option<Part> {
+    Some(Part::Parachute(Parachute {
+        diameter_m: values.number(&["diameter"]).unwrap_or_default(),
+        canopy_material: material(values, &["material"], "surface"),
+        line_count: values.count(&["linecount"]).unwrap_or_default(),
+        line_length_m: values.number(&["linelength"]).unwrap_or_default(),
+        line_material: material(values, &["linematerial"], "line"),
+        packing: packing(values, auto),
+    }))
+}
+
+/// A streamer: a strip of fabric, packed into the body.
+fn streamer(values: &mut Values<'_>, auto: &mut Vec<AutoDimension>) -> Option<Part> {
+    Some(Part::Streamer(Streamer {
+        length_m: values.number(&["striplength"]).unwrap_or_default(),
+        width_m: values.number(&["stripwidth"]).unwrap_or_default(),
+        material: material(values, &["material"], "surface"),
+        packing: packing(values, auto),
+    }))
+}
+
+/// A shock cord, packed into the body.
+fn shock_cord(values: &mut Values<'_>, auto: &mut Vec<AutoDimension>) -> Option<Part> {
+    Some(Part::ShockCord(ShockCord {
+        length_m: values.number(&["cordlength"]).unwrap_or_default(),
+        material: material(values, &["material"], "line"),
+        packing: packing(values, auto),
+    }))
+}
+
+/// The packed length OpenRocket 24.12 gives a mass component, parachute, streamer or shock cord
+/// whose file writes no `packedlength`, in meters: 25 mm.
+///
+/// No document states it, so it was measured ([ADR-063][adr-063]): on probe designs of each kind
+/// written with no packed size, and a parachute written with only one of the two, OpenRocket's
+/// center of mass and inertias are those of a solid cylinder this long, from the part's position
+/// aft, and [`PACKED_RADIUS_M`] in radius, whichever of the two is missing
+/// (`validation/oracles/openrocket/conventions.py`).
+///
+/// [adr-063]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-063-packed-parts-read-and-weighed-as-openrocket-packs-them-2026-09-21
+const PACKED_LENGTH_M: f64 = 0.025;
+
+/// The packed radius OpenRocket 24.12 gives a packed part whose file writes no `packedradius`, in
+/// meters: 12.5 mm, a fixed number, not the tube's bore. Measured as [`PACKED_LENGTH_M`] is.
+const PACKED_RADIUS_M: f64 = 0.0125;
+
+/// How a mass object or a recovery part is packed: the cylinder it takes up inside the body. A size
+/// the file does not write is OpenRocket's ([`PACKED_LENGTH_M`], [`PACKED_RADIUS_M`]), read with no
+/// warning, as [ADR-061][adr-061] reads what else a file leaves unsaid (a wall of no thickness, no
+/// material): that is what the file means, not a guess.
+///
+/// [adr-061]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-061-what-a-ork-leaves-unsaid-read-as-openrocket-reads-it-overrides-measured-two-departures-kept-2026-09-21
+fn packing(values: &mut Values<'_>, auto: &mut Vec<AutoDimension>) -> Packing {
+    let radius_m = if values.element(&["packedradius"]).is_none() {
+        PACKED_RADIUS_M
+    } else {
+        stated_radius(values, &["packedradius"], AutoDimension::PackedRadius, auto).1
+    };
+    let length_m = if values.element(&["packedlength"]).is_none() {
+        PACKED_LENGTH_M
+    } else {
+        values.number(&["packedlength"]).unwrap_or_default()
+    };
+    Packing {
+        length_m,
+        radius_m,
+        radial_offset_m: values.number(&["radialposition"]).unwrap_or_default(),
+        angle_rad: roll_angle(values),
+    }
+}
+
+/// How many of an instanced part there are, and how far apart they sit along the body. `None` when
+/// the file asks for more than [`MOST_INSTANCES`].
+fn row(values: &mut Values<'_>, what: &str) -> Option<(u32, f64)> {
+    let count = instances(values, what)?;
+    Some((
+        count.max(1),
+        values.number(&["instanceseparation"]).unwrap_or_default(),
+    ))
+}
+
+/// How many of a part the file says there are, refusing a count no rocket has and a file could
+/// only give by accident or on purpose. See [`MOST_INSTANCES`].
+fn instances(values: &mut Values<'_>, what: &str) -> Option<u32> {
+    let count = values.count(&INSTANCE_COUNT).unwrap_or(1);
+    if count == 0 {
+        let what = what.to_owned();
+        values.warn_at(
+            WarningKind::Skipped,
+            format!("a {what} of none; it was left out"),
+        );
+        return None;
+    }
+    if count > MOST_INSTANCES {
+        let what = what.to_owned();
+        values.warn_at(
+            WarningKind::Skipped,
+            format!(
+                "a {what} of {count}, where hpr builds each one and adds them up; it was left out \
+                 rather than asked for"
+            ),
+        );
+        return None;
+    }
+    Some(count)
+}
+
+/// Says so when a part is written more than once and `hpr-design` models one of it.
+fn instanced_once(values: &mut Values<'_>, what: &str) {
+    if values.count(&INSTANCE_COUNT).is_some_and(|count| count > 1) {
+        let what = what.to_owned();
+        values.warn_at(
+            WarningKind::Dropped,
+            format!("a row of more than one {what} was read as the one it is written as"),
+        );
+        values.forget(&INSTANCE_COUNT);
+    }
+}
+
+/// Says so when a part that `hpr-design` keeps on the axis is written off it.
+fn off_the_axis(values: &mut Values<'_>, what: &str) {
+    if values
+        .number(&["radialposition"])
+        .is_some_and(|offset| offset != 0.0)
+    {
+        let what = what.to_owned();
+        values.warn_at(
+            WarningKind::Dropped,
+            format!("a {what} off the body axis was read on it; hpr keeps one on the axis"),
+        );
+        values.forget(&["radialposition"]);
+    }
+}
+
+/// Says so when an external part is written standing off the body's surface.
+///
+/// OpenRocket measures a fin's or a lug's radius from the surface (`method="surface"`), or, for
+/// tube fins, from the body it wraps (`"coaxial"`). `hpr-design` sits every external part on the
+/// surface, so any offset but zero is a standoff it does not model. Every one of the 95 written in
+/// the reference corpus is zero.
+fn radial_offset_on_the_surface(values: &mut Values<'_>, part: &Part) {
+    if !part.is_external() {
+        return;
+    }
+    if values
+        .number(&["radiusoffset"])
+        .is_some_and(|offset| offset != 0.0)
+    {
+        let kind = spoken(part);
+        values.warn_at(
+            WarningKind::Dropped,
+            format!("a {kind} standing off the body was read sitting on it"),
+        );
+        values.forget(&["radiusoffset"]);
+    }
+}
+
+/// Where a part sits along its parent.
+///
+/// The offset and the end it is measured from are one tag: `<axialoffset method="bottom">` on the
+/// newer name, `<position type="bottom">` on the older, with the same five words. A part with
+/// neither is read flush with its parent's forward end, which is what OpenRocket's own default is
+/// for everything but a fin set; one tube coupler in the reference corpus is written that way.
+fn position(values: &mut Values<'_>) -> Position {
+    let Some(element) = values.element(&AXIAL_OFFSET) else {
+        values.warn_at(
+            WarningKind::Unusual,
+            "no axial offset at all; the part was read flush with its parent's forward end",
+        );
+        return Position::Top { aft_offset_m: 0.0 };
+    };
+    let from = element
+        .attribute("method")
+        .or_else(|| element.attribute("type"))
+        .unwrap_or("top")
+        .to_owned();
+    // From the element already found, not a second lookup: asking `Values` again would run the
+    // two-name comparison a second time and warn twice about one disagreement.
+    let text = element.text();
+    let aft_offset_m = match text.trim().parse::<f64>() {
+        Ok(value) if value.is_finite() => value,
+        _ => {
+            let (name, text) = (element.name.clone(), text.trim().to_owned());
+            values.warn_at(
+                WarningKind::Dropped,
+                format!("`{name}` says `{text}`, which is not a number; it was read as zero"),
+            );
+            values.forget(&AXIAL_OFFSET);
+            0.0
+        }
+    };
+    match from.as_str() {
+        "top" => Position::Top { aft_offset_m },
+        "middle" => Position::Middle { aft_offset_m },
+        "bottom" => Position::Bottom { aft_offset_m },
+        "after" => Position::After { aft_offset_m },
+        "absolute" => Position::Absolute {
+            station_m: aft_offset_m,
+        },
+        other => {
+            values.warn_at(
+                WarningKind::Unusual,
+                format!(
+                    "an axial offset measured from `{other}`, which this reader does not know; it \
+                     was read from the parent's forward end"
+                ),
+            );
+            values.forget(&AXIAL_OFFSET);
+            Position::Top { aft_offset_m }
+        }
+    }
+}
+
+/// Where `hpr-design` must put a rail button's forward edge for its center to be where OpenRocket
+/// puts it.
+///
+/// OpenRocket 24.12 gives a rail button no length, so it places the button's center where a part of
+/// no length would sit, from whichever end the offset is measured, and a row's first button there,
+/// the rest following aft (#151; measured on `validation/oracles/openrocket/conventions.py`'s
+/// probes: from the top, the middle and the bottom, one button and a row of two). `hpr-design`
+/// puts a part's forward edge, middle or aft edge on the position (from the top, after a part or
+/// absolute; the middle; the bottom) and gives a row the length from the first button's forward
+/// edge to the last one's aft edge, so the offset moves by the difference.
+fn centered_on_its_position(position: Position, button: &RailButton) -> Position {
+    let radius_m = 0.5 * button.outer_diameter_m;
+    let row_m = button.spacing_m * f64::from(button.count.saturating_sub(1));
+    match position {
+        Position::Top { aft_offset_m } => Position::Top {
+            aft_offset_m: aft_offset_m - radius_m,
+        },
+        Position::Middle { aft_offset_m } => Position::Middle {
+            aft_offset_m: aft_offset_m + 0.5 * row_m,
+        },
+        Position::Bottom { aft_offset_m } => Position::Bottom {
+            aft_offset_m: aft_offset_m + radius_m + row_m,
+        },
+        Position::After { aft_offset_m } => Position::After {
+            aft_offset_m: aft_offset_m - radius_m,
+        },
+        Position::Absolute { station_m } => Position::Absolute {
+            station_m: station_m - radius_m,
+        },
+    }
+}
+
+/// The surface finish, as a roughness height.
+///
+/// OpenRocket writes one of five words. What each is worth in micrometers is not in the file
+/// format documentation; the numbers below are from the program's author, on The Rocketry Forum
+/// (thread "Open Rocket Finishes", post #6, 22 August 2013):
+///
+/// | word | OpenRocket's name for it | roughness |
+/// | --- | --- | --- |
+/// | `rough` | Rough | 500 µm |
+/// | `unfinished` | Unfinished | 150 µm |
+/// | `normal` | Regular paint | 60 µm |
+/// | `smooth` | Smooth paint | 20 µm |
+/// | `polished` | Polished | 2 µm |
+///
+/// The default, `normal`, is confirmed twice over: the [OpenRocket technical documentation][doc]
+/// section 6 says "the 'regular paint' finish was selected, which corresponds to an average
+/// surface roughness of 60 µm", and the user guide's body-tube dialog reads "Regular paint
+/// (2.36 mil)", which is 59.9 µm. The guide's [`.ork` page][guide] has the rest, including what is
+/// not settled about `polished`.
+///
+/// [doc]: https://openrocket.sourceforge.net/techdoc.pdf
+/// [guide]: https://hpr.fusionspace.co/format/ork.html
+pub(super) fn finish(values: &mut Values<'_>) -> Option<Finish> {
+    let word = values.word(&["finish"])?;
+    let roughness_m = match word.as_str() {
+        "rough" => 500e-6,
+        "unfinished" => 150e-6,
+        "normal" => 60e-6,
+        "smooth" => 20e-6,
+        "polished" => 2e-6,
+        other => {
+            let other = other.to_owned();
+            values.warn_at(
+                WarningKind::Unusual,
+                format!(
+                    "`{other}` is not a surface finish this reader has a roughness for; the part \
+                     took hpr's default"
+                ),
+            );
+            values.forget(&["finish"]);
+            return None;
+        }
+    };
+    Some(Finish::Custom { roughness_m })
+}
+
+/// A part's roll angle around the body, in radians.
+///
+/// **`.ork` angles are degrees.** Nothing in the file says so, and every length beside them is in
+/// meters, so reading one as radians is an easy mistake: `<angleoffset>180</angleoffset>` would be
+/// more than twenty-eight turns instead of half of one. The corpus settles it. Of the 993 angles
+/// written in it, 188 are not zero, and **178 of those are larger than 2π**: more than a whole
+/// turn, which no component is written at. The values themselves are 180, 90, 45, 30 and 120, with
+/// float dust (`119.99999999999999`) from a conversion that went through radians and back.
+/// `cargo xtask ork` prints all three counts.
+///
+/// OpenRocket writes the angle under a newer name, `angleoffset`, and an older one: `rotation` on
+/// a fin set, `radialdirection` on everything else. Those are **not** read as one tag by
+/// [`Values::element`]: the newer name carries a `method` attribute that the older never does, and
+/// [ADR-052][adr] left the pair alone for want of a source saying what the older name's frame is.
+/// What settles it here is narrower than that question and enough for it: on the 95 fin sets and
+/// 26 other parts of the reference corpus that carry both names, the two agree on the **number**
+/// every time, so which one is read cannot change an angle. The frames (`relative` to the parent
+/// and `fixed` in the rocket) are the same angle for every parent this reader builds, because all
+/// of them sit on the rocket's own axis. A pod set hangs from a body tube, on the axis too, and
+/// OpenRocket 24.12 places its pods alike for `relative`, `fixed` and `mirror_xy` ([`pod_set`]).
+///
+/// **Which way the angle turns is assumed, not sourced.** `docs/physics/frames.md` measures a roll
+/// angle from `x_B` toward `y_B`, right-handed about `+z_B`, which points at the nose; OpenRocket's
+/// technical documentation (§3.1.4) puts its own `+x` along the centerline pointing *aft* and
+/// leaves the other two axes unstated. A right-handed angle about an aft-pointing axis is a
+/// left-handed one about `+z_B`, so if OpenRocket means that, every angle read here is mirrored:
+/// a mass object at 90° sits on the other side, and a canted fin set rolls the other way. Nothing
+/// in the corpus can settle it, because a mirrored design is still a valid design; one asymmetric
+/// design through the OpenRocket oracle (M2.2) will. Until then this reader takes the number
+/// unchanged, and the guide lists it among the readings that are not settled.
+///
+/// [adr]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
+fn roll_angle(values: &mut Values<'_>) -> f64 {
+    let newer = values.number(&["angleoffset"]);
+    let older = values
+        .number(&["rotation"])
+        .or_else(|| values.number(&["radialdirection"]));
+    if let (Some(newer), Some(older)) = (newer, older)
+        && newer != older
+    {
+        values.warn_at(
+            WarningKind::Dropped,
+            format!(
+                "`angleoffset` says `{newer}` and the older name says `{older}`; they are two \
+                 names for one angle, so `angleoffset` was taken"
+            ),
+        );
+        values.forget(&["rotation", "radialdirection"]);
+    }
+    newer.or(older).unwrap_or_default().to_radians()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use hpr_design::Material;
+
+    /// Each of OpenRocket's fourteen cluster patterns, written here as the figure it is, is the
+    /// list of points OpenRocket 24.12 gives for it, in its order, to 1e-15; and there is no other
+    /// (`validation/fixtures/ork/openrocket-clusters.json`).
+    #[test]
+    fn cluster_patterns_are_openrocket_s_points() {
+        let text = include_str!("../../../../validation/fixtures/ork/openrocket-clusters.json");
+        let record: serde_json::Value = serde_json::from_str(text).unwrap();
+        let patterns = record["patterns"].as_object().unwrap();
+        assert_eq!(patterns.len(), 14);
+        for (name, pattern) in patterns {
+            let theirs: Vec<f64> = pattern["points"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|v| v.as_f64().unwrap())
+                .collect();
+            let ours = cluster_pattern(name).unwrap_or_else(|| panic!("no pattern {name}"));
+            assert_eq!(pattern["count"].as_u64(), Some(ours.len() as u64), "{name}");
+            assert_eq!(theirs.len(), 2 * ours.len(), "{name}");
+            for (k, [x, y]) in ours.iter().enumerate() {
+                let apart = (x - theirs[2 * k]).hypot(y - theirs[2 * k + 1]);
+                assert!(apart <= 1e-15, "{name} point {k}: {x}, {y}");
+            }
+        }
+        assert_eq!(cluster_pattern("4-square"), None);
+    }
+
+    /// A row of two 10 mm buttons 0.1 m apart: its first button's center must land where OpenRocket
+    /// puts it, a part of no length placed by the same words, whichever end the offset is from.
+    /// hpr's row runs from the first button's forward edge, 5 mm ahead of its center, and is
+    /// 0.11 m long.
+    #[test]
+    fn a_rail_button_row_is_placed_by_its_first_center() {
+        let button = RailButton {
+            outer_diameter_m: 0.01,
+            inner_diameter_m: 0.006,
+            height_m: 0.008,
+            base_height_m: 0.002,
+            flange_height_m: 0.002,
+            screw_height_m: 0.0,
+            angle_rad: 0.0,
+            count: 2,
+            spacing_m: 0.1,
+            material: Material::bulk("Probe", 1000.0),
+        };
+        let cases = [
+            // top 0.1: the forward edge 5 mm ahead.
+            (
+                Position::Top { aft_offset_m: 0.1 },
+                Position::Top {
+                    aft_offset_m: 0.095,
+                },
+            ),
+            // middle 0: the first center on the middle, so the row's middle 0.05 m aft of it.
+            (
+                Position::Middle { aft_offset_m: 0.0 },
+                Position::Middle { aft_offset_m: 0.05 },
+            ),
+            // bottom −0.1: the first center 0.1 m above the end, the row's aft edge 5 mm past
+            // the last center, which is 0.1 m further aft.
+            (
+                Position::Bottom { aft_offset_m: -0.1 },
+                Position::Bottom {
+                    aft_offset_m: 0.005,
+                },
+            ),
+            (
+                Position::After { aft_offset_m: 0.02 },
+                Position::After {
+                    aft_offset_m: 0.015,
+                },
+            ),
+            (
+                Position::Absolute { station_m: 1.0 },
+                Position::Absolute { station_m: 0.995 },
+            ),
+        ];
+        for (read, placed) in cases {
+            let found = centered_on_its_position(read, &button);
+            let offset = |position: &Position| match *position {
+                Position::Top { aft_offset_m }
+                | Position::Middle { aft_offset_m }
+                | Position::Bottom { aft_offset_m }
+                | Position::After { aft_offset_m } => aft_offset_m,
+                Position::Absolute { station_m } => station_m,
+            };
+            assert_eq!(
+                std::mem::discriminant(&found),
+                std::mem::discriminant(&placed),
+                "{read:?}"
+            );
+            assert!(
+                (offset(&found) - offset(&placed)).abs() < 1e-15,
+                "{read:?}: {found:?}"
+            );
+        }
+    }
+}

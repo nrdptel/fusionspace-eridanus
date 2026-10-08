@@ -1,0 +1,4658 @@
+//! Recovery devices: what opens, when it opens, and the drag area it presents.
+//!
+//! A [`Device`] is a drag area ([`DeviceDrag`]) with a [`Trigger`], a lag from the trigger to line
+//! stretch, and an [`Inflation`] law. A flight carries a list of them ([`crate::Simulation`]); the
+//! first one to open starts the descent phase ([`crate::Phase::Descent`]), where the rocket flies
+//! as a point mass under the sum of the open devices' drag areas (`docs/physics/recovery.md`).
+//!
+//! Streamers and tumbling bodies are drag areas too, from their own sources
+//! ([`StreamerModel`], [`DeviceDrag::tumbling`]).
+//!
+//! Canopy data comes from T. W. Knacke, *Parachute Recovery Systems Design Manual*, NWC TP 6575
+//! (1991): drag coefficients on the nominal area `S₀` from Tables 5-1 and 5-2, canopy fill
+//! constants from Table 5-6, the drag-area growth exponents of Pflanz's method (Figure 5-51) and
+//! the infinite-mass opening-force coefficients `C_x` from the same tables. Every number is cited
+//! at its accessor, with the printed page.
+
+use hpr_core::DVec3;
+use serde::{Deserialize, Serialize};
+
+use crate::error::SimError;
+
+/// The smallest aspect ratio `l/w` a streamer may have. A strip wider than it is long is not a
+/// streamer, and both correlations run away there: Carruthers and Filippone's `C_D → ∞` as
+/// `AR → 0`, and appendix C notes its own form "obtains maximum drag for a fixed surface area at
+/// the limit `l → 0`, `w → ∞`" (printed page 117).
+pub const MIN_STREAMER_ASPECT_RATIO: f64 = 1.0;
+
+/// The largest `C_D0` a canopy may be given. Knacke's printed values run from 0.30 to 0.96 on the
+/// nominal area; anything above this is a drag area mistaken for a coefficient.
+const MAX_CANOPY_DRAG_COEFFICIENT: f64 = 2.0;
+
+/// A canopy type with printed data in Knacke's tables.
+///
+/// Solid textile canopies come from Table 5-1 (printed page 5-3), slotted ones from Table 5-2
+/// (5-4).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum CanopyType {
+    /// Flat circular (solid textile).
+    FlatCircular,
+    /// Conical (solid textile).
+    Conical,
+    /// Biconical (solid textile).
+    Biconical,
+    /// Triconical or polyconical (solid textile).
+    Triconical,
+    /// Extended skirt, 10% flat (solid textile).
+    ExtendedSkirt10Flat,
+    /// Extended skirt, 14.3% full (solid textile).
+    ExtendedSkirt14Full,
+    /// Hemispherical (solid textile).
+    Hemispherical,
+    /// Annular (solid textile).
+    Annular,
+    /// Cross, or cruciform (solid textile).
+    Cross,
+    /// Flat (FIST) ribbon (slotted).
+    FlatRibbon,
+    /// Conical ribbon (slotted).
+    ConicalRibbon,
+    /// Ringslot (slotted).
+    Ringslot,
+    /// Ringsail (slotted).
+    Ringsail,
+}
+
+impl CanopyType {
+    /// Knacke's printed range of `C_D0`, the drag coefficient on the nominal area `S₀`
+    /// (Tables 5-1 and 5-2, printed pages 5-3 and 5-4).
+    #[must_use]
+    pub const fn drag_coefficient_range(self) -> (f64, f64) {
+        match self {
+            Self::FlatCircular => (0.75, 0.80),
+            Self::Conical => (0.75, 0.90),
+            Self::Biconical => (0.75, 0.92),
+            Self::Triconical => (0.80, 0.96),
+            Self::ExtendedSkirt10Flat => (0.78, 0.87),
+            Self::ExtendedSkirt14Full => (0.75, 0.90),
+            Self::Hemispherical => (0.62, 0.77),
+            Self::Annular => (0.85, 0.95),
+            Self::Cross => (0.60, 0.85),
+            Self::FlatRibbon => (0.45, 0.50),
+            Self::ConicalRibbon => (0.50, 0.55),
+            Self::Ringslot => (0.56, 0.65),
+            Self::Ringsail => (0.75, 0.85),
+        }
+    }
+
+    /// The middle of [`Self::drag_coefficient_range`], which is what hpr uses when the user gives
+    /// no `C_D0`. Knacke prints a range for every type and no single value; the middle is hpr's
+    /// choice, not his (the decision record on recovery, [ADR-012][adr-012]).
+    ///
+    /// [adr-012]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-012-recovery-drag-areas-triggers-inflation-and-the-descent-phase-2026-09-17
+    #[must_use]
+    pub const fn drag_coefficient(self) -> f64 {
+        let (low, high) = self.drag_coefficient_range();
+        0.5 * (low + high)
+    }
+
+    /// The canopy fill constant `n` of `t_f = n D₀/v` (Table 5-6, printed page 5-44, unreefed
+    /// column), where Knacke prints one. `None` where the table has no unreefed value for the
+    /// type, which for five of these is because it has no row there at all.
+    ///
+    /// Knacke's rows cover types, not every variant: the ribbon row serves both ribbon entries.
+    /// (The ringsail row prints 7 unreefed; its 7 to 8 is the reefed column.)
+    #[must_use]
+    pub const fn fill_constant(self) -> Option<f64> {
+        match self {
+            Self::FlatCircular => Some(8.0),
+            Self::ExtendedSkirt10Flat => Some(10.0),
+            Self::ExtendedSkirt14Full => Some(12.0),
+            Self::Cross => Some(11.7),
+            Self::FlatRibbon | Self::ConicalRibbon => Some(14.0),
+            Self::Ringslot => Some(14.0),
+            Self::Ringsail => Some(7.0),
+            Self::Conical
+            | Self::Biconical
+            | Self::Triconical
+            | Self::Hemispherical
+            | Self::Annular => None,
+        }
+    }
+
+    /// The drag-area growth exponent `j` of `(C_D S)(t) = (C_D S)₀ (t/t_f)^j`, for the types
+    /// Pflanz's method names (Figure 5-51, printed page 5-59): `j = 2` for solid cloth (flat
+    /// circular, conical, extended skirt, triconical) and `j = 1` for ribbon and ringslot.
+    /// `None` for the types he doesn't name, which need a measured exponent.
+    #[must_use]
+    pub const fn growth_exponent(self) -> Option<f64> {
+        match self {
+            Self::FlatCircular
+            | Self::Conical
+            | Self::Triconical
+            | Self::ExtendedSkirt10Flat
+            | Self::ExtendedSkirt14Full => Some(2.0),
+            Self::FlatRibbon | Self::ConicalRibbon | Self::Ringslot => Some(1.0),
+            Self::Biconical
+            | Self::Hemispherical
+            | Self::Annular
+            | Self::Cross
+            | Self::Ringsail => None,
+        }
+    }
+
+    /// The infinite-mass opening-force coefficient `C_x = F_x/F_c` (Tables 5-1 and 5-2; the cross
+    /// canopy's printed 1.1 to 1.2 is taken at its middle). hpr reports it; it is not used in the
+    /// equations, which integrate the opening force instead.
+    #[must_use]
+    pub const fn opening_force_coefficient(self) -> f64 {
+        match self {
+            Self::FlatCircular => 1.7,
+            Self::Conical | Self::Biconical | Self::Triconical => 1.8,
+            Self::ExtendedSkirt10Flat | Self::ExtendedSkirt14Full | Self::Annular => 1.4,
+            Self::Hemispherical => 1.6,
+            Self::Cross => 1.15,
+            Self::FlatRibbon | Self::ConicalRibbon | Self::Ringslot => 1.05,
+            Self::Ringsail => 1.10,
+        }
+    }
+
+    /// Where the numbers come from, for reports.
+    #[must_use]
+    pub const fn source(self) -> &'static str {
+        "Knacke, Parachute Recovery Systems Design Manual, NWC TP 6575 (1991): Table 5-1 (solid \
+         textile canopies), Table 5-2 (slotted), Table 5-6 (fill constants) and Figure 5-51 \
+         (drag-area growth)"
+    }
+}
+
+/// How a streamer's drag area is estimated. A streamer of length `l` and width `w` has a
+/// planform (one-side) area `S = l w` and an aspect ratio `AR = l/w`.
+///
+/// The two models disagree by a factor of about four in drag area, so
+/// `docs/physics/recovery.md` sets out what each is fitted to and how each compares with the only
+/// free-drop data in hand (the decision record on streamer and tumble drag, [ADR-013][adr-013]).
+///
+/// [adr-013]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-013-streamer-and-tumble-drag-2026-09-17
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum StreamerModel {
+    /// J. Carruthers and A. Filippone, "Aerodynamic Drag of Streamers and Flags", *Journal of
+    /// Aircraft* 42(4), 2005, pp. 976-982, on the planform area, from wind-tunnel tests of cotton
+    /// streamers at `AR` 3.3 to 30 and 6 to 18.9 m/s. It fits one power curve per planform area:
+    ///
+    /// - `C_D = 0.561 AR^−0.480` at `S = 0.025 m²` (eq. 2; Figure 2's trend line reads
+    ///   `0.561 AR^−0.4795`),
+    /// - `C_D = 0.6514 AR^−0.6075` at `S = 0.05 m²` (the trend line on Figure 3, which the text
+    ///   does not repeat as an equation),
+    /// - `C_D = 0.405 AR^−0.494` at `S = 0.075 m²` (eq. 1; Figure 4 reads `0.4046 AR^−0.494`).
+    ///
+    /// hpr interpolates between **neighbouring** curves linearly in `ln S` and holds the end
+    /// curve outside the fitted range. That interpolation is hpr's, not the paper's. All three
+    /// are needed because `C_D` is far from linear in `ln S`: at `AR = 3.3` the middle curve sits
+    /// 0.3% *below* the smallest area's rather than 63% of the way to the largest's, so blending
+    /// only the extremes reads 18% low there.
+    ///
+    /// The correlations are for streamers clamped at the luff; the paper measures more drag when
+    /// the luff is free, which is what a descending streamer has.
+    ///
+    /// This is the default: on the one free-drop measurement in hand that a flat correlation
+    /// should fit (Kidwell's unpleated streamer) it is 9% fast where [`Self::OpenRocket`] is 88%
+    /// fast. Both are fast on his pleated streamers, which neither models
+    /// (`docs/physics/recovery.md`).
+    #[default]
+    Filippone,
+    /// The OpenRocket technical documentation v13.05, Appendix C (printed pages 113-118):
+    /// `C_Dm = 0.034 ((ρ_m + 25 g/m²)/(105 g/m²)) ((l + 1 m)/l)` on the planform area, fitted to
+    /// wind-tunnel tests of model-rocket streamers (`w` 0.01 to 0.09 m, `l` 0.2 to 1.0 m, surface
+    /// density 10 to 80 g/m², 6 to 12 m/s), with a stated 12 to 27% error on an independent set.
+    ///
+    /// Use it to compare with OpenRocket. Against Kidwell's free drops it is low in drag area by
+    /// 4.2 times on his flat crêpe streamer and 7.8 times on his pleated Micafilm one, which is
+    /// 88% and 154% fast in descent rate (`docs/physics/recovery.md`).
+    OpenRocket,
+}
+
+impl StreamerModel {
+    /// Carruthers and Filippone's three fitted curves, as `(planform area m², coefficient,
+    /// exponent)` with `C_D = coefficient · AR^exponent`, in order of area.
+    const FILIPPONE_CURVES: [(f64, f64, f64); 3] = [
+        (0.025, 0.561, -0.480),
+        (0.05, 0.6514, -0.6075),
+        (0.075, 0.405, -0.494),
+    ];
+
+    /// The aspect ratios `AR = l/w` the correlations were fitted over. Outside it they only
+    /// extrapolate, and as `AR → 0` the power law runs away (`C_D → ∞`), which is why a flight
+    /// refuses a strip wider than it is long ([`MIN_STREAMER_ASPECT_RATIO`]).
+    pub const FILIPPONE_ASPECT_RATIO_RANGE: (f64, f64) = (3.3, 30.0);
+
+    /// The drag area `C_D S` of a streamer, m².
+    ///
+    /// `surface_density_kg_m2` is the fabric's, which only [`Self::OpenRocket`] uses. Outside the
+    /// ranges each correlation was fitted over this extrapolates; a flight refuses the shapes
+    /// that make it meaningless ([`crate::Simulation::with_recovery`]).
+    #[must_use]
+    pub fn drag_area_m2(self, length_m: f64, width_m: f64, surface_density_kg_m2: f64) -> f64 {
+        let planform_m2 = length_m * width_m;
+        match self {
+            Self::Filippone => {
+                let aspect_ratio = length_m / width_m;
+                let curve = |(_, coefficient, exponent): (f64, f64, f64)| {
+                    coefficient * aspect_ratio.powf(exponent)
+                };
+                let curves = Self::FILIPPONE_CURVES;
+                // Between two neighbouring curves, linearly in `ln S`; outside, the end curve.
+                let coefficient = if planform_m2 <= curves[0].0 {
+                    curve(curves[0])
+                } else if planform_m2 >= curves[2].0 {
+                    curve(curves[2])
+                } else {
+                    let upper = usize::from(planform_m2 > curves[1].0) + 1;
+                    let (low_m2, high_m2) = (curves[upper - 1].0, curves[upper].0);
+                    let fraction = (planform_m2 / low_m2).ln() / (high_m2 / low_m2).ln();
+                    let (low, high) = (curve(curves[upper - 1]), curve(curves[upper]));
+                    low + fraction * (high - low)
+                };
+                coefficient * planform_m2
+            }
+            Self::OpenRocket => {
+                0.034
+                    * ((surface_density_kg_m2 + 0.025) / 0.105)
+                    * ((length_m + 1.0) / length_m)
+                    * planform_m2
+            }
+        }
+    }
+}
+
+/// What gives a device its drag area `C_D S`.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case", deny_unknown_fields)]
+#[non_exhaustive]
+pub enum DeviceDrag {
+    /// A drag area given directly, m² (RocketPy's `cd_s`).
+    DragArea {
+        /// `C_D S`, m².
+        cd_s_m2: f64,
+    },
+    /// A streamer: a strip of fabric `length_m` by `width_m`, whose drag area comes from
+    /// `model` ([`StreamerModel`]).
+    Streamer {
+        /// Its length `l`, m.
+        length_m: f64,
+        /// Its width `w`, m.
+        width_m: f64,
+        /// The fabric's surface density, kg/m² ([`StreamerModel::OpenRocket`] uses it).
+        surface_density_kg_m2: f64,
+        /// Which correlation gives its drag area.
+        #[serde(default)]
+        model: StreamerModel,
+    },
+    /// A body descending broadside, tumbling, with no device open: the drag area of its body tubes
+    /// and fins. Build it with [`DeviceDrag::tumbling`], which computes it from the airframe.
+    Tumble {
+        /// The drag area `C_D S`, m².
+        drag_area_m2: f64,
+        /// The body's side profile area, m² (for reports; it and the fin area have to add up to
+        /// the drag area through the model's two coefficients, so a file that leaves one out is
+        /// refused by serde rather than silently defaulting to an inconsistent device).
+        body_profile_m2: f64,
+        /// The effective fin area, m² (for reports).
+        fin_area_m2: f64,
+    },
+    /// A canopy of nominal diameter `D₀` with `C_D0` on the nominal area `S₀ = π D₀²/4`
+    /// (Knacke's convention, printed page 5-2).
+    Canopy {
+        /// The nominal diameter `D₀`, m.
+        nominal_diameter_m: f64,
+        /// `C_D0` on `S₀`.
+        drag_coefficient: f64,
+        /// The canopy type, where it is one of Knacke's.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        kind: Option<CanopyType>,
+    },
+}
+
+/// The drag coefficient of a tumbling body tube, on its side profile area (the OpenRocket
+/// technical documentation v13.05, §3.5, printed page 54: fitted to 22 m drop tests of five
+/// models, and half the 1.12 of a circular cylinder in crossflow, as expected of a cylinder
+/// falling at a random angle).
+pub const TUMBLE_BODY_DRAG_COEFFICIENT: f64 = 0.56;
+
+/// The drag coefficient of a tumbling fin set, on its effective fin area (the same source; it
+/// sits between a flat plate's 1.17 and an open hemispherical cup's 1.42, and the documentation
+/// says it is the less reliable of the two).
+pub const TUMBLE_FIN_DRAG_COEFFICIENT: f64 = 1.42;
+
+/// The effective fin area of a tumbling set is one fin's area times this factor, by fin count
+/// (the same source, Table 3.4, printed page 55, for 1 to 8 fins). It is a fit, not a model: it
+/// is not `n` times one fin, and it is not monotonic.
+pub const TUMBLE_FIN_EFFICIENCY: [f64; 8] = [0.50, 1.00, 1.50, 1.41, 1.81, 1.73, 1.90, 1.85];
+
+/// A body component's side profile area `∫ d dx`, m²: a tube's diameter times its length, and a
+/// nose cone's or transition's own profile integrated ([`hpr_design::revolve`]'s planform area).
+/// Other parts add no body profile (fins are counted apart).
+fn side_profile_m2(component: &hpr_design::PlacedComponent) -> Result<f64, SimError> {
+    let profile = match &component.part {
+        hpr_design::Part::BodyTube(tube) => {
+            return Ok(2.0 * tube.outer_radius_m * component.length_m);
+        }
+        hpr_design::Part::NoseCone(nose) => nose.profile()?,
+        hpr_design::Part::Transition(transition) => transition.profile()?,
+        _ => return Ok(0.0),
+    };
+    Ok(hpr_design::revolve(&profile, hpr_design::Wall::Filled {})?.planform_area_m2)
+}
+
+impl DeviceDrag {
+    /// The drag area of `assembly` tumbling: `C_D,f A_f + C_D,bt A_bt` (the OpenRocket technical
+    /// documentation v13.05, §3.5, eq. 3.98 and 3.99, printed pages 53 to 55).
+    ///
+    /// - `A_bt` is the body's side profile area, the integral of its outer diameter along the
+    ///   axis, `∫ d dx`, taken over each body component's own profile (a curved nose's or
+    ///   transition's by quadrature, [`hpr_design::revolve`]). Shoulders are inside the airframe
+    ///   and add nothing.
+    /// - `A_f` is, for each fin set, one fin's planform area times the efficiency factor for its
+    ///   fin count ([`TUMBLE_FIN_EFFICIENCY`]). Launch lugs and rail buttons add nothing, and an
+    ///   airframe with **tube fins** is refused: they are a large part of its broadside area and
+    ///   the model has no factor for them.
+    /// - A **pod**'s body components and fins count as the airframe's do, once per pod: the
+    ///   documentation's model has no term for them, and none for one part shading another.
+    ///
+    /// It sums **every** stage, so it is the whole stack tumbling. For a spent booster on its
+    /// own, which is what the documentation's model was written for, use
+    /// [`Self::tumbling_stages`] with that body's stages.
+    ///
+    /// The constants were fitted to 22 m drop tests of five models 44 to 103 mm across and 6.8 to
+    /// 160 g, descending at 5.0 to 6.6 m/s, and predict those terminal velocities within 3 to 14%.
+    /// Bodies much larger or faster than that are outside the fit: above a Reynolds number of
+    /// about 3e5 a cylinder's crossflow drag falls by roughly half (`docs/physics/recovery.md`).
+    ///
+    /// # Errors
+    ///
+    /// [`SimError::Design`] if a fin planform's area or a nose cone's or transition's profile can't
+    /// be computed, and [`SimError::Domain`] if the airframe presents no area at all, carries tube
+    /// fins, or has a fin set of more than the eight fins Table 3.4 covers.
+    pub fn tumbling(assembly: &hpr_design::Assembly) -> Result<Self, SimError> {
+        Self::tumbling_stages(
+            assembly,
+            (0, assembly.layout.stages.len().saturating_sub(1)),
+        )
+    }
+
+    /// The drag area of the stages `first..=last` of `assembly` tumbling on their own, which is
+    /// what a separated body does ([`Separation`]). [`Self::tumbling`] is this over every stage.
+    /// It covers whole stages only: for an ejected piece that is part of a stage
+    /// ([`crate::Ejection`]) use [`crate::Simulation::tumbling_piece`], which sums the piece's
+    /// own components.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::tumbling`].
+    pub fn tumbling_stages(
+        assembly: &hpr_design::Assembly,
+        (first, last): (usize, usize),
+    ) -> Result<Self, SimError> {
+        let stages = assembly.layout.stages.len();
+        if first > last || last >= stages {
+            return Err(SimError::Domain {
+                what: "stage range of a tumbling body (first must not pass last, and last must \
+                       be a stage of the design); the last given",
+                value: last as f64,
+            });
+        }
+        Self::tumbling_where(assembly, |_, component| {
+            (first..=last).contains(&component.stage)
+        })
+    }
+
+    /// The drag area of the components of `assembly` for which `member` (given each one's index
+    /// in the layout) is true, tumbling: the sum [`Self::tumbling`] describes, over them alone.
+    pub(crate) fn tumbling_where(
+        assembly: &hpr_design::Assembly,
+        member: impl Fn(usize, &hpr_design::PlacedComponent) -> bool,
+    ) -> Result<Self, SimError> {
+        let mut body_profile_m2 = 0.0;
+        let mut fin_area_m2 = 0.0;
+        for (index, component) in assembly.layout.components.iter().enumerate() {
+            if !member(index, component) {
+                continue;
+            }
+            // A part in a pod counts once per pod: each pod's body components and fins are
+            // broadside to the air as the airframe's are.
+            let copies = component.copies.len() as f64;
+            body_profile_m2 += copies * side_profile_m2(component)?;
+            if matches!(component.part, hpr_design::Part::TubeFinSet(_)) {
+                // Tube fins are a large part of such a rocket's broadside area and the model has
+                // no factor for them, so hpr refuses rather than crediting a bare tube's drag.
+                return Err(SimError::Domain {
+                    what: "tumbling an airframe with tube fins (the model covers body tubes and \
+                           fin sets only)",
+                    value: 0.0,
+                });
+            }
+            if let hpr_design::Part::FinSet(fins) = &component.part {
+                let count = fins.count as usize;
+                let efficiency =
+                    TUMBLE_FIN_EFFICIENCY
+                        .get(count.wrapping_sub(1))
+                        .ok_or(SimError::Domain {
+                            what: "number of fins in a tumbling set (the fitted efficiency factors \
+                               cover 1 to 8)",
+                            value: fins.count.into(),
+                        })?;
+                fin_area_m2 += copies * fins.planform.geometry()?.area_m2 * efficiency;
+            }
+        }
+        let drag_area_m2 = TUMBLE_FIN_DRAG_COEFFICIENT * fin_area_m2
+            + TUMBLE_BODY_DRAG_COEFFICIENT * body_profile_m2;
+        if !(drag_area_m2.is_finite() && drag_area_m2 > 0.0) {
+            return Err(SimError::Domain {
+                what: "drag area of the tumbling airframe, m²",
+                value: drag_area_m2,
+            });
+        }
+        Ok(Self::Tumble {
+            drag_area_m2,
+            body_profile_m2,
+            fin_area_m2,
+        })
+    }
+
+    /// A streamer `length_m` by `width_m` of a fabric of `surface_density_kg_m2`, by the default
+    /// model ([`StreamerModel::Filippone`]).
+    #[must_use]
+    pub const fn streamer(length_m: f64, width_m: f64, surface_density_kg_m2: f64) -> Self {
+        Self::Streamer {
+            length_m,
+            width_m,
+            surface_density_kg_m2,
+            model: StreamerModel::Filippone,
+        }
+    }
+
+    /// A canopy of `nominal_diameter_m` with its type's default `C_D0`
+    /// ([`CanopyType::drag_coefficient`]).
+    #[must_use]
+    pub const fn canopy(kind: CanopyType, nominal_diameter_m: f64) -> Self {
+        Self::Canopy {
+            nominal_diameter_m,
+            drag_coefficient: kind.drag_coefficient(),
+            kind: Some(kind),
+        }
+    }
+
+    /// The fully open drag area `C_D S`, m².
+    #[must_use]
+    pub fn drag_area_m2(&self) -> f64 {
+        match *self {
+            Self::DragArea { cd_s_m2 } => cd_s_m2,
+            Self::Streamer {
+                length_m,
+                width_m,
+                surface_density_kg_m2,
+                model,
+            } => model.drag_area_m2(length_m, width_m, surface_density_kg_m2),
+            Self::Tumble { drag_area_m2, .. } => drag_area_m2,
+            Self::Canopy {
+                nominal_diameter_m,
+                drag_coefficient,
+                ..
+            } => {
+                drag_coefficient * std::f64::consts::PI * nominal_diameter_m * nominal_diameter_m
+                    / 4.0
+            }
+        }
+    }
+
+    /// The nominal diameter `D₀`, m, where the device has one.
+    #[must_use]
+    pub const fn nominal_diameter_m(&self) -> Option<f64> {
+        match *self {
+            Self::DragArea { .. } | Self::Streamer { .. } | Self::Tumble { .. } => None,
+            Self::Canopy {
+                nominal_diameter_m, ..
+            } => Some(nominal_diameter_m),
+        }
+    }
+
+    /// The canopy type, where the device has one.
+    #[must_use]
+    pub const fn canopy_type(&self) -> Option<CanopyType> {
+        match *self {
+            Self::DragArea { .. } | Self::Streamer { .. } | Self::Tumble { .. } => None,
+            Self::Canopy { kind, .. } => kind,
+        }
+    }
+}
+
+/// When a device's charge fires.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum Trigger {
+    /// At apogee.
+    Apogee,
+    /// The first time from apogee that the center of mass is at or below this height above the
+    /// launch site, m: an altimeter's main setting. A rocket whose apogee is already below it
+    /// fires at apogee.
+    Altitude {
+        /// The height above the launch site, m.
+        height_above_ground_m: f64,
+    },
+    /// At a time after launch, s. Charges are checked in free flight and during the descent, so a
+    /// time that passes on the pad or the rail fires at rail exit.
+    Time {
+        /// The time after launch, s.
+        time_s: f64,
+    },
+    /// A motor's ejection delay after that motor's burnout. The motor is its index in
+    /// [`hpr_design::Assembly::motors`], and it must have a [`hpr_motor::Delay::Seconds`] delay.
+    /// As [`Self::Time`], a delay that expires before the rail exit fires there. A motor that
+    /// never lights never fires it, so on a cluster with a motor out
+    /// ([`hpr_design::MountedMotor::failed_tubes`]) name a tube that lights.
+    MotorDelay {
+        /// The motor's index.
+        motor: usize,
+    },
+    /// A delay after a motor's burnout, whatever its ejection delay: a stage separation timed
+    /// from the booster's burnout. The motor is its index in [`hpr_design::Assembly::motors`].
+    /// As [`Self::MotorDelay`], it fires no earlier than the rail exit, and never if the motor
+    /// never lights.
+    Burnout {
+        /// The motor's index.
+        motor: usize,
+        /// The delay after its burnout, s.
+        delay_s: f64,
+    },
+}
+
+impl Trigger {
+    /// When it fires on a flight of `assembly`, if that is known before the flight: a
+    /// [`Self::Time`], or a delay after the burnout of a motor `assembly` lights at a known time
+    /// (one lit by a separation has none yet). `None` for [`Self::Apogee`] and
+    /// [`Self::Altitude`], which the flight watches for. A time that passes on the pad or the
+    /// rail fires at the rail exit in flight, which this does not know.
+    ///
+    /// # Errors
+    ///
+    /// [`SimError::Domain`] as the flight refuses the trigger: a time before launch, a motor that
+    /// isn't there, a [`Self::MotorDelay`] on a motor with no ejection delay in seconds, or a
+    /// delay that is negative or not finite.
+    pub fn known_time_s(self, assembly: &hpr_design::Assembly) -> Result<Option<f64>, SimError> {
+        trigger_time_s(self, &assembly.motors, &assembly.ignition_times_s(|_| None))
+    }
+}
+
+/// How a device's drag area grows once it is deployed.
+///
+/// Knacke's measurements (Figure 5-40, printed page 5-47) overshoot the steady drag area by 10 to
+/// 80% near the end of filling. These laws don't: they rise to the steady value and stay there.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum Inflation {
+    /// The full drag area from the moment the device deploys.
+    Instant,
+    /// `(C_D S)(t) = (C_D S)₀ (t/t_f)^j` over a filling time `t_f` fixed in advance.
+    FillingTime {
+        /// The filling time `t_f`, s.
+        time_s: f64,
+        /// The growth exponent `j` (Pflanz: 1 for ribbon and ringslot, 2 for solid cloth).
+        exponent: f64,
+    },
+    /// The same growth law with Knacke's filling time `t_f = n D₀/v` (printed page 5-43), where
+    /// `v` is the airspeed at deployment and `n` the canopy fill constant. Needs a device with a
+    /// nominal diameter.
+    ///
+    /// Knacke states this linear form "gives satisfactory results in the medium-velocity range of
+    /// about 150 to 500 ft/s" (45.7 to 152.4 m/s, printed page 5-44). A hobby main opening at 20
+    /// to 30 m/s is below that range, and his alternative there
+    /// (`t_f = n D₀/v^0.85`, `n = 4.0` for solid flat circular canopies) is dimensional, so it
+    /// cannot be used in SI as printed. [`Inflation::FILL_CONSTANT_RANGE_M_S`] holds the range,
+    /// and `docs/physics/recovery.md` says what using it outside costs.
+    FillConstant {
+        /// The fill constant `n` (Table 5-6).
+        constant: f64,
+        /// The growth exponent `j`.
+        exponent: f64,
+    },
+}
+
+impl Inflation {
+    /// The airspeeds at line stretch where Knacke's linear filling time `t_f = n D₀/v` is stated
+    /// to hold, m/s (150 to 500 ft/s, printed page 5-44).
+    pub const FILL_CONSTANT_RANGE_M_S: (f64, f64) = (45.72, 152.4);
+
+    /// Knacke's filling time and growth exponent for `kind`, where his tables print both.
+    #[must_use]
+    pub const fn knacke(kind: CanopyType) -> Option<Self> {
+        match (kind.fill_constant(), kind.growth_exponent()) {
+            (Some(constant), Some(exponent)) => Some(Self::FillConstant { constant, exponent }),
+            _ => None,
+        }
+    }
+
+    /// The filling time, s, for a device of nominal diameter `diameter_m` deployed at airspeed
+    /// `airspeed_m_s`. Zero means the drag area appears at once.
+    fn filling_time_s(&self, diameter_m: Option<f64>, airspeed_m_s: f64) -> f64 {
+        match *self {
+            Self::Instant => 0.0,
+            Self::FillingTime { time_s, .. } => time_s,
+            Self::FillConstant { constant, .. } => match diameter_m {
+                // A deployment at rest has no filling time: there is no flow to fill the canopy,
+                // and `n D₀/v` diverges. The canopy opens as the rocket picks up speed instead.
+                Some(diameter_m) if airspeed_m_s > 0.0 => constant * diameter_m / airspeed_m_s,
+                _ => 0.0,
+            },
+        }
+    }
+
+    /// The growth exponent `j`.
+    const fn exponent(&self) -> f64 {
+        match *self {
+            Self::Instant => 1.0,
+            Self::FillingTime { exponent, .. } | Self::FillConstant { exponent, .. } => exponent,
+        }
+    }
+}
+
+/// A recovery device: a drag area, when it opens, and how it fills.
+///
+/// Build one with [`Device::new`] and the builders: the struct is `#[non_exhaustive]` so that
+/// streamers ([M1.7b][m1-7b]) and separation ([M1.7c][m1-7c]) can add fields without breaking
+/// callers.
+///
+/// [m1-7b]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-7b
+/// [m1-7c]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-7c
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+#[non_exhaustive]
+pub struct Device {
+    /// A name for reports.
+    pub name: String,
+    /// What gives it its drag area.
+    pub drag: DeviceDrag,
+    /// When its charge fires.
+    pub trigger: Trigger,
+    /// Seconds from the trigger to line stretch, when the canopy starts to fill (RocketPy's
+    /// `lag`).
+    #[serde(default)]
+    pub lag_s: f64,
+    /// How its drag area grows from line stretch.
+    #[serde(default = "instant")]
+    pub inflation: Inflation,
+    /// The device whose opening releases this one, by its index in the flight's list: a drogue cut
+    /// away once the main is fully open. A device released before its own charge fires never
+    /// deploys.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub released_by: Option<usize>,
+    /// Which body it is attached to, after a separation ([`Separation`]) or an ejection
+    /// ([`crate::Ejection`]): body 0 keeps the nose, body 1 is the separation's aft stages, and each
+    /// ejection's piece the next number, in the order given, so with no separation the first
+    /// ejection makes body 1. Without either there is only body 0.
+    #[serde(default)]
+    pub body: usize,
+}
+
+fn instant() -> Inflation {
+    Inflation::Instant
+}
+
+impl Device {
+    /// A device with no lag, opening at once and never released.
+    #[must_use]
+    pub fn new(name: impl Into<String>, drag: DeviceDrag, trigger: Trigger) -> Self {
+        Self {
+            name: name.into(),
+            drag,
+            trigger,
+            lag_s: 0.0,
+            inflation: Inflation::Instant,
+            released_by: None,
+            body: 0,
+        }
+    }
+
+    /// The same device with `lag_s` seconds from the trigger to line stretch.
+    #[must_use]
+    pub fn with_lag_s(mut self, lag_s: f64) -> Self {
+        self.lag_s = lag_s;
+        self
+    }
+
+    /// The same device with an inflation law.
+    #[must_use]
+    pub fn with_inflation(mut self, inflation: Inflation) -> Self {
+        self.inflation = inflation;
+        self
+    }
+
+    /// The same device, released when device `index` is fully open.
+    #[must_use]
+    pub fn with_release_by(mut self, index: usize) -> Self {
+        self.released_by = Some(index);
+        self
+    }
+
+    /// The same device, carried by body `index` after a separation ([`Separation`]) or an
+    /// ejection ([`crate::Ejection`]); [`Self::body`] has the numbering. It acts only once that
+    /// body flies on its own.
+    #[must_use]
+    pub fn on_body(mut self, index: usize) -> Self {
+        self.body = index;
+        self
+    }
+
+    /// Checks the device's numbers.
+    fn validate(&self, count: usize, index: usize) -> Result<(), SimError> {
+        match self.drag {
+            DeviceDrag::Streamer {
+                length_m,
+                width_m,
+                surface_density_kg_m2,
+                model,
+            } => {
+                for (what, value) in [
+                    ("streamer length, m", length_m),
+                    ("streamer width, m", width_m),
+                ] {
+                    if !(value.is_finite() && value > 0.0) {
+                        return Err(SimError::Domain { what, value });
+                    }
+                }
+                if !(surface_density_kg_m2.is_finite() && surface_density_kg_m2 >= 0.0) {
+                    return Err(SimError::Domain {
+                        what: "streamer fabric surface density, kg/m²",
+                        value: surface_density_kg_m2,
+                    });
+                }
+                // A strip wider than it is long is not a streamer, and both correlations run
+                // away there. Above the fitted range they only extrapolate, which is allowed.
+                let _ = model;
+                if length_m / width_m < MIN_STREAMER_ASPECT_RATIO {
+                    return Err(SimError::Domain {
+                        what: "streamer aspect ratio, length over width (Carruthers and \
+                               Filippone fit 3.3 to 30, and both correlations are meaningless \
+                               below 1)",
+                        value: length_m / width_m,
+                    });
+                }
+            }
+            DeviceDrag::Tumble {
+                drag_area_m2,
+                body_profile_m2,
+                fin_area_m2,
+            } => {
+                for (what, value) in [
+                    ("tumbling body side profile area, m²", body_profile_m2),
+                    ("tumbling effective fin area, m²", fin_area_m2),
+                ] {
+                    if !(value.is_finite() && value >= 0.0) {
+                        return Err(SimError::Domain { what, value });
+                    }
+                }
+                let parts = TUMBLE_FIN_DRAG_COEFFICIENT * fin_area_m2
+                    + TUMBLE_BODY_DRAG_COEFFICIENT * body_profile_m2;
+                if (drag_area_m2 - parts).abs() > 1e-9 * drag_area_m2.abs().max(1.0) {
+                    return Err(SimError::Domain {
+                        what: "tumbling drag area against its body and fin areas (build one with \
+                               DeviceDrag::tumbling)",
+                        value: drag_area_m2,
+                    });
+                }
+            }
+            DeviceDrag::DragArea { .. } | DeviceDrag::Canopy { .. } => {}
+        }
+        if let DeviceDrag::Canopy {
+            drag_coefficient, ..
+        } = self.drag
+            // Knacke's tables run from 0.30 (hemisflo ribbon) to 0.96 (triconical) on the nominal
+            // area. The bound is loose enough for a coefficient measured on another reference
+            // area, and tight enough to catch a drag area passed as a coefficient.
+            && !(drag_coefficient.is_finite()
+                && drag_coefficient > 0.0
+                && drag_coefficient <= MAX_CANOPY_DRAG_COEFFICIENT)
+        {
+            return Err(SimError::Domain {
+                what: "canopy drag coefficient on the nominal area (0 to 2]",
+                value: drag_coefficient,
+            });
+        }
+        let area = self.drag.drag_area_m2();
+        if !(area.is_finite() && area > 0.0) {
+            return Err(SimError::Domain {
+                what: "recovery device drag area, m²",
+                value: area,
+            });
+        }
+        if let Some(diameter) = self.drag.nominal_diameter_m()
+            && !(diameter.is_finite() && diameter > 0.0)
+        {
+            return Err(SimError::Domain {
+                what: "canopy nominal diameter, m",
+                value: diameter,
+            });
+        }
+        if !(self.lag_s.is_finite() && self.lag_s >= 0.0) {
+            return Err(SimError::Domain {
+                what: "recovery device lag, s",
+                value: self.lag_s,
+            });
+        }
+        match self.inflation {
+            Inflation::Instant => {}
+            Inflation::FillingTime { time_s, exponent } => {
+                if !(time_s.is_finite() && time_s >= 0.0) {
+                    return Err(SimError::Domain {
+                        what: "canopy filling time, s",
+                        value: time_s,
+                    });
+                }
+                check_exponent(exponent)?;
+            }
+            Inflation::FillConstant { constant, exponent } => {
+                if !(constant.is_finite() && constant > 0.0) {
+                    return Err(SimError::Domain {
+                        what: "canopy fill constant",
+                        value: constant,
+                    });
+                }
+                if self.drag.nominal_diameter_m().is_none() {
+                    return Err(SimError::Domain {
+                        what: "canopy fill constant without a nominal diameter (give a canopy, \
+                               or a filling time)",
+                        value: constant,
+                    });
+                }
+                check_exponent(exponent)?;
+            }
+        }
+        match self.trigger {
+            Trigger::Apogee | Trigger::MotorDelay { .. } | Trigger::Burnout { .. } => {}
+            Trigger::Altitude {
+                height_above_ground_m,
+            } => {
+                if !(height_above_ground_m.is_finite() && height_above_ground_m > 0.0) {
+                    return Err(SimError::Domain {
+                        what: "deployment height above the launch site, m",
+                        value: height_above_ground_m,
+                    });
+                }
+            }
+            Trigger::Time { time_s } => {
+                if !(time_s.is_finite() && time_s >= 0.0) {
+                    return Err(SimError::Domain {
+                        what: "deployment time after launch, s",
+                        value: time_s,
+                    });
+                }
+            }
+        }
+        if let Some(other) = self.released_by
+            && (other >= count || other == index)
+        {
+            return Err(SimError::Domain {
+                what: "index of the device that releases this one",
+                value: other as f64,
+            });
+        }
+        Ok(())
+    }
+}
+
+fn check_exponent(exponent: f64) -> Result<(), SimError> {
+    if exponent.is_finite() && exponent > 0.0 {
+        Ok(())
+    } else {
+        Err(SimError::Domain {
+            what: "canopy drag-area growth exponent",
+            value: exponent,
+        })
+    }
+}
+
+/// A separation: the stack comes apart at a stage boundary and every body descends under its own
+/// devices (`docs/physics/recovery.md`, and the decision record on separation, [ADR-014][adr-014]).
+///
+/// Bodies are contiguous runs of stages. Stages `0..=after_stage` keep the nose and are body 0;
+/// the stages aft of the split are body 1. Each body flies as a point mass from the separation,
+/// with the mass properties of its own stages and motors, so every body must carry at least one
+/// device: the descent phase has no airframe drag (the decision record on recovery,
+/// [ADR-012][adr-012]), and a body with nothing open would fall as if in a vacuum.
+///
+/// A separation is an ideal one: no impulse, so each body leaves with the velocity its own center
+/// of mass already had. The aft body's motors must have burned out by then, because a body's
+/// mass is taken as constant through its descent, unless the separation may drop one burning
+/// ([`Separation::drops_burning`]). When the nose's body still has a motor to burn,
+/// it is a sustainer: it flies on as a rigid body on its own stages' aerodynamics, and only the aft
+/// body descends as a point mass (the decision record on staging, [ADR-074][adr-074]).
+///
+/// [adr-012]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-012-recovery-drag-areas-triggers-inflation-and-the-descent-phase-2026-09-17
+/// [adr-014]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-014-separation-bodies-their-masses-and-their-descents-2026-09-17
+/// [adr-074]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-074-ignition-times-and-powered-staging-the-sustainer-flies-on-as-a-rigid-body-2026-09-25
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Separation {
+    /// When the stack comes apart.
+    pub trigger: Trigger,
+    /// The last stage that stays with the nose. Stages after it form the aft body.
+    pub after_stage: usize,
+    /// Whether, when it is powered ([`Self::powered_at`]), it may drop a motor that still burns,
+    /// as OpenRocket's first burnout of a stage drops the stage's other motors (the decision
+    /// record on a stage's first burnout, [ADR-172](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0172-a-stage-s-first-burnout.md)). The dropped body's descent is a point
+    /// mass with no thrust, so it leaves out the impulse that motor had left
+    /// ([`BodyFlight::impulse_left_n_s`]). Off by default: then the aft body's motors must have
+    /// burned out by the separation. A motor still to light is refused either way, and so is any
+    /// in an unpowered separation's aft body.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub drops_burning: bool,
+}
+
+impl Separation {
+    /// A separation at the boundary after `after_stage`, on `trigger`.
+    #[must_use]
+    pub const fn new(trigger: Trigger, after_stage: usize) -> Self {
+        Self {
+            trigger,
+            after_stage,
+            drops_burning: false,
+        }
+    }
+
+    /// The same separation, let drop a motor that still burns when it is powered
+    /// ([`Self::drops_burning`]).
+    #[must_use]
+    pub const fn dropping_burning(mut self) -> Self {
+        self.drops_burning = true;
+        self
+    }
+
+    /// The stages of body `index`: body 0 keeps the nose, body 1 is the rest. `None` when there
+    /// is no such body, including when the boundary is at or past the last stage.
+    #[must_use]
+    pub const fn stages_of(&self, index: usize, stage_count: usize) -> Option<(usize, usize)> {
+        let Some(aft) = self.after_stage.checked_add(1) else {
+            return None;
+        };
+        if aft >= stage_count {
+            return None;
+        }
+        match index {
+            0 => Some((0, self.after_stage)),
+            1 => Some((aft, stage_count - 1)),
+            _ => None,
+        }
+    }
+
+    /// Whether it is powered when it fires at `time_s`, as the flight decides for the first
+    /// separation it flies: a motor of the nose's body (stages `0..=after_stage`) burns then, or
+    /// lights later at a known time, counting one this separation lights. A powered separation's
+    /// nose body flies on as a rigid body on its own stages' aerodynamics (the decision record on
+    /// staging, [ADR-074][adr-074]); an unpowered one's descends as a point mass with only its
+    /// devices' drag, as every body does (the decision record on separation, [ADR-014][adr-014]).
+    ///
+    /// [adr-014]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-014-separation-bodies-their-masses-and-their-descents-2026-09-17
+    /// [adr-074]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-074-ignition-times-and-powered-staging-the-sustainer-flies-on-as-a-rigid-body-2026-09-25
+    #[must_use]
+    pub fn powered_at(&self, assembly: &hpr_design::Assembly, time_s: f64) -> bool {
+        let lit = assembly.ignition_times_s(|stage| (stage == self.after_stage).then_some(time_s));
+        assembly.motors.iter().zip(&lit).any(|(placed, ignition)| {
+            placed.stage <= self.after_stage
+                && ignition.is_some_and(|ignition| {
+                    ignition + placed.mounted.motor.burnout_time_s() > time_s
+                })
+        })
+    }
+
+    /// How many bodies it makes: two.
+    pub const BODIES: usize = 2;
+
+    /// The body stage `stage` rides once every one of `separations` (in the order they fire, as
+    /// [`crate::Simulation::with_separations`] takes them) has fired: body `k + 1` for the first
+    /// separation `k` it is aft of, the part that separation drops; body 0, the nose's, for a
+    /// stage aft of none.
+    #[must_use]
+    pub fn body_of(separations: &[Self], stage: usize) -> usize {
+        separations
+            .iter()
+            .position(|separation| stage > separation.after_stage)
+            .map_or(0, |k| k + 1)
+    }
+
+    /// The stages of body `body` once every one of `separations` has fired, in a design of
+    /// `stage_count` stages: body 0 keeps the nose, and body `k + 1` is the stages separation `k`
+    /// drops, from its boundary back to the one behind it (or the tail). `None` when there is no
+    /// such body, including when a boundary is at or past the last stage, or the boundaries don't
+    /// move forward in the order given.
+    #[must_use]
+    pub fn stages_of_body(
+        separations: &[Self],
+        body: usize,
+        stage_count: usize,
+    ) -> Option<(usize, usize)> {
+        let mut last = stage_count.checked_sub(1)?;
+        for separation in separations {
+            if separation.after_stage >= last {
+                return None;
+            }
+            last = separation.after_stage;
+        }
+        match body {
+            0 => Some((0, last)),
+            _ => {
+                let separation = separations.get(body - 1)?;
+                let end = match body - 1 {
+                    0 => stage_count - 1,
+                    k => separations[k - 1].after_stage,
+                };
+                Some((separation.after_stage + 1, end))
+            }
+        }
+    }
+}
+
+/// The mass properties of the stages `first..=last` of `assembly`, with their motors, at flight
+/// time `t_s`, each motor lit at its `ignition_s`. Summing over every stage gives
+/// [`hpr_design::Assembly::mass_properties_lit`]. The flights sum pieces instead
+/// (`crate::pieces`); the tests keep this as a reference that sums stages.
+#[cfg(test)]
+pub(crate) fn body_mass_properties(
+    assembly: &hpr_design::Assembly,
+    (first, last): (usize, usize),
+    t_s: f64,
+    ignition_s: &[Option<f64>],
+) -> hpr_design::MassProperties {
+    let mut parts = vec![];
+    for (index, stage) in assembly.layout.stages.iter().enumerate() {
+        if (first..=last).contains(&index) {
+            parts.push(stage.mass);
+        }
+    }
+    let motors: Vec<_> = assembly
+        .motors
+        .iter()
+        .zip(ignition_s)
+        .filter(|(motor, _)| (first..=last).contains(&motor.stage))
+        .map(|(motor, ignition)| motor.mass_properties_lit(t_s, *ignition))
+        .collect();
+    parts.extend(motors);
+    hpr_design::MassProperties::combine(parts.iter())
+}
+
+/// The time a trigger fires, when it is one that is known before the flight: a time after
+/// launch, or a delay after a motor's burnout, with the motors lit at `ignition_s`. A trigger on
+/// a motor with no known ignition time has none either, and doesn't fire.
+///
+/// # Errors
+///
+/// [`SimError::Domain`] for a time before launch, a motor that isn't there, a motor with no
+/// ejection delay in seconds, or a delay that is negative or not finite.
+pub(crate) fn trigger_time_s(
+    trigger: Trigger,
+    motors: &[hpr_design::PlacedMotor],
+    ignition_s: &[Option<f64>],
+) -> Result<Option<f64>, SimError> {
+    let burnout_s = |motor: usize| {
+        ignition_s
+            .get(motor)
+            .copied()
+            .flatten()
+            .zip(motors.get(motor))
+            .map(|(ignition_s, placed)| ignition_s + placed.mounted.motor.burnout_time_s())
+    };
+    match trigger {
+        Trigger::Time { time_s } => {
+            if !(time_s.is_finite() && time_s >= 0.0) {
+                return Err(SimError::Domain {
+                    what: "deployment time after launch, s",
+                    value: time_s,
+                });
+            }
+            Ok(Some(time_s))
+        }
+        Trigger::MotorDelay { motor } => {
+            let placed = motors.get(motor).ok_or(SimError::Domain {
+                what: "index of the motor whose delay fires a device",
+                value: motor as f64,
+            })?;
+            let delay_s = match placed.mounted.delay {
+                Some(hpr_motor::Delay::Seconds(delay_s)) => delay_s,
+                _ => {
+                    return Err(SimError::Domain {
+                        what: "the motor firing a device has no ejection delay in seconds (it is \
+                               plugged, or its delay is unset)",
+                        value: motor as f64,
+                    });
+                }
+            };
+            if !(delay_s.is_finite() && delay_s >= 0.0) {
+                return Err(SimError::Domain {
+                    what: "motor ejection delay, s",
+                    value: delay_s,
+                });
+            }
+            Ok(burnout_s(motor).map(|t| t + delay_s))
+        }
+        Trigger::Burnout { motor, delay_s } => {
+            if motor >= motors.len() {
+                return Err(SimError::Domain {
+                    what: "index of the motor whose burnout a trigger counts from",
+                    value: motor as f64,
+                });
+            }
+            if !(delay_s.is_finite() && delay_s >= 0.0) {
+                return Err(SimError::Domain {
+                    what: "delay after a motor's burnout, s",
+                    value: delay_s,
+                });
+            }
+            Ok(burnout_s(motor).map(|t| t + delay_s))
+        }
+        Trigger::Apogee | Trigger::Altitude { .. } => Ok(None),
+    }
+}
+
+/// Checks a flight's devices, and finds the trigger times that are known before it flies.
+///
+/// The result has one entry per device: `Some(t)` for a [`Trigger::Time`], and for a
+/// [`Trigger::MotorDelay`] or [`Trigger::Burnout`] on a motor lit at a known time (of
+/// `ignition_s`); `None` for the triggers the flight has to watch for, and for one on a motor that
+/// hasn't a known ignition.
+pub(crate) fn plan(
+    devices: &[Device],
+    motors: &[hpr_design::PlacedMotor],
+    ignition_s: &[Option<f64>],
+) -> Result<Vec<Option<f64>>, SimError> {
+    // A device is cut away by a line on its own body; a release across a separation has nothing
+    // to act through.
+    for (index, device) in devices.iter().enumerate() {
+        if let Some(other) = device.released_by
+            && devices.get(other).is_some_and(|by| by.body != device.body)
+        {
+            return Err(SimError::Domain {
+                what: "release across a separation (a device can only be released by one on its \
+                       own body); index of the released device",
+                value: index as f64,
+            });
+        }
+    }
+    // A cycle of releases (A released by B, B released by A) can leave every device released and
+    // the rocket falling under nothing at all, which the descent phase would fly as a vacuum drop
+    // (found in review). Each chain has to end.
+    for start in 0..devices.len() {
+        let mut at = start;
+        for _ in 0..devices.len() {
+            match devices[at].released_by {
+                Some(next) if next < devices.len() => at = next,
+                _ => break,
+            }
+            if at == start {
+                return Err(SimError::Domain {
+                    what: "recovery device releases run in a cycle, so every one of them could \
+                           be released at once; index of a device in the cycle",
+                    value: start as f64,
+                });
+            }
+        }
+    }
+    let mut times = Vec::with_capacity(devices.len());
+    for (index, device) in devices.iter().enumerate() {
+        device.validate(devices.len(), index)?;
+        let time = trigger_time_s(device.trigger, motors, ignition_s)?;
+        times.push(time);
+    }
+    Ok(times)
+}
+
+/// One device's progress through a flight.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub(crate) struct DeviceRun {
+    /// When its charge fired, s after launch.
+    pub(crate) triggered_s: Option<f64>,
+    /// When it will deploy (line stretch), s: the trigger plus the lag.
+    pub(crate) deploy_s: Option<f64>,
+    /// When it deployed (line stretch), s.
+    pub(crate) deployed_s: Option<f64>,
+    /// Its filling time, s, fixed at deployment.
+    pub(crate) filling_time_s: f64,
+    /// When it is released, s: the time the device that releases it is fully open.
+    pub(crate) released_s: Option<f64>,
+    /// Whether that release has been recorded.
+    pub(crate) release_recorded: bool,
+    /// Whether it was cut away before its own charge fired, so it never deploys.
+    pub(crate) abandoned: bool,
+}
+
+/// Every device's progress through one flight. The [`crate::Simulation`] is not mutated by a run
+/// (Loft lesson L24), so this lives with the flight.
+///
+/// Every method here indexes `devices` by a device's position in the flight's list, which is the
+/// invariant [`Run::new`] establishes: a run is built with one entry per device and is only ever
+/// passed the same slice. Indexing therefore cannot be out of range, and a caller that broke that
+/// (a future per-body run, M1.7b) would panic here rather than silently pull the wrong canopy.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct Run {
+    pub(crate) devices: Vec<DeviceRun>,
+}
+
+impl Run {
+    pub(crate) fn new(count: usize) -> Self {
+        Self {
+            devices: vec![DeviceRun::default(); count],
+        }
+    }
+
+    /// Fires device `index`'s charge at `t`, and returns when it will deploy.
+    pub(crate) fn trigger(&mut self, devices: &[Device], index: usize, t: f64) -> f64 {
+        let deploy_s = t + devices[index].lag_s;
+        self.devices[index].triggered_s = Some(t);
+        self.devices[index].deploy_s = Some(deploy_s);
+        deploy_s
+    }
+
+    /// Deploys device `index` at `t` with airspeed `airspeed_m_s`, schedules the release of
+    /// whatever it releases for the moment its own canopy is full, and returns that time.
+    pub(crate) fn deploy(
+        &mut self,
+        devices: &[Device],
+        index: usize,
+        t: f64,
+        airspeed_m_s: f64,
+    ) -> f64 {
+        let device = &devices[index];
+        let filling_time_s = device
+            .inflation
+            .filling_time_s(device.drag.nominal_diameter_m(), airspeed_m_s);
+        self.devices[index].deployed_s = Some(t);
+        self.devices[index].filling_time_s = filling_time_s;
+        let full_s = t + filling_time_s;
+        for (other, run) in devices.iter().zip(&mut self.devices) {
+            if other.released_by == Some(index) && run.released_s.is_none() {
+                run.released_s = Some(full_s);
+            }
+        }
+        full_s
+    }
+
+    /// Every time device `index` already has that a descent must not step past: its deployment,
+    /// the end of its filling and its release.
+    pub(crate) fn times_of(&self, index: usize) -> Vec<f64> {
+        let run = self.devices[index];
+        let mut times = Vec::new();
+        times.extend(run.deploy_s);
+        if let Some(deployed_s) = run.deployed_s {
+            times.push(deployed_s + run.filling_time_s);
+        }
+        times.extend(run.released_s);
+        times.retain(|time| time.is_finite());
+        times
+    }
+
+    /// When device `index` is released, s.
+    pub(crate) fn released_s(&self, index: usize) -> Option<f64> {
+        self.devices[index].released_s
+    }
+
+    /// Whether a device among those for which `member` is true was open just before `t`: deployed
+    /// before `t` and not released before it. That is something a body hangs from as it falls,
+    /// any device but a tumble. So what happens at `t` itself, a deployment or a release, doesn't
+    /// count yet, and the answer doesn't depend on how fast a device opening at `t` fills.
+    pub(crate) fn hung_before(
+        &self,
+        devices: &[Device],
+        member: impl Fn(usize) -> bool,
+        t: f64,
+    ) -> bool {
+        devices.iter().enumerate().any(|(index, device)| {
+            member(index)
+                && !matches!(device.drag, DeviceDrag::Tumble { .. })
+                && self.devices[index]
+                    .deployed_s
+                    .is_some_and(|deployed_s| deployed_s < t)
+                && !self.devices[index]
+                    .released_s
+                    .is_some_and(|released_s| released_s < t)
+        })
+    }
+
+    /// Whether device `index`'s release has come and has not been recorded.
+    pub(crate) fn release_due(&self, index: usize, t: f64) -> bool {
+        let run = self.devices[index];
+        !run.release_recorded && run.released_s.is_some_and(|released| t >= released)
+    }
+
+    /// Marks device `index`'s release as recorded.
+    pub(crate) fn release(&mut self, index: usize) {
+        self.devices[index].release_recorded = true;
+    }
+
+    /// Gives up on device `index`, which was cut away before its charge fired.
+    pub(crate) fn abandon(&mut self, index: usize) {
+        self.devices[index].abandoned = true;
+    }
+
+    /// Whether device `index` has been triggered but has not deployed or been abandoned.
+    pub(crate) fn waiting(&self, index: usize) -> bool {
+        let run = self.devices[index];
+        run.triggered_s.is_some() && run.deployed_s.is_none() && !run.abandoned
+    }
+
+    /// When device `index` deploys, s: infinite until its charge fires.
+    pub(crate) fn deploy_s(&self, index: usize) -> f64 {
+        self.devices[index].deploy_s.unwrap_or(f64::INFINITY)
+    }
+
+    /// Whether device `index` is still waiting for its trigger.
+    pub(crate) fn pending(&self, index: usize) -> bool {
+        self.devices[index].triggered_s.is_none()
+    }
+
+    /// The total drag area of body `body`'s open devices at `t`, m².
+    pub(crate) fn body_drag_area_m2(&self, devices: &[Device], body: usize, t: f64) -> f64 {
+        devices
+            .iter()
+            .enumerate()
+            .filter(|(_, device)| device.body == body)
+            .map(|(index, _)| self.one_drag_area_m2(devices, index, t))
+            .sum()
+    }
+
+    /// The total drag area of the open devices at `t`, m².
+    ///
+    /// A device deployed at `t_d` with filling time `t_f` and growth exponent `j` contributes
+    /// `(C_D S)₀ min(1, (t − t_d)/t_f)^j`, and nothing once it is released.
+    pub(crate) fn drag_area_m2(&self, devices: &[Device], t: f64) -> f64 {
+        (0..devices.len())
+            .map(|index| self.one_drag_area_m2(devices, index, t))
+            .sum()
+    }
+
+    /// The drag area of device `index` at `t`, m²: nothing before it deploys or after it is
+    /// released, and its inflation law in between.
+    fn one_drag_area_m2(&self, devices: &[Device], index: usize, t: f64) -> f64 {
+        let (device, run) = (&devices[index], self.devices[index]);
+        let Some(deployed_s) = run.deployed_s else {
+            return 0.0;
+        };
+        if run.released_s.is_some_and(|released| t >= released) {
+            return 0.0;
+        }
+        let full = device.drag.drag_area_m2();
+        let elapsed = t - deployed_s;
+        if elapsed < 0.0 {
+            return 0.0;
+        }
+        if run.filling_time_s <= 0.0 {
+            return full;
+        }
+        let fraction = (elapsed / run.filling_time_s).min(1.0);
+        // `j` is 1 (ribbon and ringslot) or 2 (solid cloth) for every canopy Knacke's method
+        // names, so the common cases avoid `powf`.
+        let growth = match device.inflation.exponent() {
+            1.0 => fraction,
+            2.0 => fraction * fraction,
+            exponent => fraction.powf(exponent),
+        };
+        full * growth
+    }
+}
+
+/// One separated body at an instant of its descent.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct BodySample {
+    /// Time since launch, s.
+    pub time_s: f64,
+    /// Its center of mass in the launch frame, m.
+    pub cg_enu_m: DVec3,
+    /// That point's velocity relative to the launch frame, m/s.
+    pub cg_velocity_enu_m_s: DVec3,
+    /// Its center of mass's ellipsoidal height above the launch site, m.
+    pub height_above_ground_m: f64,
+    /// The rate of that height, m/s.
+    pub vertical_speed_m_s: f64,
+    /// Its airspeed, m/s.
+    pub airspeed_m_s: f64,
+    /// The drag area `C_D S` of its open devices, m².
+    pub recovery_drag_area_m2: f64,
+    /// Its mass, kg.
+    pub mass_kg: f64,
+}
+
+/// An event during a separated body's descent, with the body at that instant.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct BodyEvent {
+    /// What happened: a device's [`crate::EventKind::Trigger`], [`crate::EventKind::Deployment`],
+    /// [`crate::EventKind::Release`], the body's [`crate::EventKind::Apogee`] or
+    /// [`crate::EventKind::GroundHit`], or a piece leaving it at a
+    /// [`crate::EventKind::Separation`] or [`crate::EventKind::Ejection`], whose sample has the
+    /// body's mass from before the piece left.
+    pub kind: crate::EventKind,
+    /// The body at that instant.
+    pub sample: BodySample,
+    /// For a piece leaving it, the body just after: its mass without the piece, and its velocity
+    /// once the ejections' impulses have pushed it ([`crate::Ejection::with_impulse`]). Partings
+    /// at one instant share it: it is the body after all of them. `None` for every other event.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub after: Option<BodySample>,
+}
+
+/// One separated body's descent, from the moment it flies on its own to its landing.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct BodyFlight {
+    /// Which body: 0 keeps the nose. A body is numbered by its lead piece ([`crate::Ejection`]).
+    pub body: usize,
+    /// The first and last stage it has a component in when it lands.
+    pub stages: (usize, usize),
+    /// The pieces it lands with: its own, and any joined to it whose split never fired. Piece 0
+    /// is the nose's, the separation makes piece 1, and each ejection the next.
+    #[serde(default)]
+    pub pieces: Vec<usize>,
+    /// Its mass when it lands, kg. It is constant between splits, and steps down when a piece
+    /// leaves it on the way down (an [`crate::EventKind::Ejection`] among its events).
+    pub mass_kg: f64,
+    /// Where it started flying on its own: at the airframe's first parting, its own center of mass
+    /// and that point's velocity; at a later one, on the way down, the point and velocity of the
+    /// body it left. Either way plus the pushes of the pushed ejections on its sides
+    /// ([`crate::Ejection::with_impulse`]).
+    pub start_sample: BodySample,
+    /// Why its descent ended.
+    pub termination: crate::Termination,
+    /// Its events, in order.
+    pub events: Vec<BodyEvent>,
+    /// Where it ended.
+    pub final_sample: BodySample,
+    /// The integrator's work on it.
+    pub stats: crate::Stats,
+    /// The impulse its motors still had to give when it started flying on its own, N·s, which
+    /// its descent leaves out: a point mass has no thrust. It is 0 but for a body a powered
+    /// separation dropped with a motor still burning, as OpenRocket's first burnout of a stage
+    /// drops its other motors ([ADR-172](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0172-a-stage-s-first-burnout.md)). That thrust could have changed its speed by
+    /// about this over its mass, a little more as the propellant left burns away.
+    #[serde(default)]
+    pub impulse_left_n_s: f64,
+}
+
+impl BodyFlight {
+    /// The first event of `kind`.
+    #[must_use]
+    pub fn event(&self, kind: crate::EventKind) -> Option<&BodyEvent> {
+        self.events.iter().find(|event| event.kind == kind)
+    }
+}
+
+/// The equilibrium descent speed `v_e = √(2 m g/(ρ C_D S))`, m/s (Knacke, printed page 5-128).
+///
+/// It is the speed at which the drag area's drag balances the weight, so it is also the speed a
+/// long descent settles at.
+///
+/// The formula is evaluated as written, with no domain checks: a zero drag area or density gives
+/// infinity, and a negative mass, density, drag area or gravity gives NaN. Flights validate their
+/// devices instead ([`crate::Simulation::with_recovery`]).
+#[must_use]
+pub fn terminal_speed_m_s(
+    mass_kg: f64,
+    drag_area_m2: f64,
+    density_kg_m3: f64,
+    gravity_m_s2: f64,
+) -> f64 {
+    (2.0 * mass_kg * gravity_m_s2 / (density_kg_m3 * drag_area_m2)).sqrt()
+}
+
+#[cfg(test)]
+mod tests {
+    use std::f64::consts::PI;
+
+    use hpr_atmos::ConstantWind;
+    use hpr_core::DVec3;
+
+    use super::*;
+    use crate::environment::Environment;
+    use crate::flight::{EventKind, FlightResult, FlightSettings, Simulation, Termination};
+    use crate::rail::Rail;
+    use crate::recorder::{Channel, Recorder};
+    use crate::state::State;
+    use crate::testing::{
+        QuadraticDragFall, UniformAir, analytic_environment, analytic_wind_environment,
+        closed_form_quadratic_drag, design, rotating_analytic_environment,
+    };
+
+    const G: f64 = 9.806_65;
+    /// Valetudo's motor burns out at 3.26 s; the descents start well after that.
+    const START_S: f64 = 10.0;
+
+    /// Valetudo with `devices`, an hour's cap and a rail it never uses.
+    fn flight(environment: Environment, devices: Vec<Device>, max_time_s: f64) -> Simulation {
+        Simulation::new(
+            &design("rocketpy-valetudo"),
+            "example",
+            environment,
+            Rail::vertical(3.0),
+            FlightSettings {
+                max_time_s,
+                ..FlightSettings::default()
+            },
+        )
+        .unwrap()
+        .with_recovery(devices)
+        .unwrap()
+    }
+
+    /// The same rocket with an ejection delay of `delay_s` on every motor of every configuration.
+    fn with_delay(mut rocket: hpr_design::Rocket, delay_s: f64) -> hpr_design::Rocket {
+        for configuration in &mut rocket.configurations {
+            for motor in &mut configuration.motors {
+                motor.delay = Some(hpr_motor::Delay::Seconds(delay_s));
+            }
+        }
+        rocket
+    }
+
+    /// A device open from the moment the descent starts.
+    fn open_at_start(drag: DeviceDrag) -> Device {
+        Device::new("test", drag, Trigger::Time { time_s: START_S })
+    }
+
+    /// The state at rest (`velocity_enu_m_s`) with the center of mass `height_m` above the site,
+    /// nose up.
+    fn dropped(sim: &Simulation, height_m: f64, velocity_enu_m_s: DVec3) -> State {
+        let attitude = Rail::vertical(3.0).attitude();
+        let cg_m = sim.assembly().mass_properties(START_S).cg_m;
+        State {
+            position_enu_m: DVec3::new(0.0, 0.0, height_m) - attitude.mul_vec3(cg_m),
+            velocity_enu_m_s,
+            attitude,
+            body_rate_rad_s: DVec3::ZERO,
+        }
+    }
+
+    /// The column `name` of every row.
+    fn column(recorder: &Recorder, name: &str) -> Vec<f64> {
+        let index = recorder
+            .columns()
+            .iter()
+            .position(|c| c == name)
+            .unwrap_or_else(|| panic!("no column {name}"));
+        recorder.rows().iter().map(|row| row[index]).collect()
+    }
+
+    /// The largest canopy drag force of a flight, N, over the event samples and the recorded
+    /// steps: `q (C_D S)`.
+    fn peak_load_n(result: &FlightResult, recorder: &Recorder) -> f64 {
+        let from_events = result
+            .events
+            .iter()
+            .map(|event| event.sample.dynamic_pressure_pa * event.sample.recovery_drag_area_m2);
+        let pressure = column(recorder, "dynamic_pressure_pa");
+        let area = column(recorder, "recovery_drag_area_m2");
+        let from_rows = pressure.iter().zip(&area).map(|(q, s)| q * s);
+        from_events.chain(from_rows).fold(0.0, f64::max)
+    }
+
+    #[test]
+    fn default_canopy_cd_carries_its_citation() {
+        // Loft lesson L29. Loft's parachute C_D 0.8 was copied out of OpenRocket's GPL source.
+        // hpr's default is the middle of Knacke's printed range for the type, on the nominal area
+        // S₀ = π D₀²/4, and says where it comes from. RocketPy's 1.4 is not a C_D0 at all: it is a
+        // hemispherical canopy's coefficient on the projected area, and Knacke's hemispherical
+        // range on S₀ is 0.62 to 0.77.
+        let flat = CanopyType::FlatCircular;
+        assert_eq!(flat.drag_coefficient_range(), (0.75, 0.80));
+        assert_eq!(flat.drag_coefficient(), 0.775);
+        let (low, high) = flat.drag_coefficient_range();
+        assert!(low <= flat.drag_coefficient() && flat.drag_coefficient() <= high);
+        let source = flat.source();
+        for cited in ["Knacke", "NWC TP 6575", "Table 5-1"] {
+            assert!(source.contains(cited), "{source} does not cite {cited}");
+        }
+        assert_eq!(
+            CanopyType::Hemispherical.drag_coefficient_range(),
+            (0.62, 0.77)
+        );
+        assert!(CanopyType::Hemispherical.drag_coefficient() < 1.4);
+        // The drag area is C_D0 on the nominal area, not on the projected area.
+        let canopy = DeviceDrag::canopy(flat, 2.0);
+        assert!((canopy.drag_area_m2() - 0.775 * PI).abs() < 1e-15);
+        assert_eq!(canopy.nominal_diameter_m(), Some(2.0));
+        assert_eq!(canopy.canopy_type(), Some(flat));
+        // Knacke's tables as transcribed, entry by entry: the `C_D0` range (Tables 5-1 and 5-2),
+        // the unreefed fill constant (Table 5-6, `None` where the table prints "insufficient
+        // data"), the drag-area growth exponent (Pflanz, Figure 5-51, `None` for the types he
+        // does not name) and the infinite-mass opening-force coefficient `C_x`. A typo in any of
+        // these changes a user's descent rate, so they are pinned literally.
+        let table = [
+            (
+                CanopyType::FlatCircular,
+                0.75,
+                0.80,
+                Some(8.0),
+                Some(2.0),
+                1.7,
+            ),
+            (CanopyType::Conical, 0.75, 0.90, None, Some(2.0), 1.8),
+            (CanopyType::Biconical, 0.75, 0.92, None, None, 1.8),
+            (CanopyType::Triconical, 0.80, 0.96, None, Some(2.0), 1.8),
+            (
+                CanopyType::ExtendedSkirt10Flat,
+                0.78,
+                0.87,
+                Some(10.0),
+                Some(2.0),
+                1.4,
+            ),
+            (
+                CanopyType::ExtendedSkirt14Full,
+                0.75,
+                0.90,
+                Some(12.0),
+                Some(2.0),
+                1.4,
+            ),
+            (CanopyType::Hemispherical, 0.62, 0.77, None, None, 1.6),
+            (CanopyType::Annular, 0.85, 0.95, None, None, 1.4),
+            (CanopyType::Cross, 0.60, 0.85, Some(11.7), None, 1.15),
+            (
+                CanopyType::FlatRibbon,
+                0.45,
+                0.50,
+                Some(14.0),
+                Some(1.0),
+                1.05,
+            ),
+            (
+                CanopyType::ConicalRibbon,
+                0.50,
+                0.55,
+                Some(14.0),
+                Some(1.0),
+                1.05,
+            ),
+            (
+                CanopyType::Ringslot,
+                0.56,
+                0.65,
+                Some(14.0),
+                Some(1.0),
+                1.05,
+            ),
+            (CanopyType::Ringsail, 0.75, 0.85, Some(7.0), None, 1.10),
+        ];
+        for (kind, low, high, fill_constant, growth_exponent, opening) in table {
+            assert_eq!(kind.drag_coefficient_range(), (low, high), "{kind:?}");
+            assert_eq!(kind.drag_coefficient(), 0.5 * (low + high), "{kind:?}");
+            assert_eq!(kind.fill_constant(), fill_constant, "{kind:?}");
+            assert_eq!(kind.growth_exponent(), growth_exponent, "{kind:?}");
+            assert_eq!(kind.opening_force_coefficient(), opening, "{kind:?}");
+            assert!(
+                source.contains("Knacke") && kind.source() == source,
+                "{kind:?}"
+            );
+        }
+
+        assert_eq!(Inflation::knacke(CanopyType::Hemispherical), None);
+        assert_eq!(
+            Inflation::knacke(CanopyType::FlatCircular),
+            Some(Inflation::FillConstant {
+                constant: 8.0,
+                exponent: 2.0
+            })
+        );
+    }
+
+    #[test]
+    fn descent_rate_equals_terminal_velocity() {
+        // Loft lesson L92. Loft's own case, recomputed from Knacke's equilibrium descent speed
+        // v_e = √(2 W/(ρ C_D0 S₀)) (printed page 5-128): 1.1 kg under a 1 m flat canopy of C_D 0.8
+        // at ρ = 1.225 comes to 5.294 m/s. Loft allowed ±30% against it; hpr's formula has to
+        // print it.
+        let cd_s = 0.8 * PI * 1.0 * 1.0 / 4.0;
+        let loft = terminal_speed_m_s(1.1, cd_s, 1.225, G);
+        assert!((loft - 5.294).abs() < 5e-4, "{loft}");
+
+        // A flight under the same law: dropped from rest with the canopy already open, in uniform
+        // air under constant gravity, the descent is the closed-form fall under quadratic drag,
+        // v = −v_t tanh(g t/v_t), and it lands at the speed v_t that the formula gives.
+        let air = UniformAir::sea_level();
+        let rho = air.0.density_kg_m3;
+        let device = open_at_start(DeviceDrag::canopy(CanopyType::FlatCircular, 1.5));
+        let drag_area_m2 = device.drag.drag_area_m2();
+        let sim = flight(analytic_environment(air, G), vec![device], 3600.0);
+        let mass_kg = sim.assembly().mass_properties(START_S).mass_kg;
+        let terminal_m_s = terminal_speed_m_s(mass_kg, drag_area_m2, rho, G);
+        let height_m = 2_000.0;
+        let closed = closed_form_quadratic_drag(
+            &QuadraticDragFall {
+                gravity_mps2: G,
+                k_per_m: rho * drag_area_m2 / (2.0 * mass_kg),
+            },
+            0.0,
+        );
+        assert!((closed.apogee_s).abs() < 1e-15);
+
+        let mut recorder = Recorder::new(
+            vec![
+                Channel::Time,
+                Channel::VerticalSpeed,
+                Channel::HeightAboveGround,
+            ],
+            Some(5.0),
+        )
+        .unwrap();
+        let result = sim
+            .run_free(START_S, dropped(&sim, height_m, DVec3::ZERO), &mut recorder)
+            .unwrap();
+        assert_eq!(result.termination, Termination::GroundHit);
+        assert_eq!(result.final_sample.phase, crate::Phase::Descent);
+
+        // The whole descent follows the closed form, and the impact speed is the terminal speed
+        // (reached to 1e-9 of it after 2 km).
+        let times = column(&recorder, "time_s");
+        let speeds = column(&recorder, "vertical_speed_m_s");
+        let mut worst: f64 = 0.0;
+        for (t, v) in times.iter().zip(&speeds) {
+            let expected = closed.state(t - START_S)[1];
+            worst = worst.max((v - expected).abs() / terminal_m_s);
+        }
+        // Measured: 2.1e-8 of v_t, the integrator's own error at rtol = atol = 1e-8.
+        assert!(worst < 1e-7, "{worst} of v_t");
+        let landing = result.event(EventKind::GroundHit).unwrap().sample;
+        assert!(
+            (-landing.vertical_speed_m_s / terminal_m_s - 1.0).abs() < 1e-7,
+            "{} vs {terminal_m_s}",
+            landing.vertical_speed_m_s
+        );
+        // And it lands when the closed form says, to 1e-5 s of a 200 s descent.
+        let expected_s = START_S + closed.time_at_descending_height_s(-height_m);
+        assert!(
+            (landing.time_s - expected_s).abs() < 1e-5,
+            "{} vs {expected_s}",
+            landing.time_s
+        );
+    }
+
+    #[test]
+    fn drift_equals_the_wind_times_the_descent_time() {
+        // Dropped into a steady wind with the same horizontal velocity as the air, the rocket has
+        // no crossflow: the horizontal equation holds v = w for the whole descent, so the drift is
+        // exactly the wind times the time of flight, and the vertical fall is unchanged.
+        let air = UniformAir::sea_level();
+        let device = open_at_start(DeviceDrag::canopy(CanopyType::FlatCircular, 1.5));
+        let drag_area_m2 = device.drag.drag_area_m2();
+        let sim = flight(
+            analytic_wind_environment(air, G, ConstantWind::new(6.5, 0.7).unwrap()),
+            vec![device],
+            3600.0,
+        );
+        let wind_enu = sim.environment().wind.wind(0.0).unwrap().velocity_enu_m_s;
+        assert!(wind_enu.z == 0.0 && wind_enu.length() > 6.4, "{wind_enu}");
+        let mass_kg = sim.assembly().mass_properties(START_S).mass_kg;
+        let closed = closed_form_quadratic_drag(
+            &QuadraticDragFall {
+                gravity_mps2: G,
+                k_per_m: air.0.density_kg_m3 * drag_area_m2 / (2.0 * mass_kg),
+            },
+            0.0,
+        );
+        let height_m = 1_000.0;
+        let start = dropped(&sim, height_m, wind_enu);
+        let result = sim.run_free(START_S, start, &mut ()).unwrap();
+        assert_eq!(result.termination, Termination::GroundHit);
+        let landing = result.event(EventKind::GroundHit).unwrap().sample;
+
+        let flown_s = landing.time_s - START_S;
+        let drift =
+            landing.cg_enu_m - start.point_enu_m(sim.assembly().mass_properties(START_S).cg_m);
+        let expected = wind_enu * flown_s;
+        assert!(
+            (drift.x - expected.x).abs() < 1e-8 * expected.x.abs()
+                && (drift.y - expected.y).abs() < 1e-8 * expected.y.abs(),
+            "{drift} vs {expected}"
+        );
+        // The wind doesn't change the fall: the descent takes what the closed form says, to 1e-4
+        // of it (the drift of 1.5 km costs 0.13 m of ellipsoidal height, which the closed form
+        // over a flat Earth doesn't have).
+        let expected_s = closed.time_at_descending_height_s(-height_m);
+        assert!(
+            (flown_s - expected_s).abs() < 1e-4 * expected_s,
+            "{flown_s} vs {expected_s}"
+        );
+        assert!(drift.length() > 600.0, "{drift}");
+    }
+
+    #[test]
+    fn coriolis_drifts_a_descent_east_by_the_analytic_amount() {
+        // Every other analytic descent here runs with Earth's rotation off. With it on, a body
+        // falling at `v_t` feels `−2Ω × v = 2Ω v_t cos φ` to the east, which the canopy's drag
+        // balances at `v_east = 2Ω cos φ · m/(½ρ C_D S) = 2Ω cos φ · v_t²/g`. The drift is that
+        // times the time of flight, once the fall has settled.
+        let air = UniformAir::sea_level();
+        let device = open_at_start(DeviceDrag::canopy(CanopyType::FlatCircular, 1.5));
+        let drag_area_m2 = device.drag.drag_area_m2();
+        let sim = flight(rotating_analytic_environment(air, G), vec![device], 3600.0);
+        let mass_kg = sim.assembly().mass_properties(START_S).mass_kg;
+        let terminal_m_s = terminal_speed_m_s(mass_kg, drag_area_m2, air.0.density_kg_m3, G);
+        let latitude_rad = sim.environment().site().latitude_rad;
+        let rate_rad_s = 7.292_115e-5;
+        let east_m_s = 2.0 * rate_rad_s * latitude_rad.cos() * terminal_m_s * terminal_m_s / G;
+        assert!(east_m_s > 1e-3, "{east_m_s} m/s is too small to measure");
+
+        let height_m = 3_000.0;
+        let start = dropped(&sim, height_m, DVec3::ZERO);
+        let result = sim.run_free(START_S, start, &mut ()).unwrap();
+        assert_eq!(result.termination, Termination::GroundHit);
+        let landing = result.event(EventKind::GroundHit).unwrap().sample;
+        let flown_s = landing.time_s - START_S;
+        let drift =
+            landing.cg_enu_m - start.point_enu_m(sim.assembly().mass_properties(START_S).cg_m);
+        let expected_m = east_m_s * flown_s;
+        // The drift builds up over the first few seconds, while the fall settles, so the
+        // prediction is the steady one. Measured: 0.3666 m east against the steady prediction's
+        // 0.3685 m over 306.0 s, and 29 µm north.
+        assert!(
+            (drift.x - expected_m).abs() < 0.05 * expected_m,
+            "{} m east against {expected_m} m in {flown_s} s",
+            drift.x
+        );
+        assert!(
+            drift.y.abs() < 0.02 * expected_m,
+            "{} m north, which should be second order",
+            drift.y
+        );
+        // The fall itself is the same as without rotation, to the size of the drift's effect.
+        let without = terminal_speed_m_s(mass_kg, drag_area_m2, air.0.density_kg_m3, G);
+        assert!(
+            (-landing.vertical_speed_m_s / without - 1.0).abs() < 1e-5,
+            "{} vs {without}",
+            landing.vertical_speed_m_s
+        );
+    }
+
+    #[test]
+    fn inflation_time_limits_peak_opening_load() {
+        // Loft lesson L27. Loft's canopies opened instantly, so its peak load was the whole
+        // steady drag at deployment speed. Knacke's filling time t_f = n D₀/v (printed page 5-43)
+        // with the drag area growing as (t/t_f)^j (Pflanz, Figure 5-51) spreads the opening out:
+        // the canopy builds its area while the rocket is already slowing down.
+        //
+        // hpr does not model Knacke's measured overshoot (C_x = 1.7 for a flat circular canopy at
+        // infinite mass). For a deployment well above the canopy's terminal speed, as here, the
+        // instant opening gives hpr's highest load; near terminal speed a filling time can give a
+        // higher one, because the rocket speeds up while the canopy fills.
+        let air = UniformAir::sea_level();
+        let rho = air.0.density_kg_m3;
+        let diameter_m = 1.5;
+        let fall = DVec3::new(0.0, 0.0, -60.0);
+        let mut loads = Vec::new();
+        let mut mass_kg = 0.0;
+        for inflation in [
+            Inflation::Instant,
+            Inflation::knacke(CanopyType::FlatCircular).unwrap(),
+        ] {
+            let device = open_at_start(DeviceDrag::canopy(CanopyType::FlatCircular, diameter_m))
+                .with_inflation(inflation);
+            let drag_area_m2 = device.drag.drag_area_m2();
+            let sim = flight(analytic_environment(air, G), vec![device], 3600.0);
+            let mut recorder = Recorder::new(
+                vec![
+                    Channel::Time,
+                    Channel::DynamicPressure,
+                    Channel::RecoveryDragArea,
+                    Channel::VerticalSpeed,
+                ],
+                None,
+            )
+            .unwrap();
+            let result = sim
+                .run_free(START_S, dropped(&sim, 2_000.0, fall), &mut recorder)
+                .unwrap();
+            assert_eq!(result.termination, Termination::GroundHit);
+            mass_kg = sim.assembly().mass_properties(START_S).mass_kg;
+            let terminal_m_s = terminal_speed_m_s(mass_kg, drag_area_m2, rho, G);
+            let landing = result.event(EventKind::GroundHit).unwrap().sample;
+            assert!(
+                (-landing.vertical_speed_m_s / terminal_m_s - 1.0).abs() < 1e-6,
+                "{}",
+                landing.vertical_speed_m_s
+            );
+            loads.push((peak_load_n(&result, &recorder), drag_area_m2));
+        }
+        let (instant_n, drag_area_m2) = loads[0];
+        let (filled_n, _) = loads[1];
+        // The instant opening's peak is the steady drag at the deployment speed, at deployment.
+        let steady_n = 0.5 * rho * drag_area_m2 * fall.z * fall.z;
+        assert!(
+            (instant_n - steady_n).abs() < 1e-6 * steady_n,
+            "{instant_n} vs {steady_n}"
+        );
+        // Filling in t_f = n D₀/v = 8 · 1.5/60 = 0.2 s cuts the peak to 1,615 N, 0.53 of the
+        // instant opening. That is pinned against the closed form rather than a fraction, because
+        // a fraction cannot tell the growth exponents apart (`j = 1` would peak near 0.42).
+        //
+        // Ignoring gravity, `m dv/dt = −½ρ(C_D S)(t/t_f)² v²` separates to
+        // `1/v = 1/v₀ + k t³/(3 t_f²)` with `k = ρ(C_D S)/2m`, so at the end of filling
+        // `v = v₀/(1 + k v₀ t_f/3)` and the peak load is `½ρ(C_D S) v²` there (the load rises
+        // while the canopy grows and falls once it is full). Gravity adds at most `g t_f` to that
+        // speed, which is where the upper bound comes from.
+        let k_per_m = rho * drag_area_m2 / (2.0 * mass_kg);
+        let filling_s = CanopyType::FlatCircular.fill_constant().unwrap() * diameter_m / -fall.z;
+        let end_m_s = -fall.z / (1.0 + k_per_m * -fall.z * filling_s / 3.0);
+        let closed_n = 0.5 * rho * drag_area_m2 * end_m_s * end_m_s;
+        let with_gravity_n = closed_n * (1.0 + G * filling_s / end_m_s).powi(2);
+        assert!(
+            (closed_n..=with_gravity_n).contains(&filled_n),
+            "{filled_n} N is outside {closed_n} to {with_gravity_n} N (t_f {filling_s} s)"
+        );
+        assert!(filled_n < 0.6 * instant_n, "{filled_n} against {instant_n}");
+    }
+
+    #[test]
+    fn a_whole_flight_deploys_a_drogue_at_apogee_and_a_main_that_releases_it() {
+        // A flight from the pad: the drogue's charge fires at apogee and opens 1 s later, the main
+        // fires at 300 m above the site and opens 1.5 s later, and the main's opening releases the
+        // drogue. The events have to come in that order, the drag area has to follow, and each
+        // stage of the descent has to settle at its own terminal speed.
+        let devices = vec![
+            Device::new(
+                "drogue",
+                DeviceDrag::DragArea { cd_s_m2: 0.45 },
+                Trigger::Apogee,
+            )
+            .with_lag_s(1.0)
+            .with_release_by(1),
+            Device::new(
+                "main",
+                DeviceDrag::canopy(CanopyType::FlatCircular, 2.5),
+                Trigger::Altitude {
+                    height_above_ground_m: 300.0,
+                },
+            )
+            .with_lag_s(1.5),
+        ];
+        let drogue_m2 = devices[0].drag.drag_area_m2();
+        let main_m2 = devices[1].drag.drag_area_m2();
+        let sim = flight(
+            analytic_wind_environment(
+                UniformAir::sea_level(),
+                G,
+                ConstantWind::new(4.0, 0.0).unwrap(),
+            ),
+            devices,
+            3600.0,
+        );
+        let mut recorder = Recorder::new(
+            vec![
+                Channel::Time,
+                Channel::HeightAboveGround,
+                Channel::VerticalSpeed,
+                Channel::RecoveryDragArea,
+            ],
+            Some(0.25),
+        )
+        .unwrap();
+        let result = sim.run(&mut recorder).unwrap();
+        assert_eq!(result.termination, Termination::GroundHit);
+
+        let kinds: Vec<EventKind> = result.events.iter().map(|event| event.kind).collect();
+        assert_eq!(
+            kinds,
+            vec![
+                EventKind::Liftoff,
+                EventKind::RailExit,
+                EventKind::Burnout,
+                EventKind::Apogee,
+                EventKind::Trigger(0),
+                EventKind::Deployment(0),
+                EventKind::Trigger(1),
+                EventKind::Deployment(1),
+                EventKind::Release(0),
+                EventKind::GroundHit,
+            ]
+        );
+        let at = |kind| result.event(kind).unwrap().sample;
+        // Each charge opens its device after its lag, and the descent starts at the first opening.
+        assert!(
+            (at(EventKind::Deployment(0)).time_s - at(EventKind::Trigger(0)).time_s - 1.0).abs()
+                < 1e-12
+        );
+        assert!(
+            (at(EventKind::Deployment(1)).time_s - at(EventKind::Trigger(1)).time_s - 1.5).abs()
+                < 1e-12
+        );
+        assert_eq!(at(EventKind::Apogee).phase, crate::Phase::Free);
+        assert_eq!(at(EventKind::Deployment(0)).phase, crate::Phase::Descent);
+        // The main fires as the center of mass passes 300 m, descending under the drogue.
+        let trigger = at(EventKind::Trigger(1));
+        assert!(
+            (trigger.height_above_ground_m - 300.0).abs() < 1e-6,
+            "{trigger:?}"
+        );
+        assert!(trigger.vertical_speed_m_s < 0.0);
+        // The drag area: the drogue alone, then the main alone once it releases the drogue.
+        assert!((at(EventKind::Deployment(0)).recovery_drag_area_m2 - drogue_m2).abs() < 1e-12);
+        assert!((at(EventKind::Trigger(1)).recovery_drag_area_m2 - drogue_m2).abs() < 1e-12);
+        assert!((at(EventKind::Deployment(1)).recovery_drag_area_m2 - main_m2).abs() < 1e-12);
+        assert!((at(EventKind::GroundHit).recovery_drag_area_m2 - main_m2).abs() < 1e-12);
+
+        // Both stages settle at their own terminal speeds, so the descent rate falls when the
+        // main opens. The drogue's stage is the speed just before the main's charge fires.
+        let mass_kg = sim
+            .assembly()
+            .mass_properties(at(EventKind::Apogee).time_s)
+            .mass_kg;
+        let rho = UniformAir::sea_level().0.density_kg_m3;
+        let under_drogue = terminal_speed_m_s(mass_kg, drogue_m2, rho, G);
+        let under_main = terminal_speed_m_s(mass_kg, main_m2, rho, G);
+        assert!(
+            (-trigger.vertical_speed_m_s / under_drogue - 1.0).abs() < 0.02,
+            "{} vs {under_drogue}",
+            trigger.vertical_speed_m_s
+        );
+        let landing = at(EventKind::GroundHit);
+        assert!(
+            (-landing.vertical_speed_m_s / under_main - 1.0).abs() < 0.02,
+            "{} vs {under_main}",
+            landing.vertical_speed_m_s
+        );
+        assert!(
+            under_main < 0.5 * under_drogue,
+            "{under_main} {under_drogue}"
+        );
+        // The recorder's drag-area channel never exceeds one device's area: they never add up.
+        let area = column(&recorder, "recovery_drag_area_m2");
+        assert!(area.iter().all(|a| *a <= main_m2 + 1e-12));
+        assert!(area.iter().any(|a| (*a - drogue_m2).abs() < 1e-12));
+    }
+
+    #[test]
+    fn a_motor_delay_fires_a_device_and_a_canopy_fills_by_knackes_law() {
+        // The ejection charge of Valetudo's motor (a 2 s delay after its 3.26 s burn) fires the
+        // canopy, which then fills over t_f = n D₀/v from the airspeed at line stretch, its drag
+        // area growing as (t/t_f)^j.
+        let kind = CanopyType::FlatCircular;
+        let diameter_m = 1.2;
+        // Valetudo's example gives its motor no ejection charge, so the test picks one.
+        let sim = Simulation::new(
+            &with_delay(design("rocketpy-valetudo"), 2.0),
+            "example",
+            analytic_environment(UniformAir::sea_level(), G),
+            Rail::vertical(3.0),
+            FlightSettings::default(),
+        )
+        .unwrap()
+        .with_recovery(vec![
+            Device::new(
+                "ejection",
+                DeviceDrag::canopy(kind, diameter_m),
+                Trigger::MotorDelay { motor: 0 },
+            )
+            .with_inflation(Inflation::knacke(kind).unwrap()),
+        ])
+        .unwrap();
+        let delay_s = match sim.assembly().motors[0].mounted.delay {
+            Some(hpr_motor::Delay::Seconds(delay_s)) => delay_s,
+            other => panic!("Valetudo's motor has no delay in seconds: {other:?}"),
+        };
+        let burnout_s = sim.assembly().motors[0].mounted.motor.burnout_time_s();
+        let mut recorder =
+            Recorder::new(vec![Channel::Time, Channel::RecoveryDragArea], None).unwrap();
+        let result = sim.run(&mut recorder).unwrap();
+        assert_eq!(result.termination, Termination::GroundHit);
+        let trigger = result.event(EventKind::Trigger(0)).unwrap().sample;
+        let deployment = result.event(EventKind::Deployment(0)).unwrap().sample;
+        assert!(
+            (trigger.time_s - (burnout_s + delay_s)).abs() < 1e-12,
+            "{} vs {}",
+            trigger.time_s,
+            burnout_s + delay_s
+        );
+        assert_eq!(deployment.time_s, trigger.time_s, "no lag was given");
+        assert_eq!(deployment.recovery_drag_area_m2, 0.0, "it starts empty");
+
+        // Knacke's filling time from the airspeed at line stretch, and the growth law between.
+        let filling_s = kind.fill_constant().unwrap() * diameter_m / deployment.airspeed_m_s;
+        assert!(filling_s > 0.05 && filling_s < 0.5, "{filling_s} s");
+        let full_m2 = sim.recovery()[0].drag.drag_area_m2();
+        let times = column(&recorder, "time_s");
+        let areas = column(&recorder, "recovery_drag_area_m2");
+        let mut checked = 0;
+        for (t, area) in times.iter().zip(&areas) {
+            let elapsed = t - deployment.time_s;
+            if elapsed <= 0.0 {
+                assert_eq!(*area, 0.0, "area before line stretch at {t}");
+                continue;
+            }
+            let fraction = (elapsed / filling_s).min(1.0);
+            let expected = full_m2 * fraction.powf(kind.growth_exponent().unwrap());
+            assert!(
+                (area - expected).abs() < 1e-9 * full_m2,
+                "{area} vs {expected} at {t}"
+            );
+            if elapsed < filling_s {
+                checked += 1;
+            }
+        }
+        assert!(checked >= 3, "only {checked} rows inside the filling time");
+    }
+
+    /// The comparison against RocketPy's own parachute phase
+    /// (`validation/oracles/rocketpy/recovery.py`, M1.7a): the same declared state, devices, wind
+    /// and site, and the descent that follows.
+    #[test]
+    fn descent_matches_rocketpy_examples() {
+        let fixture = include_str!("../../../validation/fixtures/recovery/rocketpy-descent.json");
+        let document: serde_json::Value = serde_json::from_str(fixture).unwrap();
+        assert_eq!(document["oracle"], "rocketpy 1.13.0");
+        let cases = document["cases"].as_array().unwrap();
+        assert!(cases.len() >= 3, "{} cases", cases.len());
+        let number = |value: &serde_json::Value| value.as_f64().unwrap();
+        let mut rows = Vec::new();
+
+        for case in cases {
+            let name = case["name"].as_str().unwrap();
+            let environment = case["environment"].clone();
+
+            // The site: RocketPy's elevation above sea level, taken as the ellipsoidal height with
+            // no geoid undulation (hpr has no geoid model, and the oracle's atmosphere and wind
+            // are functions of that same height).
+            let site = hpr_core::geodesy::Geodetic::from_degrees(
+                number(&environment["latitude_deg"]),
+                number(&environment["longitude_deg"]),
+                number(&environment["elevation_m"]),
+            )
+            .unwrap();
+            let wind = wind_of(&environment);
+            // Gravity: RocketPy applies it to the vertical axis alone (`Flight.u_dot_parachute`,
+            // `flight.py:2777`, where only `az` carries a gravity term), so this flies hpr's
+            // model of the same shape. hpr's default is the full normal-gravity vector, which
+            // differs from that in two ways: it turns with the vertical downrange (`g d/R`,
+            // 2.1e-3 m/s² at Calisto's 1.4 km of drift, and the larger effect wherever a rocket
+            // drifts), and above the ellipsoid it leans a few parts in 10^6 toward the equator
+            // (3e-5 m/s²). The lean is what issue #27 chased: over Valetudo's 800 m of still-air
+            // descent it is 5.2e-4 m of drift, 26 times what the Coriolis term produces there.
+            let earth = hpr_core::earth::Earth::new(
+                hpr_core::gravity::NormalGravity::wgs84(),
+                site,
+                hpr_core::earth::GravityModel::VerticalTaylor,
+                hpr_core::earth::EarthRotation::Coriolis,
+            )
+            .unwrap();
+            let sim = Simulation::new(
+                &design(&format!("rocketpy-{name}")),
+                "example",
+                Environment {
+                    wind,
+                    ..Environment::new(
+                        earth,
+                        hpr_atmos::AtmosphereModel::default(),
+                        hpr_atmos::ConstantWind::calm(),
+                    )
+                },
+                // The rail is never used: these flights start in the air. It only has to be
+                // long enough for the design's guides.
+                Rail::vertical(6.0),
+                FlightSettings {
+                    max_time_s: 6000.0,
+                    ..FlightSettings::default()
+                },
+            )
+            .unwrap();
+
+            // First the environments: a descent compared against an oracle whose air, gravity or
+            // wind differs is not comparing recovery.
+            for sample in environment["samples"].as_array().unwrap() {
+                let height_msl_m = number(&sample["height_msl_m"]);
+                let air = sim.environment().atmosphere.air(height_msl_m).unwrap().air;
+                let density = air.density_kg_m3;
+                let oracle = number(&sample["density_kg_m3"]);
+                // RocketPy reads its standard atmosphere off a 100-point linear pressure table
+                // over 0 to 80 km, so it differs from the exact 1976 atmosphere. Measured worst
+                // over all the samples: 3.7e-4 relative (NDRT at 206 m), which is 1.9e-4 in a
+                // descent rate, below every difference this test goes on to report.
+                assert!(
+                    (density - oracle).abs() < 5e-4 * oracle,
+                    "{name}: density {density} vs {oracle} at {height_msl_m} m"
+                );
+                // Gravity: RocketPy's "Somigliana" model is the same WGS 84 normal gravity hpr
+                // uses, so these have to agree, not merely be close. They have to agree as a
+                // *vector*, because agreeing in magnitude is exactly what let a model difference
+                // hide here for a milestone. Under the model this test flies, gravity is vertical,
+                // as RocketPy's is; under hpr's default it would not be, and the next assertion
+                // measures what that would have added.
+                let up = DVec3::new(0.0, 0.0, height_msl_m - number(&environment["elevation_m"]));
+                let gravity = sim.environment().earth.gravity_enu_mps2(up).unwrap();
+                let oracle_gravity = number(&sample["gravity_m_s2"]);
+                // 1e-8, not the 1e-6 this used to allow: the worst residual over the 23 samples
+                // is 4.7e-9 relative, and 1e-6 of g is 9.8e-6 m/s², which is larger than the
+                // deflection issue #27 turned on. A bound has to be tighter than the effects it
+                // is meant to see.
+                assert!(
+                    (gravity.length() - oracle_gravity).abs() < 1e-8 * oracle_gravity,
+                    "{name}: gravity {gravity:?} vs {oracle_gravity} at {height_msl_m} m"
+                );
+                assert_eq!(
+                    (gravity.x, gravity.y),
+                    (0.0, 0.0),
+                    "{name}: gravity leans off the vertical where RocketPy's cannot"
+                );
+                // What hpr's own model would have added, so the difference is a number in this
+                // file rather than a surprise in a validation report. To first order the
+                // meridional component of normal gravity above the ellipsoid is
+                //
+                //     γ_φ ≈ −C h sin 2φ,   C = 8.15e-9 s⁻²
+                //
+                // which is proportional to height above the ellipsoid, points toward the equator
+                // in both hemispheres, and is zero on it (`docs/physics/gravity.md`). Over these
+                // five cases it runs from +6.9e-6 m/s² at Valetudo's topmost sample (1,168 m, 23°S,
+                // so northward) to −3.3e-5 m/s² at Calisto's 4,400 m (33°N, so southward).
+                // Checking the form rather than a bound is the point: "less than 5e-5" would pass
+                // an implementation whose size was wrong by half.
+                let latitude_rad = number(&environment["latitude_deg"]).to_radians();
+                let expected = -8.15e-9 * height_msl_m * (2.0 * latitude_rad).sin();
+                let ellipsoidal = hpr_core::earth::Earth::new(
+                    hpr_core::gravity::NormalGravity::wgs84(),
+                    site,
+                    hpr_core::earth::GravityModel::Ellipsoidal,
+                    hpr_core::earth::EarthRotation::Coriolis,
+                )
+                .unwrap()
+                .gravity_enu_mps2(up)
+                .unwrap();
+                assert!(
+                    ellipsoidal.x.abs() < 1e-12,
+                    "{name}: normal gravity has no east component, but this one is {}",
+                    ellipsoidal.x
+                );
+                assert!(
+                    (ellipsoidal.y - expected).abs() <= 0.02 * expected.abs().max(1e-9),
+                    "{name}: hpr's own gravity leans {} m/s² at {height_msl_m} m, where the \
+                     first-order normal-gravity term is {expected} m/s² (issue #27)",
+                    ellipsoidal.y
+                );
+                let wind = sim
+                    .environment()
+                    .wind
+                    .wind(height_msl_m)
+                    .unwrap()
+                    .velocity_enu_m_s;
+                for (component, key) in [(wind.x, "wind_east_m_s"), (wind.y, "wind_north_m_s")] {
+                    let oracle = number(&sample[key]);
+                    assert!(
+                        (component - oracle).abs() < 1e-9,
+                        "{name}: {key} {component} vs {oracle} at {height_msl_m} m"
+                    );
+                }
+                assert_eq!(wind.z, 0.0);
+            }
+
+            // The devices: the oracle's drag areas and triggers, with the first open from the
+            // start and each one released by the next, which is how RocketPy's single `cd_s`
+            // behaves when a main replaces a drogue.
+            let start = case["start"].clone();
+            let start_s = number(&start["time_s"]);
+            let oracle_devices = case["devices"].as_array().unwrap();
+            let mut devices = Vec::new();
+            for (index, device) in oracle_devices.iter().enumerate() {
+                let drag = DeviceDrag::DragArea {
+                    cd_s_m2: number(&device["cd_s_m2"]),
+                };
+                let trigger = if index == 0 {
+                    assert_eq!(device["trigger"]["kind"], "apogee");
+                    assert_eq!(
+                        number(&device["lag_s"]),
+                        0.0,
+                        "{name}: the first lag is zero"
+                    );
+                    Trigger::Time { time_s: start_s }
+                } else {
+                    assert_eq!(device["trigger"]["kind"], "descending_below_height_agl");
+                    Trigger::Altitude {
+                        height_above_ground_m: number(&device["trigger"]["height_m"]),
+                    }
+                };
+                let mut next = Device::new(device["name"].as_str().unwrap(), drag, trigger)
+                    .with_lag_s(number(&device["lag_s"]));
+                if index + 1 < oracle_devices.len() {
+                    next = next.with_release_by(index + 1);
+                }
+                devices.push(next);
+            }
+            let sim = sim.with_recovery(devices).unwrap();
+
+            // The mass: RocketPy's parachute phase uses the rocket's dry mass, and hpr the
+            // assembly's mass once the propellant is gone. The design is generated from the same
+            // example, so they have to agree.
+            let mass_kg = sim.assembly().mass_properties(start_s).mass_kg;
+            let dry_mass_kg = number(&case["dry_mass_kg"]);
+            assert!(
+                (mass_kg - dry_mass_kg).abs() < 1e-9 * dry_mass_kg,
+                "{name}: mass {mass_kg} vs the oracle's dry mass {dry_mass_kg}"
+            );
+
+            // The declared start, with the center of mass where the oracle put it.
+            let position = start["position_msl_m"].as_array().unwrap();
+            let velocity = start["velocity_m_s"].as_array().unwrap();
+            let cg_enu_m = DVec3::new(
+                number(&position[0]),
+                number(&position[1]),
+                number(&position[2]) - number(&environment["elevation_m"]),
+            );
+            let attitude = Rail::vertical(6.0).attitude();
+            let state = State {
+                position_enu_m: cg_enu_m
+                    - attitude.mul_vec3(sim.assembly().mass_properties(start_s).cg_m),
+                velocity_enu_m_s: DVec3::new(
+                    number(&velocity[0]),
+                    number(&velocity[1]),
+                    number(&velocity[2]),
+                ),
+                attitude,
+                body_rate_rad_s: DVec3::ZERO,
+            };
+            let result = sim.run_free(start_s, state, &mut ()).unwrap();
+            assert_eq!(result.termination, Termination::GroundHit, "{name}");
+            let landing = result.event(EventKind::GroundHit).unwrap().sample;
+
+            // The first device opens where both models agree, to within RocketPy's own trigger
+            // sampling: it checks its triggers on a grid of `1/sampling_rate` anchored at t = 0,
+            // and only over the span after its first accepted step, so its deployment comes a
+            // little after hpr's, which locates the crossing exactly. Measured: 2.5 ms for the
+            // four 105 Hz cases and 13 ms for Prometheus's 100 Hz one, against descents of 46 to
+            // 257 s, so under 0.01% of the descent either way.
+            let first = &case["events"].as_array().unwrap()[0];
+            let late_s = number(&first["deploy_s"]) - start_s;
+            let descent_s = number(&case["metrics"]["descent_time_s"]);
+            assert!(
+                (0.0..=0.02).contains(&late_s) && late_s < 1e-4 * descent_s,
+                "{name}: the oracle deployed {late_s} s after the start, of a {descent_s} s descent"
+            );
+
+            // Every later device fired at its own setting, and the oracle's grid put its own
+            // trigger a little below it: that difference is reported, not assumed away.
+            for (index, device) in oracle_devices.iter().enumerate().skip(1) {
+                let trigger = result
+                    .event(EventKind::Trigger(index))
+                    .unwrap_or_else(|| panic!("{name}: device {index} never fired"))
+                    .sample;
+                let height_m = number(&device["trigger"]["height_m"]);
+                assert!(
+                    (trigger.height_above_ground_m - height_m).abs() < 1e-3,
+                    "{name}: device {index} fired at {} m, not its setting {height_m}",
+                    trigger.height_above_ground_m
+                );
+                let oracle_event = &case["events"].as_array().unwrap()[index];
+                // The oracle's own reported height at its trigger, which comes from RocketPy's
+                // reporting spline over its stored samples, not from the dense output its
+                // trigger was evaluated on. It can only have fired at or below the setting, by
+                // at most one sample of fall (`v_z/sampling_rate`).
+                rows.push((
+                    format!(
+                        "{name}: device {index} trigger height, hpr against the oracle's report"
+                    ),
+                    trigger.height_above_ground_m,
+                    number(&oracle_event["height_above_ground_at_trigger_m"]),
+                ));
+                // The descent rate under the device before it, where the oracle reports its own.
+                let oracle_speed = -number(&oracle_event["vertical_speed_at_trigger_m_s"]);
+                let speed = -trigger.vertical_speed_m_s;
+                rows.push((
+                    format!("{name}: descent rate under device {}", index - 1),
+                    speed,
+                    oracle_speed,
+                ));
+            }
+
+            // An independent anchor on both simulators: by the time it lands, the rocket is
+            // descending at Knacke's equilibrium speed under the last device to open, computed
+            // here from hpr's own air and gravity at the site.
+            let last = oracle_devices.last().unwrap();
+            let air = sim
+                .environment()
+                .atmosphere
+                .air(number(&environment["elevation_m"]))
+                .unwrap()
+                .air;
+            let gravity_m_s2 = sim
+                .environment()
+                .earth
+                .gravity_enu_mps2(DVec3::ZERO)
+                .unwrap()
+                .length();
+            let equilibrium_m_s = terminal_speed_m_s(
+                mass_kg,
+                number(&last["cd_s_m2"]),
+                air.density_kg_m3,
+                gravity_m_s2,
+            );
+            for (who, speed) in [
+                ("hpr", -landing.vertical_speed_m_s),
+                ("rocketpy", number(&case["metrics"]["impact_speed_m_s"])),
+            ] {
+                assert!(
+                    (speed - equilibrium_m_s).abs() < 0.01 * equilibrium_m_s,
+                    "{name}: {who} lands at {speed} m/s, not the equilibrium {equilibrium_m_s}"
+                );
+            }
+
+            let metrics = case["metrics"].clone();
+            let descent_time_s = landing.time_s - start_s;
+            let drift = landing.cg_enu_m - cg_enu_m;
+            rows.push((
+                format!("{name}: descent time"),
+                descent_time_s,
+                number(&metrics["descent_time_s"]),
+            ));
+            rows.push((
+                format!("{name}: impact descent rate"),
+                -landing.vertical_speed_m_s,
+                number(&metrics["impact_speed_m_s"]),
+            ));
+            rows.push((
+                format!("{name}: drift"),
+                drift.truncate().length(),
+                number(&metrics["drift_m"]),
+            ));
+            if number(&metrics["drift_m"]) > 10.0 {
+                rows.push((
+                    format!("{name}: drift east"),
+                    drift.x,
+                    number(&metrics["drift_east_m"]),
+                ));
+                rows.push((
+                    format!("{name}: drift north"),
+                    drift.y,
+                    number(&metrics["drift_north_m"]),
+                ));
+            }
+        }
+
+        // The milestone's tolerance: descent rate and drift within 3% of RocketPy's.
+        let mut worst: f64 = 0.0;
+        let mut report = String::new();
+        for (what, hpr, oracle) in &rows {
+            let error = (hpr - oracle) / oracle;
+            worst = worst.max(error.abs());
+            report.push_str(&format!(
+                "{what}: hpr {hpr:.4}, rocketpy {oracle:.4}, {:+.2}%\n",
+                100.0 * error
+            ));
+        }
+        eprintln!("{report}");
+        assert!(worst < 0.03, "worst error {:.2}%:\n{report}", 100.0 * worst);
+    }
+
+    /// The oracle's wind: a constant, or a profile in height above sea level. RocketPy
+    /// interpolates its east and north components linearly, which is
+    /// [`hpr_atmos::WindInterpolation::Components`].
+    fn wind_of(environment: &serde_json::Value) -> std::sync::Arc<dyn hpr_atmos::Wind> {
+        /// A level from east and north components, m/s: the speed and the direction the wind
+        /// blows from, clockwise from north (`hpr_atmos::velocity_from_speed_direction`).
+        fn level(height_msl_m: f64, east: f64, north: f64) -> hpr_atmos::WindLevel {
+            hpr_atmos::WindLevel {
+                height_msl_m,
+                speed_m_s: east.hypot(north),
+                direction_from_rad: (-east).atan2(-north).rem_euclid(std::f64::consts::TAU),
+            }
+        }
+        let components = |key: &str| -> Option<Vec<(f64, f64)>> {
+            environment[key].as_array().map(|rows| {
+                rows.iter()
+                    .map(|row| {
+                        let row = row.as_array().unwrap();
+                        (row[0].as_f64().unwrap(), row[1].as_f64().unwrap())
+                    })
+                    .collect()
+            })
+        };
+        let levels = match (components("wind_u"), components("wind_v")) {
+            (Some(east), Some(north)) => {
+                assert_eq!(east.len(), north.len());
+                east.iter()
+                    .zip(&north)
+                    .map(|((height_msl_m, east), (other, north))| {
+                        assert_eq!(height_msl_m, other, "the profiles differ in height");
+                        level(*height_msl_m, *east, *north)
+                    })
+                    .collect()
+            }
+            (None, None) => vec![level(
+                0.0,
+                environment["wind_u"].as_f64().unwrap(),
+                environment["wind_v"].as_f64().unwrap(),
+            )],
+            _ => panic!("one wind component is a profile and the other is not"),
+        };
+        std::sync::Arc::new(
+            hpr_atmos::LayeredWind::new(levels, hpr_atmos::WindInterpolation::Components).unwrap(),
+        )
+    }
+
+    #[test]
+    fn a_deployment_keeps_the_center_of_mass_moving_as_it_was() {
+        // Dropping the body rates at deployment must not move the center of mass's momentum:
+        // the state carries the nose tip's velocity, so it has to be shifted by `ω × r_cg`
+        // (found in review). With `r_cg` along the axis and `ω` across it the error is across the
+        // axis too, so for this nose-up drop it is about 0.9 m/s of drift rate; it becomes a
+        // descent-rate error once the rocket has pitched over.
+        let air = UniformAir::sea_level();
+        let device = open_at_start(DeviceDrag::DragArea { cd_s_m2: 1.5 });
+        let sim = flight(analytic_environment(air, G), vec![device], 3600.0);
+        let rate_rad_s = DVec3::new(0.0, 0.7, 0.0);
+        let mut state = dropped(&sim, 1_500.0, DVec3::new(2.0, 0.0, -12.0));
+        state.body_rate_rad_s = rate_rad_s;
+        let cg_m = sim.assembly().mass_properties(START_S).cg_m;
+        // The center of mass's velocity before the canopy opens: the nose tip's plus `ω × r_cg`
+        // (the propellant is gone, so the center of mass doesn't move inside the body).
+        let before =
+            state.velocity_enu_m_s + state.unit_attitude().mul_vec3(rate_rad_s.cross(cg_m));
+        assert!(
+            (before - state.velocity_enu_m_s).length() > 0.5,
+            "the test needs a lever arm: {before}"
+        );
+        let result = sim.run_free(START_S, state, &mut ()).unwrap();
+        let deployment = result.event(EventKind::Deployment(0)).unwrap().sample;
+        assert_eq!(deployment.time_s, START_S);
+        assert!(
+            (deployment.cg_velocity_enu_m_s - before).length() < 1e-12,
+            "{} vs {before}",
+            deployment.cg_velocity_enu_m_s
+        );
+        assert_eq!(deployment.state.body_rate_rad_s, DVec3::ZERO);
+        // The descent then settles at the terminal speed, as before.
+        let mass_kg = sim.assembly().mass_properties(START_S).mass_kg;
+        let terminal_m_s = terminal_speed_m_s(mass_kg, 1.5, air.0.density_kg_m3, G);
+        let landing = result.event(EventKind::GroundHit).unwrap().sample;
+        assert!(
+            (-landing.vertical_speed_m_s / terminal_m_s - 1.0).abs() < 1e-6,
+            "{} vs {terminal_m_s}",
+            landing.vertical_speed_m_s
+        );
+    }
+
+    #[test]
+    fn a_deployment_during_a_burn_keeps_the_center_of_mass_moving_as_it_was() {
+        // The same handover while propellant still burns, so the center of mass is moving inside
+        // the body as well (`v_cg = v_O + q(ω × r_cg + ṙ_cg)`). The two `ṙ_cg` terms cancel, so
+        // the net shift is `q(ω × r_cg)` whatever the motor is doing; this pins that, and that
+        // the canopy opening under thrust (an off-nominal case the descent phase keeps the thrust
+        // for) does not move the center of mass. Valetudo burns until 3.26 s, and the crosswind
+        // gives it a body rate to shift by.
+        let sim = flight(
+            analytic_wind_environment(
+                UniformAir::sea_level(),
+                G,
+                ConstantWind::new(8.0, 1.5).unwrap(),
+            ),
+            vec![Device::new(
+                "early",
+                DeviceDrag::DragArea { cd_s_m2: 0.2 },
+                Trigger::Time { time_s: 2.0 },
+            )],
+            3600.0,
+        );
+        let result = sim.run(&mut ()).unwrap();
+        let trigger = result.event(EventKind::Trigger(0)).unwrap().sample;
+        let deployment = result.event(EventKind::Deployment(0)).unwrap().sample;
+        assert_eq!(trigger.time_s, 2.0);
+        assert_eq!(deployment.time_s, 2.0);
+        assert!(
+            trigger.thrust_n > 0.0,
+            "the motor has to be burning: {trigger:?}"
+        );
+        assert!(
+            trigger.state.body_rate_rad_s.length() > 1e-3,
+            "the flight needs a body rate to shift by: {}",
+            trigger.state.body_rate_rad_s
+        );
+        // The center of mass keeps its velocity, and the nose tip's moved by exactly `ω × r_cg`.
+        assert!(
+            (deployment.cg_velocity_enu_m_s - trigger.cg_velocity_enu_m_s).length() < 1e-12,
+            "{} vs {}",
+            deployment.cg_velocity_enu_m_s,
+            trigger.cg_velocity_enu_m_s
+        );
+        let cg_m = sim.assembly().mass_properties(2.0).cg_m;
+        let shift = trigger
+            .state
+            .unit_attitude()
+            .mul_vec3(trigger.state.body_rate_rad_s.cross(cg_m));
+        assert!(shift.length() > 1e-3, "{shift}");
+        assert!(
+            (deployment.state.velocity_enu_m_s - trigger.state.velocity_enu_m_s - shift).length()
+                < 1e-12,
+            "{} vs {} + {shift}",
+            deployment.state.velocity_enu_m_s,
+            trigger.state.velocity_enu_m_s
+        );
+        assert_eq!(deployment.phase, crate::Phase::Descent);
+        assert_eq!(result.termination, Termination::GroundHit);
+    }
+
+    #[test]
+    fn devices_that_open_together_add_their_drag_areas() {
+        // Two devices triggered at the same instant both open in the same pass, and the descent
+        // runs under the sum of their drag areas.
+        let air = UniformAir::sea_level();
+        let devices = vec![
+            open_at_start(DeviceDrag::DragArea { cd_s_m2: 1.0 }),
+            open_at_start(DeviceDrag::DragArea { cd_s_m2: 2.0 }),
+        ];
+        let sim = flight(analytic_environment(air, G), devices, 3600.0);
+        let result = sim
+            .run_free(START_S, dropped(&sim, 1_000.0, DVec3::ZERO), &mut ())
+            .unwrap();
+        assert_eq!(result.termination, Termination::GroundHit);
+        for index in 0..2 {
+            let deployment = result.event(EventKind::Deployment(index)).unwrap().sample;
+            assert_eq!(deployment.time_s, START_S, "device {index}");
+        }
+        let landing = result.event(EventKind::GroundHit).unwrap().sample;
+        assert!((landing.recovery_drag_area_m2 - 3.0).abs() < 1e-12);
+        let mass_kg = sim.assembly().mass_properties(START_S).mass_kg;
+        let terminal_m_s = terminal_speed_m_s(mass_kg, 3.0, air.0.density_kg_m3, G);
+        assert!(
+            (-landing.vertical_speed_m_s / terminal_m_s - 1.0).abs() < 1e-6,
+            "{} vs {terminal_m_s}",
+            landing.vertical_speed_m_s
+        );
+    }
+
+    #[test]
+    fn a_device_released_before_it_opens_never_pulls() {
+        // The main opens first and releases the drogue; when the drogue's own charge fires later
+        // there is nothing left to open, so it is recorded as triggered and never deploys.
+        let air = UniformAir::sea_level();
+        let devices = vec![
+            Device::new(
+                "drogue",
+                DeviceDrag::DragArea { cd_s_m2: 4.0 },
+                Trigger::Time {
+                    time_s: START_S + 5.0,
+                },
+            )
+            .with_release_by(1),
+            open_at_start(DeviceDrag::DragArea { cd_s_m2: 1.0 }),
+        ];
+        let sim = flight(analytic_environment(air, G), devices, 3600.0);
+        let result = sim
+            .run_free(START_S, dropped(&sim, 1_000.0, DVec3::ZERO), &mut ())
+            .unwrap();
+        assert_eq!(result.termination, Termination::GroundHit);
+        let release = result.event(EventKind::Release(0)).unwrap().sample;
+        assert_eq!(
+            release.time_s, START_S,
+            "the main opens at once, so it releases at once"
+        );
+        let trigger = result.event(EventKind::Trigger(0)).unwrap().sample;
+        assert_eq!(trigger.time_s, START_S + 5.0);
+        assert!(
+            result.event(EventKind::Deployment(0)).is_none(),
+            "a released device must not deploy: {:?}",
+            result.events.iter().map(|e| e.kind).collect::<Vec<_>>()
+        );
+        let landing = result.event(EventKind::GroundHit).unwrap().sample;
+        assert!((landing.recovery_drag_area_m2 - 1.0).abs() < 1e-12);
+        let mass_kg = sim.assembly().mass_properties(START_S).mass_kg;
+        let terminal_m_s = terminal_speed_m_s(mass_kg, 1.0, air.0.density_kg_m3, G);
+        assert!(
+            (-landing.vertical_speed_m_s / terminal_m_s - 1.0).abs() < 1e-6,
+            "{} vs {terminal_m_s}",
+            landing.vertical_speed_m_s
+        );
+    }
+
+    #[test]
+    fn a_release_waits_for_the_main_to_fill_so_the_drag_area_never_dips() {
+        // A drogue cut away at the main's line stretch would leave the rocket under an empty
+        // canopy: the drag area would collapse and the descent would speed up. The release waits
+        // until the main is full, so the drag area only ever grows here (ADR-012).
+        let air = UniformAir::sea_level();
+        let drogue_m2 = 0.45;
+        let main_m2 = 6.0;
+        let filling_s = 2.0;
+        let devices = vec![
+            open_at_start(DeviceDrag::DragArea { cd_s_m2: drogue_m2 }).with_release_by(1),
+            Device::new(
+                "main",
+                DeviceDrag::DragArea { cd_s_m2: main_m2 },
+                Trigger::Time {
+                    time_s: START_S + 20.0,
+                },
+            )
+            .with_inflation(Inflation::FillingTime {
+                time_s: filling_s,
+                exponent: 2.0,
+            }),
+        ];
+        let sim = flight(analytic_environment(air, G), devices, 3600.0);
+        let mut recorder = Recorder::new(
+            vec![
+                Channel::Time,
+                Channel::RecoveryDragArea,
+                Channel::VerticalSpeed,
+            ],
+            None,
+        )
+        .unwrap();
+        let result = sim
+            .run_free(START_S, dropped(&sim, 2_000.0, DVec3::ZERO), &mut recorder)
+            .unwrap();
+        assert_eq!(result.termination, Termination::GroundHit);
+        let main = result.event(EventKind::Deployment(1)).unwrap().sample;
+        let release = result.event(EventKind::Release(0)).unwrap().sample;
+        assert_eq!(main.time_s, START_S + 20.0);
+        assert!(
+            (release.time_s - (main.time_s + filling_s)).abs() < 1e-9,
+            "released at {} m, not at the end of filling {}",
+            release.time_s,
+            main.time_s + filling_s
+        );
+        // The drag area never falls below the drogue's, and the descent never speeds up after the
+        // main's charge fires.
+        let areas = column(&recorder, "recovery_drag_area_m2");
+        let times = column(&recorder, "time_s");
+        let speeds = column(&recorder, "vertical_speed_m_s");
+        let mut worst_area = f64::INFINITY;
+        let mut fastest = 0.0_f64;
+        for ((t, area), speed) in times.iter().zip(&areas).zip(&speeds) {
+            if *t < main.time_s {
+                continue;
+            }
+            worst_area = worst_area.min(*area);
+            fastest = fastest.max(-speed);
+        }
+        assert!(
+            worst_area >= drogue_m2 - 1e-12,
+            "the drag area dipped to {worst_area} m², below the drogue's {drogue_m2}"
+        );
+        assert!(
+            fastest <= -main.vertical_speed_m_s + 1e-9,
+            "the descent sped up after the main fired: {fastest} against {}",
+            -main.vertical_speed_m_s
+        );
+        // And by the end the main alone carries it.
+        let landing = result.event(EventKind::GroundHit).unwrap().sample;
+        assert!((landing.recovery_drag_area_m2 - main_m2).abs() < 1e-12);
+    }
+
+    #[test]
+    fn a_recovered_flight_repeats_bit_identically() {
+        // Determinism, and Loft lesson L24: the devices' progress belongs to the flight, not to
+        // the simulation, so flying the same simulation twice gives bit-identical rows and events.
+        let sim = flight(
+            analytic_wind_environment(
+                UniformAir::sea_level(),
+                G,
+                ConstantWind::new(3.0, 1.2).unwrap(),
+            ),
+            vec![
+                Device::new(
+                    "drogue",
+                    DeviceDrag::canopy(CanopyType::FlatCircular, 0.5),
+                    Trigger::Apogee,
+                )
+                .with_lag_s(0.75)
+                .with_inflation(Inflation::knacke(CanopyType::FlatCircular).unwrap())
+                .with_release_by(1),
+                Device::new(
+                    "main",
+                    DeviceDrag::canopy(CanopyType::FlatCircular, 2.0),
+                    Trigger::Altitude {
+                        height_above_ground_m: 200.0,
+                    },
+                )
+                .with_lag_s(1.25)
+                .with_inflation(Inflation::knacke(CanopyType::FlatCircular).unwrap()),
+            ],
+            3600.0,
+        );
+        let fly = || {
+            let mut recorder = Recorder::new(Channel::ALL.to_vec(), Some(0.1)).unwrap();
+            let result = sim.run(&mut recorder).unwrap();
+            (recorder.rows().to_vec(), result)
+        };
+        let (first_rows, first) = fly();
+        let (second_rows, second) = fly();
+        assert_eq!(first.termination, Termination::GroundHit);
+        assert!(first_rows.len() > 100, "{} rows", first_rows.len());
+        assert_eq!(first_rows, second_rows, "the rows differ between runs");
+        assert_eq!(
+            first.events, second.events,
+            "the events differ between runs"
+        );
+        assert_eq!(first.final_sample, second.final_sample);
+        assert_eq!(first.stats, second.stats);
+        // And the events are the full sequence, once each.
+        let kinds: Vec<EventKind> = first.events.iter().map(|event| event.kind).collect();
+        assert_eq!(
+            kinds,
+            vec![
+                EventKind::Liftoff,
+                EventKind::RailExit,
+                EventKind::Burnout,
+                EventKind::Apogee,
+                EventKind::Trigger(0),
+                EventKind::Deployment(0),
+                EventKind::Trigger(1),
+                EventKind::Deployment(1),
+                EventKind::Release(0),
+                EventKind::GroundHit,
+            ]
+        );
+    }
+
+    #[test]
+    fn an_apogee_charge_fires_on_a_flight_that_starts_descending() {
+        // The apogee trigger is RocketPy's `y[5] < 0`, not only hpr's apogee event: a flight
+        // restarted past its apogee (`run_free`, which M1.9's staging and flight-data replay use)
+        // still deploys. Found in review: with an event-only trigger this flight fell ballistically
+        // to the ground with no deployment and no error.
+        let air = UniformAir::sea_level();
+        let device = Device::new(
+            "main",
+            DeviceDrag::DragArea { cd_s_m2: 2.0 },
+            Trigger::Apogee,
+        );
+        let drag_area_m2 = device.drag.drag_area_m2();
+        let sim = flight(analytic_environment(air, G), vec![device], 3600.0);
+        let result = sim
+            .run_free(
+                START_S,
+                dropped(&sim, 1_000.0, DVec3::new(0.0, 0.0, -5.0)),
+                &mut (),
+            )
+            .unwrap();
+        assert_eq!(result.termination, Termination::GroundHit);
+        let deployment = result.event(EventKind::Deployment(0)).unwrap().sample;
+        assert_eq!(deployment.time_s, START_S, "it is already descending");
+        assert_eq!(
+            result.event(EventKind::Apogee),
+            None,
+            "there is no apogee to find"
+        );
+        let mass_kg = sim.assembly().mass_properties(START_S).mass_kg;
+        let terminal_m_s = terminal_speed_m_s(mass_kg, drag_area_m2, air.0.density_kg_m3, G);
+        let landing = result.event(EventKind::GroundHit).unwrap().sample;
+        assert!(
+            (-landing.vertical_speed_m_s / terminal_m_s - 1.0).abs() < 1e-6,
+            "{} vs {terminal_m_s}",
+            landing.vertical_speed_m_s
+        );
+        // A climbing flight does not fire it early: the charge waits for the apogee.
+        let climbing = sim
+            .run_free(
+                START_S,
+                dropped(&sim, 1_000.0, DVec3::new(0.0, 0.0, 30.0)),
+                &mut (),
+            )
+            .unwrap();
+        let apogee = climbing.event(EventKind::Apogee).unwrap().sample;
+        let fired = climbing.event(EventKind::Trigger(0)).unwrap().sample;
+        assert_eq!(fired.time_s, apogee.time_s);
+        assert!(apogee.time_s > START_S + 1.0, "{}", apogee.time_s);
+    }
+
+    #[test]
+    fn user_events_keep_their_numbers_and_fire_during_the_descent() {
+        // The event list is rebuilt per interval (`flight::Watch`), and the height triggers come
+        // and go, so the user events sit after them. This pins that their indices don't move and
+        // that they still fire once the descent has started.
+        let air = UniformAir::sea_level();
+        let devices = vec![
+            open_at_start(DeviceDrag::DragArea { cd_s_m2: 0.5 }).with_release_by(1),
+            Device::new(
+                "main",
+                DeviceDrag::DragArea { cd_s_m2: 4.0 },
+                Trigger::Altitude {
+                    height_above_ground_m: 400.0,
+                },
+            ),
+        ];
+        let sim = flight(analytic_environment(air, G), devices, 3600.0)
+            .with_event(crate::flight::UserEvent {
+                name: "through 700 m".to_owned(),
+                direction: crate::events::Direction::Falling,
+                function: Box::new(|sample| sample.height_above_ground_m - 700.0),
+            })
+            .with_event(crate::flight::UserEvent {
+                name: "through 100 m".to_owned(),
+                direction: crate::events::Direction::Falling,
+                function: Box::new(|sample| sample.height_above_ground_m - 100.0),
+            });
+        let result = sim
+            .run_free(START_S, dropped(&sim, 1_000.0, DVec3::ZERO), &mut ())
+            .unwrap();
+        assert_eq!(result.termination, Termination::GroundHit);
+        for (user, height_m) in [(0usize, 700.0), (1, 100.0)] {
+            let event = result
+                .event(EventKind::User(user))
+                .unwrap_or_else(|| panic!("user event {user} never fired"))
+                .sample;
+            assert!(
+                (event.height_above_ground_m - height_m).abs() < 1e-6,
+                "user event {user} fired at {} m",
+                event.height_above_ground_m
+            );
+            assert_eq!(event.phase, crate::Phase::Descent);
+        }
+        // The user events fire between the main's trigger and the ground, in height order.
+        let kinds: Vec<EventKind> = result.events.iter().map(|event| event.kind).collect();
+        let position = |kind| kinds.iter().position(|other| *other == kind).unwrap();
+        assert!(position(EventKind::User(0)) < position(EventKind::Trigger(1)));
+        assert!(position(EventKind::Trigger(1)) < position(EventKind::User(1)));
+        assert!(position(EventKind::User(1)) < position(EventKind::GroundHit));
+    }
+
+    #[test]
+    fn the_public_recovery_types_round_trip_through_json() {
+        let devices = vec![
+            Device::new(
+                "drogue",
+                DeviceDrag::DragArea { cd_s_m2: 0.45 },
+                Trigger::Apogee,
+            )
+            .with_lag_s(1.5)
+            .with_release_by(1),
+            Device::new(
+                "main",
+                DeviceDrag::canopy(CanopyType::Ringsail, 3.0),
+                Trigger::Altitude {
+                    height_above_ground_m: 250.0,
+                },
+            )
+            .with_inflation(Inflation::FillingTime {
+                time_s: 1.5,
+                exponent: 2.0,
+            }),
+            Device::new(
+                "timer",
+                DeviceDrag::canopy(CanopyType::FlatCircular, 1.0),
+                Trigger::Time { time_s: 12.0 },
+            )
+            .with_inflation(Inflation::knacke(CanopyType::FlatCircular).unwrap()),
+            Device::new(
+                "ejection",
+                DeviceDrag::DragArea { cd_s_m2: 1.0 },
+                Trigger::MotorDelay { motor: 0 },
+            ),
+            Device::new(
+                "streamer",
+                DeviceDrag::streamer(1.2, 0.12, 0.032),
+                Trigger::Apogee,
+            ),
+            Device::new(
+                "appendix C streamer",
+                DeviceDrag::Streamer {
+                    length_m: 1.0,
+                    width_m: 0.1,
+                    surface_density_kg_m2: 0.04,
+                    model: StreamerModel::OpenRocket,
+                },
+                Trigger::Apogee,
+            ),
+            Device::new(
+                "tumble",
+                DeviceDrag::tumbling(&design("rocketpy-valetudo").assemble("example").unwrap())
+                    .unwrap(),
+                Trigger::Apogee,
+            ),
+        ];
+        let text = serde_json::to_string(&devices).unwrap();
+        let back: Vec<Device> = serde_json::from_str(&text).unwrap();
+        assert_eq!(devices, back);
+        // The defaults are optional in a file, and unknown fields are refused.
+        let terse: Device = serde_json::from_str(
+            r#"{"name":"d","drag":{"drag_area":{"cd_s_m2":1.5}},"trigger":"apogee"}"#,
+        )
+        .unwrap();
+        assert_eq!(terse.lag_s, 0.0);
+        assert_eq!(terse.inflation, Inflation::Instant);
+        assert_eq!(terse.released_by, None);
+        assert!(
+            serde_json::from_str::<Device>(
+                r#"{"name":"d","drag":{"drag_area":{"cd_s_m2":1.5}},"trigger":"apogee","lg":1}"#
+            )
+            .is_err()
+        );
+        // A typo inside the drag is refused too: `model` defaults, and the two streamer models
+        // differ by a factor of four in drag area, so a silent default would be a wrong number.
+        let typo = r#"{"name":"s","drag":{"streamer":{"length_m":1.0,"width_m":0.1,
+            "surface_density_kg_m2":0.04,"modle":"open_rocket"}},"trigger":"apogee"}"#;
+        assert!(serde_json::from_str::<Device>(typo).is_err(), "{typo}");
+        // And the model itself round-trips by name.
+        let named: DeviceDrag = serde_json::from_str(
+            r#"{"streamer":{"length_m":1.0,"width_m":0.1,"surface_density_kg_m2":0.04,
+                "model":"open_rocket"}}"#,
+        )
+        .unwrap();
+        assert_eq!(named.canopy_type(), None);
+        assert!(
+            (named.drag_area_m2() - StreamerModel::OpenRocket.drag_area_m2(1.0, 0.1, 0.04)).abs()
+                < 1e-15
+        );
+    }
+
+    #[test]
+    fn streamer_models_reproduce_their_printed_equations() {
+        // Carruthers and Filippone's three printed curves, on the planform area, at the areas
+        // they were fitted at: `0.405 AR^−0.494` at 0.075 m² (eq. 1), `0.561 AR^−0.480` at
+        // 0.025 m² (eq. 2) and `0.6514 AR^−0.6075` at 0.05 m² (the trend line on Figure 3).
+        let cases: [(f64, f64, f64); 6] = [
+            (10.0, 0.075, 0.405 * 10.0_f64.powf(-0.494)),
+            (30.0, 0.075, 0.405 * 30.0_f64.powf(-0.494)),
+            (10.0, 0.025, 0.561 * 10.0_f64.powf(-0.480)),
+            (3.3, 0.025, 0.561 * 3.3_f64.powf(-0.480)),
+            // The trend line on Figure 3, which the text does not repeat as an equation.
+            (3.3, 0.05, 0.6514 * 3.3_f64.powf(-0.6075)),
+            (30.0, 0.05, 0.6514 * 30.0_f64.powf(-0.6075)),
+        ];
+        for (aspect_ratio, planform_m2, expected) in cases {
+            // A planform area `S` at aspect ratio `l/w` means `l = √(S·AR)`, `w = √(S/AR)`.
+            let length_m = (planform_m2 * aspect_ratio).sqrt();
+            let width_m = (planform_m2 / aspect_ratio).sqrt();
+            let drag_area_m2 = StreamerModel::Filippone.drag_area_m2(length_m, width_m, 0.05);
+            let coefficient = drag_area_m2 / planform_m2;
+            assert!(
+                (coefficient - expected).abs() < 1e-12,
+                "AR {aspect_ratio} at {planform_m2} m²: {coefficient} vs {expected}"
+            );
+        }
+        // Between the two areas it interpolates, and outside them it holds the end curve. A
+        // planform of 0.05 m² at `AR = 10` is `l = √0.5 m` by `w = l/10`.
+        let middle_m = (0.5_f64).sqrt();
+        let between = StreamerModel::Filippone.drag_area_m2(middle_m, middle_m / 10.0, 0.05) / 0.05;
+        let small = 0.561 * 10.0_f64.powf(-0.480);
+        let large = 0.405 * 10.0_f64.powf(-0.494);
+        assert!(large < between && between < small, "{between}");
+        let huge = StreamerModel::Filippone.drag_area_m2(3.0, 0.3, 0.05) / 0.9;
+        assert!((huge - large).abs() < 1e-12, "{huge} vs {large}");
+
+        // The OpenRocket technical documentation's appendix C: its own reference material is
+        // 80 g/m² polyethylene, where the material factor is exactly 1 and `C_Dm` is
+        // `0.034 (l + 1)/l`.
+        let reference = StreamerModel::OpenRocket.drag_area_m2(0.4, 0.04, 0.080) / (0.4 * 0.04);
+        assert!(
+            (reference - 0.034 * (0.4 + 1.0) / 0.4).abs() < 1e-12,
+            "{reference}"
+        );
+        // And its material correction is linear in surface density about −25 g/m².
+        let light = StreamerModel::OpenRocket.drag_area_m2(0.4, 0.04, 0.010);
+        let heavy = StreamerModel::OpenRocket.drag_area_m2(0.4, 0.04, 0.080);
+        assert!(
+            (light / heavy - (0.010 + 0.025) / (0.080 + 0.025)).abs() < 1e-12,
+            "{light} {heavy}"
+        );
+    }
+
+    /// The average speed of a drop from rest through `height_m` under a drag area, m/s: the
+    /// closed-form fall `h = (v_t²/g) ln cosh(g t/v_t)` solved for the time. A drop test measures
+    /// this, not the terminal speed it is approaching.
+    fn drop_average_m_s(
+        mass_kg: f64,
+        drag_area_m2: f64,
+        density_kg_m3: f64,
+        height_m: f64,
+    ) -> (f64, f64) {
+        let terminal_m_s = terminal_speed_m_s(mass_kg, drag_area_m2, density_kg_m3, G);
+        let time_s =
+            (terminal_m_s / G) * (G * height_m / (terminal_m_s * terminal_m_s)).exp().acosh();
+        (height_m / time_s, terminal_m_s)
+    }
+
+    #[test]
+    fn streamer_models_against_kidwells_drop_tests() {
+        // The only free-drop streamer data in hand: C. Kidwell, "Streamer Duration Optimization",
+        // NAR R&D, NARAM-43 (2001). Sixteen 4 in × 40 in streamers, each with a weight of about
+        // 5 g at one corner, dropped 20.1 m from a stadium deck.
+        //
+        // Two details of his method decide how to compare (both found in review):
+        //
+        // - his descent rates are **distance over time**, so they are averages over the drop, not
+        //   terminal speeds. A 20.1 m drop averages 0.97 of terminal at 2.8 m/s and 0.89 at
+        //   5.9 m/s, so the correction matters most for the model that predicts the fastest fall.
+        //   The prediction here is therefore the same average, from the closed-form fall.
+        // - he **normalised** each rate "by dividing by the actual mass of the attached weight
+        //   and multiplying by 5 g", so the rates belong to a notional 5.000 g weight, not to
+        //   Table 1's actual one.
+        let length_m = 40.0 * 0.0254;
+        let width_m = 4.0 * 0.0254;
+        let planform_m2 = length_m * width_m;
+        let rho = 1.225;
+        let drop_m = 20.1;
+        let cases = [
+            // (material, streamer mass from Table 1, normalised descent rate, pleated)
+            ("crepe paper", 3.3206e-3, 2.80, false),
+            ("Micafilm", 4.3412e-3, 2.04, true),
+        ];
+        let mut report = String::new();
+        for (material, streamer_kg, measured_m_s, pleated) in cases {
+            let surface_density_kg_m2 = streamer_kg / planform_m2;
+            let mass_kg = streamer_kg + 5.0e-3;
+            let predict = |model: StreamerModel| {
+                let drag_area_m2 = model.drag_area_m2(length_m, width_m, surface_density_kg_m2);
+                let (average_m_s, terminal_m_s) =
+                    drop_average_m_s(mass_kg, drag_area_m2, rho, drop_m);
+                (average_m_s, terminal_m_s, drag_area_m2)
+            };
+            let (filippone, _, filippone_m2) = predict(StreamerModel::Filippone);
+            let (open_rocket, _, open_rocket_m2) = predict(StreamerModel::OpenRocket);
+            // What the drop itself says the drag area was.
+            let measured_m2 = {
+                // Invert the closed-form average: search the drag area whose average matches.
+                let mut low = 1e-4;
+                let mut high = 1.0;
+                for _ in 0..200 {
+                    let middle = 0.5 * (low + high);
+                    if drop_average_m_s(mass_kg, middle, rho, drop_m).0 > measured_m_s {
+                        low = middle;
+                    } else {
+                        high = middle;
+                    }
+                }
+                0.5 * (low + high)
+            };
+            report.push_str(&format!(
+                "{material}: measured {measured_m_s:.2} m/s (C_D S {measured_m2:.5} m², C_D \
+                 {:.3}), Filippone {filippone:.2} ({:+.0}%, C_D S {filippone_m2:.5}), OpenRocket \
+                 {open_rocket:.2} ({:+.0}%, C_D S {open_rocket_m2:.5})\n",
+                measured_m2 / planform_m2,
+                100.0 * (filippone / measured_m_s - 1.0),
+                100.0 * (open_rocket / measured_m_s - 1.0),
+            ));
+            // Both models predict a faster descent than the drop: neither knows about pleats, and
+            // the correlations are for a streamer clamped at its leading edge, which the paper
+            // measures as less draggy than a free one.
+            assert!(filippone > measured_m_s, "{material}: {filippone}");
+            assert!(open_rocket > filippone, "{material}: {open_rocket}");
+            if pleated {
+                // Pleats more than double the drag: measured C_D 0.341 against 0.161 flat.
+                assert!(
+                    (filippone / measured_m_s - 1.0) < 0.75,
+                    "{material}: {filippone} against {measured_m_s}"
+                );
+            } else {
+                // Flat streamer, flat correlation: within 10%, where appendix C is 88% fast.
+                assert!(
+                    (filippone / measured_m_s - 1.0) < 0.10,
+                    "{material}: {filippone} against {measured_m_s}"
+                );
+                assert!(
+                    (open_rocket / measured_m_s - 1.0) > 0.5,
+                    "{material}: appendix C should be the slow one: {open_rocket}"
+                );
+            }
+        }
+        eprintln!("{report}");
+    }
+
+    #[test]
+    fn a_streamer_descends_at_its_cited_terminal_velocity() {
+        // A streamer's drag area is its model's, and a descent under it settles at Knacke's
+        // equilibrium speed for that area, the same as a canopy's.
+        let air = UniformAir::sea_level();
+        let drag = DeviceDrag::streamer(1.5, 0.15, 0.040);
+        let drag_area_m2 = drag.drag_area_m2();
+        // 1.5 m by 0.15 m is a planform of 0.225 m², above the largest area Carruthers and
+        // Filippone fitted, so their 0.075 m² curve holds: `C_D = 0.405 · 10^−0.494 = 0.12984`
+        // and `C_D S = 0.029216 m²`.
+        let expected_m2 = 0.405 * 10.0_f64.powf(-0.494) * 0.225;
+        assert!(
+            (drag_area_m2 - expected_m2).abs() < 1e-12,
+            "{drag_area_m2} vs {expected_m2}"
+        );
+        let sim = flight(
+            analytic_environment(air, G),
+            vec![open_at_start(drag)],
+            3600.0,
+        );
+        let mass_kg = sim.assembly().mass_properties(START_S).mass_kg;
+        let terminal_m_s = terminal_speed_m_s(mass_kg, drag_area_m2, air.0.density_kg_m3, G);
+        // A streamer is a feeble decelerator: Valetudo falls at 67 m/s under this one, so the
+        // drop has to be long enough to settle (the time constant is `v_t/g`, near 7 s).
+        assert!(terminal_m_s > 20.0, "{terminal_m_s}");
+        let result = sim
+            .run_free(START_S, dropped(&sim, 6_000.0, DVec3::ZERO), &mut ())
+            .unwrap();
+        assert_eq!(result.termination, Termination::GroundHit);
+        let landing = result.event(EventKind::GroundHit).unwrap().sample;
+        assert!(
+            (-landing.vertical_speed_m_s / terminal_m_s - 1.0).abs() < 1e-6,
+            "{} vs {terminal_m_s}",
+            landing.vertical_speed_m_s
+        );
+    }
+
+    #[test]
+    fn the_tumble_model_against_its_own_drop_tests() {
+        // The tumbling constants were fitted to the five models of the OpenRocket technical
+        // documentation's Table 3.3 (printed page 54), dropped 22 m at ρ = 1.31 kg/m³ with the
+        // terminal velocity read off the video to ±0.3 m/s. Replaying them through hpr's reading
+        // of the model (`1.42 · eff(n) · A_1fin + 0.56 · d · l`, with one fin's area the
+        // trapezoid `(C_r + C_t) s/2`) is the only independent check of it available, and it
+        // does **not** reproduce the documentation's claim of 3 to 14%.
+        let rho = 1.31;
+        // (model, fins, root chord, tip chord, span, diameter, body length, mass, measured v0)
+        let models = [
+            (
+                "#1", 3usize, 0.070, 0.040, 0.060, 0.044, 0.108, 18.0e-3, 5.6,
+            ),
+            ("#2", 4, 0.070, 0.040, 0.060, 0.044, 0.108, 22.0e-3, 6.3),
+            ("#3", 3, 0.200, 0.140, 0.130, 0.103, 0.290, 160.0e-3, 6.6),
+            ("#4", 0, 0.0, 0.0, 0.0, 0.044, 0.100, 6.8e-3, 5.4),
+            ("#5", 4, 0.085, 0.085, 0.050, 0.0, 0.0, 11.5e-3, 5.0),
+        ];
+        let mut report = String::new();
+        let mut worst: f64 = 0.0;
+        let mut errors = Vec::new();
+        for (name, fins, root_m, tip_m, span_m, diameter_m, body_m, mass_kg, measured_m_s) in models
+        {
+            let fin_area_m2 = if fins == 0 {
+                0.0
+            } else {
+                let one_m2 = 0.5 * (root_m + tip_m) * span_m;
+                one_m2 * TUMBLE_FIN_EFFICIENCY[fins - 1]
+            };
+            let body_profile_m2 = diameter_m * body_m;
+            let drag_area_m2 = TUMBLE_FIN_DRAG_COEFFICIENT * fin_area_m2
+                + TUMBLE_BODY_DRAG_COEFFICIENT * body_profile_m2;
+            let predicted_m_s = terminal_speed_m_s(mass_kg, drag_area_m2, rho, G);
+            let error = predicted_m_s / measured_m_s - 1.0;
+            worst = worst.max(error.abs());
+            errors.push(error);
+            report.push_str(&format!(
+                "{name}: measured {measured_m_s:.1} m/s, hpr {predicted_m_s:.2} ({:+.1}%)\n",
+                100.0 * error
+            ));
+        }
+        eprintln!("{report}");
+        // The spread is −10 to +19%, not the 3 to 14% the documentation claims for its own fit,
+        // and the finless model is the outlier: it wants a body coefficient near 0.79 where the
+        // model says 0.56. Either hpr's reading of the two areas is not the one behind the
+        // constants (the text pins neither convention) or the claim is not reproducible;
+        // `docs/physics/recovery.md` prints this table rather than repeating the 3 to 14%.
+        //
+        // Every model's error is pinned, not just the worst: a wrong efficiency factor would
+        // move one of the others while the extreme stayed put.
+        assert_eq!(
+            errors
+                .iter()
+                .map(|error| format!("{:+.1}", 100.0 * error))
+                .collect::<Vec<_>>(),
+            ["-5.8", "-5.4", "-7.2", "+19.0", "-10.0"],
+            "{report}"
+        );
+        assert!(worst < 0.20, "{worst} spread:\n{report}");
+    }
+
+    #[test]
+    fn tumbling_refuses_an_airframe_the_model_cannot_represent() {
+        // Tube fins are a large part of a tumbling rocket's broadside area and §3.5 has no factor
+        // for them, so `tumbling` refuses rather than crediting a bare tube's drag.
+        let mut rocket = design("rocketpy-valetudo");
+        let (index, fins) = rocket.stages[0].components[1]
+            .children
+            .iter()
+            .enumerate()
+            .find_map(|(index, child)| match &child.part {
+                hpr_design::Part::FinSet(fins) => Some((index, fins.clone())),
+                _ => None,
+            })
+            .expect("Valetudo has a fin set");
+        rocket.stages[0].components[1].children[index].part =
+            hpr_design::Part::TubeFinSet(hpr_design::TubeFinSet {
+                count: 3,
+                length_m: 0.15,
+                outer_radius_m: 0.02,
+                thickness_m: 0.001,
+                base_angle_rad: 0.0,
+                material: fins.material.clone(),
+            });
+        let assembly = rocket.assemble("example").unwrap();
+        let error = DeviceDrag::tumbling(&assembly).expect_err("tube fins");
+        assert!(matches!(error, SimError::Domain { .. }), "{error:?}");
+        // The unchanged design is fine, so the refusal is about the tube fins and nothing else.
+        assert!(
+            DeviceDrag::tumbling(&design("rocketpy-valetudo").assemble("example").unwrap()).is_ok()
+        );
+
+        // Pods: each pod's tube and fins count as the airframe's do, once per pod.
+        let mut rocket = design("rocketpy-valetudo");
+        let airframe = &mut rocket.stages[0].components[1];
+        let fin_set = airframe
+            .children
+            .iter()
+            .find(|c| matches!(c.part, hpr_design::Part::FinSet(_)))
+            .expect("Valetudo has a fin set")
+            .clone();
+        let mut pod_tube = airframe.clone();
+        pod_tube.id = "pod-tube".to_owned();
+        pod_tube.auto.clear();
+        pod_tube.motor_mount = None;
+        pod_tube.children.clear();
+        let hpr_design::Part::BodyTube(tube) = &pod_tube.part else {
+            panic!("Valetudo's airframe is a body tube");
+        };
+        let tube_profile_m2 = 2.0 * tube.outer_radius_m * tube.length_m;
+        let hpr_design::Part::FinSet(fins) = &fin_set.part else {
+            unreachable!("found as a fin set");
+        };
+        // Three fins: Table 3.4's factor 1.50.
+        let fin_m2 = 1.5 * fins.planform.geometry().unwrap().area_m2;
+        let mut pod_fins = fin_set.clone();
+        pod_fins.id = "pod-fins".to_owned();
+        pod_tube.children.push(pod_fins);
+        let mut pods = pod_tube.clone();
+        pods.id = "pods".to_owned();
+        pods.part = hpr_design::Part::PodSet(hpr_design::PodSet {
+            count: 2,
+            radial_offset_m: 0.2,
+            angle_rad: 0.0,
+        });
+        pods.position = Some(hpr_design::Position::Top { aft_offset_m: 0.0 });
+        pods.children = vec![pod_tube];
+        pods.overrides = hpr_design::Overrides::default();
+        airframe.children.push(pods);
+        let tumble = |rocket: &hpr_design::Rocket| match DeviceDrag::tumbling(
+            &rocket.assemble("example").unwrap(),
+        )
+        .unwrap()
+        {
+            DeviceDrag::Tumble {
+                body_profile_m2,
+                fin_area_m2,
+                ..
+            } => (body_profile_m2, fin_area_m2),
+            other => panic!("tumbling should build a Tumble: {other:?}"),
+        };
+        let (bare_body, bare_fins) = tumble(&design("rocketpy-valetudo"));
+        let (body, fins) = tumble(&rocket);
+        assert!(
+            (body - bare_body - 2.0 * tube_profile_m2).abs() <= 1e-15,
+            "{body}"
+        );
+        assert!((fins - bare_fins - 2.0 * fin_m2).abs() <= 1e-15, "{fins}");
+        // A pod set that holds nothing adds no drag area.
+        let pods = rocket.stages[0].components[1].children.last_mut().unwrap();
+        pods.children.clear();
+        assert_eq!(
+            DeviceDrag::tumbling(&rocket.assemble("example").unwrap()).unwrap(),
+            DeviceDrag::tumbling(&design("rocketpy-valetudo").assemble("example").unwrap())
+                .unwrap()
+        );
+    }
+
+    #[test]
+    fn a_tumbling_body_descends_at_its_cited_terminal_velocity() {
+        // The OpenRocket technical documentation's tumbling model, §3.5: the drag area is
+        // `1.42 A_f + 0.56 A_bt`, with `A_bt` the body's side profile and `A_f` one fin's area
+        // times the efficiency factor for the fin count. Computed here from Valetudo's own
+        // geometry, and checked by a flight.
+        let air = UniformAir::sea_level();
+        let rocket = design("rocketpy-valetudo");
+        let assembly = rocket.assemble("example").unwrap();
+        let drag = DeviceDrag::tumbling(&assembly).unwrap();
+        let DeviceDrag::Tumble {
+            drag_area_m2,
+            body_profile_m2,
+            fin_area_m2,
+        } = drag
+        else {
+            panic!("tumbling should build a Tumble: {drag:?}");
+        };
+        // Valetudo: a 0.274 m tangent ogive nose of 40.45 mm base radius and 1.884 m of 80.9 mm
+        // tube. The ogive's arc has radius `ρ = (R² + L²)/(2R)`, so its side area in closed form
+        // is `L√(ρ² − L²) + ρ² asin(L/ρ) + 2(R − ρ)L` = 0.014842 m², a third more than the
+        // triangle through its ends; the side profile is that plus 0.0809·1.884 = 0.1673 m².
+        // Three fins of 0.058 m root, 0.018 m tip and 0.077 m span, so one fin is 2.93e-3 m² and
+        // the three-fin factor is 1.50.
+        let expected_fin_m2 = 1.5
+            * match &assembly
+                .layout
+                .components
+                .iter()
+                .find(|c| matches!(c.part, hpr_design::Part::FinSet(_)))
+                .unwrap()
+                .part
+            {
+                hpr_design::Part::FinSet(fins) => fins.planform.geometry().unwrap().area_m2,
+                _ => unreachable!(),
+            };
+        assert!(
+            (fin_area_m2 - expected_fin_m2).abs() < 1e-12,
+            "{fin_area_m2}"
+        );
+        assert!(
+            (drag_area_m2 - (1.42 * fin_area_m2 + 0.56 * body_profile_m2)).abs() < 1e-15,
+            "{drag_area_m2}"
+        );
+        let (nose_m, base_m) = (0.274_f64, 0.040_45_f64);
+        let arc_m = (base_m * base_m + nose_m * nose_m) / (2.0 * base_m);
+        let ogive_m2 = nose_m * (arc_m * arc_m - nose_m * nose_m).sqrt()
+            + arc_m * arc_m * (nose_m / arc_m).asin()
+            + 2.0 * (base_m - arc_m) * nose_m;
+        assert!((ogive_m2 - 0.014_842).abs() < 5e-7, "{ogive_m2}");
+        assert!(
+            (body_profile_m2 - (ogive_m2 + 0.080_9 * 1.884)).abs() < 1e-12,
+            "{body_profile_m2}"
+        );
+
+        let sim = flight(
+            analytic_environment(air, G),
+            vec![open_at_start(drag)],
+            3600.0,
+        );
+        let mass_kg = sim.assembly().mass_properties(START_S).mass_kg;
+        let terminal_m_s = terminal_speed_m_s(mass_kg, drag_area_m2, air.0.density_kg_m3, G);
+        // Tumbling is slower than a ballistic dive but far faster than a canopy: 36.38 m/s for
+        // this 8.3 kg rocket, well outside the 6.8 to 160 g the constants were fitted on. Its
+        // nose's end diameters alone gave 36.77 m/s, before the side area was integrated.
+        assert!((terminal_m_s - 36.38).abs() < 0.005, "{terminal_m_s}");
+        let result = sim
+            .run_free(START_S, dropped(&sim, 4_000.0, DVec3::ZERO), &mut ())
+            .unwrap();
+        assert_eq!(result.termination, Termination::GroundHit);
+        let landing = result.event(EventKind::GroundHit).unwrap().sample;
+        assert!(
+            (-landing.vertical_speed_m_s / terminal_m_s - 1.0).abs() < 1e-6,
+            "{} vs {terminal_m_s}",
+            landing.vertical_speed_m_s
+        );
+    }
+
+    /// The two-stage test design, whose booster and sustainer each carry a motor.
+    fn two_stage() -> hpr_design::Rocket {
+        design("synthetic-two-stage-75mm-54mm")
+    }
+
+    /// That design flown with `devices` and a separation, from a vertical rail.
+    fn staged_flight(
+        environment: Environment,
+        devices: Vec<Device>,
+        separation: Separation,
+    ) -> Simulation {
+        Simulation::new(
+            &two_stage(),
+            "j760-i175",
+            environment,
+            Rail::vertical(6.0),
+            FlightSettings {
+                max_time_s: 3600.0,
+                ..FlightSettings::default()
+            },
+        )
+        .unwrap()
+        .with_recovery(devices)
+        .unwrap()
+        .with_separation(separation)
+        .unwrap()
+    }
+
+    #[test]
+    fn a_separation_lands_every_body_and_the_masses_add_up() {
+        // The stack comes apart at apogee: the sustainer descends under a canopy, the booster
+        // tumbles. Both have to reach the ground, each at its own terminal speed, and their
+        // masses have to add up to the whole rocket's.
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        // The booster tumbles on its own stage's geometry, not the whole stack's.
+        let tumble = DeviceDrag::tumbling_stages(&assembly, (1, 1)).unwrap();
+        let devices = vec![
+            Device::new(
+                "sustainer main",
+                DeviceDrag::canopy(CanopyType::FlatCircular, 1.8),
+                Trigger::Altitude {
+                    height_above_ground_m: 1_500.0,
+                },
+            ),
+            Device::new(
+                "booster tumble",
+                tumble,
+                Trigger::Altitude {
+                    height_above_ground_m: 1_500.0,
+                },
+            )
+            .on_body(1),
+        ];
+        let sim = staged_flight(
+            analytic_environment(air, G),
+            devices,
+            Separation::new(Trigger::Apogee, 0),
+        );
+        // From just past apogee: the ascent is not what this test is about.
+        let start = dropped(&sim, 2_000.0, DVec3::new(0.0, 0.0, -0.5));
+        let result = sim.run_free(START_S, start, &mut ()).unwrap();
+        assert_eq!(result.termination, Termination::Separated);
+        assert!(result.event(EventKind::Separation).is_some());
+        assert_eq!(result.bodies.len(), 2, "{:?}", result.bodies.len());
+
+        // The bodies' masses add up to the rocket's at the separation, and each is a real share.
+        let separation = result.event(EventKind::Separation).unwrap().sample;
+        let whole_kg = sim.assembly().mass_properties(separation.time_s).mass_kg;
+        let sum_kg: f64 = result.bodies.iter().map(|body| body.mass_kg).sum();
+        assert!(
+            (sum_kg - whole_kg).abs() < 1e-12 * whole_kg,
+            "{sum_kg} vs {whole_kg}"
+        );
+        assert_eq!(result.bodies[0].stages, (0, 0));
+        assert_eq!(result.bodies[1].stages, (1, 1));
+        for body in &result.bodies {
+            // Each body is its own stage's structure plus the motor mounted in it, so a swapped
+            // split or a motor on the wrong stage fails here and not only in the sum.
+            let layout = &sim.assembly().layout;
+            let expected_kg = layout.stages[body.stages.0].mass.mass_kg
+                + sim
+                    .assembly()
+                    .motors
+                    .iter()
+                    .filter(|motor| motor.stage == body.stages.0)
+                    .map(|motor| motor.mass_properties(separation.time_s).mass_kg)
+                    .sum::<f64>();
+            assert!(
+                (body.mass_kg - expected_kg).abs() < 1e-12 * expected_kg,
+                "body {}: {} vs {expected_kg}",
+                body.body,
+                body.mass_kg
+            );
+        }
+        // Measured: a 0.550 kg sustainer and a 1.125 kg booster of a 1.675 kg stack.
+        assert!(
+            (result.bodies[0].mass_kg - 0.550_344).abs() < 1e-5,
+            "{}",
+            result.bodies[0].mass_kg
+        );
+        assert!(
+            (result.bodies[1].mass_kg - 1.124_834).abs() < 1e-5,
+            "{}",
+            result.bodies[1].mass_kg
+        );
+
+        // Every body lands, under its own device, at its own terminal speed.
+        let rho = air.0.density_kg_m3;
+        for body in &result.bodies {
+            assert_eq!(
+                body.termination,
+                Termination::GroundHit,
+                "body {}",
+                body.body
+            );
+            let landing = body.event(EventKind::GroundHit).unwrap().sample;
+            assert!(landing.height_above_ground_m.abs() < 1e-6, "{landing:?}");
+            assert!(landing.time_s > separation.time_s, "{landing:?}");
+            let device = body.body;
+            let drag_area_m2 = sim.recovery()[device].drag.drag_area_m2();
+            let terminal_m_s = terminal_speed_m_s(body.mass_kg, drag_area_m2, rho, G);
+            assert!(
+                (-landing.vertical_speed_m_s / terminal_m_s - 1.0).abs() < 1e-3,
+                "body {}: {} vs {terminal_m_s}",
+                body.body,
+                landing.vertical_speed_m_s
+            );
+            assert!(
+                (landing.recovery_drag_area_m2 - drag_area_m2).abs() < 1e-12,
+                "body {}: {landing:?}",
+                body.body
+            );
+            assert!(body.event(EventKind::Deployment(device)).is_some());
+        }
+        // The tumbling booster comes down much faster than the sustainer under its canopy, and
+        // both descent times are pinned, not just the speeds. Measured: the sustainer lands at
+        // 729.00 s at 2.114 m/s under its 1.8 m canopy, the booster at 107.51 s at 16.745 m/s.
+        let landing_of = |body: usize| {
+            result.bodies[body]
+                .event(EventKind::GroundHit)
+                .unwrap()
+                .sample
+        };
+        let under_canopy = -landing_of(0).vertical_speed_m_s;
+        let tumbling = -landing_of(1).vertical_speed_m_s;
+        assert!(
+            tumbling / under_canopy > 7.5,
+            "{tumbling} vs {under_canopy}"
+        );
+        assert!(
+            (landing_of(0).time_s - 729.00).abs() < 0.5,
+            "{}",
+            landing_of(0).time_s
+        );
+        assert!(
+            (landing_of(1).time_s - 107.51).abs() < 0.2,
+            "{}",
+            landing_of(1).time_s
+        );
+        assert!(result.bodies_landed(), "{:?}", result.bodies.len());
+        assert_eq!(result.landings().len(), 2);
+    }
+
+    /// A west wind of `east_m_s` below `below_msl_m` above sea level, and calm above.
+    #[derive(Debug)]
+    struct WindBelow {
+        below_msl_m: f64,
+        east_m_s: f64,
+    }
+
+    impl hpr_atmos::Wind for WindBelow {
+        fn wind(&self, height_msl_m: f64) -> Result<hpr_atmos::WindSample, hpr_atmos::AtmosError> {
+            let east_m_s = if height_msl_m < self.below_msl_m {
+                self.east_m_s
+            } else {
+                0.0
+            };
+            Ok(hpr_atmos::WindSample {
+                velocity_enu_m_s: DVec3::new(east_m_s, 0.0, 0.0),
+                extrapolated: None,
+            })
+        }
+    }
+
+    #[test]
+    fn a_separated_body_refuses_a_wind_that_is_not_finite() {
+        // Issue #237: the bodies flown apart after a separation read the wind through their own
+        // point-mass rates and samples, not the rigid-body step. A wind that isn't finite below
+        // 1,000 m over the site (2,400 m above sea level) is refused there, by name, with the
+        // height, as the bodies come down through it under their devices.
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let tumble = DeviceDrag::tumbling_stages(&assembly, (1, 1)).unwrap();
+        let devices = || {
+            vec![
+                Device::new(
+                    "sustainer main",
+                    DeviceDrag::canopy(CanopyType::FlatCircular, 1.8),
+                    Trigger::Altitude {
+                        height_above_ground_m: 1_500.0,
+                    },
+                ),
+                Device::new(
+                    "booster tumble",
+                    tumble,
+                    Trigger::Altitude {
+                        height_above_ground_m: 1_500.0,
+                    },
+                )
+                .on_body(1),
+            ]
+        };
+        let below_msl_m = crate::testing::site().height_m + 1_000.0;
+        let fly = |east_m_s: f64| {
+            let environment =
+                analytic_environment(UniformAir::sea_level(), G).with_wind(WindBelow {
+                    below_msl_m,
+                    east_m_s,
+                });
+            let sim = staged_flight(environment, devices(), Separation::new(Trigger::Apogee, 0));
+            let start = dropped(&sim, 2_000.0, DVec3::new(0.0, 0.0, -0.5));
+            sim.run_free(START_S, start, &mut ())
+        };
+        for bad in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            match fly(bad) {
+                Err(SimError::Domain { what, value }) => {
+                    assert_eq!(what, crate::environment::WIND_NOT_FINITE, "{bad}");
+                    // Within a step below the wind's edge.
+                    assert!(
+                        value < below_msl_m && value > below_msl_m - 50.0,
+                        "{bad}: {value}"
+                    );
+                }
+                other => panic!("{bad}: not the wind's refusal: {other:?}"),
+            }
+        }
+        // The same wind, finite, lands both bodies.
+        let result = fly(5.0).unwrap();
+        assert_eq!(result.termination, Termination::Separated);
+        assert!(result.bodies_landed(), "{:?}", result.bodies.len());
+    }
+
+    /// Sea-level air, with field `field` (density, pressure, temperature, speed of sound,
+    /// viscosity, in that order) set to `value` below `below_msl_m` above sea level.
+    #[derive(Debug)]
+    struct AirBelow {
+        below_msl_m: f64,
+        field: usize,
+        value: f64,
+    }
+
+    impl hpr_atmos::Atmosphere for AirBelow {
+        fn air(&self, height_msl_m: f64) -> Result<hpr_atmos::AirSample, hpr_atmos::AtmosError> {
+            let mut air = UniformAir::sea_level().0;
+            if height_msl_m < self.below_msl_m {
+                *[
+                    &mut air.density_kg_m3,
+                    &mut air.pressure_pa,
+                    &mut air.temperature_k,
+                    &mut air.speed_of_sound_m_s,
+                    &mut air.dynamic_viscosity_pa_s,
+                ]
+                .into_iter()
+                .nth(self.field)
+                .unwrap() = self.value;
+            }
+            Ok(hpr_atmos::AirSample {
+                air,
+                extrapolated: None,
+            })
+        }
+    }
+
+    #[test]
+    fn a_separated_body_refuses_air_it_cannot_use() {
+        // Issue #301: the bodies flown apart after a separation read the air through their own
+        // point-mass rates, not the rigid-body step. Before, a density that was NaN, negative or
+        // minus infinity turned their drag off, and both landed at about 140 m/s with a
+        // successful result. Air the flight can't use below 1,000 m over the site (2,400 m above
+        // sea level) is now refused there, naming the field, with the height, as the bodies come
+        // down through it under their devices. A zero density or pressure, a vacuum's, is taken.
+        use crate::environment::{
+            AIR_DENSITY_REFUSED, AIR_PRESSURE_REFUSED, AIR_SPEED_OF_SOUND_REFUSED,
+            AIR_TEMPERATURE_REFUSED, AIR_VISCOSITY_REFUSED,
+        };
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let tumble = DeviceDrag::tumbling_stages(&assembly, (1, 1)).unwrap();
+        let devices = || {
+            vec![
+                Device::new(
+                    "sustainer main",
+                    DeviceDrag::canopy(CanopyType::FlatCircular, 1.8),
+                    Trigger::Altitude {
+                        height_above_ground_m: 1_500.0,
+                    },
+                ),
+                Device::new(
+                    "booster tumble",
+                    tumble,
+                    Trigger::Altitude {
+                        height_above_ground_m: 1_500.0,
+                    },
+                )
+                .on_body(1),
+            ]
+        };
+        let below_msl_m = crate::testing::site().height_m + 1_000.0;
+        let fly = |field: usize, value: f64| {
+            let mut environment = analytic_environment(UniformAir::sea_level(), G);
+            environment.atmosphere = std::sync::Arc::new(AirBelow {
+                below_msl_m,
+                field,
+                value,
+            });
+            let sim = staged_flight(environment, devices(), Separation::new(Trigger::Apogee, 0));
+            let start = dropped(&sim, 2_000.0, DVec3::new(0.0, 0.0, -0.5));
+            sim.run_free(START_S, start, &mut ())
+        };
+        // Each field, its refusal, and whether a zero is taken.
+        let fields = [
+            (AIR_DENSITY_REFUSED, true),
+            (AIR_PRESSURE_REFUSED, true),
+            (AIR_TEMPERATURE_REFUSED, false),
+            (AIR_SPEED_OF_SOUND_REFUSED, false),
+            (AIR_VISCOSITY_REFUSED, false),
+        ];
+        for (field, (refusal, takes_zero)) in fields.into_iter().enumerate() {
+            let zero = if takes_zero { vec![] } else { vec![0.0] };
+            for bad in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, -1.0]
+                .into_iter()
+                .chain(zero)
+            {
+                match fly(field, bad) {
+                    Err(SimError::Domain { what, value }) => {
+                        assert_eq!(what, refusal, "{field} {bad}");
+                        // Within a step below the air's edge.
+                        assert!(
+                            value < below_msl_m && value > below_msl_m - 50.0,
+                            "{field} {bad}: {value}"
+                        );
+                    }
+                    other => panic!("{field} {bad}: not the air's refusal: {other:?}"),
+                }
+            }
+            if takes_zero {
+                let result = fly(field, 0.0).unwrap();
+                assert_eq!(result.termination, Termination::Separated, "{field}");
+                assert!(result.bodies_landed(), "{field}");
+            }
+        }
+        // Good air lands both bodies.
+        let result = fly(0, UniformAir::sea_level().0.density_kg_m3).unwrap();
+        assert_eq!(result.termination, Termination::Separated);
+        assert!(result.bodies_landed(), "{:?}", result.bodies.len());
+    }
+
+    #[test]
+    fn a_separation_conserves_momentum_and_gives_each_body_its_own_start() {
+        // An ideal separation adds no impulse: each body leaves with the velocity its own center
+        // of mass already had, so the bodies' momenta add to the stack's.
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let devices = vec![
+            Device::new(
+                "sustainer",
+                DeviceDrag::canopy(CanopyType::FlatCircular, 1.5),
+                Trigger::Altitude {
+                    height_above_ground_m: 1_500.0,
+                },
+            ),
+            Device::new(
+                "booster",
+                DeviceDrag::tumbling_stages(&assembly, (1, 1)).unwrap(),
+                Trigger::Altitude {
+                    height_above_ground_m: 1_500.0,
+                },
+            )
+            .on_body(1),
+        ];
+        let sim = staged_flight(
+            analytic_wind_environment(air, G, ConstantWind::new(5.0, 0.9).unwrap()),
+            devices,
+            Separation::new(Trigger::Apogee, 0),
+        );
+        // Separating with a body rate, so that `ω × r` is part of each body's start.
+        let mut start = dropped(&sim, 2_000.0, DVec3::new(3.0, 0.0, -2.0));
+        start.body_rate_rad_s = DVec3::new(0.0, 0.6, 0.0);
+        let result = sim.run_free(START_S, start, &mut ()).unwrap();
+        let separation = result.event(EventKind::Separation).unwrap().sample;
+        let whole_kg = sim.assembly().mass_properties(separation.time_s).mass_kg;
+        let momentum: DVec3 = result
+            .bodies
+            .iter()
+            .map(|body| body.start_sample.cg_velocity_enu_m_s * body.mass_kg)
+            .sum();
+        let expected = separation.cg_velocity_enu_m_s * whole_kg;
+        assert!(
+            (momentum - expected).length() < 1e-9 * expected.length(),
+            "{momentum} vs {expected}"
+        );
+        // And each body starts where **its own** center of mass was, not the stack's: the two
+        // are 0.817 m apart on this design.
+        let state = result.final_sample.state;
+        for body in &result.bodies {
+            let lit = vec![Some(0.0); sim.assembly().motors.len()];
+            let cg_m =
+                body_mass_properties(sim.assembly(), body.stages, separation.time_s, &lit).cg_m;
+            let expected = state.point_enu_m(cg_m);
+            assert!(
+                (body.start_sample.cg_enu_m - expected).length() < 1e-12,
+                "body {}: {} vs {expected}",
+                body.body,
+                body.start_sample.cg_enu_m
+            );
+        }
+        let gap = (result.bodies[0].start_sample.cg_enu_m - result.bodies[1].start_sample.cg_enu_m)
+            .length();
+        assert!((gap - 0.817).abs() < 0.01, "{gap}");
+    }
+
+    #[test]
+    fn a_body_separated_while_climbing_finds_its_own_apogee() {
+        // Found in review: a body's system watched only the ground and its own deployment
+        // heights, so a body that separated while still climbing never saw a descending moment,
+        // its apogee charge never fired, and it hit the ground in a vacuum at 165 m/s reported as
+        // an ordinary landing. Both bodies now find their own apogee.
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let devices = vec![
+            Device::new(
+                "sustainer",
+                DeviceDrag::canopy(CanopyType::FlatCircular, 1.5),
+                Trigger::Apogee,
+            ),
+            Device::new(
+                "booster",
+                DeviceDrag::tumbling_stages(&assembly, (1, 1)).unwrap(),
+                Trigger::Apogee,
+            )
+            .on_body(1),
+        ];
+        let burnout_s = assembly
+            .motors
+            .iter()
+            .map(|motor| motor.mounted.motor.burnout_time_s())
+            .fold(0.0, f64::max);
+        let sim = staged_flight(
+            analytic_environment(air, G),
+            devices,
+            Separation::new(
+                Trigger::Time {
+                    time_s: burnout_s + 1.0,
+                },
+                0,
+            ),
+        );
+        // Still climbing hard when the stack comes apart.
+        let start = dropped(&sim, 1_000.0, DVec3::new(0.0, 0.0, 100.0));
+        let result = sim.run_free(burnout_s + 1.0, start, &mut ()).unwrap();
+        assert_eq!(result.termination, Termination::Separated);
+        assert!(result.bodies_landed(), "{:?}", result.bodies.len());
+        let rho = air.0.density_kg_m3;
+        for body in &result.bodies {
+            assert!(
+                body.start_sample.vertical_speed_m_s > 50.0,
+                "body {} should still be climbing: {:?}",
+                body.body,
+                body.start_sample.vertical_speed_m_s
+            );
+            // Each body records its own apogee, then fires its charge and opens.
+            let apogee = body
+                .event(EventKind::Apogee)
+                .unwrap_or_else(|| panic!("body {} found no apogee", body.body))
+                .sample;
+            assert!(apogee.vertical_speed_m_s.abs() < 1e-6, "{apogee:?}");
+            assert!(
+                apogee.height_above_ground_m > 1_400.0,
+                "body {}: {:?}",
+                body.body,
+                apogee.height_above_ground_m
+            );
+            assert!(body.event(EventKind::Deployment(body.body)).is_some());
+            // And it lands at its own terminal speed, not ballistically.
+            let drag_area_m2 = sim.recovery()[body.body].drag.drag_area_m2();
+            let terminal_m_s = terminal_speed_m_s(body.mass_kg, drag_area_m2, rho, G);
+            let landing = body.event(EventKind::GroundHit).unwrap().sample;
+            assert!(
+                (-landing.vertical_speed_m_s / terminal_m_s - 1.0).abs() < 0.01,
+                "body {}: {} vs {terminal_m_s}",
+                body.body,
+                landing.vertical_speed_m_s
+            );
+        }
+    }
+
+    #[test]
+    fn a_timed_separation_fires_at_its_own_time() {
+        // Found in review: the separation's trigger was neither a stop time nor a located event,
+        // so a timed or height separation fired at whatever boundary happened to come next,
+        // measured hundreds of seconds late, or never. Its time is a stop time now, and its
+        // height is an event.
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let devices = || {
+            vec![
+                Device::new(
+                    "sustainer",
+                    DeviceDrag::canopy(CanopyType::FlatCircular, 1.5),
+                    Trigger::Altitude {
+                        height_above_ground_m: 300.0,
+                    },
+                ),
+                Device::new(
+                    "booster",
+                    DeviceDrag::tumbling_stages(&assembly, (1, 1)).unwrap(),
+                    Trigger::Apogee,
+                )
+                .on_body(1),
+            ]
+        };
+        let burnout_s = assembly
+            .motors
+            .iter()
+            .map(|motor| motor.mounted.motor.burnout_time_s())
+            .fold(0.0, f64::max);
+        // A time, well after the burnout and nowhere near a thrust knot or a device's trigger.
+        let at_s = burnout_s + 7.5;
+        let sim = staged_flight(
+            analytic_environment(air, G),
+            devices(),
+            Separation::new(Trigger::Time { time_s: at_s }, 0),
+        );
+        let result = sim
+            .run_free(
+                burnout_s + 0.5,
+                dropped(&sim, 2_000.0, DVec3::new(0.0, 0.0, -1.0)),
+                &mut (),
+            )
+            .unwrap();
+        let separation = result.event(EventKind::Separation).unwrap().sample;
+        assert!(
+            (separation.time_s - at_s).abs() < 1e-9,
+            "{} vs {at_s}",
+            separation.time_s
+        );
+
+        // And a height separation fires at its height, located rather than polled.
+        let sim = staged_flight(
+            analytic_environment(air, G),
+            devices(),
+            Separation::new(
+                Trigger::Altitude {
+                    height_above_ground_m: 1_000.0,
+                },
+                0,
+            ),
+        );
+        let result = sim
+            .run_free(
+                burnout_s + 0.5,
+                dropped(&sim, 2_000.0, DVec3::new(0.0, 0.0, -1.0)),
+                &mut (),
+            )
+            .unwrap();
+        let separation = result.event(EventKind::Separation).unwrap().sample;
+        assert!(
+            (separation.height_above_ground_m - 1_000.0).abs() < 1e-6,
+            "{:?}",
+            separation.height_above_ground_m
+        );
+        assert!(result.bodies_landed(), "{:?}", result.bodies.len());
+    }
+
+    #[test]
+    fn a_body_separated_while_climbing_with_its_device_lagging_is_refused() {
+        // Found in review of M4.6a: a part parted on the way up, its device fired by the split
+        // but waiting out its lag, climbed through the lag with no drag at all (a Monte Carlo
+        // run's drawn lag did it). It is refused by name; the same flight whose device opened
+        // before the split flies.
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let burnout_s = assembly
+            .motors
+            .iter()
+            .map(|motor| motor.mounted.motor.burnout_time_s())
+            .fold(0.0, f64::max);
+        let fly = |lag_s: f64| {
+            let sim = staged_flight(
+                analytic_environment(air, G),
+                vec![
+                    Device::new(
+                        "sustainer",
+                        DeviceDrag::canopy(CanopyType::FlatCircular, 1.5),
+                        Trigger::Time {
+                            time_s: burnout_s + 1.2,
+                        },
+                    )
+                    .with_lag_s(lag_s),
+                    Device::new(
+                        "booster",
+                        DeviceDrag::tumbling_stages(&assembly, (1, 1)).unwrap(),
+                        Trigger::Apogee,
+                    )
+                    .on_body(1),
+                ],
+                Separation::new(
+                    Trigger::Time {
+                        time_s: burnout_s + 1.5,
+                    },
+                    0,
+                ),
+            );
+            let start = dropped(&sim, 1_000.0, DVec3::new(0.0, 0.0, 100.0));
+            sim.run_free(burnout_s + 1.0, start, &mut ())
+        };
+        // Fired at 1.2 s after the burnout, open at 1.3 s: open at the split, so it flies.
+        let result = fly(0.1).unwrap();
+        assert_eq!(result.termination, Termination::Separated);
+        assert!(result.bodies_landed(), "{:?}", result.bodies.len());
+        // Open at 2.2 s, 0.7 s after the split: refused, at the split's time.
+        let error = fly(1.0).expect_err("a part climbing with nothing open");
+        assert!(
+            matches!(
+                error,
+                SimError::Domain { what, value }
+                    if what.starts_with("time of a split with nothing left to burn, before \
+                                         apogee")
+                        && (value - (burnout_s + 1.5)).abs() < 1e-9
+            ),
+            "{error:?}"
+        );
+    }
+
+    #[test]
+    fn a_separated_part_warns_of_179_and_of_354_while_it_has_nothing_open() {
+        // M10.1d5 (ADR-200): the stack parts on the way down. The booster tumbles from the split,
+        // so the flight meets #179 whatever the sustainer does; the sustainer's canopy fired
+        // 0.3 s before the split meets #354 only when its lag leaves it closed at the split.
+        use crate::issues::{KnownIssue, separated_part_issue_warnings};
+        use crate::metrics::Peak;
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let burnout_s = assembly
+            .motors
+            .iter()
+            .map(|motor| motor.mounted.motor.burnout_time_s())
+            .fold(0.0, f64::max);
+        let split_s = burnout_s + 1.5;
+        let fly = |lag_s: f64| {
+            let sim = staged_flight(
+                analytic_environment(air, G),
+                vec![
+                    Device::new(
+                        "sustainer",
+                        DeviceDrag::canopy(CanopyType::FlatCircular, 1.5),
+                        Trigger::Time {
+                            time_s: burnout_s + 1.2,
+                        },
+                    )
+                    .with_lag_s(lag_s),
+                    // Fired at the split itself, with no lag: open from the booster's start.
+                    Device::new(
+                        "booster",
+                        DeviceDrag::tumbling_stages(&assembly, (1, 1)).unwrap(),
+                        Trigger::Time { time_s: split_s },
+                    )
+                    .on_body(1),
+                ],
+                Separation::new(Trigger::Time { time_s: split_s }, 0),
+            );
+            let start = dropped(&sim, 1_000.0, DVec3::new(0.0, 0.0, -5.0));
+            sim.run_free(burnout_s + 1.0, start, &mut ()).unwrap()
+        };
+        let peak = Peak {
+            value: 0.2,
+            time_s: 0.0,
+            height_above_ground_m: 0.0,
+        };
+        let warned = |result: &FlightResult| -> Vec<KnownIssue> {
+            separated_part_issue_warnings(result, Some(peak))
+                .into_iter()
+                .map(|warning| warning.issue)
+                .collect()
+        };
+        // Open 0.1 s before the split: every body starts with drag, so only the booster's #179.
+        let open = fly(0.2);
+        assert_eq!(open.termination, Termination::Separated);
+        assert!(open.bodies_landed(), "{:?}", open.bodies.len());
+        let [sustainer, booster] = &open.bodies[..] else {
+            panic!("{} bodies", open.bodies.len())
+        };
+        assert_eq!((sustainer.stages, booster.stages), ((0, 0), (1, 1)));
+        assert!(sustainer.start_sample.recovery_drag_area_m2 > 0.0);
+        // The booster's start is the instant before its tumble opens, at that same instant.
+        assert_eq!(booster.start_sample.recovery_drag_area_m2, 0.0);
+        let tumbled = booster.event(EventKind::Deployment(1)).unwrap().sample;
+        assert_eq!(tumbled.time_s, booster.start_sample.time_s);
+        assert!(tumbled.recovery_drag_area_m2 > 0.0);
+        assert_eq!(warned(&open), [KnownIssue::BoosterAirframeDrag]);
+        // Open 0.7 s after it: the sustainer falls with nothing open until then, so #354 too.
+        let lagging = fly(1.0);
+        assert!(lagging.bodies_landed(), "{:?}", lagging.bodies.len());
+        let sustainer = &lagging.bodies[0];
+        assert_eq!(sustainer.start_sample.recovery_drag_area_m2, 0.0);
+        let opened_s = sustainer
+            .event(EventKind::Deployment(0))
+            .unwrap()
+            .sample
+            .time_s;
+        assert!((opened_s - (split_s + 0.7)).abs() < 1e-9, "{opened_s}");
+        assert_eq!(
+            warned(&lagging),
+            [
+                KnownIssue::BoosterAirframeDrag,
+                KnownIssue::DragFreeSeparatedPart
+            ]
+        );
+        // A device that opens just after the start counts as closed at the start; a NaN drag area
+        // counts as none, so a broken one can't hide #354; a flight with no top Mach number warns
+        // of nothing; a flight that never parts meets neither.
+        let mut late = open.clone();
+        let deployment = &mut late.bodies[1].events[1];
+        assert_eq!(deployment.kind, EventKind::Deployment(1));
+        deployment.sample.time_s = deployment.sample.time_s.next_up();
+        assert_eq!(warned(&late).len(), 2);
+        let mut broken = open.clone();
+        broken.bodies[0].start_sample.recovery_drag_area_m2 = f64::NAN;
+        assert_eq!(warned(&broken).len(), 2);
+        let mut timeless = open.clone();
+        timeless.bodies[1].events[1].sample.time_s = f64::NAN;
+        assert_eq!(warned(&timeless).len(), 2);
+        // Both are drag issues, by these names in a record.
+        for (issue, name) in [
+            (KnownIssue::BoosterAirframeDrag, "\"booster_airframe_drag\""),
+            (
+                KnownIssue::DragFreeSeparatedPart,
+                "\"drag_free_separated_part\"",
+            ),
+        ] {
+            assert!(!issue.is_stability() && !issue.has_mach_condition());
+            assert_eq!(serde_json::to_string(&issue).unwrap(), name);
+        }
+        assert!(separated_part_issue_warnings(&lagging, None).is_empty());
+        // Bodies all in the nose's stage, as an ejection's are, meet no #179.
+        let mut forward = open.clone();
+        forward.bodies.truncate(1);
+        assert!(warned(&forward).is_empty());
+        let mut whole = open;
+        whole.bodies.clear();
+        assert!(warned(&whole).is_empty());
+    }
+
+    #[test]
+    fn a_body_whose_device_never_opens_is_refused() {
+        // Found in review: a device that is attached but never fires (an altimeter set above the
+        // body's own apogee) dropped the body with no drag at all, at 170 m/s, reported as an
+        // ordinary landing. A body that reaches the ground with nothing open is an error.
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let sim = staged_flight(
+            analytic_environment(air, G),
+            vec![
+                Device::new(
+                    "sustainer",
+                    DeviceDrag::canopy(CanopyType::FlatCircular, 1.5),
+                    Trigger::Apogee,
+                ),
+                Device::new(
+                    "booster",
+                    DeviceDrag::tumbling_stages(&assembly, (1, 1)).unwrap(),
+                    // Long after the body lands, so it never fires. (A height above the body
+                    // fires at once on a body already descending below it, which is the
+                    // altimeter's rule; this test once used one and passed only because the
+                    // sustainer's canopy, opened on the stack at the separation, was not
+                    // counted as open. See ADR-074.)
+                    Trigger::Time { time_s: 100_000.0 },
+                )
+                .on_body(1),
+            ],
+            Separation::new(Trigger::Apogee, 0),
+        );
+        let error = sim
+            .run_free(
+                10.0,
+                dropped(&sim, 1_000.0, DVec3::new(0.0, 0.0, -1.0)),
+                &mut (),
+            )
+            .expect_err("a body with nothing open");
+        // The booster, body 1, is the one refused.
+        assert!(
+            matches!(error, SimError::Domain { value, .. } if value == 1.0),
+            "{error:?}"
+        );
+    }
+
+    #[test]
+    fn a_body_that_runs_out_of_time_says_so() {
+        // A flight that separates says only that the stack came apart: each body's own
+        // termination says whether it reached the ground.
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let sim = Simulation::new(
+            &two_stage(),
+            "j760-i175",
+            analytic_environment(air, G),
+            Rail::vertical(6.0),
+            FlightSettings {
+                max_time_s: 60.0,
+                ..FlightSettings::default()
+            },
+        )
+        .unwrap()
+        .with_recovery(vec![
+            Device::new(
+                "sustainer",
+                DeviceDrag::canopy(CanopyType::FlatCircular, 1.8),
+                Trigger::Apogee,
+            ),
+            Device::new(
+                "booster",
+                DeviceDrag::tumbling_stages(&assembly, (1, 1)).unwrap(),
+                Trigger::Apogee,
+            )
+            .on_body(1),
+        ])
+        .unwrap()
+        .with_separation(Separation::new(Trigger::Apogee, 0))
+        .unwrap();
+        let result = sim
+            .run_free(10.0, dropped(&sim, 2_000.0, DVec3::ZERO), &mut ())
+            .unwrap();
+        assert_eq!(result.termination, Termination::Separated);
+        assert!(!result.bodies_landed(), "{:?}", result.bodies.len());
+        assert!(
+            result
+                .bodies
+                .iter()
+                .any(|body| body.termination == Termination::TimeCap),
+            "{:?}",
+            result
+                .bodies
+                .iter()
+                .map(|b| b.termination)
+                .collect::<Vec<_>>()
+        );
+        assert!(result.landings().len() < result.bodies.len());
+    }
+
+    #[test]
+    fn separations_outside_their_domain_are_refused() {
+        let environment = || analytic_environment(UniformAir::sea_level(), G);
+        let canopy = DeviceDrag::canopy(CanopyType::FlatCircular, 1.5);
+        // The devices are checked when they are given, the separation when it is; a caller sees
+        // whichever refuses first.
+        let build = |devices: Vec<Device>, separation: Separation| {
+            Simulation::new(
+                &two_stage(),
+                "j760-i175",
+                environment(),
+                Rail::vertical(6.0),
+                FlightSettings::default(),
+            )
+            .unwrap()
+            .with_recovery(devices)
+            .and_then(|sim| sim.with_separation(separation))
+            .map(|_| ())
+        };
+        let both = || {
+            vec![
+                Device::new("sustainer", canopy, Trigger::Apogee),
+                Device::new("booster", canopy, Trigger::Apogee).on_body(1),
+            ]
+        };
+        // No stage aft of the split.
+        let error = build(both(), Separation::new(Trigger::Apogee, 1)).expect_err("no aft stage");
+        assert!(matches!(error, SimError::Domain { .. }), "{error:?}");
+        // A body with no device would fall in a vacuum.
+        let error = build(
+            vec![Device::new("sustainer", canopy, Trigger::Apogee)],
+            Separation::new(Trigger::Apogee, 0),
+        )
+        .expect_err("the booster has nothing");
+        assert!(matches!(error, SimError::Domain { .. }), "{error:?}");
+        // A device on a body the separation doesn't make. An ejection given afterwards could
+        // make it, so it is refused when the flight starts rather than by the builders.
+        let error = Simulation::new(
+            &two_stage(),
+            "j760-i175",
+            environment(),
+            Rail::vertical(6.0),
+            FlightSettings::default(),
+        )
+        .unwrap()
+        .with_recovery(vec![
+            Device::new("sustainer", canopy, Trigger::Apogee),
+            Device::new("booster", canopy, Trigger::Apogee).on_body(1),
+            Device::new("ghost", canopy, Trigger::Apogee).on_body(2),
+        ])
+        .and_then(|sim| sim.with_separation(Separation::new(Trigger::Apogee, 0)))
+        .and_then(|sim| sim.run(&mut ()))
+        .expect_err("a third body");
+        assert!(
+            matches!(error, SimError::Domain { what, value }
+                if what == "body a device is attached to (the separation and ejections don't \
+                            make it)" && value == 2.0),
+            "{error:?}"
+        );
+        // A release across the separation has no line to act through.
+        let error = build(
+            vec![
+                Device::new("sustainer", canopy, Trigger::Apogee).with_release_by(1),
+                Device::new("booster", canopy, Trigger::Apogee).on_body(1),
+            ],
+            Separation::new(Trigger::Apogee, 0),
+        )
+        .expect_err("a release across bodies");
+        assert!(matches!(error, SimError::Domain { .. }), "{error:?}");
+        // And the ordinary case is accepted.
+        assert!(build(both(), Separation::new(Trigger::Apogee, 0)).is_ok());
+    }
+
+    #[test]
+    fn a_separation_before_burnout_is_refused() {
+        // A body's mass is held constant through its descent, so a separation under thrust would
+        // fly the wrong mass. A time that is known to precede the burnout is refused when the
+        // separation is given; an apogee or height trigger can only be checked in flight, and is.
+        let air = UniformAir::sea_level();
+        let assembly = two_stage().assemble("j760-i175").unwrap();
+        let canopy = DeviceDrag::canopy(CanopyType::FlatCircular, 1.5);
+        let devices = || {
+            vec![
+                Device::new("sustainer", canopy, Trigger::Apogee),
+                Device::new(
+                    "booster",
+                    DeviceDrag::tumbling_stages(&assembly, (1, 1)).unwrap(),
+                    Trigger::Apogee,
+                )
+                .on_body(1),
+            ]
+        };
+        let burnout_s = assembly
+            .motors
+            .iter()
+            .map(|motor| motor.mounted.motor.burnout_time_s())
+            .fold(0.0, f64::max);
+        assert!(burnout_s > 1.0, "{burnout_s}");
+        let build = |separation| {
+            Simulation::new(
+                &two_stage(),
+                "j760-i175",
+                analytic_environment(air, G),
+                Rail::vertical(6.0),
+                FlightSettings::default(),
+            )
+            .unwrap()
+            .with_recovery(devices())
+            .unwrap()
+            .with_separation(separation)
+        };
+        // Known in advance: refused at once, even though a flight might start after it.
+        let error = build(Separation::new(
+            Trigger::Time {
+                time_s: 0.5 * burnout_s,
+            },
+            0,
+        ))
+        .expect_err("a timed separation under thrust");
+        assert!(matches!(error, SimError::Domain { .. }), "{error:?}");
+
+        // Only knowable in flight: a height a climbing rocket passes before its burnout.
+        let sim = build(Separation::new(
+            Trigger::Altitude {
+                height_above_ground_m: 500.0,
+            },
+            0,
+        ))
+        .unwrap();
+        let error = sim
+            .run_free(
+                0.5 * burnout_s,
+                dropped(&sim, 400.0, DVec3::new(0.0, 0.0, -1.0)),
+                &mut (),
+            )
+            .expect_err("a height separation under thrust");
+        assert!(matches!(error, SimError::Domain { .. }), "{error:?}");
+    }
+
+    #[test]
+    fn devices_outside_their_domain_are_refused() {
+        let environment = || analytic_environment(UniformAir::sea_level(), G);
+        let rocket = design("rocketpy-valetudo");
+        let build = |devices: Vec<Device>| {
+            Simulation::new(
+                &rocket,
+                "example",
+                environment(),
+                Rail::vertical(3.0),
+                FlightSettings::default(),
+            )
+            .unwrap()
+            .with_recovery(devices)
+            .map(|_| ())
+        };
+        let canopy = DeviceDrag::canopy(CanopyType::FlatCircular, 1.0);
+        let apogee = Trigger::Apogee;
+        for devices in [
+            vec![Device::new(
+                "zero",
+                DeviceDrag::DragArea { cd_s_m2: 0.0 },
+                apogee,
+            )],
+            vec![Device::new(
+                "nan",
+                DeviceDrag::DragArea { cd_s_m2: f64::NAN },
+                apogee,
+            )],
+            vec![Device::new("negative lag", canopy, apogee).with_lag_s(-1.0)],
+            vec![Device::new(
+                "ground",
+                canopy,
+                Trigger::Altitude {
+                    height_above_ground_m: 0.0,
+                },
+            )],
+            vec![Device::new(
+                "before ignition",
+                canopy,
+                Trigger::Time { time_s: -1.0 },
+            )],
+            vec![Device::new(
+                "no such motor",
+                canopy,
+                Trigger::MotorDelay { motor: 7 },
+            )],
+            vec![Device::new("itself", canopy, apogee).with_release_by(0)],
+            vec![Device::new("no such device", canopy, apogee).with_release_by(3)],
+            vec![
+                Device::new("no diameter", DeviceDrag::DragArea { cd_s_m2: 1.0 }, apogee)
+                    .with_inflation(Inflation::FillConstant {
+                        constant: 8.0,
+                        exponent: 2.0,
+                    }),
+            ],
+            vec![Device::new("bad exponent", canopy, apogee).with_inflation(
+                Inflation::FillingTime {
+                    time_s: 1.0,
+                    exponent: 0.0,
+                },
+            )],
+        ] {
+            let name = devices[0].name.clone();
+            let error = build(devices).expect_err(&name);
+            assert!(
+                matches!(error, SimError::Domain { .. }),
+                "{name}: {error:?}"
+            );
+        }
+        // A cycle of releases is refused: it could leave nothing open.
+        let cycle = build(vec![
+            Device::new("a", canopy, apogee).with_release_by(1),
+            Device::new("b", canopy, apogee).with_release_by(0),
+        ])
+        .expect_err("a release cycle");
+        assert!(matches!(cycle, SimError::Domain { .. }), "{cycle:?}");
+        // A chain that ends is fine.
+        assert!(
+            build(vec![
+                Device::new("a", canopy, apogee).with_release_by(1),
+                Device::new("b", canopy, apogee).with_release_by(2),
+                Device::new("c", canopy, apogee),
+            ])
+            .is_ok()
+        );
+        // Valetudo's motor has no ejection charge in its example, so it can't fire a device.
+        let error = build(vec![Device::new(
+            "no charge",
+            canopy,
+            Trigger::MotorDelay { motor: 0 },
+        )])
+        .expect_err("a motor with no delay");
+        assert!(matches!(error, SimError::Domain { .. }), "{error:?}");
+        // With a delay set, it can.
+        assert!(
+            Simulation::new(
+                &with_delay(rocket.clone(), 3.0),
+                "example",
+                environment(),
+                Rail::vertical(3.0),
+                FlightSettings::default(),
+            )
+            .unwrap()
+            .with_recovery(vec![Device::new(
+                "charge",
+                canopy,
+                Trigger::MotorDelay { motor: 0 }
+            )])
+            .is_ok()
+        );
+        // And a device that is fine passes.
+        assert!(build(vec![Device::new("fine", canopy, apogee).with_lag_s(1.5)]).is_ok());
+    }
+
+    #[test]
+    fn oversized_canopy_and_ten_km_descent_land_without_step_collapse() {
+        // Loft lesson L28. Loft's explicit RK4 needed a 2e-4 s step floor under a stiff canopy,
+        // and its 1200 s cap left slow descents from height unlanded: a 10 km descent at 3 m/s
+        // takes an hour. Here an oversized canopy opens at 100 m/s at 10 km, and the adaptive
+        // integrator flies the whole descent in a few hundred steps.
+        let air = UniformAir::sea_level();
+        let device = open_at_start(DeviceDrag::canopy(CanopyType::FlatCircular, 5.0));
+        let drag_area_m2 = device.drag.drag_area_m2();
+        let sim = flight(analytic_environment(air, G), vec![device], 3600.0);
+        let mass_kg = sim.assembly().mass_properties(START_S).mass_kg;
+        let terminal_m_s = terminal_speed_m_s(mass_kg, drag_area_m2, air.0.density_kg_m3, G);
+        // Measured: 2.95 m/s under a 5 m canopy, so the descent takes about 3,400 s.
+        assert!(terminal_m_s < 3.5, "{terminal_m_s}");
+        let result = sim
+            .run_free(
+                START_S,
+                dropped(&sim, 10_000.0, DVec3::new(0.0, 0.0, -100.0)),
+                &mut (),
+            )
+            .unwrap();
+        assert_eq!(result.termination, Termination::GroundHit);
+        let landing = result.event(EventKind::GroundHit).unwrap().sample;
+        assert!(
+            (-landing.vertical_speed_m_s / terminal_m_s - 1.0).abs() < 1e-6,
+            "{}",
+            landing.vertical_speed_m_s
+        );
+        // The descent takes about 10 km / v_t, and the flight has to reach the ground inside the
+        // default one-hour cap.
+        let flown_s = landing.time_s - START_S;
+        assert!(
+            (flown_s - 10_000.0 / terminal_m_s).abs() < 60.0,
+            "{flown_s} s"
+        );
+        assert!(flown_s < 3_600.0, "{flown_s} s");
+        // No step collapse: the mean step stays near half a second, where Loft's explicit RK4
+        // needed a 2e-4 s floor. Measured: 6,914 accepted steps and 2 rejected over 3,392 s, a
+        // mean step of 0.49 s, against the 1.7e7 steps Loft's floor would have taken. The step is
+        // limited by the tolerances (unit weights on a 10 km height), not by stiffness.
+        let mean_step_s = flown_s / result.stats.accepted_steps as f64;
+        assert!(
+            mean_step_s > 0.1,
+            "{mean_step_s} s mean step: {:?}",
+            result.stats
+        );
+        assert!(result.stats.accepted_steps < 20_000, "{:?}", result.stats);
+        assert!(result.stats.rejected_steps < 100, "{:?}", result.stats);
+    }
+
+    #[test]
+    fn several_separations_number_their_bodies_from_the_tail() {
+        // Three stages, the booster (2) dropped first, then the middle (1): body 1 is the
+        // booster, body 2 the middle, body 0 the nose's.
+        let at = |after_stage| Separation::new(Trigger::Apogee, after_stage);
+        let two = [at(1), at(0)];
+        assert_eq!(
+            (0..3)
+                .map(|stage| Separation::body_of(&two, stage))
+                .collect::<Vec<_>>(),
+            [0, 2, 1]
+        );
+        assert_eq!(Separation::stages_of_body(&two, 0, 3), Some((0, 0)));
+        assert_eq!(Separation::stages_of_body(&two, 1, 3), Some((2, 2)));
+        assert_eq!(Separation::stages_of_body(&two, 2, 3), Some((1, 1)));
+        assert_eq!(Separation::stages_of_body(&two, 3, 3), None);
+        // One separation agrees with `stages_of`, and none leaves every stage on body 0.
+        for (after_stage, stages) in [(0, 3), (1, 3), (0, 2)] {
+            for body in 0..3 {
+                assert_eq!(
+                    Separation::stages_of_body(&[at(after_stage)], body, stages),
+                    at(after_stage).stages_of(body, stages)
+                );
+            }
+        }
+        assert_eq!(Separation::stages_of_body(&[], 0, 3), Some((0, 2)));
+        assert_eq!(Separation::body_of(&[], 2), 0);
+        // Boundaries that don't move forward, or one at the last stage, make no bodies.
+        assert_eq!(Separation::stages_of_body(&[at(0), at(1)], 0, 3), None);
+        assert_eq!(Separation::stages_of_body(&[at(2)], 1, 3), None);
+        // Five stages dropped two at a time and then one.
+        let uneven = [at(2), at(0)];
+        assert_eq!(Separation::stages_of_body(&uneven, 1, 5), Some((3, 4)));
+        assert_eq!(Separation::stages_of_body(&uneven, 2, 5), Some((1, 2)));
+        assert_eq!(
+            (0..5)
+                .map(|stage| Separation::body_of(&uneven, stage))
+                .collect::<Vec<_>>(),
+            [0, 2, 2, 1, 1]
+        );
+    }
+}

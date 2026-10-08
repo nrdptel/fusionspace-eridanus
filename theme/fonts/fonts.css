@@ -1,0 +1,10 @@
+/* SPDX-License-Identifier: MIT OR Apache-2.0 */
+/* The documentation site's fonts, served from the site itself so no page asks another server
+   for anything (ADR-164). mdBook links this file from every page in place of its own fonts. The
+   font files are the product system's WOFF2 subsets, unchanged, under the SIL Open Font License
+   1.1 (OFL-Archivo.txt and OFL-CascadiaMono.txt, beside them). */
+@font-face { font-family: 'Archivo'; font-style: normal; font-weight: 400; font-display: swap; src: url('Archivo-Regular.woff2') format('woff2'); }
+@font-face { font-family: 'Archivo'; font-style: italic; font-weight: 400; font-display: swap; src: url('Archivo-Italic.woff2') format('woff2'); }
+@font-face { font-family: 'Archivo'; font-style: normal; font-weight: 600; font-display: swap; src: url('Archivo-SemiBold.woff2') format('woff2'); }
+@font-face { font-family: 'Cascadia Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('CascadiaMono-Regular.woff2') format('woff2'); }
+@font-face { font-family: 'Cascadia Mono'; font-style: normal; font-weight: 600; font-display: swap; src: url('CascadiaMono-SemiBold.woff2') format('woff2'); }

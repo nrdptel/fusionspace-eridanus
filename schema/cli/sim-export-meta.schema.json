@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExportMeta",
+  "description": "The sidecar `hpr sim --export` writes beside a CSV recording, `flight.meta.json` for\n`flight.csv`: the program that wrote the recording (the `tool` every document opens with) and\nwhat it records. A CSV opens cleanly in a spreadsheet only without comment lines, so these go\nhere (the product system's `data.md`, ADR-174).",
+  "type": "object",
+  "properties": {
+    "configuration": {
+      "description": "The configuration flown, as `hpr sim` names it, such as `[C6-5]`.",
+      "type": "string"
+    },
+    "design": {
+      "description": "The design flown, by its file name.",
+      "type": "string"
+    },
+    "file": {
+      "description": "The recording, by its file name.",
+      "type": "string"
+    },
+    "rows": {
+      "description": "The rows recorded.",
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0
+    },
+    "tool": {
+      "title": "Tool",
+      "description": "The program that wrote a document or a file: the title block every `--json` document, every\nfile `hpr` writes and `hpr --version` carry (ADR-164; the product system's `data.md`: \"Every\nexport carries the designation and version of the tool that made it\").",
+      "type": "object",
+      "properties": {
+        "designation": {
+          "description": "Its designation in the FusionSpace product system: `FS-ACHERNAR · SW · TOOL 001`.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The program: `FusionSpace HPR`.",
+          "type": "string"
+        },
+        "version": {
+          "description": "Its version, such as `0.1.0`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "designation"
+      ]
+    }
+  },
+  "required": [
+    "tool",
+    "file",
+    "design",
+    "configuration",
+    "rows"
+  ]
+}

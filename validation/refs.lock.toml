@@ -1,0 +1,960 @@
+# The reference library: every outside source the validation work uses, pinned.
+#
+#   cargo xtask refs fetch     # bring refs/ to the pinned state (idempotent)
+#   cargo xtask refs verify    # re-hash everything against these pins
+#   cargo xtask refs doctor    # which tools and oracles work on this machine
+#
+# Everything lands in the gitignored refs/ and is never committed (CONTRIBUTING.md rules 3 and 4).
+# Every item needs a row in THIRD-PARTY-NOTICES.md with the same license and mode; a test checks
+# that. Modes: `fetched` (downloaded and read or used as data) or `run-only` (executed as an
+# oracle; its source is never read). Sources were checked on 2026-09-17.
+
+version = 1
+
+# Git repositories, pinned by full commit id. `shallow` fetches only that commit.
+
+[[git]]
+name = "rocketpy"
+url = "https://github.com/RocketPy-Team/RocketPy.git"
+tag = "v1.13.0"
+commit = "9bd6ad3af8f97bafa3201d4e70eba2877e66e040"
+dest = "refs/rocketpy"
+shallow = true
+license = "MIT; data files carry their own terms"
+mode = "fetched"
+
+[[git]]
+name = "openrocket-database"
+url = "https://github.com/openrocket/openrocket-database.git"
+commit = "1512874ace50917e25ccf7d7df1f616b5f39a8b5"
+dest = "refs/openrocket-database"
+shallow = true
+license = "Apache-2.0"
+mode = "fetched"
+
+[[git]]
+name = "fusionspace-loft"
+url = "https://github.com/nrdptel/fusionspace-loft.git"
+commit = "64f51ef1b3e91db6c843336af95b26c841f2c0d1"
+dest = "refs/fusionspace-loft"
+license = "MIT"
+mode = "fetched"
+
+[[git]]
+name = "fusionspace-debrief"
+url = "https://github.com/nrdptel/fusionspace-debrief.git"
+commit = "9e72db8bebf88a1b8233ef0643d6eebdd31b1efc"
+dest = "refs/fusionspace-debrief"
+license = "MIT"
+mode = "fetched"
+
+# The FusionSpace product system (ADR-164): the design rules hpr's CLI, docs site, plots and apps
+# follow. Its code-like files (tokens, stylesheets, CLI styles) are Apache-2.0 and may be copied in
+# with their SPDX lines; its brand files are the owner's, all rights reserved.
+[[git]]
+name = "fusionspace-design"
+url = "https://github.com/nrdptel/fusionspace-design.git"
+commit = "f45454f44669cc049222f2ab19eb648796e56a52"
+dest = "refs/fusionspace-design"
+license = "Apache-2.0 (code-like files); brand files all rights reserved"
+mode = "fetched"
+
+# Private: other people's design files. Skipped with a note where GitHub access is missing (CI).
+# The manifest pin is the one Loft used.
+[[git]]
+name = "loft-fixtures"
+url = "https://github.com/nrdptel/loft-fixtures.git"
+commit = "37251476e5cfee330c88aa94cf0dd58f93370ccd"
+dest = "refs/loft-fixtures"
+private = true
+manifest = "CHECKSUMS.sha256"
+manifest_sha256 = "d909aeae6e063b629a161ba36dcc0f8b51e45313997789c8ecbc71e342971510"
+license = "private; third-party design files"
+mode = "fetched"
+
+# Private: other people's flight logs, with the ground-truth notes recorded alongside them.
+[[git]]
+name = "debrief-fixtures"
+url = "https://github.com/nrdptel/debrief-fixtures.git"
+commit = "722f07cd5d9d8595b31c64e2964fb7fbd5e751e7"
+dest = "refs/debrief-fixtures"
+private = true
+license = "private; third-party flight logs"
+mode = "fetched"
+
+# Private: designs paired with the logs of the same flight, with each day's weather (ADR-151). Its
+# files carry no licence to redistribute, so only aggregate statistics are published. The default
+# `cargo xtask ork` corpus leaves it out. On Neer's Mac `refs/hpr-sim-fixtures` is a symlink to the
+# sibling checkout `../hpr-sim-fixtures` (a local setup script makes it), at this commit.
+[[git]]
+name = "hpr-sim-fixtures"
+url = "https://github.com/nrdptel/hpr-sim-fixtures.git"
+commit = "31771d83051644da7ea545ec9dffbf14a175ea8d"
+dest = "refs/hpr-sim-fixtures"
+private = true
+manifest = "CHECKSUMS.sha256"
+manifest_sha256 = "0246921b4ccaaf52c3520f0f596ac4b0e91682334a47d08f54acba2c2abe8265"
+license = "private; third-party designs paired with flight logs"
+mode = "fetched"
+
+# Immutable downloads, pinned by sha256.
+
+[[file]]
+name = "openrocket-jar"
+title = "OpenRocket 24.12 (needs Java 17; it refuses 21)"
+url = "https://github.com/openrocket/openrocket/releases/download/release-24.12/OpenRocket-24.12.jar"
+sha256 = "4959b72f52f5f607941e9722abbb7b7f0c4a38ebbbf84204a329db9f31c4f897"
+dest = "refs/openrocket/OpenRocket-24.12.jar"
+license = "GPL-3.0"
+mode = "run-only"
+
+[[file]]
+name = "barrowman-1967-thesis"
+title = "J. S. Barrowman, The Practical Calculation of the Aerodynamic Characteristics of Slender Finned Vehicles, MS thesis, 1967 (NASA/TM-2001-209983)"
+url = "https://ntrs.nasa.gov/api/citations/20010047838/downloads/20010047838.pdf"
+sha256 = "09d62b014a706c700e1b596c8cc58c60e87d613da4ce963db3f72361ef0187eb"
+dest = "refs/papers/barrowman-1967-thesis.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "barrowman-1966-cp-report"
+title = "J. S. and J. A. Barrowman, The Theoretical Prediction of the Center of Pressure, NARAM-8, 1966"
+url = "https://www.apogeerockets.com/downloads/barrowman_report.pdf"
+sha256 = "321c9eaac9b3b89664b9170d0e4f1bf021d4087bad5561c7f6e7e98818fe7a7e"
+dest = "refs/papers/barrowman-1966-cp-report.pdf"
+license = "unknown terms"
+mode = "fetched"
+
+[[file]]
+name = "barrowman-1966-naram8-nakka"
+title = "J. S. and J. A. Barrowman, The Theoretical Prediction of the Center of Pressure, NARAM-8, 1966 (complete scan with its Testbed II and Aerobee 350 examples), bound with J. S. Barrowman, Calculating the Center of Pressure of a Model Rocket, Centuri TIR-33, 1970"
+url = "https://www.nakka-rocketry.net/articles/Barrowman.NARAM-8.pdf"
+sha256 = "cff6faf50db24b130d36f379b3dc566d1f3266e2031c01e4e6270320140c6f8e"
+dest = "refs/papers/barrowman-1966-naram8-nakka.pdf"
+license = "unknown terms"
+mode = "fetched"
+
+[[file]]
+name = "tir-33-centuri-cp"
+title = "J. S. Barrowman, Calculating the Center of Pressure of a Model Rocket, Centuri TIR-33, 1970 (standalone scan)"
+url = "https://www.nakka-rocketry.net/rocket/TIR-33_Calculating.C.P..model.rocket.pdf"
+sha256 = "0add8b84192baf5711e3be56e4571c49ddf56d83589bc94520d4db7efdd5f7e6"
+dest = "refs/papers/tir-33-centuri-cp.pdf"
+license = "unknown terms"
+mode = "fetched"
+
+[[file]]
+name = "niskanen-2009-thesis"
+title = "S. Niskanen, Development of an Open Source model rocket simulation software, MSc thesis, 2009"
+url = "https://github.com/openrocket/openrocket/releases/download/Development_of_an_Open_Source_model_rocket_simulation-thesis-v20090520/Development_of_an_Open_Source_model_rocket_simulation-thesis-v20090520.pdf"
+sha256 = "b948abf452c2f1c2ac63f0e0acfcb12dda2af856f8a7b51b22e0afca76d78d0c"
+dest = "refs/papers/niskanen-2009-thesis.pdf"
+license = "CC BY-NC-ND 1.0 Finland"
+mode = "fetched"
+
+[[file]]
+name = "openrocket-techdoc-13.05"
+title = "S. Niskanen, OpenRocket technical documentation, v13.05, 2013"
+url = "https://github.com/openrocket/openrocket/releases/download/OpenRocket_technical_documentation-v13.05/OpenRocket_technical_documentation-v13.05.pdf"
+sha256 = "cc6fd3291ade76ee044ffd40ff285cf814c7496b97d1ff7b35222d8f2d23cf8c"
+dest = "refs/papers/openrocket-techdoc-13.05.pdf"
+license = "CC BY-SA 3.0"
+mode = "fetched"
+
+[[file]]
+name = "us-std-atmosphere-1976"
+title = "U.S. Standard Atmosphere, 1976 (NOAA-S/T-76-1562, NASA-TM-X-74335)"
+url = "https://ntrs.nasa.gov/api/citations/19770009539/downloads/19770009539.pdf"
+sha256 = "23eb6b68346d4abc6071fc598872d51c40cf8c613d1a5d1006c6261bcd09dcea"
+dest = "refs/papers/us-std-atmosphere-1976.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "pearson-2015-generalized-hampel"
+title = "R. K. Pearson, Y. Neuvo, J. Astola and M. Gabbouj, The Class of Generalized Hampel Filters, 23rd European Signal Processing Conference (EUSIPCO), 2015"
+url = "https://www.eurasip.org/Proceedings/Eusipco/Eusipco2015/papers/1570096433.pdf"
+sha256 = "f2e89b2eaa1a6abd2e64b719f3f4abcebbb89cc3548ed9a1af8494f325cacb09"
+dest = "refs/papers/pearson-2015-generalized-hampel.pdf"
+license = "unknown terms"
+mode = "fetched"
+
+[[file]]
+name = "nasa-tn-d-4013"
+title = "J. C. Ferris, Static stability investigation of a single-stage sounding rocket at Mach numbers from 0.60 to 1.20, NASA TN D-4013, 1967"
+url = "https://ntrs.nasa.gov/api/citations/19670020050/downloads/19670020050.pdf"
+sha256 = "44dc62a4131cf31b88fab20566f2a4b934a16be17388e099192d25236f08324a"
+dest = "refs/papers/nasa-tn-d-4013.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "nasa-tn-d-4014"
+title = "C. D. Babb and D. E. Fuller, Static stability investigation of a sounding-rocket vehicle at Mach numbers from 1.50 to 4.63, NASA TN D-4014, 1967"
+url = "https://ntrs.nasa.gov/api/citations/19670020031/downloads/19670020031.pdf"
+sha256 = "d698b06798ad806a4fd6463f02f4c9e2624cd944d7a7902f2c015dbb5a351064"
+dest = "refs/papers/nasa-tn-d-4014.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "nasa-tr-r-100-stoney-1961"
+title = "W. E. Stoney, Collection of zero-lift drag data on bodies of revolution from free-flight investigations, NASA TR R-100, 1961"
+url = "https://ntrs.nasa.gov/api/citations/19630004995/downloads/19630004995.pdf"
+sha256 = "44c9ac6046b83db16d156cbc26a608d632fbb844854eff568d50ad6ec99be51e"
+dest = "refs/papers/nasa-tr-r-100-stoney-1961.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "naca-tn-2114"
+title = "S. M. Harmon and I. Jeffreys, Theoretical lift and damping in roll of thin wings with arbitrary sweep and taper at supersonic speeds: supersonic leading and trailing edges, NACA TN 2114, 1950"
+url = "https://ntrs.nasa.gov/api/citations/19930082815/downloads/19930082815.pdf"
+sha256 = "f62332c5c2119ccacb698f7bcc09c135f53498dd0f29ba0c2e287934cf88bcb7"
+dest = "refs/papers/naca-tn-2114.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "hamano-2022-cmawm"
+title = "R. Hamano, S. Saito, M. Nomura and S. Shirakawa, CMA-ES with Margin: Lower-Bounding Marginal Probability for Mixed-Integer Black-Box Optimization, GECCO 2022 (arXiv:2205.13482v2)"
+url = "https://arxiv.org/pdf/2205.13482v2"
+sha256 = "676471ed230c4bb89faeab62b457287b907b502ab5d46aba17774fee0500e031"
+dest = "refs/papers/hamano-2022-cmawm-arxiv-2205.13482v2.pdf"
+license = "arXiv non-exclusive license"
+mode = "fetched"
+
+[[file]]
+name = "hamano-2024-cmawm-telo"
+title = "R. Hamano, S. Saito, M. Nomura and S. Shirakawa, Marginal Probability-Based Integer Handling for CMA-ES Tackling Single- and Multi-Objective Mixed-Integer Black-Box Optimization, ACM TELO 4(2), 2024 (arXiv:2212.09260v2)"
+url = "https://arxiv.org/pdf/2212.09260v2"
+sha256 = "50e0710b5515863106ca68ca400ab32054320fa6a9405e5e88963a027fa401b5"
+dest = "refs/papers/hamano-2024-cmawm-telo-arxiv-2212.09260v2.pdf"
+license = "arXiv non-exclusive license"
+mode = "fetched"
+
+[[file]]
+name = "irec-dteg-2025"
+title = "Experimental Sounding Rocket Association, International Rocket Engineering Competition Design, Test, & Evaluation Guide, v1.1.4, 2025-02-01"
+url = "https://www.soundingrocket.org/uploads/9/0/6/4/9064598/2025-irec_dteg_v1.1.4_02-01-25.pdf"
+sha256 = "67ea51826f943305066d3eb1d56659a012efddf4739f67c2361c09c26cfd47b2"
+dest = "refs/papers/irec-dteg-2025-v1.1.4.pdf"
+license = "CC 4.0 International (variant not stated)"
+mode = "fetched"
+
+# RASAero II's aerodynamics for Calisto, as RocketPy's first commit shipped them: C_D, C_Nα and CP
+# against Mach 0.01 to 25 at angles of attack 0, 2 and 4 degrees. RocketPy's current checkout keeps
+# only the C_D column to Mach 2 (data/rockets/calisto/powerOffDragCurve.csv).
+[[file]]
+name = "rocketpy-calisto-rasaero-2018"
+title = "RocketPy data/calisto/CD Test.CSV at its first commit da91db9e (2018): a RASAero II export for Calisto"
+url = "https://raw.githubusercontent.com/RocketPy-Team/RocketPy/da91db9e6a94d6b7948712db0de3602042843004/data/calisto/CD%20Test.CSV"
+sha256 = "a739d313f54f298ce02011fb35e73c2a71bb876468233870a3777127b85e8114"
+dest = "refs/rocketpy-history/calisto-cd-test-2018.csv"
+license = "MIT; data files carry their own terms"
+mode = "fetched"
+
+[[file]]
+name = "galejs-wind-instability"
+title = "R. Galejs, Wind Instability: What Barrowman Left Out, Sentinel 39 (about 1999)"
+url = "https://www.argoshpr.ch/j3/articles/pdf/sentinel39-galejs.pdf"
+sha256 = "3c322bfee549a3fbfcec9ae62c8e46f638cf0cef261569f373d252131d1d421c"
+dest = "refs/papers/galejs-wind-instability.pdf"
+license = "unknown terms"
+mode = "fetched"
+
+[[file]]
+name = "mil-hdbk-762"
+title = "MIL-HDBK-762(MI), Design of Aerodynamically Stabilized Free Rockets, 1990 (Distribution A)"
+url = "https://archive.org/download/MILHDBK762DesignOfAerodynamicallyStabilizedFreeRockets/MIL-HDBK-762%2C%20Design%20of%20Aerodynamically%20Stabilized%20Free%20Rockets.pdf"
+sha256 = "a9c9d72394cbc57e7beed02648bdf972542329c9949958ce209ddbd087820553"
+dest = "refs/papers/mil-hdbk-762.pdf"
+license = "US government work"
+mode = "fetched"
+
+# NTRS serves this one with a 436-byte header before the %PDF marker; the pin is for the bytes as
+# served. PDF readers open it as is.
+[[file]]
+name = "naca-tn-4197"
+title = "D. J. Martin, Summary of Flutter Experiences as a Guide to the Preliminary Design of Lifting Surfaces on Missiles, NACA TN 4197, 1958"
+url = "https://ntrs.nasa.gov/api/citations/19930085030/downloads/19930085030.pdf"
+sha256 = "cd46997b270a6463c1a0dd3656af30b990dfbf14f3d72578bf622c45d29cecea"
+dest = "refs/papers/naca-tn-4197.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "naca-tn-2972-jack-1953"
+title = "J. R. Jack, Theoretical pressure distributions and wave drags for conical boattails, NACA TN 2972, 1953"
+url = "https://ntrs.nasa.gov/api/citations/19930083638/downloads/19930083638.pdf"
+sha256 = "338c34f12f6f5c404ce435a3712c1ea20523bf7084b1f10ea741abd056dc1297"
+dest = "refs/papers/naca-tn-2972-jack-1953-conical-boattails.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "naca-tn-3527-syvertson-dennis-1956"
+title = "C. A. Syvertson and D. H. Dennis, A second-order shock-expansion method applicable to bodies of revolution near zero lift, NACA TN 3527, 1956"
+url = "https://ntrs.nasa.gov/api/citations/19930084226/downloads/19930084226.pdf"
+sha256 = "b034a4e6a2b0f4350f8092cb8cb33eaaed9ef6b3447ddfca0f148b1ec8368f35"
+dest = "refs/papers/naca-tn-3527-syvertson-dennis-1956.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "nasa-sp-3007-sims-1964-cones-small-alpha"
+title = "J. L. Sims, Tables for supersonic flow around right circular cones at small angle of attack, NASA SP-3007, 1964"
+url = "https://ntrs.nasa.gov/api/citations/19640015103/downloads/19640015103.pdf"
+sha256 = "a6a837276684651daf2b59758141d091b9f979fe3648ed7a9cc7202b6fc4a01a"
+dest = "refs/papers/nasa-sp-3007-sims-1964-cones-small-alpha.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "nasa-tr-r-474-jorgensen-1977"
+title = "L. H. Jorgensen, Prediction of static aerodynamic characteristics for slender bodies alone and with lifting surfaces to very high angles of attack, NASA TR R-474, 1977"
+url = "https://ntrs.nasa.gov/api/citations/19770026166/downloads/19770026166.pdf"
+sha256 = "ddab387548811ed386b885b77bef8432ee62e8f964399370277c0153c1c9f59b"
+dest = "refs/papers/nasa-tr-r-474-jorgensen-1977.pdf"
+license = "US government work"
+mode = "fetched"
+
+# DTIC's own site refuses scripted downloads; these are the Internet Archive's DTIC copies.
+[[file]]
+name = "afatl-tr-77-8-butler-sears-pallas-1977-ogive-bluffness"
+title = "C. B. Butler, E. S. Sears and S. G. Pallas, Aerodynamic characteristics of 2-, 3-, and 4-caliber tangent-ogive cylinders with nose bluffness ratios of 0.00, 0.25, 0.50, and 0.75 at Mach numbers from 0.6 to 4.0, AFATL-TR-77-8 (DTIC AD-B031340), 1977"
+url = "https://archive.org/download/DTIC_ADB031340/DTIC_ADB031340.pdf"
+sha256 = "2073e82e8dc022b09ac4f6d270f251425c7c92d0bb072ee7c3ca46f150fe4ac2"
+dest = "refs/papers/afatl-tr-77-8-butler-sears-pallas-1977-ogive-bluffness.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "nswc-tr-81-156-mason-1981-aero-design-manual"
+title = "L. A. Mason, L. Devan, F. G. Moore and D. McMillan, Aerodynamic design manual for tactical weapons, NSWC TR 81-156 (DTIC AD-A109180), 1981"
+url = "https://archive.org/download/DTIC_ADA109180/DTIC_ADA109180.pdf"
+sha256 = "f0c578d25879e579af3d4ccecfb59d13bce0497362c20d60470aaf546486ffee"
+dest = "refs/papers/nswc-tr-81-156-mason-1981-aero-design-manual.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "washington-pettis-1968-rd-tm-68-5"
+title = "W. D. Washington and W. Pettis Jr., Boattail effects on static stability at small angles of attack, U.S. Army Missile Command report RD-TM-68-5 (DTIC AD-695658), 1968"
+url = "https://archive.org/download/DTIC_AD0695658/DTIC_AD0695658.pdf"
+sha256 = "2e0cfcd70890914dbb51d8e93ec6f1657d7031d97631dffb6fe7cfb10734bc58"
+dest = "refs/papers/washington-pettis-1968-rd-tm-68-5.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "nasa-tn-d-4865-jackson-1968"
+title = "C. M. Jackson Jr., W. C. Sawyer and R. S. Smith, A method for determining surface pressures on blunt bodies of revolution at small angles of attack in supersonic flow, NASA TN D-4865, 1968"
+url = "https://ntrs.nasa.gov/api/citations/19690000884/downloads/19690000884.pdf"
+sha256 = "4ef9c99567d8033810473f75bca1ec2f265563acb57a86b29a7f9bfc3703f93b"
+dest = "refs/papers/nasa-tn-d-4865-jackson-1968.pdf"
+license = "US government work"
+mode = "fetched"
+
+# NTRS's API returns 404 for this one; the Internet Archive serves NTRS's own scan.
+[[file]]
+name = "nasa-tn-d-1304-seiff-1962"
+title = "A. Seiff, Secondary flow fields embedded in hypersonic shock layers, NASA TN D-1304, 1962"
+url = "https://archive.org/download/nasa_techdoc_19620001667/19620001667.pdf"
+sha256 = "3cee98054dfedfa65c36be4d62c01dd62eeae117f1409927aa71f52ebde0bf46"
+dest = "refs/papers/nasa-tn-d-1304-seiff-1962.pdf"
+license = "US government work"
+mode = "fetched"
+
+# NTRS serves this one with a 436-byte header before the %PDF marker; the pin is for the bytes as
+# served.
+[[file]]
+name = "naca-rm-e51f26-cortright-schroeder-1951"
+title = "E. M. Cortright Jr. and A. H. Schroeder, Investigation at Mach number 1.91 of side and base pressure distributions over conical boattails without and with jet flow issuing from base, NACA RM E51F26, 1951"
+url = "https://ntrs.nasa.gov/api/citations/19930086724/downloads/19930086724.pdf"
+sha256 = "df0230ef9058010c7d700f2e402cfeb26cc517a3430f693d05e14a129eb559df"
+dest = "refs/papers/naca-rm-e51f26-cortright-schroeder-1951.pdf"
+license = "US government work"
+mode = "fetched"
+
+# NTRS serves this one with a 436-byte header before the %PDF marker; the pin is for the bytes as
+# served.
+[[file]]
+name = "naca-rm-l54c16-demoraes-nowitzky-1954"
+title = "C. A. de Moraes and A. M. Nowitzky, Experimental effects of propulsive jets and afterbody configurations on the zero-lift drag of bodies of revolution at a Mach number of 1.59, NACA RM L54C16, 1954"
+url = "https://ntrs.nasa.gov/api/citations/19930088187/downloads/19930088187.pdf"
+sha256 = "0e5692101af2c78196723f706ce1e4aa7c6ff7e8801d07f1ef0a7b4c659bfe52"
+dest = "refs/papers/naca-rm-l54c16-demoraes-nowitzky-1954.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "nasa-tn-d-6789-compton-1972"
+title = "W. B. Compton III, Jet effects on the drag of conical afterbodies at supersonic speeds, NASA TN D-6789, 1972"
+url = "https://ntrs.nasa.gov/api/citations/19720019347/downloads/19720019347.pdf"
+sha256 = "e6ea63b0ab46967eab7a1bca4ac1bd5adc0794c57ac752c128c2e6bdb740f08b"
+dest = "refs/papers/nasa-tn-d-6789-compton-1972.pdf"
+license = "US government work"
+mode = "fetched"
+
+# NTRS serves this one with a 436-byte header before the %PDF marker; the pin is for the bytes as
+# served.
+[[file]]
+name = "naca-rm-e54b11-moskowitz-jack-1954"
+title = "B. Moskowitz and J. R. Jack, Aerodynamics of slender bodies at Mach number of 3.12 and Reynolds numbers from 2 × 10⁶ to 15 × 10⁶, V: Aerodynamic load distributions for a series of four boattailed bodies, NACA RM E54B11, 1954"
+url = "https://ntrs.nasa.gov/api/citations/19930088175/downloads/19930088175.pdf"
+sha256 = "1d5acaa4c15ba82c7ef147ac7a3eda8f7b61e3440b5adb1f55aef5d8d867adcf"
+dest = "refs/papers/naca-rm-e54b11-moskowitz-jack-1954.pdf"
+license = "US government work"
+mode = "fetched"
+
+# NTRS serves this one with a 436-byte header before the %PDF marker; the pin is for the bytes as
+# served.
+[[file]]
+name = "naca-rm-l57b21-cubbage-1957"
+title = "J. M. Cubbage Jr., Jet effects on the drag of conical afterbodies for Mach numbers of 0.6 to 1.28, NACA RM L57B21, 1957"
+url = "https://ntrs.nasa.gov/api/citations/19930089627/downloads/19930089627.pdf"
+sha256 = "4e4b829a1d41976944b1bb67eb2793ed4c65bf6dfc849a744dfa406891dcc977"
+dest = "refs/papers/naca-rm-l57b21-cubbage-1957.pdf"
+license = "US government work"
+mode = "fetched"
+
+# NTRS serves this one with a 436-byte header before the %PDF marker; the pin is for the bytes as
+# served.
+[[file]]
+name = "naca-tn-3819-love-1957"
+title = "E. S. Love, Base pressure at supersonic speeds on two-dimensional airfoils and on bodies of revolution with and without fins having turbulent boundary layers, NACA TN 3819, 1957"
+url = "https://ntrs.nasa.gov/api/citations/19930084517/downloads/19930084517.pdf"
+sha256 = "9acd67dc393b26162f773602f477be6e9bf3b5e2823edb18df105a1159c9ce55"
+dest = "refs/papers/naca-tn-3819-love-1957.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "naca-report-1135"
+title = "Ames Research Staff, Equations, tables, and charts for compressible flow, NACA Report 1135, 1953"
+url = "https://ntrs.nasa.gov/api/citations/19930091059/downloads/19930091059.pdf"
+sha256 = "1971643025181d1216b0b0a359d2a5a3adf5d254d3e158e19ba880b368b86e53"
+dest = "refs/papers/naca-report-1135.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "rasaero-ii-arcas-comparison-2022"
+title = "C. E. Rogers, RASAero II Comparisons with ARCAS Center of Pressure (CP) and Drag Coefficient (CD) Wind Tunnel Data, Rogers Aeroscience, 2022 (slides)"
+url = "https://www.rasaero.com/dloads/RASAero%20II%20Comparisons%20with%20ARCAS%20CP%20and%20CD%20Data.pdf"
+sha256 = "3d2dd9e9b3ed8c6521eed525baffa6e3c5f4fcd90274cd9a1115ba51ed3fd512"
+dest = "refs/papers/rasaero-ii-arcas-cp-cd-comparison-2022.pdf"
+license = "unknown terms"
+mode = "fetched"
+
+[[file]]
+name = "fpl-gtr-190-wood-handbook"
+title = "Forest Products Laboratory, Wood Handbook: Wood as an Engineering Material, General Technical Report FPL-GTR-190, 2010"
+url = "https://www.fpl.fs.usda.gov/documnts/fplgtr/fpl_gtr190.pdf"
+sha256 = "dec06ab1ad9c97fbb4092779cd5d367a4d7fc4e3585f00b9e65f18b080ada2ec"
+dest = "refs/papers/fpl-gtr-190-wood-handbook-2010.pdf"
+license = "US government work"
+mode = "fetched"
+
+# DTIC (ADA247666) blocked automated downloads when this was pinned; this is archive.org's mirror
+# of the DTIC copy. It carries a DTIC public-release stamp, but the title page names the author as
+# a contractor and restricts distribution to US Government personnel, so the terms are unclear:
+# cite it, never redistribute it.
+[[file]]
+name = "knacke-1991-parachute-manual"
+title = "T. W. Knacke, Parachute Recovery Systems Design Manual, NWC TP 6575, 1991 (DTIC ADA247666)"
+url = "https://archive.org/download/DTIC_ADA247666/DTIC_ADA247666.pdf"
+sha256 = "138d001f515328a36ef3cddc234b40b4b84c19ad2ea1ac204bd60f555f9ab0c8"
+dest = "refs/papers/knacke-1991-parachute-manual.pdf"
+license = "unclear terms"
+mode = "fetched"
+
+# Streamer drag, M1.7b. Peer-reviewed (Journal of Aircraft 42(4), 2005, pp. 976-982,
+# DOI 10.2514/1.9754); the AIAA copy is paywalled and refuses automated fetches, so this is the
+# authors' post-peer-review copy in the University of Manchester's repository. No licence is
+# stated on it: cite it, never redistribute it.
+[[file]]
+name = "carruthers-filippone-2005-streamer-drag"
+title = "J. Carruthers and A. Filippone, Aerodynamic Drag of Streamers and Flags, J. Aircraft 42(4), 2005 (author post-print)"
+url = "https://pure.manchester.ac.uk/ws/files/29884977/POST-PEER-REVIEW-NON-PUBLISHERS.PDF"
+sha256 = "a4194f88d2fb9ab5ceaac3e4c00fbf2f0e1b00167b7f87e13ca271eaf78fdb1a"
+dest = "refs/papers/carruthers-filippone-2005-streamer-drag.pdf"
+license = "unclear terms"
+mode = "fetched"
+
+# The free-drop streamer data M1.7b checks both streamer models against, and the OpenRocket
+# technical documentation's own reference [46] for its appendix C. Published by NARHAMS with no
+# licence stated: cite it, never redistribute it.
+[[file]]
+name = "kidwell-2001-streamer-duration"
+title = "C. Kidwell, Streamer Duration Optimization: Material and Length-to-Width Ratio, NAR R&D, NARAM-43, 2001"
+url = "https://www.narhams.org/library/rnd/StreamerDuration.pdf"
+sha256 = "fbea5d1d558a4cc583f2a9fdb2a094fd2dd71adf86b75bc98672a5f938ec045d"
+dest = "refs/papers/kidwell-2001-streamer-duration.pdf"
+license = "unknown terms"
+mode = "fetched"
+
+[[file]]
+name = "rocksim-rse-spec"
+title = "RockSim Engine File Format (.rse) specification, as hosted by ThrustCurve.org"
+url = "https://www.thrustcurve.org/thirdparty/RockSim%20Engine%20File%20Format.pdf"
+sha256 = "c47a04f4d58f26219d70b2529654e6a4ed376310bb8a312c103be25647f85f95"
+dest = "refs/papers/rocksim-rse-spec.pdf"
+license = "unknown terms"
+mode = "fetched"
+
+[[file]]
+name = "nasa-sp-8039"
+title = "NASA SP-8039, Solid Rocket Motor Performance Analysis and Prediction, 1971"
+url = "https://ntrs.nasa.gov/api/citations/19720011135/downloads/19720011135.pdf"
+sha256 = "9e151b8184340ee0bba0cfa605c1e378337716a167f015e89c1a8c85b5754e0d"
+dest = "refs/papers/nasa-sp-8039.pdf"
+license = "US government work"
+mode = "fetched"
+
+# NAR's own page as the Internet Archive captured it on 2014-02-05 (nar.org has since moved it and
+# refuses scripted downloads); the `id_` capture serves the original bytes.
+[[file]]
+name = "nar-standard-motor-codes"
+title = "National Association of Rocketry, Standard Motor Codes (nar.org/NARmotors.html, archived 2014-02-05)"
+url = "https://web.archive.org/web/20140205181530id_/http://www.nar.org/NARmotors.html"
+sha256 = "1f0d01687b22fbe1e6a92662e9f4a74a1db4fd8b6d8b615460cd5e5eae7331d6"
+dest = "refs/papers/nar-standard-motor-codes.html"
+license = "unclear terms"
+mode = "fetched"
+
+# ThrustCurve.org's own statistics code (ISC), read to confirm how the site computes burn time,
+# total impulse and average thrust.
+[[file]]
+name = "thrustcurve3-analyze"
+title = "ThrustCurve.org site source, simulate/analyze/analyze.js at commit 577afa6"
+url = "https://raw.githubusercontent.com/JohnCoker/thrustcurve3/577afa62302f70c6b2ba04e97a39240638cd704b/simulate/analyze/analyze.js"
+sha256 = "267eb5364a7ca13b4ec32246c97ee0194a4ee6fd5489765ff178fddf666c637a"
+dest = "refs/sources/thrustcurve3/analyze.js"
+license = "ISC"
+mode = "fetched"
+
+# NGA serves the standard from a PHP download endpoint; the bytes matched every archive.org capture
+# from 2021-07 to 2026-07. If NGA moves it, the immutable capture is
+# https://web.archive.org/web/20230321131228id_/https://earth-info.nga.mil/php/download.php?file=coord-wgs84
+[[file]]
+name = "wgs84-nga-stnd-0036"
+title = "NGA.STND.0036_1.0.0_WGS84, Department of Defense World Geodetic System 1984, Its Definition and Relationships with Local Geodetic Systems, 2014"
+url = "https://earth-info.nga.mil/php/download.php?file=coord-wgs84"
+sha256 = "5edc1cf7411d4df01cae5205ee19f661265c45a55cca60b9351f6ae5abade512"
+dest = "refs/papers/nga-stnd-0036-wgs84.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "karney-2011-geodesics"
+title = "C. F. F. Karney, Geodesics on an ellipsoid of revolution, arXiv:1102.1215v1, 2011"
+url = "https://arxiv.org/pdf/1102.1215v1"
+sha256 = "39995ffb715906861becd18b66248b73b7fac97b611dd4b9002c604353aefc8d"
+dest = "refs/papers/karney-2011-geodesics-arxiv-1102.1215v1.pdf"
+license = "arXiv non-exclusive license"
+mode = "fetched"
+
+[[file]]
+name = "karney-2013-algorithms-for-geodesics"
+title = "C. F. F. Karney, Algorithms for geodesics, J. Geodesy 87 (2013) 43-55, arXiv:1109.4448v2"
+url = "https://arxiv.org/pdf/1109.4448v2"
+sha256 = "2e0d2448ab3ee0829e5e9f5ccffa01ba5c7efdbd23157a668f797f3b5366bb54"
+dest = "refs/papers/karney-2013-algorithms-for-geodesics.pdf"
+license = "arXiv non-exclusive license"
+mode = "fetched"
+
+[[file]]
+name = "karney-geodtest"
+title = "C. F. F. Karney, Test set for geodesics, GeodTest.dat, Zenodo, doi:10.5281/zenodo.32156"
+url = "https://zenodo.org/records/32156/files/GeodTest.dat?download=1"
+sha256 = "c1cabdddbcd7d5cfc6e6111db4608fa55be292b15ba2c5bcd6372a178848c692"
+dest = "refs/sources/geodtest/GeodTest.dat"
+license = "CC0 1.0"
+mode = "fetched"
+
+[[file]]
+name = "ogc-19-008r4-geotiff"
+title = "OGC GeoTIFF Standard, version 1.1, OGC 19-008r4, E. Devys, T. Habermann, C. Heazel, R. Lott, E. Rouault (eds.), 2019"
+url = "https://docs.ogc.org/is/19-008r4/19-008r4.pdf"
+sha256 = "664e0aeee57c04dd4308ade2e68e68a7824a866f6c4e268d73aed5994fdca87e"
+dest = "refs/papers/ogc-19-008r4-geotiff-1.1.pdf"
+license = "OGC Document License"
+mode = "fetched"
+
+[[file]]
+name = "usgs-3dep-1-n33w107"
+title = "USGS 3D Elevation Program, 1 arc-second DEM tile n33w107 (32-33 N, 107-106 W), GeoTIFF, published 2024-04-22"
+url = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/current/n33w107/USGS_1_n33w107.tif"
+sha256 = "63887e514a6fb664f2e033168b676037b0fdf0c6a477a560f3bd58ad557e2051"
+dest = "refs/dem/USGS_1_n33w107.tif"
+license = "public domain"
+mode = "fetched"
+
+[[file]]
+name = "sola-2017-quaternion-kinematics"
+title = "J. Solà, Quaternion kinematics for the error-state Kalman filter, arXiv:1711.02508v1, 2017"
+url = "https://arxiv.org/pdf/1711.02508v1"
+sha256 = "6a3d3d3933c425eb6cef049290c2b48b71a90f5189e9810575d83d3a922faaca"
+dest = "refs/papers/sola-2017-quaternion-kinematics.pdf"
+license = "CC BY-NC-SA 4.0"
+mode = "fetched"
+
+# M1.6a integrator sources. Hairer's site serves the current files; the hashes pin the 2004
+# version read for the port.
+[[file]]
+name = "hairer-dopri5"
+title = "E. Hairer and G. Wanner, DOPRI5: explicit Runge-Kutta method of order (4)5 due to Dormand and Prince, with step size control and dense output (Fortran, version of 2004)"
+url = "https://www.unige.ch/~hairer/prog/nonstiff/dopri5.f"
+sha256 = "e4fbbe080508134f743d9934e76e45f49f03a320b7b024273757a7c278804c95"
+dest = "refs/sources/hairer/dopri5.f"
+license = "BSD-2-Clause"
+mode = "fetched"
+
+[[file]]
+name = "hairer-licence"
+title = "Licence of E. Hairer's ODE codes, Copyright (c) 2004, UNIGE"
+url = "https://www.unige.ch/~hairer/prog/licence.txt"
+sha256 = "49bcfad0e3bbe5c3a0428624254567f32786948332a3204fc1e35b8b2a02b0fd"
+dest = "refs/sources/hairer/licence.txt"
+license = "BSD-2-Clause"
+mode = "fetched"
+
+# M1.2 atmosphere, wind and turbulence sources.
+# MIL-F-8785C: everyspec.com refuses scripted downloads and stamps each copy, so this pins Abbott
+# Aerospace's copy of the same scan. If it moves, an immutable capture of everyspec's 2012 copy
+# (stamped, 5e0598b6...) is
+# https://web.archive.org/web/20120909042612id_/http://www.everyspec.com:80/MIL-SPECS/MIL-SPECS-MIL-F/download.php?spec=MIL-F-8785C.028392.pdf
+[[file]]
+name = "mil-f-8785c"
+title = "MIL-F-8785C, Military Specification: Flying Qualities of Piloted Airplanes, 5 November 1980"
+url = "https://www.abbottaerospace.com/downloads/mil-f-8785c-flying-qualities-of-piloted-airplanes/?wpdmdl=39986&ind=1506521340699"
+sha256 = "51c4e51c3650ab7a5df9ff81e98a075947fc6d2dce97561ce96ffeda7791af8d"
+dest = "refs/papers/mil-f-8785c.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "nasa-tm-2008-215633"
+title = "D. L. Johnson (ed.), Terrestrial Environment (Climatic) Criteria Guidelines for Use in Aerospace Vehicle Development, 2008 Revision, NASA/TM-2008-215633"
+url = "https://ntrs.nasa.gov/api/citations/20090022159/downloads/20090022159.pdf"
+sha256 = "896d715558417b1f47fe5c1dd888203598cfce63bbcdfb189ca7e482d8e4927f"
+dest = "refs/papers/nasa-tm-2008-215633.pdf"
+license = "US government work"
+mode = "fetched"
+
+# library.wmo.int serves only through a JavaScript challenge; this is a national weather service's
+# mirror of the official 2023 PDF (ISBN 978-92-63-10008-5).
+[[file]]
+name = "wmo-no8-vol1-2023"
+title = "WMO-No. 8, Guide to Instruments and Methods of Observation, Volume I: Measurement of Meteorological Variables, 2023 edition"
+url = "https://amc.namem.gov.mn/wp-content/uploads/WMO/1.%208_I-2023_en.pdf"
+sha256 = "467afdde56646a9403e21345fdc1fa9f7d7434eeddbfc341c7810ae0a0d05ba9"
+dest = "refs/papers/wmo-no8-vol1-2023.pdf"
+license = "WMO copyright; short extracts with full citation"
+mode = "fetched"
+
+[[file]]
+name = "picard-2008-cipm-2007"
+title = "A. Picard, R. S. Davis, M. Gläser and K. Fujii, Revised formula for the density of moist air (CIPM-2007), Metrologia 45 (2008) 149-155"
+url = "https://www.nist.gov/system/files/documents/calibrations/CIPM-2007.pdf"
+sha256 = "0266277b62e34253a36af817e70af4ffbe74f079ed7c35ce3770477c2ea822e3"
+dest = "refs/papers/picard-2008-cipm-2007-moist-air-density.pdf"
+license = "BIPM and IOP Publishing copyright"
+mode = "fetched"
+
+[[file]]
+name = "iapws-r12-08"
+title = "IAPWS R12-08, Release on the IAPWS Formulation 2008 for the Viscosity of Ordinary Water Substance"
+url = "https://iapws.org/public/documents/FPpx6/visc.pdf"
+sha256 = "6e89cafb61618f38aeca88a5740181948db7300d2b4beafbb4228bb164657bef"
+dest = "refs/papers/iapws-r12-08-water-viscosity.pdf"
+license = "IAPWS: publication allowed with attribution"
+mode = "fetched"
+
+[[file]]
+name = "wmm2025-report"
+title = "A. Chulliat, W. Brown, M. Nair et al., The US/UK World Magnetic Model for 2025-2030: Technical Report, NCEI, NOAA, 2025, doi:10.25923/prbc-s316"
+url = "https://library.oarcloud.noaa.gov/noaa_documents.lib/NESDIS/NCEI/WWM_Report_2025.pdf"
+sha256 = "3bed06a4381b06caa0ca04296aa428a6647974bbc06ec936cf744876e4fc0f28"
+dest = "refs/papers/wmm2025-report.pdf"
+license = "US government work"
+mode = "fetched"
+
+[[file]]
+name = "wmm2025-coefficients"
+title = "NCEI, WMM2025COF.zip: the WMM2025 coefficient file and high-precision test values, 2024-12-17"
+url = "https://www.ncei.noaa.gov/sites/default/files/2024-12/WMM2025COF.zip"
+sha256 = "2e76569370d081f2cd7919490218bd094ca9afde347b198eff5621e0af460d03"
+dest = "refs/sources/wmm2025/WMM2025COF.zip"
+license = "public domain"
+mode = "fetched"
+
+[[file]]
+name = "wmm2025-test-values"
+title = "NCEI, WMM2025_TEST_VALUES.txt: the WMM2025 report's Table 6 test values, 2025-02"
+url = "https://www.ncei.noaa.gov/sites/default/files/2025-02/WMM2025_TEST_VALUES.txt"
+sha256 = "ae289c94e2200e4deeae2dfdedf543a8a0e93096512b30d6a754199731f570d0"
+dest = "refs/sources/wmm2025/WMM2025_TEST_VALUES.txt"
+license = "public domain"
+mode = "fetched"
+
+[[file]]
+name = "nfpa-1125-2021-first-revisions"
+title = "NFPA 1125, Code for the Manufacture of Model Rocket and High Power Rocket Motors, revision cycle A2021: First Draft Report, First Revisions (FR-7, FR-8: §8.1.7 and §8.2.7)"
+url = "https://docinfofiles.nfpa.org/files/AboutTheCodes/1125/1125_A2021_PYR_AAA_FD_FRStatements.pdf"
+sha256 = "7b271e35d7b0998792957d579d56f23488a3c8dbf49b77a7ccb2fbdd19f057b8"
+dest = "refs/papers/nfpa-1125-2021-first-revisions.pdf"
+license = "NFPA copyright"
+mode = "fetched"
+
+[[file]]
+name = "nfpa-1125-2019-public-inputs"
+title = "NFPA 1125, revision cycle A2021: First Draft Report, Public Input Responses (PI-4 and PI-5 quote the 2019 edition's §8.2.7 and §8.1.7)"
+url = "https://docinfofiles.nfpa.org/files/AboutTheCodes/1125/1125_A2021_PYR_AAA_FD_PIResponses.pdf"
+sha256 = "398489b37016ba749027e457760136e6b07a92f76bd723d6eb587229d56e7582"
+dest = "refs/papers/nfpa-1125-2019-public-inputs.pdf"
+license = "NFPA copyright"
+mode = "fetched"
+
+[[file]]
+name = "nar-cert-estes-c6"
+title = "NAR Standards and Testing, certification data sheet: Estes C6, 1995"
+url = "https://www.thrustcurve.org/motors/cert/62e14a0ad917b20004b6c840/C6.pdf"
+sha256 = "230823963094404b17699e894859858eb415b79a8790b9c9b50ee25521558b6e"
+dest = "refs/papers/nar-cert-estes-c6.pdf"
+license = "NAR copyright"
+mode = "fetched"
+
+[[file]]
+name = "nar-cert-estes-d12"
+title = "NAR Standards and Testing, certification data sheet: Estes D12, 1994"
+url = "https://www.thrustcurve.org/motors/cert/62e14acfd917b20004b6c844/D12.pdf"
+sha256 = "5cbfb275eb5ba38919918480c2e6caefcb650b828071ac60d21d24731908e6f2"
+dest = "refs/papers/nar-cert-estes-d12.pdf"
+license = "NAR copyright"
+mode = "fetched"
+
+[[file]]
+name = "nar-cert-estes-e12"
+title = "NAR Standards and Testing, certification data sheet: Estes E12, 2011"
+url = "https://www.thrustcurve.org/motors/cert/60c63bfcb5bc370004713e93/E12.pdf"
+sha256 = "6737bde2d40cf0d790d6bf7cb67d0d5e98d18aa1dcfc1dacc2bb38ec1a5580af"
+dest = "refs/papers/nar-cert-estes-e12.pdf"
+license = "NAR copyright"
+mode = "fetched"
+
+[[file]]
+name = "nar-cert-aerotech-g80"
+title = "NAR Standards and Testing, certification data sheet: AeroTech G80T, 2007"
+url = "https://www.thrustcurve.org/motors/cert/60c63bfcb5bc370004713e8f/G80-20071207.pdf"
+sha256 = "3a438d86b738e75003f2215b4ac8c5e6f6580afd371ef518d3d02538bb9ba62a"
+dest = "refs/papers/nar-cert-aerotech-g80.pdf"
+license = "NAR copyright"
+mode = "fetched"
+
+[[file]]
+name = "wang-shi-miao-2015-sde-confidence"
+title = "B. Wang, W. Shi and Z. Miao, Confidence analysis of standard deviational ellipse and its extension into higher dimensional Euclidean space, PLoS ONE 10(3): e0118537, 2015 (eqs. 13 to 20: the axes and the level of a normal spread's ellipse)"
+url = "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0118537&type=printable"
+sha256 = "5aeb58a61860a82de6b28a8199416982a6d3a51de5718db1a2608ef025d0d564"
+dest = "refs/papers/wang-shi-miao-2015-sde-confidence-plosone.pdf"
+license = "CC-BY-4.0"
+mode = "fetched"
+
+[[file]]
+name = "abramowitz-stegun-p940"
+title = "M. Abramowitz and I. A. Stegun, Handbook of Mathematical Functions, NBS AMS 55, 1964, p. 940 (eq. 26.3.21: a bivariate normal's mass inside its ellipse; eq. 26.4.1: the chi-square function)"
+url = "https://personal.math.ubc.ca/~cbm/aands/page_940.jpg"
+sha256 = "4526403143827a61b566cc7efa0721c57eacf4fd0f0784a234241f3e436e55c2"
+dest = "refs/papers/abramowitz-stegun-p940.jpg"
+license = "public domain (U.S. government work)"
+mode = "fetched"
+
+[[file]]
+name = "abramowitz-stegun-p941"
+title = "M. Abramowitz and I. A. Stegun, Handbook of Mathematical Functions, NBS AMS 55, 1964, p. 941 (eq. 26.4.5: the chi-square function for even degrees of freedom)"
+url = "https://personal.math.ubc.ca/~cbm/aands/page_941.jpg"
+sha256 = "295c7e2074ca8b39057e70e7be64c8c5c68daa32fa07b8f3edf19c6470130eca"
+dest = "refs/papers/abramowitz-stegun-p941.jpg"
+license = "public domain (U.S. government work)"
+mode = "fetched"
+
+[[file]]
+name = "abramowitz-stegun-p946"
+title = "M. Abramowitz and I. A. Stegun, Handbook of Mathematical Functions, NBS AMS 55, 1964, p. 946 (eq. 26.6.4: the F distribution's function for an even first degree of freedom)"
+url = "https://personal.math.ubc.ca/~cbm/aands/page_946.jpg"
+sha256 = "055a22011445e0e86043a7cd7a76da4623ed274e15d5d95657955ff0ff642b06"
+dest = "refs/papers/abramowitz-stegun-p946.jpg"
+license = "public domain (U.S. government work)"
+mode = "fetched"
+
+# Snapshots of live APIs, pinned by the sha256 of one dated capture. The APIs change (the motor
+# finder hourly), so a fresh fetch elsewhere may not reproduce these bytes: fetch then fails and
+# keeps the new capture aside, and `fetch --adopt-snapshots` repins to it.
+
+# ThrustCurve.org API v1. Search results include out-of-production motors and hybrids (filter
+# those out; COTS solids only). Thrust curves are not included, and each curve file carries its
+# own data license.
+[[snapshot]]
+name = "thrustcurve-metadata"
+url = "https://www.thrustcurve.org/api/v1/metadata.json"
+sha256 = "3b56749a5cea23e53385ec11ea8e3c1e07569a9b897496ee3d04bf70ee6f6d94"
+captured = "2026-09-17"
+dest = "refs/snapshots/thrustcurve/metadata.json"
+license = "unstated terms"
+mode = "fetched"
+
+[[snapshot]]
+name = "thrustcurve-motors"
+url = "https://www.thrustcurve.org/api/v1/search.json?maxResults=10000"
+sha256 = "00cd2cdeb1472d6e6d853c7ffa78c631b36ce0be6898af0bdec4285aeb7ebb83"
+captured = "2026-09-17"
+dest = "refs/snapshots/thrustcurve/motors.json"
+license = "unstated terms"
+mode = "fetched"
+
+# ThrustCurve.org information pages: the RASP format, the definitions behind its motor statistics,
+# and its data-license terms. Pages served by the site can change, so they are pinned as captures.
+[[snapshot]]
+name = "thrustcurve-rasp-format"
+url = "https://www.thrustcurve.org/info/raspformat.html"
+sha256 = "69573e9fc644c467fd2c8f5e4d0b2af99831a5a4bc554d15b56027ee640c626e"
+captured = "2026-09-17"
+dest = "refs/snapshots/thrustcurve/info/raspformat.html"
+license = "unstated terms"
+mode = "fetched"
+
+[[snapshot]]
+name = "thrustcurve-glossary"
+url = "https://www.thrustcurve.org/info/glossary.html"
+sha256 = "1702cc6e5b957f49af6f60090490c2fc0b9e4edfd83c93a719287f1e3855e287"
+captured = "2026-09-17"
+dest = "refs/snapshots/thrustcurve/info/glossary.html"
+license = "unstated terms"
+mode = "fetched"
+
+[[snapshot]]
+name = "thrustcurve-motorstats"
+url = "https://www.thrustcurve.org/info/motorstats.html"
+sha256 = "8cfaacf3319bef69d2a7f1dff46f4ad2566a2496f2c21b53cca9a8612e6a1ec8"
+captured = "2026-09-17"
+dest = "refs/snapshots/thrustcurve/info/motorstats.html"
+license = "unstated terms"
+mode = "fetched"
+
+[[snapshot]]
+name = "thrustcurve-contribute"
+url = "https://www.thrustcurve.org/info/contribute.html"
+sha256 = "35152a2901150dca9a98f6d0ed1826edee65c6c5aed37031d9c8a984b7dcc40d"
+captured = "2026-09-17"
+dest = "refs/snapshots/thrustcurve/info/contribute.html"
+license = "unstated terms"
+mode = "fetched"
+
+[[snapshot]]
+name = "thrustcurve-simulators"
+url = "https://www.thrustcurve.org/info/simulators.html"
+sha256 = "5bb2bad7ee6c99009b1017a5650111d8cb6be7c9045acb1d84b252db9930cb7a"
+captured = "2026-09-17"
+dest = "refs/snapshots/thrustcurve/info/simulators.html"
+license = "unstated terms"
+mode = "fetched"
+
+# motor.fusionspace.co API v1 (US stock and prices). CC BY 4.0, credit "Motor stock data from
+# motor.fusionspace.co" (https://motor.fusionspace.co/api, "Data licence", fetched 2026-10-03).
+[[snapshot]]
+name = "motor-finder-meta"
+url = "https://motor.fusionspace.co/api/v1/meta.json"
+sha256 = "fb1a68c3904b7238515b7144d5d4cece537e15f3064e24df4cebac8a222a4a66"
+captured = "2026-09-17"
+dest = "refs/snapshots/motor-finder/meta.json"
+license = "CC-BY-4.0"
+mode = "fetched"
+
+[[snapshot]]
+name = "motor-finder-motors"
+url = "https://motor.fusionspace.co/api/v1/motors.json"
+sha256 = "58f30191f8475521b01d280886c4e45cb6014d1e2e54940dbbb1d5fea6f0e3b5"
+captured = "2026-09-17"
+dest = "refs/snapshots/motor-finder/motors.json"
+license = "CC-BY-4.0"
+mode = "fetched"
+
+[[snapshot]]
+name = "motor-finder-in-stock"
+url = "https://motor.fusionspace.co/api/v1/in-stock.json"
+sha256 = "644181c9ac6f88ce360a2b3ae5dd5aeba4eebf2ee23e9e80b7ec9d896cbf0cc7"
+captured = "2026-09-17"
+dest = "refs/snapshots/motor-finder/in-stock.json"
+license = "CC-BY-4.0"
+mode = "fetched"
+
+[[snapshot]]
+name = "motor-finder-vendors"
+url = "https://motor.fusionspace.co/api/v1/vendors.json"
+sha256 = "9b6ebd163eaccfed2bfb9c11a37a03df1860fd05425850b39aa6f32a85177fca"
+captured = "2026-09-17"
+dest = "refs/snapshots/motor-finder/vendors.json"
+license = "CC-BY-4.0"
+mode = "fetched"
+
+[[snapshot]]
+name = "unidata-netcdf-file-format"
+url = "https://docs.unidata.ucar.edu/netcdf-c/current/file_format_specifications.html"
+sha256 = "68f499b812774590eefc7c88fcce28fad103749bd21e0efff39b5277c2e289fc"
+captured = "2026-09-26"
+dest = "refs/snapshots/unidata/file_format_specifications.html"
+license = "unstated terms"
+mode = "fetched"
+
+[[snapshot]]
+name = "unidata-netcdf-attribute-conventions"
+url = "https://docs.unidata.ucar.edu/netcdf-c/current/attribute_conventions.html"
+sha256 = "1b8af2d85f542654435007e117b069dd8914dd33bc5f7fd09b38257c77d55bd5"
+captured = "2026-09-26"
+dest = "refs/snapshots/unidata/attribute_conventions.html"
+license = "unstated terms"
+mode = "fetched"
+
+[[snapshot]]
+name = "copernicus-era5-pressure-levels"
+url = "https://cds.climate.copernicus.eu/api/catalogue/v1/collections/reanalysis-era5-pressure-levels"
+sha256 = "64daf6afa2eda0dabe7a63d2928382ddd5cdea07a46c535f726abcdd78c701db"
+captured = "2026-09-26"
+dest = "refs/snapshots/copernicus/reanalysis-era5-pressure-levels.json"
+license = "CC-BY-4.0"
+mode = "fetched"
+
+[[snapshot]]
+name = "ecmwf-era5-geometric-height"
+url = "https://confluence.ecmwf.int/display/CKB/ERA5%3A+compute+pressure+and+geopotential+on+model+levels%2C+geopotential+height+and+geometric+height"
+sha256 = "bac7d364d23572567761ed631354c745a2167c6b68e2785214571d0f1dce12dc"
+captured = "2026-09-26"
+dest = "refs/snapshots/ecmwf/era5-geometric-height.html"
+license = "unstated terms"
+mode = "fetched"
+
+# The oracle Python environment: `uv sync --frozen` from validation/oracles/uv.lock, which pins
+# every package by hash. Selected on the command line as `python`.
+[python]
+project = "validation/oracles"
+venv = "refs/venv"
+checks = [
+    { module = "rocketpy", version = "1.13.0" },
+    { module = "jpype" },
+    { module = "mpmath", version = "1.3.0" },
+    { module = "ambiance", version = "1.3.1" },
+    { module = "netCDF4", version = "1.7.4" },
+    { module = "xarray", version = "2026.7.0" },
+]
+
+# The OpenRocket oracle's runtime. `doctor` looks in JAVA_HOME, /usr/libexec/java_home (macOS),
+# Homebrew's openjdk kegs, then PATH.
+[java]
+min_major = 17
+# OpenRocket 24.12 refuses anything newer: it reports "Supported version(s): 17". Observed from
+# the jar's own dialog on 2026-09-19; widen this if a later release accepts more.
+max_major = 17

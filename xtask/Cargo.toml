@@ -1,0 +1,38 @@
+[package]
+name = "xtask"
+description = "Development automation for the hpr-sim workspace, run as `cargo xtask <command>`."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+[dependencies]
+hpr = { workspace = true, features = ["net"] }
+hpr-aero.workspace = true
+hpr-cli.workspace = true
+hpr-atmos.workspace = true
+hpr-core.workspace = true
+hpr-design.workspace = true
+hpr-format.workspace = true
+hpr-io.workspace = true
+hpr-validate.workspace = true
+hpr-motor.workspace = true
+hpr-sim.workspace = true
+# The hpr design format's documents checked against its committed schema (M3.3a).
+jsonschema.workspace = true
+pulldown-cmark.workspace = true
+# The figure check reads each SVG under docs/ and each --plot figure (M0.7a1).
+roxmltree.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+toml.workspace = true
+zip.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

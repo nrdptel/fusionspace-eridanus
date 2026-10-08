@@ -1,0 +1,1344 @@
+//! Components other than fins: nose cones, body tubes, transitions, inner tubes, centering rings
+//! and bulkheads, launch lugs, rail buttons, mass components, parachutes, streamers and shock
+//! cords, each with its mass properties from geometry.
+//!
+//! **Frame.** Each part's frame has body axes and its origin on the body axis at the part's forward
+//! end (a nose cone's tip), so the part lies at `z ≤ 0` (`crate::mass`). Radial placements use a
+//! distance from the axis and a roll angle from `x_B` toward `y_B`.
+//!
+//! **Standard solids** (Meriam and Kraige, appendix B), for mass `m`:
+//!
+//! ```text
+//! hollow cylinder, radii R ≥ r, length L:  I_axis = m (R² + r²)/2,  I_across = m ((R² + r²)/4 + L²/12)
+//! solid cylinder, radius a, length h:      I_axis = m a²/2,          I_across = m (3a² + h²)/12
+//! ```
+//!
+//! Nose cones and transitions use [`crate::solids::revolve`]. **Shoulders** are hollow cylinders
+//! beyond the profile's end, and a capped shoulder is closed by a disc of the shoulder's inner
+//! radius and wall thickness, flush with its far end. **Recovery parts and mass components** are
+//! packed into solid cylinders (OpenRocket technical documentation v13.05, Table 5.1, p. 75, treats
+//! them the same way). A parachute's mass is its canopy, `π D²/4` times the fabric's surface
+//! density (the nominal area of a flat circular canopy), plus its shroud lines, count times length
+//! times line density. See `docs/physics/mass.md`.
+
+use std::f64::consts::PI;
+
+use hpr_core::DVec3;
+use serde::{Deserialize, Serialize};
+
+use crate::error::DesignError;
+use crate::mass::{MassProperties, Placement};
+use crate::material::Material;
+use crate::shapes::{NoseShape, Profile, check_dimension};
+use crate::solids::{Wall, revolve};
+
+/// A hollow cylinder of `density` on the axis with its forward end at the origin. A thickness
+/// equal to the outer radius gives a solid cylinder.
+///
+/// A thickness of **zero** is allowed, and gives a cylinder of no mass. That is not a mistake
+/// waiting to happen: a tube whose inner radius equals its outer radius is a real thing to say
+/// about a part, imported designs say it, and the formula below already answers it correctly.
+/// Refusing it would leave a reader no choice but to invent a wall: a solid coupler filling a
+/// 50 mm airframe for 180 mm weighs a few hundred grams that the design never had.
+pub(crate) fn hollow_cylinder(
+    part: &'static str,
+    density_kg_m3: f64,
+    length_m: f64,
+    outer_radius_m: f64,
+    thickness_m: f64,
+) -> Result<MassProperties, DesignError> {
+    check_dimension("length", length_m, false)?;
+    check_dimension("outer radius", outer_radius_m, false)?;
+    check_dimension("wall thickness", thickness_m, true)?;
+    if thickness_m > outer_radius_m {
+        return Err(DesignError::Geometry(format!(
+            "{part}: wall thickness {thickness_m} m exceeds the outer radius {outer_radius_m} m"
+        )));
+    }
+    let (big, small) = (outer_radius_m, outer_radius_m - thickness_m);
+    let mass = density_kg_m3 * PI * (big * big - small * small) * length_m;
+    let radii = big * big + small * small;
+    Ok(MassProperties::axisymmetric(
+        mass,
+        DVec3::new(0.0, 0.0, -0.5 * length_m),
+        0.5 * mass * radii,
+        mass * (0.25 * radii + length_m * length_m / 12.0),
+    ))
+}
+
+/// A solid cylinder of mass `mass_kg` along the axis, forward end at the origin.
+fn solid_cylinder(mass_kg: f64, length_m: f64, radius_m: f64) -> MassProperties {
+    MassProperties::axisymmetric(
+        mass_kg,
+        DVec3::new(0.0, 0.0, -0.5 * length_m),
+        0.5 * mass_kg * radius_m * radius_m,
+        mass_kg * (3.0 * radius_m * radius_m + length_m * length_m) / 12.0,
+    )
+}
+
+/// Checks that an angle is finite.
+fn check_angle(what: &'static str, value: f64) -> Result<(), DesignError> {
+    if value.is_finite() {
+        Ok(())
+    } else {
+        Err(DesignError::Domain { what, value })
+    }
+}
+
+/// A cylindrical extension of a nose cone or transition that fits inside the adjoining tube.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Shoulder {
+    /// Length, m.
+    pub length_m: f64,
+    /// Outer radius, m.
+    pub outer_radius_m: f64,
+    /// Wall thickness, m.
+    pub thickness_m: f64,
+    /// Whether a disc closes the shoulder's far end.
+    #[serde(default)]
+    pub capped: bool,
+}
+
+impl Shoulder {
+    /// Mass properties with the shoulder's near end at `z = near_z_m`, extending forward
+    /// (`forward`) or aft.
+    fn mass_properties(
+        &self,
+        density_kg_m3: f64,
+        near_z_m: f64,
+        forward: bool,
+    ) -> Result<MassProperties, DesignError> {
+        let tube = hollow_cylinder(
+            "shoulder",
+            density_kg_m3,
+            self.length_m,
+            self.outer_radius_m,
+            self.thickness_m,
+        )?;
+        // The tube's frame has its forward end at the origin; put that end in place.
+        let fore_z = if forward {
+            near_z_m + self.length_m
+        } else {
+            near_z_m
+        };
+        let mut parts = vec![tube.translated(DVec3::new(0.0, 0.0, fore_z))];
+        let inner = self.outer_radius_m - self.thickness_m;
+        if self.capped && inner > 0.0 && self.thickness_m <= self.length_m {
+            let cap = hollow_cylinder(
+                "shoulder cap",
+                density_kg_m3,
+                self.thickness_m,
+                inner,
+                inner,
+            )?;
+            let cap_fore = if forward {
+                fore_z
+            } else {
+                fore_z - self.length_m + self.thickness_m
+            };
+            parts.push(cap.translated(DVec3::new(0.0, 0.0, cap_fore)));
+        } else if self.capped {
+            return Err(DesignError::Geometry(
+                "a capped shoulder needs a hollow tube at least as long as its wall is thick"
+                    .to_owned(),
+            ));
+        }
+        Ok(MassProperties::combine(&parts))
+    }
+}
+
+/// A nose cone: a profile with its tip forward, and an optional shoulder aft of its base.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct NoseCone {
+    /// Profile shape.
+    pub shape: NoseShape,
+    /// Length from tip to base, m.
+    pub length_m: f64,
+    /// Base radius, m.
+    pub base_radius_m: f64,
+    /// Filled, or a wall of a thickness.
+    pub wall: Wall,
+    /// Optional shoulder.
+    #[serde(default)]
+    pub shoulder: Option<Shoulder>,
+    /// Material (bulk).
+    pub material: Material,
+}
+
+impl NoseCone {
+    /// The outer profile.
+    ///
+    /// # Errors
+    ///
+    /// As [`Profile::nose`].
+    pub fn profile(&self) -> Result<Profile, DesignError> {
+        Profile::nose(self.shape, self.length_m, self.base_radius_m)
+    }
+
+    /// Mass properties in the nose cone's frame (origin at the tip).
+    ///
+    /// # Errors
+    ///
+    /// Geometry, material and numerical errors from the profile, the solid and the shoulder.
+    pub fn mass_properties(&self) -> Result<MassProperties, DesignError> {
+        let density = self.material.bulk_kg_m3("nose cone")?;
+        let body = revolved(&self.profile()?, self.wall, density)?;
+        match &self.shoulder {
+            None => Ok(body),
+            Some(shoulder) => {
+                let aft = shoulder.mass_properties(density, -self.length_m, false)?;
+                Ok(MassProperties::combine([&body, &aft]))
+            }
+        }
+    }
+}
+
+/// Mass properties of a revolved profile of `density`, forward end at the origin.
+fn revolved(profile: &Profile, wall: Wall, density: f64) -> Result<MassProperties, DesignError> {
+    let g = revolve(profile, wall)?;
+    Ok(MassProperties::axisymmetric(
+        density * g.volume_m3,
+        DVec3::new(0.0, 0.0, -g.centroid_m),
+        density * g.axial_m5,
+        density * g.transverse_m5,
+    ))
+}
+
+/// A transition between two radii, with optional shoulders at either end.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Transition {
+    /// Profile shape.
+    pub shape: NoseShape,
+    /// Whether the profile is clipped from a longer nose cone (`crate::shapes`).
+    #[serde(default)]
+    pub clipped: bool,
+    /// Length, m.
+    pub length_m: f64,
+    /// Radius at the forward end, m.
+    pub fore_radius_m: f64,
+    /// Radius at the aft end, m.
+    pub aft_radius_m: f64,
+    /// Filled, or a wall of a thickness.
+    pub wall: Wall,
+    /// Optional shoulder forward of the fore end.
+    #[serde(default)]
+    pub fore_shoulder: Option<Shoulder>,
+    /// Optional shoulder aft of the aft end.
+    #[serde(default)]
+    pub aft_shoulder: Option<Shoulder>,
+    /// Material (bulk).
+    pub material: Material,
+}
+
+impl Transition {
+    /// The outer profile.
+    ///
+    /// # Errors
+    ///
+    /// As [`Profile::transition`].
+    pub fn profile(&self) -> Result<Profile, DesignError> {
+        Profile::transition(
+            self.shape,
+            self.length_m,
+            self.fore_radius_m,
+            self.aft_radius_m,
+            self.clipped,
+        )
+    }
+
+    /// Mass properties in the transition's frame (origin at its fore end, so a fore shoulder lies
+    /// at `z > 0`).
+    ///
+    /// # Errors
+    ///
+    /// Geometry, material and numerical errors from the profile, the solid and the shoulders.
+    pub fn mass_properties(&self) -> Result<MassProperties, DesignError> {
+        let density = self.material.bulk_kg_m3("transition")?;
+        let mut parts = vec![revolved(&self.profile()?, self.wall, density)?];
+        if let Some(shoulder) = &self.fore_shoulder {
+            parts.push(shoulder.mass_properties(density, 0.0, true)?);
+        }
+        if let Some(shoulder) = &self.aft_shoulder {
+            parts.push(shoulder.mass_properties(density, -self.length_m, false)?);
+        }
+        Ok(MassProperties::combine(&parts))
+    }
+}
+
+/// An airframe tube.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct BodyTube {
+    /// Length, m.
+    pub length_m: f64,
+    /// Outer radius, m.
+    pub outer_radius_m: f64,
+    /// Wall thickness, m.
+    pub thickness_m: f64,
+    /// Material (bulk).
+    pub material: Material,
+}
+
+impl BodyTube {
+    /// Mass properties in the tube's frame.
+    ///
+    /// A tube of no length weighs nothing, whatever its radius: it has no wall to weigh. Only a
+    /// pod may hold one ([`PodSet`]), as OpenRocket's "phantom body" does, to hang fins or a lug
+    /// off the airframe's axis; a stage refuses a body component of no length.
+    ///
+    /// # Errors
+    ///
+    /// Geometry and material errors.
+    pub fn mass_properties(&self) -> Result<MassProperties, DesignError> {
+        let density = self.material.bulk_kg_m3("body tube")?;
+        if self.length_m == 0.0 {
+            check_dimension("outer radius", self.outer_radius_m, true)?;
+            check_dimension("wall thickness", self.thickness_m, true)?;
+            if self.thickness_m > self.outer_radius_m {
+                return Err(DesignError::Geometry(format!(
+                    "body tube: wall thickness {} m exceeds the outer radius {} m",
+                    self.thickness_m, self.outer_radius_m
+                )));
+            }
+            return Ok(MassProperties::ZERO);
+        }
+        hollow_cylinder(
+            "body tube",
+            density,
+            self.length_m,
+            self.outer_radius_m,
+            self.thickness_m,
+        )
+    }
+}
+
+/// A tube inside the airframe: a coupler, a motor mount tube, an engine block or thrust ring. It
+/// may sit off the axis, and it may be a cluster: several like tubes side by side, as in a
+/// cluster's motor mount.
+///
+/// **A cluster.** [`Self::cluster_m`] lists where each tube's axis sits, `[x, y]` in body axes
+/// from the axis the radial offset and angle give. The tubes are the one tube written here,
+/// repeated at each place: their mass is the sum of the copies, each with its own parallel-axis
+/// term. What the tube holds (an engine block, a motor) is repeated in every tube in the same way
+/// (`docs/physics/design.md`, the decision record on clusters, [ADR-075][adr-075]).
+///
+/// [adr-075]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-075-a-cluster-is-one-tube-repeated-and-a-motor-in-it-one-motor-per-tube-2026-09-25
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct InnerTube {
+    /// Length, m.
+    pub length_m: f64,
+    /// Outer radius, m.
+    pub outer_radius_m: f64,
+    /// Wall thickness, m.
+    pub thickness_m: f64,
+    /// Distance of the tube's axis from the body axis, m.
+    #[serde(default)]
+    pub radial_offset_m: f64,
+    /// Roll angle of that offset from `x_B` toward `y_B`, rad.
+    #[serde(default)]
+    pub angle_rad: f64,
+    /// Material (bulk).
+    pub material: Material,
+    /// A cluster's tubes: each tube's axis, `[x, y]` in body axes, m, measured from the axis the
+    /// radial offset and angle give. Empty (the default) for one tube on that axis.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub cluster_m: Vec<[f64; 2]>,
+}
+
+impl InnerTube {
+    /// Mass properties in the tube's frame: every tube of a cluster.
+    ///
+    /// # Errors
+    ///
+    /// Geometry and material errors, and [`DesignError::Domain`] for a cluster offset that is not
+    /// finite.
+    pub fn mass_properties(&self) -> Result<MassProperties, DesignError> {
+        check_dimension("inner tube radial offset", self.radial_offset_m, true)?;
+        check_angle("inner tube angle", self.angle_rad)?;
+        let density = self.material.bulk_kg_m3("inner tube")?;
+        let tube = hollow_cylinder(
+            "inner tube",
+            density,
+            self.length_m,
+            self.outer_radius_m,
+            self.thickness_m,
+        )?
+        .translated(DVec3::new(self.radial_offset_m, 0.0, 0.0))
+        .rolled(self.angle_rad);
+        Ok(MassProperties::copied(tube, &self.tubes_m()?))
+    }
+
+    /// Where each tube sits, `[x, y]` from the axis the radial offset and angle give, m: the
+    /// cluster's places, or `[0, 0]` alone for one tube.
+    ///
+    /// # Errors
+    ///
+    /// [`DesignError::Domain`] for a cluster offset that is not finite.
+    pub fn tubes_m(&self) -> Result<Vec<[f64; 2]>, DesignError> {
+        if self.cluster_m.is_empty() {
+            return Ok(vec![[0.0, 0.0]]);
+        }
+        for &[x, y] in &self.cluster_m {
+            for value in [x, y] {
+                if !value.is_finite() {
+                    return Err(DesignError::Domain {
+                        what: "inner tube cluster offset (m)",
+                        value,
+                    });
+                }
+            }
+        }
+        Ok(self.cluster_m.clone())
+    }
+}
+
+/// Pods beside the airframe: side pods, or outboard motor pods. A pod set attaches to a body tube
+/// like a fin set, and its children are the pod's own body components (nose cone, body tubes,
+/// transitions), which stack aft from the pod set's position along the pod's axis instead of the
+/// body's.
+///
+/// **Copies.** The pod written in the tree is one pod on the body's axis, repeated `count` times
+/// around it as a rotational pattern: pod `k` is that pod turned by `φ_k = angle + 2π k / count`
+/// about the body's axis and moved to `r (cos φ_k, sin φ_k)` ([`Self::pods`]), in
+/// [body axes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/physics/frames.md). Everything
+/// the pod holds (fins on its tubes, parts inside them, a motor in a mount) turns and moves with
+/// it, so what points away from the airframe on one pod does on every pod. Each copy adds its own
+/// parallel-axis term, `I_O = I_cg + m (|d|² E − d dᵀ)` with `d` the copy's center from the point
+/// `O` (J. L. Meriam and L. G. Kraige, *Engineering Mechanics: Dynamics*, appendix B). The pod set
+/// itself weighs nothing: its mass is its pods'. See the design page's *Pods* section
+/// (`docs/physics/design.md`) and the decision record on pods, [ADR-089][adr-089].
+///
+/// **A pod of no length.** A pod may be a single body tube of no length, which weighs nothing: what
+/// hangs from it (fins, a launch lug) sits on a tube of that radius, most often none, so on the
+/// pod's own axis, and is repeated around the body's as any pod is. OpenRocket draws winglets this
+/// way, calling the tube a "phantom body". A pod set may also hold nothing at all, and then weighs
+/// nothing.
+///
+/// **Flown** since
+/// [M1.13c1](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions-and-roadmap.md#m1-13c1):
+/// each pod's parts take their own normal force and drag, once per pod
+/// ([aerodynamics: Pods](https://hpr.fusionspace.co/physics/aero.html#pods)).
+///
+/// [adr-089]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-089-a-pod-is-a-stack-of-body-components-repeated-around-the-axis-2026-09-27
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct PodSet {
+    /// Number of pods, at least one, spaced evenly around the body's axis.
+    pub count: u32,
+    /// Distance of each pod's axis from the body's axis, m.
+    pub radial_offset_m: f64,
+    /// Roll angle of the first pod from `x_B` toward `y_B`, rad.
+    #[serde(default)]
+    pub angle_rad: f64,
+}
+
+impl PodSet {
+    /// The most pods a set may have. Far more than any rocket carries, it bounds the copies a
+    /// design file can ask for.
+    pub const MAX_COUNT: u32 = 64;
+
+    /// Where each pod sits: pod `k` is the pod as written (on the body's axis) turned by
+    /// `φ_k = angle + 2π k / count` about the axis and moved to `r (cos φ_k, sin φ_k)`, for
+    /// `k = 0 … count − 1`.
+    ///
+    /// # Errors
+    ///
+    /// [`DesignError::Domain`] for no pods or more than [`Self::MAX_COUNT`], a radial offset that
+    /// is negative or not finite, or an angle that is not finite.
+    pub fn pods(&self) -> Result<Vec<Placement>, DesignError> {
+        if self.count == 0 || self.count > Self::MAX_COUNT {
+            return Err(DesignError::Domain {
+                what: "pod count (1 to 64)",
+                value: f64::from(self.count),
+            });
+        }
+        check_dimension("pod radial offset", self.radial_offset_m, true)?;
+        check_angle("pod angle", self.angle_rad)?;
+        let step = std::f64::consts::TAU / f64::from(self.count);
+        Ok((0..self.count)
+            .map(|k| {
+                let phi = self.angle_rad + step * f64::from(k);
+                Placement {
+                    offset_m: [
+                        self.radial_offset_m * phi.cos(),
+                        self.radial_offset_m * phi.sin(),
+                    ],
+                    roll_rad: phi,
+                }
+            })
+            .collect())
+    }
+}
+
+/// A flat annular ring, or a bulkhead when the inner radius is zero.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct CenteringRing {
+    /// Thickness along the axis, m.
+    pub length_m: f64,
+    /// Outer radius, m.
+    pub outer_radius_m: f64,
+    /// Inner radius, m (zero for a bulkhead).
+    pub inner_radius_m: f64,
+    /// Material (bulk).
+    pub material: Material,
+}
+
+impl CenteringRing {
+    /// A bulkhead: a solid disc.
+    pub fn bulkhead(length_m: f64, radius_m: f64, material: Material) -> Self {
+        Self {
+            length_m,
+            outer_radius_m: radius_m,
+            inner_radius_m: 0.0,
+            material,
+        }
+    }
+
+    /// Mass properties in the ring's frame.
+    ///
+    /// # Errors
+    ///
+    /// Geometry and material errors, including an inner radius not below the outer.
+    pub fn mass_properties(&self) -> Result<MassProperties, DesignError> {
+        check_dimension("ring inner radius", self.inner_radius_m, true)?;
+        // A ring whose bore reaches its rim is not a ring: it has no material, and would weigh
+        // nothing without saying so. A *tube* of no wall is a real, massless part and
+        // `hollow_cylinder` allows one; a ring of no annulus is a mistake somewhere upstream.
+        if self.inner_radius_m >= self.outer_radius_m {
+            return Err(DesignError::Geometry(format!(
+                "a centering ring's bore ({} m) reaches its outer radius ({} m), leaving no ring",
+                self.inner_radius_m, self.outer_radius_m
+            )));
+        }
+        let density = self.material.bulk_kg_m3("centering ring")?;
+        hollow_cylinder(
+            "centering ring",
+            density,
+            self.length_m,
+            self.outer_radius_m,
+            self.outer_radius_m - self.inner_radius_m,
+        )
+    }
+}
+
+/// The most copies a row of lugs or rail buttons may have: as [`crate::FinSet::MAX_COUNT`], a
+/// bound on the bodies weighed one per copy, so a design file's count can't stall the weighing.
+pub const MAX_INSTANCES: u32 = 64;
+
+/// Copies of a part spaced along the axis: the first at the part's own position, each next one
+/// `spacing_m` further aft.
+///
+/// # Errors
+///
+/// [`DesignError::Domain`] for a count of none or more than [`MAX_INSTANCES`] (`what` is
+/// `"instance count (1 to 64)"`, the value the count), and a bad spacing.
+fn instances(
+    one: MassProperties,
+    count: u32,
+    spacing_m: f64,
+) -> Result<MassProperties, DesignError> {
+    if count == 0 || count > MAX_INSTANCES {
+        return Err(DesignError::Domain {
+            what: "instance count (1 to 64)",
+            value: f64::from(count),
+        });
+    }
+    check_dimension("instance spacing", spacing_m, true)?;
+    let copies: Vec<MassProperties> = (0..count)
+        .map(|k| one.translated(DVec3::new(0.0, 0.0, -spacing_m * f64::from(k))))
+        .collect();
+    Ok(MassProperties::combine(&copies))
+}
+
+/// A launch lug: a tube on the outside of the airframe, parallel to it.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct LaunchLug {
+    /// Length, m.
+    pub length_m: f64,
+    /// Outer radius, m.
+    pub outer_radius_m: f64,
+    /// Wall thickness, m.
+    pub thickness_m: f64,
+    /// Roll angle from `x_B` toward `y_B`, rad.
+    #[serde(default)]
+    pub angle_rad: f64,
+    /// Number of lugs in a row, 1 to 64 ([`MAX_INSTANCES`]).
+    #[serde(default = "one")]
+    pub count: u32,
+    /// Axial distance between the forward ends of consecutive lugs, m.
+    #[serde(default)]
+    pub spacing_m: f64,
+    /// Material (bulk).
+    pub material: Material,
+}
+
+fn one() -> u32 {
+    1
+}
+
+impl LaunchLug {
+    /// Mass properties in the lug's frame, touching a body of radius `body_radius_m`.
+    ///
+    /// # Errors
+    ///
+    /// Geometry and material errors.
+    pub fn mass_properties(&self, body_radius_m: f64) -> Result<MassProperties, DesignError> {
+        check_dimension("body radius", body_radius_m, true)?;
+        check_angle("launch lug angle", self.angle_rad)?;
+        let density = self.material.bulk_kg_m3("launch lug")?;
+        let tube = hollow_cylinder(
+            "launch lug",
+            density,
+            self.length_m,
+            self.outer_radius_m,
+            self.thickness_m,
+        )?;
+        let placed = tube
+            .translated(DVec3::new(body_radius_m + self.outer_radius_m, 0.0, 0.0))
+            .rolled(self.angle_rad);
+        instances(placed, self.count, self.spacing_m)
+    }
+}
+
+/// A rail button: a base disc on the airframe, a narrower waist, and a flange that rides in the
+/// rail, stacked outward along a radial line, with the screw's dome head on top of the flange.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct RailButton {
+    /// Diameter of the base and the flange, m.
+    pub outer_diameter_m: f64,
+    /// Diameter of the waist, m.
+    pub inner_diameter_m: f64,
+    /// Total height above the airframe, m.
+    pub height_m: f64,
+    /// Height of the base, m.
+    pub base_height_m: f64,
+    /// Height of the flange, m.
+    pub flange_height_m: f64,
+    /// Height of the screw's head above the flange, m: a dome, half an ellipsoid as wide as the
+    /// button, its mass in the button's (0 for none). It has no drag of its own, as OpenRocket
+    /// 24.12 gives it none ([ADR-168][adr-168]).
+    ///
+    /// [adr-168]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0168-pods-powered-flies.md
+    #[serde(default)]
+    pub screw_height_m: f64,
+    /// Roll angle from `x_B` toward `y_B`, rad.
+    #[serde(default)]
+    pub angle_rad: f64,
+    /// Number of buttons in a row, 1 to 64 ([`MAX_INSTANCES`]).
+    #[serde(default = "one")]
+    pub count: u32,
+    /// Axial distance between the forward edges of consecutive buttons, m.
+    #[serde(default)]
+    pub spacing_m: f64,
+    /// Material (bulk).
+    pub material: Material,
+}
+
+impl RailButton {
+    /// Mass properties in the button's frame (origin on the body axis at the button's forward
+    /// edge), on a body of radius `body_radius_m`. Each disc is a solid cylinder whose axis points
+    /// outward. The screw's head is half a solid ellipsoid of revolution on the flange, of the
+    /// button's outer radius `a` and the screw's height `h` along its axis: volume `2/3 π a² h`,
+    /// its center of mass `3h/8` above its base, its moment of inertia `2/5 m a²` about its axis
+    /// and `m (a²/5 + 19 h²/320)` across it through its center of mass (half the ellipsoid's
+    /// `m (a² + h²)/5` about its base's diameter, moved by the parallel-axis theorem). OpenRocket
+    /// 24.12 has the same volume, measured to 2e-16, and puts the head's center `4h/3π` above the
+    /// flange, `0.049 h` further out ([ADR-168][adr-168]).
+    ///
+    /// [adr-168]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0168-pods-powered-flies.md
+    ///
+    /// # Errors
+    ///
+    /// Geometry and material errors, including a base and flange taller than the button or a waist
+    /// wider than the flange.
+    pub fn mass_properties(&self, body_radius_m: f64) -> Result<MassProperties, DesignError> {
+        check_dimension("body radius", body_radius_m, true)?;
+        check_dimension("rail button outer diameter", self.outer_diameter_m, false)?;
+        check_dimension("rail button inner diameter", self.inner_diameter_m, false)?;
+        check_dimension("rail button height", self.height_m, false)?;
+        check_dimension("rail button base height", self.base_height_m, true)?;
+        check_dimension("rail button flange height", self.flange_height_m, true)?;
+        check_dimension("rail button screw height", self.screw_height_m, true)?;
+        check_angle("rail button angle", self.angle_rad)?;
+        let waist = self.height_m - self.base_height_m - self.flange_height_m;
+        if waist < 0.0 || self.inner_diameter_m > self.outer_diameter_m {
+            return Err(DesignError::Geometry(
+                "a rail button's base and flange must fit in its height, and its waist in its flange"
+                    .to_owned(),
+            ));
+        }
+        let density = self.material.bulk_kg_m3("rail button")?;
+        let center_z = -0.5 * self.outer_diameter_m;
+        let disc = |diameter: f64, height: f64, from: f64| -> MassProperties {
+            let a = 0.5 * diameter;
+            let mass = density * PI * a * a * height;
+            let across = mass * (3.0 * a * a + height * height) / 12.0;
+            MassProperties {
+                mass_kg: mass,
+                cg_m: DVec3::new(body_radius_m + from + 0.5 * height, 0.0, center_z),
+                inertia_kg_m2: hpr_core::DMat3::from_diagonal(DVec3::new(
+                    0.5 * mass * a * a,
+                    across,
+                    across,
+                )),
+            }
+        };
+        let mut stack = vec![
+            disc(self.outer_diameter_m, self.base_height_m, 0.0),
+            disc(self.inner_diameter_m, waist, self.base_height_m),
+            disc(
+                self.outer_diameter_m,
+                self.flange_height_m,
+                self.base_height_m + waist,
+            ),
+        ];
+        // A button with no screw keeps the three discs' sum, bit for bit.
+        if self.screw_height_m > 0.0 {
+            let (a, h) = (0.5 * self.outer_diameter_m, self.screw_height_m);
+            let mass = density * 2.0 / 3.0 * PI * a * a * h;
+            let across = mass * (a * a / 5.0 + 19.0 * h * h / 320.0);
+            stack.push(MassProperties {
+                mass_kg: mass,
+                cg_m: DVec3::new(body_radius_m + self.height_m + 0.375 * h, 0.0, center_z),
+                inertia_kg_m2: hpr_core::DMat3::from_diagonal(DVec3::new(
+                    0.4 * mass * a * a,
+                    across,
+                    across,
+                )),
+            });
+        }
+        let one = MassProperties::combine(&stack).rolled(self.angle_rad);
+        instances(one, self.count, self.spacing_m)
+    }
+}
+
+/// Where and how compactly a mass or a recovery part is stowed: a solid cylinder.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Packing {
+    /// Length, m.
+    pub length_m: f64,
+    /// Radius, m.
+    pub radius_m: f64,
+    /// Distance of its axis from the body axis, m.
+    #[serde(default)]
+    pub radial_offset_m: f64,
+    /// Roll angle of that offset from `x_B` toward `y_B`, rad.
+    #[serde(default)]
+    pub angle_rad: f64,
+}
+
+impl Packing {
+    /// A cylinder of `mass_kg` stowed this way, forward end at the origin.
+    pub(crate) fn place(&self, mass_kg: f64) -> Result<MassProperties, DesignError> {
+        check_dimension("mass", mass_kg, true)?;
+        check_dimension("packed length", self.length_m, true)?;
+        check_dimension("packed radius", self.radius_m, true)?;
+        check_dimension("radial offset", self.radial_offset_m, true)?;
+        check_angle("packing angle", self.angle_rad)?;
+        Ok(solid_cylinder(mass_kg, self.length_m, self.radius_m)
+            .translated(DVec3::new(self.radial_offset_m, 0.0, 0.0))
+            .rolled(self.angle_rad))
+    }
+}
+
+/// A mass of known value: an altimeter bay, ballast, a payload.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct MassComponent {
+    /// Mass, kg.
+    pub mass_kg: f64,
+    /// Its extent.
+    pub packing: Packing,
+}
+
+impl MassComponent {
+    /// Mass properties in the component's frame.
+    ///
+    /// # Errors
+    ///
+    /// [`DesignError::Domain`] for a negative or non-finite value.
+    pub fn mass_properties(&self) -> Result<MassProperties, DesignError> {
+        self.packing.place(self.mass_kg)
+    }
+}
+
+/// A parachute, packed.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Parachute {
+    /// Nominal (flat) canopy diameter, m.
+    pub diameter_m: f64,
+    /// Canopy fabric (surface).
+    pub canopy_material: Material,
+    /// Number of shroud lines.
+    pub line_count: u32,
+    /// Length of each shroud line, m.
+    pub line_length_m: f64,
+    /// Shroud line (line).
+    pub line_material: Material,
+    /// How it is packed.
+    pub packing: Packing,
+}
+
+impl Parachute {
+    /// Canopy plus lines, kg.
+    ///
+    /// # Errors
+    ///
+    /// Dimension and material errors.
+    pub fn mass_kg(&self) -> Result<f64, DesignError> {
+        check_dimension("parachute diameter", self.diameter_m, true)?;
+        check_dimension("shroud line length", self.line_length_m, true)?;
+        let canopy = self.canopy_material.surface_kg_m2("parachute canopy")?;
+        let line = self.line_material.line_kg_m("shroud line")?;
+        Ok(canopy * PI * self.diameter_m * self.diameter_m / 4.0
+            + f64::from(self.line_count) * self.line_length_m * line)
+    }
+
+    /// Mass properties in the parachute's frame.
+    ///
+    /// # Errors
+    ///
+    /// As [`Parachute::mass_kg`].
+    pub fn mass_properties(&self) -> Result<MassProperties, DesignError> {
+        self.packing.place(self.mass_kg()?)
+    }
+}
+
+/// A streamer, packed.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Streamer {
+    /// Length, m.
+    pub length_m: f64,
+    /// Width, m.
+    pub width_m: f64,
+    /// Material (surface).
+    pub material: Material,
+    /// How it is packed.
+    pub packing: Packing,
+}
+
+impl Streamer {
+    /// Mass properties in the streamer's frame.
+    ///
+    /// # Errors
+    ///
+    /// Dimension and material errors.
+    pub fn mass_properties(&self) -> Result<MassProperties, DesignError> {
+        check_dimension("streamer length", self.length_m, true)?;
+        check_dimension("streamer width", self.width_m, true)?;
+        let density = self.material.surface_kg_m2("streamer")?;
+        self.packing.place(density * self.length_m * self.width_m)
+    }
+}
+
+/// A shock cord, packed.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ShockCord {
+    /// Length, m.
+    pub length_m: f64,
+    /// Material (line).
+    pub material: Material,
+    /// How it is packed.
+    pub packing: Packing,
+}
+
+impl ShockCord {
+    /// Mass properties in the cord's frame.
+    ///
+    /// # Errors
+    ///
+    /// Dimension and material errors.
+    pub fn mass_properties(&self) -> Result<MassProperties, DesignError> {
+        check_dimension("shock cord length", self.length_m, true)?;
+        let density = self.material.line_kg_m("shock cord")?;
+        self.packing.place(density * self.length_m)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use hpr_core::DMat3;
+
+    fn close(got: f64, want: f64, rel: f64, what: &str) {
+        let err = if want == 0.0 {
+            got.abs()
+        } else {
+            ((got - want) / want).abs()
+        };
+        assert!(err <= rel, "{what}: {got} vs {want} (relative {err:e})");
+    }
+
+    fn cardboard() -> Material {
+        Material::bulk("cardboard", 790.0)
+    }
+
+    #[test]
+    fn a_nose_cone_with_a_capped_shoulder_adds_up_by_hand() {
+        // A conical nose, filled, with a capped shoulder: every piece has a closed form.
+        let (l, r, rho) = (0.2, 0.03, 1240.0);
+        let (ls, rs, ts) = (0.05, 0.028, 0.002);
+        let nose = NoseCone {
+            shape: NoseShape::Conical {},
+            length_m: l,
+            base_radius_m: r,
+            wall: Wall::Filled {},
+            shoulder: Some(Shoulder {
+                length_m: ls,
+                outer_radius_m: rs,
+                thickness_m: ts,
+                capped: true,
+            }),
+            material: Material::bulk("PLA", rho),
+        };
+        let g = nose.mass_properties().unwrap();
+        let cone_m = rho * PI * r * r * l / 3.0;
+        let tube_m = rho * PI * (rs * rs - (rs - ts).powi(2)) * ls;
+        let cap_m = rho * PI * (rs - ts).powi(2) * ts;
+        close(g.mass_kg, cone_m + tube_m + cap_m, 1e-12, "mass");
+        let moment = cone_m * (-0.75 * l) + tube_m * (-l - ls / 2.0) + cap_m * (-l - ls + ts / 2.0);
+        close(
+            g.cg_m.z,
+            moment / (cone_m + tube_m + cap_m),
+            1e-12,
+            "center",
+        );
+        // Axial: cone 3/10 m R², tube m(R² + r²)/2, cap m a²/2.
+        let ri = rs - ts;
+        let axial =
+            0.3 * cone_m * r * r + 0.5 * tube_m * (rs * rs + ri * ri) + 0.5 * cap_m * ri * ri;
+        close(g.inertia_kg_m2.z_axis.z, axial, 1e-11, "axial");
+        // Transverse about the combined center: cone 3/80 m (4R² + L²) about its own center.
+        let zc = g.cg_m.z;
+        let transverse = 3.0 / 80.0 * cone_m * (4.0 * r * r + l * l)
+            + cone_m * (-0.75 * l - zc).powi(2)
+            + tube_m * ((rs * rs + ri * ri) / 4.0 + ls * ls / 12.0)
+            + tube_m * (-l - ls / 2.0 - zc).powi(2)
+            + cap_m * (3.0 * ri * ri + ts * ts) / 12.0
+            + cap_m * (-l - ls + ts / 2.0 - zc).powi(2);
+        close(g.inertia_kg_m2.x_axis.x, transverse, 1e-11, "transverse");
+    }
+
+    #[test]
+    fn shoulders_sit_beyond_the_right_ends() {
+        let shoulder = Shoulder {
+            length_m: 0.04,
+            outer_radius_m: 0.02,
+            thickness_m: 0.001,
+            capped: false,
+        };
+        let t = Transition {
+            shape: NoseShape::Conical {},
+            clipped: false,
+            length_m: 0.1,
+            fore_radius_m: 0.021,
+            aft_radius_m: 0.03,
+            wall: Wall::Shell { thickness_m: 0.002 },
+            fore_shoulder: Some(shoulder),
+            aft_shoulder: None,
+            material: cardboard(),
+        };
+        let fore = shoulder.mass_properties(790.0, 0.0, true).unwrap();
+        close(fore.cg_m.z, 0.02, 1e-15, "fore shoulder center");
+        let aft = shoulder.mass_properties(790.0, -0.1, false).unwrap();
+        close(aft.cg_m.z, -0.12, 1e-15, "aft shoulder center");
+        let whole = t.mass_properties().unwrap();
+        let body = Transition {
+            fore_shoulder: None,
+            ..t.clone()
+        }
+        .mass_properties()
+        .unwrap();
+        close(whole.mass_kg, body.mass_kg + fore.mass_kg, 1e-14, "mass");
+    }
+
+    /// A cluster is its tubes: a 4-ring of tubes 0.02 m from the cluster's axis, the cluster
+    /// itself 0.01 m off the body's, weighs four tubes, has its center on the cluster's axis, and
+    /// about the body's axis its roll inertia is, for each tube, its own plus `m d²` to that tube,
+    /// worked by hand. A tube with no cluster is the one tube, bit for bit; a cluster offset that
+    /// is not finite is refused.
+    #[test]
+    fn a_cluster_is_its_tubes_each_with_its_parallel_axis_term() {
+        let tube = |cluster_m: Vec<[f64; 2]>| InnerTube {
+            length_m: 0.3,
+            outer_radius_m: 0.015,
+            thickness_m: 0.001,
+            radial_offset_m: 0.01,
+            angle_rad: 0.0,
+            material: cardboard(),
+            cluster_m,
+        };
+        let one = hollow_cylinder("t", 790.0, 0.3, 0.015, 0.001).unwrap();
+        let single = tube(Vec::new()).mass_properties().unwrap();
+        assert_eq!(
+            single,
+            one.translated(DVec3::new(0.01, 0.0, 0.0)).rolled(0.0)
+        );
+        assert_eq!(tube(Vec::new()).tubes_m().unwrap(), [[0.0, 0.0]]);
+
+        let square = vec![[0.02, 0.0], [0.0, 0.02], [-0.02, 0.0], [0.0, -0.02]];
+        let g = tube(square.clone()).mass_properties().unwrap();
+        close(g.mass_kg, 4.0 * one.mass_kg, 1e-15, "four tubes");
+        assert!((g.cg_m - DVec3::new(0.01, 0.0, -0.15)).length() < 1e-15);
+        let roll: f64 = square
+            .iter()
+            .map(|[x, y]| {
+                let (dx, dy) = (0.01 + x, *y);
+                one.inertia_kg_m2.z_axis.z + one.mass_kg * (dx * dx + dy * dy)
+            })
+            .sum();
+        close(
+            g.inertia_about(DVec3::new(0.0, 0.0, -0.15)).z_axis.z,
+            roll,
+            1e-15,
+            "roll about the body axis",
+        );
+
+        let Err(DesignError::Domain { what, value }) =
+            tube(vec![[f64::NAN, 0.0]]).mass_properties()
+        else {
+            panic!("refused");
+        };
+        assert_eq!(what, "inner tube cluster offset (m)");
+        assert!(value.is_nan());
+    }
+
+    #[test]
+    fn off_axis_parts_carry_their_offsets() {
+        // An inner tube in a cluster, a lug and a mass component, each against the parallel-axis
+        // theorem.
+        let tube = InnerTube {
+            length_m: 0.3,
+            outer_radius_m: 0.015,
+            thickness_m: 0.001,
+            radial_offset_m: 0.03,
+            angle_rad: PI / 2.0,
+            material: cardboard(),
+            cluster_m: Vec::new(),
+        };
+        let g = tube.mass_properties().unwrap();
+        assert!((g.cg_m - DVec3::new(0.0, 0.03, -0.15)).length() < 1e-15);
+        let own = hollow_cylinder("t", 790.0, 0.3, 0.015, 0.001).unwrap();
+        // About the body axis, the axial moment gains m d².
+        close(
+            g.inertia_about(DVec3::new(0.0, 0.0, -0.15)).z_axis.z,
+            own.inertia_kg_m2.z_axis.z + own.mass_kg * 0.03 * 0.03,
+            1e-13,
+            "axial about the body axis",
+        );
+
+        let lug = LaunchLug {
+            length_m: 0.05,
+            outer_radius_m: 0.003,
+            thickness_m: 0.0005,
+            angle_rad: 0.0,
+            count: 2,
+            spacing_m: 0.4,
+            material: Material::bulk("brass", 8500.0),
+        };
+        let g = lug.mass_properties(0.02).unwrap();
+        let one = hollow_cylinder("l", 8500.0, 0.05, 0.003, 0.0005).unwrap();
+        close(g.mass_kg, 2.0 * one.mass_kg, 1e-14, "two lugs");
+        assert!((g.cg_m - DVec3::new(0.023, 0.0, -0.225)).length() < 1e-15);
+        close(
+            g.inertia_kg_m2.x_axis.x,
+            one.inertia_kg_m2.x_axis.x * 2.0 + 2.0 * one.mass_kg * 0.2 * 0.2,
+            1e-13,
+            "two lugs transverse",
+        );
+
+        let mass = MassComponent {
+            mass_kg: 0.25,
+            packing: Packing {
+                length_m: 0.1,
+                radius_m: 0.02,
+                radial_offset_m: 0.01,
+                angle_rad: PI,
+            },
+        };
+        let g = mass.mass_properties().unwrap();
+        assert!((g.cg_m - DVec3::new(-0.01, 0.0, -0.05)).length() < 1e-15);
+        let expected = DMat3::from_diagonal(DVec3::new(
+            0.25 * (3.0 * 0.0004 + 0.01) / 12.0,
+            0.25 * (3.0 * 0.0004 + 0.01) / 12.0,
+            0.25 * 0.0004 / 2.0,
+        ));
+        let diff = (g.inertia_kg_m2 - expected)
+            .to_cols_array()
+            .iter()
+            .fold(0.0f64, |m, v| m.max(v.abs()));
+        assert!(diff < 1e-18, "{g:?}");
+    }
+
+    #[test]
+    fn a_lug_or_button_count_over_the_bound_is_refused_and_the_bound_is_weighed() {
+        let lug = |count| LaunchLug {
+            length_m: 0.05,
+            outer_radius_m: 0.003,
+            thickness_m: 0.0005,
+            angle_rad: 0.0,
+            count,
+            spacing_m: 0.01,
+            material: Material::bulk("brass", 8500.0),
+        };
+        let button = |count| RailButton {
+            outer_diameter_m: 0.0111,
+            inner_diameter_m: 0.0063,
+            height_m: 0.0086,
+            base_height_m: 0.0025,
+            flange_height_m: 0.0022,
+            screw_height_m: 0.0,
+            angle_rad: 0.0,
+            count,
+            spacing_m: 0.01,
+            material: Material::bulk("acetal", 1420.0),
+        };
+        // A count past the bound used to build one body per copy: four billion stalled.
+        for count in [0, MAX_INSTANCES + 1, 4_000_000_000] {
+            for result in [
+                lug(count).mass_properties(0.02),
+                button(count).mass_properties(0.02),
+            ] {
+                match result {
+                    Err(DesignError::Domain { what, value }) => {
+                        assert_eq!(what, "instance count (1 to 64)");
+                        assert_eq!(value, f64::from(count));
+                    }
+                    other => panic!("count {count}: {other:?}"),
+                }
+            }
+        }
+        let one = lug(1).mass_properties(0.02).unwrap().mass_kg;
+        let all = lug(MAX_INSTANCES).mass_properties(0.02).unwrap().mass_kg;
+        close(all, 64.0 * one, 1e-13, "64 lugs");
+        let one = button(1).mass_properties(0.02).unwrap().mass_kg;
+        let all = button(MAX_INSTANCES).mass_properties(0.02).unwrap().mass_kg;
+        close(all, 64.0 * one, 1e-13, "64 buttons");
+    }
+
+    /// A rail button's screw head (ADR-168): half an ellipsoid on the flange, as wide as the
+    /// button. OpenRocket 24.12's probes (a 25 mm body, a 10 mm button 8 mm tall on 2 mm discs, a
+    /// 6 mm waist, 1000 kg/m³) give the button's volume for screws of 0, 1, 2 and 5 mm; its `2/3`
+    /// is a single-precision number, hpr's the double, and that is the only difference (1.1e-8 of
+    /// the volume at 5 mm). OpenRocket puts the head's center
+    /// `4h/3π` above the flange, hpr at the solid's `3h/8`: the button's center differs by that
+    /// alone, weighted by the head's share of the volume.
+    #[test]
+    fn a_rail_buttons_screw_head_is_half_an_ellipsoid() {
+        let button = |screw_height_m: f64| RailButton {
+            outer_diameter_m: 0.010,
+            inner_diameter_m: 0.006,
+            height_m: 0.008,
+            base_height_m: 0.002,
+            flange_height_m: 0.002,
+            screw_height_m,
+            angle_rad: 0.0,
+            count: 1,
+            spacing_m: 0.0,
+            material: Material::bulk("probe", 1000.0),
+        };
+        let openrocket_m3 = [
+            (0.0, 4.272566008882119e-07),
+            (0.001, 4.796164800084878e-07),
+            (0.002, 5.319763591287636e-07),
+            (0.005, 6.890559964895911e-07),
+        ];
+        // OpenRocket's `2/3`, in single precision: the volumes differ by that alone.
+        let openrocket_two_thirds = f64::from(2.0_f32 / 3.0_f32);
+        for (screw_m, volume_m3) in openrocket_m3 {
+            let mass = button(screw_m).mass_properties(0.025).unwrap();
+            let head_gap_m3 = (2.0 / 3.0 - openrocket_two_thirds)
+                * std::f64::consts::PI
+                * 0.005
+                * 0.005
+                * screw_m;
+            close(
+                mass.mass_kg / 1000.0,
+                volume_m3 + head_gap_m3,
+                1e-14,
+                "volume",
+            );
+        }
+        // No screw is the three discs bit for bit.
+        assert_eq!(
+            button(0.0).mass_properties(0.025).unwrap(),
+            RailButton {
+                screw_height_m: 0.0,
+                ..button(0.0)
+            }
+            .mass_properties(0.025)
+            .unwrap()
+        );
+        // The center, from the discs' (no screw) and the head's: hpr's head at `3h/8` above the
+        // flange, 33 mm from the axis; OpenRocket's at `4h/3π`, with its own volume, which gives
+        // its measured 0.029954493401421 m at 2 mm.
+        let (h, a) = (0.002, 0.005);
+        let discs = button(0.0).mass_properties(0.025).unwrap();
+        let discs_m3 = discs.mass_kg / 1000.0;
+        let center = |two_thirds: f64, above: f64| {
+            let head_m3 = two_thirds * std::f64::consts::PI * a * a * h;
+            (discs_m3 * discs.cg_m.x + head_m3 * (0.033 + above * h)) / (discs_m3 + head_m3)
+        };
+        let openrocket = center(openrocket_two_thirds, 4.0 / (3.0 * std::f64::consts::PI));
+        close(
+            openrocket,
+            0.029954493401421,
+            1e-12,
+            "OpenRocket's radial center",
+        );
+        let screwed = button(h).mass_properties(0.025).unwrap();
+        close(
+            screwed.cg_m.x,
+            center(2.0 / 3.0, 0.375),
+            1e-12,
+            "radial center",
+        );
+        // Alone, the head of a screw as tall as the button is wide is a hemisphere: its inertia
+        // about its center across its axis is 83/320 m a², and 2/5 m a² about its axis.
+        let head = RailButton {
+            outer_diameter_m: 2.0 * h,
+            inner_diameter_m: 1e-12,
+            height_m: 1e-12,
+            base_height_m: 0.0,
+            flange_height_m: 0.0,
+            ..button(h)
+        }
+        .mass_properties(0.025)
+        .unwrap();
+        let m = head.mass_kg;
+        close(
+            m,
+            1000.0 * 2.0 / 3.0 * std::f64::consts::PI * h * h * h,
+            1e-9,
+            "mass",
+        );
+        close(
+            head.inertia_kg_m2.x_axis.x,
+            0.4 * m * h * h,
+            1e-9,
+            "about its axis",
+        );
+        close(
+            head.inertia_kg_m2.y_axis.y,
+            83.0 / 320.0 * m * h * h,
+            1e-9,
+            "across",
+        );
+        close(
+            head.inertia_kg_m2.z_axis.z,
+            83.0 / 320.0 * m * h * h,
+            1e-9,
+            "across",
+        );
+        close(head.cg_m.x, 0.025 + 1e-12 + 0.375 * h, 1e-12, "its center");
+        // A screw of negative height is refused.
+        assert!(button(-1e-3).mass_properties(0.025).is_err());
+    }
+
+    #[test]
+    fn recovery_parts_weigh_their_fabric_and_lines() {
+        let chute = Parachute {
+            diameter_m: 0.9,
+            canopy_material: Material::surface("ripstop nylon", 0.0373),
+            line_count: 8,
+            line_length_m: 0.9,
+            line_material: Material::line("nylon line", 0.0016),
+            packing: Packing {
+                length_m: 0.1,
+                radius_m: 0.03,
+                radial_offset_m: 0.0,
+                angle_rad: 0.0,
+            },
+        };
+        let canopy = 0.0373 * PI * 0.81 / 4.0;
+        let lines = 8.0 * 0.9 * 0.0016;
+        close(chute.mass_kg().unwrap(), canopy + lines, 1e-15, "parachute");
+        let streamer = Streamer {
+            length_m: 1.5,
+            width_m: 0.1,
+            material: Material::surface("mylar", 0.0353),
+            packing: chute.packing,
+        };
+        close(
+            streamer.mass_properties().unwrap().mass_kg,
+            1.5 * 0.1 * 0.0353,
+            1e-15,
+            "streamer",
+        );
+        let cord = ShockCord {
+            length_m: 6.0,
+            material: Material::line("Kevlar", 0.00968),
+            packing: chute.packing,
+        };
+        let g = cord.mass_properties().unwrap();
+        close(g.mass_kg, 6.0 * 0.00968, 1e-15, "cord");
+        close(
+            g.inertia_kg_m2.z_axis.z,
+            0.5 * g.mass_kg * 0.03 * 0.03,
+            1e-15,
+            "cord axial",
+        );
+        let wrong = ShockCord {
+            material: cardboard(),
+            ..cord
+        };
+        assert!(matches!(
+            wrong.mass_properties(),
+            Err(DesignError::MaterialKind { .. })
+        ));
+    }
+}
+
+#[cfg(test)]
+mod zero_wall_tests {
+    use super::*;
+
+    /// A tube whose inner radius reaches its outer one has no wall, and so no mass and no inertia.
+    /// A design file can say that, and refusing it would leave a reader inventing a wall instead
+    /// (`docs/physics/mass.md`). A **ring** is the exception: a bore that reaches the rim leaves no
+    /// ring, which is a mistake upstream rather than a part, so it is refused loudly.
+    #[test]
+    fn a_tube_of_no_wall_weighs_nothing_and_a_ring_of_no_annulus_is_refused() {
+        let tube = InnerTube {
+            length_m: 0.18,
+            outer_radius_m: 0.025,
+            thickness_m: 0.0,
+            radial_offset_m: 0.0,
+            angle_rad: 0.0,
+            material: Material::bulk("cardboard", 680.0),
+            cluster_m: Vec::new(),
+        };
+        let mass = tube.mass_properties().expect("a tube of no wall");
+        assert_eq!(mass.mass_kg, 0.0);
+        assert_eq!(mass.inertia_kg_m2, hpr_core::DMat3::ZERO);
+        mass.validate().expect("a valid body");
+
+        // The same tube with a wall weighs what the annulus weighs, so the limit is the formula's.
+        let walled = InnerTube {
+            thickness_m: 1e-9,
+            ..tube.clone()
+        };
+        let a_little = walled.mass_properties().expect("a thin wall").mass_kg;
+        assert!(a_little > 0.0 && a_little < 1e-7, "{a_little}");
+
+        let ring = CenteringRing {
+            length_m: 0.005,
+            outer_radius_m: 0.0115,
+            inner_radius_m: 0.0115,
+            material: Material::bulk("plywood", 630.0),
+        };
+        let refused = ring.mass_properties().expect_err("a ring of no annulus");
+        assert!(refused.to_string().contains("leaving no ring"), "{refused}");
+    }
+}

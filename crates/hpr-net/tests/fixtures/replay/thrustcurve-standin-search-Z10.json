@@ -1,0 +1,21 @@
+{
+  "criteria": [
+    {
+      "name": "designation",
+      "value": "Z10-INVENTED",
+      "matches": 1
+    }
+  ],
+  "matches": 1,
+  "results": [
+    {
+      "motorId": "e000000000000000000000f3",
+      "manufacturer": "Invented Motors",
+      "designation": "Z10-INVENTED",
+      "commonName": "Z10",
+      "impulseClass": "E",
+      "type": "SU"
+    }
+  ],
+  "source_url": "http://www.thrustcurve.org/motors/search.html"
+}

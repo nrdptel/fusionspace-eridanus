@@ -1,0 +1,305 @@
+{
+  "milestone": "M2.3c1",
+  "decision": "ADR-184",
+  "counts": {
+    "tier_a": 89,
+    "from_ork": 83,
+    "flown_by_hpr": 61,
+    "flown_by_openrocket": 79,
+    "flown_by_both": 61,
+    "excluded": 6,
+    "compared": 55,
+    "early_deployments": 19,
+    "early_unknown": 0,
+    "assumed_times": 26,
+    "default_rails": 2
+  },
+  "not_flown": [
+    {
+      "who": "OpenRocket",
+      "cause": "OpenRocket loads no motor into that configuration",
+      "flights": 1,
+      "issue": 362
+    },
+    {
+      "who": "hpr",
+      "cause": "a fin tab ending past the root chord",
+      "flights": 6,
+      "issue": 357
+    },
+    {
+      "who": "hpr",
+      "cause": "a freeform fin outline read as crossing itself",
+      "flights": 3,
+      "issue": 358
+    },
+    {
+      "who": "hpr",
+      "cause": "a motor whose digest OpenRocket 24.12's database lacks",
+      "flights": 3,
+      "issue": 362
+    },
+    {
+      "who": "hpr",
+      "cause": "a part of negative length (rail buttons spaced forward)",
+      "flights": 1,
+      "issue": 359
+    },
+    {
+      "who": "hpr",
+      "cause": "an airframe not read as written: a part inside an off-axis inner tube",
+      "flights": 2,
+      "issue": 181
+    },
+    {
+      "who": "hpr",
+      "cause": "an airframe not read as written: an unread surface finish",
+      "flights": 3,
+      "issue": 360
+    },
+    {
+      "who": "hpr",
+      "cause": "an airframe not read as written: mass and CG overrides that differ on the parts inside",
+      "flights": 1,
+      "issue": 361
+    },
+    {
+      "who": "the collection",
+      "cause": "the collection has no ERA5 file of the flight's day",
+      "flights": 1,
+      "issue": 364
+    },
+    {
+      "who": "the collection",
+      "cause": "the design holds no configuration with the flown motor",
+      "flights": 2,
+      "issue": 363
+    }
+  ],
+  "excluded": [
+    {
+      "reason": "active control in the climb",
+      "flights": 6
+    }
+  ],
+  "logged": {
+    "barometric": 55,
+    "fused": 0,
+    "gps": 0,
+    "height_over_reading": {
+      "mean": 1.0361,
+      "least": 0.9601,
+      "most": 1.0777
+    }
+  },
+  "sets": [
+    {
+      "name": "every flight compared",
+      "flights": 55,
+      "hpr": {
+        "n": 55,
+        "mean_percent": 9.83,
+        "median_percent": 9.47,
+        "mean_absolute_percent": 13.96,
+        "rms_percent": 19.21,
+        "within_5_percent": 10,
+        "within_10_percent": 27,
+        "histogram": [
+          0,
+          0,
+          0,
+          1,
+          3,
+          6,
+          4,
+          6,
+          11,
+          10,
+          2,
+          5,
+          4,
+          3
+        ]
+      },
+      "openrocket": {
+        "n": 55,
+        "mean_percent": 9.0,
+        "median_percent": 6.82,
+        "mean_absolute_percent": 13.08,
+        "rms_percent": 17.94,
+        "within_5_percent": 9,
+        "within_10_percent": 26,
+        "histogram": [
+          0,
+          0,
+          0,
+          1,
+          5,
+          5,
+          2,
+          7,
+          12,
+          8,
+          5,
+          6,
+          1,
+          3
+        ]
+      },
+      "hpr_in_openrocket_air": {
+        "n": 55,
+        "mean_percent": 9.99,
+        "median_percent": 9.67,
+        "mean_absolute_percent": 14.07,
+        "rms_percent": 19.33,
+        "within_5_percent": 10,
+        "within_10_percent": 26,
+        "histogram": [
+          0,
+          0,
+          0,
+          1,
+          3,
+          6,
+          4,
+          6,
+          10,
+          9,
+          4,
+          6,
+          3,
+          3
+        ]
+      },
+      "hpr_over_openrocket": {
+        "n": 55,
+        "mean_percent": 0.69,
+        "median_percent": 0.55,
+        "mean_absolute_percent": 1.72,
+        "rms_percent": 2.5,
+        "within_5_percent": 53,
+        "within_10_percent": 55,
+        "histogram": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          16,
+          37,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "without the early deployments",
+      "flights": 36,
+      "hpr": {
+        "n": 36,
+        "mean_percent": 5.88,
+        "median_percent": 5.44,
+        "mean_absolute_percent": 11.94,
+        "rms_percent": 17.51,
+        "within_5_percent": 6,
+        "within_10_percent": 21,
+        "histogram": [
+          0,
+          0,
+          0,
+          1,
+          3,
+          6,
+          3,
+          3,
+          9,
+          7,
+          0,
+          1,
+          2,
+          1
+        ]
+      },
+      "openrocket": {
+        "n": 36,
+        "mean_percent": 5.29,
+        "median_percent": 5.73,
+        "mean_absolute_percent": 11.24,
+        "rms_percent": 16.49,
+        "within_5_percent": 5,
+        "within_10_percent": 20,
+        "histogram": [
+          0,
+          0,
+          0,
+          1,
+          5,
+          4,
+          2,
+          3,
+          11,
+          6,
+          1,
+          2,
+          0,
+          1
+        ]
+      },
+      "hpr_in_openrocket_air": {
+        "n": 36,
+        "mean_percent": 6.05,
+        "median_percent": 5.87,
+        "mean_absolute_percent": 12.04,
+        "rms_percent": 17.61,
+        "within_5_percent": 6,
+        "within_10_percent": 20,
+        "histogram": [
+          0,
+          0,
+          0,
+          1,
+          3,
+          6,
+          3,
+          3,
+          8,
+          8,
+          0,
+          2,
+          1,
+          1
+        ]
+      },
+      "hpr_over_openrocket": {
+        "n": 36,
+        "mean_percent": 0.5,
+        "median_percent": 0.3,
+        "mean_absolute_percent": 1.78,
+        "rms_percent": 2.65,
+        "within_5_percent": 34,
+        "within_10_percent": 36,
+        "histogram": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          12,
+          22,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    }
+  ]
+}

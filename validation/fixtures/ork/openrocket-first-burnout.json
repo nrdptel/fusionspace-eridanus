@@ -1,0 +1,633 @@
+{
+ "example": "datafiles/examples/Pods--powered with recovery deployment.ork",
+ "generated": "2026-10-05",
+ "inputs_sha256": {
+  "events.py": "313b72db4daae061e476be01cd429db7c2f34432ae45d314f1bbb1586e1f585d",
+  "first_burnout.py": "5a2bc3d98b4ef2e217553e958e6c14fdd392f31f451d2332d93c18aaca715d27"
+ },
+ "jar_sha256": "4959b72f52f5f607941e9722abbb7b7f0c4a38ebbbf84204a329db9f31c4f897",
+ "java": "17.0.20.1",
+ "jpype": "1.7.1",
+ "openrocket": "24.12",
+ "probes": {
+  "as-written": {
+   "booster_separation_delay_s": 0.0,
+   "booster_separation_event": "BURNOUT",
+   "branch_events": [
+    {
+     "events": [
+      {
+       "source": "Pods--powered with recovery deployment",
+       "time_s": 0.0,
+       "type": "LAUNCH"
+      },
+      {
+       "source": "Side Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": "Booster Main Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": "Side Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": null,
+       "time_s": 0.086,
+       "type": "LIFTOFF"
+      },
+      {
+       "source": null,
+       "time_s": 0.209,
+       "type": "LAUNCHROD"
+      },
+      {
+       "source": "Booster Main Motor Tube",
+       "time_s": 0.86,
+       "type": "BURNOUT"
+      },
+      {
+       "source": "Booster",
+       "time_s": 0.86,
+       "type": "EJECTION_CHARGE"
+      },
+      {
+       "source": "Booster",
+       "time_s": 0.86,
+       "type": "STAGE_SEPARATION"
+      },
+      {
+       "source": "Sustainer Motor Tube",
+       "time_s": 0.86,
+       "type": "IGNITION"
+      },
+      {
+       "abort": "TUMBLE_UNDER_THRUST",
+       "source": null,
+       "time_s": 2.4043451700954575,
+       "type": "SIM_ABORT"
+      }
+     ],
+     "name": "Sustainer"
+    },
+    {
+     "events": [
+      {
+       "source": "Side Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": "Booster Main Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": "Side Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": "Booster Main Motor Tube",
+       "time_s": 0.86,
+       "type": "BURNOUT"
+      },
+      {
+       "source": "Booster",
+       "time_s": 0.86,
+       "type": "EJECTION_CHARGE"
+      },
+      {
+       "source": "Booster",
+       "time_s": 0.86,
+       "type": "STAGE_SEPARATION"
+      },
+      {
+       "source": "Side Motor Tube",
+       "time_s": 1.01,
+       "type": "BURNOUT"
+      },
+      {
+       "source": "Side Motor Tube",
+       "time_s": 1.01,
+       "type": "BURNOUT"
+      },
+      {
+       "source": null,
+       "time_s": 2.818392480675131,
+       "type": "TUMBLE"
+      },
+      {
+       "source": "Pods--powered with recovery deployment",
+       "time_s": 3.0236781066869254,
+       "type": "APOGEE"
+      },
+      {
+       "source": "Booster",
+       "time_s": 5.01,
+       "type": "EJECTION_CHARGE"
+      },
+      {
+       "source": "Booster",
+       "time_s": 5.01,
+       "type": "EJECTION_CHARGE"
+      },
+      {
+       "source": null,
+       "time_s": 10.929453229480444,
+       "type": "GROUND_HIT"
+      },
+      {
+       "source": null,
+       "time_s": 10.929453229480444,
+       "type": "SIMULATION_END"
+      }
+     ],
+     "name": "Booster"
+    }
+   ],
+   "branches": 2,
+   "configuration_index": 0,
+   "first_branch_at_separation": {
+    "altitude_m": 22.443153823006583,
+    "speed_m_s": 46.079075112565235,
+    "time_s": 0.86
+   },
+   "first_branch_last_row": {
+    "altitude_m": 135.25442173450247,
+    "speed_m_s": 85.03692170013126,
+    "time_s": 2.4043451700954575
+   },
+   "motors": [
+    {
+     "burn_time_estimate_s": 1.8300017723084288,
+     "burn_time_s": 1.86,
+     "designation": "C6",
+     "ejection_delay_s": 7.0,
+     "ignition_event": "BURNOUT",
+     "in_pod": false,
+     "instances": 1,
+     "last_thrust_point_s": 1.847,
+     "mount": "Sustainer Motor Tube",
+     "stage": 0
+    },
+    {
+     "burn_time_estimate_s": 0.8261932177939523,
+     "burn_time_s": 0.86,
+     "designation": "B6",
+     "ejection_delay_s": 0.0,
+     "ignition_event": "LAUNCH",
+     "in_pod": false,
+     "instances": 1,
+     "last_thrust_point_s": 0.825,
+     "mount": "Booster Main Motor Tube",
+     "stage": 1
+    },
+    {
+     "burn_time_estimate_s": 0.9736508122818681,
+     "burn_time_s": 1.01,
+     "designation": "A3",
+     "ejection_delay_s": 4.0,
+     "ignition_event": "LAUNCH",
+     "in_pod": true,
+     "instances": 1,
+     "last_thrust_point_s": 0.993,
+     "mount": "Side Motor Tube",
+     "stage": 1
+    },
+    {
+     "burn_time_estimate_s": 0.9736508122818681,
+     "burn_time_s": 1.01,
+     "designation": "A3",
+     "ejection_delay_s": 4.0,
+     "ignition_event": "LAUNCH",
+     "in_pod": true,
+     "instances": 1,
+     "last_thrust_point_s": 0.993,
+     "mount": "Side Motor Tube",
+     "stage": 1
+    }
+   ]
+  },
+  "main-burns-longest": {
+   "booster_separation_delay_s": 0.0,
+   "booster_separation_event": "BURNOUT",
+   "branch_events": [
+    {
+     "events": [
+      {
+       "source": "Pods--powered with recovery deployment",
+       "time_s": 0.0,
+       "type": "LAUNCH"
+      },
+      {
+       "source": "Side Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": "Booster Main Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": "Side Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": null,
+       "time_s": 0.086,
+       "type": "LIFTOFF"
+      },
+      {
+       "source": null,
+       "time_s": 0.215,
+       "type": "LAUNCHROD"
+      },
+      {
+       "source": "Side Motor Tube",
+       "time_s": 1.01,
+       "type": "BURNOUT"
+      },
+      {
+       "source": "Side Motor Tube",
+       "time_s": 1.01,
+       "type": "BURNOUT"
+      },
+      {
+       "source": "Booster",
+       "time_s": 1.01,
+       "type": "STAGE_SEPARATION"
+      },
+      {
+       "source": "Sustainer Motor Tube",
+       "time_s": 1.01,
+       "type": "IGNITION"
+      },
+      {
+       "source": "Sustainer Motor Tube",
+       "time_s": 1.01,
+       "type": "IGNITION"
+      },
+      {
+       "abort": "TUMBLE_UNDER_THRUST",
+       "source": null,
+       "time_s": 1.8974999999999993,
+       "type": "SIM_ABORT"
+      }
+     ],
+     "name": "Sustainer"
+    },
+    {
+     "events": [
+      {
+       "source": "Side Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": "Booster Main Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": "Side Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": "Side Motor Tube",
+       "time_s": 1.01,
+       "type": "BURNOUT"
+      },
+      {
+       "source": "Side Motor Tube",
+       "time_s": 1.01,
+       "type": "BURNOUT"
+      },
+      {
+       "source": "Booster",
+       "time_s": 1.01,
+       "type": "STAGE_SEPARATION"
+      },
+      {
+       "source": "Booster Main Motor Tube",
+       "time_s": 1.86,
+       "type": "BURNOUT"
+      },
+      {
+       "source": "Booster",
+       "time_s": 1.8604999999999916,
+       "type": "EJECTION_CHARGE"
+      },
+      {
+       "source": "Pods--powered with recovery deployment",
+       "time_s": 2.5158161491132653,
+       "type": "APOGEE"
+      },
+      {
+       "source": null,
+       "time_s": 4.4720010871302085,
+       "type": "TUMBLE"
+      },
+      {
+       "source": "Booster",
+       "time_s": 5.01,
+       "type": "EJECTION_CHARGE"
+      },
+      {
+       "source": "Booster",
+       "time_s": 5.01,
+       "type": "EJECTION_CHARGE"
+      },
+      {
+       "source": null,
+       "time_s": 11.030310473690717,
+       "type": "GROUND_HIT"
+      },
+      {
+       "source": null,
+       "time_s": 11.030310473690717,
+       "type": "SIMULATION_END"
+      }
+     ],
+     "name": "Booster"
+    }
+   ],
+   "branches": 2,
+   "configuration_index": 0,
+   "first_branch_at_separation": {
+    "altitude_m": 28.80666807892873,
+    "speed_m_s": 49.89683215305508,
+    "time_s": 1.01
+   },
+   "first_branch_last_row": {
+    "altitude_m": 89.44479180691718,
+    "speed_m_s": 78.39430285865562,
+    "time_s": 1.8974999999999993
+   },
+   "motors": [
+    {
+     "burn_time_estimate_s": 1.8300017723084288,
+     "burn_time_s": 1.86,
+     "designation": "C6",
+     "ejection_delay_s": 7.0,
+     "ignition_event": "BURNOUT",
+     "in_pod": false,
+     "instances": 1,
+     "last_thrust_point_s": 1.847,
+     "mount": "Sustainer Motor Tube",
+     "stage": 0
+    },
+    {
+     "burn_time_estimate_s": 1.8300017723084288,
+     "burn_time_s": 1.86,
+     "designation": "C6",
+     "ejection_delay_s": 0.0,
+     "ignition_event": "LAUNCH",
+     "in_pod": false,
+     "instances": 1,
+     "last_thrust_point_s": 1.847,
+     "mount": "Booster Main Motor Tube",
+     "stage": 1
+    },
+    {
+     "burn_time_estimate_s": 0.9736508122818681,
+     "burn_time_s": 1.01,
+     "designation": "A3",
+     "ejection_delay_s": 4.0,
+     "ignition_event": "LAUNCH",
+     "in_pod": true,
+     "instances": 1,
+     "last_thrust_point_s": 0.993,
+     "mount": "Side Motor Tube",
+     "stage": 1
+    },
+    {
+     "burn_time_estimate_s": 0.9736508122818681,
+     "burn_time_s": 1.01,
+     "designation": "A3",
+     "ejection_delay_s": 4.0,
+     "ignition_event": "LAUNCH",
+     "in_pod": true,
+     "instances": 1,
+     "last_thrust_point_s": 0.993,
+     "mount": "Side Motor Tube",
+     "stage": 1
+    }
+   ]
+  },
+  "pods-burn-longest": {
+   "booster_separation_delay_s": 0.0,
+   "booster_separation_event": "BURNOUT",
+   "branch_events": [
+    {
+     "events": [
+      {
+       "source": "Pods--powered with recovery deployment",
+       "time_s": 0.0,
+       "type": "LAUNCH"
+      },
+      {
+       "source": "Side Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": "Booster Main Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": "Side Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": null,
+       "time_s": 0.07748437499999992,
+       "type": "LIFTOFF"
+      },
+      {
+       "source": null,
+       "time_s": 0.19725,
+       "type": "LAUNCHROD"
+      },
+      {
+       "source": "Booster Main Motor Tube",
+       "time_s": 0.86,
+       "type": "BURNOUT"
+      },
+      {
+       "source": "Booster",
+       "time_s": 0.86,
+       "type": "EJECTION_CHARGE"
+      },
+      {
+       "source": "Booster",
+       "time_s": 0.86,
+       "type": "STAGE_SEPARATION"
+      },
+      {
+       "source": "Sustainer Motor Tube",
+       "time_s": 0.86,
+       "type": "IGNITION"
+      },
+      {
+       "abort": "TUMBLE_UNDER_THRUST",
+       "source": null,
+       "time_s": 1.9572976148104655,
+       "type": "SIM_ABORT"
+      }
+     ],
+     "name": "Sustainer"
+    },
+    {
+     "events": [
+      {
+       "source": "Side Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": "Booster Main Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": "Side Motor Tube",
+       "time_s": 0.0,
+       "type": "IGNITION"
+      },
+      {
+       "source": "Booster Main Motor Tube",
+       "time_s": 0.86,
+       "type": "BURNOUT"
+      },
+      {
+       "source": "Booster",
+       "time_s": 0.86,
+       "type": "EJECTION_CHARGE"
+      },
+      {
+       "source": "Booster",
+       "time_s": 0.86,
+       "type": "STAGE_SEPARATION"
+      },
+      {
+       "source": "Side Motor Tube",
+       "time_s": 1.86,
+       "type": "BURNOUT"
+      },
+      {
+       "source": "Side Motor Tube",
+       "time_s": 1.86,
+       "type": "BURNOUT"
+      },
+      {
+       "source": "Booster",
+       "time_s": 1.8604999999999916,
+       "type": "EJECTION_CHARGE"
+      },
+      {
+       "source": "Booster",
+       "time_s": 1.8604999999999916,
+       "type": "EJECTION_CHARGE"
+      },
+      {
+       "source": "Pods--powered with recovery deployment",
+       "time_s": 2.0654999999999872,
+       "type": "APOGEE"
+      },
+      {
+       "source": null,
+       "time_s": 2.2429999999999835,
+       "type": "TUMBLE"
+      },
+      {
+       "source": null,
+       "time_s": 11.897637412401386,
+       "type": "GROUND_HIT"
+      },
+      {
+       "source": null,
+       "time_s": 11.897637412401386,
+       "type": "SIMULATION_END"
+      }
+     ],
+     "name": "Booster"
+    }
+   ],
+   "branches": 2,
+   "configuration_index": 0,
+   "first_branch_at_separation": {
+    "altitude_m": 31.932948923611207,
+    "speed_m_s": 65.82229806821604,
+    "time_s": 0.86
+   },
+   "first_branch_last_row": {
+    "altitude_m": 122.64691803117488,
+    "speed_m_s": 87.673430360855,
+    "time_s": 1.9572976148104655
+   },
+   "motors": [
+    {
+     "burn_time_estimate_s": 1.8300017723084288,
+     "burn_time_s": 1.86,
+     "designation": "C6",
+     "ejection_delay_s": 7.0,
+     "ignition_event": "BURNOUT",
+     "in_pod": false,
+     "instances": 1,
+     "last_thrust_point_s": 1.847,
+     "mount": "Sustainer Motor Tube",
+     "stage": 0
+    },
+    {
+     "burn_time_estimate_s": 0.8261932177939523,
+     "burn_time_s": 0.86,
+     "designation": "B6",
+     "ejection_delay_s": 0.0,
+     "ignition_event": "LAUNCH",
+     "in_pod": false,
+     "instances": 1,
+     "last_thrust_point_s": 0.825,
+     "mount": "Booster Main Motor Tube",
+     "stage": 1
+    },
+    {
+     "burn_time_estimate_s": 1.8300017723084288,
+     "burn_time_s": 1.86,
+     "designation": "C6",
+     "ejection_delay_s": 0.0,
+     "ignition_event": "LAUNCH",
+     "in_pod": true,
+     "instances": 1,
+     "last_thrust_point_s": 1.847,
+     "mount": "Side Motor Tube",
+     "stage": 1
+    },
+    {
+     "burn_time_estimate_s": 1.8300017723084288,
+     "burn_time_s": 1.86,
+     "designation": "C6",
+     "ejection_delay_s": 0.0,
+     "ignition_event": "LAUNCH",
+     "in_pod": true,
+     "instances": 1,
+     "last_thrust_point_s": 1.847,
+     "mount": "Side Motor Tube",
+     "stage": 1
+    }
+   ]
+  }
+ },
+ "seed": 1,
+ "source": "validation/oracles/openrocket/first_burnout.py"
+}

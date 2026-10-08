@@ -1,0 +1,128 @@
+# ndrt-2020-nose-to-tail: RocketPy's example flown from the pad to the ground by both codes
+# (`validation/oracles/rocketpy/flight.py`, M2.1b1), compared metric by metric (M2.1b2).
+#
+# Same-drag mode: both codes fly the C_D0(M) the generator declares (a constant 0.5, on the
+# reference area the reference records and the harness checks), so a difference is in the equations
+# of motion, the environment or the motor, not in the drag. The site, the declared wind, the rail,
+# the parachutes and the motor are the reference's own record, and the harness refuses a design
+# whose dry mass, reference area, total impulse, burn time, propellant mass or reference pressure
+# differs from it. The flight uses RocketPy's gravity, standard atmosphere and frictionless rail
+# (ADR-015), and the thrust curve as measured, with no ambient-pressure correction, as RocketPy's
+# examples fly it.
+#
+# The metrics are measured as RocketPy defines them (L80): speeds and accelerations at the centre
+# of dry mass; heights from that point's height at launch, where RocketPy's starts at the ground
+# (so the main opens, and the flight lands, at RocketPy's heights too); the rail exit when the
+# rocket has travelled RocketPy's `effective_1rl`; the maxima over both ends of each solver step
+# and over the peaks found inside a step (ADR-023, which sets how peaks are found), where RocketPy
+# reads only its solution's points; the power-on maximum likewise, over the steps up to burnout;
+# drifts as horizontal distances from where the dry centre of mass started.
+#
+# Every scored metric is held to the milestone's 3%, with no absolute floor. That is the
+# milestone's bar, not a model bound: most metrics agree far inside it. The differences that remain
+# have these sources, measured where stated:
+#
+# - The rail. hpr's rail equation keeps the variable-mass terms (the centre of mass moving inside
+#   the body as propellant burns), which RocketPy's `udot_rail1` leaves out. At a sharp ignition
+#   spike, with thrust and mass the same to five digits, hpr's acceleration is 1.2 to 1.3 m/s^2
+#   higher (Calisto at 0.05 s: 112.35 against 111.18; Bella Lui at 0.007 s: 74.14 against 72.84).
+#   hpr also keeps the rocket guided until its last button leaves, where RocketPy frees it at the
+#   first. Freed where hpr frees it, RocketPy's apogee moves by at most 0.19% (Bella Lui) and its
+#   drifts by up to 12% (Bella Lui's landing in wind; `wind_response.py`, ADR-026).
+# - The wind. Same-drag mode shares C_D0, not the normal force. In wind a rocket leaves the rail
+#   at an angle of attack of up to 26 degrees here (Juno III: 18 m/s in an 8.5 m/s wind), where
+#   hpr's normal force includes body lift (Jorgensen's crossflow term, C_N = eta C_dn (A_plan/A_ref)
+#   sin^2 alpha, eta C_dn about 0.9 here; ADR-037) and RocketPy's is linear in alpha with no body
+#   term. Much of body lift acts ahead of
+#   the rocket's centre of mass, the nose's above all, so at a steep angle it moves the centre of
+#   pressure forward and weakens the moment that turns the rocket into the wind: hpr turns into it
+#   less. Its sideways push alone is about a sixth of the effect (ADR-026). Added to RocketPy with hpr's rail release (and, for Juno III, its thin-plate fins),
+#   it brings RocketPy's drifts to within 1.3% of hpr's in every windy case
+#   (`validation/oracles/rocketpy/wind_response.py`). Where the two models' difference carries a
+#   drift past 3%, the drift is reported as a measured model difference and not scored (ADR-026).
+#   hpr's growth of C_D0 with the angle of attack (up to 1.3 times at 17 degrees; RocketPy's table
+#   has none) moves no drift by more than 0.1%.
+# - The reference's equations. RocketPy 1.13.0 flies with two corrections to its 6-DOF equations
+#   made or proposed upstream, PR #1188 (merged) and PR #1196 (open) (`corrections.py`, ADR-026).
+#   As released it takes the moments during the burn about a point as far forward of the dry
+#   centre of mass as the centre of mass is behind it, which overstates its stability while the
+#   motor burns, and its jet damping uses a quarter of the nozzle's lever squared. Flown as
+#   released, the drifts in wind missed by up to -60.8% at apogee and +151% at landing (issue #50).
+# - Parachutes. RocketPy counts a canopy's added mass for the whole parachute phase and samples
+#   its triggers at 100 to 105 Hz; hpr has no added mass and fires its triggers at the instant
+#   (ADR-012). This leaves the descent rates at landing within 0.03%.
+#
+# RocketPy's own solver moves the metrics by at most 0.39% between rtol 1e-6 and 1e-8 (the time of
+# the peak acceleration), so the reference is the model's answer to well inside the gate.
+#
+# NDRT 2020: 1,216 m AGL off a vertical rail through a wind that shears with height, drogue and
+# main. The worst scored difference is the landing drift at +1.63%. The apogee drift, -4.33% on a
+# 59 m drift, is a measured model difference and not scored (below; ADR-026).
+#
+# The whole flight's maximum acceleration is not scored: it is the main opening, not a flight
+# load. Its time is gated, because both codes put it at the instant the main opens (trigger at
+# 167.64 m on the way down, plus the 1 s lag). The power-on maximum is gated too.
+id = "flight-ndrt-2020-nose-to-tail"
+title = "NDRT 2020 from the pad to the ground, same-drag"
+reference = "validation/fixtures/flight/rocketpy-whole-flight.json"
+reference_case = "ndrt-2020-nose-to-tail"
+
+[flight.whole_flight]
+design = "rocketpy-ndrt-2020-nose-to-tail"
+configuration = "example"
+
+[metrics.apogee_agl_m]
+relative = 0.03
+
+[metrics.apogee_time_s]
+relative = 0.03
+
+[metrics.max_speed_m_s]
+relative = 0.03
+
+[metrics.max_mach]
+relative = 0.03
+
+[metrics.max_acceleration_m_s2]
+not_scored = "the whole flight's maximum is the main parachute opening (191.8 m/s^2 in RocketPy, 351.1 in hpr, both at the instant the main opens), not a flight load; RocketPy counts the canopy's added mass (about 17 kg against the rocket's 20.8 kg) and hpr has none (ADR-012), which is a known difference in the opening, not in the flight. The power-on maximum is gated instead."
+
+[metrics.max_acceleration_time_s]
+relative = 0.03
+
+[metrics.max_acceleration_power_on_m_s2]
+relative = 0.03
+
+[metrics.rail_exit_speed_m_s]
+relative = 0.03
+
+[metrics.rail_exit_time_s]
+relative = 0.03
+
+[metrics.burnout_altitude_agl_m]
+relative = 0.03
+
+[metrics.burnout_speed_m_s]
+relative = 0.03
+
+[metrics.flight_time_s]
+relative = 0.03
+
+[metrics.apogee_drift_m]
+not_scored = "a measured model difference, not an open miss (ADR-026): hpr's apogee drift is 4.33% short of RocketPy's (56.8 m against 59.4), a drift under 60 m. Measured in RocketPy (validation/oracles/rocketpy/wind_response.py): freeing the rocket at its last rail button, as hpr does, moves it to 58.1 m, and hpr's body lift (Jorgensen's crossflow term, ADR-037, which RocketPy's linear normal force leaves out) to 57.3 m, within 0.9% of hpr. Reported, not scored: at 3% it would score one code's rail and normal-force models against the other's. The landing drift is gated."
+
+[metrics.landing_drift_m]
+relative = 0.03
+
+[metrics.impact_speed_m_s]
+relative = 0.03
+
+# The time-series RMS (M2.1d1): hpr's height and speed at the reference's 120 series times, from
+# ignition until hpr lands, less RocketPy's; the reference value is 0, exact agreement. Each is held
+# (gated) to 3% of the scale of its trace, the reference's apogee (1216.4 m) and max speed
+# (183.0 m/s), rounded down to 0.1: M2.1's 3% for a point metric, applied to a whole trace, so a
+# trace passes only if it is on average no further off than its peak may be.
+[metrics.series_height_rms_m]
+absolute = 36.4
+
+[metrics.series_speed_rms_m_s]
+absolute = 5.4

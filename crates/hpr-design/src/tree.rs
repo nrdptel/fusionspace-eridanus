@@ -1,0 +1,4009 @@
+//! The design tree: a rocket of stages, each a stack of body components from the nose aft with
+//! parts attached to them, and how the tree resolves into placed parts and the rocket's structural
+//! mass properties.
+//!
+//! **Stations and the body origin.** A *station* `s` is a distance aft of the nose tip, the way
+//! design files state positions. The body frame's origin is the nose tip (`z_ref = 0` in
+//! `docs/physics/frames.md`), so station `s` is body `z = −s`. A part's own frame has its origin at
+//! its forward end ([`crate::mass`]), so a part whose forward end is at station `s` is translated by
+//! `(0, 0, −s)`.
+//!
+//! **Body components** (nose cones, body tubes and transitions) are the stages' component lists.
+//! They stack: each starts where the one before it ends, through every stage, from `s = 0`.
+//! Shoulders don't count toward the stack.
+//!
+//! **Parallel stages** ([`ParallelStage`]) don't stack: a stage strapped beside a body tube of an
+//! axial stage, such as a set of boosters, is laid out as a pod set on that tube ([`PodSet`]), its
+//! body components each pod's stack, while its parts and their mass stay its own stage's, so a
+//! separation after the stage it hangs on drops it (the decision record on parallel stages,
+//! [ADR-171][adr-171]).
+//!
+//! **Attached parts** are children of a component, placed along it by a [`Position`]. Fins, tube
+//! fins, launch lugs and rail buttons attach to the outside of a body tube and take its outer
+//! radius. Inner tubes, centering rings, mass components and recovery parts go inside a body
+//! component or an inner tube. Only inner tubes have children of their own. Radial offsets are
+//! always measured from the body axis.
+//!
+//! **Automatic radii** ([`AutoDimension`]) are taken from neighbours and parents when the tree
+//! resolves; a stored value for an automatic dimension is ignored.
+//!
+//! **Mass.** A component's own mass properties come from its part's geometry, placed. Overrides
+//! ([`Overrides`]) replace them, or the component together with everything attached to it; a
+//! stage's overrides replace the whole stage. Overrides nested deeper apply first. Motors are never
+//! part of the structure ([`crate::config`]).
+//!
+//! See `docs/physics/design.md` and the decision record on the design tree, [ADR-007][adr-007].
+//!
+//! [adr-007]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-007-design-tree-stations-placement-automatic-radii-overrides-motors-and-checks-2026-09-17
+//! [adr-171]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-171-a-parallel-stage-is-a-pod-set-that-separates-2026-10-05
+
+use std::collections::{BTreeMap, BTreeSet};
+
+use hpr_core::{DMat3, DVec3};
+use serde::{Deserialize, Serialize};
+
+use crate::config::{Configuration, MotorMount};
+use crate::error::DesignError;
+use crate::finish::Finish;
+use crate::fins::{FinSet, TubeFinSet};
+use crate::mass::{MassProperties, Placement};
+use crate::parts::{
+    BodyTube, CenteringRing, InnerTube, LaunchLug, MassComponent, NoseCone, Packing, Parachute,
+    PodSet, RailButton, ShockCord, Streamer, Transition,
+};
+use crate::shapes::check_dimension;
+use crate::solids::Wall;
+
+/// Slack when comparing lengths that should agree, m: far below any build tolerance and far above
+/// the round-off in stations summed from millimeter inputs.
+pub const LENGTH_TOLERANCE_M: f64 = 1e-9;
+
+/// A rocket design: its stages, how its reference diameter is chosen, and its motor
+/// configurations.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Rocket {
+    /// Name.
+    #[serde(default)]
+    pub name: String,
+    /// Stages from the nose aft. The first holds the nose cone. A parallel stage comes after the
+    /// stage it hangs on ([`Stage::parallel`]).
+    pub stages: Vec<Stage>,
+    /// How the reference diameter is chosen.
+    #[serde(default)]
+    pub reference_diameter: ReferenceDiameter,
+    /// Motor configurations.
+    #[serde(default)]
+    pub configurations: Vec<Configuration>,
+}
+
+/// A stage: body components stacked from its forward end aft, on the airframe's axis or, for a
+/// parallel stage, along each of its pods.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Stage {
+    /// Unique id.
+    pub id: String,
+    /// Name.
+    #[serde(default)]
+    pub name: String,
+    /// Body components (nose cones, body tubes, transitions), forward to aft.
+    pub components: Vec<Component>,
+    /// Overrides for the whole stage without its motors, applied after every override inside it. A
+    /// center-of-mass override is measured aft of the stage's forward end.
+    #[serde(
+        default,
+        skip_serializing_if = "Overrides::is_empty",
+        deserialize_with = "object_only"
+    )]
+    pub overrides: Overrides,
+    /// A drag coefficient stated for the stage ([`DragOverride`]): added to the rocket's drag, or,
+    /// covering its children, in place of everything in the stage.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub drag_override: Option<DragOverride>,
+    /// Where the stage hangs beside the airframe, for a parallel stage; `None` for a stage on the
+    /// axis, which stacks.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parallel: Option<ParallelStage>,
+}
+
+/// Where a parallel stage hangs: beside a body tube of an earlier axial stage, as a set of pods.
+///
+/// A parallel stage, such as a pair of strap-on boosters, is laid out exactly as a pod set on that
+/// tube would be ([`PodSet`]): its body components are each pod's stack, repeated `pods.count`
+/// times around the axis, and they take their normal force and drag once per pod. What differs is
+/// whose they are: the stage's parts, mass and motors are its own stage's, not the tube's, so a
+/// separation after the stage it hangs on drops the pods while the airframe flies on. See the
+/// design page's *Parallel stages* section (`docs/physics/design.md`) and the decision record on
+/// parallel stages, [ADR-171][adr-171].
+///
+/// [adr-171]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-171-a-parallel-stage-is-a-pod-set-that-separates-2026-10-05
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ParallelStage {
+    /// The id of the body tube it hangs on: a body component of an earlier stage on the axis.
+    pub on: String,
+    /// Where along that tube the pods sit, as an attached part's position; measured from the
+    /// tube, never after a sibling ([`Position::After`] is refused).
+    pub position: Position,
+    /// How many pods, how far from the axis, and at what roll angle.
+    pub pods: PodSet,
+}
+
+/// Reads a struct from an object only. serde's derived reader also takes a struct from an array
+/// of its fields in order, so `"overrides": []` would read as no overrides and be dropped on
+/// writing, while the schema refuses it (issue #253); the format reader's array check can't see
+/// a key the written document leaves out.
+fn object_only<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    struct ObjectOnly<T>(std::marker::PhantomData<T>);
+    impl<'de, T: Deserialize<'de>> serde::de::Visitor<'de> for ObjectOnly<T> {
+        type Value = T;
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            formatter.write_str("an object")
+        }
+        fn visit_map<A: serde::de::MapAccess<'de>>(self, map: A) -> Result<T, A::Error> {
+            T::deserialize(serde::de::value::MapAccessDeserializer::new(map))
+        }
+    }
+    deserializer.deserialize_map(ObjectOnly(std::marker::PhantomData))
+}
+
+/// A node of the design tree: a part, where it sits, and what hangs off it.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Component {
+    /// Unique id.
+    pub id: String,
+    /// Name.
+    #[serde(default)]
+    pub name: String,
+    /// The part, with its geometry and material.
+    pub part: Part,
+    /// Where an attached part sits along its parent. Body components (a stage's own list) have
+    /// none: they stack.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub position: Option<Position>,
+    /// Dimensions taken from neighbours or the parent instead of the part's stored values.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub auto: Vec<AutoDimension>,
+    /// Makes a body tube or an inner tube a motor mount.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub motor_mount: Option<MotorMount>,
+    /// The outer surface's finish, for skin friction; `None` means [`Finish::default`]. Parts
+    /// inside the body ignore it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub finish: Option<Finish>,
+    /// Mass, center-of-mass and inertia overrides.
+    #[serde(
+        default,
+        skip_serializing_if = "Overrides::is_empty",
+        deserialize_with = "object_only"
+    )]
+    pub overrides: Overrides,
+    /// Whether the overrides replace this component together with everything attached to it
+    /// (`true`), or this component alone (`false`).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub overrides_include_children: bool,
+    /// A drag coefficient stated in place of the drag the component's geometry gives
+    /// ([`DragOverride`]).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub drag_override: Option<DragOverride>,
+    /// Attached parts, or a pod set's body components.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub children: Vec<Component>,
+}
+
+impl Component {
+    /// The axial extent used to place the component, m: [`Part::length_m`], but for a pod set the
+    /// sum of its body components' lengths, which stack along the pod.
+    pub fn length_m(&self) -> f64 {
+        match self.part {
+            // A fold from +0: an empty sum of floats is −0.
+            Part::PodSet(_) => self
+                .children
+                .iter()
+                .fold(0.0, |length, c| length + c.part.length_m()),
+            _ => self.part.length_m(),
+        }
+    }
+}
+
+/// A part in the tree. Serialized as an object with one key, the part's kind.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum Part {
+    /// A nose cone (body component).
+    NoseCone(NoseCone),
+    /// A body tube (body component).
+    BodyTube(BodyTube),
+    /// A transition (body component).
+    Transition(Transition),
+    /// An inner tube (internal): a coupler, motor mount tube or engine block.
+    InnerTube(InnerTube),
+    /// A centering ring or bulkhead (internal).
+    CenteringRing(CenteringRing),
+    /// A fin set (external, on a body tube). Its axial extent is the root chord.
+    FinSet(FinSet),
+    /// Tube fins (external, on a body tube).
+    TubeFinSet(TubeFinSet),
+    /// Launch lugs (external, on a body tube). The extent covers the whole row.
+    LaunchLug(LaunchLug),
+    /// Rail buttons (external, on a body tube). The extent covers the whole row.
+    RailButton(RailButton),
+    /// Pods (external, on a body tube). Its children are the pod's body components, which stack
+    /// along the pod's axis; its extent is theirs ([`Component::length_m`]).
+    PodSet(PodSet),
+    /// A mass component (internal).
+    MassComponent(MassComponent),
+    /// A parachute (internal).
+    Parachute(Parachute),
+    /// A streamer (internal).
+    Streamer(Streamer),
+    /// A shock cord (internal).
+    ShockCord(ShockCord),
+}
+
+/// Where a part belongs in the tree.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Role {
+    /// A stage's stacked component.
+    Body,
+    /// On the outside of a body tube.
+    External,
+    /// Inside a body component or an inner tube.
+    Internal,
+}
+
+impl Part {
+    /// The part's kind, as serialized.
+    pub fn kind_name(&self) -> &'static str {
+        match self {
+            Self::NoseCone(_) => "nose_cone",
+            Self::BodyTube(_) => "body_tube",
+            Self::Transition(_) => "transition",
+            Self::InnerTube(_) => "inner_tube",
+            Self::CenteringRing(_) => "centering_ring",
+            Self::FinSet(_) => "fin_set",
+            Self::TubeFinSet(_) => "tube_fin_set",
+            Self::LaunchLug(_) => "launch_lug",
+            Self::RailButton(_) => "rail_button",
+            Self::PodSet(_) => "pod_set",
+            Self::MassComponent(_) => "mass_component",
+            Self::Parachute(_) => "parachute",
+            Self::Streamer(_) => "streamer",
+            Self::ShockCord(_) => "shock_cord",
+        }
+    }
+
+    fn role(&self) -> Role {
+        match self {
+            Self::NoseCone(_) | Self::BodyTube(_) | Self::Transition(_) => Role::Body,
+            Self::FinSet(_)
+            | Self::TubeFinSet(_)
+            | Self::LaunchLug(_)
+            | Self::RailButton(_)
+            | Self::PodSet(_) => Role::External,
+            Self::InnerTube(_)
+            | Self::CenteringRing(_)
+            | Self::MassComponent(_)
+            | Self::Parachute(_)
+            | Self::Streamer(_)
+            | Self::ShockCord(_) => Role::Internal,
+        }
+    }
+
+    /// Whether this is a body component: a nose cone, body tube or transition.
+    pub fn is_body(&self) -> bool {
+        self.role() == Role::Body
+    }
+
+    /// Whether this attaches to the outside of a body tube: fins, tube fins, lugs, rail buttons,
+    /// pods.
+    pub fn is_external(&self) -> bool {
+        self.role() == Role::External
+    }
+
+    /// The axial extent used to place the part, m: a body component's length without shoulders, a
+    /// fin set's root chord, a row of lugs or buttons from the first one's forward end to the last
+    /// one's aft end, and a packed part's packed length. A pod set's extent is its pods' body
+    /// components, which the part alone doesn't hold, so here it is 0: see
+    /// [`Component::length_m`].
+    pub fn length_m(&self) -> f64 {
+        let row =
+            |count: u32, one: f64, spacing: f64| one + spacing * f64::from(count.saturating_sub(1));
+        match self {
+            Self::NoseCone(p) => p.length_m,
+            Self::BodyTube(p) => p.length_m,
+            Self::Transition(p) => p.length_m,
+            Self::InnerTube(p) => p.length_m,
+            Self::CenteringRing(p) => p.length_m,
+            Self::FinSet(p) => p.planform.root_chord_m(),
+            Self::TubeFinSet(p) => p.length_m,
+            Self::LaunchLug(p) => row(p.count, p.length_m, p.spacing_m),
+            Self::RailButton(p) => row(p.count, p.outer_diameter_m, p.spacing_m),
+            Self::PodSet(_) => 0.0,
+            Self::MassComponent(p) => p.packing.length_m,
+            Self::Parachute(p) => p.packing.length_m,
+            Self::Streamer(p) => p.packing.length_m,
+            Self::ShockCord(p) => p.packing.length_m,
+        }
+    }
+
+    /// How a mass object or recovery part is packed, or `None` for a part that is not packed.
+    pub fn packing(&self) -> Option<&Packing> {
+        match self {
+            Self::MassComponent(p) => Some(&p.packing),
+            Self::Parachute(p) => Some(&p.packing),
+            Self::Streamer(p) => Some(&p.packing),
+            Self::ShockCord(p) => Some(&p.packing),
+            _ => None,
+        }
+    }
+
+    /// A body component's outer radius at its forward end, m (zero at a nose tip).
+    pub fn fore_radius_m(&self) -> Option<f64> {
+        match self {
+            Self::NoseCone(_) => Some(0.0),
+            Self::BodyTube(p) => Some(p.outer_radius_m),
+            Self::Transition(p) => Some(p.fore_radius_m),
+            _ => None,
+        }
+    }
+
+    /// A body component's outer radius at its aft end, m.
+    pub fn aft_radius_m(&self) -> Option<f64> {
+        match self {
+            Self::NoseCone(p) => Some(p.base_radius_m),
+            Self::BodyTube(p) => Some(p.outer_radius_m),
+            Self::Transition(p) => Some(p.aft_radius_m),
+            _ => None,
+        }
+    }
+
+    /// A body component's largest outer radius anywhere along it, m.
+    ///
+    /// # Errors
+    ///
+    /// Profile errors for a nose cone or transition.
+    pub fn max_radius_m(&self) -> Result<Option<f64>, DesignError> {
+        Ok(match self {
+            Self::NoseCone(p) => Some(p.profile()?.max_radius_m()),
+            Self::BodyTube(p) => Some(p.outer_radius_m),
+            Self::Transition(p) => Some(p.profile()?.max_radius_m()),
+            _ => None,
+        })
+    }
+
+    /// The inside radius of a body tube or inner tube, m: where internal parts fit.
+    pub fn inner_radius_m(&self) -> Option<f64> {
+        match self {
+            Self::BodyTube(p) => Some(p.outer_radius_m - p.thickness_m),
+            Self::InnerTube(p) => Some(p.outer_radius_m - p.thickness_m),
+            _ => None,
+        }
+    }
+
+    /// Where the part's own axis crosses the `x`–`y` plane, `[x, y]` in body axes, m: an inner
+    /// tube's or packed part's radial offset turned by its angle, and the body axis for every
+    /// other part.
+    pub fn axis_offset_m(&self) -> [f64; 2] {
+        let turned = |r: f64, angle: f64| [r * angle.cos(), r * angle.sin()];
+        match self {
+            Self::InnerTube(p) => turned(p.radial_offset_m, p.angle_rad),
+            Self::MassComponent(p) => turned(p.packing.radial_offset_m, p.packing.angle_rad),
+            Self::Parachute(p) => turned(p.packing.radial_offset_m, p.packing.angle_rad),
+            Self::Streamer(p) => turned(p.packing.radial_offset_m, p.packing.angle_rad),
+            Self::ShockCord(p) => turned(p.packing.radial_offset_m, p.packing.angle_rad),
+            _ => [0.0, 0.0],
+        }
+    }
+
+    /// An internal part's outer radius about its own axis, m: an inner tube's or ring's outer
+    /// radius, or a packed part's packed radius.
+    pub fn outer_radius_about_axis_m(&self) -> Option<f64> {
+        match self {
+            Self::InnerTube(p) => Some(p.outer_radius_m),
+            Self::CenteringRing(p) => Some(p.outer_radius_m),
+            Self::MassComponent(p) => Some(p.packing.radius_m),
+            Self::Parachute(p) => Some(p.packing.radius_m),
+            Self::Streamer(p) => Some(p.packing.radius_m),
+            Self::ShockCord(p) => Some(p.packing.radius_m),
+            _ => None,
+        }
+    }
+
+    /// How far an internal part reaches from `axis` (`[x, y]` in body axes, m): the distance
+    /// between the two axes plus the part's outer radius, for the farthest tube of a cluster.
+    pub fn reach_from_m(&self, axis: [f64; 2]) -> Option<f64> {
+        let [x, y] = self.axis_offset_m();
+        let tubes = match self {
+            Self::InnerTube(tube) if !tube.cluster_m.is_empty() => tube.cluster_m.as_slice(),
+            _ => &[[0.0, 0.0]],
+        };
+        self.outer_radius_about_axis_m().map(|r| {
+            tubes
+                .iter()
+                .map(|&[u, v]| (x + u - axis[0]).hypot(y + v - axis[1]) + r)
+                .fold(f64::NEG_INFINITY, f64::max)
+        })
+    }
+
+    /// Mass properties in the part's own frame. External attachments need the radius of the body
+    /// they sit on.
+    ///
+    /// # Errors
+    ///
+    /// The part's own geometry, material and numerical errors, and [`DesignError::Geometry`] when
+    /// an external attachment has no body radius.
+    pub fn mass_properties(
+        &self,
+        body_radius_m: Option<f64>,
+    ) -> Result<MassProperties, DesignError> {
+        let body = || {
+            body_radius_m.ok_or_else(|| {
+                DesignError::Geometry(format!(
+                    "a {} needs the radius of the body it sits on",
+                    self.kind_name()
+                ))
+            })
+        };
+        match self {
+            Self::NoseCone(p) => p.mass_properties(),
+            Self::BodyTube(p) => p.mass_properties(),
+            Self::Transition(p) => p.mass_properties(),
+            Self::InnerTube(p) => p.mass_properties(),
+            Self::CenteringRing(p) => p.mass_properties(),
+            Self::FinSet(p) => p.mass_properties(body()?),
+            Self::TubeFinSet(p) => p.mass_properties(body()?),
+            Self::LaunchLug(p) => p.mass_properties(body()?),
+            Self::RailButton(p) => p.mass_properties(body()?),
+            Self::PodSet(p) => p.pods().map(|_| MassProperties::ZERO),
+            Self::MassComponent(p) => p.mass_properties(),
+            Self::Parachute(p) => p.mass_properties(),
+            Self::Streamer(p) => p.mass_properties(),
+            Self::ShockCord(p) => p.mass_properties(),
+        }
+    }
+}
+
+/// Where an attached part sits along its parent. Offsets are positive aft.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(tag = "from", rename_all = "snake_case", deny_unknown_fields)]
+pub enum Position {
+    /// The part's forward end is `aft_offset_m` aft of the parent's forward end.
+    Top {
+        /// Offset, m.
+        #[serde(default)]
+        aft_offset_m: f64,
+    },
+    /// The part's middle is `aft_offset_m` aft of the parent's middle.
+    Middle {
+        /// Offset, m.
+        #[serde(default)]
+        aft_offset_m: f64,
+    },
+    /// The part's aft end is `aft_offset_m` aft of the parent's aft end.
+    Bottom {
+        /// Offset, m.
+        #[serde(default)]
+        aft_offset_m: f64,
+    },
+    /// The part's forward end is `aft_offset_m` aft of the previous sibling's aft end, or of the
+    /// parent's forward end for the first child.
+    After {
+        /// Offset, m.
+        #[serde(default)]
+        aft_offset_m: f64,
+    },
+    /// The part's forward end is at station `station_m`, measured aft of the nose tip.
+    Absolute {
+        /// Station, m.
+        station_m: f64,
+    },
+}
+
+/// A dimension resolved from the tree instead of stored in the part.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "snake_case")]
+#[non_exhaustive]
+pub enum AutoDimension {
+    /// A nose cone's base radius: the next body component's forward radius.
+    BaseRadius,
+    /// A body tube's outer radius: the previous body component's aft radius, or, when that can't
+    /// be resolved, the next one's forward radius. A centering ring's or inner tube's outer
+    /// radius: its parent's inner radius, which is how a coupler or an engine block fills the tube
+    /// it sits in; inside a hollow nose cone or transition, the parent's outer radius at the
+    /// narrower end of the part less the parent's wall, and never below zero, as OpenRocket 24.12
+    /// reads it ([ADR-096][adr-096]). An inner tube whose resolved radius is less than its wall
+    /// is laid out solid (its wall is cut to its radius), as OpenRocket weighs it; a stated radius
+    /// with too thick a wall is still refused. A tube fin set's outer radius: the radius at which
+    /// its tubes close the ring around the body tube they sit on,
+    /// [`TubeFinSet::closing_radius_m`](crate::TubeFinSet::closing_radius_m), its wall cut to that
+    /// radius when thicker, as OpenRocket 24.12 reads it ([ADR-098][adr-098]).
+    ///
+    /// [adr-098]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-098-a-tube-fin-sets-automatic-radius-read-as-openrocket-reads-it-2026-09-28
+    /// [adr-096]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-096-fin-fillets-and-an-automatic-radius-inside-a-nose-cone-read-as-openrocket-reads-them-2026-09-28
+    OuterRadius,
+    /// A transition's forward radius: the previous body component's aft radius.
+    ForeRadius,
+    /// A transition's aft radius: the next body component's forward radius.
+    AftRadius,
+    /// A nose cone's shoulder outer radius: the inner radius of the body tube behind it.
+    ShoulderRadius,
+    /// A transition's forward shoulder outer radius: the inner radius of the body tube ahead of it.
+    ForeShoulderRadius,
+    /// A transition's aft shoulder outer radius: the inner radius of the body tube behind it.
+    AftShoulderRadius,
+    /// A centering ring's inner radius: the outer radius of the widest on-axis inner tube among
+    /// its siblings that overlaps it along the axis, or zero when none does.
+    InnerRadius,
+    /// A mass component's or recovery part's packed radius: its parent's inner radius less the
+    /// part's radial offset.
+    PackedRadius,
+}
+
+impl AutoDimension {
+    /// The dimension's name, as serialized.
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::BaseRadius => "base_radius",
+            Self::OuterRadius => "outer_radius",
+            Self::ForeRadius => "fore_radius",
+            Self::AftRadius => "aft_radius",
+            Self::ShoulderRadius => "shoulder_radius",
+            Self::ForeShoulderRadius => "fore_shoulder_radius",
+            Self::AftShoulderRadius => "aft_shoulder_radius",
+            Self::InnerRadius => "inner_radius",
+            Self::PackedRadius => "packed_radius",
+        }
+    }
+
+    fn applies_to(self, part: &Part) -> bool {
+        use AutoDimension as A;
+        matches!(
+            (self, part),
+            (A::BaseRadius | A::ShoulderRadius, Part::NoseCone(_))
+                | (
+                    A::OuterRadius,
+                    Part::BodyTube(_)
+                        | Part::CenteringRing(_)
+                        | Part::InnerTube(_)
+                        | Part::TubeFinSet(_)
+                )
+                | (
+                    A::ForeRadius | A::AftRadius | A::ForeShoulderRadius | A::AftShoulderRadius,
+                    Part::Transition(_)
+                )
+                | (A::InnerRadius, Part::CenteringRing(_))
+                | (
+                    A::PackedRadius,
+                    Part::MassComponent(_)
+                        | Part::Parachute(_)
+                        | Part::Streamer(_)
+                        | Part::ShockCord(_)
+                )
+        )
+    }
+}
+
+/// Values that replace the mass properties computed from geometry. Each applies in turn:
+///
+/// 1. **Mass** `m′`: the body is rescaled, `I′ = I m′/m`, keeping its center and shape. A body with
+///    no mass becomes a point mass at its center, but for a packed part in a layout (a mass
+///    component, parachute, streamer or shock cord), which takes `m′` as a solid cylinder of its
+///    packing, as OpenRocket 24.12 does ([ADR-063][adr-063]).
+/// 2. **Center of mass**: the center moves along the axis to `cg_aft_m` aft of the component's
+///    forward end (a stage's, for a stage), with or without its children, and off the axis to
+///    `cg_xy_m` when given (otherwise it keeps its offset); the tensor about the center is
+///    unchanged.
+/// 3. **Inertia**: the tensor about the (new) center is replaced.
+///
+/// [adr-063]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-063-packed-parts-read-and-weighed-as-openrocket-packs-them-2026-09-21
+#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct Overrides {
+    /// Mass, kg.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mass_kg: Option<f64>,
+    /// Center of mass, m aft of the forward end of the component (or the stage).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cg_aft_m: Option<f64>,
+    /// Center of mass off the axis, `[x, y]` in body axes, m. For a part inside a cluster's tube or
+    /// a pod, it is measured in that one copy as written (a pod on the body's axis), and the copies
+    /// carry it to each place.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cg_xy_m: Option<[f64; 2]>,
+    /// Inertia tensor about the center of mass. For a part inside a cluster's tube or a pod, it is
+    /// in that one copy's axes as written, and turns with each pod.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inertia: Option<InertiaOverride>,
+}
+
+/// A drag coefficient stated in place of the one a component's geometry gives: OpenRocket's
+/// drag-coefficient override (`<overridecd>`, `<overridesubcomponentscd>`), as OpenRocket 24.12
+/// flies it, measured on probe designs (`validation/oracles/openrocket/drag_override.py`,
+/// [ADR-167][adr-167]):
+///
+/// - The coefficient is on the rocket's reference area and is the same at every Mach number.
+/// - It replaces all the component's own zero-lift drag: skin friction, pressure drag and the
+///   base drag of its aft face, whether that is the rocket's base or a step down to the part
+///   behind it. A step up at its fore end is its own face, and goes too.
+/// - It counts once per instance: per fin of a fin set, per lug or button of a set.
+/// - On a tube fin set, a pod set or a part in a pod, or covering a pod set, it was not measured,
+///   and `hpr-aero` refuses it by name.
+/// - With `include_children`, the parts attached to the component have no drag of their own.
+/// - On a part inside the body (an inner tube, a ring, a mass) it does nothing, as such a part
+///   has no drag.
+/// - On a stage, it is added to the rocket's drag; with `include_children`, it replaces the
+///   drag of everything in the stage.
+///
+/// [adr-167]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0167-a-part-s-drag-override-as-openrocket-flies-it.md
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct DragOverride {
+    /// The zero-lift drag coefficient, on the rocket's reference area, per instance. Zero is a
+    /// value: no drag at all.
+    pub coefficient: f64,
+    /// Whether the parts attached to the component (or everything in the stage) lose their own
+    /// drag too.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub include_children: bool,
+}
+
+/// An inertia tensor about the center of mass in body axes, kg·m². The off-diagonal entries are
+/// the tensor's, `I_xy = −∫ x y dm` ([`crate::mass`]); they default to zero.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct InertiaOverride {
+    /// `I_xx`, kg·m².
+    pub xx_kg_m2: f64,
+    /// `I_yy`, kg·m².
+    pub yy_kg_m2: f64,
+    /// `I_zz`, about the rocket's axis, kg·m².
+    pub zz_kg_m2: f64,
+    /// `I_xy`, kg·m².
+    #[serde(default)]
+    pub xy_kg_m2: f64,
+    /// `I_xz`, kg·m².
+    #[serde(default)]
+    pub xz_kg_m2: f64,
+    /// `I_yz`, kg·m².
+    #[serde(default)]
+    pub yz_kg_m2: f64,
+}
+
+impl InertiaOverride {
+    /// A tensor symmetric about the body axis: `diag(I_t, I_t, I_a)`.
+    pub fn axisymmetric(axial_kg_m2: f64, transverse_kg_m2: f64) -> Self {
+        Self {
+            xx_kg_m2: transverse_kg_m2,
+            yy_kg_m2: transverse_kg_m2,
+            zz_kg_m2: axial_kg_m2,
+            xy_kg_m2: 0.0,
+            xz_kg_m2: 0.0,
+            yz_kg_m2: 0.0,
+        }
+    }
+
+    /// The tensor.
+    pub fn tensor(&self) -> DMat3 {
+        DMat3::from_cols(
+            DVec3::new(self.xx_kg_m2, self.xy_kg_m2, self.xz_kg_m2),
+            DVec3::new(self.xy_kg_m2, self.yy_kg_m2, self.yz_kg_m2),
+            DVec3::new(self.xz_kg_m2, self.yz_kg_m2, self.zz_kg_m2),
+        )
+    }
+}
+
+impl Overrides {
+    /// Whether the center of mass is overridden, along the axis or off it.
+    pub fn sets_center(&self) -> bool {
+        self.cg_aft_m.is_some() || self.cg_xy_m.is_some()
+    }
+
+    /// Whether the center of mass is moved along the axis (`cg_aft_m`).
+    pub fn sets_axial_center(&self) -> bool {
+        self.cg_aft_m.is_some()
+    }
+
+    /// Whether nothing is overridden.
+    pub fn is_empty(&self) -> bool {
+        self.mass_kg.is_none()
+            && self.cg_aft_m.is_none()
+            && self.cg_xy_m.is_none()
+            && self.inertia.is_none()
+    }
+
+    /// Applies the overrides to `mass`, measuring a center-of-mass override from station
+    /// `fore_station_m`.
+    ///
+    /// # Errors
+    ///
+    /// [`DesignError::Domain`] for a negative or non-finite mass or a non-finite center, and
+    /// [`DesignError::UnphysicalInertia`] when the result is not a real body
+    /// ([`MassProperties::validate`]).
+    pub fn apply(
+        &self,
+        mass: MassProperties,
+        fore_station_m: f64,
+    ) -> Result<MassProperties, DesignError> {
+        if self.is_empty() {
+            return Ok(mass);
+        }
+        let mut out = mass;
+        if let Some(m) = self.mass_kg {
+            check_dimension("mass override (kg)", m, true)?;
+            out = if out.mass_kg > 0.0 {
+                out.scaled(m / out.mass_kg)
+            } else {
+                MassProperties::point(m, out.cg_m)
+            };
+        }
+        if let Some(aft) = self.cg_aft_m {
+            if !aft.is_finite() {
+                return Err(DesignError::Domain {
+                    what: "center-of-mass override (m)",
+                    value: aft,
+                });
+            }
+            out.cg_m.z = -(fore_station_m + aft);
+        }
+        if let Some([x, y]) = self.cg_xy_m {
+            for value in [x, y] {
+                if !value.is_finite() {
+                    return Err(DesignError::Domain {
+                        what: "off-axis center-of-mass override (m)",
+                        value,
+                    });
+                }
+            }
+            out.cg_m.x = x;
+            out.cg_m.y = y;
+        }
+        if let Some(inertia) = self.inertia {
+            out.inertia_kg_m2 = inertia.tensor();
+        }
+        out.validate()?;
+        Ok(out)
+    }
+}
+
+/// How the reference diameter (for aerodynamic coefficients) is chosen.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, schemars::JsonSchema)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+#[non_exhaustive]
+pub enum ReferenceDiameter {
+    /// The widest body component (nose cone, body tube or transition) in any stage. Internal
+    /// parts, shoulders, fins, tube fins, lugs and rail buttons don't count.
+    Maximum {},
+    /// The base of the first nose cone.
+    NoseBase {},
+    /// A given diameter.
+    Custom {
+        /// Diameter, m.
+        diameter_m: f64,
+    },
+}
+
+impl Default for ReferenceDiameter {
+    fn default() -> Self {
+        Self::Maximum {}
+    }
+}
+
+/// A component resolved into place.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PlacedComponent {
+    /// The component's id.
+    pub id: String,
+    /// Index of its stage in [`Layout::stages`].
+    pub stage: usize,
+    /// Index of its parent in [`Layout::components`]; `None` for a body component of the airframe
+    /// (a pod's body components have their pod set as parent).
+    pub parent: Option<usize>,
+    /// The part with every automatic dimension filled in.
+    pub part: Part,
+    /// Station of its forward end (the start of its axial extent), m aft of the nose tip.
+    pub fore_station_m: f64,
+    /// Axial extent ([`Component::length_m`]: a pod set's is its pod's), m.
+    pub length_m: f64,
+    /// The outer surface's finish ([`Component::finish`], with the default filled in).
+    #[serde(default)]
+    pub finish: Finish,
+    /// For an external attachment, the radius of the body tube it sits on, m.
+    pub body_radius_m: Option<f64>,
+    /// Its motor mount, if it is one.
+    pub motor_mount: Option<MotorMount>,
+    /// Its own mass properties in body axes, after overrides that cover it alone.
+    pub own: MassProperties,
+    /// It with everything attached to it, after every override that applies within.
+    pub with_children: MassProperties,
+    /// Whether its own overrides move its center of mass along the axis (`cg_aft_m`). Written
+    /// before the move to US spelling as `centre_overridden`, which is still read and never written.
+    #[serde(default, alias = "centre_overridden")]
+    pub center_overridden: bool,
+    /// Where the copies of it sit, each a [`Placement`] of it from where it is written: one
+    /// [`Placement::HERE`] for a part in no cluster or pod, one per tube for a part inside a
+    /// clustered inner tube ([`InnerTube::cluster_m`](crate::InnerTube::cluster_m)), and one per
+    /// pod, turned with it, for a part in a pod ([`PodSet::pods`]); nested, every combination.
+    /// [`Self::own`] and [`Self::with_children`] count every copy. A clustered tube's own tubes are
+    /// its part's. An empty list is no copy: the part weighs nothing and a motor in it is not
+    /// placed.
+    #[serde(default = "one_copy")]
+    pub copies: Vec<Placement>,
+    /// The drag coefficient the component states ([`Component::drag_override`]).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub drag_override: Option<DragOverride>,
+}
+
+/// One copy, where it is written.
+fn one_copy() -> Vec<Placement> {
+    vec![Placement::HERE]
+}
+
+impl PlacedComponent {
+    /// Station of the aft end of its axial extent, m.
+    pub fn aft_station_m(&self) -> f64 {
+        self.fore_station_m + self.length_m
+    }
+
+    /// Where the copies of what it holds sit, from where that is written: for a clustered inner
+    /// tube, every tube of every copy of it; for a pod set, every pod of every copy of it; for any
+    /// other part, its own copies. A motor in a clustered mount, or in a pod, is one motor per
+    /// place.
+    ///
+    /// # Errors
+    ///
+    /// [`DesignError::Domain`] for a cluster offset that is not finite, or a pod set's errors from
+    /// [`PodSet::pods`].
+    pub fn contents_copies(&self) -> Result<Vec<Placement>, DesignError> {
+        let repeats = repeats(&self.part)?;
+        Ok(self
+            .copies
+            .iter()
+            .flat_map(|copy| repeats.iter().map(move |inner| copy.after(inner)))
+            .collect())
+    }
+}
+
+/// Where what `part` holds is repeated, from where one copy of `part` is written: a cluster's
+/// tubes, a pod set's pods, and one place for any other part.
+fn repeats(part: &Part) -> Result<Vec<Placement>, DesignError> {
+    match part {
+        Part::InnerTube(tube) => Ok(tube.tubes_m()?.into_iter().map(Placement::moved).collect()),
+        Part::PodSet(pods) => pods.pods(),
+        _ => Ok(one_copy()),
+    }
+}
+
+/// A stage resolved into place.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PlacedStage {
+    /// The stage's id.
+    pub id: String,
+    /// Station of its forward end, m.
+    pub fore_station_m: f64,
+    /// Station of its aft end, m.
+    pub aft_station_m: f64,
+    /// Its mass properties in body axes, without motors, after its overrides.
+    pub mass: MassProperties,
+    /// Whether the stage's own overrides move its center of mass along the axis (`cg_aft_m`).
+    /// Written before the move to US spelling as `centre_overridden`, which is still read and never written.
+    #[serde(default, alias = "centre_overridden")]
+    pub center_overridden: bool,
+    /// The drag coefficient the stage states ([`Stage::drag_override`]).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub drag_override: Option<DragOverride>,
+    /// For a parallel stage ([`Stage::parallel`]), the index of the stage whose body tube it hangs
+    /// on; `None` for a stage on the axis. Its stations are its pods'.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hung_on: Option<usize>,
+}
+
+/// Each stage's masses before its overrides, as [`Rocket::layout`] combines them, and where it
+/// starts and ends: what a layout's stages are made from.
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) struct StageMasses {
+    /// Each stage's top-level components' masses, with their children, fore to aft.
+    masses: Vec<Vec<MassProperties>>,
+    /// Each stage's fore and aft stations, m.
+    ends: Vec<Option<(f64, f64)>>,
+    /// The rocket's length, m.
+    length_m: f64,
+}
+
+/// A design resolved into placed parts, with its structural mass properties (no motors).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Layout {
+    /// Every component, depth first: each body component followed by its attached parts.
+    pub components: Vec<PlacedComponent>,
+    /// The stages, forward to aft.
+    pub stages: Vec<PlacedStage>,
+    /// Length from the nose tip to the aft end of the airframe's last body component, m. Pods that
+    /// run past it don't count.
+    pub length_m: f64,
+    /// Reference diameter, m.
+    pub reference_diameter_m: f64,
+    /// Every stage together, without motors.
+    pub structure: MassProperties,
+}
+
+impl Layout {
+    /// The component with id `id`, and its index.
+    pub fn find(&self, id: &str) -> Option<(usize, &PlacedComponent)> {
+        self.components.iter().enumerate().find(|(_, c)| c.id == id)
+    }
+
+    /// The airframe's body components, forward to aft: not a pod's.
+    pub fn body(&self) -> impl Iterator<Item = &PlacedComponent> {
+        self.components.iter().filter(|c| c.parent.is_none())
+    }
+
+    /// The index of the pod set that component `index` is in, if any: the nearest pod set among
+    /// its parents, never the component itself. The walk takes at most one step per component,
+    /// so a layout whose parents loop, which [`Layout`]'s own builder never makes, ends it.
+    pub fn pod_set_of(&self, index: usize) -> Option<usize> {
+        let mut parent = self.components.get(index)?.parent;
+        for _ in 0..self.components.len() {
+            let at = parent?;
+            let component = self.components.get(at)?;
+            if matches!(component.part, Part::PodSet(_)) {
+                return Some(at);
+            }
+            parent = component.parent;
+        }
+        None
+    }
+
+    /// The pod sets that hold a motor mount, as [`Self::pod_set_of`] finds a mount's, each once, in
+    /// the order their first mount comes in the layout. A motor's place in this list says which
+    /// pod set's bases take its area under power.
+    pub fn motor_pod_sets(&self) -> Vec<usize> {
+        let mut sets = Vec::new();
+        for (index, component) in self.components.iter().enumerate() {
+            if component.motor_mount.is_none() {
+                continue;
+            }
+            if let Some(set) = self.pod_set_of(index)
+                && !sets.contains(&set)
+            {
+                sets.push(set);
+            }
+        }
+        sets
+    }
+
+    /// Reference area `π d²/4`, m².
+    pub fn reference_area_m2(&self) -> f64 {
+        0.25 * std::f64::consts::PI * self.reference_diameter_m * self.reference_diameter_m
+    }
+}
+
+/// An automatic body radius that has nothing to take: where it is, and which radius
+/// ([`Rocket::unresolvable_body_radii`]).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnresolvableRadius {
+    /// Index of the component's stage in [`Rocket::stages`].
+    pub stage: usize,
+    /// Index of the component in that stage's [`Stage::components`].
+    pub component: usize,
+    /// The component's id.
+    pub id: String,
+    /// Which of its radii: [`AutoDimension::BaseRadius`], [`AutoDimension::OuterRadius`],
+    /// [`AutoDimension::ForeRadius`] or [`AutoDimension::AftRadius`].
+    pub dimension: AutoDimension,
+}
+
+impl Rocket {
+    /// Resolves the tree: checks its structure, fills in automatic dimensions, places every part,
+    /// and computes the mass properties with overrides.
+    ///
+    /// # Errors
+    ///
+    /// - [`DesignError::DuplicateId`] for an empty or repeated stage or component id.
+    /// - [`DesignError::Tree`] for a rocket with no stages, an empty stage, a part in the wrong
+    ///   place (an attached part in a stage's list, a body component attached anywhere but in a pod
+    ///   set, anything else in a pod set, fins or pods on anything but a body tube, a pod set in a
+    ///   pod, children under anything but a body component, inner tube or pod set), a pod set with
+    ///   an override that doesn't cover its pods, a missing or
+    ///   unexpected position, an automatic dimension that doesn't apply or can't be resolved, or a
+    ///   motor mount on anything but a body tube or inner tube.
+    /// - [`DesignError::Domain`] for a pod set of no pods or more than [`PodSet::MAX_COUNT`], a
+    ///   radial offset or angle out of range, or a body component of no length in a stage.
+    /// - Any part's geometry, material or numerical error, a custom finish's negative or
+    ///   non-finite roughness, and override errors.
+    pub fn layout(&self) -> Result<Layout, DesignError> {
+        let (components, masses) = self.placed_components()?;
+        self.staged_layout(components, &masses)
+    }
+
+    /// The body components placed, with their children, and each stage's masses before its
+    /// overrides: all of [`Rocket::layout`] but the stages.
+    pub(crate) fn placed_components(
+        &self,
+    ) -> Result<(Vec<PlacedComponent>, StageMasses), DesignError> {
+        if self.stages.is_empty() {
+            return Err(DesignError::Tree {
+                id: self.name.clone(),
+                message: "a rocket needs at least one stage".to_owned(),
+            });
+        }
+        let mut ids = BTreeSet::new();
+        for stage in &self.stages {
+            if stage.components.is_empty() {
+                return Err(tree(&stage.id, "a stage needs at least one body component"));
+            }
+            if stage.parallel.is_some() {
+                // Checked below as the pod set it is laid out as, under the stage's own id.
+                continue;
+            }
+            unique(&mut ids, &stage.id)?;
+            for component in &stage.components {
+                check_node(&mut ids, component, None, 0, false)?;
+            }
+        }
+        let mut hung = Hung::default();
+        for ((k, stage), carrier) in self.stages.iter().enumerate().zip(self.carriers()?) {
+            let (Some(parallel), Some(carrier)) = (&stage.parallel, carrier) else {
+                continue;
+            };
+            let on = &self.stages[carrier.stage].components[carrier.component];
+            if matches!(parallel.position, Position::After { .. }) {
+                return Err(tree(
+                    &stage.id,
+                    "a parallel stage is placed along the tube it hangs on, not after a sibling",
+                ));
+            }
+            // A mass override that covers what the tube holds, or the whole stage it is in, doesn't
+            // say whether it covers the parallel stage too: OpenRocket's tree holds the stage
+            // under the tube, and no probe has measured its reading (ADR-171).
+            if !self.stages[carrier.stage].overrides.is_empty()
+                || (on.overrides_include_children && !on.overrides.is_empty())
+            {
+                return Err(tree(
+                    &stage.id,
+                    format!(
+                        "a parallel stage hangs on `{}`, under a mass override that covers what \
+                         the tube or its stage holds, which doesn't say whether it covers the \
+                         parallel stage",
+                        on.id
+                    ),
+                ));
+            }
+            let pods = parallel_pods(stage, parallel);
+            check_node(&mut ids, &pods, Some(&on.part), 1, false)?;
+            hung.stages
+                .entry(on.id.clone())
+                .or_default()
+                .push((k, pods));
+        }
+
+        let nodes: Vec<(usize, &Component)> = self
+            .stages
+            .iter()
+            .enumerate()
+            .filter(|(_, stage)| stage.parallel.is_none())
+            .flat_map(|(k, stage)| stage.components.iter().map(move |c| (k, c)))
+            .collect();
+        let mut parts: Vec<Part> = nodes.iter().map(|(_, c)| c.part.clone()).collect();
+        let autos: Vec<&[AutoDimension]> = nodes.iter().map(|(_, c)| c.auto.as_slice()).collect();
+        let ids: Vec<&str> = nodes.iter().map(|(_, c)| c.id.as_str()).collect();
+        resolve_body_radii(&mut parts, &autos, &ids)?;
+        resolve_shoulders(&mut parts, &autos, &ids)?;
+
+        let mut components = Vec::new();
+        let mut stage_masses: Vec<Vec<MassProperties>> = vec![Vec::new(); self.stages.len()];
+        let mut stage_ends: Vec<Option<(f64, f64)>> = vec![None; self.stages.len()];
+        let mut station = 0.0;
+        for ((stage, node), part) in nodes.iter().zip(parts) {
+            let length = part.length_m();
+            check_dimension("body component length", length, false)
+                .map_err(|e| within(&node.id, e))?;
+            let placed = place(&part, None, station, &node.id)?;
+            let index = components.len();
+            components.push(PlacedComponent {
+                id: node.id.clone(),
+                stage: *stage,
+                parent: None,
+                part,
+                fore_station_m: station,
+                length_m: length,
+                finish: node.finish.unwrap_or_default(),
+                body_radius_m: None,
+                motor_mount: node.motor_mount,
+                own: placed,
+                with_children: placed,
+                center_overridden: node.overrides.sets_axial_center(),
+                copies: one_copy(),
+                drag_override: node.drag_override,
+            });
+            let with_children = finish(&mut components, index, node, &mut hung)?;
+            stage_masses[*stage].push(with_children);
+            let ends = stage_ends[*stage].get_or_insert((station, station));
+            ends.1 = station + length;
+            station += length;
+        }
+        for (k, mass, ends) in hung.placed {
+            stage_masses[k].push(mass);
+            stage_ends[k] = Some(ends);
+        }
+        Ok((
+            components,
+            StageMasses {
+                masses: stage_masses,
+                ends: stage_ends,
+                length_m: station,
+            },
+        ))
+    }
+
+    /// The layout of `components`, placed by [`Rocket::placed_components`] from this design or
+    /// from one with the same stage components, with this design's stage overrides applied to
+    /// `masses`: the rest of [`Rocket::layout`].
+    pub(crate) fn staged_layout(
+        &self,
+        components: Vec<PlacedComponent>,
+        masses: &StageMasses,
+    ) -> Result<Layout, DesignError> {
+        let mut stages = Vec::with_capacity(self.stages.len());
+        let carriers = self.carriers()?;
+        for ((stage, masses), ends) in self.stages.iter().zip(&masses.masses).zip(&masses.ends) {
+            let (fore, aft) = ends.unwrap_or((0.0, 0.0));
+            let mass = stage
+                .overrides
+                .apply(MassProperties::combine(masses), fore)
+                .map_err(|e| within(&stage.id, e))?;
+            let hung_on = carriers[stages.len()].map(|carrier| carrier.stage);
+            stages.push(PlacedStage {
+                id: stage.id.clone(),
+                fore_station_m: fore,
+                aft_station_m: aft,
+                mass,
+                center_overridden: stage.overrides.sets_axial_center(),
+                drag_override: stage.drag_override,
+                hung_on,
+            });
+        }
+        let structure = MassProperties::combine(stages.iter().map(|s| &s.mass));
+        let reference_diameter_m = self.reference_diameter_m(&components)?;
+        Ok(Layout {
+            components,
+            stages,
+            length_m: masses.length_m,
+            reference_diameter_m,
+            structure,
+        })
+    }
+
+    /// The automatic body radii that [`layout`](Self::layout) cannot resolve, forward to aft.
+    ///
+    /// These are the radii on a chain of automatic radii with no fixed radius anywhere along it:
+    /// a nose cone whose base looks back at a tube that looks forward at it, or a stage of tubes
+    /// that all say "automatic". Neighbours are followed by the rule each [`AutoDimension`]
+    /// documents. `layout` refuses a design for which this list is not empty; what such a radius
+    /// should be is not in the design, so an importer that knows its source program's convention
+    /// fills them in first ([`fill_unresolvable_body_radii`](Self::fill_unresolvable_body_radii)).
+    ///
+    /// A parallel stage's body components are not listed: they take their radii from one another,
+    /// as a pod's do, and `layout` refuses one it can't resolve.
+    ///
+    /// Only the body components' own radii are listed. An automatic shoulder with no body tube
+    /// beside it, or an automatic dimension a part does not have, is refused by `layout` with its
+    /// own error instead.
+    pub fn unresolvable_body_radii(&self) -> Vec<UnresolvableRadius> {
+        let nodes: Vec<(usize, usize, &Component)> = self
+            .stages
+            .iter()
+            .enumerate()
+            .filter(|(_, stage)| stage.parallel.is_none())
+            .flat_map(|(k, stage)| {
+                stage
+                    .components
+                    .iter()
+                    .enumerate()
+                    .map(move |(i, c)| (k, i, c))
+            })
+            .collect();
+        let parts: Vec<&Part> = nodes.iter().map(|(_, _, c)| &c.part).collect();
+        let autos: Vec<&[AutoDimension]> =
+            nodes.iter().map(|(_, _, c)| c.auto.as_slice()).collect();
+        let (fore, aft) = sweep_body_radii(&parts, &autos);
+        let mut unresolvable = Vec::new();
+        for (n, &(stage, component, node)) in nodes.iter().enumerate() {
+            let mut add = |dimension| {
+                unresolvable.push(UnresolvableRadius {
+                    stage,
+                    component,
+                    id: node.id.clone(),
+                    dimension,
+                });
+            };
+            match node.part {
+                Part::NoseCone(_) if aft[n].is_none() => add(AutoDimension::BaseRadius),
+                Part::BodyTube(_) if aft[n].is_none() => add(AutoDimension::OuterRadius),
+                Part::Transition(_) => {
+                    if fore[n].is_none() {
+                        add(AutoDimension::ForeRadius);
+                    }
+                    if aft[n].is_none() {
+                        add(AutoDimension::AftRadius);
+                    }
+                }
+                _ => {}
+            }
+        }
+        unresolvable
+    }
+
+    /// Gives every radius [`unresolvable_body_radii`](Self::unresolvable_body_radii) lists the
+    /// fixed radius `radius_m`, drops its automatic mark, and returns what it filled.
+    ///
+    /// Every radius on such a chain is listed, so the whole chain takes the one radius. Radii the
+    /// neighbour rule could already reach are left as they are and resolve as before. The design
+    /// no longer records that the filled radii were automatic, which is the point: it now says
+    /// what they are.
+    pub fn fill_unresolvable_body_radii(&mut self, radius_m: f64) -> Vec<UnresolvableRadius> {
+        let unresolvable = self.unresolvable_body_radii();
+        for radius in &unresolvable {
+            let component = &mut self.stages[radius.stage].components[radius.component];
+            match (&mut component.part, radius.dimension) {
+                (Part::NoseCone(p), AutoDimension::BaseRadius) => p.base_radius_m = radius_m,
+                (Part::BodyTube(p), AutoDimension::OuterRadius) => p.outer_radius_m = radius_m,
+                (Part::Transition(p), AutoDimension::ForeRadius) => p.fore_radius_m = radius_m,
+                (Part::Transition(p), AutoDimension::AftRadius) => p.aft_radius_m = radius_m,
+                // `unresolvable_body_radii` lists only the four pairings above.
+                _ => continue,
+            }
+            component.auto.retain(|auto| *auto != radius.dimension);
+        }
+        unresolvable
+    }
+
+    fn reference_diameter_m(&self, components: &[PlacedComponent]) -> Result<f64, DesignError> {
+        let diameter = match self.reference_diameter {
+            ReferenceDiameter::Maximum {} => {
+                let mut widest = 0.0f64;
+                for c in components.iter().filter(|c| c.parent.is_none()) {
+                    if let Some(r) = c.part.max_radius_m()? {
+                        widest = widest.max(r);
+                    }
+                }
+                2.0 * widest
+            }
+            // The airframe's nose cone, not a pod's.
+            ReferenceDiameter::NoseBase {} => components
+                .iter()
+                .filter(|c| c.parent.is_none())
+                .find_map(|c| match &c.part {
+                    Part::NoseCone(nose) => Some(2.0 * nose.base_radius_m),
+                    _ => None,
+                })
+                .ok_or_else(|| {
+                    tree(
+                        &self.name,
+                        "the reference diameter is the nose base, but there is no nose cone",
+                    )
+                })?,
+            ReferenceDiameter::Custom { diameter_m } => diameter_m,
+        };
+        check_dimension("reference diameter (m)", diameter, false)?;
+        Ok(diameter)
+    }
+}
+
+/// `error` in the stage or component `id`.
+fn within(id: &str, error: DesignError) -> DesignError {
+    DesignError::InComponent {
+        id: id.to_owned(),
+        source: Box::new(error),
+    }
+}
+
+/// How many levels a body component and the parts nested in it may span, the body component being
+/// the first: inner tubes in inner tubes far beyond any real rocket, and shallow enough that
+/// resolving never exhausts a small (wasm) stack.
+pub const MAX_DEPTH: usize = 32;
+
+fn tree(id: &str, message: impl Into<String>) -> DesignError {
+    DesignError::Tree {
+        id: id.to_owned(),
+        message: message.into(),
+    }
+}
+
+fn unique(ids: &mut BTreeSet<String>, id: &str) -> Result<(), DesignError> {
+    if id.is_empty() || !ids.insert(id.to_owned()) {
+        return Err(DesignError::DuplicateId(id.to_owned()));
+    }
+    Ok(())
+}
+
+/// Checks a node's id, role, position, automatic dimensions and motor mount against where it sits,
+/// and then its children. `parent` is `None` for a body component.
+fn check_node(
+    ids: &mut BTreeSet<String>,
+    node: &Component,
+    parent: Option<&Part>,
+    depth: usize,
+    in_pod: bool,
+) -> Result<(), DesignError> {
+    unique(ids, &node.id)?;
+    if let Some(finish) = node.finish {
+        finish.roughness_m().map_err(|e| within(&node.id, e))?;
+    }
+    if depth >= MAX_DEPTH {
+        return Err(tree(
+            &node.id,
+            format!("components nest more than {MAX_DEPTH} deep"),
+        ));
+    }
+    let kind = node.part.kind_name();
+    match (parent, node.part.role()) {
+        (None | Some(Part::PodSet(_)), Role::Body) => {
+            if node.position.is_some() {
+                return Err(tree(
+                    &node.id,
+                    "a body component stacks and takes no position",
+                ));
+            }
+        }
+        (Some(Part::PodSet(_)), _) => {
+            return Err(tree(
+                &node.id,
+                format!("a pod holds body components; attach a {kind} to one of them"),
+            ));
+        }
+        (None, _) => {
+            return Err(tree(
+                &node.id,
+                format!("a {kind} can't be a body component; attach it to one"),
+            ));
+        }
+        (Some(_), Role::Body) => {
+            return Err(tree(
+                &node.id,
+                format!("a {kind} is a body component; list it in a stage"),
+            ));
+        }
+        // A fin set may also sit on a nose cone or a transition, its root along the surface
+        // (ADR-166; checked where it is placed).
+        (Some(parent), Role::External)
+            if !(matches!(parent, Part::BodyTube(_))
+                || matches!(node.part, Part::FinSet(_))
+                    && matches!(parent, Part::NoseCone(_) | Part::Transition(_))) =>
+        {
+            return Err(tree(
+                &node.id,
+                format!(
+                    "a {kind} attaches to a body tube{}, not a {}",
+                    if matches!(node.part, Part::FinSet(_)) {
+                        ", a nose cone or a transition"
+                    } else {
+                        ""
+                    },
+                    parent.kind_name()
+                ),
+            ));
+        }
+        (Some(parent), Role::Internal)
+            if !(parent.is_body() || matches!(parent, Part::InnerTube(_))) =>
+        {
+            return Err(tree(
+                &node.id,
+                format!("a {kind} can't go inside a {}", parent.kind_name()),
+            ));
+        }
+        (Some(_), _) => {
+            if node.position.is_none() {
+                return Err(tree(&node.id, "an attached part needs a position"));
+            }
+        }
+    }
+    for auto in &node.auto {
+        if !auto.applies_to(&node.part) {
+            return Err(tree(
+                &node.id,
+                format!("a {kind} has no automatic {} dimension", auto.name()),
+            ));
+        }
+    }
+    if matches!(node.part, Part::PodSet(_)) {
+        if in_pod {
+            return Err(tree(&node.id, "a pod set can't hang from a pod"));
+        }
+        if !node.overrides.is_empty() && !node.overrides_include_children {
+            return Err(tree(
+                &node.id,
+                "a pod set weighs nothing of its own, so an override on it must cover its pods \
+                 (`overrides_include_children`)",
+            ));
+        }
+    }
+    if node.motor_mount.is_some() && !matches!(node.part, Part::BodyTube(_) | Part::InnerTube(_)) {
+        return Err(tree(&node.id, format!("a {kind} can't be a motor mount")));
+    }
+    if !node.children.is_empty()
+        && !(node.part.is_body() || matches!(node.part, Part::InnerTube(_) | Part::PodSet(_)))
+    {
+        return Err(tree(
+            &node.id,
+            format!("a {kind} can't have attached parts"),
+        ));
+    }
+    for child in &node.children {
+        let in_pod = in_pod || matches!(node.part, Part::PodSet(_));
+        check_node(ids, child, Some(&node.part), depth + 1, in_pod)?;
+    }
+    Ok(())
+}
+
+/// Fills in the body components' automatic outer radii from their neighbours, through every stage,
+/// by [`sweep_body_radii`]'s rule; a radius the sweep leaves unknown is an error.
+fn resolve_body_radii(
+    parts: &mut [Part],
+    autos: &[&[AutoDimension]],
+    ids: &[&str],
+) -> Result<(), DesignError> {
+    let (fore, aft) = sweep_body_radii(parts, autos);
+    for (i, part) in parts.iter_mut().enumerate() {
+        let missing = || {
+            tree(
+                ids[i],
+                "an automatic radius has no fixed radius among its neighbours to take",
+            )
+        };
+        match part {
+            Part::NoseCone(p) => p.base_radius_m = aft[i].ok_or_else(missing)?,
+            Part::BodyTube(p) => p.outer_radius_m = aft[i].ok_or_else(missing)?,
+            Part::Transition(p) => {
+                p.fore_radius_m = fore[i].ok_or_else(missing)?;
+                p.aft_radius_m = aft[i].ok_or_else(missing)?;
+            }
+            _ => {}
+        }
+    }
+    Ok(())
+}
+
+/// Each body component's forward and aft radius, following automatic radii to their sources;
+/// `None` where a radius is automatic and nothing reaches it. `parts` are the body components,
+/// forward to aft through every stage.
+///
+/// Each automatic radius has a source: a nose cone's base and a transition's aft radius take the
+/// next component's forward radius; a body tube and a transition's forward radius take the previous
+/// component's aft radius. Sources are followed until nothing changes. Then a body tube still
+/// unresolved takes the next component's forward radius instead (the first one that can), and the
+/// sweep repeats.
+fn sweep_body_radii<P: std::borrow::Borrow<Part>>(
+    parts: &[P],
+    autos: &[&[AutoDimension]],
+) -> (Vec<Option<f64>>, Vec<Option<f64>>) {
+    let n = parts.len();
+    let is_auto = |i: usize, a: AutoDimension| autos[i].contains(&a);
+    let mut fore: Vec<Option<f64>> = Vec::with_capacity(n);
+    let mut aft: Vec<Option<f64>> = Vec::with_capacity(n);
+    for (i, part) in parts.iter().enumerate() {
+        let (f, a) = match part.borrow() {
+            Part::NoseCone(p) => (
+                Some(0.0),
+                (!is_auto(i, AutoDimension::BaseRadius)).then_some(p.base_radius_m),
+            ),
+            Part::BodyTube(p) => {
+                let r = (!is_auto(i, AutoDimension::OuterRadius)).then_some(p.outer_radius_m);
+                (r, r)
+            }
+            Part::Transition(p) => (
+                (!is_auto(i, AutoDimension::ForeRadius)).then_some(p.fore_radius_m),
+                (!is_auto(i, AutoDimension::AftRadius)).then_some(p.aft_radius_m),
+            ),
+            _ => (None, None),
+        };
+        fore.push(f);
+        aft.push(a);
+    }
+    loop {
+        let mut progress = false;
+        for i in 0..n {
+            let previous_aft = if i > 0 { aft[i - 1] } else { None };
+            let next_fore = fore.get(i + 1).copied().flatten();
+            match parts[i].borrow() {
+                Part::NoseCone(_) => {
+                    if aft[i].is_none()
+                        && let Some(r) = next_fore
+                    {
+                        aft[i] = Some(r);
+                        progress = true;
+                    }
+                }
+                Part::BodyTube(_) => {
+                    if fore[i].is_none()
+                        && let Some(r) = previous_aft
+                    {
+                        fore[i] = Some(r);
+                        aft[i] = Some(r);
+                        progress = true;
+                    }
+                }
+                Part::Transition(_) => {
+                    if fore[i].is_none()
+                        && let Some(r) = previous_aft
+                    {
+                        fore[i] = Some(r);
+                        progress = true;
+                    }
+                    if aft[i].is_none()
+                        && let Some(r) = next_fore
+                    {
+                        aft[i] = Some(r);
+                        progress = true;
+                    }
+                }
+                _ => {}
+            }
+        }
+        if progress {
+            continue;
+        }
+        let fallback = (0..n).find(|&i| {
+            matches!(parts[i].borrow(), Part::BodyTube(_))
+                && fore[i].is_none()
+                && fore.get(i + 1).copied().flatten().is_some()
+        });
+        match fallback {
+            Some(i) => {
+                fore[i] = fore[i + 1];
+                aft[i] = fore[i + 1];
+            }
+            None => break,
+        }
+    }
+    (fore, aft)
+}
+
+/// Fills in automatic shoulder radii from the adjoining body tubes' inner radii.
+fn resolve_shoulders(
+    parts: &mut [Part],
+    autos: &[&[AutoDimension]],
+    ids: &[&str],
+) -> Result<(), DesignError> {
+    let inner = |parts: &[Part], i: Option<usize>| -> Option<f64> {
+        match i.and_then(|i| parts.get(i)) {
+            Some(Part::BodyTube(t)) => Some(t.outer_radius_m - t.thickness_m),
+            _ => None,
+        }
+    };
+    for i in 0..parts.len() {
+        let previous = inner(parts, i.checked_sub(1));
+        let next = inner(parts, Some(i + 1));
+        let fit = |shoulder: &mut Option<crate::parts::Shoulder>,
+                   radius: Option<f64>,
+                   which: &str|
+         -> Result<(), DesignError> {
+            let Some(shoulder) = shoulder else {
+                return Err(tree(
+                    ids[i],
+                    format!("an automatic {which} shoulder radius needs a shoulder"),
+                ));
+            };
+            shoulder.outer_radius_m = radius.ok_or_else(|| {
+                tree(
+                    ids[i],
+                    format!("an automatic {which} shoulder radius needs a body tube there"),
+                )
+            })?;
+            Ok(())
+        };
+        match &mut parts[i] {
+            Part::NoseCone(p) if autos[i].contains(&AutoDimension::ShoulderRadius) => {
+                fit(&mut p.shoulder, next, "aft")?;
+            }
+            Part::Transition(p) => {
+                if autos[i].contains(&AutoDimension::ForeShoulderRadius) {
+                    fit(&mut p.fore_shoulder, previous, "forward")?;
+                }
+                if autos[i].contains(&AutoDimension::AftShoulderRadius) {
+                    fit(&mut p.aft_shoulder, next, "aft")?;
+                }
+            }
+            _ => {}
+        }
+    }
+    Ok(())
+}
+
+/// A part's mass properties placed with its forward end at `fore_station_m`.
+fn place(
+    part: &Part,
+    body_radius_m: Option<f64>,
+    fore_station_m: f64,
+    id: &str,
+) -> Result<MassProperties, DesignError> {
+    let mass = part
+        .mass_properties(body_radius_m)
+        .map_err(|e| within(id, e))?;
+    Ok(mass.translated(DVec3::new(0.0, 0.0, -fore_station_m)))
+}
+
+/// The body a mass override rescales: `mass` itself, but for a packed part under a mass override,
+/// which becomes that mass as a solid cylinder of its packing. For a part that weighs something this
+/// is the rescaling [`Overrides::apply`] does anyway; for one that weighs nothing it replaces the
+/// point `apply` makes of any other weightless body. OpenRocket 24.12 does the
+/// same: on probes of a parachute, a mass component and a shock cord each weighing nothing, its
+/// roll inertia is the override's `m r²/2` over the packing's radius `r`, and its pitch inertia and
+/// center are the cylinder's ([ADR-063][adr-063]). `fore_station_m` is the part's forward end.
+///
+/// [adr-063]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-063-packed-parts-read-and-weighed-as-openrocket-packs-them-2026-09-21
+fn packed_for_override(
+    part: &Part,
+    overrides: &Overrides,
+    mass: MassProperties,
+    fore_station_m: f64,
+) -> Result<MassProperties, DesignError> {
+    match (overrides.mass_kg, part.packing()) {
+        // A packed part of any mass is its packing's cylinder, so building the cylinder of `m′`
+        // directly is what rescaling gives, and holds for a weightless (or subnormal) mass too.
+        (Some(mass_kg), Some(packing)) => {
+            check_dimension("mass override (kg)", mass_kg, true)?;
+            Ok(packing
+                .place(mass_kg)?
+                .translated(DVec3::new(0.0, 0.0, -fore_station_m)))
+        }
+        _ => Ok(mass),
+    }
+}
+
+/// The parallel stages as [`finish`] places them: each as the pod set it is laid out as, under
+/// the body tube it hangs on, and what each weighed and spanned once placed.
+#[derive(Default)]
+struct Hung {
+    /// The parallel stages hung on each body tube, by the tube's id: each stage's index and its
+    /// pod set.
+    stages: BTreeMap<String, Vec<(usize, Component)>>,
+    /// Each placed parallel stage's index, mass with its children, and fore and aft stations.
+    placed: Vec<(usize, MassProperties, (f64, f64))>,
+}
+
+/// The pod set parallel stage `stage` is laid out as: under the stage's id, at its position, its
+/// body components the pods' stack. It carries no overrides of its own; the stage's apply to the
+/// stage's mass ([`Rocket::staged_layout`]).
+fn parallel_pods(stage: &Stage, parallel: &ParallelStage) -> Component {
+    Component {
+        id: stage.id.clone(),
+        name: stage.name.clone(),
+        part: Part::PodSet(parallel.pods.clone()),
+        position: Some(parallel.position),
+        auto: Vec::new(),
+        motor_mount: None,
+        finish: None,
+        overrides: Overrides::default(),
+        overrides_include_children: false,
+        drag_override: None,
+        children: stage.components.clone(),
+    }
+}
+
+/// Where a parallel stage hangs: the stage and the place in its component list of the body tube.
+#[derive(Debug, Clone, Copy)]
+struct Carrier {
+    stage: usize,
+    component: usize,
+}
+
+impl Rocket {
+    /// Where each stage hangs ([`ParallelStage::on`]): `None` for an axial stage. One pass, with
+    /// the body tubes of the axial stages before each stage looked up by id.
+    ///
+    /// # Errors
+    ///
+    /// [`DesignError::Tree`] for a parallel stage whose tube is not a body tube among the body
+    /// components of an axial stage before it.
+    fn carriers(&self) -> Result<Vec<Option<Carrier>>, DesignError> {
+        let mut tubes: BTreeMap<&str, Carrier> = BTreeMap::new();
+        let mut carriers = Vec::with_capacity(self.stages.len());
+        for (k, stage) in self.stages.iter().enumerate() {
+            let Some(parallel) = &stage.parallel else {
+                for (component, c) in stage.components.iter().enumerate() {
+                    if matches!(c.part, Part::BodyTube(_)) {
+                        tubes.entry(&c.id).or_insert(Carrier {
+                            stage: k,
+                            component,
+                        });
+                    }
+                }
+                carriers.push(None);
+                continue;
+            };
+            let carrier = tubes.get(parallel.on.as_str()).copied().ok_or_else(|| {
+                tree(
+                    &stage.id,
+                    format!(
+                        "a parallel stage hangs on a body tube of an axial stage before it, and \
+                         `{}` is none",
+                        parallel.on
+                    ),
+                )
+            })?;
+            carriers.push(Some(carrier));
+        }
+        Ok(carriers)
+    }
+}
+
+/// Places a component's children, applies its overrides, and returns it with its children.
+///
+/// Masses are worked one copy at a time: a part inside a cluster is weighed, and its overrides
+/// applied, as one part in one tube, and only then repeated in every tube ([ADR-075][adr-075]).
+/// So an override on an engine block in a cluster is each block's, and an override on the cluster
+/// tube itself is the whole cluster's, since that part is all its tubes. What is stored in
+/// `components[index]` is every copy; what is returned is one copy of the part with its children.
+///
+/// [adr-075]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-075-a-cluster-is-one-tube-repeated-and-a-motor-in-it-one-motor-per-tube-2026-09-25
+fn finish(
+    components: &mut Vec<PlacedComponent>,
+    index: usize,
+    node: &Component,
+    hung: &mut Hung,
+) -> Result<MassProperties, DesignError> {
+    // The parallel stages that hang on this part come after its own children, each tagged with its
+    // own stage (`Some(k)`), its mass that stage's rather than this part's.
+    let hanging: Vec<(usize, Component)> = hung.stages.get(&node.id).cloned().unwrap_or_default();
+    let children: Vec<(&Component, Option<usize>)> = node
+        .children
+        .iter()
+        .map(|child| (child, None))
+        .chain(hanging.iter().map(|(k, pods)| (pods, Some(*k))))
+        .collect();
+    let parent = &components[index];
+    let (p_fore, p_length, stage) = (parent.fore_station_m, parent.length_m, parent.stage);
+    let (p_kind, p_inner) = (parent.part.kind_name(), parent.part.inner_radius_m());
+    let p_axis = parent.part.axis_offset_m();
+    // A pod set's children are its pod's body components: they stack along the pod.
+    let pod = matches!(parent.part, Part::PodSet(_));
+    // What this part holds is repeated in each of its tubes when it is a cluster, and in each pod
+    // when it is a pod set: `p_tubes` for one copy of this part, `p_contents` for all of them.
+    let p_tubes = repeats(&parent.part).map_err(|e| within(&node.id, e))?;
+    let p_copies = parent.copies.clone();
+    let p_contents = parent.contents_copies().map_err(|e| within(&node.id, e))?;
+    let p_tube_radius = match &parent.part {
+        Part::BodyTube(tube) => Some(tube.outer_radius_m),
+        _ => None,
+    };
+    // A nose cone's or transition's outer surface, which a fin set's root follows (ADR-166).
+    let p_surface = match &parent.part {
+        Part::NoseCone(nose) => Some(nose.profile()),
+        Part::Transition(part) => Some(part.profile()),
+        _ => None,
+    }
+    .transpose()
+    .map_err(|e| within(&node.id, e))?;
+    // A nose cone's or transition's bore narrows along it: its outer profile and its wall, when it
+    // has one. A solid one has no bore.
+    let shell = |wall: &Wall| match wall {
+        Wall::Shell { thickness_m } => Some(*thickness_m),
+        Wall::Filled {} => None,
+    };
+    let p_narrowing = match &parent.part {
+        Part::NoseCone(nose) => shell(&nose.wall).map(|t| nose.profile().map(|p| (p, t))),
+        Part::Transition(part) => shell(&part.wall).map(|t| part.profile().map(|p| (p, t))),
+        _ => None,
+    }
+    .transpose()
+    .map_err(|e| within(&node.id, e))?;
+    let own = if node.overrides_include_children {
+        parent.own
+    } else {
+        packed_for_override(&parent.part, &node.overrides, parent.own, p_fore)
+            .and_then(|own| node.overrides.apply(own, p_fore))
+            .map_err(|e| within(&node.id, e))?
+    };
+
+    // Positions first: they don't depend on any automatic radius, and a ring's inner radius needs
+    // its siblings' places.
+    let mut stations = Vec::with_capacity(children.len());
+    let mut previous_aft = None;
+    for &(child, _) in &children {
+        let length = child.length_m();
+        check_dimension("attached part length", length, true).map_err(|e| within(&child.id, e))?;
+        let fore = if pod {
+            previous_aft.unwrap_or(p_fore)
+        } else {
+            match child.position {
+                Some(Position::Top { aft_offset_m }) => p_fore + aft_offset_m,
+                Some(Position::Middle { aft_offset_m }) => {
+                    p_fore + 0.5 * (p_length - length) + aft_offset_m
+                }
+                Some(Position::Bottom { aft_offset_m }) => {
+                    p_fore + p_length - length + aft_offset_m
+                }
+                Some(Position::After { aft_offset_m }) => {
+                    previous_aft.unwrap_or(p_fore) + aft_offset_m
+                }
+                Some(Position::Absolute { station_m }) => station_m,
+                None => return Err(tree(&child.id, "an attached part needs a position")),
+            }
+        };
+        if !fore.is_finite() {
+            return Err(within(
+                &child.id,
+                DesignError::Domain {
+                    what: "attached part position (m)",
+                    value: fore,
+                },
+            ));
+        }
+        stations.push((fore, length));
+        previous_aft = Some(fore + length);
+    }
+
+    let bore = |id: &str| {
+        p_inner.ok_or_else(|| {
+            tree(
+                id,
+                format!("an automatic radius needs a tube's inner radius, and a {p_kind} has none"),
+            )
+        })
+    };
+    // An automatic outer radius inside a nose cone or transition is its bore at whichever end of
+    // the part is narrower: the outer radius there less the wall, measured radially, and none
+    // where the wall meets the axis. Where the part runs past an end of its parent, the profile's
+    // radius at that end stands. This is OpenRocket 24.12's reading, measured on probe designs
+    // (`validation/oracles/openrocket/conventions.py`, [ADR-096][adr-096]).
+    //
+    // [adr-096]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-096-fin-fillets-and-an-automatic-radius-inside-a-nose-cone-read-as-openrocket-reads-them-2026-09-28
+    let bore_over = |id: &str, (fore, length): (f64, f64)| match &p_narrowing {
+        Some((profile, wall_m)) => {
+            let at = |station: f64| profile.radius_m(station - p_fore);
+            Ok((at(fore).min(at(fore + length)) - wall_m).max(0.0))
+        }
+        None => bore(id),
+    };
+    // Automatic outer radii come first, in a pass of their own. They need nothing but the parent's
+    // bore, while a ring's automatic *inner* radius reads its siblings' outer radii, so resolving
+    // both in one pass would give a ring whose bore depended on whether the tube inside it was
+    // written before or after it. That is [Loft lesson L60][lessons], and the reason this is two
+    // passes rather than one.
+    //
+    // [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
+    let mut resolved: Vec<Part> = children.iter().map(|(c, _)| c.part.clone()).collect();
+    if pod {
+        // A pod's body components take their automatic radii from one another, as a stage's do.
+        let autos: Vec<&[AutoDimension]> =
+            node.children.iter().map(|c| c.auto.as_slice()).collect();
+        let ids: Vec<&str> = node.children.iter().map(|c| c.id.as_str()).collect();
+        resolve_body_radii(&mut resolved, &autos, &ids)?;
+        resolve_shoulders(&mut resolved, &autos, &ids)?;
+    }
+    for ((part, &(child, _)), &station) in resolved.iter_mut().zip(&children).zip(&stations) {
+        if child.auto.contains(&AutoDimension::OuterRadius) {
+            match part {
+                Part::CenteringRing(ring) => ring.outer_radius_m = bore_over(&child.id, station)?,
+                // A wall thicker than the radius it gets is the tube solid, as it is when the
+                // radius is stated (`hpr-io`'s `.ork` reader, and OpenRocket 24.12 on probes).
+                Part::InnerTube(tube) => {
+                    tube.outer_radius_m = bore_over(&child.id, station)?;
+                    tube.thickness_m = tube.thickness_m.min(tube.outer_radius_m);
+                }
+                // Tubes that close the ring around the body tube they sit on, a wall thicker than
+                // that radius cut to it, as OpenRocket 24.12 reads both (ADR-098). An external part
+                // on anything but a body tube is refused before this, so the error is a backstop.
+                Part::TubeFinSet(tubes) => {
+                    let body_radius_m = p_tube_radius.ok_or_else(|| {
+                        tree(
+                            &child.id,
+                            "an automatic tube fin radius needs a body tube to ring",
+                        )
+                    })?;
+                    tubes.outer_radius_m =
+                        crate::TubeFinSet::closing_radius_m(body_radius_m, tubes.count);
+                    tubes.thickness_m = tubes.thickness_m.min(tubes.outer_radius_m);
+                }
+                _ => {}
+            }
+        }
+    }
+
+    let mut parts = vec![own];
+    for (k, &(child, hung_stage)) in children.iter().enumerate() {
+        let (fore, length) = stations[k];
+        let mut part = resolved[k].clone();
+        let parent_inner = || bore(&child.id);
+        // A packed part fills the parent's bore on its side of the parent's axis.
+        let packed = |packing: &mut crate::parts::Packing| -> Result<(), DesignError> {
+            let (x, y) = (
+                packing.radial_offset_m * packing.angle_rad.cos(),
+                packing.radial_offset_m * packing.angle_rad.sin(),
+            );
+            let room = parent_inner()? - (x - p_axis[0]).hypot(y - p_axis[1]);
+            if !(room.is_finite() && room > 0.0) {
+                return Err(tree(
+                    &child.id,
+                    "an automatic packed radius needs a radial offset inside the parent's bore",
+                ));
+            }
+            packing.radius_m = room;
+            Ok(())
+        };
+        for auto in &child.auto {
+            match (auto, &mut part) {
+                // Already done in the pass above.
+                (AutoDimension::OuterRadius, _) => {}
+                (AutoDimension::InnerRadius, Part::CenteringRing(ring)) => {
+                    let aft = fore + length;
+                    // A ring centers something *narrower than itself*. A sibling as wide as the
+                    // ring is not what the ring holds (it is whatever the ring is bolted to), and
+                    // taking its radius would leave the ring no material at all, which is how a
+                    // full-bore coupler brushing a ring by a tenth of a millimeter made the ring
+                    // weigh nothing. The ring's own outer radius is already resolved above.
+                    let outer_radius_m = ring.outer_radius_m;
+                    ring.inner_radius_m = resolved
+                        .iter()
+                        .zip(&stations)
+                        .filter_map(|(sibling, &(s_fore, s_length))| match sibling {
+                            Part::InnerTube(tube)
+                                if tube.radial_offset_m == 0.0
+                                    && tube.outer_radius_m < outer_radius_m
+                                    && s_fore.max(fore) < (s_fore + s_length).min(aft) =>
+                            {
+                                Some(tube.outer_radius_m)
+                            }
+                            _ => None,
+                        })
+                        .fold(0.0, f64::max);
+                }
+                (AutoDimension::PackedRadius, Part::MassComponent(p)) => packed(&mut p.packing)?,
+                (AutoDimension::PackedRadius, Part::Parachute(p)) => packed(&mut p.packing)?,
+                (AutoDimension::PackedRadius, Part::Streamer(p)) => packed(&mut p.packing)?,
+                (AutoDimension::PackedRadius, Part::ShockCord(p)) => packed(&mut p.packing)?,
+                _ => {}
+            }
+        }
+        // A fin set's root may follow a nose cone or a transition (ADR-166); on a body tube it is
+        // level.
+        let body_radius_m = match (&part, &p_surface) {
+            (Part::FinSet(fins), Some(surface)) => Some(
+                fins.root_radius_on(surface, fore - p_fore)
+                    .map_err(|e| within(&child.id, e))?,
+            ),
+            _ if part.is_external() => {
+                if let Part::FinSet(fins) = &part {
+                    fins.check_level_root().map_err(|e| within(&child.id, e))?;
+                }
+                Some(
+                    p_tube_radius
+                        .ok_or_else(|| tree(&child.id, "external parts attach to a body tube"))?,
+                )
+            }
+            _ => None,
+        };
+        // One copy: `finish` applies the child's overrides to it and then repeats it.
+        let placed = place(&part, body_radius_m, fore, &child.id)?;
+        let child_index = components.len();
+        components.push(PlacedComponent {
+            id: child.id.clone(),
+            stage: hung_stage.unwrap_or(stage),
+            parent: Some(index),
+            part,
+            fore_station_m: fore,
+            length_m: length,
+            finish: child.finish.unwrap_or_default(),
+            body_radius_m,
+            motor_mount: child.motor_mount,
+            own: placed,
+            with_children: placed,
+            center_overridden: child.overrides.sets_axial_center(),
+            copies: p_contents.clone(),
+            drag_override: child.drag_override,
+        });
+        let mass = MassProperties::placed(finish(components, child_index, child, hung)?, &p_tubes);
+        match hung_stage {
+            Some(k) => hung.placed.push((k, mass, (fore, fore + length))),
+            None => parts.push(mass),
+        }
+    }
+
+    let mut with_children = MassProperties::combine(&parts);
+    if node.overrides_include_children {
+        with_children = packed_for_override(
+            &components[index].part,
+            &node.overrides,
+            with_children,
+            p_fore,
+        )
+        .and_then(|mass| node.overrides.apply(mass, p_fore))
+        .map_err(|e| within(&node.id, e))?;
+    }
+    components[index].own = MassProperties::placed(own, &p_copies);
+    components[index].with_children = MassProperties::placed(with_children, &p_copies);
+    Ok(with_children)
+}
+
+#[cfg(test)]
+mod tests {
+    use proptest::prelude::*;
+
+    use super::*;
+    use crate::parts::Shoulder;
+    use crate::testing::{
+        attached, body, bottom, fins, inner_tube, mass_component, nose, ring, rocket, stage,
+        three_fin_rocket, top, tube,
+    };
+
+    fn close(got: f64, want: f64, tol: f64, what: &str) {
+        assert!((got - want).abs() <= tol, "{what}: {got} vs {want}");
+    }
+
+    fn station(layout: &Layout, id: &str) -> f64 {
+        layout.find(id).unwrap().1.fore_station_m
+    }
+
+    /// Body components stack through both stages; each position rule puts a child where its doc
+    /// says, worked by hand from the parent tube at stations 0.2 to 1.0.
+    #[test]
+    fn stacks_body_components_and_places_attached_parts() {
+        let mut airframe = body("airframe", tube(0.8, 0.03, 0.001));
+        let mut coupler = attached("coupler", inner_tube(0.2, 0.029, 0.001), top(0.1));
+        coupler.children = vec![attached(
+            "bay",
+            mass_component(0.1, 0.05, 0.02),
+            Position::After { aft_offset_m: 0.02 },
+        )];
+        airframe.children = vec![
+            coupler,
+            attached(
+                "middle",
+                mass_component(0.1, 0.1, 0.02),
+                Position::Middle { aft_offset_m: 0.02 },
+            ),
+            attached("bottom", mass_component(0.1, 0.1, 0.02), bottom(-0.01)),
+            attached(
+                "after",
+                mass_component(0.1, 0.004, 0.02),
+                Position::After {
+                    aft_offset_m: 0.001,
+                },
+            ),
+            attached(
+                "absolute",
+                mass_component(0.1, 0.05, 0.02),
+                Position::Absolute { station_m: 0.4 },
+            ),
+        ];
+        let design = rocket(vec![
+            stage("upper", vec![body("nose", nose(0.2, 0.03)), airframe]),
+            stage(
+                "booster",
+                vec![
+                    body(
+                        "interstage",
+                        Part::Transition(Transition {
+                            shape: crate::NoseShape::Conical {},
+                            clipped: false,
+                            length_m: 0.1,
+                            fore_radius_m: 0.03,
+                            aft_radius_m: 0.04,
+                            wall: crate::Wall::Shell { thickness_m: 0.002 },
+                            fore_shoulder: None,
+                            aft_shoulder: None,
+                            material: crate::testing::cardboard(),
+                        }),
+                    ),
+                    body("booster-tube", tube(0.5, 0.04, 0.001)),
+                ],
+            ),
+        ]);
+        let layout = design.layout().unwrap();
+        let tol = 1e-15;
+        close(station(&layout, "nose"), 0.0, tol, "nose");
+        close(station(&layout, "airframe"), 0.2, tol, "airframe");
+        close(station(&layout, "coupler"), 0.3, tol, "top");
+        // The first child of the coupler goes after the coupler's forward end.
+        close(station(&layout, "bay"), 0.32, tol, "after, first child");
+        close(station(&layout, "middle"), 0.2 + 0.35 + 0.02, tol, "middle");
+        close(station(&layout, "bottom"), 1.0 - 0.1 - 0.01, tol, "bottom");
+        close(station(&layout, "after"), 0.99 + 0.001, tol, "after");
+        close(station(&layout, "absolute"), 0.4, tol, "absolute");
+        close(station(&layout, "interstage"), 1.0, tol, "second stage");
+        close(station(&layout, "booster-tube"), 1.1, tol, "booster tube");
+        close(layout.length_m, 1.6, tol, "length");
+        let [upper, booster] = &layout.stages[..] else {
+            panic!("two stages")
+        };
+        close(upper.fore_station_m, 0.0, tol, "upper fore");
+        close(upper.aft_station_m, 1.0, tol, "upper aft");
+        close(booster.fore_station_m, 1.0, tol, "booster fore");
+        close(booster.aft_station_m, 1.6, tol, "booster aft");
+        let (bay, placed) = layout.find("bay").unwrap();
+        assert_eq!(
+            layout.components[placed.parent.unwrap()].id,
+            "coupler",
+            "parent"
+        );
+        assert_eq!(layout.components[bay].stage, 0);
+        assert_eq!(layout.find("booster-tube").unwrap().1.stage, 1);
+        // A placed part's center is its own-frame center moved to its station.
+        let own = mass_component(0.1, 0.05, 0.02)
+            .mass_properties(None)
+            .unwrap();
+        close(placed.own.cg_m.z, own.cg_m.z - 0.32, 1e-15, "placed center");
+        // The structure is every stage, and each stage every component with its children.
+        let sum: f64 = layout.body().map(|c| c.with_children.mass_kg).sum();
+        close(layout.structure.mass_kg, sum, 1e-15, "structure mass");
+    }
+
+    /// M4.5g4 (ADR-166): a fin set sits on a nose cone with its root along the surface, its body
+    /// radius the surface's at the root leading edge. A conical nose 0.2 m long of base radius
+    /// 0.03 m has `r = 0.15 x`: a 0.05 m root from its aft end starts at radius 0.0225 m and
+    /// rises 0.0075 m. On a body tube a root that rises is refused, a level root on the cone
+    /// stands off its surface, and a launch lug still attaches only to a body tube.
+    #[test]
+    fn a_fin_set_on_a_nose_cone_follows_its_surface() {
+        let fin = |end_h: f64| {
+            let mut set = match fins(0.05, 0.04) {
+                Part::FinSet(set) => set,
+                _ => unreachable!("`fins` makes a fin set"),
+            };
+            set.planform = crate::FinPlanform::Freeform {
+                points_m: vec![[0.0, 0.0], [0.03, 0.04], [0.05, end_h]],
+                root_m: Vec::new(),
+            };
+            set
+        };
+        let design = |child: Component, on_the_nose: bool| {
+            let mut nose_cone = body("nose", nose(0.2, 0.03));
+            let mut airframe = body("airframe", tube(0.6, 0.03, 0.001));
+            if on_the_nose {
+                nose_cone.children = vec![child];
+            } else {
+                airframe.children = vec![child];
+            }
+            rocket(vec![stage("only", vec![nose_cone, airframe])])
+        };
+        let layout = design(
+            attached("cockpit", Part::FinSet(fin(0.0075)), bottom(0.0)),
+            true,
+        )
+        .layout()
+        .unwrap();
+        let (_, placed) = layout.find("cockpit").unwrap();
+        close(placed.fore_station_m, 0.15, 1e-15, "root leading edge");
+        close(placed.body_radius_m.unwrap(), 0.0225, 1e-15, "body radius");
+        close(
+            placed.own.mass_kg,
+            fin(0.0075).mass_properties(0.0225).unwrap().mass_kg,
+            1e-15,
+            "mass",
+        );
+        let refused = |child: Component, on_the_nose: bool, says: &str| {
+            let err = design(child, on_the_nose).layout().unwrap_err().to_string();
+            assert!(err.contains(says), "{says}: {err}");
+        };
+        refused(
+            attached("rising", Part::FinSet(fin(0.0075)), bottom(0.0)),
+            false,
+            "needs a level root",
+        );
+        refused(
+            attached("level", fins(0.05, 0.04), bottom(0.0)),
+            true,
+            "stands",
+        );
+        refused(
+            attached("short", Part::FinSet(fin(0.0075)), bottom(0.01)),
+            true,
+            "must stay on it",
+        );
+        let lug = Part::LaunchLug(crate::LaunchLug {
+            length_m: 0.03,
+            outer_radius_m: 0.003,
+            thickness_m: 0.0005,
+            angle_rad: 0.0,
+            count: 1,
+            spacing_m: 0.0,
+            material: crate::testing::cardboard(),
+        });
+        refused(
+            attached("lug", lug, bottom(0.0)),
+            true,
+            "a launch_lug attaches to a body tube, not a nose_cone",
+        );
+    }
+
+    /// Automatic radii: a nose takes the tube behind it, a transition's forward radius crosses a
+    /// stage boundary, a tube takes the transition ahead of it, and a tube with nothing resolvable
+    /// ahead takes the next fixed radius.
+    #[test]
+    fn automatic_radii_follow_neighbours_across_stages() {
+        let auto = |mut c: Component, dims: &[AutoDimension]| {
+            c.auto = dims.to_vec();
+            c
+        };
+        let transition = Part::Transition(Transition {
+            shape: crate::NoseShape::Conical {},
+            clipped: false,
+            length_m: 0.1,
+            fore_radius_m: 0.0,
+            aft_radius_m: 0.04,
+            wall: crate::Wall::Filled {},
+            fore_shoulder: Some(Shoulder {
+                length_m: 0.05,
+                outer_radius_m: 0.0,
+                thickness_m: 0.002,
+                capped: false,
+            }),
+            aft_shoulder: None,
+            material: crate::testing::cardboard(),
+        });
+        let mut nose_cone = auto(body("nose", nose(0.2, 0.0)), &[AutoDimension::BaseRadius]);
+        if let Part::NoseCone(n) = &mut nose_cone.part {
+            n.shoulder = Some(Shoulder {
+                length_m: 0.05,
+                outer_radius_m: 0.0,
+                thickness_m: 0.002,
+                capped: true,
+            });
+        }
+        nose_cone.auto.push(AutoDimension::ShoulderRadius);
+        let design = rocket(vec![
+            stage(
+                "upper",
+                vec![nose_cone, body("upper-tube", tube(0.5, 0.03, 0.001))],
+            ),
+            stage(
+                "booster",
+                vec![
+                    auto(
+                        body("interstage", transition),
+                        &[AutoDimension::ForeRadius, AutoDimension::ForeShoulderRadius],
+                    ),
+                    auto(
+                        body("booster-tube", tube(0.5, 0.0, 0.001)),
+                        &[AutoDimension::OuterRadius],
+                    ),
+                ],
+            ),
+        ]);
+        let layout = design.layout().unwrap();
+        let part = |id: &str| layout.find(id).unwrap().1.part.clone();
+        let Part::NoseCone(n) = part("nose") else {
+            panic!()
+        };
+        assert_eq!(n.base_radius_m, 0.03);
+        assert_eq!(n.shoulder.unwrap().outer_radius_m, 0.03 - 0.001);
+        let Part::Transition(t) = part("interstage") else {
+            panic!()
+        };
+        assert_eq!(t.fore_radius_m, 0.03);
+        assert_eq!(t.fore_shoulder.unwrap().outer_radius_m, 0.03 - 0.001);
+        let Part::BodyTube(b) = part("booster-tube") else {
+            panic!()
+        };
+        assert_eq!(b.outer_radius_m, 0.04);
+
+        // Nothing ahead of the first tube is fixed, so it takes the tube behind it.
+        let design = rocket(vec![stage(
+            "only",
+            vec![
+                auto(body("nose", nose(0.2, 0.0)), &[AutoDimension::BaseRadius]),
+                auto(
+                    body("a", tube(0.3, 0.0, 0.001)),
+                    &[AutoDimension::OuterRadius],
+                ),
+                body("b", tube(0.3, 0.05, 0.001)),
+            ],
+        )]);
+        let layout = design.layout().unwrap();
+        assert_eq!(layout.find("a").unwrap().1.part.aft_radius_m(), Some(0.05));
+        assert_eq!(
+            layout.find("nose").unwrap().1.part.aft_radius_m(),
+            Some(0.05)
+        );
+        // A fixed radius ahead wins over one behind.
+        let design = rocket(vec![stage(
+            "only",
+            vec![
+                body("nose", nose(0.2, 0.02)),
+                auto(
+                    body("a", tube(0.3, 0.0, 0.001)),
+                    &[AutoDimension::OuterRadius],
+                ),
+                body("b", tube(0.3, 0.05, 0.001)),
+            ],
+        )]);
+        let layout = design.layout().unwrap();
+        assert_eq!(layout.find("a").unwrap().1.part.aft_radius_m(), Some(0.02));
+
+        // Automatic all the way round has nothing to take.
+        let design = rocket(vec![stage(
+            "only",
+            vec![
+                auto(body("nose", nose(0.2, 0.0)), &[AutoDimension::BaseRadius]),
+                auto(
+                    body("a", tube(0.3, 0.0, 0.001)),
+                    &[AutoDimension::OuterRadius],
+                ),
+            ],
+        )]);
+        assert!(matches!(
+            design.layout(),
+            Err(DesignError::Tree { ref id, .. }) if id == "nose"
+        ));
+    }
+
+    /// A conical transition with a 1 mm wall.
+    fn cone_transition(fore_radius_m: f64, aft_radius_m: f64) -> Part {
+        Part::Transition(Transition {
+            shape: crate::NoseShape::Conical {},
+            clipped: false,
+            length_m: 0.1,
+            fore_radius_m,
+            aft_radius_m,
+            wall: crate::Wall::Shell { thickness_m: 0.001 },
+            fore_shoulder: None,
+            aft_shoulder: None,
+            material: crate::testing::cardboard(),
+        })
+    }
+
+    /// The chain in Loft's quirks fixture: a nose's base, a tube and a transition's forward end all
+    /// automatic, with only the transition's aft end fixed. Each automatic radius there looks at
+    /// another automatic one, so all three are listed, forward to aft, and filling them is all
+    /// `layout` needs. The fixed tube behind is never listed, and a radius the neighbour rule can
+    /// reach is never filled.
+    #[test]
+    fn unresolvable_body_radii_are_the_chain_with_nothing_fixed() {
+        let auto = |mut c: Component, dims: &[AutoDimension]| {
+            c.auto = dims.to_vec();
+            c
+        };
+        let mut design = rocket(vec![stage(
+            "only",
+            vec![
+                auto(body("nose", nose(0.3, 0.0)), &[AutoDimension::BaseRadius]),
+                auto(
+                    body("upper", tube(0.5, 0.0, 0.002)),
+                    &[AutoDimension::OuterRadius],
+                ),
+                auto(
+                    body("shoulder", cone_transition(0.0, 0.022)),
+                    &[AutoDimension::ForeRadius],
+                ),
+                body("lower", tube(0.45, 0.022, 0.0018)),
+            ],
+        )]);
+        let listed = |design: &Rocket| -> Vec<(usize, usize, String, AutoDimension)> {
+            design
+                .unresolvable_body_radii()
+                .into_iter()
+                .map(|r| (r.stage, r.component, r.id, r.dimension))
+                .collect()
+        };
+        let chain = vec![
+            (0, 0, "nose".to_owned(), AutoDimension::BaseRadius),
+            (0, 1, "upper".to_owned(), AutoDimension::OuterRadius),
+            (0, 2, "shoulder".to_owned(), AutoDimension::ForeRadius),
+        ];
+        assert_eq!(listed(&design), chain);
+        assert!(design.layout().is_err());
+
+        let filled = design.fill_unresolvable_body_radii(0.025);
+        let filled: Vec<_> = filled
+            .into_iter()
+            .map(|r| (r.stage, r.component, r.id, r.dimension))
+            .collect();
+        assert_eq!(filled, chain);
+        assert!(listed(&design).is_empty());
+        assert!(
+            design.stages[0]
+                .components
+                .iter()
+                .all(|c| c.auto.is_empty())
+        );
+        let layout = design.layout().unwrap();
+        let radius = |id: &str| layout.find(id).unwrap().1.part.aft_radius_m();
+        assert_eq!(radius("nose"), Some(0.025));
+        assert_eq!(radius("upper"), Some(0.025));
+        let Part::Transition(t) = &layout.find("shoulder").unwrap().1.part else {
+            panic!("a transition")
+        };
+        assert_eq!((t.fore_radius_m, t.aft_radius_m), (0.025, 0.022));
+
+        // A design that resolves lists nothing, and filling it changes nothing.
+        let mut design = three_fin_rocket();
+        let before = design.clone();
+        assert!(design.unresolvable_body_radii().is_empty());
+        assert!(design.fill_unresolvable_body_radii(0.025).is_empty());
+        assert_eq!(design, before);
+        design.layout().unwrap();
+    }
+
+    /// Rings take the tube's bore and the mount tube's outside; the parachute packs to the bore; a
+    /// ring beside no inner tube is a bulkhead.
+    #[test]
+    fn ring_and_packed_radii_come_from_parent_and_siblings() {
+        let layout = three_fin_rocket().layout().unwrap();
+        let part = |id: &str| layout.find(id).unwrap().1.part.clone();
+        for id in ["ring-fore", "ring-aft"] {
+            let Part::CenteringRing(r) = part(id) else {
+                panic!()
+            };
+            assert_eq!(r.outer_radius_m, 0.027 - 0.0015, "{id}");
+            assert_eq!(r.inner_radius_m, 0.020, "{id}");
+        }
+        let Part::Parachute(p) = part("chute") else {
+            panic!()
+        };
+        assert_eq!(p.packing.radius_m, 0.027 - 0.0015);
+
+        let mut design = three_fin_rocket();
+        let airframe = &mut design.stages[0].components[1];
+        // Move the fore ring forward of the mount tube, which spans stations 0.7 to 1.0.
+        airframe.children[1].position = Some(top(0.1));
+        let layout = design.layout().unwrap();
+        let Part::CenteringRing(r) = layout.find("ring-fore").unwrap().1.part.clone() else {
+            panic!()
+        };
+        assert_eq!(r.inner_radius_m, 0.0);
+    }
+
+    /// A tube fin set written `auto` closes the ring around the 27 mm airframe it sits on: six
+    /// tubes as wide as the body, four `1 + √2` times it, and a wall thicker than that cut to it
+    /// (ADR-098). It weighs what the same set of a stated radius weighs.
+    #[test]
+    fn an_automatic_tube_fin_radius_closes_the_ring_around_its_body() {
+        let tubes = |count: u32, thickness_m: f64| {
+            Part::TubeFinSet(crate::TubeFinSet {
+                count,
+                length_m: 0.1,
+                outer_radius_m: 0.0,
+                thickness_m,
+                base_angle_rad: 0.0,
+                material: crate::Material::bulk("cardboard", 680.0),
+            })
+        };
+        let with = |part: Part, auto: bool, on: usize| {
+            let mut design = three_fin_rocket();
+            let mut child = attached("tubes", part, bottom(0.0));
+            if auto {
+                child.auto = vec![AutoDimension::OuterRadius];
+            }
+            design.stages[0].components[on].children.push(child);
+            design.layout()
+        };
+        let resolved = |layout: &Layout| match &layout.find("tubes").unwrap().1.part {
+            Part::TubeFinSet(set) => (set.outer_radius_m, set.thickness_m),
+            other => panic!("{other:?}"),
+        };
+        let layout = with(tubes(6, 0.001), true, 1).unwrap();
+        let (r, t) = resolved(&layout);
+        close(r, 0.027, 1e-15, "six");
+        assert_eq!(t, 0.001);
+        let mut stated = tubes(6, 0.001);
+        if let Part::TubeFinSet(set) = &mut stated {
+            set.outer_radius_m = r;
+        }
+        let same = with(stated, false, 1).unwrap();
+        assert_eq!(
+            layout.find("tubes").unwrap().1.own,
+            same.find("tubes").unwrap().1.own
+        );
+        let (r, _) = resolved(&with(tubes(4, 0.001), true, 1).unwrap());
+        close(r, 0.027 * (1.0 + 2f64.sqrt()), 1e-15, "four");
+        let (r, _) = resolved(&with(tubes(2, 0.001), true, 1).unwrap());
+        assert_eq!(r, 0.027);
+        let (r, t) = resolved(&with(tubes(6, 0.05), true, 1).unwrap());
+        assert_eq!(t, r);
+        // On the nose cone there is no body tube to ring, and the layout says so before it looks.
+        let error = with(tubes(6, 0.001), true, 0).unwrap_err().to_string();
+        assert!(error.contains("attaches to a body tube"), "{error}");
+    }
+
+    /// Inside a hollow nose cone or transition, an automatic outer radius is the parent's bore at
+    /// the narrower end of the part: the profile's radius there less the wall (ADR-096). The
+    /// sample's nose is a 0.2 m cone on a 27 mm base with a 2 mm wall, so its radius at `x` from
+    /// the tip is `0.135 x`.
+    #[test]
+    fn an_automatic_radius_inside_a_nose_is_its_bore_at_the_narrow_end() {
+        let with = |part: Part, position: Position| {
+            let mut design = three_fin_rocket();
+            let mut child = attached("inside", part, position);
+            child.auto = vec![AutoDimension::OuterRadius];
+            design.stages[0].components[0].children = vec![child];
+            design.layout()
+        };
+        let radius = |layout: &Layout| match &layout.find("inside").unwrap().1.part {
+            Part::InnerTube(tube) => (tube.outer_radius_m, tube.thickness_m),
+            Part::CenteringRing(ring) => (ring.outer_radius_m, ring.inner_radius_m),
+            other => panic!("{other:?}"),
+        };
+        let coupler = || inner_tube(0.1, 0.0, 0.001);
+        // Stations 0.1 to 0.2 from the tip: the fore end is the narrower.
+        let (r, t) = radius(&with(coupler(), bottom(0.0)).unwrap());
+        close(r, 0.135 * 0.1 - 0.002, 1e-17, "at the bottom");
+        assert_eq!(t, 0.001);
+        // Past the base, 0.15 to 0.25: still the fore end's.
+        let (r, _) = radius(&with(coupler(), bottom(0.05)).unwrap());
+        close(r, 0.135 * 0.15 - 0.002, 1e-17, "past the base");
+        // A ring's outer radius the same way; its written bore stands.
+        let (r, bore) = radius(&with(ring(0.006, 0.0, 0.005), bottom(0.0)).unwrap());
+        close(r, 0.135 * 0.194 - 0.002, 1e-17, "a ring");
+        assert_eq!(bore, 0.005);
+        // A wall thicker than the radius it gets is the tube solid.
+        let (r, t) = radius(&with(inner_tube(0.1, 0.0, 0.02), bottom(0.0)).unwrap());
+        assert_eq!(t, r);
+        // At the tip the wall meets the axis, and a tube of no radius is refused.
+        let error = with(coupler(), top(0.0)).unwrap_err();
+        assert!(
+            matches!(
+                &error,
+                DesignError::InComponent { id, source }
+                    if id == "inside"
+                        && matches!(**source, DesignError::Domain { what: "outer radius", value } if value == 0.0)
+            ),
+            "{error:?}"
+        );
+        // A solid nose has no bore.
+        let mut design = three_fin_rocket();
+        if let Part::NoseCone(nose) = &mut design.stages[0].components[0].part {
+            nose.wall = Wall::Filled {};
+        }
+        let mut child = attached("inside", coupler(), bottom(0.0));
+        child.auto = vec![AutoDimension::OuterRadius];
+        design.stages[0].components[0].children = vec![child];
+        let error = design.layout().unwrap_err().to_string();
+        assert!(error.contains("a nose_cone has none"), "{error}");
+
+        // A transition from 30 mm to 20 mm over 0.1 m narrows aft: a coupler over its first
+        // 0.05 m takes the radius at its aft end, 25 mm, less the wall.
+        let transition = Part::Transition(Transition {
+            shape: crate::shapes::NoseShape::Conical {},
+            clipped: false,
+            length_m: 0.1,
+            fore_radius_m: 0.03,
+            aft_radius_m: 0.02,
+            wall: Wall::Shell { thickness_m: 0.002 },
+            fore_shoulder: None,
+            aft_shoulder: None,
+            material: crate::testing::cardboard(),
+        });
+        let mut part = body("transition", transition);
+        let mut child = attached("inside", inner_tube(0.05, 0.0, 0.001), top(0.0));
+        child.auto = vec![AutoDimension::OuterRadius];
+        part.children = vec![child];
+        let design = rocket(vec![stage(
+            "only",
+            vec![body("tube", tube(0.3, 0.03, 0.001)), part],
+        )]);
+        let (r, _) = radius(&design.layout().unwrap());
+        close(r, 0.025 - 0.002, 1e-17, "a transition");
+    }
+
+    /// What a clustered tube holds is in every tube: an engine block inside a 3-ring mount has
+    /// three copies, one on each tube's axis, and the structure gains two more tubes and two more
+    /// blocks than the unclustered mount with its block. A ring's automatic bore is the tube's own
+    /// radius, as OpenRocket 24.12 gives it (ADR-075), so the tubes run through the ring and the
+    /// checks say so, as they say the cluster reaches past the airframe's bore.
+    #[test]
+    fn a_cluster_repeats_what_it_holds_in_every_tube() {
+        let three: Vec<[f64; 2]> = [90.0_f64, 210.0, 330.0]
+            .iter()
+            .map(|a| [0.02 * a.to_radians().cos(), 0.02 * a.to_radians().sin()])
+            .collect();
+        let with_block = |cluster_m: Vec<[f64; 2]>| {
+            let mut design = crate::testing::three_fin_rocket();
+            let mount = &mut design.stages[0].components[1].children[0];
+            if let Part::InnerTube(tube) = &mut mount.part {
+                tube.cluster_m = cluster_m;
+            }
+            mount.children = vec![attached("block", inner_tube(0.01, 0.019, 0.005), top(0.0))];
+            design
+        };
+        let single = with_block(Vec::new()).layout().unwrap();
+        let clustered_design = with_block(three.clone());
+        let clustered = clustered_design.layout().unwrap();
+        let (_, one) = single.find("block").unwrap();
+        let (_, block) = clustered.find("block").unwrap();
+        assert_eq!(one.copies, [Placement::HERE]);
+        let moved: Vec<Placement> = three.iter().copied().map(Placement::moved).collect();
+        assert_eq!(block.copies, moved);
+        close(
+            block.own.mass_kg,
+            3.0 * one.own.mass_kg,
+            1e-15,
+            "three blocks",
+        );
+        assert!(block.own.cg_m.truncate().length() < 1e-17);
+        let (_, tube) = single.find("mmt").unwrap();
+        let extra = 2.0 * (tube.own.mass_kg + one.own.mass_kg);
+        close(
+            clustered.structure.mass_kg,
+            single.structure.mass_kg + extra,
+            1e-14,
+            "structure",
+        );
+        let (_, mount) = clustered.find("mmt").unwrap();
+        assert_eq!(mount.contents_copies().unwrap(), moved);
+        let (_, ring) = clustered.find("ring-fore").unwrap();
+        let Part::CenteringRing(ring) = &ring.part else {
+            panic!("a ring");
+        };
+        assert_eq!(ring.inner_radius_m, 0.02);
+        let findings = crate::checks::check(&clustered_design).unwrap();
+        for id in ["ring-fore", "ring-aft"] {
+            assert!(
+                findings.contains(&crate::Finding::RingOverlapsInnerTube {
+                    ring: id.to_owned(),
+                    tube: "mmt".to_owned(),
+                }),
+                "{findings:?}"
+            );
+        }
+        // The tubes reach 0.04 m from the axis, past the airframe's 0.0255 m bore.
+        assert!(
+            findings.iter().any(|f| matches!(
+                f,
+                crate::Finding::InternalPartWiderThanParent { component, reach_m, .. }
+                    if component == "mmt" && (reach_m - 0.04).abs() < 1e-15
+            )),
+            "{findings:?}"
+        );
+        assert!(
+            !crate::checks::check(&with_block(Vec::new()))
+                .unwrap()
+                .iter()
+                .any(|f| matches!(f, crate::Finding::RingOverlapsInnerTube { .. }))
+        );
+    }
+
+    /// The tests' rocket with a pod set of `count` pods `d = 0.05` m from the axis, the first at
+    /// `angle_rad`, 0.1 m aft of the airframe's forward end: each pod a 0.3 m cardboard tube
+    /// (radius 12 mm, wall 1 mm) holding a 50 g mass 0.1 m long, radius 8 mm, 0.02 m from its top.
+    fn podded(count: u32, angle_rad: f64) -> Rocket {
+        let mut design = three_fin_rocket();
+        let mut pod_tube = body("pod-tube", tube(0.3, 0.012, 0.001));
+        pod_tube.children = vec![attached(
+            "pod-mass",
+            mass_component(0.05, 0.1, 0.008),
+            top(0.02),
+        )];
+        let mut pods = attached(
+            "pods",
+            Part::PodSet(PodSet {
+                count,
+                radial_offset_m: 0.05,
+                angle_rad,
+            }),
+            top(0.1),
+        );
+        pods.children = vec![pod_tube];
+        design.stages[0].components[1].children.push(pods);
+        design
+    }
+
+    /// [`podded`]'s pods as a parallel stage of their own, hung on the same tube at the same place.
+    fn boosted(count: u32, angle_rad: f64) -> Rocket {
+        let mut design = podded(count, angle_rad);
+        let pods = design.stages[0].components[1]
+            .children
+            .pop()
+            .expect("podded hangs its pods last");
+        let Part::PodSet(set) = pods.part else {
+            unreachable!("podded's last child is its pod set")
+        };
+        let mut boosters = stage("pods", pods.children);
+        boosters.parallel = Some(ParallelStage {
+            on: "airframe".to_owned(),
+            position: pods.position.expect("an attached part has a position"),
+            pods: set,
+        });
+        design.stages.push(boosters);
+        design
+    }
+
+    /// A parallel stage lays out as the same pods hung on its tube as a pod set: every part in the
+    /// same place with the same copies and mass, bit for bit, and the structure the same. Only
+    /// whose they are differs: the pods' parts are the parallel stage's, their mass is that stage's
+    /// and not the tube's, and the stage spans the pods and hangs on stage 0.
+    #[test]
+    fn a_parallel_stage_lays_out_as_a_pod_set_of_its_own_stage() {
+        for (count, angle_rad) in [(2, 0.0), (1, 0.3), (3, 1.0)] {
+            let pods = podded(count, angle_rad).layout().unwrap();
+            let boosters = boosted(count, angle_rad).layout().unwrap();
+            assert_eq!(boosters.components.len(), pods.components.len());
+            let own_stage = ["pods", "pod-tube", "pod-mass"];
+            for (got, want) in boosters.components.iter().zip(&pods.components) {
+                assert_eq!(got.id, want.id, "depth-first order kept");
+                let theirs = own_stage.contains(&got.id.as_str());
+                assert_eq!(got.stage, usize::from(theirs), "{}'s stage", got.id);
+                let mut same = got.clone();
+                same.stage = want.stage;
+                if got.id == "airframe" {
+                    // The tube no longer carries the pods: its mass with children is the podded
+                    // tube's less theirs.
+                    let (_, set) = pods.find("pods").unwrap();
+                    close(
+                        got.with_children.mass_kg,
+                        want.with_children.mass_kg - set.with_children.mass_kg,
+                        1e-15,
+                        "the tube without its pods",
+                    );
+                    same.with_children = want.with_children;
+                }
+                assert_eq!(&same, want, "{}", got.id);
+            }
+            let (_, set) = pods.find("pods").unwrap();
+            assert_eq!(boosters.stages.len(), 2);
+            let stage = &boosters.stages[1];
+            assert_eq!(stage.id, "pods");
+            assert_eq!(stage.hung_on, Some(0));
+            assert_eq!(boosters.stages[0].hung_on, None);
+            assert_eq!(stage.mass, set.with_children);
+            assert_eq!(
+                (stage.fore_station_m, stage.aft_station_m),
+                (set.fore_station_m, set.aft_station_m())
+            );
+            assert_eq!(boosters.length_m, pods.length_m, "the pods don't stack");
+            close(
+                boosters.structure.mass_kg,
+                pods.structure.mass_kg,
+                1e-15,
+                "structure mass",
+            );
+            close(
+                (boosters.structure.cg_m - pods.structure.cg_m).length(),
+                0.0,
+                1e-15,
+                "structure center",
+            );
+            let inertia = boosters.structure.inertia_kg_m2 - pods.structure.inertia_kg_m2;
+            for column in 0..3 {
+                close(
+                    inertia.col(column).length(),
+                    0.0,
+                    1e-15,
+                    "structure inertia",
+                );
+            }
+        }
+
+        // The design page's worked example: the two pods, each a tube and 50 g, are the stage's.
+        let boosters = boosted(2, 0.0);
+        let tube_kg = 790.0 * std::f64::consts::PI * (0.012_f64.powi(2) - 0.011_f64.powi(2)) * 0.3;
+        close(
+            boosters.layout().unwrap().stages[1].mass.mass_kg,
+            2.0 * (tube_kg + 0.05),
+            1e-15,
+            "the stage's mass",
+        );
+        // The design page's JSON is that stage, empty but for each copy's tube.
+        let page = include_str!("../../../docs/physics/design.md");
+        let block = page
+            .split("\n## Parallel stages\n")
+            .nth(1)
+            .and_then(|stages| stages.split("```json\n").nth(1))
+            .and_then(|json| json.split("```").next())
+            .expect("the Parallel stages section has a JSON block");
+        let mut written = boosters.stages[1].clone();
+        written.components[0].children.clear();
+        assert_eq!(
+            serde_json::from_str::<Stage>(block).unwrap(),
+            written,
+            "{block}"
+        );
+    }
+
+    /// A parallel stage hangs on a body tube of an axial stage before it, measured along that
+    /// tube; anything else is refused by name.
+    #[test]
+    fn a_parallel_stage_hangs_on_a_body_tube_of_an_earlier_axial_stage() {
+        let refused = |design: &Rocket, needle: &str| match design.layout() {
+            Err(DesignError::Tree { id, message }) => {
+                assert_eq!(id, "pods");
+                assert!(message.contains(needle), "{message}");
+            }
+            other => panic!("expected a tree error naming `{needle}`, got {other:?}"),
+        };
+        let hangs = "hangs on a body tube of an axial stage before it";
+        let on = |on: &str| {
+            let mut design = boosted(2, 0.0);
+            design.stages[1].parallel.as_mut().unwrap().on = on.to_owned();
+            design
+        };
+        refused(&on("nose"), hangs);
+        refused(&on("fins"), hangs);
+        refused(&on("nowhere"), hangs);
+        // On its own pod's tube, or listed before the stage it hangs on.
+        refused(&on("pod-tube"), hangs);
+        let mut first = boosted(2, 0.0);
+        first.stages.swap(0, 1);
+        refused(&first, hangs);
+        // On a tube of another parallel stage.
+        let mut nested = boosted(2, 0.0);
+        let mut more = nested.stages[1].clone();
+        more.id = "more".to_owned();
+        more.components[0].id = "more-tube".to_owned();
+        more.components[0].children[0].id = "more-mass".to_owned();
+        more.parallel.as_mut().unwrap().on = "pod-tube".to_owned();
+        nested.stages.push(more);
+        match nested.layout() {
+            Err(DesignError::Tree { id, message }) => {
+                assert_eq!(id, "more");
+                assert!(message.contains(hangs), "{message}");
+            }
+            other => panic!("expected a tree error, got {other:?}"),
+        }
+        // After a sibling: a parallel stage has none.
+        let mut after = boosted(2, 0.0);
+        after.stages[1].parallel.as_mut().unwrap().position = Position::After { aft_offset_m: 0.0 };
+        refused(&after, "not after a sibling");
+        // Under a mass override covering what its tube or the tube's stage holds, which doesn't
+        // say whether it covers the parallel stage; the tube's own override does say.
+        let covered = "under a mass override that covers what the tube or its stage holds";
+        let heavy = Overrides {
+            mass_kg: Some(1.0),
+            ..Overrides::default()
+        };
+        let mut staged = boosted(2, 0.0);
+        staged.stages[0].overrides = heavy;
+        refused(&staged, covered);
+        let mut tube = boosted(2, 0.0);
+        tube.stages[0].components[1].overrides = heavy;
+        tube.layout().unwrap();
+        tube.stages[0].components[1].overrides_include_children = true;
+        refused(&tube, covered);
+        // Its pods are checked as a pod set's: a part that isn't a body component in the stack.
+        let mut loose = boosted(2, 0.0);
+        loose.stages[1].components[0] = attached("pod-tube", fins(0.1, 0.06), top(0.0));
+        assert!(loose.layout().is_err());
+        // An id the airframe already uses.
+        let mut twice = boosted(2, 0.0);
+        twice.stages[1].id = "airframe".to_owned();
+        assert!(matches!(twice.layout(), Err(DesignError::DuplicateId(_))));
+    }
+
+    /// A pod's mass properties are the parallel-axis sum worked by hand: the tube and the mass as
+    /// textbook cylinders, stacked along the pod, then moved out to each pod's axis.
+    #[test]
+    fn a_pod_is_its_stack_repeated_with_its_parallel_axis_term() {
+        use std::f64::consts::{FRAC_PI_2, PI};
+        // One pod, about its own axis. The pod set sits at station 0.2 + 0.1 = 0.3 m.
+        let (rho, length, ro, ri) = (790.0, 0.3, 0.012, 0.011);
+        let m_t = rho * PI * (ro * ro - ri * ri) * length;
+        let (ax_t, tr_t) = (
+            m_t * (ro * ro + ri * ri) / 2.0,
+            m_t * (3.0 * (ro * ro + ri * ri) + length * length) / 12.0,
+        );
+        let z_t = 0.3 + 0.15;
+        let (m_c, l_c, r_c) = (0.05, 0.1, 0.008);
+        let (ax_c, tr_c) = (
+            m_c * r_c * r_c / 2.0,
+            m_c * (3.0 * r_c * r_c + l_c * l_c) / 12.0,
+        );
+        let z_c = 0.3 + 0.02 + 0.05;
+        let m1 = m_t + m_c;
+        let z1 = (m_t * z_t + m_c * z_c) / m1;
+        let axial1 = ax_t + ax_c;
+        let transverse1 = tr_t + m_t * (z_t - z1).powi(2) + tr_c + m_c * (z_c - z1).powi(2);
+        let d = 0.05;
+
+        // Two pods on the x axis, at 0 and π.
+        let base = three_fin_rocket().layout().unwrap();
+        let two = podded(2, 0.0).layout().unwrap();
+        let (_, pods) = two.find("pods").unwrap();
+        let mass = pods.with_children;
+        close(mass.mass_kg, 2.0 * m1, 1e-15, "two pods' mass");
+        close(mass.cg_m.x, 0.0, 1e-16, "center x");
+        close(mass.cg_m.y, 0.0, 1e-16, "center y");
+        close(-mass.cg_m.z, z1, 1e-15, "center station");
+        let i = mass.inertia_kg_m2;
+        // Both pods lie on the x axis, so rolling about x moves them only along the pod's length.
+        close(i.col(0).x, 2.0 * transverse1, 1e-15, "I_xx");
+        close(i.col(1).y, 2.0 * (transverse1 + m1 * d * d), 1e-15, "I_yy");
+        close(i.col(2).z, 2.0 * (axial1 + m1 * d * d), 1e-15, "I_zz");
+        for (k, product) in [i.col(1).x, i.col(2).x, i.col(2).y].into_iter().enumerate() {
+            close(product, 0.0, 1e-16, &format!("product {k}"));
+        }
+        close(pods.length_m, 0.3, 1e-15, "the pod's extent");
+        assert_eq!(pods.own.mass_kg, 0.0);
+        let (_, pod_tube) = two.find("pod-tube").unwrap();
+        close(pod_tube.fore_station_m, 0.3, 1e-15, "pod tube station");
+        assert_eq!(pod_tube.copies.len(), 2);
+        close(pod_tube.copies[1].offset_m[0], -d, 1e-16, "second pod x");
+        assert_eq!(pod_tube.copies[1].roll_rad, PI);
+        close(
+            two.structure.mass_kg,
+            base.structure.mass_kg + 2.0 * m1,
+            1e-14,
+            "structure",
+        );
+
+        // One pod at 90°: off the axis, so its product of inertia about the body origin is
+        // `I_yz = −m y z` with `y = d`, `z = −z1`.
+        let one = podded(1, FRAC_PI_2).layout().unwrap();
+        let (_, pod) = one.find("pods").unwrap();
+        let mass = pod.with_children;
+        close(mass.mass_kg, m1, 1e-15, "one pod's mass");
+        close(mass.cg_m.x, 0.0, 1e-16, "center x");
+        close(mass.cg_m.y, d, 1e-16, "center y");
+        let i = mass.inertia_kg_m2;
+        close(i.col(0).x, transverse1, 1e-15, "I_xx about its center");
+        close(i.col(2).z, axial1, 1e-15, "I_zz about its center");
+        let about_origin = mass.inertia_about(DVec3::ZERO);
+        close(about_origin.col(2).y, m1 * d * z1, 1e-15, "I_yz");
+        close(
+            about_origin.col(2).z,
+            axial1 + m1 * d * d,
+            1e-15,
+            "I_zz about the axis",
+        );
+        close(
+            one.structure.cg_m.y,
+            (base.structure.mass_kg * base.structure.cg_m.y + m1 * d)
+                / (base.structure.mass_kg + m1),
+            1e-15,
+            "the rocket's center across the axis",
+        );
+    }
+
+    /// What a pod holds turns with its pod, as a rotational pattern: a mass 3 mm off the pod's
+    /// axis, outward on the pod at 0°, is outward on the pod at 180° too, so the pair's center
+    /// stays on the axis; alone at 90° it sits at `y = d + e`. A center override inside a pod is measured
+    /// in the pod as written, and turns with it. An override on the pod set, covering its pods, is
+    /// all the pods' mass; one on a part inside a pod is each copy's.
+    #[test]
+    fn what_a_pod_holds_turns_with_it_and_overrides_keep_their_scope() {
+        use std::f64::consts::{FRAC_PI_2, PI};
+        let (d, e) = (0.05, 0.003);
+        let off_axis = |count: u32, angle_rad: f64| {
+            let mut design = podded(count, angle_rad);
+            let pod_tube = &mut design.stages[0].components[1].children[6].children[0];
+            if let Part::MassComponent(mass) = &mut pod_tube.children[0].part {
+                mass.packing.radial_offset_m = e;
+            }
+            design
+        };
+        let (rho, length, ro, ri) = (790.0, 0.3, 0.012, 0.011);
+        let m_t = rho * PI * (ro * ro - ri * ri) * length;
+        let m_c = 0.05;
+
+        let two = off_axis(2, 0.0).layout().unwrap();
+        let pods = two.find("pods").unwrap().1.with_children;
+        close(pods.cg_m.x, 0.0, 1e-16, "the pair's center x");
+        close(pods.cg_m.y, 0.0, 1e-16, "the pair's center y");
+        let roll = pods
+            .inertia_about(DVec3::new(0.0, 0.0, pods.cg_m.z))
+            .col(2)
+            .z;
+        let hand = 2.0
+            * (m_t * (ro * ro + ri * ri) / 2.0
+                + m_t * d * d
+                + m_c * 0.008 * 0.008 / 2.0
+                + m_c * (d + e) * (d + e));
+        close(roll, hand, 1e-15, "the pair's roll inertia");
+
+        let one = off_axis(1, FRAC_PI_2).layout().unwrap();
+        let (_, mass) = one.find("pod-mass").unwrap();
+        close(mass.own.cg_m.x, 0.0, 1e-16, "the turned mass's x");
+        close(mass.own.cg_m.y, d + e, 1e-16, "the turned mass's y");
+
+        // The pod tube's center set 10 mm out from the pod's axis, as written.
+        let mut design = podded(1, FRAC_PI_2);
+        let pod_tube = &mut design.stages[0].components[1].children[6].children[0];
+        pod_tube.overrides.cg_xy_m = Some([0.01, 0.0]);
+        let layout = design.layout().unwrap();
+        let (_, tube) = layout.find("pod-tube").unwrap();
+        close(tube.own.cg_m.x, 0.0, 1e-16, "the overridden center's x");
+        close(
+            tube.own.cg_m.y,
+            d + 0.01,
+            1e-16,
+            "the overridden center's y",
+        );
+
+        let set_to = |mass_kg: f64, on_set: bool| {
+            let mut design = podded(2, 0.0);
+            let pods = &mut design.stages[0].components[1].children[6];
+            if on_set {
+                pods.overrides.mass_kg = Some(mass_kg);
+                pods.overrides_include_children = true;
+            } else {
+                pods.children[0].children[0].overrides.mass_kg = Some(mass_kg);
+            }
+            let layout = design.layout().unwrap();
+            layout.find("pods").unwrap().1.with_children.mass_kg
+        };
+        close(set_to(0.3, true), 0.3, 1e-15, "an override on the pod set");
+        close(
+            set_to(0.1, false),
+            2.0 * (m_t + 0.1),
+            1e-15,
+            "an override in each pod",
+        );
+    }
+
+    /// A pod's nose cone is not the airframe's: the nose-base reference diameter doesn't take it.
+    #[test]
+    fn a_pod_s_nose_is_not_the_reference_nose() {
+        let mut design = podded(2, 0.0);
+        let pods = &mut design.stages[0].components[1].children[6];
+        pods.children.insert(0, body("pod-nose", nose(0.06, 0.012)));
+        design.stages[0].components.remove(0);
+        design.reference_diameter = ReferenceDiameter::NoseBase {};
+        let error = design.layout().unwrap_err().to_string();
+        assert!(error.contains("there is no nose cone"), "{error}");
+    }
+
+    /// A pod's body components stack from the pod set and take their automatic radii from one
+    /// another; a motor in a pod is one motor per pod; a pod's tubes are not internal parts to
+    /// the checks; and the wrong trees are refused.
+    #[test]
+    fn pods_stack_hold_motors_and_refuse_the_wrong_trees() {
+        let mut design = podded(3, 0.0);
+        let pods = &mut design.stages[0].components[1].children[6];
+        // The pods' aft ends 0.2 m past the airframe's, at 1.2 m: 1.0 − 0.36 + 0.2 = 0.84 m.
+        pods.position = Some(bottom(0.2));
+        let mut pod_nose = body("pod-nose", nose(0.06, 0.0));
+        pod_nose.auto = vec![AutoDimension::BaseRadius];
+        pods.children.insert(0, pod_nose);
+        pods.children[1].motor_mount = Some(MotorMount { overhang_m: 0.005 });
+        design.configurations.push(Configuration {
+            id: "pods".to_owned(),
+            name: String::new(),
+            motors: vec![crate::testing::motor("pod-tube", 0.018, 0.1)],
+        });
+        let layout = design.layout().unwrap();
+        let (_, set) = layout.find("pods").unwrap();
+        close(set.length_m, 0.36, 1e-15, "the pods' extent");
+        let (_, cone) = layout.find("pod-nose").unwrap();
+        let Part::NoseCone(cone_part) = &cone.part else {
+            panic!("a nose cone");
+        };
+        assert_eq!(cone_part.base_radius_m, 0.012);
+        close(cone.fore_station_m, 0.84, 1e-15, "pod nose station");
+        close(station(&layout, "pod-tube"), 0.9, 1e-15, "pod tube station");
+        let three = PodSet {
+            count: 3,
+            radial_offset_m: 0.05,
+            angle_rad: 0.0,
+        }
+        .pods()
+        .unwrap();
+        assert_eq!(cone.copies, three);
+        assert_eq!(layout.find("pod-mass").unwrap().1.copies, three);
+
+        let assembly = design.assemble("pods").unwrap();
+        assert_eq!(assembly.motors.len(), 3);
+        for (motor, pod) in assembly.motors.iter().zip(&three) {
+            assert_eq!([motor.nozzle_m.x, motor.nozzle_m.y], pod.offset_m);
+            close(motor.nozzle_station_m(), 1.2 + 0.005, 1e-15, "nozzle");
+        }
+
+        // The pods run past the airframe's end, which the checks allow a pod.
+        let findings = crate::checks::check(&design).unwrap();
+        assert!(
+            !findings.iter().any(|f| format!("{f:?}").contains("pod")),
+            "{findings:?}"
+        );
+
+        // The design page's JSON is the tests' pod set, empty but for its tube.
+        let page = include_str!("../../../docs/physics/design.md");
+        let block = page
+            .split("\n## Pods\n")
+            .nth(1)
+            .and_then(|pods| pods.split("```json\n").nth(1))
+            .and_then(|json| json.split("```").next())
+            .expect("the Pods section has a JSON block");
+        let mut written = podded(2, 0.0).stages[0].components[1].children[6].clone();
+        written.children[0].children.clear();
+        assert_eq!(
+            serde_json::from_str::<Component>(block).unwrap(),
+            written,
+            "{block}"
+        );
+
+        let json = serde_json::to_string(&design).unwrap();
+        assert!(json.contains("\"pod_set\""));
+        assert_eq!(serde_json::from_str::<Rocket>(&json).unwrap(), design);
+
+        let refused = |edit: &dyn Fn(&mut Component), want: &str| {
+            let mut design = podded(2, 0.0);
+            edit(&mut design.stages[0].components[1].children[6]);
+            let error = design.layout().unwrap_err().to_string();
+            assert!(error.contains(want), "{error}");
+        };
+        refused(
+            &|pods| {
+                pods.children
+                    .push(attached("fin", fins(0.1, 0.05), top(0.0)))
+            },
+            "a pod holds body components",
+        );
+        refused(
+            &|pods| pods.children[0].position = Some(top(0.0)),
+            "stacks and takes no position",
+        );
+        refused(
+            &|pods| {
+                if let Part::PodSet(set) = &mut pods.part {
+                    set.count = 0;
+                }
+            },
+            "pod count",
+        );
+        refused(
+            &|pods| {
+                if let Part::PodSet(set) = &mut pods.part {
+                    set.radial_offset_m = f64::NAN;
+                }
+            },
+            "pod radial offset",
+        );
+        refused(
+            &|pods| {
+                if let Part::PodSet(set) = &mut pods.part {
+                    set.count = PodSet::MAX_COUNT + 1;
+                }
+            },
+            "pod count (1 to 64)",
+        );
+        refused(
+            &|pods| pods.overrides.mass_kg = Some(0.2),
+            "an override on it must cover its pods",
+        );
+        refused(
+            &|pods| {
+                let mut inner = pods.clone();
+                inner.id = "inner-pods".to_owned();
+                inner.children[0].id = "inner-tube".to_owned();
+                inner.children[0].children[0].id = "inner-mass".to_owned();
+                pods.children[0].children.push(inner);
+            },
+            "a pod set can't hang from a pod",
+        );
+        let mut on_nose = podded(2, 0.0);
+        let pods = on_nose.stages[0].components[1].children.pop().unwrap();
+        on_nose.stages[0].components[0].children.push(pods);
+        let error = on_nose.layout().unwrap_err().to_string();
+        assert!(error.contains("attaches to a body tube"), "{error}");
+    }
+
+    /// A pod of no length (OpenRocket's "phantom body": a tube of no length, radius or wall) weighs
+    /// nothing and holds what hangs from it at the pod's axis. A launch lug on it, turned to π, is
+    /// the textbook hollow cylinder with its axis its own radius inward of the pod's, `d − R`, on
+    /// both pods, since it turns with its pod; the pair's inertia is worked by hand. An empty pod
+    /// set lays out and weighs nothing (M1.13b2).
+    #[test]
+    fn a_pod_of_no_length_holds_its_parts_at_the_pod_s_axis() {
+        use std::f64::consts::PI;
+        let (rho, length, ro, ri, d) = (790.0, 0.05, 0.004, 0.0035, 0.05);
+        let lug = LaunchLug {
+            length_m: length,
+            outer_radius_m: ro,
+            thickness_m: ro - ri,
+            angle_rad: PI,
+            count: 1,
+            spacing_m: 0.0,
+            material: crate::testing::cardboard(),
+        };
+        let mut phantom = body("phantom", tube(0.0, 0.0, 0.0));
+        phantom.children = vec![attached(
+            "pod-lug",
+            Part::LaunchLug(lug),
+            Position::Middle { aft_offset_m: 0.0 },
+        )];
+        let mut pods = attached(
+            "pods",
+            Part::PodSet(PodSet {
+                count: 2,
+                radial_offset_m: d,
+                angle_rad: 0.0,
+            }),
+            top(0.1),
+        );
+        pods.children = vec![phantom];
+        let mut design = three_fin_rocket();
+        design.stages[0].components[1].children.push(pods);
+        let base = three_fin_rocket().layout().unwrap();
+        let layout = design.layout().unwrap();
+
+        let (_, set) = layout.find("pods").unwrap();
+        assert_eq!(set.length_m, 0.0);
+        let (_, phantom) = layout.find("phantom").unwrap();
+        assert_eq!(phantom.own.mass_kg, 0.0);
+        close(phantom.fore_station_m, 0.3, 1e-15, "the phantom's station");
+        // Centered on a tube of no length at 0.3 m: from 0.275 m to 0.325 m.
+        close(
+            station(&layout, "pod-lug"),
+            0.3 - 0.5 * length,
+            1e-15,
+            "lug station",
+        );
+        let m = rho * PI * (ro * ro - ri * ri) * length;
+        let axial = m * (ro * ro + ri * ri) / 2.0;
+        let transverse = m * (3.0 * (ro * ro + ri * ri) + length * length) / 12.0;
+        let r = d - ro;
+        let mass = set.with_children;
+        close(mass.mass_kg, 2.0 * m, 1e-18, "two lugs' mass");
+        close(mass.cg_m.x, 0.0, 1e-16, "center x");
+        close(mass.cg_m.y, 0.0, 1e-16, "center y");
+        close(-mass.cg_m.z, 0.3, 1e-15, "center station");
+        let i = mass.inertia_kg_m2;
+        close(i.col(0).x, 2.0 * transverse, 1e-18, "I_xx");
+        close(i.col(1).y, 2.0 * (transverse + m * r * r), 1e-18, "I_yy");
+        close(i.col(2).z, 2.0 * (axial + m * r * r), 1e-18, "I_zz");
+        // Alone, the first pod's lug sits at `x = d − R`.
+        let (_, lug) = layout.find("pod-lug").unwrap();
+        close(lug.own.cg_m.x, 0.0, 1e-16, "the pair's center");
+        let Part::LaunchLug(one) = &lug.part else {
+            unreachable!("the lug")
+        };
+        let one = MassProperties::placed(one.mass_properties(0.0).unwrap(), &lug.copies[..1]);
+        close(one.cg_m.x, r, 1e-16, "the first lug across the axis");
+
+        let mut empty = design.clone();
+        let pods = empty.stages[0].components[1].children.last_mut();
+        pods.expect("the pod set").children.clear();
+        let layout = empty.layout().unwrap();
+        let (_, set) = layout.find("pods").unwrap();
+        assert!(set.length_m.is_sign_positive());
+        assert_eq!(set.with_children.mass_kg, 0.0);
+        assert_eq!(set.with_children.inertia_kg_m2, DMat3::ZERO);
+        assert_eq!(layout.structure, base.structure);
+
+        // Only a pod may hold a body component of no length: a stage refuses one.
+        let mut flat = three_fin_rocket();
+        flat.stages[0]
+            .components
+            .push(body("flat", tube(0.0, 0.0, 0.0)));
+        let error = flat.layout().unwrap_err();
+        assert!(
+            matches!(
+                error,
+                DesignError::InComponent { ref id, ref source }
+                    if id == "flat" && matches!(**source, DesignError::Domain {
+                        what: "body component length",
+                        ..
+                    })
+            ),
+            "{error:?}"
+        );
+    }
+
+    /// An override on a part inside a cluster is each copy's: set to the part's own mass it changes
+    /// nothing, and doubled it doubles every copy. Both a solid part (an engine block) and a packed
+    /// one (a mass component, rebuilt as its packing's cylinder) are worked one tube at a time.
+    #[test]
+    fn an_override_inside_a_cluster_is_each_copy_s() {
+        let three: Vec<[f64; 2]> = [90.0_f64, 210.0, 330.0]
+            .iter()
+            .map(|a| [0.02 * a.to_radians().cos(), 0.02 * a.to_radians().sin()])
+            .collect();
+        let with = |part: Part, mass_kg: Option<f64>| {
+            let mut design = crate::testing::three_fin_rocket();
+            let mount = &mut design.stages[0].components[1].children[0];
+            if let Part::InnerTube(tube) = &mut mount.part {
+                tube.cluster_m = three.clone();
+            }
+            let mut inside = attached("inside", part, top(0.0));
+            inside.overrides.mass_kg = mass_kg;
+            mount.children = vec![inside];
+            design.layout().unwrap()
+        };
+        for part in [
+            inner_tube(0.01, 0.019, 0.005),
+            mass_component(0.05, 0.04, 0.015),
+        ] {
+            let free = with(part.clone(), None);
+            let (_, one) = free.find("inside").unwrap();
+            let each_kg = one.own.mass_kg / 3.0;
+            let same = with(part.clone(), Some(each_kg));
+            let (a, b) = (&free.structure, &same.structure);
+            close(b.mass_kg, a.mass_kg, 1e-15, "structure mass");
+            assert!(
+                (b.cg_m - a.cg_m).length() < 1e-15,
+                "{:?} vs {:?}",
+                b.cg_m,
+                a.cg_m
+            );
+            for (x, y) in [
+                (a.inertia_kg_m2.x_axis, b.inertia_kg_m2.x_axis),
+                (a.inertia_kg_m2.y_axis, b.inertia_kg_m2.y_axis),
+                (a.inertia_kg_m2.z_axis, b.inertia_kg_m2.z_axis),
+            ] {
+                assert!((x - y).length() < 1e-15, "{x:?} vs {y:?}");
+            }
+            let doubled = with(part, Some(2.0 * each_kg));
+            let (_, inside) = doubled.find("inside").unwrap();
+            close(inside.own.mass_kg, 6.0 * each_kg, 1e-15, "doubled");
+            assert!(inside.own.cg_m.truncate().length() < 1e-17);
+        }
+    }
+
+    /// The tree's structure equals the parts placed by hand at their stations and combined.
+    #[test]
+    fn tree_structure_matches_parts_placed_by_hand() {
+        let design = three_fin_rocket();
+        let layout = design.layout().unwrap();
+        let bore = 0.027 - 0.0015;
+        let placed = |part: Part, body_radius: Option<f64>, s: f64| {
+            part.mass_properties(body_radius)
+                .unwrap()
+                .translated(DVec3::new(0.0, 0.0, -s))
+        };
+        let mut chute = design.stages[0].components[1].children[4].part.clone();
+        if let Part::Parachute(p) = &mut chute {
+            p.packing.radius_m = bore;
+        }
+        let parts = [
+            placed(nose(0.2, 0.027), None, 0.0),
+            placed(tube(0.8, 0.027, 0.0015), None, 0.2),
+            placed(inner_tube(0.3, 0.020, 0.001), None, 0.7),
+            placed(ring(0.006, bore, 0.020), None, 1.0 - 0.006 - 0.25),
+            placed(ring(0.006, bore, 0.020), None, 1.0 - 0.006 - 0.02),
+            placed(fins(0.1, 0.06), Some(0.027), 0.9),
+            placed(chute, None, 0.25),
+            placed(
+                design.stages[0].components[1].children[5].part.clone(),
+                Some(0.027),
+                0.2 + 0.5 * (0.8 - 0.05),
+            ),
+        ];
+        let want = MassProperties::combine(&parts);
+        let got = layout.structure;
+        close(got.mass_kg, want.mass_kg, 1e-15 * want.mass_kg, "mass");
+        assert!(
+            (got.cg_m - want.cg_m).length() < 1e-14,
+            "{:?} vs {:?}",
+            got.cg_m,
+            want.cg_m
+        );
+        let scale = want
+            .inertia_kg_m2
+            .to_cols_array()
+            .iter()
+            .fold(0.0f64, |m, v| m.max(v.abs()));
+        let diff = (got.inertia_kg_m2 - want.inertia_kg_m2)
+            .to_cols_array()
+            .iter()
+            .fold(0.0f64, |m, v| m.max(v.abs()));
+        assert!(diff < 1e-13 * scale, "{diff:e}");
+        assert_eq!(layout.stages[0].mass, got);
+    }
+
+    fn tensor_close(a: DMat3, b: DMat3, rel: f64) {
+        let scale = b.to_cols_array().iter().fold(0.0f64, |m, v| m.max(v.abs()));
+        let diff = (a - b)
+            .to_cols_array()
+            .iter()
+            .fold(0.0f64, |m, v| m.max(v.abs()));
+        assert!(diff <= rel * scale, "{a:?}\nvs\n{b:?}");
+    }
+
+    /// Each override does what `Overrides` says, alone or over the children, nested overrides
+    /// apply first, and a stage's overrides cover the stage.
+    #[test]
+    fn overrides_rescale_move_and_replace() {
+        let bay = || attached("bay", mass_component(0.4, 0.1, 0.02), top(0.3));
+        let mut airframe = body("airframe", tube(0.8, 0.03, 0.001));
+        airframe.children = vec![bay()];
+        let plain = rocket(vec![stage(
+            "s",
+            vec![body("nose", nose(0.2, 0.03)), airframe.clone()],
+        )]);
+        let base = plain.layout().unwrap();
+        let (_, tube_plain) = base.find("airframe").unwrap();
+        let (_, bay_plain) = base.find("bay").unwrap();
+
+        // Mass alone: the tube doubles, keeping its center, and its tensor doubles.
+        let mut overridden = airframe.clone();
+        overridden.overrides.mass_kg = Some(2.0 * tube_plain.own.mass_kg);
+        let design = rocket(vec![stage(
+            "s",
+            vec![body("nose", nose(0.2, 0.03)), overridden.clone()],
+        )]);
+        let layout = design.layout().unwrap();
+        let (_, t) = layout.find("airframe").unwrap();
+        close(
+            t.own.mass_kg,
+            2.0 * tube_plain.own.mass_kg,
+            1e-15,
+            "scaled mass",
+        );
+        assert!((t.own.cg_m - tube_plain.own.cg_m).length() < 1e-15);
+        tensor_close(
+            t.own.inertia_kg_m2,
+            tube_plain.own.inertia_kg_m2 * 2.0,
+            1e-14,
+        );
+        let with = MassProperties::combine([&t.own, &bay_plain.with_children]);
+        assert_eq!(t.with_children, with, "the child is still added");
+
+        // Center and inertia over the tube and its child together.
+        overridden.overrides = Overrides {
+            mass_kg: Some(1.5),
+            cg_aft_m: Some(0.35),
+            cg_xy_m: Some([0.001, -0.002]),
+            inertia: Some(InertiaOverride::axisymmetric(0.001, 0.08)),
+        };
+        overridden.overrides_include_children = true;
+        let design = rocket(vec![stage(
+            "s",
+            vec![body("nose", nose(0.2, 0.03)), overridden.clone()],
+        )]);
+        let layout = design.layout().unwrap();
+        let (_, t) = layout.find("airframe").unwrap();
+        assert_eq!(t.own, tube_plain.own, "own mass untouched");
+        close(t.with_children.mass_kg, 1.5, 0.0, "mass");
+        close(
+            t.with_children.cg_m.z,
+            -(0.2 + 0.35),
+            1e-15,
+            "center from the tube's forward end",
+        );
+        assert_eq!(
+            (t.with_children.cg_m.x, t.with_children.cg_m.y),
+            (0.001, -0.002)
+        );
+        assert_eq!(
+            t.with_children.inertia_kg_m2,
+            DMat3::from_diagonal(DVec3::new(0.08, 0.08, 0.001))
+        );
+
+        // A stage override applies last, over everything, from the stage's forward end.
+        let mut design = design;
+        design.stages[0].overrides = Overrides {
+            mass_kg: Some(3.0),
+            cg_aft_m: Some(0.5),
+            cg_xy_m: None,
+            inertia: None,
+        };
+        let layout = design.layout().unwrap();
+        let stage_mass = layout.stages[0].mass;
+        close(stage_mass.mass_kg, 3.0, 0.0, "stage mass");
+        close(stage_mass.cg_m.z, -0.5, 1e-15, "stage center");
+        let bodies: Vec<MassProperties> = layout.body().map(|c| c.with_children).collect();
+        let unscaled = MassProperties::combine(&bodies);
+        // Without `cg_xy_m` the stage keeps its offset, which the airframe's override gave it.
+        assert!(unscaled.cg_m.x.abs() > 1e-5);
+        assert_eq!(
+            (stage_mass.cg_m.x, stage_mass.cg_m.y),
+            (unscaled.cg_m.x, unscaled.cg_m.y)
+        );
+        tensor_close(
+            stage_mass.inertia_kg_m2,
+            unscaled.inertia_kg_m2 * (3.0 / unscaled.mass_kg),
+            1e-14,
+        );
+        assert_eq!(layout.structure, stage_mass);
+
+        // A massless body given a mass becomes a point mass at its center.
+        let center = DVec3::new(0.0, 0.0, -0.4);
+        let point = Overrides {
+            mass_kg: Some(0.25),
+            ..Overrides::default()
+        }
+        .apply(MassProperties::point(0.0, center), 0.0)
+        .unwrap();
+        assert_eq!(point, MassProperties::point(0.25, center));
+
+        // But a massless packed part takes it as a solid cylinder of its packing (ADR-063),
+        // whether or not the override covers the parts inside.
+        for covering in [false, true] {
+            let mut airframe = airframe.clone();
+            airframe.children = vec![attached(
+                "ballast",
+                mass_component(0.0, 0.1, 0.02),
+                top(0.3),
+            )];
+            airframe.children[0].overrides.mass_kg = Some(0.25);
+            airframe.children[0].overrides_include_children = covering;
+            let design = rocket(vec![stage(
+                "s",
+                vec![body("nose", nose(0.2, 0.03)), airframe],
+            )]);
+            let layout = design.layout().unwrap();
+            let (_, b) = layout.find("ballast").unwrap();
+            let b = if covering { b.with_children } else { b.own };
+            assert_eq!(b.mass_kg, 0.25);
+            close(b.cg_m.z, -(0.2 + 0.3 + 0.05), 1e-15, "packing's center");
+            let (r, l) = (0.02_f64, 0.1_f64);
+            close(
+                b.inertia_kg_m2.z_axis.z,
+                0.5 * 0.25 * r * r,
+                1e-15,
+                "roll, m r²/2",
+            );
+            close(
+                b.inertia_kg_m2.x_axis.x,
+                0.25 * (3.0 * r * r + l * l) / 12.0,
+                1e-15,
+                "pitch, m (3r² + l²)/12",
+            );
+        }
+
+        // Overrides that make no real body are refused.
+        let in_stage = |design: &Rocket| match design.layout() {
+            Err(DesignError::InComponent { id, source }) if id == "s" => *source,
+            other => panic!("{other:?}"),
+        };
+        let mut bad = plain.clone();
+        bad.stages[0].overrides.mass_kg = Some(-1.0);
+        assert!(matches!(in_stage(&bad), DesignError::Domain { .. }));
+        let mut bad = plain.clone();
+        bad.stages[0].overrides.inertia = Some(InertiaOverride::axisymmetric(1.0, 0.1));
+        assert!(matches!(in_stage(&bad), DesignError::UnphysicalInertia(_)));
+        for broken in [
+            Overrides {
+                cg_aft_m: Some(f64::NAN),
+                ..Overrides::default()
+            },
+            Overrides {
+                cg_xy_m: Some([0.0, f64::INFINITY]),
+                ..Overrides::default()
+            },
+        ] {
+            let mut bad = plain.clone();
+            bad.stages[0].overrides = broken;
+            assert!(matches!(in_stage(&bad), DesignError::Domain { .. }));
+        }
+        let mut bad = plain.clone();
+        bad.stages[0].overrides.inertia = Some(InertiaOverride {
+            xy_kg_m2: f64::NAN,
+            ..InertiaOverride::axisymmetric(0.1, 1.0)
+        });
+        assert!(matches!(in_stage(&bad), DesignError::UnphysicalInertia(_)));
+        // Zero mass scales the tensor to zero, but a massless body can't be given an inertia.
+        let mut zero = plain.clone();
+        zero.stages[0].overrides.mass_kg = Some(0.0);
+        assert_eq!(zero.layout().unwrap().structure.inertia_kg_m2, DMat3::ZERO);
+        let mut bad = plain;
+        bad.stages[0].overrides.mass_kg = Some(0.0);
+        bad.stages[0].overrides.inertia = Some(InertiaOverride::axisymmetric(1.0, 5.0));
+        assert!(matches!(in_stage(&bad), DesignError::UnphysicalInertia(_)));
+    }
+
+    /// A tree that doesn't hold together is refused with the offending id.
+    #[test]
+    fn malformed_trees_are_refused() {
+        let base = || {
+            rocket(vec![stage(
+                "s",
+                vec![
+                    body("nose", nose(0.2, 0.03)),
+                    body("tube", tube(0.5, 0.03, 0.001)),
+                ],
+            )])
+        };
+        let tree_error = |design: Rocket, want: &str| match design.layout() {
+            Err(DesignError::Tree { id, .. }) => assert_eq!(id, want),
+            other => panic!("{want}: {other:?}"),
+        };
+
+        let mut d = base();
+        d.stages[0].components[1].children =
+            vec![attached("mmt", inner_tube(0.2, 0.01, 0.001), top(0.0))];
+        d.stages[0].components[1].children[0].children =
+            vec![attached("fins", fins(0.1, 0.05), top(0.0))];
+        tree_error(d, "fins");
+
+        // A lug has no footing on a nose cone; a fin set may sit there with its root along the
+        // surface (ADR-166), which a level trapezoid's is not.
+        let mut d = base();
+        let lug = Part::LaunchLug(crate::LaunchLug {
+            length_m: 0.03,
+            outer_radius_m: 0.003,
+            thickness_m: 0.0005,
+            angle_rad: 0.0,
+            count: 1,
+            spacing_m: 0.0,
+            material: crate::testing::cardboard(),
+        });
+        d.stages[0].components[0].children = vec![attached("lug", lug, top(0.0))];
+        tree_error(d, "lug");
+        let mut d = base();
+        d.stages[0].components[0].children = vec![attached("fins", fins(0.1, 0.05), top(0.0))];
+        match d.layout() {
+            Err(DesignError::InComponent { id, source }) => {
+                assert_eq!(id, "fins");
+                assert!(
+                    matches!(&*source, DesignError::Geometry(m) if m.contains("stands")),
+                    "{source}"
+                );
+            }
+            other => panic!("fins on the nose: {other:?}"),
+        }
+
+        let mut d = base();
+        d.stages[0].components[1].children =
+            vec![attached("inner-body", tube(0.1, 0.02, 0.001), top(0.0))];
+        tree_error(d, "inner-body");
+
+        let mut d = base();
+        d.stages[0]
+            .components
+            .push(body("ballast", mass_component(0.1, 0.1, 0.01)));
+        tree_error(d, "ballast");
+
+        let mut d = base();
+        d.stages[0].components[1].children = vec![body("unplaced", mass_component(0.1, 0.1, 0.01))];
+        tree_error(d, "unplaced");
+
+        let mut d = base();
+        d.stages[0].components[1].position = Some(top(0.0));
+        tree_error(d, "tube");
+
+        let mut d = base();
+        d.stages[0].components[1].auto = vec![AutoDimension::BaseRadius];
+        tree_error(d, "tube");
+
+        let mut d = base();
+        d.stages[0].components[1].children =
+            vec![attached("ring", ring(0.005, 0.02, 0.0), top(0.0))];
+        d.stages[0].components[1].children[0].motor_mount = Some(MotorMount::default());
+        tree_error(d, "ring");
+
+        let mut d = base();
+        d.stages[0].components[1].children =
+            vec![attached("bay", mass_component(0.1, 0.1, 0.01), top(0.0))];
+        d.stages[0].components[1].children[0].children =
+            vec![attached("x", mass_component(0.1, 0.1, 0.01), top(0.0))];
+        tree_error(d, "bay");
+
+        let mut d = base();
+        d.stages[0].components[0].children =
+            vec![attached("weight", mass_component(0.1, 0.05, 0.0), top(0.0))];
+        d.stages[0].components[0].children[0].auto = vec![AutoDimension::PackedRadius];
+        tree_error(d, "weight");
+
+        let mut d = base();
+        d.stages.push(stage("empty", Vec::new()));
+        tree_error(d, "empty");
+
+        let mut d = base();
+        d.stages[0].components[1].id = "nose".to_owned();
+        assert_eq!(d.layout(), Err(DesignError::DuplicateId("nose".to_owned())));
+        let mut d = base();
+        d.stages[0].components[1].id = String::new();
+        assert!(matches!(d.layout(), Err(DesignError::DuplicateId(_))));
+
+        let mut d = base();
+        d.stages.clear();
+        assert!(matches!(d.layout(), Err(DesignError::Tree { .. })));
+    }
+
+    /// A child's own override applies before its parent's override over the subtree: the parent's
+    /// mass override rescales a total that already holds the child's overridden mass.
+    #[test]
+    fn nested_overrides_apply_deepest_first() {
+        let mut airframe = body("airframe", tube(0.8, 0.03, 0.001));
+        let mut bay = attached("bay", mass_component(0.4, 0.1, 0.02), top(0.3));
+        bay.overrides.mass_kg = Some(1.0);
+        airframe.children = vec![bay];
+        let plain = rocket(vec![stage("s", vec![airframe.clone()])]);
+        let layout = plain.layout().unwrap();
+        let (_, t) = layout.find("airframe").unwrap();
+        let (_, b) = layout.find("bay").unwrap();
+        assert_eq!(b.own.mass_kg, 1.0);
+        close(
+            t.with_children.mass_kg,
+            t.own.mass_kg + 1.0,
+            1e-15,
+            "child override inside",
+        );
+
+        airframe.overrides.mass_kg = Some(3.0);
+        airframe.overrides_include_children = true;
+        let layout = rocket(vec![stage("s", vec![airframe])]).layout().unwrap();
+        let (_, t2) = layout.find("airframe").unwrap();
+        close(
+            t2.with_children.mass_kg,
+            3.0,
+            0.0,
+            "parent override over the total",
+        );
+        // The rescaled subtree keeps the center of the tube plus the 1 kg bay, not the 0.4 kg bay.
+        close(
+            t2.with_children.cg_m.z,
+            t.with_children.cg_m.z,
+            1e-15,
+            "center kept",
+        );
+    }
+
+    /// The aft radius and aft shoulder take the tube behind a transition; missing shoulders, a
+    /// shoulder with no tube, a nose-base reference with no nose, too deep a tree, and a bad part
+    /// are all refused with the offending id.
+    #[test]
+    fn aft_radii_and_resolution_errors() {
+        let boattail = |aft_shoulder: bool| {
+            let mut c = body(
+                "flare",
+                Part::Transition(Transition {
+                    shape: crate::NoseShape::Conical {},
+                    clipped: false,
+                    length_m: 0.1,
+                    fore_radius_m: 0.03,
+                    aft_radius_m: 0.0,
+                    wall: crate::Wall::Shell { thickness_m: 0.002 },
+                    fore_shoulder: None,
+                    aft_shoulder: aft_shoulder.then_some(Shoulder {
+                        length_m: 0.04,
+                        outer_radius_m: 0.0,
+                        thickness_m: 0.002,
+                        capped: false,
+                    }),
+                    material: crate::testing::cardboard(),
+                }),
+            );
+            c.auto = vec![AutoDimension::AftRadius, AutoDimension::AftShoulderRadius];
+            c
+        };
+        let with = |flare: Component, last: Component| {
+            rocket(vec![stage(
+                "s",
+                vec![
+                    body("nose", nose(0.2, 0.03)),
+                    body("upper", tube(0.5, 0.03, 0.001)),
+                    flare,
+                    last,
+                ],
+            )])
+        };
+        let layout = with(boattail(true), body("lower", tube(0.4, 0.04, 0.0015)))
+            .layout()
+            .unwrap();
+        let Part::Transition(t) = layout.find("flare").unwrap().1.part.clone() else {
+            panic!()
+        };
+        assert_eq!(t.aft_radius_m, 0.04);
+        assert_eq!(t.aft_shoulder.unwrap().outer_radius_m, 0.04 - 0.0015);
+
+        let tree_id = |result: Result<Layout, DesignError>| match result {
+            Err(DesignError::Tree { id, .. }) => id,
+            other => panic!("{other:?}"),
+        };
+        // No shoulder to size.
+        let lower = || body("lower", tube(0.4, 0.04, 0.0015));
+        assert_eq!(tree_id(with(boattail(false), lower()).layout()), "flare");
+        // A shoulder into a transition, not a tube.
+        let mut cone = boattail(true);
+        cone.id = "cone".to_owned();
+        cone.auto = vec![AutoDimension::AftShoulderRadius];
+        if let Part::Transition(t) = &mut cone.part {
+            t.aft_radius_m = 0.02;
+        }
+        assert_eq!(tree_id(with(boattail(true), cone).layout()), "flare");
+
+        let mut no_nose = with(boattail(true), lower());
+        no_nose.stages[0].components.remove(0);
+        no_nose.reference_diameter = ReferenceDiameter::NoseBase {};
+        assert!(matches!(no_nose.layout(), Err(DesignError::Tree { .. })));
+
+        // A body tube holding `n` nested inner tubes: `n + 1` levels.
+        let nest = |n: usize| {
+            let mut deepest = attached("t0", inner_tube(0.1, 0.02, 0.001), top(0.0));
+            for k in 1..n {
+                let mut outer = attached(&format!("t{k}"), inner_tube(0.1, 0.02, 0.001), top(0.0));
+                outer.children = vec![deepest];
+                deepest = outer;
+            }
+            let mut airframe = body("airframe", tube(0.5, 0.03, 0.001));
+            airframe.children = vec![deepest];
+            rocket(vec![stage("s", vec![airframe])])
+        };
+        nest(MAX_DEPTH - 1).layout().unwrap();
+        assert_eq!(tree_id(nest(MAX_DEPTH).layout()), "t0");
+
+        // A part's own error names the part.
+        let bad = with(boattail(true), body("lower", tube(0.4, 0.04, -0.001)));
+        assert!(matches!(
+            bad.layout(),
+            Err(DesignError::InComponent { ref id, ref source })
+                if id == "lower" && matches!(**source, DesignError::Domain { .. })
+        ));
+        let mut bad = with(boattail(true), lower());
+        bad.stages[0].components[1].children = vec![attached(
+            "lost",
+            mass_component(0.1, 0.1, 0.01),
+            top(f64::NAN),
+        )];
+        assert!(matches!(
+            bad.layout(),
+            Err(DesignError::InComponent { ref id, .. }) if id == "lost"
+        ));
+    }
+
+    /// An automatic packed radius fills the bore on the part's side of the axis, and an offset
+    /// outside the bore is refused.
+    #[test]
+    fn packed_radius_leaves_room_for_the_offset() {
+        let mut design = three_fin_rocket();
+        if let Part::Parachute(chute) = &mut design.stages[0].components[1].children[4].part {
+            chute.packing.radial_offset_m = 0.005;
+        }
+        let layout = design.layout().unwrap();
+        let Part::Parachute(chute) = layout.find("chute").unwrap().1.part.clone() else {
+            panic!()
+        };
+        close(
+            chute.packing.radius_m,
+            0.0255 - 0.005,
+            1e-15,
+            "packed radius",
+        );
+        assert!(crate::checks::check(&design).unwrap().is_empty());
+        if let Part::Parachute(chute) = &mut design.stages[0].components[1].children[4].part {
+            chute.packing.radial_offset_m = 0.03;
+        }
+        assert!(matches!(
+            design.layout(),
+            Err(DesignError::Tree { ref id, .. }) if id == "chute"
+        ));
+    }
+
+    #[test]
+    fn design_round_trips_through_json() {
+        let design = three_fin_rocket();
+        let text = serde_json::to_string_pretty(&design).unwrap();
+        let back: Rocket = serde_json::from_str(&text).unwrap();
+        assert_eq!(back, design);
+        assert_eq!(back.layout().unwrap(), design.layout().unwrap());
+        // Unknown fields are refused, not dropped.
+        let bad = text.replacen("\"auto\"", "\"autos\"", 1);
+        assert!(serde_json::from_str::<Rocket>(&bad).is_err());
+    }
+
+    /// A random spine for the property below: a kind (0 a nose cone, first only; 1 a tube; 2 a
+    /// transition), whether each end is automatic, and each end's fixed radius in centimeters.
+    type SpineSpec = Vec<(usize, bool, bool, u8, u8)>;
+
+    fn random_spine(spec: &SpineSpec, split: usize) -> Rocket {
+        let mut components = Vec::new();
+        for (k, &(kind, fore_auto, aft_auto, fore_cm, aft_cm)) in spec.iter().enumerate() {
+            let (fore, aft) = (f64::from(fore_cm) * 0.01, f64::from(aft_cm) * 0.01);
+            let id = format!("c{k}");
+            let mut c = match kind {
+                0 if k == 0 => body(&id, nose(0.2, aft)),
+                2 => body(&id, cone_transition(fore, aft)),
+                _ => body(&id, tube(0.3, aft, 0.001)),
+            };
+            c.auto = match &c.part {
+                Part::NoseCone(_) if aft_auto => vec![AutoDimension::BaseRadius],
+                Part::BodyTube(_) if aft_auto => vec![AutoDimension::OuterRadius],
+                Part::Transition(_) => [
+                    (fore_auto, AutoDimension::ForeRadius),
+                    (aft_auto, AutoDimension::AftRadius),
+                ]
+                .into_iter()
+                .filter_map(|(on, dimension)| on.then_some(dimension))
+                .collect(),
+                _ => Vec::new(),
+            };
+            components.push(c);
+        }
+        // Split into two stages somewhere, so the property crosses a stage boundary too.
+        let split = split.clamp(1, components.len());
+        let aft = components.split_off(split);
+        let mut stages = vec![stage("upper", components)];
+        if !aft.is_empty() {
+            stages.push(stage("lower", aft));
+        }
+        rocket(stages)
+    }
+
+    proptest! {
+        /// Over random spines, `unresolvable_body_radii` is empty exactly when `layout` succeeds;
+        /// filling what it lists is all `layout` then needs; and every radius the neighbour rule
+        /// could already reach comes out as it did before the fill.
+        #[test]
+        fn unresolvable_radii_are_exactly_what_layout_refuses(
+            spec in proptest::collection::vec((0usize..3, any::<bool>(), any::<bool>(), 1u8..5, 1u8..5), 1..7),
+            split in 1usize..7,
+        ) {
+            let mut design = random_spine(&spec, split);
+            let unresolvable = design.unresolvable_body_radii();
+            prop_assert_eq!(unresolvable.is_empty(), design.layout().is_ok(), "{:?}", unresolvable);
+
+            let body = |design: &Rocket| -> (Vec<Part>, Vec<Vec<AutoDimension>>) {
+                design
+                    .stages
+                    .iter()
+                    .flat_map(|s| s.components.iter())
+                    .map(|c| (c.part.clone(), c.auto.clone()))
+                    .unzip()
+            };
+            let (parts, autos) = body(&design);
+            let autos: Vec<&[AutoDimension]> = autos.iter().map(Vec::as_slice).collect();
+            let (fore, aft) = sweep_body_radii(&parts, &autos);
+
+            let filled = design.fill_unresolvable_body_radii(0.025);
+            prop_assert_eq!(&filled, &unresolvable);
+            prop_assert!(design.unresolvable_body_radii().is_empty());
+            let layout = design.layout();
+            prop_assert!(layout.is_ok(), "{:?}", layout.as_ref().err());
+            let layout = layout.unwrap();
+            for (n, placed) in layout.body().enumerate() {
+                let (f, a) = match &placed.part {
+                    Part::NoseCone(p) => (None, Some(p.base_radius_m)),
+                    Part::BodyTube(p) => (Some(p.outer_radius_m), Some(p.outer_radius_m)),
+                    Part::Transition(p) => (Some(p.fore_radius_m), Some(p.aft_radius_m)),
+                    _ => (None, None),
+                };
+                // A radius the sweep reached before the fill is the one layout gives after it.
+                if let (Some(before), Some(after)) = (fore[n], f) {
+                    prop_assert_eq!(before, after, "forward radius of {}", placed.id);
+                }
+                if let (Some(before), Some(after)) = (aft[n], a) {
+                    prop_assert_eq!(before, after, "aft radius of {}", placed.id);
+                }
+            }
+        }
+
+        /// Placed at random along a tube and rolled, point-like masses sum to the structure's mass
+        /// and center, and sliding every part aft by `d` slides the center by `d` without changing
+        /// the tensor.
+        #[test]
+        fn structure_is_the_mass_weighted_sum_and_slides_rigidly(
+            parts in proptest::collection::vec((0.01f64..2.0, 0.0f64..0.7, 0.0f64..0.02, -3.0f64..3.0), 1..6),
+            d in -0.1f64..0.1,
+        ) {
+            let build = |shift: f64| {
+                let mut airframe = body("airframe", tube(1.0, 0.03, 0.001));
+                airframe.children = parts
+                    .iter()
+                    .enumerate()
+                    .map(|(k, &(m, s, r, angle))| {
+                        let mut c = attached(&format!("m{k}"), mass_component(m, 0.05, 0.005), top(s + shift));
+                        if let Part::MassComponent(p) = &mut c.part {
+                            p.packing.radial_offset_m = r;
+                            p.packing.angle_rad = angle;
+                        }
+                        c
+                    })
+                    .collect();
+                // A massless tube leaves only the masses.
+                if let Part::BodyTube(t) = &mut airframe.part {
+                    t.material = crate::Material::bulk("none", 0.0);
+                }
+                rocket(vec![stage("s", vec![airframe])]).layout().unwrap()
+            };
+            let layout = build(0.0);
+            let total: f64 = parts.iter().map(|p| p.0).sum();
+            prop_assert!((layout.structure.mass_kg - total).abs() <= 1e-12 * total);
+            let moment: f64 = parts.iter().map(|&(m, s, _, _)| m * -(s + 0.025)).sum();
+            prop_assert!((layout.structure.cg_m.z - moment / total).abs() <= 1e-12);
+            let slid = build(d);
+            prop_assert!((slid.structure.cg_m.z - (layout.structure.cg_m.z - d)).abs() <= 1e-12);
+            let scale = layout.structure.inertia_kg_m2.to_cols_array().iter().fold(1e-12f64, |m, v| m.max(v.abs()));
+            let diff = (slid.structure.inertia_kg_m2 - layout.structure.inertia_kg_m2)
+                .to_cols_array()
+                .iter()
+                .fold(0.0f64, |m, v| m.max(v.abs()));
+            prop_assert!(diff <= 1e-9 * scale, "{diff:e} of {scale:e}");
+        }
+    }
+
+    /// A layout written before the move to US spelling, its parts and stages holding
+    /// `centre_overridden`, reads as the same layout: a part and a stage that set an axial center
+    /// hold `true` under the old key, which a missing alias would read as `false`.
+    #[test]
+    fn a_layout_with_the_old_uk_key_reads_the_same() {
+        let mut design = three_fin_rocket();
+        design.stages[0].overrides.cg_aft_m = Some(0.4);
+        design.stages[0].components[0].overrides.cg_aft_m = Some(0.1);
+        let layout = design.layout().unwrap();
+        assert!(layout.stages[0].center_overridden);
+        let text = serde_json::to_string(&layout).unwrap();
+        let old = text.replace("\"center_overridden\"", "\"centre_overridden\"");
+        assert!(!old.contains("\"center_overridden\""));
+        assert!(
+            old.matches("\"centre_overridden\":true").count() >= 2,
+            "a part and a stage: {old}"
+        );
+        assert_eq!(serde_json::from_str::<Layout>(&old).unwrap(), layout);
+    }
+}

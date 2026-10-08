@@ -1,0 +1,39 @@
+[package]
+name = "fusionspace-hpr-net"
+description = "Optional online data sources with an on-disk cache and an explicit offline mode: weather, soundings, elevation, ThrustCurve and motor stock."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# The library keeps its Rust name, `hpr_net`, under the package's FusionSpace name (ADR-199).
+[lib]
+name = "hpr_net"
+
+[lints]
+workspace = true
+
+[dependencies]
+hpr-atmos.workspace = true
+hpr-core.workspace = true
+hpr-io.workspace = true
+hpr-motor.workspace = true
+base64.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+ureq = { workspace = true, optional = true }
+
+[features]
+# The HTTP transport. Off by default: the cache, the offline mode and `Replay` need no network code.
+http = ["dep:ureq"]
+
+[dev-dependencies]
+# The loopback server in `tests/http.rs` gzips a response.
+flate2 = { workspace = true, features = ["rust_backend"] }
+tempfile.workspace = true
+
+[[test]]
+name = "http"
+required-features = ["http"]

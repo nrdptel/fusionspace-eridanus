@@ -1,0 +1,221 @@
+name: Release
+
+# Builds and smoke-tests every artifact of a release, from a dispatch (ADR-162 §2, ADR-187): the
+# `hpr` command line's archive for each operating system, the Python package's abi3 wheel for each,
+# and its source package. Each carries both licenses, THIRD-PARTY-NOTICES.md and its dependencies'
+# license texts (ADR-114). `cargo publish --workspace --dry-run` checks the crates. Nothing is
+# published unless the dispatch asks for it, and then only after Neer approves the `release`
+# environment; the archives and packages are kept as the run's artifacts.
+#
+# The Linux archive and wheel are linked for glibc 2.17 (scripts/release/linux.sh, issue #372),
+# checked for it with objdump, and smoke-tested again inside a manylinux2014 image with that glibc.
+#
+# A pull request that changes this file or scripts/release/ runs the builds and smoke tests too.
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the crates and the Python package, and draft a GitHub release, once the `release` environment is approved
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - .github/workflows/release.yml
+      - scripts/release/**
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  # scripts/release/about.toml is written for this version; bump both together.
+  CARGO_ABOUT: cargo-about@0.9.2
+
+jobs:
+  # A clean release build of `hpr`, packed with the README and the license files, then unpacked
+  # into an empty folder and run (scripts/release/archive.sh, smoke-cli.sh).
+  cli:
+    name: cli (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: ${{ env.CARGO_ABOUT }}
+      # The smoke test reads the flight's JSON with Python.
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      # On Linux, uv fetches cargo-zigbuild and Zig for the glibc floor.
+      - if: runner.os == 'Linux'
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+      - run: cargo fetch --locked
+      - id: archive
+        # Assigned first, so a failed build fails this step; the path is Git Bash's on Windows, so
+        # the upload below takes the folder's files instead.
+        run: |
+          path="$(scripts/release/archive.sh dist)"
+          echo "path=$path" >> "$GITHUB_OUTPUT"
+        shell: bash
+      - run: scripts/release/smoke-cli.sh "${{ steps.archive.outputs.path }}"
+        shell: bash
+      - if: runner.os == 'Linux'
+        run: scripts/release/check-glibc.sh "${{ steps.archive.outputs.path }}"
+      - if: runner.os == 'Linux'
+        run: scripts/release/smoke-manylinux.sh "${{ steps.archive.outputs.path }}"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cli-${{ matrix.os }}
+          path: |
+            dist/fusionspace-hpr-*.tar.gz
+            dist/fusionspace-hpr-*.zip
+          if-no-files-found: error
+
+  # One abi3 wheel per operating system for CPython 3.10 and later, installed into fresh
+  # environments on 3.10 and 3.13 and run (scripts/release/python.sh, smoke-python.sh).
+  wheel:
+    name: wheel (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: ${{ env.CARGO_ABOUT }}
+      # The Python maturin builds against: on Windows the abi3 module links its `python3.lib`.
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      # setup-uv publishes no moving major tag, so it is pinned to a release's commit.
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+      - run: cargo fetch --locked
+      - id: wheel
+        run: |
+          path="$(scripts/release/python.sh wheel dist)"
+          echo "path=$path" >> "$GITHUB_OUTPUT"
+        shell: bash
+      - run: scripts/release/smoke-python.sh "${{ steps.wheel.outputs.path }}"
+        shell: bash
+      - if: runner.os == 'Linux'
+        run: scripts/release/check-glibc.sh "${{ steps.wheel.outputs.path }}"
+      - if: runner.os == 'Linux'
+        run: scripts/release/smoke-manylinux.sh "${{ steps.wheel.outputs.path }}"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: wheel-${{ matrix.os }}
+          path: dist/*.whl
+          if-no-files-found: error
+
+  # The source package, installed by pip's build from source (so compiled by maturin and cargo)
+  # into fresh environments and run.
+  sdist:
+    name: sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: ${{ env.CARGO_ABOUT }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+      - run: cargo fetch --locked
+      - id: sdist
+        run: |
+          path="$(scripts/release/python.sh sdist dist)"
+          echo "path=$path" >> "$GITHUB_OUTPUT"
+      - run: scripts/release/smoke-python.sh "${{ steps.sdist.outputs.path }}"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  # Every crate that release 0.1 publishes packages and builds from its packaged files alone, against
+  # the others as packaged; hpr-py, hpr-ffi, hpr-wasm, hpr-validate and xtask say `publish = false`.
+  crates:
+    name: crates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - run: cargo publish --workspace --dry-run --locked
+      # The order and the index lookups the publishing job relies on, with nothing published.
+      - run: scripts/release/publish-crates.sh --dry-run
+
+  # The publishing jobs run only from a dispatch that asks for them, and each waits for Neer's
+  # approval in the `release` environment (CONTRIBUTING.md rule 7: releases are the maintainer's).
+  #
+  # crates.io takes 5 new crate names at once, then one every 10 minutes, so the first publish
+  # paces its 14 names over about two hours; a rerun skips what is already published
+  # (scripts/release/publish-crates.sh, issue #372).
+  publish-crates:
+    name: publish crates
+    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    needs: [cli, wheel, sdist, crates]
+    runs-on: ubuntu-latest
+    environment: release
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - run: scripts/release/publish-crates.sh
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  publish-pypi:
+    name: publish to PyPI
+    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    needs: [cli, wheel, sdist, crates]
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      # PyPI's trusted publishing: the project on PyPI names this workflow and environment.
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: "{wheel-*,sdist}"
+          path: dist
+          merge-multiple: true
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+
+  # A draft release with the archives, wheels and source package; publishing the draft makes the
+  # tag, which stays Neer's click.
+  github-release:
+    name: draft GitHub release
+    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    needs: [cli, wheel, sdist, crates]
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+      - run: |
+          version="$(cargo pkgid --manifest-path crates/hpr-cli/Cargo.toml | sed 's/.*[#@]//')"
+          gh release create "v$version" --draft --target "$GITHUB_SHA" --title "FusionSpace HPR $version" \
+            --notes "See CHANGELOG.md for what this release holds and how far to trust it." dist/*
+        env:
+          GH_TOKEN: ${{ github.token }}
