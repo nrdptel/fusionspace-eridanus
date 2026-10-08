@@ -924,7 +924,9 @@ fn rust_lex(text: &str) -> (Vec<(Range<usize>, Held)>, Vec<String>) {
                 test_item = Some((i, depth));
             }
             i += "#[cfg(test)]".len();
-        } else if test_item.is_some_and(|(_, at)| at == depth) && bytes[i] == b',' {
+        } else if bytes[i] == b','
+            && test_item.is_some_and(|(start, at)| at == depth && ends_a_field(&text[start..i]))
+        {
             // The attribute was on a field, a variant or a match arm, which ends here: nothing
             // braced after it is test-only.
             test_item = None;
@@ -1053,6 +1055,34 @@ fn rust_lex(text: &str) -> (Vec<(Range<usize>, Held)>, Vec<String>) {
         }
     }
     (found, test_modules)
+}
+
+/// Whether a comma after `header`, the text from a `#[cfg(test)]` on, ends what the attribute is on:
+/// a field, a variant or a match arm. It doesn't when the comma is inside brackets (an attribute's
+/// arguments, a tuple) or follows an item's keyword (a function's parameters, an `impl`'s
+/// generics), where the item goes on to its body.
+fn ends_a_field(header: &str) -> bool {
+    const ITEMS: [&str; 13] = [
+        "fn",
+        "impl",
+        "mod",
+        "struct",
+        "enum",
+        "union",
+        "trait",
+        "use",
+        "const",
+        "static",
+        "type",
+        "extern",
+        "macro_rules",
+    ];
+    let open = header.matches(['(', '[']).count();
+    let closed = header.matches([')', ']']).count();
+    open == closed
+        && !header
+            .split(|c: char| !(c.is_alphanumeric() || c == '_' || c == '!'))
+            .any(|word| ITEMS.contains(&word.trim_end_matches('!')))
 }
 
 /// The files of the module `name` declared in the Rust file `parent`: `name.rs` and
@@ -1400,6 +1430,11 @@ mod tests {
             "#[cfg(test)]\nmod tests {\n    fn f() -> &'static str { \"hpr reads\" }\n}\n",
             "#[cfg(test)]\n#[allow(dead_code)]\nfn probe() -> &'static str { \"hpr reads\" }\n",
             "fn g(x: u8) -> u8 { match x {\n #[cfg(test)]\n 9 => { let _ = \"hpr reads\"; 1 }\n _ => 0 } }\n",
+            // A comma in the item's own header doesn't end it.
+            "#[cfg(test)]\nfn helper(a: u8, b: u8) -> &'static str { \"hpr reads\" }\n",
+            "#[cfg(test)]\n#[allow(dead_code, unused)]\nfn probe() -> &'static str { \"hpr reads\" }\n",
+            "#[cfg(test)]\nimpl<A, B> X<A, B> { fn f() -> &'static str { \"hpr reads\" } }\n",
+            "#[cfg(test)]\nfn t() -> (u8, u8) { let _ = \"hpr reads\"; (1, 2) }\n",
         ];
         for text in skipped {
             let mut used = [];
