@@ -77,7 +77,7 @@ use pulldown_cmark::{
 use crate::workspace::{Package, Workspace};
 
 mod pages;
-mod theme;
+pub(crate) mod theme;
 
 pub const USAGE: &str = "  site [--no-build] [--locked]
                            Check the documentation site's pages, build the site with

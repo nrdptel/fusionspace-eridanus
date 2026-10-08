@@ -42,6 +42,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9a The name everywhere ([Phase 0](#phase-0-foundations))
 - M0.9a1 The packages' text ([Phase 0](#phase-0-foundations))
 - M0.9a2 The site's pages ([Phase 0](#phase-0-foundations))
+- M0.9b The design audit ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -368,6 +369,11 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M0.9a2 The site's pages** (ADR-206, ADR-207). *Done when:* the check covers every page
       `SUMMARY.md` renders, the records page's rows inheriting only their linked ADR's
       allowance (a test each way), so M0.9a is met.
+  - [x] **M0.9b The design audit.** *Done when:* `docs/research/design-conformance.md` names the
+    pinned commit and rows every `##` section of the 14 `product/` files as ADR-205 §2 says,
+    each applying row met (a named test, or reviewed at the commit) or in an issue with a
+    milestone; a test fails on a missing section or a commit differing from `refs.lock.toml`'s or
+    `DESIGN_REV`.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

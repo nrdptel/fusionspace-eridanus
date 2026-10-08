@@ -1,0 +1,115 @@
+# The ## sections of the FusionSpace product system's 14 files under product/, at f45454f44669cc049222f2ab19eb648796e56a52,
+# in reading order: the rows docs/research/design-conformance.md must have (ADR-205 §2).
+# xtask/src/conformance.rs compares this list with the pinned files where refs/ is present.
+README.md: Read in this order
+README.md: The idea in one paragraph
+README.md: Files
+README.md: Pointing a project here
+README.md: Status
+README.md: License
+principles.md: 1. Drawn, not decorated
+principles.md: 2. Show the working
+principles.md: 3. Say how far to trust it
+principles.md: 4. Built for the field
+principles.md: 5. Quiet until it matters
+principles.md: 6. One sweep
+principles.md: 7. Numbered like parts
+principles.md: 8. Native where it counts
+principles.md: What FusionSpace doesn't look like
+foundations.md: Color
+foundations.md: Type
+foundations.md: Space and layout
+foundations.md: Lines and shape
+foundations.md: Motion
+foundations.md: Icons
+foundations.md: Tokens
+writing.md: Voice
+writing.md: How far to trust it
+writing.md: On screens
+writing.md: Errors
+writing.md: Notes and warnings in documents
+writing.md: Names
+writing.md: Mechanics
+writing.md: READMEs and docs
+writing.md: Commit messages
+review.md: The FusionSpace test
+review.md: Template smells
+review.md: Before release
+review.md: Sources
+data.md: Numbers
+data.md: Copying and typing numbers
+data.md: Units for rocketry
+data.md: Readouts
+data.md: Tables
+data.md: Charts
+data.md: Maps
+data.md: Live telemetry
+data.md: Files and exports
+cli.md: Output
+cli.md: Color
+cli.md: Help
+cli.md: Errors
+cli.md: Exit codes
+cli.md: Interaction and config
+cli.md: The banner
+cli.md: Drop-in styles
+web.md: Using it in a project
+web.md: Page anatomy
+web.md: Site patterns
+web.md: Components
+web.md: Theme
+web.md: Accessibility
+web.md: Progressive web apps
+web.md: Notifications
+web.md: Performance
+web.md: Print
+web.md: Documentation sites
+web.md: fusionspace.co
+desktop.md: Choosing a toolkit
+desktop.md: What the platform owns
+desktop.md: What FusionSpace owns
+desktop.md: Dense engineering views
+desktop.md: Documents
+desktop.md: Hardware: serial, USB and radios
+desktop.md: Icons and packaging
+desktop.md: Updates and signing
+desktop.md: Accessibility
+desktop.md: Checklist
+mobile.md: What the platform owns
+mobile.md: What FusionSpace owns
+mobile.md: Screens
+mobile.md: Field use
+mobile.md: Bluetooth devices
+mobile.md: Glanceable surfaces
+mobile.md: App icons
+mobile.md: Real screens
+mobile.md: Checklist
+watch.md: What a watch never does
+watch.md: What the platform owns
+watch.md: What FusionSpace owns
+watch.md: Screens
+watch.md: Always On and ambient
+watch.md: Complications, Smart Stack and tiles
+watch.md: The wrist language
+watch.md: Staying alive and connected
+watch.md: Real screens
+watch.md: Checklist
+embedded.md: Arming and safety
+embedded.md: Energetics behavior
+embedded.md: Channels: three states, and UNFIRED
+embedded.md: Beeps
+embedded.md: Lights
+embedded.md: Screens
+embedded.md: Buttons and switches
+embedded.md: Ground stations and pad boxes
+embedded.md: Serial and USB output
+hardware.md: Designations
+hardware.md: PCBs
+hardware.md: Enclosures
+hardware.md: Cables and connectors
+hardware.md: Drawings
+rockets.md: Color
+rockets.md: Roll pattern
+rockets.md: Markings
+rockets.md: Flight card
+rockets.md: Pad checklist

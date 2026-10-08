@@ -35,7 +35,11 @@ Eridanus: [ADR-198](https://github.com/nrdptel/fusionspace-eridanus/blob/main/do
 and its pages also follow the product system's [writing rules](https://github.com/nrdptel/fusionspace-design/blob/main/product/writing.md)
 and [number rules](https://github.com/nrdptel/fusionspace-design/blob/main/product/data.md#numbers)
 ([the product system decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0164-the-fusionspace-product-system.md)).
-They don't conflict with the rules above; they add these:
+They don't conflict with the rules above. Not every page meets them yet: the
+[design audit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/design-conformance.md)
+lists each section of the product system, whether the site, the command line, the exports
+and the plot meet it, and the issue that tracks each gap
+([ADR-208](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0208-the-design-audit.md)). They add these:
 
 - **US English**: color, center, meter, catalog, license, analyze, gray. A product or command
   name keeps the spelling it shipped with, and a quotation or a source's title keeps its own.
