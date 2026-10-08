@@ -27,7 +27,7 @@ use serde::{Deserialize, Serialize};
 use crate::error::{AeroError, check_dimension};
 
 /// Galejs's body-lift constant `K` (Niskanen 2009 eq. 3.26: "K ≈ 1.1"; Galejs quotes Hoerner's
-/// 1.1 to 1.5 and fitted 1.0 to his own data): hpr's body lift before Jorgensen's, kept as
+/// 1.1 to 1.5 and fitted 1.0 to his own data): HPR Sim's body lift before Jorgensen's, kept as
 /// [`crate::crossflow::BodyLift::GALEJS`].
 pub const BODY_LIFT_K: f64 = 1.1;
 

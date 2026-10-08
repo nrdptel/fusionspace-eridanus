@@ -3,9 +3,9 @@
 //!
 //! The conversion is the library's own ([`hpr::hpr_motor::convert`]): `.eng` to `.rse` fills
 //! what `.eng` doesn't give the way RockSim's files do, and `.rse` to `.eng` drops what `.eng`
-//! can't hold, each named in a warning. The same format in and out rewrites the file in hpr's
+//! can't hold, each named in a warning. The same format in and out rewrites the file in HPR Sim's
 //! layout, with a `.eng` maker of several words joined by `_`. A catalog motor takes the
-//! catalog's size and masses, the ones hpr flies. What the reader flagged in the input is passed
+//! catalog's size and masses, the ones HPR Sim flies. What the reader flagged in the input is passed
 //! on.
 
 use std::io::{self, Write};
@@ -250,7 +250,7 @@ fn join_makers(file: &mut EngFile) -> Vec<ConvertWarning> {
     warnings
 }
 
-/// What the bundled catalog gives a motor, which hpr flies in place of its curve file's header
+/// What the bundled catalog gives a motor, which HPR Sim flies in place of its curve file's header
 /// ([`CatalogMotor::motor`](hpr::hpr_motor::catalog::CatalogMotor::motor)).
 struct CatalogFigures {
     diameter_mm: f64,
@@ -279,7 +279,7 @@ impl CatalogFigures {
                     kind: WarningKind::Unusual,
                     message: format!(
                         "its curve file gives a {what} of {field} {unit}; the catalog gives \
-                         {value} {unit}, which hpr flies and this file takes"
+                         {value} {unit}, which HPR Sim flies and this file takes"
                     ),
                 });
             }
@@ -359,7 +359,7 @@ impl CatalogFigures {
     }
 }
 
-/// The mass hpr flies for a catalog mass of `g` grams ([`CatalogMotor::motor`]'s product).
+/// The mass HPR Sim flies for a catalog mass of `g` grams ([`CatalogMotor::motor`]'s product).
 fn flown_kg(g: f64) -> f64 {
     g * 1e-3
 }
@@ -418,7 +418,7 @@ fn rescale(engine: &mut RseEngine, length: f64, propellant: f64, initial: f64) -
     })
 }
 
-/// The input's source, format and text, and for a catalog motor the figures hpr flies: a motor
+/// The input's source, format and text, and for a catalog motor the figures HPR Sim flies: a motor
 /// file by its extension, or else a catalog motor.
 fn read_input(
     input: &str,

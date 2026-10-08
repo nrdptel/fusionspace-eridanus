@@ -45,7 +45,7 @@
 //! (§4.2, p. 473): the surrogate, its prediction and the expected improvement are all on the
 //! transformed scale. On their test functions the diagnostic tests chose `ln y` for
 //! Goldstein–Price's function and `−ln(−y)` for Hartmann's six-variable function (§4.2, p. 474). [`Transform`]
-//! offers the two log transformations, chosen by the caller ([`Ego::with_transform`]); hpr runs
+//! offers the two log transformations, chosen by the caller ([`Ego::with_transform`]); HPR Sim runs
 //! no diagnostic test to choose one. Both increase with `y`, so the least transformed value is at
 //! the least value, and the best point, the target and the result are on the model's own scale.
 //! A value outside the transformation's domain (`y ≤ 0` for `ln y`, `y ≥ 0` for `−ln(−y)`) is an

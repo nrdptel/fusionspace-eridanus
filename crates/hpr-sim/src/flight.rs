@@ -441,7 +441,7 @@ impl Simulation {
     /// Flies a drag model of your own instead of the drag buildup, and instead of any drag table
     /// ([`hpr_aero::custom`]). The model gives the zero-lift drag coefficient on the rocket's
     /// reference area, not rescaled; the flight scales it for the angle of attack, and the
-    /// normal force, center of pressure, roll and damping stay hpr's. A model's own errors reach
+    /// normal force, center of pressure, roll and damping stay HPR Sim's. A model's own errors reach
     /// the caller as [`SimError::Aero`] around [`hpr_aero::AeroError::DragModel`]. Like a table,
     /// the model is the whole stack's: a flight with a powered separation refuses it at the
     /// separation, since the sustainer would fly on without it.
@@ -500,7 +500,7 @@ impl Simulation {
         self
     }
 
-    /// Multiplies the rocket's zero-lift drag coefficient by `scale`, whatever gives it: hpr's
+    /// Multiplies the rocket's zero-lift drag coefficient by `scale`, whatever gives it: HPR Sim's
     /// buildup, a drag table or a drag model ([`hpr_aero::AeroModel::with_drag_scale`]). Unlike
     /// a table or a model it is not the whole stack's: a sustainer lit at a powered separation
     /// keeps the same scale. Recovery devices' drag is their own and is not scaled. A Monte Carlo
@@ -528,11 +528,11 @@ impl Simulation {
     }
 
     /// Flies another tool's normal force and center of pressure, against Mach number and angle of
-    /// attack, instead of hpr's own ([`hpr_aero::NormalForceTable`], read from a RASAero II
+    /// attack, instead of HPR Sim's own ([`hpr_aero::NormalForceTable`], read from a RASAero II
     /// export). The table sets the static normal force at the center of mass's airflow; the pitch
-    /// and yaw damping stay hpr's, from the airspeed the rotation adds at each component, since a
+    /// and yaw damping stay HPR Sim's, from the airspeed the rotation adds at each component, since a
     /// table has none (the decision record on normal-force overrides, [ADR-032][adr-032]). The
-    /// flight still refuses Mach 5 and faster, where hpr's components, which give that damping,
+    /// flight still refuses Mach 5 and faster, where HPR Sim's components, which give that damping,
     /// end.
     ///
     /// [adr-032]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-032-normal-force-overrides-from-rasaero-ii-the-static-force-replaced-hprs-damping-kept-2026-09-19

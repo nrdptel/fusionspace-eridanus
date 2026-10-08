@@ -6,7 +6,7 @@
 //! (`F27R/L`), then, if no motor has that designation, as a common name (`F27`), each time with
 //! the manufacturer when one is given. Exactly one solid motor must answer: two or more are
 //! [`FindError::Ambiguous`], listed by maker and designation so the caller can say which, and a
-//! hybrid is refused, as hpr flies commercial solid motors only. It then
+//! hybrid is refused, as HPR Sim flies commercial solid motors only. It then
 //! [downloads](crate::thrustcurve::Download) the motor's RASP (`.eng`) files and takes the first
 //! that reads as one motor, ranked by who measured it ([`rank`]): a certification test, then the
 //! manufacturer, then a user, then a file that names no source, in the answer's order within each.
@@ -126,13 +126,13 @@ pub enum FindError {
         candidates: Vec<String>,
     },
     /// The one motor that answers is a hybrid.
-    #[error("{motor} is a hybrid on ThrustCurve.org; hpr flies commercial solid motors only")]
+    #[error("{motor} is a hybrid on ThrustCurve.org; HPR Sim flies commercial solid motors only")]
     Hybrid {
         /// The motor, as `maker designation`.
         motor: String,
     },
     /// The motor has no RASP or RockSim file that `hpr_motor` reads.
-    #[error("{motor} has no RASP or RockSim file on ThrustCurve.org that hpr reads{}", why.as_ref().map(|why| format!(": {why}")).unwrap_or_default())]
+    #[error("{motor} has no RASP or RockSim file on ThrustCurve.org that HPR Sim reads{}", why.as_ref().map(|why| format!(": {why}")).unwrap_or_default())]
     NoFile {
         /// The motor, as `maker designation`.
         motor: String,

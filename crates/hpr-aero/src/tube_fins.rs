@@ -25,14 +25,14 @@
 //! **Center of pressure.** Against the ring's aspect ratio `A = d/L`, at the stretched ring's
 //! `β A` faster than Mach 0 ([`ring_center_fraction`]): Fletcher's measured aerodynamic center
 //! from `A = 2/3` to 3 ([`FLETCHER_AERODYNAMIC_CENTER`], his Fig. 8); below `A = 2/3`, a straight
-//! line to the leading edge at `A = 0`. That end point is hpr's derivation from slender-body
+//! line to the leading edge at `A = 0`. That end point is HPR Sim's derivation from slender-body
 //! theory, in which a section's lift is the growth of its apparent mass along the body: a thin
 //! ring's appears whole at its leading edge and stays, so all its lift is there. Hoerner and Borst
 //! (*Fluid-Dynamic Lift*, 1985, p. 19-16) assume the same of the air turned inside an open tube,
 //! that it turns "at or near the rim of the inlet"; they had no measurement of it. Fletcher's fifth
 //! ring, at `A = 1/3`, is left out, a judgement: its center sits 0.11 of its chord ahead of its
 //! leading edge, which he puts down to its low aspect ratio making it act like a body of
-//! revolution (p. 4). hpr infers, beyond his text, that its thick section (a Clark Y 11.7% of a
+//! revolution (p. 4). HPR Sim infers, beyond his text, that its thick section (a Clark Y 11.7% of a
 //! chord three bores long, outside a straight bore, so walls 0.35 of the bore thick) is what
 //! makes it so, that a paper tube's center lies aft of it, and that his thinner-walled rings may
 //! carry the same forward bias in smaller measure. Holding his point below `A = 1/3` instead put
@@ -57,7 +57,7 @@ use serde::Serialize;
 
 use crate::error::{AeroError, check_dimension, check_mach};
 
-/// The top of the tube-fin model's range, Mach 0.8, where hpr's fin model leaves its subsonic
+/// The top of the tube-fin model's range, Mach 0.8, where HPR Sim's fin model leaves its subsonic
 /// method ([`crate::fins::TRANSONIC_START_MACH`]). No source covers tube fins faster; a judgement.
 pub const TUBE_FIN_MACH_LIMIT: f64 = crate::fins::TRANSONIC_START_MACH;
 

@@ -548,7 +548,7 @@ impl Vehicle {
     /// - With a normal-force table ([`hpr_aero::NormalForceTable`]), the table's normal force at
     ///   the center of mass's airflow acts at its center of pressure, and each component adds only
     ///   its force in its local flow less its force in the center of mass's: the damping, which
-    ///   stays hpr's (ADR-032).
+    ///   stays HPR Sim's (ADR-032).
     /// - The rolling moment about `z_B` is `q A d (C_l0 cos α + C_lp p d/2V)` from the fins' cant
     ///   and the roll rate `p = ω_z` at the center of mass's Mach number
     ///   ([`hpr_aero::AeroModel::roll`]); the cant's forcing follows the axial flow.

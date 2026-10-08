@@ -20,7 +20,7 @@
 //! 100 m₀ / initWt`; `Isp = Itot / (m₀ g₀)`; and `Type="unspecified"`, which RockSim's guide
 //! requires and the files use when they don't say.
 //!
-//! [`rse_to_eng`] drops what `.eng` can't hold, each named in a [`ConvertWarning`]. hpr uses
+//! [`rse_to_eng`] drops what `.eng` can't hold, each named in a [`ConvertWarning`]. HPR Sim uses
 //! none of it for a solid motor: it works the mass and center of gravity out from the curve and
 //! the masses ([`SolidMotor::from_envelope`](crate::SolidMotor::from_envelope)). It refuses a
 //! hybrid, whose `Type` a `.eng` file couldn't keep, and an engine without delays it can read,
@@ -33,7 +33,7 @@
 //! of a double, comes back bit for bit. One of 16 or 17 digits may not (2 of the 29 bundled
 //! `.eng` files write one, such as `0.0036000000000000003`), and a warning says so.
 //!
-//! The thrust curve hpr flies comes back bit for bit both ways, and so do the diameter, the
+//! The thrust curve HPR Sim flies comes back bit for bit both ways, and so do the diameter, the
 //! length, and the masses above. The rest may come back written differently:
 //!
 //! - delays spelled with commas, spaces, `p` or `1000` come back in the other spelling, and read
@@ -254,7 +254,7 @@ fn eng_entry(
         .is_some_and(|kind| kind.trim().eq_ignore_ascii_case("hybrid"))
     {
         return Err(MotorError::Inconsistent(format!(
-            "{code} is a hybrid, which a .eng file can't say; hpr models solid motors only"
+            "{code} is a hybrid, which a .eng file can't say; HPR Sim models solid motors only"
         )));
     }
     let delays = engine
@@ -331,7 +331,7 @@ fn eng_entry(
             code,
             WarningKind::Dropped,
             format!(
-                "dropped {}: a .eng file has no place for them. hpr doesn't use them for a solid \
+                "dropped {}: a .eng file has no place for them. HPR Sim doesn't use them for a solid \
                  motor: it works the mass and center of gravity out from the curve and the masses",
                 dropped.join(", ")
             ),

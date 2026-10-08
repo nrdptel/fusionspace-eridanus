@@ -1,6 +1,6 @@
 [package]
 name = "fusionspace-hpr"
-description = "The hpr-sim library facade: re-exports of the workspace crates and a builder API for environments, motors, rockets and flights."
+description = "The library facade of FusionSpace HPR · Sim: re-exports of the workspace crates and a builder API for environments, motors, rockets and flights."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

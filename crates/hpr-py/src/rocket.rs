@@ -31,7 +31,7 @@ impl Motor {
 
 #[pymethods]
 impl Motor {
-    /// The motor in hpr-sim's built-in catalog whose designation or common name is `name`
+    /// The motor in HPR Sim's built-in catalog whose designation or common name is `name`
     /// (`"H54"`, `"168H54-10A"`), ignoring case, spaces and hyphens, with its first bundled
     /// thrust curve; `delay_s` sets its ejection delay. The designation's own delay is not used.
     #[staticmethod]
@@ -155,7 +155,7 @@ impl Rocket {
     }
 
     /// A rocket read from a design file, flown in its motor configuration `configuration`, by
-    /// id: an hpr design (`.hpr` or `.hprz`), an OpenRocket `.ork` file, or a rocket's JSON
+    /// id: an HPR design (`.hpr` or `.hprz`), an OpenRocket `.ork` file, or a rocket's JSON
     /// (`.json`, an `hpr_design::Rocket`). Left out, the configuration is the design's only one.
     /// Parts can't be added to it; parachutes can.
     ///
@@ -164,7 +164,7 @@ impl Rocket {
     /// or OpenRocket's own, and once one opens the rocket descends as a point under the open
     /// devices' drag alone. They come before any added with `add_parachute`, so the file's first
     /// device is parachute 0. A device that never opens in the configuration is named in
-    /// `notes`, and a file whose devices hpr can't fly is refused with why. Left out, the file's
+    /// `notes`, and a file whose devices HPR Sim can't fly is refused with why. Left out, the file's
     /// devices aren't flown.
     #[staticmethod]
     #[pyo3(signature = (path, configuration = None, *, recovery = false))]
@@ -609,7 +609,7 @@ fn extension(path: &Path) -> Option<String> {
 struct ReadDesign {
     /// The rocket.
     design: hpr::hpr_design::Rocket,
-    /// The motor configurations of a `.ork` file or an hpr design; `None` for a rocket's JSON.
+    /// The motor configurations of a `.ork` file or an HPR design; `None` for a rocket's JSON.
     motors: Option<hpr::hpr_io::ork::Motors>,
     /// The recovery devices the file stores; `None` for a rocket's JSON, which stores none.
     recovery: Option<hpr::hpr_io::ork::Recovery>,
@@ -657,7 +657,7 @@ fn read_design(path: &Path, recovery: bool) -> PyResult<ReadDesign> {
             };
             if written_as != hpr::hpr_format::VERSION {
                 notes.push(format!(
-                    "the design is version {written_as} of the hpr design format, read as version \
+                    "the design is version {written_as} of the HPR design format, read as version \
                      {}",
                     hpr::hpr_format::VERSION
                 ));
@@ -691,7 +691,7 @@ fn read_design(path: &Path, recovery: bool) -> PyResult<ReadDesign> {
         }
         _ => {
             return Err(error(format!(
-                "{}: a design is an hpr design (.hpr, .hprz), an OpenRocket .ork file or a \
+                "{}: a design is an HPR design (.hpr, .hprz), an OpenRocket .ork file or a \
                  rocket's JSON (.json)",
                 path.display()
             )));
@@ -715,7 +715,7 @@ fn read_design(path: &Path, recovery: bool) -> PyResult<ReadDesign> {
 
 /// The recovery devices `stored` that fly in `configuration` of `design`, mapped as `hpr sim`
 /// maps them ([`hpr::ork::recovery`]), with notes on those that never open and on a file that
-/// stores none. A mapping hpr refuses raises, where `hpr sim` flies no device and says why: here
+/// stores none. A mapping HPR Sim refuses raises, where `hpr sim` flies no device and says why: here
 /// the caller asked for the file's devices.
 fn file_recovery(
     path: &Path,
@@ -741,9 +741,9 @@ fn file_recovery(
     Ok(recovered.devices)
 }
 
-/// The motor configuration of a `.ork` file, or of an hpr design read from one, that a rocket
+/// The motor configuration of a `.ork` file, or of an HPR design read from one, that a rocket
 /// read from it flies, chosen as `hpr sim` chooses: the one named, or the file's default, or its
-/// only one. One that separates, or that hpr can't fly as written, is refused with why.
+/// only one. One that separates, or that HPR Sim can't fly as written, is refused with why.
 fn ork_configuration(
     path: &Path,
     motors: &hpr::hpr_io::ork::Motors,

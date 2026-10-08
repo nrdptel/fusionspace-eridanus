@@ -19,7 +19,7 @@
 //!   from a `.hpr`, `.hprz`, `.ork` or rocket JSON file.
 //! - `Flight`: the rocket flown from a rail as soon as it is made, with its metrics, its events
 //!   and its recording as NumPy arrays; with a `DragTable` or a Python function of the Mach
-//!   number, another drag in place of hpr's (`models`).
+//!   number, another drag in place of HPR Sim's (`models`).
 //! - `MonteCarlo`: the rocket flown many times, each flight's inputs scattered about the nominal
 //!   flight's, as `hpr mc` flies it (`montecarlo`): the library's
 //!   `hpr_analysis::montecarlo::MonteCarlo` run on every core, its `RunTable` as NumPy arrays.

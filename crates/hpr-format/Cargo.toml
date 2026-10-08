@@ -1,6 +1,6 @@
 [package]
 name = "fusionspace-hpr-format"
-description = "The hpr open design format: types, JSON Schema, versioning and migrations, and the container."
+description = "The HPR open design format: types, JSON Schema, versioning and migrations, and the container."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

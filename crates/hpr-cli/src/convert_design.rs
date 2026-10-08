@@ -1,9 +1,9 @@
 //! `hpr convert` of a design: a `.ork`, `.hpr` or `.hprz` file written as any of the three.
 //!
 //! The conversion is the library's own ([`hpr::hpr_format`]). A `.ork` is read into a document of
-//! the hpr design format ([`DesignFile::from_ork`]), which names the file's SHA-256 as its source;
+//! the HPR design format ([`DesignFile::from_ork`]), which names the file's SHA-256 as its source;
 //! a `.hpr` or `.hprz` of an older version is migrated to the current one. The document is written
-//! as its canonical text, in a container with its attachments, or as the `.ork` hpr writes from
+//! as its canonical text, in a container with its attachments, or as the `.ork` HPR Sim writes from
 //! it. A conversion keeps where the design came from as read, its provenance's `source`, which
 //! rewriting it doesn't change (ADR-112); the program that wrote the file is this one, at this
 //! version, with its designation ([`DesignFile::stamped`], ADR-174).
@@ -201,7 +201,7 @@ fn text_output(document: &ConvertDesign, out: &mut dyn Write, paint: Paint) -> i
     };
     let version = match document.output.format {
         DesignFormat::Hpr | DesignFormat::Hprz => {
-            format!(", hpr design format {}", hpr_format::VERSION)
+            format!(", HPR design format {}", hpr_format::VERSION)
         }
         _ => String::new(),
     };

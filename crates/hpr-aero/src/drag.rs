@@ -110,7 +110,7 @@ pub fn critical_reynolds(relative_roughness: f64) -> Result<f64, AeroError> {
 /// ```
 ///
 /// As printed, the piecewise form jumps at `R_crit`: eq. 3.79 is not where eq. 3.78 and 3.80
-/// cross (about +9% for 60 µm on 1 m). hpr keeps the published form.
+/// cross (about +9% for 60 µm on 1 m). HPR Sim keeps the published form.
 ///
 /// # Errors
 ///
@@ -412,7 +412,7 @@ pub fn rail_button_drag_coefficient(mach: f64) -> Result<f64, AeroError> {
 /// with `C_A` positive along `−z_B` (toward the tail).
 ///
 /// Niskanen describes, without coefficients, a two-part polynomial from `f = 1` at `α = 0` up to
-/// 1.3 at 17° and down to 0 at 90°, with zero slope at all three. hpr uses the lowest-degree
+/// 1.3 at 17° and down to 0 at 90°, with zero slope at all three. HPR Sim uses the lowest-degree
 /// polynomials that meet those conditions, a cubic on each part:
 ///
 /// ```text
@@ -420,7 +420,7 @@ pub fn rail_button_drag_coefficient(mach: f64) -> Result<f64, AeroError> {
 /// f = 1.3 (1 − 3u² + 2u³),   u = (α − 17°)/73°,   17° ≤ α ≤ 90°
 /// ```
 ///
-/// Past 90° the flow meets the tail first and drag pushes toward the nose; hpr mirrors with the
+/// Past 90° the flow meets the tail first and drag pushes toward the nose; HPR Sim mirrors with the
 /// sign reversed, `f(α) = −f(180° − α)` (an assumption; the source stops at 90°), so `f` is
 /// continuous through 0 at 90°. The coefficients are derived, not published (the decision record
 /// on subsonic drag, [ADR-009][adr-009]).

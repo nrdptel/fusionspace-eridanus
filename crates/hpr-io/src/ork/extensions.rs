@@ -1,21 +1,21 @@
-//! What a `.ork` design holds that hpr's design does not model, kept whole for an export to put
+//! What a `.ork` design holds that HPR Sim's design does not model, kept whole for an export to put
 //! back: the `x-openrocket` extension.
 //!
 //! **What is kept.** Four kinds of thing, each with the path it was found at:
 //!
-//! - **Parts** hpr does not read: every child of a `<subcomponents>` that the walk left out: a pod
-//!   set or a parallel stage ([Loft lesson L66][l66]: Loft dropped them), a part hpr cannot give a
+//! - **Parts** HPR Sim does not read: every child of a `<subcomponents>` that the walk left out: a pod
+//!   set or a parallel stage ([Loft lesson L66][l66]: Loft dropped them), a part HPR Sim cannot give a
 //!   shape, or a tag it has never seen. A design with any is *reduced*: its rocket is not the whole
 //!   of what the file describes ([`super::Design::is_reduced`]).
-//! - **Sections** of the document hpr does not read: every child of `<openrocket>` besides
+//! - **Sections** of the document HPR Sim does not read: every child of `<openrocket>` besides
 //!   `<rocket>` and `<simulations>` (such as `<photostudio>` or `<docprefs>`), and every child of a
 //!   stored `<simulation>` besides its name, simulator, calculator, conditions and flight data (such
 //!   as a simulation `<extension>`).
 //!
-//! - **Tags** no reader asks for in an element hpr does read (the rocket, a stage, a part, a
+//! - **Tags** no reader asks for in an element HPR Sim does read (the rocket, a stage, a part, a
 //!   stored simulation, and any tag inside those a reader did ask for), such as a part's
 //!   `<appearance>`.
-//! - **Attributes** no reader asks for on an element hpr does read, such as a material's `group`.
+//! - **Attributes** no reader asks for on an element HPR Sim does read, such as a material's `group`.
 //!
 //! The readers record every tag and attribute they ask for while [`super::design`] reads, so one is
 //! kept when nothing asked for it. One a reader asked for and then dropped or simplified (a rail
@@ -60,30 +60,30 @@ use super::reads::{self, Reads};
 #[serde(deny_unknown_fields)]
 #[non_exhaustive]
 pub struct Extensions {
-    /// What the design holds that hpr does not model.
+    /// What the design holds that HPR Sim does not model.
     #[serde(rename = "x-openrocket", default)]
     pub x_openrocket: OpenRocketExtension,
 }
 
-/// The `x-openrocket` extension: the parts and sections of a `.ork` that hpr does not read, each
+/// The `x-openrocket` extension: the parts and sections of a `.ork` that HPR Sim does not read, each
 /// kept whole where it was.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
 #[non_exhaustive]
 #[serde(deny_unknown_fields)]
 pub struct OpenRocketExtension {
-    /// The parts hpr does not read, in file order.
+    /// The parts HPR Sim does not read, in file order.
     #[serde(default)]
     pub parts: Vec<Kept>,
-    /// The sections of the document hpr does not read, in file order.
+    /// The sections of the document HPR Sim does not read, in file order.
     #[serde(default)]
     pub sections: Vec<Kept>,
-    /// The tags hpr does not read in an element it does read (a part, a stage, the rocket, a
+    /// The tags HPR Sim does not read in an element it does read (a part, a stage, the rocket, a
     /// stored simulation, or a tag inside any of those that a reader asked for), such as a part's
     /// `<appearance>`; and those a reader asked for and dropped or simplified, such as a ring's
     /// `<instancecount>` past one, which the design does not hold.
     #[serde(default)]
     pub tags: Vec<Kept>,
-    /// The attributes hpr does not read on an element it does read, such as a material's
+    /// The attributes HPR Sim does not read on an element it does read, such as a material's
     /// `group`, and those whose value a reader dropped, such as a material's declared `type` where
     /// the part needs another.
     #[serde(default)]
@@ -114,7 +114,7 @@ pub struct Kept {
     pub element: Element,
 }
 
-/// Everything in `document` that hpr does not read, given the paths of the stages and components
+/// Everything in `document` that HPR Sim does not read, given the paths of the stages and components
 /// the walk read and every tag and attribute the readers asked for.
 pub(super) fn read(
     document: &Document,

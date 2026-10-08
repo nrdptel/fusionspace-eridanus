@@ -45,7 +45,7 @@ pub enum AeroError {
         source: Box<AeroError>,
     },
     /// An error from a drag model of a program's own ([`crate::custom::DragModel`]), as it gave
-    /// it: its own refusal, or one of hpr's it passed on.
+    /// it: its own refusal, or one of HPR Sim's it passed on.
     #[error("drag model: {source}")]
     DragModel {
         /// The error.

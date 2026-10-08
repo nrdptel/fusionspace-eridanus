@@ -114,7 +114,7 @@
       ]
     },
     "MotorFigures": {
-      "description": "One motor's figures, worked out by hpr from its thrust curve.",
+      "description": "One motor's figures, worked out by HPR Sim from its thrust curve.",
       "type": "object",
       "properties": {
         "average_thrust_n": {

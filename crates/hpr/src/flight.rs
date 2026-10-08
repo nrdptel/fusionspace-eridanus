@@ -26,9 +26,9 @@ pub struct FlightBuilder<'a> {
     inclination_deg: Option<f64>,
     heading_deg: Option<f64>,
     settings: FlightSettings,
-    /// A drag model flown in place of hpr's drag buildup, where set.
+    /// A drag model flown in place of HPR Sim's drag buildup, where set.
     drag_model: Option<Arc<dyn DragModel>>,
-    /// A drag table flown in place of hpr's drag buildup, where set; never with a model.
+    /// A drag table flown in place of HPR Sim's drag buildup, where set; never with a model.
     drag_table: Option<DragTable>,
     /// The stack coming apart in flight, in the order it does: none where unset.
     separations: Vec<Separation>,
@@ -95,13 +95,13 @@ impl FlightBuilder<'_> {
         self
     }
 
-    /// Flies `model`'s drag in place of hpr's drag buildup: a model of your own, from a wind
-    /// tunnel, another tool or your flights, or hpr's own adjusted
+    /// Flies `model`'s drag in place of HPR Sim's drag buildup: a model of your own, from a wind
+    /// tunnel, another tool or your flights, or HPR Sim's own adjusted
     /// ([`hpr_aero::custom`], [`Simulation::with_drag_model`]). The model gives the zero-lift
     /// drag coefficient on the rocket's reference area, by default a circle of its largest body
     /// diameter; unlike a drag table's, a model's number isn't rescaled, so a curve measured on
     /// another area is converted before it is returned. The normal force, center of pressure,
-    /// roll and damping stay hpr's, so the stability margin a [`Rocket`] reports doesn't change.
+    /// roll and damping stay HPR Sim's, so the stability margin a [`Rocket`] reports doesn't change.
     /// The last model or table set is the one flown ([`FlightBuilder::drag_table`]), and every
     /// flight of this builder shares it.
     ///
@@ -154,7 +154,7 @@ impl FlightBuilder<'_> {
         self
     }
 
-    /// Flies `table`'s drag in place of hpr's drag buildup: another tool's zero-lift drag
+    /// Flies `table`'s drag in place of HPR Sim's drag buildup: another tool's zero-lift drag
     /// coefficient `C_D0` against Mach number, as RocketPy's `power_off_drag` and
     /// `power_on_drag` curves are ([`DragTable`], [`Simulation::with_drag_table`]). Its power-on
     /// curve, where it has one, is flown while a motor thrusts, and its power-off curve at every
@@ -163,7 +163,7 @@ impl FlightBuilder<'_> {
     /// interpolates and extrapolates as they say. A table on a reference diameter of its own
     /// ([`DragTable::with_reference_diameter_m`]) is rescaled to the rocket's reference area by
     /// the ratio of the two areas, `C_D0 · (d_table / d_rocket)²`. The normal force, center of
-    /// pressure, roll and damping stay hpr's. The last model or table set is the one flown
+    /// pressure, roll and damping stay HPR Sim's. The last model or table set is the one flown
     /// ([`FlightBuilder::drag_model`]). A flight that meets a negative coefficient in the table,
     /// drag that would push the rocket along, stops with an error that says so.
     ///
@@ -469,7 +469,7 @@ impl Flight {
 
     /// Where the flight's numbers deserve less trust: unstable under power (a static margin below
     /// zero while a motor burns, so its apogee is not a prediction), and where it goes past what
-    /// hpr's numbers have been checked for: faster than the fastest validated flight, at a high
+    /// HPR Sim's numbers have been checked for: faster than the fastest validated flight, at a high
     /// angle of attack, outside the core band or beyond the envelope ([`hpr_sim::envelope`]).
     /// Empty for a flight that raises none.
     #[must_use]
@@ -477,11 +477,11 @@ impl Flight {
         self.summary.envelope_flags()
     }
 
-    /// The known errors in hpr's drag, a separated part's drag, the stability margin and the
+    /// The known errors in HPR Sim's drag, a separated part's drag, the stability margin and the
     /// flight's path this flight meets, each by its issue number, with the parts whose shape meets
     /// its condition and which way its numbers lean ([`hpr_sim::issues`]). A flight on a drag
     /// model or table of its own ([`FlightBuilder::drag_model`], [`FlightBuilder::drag_table`]),
-    /// whose drag isn't hpr's, meets none of hpr's drag issues but keeps the separated parts'
+    /// whose drag isn't HPR Sim's, meets none of HPR Sim's drag issues but keeps the separated parts'
     /// (#179, #354), the stability ones unless its model has a normal-force table of its own, and
     /// those whose signs depend on the case, which no table changes (#8, #106, #213, #219). Empty
     /// for a flight that meets none, and for a record saved before the warnings were kept.

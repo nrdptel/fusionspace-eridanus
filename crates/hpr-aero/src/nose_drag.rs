@@ -132,7 +132,7 @@ enum Fit {
         /// `b`.
         b: f64,
     },
-    /// `Δ (M/M_L)²` added to the value at rest, where eq. 3.87 has no solution (hpr's choice).
+    /// `Δ (M/M_L)²` added to the value at rest, where eq. 3.87 has no solution (HPR Sim's choice).
     Quadratic {
         /// `Δ = C_T(M_L) − (C_D•)_p,0`.
         delta: f64,
@@ -180,7 +180,7 @@ impl Fit {
 ///
 /// Niskanen assumes the curve "non-decreasing in the subsonic region" with zero slope at rest,
 /// which needs `Δ > 0` and a positive slope (and `b > 1` for the zero slope). Where `Δ ≤ 0` or the
-/// slope isn't positive, no `a M^b` meets both conditions, and hpr uses `(C_D•)_p,0 + Δ (M/M_L)²`
+/// slope isn't positive, no `a M^b` meets both conditions, and HPR Sim uses `(C_D•)_p,0 + Δ (M/M_L)²`
 /// instead: continuous in value, flat at rest, with a kink at `M_L` ([ADR-028][adr-028]). It
 /// arises only for small coefficients: a joint that isn't smooth on a shape whose measured curve
 /// is still near 0 at `M_L`.
@@ -251,7 +251,7 @@ pub fn takes_cone_formula(shape: NoseShape) -> bool {
 /// tube is `ε`, so its value at rest is eq. 3.86's `0.8 sin² ε`. A 3:1 cone: 0.0216 at rest,
 /// 0.1644 at Mach 1, 0.1557 at Mach 1.3, 0.1042 at Mach 2.
 ///
-/// Below fineness 1 the closed form passes a flat face's drag as the cone flattens, so there hpr
+/// Below fineness 1 the closed form passes a flat face's drag as the cone flattens, so there HPR Sim
 /// scales between a flat face at fineness 0 and this curve at fineness 1, as eq. B.9 does, from
 /// Mach 0.8 ([`PressureDragCurve::new`]): a cone of fineness 0.5 gets 0.647 at Mach 1, not
 /// `sin ε` = 0.707.
@@ -339,13 +339,13 @@ const ROUND_HEAD_FINENESS: f64 = 1.0;
 /// - from the hemisphere (`f = ½`) on, the straight line through the hemisphere's 0.01 and the
 ///   round head's −0.05 at `f = 1`, held at 0 once it gets there (at `f = 7/12`): a head at least
 ///   that long is charged no pressure drag, as eq. 3.86 charges a tangent joint none;
-/// - blunter, hpr's interpolation (Fig. 20 measures no ellipsoid between): eq. B.9's form between
+/// - blunter, HPR Sim's interpolation (Fig. 20 measures no ellipsoid between): eq. B.9's form between
 ///   the flat face at `f = 0` (the blunt cylinder's `0.85 q_stag/q`, eq. B.2, at the same Mach
 ///   number) and the hemisphere's 0.01, `C₀ (0.01/C₀)^(ln(f + 1)/ln 1.5)`: a step at `f = 0`, the
 ///   hemisphere at `f = ½`.
 ///
 /// From the hemisphere up the value holds unchanged to Mach 0.8, and blunter heads follow the flat
-/// face's rise with Mach number; that is hpr's assumption: the measurement is at low speed, and
+/// face's rise with Mach number; that is HPR Sim's assumption: the measurement is at low speed, and
 /// the drag rise starts near the critical Mach number (the surface's first sonic point, about
 /// 0.65 to 0.7 for a hemisphere by the Prandtl–Glauert rule). A 0.577-calibre ellipsoid gets
 /// 0.0008, a ¼-calibre one 0.074 at Mach 0.
@@ -384,9 +384,9 @@ fn ellipsoid_low_speed(fineness_ratio: f64, mach: f64) -> (f64, f64) {
 }
 
 /// A nose shape Stoney measured at fineness 3 (NASA TR R-100, 1961, Figure 12, printed p. 16),
-/// whose pressure-drag curve hpr carries as digitized points.
+/// whose pressure-drag curve HPR Sim carries as digitized points.
 ///
-/// Niskanen 2009 p. 108 names these nine; hpr's shapes between them are interpolated in their
+/// Niskanen 2009 p. 108 names these nine; HPR Sim's shapes between them are interpolated in their
 /// parameter ([`PressureDragCurve::new`]).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[non_exhaustive]
@@ -403,7 +403,7 @@ pub enum StoneyNose {
     ParabolaThreeQuarters,
     /// Full (`K′ = 1`) parabola.
     Parabola,
-    /// Ellipsoid (hpr's elliptical nose).
+    /// Ellipsoid (HPR Sim's elliptical nose).
     Ellipsoid,
     /// L-V Haack (`C = ⅓`).
     LvHaack,

@@ -293,7 +293,7 @@ impl<'a> Values<'a> {
     /// quantities. OpenRocket 24.12 reads that flag, in schema 1.4, 1.8 and 1.10 files alike, as
     /// setting all three, and where a component writes it beside a per-quantity flag, the tag
     /// written later wins, quantity by quantity: measured on probe designs
-    /// ([M2.2e6][m2-2e6], [ADR-095][adr-095]), whose answers `hpr_validate::openrocket` holds hpr
+    /// ([M2.2e6][m2-2e6], [ADR-095][adr-095]), whose answers `hpr_validate::openrocket` holds HPR Sim
     /// to. This reads it the same way. A flag tag written twice on one component is read at its
     /// first copy only, and warned of, since which copy OpenRocket takes is not measured. What the
     /// design does not hold (a flag read at one copy of two, or the single older flag beside a

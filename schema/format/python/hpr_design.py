@@ -1,10 +1,10 @@
-# The hpr design format 0.2: types for a document, and a reader that checks one.
+# The HPR design format 0.2: types for a document, and a reader that checks one.
 # SPDX-License-Identifier: MIT OR Apache-2.0
 # From https://github.com/nrdptel/fusionspace-eridanus
 # Generated from schema/format/hpr-design-0.2.schema.json by `cargo xtask format`.
 # Don't edit by hand: the next run overwrites it, and CI fails while it is stale.
 
-"""Types for the hpr design format 0.2, and a reader that checks a document against its
+"""Types for the HPR design format 0.2, and a reader that checks a document against its
 schema. Generated from the schema by `cargo xtask format`; don't edit by hand."""
 
 import json
@@ -20,10 +20,10 @@ VERSION = "0.2"
 
 
 class DesignFile(TypedDict):
-    """A rocket design in the hpr design format."""
+    """A rocket design in the HPR design format."""
 
     extensions: "Extensions"
-    """What the source file holds that hpr does not model, by namespace, kept for writing it
+    """What the source file holds that HPR Sim does not model, by namespace, kept for writing it
     back.
     """
 
@@ -460,7 +460,7 @@ class EventSetting_for_SeparationEvent(TypedDict):
 Extensions = TypedDict(
     "Extensions",
     {
-        # What the design holds that hpr does not model.
+        # What the design holds that HPR Sim does not model.
         #
         # Absent means `{"attributes":[],"parts":[],"sections":[],"tags":[]}`.
         "x-openrocket": NotRequired["OpenRocketExtension"],
@@ -1088,7 +1088,7 @@ class MotorConfiguration(TypedDict):
     """
 
     unread: list["UnreadMotor"]
-    """Its motors in parts hpr does not read."""
+    """Its motors in parts HPR Sim does not read."""
 
 
 class MotorMount(TypedDict):
@@ -1293,7 +1293,7 @@ class Nozzle(TypedDict):
 
     `None` flies the curve as it is at every ambient pressure, with no correction. That is
     RocketPy's default (`Motor(reference_pressure=None)`, whose `pressure_thrust` is then zero,
-    `motor.py:1188-1189`), so a RocketPy input transcribed into hpr says `None`.
+    `motor.py:1188-1189`), so a RocketPy input transcribed into HPR Sim says `None`.
 
     Which to give: motor files don't record where the curve was measured. For a motor tested
     near sea level, `STANDARD_SEA_LEVEL_PRESSURE_PA` adds the thrust a higher site gains
@@ -1308,12 +1308,12 @@ class Nozzle(TypedDict):
 
 
 class OpenRocketExtension(TypedDict):
-    """The `x-openrocket` extension: the parts and sections of a `.ork` that hpr does not read, each
+    """The `x-openrocket` extension: the parts and sections of a `.ork` that HPR Sim does not read, each
     kept whole where it was.
     """
 
     attributes: NotRequired[list["KeptAttribute"]]
-    """The attributes hpr does not read on an element it does read, such as a material's
+    """The attributes HPR Sim does not read on an element it does read, such as a material's
     `group`, and those whose value a reader dropped, such as a material's declared `type` where
     the part needs another.
 
@@ -1321,19 +1321,19 @@ class OpenRocketExtension(TypedDict):
     """
 
     parts: NotRequired[list["Kept"]]
-    """The parts hpr does not read, in file order.
+    """The parts HPR Sim does not read, in file order.
 
     Absent means `[]`.
     """
 
     sections: NotRequired[list["Kept"]]
-    """The sections of the document hpr does not read, in file order.
+    """The sections of the document HPR Sim does not read, in file order.
 
     Absent means `[]`.
     """
 
     tags: NotRequired[list["Kept"]]
-    """The tags hpr does not read in an element it does read (a part, a stage, the rocket, a
+    """The tags HPR Sim does not read in an element it does read (a part, a stage, the rocket, a
     stored simulation, or a tag inside any of those that a reader asked for), such as a part's
     `<appearance>`; and those a reader asked for and dropped or simplified, such as a ring's
     `<instancecount>` past one, which the design does not hold.
@@ -1790,7 +1790,7 @@ class Provenance(TypedDict):
     designation: NotRequired[Union[str, None]]
     """The program's designation in the FusionSpace product system, such as
     `FS-ACHERNAR · SW · TOOL 001` (`FS · SW · TOOL 005` in a document an earlier build wrote);
-    absent in a document written before hpr-sim 0.1's first release.
+    absent in a document written before the first release, 0.1.
     """
 
     source: NotRequired[Union["Source", None]]
@@ -1865,10 +1865,10 @@ class Recovery(TypedDict):
     """Every stage that states when it separates, in file order."""
 
     unread: list["UnreadDevice"]
-    """The parachutes and streamers in parts hpr does not read."""
+    """The parachutes and streamers in parts HPR Sim does not read."""
 
     unread_separations: list["UnreadDevice"]
-    """The parallel stages that state a separation, in parts hpr did not read."""
+    """The parallel stages that state a separation, in parts HPR Sim did not read."""
 
 
 class RecoveryDevice(TypedDict):
@@ -2149,7 +2149,7 @@ class Staging(TypedDict):
 
 
 StagingTrigger = Union["StagingTriggerTime", "StagingTriggerBurnout"]
-"""When a separation fires, in the terms of hpr's flight triggers
+"""When a separation fires, in the terms of HPR Sim's flight triggers
 (`hpr_sim::recovery::Trigger`, which this crate does not depend on).
 """
 
@@ -2380,7 +2380,7 @@ class TubeFinSet(TypedDict):
 
 
 class UnreadDevice(TypedDict):
-    """A parachute or streamer inside a part hpr does not read, such as a pod."""
+    """A parachute or streamer inside a part HPR Sim does not read, such as a pod."""
 
     at: str
     """Where it is in the file."""
@@ -2395,7 +2395,7 @@ class UnreadDevice(TypedDict):
 
 
 class UnreadMotor(TypedDict):
-    """A `<motor>` inside a part hpr does not read, such as a pod's mount."""
+    """A `<motor>` inside a part HPR Sim does not read, such as a pod's mount."""
 
     at: str
     """Where its mount is in the file."""
@@ -2465,7 +2465,7 @@ _SCHEMA: Any = json.loads(
 
 
 class DesignFormatError(ValueError):
-    """A document the reader refused: not JSON, not an hpr design, another version, or not valid."""
+    """A document the reader refused: not JSON, not an HPR design, another version, or not valid."""
 
 
 def read_design(text: str) -> DesignFile:
@@ -2473,9 +2473,9 @@ def read_design(text: str) -> DesignFile:
     comes back has the types above.
 
     It checks what the schema says: every required key present, no unknown key, each value of
-    its type, each tagged union one of its forms. hpr's own reader checks a few things more that
-    no schema can say, such as that two source files don't share a name, so hpr can still refuse
-    a document this takes. Like hpr, it refuses two equal keys in one object, `NaN`, `Infinity`
+    its type, each tagged union one of its forms. HPR Sim's own reader checks a few things more that
+    no schema can say, such as that two source files don't share a name, so HPR Sim can still refuse
+    a document this takes. Like HPR Sim, it refuses two equal keys in one object, `NaN`, `Infinity`
     and any number too large for a 64-bit float, a lone UTF-16 surrogate (`"\\ud800"`), nesting
     128 levels deep, and `2.0` where a whole number belongs.
 
@@ -2496,7 +2496,7 @@ def read_design(text: str) -> DesignFile:
     if unread is not None:
         raise DesignFormatError(f"not JSON: {unread}")
     if not isinstance(value, dict) or value.get("format") != FORMAT:
-        raise DesignFormatError(f'not an hpr design: its "format" is not "{FORMAT}"')
+        raise DesignFormatError(f'not an HPR design: its "format" is not "{FORMAT}"')
     if value.get("version") != VERSION:
         raise DesignFormatError(_version_message(value.get("version")))
     problem = _check(value, _SCHEMA, "$")
@@ -2525,12 +2525,12 @@ def _version_message(version: Any) -> str:
     )
 
 
-# The deepest nesting hpr reads: serde_json refuses a 128th level of arrays and objects.
+# The deepest nesting HPR Sim reads: serde_json refuses a 128th level of arrays and objects.
 _MOST_LEVELS = 127
 
 
 def _fits_a_float(number: int) -> bool:
-    """Whether `number` rounds to a finite 64-bit float, as hpr reads a number too long to hold
+    """Whether `number` rounds to a finite 64-bit float, as HPR Sim reads a number too long to hold
     exactly."""
     try:
         float(number)
@@ -2562,7 +2562,7 @@ def _is_text(text: str) -> bool:
 
 
 def _scan(value: Any) -> str | None:
-    """Why hpr couldn't read `value` as JSON although Python's reader did, or `None`."""
+    """Why HPR Sim couldn't read `value` as JSON although Python's reader did, or `None`."""
     stack: list[tuple[Any, int]] = [(value, 0)]
     while stack:
         item, level = stack.pop()

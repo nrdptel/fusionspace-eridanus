@@ -1,16 +1,16 @@
-//! Drag models of your own, flown in place of hpr's drag buildup.
+//! Drag models of your own, flown in place of HPR Sim's drag buildup.
 //!
 //! A [`DragModel`] gives the whole rocket's zero-lift drag coefficient `C_D0`, its drag with the
 //! air along its axis over the dynamic pressure and the reference area, at a flow.
-//! [`AeroModel::with_drag_model`] puts one in place of hpr's drag buildup (its sum of friction,
+//! [`AeroModel::with_drag_model`] puts one in place of HPR Sim's drag buildup (its sum of friction,
 //! pressure, base and parasitic drag, part by part) and of any drag table ([`crate::table`]); a
 //! flight takes one through `hpr_sim::Simulation::with_drag_model`.
 //!
-//! The model replaces the zero-lift drag only, as a drag table does. The rest stays hpr's:
+//! The model replaces the zero-lift drag only, as a drag table does. The rest stays HPR Sim's:
 //!
-//! - At an angle of attack `α` the axial coefficient is `C_A = C_D0 f(α)`, with hpr's factor `f`
+//! - At an angle of attack `α` the axial coefficient is `C_A = C_D0 f(α)`, with HPR Sim's factor `f`
 //!   ([`crate::drag::axial_drag_alpha_factor`]): 1 along the axis, 1.3 at 17°, 0 at 90°.
-//! - The normal force, the center of pressure, the roll and the pitch and yaw damping are hpr's
+//! - The normal force, the center of pressure, the roll and the pitch and yaw damping are HPR Sim's
 //!   own, from [`AeroModel::normal_force`] and [`AeroModel::roll`].
 //!
 //! The coefficient is on the rocket's reference area ([`DragQuery::reference_area_m2`]), which is
@@ -19,11 +19,11 @@
 //! on another area `S` is multiplied by `S` over the reference area before it is returned.
 //!
 //! A model is asked a [`DragQuery`]: the flow (Mach number and angles), the drag conditions
-//! (Reynolds number per meter, whether a motor is thrusting) and hpr's own buildup at that flow,
-//! so a model can adjust hpr's number instead of replacing it.
+//! (Reynolds number per meter, whether a motor is thrusting) and HPR Sim's own buildup at that flow,
+//! so a model can adjust HPR Sim's number instead of replacing it.
 //!
-//! **How far to trust it:** as far as the model, and no further than hpr's other models, which
-//! still fly the rest of the rocket. hpr refuses a coefficient that is negative or not finite; it
+//! **How far to trust it:** as far as the model, and no further than HPR Sim's other models, which
+//! still fly the rest of the rocket. HPR Sim refuses a coefficient that is negative or not finite; it
 //! can't know whether the number is right.
 //!
 //! ```
@@ -59,7 +59,7 @@ use crate::drag::{ComponentDrag, Drag, DragConditions};
 use crate::error::AeroError;
 use crate::model::{AeroModel, Flow};
 
-/// A rocket's zero-lift drag, given by a program in place of hpr's drag buildup.
+/// A rocket's zero-lift drag, given by a program in place of HPR Sim's drag buildup.
 ///
 /// Implement [`DragModel::zero_lift_drag`] and hand the model to [`AeroModel::with_drag_model`]
 /// or `hpr_sim::Simulation::with_drag_model`. The flight asks it at every evaluation of the
@@ -73,10 +73,10 @@ use crate::model::{AeroModel, Flow};
 /// `Arc<dyn DragModel>` that is already shared.
 ///
 /// A model must not ask for the drag of an [`AeroModel`] that holds it, which would ask the model
-/// again, without end; [`DragQuery::buildup`] is hpr's own drag without the model.
+/// again, without end; [`DragQuery::buildup`] is HPR Sim's own drag without the model.
 pub trait DragModel: fmt::Debug + Send + Sync {
     /// The whole rocket's zero-lift drag coefficient `C_D0` at `query`'s flow, on the rocket's
-    /// reference area ([`DragQuery::reference_area_m2`]). From hpr's buildup that is
+    /// reference area ([`DragQuery::reference_area_m2`]). From HPR Sim's buildup that is
     /// [`Drag::zero_lift_coefficient`], not [`Drag::axial_coefficient`], which is already scaled
     /// for the angle of attack.
     ///
@@ -89,7 +89,7 @@ pub trait DragModel: fmt::Debug + Send + Sync {
 }
 
 /// What a [`DragModel`] is asked: the flow and the drag conditions, with the rocket's reference
-/// area, its length and hpr's own drag buildup at hand. Made by [`AeroModel::drag`]; to try a
+/// area, its length and HPR Sim's own drag buildup at hand. Made by [`AeroModel::drag`]; to try a
 /// model on its own, give it to an [`AeroModel`] and ask that for its drag.
 #[derive(Clone, Copy)]
 pub struct DragQuery<'a> {
@@ -114,7 +114,7 @@ impl<'a> DragQuery<'a> {
     }
 
     /// The flow: Mach number, angle of attack and roll. The coefficient asked for is the
-    /// zero-lift one whatever the angle of attack; hpr scales it for the angle itself.
+    /// zero-lift one whatever the angle of attack; HPR Sim scales it for the angle itself.
     pub fn flow(&self) -> &Flow {
         self.flow
     }
@@ -125,7 +125,7 @@ impl<'a> DragQuery<'a> {
     }
 
     /// The drag conditions: the Reynolds number per meter, and whether a motor is thrusting,
-    /// which a model with a power-on curve reads. They are as hpr's buildup reads them: under
+    /// which a model with a power-on curve reads. They are as HPR Sim's buildup reads them: under
     /// [`AeroModel::with_full_base_drag_under_power`] the thrusting motors' areas are zero.
     pub fn conditions(&self) -> &DragConditions {
         self.conditions
@@ -137,12 +137,12 @@ impl<'a> DragQuery<'a> {
     }
 
     /// The rocket's length, nose tip to the aft end of its last body component, m: the length
-    /// hpr's buildup takes the Reynolds number on.
+    /// HPR Sim's buildup takes the Reynolds number on.
     pub fn length_m(&self) -> f64 {
         self.model.length_m()
     }
 
-    /// hpr's own drag buildup at this flow and these conditions ([`AeroModel::buildup_drag`]):
+    /// HPR Sim's own drag buildup at this flow and these conditions ([`AeroModel::buildup_drag`]):
     /// what the flight would have used without the model.
     ///
     /// # Errors
@@ -153,7 +153,7 @@ impl<'a> DragQuery<'a> {
         self.model.buildup_drag(self.flow, self.conditions)
     }
 
-    /// hpr's own drag buildup at this flow, component by component
+    /// HPR Sim's own drag buildup at this flow, component by component
     /// ([`AeroModel::buildup_components`]).
     ///
     /// # Errors

@@ -50,7 +50,7 @@
 //! `sin²θ = [(γ + 1)M²/4 − 1 + √((γ + 1)((γ + 1)M⁴/16 + (γ − 1)M²/2 + 1))]/(γM²)`,
 //!
 //! turned into a deflection by eq. 138 (p. 621), `tan δ = 2 cot θ (M² sin²θ − 1)/(2 + M²(γ + 1 −
-//! 2 sin²θ))`. It is 12.1° at Mach 1.5 and 22.97° at Mach 2. hpr hands over at the lesser of
+//! 2 sin²θ))`. It is 12.1° at Mach 1.5 and 22.97° at Mach 2. HPR Sim hands over at the lesser of
 //! `δ_max` and 24° ([`MAX_HANDOVER_RAD`]), so from Mach 2.06 up the cap reaches further aft than
 //! the report's. The cap is a cap because the method reads the tangent cone's normal-force slope
 //! at the handover, and those tables ([`crate::shock_expansion::cone_normal_force_slope`]) once
@@ -64,7 +64,7 @@
 //! the cap: 28° is the worst of the four measured. [`handover_angle_capped_rad`] takes the cap as
 //! a parameter so both ends are measured rather than argued.
 //!
-//! **The flow behind it: hpr's choice, not the report's.** hpr starts TN 3527's march at the
+//! **The flow behind it: HPR Sim's choice, not the report's.** HPR Sim starts TN 3527's march at the
 //! handover as the method starts at a pointed vertex: with the flow on the cone tangent to the
 //! body there (Taylor–Maccoll), that cone's loading `tan δ (dC_N/dα)_tc`, and no pressure gradient
 //! (TN 3527 sketch (a), p. 6). The report starts it from the Newtonian pressure and Mach number
@@ -102,7 +102,7 @@
 use crate::afterbody::GAMMA;
 use crate::error::AeroError;
 
-/// The steepest slope the cap hands over at, as hpr flies it: 24°. It was TN 3527 Fig. 2's
+/// The steepest slope the cap hands over at, as HPR Sim flies it: 24°. It was TN 3527 Fig. 2's
 /// steepest tangent cone, the steepest whose normal-force slope the method could read; since the
 /// milestone [M1.8e11](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e11),
 /// which took the cone slopes to 30°, the tables reach [`CONE_TABLE_CAP_RAD`], and 24° is kept
@@ -189,7 +189,7 @@ pub fn wedge_detachment_angle_rad(mach: f64) -> Result<f64, AeroError> {
 
 /// The slope at which the cap hands over to the shock-expansion method at Mach `mach`, rad: the
 /// lesser of the wedge's largest deflection ([`wedge_detachment_angle_rad`], TN D-4865 p. 5) and
-/// [`MAX_HANDOVER_RAD`], the cap hpr flies.
+/// [`MAX_HANDOVER_RAD`], the cap HPR Sim flies.
 ///
 /// # Errors
 ///
@@ -292,7 +292,7 @@ pub(crate) fn newtonian_loading_at_slope(c_p_max: f64, slope: f64) -> f64 {
 /// surface Mach number `surface_mach`, and `M` the free stream's: the Prandtl–Meyer flow's
 /// `∂p/∂ν` over the free stream's `γM²/2`, halved as TN 3527's loading is. It is TN D-4865's
 /// equivalent bodies (eqs. 4a and 4b, the body turned about the sphere's center) read at `α → 0`,
-/// hpr's reading ([`crate::shock_expansion::HandoverStart::Newtonian`]).
+/// HPR Sim's reading ([`crate::shock_expansion::HandoverStart::Newtonian`]).
 ///
 /// # Errors
 ///

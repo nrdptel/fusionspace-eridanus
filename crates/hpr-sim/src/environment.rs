@@ -13,7 +13,7 @@ use crate::error::SimError;
 ///
 /// Heights: the state and the Earth model use the launch frame and ellipsoidal heights. The
 /// atmosphere and wind take height above mean sea level, `H = h − N`, with the geoid undulation
-/// `N` at the site given here (hpr has no geoid model; `docs/physics/geodesy.md`). The ground is
+/// `N` at the site given here (HPR Sim has no geoid model; `docs/physics/geodesy.md`). The ground is
 /// the ellipsoidal height of the site. Wind vectors are taken in the launch frame's axes.
 #[derive(Debug, Clone)]
 pub struct Environment {

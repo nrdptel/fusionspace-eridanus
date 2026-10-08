@@ -33,7 +33,7 @@
       "$ref": "#/$defs/AnalyzeMethod"
     },
     "stated": {
-      "description": "What the file states about the flight: the logger's own figures, printed beside hpr's\nreadings and never in place of them.",
+      "description": "What the file states about the flight: the logger's own figures, printed beside HPR Sim's\nreadings and never in place of them.",
       "$ref": "#/$defs/LoggerStated"
     },
     "tool": {

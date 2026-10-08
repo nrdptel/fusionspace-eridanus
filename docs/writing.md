@@ -30,7 +30,7 @@ reads a page once and knows what it says and how far to trust it.
 
 ## The FusionSpace rules
 
-hpr-sim is a FusionSpace product, `FS-ACHERNAR · SW · TOOL 001` (Achernar, a star of project
+FusionSpace HPR · Sim is a FusionSpace product, `FS-ACHERNAR · SW · TOOL 001` (Achernar, a star of project
 Eridanus: [ADR-198](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0198-the-2026-10-07-project-eridanus.md)),
 and its pages also follow the product system's [writing rules](https://github.com/nrdptel/fusionspace-design/blob/main/product/writing.md)
 and [number rules](https://github.com/nrdptel/fusionspace-design/blob/main/product/data.md#numbers)
@@ -55,8 +55,8 @@ They don't conflict with the rules above; they add these:
   `center_of_pressure_m`". A quotation, a source's title, a name that keeps its spelling, or a
   key that files saved before the rename or another program's format hold goes on the check's short
   list of exceptions, which it counts on every run. `--fix` replaces words but not names: a
-  renamed name that is saved to a file keeps its old key as a serde alias, which hpr reads and
-  never writes. An em dash needs its sentence rewritten. CI runs the check in the site step.
+  renamed name that is saved to a file keeps its old key as a serde alias, which HPR Sim reads
+  and never writes. An em dash needs its sentence rewritten. CI runs the check in the site step.
 - **How far to trust it**, in a fixed shape, on every result someone might fly on: what kind of
   figure it is (estimate, measurement, copied value); what it was checked against, with numbers;
   what to rely on instead when it matters. Never a go/no-go verdict.
@@ -72,6 +72,23 @@ They don't conflict with the rules above; they add these:
   | precision that matches what is known | `5,104 ft` from a barometer, not `5,103.87 ft` |
   | dates in prose; in tables and files | October 4, 2026; 2026-10-04 |
 - **FusionSpace** is one word.
+- **The product's name** ([ADR-199](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0199-the-2026-10-07-fusionspace-hpr.md) §1):
+  "FusionSpace HPR" is the suite; "FusionSpace HPR · Sim" is the simulator at its first mention
+  on a page, "HPR Sim" or "the simulator" after it. `hpr`, in code formatting, is the command
+  and the Rust library, never the product in prose. Call the design format "the HPR design
+  format". A heading someone links to says "the simulator", since "HPR Sim" in a heading makes
+  an anchor that spells the old name.
+- **The name is checked** (since [M0.9a1](decisions-and-roadmap.md#m0-9a1)): `cargo xtask names`,
+  which `cargo test -p xtask` runs, fails on the old name, `hpr-sim` in any case (with a
+  non-breaking hyphen too), and on a lowercase `hpr` standing for the product in prose. It reads
+  the text that ships in a package: the README and this site's first page, the crates'
+  descriptions, READMEs, rustdoc and messages, the Python package, the schemas and their
+  bindings, the licenses, the notices and the CHANGELOG. A word joined to the name (`hpr-core`,
+  `.hpr`, `hpr.fusionspace.co`) is another name, and in a message `hpr` followed by a
+  subcommand is the command. A mention that must stay (history, an old stamp files still carry,
+  an anchor, a file name) goes on the check's allowlist, one line of exact text with its reason;
+  an entry that matches nothing fails. The site's other pages join the check in
+  [M0.9a2](decisions-and-roadmap.md#m0-9a2).
 
 Older pages move to these rules as they are edited. [M0.6](decisions-and-roadmap.md#m0-6), the
 product system milestone, added the check for the first two. Nothing checks the non-breaking

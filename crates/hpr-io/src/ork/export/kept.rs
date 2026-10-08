@@ -1,4 +1,4 @@
-//! Putting what hpr keeps but does not model back where it was: the `x-openrocket` extension's
+//! Putting what HPR Sim keeps but does not model back where it was: the `x-openrocket` extension's
 //! parts, sections, tags and attributes.
 //!
 //! A kept part goes back at its place among its parent's parts, since the order of parts is where

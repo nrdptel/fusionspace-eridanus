@@ -1,4 +1,4 @@
-//! Warnings for known errors in hpr's drag, each by its issue number: where a flight's speed and
+//! Warnings for known errors in HPR Sim's drag, each by its issue number: where a flight's speed and
 //! its design's shape meet the condition under which a number is known to read wrong
 //! ([ADR-163 §4][adr-163], [ADR-180][adr-180]).
 //!
@@ -6,7 +6,7 @@
 //! a waiver's ceiling; the top speed reads low, so the flutter margin and the largest dynamic
 //! pressure look better; the drift reads small. Each warning names them. Every flight still
 //! flies; a warning only says which numbers to trust less, and which way they lean. A flight
-//! flown on a drag of its own (a table or a model in place of hpr's) meets none of these.
+//! flown on a drag of its own (a table or a model in place of HPR Sim's) meets none of these.
 //!
 //! | issue | the error | the condition |
 //! |---|---|---|
@@ -36,7 +36,7 @@
 //!
 //! | issue | the error | the condition |
 //! |---|---|---|
-//! | [#219][i219] | hpr flies the moment the thrust makes about a center of gravity off the axis; OpenRocket doesn't, and no reference sizes it | the center of gravity more than [`OFF_AXIS_CG_LIMIT_M`] off the axis at launch, at a motor's ignition or burnout, at a separation, or fully burnt, on the stack or a sustainer ([`center_of_gravity_issue_warnings`]) |
+//! | [#219][i219] | HPR Sim flies the moment the thrust makes about a center of gravity off the axis; OpenRocket doesn't, and no reference sizes it | the center of gravity more than [`OFF_AXIS_CG_LIMIT_M`] off the axis at launch, at a motor's ignition or burnout, at a separation, or fully burnt, on the stack or a sustainer ([`center_of_gravity_issue_warnings`]) |
 //! | [#213][i213] | a single pod's drag and normal force act on the axis, so their trim and roll are left out | a pod set of one pod off the axis that holds a part ([`pod_issue_warnings`]) |
 //! | [#106][i106] | a body part's pitch and yaw damping is sampled away from its own center of pressure | the shock-expansion join, past its start on the stack or on a sustainer, each by its own join and its own top speed ([`body_station_issue_warnings`]) |
 //! | [#8][i8] | a near-calm wind level's direction still swings the interpolated direction | a tabulated level at or below [`NEAR_CALM_WIND_M_S`] turning against its neighbour, inside the flight's heights ([`wind_issue_warnings`]) |
@@ -119,7 +119,7 @@ pub const STEEP_BOATTAIL_RAD: f64 = 10.0_f64.to_radians();
 pub const SUPERSONIC_SWITCH_MACH: f64 = hpr_aero::SUPERSONIC_JOIN_START_MACH;
 
 /// How far the static margin read high against OpenRocket 24.12, calibres: the largest gap on
-/// the private designs, 0.1108 (four designs read 0.0350 to 0.1108 calibres more stable in hpr,
+/// the private designs, 0.1108 (four designs read 0.0350 to 0.1108 calibres more stable in HPR Sim,
 /// none with a measured cause; *How far to trust the margin* on
 /// [the stability page](https://hpr.fusionspace.co/stability-for-certification.html#how-far-to-trust-the-margin),
 /// [issue #172](https://github.com/nrdptel/fusionspace-eridanus/issues/172)).
@@ -145,7 +145,7 @@ pub const SUBSONIC_BOATTAIL_RULE_RAD: f64 = 0.165_148_677_414_626_83;
 
 /// The most fins that one station can hold before the fin–fin interference factor drops below
 /// 1: four (Niskanen 2009 table 3.3, [`hpr_aero::fins::fin_count_factor`]). Fin sets at one station
-/// with more than this between them are counted apart by hpr and together by OpenRocket
+/// with more than this between them are counted apart by HPR Sim and together by OpenRocket
 /// ([issue #325](https://github.com/nrdptel/fusionspace-eridanus/issues/325)).
 pub const FINS_WITHOUT_INTERFERENCE: u32 = 4;
 
@@ -155,14 +155,14 @@ pub const FINS_WITHOUT_INTERFERENCE: u32 = 4;
 pub const FIN_SETS_AT_ONE_STATION_CAL: f64 = 0.029;
 
 /// How much of the friction a laminar run takes off on RocketPy's Calisto at Mach 0.3, where
-/// hpr takes it fully turbulent ([issue #18](https://github.com/nrdptel/fusionspace-eridanus/issues/18)):
+/// HPR Sim takes it fully turbulent ([issue #18](https://github.com/nrdptel/fusionspace-eridanus/issues/18)):
 /// Barrowman 1967's transitional term `1700/R` (eq. 4-6) at `R = 1.8e7`, against Niskanen 2009's
 /// smooth turbulent coefficient `1/(1.50 ln R − 5.6)²` (eq. 3.78), in percent. Barrowman gives no
-/// rule for when a surface is too rough to stay laminar, so every flight on hpr's drag warns.
+/// rule for when a surface is too rough to stay laminar, so every flight on HPR Sim's drag warns.
 pub const LAMINAR_FRICTION_PERCENT: f64 = 3.6;
 
 /// The share of the static margin, calibres, that a kinked freeform fin's center of pressure
-/// takes on OpenRocket's *Pods--airframes and winglets* example, where hpr's sits 1.6 mm aft of
+/// takes on OpenRocket's *Pods--airframes and winglets* example, where HPR Sim's sits 1.6 mm aft of
 /// OpenRocket 24.12's ([issue #326](https://github.com/nrdptel/fusionspace-eridanus/issues/326)). Unprobed on
 /// other outlines, so every freeform fin set warns.
 pub const FREEFORM_FIN_MARGIN_CAL: f64 = 0.047;
@@ -185,7 +185,7 @@ pub const OFF_AXIS_CG_LIMIT_M: f64 = 1e-9;
 /// direction in such a wind, so a level this slow has no direction worth interpolating.
 pub const NEAR_CALM_WIND_M_S: f64 = 1.5;
 
-/// A known error in hpr's drag, its stability margin or its flight's path that a flight can meet.
+/// A known error in HPR Sim's drag, its stability margin or its flight's path that a flight can meet.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
@@ -198,7 +198,7 @@ pub enum KnownIssue {
     /// to 1.2 and low from 1.5.
     BaseDrag,
     /// [#70](https://github.com/nrdptel/fusionspace-eridanus/issues/70): a sharp fin section's drag reads
-    /// high faster than sound. hpr has no sharp section, so the warning goes with the airfoil.
+    /// high faster than sound. HPR Sim has no sharp section, so the warning goes with the airfoil.
     SharpFinDrag,
     /// [#72](https://github.com/nrdptel/fusionspace-eridanus/issues/72): a steep boattail's drag reads high
     /// faster than sound.
@@ -244,7 +244,7 @@ pub enum KnownIssue {
     /// until its first device opens, where a real one has its airframe's.
     DragFreeSeparatedPart,
     /// [#219](https://github.com/nrdptel/fusionspace-eridanus/issues/219): a center of gravity off the axis
-    /// (an off-axis lug, rail button, pod or mass) makes the thrust turn the rocket in hpr's
+    /// (an off-axis lug, rail button, pod or mass) makes the thrust turn the rocket in HPR Sim's
     /// flight, and not in OpenRocket's; no reference sizes it.
     OffAxisCenterOfGravity,
     /// [#213](https://github.com/nrdptel/fusionspace-eridanus/issues/213): a single pod's drag and normal force
@@ -523,7 +523,7 @@ impl IssueWarning {
                 what
             }
             KnownIssue::SharpFinDrag => format!(
-                "hpr has no sharp-edged (double-wedge) fin section, and drawn as an airfoil such \
+                "HPR Sim has no sharp-edged (double-wedge) fin section, and drawn as an airfoil such \
                  a fin's drag reads high faster than sound: if these fins are sharp, {low}"
             ),
             KnownIssue::SteepBoattailDrag => format!(
@@ -533,7 +533,7 @@ impl IssueWarning {
             ),
             KnownIssue::SupersonicPressureDrag => format!(
                 "supersonic pressure drag on an ogive nose or airfoil fins is about twice \
-                 OpenRocket's, and which is right is unresolved: if hpr's is high, {low}"
+                 OpenRocket's, and which is right is unresolved: if HPR Sim's is high, {low}"
             ),
             KnownIssue::RadiusStepFallback
             | KnownIssue::LongLipFallback
@@ -577,7 +577,7 @@ impl IssueWarning {
             ),
             KnownIssue::TurbulentFriction => format!(
                 "skin friction is taken as fully turbulent, but on a smooth surface the flow stays \
-                 laminar near the nose, where friction is lower: hpr's reads high by \
+                 laminar near the nose, where friction is lower: HPR Sim's reads high by \
                  {LAMINAR_FRICTION_PERCENT}% on RocketPy's Calisto at Mach 0.3; if this surface \
                  is that smooth, the drag reads high, {low}"
             ),
@@ -588,7 +588,7 @@ impl IssueWarning {
             ),
             KnownIssue::BoosterAirframeDrag => "a booster dropped at a separation flies on as a \
                  point with only its devices' drag, where a real one first coasts nose-first on \
-                 its airframe's drag: tumbling side-on from the split, as hpr tumbles a .ork \
+                 its airframe's drag: tumbling side-on from the split, as HPR Sim tumbles a .ork \
                  file's booster, the booster's peak and drift likely read short (with nothing \
                  open at the split, see #354); its flight is not validated"
                 .to_owned(),
@@ -605,7 +605,7 @@ impl IssueWarning {
                 };
                 format!(
                     "the center of gravity sits {offset} off the rocket's axis, as an off-axis lug, \
-                     rail button, pod or mass puts it: hpr flies the moment the thrust makes about \
+                     rail button, pod or mass puts it: HPR Sim flies the moment the thrust makes about \
                      it, OpenRocket's flights don't, and no reference measures which is right. The \
                      moment turns with the offset's side, so against a wind or a tilted rail the \
                      apogee and the drift may read low or high, and nothing measures by how much"
@@ -717,7 +717,7 @@ fn boattail_angle_rad(fore_radius_m: f64, aft_radius_m: f64, length_m: f64) -> O
 }
 
 /// The issues a flight meets: one whose top Mach number is `max_mach`, of a rocket whose parts
-/// are `parts`, each an id and its part, flown on hpr's own drag. In [`KnownIssue`]'s order, each
+/// are `parts`, each an id and its part, flown on HPR Sim's own drag. In [`KnownIssue`]'s order, each
 /// listing the parts that meet its condition. A flight with no top Mach number meets none.
 #[must_use]
 pub fn issue_warnings<'a>(
@@ -797,7 +797,7 @@ pub fn issue_warnings<'a>(
     warnings
 }
 
-/// The friction issue a flight on hpr's own drag meets: [#18][i18] whenever it has a top Mach
+/// The friction issue a flight on HPR Sim's own drag meets: [#18][i18] whenever it has a top Mach
 /// number, at any speed and on any finish, since Barrowman 1967 gives no rule for when a surface
 /// is too rough to stay laminar ([`LAMINAR_FRICTION_PERCENT`]). Apart from [`issue_warnings`],
 /// which reads the design's shape.
@@ -888,7 +888,7 @@ fn largest(a: f64, b: f64) -> f64 {
 /// any of `masses`, a NaN distance counting as more. A flight passes each vehicle it flew's
 /// samples ([`crate::FlownVehicle::mass_samples`]): the stack at launch, at each motor's ignition
 /// and burnout and fully burnt, and each sustainer from its separation to its end. Its distance is
-/// `√(x² + y²)` of [`MassProperties::cg_m`], the largest over them. hpr's equations of motion are
+/// `√(x² + y²)` of [`MassProperties::cg_m`], the largest over them. HPR Sim's equations of motion are
 /// written about the nose tip with the center of gravity where it is, so the thrust along the
 /// axis turns the rocket about an offset one; no reference sizes how much that does, so the
 /// warning holds whatever the drag and at any speed. None for a flight with no top Mach number.
@@ -923,7 +923,7 @@ pub fn center_of_gravity_issue_warnings(
 /// pod ([`hpr_design::PodSet::count`]) off the rocket's axis (a radial offset not 0, a NaN one
 /// counting as off) that holds at least one part, listing those pod sets' ids in the layout's
 /// order. A pod set holding nothing adds no force ([`hpr_aero::AeroModel::new`]); two pods or more
-/// stand evenly round the axis, so their offsets add to zero and so do the moments hpr leaves out
+/// stand evenly round the axis, so their offsets add to zero and so do the moments HPR Sim leaves out
 /// ([`hpr_aero::PodSetAero`]). A parallel stage is laid out as a pod set
 /// ([`hpr_design::ParallelStage`]), so a single strap-on booster counts. A single pod inside a
 /// set of several counts too, though the copies' moments may cancel: an over-warning, on the safe
@@ -986,8 +986,8 @@ pub fn pod_issue_warnings(layout: &Layout, max_mach: Option<Peak>) -> Vec<IssueW
 /// A vehicle no faster than [`SUPERSONIC_SWITCH_MACH`], the earliest the join can start, meets
 /// none without building the method's table; nor does one with no top Mach number (it took no
 /// step), nor a flight with none (`max_mach`, the flight's, which the warning quotes). A NaN top
-/// Mach number for the flight counts as past every vehicle's join. The stations are hpr's even
-/// under a normal-force table of the flight's own, which keeps hpr's damping, so the warning
+/// Mach number for the flight counts as past every vehicle's join. The stations are HPR Sim's even
+/// under a normal-force table of the flight's own, which keeps HPR Sim's damping, so the warning
 /// holds whatever the drag and the normal force.
 ///
 /// [i106]: https://github.com/nrdptel/fusionspace-eridanus/issues/106
@@ -1215,7 +1215,7 @@ pub fn layout_issue_warnings(layout: &Layout, max_mach: Option<Peak>) -> Vec<Iss
 /// forward-swept fin sets past [`FORWARD_SWEEP_MACH`], then
 /// [#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325) for its fin sets that share a station,
 /// then [#326](https://github.com/nrdptel/fusionspace-eridanus/issues/326) for its freeform fin sets at any
-/// speed ([`FREEFORM_FIN_MARGIN_CAL`]). They are errors in hpr's normal force, not its drag, so
+/// speed ([`FREEFORM_FIN_MARGIN_CAL`]). They are errors in HPR Sim's normal force, not its drag, so
 /// a flight on a drag of its own meets them and one on a normal-force table of its own doesn't,
 /// as with [`stability_issue_warnings`]. A flight with no top Mach number meets none.
 ///

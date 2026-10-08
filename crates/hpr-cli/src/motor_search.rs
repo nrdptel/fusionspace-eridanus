@@ -300,7 +300,7 @@ fn found(motor: &Motor) -> Result<FoundMotor, Failure> {
         // given the name of another.
         Some(other) => {
             return Err(Failure::Input(format!(
-                "the motor type {other:?} is new to this build of hpr"
+                "the motor type {other:?} is new to this build of HPR Sim"
             )));
         }
     };

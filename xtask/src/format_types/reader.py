@@ -1,5 +1,5 @@
 class DesignFormatError(ValueError):
-    """A document the reader refused: not JSON, not an hpr design, another version, or not valid."""
+    """A document the reader refused: not JSON, not an HPR design, another version, or not valid."""
 
 
 def read_design(text: str) -> DesignFile:
@@ -7,9 +7,9 @@ def read_design(text: str) -> DesignFile:
     comes back has the types above.
 
     It checks what the schema says: every required key present, no unknown key, each value of
-    its type, each tagged union one of its forms. hpr's own reader checks a few things more that
-    no schema can say, such as that two source files don't share a name, so hpr can still refuse
-    a document this takes. Like hpr, it refuses two equal keys in one object, `NaN`, `Infinity`
+    its type, each tagged union one of its forms. HPR Sim's own reader checks a few things more that
+    no schema can say, such as that two source files don't share a name, so HPR Sim can still refuse
+    a document this takes. Like HPR Sim, it refuses two equal keys in one object, `NaN`, `Infinity`
     and any number too large for a 64-bit float, a lone UTF-16 surrogate (`"\\ud800"`), nesting
     128 levels deep, and `2.0` where a whole number belongs.
 
@@ -30,7 +30,7 @@ def read_design(text: str) -> DesignFile:
     if unread is not None:
         raise DesignFormatError(f"not JSON: {unread}")
     if not isinstance(value, dict) or value.get("format") != FORMAT:
-        raise DesignFormatError(f'not an hpr design: its "format" is not "{FORMAT}"')
+        raise DesignFormatError(f'not an HPR design: its "format" is not "{FORMAT}"')
     if value.get("version") != VERSION:
         raise DesignFormatError(_version_message(value.get("version")))
     problem = _check(value, _SCHEMA, "$")
@@ -59,12 +59,12 @@ def _version_message(version: Any) -> str:
     )
 
 
-# The deepest nesting hpr reads: serde_json refuses a 128th level of arrays and objects.
+# The deepest nesting HPR Sim reads: serde_json refuses a 128th level of arrays and objects.
 _MOST_LEVELS = 127
 
 
 def _fits_a_float(number: int) -> bool:
-    """Whether `number` rounds to a finite 64-bit float, as hpr reads a number too long to hold
+    """Whether `number` rounds to a finite 64-bit float, as HPR Sim reads a number too long to hold
     exactly."""
     try:
         float(number)
@@ -96,7 +96,7 @@ def _is_text(text: str) -> bool:
 
 
 def _scan(value: Any) -> str | None:
-    """Why hpr couldn't read `value` as JSON although Python's reader did, or `None`."""
+    """Why HPR Sim couldn't read `value` as JSON although Python's reader did, or `None`."""
     stack: list[tuple[Any, int]] = [(value, 0)]
     while stack:
         item, level = stack.pop()

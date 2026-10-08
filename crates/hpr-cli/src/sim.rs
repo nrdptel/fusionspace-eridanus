@@ -70,7 +70,7 @@ pub struct SimArgs {
 /// What `hpr sim` and `hpr mc` fly: the design, its motor and the launch.
 #[derive(Debug, clap::Args)]
 pub struct FlightArgs {
-    /// The design: an OpenRocket .ork file, an hpr design (.hpr, or .hprz with its attachments),
+    /// The design: an OpenRocket .ork file, an HPR design (.hpr, or .hprz with its attachments),
     /// or a rocket's JSON (.json)
     pub design: String,
     /// The motor configuration to fly: its number in the list the output shows, its name, or its
@@ -327,7 +327,7 @@ pub(crate) struct Setup {
     pub(crate) design_name: String,
     pub(crate) rocket: Rocket,
     pub(crate) environment: Environment,
-    /// The devices flown, the last [`Setup::added`] of them hpr's own (a separated flight's
+    /// The devices flown, the last [`Setup::added`] of them HPR Sim's own (a separated flight's
     /// tumbles).
     pub(crate) devices: Vec<hpr::Device>,
     pub(crate) separations: Vec<hpr::Separation>,
@@ -842,7 +842,7 @@ pub(crate) fn same_file(path: &str) -> PathBuf {
 pub(crate) struct Read {
     pub(crate) format: DesignFormat,
     rocket: hpr_design::Rocket,
-    /// The `.ork` file's own motor configurations, flyable or not; `None` for an hpr design.
+    /// The `.ork` file's own motor configurations, flyable or not; `None` for an HPR design.
     ork: Option<ork::Motors>,
     /// Why a `.ork` rocket wasn't read exactly as written, if it wasn't
     /// ([`ork::airframe_not_as_written`]).
@@ -1058,7 +1058,7 @@ fn misplaced(separations: &[hpr::Separation], stage_count: usize) -> usize {
 
 /// The separations of a `.ork` configuration that drops its booster under power (and, for three
 /// stages, its middle stage after it), and the devices [`hpr::ork::separated_recovery`] puts on
-/// each part, with the notes on what flies, and how many devices at the end of the list hpr added
+/// each part, with the notes on what flies, and how many devices at the end of the list HPR Sim added
 /// (the tumbles). A refused mapping flies the tumbles alone ([`hpr::ork::tumbling`]), and says
 /// why.
 ///
@@ -1240,7 +1240,7 @@ fn flown_separation(
     let from_file = &devices[..devices.len() - added];
     if from_file.iter().all(|device| device.body != 0) {
         read.notes.push(
-            "the sustainer has no device of the file's that opens, so hpr tumbles it side-on \
+            "the sustainer has no device of the file's that opens, so HPR Sim tumbles it side-on \
              from its apogee: its landing time, speed and place are not a prediction"
                 .to_owned(),
         );
@@ -1311,7 +1311,7 @@ pub(crate) fn flight_notes(recovery: &[SimDevice], flight: &Flight) -> Vec<Strin
 }
 
 /// The device of the rocket, or the sustainer that keeps its nose, that opened first, by name,
-/// and when: a separated part's devices are its own descent's, and a tumble hpr added brakes no
+/// and when: a separated part's devices are its own descent's, and a tumble HPR Sim added brakes no
 /// fall it can predict.
 pub(crate) fn first_opened(recovery: &[SimDevice]) -> Option<(&str, f64)> {
     recovery
@@ -1330,7 +1330,7 @@ pub(crate) fn braked(recovery: &[SimDevice], apogee_s: Option<f64>) -> bool {
 }
 
 /// The devices flown, for the output, with when each opened in `result`; those from index
-/// `from_file` on are hpr's own, added for `separations`.
+/// `from_file` on are HPR Sim's own, added for `separations`.
 pub(crate) fn recovery_flown(
     devices: &[hpr::Device],
     (from_file, separations): (usize, &[hpr::Separation]),
@@ -1427,7 +1427,7 @@ struct Fetching<'a> {
 /// What [`SuppliedCurves`](ork::SuppliedCurves) are named as where a fetched curve flies.
 const FETCHED_CURVES: &str = "ThrustCurve.org, found by the motor's manufacturer and designation";
 
-/// Reads a `.ork`, an hpr design (`.hpr` or `.hprz`) or a rocket's JSON, by its extension. For a
+/// Reads a `.ork`, an HPR design (`.hpr` or `.hprz`) or a rocket's JSON, by its extension. For a
 /// `.ork`, a motor of the configuration `fetching` names that has no curve in the file or the
 /// bundled catalog is fetched from ThrustCurve.org by its manufacturer and designation
 /// ([`crate::motor_fetch`]), and supplied for the digest the file records.
@@ -1455,7 +1455,7 @@ fn read_design(path: &str, fetching: Option<Fetching<'_>>) -> Result<Read, Failu
             for fetched in &missing.fetched {
                 let whose = if fetched.openrocket {
                     "the file whose curve is the one OpenRocket flies for the digest the file \
-                     records, as hpr's table of OpenRocket's examples' motors matches them"
+                     records, as HPR Sim's table of OpenRocket's examples' motors matches them"
                 } else {
                     "found by the manufacturer and designation of the motor whose digest it \
                      records, it may not be the curve OpenRocket flies"
@@ -1503,7 +1503,7 @@ fn read_design(path: &str, fetching: Option<Fetching<'_>>) -> Result<Read, Failu
             let mut notes = Vec::new();
             if written_as != hpr_format::VERSION {
                 notes.push(format!(
-                    "the design is version {written_as} of the hpr design format, read as version \
+                    "the design is version {written_as} of the HPR design format, read as version \
                      {}",
                     hpr_format::VERSION
                 ));
@@ -1549,14 +1549,14 @@ fn read_design(path: &str, fetching: Option<Fetching<'_>>) -> Result<Read, Failu
             })
         }
         _ => Err(Failure::Input(format!(
-            "{path}: hpr sim reads an OpenRocket .ork file, an hpr design (.hpr or .hprz), or a \
+            "{path}: hpr sim reads an OpenRocket .ork file, an HPR design (.hpr or .hprz), or a \
              rocket's JSON (.json)"
         ))),
     }
 }
 
 impl Read {
-    /// A design read as hpr's `.ork` reader models it, with the notes on what `hpr sim` doesn't
+    /// A design read as HPR Sim's `.ork` reader models it, with the notes on what `hpr sim` doesn't
     /// fly after `notes`.
     fn of(
         format: DesignFormat,
@@ -1574,7 +1574,7 @@ impl Read {
         }
         if design.is_reduced() {
             notes.push(
-                "the file has parts hpr keeps aside instead of flying, such as a parallel \
+                "the file has parts HPR Sim keeps aside instead of flying, such as a parallel \
                  stage: the rocket flown is the rest of it"
                     .to_owned(),
             );
@@ -1701,7 +1701,7 @@ impl Read {
     }
 
     /// Why no motor of the user's own flies the `.ork` rocket in `chosen` (or, with none, in a
-    /// configuration of its own), if none does: its airframe or stages aren't what hpr sim flies
+    /// configuration of its own), if none does: its airframe or stages aren't what `hpr sim` flies
     /// whole, or the configuration is left out for more than its motor. A configuration's
     /// `LeftOut` names only its first reason, so each is asked of the file directly.
     fn no_motor_flies(&self, chosen: Option<&ork::MotorConfiguration>) -> Option<String> {
@@ -1718,13 +1718,13 @@ impl Read {
             }
             if !chosen.inactive_stages.is_empty() {
                 return Some(format!(
-                    "configuration {} switches a stage off, and hpr flies every stage",
+                    "configuration {} switches a stage off, and HPR Sim flies every stage",
                     ork_label(chosen)
                 ));
             }
             if !chosen.unread.is_empty() {
                 return Some(format!(
-                    "a motor of configuration {} is in a part hpr doesn't read",
+                    "a motor of configuration {} is in a part HPR Sim doesn't read",
                     ork_label(chosen)
                 ));
             }
@@ -1861,7 +1861,7 @@ impl Read {
         }
     }
 
-    /// An hpr design's configuration: `--config`, or its only one; `None` if it has none, or
+    /// An HPR design's configuration: `--config`, or its only one; `None` if it has none, or
     /// several and none was named.
     fn hpr_configuration(&self, wanted: Option<&str>) -> Result<Option<&Configuration>, Failure> {
         let configurations = &self.rocket.configurations;
@@ -1904,20 +1904,20 @@ fn not_flown(configuration: &ork::MotorConfiguration, read: bool) -> Option<Stri
                     "its motor's curve to fetch"
                 }
             }
-            ork::NotFlown::UnreadMotor => "a motor in a part hpr doesn't read",
+            ork::NotFlown::UnreadMotor => "a motor in a part HPR Sim doesn't read",
             ork::NotFlown::NoMotor => "no motor",
             ork::NotFlown::InactiveStage => "a stage switched off",
             ork::NotFlown::NoSize => "a motor of no stated size",
-            ork::NotFlown::IgnitionNotFlown => "an ignition hpr doesn't fly",
+            ork::NotFlown::IgnitionNotFlown => "an ignition HPR Sim doesn't fly",
             ork::NotFlown::AirframeNotAsWritten => "the airframe not read as written",
-            ork::NotFlown::SeparationNotFlown => "a separation hpr doesn't fly",
+            ork::NotFlown::SeparationNotFlown => "a separation HPR Sim doesn't fly",
             _ => "not flown",
         }
         .to_owned(),
     )
 }
 
-/// Whether a motor of the user's own flies a configuration hpr left out for this reason: it
+/// Whether a motor of the user's own flies a configuration HPR Sim left out for this reason: it
 /// does when the reason is the file's motor, and not when it is the airframe, a stage or a
 /// separation.
 fn motor_fixes(why: ork::NotFlown) -> bool {
@@ -2006,7 +2006,7 @@ fn ork_label(configuration: &ork::MotorConfiguration) -> String {
     )
 }
 
-/// An hpr design's configuration's name for the output ([`choose::configuration_label`]).
+/// An HPR design's configuration's name for the output ([`choose::configuration_label`]).
 fn hpr_label(configuration: &Configuration) -> String {
     choose::configuration_label(
         &configuration.name,
@@ -2029,7 +2029,7 @@ fn ork_choices(motors: &ork::Motors) -> Vec<Choice<'_>> {
         .collect()
 }
 
-/// An hpr design's configurations to choose from, in the design's order.
+/// An HPR design's configurations to choose from, in the design's order.
 fn hpr_choices(rocket: &hpr_design::Rocket) -> Vec<Choice<'_>> {
     rocket
         .configurations

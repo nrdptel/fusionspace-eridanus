@@ -90,7 +90,7 @@ pub struct Nozzle {
     ///
     /// `None` flies the curve as it is at every ambient pressure, with no correction. That is
     /// RocketPy's default (`Motor(reference_pressure=None)`, whose `pressure_thrust` is then zero,
-    /// `motor.py:1188-1189`), so a RocketPy input transcribed into hpr says `None`.
+    /// `motor.py:1188-1189`), so a RocketPy input transcribed into HPR Sim says `None`.
     ///
     /// Which to give: motor files don't record where the curve was measured. For a motor tested
     /// near sea level, [`STANDARD_SEA_LEVEL_PRESSURE_PA`] adds the thrust a higher site gains

@@ -70,7 +70,7 @@ pub enum MotorType {
     /// A reload for a reusable case (ThrustCurve `reload`).
     #[serde(rename = "reload")]
     Reload,
-    /// A hybrid motor (ThrustCurve `hybrid`). ThrustCurve lists them; hpr doesn't model them (COTS
+    /// A hybrid motor (ThrustCurve `hybrid`). ThrustCurve lists them; HPR Sim doesn't model them (COTS
     /// solids only), and the bundled catalog has none.
     #[serde(rename = "hybrid")]
     Hybrid,
@@ -326,13 +326,13 @@ impl CatalogMotor {
     /// # Errors
     ///
     /// As [`CatalogMotor::thrust_curve`] and [`SolidMotor::from_envelope`], and
-    /// [`MotorError::Inconsistent`] for a hybrid (hpr models solids only) or when neither the
+    /// [`MotorError::Inconsistent`] for a hybrid (HPR Sim models solids only) or when neither the
     /// metadata nor the file gives the masses. The text is not checked against the curve's SHA-256:
     /// pass the file the curve names.
     pub fn motor(&self, curve: &CatalogCurve, text: &str) -> Result<SolidMotor, MotorError> {
         if self.motor_type == MotorType::Hybrid {
             return Err(MotorError::Inconsistent(format!(
-                "{} is a hybrid; hpr models solid motors only",
+                "{} is a hybrid; HPR Sim models solid motors only",
                 self.designation
             )));
         }

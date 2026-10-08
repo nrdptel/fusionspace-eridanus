@@ -27,7 +27,7 @@
 //! ([`SupersonicBody`]; the decision records on flying them, [ADR-034][adr-034] and
 //! [ADR-037][adr-037]).
 //! Other bodies keep slender-body theory's terms. [`BodyModel`] chooses the body-lift and boattail
-//! rules; the default is hpr's current one.
+//! rules; the default is HPR Sim's current one.
 //!
 //! Launch lugs and rail buttons add drag only, and internal parts sit inside the body. Any part
 //! kind this model doesn't know is refused. Stations are meters aft of the nose tip.
@@ -212,11 +212,11 @@ pub struct SupersonicBody {
 pub enum SupersonicBoattail {
     /// The share the method gives a cylinder of the boattail's length and fore radius in its
     /// place, plus Washington and Pettis's measured increment at their center of pressure
-    /// ([`crate::supersonic_boattail`]): hpr's rule since [M1.8e6](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e6) (the decision
+    /// ([`crate::supersonic_boattail`]): HPR Sim's rule since [M1.8e6](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e6) (the decision
     /// record, [ADR-037](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-037-body-lift-by-jorgensens-crossflow-at-every-speed-and-a-boattails-measured-share-faster-than-sound-2026-09-19)).
     #[default]
     WashingtonPettis,
-    /// The method's own share, TN 3527 footnote 8's tangent cone: hpr's rule from the milestone
+    /// The method's own share, TN 3527 footnote 8's tangent cone: HPR Sim's rule from the milestone
     /// that first flew a boattail by the method ([M1.8e4](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e4)) until
     /// [M1.8e6](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e6).
     Footnote8,
@@ -229,7 +229,7 @@ pub enum SupersonicBoattail {
 #[non_exhaustive]
 pub enum SupersonicFlare {
     /// The shock-expansion method's own share, marched through the flare's corner where the shock
-    /// there is attached: hpr's rule since [M1.8e17](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e17) (the decision record,
+    /// there is attached: HPR Sim's rule since [M1.8e17](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e17) (the decision record,
     /// [ADR-047](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-047-a-flare-flies-the-method-where-its-corners-shock-is-attached-and-is-read-drawn-out-where-it-is-not-2026-09-20)).
     /// Only a **conical** flare, flush with the part ahead of it and not behind a boattail, joins
     /// the run, which then ends at it. A widening part behind a boattail is a lip in its wake and
@@ -238,12 +238,12 @@ pub enum SupersonicFlare {
     #[default]
     Marched,
     /// None: a flare ends the method's run, so the whole body takes slender-body theory's share
-    /// at every Mach number. hpr's rule until [M1.8e17](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e17).
+    /// at every Mach number. HPR Sim's rule until [M1.8e17](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e17).
     SlenderBody,
 }
 
 /// The choices in the bodies' normal-force model ([`AeroModel::with_body_model`]). The default is
-/// hpr's current model, [`BodyModel::CURRENT`]; [`BodyModel::BEFORE_M1_8E6`] reproduces earlier
+/// HPR Sim's current model, [`BodyModel::CURRENT`]; [`BodyModel::BEFORE_M1_8E6`] reproduces earlier
 /// results. Change one choice with [`BodyModel::with_body_lift`],
 /// [`BodyModel::with_supersonic_boattail`] or [`BodyModel::with_supersonic_flare`]. In JSON, for
 /// example `{"body_lift": {"kind": "galejs", "k": 1.1}, "supersonic_boattail": "footnote8"}`; a
@@ -261,7 +261,7 @@ pub struct BodyModel {
 }
 
 impl BodyModel {
-    /// hpr's current body model: Jorgensen's body lift, Washington and Pettis's boattail and a
+    /// HPR Sim's current body model: Jorgensen's body lift, Washington and Pettis's boattail and a
     /// marched flare.
     pub const CURRENT: Self = Self {
         body_lift: BodyLift::JORGENSEN,
@@ -269,7 +269,7 @@ impl BodyModel {
         supersonic_flare: SupersonicFlare::Marched,
     };
 
-    /// hpr's body model before [M1.8e6](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e6) sized body lift and the boattail: Galejs's
+    /// HPR Sim's body model before [M1.8e6](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e6) sized body lift and the boattail: Galejs's
     /// `K` = 1.1, TN 3527 footnote 8's boattail, and a flare that ends the method's run rather
     /// than flying it ([`SupersonicFlare::SlenderBody`], as before [M1.8e17](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e17)).
     pub const BEFORE_M1_8E6: Self = Self {
@@ -1178,7 +1178,7 @@ fn with_axial(mut drag: Drag, factor: f64) -> Result<Drag, AeroError> {
 }
 
 impl AeroModel {
-    /// Builds the terms of every component of `layout`, with hpr's current body model
+    /// Builds the terms of every component of `layout`, with HPR Sim's current body model
     /// ([`BodyModel::default`]).
     ///
     /// # Errors
@@ -1759,7 +1759,7 @@ impl AeroModel {
     /// cross-section is not taken off the base ([`DragConditions::thrusting_motor_area_m2`] and
     /// the pods' are read as zero), and a burning motor still selects a table's power-on curve.
     ///
-    /// hpr's own buildup takes it off, as Niskanen describes (2009, pp. 50–51: "if the base is
+    /// HPR Sim's own buildup takes it off, as Niskanen describes (2009, pp. 50–51: "if the base is
     /// the same size as the motor itself, no base drag"). OpenRocket 24.12 does not: on every one
     /// of its example designs' flights of one branch, powered pods among them, its base-drag
     /// column is the whole base's coefficient while a motor burns, as after, where the motors
@@ -1853,7 +1853,7 @@ impl AeroModel {
     }
 
     /// This model with `table` replacing the whole rocket's normal force and center of pressure
-    /// ([`AeroModel::normal_force`]). Each component's own terms stay hpr's
+    /// ([`AeroModel::normal_force`]). Each component's own terms stay HPR Sim's
     /// ([`AeroModel::components`], [`AeroModel::component_normal_force`]): a flight engine takes
     /// its pitch and yaw damping from them, which a table doesn't give.
     ///
@@ -2523,7 +2523,7 @@ impl AeroModel {
     /// over all its pods), then fin sets, then tube fin sets, each in layout order. A
     /// step in radius is part of the component aft of it.
     ///
-    /// These are always hpr's own terms. With a normal-force table, [`AeroModel::normal_force`]
+    /// These are always HPR Sim's own terms. With a normal-force table, [`AeroModel::normal_force`]
     /// returns the table's value instead of their sum.
     ///
     /// # Errors

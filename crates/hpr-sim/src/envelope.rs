@@ -1,4 +1,4 @@
-//! The flags a flight raises: the operating envelope's four, where a flight goes past what hpr's
+//! The flags a flight raises: the operating envelope's four, where a flight goes past what HPR Sim's
 //! numbers have been checked for ([ADR-143 §1][adr-143], [ADR-179][adr-179]; the validation
 //! plan's [Operating envelope][page]), and two for a rocket that is unstable while a motor burns
 //! ([#335][i335]; the guide's [Unstable under power][unstable]), of which a flight raises at most
@@ -12,7 +12,7 @@
 //!   The air then turns the rocket away from its path rather than back, so the path flown, and
 //!   its apogee, follow from small disturbances and from aerodynamics that hold only at small
 //!   angles of attack: they are not a prediction.
-//! - *unstable without a margin*: where hpr can give no static margin while a motor burns (the
+//! - *unstable without a margin*: where HPR Sim can give no static margin while a motor burns (the
 //!   net normal-force slope is not positive, or too small for the quotient to mean anything), a
 //!   pitch-moment slope `C_mα` above zero
 //!   ([`FlightSummary::max_powered_moment_slope_per_rad`](crate::FlightSummary::max_powered_moment_slope_per_rad)):
@@ -20,7 +20,7 @@
 //!
 //! The envelope's edges are by Mach number, and angle of attack is a separate condition:
 //!
-//! - *beyond the validated range*: faster than [`VALIDATED_MACH`], the fastest public flight hpr
+//! - *beyond the validated range*: faster than [`VALIDATED_MACH`], the fastest public flight HPR Sim
 //!   has been compared with an independent reference on;
 //! - *at high angle of attack*: above [`HIGH_ANGLE_OF_ATTACK_RAD`] (15°) more than
 //!   [`HIGH_ANGLE_GRACE_S`] (1 s) after the rail exit and before apogee or the first deployment,
@@ -130,7 +130,7 @@ pub enum EnvelopeFlag {
         static_margin_cal: Peak,
     },
     /// A pitch-moment slope `C_mα` above zero while a motor burns, from the rail exit to apogee or
-    /// the first deployment, at an instant where hpr can give no static margin
+    /// the first deployment, at an instant where HPR Sim can give no static margin
     /// ([`FlightSummary::max_powered_moment_slope_per_rad`](crate::FlightSummary::max_powered_moment_slope_per_rad)):
     /// the air turns the rocket away from its path, so it is unstable under power and its apogee
     /// is not a prediction. Raised only when [`UnstableUnderPower`](Self::UnstableUnderPower)
@@ -210,12 +210,12 @@ impl EnvelopeFlag {
                 pitch_moment_slope_per_rad,
             } => format!(
                 "while a motor burns, the pitching moment turns the rocket away from its path \
-                 (C_mα {:+.1} per radian at {:.2} s) where hpr can give no static margin: the \
+                 (C_mα {:+.1} per radian at {:.2} s) where HPR Sim can give no static margin: the \
                  rocket is unstable under power, so its apogee is not a prediction",
                 pitch_moment_slope_per_rad.value, pitch_moment_slope_per_rad.time_s
             ),
             Self::BeyondValidatedRange { max_mach } => format!(
-                "reaches Mach {:.2} at {:.1} s, faster than any public flight hpr has been \
+                "reaches Mach {:.2} at {:.1} s, faster than any public flight HPR Sim has been \
                  compared with an independent reference (Mach {VALIDATED_MACH:.2}): its numbers \
                  past that speed are unchecked",
                 max_mach.value, max_mach.time_s

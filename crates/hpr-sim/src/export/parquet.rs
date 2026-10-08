@@ -15,8 +15,8 @@
 //!   nested has no repetition or definition levels, so a page is its values and nothing else.
 //!
 //! It carries no statistics, dictionary, index or compression. Its footer's key-value metadata
-//! names the program that wrote it, as every file hpr writes does ([`hpr_core::tool`]): `tool`
-//! (`hpr-sim`), `tool_version` and `designation` (`FS-ACHERNAR · SW · TOOL 001`).
+//! names the program that wrote it, as every file HPR Sim writes does ([`hpr_core::tool`]): `tool`
+//! (`FusionSpace HPR`), `tool_version` and `designation` (`FS-ACHERNAR · SW · TOOL 001`).
 
 use crate::error::SimError;
 use crate::recorder::Recorder;

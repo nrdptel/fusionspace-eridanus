@@ -306,7 +306,7 @@ fn data_columns(value: &str, number: usize, notes: &mut Notes) -> Result<Vec<Col
 }
 
 /// A stated height, such as `1009' AGL`, in meters; `None`, with a note, for one that isn't a
-/// number hpr can read, such as `PWRLOSS`, or that names no unit, such as `1009 AGL`. A number in
+/// number HPR Sim can read, such as `PWRLOSS`, or that names no unit, such as `1009 AGL`. A number in
 /// a unit other than feet (`'`, `ft`, `feet`) is refused.
 fn stated_feet(
     value: &str,
@@ -337,7 +337,7 @@ fn stated_feet(
     // `AGL` and `MSL` say what the height is measured from, not its unit.
     if word.is_empty() || word == "agl" || word == "msl" {
         notes.push(format!(
-            "the file states its {what} as {:?}, with no unit hpr can read",
+            "the file states its {what} as {:?}, with no unit HPR Sim can read",
             short(value)
         ));
         return Ok(None);

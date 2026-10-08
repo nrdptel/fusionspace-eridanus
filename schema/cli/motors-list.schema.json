@@ -158,7 +158,7 @@
           "const": "reload"
         },
         {
-          "description": "A hybrid: listed, but hpr models solid motors only.",
+          "description": "A hybrid: listed, but HPR Sim models solid motors only.",
           "type": "string",
           "const": "hybrid"
         }

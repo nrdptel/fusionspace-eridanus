@@ -13,13 +13,13 @@
 //! per degree on the cylinder's area `πD²/4`, with `D` the cylinder's diameter, `D_B` the
 //! boattail's base diameter and `L_B` its length. Its center of pressure is "approximately 50
 //! percent of its length" (abstract), from about 43% at Mach 2 to 64% at 4.5 (Fig. 6, printed
-//! p. 9). hpr reads both figures by hand from the page images ([`WP_PARAMETERS`],
+//! p. 9). HPR Sim reads both figures by hand from the page images ([`WP_PARAMETERS`],
 //! [`WP_SLOPE_PER_DEG`], [`WP_CENTER_MACHS`], [`WP_CENTER_FRACTION`]).
 //!
 //! **What it covers.** The models were conical boattails "with diameter ratios of 0.72 to 0.86
 //! and angles from 4 to 10 degrees" (p. 1), 0.82 to 1.18 diameters long, behind a cylinder; the
 //! correlation's points reach the peak near zero argument, with the next near 0.3 and the rest
-//! out to about 5.4; the curve is drawn to 6.1. Past 6.1 hpr
+//! out to about 5.4; the curve is drawn to 6.1. Past 6.1 HPR Sim
 //! holds its end, an extrapolation, as is any boattail steeper, shorter, **longer** or narrower
 //! than those tested: a long one reads the curve near zero argument, which comes from the
 //! report's lowest supersonic runs. The data scatter about the curve by up to about 15%.

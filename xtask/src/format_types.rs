@@ -1,4 +1,4 @@
-//! TypeScript and Python types for the hpr design format (M3.3c), generated from its JSON Schema.
+//! TypeScript and Python types for the HPR design format (M3.3c), generated from its JSON Schema.
 //!
 //! Each language gets one module: a type for every definition in the schema, and a reader,
 //! `readDesign` or `read_design`, that parses a document's text and checks it against the schema
@@ -171,7 +171,7 @@ pub fn python(schema: &Value) -> Result<String, String> {
     let mut out = String::new();
     out.push_str(&header("#"));
     out.push_str(&format!(
-        "\n\"\"\"Types for the hpr design format {}, and a reader that checks a document against its\n\
+        "\n\"\"\"Types for the HPR design format {}, and a reader that checks a document against its\n\
          schema. Generated from the schema by `cargo xtask format`; don't edit by hand.\"\"\"\n\n\
          import json\n\
          import math\n\
@@ -203,7 +203,7 @@ pub fn python(schema: &Value) -> Result<String, String> {
 /// The first lines of either module, as comments starting with `comment`.
 fn header(comment: &str) -> String {
     format!(
-        "{comment} The hpr design format {version}: types for a document, and a reader that checks one.\n\
+        "{comment} The HPR design format {version}: types for a document, and a reader that checks one.\n\
          {comment} SPDX-License-Identifier: MIT OR Apache-2.0\n\
          {comment} From https://github.com/nrdptel/fusionspace-eridanus\n\
          {comment} Generated from schema/format/hpr-design-{version}.schema.json by `cargo xtask format`.\n\

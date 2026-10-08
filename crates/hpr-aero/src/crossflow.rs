@@ -10,7 +10,7 @@
 //! crossflow drag coefficient of an infinitely long circular cylinder and `η` the ratio of a
 //! finite cylinder's crossflow drag to an infinite one's. Both depend on the crossflow Mach number
 //! `M_n = M sin α` (eq. 2.3, p. 8); `η` also on the body's length over its diameter. The force acts
-//! at the planform's centroid (eq. 2.21, p. 13). hpr takes each factor from Jorgensen's figures,
+//! at the planform's centroid (eq. 2.21, p. 13). HPR Sim takes each factor from Jorgensen's figures,
 //! read by hand from the page images:
 //!
 //! - **`C_dn`** ([`CROSSFLOW_DRAG`], Fig. 1, printed p. 75) below the critical crossflow Reynolds
@@ -25,10 +25,10 @@
 //!   60° (his Fig. 5), divided by Fig. 1's `C_dn`, at the eleven crossflow Mach numbers from 0.4
 //!   to 1.6 he computed; below 0.4 it runs to Fig. 4's value for those bodies. He uses Figs. 5
 //!   and 6 "in lieu of better information" (p. 18); past 1.6, `η` "probably can be assumed to be
-//!   unity" (p. 17), and hpr holds the last point, 0.984.
+//!   unity" (p. 17), and HPR Sim holds the last point, 0.984.
 //!
 //! **Combining the two `η`s, a judgement.** Fig. 6 holds for bodies of fineness 10 to 12 only.
-//! For another fineness `f`, hpr scales Fig. 6's `η` by how much longer or shorter Fig. 4 makes
+//! For another fineness `f`, HPR Sim scales Fig. 6's `η` by how much longer or shorter Fig. 4 makes
 //! the body, and lets that scaling fade as the crossflow speeds up, by the share `s` Fig. 6's own
 //! bodies have risen toward 1:
 //!
@@ -43,18 +43,18 @@
 //! `r = s`, below `M_n` 0.8, it equals `η₄ + (1 − η₄) s`.
 //!
 //! **Sampling, not smoothing.** Fig. 1's `C_dn` peaks at `M_n` ≈ 0.96 and Fig. 6's `η` dips at
-//! 1.0; each is steep there. hpr samples both at Fig. 6's points and interpolates each linearly
+//! 1.0; each is steep there. HPR Sim samples both at Fig. 6's points and interpolates each linearly
 //! between them, so their product is Jorgensen's own `η C_dn` at those points (his Fig. 5, within
 //! the reading, test `the_product_follows_figure_5`) and moves smoothly between them, instead of
 //! multiplying two steep curves read separately.
 //!
 //! **Left out.** Past the critical crossflow Reynolds number (about 2 × 10⁵, Fig. 2, p. 76) a
 //! cylinder's `C_dn` falls to "between about 0.15 and 0.30" at low `M_n` (p. 15); Jorgensen
-//! computes that only for illustration, with nothing to check it against (p. 27), and hpr leaves
-//! it out. hpr's potential-flow term stays its own (`sin α`, slender-body theory or TN 3527's
+//! computes that only for illustration, with nothing to check it against (p. 27), and HPR Sim leaves
+//! it out. HPR Sim's potential-flow term stays its own (`sin α`, slender-body theory or TN 3527's
 //! method), not Jorgensen's `sin 2α cos(α/2)`.
 //!
-//! **Galejs's constant** ([`BodyLift::Galejs`]): hpr's body lift until the milestone that sized it
+//! **Galejs's constant** ([`BodyLift::Galejs`]): HPR Sim's body lift until the milestone that sized it
 //! ([M1.8e6](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e6)) was
 //! `K (A_plan/A_ref) sin² α` with `K` = 1.1 at every Mach number (R. Galejs, *Wind Instability*,
 //! after Hoerner; Niskanen 2009 eq. 3.26), kept to reproduce earlier results.
@@ -129,9 +129,9 @@ pub const ETA_BY_FINENESS: [f64; 12] = [
 #[non_exhaustive]
 pub enum BodyLift {
     /// Jorgensen's `η C_dn` ([`crossflow_factor`]), from the body's fineness and the crossflow
-    /// Mach number: hpr's model since body lift was sized ([M1.8e6](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e6)).
+    /// Mach number: HPR Sim's model since body lift was sized ([M1.8e6](https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8e6)).
     Jorgensen {},
-    /// Galejs's constant `K` at every Mach number: hpr's model before, with `k` =
+    /// Galejs's constant `K` at every Mach number: HPR Sim's model before, with `k` =
     /// [`BODY_LIFT_K`] (1.1). Galejs gives 1.0 to 1.5.
     Galejs {
         /// `K`, dimensionless.
@@ -140,17 +140,17 @@ pub enum BodyLift {
 }
 
 impl Default for BodyLift {
-    /// Jorgensen's, hpr's current model.
+    /// Jorgensen's, HPR Sim's current model.
     fn default() -> Self {
         Self::JORGENSEN
     }
 }
 
 impl BodyLift {
-    /// Jorgensen's `η C_dn`, hpr's current model.
+    /// Jorgensen's `η C_dn`, HPR Sim's current model.
     pub const JORGENSEN: Self = Self::Jorgensen {};
 
-    /// hpr's model before Jorgensen's: Galejs's `K` = [`BODY_LIFT_K`].
+    /// HPR Sim's model before Jorgensen's: Galejs's `K` = [`BODY_LIFT_K`].
     pub const GALEJS: Self = Self::Galejs { k: BODY_LIFT_K };
 
     /// The factor on `(A_plan/A_ref) sin² α` for a body of fineness `fineness` (length over

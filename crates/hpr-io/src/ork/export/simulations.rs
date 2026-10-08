@@ -9,7 +9,7 @@
 //!   The reader takes the older tags first. Both are written, with the same numbers, whenever the
 //!   design came from a file that names its wind model (`<windmodeltype>`) or has a multilevel
 //!   wind: those are the files that write the blocks. A file without them, written by an older
-//!   OpenRocket, gets the older tags alone, as it had. The block's `<standarddeviation>`, which hpr
+//!   OpenRocket, gets the older tags alone, as it had. The block's `<standarddeviation>`, which HPR Sim
 //!   does not read, is kept with the design and put back inside it.
 //! - **The rod's tilt and direction** are held in radians and written in degrees, as OpenRocket
 //!   writes them ([ADR-057][adr-057]). The degrees written are a number that reads back as exactly
@@ -40,7 +40,7 @@ const NEIGHBOURS: usize = 8;
 /// The `<simulations>` element, or `None` when the design has none and keeps nothing that was
 /// inside the file's `<simulations>`.
 ///
-/// A file can have a `<simulations>` with no `<simulation>` in it but with something else hpr
+/// A file can have a `<simulations>` with no `<simulation>` in it but with something else HPR Sim
 /// keeps; the element is written then too, so that what was kept has somewhere to go back.
 pub(super) fn simulations(design: &Design, warnings: &mut Vec<Warning>) -> Option<Element> {
     let kept = &design.extensions.x_openrocket;

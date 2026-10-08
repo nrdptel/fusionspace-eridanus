@@ -208,7 +208,7 @@ fn add_point(entry: &mut EngEntry, fields: &[&str], line: usize) -> Result<(), M
 /// Writes a `.eng` file: a first comment naming the program that wrote it, its version and its
 /// designation (`; FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001`, [`hpr_core::tool::stamp`]); then each
 /// entry's comments, header and points, then a `;` separator; and the trailing comments last.
-/// A comment carried over that names an earlier program the same way, as a file hpr wrote before
+/// A comment carried over that names an earlier program the same way, as a file HPR Sim wrote before
 /// holds, is left out, so converting a file again writes one such line, not two. The reader
 /// doesn't keep that line ([`parse`]).
 ///

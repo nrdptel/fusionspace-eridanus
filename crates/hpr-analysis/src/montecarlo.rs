@@ -105,7 +105,7 @@ use crate::ellipse::Scatter;
 use crate::error::AnalysisError;
 use crate::statistics::Distribution;
 
-/// A drag override for the whole flight, in place of hpr's drag buildup: another tool's table or
+/// A drag override for the whole flight, in place of HPR Sim's drag buildup: another tool's table or
 /// a model of your own ([`Simulation::with_drag_table`], [`Simulation::with_shared_drag_model`]).
 #[derive(Debug, Clone)]
 #[non_exhaustive]
@@ -132,7 +132,7 @@ pub struct FlightInputs {
     pub settings: FlightSettings,
     /// The recovery devices, none for a ballistic flight ([`Simulation::with_recovery`]).
     pub recovery: Vec<Device>,
-    /// A drag table or model in place of hpr's drag buildup, if any.
+    /// A drag table or model in place of HPR Sim's drag buildup, if any.
     pub drag: Option<DragOverride>,
     /// The factor on the rocket's zero-lift drag ([`Simulation::with_drag_scale`]); 1 leaves it.
     pub drag_scale: f64,
@@ -143,7 +143,7 @@ pub struct FlightInputs {
 
 impl FlightInputs {
     /// The inputs of a flight of `rocket`'s configuration `configuration_id`, with the default
-    /// integrator, no recovery, hpr's own drag and no drag scale.
+    /// integrator, no recovery, HPR Sim's own drag and no drag scale.
     pub fn new(
         rocket: Rocket,
         configuration_id: impl Into<String>,

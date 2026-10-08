@@ -39,7 +39,7 @@ pub(crate) fn run(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     })
 }
 
-/// Reads a flight log in a format hpr knows, by its extension or its first line.
+/// Reads a flight log in a format HPR Sim knows, by its extension or its first line.
 fn read_log(path: &str) -> Result<FlightLog, Failure> {
     let bytes = std::fs::read(path).map_err(|error| Failure::Input(format!("{path}: {error}")))?;
     let unknown = || {

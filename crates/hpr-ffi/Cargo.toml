@@ -1,6 +1,6 @@
 [package]
 name = "hpr-ffi"
-description = "A stable C ABI for hpr-sim."
+description = "A stable C ABI for FusionSpace HPR · Sim."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

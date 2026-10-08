@@ -6,7 +6,7 @@
 //!
 //! 1. [`building`]: a rocket, part by part from the nose back.
 //! 2. [`flying`]: where it flies, from what rail, and what a flight tells you.
-//! 3. [`custom_models`]: a drag model, a wind or an atmosphere of your own in hpr's place.
+//! 3. [`custom_models`]: a drag model, a wind or an atmosphere of your own in HPR Sim's place.
 //! 4. [`beneath`]: the crates under the builder, for what it doesn't offer.
 //! 5. [`examples`]: the example programs, and what each shows.
 //!
@@ -147,9 +147,9 @@ pub mod flying {
 }
 
 pub mod custom_models {
-    //! A drag model, a wind or an atmosphere of your own, flown in hpr's place.
+    //! A drag model, a wind or an atmosphere of your own, flown in HPR Sim's place.
     //!
-    //! Three of hpr's models are traits a program can implement:
+    //! Three of HPR Sim's models are traits a program can implement:
     //!
     //! | Trait | What it gives | Where it goes |
     //! | --- | --- | --- |
@@ -159,10 +159,10 @@ pub mod custom_models {
     //!
     //! A drag model replaces the zero-lift drag only, as a drag table from another tool does. The
     //! flight still scales it for the angle of attack, and the normal force, center of pressure,
-    //! roll and damping stay hpr's, so the margin a rocket reports doesn't change. A model is
+    //! roll and damping stay HPR Sim's, so the margin a rocket reports doesn't change. A model is
     //! asked a [`DragQuery`](crate::hpr_aero::DragQuery): the Mach number and angles, the
-    //! Reynolds number, whether a motor burns, and hpr's own drag at that flow
-    //! ([`DragQuery::buildup`](crate::hpr_aero::DragQuery::buildup)), so a model can adjust hpr's
+    //! Reynolds number, whether a motor burns, and HPR Sim's own drag at that flow
+    //! ([`DragQuery::buildup`](crate::hpr_aero::DragQuery::buildup)), so a model can adjust HPR Sim's
     //! number instead of replacing it. The coefficient is on the rocket's reference area, by
     //! default a circle of its largest body diameter, and unlike a drag table's it isn't
     //! rescaled: a curve measured on another area is converted before it is returned
@@ -210,13 +210,13 @@ pub mod custom_models {
     //! # Ok::<(), hpr::Error>(())
     //! ```
     //!
-    //! **How far to trust it:** as far as the model, and no further than hpr's other models,
+    //! **How far to trust it:** as far as the model, and no further than HPR Sim's other models,
     //! which still fly the rest of the rocket and are not yet validated against real flights.
-    //! hpr refuses a drag coefficient that is negative or not finite; it can't know whether a
+    //! HPR Sim refuses a drag coefficient that is negative or not finite; it can't know whether a
     //! model is right. A model is asked many times a step, so keep it quick, and give the same
     //! answer to the same question: a flight is only as repeatable as its models.
     //!
-    //! hpr refuses a wind velocity that isn't finite wherever it reads the wind, climbing or
+    //! HPR Sim refuses a wind velocity that isn't finite wherever it reads the wind, climbing or
     //! under a canopy, with a [`SimError::Domain`](hpr_sim::SimError::Domain) that names the wind
     //! and gives the height above sea level, m. It refuses air it can't use the same way, naming
     //! the field: a density or pressure that is negative or not finite, or a temperature, speed
@@ -268,7 +268,7 @@ pub mod examples {
     //! | [`motor_choice`][motor_choice] | one rocket on each 29 mm motor in the catalog, with the best ejection delay |
     //! | [`fin_sizing`][fin_sizing] | fins of five spans: the margin, the apogee and the drift of each |
     //! | [`catalog_rocket`][catalog_rocket] | a rocket built from a maker's catalog parts, weighed part by part and flown |
-    //! | [`custom_drag`][custom_drag] | drag models of your own in place of hpr's |
+    //! | [`custom_drag`][custom_drag] | drag models of your own in place of HPR Sim's |
     //! | [`custom_wind`][custom_wind] | a wind model of your own, which turns with height |
     //! | [`ork_two_stage`][ork_two_stage] | a two-stage OpenRocket file flown through the crates beneath |
     //! | [`fin_flutter`][fin_flutter] | the fin flutter speed along a flight |

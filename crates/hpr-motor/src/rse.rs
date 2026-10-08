@@ -630,7 +630,7 @@ fn summary_warnings(engine: &RseEngine, line: usize, warnings: &mut Vec<ParseWar
     {
         warn(
             WarningKind::Unusual,
-            "a hybrid motor: hpr models solid motors only, and a `SolidMotor` built from this \
+            "a hybrid motor: HPR Sim models solid motors only, and a `SolidMotor` built from this \
              curve would be wrong"
                 .into(),
         );

@@ -21,8 +21,8 @@
 //! motor is looked up in the bundled catalog by manufacturer and designation. A motor found in none
 //! of these places is read with its reason, and nothing is invented for it.
 //!
-//! **What hpr flies.** A configuration whose every motor has a curve and a size, in a mount hpr
-//! reads, and lights when hpr can light it, becomes one of the rocket's configurations, with each
+//! **What HPR Sim flies.** A configuration whose every motor has a curve and a size, in a mount HPR Sim
+//! reads, and lights when HPR Sim can light it, becomes one of the rocket's configurations, with each
 //! motor's ignition and its separations read as the [`staging`]
 //! module says ([M1.9c][m1-9], decision [ADR-076][adr-076]). Every other one is kept here, whole,
 //! with the reason it is not flown.
@@ -94,7 +94,7 @@ pub enum Curve {
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum NoCurve {
-    /// A hybrid: hpr flies commercial solid motors only.
+    /// A hybrid: HPR Sim flies commercial solid motors only.
     Hybrid,
     /// The `<motor>` names no designation to look up.
     NoDesignation,
@@ -113,13 +113,13 @@ pub enum NoCurve {
 /// "uniquely identifies the functional characteristics" of the curve ([OpenRocket's GitHub
 /// wiki][wiki], file format 1.2), though OpenRocket 24.12's own database holds a few digests that
 /// two different motors share. Most designs do not embed the curve itself: OpenRocket finds it
-/// in the motor database its program ships. hpr's reader does no I/O and bundles only a small
+/// in the motor database its program ships. HPR Sim's reader does no I/O and bundles only a small
 /// catalog, so a caller holding such a database hands its curves in here: `cargo xtask ork`
 /// supplies OpenRocket's own, for the milestone that measured the design library's curves
 /// ([M2.2c2][m2-2c2]).
 ///
 /// A curve is used only for its own digest, never by name, which can match several curves. Supply
-/// solid motors only: hpr flies commercial solid motors, and a [`SolidMotor`] carries no motor
+/// solid motors only: HPR Sim flies commercial solid motors, and a [`SolidMotor`] carries no motor
 /// type to refuse a hybrid by. A `<motor>` whose own `<type>` says `hybrid` is refused before any
 /// curve is looked up.
 ///
@@ -328,7 +328,7 @@ pub struct OrkMotor {
     pub curve: Curve,
 }
 
-/// A `<motor>` inside a part hpr does not read, such as a pod's mount.
+/// A `<motor>` inside a part HPR Sim does not read, such as a pod's mount.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
 #[non_exhaustive]
 #[serde(deny_unknown_fields)]
@@ -362,7 +362,7 @@ pub struct MotorConfiguration {
     pub inactive_stages: Vec<Option<u32>>,
     /// Its motors, in the order their mounts appear in the file.
     pub motors: Vec<OrkMotor>,
-    /// Its motors in parts hpr does not read.
+    /// Its motors in parts HPR Sim does not read.
     pub unread: Vec<UnreadMotor>,
     /// Why it is not among the rocket's configurations, or `None` when it is.
     pub left_out: Option<LeftOut>,
@@ -404,33 +404,33 @@ pub struct LeftOut {
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum NotFlown {
-    /// A motor is in a part hpr does not read, such as a pod.
+    /// A motor is in a part HPR Sim does not read, such as a pod.
     UnreadMotor,
     /// It holds no motor.
     NoMotor,
-    /// It marks a stage inactive, and hpr flies every stage.
+    /// It marks a stage inactive, and HPR Sim flies every stage.
     InactiveStage,
     /// A motor has no thrust curve.
     NoCurve,
     /// A motor has no case diameter or length.
     NoSize,
-    /// A motor lights when hpr can't light it: at a word hpr does not know, after a negative
+    /// A motor lights when HPR Sim can't light it: at a word HPR Sim does not know, after a negative
     /// delay, at the ejection charge of a motor below that states no delay, or at an event of a
     /// stage below that holds no motor, or motors in more than one mount; or no motor of the
     /// configuration lights at all ([`staging`]). A motor that never lights beside one that does is flown unlit.
     IgnitionNotFlown,
     /// The airframe or a motor mount was not read exactly as written: reading it raised a
-    /// warning. A part was left out (a pod set hpr cannot lay out, a parallel stage, a part hpr
+    /// warning. A part was left out (a pod set HPR Sim cannot lay out, a parallel stage, a part HPR Sim
     /// could not give a shape), a value was dropped or simplified (a rail button's screw
-    /// head, a material that could not be read), or something was assumed (a shape hpr does not know read
+    /// head, a material that could not be read), or something was assumed (a shape HPR Sim does not know read
     /// as a cone). Flying it would fly a
     /// rocket the design may not be.
     AirframeNotAsWritten,
-    /// Its stages come apart in a way hpr doesn't fly: one with no motor ahead of it still burning
+    /// Its stages come apart in a way HPR Sim doesn't fly: one with no motor ahead of it still burning
     /// or yet to light when it fires, beside another; one with a motor behind it not yet spent;
     /// one at or after apogee beside another; one that comes before the
     /// separation behind it; one at launch, or at the ignition of a motor that never lights; a
-    /// negative delay; or an event hpr has no trigger for ([`staging`]).
+    /// negative delay; or an event HPR Sim has no trigger for ([`staging`]).
     SeparationNotFlown,
 }
 
@@ -807,7 +807,7 @@ fn configuration(
 }
 
 /// Every `<motor>` under `element` whose mount is not among `read`, with its configuration id.
-/// `inside` is the outermost part on the way down that hpr does not read, if any.
+/// `inside` is the outermost part on the way down that HPR Sim does not read, if any.
 fn unread_motors(
     element: &Element,
     at: &str,
@@ -825,10 +825,10 @@ fn unread_motors(
     {
         let reason = match inside {
             Some("podset") => {
-                "its mount is inside a pod set, in a part hpr did not read".to_owned()
+                "its mount is inside a pod set, in a part HPR Sim did not read".to_owned()
             }
             Some(_) => {
-                "its mount is inside a parallel stage, in a part hpr did not read".to_owned()
+                "its mount is inside a parallel stage, in a part HPR Sim did not read".to_owned()
             }
             None => format!("its mount, a `{}`, was not read", element.name),
         };
@@ -898,7 +898,7 @@ fn curve(
     if motor.kind.as_deref() == Some("hybrid") {
         return unresolved(
             NoCurve::Hybrid,
-            "a hybrid motor; hpr flies commercial solid motors only".to_owned(),
+            "a hybrid motor; HPR Sim flies commercial solid motors only".to_owned(),
         );
     }
     if motor.designation.is_empty() {
@@ -923,7 +923,7 @@ fn curve(
                     return unresolved(
                         NoCurve::Hybrid,
                         format!(
-                            "its embedded curve {entry} is a hybrid's; hpr flies commercial solid motors only"
+                            "its embedded curve {entry} is a hybrid's; HPR Sim flies commercial solid motors only"
                         ),
                     );
                 }
@@ -1201,7 +1201,7 @@ fn left_out(configuration: &MotorConfiguration) -> Option<LeftOut> {
         return out(
             NotFlown::UnreadMotor,
             format!(
-                "{} of its motors is in a part hpr does not read ({}: {})",
+                "{} of its motors is in a part HPR Sim does not read ({}: {})",
                 configuration.unread.len(),
                 unread.designation,
                 unread.reason
@@ -1215,7 +1215,7 @@ fn left_out(configuration: &MotorConfiguration) -> Option<LeftOut> {
         return out(
             NotFlown::InactiveStage,
             format!(
-                "it flies without stage {:?}, and hpr flies every stage",
+                "it flies without stage {:?}, and HPR Sim flies every stage",
                 configuration.inactive_stages
             ),
         );

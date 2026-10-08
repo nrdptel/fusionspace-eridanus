@@ -17,7 +17,7 @@
 //! deploy height is above the ground, not the sea, and that in its run a parachute set to open
 //! above apogee did not open at all.
 //!
-//! A per-configuration setting replacing the three one at a time is hpr's reading: OpenRocket was
+//! A per-configuration setting replacing the three one at a time is HPR Sim's reading: OpenRocket was
 //! not probed on a file that leaves one out.
 //!
 //! **Drag.** `<cd>auto</cd>` leaves the drag coefficient to OpenRocket: 0.8 for a parachute, on the
@@ -26,8 +26,8 @@
 //! strip's area (the documentation's appendix C). This reader keeps the word, and the number when
 //! one is stated; choosing the model is the flight's business.
 //!
-//! Nothing here flies a device: `hpr::ork::recovery` maps these settings onto `hpr-sim`'s devices
-//! ([ADR-153](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-153-a-orks-recovery-flown-as-openrocket-flies-it-held-to-its-descents-2026-10-04), the decision to fly them as OpenRocket does), since `hpr-io` does not depend on `hpr-sim`.
+//! Nothing here flies a device: `hpr::ork::recovery` maps these settings onto `hpr_sim`'s devices
+//! ([ADR-153](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-153-a-orks-recovery-flown-as-openrocket-flies-it-held-to-its-descents-2026-10-04), the decision to fly them as OpenRocket does), since `hpr_io` does not depend on `hpr_sim`.
 //!
 //! [spec]: https://openrocket.readthedocs.io/en/latest/dev_guide/file_specification.html
 
@@ -257,7 +257,7 @@ impl StageSeparation {
     }
 }
 
-/// A parachute or streamer inside a part hpr does not read, such as a pod.
+/// A parachute or streamer inside a part HPR Sim does not read, such as a pod.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
 #[non_exhaustive]
 #[serde(deny_unknown_fields)]
@@ -280,9 +280,9 @@ pub struct Recovery {
     pub devices: Vec<RecoveryDevice>,
     /// Every stage that states when it separates, in file order.
     pub separations: Vec<StageSeparation>,
-    /// The parachutes and streamers in parts hpr does not read.
+    /// The parachutes and streamers in parts HPR Sim does not read.
     pub unread: Vec<UnreadDevice>,
-    /// The parallel stages that state a separation, in parts hpr did not read.
+    /// The parallel stages that state a separation, in parts HPR Sim did not read.
     pub unread_separations: Vec<UnreadDevice>,
 }
 
@@ -496,7 +496,7 @@ pub(super) fn read(
 
 /// Every `<parachute>` or `<streamer>` under `element` that the walk did not read, and every
 /// `<parallelstage>` stating a separation that it did not read, by `read`, the paths of the devices
-/// and separations it did. `inside` is the outermost part on the way down that hpr does not read,
+/// and separations it did. `inside` is the outermost part on the way down that HPR Sim does not read,
 /// if any.
 fn unread_devices(
     element: &Element,

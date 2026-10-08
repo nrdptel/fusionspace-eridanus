@@ -1,4 +1,4 @@
-//! The hpr-sim library facade: a builder API for environments, motors, rockets and flights, and
+//! The library facade of FusionSpace HPR · Sim: a builder API for environments, motors, rockets and flights, and
 //! the workspace's crates re-exported.
 //!
 //! **Guide:** [Start here][guide-start] says what works and how far to trust it, [Getting
@@ -69,7 +69,7 @@
 //! (`hpr_net::elevation`), motor stock and prices from motor.fusionspace.co
 //! (`hpr_net::motor_finder`), and motor records and thrust curves from ThrustCurve.org
 //! (`hpr_net::thrustcurve`). The `parquet`
-//! feature turns on `hpr-sim`'s Parquet export (`hpr_sim::export::parquet`). [`ork`] flies the
+//! feature turns on `hpr_sim`'s Parquet export (`hpr_sim::export::parquet`). [`ork`] flies the
 //! stage separation an OpenRocket `.ork` file describes.
 
 pub mod environment;

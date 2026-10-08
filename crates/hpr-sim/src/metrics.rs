@@ -47,7 +47,7 @@ use crate::recovery::BodySample;
 /// length. As the net slope goes to zero, `κ` runs away: the loads become a pure couple with no
 /// line of action, and the quotient is noise (Loft published ±12 to 15 calibres so,
 /// [lesson L33][l33]). At `κ = √10` a 1% error in one slope can move the center of pressure by a
-/// tenth of the rocket's length; past it hpr gives no margin, only the pitch-moment slope, which
+/// tenth of the rocket's length; past it HPR Sim gives no margin, only the pitch-moment slope, which
 /// stays finite. The limit is a chosen bound on that sensitivity, not a measurement. The bound
 /// holds for parts that each carry a force at a station: a part that is a pure couple (a step and
 /// a flare of equal slopes) has none, and `κ` doesn't count it.
@@ -389,7 +389,7 @@ pub struct FlightSummary {
     /// ([`Margin::pitch_moment_slope_per_rad`], `C_mα = −(Σ C_Nα,i x_i − C_Nα x_cg) / d`) over the
     /// same span while a motor burns, taken only at instants where the static margin is
     /// undefined: above zero, the air turns the rocket away from its path, so it is unstable under
-    /// power although hpr can give no margin ([`EnvelopeFlag::UnstableWithoutMargin`]). The
+    /// power although HPR Sim can give no margin ([`EnvelopeFlag::UnstableWithoutMargin`]). The
     /// margin is undefined where the net normal-force slope is not positive, or is too small
     /// against `Σ |C_Nα,i|` for the quotient to mean anything ([`MARGIN_CONDITION_LIMIT`]); the
     /// moment slope stays finite there and still says which way the air turns the rocket.

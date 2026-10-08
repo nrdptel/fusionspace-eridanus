@@ -139,6 +139,9 @@ line here, or on an id that is missing or done.
     narrow, reasoned entries that must each match; tests plant a mention per surface kind, drop
     an entry and widen one to a page, each failing; a test fails unless the landing page's
     first paragraph names FusionSpace HPR and each shipped product.
+    - [ ] **M0.9a2 The site's pages** (ADR-206). *Done when:* the check covers every page
+      `SUMMARY.md` renders, the records page's rows inheriting only their linked ADR's
+      allowance (a test each way), so M0.9a is met.
   - [ ] **M0.9b The design audit.** *Done when:* `docs/research/design-conformance.md` names the
     pinned commit and rows every `##` section of the 14 `product/` files as ADR-205 §2 says,
     each applying row met (a named test, or reviewed at the commit) or in an issue with a

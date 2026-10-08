@@ -11,7 +11,7 @@ use crate::error::{Error, non_negative, positive};
 ///
 /// Three ways to get one:
 ///
-/// - [`Motor::from_catalog`]: a motor from the catalog built into hpr-sim, by its designation or
+/// - [`Motor::from_catalog`]: a motor from the catalog built into HPR Sim, by its designation or
 ///   common name, with the catalog's size, masses and thrust curve.
 /// - [`Motor::from_eng`]: a RASP `.eng` file's text, as ThrustCurve.org serves it, or
 ///   [`Motor::from_rse`]: a RockSim `.rse` file's.
@@ -63,7 +63,7 @@ impl Motor {
         })
     }
 
-    /// The motor in hpr-sim's built-in catalog whose designation or common name is `name`,
+    /// The motor in HPR Sim's built-in catalog whose designation or common name is `name`,
     /// ignoring case, spaces and hyphens (`"H54"`, `"168H54-10A"`, `"k 400"`), with its first
     /// bundled thrust curve. Only motors with a bundled curve can be found: 32 today, listed on
     /// the [motor page][motor-page]. The delay is not set, whatever the designation says: give it
@@ -116,7 +116,7 @@ impl Motor {
     /// curve ([`SolidMotor::from_envelope`]). The file's warnings and its list of delays are
     /// dropped (read the file with [`hpr_motor::eng::parse`] to see them): set the delay with
     /// [`Motor::with_delay_s`]. A `.eng` file doesn't say what kind of motor it holds, so a
-    /// hybrid's file is read as a solid motor; hpr models solid motors only.
+    /// hybrid's file is read as a solid motor; HPR Sim models solid motors only.
     ///
     /// # Errors
     ///
@@ -143,7 +143,7 @@ impl Motor {
     /// converted) and thrust curve ([`SolidMotor::from_envelope`]). As with [`Motor::from_eng`],
     /// the file's warnings, its delays and the center-of-gravity column some files carry are
     /// dropped (read the file with [`hpr_motor::rse::parse`] to see them). A hybrid, which the
-    /// file's `Type` names, is refused: hpr models solid motors only.
+    /// file's `Type` names, is refused: HPR Sim models solid motors only.
     ///
     /// # Errors
     ///
@@ -160,7 +160,7 @@ impl Motor {
             .is_some_and(|kind| kind.trim().eq_ignore_ascii_case("hybrid"))
         {
             return Err(Error::Motor(MotorError::Inconsistent(format!(
-                "{} is a hybrid; hpr models solid motors only",
+                "{} is a hybrid; HPR Sim models solid motors only",
                 engine.code
             ))));
         }

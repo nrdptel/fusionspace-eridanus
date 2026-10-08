@@ -96,7 +96,7 @@ help: see the Accuracy page before trusting these numbers: https://hpr.fusionspa
 note: the file's 1 recovery device flies as OpenRocket flies it: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
 warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.84 at 1.7 s (https://github.com/nrdptel/fusionspace-eridanus/issues/67)
 warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.84 at 1.7 s (https://github.com/nrdptel/fusionspace-eridanus/issues/68)
-warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: hpr's reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
+warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 event                   time     height       speed
@@ -116,7 +116,7 @@ landing               0.7 m from the pad at 245.78 s, at 4.4 m/s
 
 <!-- cli: end -->
 
-Then fly your own: `hpr sim my-rocket.ork`. A motor hpr doesn't carry is fetched from
+Then fly your own: `hpr sim my-rocket.ork`. A motor HPR Sim doesn't carry is fetched from
 ThrustCurve.org once, then flies offline. Three guides go further:
 [Fly your .ork](https://hpr.fusionspace.co/fly-your-ork.html),
 [Pick a motor](https://hpr.fusionspace.co/pick-a-motor.html) and
@@ -147,15 +147,15 @@ lists only what exists: a "not yet" command refuses, with exit status 3, until i
 | `hpr compare` | Compare a flight log with its simulation | - | - | not yet: [M7.3](https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-3) |
 | `hpr analyze` | Read a flight log and print its readings, with no design file | a PerfectFlite `.pf2` flight log | text, JSON | available ([how to use it](https://hpr.fusionspace.co/cli.html#hpr-analyze)) |
 | `hpr diagnose` | Diagnose what went wrong in a flight from its log | - | - | not yet: [M7.4](https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-4) |
-| `hpr completions` | Print a shell completion script for hpr | - | a bash, elvish, fish, powershell or zsh script, JSON | available ([how to use it](https://hpr.fusionspace.co/cli.html#hpr-completions)) |
+| `hpr completions` | Print a shell completion script for HPR Sim | - | a bash, elvish, fish, powershell or zsh script, JSON | available ([how to use it](https://hpr.fusionspace.co/cli.html#hpr-completions)) |
 
 <!-- cli: end -->
 
 ## Accuracy at a glance
 
-What hpr has been compared with, and how it came out. A "code-to-code" line says how closely hpr
+What HPR Sim has been compared with, and how it came out. A "code-to-code" line says how closely HPR Sim
 agrees with another simulator, not which of the two is right; only the real flights are
-measurements, and on those hpr misses its target. Each number behind this table is also a
+measurements, and on those HPR Sim misses its target. Each number behind this table is also a
 check: CI fails when one moves, better or worse, until the change is accepted with a written
 reason. CI flies the RocketPy comparisons again on every change; the OpenRocket and real-flight
 ones need files CI doesn't have, so it holds their committed numbers
@@ -174,7 +174,7 @@ ones need files CI doesn't have, so it holds their committed numbers
 
 <!-- census: end -->
 
-The census doesn't count 55 more real flights, from a private collection: hpr's apogees are
+The census doesn't count 55 more real flights, from a private collection: HPR Sim's apogees are
 +9.83% above their logs on average and OpenRocket's +9.00%, both outside the 5% target
 ([private collection](docs/accuracy.md#real-flights-of-the-private-collection)).
 
@@ -218,9 +218,9 @@ done.
 
 ## Design
 
-hpr-sim is part of FusionSpace, the project owner's family of rocketry tools, and follows its
+HPR Sim is part of FusionSpace, the project owner's family of rocketry tools, and follows its
 [product system](https://github.com/nrdptel/fusionspace-design/blob/main/product/README.md) (revision A, pinned at its October 7, 2026 commit `f45454f`): the rules for how its
-tools look, word things and show how far to trust a result. It changes how hpr-sim presents
+tools look, word things and show how far to trust a result. It changes how HPR Sim presents
 numbers, not how it computes them. [The decision record](docs/decisions/0164-the-fusionspace-product-system.md)
 says what is adopted, and [M0.6, the product system milestone](docs/decisions-and-roadmap.md#m0-6),
 brought the site, the command line, the plot and the exports in line with it.
@@ -231,10 +231,10 @@ brought the site, the command line, the plot and the exports in line with it.
 - The site's theme and fonts and the command line's color styles are the system's files, copied in
   unchanged with their license lines ([third-party notices](THIRD-PARTY-NOTICES.md)); the plot
   uses its [`tokens/`](https://github.com/nrdptel/fusionspace-design/blob/main/product/tokens/) colors and no others.
-- The designation `FS-ACHERNAR · SW · TOOL 001` names hpr-sim like a part: Achernar, its internal
+- The designation `FS-ACHERNAR · SW · TOOL 001` names HPR Sim like a part: Achernar, its internal
   name, one of the stars of project Eridanus; then software, tool 1
   ([ADR-198, project Eridanus](docs/decisions/0198-the-2026-10-07-project-eridanus.md)).
-  `hpr --version`, the site's title block and every file hpr writes show it beside the version.
+  `hpr --version`, the site's title block and every file HPR Sim writes show it beside the version.
   Files stamped with the earlier `FS · SW · TOOL 005` still read.
 - Its [`review.md`](https://github.com/nrdptel/fusionspace-design/blob/main/product/review.md) checklist runs before each release.
 
