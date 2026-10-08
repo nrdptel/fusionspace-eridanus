@@ -886,10 +886,10 @@ fn rust_test_modules(text: &str) -> Vec<String> {
 fn rust_lex(text: &str) -> (Vec<(Range<usize>, Held)>, Vec<String>) {
     let mut found = Vec::new();
     let mut test_modules = Vec::new();
-    // The braces open in code; where the `#[cfg(test)]` item being read began and at what depth,
-    // if one is; and while inside such an item, the depth its body closes at.
+    // The braces open in code; what a `#[cfg(test)]` read in code is on, if anything yet; and
+    // while inside a test-only item's body, the depth that body closes at.
     let mut depth = 0_usize;
-    let mut test_item: Option<(usize, usize)> = None;
+    let mut test = Test::None;
     let mut skip_to: Option<usize> = None;
     // Each run of consecutive rustdoc lines: the Markdown read from them, and for each line where
     // its text starts in the file and in the Markdown.
@@ -918,51 +918,9 @@ fn rust_lex(text: &str) -> (Vec<(Range<usize>, Held)>, Vec<String>) {
     let mut i = 0;
     while i < bytes.len() {
         let rest = &text[i..];
-        let skipping = skip_to.is_some();
-        if rest.starts_with("#[cfg(test)]") {
-            if !skipping {
-                test_item = Some((i, depth));
-            }
-            i += "#[cfg(test)]".len();
-        } else if bytes[i] == b','
-            && test_item.is_some_and(|(start, at)| at == depth && ends_a_field(&text[start..i]))
-        {
-            // The attribute was on a field, a variant or a match arm, which ends here: nothing
-            // braced after it is test-only.
-            test_item = None;
-            i += 1;
-        } else if test_item.is_some() && (bytes[i] == b'{' || bytes[i] == b';') {
-            if bytes[i] == b'{' {
-                skip_to = Some(depth);
-                depth += 1;
-            } else if let Some((start, _)) = test_item {
-                // `mod name;` after the attribute (and any others) declares a file of its own.
-                let item = text[start..i].rsplit(']').next().unwrap_or("").trim();
-                if let Some(name) = item
-                    .strip_prefix("pub(crate) mod ")
-                    .or_else(|| item.strip_prefix("pub(super) mod "))
-                    .or_else(|| item.strip_prefix("pub mod "))
-                    .or_else(|| item.strip_prefix("mod "))
-                {
-                    test_modules.push(name.trim().to_owned());
-                }
-            }
-            test_item = None;
-            i += 1;
-        } else if bytes[i] == b'{' {
-            depth += 1;
-            i += 1;
-        } else if bytes[i] == b'}' {
-            depth = depth.saturating_sub(1);
-            if skip_to == Some(depth) {
-                skip_to = None;
-            }
-            // A last field or variant under the attribute ends with its enclosing braces.
-            if test_item.is_some_and(|(_, at)| depth < at) {
-                test_item = None;
-            }
-            i += 1;
-        } else if rest.starts_with("//") {
+        // Inside a test-only item: its header up to its body or its `;`, then its body.
+        let skipping = skip_to.is_some() || matches!(test, Test::Item { .. });
+        if rest.starts_with("//") {
             let line_end = rest.find('\n').map_or(text.len(), |at| i + at);
             let is_doc =
                 (rest.starts_with("///") && !rest.starts_with("////")) || rest.starts_with("//!");
@@ -1051,38 +1009,147 @@ fn rust_lex(text: &str) -> (Vec<(Range<usize>, Held)>, Vec<String>) {
                 }
             }
         } else {
-            i += rest.chars().next().map_or(1, char::len_utf8);
+            // Code: the only place a `#[cfg(test)]`, a keyword or a bracket counts.
+            i = code(text, i, depth, &mut test, &mut test_modules, skipping);
+            match bytes[i - 1] {
+                b'{' => {
+                    if test == Test::Body {
+                        skip_to = Some(depth);
+                        test = Test::None;
+                    }
+                    depth += 1;
+                }
+                b'}' => {
+                    depth = depth.saturating_sub(1);
+                    if skip_to == Some(depth) {
+                        skip_to = None;
+                    }
+                }
+                _ => {}
+            }
         }
     }
     (found, test_modules)
 }
 
-/// Whether a comma after `header`, the text from a `#[cfg(test)]` on, ends what the attribute is on:
-/// a field, a variant or a match arm. It doesn't when the comma is inside brackets (an attribute's
-/// arguments, a tuple) or follows an item's keyword (a function's parameters, an `impl`'s
-/// generics), where the item goes on to its body.
-fn ends_a_field(header: &str) -> bool {
-    const ITEMS: [&str; 13] = [
-        "fn",
-        "impl",
-        "mod",
-        "struct",
-        "enum",
-        "union",
-        "trait",
-        "use",
-        "const",
-        "static",
-        "type",
-        "extern",
-        "macro_rules",
-    ];
-    let open = header.matches(['(', '[']).count();
-    let closed = header.matches([')', ']']).count();
-    open == closed
-        && !header
-            .split(|c: char| !(c.is_alphanumeric() || c == '_' || c == '!'))
-            .any(|word| ITEMS.contains(&word.trim_end_matches('!')))
+/// What a `#[cfg(test)]` the Rust lexer has read is on.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Test {
+    /// No attribute, or one on something that isn't an item: a field, a variant, a match arm or a
+    /// statement, which is read like the code around it.
+    None,
+    /// The attribute, at the brace depth `depth`, before the first word after it: `brackets` are
+    /// the `[` and `(` open since, as in another attribute's arguments.
+    Attribute { depth: usize, brackets: usize },
+    /// An item, named by its keyword: test-only to the end of its body (its first `{` at `depth`,
+    /// to the matching `}`) or to its `;`. `name_at` is where a `mod`'s name begins.
+    Item {
+        depth: usize,
+        brackets: usize,
+        name_at: Option<usize>,
+    },
+    /// The `{` just read opens a test-only item's body.
+    Body,
+}
+
+/// The words that begin an item, which a `#[cfg(test)]` before them makes test-only whole.
+const ITEM_KEYWORDS: [&str; 13] = [
+    "fn",
+    "impl",
+    "mod",
+    "struct",
+    "enum",
+    "union",
+    "trait",
+    "use",
+    "const",
+    "static",
+    "type",
+    "extern",
+    "macro_rules",
+];
+
+/// The words that may come before an item's keyword.
+const ITEM_MODIFIERS: [&str; 4] = ["pub", "unsafe", "async", "default"];
+
+/// Reads the code at byte `at` of `text` (a word, the attribute `#[cfg(test)]`, or one character)
+/// at the brace depth `depth`, updates `test` with it, and returns the byte after it. Strings,
+/// comments and character literals never get here, so nothing in them counts. A `mod name;` under
+/// the attribute adds `name` to `test_modules`. While `skipping`, a new attribute is not read.
+fn code(
+    text: &str,
+    at: usize,
+    depth: usize,
+    test: &mut Test,
+    test_modules: &mut Vec<String>,
+    skipping: bool,
+) -> usize {
+    const ATTRIBUTE: &str = "#[cfg(test)]";
+    let rest = &text[at..];
+    if rest.starts_with(ATTRIBUTE) {
+        if !skipping {
+            *test = Test::Attribute { depth, brackets: 0 };
+        }
+        return at + ATTRIBUTE.len();
+    }
+    let Some(c) = rest.chars().next() else {
+        return text.len();
+    };
+    if c.is_alphabetic() || c == '_' {
+        let len = rest
+            .find(|c: char| !(c.is_alphanumeric() || c == '_'))
+            .unwrap_or(rest.len());
+        let word = &rest[..len];
+        if let Test::Attribute {
+            depth: at_depth,
+            brackets: 0,
+        } = *test
+        {
+            if ITEM_KEYWORDS.contains(&word) {
+                *test = Test::Item {
+                    depth: at_depth,
+                    brackets: 0,
+                    name_at: (word == "mod").then_some(at + len),
+                };
+            } else if !ITEM_MODIFIERS.contains(&word) {
+                // A field, a variant, an arm or a statement: read like the code around it.
+                *test = Test::None;
+            }
+        }
+        return at + len;
+    }
+    let next = at + c.len_utf8();
+    match test {
+        Test::Attribute { brackets, .. } => match c {
+            '[' | '(' => *brackets += 1,
+            ']' | ')' => *brackets = brackets.saturating_sub(1),
+            _ if *brackets == 0 && !(c.is_whitespace() || c == '#' || c == '!') => {
+                // A match arm's pattern, such as `9`, or anything else that isn't an item.
+                *test = Test::None;
+            }
+            _ => {}
+        },
+        Test::Item {
+            depth: at_depth,
+            brackets,
+            name_at,
+        } => match c {
+            '[' | '(' => *brackets += 1,
+            ']' | ')' => *brackets = brackets.saturating_sub(1),
+            '{' if depth == *at_depth => *test = Test::Body,
+            ';' if depth == *at_depth && *brackets == 0 => {
+                // `mod name;` declares a file of its own, test-only too.
+                if let Some(from) = *name_at {
+                    test_modules.push(text[from..at].trim().to_owned());
+                }
+                *test = Test::None;
+            }
+            '}' if depth <= *at_depth => *test = Test::None,
+            _ => {}
+        },
+        Test::None | Test::Body => {}
+    }
+    next
 }
 
 /// The files of the module `name` declared in the Rust file `parent`: `name.rs` and
@@ -1401,6 +1468,32 @@ mod tests {
                 "fn g(x: u8) -> &'static str { match x {\n #[cfg(test)]\n 9 => \"\",\n _ => { \"hpr reads it\" } } }\n"
                     .to_owned(),
             ),
+            // What a test-only arm holds in strings, comments or casts doesn't make it an item.
+            (
+                Kind::Rust,
+                "fn g(x: u8) -> &'static str { match x {\n #[cfg(test)]\n 9 => \"unknown type\",\n _ => { \"hpr reads it\" } } }\n"
+                    .to_owned(),
+            ),
+            (
+                Kind::Rust,
+                "fn g(x: u8) -> &'static str { match x {\n #[cfg(test)]\n // use this\n 9 => 1,\n _ => { \"hpr reads it\" } } }\n"
+                    .to_owned(),
+            ),
+            (
+                Kind::Rust,
+                "fn g(x: u8) -> &'static str { match x {\n #[cfg(test)]\n 9 => f as fn(u8) -> u8,\n _ => { \"hpr reads it\" } } }\n"
+                    .to_owned(),
+            ),
+            (
+                Kind::Rust,
+                "fn g(x: u8) -> &'static str { match x {\n #[cfg(test)]\n 9 => h(\")\"),\n _ => { \"hpr reads it\" } } }\n"
+                    .to_owned(),
+            ),
+            (
+                Kind::Rust,
+                "fn g(x: u8) -> &'static str { match x {\n #[cfg(test)]\n 9 => h(')'),\n _ => { \"hpr reads it\" } } }\n"
+                    .to_owned(),
+            ),
             // Block rustdoc is rustdoc.
             (Kind::Rust, "/** Flies as hpr does. */\nfn f() {}\n".to_owned()),
             (Kind::Rust, format!("/*! The {old} library. */\n")),
@@ -1422,14 +1515,16 @@ mod tests {
         }
     }
 
-    /// Test-only code ships nothing: an item under `#[cfg(test)]` is skipped, and a module file
-    /// declared under it is not a surface.
+    /// Test-only code ships nothing: an item under `#[cfg(test)]` (named by its keyword) is
+    /// skipped, and a module file declared under it is not a surface. A field, a variant or a match
+    /// arm under it is read like the code around it, erring strict.
     #[test]
     fn test_only_code_is_not_read() {
         let skipped = [
             "#[cfg(test)]\nmod tests {\n    fn f() -> &'static str { \"hpr reads\" }\n}\n",
             "#[cfg(test)]\n#[allow(dead_code)]\nfn probe() -> &'static str { \"hpr reads\" }\n",
-            "fn g(x: u8) -> u8 { match x {\n #[cfg(test)]\n 9 => { let _ = \"hpr reads\"; 1 }\n _ => 0 } }\n",
+            // An item is skipped to its `;`, past the brackets of its type.
+            "#[cfg(test)]\npub(crate) const X: [&str; 2] = [\"hpr reads\", \"b\"];\n",
             // A comma in the item's own header doesn't end it.
             "#[cfg(test)]\nfn helper(a: u8, b: u8) -> &'static str { \"hpr reads\" }\n",
             "#[cfg(test)]\n#[allow(dead_code, unused)]\nfn probe() -> &'static str { \"hpr reads\" }\n",

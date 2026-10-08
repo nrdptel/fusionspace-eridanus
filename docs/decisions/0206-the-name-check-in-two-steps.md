@@ -42,7 +42,11 @@ site is rebuilt from `main` on every merge.
      `hpr_cli::command()`, a flag or a `{}` placeholder follows, or when it is the whole literal
      (a command or extension name);
    - an item under `#[cfg(test)]`, and a module file declared under it (`mod tests;`), is compiled
-     only for tests and ships nothing, so neither is read;
+     only for tests and ships nothing, so neither is read. An item is what the attribute's first
+     word in code (after other attributes and `pub`, `unsafe`, `async`) names by its keyword, such
+     as `fn`, `mod`, `impl` or `const`, read to the end of its body or its `;`; a field, a variant,
+     a match arm or a statement under the attribute is read like the code around it, erring strict.
+     Strings and comments never decide it;
    - an unpublished crate's description is checked too, since it costs nothing.
 5. **The allowlist's entries are narrow by rule** (chosen): each gives at least 8 bytes of text
    beyond the mentions in it, so an entry names a place and not just the name, and states how many
