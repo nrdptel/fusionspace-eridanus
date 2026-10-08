@@ -487,6 +487,7 @@ fn allowlist_problems(allow: &[Allow], files: &[String]) -> Vec<String> {
 
 /// The problems in the file `path` of kind `kind` with the text `text`: each mention that no
 /// entry of `allow` covers. `used` counts, for each entry, the mentions it covered.
+#[cfg(test)]
 fn problems_in(
     path: &str,
     kind: Kind,
@@ -719,7 +720,7 @@ fn is_the_command(literal: &str, at: usize) -> bool {
         .chars()
         .take_while(|c| c.is_ascii_alphanumeric() || *c == '-')
         .collect();
-    subcommands().iter().any(|name| *name == word)
+    subcommands().contains(&word)
 }
 
 /// The command line's subcommands, by name.
@@ -911,8 +912,12 @@ fn rust_lex(text: &str) -> (Vec<(Range<usize>, Held)>, Vec<String>) {
         } else if bytes[i] == b'\'' {
             // A character literal, or a lifetime or label, which has no closing quote.
             let after = &text[i + 1..];
-            if after.starts_with('\\') {
-                i += 1 + after[1..].find('\'').map_or(after.len(), |at| at + 2);
+            if let Some(escaped) = after.strip_prefix('\\') {
+                // The escaped character (`'`, `n`, `u`, …), then the closing quote.
+                i = escaped
+                    .get(1..)
+                    .and_then(|rest| rest.find('\''))
+                    .map_or(text.len(), |at| i + at + 4);
             } else {
                 let mut chars = after.char_indices();
                 match (chars.next(), chars.next()) {
@@ -1164,7 +1169,7 @@ mod tests {
     fn a_mention_planted_in_each_kind_of_surface_fails() {
         let old = old();
         let nbh = old.replace('-', "\u{2011}");
-        let planted: [(Kind, String); 13] = [
+        let planted: [(Kind, String); 14] = [
             (Kind::Markdown, format!("# Title\n\nWhat {old} is.\n")),
             (Kind::Markdown, "So hpr's apogees are low.\n".to_owned()),
             (Kind::Markdown, format!("See [the page](cli.md#{old}-x).\n")),
@@ -1186,6 +1191,12 @@ mod tests {
             (
                 Kind::Rust,
                 "fn f() -> &'static str { \"a format hpr reads\" }\n".to_owned(),
+            ),
+            // After an escaped quote's character literal, a string is still read as one.
+            (
+                Kind::Rust,
+                "fn f() -> [char; 2] { ['\\'','\"'] }\nfn g() -> &'static str { \"a format hpr reads\" }\n"
+                    .to_owned(),
             ),
             (
                 Kind::Python,

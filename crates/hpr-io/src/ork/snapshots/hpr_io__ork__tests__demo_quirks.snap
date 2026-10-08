@@ -107,7 +107,7 @@ expression: snapshot_of(&design)
     {
       "at": "openrocket/rocket",
       "kind": "skipped",
-      "says": "1 `parallelstage` were left out: tags hpr does not read where they are written (a parallel stage is read only inside a body tube)"
+      "says": "1 `parallelstage` were left out: tags HPR Sim does not read where they are written (a parallel stage is read only inside a body tube)"
     },
     {
       "at": "openrocket/rocket/stage[0]/nosecone[0]",

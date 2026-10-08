@@ -270,7 +270,7 @@ landing point of a 3 km parachute descent 0.37 m east. See
 
 A commercial off-the-shelf motor: a solid rocket motor bought from a manufacturer, single-use or as
 a reload for a reusable case. hpr-sim covers only these for now, and bundles 32 of their thrust
-curves, listed under [The bundled motors](physics/motor.md#the-bundled-motors). See [Solid motors](physics/motor.md) and [Start here](start-here.md#what-hpr-sim-is).
+curves, listed under [The bundled motors](physics/motor.md#the-bundled-motors). See [Solid motors](physics/motor.md) and [Start here](start-here.md#what-the-simulator-is).
 
 
 ## Covariance

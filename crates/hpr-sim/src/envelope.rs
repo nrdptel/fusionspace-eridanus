@@ -453,7 +453,7 @@ mod tests {
         assert_eq!(
             flag.message(),
             "while a motor burns, the pitching moment turns the rocket away from its path (C_mα \
-             +43.9 per radian at 3.00 s) where hpr can give no static margin: the rocket is \
+             +43.9 per radian at 3.00 s) where HPR Sim can give no static margin: the rocket is \
              unstable under power, so its apogee is not a prediction"
         );
         let json = serde_json::to_value(flag).unwrap();

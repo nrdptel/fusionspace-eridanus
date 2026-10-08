@@ -589,7 +589,7 @@ mod tests {
         );
         let messages: Vec<&str> = warnings.iter().map(|w| w.message.as_str()).collect();
         assert!(messages.contains(
-            &"its curve file gives a length of 100 mm; the catalog gives 110 mm, which hpr flies \
+            &"its curve file gives a length of 100 mm; the catalog gives 110 mm, which HPR Sim flies \
               and this file takes"
         ));
     }
@@ -623,7 +623,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             [
                 "its curve file gives a propellant mass of 0.0169 kg; the catalog gives 0.0111 \
-                 kg, which hpr flies and this file takes"
+                 kg, which HPR Sim flies and this file takes"
             ]
         );
         assert_eq!(written(&motors), 0.0111);
