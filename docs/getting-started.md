@@ -19,9 +19,8 @@ some Rust, but no knowledge of this project.
 
 ## Install a release
 
-**Release 0.1.0 is built and checked, but not published yet. Until it is, build HPR Sim from the
-repository, as the rest of this page does.** Once it is published, each part installs without a
-copy of the repository:
+**Release 0.1.0 is out.** Each part installs without a copy of the repository; the rest of this
+page builds HPR Sim from the repository instead, which works too:
 
 - **The command line, `hpr`.** Download the archive for your system from
   [the releases page](https://github.com/nrdptel/fusionspace-eridanus/releases), unpack it, and put `hpr` on
