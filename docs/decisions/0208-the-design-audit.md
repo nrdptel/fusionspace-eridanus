@@ -17,7 +17,7 @@ for each re-checked every row: they reproduced each defect and opened each named
 **Decision.**
 
 1. **The table's form.** Five columns: the file, the section as written, the surfaces it
-   governs today (site, CLI, exports, plot, README, banners, or `—`), the status and what holds
+   governs today (site, CLI, exports, plot, README, banners, or none), the status and what holds
    it. There are four statuses. ADR-205 named three; **n/a** is added, with its reason, for a section that
    governs nothing the project ships or will ship: the system's reading order, its sources,
    commit messages, the company's own site and a rocket's roll paint.

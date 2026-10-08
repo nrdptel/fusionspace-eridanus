@@ -11,7 +11,7 @@ Pinned commit: `f45454f44669cc049222f2ab19eb648796e56a52`, as `validation/refs.l
 
 - **Applies to:** the surfaces that ship today: the docs **site**, the **CLI** (`hpr`), the files it
   **exports** and their stamps, the **plot** `hpr sim --plot` draws, the **README**s and the
-  **banners**; `—` when the section governs none of them.
+  **banners**; `none` when the section governs none of them.
 - **Status:** **met**, held by a named test (`file.rs::test`) or "reviewed at" the commit with what was
   read; **not met**, with its issue and the milestone that will meet it; **later**, for a surface that
   doesn't ship yet, with the milestone that will apply it; **n/a**, for what the project never ships.
@@ -22,7 +22,7 @@ Pinned commit: `f45454f44669cc049222f2ab19eb648796e56a52`, as `validation/refs.l
 
 | File | Section | Applies to | Status | Held by |
 |---|---|---|---|---|
-| `README.md` | Read in this order | — | n/a | a reading order for the system's own files, each audited in its own rows |
+| `README.md` | Read in this order | none | n/a | a reading order for the system's own files, each audited in its own rows |
 | `README.md` | The idea in one paragraph | site, CLI, exports, plot | not met | #384, #379; M0.9c, M0.9d: a title block on one page of 62; results with no trust note |
 | `README.md` | Files | site, CLI, plot | met | `xtask/src/site/theme.rs::the_committed_theme_passes`, `crates/hpr-cli/tests/style.rs::the_styles_are_the_product_systems`: copied files byte for byte at the pin |
 | `README.md` | Pointing a project here | README, site | not met | #387, #385; M0.9d, M0.9e: the README's adaptation drops foundations; images outside the tokens |
@@ -52,19 +52,19 @@ Pinned commit: `f45454f44669cc049222f2ab19eb648796e56a52`, as `validation/refs.l
 | `writing.md` | Names | site, README, CLI, banners | not met | #386; M0.9e: RSO never spelled out; en dashes in joined names |
 | `writing.md` | Mechanics | site, README, CLI, plot | not met | #386; M0.9e: British spellings (`calibre` 446 times on the site and README) |
 | `writing.md` | READMEs and docs | README, site | not met | #387; M0.9e: status, install, what doesn't work and version missing |
-| `writing.md` | Commit messages | — | n/a | commits are not a surface that ships; the squash commits follow it |
+| `writing.md` | Commit messages | none | n/a | commits are not a surface that ships; the squash commits follow it |
 | `review.md` | The FusionSpace test | site, CLI, exports, plot, README | not met | #384, #380, #379, #378, #383, #377; M0.9c, M0.9d: six of the eight answers are no; see the principles' rows |
 | `review.md` | Template smells | site, README, plot | not met | #383, #385; M0.9d: a colored side border, soft shadows, default sans in images |
 | `review.md` | Before release | site, CLI, exports, plot, README | not met | #385, #380, #379, #378, #386, #377, #381; M0.9c, M0.9d, M0.9e: 0.1's lists: tokens, as-of dates, trust, units, spelling, stderr, errors |
-| `review.md` | Sources | — | n/a | the system's own bibliography; it sets no rule |
+| `review.md` | Sources | none | n/a | the system's own bibliography; it sets no rule |
 | `data.md` | Numbers | site, CLI, plot, README | not met | #386, #382, #379; M0.9c, M0.9e: hyphen-minus, ungrouped and over-precise numbers; units that wrap |
 | `data.md` | Copying and typing numbers | CLI, exports | not met | #381, #380; M0.9c: typed numbers not trimmed or read with separators; non-ASCII JSON |
 | `data.md` | Units for rocketry | CLI, plot, exports, README, site | not met | #378; M0.9c: SI alone in `hpr sim`, the plot and the exports |
 | `data.md` | Readouts | CLI | not met | #379; M0.9c: values not marked simulated, with no spread |
 | `data.md` | Tables | site, plot, CLI, README | not met | #386; M0.9e: 27 of 333 site tables right-align numbers; code identifiers as heads |
 | `data.md` | Charts | plot, site | not met | #382, #379; M0.9c: no spread band, banking or data table; 10 px balloons |
-| `data.md` | Maps | — | later | M9.4, the drift on the field; no surface draws a map today |
-| `data.md` | Live telemetry | — | later | M13.1, the ground station; nothing live ships |
+| `data.md` | Maps | none | later | M9.4, the drift on the field; no surface draws a map today |
+| `data.md` | Live telemetry | none | later | M13.1, the ground station; nothing live ships |
 | `data.md` | Files and exports | exports | not met | #380, #378; M0.9c: no as-of date; CSV units not in brackets; no US units |
 | `cli.md` | Output | CLI | not met | #377, #381; M0.9c: diagnostics on stdout; no progress; plain table headers |
 | `cli.md` | Color | CLI | not met | #381; M0.9c: the Heading and Literal roles unused |
@@ -80,57 +80,57 @@ Pinned commit: `f45454f44669cc049222f2ab19eb648796e56a52`, as `validation/refs.l
 | `web.md` | Components | site | not met | #384; M0.9d: notes as blockquotes, without the signal-word strip |
 | `web.md` | Theme | site | not met | #383; M0.9d: no Paper and Void theme-color, no forced-colors rule |
 | `web.md` | Accessibility | site | not met | #383, #382; M0.9c, M0.9d: default focus ring, two h1, no contrast check; the plot without a table |
-| `web.md` | Progressive web apps | — | later | M9.3, the web PWA |
-| `web.md` | Notifications | — | later | M9.4, the pad-day app |
+| `web.md` | Progressive web apps | none | later | M9.3, the web PWA |
+| `web.md` | Notifications | none | later | M9.4, the pad-day app |
 | `web.md` | Performance | site | not met | #383; M0.9d: no metric-matched fallback faces |
 | `web.md` | Print | site | not met | #383; M0.9d: dark print colors, no link addresses, rows that split |
 | `web.md` | Documentation sites | site | not met | #383, #384; M0.9d: code colors outside the theme; pages that don't open with trust |
-| `web.md` | fusionspace.co | — | n/a | the company's own site, not built from this repository |
-| `desktop.md` | Choosing a toolkit | — | later | M9.0, the UI architecture decision |
-| `desktop.md` | What the platform owns | — | later | M9.1, the desktop app |
-| `desktop.md` | What FusionSpace owns | — | later | M9.1, the desktop app |
-| `desktop.md` | Dense engineering views | — | later | M9.1, the desktop app |
-| `desktop.md` | Documents | — | later | M9.1, the desktop app |
-| `desktop.md` | Hardware: serial, USB and radios | — | later | M9.1, the desktop app |
-| `desktop.md` | Icons and packaging | — | later | M9.1, the desktop app |
-| `desktop.md` | Updates and signing | — | later | M9.1, the desktop app |
-| `desktop.md` | Accessibility | — | later | M9.1, the desktop app |
-| `desktop.md` | Checklist | — | later | M9.1, the desktop app |
-| `mobile.md` | What the platform owns | — | later | M9.4, the mobile app |
-| `mobile.md` | What FusionSpace owns | — | later | M9.4, the mobile app |
-| `mobile.md` | Screens | — | later | M9.4, the mobile app |
-| `mobile.md` | Field use | — | later | M9.4, the mobile app |
-| `mobile.md` | Bluetooth devices | — | later | M9.4, the mobile app |
-| `mobile.md` | Glanceable surfaces | — | later | M9.4, the mobile app |
-| `mobile.md` | App icons | — | later | M9.4, the mobile app |
-| `mobile.md` | Real screens | — | later | M9.4, the mobile app |
-| `mobile.md` | Checklist | — | later | M9.4, the mobile app |
-| `watch.md` | What a watch never does | — | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
-| `watch.md` | What the platform owns | — | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
-| `watch.md` | What FusionSpace owns | — | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
-| `watch.md` | Screens | — | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
-| `watch.md` | Always On and ambient | — | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
-| `watch.md` | Complications, Smart Stack and tiles | — | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
-| `watch.md` | The wrist language | — | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
-| `watch.md` | Staying alive and connected | — | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
-| `watch.md` | Real screens | — | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
-| `watch.md` | Checklist | — | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
-| `embedded.md` | Arming and safety | — | later | M13.3, the flight computer's logic |
-| `embedded.md` | Energetics behavior | — | later | M13.3, the flight computer's logic |
-| `embedded.md` | Channels: three states, and UNFIRED | — | later | M13.3, the flight computer's logic |
-| `embedded.md` | Beeps | — | later | M13.3, the flight computer's logic |
-| `embedded.md` | Lights | — | later | M13.4, the avionics hardware |
-| `embedded.md` | Screens | — | later | M13.4, the avionics hardware |
-| `embedded.md` | Buttons and switches | — | later | M13.4, the avionics hardware |
-| `embedded.md` | Ground stations and pad boxes | — | later | M13.1, the ground station |
-| `embedded.md` | Serial and USB output | — | later | M13.3, the flight computer's logic |
-| `hardware.md` | Designations | — | later | M13.4, the avionics hardware |
-| `hardware.md` | PCBs | — | later | M13.4, the avionics hardware |
-| `hardware.md` | Enclosures | — | later | M13.4, the avionics hardware |
-| `hardware.md` | Cables and connectors | — | later | M13.4, the avionics hardware |
-| `hardware.md` | Drawings | — | later | M8.3b, the parts' drawings, then M13.4's |
-| `rockets.md` | Color | — | later | M12.1, the parachute gores (canopy colors) |
-| `rockets.md` | Roll pattern | — | n/a | paint on a physical airframe, for reading roll on video; the project makes no airframes |
-| `rockets.md` | Markings | — | later | M0.7a, whose guides' figures are the first to draw CG and CP marks |
-| `rockets.md` | Flight card | — | later | M9.4, whose pad-day mode prints the flight card (ADR-163) |
-| `rockets.md` | Pad checklist | — | later | M6.8, the field kit's checklists |
+| `web.md` | fusionspace.co | none | n/a | the company's own site, not built from this repository |
+| `desktop.md` | Choosing a toolkit | none | later | M9.0, the UI architecture decision |
+| `desktop.md` | What the platform owns | none | later | M9.1, the desktop app |
+| `desktop.md` | What FusionSpace owns | none | later | M9.1, the desktop app |
+| `desktop.md` | Dense engineering views | none | later | M9.1, the desktop app |
+| `desktop.md` | Documents | none | later | M9.1, the desktop app |
+| `desktop.md` | Hardware: serial, USB and radios | none | later | M9.1, the desktop app |
+| `desktop.md` | Icons and packaging | none | later | M9.1, the desktop app |
+| `desktop.md` | Updates and signing | none | later | M9.1, the desktop app |
+| `desktop.md` | Accessibility | none | later | M9.1, the desktop app |
+| `desktop.md` | Checklist | none | later | M9.1, the desktop app |
+| `mobile.md` | What the platform owns | none | later | M9.4, the mobile app |
+| `mobile.md` | What FusionSpace owns | none | later | M9.4, the mobile app |
+| `mobile.md` | Screens | none | later | M9.4, the mobile app |
+| `mobile.md` | Field use | none | later | M9.4, the mobile app |
+| `mobile.md` | Bluetooth devices | none | later | M9.4, the mobile app |
+| `mobile.md` | Glanceable surfaces | none | later | M9.4, the mobile app |
+| `mobile.md` | App icons | none | later | M9.4, the mobile app |
+| `mobile.md` | Real screens | none | later | M9.4, the mobile app |
+| `mobile.md` | Checklist | none | later | M9.4, the mobile app |
+| `watch.md` | What a watch never does | none | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
+| `watch.md` | What the platform owns | none | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
+| `watch.md` | What FusionSpace owns | none | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
+| `watch.md` | Screens | none | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
+| `watch.md` | Always On and ambient | none | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
+| `watch.md` | Complications, Smart Stack and tiles | none | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
+| `watch.md` | The wrist language | none | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
+| `watch.md` | Staying alive and connected | none | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
+| `watch.md` | Real screens | none | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
+| `watch.md` | Checklist | none | later | M9.4, which decides the watch link (ADR-191); a watch app follows it |
+| `embedded.md` | Arming and safety | none | later | M13.3, the flight computer's logic |
+| `embedded.md` | Energetics behavior | none | later | M13.3, the flight computer's logic |
+| `embedded.md` | Channels: three states, and UNFIRED | none | later | M13.3, the flight computer's logic |
+| `embedded.md` | Beeps | none | later | M13.3, the flight computer's logic |
+| `embedded.md` | Lights | none | later | M13.4, the avionics hardware |
+| `embedded.md` | Screens | none | later | M13.4, the avionics hardware |
+| `embedded.md` | Buttons and switches | none | later | M13.4, the avionics hardware |
+| `embedded.md` | Ground stations and pad boxes | none | later | M13.1, the ground station |
+| `embedded.md` | Serial and USB output | none | later | M13.3, the flight computer's logic |
+| `hardware.md` | Designations | none | later | M13.4, the avionics hardware |
+| `hardware.md` | PCBs | none | later | M13.4, the avionics hardware |
+| `hardware.md` | Enclosures | none | later | M13.4, the avionics hardware |
+| `hardware.md` | Cables and connectors | none | later | M13.4, the avionics hardware |
+| `hardware.md` | Drawings | none | later | M8.3b, the parts' drawings, then M13.4's |
+| `rockets.md` | Color | none | later | M12.1, the parachute gores (canopy colors) |
+| `rockets.md` | Roll pattern | none | n/a | paint on a physical airframe, for reading roll on video; the project makes no airframes |
+| `rockets.md` | Markings | none | later | M0.7a, whose guides' figures are the first to draw CG and CP marks |
+| `rockets.md` | Flight card | none | later | M9.4, whose pad-day mode prints the flight card (ADR-163) |
+| `rockets.md` | Pad checklist | none | later | M6.8, the field kit's checklists |

@@ -61,7 +61,7 @@ const FILES: [&str; 14] = [
 /// The surfaces that ship today, as the "Applies to" column names them.
 const SURFACES: [&str; 6] = ["site", "CLI", "exports", "plot", "README", "banners"];
 /// The "Applies to" cell of a row that governs no surface shipping today.
-const NONE: &str = "—";
+const NONE: &str = "none";
 /// The table's header row.
 const HEADER: &str = "| File | Section | Applies to | Status | Held by |";
 /// What introduces the pinned commit in the table.
@@ -480,7 +480,7 @@ mod tests {
     fn rows_ok() -> String {
         "| `cli.md` | Output | CLI | met | `xtask/src/cli.rs::help_fits` |\n\
          | `cli.md` | Color | CLI, site | not met | #401, M0.7a: the colour is off |\n\
-         | `watch.md` | Screens | — | later | M9.4 |\n"
+         | `watch.md` | Screens | none | later | M9.4 |\n"
             .to_owned()
     }
 
@@ -504,7 +504,7 @@ mod tests {
 
     #[test]
     fn a_missing_section_fails() {
-        let rows = rows_ok().replace("| `watch.md` | Screens | — | later | M9.4 |\n", "");
+        let rows = rows_ok().replace("| `watch.md` | Screens | none | later | M9.4 |\n", "");
         let problems = run(&table(&rows), SECTIONS_OK, COMMIT);
         assert_eq!(problems.len(), 1, "{problems:?}");
         assert!(problems[0].contains("no row for `watch.md` `Screens`"));
@@ -517,7 +517,7 @@ mod tests {
             rows_ok()
         );
         assert!(run(&table(&extra), SECTIONS_OK, COMMIT)[0].contains("has no section `Banner`"));
-        let twice = format!("{}| `watch.md` | Screens | — | later | M9.4 |\n", rows_ok());
+        let twice = format!("{}| `watch.md` | Screens | none | later | M9.4 |\n", rows_ok());
         assert!(run(&table(&twice), SECTIONS_OK, COMMIT)[0].contains("has a row already"));
         let ok = rows_ok();
         let lines: Vec<&str> = ok.lines().collect();
@@ -559,7 +559,7 @@ mod tests {
                 "a review names the pinned commit",
             ),
             (
-                "| `cli.md` | Output | — | met | reviewed at `f45454f`: fine |",
+                "| `cli.md` | Output | none | met | reviewed at `f45454f`: fine |",
                 "met, on no surface",
             ),
             (
@@ -579,11 +579,11 @@ mod tests {
                 "later governs no surface that ships",
             ),
             (
-                "| `cli.md` | Output | — | later | an app |",
+                "| `cli.md` | Output | none | later | an app |",
                 "later needs the milestone",
             ),
             (
-                "| `cli.md` | Output | — | n/a | none |",
+                "| `cli.md` | Output | none | n/a | none |",
                 "n/a needs its reason",
             ),
             (
@@ -644,7 +644,7 @@ mod tests {
         assert_eq!(check_refs(SECTIONS_OK, &files, &text), Vec::<String>::new());
         let renamed = |file: &str| -> Result<String, String> {
             if file == "cli.md" {
-                Ok("## Output\n## Colour\n".to_owned())
+                Ok("## Output\n## Hue\n".to_owned())
             } else {
                 text(file)
             }
