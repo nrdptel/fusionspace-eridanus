@@ -213,7 +213,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 - [ ] **M1.14 Accuracy inside the envelope** (ADR-143 §6, ADR-220). The core band (Mach 0–2.5)
   first, then the extended band in M1.14h; angle of attack ≤ 15°, high angles M1.14e's. *Done
   when:* real flights meet the 5% mean apogee target, hpr is at least as accurate as OpenRocket on
-  the same real flights, and on the private collection's flights both fly its mean absolute
+  the same real flights, and on the private collection's flights all three fly its mean absolute
   apogee error is below OpenRocket 24.12's and its newest release's (ADR-212), its mean bias
   within 3%; and M1.8's Cd bullet is met or its gap re-measured in an ADR.
   - [ ] **M1.14b References, Mach 1.5–2.5.** *Done when:* each in ADR-143 §6b reported or refused.

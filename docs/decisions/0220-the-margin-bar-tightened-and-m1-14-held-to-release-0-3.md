@@ -1,7 +1,7 @@
 # ADR-220: The margin bar tightened to 0.2 calibres, M1.14 held to Release 0.3's target (2026-10-09)
 
 - **Status:** accepted; tightens the census's margin and center-of-mass bar ([ADR-084][adr-084]) and M1.14's done-when ([ADR-143][adr-143] §6), toward [ADR-209][adr-209] §7 and [ADR-212][adr-212]
-- **Summary:** the bar a stability margin or a center of mass is judged by, against OpenRocket, drops from 0.5 to 0.2 calibres. Every difference measured on both comparison sets but one is within 0.111 calibres, so the old bar let a change make the worst agreement four times worse without any row changing its standing; the new one catches a doubling. No row changes its standing: margins within it on 52 of 53 public flights and 35 of 35 private, centers of mass on 54 of 54 and 35 of 35. M1.14, the accuracy milestone, now also needs its error on the private flight collection below OpenRocket's, 24.12's and its newest release's, with its bias within 3%: what Release 0.3 needs, asked of the milestone meant to deliver it.
+- **Summary:** the bar a stability margin or a center of mass is judged by, against OpenRocket, drops from 0.5 to 0.2 calibres. Every difference measured on both comparison sets but one is within 0.111 calibres, so the old bar sat four times past the worst agreement: "within 0.5 calibres" claimed far less than the codes achieve. The bar also sets how far each row may move before the census asks for a written reason, and that slack shrinks from 0.0005 to 0.0002 calibres. No row changes its standing: margins within it on 52 of 53 public flights and 35 of 35 private, centers of mass on 54 of 54 and 35 of 35. M1.14, the accuracy milestone, now also needs its error on the private flight collection below OpenRocket's, 24.12's and its newest release's, with its bias within 3%: the comparison Release 0.3 makes, asked on all the collection's flights of the milestone meant to deliver it.
 
 [adr-084]: 0084-the-accuracy-census-the-reports-numbers-held-to.md
 [adr-143]: 0143-the-operating-envelope-and-a-stop-rule-for.md
@@ -30,12 +30,15 @@ lines of `openrocket-flights.md` and `openrocket-library-flights.md` print. One 
 flight's margin is withheld, not judged; the examples report's summary line compares 53 centers of
 mass where the census judges 54, with the same range.) The one
 public margin at −1.08 is over either bar and stays a counted miss. Every other difference is
-within 0.111 calibres, a fifth of the old bar. A change could have made the worst agreement four
-times worse and kept every row within it.
+within 0.111 calibres, a fifth of the old bar. The census already fails a row that moves by more
+than its slack, 0.1% of the bar, until a reason is written; but a reason can be written, and then
+the published line "margin within 0.5 calibres on 52 of 53" still held after the worst agreement
+got four times worse.
 
 A margin is a safety number: a margin that reads larger than OpenRocket's is the flattering side
-(the private set's median is +0.031 calibres). A bar that notices a doubling of the worst
-difference guards it; one that waits for a fourfold change doesn't.
+(the private set's median is +0.031 calibres). A bar near the measured agreement makes the
+published count a claim that a doubling of the worst difference would break, and it gives each row
+a slack 2.5 times smaller.
 
 M1.14, the accuracy milestone, asked that "hpr is at least as accurate as OpenRocket on the same
 real flights". Release 0.3 (M10.3) and ADR-209 §7 ask for more: a mean absolute apogee error
@@ -49,8 +52,10 @@ The review also checked the fin-flutter speed against an error reported in Rocke
 #1200, open on 2026-10-09: the flutter speed √2 too high, from a factor of two applied twice).
 HPR Sim's `crates/hpr-sim/src/flutter.rs` follows NACA TN 4197's eq. 18 term by term; for a
 fibreglass fin (root chord 0.15 m, tip 0.075 m, span 0.1 m, 3.2 mm thick, G = 4.0 GPa) at 1,000 m
-it gives 316.73 m/s against 316.71 m/s worked by hand from the paper, where the doubled factor would
-give about 448 m/s. The test `flutter_denominator_matches_tn_4197_eq_18` fails on that doubling.
+at 1,000 m geometric height it gives 316.73 m/s, against 316.71 m/s worked by hand with the paper's
+printed 39.3 psi (the 0.02 m/s is that rounding of 39.29), where the doubled factor would give about
+448 m/s. `FlutterPanel`'s doctest (a flutter pressure of 11,453.7 Pa and 136.75 m/s worked by hand)
+and `scaling_laws_in_thickness_shear_modulus_and_pressure` fail on such a doubling.
 Nothing changes.
 
 **Decision.**
@@ -62,17 +67,25 @@ Nothing changes.
    again with that reason; every margin and CG row keeps its standing.
 2. **M1.14's done-when adds the collection.** It now reads: real flights meet the 5% mean apogee
    target, hpr is at least as accurate as OpenRocket on the same real flights, and on the private
-   collection's flights that both fly its mean absolute apogee error is below OpenRocket 24.12's
+   collection's flights all three fly its mean absolute apogee error is below OpenRocket 24.12's
    and its newest release's (ADR-212), its mean bias within 3%; and M1.8's Cd bullet is met or its
-   gap re-measured in an ADR. Nothing is taken out. ADR-143's stop rule still ends M1.14 short of
-   this, its gaps in an ADR, as M10.3 already allows.
+   gap re-measured in an ADR. Nothing is taken out. It is M10.3's comparison on all the
+   collection's flights; M10.3 still asks it on held-out flights, of every release out before M2.7
+   is met, with a paired bootstrap interval. ADR-143's stop rule still ends M1.14 short of this,
+   its gaps in an ADR, as M10.3 already allows.
 3. **Left as they are,** each met with room, for a later review: the whole-flight comparison with
    RocketPy on the same drag (at most 3% a metric; flights measure at most 1.81%, but descents
    reach 2.865% of their 3%, and the bars are set metric by metric); the `.ork` export round trip
    (0.5%; the largest measured is 0.000162%); the 1% mass bar (54 of 54 public launch masses
    within it, but 4 of 54 masses at rod clearance over it).
 
-**Consequences.** A change that moves any margin or CG difference past 0.2 calibres now fails the
-census check until its reason is written. M1.14 can't be met by tying OpenRocket. No release
+**Consequences.** A change that moves a margin or CG difference by more than 0.0002 calibres, or
+past 0.2 calibres, fails the census check until its reason is written, and one past 0.2 also
+changes the published count. M1.14 can't be met by tying OpenRocket. No release
 waits on this: M10.3 already asked for the same, and nothing is added before any release in the
 queue.
+
+The collection's numbers come from flights flown in ERA5 weather: generated using Copernicus Climate
+Change Service information 2026; neither the European Commission nor ECMWF is responsible for any
+use that may be made of the Copernicus information or data it contains (`fixture-flights.md`
+gives the full citation).
