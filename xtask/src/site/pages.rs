@@ -205,7 +205,7 @@ struct Canary {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 17] = [
+const CANARIES: [Canary; 18] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -342,6 +342,18 @@ const CANARIES: [Canary; 17] = [
         expect: &[Kind::Motion],
         inside: "<p style=\"transition: color 160ms cubic-bezier(0.2, 0, 0, 1)\">A label that \
                  never snaps</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-navy.html",
+        what: "a label in a highlighter's green in the navy theme only, read after the switch \
+               mdBook's theme menu makes",
+        expect: &[Kind::Color],
+        inside: "<script>document.documentElement.classList.add('js', 'light');</script>\
+                 <link rel=\"stylesheet\" id=\"mdbook-tomorrow-night-css\" href=\"data:text/css,\">\
+                 <style>.navy { color-scheme: dark; } .navy mark { background: #768DF5; } \
+                 .navy .green { color: #008200; }</style>\
+                 <p class=\"green\">Green only in navy</p>",
         after: "",
     },
     Canary {
