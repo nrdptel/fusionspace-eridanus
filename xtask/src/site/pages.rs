@@ -205,7 +205,7 @@ struct Canary {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 18] = [
+const CANARIES: [Canary; 21] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -342,6 +342,29 @@ const CANARIES: [Canary; 18] = [
         expect: &[Kind::Motion],
         inside: "<p style=\"transition: color 160ms cubic-bezier(0.2, 0, 0, 1)\">A label that \
                  never snaps</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-root.html",
+        what: "the page's root element in a highlighter's green, which only a read of `html` sees",
+        expect: &[Kind::Color],
+        inside: "<style>html { background: #008200; }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-filter.html",
+        what: "a label tinted by a filter, as mdBook tints its copy icon, whose colors the check \
+               can't read",
+        expect: &[Kind::Color],
+        inside: "<p style=\"filter: invert(45%)\">A tinted label</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-mark.html",
+        what: "a search hit filled in ink, a role, but not the action fill a selection takes",
+        expect: &[Kind::Color],
+        inside: "<p>A <mark style=\"color: #F3F4F7; background: #0B0F1C\">search hit</mark> in \
+                 ink</p>",
         after: "",
     },
     Canary {
