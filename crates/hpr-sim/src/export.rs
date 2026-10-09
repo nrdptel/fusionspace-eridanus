@@ -44,7 +44,7 @@ use crate::recorder::Recorder;
 #[cfg(feature = "parquet")]
 mod parquet;
 #[cfg(feature = "parquet")]
-pub use parquet::{PARQUET_PAGE_ROWS, parquet};
+pub use parquet::{PARQUET_PAGE_ROWS, parquet, parquet_with};
 
 /// The `tool` object a JSON or GeoJSON export opens with: the program's name, version and
 /// designation, from [`hpr_core::tool`].
@@ -74,17 +74,21 @@ struct Rows<'a, T: serde::Serialize> {
 
 /// A GeoJSON `FeatureCollection`, its keys in this order: `tool` is a foreign member.
 #[derive(serde::Serialize)]
-struct FeatureCollection {
+struct FeatureCollection<'a, T: serde::Serialize> {
     #[serde(rename = "type")]
     kind: &'static str,
     tool: Tool,
+    #[serde(flatten)]
+    about: &'a T,
     features: Vec<Value>,
 }
 
 /// `value` as compact JSON text, in ASCII ([`ascii`]).
 fn to_text(value: &impl serde::Serialize) -> Result<String, SimError> {
-    // Every value here is finite (checked before) and every key a string, the only two things
-    // `serde_json` refuses; the error is mapped rather than unwrapped all the same.
+    // Every key is a string, and every number the export computed is finite (checked before),
+    // the things `serde_json` refuses; a caller's own fields beside the rows or the map
+    // (`json_with`, `geojson_with`) are written as `serde_json` writes them, a NaN as `null`. The
+    // error is mapped rather than unwrapped all the same.
     serde_json::to_string(value)
         .map(|text| ascii(&text))
         .map_err(|_| SimError::Unsupported {
@@ -314,6 +318,49 @@ fn too_short(track: &[TrackPoint]) -> Result<(), SimError> {
 /// [`SimError::Unsupported`] for a track of fewer than two points (a `LineString` needs two);
 /// [`SimError::Domain`] for a coordinate that isn't finite.
 pub fn geojson(track: &[TrackPoint], summary: &FlightSummary) -> Result<String, SimError> {
+    geojson_with(track, summary, &serde_json::Map::new())
+}
+
+/// The path and the landings as [`geojson()`] writes them, with `about`'s fields, in its order,
+/// between `tool` and `features`: more foreign members (RFC 7946 section 6.1), such as the motor
+/// catalog's date or how far to trust the landing point, as [`json_with`] carries them. A struct
+/// or a [`serde_json::Map`] keeps the order from one run to the next.
+///
+/// # Errors
+///
+/// As [`geojson()`]; also [`SimError::Unsupported`] for an `about` that isn't a JSON object, or
+/// has a field named `type`, `tool` or `features`, which would write a key twice, one RFC 7946
+/// section 7.1 keeps from a `FeatureCollection` (`geometry`, `properties`, `coordinates`,
+/// `geometries`), or one a reader gives a meaning: `bbox` (section 5) or the older format's `crs`,
+/// which GDAL and QGIS still read.
+pub fn geojson_with<T: serde::Serialize>(
+    track: &[TrackPoint],
+    summary: &FlightSummary,
+    about: &T,
+) -> Result<String, SimError> {
+    let Ok(Value::Object(fields)) = serde_json::to_value(about) else {
+        return Err(SimError::Unsupported {
+            what: "fields beside the map that aren't a JSON object",
+        });
+    };
+    if [
+        "type",
+        "tool",
+        "features",
+        "geometry",
+        "properties",
+        "coordinates",
+        "geometries",
+        "bbox",
+        "crs",
+    ]
+    .iter()
+    .any(|key| fields.contains_key(*key))
+    {
+        return Err(SimError::Unsupported {
+            what: "a field beside the map named as a GeoJSON member",
+        });
+    }
     too_short(track)?;
     let mut coordinates = Vec::with_capacity(track.len());
     let mut times = Vec::with_capacity(track.len());
@@ -349,6 +396,7 @@ pub fn geojson(track: &[TrackPoint], summary: &FlightSummary) -> Result<String, 
     to_text(&FeatureCollection {
         kind: "FeatureCollection",
         tool: TOOL,
+        about,
         features,
     })
 }
@@ -365,7 +413,7 @@ fn escape(text: &str) -> Result<String, SimError> {
     };
     if text.chars().any(forbidden) {
         return Err(SimError::Unsupported {
-            what: "a KML name with a control character XML 1.0 forbids",
+            what: "KML text, a name or a description, with a control character XML 1.0 forbids",
         });
     }
     let mut out = String::with_capacity(text.len());
@@ -393,6 +441,26 @@ fn escape(text: &str) -> Result<String, SimError> {
 /// [`SimError::Unsupported`] for a track of fewer than two points or a name with a control
 /// character XML forbids; [`SimError::Domain`] for a coordinate that isn't finite.
 pub fn kml(track: &[TrackPoint], summary: &FlightSummary, name: &str) -> Result<String, SimError> {
+    kml_with(track, summary, name, "")
+}
+
+/// The path and the landings as [`kml()`] writes them, with `description` as the `Document`'s
+/// `description` (OGC 07-147r2 section 9.1.3.6, after its `name`), such as the motor catalog's
+/// date and how far to trust the path: a map shows it when the file is opened. It is escaped as
+/// XML text, but map programs such as Google Earth show a description as HTML, so text from
+/// someone else should not be passed through unchecked. An empty `description` writes none, as
+/// [`kml()`] does.
+///
+/// # Errors
+///
+/// As [`kml()`]; also [`SimError::Unsupported`] for a description with a control character XML
+/// forbids.
+pub fn kml_with(
+    track: &[TrackPoint],
+    summary: &FlightSummary,
+    name: &str,
+    description: &str,
+) -> Result<String, SimError> {
     too_short(track)?;
     let mut path = Vec::with_capacity(track.len());
     for p in track {
@@ -408,6 +476,12 @@ pub fn kml(track: &[TrackPoint], summary: &FlightSummary, name: &str) -> Result<
     out.push_str(&format!("<!-- {} -->\n", hpr_core::tool::stamp()));
     out.push_str("<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n<Document>\n");
     out.push_str(&format!("<name>{}</name>\n", escape(name)?));
+    if !description.is_empty() {
+        out.push_str(&format!(
+            "<description>{}</description>\n",
+            escape(description)?
+        ));
+    }
     out.push_str("<Placemark>\n<name>flight path</name>\n<LineString>\n");
     out.push_str("<altitudeMode>absolute</altitudeMode>\n<coordinates>\n");
     out.push_str(&path.join("\n"));
@@ -788,6 +862,98 @@ mod tests {
         let mut broken = value.clone();
         broken["features"][1]["geometry"]["coordinates"] = json!([landing.longitude_deg]);
         assert!(!validator.is_valid(&broken));
+    }
+
+    #[test]
+    fn geojson_with_writes_the_fields_between_tool_and_features_and_stays_valid() {
+        let (_, track, summary, _) = flown();
+        let about = json!({"catalog_as_of": "2026-01-02", "trust": "Rough & <ready>"});
+        let text = geojson_with(&track, &summary, &about).unwrap();
+        let value: Value = serde_json::from_str(&text).unwrap();
+        let errors: Vec<String> = geojson_validator()
+            .iter_errors(&value)
+            .map(|e| e.to_string())
+            .collect();
+        assert!(errors.is_empty(), "{errors:?}");
+        let at = |key: &str| text.find(&format!("\"{key}\":")).unwrap();
+        assert!(
+            at("type") < at("tool")
+                && at("tool") < at("catalog_as_of")
+                && at("catalog_as_of") < at("trust")
+                && at("trust") < at("features"),
+            "{text:.200}"
+        );
+        assert_eq!(value["trust"], "Rough & <ready>");
+        // Without fields, the bytes are geojson()'s.
+        assert_eq!(
+            geojson_with(&track, &summary, &serde_json::Map::new()).unwrap(),
+            geojson(&track, &summary).unwrap()
+        );
+        for key in [
+            "type",
+            "tool",
+            "features",
+            "geometry",
+            "properties",
+            "coordinates",
+            "geometries",
+            "bbox",
+            "crs",
+        ] {
+            let clash = json!({ key: 1 });
+            assert!(
+                matches!(
+                    geojson_with(&track, &summary, &clash),
+                    Err(SimError::Unsupported {
+                        what: "a field beside the map named as a GeoJSON member"
+                    })
+                ),
+                "{key}"
+            );
+        }
+        assert!(matches!(
+            geojson_with(&track, &summary, &1),
+            Err(SimError::Unsupported {
+                what: "fields beside the map that aren't a JSON object"
+            })
+        ));
+    }
+
+    #[test]
+    fn kml_with_describes_the_document_and_kml_writes_no_description() {
+        let (_, track, summary, _) = flown();
+        let text = kml_with(&track, &summary, "Flight", "As of 2026-01-02 & <rough>").unwrap();
+        let document = roxmltree::Document::parse(&text).unwrap();
+        let top = document
+            .descendants()
+            .find(|n| n.tag_name().name() == "Document")
+            .unwrap();
+        let children: Vec<&str> = top
+            .children()
+            .filter(|n| n.is_element())
+            .map(|n| n.tag_name().name())
+            .take(2)
+            .collect();
+        assert_eq!(children, ["name", "description"]);
+        let description = top
+            .children()
+            .find(|n| n.tag_name().name() == "description")
+            .unwrap();
+        assert_eq!(description.text(), Some("As of 2026-01-02 & <rough>"));
+        assert_eq!(
+            kml_with(&track, &summary, "Flight", "").unwrap(),
+            kml(&track, &summary, "Flight").unwrap()
+        );
+        assert!(matches!(
+            kml_with(&track, &summary, "Flight", "a\u{1}b"),
+            Err(SimError::Unsupported { what })
+                if what.starts_with("KML text, a name or a description, with a control character")
+        ));
+        assert!(
+            !kml(&track, &summary, "Flight")
+                .unwrap()
+                .contains("<Document>\n<name>Flight</name>\n<description>")
+        );
     }
 
     #[test]

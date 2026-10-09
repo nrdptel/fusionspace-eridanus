@@ -237,6 +237,8 @@ pub(crate) struct Figure<'a> {
     pub title: &'a str,
     /// The line under it: the configuration flown.
     pub subtitle: &'a str,
+    /// The bundled motor catalog's as-of date, as the exports carry it (#403).
+    pub catalog_as_of: &'a str,
     /// The flight, in time order.
     pub points: &'a [Point],
     /// The flight's events, in time order.
@@ -401,9 +403,14 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
     let trust = crate::trust::flight();
     let body = trust.strip_prefix(crate::trust::LABEL).unwrap_or(&trust);
     note.extend(crate::trust::wrap(body, LIST_WIDTH));
-    // The title block's line, last and where a printed copy shows it, as a drawing's: the
-    // program, its version and its designation (ADR-164, ADR-214).
+    // The motor catalog's date, as the exports carry it (#403), then the title block's line, last
+    // and where a printed copy shows it, as a drawing's: the program, its version and its
+    // designation (ADR-164, ADR-214).
     note.push(String::new());
+    note.extend(crate::trust::wrap(
+        &format!("Motor catalog as of {}.", figure.catalog_as_of),
+        LIST_WIDTH,
+    ));
     note.push(hpr::hpr_core::tool::stamp());
     let note_top = table_bottom + 24.0;
     let height = note_top + (note.len() - 1) as f64 * LIST_LINE + 16.0;

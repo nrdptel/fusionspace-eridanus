@@ -262,6 +262,7 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         let figure = crate::plot::svg(&crate::plot::Figure {
             title: &design_name,
             subtitle: &configuration_line,
+            catalog_as_of: &catalog_as_of,
             points: trace.points(),
             events: &flight.result().events,
             devices: &devices,
@@ -2341,9 +2342,30 @@ struct About {
     trust: String,
 }
 
+impl About {
+    /// The fields as text in the struct's order, for a Parquet file's key-value metadata, `kind`
+    /// as JSON names it.
+    fn pairs(&self) -> [(&'static str, String); 5] {
+        // A `Kind` serializes to its snake-case name, a JSON string, so the text is never empty.
+        let kind = serde_json::to_value(self.kind)
+            .ok()
+            .and_then(|kind| kind.as_str().map(str::to_owned))
+            .unwrap_or_default();
+        [
+            ("design", self.design.clone()),
+            ("configuration", self.configuration.clone()),
+            ("catalog_as_of", self.catalog_as_of.clone()),
+            ("kind", kind),
+            ("trust", self.trust.clone()),
+        ]
+    }
+}
+
 /// A recording file's contents in `format`; `name` titles a KML file, and `about` is what a JSON
-/// one carries beside its rows. Unless a recovery device opened (`braked`), the maps draw no
-/// landing point: where the rocket came down is not a prediction, and a pin on a map reads as one.
+/// one carries beside its rows, a GeoJSON one beside its features and a Parquet one in its
+/// footer's key-value metadata; a KML one has the catalog's date and the trust note as its
+/// description. Unless a recovery device opened (`braked`), the maps draw no landing point: where
+/// the rocket came down is not a prediction, and a pin on a map reads as one.
 /// Nor do they draw a separated part's, which is rough whatever opened (ADR-159).
 fn contents(
     format: ExportFormat,
@@ -2367,13 +2389,25 @@ fn contents(
     Ok(match format {
         ExportFormat::Csv => export::csv(recorder)?.into_bytes(),
         ExportFormat::Json => export::json_with(recorder, about)?.into_bytes(),
-        ExportFormat::Parquet => export::parquet(recorder)?,
+        ExportFormat::Parquet => {
+            let pairs = about.pairs();
+            let pairs: Vec<(&str, &str)> = pairs.iter().map(|(k, v)| (*k, v.as_str())).collect();
+            export::parquet_with(recorder, &pairs)?
+        }
         ExportFormat::Geojson => {
-            export::geojson(&export::track(recorder, environment.sim())?, summary)?.into_bytes()
+            export::geojson_with(&export::track(recorder, environment.sim())?, summary, about)?
+                .into_bytes()
         }
-        ExportFormat::Kml => {
-            export::kml(&export::track(recorder, environment.sim())?, summary, name)?.into_bytes()
-        }
+        ExportFormat::Kml => export::kml_with(
+            &export::track(recorder, environment.sim())?,
+            summary,
+            name,
+            &format!(
+                "Motor catalog as of {}. {}",
+                about.catalog_as_of, about.trust
+            ),
+        )?
+        .into_bytes(),
     })
 }
 

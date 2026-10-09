@@ -16,7 +16,8 @@
 //!
 //! It carries no statistics, dictionary, index or compression. Its footer's key-value metadata
 //! names the program that wrote it, as every file HPR Sim writes does ([`hpr_core::tool`]): `tool`
-//! (`FusionSpace HPR`), `tool_version` and `designation` (`FS-ACHERNAR · SW · TOOL 001`).
+//! (`FusionSpace HPR`), `tool_version` and `designation` (`FS-ACHERNAR · SW · TOOL 001`), then
+//! any pairs a caller adds ([`parquet_with`]), such as the motor catalog's date.
 
 use crate::error::SimError;
 use crate::recorder::Recorder;
@@ -152,8 +153,9 @@ fn count<T: TryFrom<usize>>(value: usize) -> Result<T, SimError> {
     })
 }
 
-/// The footer's key-value metadata, in the order written: the program that wrote the file, its
-/// version and its designation in the FusionSpace product system.
+/// The footer's key-value metadata, in the order written and before any a caller adds
+/// ([`parquet_with`]): the program that wrote the file, its version and its designation in the
+/// FusionSpace product system.
 const KEY_VALUE: [(&str, &str); 3] = [
     ("tool", hpr_core::tool::NAME),
     ("tool_version", hpr_core::tool::VERSION),
@@ -184,6 +186,31 @@ struct Chunk {
 /// [`SimError::Unsupported`] for a recorder with no columns, or with more rows than a Parquet
 /// count holds.
 pub fn parquet(recorder: &Recorder) -> Result<Vec<u8>, SimError> {
+    parquet_with(recorder, &[])
+}
+
+/// The recorded rows as [`parquet()`] writes them, with the pairs of `about`, in its order, after
+/// the program's three in the footer's key-value metadata: such as the motor catalog's date and
+/// how far to trust the recording, as [`super::json_with`] carries them beside its rows. Each is a
+/// `KeyValue` of `parquet.thrift`, its key and its value UTF-8 strings. Keys other programs read
+/// as their own, such as Apache Arrow's `ARROW:schema` or pandas' `pandas`, are the caller's to
+/// avoid: a reader decodes them, and may refuse the file when they hold something else.
+///
+/// Needs the `parquet` feature. Returns the file's bytes; the caller writes them.
+///
+/// # Errors
+///
+/// As [`parquet()`]; also [`SimError::Unsupported`] for a key named `tool`, `tool_version` or
+/// `designation`, or given twice: a key written twice, which readers that collect the pairs into
+/// a map would keep only one of.
+pub fn parquet_with(recorder: &Recorder, about: &[(&str, &str)]) -> Result<Vec<u8>, SimError> {
+    for (n, (key, _)) in about.iter().enumerate() {
+        if KEY_VALUE.iter().any(|(own, _)| own == key) || about[..n].iter().any(|(k, _)| k == key) {
+            return Err(SimError::Unsupported {
+                what: "a Parquet metadata key named tool, tool_version or designation, or given twice",
+            });
+        }
+    }
     let columns = recorder.columns();
     if columns.is_empty() {
         return Err(SimError::Unsupported {
@@ -275,8 +302,8 @@ pub fn parquet(recorder: &Recorder) -> Result<Vec<u8>, SimError> {
     }
     // `key_value_metadata` (field 5): a list of KeyValue structs, `1: required string key`,
     // `2: optional string value`.
-    footer.list(5, T_STRUCT, KEY_VALUE.len());
-    for (key, value) in KEY_VALUE {
+    footer.list(5, T_STRUCT, KEY_VALUE.len() + about.len());
+    for &(key, value) in KEY_VALUE.iter().chain(about) {
         footer.open();
         footer.string(1, key);
         footer.string(2, value);
@@ -394,6 +421,60 @@ mod tests {
         }
     }
 
+    /// Apache's reader finds added pairs after the program's three, in the order given, with the
+    /// recording unchanged; a key the program writes, or one given twice, is refused by name.
+    #[test]
+    fn added_pairs_follow_the_programs_and_a_repeated_key_is_refused() {
+        let (recorder, ..) = super::super::tests::flown();
+        let note = "How far to trust it. \u{b1}5 % \u{2014} a note past 127 bytes. ".repeat(4);
+        let about = [
+            ("catalog_as_of", "2026-01-02"),
+            ("kind", "simulated"),
+            ("trust", &note),
+        ];
+        let (reader, names, rows) = read(parquet_with(&recorder, &about).unwrap());
+        assert_eq!(names, recorder.columns());
+        assert_eq!(rows, recorder.rows());
+        let pairs: Vec<(String, Option<String>)> = reader
+            .metadata()
+            .file_metadata()
+            .key_value_metadata()
+            .unwrap()
+            .iter()
+            .map(|kv| (kv.key.clone(), kv.value.clone()))
+            .collect();
+        let keys: Vec<&str> = pairs.iter().map(|(key, _)| key.as_str()).collect();
+        assert_eq!(
+            keys,
+            [
+                "tool",
+                "tool_version",
+                "designation",
+                "catalog_as_of",
+                "kind",
+                "trust"
+            ]
+        );
+        assert_eq!(pairs[5].1.as_deref(), Some(note.as_str()));
+        assert!(note.len() > 127);
+
+        for about in [
+            &[("tool", "x")][..],
+            &[("tool_version", "x")],
+            &[("designation", "x")],
+            &[("trust", "a"), ("kind", "b"), ("trust", "c")],
+        ] {
+            assert!(
+                matches!(
+                    parquet_with(&recorder, about),
+                    Err(SimError::Unsupported { what })
+                        if what.starts_with("a Parquet metadata key named tool")
+                ),
+                "{about:?}"
+            );
+        }
+    }
+
     /// Every channel (30 columns, past the compact protocol's short list header) at every step:
     /// enough rows for several pages per column.
     #[test]
@@ -507,6 +588,49 @@ mod tests {
     #[test]
     fn a_small_file_is_the_bytes_the_specification_gives() {
         let recorder = Recorder::with_rows(vec![Channel::Time], vec![vec![1.0], vec![2.0]]);
+        // A list of 3 structs (0x3c), the program's pairs and no more.
+        assert_eq!(parquet(&recorder).unwrap(), small_file(0x3c, &[]));
+    }
+
+    /// The small file of [`a_small_file_is_the_bytes_the_specification_gives`] with two pairs
+    /// added, worked out by hand the same way: the list now of 5 structs (0x5c), and the added
+    /// pairs after the program's three, in the order given. The note's 200 bytes take a two-byte
+    /// varint length: 200 is 0b1_1001000, so 0xc8 (the low seven bits with the continuation bit),
+    /// then 0x01.
+    #[test]
+    fn added_pairs_are_the_bytes_the_specification_gives() {
+        let recorder = Recorder::with_rows(vec![Channel::Time], vec![vec![1.0], vec![2.0]]);
+        let note = "n".repeat(200);
+        let mut added: Vec<u8> = Vec::new();
+        // "catalog_as_of" 13 bytes, "2026-01-02" 10, then a stop.
+        added.extend([0x18, 0x0d]);
+        added.extend(b"catalog_as_of");
+        added.extend([0x18, 0x0a]);
+        added.extend(b"2026-01-02");
+        added.push(0x00);
+        // "trust" 5 bytes, the note 200, then a stop.
+        added.extend([0x18, 0x05]);
+        added.extend(b"trust");
+        added.extend([0x18, 0xc8, 0x01]);
+        added.extend(note.as_bytes());
+        added.push(0x00);
+        assert_eq!(
+            parquet_with(
+                &recorder,
+                &[("catalog_as_of", "2026-01-02"), ("trust", &note)]
+            )
+            .unwrap(),
+            small_file(0x5c, &added)
+        );
+        assert_eq!(
+            parquet_with(&recorder, &[]).unwrap(),
+            parquet(&recorder).unwrap()
+        );
+    }
+
+    /// The two-row file's bytes with the key-value list's header `list` and the bytes `added`
+    /// after the program's three pairs.
+    fn small_file(list: u8, added: &[u8]) -> Vec<u8> {
         let mut expected: Vec<u8> = b"PAR1".to_vec();
         // PageHeader, each field one on from the last (delta 1: 0x15 for an i32) but the fifth:
         // type DATA_PAGE (0), uncompressed and compressed sizes 16 (zigzag 32), DataPageHeader
@@ -543,7 +667,7 @@ mod tests {
         expected.extend([
             0x16, 0x42, 0x16, 0x04, 0x26, 0x08, 0x16, 0x42, 0x14, 0x00, 0x00,
         ]);
-        // key_value_metadata (field 5 by delta 1, a list: 0x19), a list of 3 structs (0x3c). Each
+        // key_value_metadata (field 5 by delta 1, a list: 0x19), a list of `list` structs. Each
         // KeyValue is its key (field 1 by delta 1, a binary: 0x18) and value (field 2, 0x18 again),
         // each a varint byte length then the UTF-8 bytes, and a stop. The lengths: "tool" 4,
         // "FusionSpace HPR" 15, "tool_version" 12, "designation" 11, and "FS-ACHERNAR · SW · TOOL 001"
@@ -551,7 +675,7 @@ mod tests {
         // 0xb7. The version's length is read off the version, which is under 128 bytes, so one
         // varint byte.
         let version = env!("CARGO_PKG_VERSION");
-        expected.extend([0x19, 0x3c]);
+        expected.extend([0x19, list]);
         expected.extend([0x18, 0x04]);
         expected.extend(b"tool");
         expected.extend([0x18, 0x0f]);
@@ -567,6 +691,7 @@ mod tests {
         expected.extend([0x18, 0x1d]);
         expected.extend(b"FS-ACHERNAR \xc2\xb7 SW \xc2\xb7 TOOL 001");
         expected.push(0x00);
+        expected.extend(added);
         // created_by (field 6 by delta 1: 0x18), then the file's stop.
         let created_by = concat!("FusionSpace HPR version ", env!("CARGO_PKG_VERSION"));
         expected.extend([0x18, created_by.len() as u8]);
@@ -575,8 +700,7 @@ mod tests {
         let footer_length = (expected.len() - footer_start) as u32;
         expected.extend(footer_length.to_le_bytes());
         expected.extend(b"PAR1");
-
-        assert_eq!(parquet(&recorder).unwrap(), expected);
+        expected
     }
 
     /// The compact protocol's encodings against its specification's own examples.

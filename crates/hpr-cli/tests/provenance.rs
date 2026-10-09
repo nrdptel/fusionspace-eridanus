@@ -115,6 +115,119 @@ fn every_export_carries_the_catalogs_date_and_how_far_to_trust_it() {
     assert_ne!(meta["trust"], trust);
 }
 
+/// The maps carry them too: a GeoJSON file as foreign members beside `tool` (RFC 7946 section
+/// 6.1), a KML file in its `Document`'s description. Before #403 each named only the program.
+#[test]
+fn the_maps_carry_the_catalogs_date_and_how_far_to_trust_it() {
+    let folder = tempfile::tempdir().unwrap();
+    let path = |name: &str| folder.path().join(name).to_string_lossy().into_owned();
+    let probe = root().join(PROBE).to_string_lossy().into_owned();
+    let flight = &["sim", &probe, "--motor", "H54"];
+    let printed = ascii_json(
+        &String::from_utf8(run(&[&flight[..], &["--json"]].concat()).stdout).unwrap(),
+        "hpr sim --json",
+    );
+    let trust = printed["trust"].as_str().unwrap();
+    run(&[
+        &flight[..],
+        &["--export", &path("f.geojson"), "--export", &path("f.kml")],
+    ]
+    .concat());
+    let as_of = as_of();
+    let map = ascii_json(
+        &std::fs::read_to_string(path("f.geojson")).unwrap(),
+        "f.geojson",
+    );
+    assert_eq!(map["type"], "FeatureCollection");
+    assert_eq!(map["catalog_as_of"], as_of.as_str());
+    assert_eq!(map["kind"], "simulated");
+    assert_eq!(map["trust"], trust);
+    let text = std::fs::read_to_string(path("f.geojson")).unwrap();
+    let at = |key: &str| text.find(&format!("\"{key}\":")).unwrap();
+    assert!(
+        at("tool") < at("catalog_as_of") && at("trust") < at("features"),
+        "{text:.300}"
+    );
+
+    let kml = std::fs::read_to_string(path("f.kml")).unwrap();
+    let document = kml.split("<Placemark>").next().unwrap();
+    let escaped = trust
+        .replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&apos;");
+    assert!(
+        document.contains(&format!(
+            "<description>Motor catalog as of {as_of}. {escaped}</description>"
+        )),
+        "{document}"
+    );
+}
+
+/// A Thrift compact-protocol varint: seven bits a byte, low first, the high bit set on all but
+/// the last.
+fn varint(mut n: usize) -> Vec<u8> {
+    let mut out = Vec::new();
+    while n >= 0x80 {
+        out.push((n & 0x7f) as u8 | 0x80);
+        n >>= 7;
+    }
+    out.push(n as u8);
+    out
+}
+
+/// A Parquet file carries the JSON recording's fields, in its order, as key-value metadata after
+/// the program's three pairs; the plot gives the catalog's date above its title block's line.
+/// Before #403 the Parquet file named only the program and the plot gave no date.
+#[test]
+fn the_parquet_file_and_the_plot_carry_the_catalogs_date() {
+    let folder = tempfile::tempdir().unwrap();
+    let path = |name: &str| folder.path().join(name).to_string_lossy().into_owned();
+    let probe = root().join(PROBE).to_string_lossy().into_owned();
+    run(&[
+        "sim",
+        &probe,
+        "--motor",
+        "H54",
+        "--export",
+        &path("f.json"),
+        "--export",
+        &path("f.parquet"),
+        "--plot",
+        &path("f.svg"),
+    ]);
+    let recording = ascii_json(&std::fs::read_to_string(path("f.json")).unwrap(), "f.json");
+    // Each `KeyValue` as `parquet.thrift` and the compact protocol write it: the key (field 1, a
+    // binary: 0x18) and the value (field 2 by delta 1: 0x18), each a varint length and its bytes,
+    // then a stop; the five one after another, after the program's `designation`.
+    let mut pairs = b"FS-ACHERNAR \xc2\xb7 SW \xc2\xb7 TOOL 001\x00".to_vec();
+    for key in ["design", "configuration", "catalog_as_of", "kind", "trust"] {
+        let value = recording[key].as_str().unwrap();
+        pairs.push(0x18);
+        pairs.extend(varint(key.len()));
+        pairs.extend(key.as_bytes());
+        pairs.push(0x18);
+        pairs.extend(varint(value.len()));
+        pairs.extend(value.as_bytes());
+        pairs.push(0x00);
+    }
+    assert_eq!(recording["catalog_as_of"], as_of().as_str());
+    assert!(recording["trust"].as_str().unwrap().len() > 127);
+    let parquet = std::fs::read(path("f.parquet")).unwrap();
+    assert!(
+        parquet.windows(pairs.len()).any(|w| w == pairs.as_slice()),
+        "f.parquet lacks the recording's pairs"
+    );
+
+    let svg = std::fs::read_to_string(path("f.svg")).unwrap();
+    let date = format!(">Motor catalog as of {}.</text>\n<text ", as_of());
+    let stamp = format!(">{}</text>\n</svg>\n", hpr::hpr_core::tool::stamp());
+    let at = svg.find(&date).unwrap_or_else(|| panic!("{svg}"));
+    assert!(svg[at..].ends_with(&stamp), "{}", &svg[at..]);
+    assert_eq!(svg[at + date.len()..].matches("<text ").count(), 0);
+}
+
 /// The text names the catalog's as-of date beside a motor taken from it, as JSON does.
 #[test]
 fn the_text_dates_a_motor_from_the_bundled_catalog() {

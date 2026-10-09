@@ -186,8 +186,9 @@ out.
 - **Where an export comes from.** A CSV's header gives each column's unit in brackets
   (`time [s]`). `hpr sim`'s JSON recording, and the small file `hpr sim` and `hpr mc` write beside
   a CSV, carry the motor catalog's as-of date and how far to trust the numbers (since
-  [M0.9c5](decisions-and-roadmap.md#m0-9c5), provenance on the exports). GeoJSON, KML and Parquet
-  don't carry them yet ([#403](https://github.com/nrdptel/fusionspace-eridanus/issues/403)).
+  [M0.9c5](decisions-and-roadmap.md#m0-9c5), provenance on the exports), and so do GeoJSON, KML,
+  Parquet and the `--plot` figure (since [M0.9c8](decisions-and-roadmap.md#m0-9c8), the date and
+  the note on `hpr sim`'s other exports).
 - **It reads what you type, and says what to do when it can't.** Numbers are read as written by
   hand: `--elevation 1,280` is 1280 m, and a comma it can't read as a thousands separator, such as
   `3,9`, is asked about. A refused option is named with its value and unit and an example, and a
