@@ -388,8 +388,8 @@
   // tooltip are in every page, hidden until asked for. A search hit (`mark`) and a search result
   // are made only when asked for, so one of each is added for the reading. Hover and focus aren't
   // read. `reduced` reads motion with the stylesheets' reduced-motion rules applied, where
-  // everything must snap.
-  function styleDefaults(win, doc, theme, reduced, found) {
+  // everything must snap; `as` names the reading in its examples.
+  function styleDefaults(win, doc, theme, reduced, found, as) {
     const allowed = ROLES[theme];
     const note = function (kind, el, pseudo, property, value) {
       found[kind + '_count']++;
@@ -398,7 +398,7 @@
           selector: selector(el) + (pseudo || ''),
           property: property,
           value: value,
-          theme: theme + (reduced ? ', reduced motion' : ''),
+          theme: as || (theme + (reduced ? ', reduced motion' : '')),
         });
       }
     };
@@ -535,6 +535,15 @@
     doc.documentElement.classList.add(theme);
   }
 
+  // Until the transitions a change of class starts have run: colors read during one are
+  // halfway between two roles.
+  async function settle(win, doc) {
+    await nextFrames(win);
+    await Promise.all(doc.getAnimations().filter(function (a) {
+      return Number.isFinite(a.effect.getComputedTiming().endTime);
+    }).map(function (a) { return a.finished.catch(function () {}); }));
+  }
+
   async function probeDefaults(win, doc) {
     const found = {
       color: [], color_count: 0, shape: [], shape_count: 0, motion: [], motion_count: 0,
@@ -559,16 +568,25 @@
     const undo = applyReducedMotion(doc);
     styleDefaults(win, doc, first, true, found);
     undo();
+    // As a reader with scripts off gets the page: mdBook's script adds `js` to the root before
+    // the page draws, and without it mdBook's stylesheets give `html:not(.js)` their own colors
+    // and a 0.3 s slide (#383). The class names the stylesheets' rules, so taking it off applies
+    // them; the page's theme is the one it was saved with, as for that reader.
+    if (doc.documentElement.classList.contains('js')) {
+      doc.documentElement.classList.remove('js');
+      await settle(win, doc);
+      const bare = themeOf(win, doc);
+      styleDefaults(win, doc, bare, false, found, bare + ', scripts off');
+      doc.documentElement.classList.add('js');
+      await settle(win, doc);
+    }
     // The other theme, on mdBook's pages that switch: a page without mdBook's code stylesheets,
     // or its sidebar for readers without scripts, is read in the theme it loads in.
     if (doc.getElementById('mdbook-tomorrow-night-css') && doc.documentElement.classList.contains('js')) {
       const other = first === 'light' ? 'navy' : 'light';
       switchTheme(doc, other);
-      await nextFrames(win);
       // The colors change over the theme's transitions: read them once those have run.
-      await Promise.all(doc.getAnimations().filter(function (a) {
-        return Number.isFinite(a.effect.getComputedTiming().endTime);
-      }).map(function (a) { return a.finished.catch(function () {}); }));
+      await settle(win, doc);
       if (themeOf(win, doc) !== other) throw new Error('the page did not switch to ' + other);
       styleDefaults(win, doc, other, false, found);
     }
