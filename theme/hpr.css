@@ -61,8 +61,8 @@
     --search-mark-bg: var(--hpr-action);
 }
 /* With scripts off, mdBook gives its own light colors to `html:not(.js)`, which outranks the
-   theme's `.light`: the theme's light values, here. No check reads these two blocks: the page
-   check runs mdBook's scripts, which add `js` before the page draws (#427). */
+   theme's `.light`: the theme's light values, here. No check reads these two blocks' colors: the
+   page check runs mdBook's scripts, which add `js` before the page draws (#427). */
 html:not(.js) {
   --bg: #F3F4F7; --fg: #0B0F1C; --sidebar-bg: #FFFFFF; --sidebar-fg: #0B0F1C;
   --sidebar-non-existant: #98A1B8; --sidebar-active: #3350D6; --sidebar-spacer: #D6DAE4;
@@ -137,9 +137,10 @@ pre > .buttons button.clip-button:hover::before {
    mdBook's 4 px colored bar. */
 *, *::before, *::after { border-radius: 0 !important; box-shadow: none !important; text-shadow: none !important; }
 kbd { background-color: var(--hpr-surface); border-color: var(--hpr-rule-strong); }
-/* The help popup: a dialog, with a 2 px ink border over the canvas dimmed by Void at 40%. */
+/* The help popup: a dialog, with a 2 px ink border over the canvas dimmed by Void at 40%, kept
+   16 px from the window's sides on a phone. */
 #mdbook-help-container { background-color: rgba(11, 15, 28, 0.4); }
-#mdbook-help-popup { border: 2px solid var(--hpr-ink); }
+#mdbook-help-popup { border: 2px solid var(--hpr-ink); min-width: 0; max-width: min(500px, calc(100% - 32px)); }
 .sidebar .chapter li.chapter-item a.active { text-decoration: underline 2px; text-underline-offset: 4px; }
 .on-this-page { border-inline-start-width: 1px; }
 
