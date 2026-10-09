@@ -3320,7 +3320,10 @@ fn sim_plots_the_flight() {
     );
     let figure = std::fs::read_to_string(&svg).unwrap();
     assert_eq!(figure.matches(">not a prediction<").count(), 1, "{figure}");
-    assert!(figure.contains("Hatched, 11.21\u{a0}s to 29.71\u{a0}s:"), "{figure}");
+    assert!(
+        figure.contains("Hatched, 11.21\u{a0}s to 29.71\u{a0}s:"),
+        "{figure}"
+    );
 }
 
 /// The guide's launch section says the example rocket climbs about 8% higher from a 1,400 m site
