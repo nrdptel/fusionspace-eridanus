@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1306" viewBox="0 0 960 1306" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" role="img" aria-labelledby="title" aria-describedby="desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1324" viewBox="0 0 960 1324" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" role="img" aria-labelledby="title" aria-describedby="desc">
 <title id="title">Loft Demo 54mm — dual deploy: altitude, speed and acceleration against time</title>
 <desc id="desc">Apogee 324.0 m (1,063 ft) above the launch site at 9.12 s; top speed 65.9 m/s (216 ft/s) at 2.73 s.</desc>
 <metadata>FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001</metadata>
 <defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="3" y1="0" x2="3" y2="6" stroke="#98A1B8" stroke-width="1"/></pattern></defs>
-<rect width="960" height="1306" fill="#F3F4F7"/>
+<rect width="960" height="1324" fill="#F3F4F7"/>
 <text x="76" y="28" font-size="16" font-weight="600" fill="#0B0F1C">Loft Demo 54mm — dual deploy</text>
 <text x="76" y="48" fill="#566079">demo-dual-deploy.ork, configuration [K550W-P] with --motor H54</text>
 <text x="76" y="70.0" fill="#566079">Apogee 324.0 m (1,063 ft) above the launch site at 9.12 s; top speed 65.9 m/s (216 ft/s) at 2.73 s.</text>
@@ -130,8 +130,9 @@
 <text x="540" y="1207.0" fill="#0B0F1C">ground hit</text>
 <line x1="76" y1="1214.0" x2="936" y2="1214.0" stroke="#D6DAE4" stroke-width="1"/>
 </g>
-<text x="76" y="1238.0" fill="#566079">How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of fliers&apos; own designs,</text>
-<text x="76" y="1256.0" fill="#566079">the simulated apogee averaged 9.8% above the altimeter&apos;s; it was within 10% on 27 and low on 14, by at most 20%. Plan</text>
-<text x="76" y="1274.0" fill="#566079">a waiver or a field&apos;s ceiling with room above this apogee; the altimeter&apos;s reading is the one to log, and the RSO</text>
-<text x="76" y="1292.0" fill="#566079">decides. More: https://hpr.fusionspace.co/accuracy.html</text>
+<text x="76" y="1238.0" fill="#566079">HOW FAR TO TRUST IT</text>
+<text x="76" y="1256.0" fill="#566079">Simulated from the design file, not measured. Against 55 logged flights of fliers&apos; own designs, the simulated apogee</text>
+<text x="76" y="1274.0" fill="#566079">averaged 9.8% above the altimeter&apos;s; it was within 10% on 27 and low on 14, by at most 20%. Plan a waiver or a field&apos;s</text>
+<text x="76" y="1292.0" fill="#566079">ceiling with room above this apogee; the altimeter&apos;s reading is the one to log, and the RSO decides. More:</text>
+<text x="76" y="1310.0" fill="#566079">https://hpr.fusionspace.co/accuracy.html</text>
 </svg>

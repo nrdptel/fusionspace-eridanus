@@ -249,14 +249,13 @@ fn a_small_figure() {
     insta::assert_snapshot!(svg.replace(&stamp, "[stamp]"));
 }
 
-/// The figure ends with how far to trust it, the label in bold, as `hpr sim`'s text does
-/// (ADR-211), after the hatching's note when there is one.
+/// The figure ends with how far to trust it, under a label set as its other labels are, as
+/// `hpr sim`'s text does (ADR-211), after the hatching's note when there is one.
 #[test]
 fn the_figure_ends_with_how_far_to_trust_it() {
     for unpredicted in [None, Some((5.0, 20.0))] {
         let svg = figure_svg("Probe", unpredicted);
-        let label =
-            format!("<tspan font-weight=\"600\" fill=\"{INK}\">How far to trust it.</tspan>");
+        let label = format!(">{TRUST_LABEL}</text>");
         assert_eq!(svg.matches(&label).count(), 1, "{svg}");
         let note = svg.find(&label).unwrap_or(usize::MAX);
         assert!(svg.find("EVENTS · SIMULATED").unwrap_or(0) < note);
@@ -265,6 +264,10 @@ fn the_figure_ends_with_how_far_to_trust_it() {
         }
         // Nothing but the note's lines after it.
         let after = &svg[note..];
+        assert!(
+            after.contains(">Simulated from the design file, not measured."),
+            "{after}"
+        );
         assert!(after.contains("55 logged flights"), "{after}");
         assert!(after.contains("accuracy.html</text>\n</svg>"), "{after}");
     }

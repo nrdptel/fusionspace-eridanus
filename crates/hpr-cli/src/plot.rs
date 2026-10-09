@@ -316,6 +316,9 @@ const PANELS: &[Panel] = &[
     },
 ];
 
+/// The trust note's label, as the figure sets its labels.
+const TRUST_LABEL: &str = "HOW FAR TO TRUST IT";
+
 /// What the lines are, said once under the title rather than in a legend box.
 const LINES: &str = "Dashed: simulated by FusionSpace HPR; thick, the size, and thin, the vertical \
                      part, up positive. Chain line: the ground. Dotted: an event, numbered as in the table. \
@@ -376,7 +379,11 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
         // A blank line between the two paragraphs.
         note.push(String::new());
     }
-    note.extend(crate::trust::wrap(&crate::trust::flight(), LIST_WIDTH));
+    // The note's label as the figure's other labels are set, in capitals on a line of its own.
+    note.push(TRUST_LABEL.to_owned());
+    let trust = crate::trust::flight();
+    let body = trust.strip_prefix(crate::trust::LABEL).unwrap_or(&trust);
+    note.extend(crate::trust::wrap(body, LIST_WIDTH));
     let note_top = table_bottom + 24.0;
     let height = note_top + (note.len() - 1) as f64 * LIST_LINE + 14.0;
 
@@ -504,18 +511,10 @@ fn lines(svg: &mut String, lines: &[String], top: f64, left: f64, ink: &str) {
             Some(rest) => (left + 20.0, rest),
             None => (left, line.as_str()),
         };
-        // The trust note's label in bold, as the site sets it.
-        let body = match line.strip_prefix(crate::trust::LABEL) {
-            Some(rest) => format!(
-                "<tspan font-weight=\"600\" fill=\"{INK}\">{}</tspan>{}",
-                escape(crate::trust::LABEL),
-                escape(rest)
-            ),
-            None => escape(line),
-        };
         svg.push_str(&format!(
-            "<text x=\"{x}\" y=\"{:.1}\" fill=\"{ink}\">{body}</text>\n",
+            "<text x=\"{x}\" y=\"{:.1}\" fill=\"{ink}\">{}</text>\n",
             top + i as f64 * LIST_LINE,
+            escape(line)
         ));
     }
 }
