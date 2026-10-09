@@ -54,7 +54,7 @@ program prints a rounded summary instead of the files.
 |---|---|---|
 | `flight.csv` | a header giving each column in words with its unit in brackets (`time [s]`, `cg east [m]`, ...), then one line per recorded moment, lines ending in CRLF as RFC 4180 says | a spreadsheet, pandas, any plotting tool |
 | `flight.json` | the same table as `{"tool": {...}, "columns": [...], "rows": [[...], ...]}`, each column's unit in its name (`time_s`, `cg_east_m`) | any programming language |
-| `flight.parquet` | the same table in [Apache Parquet](https://parquet.apache.org/), a binary format that stores it column by column: one column of 64-bit numbers per recorded column, with the CSV header's names, and the program that wrote it in the file's key-value metadata | [pandas](https://pandas.pydata.org/) with [pyarrow](https://arrow.apache.org/docs/python/) (Apache Arrow's Python library), [DuckDB](https://duckdb.org/) |
+| `flight.parquet` | the same table in [Apache Parquet](https://parquet.apache.org/), a binary format that stores it column by column: one column of 64-bit numbers per recorded column, named as in the JSON (`time_s`), not as in the CSV's header (`time [s]`), and the program that wrote it in the file's key-value metadata | [pandas](https://pandas.pydata.org/) with [pyarrow](https://arrow.apache.org/docs/python/) (Apache Arrow's Python library), [DuckDB](https://duckdb.org/) |
 | `flight.geojson` | the flight path as a line, and a point for each landing: the rocket's and any separated body's; and a `tool` object naming the program that wrote it | QGIS, geojson.io, web maps |
 | `flight.kml` | the same path and landing | Google Earth |
 
@@ -83,13 +83,19 @@ name, the design and configuration flown, the number of rows, and:
 
 - `catalog_as_of`: the day the bundled motor catalog's curve files were downloaded, such as
   `2026-09-17`, which a build fixes. Whether a motor came from the catalog is in `hpr sim
-  --json`'s `motors`, whose text line says "from the bundled catalog, as of 2026-09-17". The
+  --json`'s `motors`: each motor's `source` is `{"kind": "catalog", "as_of": "2026-09-17"}` for
+  one that did, and `hpr sim`'s motor line says "from the bundled catalog, as of 2026-09-17". The
   day of the run itself is left out, so the same run writes the same bytes.
-- `kind` and `trust`: what the numbers are (`simulated`) and the
-  [accuracy note](cli.md#the-accuracy-note-on-every-result) `hpr sim` ends with.
+- `kind` and `trust`: what the numbers are (`simulated`, for a flight; `hpr motors show` says
+  `copied` of a catalog motor's figures) and the
+  [accuracy note](cli.md#the-accuracy-note-on-every-result) `hpr sim` ends with, word for word.
 
-A JSON recording from `hpr sim` carries the same four, with `design` and `configuration`, between
-`tool` and `columns`, so a saved flight keeps its note. The library's `export::csv` writes the
+A JSON recording from `hpr sim` carries the same three, with `design` and `configuration`, between
+`tool` and `columns`, so a saved flight keeps its note. `hpr mc --export`'s sidecar carries them
+too, with `hpr mc`'s own note. GeoJSON, KML and Parquet name the program and its version but not
+yet the catalog's date or the note
+([#403](https://github.com/nrdptel/fusionspace-eridanus/issues/403)): keep the JSON or the CSV
+and its sidecar beside them. The library's `export::csv` writes the
 CSV alone, and `export::json` the rows alone; `export::json_with` adds a program's own fields.
 
 To look at the Parquet file from Python, install pandas and pyarrow (`pip install pandas pyarrow`;

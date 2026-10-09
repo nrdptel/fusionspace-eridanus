@@ -1161,7 +1161,7 @@
           ]
         },
         {
-          "description": "The bundled catalog, named with `--motor`.",
+          "description": "The bundled catalog: named with `--motor`, or a `.ork` file's motor with no curve in the\nfile, found there by its manufacturer and designation.",
           "type": "object",
           "properties": {
             "as_of": {

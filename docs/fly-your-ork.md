@@ -46,7 +46,7 @@ rail exit speed       26.3 m/s (86 ft/s)
 delay                 apogee 9.48 s after burnout; the motor's set delay: 10 s; its charge fires 0.52 s after apogee
 descent               4.4 m/s (15 ft/s) at landing under `Parachute`
 
-motor: 1 × H170M (the design's) in `Motor mount tube`, lit at launch
+motor: 1 × H170M (from the bundled catalog, as of 2026-09-17) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 12.14 s
 launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 note: the file's 1 recovery device flies as OpenRocket flies it: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
@@ -134,7 +134,7 @@ rail exit speed       36.8 m/s (121 ft/s)
 delay                 apogee 9.54 s after burnout; the motor's set delay: 9 s; its charge fires 0.54 s before apogee
 descent               4.9 m/s (16 ft/s) at landing under `Parachute`
 
-motor: 1 × I175WS (the design's) in `Motor mount tube`, lit at launch
+motor: 1 × I175WS (from the bundled catalog, as of 2026-09-17) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 10.97 s
 launched at 0° N, 0° E, 1400 m (4593 ft) above sea level, from a 2.4 m (7.9 ft) rail 85° above the horizon, leaning toward 270°, in a 4 m/s (9 mph) wind from 270°
 note: the file's 1 recovery device flies as OpenRocket flies it: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone

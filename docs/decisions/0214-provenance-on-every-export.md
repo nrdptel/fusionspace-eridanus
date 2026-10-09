@@ -1,7 +1,7 @@
 # ADR-214: Provenance on the exports: the catalog's date, the trust note, units in brackets, ASCII JSON (2026-10-09)
 
 - **Status:** accepted; carries out the product system's `data.md` and `principles.md` §2 and §7 for #380 (M0.9c5), and amends [ADR-174][adr-174] §5 (the CSV's sidecar) and the CSV header [ADR-210][adr-210] §4 kept
-- **Summary:** `hpr sim --export`'s JSON recording and the `.meta.json` sidecar beside a CSV, and `hpr mc --export`'s sidecar, carry the bundled motor catalog's as-of date (`catalog_as_of`) and the *How far to trust it* note as `--json` has it (`kind`, `trust`); the JSON recording also names the design and configuration. `hpr sim` and `hpr mc` say "from the bundled catalog, as of 2026-09-17" beside a motor taken from it, and `--json` gives the date as the source's `as_of`. The run's own date stays out, so a run writes the same bytes each time. A CSV header gives each column in words with its unit in brackets, `time [s]`, by one rule from the name the other formats keep (`time_s`). Every JSON document `hpr` writes, and the library's JSON and GeoJSON, is ASCII: other characters, the designation's middle dots among them, are `\u` escapes. The plot's last visible line is the program, its version and its designation. GeoJSON, KML and Parquet carry neither the date nor the note yet (#403).
+- **Summary:** `hpr sim --export`'s JSON recording and the `.meta.json` sidecar beside a CSV, and `hpr mc --export`'s sidecar, carry the bundled motor catalog's as-of date (`catalog_as_of`) and the *How far to trust it* note as `--json` has it (`kind`, `trust`); the JSON recording also names the design and configuration. `hpr sim` and `hpr mc` say "from the bundled catalog, as of 2026-09-17" beside a motor taken from it, named with `--motor` or found there for a `.ork` motor with no curve of its own, and `--json` gives the date as the source's `as_of`. The run's own date stays out, so a run writes the same bytes each time. A CSV header gives each column in words with its unit in brackets, `time [s]`, by one rule from the name the other formats keep (`time_s`). Every JSON document `hpr` writes, and the library's JSON and GeoJSON, is ASCII: other characters, the designation's middle dots among them, are `\u` escapes. The plot's last visible line is the program, its version and its designation. GeoJSON, KML and Parquet carry neither the date nor the note yet, nor the plot the date (#403, M0.9c8).
 
 [adr-164]: 0164-the-fusionspace-product-system.md
 [adr-174]: 0174-the-command-line-s-colors-hints-and-title-block.md
@@ -29,7 +29,8 @@ with, so a saved flight lost it.
    ThrustCurve.org after it. The sidecars and the JSON recording carry it as `catalog_as_of`
    whatever motor flew; the motor's own `source` in `--json` says whether it came from the
    catalog, and then carries the date as `as_of`. The text says "from the bundled catalog, as of
-   2026-09-17".
+   2026-09-17". That holds for a `.ork` motor with no curve in the file that the reader found in
+   the catalog, as well as for one named with `--motor`.
 2. **The trust note goes with the file.** The JSON recording and both sidecars carry `kind` and
    `trust`, the same strings `--json` has, so the note can't drift from the text. The JSON
    recording puts them, with the design, configuration and date, between `tool` and `columns`
@@ -54,7 +55,8 @@ with, so a saved flight lost it.
 
 **Held by.** `crates/hpr-cli/tests/provenance.rs`:
 `every_export_carries_the_catalogs_date_and_how_far_to_trust_it`,
-`the_text_dates_a_motor_from_the_bundled_catalog`, `a_csv_header_gives_each_unit_in_brackets`
+`the_text_dates_a_motor_from_the_bundled_catalog`,
+`a_design_motor_found_in_the_catalog_is_dated`, `a_csv_header_gives_each_unit_in_brackets`
 and `every_json_document_is_ascii`, each failing on the build before this record;
 `crates/hpr-sim/src/export.rs`'s `a_csv_header_gives_each_columns_unit_in_brackets`,
 `json_text_is_ascii_and_reads_back_the_same` and `json_with_adds_the_callers_fields_after_the_tool`;
@@ -71,12 +73,14 @@ and `every_json_document_is_ascii`, each failing on the build before this record
   catalog's date is the one that bears on the numbers.
 - **A `\u`-escaping `serde_json` formatter.** Not needed: escaping the finished text gives the
   same bytes with one short function the library and the command line share.
-- **The note and date in GeoJSON, KML and Parquet now.** Deferred to #403, with the `.ork`
-  motor whose curve the catalog supplies, which still prints as the design's: the issue named the
-  JSON recording and the sidecars.
+- **The note and date in GeoJSON, KML and Parquet, and the date on the plot, now.** Deferred to
+  #403 (M0.9c8): the issue named the JSON recording and the sidecars.
 
-**Consequences.** The design audit's rows *principles.md · 2* and *data.md · Files and exports*
-are met; *principles.md · 7* waits only on the README (#387); *data.md · Copying and typing
-numbers* waits on #381's typed numbers; *principles.md · 3* waits on #386, #401 and #403. A
+**Consequences.** The design audit's row *data.md · Files and exports* is met, its US option
+waiting on M9.1 by ADR-210; *principles.md · 2* waits on #403 (M0.9c8), the formats that carry
+no date; *principles.md · 7* waits only on the README (#387); *data.md · Copying and typing
+numbers* waits on #381's typed numbers, and its ASCII rule for the KML's and the plot's stamp,
+which keep the middle dot as text, not JSON; *principles.md · 3* waits on #386, #401 and #403.
+The audit stands at 10 met and 47 not met. A
 script that read `hpr sim`'s CSV by the old header names needs the new header, or the JSON or
 Parquet recording, which keep them.

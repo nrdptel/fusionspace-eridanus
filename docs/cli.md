@@ -1629,7 +1629,10 @@ describes its fields and units:
 | any failure | [`error.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/error.schema.json) |
 
 Every document opens with the same `tool` object, the program that wrote it:
-`{"name": "FusionSpace HPR", "version": "0.1.0", "designation": "FS-ACHERNAR · SW · TOOL 001"}`. An error
+`{"name": "FusionSpace HPR", "version": "0.1.0", "designation": "FS-ACHERNAR \u00b7 SW \u00b7 TOOL 001"}`.
+The text is ASCII, so the designation's middle dot `·` is written as its escape `\u00b7`, which
+every JSON reader reads back as the dot
+([Exporting a flight](exporting-a-flight.md#which-program-wrote-a-file)). An error
 document's `help` lists what to do about the failure, the lines the text output starts with
 `help:`, and is empty when there is nothing to suggest. The sidecar of a CSV recording
 ([Exporting the recording](#exporting-the-recording)) has its own schema,

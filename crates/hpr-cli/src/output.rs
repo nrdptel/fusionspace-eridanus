@@ -815,7 +815,8 @@ pub struct SimMotor {
 pub enum SimMotorSource {
     /// The design file's own configuration.
     Design,
-    /// The bundled catalog, named with `--motor`.
+    /// The bundled catalog: named with `--motor`, or a `.ork` file's motor with no curve in the
+    /// file, found there by its manufacturer and designation.
     Catalog {
         /// The catalog's as-of date, `YYYY-MM-DD`: the day its curve files were downloaded.
         as_of: String,

@@ -209,7 +209,8 @@ pub fn json(recorder: &Recorder) -> Result<String, SimError> {
 
 /// The recorded rows as [`json()`] writes them, with `about`'s fields, in its order, between
 /// `tool` and `columns`: what the caller knows of the flight that the recorder doesn't, such as
-/// the design flown or how far to trust it.
+/// the design flown or how far to trust it. A struct or a [`serde_json::Map`] keeps the order
+/// from one run to the next; a `HashMap` doesn't, so the same flight could write other bytes.
 ///
 /// # Errors
 ///

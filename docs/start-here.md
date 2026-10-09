@@ -178,14 +178,16 @@ out.
 
 - **Output files.** [Exporting a flight](exporting-a-flight.md) writes a recording as CSV, JSON or
   Parquet ([M1.10c2](decisions-and-roadmap.md#m1-10c2)), and the flight path with its landings as
-  GeoJSON or KML for a map. A CSV's header gives each unit in brackets (`time [s]`), and the
-  command line's JSON recording and the file beside a CSV carry the motor catalog's as-of date and
-  how far to trust the flight (since [M0.9c5](decisions-and-roadmap.md#m0-9c5), provenance on the
-  exports). A flight's peaks, its stability
+  GeoJSON or KML for a map. A flight's peaks, its stability
   margin from the rail exit to apogee (the weakest direction's, for a rocket with a fin set of
   one or two fins; [#329](https://github.com/nrdptel/fusionspace-eridanus/issues/329)), the optimum ejection delay and its landing's latitude and
   longitude are in [Flight metrics](physics/metrics.md), and its fins' flutter speed and margin in
   [Fin flutter](physics/flutter.md).
+- **Where an export comes from.** A CSV's header gives each column's unit in brackets
+  (`time [s]`). `hpr sim`'s JSON recording, and the small file `hpr sim` and `hpr mc` write beside
+  a CSV, carry the motor catalog's as-of date and how far to trust the numbers (since
+  [M0.9c5](decisions-and-roadmap.md#m0-9c5), provenance on the exports). GeoJSON, KML and Parquet
+  don't carry them yet ([#403](https://github.com/nrdptel/fusionspace-eridanus/issues/403)).
 - **The command line flies powered separations only.** `hpr sim` flies a `.ork` file or
   an HPR design file, exports its recording ([The command line](cli.md#hpr-sim)), and with `--plot`
   draws its altitude, speed and acceleration against time, events marked and listed in a table,

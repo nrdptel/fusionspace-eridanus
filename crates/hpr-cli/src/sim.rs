@@ -543,6 +543,27 @@ impl Setup {
 
     /// The motors flown, as the output lists them.
     pub(crate) fn motors(&self) -> Result<Vec<SimMotor>, Failure> {
+        // A `.ork` motor with no curve in the file that the reader found in the bundled catalog
+        // is dated as one named with `--motor` is: the catalog's as-of date (ADR-214).
+        let from_catalog = |flown: &MountedMotor| {
+            matches!(self.motor_source, SimMotorSource::Design)
+                && self.read.ork.as_ref().is_some_and(|ork| {
+                    ork.configurations
+                        .iter()
+                        .filter(|c| c.id == self.configuration)
+                        .flat_map(|c| &c.motors)
+                        .any(|motor| {
+                            motor.mount == flown.mount
+                                && motor.designation == flown.designation
+                                && matches!(motor.curve, ork::Curve::Catalog { .. })
+                        })
+                })
+        };
+        let catalog_as_of = if self.flown_motors.iter().any(from_catalog) {
+            Some(crate::motors::catalog_as_of()?)
+        } else {
+            None
+        };
         self.flown_motors
             .iter()
             .map(|flown| {
@@ -568,7 +589,12 @@ impl Setup {
                             fetched.mount == flown.mount && fetched.designation == flown.designation
                         })
                         .map_or_else(
-                            || self.motor_source.clone(),
+                            || match &catalog_as_of {
+                                Some(as_of) if from_catalog(flown) => SimMotorSource::Catalog {
+                                    as_of: as_of.clone(),
+                                },
+                                _ => self.motor_source.clone(),
+                            },
                             |fetched| SimMotorSource::ThrustCurve(Box::new(fetched.motor.clone())),
                         ),
                     ignition: ignition(&flown.ignition, &self.names),
@@ -2204,9 +2230,6 @@ pub(crate) fn in_fall(peak: &Peak, first_opened_s: Option<f64>) -> &'static str 
     }
 }
 
-/// A recording file's contents. Unless a recovery device opened (`braked`), the maps draw no
-/// landing point: where the rocket came down is not a prediction, and a pin on a map reads as one.
-/// Nor do they draw a separated part's, which is rough whatever opened (ADR-159).
 /// What a JSON recording carries beside its rows, as a CSV's sidecar does ([`ExportMeta`]): the
 /// design and configuration flown, the bundled catalog's as-of date and how far to trust it.
 #[derive(serde::Serialize)]
@@ -2218,8 +2241,10 @@ struct About {
     trust: String,
 }
 
-/// A recording's contents in `format`; `name` titles a KML file, and `about` is what a JSON one
-/// carries beside its rows.
+/// A recording file's contents in `format`; `name` titles a KML file, and `about` is what a JSON
+/// one carries beside its rows. Unless a recovery device opened (`braked`), the maps draw no
+/// landing point: where the rocket came down is not a prediction, and a pin on a map reads as one.
+/// Nor do they draw a separated part's, which is rough whatever opened (ADR-159).
 fn contents(
     format: ExportFormat,
     recorder: &Recorder,

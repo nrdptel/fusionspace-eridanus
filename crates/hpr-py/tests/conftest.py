@@ -57,6 +57,6 @@ def header_of(name):
 
 @pytest.fixture
 def csv_header():
-    """How a CSV header writes a column's name, written out here apart from the Rust rule
-    (`hpr_sim::export::csv_header`) so the two check each other."""
+    """How a CSV header writes a column's name, the Rust rule (`hpr_sim::export::csv_header`)
+    written out again; the Rust tests pin each header by hand."""
     return header_of

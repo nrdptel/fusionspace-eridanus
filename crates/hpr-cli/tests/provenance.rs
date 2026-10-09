@@ -233,3 +233,40 @@ fn every_json_document_is_ascii() {
     );
     assert_eq!(meta["design"], "Mjölnir.ork");
 }
+
+/// A `.ork` motor with no curve in the file, which the reader finds in the bundled catalog, is
+/// dated as one named with `--motor` is: before this, `level-1.ork`'s H170M printed as "the
+/// design's" with no date.
+#[test]
+fn a_design_motor_found_in_the_catalog_is_dated() {
+    let design = root()
+        .join("validation/fixtures/ork/guides/level-1.ork")
+        .to_string_lossy()
+        .into_owned();
+    let as_of = as_of();
+    let text = String::from_utf8(run(&["sim", &design]).stdout).unwrap();
+    assert!(
+        text.contains(&format!(
+            "motor: 1 × H170M (from the bundled catalog, as of {as_of})"
+        )),
+        "{text}"
+    );
+    let document = ascii_json(
+        &String::from_utf8(run(&["sim", &design, "--json"]).stdout).unwrap(),
+        "hpr sim --json",
+    );
+    assert_eq!(
+        document["motors"][0]["source"],
+        serde_json::json!({"kind": "catalog", "as_of": as_of})
+    );
+    // A motor whose curve the file holds stays the design's.
+    let embedded = root()
+        .join("crates/hpr-format/fixtures/embedded-curve-0.1.hpr")
+        .to_string_lossy()
+        .into_owned();
+    let document = ascii_json(
+        &String::from_utf8(run(&["sim", &embedded, "--json"]).stdout).unwrap(),
+        "hpr sim --json",
+    );
+    assert_eq!(document["motors"][0]["source"]["kind"], "design");
+}
