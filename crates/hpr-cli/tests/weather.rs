@@ -791,8 +791,9 @@ fn closing_note(text: &str) -> String {
     let lines: Vec<&str> = text.lines().collect();
     let first = lines
         .iter()
-        .rposition(|line| line.starts_with("How far to trust it."))
-        .unwrap_or_else(|| panic!("no note: {text}"));
+        .rposition(|line| line.starts_with("How far to trust it."));
+    assert!(first.is_some(), "no note: {text}");
+    let first = first.unwrap();
     assert!(first > 0 && lines[first - 1].is_empty(), "{text}");
     assert!(
         lines

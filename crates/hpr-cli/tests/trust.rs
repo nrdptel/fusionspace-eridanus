@@ -133,10 +133,9 @@ fn json_carries_the_kind_and_the_same_note() {
 fn in_order(note: &str, parts: &[&str]) {
     let mut from = 0;
     for part in parts {
-        let at = note[from..]
-            .find(part)
-            .unwrap_or_else(|| panic!("{part:?} after {from}: {note}"));
-        from += at + part.len();
+        let at = note[from..].find(part);
+        assert!(at.is_some(), "{part:?} after {from}: {note}");
+        from += at.unwrap() + part.len();
     }
 }
 
@@ -213,8 +212,9 @@ fn closing_note_at(out: &str, page: &str) -> String {
     let lines: Vec<&str> = out.lines().collect();
     let first = lines
         .iter()
-        .rposition(|line| line.starts_with("How far to trust it."))
-        .unwrap_or_else(|| panic!("no note: {out}"));
+        .rposition(|line| line.starts_with("How far to trust it."));
+    assert!(first.is_some(), "no note: {out}");
+    let first = first.unwrap();
     let more = format!("More: https://hpr.fusionspace.co/{page}");
     assert_eq!(lines.last(), Some(&more.as_str()), "{out}");
     assert!(first > 0 && lines[first - 1].is_empty(), "{out}");
