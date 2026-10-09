@@ -62,8 +62,8 @@ What the lines say:
 - **The flight.** The [rail exit](glossary.md#rail-exit-and-rail-exit-velocity) speed is how fast the rocket leaves the
   rail. The rail leans 5° west, into the wind, and the rocket turns further into the wind as it
   climbs, a rocket's usual [weathercocking](glossary.md#weathercocking). The lean and the turn
-  together put its [apogee](glossary.md#apogee) 282 m west of the pad. Under the parachute the
-  wind carries it back, to land 877 m east of the pad.
+  together put its [apogee](glossary.md#apogee) 282 m (925 ft) west of the pad. Under the
+  parachute the wind carries it back, to land 877 m (2,877 ft) east of the pad.
 - **Heights** are the height of the rocket's CG above the launch site. The CG starts above the
   ground, sitting on the rail, so the apogee includes that starting height.
 
@@ -126,8 +126,8 @@ them.
 `mass_properties(t)` gives the mass, CG and inertia `t` seconds after the motor lights.
 `margin(t, mach)` gives the CP and the margin, and `static_margin_cal(t, mach)` the margin alone.
 The CG is in the [body frame](glossary.md#body-frame), whose `z` axis points to the nose, so a
-point 0.671 m behind the nose tip is at `z = −0.671`. The CP is a station, meters aft of the tip,
-so the example prints it as it comes and the CG with its sign turned. Weighing runs the same
+point 0.671 m (26.4 in) behind the nose tip is at `z = −0.671`. The CP is a station, meters aft
+of the tip, so the example prints it as it comes and the CG with its sign turned. Weighing runs the same
 checks on the design as a flight does, so a motor wider than its tube is refused by both.
 
 ### Flying it
@@ -135,10 +135,11 @@ checks on the design as a flight does, so a motor wider than its tube is refused
 `Environment::new(latitude, longitude, elevation)` is the launch site, in degrees north, degrees
 east (so the Americas are negative) and meters. It has the
 [standard atmosphere](glossary.md#standard-atmosphere) and no wind; `with_constant_wind(5.0, 270.0)`
-adds 5 m/s blowing from 270°, the west. The elevation is taken both as the height above sea level,
-where the air is read, and as the height above the [ellipsoid](glossary.md#ellipsoidal-height).
+adds 5 m/s (11 mph) blowing from 270°, the west. The elevation is taken both as the height above
+sea level, where the air is read, and as the height above the
+[ellipsoid](glossary.md#ellipsoidal-height).
 
-`Flight::builder(&rocket, &environment, 1.8)` sets up a flight from a vertical 1.8 m rail.
+`Flight::builder(&rocket, &environment, 1.8)` sets up a flight from a vertical 1.8 m (5.9 ft) rail.
 `inclination_deg` is the rail's angle above the horizon: 90 is vertical, and 85 leans 5° off it.
 OpenRocket measures its launch rod angle from the vertical instead, so its 5° is 85 here.
 `heading_deg` is the way the rail leans, clockwise from true north (add the
@@ -170,23 +171,23 @@ F52C           0.548    3.32       18.5    438.6        106         8.0
 ```
 
 `set_motor` swaps the motor in the tube, so one rocket flies on all three. The H54 reaches
-1134.6 m here, from a vertical rail in the wind. The same rocket reaches 1144.5 m on
-[Your own rocket](your-own-rocket.md), from a vertical rail in calm air, and 1106.6 m at the top of
-this page, from a leaning rail. The parachutes open at different times too: here at apogee, there
-at the motor's charge.
+1134.6 m (3722 ft) here, from a vertical rail in the wind. The same rocket reaches 1144.5 m
+(3755 ft) on [Your own rocket](your-own-rocket.md), from a vertical rail in calm air, and 1106.6 m
+(3631 ft) at the top of this page, from a leaning rail. The parachutes open at different times
+too: here at apogee, there at the motor's charge.
 
 The best delay is the time from [burnout](glossary.md#burnout), the end of the thrust curve, to
 apogee, so the charge fires at the top. It is 10.5 s on the H54, near the 10 s delay that motor's
 designation names. The H54 burns out at 3.5 s, so on the leaning rail at the top of this page its
 10 s delay fires at 13.5 s, 0.2 s before its apogee. The F52 wants 8 s. The F15 leaves the rail
-at only 10 m/s, the slowest of the three, and a slow rocket's fins have the least air to
+at only 10 m/s (33 ft/s), the slowest of the three, and a slow rocket's fins have the least air to
 steer with.
 
 ## Sizing fins
 
 The third example builds the same rocket with fins of five spans, the fin's height from the body
-tube to its tip, and flies each from a vertical rail, in calm air and in 5 m/s of wind from the
-west. The parachute opens at apogee here, not at the motor's charge, so the charge doesn't cut
+tube to its tip, and flies each from a vertical rail, in calm air and in 5 m/s (11 mph) of wind
+from the west. The parachute opens at apogee here, not at the motor's charge, so the charge doesn't cut
 the climb short:
 
 ```bash
@@ -214,11 +215,11 @@ Because a rocket is a value built by a function, a design study is a loop. The e
   ahead of the CG, to 3.67. The usual rule of thumb asks for at least one calibre
   ([stability margin](glossary.md#stability-margin)), so the program doesn't fly the two
   smallest; the example's own fins are the 45 mm ones.
-- **Bigger fins cost height.** In calm air the 65 mm fins reach 38 m less than the 45 mm ones:
-  that is their drag and their extra mass, about 9 g. In the wind they lose 47 m, since they also
-  turn the rocket further into it, as the apogee drift shows: 119 m upwind with the 45 mm fins,
-  176 m with the 65 mm.
-- **The landing** is closer with bigger fins, 114 m closer from the 45 mm to the 65 mm: the
+- **Bigger fins cost height.** In calm air the 65 mm fins reach 38 m (125 ft) less than the 45 mm
+  ones: that is their drag and their extra mass, about 9 g. In the wind they lose 47 m (154 ft),
+  since they also turn the rocket further into it, as the apogee drift shows: 119 m (390 ft) upwind
+  with the 45 mm fins, 176 m (577 ft) with the 65 mm.
+- **The landing** is closer with bigger fins, 114 m (374 ft) closer from the 45 mm to the 65 mm: the
   parachute opens further upwind, and lower, so it drifts for less time.
 
 ## Parts from a catalog
@@ -274,8 +275,8 @@ without the motor.
 > top speed, Mach 0.91, is close to the speed of sound, where drag rises steeply and is least
 > certain ([Drag through Mach 1](physics/aero.md#drag-through-mach-1)). The
 > [stability margin](glossary.md#stability-margin), 1.07
-> [calibres](glossary.md#calibre-caliber), is taken at Mach 0.3, about 100 m/s, more than three
-> times the speed the rocket leaves the rail at.
+> [calibres](glossary.md#calibre-caliber), is taken at Mach 0.3, about 100 m/s (328 ft/s), more
+> than three times the speed the rocket leaves the rail at.
 
 The program is
 [`catalog_rocket.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/catalog_rocket.rs).

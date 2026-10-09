@@ -74,6 +74,7 @@ They don't conflict with the rules above; they add these:
   | on the site and in SVG figures, that space is non-breaking (U+00A0), so a line never ends between a number and its unit; in terminal, JSON and CSV output it is a plain space, which copying and `grep` need ([`data.md`](https://github.com/nrdptel/fusionspace-design/blob/main/product/data.md#numbers)) | `21.5&nbsp;°C` in a page's source, `&#160;` in an SVG; `21.5 °C` in `hpr`'s output |
   | commas in groups of three in prose; none in terminal output or anything copied | `5,104 ft`; `1280 ft` |
   | precision that matches what is known | `5,104 ft` from a barometer, not `5,103.87 ft` |
+  | heights, distances and speeds in SI, then the US units in brackets, converted from the SI as written: feet, inches or miles; feet per second, or mph for the wind. Worked arithmetic and e-notation are exempt; the site check fails the rest ([ADR-219](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0219-figures-at-their-size-and-us-units-on-the-guides.md)) | `1,400 m (4,593 ft)`, `16.2 m/s (53 ft/s)`, `5 m/s (11 mph)`, `0.6 m (24 in)` |
   | dates in prose; in tables and files | October 4, 2026; 2026-10-04 |
 - **FusionSpace** is one word.
 - **The product's name** ([ADR-199, the public name](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0199-the-2026-10-07-fusionspace-hpr.md) §1):

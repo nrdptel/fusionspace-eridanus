@@ -14,7 +14,8 @@ every result so far.
 ![A rocket's flight seen from the side. It lifts off the pad, leaves the rail, burns out, and coasts to apogee west of the pad, into the wind. It then drifts east under a drogue and a main parachute, and lands east of the pad. Seven numbered points mark the events: liftoff, rail exit, burnout, apogee, the drogue opening, the main opening, and landing.](images/flight-phases.svg)
 
 The drawing is the shape of the [Getting started](getting-started.md) example's flight, not to
-scale: its apogee is 779 m up and 86 m west of the pad, and it lands 94 m east of it.
+scale: its apogee is 779 m (2,556 ft) up and 86 m (282 ft) west of the pad, and it lands
+94 m (308 ft) east of it.
 
 ## What goes in
 
@@ -175,7 +176,7 @@ flight:
   propellant's [internal momentum](glossary.md#internal-momentum), and the equations of motion add
   it again, as RocketPy's do. HPR Sim keeps it so that the two codes can be compared like for like.
   On the Getting started rocket it adds 21 N to the push at liftoff and changes the burnout speed by
-  at most 0.05 m/s ([Rigid-body flight](physics/flight.md#equations-of-motion)).
+  at most 0.05 m/s (0.2 ft/s); see [Rigid-body flight](physics/flight.md#equations-of-motion).
 - **Under a parachute:** the drag overshoot as a canopy fills, so the opening load the simulator
   reports is no safe bound (by default a canopy opens at once); the air carried along with it
   ([added mass](glossary.md#added-mass)); the airframe's own drag; and the rocket swinging below

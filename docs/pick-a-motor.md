@@ -208,7 +208,7 @@ Between the two flights above:
 - **Apogee.** The I377 climbs higher. If your field has a ceiling, its waiver sets it, not the
   simulator.
 - **Rail exit speed.** The I377 leaves the rail much faster. The safety codes ask for a speed
-  that ensures a stable flight but give no number; competitions set their own, such as 25 m/s
+  that ensures a stable flight but give no number; competitions set their own, such as 25 m/s (82 ft/s)
   for the Spaceport America Cup
   ([Rail exit speed](stability-for-certification.md#rail-exit-speed) quotes them).
 - **Stability margin.** It changes with the motor: a motor's mass sits behind the center of

@@ -239,6 +239,7 @@ until someone rewrites it in plainer words.
 | [ADR-216: The plot's type and spacing on the scale, numbers kept with their units; M0.9c7 split in three][adr-216] | the `hpr sim --plot` figure draws every line at the 12 px `label` size, balloon numerals included, and its title at the 20 px, weight 600 `subtitle` size; its title, caption, balloon rows, event table and indents step on the 4 px scale (8, 16, 24 and 32 px); the time axis is titled at its right end; and a number and its unit are joined by a no-break space in the caption, the notes and the balloons' tooltips. Each is held by a plot test read from the drawn SVG. Colliding balloons on a leader, banking, a title block and the CSV are [M0.9c12](#m0-9c12); the site's figure width and the site's US units (#400) are [M0.9c13](#m0-9c13), both queued after [M0.9c9](#m0-9c9). |  |
 | [ADR-217: Neer's 2026-10-09 plan: fusionspace.co rebuilt from the ground up][adr-217] | fusionspace.co, FusionSpace's front page, is rebuilt from the ground up as `FS · SITE 001`, like the old web tools ([M9.6](#m9-6)) but sooner: [M9.8](#m9-8), queued after the simulator's guide ([M0.8a](#m0-8a)) so the page can send people to it. It presents FusionSpace and its projects, FusionSpace HPR's products first, each with its status, its guide, docs and latest release, and the old tools until [M9.6](#m9-6) replaces them. It follows fusionspace-design's web rules, passes the no-clipping checks at every width in both themes, makes no claim of "better" without a committed comparison ([ADR-209][adr-209]), and lives in its own public repository, clean of tooling traces from its first commit. Pointing the domain at it is the maintainer's step. |  |
 | [ADR-218: The plot's balloons on leaders, banked panels, title block and data file][adr-218] | the `hpr sim --plot` figure sets its balloons in one row, each that would collide stepped right along a short leader, growing for three-digit numerals; each panel's height is banked to 45° by Cleveland's length-weighted average orientation, between 120 and 360 px; the figure ends in an ISO 7200-style title block; and `--plot f.svg` writes the numbers it draws to `f.plot.csv`, with a `f.plot.meta.json` sidecar. Each is held by a test that fails without it. |  |
+| [ADR-219: Figures at their size on the site, US units in the guides' prose; M0.9c13 split][adr-219] | a figure on the site may reach past the 750 px prose column, up to the product system's 1,120 px content width or the page's own, and is shown at its size wherever that holds it; in a narrower window it shrinks and mdBook's zoom shows it at its size. `cargo xtask site`'s page check fails a figure shown smaller than drawn with room for it, or without a zoom. Every height, distance and speed in the guides' prose and tables gives its US units in brackets after the SI, `1,400 m (4,593 ft)`, and a site check fails one in SI alone or with a bracket that isn't its conversion. The model pages, the accuracy page, the validation plan and the records page follow in [M0.9c16](#m0-9c16); the file formats' pages stay in the file's units. |  |
 
 ## The roadmap
 
@@ -356,9 +357,10 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9c8"></a>[M0.9c8][done-0] | Provenance on every export | done |
 | <a id="m0-9c9"></a>[M0.9c9][done-0] | Help, roles and progress | done |
 | <a id="m0-9c12"></a>[M0.9c12][done-0] | The plot's balloons, banking and title block | done |
-| <a id="m0-9c13"></a>[M0.9c13][phase-0] | The site's figures and units | not yet done |
+| <a id="m0-9c13"></a>[M0.9c13][done-0] | The site's figures and units | done |
 | <a id="m0-9c14"></a>[M0.9c14][phase-0] | Provenance on the other files | not yet done |
 | <a id="m0-9c15"></a>[M0.9c15][phase-0] | Next steps and waits | not yet done |
+| <a id="m0-9c16"></a>[M0.9c16][phase-0] | US units on the model pages | not yet done |
 | <a id="m0-9d"></a>[M0.9d][phase-0] | The site to the design | not yet done |
 | <a id="m0-9e"></a>[M0.9e][phase-0] | The words to the design | not yet done |
 | <a id="m0-10"></a>[M0.10][phase-0] | The scoreboard | not yet done |
@@ -974,6 +976,7 @@ is the milestone that added or will add that test.
 [adr-216]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0216-the-plots-type-and-spacing.md
 [adr-217]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0217-the-2026-10-09-fusionspace-co-rebuilt.md
 [adr-218]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0218-the-plots-balloons-banking-title-block-and-data.md
+[adr-219]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0219-figures-at-their-size-and-us-units-on-the-guides.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

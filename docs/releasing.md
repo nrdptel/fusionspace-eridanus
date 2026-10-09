@@ -73,12 +73,13 @@ of the repository that provides the example design:
 - **An archive** must hold `hpr`, the README and the four license files, with the texts naming
   `clap`, a crate the command line is built on; `hpr --version` must name
   the release's version; `hpr motors show H54` must read the bundled motor catalog; and
-  `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54` must reach 846.1 m above
-  the site, within a meter, the apogee [the command line's page](cli.md) prints for that example.
+  `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54` must reach
+  846.1 m (2,776 ft) above the site, within a meter, the apogee [the command line's page](cli.md)
+  prints for that example.
 - **A wheel or the source package** is installed into fresh environments on Python 3.10 and 3.13.
   It must carry the four license files, the texts naming `pyo3`, the crate that binds Rust to
   Python, and the release's version, and the first example on the
-  [Python](python.md) page must reach 1118.3 m, within a meter, as that page prints.
+  [Python](python.md) page must reach 1118.3 m (3669 ft), within a meter, as that page prints.
 - **The Linux archive and wheel** are then checked against the glibc floor twice.
   `scripts/release/check-glibc.sh` reads each program and library in them with `objdump` and
   fails if one asks for a glibc function newer than 2.17, or if the wheel's name lacks the

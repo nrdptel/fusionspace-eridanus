@@ -102,11 +102,11 @@ reloadable motor (a propellant load for a reusable case). These are the program'
 
 | part | Rust type | in the program |
 |---|---|---|
-| nose cone | [`NoseCone`](api/hpr_design/parts/struct.NoseCone.html) | a [tangent ogive](glossary.md#tangent-ogive) ([Shapes](physics/shapes.md)) 0.22 m long, of ABS with a 1.5 mm wall, and a 6 cm shoulder that slides into the tube |
-| airframe | [`BodyTube`](api/hpr_design/parts/struct.BodyTube.html) | 0.9 m of kraft phenolic tube, outer radius 0.02815 m (56.3 mm across), 1.15 mm wall |
-| motor mount | [`InnerTube`](api/hpr_design/parts/struct.InnerTube.html) | 0.2 m long, outer radius 0.0155 m, 1 mm wall, so a 29 mm bore; flush with the airframe's aft end, with the nozzle 5 mm past it |
-| fins | [`FinSet`](api/hpr_design/fins/struct.FinSet.html) | three trapezoidal fins of 1/8 in (3.175 mm) birch plywood with rounded edges: root chord 0.1 m, tip chord 0.04 m, span 0.045 m, and the tip's leading edge 0.05 m aft of the root's |
-| recovery bay | [`MassComponent`](api/hpr_design/parts/struct.MassComponent.html) | 200 g standing in for the parachute, shock cord and altimeter, packed as a cylinder 0.15 m long and 50 mm across ([packing](#packing)), 7 cm below the airframe's top |
+| nose cone | [`NoseCone`](api/hpr_design/parts/struct.NoseCone.html) | a [tangent ogive](glossary.md#tangent-ogive) ([Shapes](physics/shapes.md)) 0.22 m (8.7 in) long, of ABS with a 1.5 mm wall, and a 6 cm shoulder that slides into the tube |
+| airframe | [`BodyTube`](api/hpr_design/parts/struct.BodyTube.html) | 0.9 m (35 in) of kraft phenolic tube, outer radius 0.02815 m (1.108 in), 56.3 mm across, 1.15 mm wall |
+| motor mount | [`InnerTube`](api/hpr_design/parts/struct.InnerTube.html) | 0.2 m (7.9 in) long, outer radius 0.0155 m (0.610 in), 1 mm wall, so a 29 mm bore; flush with the airframe's aft end, with the nozzle 5 mm past it |
+| fins | [`FinSet`](api/hpr_design/fins/struct.FinSet.html) | three trapezoidal fins of 1/8 in (3.175 mm) birch plywood with rounded edges: root chord 0.1 m (3.9 in), tip chord 0.04 m (1.6 in), span 0.045 m (1.77 in), and the tip's leading edge 0.05 m (2.0 in) aft of the root's |
+| recovery bay | [`MassComponent`](api/hpr_design/parts/struct.MassComponent.html) | 200 g standing in for the parachute, shock cord and altimeter, packed as a cylinder 0.15 m (5.9 in) long and 50 mm across ([packing](#packing)), 7 cm below the airframe's top |
 | motor | [`MountedMotor`](api/hpr_design/config/struct.MountedMotor.html) | the Cesaroni 168H54-10A from the bundled catalog, with a 10 s [ejection delay](glossary.md#ejection-delay) |
 
 Every size is in meters, and every round part takes a **radius**, not a diameter: halve the
@@ -123,10 +123,10 @@ propellant is gone.
 - **Mass:** 0.675 kg on the pad and 0.579 kg at burnout. The 0.096 kg between them is the
   propellant; the catalog lists 96.6 g for this motor.
 - **Center of gravity:** where the mass balances, as a [station](glossary.md#station): meters
-  aft of the nose tip. It moves forward, from 0.671 m to 0.610 m, as the propellant in the tail
-  burns away.
-- **Center of pressure:** where the air's sideways push acts, 0.779 m aft of the tip. It depends on
-  the rocket's shape and speed, not its mass, so it is the same in both columns. Both use
+  aft of the nose tip. It moves forward, from 0.671 m (26.4 in) to 0.610 m (24.0 in), as the
+  propellant in the tail burns away.
+- **Center of pressure:** where the air's sideways push acts, 0.779 m (30.7 in) aft of the tip. It
+  depends on the rocket's shape and speed, not its mass, so it is the same in both columns. Both use
   [Mach](glossary.md#mach-number) 0.3, with the air straight along the rocket's axis.
 - **Stability margin:** how far the CP lies behind the CG, in
   [calibres](glossary.md#calibre-caliber), that is, in body diameters. At liftoff it is
@@ -157,9 +157,9 @@ The rocket's CP is the average of the parts' CPs, each weighted by its slope:
 | fins | 4.82 | 1.060 | 5.109 |
 | rocket | 6.82 | | 5.313 |
 
-So the CP is 5.313 ÷ 6.82 ≈ 0.779 m. The fins sit far aft and have more than twice the nose's
-slope, so they pull the CP toward the tail. Moving the CP aft (bigger fins, or fins farther aft)
-or the CG forward (a heavier nose) raises the margin; run the program to see by how much.
+So the CP is 5.313 ÷ 6.82 ≈ 0.779 m (30.7 in). The fins sit far aft and have more than twice the
+nose's slope, so they pull the CP toward the tail. Moving the CP aft (bigger fins, or fins farther
+aft) or the CG forward (a heavier nose) raises the margin; run the program to see by how much.
 
 **How speed moves the CP.** In the simulator, only a fin set's terms change with the Mach number:
 its slope grows as the rocket speeds up toward Mach 1, and from Mach 0.8 its own CP moves aft too.
@@ -183,18 +183,19 @@ gives by hand.
 
 ### The flight
 
-The rocket flies from a 1.8 m vertical rail, 1,400 m up in New Mexico, with no wind. It has one
-parachute, 0.9 m across ([nominal diameter](glossary.md#nominal-area)), which opens when the
-motor's ejection charge fires.
+The rocket flies from a 1.8 m (5.9 ft) vertical rail, 1,400 m (4,593 ft) up in New Mexico, with no
+wind. It has one parachute, 0.9 m (35 in) across ([nominal diameter](glossary.md#nominal-area)),
+which opens when the motor's ejection charge fires.
 
-- **Rail exit:** 21.7 m/s. The design has no rail buttons, so the simulator takes the rocket as off
-  the rail when its aft end passes the top
+- **Rail exit:** 21.7 m/s (71 ft/s). The design has no rail buttons, so the simulator takes the
+  rocket as off the rail when its aft end passes the top
   ([rail exit](glossary.md#rail-exit-and-rail-exit-velocity)).
-- **Apogee:** 1144.5 m above the pad, 13.92 s after ignition ([apogee](glossary.md#apogee)).
-- **Top speed:** 187 m/s, Mach 0.56: the fastest airspeed at the end of any of the
+- **Apogee:** 1144.5 m (3755 ft) above the pad, 13.92 s after ignition
+  ([apogee](glossary.md#apogee)).
+- **Top speed:** 187 m/s (614 ft/s), Mach 0.56: the fastest airspeed at the end of any of the
   [time steps](glossary.md#adaptive-time-step) the flight was computed in. With no wind, the
   airspeed is also the speed over the ground.
-- **Ejection:** at 13.50 s, at 5.5 m/s. The charge fires the 10 s delay after
+- **Ejection:** at 13.50 s, at 5.5 m/s (18 ft/s). The charge fires the 10 s delay after
   [burnout](glossary.md#burnout), which in the simulator is the time of the thrust curve's last
   point, 3.50 s for this motor. That is 0.42 s before apogee, while the rocket is still climbing
   slowly.
@@ -534,10 +535,10 @@ It has eight steps.
    - <a id="packing"></a>**Packing.** A
      [`MassComponent`](api/hpr_design/parts/struct.MassComponent.html) is a mass and its
      [`Packing`](api/hpr_design/parts/struct.Packing.html): the size of the solid cylinder the
-     simulator spreads the mass through. Here it is 0.15 m long with `radius_m` 0.025, so 50 mm
-     across, inside the airframe's 54 mm bore.
-     - The length places the mass. Its CG is the cylinder's middle, 0.145 m below the airframe's
-       top, since the cylinder starts 7 cm down.
+     simulator spreads the mass through. Here it is 0.15 m (5.9 in) long with `radius_m` 0.025, so
+     50 mm across, inside the airframe's 54 mm bore.
+     - The length places the mass. Its CG is the cylinder's middle, 0.145 m (5.71 in) below the
+       airframe's top, since the cylinder starts 7 cm down.
      - Of the mass properties, the radius changes only the moments of inertia: how hard the mass
        is to turn.
      - A cylinder a little wider than the tube's bore, within the

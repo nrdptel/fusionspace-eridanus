@@ -23,6 +23,9 @@
   const HIDDEN_BOX_PX = 2;
   // How many examples of each problem a width reports.
   const EXAMPLES = 3;
+  // The product system's widest content, in pixels (`foundations.md`, *Width*): a figure needn't
+  // be shown wider than this to be shown at its size.
+  const CONTENT_MAX_PX = 1120;
 
   async function post(path, value) {
     await fetch(path, { method: 'POST', body: JSON.stringify(value) });
@@ -244,9 +247,11 @@
       }
     }
     // A box holding the page that is wider inside than out: the page scrolls, or is cut,
-    // sideways, wherever that box's edge is.
+    // sideways, wherever that box's edge is. A box whose overflow is visible neither scrolls nor
+    // cuts: what reaches past it (a figure wider than the prose column) is measured by the box
+    // around it.
     for (let el = main; el && el !== body && el !== root; el = el.parentElement) {
-      if (el.scrollWidth > el.clientWidth + SLACK_PX) {
+      if (style(el).overflowX !== 'visible' && el.scrollWidth > el.clientWidth + SLACK_PX) {
         const r = el.getBoundingClientRect();
         boxes.push({
           selector: selector(el),
@@ -283,6 +288,47 @@
       open.push(r);
     }
 
+    // Figures shown smaller than drawn. A figure's text is drawn at its size, so shown smaller
+    // it reads smaller (12 px text in a 960 px figure shown 750 px wide reads at 9.4 px). Where
+    // the box holding the page has room for a figure, up to the system's widest content, it must
+    // be shown at its size; where it hasn't, the reader must be able to open it at its size:
+    // mdBook's zoom, a checkbox in the figure's label that shows it over the page.
+    const shrunk = [];
+    const holder = main.parentElement && main.parentElement !== root ? main.parentElement : body;
+    const hs = style(holder);
+    const room = Math.min(CONTENT_MAX_PX,
+      holder.clientWidth - parseFloat(hs.paddingLeft) - parseFloat(hs.paddingRight));
+    for (const img of main.querySelectorAll('img')) {
+      const r = img.getBoundingClientRect();
+      if (r.width <= 0 || r.height <= 0) continue;
+      if (style(img).visibility !== 'visible' || !drawn(img)) continue;
+      const natural = img.naturalWidth;
+      if (!(natural > 0) || r.width >= natural - SLACK_PX) continue;
+      const src = img.getAttribute('src') || '';
+      let why = null;
+      // A pixel's slack: `clientWidth` is a whole number of pixels, and Chrome sizes a scaled
+      // image from its height snapped to 1/64 px, which a wide figure's aspect ratio multiplies.
+      if (r.width < Math.min(natural, room) - 1) {
+        why = 'room for ' + Math.round(Math.min(natural, room)) + ' px';
+      } else {
+        const label = img.closest('label');
+        const box = label && label.querySelector('input[type=checkbox]');
+        const big = label && Array.from(label.querySelectorAll('img')).some(function (other) {
+          return other !== img && other.getAttribute('src') === src;
+        });
+        if (!box || !big) why = 'no zoom to see it at its size';
+      }
+      if (why) {
+        shrunk.push({
+          selector: selector(img),
+          text: snippet(src),
+          natural: Math.round(natural),
+          shown: Math.round(r.width),
+          why: why,
+        });
+      }
+    }
+
     return {
       client_width: view,
       scroll_width: Math.max(root.scrollWidth, body.scrollWidth),
@@ -292,6 +338,8 @@
       cut_count: cut.length,
       overlaps: overlaps,
       overlap_count: count,
+      shrunk: shrunk.slice(0, EXAMPLES),
+      shrunk_count: shrunk.length,
     };
   }
 

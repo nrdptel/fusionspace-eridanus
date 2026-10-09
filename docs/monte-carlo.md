@@ -34,9 +34,9 @@ The example program
 [`crates/hpr/examples/monte_carlo.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/monte_carlo.rs)
 takes the 54 mm rocket of [The builder](the-builder.md) on a Cesaroni H54
 ([motor designation](glossary.md#motor-designation) 168H54-10A), at Spaceport America in a forecast
-wind of 4 m/s from the west, off a rail leaned 5° into the wind. It disperses the rocket's mass, its
-center of mass, its drag, the motor's impulse and burn time, the wind and the rail, and flies 200
-flights. Run it from a copy of the repository with:
+wind of 4 m/s (8.9 mph) from the west, off a rail leaned 5° into the wind. It disperses the rocket's
+mass, its center of mass, its drag, the motor's impulse and burn time, the wind and the rail, and
+flies 200 flights. Run it from a copy of the repository with:
 
 ```text
 cargo run --example monte_carlo -p fusionspace-hpr
@@ -102,16 +102,18 @@ How to read it:
 - **Std dev** is the [standard deviation](glossary.md#standard-deviation). If the spread is normal,
   about two values in three lie within one standard deviation of the mean. **5%** and **95%** are
   [percentiles](glossary.md#percentile): one flight in twenty went lower than the 5% value, one in
-  twenty higher than the 95% value. So nine flights in ten reached between about 1,040 and 1,200 m.
-- **The mean is not the nominal flight.** The mean apogee is 6.5 m above the nominal one. With 200
-  flights the mean itself is uncertain by about 47.4 / √200 = 3.4 m (its
-  [standard error](glossary.md#standard-error)), so 6.5 m is 1.9 standard errors: chance can
-  account for most of it. Part is that the apogee doesn't respond evenly: 5% less drag gains 29 m
-  and 5% more loses 27 m, so an even spread of drag lifts the mean apogee by about 1 m.
+  twenty higher than the 95% value. So nine flights in ten reached between about 1,040 m (3,412 ft)
+  and 1,200 m (3,937 ft).
+- **The mean is not the nominal flight.** The mean apogee is 6.5 m (21 ft) above the nominal one.
+  With 200 flights the mean itself is uncertain by about 47.4 / √200 = 3.4 m (its
+  [standard error](glossary.md#standard-error)), so 6.5 m (21 ft) is 1.9 standard errors: chance
+  can account for most of it. Part is that the apogee doesn't respond evenly: 5% less drag gains
+  29 m (95 ft) and 5% more loses 27 m (89 ft), so an even spread of drag lifts the mean apogee by
+  about 1 m (3.3 ft).
 - **The landing spreads far more than the apogee.** The landing distance's standard deviation is
-  about a third of its mean (209 of 660 m); the apogee's is 4% (47 of 1,120 m). Under the parachute
-  the drift is the wind's speed times the time in the air, and the wind's speed is the most
-  uncertain input here.
+  209 m (686 ft), about a third of its mean of 660 m (2,165 ft); the apogee's is 47 m (154 ft), 4%
+  of 1,120 m (3,675 ft). Under the parachute the drift is the wind's speed times the time in the
+  air, and the wind's speed is the most uncertain input here.
 
 ## From the command line
 
@@ -157,12 +159,12 @@ The simulator draws the ellipse from the run's landing points ([`Run::landing`],
 [`Scatter::ellipse`]) in three steps. Its *semi-major* and *semi-minor* axes are its half-lengths
 along its long and its short direction.
 
-1. **The center** is the landings' mean: here 626 m east and 23 m south of the pad.
+1. **The center** is the landings' mean: here 626 m (2,054 ft) east and 23 m (75 ft) south of the pad.
 2. **The axes.** The landings' [covariance](glossary.md#covariance) gives the direction they spread
    most, the *major axis*, and the direction across it, the *minor axis*, with a standard deviation
-   along each. Here those are about 214.6 m and 203.0 m. The spread is nearly round, because the wind's
-   uncertain heading (15°) spreads the landings sideways about as much as its uncertain speed (25%)
-   spreads them downwind.
+   along each. Here those are about 214.6 m (704 ft) and 203.0 m (666 ft). The spread is nearly
+   round, because the wind's uncertain heading (15°) spreads the landings sideways about as much as
+   its uncertain speed (25%) spreads them downwind.
 3. **The size.** If the landings follow a two-dimensional [normal
    distribution](glossary.md#normal-distribution), the ellipse reaching `k` standard deviations
    along each axis holds the share `p = 1 − e^(−k²/2)` of them. So the ellipse of level `p` has
@@ -187,8 +189,8 @@ drawn from them holds a little less than its level of the flights still to come.
 landings [`Scatter::prediction_ellipse`] allows for that exactly. Its `k` comes from Hotelling's
 `T²` distribution, the one that accounts for the mean and the spread both being estimated from the
 same flights: `k² = ((n² − 1)/n)((1 − p)^(−2/(n − 2)) − 1)` for `n` landings. With
-200 landings its axes are 1.3% longer (532 m against 525 m); with 10 they would be 36% longer. Use
-it to answer "will my next flight land in the field?".
+200 landings its axes are 1.3% longer, 532 m (1,745 ft) against 525 m (1,722 ft); with 10 they would
+be 36% longer. Use it to answer "will my next flight land in the field?".
 
 **Landings inside** counts the run's landings each ellipse really holds
 ([`Scatter::share_inside`]). Here they are 48.0%, 94.5% and 95.5%. Those are within the
@@ -214,8 +216,9 @@ for the lower bound and inside for the upper ([Failed flights are counted](#fail
 > - A new point lands inside the next-flight ellipse of 3, 5 or 20 others at its level, within
 >   five standard errors, and inside the plain ellipse visibly less often.
 >
-> The tests can catch a wrong ellipse: the 95% ellipse of a spread 200 m long and 30 m wide (one
-> standard deviation each way), turned 6° off its axes, holds 90.6%, and the test pins that.
+> The tests can catch a wrong ellipse: the 95% ellipse of a spread 200 m (656 ft) long and
+> 30 m (98 ft) wide (one standard deviation each way), turned 6° off its axes, holds 90.6%, and the
+> test pins that.
 
 ## What each dispersion does
 
@@ -274,7 +277,7 @@ tried: `attempted()` is the run's size, `count()` the flights that gave a value,
 the rest. Its mean and percentiles are over the flights that gave a value, so many failures can
 bias them: check `missing()` first.
 
-A share such as "reached 1,100 m" is given as two bounds, `share_at_least(1100.0)`:
+A share such as "reached 1,100 m (3,609 ft)" is given as two bounds, `share_at_least(1100.0)`:
 
 - `low` counts a failed flight as not reaching it;
 - `high` counts it as reaching it.

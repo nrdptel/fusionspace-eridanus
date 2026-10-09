@@ -29,8 +29,8 @@ It needs some Rust, and follows on from [Monte Carlo dispersion](monte-carlo.md)
 
 Each uncertain input is a *factor*: a name and a range, with every value in the range equally
 likely ([`Factor`]). The drag might be anywhere from 10% below its estimate to 10% above, say, or
-the wind anywhere from calm to 8 m/s. Factors are independent: a heavier rocket isn't also
-draggier.
+the wind anywhere from calm to 8 m/s (18 mph). Factors are independent: a heavier rocket isn't
+also draggier.
 
 Both methods work the same way. They lay out the points to try (a *design*), you run your model
 at each point in order, and they analyze what came back. The model can be a whole flight, with the
@@ -204,7 +204,7 @@ The six inputs, with ranges made up for the example:
 | dry mass factor | 0.95 to 1.05 | 1 | the rocket's mass without its motor, ±5% |
 | drag factor | 0.9 to 1.1 | 1 | the zero-lift drag, ±10% |
 | impulse factor | 0.94 to 1.06 | 1 | the motor's total impulse, ±6%; NFPA 1125 caps a motor type's standard deviation at 6.7% |
-| wind speed | 0 to 8 m/s | 4 m/s | the wind at every height |
+| wind speed | 0–8 m/s (0–18 mph) | 4 m/s (9 mph) | the wind at every height |
 | wind turn | −30° to 30° | 0° | the wind's direction, turned clockwise from the forecast's (a wind from the west) |
 | rail angle | 80° to 90° | 85° | the rail's angle above the horizon; 90° is vertical |
 
@@ -257,15 +257,17 @@ How to read it:
 - **Ishigami's Morris screening** at 400 runs puts `x2`, `x1`, `x3` in the whole grid's order, but
   the gaps are only about one standard error, so at 100 paths they aren't really ranked. Its `σ`s
   are as large as its `μ*`s, the sign of a function that bends or whose factors act together.
-- **The rocket's apogee** moves most with the motor's impulse (118 m across ±6%) and the drag
-  (113 m across ±10%), then the rail's angle (68 m across 80° to 90°), the wind's speed (50 m)
-  and the dry mass (36 m across ±5%). The wind's direction hardly matters (4 m). The `σ`s are
-  small beside the `μ*`s: each input acts nearly in a straight line and alone. The exception is
-  the wind's direction, whose `σ` (5.4 m) exceeds its `μ*` (4.4 m): its effects differ in size or
-  sign from path to path. The impulse and the drag are 1.4 combined standard errors apart: ten
-  paths don't settle which comes first.
-- **The landing** is the wind's: 1,418 m across calm to 8 m/s, then the rail's angle (350 m).
-  Here the `σ`s are large, so these effects bend or depend on the other inputs.
+- **The rocket's apogee** moves most with the motor's impulse, 118 m (387 ft) across ±6%, and the
+  drag, 113 m (371 ft) across ±10%; then the rail's angle, 68 m (223 ft) across 80° to 90°, the
+  wind's speed, 50 m (164 ft), and the dry mass, 36 m (118 ft) across ±5%. The wind's direction
+  hardly matters, 4 m (13 ft). The `σ`s are small beside the `μ*`s: each input acts nearly in a
+  straight line and alone. The exception is the wind's direction, whose `σ`, 5.4 m (18 ft),
+  exceeds its `μ*`, 4.4 m (14 ft): its effects differ in size or sign from path to path. The
+  impulse and the drag are 1.4 combined standard errors apart: ten paths don't settle which comes
+  first.
+- **The landing** is the wind's: 1,418 m (4,652 ft) across calm to 8 m/s (18 mph), then the rail's
+  angle, 350 m (1,148 ft). Here the `σ`s are large, so these effects bend or depend on the other
+  inputs.
 
 The ranges are made up for the example. With your own rocket, use the ranges your measurements
 support; a factor's effect grows with its range.

@@ -73,8 +73,8 @@ to be built; see [The API reference](api.md).
 
 The highest point of a flight, where the rocket stops climbing. HPR Sim finds it as the moment the
 center of mass's rate of climb above the [WGS 84](#wgs-84) ellipsoid falls through zero. It does
-not use the launch frame's up axis, whose flat plane rises above the curved Earth with distance
-(7.8 m at 10 km). See [Rigid-body flight](physics/flight.md#events-and-termination).
+not use the launch frame's up axis, whose flat plane rises above the curved Earth with distance:
+7.8 m (26 ft) at 10 km (6.2 mi). See [Rigid-body flight](physics/flight.md#events-and-termination).
 
 
 ## Average thrust
@@ -262,7 +262,7 @@ The sideways acceleration that anything moving over the rotating Earth appears t
 with `Ω` the Earth's rotation (7.292115e-5 rad/s) and `v` the velocity in the Earth-fixed launch
 frame. It is the only rotating-Earth term HPR Sim adds, since the centrifugal part is already inside
 [normal gravity](#normal-gravity), and it is on by default. It is small: in one test it moves the
-landing point of a 3 km parachute descent 0.37 m east. See
+landing point of a 3 km (9,843 ft) parachute descent 0.37 m (1.2 ft) east. See
 [Gravity](physics/gravity.md#what-normal-gravity-is).
 
 
@@ -312,7 +312,7 @@ about +7.75°. HPR Sim computes it from the [World Magnetic Model](#world-magnet
 ## DEM (digital elevation model)
 
 A grid of ground heights, one per cell, such as the US Geological Survey's (USGS) 1-arc-second map of the United States,
-whose cells are about 30 m across. Most are published as [GeoTIFF](#geotiff) files. See
+whose cells are about 30 m (98 ft) across. Most are published as [GeoTIFF](#geotiff) files. See
 [A launch site's elevation](elevation.md#from-an-elevation-file-of-your-own).
 
 
@@ -329,8 +329,8 @@ switches the rocket to the descent, as a point mass. See
 
 How fast a rocket falls under its recovery device, in m/s. Once drag balances weight it settles at
 the equilibrium descent speed `v_e = √(2 m g / (ρ C_D S))`, with `m` the mass, `g` gravity, `ρ` the
-air density and `C_D S` the [drag area](#drag-area). A 1.1 kg rocket under a 1 m flat canopy with
-`C_D` 0.8, in air of 1.225 kg/m³, falls at 5.294 m/s. See
+air density and `C_D S` the [drag area](#drag-area). A 1.1 kg rocket under a 1 m (39 in) flat canopy
+with `C_D` 0.8, in air of 1.225 kg/m³, falls at 5.294 m/s (17.37 ft/s). See
 [Recovery](physics/recovery.md#the-descent).
 
 
@@ -384,7 +384,7 @@ A sudden fall in a blunt body's drag coefficient over a narrow range of [Reynold
 How far the wind carries a rocket sideways while it descends, in meters. In the comparison with
 RocketPy it is the horizontal distance from where the descent starts to the landing point, with an
 east and a north part. In still air a small drift remains from the
-[Coriolis acceleration](#coriolis-acceleration): 0.19 m for Valetudo's descent. See
+[Coriolis acceleration](#coriolis-acceleration): 0.19 m (0.6 ft) for Valetudo's descent. See
 [Recovery](physics/recovery.md#against-rocketpy).
 
 
@@ -393,7 +393,7 @@ east and a north part. In still air a small drift remains from the
 The two parachutes of a dual-deployment recovery. The small drogue opens at or near apogee, so the
 rocket falls fast but steadily; the large main opens lower down for a slow landing, and in HPR Sim
 it can release (cut away) the drogue once it is fully open. RocketPy's Calisto example flies a
-drogue of 1.0 m² [drag area](#drag-area) and a 10 m² main that opens at 800 m. See
+drogue of 1.0 m² [drag area](#drag-area) and a 10 m² main that opens at 800 m (2,625 ft). See
 [Recovery](physics/recovery.md#triggers-lag-and-release).
 
 
@@ -420,8 +420,8 @@ ellipsoid. See [Frames](physics/frames.md#earth-centered-earth-fixed-ecef) and
 A motor's thrust divided by its propellant mass flow, `c = F/ṁ`, in m/s. HPR Sim holds it constant
 through the burn, `c = I/m_p` (total impulse over propellant mass), so propellant burns in
 proportion to the impulse delivered. It also refuses a motor whose `c` falls outside 200 to
-5,000 m/s, which catches a propellant mass given in the wrong unit, such as grams for
-kilograms; ThrustCurve.org's catalog has a median of 1,867 m/s. See
+5,000 m/s (16,404 ft/s), which catches a propellant mass given in the wrong unit, such as grams for
+kilograms; ThrustCurve.org's catalog has a median of 1,867 m/s (6,125 ft/s). See
 [Solid motors](physics/motor.md#propellant-consumption).
 
 
@@ -455,7 +455,7 @@ In [Morris's screening](#sensitivity-analysis), the change in a result when one 
 
 Height above the [WGS 84](#wgs-84) ellipsoid, measured along the ellipsoid's normal, in meters. It
 is HPR Sim's internal height, and it is not
-[height above sea level](#height-above-sea-level-msl): the two differ by up to about 100 m. See
+[height above sea level](#height-above-sea-level-msl): the two differ by up to about 100 m (328 ft). See
 [Frames](physics/frames.md#earth-centered-earth-fixed-ecef).
 
 
@@ -625,8 +625,8 @@ site, weighting each more as the site nears it (bilinear interpolation). See
 
 Height above mean sea level, as field elevations and soundings give it. HPR Sim queries the
 atmosphere and the wind with it, and gets it from [ellipsoidal height](#ellipsoidal-height) by
-subtracting the geoid undulation `N`, the height of sea level above the ellipsoid (up to about
-100 m). The simulator has no geoid model, so a flight takes `N` at the site as an input. See
+subtracting the geoid undulation `N`, the height of sea level above the ellipsoid, up to about
+100 m (328 ft). The simulator has no geoid model, so a flight takes `N` at the site as an input. See
 [Atmosphere](physics/atmosphere.md#height-datum) and
 [Frames](physics/frames.md#earth-centered-earth-fixed-ecef).
 
@@ -660,7 +660,7 @@ bound either way. See [Recovery](physics/recovery.md#inflation).
 
 ## Internal momentum
 
-The momentum of the propellant and gas moving inside a burning motor. A thrust curve measured on a test stand already includes its effect. HPR Sim's equations of motion, like RocketPy's, add it again, so it is counted twice; HPR Sim keeps it that way so the two codes can be compared like for like. On Valetudo it adds 21 N to the push at liftoff and changes the burnout speed by at most 0.05 m/s. See [Rigid-body flight](physics/flight.md#equations-of-motion).
+The momentum of the propellant and gas moving inside a burning motor. A thrust curve measured on a test stand already includes its effect. HPR Sim's equations of motion, like RocketPy's, add it again, so it is counted twice; HPR Sim keeps it that way so the two codes can be compared like for like. On Valetudo it adds 21 N to the push at liftoff and changes the burnout speed by at most 0.05 m/s (0.2 ft/s). See [Rigid-body flight](physics/flight.md#equations-of-motion).
 
 ## Jet damping
 
@@ -683,8 +683,8 @@ An ellipse on the ground drawn around the landings of a [Monte Carlo](#monte-car
 The frame fixed at the launch pad, which the flight's position and velocity are kept in: `x_L`
 east, `y_L` north and `z_L` up along the ellipsoid's normal at the pad, hence East-North-Up (ENU).
 It turns with the Earth, so the equations add the
-[Coriolis acceleration](#coriolis-acceleration). It is a flat plane, so `z_L` is not altitude: 10 km
-from the pad the plane is 7.8 m above the ellipsoid. See
+[Coriolis acceleration](#coriolis-acceleration). It is a flat plane, so `z_L` is not altitude:
+10 km (6.2 mi) from the pad the plane is 7.8 m (26 ft) above the ellipsoid. See
 [Frames](physics/frames.md#launch-frame-l-east-north-up).
 
 
@@ -1038,7 +1038,7 @@ airspeed. See [Roll: forcing and damping](physics/aero.md#roll-forcing-and-dampi
 
 ## Roughness length
 
-The height above the ground at which the logarithmic wind law's wind falls to zero, written `z₀`. Rougher ground has a larger one: 0.03 m for open flat terrain with grass, and 0.001–0.01 m for mown grass. HPR Sim's `LogLawWind` takes it as `roughness_length_m`. See [Wind](physics/wind.md#models).
+The height above the ground at which the logarithmic wind law's wind falls to zero, written `z₀`. Rougher ground has a larger one: 0.03 m (1.2 in) for open flat terrain with grass, and 0.001–0.01 m (0.04–0.39 in) for mown grass. HPR Sim's `LogLawWind` takes it as `roughness_length_m`. See [Wind](physics/wind.md#models).
 
 ## Running median
 
@@ -1160,9 +1160,9 @@ In the flight engine it is the rocket's speed along the rail falling to zero, wh
 ## Standard atmosphere
 
 An agreed model of the air's temperature, pressure and density against height. HPR Sim uses the 1976
-U.S. Standard Atmosphere from −5 to 86 km (288.15 K and 101,325 Pa at sea level). It can be offset
-to match conditions at the field, or replaced by a [sounding](#sounding). See
-[Atmosphere](physics/atmosphere.md#the-1976-standard-5-km-to-86-km).
+U.S. Standard Atmosphere from −5 km (−16,404 ft) to 86 km (282,152 ft), with 288.15 K and 101,325 Pa
+at sea level. It can be offset to match conditions at the field, or replaced by a
+[sounding](#sounding). See [Atmosphere](physics/atmosphere.md#the-1976-standard-5-km-to-86-km).
 
 
 ## Standard deviation
@@ -1388,8 +1388,8 @@ fins, the simulator uses a blunt leading edge's formula, which reads far high fo
 
 A stable rocket turning into the wind it feels. Off the rail in a crosswind, the airflow meets the
 rocket partly from the side, and the [normal force](#normal-force), acting behind the center of
-gravity, swings the nose toward it, so the rocket climbs upwind. In HPR Sim's test, a 5 m/s wind
-from the west puts Valetudo's apogee 86 m upwind. See
+gravity, swings the nose toward it, so the rocket climbs upwind. In HPR Sim's test, a 5 m/s (11 mph)
+wind from the west puts Valetudo's apogee 86 m (282 ft) upwind. See
 [Rigid-body flight](physics/flight.md#verification).
 
 

@@ -82,7 +82,7 @@ one and are unchanged ([M0.6e](decisions-and-roadmap.md#m0-6e), US names).
 | part | what it does | pages |
 |---|---|---|
 | Earth | Gravity from [WGS 84](glossary.md#wgs-84) (the model of the Earth's shape and gravity that GPS uses), varying with latitude and height; the Earth's rotation; launch-site coordinates, the distance and bearing between two places, and a site's elevation looked up online or read from a GeoTIFF file | [Frames](physics/frames.md), [Geodesy](physics/geodesy.md), [Gravity](physics/gravity.md), [A launch site's elevation](elevation.md) |
-| Air | The 1976 US [Standard Atmosphere](glossary.md#standard-atmosphere) up to 86 km, with temperature offsets, humidity, and [soundings](glossary.md#sounding) (measured or forecast profiles of pressure, temperature and wind against height), including the weather of a real day from an [ERA5](glossary.md#era5) file, an Open-Meteo forecast, a weather balloon or NOAA's GFS and RAP forecasts | [Atmosphere](physics/atmosphere.md), [ERA5 weather files](format/era5.md), [Launch-day weather](weather.md), [Weather-balloon soundings](soundings.md), [NOAA forecasts: GFS and RAP](nomads.md) |
+| Air | The 1976 US [Standard Atmosphere](glossary.md#standard-atmosphere) up to 86 km (282,152 ft), with temperature offsets, humidity, and [soundings](glossary.md#sounding) (measured or forecast profiles of pressure, temperature and wind against height), including the weather of a real day from an [ERA5](glossary.md#era5) file, an Open-Meteo forecast, a weather balloon or NOAA's GFS and RAP forecasts | [Atmosphere](physics/atmosphere.md), [ERA5 weather files](format/era5.md), [Launch-day weather](weather.md), [Weather-balloon soundings](soundings.md), [NOAA forecasts: GFS and RAP](nomads.md) |
 | Wind | Constant, layered, power-law and logarithmic wind profiles; [turbulence](glossary.md#turbulence-dryden) (random gusts) from a random-number generator started from a [seed](glossary.md#seed), a number you choose: the same seed gives exactly the same gusts every time on the same platform (operating system and processor) | [Wind](physics/wind.md), [Turbulence](physics/turbulence.md) |
 | Motors | Reads `.eng` and `.rse` [thrust curves](glossary.md#thrust-curve); thrust, mass, center of gravity and inertia through the burn; [32 bundled motors](physics/motor.md#the-bundled-motors); a motor the catalog lacks, fetched from ThrustCurve.org by name and cached, so it flies offline after ([M4.5b](decisions-and-roadmap.md#m4-5b), motors on demand); motors in stock and their prices, from motor.fusionspace.co | [Solid motors](physics/motor.md), [`.eng` files](format/eng.md), [`.rse` files](format/rse.md), [Motor stock and prices](motor-stock.md) |
 | Rocket | Nose cones, body tubes, transitions (tapered sections between tubes of different diameters), fins and other parts, their materials, the whole rocket's mass properties, and design checks. Everyday fits warn and only what can't be built is refused ([M4.5c](decisions-and-roadmap.md#m4-5c), design checks that match reality); a packed part, such as a payload or a parachute, drawn wider than its bore warns, as its width sets only its own inertia ([M4.5l](decisions-and-roadmap.md#m4-5l), a packed part wider than its bore); a part inside a nose cone or transition is checked against the room where it sits, and warns if it fits at the wide end but meets the wall where the cone narrows ([M10.1a](decisions-and-roadmap.md#m10-1a), the flight and design fixes) | [Design tree](physics/design.md), [Shapes](physics/shapes.md), [Mass properties](physics/mass.md) |
@@ -171,8 +171,8 @@ out.
     counted twice, as RocketPy counts it: a thrust curve measured on a test stand already includes
     its effect, and the equations of motion add it again. On Valetudo, the rocket that
     [Getting started](getting-started.md) flies, it adds 21 N to the push at liftoff and changes
-    the burnout speed by at most 0.05 m/s
-    ([Rigid-body flight](physics/flight.md#equations-of-motion)).
+    the burnout speed by at most 0.05 m/s (0.2 ft/s); see
+    [Rigid-body flight](physics/flight.md#equations-of-motion).
 
 ### Outputs and ways to use it
 
@@ -190,9 +190,9 @@ out.
   Parquet and the `--plot` figure (since [M0.9c8](decisions-and-roadmap.md#m0-9c8), the date and
   the note on `hpr sim`'s other exports).
 - **It reads what you type, and says what to do when it can't.** Numbers are read as written by
-  hand: `--elevation 1,280` is 1280 m, and a comma it can't read as a thousands separator, such as
-  `3,9`, is asked about. A refused option is named with its value and unit and an example, and a
-  file that isn't there with the closest name in its folder
+  hand: `--elevation 1,280` is 1280 m (4199 ft), and a comma it can't read as a thousands
+  separator, such as `3,9`, is asked about. A refused option is named with its value and unit and
+  an example, and a file that isn't there with the closest name in its folder
   ([typing numbers](cli.md#typing-numbers-and-what-a-refusal-says);
   [M0.9c6](decisions-and-roadmap.md#m0-9c6), errors and typed numbers). A refusal from inside a
   flight still has no next step
@@ -238,10 +238,10 @@ out.
   ([Python](python.md#monte-carlo)), but not the ellipses.
   Morris screening and Sobol' indices rank which inputs matter most
   ([Sensitivity analysis](sensitivity.md)). CMA-ES finds the values of a design's numbers that
-  hit a target, such as the ballast and body length for a 3,048 m apogee with a chosen margin.
-  CMA-ES also chooses a motor and a nose cone within a competition's limits, and NSGA-II weighs
-  apogee against stability ([Optimization](optimization.md)). Their answers are only as good as
-  HPR Sim's flight models. Competition rule files are not built yet.
+  hit a target, such as the ballast and body length for a 3,048 m (10,000 ft) apogee with a chosen
+  margin. CMA-ES also chooses a motor and a nose cone within a competition's limits, and NSGA-II
+  weighs apogee against stability ([Optimization](optimization.md)). Their answers are only as good
+  as HPR Sim's flight models. Competition rule files are not built yet.
   No app yet: it is on the [roadmap][roadmap].
 - **The flight-log analyzer reads one logger so far.** `hpr analyze` reads a PerfectFlite
   altimeter's `.pf2` log on its own, with no design file and no simulation, and prints liftoff,

@@ -11,15 +11,24 @@
 //!   window) is skipped with what it holds; nothing else may sit off to the left. mdBook clips
 //!   its page body with `overflow-x: clip`, which hides overflow from `scrollWidth`; the walk over
 //!   boxes and text catches it there too. The boxes that hold the page's `main` stand for the
-//!   window: mdBook's `.content` scrolls (`overflow-y: auto`, so sideways too), and one wider
-//!   inside than out fails, since the page then scrolls sideways inside it. Only boxes within
-//!   `main`, a code block or a table's wrapper, may scroll sideways.
+//!   window: mdBook's `.content` scrolls (`overflow-y: auto`, so sideways too), and one that
+//!   scrolls or clips and is wider inside than out fails, since the page then scrolls sideways
+//!   inside it, or is cut. One whose overflow is visible hands what reaches past it, such as a
+//!   figure wider than the prose column, to the box around it, which is measured in turn. Only
+//!   boxes within `main`, a code block or a table's wrapper, may scroll sideways.
 //! - **Text cut off.** Text that a box which doesn't scroll (`overflow: hidden` or `clip`,
 //!   `text-overflow: ellipsis`) cuts by more than 1 px, so part of it can never be seen. Boxes of
 //!   2 px or less hide their text on purpose, for screen readers only, and are skipped.
 //! - **Text over text.** Two runs of visible text whose rectangles overlap more than 2 px sideways
 //!   and more than a quarter of the shorter one's height: a label drawn over another. Two lines of
 //!   a tight line height, or two runs that touch, don't count.
+//! - **A figure shown smaller than drawn** (#382). A figure's text is drawn at its size, so a
+//!   figure shown smaller reads smaller: the plot's 12 px text, in its 960 px figure shown in
+//!   mdBook's 750 px column, read at 9.4 px. Where the box holding the page's `main` has room for
+//!   a figure, up to the product system's widest content (1,120 px, `foundations.md`, *Width*),
+//!   it must be shown at its size; where it hasn't, the reader must be able to open it at its
+//!   size, through mdBook's zoom (a checkbox in the figure's label that shows a copy over the
+//!   page). The theme lets a figure reach past the prose column for this (`theme/hpr.css`).
 //!
 //! **How.** A small web server on `127.0.0.1` serves the built site and, under `/__check/`, the
 //! harness ([`HARNESS_JS`]), the plan and the canaries. A few headless Chrome processes (headless
@@ -36,9 +45,12 @@
 //! **Canaries.** Every run also loads pages built to fail ([`CANARIES`]), laid out as mdBook lays
 //! a page, its `main` in a content box that scrolls: a label moved past the right edge, outside
 //! `main`, inside it and inside a box that clips it, a label moved past the left edge inside
-//! `main`, a label cut short by its box, two labels drawn over each other, and an ordinary page
+//! `main`, a label cut short by its box, two labels drawn over each other, a figure shown at half
+//! its size with room for all of it, one wider than any window with no zoom, a figure reaching
+//! past a narrow `main` as the theme lays it out, which must pass, and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
-//! that wraps anywhere, a sidebar drawer put away off the left edge) that must pass. If one isn't
+//! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
+//! away off the left edge) that must pass. If one isn't
 //! found as expected at every width, the check itself is broken, and it fails.
 //!
 //! The browser is Chrome or Chromium: [`CHROME_ENV`] names its program, else the usual places for
@@ -125,16 +137,19 @@ enum Kind {
     Cut,
     /// Text drawn over other text.
     Overlap,
+    /// A figure shown smaller than drawn, with room to show it at its size or no zoom to.
+    Shrunk,
 }
 
 impl Kind {
-    const ALL: [Kind; 3] = [Kind::Wide, Kind::Cut, Kind::Overlap];
+    const ALL: [Kind; 4] = [Kind::Wide, Kind::Cut, Kind::Overlap, Kind::Shrunk];
 
     fn describe(self) -> &'static str {
         match self {
             Kind::Wide => "wider than the window",
             Kind::Cut => "text cut off by its box",
             Kind::Overlap => "text over text",
+            Kind::Shrunk => "a figure shown smaller than drawn",
         }
     }
 }
@@ -153,7 +168,7 @@ struct Canary {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 7] = [
+const CANARIES: [Canary; 10] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -208,6 +223,41 @@ const CANARIES: [Canary; 7] = [
                  </div>",
         after: "",
     },
+    Canary {
+        file: "canary-past-column.html",
+        what: "a figure reaching past a narrow `main` on both sides, inside the page, as the \
+               theme lays one out, which must pass",
+        expect: &[],
+        inside: "<style>main { overflow-x: visible; max-width: 300px; margin: 0 auto; } \
+                 .content { container-type: inline-size; } \
+                 .checkbox-label { display: flex; justify-content: center; width: 100cqi; \
+                 margin-inline: calc((100% - 100cqi) / 2); }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-figure-room.html",
+        what: "a figure shown at half its size where the page has room for all of it",
+        expect: &[Kind::Shrunk],
+        inside: concat!(
+            "<p><label class=\"checkbox-label\"><input class=\"checkbox-img\" type=\"checkbox\">",
+            "<img src=\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' ",
+            "height='40'%3E%3C/svg%3E\" style=\"width: 100px\" alt=\"A figure\">",
+            "<span class=\"img-wrapper\"><img src=\"data:image/svg+xml,%3Csvg ",
+            "xmlns='http://www.w3.org/2000/svg' width='200' height='40'%3E%3C/svg%3E\" ",
+            "alt=\"A figure\"></span></label></p>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-figure-no-zoom.html",
+        what: "a figure wider than any window, with no zoom to see it at its size",
+        expect: &[Kind::Shrunk],
+        inside: concat!(
+            "<p><img src=\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' ",
+            "width='4000' height='2000'%3E%3C/svg%3E\" alt=\"A wide figure\"></p>"
+        ),
+        after: "",
+    },
 ];
 
 /// A canary's page: an ordinary page, as mdBook lays one out, plus what the canary adds.
@@ -217,6 +267,9 @@ fn canary_html(canary: &Canary) -> String {
         .collect();
     let rows: String = (0..4).map(|_| format!("<tr>{cells}</tr>")).collect();
     let word = "Unbreakable".repeat(16);
+    // A figure wider than any window, which mdBook's zoom shows at its size.
+    let wide = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4000' \
+                height='2000'%3E%3C/svg%3E";
     let code = "let speed_m_per_s = drag_coefficient * reference_area_m2 * dynamic_pressure_pa \
                 / mass_kg; // a line far longer than a narrow window";
     format!(
@@ -227,7 +280,11 @@ fn canary_html(canary: &Canary) -> String {
 <style>
 body {{ margin: 0; font: 16px/1.5 sans-serif; overflow-x: hidden; }}
 .content {{ overflow-y: auto; }}
-main {{ margin: 0 16px; overflow-x: clip; }}
+main {{ overflow-x: clip; }}
+.content {{ padding: 0 16px; }}
+img {{ max-width: 100%; }}
+.checkbox-img {{ position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }}
+.checkbox-img:not(:checked) ~ .img-wrapper {{ display: none; }}
 h1 {{ font-size: 2em; line-height: 1.2; }}
 .scroll, pre {{ overflow-x: auto; }}
 td {{ white-space: nowrap; padding: 0 12px; }}
@@ -243,6 +300,7 @@ few lines so that it wraps at every width the check tries.</p>
 <div class=\"scroll\"><table>{rows}</table></div>
 <pre><code>{code}</code></pre>
 <p class=\"word\">{word}</p>
+<p><label class=\"checkbox-label\"><input class=\"checkbox-img\" type=\"checkbox\"><img src=\"{wide}\" alt=\"A wide figure\"><span class=\"img-wrapper\"><img src=\"{wide}\" alt=\"A wide figure\"></span></label></p>
 {inside}
 </main></div>
 {after}
@@ -363,6 +421,11 @@ struct Measured {
     overlaps: Vec<Overlap>,
     #[serde(default)]
     overlap_count: usize,
+    /// Figures shown smaller than drawn, the first few.
+    #[serde(default)]
+    shrunk: Vec<Figure>,
+    #[serde(default)]
+    shrunk_count: usize,
 }
 
 impl Measured {
@@ -371,6 +434,7 @@ impl Measured {
             Kind::Wide => self.scroll_width > self.client_width || self.past_count > 0,
             Kind::Cut => self.cut_count > 0,
             Kind::Overlap => self.overlap_count > 0,
+            Kind::Shrunk => self.shrunk_count > 0,
         }
     }
 
@@ -419,8 +483,33 @@ impl Measured {
                 })
                 .collect::<Vec<_>>()
                 .join("; "),
+            Kind::Shrunk => self
+                .shrunk
+                .iter()
+                .map(|figure| {
+                    format!(
+                        "`{}` (\"{}\") drawn {} px wide, shown {} px, with {}",
+                        figure.selector, figure.text, figure.natural, figure.shown, figure.why
+                    )
+                })
+                .collect::<Vec<_>>()
+                .join("; "),
         }
     }
+}
+
+/// A figure shown smaller than drawn.
+#[derive(Debug, Deserialize)]
+struct Figure {
+    /// A short path to its `img`, `tag#id.class>...`.
+    selector: String,
+    /// The start of its `src`.
+    text: String,
+    /// Its width as drawn and as shown, in CSS pixels.
+    natural: f64,
+    shown: f64,
+    /// Why that fails: the room the page has for it, or no zoom.
+    why: String,
 }
 
 /// A piece of text or a box that has a problem.
@@ -1205,6 +1294,44 @@ mod tests {
             problems[1]
         );
         assert!(problems[2].contains("text over text at 1920 px; at 1920 px, \"Apogee\" and \"Top speed\" overlap 40 by 12 px"), "{}", problems[2]);
+    }
+
+    #[test]
+    fn a_figure_shown_smaller_than_drawn_is_named() {
+        let body = page_json("cli.html", |w| {
+            let plain = width_json(w, w - 15, 0, 0, 0);
+            if w < 1320 {
+                return plain;
+            }
+            plain.replacen(
+                "\"overlap_count\":0}",
+                r#""overlap_count":0,"shrunk":[{"selector":"main>p>label>img","text":"images/sim-plot.svg","natural":960,"shown":750,"why":"room for 960 px"}],"shrunk_count":1}"#,
+                1,
+            )
+        });
+        let (page, measured) = parse_results(&body).unwrap();
+        let problems = page_problems(&page, &measured);
+        assert_eq!(problems.len(), 1, "{problems:#?}");
+        assert!(
+            problems[0].starts_with(
+                "cli.html: a figure shown smaller than drawn at 1320 to 1920 px; at 1320 px, \
+                 `main>p>label>img` (\"images/sim-plot.svg\") drawn 960 px wide, shown 750 px, \
+                 with room for 960 px"
+            ),
+            "{}",
+            problems[0]
+        );
+        // The canaries hold both ways the rule fails, and the ordinary page a zoomable figure.
+        let shrunk: Vec<&str> = CANARIES
+            .iter()
+            .filter(|canary| canary.expect == [Kind::Shrunk])
+            .map(|canary| canary.file)
+            .collect();
+        assert_eq!(
+            shrunk,
+            ["canary-figure-room.html", "canary-figure-no-zoom.html"]
+        );
+        assert!(canary_html(&CANARIES[0]).contains("class=\"checkbox-img\""));
     }
 
     #[test]
