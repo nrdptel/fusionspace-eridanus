@@ -81,9 +81,17 @@ a C compiler, since the encryption library compiles some C and assembly.
 | redirects | followed, up to ten; the cache files the answer under the address you asked for | a test with one redirect; the cap of ten is `ureq`'s default, not tested |
 | proxy | the first set of `ALL_PROXY`, `HTTPS_PROXY` and `HTTP_PROXY` (either case), for both `http` and `https` addresses; hosts listed in `NO_PROXY` connect directly; an unreadable value is ignored. A SOCKS proxy is refused with an error, not bypassed, and under one no redirect is followed | tests that a SOCKS proxy is refused, that `NO_PROXY` exempts a host, and that the error doesn't show the proxy's password; the rest is `ureq`'s, not tested |
 | identification | sends `User-Agent: fusionspace-hpr/<version> (+https://hpr.fusionspace.co)`, so a data provider can see who is asking | a test |
+| bytes so far | counts the answer's bytes as they arrive, after any unpacking, for a caller to show while it waits ([`Http::received`](api/hpr_net/struct.Http.html#method.received)); each fetch starts from 0 | tests of the count and of its start |
 
 A failed fetch (an error status, a timeout, a refused or dropped connection, a too-long answer)
 is handled as above: online, the client falls back to an old copy marked stale.
+
+On the command line, a fetch that waits more than a tenth of a second says so on standard error,
+when that is a terminal: `waiting for nomads.ncep.noaa.gov, 1 s` until the answer starts, then
+`fetching from nomads.ncep.noaa.gov: 48.2 kB so far, 2 s`, each line over the one before and gone
+when the answer is in. A copy read from the cache, standard error into a file or a pipe, and
+`--json` draw nothing. A fetch that fails, offline or online, ends with `help:` lines that say
+what to do, such as running it again without `--offline`.
 
 The time and size limits, and whether to use the environment's proxy, are fields of
 [`HttpConfig`](api/hpr_net/struct.HttpConfig.html). Start from `HttpConfig::default()`, change a

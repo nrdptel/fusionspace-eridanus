@@ -55,6 +55,7 @@ mod sim_text;
 pub mod trust;
 mod typed;
 mod units;
+mod waiting;
 pub mod weather;
 
 use std::ffi::OsString;
@@ -218,11 +219,13 @@ pub struct CompletionsArgs {
 
 /// Why a command stopped. [`run`] reports it as text or as an [`ErrorDocument`].
 #[derive(Debug)]
+///
+/// A refusal is always [`Failure::Helped`]: there is no variant for one that says only what went
+/// wrong, so a new refusal without a next step doesn't compile, as the product system's `cli.md`
+/// (*Errors*) asks of every one (#410).
 pub(crate) enum Failure {
-    /// An input was missing, unreadable or refused.
-    Input(String),
-    /// An input was refused, and the user can do something about it: the message, then each
-    /// thing to do, written as `help:` lines after the `error:` line.
+    /// An input was missing, unreadable or refused: the message, then each thing to do about it,
+    /// written as `help:` lines after the `error:` line; never none.
     Helped {
         /// What went wrong.
         message: String,
@@ -247,6 +250,78 @@ impl Failure {
             message: message.into(),
             help: vec![help.into()],
         }
+    }
+
+    /// A refusal whose message comes from a library and may end in that library's hint
+    /// ([`library_hint`]): the hint is the `help:` line when there is one, else `help`.
+    pub(crate) fn library(message: impl Into<String>, help: impl Into<String>) -> Self {
+        let (message, hints) = library_hint(message.into());
+        let help = if hints.is_empty() {
+            vec![help.into()]
+        } else {
+            hints
+        };
+        Self::Helped { message, help }
+    }
+}
+
+/// The `help:` line of a refusal only a fault in HPR Sim itself can cause.
+pub(crate) const BUG_HELP: &str = "this is a bug in HPR Sim; report it with the command line at \
+                                   https://github.com/nrdptel/fusionspace-eridanus/issues";
+
+/// `path` couldn't be written, with what to do about it: a folder given for a file, a folder
+/// that doesn't exist, or one that can't be written to.
+pub(crate) fn unwritable(path: &str, error: &io::Error) -> Failure {
+    let file = Path::new(path);
+    let help = if file.is_dir() {
+        "give the path of a file, not a folder".to_owned()
+    } else {
+        match error.kind() {
+            io::ErrorKind::NotFound => match file.parent() {
+                Some(folder) if !folder.as_os_str().is_empty() => format!(
+                    "make the folder {} first, or write the file somewhere else",
+                    printable(&folder.to_string_lossy())
+                ),
+                _ => "check the path; one that doesn't start at the root starts from the current \
+                      folder"
+                    .to_owned(),
+            },
+            io::ErrorKind::PermissionDenied => {
+                "write it to a folder you can write to, such as one in your home folder".to_owned()
+            }
+            _ => "check the path, that its folder can be written to, and that the disk has room"
+                .to_owned(),
+        }
+    };
+    Failure::helped(format!("{}: {error}", printable(path)), help)
+}
+
+/// What to do about a fetch that failed, as its refusal's `help:` line, by why it failed.
+pub(crate) fn fetch_help(error: &hpr::hpr_net::NetError) -> String {
+    use hpr::hpr_net::NetError;
+    match error {
+        NetError::NotCached { .. } => format!(
+            "run it again without --offline, and with {} unset, to fetch it; offline, HPR Sim \
+             answers only from what it fetched before",
+            weather::OFFLINE_VARIABLE
+        ),
+        NetError::Transport { .. } => "check the connection and run it again; with --offline, \
+             HPR Sim answers from what it fetched before"
+            .to_owned(),
+        NetError::Refused { .. } => "the source answered with something HPR Sim can't use; run \
+             it again later, and if it stays refused, report it at \
+             https://github.com/nrdptel/fusionspace-eridanus/issues"
+            .to_owned(),
+        NetError::Cache { path, .. } => format!(
+            "check that {} can be written to, or set HPR_CACHE_DIR to a folder that can",
+            printable(&path.parent().unwrap_or(path).to_string_lossy())
+        ),
+        NetError::CorruptEntry { path, .. } => format!(
+            "delete {} and run it again to fetch a fresh copy",
+            printable(&path.to_string_lossy())
+        ),
+        _ => "run it again; with --offline, HPR Sim answers from what it fetched before"
+            .to_owned(),
     }
 }
 
@@ -344,7 +419,14 @@ pub(crate) fn read_file(path: &str) -> Result<Vec<u8>, Failure> {
                 format!("{shown} is a folder, not a file"),
                 "give the path of a file inside it",
             ),
-            _ => Failure::Input(format!("{shown}: {error}")),
+            io::ErrorKind::PermissionDenied => Failure::helped(
+                format!("{shown}: {error}"),
+                "check that you can read the file, or copy it somewhere you can",
+            ),
+            _ => Failure::helped(
+                format!("{shown}: {error}"),
+                "check the path, and that the file can be read",
+            ),
         }
     })
 }
@@ -470,8 +552,11 @@ where
             let _ = to.diagnostics.line(Level::Note, &note);
         }
     }
+    // A fetch that waits says so on standard error itself: `to` is borrowed by the command, and
+    // the wait is installed only where standard error is the process's own terminal.
+    let wait = waiting::Wait::on(console, json, Box::new(io::stderr()));
     // The registry decides what refuses, so the table and the tool can't disagree.
-    let outcome = match registry::availability(command) {
+    let outcome = waiting::with_wait(wait, || match registry::availability(command) {
         Some(Availability::Planned { milestone }) => {
             Err(Failure::NotAvailable { command, milestone })
         }
@@ -484,16 +569,20 @@ where
             Command::Weather(weather) => weather::run(&weather, &mut to),
             Command::Completions(args) => completions(args.shell, &mut to),
             Command::Optimize(_) | Command::Compare(_) | Command::Diagnose(_) => {
-                Err(Failure::Input(format!(
-                    "hpr {command} is marked available in the command registry, but this build \
-                 has no code for it"
-                )))
+                Err(Failure::helped(
+                    format!(
+                        "hpr {command} is marked available in the command registry, but this \
+                         build has no code for it"
+                    ),
+                    BUG_HELP,
+                ))
             }
         },
-        None => Err(Failure::Input(format!(
-            "hpr {command} has no entry in the command registry"
-        ))),
-    };
+        None => Err(Failure::helped(
+            format!("hpr {command} has no entry in the command registry"),
+            BUG_HELP,
+        )),
+    });
     match outcome {
         Ok(()) => Exit::Success,
         Err(failure) => report(failure, command, json, paints.err, out, err),
@@ -529,17 +618,16 @@ fn report(
     err: &mut dyn Write,
 ) -> Exit {
     let (document, exit) = match failure {
-        Failure::Input(message) => {
-            let (message, help) = library_hint(message);
+        Failure::Helped { message, help } => {
+            debug_assert!(
+                help.iter().any(|line| !line.trim().is_empty()),
+                "a refusal says what to do: {message}"
+            );
             (
                 ErrorDocument::new(ErrorKind::Input, message, Some(command), None).with_help(help),
                 Exit::Failure,
             )
         }
-        Failure::Helped { message, help } => (
-            ErrorDocument::new(ErrorKind::Input, message, Some(command), None).with_help(help),
-            Exit::Failure,
-        ),
         Failure::NotAvailable { command, milestone } => {
             let message = format!(
                 "hpr {command} is not available yet: it arrives with milestone {milestone} \
@@ -689,7 +777,12 @@ fn completions(shell: Shell, to: &mut Out<'_>) -> Result<(), Failure> {
     let mut script = Vec::new();
     clap_complete::generate(shell, &mut command(), "hpr", &mut script);
     let script = String::from_utf8(script)
-        .map_err(|error| Failure::Input(format!("the completion script isn't UTF-8: {error}")))?;
+        .map_err(|error| {
+            Failure::helped(
+                format!("the completion script isn't UTF-8: {error}"),
+                BUG_HELP,
+            )
+        })?;
     let document = Completions {
         shell: shell.to_string(),
         script,

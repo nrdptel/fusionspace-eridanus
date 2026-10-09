@@ -153,13 +153,16 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     // interval, the design, the motor, the site.
     let (exports, plot) = exports(args)?;
     if args.interval.is_nan() || args.interval < MIN_INTERVAL_S {
-        return Err(Failure::Input(format!(
-            "--interval {}: the recording's interval is at least {MIN_INTERVAL_S} s",
-            args.interval
-        )));
+        return Err(Failure::helped(
+            format!(
+                "--interval {}: the recording's interval is at least {MIN_INTERVAL_S} s",
+                args.interval
+            ),
+            interval_help(),
+        ));
     }
     let mut recorder = Recorder::new(Channel::ALL.to_vec(), Some(args.interval))
-        .map_err(|error| Failure::Input(format!("--interval: {error}")))?;
+        .map_err(|error| Failure::library(format!("--interval: {error}"), interval_help()))?;
     let setup = Setup::read(&args.flight)?;
     let builder = setup.builder(&args.flight);
     let mut trace = plot.map(|_| crate::plot::Trace::new(args.interval));
@@ -218,9 +221,14 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
             (&name, &about),
             braked,
         )
-        .map_err(|error| Failure::Input(format!("{path}: {error}")))?;
-        std::fs::write(path, contents)
-            .map_err(|error| Failure::Input(format!("{path}: {error}")))?;
+        .map_err(|error| {
+            Failure::library(
+                format!("{path}: {error}"),
+                "export it in another format, such as .csv; if that fails too, report it with \
+                 the command line at https://github.com/nrdptel/fusionspace-eridanus/issues",
+            )
+        })?;
+        std::fs::write(path, contents).map_err(|error| crate::unwritable(path, &error))?;
         if let Some(meta) = meta {
             let document = ExportMeta {
                 file: file_name(path),
@@ -234,7 +242,7 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
             let mut text = Vec::new();
             crate::write_json(&mut text, &document)
                 .and_then(|()| std::fs::write(meta, text))
-                .map_err(|error| Failure::Input(format!("{meta}: {error}")))?;
+                .map_err(|error| crate::unwritable(meta, &error))?;
         }
         written.push(Export {
             path: (*path).to_owned(),
@@ -287,11 +295,12 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         });
         // The figure's data is made first, so a value the CSV refuses leaves no figure naming a
         // file that isn't there.
+        // A value that isn't finite comes from the flight itself, which flew without one.
         let text = crate::plot::csv(trace.points())
-            .map_err(|error| Failure::Input(format!("{data}: {error}")))?;
-        std::fs::write(path, figure).map_err(|error| Failure::Input(format!("{path}: {error}")))?;
+            .map_err(|error| Failure::helped(format!("{data}: {error}"), crate::BUG_HELP))?;
+        std::fs::write(path, figure).map_err(|error| crate::unwritable(path, &error))?;
         // The figure's data beside it, and the CSV's sidecar, as `--export`'s.
-        std::fs::write(&data, text).map_err(|error| Failure::Input(format!("{data}: {error}")))?;
+        std::fs::write(&data, text).map_err(|error| crate::unwritable(&data, &error))?;
         let document = ExportMeta {
             file: file_name(&data),
             design: file_name(&args.flight.design),
@@ -304,7 +313,7 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         let mut text = Vec::new();
         crate::write_json(&mut text, &document)
             .and_then(|()| std::fs::write(&meta, text))
-            .map_err(|error| Failure::Input(format!("{meta}: {error}")))?;
+            .map_err(|error| crate::unwritable(&meta, &error))?;
         plot_data = Some(PlotData {
             path: data,
             rows: trace.points().len(),
@@ -397,9 +406,13 @@ impl Setup {
             Some(name) => {
                 let (motor, source, warnings) = motor(name, flight.offline)?;
                 let motor = match flight.delay {
-                    Some(delay) => motor
-                        .with_delay(delay)
-                        .map_err(|error| Failure::Input(format!("--delay: {error}")))?,
+                    Some(delay) => motor.with_delay(delay).map_err(|error| {
+                        Failure::library(
+                            format!("--delay: {error}"),
+                            "give the seconds from burnout to the charge, such as \
+                             `--delay 10`, or `--delay P` for a plugged motor",
+                        )
+                    })?,
                     None => motor,
                 };
                 read.warnings.extend(warnings);
@@ -469,11 +482,15 @@ impl Setup {
             .find(|motor| matches!(motor.ignition, Ignition::Separation { .. }))
             .filter(|_| stagings.is_empty())
         {
-            return Err(Failure::Input(format!(
-                "configuration {configuration_label} lights {} at its stage's separation, which hpr \
-                 sim doesn't fly yet; the library does, as its two-stage examples show",
-                motor.designation
-            )));
+            return Err(Failure::helped(
+                format!(
+                    "configuration {configuration_label} lights {} at its stage's separation, \
+                     which hpr sim doesn't fly yet; the library does, as its two-stage examples \
+                     show",
+                    motor.designation
+                ),
+                "choose a configuration whose motors all light at launch with --config",
+            ));
         }
         let named = names(
             &read.rocket,
@@ -528,11 +545,23 @@ impl Setup {
             rocket.add_parachute(device.clone());
         }
         let mut environment = Environment::new(flight.latitude, flight.longitude, flight.elevation)
-            .map_err(|error| Failure::Input(format!("the launch site: {error}")))?;
+            .map_err(|error| {
+                Failure::library(
+                    format!("the launch site: {error}"),
+                    "give the site in degrees and meters, such as `--latitude 32.9 --longitude \
+                     -106.9 --elevation 1400`",
+                )
+            })?;
         if let Some(speed) = flight.wind {
             environment = environment
                 .with_constant_wind(speed, flight.wind_from)
-                .map_err(|error| Failure::Input(format!("the wind: {error}")))?;
+                .map_err(|error| {
+                    Failure::library(
+                        format!("the wind: {error}"),
+                        "give the wind's speed in m/s and the direction it blows from in degrees, \
+                         such as `--wind 4.5 --wind-from 270`",
+                    )
+                })?;
         }
         Ok(Self {
             read,
@@ -639,6 +668,11 @@ impl Setup {
     }
 }
 
+/// What to give `--interval` when it is refused.
+fn interval_help() -> String {
+    format!("give seconds, at least {MIN_INTERVAL_S}, such as `--interval {DEFAULT_INTERVAL_S}`")
+}
+
 /// The launch, as the output states it.
 pub(crate) fn launch(flight: &FlightArgs) -> Launch {
     Launch {
@@ -654,9 +688,15 @@ pub(crate) fn launch(flight: &FlightArgs) -> Launch {
     }
 }
 
-/// A library error, as the command reports it.
+/// A library error, as the command reports it: the design passed its checks, so what the
+/// library still refuses is a part or a number of the design's.
 pub(crate) fn input(error: hpr::Error) -> Failure {
-    Failure::Input(error.to_string())
+    Failure::library(
+        error.to_string(),
+        "change what it names in the design, in OpenRocket for a .ork file; if the design is \
+         sound, report it with the command line at \
+         https://github.com/nrdptel/fusionspace-eridanus/issues",
+    )
 }
 
 /// A refusal raised by the flight's builder, as the command reports it (#405): a Mach number
@@ -841,10 +881,14 @@ fn typed_options(flight: &FlightArgs) -> Vec<String> {
 
 /// The refusal of a design that doesn't hold together, its parts by name.
 fn unheld(error: &hpr_design::DesignError, name: &dyn Fn(&str) -> String) -> Failure {
-    Failure::Input(format!(
-        "the design doesn't hold together: {}",
-        design_error(error, name)
-    ))
+    Failure::helped(
+        format!(
+            "the design doesn't hold together: {}",
+            design_error(error, name)
+        ),
+        "open the design in the program that made it, such as OpenRocket for a .ork file, and \
+         fix the part it names",
+    )
 }
 
 /// A design error in words, the part at fault by `name` rather than its id.
@@ -1132,9 +1176,13 @@ fn exports(args: &SimArgs) -> Result<Written<'_>, Failure> {
                 .and_then(|extension| extension.to_str())
                 .is_some_and(|extension| extension.eq_ignore_ascii_case("svg"));
             if !svg {
-                return Err(Failure::Input(format!(
-                    "{path}: --plot writes an .svg file"
-                )));
+                return Err(Failure::helped(
+                    format!("{path}: --plot writes an .svg file"),
+                    format!(
+                        "name the figure's file .svg, such as `--plot {}`",
+                        crate::printable(&with_extension(path, "svg"))
+                    ),
+                ));
             }
             None
         } else {
@@ -1142,23 +1190,31 @@ fn exports(args: &SimArgs) -> Result<Written<'_>, Failure> {
         };
         let file = same_file(path);
         if inputs.contains(&file) {
-            return Err(Failure::Input(format!(
-                "{path}: this run reads that file, and {option} would write over it"
-            )));
+            return Err(Failure::helped(
+                format!("{path}: this run reads that file, and {option} would write over it"),
+                format!(
+                    "give {option} a file of its own, such as `{option} {}`",
+                    crate::printable(&renamed(path))
+                ),
+            ));
         }
         if seen.contains(&file) {
-            return Err(Failure::Input(format!(
-                "{path}: {option} names a file twice"
-            )));
+            return Err(Failure::helped(
+                format!("{path}: {option} names a file twice"),
+                "give each --export and --plot a file of its own",
+            ));
         }
         if let Some(folder) = Path::new(path).parent()
             && !folder.as_os_str().is_empty()
             && !folder.is_dir()
         {
-            return Err(Failure::Input(format!(
-                "{path}: there is no folder {}",
-                folder.display()
-            )));
+            return Err(Failure::helped(
+                format!("{path}: there is no folder {}", folder.display()),
+                format!(
+                    "make the folder {} first, or write the file somewhere else",
+                    crate::printable(&folder.to_string_lossy())
+                ),
+            ));
         }
         seen.push(file);
         if let Some(format) = format {
@@ -1170,10 +1226,17 @@ fn exports(args: &SimArgs) -> Result<Written<'_>, Failure> {
     for (meta, csv) in &sidecars {
         let file = same_file(meta);
         if inputs.contains(&file) || seen.contains(&file) {
-            return Err(Failure::Input(format!(
-                "{csv}: --export writes its sidecar {meta} beside it, and this run reads or \
-                 writes that file too"
-            )));
+            return Err(Failure::helped(
+                format!(
+                    "{csv}: --export writes its sidecar {meta} beside it, and this run reads or \
+                     writes that file too"
+                ),
+                format!(
+                    "name the .csv file otherwise, such as `--export {}`, and its sidecar is \
+                     named after it",
+                    crate::printable(&renamed(csv))
+                ),
+            ));
         }
         seen.push(file);
     }
@@ -1183,15 +1246,71 @@ fn exports(args: &SimArgs) -> Result<Written<'_>, Failure> {
         for written in [&data, &meta] {
             let file = same_file(written);
             if inputs.contains(&file) || seen.contains(&file) {
-                return Err(Failure::Input(format!(
-                    "{path}: --plot writes its data {data} and their sidecar {meta} beside it, \
-                     and this run reads or writes {written} too"
-                )));
+                return Err(Failure::helped(
+                    format!(
+                        "{path}: --plot writes its data {data} and their sidecar {meta} beside \
+                         it, and this run reads or writes {written} too"
+                    ),
+                    format!(
+                        "name the figure otherwise, such as `--plot {}`, and its data and sidecar \
+                         are named after it",
+                        crate::printable(&renamed(path))
+                    ),
+                ));
             }
             seen.push(file);
         }
     }
     Ok((exports, plot))
+}
+
+/// `path` with its extension `extension` in place of its own, or added where it has none.
+fn with_extension(path: &str, extension: &str) -> String {
+    Path::new(path)
+        .with_extension(extension)
+        .to_string_lossy()
+        .into_owned()
+}
+
+/// Another name for the file `path` names, to suggest in place of one taken: `-flight` after its
+/// stem, as `rocket-flight.csv` for `rocket.csv`.
+fn renamed(path: &str) -> String {
+    let file = Path::new(path);
+    let stem = file
+        .file_stem()
+        .map_or_else(String::new, |stem| stem.to_string_lossy().into_owned());
+    let name = match file.extension() {
+        Some(extension) => format!("{stem}-flight.{}", extension.to_string_lossy()),
+        None => format!("{stem}-flight"),
+    };
+    file.with_file_name(name).to_string_lossy().into_owned()
+}
+
+/// Of `known` extensions, the one sharing the longest start with `path`'s, ignoring case, the
+/// first of those tied: the one to suggest for an extension refused; `None` where none shares a
+/// first letter.
+fn closest_extension<'a>(path: &str, known: &[&'a str]) -> Option<&'a str> {
+    let typed = Path::new(path)
+        .extension()
+        .map(|extension| extension.to_string_lossy().to_ascii_lowercase())
+        .unwrap_or_default();
+    let shared = |extension: &str| {
+        typed
+            .chars()
+            .zip(extension.chars())
+            .take_while(|(a, b)| a == b)
+            .count()
+    };
+    let mut best = None;
+    let mut longest = 0;
+    for &extension in known {
+        let length = shared(extension);
+        if length > longest {
+            best = Some(extension);
+            longest = length;
+        }
+    }
+    best
 }
 
 /// A path as the file system knows it, to compare two: the file's canonical path if it exists,
@@ -1313,7 +1432,13 @@ fn fetch_missing(motors: &ork::Motors, fetching: Fetching<'_>) -> Result<Missing
                 missing
                     .supplied
                     .insert(digest.clone(), case, fetched.solid_motor().clone())
-                    .map_err(|error| Failure::Input(format!("{}: {error}", wanted.words())))?;
+                    .map_err(|error| {
+                        Failure::library(
+                            format!("{}: {error}", wanted.words()),
+                            "give the motor yourself with --motor, as a .eng or .rse file or a \
+                             catalog designation",
+                        )
+                    })?;
                 missing.fetched.push(FetchedMotor {
                     mount: motor.mount.clone(),
                     designation: motor.designation.clone(),
@@ -1322,7 +1447,6 @@ fn fetch_missing(motors: &ork::Motors, fetching: Fetching<'_>) -> Result<Missing
                     motor: described,
                 });
             }
-            Err(Failure::Input(why)) => missing.unfetched.push(why),
             Err(Failure::Helped { message, help }) => {
                 missing.unfetched.push(message);
                 missing.fetch_help.extend(help);
@@ -1341,7 +1465,6 @@ fn fetch_missing(motors: &ork::Motors, fetching: Fetching<'_>) -> Result<Missing
 /// [`run`]'s.
 pub fn left_out(path: &str, config: &str) -> Result<Option<ork::NotFlown>, String> {
     let message = |failure: Failure| match failure {
-        Failure::Input(message) => message,
         Failure::Helped { message, help } => format!("{message}; {}", help.join("; ")),
         _ => format!("{path}: not read"),
     };
@@ -1413,6 +1536,12 @@ fn flown_recovery(read: &mut Read, assembly: &hpr_design::Assembly) -> Vec<hpr::
     }
 }
 
+/// What to do about a part that would coast with no drag from a split
+/// ([`hpr::ork::RecoveryRefused::Coasts`]).
+const COASTS_HELP: &str = "in OpenRocket, set a recovery device of the part that keeps the nose \
+                           to deploy at the lower stage's separation, or fly a configuration \
+                           that drops no stage with --config";
+
 /// The stage after which the first misplaced boundary of `separations` falls: the first at or
 /// aft of the one before it, or of the last of `stage_count` stages
 /// ([`hpr_sim::Separation::stages_of_body`]'s rule); the first's when none is.
@@ -1437,29 +1566,47 @@ fn misplaced(separations: &[hpr::Separation], stage_count: usize) -> usize {
 ///
 /// # Errors
 ///
-/// [`Failure::Input`] when a separation can't be timed from the configuration's motors, has no
+/// A refusal with help when a separation can't be timed from the configuration's motors, has no
 /// stage aft of it, or a part can't tumble.
 fn flown_separation(
     read: &mut Read,
     assembly: &hpr_design::Assembly,
     stagings: &[ork::Staging],
 ) -> Result<(Vec<hpr::Device>, Vec<hpr::Separation>, usize), Failure> {
-    let separations = hpr::ork::separations(stagings, assembly)
-        .map_err(|error| Failure::Input(format!("the file's separation: {error}")))?;
+    let separations = hpr::ork::separations(stagings, assembly).map_err(|error| {
+        Failure::library(
+            format!("the file's separation: {error}"),
+            "in OpenRocket, time the stage's separation from a motor this configuration \
+                 lights, or fly another configuration with --config",
+        )
+    })?;
     // A hand-edited `.hpr` can name a boundary at or past the last stage, or out of order.
     let stage_count = assembly.layout.stages.len();
     let parts = (1..=separations.len())
         .map(|body| {
             hpr_sim::Separation::stages_of_body(&separations, body, stage_count).ok_or_else(|| {
-                Failure::Input(format!(
-                    "the file's separation: no stage is aft of the boundary after stage {}, or \
-                     it is not forward of the one before",
-                    misplaced(&separations, stage_count).saturating_add(1)
-                ))
+                Failure::helped(
+                    format!(
+                        "the file's separation: no stage is aft of the boundary after stage {}, \
+                         or it is not forward of the one before",
+                        misplaced(&separations, stage_count).saturating_add(1)
+                    ),
+                    "write the design again from its .ork with `hpr convert`, or in the file \
+                     give each separation a stage forward of the one before it",
+                )
             })
         })
         .collect::<Result<Vec<_>, _>>()?;
-    let refused = |error: hpr::ork::RecoveryRefused| Failure::Input(error.to_string());
+    let refused = |error: hpr::ork::RecoveryRefused| {
+        let help = match error {
+            hpr::ork::RecoveryRefused::Coasts { .. } => COASTS_HELP,
+            _ => {
+                "open the design in OpenRocket and fix the part it names, or fly a configuration \
+                 that drops no stage with --config"
+            }
+        };
+        Failure::library(error.to_string(), help)
+    };
     let tumbles = || hpr::ork::tumbling(Vec::new(), &read.rocket, assembly, &separations);
     let mapped = match &read.recovery {
         Some(recovery) => {
@@ -1487,9 +1634,10 @@ fn flown_separation(
             // A part that keeps the nose with nothing to burn and no device can't tumble from
             // its apogee in place of one: it would coast from the split with no drag.
             let devices = tumbles().map_err(|tumbling| match tumbling {
-                hpr::ork::RecoveryRefused::Coasts { .. } => Failure::Input(format!(
-                    "{tumbling}, as the file's recovery is not flown ({error})"
-                )),
+                hpr::ork::RecoveryRefused::Coasts { .. } => Failure::helped(
+                    format!("{tumbling}, as the file's recovery is not flown ({error})"),
+                    COASTS_HELP,
+                ),
                 other => refused(other),
             })?;
             read.notes.push(format!(
@@ -1813,10 +1961,23 @@ fn read_design(path: &str, fetching: Option<Fetching<'_>>) -> Result<Read, Failu
         .and_then(|extension| extension.to_str())
         .map(str::to_ascii_lowercase);
     let bytes = || crate::read_file(path);
-    let refused = |error: &dyn std::fmt::Display| Failure::Input(format!("{path}: {error}"));
+    let refused = |error: &dyn std::fmt::Display, help: &str| {
+        Failure::library(format!("{path}: {error}"), help)
+    };
+    // An HPR design is written by `hpr convert`, from the `.ork` it came from.
+    let rewrite = format!(
+        "write it again from its .ork, such as `hpr convert rocket.ork {}`",
+        crate::printable(&file_name(path))
+    );
     match extension.as_deref() {
         Some("ork") => {
-            let file = ork::read(&bytes()?).map_err(|e| refused(&e))?;
+            let file = ork::read(&bytes()?).map_err(|e| {
+                refused(
+                    &e,
+                    "open it in OpenRocket and save it again; if OpenRocket opens it and HPR Sim \
+                     still can't, report it at https://github.com/nrdptel/fusionspace-eridanus/issues",
+                )
+            })?;
             let mut design = ork::design(&file.value);
             let missing = match fetching {
                 Some(fetching) => fetch_missing(&design.value.motors, fetching)?,
@@ -1862,12 +2023,13 @@ fn read_design(path: &str, fetching: Option<Fetching<'_>>) -> Result<Read, Failu
         }
         Some(kind @ ("hpr" | "hprz")) => {
             let (document, written_as, attachments, format) = if kind == "hpr" {
-                let text = String::from_utf8(bytes()?)
-                    .map_err(|_| Failure::Input(format!("{path}: an .hpr file is UTF-8 text")))?;
-                let opened = hpr_format::read_json(&text).map_err(|e| refused(&e))?;
+                let text = String::from_utf8(bytes()?).map_err(|_| {
+                    Failure::helped(format!("{path}: an .hpr file is UTF-8 text"), &rewrite)
+                })?;
+                let opened = hpr_format::read_json(&text).map_err(|e| refused(&e, &rewrite))?;
                 (opened.value, opened.written_as, 0, DesignFormat::Hpr)
             } else {
-                let opened = container::read(&bytes()?).map_err(|e| refused(&e))?;
+                let opened = container::read(&bytes()?).map_err(|e| refused(&e, &rewrite))?;
                 let attachments = opened.value.attachments.len();
                 (
                     opened.value.design,
@@ -1905,8 +2067,13 @@ fn read_design(path: &str, fetching: Option<Fetching<'_>>) -> Result<Read, Failu
             ))
         }
         Some("json") => {
-            let rocket: hpr_design::Rocket = serde_json::from_slice(&bytes()?)
-                .map_err(|error| Failure::Input(format!("{path}: not a rocket's JSON: {error}")))?;
+            let rocket: hpr_design::Rocket = serde_json::from_slice(&bytes()?).map_err(|error| {
+                Failure::helped(
+                    format!("{path}: not a rocket's JSON: {error}"),
+                    "a .json design is a rocket as the library writes it; give an HPR design its \
+                     .hpr name, or give the design's .ork",
+                )
+            })?;
             let mut notes = vec![descent("a rocket's JSON holds no recovery devices")];
             if rocket.stages.len() > 1 {
                 notes.push(WHOLE_STACK.to_owned());
@@ -1924,10 +2091,23 @@ fn read_design(path: &str, fetching: Option<Fetching<'_>>) -> Result<Read, Failu
                 fetch_help: Vec::new(),
             })
         }
-        _ => Err(Failure::Input(format!(
-            "{path}: hpr sim reads an OpenRocket .ork file, an HPR design (.hpr or .hprz), or a \
-             rocket's JSON (.json)"
-        ))),
+        _ => Err(Failure::helped(
+            format!(
+                "{path}: hpr sim reads an OpenRocket .ork file, an HPR design (.hpr or .hprz), or \
+                 a rocket's JSON (.json)"
+            ),
+            // A typo'd extension, or another program's design, which OpenRocket may open.
+            match closest_extension(path, &["ork", "hpr", "hprz", "json"]) {
+                Some(extension) => format!(
+                    "is it {}? hpr sim reads a design by its file's extension",
+                    crate::printable(&with_extension(path, extension))
+                ),
+                None => format!(
+                    "open the design in OpenRocket and save it as {}",
+                    crate::printable(&with_extension(path, "ork"))
+                ),
+            },
+        )),
     }
 }
 
@@ -2031,19 +2211,14 @@ impl Read {
                             why.push_str(&format!("; nor can it with --motor: {blocked}"));
                         }
                     }
-                    let flying: Vec<String> = self
-                        .configurations()
-                        .into_iter()
-                        .enumerate()
-                        .filter(|(_, c)| c.flies)
-                        .map(|(index, c)| format!("{} {}", index + 1, c.label))
-                        .collect();
-                    if !flying.is_empty() {
-                        help.push(format!(
-                            "--config flies one of the file's configurations that fly as \
-                             written: {}",
-                            list(&flying)
-                        ));
+                    help.extend(self.flying_help());
+                    // No fetch, motor or other configuration flies it: the file must change.
+                    if help.is_empty() {
+                        help.push(
+                            "open the design in OpenRocket, change what the message names, and \
+                             save it"
+                                .to_owned(),
+                        );
                     }
                     return Err(Failure::Helped {
                         message: format!(
@@ -2069,11 +2244,34 @@ impl Read {
                 .into_iter()
                 .find(|c| c.id == id)
                 .map_or(id, |c| c.label);
-            return Err(Failure::Input(format!(
-                "configuration {label} can't be flown as the file has it"
-            )));
+            return Err(Failure::Helped {
+                message: format!("configuration {label} can't be flown as the file has it"),
+                help: vec![self.flying_help().unwrap_or_else(|| {
+                    "give a motor with --motor, or open the design in OpenRocket and give it a \
+                     configuration that flies"
+                        .to_owned()
+                })],
+            });
         }
         Ok(id)
+    }
+
+    /// The `help:` line naming the file's configurations that fly as written, by number and
+    /// label, for `--config`; `None` when none does.
+    fn flying_help(&self) -> Option<String> {
+        let flying: Vec<String> = self
+            .configurations()
+            .into_iter()
+            .enumerate()
+            .filter(|(_, c)| c.flies)
+            .map(|(index, c)| format!("{} {}", index + 1, c.label))
+            .collect();
+        (!flying.is_empty()).then(|| {
+            format!(
+                "--config flies one of the file's configurations that fly as written: {}",
+                list(&flying)
+            )
+        })
     }
 
     /// Why no motor of the user's own flies the `.ork` rocket in `chosen` (or, with none, in a
@@ -2136,9 +2334,10 @@ impl Read {
                         || "the rocket".to_owned(),
                         |c| format!("configuration {}", ork_label(c)),
                     );
-                    return Err(Failure::Input(format!(
-                        "{what} can't be flown with a motor of your own: {why}"
-                    )));
+                    return Err(Failure::helped(
+                        format!("{what} can't be flown with a motor of your own: {why}"),
+                        "run it again without --motor to fly the file's own motors",
+                    ));
                 }
                 chosen.map(|c| {
                     (
@@ -2188,12 +2387,16 @@ impl Read {
             .collect();
         if configured.len() > 1 {
             let configured: Vec<String> = configured.iter().map(|id| named(id)).collect();
-            return Err(Failure::Input(format!(
-                "configuration {label} has {} motors, in {}; --motor flies one motor in place \
-                 of them all, so it takes a configuration of one",
-                configured.len(),
-                list(&configured)
-            )));
+            return Err(Failure::helped(
+                format!(
+                    "configuration {label} has {} motors, in {}; --motor flies one motor in \
+                     place of them all, so it takes a configuration of one",
+                    configured.len(),
+                    list(&configured)
+                ),
+                "choose a configuration of one motor with --config, or run it again without \
+                 --motor to fly the file's own motors",
+            ));
         }
         match (given, configured, &mounts[..]) {
             (Some(given), _, _) => {
@@ -2201,8 +2404,9 @@ impl Read {
                 Ok(mounts[index].clone())
             }
             (None, [mount], _) | (None, [], [mount]) => Ok(mount.clone()),
-            (None, [], []) => Err(Failure::Input(
-                "the design has no motor mount for --motor to go in".to_owned(),
+            (None, [], []) => Err(Failure::helped(
+                "the design has no motor mount for --motor to go in",
+                "open the design in OpenRocket and make a body tube or inner tube a motor mount",
             )),
             (None, _, _) => Err(Failure::helped(
                 format!("the design has {} motor mounts", mounts.len()),
@@ -2315,9 +2519,10 @@ fn unchosen(choices: &[Choice<'_>], what: &str, blocked: Option<String>) -> Fail
                 format!("{what} has no motor configuration"),
                 "give a motor with --motor",
             ),
-            Some(why) => Failure::Input(format!(
-                "{what} has no motor configuration, nor can it fly with --motor: {why}"
-            )),
+            Some(why) => Failure::helped(
+                format!("{what} has no motor configuration, nor can it fly with --motor: {why}"),
+                "open the design in OpenRocket, give it a motor configuration, and save it",
+            ),
         }
     } else {
         Failure::helped(
@@ -2467,7 +2672,14 @@ fn list(items: &[String]) -> String {
 /// catalog name; a name the bundled catalog lacks is fetched from ThrustCurve.org, or with
 /// `offline` taken from the cache alone ([`crate::motor_fetch`]).
 fn motor(name: &str, offline: bool) -> Result<(Motor, SimMotorSource, Vec<InputWarning>), Failure> {
-    let refused = |error: hpr::Error| Failure::Input(format!("{name}: {error}"));
+    // A file's motor refused: fix the file, or fly the catalog's curve of it.
+    let refused = |error: hpr::Error| {
+        Failure::library(
+            format!("{name}: {error}"),
+            "fix the file where the message says, or give --motor the motor's designation, \
+             such as `--motor H128W`, to fly the catalog's curve",
+        )
+    };
     let Some(format) = MotorFile::of(name) else {
         return match Motor::from_catalog(name) {
             Ok(motor) => Ok((
@@ -2486,12 +2698,39 @@ fn motor(name: &str, offline: bool) -> Result<(Motor, SimMotorSource, Vec<InputW
                     Vec::new(),
                 ))
             }
-            Err(error) => Err(refused(error)),
+            Err(error @ hpr::Error::AmbiguousMotor { .. }) => {
+                // Each candidate is its designation, which finds it alone, then its maker.
+                let designation = match &error {
+                    hpr::Error::AmbiguousMotor { candidates, .. } => candidates
+                        .first()
+                        .and_then(|candidate| candidate.split(" (").next())
+                        .unwrap_or_default(),
+                    _ => "",
+                };
+                Err(Failure::helped(
+                    format!("{name}: {error}"),
+                    format!(
+                        "give --motor one of those designations, which names one motor alone, \
+                         such as `--motor {}`",
+                        crate::printable(designation)
+                    ),
+                ))
+            }
+            // The bundled catalog's curves are each read by its tests.
+            Err(error) => Err(Failure::library(
+                format!("{name}: {error}"),
+                crate::BUG_HELP,
+            )),
         };
     };
     let bytes = crate::read_file(name)?;
-    let text = String::from_utf8(bytes)
-        .map_err(|_| Failure::Input(format!("{name}: not a text file in UTF-8")))?;
+    let text = String::from_utf8(bytes).map_err(|_| {
+        Failure::helped(
+            format!("{name}: not a text file in UTF-8"),
+            "a .eng or .rse file is plain text: save it as UTF-8, or give --motor the \
+                 motor's designation to fly the catalog's curve",
+        )
+    })?;
     let (motor, format, warnings) = match format {
         MotorFile::Eng => (
             Motor::from_eng(&text).map_err(refused)?,
@@ -2549,9 +2788,17 @@ fn export_format(path: &str) -> Result<ExportFormat, Failure> {
         Some("parquet") => Ok(ExportFormat::Parquet),
         Some("geojson") => Ok(ExportFormat::Geojson),
         Some("kml") => Ok(ExportFormat::Kml),
-        _ => Err(Failure::Input(format!(
-            "{path}: --export writes .csv, .json, .parquet, .geojson or .kml"
-        ))),
+        _ => Err(Failure::helped(
+            format!("{path}: --export writes .csv, .json, .parquet, .geojson or .kml"),
+            format!(
+                "name the file for its format, such as `--export {}`",
+                crate::printable(&with_extension(
+                    path,
+                    closest_extension(path, &["csv", "json", "parquet", "geojson", "kml"])
+                        .unwrap_or("csv")
+                ))
+            ),
+        )),
     }
 }
 

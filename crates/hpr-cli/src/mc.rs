@@ -118,9 +118,12 @@ impl McArgs {
             ("--deployment-lag-sd", self.deployment_lag_sd),
         ] {
             if !(value.is_finite() && value >= 0.0) {
-                return Err(Failure::Input(format!(
-                    "{option} {value}: a standard deviation is a finite number, at least 0"
-                )));
+                return Err(Failure::helped(
+                    format!(
+                        "{option} {value}: a standard deviation is a finite number, at least 0"
+                    ),
+                    format!("give {option} a number of 0 or more, or leave it out for none"),
+                ));
             }
         }
         Ok(given)
@@ -153,17 +156,18 @@ pub(crate) fn run(args: &McArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         let inputs = sim::read_files(&args.flight);
         for path in [csv.as_str(), meta.as_str()] {
             if inputs.contains(&sim::same_file(path)) {
-                return Err(Failure::Input(format!(
-                    "{path}: this run reads that file, and --export would write over it"
-                )));
+                return Err(Failure::helped(
+                    format!("{path}: this run reads that file, and --export would write over it"),
+                    "give --export another file's name",
+                ));
             }
         }
     }
     if !(1..=MAX_RUNS).contains(&args.runs) {
-        return Err(Failure::Input(format!(
-            "--runs {}: a run flies 1 to {MAX_RUNS} flights",
-            args.runs
-        )));
+        return Err(Failure::helped(
+            format!("--runs {}: a run flies 1 to {MAX_RUNS} flights", args.runs),
+            format!("give --runs a whole number from 1 to {MAX_RUNS}"),
+        ));
     }
     let given = args.given()?;
     let setup = Setup::read(&args.flight)?;
@@ -173,12 +177,25 @@ pub(crate) fn run(args: &McArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         .fly()
         .map_err(|error| sim::flight_refused(&error, &args.flight))?;
     let monte_carlo = MonteCarlo::new(builder.inputs().map_err(sim::input)?, dispersion(&given))
-        .map_err(|error| Failure::Input(error.to_string()))?;
+        .map_err(|error| {
+            // The standard deviations were checked above and the nominal flight flew, so only a
+            // motor the scatter can't scale is left to refuse.
+            let help = match error {
+                hpr::hpr_analysis::AnalysisError::Unsupported(_) => {
+                    "leave out --impulse-sd and --burn-time-sd for this motor"
+                }
+                _ => crate::BUG_HELP,
+            };
+            Failure::helped(error.to_string(), help)
+        })?;
     let run = fly(&monte_carlo, args.seed, args.runs, to);
     let motors = setup.motors()?;
     drop(builder);
 
-    let analysis = |error: hpr::hpr_analysis::AnalysisError| Failure::Input(error.to_string());
+    // The flights' figures are finite, as each flight checks its own: a refusal here is a bug.
+    let analysis = |error: hpr::hpr_analysis::AnalysisError| {
+        Failure::helped(error.to_string(), crate::BUG_HELP)
+    };
     let apogee = run.apogee().map_err(analysis)?;
     let distance = run
         .distribution(|flight| flight.nose_landing().map(|landing| landing.distance_m))
@@ -207,7 +224,7 @@ pub(crate) fn run(args: &McArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     let written = match &export {
         Some((csv, meta)) => {
             let text = RunTable::new(&run).csv().map_err(analysis)?;
-            std::fs::write(csv, text).map_err(|error| Failure::Input(format!("{csv}: {error}")))?;
+            std::fs::write(csv, text).map_err(|error| crate::unwritable(csv, &error))?;
             let document = McExportMeta {
                 file: sim::file_name(csv),
                 design: sim::file_name(&args.flight.design),
@@ -221,8 +238,8 @@ pub(crate) fn run(args: &McArgs, to: &mut Out<'_>) -> Result<(), Failure> {
             };
             let mut text = Vec::new();
             crate::write_json(&mut text, &document)
-                .and_then(|()| std::fs::write(meta, text))
-                .map_err(|error| Failure::Input(format!("{meta}: {error}")))?;
+                .map_err(|error| Failure::helped(format!("{meta}: {error}"), crate::BUG_HELP))?;
+            std::fs::write(meta, text).map_err(|error| crate::unwritable(meta, &error))?;
             Some(Export {
                 path: csv.clone(),
                 format: ExportFormat::Csv,
@@ -332,25 +349,33 @@ fn export_paths(path: &str) -> Result<(String, String), Failure> {
         .and_then(|extension| extension.to_str())
         .is_some_and(|extension| extension.eq_ignore_ascii_case("csv"));
     if !csv {
-        return Err(Failure::Input(format!(
-            "{path}: hpr mc --export writes a .csv file"
-        )));
+        return Err(Failure::helped(
+            format!("{path}: hpr mc --export writes a .csv file"),
+            format!(
+                "end the name in .csv, such as --export {}",
+                Path::new(path).with_extension("csv").display()
+            ),
+        ));
     }
     if let Some(folder) = Path::new(path).parent()
         && !folder.as_os_str().is_empty()
         && !folder.is_dir()
     {
-        return Err(Failure::Input(format!(
-            "{path}: there is no folder {}",
-            folder.display()
-        )));
+        return Err(Failure::helped(
+            format!("{path}: there is no folder {}", folder.display()),
+            format!(
+                "make the folder {} first, or write the file somewhere else",
+                folder.display()
+            ),
+        ));
     }
     let meta = sim::sidecar(path);
     for file in [path, meta.as_str()] {
         if Path::new(file).is_dir() {
-            return Err(Failure::Input(format!(
-                "{file}: a folder, so hpr mc --export can't write a file there"
-            )));
+            return Err(Failure::helped(
+                format!("{file}: a folder, so hpr mc --export can't write a file there"),
+                "give --export the path of a file, not a folder",
+            ));
         }
     }
     Ok((path.to_owned(), meta))

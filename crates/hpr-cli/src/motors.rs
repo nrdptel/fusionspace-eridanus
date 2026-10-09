@@ -109,7 +109,8 @@ pub(crate) fn run(command: &MotorsCommand, to: &mut Out<'_>) -> Result<(), Failu
 
 /// The bundled catalog.
 pub(crate) fn catalog() -> Result<Catalog, Failure> {
-    Catalog::bundled().map_err(|error| Failure::Input(format!("the bundled catalog: {error}")))
+    Catalog::bundled()
+        .map_err(|error| Failure::helped(format!("the bundled catalog: {error}"), crate::BUG_HELP))
 }
 
 /// The bundled catalog's as-of date, `YYYY-MM-DD`: the day its curve files were downloaded, which
@@ -127,9 +128,10 @@ fn list(args: &ListArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     if let Some(diameter) = args.diameter
         && !(diameter.is_finite() && diameter > 0.0)
     {
-        return Err(Failure::Input(format!(
-            "--diameter must be a positive number of millimeters, not {diameter}"
-        )));
+        return Err(Failure::helped(
+            format!("--diameter must be a positive number of millimeters, not {diameter}"),
+            "give the casing's diameter in millimeters, such as 38 or 54",
+        ));
     }
     let catalog = catalog()?;
     let manufacturer = match &args.manufacturer {
@@ -224,9 +226,12 @@ fn listed(motor: &CatalogMotor) -> Result<ListedMotor, Failure> {
 }
 
 /// `hpr_motor`'s enums are non-exhaustive. A kind this build doesn't know is refused, not given
-/// the name of another.
+/// the name of another; the library is this build's own, so that is HPR Sim's bug.
 fn unknown(what: &str, value: impl std::fmt::Debug) -> Failure {
-    Failure::Input(format!("{what} {value:?} is new to this build of HPR Sim"))
+    Failure::helped(
+        format!("{what} {value:?} is new to this build of HPR Sim"),
+        crate::BUG_HELP,
+    )
 }
 
 fn kind(motor_type: MotorType) -> Result<MotorKind, Failure> {
@@ -418,7 +423,10 @@ fn from_catalog(name: &str) -> Result<(MotorShow, Vec<Option<String>>), Failure>
     for motor in matches {
         let solid = motor
             .bundled_motor()
-            .map_err(|error| Failure::Input(format!("{}: {error}", motor.designation)))?;
+            // The bundled catalog's curves are this build's own.
+            .map_err(|error| {
+                Failure::library(format!("{}: {error}", motor.designation), crate::BUG_HELP)
+            })?;
         // The curve `bundled_motor` flew: the first with a bundled file, which it just found.
         let Some(curve) = motor
             .curves
@@ -432,10 +440,13 @@ fn from_catalog(name: &str) -> Result<(MotorShow, Vec<Option<String>>), Failure>
             CurveFormat::RockSim => MotorFile::Rse,
             // `CurveFormat` is non-exhaustive, and the bundled catalog uses these two only.
             _ => {
-                return Err(Failure::Input(format!(
-                    "{}: its curve's format isn't .eng or .rse",
-                    motor.designation
-                )));
+                return Err(Failure::helped(
+                    format!(
+                        "{}: its curve's format isn't .eng or .rse",
+                        motor.designation
+                    ),
+                    crate::BUG_HELP,
+                ));
             }
         };
         let delays = motor.delays();
@@ -472,13 +483,27 @@ fn from_catalog(name: &str) -> Result<(MotorShow, Vec<Option<String>>), Failure>
 /// Every motor in a `.eng` or `.rse` file.
 fn from_file(path: &str, format: MotorFile) -> Result<MotorShow, Failure> {
     let bytes = crate::read_file(path)?;
-    let text = String::from_utf8(bytes)
-        .map_err(|_| Failure::Input(format!("{path}: not a text file in UTF-8")))?;
+    let shown = crate::printable(path);
+    let text = String::from_utf8(bytes).map_err(|_| {
+        Failure::helped(
+            format!("{shown}: not a text file in UTF-8"),
+            format!(
+                "a {} file is plain text: check that this is one, or save it again as UTF-8",
+                format.extension()
+            ),
+        )
+    })?;
+    // What to do about a file that breaks its format.
+    let rules = format!(
+        "check the file against {}, or download it again from ThrustCurve.org",
+        format_page(format)
+    );
     let source = || MotorSource::File {
         path: path.to_owned(),
         format: format.output(),
     };
-    let refused = |error| Failure::Input(format!("{path}: {error}"));
+    let refused =
+        |error: hpr::hpr_motor::MotorError| Failure::library(format!("{shown}: {error}"), &rules);
     let mut show = MotorShow {
         kind: crate::trust::Kind::Copied,
         trust: crate::trust::motor_file(),
@@ -490,9 +515,9 @@ fn from_file(path: &str, format: MotorFile) -> Result<MotorShow, Failure> {
             let parsed = eng::parse(&text).map_err(refused)?;
             show.warnings.extend(read_warnings(&parsed.warnings)?);
             for entry in &parsed.value.entries {
-                let curve = entry
-                    .thrust_curve()
-                    .map_err(|error| Failure::Input(format!("{path}: {}: {error}", entry.name)))?;
+                let curve = entry.thrust_curve().map_err(|error| {
+                    Failure::library(format!("{shown}: {}: {error}", entry.name), &rules)
+                })?;
                 let delays = entry.delays();
                 show.warnings.extend(delay_warnings(&entry.name, &delays)?);
                 show.motors.push(figures(
@@ -514,9 +539,9 @@ fn from_file(path: &str, format: MotorFile) -> Result<MotorShow, Failure> {
             let parsed = rse::parse(&text).map_err(refused)?;
             show.warnings.extend(read_warnings(&parsed.warnings)?);
             for engine in &parsed.value.engines {
-                let curve = engine
-                    .thrust_curve()
-                    .map_err(|error| Failure::Input(format!("{path}: {}: {error}", engine.code)))?;
+                let curve = engine.thrust_curve().map_err(|error| {
+                    Failure::library(format!("{shown}: {}: {error}", engine.code), &rules)
+                })?;
                 let delays = engine.delays();
                 show.warnings.extend(delay_warnings(&engine.code, &delays)?);
                 show.motors.push(figures(
@@ -536,9 +561,24 @@ fn from_file(path: &str, format: MotorFile) -> Result<MotorShow, Failure> {
         }
     }
     if show.motors.is_empty() {
-        return Err(Failure::Input(format!("{path}: no motor could be read")));
+        return Err(Failure::helped(
+            format!("{shown}: no motor could be read"),
+            format!(
+                "the file holds no motor entry; check that it is a {} file, as {} describes",
+                format.extension(),
+                format_page(format)
+            ),
+        ));
     }
     Ok(show)
+}
+
+/// The docs page that writes down a motor file format.
+fn format_page(format: MotorFile) -> &'static str {
+    match format {
+        MotorFile::Eng => "https://hpr.fusionspace.co/format/eng.html",
+        MotorFile::Rse => "https://hpr.fusionspace.co/format/rse.html",
+    }
 }
 
 /// A motor's casing and masses, SI.
@@ -560,7 +600,13 @@ fn figures(
 ) -> Result<MotorFigures, Failure> {
     let total_impulse_ns = curve.total_impulse_ns();
     let impulse_class = ImpulseClass::from_total_impulse(total_impulse_ns)
-        .map_err(|error| Failure::Input(format!("{name}: {error}")))?
+        .map_err(|error| {
+            Failure::library(
+                format!("{name}: {error}"),
+                "a motor's total impulse is above zero and within class Z; check the curve's \
+                 thrust points, newtons against seconds",
+            )
+        })?
         .label();
     let (burn_start_s, burn_end_s) = curve.burn_window_s();
     Ok(MotorFigures {

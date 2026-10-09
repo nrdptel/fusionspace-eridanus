@@ -194,7 +194,8 @@ $ echo $?
 
 A refusal has two parts, as a compiler's does: an `error:` line that says what went wrong and
 names it the way you typed it (the option with its value and unit, or the file's path), then
-`help:` lines that say what to do, the most useful last. A latitude past the pole is refused in the degrees you gave,
+`help:` lines that say what to do, the most useful last. Every refusal has at least one `help:`
+line: one that only a fault in the simulator can cause asks you to report it, with the address. A latitude past the pole is refused in the degrees you gave,
 with the range `--latitude` takes:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --latitude 95`, exits 1 -->

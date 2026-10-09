@@ -56,14 +56,19 @@ pub(crate) fn run(args: &ConvertArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     }
     let output = &args.output;
     let target = MotorFile::of(output).ok_or_else(|| {
-        Failure::Input(format!(
-            "{output}: hpr convert writes a .eng or a .rse file for motors, or a .ork, .hpr or \
-             .hprz file for a design, named by its extension"
-        ))
+        Failure::helped(
+            format!(
+                "{output}: hpr convert writes a .eng or a .rse file for motors, or a .ork, .hpr \
+                 or .hprz file for a design, named by its extension"
+            ),
+            "end the output's name in .eng or .rse for motors, or .ork, .hpr or .hprz for a \
+             design",
+        )
     })?;
     if !args.attach.is_empty() {
-        return Err(Failure::Input(
-            "--attach adds files to a .hprz design, and hpr convert is writing motors".to_owned(),
+        return Err(Failure::helped(
+            "--attach adds files to a .hprz design, and hpr convert is writing motors",
+            "leave out --attach, or write a design to a .hprz file",
         ));
     }
     if let Some(delays) = &args.delays {
@@ -72,20 +77,31 @@ pub(crate) fn run(args: &ConvertArgs, to: &mut Out<'_>) -> Result<(), Failure> {
             || delays.contains(char::is_whitespace)
             || list.warnings.iter().any(|w| w.kind == ReadWarning::Dropped)
         {
-            return Err(Failure::Input(format!(
-                "--delays {delays}: not a list of delays, such as 6-10-14, or P for plugged"
-            )));
+            return Err(Failure::helped(
+                format!(
+                    "--delays {delays}: not a list of delays, such as 6-10-14, or P for plugged"
+                ),
+                "give the delays in seconds joined by - with no spaces, such as --delays 6-10-14, \
+                 or --delays P for a plugged motor",
+            ));
         }
     }
     let (source, format, text, figures) = read_input(&args.input)?;
     if matches!(source, MotorSource::File { .. }) && same_file(&args.input) == same_file(output) {
-        return Err(Failure::Input(format!(
-            "{output}: that is the file hpr convert reads, and it would write over it"
-        )));
+        return Err(Failure::helped(
+            format!("{output}: that is the file hpr convert reads, and it would write over it"),
+            "name another file to write",
+        ));
     }
     output_folder(output)?;
     let input = &args.input;
-    let refused = |error| Failure::Input(format!("{input}: {error}"));
+    // A file that doesn't read, or whose motors the other format can't hold.
+    let refused = |error| {
+        Failure::library(
+            format!("{input}: {error}"),
+            format!("fix what the message names in {input}, then convert it again"),
+        )
+    };
     let mut warnings = Vec::new();
     let mut motors = match format {
         MotorFile::Eng => {
@@ -116,10 +132,10 @@ pub(crate) fn run(args: &ConvertArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     match (&args.delays, undelayed.is_empty()) {
         // A hybrid needs no delays, but the conversion refuses it, for the real reason.
         (Some(_), true) if !has_hybrid => {
-            return Err(Failure::Input(
+            return Err(Failure::helped(
                 "--delays gives the delays of a .rse motor that has none, for a .eng file; no \
-                 motor this conversion writes needs them"
-                    .to_owned(),
+                 motor this conversion writes needs them",
+                "leave out --delays",
             ));
         }
         (None, false) => {
@@ -134,10 +150,13 @@ pub(crate) fn run(args: &ConvertArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         _ => {}
     }
     let unwritable = |error| {
-        Failure::Input(format!(
-            "{input}: its motors can't be written as a {} file: {error}",
-            target.extension()
-        ))
+        Failure::library(
+            format!(
+                "{input}: its motors can't be written as a {} file: {error}",
+                target.extension()
+            ),
+            format!("fix what the message names in {input}, then convert it again"),
+        )
     };
     let (written, names, converted) = match (motors, target) {
         (Motors::Eng(mut file), MotorFile::Eng) => {
@@ -184,8 +203,7 @@ pub(crate) fn run(args: &ConvertArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         MotorSource::Catalog { .. } => dated(&written, target, &crate::motors::catalog_as_of()?)?,
         MotorSource::File { .. } => written,
     };
-    std::fs::write(output, written)
-        .map_err(|error| Failure::Input(format!("{output}: {error}")))?;
+    std::fs::write(output, written).map_err(|error| crate::unwritable(output, &error))?;
     let document = ConvertMotors {
         input: source,
         output: ConvertedFile {
@@ -220,9 +238,10 @@ fn dated(text: &str, format: MotorFile, as_of: &str) -> Result<String, Failure> 
             _ => c.is_ascii_digit(),
         });
     if !date {
-        return Err(Failure::Input(format!(
-            "the bundled catalog's date {as_of:?} is not a YYYY-MM-DD date"
-        )));
+        return Err(Failure::helped(
+            format!("the bundled catalog's date {as_of:?} is not a YYYY-MM-DD date"),
+            crate::BUG_HELP,
+        ));
     }
     let line = match format {
         MotorFile::Eng => format!("; {}\n", catalog_line(as_of)),
@@ -230,7 +249,10 @@ fn dated(text: &str, format: MotorFile, as_of: &str) -> Result<String, Failure> 
     };
     // Both writers end the line naming the program with a line break.
     let (first, rest) = text.split_once('\n').ok_or_else(|| {
-        Failure::Input("the motor file was written without a line naming the program".to_owned())
+        Failure::helped(
+            "the motor file was written without a line naming the program",
+            crate::BUG_HELP,
+        )
     })?;
     Ok(format!("{first}\n{line}{rest}"))
 }
@@ -238,8 +260,12 @@ fn dated(text: &str, format: MotorFile, as_of: &str) -> Result<String, Failure> 
 /// Refuses an output path whose folder doesn't exist.
 pub(crate) fn output_folder(output: &str) -> Result<(), Failure> {
     match Path::new(output).parent() {
-        Some(folder) if !folder.as_os_str().is_empty() && !folder.is_dir() => Err(Failure::Input(
+        Some(folder) if !folder.as_os_str().is_empty() && !folder.is_dir() => Err(Failure::helped(
             format!("{output}: there is no folder {}", folder.display()),
+            format!(
+                "make the folder {} first, or write the file somewhere else",
+                folder.display()
+            ),
         )),
         _ => Ok(()),
     }
@@ -463,8 +489,13 @@ fn read_input(
 ) -> Result<(MotorSource, MotorFile, String, Option<CatalogFigures>), Failure> {
     if let Some(format) = MotorFile::of(input) {
         let bytes = crate::read_file(input)?;
-        let text = String::from_utf8(bytes)
-            .map_err(|_| Failure::Input(format!("{input}: not a text file in UTF-8")))?;
+        let text = String::from_utf8(bytes).map_err(|_| {
+            Failure::helped(
+                format!("{input}: not a text file in UTF-8"),
+                "a .eng or .rse motor file is plain text; give one, or save this one again \
+                     as UTF-8 text",
+            )
+        })?;
         let source = MotorSource::File {
             path: input.to_owned(),
             format: format.output(),
@@ -500,17 +531,23 @@ fn read_input(
         .iter()
         .find_map(|curve| bundled_curve_text(&curve.file).map(|text| (curve, text)))
         .ok_or_else(|| {
-            Failure::Input(format!("{}: no curve of it is bundled", motor.designation))
+            Failure::helped(
+                format!("{}: no curve of it is bundled", motor.designation),
+                "download its .eng or .rse file from ThrustCurve.org and give that file's path",
+            )
         })?;
     let format = match curve.format {
         CurveFormat::Rasp => MotorFile::Eng,
         CurveFormat::RockSim => MotorFile::Rse,
         // `CurveFormat` is non-exhaustive, and the bundled catalog uses these two only.
         _ => {
-            return Err(Failure::Input(format!(
-                "{}: its curve's format isn't .eng or .rse",
-                motor.designation
-            )));
+            return Err(Failure::helped(
+                format!(
+                    "{}: its curve's format isn't .eng or .rse",
+                    motor.designation
+                ),
+                crate::BUG_HELP,
+            ));
         }
     };
     let source = MotorSource::Catalog {

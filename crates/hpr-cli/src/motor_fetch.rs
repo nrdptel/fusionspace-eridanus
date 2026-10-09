@@ -222,7 +222,8 @@ pub(crate) fn command(wanted: &Wanted) -> Option<String> {
 }
 
 /// Why `wanted` wasn't fetched: offline with no copy, or the network failing, names the command
-/// that fetches it. ThrustCurve's words and the file's reach the terminal as [`printable`] text.
+/// that fetches it; any other refusal says what to do about it. ThrustCurve's words and the
+/// file's reach the terminal as [`printable`] text.
 pub(crate) fn refused(wanted: &Wanted, error: &FindError) -> Failure {
     let hint = || match command(wanted) {
         Some(command) => {
@@ -251,7 +252,30 @@ pub(crate) fn refused(wanted: &Wanted, error: &FindError) -> Failure {
     ) {
         Failure::helped(printable(&format!("{words}: {error}")), printable(&hint()))
     } else {
-        Failure::Input(printable(&format!("{words}: {error}")))
+        let help = match error {
+            FindError::NotFound { .. } => {
+                "check the name as ThrustCurve.org spells it, its designation (F27R/L) or common \
+                 name (F27); `hpr motors list` lists the bundled catalog's motors"
+                    .to_owned()
+            }
+            FindError::Ambiguous { .. } => {
+                "name one of them by its designation in full, or give `hpr motors fetch` its \
+                 --manufacturer"
+                    .to_owned()
+            }
+            FindError::Hybrid { .. } => "fly a solid motor; `hpr motors list` lists the bundled \
+                 catalog's"
+                .to_owned(),
+            FindError::NoFile { .. } => "fly another motor, or give `hpr sim --motor` a .eng or \
+                 .rse file of this one's curve"
+                .to_owned(),
+            FindError::ThrustCurve(ThrustCurveError::Net(net)) => crate::fetch_help(net),
+            // Anything else is ThrustCurve.org's answer that HPR Sim can't use.
+            _ => "ThrustCurve.org's answer can't be used; run it again later, and if it stays \
+                  refused, report it at https://github.com/nrdptel/fusionspace-eridanus/issues"
+                .to_owned(),
+        };
+        Failure::library(printable(&format!("{words}: {error}")), printable(&help))
     }
 }
 
@@ -260,7 +284,7 @@ fn described(found: &Found) -> Result<ThrustCurveMotor, Failure> {
     let last = found
         .fetched
         .last()
-        .ok_or_else(|| Failure::Input("ThrustCurve.org's answer was not read".to_owned()))?;
+        .ok_or_else(|| Failure::helped("ThrustCurve.org's answer was not read", crate::BUG_HELP))?;
     Ok(ThrustCurveMotor {
         manufacturer: found
             .record
@@ -368,10 +392,13 @@ mod tests {
             matches: 2,
             candidates: vec!["A\u{1b}]0;x\u{7} G41".to_owned(), "B G41".to_owned()],
         };
-        let Failure::Input(message) = refused(&Wanted::named("G41"), &error) else {
+        let Failure::Helped { message, help } = refused(&Wanted::named("G41"), &error) else {
             panic!("an input failure");
         };
         assert!(!message.chars().any(char::is_control), "{message:?}");
+        // What to do: name one in full, or give its maker.
+        assert_eq!(help.len(), 1, "{help:?}");
+        assert!(help[0].contains("--manufacturer"), "{help:?}");
         let motor = ThrustCurveMotor {
             manufacturer: "A".to_owned(),
             designation: "G41".to_owned(),
