@@ -254,23 +254,38 @@ pub(crate) fn offline_by_environment() -> bool {
 }
 
 thread_local! {
-    /// The cache [`with_offline_cache`] runs this thread's commands against, offline.
-    static OFFLINE_CACHE: std::cell::RefCell<Option<std::path::PathBuf>> =
+    /// The cache [`with_offline_cache`] runs this thread's commands against, and in which mode:
+    /// offline, or online in a test ([`with_online_cache`]).
+    static OFFLINE_CACHE: std::cell::RefCell<Option<(std::path::PathBuf, Mode)>> =
         const { std::cell::RefCell::new(None) };
 }
 
 /// Runs `f` with every client on this thread offline, over `cache`; the setting before is
 /// restored after, whether `f` returns or panics.
 pub(crate) fn with_offline_cache<R>(cache: &std::path::Path, f: impl FnOnce() -> R) -> R {
+    with_cache(cache, Mode::Offline, f)
+}
+
+/// Runs `f` with every client on this thread online over `cache`, whatever `--offline` and
+/// [`OFFLINE_VARIABLE`] say: for a test whose transport never reaches the network.
+#[cfg(test)]
+pub(crate) fn with_online_cache<R>(cache: &std::path::Path, f: impl FnOnce() -> R) -> R {
+    with_cache(cache, Mode::Online, f)
+}
+
+/// Runs `f` with every client on this thread over `cache` in `mode`; the setting before is
+/// restored after, whether `f` returns or panics.
+fn with_cache<R>(cache: &std::path::Path, mode: Mode, f: impl FnOnce() -> R) -> R {
     /// Puts the setting before back when dropped.
-    struct Restore(Option<std::path::PathBuf>);
+    struct Restore(Option<(std::path::PathBuf, Mode)>);
     impl Drop for Restore {
         fn drop(&mut self) {
             let before = self.0.take();
             OFFLINE_CACHE.with(|slot| slot.replace(before));
         }
     }
-    let _restore = Restore(OFFLINE_CACHE.with(|slot| slot.replace(Some(cache.to_path_buf()))));
+    let _restore =
+        Restore(OFFLINE_CACHE.with(|slot| slot.replace(Some((cache.to_path_buf(), mode)))));
     f()
 }
 
@@ -279,11 +294,11 @@ pub(crate) fn with_offline_cache<R>(cache: &std::path::Path, f: impl FnOnce() ->
 /// cache within [`with_offline_cache`]. A fetch that goes on past the command's wait says on
 /// the terminal what it waits for ([`Waiting`]).
 pub(crate) fn client(offline: bool, command: &str) -> Result<Client<Waiting<Http>>, Failure> {
-    if let Some(cache) = OFFLINE_CACHE.with(|slot| slot.borrow().clone()) {
+    if let Some((cache, mode)) = OFFLINE_CACHE.with(|slot| slot.borrow().clone()) {
         return Ok(Client::new(
             Waiting::http(Http::new()),
             Cache::new(cache),
-            Mode::Offline,
+            mode,
         ));
     }
     let dir = Cache::platform_dir().ok_or_else(|| {
@@ -386,9 +401,14 @@ fn source_failure(
     request: Option<&str>,
     net: Option<&hpr::hpr_net::NetError>,
     otherwise: &str,
+    refused: Option<&str>,
 ) -> Failure {
     let help = match (request.and_then(request_help), net) {
         (Some(help), _) => help.to_owned(),
+        // Reached, and refused: what the source keeps or serves, when the command knows it.
+        (None, Some(net)) if crate::refused_by_status(net) && refused.is_some() => {
+            refused.unwrap_or_default().to_owned()
+        }
         (None, Some(net)) => crate::fetch_help(net),
         // A field the command line doesn't set, such as the endpoint, is HPR Sim's to get right.
         (None, None) if request.is_some() => crate::BUG_HELP.to_owned(),
@@ -416,6 +436,11 @@ fn open_meteo(args: &OpenMeteoArgs) -> Result<Read, Failure> {
             net,
             "Open-Meteo's answer can't be used; run it again later, or try another source, such \
              as hpr weather gfs",
+            // The forecast API's reach, as `OpenMeteoApi::Forecast` documents it.
+            (!args.historical).then_some(
+                "the forecast reaches about 16 days ahead and 3 months back: for a launch further \
+                 back, add --historical",
+            ),
         )
     };
     let (profile, read_from) = match &args.fetching.from {
@@ -545,6 +570,7 @@ fn wyoming(args: &WyomingArgs) -> Result<Read, Failure> {
                     net,
                     "the station's sounding can't be used; try the sounding before it, with an \
                      earlier --time, or another --station nearby",
+                    None,
                 )
             })?;
             (sounding, read_from(&fetched))
@@ -666,6 +692,12 @@ fn nomads(
                     net,
                     "NOMADS's answer can't be used; run it again later, or try another source, \
                      such as hpr weather open-meteo",
+                    // Its retention, as `hpr_net::nomads` records it.
+                    Some(
+                        "NOMADS keeps only recent runs, about 10 days of GFS and 2 of RAP: give a \
+                         --cycle from those days, or for a past launch use hpr weather open-meteo \
+                         --historical or an ERA5 file",
+                    ),
                 )
             })?;
             (profile, read_from(&fetched))
@@ -1110,6 +1142,31 @@ pub(crate) fn format_utc(unix_s: i64) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A source that refuses a request by its status gets the command's own line for it, such
+    /// as NOMADS keeping only recent runs; a dropped connection still gets the network's.
+    #[test]
+    fn a_source_that_refuses_by_status_says_what_it_keeps() {
+        let transport = |reason: &str| hpr::hpr_net::NetError::Transport {
+            url: "https://nomads.ncep.noaa.gov/".to_owned(),
+            reason: reason.to_owned(),
+        };
+        let help = |net: &hpr::hpr_net::NetError| match source_failure(
+            "NOMADS: it failed".to_owned(),
+            None,
+            Some(net),
+            "otherwise",
+            Some("NOMADS keeps only recent runs"),
+        ) {
+            Failure::Helped { help, .. } => help,
+            _ => unreachable!("a source's refusal is helped"),
+        };
+        assert_eq!(
+            help(&transport("http status: 403")),
+            ["NOMADS keeps only recent runs"]
+        );
+        assert!(help(&transport("io: timed out"))[0].starts_with("check the connection"));
+    }
 
     /// A level with no wind keeps its row's columns: a dash on the SI figures' edge and no
     /// brackets; a temperature a hair below freezing prints unsigned, never `-0.0 (32)`.

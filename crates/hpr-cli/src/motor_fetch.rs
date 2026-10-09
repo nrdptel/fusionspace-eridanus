@@ -248,7 +248,8 @@ pub(crate) fn refused(wanted: &Wanted, error: &FindError) -> Failure {
         )
     } else if matches!(
         error,
-        FindError::ThrustCurve(ThrustCurveError::Net(NetError::Transport { .. }))
+        FindError::ThrustCurve(ThrustCurveError::Net(net @ NetError::Transport { .. }))
+            if !crate::refused_by_status(net)
     ) {
         Failure::helped(printable(&format!("{words}: {error}")), printable(&hint()))
     } else {

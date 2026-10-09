@@ -89,9 +89,11 @@ is handled as above: online, the client falls back to an old copy marked stale.
 On the command line, a fetch that waits more than a tenth of a second says so on standard error,
 when that is a terminal: `waiting for nomads.ncep.noaa.gov, 1 s` until the answer starts, then
 `fetching from nomads.ncep.noaa.gov: 48.2 kB so far, 2 s`, each line over the one before and gone
-when the answer is in. A copy read from the cache, standard error into a file or a pipe, and
-`--json` draw nothing. A fetch that fails, offline or online, ends with `help:` lines that say
-what to do, such as running it again without `--offline`.
+when the answer is in. A copy read from the cache, standard error into a file or a pipe,
+`--json`, and a terminal with `TERM=dumb` draw nothing. A fetch that waits longer than the time
+allowed (the table above) fails. A failed or refused fetch, including an `--offline` run with
+nothing cached, ends with `help:` lines that say what to do, such as running it again without
+`--offline`.
 
 The time and size limits, and whether to use the environment's proxy, are fields of
 [`HttpConfig`](api/hpr_net/struct.HttpConfig.html). Start from `HttpConfig::default()`, change a

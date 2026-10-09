@@ -296,6 +296,15 @@ pub(crate) fn unwritable(path: &str, error: &io::Error) -> Failure {
     Failure::helped(format!("{}: {error}", printable(path)), help)
 }
 
+/// Whether `error` is the source answering with an error status, such as 403 or 404: it was
+/// reached, so the connection isn't what to check ([`hpr::hpr_net::Http`]'s "http status: N").
+pub(crate) fn refused_by_status(error: &hpr::hpr_net::NetError) -> bool {
+    matches!(
+        error,
+        hpr::hpr_net::NetError::Transport { reason, .. } if reason.starts_with("http status: ")
+    )
+}
+
 /// What to do about a fetch that failed, as its refusal's `help:` line, by why it failed.
 pub(crate) fn fetch_help(error: &hpr::hpr_net::NetError) -> String {
     use hpr::hpr_net::NetError;
@@ -304,6 +313,11 @@ pub(crate) fn fetch_help(error: &hpr::hpr_net::NetError) -> String {
             "run it again without --offline, and with {} unset, to fetch it; offline, HPR Sim \
              answers only from what it fetched before",
             weather::OFFLINE_VARIABLE
+        ),
+        NetError::Transport { reason, .. } if refused_by_status(error) => format!(
+            "the source answered but refused the request ({}): check the options it was asked \
+             with, or run it again later",
+            printable(reason)
         ),
         NetError::Transport { .. } => "check the connection and run it again; with --offline, \
              HPR Sim answers from what it fetched before"
@@ -522,6 +536,22 @@ where
     I: IntoIterator<Item = T>,
     T: Into<OsString>,
 {
+    run_waiting(args, out, err, console, Box::new(io::stderr()))
+}
+
+/// [`run_with`], a fetch that waits saying so on `waits` ([`waiting`]): the process's standard
+/// error, which is `err` wherever [`Console::progress`] lets a wait draw; a buffer in a test.
+fn run_waiting<I, T>(
+    args: I,
+    out: &mut dyn Write,
+    err: &mut dyn Write,
+    console: Console,
+    waits: Box<dyn Write>,
+) -> Exit
+where
+    I: IntoIterator<Item = T>,
+    T: Into<OsString>,
+{
     let args: Vec<OsString> = args.into_iter().map(Into::into).collect();
     // Scanned before parsing so that a usage error can be reported as JSON too. After `--`,
     // `--json` is an argument, such as a file's name.
@@ -553,7 +583,7 @@ where
     }
     // A fetch that waits says so on standard error itself: `to` is borrowed by the command, and
     // the wait is installed only where standard error is the process's own terminal.
-    let wait = waiting::Wait::on(console, json, Box::new(io::stderr()));
+    let wait = waiting::Wait::on(console, json, waits);
     // The registry decides what refuses, so the table and the tool can't disagree.
     let outcome = waiting::with_wait(wait, || match registry::availability(command) {
         Some(Availability::Planned { milestone }) => {
@@ -617,11 +647,17 @@ fn report(
     err: &mut dyn Write,
 ) -> Exit {
     let (document, exit) = match failure {
-        Failure::Helped { message, help } => {
+        Failure::Helped { message, mut help } => {
             debug_assert!(
                 help.iter().any(|line| !line.trim().is_empty()),
                 "a refusal says what to do: {message}"
             );
+            // A refusal built with nothing to say is a fault here, so a release build says that
+            // rather than end at the `error:` line.
+            help.retain(|line| !line.trim().is_empty());
+            if help.is_empty() {
+                help.push(BUG_HELP.to_owned());
+            }
             (
                 ErrorDocument::new(ErrorKind::Input, message, Some(command), None).with_help(help),
                 Exit::Failure,
@@ -629,8 +665,11 @@ fn report(
         }
         Failure::NotAvailable { command, milestone } => {
             let message = format!(
-                "hpr {command} is not available yet: it arrives with milestone {milestone} \
-                 (https://hpr.fusionspace.co/decisions-and-roadmap.html#{})",
+                "hpr {command} is not available yet: it arrives with milestone {milestone}"
+            );
+            let help = format!(
+                "follow {milestone} on the roadmap: \
+                 https://hpr.fusionspace.co/decisions-and-roadmap.html#{}",
                 registry::anchor(milestone)
             );
             (
@@ -639,7 +678,8 @@ fn report(
                     message,
                     Some(command),
                     Some(milestone),
-                ),
+                )
+                .with_help(vec![help]),
                 Exit::NotAvailable,
             )
         }
@@ -650,11 +690,20 @@ fn report(
             if error.kind() == io::ErrorKind::BrokenPipe {
                 return Exit::Success;
             }
-            let _ = paint.line(
-                err,
-                Level::Error,
-                &format!("couldn't write the output: {error}"),
-            );
+            let _ = paint
+                .line(
+                    err,
+                    Level::Error,
+                    &format!("couldn't write the output: {error}"),
+                )
+                .and_then(|()| {
+                    paint.line(
+                        err,
+                        Level::Help,
+                        "check that where the output goes, such as a file after `>`, can be \
+                         written to and its disk has room",
+                    )
+                });
             return Exit::Failure;
         }
     };
@@ -894,6 +943,98 @@ mod tests {
                 "{kind:?}: the result must be written whole"
             );
         }
+    }
+
+    /// Standard output that fails for any reason but a closed pipe is refused on standard error,
+    /// with what to do about it.
+    #[test]
+    fn a_failing_standard_output_says_what_to_do() {
+        let mut err = Vec::new();
+        let exit = run(
+            ["hpr", "motors", "list"],
+            &mut Refusing(io::ErrorKind::StorageFull),
+            &mut err,
+        );
+        assert_eq!(exit, Exit::Failure);
+        let text = String::from_utf8(err).unwrap();
+        let lines: Vec<&str> = text.lines().collect();
+        assert!(
+            lines[0].starts_with("error: couldn't write the output"),
+            "{text}"
+        );
+        assert!(
+            lines[1].starts_with("help: check that where the output goes"),
+            "{text}"
+        );
+    }
+
+    /// A command run on a terminal, through `run_with`'s own path, draws its fetch's wait and
+    /// takes it off again; with `--json` or on a pipe it draws nothing. The fetch is stalled in
+    /// place of the network ([`waiting::with_stall`]), online over an empty cache.
+    #[test]
+    fn a_command_that_fetches_says_what_it_waits_for() {
+        let terminal = Console {
+            stderr_terminal: true,
+            ..Console::PIPED
+        };
+        for (console, json, drawn) in [
+            (terminal, false, true),
+            (terminal, true, false),
+            (Console::PIPED, false, false),
+        ] {
+            let cache = tempfile::tempdir().unwrap();
+            let waits = waiting::tests::Shared::default();
+            let mut args = vec!["hpr", "motors", "fetch", "H128W"];
+            if json {
+                args.push("--json");
+            }
+            let (mut out, mut err) = (Vec::new(), Vec::new());
+            let exit = weather::with_online_cache(cache.path(), || {
+                waiting::with_stall(std::time::Duration::from_millis(400), || {
+                    run_waiting(args, &mut out, &mut err, console, Box::new(waits.clone()))
+                })
+            });
+            assert_eq!(
+                exit,
+                Exit::Failure,
+                "the stalled fetch fails: {} {}",
+                String::from_utf8_lossy(&out),
+                String::from_utf8_lossy(&err)
+            );
+            let text = waits.text();
+            if drawn {
+                assert!(
+                    text.starts_with("\rwaiting for www.thrustcurve.org, 0 s"),
+                    "{text:?}"
+                );
+                let last = text.rsplit('\r').nth(1).unwrap();
+                assert!(last.trim().is_empty(), "the line is cleared: {text:?}");
+            } else {
+                assert_eq!(text, "", "{console:?}, json {json}");
+            }
+        }
+    }
+
+    /// A source that answers with an error status was reached, so its refusal isn't sent to
+    /// check the connection; one that wasn't reached is.
+    #[test]
+    fn a_refused_request_is_not_called_a_connection_problem() {
+        use hpr::hpr_net::NetError;
+        let transport = |reason: &str| NetError::Transport {
+            url: "https://example.com/".to_owned(),
+            reason: reason.to_owned(),
+        };
+        let refused = transport("http status: 403");
+        let dropped = transport("io: Connection refused");
+        assert!(refused_by_status(&refused));
+        assert!(!refused_by_status(&dropped));
+        assert!(
+            fetch_help(&refused)
+                .starts_with("the source answered but refused the request (http status: 403)"),
+            "{}",
+            fetch_help(&refused)
+        );
+        assert!(fetch_help(&dropped).starts_with("check the connection"));
     }
 
     /// A closed pipe ends the run with status 0 and says nothing: the reader chose to stop.

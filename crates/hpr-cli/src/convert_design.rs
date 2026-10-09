@@ -225,7 +225,7 @@ fn read(path: &str, format: DesignFormat) -> Result<ReadDesign, Failure> {
 }
 
 /// What to do about a `.hpr` or `.hprz` design that doesn't read, by why.
-fn read_help(error: &hpr_format::FormatError) -> String {
+pub(crate) fn read_help(error: &hpr_format::FormatError) -> String {
     use hpr_format::FormatError;
     match error {
         FormatError::Unsupported {

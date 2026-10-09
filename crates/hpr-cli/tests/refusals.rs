@@ -42,16 +42,19 @@ fn hpr(args: &[String], folder: &Path) -> Output {
         .unwrap()
 }
 
-/// A refusal: the command line, and words its last `help:` line holds.
+/// A refusal: the command line, words one of its `help:` lines holds, and its exit status.
 struct Case {
     args: Vec<String>,
     help: &'static str,
+    status: i32,
 }
 
+/// A refused input, status 1.
 fn case(args: &[&str], help: &'static str) -> Case {
     Case {
         args: args.iter().map(|&arg| arg.to_owned()).collect(),
         help,
+        status: 1,
     }
 }
 
@@ -66,6 +69,14 @@ fn cases(folder: &Path) -> Vec<Case> {
     let missing = folder.join("no-such-folder");
     let missing = |name: &str| missing.join(name).to_str().unwrap().to_owned();
     vec![
+        // A command whose milestone hasn't come, status 3.
+        Case {
+            status: 3,
+            ..case(
+                &["optimize", "design.ork"],
+                "follow M6.3 on the roadmap: https://hpr.fusionspace.co/decisions-and-roadmap.html#m6-3",
+            )
+        },
         // The issue's own: a forecast offline with nothing cached.
         case(
             &[
@@ -254,7 +265,7 @@ fn every_refusal_says_what_to_do() {
     let folder = tempfile::tempdir().unwrap();
     for case in cases(folder.path()) {
         let (status, text) = refused(&case, folder.path());
-        assert_eq!(status, Some(1), "{:?}: {text}", case.args);
+        assert_eq!(status, Some(case.status), "{:?}: {text}", case.args);
         let lines: Vec<&str> = text.lines().collect();
         assert!(lines[0].starts_with("error: "), "{:?}: {text}", case.args);
         let last = lines.last().unwrap();
@@ -277,7 +288,7 @@ fn every_refusal_says_what_to_do_in_json() {
     for mut case in cases(folder.path()) {
         case.args.push("--json".to_owned());
         let output = hpr(&case.args, folder.path());
-        assert_eq!(output.status.code(), Some(1), "{:?}", case.args);
+        assert_eq!(output.status.code(), Some(case.status), "{:?}", case.args);
         assert!(output.stderr.is_empty(), "{:?}", case.args);
         let document: Value = serde_json::from_slice(&output.stdout).unwrap();
         let help = document["error"]["help"].as_array().unwrap();

@@ -81,16 +81,39 @@ impl Waiting<Http> {
 
 impl<T: Transport + Sync> Transport for Waiting<T> {
     fn get(&self, url: &str) -> Result<Vec<u8>, String> {
+        // Read here: the fetch runs on a thread of its own, which has its own thread-locals.
+        #[cfg(test)]
+        let stall = STALL.get();
+        let fetch = || {
+            #[cfg(test)]
+            if let Some(stall) = stall {
+                std::thread::sleep(stall);
+                return Err("stalled by a test".to_owned());
+            }
+            self.inner.get(url)
+        };
         WAIT.with(|slot| match slot.borrow_mut().as_mut() {
-            Some(wait) => waited(
-                || self.inner.get(url),
-                &host(url),
-                self.received.as_deref(),
-                wait,
-            ),
-            None => self.inner.get(url),
+            Some(wait) => waited(fetch, &host(url), self.received.as_deref(), wait),
+            None => fetch(),
         })
     }
+}
+
+#[cfg(test)]
+thread_local! {
+    /// How long a fetch on this thread stalls, then fails, in place of reaching the network
+    /// ([`with_stall`]).
+    static STALL: std::cell::Cell<Option<Duration>> = const { std::cell::Cell::new(None) };
+}
+
+/// Runs `f` with every fetch through a [`Waiting`] transport on this thread stalling for
+/// `stall` and then failing, never reaching the network; the setting before is put back after.
+#[cfg(test)]
+pub(crate) fn with_stall<R>(stall: Duration, f: impl FnOnce() -> R) -> R {
+    let before = STALL.replace(Some(stall));
+    let result = f();
+    STALL.set(before);
+    result
 }
 
 /// Runs `fetch` on a thread of its own and, once it has gone on for `wait.after`, draws on
@@ -178,14 +201,14 @@ fn host(url: &str) -> String {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use std::rc::Rc;
 
     use super::*;
 
     /// A standard error the test reads back.
     #[derive(Clone, Default)]
-    struct Shared(Rc<RefCell<Vec<u8>>>);
+    pub(crate) struct Shared(Rc<RefCell<Vec<u8>>>);
 
     impl Write for Shared {
         fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
@@ -198,35 +221,31 @@ mod tests {
     }
 
     impl Shared {
-        fn text(&self) -> String {
+        pub(crate) fn text(&self) -> String {
             String::from_utf8(self.0.borrow().clone()).unwrap()
         }
     }
 
-    /// A transport that answers after `delay`, having "received" `bytes`.
+    /// A transport that answers after `delay`.
     struct Slow {
         delay: Duration,
-        bytes: u64,
-        received: Arc<AtomicU64>,
     }
 
     impl Transport for Slow {
         fn get(&self, _url: &str) -> Result<Vec<u8>, String> {
-            self.received.store(self.bytes, Ordering::Relaxed);
             std::thread::sleep(self.delay);
             Ok(vec![1, 2, 3])
         }
     }
 
+    /// [`Slow`], having "received" `bytes` from the start, so the first line drawn has them
+    /// however late the fetch's thread starts.
     fn slow(delay_ms: u64, bytes: u64) -> Waiting<Slow> {
-        let received = Arc::new(AtomicU64::new(0));
         Waiting {
             inner: Slow {
                 delay: Duration::from_millis(delay_ms),
-                bytes,
-                received: Arc::clone(&received),
             },
-            received: Some(received),
+            received: Some(Arc::new(AtomicU64::new(bytes))),
         }
     }
 

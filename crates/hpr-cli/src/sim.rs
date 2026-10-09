@@ -1449,7 +1449,12 @@ fn fetch_missing(motors: &ork::Motors, fetching: Fetching<'_>) -> Result<Missing
             }
             Err(Failure::Helped { message, help }) => {
                 missing.unfetched.push(message);
-                missing.fetch_help.extend(help);
+                // Two motors refused for one reason say what to do once.
+                for line in help {
+                    if !missing.fetch_help.contains(&line) {
+                        missing.fetch_help.push(line);
+                    }
+                }
             }
             Err(other) => return Err(other),
         }
@@ -2026,10 +2031,12 @@ fn read_design(path: &str, fetching: Option<Fetching<'_>>) -> Result<Read, Failu
                 let text = String::from_utf8(bytes()?).map_err(|_| {
                     Failure::helped(format!("{path}: an .hpr file is UTF-8 text"), &rewrite)
                 })?;
-                let opened = hpr_format::read_json(&text).map_err(|e| refused(&e, &rewrite))?;
+                let opened = hpr_format::read_json(&text)
+                    .map_err(|e| refused(&e, &crate::convert_design::read_help(&e)))?;
                 (opened.value, opened.written_as, 0, DesignFormat::Hpr)
             } else {
-                let opened = container::read(&bytes()?).map_err(|e| refused(&e, &rewrite))?;
+                let opened = container::read(&bytes()?)
+                    .map_err(|e| refused(&e, &crate::convert_design::read_help(&e)))?;
                 let attachments = opened.value.attachments.len();
                 (
                     opened.value.design,
