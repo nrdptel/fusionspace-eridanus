@@ -50,8 +50,9 @@ const MOTOR_WORDS: [&str; 7] = [
 ];
 
 /// Whether a size in millimeters names a motor or its mount: a standard motor diameter followed,
-/// within three words, by a word of [`MOTOR_WORDS`] or a motor's designation after its maker
-/// (`Cesaroni I175`, from [`MAKERS`]).
+/// within three words, by a word of [`MOTOR_WORDS`] or a motor's designation straight after its
+/// maker (`Cesaroni I175`, from [`MAKERS`]) with no other noun after it (`Apogee G10 tube` is
+/// fiberglass).
 /// `after` is the text after `mm`. A list of sizes reaches its noun (`29 mm, 38 mm and 54 mm
 /// motors`): figures, `mm`, and an `and`, `or`, `to`, article or comma before a figure are passed over,
 /// but only before the first word; a figure, `and` or `or` after a word ends the search, so `a
@@ -110,6 +111,11 @@ fn motor_size(si: &[Figure], after: &str) -> bool {
             .sum();
         // A full stop after a word ends the sentence, and the search after that word.
         let stops = rest[..len].ends_with('.');
+        let possessive = rest[..len].trim_end_matches('.').ends_with(['s'])
+            && rest[..len]
+                .trim_end_matches('.')
+                .trim_end_matches('s')
+                .ends_with(['\'', '’']);
         let raw = rest[..len]
             .trim_end_matches('.')
             .trim_end_matches("'s")
@@ -130,10 +136,26 @@ fn motor_size(si: &[Figure], after: &str) -> bool {
         if words > 0 && matches!(token.as_str(), "and" | "or") {
             return false;
         }
-        // A designation names a motor only after its maker: `G10` alone is a fiberglass tube.
-        let first = raw.split(['-', '–']).next().unwrap_or_default();
-        if maker && designation(first) {
-            return true;
+        // A designation names a motor only after its maker, and with no other noun after it:
+        // `G10` alone, or `Apogee G10 tube`, is fiberglass.
+        let mut parts = raw.split(['-', '–']);
+        let first = parts.next().unwrap_or_default();
+        // What a hyphen joins to a designation is its delay (`G80-7`), or a motor word.
+        let joined = parts.all(|part| {
+            part.starts_with(|c: char| c.is_ascii_digit())
+                || MOTOR_WORDS.contains(&part.to_lowercase().as_str())
+        });
+        if maker && joined && designation(first) {
+            let next = rest.trim_start_matches(is_space);
+            let noun: String = next
+                .chars()
+                .take_while(|c| c.is_alphanumeric())
+                .collect::<String>()
+                .to_lowercase();
+            return possessive
+                || noun.is_empty()
+                || MOTOR_WORDS.contains(&noun.as_str())
+                || matches!(noun.as_str(), "case" | "casing");
         }
         for part in token.split(['-', '–']) {
             if matches!(part, "case" | "cases" | "casing" | "casings") {
@@ -491,9 +513,9 @@ fn converted_from_us(before: &str, si: &[Figure], units: &[(&str, f64)]) -> bool
         .map_or(number.len(), |(at, _)| at);
     // A range written with `to` (`15 to 30 ft`) is read whole, back to its first figure.
     let start = number[..start]
-        .strip_suffix(|c| is_space(c))
+        .strip_suffix(is_space)
         .and_then(|head| head.strip_suffix("to"))
-        .and_then(|head| head.strip_suffix(|c| is_space(c)))
+        .and_then(|head| head.strip_suffix(is_space))
         .and_then(|head| {
             let from = head
                 .char_indices()
@@ -684,7 +706,7 @@ fn scan(run: &str, mut found: impl FnMut(usize, Result<Option<std::ops::Range<us
         let grouped = written.len() == 3
             && written.bytes().all(|b| b.is_ascii_digit())
             && before
-                .strip_suffix(|c| is_space(c))
+                .strip_suffix(is_space)
                 .is_some_and(|head| head.ends_with(|c: char| c.is_ascii_digit()));
         if grouped {
             found(
@@ -947,6 +969,8 @@ mod tests {
             "a \"29 mm\" case",
             "a 38 mm Cesaroni I175",
             "a 38 mm AeroTech H170M's thrust",
+            "a 38 mm cesaroni I175",
+            "a 38 mm Cesaroni I175 motor",
             "a 38 mm case",
         ] {
             assert!(messages(run).is_empty(), "{run}: {:?}", messages(run));
@@ -972,6 +996,9 @@ mod tests {
             "a 54 mm G10 tube",
             "a 98 mm G10 airframe",
             "a 54 mm C130 frame",
+            "a 54 mm AeroTech G10 tube",
+            "a 54 mm Apogee G10-tube",
+            "a 54 mm Apogee nose cone",
             "the 38 mm H170M's thrust",
         ] {
             let found = messages(run);
