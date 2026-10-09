@@ -263,3 +263,98 @@ fn the_tokens_are_the_systems() {
         );
     }
 }
+
+/// What this check leaves unread, the frame check it always runs beside refuses: a `<style>`
+/// sheet, a filter, a mask, a blend mode, an image, a foreign object and animation each fail
+/// there as something it can't measure. A `style` property in capitals and a `tspan`'s family
+/// fail here too.
+#[test]
+fn the_frame_check_refuses_what_this_one_leaves_unread() {
+    let root = |body: &str| {
+        format!(
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" fill=\"#0B0F1C\" \
+             font-family=\"'Cascadia Mono', monospace\">{body}</svg>"
+        )
+    };
+    for body in [
+        "<style>rect{fill:#FF0000}</style><rect width=\"10\" height=\"10\"/>",
+        "<filter id=\"f\"><feColorMatrix type=\"hueRotate\" values=\"90\"/></filter><rect \
+         width=\"10\" height=\"10\" filter=\"url(#f)\"/>",
+        "<mask id=\"m\"><rect width=\"10\" height=\"10\" fill=\"#566079\"/></mask><rect \
+         width=\"10\" height=\"10\" mask=\"url(#m)\"/>",
+        "<rect width=\"10\" height=\"10\" style=\"mix-blend-mode:multiply\"/>",
+        "<image width=\"10\" height=\"10\" href=\"data:image/png;base64,AA==\"/>",
+        "<foreignObject width=\"10\" height=\"10\"/>",
+        "<rect width=\"10\" height=\"10\"><set attributeName=\"fill\" to=\"#FF0000\"/></rect>",
+        "<rect width=\"10\" height=\"10\"><animate attributeName=\"fill\" to=\"#FF0000\"/></rect>",
+        "<text x=\"5\" y=\"20\" style=\"font: 12px Helvetica\">a</text>",
+        "<text x=\"5\" y=\"20\">a<tspan font-family=\"Helvetica\">b</tspan></text>",
+        "<rect width=\"10\" height=\"10\" style=\"FILL:#FF0000\"/>",
+    ] {
+        let svg = root(body);
+        assert!(
+            super::super::check(&svg)
+                .iter()
+                .any(|p| p.kind == Kind::Unsupported),
+            "{svg}"
+        );
+    }
+    fails(
+        &figure("<rect width=\"10\" height=\"10\" style=\"FILL:#FF0000\"/>"),
+        Kind::Color,
+        "`fill` `#FF0000`",
+    );
+    fails(
+        &figure("<text x=\"5\" y=\"20\">a<tspan font-family=\"Helvetica\">b</tspan></text>"),
+        Kind::Font,
+        "Helvetica",
+    );
+    // A family's case doesn't matter to a browser, so it doesn't here.
+    passes(&figure(
+        "<text x=\"5\" y=\"20\" font-family=\"cascadia mono\">a</text>",
+    ));
+}
+
+/// The badges as the census writes them now, in each state the committed ones don't show, pass
+/// both checks: with no rows, the census badge is a caution (no gated metric passes) and the real
+/// flights' badge unjudged.
+#[test]
+fn freshly_written_badges_pass_in_every_state() {
+    let badges = hpr_validate::census::badges(&[]);
+    assert_eq!(badges.len(), 2);
+    for (name, svg) in &badges {
+        let mut problems = super::super::check(svg);
+        problems.extend(check(svg));
+        assert!(problems.is_empty(), "{name}: {problems:#?}\n{svg}");
+    }
+    assert!(badges[0].1.contains("fill=\"#F5AF20\""), "{}", badges[0].1);
+    assert!(badges[1].1.contains("none compared"), "{}", badges[1].1);
+}
+
+/// Every SVG the repository tracks sits under a folder `cargo xtask figures` reads, so none ships
+/// unchecked.
+#[test]
+fn every_tracked_svg_is_checked() {
+    let output = std::process::Command::new("git")
+        .current_dir(root())
+        .args(["ls-files", "-z", "--", "*.svg"])
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "git ls-files failed");
+    let tracked: Vec<String> = output
+        .stdout
+        .split(|&b| b == 0)
+        .filter(|path| !path.is_empty())
+        .map(|path| String::from_utf8_lossy(path).into_owned())
+        .collect();
+    assert!(tracked.len() >= 4, "{tracked:?}");
+    for path in &tracked {
+        assert!(
+            super::super::FOLDERS
+                .iter()
+                .any(|folder| path.starts_with(&format!("{folder}/"))),
+            "{path} is outside {:?}",
+            super::super::FOLDERS
+        );
+    }
+}

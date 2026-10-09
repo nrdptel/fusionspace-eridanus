@@ -166,12 +166,15 @@ program's path.
 
 ### Figures in the system's colors and fonts
 
-The same figure check holds every SVG under `docs/` and each `hpr sim --plot` figure to the
-FusionSpace product system's foundations. Every color a figure paints is one of the system's
-color tokens: the light theme's roles, such as `ink` (`#0B0F1C`) for text and `predicted`
-(`#A22488`) for a simulated line, and the signal fills with the text that goes on them. A
-figure shown as an image can't follow the page's dark theme, so it is drawn on the light one.
-Four things fail:
+The same figure check holds every SVG under `docs/` and `theme/`, and each figure
+[`hpr sim --plot`](cli.md#hpr-sim) draws, to the FusionSpace product system's
+[foundations](https://github.com/nrdptel/fusionspace-design/blob/main/product/foundations.md).
+Every color a figure paints is one of the system's color tokens, the named colors it lists by
+job (*Semantic roles*): the light theme's, such as `ink` (`#0B0F1C`) for text and `predicted`
+(`#A22488`) for a simulated line, and the state colors for chips and badges (`ok-fill`,
+`caution-fill`, `danger-fill`, `info-fill`) with the text that goes on them. A figure shown as
+an image can't follow the page's dark theme, so it is drawn on the light one, its own
+background included. Four things fail:
 
 - a color that isn't a token, written by name, as `currentColor`, or in a `style`;
 - an opacity below 1 or a gradient, which blend tokens into colors none of them is;
@@ -179,10 +182,16 @@ Four things fail:
 - text whose `font-family` doesn't start with Cascadia Mono (labels and numbers) or Archivo
   (prose).
 
-The line types carry meanings the check can't tell apart, so the figure's author picks them
-from the system's table: dashed (`8 4`) for anything simulated, a chain line (`24 3 1 3`) for a
-reference such as the ground, dotted (`1 3`) for an event, at 1 or 2 px.
-[*How a flight is simulated*](how-a-flight-is-simulated.md)'s figure draws in all of them.
+An image can't load the site's fonts, so a reader without Cascadia Mono installed sees the next
+family in the list, and the frame check measures every one of those. It can't measure Archivo
+yet, so for now every figure sets its text in Cascadia Mono.
+
+The check can't tell whether a line type is the right one, so the author picks it from the
+system's table (*Lines and shape*): dashed (`8 4`), 2 px, for anything simulated; a chain line,
+a long dash and a dot as on a drawing (`24 3 1 3`), 1 px, for a reference such as the ground;
+dotted (`1 3`), 1 px, for an event. The figure on
+[*How a flight is simulated*](how-a-flight-is-simulated.md) draws the dashed and chain lines
+with a sample of each in its key; the plot from `hpr sim --plot` draws all three.
 
 ## Measured, not gated
 

@@ -51,9 +51,9 @@
 //! [`drawing`] holds the same figures to the product system's colors and fonts (M0.9d1): every
 //! paint a token, nothing blended, no default black, text in Cascadia Mono or Archivo.
 //!
-//! Its tests run both checks on every SVG under `docs/`, and `cargo xtask cli` (and its test) on
-//! each `--plot` figure it draws. `cargo xtask figures` runs them on the SVGs under `docs/` by
-//! hand.
+//! Its tests run both checks on every SVG under `docs/` and `theme/` (and fail on a tracked SVG
+//! anywhere else), and `cargo xtask cli` (and its test) on each `--plot` figure it draws.
+//! `cargo xtask figures` runs them on those SVGs by hand.
 //!
 //! What it leaves out: kerning, which almost always narrows a line, and ligatures, which do.
 //! The table covers the fonts its header lists; a reader whose system draws in another font
@@ -72,7 +72,7 @@ mod tests;
 
 /// The usage line in `cargo xtask help`.
 pub const USAGE: &str = "  \
-figures                  Check every SVG under docs/: nothing it draws leaves its viewBox or
+figures                  Check every SVG under docs/ and theme/: nothing it draws leaves its viewBox or
                            a clip, no text overlaps other text, and it draws in the design
                            system's color tokens and fonts only.";
 
@@ -187,7 +187,7 @@ const PROPORTIONAL_GENERICS: &[&str] = &["serif", "sans-serif", "ui-sans-serif"]
 /// The generic families a browser maps to its default monospace fonts.
 const MONOSPACE_GENERICS: &[&str] = &["monospace", "ui-monospace"];
 
-/// Runs the command: checks every SVG under `docs/`.
+/// Runs the command: checks every SVG under `docs/` and `theme/`.
 pub fn run(args: &[String]) -> Result<(), String> {
     if !args.is_empty() {
         return Err(format!("unknown arguments {args:?}\n\n{USAGE}"));
@@ -195,16 +195,24 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let root = crate::designs::root()?;
     let checked = check_docs(&root)?;
     println!(
-        "figures: {checked} SVGs under docs/ draw nothing clipped, no text over text, and in \
+        "figures: {checked} SVGs under docs/ and theme/ draw nothing clipped, no text over text, and in \
          token colors and the system's fonts only"
     );
     Ok(())
 }
 
-/// Checks every SVG under `docs/` of `root`; how many there are, or what is wrong with them.
+/// The folders whose SVGs are checked: the docs, and mdBook's theme beside `book.toml`.
+pub(crate) const FOLDERS: [&str; 2] = ["docs", "theme"];
+
+/// Checks every SVG under [`FOLDERS`] of `root`; how many there are, or what is wrong with them.
 pub(crate) fn check_docs(root: &Path) -> Result<usize, String> {
     let mut files = Vec::new();
-    svgs(&root.join("docs"), &mut files)?;
+    for folder in FOLDERS {
+        let dir = root.join(folder);
+        if dir.is_dir() {
+            svgs(&dir, &mut files)?;
+        }
+    }
     files.sort();
     let mut failures = Vec::new();
     for file in &files {

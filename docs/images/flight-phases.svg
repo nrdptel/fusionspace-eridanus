@@ -16,8 +16,10 @@
   <!-- The wind, and what the lines mean -->
   <text x="30" y="32" fill="#566079">wind from the west</text>
   <line x1="30" y1="46" x2="150" y2="46" stroke="#566079" stroke-width="1" marker-end="url(#arrow)"/>
-  <text x="490" y="32" fill="#566079">Dashed: the simulated flight.</text>
-  <text x="490" y="50" fill="#566079">Chain lines: the ground and the rail.</text>
+  <line x1="490" y1="28" x2="521" y2="28" stroke="#A22488" stroke-width="2" stroke-dasharray="8 4"/>
+  <text x="530" y="32" fill="#566079">Dashed: the simulated flight.</text>
+  <line x1="490" y1="46" x2="521" y2="46" stroke="#566079" stroke-width="1" stroke-dasharray="24 3 1 3"/>
+  <text x="530" y="50" fill="#566079">Chain lines: the ground and the rail.</text>
 
   <!-- The ground and the rail: references, as chain lines -->
   <line x1="20" y1="390" x2="800" y2="390" stroke="#566079" stroke-width="1" stroke-dasharray="24 3 1 3"/>

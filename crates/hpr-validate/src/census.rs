@@ -1712,7 +1712,7 @@ enum BadgeState {
     /// Outside it.
     Caution,
     /// Nothing judged.
-    None,
+    Unjudged,
 }
 
 /// One badge: a flat SVG, the label on the left on white, the message on the right on its
@@ -1726,7 +1726,7 @@ fn badge(label: &str, message: &str, state: BadgeState) -> String {
     let (fill, text) = match state {
         BadgeState::Ok => (OK_FILL, SURFACE),
         BadgeState::Caution => (CAUTION_FILL, INK),
-        BadgeState::None => (SURFACE, RULE_STRONG),
+        BadgeState::Unjudged => (SURFACE, RULE_STRONG),
     };
     format!(
         "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{total}\" height=\"20\" role=\"img\" \
@@ -1784,7 +1784,7 @@ pub fn badges(summaries: &[Summary]) -> Vec<(&'static str, String)> {
     out.push((
         "real-flights-badge.svg",
         flights.map_or_else(
-            || badge("real flights", "none compared", BadgeState::None),
+            || badge("real flights", "none compared", BadgeState::Unjudged),
             |apogee| {
                 let met = apogee.mean_absolute <= APOGEE_TARGET_PERCENT;
                 badge(

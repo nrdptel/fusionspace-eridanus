@@ -20,6 +20,12 @@
 //!
 //! Line types are not checked here: the dashed, chain and dotted patterns carry meanings a
 //! figure's author must choose, which a pattern match can't tell apart.
+//!
+//! It runs beside the frame check, never alone, and reads only what that check lets through: the
+//! frame check refuses every element and property it doesn't read, among them a `<style>` sheet,
+//! `tspan`, filters, masks, images, animation and a `style` setting anything but paint (see
+//! `the_frame_check_refuses_what_this_one_leaves_unread`). Fonts are checked on `tspan` and
+//! `textPath` too, and `style` property names without case, so it doesn't lean on that alone.
 
 use roxmltree::{Document, Node};
 
@@ -126,6 +132,7 @@ impl Walk<'_, '_> {
         }
         let mut inherited = outer.clone();
         for (property, value) in declarations(node) {
+            let property = property.as_str();
             self.declaration(node, property, value);
             if property == "fill" {
                 inherited.filled = true;
@@ -154,13 +161,14 @@ impl Walk<'_, '_> {
                     .to_owned(),
             );
         }
-        if name == "text" {
+        if matches!(name, "text" | "tspan" | "textPath") {
             let first = inherited
                 .family
                 .as_deref()
                 .and_then(|list| list.split(',').next())
                 .map(|family| family.trim().trim_matches(['\'', '"']));
-            if !first.is_some_and(|family| FAMILIES.contains(&family)) {
+            if !first.is_some_and(|family| FAMILIES.iter().any(|f| f.eq_ignore_ascii_case(family)))
+            {
                 let named = inherited.family.as_deref().unwrap_or("no font-family");
                 self.problem(
                     Kind::Font,
@@ -200,17 +208,18 @@ impl Walk<'_, '_> {
     }
 }
 
-/// The properties `node` sets, as attributes and then in its `style`, values trimmed.
-fn declarations<'n>(node: Node<'n, '_>) -> Vec<(&'n str, &'n str)> {
-    let mut out: Vec<(&str, &str)> = node
+/// The properties `node` sets, as attributes and then in its `style`, values trimmed. A `style`'s
+/// property names are lower-cased, as CSS reads them; attribute names are case-sensitive in XML.
+fn declarations<'n>(node: Node<'n, '_>) -> Vec<(String, &'n str)> {
+    let mut out: Vec<(String, &str)> = node
         .attributes()
         .filter(|attribute| attribute.namespace().is_none())
-        .map(|attribute| (attribute.name(), attribute.value().trim()))
+        .map(|attribute| (attribute.name().to_owned(), attribute.value().trim()))
         .collect();
     if let Some(style) = node.attribute("style") {
         for declaration in style.split(';') {
             if let Some((property, value)) = declaration.split_once(':') {
-                out.push((property.trim(), value.trim()));
+                out.push((property.trim().to_ascii_lowercase(), value.trim()));
             }
         }
     }
