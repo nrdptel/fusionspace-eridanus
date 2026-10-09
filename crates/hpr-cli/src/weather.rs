@@ -8,8 +8,8 @@
 //! touches neither the network nor the cache. Each source's reader and its checks are the
 //! library's: this module picks the source, prints the levels and writes the profile.
 //!
-//! The profile written is `hpr_atmos::SoundingProfile`'s JSON, which the library reads back with
-//! the same checks.
+//! The profile written is `hpr_atmos::SoundingProfile`'s JSON, after the program that wrote it
+//! and the source's `kind` and `trust` note, which the library reads back with the same checks.
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -196,7 +196,8 @@ pub(crate) fn run(command: &WeatherCommand, to: &mut Out<'_>) -> Result<(), Fail
         WeatherCommand::Era5(args) => (era5(args)?, &args.output),
     };
     if let Some(path) = output {
-        std::fs::write(path, profile_json(&read.sounding)?)
+        let (kind, trust) = kind_and_trust(read.source.name);
+        std::fs::write(path, profile_json(&read.sounding, kind, &trust)?)
             .map_err(|error| Failure::Input(format!("{path}: {error}")))?;
     }
     let document = document(read, output.clone());
@@ -207,12 +208,27 @@ pub(crate) fn run(command: &WeatherCommand, to: &mut Out<'_>) -> Result<(), Fail
     })
 }
 
+/// A saved profile: the kind of figures it holds and how far to trust them, as `hpr weather`'s
+/// result ends with them, then the profile itself (#409).
+#[derive(serde::Serialize)]
+struct Saved<'a> {
+    kind: Kind,
+    trust: &'a str,
+    #[serde(flatten)]
+    sounding: &'a SoundingProfile,
+}
+
 /// The profile's JSON, pretty-printed with a trailing newline, opening with the program that
-/// wrote it as every `--json` document does ([`crate::output::Tool`]); `SoundingProfile` reads
-/// past that key.
-fn profile_json(sounding: &SoundingProfile) -> Result<String, Failure> {
+/// wrote it as every `--json` document does ([`crate::output::Tool`]), then the source's `kind`
+/// and `trust`; `SoundingProfile` reads past those keys.
+fn profile_json(sounding: &SoundingProfile, kind: Kind, trust: &str) -> Result<String, Failure> {
     let mut text = Vec::new();
-    crate::write_json(&mut text, sounding)
+    let saved = Saved {
+        kind,
+        trust,
+        sounding,
+    };
+    crate::write_json(&mut text, &saved)
         .map_err(|error| Failure::Input(format!("the profile didn't serialize: {error}")))?;
     String::from_utf8(text)
         .map_err(|error| Failure::Input(format!("the profile didn't serialize: {error}")))
@@ -593,12 +609,7 @@ fn document(read: Read, profile: Option<String>) -> Weather {
             wind_from_deg: level.wind_direction_from_rad.map(f64::to_degrees),
         })
         .collect();
-    let (kind, trust) = match read.source.name {
-        WeatherSourceName::OpenMeteo => (Kind::Forecast, trust::open_meteo()),
-        WeatherSourceName::Wyoming => (Kind::Measured, trust::sounding()),
-        WeatherSourceName::Gfs | WeatherSourceName::Rap => (Kind::Forecast, trust::nomads()),
-        WeatherSourceName::Era5 => (Kind::Reanalysis, trust::reanalysis()),
-    };
+    let (kind, trust) = kind_and_trust(read.source.name);
     Weather {
         source: read.source,
         kind,
@@ -610,6 +621,17 @@ fn document(read: Read, profile: Option<String>) -> Weather {
         levels,
         dropped: read.dropped,
         profile,
+    }
+}
+
+/// What kind of figures a source gives, and how far to trust them: the note `hpr weather` ends
+/// with, which the saved profile carries too.
+fn kind_and_trust(source: WeatherSourceName) -> (Kind, String) {
+    match source {
+        WeatherSourceName::OpenMeteo => (Kind::Forecast, trust::open_meteo()),
+        WeatherSourceName::Wyoming => (Kind::Measured, trust::sounding()),
+        WeatherSourceName::Gfs | WeatherSourceName::Rap => (Kind::Forecast, trust::nomads()),
+        WeatherSourceName::Era5 => (Kind::Reanalysis, trust::reanalysis()),
     }
 }
 

@@ -390,3 +390,56 @@ fn a_design_motor_found_in_the_catalog_is_dated() {
     );
     assert_eq!(document["motors"][0]["source"]["kind"], "design");
 }
+
+/// A catalog motor `hpr convert` writes says the catalog's date after the line naming the program:
+/// a `;` comment in a `.eng` file and an XML comment in a `.rse` file, each read back as the motor
+/// it was. The Estes F15's curve is a `.rse` file and the H54's a `.eng` one, so both are written
+/// both ways. A motor file given on the command line says nothing of the catalog. Before #409
+/// none had a date.
+#[test]
+fn a_converted_catalog_motor_carries_the_catalogs_date() {
+    let scratch = tempfile::tempdir().unwrap();
+    let line = format!(
+        "Copied from the bundled motor catalog as of {}, the day its curve files were downloaded",
+        as_of()
+    );
+    for motor in ["F15", "H54"] {
+        for (extension, expected) in [
+            ("eng", format!("; {line}")),
+            ("rse", format!("<!-- {line} -->")),
+        ] {
+            let path = scratch.path().join(format!("{motor}.{extension}"));
+            run(&["convert", motor, path.to_str().unwrap()]);
+            let text = std::fs::read_to_string(&path).unwrap();
+            let lines: Vec<&str> = text.lines().collect();
+            assert!(
+                hpr::hpr_core::tool::is_stamp(
+                    lines[0]
+                        .trim_start_matches(';')
+                        .trim_start_matches("<!--")
+                        .trim_end_matches("-->")
+                ),
+                "{motor}.{extension}: {text:.300}"
+            );
+            assert_eq!(lines[1], expected, "{motor}.{extension}");
+            // The file still reads, and a .eng file keeps the line with its first motor.
+            if extension == "eng" {
+                let read = hpr::hpr_motor::eng::parse(&text).unwrap().value;
+                assert_eq!(read.entries[0].comments[0], format!(" {line}"));
+            } else {
+                hpr::hpr_motor::rse::parse(&text).unwrap();
+            }
+        }
+    }
+    let from_file = scratch.path().join("from-file.rse");
+    run(&[
+        "convert",
+        root()
+            .join("crates/hpr-motor/data/thrustcurve/curves/5f923edb1bca5800041716ab.rse")
+            .to_str()
+            .unwrap(),
+        from_file.to_str().unwrap(),
+    ]);
+    let text = std::fs::read_to_string(&from_file).unwrap();
+    assert!(!text.contains("motor catalog"), "{text:.300}");
+}

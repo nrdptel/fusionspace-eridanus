@@ -5,8 +5,8 @@
 //! what `.eng` doesn't give the way RockSim's files do, and `.rse` to `.eng` drops what `.eng`
 //! can't hold, each named in a warning. The same format in and out rewrites the file in HPR Sim's
 //! layout, with a `.eng` maker of several words joined by `_`. A catalog motor takes the
-//! catalog's size and masses, the ones HPR Sim flies. What the reader flagged in the input is passed
-//! on.
+//! catalog's size and masses, the ones HPR Sim flies, and its file says the catalog's date. What
+//! the reader flagged in the input is passed on.
 
 use std::io::{self, Write};
 use std::path::Path;
@@ -180,6 +180,10 @@ pub(crate) fn run(args: &ConvertArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     for warning in &converted {
         warnings.push(converted_warning(warning)?);
     }
+    let written = match &source {
+        MotorSource::Catalog { .. } => dated(&written, target, &crate::motors::catalog_as_of()?)?,
+        MotorSource::File { .. } => written,
+    };
     std::fs::write(output, written)
         .map_err(|error| Failure::Input(format!("{output}: {error}")))?;
     let document = ConvertMotors {
@@ -194,6 +198,41 @@ pub(crate) fn run(args: &ConvertArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     to.emit(&Convert::Motors(document.clone()), |out, diagnostics| {
         text_output(&document, input, out, diagnostics)
     })
+}
+
+/// What a file written from the catalog says of where its curve came from, after the line naming
+/// the program: the catalog's as-of date, as `hpr sim`'s exports carry it (#409, ADR-214).
+fn catalog_line(as_of: &str) -> String {
+    format!(
+        "Copied from the bundled motor catalog as of {as_of}, the day its curve files were \
+         downloaded"
+    )
+}
+
+/// `text`, a motor file [`eng::write`] or [`rse::write`] wrote, with [`catalog_line`] after its
+/// first line, which names the program: a `;` comment in a `.eng` file, which the reader keeps
+/// with the first motor's comments, and an XML comment in a `.rse` file, which the reader skips.
+/// The date is the catalog's `YYYY-MM-DD`, so the XML comment holds no `--` (XML 1.0 §2.5).
+fn dated(text: &str, format: MotorFile, as_of: &str) -> Result<String, Failure> {
+    let date = as_of.len() == 10
+        && as_of.char_indices().all(|(i, c)| match i {
+            4 | 7 => c == '-',
+            _ => c.is_ascii_digit(),
+        });
+    if !date {
+        return Err(Failure::Input(format!(
+            "the bundled catalog's date {as_of:?} is not a YYYY-MM-DD date"
+        )));
+    }
+    let line = match format {
+        MotorFile::Eng => format!("; {}\n", catalog_line(as_of)),
+        MotorFile::Rse => format!("<!-- {} -->\n", catalog_line(as_of)),
+    };
+    // Both writers end the line naming the program with a line break.
+    let (first, rest) = text.split_once('\n').ok_or_else(|| {
+        Failure::Input("the motor file was written without a line naming the program".to_owned())
+    })?;
+    Ok(format!("{first}\n{line}{rest}"))
 }
 
 /// Refuses an output path whose folder doesn't exist.

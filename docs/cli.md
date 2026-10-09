@@ -1425,10 +1425,11 @@ A catalog motor is written with the size and masses the catalog gives, which are
 simulator flies; where its curve file's header says otherwise, a warning says so. Written as `.rse`,
 the figures worked out from them (the mass fraction, the specific impulse, and the mass and center
 of gravity at each point) are rescaled to match, and a warning says that too. The delays are the
-curve file's, which can differ from the ones `hpr motors show` lists. An existing file of the
-output's name is replaced, but never the file being read: to rewrite a `.eng` file in the
-simulator's layout, convert it to a new `.eng` file name. Here the Estes F15's `.rse` file, from the
-catalog's curves, becomes a `.eng` file:
+curve file's, which can differ from the ones `hpr motors show` lists. After the line naming the
+program, the file says the catalog's date, the day its curve files were downloaded: a `;` comment in
+`.eng`, an XML comment in `.rse`. An existing file of the output's name is replaced, but never the
+file being read: to rewrite a `.eng` file in the simulator's layout, convert it to a new `.eng` file
+name. Here the Estes F15's `.rse` file, from the catalog's curves, becomes a `.eng` file:
 
 <!-- cli: example `hpr convert crates/hpr-motor/data/thrustcurve/curves/5f923edb1bca5800041716ab.rse F15.eng`; written by `cargo xtask cli`; do not edit -->
 
@@ -1767,10 +1768,14 @@ lowest up, each with:
 | `wind_speed_m_s` | meters per second |
 | `wind_direction_from_rad` | radians clockwise from true north, where the wind comes from |
 
-Beside them, `latitude_rad` is the latitude the profile was measured or forecast at, in radians,
-and `wind_interpolation` says how the wind is blended between levels (`speed_direction`). The Rust library reads the file
-back as a [`SoundingProfile`](api/hpr_atmos/profile/struct.SoundingProfile.html), with the same
-checks. The text output and `--json` give the same levels with the direction in degrees.
+Before them, after the `tool` object naming the program, `kind` says what the figures are
+(`measured` for a balloon sounding, `forecast`, or `reanalysis` for ERA5), and `trust` holds the
+note the printed result ends with, so a saved profile keeps how far to trust it. The library reads
+past these three keys. Beside the levels, `latitude_rad` is the latitude the profile was measured or
+forecast at, in radians, and `wind_interpolation` says how the wind is blended between levels
+(`speed_direction`). The Rust library reads the file back as a
+[`SoundingProfile`](api/hpr_atmos/profile/struct.SoundingProfile.html), with the same checks. The
+text output and `--json` give the same levels with the direction in degrees.
 
 ### What the profile leaves out
 
