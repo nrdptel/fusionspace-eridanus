@@ -18,15 +18,17 @@ center of mass (CG) there were judged by 0.5 calibres, the center-of-pressure ta
 before the transonic normal force was measured. The reports now measure, hpr less OpenRocket, in
 OpenRocket's calibres:
 
-| set | quantity | rows | range | largest size |
+| set | quantity | rows judged | range | largest size |
 |---|---|---|---|---|
-| OpenRocket's examples | margin, no named cause | 53 | −1.0768 to +0.0764 | 0.0764 without the one at −1.0768 |
-| OpenRocket's examples | CG at rod clearance | 53 | −0.0028 to +0.0624 | 0.0624 |
-| the private designs | margin, no named cause | 35 | −0.0166 to +0.1108 | 0.1108 |
+| OpenRocket's examples | margin | 53 | −1.0768 to +0.0764 | 0.0764 without the one at −1.0768 |
+| OpenRocket's examples | CG at rod clearance | 54 | −0.0028 to +0.0624 | 0.0624 |
+| the private designs | margin | 35 | −0.0166 to +0.1108 | 0.1108 |
 | the private designs | CG at rod clearance | 35 | −0.1102 to +0.0198 | 0.1102 |
 
-(`validation/reports/openrocket-flights.md` and `openrocket-library-flights.md`, their summary
-lines; the second-largest public margin, 0.0764, read from the first report's table.) The one
+(The rows `validation/reports/census.json` judges against the bar, and the ranges the summary
+lines of `openrocket-flights.md` and `openrocket-library-flights.md` print. One more example
+flight's margin is withheld, not judged; the examples report's summary line compares 53 centers of
+mass where the census judges 54, with the same range.) The one
 public margin at −1.08 is over either bar and stays a counted miss. Every other difference is
 within 0.111 calibres, a fifth of the old bar. A change could have made the worst agreement four
 times worse and kept every row within it.
