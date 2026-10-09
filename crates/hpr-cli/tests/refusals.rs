@@ -154,6 +154,11 @@ fn cases(folder: &Path) -> Vec<Case> {
             ],
             "https://hpr.fusionspace.co/format/era5.html",
         ),
+        // A motor to fetch, offline with nothing cached.
+        case(
+            &["motors", "fetch", "H128W", "--offline"],
+            "with a network connection, `hpr motors fetch H128W`",
+        ),
         // A motor file that isn't one, and a list that isn't the motor finder's.
         case(
             &["motors", "show", &bad_eng],
