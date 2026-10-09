@@ -98,8 +98,13 @@ pub fn run(args: &[String]) -> Result<(), String> {
 pub(crate) fn check(root: &Path) -> Result<(), String> {
     let mut stale = Vec::new();
     for (path, text) in outputs(root)? {
-        if std::fs::read_to_string(root.join(&path)).ok().as_deref() != Some(&text) {
-            stale.push(path.display().to_string());
+        let committed = std::fs::read_to_string(root.join(&path)).ok();
+        if committed.as_deref() != Some(&text) {
+            stale.push(format!(
+                "{}{}",
+                path.display(),
+                first_difference(committed.as_deref(), &text)
+            ));
         }
     }
     for extra in extra_schemas(root)? {
@@ -114,6 +119,39 @@ pub(crate) fn check(root: &Path) -> Result<(), String> {
             stale.join(", ")
         ))
     }
+}
+
+/// Where a committed output first differs from what `cargo xtask cli` would write: its line, and
+/// from 40 characters before it, 160 of each, so a failure on another platform shows which number
+/// moved without a rerun there.
+fn first_difference(committed: Option<&str>, expected: &str) -> String {
+    let Some(committed) = committed else {
+        return " (not committed)".to_owned();
+    };
+    let at = committed
+        .char_indices()
+        .zip(expected.chars())
+        .find(|((_, a), b)| a != b)
+        .map_or(committed.len().min(expected.len()), |((i, _), _)| i);
+    let line = committed[..at].matches('\n').count() + 1;
+    let window = |text: &str| -> String {
+        let start = text[..at.min(text.len())]
+            .char_indices()
+            .rev()
+            .nth(39)
+            .map_or(0, |(i, _)| i);
+        text[start..]
+            .chars()
+            .take(160)
+            .collect::<String>()
+            .escape_debug()
+            .to_string()
+    };
+    format!(
+        " (line {line}: committed \"{}\", now \"{}\")",
+        window(committed),
+        window(expected)
+    )
 }
 
 /// Every generated file, by its path from the root, with the text it should hold.
@@ -380,6 +418,26 @@ mod tests {
         assert!(!written("H170M"));
         assert!(!written("--json"));
         assert!(!written("curves/x.rse"));
+    }
+
+    #[test]
+    fn a_stale_output_names_its_first_difference() {
+        let found = first_difference(Some("a\nM1.0 2.0L3.0"), "a\nM1.0 2.1L3.0");
+        assert_eq!(
+            found,
+            " (line 2: committed \"a\\nM1.0 2.0L3.0\", now \"a\\nM1.0 2.1L3.0\")"
+        );
+        assert_eq!(first_difference(None, "x"), " (not committed)");
+        // One text a prefix of the other: the difference is where the shorter ends.
+        assert_eq!(
+            first_difference(Some("ab"), "abc"),
+            " (line 1: committed \"ab\", now \"abc\")"
+        );
+        // Multi-byte characters around the difference stay whole.
+        assert_eq!(
+            first_difference(Some("é°1"), "é°2"),
+            " (line 1: committed \"é°1\", now \"é°2\")"
+        );
     }
 
     #[test]

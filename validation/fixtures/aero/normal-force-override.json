@@ -99,44 +99,44 @@
   "design": "rocketpy-calisto-tests-motor-at-minus-1.373.json",
   "flights": [
     {
-      "apogee_east_m": -243.61000965804487,
-      "apogee_m": 2794.209607047742,
-      "apogee_north_m": 485.3710227727228,
-      "apogee_time_s": 23.80940594056768,
-      "burnout_angle_of_attack_deg": 0.04622109697002471,
-      "max_mach": 0.7463233636976543,
+      "apogee_east_m": -243.610009656438,
+      "apogee_m": 2794.2096069582058,
+      "apogee_north_m": 485.37102276139865,
+      "apogee_time_s": 23.809405940272036,
+      "burnout_angle_of_attack_deg": 0.04622109699092078,
+      "max_mach": 0.7463233637217145,
       "normal_force": "hpr's own",
-      "past_4_degrees_s": 2.114667586795959
+      "past_4_degrees_s": 2.114667144277667
     },
     {
-      "apogee_east_m": -243.59151181573378,
-      "apogee_m": 2794.208627501863,
-      "apogee_north_m": 485.38491052083583,
-      "apogee_time_s": 23.80934960360194,
-      "burnout_angle_of_attack_deg": 0.045943576463699426,
-      "max_mach": 0.7463235099466099,
+      "apogee_east_m": -243.5915116870039,
+      "apogee_m": 2794.20862763511,
+      "apogee_north_m": 485.3849105390106,
+      "apogee_time_s": 23.809349604127764,
+      "burnout_angle_of_attack_deg": 0.04594357636176025,
+      "max_mach": 0.7463235098778154,
       "normal_force": "hpr's own as a table at the export's angles and Mach numbers",
-      "past_4_degrees_s": 2.175665676126335
+      "past_4_degrees_s": 2.1756645370100127
     },
     {
-      "apogee_east_m": -255.9790097137715,
-      "apogee_m": 2793.094570373818,
-      "apogee_north_m": 485.4358472477068,
-      "apogee_time_s": 23.79056277630766,
-      "burnout_angle_of_attack_deg": 0.04633635155266366,
-      "max_mach": 0.7463476636133487,
+      "apogee_east_m": -255.9790096794168,
+      "apogee_m": 2793.0945700882903,
+      "apogee_north_m": 485.4358471970422,
+      "apogee_time_s": 23.790562775168446,
+      "burnout_angle_of_attack_deg": 0.04633635158384684,
+      "max_mach": 0.7463476635133897,
       "normal_force": "the RASAero II export",
-      "past_4_degrees_s": 2.207515509013059
+      "past_4_degrees_s": 2.2075152196981174
     },
     {
-      "apogee_east_m": -255.9100689304894,
-      "apogee_m": 2793.1001500685115,
-      "apogee_north_m": 485.433867564162,
-      "apogee_time_s": 23.79057536282178,
-      "burnout_angle_of_attack_deg": 0.046352261961863886,
-      "max_mach": 0.7463475648661787,
+      "apogee_east_m": -255.91006894354086,
+      "apogee_m": 2793.1001501094024,
+      "apogee_north_m": 485.43386757398247,
+      "apogee_time_s": 23.790575363031746,
+      "burnout_angle_of_attack_deg": 0.04635226197146799,
+      "max_mach": 0.7463475645537309,
       "normal_force": "the export's 0 degree column at the compared Mach numbers",
-      "past_4_degrees_s": 2.2051377777671437
+      "past_4_degrees_s": 2.205135400389219
     }
   ],
   "generator": "cargo xtask aero",

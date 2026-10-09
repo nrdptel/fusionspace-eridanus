@@ -805,6 +805,7 @@ dependencies = [
  "fusionspace-hpr-motor",
  "jsonschema",
  "parquet",
+ "proptest",
  "roxmltree",
  "serde",
  "serde_json",

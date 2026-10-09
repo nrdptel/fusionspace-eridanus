@@ -1266,17 +1266,24 @@ fn axis(values: impl Iterator<Item = f64>) -> (f64, f64, f64) {
         n if n <= 5.0 => 5.0,
         _ => 10.0,
     } * magnitude;
+    // An end within a billionth of a step past a tick stays on it, as `tick` lets the last tick
+    // run a hair past: a landing a hair below the ground, which one platform's rounding gives and
+    // another's doesn't, shouldn't add a whole step under it, nor a tick that doubles the step.
+    let slack = 1e-9;
+    let ends = |step: f64| ((lo / step + slack).floor(), (hi / step - slack).ceil());
     // The span is over 2 steps and at most 5, so 4 to 7 ticks once both ends are rounded out.
     // With 7, the next step, at most 2.5 times as long: the span, then over 4 steps, is over 1.6
     // of the next and at most 2.5, so 2 to 4 intervals, 3 to 5 ticks.
-    if (hi / step).ceil() - (lo / step).floor() > 5.0 {
+    let (low, high) = ends(step);
+    if high - low > 5.0 {
         step *= if (step / magnitude).round() == 2.0 {
             2.5
         } else {
             2.0
         };
     }
-    ((lo / step).floor() * step, (hi / step).ceil() * step, step)
+    let (low, high) = ends(step);
+    (low * step, high * step, step)
 }
 
 /// The axis's `k`th tick from its low end, while it is on the axis (at most 20).
