@@ -142,6 +142,24 @@ Each idea names its user, workflow, the scoreboard number it moves (ADR-209 §13
   report gives the error above and below the median share, fixed before the errors are read, as
   aggregates.
 
+## The 2026-10-09 planning review
+
+- SOON: the apogee across surface finishes. User: an L2 flyer who can't name a paint's roughness.
+  Workflow: `hpr sim` prints the apogee at the finishes either side of the chosen one. Why: a 2026
+  study measured 17–75% more drag from manufacturing roughness (Seniwan and Mohd Saiah). Moves: the
+  share of the collection's logged apogees inside that band, not measured today. *Done when:* the
+  fixture report gives it with two-sided 95% Clopper–Pearson bounds, failed runs counted as misses.
+- SOON: forecast winds scored against soundings. User: a team sizing a recovery area a day out.
+  Workflow: `hpr weather` shows how far each forecast model it fetches has been from balloon
+  soundings near the site. Why: a 2025 student study scored GFS, NAM and HRRR on 2,900 soundings.
+  Moves: wind error by model and height band, not measured today. *Done when:* a committed report
+  scores each model against NOAA's IGRA soundings at 5 launch sites over a season, with intervals.
+- SOON: airbrakes failed as each rulebook says. User: a EuRoC or IREC team's airbrake lead.
+  Workflow: `hpr mc` flies the controller with the brakes failed in each rule's state (EuRoC 2026:
+  fully extended). Moves: apogee spread under each failure, not measured today. *Done when:* the
+  run reports each state's 90% apogee range with Wilks bounds, each state cited to its rulebook
+  with a source date and a stale-after date.
+
 ## MAINTAINER'S CALL (money, outreach)
 
 - Bids to be the official simulator of US competitions.

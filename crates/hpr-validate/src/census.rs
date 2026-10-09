@@ -80,12 +80,15 @@ pub const OPENROCKET_BAR_PERCENT: f64 = 5.0;
 /// [m2-2a]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-2a
 pub const MASS_BAR_PERCENT: f64 = 1.0;
 
-/// The bar a stability margin or a center of mass is judged by, calibres: the center-of-pressure
-/// target set before the transonic normal force was measured ([M1.8a][m1-8a]). A difference in
-/// either moves the margin by as many calibres.
+/// The bar a stability margin or a center of mass is judged by, calibres. It was 0.5, the
+/// center-of-pressure target set before the transonic normal force was measured ([M1.8a][m1-8a]);
+/// [ADR-220][adr-220] tightened it to 0.2 when every difference but one public margin (−1.08,
+/// over either bar) measured within 0.111 calibres, about half the new bar, in both corpora. A
+/// difference in either moves the margin by as many calibres.
 ///
 /// [m1-8a]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8a
-pub const MARGIN_BAR_CAL: f64 = 0.5;
+/// [adr-220]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-220-the-margin-bar-tightened-to-02-calibres-m114-held-to-release-03s-target-2026-10-09
+pub const MARGIN_BAR_CAL: f64 = 0.2;
 
 /// The bar a real flight's climb is judged by, per cent of its apogee: the bound the harness holds
 /// a whole flight's height series to ([ADR-024][adr-024], the series RMS).
