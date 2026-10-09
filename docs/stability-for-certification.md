@@ -102,8 +102,8 @@ the one printed. Balance the loaded rocket, motor in, and compare where it balan
 line's center of gravity before trusting the margin: each millimeter the balance point sits aft
 of it takes a millimeter off the distance to the center of pressure. The simulator computes the
 static margin at Mach 0, with the air along the rocket's axis. The margin grows
-as propellant burns and the center of gravity moves forward, so its least value is usually the
-one at the rail. `--json` also gives the flight margin, at the flight's own Mach number
+as propellant burns and the center of gravity moves forward, so its least value in flight is
+usually the one at the rail. `--json` also gives the flight margin, at the flight's own Mach number
 (`min_flight_margin_cal`), and where each least value falls
 ([Flight metrics](physics/metrics.md#stability-margins)).
 
