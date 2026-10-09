@@ -116,6 +116,32 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
+## The 2026-10-08 planning review
+
+Each idea names its user, workflow, the scoreboard number it moves (ADR-209 §13) and a *done when*.
+
+- PROMOTED ([M2.3c3][m2-3c3], ADR-212): OpenRocket's newest release as the bar. User: a flyer
+  choosing a simulator. Workflow: reads the accuracy page against the OpenRocket they run. Moves:
+  the apogee error against OpenRocket, by version. *Done when:* as M2.3c3.
+- SOON: apogees measured above Mach 1, from published comparisons (Rogers' RASAero II reports; the
+  CC-BY Rocket Flight Database v1.2, doi:10.5281/zenodo.19976138, 28 flights). User: a flyer
+  planning a Mach 1.5 flight. Workflow: reads the supersonic row before a waiver. Moves: apogee
+  error above Mach 1, not measured today. *Done when:* the real-flights report scores at least 5
+  COTS-motor flights the reports give geometry for (or an ADR shows fewer exist), rebuilt from them,
+  beside RASAero II's published error on the same flights, with the set's admission rule stated
+  (OpenRocket Plus within ±10%, per its README); research motors wait for 1.0.
+- SOON: a landing spread checked against tracked landings. User: an L2 flyer at a small field.
+  Workflow: sizes the recovery area from `hpr mc`'s 90% region. Moves: the share of GPS-logged
+  landings inside the 50% and 90% regions, not measured today. *Done when:* the fixture report gives
+  both shares with Clopper–Pearson bounds over every flight with a tracked landing, failed runs
+  counted.
+- SOON: weighed against estimated mass at import. User: a flyer whose apogee is 20% off. Workflow:
+  reads which masses are weighed (overrides, and what each covers) and which estimated, with each
+  one's effect on the apogee. Moves: the collection's apogee error split by the share of liftoff
+  mass weighed. *Done when:* `hpr sim` prints that share and each override's scope; the fixture
+  report gives the error above and below the median share, fixed before the errors are read, as
+  aggregates.
+
 ## MAINTAINER'S CALL (money, outreach)
 
 - Bids to be the official simulator of US competitions.
@@ -151,3 +177,4 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 [adr-194]: ../decisions/0194-the-2026-10-07-field-tools-checklists-equipment-ground-tests.md
 [adr-195]: ../decisions/0195-the-2026-10-07-guides-rocketry-explained.md
 [adr-196]: ../decisions/0196-the-2026-10-07-product-guides.md
+[m2-3c3]: ../decisions-and-roadmap.md#m2-3c3
