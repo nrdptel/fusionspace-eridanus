@@ -15,6 +15,7 @@ use hpr::hpr_net::{NetError, thrustcurve};
 
 use crate::motors::class_label;
 use crate::output::{FoundMotor, FoundOffer, MotorKind, MotorSearch, ReadFrom};
+use crate::units::{bracketed, inches_figure};
 use crate::weather::{client, format_utc, now_s, read_file, read_from, read_from_line};
 use crate::{Failure, Out, printable};
 
@@ -355,7 +356,7 @@ fn text_lines(document: &MotorSearch, filters: &[String]) -> Vec<String> {
         "designation",
         "maker",
         "class",
-        "dia mm",
+        "dia mm (in)",
         "impulse N·s",
         "avg N",
         "burn s",
@@ -366,10 +367,24 @@ fn text_lines(document: &MotorSearch, filters: &[String]) -> Vec<String> {
     let figure = |value: Option<f64>, places: usize| {
         value.map_or_else(|| "-".to_owned(), |v| format!("{v:.places$}"))
     };
+    // The diameter in inches too, to the places `hpr motors show` gives (ADR-210, ADR-213).
+    let diameters = bracketed(
+        &document
+            .motors
+            .iter()
+            .map(|m| {
+                (
+                    format!("{}", m.diameter_mm),
+                    inches_figure(m.diameter_mm / 1000.0, 2),
+                )
+            })
+            .collect::<Vec<_>>(),
+    );
     let rows: Vec<[String; 10]> = document
         .motors
         .iter()
-        .map(|m| {
+        .zip(diameters)
+        .map(|(m, diameter)| {
             let (price, pack, vendor) = match &m.cheapest_in_stock {
                 Some(offer) => (
                     match (offer.unit_price_cents, offer.currency.as_str()) {
@@ -389,7 +404,7 @@ fn text_lines(document: &MotorSearch, filters: &[String]) -> Vec<String> {
                 // The maker's first word, as `hpr motors list` names them: `Cesaroni`.
                 printable(m.manufacturer.split(' ').next().unwrap_or(&m.manufacturer)),
                 printable(&m.impulse_class),
-                format!("{}", m.diameter_mm),
+                diameter,
                 figure(m.total_impulse_ns, 1),
                 figure(m.average_thrust_n, 1),
                 figure(m.burn_time_s, 2),

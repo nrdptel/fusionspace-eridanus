@@ -8,6 +8,10 @@
       "description": "The highest point.",
       "$ref": "#/$defs/LogReading2"
     },
+    "kind": {
+      "description": "What kind of result this is: every reading is measured, from the log.",
+      "$ref": "#/$defs/Kind"
+    },
     "landing": {
       "description": "Landing, and the descent before it.",
       "$ref": "#/$defs/LogReading5"
@@ -59,10 +63,16 @@
         "version",
         "designation"
       ]
+    },
+    "trust": {
+      "description": "The trust note the text form ends with: what the readings are, what they were checked\nagainst, and what to go by instead (decision record ADR-213).",
+      "type": "string"
     }
   },
   "required": [
     "tool",
+    "kind",
+    "trust",
     "log",
     "stated",
     "method",
@@ -253,6 +263,36 @@
       "required": [
         "time_s",
         "altitude_m"
+      ]
+    },
+    "Kind": {
+      "description": "What kind of result a command printed: the kind every figure in it is.",
+      "oneOf": [
+        {
+          "description": "From a model of the flight, not measured.",
+          "type": "string",
+          "const": "simulated"
+        },
+        {
+          "description": "Measured: an altimeter's log, or a weather balloon's sounding.",
+          "type": "string",
+          "const": "measured"
+        },
+        {
+          "description": "A weather model's forecast.",
+          "type": "string",
+          "const": "forecast"
+        },
+        {
+          "description": "A reanalysis: a weather model's fit to past observations, such as ERA5.",
+          "type": "string",
+          "const": "reanalysis"
+        },
+        {
+          "description": "Copied from a data file, such as a motor's curve file, or computed from it.",
+          "type": "string",
+          "const": "copied"
+        }
       ]
     },
     "LandingReading": {

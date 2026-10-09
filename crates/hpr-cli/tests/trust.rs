@@ -128,3 +128,105 @@ fn json_carries_the_kind_and_the_same_note() {
         assert_eq!(closing_note(&text), trust, "{args:?}");
     }
 }
+
+/// The three parts of a note, each found after the one before.
+fn in_order(note: &str, parts: &[&str]) {
+    let mut from = 0;
+    for part in parts {
+        let at = note[from..].find(part);
+        assert!(at.is_some(), "{part:?} after {from}: {note}");
+        from += at.unwrap() + part.len();
+    }
+}
+
+/// `hpr analyze` ends with how far to trust a log's readings (issue #395, ADR-213): measured,
+/// what HPR Sim's readings were checked on, and the altimeter's own reading to log; `--json`
+/// carries it as `trust`, beside `kind: "measured"`.
+#[test]
+fn analyze_says_its_readings_are_measured_and_how_far_to_trust_them() {
+    let log = repo_file("validation/fixtures/logs/synthetic-pnut.pf2");
+    let (out, _) = run(&["analyze", &log]);
+    let note = closing_note_at(&out, "reading-a-flight-log.html");
+    in_order(
+        &note,
+        &[
+            "Measured by the altimeter's barometer, from its own log, read by HPR Sim, not \
+             simulated.",
+            "checked on an invented log whose every number is known, and once by hand on a real \
+             one, not in the automatic tests;",
+            "the altimeter's own reading is the one to log, and the RSO decides.",
+        ],
+    );
+    let (json, _) = run(&["analyze", &log, "--json"]);
+    let document: Value = serde_json::from_str(&json).unwrap();
+    assert_eq!(document["kind"], "measured");
+    assert_eq!(document["trust"], note.as_str());
+}
+
+/// `hpr motors show` ends with where its figures come from and what to go by instead: the
+/// catalog's download date for a catalog motor, the file for a motor file; `--json` carries it
+/// as `trust`, beside `kind: "copied"`.
+#[test]
+fn motors_show_says_where_its_figures_come_from() {
+    let (out, _) = run(&["motors", "show", "H170M"]);
+    let note = closing_note_at(&out, "pick-a-motor.html");
+    let captured = hpr::hpr_motor::catalog::Catalog::bundled()
+        .unwrap()
+        .snapshot
+        .captured;
+    in_order(
+        &note,
+        &[
+            &format!(
+                "Copied from ThrustCurve.org's curve file, downloaded {captured}, not measured by \
+                 HPR Sim:"
+            ),
+            "The total impulse and peak thrust match OpenRocket's reading of the same file on \
+             every bundled curve, a check of the arithmetic, not of the motor; no figure is \
+             checked against the maker's or the certifying bodies' data.",
+            "The motor's printed data and its maker's instructions come first, and the RSO \
+             decides.",
+        ],
+    );
+    let file = repo_file("crates/hpr-motor/data/thrustcurve/curves/5f4294d20002e90000000724.eng");
+    let (out, _) = run(&["motors", "show", &file]);
+    let file_note = closing_note_at(&out, "pick-a-motor.html");
+    in_order(
+        &file_note,
+        &[
+            "Read from the motor file named above, not measured by HPR Sim:",
+            "HPR Sim doesn't check a motor file against the maker's or the certifying bodies' data.",
+            "The motor's printed data",
+        ],
+    );
+    for (args, expected) in [
+        (vec!["motors", "show", "H170M", "--json"], &note),
+        (vec!["motors", "show", file.as_str(), "--json"], &file_note),
+    ] {
+        let (json, _) = run(&args);
+        let document: Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(document["kind"], "copied", "{args:?}");
+        assert_eq!(document["trust"], expected.as_str(), "{args:?}");
+    }
+}
+
+/// The note at the end of `out`, as [`closing_note`] reads it, but with its link to `page`.
+fn closing_note_at(out: &str, page: &str) -> String {
+    let lines: Vec<&str> = out.lines().collect();
+    let first = lines
+        .iter()
+        .rposition(|line| line.starts_with("How far to trust it."));
+    assert!(first.is_some(), "no note: {out}");
+    let first = first.unwrap();
+    let more = format!("More: https://hpr.fusionspace.co/{page}");
+    assert_eq!(lines.last(), Some(&more.as_str()), "{out}");
+    assert!(first > 0 && lines[first - 1].is_empty(), "{out}");
+    for line in &lines[first..] {
+        assert!(line.chars().count() <= 100, "{line}");
+    }
+    let page = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../docs")
+        .join(page.replace(".html", ".md"));
+    assert!(page.is_file(), "{}", page.display());
+    lines[first..].join(" ")
+}

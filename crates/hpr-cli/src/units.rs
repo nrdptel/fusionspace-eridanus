@@ -38,9 +38,14 @@ pub(crate) fn fixed(value: f64, decimals: usize) -> String {
     }
 }
 
+/// A height or a distance in whole feet, the bare figure, for a column headed in feet: `3494`.
+pub(crate) fn feet_figure(meters: f64) -> String {
+    fixed(meters / FOOT_M, 0)
+}
+
 /// A height or a distance in feet, whole: `3494 ft`.
 pub(crate) fn feet(meters: f64) -> String {
-    format!("{} ft", fixed(meters / FOOT_M, 0))
+    format!("{} ft", feet_figure(meters))
 }
 
 /// A speed in feet per second, whole: `86 ft/s`.
@@ -48,14 +53,25 @@ pub(crate) fn feet_per_second(meters_per_second: f64) -> String {
     format!("{} ft/s", fixed(meters_per_second / FOOT_M, 0))
 }
 
+/// A wind speed in whole miles per hour, the bare figure, for a column headed in mph: `13`.
+pub(crate) fn mph_figure(meters_per_second: f64) -> String {
+    fixed(meters_per_second * 3600.0 / MILE_M, 0)
+}
+
 /// A wind speed in miles per hour, whole: `13 mph`.
 pub(crate) fn miles_per_hour(meters_per_second: f64) -> String {
-    format!("{} mph", fixed(meters_per_second * 3600.0 / MILE_M, 0))
+    format!("{} mph", mph_figure(meters_per_second))
+}
+
+/// A length in inches to `decimals` places, the bare figure, for a column headed in inches:
+/// `35.9`.
+pub(crate) fn inches_figure(meters: f64, decimals: usize) -> String {
+    fixed(meters / INCH_M, decimals)
 }
 
 /// A length in inches, to `decimals` places: `35.9 in`.
 pub(crate) fn inches(meters: f64, decimals: usize) -> String {
-    format!("{} in", fixed(meters / INCH_M, decimals))
+    format!("{} in", inches_figure(meters, decimals))
 }
 
 /// A mass in ounces to a tenth below a pound, in pounds to a hundredth from one: `6.4 oz`,
@@ -71,6 +87,42 @@ pub(crate) fn ounces_or_pounds(kilograms: f64) -> String {
     } else {
         format!("{} lb", fixed(pounds, 2))
     }
+}
+
+/// A temperature in whole degrees Fahrenheit, from kelvin, the bare figure, for a column headed
+/// in °F: `67`. The Fahrenheit degree is five ninths of a kelvin, and 0 °C, 273.15 K, is 32 °F,
+/// both by definition.
+pub(crate) fn fahrenheit_figure(kelvin: f64) -> String {
+    fixed((kelvin - 273.15) * 1.8 + 32.0, 0)
+}
+
+/// An acceleration in g, standard gravity, to a tenth: `12.3 g`.
+pub(crate) fn gravities(meters_per_second_squared: f64) -> String {
+    format!(
+        "{} g",
+        fixed(meters_per_second_squared / STANDARD_GRAVITY_M_S2, 1)
+    )
+}
+
+/// A table column whose cells are an SI figure with its US figure in brackets after it, each
+/// pair `(si, us)` given bare, without units, which the column's heading carries: the SI
+/// figures right-aligned with each other, and the brackets too, `1476.4  (4844)` over
+/// `31348.2 (102849)`. A cell whose US figure is empty, a value left blank, gets no brackets.
+pub(crate) fn bracketed(pairs: &[(String, String)]) -> Vec<String> {
+    let width = |text: &str| text.chars().count();
+    let si = pairs.iter().map(|(si, _)| width(si)).max().unwrap_or(0);
+    let us = pairs.iter().map(|(_, us)| width(us)).max().unwrap_or(0);
+    pairs
+        .iter()
+        .map(|(value, converted)| {
+            let brackets = if converted.is_empty() {
+                String::new()
+            } else {
+                format!("({converted})")
+            };
+            format!("{value:>si$} {brackets:>0$}", us + 2)
+        })
+        .collect()
 }
 
 /// A height or a distance in meters to a tenth, with feet: `1065.1 m (3494 ft)`.
@@ -160,6 +212,47 @@ mod tests {
         assert_eq!(ounces_or_pounds(2.1), "4.63 lb");
         assert_eq!(ounces_or_pounds(0.0), "0.0 oz");
         assert_eq!(ounces_or_pounds(100.0), "220.46 lb");
+    }
+
+    /// Water freezes at 32 °F and boils at 212 °F; -40 is the same in both scales.
+    #[test]
+    fn fahrenheit_is_exact_at_its_fixed_points() {
+        assert_eq!(fahrenheit_figure(273.15), "32");
+        assert_eq!(fahrenheit_figure(373.15), "212");
+        assert_eq!(fahrenheit_figure(233.15), "-40");
+        assert_eq!(fahrenheit_figure(292.45), "67");
+        // -17.78 °C is 0 °F, printed unsigned.
+        assert_eq!(fahrenheit_figure(255.3722), "0");
+        assert_eq!(feet_figure(304.8), "1000");
+        assert_eq!(mph_figure(8.9408), "20");
+    }
+
+    /// A g is standard gravity: 9.80665 m/s² reads as 1.0 g, a tenth's half rounds as `fixed`.
+    #[test]
+    fn gravities_divide_by_standard_gravity() {
+        assert_eq!(gravities(9.806_65), "1.0 g");
+        assert_eq!(gravities(98.066_5), "10.0 g");
+        assert_eq!(gravities(0.0), "0.0 g");
+        assert_eq!(gravities(-0.1), "0.0 g");
+        assert_eq!(gravities(-9.806_65), "-1.0 g");
+        // Pinned to standard gravity, not a rounded 9.81, which would print 101.9 g.
+        assert_eq!(gravities(1000.0), "102.0 g");
+    }
+
+    /// The SI figures align on their right edge and the brackets on theirs; a blank keeps no
+    /// brackets.
+    #[test]
+    fn bracketed_columns_align_both_parts() {
+        let pairs = [
+            ("1476.4".to_owned(), "4844".to_owned()),
+            ("31348.2".to_owned(), "102849".to_owned()),
+            ("-".to_owned(), String::new()),
+        ];
+        assert_eq!(
+            bracketed(&pairs),
+            [" 1476.4   (4844)", "31348.2 (102849)", "      -         "]
+        );
+        assert_eq!(bracketed(&[]), Vec::<String>::new());
     }
 
     /// A value that isn't a number prints as one that isn't, on both sides, not as a figure.

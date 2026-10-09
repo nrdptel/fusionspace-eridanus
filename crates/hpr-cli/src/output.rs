@@ -218,6 +218,11 @@ pub struct FoundOffer {
 /// `hpr motors show`: each motor's figures, worked out from its thrust curve.
 #[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
 pub struct MotorShow {
+    /// What kind of result this is: copied from a curve file, or computed from it.
+    pub kind: crate::trust::Kind,
+    /// The trust note the text form ends with: where the figures come from, what they were
+    /// checked against, and what to go by instead (decision record ADR-213).
+    pub trust: String,
     /// The motors found: every catalog match for a name, or every motor in a file.
     pub motors: Vec<MotorFigures>,
     /// What the reader accepted with a caveat, in file order.
@@ -1187,6 +1192,11 @@ pub struct ConvertedFile {
 pub struct Weather {
     /// The source, and the credit its terms ask for wherever the data is shown.
     pub source: WeatherSource,
+    /// What kind of result this is: a forecast, a balloon's measurement or a reanalysis.
+    pub kind: crate::trust::Kind,
+    /// The trust note the text form ends with: what the profile is, what it was checked
+    /// against, and what to go by instead (decision record ADR-213).
+    pub trust: String,
     /// Where the source's answer was read from.
     pub read_from: ReadFrom,
     /// Where the profile is: Open-Meteo's grid point, the balloon's release, or the site the
@@ -1338,6 +1348,11 @@ impl DropReason {
 /// pad; times are seconds on the log's clock.
 #[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
 pub struct Analyze {
+    /// What kind of result this is: every reading is measured, from the log.
+    pub kind: crate::trust::Kind,
+    /// The trust note the text form ends with: what the readings are, what they were checked
+    /// against, and what to go by instead (decision record ADR-213).
+    pub trust: String,
     /// The log read.
     pub log: AnalyzedLog,
     /// What the file states about the flight: the logger's own figures, printed beside HPR Sim's

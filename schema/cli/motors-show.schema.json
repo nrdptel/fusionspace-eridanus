@@ -4,6 +4,10 @@
   "description": "`hpr motors show`: each motor's figures, worked out from its thrust curve.",
   "type": "object",
   "properties": {
+    "kind": {
+      "description": "What kind of result this is: copied from a curve file, or computed from it.",
+      "$ref": "#/$defs/Kind"
+    },
     "motors": {
       "description": "The motors found: every catalog match for a name, or every motor in a file.",
       "type": "array",
@@ -35,6 +39,10 @@
         "designation"
       ]
     },
+    "trust": {
+      "description": "The trust note the text form ends with: where the figures come from, what they were\nchecked against, and what to go by instead (decision record ADR-213).",
+      "type": "string"
+    },
     "warnings": {
       "description": "What the reader accepted with a caveat, in file order.",
       "type": "array",
@@ -45,6 +53,8 @@
   },
   "required": [
     "tool",
+    "kind",
+    "trust",
     "motors",
     "warnings"
   ],
@@ -110,6 +120,36 @@
           "description": "RockSim `.rse`.",
           "type": "string",
           "const": "rse"
+        }
+      ]
+    },
+    "Kind": {
+      "description": "What kind of result a command printed: the kind every figure in it is.",
+      "oneOf": [
+        {
+          "description": "From a model of the flight, not measured.",
+          "type": "string",
+          "const": "simulated"
+        },
+        {
+          "description": "Measured: an altimeter's log, or a weather balloon's sounding.",
+          "type": "string",
+          "const": "measured"
+        },
+        {
+          "description": "A weather model's forecast.",
+          "type": "string",
+          "const": "forecast"
+        },
+        {
+          "description": "A reanalysis: a weather model's fit to past observations, such as ERA5.",
+          "type": "string",
+          "const": "reanalysis"
+        },
+        {
+          "description": "Copied from a data file, such as a motor's curve file, or computed from it.",
+          "type": "string",
+          "const": "copied"
         }
       ]
     },

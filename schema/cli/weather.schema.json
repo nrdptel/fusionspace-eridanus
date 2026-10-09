@@ -11,6 +11,10 @@
         "$ref": "#/$defs/DroppedLevel"
       }
     },
+    "kind": {
+      "description": "What kind of result this is: a forecast, a balloon's measurement or a reanalysis.",
+      "$ref": "#/$defs/Kind"
+    },
     "levels": {
       "description": "The profile's levels, lowest first: the ground, then the levels above it; ERA5's levels\nare pressure levels only, from 1000 hPa up, some of them below the ground where it is high.",
       "type": "array",
@@ -71,11 +75,17 @@
         "version",
         "designation"
       ]
+    },
+    "trust": {
+      "description": "The trust note the text form ends with: what the profile is, what it was checked\nagainst, and what to go by instead (decision record ADR-213).",
+      "type": "string"
     }
   },
   "required": [
     "tool",
     "source",
+    "kind",
+    "trust",
     "read_from",
     "position",
     "time",
@@ -151,6 +161,36 @@
       },
       "required": [
         "reason"
+      ]
+    },
+    "Kind": {
+      "description": "What kind of result a command printed: the kind every figure in it is.",
+      "oneOf": [
+        {
+          "description": "From a model of the flight, not measured.",
+          "type": "string",
+          "const": "simulated"
+        },
+        {
+          "description": "Measured: an altimeter's log, or a weather balloon's sounding.",
+          "type": "string",
+          "const": "measured"
+        },
+        {
+          "description": "A weather model's forecast.",
+          "type": "string",
+          "const": "forecast"
+        },
+        {
+          "description": "A reanalysis: a weather model's fit to past observations, such as ERA5.",
+          "type": "string",
+          "const": "reanalysis"
+        },
+        {
+          "description": "Copied from a data file, such as a motor's curve file, or computed from it.",
+          "type": "string",
+          "const": "copied"
+        }
       ]
     },
     "ProfileLevel": {

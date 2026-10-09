@@ -784,3 +784,171 @@ fn a_whole_gfs_file_writes_the_profile_of_its_cut() {
     assert!(worst < 1.1e-7, "{worst:e}");
     eprintln!("the whole file against its cut: {worst:e}");
 }
+
+/// The note at the end of `text`: the lines from its label to the end, joined as one paragraph,
+/// after a blank line, each within 100 columns, its link on the last line.
+fn closing_note(text: &str) -> String {
+    let lines: Vec<&str> = text.lines().collect();
+    let first = lines
+        .iter()
+        .rposition(|line| line.starts_with("How far to trust it."));
+    assert!(first.is_some(), "no note: {text}");
+    let first = first.unwrap();
+    assert!(first > 0 && lines[first - 1].is_empty(), "{text}");
+    assert!(
+        lines
+            .last()
+            .is_some_and(|line| line.starts_with("More: https://")),
+        "{text}"
+    );
+    for line in &lines[first..] {
+        assert!(line.chars().count() <= 100, "{line}");
+    }
+    lines[first..].join(" ")
+}
+
+/// Every source ends its text with how far to trust its profile (issue #395, ADR-213): what kind
+/// of figure it is, what HPR Sim checked, and what to go by instead, with the page that says
+/// more; `--json` carries the same note as `trust`, beside `kind`.
+#[test]
+fn every_source_ends_with_how_far_to_trust_it() {
+    let scratch = tempfile::tempdir().unwrap();
+    let cache = scratch.path().join("cache");
+    let mut runs: Vec<(String, Vec<String>, &str, &str, &str)> = cases()
+        .into_iter()
+        .map(|case| {
+            let mut args: Vec<String> = case.from_args.iter().map(|&a| a.to_owned()).collect();
+            args.extend(["--from".to_owned(), recording(case.recording)]);
+            let (kind, opening, page) = match case.source {
+                "open_meteo" => ("forecast", "A weather model's forecast", "weather.html"),
+                "wyoming" => (
+                    "measured",
+                    "A weather balloon's measurement",
+                    "soundings.html",
+                ),
+                _ => ("forecast", "A weather model's forecast", "nomads.html"),
+            };
+            (case.name.to_owned(), args, kind, opening, page)
+        })
+        .collect();
+    let era5: Vec<String> = [
+        "weather",
+        "era5",
+        &era5_file("bella-lui.nc"),
+        "--latitude",
+        "47.213476",
+        "--longitude",
+        "9.003336",
+        "--time",
+        "2020-02-22T13:00Z",
+    ]
+    .map(str::to_owned)
+    .to_vec();
+    runs.push((
+        "ERA5".to_owned(),
+        era5,
+        "reanalysis",
+        "A reanalysis",
+        "format/era5.html",
+    ));
+    for (name, args, kind, opening, page) in runs {
+        let args: Vec<&str> = args.iter().map(String::as_str).collect();
+        let output = hpr(&args, &cache);
+        assert_eq!(output.status.code(), Some(0), "{name}: {output:?}");
+        let note = closing_note(&String::from_utf8(output.stdout).unwrap());
+        assert!(
+            note.starts_with(&format!("How far to trust it. {opening}")),
+            "{name}: {note}"
+        );
+        // The three parts, in order: the kind, what was checked, what to go by instead.
+        let checked = note.find("checked").unwrap_or(usize::MAX);
+        let instead = note.find("On launch day, go by").unwrap_or(usize::MAX);
+        assert!(checked < instead && instead < usize::MAX, "{name}: {note}");
+        assert!(note.contains("not yet checked"), "{name}: {note}");
+        // The one comparison with real flights committed for a weather source is ERA5's.
+        assert_eq!(
+            note.contains("7 public flights flown in ERA5 weather missed their logged apogees"),
+            kind == "reanalysis",
+            "{name}: {note}"
+        );
+        assert!(note.contains("the RSO decides."), "{name}: {note}");
+        assert!(
+            note.ends_with(&format!("More: https://hpr.fusionspace.co/{page}")),
+            "{name}: {note}"
+        );
+        assert!(
+            root()
+                .join("docs")
+                .join(page.replace(".html", ".md"))
+                .is_file()
+        );
+        let document = json(&args, &cache, 0, "weather.schema.json");
+        assert_eq!(document["kind"], kind, "{name}");
+        assert_eq!(document["trust"], note.as_str(), "{name}");
+    }
+    assert!(!cache.exists(), "a saved answer mustn't touch the cache");
+}
+
+/// The levels give feet, °F and mph in brackets after the SI (issue #392, ADR-213), the pressure
+/// in hPa alone; the columns line up on both parts, and `--json` stays SI.
+#[test]
+fn the_levels_give_us_units_in_brackets() {
+    let scratch = tempfile::tempdir().unwrap();
+    let from = recording("nomads-gfs.grib2");
+    let args = [
+        "weather",
+        "gfs",
+        "--latitude",
+        LATITUDE,
+        "--longitude",
+        LONGITUDE,
+        "--from",
+        &from,
+    ];
+    let output = hpr(&args, scratch.path());
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let text = String::from_utf8(output.stdout).unwrap();
+    let lines: Vec<&str> = text.lines().collect();
+    let header = lines
+        .iter()
+        .position(|line| line.trim_start().starts_with("height"))
+        .unwrap_or_else(|| panic!("{text}"));
+    assert_eq!(
+        &lines[header..header + 4],
+        [
+            "          height  pressure         temp  humidity        wind  from",
+            "      m MSL (ft)       hPa      °C (°F)         %   m/s (mph)     °",
+            " 1476.4   (4844)     848.0   19.3  (67)        42   5.5  (12)   242",
+            " 1972.1   (6470)     800.0   13.3  (56)        52   6.7  (15)   251",
+        ],
+        "{text}"
+    );
+    // Each row's figures, read back, are the same level in both units.
+    for row in &lines[header + 2..] {
+        if row.is_empty() {
+            break;
+        }
+        let cells: Vec<&str> = row.split_whitespace().collect();
+        let number = |i: usize| -> f64 { cells[i].trim_matches(['(', ')']).parse().unwrap() };
+        assert!(
+            (number(0) / 0.3048 - number(1)).abs() <= 0.5 + 0.05 / 0.3048,
+            "{row}"
+        );
+        assert!(
+            (number(3) * 1.8 + 32.0 - number(4)).abs() <= 0.5 + 0.05 * 1.8,
+            "{row}"
+        );
+        let mph = number(6) * 3600.0 / 1609.344;
+        assert!(
+            (mph - number(7)).abs() <= 0.5 + 0.05 * 3600.0 / 1609.344,
+            "{row}"
+        );
+    }
+    let document = json(&args, scratch.path(), 0, "weather.schema.json");
+    assert_eq!(
+        document["levels"][0]["height_msl_m"]
+            .as_f64()
+            .map(f64::round),
+        Some(1476.0)
+    );
+}

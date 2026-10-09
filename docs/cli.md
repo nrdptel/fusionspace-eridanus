@@ -99,14 +99,21 @@ numbers, and what to rely on instead. It is on standard output, so `> flight.txt
 `--json` carries it as `trust`, with `kind` set to `simulated`
 ([ADR-211](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0211-how-far-to-trust-a-result.md), the decision).
 
+`hpr weather`, `hpr analyze` and `hpr motors show` end the same way, each note in the same
+three parts with a link to the page that says more. `kind` names what their figures are:
+`forecast` for Open-Meteo, GFS and RAP, `measured` for a Wyoming balloon sounding and a flight
+log, `reanalysis` for an ERA5 file, and `copied` for a motor's figures, taken from its curve
+file or computed from it. Where nothing has compared a figure with a measurement of what it
+stands for, such as a forecast's winds with measured ones, the note says "not yet checked"
+([ADR-213](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0213-units-and-trust-notes-on-every-readout.md), the decision).
+
 The numbers cover the apogee only: 55 logged flights of fliers' own designs, each logged apogee
 the height climbed in the day's air. The simulated apogee averaged 9.8% above the logged one; it
 was within 10% on 27 and read low on 14, by at most 20%
 ([Accuracy: real flights of the private collection](accuracy.md#real-flights-of-the-private-collection)).
 Speed, drift and the margin have no measured spread yet. The note asks for room above the apogee
 when planning a waiver (the permission to fly above a height limit), and leaves the call to the
-RSO, the range safety officer. `hpr weather`, `hpr analyze` and `hpr motors show` print no note:
-their figures are read or fetched, not simulated.
+RSO, the range safety officer.
 
 ### Colors and messages
 
@@ -184,8 +191,10 @@ Rust library, so a Rust program flying the same design gets the same numbers.
 ### Units
 
 The text gives SI first, with the US units a flyer in the United States reads in brackets
-(parentheses) after it: `1065.1 m (3494 ft)`. `hpr sim`, `hpr mc`, `hpr motors show`, `hpr
-analyze` and the `--plot` figure do this, their `note:` and `warning:` lines included:
+(parentheses) after it: `1065.1 m (3494 ft)`. Every command that prints a height, speed,
+temperature, wind, acceleration or size does this, and the `--plot` figure, their `note:` and
+`warning:` lines included. A table's heading names both units,
+`m MSL (ft)`, and each cell gives the US figure in brackets after the SI one, `1476.4 (4844)`:
 
 | quantity | SI | US, in brackets |
 |---|---|---|
@@ -195,6 +204,9 @@ analyze` and the `--plot` figure do this, their `note:` and `warning:` lines inc
 | the wind | m/s | whole mph |
 | a station along the rocket (the CG and CP) | meters to the millimeter | inches to a tenth |
 | a motor's diameter and length | millimeters | inches to a hundredth and a tenth |
+| an acceleration (`hpr analyze`) | m/s² to a tenth | g to a tenth |
+| the air's temperature (`hpr weather`) | °C to a tenth | whole °F |
+| the air's pressure (`hpr weather`) | hPa | none: weather pressure is given in hPa |
 | a motor's masses | grams to a tenth | ounces to a tenth, pounds to a hundredth from one pound |
 | thrust and impulse | N and N·s | none: motors are rated in them |
 
@@ -202,9 +214,9 @@ The plot's right-hand scales are feet, feet per second and g (standard gravity,
 9.80665 m/s²). The SI figure is the one to copy: the US one is rounded from it, to a whole foot
 for a height, which can differ by a foot from converting a rounded SI figure.
 
-Some readouts still print SI alone, until [issue #392](https://github.com/nrdptel/fusionspace-eridanus/issues/392):
-`hpr weather`, `hpr motors list` and `hpr motors search`, the case size `hpr motors fetch`
-prints, and `hpr analyze`'s acceleration, which isn't yet given in g.
+The site's own prose still gives most heights and speeds in SI alone, until
+[issue #400](https://github.com/nrdptel/fusionspace-eridanus/issues/400); the command output it
+quotes follows the rule above.
 
 There is no `--units` switch: both units appear at once, so nothing needs choosing, and a switch
 that claimed to change units everywhere would also have to reach the exports. Those stay SI:
@@ -953,10 +965,10 @@ can be fewer than the maker sells.
 $ hpr motors list --class J
 3 motors from ThrustCurve.org data files marked public domain, downloaded 2026-09-17; size, masses and delays from each file's header, the rest from its curve.
 
-designation   maker     class  dia mm  len mm  impulse N·s  avg N  burn s  delays
-J450DM        AeroTech  J          54     359       1061.6  465.6    2.28  14
-1266J760-19A  Cesaroni  J          54     329       1267.3  758.2    1.67  8-10-12-14-16-18-19
-J300LR        Loki      J          54     327       1212.8  297.0    4.08  P
+designation   maker     class  dia mm (in)  len mm (in)  impulse N·s  avg N  burn s  delays
+J450DM        AeroTech  J        54 (2.13)   359 (14.1)       1061.6  465.6    2.28  14
+1266J760-19A  Cesaroni  J        54 (2.13)   329 (13.0)       1267.3  758.2    1.67  8-10-12-14-16-18-19
+J300LR        Loki      J        54 (2.13)   327 (12.9)       1212.8  297.0    4.08  P
 ```
 
 <!-- cli: end -->
@@ -1017,6 +1029,14 @@ $ hpr motors show J760
   casing           54 mm (2.13 in) across, 329 mm (13.0 in) long
   delays           8 s, 10 s, 12 s, 14 s, 16 s, 18 s, 19 s
   curve file       https://www.thrustcurve.org/simfiles/5f4294d20002e9000000074a/ (public domain)
+
+How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured
+by HPR Sim: the size, masses and delays as the file's header gives them, the impulse, thrusts and
+burn time computed from its curve, which can differ from the maker's rated figures. The total
+impulse and peak thrust match OpenRocket's reading of the same file on every bundled curve, a check
+of the arithmetic, not of the motor; no figure is checked against the maker's or the certifying
+bodies' data. The motor's printed data and its maker's instructions come first, and the RSO decides.
+More: https://hpr.fusionspace.co/pick-a-motor.html
 ```
 
 <!-- cli: end -->
@@ -1090,11 +1110,11 @@ Read from motor-finder-in-stock.json
 Motor stock data from motor.fusionspace.co, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); aggregated from public vendor listings and ThrustCurve.org; provided as is, with no warranty: check stock and price on the vendor's own page before relying on them
 Motor data and thrust curves courtesy of ThrustCurve.org, https://www.thrustcurve.org/
 
-designation  maker     class  dia mm  impulse N·s   avg N  burn s  each $  pack  vendor
-L1520T       AeroTech  L          75       3715.9  1567.8    2.36  260.99     1  Balsa Machining Service
-L850W        AeroTech  L          75       3646.2   850.0    4.42  282.74     1  Sirius Rocketry
-3419L645-P   Cesaroni  L          75       3419.8   644.8    5.30  286.36     1  Performance Hobbies
-3683L851-P   Cesaroni  L          75       3683.2   849.1    4.34  290.39     1  Animal Motor Works
+designation  maker     class  dia mm (in)  impulse N·s   avg N  burn s  each $  pack  vendor
+L1520T       AeroTech  L        75 (2.95)       3715.9  1567.8    2.36  260.99     1  Balsa Machining Service
+L850W        AeroTech  L        75 (2.95)       3646.2   850.0    4.42  282.74     1  Sirius Rocketry
+3419L645-P   Cesaroni  L        75 (2.95)       3419.8   644.8    5.30  286.36     1  Performance Hobbies
+3683L851-P   Cesaroni  L        75 (2.95)       3683.2   849.1    4.34  290.39     1  Animal Motor Works
 ```
 
 <!-- cli: end -->
@@ -1177,13 +1197,14 @@ it can fly, not that its curve is right.
 
 A fetch with a network connection printed this on 2026-10-04 (pasted by hand, not run in CI; its
 `help:` line as the simulator writes it since [M0.6b](decisions-and-roadmap.md#m0-6b), which made
-each hint a `help:` line):
+each hint a `help:` line, and with its case in inches too since
+[M0.9c4](decisions-and-roadmap.md#m0-9c4), which gave every readout US units):
 
 ```text
 $ hpr motors fetch F27R/L
 F27R/L (AeroTech), from ThrustCurve.org: fetched now
   curve file       5f4294d20002e90000000372, RASP (.eng), from a user, no license stated
-  case             29 × 83 mm
+  case             29 × 83 mm (1.14 × 3.3 in)
 help: kept in the cache: `hpr sim --motor F27R/L` flies it, offline too
 Motor data and thrust curves courtesy of ThrustCurve.org, https://www.thrustcurve.org/
 ```
@@ -1399,6 +1420,13 @@ apogee            390.1 m (1280 ft) at 10.28 s, 9.72 s after liftoff
 top speed         79.9 m/s (262 ft/s) at 2.10 s, 64.0 m (210 ft) up: the logger's own, from its barometer
 top acceleration  withheld: a PerfectFlite logger has no accelerometer; HPR Sim doesn't difference the altitude twice to make one, as its one-foot steps would read as spikes of many g
 landing           45.85 s, 45.30 s after liftoff; 35.58 s from apogee, at 10.9 m/s (36 ft/s) on average
+
+How far to trust it. Measured by the altimeter's barometer, from its own log, read by HPR Sim, not
+simulated. HPR Sim's readings are checked on an invented log whose every number is known, and once
+by hand on a real one, not in the automatic tests; nothing yet checks a barometer's errors near Mach
+0.9, which can upset the top speed and the heights near it. For a record or a certification, the
+altimeter's own reading is the one to log, and the RSO decides.
+More: https://hpr.fusionspace.co/reading-a-flight-log.html
 ```
 
 <!-- cli: end -->
@@ -1502,28 +1530,34 @@ Open-Meteo at 32.9965° N, 106.9695° W, for 2025-06-21T15:30:00Z
 Read from open-meteo-historical.json
 Weather data by Open-Meteo.com (CC BY 4.0)
 
-   height  pressure    temp  humidity    wind   from
-    m MSL       hPa      °C         %     m/s      °
-   1400.0     859.5    29.6        18     3.3    162
-   1482.0     850.0    28.2        16     2.9    189
-   2014.4     800.0    23.4        16     2.8    225
-   3160.6     700.0    14.5        28     6.8    236
-   4439.1     600.0     3.3        60     9.8    219
-   5894.6     500.0    -7.0        70     9.9    200
-   7604.0     400.0   -17.1        34     8.3    218
-   9712.0     300.0   -31.5         8     4.4    261
-  10981.7     250.0   -41.2         9    10.6    261
-  12465.1     200.0   -52.2        13     9.8    253
-  14276.4     150.0   -64.8        18     9.9    263
-  16716.8     100.0   -70.8        12     6.3    253
-  18863.9      70.0   -66.2         4     7.8    164
-  20940.5      50.0   -60.0         0     5.4    108
-  24212.5      30.0   -54.0         0     8.6     83
+         height  pressure         temp  humidity       wind  from
+     m MSL (ft)       hPa      °C (°F)         %  m/s (mph)     °
+ 1400.0  (4593)     859.5   29.6  (85)        18   3.3  (7)   162
+ 1482.0  (4862)     850.0   28.2  (83)        16   2.9  (6)   189
+ 2014.4  (6609)     800.0   23.4  (74)        16   2.8  (6)   225
+ 3160.6 (10369)     700.0   14.5  (58)        28   6.8 (15)   236
+ 4439.1 (14564)     600.0    3.3  (38)        60   9.8 (22)   219
+ 5894.6 (19339)     500.0   -7.0  (19)        70   9.9 (22)   200
+ 7604.0 (24948)     400.0  -17.1   (1)        34   8.3 (19)   218
+ 9712.0 (31864)     300.0  -31.5 (-25)         8   4.4 (10)   261
+10981.7 (36029)     250.0  -41.2 (-42)         9  10.6 (24)   261
+12465.1 (40896)     200.0  -52.2 (-62)        13   9.8 (22)   253
+14276.4 (46838)     150.0  -64.8 (-85)        18   9.9 (22)   263
+16716.8 (54845)     100.0  -70.8 (-95)        12   6.3 (14)   253
+18863.9 (61889)      70.0  -66.2 (-87)         4   7.8 (17)   164
+20940.5 (68703)      50.0  -60.0 (-76)         0   5.4 (12)   108
+24212.5 (79437)      30.0  -54.0 (-65)         0   8.6 (19)    83
 
 Left out: 5 levels
   below the ground, 5 levels: 1000 hPa, 975 hPa, 950 hPa, 925 hPa, 900 hPa
 
 Profile written to <the scratch folder>/profile.json
+
+How far to trust it. A weather model's forecast, not a measurement. HPR Sim's profile gives back
+every level it keeps of Open-Meteo's answer to rounding error, checked on recorded answers; the
+forecast itself is not yet checked here against measured winds or a flight's log. On launch day, go
+by the latest forecast and the wind measured at the field; the RSO decides.
+More: https://hpr.fusionspace.co/weather.html
 ```
 
 <!-- cli: end -->
@@ -1617,6 +1651,8 @@ $ hpr motors show B4 --json
     "version": "0.1.0",
     "designation": "FS-ACHERNAR · SW · TOOL 001"
   },
+  "kind": "copied",
+  "trust": "How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured by HPR Sim: the size, masses and delays as the file's header gives them, the impulse, thrusts and burn time computed from its curve, which can differ from the maker's rated figures. The total impulse and peak thrust match OpenRocket's reading of the same file on every bundled curve, a check of the arithmetic, not of the motor; no figure is checked against the maker's or the certifying bodies' data. The motor's printed data and its maker's instructions come first, and the RSO decides. More: https://hpr.fusionspace.co/pick-a-motor.html",
   "motors": [
     {
       "name": "B4",
