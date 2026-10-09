@@ -206,10 +206,13 @@ mod tests {
         let root = root();
         let read = |path: &str| fs::read_to_string(root.join(path)).unwrap();
         let cli = number_after(&read("scripts/release/smoke-cli.sh"), "abs(apogee - ");
-        let line = format!("apogee                {cli} m above the site");
+        // SI first, then feet in brackets: `apogee                846.1 m (2776 ft) above the site`.
+        let line = format!("apogee                {cli} m (");
         assert!(
-            read("docs/cli.md").contains(&line),
-            "docs/cli.md has no `{line}`"
+            read("docs/cli.md").lines().any(
+                |printed| printed.starts_with(&line) && printed.contains(" ft) above the site")
+            ),
+            "docs/cli.md has no `{line}… ft) above the site`"
         );
         let python = number_after(
             &read("scripts/release/smoke_python.py"),

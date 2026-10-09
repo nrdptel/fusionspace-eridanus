@@ -2,7 +2,11 @@
 //!
 //! `list` prints the catalog's motors with the figures their public-domain curve files give: size,
 //! masses and delays from each file's header, the rest worked out from its curve. `show` works a
-//! motor's figures out from its thrust curve with `hpr_motor`, the curve the simulator flies.
+//! motor's figures out from its thrust curve with `hpr_motor`, the curve the simulator flies,
+//! and reads its designation as `data.md` (*Units for rocketry*) asks: the impulse class with its
+//! range, the nominal average thrust beside the measured one where they differ, and the
+//! propellant the maker's letters stand for where the catalog names it. Masses and sizes give
+//! ounces or pounds and inches in brackets after the SI ([`crate::units`]).
 
 use std::io::{self, Write};
 use std::path::Path;
@@ -18,6 +22,7 @@ use crate::output::{
     CatalogInfo, Delay, FileFormat, ListedMotor, MotorFigures, MotorKind, MotorList, MotorShow,
     MotorSource, Warning, WarningKind,
 };
+use crate::units::{inches, ounces_or_pounds};
 use crate::{Failure, Out};
 
 /// `hpr motors`'s subcommands.
@@ -302,15 +307,23 @@ fn list_text(list: &MotorList, out: &mut dyn Write) -> io::Result<()> {
 
 /// `hpr motors show`.
 fn show(motor: &str, to: &mut Out<'_>) -> Result<(), Failure> {
-    let show = match MotorFile::of(motor) {
-        Some(format) => from_file(motor, format)?,
+    let (show, propellants) = match MotorFile::of(motor) {
+        Some(format) => {
+            let show = from_file(motor, format)?;
+            // A motor file names no propellant.
+            let none = vec![None; show.motors.len()];
+            (show, none)
+        }
         None => from_catalog(motor)?,
     };
-    to.emit(&show, |out, diagnostics| show_text(&show, out, diagnostics))
+    to.emit(&show, |out, diagnostics| {
+        show_text(&show, &propellants, out, diagnostics)
+    })
 }
 
-/// Every catalog motor `name` matches, with its bundled curve.
-fn from_catalog(name: &str) -> Result<MotorShow, Failure> {
+/// Every catalog motor `name` matches, with its bundled curve, and beside each the propellant
+/// the catalog names (ThrustCurve.org's `propInfo`), which the JSON doesn't carry.
+fn from_catalog(name: &str) -> Result<(MotorShow, Vec<Option<String>>), Failure> {
     let catalog = catalog()?;
     let matches: Vec<&CatalogMotor> = catalog.find(name).collect();
     if matches.is_empty() {
@@ -324,6 +337,7 @@ fn from_catalog(name: &str) -> Result<MotorShow, Failure> {
         motors: Vec::new(),
         warnings: Vec::new(),
     };
+    let mut propellants = Vec::new();
     for motor in matches {
         let solid = motor
             .bundled_motor()
@@ -366,8 +380,16 @@ fn from_catalog(name: &str) -> Result<MotorShow, Failure> {
             solid.curve(),
             &delays,
         )?);
+        propellants.push(
+            motor
+                .prop_info
+                .as_deref()
+                .map(str::trim)
+                .filter(|name| !name.is_empty())
+                .map(crate::printable),
+        );
     }
-    Ok(show)
+    Ok((show, propellants))
 }
 
 /// Every motor in a `.eng` or `.rse` file.
@@ -533,13 +555,15 @@ fn delay_warnings(motor: &str, delays: &DelayList) -> Result<Vec<Warning>, Failu
         .collect()
 }
 
-/// `hpr motors show` as text.
+/// `hpr motors show` as text, `propellants` the propellant the catalog names for each motor.
 fn show_text(
     show: &MotorShow,
+    propellants: &[Option<String>],
     out: &mut dyn Write,
     diagnostics: &mut Diagnostics<'_>,
 ) -> io::Result<()> {
     for (i, motor) in show.motors.iter().enumerate() {
+        let designation = Designation::read(&motor.name);
         if i > 0 {
             writeln!(out)?;
         }
@@ -548,9 +572,17 @@ fn show_text(
             MotorSource::File { path, .. } => path.clone(),
         };
         writeln!(out, "{} ({}), from {from}", motor.name, motor.manufacturer)?;
-        writeln!(out, "  impulse class    {}", motor.impulse_class)?;
+        writeln!(
+            out,
+            "  impulse class    {}",
+            class_range(&motor.impulse_class)
+        )?;
         writeln!(out, "  total impulse    {:.1} N·s", motor.total_impulse_ns)?;
-        writeln!(out, "  average thrust   {:.1} N", motor.average_thrust_n)?;
+        writeln!(
+            out,
+            "  average thrust   {}",
+            average_thrust(motor.average_thrust_n, designation.as_ref())
+        )?;
         writeln!(out, "  peak thrust      {:.1} N", motor.peak_thrust_n)?;
         writeln!(
             out,
@@ -559,15 +591,27 @@ fn show_text(
         )?;
         writeln!(
             out,
-            "  propellant       {:.1} g of {:.1} g loaded",
-            motor.propellant_mass_kg * 1e3,
-            motor.loaded_mass_kg * 1e3
+            "  propellant       {}",
+            propellant(
+                designation.as_ref(),
+                propellants.get(i).and_then(Option::as_deref)
+            )
         )?;
         writeln!(
             out,
-            "  casing           {} mm across, {} mm long",
+            "  propellant mass  {:.1} g ({}) of {:.1} g ({}) loaded",
+            motor.propellant_mass_kg * 1e3,
+            ounces_or_pounds(motor.propellant_mass_kg),
+            motor.loaded_mass_kg * 1e3,
+            ounces_or_pounds(motor.loaded_mass_kg)
+        )?;
+        writeln!(
+            out,
+            "  casing           {} mm ({}) across, {} mm ({}) long",
             round_mm(motor.diameter_m),
-            round_mm(motor.length_m)
+            inches(motor.diameter_m, 2),
+            round_mm(motor.length_m),
+            inches(motor.length_m, 1)
         )?;
         writeln!(out, "  delays           {}", delays_text(&motor.delays))?;
         if let MotorSource::Catalog { curve_url, .. } = &motor.source {
@@ -583,6 +627,114 @@ fn show_text(
         diagnostics.line(Level::Warning, &format!("{at}{}", warning.message))?;
     }
     Ok(())
+}
+
+/// What a motor's designation says about it, as the makers write it (`H170M`, `1266J760-19A`):
+/// an optional total impulse in N·s, the impulse class (`H`, `1/2A`), the nominal average thrust
+/// in newtons, then any letters joined to the thrust, the maker's code for the propellant (`M`,
+/// `WS`). What follows a hyphen (a delay, `-14A`, `-P`, `-L`, or Loki's propellant, `-CT`) is
+/// not read, as the same place holds a delay for one maker and a propellant for another, except
+/// in the form Cesaroni's motor files write, its parts all hyphenated with the total impulse
+/// first, `131-G84-GR-10A`, where the part after the thrust is the propellant's code.
+#[derive(Debug, Clone, PartialEq)]
+struct Designation {
+    /// The nominal average thrust, N.
+    nominal_thrust_n: u32,
+    /// The letters joined to the thrust, if any: the maker's propellant code.
+    propellant: Option<String>,
+}
+
+impl Designation {
+    /// Reads `name`, or `None` where it isn't shaped like a designation.
+    fn read(name: &str) -> Option<Self> {
+        let name = name.trim();
+        // A Cesaroni designation leads with its total impulse, its files' with a hyphen after it.
+        // A fraction of an A class (`1/2A`) leads with digits of its own.
+        let (rest, hyphenated) = match ["1/8", "1/4", "1/2"]
+            .iter()
+            .find_map(|fraction| name.strip_prefix(fraction))
+        {
+            Some(rest) => (rest, false),
+            None => {
+                let rest = name.trim_start_matches(|c: char| c.is_ascii_digit());
+                match rest.strip_prefix('-') {
+                    Some(after) if rest.len() < name.len() => (after, true),
+                    _ => (rest, false),
+                }
+            }
+        };
+        let mut chars = rest.chars();
+        if !chars.next().is_some_and(|c| c.is_ascii_uppercase()) {
+            return None;
+        }
+        let rest = chars.as_str();
+        let digits_end = rest
+            .find(|c: char| !c.is_ascii_digit())
+            .unwrap_or(rest.len());
+        let nominal_thrust_n = rest[..digits_end].parse().ok()?;
+        let rest = &rest[digits_end..];
+        let letters_end = rest
+            .find(|c: char| !c.is_ascii_alphabetic())
+            .unwrap_or(rest.len());
+        // Anything after the letters is a hyphen's part, or the name isn't a designation.
+        if !(rest[letters_end..].is_empty() || rest[letters_end..].starts_with('-')) {
+            return None;
+        }
+        let mut letters = &rest[..letters_end];
+        if letters.is_empty() && hyphenated {
+            let part = rest[letters_end..].trim_start_matches('-');
+            let part = &part[..part.find('-').unwrap_or(part.len())];
+            if part.chars().all(|c| c.is_ascii_alphabetic() || c == '_') {
+                letters = part;
+            }
+        }
+        Some(Self {
+            nominal_thrust_n,
+            propellant: (!letters.is_empty()).then(|| letters.to_owned()),
+        })
+    }
+}
+
+/// An impulse class with its range of total impulse, as NFPA 1125 and 1127 define it: `H (160–320
+/// N·s)`, the lower end exclusive and the upper inclusive. A label that isn't a class prints alone.
+fn class_range(label: &str) -> String {
+    match label.parse::<ImpulseClass>() {
+        Ok(class) => format!(
+            "{label} ({}–{} N·s)",
+            class.lower_limit_ns(),
+            class.upper_limit_ns()
+        ),
+        Err(_) => label.to_owned(),
+    }
+}
+
+/// The measured average thrust, and the nominal one the designation names where the two differ
+/// once the measured is rounded to a whole newton, as the designation's is.
+fn average_thrust(measured_n: f64, designation: Option<&Designation>) -> String {
+    match designation {
+        Some(named) if measured_n.round() != f64::from(named.nominal_thrust_n) => format!(
+            "{measured_n:.1} N measured; {} N nominal, as the designation names it",
+            named.nominal_thrust_n
+        ),
+        Some(_) => format!("{measured_n:.1} N measured, as the designation names it"),
+        None => format!("{measured_n:.1} N"),
+    }
+}
+
+/// The propellant: the designation's letters, as the maker's code, and the name the catalog gives
+/// it, with no meaning made up for a code the catalog doesn't name.
+fn propellant(designation: Option<&Designation>, named: Option<&str>) -> String {
+    let code = designation.and_then(|designation| designation.propellant.as_deref());
+    match (code, named) {
+        (Some(code), Some(name)) => {
+            format!("{code}, the maker's code for {name}, as ThrustCurve.org names it")
+        }
+        (Some(code), None) => {
+            format!("{code}, the maker's code; the motor file doesn't name the propellant")
+        }
+        (None, Some(name)) => format!("{name}, as ThrustCurve.org names it"),
+        (None, None) => "not named by the designation or the motor file".to_owned(),
+    }
 }
 
 /// A length in millimeters, to a tenth and without a trailing `.0`.
@@ -604,4 +756,101 @@ fn delays_text(delays: &[Delay]) -> String {
         })
         .collect::<Vec<_>>()
         .join(", ")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The nominal thrust and the propellant's code `name` gives, `""` for none.
+    fn read(name: &str) -> Option<(u32, String)> {
+        Designation::read(name).map(|designation| {
+            (
+                designation.nominal_thrust_n,
+                designation.propellant.unwrap_or_default(),
+            )
+        })
+    }
+
+    /// Each maker's form gives its nominal thrust, and its propellant's code only where the code
+    /// can't be a delay: joined to the thrust, or in a Cesaroni file's hyphenated form.
+    #[test]
+    fn a_designation_gives_its_thrust_and_propellant_code() {
+        assert_eq!(read("H170M"), Some((170, "M".to_owned())));
+        assert_eq!(read("H170M-14"), Some((170, "M".to_owned())));
+        assert_eq!(read("J350W-L"), Some((350, "W".to_owned())));
+        assert_eq!(read("I175WS"), Some((175, "WS".to_owned())));
+        assert_eq!(read("1266J760-19A"), Some((760, String::new())));
+        assert_eq!(read("2245K1075-P"), Some((1075, String::new())));
+        assert_eq!(read("131-G84-GR-10A"), Some((84, "GR".to_owned())));
+        assert_eq!(read("168-H54-WH_LB-10A"), Some((54, "WH_LB".to_owned())));
+        assert_eq!(read("21062-O3400-IM-P"), Some((3400, "IM".to_owned())));
+        // Loki's catalog form: the code after a hyphen, where AeroTech writes a delay.
+        assert_eq!(read("H125-CT"), Some((125, String::new())));
+        assert_eq!(read("H125CT"), Some((125, "CT".to_owned())));
+        assert_eq!(read("C5"), Some((5, String::new())));
+        assert_eq!(read("1/2A3-4T"), Some((3, String::new())));
+        assert_eq!(read("1/4A3T"), Some((3, "T".to_owned())));
+        for not_one in ["", "H", "170M", "h170M", "H170M2", "Motor", "-H170"] {
+            assert_eq!(read(not_one), None, "{not_one}");
+        }
+    }
+
+    /// A class's range is NFPA's, its ends exact; a label that isn't a class prints alone.
+    #[test]
+    fn a_class_gives_its_range() {
+        assert_eq!(class_range("H"), "H (160–320 N·s)");
+        assert_eq!(class_range("J"), "J (640–1280 N·s)");
+        assert_eq!(class_range("1/8A"), "1/8A (0–0.3125 N·s)");
+        assert_eq!(class_range("1/2A"), "1/2A (0.625–1.25 N·s)");
+        assert_eq!(class_range("A"), "A (1.25–2.5 N·s)");
+        assert_eq!(class_range("??"), "??");
+    }
+
+    /// The nominal thrust shows beside the measured one only where the two differ once the
+    /// measured is rounded to a whole newton.
+    #[test]
+    fn the_nominal_thrust_shows_where_it_differs() {
+        let named = Designation::read("H170M");
+        assert_eq!(
+            average_thrust(165.4, named.as_ref()),
+            "165.4 N measured; 170 N nominal, as the designation names it"
+        );
+        assert_eq!(
+            average_thrust(169.5, named.as_ref()),
+            "169.5 N measured, as the designation names it"
+        );
+        assert_eq!(
+            average_thrust(170.49, named.as_ref()),
+            "170.5 N measured, as the designation names it"
+        );
+        assert_eq!(
+            average_thrust(170.5, named.as_ref()),
+            "170.5 N measured; 170 N nominal, as the designation names it"
+        );
+        assert_eq!(average_thrust(165.4, None), "165.4 N");
+    }
+
+    /// The propellant line says what is known and makes up nothing: a code alone is the maker's.
+    #[test]
+    fn the_propellant_says_only_what_is_known() {
+        let coded = Designation::read("H170M");
+        let uncoded = Designation::read("1266J760-19A");
+        assert_eq!(
+            propellant(coded.as_ref(), Some("Metalstorm")),
+            "M, the maker's code for Metalstorm, as ThrustCurve.org names it"
+        );
+        assert_eq!(
+            propellant(coded.as_ref(), None),
+            "M, the maker's code; the motor file doesn't name the propellant"
+        );
+        assert_eq!(
+            propellant(uncoded.as_ref(), Some("White Thunder")),
+            "White Thunder, as ThrustCurve.org names it"
+        );
+        assert_eq!(
+            propellant(None, None),
+            "not named by the designation or the motor file"
+        );
+    }
 }

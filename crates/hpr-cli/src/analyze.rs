@@ -10,7 +10,7 @@
 use std::path::Path;
 
 use hpr::hpr_flightdata::log::{FlightLog, LogFormat};
-use hpr::hpr_flightdata::perfectflite::{self, FOOT_M};
+use hpr::hpr_flightdata::perfectflite;
 use hpr::hpr_flightdata::readings::{self, Reading, Readings, Reason, Source};
 
 use crate::console::Level;
@@ -19,6 +19,7 @@ use crate::output::{
     LiftoffReading, LogFormatName, LogReading, LoggerStated, MaxAccelerationReading,
     MaxSpeedReading, ReadingSource, WithheldReading, WithheldReason,
 };
+use crate::units::{meters, speed};
 use crate::{Failure, Out};
 
 /// `hpr analyze`'s arguments.
@@ -167,16 +168,6 @@ fn source(source: Source) -> ReadingSource {
         Source::LoggerSpeedFromBarometer => ReadingSource::LoggerSpeedFromBarometer,
         _ => ReadingSource::Other,
     }
-}
-
-/// A height or a length in meters, with feet.
-fn meters(value: f64) -> String {
-    format!("{value:.1} m ({:.0} ft)", value / FOOT_M)
-}
-
-/// A speed in meters per second, with feet per second.
-fn speed(value: f64) -> String {
-    format!("{value:.1} m/s ({:.0} ft/s)", value / FOOT_M)
 }
 
 /// What `hpr analyze` prints on standard output without `--json`; the log's notes go to

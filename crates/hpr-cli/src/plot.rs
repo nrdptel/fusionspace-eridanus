@@ -13,6 +13,11 @@
 //!   thin line), m/s². It is zero on the pad, where the rocket stands still, and so is not what
 //!   an accelerometer reads: in a coast it is gravity and drag, about −10 m/s² and more upward.
 //!
+//! Each panel's left scale is SI and its right scale the US unit a flyer in the United States
+//! reads (feet, feet per second, g), at round values of its own, as the command line puts US units
+//! in brackets after the SI (ADR-164 §6, ADR-209). The two scales measure one quantity, so the
+//! panel still holds one quantity, as the product system's charts ask.
+//!
 //! Each group of events at one instant is a numbered balloon above the panels with a dotted line
 //! through them, and each event a row of the table below, with its time, altitude and name. Where
 //! the rocket falls on its airframe alone after apogee, with no recovery device open within
@@ -29,12 +34,18 @@
 
 use hpr::hpr_sim::{EventKind, FlightEvent, FlightStep, Observer, Sample, SimError};
 
+use crate::units::{FOOT_M, STANDARD_GRAVITY_M_S2};
+
 /// The figure's width, px.
 const WIDTH: f64 = 960.0;
 /// The space left of each panel, for its tick labels, px.
 const LEFT: f64 = 76.0;
-/// The space right of each panel, px.
-const RIGHT: f64 = 24.0;
+/// The space right of each panel, px, for its US scale's tick labels.
+const RIGHT: f64 = 76.0;
+/// The space right of the caption's lines and the event table, px.
+const MARGIN: f64 = 24.0;
+/// A US scale's tick mark, px out from the panel's right edge.
+const TICK: f64 = 4.0;
 /// A panel's plot height, px.
 const PANEL_HEIGHT: f64 = 180.0;
 /// From one panel's bottom to the next one's top, its axis title between them, px.
@@ -55,10 +66,10 @@ const NAME_LIMIT: usize = 80;
 /// wraps: the figure's width less its margins, at 12 px Cascadia Mono's 7.2 px a character.
 const LIST_WIDTH: usize = 118;
 /// The most characters in a line of the event table's last column, which then wraps.
-const EVENT_WIDTH: usize = 72;
-/// The event table's columns: the right edges of the number, the time and the altitude, and the
-/// left edge of the events' names, px from the left margin.
-const COLUMNS: [f64; 4] = [24.0, 150.0, 300.0, 324.0];
+const EVENT_WIDTH: usize = 53;
+/// The event table's columns: the right edges of the number, the time, the altitude in meters
+/// and in feet, and the left edge of the events' names, px from the left margin.
+const COLUMNS: [f64; 5] = [24.0, 150.0, 300.0, 440.0, 464.0];
 /// The figure's typeface: the product system's face for labels and numbers, then fallbacks of the
 /// same fixed width, so the wrapping widths above hold.
 const FONT: &str = "'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace";
@@ -232,15 +243,19 @@ struct Series {
     width: f64,
 }
 
-/// One panel: its axis title and its series.
+/// One panel: its axis titles, its series and its US scale.
 struct Panel {
     /// The id of its group in the SVG.
     id: &'static str,
-    /// Its axis title: the quantity in capitals, then its unit.
+    /// Its axis title, over the left scale: the quantity in capitals, then its SI unit.
     title: &'static str,
     series: &'static [Series],
     /// Whether its zero is the ground, drawn as a chain line.
     ground: bool,
+    /// The right scale's unit, US, its title over that scale.
+    us_unit: &'static str,
+    /// One US unit in the panel's SI unit: a foot in meters, a g in m/s².
+    us_unit_si: f64,
 }
 
 /// The size of a quantity, drawn thick.
@@ -262,6 +277,8 @@ const PANELS: &[Panel] = &[
             width: SIZE,
         }],
         ground: true,
+        us_unit: "ft AGL",
+        us_unit_si: FOOT_M,
     },
     Panel {
         id: "speed",
@@ -277,6 +294,8 @@ const PANELS: &[Panel] = &[
             },
         ],
         ground: false,
+        us_unit: "ft/s",
+        us_unit_si: FOOT_M,
     },
     Panel {
         id: "acceleration",
@@ -292,13 +311,15 @@ const PANELS: &[Panel] = &[
             },
         ],
         ground: false,
+        us_unit: "g",
+        us_unit_si: STANDARD_GRAVITY_M_S2,
     },
 ];
 
 /// What the lines are, said once under the title rather than in a legend box.
 const LINES: &str = "Dashed: simulated by FusionSpace HPR; thick, the size, and thin, the vertical \
                      part, up positive. Chain line: the ground. Dotted: an event, numbered as in the table. \
-                     Altitude is the center of gravity's height above the launch site; speed is \
+                     Each panel's left scale is SI, its right scale US units. Altitude is the center of gravity's height above the launch site; speed is \
                      over the ground; acceleration is the nose tip's, relative to the launch \
                      frame, not what an accelerometer reads.";
 
@@ -446,8 +467,9 @@ fn summary(figure: &Figure<'_>) -> String {
         || "No apogee".to_owned(),
         |apogee| {
             format!(
-                "Apogee {} m above the launch site at {} s",
+                "Apogee {} m ({} ft) above the launch site at {} s",
                 number(apogee.value, 1),
+                number(apogee.value / FOOT_M, 0),
                 number(apogee.time_s, 2)
             )
         },
@@ -456,8 +478,9 @@ fn summary(figure: &Figure<'_>) -> String {
         || "no top speed".to_owned(),
         |speed| {
             format!(
-                "top speed {} m/s at {} s{}",
+                "top speed {} m/s ({} ft/s) at {} s{}",
                 number(speed.value, 1),
+                number(speed.value / FOOT_M, 0),
                 number(speed.time_s, 2),
                 if speed.unpredicted {
                     ", in the fall: not a prediction"
@@ -488,11 +511,11 @@ fn lines(svg: &mut String, lines: &[String], top: f64, left: f64, ink: &str) {
 
 /// The event table under the figure: a caption saying what it is and where it came from, a head
 /// of labels with their units over a 2 px ink rule, and a row for each event, with its marker's
-/// number, its time, the height above the launch site then, and its name, wrapped, each row
-/// under a 1 px rule. The SVG, and the table's bottom, px.
+/// number, its time, the height above the launch site then, in meters and in feet, and its name,
+/// wrapped, each row under a 1 px rule. The SVG, and the table's bottom, px.
 fn table(groups: &[Group], top: f64) -> (String, f64) {
-    let [number_x, time_x, height_x, name_x] = COLUMNS.map(|x| LEFT + x);
-    let right = WIDTH - RIGHT;
+    let [number_x, time_x, height_x, feet_x, name_x] = COLUMNS.map(|x| LEFT + x);
+    let right = WIDTH - MARGIN;
     let head = top + 22.0;
     let mut svg = format!(
         "<g id=\"events\">\n\
@@ -501,6 +524,8 @@ fn table(groups: &[Group], top: f64) -> (String, f64) {
          <text x=\"{time_x}\" y=\"{head:.1}\" text-anchor=\"end\" fill=\"{INK_MUTED}\">TIME · s</text>\
          <text x=\"{height_x}\" y=\"{head:.1}\" text-anchor=\"end\" fill=\"{INK_MUTED}\">\
          ALTITUDE · m AGL</text>\
+         <text x=\"{feet_x}\" y=\"{head:.1}\" text-anchor=\"end\" fill=\"{INK_MUTED}\">\
+         ALTITUDE · ft AGL</text>\
          <text x=\"{name_x}\" y=\"{head:.1}\" fill=\"{INK_MUTED}\">EVENT</text>\n\
          <line x1=\"{LEFT}\" y1=\"{:.1}\" x2=\"{right}\" y2=\"{:.1}\" stroke=\"{INK}\" \
          stroke-width=\"2\"/>\n",
@@ -515,10 +540,12 @@ fn table(groups: &[Group], top: f64) -> (String, f64) {
             svg.push_str(&format!(
                 "<text x=\"{number_x}\" y=\"{first:.1}\" text-anchor=\"end\" fill=\"{INK}\">{}</text>\
                  <text x=\"{time_x}\" y=\"{first:.1}\" text-anchor=\"end\" fill=\"{INK}\">{}</text>\
-                 <text x=\"{height_x}\" y=\"{first:.1}\" text-anchor=\"end\" fill=\"{INK}\">{}</text>\n",
+                 <text x=\"{height_x}\" y=\"{first:.1}\" text-anchor=\"end\" fill=\"{INK}\">{}</text>\
+                 <text x=\"{feet_x}\" y=\"{first:.1}\" text-anchor=\"end\" fill=\"{INK}\">{}</text>\n",
                 n + 1,
                 number(*time_s, 2),
                 number(*height_m, 1),
+                number(*height_m / FOOT_M, 0),
             ));
             lines(&mut svg, &names, first, name_x, INK);
             y = first + (names.len() - 1) as f64 * LIST_LINE + 7.0;
@@ -578,13 +605,14 @@ fn panel_svg(
             ));
             // Above the first panel, on its axis title's line, as hatching never goes behind
             // text: from the hatching's left edge, or just past the title where the hatching
-            // starts under it, unless that runs past the panel's right edge; then ending there.
+            // starts under it, unless that runs past the panel's right edge; then ending a
+            // character short of it, apart from the US scale's title past it.
             if first {
                 let start = x0.max(LEFT + 160.0);
                 let (x, anchor) = if right - start >= 130.0 {
                     (start, "start")
                 } else {
-                    (right, "end")
+                    (right - 8.0, "end")
                 };
                 svg.push_str(&format!(
                     "<text x=\"{x:.1}\" y=\"{:.1}\" text-anchor=\"{anchor}\" \
@@ -614,6 +642,7 @@ fn panel_svg(
         ));
         k += 1;
     }
+    us_scale(svg, panel, top, lo, hi, &y_of);
     for group in groups {
         svg.push_str(&format!(
             "<line x1=\"{x:.1}\" y1=\"{top:.1}\" x2=\"{x:.1}\" y2=\"{bottom:.1}\" \
@@ -655,6 +684,84 @@ fn panel_svg(
         ));
     }
     svg.push_str("</g>\n");
+}
+
+/// A panel's right scale, in its US unit: its title over it, on the line of the panel's own, the
+/// right axis, and a tick mark and label at each of [`inner_ticks`]' round values within the
+/// panel's SI axis, `lo` to `hi`. It has no gridlines: those are the SI scale's.
+fn us_scale(
+    svg: &mut String,
+    panel: &Panel,
+    top: f64,
+    lo: f64,
+    hi: f64,
+    y_of: &dyn Fn(f64) -> f64,
+) {
+    let right = WIDTH - RIGHT;
+    let bottom = top + PANEL_HEIGHT;
+    svg.push_str(&format!(
+        "<text x=\"{:.1}\" y=\"{:.1}\" fill=\"{INK_MUTED}\">{}</text>\n\
+         <line x1=\"{right}\" y1=\"{top:.1}\" x2=\"{right}\" y2=\"{bottom:.1}\" \
+         stroke=\"{RULE_STRONG}\" stroke-width=\"1\"/>\n",
+        right + 2.0 * TICK,
+        top - 12.0,
+        panel.us_unit,
+    ));
+    let (ticks, step) = inner_ticks(lo / panel.us_unit_si, hi / panel.us_unit_si);
+    for v in ticks {
+        let y = y_of(v * panel.us_unit_si);
+        svg.push_str(&format!(
+            "<line x1=\"{right}\" y1=\"{y:.1}\" x2=\"{:.1}\" y2=\"{y:.1}\" \
+             stroke=\"{RULE_STRONG}\" stroke-width=\"1\"/>\
+             <text x=\"{:.1}\" y=\"{:.1}\" fill=\"{INK_MUTED}\">{}</text>\n",
+            right + TICK,
+            right + 2.0 * TICK,
+            y + 4.0,
+            number(v, step_decimals(step))
+        ));
+    }
+}
+
+/// The ticks of a second scale over `lo` to `hi`, all inside it, and their step: the longest step
+/// of 1, 2, 2.5 or 5 times a power of ten that puts at least 3 ticks on it. That leaves at most 6,
+/// the product system's 3 to 6 (`product/data.md`): the step before it put at most 2 on the span,
+/// so the span is under 3 of that step, and each step is at least half the one before, so under
+/// 6 of this one. None on a span that is empty or not finite.
+fn inner_ticks(lo: f64, hi: f64) -> (Vec<f64>, f64) {
+    let span = hi - lo;
+    if !(span.is_finite() && span > 0.0 && lo.is_finite() && hi.is_finite()) {
+        return (Vec::new(), 1.0);
+    }
+    // From a step at least as long as the span, which puts at most 2 ticks on it, downward.
+    let top = span.log10().ceil();
+    for decade in 1..40 {
+        let magnitude = 10f64.powf(top - f64::from(decade));
+        for factor in [10.0, 5.0, 2.5, 2.0] {
+            let step = factor * magnitude;
+            let first = (lo / step - 1e-9).ceil();
+            let last = (hi / step + 1e-9).floor();
+            if last - first + 1.0 >= 3.0 {
+                let ticks = (0..)
+                    .map(|k| (first + f64::from(k)) * step)
+                    .take_while(|v| *v <= hi + step * 1e-9)
+                    .take(7)
+                    .collect();
+                return (ticks, step);
+            }
+        }
+    }
+    (Vec::new(), 1.0)
+}
+
+/// The decimals a tick step needs to print exactly: none for 5 or 250, one for 0.5 or 2.5, two
+/// for 0.25.
+fn step_decimals(step: f64) -> usize {
+    (0..=12)
+        .find(|&decimals| {
+            let scaled = step * 10f64.powi(decimals as i32);
+            (scaled - scaled.round()).abs() < 1e-6 * scaled.max(1.0)
+        })
+        .unwrap_or(12)
 }
 
 /// A pixel coordinate, held to where a viewer draws: a value far off its axis draws past the

@@ -189,8 +189,10 @@ out.
   as an SVG in the FusionSpace chart style
   ([Plotting the flight](cli.md#plotting-the-flight); [M4.5e](decisions-and-roadmap.md#m4-5e),
   plots; [M0.6c](decisions-and-roadmap.md#m0-6c), their style).
-- **`hpr sim` reads by name.** It leads with the static margin, apogee, rail exit speed, ejection
-  delay and the descent speed under open parachutes, and calls configurations and parts by name,
+- **`hpr sim` reads by name.** It leads with the static margin and the center of gravity and
+  center of pressure it came from, apogee, rail exit speed, ejection delay and the descent speed
+  under open parachutes, each height and speed in SI with feet or feet per second in parentheses
+  ([units](cli.md#units)), and calls configurations and parts by name,
   such as `[C6-5]` for a configuration the file leaves unnamed
   ([M4.5d](decisions-and-roadmap.md#m4-5d), readable output). It flies a
   `.ork` file's parachutes and streamers, and its powered separations, one or several
@@ -390,7 +392,7 @@ the simulator's internal name, then software tool 1.
 | Version | 0.1.0, not yet released |
 | Date of issue | <span id="issue-date">the date of the commit the site is built from</span> |
 | Status | IN PREPARATION: no release yet; how far to trust each result is [above](#how-far-to-trust-it) |
-| Units | SI (meters, kilograms, seconds); `hpr sim`'s summary adds feet and feet per second in parentheses after lengths and speeds |
+| Units | SI (meters, kilograms, seconds) first. The text of `hpr sim` and `hpr mc` adds US units in parentheses: feet after heights and distances, feet per second after speeds, miles per hour after the wind and inches after stations along the rocket; `hpr motors show` adds ounces or pounds and inches. The plot gives a second scale in feet, feet per second and g. JSON and exported files stay SI ([units](cli.md#units)) |
 | Data | Thrust curves: ThrustCurve.org's public-domain files, catalog captured 2026-09-17. Atmosphere: U.S. Standard Atmosphere 1976, or a sounding or forecast you supply or fetch ([weather](weather.md)). Magnetic field: WMM2025. Accuracy: the committed [validation report][report]. Every source and its terms: [third-party notices][notices]. |
 | Fonts | Archivo and Cascadia Mono, SIL Open Font License 1.1, served from this site; no page asks another server for anything |
 
