@@ -368,7 +368,9 @@ fn the_figure_names_its_tool_and_version_where_a_reader_sees_them() {
 #[test]
 fn the_figure_dates_the_motor_catalog_in_its_title_block() {
     let long = format!("{}.plot.csv", "a-long-flight-name-".repeat(7));
-    for data_file in ["probe.plot.csv", long.as_str()] {
+    // Symbols a fallback face may draw two cells wide.
+    let marks = format!("{}.plot.csv", "✅⭐".repeat(65));
+    for data_file in ["probe.plot.csv", long.as_str(), marks.as_str()] {
         let points = [point(0.0, 0.0), point(10.0, 50.0)];
         let svg = svg(&Figure {
             title: "Probe",
@@ -391,7 +393,11 @@ fn the_figure_dates_the_motor_catalog_in_its_title_block() {
             assert_eq!(data, data_file);
         } else {
             let kept = data.strip_suffix('…').unwrap();
-            assert!(long.starts_with(kept) && kept.len() > 100, "{data}");
+            assert!(data_file.starts_with(kept), "{data}");
+            // Inside its cell even at two cells a character past ASCII, 0.6 em a cell.
+            let cells: usize = kept.chars().map(|c| if c.is_ascii() { 1 } else { 2 }).sum();
+            let inner = WIDTH - MARGIN - LEFT - 2.0 * CELL_PAD;
+            assert!((cells + 1) as f64 * 0.6 * 12.0 <= inner, "{data}");
         }
         assert_eq!(
             texts(&document)

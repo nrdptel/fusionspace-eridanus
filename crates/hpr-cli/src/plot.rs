@@ -1112,22 +1112,12 @@ fn width_px(s: &str) -> f64 {
         * CHAR_PX
 }
 
-/// Whether `c` is set two cells wide in a fixed-width face: the East Asian wide and full-width
-/// blocks (Hangul jamo and syllables, CJK, Kana, Yi, the compatibility and full-width forms) and
-/// the pictographs and emoji, as terminals count them.
+/// Whether `c` may draw two cells wide, counted so for safety: every character from U+1100 on,
+/// where the East Asian scripts, the symbols and the emoji start, but the general punctuation
+/// (U+2000 to U+206F: dashes, quotes, the ellipsis), which fixed-width faces set one cell wide.
+/// Counting a narrow character as wide only cuts a name sooner; the reverse would overrun.
 fn wide(c: char) -> bool {
-    matches!(
-        c,
-        '\u{1100}'..='\u{115F}'
-            | '\u{2E80}'..='\u{A4CF}'
-            | '\u{AC00}'..='\u{D7A3}'
-            | '\u{F900}'..='\u{FAFF}'
-            | '\u{FE30}'..='\u{FE4F}'
-            | '\u{FF00}'..='\u{FF60}'
-            | '\u{FFE0}'..='\u{FFE6}'
-            | '\u{1F300}'..='\u{1FAFF}'
-            | '\u{20000}'..='\u{3FFFD}'
-    )
+    c >= '\u{1100}' && !('\u{2000}'..='\u{206F}').contains(&c)
 }
 
 /// `s` [`cut`] to the most characters that draw within `px`, its ellipsis, one cell, counted.
