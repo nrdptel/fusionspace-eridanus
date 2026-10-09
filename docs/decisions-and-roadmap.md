@@ -229,6 +229,7 @@ until someone rewrites it in plainer words.
 | [ADR-206: The name check in two steps: the packages' text, then the site][adr-206] | [M0.9a](#m0-9a) is split. [M0.9a1](#m0-9a1) builds `cargo xtask names` with both of [ADR-205][adr-205]'s rules, its allowlist and its tests, and holds every surface [ADR-205][adr-205] §1 lists to it except the site's pages: the text that ships inside a published package (the README, the crates' descriptions, READMEs, rustdoc and messages, the Python package, the schemas and their bindings, the licenses, notices and CHANGELOG) and the banners, plus the landing page, whose first paragraph now names the suite. [M0.9a2](#m0-9a2) adds the pages `SUMMARY.md` renders and the records page, about 2,300 more mentions. Release 0.1 waits for [M0.9a1](#m0-9a1) only, since a published version's package text is fixed and the site's is not. Code compiled only for tests ships nothing and is not checked; a string literal's `hpr` is the command when a subcommand, a flag or a placeholder follows it. |  |
 | [ADR-207: The name check on the site's pages][adr-207] | [M0.9a2](#m0-9a2) holds every page `SUMMARY.md` renders, and `SUMMARY.md` itself, to `cargo xtask names`. About 2,280 mentions were rewritten: comparisons and tables say "HPR Sim", other prose "the simulator" or "this project", the command and library `hpr` in code. Two names keep the old one by rule, not by entry: a decision record's file name and the flight engine's folder in a path, `crates/hpr-sim/`. On the records page, a decision record's row inherits a whole-page allowance of the record its first cell's `[adr-NNN]` link names, and nothing else there inherits. 15 entries keep the site's anchors, stamps and history, and 73 records up to [ADR-205][adr-205] are allowed whole for their rows. 16 headings that said `hpr` were rewritten, 15 of them with new anchors, and every link to those changed. |  |
 | [ADR-208: The design audit: 112 sections against what ships, and three increments to close it][adr-208] | `docs/research/design-conformance.md` rows all 112 `##` sections of the FusionSpace product system's 14 `product/` files at the pinned commit `f45454f`. 64 sections sit in the eight files that govern a surface shipping today. Of those, 8 are met (5 held by named tests, 3 by review), 49 are not met, 3 wait for a later surface and 4 govern nothing the project ships. The 48 sections of the platform files (desktop, mobile, watch, embedded, hardware, rockets) wait for the milestones that build those surfaces, except one that never applies. The 49 gaps are 11 issues, #377 to #387, fixed by three new increments queued before the guides: [M0.9c](#m0-9c) (the command line, the exports and the plot), [M0.9d](#m0-9d) (the site's look) and [M0.9e](#m0-9e) (the words). `xtask/src/conformance.rs` fails when a section is missing, the pin moves, a named test isn't live or a named milestone isn't open. Release 0.1 still doesn't wait for the audit ([ADR-205][adr-205] §3), but `review.md`'s *Before release* lists, which [ADR-164][adr-164] §5 applies from 0.1, are not all met. |  |
+| [ADR-209: Neer's 2026-10-08 standard: the best on the market, measured, for every product][adr-209] | every product aims to be the best available: never worse than the best comparable tool on any axis, and decisively better on the two or three axes its users care most about, plus at least one useful capability no other tool has. Claims stand only on committed comparisons. A generated scoreboard ratchets: a release can't make a number worse without an ADR ([M0.10](#m0-10)). Accuracy is judged on held-out logged flights with predictions recorded before the comparison ([M2.7](#m2-7)), and uncertainty on whether its ranges hold real flights as often as they say ([M2.8](#m2-8)). Release 0.3 needs held-out mean absolute apogee error below OpenRocket's on the same flights, absolute bias within 3% and 50% and 90% ranges that hold the logs as often as they say, or, only after the accuracy campaign ends by its stop rule, an ADR with the miss. An open benchmark ([M2.6](#m2-6)), a correction for the bias every simulator shares ([M7.5](#m7-5)), steps-to-first-answer measurement now ([M0.11](#m0-11)) and tests by flyers outside the project at 0.5 complete it. Each guide has a *Compared with* section; each product line starts with a survey. The core is the project's own; outside tools are oracles, and every product reads and writes every format its users have. Each regular planning review also measures the products' and the work's speed. |  |
 
 ## The roadmap
 
@@ -341,6 +342,8 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9c3"></a>[M0.9c3][phase-0] | Provenance, errors and the plot | not yet done |
 | <a id="m0-9d"></a>[M0.9d][phase-0] | The site to the design | not yet done |
 | <a id="m0-9e"></a>[M0.9e][phase-0] | The words to the design | not yet done |
+| <a id="m0-10"></a>[M0.10][phase-0] | The scoreboard | not yet done |
+| <a id="m0-11"></a>[M0.11][phase-0] | Steps to a first answer | not yet done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |
 | <a id="m1-2"></a>[M1.2][done-1] | The atmosphere and wind | done |
 | <a id="m1-3"></a>[M1.3][done-1] | Solid motors: thrust curves, motor files, and mass through the burn | done |
@@ -466,6 +469,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-3c1"></a>[M2.3c1][done-1] | Logged apogees: the private collection's logged flights against HPR Sim's and OpenRocket's predictions | done |
 | <a id="m2-3c2"></a>[M2.3c2][phase-1] | Logged traces: the same flights' altitude traces, once their logs are read | not yet done |
 | <a id="m2-4"></a>[M2.4][done-1] | A summary of accuracy for the README, and CI that fails on any regression ([ADR-084][adr-084], [Accuracy: the census](accuracy.md#the-census)) | done |
+| <a id="m2-6"></a>[M2.6][phase-1] | An open benchmark | not yet done |
+| <a id="m2-7"></a>[M2.7][phase-1] | Held-out flights, predictions first | not yet done |
+| <a id="m2-8"></a>[M2.8][phase-1] | Honest uncertainty | not yet done |
 | <a id="m3-1"></a>[M3.1][done-1] | Reading OpenRocket `.ork` design files | done |
 | <a id="m3-1a"></a>[M3.1a][done-1] | The container a `.ork` arrives in, and its design document read whole | done |
 | <a id="m3-1b"></a>[M3.1b][done-1] | The component tree: parts, shapes, materials, finishes and overrides into a design | done |
@@ -581,6 +587,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
+| <a id="m7-5"></a>[M7.5][phase-6] | The bias every simulator shares | not yet done |
 | <a id="m8-1"></a>[M8.1][phase-6] | A design assistant | not yet done |
 | <a id="m8-2"></a>[M8.2][phase-6] | An editing model for apps: commands, undo and stable ids | not yet done |
 | <a id="m8-3"></a>[M8.3][phase-6] | CAD interop: parts and designs out to meshes, drawings, FreeCAD and STEP, and meshes or STEP solids in as custom parts, through files only ([ADR-144][adr-144]) | not yet done |
@@ -936,6 +943,7 @@ is the milestone that added or will add that test.
 [adr-206]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0206-the-name-check-in-two-steps.md
 [adr-207]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0207-the-name-check-on-the-site.md
 [adr-208]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0208-the-design-audit.md
+[adr-209]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0209-the-2026-10-08-best-on-the-market-measured.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

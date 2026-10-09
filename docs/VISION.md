@@ -124,6 +124,9 @@ checkable items.
   hpr.fusionspace.co was still headlined by hpr-sim. A global overhaul so that the naming and the
   design standards line up with `fusionspace-design` everywhere, with no holes; the docs cover
   only the simulator today, and that will change.
+- **2026-10-08, the best on the market** ([ADR-209, the best on the market, measured](decisions/0209-the-2026-10-08-best-on-the-market-measured.md)).
+  Every product aims to beat the best comparable tool on accuracy, fidelity, resolution and ease of use,
+  and to do useful things no other tool does; each claim is measured, and each release's guide compares.
 
 **Operating envelope** (ADR-143): the bands are set by Mach alone. Accuracy work goes first to the
 core band, Mach 0–2.5. hpr flies the extended band, Mach 2.5–3.5, with its accuracy checked less,
@@ -213,6 +216,9 @@ Decisions Neer confirmed at kickoff:
 5. **Offline at the pad.** Nothing essential depends on a network.
 6. **Readable by people.** The documentation is how a person understands and checks this code. A
    newcomer finds any answer in two clicks and follows it without reading the source.
+7. **The best on the market, measured.** Each product beats the best comparable tool on
+   accuracy, fidelity, resolution and ease of use, and does something useful none of them does;
+   every such claim stands on a committed comparison (ADR-209).
 
 ## Beyond the brief: ideas to consider (keep, drop, or queue each through the roadmap)
 
