@@ -50,6 +50,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9c5 Provenance ([Phase 0](#phase-0-foundations))
 - M0.9c6 Errors and typed numbers ([Phase 0](#phase-0-foundations))
 - M0.9c7 The plot's type and spacing ([Phase 0](#phase-0-foundations))
+- M0.9c8 Provenance on every export ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -409,6 +410,8 @@ One line per milestone or increment, in the order it was archived within its pha
       caption, line and marker spacing sit on the 4 px token scale, its time axis title sits at the
       axis's end, and its caption and notes join each number to its unit with a non-breaking
       space; each held by a plot test that fails on the build before it.
+    - [x] **M0.9c8 Provenance on every export** (#403; ADR-214). *Done when:* it is closed, with
+      every item it lists, each held by a test that fails on the build before it.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

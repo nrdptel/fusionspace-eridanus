@@ -69,8 +69,9 @@ FusionSpace product system, the way a drawing's title block names the tool that 
   every JSON reader reads back as the dot. In GeoJSON the object is a *foreign member*, a key the
   standard doesn't define, which RFC 7946 (section 6.1) allows and map programs pass over.
 - **KML:** a comment on the second line, `<!-- FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001 -->`.
-- **Parquet:** three entries of the file's key-value metadata: `tool` (`FusionSpace HPR`), `tool_version`
-  and `designation`. pyarrow shows them with `pyarrow.parquet.read_metadata(path).metadata`.
+- **Parquet:** the first three entries of the file's key-value metadata: `tool` (`FusionSpace HPR`),
+  `tool_version` and `designation`. pyarrow shows them with
+  `pyarrow.parquet.read_metadata(path).metadata`.
 
 The CSV holds only the header and the rows, so a spreadsheet opens it cleanly. Its header gives
 each column in words with its unit in brackets, as the FusionSpace product system writes one:
@@ -92,11 +93,22 @@ name, the design and configuration flown, the number of rows, and:
 
 A JSON recording from `hpr sim` carries the same three, with `design` and `configuration`, between
 `tool` and `columns`, so a saved flight keeps its note. `hpr mc --export`'s sidecar carries them
-too, with `hpr mc`'s own note. GeoJSON, KML and Parquet name the program and its version but not
-yet the catalog's date or the note
-([#403](https://github.com/nrdptel/fusionspace-eridanus/issues/403)): keep the JSON or the CSV
-and its sidecar beside them. The library's `export::csv` writes the
-CSV alone, and `export::json` the rows alone; `export::json_with` adds a program's own fields.
+too, with `hpr mc`'s own note. Every other file `hpr sim --export` writes carries the five as well,
+so a map or a table copied away from the rest still says how old its motor data is and how far to
+trust it:
+
+- **GeoJSON:** `design`, `configuration`, `catalog_as_of`, `kind` and `trust` as foreign members
+  between `tool` and `features`, as in the JSON recording.
+- **KML:** the `Document`'s `description`, which Google Earth shows under the file's name:
+  `Motor catalog as of 2026-09-17.` followed by the note.
+- **Parquet:** five more entries of the key-value metadata after the program's three, under the
+  same names, each value as text (`kind` is `simulated`).
+
+The `--plot` figure gives the catalog's date too, on the line above its last
+([Plotting the flight](cli.md#plotting-the-flight)). The library's `export::csv` writes the CSV alone,
+and `export::json`, `export::geojson`, `export::kml` and `export::parquet` write no more than the
+program's name; `export::json_with`, `export::geojson_with`, `export::kml_with` and
+`export::parquet_with` add a program's own fields.
 
 To look at the Parquet file from Python, install pandas and pyarrow (`pip install pandas pyarrow`;
 pandas can't read Parquet on its own), then:

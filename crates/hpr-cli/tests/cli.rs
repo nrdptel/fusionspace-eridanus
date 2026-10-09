@@ -1694,9 +1694,18 @@ fn sim_flies_a_motor_file_as_the_library_does() {
             .map(|e| e["format"].as_str().unwrap())
             .collect();
         assert_eq!(written, ["csv", "json", "parquet", "geojson", "kml"]);
+        // The Parquet file's rows are the library's, with the JSON recording's fields after the
+        // program's pairs in its footer.
+        let recording: Value =
+            serde_json::from_str(&std::fs::read_to_string(&exports[1]).unwrap()).unwrap();
+        let keys = ["design", "configuration", "catalog_as_of", "kind", "trust"];
+        let about: Vec<(&str, &str)> = keys
+            .iter()
+            .map(|key| (*key, recording[key].as_str().unwrap()))
+            .collect();
         assert_eq!(
             std::fs::read(&exports[2]).unwrap(),
-            hpr::hpr_sim::export::parquet(&recorder).unwrap()
+            hpr::hpr_sim::export::parquet_with(&recorder, &about).unwrap()
         );
         // With no recovery device opened, the maps pin no landing: only the path.
         let map: Value =

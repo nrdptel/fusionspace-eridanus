@@ -807,6 +807,12 @@ reader reads out. Numbers on the figure are written for reading, `1,000` and a r
 the balloons' tooltips, a number and its unit are joined by a no-break space, so a wrapped line
 never ends between `100.0` and `m`.
 
+Under the event table the figure ends as a printed copy should, so a plot on paper says where it
+came from: the [accuracy note](#the-accuracy-note-on-every-result); the day the bundled motor
+catalog was downloaded, `Motor catalog as of 2026-09-17.`, as the
+[exports](exporting-a-flight.md#which-program-wrote-a-file) carry it; and last, as a drawing's
+title block, the program, its version and its designation.
+
 The text is set in Cascadia Mono where it is installed, else another fixed-width font, so the
 lines keep their widths. The title is 20 px; all other text, the balloons' numbers included, is
 12 px, the smallest size the FusionSpace product system allows on a screen. The caption, balloon

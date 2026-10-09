@@ -69,6 +69,7 @@ fn figure_svg(title: &str, unpredicted: Option<(f64, f64)>) -> String {
     svg(&Figure {
         title,
         subtitle: "configuration 1 of 1: [H54-10]",
+        catalog_as_of: "2026-01-02",
         points: &points,
         events: &events,
         devices: &devices,
@@ -209,6 +210,7 @@ fn a_grouped_event_keeps_its_time() {
     let svg = svg(&Figure {
         title: "t",
         subtitle: "s",
+        catalog_as_of: "2026-01-02",
         points: &points,
         events: &events,
         devices: &devices,
@@ -299,6 +301,26 @@ fn the_figure_names_its_tool_and_version_where_a_reader_sees_them() {
         .collect();
     assert_eq!(texts.last(), Some(&stamp.as_str()), "{svg}");
     assert_eq!(texts.iter().filter(|text| **text == stamp).count(), 1);
+}
+
+/// The figure gives the bundled motor catalog's as-of date as the exports do (#403): on its own
+/// line after the trust note and above the title block's, so a printed copy carries it too.
+/// Before #403 the plot gave no date.
+#[test]
+fn the_figure_dates_the_motor_catalog_above_its_title_block_line() {
+    let svg = figure_svg("Probe", None);
+    let document = roxmltree::Document::parse(&svg).unwrap();
+    let texts = texts(&document);
+    let n = texts.len();
+    assert_eq!(texts[n - 2], "Motor catalog as of 2026-01-02.", "{svg}");
+    assert!(texts[n - 3].ends_with("accuracy.html"), "{svg}");
+    assert_eq!(
+        texts
+            .iter()
+            .filter(|text| text.contains("2026-01-02"))
+            .count(),
+        1
+    );
 }
 
 /// An unpredicted span is hatched in every panel, labelled above the first, outside the
@@ -393,6 +415,7 @@ fn a_long_event_line_wraps() {
     let svg = svg(&Figure {
         title: &title,
         subtitle: &subtitle,
+        catalog_as_of: "2026-01-02",
         points: &points,
         events: &events,
         devices: &devices,
@@ -458,6 +481,7 @@ fn each_panel_gives_its_us_units_on_a_right_scale() {
     let svg = svg(&Figure {
         title: "t",
         subtitle: "s",
+        catalog_as_of: "2026-01-02",
         points: &points,
         events: &[apogee],
         devices: &[],
@@ -695,6 +719,7 @@ fn the_figure_describes_its_apogee_and_top_speed() {
     let mut figure = Figure {
         title: "t",
         subtitle: "s",
+        catalog_as_of: "2026-01-02",
         points: &[],
         events: &[],
         devices: &[],
@@ -1177,6 +1202,7 @@ fn a_number_keeps_its_unit_on_its_line() {
     let summary = summary(&Figure {
         title: "t",
         subtitle: "s",
+        catalog_as_of: "2026-01-02",
         points: &[],
         events: &[],
         devices: &[],

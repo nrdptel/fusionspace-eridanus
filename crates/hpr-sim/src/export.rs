@@ -44,7 +44,7 @@ use crate::recorder::Recorder;
 #[cfg(feature = "parquet")]
 mod parquet;
 #[cfg(feature = "parquet")]
-pub use parquet::{PARQUET_PAGE_ROWS, parquet};
+pub use parquet::{PARQUET_PAGE_ROWS, parquet, parquet_with};
 
 /// The `tool` object a JSON or GeoJSON export opens with: the program's name, version and
 /// designation, from [`hpr_core::tool`].
