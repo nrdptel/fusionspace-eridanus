@@ -162,7 +162,7 @@ q̇   = ½ q ⊗ (0, ω)
   its one-sided limit inside the burn, `t` clamped to `(0, t_end)`. The last stage of the step
   ending at burnout (or the first after ignition) then sees the burning motor, including the
   pressure correction that switches off at `t_end`. Without this, fixed-step RK4 converged at
-  first order (5.1 mm of apogee at 2 ms).
+  first order (5.1 mm (0.20 in) of apogee at 2 ms).
 - **Measured thrust curves and the internal-momentum terms.** A static test measures
   `T_exit − dP_int/dt`, where `P_int = m r′ − ṁ(n − r)` is the internal momentum of the burning
   propellant, so a `.eng` curve already contains it. `T04` subtracts `−m r″ − 2ṁ r′ + m̈(n − r)`
@@ -171,7 +171,7 @@ q̇   = ½ q ⊗ (0, ω)
     The form is exact for the [RP-EOM] model, not for a measured curve.
   - The size of the double count on Valetudo: it lifts off at 1.56 ms with 73 N of thrust against
     95 N of weight, 21 N coming from `m̈(n − r)`, and it changes the burnout speed by at most
-    0.05 m/s.
+    0.05 m/s (0.16 ft/s).
 - **Earth's rotation.** It enters only through the Coriolis force. The rotational equations use
   `ω` relative to `L`, which differs from the inertial rate by at most 7.3e-5 rad/s ([Frames](frames.md),
   and the rigid-body flight decision [ADR-011][adr-011]).
@@ -317,8 +317,8 @@ q̇   = ½ q ⊗ (0, ω)
 
 - **Defaults.** `FlightSettings::default()` uses Dormand–Prince 5(4) with `rtol = atol = 1e-8`
   and unit weights, a one-hour cap and 10⁶ steps.
-- **Accuracy against cost.** Measured on Valetudo (K400C), with a 5 m/s wind from the west,
-  compared with the apogee at 1e-11 (873.98272 m):
+- **Accuracy against cost.** Measured on Valetudo (K400C), with a 5 m/s (16 ft/s) wind from the west,
+  compared with the apogee at 1e-11 (873.98272 m (2,867.3974 ft)):
 
   | `rtol = atol` | apogee error | flight time (release) |
   |---|---|---|
@@ -332,7 +332,7 @@ q̇   = ½ q ⊗ (0, ω)
 Unit tests in `hpr_sim::tests`, `hpr_sim::dynamics::tests` and `hpr_sim::rail::tests`, at the
 default settings. The numbers were measured on 2026-09-17.
 
-- **Vacuum ballistic.** A tumbling, spinning Valetudo in a vacuum, from the nose tip at 500 m with
+- **Vacuum ballistic.** A tumbling, spinning Valetudo in a vacuum, from the nose tip at 500 m (1,640 ft) with
   `v = (30, −20, 80)` m/s.
   - The center of mass stays on the closed-form parabola to 1.7e-6 m over 22 s.
   - The angular momentum stays constant to 7.8e-7 (relative).
@@ -344,7 +344,7 @@ default settings. The numbers were measured on 2026-09-17.
   (`I_a/I_t` = 0.0019) spinning at 25 rad/s with a transverse rate turns in body axes at
   `Ω = (I_a − I_t) ω_z/I_t` = −24.95 rad/s. The rate matches to 4.7e-7 rad/s over 3 s, and the
   angular momentum in `L` holds to 1.5e-6.
-- **Pitch oscillation against linear theory.** At 100 m/s with no drag or gravity, the two-state
+- **Pitch oscillation against linear theory.** At 100 m/s (328 ft/s) with no drag or gravity, the two-state
   linear model (path turning, restoring moment `K₁`, rotational damping `K₂`) predicts a
   1.44954 s period. The flight measures 1.44965 s (8e-5), and the decay per half period is within
   0.2% of the model's.
@@ -354,8 +354,8 @@ default settings. The numbers were measured on 2026-09-17.
   equation, integrated independently from the motor and the assembly, to 4.3e-8 m/s.
 - **Rail friction.** At 60°, `μ = 0.3` removes exactly `μ g cos E` from the acceleration along the
   rail.
-- **[Loft lesson L20](../decisions-and-roadmap.md#l20), weathercocking.** In a 5 m/s wind from the west, Valetudo's unit
-  axis has an east component of −0.12 at burnout. Its apogee is 96 m upwind, against 1.0 m (Earth
+- **[Loft lesson L20](../decisions-and-roadmap.md#l20), weathercocking.** In a 5 m/s (16 ft/s) wind from the west, Valetudo's unit
+  axis has an east component of −0.12 at burnout. Its apogee is 96 m (315 ft) upwind, against 1.0 m (3.3 ft, Earth
   rotation) in calm air.
 - **Calm vertical.** With no wind and no Earth rotation the rocket falls tail first after apogee
   and still lands, in under 20,000 evaluations.
@@ -363,7 +363,7 @@ default settings. The numbers were measured on 2026-09-17.
   and 2.1e-7 s.
 - **Burnout at an event.** A user event on the thrust fires at burnout, and burnout is still
   recorded once.
-- **`StalledOnRail`.** A 2000 m rail gives it, with only liftoff and burnout recorded.
+- **`StalledOnRail`.** A 2000 m (6,562 ft) rail gives it, with only liftoff and burnout recorded.
 - **Errors and reuse.** Observer errors end the flight with that error. Starts before ignition
   or underground are refused. A cleared recorder records the same rows again. `Simulation`,
   `Environment` and `Recorder` are `Send + Sync`.
@@ -372,16 +372,16 @@ default settings. The numbers were measured on 2026-09-17.
 - **[Loft lesson L25](../decisions-and-roadmap.md#l25).** A normal flight hits the ground. A rail with `μ = 20` at 60° gives
   `NoLiftoff` at rest. A 5 s cap gives `TimeCap` at exactly 5 s, and a 40-step limit gives
   `StepLimit`.
-- **[Loft lesson L26](../decisions-and-roadmap.md#l26).** On a 3 m rail tilted to 1.3 rad, the rail exit comes at the last
+- **[Loft lesson L26](../decisions-and-roadmap.md#l26).** On a 3 m (9.8 ft) rail tilted to 1.3 rad, the rail exit comes at the last
   button's travel to 1e-6 m. Across the rail the rocket stays within 1e-9 m, with no rotation.
   Friction (`μ = 0.3`) delays the exit and slows it.
-- **A tilted rail against OpenRocket.** From a 1 m rod tilted 5 to 20 degrees, HPR Sim's rocket is on
+- **A tilted rail against OpenRocket.** From a 1 m (3.3 ft) rod tilted 5 to 20 degrees, HPR Sim's rocket is on
   OpenRocket's bearing at apogee to within 0.03 degrees and loses the same apogee to within 0.27
   percentage points ([`.ork`: a tilted launch rod](../format/ork.md#a-tilted-launch-rod)).
 - **Events and recorder.** Events come in order: liftoff, rail exit, burnout, apogee, ground hit.
   Apogee's vertical speed is below 1e-6 m/s and ground contact's height below 1e-6 m. Recorder rows
   fall on the interval or at events.
-- **Through Mach 1.** The synthetic 54 mm rocket on an I175 passes Mach 1 and lands, both on
+- **Through Mach 1.** The synthetic 54 mm (2.1 in) rocket on an I175 passes Mach 1 and lands, both on
   HPR Sim's own drag and on a constant drag table.
 - **Cost.** About 1.1 ms per Valetudo flight to the ground (`docs/perf.md`).
 
@@ -407,13 +407,13 @@ and a declared wind.
 What the two codes still do differently, and how much it moves:
 
 - **The wind.** A rocket that leaves the rail slowly in a wind meets the air at a steep angle:
-  Juno III at 18 m/s in an 8.5 m/s wind, 26° off the airflow. There HPR Sim's normal force includes
+  Juno III at 18 m/s (59 ft/s) in an 8.5 m/s (28 ft/s) wind, 26° off the airflow. There HPR Sim's normal force includes
   body lift ([Aerodynamics](aero.md#bodies-of-revolution)), which RocketPy's leaves out. Much of
   it acts ahead of the center of mass, the nose's above all, so it moves the center of pressure
   forward and weakens the turn into the wind, and HPR Sim turns into it less: Juno III's apogee
-  is 245.3 m from the pad in HPR Sim and 396.6 m in RocketPy. Given HPR Sim's body lift, its rail
+  is 245.3 m (805 ft) from the pad in HPR Sim and 396.6 m (1,301 ft) in RocketPy. Given HPR Sim's body lift, its rail
   release and its flat-plate fin slope (it cannot model the airfoil lift curve Juno III's example
-  gives its fins), RocketPy puts it 248.3 m out, and every windy drift within 1.3% of HPR Sim's
+  gives its fins), RocketPy puts it 248.3 m (815 ft) out, and every windy drift within 1.3% of HPR Sim's
   ([ADR-026][adr-026]). HPR Sim's growth of drag with the angle of attack moves no drift by more than
   0.1%.
 - **RocketPy's equations, corrected.** HPR Sim's equations of motion follow RocketPy's technical

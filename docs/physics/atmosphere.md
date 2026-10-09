@@ -10,13 +10,13 @@
   of Observation* (WMO-No. 8, 2023); the CIPM-2007 moist-air density formula (Picard et al.,
   2008).
 - **How well it is validated:** every value within 0.1% of the 1976 tables at 32 altitudes from
-  −2 to 86 km; humid density within 0.047% of CIPM-2007 over 15–27 °C. Against RocketPy, its
+  −2 to 86 km (−1.2 to 53 mi); humid density within 0.047% of CIPM-2007 over 15–27 °C. Against RocketPy, its
   density agrees within 3.7e-4 over the 23 heights its parachute descents sample
   ([Recovery](recovery.md#against-rocketpy)). Its pressure altitude matches two flight logs'
-  own altimeter readings of their pressure, to 0.195 m and 1.321 m
+  own altimeter readings of their pressure, to 0.195 m (0.64 ft) and 1.321 m (4.33 ft)
   ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md)); the air itself has no real-flight check.
 - **What it leaves out:** a real day's changes aloft. A field-condition offset holds all the way
-  up (+20 K at a 1400 m field puts density +30% off the standard's at 30 km), so higher flights
+  up (+20 K at a 1400 m (4,593 ft) field puts density +30% off the standard's at 30 km (19 mi)), so higher flights
   need a sounding. Viscosity ignores humidity, which lowers it 2.1% at 30 °C and saturation.
 
 ## Code and sources
@@ -40,7 +40,7 @@ core's heights are ellipsoidal ([Frames](frames.md)), so the flight engine subtr
 first: `H_msl = h − N`. Samples carry an `extrapolated` flag, set whenever a model answers outside
 the range it is defined or tabulated over.
 
-## The 1976 standard, −5 km to 86 km
+## The 1976 standard, −5 km (−3.1 mi) to 86 km (53 mi)
 
 Seven layers in geopotential altitude `H`, each with a constant gradient of the molecular-scale
 temperature `T_M` ([USSA] Table 4):
@@ -67,17 +67,17 @@ a   = (γ R* T_M / M₀)^½                                (50)
   - `P₀ = 101325 Pa`, `T₀ = 288.15 K`, `γ = 1.40`, `β = 1.458e-6`.
   - `S = 110.4 K` (p. 19). Table 2 and p. 4 print 110 K, but the tables use 110.4 K: sea-level μ
     is 1.7894e-5 Pa·s with it and 1.7912e-5 with 110.
-- **80 to 86 km:** `M/M₀` comes from Table 8, interpolated linearly in `Z`. The printed tables
-  leave it out below 86 km and print `T = T_M` (p. 9). This model follows the equations, so its
+- **80 to 86 km (50 to 53 mi):** `M/M₀` comes from Table 8, interpolated linearly in `Z`. The printed tables
+  leave it out below 86 km (53 mi) and print `T = T_M` (p. 9). This model follows the equations, so its
   kinetic temperature there is up to 0.036%, and its viscosity up to 0.031%, below the print.
-- **Outside the range:** below −5 km the first layer continues, and above 86 km the atmosphere
+- **Outside the range:** below −5 km (−3.1 mi) the first layer continues, and above 86 km (53 mi) the atmosphere
   is isothermal at 186.87 K. Both are flagged. The real standard is also isothermal from 86 to
-  91 km, then warms, and its composition changes above 86 km. Pressure and density there are
+  91 km (53 to 57 mi), then warms, and its composition changes above 86 km (53 mi). Pressure and density there are
   rough, but tiny.
 - **Loft got this wrong** (Loft lessons [L2](../decisions-and-roadmap.md#l2) to [L4](../decisions-and-roadmap.md#l4)):
-  - It fed geometric altitude to geopotential formulas: at 11 km it gave 216.65 K and 22 632 Pa,
+  - It fed geometric altitude to geopotential formulas: at 11 km (6.8 mi) it gave 216.65 K and 22 632 Pa,
     against 216.774 K and 22 699.96 Pa.
-  - It had only four layers, so at 70 km it gave 335 K against 219.6 K.
+  - It had only four layers, so at 70 km (43 mi) it gave 335 K against 219.6 K.
   - Its Sutherland constants gave a sea-level viscosity 1.3% high.
 
 ## Offsets and launch-site conditions
@@ -93,10 +93,10 @@ aviation convention gives 289.95 K where this gives 288.65 K, and densities 0.38
 height, like a sounding; see the atmosphere decision, [ADR-004][adr-004].
 
 **An anchor's offset holds all the way up,** which a real hot or cold day doesn't. Anchoring
-+20 K at a 1400 m field, at the standard's pressure there, gives these densities against the
++20 K at a 1400 m (4,593 ft) field, at the standard's pressure there, gives these densities against the
 standard (`conventions.py`):
 
-| height | 3 km | 20 km | 30 km |
+| height | 3 km (1.9 mi) | 20 km (12 mi) | 30 km (19 mi) |
 |---|---|---|---|
 | density | −5.7% | +14% | +30% |
 
@@ -121,9 +121,9 @@ In the standard's troposphere this is the altimeter formula
 `H = 44330.8 m × [1 − (P / 101325 Pa)^0.190263]`. The result is in
 [geopotential](../glossary.md#geopotential-height) meters, m′, as an altimeter's is.
 
-**A worked example.** An altimeter on a pad at 86000 Pa reads 1361.8 m′ there. At 58000 Pa it reads
-4464.4 m′, so it logs a climb of 3102.6 m′. On a day 20 K warmer than the standard all the way up,
-with the same sea-level pressure, the same two pressures lie 3318.0 m′ apart: the rocket climbed
+**A worked example.** An altimeter on a pad at 86000 Pa reads 1361.8 m (4,468 ft)′ there. At 58000 Pa it reads
+4464.4 m (14,647 ft)′, so it logs a climb of 3102.6 m (10,179 ft)′. On a day 20 K warmer than the standard all the way up,
+with the same sea-level pressure, the same two pressures lie 3318.0 m (10,886 ft)′ apart: the rocket climbed
 6.9% more than its altimeter says, and the altimeter reads 6.5% less than the climb. Warm air is
 less dense, so pressure falls more slowly with height. In the troposphere, with the sea-level
 pressure unchanged, the ratio is exactly `(T₀ + ΔT) / T₀` = 308.15 / 288.15.
@@ -131,8 +131,8 @@ pressure unchanged, the ratio is exactly `(T₀ + ΔT) / T₀` = 308.15 / 288.15
 **Where it is used.** The simulator's flights don't use it: they fly in the air of the day. The
 real-flight comparison reads the simulator's height through it, from the ERA5 pressure at the center
 of mass, when the log is barometric (`hpr_validate::real_flight::Barometer`). Two logs that record
-their pressure, Prometheus's and Juno III's, are this reading less the first row's, to 0.195 m and
-1.321 m over the rows compared
+their pressure, Prometheus's and Juno III's, are this reading less the first row's, to 0.195 m (0.64 ft) and
+1.321 m (4.33 ft) over the rows compared
 ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md)).
 
 ## Moist air
@@ -172,7 +172,7 @@ catches hPa entered as Pa.
   12.15–12.16), whose gravity is the normal gravity at the site's latitude.
   - Surface gravity runs from 9.780 m/s² at the equator to 9.832 m/s² at the poles, ±0.27%
     around the standard's `g₀`.
-  - Over 2 km at 293 K the same sounding's pressure falls 0.12% more at the pole than at the
+  - Over 2 km (1.2 mi) at 293 K the same sounding's pressure falls 0.12% more at the pole than at the
     equator.
   - A latitude-free geopotential would leave errors of that size.
 - **Between levels,** interpolation runs in `Z`:
@@ -199,8 +199,8 @@ catches hPa entered as Pa.
     saturation).
 - **Geopotential heights.** Soundings (Wyoming's `HGHT`) and forecasts (Open-Meteo's
   `geopotential_height`) report geopotential meters above sea level. Convert them with
-  `geometric_from_wmo_geopotential_m`. At 30 km that is 29.7785 km of geopotential at the
-  equator and 29.932 km at 80° N. The standard's latitude-free `r₀` formula is only for the
+  `geometric_from_wmo_geopotential_m`. At 30 km (19 mi) that is 29.7785 km (18.504 mi) of geopotential at the
+  equator and 29.932 km (18.60 mi) at 80° N. The standard's latitude-free `r₀` formula is only for the
   standard itself.
 - **From an ERA5 file:** `hpr_io::era5` builds this profile over a launch site at launch time
   from the day's reanalysis; see [ERA5 weather files](../format/era5.md).
@@ -216,7 +216,7 @@ catches hPa entered as Pa.
 These are findings from reading `refs/rocketpy` for the RocketPy comparison of the validation
 milestone ([M2.1](../decisions-and-roadmap.md#m2-1)), not yet pinned by fixtures:
 
-- **Standard atmosphere:** ISO 2533 layers from −2 to 80 km, with `R = 287.05287` (the same as
+- **Standard atmosphere:** ISO 2533 layers from −2 to 80 km (−1.2 to 50 mi), with `R = 287.05287` (the same as
   `R*/M₀`). Temperature is linear in geometric height between converted layer boundaries.
   Pressure is sampled at 100 points and splined.
 - **Custom profiles:**
@@ -228,7 +228,7 @@ milestone ([M2.1](../decisions-and-roadmap.md#m2-1)), not yet pinned by fixtures
     this doesn't matter.
 - **Humidity** is not used anywhere.
 - **Wyoming heights** are converted from geopotential with a radius only (no latitude).
-  - The helper's default radius, 63 781 370 m in `rocketpy/tools.py:972`, is ten times the
+  - The helper's default radius, 63 781 370 m (1,214 ft) in `rocketpy/tools.py:972`, is ten times the
     Earth's.
   - Check which callers rely on that default before the [M2.1](../decisions-and-roadmap.md#m2-1) comparisons.
 
@@ -236,10 +236,10 @@ milestone ([M2.1](../decisions-and-roadmap.md#m2-1)), not yet pinned by fixtures
 
 - **`ussa76::tests::matches_the_1976_tables_at_32_altitudes`** (the *done when* of
   [M1.2](../decisions-and-roadmap.md#m1-2), the atmosphere and wind milestone):
-  - Covers `T`, `T_M`, `H`, `P`, `ρ`, `a`, `μ` and `ν` at 32 altitudes from −2 to 86 km.
+  - Covers `T`, `T_M`, `H`, `P`, `ρ`, `a`, `μ` and `ν` at 32 altitudes from −2 to 86 km (−1.2 to 53 mi).
   - Every value is within 0.1%, and within one count of its last printed digit.
-  - The exceptions are those above (80–85.5 km, where the printed `T` equals `T_M`) and the
-    84 km density. The latter prints 9.6940E-6 where the equations give 9.69387e-6; the row's
+  - The exceptions are those above (80–85.5 km (50–53 mi), where the printed `T` equals `T_M`) and the
+    84 km (52 mi) density. The latter prints 9.6940E-6 where the equations give 9.69387e-6; the row's
     own `ρ/ρ₀` agrees with the equations.
   - The fixture was transcribed from the page images and cross-checked by
     `validation/oracles/ussa76/tables.py` against mpmath and `ambiance`.

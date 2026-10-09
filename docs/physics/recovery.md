@@ -42,8 +42,8 @@
     separation's is not).
   - [Added mass](../glossary.md#added-mass) (air carried along), the swing (the attitude freezes at
     deployment), and streamer pleats (+58% fast on a pleated one).
-  - [Tumbling](../glossary.md#tumble-recovery) is used far outside its fit: 36 m/s for Valetudo,
-    against 5.0 to 6.6 m/s, and a nose cone tumbling on its own is outside it too.
+  - [Tumbling](../glossary.md#tumble-recovery) is used far outside its fit: 36 m/s (118 ft/s) for Valetudo,
+    against 5.0 to 6.6 m/s (16 to 22 ft/s), and a nose cone tumbling on its own is outside it too.
 
 ## Code and sources
 
@@ -110,7 +110,7 @@ planform (one-side) area `S = l w` and an aspect ratio `AR = l/w`. `StreamerMode
 correlation, the curve fitted to measurements that gives its drag coefficient:
 
 - **`Filippone`** (the default), on `S`, from wind-tunnel tests of cotton streamers **clamped at
-  the leading edge** at `AR` 3.3 to 30 and 6 to 18.9 m/s. The paper fits one power curve per
+  the leading edge** at `AR` 3.3 to 30 and 6 to 18.9 m/s (20 to 62 ft/s). The paper fits one power curve per
   planform area, and prints all three:
 
   | planform area | curve | where |
@@ -137,7 +137,7 @@ correlation, the curve fitted to measurements that gives its drag coefficient:
   A rocket's streamer is free and light, so the first two pull in opposite directions.
 - **`OpenRocket`**: `C_Dm = 0.034 ((ρ_m + 25 g/m²)/(105 g/m²)) ((l + 1 m)/l)` on `S`, with `ρ_m`
   the fabric's mass per square meter (Appendix C, eq. C.6, printed page 117). It was fitted to
-  model-rocket streamers (`w` 0.01 to 0.09 m, `l` 0.2 to 1.0 m, 10 to 80 g/m², 6 to 12 m/s), with a
+  model-rocket streamers (`w` 0.01 to 0.09 m (0.033 to 0.30 ft), `l` 0.2 to 1.0 m (0.66 to 3.3 ft), 10 to 80 g/m², 6 to 12 m/s (20 to 39 ft/s)), with a
   stated 12 to 27% error on an independent set. It is the only one of the two that uses the
   material.
 
@@ -147,12 +147,12 @@ The two disagree by a factor that depends on the fabric: at `AR = 10` and `l = 1
 of their drag areas is 5.8 at 10 g/m², 3.5 at 32 and 1.9 at 80.
 
 C. Kidwell's NARAM-43 drop tests (2001) settle it as far as one dataset can: sixteen 4 in × 40 in
-streamers, each with about 5 g at one corner, dropped 20.1 m.
+streamers, each with about 5 g at one corner, dropped 20.1 m (66 ft).
 
 Two details of his method decide how to compare, and both were got wrong here before review:
 
 - His rates are **distance over time**, so they are averages over the drop rather than terminal
-  speeds. A 20.1 m drop averages 0.97 of terminal at 2.8 m/s but 0.89 at 5.9 m/s.
+  speeds. A 20.1 m (66 ft) drop averages 0.97 of terminal at 2.8 m/s (9.2 ft/s) but 0.89 at 5.9 m/s (19 ft/s).
 - They are **normalised** to a notional 5.000 g weight: scaled to what that standard weight would
   give.
 
@@ -161,8 +161,8 @@ average, from the [closed-form](../glossary.md#closed-form) fall:
 
 | case | measured | `C_D` it implies, on `S` | `Filippone` | `OpenRocket` |
 |---|---|---|---|---|
-| crêpe paper, 32 g/m², **unpleated** | 2.80 m/s | 0.155 | 3.05 m/s (+9%) | 5.28 m/s (+88%) |
-| Micafilm, 42 g/m², pleated | 2.04 m/s | 0.338 | 3.21 m/s (+58%) | 5.19 m/s (+154%) |
+| crêpe paper, 32 g/m², **unpleated** | 2.80 m/s (9.2 ft/s) | 0.155 | 3.05 m/s (10.0 ft/s, +9%) | 5.28 m/s (17.3 ft/s, +88%) |
+| Micafilm, 42 g/m², pleated | 2.04 m/s (6.7 ft/s) | 0.338 | 3.21 m/s (10.5 ft/s, +58%) | 5.19 m/s (17.0 ft/s, +154%) |
 
 What the table shows:
 
@@ -172,7 +172,7 @@ What the table shows:
   drag again. **The simulator models no pleats**, so it predicts a faster descent for a pleated
   streamer, which is the safe direction for a landing.
 - **Both are a little outside both fits:** 0.1032 m² of planform against Filippone's largest
-  0.075 m², and 0.1016 m wide by 1.016 m long against appendix C's `w ≤ 0.09`, `l ≤ 1.0`.
+  0.075 m², and 0.1016 m (0.333 ft) wide by 1.016 m (3.33 ft) long against appendix C's `w ≤ 0.09`, `l ≤ 1.0`.
 
 ### Streamers larger than the fits
 
@@ -189,7 +189,7 @@ above it, so his drops test the clamp, and the evidence pulls two ways:
 - **Two caveats.** That rests on a single point, at one aspect ratio, with a fabric nothing like
   the paper's cotton. And it holds partly because the correlation, measured with the leading edge
   clamped, is itself biased low, so two errors cancel.
-- **Nothing is measured** anywhere near 0.225 m², the 1.5 m by 0.15 m streamer one of the
+- **Nothing is measured** anywhere near 0.225 m², the 1.5 m (4.9 ft) by 0.15 m (0.49 ft) streamer one of the
   simulator's tests flies on the clamp.
 
 The simulator therefore defaults to `Filippone` and keeps `OpenRocket` for comparing with OpenRocket
@@ -224,21 +224,21 @@ C_D S = 1.42 A_f + 0.56 A_bt
 - Until [M1.11b](../decisions-and-roadmap.md#m1-11b) the simulator took each component's **end**
   diameters, which under-counts a curved nose. For Valetudo's tangent ogive that was 0.0111 m²
   against the true 0.0148 m², 25% low on the nose. Integrating the curve brought Valetudo's
-  tumbling speed from 36.77 to 36.38 m/s ([ADR-086][adr-086], ejection impulse and tumbling
+  tumbling speed from 36.77 to 36.38 m/s (120.6 to 119.4 ft/s, [ADR-086][adr-086], ejection impulse and tumbling
   pieces).
 
 **How well it does.** The documentation says its fit predicts its own five drop-test models within
 3 to 14%. The simulator does not reproduce that. Replaying Table 3.3 (printed page 54: five models,
-22 m, ρ = 1.31 kg/m³, the descent rate `v₀` read from video to ±0.3 m/s) through the simulator's
+22 m (72 ft), ρ = 1.31 kg/m³, the descent rate `v₀` read from video to ±0.3 m/s (0.98 ft/s)) through the simulator's
 reading of the model (`the_tumble_model_against_its_own_drop_tests`):
 
 | model | fins | measured | HPR Sim |
 |---|---|---|---|
-| #1 | 3 | 5.6 m/s | 5.27 (−5.8%) |
-| #2 | 4 | 6.3 m/s | 5.96 (−5.4%) |
-| #3 | 3 | 6.6 m/s | 6.13 (−7.2%) |
-| #4 | none | 5.4 m/s | 6.43 (**+19.0%**) |
-| #5 | fins only | 5.0 m/s | 4.50 (−10.0%) |
+| #1 | 3 | 5.6 m/s (18 ft/s) | 5.27 (−5.8%) |
+| #2 | 4 | 6.3 m/s (21 ft/s) | 5.96 (−5.4%) |
+| #3 | 3 | 6.6 m/s (22 ft/s) | 6.13 (−7.2%) |
+| #4 | none | 5.4 m/s (18 ft/s) | 6.43 (**+19.0%**) |
+| #5 | fins only | 5.0 m/s (16 ft/s) | 4.50 (−10.0%) |
 
 So the spread is −10 to +19%, and the finless tube is the outlier: it wants a body coefficient
 near 0.79 where the model prints 0.56.
@@ -248,13 +248,13 @@ measure). So either the simulator reads the areas differently from whoever fitte
 the claim is not reproducible. The table above is what the simulator can demonstrate, so it is what
 the simulator states.
 
-**Where it stops being true.** The fit covers 44 to 103 mm bodies of 6.8 to 160 g descending at
-5.0 to 6.6 m/s. A high-power booster is far outside it: Valetudo tumbling comes out at 36 m/s.
+**Where it stops being true.** The fit covers 44 to 103 mm (1.7 to 4.1 in) bodies of 6.8 to 160 g descending at
+5.0 to 6.6 m/s (16 to 22 ft/s). A high-power booster is far outside it: Valetudo tumbling comes out at 36 m/s (118 ft/s).
 
 - A cylinder's crossflow drag falls by roughly half above a
   [Reynolds number](../glossary.md#reynolds-number) near 2e5, its
-  [drag crisis](../glossary.md#drag-crisis). A 100 mm body reaches that at about 30 m/s, and
-  Valetudo's 80 mm at 36 m/s is right at it.
+  [drag crisis](../glossary.md#drag-crisis). A 100 mm (3.9 in) body reaches that at about 30 m/s (98 ft/s), and
+  Valetudo's 80 mm (3.1 in) at 36 m/s (118 ft/s) is right at it.
 - So a real body that size would descend faster than the simulator says.
 - The simulator does not model that fall, and nothing in the pinned sources covers it.
 
@@ -312,7 +312,7 @@ cut away under a main:
 
 - **The release waits until the releasing device is fully open**, not its line stretch. Cutting the
   drogue at line stretch would leave the rocket under an empty canopy: the drag area would collapse
-  and the descent speed up (found in review; measured at 0.45 m² → 0.02 m² and 18.3 → 22.0 m/s
+  and the descent speed up (found in review; measured at 0.45 m² → 0.02 m² and 18.3 → 22.0 m/s (72 ft/s)
   before the fix).
 - **A released device contributes nothing** from its release.
 - **One released before its own charge fires never deploys at all:** its `Trigger` is recorded and
@@ -360,14 +360,14 @@ The exponent sets the shape of the growth:
 ### The fill constant at hobby speeds
 
 Knacke states the linear form only "in the medium-velocity range of about 150 to 500 ft/s"
-(45.7 to 152.4 m/s; `Inflation::FILL_CONSTANT_RANGE_M_S`). A hobby main is slower:
+(45.7 to 152.4 m/s (150 to 500 ft/s); `Inflation::FILL_CONSTANT_RANGE_M_S`). A hobby main is slower:
 
-- A main opening at 20 to 30 m/s is **below** that range.
+- A main opening at 20 to 30 m/s (66 to 98 ft/s) is **below** that range.
 - There, his alternative for solid flat circular canopies is `t_f = n D₀/v^0.85` with `n = 4.0`.
   It is a dimensional form (feet and ft/s) that cannot be used in SI as printed, so the simulator
   does not use it.
 - So outside the range the filling time, and with it the peak load the simulator reports, is an
-  extrapolation. At 25 m/s the linear form gives a 2.5 m main `t_f = 0.8 s`, from a correlation
+  extrapolation. At 25 m/s (82 ft/s) the linear form gives a 2.5 m (8.2 ft) main `t_f = 0.8 s`, from a correlation
   fitted at three to six times that speed.
 
 ### The opening load
@@ -397,7 +397,7 @@ So the peak load the simulator reports is **no safe bound** on the real one, in 
   law and the filling time, extrapolated at hobby speeds, can move it either way.
 - **Opening at once,** the simulator applies the full drag area at line stretch: the infinite-mass
   case. A big main on a light rocket can therefore see far less than the simulator's instant peak.
-- **For scale,** the 1.5 m flat circular canopy deployed at 60 m/s in
+- **For scale,** the 1.5 m (4.9 ft) flat circular canopy deployed at 60 m/s (197 ft/s) in
   [Verification](#verification) peaks at 1.6 kN filling and 3.0 kN opening instantly. Knacke's
   infinite-mass `C_x = 1.7` on the same dynamic pressure would be 5.1 kN.
 
@@ -519,8 +519,8 @@ This section describes the unpowered case, and the booster's descent after a pow
   ejection given later could still make it. A device that opened on the stack before the
   separation counts as open.
 - **A body coasts with no drag at all until its first device opens**, which is the same omission
-  as the descent phase's and hurts more here: a 0.55 kg forward body that separates at 2 km and waits
-  for a 300 m main arrives at **168 m/s** where an airframe would have held it near 60 to 70, so
+  as the descent phase's and hurts more here: a 0.55 kg forward body that separates at 2 km (1.2 mi) and waits
+  for a 300 m (984 ft) main arrives at **168 m/s (551 ft/s)** where an airframe would have held it near 60 to 70, so
   its deployment speed, and any opening load taken from it, read high. Give a body a device that
   opens at once (`DeviceDrag::tumbling_stages` over its own stages is the cited way) if the coast
   matters; after a powered separation the simulator requires it
@@ -588,8 +588,8 @@ that, a device acts only once its own body flies on its own. So a parachute on t
 logged in the flight's own events, as the example below shows, and its drag acts on the nose cone
 alone from then on. A device on a piece that
 hasn't left yet waits for it, even if its trigger has come. Give a piece a trigger that follows
-its ejection. A drogue on the airframe, with the nose cone only ejected at 300 m, would leave the
-whole rocket falling from apogee to 300 m with nothing open.
+its ejection. A drogue on the airframe, with the nose cone only ejected at 300 m (984 ft), would leave the
+whole rocket falling from apogee to 300 m (984 ft) with nothing open.
 
 **What happens at each parting:**
 
@@ -618,13 +618,13 @@ Give it as an impulse `J`: the push summed over its short duration, in newton-se
 motor's [total impulse](../glossary.md#total-impulse) is. For example,
 `Ejection::aft_of(Trigger::Apogee, "nose").with_impulse(1.0)`. Without one there is no push. The
 simulator doesn't work `J` out from a charge's size: as a rough guide, `J ≈ m v` for the speed `v`
-you expect a piece of mass `m` to leave at, so 1 N·s puts 15.9 m/s on the example's 63 g nose cone.
+you expect a piece of mass `m` to leave at, so 1 N·s puts 15.9 m/s (52 ft/s) on the example's 63 g nose cone.
 The push is equal and opposite:
 
 - The side forward of the joint gets `+J` toward the nose, and the side aft of it `−J`. A payload
   leaves forward, out of its host, as it does when the nose cone comes off first.
 - Each side's velocity changes by `J/m`, for its own mass `m`, so the light side moves most. One
-  newton-second is 4 m/s on a 250 g payload, and 1.8 m/s on the 556 g airframe it leaves.
+  newton-second is 4 m/s (13 ft/s) on a 250 g payload, and 1.8 m/s (5.9 ft/s) on the 556 g airframe it leaves.
 - The momenta still add up exactly, which is a test.
 - **Which way is "toward the nose"?** While the airframe flies whole with nothing open, it is
   its axis at that instant. A device that opens at the same instant as the parting doesn't count
@@ -649,7 +649,7 @@ The push is equal and opposite:
   whose section's forward joint hasn't parted by the time it leaves is an error in flight.
 
 In the example below, where every piece's device opens as it leaves, 1 N·s at each parting moves
-the airframe's landing by 0.0 m and the payload's by 1.3 m: the drag takes the push away within
+the airframe's landing by 0.0 m (0.0 ft) and the payload's by 1.3 m (4.3 ft): the drag takes the push away within
 seconds. A piece that coasts with nothing open keeps its push longer.
 
 **A piece that tumbles.** A piece needs some drag of its own, or it falls as if in a vacuum. The
@@ -669,9 +669,9 @@ as the example below does.
 
 **A worked example.** The example
 [`ejected_pieces.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/ejected_pieces.rs)
-flies the 54 mm test rocket on an I175 with a 250 g payload in its airframe, in a 4 m/s wind from
-the west. The nose cone leaves at apogee (16.23 s, 1,747 m) under a 0.45 m canopy. The airframe
-comes down under a 0.9 m one, and lets the payload out at 300 m under a 0.6 m one. Each lands at
+flies the 54 mm (2.1 in) test rocket on an I175 with a 250 g payload in its airframe, in a 4 m/s (13 ft/s) wind from
+the west. The nose cone leaves at apogee (16.23 s, 1,747 m (5,732 ft)) under a 0.45 m (1.5 ft) canopy. The airframe
+comes down under a 0.9 m (3.0 ft) one, and lets the payload out at 300 m (984 ft) under a 0.6 m (2.0 ft) one. Each lands at
 its own terminal speed, `v_e` above, for its own mass and canopy in the air at the ground:
 
 | Body | Mass (kg) | Flies on its own from (s) | Lands (s) | At (m/s) | `v_e` (m/s) | East of the pad (m) |
@@ -680,7 +680,7 @@ its own terminal speed, `v_e` above, for its own mass and canopy in the air at t
 | 1, the airframe | 0.556 | 16.23 | 333.54 | 4.54 | 4.54 | 1,115.6 |
 | 2, the payload | 0.250 | 268.05 | 333.14 | 4.57 | 4.57 | 1,114.0 |
 
-The nose cone is light for its canopy, so it stays up 229 s longer and drifts 920 m further
+The nose cone is light for its canopy, so it stays up 229 s longer and drifts 920 m (3,018 ft) further
 downwind. The airframe's body weighs 0.806 kg until the payload leaves, then 0.556 kg. The
 flight's own event list ends at the first parting. What happens to each body after that,
 its canopy opening and the payload leaving the airframe, is in that body's own list
@@ -695,10 +695,10 @@ canopy on the nose cone, which tumbles:
 | 1, the airframe | 0.556 | 333.42 | 4.54 | 4.54 | 1,115.6 | 0.0 |
 | 2, the payload | 0.250 | 333.33 | 4.57 | 4.57 | 1,115.3 | 1.3 |
 
-Tumbling, the nose cone comes down nearly five times as fast as under its canopy, and lands 1.8 km
-nearer the pad. The push barely moves the other two. At 300 m it changes the payload's velocity by
-4.00 m/s, up toward the airframe's parachute, and the airframe's by 1.80 m/s, down: `J/m` for
-each (the example prints the upward parts, +4.00 and −1.80 m/s). Within seconds the drag has
+Tumbling, the nose cone comes down nearly five times as fast as under its canopy, and lands 1.8 km (1.1 mi)
+nearer the pad. The push barely moves the other two. At 300 m (984 ft) it changes the payload's velocity by
+4.00 m/s (13.1 ft/s), up toward the airframe's parachute, and the airframe's by 1.80 m/s (5.9 ft/s), down: `J/m` for
+each (the example prints the upward parts, +4.00 and −1.80 m/s (−5.9 ft/s)). Within seconds the drag has
 taken that away.
 
 **Limits:**
@@ -746,7 +746,7 @@ How each device flies:
   "the entire drag coefficient of the rocket is assumed to come from the deployed recovery
   devices" (section 4.2.5).
 
-**A worked example.** A parachute 0.6 m across, with `C_D` set to `auto`, has a canopy of
+**A worked example.** A parachute 0.6 m (2.0 ft) across, with `C_D` set to `auto`, has a canopy of
 π × 0.6²/4 = 0.283 m², and a drag area of 0.8 × 0.283 = 0.226 m². `hpr sim` prints it as
 `recovery: Main at apogee, 0.226 m² of drag area`, then when it opened.
 
@@ -790,8 +790,8 @@ burn, the payload's: in each, the branch OpenRocket's record keeps
   parachutes open at launch + 5.35 s in both programs, and the flight time is −1.02% off.
 - **40 of those 48 meet every target as written.** The other 8 miss only on a deployment's time.
   All 8 reach an apogee 0.63% to 4.34% below OpenRocket's, a climb gap the same report shows. And
-  OpenRocket opens a device set to a height at the end of its time step: 0.06 to 12.64 m below
-  that height over the 15 such deployments, 0.36 to 11.15 m on the 8 that miss. With those two taken out, every deployment is within its target; the largest left
+  OpenRocket opens a device set to a height at the end of its time step: 0.06 to 12.64 m (0.20 to 41.5 ft) below
+  that height over the 15 such deployments, 0.36 to 11.15 m (1.2 to 36.6 ft) on the 8 that miss. With those two taken out, every deployment is within its target; the largest left
   is 0.33 s. That is what "met once sized" means in the report: each deployment that misses is
   held instead by what is left of it. For a device opened at apogee this holds by construction,
   as it takes out the apogee's own time; the evidence on the descent itself is the landing speed,
@@ -820,7 +820,7 @@ sustainer with no device of its own tumbles from its apogee. `hpr sim` flies it 
 ([Separation](../cli.md#separation)). On the *Two stage high power rocket*'s two configurations,
 the sustainer's landing speed is +0.00% off OpenRocket's and its flight time +0.32% and +0.73%.
 On the first, the H148R-0 and H148R-0 configuration, the main opens 1.09 s before OpenRocket's,
-past its target. Its apogee is 1.79% lower and OpenRocket opens it 8.9 m below its set height;
+past its target. Its apogee is 1.79% lower and OpenRocket opens it 8.9 m (29 ft) below its set height;
 with both taken out, as *How close it is* above does, 0.065 s is left
 ([ADR-159][adr-159], powered separation in `hpr sim`).
 
@@ -841,25 +841,25 @@ name the [oracle](../glossary.md#oracle):
 
 | What | Result |
 |---|---|
-| Knacke's `v_e` against a case from Loft, this project's predecessor (1.1 kg, 1 m flat canopy, `C_D` 0.8, ρ 1.225) | 5.294 m/s, as Loft printed |
-| A descent from rest against the closed-form fall under quadratic drag (2 km, uniform air, constant gravity) | 2.1e-8 of the terminal speed `v_t` over the whole descent; the landing time within 1e-5 s of the closed form's 204 s |
+| Knacke's `v_e` against a case from Loft, this project's predecessor (1.1 kg, 1 m (3.3 ft) flat canopy, `C_D` 0.8, ρ 1.225) | 5.294 m/s (17.37 ft/s), as Loft printed |
+| A descent from rest against the closed-form fall under quadratic drag (2 km (1.2 mi), uniform air, constant gravity) | 2.1e-8 of the terminal speed `v_t` over the whole descent; the landing time within 1e-5 s of the closed form's 204 s |
 | Drift in a steady wind, entered drifting with the air, no Earth rotation | exactly the wind times the time of flight (1e-8); the fall itself within 1e-4 of the closed form |
-| The Coriolis drift of a 3 km descent, Earth rotation on | 0.3666 m east against the steady prediction `2Ω cos φ · v_t²/g · T` = 0.3685 m, 0.52% apart, and 29 µm north |
+| The Coriolis drift of a 3 km (1.9 mi) descent, Earth rotation on | 0.3666 m (1.203 ft) east against the steady prediction `2Ω cos φ · v_t²/g · T` = 0.3685 m, 0.52% apart, and 29 µm north |
 | Knacke's filling law, `t_f = n D₀/v` and `(t/t_f)^j` | the recorded drag area to 1e-9 of `(C_D S)₀` |
-| Inflation against instant opening (deployed at 60 m/s under a 1.5 m flat circular canopy) | peak load 1,615 N against 3,020 N instant (0.53 of it), between the closed-form 1,527 N without gravity and 1,670 N with it |
-| An oversized canopy (5 m) opening at 100 m/s, 10 km of descent at 2.95 m/s | lands in 3,392 s in 6,914 accepted steps and 2 rejected (a mean step of 0.49 s, where Loft's explicit [RK4](../glossary.md#dormandprince-and-rk4) needed a 2e-4 s floor) |
+| Inflation against instant opening (deployed at 60 m/s (197 ft/s) under a 1.5 m (4.9 ft) flat circular canopy) | peak load 1,615 N against 3,020 N instant (0.53 of it), between the closed-form 1,527 N without gravity and 1,670 N with it |
+| An oversized canopy (5 m (16 ft)) opening at 100 m/s (328 ft/s), 10 km (6.2 mi) of descent at 2.95 m/s (9.7 ft/s) | lands in 3,392 s in 6,914 accepted steps and 2 rejected (a mean step of 0.49 s, where Loft's explicit [RK4](../glossary.md#dormandprince-and-rk4) needed a 2e-4 s floor) |
 | A deployment with a 0.7 rad/s body rate, and another inside the burn in a crosswind | the center of mass keeps its velocity across the handover to 1e-12, and the nose tip's moves by exactly `ω × r_cg`, turned into the launch frame |
-| A whole flight: drogue at apogee with a lag, main at 300 m, drogue released | events in order; each stage settles within 2% of its own `v_e` |
+| A whole flight: drogue at apogee with a lag, main at 300 m (984 ft), drogue released | events in order; each stage settles within 2% of its own `v_e` |
 | Two devices triggered at the same instant | both open in the same pass, and the descent settles at the `v_e` of the **sum** of their drag areas |
 | A device released before its own charge fires | it is recorded as triggered and never deploys; the descent stays at the open device's `v_e` |
 | A drogue released by a main that fills over 2 s | the release waits for the end of filling, the drag area never falls below the drogue's, and the descent never speeds up |
 | An apogee charge on a flight that starts descending | it fires at the first step (there is no apogee event to find), and a climbing start still waits for the apogee |
 | Two user events and an altitude device on one flight | the user events keep their numbers and fire during the descent, in height order |
 | The same recovered flight flown twice | bit-identical rows, events, final sample and step counts ([Loft lesson L24](../decisions-and-roadmap.md#l24): a run does not mutate the simulation) |
-| A separation at apogee of the two-stage test design, canopy on the sustainer and tumble on the booster | both bodies land: the 0.550 kg sustainer at 729.0 s and 2.11 m/s under its 1.8 m canopy, the 1.125 kg booster at 107.5 s and 16.74 m/s tumbling; the masses add to the 1.675 kg stack to 1e-12 and each lands within 0.1% of its own `v_e` |
-| The linear momenta of the bodies at a separation with a 0.6 rad/s body rate | add to the stack's to 1e-9, and each body starts at its own center of mass to 1e-12 (0.817 m apart on this design) |
+| A separation at apogee of the two-stage test design, canopy on the sustainer and tumble on the booster | both bodies land: the 0.550 kg sustainer at 729.0 s and 2.11 m/s (6.9 ft/s) under its 1.8 m (5.9 ft) canopy, the 1.125 kg booster at 107.5 s and 16.74 m/s (54.9 ft/s) tumbling; the masses add to the 1.675 kg stack to 1e-12 and each lands within 0.1% of its own `v_e` |
+| The linear momenta of the bodies at a separation with a 0.6 rad/s body rate | add to the stack's to 1e-9, and each body starts at its own center of mass to 1e-12 (0.817 m (2.68 ft) apart on this design) |
 | A separation while the booster's motor burns | refused in flight, with the booster's burnout time in the error |
-| A separation while still climbing at 100 m/s | both bodies find their own apogee above 1,400 m, fire there, and land within 1% of their own `v_e` |
+| A separation while still climbing at 100 m/s (328 ft/s) | both bodies find their own apogee above 1,400 m (4,593 ft), fire there, and land within 1% of their own `v_e` |
 | A timed separation, and a height separation | fire at their own time to 1e-9 s and at their own height to 1e-6 m, rather than at the next boundary that happens to exist (found in review: one fired 186 s late, another never) |
 | A body that runs out of time | says `TimeCap` in its own `BodyFlight`; `FlightResult::bodies_landed` is false and `landings()` is short |
 | A body whose device never fires (a timer set after it lands) | refused in flight, naming the body, rather than landed at the speed of a fall with no drag |
@@ -870,7 +870,7 @@ The ejected pieces' tests are in `crates/hpr-sim/src/pieces.rs`, also analytic:
 
 | What | Result |
 |---|---|
-| The nose cone at apogee and a 250 g payload at 300 m, from the pad in a 4 m/s wind, in uniform sea-level air (not the example's atmosphere, so its numbers differ) | all three land, each under its own canopy; the payload leaves at 300 m to 1e-6 m; landings pinned (the nose cone 911.6 m further downwind than the airframe, 4 m/s times its 227.5 s longer descent to 1%) |
+| The nose cone at apogee and a 250 g payload at 300 m (984 ft), from the pad in a 4 m/s (13 ft/s) wind, in uniform sea-level air (not the example's atmosphere, so its numbers differ) | all three land, each under its own canopy; the payload leaves at 300 m (984 ft) to 1e-6 m; landings pinned (the nose cone 911.6 m (2,991 ft) further downwind than the airframe, 4 m/s (13 ft/s) times its 227.5 s longer descent to 1%) |
 | The masses at each parting, with wind and a 0.6 rad/s body rate | the two bodies at the first parting, and the three pieces, add to the rocket's mass to 1e-12; the nose cone and the payload are their own components' masses to 1e-12 |
 | The linear momenta at each parting | at the first, from the rigid stack, they add to the stack's to 1e-9, and the nose cone starts at its own center of mass to 1e-12; at the second, on the way down, they add up by construction (one shared velocity), so only the masses test anything there |
 | Each piece's landing in uniform air | within 0.1% of its own `v_e`, the airframe's at its mass after the payload left |
@@ -881,21 +881,21 @@ The ejected pieces' tests are in `crates/hpr-sim/src/pieces.rs`, also analytic:
 | A powered separation with ejections, an ejection ahead of a separation that lights a motor, an ejection timed from a motor with no ignition | each refused with its own reason |
 | Partings the design can't make: an unknown id, a joint aft of an internal part or of the tail, a body component or an external part as a payload, a payload inside another, two at one joint, one payload twice, an overridden stage or covering override | each refused with its own reason, naming the component |
 | An ejection during the burn, a height below the ground, a body without a device, a device on a body nothing makes | refused, the last when the flight starts |
-| A 1 N·s push at both partings, from a stack tilted 60° up toward 30° east of north, in wind, moving sideways and turning at 0.6 rad/s | each body's velocity changes by `J/m` to 1e-9 against the same flight unpushed. At the first parting that is along the hand-computed rail axis, 15.9 m/s on the nose cone. At the second, the airframe under its canopy, it is 4 m/s on the 250 g payload, against its velocity through the air. The momenta add up to 1e-9 at both, and every piece still lands within 0.1% of its `v_e` |
-| The same push at 300 m with the airframe's canopy not yet open | the payload is pushed down its velocity through the air, 4 m/s, and the airframe the other way, to 1e-9 |
-| A nose cone pushed off at 300 m from a stack that has hung from a drogue since apogee | pushed against its velocity through the air to 1e-9, not along the attitude frozen at apogee (found in review: it went along the frozen axis) |
-| A push at a body's own apogee, climbing straight up in still air with nothing open | straight up, 4 m/s on the payload, to 1e-9, where along its flight would point down |
+| A 1 N·s push at both partings, from a stack tilted 60° up toward 30° east of north, in wind, moving sideways and turning at 0.6 rad/s | each body's velocity changes by `J/m` to 1e-9 against the same flight unpushed. At the first parting that is along the hand-computed rail axis, 15.9 m/s (52 ft/s) on the nose cone. At the second, the airframe under its canopy, it is 4 m/s (13 ft/s) on the 250 g payload, against its velocity through the air. The momenta add up to 1e-9 at both, and every piece still lands within 0.1% of its `v_e` |
+| The same push at 300 m (984 ft) with the airframe's canopy not yet open | the payload is pushed down its velocity through the air, 4 m/s (13 ft/s), and the airframe the other way, to 1e-9 |
+| A nose cone pushed off at 300 m (984 ft) from a stack that has hung from a drogue since apogee | pushed against its velocity through the air to 1e-9, not along the attitude frozen at apogee (found in review: it went along the frozen axis) |
+| A push at a body's own apogee, climbing straight up in still air with nothing open | straight up, 4 m/s (13 ft/s) on the payload, to 1e-9, where along its flight would point down |
 | A separation and a pushed nose cone at apogee (the two-stage design) | the booster, the separation's body, gets no push; the nose cone and the sustainer's airframe get ±`J/m` along the axis to 1e-9; the momenta add up to 1e-9 |
-| Two pushed partings at one instant on the way down (the two-stage design), given in either order | by hand, the nose cone `+J/m`, the airframe between the joints 0, the interstage `−J/m`, each to 1e-9; the momenta add up to 1e-9, and the landings agree between the orders to 1e-6 m (found in review: taken one at a time, the order moved the nose cone's push from 15.85 to 17.66 m/s) |
-| The airframe's canopy opening at the same instant as the payload leaves | not yet hung from: the payload is pushed down its flight, 4 m/s, whether the canopy opens at once or fills over a second (found in review: the push flipped with the inflation law) |
-| A pushed payload let out at apogee while its section's forward joint waits for 300 m | an error in flight, at the ejection's time |
-| A stack with only a tumble since apogee, the nose cone pushed off at 300 m | along its velocity through the air, to 1e-9: a tumble is nothing to hang from |
-| A drogue since apogee released by a main that opens at 300 m as the nose cone leaves | still hung from: against the velocity through the air, to 1e-9, whether the main opens at once or fills over a second (found in review: the push flipped with the law) |
+| Two pushed partings at one instant on the way down (the two-stage design), given in either order | by hand, the nose cone `+J/m`, the airframe between the joints 0, the interstage `−J/m`, each to 1e-9; the momenta add up to 1e-9, and the landings agree between the orders to 1e-6 m (found in review: taken one at a time, the order moved the nose cone's push from 15.85 to 17.66 m/s (52.0 to 57.9 ft/s)) |
+| The airframe's canopy opening at the same instant as the payload leaves | not yet hung from: the payload is pushed down its flight, 4 m/s (13 ft/s), whether the canopy opens at once or fills over a second (found in review: the push flipped with the inflation law) |
+| A pushed payload let out at apogee while its section's forward joint waits for 300 m (984 ft) | an error in flight, at the ejection's time |
+| A stack with only a tumble since apogee, the nose cone pushed off at 300 m (984 ft) | along its velocity through the air, to 1e-9: a tumble is nothing to hang from |
+| A drogue since apogee released by a main that opens at 300 m (984 ft) as the nose cone leaves | still hung from: against the velocity through the air, to 1e-9, whether the main opens at once or fills over a second (found in review: the push flipped with the law) |
 | One charge pushing off the nose cone and letting the payload out, both at apogee | by hand, along the axis: nose cone `+1 N·s`, payload `+1 N·s`, airframe between them `−2 N·s`, each over its own mass to 1e-9 |
 | A pushed payload in the booster, behind a separation, with the builders in either order | accepted both ways, and every piece lands; without the separation it is in the nose's piece and refused at the start, and so is one in the sustainer's airframe with it |
-| A drogue since apogee cut away at 600 m by a tumble, the nose cone pushed off at 300 m | hung from nothing by then: along the velocity through the air, to 1e-9 |
+| A drogue since apogee cut away at 600 m (1,969 ft) by a tumble, the nose cone pushed off at 300 m (984 ft) | hung from nothing by then: along the velocity through the air, to 1e-9 |
 | A parting on the way down with no push | the body after it has the same point and velocity, and its mass without the piece; only partings record a body after |
-| A nose cone tumbling on its own after apogee, in uniform sea-level air | its drag area is 0.56 times its tangent ogive's closed-form side area, to 1e-12; it lands at 13.849 m/s, its model's `v_e` to 1e-6 (the example's 14.82 m/s is in its own, thinner air at 1,400 m) |
+| A nose cone tumbling on its own after apogee, in uniform sea-level air | its drag area is 0.56 times its tangent ogive's closed-form side area, to 1e-12; it lands at 13.849 m/s (45.44 ft/s), its model's `v_e` to 1e-6 (the example's 14.82 m/s (48.6 ft/s) is in its own, thinner air at 1,400 m (4,593 ft)) |
 | The tumbling drag areas of an airframe cut into a nose cone and the rest | add to the whole airframe's to 1e-12; a payload or a piece not made is refused |
 | A push that is negative, NaN or infinite | refused when the ejections are given; one on a payload in the nose's own section when the flight starts |
 
@@ -906,13 +906,13 @@ HPR Sim's descent is compared with RocketPy's for five of RocketPy's example roc
 within 3%, and most within 0.1%** (22 of the 30 in the [validation report][report]). The largest
 gaps, in order:
 
-- **NDRT 2020's north drift: +2.86%.** HPR Sim carries it 50.8 m south, 2.86% further than RocketPy
+- **NDRT 2020's north drift: +2.86%.** HPR Sim carries it 50.8 m (167 ft) south, 2.86% further than RocketPy
   does. NDRT's main has a drag area of 16 m², and RocketPy's
   [added mass](../glossary.md#added-mass), which HPR Sim leaves out, is the likely cause; no test has
   isolated it yet.
 - **Valetudo's north drift: −1.77%.** That drift is 19 µm, from the Earth's rotation alone, so a
   tiny difference is a large fraction ([its own section](#valetudos-north-drift) below).
-- **Valetudo's whole drift: −0.89%**, of 0.19 m, also from the Earth's rotation alone.
+- **Valetudo's whole drift: −0.89%**, of 0.19 m (0.62 ft), also from the Earth's rotation alone.
 - **NDRT 2020's descent time: +0.71%** longer in HPR Sim, likely the same added mass.
 
 **How the comparison is run:**
@@ -939,11 +939,11 @@ gaps, in order:
 
 | case | descent time | descent rate under the drogue | impact descent rate | drift | worst drift component |
 |---|---|---|---|---|---|
-| Calisto (drogue 1.0 m², main 10 m² at 800 m, wind 5 E / 2 N) | +0.08% (257.27 s) | −0.01% (17.967 m/s) | −0.03% (5.454 m/s) | +0.08% (1,386.0 m) | +0.08% |
-| Valetudo (drogue 0.4537 m², no wind) | −0.02% (45.76 s) | n/a | +0.00% (17.627 m/s) | −0.89% (0.19 m, Coriolis only) | −1.77% (north, 19 µm; +2704% under HPR Sim's own gravity, [issue #27](https://github.com/nrdptel/fusionspace-eridanus/issues/27)) |
-| NDRT 2020 (drogue 0.438 m², main 16.05 m² at 167.6 m, sheared wind) | +0.71% (61.60 s) | +0.01% (28.156 m/s) | +0.01% (4.604 m/s) | +0.28% (327.9 m) | +2.86% (north, −50.8 m) |
-| Prometheus 2022 (drogue 0.467 m², main 5.78 m² at 457.2 m) | +0.08% (153.50 s) | −0.01% (26.400 m/s) | −0.03% (7.323 m/s) | +0.08% (1,237.1 m) | +0.09% |
-| Juno III (drogue 0.885 m²) | −0.02% (53.56 s) | n/a | −0.01% (22.431 m/s) | −0.02% (457.9 m) | −0.02% |
+| Calisto (drogue 1.0 m², main 10 m² at 800 m (2,625 ft), wind 5 E / 2 N) | +0.08% (257.27 s) | −0.01% (17.967 m/s (58.95 ft/s)) | −0.03% (5.454 m/s (17.89 ft/s)) | +0.08% (1,386.0 m (4,547 ft)) | +0.08% |
+| Valetudo (drogue 0.4537 m², no wind) | −0.02% (45.76 s) | n/a | +0.00% (17.627 m/s (57.83 ft/s)) | −0.89% (0.19 m (0.62 ft), Coriolis only) | −1.77% (north, 19 µm; +2704% under HPR Sim's own gravity, [issue #27](https://github.com/nrdptel/fusionspace-eridanus/issues/27)) |
+| NDRT 2020 (drogue 0.438 m², main 16.05 m² at 167.6 m (550 ft), sheared wind) | +0.71% (61.60 s) | +0.01% (28.156 m/s (92.38 ft/s)) | +0.01% (4.604 m/s (15.10 ft/s)) | +0.28% (327.9 m (1,076 ft)) | +2.86% (north, −50.8 m (−167 ft)) |
+| Prometheus 2022 (drogue 0.467 m², main 5.78 m² at 457.2 m (1,500 ft)) | +0.08% (153.50 s) | −0.01% (26.400 m/s (86.61 ft/s)) | −0.03% (7.323 m/s (24.03 ft/s)) | +0.08% (1,237.1 m (4,059 ft)) | +0.09% |
+| Juno III (drogue 0.885 m²) | −0.02% (53.56 s) | n/a | −0.01% (22.431 m/s (73.59 ft/s)) | −0.02% (457.9 m (1,502 ft)) | −0.02% |
 
 - **Every metric is inside the 3%** that the parachute milestone
   ([M1.7a](../decisions-and-roadmap.md#m1-7a)) set. The descent rate under the drogue, where a
@@ -980,9 +980,9 @@ gaps, in order:
   - So RocketPy's first deployment is 2.5 ms late in the four 105 Hz cases, and 13 ms late in
     Prometheus's.
   - Its test, height below the setting (`h < setting`), can fire only at or **below** the setting,
-    by at most one sample of fall, the descent speed over the sampling rate (`v_z/rate`): 0.17 m
-    for Calisto and 0.27 m for NDRT (about 0.01 s of descent).
-  - The heights the fixture records at those triggers (800.07 m, 167.93 m, 457.26 m) come from
+    by at most one sample of fall, the descent speed over the sampling rate (`v_z/rate`): 0.17 m (0.56 ft)
+    for Calisto and 0.27 m (0.89 ft) for NDRT (about 0.01 s of descent).
+  - The heights the fixture records at those triggers (800.07 m (2,624.9 ft), 167.93 m (551.0 ft), 457.26 m (1,500.2 ft)) come from
     the spline RocketPy fits through its stored samples for *reporting*, not from the continuous
     solution between steps that its trigger read, so they sit just above the setting instead.
   - The table compares HPR Sim's trigger heights with those reported values, the closest the fixture
@@ -995,7 +995,7 @@ gaps, in order:
   sheared profile included.
 - **Atmosphere.** HPR Sim evaluates the 1976
   [standard atmosphere](../glossary.md#standard-atmosphere); RocketPy interpolates a 100-point
-  pressure table over 0 to 80 km. Over the fixture's 23 samples they differ by at most 3.7e-4 in
+  pressure table over 0 to 80 km (0.0 to 50 mi). Over the fixture's 23 samples they differ by at most 3.7e-4 in
   density, which the test gates at 5e-4.
 - **Gravity: the same size, a different direction.** RocketPy's "Somigliana" formula is
   [WGS 84](../glossary.md#wgs-84) [normal gravity](../glossary.md#normal-gravity), and HPR Sim's
@@ -1006,11 +1006,11 @@ gaps, in order:
   - HPR Sim's default, `GravityModel::Ellipsoidal`, uses the full normal-gravity **vector**. Above
     the ellipsoid it tilts slightly toward the equator ([Gravity](gravity.md)), in proportion to
     height above the ellipsoid: 4.0e-6 m/s² sideways at Valetudo's site at ground level, and 8.7e-6
-    m/s² at 1,468 m, where Valetudo's descent starts.
+    m/s² at 1,468 m (4,816 ft), where Valetudo's descent starts.
   - Over the fixture's 23 gravity samples the tilt runs from +6.9e-6 m/s² (north) at Valetudo's
-    top sample, 1,168 m, to −3.3e-5 m/s² (south) at Calisto's 4,400 m.
+    top sample, 1,168 m (3,832 ft), to −3.3e-5 m/s² (south) at Calisto's 4,400 m (14,436 ft).
   - HPR Sim's vector also turns with the local vertical downrange, by `g·d/R`, with `d` the distance
-    drifted and `R` the Earth's radius: 2.1e-3 m/s² at Calisto's 1.4 km of drift. Wherever a rocket
+    drifted and `R` the Earth's radius: 2.1e-3 m/s² at Calisto's 1.4 km (0.87 mi) of drift. Wherever a rocket
     drifts at all, that is much the larger of the two.
   - The parachute milestone's test ([M1.7a](../decisions-and-roadmap.md#m1-7a)) used to compare
     gravity by its size alone, so it could see neither. This comparison and the validation suite
@@ -1018,7 +1018,7 @@ gaps, in order:
     like-for-like comparisons, and both check the gravity **vector**, not its length.
 - **Geometry.** HPR Sim flies over the curved ellipsoid and measures heights along its perpendicular
   ([ellipsoidal height](../glossary.md#ellipsoidal-height)); RocketPy's height `z` is measured in a
-  flat frame. Over Calisto's 1.4 km of drift the curvature is 0.15 m of height, 0.03 s of descent.
+  flat frame. Over Calisto's 1.4 km (0.87 mi) of drift the curvature is 0.15 m (0.49 ft) of height, 0.03 s of descent.
 
 #### Valetudo's north drift
 
@@ -1035,8 +1035,8 @@ above.
 - **What HPR Sim gave at first.** The parachute milestone
   ([M1.7a](../decisions-and-roadmap.md#m1-7a)) didn't compare this component; the validation harness
   ([M2.1a](../decisions-and-roadmap.md#m2-1a)) does. When it first did, HPR Sim read 28 times
-  RocketPy's: 5.51e-4 m (0.55 mm), under HPR Sim's default gravity. The tilt of that gravity,
-  integrated down the 800 m of descent, `(1/g)∫₀^800 g_north dz` = 5.2e-4 m, accounts for the
+  RocketPy's: 5.51e-4 m (0.55 mm (0.022 in)), under HPR Sim's default gravity. The tilt of that gravity,
+  integrated down the 800 m (2,625 ft) of descent, `(1/g)∫₀^800 g_north dz` = 5.2e-4 m, accounts for the
   difference to within a few percent
   ([issue #27](https://github.com/nrdptel/fusionspace-eridanus/issues/27)).
 - **What it gives now.** Flown against RocketPy's own gravity formula, as the validation suite

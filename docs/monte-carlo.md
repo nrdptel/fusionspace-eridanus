@@ -32,7 +32,7 @@ the numbers. Its examples need some Rust and follow on from [The builder](the-bu
 
 The example program
 [`crates/hpr/examples/monte_carlo.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/monte_carlo.rs)
-takes the 54 mm rocket of [The builder](the-builder.md) on a Cesaroni H54
+takes the 54 mm (2.1 in) rocket of [The builder](the-builder.md) on a Cesaroni H54
 ([motor designation](glossary.md#motor-designation) 168H54-10A), at Spaceport America in a forecast
 wind of 4 m/s (8.9 mph) from the west, off a rail leaned 5° into the wind. It disperses the rocket's
 mass, its center of mass, its drag, the motor's impulse and burn time, the wind and the rail, and
@@ -317,7 +317,7 @@ under a drogue and a main, take:
 | rocket | peak Mach | 10,000 flights, 10 threads | one flight, one thread |
 |---|---|---|---|
 | Valetudo, one of RocketPy's examples: 9.7 kg on a K400C | 0.3 to 0.4 | 3.0 s | 1.9 ms |
-| a 66 mm rocket with a 54 mm motor mount on a K940 | 1.6 to 2.0 | 9.4 s | 5.7 ms |
+| a 66 mm (2.6 in) rocket with a 54 mm motor mount on a K940 | 1.6 to 2.0 | 9.4 s | 5.7 ms |
 
 No flight failed. These are release builds, with optimisation on: add `--release` to
 `cargo run`, or build your program with it. A debug build, what plain `cargo run` gives, is

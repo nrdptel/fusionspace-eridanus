@@ -8,7 +8,7 @@
   from, or is **withheld** with the reason the log can't support it. It never guesses.
 - **Sources:** the [running median](../glossary.md#running-median) is the Hampel filter at
   threshold zero, as Pearson and colleagues define it ([References](#references)). The thresholds
-  (a 3 m climb, landing within 2 m, a 4,000 m/s ceiling, a 20% noise share) are those of Debrief, the
+  (a 3 m (9.8 ft) climb, landing within 2 m (6.6 ft), a 4,000 m/s (13,123 ft/s) ceiling, a 20% noise share) are those of Debrief, the
   project owner's earlier flight-log analyzer, set on its collection of real logs rather than
   taken from a published source. The landing check uses a fall from rest in vacuum: drag only
   slows a fall, so no real descent is faster.
@@ -60,7 +60,7 @@ Two properties make it the right tool here:
   `2K + 1` samples, so the median is never one of them. On the public log below, the ejection
   pulse's high side is two samples wide.
 - **It reads a clean peak a little low, and never high.** At 20 samples a second, the apogee of a
-  noise-free trace reads at most **0.077 m** low. The steps behind that number:
+  noise-free trace reads at most **0.077 m (0.25 ft)** low. The steps behind that number:
   1. At the highest sample, `K + 1` of the window's `2K + 1` samples lie within `⌈K/2⌉` places of
      it (`⌈K/2⌉` is `K/2` rounded up). So the median is no lower than the altitude that far away.
   2. The true peak lies within half a sample of the highest sample, so that altitude is at most
@@ -82,11 +82,11 @@ them.
 
 ## Each reading
 
-In the rules below, the **climb** begins at the first sample whose filtered altitude is 3 m above
-where the log starts. The **pad** is the median of the altitude before it first rises 1 m, so no
-one sample's jitter sets it. This project chose 1 m, a third of the 3 m climb. It is low so that a
+In the rules below, the **climb** begins at the first sample whose filtered altitude is 3 m (9.8 ft) above
+where the log starts. The **pad** is the median of the altitude before it first rises 1 m (3.3 ft), so no
+one sample's jitter sets it. This project chose 1 m (3.3 ft), a third of the 3 m (9.8 ft) climb. It is low so that a
 log starting just before liftoff counts few climbing samples as pad. A PerfectFlite
-zeroes its altitude on the pad, so a pad more than 3 m from zero means the log didn't start there.
+zeroes its altitude on the pad, so a pad more than 3 m (9.8 ft) from zero means the log didn't start there.
 
 | reading | rule | where it comes from |
 |---|---|---|
@@ -95,16 +95,16 @@ zeroes its altitude on the pad, so a pad more than 3 m from zero means the log d
 | time to apogee | apogee's time less liftoff's | the barometer |
 | top speed | the highest of the logger's own vertical speed from liftoff to apogee | the logger's speed column, which it works out from its barometer |
 | top acceleration | withheld when the log has no accelerometer | none |
-| landing | the first sample after apogee within 2 m of the pad that stays under 5 m for a second, and no sooner than a fall from rest in vacuum could lose that height | the barometer |
+| landing | the first sample after apogee within 2 m (6.6 ft) of the pad that stays under 5 m (16 ft) for a second, and no sooner than a fall from rest in vacuum could lose that height | the barometer |
 | mean descent rate | the filtered height lost from apogee to landing, over the time taken | the barometer |
 
 Liftoff is the last sample before the altitude shows the rocket moving: the filtered altitude was
 within half the altitude's resolution of the pad then, and passed it within the next sample.
 
-Landing is the first sample within 2 m of the pad, so it comes before touchdown by the time the
-last 2 m took: a third of a second under a main at 6 m/s. A barometer drifts during a flight, so
+Landing is the first sample within 2 m (6.6 ft) of the pad, so it comes before touchdown by the time the
+last 2 m (6.6 ft) took: a third of a second under a main at 6 m/s (20 ft/s). A barometer drifts during a flight, so
 the ground can read a little above or below the pad. If it reads below, the landing is read
-while the trace is still falling; if it reads more than 2 m above, no landing is found. The mean descent rate covers the drogue and the main together.
+while the trace is still falling; if it reads more than 2 m (6.6 ft) above, no landing is found. The mean descent rate covers the drogue and the main together.
 Splitting it into each leg's own rate is [M7.2](../decisions-and-roadmap.md#m7-2)'s work.
 
 The top acceleration is withheld rather than worked out from the altitude. Differencing twice
@@ -121,12 +121,12 @@ time.
 | code | when | readings withheld |
 |---|---|---|
 | `too_short` | the log has fewer than 3 samples | all |
-| `no_climb` | the filtered altitude never climbs 3 m above where the log starts | all |
-| `starts_off_the_pad` | the pad is more than 3 m from the logger's zero | liftoff, and so the top speed and landing |
-| `ends_before_landing` | the log ends before the altitude comes within 2 m of the pad and stays under 5 m for a second | landing |
+| `no_climb` | the filtered altitude never climbs 3 m (9.8 ft) above where the log starts | all |
+| `starts_off_the_pad` | the pad is more than 3 m (9.8 ft) from the logger's zero | liftoff, and so the top speed and landing |
+| `ends_before_landing` | the log ends before the altitude comes within 2 m (6.6 ft) of the pad and stays under 5 m (16 ft) for a second | landing |
 | `faster_than_free_fall` | the altitude comes down to the landing sample sooner after apogee than a fall from rest in vacuum could lose that height, `√(2h/g)`, allowing one step of the altitude's rounding in `h` and a sample for the apogee's time | landing |
 | `no_speed_column` | the log has no speed column | the top speed |
-| `implausible_speed` | the speed column peaks above 4,000 m/s, Debrief's ceiling | the top speed |
+| `implausible_speed` | the speed column peaks above 4,000 m/s (13,123 ft/s), Debrief's ceiling | the top speed |
 | `noisy_speed` | from liftoff to apogee the speed swings below zero by more than 20% of its top | the top speed |
 | `speed_peak_at_liftoff` | the speed peaks on the liftoff sample itself: a spike, not a climb | the top speed |
 | `no_accelerometer` | the log has no accelerometer | the top acceleration |
@@ -145,8 +145,8 @@ stopped before the rocket did.
 **An invented flight.** The file
 [`synthetic-pnut.pf2`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/logs/synthetic-pnut.pf2)
 holds a flight made up for the tests. It sits on the pad for half a second, then accelerates at
-50 m/s² for 1.6 s and coasts with no drag. It falls from rest to 25 m/s, descends at 25 m/s to
-150 m and at 6 m/s to the ground. It is written as a Pnut writes one, rounded to whole feet and
+50 m/s² for 1.6 s and coasts with no drag. It falls from rest to 25 m/s (82 ft/s), descends at 25 m/s (82 ft/s) to
+150 m (492 ft) and at 6 m/s (20 ft/s) to the ground. It is written as a Pnut writes one, rounded to whole feet and
 feet per second, with an ejection pulse of the public log's shape a second after apogee. Every
 reading is known in closed form. The
 [tests](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-flightdata/src/synthetic.rs)
@@ -155,12 +155,12 @@ hold each within the bound worked out beside it:
 | reading | true | FusionSpace HPR reads | allowed |
 |---|---|---|---|
 | liftoff | 0.50 s | 0.55 s | from 0.50 s to 0.578 s, when the height first rounds to a foot |
-| apogee | 390.31 m (1,280.5 ft) | 390.14 m (1,280 ft) | 0.23 m: half a foot of rounding and the median's 0.077 m |
+| apogee | 390.31 m (1,280.5 ft) | 390.14 m (1,280 ft) | 0.23 m (0.75 ft): half a foot of rounding and the median's 0.077 m (0.25 ft) |
 | apogee time | 10.258 s | 10.275 s | one sample, 0.05 s: the middle of the flat run at the top |
 | time to apogee | 9.758 s | 9.725 s | follows from the two rows above; not tested on its own |
-| top speed | 80.0 m/s at 2.10 s | 79.9 m/s (262 ft/s) at 2.10 s | half a foot per second |
-| landing | 46.14 s, touchdown | 45.85 s | up to 0.38 s early: 2 m at 6 m/s is 0.33 s, and the test allows a sample more |
-| mean descent rate | 10.92 m/s over FusionSpace HPR's span, 10.275 s to 45.85 s | 10.92 m/s | the two heights' bounds over the span |
+| top speed | 80.0 m/s (262 ft/s) at 2.10 s | 79.9 m/s (262 ft/s) at 2.10 s | half a foot per second |
+| landing | 46.14 s, touchdown | 45.85 s | up to 0.38 s early: 2 m (6.6 ft) at 6 m/s (20 ft/s) is 0.33 s, and the test allows a sample more |
+| mean descent rate | 10.92 m/s (35.8 ft/s) over FusionSpace HPR's span, 10.275 s to 45.85 s | 10.92 m/s (35.8 ft/s) | the two heights' bounds over the span |
 
 The middle of the flat run at the top falls between two samples here, so the apogee time is
 10.275 s. [`hpr analyze`](../cli.md#hpr-analyze) prints times to two decimals, as 10.28 s and
@@ -169,7 +169,7 @@ The middle of the flat run at the top falls between two samples here, so the apo
 The first sample of the flat run at the top would read the apogee over 0.2 s early; a test shows
 that too, so the rule of taking the run's middle is pinned.
 
-The file's highest sample is the pulse's, 400.5 m. The Hampel filter keeps it, and the median
+The file's highest sample is the pulse's, 400.5 m (1,314 ft). The Hampel filter keeps it, and the median
 sets it aside; a test holds both.
 
 **A real flight.** Debrief ships a public PerfectFlite Pnut log, trimmed from a publicly shared
@@ -198,7 +198,7 @@ Reading the Raven's file is [M7.1](../decisions-and-roadmap.md#m7-1)'s work.
   than standard ([Atmosphere](atmosphere.md#pressure-altitude-what-a-barometric-altimeter-reads)).
   FusionSpace HPR prints what the logger recorded and doesn't correct it.
 - **Fast flights.** Debrief stops trusting a barometer's altitude above Mach 0.9, about 300 m/s
-  (1,000 ft/s) near the ground
+  (984 ft/s) near the ground
   ([the readings note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/debrief-flight-readings.md)).
   FusionSpace HPR has no such check yet. On a flight that may have come that close to the speed of
   sound, judged from its simulation or motor rather than from the log, the altitude near the top

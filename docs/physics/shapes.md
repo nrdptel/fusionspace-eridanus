@@ -123,8 +123,8 @@ diameter, moved to the reference plane by the parallel-axis theorem. `S` exclude
     inner corner.
     - A square cut would add a sliver of `t² (tan φ − φ)/2` of section per unit rim length, with
       `φ` the surface's angle to the axis: 3.1e-4 `t²` at 7°. On steep ends it matters: a
-      square-cut part is heavier than this model by 1.26% of wall mass for a 27→49 mm transition
-      over 15 mm (56°), and by 2.24% for 20→37.3 mm over 10 mm (60°), both with `t = 2 mm`. The
+      square-cut part is heavier than this model by 1.26% of wall mass for a 27→49 mm (1.9 in) transition
+      over 15 mm (0.59 in, 56°), and by 2.24% for 20→37.3 mm (1.5 in) over 10 mm (0.39 in, 60°), both with `t = 2 mm`. The
       OpenRocket comparison ([M2.2](../decisions-and-roadmap.md#m2-2)) should check how real parts and OpenRocket treat such
       ends.
     - The sliver grows without bound only as the end turns vertical. There, a square cut (made by
@@ -176,7 +176,7 @@ diameter, moved to the reference plane by the parallel-axis theorem. `S` exclude
     - The oracle itself first missed minima next to the window edge and left kinks unsplit.
 - **Walls by hand:**
   - A conical wall is the cone minus the same cone moved aft by `t/sin β`: volume, centroid and
-    both moments by hand, to 1e-9. A cone so thick that its hollow is 3.8 mm long matches the same
+    both moments by hand, to 1e-9. A cone so thick that its hollow is 3.8 mm (0.15 in) long matches the same
     formula to 1e-12 (`a_nearly_filled_cone_matches_the_offset_cone`).
   - A conical transition's wall is the square-cut frustum shell less the fore rim's sliver, in
     polar coordinates about the rim: mass and centroid to 1e-10, sliver section to 1e-10

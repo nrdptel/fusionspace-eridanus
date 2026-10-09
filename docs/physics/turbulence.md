@@ -137,7 +137,7 @@ repeatedly and on rejected steps.
 
 - **`dryden::tests::dryden_spectrum_matches_theory`** (the *done when* of [M1.2](../decisions-and-roadmap.md#m1-2), the
   atmosphere and wind milestone):
-  - Setup: 2²⁰ samples at 1 m, with `σ = (1.5, 1.2, 0.9)` m/s and `L = (40, 40, 20)` m.
+  - Setup: 2²⁰ samples at 1 m (3.3 ft), with `σ = (1.5, 1.2, 0.9)` m/s and `L = (40, 40, 20)` m.
   - Estimate: 256 Hann-windowed segments of 4096 samples, averaged (Bartlett's method).
   - In every octave band from bin 1 to Nyquist, each component's mean ratio to theory is within
     4 standard errors.
@@ -146,7 +146,7 @@ repeatedly and on rejected steps.
     `ρ₂ = 1/6`. The bracket tends to 1.94.
   - The one- and two-bin bands at the bottom are loose (±25%, ±21%); the wide bands (±1–3%) pin
     the spectrum.
-  - Theory is the continuous spectrum sampled at 1 m, in closed form. Below a tenth of Nyquist it
+  - Theory is the continuous spectrum sampled at 1 m (3.3 ft), in closed form. Below a tenth of Nyquist it
     is checked against [8785C]'s formula to 1%.
   - The variance of the record is within 5% of `σ²`.
 - **Exactness:**

@@ -7,13 +7,13 @@
   sideways push on anything that moves over the spinning Earth.
 - **Sources:** the NGA's WGS 84 standard, NGA.STND.0036 (2014), chapter 4 and appendix B.
 - **How well it is validated:** the derived constants reproduce the standard's printed values to
-  their last digit. At 11 points, both poles and heights up to 200 km included, gravity's
+  their last digit. At 11 points, both poles and heights up to 200 km (124 mi) included, gravity's
   strength matches the published formulas, evaluated in 40-digit arithmetic, within 2e-14
   relative. HPR Sim's copy of RocketPy's formula matches RocketPy at 8 points, to under 1e-12
   relative. No real-flight check.
 - **What it leaves out:** the real Earth's gravity anomalies, typically within ±1e-4 relative.
   RocketPy's formula, an option for like-for-like comparisons, differs from the exact field by
-  1.4e-5 relative at 100 km.
+  1.4e-5 relative at 100 km (62 mi).
 
 ## Code and sources
 
@@ -78,19 +78,19 @@ q′ = Σ_{n≥1} (−1)^(n+1) 6 ε^(2n)    / ((2n+1)(2n+3))
 - **On the ellipsoid (Somigliana, eq. 4-1):** `γ = γ_e (1 + k sin²φ)/√(1 − e² sin²φ)`.
 - **Taylor series in height (eq. 4-3):**
   `γ_h = γ [1 − (2/a)(1 + f + m − 2f sin²φ) h + (3/a²) h²]`. RocketPy uses this form. Its error
-  against the exact field is 1e-8 relative at 1.4 km, 3e-7 at 30 km, 1.4e-5 at 100 km and 1.1e-4
-  at 200 km (fixture values below).
+  against the exact field is 1e-8 relative at 1.4 km (0.87 mi), 3e-7 at 30 km (19 mi), 1.4e-5 at 100 km (62 mi) and 1.1e-4
+  at 200 km (124 mi, fixture values below).
 - **Exact field (eqs. 4-5 to 4-13):** ellipsoidal-harmonic coordinates `(u, β)` give the components
   `γ_u` and `γ_β`. The code rotates them into ECEF with `R₁` (eq. 4-18).
   - Eq. 4-8 is used in the equivalent form `u² = ½[s + √(s² + 4E²z²)]`, with
     `s = x² + y² + z² − E²`, which never divides by `s`.
   - `β` comes from `atan2`, so every quadrant works.
-  - The field is undefined on the focal disc (`u = 0`, the equatorial plane within 522 km of the
+  - The field is undefined on the focal disc (`u = 0`, the equatorial plane within 522 km (324 mi) of the
     center); the code returns an error there.
 - **Local components:** in the ENU axes at the point, `−γ·û` is the exact normal component `γ_h`
   (eq. 4-16), `γ·n̂` is `γ_φ` (eq. 4-23, positive north), and the length is `|γ_total|` (eq. 4-4).
   - Above the ellipsoid, the vector tilts slightly toward the equator: `γ_φ < 0` in the northern
-    hemisphere, `−8.1e-4 m/s²` at 45° N and 100 km.
+    hemisphere, `−8.1e-4 m/s²` at 45° N and 100 km (62 mi).
   - That sign is confirmed independently. The reference script differentiates the normal
     potential numerically, and its value on the ellipsoid matches Table 3.6's `U₀`.
 
@@ -105,7 +105,7 @@ q′ = Σ_{n≥1} (−1)^(n+1) 6 ε^(2n)    / ((2n+1)(2n+3))
 
 The ellipsoidal model follows the vertical as it turns downrange: by about `d/(N + h)` east-west
 and `d/(M + h)` north-south, with `M = a(1 − e²)/(1 − e² sin²φ)^(3/2)` the meridian radius. A
-test checks both at 20 km, to 1e-4 east and 1e-3 north (the curvature changes along a meridian). Earth rotation (`earth::EarthRotation`) is `coriolis` by default, `−2Ω × v` with
+test checks both at 20 km (12 mi), to 1e-4 east and 1e-3 north (the curvature changes along a meridian). Earth rotation (`earth::EarthRotation`) is `coriolis` by default, `−2Ω × v` with
 `Ω = ω(0, cos φ₀, sin φ₀)`, or `ignore`.
 
 **`STANDARD_GRAVITY_MPS2 = 9.80665`** is the conventional `g₀` (3rd CGPM, 1901; also used by the
@@ -121,8 +121,8 @@ milestone ([M2.1](../decisions-and-roadmap.md#m2-1)).
 - **Formula:** Somigliana (4-1) times the Taylor factor (4-3), with Table 3.6 constants
   (`rocketpy/environment/environment.py`, `somigliana_gravity`). It matches
   `NormalGravity::taylor_mps2` to under 1e-12 relative.
-- **Sampled, then held above 80 km:** a flight samples the formula at 100 points between 0 and
-  `max_expected_height` (80 km by default) and holds the last value above that. At 45° and 100 km
+- **Sampled, then held above 80 km (50 mi):** a flight samples the formula at 100 points between 0 and
+  `max_expected_height` (80 km (50 mi) by default) and holds the last value above that. At 45° and 100 km (62 mi)
   a flight uses 9.563982 m/s², where the formula gives 9.504874.
 - **Height datum:** it is fed height above sea level, not above the ellipsoid.
 - **Missing latitude:** the default latitude of 0 gives equatorial gravity.
@@ -135,7 +135,7 @@ milestone ([M2.1](../decisions-and-roadmap.md#m2-1)).
   *done when* of [M1.1](../decisions-and-roadmap.md#m1-1), the core math, frames and Earth milestone):
   - Table 3.6 constants to their printed digits.
   - At 11 latitude/longitude/height points, including the equator, both poles, launch sites and
-    heights up to 200 km:
+    heights up to 200 km (124 mi):
     - surface (4-1), Taylor (4-3), `|γ|` (4-4) and `γ_h` (4-16) within 1e-6 relative, and in
       fact within 2e-14 relative;
     - `γ_φ` and the ECEF vector within 1e-12 m/s².

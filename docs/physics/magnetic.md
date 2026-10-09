@@ -22,7 +22,7 @@
   allows: its own error estimate for declination is 0.29° at best and 0.35° to 0.56° at the
   example's sites, more near the magnetic poles. Each result carries that estimate.
 - **What it leaves out:** local magnetic rocks, magnetic storms and the steel near a compass.
-  Dates outside 2025.0 to 2030.0 are refused, and so are heights below −1 km or above 850 km
+  Dates outside 2025.0 to 2030.0 are refused, and so are heights below −1 km (−0.62 mi) or above 850 km (528 mi)
   ([Limits](#limits)).
 
 ## Sources
@@ -183,7 +183,7 @@ falls by about 0.08° a year, so it moves well under a degree over the model's f
 | the potential, by differences | 100 | HPR Sim's `X′` and `Ẋ′` | 1.3e-7 nT; `Ẋ′` within the rounding allowance (under 1e-9 nT/yr) | 1e-6 nT; 1e-6 nT/yr |
 
 Rows are counted from 0. The north component `X` in NCEI's file differs from HPR Sim's at 97 of its
-100 points, by up to 7.18e-4 nT (row 35: 2026.5, 12 km, 33° N, 145° W). That is at most 2.11e-8
+100 points, by up to 7.18e-4 nT (row 35: 2026.5, 12 km (7.5 mi), 33° N, 145° W). That is at most 2.11e-8
 of the total field, and 140 times smaller than the 0.1 nT the report allows for single precision
 (the note under its Table 6).
 
@@ -221,11 +221,11 @@ Table 1 rounds the surface range to 23,000 to 67,000 nT, but the model itself fa
 
 - **Five years only.** WMM2025 covers 2025.0 to 2030.0. A flight log from 2024 needs WMM2020,
   which the simulator does not bundle; such a date is refused, not extrapolated.
-- **Heights from −1 km to 850 km.** The model is specified from 1 km below the WGS 84 ellipsoid
-  to 850 km above it ([WMM] section 3); outside that, a height is refused.
+- **Heights from −1 km (−0.62 mi) to 850 km (528 mi).** The model is specified from 1 km (0.62 mi) below the WGS 84 ellipsoid
+  to 850 km (528 mi) above it ([WMM] section 3); outside that, a height is refused.
 - **Height above the ellipsoid.** Heights are above WGS 84, as `Geodetic` holds them. A site's
   height above sea level (from a map, a GPS or an altimeter) differs by the geoid, up to about
-  100 m; the report puts that effect at about 1 nT or less, far below the model's error, so a
+  100 m (328 ft); the report puts that effect at about 1 nT or less, far below the model's error, so a
   height above sea level can be used as it is.
 - **The main field only.** The WMM leaves out the crust's local fields, which can move a compass
   by degrees near iron ore or volcanic rock, and the fields of magnetic storms. The error

@@ -12,7 +12,7 @@
   setups, launch angles give RocketPy's starting attitude to 1e-12 rad. Over 1e6 integration
   steps, attitude stays within 1e-9 rad of the exact answer. No real-flight check.
 - **What it leaves out:** heights are above the WGS 84 ellipsoid, not sea level; the two are up to
-  about 100 m apart. The attitude equations leave out the Earth's rotation rate, 7.3e-5 rad/s,
+  about 100 m (328 ft) apart. The attitude equations leave out the Earth's rotation rate, 7.3e-5 rad/s,
   which is tiny next to a rocket's pitch rates ([ADR-011][adr-011], the rigid-body flight
   decision).
 
@@ -41,7 +41,7 @@ The WGS 84 conventional terrestrial frame:
 A **geodetic position** `(φ, λ, h)` gives the latitude `φ` (positive north, in `[−π/2, π/2]`),
 the longitude `λ` (positive east), and the height `h` above the ellipsoid along its normal.
 `h` is **ellipsoidal height, not height above mean sea level**. The two differ by the geoid
-undulation `N` (`h = H + N`, with `|N|` up to about 100 m). Inputs quoted above sea level must be
+undulation `N` (`h = H + N`, with `|N|` up to about 100 m (328 ft)). Inputs quoted above sea level must be
 converted before use. HPR Sim has no geoid model, so a flight takes `N` at the launch site as an
 input; [Atmosphere](atmosphere.md#height-datum) shows where it is used.
 
@@ -62,7 +62,7 @@ input; [Atmosphere](atmosphere.md#height-datum) shows where it is used.
   equations in `L` add the Coriolis term `−2Ω × v`. The centrifugal term is already inside normal
   gravity and must not be added again ([Gravity](gravity.md)).
 - **`z_L` is not altitude.** `L` is a tangent plane, so a point at `z_L = 0` at horizontal
-  distance `d` from the pad is about `d²/(2R)` above the ellipsoid: 7.8 m at 10 km. Height above
+  distance `d` from the pad is about `d²/(2R)` above the ellipsoid: 7.8 m (26 ft) at 10 km (6.2 mi). Height above
   the ellipsoid comes from `LaunchFrame::geodetic_from_enu`. The flight engine detects apogee and
   ground contact with that height, not with `z_L` ([Rigid-body flight](flight.md),
   [Loft lesson L35](../decisions-and-roadmap.md#l35)).
@@ -149,14 +149,14 @@ z_B in L = (sin A cos E, cos A cos E, sin E)
 ## Tests that pin this
 
 - **`hpr_core::geodesy::tests`:**
-  - geodetic → ECEF → geodetic, from −10 km to 1000 km;
-  - ECEF → geodetic → ECEF, from 6250 km to 46,000 km from the center;
+  - geodetic → ECEF → geodetic, from −10 km (−6.2 mi) to 1000 km (621 mi);
+  - ECEF → geodetic → ECEF, from 6250 km (3,884 mi) to 46,000 km (28,583 mi) from the center;
   - axis points, the sphere limit, and the ENU rotation being proper with `û` normal to the
     ellipsoid.
 - **`hpr_core::frames::tests`:**
   - angles → quaternion → angles (off vertical), and quaternion → angles → quaternion (everywhere,
     exactly vertical included);
-  - ENU ↔ ECEF ↔ geodetic round trips for sites anywhere, within 2000 km and up to 1000 km high;
+  - ENU ↔ ECEF ↔ geodetic round trips for sites anywhere, within 2000 km (1,243 mi) and up to 1000 km (621 mi) high;
   - named attitudes, and the tangent-plane rise `d²/(2N)`.
 - **`hpr_core::attitude::tests`:** the kinematic equation checked against a closed-form coning
   motion, and norm drift ≤ 1e-12 over 1e6 RK4 steps with attitude error < 1e-9 rad.

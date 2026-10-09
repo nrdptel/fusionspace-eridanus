@@ -62,7 +62,7 @@ says `hpr.Rocket`, `hpr.Flight` and so on; `import fusionspace.hpr as hpr` does 
 ## A first flight
 
 This builds a simpler version of the rocket in [Your own rocket](your-own-rocket.md) and
-[The builder](the-builder.md): a 54 mm airframe with an ogive nose, three fins and a Cesaroni
+[The builder](the-builder.md): a 54 mm (2.1 in) airframe with an ogive nose, three fins and a Cesaroni
 H54, whose recovery bay here is a point mass and whose nose has no shoulder. It flies from a 1.8 m
 (5.9 ft) rail leaning 5° into a 5 m/s (11 mph) west wind, with a parachute opened by the motor's
 ejection charge at the end of its [ejection delay](glossary.md#ejection-delay).
@@ -116,8 +116,8 @@ Line by line:
   blows **from** `wind_from_deg`, clockwise from north.
 - `Rocket` takes a name and the airframe's outside diameter, m.
 - The nose is a [tangent ogive](glossary.md#tangent-ogive) 0.22 m (8.7 in) long, of ABS, hollow
-  with a 1.5 mm wall. The tube is 0.9 m (35.4 in) long with a 1.15 mm wall. The motor tube is 0.2 m
-  (7.9 in) long, with a 29 mm bore and a 1 mm wall.
+  with a 1.5 mm (0.059 in) wall. The tube is 0.9 m (35.4 in) long with a 1.15 mm (0.045 in) wall. The motor tube is 0.2 m
+  (7.9 in) long, with a 29 mm (1.1 in) bore and a 1 mm (0.039 in) wall.
 - Parts go on from the nose back: the nose, then tubes. Fins, a motor tube and masses go on or in
   the tube before them.
 - Each part names its material by an id from the built-in list, `hpr.materials()`, and takes its

@@ -124,7 +124,7 @@ Sources:
 - A stiff flight phase shows up as `StepTooSmall` or the step limit.
 - **A fixed step has to respect the drag's own time scale.** Quadratic drag `v̇ = −k|v|v`, with
   `k = ρ (C_D S)/2m`, linearises to `λ = 2k|v|`, and RK4 is stable only for `h ≲ 2.78/λ`. A light
-  body under a big canopy is the worst case in HPR Sim: a 0.55 kg sustainer arriving at 168 m/s
+  body under a big canopy is the worst case in HPR Sim: a 0.55 kg sustainer arriving at 168 m/s (551 ft/s)
   under 2 m² gives `λ ≈ 740 1/s`, so RK4 needs `h ≲ 3.8 ms` and diverges at 10 ms (found in review;
   it surfaces as a geodesy error from an absurd position, not as a stability message). The adaptive
   method has no such limit. Recovery descents are the place this bites, because a separated body
@@ -164,11 +164,11 @@ measured on 2026-09-17.
   errors are 117·tol (time) and 91·tol (height).
 - **Vacuum with constant thrust ([Loft lesson L23](../decisions-and-roadmap.md#l23)).** Burnout is a stop time. At burnout
   the state matches Tsiolkovsky's equation with gravity loss to 1e-9 relative, for both methods. The
-  coast apogee is within 6.3e-9 s and 5.2e-6 m of 48.8 km (Dormand–Prince, 20 steps) and 4e-11 s and
+  coast apogee is within 6.3e-9 s and 5.2e-6 m of 48.8 km (30 mi, Dormand–Prince, 20 steps) and 4e-11 s and
   1.6e-8 m (RK4, 0.01 s). Integrated straight through the jump, RK4 misses the velocity by
-  0.56 m/s; with the stop time the miss is 1e-12 m/s.
+  0.56 m/s (1.8 ft/s); with the stop time the miss is 1e-12 m/s.
 - **Events within 1e-6 s ([Loft lesson L22](../decisions-and-roadmap.md#l22)).**
-  - For the quadratic-drag flight, the apogee, a 300 m descending deploy and landing are all
+  - For the quadratic-drag flight, the apogee, a 300 m (984 ft) descending deploy and landing are all
     located against the closed forms. Errors: 1.2e-8, 1.5e-8 and 1.4e-8 s at the default
     tolerances, and 3e-12 to 1.3e-11 s with RK4 at 0.01 s. `g` at the stop is below 1e-13.
   - For `x = cos t`, falling zeros and extrema over 20 s are located to 3e-8 s (Dormand–Prince) and

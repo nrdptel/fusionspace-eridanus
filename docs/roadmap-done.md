@@ -43,6 +43,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9a1 The packages' text ([Phase 0](#phase-0-foundations))
 - M0.9a2 The site's pages ([Phase 0](#phase-0-foundations))
 - M0.9b The design audit ([Phase 0](#phase-0-foundations))
+- M0.9c The CLI, exports and plot to the design ([Phase 0](#phase-0-foundations))
 - M0.9c1 Diagnostics on stderr ([Phase 0](#phase-0-foundations))
 - M0.9c2 US units in brackets ([Phase 0](#phase-0-foundations))
 - M0.9c3 How far to trust a result ([Phase 0](#phase-0-foundations))
@@ -56,6 +57,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9c13 The site's figures and units ([Phase 0](#phase-0-foundations))
 - M0.9c14 Provenance on the other files ([Phase 0](#phase-0-foundations))
 - M0.9c15 Next steps and waits ([Phase 0](#phase-0-foundations))
+- M0.9c16 US units on the model pages ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -387,7 +389,9 @@ One line per milestone or increment, in the order it was archived within its pha
     each applying row met (a named test, or reviewed at the commit) or in an issue with a
     milestone; a test fails on a missing section or a commit differing from `refs.lock.toml`'s or
     `DESIGN_REV`.
-  - **M0.9c** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+  - [x] **M0.9c The CLI, exports and plot to the design** (ADR-208): #377–#382, #392, #395, #400,
+    #403, #405, #409–#411, each fix held by a named test failing on its issue's defect, the
+    audit's rows naming them; a rule declined has an ADR.
     - [x] **M0.9c1 Diagnostics on stderr** (#377). *Done when:* every `warning:`, `note:` and
       `help:` line a command prints beside a text result goes to stderr, and the result alone to
       stdout, held by a test per command that prints them; `--json` output is unchanged; the
@@ -429,6 +433,9 @@ One line per milestone or increment, in the order it was archived within its pha
       each item held by a test failing on the build before it.
     - [x] **M0.9c15 Next steps and waits** (#410, #411). *Done when:* both are closed, each item
       held by a check failing before it.
+    - [x] **M0.9c16 US units on the model pages** (#400; ADR-219). *Done when:* #400 is closed,
+      with every item it lists: the units check defers no page and reads millimeters, a motor's
+      or mount's size excepted.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

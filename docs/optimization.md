@@ -32,7 +32,7 @@ of evaluations can be afforded. It needs some Rust.
 > - **Checked by re-flying:** the design each of the first two examples finds is flown again from
 >   scratch, and again with the flight's numerical integration 100 times stricter
 >   ([tolerances](glossary.md#tolerance)). Both reach apogee within 0.1 m (0.3 ft) of
->   3,048 m (10,000 ft); the first example's within 2 mm, measured.
+>   3,048 m (10,000 ft); the first example's within 2 mm (0.079 in), measured.
 > - **Limits** (a minimum stability margin, say): held to three test problems whose answers on
 >   their limits are known exactly, from 20 seeds each, to 10⁻¹⁰
 >   ([`tests/constrained.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/tests/constrained.rs)).
@@ -201,7 +201,7 @@ whose results are committed beside the test.
 
 The example program
 [`crates/hpr/examples/optimization.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/optimization.rs)
-runs CMA-ES on three of the test functions. Then it takes a 66 mm rocket on a J760, starting from
+runs CMA-ES on three of the test functions. Then it takes a 66 mm (2.6 in) rocket on a J760, starting from
 a 3 m (9.8 ft) rail at 85° into 5 m/s (11 mph) of wind. It finds the nose ballast and body tube
 length that give it two things at once: an apogee of 3,048 m (10,000 ft) above the pad, and a
 static margin of 2.20 [calibres](glossary.md#calibre-caliber) at launch mass (at Mach 0.3). Run it
@@ -264,7 +264,7 @@ Flown again, tolerances 100 times tighter: apogee 3048.0 m
 
 The rocket started 81 m (266 ft) too high, with a margin of 1.79 calibres. The optimizer found the
 design in 300 flights on the development machine, about 50 generations. Flown again with tighter
-tolerances, its apogee moves by 1.4 mm. Limits on other things, such as the rail-exit speed, are the
+tolerances, its apogee moves by 1.4 mm (0.055 in). Limits on other things, such as the rail-exit speed, are the
 subject of [Limits on a design](#limits-on-a-design), and the second example uses them.
 
 ## Evaluating designs your own way
@@ -493,7 +493,7 @@ outside shape can share one table, so with the length fixed the example builds a
 one per fiberglass nose cone (the next paragraph says why the plastic one has none). With the length a variable, every design would build its own, and the run
 would take minutes. The example shows how to share the table, in its `Flyer::fly`.
 
-The winning plastic nose cone gets no table at all. The catalog lists it 0.05 mm narrower than
+The winning plastic nose cone gets no table at all. The catalog lists it 0.05 mm (0.0020 in) narrower than
 the tube (2.638 in against 2.640 in), and the method behind the table doesn't yet take a step in
 the body's outline larger than a millionth of its area ([issue #87](https://github.com/nrdptel/fusionspace-eridanus/issues/87)).
 So for the short stretch of its flight past Mach 1.2 (its top speed is Mach 1.23) the simulator
@@ -580,7 +580,7 @@ and a design that keeps every limit beats one that doesn't. A design that can't 
 
 The example program
 [`crates/hpr/examples/pareto_front.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/pareto_front.rs)
-takes the 66 mm rocket on a J760 from [An example](#an-example), with its body fixed at
+takes the 66 mm (2.6 in) rocket on a J760 from [An example](#an-example), with its body fixed at
 1.0 m (39 in). It varies two things, the nose ballast (0 to 0.8 kg) and the fins' span, 4–10 cm (1.6–3.9 in),
 for two goals: the highest apogee, and the largest static margin at launch mass, at Mach 0.3. Every
 design must keep at least 1.5 calibres. The heart of it, abridged:

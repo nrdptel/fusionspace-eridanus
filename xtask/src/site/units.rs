@@ -24,42 +24,89 @@
 //! - **So is e-notation:** `1e-9 m/s` is a tolerance a test or a solver holds, written as a
 //!   program writes it, not a quantity a flyer reads.
 //!
-//! Which pages: the guides, every page of the site but [`DEFERRED`] (the model pages, the file
-//! formats' pages and the records, M0.9c16). Millimeters aren't read yet: most name a motor's or
-//! a mount's size, which stays in millimeters (`data.md`), and M0.9c16 sorts those from parts'
-//! sizes, which take inches.
+//! - **Millimeters** take inches, but **a motor's or a mount's size** stays in millimeters alone,
+//!   since motors and their mounts are named by it (`data.md`: "motor mounts by the motor's (29,
+//!   38, 54, 75, 98 mm)"): one of [`MOTOR_DIAMETERS_MM`] followed, within three words, by a word
+//!   of [`MOTOR_WORDS`] (`a 54 mm motor`, `29 mm and 38 mm mounts`, `a 38 mm Pro38 case`). Any
+//!   other size in millimeters, a body tube's or a fin's, gives its inches: `2 mm (0.079 in)`.
+//!
+//! Which pages: every page of the site (the guides since M0.9c13; the model pages, the file
+//! formats' pages, the accuracy page, the validation plan and the records since M0.9c16).
 
-/// Pages, or directories of pages ending in `/`, the check doesn't read yet: the model pages, the
-/// file formats' pages and the records, which M0.9c16 brings in (ADR-219). `cargo xtask site`
-/// counts what they hold.
-pub(super) const DEFERRED: [&str; 5] = [
-    "physics/",
-    "format/",
-    "accuracy.md",
-    "VALIDATION.md",
-    "decisions-and-roadmap.md",
+/// The motor diameters, in millimeters, that name a motor or a motor mount: the NAR's and
+/// Tripoli's standard diameters (13, 18, 24, 29, 38, 54, 75 and 98 mm) and the 150 and 152 mm of
+/// the largest commercial cases.
+const MOTOR_DIAMETERS_MM: [f64; 10] =
+    [13.0, 18.0, 24.0, 29.0, 38.0, 54.0, 75.0, 98.0, 150.0, 152.0];
+
+/// Words that make a size in millimeters before them a motor's or a mount's.
+const MOTOR_WORDS: [&str; 11] = [
+    "motor", "motors", "mount", "mounts", "case", "cases", "casing", "casings", "reload",
+    "reloads", "mmt",
 ];
 
-/// Whether `name` (a page's path under `docs/`) is on a list of pages and directories.
-fn listed(list: &[&str], name: &str) -> bool {
-    list.iter().any(|entry| {
-        if entry.ends_with('/') {
-            name.starts_with(entry)
-        } else {
-            name == *entry
+/// Whether a size in millimeters names a motor or its mount: a standard motor diameter with a
+/// word of [`MOTOR_WORDS`] among the next three words (`after` is the text after `mm`). Figures,
+/// `mm`, `and`, `or`, `to`, quotation marks and a comma before a figure don't count as words, so
+/// a list of sizes (`29 mm, 38 mm and 54 mm motors`) reaches its noun; other punctuation ends the
+/// search.
+fn motor_size(si: &[Figure], after: &str) -> bool {
+    if !si
+        .iter()
+        .all(|figure| MOTOR_DIAMETERS_MM.contains(&figure.value))
+    {
+        return false;
+    }
+    let mut words = 0;
+    let mut rest = after;
+    loop {
+        rest = rest.trim_start_matches(is_space);
+        let Some(c) = rest.chars().next() else {
+            return false;
+        };
+        if c == ',' {
+            let next = rest[1..].trim_start_matches(is_space);
+            if !next.starts_with(|d: char| d.is_ascii_digit()) {
+                return false;
+            }
+            rest = next;
+            continue;
         }
-    })
-}
-
-/// Whether the check reads the page `name` (its path under `docs/`).
-pub(super) fn covers(name: &str) -> bool {
-    !listed(&DEFERRED, name)
-}
-
-/// Whether the page `name` waits for M0.9c16: the site check counts its failures, and doesn't
-/// fail on them.
-pub(super) fn deferred(name: &str) -> bool {
-    listed(&DEFERRED, name)
+        // A quotation mark is no break: `a "29 mm" case` names the case by its size.
+        if matches!(c, '"' | '”' | '“' | '\'' | '’') {
+            rest = &rest[c.len_utf8()..];
+            continue;
+        }
+        if !(c.is_alphanumeric() || matches!(c, '-' | '–')) {
+            return false;
+        }
+        let len: usize = rest
+            .chars()
+            .take_while(|c| c.is_alphanumeric() || matches!(c, '-' | '–' | '.' | '\'' | '’'))
+            .map(char::len_utf8)
+            .sum();
+        // A full stop after a word ends the sentence, and the search after that word.
+        let stops = rest[..len].ends_with('.');
+        let token = rest[..len].trim_end_matches('.').to_lowercase();
+        rest = if stops { "." } else { &rest[len..] };
+        let token = token
+            .trim_end_matches("'s")
+            .trim_end_matches("’s")
+            .trim_matches(|c| matches!(c, '-' | '–'));
+        if token.is_empty()
+            || token.starts_with(|d: char| d.is_ascii_digit())
+            || matches!(token, "mm" | "and" | "or" | "to")
+        {
+            continue;
+        }
+        if token.split('-').any(|part| MOTOR_WORDS.contains(&part)) {
+            return true;
+        }
+        words += 1;
+        if words == 3 {
+            return false;
+        }
+    }
 }
 
 /// Meters in a foot, an inch and a statute mile, exactly (the international foot).
@@ -69,7 +116,7 @@ const MILE_M: f64 = 1609.344;
 
 /// An SI unit the check reads, longest first so `km/h` isn't read as `km`, and its US units with
 /// how many of each one of it makes.
-const SI_UNITS: [(&str, &[(&str, f64)]); 5] = [
+const SI_UNITS: [(&str, &[(&str, f64)]); 6] = [
     (
         "km/h",
         &[("mph", 1000.0 / MILE_M), ("ft/s", 1000.0 / 3600.0 / FOOT_M)],
@@ -77,6 +124,7 @@ const SI_UNITS: [(&str, &[(&str, f64)]); 5] = [
     ("m/s", &[("ft/s", 1.0 / FOOT_M), ("mph", 3600.0 / MILE_M)]),
     ("km", &[("mi", 1000.0 / MILE_M), ("ft", 1000.0 / FOOT_M)]),
     ("cm", &[("in", 0.01 / INCH_M), ("ft", 0.01 / FOOT_M)]),
+    ("mm", &[("in", 0.001 / INCH_M)]),
     (
         "m",
         &[
@@ -190,17 +238,31 @@ fn group_follows(text: &str) -> bool {
         && bytes.get(3).is_none_or(|b| !b.is_ascii_digit())
 }
 
-/// Reads one figure or a range of two (`5,100–5,500`, an en dash between), from the start.
+/// Reads one figure or a range of two (`5,100–5,500` with an en dash between, or `15 to 30`),
+/// from the start.
 fn figures(text: &str) -> Option<(Vec<Figure>, usize)> {
     let (first, mut end) = figure(text)?;
     let mut list = vec![first];
-    if let Some(rest) = text[end..].strip_prefix('–')
-        && let Some((second, len)) = figure(rest)
+    if let Some(join) = range_join(&text[end..])
+        && let Some((second, len)) = figure(&text[end + join..])
     {
         list.push(second);
-        end += '–'.len_utf8() + len;
+        end += join + len;
     }
     Some((list, end))
+}
+
+/// The length of what joins a range's two figures at the start of `text`: an en dash, or `to`
+/// with a space on each side.
+fn range_join(text: &str) -> Option<usize> {
+    if text.starts_with('–') {
+        return Some('–'.len_utf8());
+    }
+    let mut chars = text.char_indices();
+    let (_, first) = chars.next()?;
+    let rest = text[first.len_utf8()..].strip_prefix("to")?;
+    let after = rest.chars().next()?;
+    (is_space(first) && is_space(after)).then(|| text.len() - rest.len() + after.len_utf8())
 }
 
 /// The unit among `units` that `text` starts with, ending where a word would: not before a
@@ -276,9 +338,9 @@ fn bracket(after: &str, si: &[Figure], units: &[(&str, f64)]) -> Result<usize, S
 }
 
 /// What to write in the bracket: the figure converted into the first US unit, to one place
-/// fewer than the SI figure has and at least a tenth under 10, grouped by commas from 1,000 as
-/// `writing.md` groups prose.
-fn suggestion(si: &[Figure], units: &[(&str, f64)], space: &str) -> String {
+/// fewer than the SI figure has, at least a tenth under 10 and at least two significant figures
+/// (`2 mm` is `0.079 in`), grouped by commas from 1,000 as `writing.md` groups prose.
+fn suggestion(si: &[Figure], units: &[(&str, f64)], space: &str, join: &str) -> String {
     let (unit, factor) = units[0];
     let ends: Vec<String> = si
         .iter()
@@ -287,10 +349,17 @@ fn suggestion(si: &[Figure], units: &[(&str, f64)], space: &str) -> String {
             let places = (-figure.place.log10()).round() as i32 - 1;
             // At most 12 places: a figure written finer than that has no use for more.
             let places = if value.abs() < 10.0 {
-                places.clamp(1, 12)
+                places.max(1)
             } else {
-                places.clamp(0, 12)
-            } as usize;
+                places.max(0)
+            };
+            // Two significant figures: a value under 1 needs places past its leading zeros.
+            let significant = if value == 0.0 {
+                0
+            } else {
+                1 - value.abs().log10().floor() as i32
+            };
+            let places = places.max(significant).clamp(0, 12) as usize;
             let text = format!("{:.*}", places, value.abs());
             let (whole, fraction) = text
                 .split_once('.')
@@ -315,12 +384,17 @@ fn suggestion(si: &[Figure], units: &[(&str, f64)], space: &str) -> String {
             }
         })
         .collect();
-    format!("({}{space}{unit})", ends.join("–"))
+    format!("({}{space}{unit})", ends.join(join))
 }
 
 /// Whether the text ends, past spaces, with an operator that makes what follows a term: a `−` or
 /// `-` only with a space after it, since one joined to the figure is its sign.
 fn operator_before(before: &str) -> bool {
+    // A term in brackets is one too: `π × (5 mm)²`.
+    let before = before
+        .trim_end_matches(is_space)
+        .strip_suffix('(')
+        .unwrap_or(before);
     let trimmed = before.trim_end_matches(is_space);
     let spaced = trimmed.len() < before.len();
     match trimmed.chars().next_back() {
@@ -330,9 +404,80 @@ fn operator_before(before: &str) -> bool {
     }
 }
 
+/// Whether the SI figures are themselves the conversion of a US figure before them, in brackets
+/// after it: `1.52 in (38 mm)`, `0.583 ft (0.178 m)`, `1/8 in (3.175 mm)`. `before` is the run
+/// up to the figures; the US figure may be a fraction, and must convert to the SI one within half
+/// the SI figure's last place plus half the US figure's own.
+fn converted_from_us(before: &str, si: &[Figure], units: &[(&str, f64)]) -> bool {
+    let Some(before) = before
+        .trim_end_matches(is_space)
+        .strip_suffix('(')
+        .map(|text| text.trim_end_matches(is_space))
+    else {
+        return false;
+    };
+    let Some((unit, factor)) = units
+        .iter()
+        .find(|(unit, _)| before.ends_with(unit))
+        .map(|(unit, factor)| (*unit, *factor))
+    else {
+        return false;
+    };
+    let number = before[..before.len() - unit.len()].trim_end_matches(is_space);
+    let start = number
+        .char_indices()
+        .rev()
+        .take_while(|(_, c)| c.is_ascii_digit() || matches!(c, '.' | ',' | '/' | '–' | '−'))
+        .last()
+        .map_or(number.len(), |(at, _)| at);
+    let text = &number[start..];
+    // A word right before the figure makes it part of a name (`MMT-1.52`), not a quantity.
+    if text.is_empty()
+        || number[..start]
+            .chars()
+            .next_back()
+            .is_some_and(|c| c.is_alphanumeric() || matches!(c, '-' | '_'))
+    {
+        return false;
+    }
+    let us: Vec<Figure> = if let Some((numerator, denominator)) = text.split_once('/') {
+        let (Ok(numerator), Ok(denominator)) =
+            (numerator.parse::<f64>(), denominator.parse::<f64>())
+        else {
+            return false;
+        };
+        if denominator == 0.0 {
+            return false;
+        }
+        // A fraction states its value exactly.
+        vec![Figure {
+            value: numerator / denominator,
+            place: 0.0,
+            scientific: false,
+        }]
+    } else {
+        match figures(text) {
+            Some((list, len)) if len == text.len() => list,
+            _ => return false,
+        }
+    };
+    us.len() == si.len()
+        && si
+            .iter()
+            .zip(&us)
+            .all(|(si, us)| converts(*us, *si, 1.0 / factor))
+}
+
 /// Whether the text starts, past spaces, with an operator: a `−` or `-` only with a space after.
 fn operator_after(after: &str) -> bool {
     let trimmed = after.trim_start_matches(is_space);
+    // A term in brackets is one too, and a power of it: `(5 mm)² × 2`.
+    if let Some(closed) = trimmed.strip_prefix(')') {
+        if closed.starts_with(['²', '³']) {
+            return true;
+        }
+        return operator_after(closed);
+    }
     let mut chars = trimmed.chars();
     match chars.next() {
         Some('-' | '−') => chars.next().is_some_and(is_space),
@@ -420,8 +565,8 @@ pub(super) fn without_conversions(text: &str) -> String {
 
 /// Walks the quantities in SI units in a run of text, calling `found` with each one's byte
 /// offset and what follows it: `Ok(Some(span))` a bracket giving its US units (the span from
-/// the space before it to its `)`), `Ok(None)` a term of a worked calculation, `Err` what is
-/// wrong.
+/// the space before it to its `)`), `Ok(None)` a term of a worked calculation, a motor's size or
+/// the conversion of a US figure before it, `Err` what is wrong.
 fn scan(run: &str, mut found: impl FnMut(usize, Result<Option<std::ops::Range<usize>>, String>)) {
     let mut at = 0;
     while at < run.len() {
@@ -461,6 +606,8 @@ fn scan(run: &str, mut found: impl FnMut(usize, Result<Option<std::ops::Range<us
         if operator_before(&run[..at])
             || operator_after(after_unit)
             || si.iter().any(|f| f.scientific)
+            || (unit == "mm" && motor_size(&si, after_unit))
+            || converted_from_us(&run[..at], &si, us_units)
         {
             found(at, Ok(None));
             at = quantity_end;
@@ -480,7 +627,16 @@ fn scan(run: &str, mut found: impl FnMut(usize, Result<Option<std::ops::Range<us
                     Err(format!(
                         "`{written}{space}{unit}` is in SI alone: {why}; give the US units in \
                          brackets after it, such as `{written}{space}{unit} {}` (#400, ADR-210)",
-                        suggestion(&si, us_units, sep)
+                        suggestion(
+                            &si,
+                            us_units,
+                            sep,
+                            if si.len() > 1 && !written.contains('–') {
+                                " to "
+                            } else {
+                                "–"
+                            }
+                        )
                     )),
                 );
             }
@@ -668,13 +824,118 @@ mod tests {
     }
 
     #[test]
-    fn deferred_and_exempt_pages_are_skipped() {
-        assert!(covers("getting-started.md"));
-        assert!(covers("cli.md"));
-        assert!(!covers("physics/aero.md"));
-        assert!(!covers("accuracy.md"));
-        assert!(!covers("format/ork.md"));
-        assert!(deferred("format/ork.md") && deferred("physics/aero.md"));
-        assert!(!deferred("cli.md"));
+    fn millimeters_take_inches() {
+        assert!(messages("a 2\u{a0}mm (0.079\u{a0}in) wall, 25.4 mm (1.00 in) across").is_empty());
+        let found = messages("a 2 mm wall");
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert!(found[0].contains("`2 mm (0.079 in)`"), "{found:?}");
+        // Inches only: a size in millimeters isn't given in feet.
+        assert!(messages("a 300 mm (0.98 ft) tube")[0].contains("not a unit of the same quantity"));
+        assert!(messages("a 25 mm (1.5 in) tube")[0].contains("aren't it converted"));
+        // `mm` is read whole, not as meters, and `mm²` isn't a length.
+        assert_eq!(messages("a 2 mm wall")[0].matches("`2 mm`").count(), 1);
+        assert!(messages("an area of 40 mm² here").is_empty());
+    }
+
+    #[test]
+    fn a_motors_or_mounts_size_stays_in_millimeters() {
+        for run in [
+            "a 54 mm motor",
+            "the 38\u{a0}mm mount",
+            "a 29 mm and a 38 mm motor",
+            "29 mm, 38 mm and 54 mm motors",
+            "a 98 mm Pro98 case",
+            "a 75 mm reloadable motor's thrust",
+            "a 24 mm single-use motor",
+            "a 54 mm motor-mount tube",
+            "a 38 mm MMT",
+            "a \"29 mm\" case",
+        ] {
+            assert!(messages(run).is_empty(), "{run}: {:?}", messages(run));
+        }
+        // Not a motor's size: another diameter, no motor word close enough, or punctuation
+        // between.
+        for run in [
+            "a 55 mm motor",
+            "a 54 mm body tube",
+            "a 54 mm body tube around the motor",
+            "a 54 mm airframe. The motor",
+            "a 54 mm tube, the motor's",
+            "a 2 mm wall on the mount",
+            "a 54 mm (2.1 in) motor",
+        ] {
+            let found = messages(run);
+            let bracketed = run.contains("(2.1 in)");
+            assert_eq!(found.is_empty(), bracketed, "{run}: {found:?}");
+        }
+    }
+
+    #[test]
+    fn si_in_brackets_after_us_figures_is_their_conversion() {
+        for run in [
+            "the 1.52 in (38 mm) motor tube",
+            "`d` = 0.583 ft (0.178 m). Its nose",
+            "1/8 in (3.175 mm) birch plywood",
+            "| 1,010 ft (307.8 m) |",
+            "a 1.140 in (28.956 mm) tube",
+            "60–70 ft (18–21 m) high",
+        ] {
+            assert!(messages(run).is_empty(), "{run}: {:?}", messages(run));
+        }
+        // Not the conversion, a name's number, or not in brackets right after the US figure.
+        for run in [
+            "the 1.52 in (40 mm) motor tube",
+            "MMT-1.52 in (38 mm) tube",
+            "1.52 in, or 38 mm here",
+            "3 ft (2 m) high",
+            "1/0 in (3 mm) here",
+        ] {
+            assert_eq!(messages(run).len(), 1, "{run}: {:?}", messages(run));
+        }
+    }
+
+    #[test]
+    fn suggestions_keep_two_significant_figures() {
+        let mm = SI_UNITS.iter().find(|(unit, _)| *unit == "mm").unwrap().1;
+        let m = SI_UNITS.iter().find(|(unit, _)| *unit == "m").unwrap().1;
+        let one = |text: &str| figures(text).unwrap().0;
+        assert_eq!(suggestion(&one("2"), mm, " ", "–"), "(0.079 in)");
+        assert_eq!(suggestion(&one("0.5"), mm, " ", "–"), "(0.020 in)");
+        assert_eq!(suggestion(&one("54"), mm, " ", "–"), "(2.1 in)");
+        assert_eq!(suggestion(&one("0.3"), m, " ", "–"), "(0.98 ft)");
+        assert_eq!(suggestion(&one("1,400"), m, " ", "–"), "(4,593 ft)");
+        assert_eq!(suggestion(&one("0"), m, " ", "–"), "(0.0 ft)");
+        assert_eq!(
+            suggestion(&one("15 to 30"), m, " ", " to "),
+            "(49 to 98 ft)"
+        );
+    }
+
+    #[test]
+    fn ranges_written_with_to_need_both_ends() {
+        assert!(messages("at 15 to 30 m/s (49 to 98 ft/s) the air").is_empty());
+        assert!(messages("at 15 to 30 m/s (49–98 ft/s) the air").is_empty());
+        let found = messages("at 15 to 30 m/s (98 ft/s) the air");
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert!(found[0].contains("a range needs a range"), "{found:?}");
+        assert!(
+            found[0].contains("`15 to 30 m/s (49 to 98 ft/s)`"),
+            "{found:?}"
+        );
+        // `to` needs its spaces, and a word that merely starts with it is no range.
+        assert_eq!(messages("from 15 tons 30 m away").len(), 1);
+    }
+
+    #[test]
+    fn bracketed_terms_of_a_calculation_are_exempt() {
+        for run in [
+            "2/3 × π × (5 mm)² × 2 mm here",
+            "a mass of (2 m + 3 m) here",
+            "× (5 mm) is",
+        ] {
+            assert!(messages(run).is_empty(), "{run}: {:?}", messages(run));
+        }
+        // A bracket after a word is a parenthesis, not a term.
+        assert_eq!(messages("the gap (5 mm) here").len(), 1);
     }
 }

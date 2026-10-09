@@ -84,7 +84,7 @@ keeps the nose tip, so none of these changes. The mass properties step, and the 
 numerical method that steps the flight forward in time) starts afresh at the same instant, as it
 does when a [sustainer](../glossary.md#sustainer) flies on after a separation
 ([Staging](staging.md#powered-separation)). What the flight reports about the center of mass
-steps too: its position moves by `cg' − cg` (9.5 cm aft in the example), and its height with it.
+steps too: its position moves by `cg' − cg` (9.5 cm (3.7 in) aft in the example), and its height with it.
 
 **The part leaves with the velocity it had.** Every point of a rigid body moves at `v_O + ω × r`,
 with `v_O` the nose tip's velocity, `ω` the rocket's turning rate and `r` the point's place in
@@ -134,7 +134,7 @@ If it left climbing, its own apogee is recorded.
 The drag area is yours to give. For a part tumbling at random, the tumble model's body term gives
 `0.56` times its side profile, its diameter times its length
 ([Recovery: tumble](recovery.md#tumble)). That is half the `1.12` of a cylinder broadside. It was
-fitted to whole rockets 44 to 103 mm across falling at 5 to 6.6 m/s, and its one drop test without
+fitted to whole rockets 44 to 103 mm (1.7 to 4.1 in) across falling at 5 to 6.6 m/s (16 to 22 ft/s), and its one drop test without
 fins wanted 0.79, which gives a speed 16% lower. So treat a tumbling part's landing speed as
 uncertain by at least that much. The simulator doesn't build the area for you, because its tumble
 model needs body tubes and fins, and a released part has neither. If the part carries a parachute,
@@ -154,12 +154,12 @@ give the parachute's drag area; it is taken as open from the instant the part le
 
 The example
 [`released_ballast.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/released_ballast.rs)
-flies the project's 54 mm test design
+flies the project's 54 mm (2.1 in) test design
 ([`synthetic-54mm-three-fin.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/synthetic-54mm-three-fin.json),
-a body 56.3 mm across) on an I175 motor
+a body 56.3 mm (2.2 in) across) on an I175 motor
 ([motor designation](../glossary.md#motor-designation)), with 200 g of ballast in its airframe: a
-cylinder 50 mm long and 30 mm across, on the axis, its center 0.375 m aft of the nose tip. It flies
-in calm standard air from a site in New Mexico 1,400 m up, and a drogue with a drag area of 0.3 m²
+cylinder 50 mm (2.0 in) long and 30 mm (1.2 in) across, on the axis, its center 0.375 m (1.23 ft) aft of the nose tip. It flies
+in calm standard air from a site in New Mexico 1,400 m (4,593 ft) up, and a drogue with a drag area of 0.3 m²
 opens at apogee. At 5 s, well after the 2.5 s burn, the ballast is let
 go to tumble down under `0.56 × 0.05 × 0.03 = 0.00084` m², the tumble model's body term.
 
@@ -172,8 +172,8 @@ mass, the one it pitches about. What the example prints:
 | 6.00 | 0.6188 | 0.7628 | 0.07277 |
 
 By hand, the rest's center is at `(0.8188 × 0.6681 − 0.2 × 0.375) / 0.6188 = 0.7628` m aft of the
-tip. It moves 0.09474 m aft, because the ballast sat forward of the center, and the static margin
-falls by `0.09474 / 0.05630 = 1.683` calibres (the body's diameter is 0.05630 m), from 4.297 to
+tip. It moves 0.09474 m (0.3108 ft) aft, because the ballast sat forward of the center, and the static margin
+falls by `0.09474 / 0.05630 = 1.683` calibres (the body's diameter is 0.05630 m (0.1847 ft)), from 4.297 to
 2.615: still stable.
 
 At the release the rocket carries 131.5839 kg·m/s of upward momentum. Every point of the airframe
@@ -186,13 +186,13 @@ free-flight test below checks that the flight keeps it so.
 | the ballast | 1496.5 | 40.0 | 66.74 |
 | the rocket, ballast kept | 1749.9 | 253.5 | 7.07 |
 
-- **The rocket climbs 80 m less** without its ballast: the same drag slows a lighter rocket more.
+- **The rocket climbs 80 m (262 ft) less** without its ballast: the same drag slows a lighter rocket more.
 - **It comes down more slowly** under the same drogue, and so lands later. A terminal speed goes
   as the square root of the mass: `7.07 × √(0.6188 / 0.8188) = 6.15` m/s.
 - **The ballast peaks lower than the rocket**, having more drag for its mass. Its terminal speed
   at the ground is `√(2 × 0.2 × 9.79 / (1.069 × 0.00084)) = 66.0` m/s, with the standard air's
-  density 1.069 kg/m³ at the site, 1,400 m up ([Atmosphere](atmosphere.md)), and gravity
-  9.79 m/s² there ([Gravity](gravity.md)). It lands a little faster, 66.74 m/s, because it is
+  density 1.069 kg/m³ at the site, 1,400 m (4,593 ft) up ([Atmosphere](atmosphere.md)), and gravity
+  9.79 m/s² there ([Gravity](gravity.md)). It lands a little faster, 66.74 m/s (219.0 ft/s), because it is
   still slowing as the air thickens.
 
 ## How it is checked
@@ -203,21 +203,21 @@ test measured, where its comments record one, and in brackets the bound it holds
 | test | what it shows | measured (bound) |
 |---|---|---|
 | `a_part_taken_out_of_a_body_leaves_the_hand_computed_rest` | a box taken out of a cube leaves the cube's mass, center and inertia, and putting it back gives the whole | (1e-15) |
-| `mass_properties_after_a_release_match_the_hand_calculation` | the example's rocket, with the ballast 1 cm off the axis, before and after the release, against the two-body formula and the design built without the ballast; every step flies the rest's mass and center; the part leaves from its place with `v_O + ω × c` | (1e-15 m, kg and kg·m²; 1e-12 m and m/s) |
+| `mass_properties_after_a_release_match_the_hand_calculation` | the example's rocket, with the ballast 1 cm (0.39 in) off the axis, before and after the release, against the two-body formula and the design built without the ballast; every step flies the rest's mass and center; the part leaves from its place with `v_O + ω × c` | (1e-15 m, kg and kg·m²; 1e-12 m and m/s) |
 | `a_release_conserves_mass_and_momentum_in_free_space` | no air or gravity, the motor spent, the rocket turning about all three axes: the rest and the part keep the rocket's mass, momentum, and angular momentum about their common center of mass | momentum 1.5e-13 (1e-12), angular momentum 7.3e-12 (1e-10) |
 | `two_releases_leave_the_design_without_both_parts` | two parts released at different times: between them only the first is gone, after both the rocket is the design built without either | (1e-15) |
-| `a_payload_let_go_under_the_drogue_lands_slower_and_falls_at_its_own_speed` | in uniform air, under a drogue, a release at 150 m on the way down: the rest lands at the lighter rocket's terminal speed, the part at its own | (1e-6 m/s) |
+| `a_payload_let_go_under_the_drogue_lands_slower_and_falls_at_its_own_speed` | in uniform air, under a drogue, a release at 150 m (492 ft) on the way down: the rest lands at the lighter rocket's terminal speed, the part at its own | (1e-6 m/s) |
 | `a_release_comes_at_apogee_and_a_part_let_go_climbing_has_its_own` | a release at apogee comes at the rocket's apogee; a part let go climbing records its own apogee, then its landing | (1e-6 m/s at its apogee) |
 | `a_release_at_apogee_on_a_tilted_rail_leaves_one_apogee` | off a rail 5° from vertical, in wind, with and without a drogue, the flight records one apogee | exactly one |
 | `a_part_let_go_just_before_apogee_can_make_the_apogee_there` | a release that leaves the rest already falling makes the apogee, and fires the drogue, at the release; a part waiting for the apogee, listed before or after, leaves there too | exactly one, at the release |
 | `parts_waiting_for_the_apogee_all_leave_at_it` | two parts let go at apogee off the tilted rail, listed either way round, both leave at the flight's one apogee | exactly one |
-| `a_main_set_above_the_apogee_opens_there_whatever_leaves` | off the tilted rail, in wind, a main set 1600 m up, above the 1533 m apogee, opens at the apogee with a part let go there, and a part set to 1600 m leaves there too, listed either way round | at the apogee; landing under 10 m/s |
-| `a_release_that_puts_the_rest_on_the_ground_lands_it` | under a drogue, a release 5 cm above the ground steps the rest's center 9.5 cm down, below it: the rocket lands at the release; climbing, the release is refused | 1e-8 m, 1e-15 kg |
+| `a_main_set_above_the_apogee_opens_there_whatever_leaves` | off the tilted rail, in wind, a main set 1600 m (5,249 ft) up, above the 1533 m (5,030 ft) apogee, opens at the apogee with a part let go there, and a part set to 1600 m (5,249 ft) leaves there too, listed either way round | at the apogee; landing under 10 m/s (33 ft/s) |
+| `a_release_that_puts_the_rest_on_the_ground_lands_it` | under a drogue, a release 5 cm (2.0 in) above the ground steps the rest's center 9.5 cm (3.7 in) down, below it: the rocket lands at the release; climbing, the release is refused | 1e-8 m, 1e-15 kg |
 | `the_optimum_delay_holds_a_release_on_the_motor_s_charge` | a release or a mass shift fired by the motor's ejection charge is held with the charge when the simulator works out the [optimum delay](metrics.md#optimum-ejection-delay) (the delay that fires the charge at apogee), so the answer doesn't depend on the delay flown | equal |
 | `a_release_and_its_flight_read_back_as_written` | a release, and a flight with a released part, write to JSON and read back unchanged | equal |
 | `a_part_let_go_at_the_ground_has_landed` | a part let go as the rocket hits the ground, already at or below it, has landed | n/a |
 
-In the free-flight test the ballast leaves 0.146 m/s away from the rocket center's velocity,
+In the free-flight test the ballast leaves 0.146 m/s (0.48 ft/s) away from the rocket center's velocity,
 because the rocket turns. Had it left at the nose tip's velocity, the momentum would be off by
 5.0e-3 of itself; at the rocket center's, by 3.4e-3. The flight keeps it to 1.5e-13. The part's
 own spin, which a point mass drops, is 1.5e-3 of the rocket's angular momentum there.

@@ -34,7 +34,7 @@ A `MassShift` names the part, how far it moves, how long it takes, and when it s
 | `travel_m` | how far along the axis, in meters: positive toward the tail, negative toward the nose |
 | `duration_s` | how long the move takes, in seconds: at least 0.01 s |
 
-In code, for a part with the id `ballast` that slides 0.3 m toward the tail over 1 s, starting 5 s
+In code, for a part with the id `ballast` that slides 0.3 m (0.98 ft) toward the tail over 1 s, starting 5 s
 after launch:
 
 ```rust,ignore
@@ -177,10 +177,10 @@ part's center now.
 
 The example
 [`moving_ballast.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/moving_ballast.rs)
-flies the project's 54 mm test design (`validation/designs/synthetic-54mm-three-fin.json`, a
-body 56.3 mm across) on an I175 motor ([motor designation](../glossary.md#motor-designation)),
-with 200 g of ballast in its airframe. The ballast is a cylinder 50 mm long on the axis, its
-center 0.375 m aft of the nose tip. At 5 s, well after the 2.5 s burn, it slides 0.3 m toward
+flies the project's 54 mm (2.1 in) test design (`validation/designs/synthetic-54mm-three-fin.json`, a
+body 56.3 mm (2.2 in) across) on an I175 motor ([motor designation](../glossary.md#motor-designation)),
+with 200 g of ballast in its airframe. The ballast is a cylinder 50 mm (2.0 in) long on the axis, its
+center 0.375 m (1.23 ft) aft of the nose tip. At 5 s, well after the 2.5 s burn, it slides 0.3 m (0.98 ft) toward
 the tail over one second. What the example prints (the transverse inertia is about an axis across
 the rocket through its center of mass, the one it pitches about):
 
@@ -199,13 +199,13 @@ up near the center of mass. The two-body check gives the change too:
 - `μ = 0.2 × 0.6188 / 0.8188 = 0.1511` kg.
 - The rest of the rocket, 0.6188 kg, has its center at `(0.8188 × 0.6681 − 0.2 × 0.375) / 0.6188
   = 0.7628` m aft of the tip.
-- The ballast's center moves from 0.375 m to 0.675 m, so its distance from the rest's center
-  shrinks from 0.3878 m to 0.0878 m.
+- The ballast's center moves from 0.375 m (1.23 ft) to 0.675 m (2.21 ft), so its distance from the rest's center
+  shrinks from 0.3878 m (1.272 ft) to 0.0878 m (0.288 ft).
 - The inertia changes by `0.1511 × (0.0878² − 0.3878²) = −0.0216` kg·m², as the table shows.
 
 The static margin falls from 4.297 calibres to 2.996, a change of −1.302 from the unrounded
 values. By hand it is `−0.0733 / 0.0563 = −1.302`, with `d = 0.0563` m. The apogee barely moves:
-1749.8 m with the ballast moving, 1749.9 m with it held still.
+1749.8 m (5,741 ft) with the ballast moving, 1749.9 m (5,741 ft) with it held still.
 
 ## How it is checked
 
@@ -217,12 +217,12 @@ measured, where it records it, and in brackets the bound it holds the code to.
 | `a_part_moved_inside_a_body_gives_the_hand_computed_whole` | a point moved inside a cube matches a hand calculation, and the whole rebuilt with the point moved | exact (1e-15) |
 | `mass_properties_before_during_and_after_a_shift_match_the_hand_calculation` | the example's rocket before, halfway and after, against the two-body formula | (1e-15 m and kg·m²) |
 | `a_moving_mass_shifts_the_static_margin_by_the_hand_calculation` | the static margin at every coast sample of the flight equals `−m Δ s(τ)/(M d)` from its start | (1e-12 calibres) |
-| `a_part_moving_off_the_axis_keeps_both_momenta_in_free_space` | no air or gravity, the rocket turning about all three axes, the ballast 1 cm off the axis: the angular momentum about the center and the center's velocity stay constant | 6.9e-12 of the angular momentum (1e-10), 2.6e-12 m/s (1e-10) |
+| `a_part_moving_off_the_axis_keeps_both_momenta_in_free_space` | no air or gravity, the rocket turning about all three axes, the ballast 1 cm (0.39 in) off the axis: the angular momentum about the center and the center's velocity stay constant | 6.9e-12 of the angular momentum (1e-10), 2.6e-12 m/s (1e-10) |
 | `a_shift_s_rates_are_the_derivatives_of_its_mass_properties` | the exact rates against differences of the mass properties, during the burn and after it | `r′` 2e-11 m/s (1e-9), `r″` 3e-8 of itself (1e-7) |
 | `a_fixed_step_follows_a_short_shift_in_its_stops` | the free-flight case with RK4 at 10 ms steps and a 10 ms move: 16 steps across it | 1.2e-4 m/s (3e-4) |
 | `a_canopy_that_opens_while_the_ballast_moves_keeps_the_center_s_velocity` | in a vacuum, a drogue opening halfway through a move keeps the center's velocity, and from then on the center falls freely while the ballast finishes its move | (1e-12 m/s at the opening, 1e-9 m/s after) |
 | `a_shift_the_flight_starts_gets_its_stops_too` | a move started at apogee gets its 16 stop times when it starts | exactly 16 steps |
-| `a_shift_starts_at_apogee_or_at_its_height_on_the_way_down` | the triggers the flight watches for start the move at the apogee, and at 200 m on the way down | (1e-6 m) |
+| `a_shift_starts_at_apogee_or_at_its_height_on_the_way_down` | the triggers the flight watches for start the move at the apogee, and at 200 m (656 ft) on the way down | (1e-6 m) |
 
 The free-flight test is the one that checks the new term. Without `ω × h + h′`, its error would be
 the size of the ballast's own angular momentum relative to the airframe, which peaks at 1.8% of
@@ -231,7 +231,7 @@ the rocket's angular momentum. It measures 6.9e-12.
 A first version took the part's rates from differences 0.1 ms apart, as the motor's are. In free
 flight it kept the center's velocity only to 1e-8 m/s, the error of the difference itself, so the
 rates were made exact. A check with RK4 taking a 10 ms move in a single step found the center's
-velocity off by 0.071 m/s; the 16 stop times across each move bring it to 1.2e-4.
+velocity off by 0.071 m/s (0.23 ft/s); the 16 stop times across each move bring it to 1.2e-4.
 
 Every refusal has a test that checks which rule fired, in `shifts_that_cannot_be_made_are_refused`,
 `refusals_that_need_a_design_of_their_own` and

@@ -26,8 +26,8 @@ rail. The page runs four example programs and walks through them. It needs the s
 cargo run --example build_and_fly -p fusionspace-hpr
 ```
 
-This builds the small rocket of [Your own rocket](your-own-rocket.md). Its airframe is 54 mm
-inside and 56.3 mm outside, and it takes 29 mm motors. It weighs the rocket, and finds its
+This builds the small rocket of [Your own rocket](your-own-rocket.md). Its airframe is 54 mm (2.1 in)
+inside and 56.3 mm (2.2 in) outside, and it takes 29 mm motors. It weighs the rocket, and finds its
 [center of gravity](glossary.md#center-of-gravity-cg) (CG), its
 [center of pressure](glossary.md#center-of-pressure-cp) (CP) and its
 [stability margin](glossary.md#stability-margin). Then it flies the rocket on a Cesaroni H54 from
@@ -106,7 +106,7 @@ from the tube's middle, `After` its fore end behind the part before it, and `Abs
 from the nose tip. So a `Mass` given a size with `packed` has its center half that length from the
 end its position names, or at the point itself when placed by its `Middle`. In the example,
 packing the recovery bay 15 cm (5.9 in) long, its top 7 cm (2.8 in) down the tube, moves the rocket's CG at liftoff
-22 mm aft of where a point mass at the top puts it.
+22 mm (0.87 in) aft of where a point mass at the top puts it.
 
 Every part names its material, and every hollow part its wall. `material("abs")` finds one of the
 built-in materials, each with the source of its density; the [mass page](physics/mass.md) explains
@@ -214,12 +214,12 @@ Because a rocket is a value built by a function, a design study is a loop. The e
 - **The margin**, at liftoff and at Mach 0.3, grows fast with the span: from −2.11 calibres, a CP
   ahead of the CG, to 3.67. The usual rule of thumb asks for at least one calibre
   ([stability margin](glossary.md#stability-margin)), so the program doesn't fly the two
-  smallest; the example's own fins are the 45 mm ones.
-- **Bigger fins cost height.** In calm air the 65 mm fins reach 38 m (125 ft) less than the 45 mm
+  smallest; the example's own fins are the 45 mm (1.8 in) ones.
+- **Bigger fins cost height.** In calm air the 65 mm (2.6 in) fins reach 38 m (125 ft) less than the 45 mm (1.8 in)
   ones: that is their drag and their extra mass, about 9 g. In the wind they lose 47 m (154 ft),
   since they also turn the rocket further into it, as the apogee drift shows: 119 m (390 ft) upwind
-  with the 45 mm fins, 176 m (577 ft) with the 65 mm.
-- **The landing** is closer with bigger fins, 114 m (374 ft) closer from the 45 mm to the 65 mm: the
+  with the 45 mm (1.8 in) fins, 176 m (577 ft) with the 65 mm (2.6 in).
+- **The landing** is closer with bigger fins, 114 m (374 ft) closer from the 45 mm (1.8 in) to the 65 mm (2.6 in): the
   parachute opens further upwind, and lower, so it drifts for less time.
 
 ## Parts from a catalog
@@ -227,7 +227,7 @@ Because a rocket is a value built by a function, a design study is a loop. The e
 A rocket can also be built from a maker's parts, as sold, from a parts catalog. HPR Sim bundles
 the one OpenRocket ships: 3,449 parts from Estes, LOC Precision and a dozen more makers, read as
 the [`.orc` page](format/orc.md) explains. The fourth example finds LOC Precision's 2.56 in
-(65 mm) airframe parts in it by maker and part number, builds the rocket from them, and flies it on
+(65 mm (2.6 in)) airframe parts in it by maker and part number, builds the rocket from them, and flies it on
 an AeroTech H170:
 
 ```bash

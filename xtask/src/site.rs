@@ -175,9 +175,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
         return Err(failure("the site's pages", &report.problems));
     }
     println!(
-        "site pages: {} pages, {} links ({} to the web, not fetched), no problems; {} heights, \
-         distances and speeds in SI alone on {} model, format and records pages, not yet checked (#400)",
-        report.pages, report.links, report.web, report.deferred_units.0, report.deferred_units.1
+        "site pages: {} pages, {} links ({} to the web, not fetched), no problems",
+        report.pages, report.links, report.web
     );
     let looks = theme::check_sources(&root, &root.join(SOURCE))?;
     if !looks.problems.is_empty() {
@@ -466,9 +465,6 @@ struct Report {
     web: usize,
     /// One line each, `docs/<page>:<line>: <what is wrong>`.
     problems: Vec<String>,
-    /// Heights, distances and speeds in SI alone on the pages the units check defers, and how
-    /// many pages hold them (#400; M0.9c16).
-    deferred_units: (usize, usize),
 }
 
 /// Checks the pages `docs/SUMMARY.md` lists, and the summary itself. Fails only when the summary
@@ -525,11 +521,6 @@ fn check_sources(root: &Path) -> Result<Report, String> {
                 let mut page = read_page(&text);
                 page.problems
                     .extend(page_rules(root, name, &text, &page.links, &guides));
-                if units::deferred(name) {
-                    let count = units::si_alone(&text).len();
-                    report.deferred_units.0 += count;
-                    report.deferred_units.1 += usize::from(count > 0);
-                }
                 page.problems.sort_by_key(|(line, _)| *line);
                 pages.insert(name.clone(), page);
             }
@@ -1041,10 +1032,8 @@ fn page_rules(
     if name != RECORDS {
         problems.extend(trust_notes(text));
     }
-    // Heights, distances and speeds with their US units in brackets (#400), on the guides.
-    if units::covers(name) {
-        problems.extend(units::si_alone(text));
-    }
+    // Heights, distances, sizes and speeds with their US units in brackets (#400).
+    problems.extend(units::si_alone(text));
     if parent(name) == MODELS {
         problems.extend(in_short(text));
         // Each number *In short* quotes is in the rest of the page, or in a file its item links.

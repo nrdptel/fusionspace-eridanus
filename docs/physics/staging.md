@@ -161,7 +161,7 @@ to its landing. [`FlightResult::bodies`][bodies] holds the booster's descent, an
 
 The program
 [`crates/hpr-sim/examples/two_stage.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/two_stage.rs)
-flies a synthetic two-stage design: a 54 mm sustainer on a 75 mm booster, with a J760 in the
+flies a synthetic two-stage design: a 54 mm (2.1 in) sustainer on a 75 mm (3.0 in) booster, with a J760 in the
 booster and an I175 in the sustainer. The stages come apart 0.5 s after the booster's burnout, and
 the sustainer lights 1 s after it. The ignition names the booster by its **mount's id**, as the
 design file does. The separation's trigger names it by its **index** among the placed motors, as
@@ -223,15 +223,15 @@ How to read it:
 
 - **The split.** At 2.23 s the stack weighs 1.904 kg. The booster (its stage and a spent J760)
   takes 1.125 kg of that, so the sustainer flies on at 1.904 − 1.125 = 0.779 kg, which is the mass
-  shown when it lights. The booster starts at 642.7 m rather than 643.0 m because its own center of
-  mass sits 0.3 m below the stack's.
+  shown when it lights. The booster starts at 642.7 m (2,109 ft) rather than 643.0 m (2,110 ft) because its own center of
+  mass sits 0.3 m (0.98 ft) below the stack's.
 - **The coast.** Between the separation and the ignition the sustainer coasts for half a second
-  and slows from 341.2 to 280.7 m/s. That is about 121 m/s², mostly drag, on a 0.78 kg rocket near
+  and slows from 341.2 to 280.7 m/s (1,119 to 921 ft/s). That is about 121 m/s², mostly drag, on a 0.78 kg rocket near
   Mach 1.
 - **The burn.** The I175 burns for 2.5 s and the mass falls to 0.550 kg: the sustainer's
   structure and a spent motor.
-- **Two landings.** The sustainer lands under its parachute at 3.4 m/s. The booster tumbles from
-  the split, climbs only 102.3 m more (to 745.0 m), and lands at 17.9 m/s. That short climb comes
+- **Two landings.** The sustainer lands under its parachute at 3.4 m/s (11 ft/s). The booster tumbles from
+  the split, climbs only 102.3 m (336 ft) more (to 745.0 m (2,444 ft)), and lands at 17.9 m/s (59 ft/s). That short climb comes
   from tumbling side-on from near Mach 1 at once, and is likely too short (see *What it leaves
   out*).
 
@@ -315,7 +315,7 @@ How to read it:
   the file that holds OpenRocket's curve for each motor's digest
   ([ADR-161](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0161-openrocket-curves-by-digest.md),
   OpenRocket's curves by digest). The largest speeds read 0.31%, 1.55% and 1.67% above
-  OpenRocket's: 78.61, 121.55 and 132.02 m/s. The apogees, flown with the file's parachutes,
+  OpenRocket's: 78.61, 121.55 and 132.02 m/s (433.1 ft/s). The apogees, flown with the file's parachutes,
   read 1.15%, 0.58% and 1.37% below OpenRocket's own record, which opens them too; against its
   flight with nothing deployed, the table's figures, the first two read 1.28% and 2.48% below.
   Before HPR Sim kept a table of which ThrustCurve file holds each OpenRocket curve, the first
@@ -369,18 +369,18 @@ separates, as OpenRocket flies a descent (its technical documentation v13.05, §
 - **Not measured:** a real payload whose parachute opens late would land later and further
   away; OpenRocket's record holds no such flight to compare with.
 - **The flight's apogee** is the payload's own when the split comes before the stack's apogee.
-  A dropped part can climb higher: the C6-3 example's booster, tumbling, peaks 0.9 m above the
+  A dropped part can climb higher: the C6-3 example's booster, tumbling, peaks 0.9 m (3.0 ft) above the
   payload, and `hpr sim` says so in a note, as a waiver's height is the highest any part
   reaches.
 
 **A worked example.** OpenRocket's *Deployable payload* on a C6-3 drops its booster at the
 charge, 4.86 s after launch. In HPR Sim's flight, from
 `hpr sim "Deployable payload.ork" --config "[C6-3]"`, the stack is then
-230.4 m up and still rising at 27.6 m/s (OpenRocket's record: 27.9 m/s). The payload's 10 in
-(0.254 m) parachute, set to `lowerstageseparation` in the file, opens at that instant, and the
-payload climbs 3.3 m more, to 233.7 m above the site at 5.44 s. That height is the center of
-mass's, which starts 0.4 m above the site; from where it starts, as the table below compares, it
-is 233.3 m. Coasting with no drag, it would have risen 27.6² / (2 × 9.81) = 38.8 m more
+230.4 m (756 ft) up and still rising at 27.6 m/s (91 ft/s, OpenRocket's record: 27.9 m/s (92 ft/s)). The payload's 10 in
+(0.254 m (0.83 ft)) parachute, set to `lowerstageseparation` in the file, opens at that instant, and the
+payload climbs 3.3 m (11 ft) more, to 233.7 m (767 ft) above the site at 5.44 s. That height is the center of
+mass's, which starts 0.4 m (1.3 ft) above the site; from where it starts, as the table below compares, it
+is 233.3 m (765 ft). Coasting with no drag, it would have risen 27.6² / (2 × 9.81) = 38.8 m more
 instead.
 
 **Against OpenRocket.** All six configurations of the *Deployable payload* and the *ARC payload
@@ -398,7 +398,7 @@ the rounded ones shown.
 
 The last two columns measure what the refusal avoids. OpenRocket's flight of the same rocket with
 nothing deployed lets the payload fly on its own airframe. A coast with no drag puts the C6-3
-payload 10.3 m above that, and 3.5 m above the whole stack's own climb. The
+payload 10.3 m (34 ft) above that, and 3.5 m (11 ft) above the whole stack's own climb. The
 [report's table](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md#separations-with-nothing-left-to-burn)
 has all six. The [M4.5g3 milestone](../decisions-and-roadmap.md#m4-5g3) shipped this; its
 [decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0165-an-unpowered-separation-in-hpr-sim.md) has the reasoning.
@@ -430,12 +430,12 @@ and landing are likely too low and too close to the pad
 OpenRocket ships, has an I115W in its core and an E12-0 in each of two boosters. The file holds
 no thrust curves, so `hpr sim` fetches them from ThrustCurve.org once
 ([Motors from ThrustCurve.org](../cli.md#motors-from-thrustcurveorg)). In configuration 1 both light at launch. From
-`hpr sim "Parallel booster staging.ork" --config 1`, with its defaults (a 1.5 m rail at sea
-level, calm air), the E12s burn out and fire their charges at 2.44 s, 290.1 m up at 207.6 m/s,
-and the boosters drop away. The core burns on to 3.51 s and peaks at 1138.2 m at 13.01 s; the
+`hpr sim "Parallel booster staging.ork" --config 1`, with its defaults (a 1.5 m (4.9 ft) rail at sea
+level, calm air), the E12s burn out and fire their charges at 2.44 s, 290.1 m (952 ft) up at 207.6 m/s (681 ft/s),
+and the boosters drop away. The core burns on to 3.51 s and peaks at 1138.2 m (3,734 ft) at 13.01 s; the
 boosters land at 33.0 s. In configuration 2 the boosters hold no motor and stay on: the stack
-peaks at 858.2 m. These heights are a little above the table's below, which flies each
-configuration under OpenRocket's stored conditions instead (a 1 m rod, at its launch site).
+peaks at 858.2 m (2,816 ft). These heights are a little above the table's below, which flies each
+configuration under OpenRocket's stored conditions instead (a 1 m (3.3 ft) rod, at its launch site).
 
 **Against OpenRocket.** Under OpenRocket's own stored conditions, from the
 [flights report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md),
@@ -594,15 +594,15 @@ The test `a_two_stage_and_a_cluster_design_are_within_5_percent_of_openrocket` i
 under thrust"), so it has no apogee to compare. Instead, `cargo xtask ork-flights` compares HPR Sim's
 height and speed with OpenRocket's just after the separation and at OpenRocket's last row. It
 needs the splits at one time and each value within 5%. Both separate at 0.86 s, where HPR Sim is
-1.17% lower (22.18 m against 22.44 m) and 0.04% slower. At 1.81 s HPR Sim is 1.18% lower (84.0 m
-against 85.0 m) and 4.02% faster (79.9 m/s against 76.8 m/s), so it is met
+1.17% lower (22.18 m (72.8 ft) against 22.44 m (73.6 ft)) and 0.04% slower. At 1.81 s HPR Sim is 1.18% lower (84.0 m (276 ft)
+against 85.0 m (279 ft)) and 4.02% faster (79.9 m/s (262 ft/s) against 76.8 m/s (252 ft/s)), so it is met
 ([the report's section](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md#flights-openrocket-aborted);
 [`.ork`: Flights OpenRocket aborted](../format/ork.md#flights-openrocket-aborted)). This is
 weaker evidence than an apogee: two points on the way up, the second where OpenRocket's flight is
 breaking up. When OpenRocket aborts is its own call, too: its probe of the same configuration
 with nothing deployed aborts at 2.40 s, not 1.81 s. The sustainer's least static margin is −4.21
-calibres at the split. In the record's conditions, a 0.15 m rod at 28.61° N with no wind, HPR Sim's
-sustainer turns over at 2.04 s. From `hpr sim`'s defaults, a 1.5 m rail with no wind, it does
+calibres at the split. In the record's conditions, a 0.15 m (0.49 ft) rod at 28.61° N with no wind, HPR Sim's
+sustainer turns over at 2.04 s. From `hpr sim`'s defaults, a 1.5 m (4.9 ft) rail with no wind, it does
 not, and why the two differ is not traced. `hpr sim` warns that the sustainer is unstable under
 power and that its apogee is not a prediction
 ([Flight metrics: unstable under power](metrics.md#unstable-under-power);
@@ -619,7 +619,7 @@ power and that its apogee is not a prediction
   not been sized ([#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185)).
 - HPR Sim's apogee is its center of mass's, which jumps forward at the split from the whole stack's
   to the sustainer's. Whether OpenRocket's altitude jumps the same way is not measured
-  ([#187](https://github.com/nrdptel/fusionspace-eridanus/issues/187)). The jump is under 1.32 m on
+  ([#187](https://github.com/nrdptel/fusionspace-eridanus/issues/187)). The jump is under 1.32 m (4.3 ft) on
   the two-stage flights, less than 0.2% of either apogee.
 - HPR Sim's descent of a separated part needs a recovery device on each part. So the climb's
   comparison tumbles the booster from the split and the sustainer from its apogee; neither acts on

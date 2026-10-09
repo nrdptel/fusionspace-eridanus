@@ -97,16 +97,16 @@ file in the same folder, say `my_rocket.rs`, and run that with
 
 ## The rocket
 
-The rocket has a 54 mm airframe (the tube's inside diameter) and flies on a Cesaroni H54, a 29 mm
+The rocket has a 54 mm (2.1 in) airframe (the tube's inside diameter) and flies on a Cesaroni H54, a 29 mm
 reloadable motor (a propellant load for a reusable case). These are the program's inputs:
 
 | part | Rust type | in the program |
 |---|---|---|
-| nose cone | [`NoseCone`](api/hpr_design/parts/struct.NoseCone.html) | a [tangent ogive](glossary.md#tangent-ogive) ([Shapes](physics/shapes.md)) 0.22 m (8.7 in) long, of ABS with a 1.5 mm wall, and a 6 cm (2.4 in) shoulder that slides into the tube |
-| airframe | [`BodyTube`](api/hpr_design/parts/struct.BodyTube.html) | 0.9 m (35 in) of kraft phenolic tube, outer radius 0.02815 m (1.108 in), 56.3 mm across, 1.15 mm wall |
-| motor mount | [`InnerTube`](api/hpr_design/parts/struct.InnerTube.html) | 0.2 m (7.9 in) long, outer radius 0.0155 m (0.610 in), 1 mm wall, so a 29 mm bore; flush with the airframe's aft end, with the nozzle 5 mm past it |
+| nose cone | [`NoseCone`](api/hpr_design/parts/struct.NoseCone.html) | a [tangent ogive](glossary.md#tangent-ogive) ([Shapes](physics/shapes.md)) 0.22 m (8.7 in) long, of ABS with a 1.5 mm (0.059 in) wall, and a 6 cm (2.4 in) shoulder that slides into the tube |
+| airframe | [`BodyTube`](api/hpr_design/parts/struct.BodyTube.html) | 0.9 m (35 in) of kraft phenolic tube, outer radius 0.02815 m (1.108 in), 56.3 mm (2.2 in) across, 1.15 mm (0.045 in) wall |
+| motor mount | [`InnerTube`](api/hpr_design/parts/struct.InnerTube.html) | 0.2 m (7.9 in) long, outer radius 0.0155 m (0.610 in), 1 mm (0.039 in) wall, so a 29 mm (1.1 in) bore; flush with the airframe's aft end, with the nozzle 5 mm (0.20 in) past it |
 | fins | [`FinSet`](api/hpr_design/fins/struct.FinSet.html) | three trapezoidal fins of 1/8 in (3.175 mm) birch plywood with rounded edges: root chord 0.1 m (3.9 in), tip chord 0.04 m (1.6 in), span 0.045 m (1.77 in), and the tip's leading edge 0.05 m (2.0 in) aft of the root's |
-| recovery bay | [`MassComponent`](api/hpr_design/parts/struct.MassComponent.html) | 200 g standing in for the parachute, shock cord and altimeter, packed as a cylinder 0.15 m (5.9 in) long and 50 mm across ([packing](#packing)), 7 cm (2.8 in) below the airframe's top |
+| recovery bay | [`MassComponent`](api/hpr_design/parts/struct.MassComponent.html) | 200 g standing in for the parachute, shock cord and altimeter, packed as a cylinder 0.15 m (5.9 in) long and 50 mm (2.0 in) across ([packing](#packing)), 7 cm (2.8 in) below the airframe's top |
 | motor | [`MountedMotor`](api/hpr_design/config/struct.MountedMotor.html) | the Cesaroni 168H54-10A from the bundled catalog, with a 10 s [ejection delay](glossary.md#ejection-delay) |
 
 Every size is in meters, and every round part takes a **radius**, not a diameter: halve the
@@ -536,7 +536,7 @@ It has eight steps.
      [`MassComponent`](api/hpr_design/parts/struct.MassComponent.html) is a mass and its
      [`Packing`](api/hpr_design/parts/struct.Packing.html): the size of the solid cylinder the
      simulator spreads the mass through. Here it is 0.15 m (5.9 in) long with `radius_m` 0.025, so
-     50 mm across, inside the airframe's 54 mm bore.
+     50 mm (2.0 in) across, inside the airframe's 54 mm (2.1 in) bore.
      - The length places the mass. Its CG is the cylinder's middle, 0.145 m (5.71 in) below the
        airframe's top, since the cylinder starts 7 cm (2.8 in) down.
      - Of the mass properties, the radius changes only the moments of inertia: how hard the mass
@@ -572,7 +572,7 @@ It has eight steps.
 5. **The rocket.** A [`Rocket`](api/hpr_design/tree/struct.Rocket.html) holds its stages (one
    here), how its reference diameter is chosen, and its
    [configurations](glossary.md#configuration). `ReferenceDiameter::Maximum {}` takes the widest
-   body part, the 56.3 mm airframe, as the diameter that the margin and the aerodynamic
+   body part, the 56.3 mm (2.2 in) airframe, as the diameter that the margin and the aerodynamic
    coefficients are measured by ([reference area](glossary.md#reference-area)). A configuration is
    one choice of motors, at most one per mount, under an id; this rocket has one, `"h54"`. Add
    another to compare motors in the same rocket.
@@ -647,7 +647,7 @@ at the end of the output shows the rules:
   label, so a design file doesn't depend on the catalog.
 
 For a complete file of a similar rocket, with centering rings, rail buttons, a parachute and a
-shock cord as parts, on a 38 mm Cesaroni I175, see
+shock cord as parts, on a 38 mm (1.5 in) Cesaroni I175, see
 [`synthetic-54mm-three-fin.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/synthetic-54mm-three-fin.json).
 A program in the repository writes the files in that folder, so edit a copy rather than the file.
 
@@ -669,7 +669,7 @@ The example leaves out several kinds of part and setting that a design can have:
   ([Overrides](physics/design.md#overrides)).
 - **Checks.** [`hpr_design::checks::check`](api/hpr_design/checks/fn.check.html) lists a design's
   problems ([Checks](physics/design.md#checks)). Errors, such as a motor wider than its mount,
-  describe a rocket that can't exist, and a simulation refuses them: put the 38 mm `H170M` in this
+  describe a rocket that can't exist, and a simulation refuses them: put the 38 mm (1.5 in) `H170M` in this
   program's 29 mm mount and it stops with `MotorWiderThanMount`. Warnings, such as a step in the
   body's radius, don't stop a flight.
 

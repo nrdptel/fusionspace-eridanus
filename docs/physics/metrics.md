@@ -72,7 +72,7 @@ flight unless the watcher saw each of its steps once.
 The example program
 [`flight_metrics.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/flight_metrics.rs)
 does this for Valetudo, the rocket from [Getting started](../getting-started.md). It flies with a
-5 m/s wind from the west and one 1.5 m parachute. The charge fires 6 s after
+5 m/s (16 ft/s) wind from the west and one 1.5 m (4.9 ft) parachute. The charge fires 6 s after
 [burnout](../glossary.md#burnout) (the end of the thrust curve), and the canopy is open 0.5 s
 later. Run it with `cargo run --example flight_metrics -p fusionspace-hpr-sim`. It prints:
 
@@ -101,8 +101,8 @@ The 6 s delay is too short:
 
 - The charge fires at 9.26 s, and the canopy opens at 9.76 s: about 4 s (13.83 − 9.76) before
   the apogee it would have reached.
-- The rocket still rises 1.4 s more, to an apogee of 714.0 m.
-- With the charge held, it would have coasted to 778.7 m at 13.83 s: the apogee of the
+- The rocket still rises 1.4 s more, to an apogee of 714.0 m (2,343 ft).
+- With the charge held, it would have coasted to 778.7 m (2,555 ft) at 13.83 s: the apogee of the
   [Getting started](../getting-started.md) flight, whose drogue fires at apogee.
 - So the optimum delay is 10.6 s. The opening shock, 153.4 m/s², is three times the boost's
   47.2 m/s², and it is not counted as the boost's peak.
@@ -120,10 +120,10 @@ the motor pushes less than drag and gravity pull back.
 Every height is of the center of mass: its
 [ellipsoidal height](../glossary.md#ellipsoidal-height) above the launch site's, the same as
 a flight's `height_above_ground_m`. The center of mass starts above the site, because the rocket
-stands on the rail: 0.94 m for Valetudo. So the summary gives both:
+stands on the rail: 0.94 m (3.1 ft) for Valetudo. So the summary gives both:
 
-- `apogee.height_above_ground_m`: 714.0 m, above the site.
-- `apogee.gain_m`: 713.0 m, the climb from where the center of mass stood at launch. OpenRocket's
+- `apogee.height_above_ground_m`: 714.0 m (2,343 ft), above the site.
+- `apogee.gain_m`: 713.0 m (2,339 ft), the climb from where the center of mass stood at launch. OpenRocket's
   altitude counts this way. A flight started in the air (`Simulation::run_free`) has no launch
   height, and no climb: `None`.
 
@@ -226,14 +226,14 @@ a single fin at 0° and a two-fin strake set at 90°. At Mach 0.2, after the boo
 margin is +1.86 calibres with the air crossing at 0°, where the single fin lies edge-on and the
 strakes carry the force. At 45° it is +0.17. At 90° the strakes lie edge-on and only the single
 fin works: −3.44, unstable. OpenRocket 24.12, asked for that sustainer at 90° in a scratch run (not
-committed), puts its center of pressure at 0.2954 m with `C_Nα` 3.49; HPR Sim's are 0.2993 m and
+committed), puts its center of pressure at 0.2954 m (0.969 ft) with `C_Nα` 3.49; HPR Sim's are 0.2993 m (0.982 ft) and
 3.47. For one of its staged configurations, `[C6-7; B6-0]`, `hpr sim`'s least margin was +1.56
 calibres and is now −4.21, at 0.86 s. That is the sustainer's margin at the split itself, the moment
 the booster drops, with its own motor just lit and still full and the air at Mach 0.07; the −3.44 is
 a later instant, at Mach 0.2. In the conditions of OpenRocket's record, both programs' flights of
 that configuration turn over before apogee: its site is at 28.61° N, where the Earth's rotation tips
 HPR Sim's flight, and HPR Sim's angle of attack passes 90° at 2.25 s. At `hpr sim`'s default site, on the
-equator, nothing tips HPR Sim's flight: it stays upright and reaches 251.3 m
+equator, nothing tips HPR Sim's flight: it stays upright and reaches 251.3 m (824 ft)
 ([the format guide](../format/ork.md#the-simulators-flights-against-openrockets)).
 
 The simulator finds the least in closed form, not by a scan
@@ -255,7 +255,7 @@ Both margins leave out the [angle of attack](../glossary.md#angle-of-attack). In
 the center of pressure moves toward it. Where that centroid lies ahead of the zero-angle center of
 pressure, the margin at an angle shrinks; on a long body with small fins it can lie behind, and the
 margin grows. No test pins either direction. But the angle is not a steady property of
-the rocket. Valetudo leaves its rail 17.2° off the oncoming air in the example's 5 m/s crosswind,
+the rocket. Valetudo leaves its rail 17.2° off the oncoming air in the example's 5 m/s (16 ft/s) crosswind,
 and near apogee the angle swings toward 90° as the rocket slows and tips over. If the least margin
 followed the angle, it would land wherever the simulator chose to stop counting large angles, and
 the simulator models no fin [stall](../glossary.md#stall) that could say where that is. For the
@@ -317,25 +317,25 @@ A negative `C_mα` turns the nose back into the wind. With a margin defined, `C_
 
 A worked case, with no fins, pinned by a test:
 
-- The rocket is a conical nose 0.3 m long of radius `R` = 0.05 m, a 0.5 m tube, and a conical
-  boattail 0.4 m long, narrowing to a radius `r`. So `d` = 0.1 m.
-- Barrowman gives the nose a slope of 2 at 0.2 m. The boattail gets `2((r/R)² − 1)`, at
+- The rocket is a conical nose 0.3 m (0.98 ft) long of radius `R` = 0.05 m, a 0.5 m (1.6 ft) tube, and a conical
+  boattail 0.4 m (1.3 ft) long, narrowing to a radius `r`. So `d` = 0.1 m.
+- Barrowman gives the nose a slope of 2 at 0.2 m (0.66 ft). The boattail gets `2((r/R)² − 1)`, at
   `0.8 + (0.4/3)(1 + 1/(1 + R/r))` m.
 - So `κ = 2/ρ² − 1`, with `ρ = r/R`. The margin is given for `ρ ≥ 0.6932`, an aft radius of
-  34.66 mm or more.
-- The center of mass is at 0.5 m.
+  34.66 mm (1.4 in) or more.
+- The center of mass is at 0.5 m (1.6 ft).
 
 | Boattail's aft radius | Net slope | κ | Margin | `C_mα` |
 |---|---|---|---|---|
-| 40 mm | 1.28 | 2.13 | −7.46 cal | +9.55 |
-| 35 mm | 0.98 | 3.08 | −11.2 cal | +10.98 |
-| 34.5 mm | 0.952 | 3.20 | none (the quotient: −11.7 cal) | +11.11 |
-| 21.5 mm | 0.370 | 9.82 | none (the quotient: −37.1 cal) | +13.72 |
-| 5 mm | 0.020 | 199 | none (the quotient: −741 cal) | +14.82 |
+| 40 mm (1.6 in) | 1.28 | 2.13 | −7.46 cal | +9.55 |
+| 35 mm (1.4 in) | 0.98 | 3.08 | −11.2 cal | +10.98 |
+| 34.5 mm (1.4 in) | 0.952 | 3.20 | none (the quotient: −11.7 cal) | +11.11 |
+| 21.5 mm (0.85 in) | 0.370 | 9.82 | none (the quotient: −37.1 cal) | +13.72 |
+| 5 mm (0.20 in) | 0.020 | 199 | none (the quotient: −741 cal) | +14.82 |
 
 With no fins, every one of these rockets is unstable: its center of pressure lies ahead of its
-center of mass, and `C_mα` is positive. The cut is not about how large the margin is. The 35 mm and
-34.5 mm rows have margins near −11 calibres; what differs is whether the quotient can be trusted.
+center of mass, and `C_mα` is positive. The cut is not about how large the margin is. The 35 mm (1.4 in) and
+34.5 mm (1.4 in) rows have margins near −11 calibres; what differs is whether the quotient can be trusted.
 
 A component can be a pure couple on its own. A step down in radius followed by a flare back up
 cancels its own slope and still turns the rocket. `C_mα` keeps its moment, which a test also
@@ -363,10 +363,10 @@ peaks have, so an excursion inside one step can be missed. Above 15°, the fligh
 
 The floor is there because near apogee every flight whose path turns over passes 15°, while the air
 is too weak to turn it: gravity does. Valetudo, one of RocketPy's examples, launched off an 84° rail
-in calm air, passes 15° about 0.9 s before apogee, at 16.7 m/s through the air, a little faster
-than its 16.2 m/s rail exit. There a 15° angle would give a normal force of 1.0% to 1.5% of its
+in calm air, passes 15° about 0.9 s before apogee, at 16.7 m/s (55 ft/s) through the air, a little faster
+than its 16.2 m/s (53 ft/s) rail exit. There a 15° angle would give a normal force of 1.0% to 1.5% of its
 weight, so an error in the aerodynamics at that angle barely moves it. A wind layer met at speed is
-different: Valetudo climbing into 30 m/s of wind 300 m up passes 15° where that force is 62% of its
+different: Valetudo climbing into 30 m/s (98 ft/s) of wind 300 m (984 ft) up passes 15° where that force is 62% of its
 weight, and the flag is raised. On the tests' RocketPy rockets, turn-overs give 0.7% to 5.0% and
 wind layers met at speed 62% to 141%; the fifth, chosen rather than measured, sits between. The
 tests `a_tilted_calm_climb_passes_15_degrees_only_with_too_little_force`,
@@ -430,7 +430,7 @@ warning: unstable: the static margin falls to -4.21 calibres at 0.86 s while a m
 ```
 
 For the second flag, take RocketPy's Valetudo with its fins taken off and a conical tail that
-narrows from the body's 40.45 mm radius to 22 mm over 0.08 m. At the rail exit its net slope is
+narrows from the body's 40.45 mm (1.6 in) radius to 22 mm (0.87 in) over 0.08 m (0.26 ft). At the rail exit its net slope is
 0.59 per radian against a sum of sizes of 3.41, too small for a margin, but `C_mα` is +43.9 per
 radian:
 
@@ -439,7 +439,7 @@ apogee                399.1 m above the site at 8.46 s, not a prediction: unstab
 warning: unstable: while a motor burns, the pitching moment turns the rocket away from its path (C_mα +43.9 per radian at 0.25 s) where hpr can give no static margin: the rocket is unstable under power, so its apogee is not a prediction
 ```
 
-With the tail ending at 30 mm instead, the margin is defined, −34.37 calibres, and the first flag
+With the tail ending at 30 mm (1.2 in) instead, the margin is defined, −34.37 calibres, and the first flag
 fires in its place. These figures are from a run on 2026-10-06; the test
 (`sim_flags_a_rocket_unstable_where_it_has_no_margin`) pins only the flag and a slope above 1.
 
@@ -447,7 +447,7 @@ fires in its place. These figures are from a run on 2026-10-06; the test
 lists the flag under `flags`; the library has it in `FlightSummary::envelope_flags`, and Python in
 `Flight.envelope_flags`. When this was written (2026-10-06), none of the 25 public `.ork` files
 and 12 validation designs that `hpr sim` flies offline raised either flag, on their default
-configurations off an 85° rail in calm air and in 8 m/s of wind. No test or report pins that
+configurations off an 85° rail in calm air and in 8 m/s (26 ft/s) of wind. No test or report pins that
 count.
 
 What it leaves out:
@@ -514,7 +514,7 @@ In `crates/hpr-sim/src/metrics.rs`, unless named otherwise:
 | `unlanded_flight_has_no_ground_hit_speed_and_outputs_name_datum` | `None` and `null` for an unlanded flight; the launch height against the rail's geometry, to 1e-9 relative ([L35](../decisions-and-roadmap.md#l35)) |
 | `optimum_delay_independent_of_flown_delay` | Delays of 1 s and 20 s give the same optimum, equal to a flight with no recovery ([L94](../decisions-and-roadmap.md#l94)) |
 | `peaks_are_refined_inside_steps` | On three rockets, max q and top Mach are above every row of a 1 ms record, and the record's best row is within 0.01% of them; on Valetudo max q comes before top speed, and top speed before top Mach |
-| `landings_are_placed_on_the_ellipsoid` | A landing more than 100 m downwind, against the radii of curvature at the site, to second order |
+| `landings_are_placed_on_the_ellipsoid` | A landing more than 100 m (328 ft) downwind, against the radii of curvature at the site, to second order |
 | `stability_is_kept_from_rail_exit_to_apogee` | The series' ends; the static margin at the rail exit and, in a crosswind, the flight margin at the flight's Mach number, against the model and the masses directly, to 1e-12; the least flight margin is at or below every entry |
 | `least_margins_do_not_depend_on_where_steps_end` | Valetudo in calm air off a vertical and an 84° rail and in a crosswind, and Prometheus: both leasts are at the rail exit, and agree with steps of at most 1 ms to 1e-6 calibres |
 | `a_least_margin_between_step_ends_is_found` | A margin of `2 + (t − 0.37)²` across a step: the search finds 2 at 0.37 s; a margin falling across the step, or undefined in its middle, is not searched |

@@ -138,8 +138,8 @@ axis, each a small box read off the same scan:
 ## A rocket's fins
 
 The example program `fin_flutter` (in `crates/hpr/examples/`) takes the repository's synthetic
-54 mm rocket. Its three fins are 3.2 mm thick, with a 150 mm root, a 60 mm tip and a 70 mm span.
-It flies the rocket on an I175 motor from a site 200 m up, and prints:
+54 mm (2.1 in) rocket. Its three fins are 3.2 mm (0.13 in) thick, with a 150 mm (5.9 in) root, a 60 mm (2.4 in) tip and a 70 mm (2.8 in) span.
+It flies the rocket on an I175 motor from a site 200 m (656 ft) up, and prints:
 
 <!-- quote: crates/hpr/examples/fin_flutter.output.txt -->
 ```text
@@ -157,11 +157,11 @@ balsa                 0.138         4.4              85               99        
 ```
 
 The columns `V_f 0 m` and `V_f 3 km` are eq. 18's flutter speed in standard air at sea level and
-3 km above it. `D/G_E` is the figure 3 ratio at the launch site's pressure.
+3 km (1.9 mi) above it. `D/G_E` is the figure 3 ratio at the launch site's pressure.
 
 - **Aluminium** passes both readings: its figure 3 ratio is well below the band, and at max q the
   rocket flies at under a third of `V_f`.
-- **Carbon fibre** at 3.2 mm has `V_f / V` of 1.46, but its figure 3 ratio, 0.45, is above the
+- **Carbon fibre** at 3.2 mm (0.13 in) has `V_f / V` of 1.46, but its figure 3 ratio, 0.45, is above the
   band, where most of Martin's wings fluttered or failed: not shown to be safe. Its modulus is a unidirectional ply's of
   one aerospace prepreg; a ±45° layup of it would be stiffer, but wet-laid or woven hobby sheet may
   be softer.
