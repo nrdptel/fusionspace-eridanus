@@ -150,8 +150,7 @@ line here, or on an id that is missing or done.
     - [ ] **M0.9c7 The plot and the site** (#382, #400). *Done when:* both are closed, with every
       item they list.
     - [ ] **M0.9c8 Provenance on every export** (#403; ADR-214). *Done when:* it is closed, with
-      every item it lists: GeoJSON, KML and Parquet carry the catalog's as-of date and the trust
-      note, and the plot the date, each held by a test that fails on the build before it.
+      every item it lists, each held by a test that fails on the build before it.
   - [ ] **M0.9d The site to the design** (ADR-208). *Done when:* #383 to #385 are closed: no
     mdBook default the system doesn't draw (colors, radii, shadows, motion, icons, metas, print),
     a title block and sheets on every page, notes in the system's shape, and every committed SVG

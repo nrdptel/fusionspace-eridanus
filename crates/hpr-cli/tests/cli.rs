@@ -2094,7 +2094,12 @@ fn sim_flies_a_orks_own_motor_as_the_library_does() {
     let environment = hpr::Environment::new(0.0, 0.0, 0.0).unwrap();
     let (flight, _) = library_flight(design.rocket, &id, "", None, &environment, |b| b);
     same_flight(&document, &flight);
-    assert_eq!(document["motors"][0]["source"]["kind"], "design");
+    // The file holds no curve: the reader found it in the bundled catalog, which the source
+    // dates (ADR-214).
+    assert_eq!(
+        document["motors"][0]["source"],
+        json!({"kind": "catalog", "as_of": Catalog::bundled().unwrap().snapshot.captured})
+    );
     assert_eq!(document["motors"][0]["designation"], "168H54-10A");
     assert_eq!(document["design"]["configurations"][0]["flies"], true);
 }
