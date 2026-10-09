@@ -1,39 +1,36 @@
 # Roadmap
 
-Open work only. What is done is in [the archive](roadmap-done.md), moved there with its text
-unchanged by `cargo xtask records`.
+Open work only; done work is in [the archive](roadmap-done.md), moved there unchanged by
+`cargo xtask records`.
 
 **Rules:**
 
-- **The queue sets the order.** The current milestone is the first entry of the queue below that
-  is open and not blocked; when the queue runs out, the first such entry in file order. An entry
-  whose open increments are all blocked counts as blocked. Open `P-critical` issues come before
-  any milestone (ADR-144 §4).
-- A milestone is done only when every *done when* bullet is demonstrated by a command's output and
-  CI is green on all three operating systems. Then check its box, run `cargo xtask records`,
-  which moves it to the archive, and take it off the queue.
+- **The queue sets the order.** The current milestone is the queue's first open, unblocked entry,
+  else the first such entry in file order; an entry whose open increments are all blocked is
+  blocked. Open `P-critical` issues come first (ADR-144 §4).
+- A milestone is done when every *done when* bullet is shown by a command's output and CI is
+  green on all three systems; then check its box, take it off the queue and run
+  `cargo xtask records`, which archives it.
 - A milestone too big to ship at once is split in place into `a`, `b`, `c`... increments, each with
   its own *done when*.
 - Blocked milestones are marked `[blocked]` with a pointer to the reason.
 - New milestones may be added (at the right position, with a *done when*). Existing *done when*
   bullets may be tightened but never loosened without an ADR. Milestones are never removed,
   renumbered or moved later in the order without an ADR, and an archived entry is never edited.
-- A `Loft lessons:` line lists ids from `docs/research/loft-lessons.md`. A milestone that owns a
-  lesson (listed first on its row) ships its named tests; `cargo test -p xtask` checks this once
-  the milestone is checked off.
-- Budgets, checked by `cargo test -p xtask`: this file 46,500 bytes, a line 120 characters, an
-  entry 40 lines.
+- A `Loft lessons:` line lists ids from `docs/research/loft-lessons.md`; a milestone owning one
+  (first on its row) ships its named tests, which `cargo test -p xtask` checks once it is done.
+- Budgets (`cargo test -p xtask`): this file 46,500 bytes, a line 120 characters, an entry 40
+  lines.
 
 ## Queue
 
-The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163). Each
-line is `N. M<id> title`, with an id from this file; `cargo test -p xtask` fails on any other list
-line here, or on an id that is missing or done.
+The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163): lines
+`N. M<id> title`, ids open in this file (`cargo test -p xtask` checks).
 
-1. M0.9c12 The plot's balloons, banking and title block
-2. M0.9c13 The site's figures and units
-3. M0.9c8 Provenance on every export
-4. M0.9c9 Help, roles and progress
+1. M0.9c8 Provenance on every export
+2. M0.9c9 Help, roles and progress
+3. M0.9c12 The plot's balloons, banking and title block
+4. M0.9c13 The site's figures and units
 5. M0.9d The site
 6. M0.9e The words
 7. M0.10 The scoreboard
@@ -151,12 +148,10 @@ line here, or on an id that is missing or done.
       every item it lists, each held by a test that fails on the build before it.
     - [ ] **M0.9c9 Help, roles and progress** (#381, #405). *Done when:* both are closed, with
       all their items.
-    - [ ] **M0.9c12 The plot's balloons, banking and title block** (#382's other plot items).
-      *Done when:* colliding balloons step right along a leader, the panels' shape banks the
-      ascent and descent toward 45°, and the figure ends in a title block with its data as a CSV
-      beside it; each held by a plot test that fails on the build before it.
-    - [ ] **M0.9c13 The site's figures and units** (#382's site item, #400). *Done when:* #382
-      and #400 are closed, with every item they list.
+    - [ ] **M0.9c12 The plot's balloons, banking and title block** (#382). *Done when:*
+      colliding balloons step right on a leader, panels bank toward 45°, and a title block and a
+      CSV end the figure; each held by a test failing before it.
+    - [ ] **M0.9c13 The site's figures and units** (#382, #400). *Done when:* both are closed.
   - [ ] **M0.9d The site to the design** (ADR-208). *Done when:* #383 to #385 are closed: no
     mdBook default the system doesn't draw (colors, radii, shadows, motion, icons, metas, print),
     a title block and sheets on every page, notes in the system's shape, and every committed SVG
@@ -181,12 +176,12 @@ line here, or on an id that is missing or done.
 - **M1.8** is done; its entry: [archive](roadmap-done.md#phase-1-physics-core-the-heart-with-validation-interleaved).
   - **M1.8e** is done; its entry: [archive](roadmap-done.md#phase-1-physics-core-the-heart-with-validation-interleaved).
     - [ ] [blocked] **M1.8e16 The blunt tip's handover, past 24°** (the rest of the old e13,
-      ADR-044; the next free number, so the flare and the step keep theirs). Deferred above Mach 4
-      with #108 (ADR-143); the vertical tip's error goes to M1.14d below Mach 2.5, M1.14h above.
-      *Done when:* the vertical-tip switch is gone or measured again, fixtures and the guide moving
-      together; and, ahead of that, issue #108 closed: a rule for the loading through a crossing
-      whose answer settles as the nose is cut finer, on a body that crosses (the committed nose
-      under a 30° cap at Mach 4.63), and that leaves TN 3527's printed ogives where they are.
+      ADR-044). Deferred above Mach 4 with #108 (ADR-143); the vertical tip's error goes to M1.14d
+      below Mach 2.5, M1.14h above. *Done when:* the vertical-tip switch is gone or measured again,
+      fixtures and the guide moving together; and, ahead of that, issue #108 closed: a rule for the
+      loading through a crossing whose answer settles as the nose is cut finer, on a body that
+      crosses (the committed nose under a 30° cap at Mach 4.63), and that leaves TN 3527's printed
+      ogives where they are.
 - [ ] **M2.3 Real flights.** Split a to c (ADR-081); its bullets met by M2.3b, open for
   M2.3c (ADR-083).
   - Cases from the RocketPy flight data with their ERA5 environments, which needs a weather-file

@@ -3255,8 +3255,8 @@ fn sim_plots_the_flight() {
     assert_eq!(
         desc,
         format!(
-            "Apogee {apogee_m:.1} m ({} ft) above the launch site at {:.2} s; top speed \
-             {top_m_s:.1} m/s ({} ft/s) at {:.2} s.",
+            "Apogee {apogee_m:.1}\u{a0}m ({}\u{a0}ft) above the launch site at {:.2}\u{a0}s; top \
+             speed {top_m_s:.1}\u{a0}m/s ({}\u{a0}ft/s) at {:.2}\u{a0}s.",
             grouped(apogee_m / FOOT_M),
             summary["apogee"]["time_s"].as_f64().unwrap(),
             grouped(top_m_s / FOOT_M),
@@ -3320,7 +3320,7 @@ fn sim_plots_the_flight() {
     );
     let figure = std::fs::read_to_string(&svg).unwrap();
     assert_eq!(figure.matches(">not a prediction<").count(), 1, "{figure}");
-    assert!(figure.contains("Hatched, 11.21 s to 29.71 s:"), "{figure}");
+    assert!(figure.contains("Hatched, 11.21\u{a0}s to 29.71\u{a0}s:"), "{figure}");
 }
 
 /// The guide's launch section says the example rocket climbs about 8% higher from a 1,400 m site
