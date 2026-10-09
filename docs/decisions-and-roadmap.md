@@ -355,6 +355,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9c9"></a>[M0.9c9][phase-0] | Help, roles and progress | not yet done |
 | <a id="m0-9c12"></a>[M0.9c12][phase-0] | The plot's balloons, banking and title block | not yet done |
 | <a id="m0-9c13"></a>[M0.9c13][phase-0] | The site's figures and units | not yet done |
+| <a id="m0-9c14"></a>[M0.9c14][phase-0] | Provenance on the other files | not yet done |
 | <a id="m0-9d"></a>[M0.9d][phase-0] | The site to the design | not yet done |
 | <a id="m0-9e"></a>[M0.9e][phase-0] | The words to the design | not yet done |
 | <a id="m0-10"></a>[M0.10][phase-0] | The scoreboard | not yet done |

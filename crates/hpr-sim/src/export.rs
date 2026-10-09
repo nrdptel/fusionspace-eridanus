@@ -85,8 +85,10 @@ struct FeatureCollection<'a, T: serde::Serialize> {
 
 /// `value` as compact JSON text, in ASCII ([`ascii`]).
 fn to_text(value: &impl serde::Serialize) -> Result<String, SimError> {
-    // Every value here is finite (checked before) and every key a string, the only two things
-    // `serde_json` refuses; the error is mapped rather than unwrapped all the same.
+    // Every key is a string, and every number the export computed is finite (checked before),
+    // the things `serde_json` refuses; a caller's own fields beside the rows or the map
+    // (`json_with`, `geojson_with`) are written as `serde_json` writes them, a NaN as `null`. The
+    // error is mapped rather than unwrapped all the same.
     serde_json::to_string(value)
         .map(|text| ascii(&text))
         .map_err(|_| SimError::Unsupported {
@@ -327,9 +329,10 @@ pub fn geojson(track: &[TrackPoint], summary: &FlightSummary) -> Result<String, 
 /// # Errors
 ///
 /// As [`geojson()`]; also [`SimError::Unsupported`] for an `about` that isn't a JSON object, or
-/// has a field named `type`, `tool` or `features`, which would write a key twice, or one RFC 7946
+/// has a field named `type`, `tool` or `features`, which would write a key twice, one RFC 7946
 /// section 7.1 keeps from a `FeatureCollection` (`geometry`, `properties`, `coordinates`,
-/// `geometries`).
+/// `geometries`), or one a reader gives a meaning: `bbox` (section 5) or the older format's `crs`,
+/// which GDAL and QGIS still read.
 pub fn geojson_with<T: serde::Serialize>(
     track: &[TrackPoint],
     summary: &FlightSummary,
@@ -348,6 +351,8 @@ pub fn geojson_with<T: serde::Serialize>(
         "properties",
         "coordinates",
         "geometries",
+        "bbox",
+        "crs",
     ]
     .iter()
     .any(|key| fields.contains_key(*key))
@@ -408,7 +413,7 @@ fn escape(text: &str) -> Result<String, SimError> {
     };
     if text.chars().any(forbidden) {
         return Err(SimError::Unsupported {
-            what: "a KML name with a control character XML 1.0 forbids",
+            what: "KML text, a name or a description, with a control character XML 1.0 forbids",
         });
     }
     let mut out = String::with_capacity(text.len());
@@ -441,8 +446,10 @@ pub fn kml(track: &[TrackPoint], summary: &FlightSummary, name: &str) -> Result<
 
 /// The path and the landings as [`kml()`] writes them, with `description` as the `Document`'s
 /// `description` (OGC 07-147r2 section 9.1.3.6, after its `name`), such as the motor catalog's
-/// date and how far to trust the path: a map shows it when the file is opened. An empty
-/// `description` writes none, as [`kml()`] does.
+/// date and how far to trust the path: a map shows it when the file is opened. It is escaped as
+/// XML text, but map programs such as Google Earth show a description as HTML, so text from
+/// someone else should not be passed through unchecked. An empty `description` writes none, as
+/// [`kml()`] does.
 ///
 /// # Errors
 ///
@@ -882,7 +889,17 @@ mod tests {
             geojson_with(&track, &summary, &serde_json::Map::new()).unwrap(),
             geojson(&track, &summary).unwrap()
         );
-        for key in ["type", "tool", "features", "geometry", "properties"] {
+        for key in [
+            "type",
+            "tool",
+            "features",
+            "geometry",
+            "properties",
+            "coordinates",
+            "geometries",
+            "bbox",
+            "crs",
+        ] {
             let clash = json!({ key: 1 });
             assert!(
                 matches!(
@@ -927,6 +944,11 @@ mod tests {
             kml_with(&track, &summary, "Flight", "").unwrap(),
             kml(&track, &summary, "Flight").unwrap()
         );
+        assert!(matches!(
+            kml_with(&track, &summary, "Flight", "a\u{1}b"),
+            Err(SimError::Unsupported { what })
+                if what.starts_with("KML text, a name or a description, with a control character")
+        ));
         assert!(
             !kml(&track, &summary, "Flight")
                 .unwrap()

@@ -192,7 +192,9 @@ pub fn parquet(recorder: &Recorder) -> Result<Vec<u8>, SimError> {
 /// The recorded rows as [`parquet()`] writes them, with the pairs of `about`, in its order, after
 /// the program's three in the footer's key-value metadata: such as the motor catalog's date and
 /// how far to trust the recording, as [`super::json_with`] carries them beside its rows. Each is a
-/// `KeyValue` of `parquet.thrift`, its key and its value UTF-8 strings.
+/// `KeyValue` of `parquet.thrift`, its key and its value UTF-8 strings. Keys other programs read
+/// as their own, such as Apache Arrow's `ARROW:schema` or pandas' `pandas`, are the caller's to
+/// avoid: a reader decodes them, and may refuse the file when they hold something else.
 ///
 /// Needs the `parquet` feature. Returns the file's bytes; the caller writes them.
 ///
