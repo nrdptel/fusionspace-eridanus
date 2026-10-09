@@ -208,8 +208,8 @@ surface finish (#360) or pair of mass-override flags (#361) it can't read.
 
 Why these edges:
 
-- NASA Student Launch (1,220 to 1,830 m (4,003 to 6,004 ft), or 4,000 to 6,000 ft) and the American Rocketry
-  Challenge (229 m (751 ft), or 750 ft, its 2026-season target) fly below the speed of sound.
+- NASA Student Launch (4,000 to 6,000 ft (1,219 to 1,829 m)) and the American Rocketry
+  Challenge (750 ft (229 m), its 2026-season target) fly below the speed of sound.
 - Spaceport America Cup teams in the 9,144 m (30,000 ft) commercial-motor category fly Mach 1.6
   to 2.1: [Concordia's 2018 report](https://www.soundingrocket.org/uploads/9/0/6/4/9064598/79_project_report.pdf)
   gives Mach 1.64, and [UC Aerospace's 2024 flight](https://www.aerospace.org.nz/news/uc-aerospace-victory-in-spaceport-america-cup-30k-cots-2024)
@@ -218,7 +218,7 @@ Why these edges:
   N5800 flights, reach about Mach 3.5. Tripoli's single-stage commercial altitude records were
   13,885 m (45,554 ft) on an M motor, 15,614 m (51,228 ft) on an N and 20,040 m (65,748 ft) on an
   O, in a [2016 snapshot](https://www.realflightsystems.com/techpubs/data/TRA-Records/work/records/single.html).
-- At the legal wind limit (20 mph, or 8.9 m/s (29 ft/s), in NFPA 1127), a rocket leaving the rail at 50 to
+- At the legal wind limit (20 mph (8.9 m/s) in NFPA 1127), a rocket leaving the rail at 50 to
   100 ft/s (15 to 30 m/s (49 to 98 ft/s)) meets the air at about 16° to 30°, the slower the steeper. So 15° covers
   the climb, not the first instant off the rail.
 

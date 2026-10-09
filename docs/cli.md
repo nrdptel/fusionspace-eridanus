@@ -1185,7 +1185,7 @@ file:
   a whole newton, differs from the nominal one, both are shown. The letters joined to the thrust
   are the maker's code for the propellant; for a catalog motor, the propellant's name is
   ThrustCurve.org's, and for a file, which names no propellant, the code is shown alone. Estes's
-  and Quest's joined letters are not a propellant (the `T` of `A10T` marks the 13 mm mini case),
+  and Quest's joined letters are not a propellant (the `T` of `A10T` marks the 13 mm case of a mini motor),
   so none is read for them. Letters after a hyphen are not read as the propellant, since the same
   place holds a delay for one maker (AeroTech's `J350W-L`) and a propellant for another (Loki's
   `H125-CT`), except in the form Cesaroni's own files write, `131-G84-GR-10A`, and even there a

@@ -647,7 +647,7 @@ at the end of the output shows the rules:
   label, so a design file doesn't depend on the catalog.
 
 For a complete file of a similar rocket, with centering rings, rail buttons, a parachute and a
-shock cord as parts, on a 38 mm (1.5 in) Cesaroni I175, see
+shock cord as parts, on a 38 mm Cesaroni I175, see
 [`synthetic-54mm-three-fin.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/synthetic-54mm-three-fin.json).
 A program in the repository writes the files in that folder, so edit a copy rather than the file.
 
@@ -669,7 +669,7 @@ The example leaves out several kinds of part and setting that a design can have:
   ([Overrides](physics/design.md#overrides)).
 - **Checks.** [`hpr_design::checks::check`](api/hpr_design/checks/fn.check.html) lists a design's
   problems ([Checks](physics/design.md#checks)). Errors, such as a motor wider than its mount,
-  describe a rocket that can't exist, and a simulation refuses them: put the 38 mm (1.5 in) `H170M` in this
+  describe a rocket that can't exist, and a simulation refuses them: put the 38 mm motor `H170M` in this
   program's 29 mm mount and it stops with `MotorWiderThanMount`. Warnings, such as a step in the
   body's radius, don't stop a flight.
 

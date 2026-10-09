@@ -27,8 +27,12 @@
 //! - **Millimeters** take inches, but **a motor's or a mount's size** stays in millimeters alone,
 //!   since motors and their mounts are named by it (`data.md`: "motor mounts by the motor's (29,
 //!   38, 54, 75, 98 mm)"): one of [`MOTOR_DIAMETERS_MM`] followed, within three words, by a word
-//!   of [`MOTOR_WORDS`] (`a 54 mm motor`, `29 mm and 38 mm mounts`, `a 38 mm Pro38 case`). Any
-//!   other size in millimeters, a body tube's or a fin's, gives its inches: `2 mm (0.079 in)`.
+//!   of [`MOTOR_WORDS`] or a motor's designation (`a 54 mm motor`, `29 mm and 38 mm mounts`,
+//!   `a 38 mm Pro38 case`, `a 38 mm Cesaroni I175`). A mount's size is the motor size it takes;
+//!   a measured bore, like any other size in millimeters, a body tube's or a fin's, gives its
+//!   inches: `a 28.956 mm (1.140 in) bore`, `2 mm (0.079 in)`.
+//! - **A number grouped by spaces** (`63 781 370 m`) fails: the check would read only its last
+//!   group, so it asks for commas.
 //!
 //! Which pages: every page of the site (the guides since M0.9c13; the model pages, the file
 //! formats' pages, the accuracy page, the validation plan and the records since M0.9c16).
@@ -39,17 +43,21 @@
 const MOTOR_DIAMETERS_MM: [f64; 10] =
     [13.0, 18.0, 24.0, 29.0, 38.0, 54.0, 75.0, 98.0, 150.0, 152.0];
 
-/// Words that make a size in millimeters before them a motor's or a mount's.
-const MOTOR_WORDS: [&str; 11] = [
-    "motor", "motors", "mount", "mounts", "case", "cases", "casing", "casings", "reload",
-    "reloads", "mmt",
+/// Words that make a size in millimeters before them a motor's or a mount's; `case` and `casing`
+/// do too, where [`motor_size`] says.
+const MOTOR_WORDS: [&str; 7] = [
+    "motor", "motors", "mount", "mounts", "reload", "reloads", "mmt",
 ];
 
-/// Whether a size in millimeters names a motor or its mount: a standard motor diameter with a
-/// word of [`MOTOR_WORDS`] among the next three words (`after` is the text after `mm`). Figures,
-/// `mm`, `and`, `or`, `to`, quotation marks and a comma before a figure don't count as words, so
-/// a list of sizes (`29 mm, 38 mm and 54 mm motors`) reaches its noun; other punctuation ends the
-/// search.
+/// Whether a size in millimeters names a motor or its mount: a standard motor diameter followed,
+/// within three words, by a word of [`MOTOR_WORDS`] or a motor's designation (`I175`, `H170M`).
+/// `after` is the text after `mm`. A list of sizes reaches its noun (`29 mm, 38 mm and 54 mm
+/// motors`): figures, `mm`, and an `and`, `or`, `to`, article or comma before a figure are passed over,
+/// but only before the first word; a figure, `and` or `or` after a word ends the search, so `a
+/// 54 mm tube and a 38 mm motor` doesn't lend the tube the motor's noun. `case` and `casing`, also plain words
+/// (`in either case`), count only straight after the size or after a capitalized name (`a 38
+/// mm Pro38 case`). Quotation marks are passed over; other punctuation, a full stop included,
+/// ends the search.
 fn motor_size(si: &[Figure], after: &str) -> bool {
     if !si
         .iter()
@@ -57,7 +65,21 @@ fn motor_size(si: &[Figure], after: &str) -> bool {
     {
         return false;
     }
+    // Whether a figure comes next, past an article: `29 mm and a 38 mm motor`.
+    let figure_next = |text: &str| {
+        let text = text.trim_start_matches(is_space);
+        let text = ["a", "an", "the"]
+            .iter()
+            .find_map(|article| {
+                text.strip_prefix(article)
+                    .filter(|rest| rest.starts_with(is_space))
+            })
+            .unwrap_or(text);
+        text.trim_start_matches(is_space)
+            .starts_with(|d: char| d.is_ascii_digit())
+    };
     let mut words = 0;
+    let mut named = false;
     let mut rest = after;
     loop {
         rest = rest.trim_start_matches(is_space);
@@ -65,11 +87,10 @@ fn motor_size(si: &[Figure], after: &str) -> bool {
             return false;
         };
         if c == ',' {
-            let next = rest[1..].trim_start_matches(is_space);
-            if !next.starts_with(|d: char| d.is_ascii_digit()) {
+            if words > 0 || !figure_next(&rest[1..]) {
                 return false;
             }
-            rest = next;
+            rest = &rest[1..];
             continue;
         }
         // A quotation mark is no break: `a "29 mm" case` names the case by its size.
@@ -87,26 +108,55 @@ fn motor_size(si: &[Figure], after: &str) -> bool {
             .sum();
         // A full stop after a word ends the sentence, and the search after that word.
         let stops = rest[..len].ends_with('.');
-        let token = rest[..len].trim_end_matches('.').to_lowercase();
-        rest = if stops { "." } else { &rest[len..] };
-        let token = token
+        let raw = rest[..len]
+            .trim_end_matches('.')
             .trim_end_matches("'s")
             .trim_end_matches("’s")
             .trim_matches(|c| matches!(c, '-' | '–'));
-        if token.is_empty()
-            || token.starts_with(|d: char| d.is_ascii_digit())
-            || matches!(token, "mm" | "and" | "or" | "to")
-        {
+        rest = if stops { "." } else { &rest[len..] };
+        let token = raw.to_lowercase();
+        let in_list =
+            token.is_empty() || token.starts_with(|d: char| d.is_ascii_digit()) || token == "mm";
+        let joins = matches!(token.as_str(), "and" | "or" | "to" | "a" | "an" | "the");
+        if in_list || (joins && figure_next(rest)) {
+            if words > 0 {
+                return false;
+            }
             continue;
         }
-        if token.split('-').any(|part| MOTOR_WORDS.contains(&part)) {
+        // After a word, `and` or `or` starts another noun: `the 54 mm airframe or motor tube`.
+        if words > 0 && matches!(token.as_str(), "and" | "or") {
+            return false;
+        }
+        let first = raw.split(['-', '–']).next().unwrap_or_default();
+        if designation(first) {
             return true;
         }
+        for part in token.split(['-', '–']) {
+            if matches!(part, "case" | "cases" | "casing" | "casings") {
+                if words == 0 || named {
+                    return true;
+                }
+            } else if MOTOR_WORDS.contains(&part) {
+                return true;
+            }
+        }
+        named = raw.starts_with(|c: char| c.is_uppercase());
         words += 1;
         if words == 3 {
             return false;
         }
     }
+}
+
+/// Whether a word is a motor's designation: an impulse class from A to O, at least two digits of
+/// average thrust, and the maker's letters for propellant and delay (`I175`, `H170M`, `J350W`).
+fn designation(word: &str) -> bool {
+    let mut chars = word.chars();
+    let class = chars.next().is_some_and(|c| ('A'..='O').contains(&c));
+    let rest = chars.as_str();
+    let digits = rest.chars().take_while(char::is_ascii_digit).count();
+    class && digits >= 2 && rest[digits..].chars().all(|c| c.is_ascii_uppercase())
 }
 
 /// Meters in a foot, an inch and a statute mile, exactly (the international foot).
@@ -430,6 +480,23 @@ fn converted_from_us(before: &str, si: &[Figure], units: &[(&str, f64)]) -> bool
         .take_while(|(_, c)| c.is_ascii_digit() || matches!(c, '.' | ',' | '/' | '–' | '−'))
         .last()
         .map_or(number.len(), |(at, _)| at);
+    // A range written with `to` (`15 to 30 ft`) is read whole, back to its first figure.
+    let start = number[..start]
+        .strip_suffix(|c| is_space(c))
+        .and_then(|head| head.strip_suffix("to"))
+        .and_then(|head| head.strip_suffix(|c| is_space(c)))
+        .and_then(|head| {
+            let from = head
+                .char_indices()
+                .rev()
+                .take_while(|(_, c)| c.is_ascii_digit() || matches!(c, '.' | ',' | '−'))
+                .last()?
+                .0;
+            figure(&head[from..])
+                .filter(|(_, len)| from + len == head.len())
+                .map(|_| from)
+        })
+        .unwrap_or(start);
     let text = &number[start..];
     // A word right before the figure makes it part of a name (`MMT-1.52`), not a quantity.
     if text.is_empty()
@@ -470,13 +537,13 @@ fn converted_from_us(before: &str, si: &[Figure], units: &[(&str, f64)]) -> bool
 
 /// Whether the text starts, past spaces, with an operator: a `−` or `-` only with a space after.
 fn operator_after(after: &str) -> bool {
-    let trimmed = after.trim_start_matches(is_space);
+    let mut trimmed = after.trim_start_matches(is_space);
     // A term in brackets is one too, and a power of it: `(5 mm)² × 2`.
-    if let Some(closed) = trimmed.strip_prefix(')') {
+    while let Some(closed) = trimmed.strip_prefix(')') {
         if closed.starts_with(['²', '³']) {
             return true;
         }
-        return operator_after(closed);
+        trimmed = closed.trim_start_matches(is_space);
     }
     let mut chars = trimmed.chars();
     match chars.next() {
@@ -603,7 +670,26 @@ fn scan(run: &str, mut found: impl FnMut(usize, Result<Option<std::ops::Range<us
         };
         let after_unit = &unit_text[unit.len()..];
         let quantity_end = at + len + space_len + unit.len();
-        if operator_before(&run[..at])
+        // The last group of a number grouped by spaces (`63 781 370 m`): only commas group.
+        let before = &run[..at];
+        let grouped = written.len() == 3
+            && written.bytes().all(|b| b.is_ascii_digit())
+            && before
+                .strip_suffix(|c| is_space(c))
+                .is_some_and(|head| head.ends_with(|c: char| c.is_ascii_digit()));
+        if grouped {
+            found(
+                at,
+                Err(format!(
+                    "`{written}{space}{unit}` is the last group of a number grouped by spaces, \
+                     which the check can't read whole; group it with commas (`63,781,370 m`) \
+                     and give its US units in brackets after it (#400, ADR-210)"
+                )),
+            );
+            at = quantity_end;
+            continue;
+        }
+        if operator_before(before)
             || operator_after(after_unit)
             || si.iter().any(|f| f.scientific)
             || (unit == "mm" && motor_size(&si, after_unit))
@@ -850,6 +936,9 @@ mod tests {
             "a 54 mm motor-mount tube",
             "a 38 mm MMT",
             "a \"29 mm\" case",
+            "a 38 mm Cesaroni I175",
+            "the 38 mm H170M's thrust",
+            "a 38 mm case",
         ] {
             assert!(messages(run).is_empty(), "{run}: {:?}", messages(run));
         }
@@ -863,10 +952,28 @@ mod tests {
             "a 54 mm tube, the motor's",
             "a 2 mm wall on the mount",
             "a 54 mm (2.1 in) motor",
+            "a 98 mm airframe, 54 mm motor mount",
+            "a 54 mm body tube and 38 mm motor mount",
+            "a 75 mm airframe and its motor",
+            "the 54 mm airframe or motor tube",
+            "a 54 mm nose cone 2 motors",
+            "The airframe is 98 mm in either case.",
+            "a 54 mm tube or a 38 mm motor",
+            "a 54 mm M3 screw",
         ] {
             let found = messages(run);
-            let bracketed = run.contains("(2.1 in)");
-            assert_eq!(found.is_empty(), bracketed, "{run}: {found:?}");
+            if run.contains("(2.1 in)") {
+                assert!(found.is_empty(), "{run}: {found:?}");
+            } else {
+                // Only the first size fails: a motor's size after it stays exempt.
+                let first = &run[run.find(|c: char| c.is_ascii_digit()).unwrap()..];
+                let first = &first[..first.find(" mm").unwrap() + 3];
+                assert_eq!(found.len(), 1, "{run}: {found:?}");
+                assert!(
+                    found[0].starts_with(&format!("`{first}`")),
+                    "{run}: {found:?}"
+                );
+            }
         }
     }
 
@@ -879,6 +986,8 @@ mod tests {
             "| 1,010 ft (307.8 m) |",
             "a 1.140 in (28.956 mm) tube",
             "60–70 ft (18–21 m) high",
+            "15 to 30 ft (4.6 to 9.1 m) high",
+            "4,000 to 6,000 ft (1,219 to 1,829 m) up",
         ] {
             assert!(messages(run).is_empty(), "{run}: {:?}", messages(run));
         }
@@ -889,6 +998,7 @@ mod tests {
             "1.52 in, or 38 mm here",
             "3 ft (2 m) high",
             "1/0 in (3 mm) here",
+            "1 to 3 ft (0.9 m) tall",
         ] {
             assert_eq!(messages(run).len(), 1, "{run}: {:?}", messages(run));
         }
@@ -923,7 +1033,22 @@ mod tests {
             "{found:?}"
         );
         // `to` needs its spaces, and a word that merely starts with it is no range.
-        assert_eq!(messages("from 15 tons 30 m away").len(), 1);
+        assert_eq!(range_join(" to 30"), Some(4));
+        assert_eq!(range_join(" to30"), None);
+        assert_eq!(range_join(" tons 30"), None);
+        assert_eq!(range_join("to 30"), None);
+        assert!(messages("from 15 tons 30 m away")[0].starts_with("`30 m`"));
+    }
+
+    #[test]
+    fn numbers_grouped_by_spaces_fail() {
+        let found = messages("the default radius, 63 781 370 m (1,214 ft) here");
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert!(found[0].contains("grouped by spaces"), "{found:?}");
+        assert!(messages("the default radius, 63,781,370 m (39,632 mi) here").is_empty());
+        // A count before a quantity is not a group: it isn't three digits, or no digit precedes.
+        assert!(messages("in 3 1,400 m (4,593 ft) runs").is_empty());
+        assert!(messages("rows of 120 m (394 ft)").is_empty());
     }
 
     #[test]

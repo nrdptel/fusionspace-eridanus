@@ -67,7 +67,7 @@ Sources:
   Dimensional Drawing* (2003–2004), archived by the Internet Archive in 2005: case outside
   diameters and the ±0.005 in drawing tolerance ([a nominal motor in its matching
   tube](#a-nominal-motor-in-its-matching-tube)). The
-  [29 mm (1.1 in) drawing](https://web.archive.org/web/20050405223833/http://www.aerotech-rocketry.com/customersite/resource_library/aerotech_rms_ext_dim_dwgs/29mm_mr_rms/mr_29-40_120.pdf);
+  [29 mm motor drawing](https://web.archive.org/web/20050405223833/http://www.aerotech-rocketry.com/customersite/resource_library/aerotech_rms_ext_dim_dwgs/29mm_mr_rms/mr_29-40_120.pdf);
   the others are in the
   [same folder's archive](https://web.archive.org/web/2005*/aerotech-rocketry.com/customersite/resource_library/aerotech_rms_ext_dim_dwgs/*).
 - **[ISO 2768]** ISO 2768-1:1989, *General tolerances, part 1: tolerances for linear and angular
@@ -720,25 +720,25 @@ differ by 12 µm at most, 7.5e-8 of the apogee, and their landing times agree to
 
 ### A nominal motor in its matching tube
 
-A motor's diameter in the simulator is its nominal size, as ThrustCurve.org and RASP files give it:
-29 mm for every 29 mm motor. The cases are not all that wide. AeroTech's RMS dimensional drawings
-give the case's outside as 0.698 in for 18 mm (0.71 in), 0.938 in for 24 mm (0.94 in) and 1.125 in for 29 mm (1.1 in), each to
-±0.005 in, so a "29 mm" case is at most 1.130 in, 28.702 mm (1.13 in), across. A size whose case is
+A motor's diameter in the simulator is its nominal size, as ThrustCurve.org and RASP files give it,
+so every 29 mm motor is flown as a 29 mm case. The cases are not all that wide. AeroTech's RMS dimensional drawings
+give the case's outside as 0.698 in for 18 mm motors, 0.938 in for 24 mm motors and 1.125 in for 29 mm motors, each to
+±0.005 in, so a "29 mm" case is at most 1.130 in (28.702 mm) across. A size whose case is
 narrower than its name gets that difference as slack
-([`motor_fit_slack_m`](../api/hpr_design/checks/fn.motor_fit_slack_m.html)): 0.144 mm (0.0057 in) at 18 mm (0.71 in),
-0.048 mm (0.0019 in) at 24 mm (0.94 in), 0.298 mm (0.012 in) at 29 mm (1.1 in). Within it, the check warns (`motor_tight_in_mount`); past
+([`motor_fit_slack_m`](../api/hpr_design/checks/fn.motor_fit_slack_m.html)): 0.144 mm (0.0057 in) for an 18 mm motor,
+0.048 mm (0.0019 in) for a 24 mm motor, 0.298 mm (0.012 in) for a 29 mm motor. Within it, the check warns (`motor_tight_in_mount`); past
 it, the real case can't go in and it is an error.
 
-- LOC Precision's 1.140 in motor tube has a 28.956 mm (1.14 in) bore, 0.044 mm (0.0017 in) under 29 mm (1.1 in). The largest
+- LOC Precision's 1.140 in (28.956 mm) motor tube bore is 0.044 mm (0.0017 in) under the 29 mm motor size. The largest
   case leaves it 0.254 mm (0.010 in) of clearance, so a 29 mm motor in it warns (OpenRocket's *Chute
   release*; [issue #280](https://github.com/nrdptel/fusionspace-eridanus/issues/280), the report that such a
   motor was refused).
-- The Loft demo's 28.0 mm (1.1 in) bore is 1 mm (0.039 in) under 29 mm (1.1 in), 0.70 mm (0.028 in) under the largest case: an error.
+- The Loft demo's 28.0 mm (1.10 in) bore is 1 mm (0.039 in) under the 29 mm motor size, 0.70 mm (0.028 in) under the largest case: an error.
 - The same drawings give 38, 54, 75 and 98 mm cases as 1.500, 2.125, 2.965 and 3.870 in, so at
   the +0.005 in limit each is at least as wide as its name. Those sizes get no slack, so a 38 mm
-  motor in a 37.9 mm (1.5 in) bore is an error, as its 38.10 mm (1.5 in) case would be. Fix it with a wider mount
+  motor in a 37.9 mm (1.49 in) bore is an error, as its 38.10 mm (1.500 in) case would be. Fix it with a wider mount
   or a smaller motor. The simulator doesn't yet warn when a nominal size fits the bore but its wider
-  case wouldn't, such as 38 mm (1.5 in) in a 38.1 mm (1.5 in) bore
+  case wouldn't, such as a 38 mm motor in a 38.1 mm (1.500 in) bore
   ([#312](https://github.com/nrdptel/fusionspace-eridanus/issues/312)).
 - These are one maker's cases, drawn in 2003 and 2004 and archived from its site in 2005
   ([AT], under *Code and sources*). No published standard gives a diameter tolerance: the NAR's

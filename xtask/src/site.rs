@@ -1045,7 +1045,8 @@ fn page_rules(
                 text,
                 Traced::Span(span),
                 guides,
-                &quoted(&rest),
+                // A converted figure's US units are not a source: the SI figure is.
+                &quoted(&units::without_conversions(&rest)),
                 "the rest of this page, or in a file this item links to",
             ));
         }
@@ -2009,6 +2010,8 @@ fn untraced_numbers(
                 for path in &paths {
                     files.entry(path.clone()).or_insert_with(|| {
                         let text = fs::read_to_string(root.join(path)).ok()?;
+                        // The US units in a file's brackets are conversions, not sources.
+                        let text = units::without_conversions(&text);
                         let model = parent(path) == format!("{SOURCE}/{MODELS}");
                         Some(match in_short_span(&text).filter(|_| model) {
                             Some(span) => {
@@ -3142,6 +3145,35 @@ mod tests {
             failure("the site's pages", &report.problems)
         );
         assert!(report.pages >= 19, "{} pages", report.pages);
+    }
+
+    #[test]
+    fn model_pages_give_us_units_too() {
+        // No page is left out of the units check (#400, M0.9c16): a model page's height in SI
+        // alone fails like a guide's, and so does a part's size in millimeters.
+        let report = check_sources(
+            workspace(&[
+                ("docs/SUMMARY.md", SUMMARY_TWO_PAGES),
+                (
+                    "docs/start-here.md",
+                    "# Start here\n\nSee [gravity](physics/gravity.md).\n",
+                ),
+                (
+                    "docs/physics/gravity.md",
+                    &format!("{IN_SHORT_OK}\nA 30 m drop onto a 2 mm wall, from a 54 mm motor.\n"),
+                ),
+            ])
+            .path(),
+        )
+        .unwrap();
+        let units: Vec<&String> = report
+            .problems
+            .iter()
+            .filter(|problem| problem.contains("(#400, ADR-210)"))
+            .collect();
+        assert_eq!(units.len(), 2, "{units:?}");
+        assert!(units[0].starts_with("docs/physics/gravity.md:") && units[0].contains("`30 m`"));
+        assert!(units[1].contains("`2 mm`"), "{units:?}");
     }
 
     #[test]

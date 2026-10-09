@@ -196,7 +196,7 @@ propellant, and the units check catches it: grams read as kilograms make the exh
 loaded mass left in grams, with the propellant converted, is accepted as a 1,000-times-heavier
 motor.
 
-The file here is Loki Research's I377. The program prints what it read: 38 mm (1.5 in) by 292 mm (11 in), 560 g
+The file here is Loki Research's I377. The program prints what it read, `38 mm by 292 mm` (1.50 by 11.5 in), 560 g
 loaded with 250 g of propellant. From the curve it works out 525.8 N·s, an I motor, averaging
 377.9 N over 1.39 s. Its effective exhaust velocity, 2103 m/s (6,900 ft/s), is well inside the check's range.
 
@@ -206,10 +206,10 @@ Three things to know about a motor built from a file:
   ThrustCurve.org's 554 public-domain files, 66 headers give a length more than 1 mm (0.039 in) off the
   catalog's, and 5 a diameter more than 0.5 mm (0.020 in) off
   ([data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md),
-  section 4). This file says 292 mm (11 in) where ThrustCurve.org's record says 292.1 mm (12 in). The 32 bundled
+  section 4). This file says 292 mm (11.5 in) where ThrustCurve.org's record says 292.1 mm (11.50 in). The 32 bundled
   motors fly their headers' values too; `cargo xtask motor-catalog` refuses a reload whose case
   names another diameter than its header ([Loft lesson L43](../decisions-and-roadmap.md#l43): one
-  header said 75 mm for a 54 mm motor). For any other motor, check the header against the
+  header listed a 54 mm motor as a 75 mm motor). For any other motor, check the header against the
   motor's page on ThrustCurve.org.
 - **Where its mass sits is a rough guess.** `from_envelope` spreads the propellant through the
   whole case, so the center of mass stays at mid-length as it burns
@@ -434,7 +434,7 @@ c = I / m_p0,    ṁ(t) = F(t) / c,    m_p(t) = m_p0 (1 − I(t)/I)
     nozzle area it derives from that radius). HPR Sim uses `D/2`.
 - **Catalog envelope:** diameter, length and masses are the curve file's header values;
   `cargo xtask motor-catalog` refuses a reload whose case names another diameter than its header
-  ([Loft lesson L43](../decisions-and-roadmap.md#l43): one header said 75 mm for a 54 mm motor).
+  ([Loft lesson L43](../decisions-and-roadmap.md#l43): one header listed a 54 mm motor as a 75 mm motor).
   ThrustCurve.org's own records differ in a few places ([the bundled motors](#the-bundled-motors)).
 
 ### The effective exhaust velocity is a units check

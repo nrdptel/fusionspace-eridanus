@@ -228,7 +228,7 @@ milestone ([M2.1](../decisions-and-roadmap.md#m2-1)), not yet pinned by fixtures
     this doesn't matter.
 - **Humidity** is not used anywhere.
 - **Wyoming heights** are converted from geopotential with a radius only (no latitude).
-  - The helper's default radius, 63 781 370 m (1,214 ft) in `rocketpy/tools.py:972`, is ten times the
+  - The helper's default radius, 63,781,370 m (39,632 mi) in `rocketpy/tools.py:972`, is ten times the
     Earth's.
   - Check which callers rely on that default before the [M2.1](../decisions-and-roadmap.md#m2-1) comparisons.
 

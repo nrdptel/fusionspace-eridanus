@@ -227,7 +227,7 @@ Because a rocket is a value built by a function, a design study is a loop. The e
 A rocket can also be built from a maker's parts, as sold, from a parts catalog. HPR Sim bundles
 the one OpenRocket ships: 3,449 parts from Estes, LOC Precision and a dozen more makers, read as
 the [`.orc` page](format/orc.md) explains. The fourth example finds LOC Precision's 2.56 in
-(65 mm (2.6 in)) airframe parts in it by maker and part number, builds the rocket from them, and flies it on
+(65 mm) airframe parts in it by maker and part number, builds the rocket from them, and flies it on
 an AeroTech H170:
 
 ```bash

@@ -194,7 +194,7 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 <!-- cli: end -->
 
-The `warning` says the I377's 292 mm (11 in) case, which sits 10 mm (0.39 in) out of the back of the rocket's
+The `warning` says the I377's 292 mm (11.5 in) case, which sits 10 mm (0.39 in) out of the back of the rocket's
 260 mm (10 in) mount tube, reaches 22.1 mm (0.87 in) past the tube's forward end. The simulator flies it as drawn;
 whether it fits the real rocket is for you to check. `--motor` replaces the motor of the
 configuration flown, so `--config` picks which of the file's configurations it goes in, and

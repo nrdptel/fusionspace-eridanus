@@ -717,7 +717,7 @@ is the milestone that added or will add that test.
 | <a id="l40"></a>[L40][lessons-motors] | Loft fixed the motor's center of gravity at the casing's middle, with no inertia of its own | [M1.3](#m1-3) |
 | <a id="l41"></a>[L41][lessons-motors] | Loft bundled thrust curves under mixed or unknown licenses | [M1.3](#m1-3) |
 | <a id="l42"></a>[L42][lessons-motors] | Loft's impulse checks were loose (±8%); a mis-sourced curve flew about 26% high until caught | [M1.3](#m1-3) |
-| <a id="l43"></a>[L43][lessons-motors] | ThrustCurve's data must override a `.eng` header's size: one said 75 mm for a 54 mm motor | [M1.3](#m1-3) |
+| <a id="l43"></a>[L43][lessons-motors] | ThrustCurve's data must override a `.eng` header's size: one listed a 54 mm motor as a 75 mm motor | [M1.3](#m1-3) |
 | <a id="l56"></a>[L56][lessons-formats] | Loft told a design file's container apart by its first bytes, and a malformed one had to give an error rather than crash | [M3.1a](#m3-1a) |
 | <a id="l57"></a>[L57][lessons-formats] | Loft threw away the thrust curves stored inside a `.ork` archive | [M3.1a](#m3-1a), [M3.1c1](#m3-1c1) |
 | <a id="l59"></a>[L59][lessons-formats] | Loft resolved an automatic radius within a stage only, so a booster's first component took a stale number | [M3.1b2](#m3-1b2) |

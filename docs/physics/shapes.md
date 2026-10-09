@@ -123,8 +123,8 @@ diameter, moved to the reference plane by the parallel-axis theorem. `S` exclude
     inner corner.
     - A square cut would add a sliver of `t² (tan φ − φ)/2` of section per unit rim length, with
       `φ` the surface's angle to the axis: 3.1e-4 `t²` at 7°. On steep ends it matters: a
-      square-cut part is heavier than this model by 1.26% of wall mass for a 27→49 mm (1.9 in) transition
-      over 15 mm (0.59 in, 56°), and by 2.24% for 20→37.3 mm (1.5 in) over 10 mm (0.39 in, 60°), both with `t = 2 mm`. The
+      square-cut part is heavier than this model by 1.26% of wall mass for a 27 to 49 mm (1.1 to 1.9 in) transition
+      over 15 mm (0.59 in, 56°), and by 2.24% for 20 to 37.3 mm (0.79 to 1.47 in) over 10 mm (0.39 in, 60°), both with `t = 2 mm`. The
       OpenRocket comparison ([M2.2](../decisions-and-roadmap.md#m2-2)) should check how real parts and OpenRocket treat such
       ends.
     - The sliver grows without bound only as the end turns vertical. There, a square cut (made by

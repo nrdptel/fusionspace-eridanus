@@ -312,7 +312,7 @@ cut away under a main:
 
 - **The release waits until the releasing device is fully open**, not its line stretch. Cutting the
   drogue at line stretch would leave the rocket under an empty canopy: the drag area would collapse
-  and the descent speed up (found in review; measured at 0.45 m² → 0.02 m² and 18.3 → 22.0 m/s (72 ft/s)
+  and the descent speed up (found in review; measured at 0.45 m² → 0.02 m² and 18.3 to 22.0 m/s (60.0 to 72.2 ft/s)
   before the fix).
 - **A released device contributes nothing** from its release.
 - **One released before its own charge fires never deploys at all:** its `Trigger` is recorded and

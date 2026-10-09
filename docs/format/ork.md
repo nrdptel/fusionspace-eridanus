@@ -1524,7 +1524,8 @@ again, as saving makes it do. The results are committed in
 `hpr_io::ork::tests::a_radius_with_nothing_to_take_is_openrockets_default` holds HPR Sim to them.
 
 In the table, radii are listed forward to aft. "30 to 20" is a transition's forward and aft
-radius, and "\|" is a stage boundary. OpenRocket's column is the settled answer.
+radius, and "\|" is a stage boundary. OpenRocket's column is the settled answer. **unset** is
+OpenRocket's own mark for a radius it hasn't worked out, which it stores as −1 m (−3.3 ft).
 
 | design | what the file says | OpenRocket 24.12 | HPR Sim |
 |---|---|---|---|
@@ -1534,14 +1535,14 @@ radius, and "\|" is a stage boundary. OpenRocket's column is the settled answer.
 | a nose cone | `auto` | 25 mm (0.98 in) | 25 mm (0.98 in) |
 | a nose cone | `auto 0.03` | 25 mm (0.98 in) | 25 mm (0.98 in) |
 | a transition | `auto 0.03` to `auto 0.02` | 25 to 25 mm (0.98 to 0.98 in) | 25 to 25 mm (0.98 to 0.98 in) |
-| a nose cone, a tube | `auto 0.03`, `auto 0.03` | **−1 m (−3.3 ft)**, 25 mm (0.98 in) | 25, 25 mm (0.98 in) |
-| a nose cone, a tube, a transition, a tube | `auto 0.033`, `auto`, `auto` to 22 mm (0.87 in), 22 mm (0.87 in) | **−1 m (−3.3 ft)**, 25 mm (0.98 in), **−1 m (−3.3 ft)** to 22 mm (0.87 in), 22 mm (0.87 in) | 25, 25, 25 to 22, 22 mm (0.87 in) |
+| a nose cone, a tube | `auto 0.03`, `auto 0.03` | **unset**, 25 mm (0.98 in) | 25, 25 mm (0.98 in) |
+| a nose cone, a tube, a transition, a tube | `auto 0.033`, `auto`, `auto` to 22 mm (0.87 in), 22 mm (0.87 in) | **unset**, 25 mm (0.98 in), **unset** to 22 mm (0.87 in), 22 mm (0.87 in) | 25, 25, 25 to 22, 22 mm (0.87 in) |
 | a nose cone, a tube (the control) | `auto`, 30 mm (1.2 in) | 30, 30 mm (1.2 in) | 30, 30 mm (1.2 in) |
 | a nose cone, two tubes, a tube | `auto`, `auto`, `auto`, 30 mm (1.2 in) | 30, 30, 30, 30 mm (1.2 in) | 30, 30, 30, 30 mm (1.2 in) |
 | the same, a coupler of automatic radius in the third component | as above | 30, 30, 30, 30 mm (1.2 in, first read: 30, **25**, 30, 30) | 30, 30, 30, 30 mm (1.2 in) |
 | a tube, two tubes | 30 mm (1.2 in), `auto`, `auto` | 30, 30, 30 mm (1.2 in) | 30, 30, 30 mm (1.2 in) |
-| a tube, a transition, a tube | 30 mm (1.2 in), 30 mm (1.2 in) to `auto`, `auto` | 30, 30 mm (1.2 in) to **−1 m (−3.3 ft)**, 25 mm (0.98 in) | 30, 30 to 25, 25 mm (0.98 in) |
-| a nose cone, a transition, a tube | `auto`, `auto` to 20 mm (0.79 in), 20 mm (0.79 in) | **−1 m (−3.3 ft)**, **−1 m (−3.3 ft)** to 20, 20 mm (0.79 in) | 25, 25 to 20, 20 mm (0.79 in) |
+| a tube, a transition, a tube | 30 mm (1.2 in), 30 mm (1.2 in) to `auto`, `auto` | 30, 30 mm (1.2 in) to **unset**, 25 mm (0.98 in) | 30, 30 to 25, 25 mm (0.98 in) |
+| a nose cone, a transition, a tube | `auto`, `auto` to 20 mm (0.79 in), 20 mm (0.79 in) | **unset**, **unset** to 20, 20 mm (0.79 in) | 25, 25 to 20, 20 mm (0.79 in) |
 | a nose cone, a tube \| a tube | `auto`, `auto` \| 30 mm (1.2 in) | 30, 30 \| 30 mm (1.2 in) | 30, 30 \| 30 mm (1.2 in) |
 
 What the table shows:

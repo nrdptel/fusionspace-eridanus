@@ -377,7 +377,7 @@ separates, as OpenRocket flies a descent (its technical documentation v13.05, §
 charge, 4.86 s after launch. In HPR Sim's flight, from
 `hpr sim "Deployable payload.ork" --config "[C6-3]"`, the stack is then
 230.4 m (756 ft) up and still rising at 27.6 m/s (91 ft/s, OpenRocket's record: 27.9 m/s (92 ft/s)). The payload's 10 in
-(0.254 m (0.83 ft)) parachute, set to `lowerstageseparation` in the file, opens at that instant, and the
+(0.254 m) parachute, set to `lowerstageseparation` in the file, opens at that instant, and the
 payload climbs 3.3 m (11 ft) more, to 233.7 m (767 ft) above the site at 5.44 s. That height is the center of
 mass's, which starts 0.4 m (1.3 ft) above the site; from where it starts, as the table below compares, it
 is 233.3 m (765 ft). Coasting with no drag, it would have risen 27.6² / (2 × 9.81) = 38.8 m more
