@@ -9,7 +9,7 @@ units, errors, provenance); none of them changes a number the simulator computes
 
 It has one row for every `##` section of those files ([ADR-205](../decisions/0205-the-2026-10-08-one-name-one-design.md)
 §2, [ADR-208](../decisions/0208-the-design-audit.md)), so a rule nobody re-read can't be missed.
-Of the 64 sections that apply to something shipping today, 10 are met, 47 are not, 3 wait for a
+Of the 64 sections that apply to something shipping today, 11 are met, 46 are not, 3 wait for a
 later surface and 4 govern nothing the project ships; the 48 sections for apps, watches,
 firmware, hardware and airframes wait for the milestones that build them. How far to trust it:
 a row held by a test is checked on every change; a row "reviewed at" the commit was read against
@@ -69,7 +69,7 @@ Pinned commit: `f45454f44669cc049222f2ab19eb648796e56a52`, as `validation/refs.l
 | `writing.md` | Voice | site, CLI, README, plot | not met | #386; M0.9e: 60-word warnings with stacked colons; long lead notes |
 | `writing.md` | How far to trust it | CLI, plot, site | not met | #384; M0.9d: one note shape on the site and on every command's result someone might fly on (ADR-211, ADR-213; `crates/hpr-cli/tests/trust.rs::sim_says_its_figures_are_simulated_and_ends_with_how_far_to_trust_them`, `crates/hpr-cli/tests/trust.rs::analyze_says_its_readings_are_measured_and_how_far_to_trust_them`, `crates/hpr-cli/tests/trust.rs::motors_show_says_where_its_figures_come_from`, `crates/hpr-cli/tests/weather.rs::every_source_ends_with_how_far_to_trust_it`), but the site's notes aren't `web.md`'s panels |
 | `writing.md` | On screens | site, CLI, plot | not met | #386; M0.9e: ISO dates in running prose |
-| `writing.md` | Errors | CLI | not met | #381; M0.9c: a latitude refused in radians, with no flag and no next step |
+| `writing.md` | Errors | CLI | not met | #405; M0.9c9: a refusal from inside a flight, such as a Mach past the aerodynamics' range, keeps the library's words and gives no next step. A refused option or path is named as typed, with what to do (M0.9c6, ADR-215; `crates/hpr-cli/tests/cli.rs::launch_options_are_refused_by_name_and_unit`, `crates/hpr-cli/tests/cli.rs::a_missing_file_says_what_to_do`) |
 | `writing.md` | Notes and warnings in documents | site, README | met | reviewed at `f45454f`: Z535 words only, no callout labels; no hazard note exists yet |
 | `writing.md` | Names | site, README, CLI, banners | not met | #386; M0.9e: RSO never spelled out; en dashes in joined names |
 | `writing.md` | Mechanics | site, README, CLI, plot | not met | #386; M0.9e: British spellings (`calibre` 446 times on the site and README) |
@@ -80,7 +80,7 @@ Pinned commit: `f45454f44669cc049222f2ab19eb648796e56a52`, as `validation/refs.l
 | `review.md` | Before release | site, CLI, exports, plot, README | not met | #385, #403, #386, #381; M0.9c, M0.9c8, M0.9d, M0.9e: 7 of the 11 items 0.1 must pass fail (ADR-208 §6 counted 8; results on stdout and everything else on stderr now passes); the trust note is on every command's result (ADR-213), in the JSON recording and in the CSV sidecars (ADR-214), not yet in GeoJSON, KML or Parquet (#403), so each item #380 touched still has an open cause |
 | `review.md` | Sources | none | n/a | the system's own bibliography; it sets no rule |
 | `data.md` | Numbers | site, CLI, plot, README | not met | #386, #382; M0.9c, M0.9e: hyphen-minus, ungrouped and over-precise numbers; units that wrap |
-| `data.md` | Copying and typing numbers | CLI, exports | not met | #381; M0.9c: typed numbers not trimmed or read with separators; JSON is ASCII (ADR-214; `crates/hpr-cli/tests/provenance.rs::every_json_document_is_ascii`) |
+| `data.md` | Copying and typing numbers | CLI, exports | met | `crates/hpr-cli/tests/cli.rs::every_numeric_option_reads_typed_numbers`, `crates/hpr-cli/tests/cli.rs::typed_numbers_reach_the_flight`: trimmed, `1,280` read and shown as read, `3,9` asked about (ADR-215); `crates/hpr-cli/tests/provenance.rs::every_json_document_is_ascii`: JSON is ASCII (ADR-214) |
 | `data.md` | Units for rocketry | CLI, plot, exports, README, site | not met | #400; M0.9c7: SI alone in the site's prose. Held under ADR-164 §6, ADR-210 and ADR-213 (SI first, US in brackets, no `--units`; exports SI) for every command's text (notes and warnings included) and the plot: `crates/hpr-cli/tests/units.rs::sim_gives_us_units_in_brackets`, `crates/hpr-cli/tests/units.rs::sim_gives_the_cg_and_cp_of_its_static_margin`, `crates/hpr-cli/tests/units.rs::sim_notes_give_feet`, `crates/hpr-cli/tests/units.rs::mc_gives_feet_beside_meters`, `crates/hpr-cli/tests/units.rs::mc_landing_meters_carry_a_tenth`, `crates/hpr-cli/tests/units.rs::motors_show_reads_the_designation`, `crates/hpr-cli/tests/units.rs::the_plot_gives_both_units`, `crates/hpr-cli/tests/units.rs::motors_list_gives_inches`, `crates/hpr-cli/tests/units.rs::motors_search_gives_inches`, `crates/hpr-cli/tests/weather.rs::the_levels_give_us_units_in_brackets`, `crates/hpr-cli/tests/cli.rs::motors_fetch_reads_a_cached_motor`, `crates/hpr-cli/src/analyze.rs::a_top_acceleration_gives_g` |
 | `data.md` | Readouts | CLI | not met | #401; M2.8: `hpr sim` and `hpr mc` say once, above their figures, that they are simulated, and give the spread in the closing note (ADR-211); `hpr weather`, `hpr analyze` and `hpr motors show` name their kind in theirs (ADR-213); no readout carries a spread of its own |
 | `data.md` | Tables | site, plot, CLI, README | not met | #386; M0.9e: 27 of 333 site tables right-align numbers; code identifiers as heads |
@@ -88,10 +88,10 @@ Pinned commit: `f45454f44669cc049222f2ab19eb648796e56a52`, as `validation/refs.l
 | `data.md` | Maps | CLI | not met | #381; M0.9c: `hpr mc`'s landing-ellipse heading gives no T or M; drawn maps wait for M9.4 |
 | `data.md` | Live telemetry | none | later | M13.1, the ground station; nothing live ships |
 | `data.md` | Files and exports | exports | met | `crates/hpr-cli/tests/provenance.rs::a_csv_header_gives_each_unit_in_brackets`, `crates/hpr-cli/tests/provenance.rs::every_export_carries_the_catalogs_date_and_how_far_to_trust_it`, `crates/hpr-cli/tests/style.rs::every_file_hpr_writes_names_the_tool`: units in brackets in the CSV header, the source, tool, version and the catalog's as-of date in a sidecar (ADR-214). The US option waits for the app's units control (M9.1), by ADR-210 |
-| `cli.md` | Output | CLI | not met | #381; M0.9c: no progress; plain table headers (diagnostics on stderr since #377) |
-| `cli.md` | Color | CLI | not met | #381; M0.9c: the Heading and Literal roles unused |
-| `cli.md` | Help | CLI | not met | #381; M0.9c: the link before Usage; no examples |
-| `cli.md` | Errors | CLI | not met | #381; M0.9c: errors that don't name the flag, the unit typed or a next step |
+| `cli.md` | Output | CLI | not met | #381; M0.9c9: no progress; plain table headers (diagnostics on stderr since #377) |
+| `cli.md` | Color | CLI | not met | #381; M0.9c9: the Heading and Literal roles unused |
+| `cli.md` | Help | CLI | not met | #381; M0.9c9: the link before Usage; no examples |
+| `cli.md` | Errors | CLI | not met | #405; M0.9c9: a refusal from inside a flight names no option and has no `help:` line. A refused option or path is named as typed, with a `help:` line and the closest file or motor (M0.9c6, ADR-215; `crates/hpr-cli/tests/cli.rs::launch_options_are_refused_by_name_and_unit`, `crates/hpr-cli/tests/cli.rs::a_missing_file_says_what_to_do`, `crates/hpr-cli/tests/cli.rs::motors_show_suggests_what_answers_the_name`) |
 | `cli.md` | Exit codes | CLI | met | `crates/hpr-cli/src/lib.rs::exit_codes_are_the_documented_ones`, `crates/hpr-cli/tests/cli.rs::every_planned_command_refuses_with_its_milestone` |
 | `cli.md` | Interaction and config | CLI | met | reviewed at `f45454f`: it never asks for input and has no config file; HPR_OFFLINE and HPR_CACHE_DIR below the flags |
 | `cli.md` | The banner | CLI | met | reviewed at `f45454f`: allowed, not required; ADR-164 §6 keeps the brand's braille lockup out |

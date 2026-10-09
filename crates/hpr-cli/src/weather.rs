@@ -73,7 +73,8 @@ pub struct OpenMeteoArgs {
         value_name = "DEG",
         allow_negative_numbers = true,
         required_unless_present = "from",
-        conflicts_with = "from"
+        conflicts_with = "from",
+        value_parser = crate::typed::number::<f64>()
     )]
     pub latitude: Option<f64>,
     /// The site's longitude, degrees east (west is negative); not with --from
@@ -82,7 +83,8 @@ pub struct OpenMeteoArgs {
         value_name = "DEG",
         allow_negative_numbers = true,
         required_unless_present = "from",
-        conflicts_with = "from"
+        conflicts_with = "from",
+        value_parser = crate::typed::number::<f64>()
     )]
     pub longitude: Option<f64>,
     /// The launch time in UTC, such as 2025-06-21T15:30Z; it must be within the answer's hours
@@ -127,10 +129,10 @@ pub struct WyomingArgs {
 #[derive(Debug, clap::Args)]
 pub struct NomadsArgs {
     /// The site's latitude, degrees north (south is negative)
-    #[arg(long, value_name = "DEG", allow_negative_numbers = true)]
+    #[arg(long, value_name = "DEG", allow_negative_numbers = true, value_parser = crate::typed::number::<f64>())]
     pub latitude: f64,
     /// The site's longitude, degrees east (west is negative)
-    #[arg(long, value_name = "DEG", allow_negative_numbers = true)]
+    #[arg(long, value_name = "DEG", allow_negative_numbers = true, value_parser = crate::typed::number::<f64>())]
     pub longitude: f64,
     /// The run, its start in UTC, such as 2026-09-30T00Z
     #[arg(
@@ -141,7 +143,7 @@ pub struct NomadsArgs {
     )]
     pub cycle: Option<String>,
     /// The hours after the run's start that the forecast is for
-    #[arg(long, required_unless_present = "from", requires = "cycle")]
+    #[arg(long, required_unless_present = "from", requires = "cycle", value_parser = crate::typed::number::<u32>())]
     pub hour: Option<u32>,
     /// The answer's source and the profile's file.
     #[command(flatten)]
@@ -154,10 +156,10 @@ pub struct Era5Args {
     /// The ERA5 pressure-level file, netCDF classic
     pub file: String,
     /// The site's latitude, degrees north (south is negative)
-    #[arg(long, value_name = "DEG", allow_negative_numbers = true)]
+    #[arg(long, value_name = "DEG", allow_negative_numbers = true, value_parser = crate::typed::number::<f64>())]
     pub latitude: f64,
     /// The site's longitude, degrees east (west is negative)
-    #[arg(long, value_name = "DEG", allow_negative_numbers = true)]
+    #[arg(long, value_name = "DEG", allow_negative_numbers = true, value_parser = crate::typed::number::<f64>())]
     pub longitude: f64,
     /// The launch time in UTC, such as 2020-02-22T13:00Z
     #[arg(long, value_name = "TIME")]
@@ -217,7 +219,7 @@ fn profile_json(sounding: &SoundingProfile) -> Result<String, Failure> {
 }
 
 pub(crate) fn read_file(path: &str) -> Result<Vec<u8>, Failure> {
-    std::fs::read(path).map_err(|error| Failure::Input(format!("{path}: {error}")))
+    crate::read_file(path)
 }
 
 /// The environment variable that makes every fetch answer from the cache alone, as `--offline`

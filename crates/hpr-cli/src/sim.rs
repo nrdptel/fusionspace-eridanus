@@ -63,7 +63,7 @@ pub struct SimArgs {
     #[arg(long, value_name = "FILE")]
     pub plot: Option<String>,
     /// The recording's interval, s, at least 0.001; a row is also recorded at every event
-    #[arg(long, value_name = "S", default_value_t = DEFAULT_INTERVAL_S)]
+    #[arg(long, value_name = "S", default_value_t = DEFAULT_INTERVAL_S, value_parser = crate::typed::number::<f64>())]
     pub interval: f64,
 }
 
@@ -94,7 +94,8 @@ pub struct FlightArgs {
         long,
         value_name = "DEG",
         default_value_t = 0.0,
-        allow_negative_numbers = true
+        allow_negative_numbers = true,
+        value_parser = crate::typed::number::<f64>()
     )]
     pub latitude: f64,
     /// The launch site's longitude, degrees east (west is negative)
@@ -102,7 +103,8 @@ pub struct FlightArgs {
         long,
         value_name = "DEG",
         default_value_t = 0.0,
-        allow_negative_numbers = true
+        allow_negative_numbers = true,
+        value_parser = crate::typed::number::<f64>()
     )]
     pub longitude: f64,
     /// The launch site's height above sea level, m
@@ -110,20 +112,21 @@ pub struct FlightArgs {
         long,
         value_name = "M",
         default_value_t = 0.0,
-        allow_negative_numbers = true
+        allow_negative_numbers = true,
+        value_parser = crate::typed::number::<f64>()
     )]
     pub elevation: f64,
     /// The rail's length, m, from the rocket's aft end to the rail's top
-    #[arg(long, value_name = "M", default_value_t = DEFAULT_RAIL_LENGTH_M)]
+    #[arg(long, value_name = "M", default_value_t = DEFAULT_RAIL_LENGTH_M, value_parser = crate::typed::number::<f64>())]
     pub rail_length: f64,
     /// The rail's angle above the horizon, degrees [default: 90, vertical]
-    #[arg(long, value_name = "DEG")]
+    #[arg(long, value_name = "DEG", value_parser = crate::typed::number::<f64>())]
     pub inclination: Option<f64>,
     /// The direction the rail leans toward, degrees clockwise from true north [default: 0]
-    #[arg(long, value_name = "DEG", allow_negative_numbers = true)]
+    #[arg(long, value_name = "DEG", allow_negative_numbers = true, value_parser = crate::typed::number::<f64>())]
     pub heading: Option<f64>,
     /// A wind of this speed at every height, m/s [default: calm]
-    #[arg(long, value_name = "M_S")]
+    #[arg(long, value_name = "M_S", value_parser = crate::typed::number::<f64>())]
     pub wind: Option<f64>,
     /// The direction the wind blows from, degrees clockwise from north
     #[arg(
@@ -131,7 +134,8 @@ pub struct FlightArgs {
         value_name = "DEG",
         default_value_t = 0.0,
         requires = "wind",
-        allow_negative_numbers = true
+        allow_negative_numbers = true,
+        value_parser = crate::typed::number::<f64>()
     )]
     pub wind_from: f64,
     /// Fly a design whose checks find errors, such as a motor wider than its mount
@@ -351,6 +355,7 @@ impl Setup {
     /// makes the rocket, its devices and the launch site. Everything that can be refused before
     /// a flight is refused here.
     pub(crate) fn read(flight: &FlightArgs) -> Result<Self, Failure> {
+        launch_checks(flight)?;
         // A `.ork` motor with no curve of its own is fetched for the configuration flown, unless
         // `--motor` replaces it.
         let fetching = flight.motor.is_none().then_some(Fetching {
@@ -694,6 +699,94 @@ fn count(n: usize, thing: &str) -> String {
     }
 }
 
+/// Refuses a launch option outside the range the library flies, naming the option, the value
+/// as given and its unit, with what it takes, as the product system's `cli.md` asks (*Errors*).
+/// Each range is the library's own: [`Environment::new`]'s site (a latitude within ±90°, a
+/// finite longitude and height), [`Environment::with_constant_wind`]'s wind (a finite speed of
+/// at least 0, a finite direction), [`FlightBuilder::inputs`]'s rail (an inclination in
+/// `(0°, 90°]`, a finite heading) and [`hpr_sim::Rail`]'s finite, positive length. The library would
+/// refuse the same values in its own terms, a latitude in radians among them.
+fn launch_checks(flight: &FlightArgs) -> Result<(), Failure> {
+    let refuse = |flag: &str, value: f64, takes: &str, example: &str| {
+        Err(Failure::helped(
+            format!("--{flag} {value}: {takes}"),
+            format!("for example `--{flag} {example}`"),
+        ))
+    };
+    if !(flight.latitude.abs() <= 90.0) {
+        return refuse(
+            "latitude",
+            flight.latitude,
+            "the site's latitude is in degrees, from -90 to 90, north positive and south negative",
+            "-33.9",
+        );
+    }
+    if !flight.longitude.is_finite() {
+        return refuse(
+            "longitude",
+            flight.longitude,
+            "the site's longitude is a number of degrees, east positive and west negative",
+            "-106.9",
+        );
+    }
+    if !flight.elevation.is_finite() {
+        return refuse(
+            "elevation",
+            flight.elevation,
+            "the site's height above sea level is a number of metres",
+            "1400",
+        );
+    }
+    if !(flight.rail_length > 0.0 && flight.rail_length.is_finite()) {
+        return refuse(
+            "rail-length",
+            flight.rail_length,
+            "the rail's length is a number of metres greater than 0",
+            "1.5",
+        );
+    }
+    if let Some(inclination) = flight.inclination
+        && !(inclination > 0.0 && inclination <= 90.0)
+    {
+        return refuse(
+            "inclination",
+            inclination,
+            "the rail's angle above the horizon is in degrees, more than 0 and at most 90 \
+             (vertical)",
+            "85",
+        );
+    }
+    if let Some(heading) = flight.heading
+        && !heading.is_finite()
+    {
+        return refuse(
+            "heading",
+            heading,
+            "the rail's heading is a number of degrees clockwise from true north",
+            "270",
+        );
+    }
+    if let Some(wind) = flight.wind
+        && !(wind >= 0.0 && wind.is_finite())
+    {
+        return refuse(
+            "wind",
+            wind,
+            "the wind's speed is a number of m/s, at least 0",
+            "4.5",
+        );
+    }
+    if !flight.wind_from.is_finite() {
+        return refuse(
+            "wind-from",
+            flight.wind_from,
+            "the direction the wind blows from is a number of degrees clockwise from north",
+            "270",
+        );
+    }
+    Ok(())
+}
+
 /// The file name of a path, for the output: the path's folder depends on where it was run from.
 pub(crate) fn file_name(path: &str) -> String {
     Path::new(path).file_name().map_or_else(
@@ -703,8 +796,9 @@ pub(crate) fn file_name(path: &str) -> String {
 }
 
 /// `--delay`: seconds from burnout to the charge, at least 0, or `P` (either case) for a plugged
-/// motor. `-0` is read as 0.
+/// motor. `-0` is read as 0. Spaces around it are trimmed, as [`crate::typed`] reads numbers.
 fn delay_arg(text: &str) -> Option<Delay> {
+    let text = crate::typed::plain(text).ok()?;
     if text.eq_ignore_ascii_case("p") {
         return Some(Delay::Plugged);
     }
@@ -1477,7 +1571,7 @@ fn read_design(path: &str, fetching: Option<Fetching<'_>>) -> Result<Read, Failu
         .extension()
         .and_then(|extension| extension.to_str())
         .map(str::to_ascii_lowercase);
-    let bytes = || std::fs::read(path).map_err(|error| Failure::Input(format!("{path}: {error}")));
+    let bytes = || crate::read_file(path);
     let refused = |error: &dyn std::fmt::Display| Failure::Input(format!("{path}: {error}"));
     match extension.as_deref() {
         Some("ork") => {
@@ -2154,7 +2248,7 @@ fn motor(name: &str, offline: bool) -> Result<(Motor, SimMotorSource, Vec<InputW
             Err(error) => Err(refused(error)),
         };
     };
-    let bytes = std::fs::read(name).map_err(|error| Failure::Input(format!("{name}: {error}")))?;
+    let bytes = crate::read_file(name)?;
     let text = String::from_utf8(bytes)
         .map_err(|_| Failure::Input(format!("{name}: not a text file in UTF-8")))?;
     let (motor, format, warnings) = match format {

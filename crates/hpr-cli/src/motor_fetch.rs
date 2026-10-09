@@ -160,6 +160,50 @@ pub(crate) fn fetch(
     Ok((motor, described(&found)?))
 }
 
+/// What HPR Sim's cache of ThrustCurve.org says about `name`, read with no network, as a `help:`
+/// line for a command that didn't find it elsewhere: the motors ThrustCurve.org answered it
+/// with, or the one it found, or the command that fetches it. `None` when the cache can't be
+/// read, or ThrustCurve.org answered that no motor has the name.
+pub(crate) fn cached_answer(name: &str) -> Option<String> {
+    let wanted = Wanted::named(name);
+    let client = client(true, "hpr motors show").ok()?;
+    let line = match on_demand::find(&client, &wanted, now_s()) {
+        Ok(found) => {
+            let record = &found.record;
+            let maker = record
+                .manufacturer_abbrev
+                .as_deref()
+                .unwrap_or(&record.manufacturer);
+            let flies = match shell_word(name) {
+                Some(word) => format!("`hpr sim --motor {word}` flies it"),
+                None => "`hpr sim --motor` given its name flies it".to_owned(),
+            };
+            format!(
+                "ThrustCurve.org's {maker} {} is in HPR Sim's cache: {flies}",
+                record.designation
+            )
+        }
+        Err(FindError::Ambiguous {
+            matches,
+            candidates,
+            ..
+        }) => format!(
+            "ThrustCurve.org answers {name} with {matches} motors, as HPR Sim's cache holds it: \
+             {}; `hpr sim --motor` flies one named in full",
+            candidates.join(", ")
+        ),
+        Err(error) if error.is_not_cached() => match command(&wanted) {
+            Some(command) => format!(
+                "with a network connection, `{command}` fetches it from ThrustCurve.org, and \
+                 `hpr sim --motor` flies it"
+            ),
+            None => return None,
+        },
+        Err(_) => return None,
+    };
+    Some(printable(&line))
+}
+
 /// The command that fetches `wanted`, if every word of it is one any shell takes as it is
 /// ([`shell_word`]).
 pub(crate) fn command(wanted: &Wanted) -> Option<String> {

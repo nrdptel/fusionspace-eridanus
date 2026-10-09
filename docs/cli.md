@@ -151,6 +151,66 @@ standard error. `--json` output never has color, whatever the flag or the variab
 turn color off everywhere, set `NO_COLOR=1`; for one run, give `--color never`, which every
 command takes.
 
+### Typing numbers, and what a refusal says
+
+A number is read the way you would write it by hand. Spaces around it are dropped, and a comma
+between groups of three digits is a thousands separator: `--elevation 1,280` is 1280 m, and a
+`note:` line says so (`note: --elevation 1,280 read as 1280 m`) before anything else, in case the
+comma meant something else. Any other comma is refused with a question, as `3,9` is 3.9 in much of
+the world but could be a typing slip. The decimal point is always a period:
+
+<!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --elevation 3,9`, exits 2 -->
+
+```text
+$ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --elevation 3,9
+error: invalid value '3,9' for '--elevation <M>'
+
+help: a comma is read only between groups of three digits, as in 1,280: is 3,9 meant as 3.9? Write the decimal point as a period
+
+help: for more information, try '--help'.
+$ echo $?
+2
+```
+
+<!-- cli: end -->
+
+A refusal follows the compilers' habit. The `error:` line says what went wrong and names it the way
+you typed it: the option with its value and unit, or the file's path. The `help:` lines after it
+say what to do, the most useful last. A latitude past the pole is refused in the degrees you gave,
+with the range `--latitude` takes:
+
+<!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --latitude 95`, exits 1 -->
+
+```text
+$ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --latitude 95
+error: --latitude 95: the site's latitude is in degrees, from -90 to 90, north positive and south negative
+help: for example `--latitude -33.9`
+$ echo $?
+1
+```
+
+<!-- cli: end -->
+
+A file that isn't there is named with the closest name in its folder, when one is that close
+(`help: is it rockets/vega.ork? It is the closest name in that folder`). A motor the bundled
+catalog lacks is named with the catalog's motors that begin with what you typed, and with what
+[ThrustCurve.org](#motors-from-thrustcurveorg) says of it: the command that fetches it, or, once
+the cache holds its answer, the motors that answer the name:
+
+<!-- cli: example `hpr motors show H5`, exits 1 -->
+
+```text
+$ hpr motors show H5
+error: no motor in the bundled catalog is called H5
+help: `hpr motors list` lists the catalog's motors, and a .eng or .rse file can be shown by its path
+help: with a network connection, `hpr motors fetch H5` fetches it from ThrustCurve.org, and `hpr sim --motor` flies it
+help: the catalog has 168H54-10A
+$ echo $?
+1
+```
+
+<!-- cli: end -->
+
 ## The commands
 
 This table is written from the tool's own list of commands, so it names only what `hpr` has, and

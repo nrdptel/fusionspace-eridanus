@@ -81,8 +81,7 @@ pub(crate) fn run(args: &ConvertArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     for path in &args.attach {
         let name = file_name(path);
         container::check_name(&name).map_err(|why| Failure::Input(format!("{path}: {why}")))?;
-        let bytes =
-            std::fs::read(path).map_err(|error| Failure::Input(format!("{path}: {error}")))?;
+        let bytes = crate::read_file(path)?;
         attachments.push(Entry::new(name, bytes));
     }
     let unwritable = |error: &dyn std::fmt::Display| {
@@ -141,7 +140,7 @@ pub(crate) fn run(args: &ConvertArgs, to: &mut Out<'_>) -> Result<(), Failure> {
 
 /// Reads the design at `path`, of `format`.
 fn read(path: &str, format: DesignFormat) -> Result<ReadDesign, Failure> {
-    let bytes = std::fs::read(path).map_err(|error| Failure::Input(format!("{path}: {error}")))?;
+    let bytes = crate::read_file(path)?;
     let refused = |error: &dyn std::fmt::Display| Failure::Input(format!("{path}: {error}"));
     match format {
         DesignFormat::Ork => {
