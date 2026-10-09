@@ -161,7 +161,12 @@ pub(crate) fn bearing(degrees: f64, decimals: usize) -> String {
 /// `40.30000000000001`).
 pub(crate) fn typed_bearing(degrees: f64) -> String {
     let typed = degrees.to_string();
-    let decimals = typed.find('.').map_or(0, |point| typed.len() - point - 1);
+    // No more places than a bearing can use: a millionth of a degree is a few centimeters a
+    // kilometer away.
+    let decimals = typed
+        .find('.')
+        .map_or(0, |point| typed.len() - point - 1)
+        .min(6);
     bearing(degrees, decimals)
 }
 
@@ -192,6 +197,7 @@ mod tests {
             (400.3, "040.3° T"),
             (725.1, "005.1° T"),
             (-0.1, "359.9° T"),
+            (1e-20, "000.000000° T"),
         ] {
             assert_eq!(typed_bearing(typed), expected, "{typed}");
         }

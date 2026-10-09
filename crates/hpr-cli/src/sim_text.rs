@@ -693,3 +693,24 @@ fn hemisphere(value: f64, positive: &str, negative: &str) -> String {
     };
     format!("{shown}° {side}")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A latitude or longitude prints to five places with its side, and one that rounds to zero
+    /// is on the line, not south or west of it.
+    #[test]
+    fn coordinates_print_to_five_places() {
+        for (value, expected) in [
+            (40.865_123_4, "40.86512° N"),
+            (-32.99, "32.99000° S"),
+            (0.0, "0.00000° N"),
+            (-0.000_001, "0.00000° N"),
+            (-0.000_006, "0.00001° S"),
+        ] {
+            assert_eq!(hemisphere(value, "N", "S"), expected, "{value}");
+        }
+        assert_eq!(hemisphere(-106.97, "E", "W"), "106.97000° W");
+    }
+}
