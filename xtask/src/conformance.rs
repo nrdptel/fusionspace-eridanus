@@ -517,7 +517,10 @@ mod tests {
             rows_ok()
         );
         assert!(run(&table(&extra), SECTIONS_OK, COMMIT)[0].contains("has no section `Banner`"));
-        let twice = format!("{}| `watch.md` | Screens | none | later | M9.4 |\n", rows_ok());
+        let twice = format!(
+            "{}| `watch.md` | Screens | none | later | M9.4 |\n",
+            rows_ok()
+        );
         assert!(run(&table(&twice), SECTIONS_OK, COMMIT)[0].contains("has a row already"));
         let ok = rows_ok();
         let lines: Vec<&str> = ok.lines().collect();
