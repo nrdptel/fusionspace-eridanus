@@ -803,12 +803,16 @@ one. There is no legend box; a caption under the title says once what the lines 
 The caption's first line is the figure's summary: the apogee, its time and the top speed, the
 summary's own numbers, with feet and feet per second in parentheses. The SVG carries the same sentence as its description, which a screen
 reader reads out. Numbers on the figure are written for reading, `1,000` and a real minus sign
-`−20`; copy numbers from `--export` or `--json`, which are plain. A number and its unit are
-joined by a no-break space, so a wrapped line never ends between `100.0` and `m`. The text is set
-in Cascadia Mono where it is installed, else another fixed-width font, so the lines keep their
-widths: the title at 20 px and everything else, the balloons' numbers too, at 12 px, the product
-system's smallest size for reading on a screen, with the lines and rows spaced in its 4 px steps.
-The time axis is titled at its right end, under the last tick, as a drawing labels an axis.
+`−20`; copy numbers from `--export` or `--json`, which are plain. In the caption, the notes and
+the balloons' tooltips, a number and its unit are joined by a no-break space, so a wrapped line
+never ends between `100.0` and `m`.
+
+The text is set in Cascadia Mono where it is installed, else another fixed-width font, so the
+lines keep their widths. The title is 20 px; all other text, the balloons' numbers included, is
+12 px, the smallest size the FusionSpace product system allows on a screen. The caption, balloon
+rows and event table are spaced in that system's 4 px steps (16 px from line to line, 24 px from
+row to row). The time axis is titled at its right end, under the last tick, as a drawing labels
+an axis.
 
 The panels sample the flight every `--interval` (0.01 s unless set), at every event, and at the
 start and end of every step the integrator takes, so a jump such as a parachute's opening is drawn

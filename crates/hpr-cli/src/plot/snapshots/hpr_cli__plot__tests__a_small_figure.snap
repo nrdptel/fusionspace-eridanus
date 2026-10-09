@@ -3,12 +3,12 @@ source: crates/hpr-cli/src/plot/tests.rs
 assertion_line: 249
 expression: "svg.replace(&stamp, \"[stamp]\")"
 ---
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1317" viewBox="0 0 960 1317" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" role="img" aria-labelledby="title" aria-describedby="desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1324" viewBox="0 0 960 1324" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" role="img" aria-labelledby="title" aria-describedby="desc">
 <title id="title">Probe: altitude, speed and acceleration against time</title>
 <desc id="desc">Apogee 100.0 m (328 ft) above the launch site at 5.00 s; top speed 1,234.6 m/s (4,050 ft/s) at 4.00 s.</desc>
 <metadata>[stamp]</metadata>
 <defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="3" y1="0" x2="3" y2="6" stroke="#98A1B8" stroke-width="1"/></pattern></defs>
-<rect width="960" height="1317" fill="#F3F4F7"/>
+<rect width="960" height="1324" fill="#F3F4F7"/>
 <text x="76" y="32" font-size="20" font-weight="600" fill="#0B0F1C">Probe</text>
 <text x="76" y="56" fill="#566079">configuration 1 of 1: [H54-10]</text>
 <text x="76" y="80.0" fill="#566079">Apogee 100.0 m (328 ft) above the launch site at 5.00 s; top speed 1,234.6 m/s (4,050 ft/s) at 4.00 s.</text>
@@ -16,10 +16,10 @@ expression: "svg.replace(&stamp, \"[stamp]\")"
 <text x="76" y="112.0" fill="#566079">ground. Dotted: an event, numbered as in the table. Each panel&apos;s left scale is SI, its right scale US units.</text>
 <text x="76" y="128.0" fill="#566079">Altitude is the center of gravity&apos;s height above the launch site; speed is over the ground; acceleration is the</text>
 <text x="76" y="144.0" fill="#566079">nose tip&apos;s, relative to the launch frame, not what an accelerometer reads.</text>
-<g id="event-1"><title>0.00 s: liftoff</title><line x1="76.0" y1="178.0" x2="76.0" y2="232.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="76.0" cy="168" r="10" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="76.0" y="172.0" text-anchor="middle" fill="#0B0F1C">1</text></g>
-<g id="event-2"><title>0.05 s: rail exit</title><line x1="78.0" y1="202.0" x2="78.0" y2="232.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="78.0" cy="192" r="10" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="78.0" y="196.0" text-anchor="middle" fill="#0B0F1C">2</text></g>
-<g id="event-3"><title>5.00 s: apogee, charge for `Drogue`, `Drogue` opens</title><line x1="278.0" y1="178.0" x2="278.0" y2="232.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="278.0" cy="168" r="10" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="278.0" y="172.0" text-anchor="middle" fill="#0B0F1C">3</text></g>
-<g id="event-4"><title>20.00 s: ground hit</title><line x1="884.0" y1="178.0" x2="884.0" y2="232.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="884.0" cy="168" r="10" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="884.0" y="172.0" text-anchor="middle" fill="#0B0F1C">4</text></g>
+<g id="event-1"><title>0.00 s: liftoff</title><line x1="76.0" y1="178.0" x2="76.0" y2="232.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="76.0" cy="168" r="10" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="76.0" y="172.0" text-anchor="middle" fill="#0B0F1C">1</text></g>
+<g id="event-2"><title>0.05 s: rail exit</title><line x1="78.0" y1="202.0" x2="78.0" y2="232.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="78.0" cy="192" r="10" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="78.0" y="196.0" text-anchor="middle" fill="#0B0F1C">2</text></g>
+<g id="event-3"><title>5.00 s: apogee, charge for `Drogue`, `Drogue` opens</title><line x1="278.0" y1="178.0" x2="278.0" y2="232.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="278.0" cy="168" r="10" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="278.0" y="172.0" text-anchor="middle" fill="#0B0F1C">3</text></g>
+<g id="event-4"><title>20.00 s: ground hit</title><line x1="884.0" y1="178.0" x2="884.0" y2="232.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="884.0" cy="168" r="10" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="884.0" y="172.0" text-anchor="middle" fill="#0B0F1C">4</text></g>
 <g id="altitude">
 <clipPath id="altitude-clip"><rect x="75.0" y="263.0" width="810.0" height="182.0"/></clipPath>
 <text x="76" y="252.0" fill="#566079">ALTITUDE · m AGL</text>
@@ -101,34 +101,34 @@ expression: "svg.replace(&stamp, \"[stamp]\")"
 <text x="884.0" y="916.0" text-anchor="middle" fill="#566079">20</text>
 <text x="884.0" y="932.0" text-anchor="end" fill="#566079">TIME · s</text>
 <g id="events">
-<text x="76" y="968.0" fill="#566079">EVENTS · SIMULATED BY FUSIONSPACE HPR</text>
-<text x="100" y="990.0" text-anchor="end" fill="#566079">NO.</text><text x="226" y="990.0" text-anchor="end" fill="#566079">TIME · s</text><text x="376" y="990.0" text-anchor="end" fill="#566079">ALTITUDE · m AGL</text><text x="516" y="990.0" text-anchor="end" fill="#566079">ALTITUDE · ft AGL</text><text x="540" y="990.0" fill="#566079">EVENT</text>
-<line x1="76" y1="997.0" x2="936" y2="997.0" stroke="#0B0F1C" stroke-width="2"/>
-<text x="100" y="1013.0" text-anchor="end" fill="#0B0F1C">1</text><text x="226" y="1013.0" text-anchor="end" fill="#0B0F1C">0.00</text><text x="376" y="1013.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1013.0" text-anchor="end" fill="#0B0F1C">0</text>
-<text x="540" y="1013.0" fill="#0B0F1C">liftoff</text>
+<text x="76" y="964.0" fill="#566079">EVENTS · SIMULATED BY FUSIONSPACE HPR</text>
+<text x="100" y="988.0" text-anchor="end" fill="#566079">NO.</text><text x="226" y="988.0" text-anchor="end" fill="#566079">TIME · s</text><text x="376" y="988.0" text-anchor="end" fill="#566079">ALTITUDE · m AGL</text><text x="516" y="988.0" text-anchor="end" fill="#566079">ALTITUDE · ft AGL</text><text x="540" y="988.0" fill="#566079">EVENT</text>
+<line x1="76" y1="996.0" x2="936" y2="996.0" stroke="#0B0F1C" stroke-width="2"/>
+<text x="100" y="1012.0" text-anchor="end" fill="#0B0F1C">1</text><text x="226" y="1012.0" text-anchor="end" fill="#0B0F1C">0.00</text><text x="376" y="1012.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1012.0" text-anchor="end" fill="#0B0F1C">0</text>
+<text x="540" y="1012.0" fill="#0B0F1C">liftoff</text>
 <line x1="76" y1="1020.0" x2="936" y2="1020.0" stroke="#D6DAE4" stroke-width="1"/>
 <text x="100" y="1036.0" text-anchor="end" fill="#0B0F1C">2</text><text x="226" y="1036.0" text-anchor="end" fill="#0B0F1C">0.05</text><text x="376" y="1036.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1036.0" text-anchor="end" fill="#0B0F1C">0</text>
 <text x="540" y="1036.0" fill="#0B0F1C">rail exit</text>
-<line x1="76" y1="1043.0" x2="936" y2="1043.0" stroke="#D6DAE4" stroke-width="1"/>
-<text x="100" y="1059.0" text-anchor="end" fill="#0B0F1C">3</text><text x="226" y="1059.0" text-anchor="end" fill="#0B0F1C">5.00</text><text x="376" y="1059.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1059.0" text-anchor="end" fill="#0B0F1C">0</text>
-<text x="540" y="1059.0" fill="#0B0F1C">apogee</text>
-<line x1="76" y1="1066.0" x2="936" y2="1066.0" stroke="#D6DAE4" stroke-width="1"/>
-<text x="100" y="1082.0" text-anchor="end" fill="#0B0F1C">3</text><text x="226" y="1082.0" text-anchor="end" fill="#0B0F1C">5.00</text><text x="376" y="1082.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1082.0" text-anchor="end" fill="#0B0F1C">0</text>
-<text x="540" y="1082.0" fill="#0B0F1C">charge for `Drogue`</text>
-<line x1="76" y1="1089.0" x2="936" y2="1089.0" stroke="#D6DAE4" stroke-width="1"/>
-<text x="100" y="1105.0" text-anchor="end" fill="#0B0F1C">3</text><text x="226" y="1105.0" text-anchor="end" fill="#0B0F1C">5.00</text><text x="376" y="1105.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1105.0" text-anchor="end" fill="#0B0F1C">0</text>
-<text x="540" y="1105.0" fill="#0B0F1C">`Drogue` opens</text>
-<line x1="76" y1="1112.0" x2="936" y2="1112.0" stroke="#D6DAE4" stroke-width="1"/>
-<text x="100" y="1128.0" text-anchor="end" fill="#0B0F1C">4</text><text x="226" y="1128.0" text-anchor="end" fill="#0B0F1C">20.00</text><text x="376" y="1128.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1128.0" text-anchor="end" fill="#0B0F1C">0</text>
-<text x="540" y="1128.0" fill="#0B0F1C">ground hit</text>
-<line x1="76" y1="1135.0" x2="936" y2="1135.0" stroke="#D6DAE4" stroke-width="1"/>
+<line x1="76" y1="1044.0" x2="936" y2="1044.0" stroke="#D6DAE4" stroke-width="1"/>
+<text x="100" y="1060.0" text-anchor="end" fill="#0B0F1C">3</text><text x="226" y="1060.0" text-anchor="end" fill="#0B0F1C">5.00</text><text x="376" y="1060.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1060.0" text-anchor="end" fill="#0B0F1C">0</text>
+<text x="540" y="1060.0" fill="#0B0F1C">apogee</text>
+<line x1="76" y1="1068.0" x2="936" y2="1068.0" stroke="#D6DAE4" stroke-width="1"/>
+<text x="100" y="1084.0" text-anchor="end" fill="#0B0F1C">3</text><text x="226" y="1084.0" text-anchor="end" fill="#0B0F1C">5.00</text><text x="376" y="1084.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1084.0" text-anchor="end" fill="#0B0F1C">0</text>
+<text x="540" y="1084.0" fill="#0B0F1C">charge for `Drogue`</text>
+<line x1="76" y1="1092.0" x2="936" y2="1092.0" stroke="#D6DAE4" stroke-width="1"/>
+<text x="100" y="1108.0" text-anchor="end" fill="#0B0F1C">3</text><text x="226" y="1108.0" text-anchor="end" fill="#0B0F1C">5.00</text><text x="376" y="1108.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1108.0" text-anchor="end" fill="#0B0F1C">0</text>
+<text x="540" y="1108.0" fill="#0B0F1C">`Drogue` opens</text>
+<line x1="76" y1="1116.0" x2="936" y2="1116.0" stroke="#D6DAE4" stroke-width="1"/>
+<text x="100" y="1132.0" text-anchor="end" fill="#0B0F1C">4</text><text x="226" y="1132.0" text-anchor="end" fill="#0B0F1C">20.00</text><text x="376" y="1132.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1132.0" text-anchor="end" fill="#0B0F1C">0</text>
+<text x="540" y="1132.0" fill="#0B0F1C">ground hit</text>
+<line x1="76" y1="1140.0" x2="936" y2="1140.0" stroke="#D6DAE4" stroke-width="1"/>
 </g>
-<text x="76" y="1159.0" fill="#566079">Hatched, 5.00 s to 20.00 s: the rocket falls on its airframe alone, on aerodynamics that hold only at small angles of</text>
-<text x="76" y="1175.0" fill="#566079">attack, so this is not a prediction.</text>
-<text x="76" y="1207.0" fill="#566079">HOW FAR TO TRUST IT</text>
-<text x="76" y="1223.0" fill="#566079">Simulated from the design file, not measured. Against 55 logged flights of fliers&apos; own designs, each logged apogee the</text>
-<text x="76" y="1239.0" fill="#566079">height climbed in the day&apos;s air, the simulated apogee averaged 9.8% above the logged one; it was within 10% on 27 and</text>
-<text x="76" y="1255.0" fill="#566079">read low on 14, by at most 20%. Plan a waiver or a field&apos;s ceiling with room above this apogee; the altimeter&apos;s</text>
-<text x="76" y="1271.0" fill="#566079">reading is the one to log, and the RSO decides. More: https://hpr.fusionspace.co/accuracy.html</text>
-<text x="76" y="1303.0" fill="#566079">[stamp]</text>
+<text x="76" y="1164.0" fill="#566079">Hatched, 5.00 s to 20.00 s: the rocket falls on its airframe alone, on aerodynamics that hold only at small angles of</text>
+<text x="76" y="1180.0" fill="#566079">attack, so this is not a prediction.</text>
+<text x="76" y="1212.0" fill="#566079">HOW FAR TO TRUST IT</text>
+<text x="76" y="1228.0" fill="#566079">Simulated from the design file, not measured. Against 55 logged flights of fliers&apos; own designs, each logged apogee the</text>
+<text x="76" y="1244.0" fill="#566079">height climbed in the day&apos;s air, the simulated apogee averaged 9.8% above the logged one; it was within 10% on 27 and</text>
+<text x="76" y="1260.0" fill="#566079">read low on 14, by at most 20%. Plan a waiver or a field&apos;s ceiling with room above this apogee; the altimeter&apos;s</text>
+<text x="76" y="1276.0" fill="#566079">reading is the one to log, and the RSO decides. More: https://hpr.fusionspace.co/accuracy.html</text>
+<text x="76" y="1308.0" fill="#566079">[stamp]</text>
 </svg>

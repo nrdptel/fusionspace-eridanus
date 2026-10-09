@@ -68,6 +68,11 @@ const MARKER_RADIUS: f64 = 10.0;
 /// From one line of text under the figure, or of the caption, to the next, px: the `label`
 /// token's line.
 const LIST_LINE: f64 = 16.0;
+/// From a line of the event table to the rule under it, px; the next row's line is a
+/// [`LIST_LINE`] below the rule, so the rows are 24 px apart.
+const ROW_RULE: f64 = 8.0;
+/// How far a wrapped line's later lines are indented, px.
+const INDENT_PX: f64 = 24.0;
 /// The most characters of a name the figure prints: a design's name, or a device's.
 const NAME_LIMIT: usize = 80;
 /// The most characters of the title the figure draws, its ellipsis apart, so the 20 px title
@@ -371,7 +376,8 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
     let panels_top = markers_top + rows as f64 * MARKER_ROW;
     let panel_top = |i: usize| panels_top + PANEL_GAP + i as f64 * (PANEL_HEIGHT + PANEL_GAP);
     let last_bottom = panel_top(PANELS.len() - 1) + PANEL_HEIGHT;
-    let table_top = last_bottom + 68.0;
+    // A 32 px step under the time axis's title.
+    let table_top = last_bottom + 64.0;
     let (table, table_bottom) = table(&groups, table_top);
     // What the hatching means, under the table, then how far to trust the figure, last, as the
     // text form ends.
@@ -400,7 +406,7 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
     note.push(String::new());
     note.push(hpr::hpr_core::tool::stamp());
     let note_top = table_bottom + 24.0;
-    let height = note_top + (note.len() - 1) as f64 * LIST_LINE + 14.0;
+    let height = note_top + (note.len() - 1) as f64 * LIST_LINE + 16.0;
 
     let title = text(figure.title, NAME_LIMIT);
     let drawn_title = text(figure.title, TITLE_LIMIT);
@@ -530,7 +536,7 @@ fn lines(svg: &mut String, lines: &[String], top: f64, left: f64, ink: &str) {
             continue;
         }
         let (x, line) = match line.strip_prefix(INDENT) {
-            Some(rest) => (left + 20.0, rest),
+            Some(rest) => (left + INDENT_PX, rest),
             None => (left, line.as_str()),
         };
         svg.push_str(&format!(
@@ -548,7 +554,7 @@ fn lines(svg: &mut String, lines: &[String], top: f64, left: f64, ink: &str) {
 fn table(groups: &[Group], top: f64) -> (String, f64) {
     let [number_x, time_x, height_x, feet_x, name_x] = COLUMNS.map(|x| LEFT + x);
     let right = WIDTH - MARGIN;
-    let head = top + 22.0;
+    let head = top + 24.0;
     let mut svg = format!(
         "<g id=\"events\">\n\
          <text x=\"{LEFT}\" y=\"{top:.1}\" fill=\"{INK_MUTED}\">EVENTS · SIMULATED BY FUSIONSPACE HPR</text>\n\
@@ -561,10 +567,10 @@ fn table(groups: &[Group], top: f64) -> (String, f64) {
          <text x=\"{name_x}\" y=\"{head:.1}\" fill=\"{INK_MUTED}\">EVENT</text>\n\
          <line x1=\"{LEFT}\" y1=\"{:.1}\" x2=\"{right}\" y2=\"{:.1}\" stroke=\"{INK}\" \
          stroke-width=\"2\"/>\n",
-        head + 7.0,
-        head + 7.0,
+        head + ROW_RULE,
+        head + ROW_RULE,
     );
-    let mut y = head + 7.0;
+    let mut y = head + ROW_RULE;
     for (n, group) in groups.iter().enumerate() {
         for (time_s, name, height_m) in &group.events {
             let names = wrap(name, EVENT_WIDTH);
@@ -580,7 +586,7 @@ fn table(groups: &[Group], top: f64) -> (String, f64) {
                 number(*height_m / FOOT_M, 0),
             ));
             lines(&mut svg, &names, first, name_x, INK);
-            y = first + (names.len() - 1) as f64 * LIST_LINE + 7.0;
+            y = first + (names.len() - 1) as f64 * LIST_LINE + ROW_RULE;
             svg.push_str(&format!(
                 "<line x1=\"{LEFT}\" y1=\"{y:.1}\" x2=\"{right}\" y2=\"{y:.1}\" stroke=\"{RULE}\" \
                  stroke-width=\"1\"/>\n"
@@ -850,7 +856,7 @@ fn groups(figure: &Figure<'_>, x_of: &dyn Fn(f64) -> f64) -> Vec<Group> {
 fn event_line(group: &Group) -> String {
     let mut parts: Vec<(String, Vec<&str>)> = Vec::new();
     for (time_s, name, _) in &group.events {
-        let time = format!("{} s", number(*time_s, 2));
+        let time = format!("{}\u{a0}s", number(*time_s, 2));
         match parts.last_mut() {
             Some((last, names)) if *last == time => names.push(name),
             _ => parts.push((time, vec![name])),

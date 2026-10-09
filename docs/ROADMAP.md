@@ -1,19 +1,17 @@
 # Roadmap
 
-Open work only; done work is in [the archive](roadmap-done.md), moved there unchanged by
-`cargo xtask records`.
+Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xtask records`.
 
 **Rules:**
 
 - **The queue sets the order.** The current milestone is the queue's first open, unblocked entry,
   else the first such entry in file order; an entry whose open increments are all blocked is
   blocked. Open `P-critical` issues come first (ADR-144 §4).
-- A milestone is done when every *done when* bullet is shown by a command's output and CI is
+- A milestone is done only when every *done when* bullet is shown by a command's output and CI is
   green on all three systems; then check its box, take it off the queue and run
   `cargo xtask records`, which archives it.
-- A milestone too big to ship at once is split in place into `a`, `b`, `c`... increments, each with
-  its own *done when*.
-- Blocked milestones are marked `[blocked]` with a pointer to the reason.
+- A milestone too big to ship at once is split in place into increments (`a`, `b`, `c`…), each with
+  its own *done when*; a blocked one is marked `[blocked]`, with the reason.
 - New milestones may be added (at the right position, with a *done when*). Existing *done when*
   bullets may be tightened but never loosened without an ADR. Milestones are never removed,
   renumbered or moved later in the order without an ADR, and an archived entry is never edited.
@@ -149,9 +147,10 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     - [ ] **M0.9c9 Help, roles and progress** (#381, #405). *Done when:* both are closed, with
       all their items.
     - [ ] **M0.9c12 The plot's balloons, banking and title block** (#382). *Done when:*
-      colliding balloons step right on a leader, panels bank toward 45°, and a title block and a
-      CSV end the figure; each held by a test failing before it.
-    - [ ] **M0.9c13 The site's figures and units** (#382, #400). *Done when:* both are closed.
+      colliding balloons step right on a leader, panels bank toward 45°, a title block and a CSV
+      end the figure; each held by a test failing before it.
+    - [ ] **M0.9c13 The site's figures and units** (#382, #400; ADR-216). *Done when:* both are
+      closed, with every item they list.
   - [ ] **M0.9d The site to the design** (ADR-208). *Done when:* #383 to #385 are closed: no
     mdBook default the system doesn't draw (colors, radii, shadows, motion, icons, metas, print),
     a title block and sheets on every page, notes in the system's shape, and every committed SVG

@@ -218,11 +218,11 @@ fn a_grouped_event_keeps_its_time() {
     });
     // The markers' tooltips.
     assert!(
-        svg.contains("<title>0.00 s: liftoff; 0.27 s: rail exit</title>"),
+        svg.contains("<title>0.00\u{a0}s: liftoff; 0.27\u{a0}s: rail exit</title>"),
         "{svg}"
     );
     assert!(
-        svg.contains("<title>30.00 s: apogee, charge for `Main`</title>"),
+        svg.contains("<title>30.00\u{a0}s: apogee, charge for `Main`</title>"),
         "{svg}"
     );
     assert!(!svg.contains("event-4"), "{svg}");
@@ -408,7 +408,7 @@ fn a_long_event_line_wraps() {
         .filter(|node| node.has_tag_name("text") && node.attribute("text-anchor").is_none())
         .filter(|node| {
             let x = node.attribute("x").unwrap().parse::<f64>().unwrap();
-            x == name_x || x == name_x + 20.0
+            x == name_x || x == name_x + INDENT_PX
         })
         .filter_map(|node| node.text())
         .collect();
@@ -437,6 +437,10 @@ fn a_long_event_line_wraps() {
             .map_or(12.0, |size| size.parse::<f64>().unwrap());
         let width = 0.6 * size * node.text().unwrap_or_default().chars().count() as f64;
         assert!(x + width <= WIDTH, "{x} {:?}", node.text());
+        // The title, cut, ends over the panels.
+        if size == TITLE_SIZE {
+            assert!(x + width <= WIDTH - RIGHT, "{x} {:?}", node.text());
+        }
     }
 }
 
@@ -1038,9 +1042,60 @@ fn the_figure_sets_its_type_on_the_scale() {
         CAPTION_GAP,
         MARKER_ROW,
         LIST_LINE,
+        ROW_RULE,
+        INDENT_PX,
     ] {
         assert!(SPACE_SCALE.contains(&step), "{step}");
     }
+    let y = |node: roxmltree::Node<'_, '_>, name: &str| -> f64 {
+        node.attribute(name).unwrap().parse().unwrap()
+    };
+    let on_scale = |steps: &[f64]| {
+        for step in steps {
+            assert!(SPACE_SCALE.contains(step), "{step} of {steps:?}");
+        }
+    };
+    // As drawn: the balloon rows, from the caption's last line.
+    let mut rows: Vec<f64> = document
+        .descendants()
+        .filter(|node| node.has_tag_name("circle"))
+        .map(|node| y(node, "cy"))
+        .collect();
+    rows.sort_by(f64::total_cmp);
+    rows.dedup();
+    assert!(rows.len() >= 2, "{rows:?}");
+    let caption_last = document
+        .descendants()
+        .filter(|node| node.has_tag_name("text") && node.attribute("x") == Some("76"))
+        .map(|node| y(node, "y"))
+        .filter(|baseline| *baseline < rows[0])
+        .fold(f64::NEG_INFINITY, f64::max);
+    let mut steps = vec![rows[0] - caption_last];
+    steps.extend(rows.windows(2).map(|pair| pair[1] - pair[0]));
+    on_scale(&steps);
+    // The event table: its title under the time axis's, its head, and its rows' rules.
+    let text_y = |label: &str| {
+        document
+            .descendants()
+            .find(|node| node.has_tag_name("text") && node.text() == Some(label))
+            .map(|node| y(node, "y"))
+            .unwrap()
+    };
+    let table = text_y("EVENTS · SIMULATED BY FUSIONSPACE HPR");
+    let head = text_y("NO.");
+    let events = document
+        .descendants()
+        .find(|node| node.attribute("id") == Some("events"))
+        .unwrap();
+    let rules: Vec<f64> = events
+        .children()
+        .filter(|node| node.has_tag_name("line"))
+        .map(|node| y(node, "y1"))
+        .collect();
+    assert!(rules.len() >= 3, "{rules:?}");
+    let mut steps = vec![table - text_y("TIME · s"), head - table, rules[0] - head];
+    steps.extend(rules.windows(2).map(|pair| pair[1] - pair[0]));
+    on_scale(&steps);
     // As drawn: the title, the subtitle and the caption's lines.
     let ys: Vec<f64> = document
         .descendants()
@@ -1072,7 +1127,18 @@ fn a_number_keeps_its_unit_on_its_line() {
     let ends_in_a_number = |word: &str| word.ends_with(|c: char| c.is_ascii_digit());
     let svg = figure_svg("Probe", Some((6.0, 20.0)));
     let document = roxmltree::Document::parse(&svg).unwrap();
-    let lines = texts(&document);
+    // The text drawn and the balloons' tooltips.
+    let lines: Vec<String> = document
+        .descendants()
+        .filter(|node| node.has_tag_name("text") || node.has_tag_name("title"))
+        .map(|node| node.text().unwrap_or_default().to_owned())
+        .collect();
+    assert!(
+        lines
+            .iter()
+            .any(|line| line.starts_with("0.00\u{a0}s: liftoff")),
+        "{lines:?}"
+    );
     // The caption and the hatching's note, which give numbers with units.
     assert!(
         lines
@@ -1096,7 +1162,7 @@ fn a_number_keeps_its_unit_on_its_line() {
     let wrapped: Vec<String> = document
         .descendants()
         .filter(|node| {
-            node.has_tag_name("text") && matches!(node.attribute("x"), Some("76") | Some("96"))
+            node.has_tag_name("text") && matches!(node.attribute("x"), Some("76") | Some("100"))
         })
         .map(|node| node.text().unwrap_or_default().to_owned())
         .collect();
