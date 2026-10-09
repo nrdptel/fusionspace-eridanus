@@ -42,6 +42,12 @@ the command, so a later run can be compared like for like.
   in, each run printing its fastest of three: 2.91 to 3.00 s and 9.33 to 9.47 s. The table is
   the last run, on the finished code. On a busy or slower machine the supersonic run will take
   more than 10 s. Other machines and operating systems haven't been timed.
+- **Re-measured on 2026-10-08** on the same machine and rustc, one run of the same program:
+  Valetudo 3.05 s (1.950 ms a flight on one thread), the K940 9.67 s (5.996 ms), 1.7% to 5.0%
+  slower than the table, just past the earlier runs' 2.91 to 3.00 s and 9.33 to 9.47 s; the K940
+  now sits 3% inside the 10 s budget. `hpr mc --runs 10000` on the level-1 guide's `.ork`, a release
+  build, took 3.90 s and peaked at 20.4 MB resident (`/usr/bin/time -l`); one `hpr sim` peaked at
+  6.3 MB. Criterion's "Valetudo K400C to the ground" read 1.344 ms (median 1.3444 ms).
 - **Before** is the same program, run on 5c7f3d2 (the commit before M6.1d) in the same sitting,
   minus the lines of its one-thread breakdown that time steps the old code didn't have. The
   layout row's "before" is the new program's time to lay a design out alone, which the old code

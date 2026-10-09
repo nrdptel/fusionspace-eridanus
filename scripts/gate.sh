@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # The local gate every change passes before it is pushed. It prints one line per step, and for a
 # failing step only the lines that say why. Every step runs even after a failure, so one run
-# reports everything. Full logs stay in target/gate/<step>.log for when the summary is not enough.
+# reports everything, with one exception: a failing fmt stops the run, since `cargo fmt --all`
+# changes the code every later step would check (six full runs of 5.5 to 8 min each, 38 min in
+# all, failed on fmt alone over two weeks of work to 2026-10-08). Full logs stay in
+# target/gate/<step>.log for when the summary is not enough.
 #
 # Usage:
 #   scripts/gate.sh                 # every step
@@ -191,6 +194,10 @@ for step in $STEPS; do
     echo "FAIL $step (${dt}s, exit $rc): $cmd"
     why "$log"
     failed="$failed $step"
+    if [ "$step" = fmt ] && [ "$STEPS" != fmt ]; then
+      echo "    run \`cargo fmt --all\`, then the gate again: the other steps would check code it changes"
+      break
+    fi
   fi
 done
 total=$(( $(date +%s) - start_all ))

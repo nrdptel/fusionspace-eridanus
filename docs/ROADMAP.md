@@ -42,50 +42,51 @@ line here, or on an id that is missing or done.
 10. M7.3 A flight against its simulation
 11. M10.2 Release 0.2: the flight analyzer
 12. M2.3c2 Logged traces
-13. M2.7 Held-out flights, predictions first
-14. M2.8 Honest uncertainty
-15. M2.6 An open benchmark
-16. M1.14 Accuracy inside the envelope
-17. M7.4 Fault diagnosis
-18. M7.5 The bias every simulator shares
-19. M10.3 Release 0.3: accuracy and diagnosis
-20. M6.3 Challenge specs and presets
-21. M6.4 Airbrakes
-22. M6.2e Robust mode
-23. M6.6 Submission packs
-24. M6.7 Ejection charges
-25. M3.5 RASAero `.CDX1` import/export
-26. M3.6 RocketPy interop
-27. M6.8 Field kit: checklists, the settings check and the ground-test log
-28. M0.7b Rocketry explained: recovery, wind and motors
-29. M10.4 Release 0.4: the competition kit
-30. M4.4 C ABI and WASM
-31. M9.0 UI architecture ADR plus a spike
-32. M9.2 3D flight replay with a ghost
-33. M10.5 Release 0.5: the app preview
-34. M0.7c Rocketry explained: live figures
-35. M5.6a A catalog of hpr's own: format, search and a parts list
-36. M8.2 Edit model for UIs
-37. M9.1 Desktop app shell
-38. M5.6b Parachutes and recovery hardware
-39. M8.1 Design assistant
-40. M5.6c Motor hardware and rail buttons
-41. M5.6d More makers and electronics
-42. M3.4 RockSim `.rkt` import/export
-43. M9.3 Web PWA
-44. M10.6 Release 1.0: the app
-45. M0.7d Rocketry explained: the rest of the hobby
-46. M11.1 A motor of your own
-47. M11.2 Experimental solids
-48. M12.1 Parachute gores
-49. M12.2 Opening loads
-50. M9.4 Mobile
-51. M9.6 The four web tools, rebuilt
-52. M6.5 Roll control: tail-fin tabs and canards
-53. M13.3 Flight computer logic
-54. M13.1 Ground station
-55. M13.2 GPS tracker logic
-56. M9.7 Field equipment and frequencies
+13. M2.3c3 OpenRocket's newest release
+14. M2.7 Held-out flights, predictions first
+15. M2.8 Honest uncertainty
+16. M2.6 An open benchmark
+17. M1.14 Accuracy inside the envelope
+18. M7.4 Fault diagnosis
+19. M7.5 The bias every simulator shares
+20. M10.3 Release 0.3: accuracy and diagnosis
+21. M6.3 Challenge specs and presets
+22. M6.4 Airbrakes
+23. M6.2e Robust mode
+24. M6.6 Submission packs
+25. M6.7 Ejection charges
+26. M3.5 RASAero `.CDX1` import/export
+27. M3.6 RocketPy interop
+28. M6.8 Field kit: checklists, the settings check and the ground-test log
+29. M0.7b Rocketry explained: recovery, wind and motors
+30. M10.4 Release 0.4: the competition kit
+31. M4.4 C ABI and WASM
+32. M9.0 UI architecture ADR plus a spike
+33. M9.2 3D flight replay with a ghost
+34. M10.5 Release 0.5: the app preview
+35. M0.7c Rocketry explained: live figures
+36. M5.6a A catalog of hpr's own: format, search and a parts list
+37. M8.2 Edit model for UIs
+38. M9.1 Desktop app shell
+39. M5.6b Parachutes and recovery hardware
+40. M8.1 Design assistant
+41. M5.6c Motor hardware and rail buttons
+42. M5.6d More makers and electronics
+43. M3.4 RockSim `.rkt` import/export
+44. M9.3 Web PWA
+45. M10.6 Release 1.0: the app
+46. M0.7d Rocketry explained: the rest of the hobby
+47. M11.1 A motor of your own
+48. M11.2 Experimental solids
+49. M12.1 Parachute gores
+50. M12.2 Opening loads
+51. M9.4 Mobile
+52. M9.6 The four web tools, rebuilt
+53. M6.5 Roll control: tail-fin tabs and canards
+54. M13.3 Flight computer logic
+55. M13.1 Ground station
+56. M13.2 GPS tracker logic
+57. M9.7 Field equipment and frequencies
 
 ## Phase 0: Foundations
 
@@ -189,10 +190,13 @@ line here, or on an id that is missing or done.
   explanation.
   - [ ] **M2.3c Corpus flights with logs.** The private designs that have a flight log,
     in their day's weather; *done when* each is in a report as anonymised statistics beside
-    M2.3b's. Blocked until 2026-10-04 (ADR-083) for want of a pair; `hpr-sim-fixtures` has 89 in
-    its tier A, with their days' weather (ADR-151). Split in two (ADR-163):
+    M2.3b's. `hpr-sim-fixtures` has 89 in its tier A, with their days' weather (ADR-151). Split
+    (ADR-163, ADR-212):
     - [ ] **M2.3c2 Logged traces.** *Done when:* each M2.3c1 flight whose log M7.1 reads has its
       altitude-trace RMS from liftoff to apogee, aligned at liftoff, in that report.
+    - [ ] **M2.3c3 OpenRocket's newest release** (ADR-212). *Done when:* the fixture and public
+      OpenRocket reports fly its newest release beside 24.12, each named; ADR-209 §7 takes the
+      lower error. Waits for that release. Moves: accuracy.
 - [ ] **M2.7 Held-out flights, predictions first** (ADR-209 §4). *Done when:* a flight is held out
   when SHA-256 of its id and the seed `ADR-209` falls in the lowest third, fixed before any held-out
   error is computed; the fixture report gives both halves as aggregates; a refs check fails when a
