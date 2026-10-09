@@ -13,7 +13,7 @@ use hpr::hpr_motor::delay::{self, DelayList};
 use hpr::hpr_motor::text::{ParseWarning, WarningKind as ReadWarning};
 use hpr::hpr_motor::{ImpulseClass, eng, rse};
 
-use crate::console::{Level, Paint};
+use crate::console::{Diagnostics, Level};
 use crate::output::{
     CatalogInfo, Delay, FileFormat, ListedMotor, MotorFigures, MotorKind, MotorList, MotorShow,
     MotorSource, Warning, WarningKind,
@@ -153,7 +153,7 @@ fn list(args: &ListArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         },
         motors,
     };
-    to.emit(&list, |out| list_text(&list, out))
+    to.emit(&list, |out, _| list_text(&list, out))
 }
 
 /// The class label `--class` names, as [`ImpulseClass::label`] writes it, or a refusal.
@@ -306,8 +306,7 @@ fn show(motor: &str, to: &mut Out<'_>) -> Result<(), Failure> {
         Some(format) => from_file(motor, format)?,
         None => from_catalog(motor)?,
     };
-    let paint = to.paint;
-    to.emit(&show, |out| show_text(&show, out, paint))
+    to.emit(&show, |out, diagnostics| show_text(&show, out, diagnostics))
 }
 
 /// Every catalog motor `name` matches, with its bundled curve.
@@ -535,7 +534,11 @@ fn delay_warnings(motor: &str, delays: &DelayList) -> Result<Vec<Warning>, Failu
 }
 
 /// `hpr motors show` as text.
-fn show_text(show: &MotorShow, out: &mut dyn Write, paint: Paint) -> io::Result<()> {
+fn show_text(
+    show: &MotorShow,
+    out: &mut dyn Write,
+    diagnostics: &mut Diagnostics<'_>,
+) -> io::Result<()> {
     for (i, motor) in show.motors.iter().enumerate() {
         if i > 0 {
             writeln!(out)?;
@@ -577,7 +580,7 @@ fn show_text(show: &MotorShow, out: &mut dyn Write, paint: Paint) -> io::Result<
             (None, Some(line)) => format!("line {line}: "),
             (None, None) => String::new(),
         };
-        paint.line(out, Level::Warning, &format!("{at}{}", warning.message))?;
+        diagnostics.line(Level::Warning, &format!("{at}{}", warning.message))?;
     }
     Ok(())
 }

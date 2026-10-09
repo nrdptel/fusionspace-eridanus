@@ -9,7 +9,7 @@ units, errors, provenance); none of them changes a number the simulator computes
 
 It has one row for every `##` section of those files ([ADR-205](../decisions/0205-the-2026-10-08-one-name-one-design.md)
 §2, [ADR-208](../decisions/0208-the-design-audit.md)), so a rule nobody re-read can't be missed.
-Of the 64 sections that apply to something shipping today, 8 are met, 49 are not, 3 wait for a
+Of the 64 sections that apply to something shipping today, 9 are met, 48 are not, 3 wait for a
 later surface and 4 govern nothing the project ships; the 48 sections for apps, watches,
 firmware, hardware and airframes wait for the milestones that build them. How far to trust it:
 a row held by a test is checked on every change; a row "reviewed at" the commit was read against
@@ -57,7 +57,7 @@ Pinned commit: `f45454f44669cc049222f2ab19eb648796e56a52`, as `validation/refs.l
 | `principles.md` | 5. Quiet until it matters | site, CLI, plot | not met | #383, #385; M0.9d: search hits in the caution fill; signal-like figure colors |
 | `principles.md` | 6. One sweep | site, banners, plot, CLI | not met | #383; M0.9d: focus and selection are mdBook's, not Ion; one gradient, the strip, holds |
 | `principles.md` | 7. Numbered like parts | site, CLI, exports, plot, README | not met | #380, #387; M0.9c, M0.9e: the plot's version is invisible; the README's status word |
-| `principles.md` | 8. Native where it counts | CLI, site | not met | #377; M0.9c: diagnostics on stdout |
+| `principles.md` | 8. Native where it counts | CLI, site | met | `crates/hpr-cli/tests/streams.rs::sim_writes_its_diagnostics_to_stderr`, `crates/hpr-cli/tests/streams.rs::mc_writes_its_diagnostics_to_stderr`, `crates/hpr-cli/tests/streams.rs::json_output_is_one_document_carrying_the_warnings` and the file's test for each other command: results on stdout, `warning:`, `note:` and `help:` lines on stderr, as a Unix tool's |
 | `principles.md` | What FusionSpace doesn't look like | site, README, banners, plot, CLI | not met | #383; M0.9d: mdBook's violet border, radii and soft shadow |
 | `foundations.md` | Color | site, CLI, plot, README, banners | not met | #385, #383; M0.9d: non-token colors in a figure, the badges and mdBook's defaults |
 | `foundations.md` | Type | site, plot, README, banners | not met | #384, #382, #385; M0.9c, M0.9d: a 118-character measure; text under 12 px; off-scale sizes |
@@ -75,9 +75,9 @@ Pinned commit: `f45454f44669cc049222f2ab19eb648796e56a52`, as `validation/refs.l
 | `writing.md` | Mechanics | site, README, CLI, plot | not met | #386; M0.9e: British spellings (`calibre` 446 times on the site and README) |
 | `writing.md` | READMEs and docs | README, site | not met | #387; M0.9e: status, install, what doesn't work and version missing |
 | `writing.md` | Commit messages | none | n/a | commit messages are not a surface that ships |
-| `review.md` | The FusionSpace test | site, CLI, exports, plot, README | not met | #384, #380, #379, #378, #383, #377; M0.9c, M0.9d: six of the eight answers are no; see the principles' rows |
+| `review.md` | The FusionSpace test | site, CLI, exports, plot, README | not met | #384, #380, #379, #378, #383; M0.9c, M0.9d: five of the eight answers are no; see the principles' rows |
 | `review.md` | Template smells | site, README, plot | not met | #383, #385; M0.9d: a colored side border, soft shadows, default sans in images |
-| `review.md` | Before release | site, CLI, exports, plot, README | not met | #385, #380, #379, #378, #386, #377, #381; M0.9c, M0.9d, M0.9e: 8 of the 11 items 0.1 must pass fail (ADR-208 §6) |
+| `review.md` | Before release | site, CLI, exports, plot, README | not met | #385, #380, #379, #378, #386, #381; M0.9c, M0.9d, M0.9e: 7 of the 11 items 0.1 must pass fail (ADR-208 §6 counted 8; results on stdout and everything else on stderr now passes) |
 | `review.md` | Sources | none | n/a | the system's own bibliography; it sets no rule |
 | `data.md` | Numbers | site, CLI, plot, README | not met | #386, #382, #379; M0.9c, M0.9e: hyphen-minus, ungrouped and over-precise numbers; units that wrap |
 | `data.md` | Copying and typing numbers | CLI, exports | not met | #381, #380; M0.9c: typed numbers not trimmed or read with separators; non-ASCII JSON |
@@ -88,7 +88,7 @@ Pinned commit: `f45454f44669cc049222f2ab19eb648796e56a52`, as `validation/refs.l
 | `data.md` | Maps | CLI | not met | #381; M0.9c: `hpr mc`'s landing-ellipse heading gives no T or M; drawn maps wait for M9.4 |
 | `data.md` | Live telemetry | none | later | M13.1, the ground station; nothing live ships |
 | `data.md` | Files and exports | exports | not met | #380, #378; M0.9c: no as-of date; CSV units not in brackets; no US units |
-| `cli.md` | Output | CLI | not met | #377, #381; M0.9c: diagnostics on stdout; no progress; plain table headers |
+| `cli.md` | Output | CLI | not met | #381; M0.9c: no progress; plain table headers (diagnostics on stderr since #377) |
 | `cli.md` | Color | CLI | not met | #381; M0.9c: the Heading and Literal roles unused |
 | `cli.md` | Help | CLI | not met | #381; M0.9c: the link before Usage; no examples |
 | `cli.md` | Errors | CLI | not met | #381; M0.9c: errors that don't name the flag, the unit typed or a next step |

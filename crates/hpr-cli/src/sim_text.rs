@@ -5,10 +5,13 @@
 //! and the descent rate (ADR-144 §8d), each in a sentence. Configurations and parts are called by
 //! their names ([`crate::choose`]), never by an OpenRocket UUID; `--json` prints the same flight
 //! as data, ids and all.
+//!
+//! The flight goes to standard output; its `warning:`, `note:` and `help:` lines go to standard
+//! error ([`Diagnostics`]), so a file the text is redirected to holds the flight alone.
 
 use std::io::{self, Write};
 
-use crate::console::{Level, Paint};
+use crate::console::{Diagnostics, Level};
 use crate::output::{
     Delay, DeviceEvent, EventKind, FlagKind, InputWarning, IssueKind, Launch, SimDesign, SimDevice,
     SimEvent, SimFlight, SimMotor, SimMotorSource, Termination,
@@ -18,9 +21,14 @@ use crate::sim::{braked, first_opened, in_fall};
 /// The width of a figure's name in the summary's columns.
 const NAME: usize = 22;
 
-/// The text form of `flight`.
-pub(crate) fn print(flight: &SimFlight, out: &mut dyn Write, paint: Paint) -> io::Result<()> {
-    design_lines(&flight.design, out, paint)?;
+/// The text form of `flight`: the flight on `out`, its warnings, notes and hints on
+/// `diagnostics`.
+pub(crate) fn print(
+    flight: &SimFlight,
+    out: &mut dyn Write,
+    diagnostics: &mut Diagnostics<'_>,
+) -> io::Result<()> {
+    design_lines(&flight.design, out, diagnostics)?;
     writeln!(out)?;
     lead(flight, out)?;
     writeln!(out)?;
@@ -54,21 +62,21 @@ pub(crate) fn print(flight: &SimFlight, out: &mut dyn Write, paint: Paint) -> io
             device.name, device.drag_area_m2
         )?;
     }
-    launch_lines(&flight.launch, out, paint)?;
-    note_lines(&flight.notes, &flight.warnings, out, paint)?;
+    launch_lines(&flight.launch, out, diagnostics)?;
+    note_lines(&flight.notes, &flight.warnings, diagnostics)?;
     for flag in &flight.flags {
         let kind = flag_prefix(flag.flag);
-        paint.line(out, Level::Warning, &format!("{kind}: {}", flag.message))?;
+        diagnostics.line(Level::Warning, &format!("{kind}: {}", flag.message))?;
     }
     let kinds: Vec<FlagKind> = flight.flags.iter().map(|flag| flag.flag).collect();
-    flag_help(&kinds, out, paint)?;
+    flag_help(&kinds, diagnostics)?;
     for issue in &flight.issues {
         let kind = match issue.kind {
             IssueKind::Drag => "drag",
             IssueKind::Stability => "stability",
             IssueKind::Flight => "flight",
         };
-        paint.line(out, Level::Warning, &format!("{kind}: {}", issue.message))?;
+        diagnostics.line(Level::Warning, &format!("{kind}: {}", issue.message))?;
     }
     writeln!(out)?;
     events(&flight.events, out)?;
@@ -76,11 +84,11 @@ pub(crate) fn print(flight: &SimFlight, out: &mut dyn Write, paint: Paint) -> io
     rest(flight, out)
 }
 
-/// The design and the configuration flown, and a hint naming the others.
+/// The design and the configuration flown, and a hint naming the others on `diagnostics`.
 pub(crate) fn design_lines(
     design: &SimDesign,
     out: &mut dyn Write,
-    paint: Paint,
+    diagnostics: &mut Diagnostics<'_>,
 ) -> io::Result<()> {
     writeln!(out, "{} ({})", design.name, design.file)?;
     let flown = design
@@ -111,8 +119,7 @@ pub(crate) fn design_lines(
         })
         .collect();
     if !others.is_empty() {
-        paint.line(
-            out,
+        diagnostics.line(
             Level::Help,
             &format!(
                 "--config flies the others, by number or name: {}",
@@ -155,8 +162,13 @@ pub(crate) fn motor_lines(motors: &[SimMotor], out: &mut dyn Write) -> io::Resul
     Ok(())
 }
 
-/// Where and how the rocket is launched, and where to read how far to trust the numbers.
-pub(crate) fn launch_lines(launch: &Launch, out: &mut dyn Write, paint: Paint) -> io::Result<()> {
+/// Where and how the rocket is launched, and, on `diagnostics`, where to read how far to trust
+/// the numbers.
+pub(crate) fn launch_lines(
+    launch: &Launch,
+    out: &mut dyn Write,
+    diagnostics: &mut Diagnostics<'_>,
+) -> io::Result<()> {
     let rail = if launch.inclination_deg == 90.0 {
         format!("a {} m vertical rail", launch.rail_length_m)
     } else {
@@ -180,8 +192,7 @@ pub(crate) fn launch_lines(launch: &Launch, out: &mut dyn Write, paint: Paint) -
         hemisphere(launch.longitude_deg, "E", "W"),
         launch.elevation_m,
     )?;
-    paint.line(
-        out,
+    diagnostics.line(
         Level::Help,
         "see the Accuracy page before trusting these numbers: \
          https://hpr.fusionspace.co/accuracy.html",
@@ -193,11 +204,10 @@ pub(crate) fn launch_lines(launch: &Launch, out: &mut dyn Write, paint: Paint) -
 pub(crate) fn note_lines(
     notes: &[String],
     given: &[InputWarning],
-    out: &mut dyn Write,
-    paint: Paint,
+    diagnostics: &mut Diagnostics<'_>,
 ) -> io::Result<()> {
     for note in notes {
-        paint.line(out, Level::Note, note)?;
+        diagnostics.line(Level::Note, note)?;
     }
     // The same words about several parts of one name, such as a coupler in each tube, once.
     let mut warnings: Vec<(&str, &str, usize)> = Vec::new();
@@ -216,7 +226,7 @@ pub(crate) fn note_lines(
         } else {
             String::new()
         };
-        paint.line(out, Level::Warning, &format!("{at}: {message}{times}"))?;
+        diagnostics.line(Level::Warning, &format!("{at}: {message}{times}"))?;
     }
     Ok(())
 }
@@ -244,18 +254,16 @@ pub(crate) fn flag_prefix(flag: FlagKind) -> &'static str {
 
 /// The `help:` lines after the flags `kinds`: the page on stability under power, and the
 /// operating envelope's, each once, when a flag of its kind is raised.
-pub(crate) fn flag_help(kinds: &[FlagKind], out: &mut dyn Write, paint: Paint) -> io::Result<()> {
+pub(crate) fn flag_help(kinds: &[FlagKind], diagnostics: &mut Diagnostics<'_>) -> io::Result<()> {
     if kinds.iter().any(|kind| is_unstable(*kind)) {
-        paint.line(
-            out,
+        diagnostics.line(
             Level::Help,
             "unstable under power: \
              https://hpr.fusionspace.co/physics/metrics.html#unstable-under-power",
         )?;
     }
     if kinds.iter().any(|kind| !is_unstable(*kind)) {
-        paint.line(
-            out,
+        diagnostics.line(
             Level::Help,
             "the operating envelope: \
              https://hpr.fusionspace.co/VALIDATION.html#operating-envelope",

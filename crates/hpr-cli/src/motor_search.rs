@@ -178,7 +178,7 @@ pub(crate) fn run(args: &SearchArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     {
         lines.push(hint);
     }
-    to.emit(&document, |out| {
+    to.emit(&document, |out, _| {
         lines.iter().try_for_each(|line| writeln!(out, "{line}"))
     })
 }

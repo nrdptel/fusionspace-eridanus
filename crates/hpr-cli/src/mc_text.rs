@@ -1,9 +1,12 @@
 //! `hpr mc`'s text form: the spreads a flyer checks first, the apogee's and the landing's, then
 //! the landing ellipses, what flew, from where, what was scattered, and what failed.
+//!
+//! The run goes to standard output; its `warning:`, `note:` and `help:` lines go to standard
+//! error ([`Diagnostics`]).
 
 use std::io::{self, Write};
 
-use crate::console::{Level, Paint};
+use crate::console::{Diagnostics, Level};
 use crate::output::{EllipseKind, FlagKind, IssueKind, McDispersion, McRun, McSpread};
 use crate::sim_text::{
     design_lines, flag_help, flag_prefix, launch_lines, motor_lines, note_lines,
@@ -12,9 +15,13 @@ use crate::sim_text::{
 /// The width of a figure's name in the tables.
 const NAME: usize = 22;
 
-/// The text form of `run`.
-pub(crate) fn print(run: &McRun, out: &mut dyn Write, paint: Paint) -> io::Result<()> {
-    design_lines(&run.design, out, paint)?;
+/// The text form of `run`: the run on `out`, its warnings, notes and hints on `diagnostics`.
+pub(crate) fn print(
+    run: &McRun,
+    out: &mut dyn Write,
+    diagnostics: &mut Diagnostics<'_>,
+) -> io::Result<()> {
+    design_lines(&run.design, out, diagnostics)?;
     writeln!(out)?;
     let failed = if run.failed.count == 1 {
         "1 failed".to_owned()
@@ -38,7 +45,7 @@ pub(crate) fn print(run: &McRun, out: &mut dyn Write, paint: Paint) -> io::Resul
     landing(run, out)?;
     writeln!(out)?;
     motor_lines(&run.motors, out)?;
-    launch_lines(&run.launch, out, paint)?;
+    launch_lines(&run.launch, out, diagnostics)?;
     let scattered = scattered(&run.dispersion);
     if !scattered.is_empty() {
         writeln!(
@@ -47,7 +54,7 @@ pub(crate) fn print(run: &McRun, out: &mut dyn Write, paint: Paint) -> io::Resul
             scattered.join(", ")
         )?;
     }
-    note_lines(&run.notes, &run.warnings, out, paint)?;
+    note_lines(&run.notes, &run.warnings, diagnostics)?;
     for failure in &run.failed.reasons {
         let flights = if failure.count == 1 {
             format!("flight {} failed", failure.first_index)
@@ -57,15 +64,13 @@ pub(crate) fn print(run: &McRun, out: &mut dyn Write, paint: Paint) -> io::Resul
                 failure.count, failure.first_index
             )
         };
-        paint.line(
-            out,
+        diagnostics.line(
             Level::Warning,
             &format!("{flights}: {}", crate::printable(&failure.reason)),
         )?;
     }
     for flag in &run.flags {
-        paint.line(
-            out,
+        diagnostics.line(
             Level::Warning,
             &format!(
                 "{}: {} in {} of {} flights",
@@ -77,15 +82,14 @@ pub(crate) fn print(run: &McRun, out: &mut dyn Write, paint: Paint) -> io::Resul
         )?;
     }
     let kinds: Vec<FlagKind> = run.flags.iter().map(|flag| flag.flag).collect();
-    flag_help(&kinds, out, paint)?;
+    flag_help(&kinds, diagnostics)?;
     for issue in &run.issues {
         let kind = match issue.kind {
             IssueKind::Drag => "drag",
             IssueKind::Stability => "stability",
             IssueKind::Flight => "flight",
         };
-        paint.line(
-            out,
+        diagnostics.line(
             Level::Warning,
             &format!("{kind}, the nominal flight: {}", issue.message),
         )?;

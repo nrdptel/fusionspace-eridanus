@@ -197,7 +197,7 @@ pub(crate) fn run(command: &WeatherCommand, to: &mut Out<'_>) -> Result<(), Fail
     }
     let document = document(read, output.clone());
     let lines = text_lines(&document);
-    to.emit(&document, |out| {
+    to.emit(&document, |out, _| {
         lines.iter().try_for_each(|line| writeln!(out, "{line}"))
     })
 }

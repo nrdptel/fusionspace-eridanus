@@ -302,9 +302,8 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         flags: flags(flight.summary()),
         issues: issues(&flight),
     };
-    let paint = to.paint;
-    to.emit(&document, |out| {
-        crate::sim_text::print(&document, out, paint)
+    to.emit(&document, |out, diagnostics| {
+        crate::sim_text::print(&document, out, diagnostics)
     })
 }
 

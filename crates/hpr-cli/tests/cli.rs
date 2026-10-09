@@ -112,6 +112,74 @@ fn text_ok(args: &[&str]) -> String {
     text(&output.stdout)
 }
 
+/// What a run without `--json` printed: the result on standard output, and the `warning:`,
+/// `note:` and `help:` lines beside it on standard error.
+struct Printed {
+    /// Standard output.
+    out: String,
+    /// Standard error.
+    err: String,
+}
+
+impl Printed {
+    /// Both streams, standard output first: for a test that some words appear on neither.
+    fn both(&self) -> String {
+        format!("{}{}", self.out, self.err)
+    }
+}
+
+/// Whether `line` is a `warning:`, `note:` or `help:` line, its color codes aside.
+fn is_diagnostic(line: &str) -> bool {
+    let mut plain = String::new();
+    let mut chars = line.chars();
+    while let Some(c) = chars.next() {
+        if c == '\u{1b}' {
+            // An SGR sequence, `ESC [ … m`.
+            for c in chars.by_ref() {
+                if c == 'm' {
+                    break;
+                }
+            }
+        } else {
+            plain.push(c);
+        }
+    }
+    ["warning: ", "note: ", "help: "]
+        .iter()
+        .any(|prefix| plain.starts_with(prefix))
+}
+
+/// Runs `hpr` without `--json`, expects success, and returns what it printed, holding the
+/// streams apart: standard output has no `warning:`, `note:` or `help:` line, and every line of
+/// standard error is one.
+fn streams(args: &[&str]) -> Printed {
+    printed_of(args, hpr(args))
+}
+
+/// As [`streams`], offline with `cache` as the cache.
+fn streams_cached(args: &[&str], cache: &Path) -> Printed {
+    printed_of(args, hpr_cached(args, cache))
+}
+
+fn printed_of(args: &[&str], output: Output) -> Printed {
+    assert_eq!(output.status.code(), Some(0), "{args:?}: {output:?}");
+    let printed = Printed {
+        out: text(&output.stdout),
+        err: text(&output.stderr),
+    };
+    assert!(
+        !printed.out.lines().any(is_diagnostic),
+        "{args:?}: a diagnostic on standard output:\n{}",
+        printed.out
+    );
+    assert!(
+        printed.err.lines().all(is_diagnostic),
+        "{args:?}: standard error has a line that isn't a diagnostic:\n{}",
+        printed.err
+    );
+    printed
+}
+
 /// An error document of `kind`, from a run with `--json`.
 fn json_error(args: &[&str], code: i32, kind: &str) -> Value {
     let document = json(args, code, "error.schema.json");
@@ -470,9 +538,16 @@ fn a_file_with_two_motors_shows_both_with_warnings() {
             .any(|w| w["motor"] == "T10" && w["kind"] == "unusual"),
         "{warnings:?}"
     );
-    let lines = text_ok(&["motors", "show", &path]);
-    assert!(lines.contains("\nT20 (Test), from "));
-    assert!(lines.contains("\nwarning: T10: "), "{lines}");
+    let lines = streams(&["motors", "show", &path]);
+    assert!(lines.out.contains("\nT20 (Test), from "));
+    assert!(
+        lines
+            .err
+            .lines()
+            .any(|line| line.starts_with("warning: T10: ")),
+        "{}",
+        lines.err
+    );
 }
 
 /// A motor that can't be found or read is an input error, with nothing on standard output.
@@ -777,7 +852,7 @@ fn sim_flies_a_public_ork_as_the_library_does() {
     // The apogee is well above the rail, and the text says what the JSON says.
     let apogee = flight.apogee_m().unwrap();
     assert!(apogee > 100.0, "{apogee}");
-    let text = text_ok(&["sim", &design, "--motor", "H54"]);
+    let text = streams(&["sim", &design, "--motor", "H54"]).out;
     assert!(
         text.contains(&format!(
             "\napogee                {apogee:.1} m above the site"
@@ -893,7 +968,7 @@ fn a_booster_dropped_at_its_first_burnout_names_what_still_burns() {
     let left_n_s = curve.total_impulse_ns() - curve.impulse_ns(staging.time_s - 1.0);
     assert!(left_n_s > 0.0, "{left_n_s}");
 
-    let text = text_ok(&["sim", path.to_str().unwrap()]);
+    let text = streams(&["sim", path.to_str().unwrap()]);
     let note = format!(
         "note: part 1 drops at {:.3} s with `F15` still burning, as OpenRocket drops a stage's \
          other motors at its first burnout: its flight as a point leaves out the {left_n_s:.3} N·s \
@@ -901,16 +976,18 @@ fn a_booster_dropped_at_its_first_burnout_names_what_still_burns() {
         staging.time_s,
         curve.total_impulse_ns()
     );
-    assert!(text.contains(&note), "{note}\n{text}");
+    assert!(text.err.contains(&note), "{note}\n{}", text.err);
     assert!(
-        text.contains("lit 0 s after the motor in `Booster tube` burns out"),
-        "{text}"
+        text.out
+            .contains("lit 0 s after the motor in `Booster tube` burns out"),
+        "{}",
+        text.out
     );
 
     // The example as written drops nothing burning, and says nothing of it.
     let plain = folder.path().join("two-stage.ork");
     std::fs::write(&plain, two_stage_ork()).unwrap();
-    let text = text_ok(&["sim", plain.to_str().unwrap()]);
+    let text = streams(&["sim", plain.to_str().unwrap()]).both();
     assert!(!text.contains("still burning"), "{text}");
 }
 
@@ -1075,18 +1152,19 @@ fn sim_flies_a_payload_dropped_with_nothing_left_to_burn_as_the_library_does() {
         );
     }
 
-    let text = text_ok(&["sim", &path]);
+    let text = streams(&["sim", &path]);
     let landing = summary
         .body_landings
         .iter()
         .find(|landing| landing.body == Some(0))
         .unwrap();
+    let note = format!(
+        "note: the stack comes apart at {split_s:.3} s with nothing left to burn: part 1, `Booster`, drops away"
+    );
+    assert!(text.err.contains(&note), "{note}\n{}", text.err);
     for line in [
         "recovery: `Payload chute` at the separation, ",
         "recovery: `Booster chute` on part 1 at the ejection charge",
-        &format!(
-            "note: the stack comes apart at {split_s:.3} s with nothing left to burn: part 1, `Booster`, drops away"
-        ),
         // The payload's apogee, under its parachute from the split, is not a coast to tell.
         "delay                 the stack comes apart 2.00 s after burnout, before apogee; the motor's set delay: 2 s\n",
         &format!(
@@ -1098,11 +1176,14 @@ fn sim_flies_a_payload_dropped_with_nothing_left_to_burn_as_the_library_does() {
             landing.distance_m, landing.time_s
         ),
     ] {
-        assert!(text.contains(line), "{line}\n{text}");
+        assert!(text.out.contains(line), "{line}\n{}", text.out);
     }
-    assert!(!text.contains("under power"), "{text}");
-    assert!(!text.contains("the flight ended"), "{text}");
-    assert!(!text.contains("its charge fires"), "{text}");
+    let all = text.both();
+    assert!(!all.contains("under power"), "{all}");
+    assert!(!all.contains("the flight ended"), "{all}");
+    assert!(!all.contains("its charge fires"), "{all}");
+    // The notes, on standard error.
+    let text = text.err;
     // A dropped part that climbs above the payload's apogee is said; one that doesn't, not.
     let peak = |body: &hpr::hpr_sim::BodyFlight| {
         body.event(hpr::hpr_sim::EventKind::Apogee)
@@ -1127,11 +1208,11 @@ fn sim_flies_a_payload_dropped_with_nothing_left_to_burn_as_the_library_does() {
     assert!(!text.contains(&ends), "{text}");
     let svg = folder.path().join("payload.svg");
     let svg = svg.to_string_lossy().into_owned();
-    let plotted = text_ok(&["sim", &path, "--plot", &svg]);
+    let plotted = streams(&["sim", &path, "--plot", &svg]).err;
     assert!(plotted.contains(&ends), "{plotted}");
     let csv = folder.path().join("payload.csv");
     let csv = csv.to_string_lossy().into_owned();
-    let exported = text_ok(&["sim", &path, "--export", &csv]);
+    let exported = streams(&["sim", &path, "--export", &csv]).err;
     assert!(exported.contains(&ends), "{exported}");
 
     // The payload's parachute set to apogee instead: from the split to its apogee it would coast
@@ -1240,21 +1321,25 @@ fn sim_flies_two_powered_separations_as_the_library_does() {
     assert_eq!(recovery[2]["opened_s"], separations_s[0]);
     assert_eq!(recovery[3]["opened_s"], separations_s[1]);
 
-    let text = text_ok(&["sim", &path]);
+    let text = streams(&["sim", &path]);
     for line in [
         "recovery: `Middle chute` on part 2 at apogee",
         "recovery: `Booster, tumbling` on part 1 at the separation",
         "recovery: `Middle, tumbling` on part 2 at the separation",
         "lit 0 s after the motor in `Middle tube` burns out",
         "lit 0 s after the motor in `Booster tube` burns out",
-        "note: the stack comes apart under power 2 times: at ",
-        "part 2, `Middle`, drops away",
         &format!(
             "landing, part 2       {:.1} m from the pad at {:.2} s",
             landings[1].distance_m, landings[1].time_s
         ),
     ] {
-        assert!(text.contains(line), "{line}\n{text}");
+        assert!(text.out.contains(line), "{line}\n{}", text.out);
+    }
+    for line in [
+        "note: the stack comes apart under power 2 times: at ",
+        "part 2, `Middle`, drops away",
+    ] {
+        assert!(text.err.contains(line), "{line}\n{}", text.err);
     }
 }
 
@@ -1353,12 +1438,17 @@ fn sim_flies_a_powered_separation_as_the_library_does() {
     let apogee_s = flight.apogee_time_s().unwrap();
     assert_eq!(recovery[0]["opened_s"], apogee_s);
 
-    let text = text_ok(&["sim", &path]);
+    let text = streams(&["sim", &path]);
+    assert!(
+        text.err
+            .contains("note: the stack comes apart under power at "),
+        "{}",
+        text.err
+    );
     for line in [
         "recovery: `Booster chute` on part 1 at apogee",
         "recovery: `Booster, tumbling` on part 1 at the separation",
         "lit 0 s after the motor in `Booster tube` burns out",
-        "note: the stack comes apart under power at ",
         // The sustainer flies on: its coast from its own burnout to apogee is told.
         "delay                 apogee ",
         &format!(
@@ -1366,8 +1456,9 @@ fn sim_flies_a_powered_separation_as_the_library_does() {
             landings[0].distance_m, landings[0].time_s
         ),
     ] {
-        assert!(text.contains(line), "{line}\n{text}");
+        assert!(text.out.contains(line), "{line}\n{}", text.out);
     }
+    let text = text.both();
     assert!(!text.contains("before apogee;"), "{text}");
     assert!(!text.contains("fly as one stack"), "{text}");
 
@@ -1394,7 +1485,7 @@ fn sim_flies_a_powered_separation_as_the_library_does() {
             .starts_with("the sustainer has no device of the file's that opens")),
         "{notes:?}"
     );
-    let text = text_ok(&["sim", &bare]);
+    let text = streams(&["sim", &bare]).out;
     let landing = text
         .lines()
         .find(|line| line.starts_with("landing   "))
@@ -1529,11 +1620,14 @@ fn sim_flies_a_ork_s_recovery_as_the_library_does() {
     // The map keeps the landing the flight predicts.
     let map = std::fs::read_to_string(&geojson).unwrap();
     assert!(map.contains("anding"), "{map}");
-    let text = text_ok(&["sim", &design, "--motor", "H54"]);
+    let text = streams(&["sim", &design, "--motor", "H54"]);
     assert!(
-        text.contains("\nrecovery: `Drogue parachute` at apogee, 0.133 m² of drag area, opened at"),
-        "{text}"
+        text.out
+            .contains("\nrecovery: `Drogue parachute` at apogee, 0.133 m² of drag area, opened at"),
+        "{}",
+        text.out
     );
+    let text = text.both();
     assert!(!text.contains("not a prediction"), "{text}");
 }
 
@@ -2137,12 +2231,13 @@ fn motors_fetch_reads_a_cached_motor() {
         document["attribution"][0],
         hpr::hpr_net::thrustcurve::ATTRIBUTION
     );
-    let output = hpr_cached(&["motors", "fetch", "F27R/L"], cache.path());
-    assert_eq!(output.status.code(), Some(0), "{output:?}");
-    let printed = text(&output.stdout);
+    let fetched = streams_cached(&["motors", "fetch", "F27R/L"], cache.path());
     assert!(
-        printed.contains("kept in the cache: `hpr sim --motor F27R/L` flies it, offline too"),
-        "{printed}"
+        fetched
+            .err
+            .contains("help: kept in the cache: `hpr sim --motor F27R/L` flies it, offline too"),
+        "{}",
+        fetched.err
     );
     let output = hpr(&["motors", "fetch", "F27R/L"]);
     assert_eq!(output.status.code(), Some(1));
@@ -2185,16 +2280,18 @@ fn motors_fetch_takes_the_file_named_first() {
     assert_eq!(document["motor"]["measured_by"], "user");
     let rocksim = "f000000000000000000000b1";
     let args = ["motors", "fetch", "--file", rocksim, "Z10-INVENTED"];
-    let output = hpr_cached(&args, cache.path());
-    assert_eq!(output.status.code(), Some(0), "{output:?}");
-    let printed = text(&output.stdout);
+    let fetched = streams_cached(&args, cache.path());
     assert!(
-        printed.contains("f000000000000000000000a3, RASP"),
-        "{printed}"
+        fetched.out.contains("f000000000000000000000a3, RASP"),
+        "{}",
+        fetched.out
     );
     assert!(
-        printed.contains(&format!("file {rocksim} was not taken")),
-        "{printed}"
+        fetched
+            .err
+            .contains(&format!("note: file {rocksim} was not taken")),
+        "{}",
+        fetched.err
     );
     let output = hpr(&args);
     assert_eq!(output.status.code(), Some(1));
@@ -2658,18 +2755,22 @@ fn sim_text_reads_by_name() {
         "<aftradius>0.03</aftradius>",
         "<aftradius>0.029</aftradius>",
     );
-    let text = text_ok(&["sim", &stepped, "--motor", "H54"]);
-    assert!(!holds_uuid(&text), "{text}");
-    assert!(!text.contains("{\""), "{text}");
+    let run = streams(&["sim", &stepped, "--motor", "H54"]);
+    let all = run.both();
+    assert!(!holds_uuid(&all), "{all}");
+    assert!(!all.contains("{\""), "{all}");
+    let warnings = &run.err;
+    assert!(
+        warnings.contains("warning: design checks: `")
+            && warnings.contains("a step in the body's outline"),
+        "{warnings}"
+    );
+    let text = run.out;
     assert!(
         text.contains("\nconfiguration 1 of 1: [H128W-0] with --motor H54\n"),
         "{text}"
     );
     assert!(text.contains(" in `Motor mount`, lit at launch"), "{text}");
-    assert!(
-        text.contains("warning: design checks: `") && text.contains("a step in the body's outline"),
-        "{text}"
-    );
     let lead: Vec<&str> = text
         .lines()
         .skip_while(|line| !line.is_empty())
@@ -2715,7 +2816,7 @@ fn sim_text_reads_by_name() {
         "<manufacturer>Cesaroni Technology</manufacturer><designation>168H54-10A</designation>\
          <diameter>0.029</diameter><length>0.187</length><delay>10</delay>",
     );
-    let flown = text_ok(&["sim", &delayed]);
+    let flown = streams(&["sim", &delayed]).out;
     assert!(
         flown.contains("\nconfiguration 1 of 1: [168H54-10A]\n"),
         "{flown}"
@@ -2750,7 +2851,7 @@ fn sim_text_reads_by_name() {
         "<manufacturer>Cesaroni Technology</manufacturer><designation>168H54-10A</designation>\
          <diameter>0.029</diameter><length>0.187</length><delay>3</delay>",
     );
-    let flown = text_ok(&["sim", &early]);
+    let flown = streams(&["sim", &early]).out;
     let early = format!(
         "; the motor's set delay: 3 s; its charge fires {:.2} s before apogee\n",
         coast_s - 3.0
@@ -2760,7 +2861,7 @@ fn sim_text_reads_by_name() {
     // The descent under each set of parachutes, as the next opens and at landing: the
     // vertical speed down, from the flight's own events, the landing's the summary's.
     let dual = repo_file("validation/fixtures/ork/loft-demo/demo-dual-deploy.ork");
-    let flown = text_ok(&["sim", &dual, "--motor", "H54"]);
+    let flown = streams(&["sim", &dual, "--motor", "H54"]).out;
     let document = json(&["sim", &dual, "--motor", "H54"], 0, "sim.schema.json");
     let events = document["events"].as_array().unwrap();
     let main_opens = events
@@ -2798,7 +2899,7 @@ fn sim_text_reads_by_name() {
         ),
     )
     .unwrap();
-    let flown = text_ok(&["sim", &late.to_string_lossy(), "--motor", "H54"]);
+    let flown = streams(&["sim", &late.to_string_lossy(), "--motor", "H54"]).out;
     let descent = flown
         .lines()
         .find(|line| line.starts_with("descent "))
@@ -2857,12 +2958,12 @@ fn sim_marks_what_the_fall_sets() {
     assert!(summary["max_speed_m_s"]["time_s"].as_f64().unwrap() > apogee_s);
     assert_eq!(summary["max_speed_m_s"]["after_apogee"], true);
     assert_eq!(summary["rail_exit_speed_m_s"]["after_apogee"], false);
-    let printed = text_ok(&["sim", &design, "--motor", "H54"]);
+    let shown = streams(&["sim", &design, "--motor", "H54"]).out;
     let line = |start: &str| {
-        printed
+        shown
             .lines()
             .find(|line| line.starts_with(start))
-            .unwrap_or_else(|| panic!("{printed}"))
+            .unwrap_or_else(|| panic!("{shown}"))
             .to_owned()
     };
     assert!(line("top speed").ends_with("in the fall: not a prediction"));
@@ -2871,7 +2972,7 @@ fn sim_marks_what_the_fall_sets() {
     assert!(line("landing").ends_with("not a prediction"));
 
     // The probe is fastest at burnout, before apogee: nothing to mark.
-    let probe = text_ok(&["sim", &repo_file(PROBE), "--motor", "H54"]);
+    let probe = streams(&["sim", &repo_file(PROBE), "--motor", "H54"]).out;
     let top = probe.lines().find(|l| l.starts_with("top speed")).unwrap();
     assert!(!top.contains("prediction"), "{top}");
 }
@@ -2955,18 +3056,18 @@ fn sim_keeps_the_caveat_until_a_late_device_opens() {
         .map(|feature| feature["geometry"]["type"].as_str().unwrap())
         .collect();
     assert_eq!(kinds, ["LineString"]);
-    let printed = text_ok(&["sim", &design, "--motor", "H54"]);
+    let shown = streams(&["sim", &design, "--motor", "H54"]).out;
     let line = |start: &str| {
-        printed
+        shown
             .lines()
             .find(|line| line.starts_with(start))
-            .unwrap_or_else(|| panic!("{printed}"))
+            .unwrap_or_else(|| panic!("{shown}"))
             .to_owned()
     };
     assert!(
         line("landing")
             .ends_with("with no recovery device opened soon after apogee, not a prediction"),
-        "{printed}"
+        "{shown}"
     );
     // A peak in the fall before the main opens keeps its mark; the climb's does not.
     let speed = &document["summary"]["max_speed_m_s"];
@@ -2974,7 +3075,7 @@ fn sim_keeps_the_caveat_until_a_late_device_opens() {
     assert_eq!(
         line("top speed").ends_with("in the fall: not a prediction"),
         in_fall,
-        "{printed}"
+        "{shown}"
     );
 }
 
@@ -3262,15 +3363,15 @@ fn convert_round_trips_eng_and_rse() {
         "{warning:#}"
     );
     // Converted again, the file is the same, byte for byte.
-    text_ok(&["convert", &path("b.eng"), &path("c.rse")]);
+    streams(&["convert", &path("b.eng"), &path("c.rse")]);
     assert_eq!(read("c.rse"), read("a.rse"));
 
     // .rse → .eng → .rse: the code, maker, casing, masses, delays and points.
     let original = rse::parse(&std::fs::read_to_string(curve_file(RSE_ONE_WORD_MAKER)).unwrap())
         .unwrap()
         .value;
-    text_ok(&["convert", &curve_file(RSE_ONE_WORD_MAKER), &path("d.eng")]);
-    text_ok(&["convert", &path("d.eng"), &path("e.rse")]);
+    streams(&["convert", &curve_file(RSE_ONE_WORD_MAKER), &path("d.eng")]);
+    streams(&["convert", &path("d.eng"), &path("e.rse")]);
     let back = rse::parse(&read("e.rse")).unwrap().value;
     assert_eq!(back.engines.len(), original.engines.len());
     for (a, b) in original.engines.iter().zip(&back.engines) {
@@ -3294,7 +3395,7 @@ fn convert_round_trips_eng_and_rse() {
         };
         assert_eq!(points(a), points(b));
     }
-    text_ok(&["convert", &path("e.rse"), &path("f.eng")]);
+    streams(&["convert", &path("e.rse"), &path("f.eng")]);
     assert_eq!(read("f.eng"), read("d.eng"));
 }
 
@@ -3816,20 +3917,25 @@ fn convert_takes_a_design_through_every_format() {
     );
 
     // The text says the same.
-    let output = hpr(&["convert", &hprz_file, &path("text.hpr")]);
-    assert_eq!(output.status.code(), Some(0), "{output:?}");
-    let printed = text(&output.stdout);
+    let shown = streams(&["convert", &hprz_file, &path("text.hpr")]);
     assert!(
-        printed.starts_with("read   demo.hprz\nwrote  text.hpr: "),
-        "{printed}"
+        shown.out.starts_with("read   demo.hprz\nwrote  text.hpr: "),
+        "{}",
+        shown.out
     );
     assert!(
-        printed.contains("2 motor configurations, HPR design format 0.2"),
-        "{printed}"
+        shown
+            .out
+            .contains("2 motor configurations, HPR design format 0.2"),
+        "{}",
+        shown.out
     );
     assert!(
-        printed.contains("warning: flight-1.csv: the .hpr file has no place"),
-        "{printed}"
+        shown
+            .err
+            .starts_with("warning: flight-1.csv: the .hpr file has no place"),
+        "{}",
+        shown.err
     );
 }
 
@@ -4030,18 +4136,20 @@ fn sim_flags_a_rocket_unstable_under_power() {
         message.ends_with("its apogee is not a prediction"),
         "{message}"
     );
-    let out = text_ok(&["sim", &path, "--offline", "--color", "never"]);
+    let shown = streams(&["sim", &path, "--offline", "--color", "never"]);
+    let err = &shown.err;
     assert!(
-        out.contains(&format!("warning: unstable: {message}\n")),
-        "{out}"
+        err.contains(&format!("warning: unstable: {message}\n")),
+        "{err}"
     );
     assert!(
-        out.contains(
+        err.contains(
             "help: unstable under power: \
              https://hpr.fusionspace.co/physics/metrics.html#unstable-under-power\n"
         ),
-        "{out}"
+        "{err}"
     );
+    let out = &shown.out;
     assert!(
         out.contains(", not a prediction: unstable under power\n"),
         "{out}"
@@ -4116,18 +4224,20 @@ fn sim_flags_a_rocket_unstable_where_it_has_no_margin() {
         message.ends_with("its apogee is not a prediction"),
         "{message}"
     );
-    let out = text_ok(&["sim", &path, "--offline", "--color", "never"]);
+    let shown = streams(&["sim", &path, "--offline", "--color", "never"]);
+    let err = &shown.err;
     assert!(
-        out.contains(&format!("warning: unstable: {message}\n")),
-        "{out}"
+        err.contains(&format!("warning: unstable: {message}\n")),
+        "{err}"
     );
     assert!(
-        out.contains(
+        err.contains(
             "help: unstable under power: \
              https://hpr.fusionspace.co/physics/metrics.html#unstable-under-power\n"
         ),
-        "{out}"
+        "{err}"
     );
+    let out = &shown.out;
     assert!(
         out.contains(", not a prediction: unstable under power\n"),
         "{out}"
@@ -4159,12 +4269,12 @@ fn sim_flags_a_flight_past_the_validated_range() {
         message.contains(&format!("reaches Mach {mach:.2}")),
         "{message}"
     );
-    let out = text_ok(&["sim", &path, "--offline", "--color", "never"]);
+    let err = streams(&["sim", &path, "--offline", "--color", "never"]).err;
     assert!(
-        out.contains(&format!("warning: envelope: {message}\n")),
-        "{out}"
+        err.contains(&format!("warning: envelope: {message}\n")),
+        "{err}"
     );
-    assert!(out.contains("help: the operating envelope: "), "{out}");
+    assert!(err.contains("help: the operating envelope: "), "{err}");
     // A subsonic flight raises none, and says nothing of the envelope.
     let path = repo_file("validation/designs/rocketpy-calisto-tests-motor-at-minus-1.373.json");
     let document = json(&["sim", &path, "--offline"], 0, "sim.schema.json");
@@ -4175,7 +4285,7 @@ fn sim_flags_a_flight_past_the_validated_range() {
             .unwrap()
             < 0.26
     );
-    let out = text_ok(&["sim", &path, "--offline", "--color", "never"]);
+    let out = streams(&["sim", &path, "--offline", "--color", "never"]).both();
     assert!(!out.contains("envelope"), "{out}");
 }
 
@@ -4220,7 +4330,7 @@ fn sim_warns_of_the_drag_issues_a_flight_meets_by_number() {
     assert_eq!(issues[2]["parts"], serde_json::json!(["nose"]));
     assert_eq!(issues[1]["parts"], serde_json::json!([]));
     assert_eq!(issues[3]["parts"], serde_json::json!([]));
-    let out = text_ok(&["sim", &path, "--offline", "--color", "never"]);
+    let out = streams(&["sim", &path, "--offline", "--color", "never"]).err;
     for issue in issues {
         assert_eq!(issue["max_mach"], document["summary"]["max_mach"]);
         let message = issue["message"].as_str().unwrap();
@@ -4247,7 +4357,7 @@ fn sim_warns_of_the_drag_issues_a_flight_meets_by_number() {
         .map(|i| i["issue"].as_u64().unwrap())
         .collect();
     assert_eq!(numbers, [73, 18, 172]);
-    let out = text_ok(&["sim", &path, "--offline", "--color", "never"]);
+    let out = streams(&["sim", &path, "--offline", "--color", "never"]).both();
     let drag: Vec<&str> = out.lines().filter(|line| line.contains("drag:")).collect();
     assert_eq!(drag.len(), 2, "{out}");
     assert!(drag[0].starts_with("warning: drag: issue #73: "), "{out}");
@@ -4452,7 +4562,7 @@ fn mc_flies_a_public_ork_as_the_library_does() {
     let mut args = vec!["mc", &design, "--runs", "24", "--seed", "2026"];
     args.extend(launch);
     args.extend(scatter);
-    let text = text_ok(&args);
+    let text = streams(&args).out;
     let apogee = run.apogee().unwrap().summary();
     assert!(
         text.contains(&format!(
@@ -4732,13 +4842,16 @@ fn mc_counts_and_prints_its_failed_flights() {
             .starts_with(&format!("{first},failed,flight,")),
         "{rows}"
     );
-    let text = text_ok(&args[..args.len() - 2]);
+    let text = streams(&args[..args.len() - 2]);
     assert!(
-        text.contains(&format!("20 flights, seed 0: {failed} failed")),
-        "{text}"
+        text.out
+            .contains(&format!("20 flights, seed 0: {failed} failed")),
+        "{}",
+        text.out
     );
-    assert!(text.contains("warning: "), "{text}");
-    assert!(text.contains("mass"), "{text}");
+    // The failed flights' reasons, on standard error.
+    assert!(text.err.contains("warning: "), "{}", text.err);
+    assert!(text.err.contains("mass"), "{}", text.err);
 }
 
 /// What `hpr mc` refuses before it flies, each by its option: a run of no flights or too many, a

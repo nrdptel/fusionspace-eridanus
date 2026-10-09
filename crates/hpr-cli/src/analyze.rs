@@ -13,7 +13,7 @@ use hpr::hpr_flightdata::log::{FlightLog, LogFormat};
 use hpr::hpr_flightdata::perfectflite::{self, FOOT_M};
 use hpr::hpr_flightdata::readings::{self, Reading, Readings, Reason, Source};
 
-use crate::console::{Level, Paint};
+use crate::console::Level;
 use crate::output::{
     Analyze, AnalyzeMethod, AnalyzedLog, ApogeeReading, HighestSample, LandingReading,
     LiftoffReading, LogFormatName, LogReading, LoggerStated, MaxAccelerationReading,
@@ -33,9 +33,14 @@ pub(crate) fn run(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     let log = read_log(&args.log)?;
     let read = readings::read(&log);
     let document = document(&args.log, &log, &read);
-    let lines = text_lines(&document, to.paint);
-    to.emit(&document, |out| {
-        lines.iter().try_for_each(|line| writeln!(out, "{line}"))
+    let lines = text_lines(&document);
+    to.emit(&document, |out, diagnostics| {
+        lines.iter().try_for_each(|line| writeln!(out, "{line}"))?;
+        document
+            .log
+            .notes
+            .iter()
+            .try_for_each(|note| diagnostics.line(Level::Note, note))
     })
 }
 
@@ -174,8 +179,9 @@ fn speed(value: f64) -> String {
     format!("{value:.1} m/s ({:.0} ft/s)", value / FOOT_M)
 }
 
-/// What `hpr analyze` prints without `--json`.
-fn text_lines(document: &Analyze, paint: Paint) -> Vec<String> {
+/// What `hpr analyze` prints on standard output without `--json`; the log's notes go to
+/// standard error after it, as `note:` lines.
+fn text_lines(document: &Analyze) -> Vec<String> {
     let log = &document.log;
     let mut about = vec![log.logger.clone()];
     if let Some(serial) = &log.serial_number {
@@ -289,11 +295,6 @@ fn text_lines(document: &Analyze, paint: Paint) -> Vec<String> {
             LogReading::Withheld(reading) => withheld(reading),
         },
     ));
-    lines.extend(
-        log.notes
-            .iter()
-            .map(|note| paint.prefixed(Level::Note, note)),
-    );
     lines
 }
 
