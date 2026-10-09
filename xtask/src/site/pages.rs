@@ -1061,6 +1061,9 @@ fn launch_one(chrome: &Path, scratch: &Scratch, tab: usize, url: &str) -> Result
         .arg("--disable-extensions")
         .arg("--disable-background-networking")
         .arg("--window-size=1920,1080")
+        // A light system, on every machine: mdBook picks a page's first theme by it, and a page
+        // read without scripts is read in that one only, so the check would differ by host.
+        .arg("--blink-settings=preferredColorScheme=1")
         .arg(format!("--user-data-dir={}", profile.display()));
     if cfg!(target_os = "macos") {
         // No prompt for the keychain from a fresh profile.
