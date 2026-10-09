@@ -348,6 +348,13 @@ fn check_written(case: &Case, document: &Value, written: &Path) {
         "{name}"
     );
     assert!(text.starts_with("{\n  \"tool\": {"), "{name}");
+    // Then the source's kind and how far to trust it, as the result names them (#409).
+    assert_eq!(file["kind"], document["kind"], "{name}");
+    assert_eq!(file["trust"], document["trust"], "{name}");
+    assert!(
+        file["trust"].as_str().is_some_and(|note| !note.is_empty()),
+        "{name}"
+    );
     let levels = document["levels"].as_array().unwrap();
     assert_eq!(levels.len(), library.profile.levels().len(), "{name}");
     for (row, level) in levels.iter().zip(library.profile.levels()) {
@@ -851,11 +858,27 @@ fn every_source_ends_with_how_far_to_trust_it() {
         "A reanalysis",
         "format/era5.html",
     ));
+    let saved = scratch.path().join("profile.json");
     for (name, args, kind, opening, page) in runs {
         let args: Vec<&str> = args.iter().map(String::as_str).collect();
-        let output = hpr(&args, &cache);
+        let mut saving = args.clone();
+        saving.extend(["--output", saved.to_str().unwrap()]);
+        let output = hpr(&saving, &cache);
         assert_eq!(output.status.code(), Some(0), "{name}: {output:?}");
         let note = closing_note(&String::from_utf8(output.stdout).unwrap());
+        // The saved profile carries the note and the kind, after the program that wrote it, and
+        // still reads as a profile (#409).
+        let text = std::fs::read_to_string(&saved).unwrap();
+        let file: Value = serde_json::from_str(&text).unwrap();
+        let keys: Vec<&str> = text
+            .lines()
+            .filter_map(|line| line.strip_prefix("  \""))
+            .filter_map(|line| line.split('"').next())
+            .collect();
+        assert_eq!(keys[..3], ["tool", "kind", "trust"], "{name}: {keys:?}");
+        assert_eq!(file["kind"], kind, "{name}");
+        assert_eq!(file["trust"], note.as_str(), "{name}");
+        serde_json::from_str::<SoundingProfile>(&text).unwrap();
         assert!(
             note.starts_with(&format!("How far to trust it. {opening}")),
             "{name}: {note}"

@@ -120,6 +120,22 @@ struct SoundingProfileData {
         reason = "read only so that the key is not refused as unknown"
     )]
     tool: Option<serde::de::IgnoredAny>,
+    /// The kind of figures the profile holds (`measured`, `forecast` or `reanalysis`), which
+    /// `hpr weather --output` writes after `tool` (#409): read past, as `tool` is.
+    #[serde(default, skip_serializing)]
+    #[expect(
+        dead_code,
+        reason = "read only so that the key is not refused as unknown"
+    )]
+    kind: Option<serde::de::IgnoredAny>,
+    /// How far to trust the profile, the note `hpr weather` ends with, written after `kind`
+    /// (#409): read past, as `tool` is.
+    #[serde(default, skip_serializing)]
+    #[expect(
+        dead_code,
+        reason = "read only so that the key is not refused as unknown"
+    )]
+    trust: Option<serde::de::IgnoredAny>,
 }
 
 impl TryFrom<SoundingProfileData> for SoundingProfile {
@@ -137,6 +153,8 @@ impl From<SoundingProfile> for SoundingProfileData {
             latitude_rad: profile.latitude_rad,
             wind_interpolation: profile.wind_interpolation,
             tool: None,
+            kind: None,
+            trust: None,
         }
     }
 }
@@ -922,6 +940,35 @@ mod tests {
         // Every other key at the top is still refused, a near miss of `tool` too.
         for key in ["tools", "latitude_deg"] {
             let unknown = bare.replacen('{', &format!("{{\"{key}\":{{}},"), 1);
+            assert!(
+                serde_json::from_str::<SoundingProfile>(&unknown).is_err(),
+                "{unknown}"
+            );
+        }
+    }
+
+    /// A profile `hpr weather --output` wrote carries its source's kind and how far to trust it
+    /// after `tool` (#409), which reading passes over too: the same profile, nothing written back.
+    #[test]
+    fn a_profile_reads_past_its_kind_and_trust_note() {
+        let bare = r#"{"latitude_rad":0.5758,"levels":[
+            {"height_msl_m":1400.0,"temperature_k":300.0,"pressure_pa":86000.0}
+        ]}"#;
+        let saved = bare.replacen(
+            '{',
+            r#"{"tool":{"name":"FusionSpace HPR","version":"0.1.0","designation":"FS-ACHERNAR · SW · TOOL 001"},"kind":"forecast","trust":"How far to trust it. A weather model's forecast.","#,
+            1,
+        );
+        let profile: SoundingProfile = serde_json::from_str(&saved).unwrap();
+        assert_eq!(profile, serde_json::from_str(bare).unwrap());
+        let written = serde_json::to_string(&profile).unwrap();
+        assert!(
+            !written.contains("kind") && !written.contains("trust"),
+            "{written}"
+        );
+        // A near miss of either key is still refused.
+        for key in ["kinds", "trusts"] {
+            let unknown = bare.replacen('{', &format!("{{\"{key}\":\"x\","), 1);
             assert!(
                 serde_json::from_str::<SoundingProfile>(&unknown).is_err(),
                 "{unknown}"
