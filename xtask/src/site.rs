@@ -89,7 +89,7 @@ use crate::workspace::{Package, Workspace};
 
 mod pages;
 pub(crate) mod theme;
-mod units;
+pub(crate) mod units;
 
 pub const USAGE: &str = "  site [--no-build] [--locked]
                            Check the documentation site's pages, build the site with

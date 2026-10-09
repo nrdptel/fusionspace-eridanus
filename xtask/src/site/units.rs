@@ -546,7 +546,7 @@ pub(super) fn si_alone_in(run: &str) -> Vec<(usize, String)> {
 
 /// `text` without the brackets that give a quantity's US units, so the numbers a page quotes
 /// from a source are the SI ones it can trace: the feet are those converted.
-pub(super) fn without_conversions(text: &str) -> String {
+pub(crate) fn without_conversions(text: &str) -> String {
     let mut spans = Vec::new();
     scan(text, |_, outcome| {
         if let Ok(Some(span)) = outcome {
