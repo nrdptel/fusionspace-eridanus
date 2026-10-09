@@ -167,7 +167,7 @@ program's path.
 ### Figures in the system's colors and fonts
 
 The same figure check holds every SVG under `docs/` and `theme/`, and each figure
-`hpr sim --plot` draws ([the command](cli.md#hpr-sim)), to the FusionSpace product system's
+`hpr sim --plot` draws (see [the command line](cli.md)), to the FusionSpace product system's
 [foundations](https://github.com/nrdptel/fusionspace-design/blob/main/product/foundations.md).
 Every color a figure paints is one of the system's color tokens, the named colors it lists by
 job (*Semantic roles*): the light theme's, such as `ink` (`#0B0F1C`) for text and `predicted`
