@@ -30,13 +30,15 @@
 //!   size, through mdBook's zoom (a checkbox in the figure's label that shows a copy over the
 //!   page). The theme lets a figure reach past the prose column for this (`theme/hpr.css`). A
 //!   figure with no size the check can read (broken, or an SVG without one) fails.
-//! - **mdBook's defaults** (#383), by computed style: every element of the body, with its
-//!   `::before` and `::after`, drawn now or hidden until asked for (the help popup, the copy
-//!   tooltip), plus a search hit and a search result added as mdBook's search makes them:
+//! - **mdBook's defaults** (#383), by computed style: the root element and every element of the
+//!   body, with its `::before` and `::after`, drawn now or hidden until asked for (the help
+//!   popup, the copy tooltip), plus a search hit and a search result added as mdBook's search
+//!   makes them:
 //!   - **a color off the system's roles** in the page's theme (`foundations.md`, *Semantic
 //!     roles*: its text, background, drawn borders, outline, underline, and an SVG's fill and
 //!     stroke). Transparent passes, and a background may be a role seen through, as a dialog's
-//!     dimmed canvas is;
+//!     dimmed canvas is. A filter, a backdrop filter or an image drawn as `::before` or `::after`
+//!     paints colors the check can't read, and fails; a search hit takes the action fill;
 //!   - **a rounded corner or a shadow** (`foundations.md`, *Lines and shape*);
 //!   - **motion off the system's durations** (0, 100, 160 or 240 ms) or easings, a smooth
 //!     scroll, or an animation that never ends (`foundations.md`, *Motion*); and with the
@@ -65,7 +67,9 @@
 //! `main`, a label cut short by its box, two labels drawn over each other, a figure shown at half
 //! its size with room for all of it, one wider than any window with no zoom, a figure reaching
 //! past a narrow `main` as the theme lays it out, which must pass, a label moved past the
-//! window's edge from such a `main`, a label off the system's colors, a rounded box, a box with
+//! window's edge from such a `main`, a label off the system's colors, the same only in navy (read
+//! after the switch), the root element off them, a label tinted by a filter, one over a backdrop
+//! filter, one with an image as its `::before`, a search hit in ink, a rounded box, a box with
 //! a shadow, a 0.3 s transition, one at the system's base duration that doesn't snap with
 //! reduced motion set and one that does, which must pass, and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
@@ -205,7 +209,7 @@ struct Canary {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 18] = [
+const CANARIES: [Canary; 23] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -342,6 +346,45 @@ const CANARIES: [Canary; 18] = [
         expect: &[Kind::Motion],
         inside: "<p style=\"transition: color 160ms cubic-bezier(0.2, 0, 0, 1)\">A label that \
                  never snaps</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-root.html",
+        what: "the page's root element in a highlighter's green, which only a read of `html` sees",
+        expect: &[Kind::Color],
+        inside: "<style>html { background: #008200; }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-filter.html",
+        what: "a label tinted by a filter, as mdBook tints its copy icon, whose colors the check \
+               can't read",
+        expect: &[Kind::Color],
+        inside: "<p style=\"filter: invert(45%)\">A tinted label</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-backdrop.html",
+        what: "a label over a blurred backdrop, a filter whose colors the check can't read",
+        expect: &[Kind::Color],
+        inside: "<p style=\"backdrop-filter: blur(2px)\">A label over a blur</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-content-image.html",
+        what: "an image drawn as a label's `::before`, whose colors the check can't read",
+        expect: &[Kind::Color],
+        inside: "<style>.icon::before { content: url(\"data:image/svg+xml,%3Csvg \
+                 xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3C/svg%3E\"); }\
+                 </style><p class=\"icon\">A label with an icon</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-mark.html",
+        what: "a search hit filled in ink, a role, but not the action fill a selection takes",
+        expect: &[Kind::Color],
+        inside: "<p>A <mark style=\"color: #F3F4F7; background: #0B0F1C\">search hit</mark> in \
+                 ink</p>",
         after: "",
     },
     Canary {
