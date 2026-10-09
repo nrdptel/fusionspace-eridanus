@@ -4604,7 +4604,10 @@ fn mc_flies_a_public_ork_as_the_library_does() {
         )),
         "{text}"
     );
-    assert!(text.contains("24 flights, seed 2026: 0 failed"), "{text}");
+    assert!(
+        text.contains("24 simulated flights, seed 2026: 0 failed"),
+        "{text}"
+    );
     assert!(text.contains("--wind-from-sd 15"), "{text}");
 }
 
@@ -4876,7 +4879,7 @@ fn mc_counts_and_prints_its_failed_flights() {
     let text = streams(&args[..args.len() - 2]);
     assert!(
         text.out
-            .contains(&format!("20 flights, seed 0: {failed} failed")),
+            .contains(&format!("20 simulated flights, seed 0: {failed} failed")),
         "{}",
         text.out
     );

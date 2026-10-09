@@ -91,6 +91,23 @@ Until FusionSpace named its products after the stars of project Eridanus, in Oct
 ([M10.1d7, the new designation](decisions-and-roadmap.md#m10-1d7)), the simulator wrote
 `FS · SW · TOOL 005`; files stamped that way still read.
 
+### The accuracy note on every result
+
+`hpr sim` and `hpr mc` end their text result, and the plot, with a three-part trust note: what
+kind of figure this is, what the apogee was checked against, with
+numbers, and what to rely on instead. It is on standard output, so `> flight.txt` keeps it, and
+`--json` carries it as `trust`, with `kind` set to `simulated`
+([ADR-211](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0211-how-far-to-trust-a-result.md), the decision).
+
+The numbers cover the apogee only: 55 logged flights of fliers' own designs, each logged apogee
+the height climbed in the day's air. The simulated apogee averaged 9.8% above the logged one; it
+was within 10% on 27 and read low on 14, by at most 20%
+([Accuracy: real flights of the private collection](accuracy.md#real-flights-of-the-private-collection)).
+Speed, drift and the margin have no measured spread yet. The note asks for room above the apogee
+when planning a waiver (the permission to fly above a height limit), and leaves the call to the
+RSO, the range safety officer. `hpr weather`, `hpr analyze` and `hpr motors show` print no note:
+their figures are read or fetched, not simulated.
+
 ### Colors and messages
 
 The result alone goes to standard output. Every message line goes to standard error: a refusal,
@@ -210,6 +227,7 @@ file names an AeroTech H128W, which isn't among the 32 motors built into the sim
 $ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54
 pods-none (pods-none.ork)
 configuration 1 of 1: [H128W-0] with --motor H54
+a simulated flight, not a measurement
 
 static margin         2.69 calibres off the rail; least 2.69 calibres, at 0.15 s, before apogee
 CG and CP             0.480 m (18.9 in) and 0.641 m (25.2 in) aft of the nose tip, off the rail
@@ -220,7 +238,6 @@ descent               no recovery device opened, so the fall is not a prediction
 
 motor: 1 × 168H54-10A (from the bundled catalog) in `Motor mount`, lit at launch
 launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
-help: see the Accuracy page before trusting these numbers: https://hpr.fusionspace.co/accuracy.html
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
@@ -236,6 +253,13 @@ ground hit           29.71 s      0.0 m      (0 ft)    65.9 m/s   (216 ft/s)
 top speed             178.3 m/s (585 ft/s) at 2.31 s
 top Mach number       0.525
 landing               17.4 m (57 ft) from the pad at 29.71 s, at 65.9 m/s (216 ft/s): with no recovery device opened soon after apogee, not a prediction
+
+How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
+fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
+averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
+log, and the RSO decides.
+More: https://hpr.fusionspace.co/accuracy.html
 ```
 
 <!-- cli: end -->
@@ -245,6 +269,7 @@ What each part says:
 | lines | what they say |
 |---|---|
 | the first two | the rocket's name and its file; the [configuration](glossary.md#configuration) flown, by its number in the file and its name ([below](#the-motor-and-the-configuration)). `[H128W-0]` is the file's unnamed configuration, called by the motor it holds, and `with --motor H54` says the H54 flew in its place. The file's other configurations follow, each with why it doesn't fly as read, if it doesn't |
+| `a simulated flight, not a measurement` | that every figure below comes from a model of the flight, not from a measurement |
 | `static margin` | the [static margin](glossary.md#stability-margin) as the rocket leaves the rail, in [calibres](glossary.md#calibre-caliber), at Mach 0, and its least value from there to apogee. Each is the weakest direction's: a rocket with a fin set of one or two fins has a different margin for each direction the air crosses it, and the simulator prints the least; the JSON's `roll_rad` gives that direction ([Flight metrics](physics/metrics.md#stability-margins)) |
 | `CG and CP` | the stations the margin off the rail comes from: the [center of gravity](glossary.md#center-of-gravity-cg) and the [center of pressure](glossary.md#center-of-pressure-cp), each in meters and inches aft of the nose tip, as the rocket leaves the rail. The margin is their distance apart over the reference diameter. The JSON gives them as `cg_station_m` and `cp_station_m` |
 | `apogee` | the [apogee](glossary.md#apogee): the height of the center of gravity above the site, and when |
@@ -321,6 +346,7 @@ drogue as the main opens, then at landing:
 $ hpr sim validation/fixtures/ork/loft-demo/demo-dual-deploy.ork --motor H54
 Loft Demo 54mm — dual deploy (demo-dual-deploy.ork)
 configuration 1 of 1: [K550W-P] with --motor H54
+a simulated flight, not a measurement
 
 static margin         6.25 calibres off the rail; least 6.25 calibres, at 0.27 s, before apogee
 CG and CP             1.005 m (39.6 in) and 1.354 m (53.3 in) aft of the nose tip, off the rail
@@ -333,7 +359,6 @@ motor: 1 × 168H54-10A (from the bundled catalog) in `Booster / motor bay`, lit 
 recovery: `Main parachute` at 150 m (492 ft) on the way down, 1.052 m² of drag area, opened at 22.41 s
 recovery: `Drogue parachute` at apogee, 0.133 m² of drag area, opened at 9.12 s
 launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
-help: see the Accuracy page before trusting these numbers: https://hpr.fusionspace.co/accuracy.html
 note: the file's 2 recovery devices fly as OpenRocket flies them: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
@@ -353,6 +378,13 @@ ground hit           53.94 s      0.0 m      (0 ft)     4.7 m/s    (15 ft/s)
 top speed             65.9 m/s (216 ft/s) at 2.73 s
 top Mach number       0.194
 landing               0.4 m (1 ft) from the pad at 53.94 s, at 4.7 m/s (15 ft/s)
+
+How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
+fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
+averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
+log, and the RSO decides.
+More: https://hpr.fusionspace.co/accuracy.html
 ```
 
 <!-- cli: end -->
@@ -521,6 +553,7 @@ flies the same rocket from Spaceport America's field, on a rail leaning 5° into
 $ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --latitude 32.99 --longitude -106.97 --elevation 1400 --rail-length 3 --inclination 85 --heading 270 --wind 5 --wind-from 270
 pods-none (pods-none.ork)
 configuration 1 of 1: [H128W-0] with --motor H54
+a simulated flight, not a measurement
 
 static margin         2.71 calibres off the rail; least 2.71 calibres, at 0.21 s, before apogee
 CG and CP             0.478 m (18.8 in) and 0.641 m (25.2 in) aft of the nose tip, off the rail
@@ -531,7 +564,6 @@ descent               no recovery device opened, so the fall is not a prediction
 
 motor: 1 × 168H54-10A (from the bundled catalog) in `Motor mount`, lit at launch
 launched at 32.99° N, 106.97° W, 1400 m (4593 ft) above sea level, from a 3 m (9.8 ft) rail 85° above the horizon, leaning toward 270°, in a 5 m/s (11 mph) wind from 270°
-help: see the Accuracy page before trusting these numbers: https://hpr.fusionspace.co/accuracy.html
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
@@ -547,6 +579,13 @@ ground hit           28.71 s      0.0 m      (0 ft)    70.3 m/s   (230 ft/s)
 top speed             184.3 m/s (605 ft/s) at 2.35 s
 top Mach number       0.556
 landing               310.4 m (1018 ft) from the pad at 28.71 s, at 70.3 m/s (230 ft/s): with no recovery device opened soon after apogee, not a prediction
+
+How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
+fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
+averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
+log, and the RSO decides.
+More: https://hpr.fusionspace.co/accuracy.html
 ```
 
 <!-- cli: end -->
@@ -765,7 +804,7 @@ $ hpr mc validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --runs 20
 pods-none (pods-none.ork)
 configuration 1 of 1: [H128W-0] with --motor H54
 
-200 flights, seed 2026: 0 failed
+200 simulated flights, seed 2026: 0 failed
                         nominal     mean  std dev       5%   median      95%
 apogee (m AGL)            813.9    819.4     34.4    765.0    818.8    870.8
 apogee (ft AGL)            2670     2688      113     2510     2686     2857
@@ -780,11 +819,17 @@ landing ellipse                   semi-major            semi-minor  heading   fl
 
 motor: 1 × 168H54-10A (from the bundled catalog) in `Motor mount`, lit at launch
 launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) rail 85° above the horizon, leaning toward 270°, in a 4 m/s (9 mph) wind from 270°
-help: see the Accuracy page before trusting these numbers: https://hpr.fusionspace.co/accuracy.html
 scattered, one standard deviation each: --mass-sd 0.02, --drag-sd 0.05, --impulse-sd 0.03, --burn-time-sd 0.02, --wind-sd 0.25, --wind-from-sd 15, --inclination-sd 1, --heading-sd 2
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag, the nominal flight: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability, the nominal flight: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
+
+How far to trust it. Simulated from the design file, not measured; the spread above comes from the
+inputs' scatter alone, not from the model's error. Against 55 logged flights of fliers' own designs,
+each logged apogee the height climbed in the day's air, the simulated apogee averaged 9.8% above the
+logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan a waiver or a field's
+ceiling with room above this apogee; the altimeter's reading is the one to log, and the RSO decides.
+More: https://hpr.fusionspace.co/accuracy.html
 ```
 
 <!-- cli: end -->
@@ -1084,7 +1129,7 @@ None costs $150.00 or less: of the 20 motors in stock the other filters pass, th
 > motor. Fetching online is not tested automatically. Whether a vendor really has a motor at that
 > price is the vendor's to say. A list fetched now, or read from a copy under an hour old, can be
 > up to two hours behind the vendors' pages. A list read with `--offline`, with `--from`, or after a failed fetch is as old as the
-> "built" time on its first line ([How far to trust it](motor-stock.md)).
+> "built" time on its first line ([how far to trust the stock list](motor-stock.md)).
 
 ### Motors from ThrustCurve.org
 

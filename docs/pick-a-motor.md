@@ -93,6 +93,7 @@ $ hpr sim validation/fixtures/ork/guides/level-1.ork --motor H125-CT --delay 10
 Level 1 guide rocket (level-1.ork)
 configuration 1 of 2: [H170M-10] with --motor H125-CT --delay 10
 help: --config flies the others, by number or name: 2 [I175WS-9]
+a simulated flight, not a measurement
 
 static margin         1.59 calibres off the rail; least 1.59 calibres, at 0.17 s, before apogee
 CG and CP             0.818 m (32.2 in) and 0.923 m (36.3 in) aft of the nose tip, off the rail
@@ -104,7 +105,6 @@ descent               4.7 m/s (15 ft/s) at landing under `Parachute`
 motor: 1 × H125-CT (from the bundled catalog) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 12.00 s
 launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
-help: see the Accuracy page before trusting these numbers: https://hpr.fusionspace.co/accuracy.html
 note: the file's 1 recovery device flies as OpenRocket flies it: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
@@ -122,6 +122,13 @@ ground hit          202.71 s      0.0 m      (0 ft)     4.7 m/s    (15 ft/s)
 top speed             217.0 m/s (712 ft/s) at 1.56 s
 top Mach number       0.639
 landing               0.7 m (2 ft) from the pad at 202.71 s, at 4.7 m/s (15 ft/s)
+
+How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
+fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
+averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
+log, and the RSO decides.
+More: https://hpr.fusionspace.co/accuracy.html
 ```
 
 <!-- cli: end -->
@@ -135,6 +142,7 @@ $ hpr sim validation/fixtures/ork/guides/level-1.ork --motor I377-CT --delay 10
 Level 1 guide rocket (level-1.ork)
 configuration 1 of 2: [H170M-10] with --motor I377-CT --delay 10
 help: --config flies the others, by number or name: 2 [I175WS-9]
+a simulated flight, not a measurement
 
 static margin         1.18 calibres off the rail; least 1.18 calibres, at 0.08 s, before apogee
 CG and CP             0.845 m (33.3 in) and 0.923 m (36.3 in) aft of the nose tip, off the rail
@@ -146,7 +154,6 @@ descent               5.0 m/s (16 ft/s) at landing under `Parachute`
 motor: 1 × I377-CT (from the bundled catalog) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 11.43 s
 launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
-help: see the Accuracy page before trusting these numbers: https://hpr.fusionspace.co/accuracy.html
 note: the file's 1 recovery device flies as OpenRocket flies it: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
 warning: design checks: the motor in `Motor mount tube` reaches 22.0 mm past the mount's forward end (configuration [H170M-10] with --motor I377-CT --delay 10)
 warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 1.10 at 1.1 s (https://github.com/nrdptel/fusionspace-eridanus/issues/67)
@@ -168,6 +175,13 @@ ground hit          269.86 s      0.0 m      (0 ft)     5.0 m/s    (16 ft/s)
 top speed             371.7 m/s (1219 ft/s) at 1.08 s
 top Mach number       1.095
 landing               0.8 m (3 ft) from the pad at 269.86 s, at 5.0 m/s (16 ft/s)
+
+How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
+fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
+averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
+log, and the RSO decides.
+More: https://hpr.fusionspace.co/accuracy.html
 ```
 
 <!-- cli: end -->
@@ -227,6 +241,7 @@ $ hpr sim validation/fixtures/ork/guides/level-1.ork --config 2
 Level 1 guide rocket (level-1.ork)
 configuration 2 of 2: [I175WS-9]
 help: --config flies the others, by number or name: 1 [H170M-10]
+a simulated flight, not a measurement
 
 static margin         1.67 calibres off the rail; least 1.67 calibres, at 0.14 s, before apogee
 CG and CP             0.813 m (32.0 in) and 0.923 m (36.3 in) aft of the nose tip, off the rail
@@ -238,7 +253,6 @@ descent               4.5 m/s (15 ft/s) at landing under `Parachute`
 motor: 1 × I175WS (the design's) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 10.97 s
 launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
-help: see the Accuracy page before trusting these numbers: https://hpr.fusionspace.co/accuracy.html
 note: the file's 1 recovery device flies as OpenRocket flies it: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
 warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.83 at 1.8 s (https://github.com/nrdptel/fusionspace-eridanus/issues/67)
 warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.83 at 1.8 s (https://github.com/nrdptel/fusionspace-eridanus/issues/68)
@@ -258,6 +272,13 @@ ground hit          247.48 s      0.0 m      (0 ft)     4.5 m/s    (15 ft/s)
 top speed             281.3 m/s (923 ft/s) at 1.75 s
 top Mach number       0.830
 landing               0.7 m (2 ft) from the pad at 247.48 s, at 4.5 m/s (15 ft/s)
+
+How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
+fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
+averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
+log, and the RSO decides.
+More: https://hpr.fusionspace.co/accuracy.html
 ```
 
 <!-- cli: end -->

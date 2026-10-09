@@ -24,12 +24,12 @@
 //!   flight's, as `hpr mc` flies it (`montecarlo`): the library's
 //!   `hpr_analysis::montecarlo::MonteCarlo` run on every core, its `RunTable` as NumPy arrays.
 //!
-//! **How far to trust it:** the bindings add no physics. Each call hands its arguments to the
-//! [`hpr`] builder and returns what it returns, so a flight made in Python runs the same code as
-//! the one the Rust builder makes from the same numbers; the package's tests fly the builder's
-//! example rocket and match every digit the Rust example prints (the last digits can differ
-//! between a release and a debug build). The guide's [Accuracy][guide-accuracy] page says how
-//! good the models themselves are.
+//! > **How far to trust it.** The bindings add no physics. Each call hands its arguments to the
+//! > [`hpr`] builder and returns what it returns, so a flight made in Python runs the same code as
+//! > the one the Rust builder makes from the same numbers; the package's tests fly the builder's
+//! > example rocket and match every digit the Rust example prints (the last digits can differ
+//! > between a release and a debug build). The guide's [Accuracy][guide-accuracy] page says how
+//! > good the models themselves are.
 //!
 //! [guide-accuracy]: https://hpr.fusionspace.co/accuracy.html
 //!

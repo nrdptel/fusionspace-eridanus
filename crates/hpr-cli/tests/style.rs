@@ -20,6 +20,9 @@ use serde_json::Value;
 
 /// A design that flies offline with `--motor H54`.
 const PROBE: &str = "validation/fixtures/ork/pod-flights/pods-none.ork";
+/// A design with two configurations, whose flight of the first prints a `help:` line naming the
+/// other.
+const TWO_CONFIGURATIONS: &str = "validation/fixtures/ork/guides/level-1.ork";
 /// The escape that starts every color code.
 const ESCAPE: &str = "\u{1b}[";
 /// The color variables `cli.md` names, cleared before each run so the shell running the tests
@@ -133,14 +136,7 @@ fn prefixes_are_colored_in_their_roles() {
         "{stderr:?}"
     );
     let flown = run(
-        &[
-            "sim",
-            &repo_file(PROBE),
-            "--motor",
-            "H54",
-            "--color",
-            "always",
-        ],
+        &["sim", &repo_file(TWO_CONFIGURATIONS), "--color", "always"],
         &[],
     );
     assert_eq!(flown.status.code(), Some(0), "{flown:?}");
@@ -148,7 +144,7 @@ fn prefixes_are_colored_in_their_roles() {
     assert!(
         stderr
             .lines()
-            .any(|line| line.starts_with("\u{1b}[1m\u{1b}[34mhelp:\u{1b}[0m see the Accuracy page")),
+            .any(|line| line.starts_with("\u{1b}[1m\u{1b}[34mhelp:\u{1b}[0m --config flies")),
         "{stderr:?}"
     );
     let stdout = String::from_utf8(flown.stdout).unwrap();
@@ -162,8 +158,8 @@ fn prefixes_are_colored_in_their_roles() {
 #[test]
 fn a_results_diagnostics_take_standard_errors_color() {
     use hpr_cli::console::Console;
-    let probe = repo_file(PROBE);
-    let args = ["hpr", "sim", &probe, "--motor", "H54"];
+    let design = repo_file(TWO_CONFIGURATIONS);
+    let args = ["hpr", "sim", &design];
     for (stdout_terminal, stderr_terminal) in [(true, false), (false, true)] {
         let console = Console {
             stdout_terminal,
@@ -175,9 +171,9 @@ fn a_results_diagnostics_take_standard_errors_color() {
         assert_eq!(exit, hpr_cli::Exit::Success);
         let err = String::from_utf8(err).unwrap();
         let help = if stderr_terminal {
-            "\u{1b}[1m\u{1b}[34mhelp:\u{1b}[0m see the Accuracy page"
+            "\u{1b}[1m\u{1b}[34mhelp:\u{1b}[0m --config flies"
         } else {
-            "help: see the Accuracy page"
+            "help: --config flies"
         };
         assert!(
             err.lines().any(|line| line.starts_with(help)),

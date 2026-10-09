@@ -7,15 +7,15 @@ observations of the time. HPR Sim reads ERA5's pressure-level files to fly a roc
 of a real day: the temperature, pressure and wind over the launch site, from the ground up to a few
 kilometers or more.
 
-**How far to trust it.** HPR Sim reads these files the way RocketPy does, to 12 digits, on two real
-launch days (below). What it does with the numbers differs from RocketPy in four places. Two are
-measured here: the heights of the levels, and a launch between two of the file's hours. Two are not
-measured yet: the pressure between levels, and the air above the file's top level. Seven
-real flights have been flown in ERA5 weather and compared with their logs
-([real flights](../accuracy.md#real-flights), milestone
-[M2.3b](../decisions-and-roadmap.md#m2-3b)): their apogees miss by 6.04% on average, outside the
-5% target. Humidity is
-not read yet, so the air is taken as dry.
+> **How far to trust it.** A reanalysis, read from a file. HPR Sim reads these files the way RocketPy does, to 12 digits, on two real
+> launch days (below). What it does with the numbers differs from RocketPy in four places. Two are
+> measured here: the heights of the levels, and a launch between two of the file's hours. Two are not
+> measured yet: the pressure between levels, and the air above the file's top level. Seven
+> real flights have been flown in ERA5 weather and compared with their logs
+> ([real flights](../accuracy.md#real-flights), milestone
+> [M2.3b](../decisions-and-roadmap.md#m2-3b)): their apogees miss by 6.04% on average, outside the
+> 5% target. Humidity is
+> not read yet, so the air is taken as dry.
 
 Code: `hpr_io::era5` and `hpr_io::netcdf`
 ([API reference](../api/hpr_io/era5/index.html)), written for the ERA5-weather milestone

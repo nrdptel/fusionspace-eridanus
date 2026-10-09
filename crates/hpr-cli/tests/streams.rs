@@ -130,8 +130,14 @@ fn sim_writes_its_diagnostics_to_stderr() {
     let design = repo_file(LEVEL_1);
     let printed = split(&["sim", &design], cache.path(), &PREFIXES);
     assert!(printed.out.contains("\napogee "), "{}", printed.out);
-    // The issue's count: seven lines, which once went to standard output.
-    assert_eq!(printed.err.lines().count(), 7, "{}", printed.err);
+    // The issue's count was seven lines, which once went to standard output; the help line
+    // pointing at the Accuracy page has since become the trust note that ends the result.
+    assert_eq!(printed.err.lines().count(), 6, "{}", printed.err);
+    assert!(
+        printed.out.contains("\nHow far to trust it. Simulated"),
+        "{}",
+        printed.out
+    );
 }
 
 #[test]
@@ -144,7 +150,7 @@ fn mc_writes_its_diagnostics_to_stderr() {
         &PREFIXES,
     );
     assert!(
-        printed.out.contains("3 flights, seed 1: "),
+        printed.out.contains("3 simulated flights, seed 1: "),
         "{}",
         printed.out
     );

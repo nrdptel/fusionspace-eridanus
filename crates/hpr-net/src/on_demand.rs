@@ -23,10 +23,10 @@
 //! network. Nothing is bundled: ThrustCurve states no license for its records, and each file
 //! carries its own ([`DataFile::license`]), which the caller shows.
 //!
-//! **How far to trust it:** the curve is the file a contributor uploaded, as ThrustCurve serves
-//! it; which file is taken is the rule above, not a judgement of which is right. A name is matched
-//! as ThrustCurve's search matches it (on 2026-10-04, a designation exactly but for case), so a
-//! name ThrustCurve spells differently is not found rather than wrongly matched.
+//! > **How far to trust it.** The curve is the file a contributor uploaded, as ThrustCurve serves
+//! > it; which file is taken is the rule above, not a judgement of which is right. A name is matched
+//! > as ThrustCurve's search matches it (on 2026-10-04, a designation exactly but for case), so a
+//! > name ThrustCurve spells differently is not found rather than wrongly matched.
 //!
 //! [m4-5b]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m4-5b
 //! [adr-154]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0154-motors-fetched-from-thrustcurve-by-name.md

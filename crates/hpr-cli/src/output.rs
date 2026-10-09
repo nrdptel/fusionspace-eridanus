@@ -334,6 +334,12 @@ pub enum WarningKind {
 pub struct SimFlight {
     /// The design and the configuration flown.
     pub design: SimDesign,
+    /// What kind of result this is: every figure in it is simulated, none measured.
+    pub kind: crate::trust::Kind,
+    /// The trust note the text form ends with: what the figures are, what HPR Sim's apogee
+    /// was checked against, with the committed report's numbers, and what to rely on instead
+    /// (decision record ADR-211).
+    pub trust: String,
     /// The motors flown.
     pub motors: Vec<SimMotor>,
     /// The recovery devices flown, in the file's order: a `.ork`'s parachutes and streamers as
@@ -371,6 +377,12 @@ pub struct SimFlight {
 pub struct McRun {
     /// The design and the configuration flown.
     pub design: SimDesign,
+    /// What kind of result this is: every figure in it is simulated, none measured.
+    pub kind: crate::trust::Kind,
+    /// The trust note the text form ends with: what the figures are, what HPR Sim's apogee
+    /// was checked against, with the committed report's numbers, and what to rely on instead
+    /// (decision record ADR-211).
+    pub trust: String,
     /// The motors flown.
     pub motors: Vec<SimMotor>,
     /// The nominal launch site, rail and wind, which the flights scatter about.

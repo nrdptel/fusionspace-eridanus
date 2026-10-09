@@ -16,15 +16,15 @@ A document of the older version 0.1 is migrated when it is read. Rust programs c
 through the `hpr_format` library, and TypeScript and Python programs through types generated from
 the schema, each with a reader that checks a document ([TypeScript and Python](#typescript-and-python)).
 
-**How far to trust it.** Converting keeps everything the simulator read from the `.ork` except the
-reader's warnings. This project's checks use 75 `.ork` files and read 73. Each of the 73 goes `.ork`
-→ `.hpr` → `.ork` and comes back as the same design, bit for bit, and as the `.ork` the simulator
-writes from the original, byte for byte. That `.ork` is close to the original file but not the same:
-[what the writer changes](ork.md#writing-a-ork-back-out) says how. The 109 motor configurations that
-fly, spread over 30 of the designs, reach the same apogee from the `.ork`, from the document, and
-from the `.ork` written from the document, bit for bit. These counts come from a run on the
-developers' machine that includes other people's private designs; the automatic checks repeat the
-checks, not the counts, on the 17 public ones ([checked on real designs](#checked-on-real-designs)).
+> **How far to trust it.** A copy of what was read. Converting keeps everything the simulator read from the `.ork` except the
+> reader's warnings. This project's checks use 75 `.ork` files and read 73. Each of the 73 goes `.ork`
+> → `.hpr` → `.ork` and comes back as the same design, bit for bit, and as the `.ork` the simulator
+> writes from the original, byte for byte. That `.ork` is close to the original file but not the same:
+> [what the writer changes](ork.md#writing-a-ork-back-out) says how. The 109 motor configurations that
+> fly, spread over 30 of the designs, reach the same apogee from the `.ork`, from the document, and
+> from the `.ork` written from the document, bit for bit. These counts come from a run on the
+> developers' machine that includes other people's private designs; the automatic checks repeat the
+> checks, not the counts, on the 17 public ones ([checked on real designs](#checked-on-real-designs)).
 
 **Keep your `.ork` too.** The format is version 0.2, a draft until FusionSpace HPR's first release.
 A document of version 0.1 still reads, but 0.1 didn't record whether the rocket's airframe was read
@@ -275,7 +275,7 @@ descriptions are the types' documentation. It refuses every key the version does
 reader does. The simulator's reader refuses what the schema refuses, such as a
 `provenance.source.sha256` that isn't 64 lowercase hexadecimal digits, and names the place; tests
 hold it to the schema on thousands of altered documents
-([how far to trust the readers](#how-far-to-trust-the-readers)). A few rules the schema can't
+([how the readers are checked](#how-the-readers-are-checked)). A few rules the schema can't
 express, so a document can pass the schema and still be refused by the simulator: a source file's
 base64 must decode, no two source files share a name, a name can't be `rocket.ork` or a folder's,
 and every embedded thrust curve must be among the source files. Version 0.1's schema stays beside
@@ -288,8 +288,8 @@ Programs in TypeScript (or JavaScript) and Python can read a document with types
 schema. Each language gets one file, with a reader that checks a document against the schema.
 Three limits come first:
 
-- The readers check what the schema checks, not everything the simulator does ([how far to trust
-  them](#how-far-to-trust-the-readers)).
+- The readers check what the schema checks, not everything the simulator does ([how they are
+  checked](#how-the-readers-are-checked)).
 - They read version 0.2 only, which is a draft, so copy the file again when the HPR design format's
   version changes.
 - They read designs; they don't fly them. To fly a design from Python, use the `fusionspace-hpr` package
@@ -391,7 +391,7 @@ Each prints:
 read demo-dual-deploy.hpr: stages 1, parts 7, motor configurations 1
 ```
 
-### How far to trust the readers
+### How the readers are checked
 
 Both are checked on every change:
 

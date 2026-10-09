@@ -21,13 +21,13 @@
 //! radians finds its cached answer. The ground doesn't move, so a copy stays fresh for [`TTL_S`],
 //! a year. Show [`ATTRIBUTION`] (it is on every [`Fetched`]) wherever the height is shown.
 //!
-//! **How far to trust it:** a height is the answer's number, unchanged (`tests/elevation.rs`).
-//! The recorded heights are whole meters; Open-Meteo doesn't document its rounding. The handbook
-//! states the DEM's absolute vertical accuracy as under 4 m (90% linear error), a global mean
-//! outside Antarctica and Greenland (Table 1, p. 10); in 184 of the 16,363 geotiles there, each
-//! about a degree across (1.1%; the table's 0.9% is of all tiles), it is over 10 m (Table 12,
-//! p. 31). Nothing here measures it. The [guide page][guide]
-//! says more.
+//! > **How far to trust it.** A height is the answer's number, unchanged (`tests/elevation.rs`).
+//! > The recorded heights are whole meters; Open-Meteo doesn't document its rounding. The handbook
+//! > states the DEM's absolute vertical accuracy as under 4 m (90% linear error), a global mean
+//! > outside Antarctica and Greenland (Table 1, p. 10); in 184 of the 16,363 geotiles there, each
+//! > about a degree across (1.1%; the table's 0.9% is of all tiles), it is over 10 m (Table 12,
+//! > p. 31). Nothing here measures it. The [guide page][guide]
+//! > says more.
 //!
 //! ```
 //! use hpr_net::elevation::{self, Place};

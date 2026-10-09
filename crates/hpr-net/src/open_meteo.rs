@@ -49,9 +49,9 @@
 //! offline from the cache only; an answer that doesn't parse is never cached. The data is licensed
 //! CC BY 4.0: show [`ATTRIBUTION`] (it is on every [`Fetched`]) wherever the weather is shown.
 //!
-//! **How far to trust it:** the profile gives back every level it keeps as recorded (the tests);
-//! how good the forecast is depends on the weather model, and nothing here measures that. The
-//! [guide page][guide] says more.
+//! > **How far to trust it.** The profile gives back every level it keeps as recorded (the tests);
+//! > how good the forecast is depends on the weather model, and nothing here measures that. The
+//! > [guide page][guide] says more.
 //!
 //! ```
 //! use hpr_atmos::WindInterpolation;

@@ -45,6 +45,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9b The design audit ([Phase 0](#phase-0-foundations))
 - M0.9c1 Diagnostics on stderr ([Phase 0](#phase-0-foundations))
 - M0.9c2 US units in brackets ([Phase 0](#phase-0-foundations))
+- M0.9c3 How far to trust a result ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -385,6 +386,9 @@ One line per milestone or increment, in the order it was archived within its pha
       every item it lists: feet and feet per second in brackets wherever `hpr sim` and `hpr mc`
       print a height or speed, and on the plot's axes; `hpr motors show` gives the class's
       impulse range and the propellant's name; the summary gives the CG and CP stations.
+    - [x] **M0.9c3 How far to trust a result** (#379, ADR-211). *Done when:* #379 is closed, with every
+      item it lists: a trust note with the report's spread on `hpr sim`'s and `hpr mc`'s text
+      and on the plot; headline values labelled simulated; one trust-note shape on the site.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

@@ -8,7 +8,7 @@ member decide. HPR Sim's margin at rod clearance agrees with OpenRocket 24.12's 
 [calibres](glossary.md#calibre-caliber) on 41 of OpenRocket's 53 example flights, but no margin
 of HPR Sim's has been checked against a measured rocket. On OpenRocket's two pod examples it reads
 0.07 calibres above OpenRocket's, and near the speed of sound its flight margin reads high
-([how far to trust it](#how-far-to-trust-the-margin)). The outputs on this page
+([accuracy of the margin](#accuracy-of-the-margin)). The outputs on this page
 are made by running each command, and CI checks that they still match what `hpr` prints.
 
 The steps:
@@ -57,6 +57,7 @@ $ hpr sim validation/fixtures/ork/guides/level-1.ork
 Level 1 guide rocket (level-1.ork)
 configuration 1 of 2: [H170M-10]
 help: --config flies the others, by number or name: 2 [I175WS-9]
+a simulated flight, not a measurement
 
 static margin         1.70 calibres off the rail; least 1.70 calibres, at 0.12 s, before apogee
 CG and CP             0.811 m (31.9 in) and 0.923 m (36.3 in) aft of the nose tip, off the rail
@@ -68,7 +69,6 @@ descent               4.4 m/s (15 ft/s) at landing under `Parachute`
 motor: 1 × H170M (the design's) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 12.14 s
 launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
-help: see the Accuracy page before trusting these numbers: https://hpr.fusionspace.co/accuracy.html
 note: the file's 1 recovery device flies as OpenRocket flies it: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
 warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.84 at 1.7 s (https://github.com/nrdptel/fusionspace-eridanus/issues/67)
 warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.84 at 1.7 s (https://github.com/nrdptel/fusionspace-eridanus/issues/68)
@@ -88,6 +88,13 @@ ground hit          245.78 s      0.0 m      (0 ft)     4.4 m/s    (15 ft/s)
 top speed             285.6 m/s (937 ft/s) at 1.73 s
 top Mach number       0.842
 landing               0.7 m (2 ft) from the pad at 245.78 s, at 4.4 m/s (15 ft/s)
+
+How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
+fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
+averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
+log, and the RSO decides.
+More: https://hpr.fusionspace.co/accuracy.html
 ```
 
 <!-- cli: end -->
@@ -121,6 +128,7 @@ $ hpr sim validation/fixtures/ork/guides/level-1.ork --config 2
 Level 1 guide rocket (level-1.ork)
 configuration 2 of 2: [I175WS-9]
 help: --config flies the others, by number or name: 1 [H170M-10]
+a simulated flight, not a measurement
 
 static margin         1.67 calibres off the rail; least 1.67 calibres, at 0.14 s, before apogee
 CG and CP             0.813 m (32.0 in) and 0.923 m (36.3 in) aft of the nose tip, off the rail
@@ -132,7 +140,6 @@ descent               4.5 m/s (15 ft/s) at landing under `Parachute`
 motor: 1 × I175WS (the design's) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 10.97 s
 launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
-help: see the Accuracy page before trusting these numbers: https://hpr.fusionspace.co/accuracy.html
 note: the file's 1 recovery device flies as OpenRocket flies it: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
 warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.83 at 1.8 s (https://github.com/nrdptel/fusionspace-eridanus/issues/67)
 warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.83 at 1.8 s (https://github.com/nrdptel/fusionspace-eridanus/issues/68)
@@ -152,6 +159,13 @@ ground hit          247.48 s      0.0 m      (0 ft)     4.5 m/s    (15 ft/s)
 top speed             281.3 m/s (923 ft/s) at 1.75 s
 top Mach number       0.830
 landing               0.7 m (2 ft) from the pad at 247.48 s, at 4.5 m/s (15 ft/s)
+
+How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
+fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
+averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
+log, and the RSO decides.
+More: https://hpr.fusionspace.co/accuracy.html
 ```
 
 <!-- cli: end -->
@@ -212,11 +226,19 @@ motor out of the measurement: an override never covers a motor, in HPR Sim or Op
 add the motor's own mass, so a rocket weighed with its motor in would carry it twice. The margin
 then rests on your rocket's measured mass, not the drawing's.
 
-## How far to trust the margin
+<a id="how-far-to-trust-the-margin"></a>
 
-**HPR Sim's margin has been compared with OpenRocket's, not with a measured rocket.** Both programs
-start from Barrowman's method, so agreement says HPR Sim computes it as OpenRocket does, not that
-either is right ([Accuracy](accuracy.md#the-census)).
+## Accuracy of the margin
+
+> **How far to trust it.** A computed margin, compared with OpenRocket's, not with a measured
+> rocket. Both programs start from Barrowman's method, so agreement says HPR Sim computes it as
+> OpenRocket does, not that either is right ([Accuracy](accuracy.md#the-census)). On OpenRocket's
+> examples it is within 0.016 calibres on 41 of 53 flights. It reads up to 0.1108 calibres above
+> OpenRocket's on private designs, and high near the speed of sound: the flattering side, so leave
+> room for it near any limit. On a design with tube fins, pods or freeform fins, check the margin
+> in both programs and treat the smaller as the more cautious figure, not a bound.
+
+In detail:
 
 - **OpenRocket's examples:** within 0.016 calibres on 41 of 53 flights, with HPR Sim's margin taken
   with the air along the rocket's axis, as OpenRocket's is. The margin `hpr sim` prints is the

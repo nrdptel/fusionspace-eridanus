@@ -20,25 +20,25 @@ This page is for anyone who wants a flight in a named NOAA model's forecast, rat
 Open-Meteo's choice of model ([Launch-day weather](weather.md)) or a weather balloon's
 measurement ([Weather-balloon soundings](soundings.md)).
 
-**How far to trust it.**
-
-- HPR Sim's decoder gives every value in the two recorded files that ecCodes, the European weather
-  center's reference decoder, gives: all 6,123 values within 2.2e-16 of each other, relatively
-  (one rounding in the last binary digit). The profile gives back those values, interpolated to
-  the site, at every level it keeps. That is checked below.
-- A whole GFS file you download yourself reads too ([A whole GFS file](#a-whole-gfs-file)): every
-  one of the 746,770,303 values in one such file is within 4.4e-16 of ecCodes', relatively, and
-  its profile at Spaceport America is the recorded cut's to 1.04e-7. That check was a script run
-  once outside CI; CI checks eight of the file's messages.
-- How good a forecast is depends on the model, and nothing here measures that: no forecast has
-  been compared with a weather balloon or a flight log.
-- The pad sits on the model's ground, which is smoothed: at Spaceport America it is 1,476 m in
-  GFS and 1,429 m in RAP, where Open-Meteo gives 1,400 m
-  ([Launch-day weather's example](weather.md#an-example)).
-- Fields packed as JPEG 2000 images, as in RAP's whole files, read too: four public RAP fields,
-  182,443 points, match ecCodes in CI ([Files in JPEG 2000](#files-in-jpeg-2000)). No whole RAP
-  file has been tried.
-- The tests replay two recorded answers; the live connection to NOMADS is not tested in CI.
+> **How far to trust it.** A weather model's forecast, read as the model wrote it.
+>
+> - HPR Sim's decoder gives every value in the two recorded files that ecCodes, the European weather
+>   center's reference decoder, gives: all 6,123 values within 2.2e-16 of each other, relatively
+>   (one rounding in the last binary digit). The profile gives back those values, interpolated to
+>   the site, at every level it keeps. That is checked below.
+> - A whole GFS file you download yourself reads too ([A whole GFS file](#a-whole-gfs-file)): every
+>   one of the 746,770,303 values in one such file is within 4.4e-16 of ecCodes', relatively, and
+>   its profile at Spaceport America is the recorded cut's to 1.04e-7. That check was a script run
+>   once outside CI; CI checks eight of the file's messages.
+> - How good a forecast is depends on the model, and nothing here measures that: no forecast has
+>   been compared with a weather balloon or a flight log.
+> - The pad sits on the model's ground, which is smoothed: at Spaceport America it is 1,476 m in
+>   GFS and 1,429 m in RAP, where Open-Meteo gives 1,400 m
+>   ([Launch-day weather's example](weather.md#an-example)).
+> - Fields packed as JPEG 2000 images, as in RAP's whole files, read too: four public RAP fields,
+>   182,443 points, match ecCodes in CI ([Files in JPEG 2000](#files-in-jpeg-2000)). No whole RAP
+>   file has been tried.
+> - The tests replay two recorded answers; the live connection to NOMADS is not tested in CI.
 
 Code: `hpr_net::nomads` ([API reference](api/hpr_net/nomads/index.html)), with the decoder in
 `hpr_io::grib2` ([API reference](api/hpr_io/grib2/index.html)), written for the third weather

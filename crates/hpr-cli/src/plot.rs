@@ -316,6 +316,9 @@ const PANELS: &[Panel] = &[
     },
 ];
 
+/// The trust note's label, as the figure sets its labels.
+const TRUST_LABEL: &str = "HOW FAR TO TRUST IT";
+
 /// What the lines are, said once under the title rather than in a legend box.
 const LINES: &str = "Dashed: simulated by FusionSpace HPR; thick, the size, and thin, the vertical \
                      part, up positive. Chain line: the ground. Dotted: an event, numbered as in the table. \
@@ -359,7 +362,8 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
     let last_bottom = panel_top(PANELS.len() - 1) + PANEL_HEIGHT;
     let table_top = last_bottom + 68.0;
     let (table, table_bottom) = table(&groups, table_top);
-    // What the hatching means, under the table.
+    // What the hatching means, under the table, then how far to trust the figure, last, as the
+    // text form ends.
     let mut note = Vec::new();
     if let Some((from_s, to_s)) = figure.unpredicted {
         let hatched = format!(
@@ -372,13 +376,16 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
             .into_iter()
             .map(|line| line.trim_start().to_owned())
             .collect();
+        // A blank line between the two paragraphs.
+        note.push(String::new());
     }
+    // The note's label as the figure's other labels are set, in capitals on a line of its own.
+    note.push(TRUST_LABEL.to_owned());
+    let trust = crate::trust::flight();
+    let body = trust.strip_prefix(crate::trust::LABEL).unwrap_or(&trust);
+    note.extend(crate::trust::wrap(body, LIST_WIDTH));
     let note_top = table_bottom + 24.0;
-    let height = if note.is_empty() {
-        table_bottom + 12.0
-    } else {
-        note_top + (note.len() - 1) as f64 * LIST_LINE + 14.0
-    };
+    let height = note_top + (note.len() - 1) as f64 * LIST_LINE + 14.0;
 
     let title = text(figure.title, NAME_LIMIT);
     // The hatching's line runs down the middle of its tile, which clips it, so no part of its
@@ -494,9 +501,12 @@ fn summary(figure: &Figure<'_>) -> String {
 }
 
 /// Plain lines of text, one under the next from `top`, a wrapped line's indent drawn by its x,
-/// as SVG collapses leading spaces.
+/// as SVG collapses leading spaces; an empty line leaves its space blank.
 fn lines(svg: &mut String, lines: &[String], top: f64, left: f64, ink: &str) {
     for (i, line) in lines.iter().enumerate() {
+        if line.is_empty() {
+            continue;
+        }
         let (x, line) = match line.strip_prefix(INDENT) {
             Some(rest) => (left + 20.0, rest),
             None => (left, line.as_str()),

@@ -51,6 +51,7 @@ mod plot;
 pub mod registry;
 pub mod sim;
 mod sim_text;
+pub mod trust;
 mod units;
 pub mod weather;
 

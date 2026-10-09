@@ -132,11 +132,11 @@ the table above. The reason and the list of what changed go into the census page
 can still merge, but only in writing, in the change that brings it. An improvement has to be
 accepted too; otherwise it could slip back later without anyone seeing.
 
-**How far to trust it.** The census adds no evidence of its own: it is exactly as good as the
-reports it counts. CI flies the harness's RocketPy comparisons again on every change. The
-OpenRocket and real-flight reports need files that CI doesn't have, so CI holds their committed
-numbers, and a change to the code that would move them is caught only when someone runs them again
-and commits the result.
+> **How far to trust it.** The census adds no evidence of its own: it is exactly as good as the
+> reports it counts. CI flies the harness's RocketPy comparisons again on every change. The
+> OpenRocket and real-flight reports need files that CI doesn't have, so CI holds their committed
+> numbers, and a change to the code that would move them is caught only when someone runs them again
+> and commits the result.
 
 ## How to read the numbers
 
@@ -239,7 +239,7 @@ may be from its reference and still pass.
 | [Mass properties](physics/mass.md) | fin cross-sections, against exact numerical integration | within 1e-13 relative |
 | [Mass properties](physics/mass.md) | material densities, converted from the units their sources print | the sources' values, such as white ash at 678 kg/m³ |
 | [Mass properties](physics/mass.md#checked-against-openrocket) | [OpenRocket](glossary.md#openrocket) 24.12's structure (every stage, no motor), on 71 compared designs in the current scratch-excluding survey | mass within 1% on 70 and center of mass within 1% of length on 70, the one file outside with a named cause: airfoil fins OpenRocket weighs by a factor, a cause named only when weighing them its way brings the design within both thresholds; pitch inertia within 1% on 58, the 13 outside with no named cause yet but the two copies of OpenRocket's tube fin example (below); roll inertia a median 1.619% apart, which OpenRocket's shortcut for fins accounts for, and on the cluster designs its stacking of their tubes on the axis ([clusters](physics/mass.md#clusters-and-fillets)): with the shortcut in HPR Sim's place the median is 0.001%, and 12 files (8 distinct designs) remain outside 1% with a named cause. A ring of tube fins departs in both inertias, kept on purpose: OpenRocket's roll inertia for it is more than any mass inside the ring could have, and its pitch inertia leaves out how far the tubes sit from the axis, which accounts for the tube fin example's pitch inertia being 1.98% below OpenRocket's ([tube fins](physics/mass.md#tube-fins)). HPR Sim's airfoil fins are 19.4% lighter than OpenRocket's, a departure kept on purpose ([fins](physics/mass.md#fins-rail-buttons-and-roll-inertia)). What a file leaves unsaid (a wall of no thickness, no material), which override wins, held to OpenRocket's on 32 probe designs, and each fin section and each kind of part alone on 50 more, packed parts among them ([packed parts](physics/mass.md#packed-parts)). Fin fillets, on 9 of those, agree to 1e-15 in the fillets' mass and center of mass (the test holds 1e-12), the whole probe's pitch inertia up to 0.64% apart ([fillets](physics/mass.md#fin-fillets)). An automatic radius inside a nose cone, on 14 more (13 of which HPR Sim flies), puts every part inside but one packed mass component ([#186](https://github.com/nrdptel/fusionspace-eridanus/issues/186)) at OpenRocket's mass to 1e-14 and station to 1e-15, as the test holds them; the nose cones' and the transition's own walls keep their earlier gaps, up to 3.9e-5 of mass and 2.5e-6 m ([the format guide](format/ork.md#inside-a-nose-cone-or-a-transition)). A tube fin set whose radius OpenRocket works out from the body, on 19 more, has OpenRocket's radius and wall within 1e-15 and every part's mass within 1e-14 but the one nose cone among those probes, within 5e-5 ([the format guide](format/ork.md#tube-fins-sized-from-the-body)). On those that ask what a file leaves unsaid: mass within 0.001%, center of mass within 0.001 mm, bar an elliptical fin's 0.18%, and an attached tube that writes no thickness (−2.4% on the committed probe; measured in [ADR-061][adr-061], the `.ork` conventions decision). On the override probes: two rules kept as measured departures, and flags that disagree (4.7 mm) ([probes](physics/mass.md#what-a-ork-leaves-unsaid-and-overrides)) |
-| [Mass properties](physics/mass.md) | [OpenRocket](glossary.md#openrocket) 24.12's mass and center of mass of the parts in its [parts catalog](format/orc.md) that the builder makes (all 3,449 but four it refuses) ([test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/tests/catalog_openrocket.rs), [The builder](the-builder.md#how-far-to-trust-it)) | tubes, rings, bulkheads, lugs, parachutes and streamers within 1e-14 of the mass; nose cones and transitions within 1e-3 of the mass, and their center of mass within 1e-3 of the part's length (largest 6.3e-4 and 9.7e-4); but four blunt hollow nose cones, up to 4.8e-3 heavier here and 1.7e-3 of their length apart in center, where the two codes define a wall differently; masses stated in ounces, 8.8 parts in 10 billion apart (OpenRocket's rounded ounce); and one streamer, whose stated mass OpenRocket ignores. A hollow part's shoulder weighs nothing in OpenRocket and has the part's wall here, and is taken out before comparing |
+| [Mass properties](physics/mass.md) | [OpenRocket](glossary.md#openrocket) 24.12's mass and center of mass of the parts in its [parts catalog](format/orc.md) that the builder makes (all 3,449 but four it refuses) ([test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/tests/catalog_openrocket.rs), [The builder](the-builder.md#the-masses-against-openrocket)) | tubes, rings, bulkheads, lugs, parachutes and streamers within 1e-14 of the mass; nose cones and transitions within 1e-3 of the mass, and their center of mass within 1e-3 of the part's length (largest 6.3e-4 and 9.7e-4); but four blunt hollow nose cones, up to 4.8e-3 heavier here and 1.7e-3 of their length apart in center, where the two codes define a wall differently; masses stated in ounces, 8.8 parts in 10 billion apart (OpenRocket's rounded ounce); and one streamer, whose stated mass OpenRocket ignores. A hollow part's shoulder weighs nothing in OpenRocket and has the part's wall here, and is taken out before comparing |
 | [Solid motors](physics/motor.md) | [ThrustCurve.org](glossary.md#thrustcurveorg)'s own statistics code (total impulse, burn time, average and peak thrust), on all 32 bundled curves | within 1.8e-15 relative |
 | [Solid motors](physics/motor.md#validation) | [OpenRocket](glossary.md#openrocket) 24.12's own reading of the same 32 bundled curve files (total impulse, peak thrust, the 5%-of-peak burn-time window and the curve's duration) | every one bit for bit equal. Its average thrust divides the window's own impulse by the window where HPR Sim divides the whole curve's, so HPR Sim's is +0.0107% to +0.3147% higher (median +0.0965%). Nothing else in the motor model is compared with OpenRocket |
 | [Solid motors](physics/motor.md) | RocketPy's solid-motor model, on three bundled motors, at 203 times each | total mass and inertias within 7.9e-5 relative; the propellant's own mass and inertias within 1e-4 of their values at ignition |
@@ -805,10 +805,10 @@ These are consistent explanations, not proofs: the teams' drags, and the impulse
 are estimates too. Lince, inside the target on HPR Sim's drag, is −12.20% on its team's; that is not
 investigated ([report][real-report]).
 
-**How far to trust it.** The altimeters are not calibrated here: a barometer's error, the filter
-of the four that are filtered, and the assumed kind of four of them all sit in the reference.
-Drift and landing are not compared, nor speeds. HPR Sim's designs of these rockets have placeholder
-fin edges and surface finish, which move its drag.
+> **How far to trust it.** Measurements, but from altimeters not calibrated here: a barometer's error, the filter
+> of the four that are filtered, and the assumed kind of four of them all sit in the reference.
+> Drift and landing are not compared, nor speeds. HPR Sim's designs of these rockets have placeholder
+> fin edges and surface finish, which move its drag.
 
 ### Real flights of the private collection
 
@@ -818,6 +818,10 @@ of the same flight, were flown by HPR Sim and by [OpenRocket](glossary.md#openro
 of their day. Both over-predict: HPR Sim's [apogees](glossary.md#apogee) are +9.83% above the logs
 on average (mean absolute 13.96%), OpenRocket's +9.00% (13.08%). HPR Sim and OpenRocket agree with
 each other within 5% on 53 of the 55 ([report][fixture-report]). Neither meets the 5% target.**
+The [report][fixture-report]'s histogram gives the low side, the one a waiver depends on: its bins
+below zero hold the flights whose simulated apogee read under the log. Each logged apogee is the
+height climbed in the day's air, the altimeter's reading corrected for the weather as the report
+sets out.
 HPR Sim and OpenRocket agree with each other far better than with the logs, so the gap is not a
 difference between the two codes; what causes it is not shown here. The flights' owners allow only
 aggregate statistics, so no flight is named here, and the logs' readings were taken by hand from
@@ -885,14 +889,14 @@ lacks ([#362](https://github.com/nrdptel/fusionspace-eridanus/issues/362)). In t
 the flown motor ([#363](https://github.com/nrdptel/fusionspace-eridanus/issues/363)) and one flight's day has no weather file ([#364](https://github.com/nrdptel/fusionspace-eridanus/issues/364)).
 OpenRocket flies 79, missing the motor in one ([#362](https://github.com/nrdptel/fusionspace-eridanus/issues/362)).
 
-**How far to trust it.** The readings were taken from free text and logs by hand, and checked for
-form, not cross-checked flight by flight by a second reader. Of the 83 flights, 26 have no known
-launch hour and fly at local noon ([report][fixture-report]); the altimeters are not calibrated; the designs are
-what their fliers drew, whose masses some fliers measured and some did not. Both codes
-over-predicting alike is common in hobby rocketry, where the real airframe carries rail buttons,
-paint and joints a design leaves out, but this comparison does not show which. The six tier-A
-flights in other formats wait for [M3.4 to M3.6](decisions-and-roadmap.md#m3-4), and the climb
-traces for [M2.3c2](decisions-and-roadmap.md#m2-3c2).
+> **How far to trust it.** Logged measurements, read from free text and logs by hand, and checked for
+> form, not cross-checked flight by flight by a second reader. Of the 83 flights, 26 have no known
+> launch hour and fly at local noon ([report][fixture-report]); the altimeters are not calibrated; the designs are
+> what their fliers drew, whose masses some fliers measured and some did not. Both codes
+> over-predicting alike is common in hobby rocketry, where the real airframe carries rail buttons,
+> paint and joints a design leaves out, but this comparison does not show which. The six tier-A
+> flights in other formats wait for [M3.4 to M3.6](decisions-and-roadmap.md#m3-4), and the climb
+> traces for [M2.3c2](decisions-and-roadmap.md#m2-3c2).
 
 **Sources.** The flights are published by university rocketry teams, rocketry courses and
 hobbyists on GitHub, team websites and The Rocketry Forum. The weather is ERA5, generated using

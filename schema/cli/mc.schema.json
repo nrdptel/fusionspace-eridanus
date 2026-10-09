@@ -51,6 +51,10 @@
         "$ref": "#/$defs/SimIssue"
       }
     },
+    "kind": {
+      "description": "What kind of result this is: every figure in it is simulated, none measured.",
+      "$ref": "#/$defs/Kind"
+    },
     "landing": {
       "description": "Where the flights landed, as ellipses.",
       "$ref": "#/$defs/McLanding"
@@ -117,6 +121,10 @@
         "designation"
       ]
     },
+    "trust": {
+      "description": "The trust note the text form ends with: what the figures are, what HPR Sim's apogee\nwas checked against, with the committed report's numbers, and what to rely on instead\n(decision record ADR-211).",
+      "type": "string"
+    },
     "warnings": {
       "description": "Problems with the inputs that the flights went ahead despite.",
       "type": "array",
@@ -128,6 +136,8 @@
   "required": [
     "tool",
     "design",
+    "kind",
+    "trust",
     "motors",
     "launch",
     "dispersion",
@@ -421,6 +431,16 @@
           "description": "The flight's path, through something other than the drag or the margin (a moment, the\ndamping, the wind): the apogee and the drift.",
           "type": "string",
           "const": "flight"
+        }
+      ]
+    },
+    "Kind": {
+      "description": "What kind of result a command printed: the kind every figure in it is.",
+      "oneOf": [
+        {
+          "description": "From a model of the flight, not measured.",
+          "type": "string",
+          "const": "simulated"
         }
       ]
     },

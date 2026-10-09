@@ -225,6 +225,8 @@ pub(crate) fn run(args: &McArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     };
     let summary = nominal.summary();
     let document = McRun {
+        kind: crate::trust::Kind::Simulated,
+        trust: crate::trust::runs(),
         design: crate::output::SimDesign {
             file: sim::file_name(&args.flight.design),
             format: read.format,

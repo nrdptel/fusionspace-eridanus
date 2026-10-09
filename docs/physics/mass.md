@@ -396,9 +396,9 @@ The test module `hpr_validate::openrocket::tests` reads the same designs with HP
 to them. Where HPR Sim keeps a rule of its own, the test pins how far apart the two are. This was
 [M2.2b1](../decisions-and-roadmap.md#m2-2b1); [ADR-061][adr-061] records the decisions.
 
-How far to trust it: each probe asks about one kind of part at one size, so each reading is
-measured, not proven for every case. OpenRocket's defaults were read with its preferences as a
-fresh install sets them; an OpenRocket whose preferences were changed may give others.
+> **How far to trust it.** Each probe asks about one kind of part at one size, so each reading is
+> measured, not proven for every case. OpenRocket's defaults were read with its preferences as a
+> fresh install sets them; an OpenRocket whose preferences were changed may give others.
 
 **Read as OpenRocket reads it.** On every probe of the readings in this table HPR Sim's mass is
 OpenRocket's within
@@ -500,10 +500,10 @@ designs, each a tube and one part. HPR Sim keeps its own: a *departure*, a rule 
 measured and pinned by a test. The same probes settle how each fin section is weighed and where a
 rail button sits. [ADR-062][adr-062] records the decisions.
 
-How far to trust it: the shortcut is inferred from OpenRocket's output; its source is GPL, so the
-project does not read it. It matches every fin probe but two to 1e-12, and those two are
-explained below. Every tapered probe has a span half its root chord; Loft's demos, whose spans are
-0.39 to 0.50 of the root, hold to 0.0005% as well.
+> **How far to trust it.** The shortcut is inferred from OpenRocket's output; its source is GPL, so the
+> project does not read it. It matches every fin probe but two to 1e-12, and those two are
+> explained below. Every tapered probe has a span half its root chord; Loft's demos, whose spans are
+> 0.39 to 0.50 of the root, hold to 0.0005% as well.
 
 **The other parts agree, bar a rail button.** A bulkhead, centering ring, inner tube, mass
 component, parachute, shock cord and streamer each have OpenRocket's mass, center of mass and both

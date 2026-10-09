@@ -17,7 +17,7 @@ motor from the catalog that comes with HPR Sim. It then finds the rocket's
 > the weights ([What else a design can hold](#what-else-a-design-can-hold)). This rocket's flight is
 > not validated: whole flights of other rockets have been compared with RocketPy's, OpenRocket's
 > and seven real flights' ([Accuracy](accuracy.md#real-flights)), but not this one's
-> ([Getting started](getting-started.md#how-far-to-trust-it)).
+> ([Getting started](getting-started.md#accuracy-of-these-numbers)).
 
 ## Run it
 

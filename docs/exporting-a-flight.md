@@ -11,10 +11,11 @@ file, every quantity HPR Sim tracks in each ([The command line](cli.md#exporting
 Its maps mark the landing when a parachute or streamer opened, as a `.ork` file's do, and no
 landing otherwise ([the landing](cli.md#the-landing)).
 
-> **The files are exact, the flight is not validated.** Every number in a file reads back to
-> exactly the value the simulator computed, and tests check that. The flight itself is the first
-> flight's, and [How far to trust it](getting-started.md#how-far-to-trust-it) on that page
-> applies to it too.
+> **How far to trust it.** Exact copies of a simulation that is not validated. Every number in a
+> file reads back to exactly the value the simulator computed, and tests check that. The flight
+> itself is the first flight's, and
+> [Accuracy of these numbers](getting-started.md#accuracy-of-these-numbers) on that page applies
+> to it too.
 
 ## Run it
 

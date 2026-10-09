@@ -18,7 +18,7 @@ familiarity with it. Today you also build the package yourself, which needs the 
 > the same, what that page and [Accuracy](accuracy.md) say about the numbers holds here too. The
 > rocket below has never been flown for real, so no flight checks it. Where it lands in a wind is the least certain number of all: on two of RocketPy's example
 > rockets, HPR Sim's drift and RocketPy's differ by 10 to 38%
-> ([Getting started](getting-started.md#how-far-to-trust-it) explains why). The package is new
+> ([Getting started](getting-started.md#accuracy-of-these-numbers) explains why). The package is new
 > and covers less than the Rust library ([What is not here yet](#what-is-not-here-yet)). The gap
 > that matters most if you bring a design file: most `.ork` configurations are refused
 > ([A design from a file](#a-design-from-a-file)). The package
@@ -341,7 +341,7 @@ Because both codes fly the same drag, this says nothing about HPR Sim's own drag
 of difference: flying its own, HPR Sim puts the suite's six rockets' apogees 7.280% below RocketPy's
 to 10.302% above, as the section before says. The drifts differ most here. On two of RocketPy's
 other example rockets, Juno III and Bella Lui, flown in a wind, the drifts differ by 10 to 38%
-([Getting started](getting-started.md#how-far-to-trust-it) explains why).
+([Getting started](getting-started.md#accuracy-of-these-numbers) explains why).
 
 ## Drag and wind of your own
 
@@ -350,9 +350,10 @@ drag and the environment's wind: a drag curve from a wind tunnel or another prog
 profile from a weather balloon. The simulator calls them as it flies, several times for each time
 step of its integrator, and keeps everything else its own: the rest of the aerodynamics, the thrust,
 the masses and the atmosphere. They are the Python side of the Rust library's
-[models of your own](custom-models.md). **How far to trust it:** as far as your functions. The
-simulator checks that each number is finite, and that a drag is not negative, but not that it is
-right.
+[models of your own](custom-models.md).
+
+> **How far to trust it.** As far as your functions. The simulator checks that each number is
+> finite, and that a drag is not negative, but not that it is right.
 
 | Given as | Called as | Returns |
 | --- | --- | --- |

@@ -51,7 +51,7 @@ diameter. A drag model replaces that number and nothing else:
 
 A drag table read from another program's export (the flight builder's `drag_table`, or
 `with_drag_table` on a simulation, which
-[Getting started](getting-started.md#how-far-to-trust-it) uses) replaces the same number; a drag
+[Getting started](getting-started.md#accuracy-of-these-numbers) uses) replaces the same number; a drag
 model is the same idea with your code in place of the table. The last one set is the one flown.
 One difference matters: a table can carry the diameter it was measured on, and the simulator
 rescales it to the rocket's reference area. A negative coefficient is refused from either, where the

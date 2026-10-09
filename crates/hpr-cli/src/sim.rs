@@ -281,6 +281,8 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     }
 
     let document = SimFlight {
+        kind: crate::trust::Kind::Simulated,
+        trust: crate::trust::flight(),
         design: SimDesign {
             file: file_name(&args.flight.design),
             format: read.format,
