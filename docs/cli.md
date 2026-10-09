@@ -91,10 +91,10 @@ Until FusionSpace named its products after the stars of project Eridanus, in Oct
 ([M10.1d7, the new designation](decisions-and-roadmap.md#m10-1d7)), the simulator wrote
 `FS · SW · TOOL 005`; files stamped that way still read.
 
-### How far to trust a result
+### The accuracy note on every result
 
 `hpr sim` and `hpr mc` say under the design's name that their figures are simulated, and end
-their result with a note, *How far to trust it*, on standard output with the result, so a saved
+their result with a trust note on standard output with the result, so a saved
 flight keeps it. The note says what kind of figure it is, what the simulated apogee was checked
 against, with the committed report's numbers, and what to rely on instead: 55 logged flights
 whose simulated apogee averaged 9.8% above the altimeter's ([Accuracy: real flights of
