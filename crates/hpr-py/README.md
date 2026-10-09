@@ -33,5 +33,9 @@ print(flight.apogee_m, flight["height_above_ground_m"].max())
 
 The guide's [Python page](https://hpr.fusionspace.co/python.html) walks through it, and
 its [Accuracy page](https://hpr.fusionspace.co/accuracy.html) says how far to trust the
-numbers. Licensed `(MIT OR Apache-2.0) AND Apache-2.0`: the project's MIT OR Apache-2.0,
-and Apache-2.0 for OpenRocket's parts files it bundles (`THIRD-PARTY-NOTICES.md`).
+numbers.
+
+License: the project's own code is MIT OR Apache-2.0. The package also bundles OpenRocket's
+parts files, which are Apache-2.0, so its declared license is `(MIT OR Apache-2.0) AND
+Apache-2.0`; see the
+[third-party notices](https://github.com/nrdptel/fusionspace-eridanus/blob/main/THIRD-PARTY-NOTICES.md).

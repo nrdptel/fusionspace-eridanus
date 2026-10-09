@@ -15,13 +15,15 @@
 //!
 //! - the table's commit is `validation/refs.lock.toml`'s pin and starts with the theme's
 //!   [`DESIGN_REV`], so moving the pin reopens the audit;
-//! - the table's rows are [`SECTIONS`]' list, in order, each once;
+//! - the table's rows are [`SECTIONS`]' list, in order, each once, and the list gives each file
+//!   the number of sections [`FILES`] pins, so a section dropped from both fails without `refs/`;
 //! - each row's status is one of the four, with what holds it: a named test must be a live
 //!   `#[test]` in the file it names, a review must name a prefix of the pinned commit, a milestone
-//!   must be open in `docs/ROADMAP.md`;
+//!   must be open in `docs/ROADMAP.md`, and a review says what was read;
 //! - where `refs/fusionspace-design` is checked out (the local gate), [`SECTIONS`] is compared
 //!   with the `##` headings of the 14 files at the pinned commit, and the folder must hold those 14
-//!   files and no other. CI has no `refs/`, and the test says it skipped this.
+//!   files and no other. CI has no `refs/` and skips this; where `refs/` is fetched without the
+//!   design checkout, the test fails rather than skip.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -41,22 +43,25 @@ const SECTIONS: &str = "docs/research/design-sections.txt";
 const ROADMAP: &str = "docs/ROADMAP.md";
 /// The product system's folder of rules, in its repository.
 const PRODUCT: &str = "product";
-/// The 14 files under [`PRODUCT`] that the audit covers: every Markdown file there.
-const FILES: [&str; 14] = [
-    "README.md",
-    "principles.md",
-    "foundations.md",
-    "writing.md",
-    "review.md",
-    "data.md",
-    "cli.md",
-    "web.md",
-    "desktop.md",
-    "mobile.md",
-    "watch.md",
-    "embedded.md",
-    "hardware.md",
-    "rockets.md",
+/// The 14 files under [`PRODUCT`] that the audit covers, every Markdown file there, each with
+/// its number of `##` sections at the pinned commit. The counts let CI, which has no `refs/`,
+/// catch a section dropped from both the list and the table; a new pin updates them with the
+/// audit.
+const FILES: [(&str, usize); 14] = [
+    ("README.md", 6),
+    ("principles.md", 9),
+    ("foundations.md", 7),
+    ("writing.md", 9),
+    ("review.md", 4),
+    ("data.md", 9),
+    ("cli.md", 8),
+    ("web.md", 12),
+    ("desktop.md", 10),
+    ("mobile.md", 9),
+    ("watch.md", 10),
+    ("embedded.md", 9),
+    ("hardware.md", 5),
+    ("rockets.md", 5),
 ];
 /// The surfaces that ship today, as the "Applies to" column names them.
 const SURFACES: [&str; 6] = ["site", "CLI", "exports", "plot", "README", "banners"];
@@ -339,14 +344,20 @@ fn row_problems(
                 problems.push(format!("{at}: met, on no surface that ships"));
             }
             let reviewed = row.held_by.strip_prefix(REVIEWED).map(|rest| {
-                let prefix = rest.split('`').next().unwrap_or_default();
-                prefix.len() >= MIN_PREFIX && commit.starts_with(prefix)
+                let (prefix, read) = rest.split_once('`').unwrap_or((rest, ""));
+                (
+                    prefix.len() >= MIN_PREFIX && commit.starts_with(prefix),
+                    read.split_whitespace().count() >= 3,
+                )
             });
             match reviewed {
-                Some(true) => {}
-                Some(false) => problems.push(format!(
+                Some((true, true)) => {}
+                Some((false, _)) => problems.push(format!(
                     "{at}: a review names the pinned commit, at least {MIN_PREFIX} characters"
                 )),
+                Some((true, false)) => {
+                    problems.push(format!("{at}: a review says what was read"));
+                }
                 None if tests.is_empty() => problems.push(format!(
                     "{at}: met needs a named test (`path/to/file.rs::test`) or {REVIEWED}…`"
                 )),
@@ -398,7 +409,7 @@ fn check_refs(
     text: &dyn Fn(&str) -> Result<String, String>,
 ) -> Vec<String> {
     let mut problems = Vec::new();
-    let expected: BTreeSet<&str> = FILES.into_iter().collect();
+    let expected: BTreeSet<&str> = FILES.iter().map(|(file, _)| *file).collect();
     let found: BTreeSet<&str> = files.iter().map(String::as_str).collect();
     for file in found.difference(&expected) {
         problems.push(format!(
@@ -416,7 +427,7 @@ fn check_refs(
     for (file, heading) in &listed {
         by_file.entry(file).or_default().push(heading.clone());
     }
-    for file in FILES {
+    for (file, _) in FILES {
         if !found.contains(file) {
             continue;
         }
@@ -436,6 +447,30 @@ fn check_refs(
     }
     for file in by_file.keys() {
         problems.push(format!("{SECTIONS} lists {file}, which is not audited"));
+    }
+    problems
+}
+
+/// Compares the number of sections the list gives each file with [`FILES`]' counts.
+fn count_problems(sections: &str, counts: &[(&str, usize)]) -> Vec<String> {
+    let listed = match listed(sections) {
+        Ok(listed) => listed,
+        Err(problem) => return vec![problem],
+    };
+    let mut problems = Vec::new();
+    for (file, count) in counts {
+        let have = listed.iter().filter(|(f, _)| f == file).count();
+        if have != *count {
+            problems.push(format!(
+                "{SECTIONS} lists {have} sections of {file}, which has {count} at the pin"
+            ));
+        }
+    }
+    for (file, _) in &listed {
+        if !counts.iter().any(|(f, _)| f == file) {
+            problems.push(format!("{SECTIONS} lists {file}, which is not audited"));
+            break;
+        }
     }
     problems
 }
@@ -598,6 +633,14 @@ mod tests {
                 "`app` is not a surface that ships",
             ),
             ("| `cli.md` | Output | CLI | done | M9.4 |", "status `done`"),
+            (
+                "| `cli.md` | Output | CLI | met | reviewed at `f45454f` |",
+                "a review says what was read",
+            ),
+            (
+                "| `cli.md` | Output | none | not met | #12, M0.7a: off |",
+                "not met, on no surface",
+            ),
             ("| `cli.md` | Output | CLI | met |", "a row has five cells"),
         ];
         let first = rows_ok().lines().next().unwrap().to_owned();
@@ -636,7 +679,7 @@ mod tests {
 
     #[test]
     fn the_section_list_must_match_the_pinned_files() {
-        let files: Vec<String> = FILES.iter().map(|f| (*f).to_owned()).collect();
+        let files: Vec<String> = FILES.iter().map(|(f, _)| (*f).to_owned()).collect();
         let text = |file: &str| -> Result<String, String> {
             Ok(match file {
                 "cli.md" => "# CLI\n## Output\n## Color\n".to_owned(),
@@ -660,6 +703,22 @@ mod tests {
     }
 
     #[test]
+    fn each_file_keeps_its_count_of_sections() {
+        let counts = [("cli.md", 2), ("watch.md", 1)];
+        assert_eq!(count_problems(SECTIONS_OK, &counts), Vec::<String>::new());
+        let fewer = SECTIONS_OK.replace("cli.md: Color\n", "");
+        assert_eq!(
+            count_problems(&fewer, &counts),
+            [
+                "docs/research/design-sections.txt lists 1 sections of cli.md, which has 2 at the pin"
+            ]
+        );
+        let other = format!("{SECTIONS_OK}print.md: Margins\n");
+        assert!(count_problems(&other, &counts)[0].contains("print.md, which is not audited"));
+        assert_eq!(FILES.iter().map(|(_, n)| n).sum::<usize>(), 112);
+    }
+
+    #[test]
     fn the_committed_audit_passes() {
         let root = crate::designs::root().unwrap();
         let locked = locked_commit(&read(&root, REFS_LOCK)).unwrap();
@@ -671,8 +730,16 @@ mod tests {
         };
         let problems = check(&read(&root, TABLE), &sections, &locked, &open, &test_exists);
         assert_eq!(problems, Vec::<String>::new());
+        assert_eq!(count_problems(&sections, &FILES), Vec::<String>::new());
 
         let design = root.join(DESIGN_REFS);
+        // Where refs/ is fetched (the local gate) the design checkout must be in it, so the
+        // comparison below is skipped only where refs/ is absent altogether (CI).
+        assert!(
+            design.is_dir() || !root.join("refs").is_dir(),
+            "refs/ is here but {DESIGN_REFS} is not: run `cargo xtask refs` so {SECTIONS} is \
+             compared with the pinned files"
+        );
         if !design.is_dir() {
             eprintln!(
                 "skipped: no {DESIGN_REFS} here (CI), so {SECTIONS} was not compared with the \
