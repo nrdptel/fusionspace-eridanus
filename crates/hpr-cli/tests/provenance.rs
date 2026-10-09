@@ -115,6 +115,56 @@ fn every_export_carries_the_catalogs_date_and_how_far_to_trust_it() {
     assert_ne!(meta["trust"], trust);
 }
 
+/// The maps carry them too: a GeoJSON file as foreign members beside `tool` (RFC 7946 section
+/// 6.1), a KML file in its `Document`'s description. Before #403 each named only the program.
+#[test]
+fn the_maps_carry_the_catalogs_date_and_how_far_to_trust_it() {
+    let folder = tempfile::tempdir().unwrap();
+    let path = |name: &str| folder.path().join(name).to_string_lossy().into_owned();
+    let probe = root().join(PROBE).to_string_lossy().into_owned();
+    let flight = &["sim", &probe, "--motor", "H54"];
+    let printed = ascii_json(
+        &String::from_utf8(run(&[&flight[..], &["--json"]].concat()).stdout).unwrap(),
+        "hpr sim --json",
+    );
+    let trust = printed["trust"].as_str().unwrap();
+    run(&[
+        &flight[..],
+        &["--export", &path("f.geojson"), "--export", &path("f.kml")],
+    ]
+    .concat());
+    let as_of = as_of();
+    let map = ascii_json(
+        &std::fs::read_to_string(path("f.geojson")).unwrap(),
+        "f.geojson",
+    );
+    assert_eq!(map["type"], "FeatureCollection");
+    assert_eq!(map["catalog_as_of"], as_of.as_str());
+    assert_eq!(map["kind"], "simulated");
+    assert_eq!(map["trust"], trust);
+    let text = std::fs::read_to_string(path("f.geojson")).unwrap();
+    let at = |key: &str| text.find(&format!("\"{key}\":")).unwrap();
+    assert!(
+        at("tool") < at("catalog_as_of") && at("trust") < at("features"),
+        "{text:.300}"
+    );
+
+    let kml = std::fs::read_to_string(path("f.kml")).unwrap();
+    let document = kml.split("<Placemark>").next().unwrap();
+    let escaped = trust
+        .replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&apos;");
+    assert!(
+        document.contains(&format!(
+            "<description>Motor catalog as of {as_of}. {escaped}</description>"
+        )),
+        "{document}"
+    );
+}
+
 /// The text names the catalog's as-of date beside a motor taken from it, as JSON does.
 #[test]
 fn the_text_dates_a_motor_from_the_bundled_catalog() {

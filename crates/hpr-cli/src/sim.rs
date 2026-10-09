@@ -2342,7 +2342,8 @@ struct About {
 }
 
 /// A recording file's contents in `format`; `name` titles a KML file, and `about` is what a JSON
-/// one carries beside its rows. Unless a recovery device opened (`braked`), the maps draw no
+/// one carries beside its rows, a GeoJSON one beside its features, and a KML one, the catalog's
+/// date and the trust note, as its description. Unless a recovery device opened (`braked`), the maps draw no
 /// landing point: where the rocket came down is not a prediction, and a pin on a map reads as one.
 /// Nor do they draw a separated part's, which is rough whatever opened (ADR-159).
 fn contents(
@@ -2369,11 +2370,19 @@ fn contents(
         ExportFormat::Json => export::json_with(recorder, about)?.into_bytes(),
         ExportFormat::Parquet => export::parquet(recorder)?,
         ExportFormat::Geojson => {
-            export::geojson(&export::track(recorder, environment.sim())?, summary)?.into_bytes()
+            export::geojson_with(&export::track(recorder, environment.sim())?, summary, about)?
+                .into_bytes()
         }
-        ExportFormat::Kml => {
-            export::kml(&export::track(recorder, environment.sim())?, summary, name)?.into_bytes()
-        }
+        ExportFormat::Kml => export::kml_with(
+            &export::track(recorder, environment.sim())?,
+            summary,
+            name,
+            &format!(
+                "Motor catalog as of {}. {}",
+                about.catalog_as_of, about.trust
+            ),
+        )?
+        .into_bytes(),
     })
 }
 
