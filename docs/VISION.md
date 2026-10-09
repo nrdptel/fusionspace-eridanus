@@ -127,6 +127,9 @@ checkable items.
 - **2026-10-08, the best on the market** ([ADR-209, the best on the market, measured](decisions/0209-the-2026-10-08-best-on-the-market-measured.md)).
   Every product aims to beat the best comparable tool on accuracy, fidelity, resolution and ease of use,
   and to do useful things no other tool does; each claim is measured, and each release's guide compares.
+- **2026-10-09, fusionspace.co rebuilt** ([ADR-217, fusionspace.co rebuilt](decisions/0217-the-2026-10-09-fusionspace-co-rebuilt.md)).
+  FusionSpace's front page rebuilt from the ground up, like the old tools, presenting every project
+  and product.
 
 **Operating envelope** (ADR-143): the bands are set by Mach alone. Accuracy work goes first to the
 core band, Mach 0–2.5. hpr flies the extended band, Mach 2.5–3.5, with its accuracy checked less,

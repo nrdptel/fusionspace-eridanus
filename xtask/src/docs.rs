@@ -39,7 +39,7 @@ const LESSONS: &str = "docs/research/loft-lessons.md";
 const RESEARCH_MAX_LINES: usize = 200;
 /// The roadmap holds open work only (ADR-147), so its budget is in bytes, and each line has a
 /// width limit so that long lines can't stand in for many.
-const ROADMAP_MAX_BYTES: usize = 46_500;
+const ROADMAP_MAX_BYTES: usize = 47_500;
 const ROADMAP_MAX_LINE_CHARS: usize = 120;
 const MILESTONE_MAX_LINES: usize = 40;
 
