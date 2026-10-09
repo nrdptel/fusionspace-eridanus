@@ -18,11 +18,11 @@ cargo run --example trajectory -p fusionspace-hpr-sim > trajectory.csv
 This runs
 [`crates/hpr-sim/examples/trajectory.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/trajectory.rs)
 and saves what it prints in `trajectory.csv`, a CSV (comma-separated values) file: a header line
-naming each column, then one line per moment of the flight. It holds this:
+naming each column with its unit in brackets, then one line per moment of the flight. It holds this:
 
 <!-- quote: crates/hpr-sim/examples/trajectory.output.txt -->
 ```text
-time_s,height_above_ground_m,vertical_speed_m_s,airspeed_m_s,cg_east_m,cg_north_m,cg_up_m
+time [s],height above ground [m],vertical speed [m/s],airspeed [m/s],cg east [m],cg north [m],cg up [m]
 0.000,0.9,0.0,5.0,0.0,0.0,0.9
 0.002,0.9,0.0,5.0,0.0,0.0,0.9
 0.371,3.9,16.2,17.0,0.0,0.0,3.9
@@ -148,7 +148,7 @@ use hpr_core::geodesy::Geodetic;
 use hpr_design::Rocket;
 use hpr_sim::{
     CanopyType, Channel, Device, DeviceDrag, Environment, FlightSettings, Rail, Recorder,
-    Simulation, Termination, Trigger,
+    Simulation, Termination, Trigger, export,
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -205,7 +205,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // One header line with each column's name and unit, then one line per row: the time to
     // 0.001 s, the rest to 0.1.
-    println!("{}", recorder.columns().join(","));
+    let header: Vec<String> = recorder
+        .columns()
+        .iter()
+        .map(|column| export::csv_header(column))
+        .collect();
+    println!("{}", header.join(","));
     for row in recorder.rows() {
         let fields: Vec<String> = row
             .iter()

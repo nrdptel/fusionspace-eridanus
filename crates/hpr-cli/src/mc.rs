@@ -209,6 +209,9 @@ pub(crate) fn run(args: &McArgs, to: &mut Out<'_>) -> Result<(), Failure> {
                 seed: args.seed,
                 runs: args.runs,
                 dispersion: given,
+                catalog_as_of: crate::motors::catalog_as_of()?,
+                kind: crate::trust::Kind::Simulated,
+                trust: crate::trust::runs(),
             };
             let mut text = Vec::new();
             crate::write_json(&mut text, &document)

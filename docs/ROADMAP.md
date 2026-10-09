@@ -30,28 +30,27 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163).
 line is `N. M<id> title`, with an id from this file; `cargo test -p xtask` fails on any other list
 line here, or on an id that is missing or done.
 
-1. M0.9c5 Provenance
-2. M0.9c6 Errors and help
-3. M0.9c7 The plot and the site
-4. M0.9d The site
-5. M0.9e The words
-6. M0.10 The scoreboard
-7. M0.11 Steps to a first answer
-8. M0.7a Rocketry explained: the format and four guides
-9. M0.8a Product guides: the simulator
-10. M7.1 Flight log importers
-11. M7.2 Readings, reconstruction and ghost data
-12. M7.3 A flight against its simulation
-13. M10.2 Release 0.2: the flight analyzer
-14. M2.3c2 Logged traces
-15. M2.3c3 OpenRocket's newest release
-16. M2.7 Held-out flights, predictions first
-17. M2.8 Honest uncertainty
-18. M2.6 An open benchmark
-19. M1.14 Accuracy inside the envelope
-20. M7.4 Fault diagnosis
-21. M7.5 The bias every simulator shares
-22. M10.3 Release 0.3: accuracy and diagnosis
+1. M0.9c6 Errors and help
+2. M0.9c7 The plot and the site
+3. M0.9d The site
+4. M0.9e The words
+5. M0.10 The scoreboard
+6. M0.11 Steps to a first answer
+7. M0.7a Rocketry explained: the format and four guides
+8. M0.8a Product guides: the simulator
+9. M7.1 Flight log importers
+10. M7.2 Readings, reconstruction and ghost data
+11. M7.3 A flight against its simulation
+12. M10.2 Release 0.2: the flight analyzer
+13. M2.3c2 Logged traces
+14. M2.3c3 OpenRocket's newest release
+15. M2.7 Held-out flights, predictions first
+16. M2.8 Honest uncertainty
+17. M2.6 An open benchmark
+18. M1.14 Accuracy inside the envelope
+19. M7.4 Fault diagnosis
+20. M7.5 The bias every simulator shares
+21. M10.3 Release 0.3: accuracy and diagnosis
 23. M6.3 Challenge specs and presets
 24. M6.4 Airbrakes
 25. M6.2e Robust mode
@@ -146,8 +145,6 @@ line here, or on an id that is missing or done.
   - [ ] **M0.9c The CLI, exports and plot to the design** (ADR-208): #377–#382, #392, #395, #400, in seven steps,
     each fix held by a named test that fails on the defect its issue reproduces, and the audit's
     rows naming the tests; a rule declined has an ADR.
-    - [ ] **M0.9c5 Provenance** (#380). *Done when:* it is closed, with every item it lists, the
-      exports' trust note included.
     - [ ] **M0.9c6 Errors and help** (#381). *Done when:* it is closed, with every item it lists.
     - [ ] **M0.9c7 The plot and the site** (#382, #400). *Done when:* both are closed, with every
       item they list.

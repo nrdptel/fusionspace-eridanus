@@ -100,15 +100,44 @@ def runs(tmp_path_factory, hpr_cli):
     return monte_carlo(repo, runs=RUNS, seed=SEED, **scattered()), text, output
 
 
+# How a CSV header writes a column's unit, in brackets after its words: the last one or two of
+# the name's `_`-separated words, two-word units first.
+UNITS = [
+    (["m", "s2"], "m/s^2"),
+    (["m", "s"], "m/s"),
+    (["rad", "s"], "rad/s"),
+    (["m2"], "m^2"),
+    (["pa"], "Pa"),
+    (["kg"], "kg"),
+    (["n"], "N"),
+    (["m"], "m"),
+    (["s"], "s"),
+    (["rad"], "rad"),
+    (["deg"], "deg"),
+    (["cal"], "cal"),
+]
+
+
+def csv_header(name):
+    """A column's name as the CSV's header writes it: `apogee [m]` for `apogee_m`."""
+    words = name.split("_")
+    for unit, written in UNITS:
+        if len(words) > len(unit) and words[-len(unit) :] == unit:
+            return f"{' '.join(words[: -len(unit)])} [{written}]"
+    return " ".join(words)
+
+
 def test_a_run_is_hpr_mcs_bit_for_bit(runs):
     run, text, _ = runs
     header, *rows = list(csv.reader(text.splitlines()))
-    assert run.columns == header
+    # The header gives each column in words with its unit in brackets; the run keeps the names.
+    assert [csv_header(name) for name in run.columns] == header
+    assert "apogee [m]" in header and "max acceleration [m/s^2]" in header
     assert len(rows) == RUNS == run.runs
     # Every column the export has: the draw's lists by stage, motor and device among them.
     for name in ("motor_1_ejection_delay_offset_s", "device_1_deployment_lag_offset_s"):
         assert name in run
-    for index, name in enumerate(header):
+    for index, name in enumerate(run.columns):
         cells = [row[index] for row in rows]
         values = run[name]
         assert isinstance(values, numpy.ndarray) and values.shape == (RUNS,), name

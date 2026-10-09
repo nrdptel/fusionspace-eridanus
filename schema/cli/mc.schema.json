@@ -1187,13 +1187,18 @@
           "description": "The bundled catalog, named with `--motor`.",
           "type": "object",
           "properties": {
+            "as_of": {
+              "description": "The catalog's as-of date, `YYYY-MM-DD`: the day its curve files were downloaded.",
+              "type": "string"
+            },
             "kind": {
               "type": "string",
               "const": "catalog"
             }
           },
           "required": [
-            "kind"
+            "kind",
+            "as_of"
           ]
         },
         {

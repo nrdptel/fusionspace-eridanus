@@ -1,4 +1,4 @@
-time_s,height_above_ground_m,vertical_speed_m_s,airspeed_m_s,cg_east_m,cg_north_m,cg_up_m
+time [s],height above ground [m],vertical speed [m/s],airspeed [m/s],cg east [m],cg north [m],cg up [m]
 0.000,0.9,0.0,5.0,0.0,0.0,0.9
 0.002,0.9,0.0,5.0,0.0,0.0,0.9
 0.371,3.9,16.2,17.0,0.0,0.0,3.9

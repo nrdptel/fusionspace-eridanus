@@ -197,13 +197,21 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     read.notes.extend(flight_notes(&recovery, &flight));
     let mut written = Vec::new();
     let name = format!("{design_name}, {configuration_label}");
+    let catalog_as_of = crate::motors::catalog_as_of()?;
+    let about = About {
+        design: file_name(&args.flight.design),
+        configuration: configuration_label.clone(),
+        catalog_as_of: catalog_as_of.clone(),
+        kind: crate::trust::Kind::Simulated,
+        trust: crate::trust::flight(),
+    };
     for (path, format, meta) in &exports {
         let contents = contents(
             *format,
             &recorder,
             &environment,
             flight.summary(),
-            &name,
+            (&name, &about),
             braked,
         )
         .map_err(|error| Failure::Input(format!("{path}: {error}")))?;
@@ -215,6 +223,9 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
                 design: file_name(&args.flight.design),
                 configuration: configuration_label.clone(),
                 rows: recorder.rows().len(),
+                catalog_as_of: catalog_as_of.clone(),
+                kind: crate::trust::Kind::Simulated,
+                trust: crate::trust::flight(),
             };
             let mut text = Vec::new();
             crate::write_json(&mut text, &document)
@@ -2098,7 +2109,13 @@ fn motor(name: &str, offline: bool) -> Result<(Motor, SimMotorSource, Vec<InputW
     let refused = |error: hpr::Error| Failure::Input(format!("{name}: {error}"));
     let Some(format) = MotorFile::of(name) else {
         return match Motor::from_catalog(name) {
-            Ok(motor) => Ok((motor, SimMotorSource::Catalog, Vec::new())),
+            Ok(motor) => Ok((
+                motor,
+                SimMotorSource::Catalog {
+                    as_of: crate::motors::catalog_as_of()?,
+                },
+                Vec::new(),
+            )),
             Err(hpr::Error::NoSuchMotor(_)) => {
                 let (motor, fetched) =
                     crate::motor_fetch::fetch(&Wanted::named(name), offline, "hpr sim")?;
@@ -2190,12 +2207,25 @@ pub(crate) fn in_fall(peak: &Peak, first_opened_s: Option<f64>) -> &'static str 
 /// A recording file's contents. Unless a recovery device opened (`braked`), the maps draw no
 /// landing point: where the rocket came down is not a prediction, and a pin on a map reads as one.
 /// Nor do they draw a separated part's, which is rough whatever opened (ADR-159).
+/// What a JSON recording carries beside its rows, as a CSV's sidecar does ([`ExportMeta`]): the
+/// design and configuration flown, the bundled catalog's as-of date and how far to trust it.
+#[derive(serde::Serialize)]
+struct About {
+    design: String,
+    configuration: String,
+    catalog_as_of: String,
+    kind: crate::trust::Kind,
+    trust: String,
+}
+
+/// A recording's contents in `format`; `name` titles a KML file, and `about` is what a JSON one
+/// carries beside its rows.
 fn contents(
     format: ExportFormat,
     recorder: &Recorder,
     environment: &Environment,
     summary: &FlightSummary,
-    name: &str,
+    (name, about): (&str, &About),
     braked: bool,
 ) -> Result<Vec<u8>, hpr_sim::SimError> {
     // A separated part's landing is never pinned: it flies as a point with only its devices'
@@ -2211,7 +2241,7 @@ fn contents(
     let summary = if braked { &pinned } else { &unpinned };
     Ok(match format {
         ExportFormat::Csv => export::csv(recorder)?.into_bytes(),
-        ExportFormat::Json => export::json(recorder)?.into_bytes(),
+        ExportFormat::Json => export::json_with(recorder, about)?.into_bytes(),
         ExportFormat::Parquet => export::parquet(recorder)?,
         ExportFormat::Geojson => {
             export::geojson(&export::track(recorder, environment.sim())?, summary)?.into_bytes()

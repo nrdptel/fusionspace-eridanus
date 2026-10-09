@@ -23,7 +23,7 @@ use hpr_core::geodesy::Geodetic;
 use hpr_design::Rocket;
 use hpr_sim::{
     CanopyType, Channel, Device, DeviceDrag, Environment, FlightSettings, Rail, Recorder,
-    Simulation, Termination, Trigger,
+    Simulation, Termination, Trigger, export,
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -80,7 +80,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // One header line with each column's name and unit, then one line per row: the time to
     // 0.001 s, the rest to 0.1.
-    println!("{}", recorder.columns().join(","));
+    let header: Vec<String> = recorder
+        .columns()
+        .iter()
+        .map(|column| export::csv_header(column))
+        .collect();
+    println!("{}", header.join(","));
     for row in recorder.rows() {
         let fields: Vec<String> = row
             .iter()

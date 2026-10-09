@@ -1,9 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "McExportMeta",
-  "description": "The sidecar `hpr mc --export` writes beside its CSV, `runs.meta.json` for `runs.csv`: the\nprogram that wrote it and the run it holds (the product system's `data.md`, ADR-174).",
+  "description": "The sidecar `hpr mc --export` writes beside its CSV, `runs.meta.json` for `runs.csv`: the\nprogram that wrote it, the run it holds, the bundled catalog's as-of date and how far to trust\nthe figures (the product system's `data.md`, ADR-174, ADR-214).",
   "type": "object",
   "properties": {
+    "catalog_as_of": {
+      "description": "The bundled motor catalog's as-of date, `YYYY-MM-DD`: the day its curve files were\ndownloaded. A build fixes it; whether a motor flown came from the catalog is `hpr mc\n--json`'s `motors[].source`.",
+      "type": "string"
+    },
     "configuration": {
       "description": "The configuration flown, as `hpr mc` names it, such as `[C6-5]`.",
       "type": "string"
@@ -19,6 +23,10 @@
     "file": {
       "description": "The CSV, by its file name.",
       "type": "string"
+    },
+    "kind": {
+      "description": "What kind of figures the CSV holds: `simulated`.",
+      "$ref": "#/$defs/Kind"
     },
     "runs": {
       "description": "The flights tried: the CSV's rows after its header.",
@@ -55,6 +63,10 @@
         "version",
         "designation"
       ]
+    },
+    "trust": {
+      "description": "The trust note `hpr mc` ends with: the spread is its inputs', not the model's error.",
+      "type": "string"
     }
   },
   "required": [
@@ -64,9 +76,42 @@
     "configuration",
     "seed",
     "runs",
-    "dispersion"
+    "dispersion",
+    "catalog_as_of",
+    "kind",
+    "trust"
   ],
   "$defs": {
+    "Kind": {
+      "description": "What kind of result a command printed: the kind every figure in it is.",
+      "oneOf": [
+        {
+          "description": "From a model of the flight, not measured.",
+          "type": "string",
+          "const": "simulated"
+        },
+        {
+          "description": "Measured: an altimeter's log, or a weather balloon's sounding.",
+          "type": "string",
+          "const": "measured"
+        },
+        {
+          "description": "A weather model's forecast.",
+          "type": "string",
+          "const": "forecast"
+        },
+        {
+          "description": "A reanalysis: a weather model's fit to past observations, such as ERA5.",
+          "type": "string",
+          "const": "reanalysis"
+        },
+        {
+          "description": "Copied from a data file, such as a motor's curve file, or computed from it.",
+          "type": "string",
+          "const": "copied"
+        }
+      ]
+    },
     "McDispersion": {
       "description": "One standard deviation of each input `hpr mc` scatters, in the units of its option.",
       "type": "object",

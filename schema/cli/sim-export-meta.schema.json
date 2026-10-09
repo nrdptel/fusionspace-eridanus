@@ -1,9 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ExportMeta",
-  "description": "The sidecar `hpr sim --export` writes beside a CSV recording, `flight.meta.json` for\n`flight.csv`: the program that wrote the recording (the `tool` every document opens with) and\nwhat it records. A CSV opens cleanly in a spreadsheet only without comment lines, so these go\nhere (the product system's `data.md`, ADR-174).",
+  "description": "The sidecar `hpr sim --export` writes beside a CSV recording, `flight.meta.json` for\n`flight.csv`: the program that wrote the recording (the `tool` every document opens with),\nwhat it records, the bundled catalog's as-of date and how far to trust it. A CSV opens cleanly\nin a spreadsheet only without comment lines, so these go here (the product system's\n`data.md`, ADR-174, ADR-214). A JSON recording carries the same in its own fields.",
   "type": "object",
   "properties": {
+    "catalog_as_of": {
+      "description": "The bundled motor catalog's as-of date, `YYYY-MM-DD`: the day its curve files were\ndownloaded. A build fixes it; whether a motor flown came from the catalog is `hpr sim\n--json`'s `motors[].source`.",
+      "type": "string"
+    },
     "configuration": {
       "description": "The configuration flown, as `hpr sim` names it, such as `[C6-5]`.",
       "type": "string"
@@ -15,6 +19,10 @@
     "file": {
       "description": "The recording, by its file name.",
       "type": "string"
+    },
+    "kind": {
+      "description": "What kind of figures the recording holds: `simulated`.",
+      "$ref": "#/$defs/Kind"
     },
     "rows": {
       "description": "The rows recorded.",
@@ -45,6 +53,10 @@
         "version",
         "designation"
       ]
+    },
+    "trust": {
+      "description": "The trust note `hpr sim` ends with.",
+      "type": "string"
     }
   },
   "required": [
@@ -52,6 +64,41 @@
     "file",
     "design",
     "configuration",
-    "rows"
-  ]
+    "rows",
+    "catalog_as_of",
+    "kind",
+    "trust"
+  ],
+  "$defs": {
+    "Kind": {
+      "description": "What kind of result a command printed: the kind every figure in it is.",
+      "oneOf": [
+        {
+          "description": "From a model of the flight, not measured.",
+          "type": "string",
+          "const": "simulated"
+        },
+        {
+          "description": "Measured: an altimeter's log, or a weather balloon's sounding.",
+          "type": "string",
+          "const": "measured"
+        },
+        {
+          "description": "A weather model's forecast.",
+          "type": "string",
+          "const": "forecast"
+        },
+        {
+          "description": "A reanalysis: a weather model's fit to past observations, such as ERA5.",
+          "type": "string",
+          "const": "reanalysis"
+        },
+        {
+          "description": "Copied from a data file, such as a motor's curve file, or computed from it.",
+          "type": "string",
+          "const": "copied"
+        }
+      ]
+    }
+  }
 }

@@ -161,7 +161,12 @@ pub(crate) fn motor_lines(motors: &[SimMotor], out: &mut dyn Write) -> io::Resul
     for motor in motors {
         let source = match &motor.source {
             SimMotorSource::Design => "the design's".to_owned(),
-            SimMotorSource::Catalog => "from the bundled catalog".to_owned(),
+            SimMotorSource::Catalog { as_of } => {
+                format!(
+                    "from the bundled catalog, as of {}",
+                    crate::printable(as_of)
+                )
+            }
             SimMotorSource::File { file, .. } => format!("from {file}"),
             SimMotorSource::ThrustCurve(fetched) => format!(
                 "ThrustCurve.org's {}, file {}",

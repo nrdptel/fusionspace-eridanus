@@ -384,6 +384,10 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
     let trust = crate::trust::flight();
     let body = trust.strip_prefix(crate::trust::LABEL).unwrap_or(&trust);
     note.extend(crate::trust::wrap(body, LIST_WIDTH));
+    // The title block's line, last and where a printed copy shows it, as a drawing's: the
+    // program, its version and its designation (ADR-164, ADR-214).
+    note.push(String::new());
+    note.push(hpr::hpr_core::tool::stamp());
     let note_top = table_bottom + 24.0;
     let height = note_top + (note.len() - 1) as f64 * LIST_LINE + 14.0;
 

@@ -844,6 +844,9 @@ fn sim_flies_a_public_ork_as_the_library_does() {
     assert_eq!(document["motors"][0]["designation"], "168H54-10A");
     assert_eq!(document["motors"][0]["mount"], mount.as_str());
     assert_eq!(document["motors"][0]["source"]["kind"], "catalog");
+    // The catalog's as-of date, as `hpr motors list` gives it: the day its files were downloaded.
+    let as_of = Catalog::bundled().unwrap().snapshot.captured;
+    assert_eq!(document["motors"][0]["source"]["as_of"], as_of.as_str());
     assert_eq!(document["launch"]["rail_length_m"], 1.5);
     let notes = document["notes"].as_array().unwrap();
     assert!(
@@ -862,7 +865,9 @@ fn sim_flies_a_public_ork_as_the_library_does() {
         "{text}"
     );
     assert!(
-        text.contains("168H54-10A (from the bundled catalog)"),
+        text.contains(&format!(
+            "168H54-10A (from the bundled catalog, as of {as_of})"
+        )),
         "{text}"
     );
 }
@@ -4803,7 +4808,7 @@ fn mc_lands_a_payload_dropped_before_apogee() {
     let header: Vec<&str> = table.lines().next().unwrap().split(',').collect();
     let column = header
         .iter()
-        .position(|name| *name == "landing_distance_m")
+        .position(|name| *name == "landing distance [m]")
         .unwrap();
     for line in table.lines().skip(1) {
         assert!(!line.split(',').nth(column).unwrap().is_empty(), "{line}");
