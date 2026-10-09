@@ -94,8 +94,8 @@ fn sim_gives_us_units_in_brackets() {
             "apogee                1033.4 m (3390 ft) above the site at 11.47 s",
             "rail exit speed       26.3 m/s (86 ft/s)",
             "descent               4.4 m/s (15 ft/s) at landing under `Parachute`",
-            "launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) rail 84° \
-             above the horizon, leaning toward 0°, in a 6 m/s (13 mph) wind from 0°",
+            "launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) rail 84° \
+             above the horizon, leaning toward 000° T, in a 6 m/s (13 mph) wind from 000° T",
             "event                   time                 height                    speed",
             "liftoff               0.00 s      0.4 m      (1 ft)     0.0 m/s     (0 ft/s)",
             "rail exit             0.12 s      1.9 m      (6 ft)    26.3 m/s    (86 ft/s)",
@@ -162,7 +162,7 @@ fn mc_gives_feet_beside_meters() {
             "20 of 20 flights landed, centered 0.7 m (2 ft) west and 1325.1 m (4347 ft) south of \
              the pad",
             "landing ellipse                   semi-major            semi-minor  heading   flights inside",
-            "50%                             0.0 m (0 ft)          0.0 m (0 ft)      90°           100.0%",
+            "50%                             0.0 m (0 ft)          0.0 m (0 ft)   090° T           100.0%",
         ],
     );
     // Scattered: each foot cell is its meter cell's, in feet, to the meter cell's rounding.
@@ -237,9 +237,9 @@ fn mc_landing_meters_carry_a_tenth() {
             "30 of 30 flights landed, centered 0.7 m (2 ft) west and 1355.7 m (4448 ft) south of \
              the pad",
             "landing ellipse                   semi-major            semi-minor  heading   flights inside",
-            "50%                        510.4 m (1674 ft)          0.1 m (0 ft)     180°            63.3%",
-            "95%                       1061.0 m (3481 ft)          0.2 m (1 ft)     180°            90.0%",
-            "95%, the next flight      1159.1 m (3803 ft)          0.2 m (1 ft)     180°            93.3%",
+            "50%                        510.4 m (1674 ft)          0.1 m (0 ft)   180° T            63.3%",
+            "95%                       1061.0 m (3481 ft)          0.2 m (1 ft)   180° T            90.0%",
+            "95%, the next flight      1159.1 m (3803 ft)          0.2 m (1 ft)   180° T            93.3%",
         ],
     );
 }

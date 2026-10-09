@@ -588,6 +588,13 @@ fn completions_for_every_shell() {
         let document = json(&["completions", &name], 0, "completions.schema.json");
         assert_eq!(document["shell"], name.as_str());
         assert_eq!(document["script"], script.as_str());
+        // A script is a file a shell reads, so color never reaches it: zsh needs `#compdef`
+        // first.
+        assert_eq!(
+            text_ok(&["completions", &name, "--color", "always"]),
+            script,
+            "{name}"
+        );
     }
 }
 
@@ -5391,4 +5398,168 @@ fn motors_show_suggests_what_answers_the_name() {
         ),
         "{help:?}"
     );
+}
+
+/// `--help` and `-h`, of `hpr` and of its commands, follow the product system's `cli.md` (*Help*):
+/// what it does, `Usage:`, the options, two or three examples, then the guide's page as the last
+/// line; the guide's link nowhere before the examples.
+#[test]
+fn help_ends_with_examples_then_the_guide() {
+    for (args, guide) in [
+        (&["--help"][..], "https://hpr.fusionspace.co/cli.html"),
+        (&["-h"], "https://hpr.fusionspace.co/cli.html"),
+        (
+            &["sim", "--help"],
+            "https://hpr.fusionspace.co/cli.html#hpr-sim",
+        ),
+        (
+            &["sim", "-h"],
+            "https://hpr.fusionspace.co/cli.html#hpr-sim",
+        ),
+        (
+            &["mc", "--help"],
+            "https://hpr.fusionspace.co/cli.html#hpr-mc",
+        ),
+        (
+            &["motors", "list", "-h"],
+            "https://hpr.fusionspace.co/cli.html#listing-the-catalog",
+        ),
+        (
+            &["weather", "--help"],
+            "https://hpr.fusionspace.co/cli.html#hpr-weather",
+        ),
+    ] {
+        let help = text_ok(args);
+        let lines: Vec<&str> = help.lines().collect();
+        let at = |title: &str| {
+            lines
+                .iter()
+                .position(|line| *line == title)
+                .unwrap_or_else(|| panic!("{args:?}: no {title}\n{help}"))
+        };
+        let usage = lines
+            .iter()
+            .position(|line| line.starts_with("Usage: hpr"))
+            .unwrap_or_else(|| panic!("{args:?}\n{help}"));
+        let (options, examples) = (at("Options:"), at("Examples:"));
+        assert!(
+            !lines[0].is_empty() && 0 < usage && usage < options && options < examples,
+            "{args:?}\n{help}"
+        );
+        let shown = lines[examples + 1..]
+            .iter()
+            .filter(|line| line.trim_start().starts_with("hpr "))
+            .count();
+        assert!(
+            (2..=3).contains(&shown),
+            "{args:?}: {shown} examples\n{help}"
+        );
+        assert_eq!(
+            lines.last(),
+            Some(&format!("Guide: {guide}").as_str()),
+            "{args:?}"
+        );
+        assert!(
+            !lines[..examples]
+                .iter()
+                .any(|line| line.contains("https://")),
+            "{args:?}: a link before the examples\n{help}"
+        );
+    }
+}
+
+/// With color, a result's first line and its tables' header rows take the Heading role (bold),
+/// as the product system's `cli.md` asks (*Color*); the rows under them don't; piped, nothing
+/// is styled.
+#[test]
+fn results_and_table_headers_take_the_heading_role() {
+    let design = repo_file("validation/fixtures/ork/guides/level-1.ork");
+    let bold = |line: &str| line.starts_with("\u{1b}[1m") && line.ends_with("\u{1b}[0m");
+    for (args, headers) in [
+        (vec!["motors", "list"], &["designation"][..]),
+        (vec!["sim", design.as_str()], &["event"]),
+        (
+            vec![
+                "mc",
+                design.as_str(),
+                "--runs",
+                "5",
+                "--wind",
+                "3",
+                "--wind-sd",
+                "0.2",
+            ],
+            &["nominal", "landing ellipse"],
+        ),
+    ] {
+        let mut colored = args.clone();
+        colored.extend(["--color", "always"]);
+        let output = hpr(&colored);
+        assert_eq!(output.status.code(), Some(0), "{args:?}: {output:?}");
+        let text = text(&output.stdout);
+        let lines: Vec<&str> = text.lines().collect();
+        assert!(bold(lines[0]), "{args:?}: {text:?}");
+        for header in headers {
+            let at = lines
+                .iter()
+                .position(|line| line.contains(header))
+                .unwrap_or_else(|| panic!("{args:?}: no {header}: {text}"));
+            assert!(bold(lines[at]), "{args:?}: {:?}", lines[at]);
+            assert!(
+                !lines[at + 1].contains('\u{1b}'),
+                "{args:?}: {:?}",
+                lines[at + 1]
+            );
+        }
+        let piped = hpr(&args);
+        assert!(!piped.stdout.contains(&0x1b), "{args:?}");
+    }
+}
+
+/// A refusal raised while the rocket flies says it of the flight, rounds the library's number,
+/// and ends with a `help:` line naming the options that shaped the flight (issue #405), in
+/// `hpr sim` and in `hpr mc`'s nominal flight, in text and in JSON.
+#[test]
+fn a_refusal_in_flight_names_what_led_to_it() {
+    let probe = repo_file(PROBE);
+    for command in ["sim", "mc"] {
+        let args = [
+            command,
+            probe.as_str(),
+            "--motor",
+            "H54",
+            "--elevation",
+            "1e9",
+        ];
+        let output = hpr(&args);
+        assert_eq!(output.status.code(), Some(1), "{output:?}");
+        let stderr = text(&output.stderr);
+        let lines: Vec<&str> = stderr.lines().collect();
+        assert_eq!(lines.len(), 2, "{stderr}");
+        let mach = lines[0]
+            .strip_prefix("error: the flight stopped: it reached Mach ")
+            .and_then(|rest| {
+                rest.strip_suffix("; the aerodynamics stop at Mach 5 (the normal force's range)")
+            })
+            .unwrap_or_else(|| panic!("{stderr}"));
+        // Rounded to four significant digits, and past the range.
+        assert!(
+            mach.len() <= 5 && mach.parse::<f64>().unwrap() >= 5.0,
+            "{mach}"
+        );
+        assert_eq!(
+            lines[1],
+            "help: the flight came from pods-none.ork with `--motor H54 --elevation 1000000000`: \
+             check those values, or fly it without them"
+        );
+        let document = json_error(&args, 1, "input");
+        assert_eq!(
+            document["error"]["message"],
+            lines[0].trim_start_matches("error: ")
+        );
+        assert_eq!(
+            document["error"]["help"][0],
+            lines[1].trim_start_matches("help: ")
+        );
+    }
 }

@@ -173,15 +173,13 @@ pub(crate) fn run(args: &SearchArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         generated_at: list.generated_at.clone(),
         motors: motors.into_iter().map(found).collect::<Result<_, _>>()?,
     };
-    let mut lines = text_lines(&document, &filters.words());
+    let (mut lines, headings) = text_lines(&document, &filters.words());
     if document.motors.is_empty()
         && let Some(hint) = priced_out(&filters, &list.motors)
     {
         lines.push(hint);
     }
-    to.emit(&document, |out, _| {
-        lines.iter().try_for_each(|line| writeln!(out, "{line}"))
-    })
+    to.emit(&document, |out, _| out.lines(&lines, &headings))
 }
 
 /// Why an empty list under `--max-price` is empty, when the other filters pass motors: the
@@ -336,8 +334,9 @@ fn found(motor: &Motor) -> Result<FoundMotor, Failure> {
     })
 }
 
-/// The text output: how many motors and which, where the list is from, the credits, the table.
-fn text_lines(document: &MotorSearch, filters: &[String]) -> Vec<String> {
+/// The text output: how many motors and which, where the list is from, the credits, the table;
+/// and the index of the table's header row, if there is a table.
+fn text_lines(document: &MotorSearch, filters: &[String]) -> (Vec<String>, Vec<usize>) {
     let count = match document.motors.len() {
         1 => "1 motor".to_owned(),
         n => format!("{n} motors"),
@@ -355,7 +354,7 @@ fn text_lines(document: &MotorSearch, filters: &[String]) -> Vec<String> {
     ];
     lines.extend(document.attribution.iter().cloned());
     if document.motors.is_empty() {
-        return lines;
+        return (lines, Vec::new());
     }
     lines.push(String::new());
     let header = [
@@ -444,11 +443,12 @@ fn text_lines(document: &MotorSearch, filters: &[String]) -> Vec<String> {
         }
         text.trim_end().to_owned()
     };
+    let heading = lines.len();
     lines.push(line(&header));
     for row in &rows {
         lines.push(line(&row.each_ref().map(String::as_str)));
     }
-    lines
+    (lines, vec![heading])
 }
 
 #[cfg(test)]

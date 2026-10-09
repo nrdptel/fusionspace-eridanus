@@ -15,13 +15,15 @@
 
 use std::io::{self, Write};
 
-use crate::console::{Diagnostics, Level};
+use crate::console::{Diagnostics, Level, Text};
 use crate::output::{
     Delay, DeviceEvent, EventKind, FlagKind, InputWarning, IssueKind, Launch, SimDesign, SimDevice,
     SimEvent, SimFlight, SimMotor, SimMotorSource, Termination,
 };
 use crate::sim::{braked, first_opened, in_fall};
-use crate::units::{feet, feet_per_second, fixed, inches, meters, miles_per_hour, speed};
+use crate::units::{
+    feet, feet_per_second, fixed, inches, meters, miles_per_hour, speed, typed_bearing,
+};
 
 /// The width of a figure's name in the summary's columns.
 const NAME: usize = 22;
@@ -30,7 +32,7 @@ const NAME: usize = 22;
 /// `diagnostics`.
 pub(crate) fn print(
     flight: &SimFlight,
-    out: &mut dyn Write,
+    out: &mut Text<'_>,
     diagnostics: &mut Diagnostics<'_>,
 ) -> io::Result<()> {
     design_lines(&flight.design, out, diagnostics)?;
@@ -205,18 +207,19 @@ pub(crate) fn launch_lines(launch: &Launch, out: &mut dyn Write) -> io::Result<(
         format!("a {rail_length} vertical rail")
     } else {
         format!(
-            "a {rail_length} rail {}° above the horizon, leaning toward {}°",
-            launch.inclination_deg, launch.heading_deg
+            "a {rail_length} rail {}° above the horizon, leaning toward {}",
+            launch.inclination_deg,
+            typed_bearing(launch.heading_deg)
         )
     };
     let wind = if launch.wind_speed_m_s == 0.0 {
         "calm air".to_owned()
     } else {
         format!(
-            "a {} m/s ({}) wind from {}°",
+            "a {} m/s ({}) wind from {}",
             launch.wind_speed_m_s,
             miles_per_hour(launch.wind_speed_m_s),
-            launch.wind_from_deg
+            typed_bearing(launch.wind_from_deg)
         )
     };
     writeln!(
@@ -545,12 +548,11 @@ fn descent(flight: &SimFlight, braked: bool) -> String {
 }
 
 /// The events, as a table: each height and speed in SI, then in US units in brackets.
-fn events(events: &[SimEvent], out: &mut dyn Write) -> io::Result<()> {
-    writeln!(
-        out,
+fn events(events: &[SimEvent], out: &mut Text<'_>) -> io::Result<()> {
+    out.heading(&format!(
         "{:<18} {:>9} {:>22} {:>24}",
         "event", "time", "height", "speed"
-    )?;
+    ))?;
     for event in events {
         let name = match event.kind {
             EventKind::Liftoff => "liftoff",
@@ -678,11 +680,37 @@ fn rest(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
     Ok(())
 }
 
-/// An angle north or south, east or west: `32.99° N`, `106.97° W`.
+/// A latitude or longitude, north or south, east or west, in decimal degrees to five places,
+/// about a meter, as the product system's `data.md` (*Maps*) writes one: `32.99000° N`,
+/// `106.97000° W`.
 fn hemisphere(value: f64, positive: &str, negative: &str) -> String {
-    if value < 0.0 {
-        format!("{}° {negative}", -value)
+    let shown = fixed(value.abs(), 5);
+    // A value that rounds to zero is on the line, not south or west of it.
+    let side = if value < 0.0 && shown != fixed(0.0, 5) {
+        negative
     } else {
-        format!("{value}° {positive}")
+        positive
+    };
+    format!("{shown}° {side}")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A latitude or longitude prints to five places with its side, and one that rounds to zero
+    /// is on the line, not south or west of it.
+    #[test]
+    fn coordinates_print_to_five_places() {
+        for (value, expected) in [
+            (40.865_123_4, "40.86512° N"),
+            (-32.99, "32.99000° S"),
+            (0.0, "0.00000° N"),
+            (-0.000_001, "0.00000° N"),
+            (-0.000_006, "0.00001° S"),
+        ] {
+            assert_eq!(hemisphere(value, "N", "S"), expected, "{value}");
+        }
+        assert_eq!(hemisphere(-106.97, "E", "W"), "106.97000° W");
     }
 }

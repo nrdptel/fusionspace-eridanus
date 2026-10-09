@@ -26,7 +26,7 @@ use crate::output::{
     WeatherSourceName,
 };
 use crate::trust::{self, Kind};
-use crate::units::{bracketed, fahrenheit_figure, feet_figure, fixed, mph_figure};
+use crate::units::{bearing_figure, bracketed, fahrenheit_figure, feet_figure, fixed, mph_figure};
 use crate::{Failure, Out};
 
 /// The credit ERA5's license (CC BY 4.0) asks for, as `docs/format/era5.md` gives it.
@@ -200,9 +200,9 @@ pub(crate) fn run(command: &WeatherCommand, to: &mut Out<'_>) -> Result<(), Fail
             .map_err(|error| Failure::Input(format!("{path}: {error}")))?;
     }
     let document = document(read, output.clone());
-    let lines = text_lines(&document);
+    let (lines, headings) = text_lines(&document);
     to.emit(&document, |out, _| {
-        lines.iter().try_for_each(|line| writeln!(out, "{line}"))?;
+        out.lines(&lines, &headings)?;
         crate::sim_text::trust_lines(&document.trust, out)
     })
 }
@@ -613,8 +613,9 @@ fn document(read: Read, profile: Option<String>) -> Weather {
     }
 }
 
-/// The text output: where the profile is from, its levels, what was left out, and the file.
-fn text_lines(document: &Weather) -> Vec<String> {
+/// The text output: where the profile is from, its levels, what was left out, and the file; and
+/// the indices of the levels table's two header rows.
+fn text_lines(document: &Weather) -> (Vec<String>, Vec<usize>) {
     let source = match document.source.name {
         WeatherSourceName::OpenMeteo => "Open-Meteo",
         WeatherSourceName::Wyoming => "University of Wyoming sounding",
@@ -638,6 +639,8 @@ fn text_lines(document: &Weather) -> Vec<String> {
         document.source.attribution.clone(),
         String::new(),
     ];
+    // The table's names and units: its first two lines ([`levels_table`]).
+    let headings = vec![lines.len(), lines.len() + 1];
     lines.extend(levels_table(&document.levels));
     if !document.dropped.is_empty() {
         lines.push(String::new());
@@ -677,7 +680,7 @@ fn text_lines(document: &Weather) -> Vec<String> {
         lines.push(String::new());
         lines.push(format!("Profile written to {path}"));
     }
-    lines
+    (lines, headings)
 }
 
 /// The levels as a table, two heading lines over a row each: SI first, with the US units a flyer
@@ -739,11 +742,16 @@ fn levels_table(levels: &[ProfileLevel]) -> Vec<String> {
         ),
         ("wind", "m/s (mph)", wind),
         (
+            // A bearing from true north, as the product system's `data.md` (*Maps*) writes one.
             "from",
-            "°",
+            "° T",
             levels
                 .iter()
-                .map(|level| or_blank(level.wind_from_deg, 1.0, 0))
+                .map(|level| {
+                    level
+                        .wind_from_deg
+                        .map_or("-".to_owned(), |from| bearing_figure(from, 0))
+                })
                 .collect(),
         ),
     ];
@@ -787,10 +795,17 @@ fn count(levels: usize) -> String {
     format!("{levels} level{}", if levels == 1 { "" } else { "s" })
 }
 
-/// An angle in degrees with its hemisphere, such as `106.9700° W`.
+/// A latitude or longitude with its hemisphere, in decimal degrees to five places, about a meter,
+/// as the product system's `data.md` (*Maps*) writes one: `106.97000° W`.
 fn degrees(value: f64, [positive, negative]: [&str; 2]) -> String {
-    let hemisphere = if value < 0.0 { negative } else { positive };
-    format!("{:.4}° {hemisphere}", value.abs())
+    let shown = fixed(value.abs(), 5);
+    // A value that rounds to zero is on the line, not south or west of it.
+    let hemisphere = if value < 0.0 && shown != fixed(0.0, 5) {
+        negative
+    } else {
+        positive
+    };
+    format!("{shown}° {hemisphere}")
 }
 
 /// Reads a UTC time written `YYYY-MM-DDTHH[:MM[:SS]]Z`, as seconds since the Unix epoch.
@@ -914,7 +929,7 @@ mod tests {
             lines,
             [
                 "         height  pressure         temp  humidity       wind  from",
-                "     m MSL (ft)       hPa      °C (°F)         %  m/s (mph)     °",
+                "     m MSL (ft)       hPa      °C (°F)         %  m/s (mph)   ° T",
                 " 1500.0  (4921)     850.0    0.0  (32)         -  12.3 (28)   270",
                 "15000.0 (49213)     850.0  -53.1 (-64)         -     -          -",
             ]

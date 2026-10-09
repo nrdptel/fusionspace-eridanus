@@ -10,11 +10,15 @@
 //! which thread flies it. A failed sample is counted and its reason printed, never dropped.
 
 use std::path::Path;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::mpsc;
+use std::time::{Duration, Instant};
 
 use hpr::hpr_analysis::ellipse::{Ellipse, Scatter};
-use hpr::hpr_analysis::montecarlo::{Dispersion, FailedAt, MonteCarlo, Outcome, Run};
+use hpr::hpr_analysis::montecarlo::{Dispersion, FailedAt, MonteCarlo, Outcome, Run, Sample};
 use hpr::hpr_analysis::statistics::Distribution;
 use hpr::hpr_analysis::table::RunTable;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::output::{
     EllipseKind, Export, ExportFormat, McDispersion, McEllipse, McExportMeta, McFailed, McFailedAt,
@@ -165,10 +169,12 @@ pub(crate) fn run(args: &McArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     let setup = Setup::read(&args.flight)?;
     let builder = setup.builder(&args.flight);
     // The nominal flight, as `hpr sim` flies it: its figures and the issues it meets.
-    let nominal = builder.fly().map_err(sim::input)?;
+    let nominal = builder
+        .fly()
+        .map_err(|error| sim::flight_refused(&error, &args.flight))?;
     let monte_carlo = MonteCarlo::new(builder.inputs().map_err(sim::input)?, dispersion(&given))
         .map_err(|error| Failure::Input(error.to_string()))?;
-    let run = monte_carlo.run_parallel(args.seed, args.runs);
+    let run = fly(&monte_carlo, args.seed, args.runs, to);
     let motors = setup.motors()?;
     drop(builder);
 
@@ -267,6 +273,55 @@ pub(crate) fn run(args: &McArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     to.emit(&document, |out, diagnostics| {
         crate::mc_text::print(&document, out, diagnostics)
     })
+}
+
+/// How often the progress line is drawn again.
+const PROGRESS_TICK: Duration = Duration::from_millis(100);
+
+/// Flies the run's samples on every core, as [`MonteCarlo::run_parallel`] does, the same flights
+/// bit for bit, drawing its progress on standard error ([`crate::console::progress_line`]) once
+/// it has gone on for `to.progress` and until it ends; never with `--json` or on a pipe.
+fn fly(monte_carlo: &MonteCarlo, seed: u64, runs: u64, to: &mut Out<'_>) -> Run {
+    let Some(after) = to.progress else {
+        return monte_carlo.run_parallel(seed, runs);
+    };
+    let flown = AtomicU64::new(0);
+    let started = Instant::now();
+    let samples = std::thread::scope(|scope| {
+        let (done, finished) = mpsc::channel();
+        let flown = &flown;
+        let worker = scope.spawn(move || {
+            let samples: Vec<Sample> = (0..runs)
+                .into_par_iter()
+                .map(|index| {
+                    let sample = monte_carlo.sample(seed, index);
+                    flown.fetch_add(1, Ordering::Relaxed);
+                    sample
+                })
+                .collect();
+            // The receiver waits until this is sent; it can't be gone.
+            let _ = done.send(());
+            samples
+        });
+        loop {
+            let elapsed = started.elapsed();
+            if elapsed >= after {
+                let line =
+                    crate::console::progress_line(flown.load(Ordering::Relaxed), runs, elapsed);
+                to.diagnostics.progress(&line);
+            }
+            match finished.recv_timeout(PROGRESS_TICK) {
+                Ok(()) | Err(mpsc::RecvTimeoutError::Disconnected) => break,
+                Err(mpsc::RecvTimeoutError::Timeout) => {}
+            }
+        }
+        to.diagnostics.end_progress();
+        // A panic on a flight's thread is rayon's to pass on, as `run_parallel` would.
+        worker
+            .join()
+            .unwrap_or_else(|panic| std::panic::resume_unwind(panic))
+    });
+    Run { seed, samples }
 }
 
 /// The `--export` file and its sidecar, refused if it isn't a `.csv`, its folder is missing, or

@@ -17,7 +17,7 @@ use hpr::hpr_motor::delay::{self, DelayList};
 use hpr::hpr_motor::text::{ParseWarning, WarningKind as ReadWarning};
 use hpr::hpr_motor::{ImpulseClass, eng, rse};
 
-use crate::console::{Diagnostics, Level};
+use crate::console::{Diagnostics, Level, Text};
 use crate::output::{
     CatalogInfo, Delay, FileFormat, ListedMotor, MotorFigures, MotorKind, MotorList, MotorShow,
     MotorSource, Warning, WarningKind,
@@ -239,7 +239,7 @@ fn kind(motor_type: MotorType) -> Result<MotorKind, Failure> {
 }
 
 /// `hpr motors list` as text: a table.
-fn list_text(list: &MotorList, out: &mut dyn Write) -> io::Result<()> {
+fn list_text(list: &MotorList, out: &mut Text<'_>) -> io::Result<()> {
     writeln!(
         out,
         "{} motors from {}, downloaded {}; size, masses and delays from each file's header, the \
@@ -304,7 +304,7 @@ fn list_text(list: &MotorList, out: &mut dyn Write) -> io::Result<()> {
             *width = (*width).max(cell.chars().count());
         }
     }
-    let line = |out: &mut dyn Write, cells: &[&str]| -> io::Result<()> {
+    let line = |cells: &[&str]| -> String {
         let mut text = String::new();
         for (i, (cell, width)) in cells.iter().zip(widths).enumerate() {
             let pad = width - cell.chars().count();
@@ -320,11 +320,11 @@ fn list_text(list: &MotorList, out: &mut dyn Write) -> io::Result<()> {
                 text.push_str(&" ".repeat(pad + 2));
             }
         }
-        writeln!(out, "{}", text.trim_end())
+        text.trim_end().to_owned()
     };
-    line(out, &header)?;
+    out.heading(&line(&header))?;
     for row in &rows {
-        line(out, &row.each_ref().map(String::as_str))?;
+        writeln!(out, "{}", line(&row.each_ref().map(String::as_str)))?;
     }
     Ok(())
 }

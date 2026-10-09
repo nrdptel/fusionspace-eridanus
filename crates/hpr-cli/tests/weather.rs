@@ -570,7 +570,7 @@ fn the_text_names_the_credit_and_the_file() {
     assert_eq!(output.status.code(), Some(0), "{output:?}");
     let text = String::from_utf8(output.stdout).unwrap();
     for expected in [
-        "GFS at 32.9900° N, 106.9700° W, for 2026-09-30T18:00:00Z, run of 2026-09-30T00:00:00Z",
+        "GFS at 32.99000° N, 106.97000° W, for 2026-09-30T18:00:00Z, run of 2026-09-30T00:00:00Z",
         "Read from nomads-gfs.grib2",
         nomads::ATTRIBUTION,
         "below the ground, 6 levels: 1000 hPa, 975 hPa, 950 hPa, 925 hPa, 900 hPa, 850 hPa",
@@ -889,6 +889,39 @@ fn every_source_ends_with_how_far_to_trust_it() {
     assert!(!cache.exists(), "a saved answer mustn't touch the cache");
 }
 
+/// With color, the result's first line and the levels table's two header rows take the Heading
+/// role (bold), as the product system's `cli.md` asks (*Color*), and its other rows don't.
+#[test]
+fn the_levels_headers_take_the_heading_role() {
+    let scratch = tempfile::tempdir().unwrap();
+    let from = recording("nomads-gfs.grib2");
+    let args = [
+        "weather",
+        "gfs",
+        "--latitude",
+        LATITUDE,
+        "--longitude",
+        LONGITUDE,
+        "--from",
+        &from,
+        "--color",
+        "always",
+    ];
+    let output = hpr(&args, scratch.path());
+    assert_eq!(output.status.code(), Some(0), "{output:?}");
+    let text = String::from_utf8(output.stdout).unwrap();
+    let lines: Vec<&str> = text.lines().collect();
+    let bold = |line: &str| line.starts_with("\u{1b}[1m") && line.ends_with("\u{1b}[0m");
+    assert!(bold(lines[0]), "{text:?}");
+    let header = lines
+        .iter()
+        .position(|line| line.contains("height  pressure"))
+        .unwrap_or_else(|| panic!("{text}"));
+    assert!(bold(lines[header]) && bold(lines[header + 1]), "{text:?}");
+    assert!(lines[header + 1].contains("° T"), "{text:?}");
+    assert!(!lines[header + 2].contains('\u{1b}'), "{text:?}");
+}
+
 /// The levels give feet, °F and mph in brackets after the SI (issue #392, ADR-213), the pressure
 /// in hPa alone; the columns line up on both parts, and `--json` stays SI.
 #[test]
@@ -917,7 +950,7 @@ fn the_levels_give_us_units_in_brackets() {
         &lines[header..header + 4],
         [
             "          height  pressure         temp  humidity        wind  from",
-            "      m MSL (ft)       hPa      °C (°F)         %   m/s (mph)     °",
+            "      m MSL (ft)       hPa      °C (°F)         %   m/s (mph)   ° T",
             " 1476.4   (4844)     848.0   19.3  (67)        42   5.5  (12)   242",
             " 1972.1   (6470)     800.0   13.3  (56)        52   6.7  (15)   251",
         ],

@@ -5,6 +5,8 @@
 //! the decision on fetching them). Offline with no copy in the cache, the refusal names the exact
 //! command that fetches it.
 
+use std::io::Write;
+
 use hpr::Motor;
 use hpr::hpr_net::NetError;
 use hpr::hpr_net::on_demand::{self, FindError, Found, Wanted};
@@ -65,7 +67,7 @@ pub(crate) fn run(args: &FetchArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         ),
     ];
     to.emit(&document, |out, diagnostics| {
-        lines.iter().try_for_each(|line| writeln!(out, "{line}"))?;
+        out.lines(&lines, &[])?;
         flies
             .iter()
             .try_for_each(|(level, line)| diagnostics.line(*level, line))?;

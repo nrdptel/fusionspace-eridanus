@@ -36,7 +36,7 @@ pub(crate) fn run(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     let document = document(&args.log, &log, &read);
     let lines = text_lines(&document);
     to.emit(&document, |out, diagnostics| {
-        lines.iter().try_for_each(|line| writeln!(out, "{line}"))?;
+        out.lines(&lines, &[])?;
         crate::sim_text::trust_lines(&document.trust, out)?;
         document
             .log
