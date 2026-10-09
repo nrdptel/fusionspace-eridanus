@@ -631,6 +631,10 @@ fn offline_without_a_copy_is_refused() {
         assert!(message.starts_with("motor.fusionspace.co: "), "{message}");
         assert!(message.contains("is not in the cache"), "{message}");
         assert!(message.contains(&endpoint.url()), "{message}");
+        // What to do: fetch it, online (#410).
+        let help = document["error"]["help"].as_array().unwrap();
+        let last = help.last().and_then(|line| line.as_str()).unwrap_or("");
+        assert!(last.contains("run it again without --offline"), "{help:?}");
     }
 }
 
@@ -677,6 +681,13 @@ fn bad_filters_and_files_are_refused() {
     let document = json(&["--from", &meta], scratch.path(), 1, "error.schema.json");
     let message = document["error"]["message"].as_str().unwrap();
     assert!(message.starts_with(&format!("{meta}: ")), "{message}");
+    let help = document["error"]["help"].as_array().unwrap();
+    assert!(
+        help.iter().any(|line| line
+            .as_str()
+            .is_some_and(|line| line.contains("motors.json"))),
+        "{help:?}"
+    );
     // `--from` and `--offline` together are a usage error, and so is `--max-price` with no
     // value before the next option.
     for args in [

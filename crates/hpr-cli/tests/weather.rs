@@ -434,7 +434,8 @@ fn every_source_writes_its_profile_offline_from_the_cache() {
     }
 }
 
-/// Offline with nothing cached, the fetch is refused and names what it would have fetched.
+/// Offline with nothing cached, the fetch is refused, names what it would have fetched, and
+/// says to run it again without `--offline` to fetch it (#410).
 #[test]
 fn offline_without_a_copy_is_refused() {
     let scratch = tempfile::tempdir().unwrap();
@@ -446,6 +447,13 @@ fn offline_without_a_copy_is_refused() {
         assert!(
             message.contains("is not in the cache"),
             "{}: {message}",
+            case.name
+        );
+        let help = document["error"]["help"].as_array().unwrap();
+        let last = help.last().and_then(|line| line.as_str()).unwrap_or("");
+        assert!(
+            last.contains("run it again without --offline"),
+            "{}: {help:?}",
             case.name
         );
     }

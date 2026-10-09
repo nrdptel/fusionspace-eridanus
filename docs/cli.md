@@ -194,8 +194,13 @@ $ echo $?
 
 A refusal has two parts, as a compiler's does: an `error:` line that says what went wrong and
 names it the way you typed it (the option with its value and unit, or the file's path), then
-`help:` lines that say what to do, the most useful last. A latitude past the pole is refused in the degrees you gave,
-with the range `--latitude` takes:
+`help:` lines that say what to do, the most useful last.
+
+Every refusal has at least one `help:` line. A command that isn't available yet (exit status 3)
+names the milestone that brings it and where to follow it on the roadmap, and a refusal that only
+a fault in the simulator can cause asks you to report it at the issue tracker's address.
+
+A latitude past the pole is refused in the degrees you gave, with the range `--latitude` takes:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --latitude 95`, exits 1 -->
 
@@ -1694,6 +1699,12 @@ it falls back to an older copy, and the output says so.
   and when you give `--cycle` and `--hour`, it must be that run and hour. Check the first line of
   the output, which says where and when the profile is for.
 - `--output FILE` (or `-o`) writes the profile as JSON, described below.
+
+A fetch that takes more than a tenth of a second says so on standard error when that is a
+terminal: `waiting for nomads.ncep.noaa.gov, 1 s`, then, once the answer starts to arrive,
+`fetching from nomads.ncep.noaa.gov: 48.2 kB so far, 2 s`, each over the one before and gone when
+the answer is in. `hpr motors fetch`, `hpr motors search` and `hpr sim` fetching a motor do the
+same ([Fetching over HTTP](online-data.md#fetching-over-http)).
 
 The simulator reads the small GRIB2 files that NOAA's download server, NOMADS, cuts out around a
 site, and whole GFS files you download yourself, which are packed more tightly

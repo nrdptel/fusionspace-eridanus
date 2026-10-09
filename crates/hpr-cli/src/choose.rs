@@ -211,7 +211,6 @@ mod tests {
 
     fn refusal(result: Result<usize, Failure>) -> String {
         match result {
-            Err(Failure::Input(message)) => message,
             Err(Failure::Helped { message, help }) => {
                 format!("{message}; help: {}", help.join("; "))
             }

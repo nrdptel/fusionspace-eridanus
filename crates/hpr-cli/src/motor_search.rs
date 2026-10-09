@@ -68,9 +68,10 @@ impl Filters {
         if let Some(diameter) = args.diameter
             && !(diameter.is_finite() && diameter > 0.0)
         {
-            return Err(Failure::Input(format!(
-                "--diameter must be a positive number of millimeters, not {diameter}"
-            )));
+            return Err(Failure::helped(
+                format!("--diameter must be a positive number of millimeters, not {diameter}"),
+                "give the casing's diameter in millimeters, such as 38 or 54",
+            ));
         }
         let manufacturer = args.manufacturer.as_deref().map(maker).transpose()?;
         let max_price_cents = args.max_price.as_deref().map(cents).transpose()?;
@@ -133,8 +134,13 @@ pub(crate) fn run(args: &SearchArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     let filters = Filters::new(args)?;
     let (list, read_from) = match &args.from {
         Some(path) => (
-            motor_finder::parse_motors(&read_file(path)?)
-                .map_err(|error| Failure::Input(format!("{path}: {error}")))?,
+            motor_finder::parse_motors(&read_file(path)?).map_err(|error| {
+                Failure::helped(
+                    format!("{}: {error}", printable(path)),
+                    "give --from motor.fusionspace.co's motors.json or in-stock.json, saved as it \
+                     came; or leave --from out to fetch the list",
+                )
+            })?,
             ReadFrom::File { path: path.clone() },
         ),
         None => {
@@ -154,7 +160,18 @@ pub(crate) fn run(args: &SearchArgs, to: &mut Out<'_>) -> Result<(), Failure> {
             } else {
                 motor_finder::fetch_motors(&client, now)
             }
-            .map_err(|error| Failure::Input(format!("motor.fusionspace.co: {error}")))?;
+            .map_err(|error| {
+                let help = match &error {
+                    MotorFinderError::Net(net) => crate::fetch_help(net),
+                    // The request is HPR Sim's own: the search's filters aren't sent.
+                    MotorFinderError::Request { .. } => crate::BUG_HELP.to_owned(),
+                    _ => "motor.fusionspace.co's answer can't be used; run it again later, and \
+                          if it stays refused, report it at \
+                          https://github.com/nrdptel/fusionspace-eridanus/issues"
+                        .to_owned(),
+                };
+                Failure::helped(format!("motor.fusionspace.co: {error}"), help)
+            })?;
             (list, read_from(&fetched))
         }
     };
@@ -304,9 +321,10 @@ fn found(motor: &Motor) -> Result<FoundMotor, Failure> {
         // `hpr_net`'s enum is non-exhaustive: a kind this build doesn't know is refused, not
         // given the name of another.
         Some(other) => {
-            return Err(Failure::Input(format!(
-                "the motor type {other:?} is new to this build of HPR Sim"
-            )));
+            return Err(Failure::helped(
+                format!("the motor type {other:?} is new to this build of HPR Sim"),
+                crate::BUG_HELP,
+            ));
         }
     };
     Ok(FoundMotor {

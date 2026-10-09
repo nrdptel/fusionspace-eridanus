@@ -51,27 +51,41 @@ struct ReadDesign {
 pub(crate) fn run(args: &ConvertArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     let (input, output) = (&args.input, &args.output);
     let (Some(from), Some(target)) = (format_of(input), format_of(output)) else {
-        return Err(Failure::Input(format!(
-            "{input} to {output}: hpr convert writes a design (.ork, .hpr or .hprz) from a \
-             design, and motors (.eng or .rse) from motors"
-        )));
+        let help = if is_design(input) {
+            "end the output's name in .ork, .hpr or .hprz to write the design"
+        } else {
+            "give a .ork, .hpr or .hprz design to write a design, or end the output's name in \
+             .eng or .rse to write motors"
+        };
+        return Err(Failure::helped(
+            format!(
+                "{input} to {output}: hpr convert writes a design (.ork, .hpr or .hprz) from a \
+                 design, and motors (.eng or .rse) from motors"
+            ),
+            help,
+        ));
     };
     if args.delays.is_some() {
-        return Err(Failure::Input(
+        return Err(Failure::helped(
             "--delays gives a .rse motor's delays for a .eng file, and hpr convert is writing a \
-             design"
-                .to_owned(),
+             design",
+            "leave out --delays",
         ));
     }
     if !args.attach.is_empty() && target != DesignFormat::Hprz {
-        return Err(Failure::Input(format!(
-            "{output}: --attach adds files to a .hprz, and this is not one"
-        )));
+        return Err(Failure::helped(
+            format!("{output}: --attach adds files to a .hprz, and this is not one"),
+            format!(
+                "write {} to carry the files, or leave out --attach",
+                Path::new(output).with_extension("hprz").display()
+            ),
+        ));
     }
     if same_file(input) == same_file(output) {
-        return Err(Failure::Input(format!(
-            "{output}: that is the file hpr convert reads, and it would write over it"
-        )));
+        return Err(Failure::helped(
+            format!("{output}: that is the file hpr convert reads, and it would write over it"),
+            "name another file to write",
+        ));
     }
     output_folder(output)?;
     let mut read = read(input, from)?;
@@ -80,18 +94,35 @@ pub(crate) fn run(args: &ConvertArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     let mut attachments = read.attachments;
     for path in &args.attach {
         let name = file_name(path);
-        container::check_name(&name).map_err(|why| Failure::Input(format!("{path}: {why}")))?;
+        container::check_name(&name).map_err(|why| {
+            Failure::helped(
+                format!("{path}: {why}"),
+                "copy the file to a plain name, such as notes.txt, and attach the copy",
+            )
+        })?;
         let bytes = crate::read_file(path)?;
         attachments.push(Entry::new(name, bytes));
     }
-    let unwritable = |error: &dyn std::fmt::Display| {
-        Failure::Input(format!("{output}: the design can't be written: {error}"))
+    let unwritable = |error: &dyn std::fmt::Display, help: &str| {
+        Failure::helped(
+            format!("{output}: the design can't be written: {error}"),
+            help,
+        )
     };
     let (bytes, written) = match target {
         DesignFormat::Hprz => {
             let names = attachments.iter().map(|entry| entry.name.clone()).collect();
+            // With no attachments, the container holds only the design, which was read.
+            let help = if attachments.is_empty() {
+                crate::BUG_HELP
+            } else {
+                "change or leave out the attachment the message names"
+            };
             let hprz = Hprz::new(read.document.clone(), attachments);
-            (container::write(&hprz).map_err(|e| unwritable(&e))?, names)
+            (
+                container::write(&hprz).map_err(|e| unwritable(&e, help))?,
+                names,
+            )
         }
         _ => {
             // A `.hpr` or `.ork` has no place for a container's own files.
@@ -107,16 +138,21 @@ pub(crate) fn run(args: &ConvertArgs, to: &mut Out<'_>) -> Result<(), Failure> {
                 });
             }
             if target == DesignFormat::Hpr {
-                let text = hpr_format::to_json(&read.document).map_err(|e| unwritable(&e))?;
+                // A design read is one its own format can write.
+                let text = hpr_format::to_json(&read.document)
+                    .map_err(|e| unwritable(&e, crate::BUG_HELP))?;
                 (text.into_bytes(), Vec::new())
             } else {
-                let ork = read.document.to_ork().map_err(|e| unwritable(&e))?;
+                let ork = read
+                    .document
+                    .to_ork()
+                    .map_err(|e| unwritable(&e, "write it as a .hpr or .hprz file instead"))?;
                 warnings.extend(ork.warnings.iter().map(ork_warning));
                 (ork.value, Vec::new())
             }
         }
     };
-    std::fs::write(output, bytes).map_err(|error| Failure::Input(format!("{output}: {error}")))?;
+    std::fs::write(output, bytes).map_err(|error| crate::unwritable(output, &error))?;
     let document = ConvertDesign {
         input: DesignFilePath {
             path: input.clone(),
@@ -141,10 +177,19 @@ pub(crate) fn run(args: &ConvertArgs, to: &mut Out<'_>) -> Result<(), Failure> {
 /// Reads the design at `path`, of `format`.
 fn read(path: &str, format: DesignFormat) -> Result<ReadDesign, Failure> {
     let bytes = crate::read_file(path)?;
-    let refused = |error: &dyn std::fmt::Display| Failure::Input(format!("{path}: {error}"));
+    let refused = |error: &dyn std::fmt::Display, help: String| {
+        Failure::helped(format!("{path}: {error}"), help)
+    };
     match format {
         DesignFormat::Ork => {
-            let read = DesignFile::from_ork(&bytes).map_err(|e| refused(&e))?;
+            let read = DesignFile::from_ork(&bytes).map_err(|e| {
+                refused(
+                    &e,
+                    "give a .ork file OpenRocket saved; if this is one, save it again from \
+                     OpenRocket and convert the copy"
+                        .to_owned(),
+                )
+            })?;
             Ok(ReadDesign {
                 document: read.value,
                 written_as: hpr_format::VERSION,
@@ -153,7 +198,7 @@ fn read(path: &str, format: DesignFormat) -> Result<ReadDesign, Failure> {
             })
         }
         DesignFormat::Hprz => {
-            let opened = container::read(&bytes).map_err(|e| refused(&e))?;
+            let opened = container::read(&bytes).map_err(|e| refused(&e, read_help(&e)))?;
             Ok(ReadDesign {
                 document: opened.value.design,
                 written_as: opened.written_as,
@@ -162,9 +207,13 @@ fn read(path: &str, format: DesignFormat) -> Result<ReadDesign, Failure> {
             })
         }
         _ => {
-            let text = String::from_utf8(bytes)
-                .map_err(|_| Failure::Input(format!("{path}: an .hpr file is UTF-8 text")))?;
-            let opened = hpr_format::read_json(&text).map_err(|e| refused(&e))?;
+            let text = String::from_utf8(bytes).map_err(|_| {
+                Failure::helped(
+                    format!("{path}: an .hpr file is UTF-8 text"),
+                    "give a .hpr design HPR Sim wrote; this file isn't one",
+                )
+            })?;
+            let opened = hpr_format::read_json(&text).map_err(|e| refused(&e, read_help(&e)))?;
             Ok(ReadDesign {
                 document: opened.value,
                 written_as: opened.written_as,
@@ -172,6 +221,25 @@ fn read(path: &str, format: DesignFormat) -> Result<ReadDesign, Failure> {
                 warnings: Vec::new(),
             })
         }
+    }
+}
+
+/// What to do about a `.hpr` or `.hprz` design that doesn't read, by why.
+pub(crate) fn read_help(error: &hpr_format::FormatError) -> String {
+    use hpr_format::FormatError;
+    match error {
+        FormatError::Unsupported {
+            found, supported, ..
+        } if found > supported => "a newer HPR Sim wrote it; update HPR Sim to read it".to_owned(),
+        FormatError::Unsupported { .. } => "an HPR Sim older than this one migrates from wrote \
+             it; convert it with that HPR Sim to a newer version first"
+            .to_owned(),
+        FormatError::Json(_) | FormatError::NotADesign { .. } => {
+            "give a .hpr or .hprz design HPR Sim wrote; this file isn't one".to_owned()
+        }
+        _ => "fix what the message names, or convert the design again from the .ork it came \
+              from"
+            .to_owned(),
     }
 }
 

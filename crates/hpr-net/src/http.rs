@@ -1,6 +1,8 @@
 //! The HTTP transport: blocking HTTP/1.1 through `ureq`, TLS through rustls.
 
 use std::io::Read;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
 
 use ureq::{Proxy, ProxyProtocol};
@@ -68,6 +70,8 @@ pub struct Http {
     max_body_bytes: u64,
     /// A SOCKS proxy the environment names, which every URL it covers is refused under.
     socks: Option<Proxy>,
+    /// The body bytes the fetch in progress has read so far ([`Http::received`]).
+    received: Arc<AtomicU64>,
 }
 
 impl Http {
@@ -118,11 +122,20 @@ impl Http {
             agent,
             max_body_bytes: config.max_body_bytes,
             socks,
+            received: Arc::default(),
         }
     }
 }
 
 impl Http {
+    /// The body bytes, unpacked, that the fetch in progress has read so far, or the last fetch
+    /// read in all: set to 0 as a fetch starts and counted up as its body arrives, so another
+    /// thread can show a long fetch's progress while [`Transport::get`] waits. A clone of this
+    /// transport shares the count.
+    pub fn received(&self) -> Arc<AtomicU64> {
+        Arc::clone(&self.received)
+    }
+
     /// Why `url` is refused, when the environment's proxy is SOCKS and `NO_PROXY` doesn't exempt
     /// it. Without ureq's SOCKS support, ureq would warn and connect directly, around the proxy.
     fn socks_refusal(&self, url: &str) -> Option<String> {
@@ -150,6 +163,7 @@ impl Default for Http {
 
 impl Transport for Http {
     fn get(&self, url: &str) -> Result<Vec<u8>, String> {
+        self.received.store(0, Ordering::Relaxed);
         if let Some(refusal) = self.socks_refusal(url) {
             return Err(refusal);
         }
@@ -164,10 +178,13 @@ impl Transport for Http {
         // body could unpack past it. Wire bytes that unpack to nothing are bounded by the timeout.
         let unpacked = response.body_mut().with_config().limit(u64::MAX).reader();
         let mut body = Vec::new();
-        unpacked
-            .take(self.max_body_bytes.saturating_add(1))
-            .read_to_end(&mut body)
-            .map_err(|e| e.to_string())?;
+        Counted {
+            inner: unpacked,
+            received: &self.received,
+        }
+        .take(self.max_body_bytes.saturating_add(1))
+        .read_to_end(&mut body)
+        .map_err(|e| e.to_string())?;
         if body.len() as u64 > self.max_body_bytes {
             return Err(format!(
                 "the body is longer than the {} bytes allowed",
@@ -178,9 +195,47 @@ impl Transport for Http {
     }
 }
 
+/// A reader that adds each read's length to `received`.
+struct Counted<'a, R> {
+    inner: R,
+    received: &'a AtomicU64,
+}
+
+impl<R: Read> Read for Counted<'_, R> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let read = self.inner.read(buf)?;
+        self.received.fetch_add(read as u64, Ordering::Relaxed);
+        Ok(read)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The count is each read's length, added up, whatever the reads' sizes.
+    #[test]
+    fn a_counted_reader_adds_up_what_it_reads() {
+        let received = AtomicU64::new(0);
+        let mut body = Vec::new();
+        Counted {
+            inner: &[7_u8; 10_000][..],
+            received: &received,
+        }
+        .read_to_end(&mut body)
+        .unwrap();
+        assert_eq!(body.len(), 10_000);
+        assert_eq!(received.load(Ordering::Relaxed), 10_000);
+    }
+
+    /// A fetch starts its count from 0, even one refused before it reaches the network.
+    #[test]
+    fn a_fetch_starts_its_count_from_zero() {
+        let http = under(Proxy::new("socks5://127.0.0.1:9").unwrap());
+        http.received().store(99, Ordering::Relaxed);
+        assert!(http.get("http://127.0.0.1:1/x").is_err());
+        assert_eq!(http.received().load(Ordering::Relaxed), 0);
+    }
 
     fn under(proxy: Proxy) -> Http {
         Http::with_proxy(&HttpConfig::default(), Some(proxy))

@@ -196,9 +196,9 @@ out.
   separator, such as `3,9`, is asked about. A refused option is named with its value and unit and
   an example, and a file that isn't there with the closest name in its folder
   ([typing numbers](cli.md#typing-numbers-and-what-a-refusal-says);
-  [M0.9c6](decisions-and-roadmap.md#m0-9c6), errors and typed numbers). A refusal from inside a
-  flight still has no next step
-  ([#405](https://github.com/nrdptel/fusionspace-eridanus/issues/405)).
+  [M0.9c6](decisions-and-roadmap.md#m0-9c6), errors and typed numbers). Every refusal ends with
+  a `help:` line that says what to do, and a fetch that waits on the network says on the terminal
+  what it waits for ([M0.9c15](decisions-and-roadmap.md#m0-9c15), next steps and waits).
 - **The command line flies powered separations only.** `hpr sim` flies a `.ork` file or
   an HPR design file, exports its recording ([The command line](cli.md#hpr-sim)), and with `--plot`
   draws its altitude, speed and acceleration against time, events marked and listed in a table,

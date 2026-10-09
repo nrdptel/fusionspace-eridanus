@@ -50,10 +50,13 @@ pub(crate) fn run(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
 fn read_log(path: &str) -> Result<FlightLog, Failure> {
     let bytes = crate::read_file(path)?;
     let unknown = || {
-        Failure::Input(format!(
-            "{path}: hpr analyze reads PerfectFlite .pf2 logs so far, and this isn't one; other \
-             loggers' files arrive with milestone M7.1"
-        ))
+        Failure::helped(
+            format!(
+                "{path}: hpr analyze reads PerfectFlite .pf2 logs so far, and this isn't one; \
+                 other loggers' files arrive with milestone M7.1"
+            ),
+            "give a .pf2 log that PerfectFlite's software saved",
+        )
     };
     // Only the comments of a `.pf2` can hold anything but ASCII, and hpr doesn't use them: a
     // comment in another encoding mustn't refuse the flight.
@@ -69,7 +72,13 @@ fn read_log(path: &str) -> Result<FlightLog, Failure> {
     if !(pf2 || names_perfectflite) {
         return Err(unknown());
     }
-    perfectflite::read(&text).map_err(|error| Failure::Input(format!("{path}: {error}")))
+    perfectflite::read(&text).map_err(|error| {
+        Failure::helped(
+            format!("{path}: {error}"),
+            "download the log from the altimeter again with PerfectFlite's software, and give \
+             that file as it was saved",
+        )
+    })
 }
 
 /// The output document.

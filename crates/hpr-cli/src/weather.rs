@@ -27,6 +27,7 @@ use crate::output::{
 };
 use crate::trust::{self, Kind};
 use crate::units::{bearing_figure, bracketed, fahrenheit_figure, feet_figure, fixed, mph_figure};
+use crate::waiting::Waiting;
 use crate::{Failure, Out};
 
 /// The credit ERA5's license (CC BY 4.0) asks for, as `docs/format/era5.md` gives it.
@@ -198,7 +199,7 @@ pub(crate) fn run(command: &WeatherCommand, to: &mut Out<'_>) -> Result<(), Fail
     if let Some(path) = output {
         let (kind, trust) = kind_and_trust(read.source.name);
         std::fs::write(path, profile_json(&read.sounding, kind, &trust)?)
-            .map_err(|error| Failure::Input(format!("{path}: {error}")))?;
+            .map_err(|error| crate::unwritable(path, &error))?;
     }
     let document = document(read, output.clone());
     let (lines, headings) = text_lines(&document);
@@ -228,10 +229,14 @@ fn profile_json(sounding: &SoundingProfile, kind: Kind, trust: &str) -> Result<S
         trust,
         sounding,
     };
-    crate::write_json(&mut text, &saved)
-        .map_err(|error| Failure::Input(format!("the profile didn't serialize: {error}")))?;
-    String::from_utf8(text)
-        .map_err(|error| Failure::Input(format!("the profile didn't serialize: {error}")))
+    let bug = |error: &dyn std::fmt::Display| {
+        Failure::helped(
+            format!("the profile didn't serialize: {error}"),
+            crate::BUG_HELP,
+        )
+    };
+    crate::write_json(&mut text, &saved).map_err(|error| bug(&error))?;
+    String::from_utf8(text).map_err(|error| bug(&error))
 }
 
 pub(crate) fn read_file(path: &str) -> Result<Vec<u8>, Failure> {
@@ -249,32 +254,52 @@ pub(crate) fn offline_by_environment() -> bool {
 }
 
 thread_local! {
-    /// The cache [`with_offline_cache`] runs this thread's commands against, offline.
-    static OFFLINE_CACHE: std::cell::RefCell<Option<std::path::PathBuf>> =
+    /// The cache [`with_offline_cache`] runs this thread's commands against, and in which mode:
+    /// offline, or online in a test ([`with_online_cache`]).
+    static OFFLINE_CACHE: std::cell::RefCell<Option<(std::path::PathBuf, Mode)>> =
         const { std::cell::RefCell::new(None) };
 }
 
 /// Runs `f` with every client on this thread offline, over `cache`; the setting before is
 /// restored after, whether `f` returns or panics.
 pub(crate) fn with_offline_cache<R>(cache: &std::path::Path, f: impl FnOnce() -> R) -> R {
+    with_cache(cache, Mode::Offline, f)
+}
+
+/// Runs `f` with every client on this thread online over `cache`, whatever `--offline` and
+/// [`OFFLINE_VARIABLE`] say: for a test whose transport never reaches the network.
+#[cfg(test)]
+pub(crate) fn with_online_cache<R>(cache: &std::path::Path, f: impl FnOnce() -> R) -> R {
+    with_cache(cache, Mode::Online, f)
+}
+
+/// Runs `f` with every client on this thread over `cache` in `mode`; the setting before is
+/// restored after, whether `f` returns or panics.
+fn with_cache<R>(cache: &std::path::Path, mode: Mode, f: impl FnOnce() -> R) -> R {
     /// Puts the setting before back when dropped.
-    struct Restore(Option<std::path::PathBuf>);
+    struct Restore(Option<(std::path::PathBuf, Mode)>);
     impl Drop for Restore {
         fn drop(&mut self) {
             let before = self.0.take();
             OFFLINE_CACHE.with(|slot| slot.replace(before));
         }
     }
-    let _restore = Restore(OFFLINE_CACHE.with(|slot| slot.replace(Some(cache.to_path_buf()))));
+    let _restore =
+        Restore(OFFLINE_CACHE.with(|slot| slot.replace(Some((cache.to_path_buf(), mode)))));
     f()
 }
 
 /// A client over the network and the platform's cache, or the cache alone `offline` (or with
 /// [`OFFLINE_VARIABLE`] set), for the command named `command` (`hpr weather`); offline over its
-/// cache within [`with_offline_cache`].
-pub(crate) fn client(offline: bool, command: &str) -> Result<Client<Http>, Failure> {
-    if let Some(cache) = OFFLINE_CACHE.with(|slot| slot.borrow().clone()) {
-        return Ok(Client::new(Http::new(), Cache::new(cache), Mode::Offline));
+/// cache within [`with_offline_cache`]. A fetch that goes on past the command's wait says on
+/// the terminal what it waits for ([`Waiting`]).
+pub(crate) fn client(offline: bool, command: &str) -> Result<Client<Waiting<Http>>, Failure> {
+    if let Some((cache, mode)) = OFFLINE_CACHE.with(|slot| slot.borrow().clone()) {
+        return Ok(Client::new(
+            Waiting::http(Http::new()),
+            Cache::new(cache),
+            mode,
+        ));
     }
     let dir = Cache::platform_dir().ok_or_else(|| {
         Failure::helped(
@@ -290,7 +315,11 @@ pub(crate) fn client(offline: bool, command: &str) -> Result<Client<Http>, Failu
     } else {
         Mode::Online
     };
-    Ok(Client::new(Http::new(), Cache::new(dir), mode))
+    Ok(Client::new(
+        Waiting::http(Http::new()),
+        Cache::new(dir),
+        mode,
+    ))
 }
 
 /// Seconds since the Unix epoch now; 0 if the clock is before it, which makes every cached copy
@@ -320,12 +349,72 @@ pub(crate) fn read_from(fetched: &Fetched) -> ReadFrom {
 fn site(latitude: Option<f64>, longitude: Option<f64>) -> Result<(f64, f64), Failure> {
     // Clap requires both unless `--from` is given, and only a fetch asks.
     latitude.zip(longitude).ok_or_else(|| {
-        Failure::Input("fetching needs the site's --latitude and --longitude".to_owned())
+        Failure::helped(
+            "fetching needs the site's --latitude and --longitude",
+            "give the site's --latitude and --longitude, or read a saved answer with --from",
+        )
     })
 }
 
 fn sounding_failure(source: &str, error: &AtmosError) -> Failure {
-    Failure::Input(format!("{source}'s levels don't make a profile: {error}"))
+    Failure::library(
+        format!("{source}'s levels don't make a profile: {error}"),
+        "this answer can't be used; try another launch time, or another source, such as \
+         hpr weather open-meteo or hpr weather gfs",
+    )
+}
+
+/// What to do about a request's field out of its range, by the field's name in the library's
+/// refusal; `None` for a field the command line doesn't set.
+fn request_help(what: &str) -> Option<&'static str> {
+    match what {
+        "latitude (deg)" | "longitude (deg)" => Some(
+            "give the site's --latitude, -90 to 90 (south is negative), and --longitude, -180 to \
+             180 (west is negative)",
+        ),
+        "time (s since 1970)" => {
+            Some("give a launch --time from 1970 on, such as 2025-06-21T15:30Z")
+        }
+        "station" => {
+            Some("give the --station as its WMO number, letters and digits only, such as 72364")
+        }
+        "model" => Some(
+            "give the --model by Open-Meteo's name, letters, digits and _ only, such as \
+             gfs_seamless; leave it out for Open-Meteo's best match",
+        ),
+        "cycle (s since 1970)" => Some(
+            "give the run's --cycle as its start in UTC: GFS starts a run every 6 hours (00Z, \
+             06Z, 12Z, 18Z), RAP every hour, such as 2026-09-26T00Z",
+        ),
+        "forecast hour" => Some(
+            "give a forecast --hour the run has: GFS's every hour to 120, then every third hour \
+             to 384; RAP's every hour to 21, and to 51 from its 03Z, 09Z, 15Z and 21Z runs",
+        ),
+        _ => None,
+    }
+}
+
+/// A source's refusal of a request or a fetch: a field out of range gets [`request_help`], a
+/// failed fetch [`crate::fetch_help`], and anything else `otherwise`.
+fn source_failure(
+    message: String,
+    request: Option<&str>,
+    net: Option<&hpr::hpr_net::NetError>,
+    otherwise: &str,
+    refused: Option<&str>,
+) -> Failure {
+    let help = match (request.and_then(request_help), net) {
+        (Some(help), _) => help.to_owned(),
+        // Reached, and refused: what the source keeps or serves, when the command knows it.
+        (None, Some(net)) if crate::refused_by_status(net) && refused.is_some() => {
+            refused.unwrap_or_default().to_owned()
+        }
+        (None, Some(net)) => crate::fetch_help(net),
+        // A field the command line doesn't set, such as the endpoint, is HPR Sim's to get right.
+        (None, None) if request.is_some() => crate::BUG_HELP.to_owned(),
+        (None, None) => otherwise.to_owned(),
+    };
+    Failure::library(message, help)
 }
 
 fn open_meteo(args: &OpenMeteoArgs) -> Result<Read, Failure> {
@@ -335,11 +424,43 @@ fn open_meteo(args: &OpenMeteoArgs) -> Result<Read, Failure> {
     } else {
         OpenMeteoApi::Forecast
     };
-    let refused = |error| Failure::Input(format!("Open-Meteo: {}", open_meteo_reason(error)));
+    let refused = |error: open_meteo::OpenMeteoError| {
+        let (request, net) = match &error {
+            open_meteo::OpenMeteoError::Request { what, .. } => (Some(*what), None),
+            open_meteo::OpenMeteoError::Net(net) => (None, Some(net)),
+            _ => (None, None),
+        };
+        source_failure(
+            format!("Open-Meteo: {}", open_meteo_reason(&error)),
+            request,
+            net,
+            "Open-Meteo's answer can't be used; run it again later, or try another source, such \
+             as hpr weather gfs",
+            // The forecast API's reach, as `OpenMeteoApi::Forecast` documents it.
+            (!args.historical).then_some(
+                "the forecast reaches about 16 days ahead and 3 months back: for a launch further \
+                 back, add --historical",
+            ),
+        )
+    };
     let (profile, read_from) = match &args.fetching.from {
         Some(path) => (
-            OpenMeteoProfile::parse(&read_file(path)?, time)
-                .map_err(|error| Failure::Input(format!("{path}: {}", open_meteo_reason(error))))?,
+            OpenMeteoProfile::parse(&read_file(path)?, time).map_err(|error| {
+                let help = match &error {
+                    open_meteo::OpenMeteoError::TimeOutside { .. } => {
+                        "give a launch --time within those hours, or leave --from out to fetch \
+                         the answer for this time"
+                    }
+                    _ => {
+                        "give --from a file of Open-Meteo's JSON answer, saved as it came; or \
+                         leave --from out to fetch it"
+                    }
+                };
+                Failure::library(
+                    format!("{}: {}", crate::printable(path), open_meteo_reason(&error)),
+                    help,
+                )
+            })?,
             ReadFrom::File { path: path.clone() },
         ),
         None => {
@@ -390,8 +511,8 @@ fn open_meteo(args: &OpenMeteoArgs) -> Result<Read, Failure> {
 }
 
 /// An Open-Meteo refusal, with a time outside the answer's hours written in UTC, as it was asked.
-fn open_meteo_reason(error: open_meteo::OpenMeteoError) -> String {
-    match error {
+fn open_meteo_reason(error: &open_meteo::OpenMeteoError) -> String {
+    match *error {
         open_meteo::OpenMeteoError::TimeOutside {
             time_unix_s,
             first_s,
@@ -403,22 +524,29 @@ fn open_meteo_reason(error: open_meteo::OpenMeteoError) -> String {
             format_utc(first_s),
             format_utc(last_s)
         ),
-        other => other.to_string(),
+        ref other => other.to_string(),
     }
 }
 
 fn wyoming(args: &WyomingArgs) -> Result<Read, Failure> {
     let (sounding, read_from) = match &args.fetching.from {
         Some(path) => (
-            WyomingSounding::parse(&read_file(path)?)
-                .map_err(|error| Failure::Input(format!("{path}: {error}")))?,
+            WyomingSounding::parse(&read_file(path)?).map_err(|error| {
+                Failure::library(
+                    format!("{}: {error}", crate::printable(path)),
+                    "give --from a sounding as the University of Wyoming sent it, saved as it \
+                     came; or give the --station and --time to fetch it",
+                )
+            })?,
             ReadFrom::File { path: path.clone() },
         ),
         None => {
             // Clap requires both unless `--from` is given.
             let (Some(station), Some(time)) = (&args.station, &args.time) else {
-                return Err(Failure::Input(
-                    "fetching needs the --station and the launch --time".to_owned(),
+                return Err(Failure::helped(
+                    "fetching needs the --station and the launch --time",
+                    "give the --station and the launch --time, or read a saved sounding with \
+                     --from",
                 ));
             };
             let mut request = WyomingRequest::latest_before(station.clone(), parse_utc(time)?);
@@ -430,7 +558,21 @@ fn wyoming(args: &WyomingArgs) -> Result<Read, Failure> {
                 &request,
                 now_s(),
             )
-            .map_err(|error| Failure::Input(format!("University of Wyoming: {error}")))?;
+            .map_err(|error| {
+                let (request, net) = match &error {
+                    wyoming::WyomingError::Request { what, .. } => (Some(*what), None),
+                    wyoming::WyomingError::Net(net) => (None, Some(net)),
+                    _ => (None, None),
+                };
+                source_failure(
+                    format!("University of Wyoming: {error}"),
+                    request,
+                    net,
+                    "the station's sounding can't be used; try the sounding before it, with an \
+                     earlier --time, or another --station nearby",
+                    None,
+                )
+            })?;
             (sounding, read_from(&fetched))
         }
     };
@@ -481,7 +623,19 @@ fn nomads(
     let (profile, read_from) = match (&args.fetching.from, run) {
         (Some(path), _) => {
             let profile = NomadsProfile::parse(&read_file(path)?, args.latitude, args.longitude)
-                .map_err(|error| Failure::Input(format!("{path}: {error}")))?;
+                .map_err(|error| {
+                    let help = match error {
+                        nomads::NomadsError::Outside { .. } => {
+                            "give the --latitude and --longitude of a site inside the file's \
+                             cut, or leave --from out to fetch a cut around this site"
+                        }
+                        _ => {
+                            "give --from a GRIB2 cut as NOMADS sent it, saved as it came; or \
+                             leave --from out and give the --cycle and --hour to fetch it"
+                        }
+                    };
+                    Failure::library(format!("{}: {error}", crate::printable(path)), help)
+                })?;
             // The checks `nomads::fetch` makes of a fetched cut.
             if !model.has_grid(&profile.grid) {
                 return Err(Failure::helped(
@@ -492,13 +646,29 @@ fn nomads(
             if let Some((cycle, hour)) = run {
                 let valid = cycle + i64::from(hour) * 3_600;
                 if profile.cycle_unix_s != cycle || profile.valid_unix_s != valid {
-                    return Err(Failure::Input(format!(
-                        "{path}: it is the run of {} for {}, not the run of {} for {}",
-                        format_utc(profile.cycle_unix_s),
-                        format_utc(profile.valid_unix_s),
-                        format_utc(cycle),
-                        format_utc(valid),
-                    )));
+                    let held = profile.valid_unix_s - profile.cycle_unix_s;
+                    // The run and hour the file holds, when they are ones --hour can name.
+                    let help = if held >= 0 && held % 3_600 == 0 {
+                        format!(
+                            "give --cycle {} and --hour {}, the run and hour the file holds, or \
+                             leave both out to read it as it is",
+                            format_utc(profile.cycle_unix_s),
+                            held / 3_600
+                        )
+                    } else {
+                        "leave --cycle and --hour out to read the file as it is".to_owned()
+                    };
+                    return Err(Failure::helped(
+                        format!(
+                            "{}: it is the run of {} for {}, not the run of {} for {}",
+                            crate::printable(path),
+                            format_utc(profile.cycle_unix_s),
+                            format_utc(profile.valid_unix_s),
+                            format_utc(cycle),
+                            format_utc(valid),
+                        ),
+                        help,
+                    ));
                 }
             }
             (profile, ReadFrom::File { path: path.clone() })
@@ -510,13 +680,34 @@ fn nomads(
                 &request,
                 now_s(),
             )
-            .map_err(|error| Failure::Input(format!("NOMADS: {error}")))?;
+            .map_err(|error| {
+                let (request, net) = match &error {
+                    nomads::NomadsError::Request { what, .. } => (Some(*what), None),
+                    nomads::NomadsError::Net(net) => (None, Some(net)),
+                    _ => (None, None),
+                };
+                source_failure(
+                    format!("NOMADS: {error}"),
+                    request,
+                    net,
+                    "NOMADS's answer can't be used; run it again later, or try another source, \
+                     such as hpr weather open-meteo",
+                    // Its retention, as `hpr_net::nomads` records it.
+                    Some(
+                        "NOMADS keeps only recent runs, about 10 days of GFS and 2 of RAP: give a \
+                         --cycle from those days, or for a past launch use hpr weather open-meteo \
+                         --historical or an ERA5 file",
+                    ),
+                )
+            })?;
             (profile, read_from(&fetched))
         }
         (None, None) => {
             // Clap requires both unless `--from` is given.
-            return Err(Failure::Input(
-                "fetching needs the run's --cycle and the forecast --hour".to_owned(),
+            return Err(Failure::helped(
+                "fetching needs the run's --cycle and the forecast --hour",
+                "give the run's --cycle, such as 2026-09-26T00Z, and the forecast --hour, or read \
+                 a saved cut with --from",
             ));
         }
     };
@@ -556,7 +747,13 @@ fn nomads(
 fn era5(args: &Era5Args) -> Result<Read, Failure> {
     let path = &args.file;
     let time_unix_s = parse_utc(&args.time)?;
-    let refused = |error: &dyn std::fmt::Display| Failure::Input(format!("{path}: {error}"));
+    let refused = |error: &dyn std::fmt::Display| {
+        Failure::library(
+            format!("{}: {error}", crate::printable(path)),
+            "give an ERA5 pressure-level file in netCDF classic, with geopotential, temperature \
+             and both wind components, as https://hpr.fusionspace.co/format/era5.html describes",
+        )
+    };
     let file = NetCdf::parse(&read_file(path)?).map_err(|error| refused(&error))?;
     let request = Era5Request {
         latitude_deg: args.latitude,
@@ -566,12 +763,22 @@ fn era5(args: &Era5Args) -> Result<Read, Failure> {
     };
     let profile = Era5Profile::read(&file, request).map_err(|error| match error {
         // Written in UTC, as the time was asked; the file's times are whole seconds.
-        Era5Error::OutsideTimes { first, last, .. } => Failure::Input(format!(
-            "{path}: {} is outside the file's times, {} to {}",
-            format_utc(time_unix_s),
-            format_utc(first.floor() as i64),
-            format_utc(last.floor() as i64)
-        )),
+        Era5Error::OutsideTimes { first, last, .. } => Failure::helped(
+            format!(
+                "{}: {} is outside the file's times, {} to {}",
+                crate::printable(path),
+                format_utc(time_unix_s),
+                format_utc(first.floor() as i64),
+                format_utc(last.floor() as i64)
+            ),
+            "give a launch --time within the file's times, or download ERA5 for the hours around \
+             the launch",
+        ),
+        Era5Error::OutsideGrid { .. } => Failure::helped(
+            format!("{}: {error}", crate::printable(path)),
+            "give the --latitude and --longitude of a site inside the file's grid, or download \
+             ERA5 for an area at least a quarter of a degree beyond the site on each side",
+        ),
         other => refused(&other),
     })?;
     let sounding = profile
@@ -868,7 +1075,12 @@ fn parse_utc(text: &str) -> Result<i64, Failure> {
         minute,
         f64::from(second),
     )
-    .map_err(|error| Failure::Input(format!("{text}: {error}")))?;
+    .map_err(|error| {
+        Failure::helped(
+            format!("{text}: {error}"),
+            "give a date that exists and a time of day before 24:00, such as 2025-06-21T15:30Z",
+        )
+    })?;
     // Whole seconds of years 0 to 9999: exact, and far inside an i64.
     Ok(instant.unix_seconds() as i64)
 }
@@ -930,6 +1142,31 @@ pub(crate) fn format_utc(unix_s: i64) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A source that refuses a request by its status gets the command's own line for it, such
+    /// as NOMADS keeping only recent runs; a dropped connection still gets the network's.
+    #[test]
+    fn a_source_that_refuses_by_status_says_what_it_keeps() {
+        let transport = |reason: &str| hpr::hpr_net::NetError::Transport {
+            url: "https://nomads.ncep.noaa.gov/".to_owned(),
+            reason: reason.to_owned(),
+        };
+        let help = |net: &hpr::hpr_net::NetError| match source_failure(
+            "NOMADS: it failed".to_owned(),
+            None,
+            Some(net),
+            "otherwise",
+            Some("NOMADS keeps only recent runs"),
+        ) {
+            Failure::Helped { help, .. } => help,
+            _ => unreachable!("a source's refusal is helped"),
+        };
+        assert_eq!(
+            help(&transport("http status: 403")),
+            ["NOMADS keeps only recent runs"]
+        );
+        assert!(help(&transport("io: timed out"))[0].starts_with("check the connection"));
+    }
 
     /// A level with no wind keeps its row's columns: a dash on the SI figures' edge and no
     /// brackets; a temperature a hair below freezing prints unsigned, never `-0.0 (32)`.
