@@ -30,9 +30,9 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163).
 line is `N. M<id> title`, with an id from this file; `cargo test -p xtask` fails on any other list
 line here, or on an id that is missing or done.
 
-1. M0.9c5 Provenance
-2. M0.9c6 Errors and help
-3. M0.9c7 The plot and the site
+1. M0.9c6 Errors and help
+2. M0.9c7 The plot and the site
+3. M0.9c8 Provenance on every export
 4. M0.9d The site
 5. M0.9e The words
 6. M0.10 The scoreboard
@@ -143,14 +143,14 @@ line here, or on an id that is missing or done.
     test and failing when stale (a test each); its *Compared with* section meets ADR-209 §8.
 - [ ] **M0.9 One name, one design** (ADR-205; Neer, 2026-10-08). Every surface says FusionSpace
   HPR as ADR-199 §1 has it, and follows the pinned design system rule by rule, each checked.
-  - [ ] **M0.9c The CLI, exports and plot to the design** (ADR-208): #377–#382, #392, #395, #400, in seven steps,
+  - [ ] **M0.9c The CLI, exports and plot to the design** (ADR-208): #377–#382, #392, #395, #400, #403, in eight steps,
     each fix held by a named test that fails on the defect its issue reproduces, and the audit's
     rows naming the tests; a rule declined has an ADR.
-    - [ ] **M0.9c5 Provenance** (#380). *Done when:* it is closed, with every item it lists, the
-      exports' trust note included.
     - [ ] **M0.9c6 Errors and help** (#381). *Done when:* it is closed, with every item it lists.
     - [ ] **M0.9c7 The plot and the site** (#382, #400). *Done when:* both are closed, with every
       item they list.
+    - [ ] **M0.9c8 Provenance on every export** (#403; ADR-214). *Done when:* it is closed, with
+      every item it lists, each held by a test that fails on the build before it.
   - [ ] **M0.9d The site to the design** (ADR-208). *Done when:* #383 to #385 are closed: no
     mdBook default the system doesn't draw (colors, radii, shadows, motion, icons, metas, print),
     a title block and sheets on every page, notes in the system's shape, and every committed SVG

@@ -26,6 +26,12 @@
 //! GeoJSON a foreign member, which RFC 7946 section 6.1 allows); KML in an XML comment after the
 //! declaration; Parquet in its key-value metadata. CSV is left as bare rows, so it opens cleanly
 //! in a spreadsheet: a program writing one keeps the stamp beside it.
+//!
+//! The two text formats follow the FusionSpace product system's `data.md` (*Files and exports*,
+//! *Copying and typing numbers*): a CSV's header gives each column in words with its unit in
+//! brackets, `time [s]` ([`csv_header`]), where JSON and Parquet keep the unit in the name,
+//! `time_s`; and JSON and GeoJSON text is ASCII, any other character written as a `\u` escape
+//! ([`ascii`]), so the designation's middle dot reads back as itself.
 
 use hpr_core::DVec3;
 use serde_json::{Value, json};
@@ -55,10 +61,13 @@ const TOOL: Tool = Tool {
     designation: hpr_core::tool::DESIGNATION,
 };
 
-/// A JSON export of the recorded rows, its keys in this order.
+/// A JSON export of the recorded rows, its keys in this order: the caller's own fields come
+/// between the program and the rows.
 #[derive(serde::Serialize)]
-struct Rows<'a> {
+struct Rows<'a, T: serde::Serialize> {
     tool: Tool,
+    #[serde(flatten)]
+    about: &'a T,
     columns: &'a [String],
     rows: &'a [Vec<f64>],
 }
@@ -72,13 +81,72 @@ struct FeatureCollection {
     features: Vec<Value>,
 }
 
-/// `value` as compact JSON text.
+/// `value` as compact JSON text, in ASCII ([`ascii`]).
 fn to_text(value: &impl serde::Serialize) -> Result<String, SimError> {
     // Every value here is finite (checked before) and every key a string, the only two things
     // `serde_json` refuses; the error is mapped rather than unwrapped all the same.
-    serde_json::to_string(value).map_err(|_| SimError::Unsupported {
-        what: "a value JSON can't hold",
-    })
+    serde_json::to_string(value)
+        .map(|text| ascii(&text))
+        .map_err(|_| SimError::Unsupported {
+            what: "a value JSON can't hold",
+        })
+}
+
+/// JSON text in ASCII: every character outside it written as its `\u` escape, a character past
+/// U+FFFF as its UTF-16 surrogate pair (RFC 8259, section 7), so `·` (U+00B7) becomes `\u00b7`.
+/// The product system's `data.md` asks JSON to be ASCII (*Copying and typing numbers*). A reader
+/// gets back the same strings: outside a string JSON text is ASCII already, and inside one an
+/// escape stands for its character.
+#[must_use]
+pub fn ascii(json: &str) -> String {
+    let mut out = String::with_capacity(json.len());
+    for c in json.chars() {
+        if c.is_ascii() {
+            out.push(c);
+        } else {
+            let mut units = [0_u16; 2];
+            for unit in c.encode_utf16(&mut units) {
+                out.push_str(&format!("\\u{unit:04x}"));
+            }
+        }
+    }
+    out
+}
+
+/// The units a column's name can end in, as its last one or two `_`-separated words, and how a
+/// CSV header writes each, in ASCII: two-word units first, so `m_s` is meters per second and not
+/// seconds.
+const UNITS: [(&[&str], &str); 12] = [
+    (&["m", "s2"], "m/s^2"),
+    (&["m", "s"], "m/s"),
+    (&["rad", "s"], "rad/s"),
+    (&["m2"], "m^2"),
+    (&["pa"], "Pa"),
+    (&["kg"], "kg"),
+    (&["n"], "N"),
+    (&["m"], "m"),
+    (&["s"], "s"),
+    (&["rad"], "rad"),
+    (&["deg"], "deg"),
+    (&["cal"], "cal"),
+];
+
+/// A column's name as a CSV header writes it: the name's words with spaces, then its unit in
+/// brackets, as the product system's `data.md` writes a header (`time [s]`). The unit is the
+/// name's last word or two, read from a table of twelve units: `time_s` is `time [s]`,
+/// `velocity_east_m_s` is `velocity east [m/s]`, `max_acceleration_m_s2` is
+/// `max acceleration [m/s^2]` and `dynamic_pressure_pa` is `dynamic pressure [Pa]`; a name with
+/// no unit, such as `mach` or `drag_scale`, is its words alone. JSON and Parquet keep the name.
+#[must_use]
+pub fn csv_header(column: &str) -> String {
+    let words: Vec<&str> = column.split('_').collect();
+    for (unit, written) in UNITS {
+        if words.len() > unit.len() && words.ends_with(unit) {
+            let name = words[..words.len() - unit.len()].join(" ");
+            return format!("{name} [{written}]");
+        }
+    }
+    words.join(" ")
 }
 
 /// One point of the center of mass's path, placed on the Earth.
@@ -104,14 +172,16 @@ fn finite(what: &'static str, value: f64) -> Result<f64, SimError> {
     }
 }
 
-/// The recorded rows as CSV (RFC 4180): a header of the column names, which carry their units,
-/// then one line per row, lines ending in CRLF.
+/// The recorded rows as CSV (RFC 4180): a header of the columns in words with their units in
+/// brackets ([`csv_header`]: `time [s]` for the column `time_s`), then one line per row, lines
+/// ending in CRLF.
 ///
 /// # Errors
 ///
 /// [`SimError::Domain`] for a value that isn't finite.
 pub fn csv(recorder: &Recorder) -> Result<String, SimError> {
-    let mut out = recorder.columns().join(",");
+    let header: Vec<String> = recorder.columns().iter().map(|c| csv_header(c)).collect();
+    let mut out = header.join(",");
     out.push_str("\r\n");
     for row in recorder.rows() {
         let mut cells = Vec::with_capacity(row.len());
@@ -126,13 +196,41 @@ pub fn csv(recorder: &Recorder) -> Result<String, SimError> {
 
 /// The recorded rows as JSON: `{"tool": {...}, "columns": [names], "rows": [[values], ...]}`,
 /// each row in the columns' order. `tool` names the program that wrote the file:
-/// `{"name": "FusionSpace HPR", "version": "0.1.0", "designation": "FS-ACHERNAR · SW · TOOL 001"}`. A
-/// [`FlightSummary`] is serializable on its own (`serde_json::to_string`).
+/// `{"name": "FusionSpace HPR", "version": "0.1.0", "designation": "FS-ACHERNAR \u00b7 SW \u00b7
+/// TOOL 001"}`, the text in ASCII ([`ascii`]). A [`FlightSummary`] is serializable on its own
+/// (`serde_json::to_string`).
 ///
 /// # Errors
 ///
 /// [`SimError::Domain`] for a value that isn't finite.
 pub fn json(recorder: &Recorder) -> Result<String, SimError> {
+    json_with(recorder, &serde_json::Map::new())
+}
+
+/// The recorded rows as [`json()`] writes them, with `about`'s fields, in its order, between
+/// `tool` and `columns`: what the caller knows of the flight that the recorder doesn't, such as
+/// the design flown or how far to trust it. A struct or a [`serde_json::Map`] keeps the order
+/// from one run to the next; a `HashMap` doesn't, so the same flight could write other bytes.
+///
+/// # Errors
+///
+/// [`SimError::Domain`] for a value that isn't finite; [`SimError::Unsupported`] for an `about`
+/// that isn't a JSON object, or has a field named `tool`, `columns` or `rows`, which would write a
+/// key twice.
+pub fn json_with<T: serde::Serialize>(recorder: &Recorder, about: &T) -> Result<String, SimError> {
+    let Ok(Value::Object(fields)) = serde_json::to_value(about) else {
+        return Err(SimError::Unsupported {
+            what: "fields beside the recording that aren't a JSON object",
+        });
+    };
+    if ["tool", "columns", "rows"]
+        .iter()
+        .any(|key| fields.contains_key(*key))
+    {
+        return Err(SimError::Unsupported {
+            what: "a field named tool, columns or rows beside the recording's own",
+        });
+    }
     for row in recorder.rows() {
         for &value in row {
             finite("recorded value", value)?;
@@ -140,6 +238,7 @@ pub fn json(recorder: &Recorder) -> Result<String, SimError> {
     }
     to_text(&Rows {
         tool: TOOL,
+        about,
         columns: &recorder.columns(),
         rows: recorder.rows(),
     })
@@ -381,7 +480,8 @@ mod tests {
         let text = csv(&recorder).unwrap();
         let mut lines = text.split("\r\n");
         let header: Vec<&str> = lines.next().unwrap().split(',').collect();
-        assert_eq!(header, recorder.columns());
+        let columns: Vec<String> = recorder.columns().iter().map(|c| csv_header(c)).collect();
+        assert_eq!(header, columns);
         let rows: Vec<Vec<f64>> = lines
             .filter(|l| !l.is_empty())
             .map(|l| l.split(',').map(|c| c.parse().unwrap()).collect())
@@ -416,9 +516,10 @@ mod tests {
     fn every_export_but_csv_names_the_program_version_and_designation() {
         let (recorder, track, summary, _) = flown();
         let version = env!("CARGO_PKG_VERSION");
+        // The designation's middle dots as escapes: JSON text is ASCII.
         let object = format!(
             "\"tool\":{{\"name\":\"FusionSpace HPR\",\"version\":\"{version}\",\
-             \"designation\":\"FS-ACHERNAR · SW · TOOL 001\"}}"
+             \"designation\":\"FS-ACHERNAR \\u00b7 SW \\u00b7 TOOL 001\"}}"
         );
 
         let text = json(&recorder).unwrap();
@@ -460,10 +561,100 @@ mod tests {
         assert_eq!(comments, [format!(" {} ", hpr_core::tool::stamp())]);
 
         let text = csv(&recorder).unwrap();
-        assert!(text.starts_with("time_s,"), "{text:.200}");
+        assert!(text.starts_with("time [s],"), "{text:.200}");
         assert!(
             !text.contains("FusionSpace") && !text.contains("hpr-sim") && !text.contains("TOOL")
         );
+    }
+
+    /// Every column a recorder can keep, as a CSV header writes it: words, then the unit in
+    /// brackets in ASCII, as the product system's `data.md` asks (`time [s]`), and the words alone
+    /// for a column with no unit. Written out by hand, so a unit read wrongly from a name (`m_s` as
+    /// seconds, `m_s2` as meters per second) fails.
+    #[test]
+    fn a_csv_header_gives_each_columns_unit_in_brackets() {
+        let headers: Vec<String> = Channel::ALL
+            .iter()
+            .flat_map(|c| c.columns())
+            .map(|c| csv_header(&c))
+            .collect();
+        assert_eq!(
+            headers.join(","),
+            "time [s],position east [m],position north [m],position up [m],\
+             velocity east [m/s],velocity north [m/s],velocity up [m/s],\
+             attitude w,attitude x,attitude y,attitude z,\
+             body rate x [rad/s],body rate y [rad/s],body rate z [rad/s],\
+             cg east [m],cg north [m],cg up [m],height above ground [m],vertical speed [m/s],\
+             acceleration east [m/s^2],acceleration north [m/s^2],acceleration up [m/s^2],\
+             airspeed [m/s],mach,angle of attack [rad],dynamic pressure [Pa],axial coefficient,\
+             thrust [N],mass [kg],recovery drag area [m^2]"
+        );
+        assert!(headers.iter().all(|h| h.is_ascii()));
+        // A unit alone is a name, not a unit with no name.
+        assert_eq!(csv_header("s"), "s");
+        assert_eq!(csv_header("m_s"), "m [s]");
+        assert_eq!(csv_header("latitude_deg"), "latitude [deg]");
+        assert_eq!(
+            csv_header("min_static_margin_cal"),
+            "min static margin [cal]"
+        );
+    }
+
+    /// JSON text is ASCII: a character outside it becomes its escape, one past U+FFFF a surrogate
+    /// pair, and the text reads back to the same string.
+    #[test]
+    fn json_text_is_ascii_and_reads_back_the_same() {
+        let value = json!({"name": "Mjölnir · 🚀", "plain": "a\"b\\c"});
+        let text = ascii(&serde_json::to_string(&value).unwrap());
+        assert_eq!(
+            text,
+            r#"{"name":"Mj\u00f6lnir \u00b7 \ud83d\ude80","plain":"a\"b\\c"}"#
+        );
+        assert!(text.is_ascii());
+        assert_eq!(serde_json::from_str::<Value>(&text).unwrap(), value);
+    }
+
+    /// `json_with` puts the caller's fields between `tool` and `columns`, and refuses one that
+    /// would write a key twice.
+    #[test]
+    fn json_with_adds_the_callers_fields_after_the_tool() {
+        let (recorder, ..) = flown();
+        #[derive(serde::Serialize)]
+        struct About {
+            kind: &'static str,
+            design: &'static str,
+        }
+        let text = json_with(
+            &recorder,
+            &About {
+                kind: "simulated",
+                design: "r · 1.ork",
+            },
+        )
+        .unwrap();
+        assert!(text.is_ascii());
+        let at = |key: &str| text.find(&format!("\"{key}\":")).unwrap();
+        assert!(
+            at("tool") < at("kind") && at("kind") < at("design") && at("design") < at("columns")
+        );
+        let value: Value = serde_json::from_str(&text).unwrap();
+        assert_eq!(value["design"], "r · 1.ork");
+        assert_eq!(value.as_object().unwrap().len(), 5);
+        assert!(matches!(
+            json_with(&recorder, &1),
+            Err(SimError::Unsupported { what }) if what.contains("aren't a JSON object")
+        ));
+        for key in ["tool", "columns", "rows"] {
+            let mut twice = serde_json::Map::new();
+            twice.insert(key.to_owned(), json!(1));
+            assert!(
+                matches!(
+                    json_with(&recorder, &twice),
+                    Err(SimError::Unsupported { what }) if what.contains("tool, columns or rows")
+                ),
+                "{key}"
+            );
+        }
     }
 
     #[test]

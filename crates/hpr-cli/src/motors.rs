@@ -112,6 +112,12 @@ pub(crate) fn catalog() -> Result<Catalog, Failure> {
     Catalog::bundled().map_err(|error| Failure::Input(format!("the bundled catalog: {error}")))
 }
 
+/// The bundled catalog's as-of date, `YYYY-MM-DD`: the day its curve files were downloaded, which
+/// a build fixes, so a run's files stay the same from one run to the next (ADR-174 §5).
+pub(crate) fn catalog_as_of() -> Result<String, Failure> {
+    catalog().map(|catalog| catalog.snapshot.captured)
+}
+
 /// `hpr motors list`.
 fn list(args: &ListArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     let class = match &args.class {

@@ -289,14 +289,16 @@ impl Out<'_> {
     }
 }
 
-/// Writes one pretty-printed JSON document, stamped with [`output::TOOL`], and a newline.
+/// Writes one pretty-printed JSON document, stamped with [`output::TOOL`], and a newline. The
+/// text is ASCII, as the product system's `data.md` asks: any other character, such as the
+/// designation's middle dot, is written as its `\u` escape ([`hpr::hpr_sim::export::ascii`]).
 pub(crate) fn write_json<T: Serialize>(out: &mut dyn Write, value: &T) -> io::Result<()> {
     let stamped = output::Stamped {
         tool: output::TOOL,
         document: value,
     };
-    serde_json::to_writer_pretty(&mut *out, &stamped).map_err(io::Error::from)?;
-    writeln!(out)
+    let text = serde_json::to_string_pretty(&stamped).map_err(io::Error::from)?;
+    writeln!(out, "{}", hpr::hpr_sim::export::ascii(&text))
 }
 
 /// `text` with each control character, such as an escape that would reach the terminal from a

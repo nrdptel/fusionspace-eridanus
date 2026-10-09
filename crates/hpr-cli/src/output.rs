@@ -579,7 +579,8 @@ pub struct McFlag {
 }
 
 /// The sidecar `hpr mc --export` writes beside its CSV, `runs.meta.json` for `runs.csv`: the
-/// program that wrote it and the run it holds (the product system's `data.md`, ADR-174).
+/// program that wrote it, the run it holds, the bundled catalog's as-of date and how far to trust
+/// the figures (the product system's `data.md`, ADR-174, ADR-214).
 #[derive(Debug, Clone, PartialEq, Serialize, JsonSchema)]
 pub struct McExportMeta {
     /// The CSV, by its file name.
@@ -594,6 +595,14 @@ pub struct McExportMeta {
     pub runs: u64,
     /// One standard deviation of each scattered input.
     pub dispersion: McDispersion,
+    /// The bundled motor catalog's as-of date, `YYYY-MM-DD`: the day its curve files were
+    /// downloaded. A build fixes it; whether a motor flown came from the catalog is `hpr mc
+    /// --json`'s `motors[].source`.
+    pub catalog_as_of: String,
+    /// What kind of figures the CSV holds: `simulated`.
+    pub kind: crate::trust::Kind,
+    /// The trust note `hpr mc` ends with: the spread is its inputs', not the model's error.
+    pub trust: String,
 }
 
 /// A flag the flight raises, with the peak that raised it.
@@ -806,8 +815,12 @@ pub struct SimMotor {
 pub enum SimMotorSource {
     /// The design file's own configuration.
     Design,
-    /// The bundled catalog, named with `--motor`.
-    Catalog,
+    /// The bundled catalog: named with `--motor`, or a `.ork` file's motor with no curve in the
+    /// file, found there by its manufacturer and designation.
+    Catalog {
+        /// The catalog's as-of date, `YYYY-MM-DD`: the day its curve files were downloaded.
+        as_of: String,
+    },
     /// A motor file named with `--motor`.
     File {
         /// The file's name, without its folder.
@@ -1080,9 +1093,10 @@ pub struct Export {
 }
 
 /// The sidecar `hpr sim --export` writes beside a CSV recording, `flight.meta.json` for
-/// `flight.csv`: the program that wrote the recording (the `tool` every document opens with) and
-/// what it records. A CSV opens cleanly in a spreadsheet only without comment lines, so these go
-/// here (the product system's `data.md`, ADR-174).
+/// `flight.csv`: the program that wrote the recording (the `tool` every document opens with),
+/// what it records, the bundled catalog's as-of date and how far to trust it. A CSV opens cleanly
+/// in a spreadsheet only without comment lines, so these go here (the product system's
+/// `data.md`, ADR-174, ADR-214). A JSON recording carries the same in its own fields.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
 pub struct ExportMeta {
     /// The recording, by its file name.
@@ -1093,6 +1107,14 @@ pub struct ExportMeta {
     pub configuration: String,
     /// The rows recorded.
     pub rows: usize,
+    /// The bundled motor catalog's as-of date, `YYYY-MM-DD`: the day its curve files were
+    /// downloaded. A build fixes it; whether a motor flown came from the catalog is `hpr sim
+    /// --json`'s `motors[].source`.
+    pub catalog_as_of: String,
+    /// What kind of figures the recording holds: `simulated`.
+    pub kind: crate::trust::Kind,
+    /// The trust note `hpr sim` ends with.
+    pub trust: String,
 }
 
 /// A recording file's format, from its extension.

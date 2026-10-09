@@ -52,9 +52,9 @@ program prints a rounded summary instead of the files.
 
 | file | what it holds | opens in |
 |---|---|---|
-| `flight.csv` | a header naming each column with its unit (`time_s`, `cg_east_m`, ...), then one line per recorded moment, lines ending in CRLF as RFC 4180 says | a spreadsheet, pandas, any plotting tool |
-| `flight.json` | the same table as `{"tool": {...}, "columns": [...], "rows": [[...], ...]}` | any programming language |
-| `flight.parquet` | the same table in [Apache Parquet](https://parquet.apache.org/), a binary format that stores it column by column: one column of 64-bit numbers per recorded column, with the CSV header's names, and the program that wrote it in the file's key-value metadata | [pandas](https://pandas.pydata.org/) with [pyarrow](https://arrow.apache.org/docs/python/) (Apache Arrow's Python library), [DuckDB](https://duckdb.org/) |
+| `flight.csv` | a header giving each column in words with its unit in brackets (`time [s]`, `cg east [m]`, ...), then one line per recorded moment, lines ending in CRLF as RFC 4180 says | a spreadsheet, pandas, any plotting tool |
+| `flight.json` | the same table as `{"tool": {...}, "columns": [...], "rows": [[...], ...]}`, each column's unit in its name (`time_s`, `cg_east_m`) | any programming language |
+| `flight.parquet` | the same table in [Apache Parquet](https://parquet.apache.org/), a binary format that stores it column by column: one column of 64-bit numbers per recorded column, named as in the JSON (`time_s`), not as in the CSV's header (`time [s]`), and the program that wrote it in the file's key-value metadata | [pandas](https://pandas.pydata.org/) with [pyarrow](https://arrow.apache.org/docs/python/) (Apache Arrow's Python library), [DuckDB](https://duckdb.org/) |
 | `flight.geojson` | the flight path as a line, and a point for each landing: the rocket's and any separated body's; and a `tool` object naming the program that wrote it | QGIS, geojson.io, web maps |
 | `flight.kml` | the same path and landing | Google Earth |
 
@@ -64,17 +64,39 @@ Each file but the CSV names the program that wrote it, its version and its desig
 FusionSpace product system, the way a drawing's title block names the tool that made it:
 
 - **JSON and GeoJSON:** a `tool` object at the top,
-  `{"name": "FusionSpace HPR", "version": "0.1.0", "designation": "FS-ACHERNAR · SW · TOOL 001"}`. In GeoJSON it is
-  a *foreign member*, a key the standard doesn't define, which RFC 7946 (section 6.1) allows and
-  map programs pass over.
+  `{"name": "FusionSpace HPR", "version": "0.1.0", "designation": "FS-ACHERNAR \u00b7 SW \u00b7 TOOL 001"}`.
+  The text is ASCII, so the designation's middle dot `·` is written as its escape `\u00b7`, which
+  every JSON reader reads back as the dot. In GeoJSON the object is a *foreign member*, a key the
+  standard doesn't define, which RFC 7946 (section 6.1) allows and map programs pass over.
 - **KML:** a comment on the second line, `<!-- FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001 -->`.
 - **Parquet:** three entries of the file's key-value metadata: `tool` (`FusionSpace HPR`), `tool_version`
   and `designation`. pyarrow shows them with `pyarrow.parquet.read_metadata(path).metadata`.
 
-The CSV holds only the header and the rows, so a spreadsheet opens it cleanly. `hpr sim` writes
-its title block beside it instead: `flight.meta.json` for `flight.csv`, with the same `tool`
-object, the CSV's file name, the design and configuration flown, and the number of rows. The
-library's `export::csv` writes the CSV alone.
+The CSV holds only the header and the rows, so a spreadsheet opens it cleanly. Its header gives
+each column in words with its unit in brackets, as the FusionSpace product system writes one:
+`time [s]` for the column the other formats call `time_s`, `velocity east [m/s]` for
+`velocity_east_m_s`, `acceleration up [m/s^2]` for `acceleration_up_m_s2` and `dynamic pressure
+[Pa]` for `dynamic_pressure_pa`; a column with no unit, such as `mach`, is its words alone. The
+library's `export::csv_header` gives one from the other. `hpr sim` writes the title block beside
+the CSV instead: `flight.meta.json` for `flight.csv`, with the same `tool` object, the CSV's file
+name, the design and configuration flown, the number of rows, and:
+
+- `catalog_as_of`: the day the bundled motor catalog's curve files were downloaded, such as
+  `2026-09-17`, which a build fixes. Whether a motor came from the catalog is in `hpr sim
+  --json`'s `motors`: each motor's `source` is `{"kind": "catalog", "as_of": "2026-09-17"}` for
+  one that did, and `hpr sim`'s motor line says "from the bundled catalog, as of 2026-09-17". The
+  day of the run itself is left out, so the same run writes the same bytes.
+- `kind` and `trust`: what the numbers are (`simulated`, for a flight; `hpr motors show` says
+  `copied` of a catalog motor's figures) and the
+  [accuracy note](cli.md#the-accuracy-note-on-every-result) `hpr sim` ends with, word for word.
+
+A JSON recording from `hpr sim` carries the same three, with `design` and `configuration`, between
+`tool` and `columns`, so a saved flight keeps its note. `hpr mc --export`'s sidecar carries them
+too, with `hpr mc`'s own note. GeoJSON, KML and Parquet name the program and its version but not
+yet the catalog's date or the note
+([#403](https://github.com/nrdptel/fusionspace-eridanus/issues/403)): keep the JSON or the CSV
+and its sidecar beside them. The library's `export::csv` writes the
+CSV alone, and `export::json` the rows alone; `export::json_with` adds a program's own fields.
 
 To look at the Parquet file from Python, install pandas and pyarrow (`pip install pandas pyarrow`;
 pandas can't read Parquet on its own), then:

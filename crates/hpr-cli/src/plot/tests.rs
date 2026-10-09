@@ -240,12 +240,12 @@ fn a_grouped_event_keeps_its_time() {
 }
 
 /// The whole figure, byte for byte, for a small flight with a shaded fall; its title block's
-/// line, which holds the version, as `[stamp]`.
+/// line, which holds the version, as `[stamp]`, in its metadata and its last line.
 #[test]
 fn a_small_figure() {
     let svg = figure_svg("Probe", Some((5.0, 20.0)));
     let stamp = hpr::hpr_core::tool::stamp();
-    assert_eq!(svg.matches(&stamp).count(), 1, "{svg}");
+    assert_eq!(svg.matches(&stamp).count(), 2, "{svg}");
     insta::assert_snapshot!(svg.replace(&stamp, "[stamp]"));
 }
 
@@ -262,28 +262,43 @@ fn the_figure_ends_with_how_far_to_trust_it() {
         if unpredicted.is_some() {
             assert!(svg.find("Hatched,").unwrap_or(usize::MAX) < note);
         }
-        // Nothing but the note's lines after it.
+        // Nothing but the note's lines after it, then the title block's line.
         let after = &svg[note..];
         assert!(
             after.contains(">Simulated from the design file, not measured."),
             "{after}"
         );
         assert!(after.contains("55 logged flights"), "{after}");
-        assert!(after.contains("accuracy.html</text>\n</svg>"), "{after}");
+        let stamp = format!(">{}</text>\n</svg>\n", hpr::hpr_core::tool::stamp());
+        assert!(after.contains("accuracy.html</text>\n<text "), "{after}");
+        assert!(after.ends_with(&stamp), "{after}");
     }
 }
 
-/// The figure names the program that drew it, its version and its designation, once, in its
-/// metadata (ADR-164).
+/// The figure names the program that drew it, its version and its designation, in its metadata
+/// (ADR-164) and in its last line of visible text, where a printed copy shows it, as a drawing's
+/// title block does (ADR-214): a plot on paper can be traced to the build that drew it.
 #[test]
-fn the_figure_names_its_tool() {
+fn the_figure_names_its_tool_and_version_where_a_reader_sees_them() {
     let svg = figure_svg("Probe", None);
-    let metadata = format!(
-        "<metadata>FusionSpace HPR {} · FS-ACHERNAR · SW · TOOL 001</metadata>",
+    let stamp = format!(
+        "FusionSpace HPR {} · FS-ACHERNAR · SW · TOOL 001",
         env!("CARGO_PKG_VERSION")
     );
-    assert_eq!(svg.matches(&metadata).count(), 1, "{svg}");
-    roxmltree::Document::parse(&svg).unwrap();
+    assert_eq!(
+        svg.matches(&format!("<metadata>{stamp}</metadata>"))
+            .count(),
+        1,
+        "{svg}"
+    );
+    let document = roxmltree::Document::parse(&svg).unwrap();
+    let texts: Vec<&str> = document
+        .descendants()
+        .filter(|node| node.has_tag_name("text"))
+        .filter_map(|node| node.text())
+        .collect();
+    assert_eq!(texts.last(), Some(&stamp.as_str()), "{svg}");
+    assert_eq!(texts.iter().filter(|text| **text == stamp).count(), 1);
 }
 
 /// An unpredicted span is hatched in every panel, labelled above the first, outside the

@@ -96,7 +96,8 @@ Until FusionSpace named its products after the stars of project Eridanus, in Oct
 `hpr sim` and `hpr mc` end their text result, and the plot, with a three-part trust note: what
 kind of figure this is, what the apogee was checked against, with
 numbers, and what to rely on instead. It is on standard output, so `> flight.txt` keeps it, and
-`--json` carries it as `trust`, with `kind` set to `simulated`
+`--json` carries it as `trust`, with `kind` set to `simulated`, as do the files `--export`
+writes: a JSON recording, and the sidecar beside a CSV
 ([ADR-211](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0211-how-far-to-trust-a-result.md), the decision).
 
 `hpr weather`, `hpr analyze` and `hpr motors show` end the same way, each note in the same
@@ -248,7 +249,7 @@ rail exit speed       21.3 m/s (70 ft/s)
 delay                 apogee 7.71 s after burnout
 descent               no recovery device opened, so the fall is not a prediction
 
-motor: 1 × 168H54-10A (from the bundled catalog) in `Motor mount`, lit at launch
+motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mount`, lit at launch
 launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
@@ -367,7 +368,7 @@ rail exit speed       11.2 m/s (37 ft/s)
 delay                 apogee 5.62 s after burnout
 descent               14.1 m/s (46 ft/s) at 150.0 m (492 ft) under `Drogue parachute`; 4.7 m/s (15 ft/s) at landing with `Main parachute` open too
 
-motor: 1 × 168H54-10A (from the bundled catalog) in `Booster / motor bay`, lit at launch
+motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Booster / motor bay`, lit at launch
 recovery: `Main parachute` at 150 m (492 ft) on the way down, 1.052 m² of drag area, opened at 22.41 s
 recovery: `Drogue parachute` at apogee, 0.133 m² of drag area, opened at 9.12 s
 launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
@@ -574,7 +575,7 @@ rail exit speed       30.2 m/s (99 ft/s)
 delay                 apogee 7.98 s after burnout
 descent               no recovery device opened, so the fall is not a prediction
 
-motor: 1 × 168H54-10A (from the bundled catalog) in `Motor mount`, lit at launch
+motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mount`, lit at launch
 launched at 32.99° N, 106.97° W, 1400 m (4593 ft) above sea level, from a 3 m (9.8 ft) rail 85° above the horizon, leaning toward 270°, in a 5 m/s (11 mph) wind from 270°
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
@@ -666,8 +667,8 @@ format; repeat `--export` for several files. `hpr sim` won't write over a file i
 
 | extension | what it holds |
 |---|---|
-| `.csv` | one row per sample, with a header naming each column and its unit |
-| `.json` | the same columns and rows |
+| `.csv` | one row per sample, with a header giving each column in words and its unit in brackets, such as `time [s]` |
+| `.json` | the same columns and rows, each column's unit in its name (`time_s`), with the design, configuration, the catalog's date and how far to trust it |
 | `.parquet` | the same, as Apache Parquet, for data tools such as pandas |
 | `.geojson` | the rocket's path over the Earth, for web maps |
 | `.kml` | the same path, for Google Earth |
@@ -678,8 +679,9 @@ predictions.
 
 Each file names the program that wrote it, its version and its designation. A CSV file can't
 without breaking a spreadsheet's reading of it, so `hpr sim` writes a small file beside it,
-`flight.meta.json` for `flight.csv`, which does, with the design and configuration flown and the
-number of rows. [Exporting a flight](exporting-a-flight.md#which-program-wrote-a-file) says where
+`flight.meta.json` for `flight.csv`, which does, with the design and configuration flown, the
+number of rows, the bundled motor catalog's as-of date, and the trust note `hpr sim` ends with
+(`kind` and `trust`, as `--json` has them). [Exporting a flight](exporting-a-flight.md#which-program-wrote-a-file) says where
 each format keeps it, and what each column and field means.
 
 ### Plotting the flight
@@ -829,7 +831,7 @@ landing ellipse                   semi-major            semi-minor  heading   fl
 95%                         109.7 m (360 ft)       68.1 m (223 ft)      89°            93.5%
 95%, the next flight        111.1 m (365 ft)       69.0 m (226 ft)      89°            93.5%
 
-motor: 1 × 168H54-10A (from the bundled catalog) in `Motor mount`, lit at launch
+motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mount`, lit at launch
 launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) rail 85° above the horizon, leaning toward 270°, in a 4 m/s (9 mph) wind from 270°
 scattered, one standard deviation each: --mass-sd 0.02, --drag-sd 0.05, --impulse-sd 0.03, --burn-time-sd 0.02, --wind-sd 0.25, --wind-from-sd 15, --inclination-sd 1, --heading-sd 2
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
@@ -889,7 +891,11 @@ a run of no flights, and an export that isn't a `.csv`, before it flies.
 came to. Each number is written in the shortest form that reads back to the same bits, so a
 spreadsheet or a script reading the file gets the run's own numbers; a number a flight doesn't
 have is an empty cell. Beside it, `runs.meta.json` names the program that wrote it, the design,
-the configuration, the seed, the number of flights and the dispersion. The columns:
+the configuration, the seed, the number of flights, the dispersion, the bundled motor catalog's
+as-of date, and the trust note `hpr mc` ends with (`kind` and `trust`). The header gives each
+column in words with its unit in brackets, `apogee [m]` for `apogee_m`, as Python's
+`MonteCarlo.to_csv` does; the table below gives the columns by the names Python's `run[...]`
+takes. The columns:
 
 | columns | what they hold |
 |---|---|
@@ -1623,7 +1629,10 @@ describes its fields and units:
 | any failure | [`error.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/cli/error.schema.json) |
 
 Every document opens with the same `tool` object, the program that wrote it:
-`{"name": "FusionSpace HPR", "version": "0.1.0", "designation": "FS-ACHERNAR · SW · TOOL 001"}`. An error
+`{"name": "FusionSpace HPR", "version": "0.1.0", "designation": "FS-ACHERNAR \u00b7 SW \u00b7 TOOL 001"}`.
+The text is ASCII, so the designation's middle dot `·` is written as its escape `\u00b7`, which
+every JSON reader reads back as the dot
+([Exporting a flight](exporting-a-flight.md#which-program-wrote-a-file)). An error
 document's `help` lists what to do about the failure, the lines the text output starts with
 `help:`, and is empty when there is nothing to suggest. The sidecar of a CSV recording
 ([Exporting the recording](#exporting-the-recording)) has its own schema,
@@ -1649,7 +1658,7 @@ $ hpr motors show B4 --json
   "tool": {
     "name": "FusionSpace HPR",
     "version": "0.1.0",
-    "designation": "FS-ACHERNAR · SW · TOOL 001"
+    "designation": "FS-ACHERNAR \u00b7 SW \u00b7 TOOL 001"
   },
   "kind": "copied",
   "trust": "How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured by HPR Sim: the size, masses and delays as the file's header gives them, the impulse, thrusts and burn time computed from its curve, which can differ from the maker's rated figures. The total impulse and peak thrust match OpenRocket's reading of the same file on every bundled curve, a check of the arithmetic, not of the motor; no figure is checked against the maker's or the certifying bodies' data. The motor's printed data and its maker's instructions come first, and the RSO decides. More: https://hpr.fusionspace.co/pick-a-motor.html",
@@ -1705,7 +1714,7 @@ $ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --offline --json
   "tool": {
     "name": "FusionSpace HPR",
     "version": "0.1.0",
-    "designation": "FS-ACHERNAR · SW · TOOL 001"
+    "designation": "FS-ACHERNAR \u00b7 SW \u00b7 TOOL 001"
   },
   "error": {
     "kind": "input",

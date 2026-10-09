@@ -112,7 +112,7 @@ space yet, and `hpr sim --plot`'s SVG figure, which the rule covers, still write
 Most of the product system's rules are not met yet. The
 [design audit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/design-conformance.md)
 checks each of its sections against the site, the command line, the exports and the plot. Of
-the 64 sections that apply to them today, 9 are met and 48 are not. Each gap has an issue, and
+the 64 sections that apply to them today, 10 are met and 47 are not. Each gap has an issue, and
 three milestones close them before the next guides are written: the command line, exports and
 plot first, then the site's look, then the words
 ([ADR-208, the design audit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0208-the-design-audit.md)).

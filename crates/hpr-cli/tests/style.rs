@@ -442,7 +442,9 @@ fn every_file_hpr_writes_names_the_tool() {
     }
     for name in ["f.kml", "f.svg", "m.eng", "m.rse"] {
         let text = std::fs::read_to_string(path(name)).unwrap();
-        assert_eq!(text.matches(&stamp).count(), 1, "{name}: {text}");
+        // The plot's in its metadata and in its last visible line.
+        let count = if name == "f.svg" { 2 } else { 1 };
+        assert_eq!(text.matches(&stamp).count(), count, "{name}: {text}");
     }
     // A Parquet file's key-value metadata, and a `.ork`'s zipped document, as bytes.
     let parquet = std::fs::read(path("f.parquet")).unwrap();

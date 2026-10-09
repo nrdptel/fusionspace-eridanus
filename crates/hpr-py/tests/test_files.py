@@ -232,7 +232,9 @@ CASES = {
 
 
 @pytest.mark.parametrize("case", list(CASES))
-def test_a_files_recovery_flies_as_hpr_sim_flies_it_bit_for_bit(repo, tmp_path, hpr_cli, case):
+def test_a_files_recovery_flies_as_hpr_sim_flies_it_bit_for_bit(
+    repo, tmp_path, hpr_cli, case, csv_header
+):
     # Issue #308: `recovery=True` maps the configuration's devices as `hpr sim` does, so the
     # same file flown from the same site is the same flight, to the last bit of every number.
     make, configuration, opened = CASES[case]
@@ -277,8 +279,8 @@ def test_a_files_recovery_flies_as_hpr_sim_flies_it_bit_for_bit(repo, tmp_path, 
     # The recording, every cell of every row.
     with open(exported, newline="", encoding="utf-8") as file:
         header, *rows = [line.split(",") for line in file.read().splitlines()]
-    assert flight.columns == header
-    for index, name in enumerate(header):
+    assert [csv_header(name) for name in flight.columns] == header
+    for index, name in enumerate(flight.columns):
         values = flight[name]
         assert len(values) == len(rows), name
         for value, row in zip(values, rows):

@@ -110,7 +110,7 @@ rail exit speed       25.9 m/s (85 ft/s)
 delay                 apogee 9.42 s after burnout; the motor's set delay: 10 s; its charge fires 0.58 s after apogee
 descent               4.7 m/s (15 ft/s) at landing under `Parachute`
 
-motor: 1 × H125-CT (from the bundled catalog) in `Motor mount tube`, lit at launch
+motor: 1 × H125-CT (from the bundled catalog, as of 2026-09-17) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 12.00 s
 launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 note: the file's 1 recovery device flies as OpenRocket flies it: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
@@ -159,7 +159,7 @@ rail exit speed       42.3 m/s (139 ft/s)
 delay                 apogee 10.59 s after burnout; the motor's set delay: 10 s; its charge fires 0.59 s before apogee
 descent               5.0 m/s (16 ft/s) at landing under `Parachute`
 
-motor: 1 × I377-CT (from the bundled catalog) in `Motor mount tube`, lit at launch
+motor: 1 × I377-CT (from the bundled catalog, as of 2026-09-17) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 11.43 s
 launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 note: the file's 1 recovery device flies as OpenRocket flies it: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
@@ -258,7 +258,7 @@ rail exit speed       28.9 m/s (95 ft/s)
 delay                 apogee 9.51 s after burnout; the motor's set delay: 9 s; its charge fires 0.51 s before apogee
 descent               4.5 m/s (15 ft/s) at landing under `Parachute`
 
-motor: 1 × I175WS (the design's) in `Motor mount tube`, lit at launch
+motor: 1 × I175WS (from the bundled catalog, as of 2026-09-17) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 10.97 s
 launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 note: the file's 1 recovery device flies as OpenRocket flies it: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone

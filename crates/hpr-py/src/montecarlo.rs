@@ -302,7 +302,8 @@ impl MonteCarlo {
     }
 
     /// The table as CSV text, the bytes `hpr mc --export` writes for the same run: a header of
-    /// the column names, then a line a flight, each number in the shortest form that reads back
+    /// the columns in words with their units in brackets (`apogee [m]` for `run["apogee_m"]`),
+    /// then a line a flight, each number in the shortest form that reads back
     /// to the same bits, a missing one an empty cell.
     fn to_csv(&self) -> PyResult<String> {
         self.table.csv().map_err(error)

@@ -197,13 +197,21 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     read.notes.extend(flight_notes(&recovery, &flight));
     let mut written = Vec::new();
     let name = format!("{design_name}, {configuration_label}");
+    let catalog_as_of = crate::motors::catalog_as_of()?;
+    let about = About {
+        design: file_name(&args.flight.design),
+        configuration: configuration_label.clone(),
+        catalog_as_of: catalog_as_of.clone(),
+        kind: crate::trust::Kind::Simulated,
+        trust: crate::trust::flight(),
+    };
     for (path, format, meta) in &exports {
         let contents = contents(
             *format,
             &recorder,
             &environment,
             flight.summary(),
-            &name,
+            (&name, &about),
             braked,
         )
         .map_err(|error| Failure::Input(format!("{path}: {error}")))?;
@@ -215,6 +223,9 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
                 design: file_name(&args.flight.design),
                 configuration: configuration_label.clone(),
                 rows: recorder.rows().len(),
+                catalog_as_of: catalog_as_of.clone(),
+                kind: crate::trust::Kind::Simulated,
+                trust: crate::trust::flight(),
             };
             let mut text = Vec::new();
             crate::write_json(&mut text, &document)
@@ -532,6 +543,27 @@ impl Setup {
 
     /// The motors flown, as the output lists them.
     pub(crate) fn motors(&self) -> Result<Vec<SimMotor>, Failure> {
+        // A `.ork` motor with no curve in the file that the reader found in the bundled catalog
+        // is dated as one named with `--motor` is: the catalog's as-of date (ADR-214).
+        let from_catalog = |flown: &MountedMotor| {
+            matches!(self.motor_source, SimMotorSource::Design)
+                && self.read.ork.as_ref().is_some_and(|ork| {
+                    ork.configurations
+                        .iter()
+                        .filter(|c| c.id == self.configuration)
+                        .flat_map(|c| &c.motors)
+                        .any(|motor| {
+                            motor.mount == flown.mount
+                                && motor.designation == flown.designation
+                                && matches!(motor.curve, ork::Curve::Catalog { .. })
+                        })
+                })
+        };
+        let catalog_as_of = if self.flown_motors.iter().any(from_catalog) {
+            Some(crate::motors::catalog_as_of()?)
+        } else {
+            None
+        };
         self.flown_motors
             .iter()
             .map(|flown| {
@@ -557,7 +589,12 @@ impl Setup {
                             fetched.mount == flown.mount && fetched.designation == flown.designation
                         })
                         .map_or_else(
-                            || self.motor_source.clone(),
+                            || match &catalog_as_of {
+                                Some(as_of) if from_catalog(flown) => SimMotorSource::Catalog {
+                                    as_of: as_of.clone(),
+                                },
+                                _ => self.motor_source.clone(),
+                            },
                             |fetched| SimMotorSource::ThrustCurve(Box::new(fetched.motor.clone())),
                         ),
                     ignition: ignition(&flown.ignition, &self.names),
@@ -2098,7 +2135,13 @@ fn motor(name: &str, offline: bool) -> Result<(Motor, SimMotorSource, Vec<InputW
     let refused = |error: hpr::Error| Failure::Input(format!("{name}: {error}"));
     let Some(format) = MotorFile::of(name) else {
         return match Motor::from_catalog(name) {
-            Ok(motor) => Ok((motor, SimMotorSource::Catalog, Vec::new())),
+            Ok(motor) => Ok((
+                motor,
+                SimMotorSource::Catalog {
+                    as_of: crate::motors::catalog_as_of()?,
+                },
+                Vec::new(),
+            )),
             Err(hpr::Error::NoSuchMotor(_)) => {
                 let (motor, fetched) =
                     crate::motor_fetch::fetch(&Wanted::named(name), offline, "hpr sim")?;
@@ -2187,7 +2230,19 @@ pub(crate) fn in_fall(peak: &Peak, first_opened_s: Option<f64>) -> &'static str 
     }
 }
 
-/// A recording file's contents. Unless a recovery device opened (`braked`), the maps draw no
+/// What a JSON recording carries beside its rows, as a CSV's sidecar does ([`ExportMeta`]): the
+/// design and configuration flown, the bundled catalog's as-of date and how far to trust it.
+#[derive(serde::Serialize)]
+struct About {
+    design: String,
+    configuration: String,
+    catalog_as_of: String,
+    kind: crate::trust::Kind,
+    trust: String,
+}
+
+/// A recording file's contents in `format`; `name` titles a KML file, and `about` is what a JSON
+/// one carries beside its rows. Unless a recovery device opened (`braked`), the maps draw no
 /// landing point: where the rocket came down is not a prediction, and a pin on a map reads as one.
 /// Nor do they draw a separated part's, which is rough whatever opened (ADR-159).
 fn contents(
@@ -2195,7 +2250,7 @@ fn contents(
     recorder: &Recorder,
     environment: &Environment,
     summary: &FlightSummary,
-    name: &str,
+    (name, about): (&str, &About),
     braked: bool,
 ) -> Result<Vec<u8>, hpr_sim::SimError> {
     // A separated part's landing is never pinned: it flies as a point with only its devices'
@@ -2211,7 +2266,7 @@ fn contents(
     let summary = if braked { &pinned } else { &unpinned };
     Ok(match format {
         ExportFormat::Csv => export::csv(recorder)?.into_bytes(),
-        ExportFormat::Json => export::json(recorder)?.into_bytes(),
+        ExportFormat::Json => export::json_with(recorder, about)?.into_bytes(),
         ExportFormat::Parquet => export::parquet(recorder)?,
         ExportFormat::Geojson => {
             export::geojson(&export::track(recorder, environment.sim())?, summary)?.into_bytes()

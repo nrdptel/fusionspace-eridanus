@@ -100,15 +100,17 @@ def runs(tmp_path_factory, hpr_cli):
     return monte_carlo(repo, runs=RUNS, seed=SEED, **scattered()), text, output
 
 
-def test_a_run_is_hpr_mcs_bit_for_bit(runs):
+def test_a_run_is_hpr_mcs_bit_for_bit(runs, csv_header):
     run, text, _ = runs
     header, *rows = list(csv.reader(text.splitlines()))
-    assert run.columns == header
+    # The header gives each column in words with its unit in brackets; the run keeps the names.
+    assert [csv_header(name) for name in run.columns] == header
+    assert "apogee [m]" in header and "max acceleration [m/s^2]" in header
     assert len(rows) == RUNS == run.runs
     # Every column the export has: the draw's lists by stage, motor and device among them.
     for name in ("motor_1_ejection_delay_offset_s", "device_1_deployment_lag_offset_s"):
         assert name in run
-    for index, name in enumerate(header):
+    for index, name in enumerate(run.columns):
         cells = [row[index] for row in rows]
         values = run[name]
         assert isinstance(values, numpy.ndarray) and values.shape == (RUNS,), name

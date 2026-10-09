@@ -1184,16 +1184,21 @@
           ]
         },
         {
-          "description": "The bundled catalog, named with `--motor`.",
+          "description": "The bundled catalog: named with `--motor`, or a `.ork` file's motor with no curve in the\nfile, found there by its manufacturer and designation.",
           "type": "object",
           "properties": {
+            "as_of": {
+              "description": "The catalog's as-of date, `YYYY-MM-DD`: the day its curve files were downloaded.",
+              "type": "string"
+            },
             "kind": {
               "type": "string",
               "const": "catalog"
             }
           },
           "required": [
-            "kind"
+            "kind",
+            "as_of"
           ]
         },
         {

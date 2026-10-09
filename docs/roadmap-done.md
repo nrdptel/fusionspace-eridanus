@@ -47,6 +47,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9c2 US units in brackets ([Phase 0](#phase-0-foundations))
 - M0.9c3 How far to trust a result ([Phase 0](#phase-0-foundations))
 - M0.9c4 Units and trust notes ([Phase 0](#phase-0-foundations))
+- M0.9c5 Provenance ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -393,6 +394,8 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M0.9c4 Units and trust notes** (#392, #395). *Done when:* both closed: US units in
       brackets in `weather`, `motors list`, `search`, `fetch`, `analyze` (g); a trust note (in
       `--json` too) on `weather`, `analyze`, `motors show`.
+    - [x] **M0.9c5 Provenance** (#380; ADR-214). *Done when:* it is closed, with every item it lists, the
+      exports' trust note included.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

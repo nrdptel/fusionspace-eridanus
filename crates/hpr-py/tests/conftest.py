@@ -26,3 +26,37 @@ def hpr_cli() -> Path:
         "`cargo build --release --locked -p fusionspace-hpr-cli`"
     )
     return path
+
+
+# How a CSV header writes a column's unit, in brackets after its words: the last one or two of
+# the name's `_`-separated words, two-word units first.
+UNITS = [
+    (["m", "s2"], "m/s^2"),
+    (["m", "s"], "m/s"),
+    (["rad", "s"], "rad/s"),
+    (["m2"], "m^2"),
+    (["pa"], "Pa"),
+    (["kg"], "kg"),
+    (["n"], "N"),
+    (["m"], "m"),
+    (["s"], "s"),
+    (["rad"], "rad"),
+    (["deg"], "deg"),
+    (["cal"], "cal"),
+]
+
+
+def header_of(name):
+    """A column's name as a CSV header writes it: `apogee [m]` for `apogee_m`."""
+    words = name.split("_")
+    for unit, written in UNITS:
+        if len(words) > len(unit) and words[-len(unit) :] == unit:
+            return f"{' '.join(words[: -len(unit)])} [{written}]"
+    return " ".join(words)
+
+
+@pytest.fixture
+def csv_header():
+    """How a CSV header writes a column's name, the Rust rule (`hpr_sim::export::csv_header`)
+    written out again; the Rust tests pin each header by hand."""
+    return header_of

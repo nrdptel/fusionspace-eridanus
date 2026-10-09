@@ -286,8 +286,9 @@ impl RunTable {
         self.columns.iter().find(|column| column.name == name)
     }
 
-    /// The table as CSV (RFC 4180): a header of the column names, then one line a sample, lines
-    /// ending in CRLF. A number is written in the shortest form that reads back to the same
+    /// The table as CSV (RFC 4180): a header of the columns in words with their units in
+    /// brackets, as a recording's ([`hpr_sim::export::csv_header`]: `apogee [m]` for the column
+    /// `apogee_m`), then one line a sample, lines ending in CRLF. A number is written in the shortest form that reads back to the same
     /// bits (Rust's `{:?}`, which Python's `float` and every IEEE-correct reader read exactly);
     /// a missing number is an empty cell. Words are quoted where they hold a comma, a quote or
     /// a line break, a quote doubled.
@@ -296,7 +297,11 @@ impl RunTable {
     ///
     /// [`AnalysisError::Domain`] for a number that isn't finite.
     pub fn csv(&self) -> Result<String, AnalysisError> {
-        let header: Vec<String> = self.columns.iter().map(|c| quoted(&c.name)).collect();
+        let header: Vec<String> = self
+            .columns
+            .iter()
+            .map(|c| quoted(&hpr_sim::export::csv_header(&c.name)))
+            .collect();
         let mut out = header.join(",");
         out.push_str("\r\n");
         for row in 0..self.rows {
@@ -427,7 +432,25 @@ mod tests {
         let lines = cells(&table.csv().unwrap());
         assert_eq!(lines.len(), 17);
         let names: Vec<&str> = table.columns().iter().map(|c| c.name.as_str()).collect();
-        assert_eq!(lines[0], names);
+        // The header gives each column in words with its unit in brackets, as the product
+        // system's `data.md` writes one; written out by hand, so a unit read wrongly fails.
+        assert_eq!(
+            lines[0].join(","),
+            "index,outcome,failed at,reason,drag scale,wind speed scale,wind turn [rad],\
+             rail elevation offset [rad],rail azimuth offset [rad],stage 1 dry mass scale,\
+             stage 1 cg shift [m],motor 1 impulse scale,motor 1 burn time scale,\
+             motor 1 ejection delay offset [s],device 1 deployment lag offset [s],termination,\
+             apogee [m],apogee time [s],rail exit speed [m/s],max speed [m/s],max mach,\
+             max dynamic pressure [Pa],max acceleration [m/s^2],min static margin [cal],\
+             min flight margin [cal],max angle of attack [rad],landing time [s],landing east [m],\
+             landing north [m],landing distance [m],landing latitude [deg],\
+             landing longitude [deg],ground hit speed [m/s],flags"
+        );
+        let headers: Vec<String> = names
+            .iter()
+            .map(|name| hpr_sim::export::csv_header(name))
+            .collect();
+        assert_eq!(lines[0], headers);
         for (row, line) in lines[1..].iter().enumerate() {
             assert_eq!(line.len(), names.len());
             for (column, cell) in table.columns().iter().zip(line) {
