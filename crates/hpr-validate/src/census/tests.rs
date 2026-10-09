@@ -451,17 +451,18 @@ fn a_census_reads_back_as_it_was_written() {
 }
 
 #[test]
-fn the_badge_counts_the_gated_rows_and_turns_red_on_a_failure() {
+fn the_badge_counts_the_gated_rows_and_turns_to_caution_on_a_failure() {
     let census = take(&harness(Vec::new(), Vec::new())).unwrap();
     let badge = badges(&census.summaries())[0].1.clone();
     assert!(badge.contains("3 of 3 gated metrics pass"), "{badge}");
-    assert!(badge.contains("#2e7d32"), "{badge}");
+    assert!(badge.contains(&format!("fill=\"{OK_FILL}\"")), "{badge}");
     // The real flights' badge says whether the target is met in words, not by color alone.
     let mut summaries = census.summaries();
     let (name, missed) = badges(&summaries)[1].clone();
     assert_eq!(name, "real-flights-badge.svg");
     assert!(
-        missed.contains("(target 5%, missed)") && missed.contains("#b35c00"),
+        missed.contains("(target 5%, missed)")
+            && missed.contains(&format!("fill=\"{CAUTION_FILL}\"")),
         "{missed}"
     );
     let flights = summaries
@@ -473,12 +474,17 @@ fn the_badge_counts_the_gated_rows_and_turns_red_on_a_failure() {
     }
     let met = badges(&summaries)[1].1.clone();
     assert!(
-        met.contains("4.00% (target 5%, met)") && met.contains("#2e7d32"),
+        met.contains("4.00% (target 5%, met)") && met.contains(&format!("fill=\"{OK_FILL}\"")),
         "{met}"
     );
     summaries.retain(|summary| summary.group != Group::FlightLogs);
     let none = badges(&summaries)[1].1.clone();
-    assert!(none.contains("none compared"), "{none}");
+    assert!(
+        none.contains(&format!("fill=\"{RULE_STRONG}\">none compared"))
+            && !none.contains(OK_FILL)
+            && !none.contains(CAUTION_FILL),
+        "{none}"
+    );
     // A difference no longer withheld is a change of standing only, not a redefinition.
     let withheld = barred(
         Group::OpenRocketLibrary,
@@ -514,7 +520,10 @@ fn the_badge_counts_the_gated_rows_and_turns_red_on_a_failure() {
     .unwrap();
     let badge = badges(&failing.summaries())[0].1.clone();
     assert!(badge.contains("3 of 4 gated metrics pass"), "{badge}");
-    assert!(badge.contains("#c62828"), "{badge}");
+    assert!(
+        badge.contains(&format!("fill=\"{CAUTION_FILL}\"")) && !badge.contains(OK_FILL),
+        "{badge}"
+    );
     // An OpenRocket row with no bar is refused, not dropped.
     let mut examples: Value = committed("openrocket-flights.json");
     examples["flights"][0]["metrics"]["new_metric"] = json!({"outcome": {"outcome": "scored"}});

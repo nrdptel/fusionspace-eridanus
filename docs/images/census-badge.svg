@@ -1,9 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="385" height="20" role="img" aria-label="vs RocketPy, same inputs: 172 of 172 gated metrics pass">
+<svg xmlns="http://www.w3.org/2000/svg" width="430" height="20" role="img" aria-label="vs RocketPy, same inputs: 172 of 172 gated metrics pass">
 <title>vs RocketPy, same inputs: 172 of 172 gated metrics pass</title>
-<rect width="176" height="20" fill="#555"/>
-<rect x="176" width="209" height="20" fill="#2e7d32"/>
-<g fill="#fff" font-family="Verdana,DejaVu Sans,sans-serif" font-size="11" text-anchor="middle">
-<text x="88" y="14">vs RocketPy, same inputs</text>
-<text x="280" y="14">172 of 172 gated metrics pass</text>
+<rect width="196" height="20" fill="#FFFFFF"/>
+<rect x="196" width="234" height="20" fill="#0A6355"/>
+<g fill="none" stroke="#566079" stroke-width="1">
+<rect x="0.5" y="0.5" width="429" height="19"/>
+<line x1="196.5" y1="0" x2="196.5" y2="20"/>
+</g>
+<g font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12">
+<text x="8" y="14" fill="#0B0F1C">vs RocketPy, same inputs</text>
+<text x="204" y="14" fill="#FFFFFF">172 of 172 gated metrics pass</text>
 </g>
 </svg>
