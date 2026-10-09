@@ -16,6 +16,7 @@ use std::process::Output;
 
 use clap::ValueEnum;
 use clap_complete::Shell;
+use hpr::hpr_flightdata::perfectflite::FOOT_M;
 use hpr::hpr_motor::Catalog;
 use hpr_cli::motors::MotorFile;
 use hpr_cli::registry::{self, Availability, PLANNED};
@@ -855,7 +856,8 @@ fn sim_flies_a_public_ork_as_the_library_does() {
     let text = streams(&["sim", &design, "--motor", "H54"]).out;
     assert!(
         text.contains(&format!(
-            "\napogee                {apogee:.1} m above the site"
+            "\napogee                {apogee:.1} m ({:.0} ft) above the site",
+            apogee / FOOT_M
         )),
         "{text}"
     );
@@ -1168,12 +1170,15 @@ fn sim_flies_a_payload_dropped_with_nothing_left_to_burn_as_the_library_does() {
         // The payload's apogee, under its parachute from the split, is not a coast to tell.
         "delay                 the stack comes apart 2.00 s after burnout, before apogee; the motor's set delay: 2 s\n",
         &format!(
-            "descent               {:.1} m/s at landing under `Payload chute`",
-            landing.descent_rate_m_s
+            "descent               {:.1} m/s ({:.0} ft/s) at landing under `Payload chute`",
+            landing.descent_rate_m_s,
+            landing.descent_rate_m_s / FOOT_M
         ),
         &format!(
-            "landing, part 0       {:.1} m from the pad at {:.2} s",
-            landing.distance_m, landing.time_s
+            "landing, part 0       {:.1} m ({:.0} ft) from the pad at {:.2} s",
+            landing.distance_m,
+            landing.distance_m / FOOT_M,
+            landing.time_s
         ),
     ] {
         assert!(text.out.contains(line), "{line}\n{}", text.out);
@@ -1194,8 +1199,11 @@ fn sim_flies_a_payload_dropped_with_nothing_left_to_burn_as_the_library_does() {
         match peak(body).filter(|p| p.height_above_ground_m > apogee.sample.height_above_ground_m) {
             Some(p) => assert!(
                 text.contains(&format!(
-                    "{said} {:.1} m above the site at {:.2} s, above the flight's apogee",
-                    p.height_above_ground_m, p.time_s
+                    "{said} {:.1} m ({:.0} ft) above the site at {:.2} s, above the flight's \
+                     apogee",
+                    p.height_above_ground_m,
+                    p.height_above_ground_m / FOOT_M,
+                    p.time_s
                 )),
                 "{text}"
             ),
@@ -1329,8 +1337,10 @@ fn sim_flies_two_powered_separations_as_the_library_does() {
         "lit 0 s after the motor in `Middle tube` burns out",
         "lit 0 s after the motor in `Booster tube` burns out",
         &format!(
-            "landing, part 2       {:.1} m from the pad at {:.2} s",
-            landings[1].distance_m, landings[1].time_s
+            "landing, part 2       {:.1} m ({:.0} ft) from the pad at {:.2} s",
+            landings[1].distance_m,
+            landings[1].distance_m / FOOT_M,
+            landings[1].time_s
         ),
     ] {
         assert!(text.out.contains(line), "{line}\n{}", text.out);
@@ -1452,8 +1462,10 @@ fn sim_flies_a_powered_separation_as_the_library_does() {
         // The sustainer flies on: its coast from its own burnout to apogee is told.
         "delay                 apogee ",
         &format!(
-            "landing, part 1       {:.1} m from the pad at {:.2} s",
-            landings[0].distance_m, landings[0].time_s
+            "landing, part 1       {:.1} m ({:.0} ft) from the pad at {:.2} s",
+            landings[0].distance_m,
+            landings[0].distance_m / FOOT_M,
+            landings[0].time_s
         ),
     ] {
         assert!(text.out.contains(line), "{line}\n{}", text.out);
@@ -2775,13 +2787,14 @@ fn sim_text_reads_by_name() {
         .lines()
         .skip_while(|line| !line.is_empty())
         .skip(1)
-        .take(5)
+        .take(6)
         .map(|line| line.split("  ").next().unwrap())
         .collect();
     assert_eq!(
         lead,
         [
             "static margin",
+            "CG and CP",
             "apogee",
             "rail exit speed",
             "delay",
@@ -2877,9 +2890,11 @@ fn sim_text_reads_by_name() {
     assert!(down(main_opens) > 5.0 && down(ground) > 2.0, "{document:#}");
     assert!((down(ground) - landing).abs() < 1e-9, "{document:#}");
     let line = format!(
-        "\ndescent               {:.1} m/s at 150.0 m under `Drogue parachute`; {landing:.1} m/s \
-         at landing with `Main parachute` open too\n",
-        down(main_opens)
+        "\ndescent               {:.1} m/s ({:.0} ft/s) at 150.0 m (492 ft) under `Drogue \
+         parachute`; {landing:.1} m/s ({:.0} ft/s) at landing with `Main parachute` open too\n",
+        down(main_opens),
+        down(main_opens) / FOOT_M,
+        landing / FOOT_M
     );
     assert!(flown.contains(&line), "{line}: {flown}");
 
@@ -2906,7 +2921,7 @@ fn sim_text_reads_by_name() {
         .unwrap_or_else(|| panic!("{flown}"));
     assert!(
         descent.contains(
-            " m/s at landing under `Main parachute`: with no recovery device opened \
+            " ft/s) at landing under `Main parachute`: with no recovery device opened \
              soon after apogee, not a prediction"
         ),
         "{flown}"
@@ -3167,7 +3182,8 @@ fn sim_plots_the_flight() {
     let markers = ids.iter().filter(|id| id.starts_with("event-")).count();
     assert_eq!(markers, instants.len(), "{ids:?}");
     assert_eq!(markers, 6);
-    // The table's rows, one per event, each a line of four cells: number, time, altitude, name.
+    // The table's rows, one per event, each a line of five cells: number, time, altitude in
+    // meters and in feet, name.
     let table = parsed
         .descendants()
         .find(|node| node.attribute("id") == Some("events"))
@@ -3184,7 +3200,7 @@ fn sim_plots_the_flight() {
     let rows: Vec<Vec<&str>> = rows
         .into_iter()
         .map(|(_, cells)| cells)
-        .filter(|cells| cells.len() == 4 && cells[0] != "NO.")
+        .filter(|cells| cells.len() == 5 && cells[0] != "NO.")
         .collect();
     assert_eq!(rows.len(), document["events"].as_array().unwrap().len());
     for named in [
@@ -3193,7 +3209,7 @@ fn sim_plots_the_flight() {
         "`Drogue parachute` opens",
     ] {
         assert!(
-            rows.contains(&vec!["4", "9.12", "324.0", named]),
+            rows.contains(&vec!["4", "9.12", "324.0", "1,063", named]),
             "{named}: {rows:?}"
         );
     }
@@ -3204,13 +3220,28 @@ fn sim_plots_the_flight() {
         .find(|node| node.has_tag_name("desc"))
         .and_then(|node| node.text())
         .unwrap();
+    // Whole feet, grouped in threes from four digits as the figure's numbers are.
+    let grouped = |value: f64| {
+        let digits = format!("{value:.0}");
+        match digits.len() {
+            4..=6 => format!(
+                "{},{}",
+                &digits[..digits.len() - 3],
+                &digits[digits.len() - 3..]
+            ),
+            _ => digits,
+        }
+    };
+    let apogee_m = summary["apogee"]["height_above_ground_m"].as_f64().unwrap();
+    let top_m_s = summary["max_speed_m_s"]["value"].as_f64().unwrap();
     assert_eq!(
         desc,
         format!(
-            "Apogee {:.1} m above the launch site at {:.2} s; top speed {:.1} m/s at {:.2} s.",
-            summary["apogee"]["height_above_ground_m"].as_f64().unwrap(),
+            "Apogee {apogee_m:.1} m ({} ft) above the launch site at {:.2} s; top speed \
+             {top_m_s:.1} m/s ({} ft/s) at {:.2} s.",
+            grouped(apogee_m / FOOT_M),
             summary["apogee"]["time_s"].as_f64().unwrap(),
-            summary["max_speed_m_s"]["value"].as_f64().unwrap(),
+            grouped(top_m_s / FOOT_M),
             summary["max_speed_m_s"]["time_s"].as_f64().unwrap(),
         )
     );
@@ -4566,7 +4597,7 @@ fn mc_flies_a_public_ork_as_the_library_does() {
     let apogee = run.apogee().unwrap().summary();
     assert!(
         text.contains(&format!(
-            "apogee (m)            {:>9.1}{:>9.1}{:>9.1}",
+            "apogee (m AGL)        {:>9.1}{:>9.1}{:>9.1}",
             summary.apogee.unwrap().height_above_ground_m,
             apogee.mean.unwrap(),
             apogee.standard_deviation.unwrap()

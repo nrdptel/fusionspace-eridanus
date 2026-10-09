@@ -1540,7 +1540,7 @@ pub(crate) mod tests {
                 .collect::<Vec<_>>(),
             [8]
         );
-        assert!(warnings[0].message().contains("from 1.2 m/s at 0°"));
+        assert!(warnings[0].message().contains("from 1.2 m/s (3 mph) at 0°"));
     }
 
     /// The drag scale reaches the flight: `FlightInputs` flies it as

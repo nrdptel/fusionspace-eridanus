@@ -1,6 +1,10 @@
 //! `hpr mc`'s text form: the spreads a flyer checks first, the apogee's and the landing's, then
 //! the landing ellipses, what flew, from where, what was scattered, and what failed.
 //!
+//! Heights and distances are SI first, then in feet: the spreads' table gives each quantity a
+//! row in meters and a row in feet, and the landing's lines put feet in brackets
+//! ([`crate::units`]; ADR-164 §6, ADR-210).
+//!
 //! The run goes to standard output; its `warning:`, `note:` and `help:` lines go to standard
 //! error ([`Diagnostics`]).
 
@@ -11,9 +15,12 @@ use crate::output::{EllipseKind, FlagKind, IssueKind, McDispersion, McRun, McSpr
 use crate::sim_text::{
     design_lines, flag_help, flag_prefix, launch_lines, motor_lines, note_lines,
 };
+use crate::units::{FOOT_M, fixed, meters};
 
 /// The width of a figure's name in the tables.
 const NAME: usize = 22;
+/// The width of an ellipse's semi-axis, `10000.0 m (32808 ft)` with two spaces before it.
+const AXIS: usize = 22;
 
 /// The text form of `run`: the run on `out`, its warnings, notes and hints on `diagnostics`.
 pub(crate) fn print(
@@ -34,10 +41,11 @@ pub(crate) fn print(
         "{:<NAME$}{:>9}{:>9}{:>9}{:>9}{:>9}{:>9}",
         "", "nominal", "mean", "std dev", "5%", "median", "95%"
     )?;
-    row(out, "apogee (m)", run.nominal.apogee_m, &run.apogee_m)?;
+    row(out, "apogee", " AGL", run.nominal.apogee_m, &run.apogee_m)?;
     row(
         out,
-        "landing distance (m)",
+        "landing distance",
+        "",
         run.nominal.landing_distance_m,
         &run.landing_distance_m,
     )?;
@@ -109,19 +117,34 @@ pub(crate) fn print(
     Ok(())
 }
 
-/// A row of the spreads' table: the nominal value, then the spread's.
-fn row(out: &mut dyn Write, name: &str, nominal: Option<f64>, spread: &McSpread) -> io::Result<()> {
-    let cell = |value: Option<f64>| value.map_or_else(|| "-".to_owned(), |v| format!("{v:.1}"));
-    writeln!(
-        out,
-        "{name:<NAME$}{:>9}{:>9}{:>9}{:>9}{:>9}{:>9}",
-        cell(nominal),
-        cell(spread.mean),
-        cell(spread.standard_deviation),
-        cell(spread.p05),
-        cell(spread.p50),
-        cell(spread.p95),
-    )
+/// Two rows of the spreads' table for a height or a distance `name`: the nominal value, then the
+/// spread's, in meters to a tenth, then in feet, whole. `datum` follows the unit in the label,
+/// ` AGL` for a height above the site (`apogee (m AGL)`, as `data.md` names a height's datum).
+fn row(
+    out: &mut dyn Write,
+    name: &str,
+    datum: &str,
+    nominal: Option<f64>,
+    spread: &McSpread,
+) -> io::Result<()> {
+    let cells = [
+        nominal,
+        spread.mean,
+        spread.standard_deviation,
+        spread.p05,
+        spread.p50,
+        spread.p95,
+    ];
+    for (unit, per_m, decimals) in [("m", 1.0, 1), ("ft", 1.0 / FOOT_M, 0)] {
+        let label = format!("{name} ({unit}{datum})");
+        write!(out, "{label:<NAME$}")?;
+        for cell in cells {
+            let text = cell.map_or_else(|| "-".to_owned(), |v| fixed(v * per_m, decimals));
+            write!(out, "{text:>9}")?;
+        }
+        writeln!(out)?;
+    }
+    Ok(())
 }
 
 /// Where the flights landed, and the ellipses about the landings.
@@ -142,9 +165,11 @@ fn landing(run: &McRun, out: &mut dyn Write) -> io::Result<()> {
     };
     writeln!(
         out,
-        "{} of {} flights landed, centered {east:.0} m {east_or_west} and {north:.0} m \
-         {north_or_south} of the pad",
-        landing.count, run.runs
+        "{} of {} flights landed, centered {} {east_or_west} and {} {north_or_south} of the pad",
+        landing.count,
+        run.runs,
+        meters(east),
+        meters(north),
     )?;
     if landing.ellipses.is_empty() {
         return writeln!(
@@ -154,7 +179,7 @@ fn landing(run: &McRun, out: &mut dyn Write) -> io::Result<()> {
     }
     writeln!(
         out,
-        "{:<NAME$}{:>11}{:>12}{:>9}{:>17}",
+        "{:<NAME$}{:>AXIS$}{:>AXIS$}{:>9}{:>17}",
         "landing ellipse", "semi-major", "semi-minor", "heading", "flights inside"
     )?;
     for ellipse in &landing.ellipses {
@@ -164,9 +189,9 @@ fn landing(run: &McRun, out: &mut dyn Write) -> io::Result<()> {
         };
         writeln!(
             out,
-            "{name:<NAME$}{:>9.0} m{:>10.0} m{:>8.0}°{:>16.1}%",
-            ellipse.semi_major_m,
-            ellipse.semi_minor_m,
+            "{name:<NAME$}{:>AXIS$}{:>AXIS$}{:>8.0}°{:>16.1}%",
+            meters(ellipse.semi_major_m),
+            meters(ellipse.semi_minor_m),
             ellipse.major_heading_deg,
             100.0 * ellipse.inside
         )?;

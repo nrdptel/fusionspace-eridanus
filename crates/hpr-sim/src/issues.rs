@@ -185,6 +185,32 @@ pub const OFF_AXIS_CG_LIMIT_M: f64 = 1e-9;
 /// direction in such a wind, so a level this slow has no direction worth interpolating.
 pub const NEAR_CALM_WIND_M_S: f64 = 1.5;
 
+/// Meters in a foot, exactly (the international foot): a warning's heights carry feet in
+/// brackets after the meters, as the command line prints them (ADR-210).
+const FOOT_M: f64 = 0.3048;
+/// Meters in a statute mile, exactly (the international mile): a wind's speed carries miles per
+/// hour in brackets.
+const MILE_M: f64 = 1609.344;
+
+/// `value` to a whole number, never `-0`.
+fn whole(value: f64) -> String {
+    unsigned_zero(format!("{value:.0}"))
+}
+
+/// `value` to a tenth, never `-0.0`.
+fn tenth(value: f64) -> String {
+    unsigned_zero(format!("{value:.1}"))
+}
+
+/// `text` without its minus sign where every digit is zero: a negative that rounds to zero
+/// prints unsigned.
+fn unsigned_zero(text: String) -> String {
+    match text.strip_prefix('-') {
+        Some(digits) if digits.chars().all(|c| c == '0' || c == '.') => digits.to_owned(),
+        _ => text,
+    }
+}
+
 /// A known error in HPR Sim's drag, its stability margin or its flight's path that a flight can meet.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -659,13 +685,17 @@ impl IssueWarning {
                     |turn| {
                         let (lower, upper) = (turn.lower, turn.upper);
                         format!(
-                            "{:.0} to {:.0} m above sea level, from {:.1} m/s at {:.0}° to {:.1} m/s \
-                             at {:.0}°",
-                            lower.height_msl_m,
-                            upper.height_msl_m,
-                            lower.speed_m_s,
+                            "{} to {} m ({} to {} ft) above sea level, from {} m/s ({} mph) at \
+                             {:.0}° to {} m/s ({} mph) at {:.0}°",
+                            whole(lower.height_msl_m),
+                            whole(upper.height_msl_m),
+                            whole(lower.height_msl_m / FOOT_M),
+                            whole(upper.height_msl_m / FOOT_M),
+                            tenth(lower.speed_m_s),
+                            whole(lower.speed_m_s * 3600.0 / MILE_M),
                             lower.direction_from_rad.to_degrees(),
-                            upper.speed_m_s,
+                            tenth(upper.speed_m_s),
+                            whole(upper.speed_m_s * 3600.0 / MILE_M),
                             upper.direction_from_rad.to_degrees()
                         )
                     },
@@ -675,10 +705,11 @@ impl IssueWarning {
                     2 => " (and one more span)".to_owned(),
                     n => format!(" (and {} more spans)", n - 1),
                 };
+                let calm_mph = whole(NEAR_CALM_WIND_M_S * 3600.0 / MILE_M);
                 format!(
                     "the wind's direction is interpolated across {span}{more}, where a level is \
-                     near calm (at most {NEAR_CALM_WIND_M_S} m/s, light air, whose direction a vane \
-                     doesn't show): its reported direction means little, yet it swings the wind \
+                     near calm (at most {NEAR_CALM_WIND_M_S} m/s ({calm_mph} mph), light air, \
+                     whose direction a vane doesn't show): its reported direction means little, yet it swings the wind \
                      across the path. Where the other levels share one direction, the swing turns part \
                      of the wind off it, so the drift likely reads short; where they turn, it may \
                      read long. So the drift and the apogee may read short or long, and nothing \
@@ -2530,8 +2561,10 @@ mod tests {
         let message = warning.message();
         assert!(
             message.starts_with(
-                "issue #8: the wind's direction is interpolated across 1500 to 1800 m above sea \
-                 level, from 0.1 m/s at 0° to 10.0 m/s at 270° (and one more span)"
+                "issue #8: the wind's direction is interpolated across 1500 to 1800 m (4921 to \
+                 5906 ft) above sea level, from 0.1 m/s (0 mph) at 0° to 10.0 m/s (22 mph) at \
+                 270° (and one more span), where a level is near calm (at most 1.5 m/s (3 mph), \
+                 light air,"
             ),
             "{message}"
         );
@@ -2629,5 +2662,17 @@ mod tests {
             old
         );
         assert_eq!(NEAR_CALM_WIND_M_S, 1.5);
+    }
+
+    /// A warning's US units are the exact definitions, whole feet and miles per hour, and never
+    /// print `-0`.
+    #[test]
+    fn a_warnings_us_units_are_exact() {
+        assert_eq!(whole(304.8 / FOOT_M), "1000");
+        assert_eq!(whole(1609.344 / 3600.0 * 3600.0 / MILE_M), "1");
+        assert_eq!(whole(-0.4), "0");
+        assert_eq!(whole(-0.6), "-1");
+        assert_eq!(tenth(-0.04), "0.0");
+        assert_eq!(tenth(-0.06), "-0.1");
     }
 }

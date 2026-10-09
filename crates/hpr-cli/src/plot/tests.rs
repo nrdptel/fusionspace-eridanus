@@ -95,8 +95,9 @@ fn texts(document: &roxmltree::Document<'_>) -> Vec<String> {
         .collect()
 }
 
-/// The event table's rows: each row's number, time, altitude and first line of its name.
-fn table_rows(document: &roxmltree::Document<'_>) -> Vec<[String; 4]> {
+/// The event table's rows: each row's number, time, altitude in meters and in feet, and first
+/// line of its name.
+fn table_rows(document: &roxmltree::Document<'_>) -> Vec<[String; 5]> {
     let table = document
         .descendants()
         .find(|node| node.attribute("id") == Some("events"))
@@ -118,7 +119,7 @@ fn table_rows(document: &roxmltree::Document<'_>) -> Vec<[String; 4]> {
             .find(|(cx, cy, _)| cx.parse::<f64>().unwrap() == x && cy == y)
             .map(|(_, _, text)| text.clone())
     };
-    let [number_x, time_x, height_x, name_x] = COLUMNS.map(|x| LEFT + x);
+    let [number_x, time_x, height_x, feet_x, name_x] = COLUMNS.map(|x| LEFT + x);
     cells
         .iter()
         // The rows are the lines with a number; the head's "NO." is not one.
@@ -128,6 +129,7 @@ fn table_rows(document: &roxmltree::Document<'_>) -> Vec<[String; 4]> {
                 number.clone(),
                 at(time_x, y).unwrap(),
                 at(height_x, y).unwrap(),
+                at(feet_x, y).unwrap(),
                 at(name_x, y).unwrap(),
             ]
         })
@@ -135,7 +137,7 @@ fn table_rows(document: &roxmltree::Document<'_>) -> Vec<[String; 4]> {
 }
 
 /// A table row from its cells.
-fn row(cells: [&str; 4]) -> [String; 4] {
+fn row(cells: [&str; 5]) -> [String; 5] {
     cells.map(str::to_owned)
 }
 
@@ -164,12 +166,12 @@ fn the_figure_is_three_panels_and_its_events() {
     assert_eq!(
         table_rows(&document),
         [
-            row(["1", "0.00", "0.0", "liftoff"]),
-            row(["2", "0.05", "0.0", "rail exit"]),
-            row(["3", "5.00", "0.0", "apogee"]),
-            row(["3", "5.00", "0.0", "charge for `Drogue`"]),
-            row(["3", "5.00", "0.0", "`Drogue` opens"]),
-            row(["4", "20.00", "0.0", "ground hit"]),
+            row(["1", "0.00", "0.0", "0", "liftoff"]),
+            row(["2", "0.05", "0.0", "0", "rail exit"]),
+            row(["3", "5.00", "0.0", "0", "apogee"]),
+            row(["3", "5.00", "0.0", "0", "charge for `Drogue`"]),
+            row(["3", "5.00", "0.0", "0", "`Drogue` opens"]),
+            row(["4", "20.00", "0.0", "0", "ground hit"]),
         ]
     );
     let texts = texts(&document);
@@ -228,11 +230,11 @@ fn a_grouped_event_keeps_its_time() {
     assert_eq!(
         table_rows(&document),
         [
-            row(["1", "0.00", "0.0", "liftoff"]),
-            row(["1", "0.27", "0.0", "rail exit"]),
-            row(["2", "30.00", "0.0", "apogee"]),
-            row(["2", "30.00", "0.0", "charge for `Main`"]),
-            row(["3", "520.00", "0.0", "ground hit"]),
+            row(["1", "0.00", "0.0", "0", "liftoff"]),
+            row(["1", "0.27", "0.0", "0", "rail exit"]),
+            row(["2", "30.00", "0.0", "0", "apogee"]),
+            row(["2", "30.00", "0.0", "0", "charge for `Main`"]),
+            row(["3", "520.00", "0.0", "0", "ground hit"]),
         ]
     );
 }
@@ -358,7 +360,7 @@ fn a_long_event_line_wraps() {
     });
     let document = roxmltree::Document::parse(&svg).unwrap();
     // The name column's lines: the first at the column, the later ones indented.
-    let name_x = LEFT + COLUMNS[3];
+    let name_x = LEFT + COLUMNS[4];
     let column: Vec<&str> = document
         .descendants()
         .filter(|node| node.has_tag_name("text") && node.attribute("text-anchor").is_none())
@@ -394,6 +396,141 @@ fn a_long_event_line_wraps() {
         let width = 0.6 * size * node.text().unwrap_or_default().chars().count() as f64;
         assert!(x + width <= WIDTH, "{x} {:?}", node.text());
     }
+}
+
+/// Each panel gives both units (ADR-164 §6, ADR-210): its SI title on the left, its US unit's
+/// over a second scale on the right, whose ticks sit at round US values where those values fall on
+/// the SI axis; the event table gives each height in feet beside meters.
+#[test]
+fn each_panel_gives_its_us_units_on_a_right_scale() {
+    let mut points: Vec<Point> = (0..=20)
+        .map(|i| point(f64::from(i), 5.0 * f64::from(i)))
+        .collect();
+    points[20].acceleration_m_s2 = 4.0 * STANDARD_GRAVITY_M_S2;
+    let mut apogee = event(EventKind::Apogee, 20.0);
+    apogee.sample.height_above_ground_m = 100.0;
+    let svg = svg(&Figure {
+        title: "t",
+        subtitle: "s",
+        points: &points,
+        events: &[apogee],
+        devices: &[],
+        unpredicted: None,
+        apogee: None,
+        top_speed: None,
+    });
+    let document = roxmltree::Document::parse(&svg).unwrap();
+    let right = WIDTH - RIGHT;
+    let panel = |id: &str| {
+        document
+            .descendants()
+            .find(|node| node.attribute("id") == Some(id))
+            .unwrap()
+    };
+    let number = |node: roxmltree::Node<'_, '_>, name: &str| -> f64 {
+        node.attribute(name).unwrap().parse().unwrap()
+    };
+    // The right scale's texts of a panel: its title, then its tick labels, with their y.
+    let right_texts = |id: &str| -> Vec<(String, f64)> {
+        panel(id)
+            .children()
+            .filter(|node| node.has_tag_name("text"))
+            .filter(|node| number(*node, "x") == right + 2.0 * TICK)
+            .map(|node| (node.text().unwrap().to_owned(), number(node, "y")))
+            .collect()
+    };
+    for (id, title, unit) in [
+        ("altitude", "ALTITUDE · m AGL", "ft AGL"),
+        ("speed", "SPEED · m/s", "ft/s"),
+        ("acceleration", "ACCELERATION · m/s²", "g"),
+    ] {
+        let texts = right_texts(id);
+        assert_eq!(texts[0].0, unit, "{id}: {texts:?}");
+        assert!(
+            panel(id)
+                .children()
+                .any(|node| node.text() == Some(title) && number(node, "x") == LEFT),
+            "{id}"
+        );
+        // 3 to 6 ticks, each with its mark.
+        assert!((3..=6).contains(&(texts.len() - 1)), "{id}: {texts:?}");
+    }
+    // The altitude axis runs 0 to 100 m: 0 to 328 ft, ticks every 100 ft, each at its height
+    // in meters on the left scale.
+    let altitude = right_texts("altitude");
+    let labels: Vec<&str> = altitude[1..]
+        .iter()
+        .map(|(text, _)| text.as_str())
+        .collect();
+    assert_eq!(labels, ["0", "100", "200", "300"]);
+    let top = altitude[0].1 + 12.0;
+    let y_of_m = |m: f64| top + PANEL_HEIGHT - m / 100.0 * PANEL_HEIGHT;
+    for (text, y) in &altitude[1..] {
+        let feet: f64 = text.parse().unwrap();
+        assert!(
+            (y - 4.0 - y_of_m(feet * FOOT_M)).abs() < 0.051,
+            "{text}: {y}"
+        );
+    }
+    // The acceleration reaches 4 g: whole g's on the right.
+    let g: Vec<String> = right_texts("acceleration")[1..]
+        .iter()
+        .map(|(text, _)| text.clone())
+        .collect();
+    assert!(g.contains(&"4".to_owned()), "{g:?}");
+    // The apogee's row gives 100.0 m and 328 ft.
+    assert_eq!(
+        table_rows(&document),
+        [row(["1", "20.00", "100.0", "328", "apogee"])]
+    );
+}
+
+/// A second scale's ticks: 3 to 6, all inside its span, at round steps, over spans of every
+/// size and offset, positive and negative; none on an empty or infinite span.
+#[test]
+fn second_scale_ticks_are_round_and_inside() {
+    assert_eq!(
+        inner_ticks(0.0, 328.08),
+        (vec![0.0, 100.0, 200.0, 300.0], 100.0)
+    );
+    assert_eq!(inner_ticks(-1.0, 1.0), (vec![-1.0, 0.0, 1.0], 1.0));
+    assert_eq!(inner_ticks(-0.9, 0.9), (vec![-0.5, 0.0, 0.5], 0.5));
+    assert_eq!(inner_ticks(0.0, 9.80665), (vec![0.0, 2.5, 5.0, 7.5], 2.5));
+    assert_eq!(inner_ticks(1.0, 1.0).0, Vec::<f64>::new());
+    assert_eq!(inner_ticks(0.0, f64::INFINITY).0, Vec::<f64>::new());
+    assert_eq!(inner_ticks(f64::NAN, 1.0).0, Vec::<f64>::new());
+    for span in (1..500).map(|i| f64::from(i) * 0.731) {
+        for offset in [-1234.5, -7.3, -0.5, 0.0, 0.5, 3.1, 123.4, 98765.4] {
+            let (ticks, step) = inner_ticks(offset, offset + span);
+            assert!((3..=6).contains(&ticks.len()), "{offset} {span}: {ticks:?}");
+            for v in &ticks {
+                assert!(*v >= offset - 1e-9 * span && *v <= offset + span + 1e-9 * span);
+            }
+            let mantissa = step / 10f64.powf(step.log10().floor());
+            assert!(
+                [1.0, 2.0, 2.5, 5.0]
+                    .iter()
+                    .any(|m| (mantissa - m).abs() < 1e-9),
+                "{step}"
+            );
+        }
+    }
+    assert_eq!(step_decimals(250.0), 0);
+    assert_eq!(step_decimals(2.5), 1);
+    assert_eq!(step_decimals(0.25), 2);
+    assert_eq!(step_decimals(0.1), 1);
+    // A step far below one still prints its digits, so its ticks don't all read `0`.
+    assert_eq!(step_decimals(1e-7), 7);
+    assert_eq!(step_decimals(2.5e-7), 8);
+    assert_eq!(step_decimals(5e-4), 4);
+    assert_eq!(step_decimals(0.0), 0);
+    assert_eq!(step_decimals(f64::NAN), 0);
+    let (ticks, step) = inner_ticks(0.0, 3e-7);
+    let labels: Vec<String> = ticks
+        .iter()
+        .map(|v| number(*v, step_decimals(step)))
+        .collect();
+    assert_eq!(labels, ["0.0000000", "0.0000001", "0.0000002", "0.0000003"]);
 }
 
 /// Thinning keeps each column's first, least, greatest and last points in order, and breaks
@@ -496,7 +633,8 @@ fn numbers_read_in_the_product_systems_style() {
 fn the_figure_describes_its_apogee_and_top_speed() {
     let svg = figure_svg("Probe", None);
     let document = roxmltree::Document::parse(&svg).unwrap();
-    let said = "Apogee 100.0 m above the launch site at 5.00 s; top speed 1,234.6 m/s at 4.00 s.";
+    let said = "Apogee 100.0 m (328 ft) above the launch site at 5.00 s; top speed 1,234.6 m/s \
+                (4,050 ft/s) at 4.00 s.";
     let desc = document
         .descendants()
         .find(|node| node.has_tag_name("desc"))
@@ -524,7 +662,7 @@ fn the_figure_describes_its_apogee_and_top_speed() {
     };
     assert_eq!(
         summary(&figure),
-        "No apogee; top speed 70.0 m/s at 20.00 s, in the fall: not a prediction."
+        "No apogee; top speed 70.0 m/s (230 ft/s) at 20.00 s, in the fall: not a prediction."
     );
     figure.top_speed = None;
     assert_eq!(summary(&figure), "No apogee; no top speed.");
@@ -660,8 +798,11 @@ fn the_lines_follow_the_product_systems_types() {
     let texts = texts(&document);
     for title in [
         "ALTITUDE · m AGL",
+        "ft AGL",
         "SPEED · m/s",
+        "ft/s",
         "ACCELERATION · m/s²",
+        "g",
         "TIME · s",
     ] {
         assert!(texts.contains(&title.to_owned()), "{title}: {texts:?}");

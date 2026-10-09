@@ -164,6 +164,40 @@ though it doesn't print the `.ork` reader's warnings, which `hpr convert` printe
 It runs the same simulation code as the
 Rust library, so a Rust program flying the same design gets the same numbers.
 
+### Units
+
+The text gives SI first, with the US units a flyer in the United States reads in brackets
+(parentheses) after it: `1065.1 m (3494 ft)`. `hpr sim`, `hpr mc`, `hpr motors show`, `hpr
+analyze` and the `--plot` figure do this, their `note:` and `warning:` lines included:
+
+| quantity | SI | US, in brackets |
+|---|---|---|
+| a height or a distance | meters to a tenth | whole feet |
+| the rail's length | meters to a tenth | feet to a tenth |
+| a speed | m/s to a tenth | whole ft/s |
+| the wind | m/s | whole mph |
+| a station along the rocket (the CG and CP) | meters to the millimeter | inches to a tenth |
+| a motor's diameter and length | millimeters | inches to a hundredth and a tenth |
+| a motor's masses | grams to a tenth | ounces to a tenth, pounds to a hundredth from one pound |
+| thrust and impulse | N and N·s | none: motors are rated in them |
+
+The plot's right-hand scales are feet, feet per second and g (standard gravity,
+9.80665 m/s²). The SI figure is the one to copy: the US one is rounded from it, to a whole foot
+for a height, which can differ by a foot from converting a rounded SI figure.
+
+Some readouts still print SI alone, until [issue #392](https://github.com/nrdptel/fusionspace-eridanus/issues/392):
+`hpr weather`, `hpr motors list` and `hpr motors search`, the case size `hpr motors fetch`
+prints, and `hpr analyze`'s acceleration, which isn't yet given in g.
+
+There is no `--units` switch: both units appear at once, so nothing needs choosing, and a switch
+that claimed to change units everywhere would also have to reach the exports. Those stay SI:
+`--json` and the exported CSV and JSON files name each field with its unit
+(`height_above_ground_m`), a published format that scripts read and a spreadsheet converts in
+one column. The app will bring one units control for all of it
+([ADR-210, US units in brackets](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0210-us-units-in-brackets.md),
+which carries out §6 of
+[ADR-164, the product system](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0164-the-fusionspace-product-system.md)).
+
 ### Flying a design
 
 This flies one of the repository's own test rockets, a small single-stage OpenRocket design. Its
@@ -178,29 +212,30 @@ pods-none (pods-none.ork)
 configuration 1 of 1: [H128W-0] with --motor H54
 
 static margin         2.69 calibres off the rail; least 2.69 calibres, at 0.15 s, before apogee
-apogee                846.1 m above the site at 11.21 s
-rail exit speed       21.3 m/s
+CG and CP             0.480 m (18.9 in) and 0.641 m (25.2 in) aft of the nose tip, off the rail
+apogee                846.1 m (2776 ft) above the site at 11.21 s
+rail exit speed       21.3 m/s (70 ft/s)
 delay                 apogee 7.71 s after burnout
 descent               no recovery device opened, so the fall is not a prediction
 
 motor: 1 × 168H54-10A (from the bundled catalog) in `Motor mount`, lit at launch
-launched at 0° N, 0° E, 0 m above sea level, from a 1.5 m vertical rail, in calm air
+launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 help: see the Accuracy page before trusting these numbers: https://hpr.fusionspace.co/accuracy.html
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
-event                   time     height       speed
-liftoff               0.00 s      0.3 m     0.0 m/s
-rail exit             0.15 s      1.8 m    21.3 m/s
-burnout               3.50 s    466.0 m   136.3 m/s
-apogee               11.21 s    846.1 m     0.1 m/s
-ground hit           29.71 s      0.0 m    65.9 m/s
+event                   time                 height                    speed
+liftoff               0.00 s      0.3 m      (1 ft)     0.0 m/s     (0 ft/s)
+rail exit             0.15 s      1.8 m      (6 ft)    21.3 m/s    (70 ft/s)
+burnout               3.50 s    466.0 m   (1529 ft)   136.3 m/s   (447 ft/s)
+apogee               11.21 s    846.1 m   (2776 ft)     0.1 m/s     (0 ft/s)
+ground hit           29.71 s      0.0 m      (0 ft)    65.9 m/s   (216 ft/s)
 (heights are the center of gravity's above the site; speeds are over the ground)
 
-top speed             178.3 m/s at 2.31 s
+top speed             178.3 m/s (585 ft/s) at 2.31 s
 top Mach number       0.525
-landing               17.4 m from the pad at 29.71 s, at 65.9 m/s: with no recovery device opened soon after apogee, not a prediction
+landing               17.4 m (57 ft) from the pad at 29.71 s, at 65.9 m/s (216 ft/s): with no recovery device opened soon after apogee, not a prediction
 ```
 
 <!-- cli: end -->
@@ -211,6 +246,7 @@ What each part says:
 |---|---|
 | the first two | the rocket's name and its file; the [configuration](glossary.md#configuration) flown, by its number in the file and its name ([below](#the-motor-and-the-configuration)). `[H128W-0]` is the file's unnamed configuration, called by the motor it holds, and `with --motor H54` says the H54 flew in its place. The file's other configurations follow, each with why it doesn't fly as read, if it doesn't |
 | `static margin` | the [static margin](glossary.md#stability-margin) as the rocket leaves the rail, in [calibres](glossary.md#calibre-caliber), at Mach 0, and its least value from there to apogee. Each is the weakest direction's: a rocket with a fin set of one or two fins has a different margin for each direction the air crosses it, and the simulator prints the least; the JSON's `roll_rad` gives that direction ([Flight metrics](physics/metrics.md#stability-margins)) |
+| `CG and CP` | the stations the margin off the rail comes from: the [center of gravity](glossary.md#center-of-gravity-cg) and the [center of pressure](glossary.md#center-of-pressure-cp), each in meters and inches aft of the nose tip, as the rocket leaves the rail. The margin is their distance apart over the reference diameter. The JSON gives them as `cg_station_m` and `cp_station_m` |
 | `apogee` | the [apogee](glossary.md#apogee): the height of the center of gravity above the site, and when |
 | `rail exit speed` | the speed at [rail exit](glossary.md#rail-exit-and-rail-exit-velocity) |
 | `delay` | the coast: the time from burnout to apogee. For one motor lit at launch, a delay no longer than that fires at or before apogee. Then the delay the design sets for its motor, if it sets one, and, for one motor lit at launch, how many seconds before or after apogee its charge fires. `--motor` sets no delay without `--delay`, so the example shows the coast alone; OpenRocket's example *A simple model rocket*, with its C6-5, prints `apogee 5.49 s after burnout; the motor's set delay: 5 s; its charge fires 0.49 s before apogee` |
@@ -287,35 +323,36 @@ Loft Demo 54mm — dual deploy (demo-dual-deploy.ork)
 configuration 1 of 1: [K550W-P] with --motor H54
 
 static margin         6.25 calibres off the rail; least 6.25 calibres, at 0.27 s, before apogee
-apogee                324.0 m above the site at 9.12 s
-rail exit speed       11.2 m/s
+CG and CP             1.005 m (39.6 in) and 1.354 m (53.3 in) aft of the nose tip, off the rail
+apogee                324.0 m (1063 ft) above the site at 9.12 s
+rail exit speed       11.2 m/s (37 ft/s)
 delay                 apogee 5.62 s after burnout
-descent               14.1 m/s at 150.0 m under `Drogue parachute`; 4.7 m/s at landing with `Main parachute` open too
+descent               14.1 m/s (46 ft/s) at 150.0 m (492 ft) under `Drogue parachute`; 4.7 m/s (15 ft/s) at landing with `Main parachute` open too
 
 motor: 1 × 168H54-10A (from the bundled catalog) in `Booster / motor bay`, lit at launch
-recovery: `Main parachute` at 150 m on the way down, 1.052 m² of drag area, opened at 22.41 s
+recovery: `Main parachute` at 150 m (492 ft) on the way down, 1.052 m² of drag area, opened at 22.41 s
 recovery: `Drogue parachute` at apogee, 0.133 m² of drag area, opened at 9.12 s
-launched at 0° N, 0° E, 0 m above sea level, from a 1.5 m vertical rail, in calm air
+launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 help: see the Accuracy page before trusting these numbers: https://hpr.fusionspace.co/accuracy.html
 note: the file's 2 recovery devices fly as OpenRocket flies them: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
-event                   time     height       speed
-liftoff               0.00 s      0.6 m     0.0 m/s
-rail exit             0.27 s      2.1 m    11.2 m/s
-burnout               3.50 s    163.1 m    59.6 m/s
-apogee                9.12 s    324.0 m     0.0 m/s
-charge                9.12 s    324.0 m     0.0 m/s
-deployment            9.12 s    324.0 m     0.0 m/s
-charge               22.41 s    150.0 m    14.1 m/s
-deployment           22.41 s    150.0 m    14.1 m/s
-ground hit           53.94 s      0.0 m     4.7 m/s
+event                   time                 height                    speed
+liftoff               0.00 s      0.6 m      (2 ft)     0.0 m/s     (0 ft/s)
+rail exit             0.27 s      2.1 m      (7 ft)    11.2 m/s    (37 ft/s)
+burnout               3.50 s    163.1 m    (535 ft)    59.6 m/s   (196 ft/s)
+apogee                9.12 s    324.0 m   (1063 ft)     0.0 m/s     (0 ft/s)
+charge                9.12 s    324.0 m   (1063 ft)     0.0 m/s     (0 ft/s)
+deployment            9.12 s    324.0 m   (1063 ft)     0.0 m/s     (0 ft/s)
+charge               22.41 s    150.0 m    (492 ft)    14.1 m/s    (46 ft/s)
+deployment           22.41 s    150.0 m    (492 ft)    14.1 m/s    (46 ft/s)
+ground hit           53.94 s      0.0 m      (0 ft)     4.7 m/s    (15 ft/s)
 (heights are the center of gravity's above the site; speeds are over the ground)
 
-top speed             65.9 m/s at 2.73 s
+top speed             65.9 m/s (216 ft/s) at 2.73 s
 top Mach number       0.194
-landing               0.4 m from the pad at 53.94 s, at 4.7 m/s
+landing               0.4 m (1 ft) from the pad at 53.94 s, at 4.7 m/s (15 ft/s)
 ```
 
 <!-- cli: end -->
@@ -486,29 +523,30 @@ pods-none (pods-none.ork)
 configuration 1 of 1: [H128W-0] with --motor H54
 
 static margin         2.71 calibres off the rail; least 2.71 calibres, at 0.21 s, before apogee
-apogee                877.4 m above the site at 11.48 s
-rail exit speed       30.2 m/s
+CG and CP             0.478 m (18.8 in) and 0.641 m (25.2 in) aft of the nose tip, off the rail
+apogee                877.4 m (2879 ft) above the site at 11.48 s
+rail exit speed       30.2 m/s (99 ft/s)
 delay                 apogee 7.98 s after burnout
 descent               no recovery device opened, so the fall is not a prediction
 
 motor: 1 × 168H54-10A (from the bundled catalog) in `Motor mount`, lit at launch
-launched at 32.99° N, 106.97° W, 1400 m above sea level, from a 3 m rail 85° above the horizon, leaning toward 270°, in a 5 m/s wind from 270°
+launched at 32.99° N, 106.97° W, 1400 m (4593 ft) above sea level, from a 3 m (9.8 ft) rail 85° above the horizon, leaning toward 270°, in a 5 m/s (11 mph) wind from 270°
 help: see the Accuracy page before trusting these numbers: https://hpr.fusionspace.co/accuracy.html
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
-event                   time     height       speed
-liftoff               0.00 s      0.3 m     0.0 m/s
-rail exit             0.21 s      3.3 m    30.2 m/s
-burnout               3.50 s    468.6 m   144.4 m/s
-apogee               11.48 s    877.4 m    11.3 m/s
-ground hit           28.71 s      0.0 m    70.3 m/s
+event                   time                 height                    speed
+liftoff               0.00 s      0.3 m      (1 ft)     0.0 m/s     (0 ft/s)
+rail exit             0.21 s      3.3 m     (11 ft)    30.2 m/s    (99 ft/s)
+burnout               3.50 s    468.6 m   (1537 ft)   144.4 m/s   (474 ft/s)
+apogee               11.48 s    877.4 m   (2879 ft)    11.3 m/s    (37 ft/s)
+ground hit           28.71 s      0.0 m      (0 ft)    70.3 m/s   (230 ft/s)
 (heights are the center of gravity's above the site; speeds are over the ground)
 
-top speed             184.3 m/s at 2.35 s
+top speed             184.3 m/s (605 ft/s) at 2.35 s
 top Mach number       0.556
-landing               310.4 m from the pad at 28.71 s, at 70.3 m/s: with no recovery device opened soon after apogee, not a prediction
+landing               310.4 m (1018 ft) from the pad at 28.71 s, at 70.3 m/s (230 ft/s): with no recovery device opened soon after apogee, not a prediction
 ```
 
 <!-- cli: end -->
@@ -615,9 +653,14 @@ text: for the data itself, or a plot of your own, use `--export` (above). The na
 - **Not what an accelerometer reads.** The panel shows how the motion changes: zero on the pad,
   and in a coast about −10 m/s² vertically, gravity plus drag. An accelerometer reads about zero
   in that coast, and 9.8 m/s² on the pad.
+- **Two scales:** each panel's left scale is SI, its title the quantity and its unit
+  (`ALTITUDE · m AGL`), and its right scale is the US unit, at round values of its own: feet above
+  the ground, feet per second, and g, one standard gravity (9.80665 m/s²). Both scales measure the
+  one quantity the panel draws, so the gridlines are the SI scale's alone.
 - **Events:** each instant with events is a numbered balloon (a circle) above the panels, with a
   dotted line through them. The table under the figure gives each event a row: its balloon's
-  number, its time, the altitude then, and its name, with each parachute or streamer by name.
+  number, its time, the altitude then in meters and in feet, and its name, with each parachute or
+  streamer by name.
 - **Not a prediction:** when no recovery device opens within 1 s of apogee, the fall from apogee
   to the first opening (or to the ground) is hatched and labeled, the rule the summary's "not a
   prediction" marks follow, for the reason [the landing](#the-landing) gives. The example below
@@ -638,7 +681,7 @@ one. There is no legend box; a caption under the title says once what the lines 
 | Hatched area | A fall that is not a prediction |
 
 The caption's first line is the figure's summary: the apogee, its time and the top speed, the
-summary's own numbers. The SVG carries the same sentence as its description, which a screen
+summary's own numbers, with feet and feet per second in parentheses. The SVG carries the same sentence as its description, which a screen
 reader reads out. Numbers on the figure are written for reading, `1,000` and a real minus sign
 `−20`; copy numbers from `--export` or `--json`, which are plain. The text is set in Cascadia
 Mono where it is installed, else another fixed-width font, so the lines keep their widths.
@@ -724,17 +767,19 @@ configuration 1 of 1: [H128W-0] with --motor H54
 
 200 flights, seed 2026: 0 failed
                         nominal     mean  std dev       5%   median      95%
-apogee (m)                813.9    819.4     34.4    765.0    818.8    870.8
+apogee (m AGL)            813.9    819.4     34.4    765.0    818.8    870.8
+apogee (ft AGL)            2670     2688      113     2510     2686     2857
 landing distance (m)      286.9    283.2     44.8    208.8    281.8    354.5
+landing distance (ft)       941      929      147      685      925     1163
 
-200 of 200 flights landed, centered 282 m west and 2 m north of the pad
-landing ellipse        semi-major  semi-minor  heading   flights inside
-50%                          53 m        33 m      89°            48.5%
-95%                         110 m        68 m      89°            93.5%
-95%, the next flight        111 m        69 m      89°            93.5%
+200 of 200 flights landed, centered 281.8 m (925 ft) west and 2.0 m (7 ft) north of the pad
+landing ellipse                   semi-major            semi-minor  heading   flights inside
+50%                          52.8 m (173 ft)       32.8 m (107 ft)      89°            48.5%
+95%                         109.7 m (360 ft)       68.1 m (223 ft)      89°            93.5%
+95%, the next flight        111.1 m (365 ft)       69.0 m (226 ft)      89°            93.5%
 
 motor: 1 × 168H54-10A (from the bundled catalog) in `Motor mount`, lit at launch
-launched at 0° N, 0° E, 0 m above sea level, from a 1.5 m rail 85° above the horizon, leaning toward 270°, in a 4 m/s wind from 270°
+launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) rail 85° above the horizon, leaning toward 270°, in a 4 m/s (9 mph) wind from 270°
 help: see the Accuracy page before trusting these numbers: https://hpr.fusionspace.co/accuracy.html
 scattered, one standard deviation each: --mass-sd 0.02, --drag-sd 0.05, --impulse-sd 0.03, --burn-time-sd 0.02, --wind-sd 0.25, --wind-from-sd 15, --inclination-sd 1, --heading-sd 2
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
@@ -746,7 +791,8 @@ warning: stability, the nominal flight: issue #172: the static margin read up to
 
 The table gives the nominal flight's figure (the flight `hpr sim` flies with the same options),
 then the run's mean, [standard deviation](glossary.md#standard-deviation), 5th percentile, median
-and 95th percentile. A failed flight counts as tried with no value. The landing ellipses are the
+and 95th percentile, each quantity in meters and then, on the row under it, in feet. The landing's
+center and the ellipses' axes give feet in parentheses. A failed flight counts as tried with no value. The landing ellipses are the
 [Landing ellipses](monte-carlo.md#landing-ellipses) section's: the 50% and 95% ellipses hold
 that share of a normal scatter with the run's mean and spread, and the last allows for the run's
 spread being only an estimate, so the next flight lands inside it 95% of the time. An ellipse's
@@ -885,7 +931,22 @@ file:
 - The [burn time](glossary.md#burn-time) is measured the [NFPA 1125](glossary.md#nfpa-1125) way:
   from when the thrust first reaches 5% of its peak to when it last falls back to it.
 - The [average thrust](glossary.md#average-thrust) is the total impulse divided by that burn time.
-- The masses and the casing size are the catalog's, or the file's for a file.
+- The masses and the casing size are the catalog's, or the file's for a file, with ounces or
+  pounds and inches in parentheses.
+- The impulse class comes with its range of total impulse, written as NFPA 1125 and 1127 write
+  it: each class runs from just above the one below's top to twice it, such as
+  J (640.01–1280 N·s), the lower end exclusive. Classes past O, beyond the standards' table,
+  carry on the doubling.
+- The designation is read for what it names, as the maker writes it: `H170M` is class H, a
+  nominal average thrust of 170 N, and propellant M. Where the measured average thrust, rounded to
+  a whole newton, differs from the nominal one, both are shown. The letters joined to the thrust
+  are the maker's code for the propellant; for a catalog motor, the propellant's name is
+  ThrustCurve.org's, and for a file, which names no propellant, the code is shown alone. Estes's
+  and Quest's joined letters are not a propellant (the `T` of `A10T` marks the 13 mm mini case),
+  so none is read for them. Letters after a hyphen are not read as the propellant, since the same
+  place holds a delay for one maker (AeroTech's `J350W-L`) and a propellant for another (Loki's
+  `H125-CT`), except in the form Cesaroni's own files write, `131-G84-GR-10A`, and even there a
+  single delay letter, as in `131-G84-P` (plugged), is not.
 
 For a catalog motor, the last line names the public-domain curve file the figures come from.
 `hpr motors list` gives the same figures, as a
@@ -901,13 +962,14 @@ simulator's peak, the curve file's highest point, runs from 16.7% below ThrustCu
 ```text
 $ hpr motors show J760
 1266J760-19A (Cesaroni Technology), from the bundled catalog
-  impulse class    J
+  impulse class    J (640.01–1280 N·s)
   total impulse    1267.3 N·s
-  average thrust   758.2 N
+  average thrust   758.2 N measured; 760 N nominal, as the designation names it
   peak thrust      938.6 N
   burn time        1.67 s, from 0.001 s to 1.672 s (NFPA 1125, 5% of peak)
-  propellant       576.0 g of 1076.8 g loaded
-  casing           54 mm across, 329 mm long
+  propellant       White Thunder, as ThrustCurve.org names it
+  propellant mass  576.0 g (1.27 lb) of 1076.8 g (2.37 lb) loaded
+  casing           54 mm (2.13 in) across, 329 mm (13.0 in) long
   delays           8 s, 10 s, 12 s, 14 s, 16 s, 18 s, 19 s
   curve file       https://www.thrustcurve.org/simfiles/5f4294d20002e9000000074a/ (public domain)
 ```
