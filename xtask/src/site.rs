@@ -42,7 +42,9 @@
 //!   be that file of the repository, line for line. So the code and output a page shows, such as
 //!   *Getting started*'s example and what it prints, can't drift from the files CI compiles and
 //!   runs. mdBook's `{{#include}}` would render on the site only, not on GitHub.
-//! - **Trust notes** (#379). A result someone might fly on says how far to trust it in one shape:
+//! - **Trust notes** (#379), on the guide's pages (the API reference's module docs follow the
+//!   same shape, kept by hand, unchecked). A result someone might fly on says how far to trust it
+//!   in one shape:
 //!   a quote block whose first paragraph opens with exactly `**How far to trust it.**`, then what
 //!   kind of figure it is, what it was checked against with numbers, and what to rely on instead
 //!   (`docs/writing.md`). The label "How far to trust" fails anywhere else: bold in other words or

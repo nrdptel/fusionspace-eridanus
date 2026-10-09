@@ -6,8 +6,9 @@
 //! `validation/reports/fixture-flights.json`, HPR Sim's apogee against 55 logged flights of
 //! fliers' own designs, flown as drawn (M2.3c1, ADR-184). That is the largest comparison with
 //! real flights the project has, and the least flattering: on it the simulated apogee averages
-//! 9.8% above the logged apogee, each the height climbed in the day's air. A test holds each figure here to the report, so a regenerated
-//! report that moves one fails until the note is updated.
+//! 9.8% above the logged apogee, each the height climbed in the day's air. A test holds each
+//! figure here to the report, so a regenerated report that moves one fails until the note is
+//! updated.
 
 use std::fmt::Write as _;
 
