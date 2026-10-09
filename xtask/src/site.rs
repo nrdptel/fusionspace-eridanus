@@ -89,7 +89,7 @@ use crate::workspace::{Package, Workspace};
 
 mod pages;
 pub(crate) mod theme;
-mod units;
+pub(crate) mod units;
 
 pub const USAGE: &str = "  site [--no-build] [--locked]
                            Check the documentation site's pages, build the site with
@@ -175,9 +175,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
         return Err(failure("the site's pages", &report.problems));
     }
     println!(
-        "site pages: {} pages, {} links ({} to the web, not fetched), no problems; {} heights, \
-         distances and speeds in SI alone on {} model, format and records pages, not yet checked (#400)",
-        report.pages, report.links, report.web, report.deferred_units.0, report.deferred_units.1
+        "site pages: {} pages, {} links ({} to the web, not fetched), no problems",
+        report.pages, report.links, report.web
     );
     let looks = theme::check_sources(&root, &root.join(SOURCE))?;
     if !looks.problems.is_empty() {
@@ -466,9 +465,6 @@ struct Report {
     web: usize,
     /// One line each, `docs/<page>:<line>: <what is wrong>`.
     problems: Vec<String>,
-    /// Heights, distances and speeds in SI alone on the pages the units check defers, and how
-    /// many pages hold them (#400; M0.9c16).
-    deferred_units: (usize, usize),
 }
 
 /// Checks the pages `docs/SUMMARY.md` lists, and the summary itself. Fails only when the summary
@@ -525,11 +521,6 @@ fn check_sources(root: &Path) -> Result<Report, String> {
                 let mut page = read_page(&text);
                 page.problems
                     .extend(page_rules(root, name, &text, &page.links, &guides));
-                if units::deferred(name) {
-                    let count = units::si_alone(&text).len();
-                    report.deferred_units.0 += count;
-                    report.deferred_units.1 += usize::from(count > 0);
-                }
                 page.problems.sort_by_key(|(line, _)| *line);
                 pages.insert(name.clone(), page);
             }
@@ -1041,10 +1032,8 @@ fn page_rules(
     if name != RECORDS {
         problems.extend(trust_notes(text));
     }
-    // Heights, distances and speeds with their US units in brackets (#400), on the guides.
-    if units::covers(name) {
-        problems.extend(units::si_alone(text));
-    }
+    // Heights, distances, sizes and speeds with their US units in brackets (#400).
+    problems.extend(units::si_alone(text));
     if parent(name) == MODELS {
         problems.extend(in_short(text));
         // Each number *In short* quotes is in the rest of the page, or in a file its item links.
@@ -1056,7 +1045,8 @@ fn page_rules(
                 text,
                 Traced::Span(span),
                 guides,
-                &quoted(&rest),
+                // A converted figure's US units are not a source: the SI figure is.
+                &quoted(&units::without_conversions(&rest)),
                 "the rest of this page, or in a file this item links to",
             ));
         }
@@ -2020,6 +2010,8 @@ fn untraced_numbers(
                 for path in &paths {
                     files.entry(path.clone()).or_insert_with(|| {
                         let text = fs::read_to_string(root.join(path)).ok()?;
+                        // The US units in a file's brackets are conversions, not sources.
+                        let text = units::without_conversions(&text);
                         let model = parent(path) == format!("{SOURCE}/{MODELS}");
                         Some(match in_short_span(&text).filter(|_| model) {
                             Some(span) => {
@@ -3156,6 +3148,35 @@ mod tests {
     }
 
     #[test]
+    fn model_pages_give_us_units_too() {
+        // No page is left out of the units check (#400, M0.9c16): a model page's height in SI
+        // alone fails like a guide's, and so does a part's size in millimeters.
+        let report = check_sources(
+            workspace(&[
+                ("docs/SUMMARY.md", SUMMARY_TWO_PAGES),
+                (
+                    "docs/start-here.md",
+                    "# Start here\n\nSee [gravity](physics/gravity.md).\n",
+                ),
+                (
+                    "docs/physics/gravity.md",
+                    &format!("{IN_SHORT_OK}\nA 30 m drop onto a 2 mm wall, from a 54 mm motor.\n"),
+                ),
+            ])
+            .path(),
+        )
+        .unwrap();
+        let units: Vec<&String> = report
+            .problems
+            .iter()
+            .filter(|problem| problem.contains("(#400, ADR-210)"))
+            .collect();
+        assert_eq!(units.len(), 2, "{units:?}");
+        assert!(units[0].starts_with("docs/physics/gravity.md:") && units[0].contains("`30 m`"));
+        assert!(units[1].contains("`2 mm`"), "{units:?}");
+    }
+
+    #[test]
     fn a_consistent_site_passes() {
         let report = check_sources(
             workspace(&[
@@ -3666,6 +3687,25 @@ mod tests {
                 .to_owned()
         })
         .collect()
+    }
+
+    #[test]
+    fn a_conversion_doesnt_trace_a_number() {
+        // *In short*'s 98.4 m must be an SI figure in the rest of the page: the 98.4 ft that
+        // converts a 30 m drop is not one (#400). With the meters there, it is traced.
+        let page = |rest: &str| {
+            IN_SHORT_OK.replace(
+                "against its printed values.",
+                "within 98.4 m (323 ft) of its printed values.",
+            ) + rest
+        };
+        let untraced = in_short_problems(&page("\nA 30 m (98.4 ft) drop.\n"));
+        assert_eq!(untraced.len(), 1, "{untraced:?}");
+        assert!(untraced[0].contains("98.4"), "{untraced:?}");
+        assert_eq!(
+            in_short_problems(&page("\nA 98.4 m (323 ft) drop.\n")),
+            Vec::<String>::new()
+        );
     }
 
     #[test]

@@ -33,8 +33,8 @@ Service information"), and you accept it once on the dataset's page before the f
    and its *Download* tab. For the product type choose **Reanalysis**.
 2. Choose these variables: **Geopotential**, **Temperature**, **U-component of wind** and
    **V-component of wind**.
-3. Choose the pressure levels that cover the flight. Air pressure halves about every 5.5 km, so
-   1000 hPa down to 500 hPa covers the lowest 5.5 km. Include a level below the pad too (ERA5
+3. Choose the pressure levels that cover the flight. Air pressure halves about every 5.5 km (3.4 mi), so
+   1000 hPa down to 500 hPa covers the lowest 5.5 km (3.4 mi). Include a level below the pad too (ERA5
    continues its levels beneath high ground), so the pad lies between two levels. Below the
    lowest level the simulator continues the standard atmosphere and marks the air as extrapolated.
 4. Choose the day and every hour around the launch, in UTC, not every third or sixth hour. The
@@ -66,7 +66,7 @@ can't read a file, its error says which kind the file is and gives this conversi
 This conversion is checked. The test takes NDRT 2020's launch day, downloaded from the Data Store
 in 2021 as a classic file and in 2024 as netCDF-4 and converted as above. NDRT 2020 is the
 University of Notre Dame's rocket for NASA's 2020 Student Launch. The two files agree at every
-level to 0.23 m²/s² of [geopotential](../glossary.md#geopotential-height) (about 2 cm of height), 0.35 thousandths of a kelvin and
+level to 0.23 m²/s² of [geopotential](../glossary.md#geopotential-height) (about 2 cm (0.79 in) of height), 0.35 thousandths of a kelvin and
 0.11 mm/s of wind. The older file stores its values as 16-bit whole numbers and the newer one
 carries the rounding of ECMWF's own archive, so the gaps are consistent with each file's
 rounding. The test pins these largest gaps.
@@ -76,9 +76,9 @@ rounding. The test pins these largest gaps.
 The example program
 [`era5_weather`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/era5_weather.rs)
 reads a small cut of the file RocketPy ships for Bella Lui's flight. The Swiss student team EPFL
-Rocket Team flew Bella Lui at Kaltbrunn on 22 February 2020, from a pad 407 m above sea level,
+Rocket Team flew Bella Lui at Kaltbrunn on 22 February 2020, from a pad 407 m (1,335 ft) above sea level,
 and the file covers the pad at 13:00 UTC. The program prints the levels, then the air at the pad
-and 500 m above it next to the standard atmosphere. Last, it flies the rocket in both, without its
+and 500 m (1,640 ft) above it next to the standard atmosphere. Last, it flies the rocket in both, without its
 parachute. Run it from a copy of the repository with `cargo run --example era5_weather -p fusionspace-hpr`.
 On the command line, [`hpr weather era5`](../cli.md#hpr-weather) writes the same levels as a
 profile file. The program prints:
@@ -113,10 +113,10 @@ This design flies a stand-in motor; Bella Lui's real flight, on its own K828FJ, 
 compared on the accuracy page.
 ```
 
-The 1000 hPa level lies at 240 m, below the pad: ERA5 continues its levels beneath the ground,
+The 1000 hPa level lies at 240 m (787 ft), below the pad: ERA5 continues its levels beneath the ground,
 so the pad sits between two of them. That day was warm for February, and the pressure was high:
 the air at the pad was 1.2% denser than the standard's. The wind was light at the pad and grew to
-10 m/s by 2 km.
+10 m/s (33 ft/s) by 2 km (1.2 mi).
 
 **Reading your own file.** The simulator reads ERA5 from Rust only for now; there is no
 command-line tool yet. Copy the example and change three things: read your file from disk
@@ -157,10 +157,10 @@ NDRT's day from today's Data Store. RocketPy 1.13 reads the same files.
 | | HPR Sim | RocketPy 1.13 | measured difference |
 |---|---|---|---|
 | Temperature, wind and geopotential at each level, on the hour | bilinear | bilinear | the same to 12 digits (5 readings, 14 or 37 levels each) |
-| Height of a level | WMO's formula, with gravity at the site's latitude | ECMWF's formula, with `g₀` at every latitude | −0.0158% at Bella Lui, 47.21° N (−0.69 m at 4.4 km); +0.0343% at NDRT, 41.78° N (+1.45 m at 4.2 km) |
+| Height of a level | WMO's formula, with gravity at the site's latitude | ECMWF's formula, with `g₀` at every latitude | −0.0158% at Bella Lui, 47.21° N (−0.69 m (−2.3 ft) at 4.4 km (2.7 mi)); +0.0343% at NDRT, 41.78° N (+1.45 m (4.8 ft) at 4.2 km (2.6 mi)) |
 | Launch between two of the file's hours | both hours, weighted by time | the nearer hour | HPR Sim's value is the weighted mean of RocketPy's two readings, to 12 digits |
 | Pressure between levels | hydrostatic | straight line in height | not measured yet |
-| Above the top level | the standard atmosphere, continued | the top level's values, held | not measured yet; Bella Lui's file stops at 4.4 km |
+| Above the top level | the standard atmosphere, continued | the top level's values, held | not measured yet; Bella Lui's file stops at 4.4 km (2.7 mi) |
 
 Both height readings are approximations, and neither is exact. Geopotential measures the work of
 lifting air against gravity, so turning it into meters needs gravity on the way up. ECMWF's
@@ -175,12 +175,12 @@ amount at every height and ECMWF's by an amount that grows with height above the
 RocketPy's Earth radius in ECMWF's formula (the WGS 84 ellipsoid's distance from the Earth's
 center at the site), neither is always the smaller:
 
-| model ground | HPR Sim's error | ECMWF's error, at the ground | ECMWF's, 3 km above it |
+| model ground | HPR Sim's error | ECMWF's error, at the ground | ECMWF's, 3 km (1.9 mi) above it |
 |---|---|---|---|
-| 407 m at 47.2° N | −0.04 m | +0.03 m | +0.49 m |
-| 1400 m at 33° N (like Spaceport America's) | +1.88 m | +0.31 m | −3.07 m |
+| 407 m (1,335 ft) at 47.2° N | −0.04 m (−0.13 ft) | +0.03 m (0.098 ft) | +0.49 m (1.6 ft) |
+| 1400 m (4,593 ft) at 33° N (like Spaceport America's) | +1.88 m (6.2 ft) | +0.31 m (1.0 ft) | −3.07 m (−10.1 ft) |
 
-At the second site ECMWF's reading is the closer one up to 1.95 km above the ground, and HPR
+At the second site ECMWF's reading is the closer one up to 1.95 km (1.2 mi) above the ground, and HPR
 Sim's above that. HPR Sim keeps WMO's formula because it is the one it uses for every sounding. The
 derivation is in the `hpr_io::era5` module's documentation
 ([API reference](../api/hpr_io/era5/index.html)), and a test pins these numbers.
@@ -220,7 +220,7 @@ the conversion above.
 
 - **Humidity.** The simulator doesn't read the humidity yet, so it flies in dry air. At 20 °C and
   50% relative humidity, dry air is about 0.4% denser than the real air.
-- **Surface files.** ERA5's single-level files, with the 10 m wind and 2 m temperature, are not
+- **Surface files.** ERA5's single-level files, with the 10 m (33 ft) wind and 2 m (6.6 ft) temperature, are not
   read.
 - **GRIB and netCDF-4.** Convert them first, as above.
 - **The longitude seam.** On a whole-Earth grid, a site between the grid's last longitude and its
@@ -228,7 +228,7 @@ the conversion above.
   regional area around the site instead.
 - **Geoid.** ERA5's heights are above sea level. The simulator has no geoid model, so a flight takes
   them as heights above the WGS 84 ellipsoid unless you give the site's geoid height, the height of
-  sea level above the ellipsoid, which is up to about 100 m ([Geodesy](../physics/geodesy.md)).
+  sea level above the ellipsoid, which is up to about 100 m (328 ft, [Geodesy](../physics/geodesy.md)).
 
 ## Sources
 

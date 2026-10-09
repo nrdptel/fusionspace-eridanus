@@ -420,7 +420,7 @@ ellipsoid. See [Frames](physics/frames.md#earth-centered-earth-fixed-ecef) and
 A motor's thrust divided by its propellant mass flow, `c = F/ṁ`, in m/s. HPR Sim holds it constant
 through the burn, `c = I/m_p` (total impulse over propellant mass), so propellant burns in
 proportion to the impulse delivered. It also refuses a motor whose `c` falls outside 200 to
-5,000 m/s (16,404 ft/s), which catches a propellant mass given in the wrong unit, such as grams for
+5,000 m/s (656 to 16,404 ft/s), which catches a propellant mass given in the wrong unit, such as grams for
 kilograms; ThrustCurve.org's catalog has a median of 1,867 m/s (6,125 ft/s). See
 [Solid motors](physics/motor.md#propellant-consumption).
 
@@ -1162,7 +1162,7 @@ In the flight engine it is the rocket's speed along the rail falling to zero, wh
 An agreed model of the air's temperature, pressure and density against height. HPR Sim uses the 1976
 U.S. Standard Atmosphere from −5 km (−16,404 ft) to 86 km (282,152 ft), with 288.15 K and 101,325 Pa
 at sea level. It can be offset to match conditions at the field, or replaced by a
-[sounding](#sounding). See [Atmosphere](physics/atmosphere.md#the-1976-standard-5-km-to-86-km).
+[sounding](#sounding). See [Atmosphere](physics/atmosphere.md#the-1976-standard-5-km-31-mi-to-86-km-53-mi).
 
 
 ## Standard deviation

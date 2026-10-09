@@ -99,10 +99,10 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 <!-- cli: end -->
 
-A calibre here is the rocket's widest body diameter, 66 mm, so a margin of 1.70 calibres puts the
-center of pressure 1.70 × 66 mm ≈ 112 mm behind the center of gravity. The `CG and CP` line gives
+A calibre here is the rocket's widest body diameter, 66 mm (2.6 in), so a margin of 1.70 calibres puts the
+center of pressure 1.70 × 66 mm ≈ 112 mm (4.4 in) behind the center of gravity. The `CG and CP` line gives
 the two points it came from, measured from the nose tip in meters and inches: 0.811 m (31.9 in) and
-0.923 m (36.3 in), 112 mm apart. They are the stations as the rocket leaves the rail, 0.12 s into
+0.923 m (36.3 in), 112 mm (4.4 in) apart. They are the stations as the rocket leaves the rail, 0.12 s into
 the burn here, not on the pad: some propellant has burned by then, so this center of gravity is a
 little forward of where the loaded rocket balances on the pad, and the margin on the pad is a little
 smaller than the one printed. Balance the loaded rocket, motor in, and compare where it balances

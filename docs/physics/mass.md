@@ -247,7 +247,7 @@ settles on. `cargo xtask ork` compares HPR Sim's with it:
   about the rocket's length.
 
 Which of OpenRocket's numbers is roll was measured, not assumed. The script first reads a probe: one
-tube, 1 m long, 50 mm in outer radius with a 2 mm wall, of a material at 1,000 kg/m³. Worked by
+tube, 1 m (3.3 ft) long, 50 mm (2.0 in) in outer radius with a 2 mm (0.079 in) wall, of a material at 1,000 kg/m³. Worked by
 hand, it weighs 0.61575 kg, with a roll inertia of `m (r_o² + r_i²)/2` = 0.0014790 kg·m² and a
 pitch inertia about its middle of `m ((r_o² + r_i²)/4 + L²/12)` = 0.052052 kg·m². OpenRocket's
 numbers match to 15 digits, and so does HPR Sim's layout of the same file (the test
@@ -313,7 +313,7 @@ id, or by name in an older file that writes no ids. A private design is named on
 **A worked example, now settled.** In the first comparison
 ([M2.2a](../decisions-and-roadmap.md#m2-2a)) the OpenRocket jar's *Two stage high power rocket* was
 18.74% heavier in HPR Sim: 1.956 kg in OpenRocket, 0.3666 kg more in HPR Sim. All of it was the nose
-cone. Its shoulder is written with a radius of 49.28 mm, a length of 50.8 mm and a wall thickness
+cone. Its shoulder is written with a radius of 49.28 mm (1.9 in), a length of 50.8 mm (2.0 in) and a wall thickness
 of 0. HPR Sim read that as solid: a cylinder of `π × 0.04928² × 0.0508` = 3.875e-4 m³ of the file's
 own material, polypropylene at 946 kg/m³, weighs 0.3666 kg. OpenRocket gives the same shoulder no
 mass, and since [M2.2b1](../decisions-and-roadmap.md#m2-2b1) so does HPR Sim, so the file is within
@@ -403,7 +403,7 @@ to them. Where HPR Sim keeps a rule of its own, the test pins how far apart the 
 **Read as OpenRocket reads it.** On every probe of the readings in this table HPR Sim's mass is
 OpenRocket's within
 0.001%, part by part as well as whole (the worst, a transition, is 0.0003% apart), and its center
-of mass within 0.001 mm. Where no fin, rail button or recovery part is in the probe, the inertias
+of mass within 0.001 mm (0.000039 in). Where no fin, rail button or recovery part is in the probe, the inertias
 agree within 0.001% too. One gap is pinned rather than hidden, and described below: an elliptical
 fin set weighs 0.18% more. None of these readings raises a warning, since nothing is assumed:
 
@@ -413,15 +413,15 @@ fin set weighs 0.18% more. None of these readings raises a warning, since nothin
 | an inner tube, coupler or launch lug with a wall of 0 | nothing |
 | a shoulder with a wall of 0, or none written | nothing, whether or not the file closes its end with a cap, on a hollow nose or a filled one |
 | a filled nose cone with a walled shoulder | the solid cone plus the shoulder's own wall |
-| a nose cone, transition or body tube with no thickness written | a 2 mm wall, whatever its radius (measured on a nose cone and a tube at 50 mm and at 30 mm, and on a transition) |
+| a nose cone, transition or body tube with no thickness written | a 2 mm (0.079 in) wall, whatever its radius (measured on a nose cone and a tube at 50 mm (2.0 in) and at 30 mm (1.2 in), and on a transition) |
 | a part weighed by its volume (a nose, transition, tube, coupler, engine block, fin set, ring or lug) with no material | cardboard, 680 kg/m³ |
 | a canopy or streamer with no material | ripstop nylon, 0.067 kg/m² |
-| shroud lines or a shock cord with no material | a 2 mm elastic cord, 0.0018 kg/m |
+| shroud lines or a shock cord with no material | a 2 mm (0.079 in) elastic cord, 0.0018 kg/m |
 | a rail button with no material | Delrin, 1,420 kg/m³ |
 
-A worked example with the probe's numbers: a conical nose cone 0.3 m long on a 50 mm base, with a
-2 mm wall of a material at 1,000 kg/m³, weighs 0.091726 kg. With a shoulder 100 mm long, 48 mm in
-radius and a 2 mm wall, it weighs 0.150787 kg. With the same shoulder written with a wall of 0 it
+A worked example with the probe's numbers: a conical nose cone 0.3 m (0.98 ft) long on a 50 mm (2.0 in) base, with a
+2 mm (0.079 in) wall of a material at 1,000 kg/m³, weighs 0.091726 kg. With a shoulder 100 mm (3.9 in) long, 48 mm (1.9 in) in
+radius and a 2 mm (0.079 in) wall, it weighs 0.150787 kg. With the same shoulder written with a wall of 0 it
 weighs 0.091726 kg again, in both programs (the probe *a nose whose shoulder has no wall*). Before
 this step HPR Sim read that shoulder as solid, and would have added `π × 0.048² × 0.1 × 1000` =
 0.724 kg.
@@ -439,7 +439,7 @@ HPR Sim and OpenRocket agree on which override wins, and on where a center is me
   center. (The two place the parts inside differently, which shows only in the inertia: below.)
 
 This settles [Loft lesson L51](../decisions-and-roadmap.md#l51), whose rule for this came from
-OpenRocket's source and was unsettled by up to 133 mm. The test is
+OpenRocket's source and was unsettled by up to 133 mm (5.2 in). The test is
 `override_precedence_matches_oracle`.
 
 **Where the simulator keeps its own rule.** Each of these is a *departure*: HPR Sim knowingly
@@ -447,7 +447,7 @@ differs from OpenRocket, and a test pins by how much.
 
 | when | HPR Sim | OpenRocket | apart on the probe |
 |---|---|---|---|
-| a mass override covers the parts inside and states no center | keeps the center the parts lay out | puts it at the overriding part's own, ignoring where the parts inside sit | HPR Sim's center 3.7 mm forward of OpenRocket's, or 19.7 mm if the part inside has an override of its own |
+| a mass override covers the parts inside and states no center | keeps the center the parts lay out | puts it at the overriding part's own, ignoring where the parts inside sit | HPR Sim's center 3.7 mm (0.15 in) forward of OpenRocket's, or 19.7 mm (0.78 in) if the part inside has an override of its own |
 | a mass override covers more than one part | scales the inertia of everything it covers by the override's ratio | scales only the overriding part's own inertia, and keeps the parts inside at theirs; a stage, having none of its own, scales nothing | roll inertia 6.9% to 37% lower in HPR Sim under a tube's; 2.5 to 5.0 times OpenRocket's under a stage's |
 | a center override covers the parts inside | moves the whole assembly, so the inertia about the new center is the assembly's own | moves the overriding part alone, and adds the parts inside where they were | the center agrees; pitch inertia 2.65% lower in HPR Sim |
 
@@ -463,19 +463,19 @@ inertia). On a single part, with nothing inside, the two programs agree.
 
 One more difference cannot be said in the HPR design format: a part that overrides both its mass and
 its center, with one covering the parts inside and the other not. HPR Sim scopes a part's overrides
-once, takes the mass's, and warns. On the probes the center is 4.7 mm apart when the center's
+once, takes the mass's, and warns. On the probes the center is 4.7 mm (0.19 in) apart when the center's
 override is the covering one, and agrees when the mass's is (with pitch inertia 8.2% lower in
 HPR Sim).
 
 **Two gaps the probes found**, both settled in [M2.2b2](../decisions-and-roadmap.md#m2-2b2)
-([next section](#fins-rail-buttons-and-roll-inertia)): a rail button sat 5 mm further aft in HPR Sim
+([next section](#fins-rail-buttons-and-roll-inertia)): a rail button sat 5 mm (0.20 in) further aft in HPR Sim
 than in OpenRocket, and is now where OpenRocket puts it; and OpenRocket's elliptical fin weighs
 0.18% less than HPR Sim's exact ellipse, which matches, to 13 digits, a 30-sided polygon drawn
 inside the ellipse at equal angles. The simulator keeps the ellipse.
 
 **What it leaves out.** An inner tube, coupler or lug that writes no thickness at all is read as
-no wall, with a warning. OpenRocket gives it a wall of its own: on the probe, 0.5 mm for a 20 mm
-inner tube, 1 mm for a 5 mm lug, and none for a coupler. One size each does not say whether that
+no wall, with a warning. OpenRocket gives it a wall of its own: on the probe, 0.5 mm (0.020 in) for a 20 mm (0.79 in)
+inner tube, 1 mm (0.039 in) for a 5 mm (0.20 in) lug, and none for a coupler. One size each does not say whether that
 wall follows the radius, and no file in the reference library has one, so HPR Sim does not follow it
 yet; the test pins the difference, −2.4% in the mass of that probe's structure.
 
@@ -526,8 +526,8 @@ carried past what was measured. A tab's mass goes where the
 fin's does, and neither the section nor the thickness enters. A single fin gets the same rod about
 its own middle, `m hₑ²/12`.
 
-**A worked example: the probe's trapezoid.** Three fins with a 100 mm root chord, a 50 mm tip
-chord, a 50 mm span and 50 mm of sweep, 3 mm thick, of 1,000 kg/m³, on a tube 50 mm in radius.
+**A worked example: the probe's trapezoid.** Three fins with a 100 mm (3.9 in) root chord, a 50 mm (2.0 in) tip
+chord, a 50 mm (2.0 in) span and 50 mm (2.0 in) of sweep, 3 mm (0.12 in) thick, of 1,000 kg/m³, on a tube 50 mm (2.0 in) in radius.
 Each fin has an area of 0.00375 m², so the set weighs 33.75 g. Then `hₑ² = 0.00375 × 0.05 / 0.1 =
 0.001875 m²`, so `hₑ` = 43.3 mm, and `I_roll = 0.03375 × (0.0025 + 0.05 × 0.0433 + 0.000625) =
 1.7854e-4 kg·m²`, OpenRocket's figure. HPR Sim's exact integral is 1.8284e-4 kg·m², 2.4% more: the
@@ -535,15 +535,15 @@ fin's outer part weighs more than the rod puts there.
 
 The rod spreads the mass evenly, but a real fin's mass follows its chord, so the sign depends on
 the outline: a triangle's mass sits nearer the body than the rod's. A tab lies inside the body
-tube, 40 to 50 mm from the axis on the probe, but the rod puts its mass out with the fin's, so
+tube, 40 to 50 mm (1.6 to 2.0 in) from the axis on the probe, but the rod puts its mass out with the fin's, so
 OpenRocket's figure is the larger there.
 
 | the probe's fin set | HPR Sim's roll inertia (kg·m²) | OpenRocket's | HPR Sim against OpenRocket |
 |---|---|---|---|
-| rectangular, 100 mm by 50 mm | 2.6253e-4 | 2.6250e-4 | +0.013% (the thickness) |
+| rectangular, 100 mm (3.9 in) by 50 mm (2.0 in) | 2.6253e-4 | 2.6250e-4 | +0.013% (the thickness) |
 | the trapezoid above | 1.8284e-4 | 1.7854e-4 | +2.41% |
-| triangular, 100 mm root, 50 mm span | 1.0314e-4 | 1.0540e-4 | −2.14% |
-| the trapezoid with a tab 50 mm by 10 mm | 1.9199e-4 | 2.0234e-4 | −5.12% |
+| triangular, 100 mm (3.9 in) root, 50 mm (2.0 in) span | 1.0314e-4 | 1.0540e-4 | −2.14% |
+| the trapezoid with a tab 50 mm (2.0 in) by 10 mm (0.39 in) | 1.9199e-4 | 2.0234e-4 | −5.12% |
 
 The two fin probes the shortcut does not match to 1e-12 are an elliptical fin set (its polygon,
 below) and a canted one (by 2.66e-5 of the probe's roll inertia, not traced).
@@ -554,7 +554,7 @@ or pins how far apart they are.
 
 **How each fin section is weighed.** OpenRocket weighs a fin set as its outline times its thickness
 times a factor for its section: 1 for square, 0.99 for rounded and 0.85 for an airfoil, whatever
-the thickness (checked at 3 mm and 6 mm). HPR Sim works the section out: a rounded edge is a
+the thickness (checked at 3 mm (0.12 in) and 6 mm (0.24 in)). HPR Sim works the section out: a rounded edge is a
 semicircle, 0.9914 of the square section on the probe, and an airfoil is NACA's four-digit
 section, 0.6851 (Abbott and von Doenhoff). A file that says `airfoil` does not say which airfoil,
 and a builder who weighed the fins can give their mass. So HPR Sim keeps its sections. The
@@ -566,11 +566,11 @@ first button there, the rest following aft. HPR Sim now reads a `.ork` button so
 [#151](https://github.com/nrdptel/fusionspace-eridanus/issues/151)). Before, the simulator put the row's forward edge, middle
 or aft edge on the position. The move depends on which end the file measures from:
 
-| measured from | how the row moves (r the button's outer radius, s the spacing center to center, n buttons) | two buttons of 10 mm outer diameter, 100 mm center to center |
+| measured from | how the row moves (r the button's outer radius, s the spacing center to center, n buttons) | two buttons of 10 mm (0.39 in) outer diameter, 100 mm (3.9 in) center to center |
 |---|---|---|
-| the top, after a part, or absolute | forward r | 5 mm forward |
-| the middle | aft (n − 1)s/2; one button does not move | 50 mm aft |
-| the bottom | aft r + (n − 1)s | 105 mm aft |
+| the top, after a part, or absolute | forward r | 5 mm (0.20 in) forward |
+| the middle | aft (n − 1)s/2; one button does not move | 50 mm (2.0 in) aft |
+| the bottom | aft r + (n − 1)s | 105 mm (4.1 in) aft |
 
 A flight leaves the rail when its aft-most guide does. So a row placed from the top, after a part
 or absolutely now leaves it a radius earlier, and one placed from the middle or the bottom leaves it
@@ -581,11 +581,11 @@ and with a row of two.
 [M4.5i](../decisions-and-roadmap.md#m4-5i), HPR Sim reads a `.ork` button's `<screwheight>` and
 weighs the head as half a solid ellipsoid on the flange (the model is above, under
 *Standard solids*). Before, it left the head off with a warning, and a rocket
-with one did not fly ([ADR-168][adr-168]). A 10 mm button with a 2 mm screw, in Delrin at
+with one did not fly ([ADR-168][adr-168]). A 10 mm (0.39 in) button with a 2 mm (0.079 in) screw, in Delrin at
 1,420 kg/m³, gains a head of 2/3 × π × (5 mm)² × 2 mm = 104.7 mm³, or 0.149 g, its center
-0.75 mm above the flange. OpenRocket 24.12, probed with screws of 0, 1, 2 and 5 mm, gives the
+0.75 mm (0.030 in) above the flange. OpenRocket 24.12, probed with screws of 0, 1, 2 and 5 mm (0.20 in), gives the
 same volume to 2e-16 once its single-precision `2/3` is used; HPR Sim's double-precision `2/3` gives
-1.1e-8 of the volume more at a 5 mm screw. Two things differ, both pinned by the test
+1.1e-8 of the volume more at a 5 mm (0.20 in) screw. Two things differ, both pinned by the test
 `a_rail_buttons_screw_head_is_half_an_ellipsoid`:
 
 - OpenRocket puts the head's center `4h/3π` above the flange, a flat half-disc's centroid, which
@@ -638,7 +638,7 @@ measured and pinned by a test.
 a ring of tubes is farther from the axis than `R + 2r`, the outer edge of the tubes. So no ring's
 unit inertia can exceed `(R + 2r)²`. For two tubes or more, OpenRocket's does:
 
-| six tubes of 20 mm radius on a 50 mm body | unit roll inertia |
+| six tubes of 20 mm (0.79 in) radius on a 50 mm (2.0 in) body | unit roll inertia |
 | --- | --- |
 | the most any ring can have, `(0.05 + 2 × 0.02)²` | 0.0081 m² |
 | OpenRocket 24.12's | 0.3047 m², about 38 times that |
@@ -657,7 +657,7 @@ airframe through the set's center. One tube's own unit pitch inertia, about its 
   tubes' distance from the airframe's axis.
 
 OpenRocket's figure is 1.3 to 2.6 times HPR Sim's on the probes, and 1.77 times on six tubes of
-20 mm radius on a 50 mm body. On the probes, whose tubes are 0.1 m long, it stays under the most any
+20 mm (0.79 in) radius on a 50 mm (2.0 in) body. On the probes, whose tubes are 0.1 m (0.33 ft) long, it stays under the most any
 mass inside the ring could have about that axis, `(R + 2r)² + (L/2)²`. On the *Tube fin rocket*'s
 longer tubes it is 18% over that bound (3.352e-3 m² against 2.834e-3 m² a unit of mass), so no
 mass could have it. Either way it is not what tubes at `R + r` weigh, so HPR Sim keeps its own. For
@@ -689,19 +689,19 @@ It weighs a cluster's tubes as if stacked on the cluster's axis: a 3-ring at sca
 1.5 have the same inertias in OpenRocket. It does weigh an engine block inside each tube where it
 sits. HPR Sim does not copy the stacking, since the tubes are not on the axis.
 
-The fixed 3-ring probe is a tube and a 200 mm inner tube with a 20 mm outer radius and 1 mm wall,
-three of them 23.09 mm from the axis. OpenRocket's saved structure is 0.3813893481458014 kg, with
-center 0.24036243822075784 m, roll 0.0007674901427941916 kg m² and pitch 0.007191233036548777
+The fixed 3-ring probe is a tube and a 200 mm (7.9 in) inner tube with a 20 mm (0.79 in) outer radius and 1 mm (0.039 in) wall,
+three of them 23.09 mm (0.91 in) from the axis. OpenRocket's saved structure is 0.3813893481458014 kg, with
+center 0.24036243822075784 m (0.788590676577 ft), roll 0.0007674901427941916 kg m² and pitch 0.007191233036548777
 kg m². HPR Sim's mass and center are the same, and its roll inertia is +5.11% and its pitch +0.273%
 apart: the spread of the tubes, `3 m d²` (3.92e-5 kg m², each tube's mass `m` at `d` = 23.09 mm
 from the axis), and half of it. On every cluster probe on the body's axis the difference is exactly
 that, to 1e-12, whatever the pattern, scale, contents or overrides. Off the axis, three differences
-are left and pinned as measured, with the spread taken out. A lone tube 10 mm off the axis is
+are left and pinned as measured, with the spread taken out. A lone tube 10 mm (0.39 in) off the axis is
 +0.303% in roll and +0.016% in pitch: that is `m d² (1 − m/M)` in roll and half of it in pitch, for
 the tube's mass `m`, its offset `d` and the structure's mass `M`, as if OpenRocket left the offset
 out. The pitch of two clusters
 off the axis is +0.015% and +0.021%, which the project has not traced. Before
-[M1.9b](../decisions-and-roadmap.md#m1-9b), reading one tube left HPR Sim 12.85% light, 5.95 mm
+[M1.9b](../decisions-and-roadmap.md#m1-9b), reading one tube left HPR Sim 12.85% light, 5.95 mm (0.23 in)
 forward, 2.43% low in roll and 3.68% low in pitch. `each_part_alone_is_openrocket_s_or_pinned` and
 `a_cluster_weighs_as_openrocket_s_but_for_its_tubes_spread` check these.
 
@@ -710,7 +710,7 @@ forward, 2.43% low in roll and 3.68% low in pitch. `each_part_alone_is_openrocke
 A [fin fillet](../glossary.md#fillet) is the rounded glue joint along a fin's root, where the fin
 meets the tube. Since [M2.2e7](../decisions-and-roadmap.md#m2-2e7) HPR Sim weighs fillets as
 OpenRocket 24.12 does ([ADR-096][adr-096], the decision on fillets). Before, it left them out with a
-warning, and the 5 mm and 10 mm probes were 0.808% and 2.79% light ([ADR-064][adr-064]).
+warning, and the 5 mm (0.20 in) and 10 mm (0.39 in) probes were 0.808% and 2.79% light ([ADR-064][adr-064]).
 
 **The shape.** A fillet fills the corner between the tube and the fin's side. Its concave face is a
 circle of the fillet's radius that touches both. Its section is bounded by three edges: the tube's
@@ -742,7 +742,7 @@ area keeps 10 significant digits at a millionth of the body radius and 12 at a t
 checked once while writing the code; the thousand is a cautious limit, not where the digits run
 out (at ten thousand times it still keeps 10).
 
-**A worked example.** An invented 5 mm fillet on a tube 30 mm in radius. Then
+**A worked example.** An invented 5 mm (0.20 in) fillet on a tube 30 mm (1.2 in) in radius. Then
 `c = √(30² + 2 × 30 × 5)` = 34.64 mm and `θ = atan(5/34.64)` = 0.1433 rad (8.21°).
 
 | piece | formula | area |
@@ -753,16 +753,16 @@ out (at ten thousand times it still keeps 10).
 | the section | `A` | 4.253 mm² |
 
 That is 79% of the 5.365 mm² a flat body would give: the tube curves away from the fin, so the
-corner holds less. Three fins with a 100 mm root chord have six fillets. Their volume is
+corner holds less. Three fins with a 100 mm (3.9 in) root chord have six fillets. Their volume is
 `6 × 4.253 mm² × 100 mm` = 2,552 mm³ = 2.55 cm³. In cardboard they weigh
 `2.552 cm³ × 0.680 g/cm³` = 1.735 g. A unit test pins these numbers
 (`the_worked_fillet_example_is_the_docs` in `hpr_design::fins`).
 
-**How well.** Nine probe designs measure it: the 5 mm and 10 mm probes of
+**How well.** Nine probe designs measure it: the 5 mm (0.20 in) and 10 mm (0.39 in) probes of
 [M2.2b4](../decisions-and-roadmap.md#m2-2b4), and seven new in
 [M2.2e7](../decisions-and-roadmap.md#m2-2e7):
 
-- fillets of 30 mm;
+- fillets of 30 mm (1.2 in);
 - fillets in their own material;
 - fillets naming no material;
 - a single fin;
@@ -796,22 +796,22 @@ OpenRocket's for both, measured on probe designs OpenRocket 24.12 reads
 ([M2.2b3](../decisions-and-roadmap.md#m2-2b3), [ADR-063][adr-063]). Like every OpenRocket rule on
 this page, they are inferred from what OpenRocket prints, not read from its source.
 
-**A file that writes no packed size.** OpenRocket packs the part 25 mm long and 12.5 mm in radius.
-The radius is a fixed number, not the tube's bore: it is the same in bores 48 and 98 mm in radius,
-and OpenRocket does not shrink it to fit a bore of 8 mm. Neither does HPR Sim. Each
-number stands alone, so a file that writes only a length gets the 12.5 mm radius, and one that
-writes only a radius gets the 25 mm length. HPR Sim reads a `.ork` the same way, with no warning.
+**A file that writes no packed size.** OpenRocket packs the part 25 mm (0.98 in) long and 12.5 mm (0.49 in) in radius.
+The radius is a fixed number, not the tube's bore: it is the same in bores 48 and 98 mm (3.9 in) in radius,
+and OpenRocket does not shrink it to fit a bore of 8 mm (0.31 in). Neither does HPR Sim. Each
+number stands alone, so a file that writes only a length gets the 12.5 mm (0.49 in) radius, and one that
+writes only a radius gets the 25 mm (0.98 in) length. HPR Sim reads a `.ork` the same way, with no warning.
 Before, it read a length of zero with no warning, and a radius of zero with one.
 
 **A mass override on a part that weighs nothing.** A parachute with no canopy, or a mass component
 of 0 g, given a 30 g override: OpenRocket spreads the 30 g over the packing. So does HPR Sim now. In
-a packing 50 mm long and 20 mm in radius that is:
+a packing 50 mm (2.0 in) long and 20 mm (0.79 in) in radius that is:
 
 | | formula | 30 g in the probes' packing |
 |---|---|---|
 | roll inertia | `m r²/2` | 6.0 × 10⁻⁶ kg·m² |
 | pitch inertia, about its own center | `m (3r² + l²)/12` | 9.25 × 10⁻⁶ kg·m² |
-| center | halfway along the packing | 25 mm aft of its forward end |
+| center | halfway along the packing | 25 mm (0.98 in) aft of its forward end |
 
 Before, HPR Sim put the 30 g at a point, which left the probe's roll inertia 0.805% low. Any other
 part that weighs nothing still becomes a point mass under an override; both programs do that
@@ -837,7 +837,7 @@ inertia low, which happened to cancel part of that departure; the packing now ad
 
 **What it leaves out.** A packed size the file writes but HPR Sim cannot read as a number is read as
 zero, with a warning, as any unreadable number is. Every probe places its part from the tube's top,
-so how the 25 mm length moves a part placed from the middle, the bottom or after another part is
+so how the 25 mm (0.98 in) length moves a part placed from the middle, the bottom or after another part is
 worked out, not measured. The override rule was probed on a parachute, a mass component and a
 shock cord; a streamer takes it too, by the same packing, without a probe of its own. Mass is
 unchanged: the rules move mass, they add none.

@@ -10,14 +10,14 @@
   (2013), through the `geographiclib-rs` crate.
 - **How well it is validated:** for the conversions, the derived ellipsoid values reproduce the
   standard's Table 3.5 to its printed digits, and in unit tests random round trips return
-  latitude within 1e-14 rad and height within 2e-8 m, from −10 km to +1000 km; they are not
+  latitude within 1e-14 rad and height within 2e-8 m, from −10 km (−6.2 mi) to +1000 km (621 mi); they are not
   compared with another library, a simulator or a real flight. For distance and bearing, every
   one of the 500,000 lines of Karney's published test set is matched within 15 nanometers (nm,
   billionths of a meter): distance within 11.18 nm, the far point within 14.02 nm, and the
   bearings within 15 nm of sideways miss ([below](#distance-and-bearing-geodesics)). CI checks
   every 500th line and the 21 mirror lines; the whole set is checked where it has been
   downloaded, and has been measured on macOS.
-- **What it leaves out:** height above sea level, which needs the geoid, up to about 100 m from
+- **What it leaves out:** height above sea level, which needs the geoid, up to about 100 m (328 ft) from
   the ellipsoid ([Frames](frames.md#earth-centered-earth-fixed-ecef)). HPR Sim has no geoid model; a
   flight takes that difference at the site as an input. Nothing in a flight uses distance and
   bearing yet: the landing distance `hpr` prints is measured on a flat map from the pad's east and
@@ -46,7 +46,7 @@ Code: `hpr_core::geodesy` and `hpr_core::geodesic`. Conventions: [Frames](frames
 
   | quantity | value |
   |---|---|
-  | `b` | 6356752.3142 m |
+  | `b` | 6356752.3142 m (20,855,486.595 ft) |
   | `e²` | 6.694379990141e-3 |
   | `E` | 5.2185400842339e5 m |
 
@@ -98,14 +98,14 @@ h = (1 − (1 − e²)/κ) √(D² + Z²),   D = κR/(κ + e²)                 
 
 `ph` is the argument, computed with `atan2`; `λ = 0` on the axis.
 
-The closed form fails only in the equatorial plane within `a e²` (42.7 km) of the center. There
+The closed form fails only in the equatorial plane within `a e²` (42.7 km (27 mi)) of the center. There
 the paper needs its limiting forms (B6)–(B7); the code returns `CoreError::Domain` instead.
 
 **Measured accuracy** (property tests, 256 cases each per run):
 
 - geodetic → ECEF → geodetic: latitude within 1e-14 rad and height within 2e-8 m, from
-  −10 km to +1000 km;
-- ECEF → geodetic → ECEF: within 1e-7 m per 6400 km of radius, out to 46,000 km.
+  −10 km (−6.2 mi) to +1000 km (621 mi);
+- ECEF → geodetic → ECEF: within 1e-7 m per 6400 km (3,977 mi) of radius, out to 46,000 km (28,583 mi).
 
 ## Local ENU axes
 
@@ -149,13 +149,13 @@ its inverse sometimes fails to converge (§7).
 
 | quantity | value |
 |---|---|
-| distance `s₁₂` | 1,249.614 m |
+| distance `s₁₂` | 1,249.614 m (4,099.78 ft) |
 | bearing from the pad `α₁` | 31.567° |
 | azimuth on arrival `α₂` | 31.571° |
 
-The other way round, 2 km from the same pad on a bearing of 60° reaches 32.999415° N,
+The other way round, 2 km (1.2 mi) from the same pad on a bearing of 60° reaches 32.999415° N,
 106.956466° W, heading 60.010°. At this range a flat map gives the same distance, if it uses
-the ellipsoid's curvature at the middle latitude: 1,249.614 m again, to under a millimeter. The
+the ellipsoid's curvature at the middle latitude: 1,249.614 m (4,099.78 ft) again, to under a millimeter. The
 geodesic matters over long paths, where a flat map's error grows. A unit test,
 `the_guides_worked_example`, holds these numbers.
 
@@ -196,11 +196,11 @@ report. The whole set has been measured only on macOS, by the debug build that w
 table; a release build there moves three cells by up to 1.83 nm, and on any other build the test
 holds the 15 nm bound without comparing the table.
 
-**What it leaves out.** Heights: two places at 3,000 m are as far apart as the same places at
+**What it leaves out.** Heights: two places at 3,000 m (9,843 ft) are as far apart as the same places at
 sea level. Only WGS 84 is measured; on any other ellipsoid up to a flattening of 1/150, the
 accuracy is Karney's claim, not something this project has measured. A distance of many trips round
 the Earth carries its own rounding, one step of `f64` in the distance (at least 15 nm past 67,109
-km). Nothing in a flight uses geodesics yet, and `hpr` has no command for them.
+km (41,700 mi)). Nothing in a flight uses geodesics yet, and `hpr` has no command for them.
 
 [Karney2013]: https://arxiv.org/abs/1109.4448
 [GeodTest]: https://doi.org/10.5281/zenodo.32156

@@ -68,7 +68,7 @@ The columns and their units:
 | `Voltage` | volts, the battery | V |
 
 A row may stop after the speed: the temperature and voltage are logged less often. A missing
-cell is a gap, stored as `NaN`. A foot is 0.3048 m exactly. Lines may end in `\r\n`, `\n` or a
+cell is a gap, stored as `NaN`. A foot is 0.3048 m (1.000 ft) exactly. Lines may end in `\r\n`, `\n` or a
 lone `\r`, and a leading byte-order mark is skipped. [`hpr analyze`](../cli.md#hpr-analyze)
 reads bytes that aren't UTF-8, such as a Latin-1 degree sign in a comment, as replacement
 characters, so the numbers still read.

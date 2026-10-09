@@ -9,7 +9,7 @@
   criteria for aerospace vehicles NASA/TM-2008-215633 (2008), and the World Meteorological
   Organization's observing guide WMO-No. 8 (2023).
 - **How well it is validated:** tests with exact answers pin each model: with speed and direction interpolated
-  separately (the default), halfway between 4 m/s from 350° and 12 m/s from 30° a table gives 8 m/s
+  separately (the default), halfway between 4 m/s (13 ft/s) from 350° and 12 m/s (39 ft/s) from 30° a table gives 8 m/s (26 ft/s)
   from 10°. In [RocketPy](../glossary.md#rocketpy)'s parachute descents, HPR Sim's wind,
   interpolated by components as RocketPy does, matches RocketPy's samples to 1e-9 m/s (in
   [scientific notation](../glossary.md#scientific-notation): a thousand-millionth of a meter per
@@ -70,25 +70,25 @@ how to fetch and check it):
 ## Models
 
 In the laws below, `V` is the wind speed at height `z` above the ground, and `V_ref` the speed
-measured at a reference height `z_ref` above the ground, such as the 10 m mast of a weather
+measured at a reference height `z_ref` above the ground, such as the 10 m (33 ft) mast of a weather
 station. Each law blows from one direction at every height.
 
 - **`ConstantWind`:** one velocity at every height.
 - **`PowerLawWind`:** the speed grows as a power of height, `V = V_ref (z/z_ref)^α` for `z > 0`,
   and is zero at and below the ground. A height below the ground is [flagged](#conventions).
   - `α` is the exponent: the larger it is, the faster the wind grows with height.
-  - [TM] eq. 2.1 gives the law for peak winds below 150 m, with `z_ref = 18.3 m`. A peak wind is
+  - [TM] eq. 2.1 gives the law for peak winds below 150 m (492 ft), with `z_ref = 18.3 m`. A peak wind is
     the strongest speed over a period, gusts included, not the steady mean wind the simulator flies.
-  - [TM] Table 2-1: `α = 0.2` for 7–22 m/s and 0.14 above 22 m/s. Eq. 2.22 gives `1/7` with
-    `z_ref = 10 m` for strong 10 m winds.
-  - Those exponents describe profiles of peak winds, and of strong 10 m winds. No single value
+  - [TM] Table 2-1: `α = 0.2` for 7–22 m/s (23–72 ft/s) and 0.14 above 22 m/s (72 ft/s). Eq. 2.22 gives `1/7` with
+    `z_ref = 10 m` for strong 10 m (33 ft) winds.
+  - Those exponents describe profiles of peak winds, and of strong 10 m (33 ft) winds. No single value
     fits mean winds everywhere, so treat any exponent as a starting point, not a measurement of
     your field.
-  - [The example](#an-example-of-each) uses `α = 1/7` (about 0.14) with a 10 m reference height,
-    the pairing of [TM] eq. 2.22. Its *power law* column shows what that does to a 5.0 m/s wind at
-    10 m: 4.0 m/s at 2 m, 6.9 m/s at 100 m, and 10.7 m/s at 2,000 m, where it is still growing.
+  - [The example](#an-example-of-each) uses `α = 1/7` (about 0.14) with a 10 m (33 ft) reference height,
+    the pairing of [TM] eq. 2.22. Its *power law* column shows what that does to a 5.0 m/s (16 ft/s) wind at
+    10 m (33 ft): 4.0 m/s (13 ft/s) at 2 m (6.6 ft), 6.9 m/s (23 ft/s) at 100 m (328 ft), and 10.7 m/s (35 ft/s) at 2,000 m (6,562 ft), where it is still growing.
   - The law describes the surface layer: the air nearest the ground, where friction with the
-    ground sets how fast the wind grows with height ([TM] fits it below 150 m). Above that layer the
+    ground sets how fast the wind grows with height ([TM] fits it below 150 m (492 ft)). Above that layer the
     law keeps growing, so pair it with measured winds aloft.
 - **`LogLawWind`:** the speed grows with the logarithm of height,
   `V = V_ref ln(z/z₀)/ln(z_ref/z₀)` for `z > z₀`, and is zero from the ground up to `z₀`.
@@ -103,9 +103,9 @@ station. Each law blows from one direction at every height.
     air cooled from below mixes less, which changes how the wind grows with height. `Ψ = 0` is
     neutral air, where neither happens. The simulator has only the neutral law.
   - [8785C] §3.7.3.2 uses it with `z_ref = 20 ft`.
-  - Roughness lengths: 0.03 m for open flat terrain with grass ([WMO]; this is class 3 of the
+  - Roughness lengths: 0.03 m (0.098 ft) for open flat terrain with grass ([WMO]; this is class 3 of the
     Davenport–Wieringa classification there, which gives a roughness length for each kind of
-    terrain); 0.001–0.01 m for mown grass and 0.01–0.04 m for low grass or steppe ([TM] Table
+    terrain); 0.001–0.01 m (0.0033–0.033 ft) for mown grass and 0.01–0.04 m (0.033–0.13 ft) for low grass or steppe ([TM] Table
     2-21).
 - **`LayeredWind`:** speed and direction tabulated at heights, as from a
   [sounding](../glossary.md#sounding) or a forecast. Between levels it interpolates in one of two
@@ -117,14 +117,14 @@ station. Each law blows from one direction at every height.
     reports give calm as "0 from 0°". Without that rule a wind growing out of calm would swing
     through a meaningless direction and create a crosswind neither level has.
   - A near-calm level that isn't exactly 0 still turns the direction
-    ([issue #8](https://github.com/nrdptel/fusionspace-eridanus/issues/8)): 0.1 m/s from 0° under 10 m/s
-    from 270° gives (3.57, −3.57) m/s at the midpoint: 3.57 m/s blowing south, where the levels
-    blow 0.1 m/s and nothing that way. Where
+    ([issue #8](https://github.com/nrdptel/fusionspace-eridanus/issues/8)): 0.1 m/s (0.33 ft/s) from 0° under 10 m/s (33 ft/s)
+    from 270° gives (3.57, −3.57) m/s at the midpoint: 3.57 m/s (11.7 ft/s) blowing south, where the levels
+    blow 0.1 m/s (0.33 ft/s) and nothing that way. Where
     the other levels share one direction the swing likely shortens the drift; where they turn it
-    can lengthen it. A flight through such a span, a level at or below 1.5 m/s turning by any
+    can lengthen it. A flight through such a span, a level at or below 1.5 m/s (4.9 ft/s) turning by any
     angle against its neighbour, warns of it
-    ([the flight-path warnings](../VALIDATION.md#the-flight-path-warnings)). 1.5 m/s is the top of
-    Beaufort force 1, light air, 0.3 to 1.5 m/s in
+    ([the flight-path warnings](../VALIDATION.md#the-flight-path-warnings)). 1.5 m/s (4.9 ft/s) is the top of
+    Beaufort force 1, light air, 0.3 to 1.5 m/s (0.98 to 4.9 ft/s) in
     [MeteoSwiss's Beaufort table](https://www.meteoswiss.admin.ch/dam/jcr:c1064242-4a6e-4df2-8d21-96e68d1def7a/Beaufort_Tabelle_en.pdf)
     (1 to 3 knots in the [Met Office's scale](https://weather.metoffice.gov.uk/guides/coast-and-sea/beaufort-scale)),
     whose direction is "shown by smoke drift, but not by wind vanes" in the
@@ -132,7 +132,7 @@ station. Each law blows from one direction at every height.
   - `Components` interpolates the east and north parts linearly, as RocketPy does. Between levels
     90° apart the speed dips by up to 29%.
   - Beyond the end levels the end wind is held and the sample is flagged.
-  - Put the surface wind (for example the 10 m observation) in as the lowest level, so the
+  - Put the surface wind (for example the 10 m (33 ft) observation) in as the lowest level, so the
     profile blends up from it.
 - **`WindModel`:** any one of the four, as a flight or a file takes it. In JSON its `model` field
   names which one ([In JSON](#in-json)).
@@ -159,11 +159,11 @@ name says which height it is: `_msl_` is above mean sea level, and `_agl_` is ab
 | `LayeredWind` | each level's `height_msl_m` | sea level |
 | A sounding's wind (`SoundingProfile`) | each level's `height_msl_m` | sea level |
 
-So a table's levels, from a forecast or a sounding, are **above sea level**. At a site 1,400 m
-above sea level, a forecast's 10 m wind goes in at 1,410 m. Entered at 10 m instead, the whole
-profile sits 1,400 m too low. The [example](#an-example-of-each)'s last column shows what the
-flight would then see: 11.6 m/s from 298° near the pad instead of 5.0 m/s from 270°, and the top
-level's 12.0 m/s from 300° from 100 m up. Above that, every sample is
+So a table's levels, from a forecast or a sounding, are **above sea level**. At a site 1,400 m (4,593 ft)
+above sea level, a forecast's 10 m (33 ft) wind goes in at 1,410 m (4,626 ft). Entered at 10 m (33 ft) instead, the whole
+profile sits 1,400 m (4,593 ft) too low. The [example](#an-example-of-each)'s last column shows what the
+flight would then see: 11.6 m/s (38 ft/s) from 298° near the pad instead of 5.0 m/s (16 ft/s) from 270°, and the top
+level's 12.0 m/s (39 ft/s) from 300° from 100 m (328 ft) up. Above that, every sample is
 [flagged](#conventions) as beyond the table, which is the sign to look for.
 
 **What to enter for your field's elevation.** The launch site's height, the third number in
@@ -172,13 +172,13 @@ level's 12.0 m/s from 300° from 100 m up. Above that, every sample is
 [WGS 84](../glossary.md#wgs-84) ellipsoid, the smooth shape the simulator gives the Earth. A field's
 elevation, as a map gives it, is height above sea level instead. The two differ by the geoid
 undulation `N`, the height of sea level above the ellipsoid at that place, which can be up to
-about 100 m. The simulator has no map of `N`, so there are two ways to set up a site:
+about 100 m (328 ft). The simulator has no map of `N`, so there are two ways to set up a site:
 
 - **The simple way, which the examples take.** Enter your field's elevation above sea level as
   the site's height, and leave `N` at 0, as `Environment::standard` sets it. The air and the wind
   are then looked up at the right heights above sea level. What is off is the height above the
   ellipsoid, by your field's `N`. A flight uses that only to work out gravity, which changes by
-  about 0.003% over 100 m of height.
+  about 0.003% over 100 m (328 ft) of height.
 - **The exact way, if you know `N` at your field.** Enter the elevation plus `N` as the site's
   height, and give the environment `N` with `with_geoid_undulation_m`
   ([`Environment`](../api/hpr_sim/environment/struct.Environment.html)).
@@ -195,7 +195,7 @@ Three more things to watch:
   - A geopotential meter measures height by the work done lifting a mass against gravity: it is
     the climb that takes as much work as one meter does where gravity is 9.80665 m/s².
   - Gravity varies with height and latitude, so the two differ by an amount that depends on
-    both. 30 km above sea level is 29.7785 km of geopotential at the equator and 29.932 km at
+    both. 30 km (19 mi) above sea level is 29.7785 km (18.504 mi) of geopotential at the equator and 29.932 km (18.60 mi) at
     80° N.
   - Convert them first with
     [`geometric_from_wmo_geopotential_m`](../api/hpr_atmos/profile/fn.geometric_from_wmo_geopotential_m.html)
@@ -212,7 +212,7 @@ Three more things to watch:
 
 The example program
 [`wind_profiles.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/wind_profiles.rs)
-builds each model for the launch site of [Getting started](../getting-started.md), 1,400 m above
+builds each model for the launch site of [Getting started](../getting-started.md), 1,400 m (4,593 ft) above
 sea level. It prints the wind each one gives at a few heights above the ground, and flies nothing.
 Run it from anywhere in the repository:
 
@@ -262,14 +262,14 @@ above ground (m)      constant      power law        log law        layered    w
 
 Reading it:
 
-- **Each law passes through its reference wind,** 5.0 m/s at 10 m, and blows from 270° at every
+- **Each law passes through its reference wind,** 5.0 m/s (16 ft/s) at 10 m (33 ft), and blows from 270° at every
   height.
 - **The power and log laws** agree near their reference height and part away from it: 4.0 against
-  3.6 m/s at 2 m, and 10.7 against 9.6 m/s at 2,000 m. Both keep growing far above the surface
+  3.6 m/s (12 ft/s) at 2 m (6.6 ft), and 10.7 against 9.6 m/s (31 ft/s) at 2,000 m (6,562 ft). Both keep growing far above the surface
   layer they describe, which is why winds aloft should come from a table.
-- **The layered wind** blends from 5.0 m/s from 270° at 10 m to 8.0 m/s from 280° at 500 m,
-  turning with height. At 2 m, below its lowest level, it holds the 10 m wind; at 2,000 m, above
-  its top level, it holds 12.0 m/s from 300°. The star marks both as flagged.
+- **The layered wind** blends from 5.0 m/s (16 ft/s) from 270° at 10 m (33 ft) to 8.0 m/s (26 ft/s) from 280° at 500 m (1,640 ft),
+  turning with height. At 2 m (6.6 ft), below its lowest level, it holds the 10 m (33 ft) wind; at 2,000 m (6,562 ft), above
+  its top level, it holds 12.0 m/s (39 ft/s) from 300°. The star marks both as flagged.
 - **The wrong datum** column is the same table with its heights entered above the ground by
   mistake ([Which height?](#which-height)).
 - **The JSON** at the end is the layered wind as a file holds it ([In JSON](#in-json)).
@@ -451,7 +451,7 @@ levels aloft. The planned weather milestone ([M5.2](../decisions-and-roadmap.md#
 
 - **`wind::tests::layered_wind_interpolates_speed_and_heading`** ([Loft lesson L6](../decisions-and-roadmap.md#l6), the
   forecast profile that stepped at its lowest level):
-  - Halfway between 4 m/s from 350° and 12 m/s from 30°, the wind is 8 m/s from 10°, turning
+  - Halfway between 4 m/s (13 ft/s) from 350° and 12 m/s (39 ft/s) from 30°, the wind is 8 m/s (26 ft/s) from 10°, turning
     through north.
   - There is no step just above the surface level.
 - **`components_interpolation_averages_the_vectors`**, **`opposite_directions_turn_clockwise`**

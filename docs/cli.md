@@ -622,7 +622,7 @@ OpenRocket's, and every descent meets the targets: each deployment within 0.1 s 
 ([Recovery](physics/recovery.md#from-an-openrocket-file)). Two of the six separate before
 apogee.
 Each of the *Deployable payload*'s five configurations flies with two warnings: the payload and
-the parachute are 25 mm across in a 21 mm bore, so they can't fit as drawn. Their width sets only
+the parachute are 25 mm (0.98 in) across in a 21 mm (0.83 in) bore, so they can't fit as drawn. Their width sets only
 their own inertia ([a packed part wider than its bore](physics/design.md#a-packed-part-wider-than-its-bore)).
 
 - **What the refusal avoids.** Coasting from the split with no drag, the *Deployable payload*'s
@@ -1130,7 +1130,7 @@ file ([RASP and RockSim files](glossary.md#rasp-and-rocksim-files)) and show tha
 `hpr motors list` lists the catalog. Three filters narrow it, and each one given must match:
 
 - `--class` takes an [impulse class](glossary.md#impulse-class), such as `J`.
-- `--diameter` takes a casing diameter in millimeters, such as `54`, and matches within 0.5 mm.
+- `--diameter` takes a casing diameter in millimeters, such as `54`, and matches within 0.5 mm (0.020 in).
 - `--manufacturer` takes a maker as the `maker` column spells it (`AeroTech`, `Cesaroni`, `Loki`,
   `Estes`, `Quest`, `AMW`) or its full name (`Cesaroni Technology`), in any case.
 
@@ -1185,7 +1185,7 @@ file:
   a whole newton, differs from the nominal one, both are shown. The letters joined to the thrust
   are the maker's code for the propellant; for a catalog motor, the propellant's name is
   ThrustCurve.org's, and for a file, which names no propellant, the code is shown alone. Estes's
-  and Quest's joined letters are not a propellant (the `T` of `A10T` marks the 13 mm mini case),
+  and Quest's joined letters are not a propellant (the `T` of `A10T` marks the 13 mm case of a mini motor),
   so none is read for them. Letters after a hyphen are not read as the propellant, since the same
   place holds a delay for one maker (AeroTech's `J350W-L`) and a propellant for another (Loki's
   `H125-CT`), except in the form Cesaroni's own files write, `131-G84-GR-10A`, and even there a
@@ -1249,7 +1249,7 @@ the simulator reads it). Five filters narrow the list, and each one given must m
 
 - `--in-stock` keeps the motors at least one vendor has in stock.
 - `--class` takes an [impulse class](glossary.md#impulse-class), such as `L`.
-- `--diameter` takes a diameter in millimeters, such as `54`, and matches within 0.5 mm.
+- `--diameter` takes a diameter in millimeters, such as `54`, and matches within 0.5 mm (0.020 in).
 - `--manufacturer` takes `AeroTech`, `Cesaroni` or `Loki`, or the full name the site uses
   (`Cesaroni Technology`, `Loki Research`), in any case.
 - `--max-price` takes U.S. dollars, such as `150` or `149.99`, and keeps the motors in stock whose

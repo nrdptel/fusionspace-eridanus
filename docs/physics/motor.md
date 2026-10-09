@@ -138,8 +138,8 @@ How the 32 were chosen:
   what the simulator flies: 5 lengths differ (from 1.2% shorter, the B4, to 1.3% longer, the
   N3300R), 7 propellant masses (from 2.7% lighter, the C5, to 52% heavier, the 26E31-15A) and 6
   loaded masses (from 4.0% lighter, the C5, to 2.3% heavier, the D5). For the 26E31-15A the header is the
-  likelier: its 16.9 g of propellant gives 26.1 N·s at an effective exhaust velocity of 1,543 m/s,
-  where the record's 11.1 g would need 2,350 m/s, more than every other bundled motor but the
+  likelier: its 16.9 g of propellant gives 26.1 N·s at an effective exhaust velocity of 1,543 m/s (5,062 ft/s),
+  where the record's 11.1 g would need 2,350 m/s (7,710 ft/s), more than every other bundled motor but the
   K400C. The delays are the header's too, which often lists fewer
   settings than the maker sells.
 - There are up to three per impulse class, from different manufacturers. None is in class A.
@@ -196,20 +196,20 @@ propellant, and the units check catches it: grams read as kilograms make the exh
 loaded mass left in grams, with the propellant converted, is accepted as a 1,000-times-heavier
 motor.
 
-The file here is Loki Research's I377. The program prints what it read: 38 mm by 292 mm, 560 g
+The file here is Loki Research's I377. The program prints what it read, `38 mm by 292 mm` (1.50 by 11.5 in), 560 g
 loaded with 250 g of propellant. From the curve it works out 525.8 N·s, an I motor, averaging
-377.9 N over 1.39 s. Its effective exhaust velocity, 2103 m/s, is well inside the check's range.
+377.9 N over 1.39 s. Its effective exhaust velocity, 2103 m/s (6,900 ft/s), is well inside the check's range.
 
 Three things to know about a motor built from a file:
 
 - **The header can be wrong.** Whoever made the file typed its size and masses. Of
-  ThrustCurve.org's 554 public-domain files, 66 headers give a length more than 1 mm off the
-  catalog's, and 5 a diameter more than 0.5 mm off
+  ThrustCurve.org's 554 public-domain files, 66 headers give a length more than 1 mm (0.039 in) off the
+  catalog's, and 5 a diameter more than 0.5 mm (0.020 in) off
   ([data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md),
-  section 4). This file says 292 mm where ThrustCurve.org's record says 292.1 mm. The 32 bundled
+  section 4). This file says 292 mm (11.5 in) where ThrustCurve.org's record says 292.1 mm (11.50 in). The 32 bundled
   motors fly their headers' values too; `cargo xtask motor-catalog` refuses a reload whose case
   names another diameter than its header ([Loft lesson L43](../decisions-and-roadmap.md#l43): one
-  header said 75 mm for a 54 mm motor). For any other motor, check the header against the
+  header listed a 54 mm motor as a 75 mm motor). For any other motor, check the header against the
   motor's page on ThrustCurve.org.
 - **Where its mass sits is a rough guess.** `from_envelope` spreads the propellant through the
   whole case, so the center of mass stays at mid-length as it burns
@@ -235,10 +235,10 @@ holding one [`MountedMotor`](../api/hpr_design/config/struct.MountedMotor.html).
 | `motor` | The motor built above |
 | `delay` | The [ejection delay](../glossary.md#ejection-delay) chosen, if any. A parachute can fire on it, with the `MotorDelay` trigger ([Recovery](recovery.md#triggers-lag-and-release)) |
 
-Valetudo's mount is 43 mm inside, so this 38 mm motor fits. `Simulation::new(&rocket,
-"from-file", ...)` then flies the configuration by its id: straight up from a 3 m rail, in calm
-air, with no parachutes. The rocket weighs 8.82 kg at liftoff, leaves the rail at 17.7 m/s, and
-reaches 151.7 m above the pad at 6.09 s. These flight numbers are not validated; see
+Valetudo's mount is 43 mm (1.7 in) inside, so this 38 mm motor fits. `Simulation::new(&rocket,
+"from-file", ...)` then flies the configuration by its id: straight up from a 3 m (9.8 ft) rail, in calm
+air, with no parachutes. The rocket weighs 8.82 kg at liftoff, leaves the rail at 17.7 m/s (58 ft/s), and
+reaches 151.7 m (498 ft) above the pad at 6.09 s. These flight numbers are not validated; see
 [Accuracy](../accuracy.md) before trusting them.
 
 A design file holds configurations in the same form, as JSON, with the motor written out in full:
@@ -434,38 +434,38 @@ c = I / m_p0,    ṁ(t) = F(t) / c,    m_p(t) = m_p0 (1 − I(t)/I)
     nozzle area it derives from that radius). HPR Sim uses `D/2`.
 - **Catalog envelope:** diameter, length and masses are the curve file's header values;
   `cargo xtask motor-catalog` refuses a reload whose case names another diameter than its header
-  ([Loft lesson L43](../decisions-and-roadmap.md#l43): one header said 75 mm for a 54 mm motor).
+  ([Loft lesson L43](../decisions-and-roadmap.md#l43): one header listed a 54 mm motor as a 75 mm motor).
   ThrustCurve.org's own records differ in a few places ([the bundled motors](#the-bundled-motors)).
 
 ### The effective exhaust velocity is a units check
 
 Both constructors, `SolidMotor::new` and `SolidMotor::from_envelope`, refuse a motor whose curve
-and propellant mass imply an effective exhaust velocity `c = I/m_p` outside **200 to 5,000 m/s**.
+and propellant mass imply an effective exhaust velocity `c = I/m_p` outside **200 to 5,000 m/s (656 to 16,404 ft/s)**.
 It is a guard against a slip in the units of the propellant mass, not a filter on propellant:
 
 - **What it catches.** A propellant mass in grams typed where kilograms belong, such as a `.rse`
   file's `propellant_mass_g` passed unconverted, which moves `c` by a factor of 1,000. Nothing
   else in the API notices: the 411I175's envelope typed in millimeters and grams,
   `from_envelope(curve, 38.0, 245.0, 228.9, 437.5)`, has positive, finite dimensions and a
-  propellant mass below the loaded mass, and an exhaust velocity of 1.8 m/s. It is the grams that
+  propellant mass below the loaded mass, and an exhaust velocity of 1.8 m/s (5.9 ft/s). It is the grams that
   give it away.
 - **What it can't catch.** A size in the wrong unit. `c` doesn't depend on the diameter or the
   length, and the motor accepts any positive size: the example's I377 with its size left in
   millimeters, `from_envelope(curve, 38.0, 292.0, 0.250, 0.560)`, is accepted, at the same
-  2103 m/s. Only the design checks see a size, and only the one given to the `MountedMotor`
+  2103 m/s (6,900 ft/s). Only the design checks see a size, and only the one given to the `MountedMotor`
   ([Checks](design.md#checks)). A diameter wider than the mount's bore is an error,
   `motor_wider_than_mount`, and the flight refuses to start; within a nominal size's slack for its
   narrower case it only warns, `motor_tight_in_mount`. A case that runs forward past the
   mount's top is only a warning, `motor_past_mount_top`, so a length slip alone still flies.
   Nor does `c` involve the loaded mass, so a loaded mass in grams passes too.
 - **What it lets through.** Every real motor checked. The 1,708 ThrustCurve.org files with a
-  catalog propellant mass run from 236 to 3,031 m/s, with a median of 1,867 and 90% of them
+  catalog propellant mass run from 236 to 3,031 m/s (774 to 9,944 ft/s), with a median of 1,867 and 90% of them
   between 928 and 2,210. The 32 bundled motors, with their files' own propellant masses, run
-  from **708.59 m/s** (a black-powder C) to **2,651.64 m/s** (a K).
+  from **708.59 m/s** (2,324.8 ft/s, a black-powder C) to **2,651.64 m/s** (8,699.6 ft/s, a K).
 - **Where it is tight.** The lowest real value is 1.2x above the floor. Estes and Quest normally
   count the delay grain and the ejection charge as propellant, so their small black-powder motors
   read low; [issue #11](https://github.com/nrdptel/fusionspace-eridanus/issues/11) records the fallback if one
-  ever falls below 200 m/s.
+  ever falls below 200 m/s (656 ft/s).
 
 `I` here is the curve's own impulse, uncorrected for air pressure. The reasoning in full, the
 table of percentiles, and two figures that were once got wrong are in
@@ -490,7 +490,7 @@ F(p_a) = F_curve + (p_ref − p_a) A_e,    A_e = π r_e²
   to measure its curve. It is stored with the nozzle (`Nozzle::reference_pressure_pa`). Motor
   files and catalogs don't record it, so a design gives it, or gives none (below). Standard
   sea-level pressure (101 325 Pa) suits a motor tested near sea level, but it is a guess: for a
-  test at 1500 m elevation (84.6 kPa in the 1976
+  test at 1500 m (4,921 ft) elevation (84.6 kPa in the 1976
   [standard atmosphere](../glossary.md#standard-atmosphere)), it makes the term 16.8 kPa × `A_e`
   too large at every altitude.
 - It holds while the exhaust fills the nozzle to its exit. A nozzle made for high altitude, tested
@@ -508,9 +508,9 @@ F(p_a) = F_curve + (p_ref − p_a) A_e,    A_e = π r_e²
   what RocketPy does by default: its `Motor(reference_pressure=None)` makes `pressure_thrust`
   zero ([`motor.py:1188-1189`][rp-1173]). The designs transcribed from RocketPy's examples say
   `None` for that reason ([ADR-021][adr-021]). With the sea-level stand-in, the Valetudo of
-  [Getting started](../getting-started.md), at a 1,400 m site, carried about 23 N of thrust
-  (15.7 kPa × 1.47e-3 m²) that RocketPy's example never flies, and reached 874 m where it now
-  reaches 779 m. A design must say which it means: the key is required, `null` for none, so
+  [Getting started](../getting-started.md), at a 1,400 m (4,593 ft) site, carried about 23 N of thrust
+  (15.7 kPa × 1.47e-3 m²) that RocketPy's example never flies, and reached 874 m (2,867 ft) where it now
+  reaches 779 m (2,556 ft). A design must say which it means: the key is required, `null` for none, so
   leaving it out is an error rather than a silent choice. The unit test
   `hpr_motor::motor::tests::pressure_correction_uses_the_exit_area` pins both forms and the
   missing key.
@@ -519,7 +519,7 @@ F(p_a) = F_curve + (p_ref − p_a) A_e,    A_e = π r_e²
   first moments, while the pressure inside the motor builds) and the tail-off (the end of the
   burn, while it falls), the real exit pressure is far from its full-flow value, so the term
   misstates thrust there. In the tail-off, where the exit pressure falls with the chamber's, it
-  overstates it: on the 411I175 (a 9.5 mm exit) in vacuum it adds 3.9 N·s in the 0.14 s after the
+  overstates it: on the 411I175 (a 9.5 mm (0.37 in) exit) in vacuum it adds 3.9 N·s in the 0.14 s after the
   NFPA 1125 burn ends, which delivers 0.45 N·s itself; that is 0.95% of total impulse.
 
 ## Delays

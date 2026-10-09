@@ -20,7 +20,7 @@ You need `hpr` installed: the README's
 [Install and first flight](https://github.com/nrdptel/fusionspace-eridanus#install-and-first-flight) takes a
 few minutes. The examples fly the guides' own rocket,
 [`validation/fixtures/ork/guides/level-1.ork`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/guides/level-1.ork):
-a 66 mm, 0.82 kg rocket with a 38 mm motor mount and one parachute on the motor's ejection
+a 66 mm (2.6 in), 0.82 kg rocket with a 38 mm motor mount and one parachute on the motor's ejection
 charge, saved with two motors, an AeroTech H170M and an I175WS. OpenRocket 24.12 opens it. Run
 the commands from a copy of the repository, or put your own file's path in its place.
 

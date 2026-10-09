@@ -531,6 +531,8 @@ mod tests {
         );
         let root = crate::designs::root().unwrap();
         let guide = std::fs::read_to_string(root.join("docs/physics/aero.md")).unwrap();
+        // The page gives each figure's US units in brackets too (#400); the row is the SI.
+        let guide = crate::site::units::without_conversions(&guide);
         assert!(guide.contains(&row), "aero.md doesn't say `{row}`");
     }
 }

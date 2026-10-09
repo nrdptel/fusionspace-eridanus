@@ -455,7 +455,7 @@ designs embed, and 52 as base64, their images.
 Then each motor configuration that flies is flown three ways: the design first read, the design
 read back from its document, and the design read back from the `.ork` written from the document.
 Each flight is in calm air of the [standard atmosphere](../glossary.md#standard-atmosphere) at sea
-level, off a 1.5 m vertical rail, with its stages separating if they do. Of the designs' 170
+level, off a 1.5 m (4.9 ft) vertical rail, with its stages separating if they do. Of the designs' 170
 configurations, **109 fly, and each reaches the same apogee all three ways, bit for bit**. The
 format's first step, [M3.3a](../decisions-and-roadmap.md#m3-3a), asked for 1 part in 10⁹.
 
