@@ -34,6 +34,7 @@ pub(crate) fn print(
     diagnostics: &mut Diagnostics<'_>,
 ) -> io::Result<()> {
     design_lines(&flight.design, out, diagnostics)?;
+    writeln!(out, "a simulated flight, not a measurement")?;
     writeln!(out)?;
     lead(flight, out)?;
     writeln!(out)?;
@@ -67,7 +68,7 @@ pub(crate) fn print(
             device.name, device.drag_area_m2
         )?;
     }
-    launch_lines(&flight.launch, out, diagnostics)?;
+    launch_lines(&flight.launch, out)?;
     note_lines(&flight.notes, &flight.warnings, diagnostics)?;
     for flag in &flight.flags {
         let kind = flag_prefix(flag.flag);
@@ -86,7 +87,27 @@ pub(crate) fn print(
     writeln!(out)?;
     events(&flight.events, out)?;
     writeln!(out)?;
-    rest(flight, out)
+    rest(flight, out)?;
+    trust_lines(&flight.trust, out)
+}
+
+/// The width of the trust note's lines.
+const NOTE: usize = 100;
+
+/// `note`, how far to trust the result, after a blank line, as the result's last lines: the
+/// command-line guide puts what to trust last. Its link to read more gets a line of its own.
+pub(crate) fn trust_lines(note: &str, out: &mut dyn Write) -> io::Result<()> {
+    writeln!(out)?;
+    let (body, more) = note
+        .rsplit_once(crate::trust::MORE)
+        .map_or((note, None), |(body, url)| (body, Some(url)));
+    for line in crate::trust::wrap(body, NOTE) {
+        writeln!(out, "{line}")?;
+    }
+    if let Some(url) = more {
+        writeln!(out, "{}{url}", crate::trust::MORE.trim_start())?;
+    }
+    Ok(())
 }
 
 /// The design and the configuration flown, and a hint naming the others on `diagnostics`.
@@ -167,13 +188,8 @@ pub(crate) fn motor_lines(motors: &[SimMotor], out: &mut dyn Write) -> io::Resul
     Ok(())
 }
 
-/// Where and how the rocket is launched, and, on `diagnostics`, where to read how far to trust
-/// the numbers.
-pub(crate) fn launch_lines(
-    launch: &Launch,
-    out: &mut dyn Write,
-    diagnostics: &mut Diagnostics<'_>,
-) -> io::Result<()> {
+/// Where and how the rocket is launched.
+pub(crate) fn launch_lines(launch: &Launch, out: &mut dyn Write) -> io::Result<()> {
     // A rail is sold and set up by its length in feet (6 ft, 8 ft, 12 ft), so to a tenth.
     let rail_length = format!(
         "{} m ({} ft)",
@@ -205,11 +221,6 @@ pub(crate) fn launch_lines(
         hemisphere(launch.longitude_deg, "E", "W"),
         launch.elevation_m,
         feet(launch.elevation_m),
-    )?;
-    diagnostics.line(
-        Level::Help,
-        "see the Accuracy page before trusting these numbers: \
-         https://hpr.fusionspace.co/accuracy.html",
     )?;
     Ok(())
 }

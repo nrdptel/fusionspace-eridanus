@@ -35,7 +35,11 @@ pub(crate) fn print(
     } else {
         format!("{} failed", run.failed.count)
     };
-    writeln!(out, "{} flights, seed {}: {failed}", run.runs, run.seed)?;
+    writeln!(
+        out,
+        "{} simulated flights, seed {}: {failed}",
+        run.runs, run.seed
+    )?;
     writeln!(
         out,
         "{:<NAME$}{:>9}{:>9}{:>9}{:>9}{:>9}{:>9}",
@@ -53,7 +57,7 @@ pub(crate) fn print(
     landing(run, out)?;
     writeln!(out)?;
     motor_lines(&run.motors, out)?;
-    launch_lines(&run.launch, out, diagnostics)?;
+    launch_lines(&run.launch, out)?;
     let scattered = scattered(&run.dispersion);
     if !scattered.is_empty() {
         writeln!(
@@ -114,7 +118,7 @@ pub(crate) fn print(
                 .map_or_else(String::new, |meta| format!(" and {meta}"))
         )?;
     }
-    Ok(())
+    crate::sim_text::trust_lines(&run.trust, out)
 }
 
 /// Two rows of the spreads' table for a height or a distance `name`: the nominal value, then the

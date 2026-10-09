@@ -36,6 +36,10 @@
         "$ref": "#/$defs/SimIssue"
       }
     },
+    "kind": {
+      "description": "What kind of result this is: every figure in it is simulated, none measured.",
+      "$ref": "#/$defs/Kind"
+    },
     "launch": {
       "description": "The launch site, rail and wind.",
       "$ref": "#/$defs/Launch"
@@ -96,6 +100,10 @@
         "designation"
       ]
     },
+    "trust": {
+      "description": "How far to trust it, as the text form ends: what the figures are, what HPR Sim's apogee\nwas checked against, with the committed report's numbers, and what to rely on instead\n(decision record ADR-211).",
+      "type": "string"
+    },
     "warnings": {
       "description": "What the design's or the motor file's reader accepted with a caveat, and what the design's\nchecks found unusual but buildable.",
       "type": "array",
@@ -107,6 +115,8 @@
   "required": [
     "tool",
     "design",
+    "kind",
+    "trust",
     "motors",
     "recovery",
     "launch",
@@ -518,6 +528,16 @@
           "description": "The flight's path, through something other than the drag or the margin (a moment, the\ndamping, the wind): the apogee and the drift.",
           "type": "string",
           "const": "flight"
+        }
+      ]
+    },
+    "Kind": {
+      "description": "What kind of result a command printed: the kind every figure in it is.",
+      "oneOf": [
+        {
+          "description": "From a model of the flight, not measured.",
+          "type": "string",
+          "const": "simulated"
         }
       ]
     },

@@ -192,7 +192,8 @@ out.
 - **`hpr sim` reads by name.** It leads with the static margin and the center of gravity and
   center of pressure it came from, apogee, rail exit speed, ejection delay and the descent speed
   under open parachutes, each height and speed in SI with feet or feet per second in parentheses
-  ([units](cli.md#units)), and calls configurations and parts by name,
+  ([units](cli.md#units)), and ends with how far to trust it, from 55 logged flights
+  ([M0.9c3](decisions-and-roadmap.md#m0-9c3)), and calls configurations and parts by name,
   such as `[C6-5]` for a configuration the file leaves unnamed
   ([M4.5d](decisions-and-roadmap.md#m4-5d), readable output). It flies a
   `.ork` file's parachutes and streamers, and its powered separations, one or several
