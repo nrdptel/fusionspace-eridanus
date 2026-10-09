@@ -46,9 +46,10 @@
 //!
 //!   Each page is read in the theme it loads in (mdBook's navy for a browser whose system is
 //!   dark), then as a reader with scripts off gets it (the root's `js` class taken off, which
-//!   applies mdBook's `html:not(.js)` rules), then switched as mdBook's theme menu switches it
-//!   and read in the other once the switch's transitions have run. Hover and focus aren't read, nor what a script sets as it
-//!   runs (mdBook's `scrollTo` with a smooth scroll).
+//!   applies mdBook's `html:not(.js)` rules), with a light system and with a dark one (the
+//!   stylesheets' dark-scheme rules applied in place), then switched as mdBook's theme menu
+//!   switches it and read in the other once the switch's transitions have run. Hover and focus
+//!   aren't read, nor what a script sets as it runs (mdBook's `scrollTo` with a smooth scroll).
 //!
 //! **How.** A small web server on `127.0.0.1` serves the built site and, under `/__check/`, the
 //! harness ([`HARNESS_JS`]), the plan and the canaries. A few headless Chrome processes (headless
@@ -69,10 +70,10 @@
 //! its size with room for all of it, one wider than any window with no zoom, a figure reaching
 //! past a narrow `main` as the theme lays it out, which must pass, a label moved past the
 //! window's edge from such a `main`, a label off the system's colors, the same only in navy (read
-//! after the switch), the same only with scripts off, the root element off them, a label tinted by a filter, one over a backdrop
-//! filter, one with an image as its `::before`, a search hit in ink, a rounded box, a box with
-//! a shadow, a 0.3 s transition, one at the system's base duration that doesn't snap with
-//! reduced motion set and one that does, which must pass, and an ordinary page
+//! after the switch), the same only with scripts off, the root element off them, a label tinted by
+//! a filter, one over a backdrop filter, one with an image as its `::before`, a search hit in ink,
+//! a rounded box, a box with a shadow, a 0.3 s transition, one at the system's base duration that
+//! doesn't snap with reduced motion set and one that does, which must pass, and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't

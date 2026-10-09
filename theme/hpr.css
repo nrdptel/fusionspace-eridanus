@@ -61,8 +61,8 @@
     --search-mark-bg: var(--hpr-action);
 }
 /* With scripts off, mdBook gives its own light colors to `html:not(.js)`, which outranks the
-   theme's `.light`: the theme's light values, here. `xtask site` reads this block with the
-   page's `js` class taken off; the dark one below goes unread, as the check's browser is light. */
+   theme's `.light`: the theme's light values, here. `xtask site` reads this block and the dark
+   one below with the page's `js` class taken off, the second with the dark-scheme rules applied. */
 html:not(.js) {
   --bg: #F3F4F7; --fg: #0B0F1C; --sidebar-bg: #FFFFFF; --sidebar-fg: #0B0F1C;
   --sidebar-non-existant: #98A1B8; --sidebar-active: #3350D6; --sidebar-spacer: #D6DAE4;

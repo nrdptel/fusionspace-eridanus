@@ -486,10 +486,11 @@
     }
   }
 
-  // Each top-level reduced-motion rule of the page's stylesheets, applied as if the reader had
-  // asked for reduced motion: its rules inserted unconditionally where it stands, so the cascade
-  // is the one that reader gets. Returns a function that takes them out again.
-  function applyReducedMotion(doc) {
+  // Each top-level media rule of the page's stylesheets whose condition matches `media`, applied
+  // as if the reader's system met it (reduced motion, or a dark scheme): its rules inserted
+  // unconditionally where it stands, so the cascade is the one that reader gets. Returns a
+  // function that takes them out again.
+  function applyMedia(doc, media) {
     const added = [];
     for (const sheet of Array.from(doc.styleSheets)) {
       if (sheet.disabled) continue;
@@ -498,7 +499,7 @@
       for (let i = rules.length - 1; i >= 0; i--) {
         const rule = rules[i];
         if (!(rule instanceof doc.defaultView.CSSMediaRule)) continue;
-        if (!/prefers-reduced-motion:\s*reduce/.test(rule.media.mediaText)) continue;
+        if (!media.test(rule.media.mediaText)) continue;
         const inner = Array.from(rule.cssRules).map(function (r) { return r.cssText; });
         for (let j = inner.length - 1; j >= 0; j--) {
           sheet.insertRule(inner[j], i + 1);
@@ -565,7 +566,7 @@
     }
     const first = themeOf(win, doc);
     styleDefaults(win, doc, first, false, found);
-    const undo = applyReducedMotion(doc);
+    const undo = applyMedia(doc, /prefers-reduced-motion:\s*reduce/);
     styleDefaults(win, doc, first, true, found);
     undo();
     // As a reader with scripts off gets the page: mdBook's script adds `js` to the root before
@@ -577,6 +578,14 @@
       await settle(win, doc);
       const bare = themeOf(win, doc);
       styleDefaults(win, doc, bare, false, found, bare + ', scripts off');
+      // And with a dark system, where mdBook's stylesheets pick their own dark colors.
+      if (bare === 'light') {
+        const light = applyMedia(doc, /prefers-color-scheme:\s*dark/);
+        await settle(win, doc);
+        styleDefaults(win, doc, 'navy', false, found, 'navy, scripts off, a dark system');
+        light();
+        await settle(win, doc);
+      }
       doc.documentElement.classList.add('js');
       await settle(win, doc);
     }
