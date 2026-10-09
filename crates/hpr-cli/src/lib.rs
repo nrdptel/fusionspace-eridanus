@@ -655,7 +655,6 @@ mod tests {
         }
     }
 
-    /// A closed pipe ends the run with status 0 and says nothing: the reader chose to stop.
     /// A standard error that refuses every write with `kind`.
     struct Refusing(io::ErrorKind);
 
@@ -696,6 +695,7 @@ mod tests {
         }
     }
 
+    /// A closed pipe ends the run with status 0 and says nothing: the reader chose to stop.
     #[test]
     fn a_closed_pipe_ends_quietly() {
         for json in [false, true] {
