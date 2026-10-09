@@ -320,8 +320,7 @@ pub(crate) fn fetch_help(error: &hpr::hpr_net::NetError) -> String {
             "delete {} and run it again to fetch a fresh copy",
             printable(&path.to_string_lossy())
         ),
-        _ => "run it again; with --offline, HPR Sim answers from what it fetched before"
-            .to_owned(),
+        _ => "run it again; with --offline, HPR Sim answers from what it fetched before".to_owned(),
     }
 }
 
@@ -776,13 +775,12 @@ fn clap_hints(text: &str, paint: Paint) -> String {
 fn completions(shell: Shell, to: &mut Out<'_>) -> Result<(), Failure> {
     let mut script = Vec::new();
     clap_complete::generate(shell, &mut command(), "hpr", &mut script);
-    let script = String::from_utf8(script)
-        .map_err(|error| {
-            Failure::helped(
-                format!("the completion script isn't UTF-8: {error}"),
-                BUG_HELP,
-            )
-        })?;
+    let script = String::from_utf8(script).map_err(|error| {
+        Failure::helped(
+            format!("the completion script isn't UTF-8: {error}"),
+            BUG_HELP,
+        )
+    })?;
     let document = Completions {
         shell: shell.to_string(),
         script,
