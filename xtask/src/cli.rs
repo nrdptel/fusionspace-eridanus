@@ -397,8 +397,8 @@ mod tests {
         let [fall, wind] = PLOTS.map(|command| figure(command, &root).unwrap());
         assert!(!guide.contains("url(#hatch)"));
         assert!(fall.contains("url(#hatch)") && fall.contains(">not a prediction<"));
-        assert!(!guide.contains("<title>0.00 s: liftoff; "));
-        assert!(wind.contains("<title>0.00 s: liftoff; "), "{wind}");
+        assert!(!guide.contains("<title>0.00\u{a0}s: liftoff; "));
+        assert!(wind.contains("<title>0.00\u{a0}s: liftoff; "), "{wind}");
     }
 
     #[test]
