@@ -117,8 +117,10 @@ The colors are your terminal's own red, yellow and blue, so its theme decides ho
    `TERM` isn't `dumb`.
 
 So `hpr sim rocket.ork > flight.txt` writes the flight alone to the file, in plain text, while its
-warnings, notes and hints stay on the terminal, in color; `2> messages.txt` keeps those in a file
-of their own. The examples on this page show what a terminal shows: both streams, in the order
+`warning:`, `note:` and `help:` lines stay on the terminal, in color; `2> messages.txt` keeps those
+in a file of their own, and `> run.txt 2>&1` keeps the flight and its messages together, in
+order. A pipe is the same: `hpr sim rocket.ork | less` pages the flight while the messages print
+on the terminal. The examples on this page show what a terminal shows: both streams, in the order
 `hpr` writes them, so a `warning:` line appears among the result's lines though it went to
 standard error. `--json` output never has color, whatever the flag or the variables say. To
 turn color off everywhere, set `NO_COLOR=1`; for one run, give `--color never`, which every

@@ -162,27 +162,53 @@ impl Paint {
 /// standard output and everything else on standard error, so `hpr sim … > flight.txt` keeps
 /// the file to the flight and the warnings on the terminal. A text renderer gets one of these
 /// and standard output, and can write a prefixed line only here.
+///
+/// A line that can't be written never stops the result: the first failure is kept, later lines
+/// are dropped, and [`Diagnostics::failure`] hands it over once the result is out, so a closed
+/// standard error can't cut a flight short on standard output.
 pub(crate) struct Diagnostics<'a> {
     /// Standard error.
     to: &'a mut dyn Write,
     /// Standard error's color.
     paint: Paint,
+    /// The first write to standard error that failed.
+    failed: Option<io::Error>,
 }
 
 impl<'a> Diagnostics<'a> {
     /// The lines written to `to` (standard error), in `paint` (standard error's).
     pub(crate) fn new(to: &'a mut dyn Write, paint: Paint) -> Self {
-        Self { to, paint }
+        Self {
+            to,
+            paint,
+            failed: None,
+        }
     }
 
-    /// Writes one message line, [`Paint::line`].
+    /// Writes one message line, [`Paint::line`]. It answers `Ok` even when standard error
+    /// fails, so the caller goes on writing its result; the failure waits in
+    /// [`Diagnostics::failure`].
     pub(crate) fn line(&mut self, level: Level, text: &str) -> io::Result<()> {
-        self.paint.line(self.to, level, text)
+        if self.failed.is_none()
+            && let Err(error) = self.paint.line(self.to, level, text)
+        {
+            self.failed = Some(error);
+        }
+        Ok(())
     }
 
-    /// Flushes standard error.
-    pub(crate) fn flush(&mut self) -> io::Result<()> {
-        self.to.flush()
+    /// Flushes standard error, keeping a failure as [`Diagnostics::line`] does.
+    pub(crate) fn flush(&mut self) {
+        if self.failed.is_none()
+            && let Err(error) = self.to.flush()
+        {
+            self.failed = Some(error);
+        }
+    }
+
+    /// The first write to standard error that failed, if any, taken.
+    pub(crate) fn failure(&mut self) -> Option<io::Error> {
+        self.failed.take()
     }
 }
 

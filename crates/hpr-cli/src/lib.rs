@@ -261,7 +261,8 @@ impl Out<'_> {
     /// `text` writes the result to standard output, its first argument, and its `warning:`,
     /// `note:` and `help:` lines to standard error, its second; a JSON document carries those
     /// in its own fields, so with `--json` standard error stays empty. Only a failure to write
-    /// either stream is a [`Failure::Output`].
+    /// either stream is a [`Failure::Output`]; one on standard error waits until the result is
+    /// written, and a closed standard error ends quietly.
     pub(crate) fn emit<T: Serialize>(
         &mut self,
         value: &T,
@@ -270,11 +271,21 @@ impl Out<'_> {
         let written = if self.json {
             write_json(self.out, value)
         } else {
-            text(self.out, &mut self.diagnostics).and_then(|()| self.diagnostics.flush())
+            text(self.out, &mut self.diagnostics)
         };
         written
             .and_then(|()| self.out.flush())
-            .map_err(Failure::Output)
+            .map_err(Failure::Output)?;
+        // Standard error is reported only once the result is out. A reader that closed it
+        // early stopped reading the messages, not the result, so that ends quietly, as a
+        // closed standard output does.
+        self.diagnostics.flush();
+        match self.diagnostics.failure() {
+            Some(error) if error.kind() != io::ErrorKind::BrokenPipe => {
+                Err(Failure::Output(error))
+            }
+            _ => Ok(()),
+        }
     }
 }
 
@@ -647,6 +658,46 @@ mod tests {
     }
 
     /// A closed pipe ends the run with status 0 and says nothing: the reader chose to stop.
+    /// A standard error that refuses every write with `kind`.
+    struct Refusing(io::ErrorKind);
+
+    impl Write for Refusing {
+        fn write(&mut self, _: &[u8]) -> io::Result<usize> {
+            Err(self.0.into())
+        }
+
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn a_failing_standard_error_never_cuts_the_result_short() {
+        let design = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../validation/fixtures/ork/guides/level-1.ork"
+        );
+        let args = ["hpr", "sim", design];
+        let (mut out, mut err) = (Vec::new(), Vec::new());
+        assert_eq!(run(args, &mut out, &mut err), Exit::Success);
+        assert!(
+            String::from_utf8_lossy(&err).contains("warning:"),
+            "the flight should print warnings for this test to mean anything"
+        );
+        for (kind, exit) in [
+            (io::ErrorKind::BrokenPipe, Exit::Success),
+            (io::ErrorKind::Other, Exit::Failure),
+        ] {
+            let mut cut = Vec::new();
+            assert_eq!(run(args, &mut cut, &mut Refusing(kind)), exit, "{kind:?}");
+            assert_eq!(
+                String::from_utf8_lossy(&cut),
+                String::from_utf8_lossy(&out),
+                "{kind:?}: the result must be written whole"
+            );
+        }
+    }
+
     #[test]
     fn a_closed_pipe_ends_quietly() {
         for json in [false, true] {
