@@ -59,16 +59,16 @@ fn every_figure_under_docs_fits() {
 fn a_label_moved_out_of_a_figure_fails() {
     let svg = committed("flight-phases.svg");
     passes(&svg);
-    let east = "<text x=\"796\" y=\"414\" fill=\"#555\" text-anchor=\"end\">east</text>";
+    let east = "<text x=\"796\" y=\"414\" fill=\"#566079\" text-anchor=\"end\">east</text>";
     let moved = replaced(
         &svg,
         east,
-        "<text x=\"850\" y=\"414\" fill=\"#555\" text-anchor=\"end\">east</text>",
+        "<text x=\"850\" y=\"414\" fill=\"#566079\" text-anchor=\"end\">east</text>",
     );
     fails(&moved, Kind::OutsideFrame, "\"east\" reaches");
     // A legend line shifted right until its end passes the edge fails too.
-    let legend = "<text x=\"540\" y=\"271\">The main opens";
-    let moved = replaced(&svg, legend, "<text x=\"560\" y=\"271\">The main opens");
+    let legend = "<text x=\"518\" y=\"270\">The main opens";
+    let moved = replaced(&svg, legend, "<text x=\"538\" y=\"270\">The main opens");
     fails(
         &moved,
         Kind::OutsideFrame,
@@ -82,8 +82,8 @@ fn two_labels_overlapping_fail() {
     let svg = committed("flight-phases.svg");
     let moved = replaced(
         &svg,
-        "<text x=\"540\" y=\"135\">Rail exit",
-        "<text x=\"540\" y=\"110\">Rail exit",
+        "<text x=\"518\" y=\"134\">Rail exit",
+        "<text x=\"518\" y=\"109\">Rail exit",
     );
     let problems = check(&moved);
     assert_eq!(problems.len(), 1, "{problems:#?}");

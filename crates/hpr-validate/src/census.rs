@@ -1687,26 +1687,66 @@ pub fn table(summaries: &[Summary], link: Option<&str>) -> String {
     out
 }
 
-/// One badge: a flat SVG, grey label on the left, colored message on the right.
-fn badge(label: &str, message: &str, color: &str) -> String {
-    // Verdana at 11 px averages about 6.5 px a character; 10 px of padding each side.
-    let width = |text: &str| 20 + (13 * text.chars().count()).div_ceil(2);
+// The badges' colors and type: the light theme's roles and signal fills of the FusionSpace
+// product system's foundations (Rev A, `product/foundations.md`, "Semantic roles" and "Type";
+// ADR-164), the colors `cargo xtask figures` allows.
+/// The label's cell and an unjudged message's.
+const SURFACE: &str = "#FFFFFF";
+/// The outline and the rule between the cells (`rule-strong`), and an unjudged message's text
+/// (`ink-muted`).
+const RULE_STRONG: &str = "#566079";
+/// The label's text, and the text on the caution fill.
+const INK: &str = "#0B0F1C";
+/// Normal, within its target: `ok-fill`, with white text on it.
+const OK_FILL: &str = "#0A6355";
+/// A failed gate or a missed target, a fault to fix: `caution-fill`, with ink on it.
+const CAUTION_FILL: &str = "#F5AF20";
+/// The system's data family, with the fallbacks the figure check measures.
+const BADGE_FONT: &str = "'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace";
+
+/// What a badge's message says of its state, which sets its cell's fill and text.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum BadgeState {
+    /// Within its gate or target.
+    Ok,
+    /// Outside it.
+    Caution,
+    /// Nothing judged.
+    None,
+}
+
+/// One badge: a flat SVG, the label on the left on white, the message on the right on its
+/// state's fill, square, outlined, in Cascadia Mono at 12 px (the system's `label` size).
+fn badge(label: &str, message: &str, state: BadgeState) -> String {
+    // 7.5 px a character covers the widest monospace face the figure check measures at 12 px;
+    // 8 px of padding each side.
+    let width = |text: &str| 16 + (15 * text.chars().count()).div_ceil(2);
     let (left, right) = (width(label), width(message));
     let total = left + right;
+    let (fill, text) = match state {
+        BadgeState::Ok => (OK_FILL, SURFACE),
+        BadgeState::Caution => (CAUTION_FILL, INK),
+        BadgeState::None => (SURFACE, RULE_STRONG),
+    };
     format!(
         "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{total}\" height=\"20\" role=\"img\" \
          aria-label=\"{label}: {message}\">\n\
          <title>{label}: {message}</title>\n\
-         <rect width=\"{left}\" height=\"20\" fill=\"#555\"/>\n\
-         <rect x=\"{left}\" width=\"{right}\" height=\"20\" fill=\"{color}\"/>\n\
-         <g fill=\"#fff\" font-family=\"Verdana,DejaVu Sans,sans-serif\" font-size=\"11\" \
-         text-anchor=\"middle\">\n\
-         <text x=\"{}\" y=\"14\">{label}</text>\n\
-         <text x=\"{}\" y=\"14\">{message}</text>\n\
+         <rect width=\"{left}\" height=\"20\" fill=\"{SURFACE}\"/>\n\
+         <rect x=\"{left}\" width=\"{right}\" height=\"20\" fill=\"{fill}\"/>\n\
+         <g fill=\"none\" stroke=\"{RULE_STRONG}\" stroke-width=\"1\">\n\
+         <rect x=\"0.5\" y=\"0.5\" width=\"{}\" height=\"19\"/>\n\
+         <line x1=\"{}.5\" y1=\"0\" x2=\"{}.5\" y2=\"20\"/>\n\
+         </g>\n\
+         <g font-family=\"{BADGE_FONT}\" font-size=\"12\">\n\
+         <text x=\"8\" y=\"14\" fill=\"{INK}\">{label}</text>\n\
+         <text x=\"{}\" y=\"14\" fill=\"{text}\">{message}</text>\n\
          </g>\n\
          </svg>\n",
-        left / 2,
-        left + right / 2
+        total - 1,
+        left,
+        left,
+        left + 8
     )
 }
 
@@ -1730,9 +1770,9 @@ pub fn badges(summaries: &[Summary]) -> Vec<(&'static str, String)> {
             "vs RocketPy, same inputs",
             &format!("{pass} of {gated} gated metrics pass"),
             if pass == gated && gated > 0 {
-                "#2e7d32"
+                BadgeState::Ok
             } else {
-                "#c62828"
+                BadgeState::Caution
             },
         ),
     )];
@@ -1744,7 +1784,7 @@ pub fn badges(summaries: &[Summary]) -> Vec<(&'static str, String)> {
     out.push((
         "real-flights-badge.svg",
         flights.map_or_else(
-            || badge("real flights", "none compared", "#6e6e6e"),
+            || badge("real flights", "none compared", BadgeState::None),
             |apogee| {
                 let met = apogee.mean_absolute <= APOGEE_TARGET_PERCENT;
                 badge(
@@ -1754,7 +1794,11 @@ pub fn badges(summaries: &[Summary]) -> Vec<(&'static str, String)> {
                         apogee.mean_absolute,
                         if met { "met" } else { "missed" }
                     ),
-                    if met { "#2e7d32" } else { "#b35c00" },
+                    if met {
+                        BadgeState::Ok
+                    } else {
+                        BadgeState::Caution
+                    },
                 )
             },
         ),

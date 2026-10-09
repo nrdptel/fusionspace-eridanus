@@ -164,6 +164,26 @@ own, or make the figure taller. Never crop, hide or shrink the frame to pass. Th
 needs Chrome or Chromium; if it isn't where the system usually keeps it, set `HPR_CHROME` to the
 program's path.
 
+### Figures in the system's colors and fonts
+
+The same figure check holds every SVG under `docs/` and each `hpr sim --plot` figure to the
+FusionSpace product system's foundations. Every color a figure paints is one of the system's
+color tokens: the light theme's roles, such as `ink` (`#0B0F1C`) for text and `predicted`
+(`#A22488`) for a simulated line, and the signal fills with the text that goes on them. A
+figure shown as an image can't follow the page's dark theme, so it is drawn on the light one.
+Four things fail:
+
+- a color that isn't a token, written by name, as `currentColor`, or in a `style`;
+- an opacity below 1 or a gradient, which blend tokens into colors none of them is;
+- a shape or a line of text with no `fill` set on it or around it, which draws in black;
+- text whose `font-family` doesn't start with Cascadia Mono (labels and numbers) or Archivo
+  (prose).
+
+The line types carry meanings the check can't tell apart, so the figure's author picks them
+from the system's table: dashed (`8 4`) for anything simulated, a chain line (`24 3 1 3`) for a
+reference such as the ground, dotted (`1 3`) for an event, at 1 or 2 px.
+[*How a flight is simulated*](how-a-flight-is-simulated.md)'s figure draws in all of them.
+
 ## Measured, not gated
 
 Readability will be measured, not used to fail a build. A planned `cargo xtask` report will

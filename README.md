@@ -239,8 +239,10 @@ brought the site, the command line, the plot and the exports in line with it.
   [`cli.md`](https://github.com/nrdptel/fusionspace-design/blob/main/product/cli.md), the documentation site [`web.md`](https://github.com/nrdptel/fusionspace-design/blob/main/product/web.md), and numbers, plots and
   exports [`data.md`](https://github.com/nrdptel/fusionspace-design/blob/main/product/data.md).
 - The site's theme and fonts and the command line's color styles are the system's files, copied in
-  unchanged with their license lines ([third-party notices](THIRD-PARTY-NOTICES.md)); the plot
-  uses its [`tokens/`](https://github.com/nrdptel/fusionspace-design/blob/main/product/tokens/) colors and no others.
+  unchanged with their license lines ([third-party notices](THIRD-PARTY-NOTICES.md)). The plot,
+  the site's figures and the badges above use its
+  [`tokens/`](https://github.com/nrdptel/fusionspace-design/blob/main/product/tokens/) colors and
+  its two fonts and no others; `cargo xtask figures` fails an SVG under `docs/` that doesn't.
 - The designation `FS-ACHERNAR · SW · TOOL 001` names HPR Sim like a part: Achernar, its internal
   name, one of the stars of project Eridanus; then software, tool 1
   ([ADR-198, project Eridanus](docs/decisions/0198-the-2026-10-07-project-eridanus.md)).

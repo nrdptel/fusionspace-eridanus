@@ -192,14 +192,15 @@ fn figure(command: &str, root: &Path) -> Result<String, String> {
         Some(figure) if exit == 0 => figure,
         _ => return Err(format!("`{command}` drew no figure:\n{block}")),
     };
-    let problems = crate::figures::check(&figure);
+    let mut problems = crate::figures::check(&figure);
+    problems.extend(crate::figures::drawing::check(&figure));
     if problems.is_empty() {
         Ok(figure)
     } else {
         let problems: Vec<String> = problems.iter().map(ToString::to_string).collect();
         Err(format!(
             "`{command}` draws a figure the figure check refuses; change the plot's layout so it \
-             fits, never the crop:\n  {}",
+             fits, never the crop, and draw in the tokens:\n  {}",
             problems.join("\n  ")
         ))
     }
