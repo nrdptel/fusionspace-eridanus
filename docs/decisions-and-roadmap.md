@@ -343,7 +343,10 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9c1"></a>[M0.9c1][done-0] | Diagnostics on stderr | done |
 | <a id="m0-9c2"></a>[M0.9c2][done-0] | US units in brackets | done |
 | <a id="m0-9c3"></a>[M0.9c3][done-0] | How far to trust a result | done |
-| <a id="m0-9c4"></a>[M0.9c4][phase-0] | Provenance, errors and the plot | not yet done |
+| <a id="m0-9c4"></a>[M0.9c4][phase-0] | Units and trust notes | not yet done |
+| <a id="m0-9c5"></a>[M0.9c5][phase-0] | Provenance | not yet done |
+| <a id="m0-9c6"></a>[M0.9c6][phase-0] | Errors and help | not yet done |
+| <a id="m0-9c7"></a>[M0.9c7][phase-0] | The plot and the site | not yet done |
 | <a id="m0-9d"></a>[M0.9d][phase-0] | The site to the design | not yet done |
 | <a id="m0-9e"></a>[M0.9e][phase-0] | The words to the design | not yet done |
 | <a id="m0-10"></a>[M0.10][phase-0] | The scoreboard | not yet done |
