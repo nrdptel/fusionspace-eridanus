@@ -100,14 +100,14 @@ warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 again
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
-event                   time                height                    speed
-liftoff               0.00 s      0.4 m     (1 ft)     0.0 m/s     (0 ft/s)
-rail exit             0.12 s      1.9 m     (6 ft)    26.3 m/s    (86 ft/s)
-burnout               2.14 s    406.4 m  (1333 ft)   240.4 m/s   (789 ft/s)
-apogee               11.62 s   1065.1 m  (3494 ft)     0.1 m/s     (0 ft/s)
-charge               12.14 s   1063.7 m  (3490 ft)     5.1 m/s    (17 ft/s)
-deployment           12.14 s   1063.7 m  (3490 ft)     5.1 m/s    (17 ft/s)
-ground hit          245.78 s      0.0 m     (0 ft)     4.4 m/s    (15 ft/s)
+event                   time                 height                    speed
+liftoff               0.00 s      0.4 m      (1 ft)     0.0 m/s     (0 ft/s)
+rail exit             0.12 s      1.9 m      (6 ft)    26.3 m/s    (86 ft/s)
+burnout               2.14 s    406.4 m   (1333 ft)   240.4 m/s   (789 ft/s)
+apogee               11.62 s   1065.1 m   (3494 ft)     0.1 m/s     (0 ft/s)
+charge               12.14 s   1063.7 m   (3490 ft)     5.1 m/s    (17 ft/s)
+deployment           12.14 s   1063.7 m   (3490 ft)     5.1 m/s    (17 ft/s)
+ground hit          245.78 s      0.0 m      (0 ft)     4.4 m/s    (15 ft/s)
 (heights are the center of gravity's above the site; speeds are over the ground)
 
 top speed             285.6 m/s (937 ft/s) at 1.73 s

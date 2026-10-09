@@ -141,7 +141,7 @@ line here, or on an id that is missing or done.
     test and failing when stale (a test each); its *Compared with* section meets ADR-209 §8.
 - [ ] **M0.9 One name, one design** (ADR-205; Neer, 2026-10-08). Every surface says FusionSpace
   HPR as ADR-199 §1 has it, and follows the pinned design system rule by rule, each checked.
-  - [ ] **M0.9c The CLI, exports and plot to the design** (ADR-208): #377 to #382, in three steps,
+  - [ ] **M0.9c The CLI, exports and plot to the design** (ADR-208): #377 to #382 and #392, in four steps,
     each fix held by a named test that fails on the defect its issue reproduces, and the audit's
     rows naming the tests; a rule declined has an ADR.
     - [ ] **M0.9c3 How far to trust a result** (#379). *Done when:* #379 is closed, with every

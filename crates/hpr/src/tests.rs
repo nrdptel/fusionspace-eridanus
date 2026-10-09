@@ -1885,7 +1885,10 @@ fn a_flight_through_a_near_calm_turn_warns_of_its_swinging_wind() {
     let swinging = fly(0.0, WindInterpolation::SpeedDirection);
     let message = warning(&swinging, 8).message();
     assert!(
-        message.contains("across 1400 to 1900 m above sea level, from 0.4 m/s at 0° to 8.0 m/s"),
+        message.contains(
+            "across 1400 to 1900 m (4593 to 6234 ft) above sea level, from 0.4 m/s (1 mph) at 0° \
+             to 8.0 m/s (18 mph)"
+        ),
         "{message}"
     );
     assert_eq!(

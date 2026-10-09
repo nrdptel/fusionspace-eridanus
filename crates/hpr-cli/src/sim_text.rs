@@ -532,7 +532,7 @@ fn descent(flight: &SimFlight, braked: bool) -> String {
 fn events(events: &[SimEvent], out: &mut dyn Write) -> io::Result<()> {
     writeln!(
         out,
-        "{:<18} {:>9} {:>21} {:>24}",
+        "{:<18} {:>9} {:>22} {:>24}",
         "event", "time", "height", "speed"
     )?;
     for event in events {
@@ -557,7 +557,8 @@ fn events(events: &[SimEvent], out: &mut dyn Write) -> io::Result<()> {
         let height_m = event.height_above_ground_m.max(0.0);
         writeln!(
             out,
-            "{name:<18} {:>7.2} s {:>8} m {:>10} {:>7} m/s {:>12}",
+            // The feet fit `(100000 ft)` with a space before it, the height of a flight past 30 km.
+            "{name:<18} {:>7.2} s {:>8} m {:>11} {:>7} m/s {:>12}",
             event.time_s,
             fixed(height_m, 1),
             format!("({})", feet(height_m)),

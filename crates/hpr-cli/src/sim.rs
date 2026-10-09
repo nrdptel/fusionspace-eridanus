@@ -1279,9 +1279,10 @@ pub(crate) fn flight_notes(recovery: &[SimDevice], flight: &Flight) -> Vec<Strin
                 .filter(|height_m| *height_m > apogee_m)
             {
                 notes.push(format!(
-                    "`{}` is set to open {height_m} m above the site, above the apogee, so it \
-                     opened at apogee; OpenRocket's flight of such a file never opens it",
-                    device.name
+                    "`{}` is set to open {height_m} m ({}) above the site, above the apogee, so \
+                     it opened at apogee; OpenRocket's flight of such a file never opens it",
+                    device.name,
+                    crate::units::feet(height_m)
                 ));
             }
         }
@@ -1299,9 +1300,11 @@ pub(crate) fn flight_notes(recovery: &[SimDevice], flight: &Flight) -> Vec<Strin
                 .filter(|peak| peak.sample.height_above_ground_m > apogee.height_above_ground_m)
             {
                 notes.push(format!(
-                    "part {} peaks at {:.1} m above the site at {:.2} s, above the flight's \
-                     apogee, which is part 0's",
-                    body.body, peak.sample.height_above_ground_m, peak.sample.time_s
+                    "part {} peaks at {} above the site at {:.2} s, above the flight's apogee, \
+                     which is part 0's",
+                    body.body,
+                    crate::units::meters(peak.sample.height_above_ground_m),
+                    peak.sample.time_s
                 ));
             }
         }

@@ -64,7 +64,7 @@ the simulator reads its curve:
 ```text
 $ hpr motors show I175WS
 I175WS (AeroTech), from the bundled catalog
-  impulse class    I (320–640 N·s)
+  impulse class    I (320.01–640 N·s)
   total impulse    333.2 N·s
   average thrust   177.5 N measured; 175 N nominal, as the designation names it
   peak thrust      252.6 N
@@ -109,14 +109,14 @@ note: the file's 1 recovery device flies as OpenRocket flies it: each opens full
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
-event                   time                height                    speed
-liftoff               0.02 s      0.4 m     (1 ft)     0.0 m/s     (0 ft/s)
-rail exit             0.17 s      1.9 m     (6 ft)    25.9 m/s    (85 ft/s)
-burnout               2.00 s    303.8 m   (997 ft)   201.2 m/s   (660 ft/s)
-apogee               11.42 s    914.5 m  (3000 ft)     0.1 m/s     (0 ft/s)
-charge               12.00 s    912.8 m  (2995 ft)     5.6 m/s    (18 ft/s)
-deployment           12.00 s    912.8 m  (2995 ft)     5.6 m/s    (18 ft/s)
-ground hit          202.71 s      0.0 m     (0 ft)     4.7 m/s    (15 ft/s)
+event                   time                 height                    speed
+liftoff               0.02 s      0.4 m      (1 ft)     0.0 m/s     (0 ft/s)
+rail exit             0.17 s      1.9 m      (6 ft)    25.9 m/s    (85 ft/s)
+burnout               2.00 s    303.8 m    (997 ft)   201.2 m/s   (660 ft/s)
+apogee               11.42 s    914.5 m   (3000 ft)     0.1 m/s     (0 ft/s)
+charge               12.00 s    912.8 m   (2995 ft)     5.6 m/s    (18 ft/s)
+deployment           12.00 s    912.8 m   (2995 ft)     5.6 m/s    (18 ft/s)
+ground hit          202.71 s      0.0 m      (0 ft)     4.7 m/s    (15 ft/s)
 (heights are the center of gravity's above the site; speeds are over the ground)
 
 top speed             217.0 m/s (712 ft/s) at 1.56 s
@@ -155,14 +155,14 @@ warning: drag: issue #222: supersonic pressure drag on an ogive nose or airfoil 
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
-event                   time                height                    speed
-liftoff               0.00 s      0.3 m     (1 ft)     0.0 m/s     (0 ft/s)
-rail exit             0.08 s      1.8 m     (6 ft)    42.3 m/s   (139 ft/s)
-burnout               1.43 s    384.0 m  (1260 ft)   335.1 m/s  (1099 ft/s)
-charge               11.43 s   1318.2 m  (4325 ft)    10.1 m/s    (33 ft/s)
-deployment           11.43 s   1318.2 m  (4325 ft)    10.1 m/s    (33 ft/s)
-apogee               12.02 s   1320.4 m  (4332 ft)     0.0 m/s     (0 ft/s)
-ground hit          269.86 s      0.0 m     (0 ft)     5.0 m/s    (16 ft/s)
+event                   time                 height                    speed
+liftoff               0.00 s      0.3 m      (1 ft)     0.0 m/s     (0 ft/s)
+rail exit             0.08 s      1.8 m      (6 ft)    42.3 m/s   (139 ft/s)
+burnout               1.43 s    384.0 m   (1260 ft)   335.1 m/s  (1099 ft/s)
+charge               11.43 s   1318.2 m   (4325 ft)    10.1 m/s    (33 ft/s)
+deployment           11.43 s   1318.2 m   (4325 ft)    10.1 m/s    (33 ft/s)
+apogee               12.02 s   1320.4 m   (4332 ft)     0.0 m/s     (0 ft/s)
+ground hit          269.86 s      0.0 m      (0 ft)     5.0 m/s    (16 ft/s)
 (heights are the center of gravity's above the site; speeds are over the ground)
 
 top speed             371.7 m/s (1219 ft/s) at 1.08 s
@@ -245,14 +245,14 @@ warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 again
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
-event                   time                height                    speed
-liftoff               0.02 s      0.4 m     (1 ft)     0.0 m/s     (0 ft/s)
-rail exit             0.14 s      1.9 m     (6 ft)    28.9 m/s    (95 ft/s)
-burnout               1.97 s    385.2 m  (1264 ft)   260.5 m/s   (855 ft/s)
-charge               10.97 s   1099.1 m  (3606 ft)     8.0 m/s    (26 ft/s)
-deployment           10.97 s   1099.1 m  (3606 ft)     8.0 m/s    (26 ft/s)
-apogee               11.48 s   1100.7 m  (3611 ft)     0.0 m/s     (0 ft/s)
-ground hit          247.48 s      0.0 m     (0 ft)     4.5 m/s    (15 ft/s)
+event                   time                 height                    speed
+liftoff               0.02 s      0.4 m      (1 ft)     0.0 m/s     (0 ft/s)
+rail exit             0.14 s      1.9 m      (6 ft)    28.9 m/s    (95 ft/s)
+burnout               1.97 s    385.2 m   (1264 ft)   260.5 m/s   (855 ft/s)
+charge               10.97 s   1099.1 m   (3606 ft)     8.0 m/s    (26 ft/s)
+deployment           10.97 s   1099.1 m   (3606 ft)     8.0 m/s    (26 ft/s)
+apogee               11.48 s   1100.7 m   (3611 ft)     0.0 m/s     (0 ft/s)
+ground hit          247.48 s      0.0 m      (0 ft)     4.5 m/s    (15 ft/s)
 (heights are the center of gravity's above the site; speeds are over the ground)
 
 top speed             281.3 m/s (923 ft/s) at 1.75 s

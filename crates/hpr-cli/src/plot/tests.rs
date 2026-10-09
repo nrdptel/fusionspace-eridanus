@@ -519,6 +519,18 @@ fn second_scale_ticks_are_round_and_inside() {
     assert_eq!(step_decimals(2.5), 1);
     assert_eq!(step_decimals(0.25), 2);
     assert_eq!(step_decimals(0.1), 1);
+    // A step far below one still prints its digits, so its ticks don't all read `0`.
+    assert_eq!(step_decimals(1e-7), 7);
+    assert_eq!(step_decimals(2.5e-7), 8);
+    assert_eq!(step_decimals(5e-4), 4);
+    assert_eq!(step_decimals(0.0), 0);
+    assert_eq!(step_decimals(f64::NAN), 0);
+    let (ticks, step) = inner_ticks(0.0, 3e-7);
+    let labels: Vec<String> = ticks
+        .iter()
+        .map(|v| number(*v, step_decimals(step)))
+        .collect();
+    assert_eq!(labels, ["0.0000000", "0.0000001", "0.0000002", "0.0000003"]);
 }
 
 /// Thinning keeps each column's first, least, greatest and last points in order, and breaks

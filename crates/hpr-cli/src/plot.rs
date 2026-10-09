@@ -754,12 +754,17 @@ fn inner_ticks(lo: f64, hi: f64) -> (Vec<f64>, f64) {
 }
 
 /// The decimals a tick step needs to print exactly: none for 5 or 250, one for 0.5 or 2.5, two
-/// for 0.25.
+/// for 0.25, seven for 1e-7. The tolerance is relative to the step, so a step far below one
+/// still needs its digits (an absolute one read 1e-7 as whole, and printed every tick as `0`);
+/// a step that is zero or not finite needs none.
 fn step_decimals(step: f64) -> usize {
+    if !(step.is_finite() && step != 0.0) {
+        return 0;
+    }
     (0..=12)
         .find(|&decimals| {
             let scaled = step * 10f64.powi(decimals as i32);
-            (scaled - scaled.round()).abs() < 1e-6 * scaled.max(1.0)
+            (scaled - scaled.round()).abs() <= 1e-9 * scaled.abs()
         })
         .unwrap_or(12)
 }

@@ -166,13 +166,37 @@ Rust library, so a Rust program flying the same design gets the same numbers.
 
 ### Units
 
-The text gives SI first, with the US units a flyer in the United States reads in
-parentheses after it: feet for heights and distances (`1065.1 m (3494 ft)`) and, to a tenth, for
-the rail's length; feet per second for speeds; miles per hour for the wind; and inches for
-stations along the rocket. Both appear at once, so there is no switch between them; `--json` and
-the exported files stay SI, the unit in each field's name ([ADR-164](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0164-the-fusionspace-product-system.md)
-§6, the decision to keep SI first). The SI figure is the one to copy: the US one is rounded from it,
-to a whole foot for a height, which can differ by a foot from converting a rounded SI figure.
+The text gives SI first, with the US units a flyer in the United States reads in brackets
+(parentheses) after it: `1065.1 m (3494 ft)`. `hpr sim`, `hpr mc`, `hpr motors show`, `hpr
+analyze` and the `--plot` figure do this, their `note:` and `warning:` lines included:
+
+| quantity | SI | US, in brackets |
+|---|---|---|
+| a height or a distance | meters to a tenth | whole feet |
+| the rail's length | meters to a tenth | feet to a tenth |
+| a speed | m/s to a tenth | whole ft/s |
+| the wind | m/s | whole mph |
+| a station along the rocket (the CG and CP) | meters to the millimeter | inches to a tenth |
+| a motor's diameter and length | millimeters | inches to a hundredth and a tenth |
+| a motor's masses | grams to a tenth | ounces to a tenth, pounds to a hundredth from one pound |
+| thrust and impulse | N and N·s | none: motors are rated in them |
+
+The plot's right-hand scales are feet, feet per second and g (standard gravity,
+9.80665 m/s²). The SI figure is the one to copy: the US one is rounded from it, to a whole foot
+for a height, which can differ by a foot from converting a rounded SI figure.
+
+Some readouts still print SI alone, until [issue #392](https://github.com/nrdptel/fusionspace-eridanus/issues/392):
+`hpr weather`, `hpr motors list` and `hpr motors search`, the case size `hpr motors fetch`
+prints, and `hpr analyze`'s acceleration, which isn't yet given in g.
+
+There is no `--units` switch: both units appear at once, so nothing needs choosing, and a switch
+that claimed to change units everywhere would also have to reach the exports. Those stay SI:
+`--json` and the exported CSV and JSON files name each field with its unit
+(`height_above_ground_m`), a published format that scripts read and a spreadsheet converts in
+one column. The app will bring one units control for all of it
+([ADR-210, US units in brackets](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0210-us-units-in-brackets.md),
+which carries out §6 of
+[ADR-164, the product system](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0164-the-fusionspace-product-system.md)).
 
 ### Flying a design
 
@@ -201,12 +225,12 @@ note: the file has no recovery device, so the rocket falls from apogee on its ai
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
-event                   time                height                    speed
-liftoff               0.00 s      0.3 m     (1 ft)     0.0 m/s     (0 ft/s)
-rail exit             0.15 s      1.8 m     (6 ft)    21.3 m/s    (70 ft/s)
-burnout               3.50 s    466.0 m  (1529 ft)   136.3 m/s   (447 ft/s)
-apogee               11.21 s    846.1 m  (2776 ft)     0.1 m/s     (0 ft/s)
-ground hit           29.71 s      0.0 m     (0 ft)    65.9 m/s   (216 ft/s)
+event                   time                 height                    speed
+liftoff               0.00 s      0.3 m      (1 ft)     0.0 m/s     (0 ft/s)
+rail exit             0.15 s      1.8 m      (6 ft)    21.3 m/s    (70 ft/s)
+burnout               3.50 s    466.0 m   (1529 ft)   136.3 m/s   (447 ft/s)
+apogee               11.21 s    846.1 m   (2776 ft)     0.1 m/s     (0 ft/s)
+ground hit           29.71 s      0.0 m      (0 ft)    65.9 m/s   (216 ft/s)
 (heights are the center of gravity's above the site; speeds are over the ground)
 
 top speed             178.3 m/s (585 ft/s) at 2.31 s
@@ -314,16 +338,16 @@ note: the file's 2 recovery devices fly as OpenRocket flies them: each opens ful
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
-event                   time                height                    speed
-liftoff               0.00 s      0.6 m     (2 ft)     0.0 m/s     (0 ft/s)
-rail exit             0.27 s      2.1 m     (7 ft)    11.2 m/s    (37 ft/s)
-burnout               3.50 s    163.1 m   (535 ft)    59.6 m/s   (196 ft/s)
-apogee                9.12 s    324.0 m  (1063 ft)     0.0 m/s     (0 ft/s)
-charge                9.12 s    324.0 m  (1063 ft)     0.0 m/s     (0 ft/s)
-deployment            9.12 s    324.0 m  (1063 ft)     0.0 m/s     (0 ft/s)
-charge               22.41 s    150.0 m   (492 ft)    14.1 m/s    (46 ft/s)
-deployment           22.41 s    150.0 m   (492 ft)    14.1 m/s    (46 ft/s)
-ground hit           53.94 s      0.0 m     (0 ft)     4.7 m/s    (15 ft/s)
+event                   time                 height                    speed
+liftoff               0.00 s      0.6 m      (2 ft)     0.0 m/s     (0 ft/s)
+rail exit             0.27 s      2.1 m      (7 ft)    11.2 m/s    (37 ft/s)
+burnout               3.50 s    163.1 m    (535 ft)    59.6 m/s   (196 ft/s)
+apogee                9.12 s    324.0 m   (1063 ft)     0.0 m/s     (0 ft/s)
+charge                9.12 s    324.0 m   (1063 ft)     0.0 m/s     (0 ft/s)
+deployment            9.12 s    324.0 m   (1063 ft)     0.0 m/s     (0 ft/s)
+charge               22.41 s    150.0 m    (492 ft)    14.1 m/s    (46 ft/s)
+deployment           22.41 s    150.0 m    (492 ft)    14.1 m/s    (46 ft/s)
+ground hit           53.94 s      0.0 m      (0 ft)     4.7 m/s    (15 ft/s)
 (heights are the center of gravity's above the site; speeds are over the ground)
 
 top speed             65.9 m/s (216 ft/s) at 2.73 s
@@ -512,12 +536,12 @@ note: the file has no recovery device, so the rocket falls from apogee on its ai
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
-event                   time                height                    speed
-liftoff               0.00 s      0.3 m     (1 ft)     0.0 m/s     (0 ft/s)
-rail exit             0.21 s      3.3 m    (11 ft)    30.2 m/s    (99 ft/s)
-burnout               3.50 s    468.6 m  (1537 ft)   144.4 m/s   (474 ft/s)
-apogee               11.48 s    877.4 m  (2879 ft)    11.3 m/s    (37 ft/s)
-ground hit           28.71 s      0.0 m     (0 ft)    70.3 m/s   (230 ft/s)
+event                   time                 height                    speed
+liftoff               0.00 s      0.3 m      (1 ft)     0.0 m/s     (0 ft/s)
+rail exit             0.21 s      3.3 m     (11 ft)    30.2 m/s    (99 ft/s)
+burnout               3.50 s    468.6 m   (1537 ft)   144.4 m/s   (474 ft/s)
+apogee               11.48 s    877.4 m   (2879 ft)    11.3 m/s    (37 ft/s)
+ground hit           28.71 s      0.0 m      (0 ft)    70.3 m/s   (230 ft/s)
 (heights are the center of gravity's above the site; speeds are over the ground)
 
 top speed             184.3 m/s (605 ft/s) at 2.35 s
@@ -743,16 +767,16 @@ configuration 1 of 1: [H128W-0] with --motor H54
 
 200 flights, seed 2026: 0 failed
                         nominal     mean  std dev       5%   median      95%
-apogee (m)                813.9    819.4     34.4    765.0    818.8    870.8
-apogee (ft)                2670     2688      113     2510     2686     2857
+apogee (m AGL)            813.9    819.4     34.4    765.0    818.8    870.8
+apogee (ft AGL)            2670     2688      113     2510     2686     2857
 landing distance (m)      286.9    283.2     44.8    208.8    281.8    354.5
 landing distance (ft)       941      929      147      685      925     1163
 
-200 of 200 flights landed, centered 282 m (925 ft) west and 2 m (7 ft) north of the pad
-landing ellipse                 semi-major          semi-minor  heading   flights inside
-50%                          53 m (173 ft)       33 m (107 ft)      89°            48.5%
-95%                         110 m (360 ft)       68 m (223 ft)      89°            93.5%
-95%, the next flight        111 m (365 ft)       69 m (226 ft)      89°            93.5%
+200 of 200 flights landed, centered 281.8 m (925 ft) west and 2.0 m (7 ft) north of the pad
+landing ellipse                   semi-major            semi-minor  heading   flights inside
+50%                          52.8 m (173 ft)       32.8 m (107 ft)      89°            48.5%
+95%                         109.7 m (360 ft)       68.1 m (223 ft)      89°            93.5%
+95%, the next flight        111.1 m (365 ft)       69.0 m (226 ft)      89°            93.5%
 
 motor: 1 × 168H54-10A (from the bundled catalog) in `Motor mount`, lit at launch
 launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) rail 85° above the horizon, leaning toward 270°, in a 4 m/s (9 mph) wind from 270°
@@ -909,16 +933,20 @@ file:
 - The [average thrust](glossary.md#average-thrust) is the total impulse divided by that burn time.
 - The masses and the casing size are the catalog's, or the file's for a file, with ounces or
   pounds and inches in parentheses.
-- The impulse class comes with its range of total impulse, as NFPA 1125 and 1127 set it: each
-  class runs from just above the one below's top to twice it, such as J (640–1280 N·s).
+- The impulse class comes with its range of total impulse, written as NFPA 1125 and 1127 write
+  it: each class runs from just above the one below's top to twice it, such as
+  J (640.01–1280 N·s), the lower end exclusive. Classes past O, beyond the standards' table,
+  carry on the doubling.
 - The designation is read for what it names, as the maker writes it: `H170M` is class H, a
   nominal average thrust of 170 N, and propellant M. Where the measured average thrust, rounded to
   a whole newton, differs from the nominal one, both are shown. The letters joined to the thrust
   are the maker's code for the propellant; for a catalog motor, the propellant's name is
-  ThrustCurve.org's, and for a file, which names no propellant, the code is shown alone. Letters
-  after a hyphen are not read as the propellant, since the same place holds a delay for one maker
-  (AeroTech's `J350W-L`) and a propellant for another (Loki's `H125-CT`), except in the form
-  Cesaroni's own files write, `131-G84-GR-10A`.
+  ThrustCurve.org's, and for a file, which names no propellant, the code is shown alone. Estes's
+  and Quest's joined letters are not a propellant (the `T` of `A10T` marks the 13 mm mini case),
+  so none is read for them. Letters after a hyphen are not read as the propellant, since the same
+  place holds a delay for one maker (AeroTech's `J350W-L`) and a propellant for another (Loki's
+  `H125-CT`), except in the form Cesaroni's own files write, `131-G84-GR-10A`, and even there a
+  single delay letter, as in `131-G84-P` (plugged), is not.
 
 For a catalog motor, the last line names the public-domain curve file the figures come from.
 `hpr motors list` gives the same figures, as a
@@ -934,7 +962,7 @@ simulator's peak, the curve file's highest point, runs from 16.7% below ThrustCu
 ```text
 $ hpr motors show J760
 1266J760-19A (Cesaroni Technology), from the bundled catalog
-  impulse class    J (640–1280 N·s)
+  impulse class    J (640.01–1280 N·s)
   total impulse    1267.3 N·s
   average thrust   758.2 N measured; 760 N nominal, as the designation names it
   peak thrust      938.6 N

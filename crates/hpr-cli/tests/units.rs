@@ -1,9 +1,10 @@
 //! US units in brackets after the SI (ADR-164 §6, ADR-210; issue #378): `hpr sim` and `hpr mc`
 //! give feet, feet per second and miles per hour beside every height, distance, speed and wind
-//! they print, and inches beside the stations the static margin came from; `hpr motors show`
-//! reads the designation as the product system's `data.md` (*Units for rocketry*) asks. Each test
-//! pins the exact lines for the level 1 guide's rocket, run as a user runs the binary, so a line
-//! printed in SI alone fails it; `--json` stays SI, its names carrying the unit.
+//! they print, their notes included, and inches beside the stations the static margin came from;
+//! `hpr motors show` reads the designation as the product system's `data.md` (*Units for
+//! rocketry*) asks. Each test pins the exact lines for the level 1 guide's rocket, run as a user
+//! runs the binary, so a line printed in SI alone fails it; `--json` stays SI, its names carrying
+//! the unit.
 
 #![allow(
     clippy::disallowed_methods,
@@ -49,6 +50,22 @@ fn out(args: &[&str]) -> String {
     String::from_utf8(output.stdout).unwrap()
 }
 
+/// Runs `hpr` as [`out`] does and returns standard error, where the notes and warnings go.
+fn err(args: &[&str]) -> String {
+    let cache = tempfile::tempdir().unwrap();
+    let mut command = assert_cmd::cargo::cargo_bin_cmd!("hpr");
+    command
+        .args(args)
+        .env("HPR_CACHE_DIR", cache.path())
+        .env("HPR_OFFLINE", "1");
+    for variable in ["NO_COLOR", "FORCE_COLOR", "CLICOLOR_FORCE"] {
+        command.env_remove(variable);
+    }
+    let output = command.output().unwrap();
+    assert_eq!(output.status.code(), Some(0), "{args:?}: {output:?}");
+    String::from_utf8(output.stderr).unwrap()
+}
+
 /// Asserts that `text` holds each of `lines` as a whole line.
 fn holds_lines(text: &str, lines: &[&str]) {
     for line in lines {
@@ -79,12 +96,12 @@ fn sim_gives_us_units_in_brackets() {
             "descent               4.4 m/s (15 ft/s) at landing under `Parachute`",
             "launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) rail 84° \
              above the horizon, leaning toward 0°, in a 6 m/s (13 mph) wind from 0°",
-            "event                   time                height                    speed",
-            "liftoff               0.00 s      0.4 m     (1 ft)     0.0 m/s     (0 ft/s)",
-            "rail exit             0.12 s      1.9 m     (6 ft)    26.3 m/s    (86 ft/s)",
-            "burnout               2.14 s    398.6 m  (1308 ft)   239.5 m/s   (786 ft/s)",
-            "apogee               11.47 s   1033.4 m  (3390 ft)     7.8 m/s    (25 ft/s)",
-            "ground hit          238.98 s      0.0 m     (0 ft)     7.5 m/s    (24 ft/s)",
+            "event                   time                 height                    speed",
+            "liftoff               0.00 s      0.4 m      (1 ft)     0.0 m/s     (0 ft/s)",
+            "rail exit             0.12 s      1.9 m      (6 ft)    26.3 m/s    (86 ft/s)",
+            "burnout               2.14 s    398.6 m   (1308 ft)   239.5 m/s   (786 ft/s)",
+            "apogee               11.47 s   1033.4 m   (3390 ft)     7.8 m/s    (25 ft/s)",
+            "ground hit          238.98 s      0.0 m      (0 ft)     7.5 m/s    (24 ft/s)",
             "top speed             284.7 m/s (934 ft/s) at 1.73 s",
             "landing               1130.4 m (3709 ft) from the pad at 238.98 s, at 7.5 m/s (24 ft/s)",
         ],
@@ -138,14 +155,14 @@ fn mc_gives_feet_beside_meters() {
         &text,
         &[
             "                        nominal     mean  std dev       5%   median      95%",
-            "apogee (m)               1058.3   1058.3      0.0   1058.3   1058.3   1058.3",
-            "apogee (ft)                3472     3472        0     3472     3472     3472",
+            "apogee (m AGL)           1058.3   1058.3      0.0   1058.3   1058.3   1058.3",
+            "apogee (ft AGL)            3472     3472        0     3472     3472     3472",
             "landing distance (m)     1325.1   1325.1      0.0   1325.1   1325.1   1325.1",
             "landing distance (ft)      4347     4347        0     4347     4347     4347",
-            "20 of 20 flights landed, centered 1 m (2 ft) west and 1325 m (4347 ft) south of \
+            "20 of 20 flights landed, centered 0.7 m (2 ft) west and 1325.1 m (4347 ft) south of \
              the pad",
-            "landing ellipse                 semi-major          semi-minor  heading   flights inside",
-            "50%                             0 m (0 ft)          0 m (0 ft)      90°           100.0%",
+            "landing ellipse                   semi-major            semi-minor  heading   flights inside",
+            "50%                             0.0 m (0 ft)          0.0 m (0 ft)      90°           100.0%",
         ],
     );
     // Scattered: each foot cell is its meter cell's, in feet, to the meter cell's rounding.
@@ -169,10 +186,10 @@ fn mc_gives_feet_beside_meters() {
             .map(|cell| cell.parse().unwrap())
             .collect()
     };
-    for name in ["apogee", "landing distance"] {
+    for (name, datum) in [("apogee", " AGL"), ("landing distance", "")] {
         let (m, ft) = (
-            cells(&format!("{name} (m)")),
-            cells(&format!("{name} (ft)")),
+            cells(&format!("{name} (m{datum})")),
+            cells(&format!("{name} (ft{datum})")),
         );
         assert_eq!((m.len(), ft.len()), (6, 6), "{text}");
         for (m, ft) in m.iter().zip(&ft) {
@@ -193,6 +210,66 @@ fn mc_gives_feet_beside_meters() {
     );
 }
 
+/// `hpr mc`'s landing center and ellipses print their meters to a tenth, as everywhere else, so
+/// the feet in brackets are never finer than the meters: a semi-minor axis of a fifth of a meter
+/// reads `0.2 m (1 ft)`, not `0 m (1 ft)`.
+#[test]
+fn mc_landing_meters_carry_a_tenth() {
+    let text = out(&[
+        "mc",
+        &repo_file(LEVEL_1),
+        "--runs",
+        "30",
+        "--wind",
+        "6",
+        "--wind-sd",
+        "0.3",
+        "--mass-sd",
+        "0.05",
+        "--drag-sd",
+        "0.1",
+        "--impulse-sd",
+        "0.05",
+    ]);
+    holds_lines(
+        &text,
+        &[
+            "30 of 30 flights landed, centered 0.7 m (2 ft) west and 1355.7 m (4448 ft) south of \
+             the pad",
+            "landing ellipse                   semi-major            semi-minor  heading   flights inside",
+            "50%                        510.4 m (1674 ft)          0.1 m (0 ft)     180°            63.3%",
+            "95%                       1061.0 m (3481 ft)          0.2 m (1 ft)     180°            90.0%",
+            "95%, the next flight      1159.1 m (3803 ft)          0.2 m (1 ft)     180°            93.3%",
+        ],
+    );
+}
+
+/// `hpr sim`'s notes give feet in brackets too: a device set to open above the apogee says its
+/// height in meters and feet.
+#[test]
+fn sim_notes_give_feet() {
+    let folder = tempfile::tempdir().unwrap();
+    let design = folder.path().join("high.ork");
+    let text = std::fs::read_to_string(root().join(LEVEL_1)).unwrap();
+    let ejection = "<deployevent>ejection</deployevent>";
+    assert_eq!(text.matches(ejection).count(), 1);
+    std::fs::write(
+        &design,
+        text.replace(
+            ejection,
+            "<deployevent>altitude</deployevent><deployaltitude>2000</deployaltitude>",
+        ),
+    )
+    .unwrap();
+    holds_lines(
+        &err(&["sim", &design.to_string_lossy()]),
+        &[
+            "note: `Parachute` is set to open 2000 m (6562 ft) above the site, above the apogee, \
+           so it opened at apogee; OpenRocket's flight of such a file never opens it",
+        ],
+    );
+}
+
 /// `hpr motors show` gives the class's range, the nominal thrust beside the measured where they
 /// differ, the propellant its letter stands for, and masses and sizes in US units too.
 #[test]
@@ -201,7 +278,7 @@ fn motors_show_reads_the_designation() {
     holds_lines(
         &text,
         &[
-            "  impulse class    H (160–320 N·s)",
+            "  impulse class    H (160.01–320 N·s)",
             "  total impulse    318.0 N·s",
             "  average thrust   165.4 N measured; 170 N nominal, as the designation names it",
             "  propellant       M, the maker's code for Metalstorm, as ThrustCurve.org names it",
@@ -218,7 +295,7 @@ fn motors_show_reads_the_designation() {
     holds_lines(
         &file,
         &[
-            "  impulse class    G (80–160 N·s)",
+            "  impulse class    G (80.01–160 N·s)",
             "  average thrust   84.2 N measured, as the designation names it",
             "  propellant       GR, the maker's code; the motor file doesn't name the propellant",
         ],

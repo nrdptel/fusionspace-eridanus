@@ -15,10 +15,12 @@ use crate::output::{EllipseKind, FlagKind, IssueKind, McDispersion, McRun, McSpr
 use crate::sim_text::{
     design_lines, flag_help, flag_prefix, launch_lines, motor_lines, note_lines,
 };
-use crate::units::{FOOT_M, feet, fixed};
+use crate::units::{FOOT_M, fixed, meters};
 
 /// The width of a figure's name in the tables.
 const NAME: usize = 22;
+/// The width of an ellipse's semi-axis, `10000.0 m (32808 ft)` with two spaces before it.
+const AXIS: usize = 22;
 
 /// The text form of `run`: the run on `out`, its warnings, notes and hints on `diagnostics`.
 pub(crate) fn print(
@@ -39,10 +41,11 @@ pub(crate) fn print(
         "{:<NAME$}{:>9}{:>9}{:>9}{:>9}{:>9}{:>9}",
         "", "nominal", "mean", "std dev", "5%", "median", "95%"
     )?;
-    row(out, "apogee", run.nominal.apogee_m, &run.apogee_m)?;
+    row(out, "apogee", " AGL", run.nominal.apogee_m, &run.apogee_m)?;
     row(
         out,
         "landing distance",
+        "",
         run.nominal.landing_distance_m,
         &run.landing_distance_m,
     )?;
@@ -115,8 +118,15 @@ pub(crate) fn print(
 }
 
 /// Two rows of the spreads' table for a height or a distance `name`: the nominal value, then the
-/// spread's, in meters to a tenth, then in feet, whole.
-fn row(out: &mut dyn Write, name: &str, nominal: Option<f64>, spread: &McSpread) -> io::Result<()> {
+/// spread's, in meters to a tenth, then in feet, whole. `datum` follows the unit in the label,
+/// ` AGL` for a height above the site (`apogee (m AGL)`, as `data.md` names a height's datum).
+fn row(
+    out: &mut dyn Write,
+    name: &str,
+    datum: &str,
+    nominal: Option<f64>,
+    spread: &McSpread,
+) -> io::Result<()> {
     let cells = [
         nominal,
         spread.mean,
@@ -126,7 +136,7 @@ fn row(out: &mut dyn Write, name: &str, nominal: Option<f64>, spread: &McSpread)
         spread.p95,
     ];
     for (unit, per_m, decimals) in [("m", 1.0, 1), ("ft", 1.0 / FOOT_M, 0)] {
-        let label = format!("{name} ({unit})");
+        let label = format!("{name} ({unit}{datum})");
         write!(out, "{label:<NAME$}")?;
         for cell in cells {
             let text = cell.map_or_else(|| "-".to_owned(), |v| fixed(v * per_m, decimals));
@@ -155,14 +165,11 @@ fn landing(run: &McRun, out: &mut dyn Write) -> io::Result<()> {
     };
     writeln!(
         out,
-        "{} of {} flights landed, centered {} m ({}) {east_or_west} and {} m ({}) \
-         {north_or_south} of the pad",
+        "{} of {} flights landed, centered {} {east_or_west} and {} {north_or_south} of the pad",
         landing.count,
         run.runs,
-        fixed(east, 0),
-        feet(east),
-        fixed(north, 0),
-        feet(north),
+        meters(east),
+        meters(north),
     )?;
     if landing.ellipses.is_empty() {
         return writeln!(
@@ -172,7 +179,7 @@ fn landing(run: &McRun, out: &mut dyn Write) -> io::Result<()> {
     }
     writeln!(
         out,
-        "{:<NAME$}{:>20}{:>20}{:>9}{:>17}",
+        "{:<NAME$}{:>AXIS$}{:>AXIS$}{:>9}{:>17}",
         "landing ellipse", "semi-major", "semi-minor", "heading", "flights inside"
     )?;
     for ellipse in &landing.ellipses {
@@ -180,12 +187,11 @@ fn landing(run: &McRun, out: &mut dyn Write) -> io::Result<()> {
             EllipseKind::Scatter => format!("{:.0}%", 100.0 * ellipse.level),
             EllipseKind::NextFlight => format!("{:.0}%, the next flight", 100.0 * ellipse.level),
         };
-        let axis = |m: f64| format!("{} m ({})", fixed(m, 0), feet(m));
         writeln!(
             out,
-            "{name:<NAME$}{:>20}{:>20}{:>8.0}°{:>16.1}%",
-            axis(ellipse.semi_major_m),
-            axis(ellipse.semi_minor_m),
+            "{name:<NAME$}{:>AXIS$}{:>AXIS$}{:>8.0}°{:>16.1}%",
+            meters(ellipse.semi_major_m),
+            meters(ellipse.semi_minor_m),
             ellipse.major_heading_deg,
             100.0 * ellipse.inside
         )?;

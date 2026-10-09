@@ -207,12 +207,21 @@ mod tests {
         let read = |path: &str| fs::read_to_string(root.join(path)).unwrap();
         let cli = number_after(&read("scripts/release/smoke-cli.sh"), "abs(apogee - ");
         // SI first, then feet in brackets: `apogee                846.1 m (2776 ft) above the site`.
-        let line = format!("apogee                {cli} m (");
+        // The feet are the apogee's own: whole feet of a height that prints as `cli` to a tenth of
+        // a meter, so either end of its half-tenth band, and a stale feet figure fails.
+        let apogee_m: f64 = cli.parse().unwrap();
+        let lines: BTreeSet<String> = [-0.05, 0.05]
+            .iter()
+            .map(|half| {
+                let feet = ((apogee_m + half) / 0.3048).round();
+                format!("apogee                {cli} m ({feet} ft) above the site")
+            })
+            .collect();
         assert!(
-            read("docs/cli.md").lines().any(
-                |printed| printed.starts_with(&line) && printed.contains(" ft) above the site")
-            ),
-            "docs/cli.md has no `{line}… ft) above the site`"
+            read("docs/cli.md")
+                .lines()
+                .any(|printed| lines.iter().any(|line| printed.starts_with(line.as_str()))),
+            "docs/cli.md has none of {lines:?}"
         );
         let python = number_after(
             &read("scripts/release/smoke_python.py"),

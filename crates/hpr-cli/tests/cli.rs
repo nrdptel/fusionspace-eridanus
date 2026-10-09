@@ -1199,8 +1199,11 @@ fn sim_flies_a_payload_dropped_with_nothing_left_to_burn_as_the_library_does() {
         match peak(body).filter(|p| p.height_above_ground_m > apogee.sample.height_above_ground_m) {
             Some(p) => assert!(
                 text.contains(&format!(
-                    "{said} {:.1} m above the site at {:.2} s, above the flight's apogee",
-                    p.height_above_ground_m, p.time_s
+                    "{said} {:.1} m ({:.0} ft) above the site at {:.2} s, above the flight's \
+                     apogee",
+                    p.height_above_ground_m,
+                    p.height_above_ground_m / FOOT_M,
+                    p.time_s
                 )),
                 "{text}"
             ),
@@ -4594,7 +4597,7 @@ fn mc_flies_a_public_ork_as_the_library_does() {
     let apogee = run.apogee().unwrap().summary();
     assert!(
         text.contains(&format!(
-            "apogee (m)            {:>9.1}{:>9.1}{:>9.1}",
+            "apogee (m AGL)        {:>9.1}{:>9.1}{:>9.1}",
             summary.apogee.unwrap().height_above_ground_m,
             apogee.mean.unwrap(),
             apogee.standard_deviation.unwrap()

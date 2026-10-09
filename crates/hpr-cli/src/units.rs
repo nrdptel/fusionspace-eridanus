@@ -131,6 +131,10 @@ mod tests {
         assert_eq!(miles_per_hour(8.9408), "20 mph");
         assert_eq!(ounces_or_pounds(OUNCE_KG), "1.0 oz");
         assert_eq!(ounces_or_pounds(POUND_KG), "1.00 lb");
+        // A g is standard gravity, as the plot's acceleration scale divides by it.
+        assert_eq!(STANDARD_GRAVITY_M_S2.to_bits(), 9.806_65_f64.to_bits());
+        assert_eq!(fixed(9.806_65 / STANDARD_GRAVITY_M_S2, 6), "1.000000");
+        assert_eq!(fixed(98.066_5 / STANDARD_GRAVITY_M_S2, 6), "10.000000");
     }
 
     /// Rounding at a half: a value just below one half rounds down, just above it up, on both
