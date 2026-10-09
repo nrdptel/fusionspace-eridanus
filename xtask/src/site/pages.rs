@@ -375,6 +375,7 @@ fn canary_html(canary: &Canary) -> String {
 <title>{what}</title>
 <style>
 body {{ margin: 0; font: 16px/1.5 sans-serif; overflow-x: hidden; color: #0B0F1C; background: #F3F4F7; }}
+html {{ color: #0B0F1C; background: #F3F4F7; }}
 a {{ color: #3350D6; }}
 mark {{ color: #FFFFFF; background: #3350D6; }}
 input {{ color: inherit; }}

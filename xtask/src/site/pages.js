@@ -362,6 +362,8 @@
       '#768DF5', '#FB8083', '#F5AF20', '#6AD5B6', '#ED89D2', '#AC001E', '#FFFFFF', '#0A6355',
       '#3350D6'],
   };
+  // The action role in each theme, a selection's fill.
+  const ACTION = { light: '#3350D6', navy: '#768DF5' };
   // The system's motion (`foundations.md`, *Motion*): no motion, quick, base and slow, as
   // computed styles write them, and its two easings.
   const DURATIONS = ['0s', '0.1s', '0.16s', '0.24s'];
@@ -408,7 +410,8 @@
         && (h.alpha === 1 || property === 'background-color')));
       if (!ok) note('color', el, pseudo, property, value);
     };
-    const els = doc.body ? [doc.body].concat(Array.from(doc.body.querySelectorAll('*'))) : [];
+    const els = [doc.documentElement].concat(doc.body
+      ? [doc.body].concat(Array.from(doc.body.querySelectorAll('*'))) : []);
     for (const el of els) {
       const tag = el.tagName.toLowerCase();
       if (tag === 'script' || tag === 'style' || tag === 'noscript' || tag === 'template') continue;
@@ -444,6 +447,20 @@
             if (value !== '0px') note('shape', el, pseudo, 'border-' + corner + '-radius', value);
           }
           if (s.boxShadow !== 'none') note('shape', el, pseudo, 'box-shadow', s.boxShadow);
+          // A filter or an image drawn as content paints colors the check can't read: mdBook
+          // tints its copy icon with one.
+          if (s.filter !== 'none') note('color', el, pseudo, 'filter', s.filter);
+          if (s.backdropFilter && s.backdropFilter !== 'none') {
+            note('color', el, pseudo, 'backdrop-filter', s.backdropFilter);
+          }
+          if (pseudo && /url\(/.test(s.content)) note('color', el, pseudo, 'content', 'an image');
+          // A search hit is a selection, in the action fill, not a signal fill (#383).
+          if (tag === 'mark') {
+            const fill = hex(s.backgroundColor);
+            if (!fill || fill.rgb !== ACTION[theme]) {
+              note('color', el, pseudo, 'background-color', s.backgroundColor);
+            }
+          }
           if (s.textShadow !== 'none') note('shape', el, pseudo, 'text-shadow', s.textShadow);
         }
         if (s.scrollBehavior !== 'auto') {

@@ -60,6 +60,26 @@
     --footnote-highlight: var(--hpr-action);
     --search-mark-bg: var(--hpr-action);
 }
+/* With scripts off, mdBook gives its own light colors to `html:not(.js)`, which outranks the
+   theme's `.light`: the theme's light values, here. */
+html:not(.js) {
+  --bg: #F3F4F7; --fg: #0B0F1C; --sidebar-bg: #FFFFFF; --sidebar-fg: #0B0F1C;
+  --sidebar-non-existant: #98A1B8; --sidebar-active: #3350D6; --sidebar-spacer: #D6DAE4;
+  --scrollbar: #566079; --icons: #566079; --icons-hover: #0B0F1C; --links: #3350D6;
+  --inline-code-color: #0B0F1C; --theme-popup-bg: #FFFFFF; --theme-popup-border: #566079;
+  --theme-hover: #D6DAE4; --quote-bg: #FFFFFF; --quote-border: #566079;
+  --table-border-color: #D6DAE4; --table-header-bg: #FFFFFF; --table-alternate-bg: #F3F4F7;
+  --searchbar-border-color: #566079; --searchbar-bg: #FFFFFF; --searchbar-fg: #0B0F1C;
+  --searchbar-shadow-color: transparent; --searchresults-header-fg: #566079; --searchresults-border-color: #D6DAE4;
+  --searchresults-li-bg: #FFFFFF; --search-mark-bg: #F5AF20;
+  --code-bg: #FFFFFF;
+    --hpr-ink: #0B0F1C; --hpr-ink-muted: #566079; --hpr-canvas: #F3F4F7; --hpr-surface: #FFFFFF;
+    --hpr-rule: #D6DAE4; --hpr-rule-strong: #566079; --hpr-action: #3350D6; --hpr-on-action: #FFFFFF;
+    --hpr-danger: #AC001E; --hpr-ok: #0A6355;
+    --sidebar-header-border-color: var(--hpr-rule);
+    --footnote-highlight: var(--hpr-action);
+    --search-mark-bg: var(--hpr-action);
+}
 /* With scripts off, mdBook picks its own dark colors for a reader whose system is dark
    (`html:not(.js)`, which outranks the theme's `.light`): the theme's navy values, here. */
 @media (prefers-color-scheme: dark) {
@@ -99,7 +119,6 @@ input[type="checkbox"] { color: inherit; }
 /* The menu bar's links hold only their icons, which take the icons' color; the links take it too. */
 .menu-bar a { color: var(--icons); }
 mark { color: var(--hpr-on-action); }
-
 /* Lines and shape: square corners, no shadows (`foundations.md`, *Lines and shape*). Layers are
    separated by rules: the help popup has the system's 2 px ink border, a key a 1 px rule. The
    current chapter is underlined 2 px, as `web.md`'s site nav marks the current page, not by the
@@ -119,6 +138,8 @@ kbd { background-color: var(--hpr-surface); border-color: var(--hpr-rule-strong)
    With reduced motion set, everything snaps. */
 .js:not(.sidebar-resizing) .page-wrapper,
 [dir=rtl].js:not(.sidebar-resizing) .page-wrapper,
+html:not(.js) .page-wrapper,
+[dir=rtl]:not(.js) .page-wrapper,
 html:not(.sidebar-resizing) .sidebar { transition-duration: 240ms; transition-timing-function: cubic-bezier(0.2, 0, 0, 1); }
 #mdbook-menu-bar .fa-svg, #mdbook-menu-bar .icon-button,
 .nav-chapters, .nav-chapters:hover,
