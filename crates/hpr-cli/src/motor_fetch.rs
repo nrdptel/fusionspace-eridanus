@@ -384,6 +384,36 @@ mod tests {
         assert_eq!(command(&Wanted::by("x & calc", "H128W")), None);
     }
 
+    /// ThrustCurve.org answering with an error status was reached, so its refusal doesn't send
+    /// the user to find a network connection; a fetch that never reached it does.
+    #[test]
+    fn a_refused_request_is_not_sent_to_find_a_connection() {
+        let help = |reason: &str| {
+            let error = FindError::ThrustCurve(ThrustCurveError::Net(NetError::Transport {
+                url: "https://www.thrustcurve.org/".to_owned(),
+                reason: reason.to_owned(),
+            }));
+            let Failure::Helped { help, .. } = refused(&Wanted::named("H128W"), &error) else {
+                panic!("an input failure");
+            };
+            help.join("\n")
+        };
+        let refused_by_status = help("http status: 403");
+        assert!(
+            refused_by_status.starts_with("the source answered but refused the request"),
+            "{refused_by_status}"
+        );
+        assert!(
+            !refused_by_status.contains("with a network connection"),
+            "{refused_by_status}"
+        );
+        let unreached = help("io: Connection refused");
+        assert!(
+            unreached.starts_with("with a network connection, `hpr motors fetch H128W`"),
+            "{unreached}"
+        );
+    }
+
     /// A control character from ThrustCurve's answer, such as an escape, never reaches the
     /// terminal.
     #[test]
