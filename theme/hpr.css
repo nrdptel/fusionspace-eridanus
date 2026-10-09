@@ -119,6 +119,16 @@ input[type="checkbox"] { color: inherit; }
 /* The menu bar's links hold only their icons, which take the icons' color; the links take it too. */
 .menu-bar a { color: var(--icons); }
 mark { color: var(--hpr-on-action); }
+/* The copy button's icon: mdBook tints a black image with a filter to a gray of its own; here it
+   is the system's copy icon (`product/icons/copy.svg`, drawn in Void for the figures check) as a
+   mask, painted in the button's own color. */
+pre > .buttons button.clip-button::before,
+pre > .buttons button.clip-button:hover::before {
+    content: ""; display: inline-block; width: 24px; height: 24px; filter: none;
+    background-color: currentColor;
+    -webkit-mask: url("../images/copy.svg") center / contain no-repeat;
+    mask: url("../images/copy.svg") center / contain no-repeat;
+}
 /* Lines and shape: square corners, no shadows (`foundations.md`, *Lines and shape*). Layers are
    separated by rules: the help popup has the system's 2 px ink border, a key a 1 px rule. The
    current chapter is underlined 2 px, as `web.md`'s site nav marks the current page, not by the
