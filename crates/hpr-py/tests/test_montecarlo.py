@@ -100,34 +100,7 @@ def runs(tmp_path_factory, hpr_cli):
     return monte_carlo(repo, runs=RUNS, seed=SEED, **scattered()), text, output
 
 
-# How a CSV header writes a column's unit, in brackets after its words: the last one or two of
-# the name's `_`-separated words, two-word units first.
-UNITS = [
-    (["m", "s2"], "m/s^2"),
-    (["m", "s"], "m/s"),
-    (["rad", "s"], "rad/s"),
-    (["m2"], "m^2"),
-    (["pa"], "Pa"),
-    (["kg"], "kg"),
-    (["n"], "N"),
-    (["m"], "m"),
-    (["s"], "s"),
-    (["rad"], "rad"),
-    (["deg"], "deg"),
-    (["cal"], "cal"),
-]
-
-
-def csv_header(name):
-    """A column's name as the CSV's header writes it: `apogee [m]` for `apogee_m`."""
-    words = name.split("_")
-    for unit, written in UNITS:
-        if len(words) > len(unit) and words[-len(unit) :] == unit:
-            return f"{' '.join(words[: -len(unit)])} [{written}]"
-    return " ".join(words)
-
-
-def test_a_run_is_hpr_mcs_bit_for_bit(runs):
+def test_a_run_is_hpr_mcs_bit_for_bit(runs, csv_header):
     run, text, _ = runs
     header, *rows = list(csv.reader(text.splitlines()))
     # The header gives each column in words with its unit in brackets; the run keeps the names.
