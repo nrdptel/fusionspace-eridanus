@@ -146,9 +146,11 @@ line here, or on an id that is missing or done.
   - [ ] **M0.9c The CLI, exports and plot to the design** (ADR-208): #377–#382, #392, #395, #400, in seven steps,
     each fix held by a named test that fails on the defect its issue reproduces, and the audit's
     rows naming the tests; a rule declined has an ADR.
-    - [ ] **M0.9c5 Provenance** (#380). *Done when:* it is closed.
-    - [ ] **M0.9c6 Errors and help** (#381). *Done when:* it is closed.
-    - [ ] **M0.9c7 The plot and the site** (#382, #400). *Done when:* both are closed.
+    - [ ] **M0.9c5 Provenance** (#380). *Done when:* it is closed, with every item it lists, the
+      exports' trust note included.
+    - [ ] **M0.9c6 Errors and help** (#381). *Done when:* it is closed, with every item it lists.
+    - [ ] **M0.9c7 The plot and the site** (#382, #400). *Done when:* both are closed, with every
+      item they list.
   - [ ] **M0.9d The site to the design** (ADR-208). *Done when:* #383 to #385 are closed: no
     mdBook default the system doesn't draw (colors, radii, shadows, motion, icons, metas, print),
     a title block and sheets on every page, notes in the system's shape, and every committed SVG
@@ -204,8 +206,9 @@ line here, or on an id that is missing or done.
   collection before their logs are compared, only their files' hashes committed. Moves: accuracy.
 - [ ] **M2.8 Honest uncertainty** (ADR-209 §5). *Done when:* each logged flight is also flown as a
   dispersion, and the report gives how often its 50% and 90% apogee ranges hold the log, on both
-  halves, with two-sided 95% Clopper–Pearson bounds, a failed run counted as a miss. Moves:
-  honest uncertainty.
+  halves, with two-sided 95% Clopper–Pearson bounds, a failed run counted as a miss; and #401
+  closed, that spread beside each flight's apogee and as the plot's band. Moves: honest
+  uncertainty.
 - [ ] **M2.6 An open benchmark** (ADR-209 §9). *Done when:* public cases with design, log and
   weather, each file's license recorded; a runner scores any simulator's predictions file the same
   way; HPR Sim's and OpenRocket's scores on a docs page from a committed report. Moves: accuracy.
