@@ -37,8 +37,9 @@ increment, and left three-digit balloon numerals to it.
    slope alone and the climb would draw vertical.
 3. **Title block.** The figure ends in a box with a 2 px ink border, its cells divided by 1 px
    rules and set in rows across the sheet's text width: OWNER, TITLE, TYPE (`Simulated flight`,
-   ISO 7200's document type), DESIGNATION, PROGRAM (name and version), UNITS and DATA (the figure's
-   CSV and the motor catalog's date, which moves there from its own line). Keys and values are
+   ISO 7200's document type), DESIGNATION, PROGRAM (name and version), UNITS, DATA (the figure's
+   CSV) and MOTOR CATALOG (its date, which moves there from its own line, in a cell of its own so a
+   long file name is cut and the date never is). Keys and values are
    Cascadia Mono at 12 px, as `foundations.md` sets title blocks. There is no date of issue: the
    same flight draws the same figure, byte for byte, on any day. There is no status field: the
    drawing statuses (IN PREPARATION, RELEASED) describe a controlled document, not a run's output.

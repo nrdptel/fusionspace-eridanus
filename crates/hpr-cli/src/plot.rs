@@ -19,7 +19,10 @@
 //! panel still holds one quantity, as the product system's charts ask.
 //!
 //! Each group of events at one instant is a numbered balloon above the panels with a dotted line
-//! through them, and each event a row of the table below, with its time, altitude and name. Where
+//! through them, the balloons in one row, one that would collide stepped right along a leader
+//! ([`place`]); each event is a row of the table below, with its time, altitude and name. Each
+//! panel's height is banked to 45° ([`bank`]). The figure ends in a title block
+//! ([`title_block`]), and its numbers go beside it as a CSV file ([`csv`]). Where
 //! the rocket falls on its airframe alone after apogee, with no recovery device open within
 //! [`crate::sim::BRAKED_WITHIN_S`] of it, the panels are hatched and labeled "not a prediction":
 //! HPR Sim's aerodynamics hold only at small angles of attack.
@@ -61,12 +64,12 @@ const TITLE_TOP: f64 = MARGIN + 8.0;
 const SUBTITLE_TOP: f64 = TITLE_TOP + 24.0;
 /// The first caption line's baseline, px from the top: a 24 px step under the subtitle.
 const CAPTION_TOP: f64 = SUBTITLE_TOP + 24.0;
-/// From the last caption line to the first marker row's center, px.
+/// From the last caption line to the first balloon row's center, px.
 const CAPTION_GAP: f64 = 24.0;
-/// From one marker row to the next, px; also the distance between two balloons that would
-/// collide, one stepped right of the other: a diameter and a 4 px gap.
+/// The step between two-digit balloons, px: from one balloon row to the next, and from a balloon
+/// to the one stepped right of it, a diameter and a 4 px gap ([`balloon_size`] for wider ones).
 const MARKER_ROW: f64 = 24.0;
-/// How far under the balloons the leaders meet their events' lines at the least, px: a 8 px step.
+/// How far under the balloons the leaders meet their events' lines at the least, px: an 8 px step.
 const LEADER_GAP: f64 = 8.0;
 /// The least slope of a leader, its drop over its run: tan 35°, so a leader leaves its row
 /// between its balloon's neighbours, a step away, with the step · sin 35° from their centers, at
@@ -1026,8 +1029,9 @@ fn bank(runs: &[Vec<(f64, f64)>]) -> f64 {
 
 /// The title block's cells, key and value, in order (`product/web.md`, *Title block*, from ISO
 /// 7200): the owner, the title, the document's type, the designation, the program and its version,
-/// the units, and the data, the figure's file and the catalog's date. It has no date of issue: the
-/// same flight draws the same figure, byte for byte, on any day.
+/// the units, the data, the figure's file, and the motor catalog's date in a cell of its own, so a
+/// long file name never cuts it. It has no date of issue: the same flight draws the same figure,
+/// byte for byte, on any day.
 fn title_cells(figure: &Figure<'_>) -> Vec<(&'static str, String)> {
     use hpr::hpr_core::tool::{DESIGNATION, NAME, VERSION};
     vec![
@@ -1037,13 +1041,8 @@ fn title_cells(figure: &Figure<'_>) -> Vec<(&'static str, String)> {
         ("DESIGNATION", DESIGNATION.to_owned()),
         ("PROGRAM", format!("{NAME} {VERSION}")),
         ("UNITS", "m, m/s, m/s², s [ft, ft/s, g]".to_owned()),
-        (
-            "DATA",
-            format!(
-                "{}; motor catalog as of {}",
-                figure.data_file, figure.catalog_as_of
-            ),
-        ),
+        ("DATA", figure.data_file.to_owned()),
+        ("MOTOR CATALOG", format!("as of {}", figure.catalog_as_of)),
     ]
 }
 
@@ -1105,16 +1104,33 @@ fn title_block(cells: &[(&str, String)], top: f64) -> (String, f64) {
     (svg, bottom)
 }
 
-/// How wide `s` draws at 12 px, px: [`CHAR_PX`] a character, two for one of the East Asian
-/// scripts or past them (U+1100 on), which the fallback faces set about twice as wide.
+/// How wide `s` draws at 12 px, px: [`CHAR_PX`] a character, two for a wide one ([`wide`]).
 fn width_px(s: &str) -> f64 {
     s.chars()
-        .map(|c| if c >= '\u{1100}' { 2.0 } else { 1.0 })
+        .map(|c| if wide(c) { 2.0 } else { 1.0 })
         .sum::<f64>()
         * CHAR_PX
 }
 
-/// `s` [`cut`] to the most characters that draw within `px`, its ellipsis counted.
+/// Whether `c` is set two cells wide in a fixed-width face: the East Asian wide and full-width
+/// blocks (Hangul jamo and syllables, CJK, Kana, Yi, the compatibility and full-width forms) and
+/// the pictographs and emoji, as terminals count them.
+fn wide(c: char) -> bool {
+    matches!(
+        c,
+        '\u{1100}'..='\u{115F}'
+            | '\u{2E80}'..='\u{A4CF}'
+            | '\u{AC00}'..='\u{D7A3}'
+            | '\u{F900}'..='\u{FAFF}'
+            | '\u{FE30}'..='\u{FE4F}'
+            | '\u{FF00}'..='\u{FF60}'
+            | '\u{FFE0}'..='\u{FFE6}'
+            | '\u{1F300}'..='\u{1FAFF}'
+            | '\u{20000}'..='\u{3FFFD}'
+    )
+}
+
+/// `s` [`cut`] to the most characters that draw within `px`, its ellipsis, one cell, counted.
 fn fit(s: &str, px: f64) -> String {
     let s = cut(s, usize::MAX);
     if width_px(&s) <= px {
@@ -1123,7 +1139,7 @@ fn fit(s: &str, px: f64) -> String {
     let mut out = String::new();
     for c in s.chars() {
         let next = format!("{out}{c}");
-        if width_px(&next) + CHAR_PX > px {
+        if width_px(&next) + width_px("…") > px {
             break;
         }
         out = next;

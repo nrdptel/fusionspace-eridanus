@@ -362,22 +362,45 @@ fn the_figure_names_its_tool_and_version_where_a_reader_sees_them() {
 }
 
 /// The figure gives the bundled motor catalog's as-of date as the exports do (#403), in its title
-/// block's data, with the file of the figure's data, so a printed copy carries both. Before #403
-/// the plot gave no date.
+/// block's cell of its own, beside the file of the figure's data, so a printed copy carries both;
+/// a data file's name too long for its cell is cut, never the date. Before #403 the plot gave no
+/// date.
 #[test]
 fn the_figure_dates_the_motor_catalog_in_its_title_block() {
-    let svg = figure_svg("Probe", None);
-    let document = roxmltree::Document::parse(&svg).unwrap();
-    let cells = title_block(&document);
-    let data = cells.iter().find(|cell| cell.0 == "DATA").unwrap();
-    assert_eq!(data.1, "probe.csv; motor catalog as of 2026-01-02", "{svg}");
-    assert_eq!(
-        texts(&document)
-            .iter()
-            .filter(|text| text.contains("2026-01-02"))
-            .count(),
-        1
-    );
+    let long = format!("{}.plot.csv", "a-long-flight-name-".repeat(7));
+    for data_file in ["probe.plot.csv", long.as_str()] {
+        let points = [point(0.0, 0.0), point(10.0, 50.0)];
+        let svg = svg(&Figure {
+            title: "Probe",
+            subtitle: "s",
+            catalog_as_of: "2026-01-02",
+            data_file,
+            points: &points,
+            events: &[],
+            devices: &[],
+            unpredicted: None,
+            apogee: None,
+            top_speed: None,
+        });
+        let document = roxmltree::Document::parse(&svg).unwrap();
+        let cells = title_block(&document);
+        let value = |key: &str| cells.iter().find(|cell| cell.0 == key).unwrap().1.clone();
+        assert_eq!(value("MOTOR CATALOG"), "as of 2026-01-02", "{svg}");
+        let data = value("DATA");
+        if data_file.len() < 100 {
+            assert_eq!(data, data_file);
+        } else {
+            let kept = data.strip_suffix('…').unwrap();
+            assert!(long.starts_with(kept) && kept.len() > 100, "{data}");
+        }
+        assert_eq!(
+            texts(&document)
+                .iter()
+                .filter(|text| text.contains("2026-01-02"))
+                .count(),
+            1
+        );
+    }
 }
 
 /// The figure ends in a title block (`product/principles.md` §1; #382): after the trust note, a
@@ -402,7 +425,8 @@ fn the_figure_ends_in_a_title_block() {
                 "DESIGNATION",
                 "PROGRAM",
                 "UNITS",
-                "DATA"
+                "DATA",
+                "MOTOR CATALOG"
             ]
         );
         let value = |key: &str| cells.iter().find(|cell| cell.0 == key).unwrap().1.clone();
@@ -1717,9 +1741,9 @@ fn panels_bank_toward_45_degrees() {
             }
         }
     }
-    let altitude = &drawn_panels(&saw_svg)[0];
-    assert!(least < altitude.0 && altitude.0 < most, "{}", altitude.0);
-    assert_ne!(altitude.0, 180.0);
+    // Every altitude leg rises the whole axis, 0 to 100 m, over 161.6 px, so the lines run at 45°
+    // at 161.6 px, 160 on the 4 px grid, whatever the weighting.
+    assert_eq!(drawn_panels(&saw_svg)[0].0, 160.0);
 }
 
 /// A panel whose lines are all level has no slope to bank and takes the least height.

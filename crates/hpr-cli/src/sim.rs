@@ -285,10 +285,12 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
             }),
             data_file: &file_name(&data),
         });
-        std::fs::write(path, figure).map_err(|error| Failure::Input(format!("{path}: {error}")))?;
-        // The figure's data beside it, and the CSV's sidecar, as `--export`'s.
+        // The figure's data is made first, so a value the CSV refuses leaves no figure naming a
+        // file that isn't there.
         let text = crate::plot::csv(trace.points())
             .map_err(|error| Failure::Input(format!("{data}: {error}")))?;
+        std::fs::write(path, figure).map_err(|error| Failure::Input(format!("{path}: {error}")))?;
+        // The figure's data beside it, and the CSV's sidecar, as `--export`'s.
         std::fs::write(&data, text).map_err(|error| Failure::Input(format!("{data}: {error}")))?;
         let document = ExportMeta {
             file: file_name(&data),

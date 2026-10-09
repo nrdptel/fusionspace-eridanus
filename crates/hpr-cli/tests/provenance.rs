@@ -223,11 +223,11 @@ fn the_parquet_file_and_the_plot_carry_the_catalogs_date() {
     // The figure's title block ends with its data: its CSV and the catalog's date, which the
     // CSV's sidecar carries too.
     let svg = std::fs::read_to_string(path("f.svg")).unwrap();
-    let data = format!(
-        ">f.plot.csv; motor catalog as of {}</text>\n</g>\n</svg>\n",
-        as_of()
-    );
-    assert!(svg.ends_with(&data), "{svg}");
+    let date = format!(">as of {}</text>\n</g>\n</svg>\n", as_of());
+    assert!(svg.ends_with(&date), "{svg}");
+    assert!(svg.contains(">DATA</text>"), "{svg}");
+    assert!(svg.contains(">f.plot.csv</text>"), "{svg}");
+    assert!(svg.contains(">MOTOR CATALOG</text>"), "{svg}");
     assert_eq!(svg.matches(&as_of()).count(), 1);
     let meta: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(path("f.plot.meta.json")).unwrap()).unwrap();

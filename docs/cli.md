@@ -825,8 +825,9 @@ simulator tracks, use `--export` (above). The name must end in `.svg` and its fo
   of a Two-Variable Graph", *Journal of the American Statistical Association* 83, 1988). Heights
   stay between 120 and 360 px. A climb and a slow descent can't both run at 45°, so the climb
   draws steeper and the descent flatter. In the example below, the altitude and speed panels reach
-  360 px, where their lines average 39° and 38°, and the acceleration panel is 252 px, at 45°.
-  When every panel was 180 px, the altitude and speed lines averaged 22°.
+  360 px, the cap, where their lines average 39° and 38°, and the acceleration panel is 252 px, at
+  45°, measured on the drawn figure. When every panel was 180 px, the altitude and the speed lines
+  each averaged 22°.
 - **Not a prediction:** when no recovery device opens within 1 s of apogee, the fall from apogee
   to the first opening (or to the ground) is hatched and labeled, the rule the summary's "not a
   prediction" marks follow, for the reason [the landing](#the-landing) gives. The example below
@@ -860,12 +861,13 @@ came from. It is a box with a 2 px border, and each field is a label in capitals
 | Field | Holds |
 |---|---|
 | OWNER | FusionSpace |
-| TITLE | The design's name |
+| TITLE | The design's name, cut at 80 characters |
 | TYPE | `Simulated flight` |
 | DESIGNATION | The program's designation, `FS-ACHERNAR · SW · TOOL 001` |
 | PROGRAM | The program and its version, `FusionSpace HPR 0.1.0` |
 | UNITS | The figure's units, SI with the US scales in brackets |
-| DATA | The figure's CSV file, and the day the bundled motor catalog was downloaded, as the [exports](exporting-a-flight.md#which-program-wrote-a-file) carry it, whether or not the flight's motor came from the catalog |
+| DATA | The figure's CSV file ([below](#the-figures-data)) |
+| MOTOR CATALOG | The day the bundled motor catalog was downloaded, as the [exports](exporting-a-flight.md#which-program-wrote-a-file) carry it, whether or not the flight's motor came from the catalog |
 
 The block has no date of issue: the same flight draws the same figure, byte for byte, on any day.
 
@@ -918,11 +920,16 @@ unit in brackets:
 time [s],altitude [m AGL],speed [m/s],vertical speed [m/s],acceleration [m/s^2],vertical acceleration [m/s^2]
 ```
 
-The values are SI and plain, as `--export`'s CSV writes them. Beside it, `sim-plot.plot.meta.json`
+The values are SI only, with no feet, and plain, as `--export`'s CSV writes them. The vertical
+speed and acceleration, the panels' thin lines, have columns of their own. The rows are not evenly
+spaced: an event or a step's edge adds a row between the `--interval` ones. For every other
+quantity the simulator tracks, use `--export`. Beside it, `sim-plot.plot.meta.json`
 names the program that wrote it, the design and configuration, the row count, the catalog's date
 and the accuracy note, as an exported CSV's [sidecar](exporting-a-flight.md#which-program-wrote-a-file)
 does. The `.plot` in the names keeps them apart from an `--export sim-plot.csv` beside them. If a
-file the run reads or writes has either name, the run stops before it flies.
+file the run reads or writes has either name, the run stops before it flies. The text result ends
+with a `wrote` line for each of the three files, and `--json` names the two beside the figure under
+`plot_data` (`path`, `rows`, `meta`).
 
 ### What `hpr sim` doesn't fly yet
 
