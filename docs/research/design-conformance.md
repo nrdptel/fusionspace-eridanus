@@ -53,7 +53,7 @@ Pinned commit: `f45454f44669cc049222f2ab19eb648796e56a52`, as `validation/refs.l
 | `principles.md` | 1. Drawn, not decorated | site, plot | not met | #384, #385, #383, #382; M0.9c, M0.9d: no title blocks or sheet numbers; a figure's line types; soft shadows |
 | `principles.md` | 2. Show the working | site, CLI, exports, plot | not met | #380; M0.9c: exports carry no catalog as-of date |
 | `principles.md` | 3. Say how far to trust it | CLI, plot, site | not met | #379; M0.9c: `hpr sim`'s apogee has no kind, spread or trust note |
-| `principles.md` | 4. Built for the field | CLI, plot, site | not met | #378; M0.9c: no feet in `hpr sim` or the plot |
+| `principles.md` | 4. Built for the field | CLI, plot, site | not met | #383; M0.9d: no field theme and no print styles on the site. Units on screen hold under ADR-164 §6 and ADR-210 (feet in brackets, no switch): `crates/hpr-cli/tests/units.rs::sim_gives_us_units_in_brackets`, `crates/hpr-cli/tests/units.rs::the_plot_gives_both_units`; offline: the core needs no network |
 | `principles.md` | 5. Quiet until it matters | site, CLI, plot | not met | #383, #385; M0.9d: search hits in the caution fill; signal-like figure colors |
 | `principles.md` | 6. One sweep | site, banners, plot, CLI | not met | #383; M0.9d: focus and selection are mdBook's, not Ion; one gradient, the strip, holds |
 | `principles.md` | 7. Numbered like parts | site, CLI, exports, plot, README | not met | #380, #387; M0.9c, M0.9e: the plot's version is invisible; the README's status word |
@@ -75,19 +75,19 @@ Pinned commit: `f45454f44669cc049222f2ab19eb648796e56a52`, as `validation/refs.l
 | `writing.md` | Mechanics | site, README, CLI, plot | not met | #386; M0.9e: British spellings (`calibre` 446 times on the site and README) |
 | `writing.md` | READMEs and docs | README, site | not met | #387; M0.9e: status, install, what doesn't work and version missing |
 | `writing.md` | Commit messages | none | n/a | commit messages are not a surface that ships |
-| `review.md` | The FusionSpace test | site, CLI, exports, plot, README | not met | #384, #380, #379, #378, #383; M0.9c, M0.9d: five of the eight answers are no; see the principles' rows |
+| `review.md` | The FusionSpace test | site, CLI, exports, plot, README | not met | #384, #380, #379, #383; M0.9c, M0.9d: five of the eight answers are no; see the principles' rows |
 | `review.md` | Template smells | site, README, plot | not met | #383, #385; M0.9d: a colored side border, soft shadows, default sans in images |
-| `review.md` | Before release | site, CLI, exports, plot, README | not met | #385, #380, #379, #378, #386, #381; M0.9c, M0.9d, M0.9e: 7 of the 11 items 0.1 must pass fail (ADR-208 §6 counted 8; results on stdout and everything else on stderr now passes) |
+| `review.md` | Before release | site, CLI, exports, plot, README | not met | #385, #380, #379, #386, #381; M0.9c, M0.9d, M0.9e: 7 of the 11 items 0.1 must pass fail (ADR-208 §6 counted 8; results on stdout and everything else on stderr now passes) |
 | `review.md` | Sources | none | n/a | the system's own bibliography; it sets no rule |
 | `data.md` | Numbers | site, CLI, plot, README | not met | #386, #382, #379; M0.9c, M0.9e: hyphen-minus, ungrouped and over-precise numbers; units that wrap |
 | `data.md` | Copying and typing numbers | CLI, exports | not met | #381, #380; M0.9c: typed numbers not trimmed or read with separators; non-ASCII JSON |
-| `data.md` | Units for rocketry | CLI, plot, exports, README, site | not met | #378; M0.9c: SI alone in `hpr sim`, the plot and the exports |
+| `data.md` | Units for rocketry | CLI, plot, exports, README, site | not met | #392; M0.9c: SI alone in `hpr weather`, `hpr motors list`, `hpr analyze`'s acceleration, `hpr sim`'s notes and the site. Held under ADR-164 §6 and ADR-210 (SI first, US in brackets, no `--units`; exports SI) for `hpr sim`, `hpr mc`, `hpr motors show` and the plot: `crates/hpr-cli/tests/units.rs::sim_gives_us_units_in_brackets`, `crates/hpr-cli/tests/units.rs::sim_gives_the_cg_and_cp_of_its_static_margin`, `crates/hpr-cli/tests/units.rs::mc_gives_feet_beside_meters`, `crates/hpr-cli/tests/units.rs::motors_show_reads_the_designation`, `crates/hpr-cli/tests/units.rs::the_plot_gives_both_units` |
 | `data.md` | Readouts | CLI | not met | #379; M0.9c: values not marked simulated, with no spread |
 | `data.md` | Tables | site, plot, CLI, README | not met | #386; M0.9e: 27 of 333 site tables right-align numbers; code identifiers as heads |
 | `data.md` | Charts | plot, site | not met | #382, #379; M0.9c: no spread band, banking or data table; 10 px balloons |
 | `data.md` | Maps | CLI | not met | #381; M0.9c: `hpr mc`'s landing-ellipse heading gives no T or M; drawn maps wait for M9.4 |
 | `data.md` | Live telemetry | none | later | M13.1, the ground station; nothing live ships |
-| `data.md` | Files and exports | exports | not met | #380, #378; M0.9c: no as-of date; CSV units not in brackets; no US units |
+| `data.md` | Files and exports | exports | not met | #380; M0.9c: no as-of date; CSV units not in brackets. No US option until the app's units control (M9.1), by ADR-210: the SI column names are a published format (ADR-079) |
 | `cli.md` | Output | CLI | not met | #381; M0.9c: no progress; plain table headers (diagnostics on stderr since #377) |
 | `cli.md` | Color | CLI | not met | #381; M0.9c: the Heading and Literal roles unused |
 | `cli.md` | Help | CLI | not met | #381; M0.9c: the link before Usage; no examples |

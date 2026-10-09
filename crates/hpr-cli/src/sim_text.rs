@@ -6,6 +6,10 @@
 //! their names ([`crate::choose`]), never by an OpenRocket UUID; `--json` prints the same flight
 //! as data, ids and all.
 //!
+//! Heights, distances and speeds are SI first with US units in brackets, `1065.1 m (3494 ft)`
+//! ([`crate::units`]; ADR-164 §6, ADR-210): feet, feet per second, miles per hour for the wind and
+//! inches for the stations along the rocket.
+//!
 //! The flight goes to standard output; its `warning:`, `note:` and `help:` lines go to standard
 //! error ([`Diagnostics`]), so a file the text is redirected to holds the flight alone.
 
@@ -17,6 +21,7 @@ use crate::output::{
     SimEvent, SimFlight, SimMotor, SimMotorSource, Termination,
 };
 use crate::sim::{braked, first_opened, in_fall};
+use crate::units::{feet, feet_per_second, fixed, inches, meters, miles_per_hour, speed};
 
 /// The width of a figure's name in the summary's columns.
 const NAME: usize = 22;
@@ -36,10 +41,10 @@ pub(crate) fn print(
     for device in &flight.recovery {
         let event = match device.opens_at {
             DeviceEvent::Apogee => "apogee".to_owned(),
-            DeviceEvent::Altitude => format!(
-                "{} m on the way down",
-                device.height_above_ground_m.unwrap_or(f64::NAN)
-            ),
+            DeviceEvent::Altitude => {
+                let height_m = device.height_above_ground_m.unwrap_or(f64::NAN);
+                format!("{height_m} m ({}) on the way down", feet(height_m))
+            }
             DeviceEvent::Ejection => "the ejection charge".to_owned(),
             DeviceEvent::Launch => "launch".to_owned(),
             DeviceEvent::Separation => "the separation".to_owned(),
@@ -169,28 +174,37 @@ pub(crate) fn launch_lines(
     out: &mut dyn Write,
     diagnostics: &mut Diagnostics<'_>,
 ) -> io::Result<()> {
+    // A rail is sold and set up by its length in feet (6 ft, 8 ft, 12 ft), so to a tenth.
+    let rail_length = format!(
+        "{} m ({} ft)",
+        launch.rail_length_m,
+        fixed(launch.rail_length_m / crate::units::FOOT_M, 1)
+    );
     let rail = if launch.inclination_deg == 90.0 {
-        format!("a {} m vertical rail", launch.rail_length_m)
+        format!("a {rail_length} vertical rail")
     } else {
         format!(
-            "a {} m rail {}° above the horizon, leaning toward {}°",
-            launch.rail_length_m, launch.inclination_deg, launch.heading_deg
+            "a {rail_length} rail {}° above the horizon, leaning toward {}°",
+            launch.inclination_deg, launch.heading_deg
         )
     };
     let wind = if launch.wind_speed_m_s == 0.0 {
         "calm air".to_owned()
     } else {
         format!(
-            "a {} m/s wind from {}°",
-            launch.wind_speed_m_s, launch.wind_from_deg
+            "a {} m/s ({}) wind from {}°",
+            launch.wind_speed_m_s,
+            miles_per_hour(launch.wind_speed_m_s),
+            launch.wind_from_deg
         )
     };
     writeln!(
         out,
-        "launched at {}, {}, {} m above sea level, from {rail}, in {wind}",
+        "launched at {}, {}, {} m ({}) above sea level, from {rail}, in {wind}",
         hemisphere(launch.latitude_deg, "N", "S"),
         hemisphere(launch.longitude_deg, "E", "W"),
         launch.elevation_m,
+        feet(launch.elevation_m),
     )?;
     diagnostics.line(
         Level::Help,
@@ -298,13 +312,29 @@ fn lead(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
         (None, Some(least)) => figure(out, "static margin", &least)?,
         (None, None) => {}
     }
+    // The stations the margin off the rail came from, measured aft of the nose tip.
+    if let Some(stability) = summary
+        .rail_exit_stability
+        .filter(|stability| stability.static_margin.margin_cal.is_some())
+        && let Some(cp_m) = stability.static_margin.cp_station_m
+    {
+        figure(
+            out,
+            "CG and CP",
+            &format!(
+                "{} and {} aft of the nose tip, off the rail",
+                station(stability.cg_station_m),
+                station(cp_m)
+            ),
+        )?;
+    }
     if let Some(apogee) = &summary.apogee {
         figure(
             out,
             "apogee",
             &format!(
-                "{:.1} m above the site at {:.2} s{}",
-                apogee.height_above_ground_m,
+                "{} above the site at {:.2} s{}",
+                meters(apogee.height_above_ground_m),
                 apogee.time_s,
                 if flight.flags.iter().any(|flag| is_unstable(flag.flag)) {
                     ", not a prediction: unstable under power"
@@ -314,8 +344,8 @@ fn lead(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
             ),
         )?;
     }
-    if let Some(speed) = &summary.rail_exit_speed_m_s {
-        figure(out, "rail exit speed", &format!("{:.1} m/s", speed.value))?;
+    if let Some(rail_exit) = &summary.rail_exit_speed_m_s {
+        figure(out, "rail exit speed", &speed(rail_exit.value))?;
     }
     if let Some(delay) = delay(flight) {
         figure(out, "delay", &delay)?;
@@ -325,6 +355,12 @@ fn lead(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
         summary.apogee.as_ref().map(|apogee| apogee.time_s),
     );
     figure(out, "descent", &descent(flight, braked))
+}
+
+/// A station along the rocket, m aft of the nose tip to the millimeter, with inches:
+/// `0.912 m (35.9 in)`.
+fn station(station_m: f64) -> String {
+    format!("{} m ({})", fixed(station_m, 3), inches(station_m, 1))
 }
 
 /// One figure of the summary, its name in a column.
@@ -434,7 +470,7 @@ fn descent(flight: &SimFlight, braked: bool) -> String {
     let end = |event: Option<&SimEvent>| {
         event.map_or_else(
             || "the flight ended before landing".to_owned(),
-            |e| format!("{:.1} m/s at landing", -e.vertical_velocity_m_s),
+            |e| format!("{} at landing", speed(-e.vertical_velocity_m_s)),
         )
     };
     if opened.is_empty() {
@@ -466,9 +502,13 @@ fn descent(flight: &SimFlight, braked: bool) -> String {
                     let height_m = e.height_above_ground_m.max(0.0) + 0.0;
                     // A set can open on the way up, before apogee.
                     if e.vertical_velocity_m_s < 0.0 {
-                        format!("{:.1} m/s at {height_m:.1} m", -e.vertical_velocity_m_s)
+                        format!(
+                            "{} at {}",
+                            speed(-e.vertical_velocity_m_s),
+                            meters(height_m)
+                        )
                     } else {
-                        format!("still rising at {height_m:.1} m")
+                        format!("still rising at {}", meters(height_m))
                     }
                 }),
             None => Some(end(ground)),
@@ -488,11 +528,11 @@ fn descent(flight: &SimFlight, braked: bool) -> String {
     format!("{}{caveat}", parts.join("; "))
 }
 
-/// The events, as a table.
+/// The events, as a table: each height and speed in SI, then in US units in brackets.
 fn events(events: &[SimEvent], out: &mut dyn Write) -> io::Result<()> {
     writeln!(
         out,
-        "{:<18} {:>9} {:>10} {:>11}",
+        "{:<18} {:>9} {:>21} {:>24}",
         "event", "time", "height", "speed"
     )?;
     for event in events {
@@ -513,13 +553,16 @@ fn events(events: &[SimEvent], out: &mut dyn Write) -> io::Result<()> {
             EventKind::Ignition => "ignition",
             EventKind::Other => "other",
         };
-        // `+ 0.0` prints a -0 as 0: the flight ends a hair below the ground.
+        // The flight ends a hair below the ground: its height is drawn as zero.
+        let height_m = event.height_above_ground_m.max(0.0);
         writeln!(
             out,
-            "{name:<18} {:>7.2} s {:>8.1} m {:>7.1} m/s",
+            "{name:<18} {:>7.2} s {:>8} m {:>10} {:>7} m/s {:>12}",
             event.time_s,
-            event.height_above_ground_m.max(0.0) + 0.0,
-            event.speed_m_s
+            fixed(height_m, 1),
+            format!("({})", feet(height_m)),
+            fixed(event.speed_m_s, 1),
+            format!("({})", feet_per_second(event.speed_m_s)),
         )?;
     }
     writeln!(
@@ -537,15 +580,15 @@ fn rest(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
         &flight.recovery,
         summary.apogee.as_ref().map(|apogee| apogee.time_s),
     );
-    if let Some(speed) = &summary.max_speed_m_s {
+    if let Some(top) = &summary.max_speed_m_s {
         figure(
             out,
             "top speed",
             &format!(
-                "{:.1} m/s at {:.2} s{}",
-                speed.value,
-                speed.time_s,
-                in_fall(speed, first_opened_s)
+                "{} at {:.2} s{}",
+                crate::units::speed(top.value),
+                top.time_s,
+                in_fall(top, first_opened_s)
             ),
         )?;
     }
@@ -561,10 +604,10 @@ fn rest(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
             out,
             "landing",
             &format!(
-                "{:.1} m from the pad at {:.2} s, at {:.1} m/s{}",
-                landing.distance_m,
+                "{} from the pad at {:.2} s, at {}{}",
+                meters(landing.distance_m),
                 landing.time_s,
-                landing.ground_hit_speed_m_s,
+                speed(landing.ground_hit_speed_m_s),
                 if braked {
                     ""
                 } else {
@@ -581,9 +624,11 @@ fn rest(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
             out,
             &format!("landing, part {part}"),
             &format!(
-                "{:.1} m from the pad at {:.2} s, at {:.1} m/s: rough, as it flew as a point with \
-                 only its devices' drag",
-                landing.distance_m, landing.time_s, landing.ground_hit_speed_m_s,
+                "{} from the pad at {:.2} s, at {}: rough, as it flew as a point with only its \
+                 devices' drag",
+                meters(landing.distance_m),
+                landing.time_s,
+                speed(landing.ground_hit_speed_m_s),
             ),
         )?;
     }

@@ -39,14 +39,15 @@ configuration 1 of 2: [H170M-10]
 help: --config flies the others, by number or name: 2 [I175WS-9]
 
 static margin         1.70 calibres off the rail; least 1.70 calibres, at 0.12 s, before apogee
-apogee                1065.1 m above the site at 11.62 s
-rail exit speed       26.3 m/s
+CG and CP             0.811 m (31.9 in) and 0.923 m (36.3 in) aft of the nose tip, off the rail
+apogee                1065.1 m (3494 ft) above the site at 11.62 s
+rail exit speed       26.3 m/s (86 ft/s)
 delay                 apogee 9.48 s after burnout; the motor's set delay: 10 s; its charge fires 0.52 s after apogee
-descent               4.4 m/s at landing under `Parachute`
+descent               4.4 m/s (15 ft/s) at landing under `Parachute`
 
 motor: 1 × H170M (the design's) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 12.14 s
-launched at 0° N, 0° E, 0 m above sea level, from a 1.5 m vertical rail, in calm air
+launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 help: see the Accuracy page before trusting these numbers: https://hpr.fusionspace.co/accuracy.html
 note: the file's 1 recovery device flies as OpenRocket flies it: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
 warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.84 at 1.7 s (https://github.com/nrdptel/fusionspace-eridanus/issues/67)
@@ -54,24 +55,25 @@ warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 again
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
-event                   time     height       speed
-liftoff               0.00 s      0.4 m     0.0 m/s
-rail exit             0.12 s      1.9 m    26.3 m/s
-burnout               2.14 s    406.4 m   240.4 m/s
-apogee               11.62 s   1065.1 m     0.1 m/s
-charge               12.14 s   1063.7 m     5.1 m/s
-deployment           12.14 s   1063.7 m     5.1 m/s
-ground hit          245.78 s      0.0 m     4.4 m/s
+event                   time                height                    speed
+liftoff               0.00 s      0.4 m     (1 ft)     0.0 m/s     (0 ft/s)
+rail exit             0.12 s      1.9 m     (6 ft)    26.3 m/s    (86 ft/s)
+burnout               2.14 s    406.4 m  (1333 ft)   240.4 m/s   (789 ft/s)
+apogee               11.62 s   1065.1 m  (3494 ft)     0.1 m/s     (0 ft/s)
+charge               12.14 s   1063.7 m  (3490 ft)     5.1 m/s    (17 ft/s)
+deployment           12.14 s   1063.7 m  (3490 ft)     5.1 m/s    (17 ft/s)
+ground hit          245.78 s      0.0 m     (0 ft)     4.4 m/s    (15 ft/s)
 (heights are the center of gravity's above the site; speeds are over the ground)
 
-top speed             285.6 m/s at 1.73 s
+top speed             285.6 m/s (937 ft/s) at 1.73 s
 top Mach number       0.842
-landing               0.7 m from the pad at 245.78 s, at 4.4 m/s
+landing               0.7 m (2 ft) from the pad at 245.78 s, at 4.4 m/s (15 ft/s)
 ```
 
 <!-- cli: end -->
 
-The five lines under the configuration are the ones to read first:
+The lines under the configuration are the ones to read first. Each height and speed is in SI,
+with feet or feet per second in parentheses:
 
 - **`static margin`**: how far the [center of pressure](glossary.md#center-of-pressure-cp) sits
   behind the [center of gravity](glossary.md#center-of-gravity-cg), in body diameters
@@ -80,6 +82,8 @@ The five lines under the configuration are the ones to read first:
   direction the air crosses it, and `hpr sim` prints the least
   ([Flight metrics](physics/metrics.md#stability-margins)). [Check stability for a certification flight](stability-for-certification.md)
   says how to use it.
+- **`CG and CP`**: where the center of gravity and the center of pressure sit as the rocket leaves
+  the rail, the two points the margin comes from, measured from the nose tip.
 - **`apogee`**: the highest point of the center of gravity, above the launch site.
 - **`rail exit speed`**: the speed as the rocket leaves the rail. The slower it is, the more a
   crosswind tips the rocket just after.
@@ -116,14 +120,15 @@ configuration 2 of 2: [I175WS-9]
 help: --config flies the others, by number or name: 1 [H170M-10]
 
 static margin         1.69 calibres off the rail; least 1.69 calibres, at 0.17 s, before apogee
-apogee                1174.3 m above the site at 11.51 s
-rail exit speed       36.8 m/s
+CG and CP             0.811 m (31.9 in) and 0.923 m (36.3 in) aft of the nose tip, off the rail
+apogee                1174.3 m (3853 ft) above the site at 11.51 s
+rail exit speed       36.8 m/s (121 ft/s)
 delay                 apogee 9.54 s after burnout; the motor's set delay: 9 s; its charge fires 0.54 s before apogee
-descent               4.9 m/s at landing under `Parachute`
+descent               4.9 m/s (16 ft/s) at landing under `Parachute`
 
 motor: 1 × I175WS (the design's) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 10.97 s
-launched at 0° N, 0° E, 1400 m above sea level, from a 2.4 m rail 85° above the horizon, leaning toward 270°, in a 4 m/s wind from 270°
+launched at 0° N, 0° E, 1400 m (4593 ft) above sea level, from a 2.4 m (7.9 ft) rail 85° above the horizon, leaning toward 270°, in a 4 m/s (9 mph) wind from 270°
 help: see the Accuracy page before trusting these numbers: https://hpr.fusionspace.co/accuracy.html
 note: the file's 1 recovery device flies as OpenRocket flies it: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
 warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.87 at 1.8 s (https://github.com/nrdptel/fusionspace-eridanus/issues/67)
@@ -131,19 +136,19 @@ warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 again
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
-event                   time     height       speed
-liftoff               0.02 s      0.4 m     0.0 m/s
-rail exit             0.17 s      2.8 m    36.8 m/s
-burnout               1.97 s    389.9 m   271.2 m/s
-charge               10.97 s   1172.0 m    15.4 m/s
-deployment           10.97 s   1172.0 m    15.4 m/s
-apogee               11.51 s   1174.3 m     1.0 m/s
-ground hit          246.17 s      0.0 m     6.3 m/s
+event                   time                height                    speed
+liftoff               0.02 s      0.4 m     (1 ft)     0.0 m/s     (0 ft/s)
+rail exit             0.17 s      2.8 m     (9 ft)    36.8 m/s   (121 ft/s)
+burnout               1.97 s    389.9 m  (1279 ft)   271.2 m/s   (890 ft/s)
+charge               10.97 s   1172.0 m  (3845 ft)    15.4 m/s    (50 ft/s)
+deployment           10.97 s   1172.0 m  (3845 ft)    15.4 m/s    (50 ft/s)
+apogee               11.51 s   1174.3 m  (3853 ft)     1.0 m/s     (3 ft/s)
+ground hit          246.17 s      0.0 m     (0 ft)     6.3 m/s    (21 ft/s)
 (heights are the center of gravity's above the site; speeds are over the ground)
 
-top speed             290.9 m/s at 1.75 s
+top speed             290.9 m/s (954 ft/s) at 1.75 s
 top Mach number       0.874
-landing               755.8 m from the pad at 246.17 s, at 6.3 m/s
+landing               755.8 m (2480 ft) from the pad at 246.17 s, at 6.3 m/s (21 ft/s)
 ```
 
 <!-- cli: end -->
