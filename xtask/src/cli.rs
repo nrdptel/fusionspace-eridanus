@@ -142,7 +142,7 @@ fn first_difference(committed: Option<&str>, expected: &str) -> String {
             .map_or(0, |(i, _)| i);
         text[start..]
             .chars()
-            .take(80)
+            .take(160)
             .collect::<String>()
             .escape_debug()
             .to_string()
@@ -429,9 +429,15 @@ mod tests {
         );
         assert_eq!(first_difference(None, "x"), " (not committed)");
         // One text a prefix of the other: the difference is where the shorter ends.
-        assert!(first_difference(Some("ab"), "abc").starts_with(" (line 1:"));
+        assert_eq!(
+            first_difference(Some("ab"), "abc"),
+            " (line 1: committed \"ab\", now \"abc\")"
+        );
         // Multi-byte characters around the difference stay whole.
-        assert!(first_difference(Some("é°1"), "é°2").contains("é°2"));
+        assert_eq!(
+            first_difference(Some("é°1"), "é°2"),
+            " (line 1: committed \"é°1\", now \"é°2\")"
+        );
     }
 
     #[test]
