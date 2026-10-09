@@ -349,9 +349,11 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9c4"></a>[M0.9c4][done-0] | Units and trust notes | done |
 | <a id="m0-9c5"></a>[M0.9c5][done-0] | Provenance | done |
 | <a id="m0-9c6"></a>[M0.9c6][done-0] | Errors and typed numbers | done |
-| <a id="m0-9c7"></a>[M0.9c7][phase-0] | The plot and the site | not yet done |
+| <a id="m0-9c7"></a>[M0.9c7][done-0] | The plot and the site | done |
 | <a id="m0-9c8"></a>[M0.9c8][phase-0] | Provenance on every export | not yet done |
 | <a id="m0-9c9"></a>[M0.9c9][phase-0] | Help, roles and progress | not yet done |
+| <a id="m0-9c12"></a>[M0.9c12][phase-0] | The plot's balloons, banking and title block | not yet done |
+| <a id="m0-9c13"></a>[M0.9c13][phase-0] | The site's figures and units | not yet done |
 | <a id="m0-9d"></a>[M0.9d][phase-0] | The site to the design | not yet done |
 | <a id="m0-9e"></a>[M0.9e][phase-0] | The words to the design | not yet done |
 | <a id="m0-10"></a>[M0.10][phase-0] | The scoreboard | not yet done |

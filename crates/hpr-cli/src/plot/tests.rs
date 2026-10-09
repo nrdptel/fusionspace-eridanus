@@ -308,7 +308,10 @@ fn an_unpredicted_fall_is_hatched_and_said() {
     let svg = figure_svg("Probe", Some((5.0, 20.0)));
     assert_eq!(svg.matches("fill=\"url(#hatch)\"").count(), 3, "{svg}");
     assert_eq!(svg.matches(">not a prediction<").count(), 1, "{svg}");
-    assert!(svg.contains("Hatched, 5.00 s to 20.00 s:"), "{svg}");
+    assert!(
+        svg.contains("Hatched, 5.00\u{a0}s to 20.00\u{a0}s:"),
+        "{svg}"
+    );
     let document = roxmltree::Document::parse(&svg).unwrap();
     let altitude = document
         .descendants()
@@ -672,8 +675,8 @@ fn numbers_read_in_the_product_systems_style() {
 fn the_figure_describes_its_apogee_and_top_speed() {
     let svg = figure_svg("Probe", None);
     let document = roxmltree::Document::parse(&svg).unwrap();
-    let said = "Apogee 100.0 m (328 ft) above the launch site at 5.00 s; top speed 1,234.6 m/s \
-                (4,050 ft/s) at 4.00 s.";
+    let said = "Apogee 100.0\u{a0}m (328\u{a0}ft) above the launch site at 5.00\u{a0}s; top speed \
+                1,234.6\u{a0}m/s (4,050\u{a0}ft/s) at 4.00\u{a0}s.";
     let desc = document
         .descendants()
         .find(|node| node.has_tag_name("desc"))
@@ -701,7 +704,8 @@ fn the_figure_describes_its_apogee_and_top_speed() {
     };
     assert_eq!(
         summary(&figure),
-        "No apogee; top speed 70.0 m/s (230 ft/s) at 20.00 s, in the fall: not a prediction."
+        "No apogee; top speed 70.0\u{a0}m/s (230\u{a0}ft/s) at 20.00\u{a0}s, in the fall: not a \
+         prediction."
     );
     figure.top_speed = None;
     assert_eq!(summary(&figure), "No apogee; no top speed.");
@@ -977,5 +981,164 @@ fn the_trace_samples_the_recorders_rows_and_each_step() {
     ] {
         let peak = peak.unwrap().value;
         assert!(plotted <= peak && plotted > peak * 0.99, "{plotted} {peak}");
+    }
+}
+
+/// The product system's spacing steps, px (`product/foundations.md`, *Space and layout*: a 4 px
+/// base on an 8 px rhythm).
+const SPACE_SCALE: [f64; 10] = [2.0, 4.0, 8.0, 12.0, 16.0, 24.0, 32.0, 48.0, 64.0, 96.0];
+
+/// The figure's type sits on the product system's scale (#382): every line is the 12 px `label`
+/// token but the title, the 20 px, weight 600 `subtitle` token, so no text, a balloon's numeral
+/// among them, is under the 12 px floor; a two-digit numeral fits inside its balloon; the steps
+/// between the title, subtitle, caption, marker rows and lines are on the 4 px scale, as drawn;
+/// and the time axis's title sits at the axis's end.
+#[test]
+fn the_figure_sets_its_type_on_the_scale() {
+    let svg = figure_svg("Probe", Some((6.0, 20.0)));
+    let document = roxmltree::Document::parse(&svg).unwrap();
+    let root = document.root_element();
+    assert_eq!(root.attribute("font-size"), Some("12"));
+    let sized: Vec<_> = document
+        .descendants()
+        .filter(|node| node.has_tag_name("text") && node.attribute("font-size").is_some())
+        .collect();
+    // Only the title sets a size of its own.
+    assert_eq!(sized.len(), 1, "{svg}");
+    assert_eq!(sized[0].attribute("font-size"), Some("20"));
+    assert_eq!(sized[0].attribute("font-weight"), Some("600"));
+    assert_eq!(sized[0].text(), Some("Probe"));
+    assert_eq!(TITLE_SIZE, 20.0);
+    // Each balloon's numeral, at the inherited 12 px, inside its circle: two digits at 0.6 em
+    // a character are narrower than the circle's chord at the figures' top and bottom, 0.7 em
+    // tall, centered.
+    for group in document.descendants().filter(|node| {
+        node.attribute("id")
+            .is_some_and(|id| id.starts_with("event-"))
+    }) {
+        let numeral = group
+            .children()
+            .find(|node| node.has_tag_name("text"))
+            .unwrap();
+        assert_eq!(numeral.attribute("font-size"), None);
+        let circle = group
+            .children()
+            .find(|node| node.has_tag_name("circle"))
+            .unwrap();
+        let r: f64 = circle.attribute("r").unwrap().parse().unwrap();
+        let half_height = 0.7 * 12.0 / 2.0;
+        let chord = 2.0 * (r * r - half_height * half_height).sqrt();
+        assert!(2.0 * 0.6 * 12.0 <= chord, "{r}");
+    }
+    // The steps, each on the scale.
+    for step in [
+        TITLE_TOP - MARGIN,
+        SUBTITLE_TOP - TITLE_TOP,
+        CAPTION_TOP - SUBTITLE_TOP,
+        CAPTION_GAP,
+        MARKER_ROW,
+        LIST_LINE,
+    ] {
+        assert!(SPACE_SCALE.contains(&step), "{step}");
+    }
+    // As drawn: the title, the subtitle and the caption's lines.
+    let ys: Vec<f64> = document
+        .descendants()
+        .filter(|node| node.has_tag_name("text") && node.attribute("x") == Some("76"))
+        .map(|node| node.attribute("y").unwrap().parse().unwrap())
+        .take(4)
+        .collect();
+    assert_eq!(ys, [32.0, 56.0, 80.0, 96.0], "{svg}");
+    // The time axis's title, right-aligned at the axis's end.
+    let time = document
+        .descendants()
+        .find(|node| node.has_tag_name("text") && node.text() == Some("TIME · s"))
+        .unwrap();
+    assert_eq!(time.attribute("text-anchor"), Some("end"));
+    assert_eq!(
+        time.attribute("x").unwrap().parse::<f64>().unwrap(),
+        WIDTH - RIGHT
+    );
+}
+
+/// No line of the figure parts a number from its unit (#382; `product/data.md`, *Numbers*):
+/// within a line they are joined by a no-break space, never a plain one, at which the caption
+/// and notes wrap; and no line ends on a number whose unit opens the next.
+#[test]
+fn a_number_keeps_its_unit_on_its_line() {
+    const UNITS: [&str; 7] = ["m", "ft", "s", "m/s", "ft/s", "m/s²", "ft/s²"];
+    let is_unit =
+        |word: &str| UNITS.contains(&word.trim_end_matches(|c: char| ",;:.)".contains(c)));
+    let ends_in_a_number = |word: &str| word.ends_with(|c: char| c.is_ascii_digit());
+    let svg = figure_svg("Probe", Some((6.0, 20.0)));
+    let document = roxmltree::Document::parse(&svg).unwrap();
+    let lines = texts(&document);
+    // The caption and the hatching's note, which give numbers with units.
+    assert!(
+        lines
+            .iter()
+            .any(|line| line.contains("100.0\u{a0}m (328\u{a0}ft)")),
+        "{lines:?}"
+    );
+    assert!(
+        lines
+            .iter()
+            .any(|line| line.contains("6.00\u{a0}s to 20.00\u{a0}s")),
+        "{lines:?}"
+    );
+    for line in &lines {
+        let words: Vec<&str> = line.split(' ').collect();
+        for pair in words.windows(2) {
+            assert!(!(ends_in_a_number(pair[0]) && is_unit(pair[1])), "{line:?}");
+        }
+    }
+    // The caption's and the notes' lines, flush left or indented, as they wrap.
+    let wrapped: Vec<String> = document
+        .descendants()
+        .filter(|node| {
+            node.has_tag_name("text") && matches!(node.attribute("x"), Some("76") | Some("96"))
+        })
+        .map(|node| node.text().unwrap_or_default().to_owned())
+        .collect();
+    assert!(wrapped.len() > 5, "{wrapped:?}");
+    for pair in wrapped.windows(2) {
+        let last = pair[0].split(' ').next_back().unwrap_or_default();
+        let first = pair[1].split(' ').next().unwrap_or_default();
+        assert!(!(ends_in_a_number(last) && is_unit(first)), "{pair:?}");
+    }
+    // At every width the caption could wrap to, from the longest word and the indent, below
+    // which `wrap` cuts inside a word, the summary keeps each number with its unit.
+    let summary = summary(&Figure {
+        title: "t",
+        subtitle: "s",
+        points: &[],
+        events: &[],
+        devices: &[],
+        unpredicted: None,
+        apogee: Some(Reading {
+            value: 1234.5,
+            time_s: 17.25,
+            unpredicted: false,
+        }),
+        top_speed: Some(Reading {
+            value: 210.0,
+            time_s: 2.5,
+            unpredicted: true,
+        }),
+    });
+    let longest = summary
+        .split(' ')
+        .map(|word| word.chars().count())
+        .max()
+        .unwrap();
+    for width in longest + INDENT.len() + 1..=LIST_WIDTH {
+        for pair in wrap(&summary, width).windows(2) {
+            let last = pair[0].split(' ').next_back().unwrap_or_default();
+            let first = pair[1].trim_start().split(' ').next().unwrap_or_default();
+            assert!(
+                !(ends_in_a_number(last) && is_unit(first)),
+                "{width} {pair:?}"
+            );
+        }
     }
 }
