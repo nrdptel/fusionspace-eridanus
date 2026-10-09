@@ -496,6 +496,8 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-3c1"></a>[M2.3c1][done-1] | Logged apogees: the private collection's logged flights against HPR Sim's and OpenRocket's predictions | done |
 | <a id="m2-3c2"></a>[M2.3c2][phase-1] | Logged traces: the same flights' altitude traces, once their logs are read | not yet done |
 | <a id="m2-3c3"></a>[M2.3c3][phase-1] | OpenRocket's newest release | not yet done |
+| <a id="m2-3c4"></a>[M2.3c4][phase-1] | One fixture repo | not yet done |
+| <a id="m2-3c5"></a>[M2.3c5][phase-1] | The corpus rechecked | not yet done |
 | <a id="m2-4"></a>[M2.4][done-1] | A summary of accuracy for the README, and CI that fails on any regression ([ADR-084][adr-084], [Accuracy: the census](accuracy.md#the-census)) | done |
 | <a id="m2-6"></a>[M2.6][phase-1] | An open benchmark | not yet done |
 | <a id="m2-7"></a>[M2.7][phase-1] | Held-out flights, predictions first | not yet done |
