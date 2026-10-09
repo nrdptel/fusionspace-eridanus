@@ -422,7 +422,7 @@ One line per milestone or increment, in the order it was archived within its pha
       end the figure; each held by a test failing before it.
     - [x] **M0.9c13 The site's figures and units** (#382, #400; ADR-216, ADR-219). *Done when:*
       #382 is closed, and #400 on the guides: a site check fails a height, distance or speed in
-      SI alone on every page but those ADR-219 defers or exempts.
+      SI alone on every page but those ADR-219 defers.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

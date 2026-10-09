@@ -373,7 +373,7 @@ wind. The optimizer chooses four things:
 | the motor | integer | the five 54 mm motors of the built-in catalog that fit, by total impulse |
 | the nose cone | integer | four Madcow nose cones for 2.6 in, shortest first |
 | the nose ballast | continuous | 0 to 1.5 kg |
-| the fins' span | continuous | 3 to 15 cm |
+| the fins' span | continuous | 3–15 cm (1.2–5.9 in) |
 
 The goal is the squared miss from 3,048 m (10,000 ft). The limits come from the International Rocket
 Engineering Competition's rules (its *Design, Test & Evaluation Guide*, 2025), and hold over the
@@ -581,7 +581,7 @@ and a design that keeps every limit beats one that doesn't. A design that can't 
 The example program
 [`crates/hpr/examples/pareto_front.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/pareto_front.rs)
 takes the 66 mm rocket on a J760 from [An example](#an-example), with its body fixed at
-1.0 m (39 in). It varies two things, the nose ballast (0 to 0.8 kg) and the fins' span (4 to 10 cm),
+1.0 m (39 in). It varies two things, the nose ballast (0 to 0.8 kg) and the fins' span, 4–10 cm (1.6–3.9 in),
 for two goals: the highest apogee, and the largest static margin at launch mass, at Mach 0.3. Every
 design must keep at least 1.5 calibres. The heart of it, abridged:
 

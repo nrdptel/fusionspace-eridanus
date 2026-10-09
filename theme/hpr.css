@@ -36,6 +36,4 @@
     width: min(100cqi, 1120px);
     max-width: none;
     margin-inline: calc((100% - min(100cqi, 1120px)) / 2);
-    pointer-events: none;
 }
-.content .checkbox-label img { pointer-events: auto; }

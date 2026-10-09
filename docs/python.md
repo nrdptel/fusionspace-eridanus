@@ -138,7 +138,7 @@ The stability margin is the distance from the
 [center of gravity](glossary.md#center-of-gravity-cg) back to the
 [center of pressure](glossary.md#center-of-pressure-cp), in body diameters
 ([calibres](glossary.md#calibre-caliber)). It is 2.12 here, where The builder's example says
-1.92. That example packs its 200 g recovery bay into a 15 cm cylinder, which moves the bay's
+1.92. That example packs its 200 g recovery bay into a 15 cm (5.9 in) cylinder, which moves the bay's
 center, and so the rocket's center of gravity, aft: about 0.4 calibres less. It also gives the
 nose a capped shoulder, which adds mass at the front: about 0.2 calibres more. A test holds both
 steps to these sizes

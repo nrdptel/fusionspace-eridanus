@@ -85,8 +85,8 @@ vegetation ([the dataset's readme](https://copernicus-dem-30m.s3.amazonaws.com/r
 Its stated accuracy is under 4 m (13 ft) for 90% of points (handbook, Table 1, page 10). That is a mean
 over the world outside Antarctica and Greenland, and the makers warn that it varies from place to
 place: of the 16,363 tiles there, each about a degree across, 184 (1.1%) are worse than
-10 m (33 ft). Table 12, page 31, prints 0.9%, a share of all tiles, Antarctica and Greenland
-included.
+10 m (33 ft); Table 12, page 31, prints 0.9%, but as a share of all tiles, Antarctica and
+Greenland included.
 
 The ground doesn't move, so a saved answer stays fresh for a year. Open-Meteo's forecast for
 Spaceport America ([Launch-day weather](weather.md)) gives the same ground height there,

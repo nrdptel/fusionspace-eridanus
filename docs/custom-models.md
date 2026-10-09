@@ -128,9 +128,9 @@ cargo run --example custom_wind -p fusionspace-hpr
 
 The simulator has steady, power-law, log-law and layered winds built in ([Wind](physics/wind.md)),
 and they reach the flight through the same `Wind` trait. This example writes one of its own: a wind
-that grows from 4 m/s (9 mph) at the ground to 10 m/s (22 mph) at 1,000 m (3,281 ft), and veers,
+that grows from 4 m/s (8.9 mph) at the ground to 10 m/s (22 mph) at 1,000 m (3,281 ft), and veers,
 turning clockwise, from the west (270°) to the north-west (315°) on the way up. Above 1,000 m
-(3,281 ft) it holds steady. It flies the same rocket in that wind and in a steady 4 m/s (9 mph)
+(3,281 ft) it holds steady. It flies the same rocket in that wind and in a steady 4 m/s (8.9 mph)
 west wind:
 
 <!-- quote: crates/hpr/examples/custom_wind.output.txt -->
@@ -200,7 +200,7 @@ each case: [`air_the_flight_cannot_use_stops_the_climb` and
 `air_the_flight_cannot_use_under_a_canopy_stops_the_descent`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/src/tests.rs),
 and
 [`a_separated_body_refuses_air_it_cannot_use`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/src/recovery.rs).
-Another test checks that the simulator's own atmospheres pass, from 5 km (3.1 mi) below sea level to a
+Another test checks that the simulator's own atmospheres pass, from 5 km (16,000 ft) below sea level to a
 million kilometers up
 ([`the_check_on_the_air_takes_every_stock_atmosphere`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/src/environment.rs)).
 The simulator can't tell whether air that passes is right; that is up to the model.

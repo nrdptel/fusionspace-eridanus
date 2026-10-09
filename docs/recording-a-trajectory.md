@@ -78,7 +78,7 @@ happened:
 
 What the numbers show:
 
-- **On the pad the airspeed is 5.0 m/s (16 ft/s)** with the rocket standing still: that is the wind.
+- **On the pad the airspeed is 5.0 m/s (11 mph)** with the rocket standing still: that is the wind.
 - **The rocket climbs into the wind.** The wind blows from the west, and off the rail a stable
   rocket turns its nose toward the wind it feels
   ([weathercocking](glossary.md#weathercocking)), so it drifts west: `cg_east_m` is −88.7 m
@@ -90,7 +90,7 @@ What the numbers show:
 - **`cg_north_m` shows 0.1 m (0.3 ft) for a while, with no wind from the south.** The Earth's rotation
   nudges a moving rocket sideways, to the right of its motion in the northern hemisphere
   ([Coriolis acceleration](glossary.md#coriolis-acceleration)). While the rocket moves west, that
-  is north: it drifts up to 6.3 cm, which the table rounds to 0.0 or 0.1 m (0.3 ft).
+  is north: it drifts up to 6.3 cm (2.5 in), which the table rounds to 0.0 or 0.1 m (0.3 ft).
 - **`cg_up_m` and `height_above_ground_m` agree here, and don't in general.** The launch frame is
   a flat plane, and the Earth curves away below it, so far from the pad `cg_up_m` reads low: on
   the ground 10 km (6.2 mi) from the pad, it is −7.8 m (−26 ft). At this landing, 94 m (308 ft)

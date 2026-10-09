@@ -303,8 +303,17 @@
       if (r.width <= 0 || r.height <= 0) continue;
       if (style(img).visibility !== 'visible' || !drawn(img)) continue;
       const natural = img.naturalWidth;
-      if (!(natural > 0) || r.width >= natural - SLACK_PX) continue;
       const src = img.getAttribute('src') || '';
+      // A figure with no size to read (broken, or an SVG without one) fails: the check can't
+      // say how it is shown.
+      if (!(natural > 0)) {
+        shrunk.push({
+          selector: selector(img), text: snippet(src), natural: 0, shown: Math.round(r.width),
+          why: 'no size the check can read',
+        });
+        continue;
+      }
+      if (r.width >= natural - SLACK_PX) continue;
       let why = null;
       // A pixel's slack: `clientWidth` is a whole number of pixels, and Chrome sizes a scaled
       // image from its height snapped to 1/64 px, which a wide figure's aspect ratio multiplies.

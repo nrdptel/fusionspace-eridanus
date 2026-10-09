@@ -652,7 +652,7 @@ is.
 | `--latitude DEG` | the site's latitude, degrees north (south is negative) | 0 |
 | `--longitude DEG` | the site's longitude, degrees east (west is negative) | 0 |
 | `--elevation M` | the site's height above sea level, m | 0 |
-| `--rail-length M` | the rail's length, from the rocket's aft end to the rail's top, m | 1.5 |
+| `--rail-length M` | the rail's length, from the rocket's aft end to the rail's top, m | 1.5 m (4.9 ft) |
 | `--inclination DEG` | the rail's angle above the horizon, degrees: 90 is vertical | 90 |
 | `--heading DEG` | the direction the rail leans toward, clockwise from true north, degrees (add the [declination](physics/magnetic.md) to a compass reading) | 0 |
 | `--wind M_S` | a wind of this speed at every height, m/s | calm |
@@ -907,8 +907,8 @@ balloons: liftoff, rail exit, burnout, apogee with the drogue, the main, and the
 table under the figure lists their nine events. A title block ends the figure.](images/sim-plot.svg)
 
 `cargo xtask cli` draws this figure with the command above, so it shows what the current `hpr`
-draws. This site shows it at its size, 960 px wide, wherever the window has room, wider than the
-text; in a narrower window it shrinks to fit, and clicking it shows it at its size.
+draws. This site shows it at its full 960 px, wider than the text, wherever the window has room;
+in a narrower window it shrinks to fit, and a click shows it at full size.
 
 #### The figure's data
 

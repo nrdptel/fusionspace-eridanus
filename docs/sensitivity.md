@@ -204,7 +204,7 @@ The six inputs, with ranges made up for the example:
 | dry mass factor | 0.95 to 1.05 | 1 | the rocket's mass without its motor, ±5% |
 | drag factor | 0.9 to 1.1 | 1 | the zero-lift drag, ±10% |
 | impulse factor | 0.94 to 1.06 | 1 | the motor's total impulse, ±6%; NFPA 1125 caps a motor type's standard deviation at 6.7% |
-| wind speed | 0–8 m/s (0–18 mph) | 4 m/s (9 mph) | the wind at every height |
+| wind speed | 0–8 m/s (0–18 mph) | 4 m/s (8.9 mph) | the wind at every height |
 | wind turn | −30° to 30° | 0° | the wind's direction, turned clockwise from the forecast's (a wind from the west) |
 | rail angle | 80° to 90° | 85° | the rail's angle above the horizon; 90° is vertical |
 

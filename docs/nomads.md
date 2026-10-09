@@ -14,9 +14,9 @@ System), for a small piece of one forecast around the site. The piece arrives as
 [GRIB2](glossary.md#grib2) file, the World Meteorological Organization's binary format for weather
 on a grid, and the simulator reads it with its own decoder. The result is a
 [sounding](glossary.md#sounding): temperature, pressure, humidity and wind at a column of heights,
-from the ground up to about 31 km (19 mi) in GFS or 16 km (9.9 mi) in RAP. You can also download a
+from the ground up to about 31 km (102,000 ft) in GFS or 16 km (52,000 ft) in RAP. You can also download a
 whole GFS file and read it offline ([A whole GFS file](#a-whole-gfs-file)), which goes up to about
-79 km (49 mi).
+79 km (259,000 ft).
 This page is for anyone who wants a flight in a named NOAA model's forecast, rather than
 Open-Meteo's choice of model ([Launch-day weather](weather.md)) or a weather balloon's
 measurement ([Weather-balloon soundings](soundings.md)).
@@ -62,8 +62,8 @@ sea-level pressure is about 1013 hPa). A *pressure level* is a height named by t
 
 | model | grid | runs start | forecast hours | pressure levels asked for |
 |---|---|---|---|---|
-| GFS | 0.25° of latitude and longitude, the whole Earth | every 6 hours (00, 06, 12, 18 UTC) | every hour to 120, then every third hour to 384 | 28, from 1000 to 10 hPa, about 31 km (19 mi) |
-| RAP | 13 km (8.1 mi), on a [Lambert conformal](glossary.md#lambert-conformal-projection) map of the contiguous United States and nearby parts of Canada and Mexico (not Alaska or Hawaii) | every hour | every hour to 21; to 51 only from the 03, 09, 15 and 21 UTC runs | 37, from 1000 to 100 hPa every 25, about 16 km (9.9 mi) |
+| GFS | 0.25° of latitude and longitude, the whole Earth | every 6 hours (00, 06, 12, 18 UTC) | every hour to 120, then every third hour to 384 | 28, from 1000 to 10 hPa, about 31 km (102,000 ft) |
+| RAP | 13 km (8.1 mi), on a [Lambert conformal](glossary.md#lambert-conformal-projection) map of the contiguous United States and nearby parts of Canada and Mexico (not Alaska or Hawaii) | every hour | every hour to 21; to 51 only from the 03, 09, 15 and 21 UTC runs | 37, from 1000 to 100 hPa every 25, about 16 km (52,000 ft) |
 
 `NomadsRequest::new(latitude, longitude, model, cycle, forecast_hour)` says what to ask for; it
 can't fail. The request's `url()`, and so `nomads::fetch`, refuse a cycle the model doesn't run
@@ -274,7 +274,7 @@ both. A whole file also holds 743 [messages](glossary.md#grib2) where a cut hold
 - values for a layer between two heights, such as the humidity from the ground to mid-air, which
   the simulator skips because they don't belong to one level;
 - every pressure level up to 0.01 hPa, so the profile goes on above 10 hPa, where a cut stops. In
-  the profile the simulator writes from this file, the 0.01 hPa level is 79.2 km (49 mi) above sea
+  the profile the simulator writes from this file, the 0.01 hPa level is 79.2 km (259,800 ft) above sea
   level. The highest levels are near the top of the model, and nothing here checks how good its
   forecast is there.
 
@@ -413,13 +413,13 @@ Linux and Windows.
 - **Forecast accuracy.** Nothing here checks a forecast against the weather that came.
 - **Time.** One forecast hour per request, with no interpolation between hours: you pick the run
   and the hour closest to your launch.
-- **Above the top level.** RAP stops at 100 hPa, about 16 km (9.9 mi), and GFS as asked for here
-  at 10 hPa, about 31 km (19 mi); a whole GFS file goes on to 0.01 hPa, about 79 km (49 mi), and
+- **Above the top level.** RAP stops at 100 hPa, about 16 km (52,000 ft), and GFS as asked for here
+  at 10 hPa, about 31 km (102,000 ft); a whole GFS file goes on to 0.01 hPa, about 79 km (259,000 ft), and
   the layer thickness check above stops at 10 hPa. Above that the sounding continues as the
   [standard atmosphere](glossary.md#standard-atmosphere), shifted to pass through the top level's
   temperature and pressure, with the top level's share of water vapour (capped where the air
   saturates). The wind holds the top level's wind. Both are marked as extrapolated. A flight above
-  16 km (9.9 mi) in RAP's forecast is flying on that guess.
+  16 km (52,000 ft) in RAP's forecast is flying on that guess.
 - **Underground grid points.** A kept level is blended from the four grid points even where one
   of them has that level underground. In the RAP cut, 850 hPa takes 13% of its weight from a point
   whose ground is at 845.8 hPa; the effect here is about 0.02 K, and larger in steep terrain.

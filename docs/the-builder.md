@@ -55,7 +55,7 @@ Landing:    877 m east of the pad, at 4.6 m/s, at 246.3 s
 What the lines say:
 
 - **Liftoff and spent.** The rocket loses 96 g of propellant as the motor burns. That moves the CG
-  6 cm forward, and the margin grows from 1.92 to 2.99 [calibres](glossary.md#calibre-caliber).
+  6 cm (2.4 in) forward, and the margin grows from 1.92 to 2.99 [calibres](glossary.md#calibre-caliber).
 - **The CP** is worked out by [Barrowman's method](glossary.md#barrowmans-method) at
   [Mach](glossary.md#mach-number) 0.3, a typical subsonic speed, with the air straight along the
   rocket. It depends on the shape alone, so it doesn't move as the motor burns.
@@ -105,7 +105,7 @@ a distance aft of the tube's, `Bottom` its aft end from the tube's aft end, `Mid
 from the tube's middle, `After` its fore end behind the part before it, and `Absolute` its fore end
 from the nose tip. So a `Mass` given a size with `packed` has its center half that length from the
 end its position names, or at the point itself when placed by its `Middle`. In the example,
-packing the recovery bay 15 cm long, its top 7 cm down the tube, moves the rocket's CG at liftoff
+packing the recovery bay 15 cm (5.9 in) long, its top 7 cm (2.8 in) down the tube, moves the rocket's CG at liftoff
 22 mm aft of where a point mass at the top puts it.
 
 Every part names its material, and every hollow part its wall. `material("abs")` finds one of the
@@ -116,7 +116,7 @@ square edges, and every outer surface has the design's default finish, mass-prod
 which sets the friction of the air on it ([Drag](physics/aero.md#drag)). The builder can't change the finish yet.
 
 `set_motor` puts the motor in the motor tube, lit at launch. `add_parachute` adds a recovery device:
-here a 90 cm flat parachute opened by the ejection charge of motor number 0, the first,
+here a 90 cm (35 in) flat parachute opened by the ejection charge of motor number 0, the first,
 `Trigger::MotorDelay { motor: 0 }`. A device adds drag, not mass; the parachute's mass is in the
 200 g recovery bay. The [recovery page](physics/recovery.md) explains the devices and what opens
 them.

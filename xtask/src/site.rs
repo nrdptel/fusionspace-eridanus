@@ -176,7 +176,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
     println!(
         "site pages: {} pages, {} links ({} to the web, not fetched), no problems; {} heights, \
-         distances and speeds in SI alone on {} model and records pages, not yet checked (#400)",
+         distances and speeds in SI alone on {} model, format and records pages, not yet checked (#400)",
         report.pages, report.links, report.web, report.deferred_units.0, report.deferred_units.1
     );
     let looks = theme::check_sources(&root, &root.join(SOURCE))?;

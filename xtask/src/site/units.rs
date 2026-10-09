@@ -6,7 +6,8 @@
 //!
 //! [`si_alone`] reads a page's text as it renders (prose, headings, list items, table cells,
 //! link text and image descriptions; not code, which quotes files and output) and fails each
-//! number in meters, kilometers, meters per second or kilometers per hour that no bracket
+//! number in meters, centimeters, kilometers, meters per second or kilometers per hour that no
+//! bracket
 //! follows, or whose bracket's US figure isn't that number converted:
 //!
 //! - **The units:** meters and kilometers in feet, inches or miles; meters and kilometers per
@@ -23,21 +24,21 @@
 //! - **So is e-notation:** `1e-9 m/s` is a tolerance a test or a solver holds, written as a
 //!   program writes it, not a quantity a flyer reads.
 //!
-//! Which pages: the guides, every page of the site but [`DEFERRED`] (the model pages and the
-//! records, M0.9c16) and [`EXEMPT`] (the file formats' pages, which give what a file stores).
+//! Which pages: the guides, every page of the site but [`DEFERRED`] (the model pages, the file
+//! formats' pages and the records, M0.9c16). Millimeters aren't read yet: most name a motor's or
+//! a mount's size, which stays in millimeters (`data.md`), and M0.9c16 sorts those from parts'
+//! sizes, which take inches.
 
-/// Pages, or directories of pages ending in `/`, the check doesn't read yet: the model pages and
-/// the records, which M0.9c16 brings in (ADR-219).
-pub(super) const DEFERRED: [&str; 4] = [
+/// Pages, or directories of pages ending in `/`, the check doesn't read yet: the model pages, the
+/// file formats' pages and the records, which M0.9c16 brings in (ADR-219). `cargo xtask site`
+/// counts what they hold.
+pub(super) const DEFERRED: [&str; 5] = [
     "physics/",
+    "format/",
     "accuracy.md",
     "VALIDATION.md",
     "decisions-and-roadmap.md",
 ];
-
-/// Pages the check never reads: a file format's page gives the numbers a file stores, in the
-/// file's own units (ADR-219).
-pub(super) const EXEMPT: [&str; 1] = ["format/"];
 
 /// Whether `name` (a page's path under `docs/`) is on a list of pages and directories.
 fn listed(list: &[&str], name: &str) -> bool {
@@ -52,7 +53,7 @@ fn listed(list: &[&str], name: &str) -> bool {
 
 /// Whether the check reads the page `name` (its path under `docs/`).
 pub(super) fn covers(name: &str) -> bool {
-    !listed(&DEFERRED, name) && !listed(&EXEMPT, name)
+    !listed(&DEFERRED, name)
 }
 
 /// Whether the page `name` waits for M0.9c16: the site check counts its failures, and doesn't
@@ -68,13 +69,14 @@ const MILE_M: f64 = 1609.344;
 
 /// An SI unit the check reads, longest first so `km/h` isn't read as `km`, and its US units with
 /// how many of each one of it makes.
-const SI_UNITS: [(&str, &[(&str, f64)]); 4] = [
+const SI_UNITS: [(&str, &[(&str, f64)]); 5] = [
     (
         "km/h",
         &[("mph", 1000.0 / MILE_M), ("ft/s", 1000.0 / 3600.0 / FOOT_M)],
     ),
     ("m/s", &[("ft/s", 1.0 / FOOT_M), ("mph", 3600.0 / MILE_M)]),
     ("km", &[("mi", 1000.0 / MILE_M), ("ft", 1000.0 / FOOT_M)]),
+    ("cm", &[("in", 0.01 / INCH_M), ("ft", 0.01 / FOOT_M)]),
     (
         "m",
         &[
@@ -131,8 +133,13 @@ fn figure(text: &str) -> Option<(Figure, usize)> {
             if let Some(count) = decimals.as_mut() {
                 *count += 1;
             }
-        } else if c == ',' && decimals.is_none() && !digits.is_empty() && next_is_digit {
-            // A thousands separator only: a comma and a space is a list.
+        } else if c == ','
+            && decimals.is_none()
+            && !digits.is_empty()
+            && group_follows(&text[at + 1..])
+        {
+            // A thousands separator only, three digits after it: a comma and a space is a list,
+            // and `1,40` is two numbers, not 140.
         } else if c == '.' && decimals.is_none() && next_is_digit {
             digits.push('.');
             decimals = Some(0);
@@ -154,14 +161,17 @@ fn figure(text: &str) -> Option<(Figure, usize)> {
             _ => (false, 0, rest),
         };
         let digits: String = rest.chars().take_while(char::is_ascii_digit).collect();
-        if let Ok(power) = digits.parse::<i32>() {
+        // Past ±400 a figure is zero or infinite in f64 anyway; bounding it keeps the place's
+        // arithmetic below from overflowing.
+        if let Ok(power) = digits.parse::<i32>().map(|power| power.min(400)) {
             exponent = if minus { -power } else { power };
             scientific = true;
             end += 1 + sign_len + digits.len();
         }
     }
     let value: f64 = digits.parse::<f64>().ok()? * 10f64.powi(exponent);
-    let place = 10f64.powi(exponent - decimals.unwrap_or(0) as i32);
+    let decimals = i32::try_from(decimals.unwrap_or(0)).unwrap_or(i32::MAX);
+    let place = 10f64.powi(exponent.saturating_sub(decimals));
     Some((
         Figure {
             value: if negative { -value } else { value },
@@ -170,6 +180,14 @@ fn figure(text: &str) -> Option<(Figure, usize)> {
         },
         end,
     ))
+}
+
+/// Whether `text` starts with a group of exactly three digits.
+fn group_follows(text: &str) -> bool {
+    let bytes = text.as_bytes();
+    bytes.len() >= 3
+        && bytes[..3].iter().all(u8::is_ascii_digit)
+        && bytes.get(3).is_none_or(|b| !b.is_ascii_digit())
 }
 
 /// Reads one figure or a range of two (`5,100–5,500`, an en dash between), from the start.
@@ -186,13 +204,13 @@ fn figures(text: &str) -> Option<(Vec<Figure>, usize)> {
 }
 
 /// The unit among `units` that `text` starts with, ending where a word would: not before a
-/// letter, digit, `/`, `²`, `³` or `-` (`m/s²`, `mm`, `min`, `m-long`).
+/// letter, digit, `/`, `²` or `³` (`m/s²`, `mm`, `min`). A hyphen ends it: `3 m-long` is 3 m.
 fn unit_at<'a>(text: &str, units: impl IntoIterator<Item = &'a str>) -> Option<&'a str> {
     units.into_iter().find(|unit| {
         text.strip_prefix(unit).is_some_and(|rest| {
             rest.chars()
                 .next()
-                .is_none_or(|c| !(c.is_alphanumeric() || matches!(c, '/' | '²' | '³' | '-')))
+                .is_none_or(|c| !(c.is_alphanumeric() || matches!(c, '/' | '²' | '³')))
         })
     })
 }
@@ -205,8 +223,9 @@ fn converts(si: Figure, us: Figure, factor: f64) -> bool {
     (us.value - exact).abs() <= allowed * (1.0 + 1e-9) + 1e-12
 }
 
-/// The bracket after a quantity, from its `(`: its length in bytes if it gives the quantity in a
-/// US unit, converted right, else what is wrong with it.
+/// The bracket after a quantity, from its `(`: if it gives the quantity in a US unit, converted
+/// right, the length in bytes of the conversion (from the `(` to the unit's end, and the `)` too
+/// when it follows the unit, so anything else the bracket says stays), else what is wrong.
 fn bracket(after: &str, si: &[Figure], units: &[(&str, f64)]) -> Result<usize, String> {
     let inside = after
         .strip_prefix('(')
@@ -236,14 +255,18 @@ fn bracket(after: &str, si: &[Figure], units: &[(&str, f64)]) -> Result<usize, S
         .zip(&us)
         .all(|(si, us)| converts(*si, *us, factor))
     {
-        after
-            .find(')')
-            .map(|end| end + 1)
-            .ok_or_else(|| "its bracket isn't closed".to_owned())
+        let unit_end = after.len() - rest.len() + unit.len();
+        if after[unit_end..].starts_with(')') {
+            Ok(unit_end + 1)
+        } else if after[unit_end..].contains(')') {
+            Ok(unit_end)
+        } else {
+            Err("its bracket isn't closed".to_owned())
+        }
     } else {
         let want: Vec<String> = si
             .iter()
-            .map(|si| format!("{:.2}", si.value * factor))
+            .map(|si| format!("{:.2}", si.value * factor).replace('-', "−"))
             .collect();
         Err(format!(
             "its bracket's {unit} aren't it converted ({} {unit})",
@@ -262,10 +285,11 @@ fn suggestion(si: &[Figure], units: &[(&str, f64)], space: &str) -> String {
         .map(|figure| {
             let value = figure.value * factor;
             let places = (-figure.place.log10()).round() as i32 - 1;
+            // At most 12 places: a figure written finer than that has no use for more.
             let places = if value.abs() < 10.0 {
-                places.max(1)
+                places.clamp(1, 12)
             } else {
-                places.max(0)
+                places.clamp(0, 12)
             } as usize;
             let text = format!("{:.*}", places, value.abs());
             let (whole, fraction) = text
@@ -404,10 +428,10 @@ fn scan(run: &str, mut found: impl FnMut(usize, Result<Option<std::ops::Range<us
         let rest = &run[at..];
         let c = rest.chars().next().unwrap_or(' ');
         let starts = c.is_ascii_digit() || matches!(c, '−' | '-' | '+');
-        // A figure starts after something that isn't part of a word or of another figure.
+        // A figure starts after something that isn't part of a word or of another figure. A
+        // comma may come before it, since a whole figure is read at once: `1,40 m` is 40 m.
         let previous = run[..at].chars().next_back();
-        let free =
-            previous.is_none_or(|p| !(p.is_alphanumeric() || matches!(p, '.' | ',' | '_' | '–')));
+        let free = previous.is_none_or(|p| !(p.is_alphanumeric() || matches!(p, '.' | '_' | '–')));
         if !(starts && free) {
             at += c.len_utf8();
             continue;
@@ -490,6 +514,8 @@ mod tests {
             "324 m (1,063 ft, above the pad)",
             "324 m (about 1,063 ft)",
             "a gust of 36 km/h (22 mph)",
+            "a 90 cm (35 in) flat parachute",
+            "a 3 m (9.8 ft) long rail",
         ] {
             assert_eq!(messages(run), Vec::<String>::new(), "{run}");
         }
@@ -506,6 +532,9 @@ mod tests {
             "a (3 m) rail",
             "−14 m/s under the drogue",
             "5,100–5,500 m",
+            "a 3 m-long rail",
+            "a 10 km-wide area",
+            "a 90 cm flat parachute",
         ] {
             assert_eq!(messages(run).len(), 1, "{run}");
         }
@@ -541,7 +570,6 @@ mod tests {
             "a 54 mm motor",
             "10 min of flight",
             "9.81 m/s² of gravity",
-            "a 3 m-long rail",
             "M1 m",
             "in meters",
             "11 mph",
@@ -565,6 +593,20 @@ mod tests {
         }
         // A sign joined to its figure is not an operator.
         assert_eq!(messages("falls at −14 m/s").len(), 1);
+    }
+
+    #[test]
+    fn odd_figures_neither_panic_nor_pass() {
+        // A comma is a thousands separator only before three digits.
+        assert_eq!(messages("1,40 m (459 ft)").len(), 1);
+        assert!(messages("1,400 m (4,593 ft)").is_empty());
+        // Huge exponents and absurd decimals are read without overflowing.
+        let _ = messages("1.25e-2147483647 m and 1e2147483647 m");
+        let long = format!("0.{}1 m", "0".repeat(400));
+        assert_eq!(messages(&long).len(), 1);
+        // A negative conversion's message uses the minus sign.
+        let found = messages("−3 m (−12 ft)");
+        assert!(found[0].contains("−9.84 ft"), "{found:?}");
     }
 
     #[test]
@@ -618,6 +660,11 @@ mod tests {
         );
         // A bracket that isn't the conversion stays: its numbers are quoted like any other.
         assert_eq!(without_conversions("324 m (1,100 ft)"), "324 m (1,100 ft)");
+        // So does what a bracket says after the conversion: only the feet drop out.
+        assert_eq!(
+            without_conversions("apogee 324 m (1,063 ft, +3.2% on OpenRocket) here"),
+            "apogee 324 m, +3.2% on OpenRocket) here"
+        );
     }
 
     #[test]
@@ -627,5 +674,7 @@ mod tests {
         assert!(!covers("physics/aero.md"));
         assert!(!covers("accuracy.md"));
         assert!(!covers("format/ork.md"));
+        assert!(deferred("format/ork.md") && deferred("physics/aero.md"));
+        assert!(!deferred("cli.md"));
     }
 }

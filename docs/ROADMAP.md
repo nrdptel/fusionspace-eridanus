@@ -146,8 +146,9 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
       each item held by a test failing on the build before it.
     - [ ] **M0.9c15 Next steps and waits** (#410, #411). *Done when:* both are closed, each item
       held by a check failing before it.
-    - [ ] **M0.9c16 US units on the model pages** (#400; ADR-219). *Done when:* #400 is closed:
-      the units check defers no page, the model pages, accuracy, validation plan and records in.
+    - [ ] **M0.9c16 US units on the model pages** (#400; ADR-219). *Done when:* #400 is closed,
+      with every item it lists: the units check defers no page and reads millimeters, a motor's
+      or mount's size excepted.
   - [ ] **M0.9d The site to the design** (ADR-208). *Done when:* #383 to #385 are closed: no
     mdBook default the system doesn't draw (colors, radii, shadows, motion, icons, metas, print),
     a title block and sheets on every page, notes in the system's shape, and every committed SVG

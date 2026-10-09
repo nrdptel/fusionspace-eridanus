@@ -127,7 +127,7 @@ level.
 | `R_d T̄_v / g₀` | 7,956.8 m (26,105 ft) |
 | thickness | 7,956.8 m × ln(557/549) = 115.1 m |
 | recorded | 5,151 m − 5,035 m = 116 m, a miss of 0.9 m (3.0 ft) |
-| allowance | 5.8 m (19 ft, 5%) + 14.4 m (rounding each pressure by 0.5 hPa) + 30 m = 50.1 m |
+| allowance | 5% of 115.1 m + 14.4 m (rounding each pressure by 0.5 hPa) + 30 m = 50.1 m |
 
 **Rows are kept from a chain.** The simulator looks for the longest *chain* of rows from the ground
 in which each row fits the one before it in the chain. The chain may pass by up to 10 rows at a
@@ -193,7 +193,7 @@ The profile lists every row it left out, and why. Two things refuse the answer:
   31 m (102 ft) high refuse the answer, but not 20 m (66 ft) high, which fit the ground and are
   kept, or 35 m (115 ft), which fit nothing but each other and are passed by; in the winter coded
   message, three rows 45 m (148 ft) high. So do 11 bad rows that fit each other, however far off.
-  HPR Sim can't tell these from a bad ground, and refuses the answer. Rows grossly off, by
+  HPR Sim can't tell these from a bad ground, and refuses the answer. Rows grossly off,
   850 m (2,789 ft) say, fit nothing above them and are passed by, up to 10.
 - **More than 10 rows after the chain's end.** The chain can pass by only 10 rows at a time, so
   11 bad rows in a row end it. HPR Sim takes that to mean the chain's end is wrong, or all of them
@@ -369,7 +369,7 @@ network.
 - Answers refused:
   - A block of 10 rows raised 1 km (3,281 ft) is left out; 11 refuse the answer.
   - In the coded message, a ground at 87.2 hPa (872 with its decimal point misplaced), at
-    125 m (410 ft) for 1,252 m (4,108 ft) with a digit lost, 8 hPa off, or 52 m (171 ft) or
+    125 m (410 ft) where 1,252 m (4,108 ft) lost a digit, 8 hPa off, or 52 m (171 ft) or
     80 m (262 ft) high; and a BUFR ground 34 m (112 ft) high, whose first layer is 8 m (26 ft)
     thick. Also a ground at 1,200 hPa, at −1,000 m (−3,281 ft) or at −150 °C: these are within
     the bounds, but no row above fits them. In the coded message a ground 40 m (131 ft) high, or

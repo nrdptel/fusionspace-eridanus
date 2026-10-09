@@ -116,7 +116,7 @@ by its motors and delays in brackets, so the guide rocket's second is `[I175WS-9
 options.** Without them, the rocket flies from a 1.5 m (4.9 ft) vertical rail at sea level, at
 0° N, 0° E, in calm air. Set the site's elevation for every real field: air thins with height, and
 a rocket climbs higher from a high one. This flies the second configuration from a field 1,400 m
-(4,593 ft) up, off a 2.4 m (7.9 ft) rail tilted 5° toward the west, in a 4 m/s (9 mph) west wind:
+(4,593 ft) up, off a 2.4 m (7.9 ft) rail tilted 5° toward the west, in a 4 m/s (8.9 mph) west wind:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/guides/level-1.ork --config 2 --elevation 1400 --rail-length 2.4 --inclination 85 --heading 270 --wind 4 --wind-from 270`; written by `cargo xtask cli`; do not edit -->
 

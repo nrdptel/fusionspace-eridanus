@@ -28,7 +28,8 @@
 //!   a figure, up to the product system's widest content (1,120 px, `foundations.md`, *Width*),
 //!   it must be shown at its size; where it hasn't, the reader must be able to open it at its
 //!   size, through mdBook's zoom (a checkbox in the figure's label that shows a copy over the
-//!   page). The theme lets a figure reach past the prose column for this (`theme/hpr.css`).
+//!   page). The theme lets a figure reach past the prose column for this (`theme/hpr.css`). A
+//!   figure with no size the check can read (broken, or an SVG without one) fails.
 //!
 //! **How.** A small web server on `127.0.0.1` serves the built site and, under `/__check/`, the
 //! harness ([`HARNESS_JS`]), the plan and the canaries. A few headless Chrome processes (headless
@@ -47,7 +48,8 @@
 //! `main`, inside it and inside a box that clips it, a label moved past the left edge inside
 //! `main`, a label cut short by its box, two labels drawn over each other, a figure shown at half
 //! its size with room for all of it, one wider than any window with no zoom, a figure reaching
-//! past a narrow `main` as the theme lays it out, which must pass, and an ordinary page
+//! past a narrow `main` as the theme lays it out, which must pass, a label moved past the
+//! window's edge from such a `main`, and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't
@@ -168,7 +170,7 @@ struct Canary {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 10] = [
+const CANARIES: [Canary; 11] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -232,6 +234,18 @@ const CANARIES: [Canary; 10] = [
                  .content { container-type: inline-size; } \
                  .checkbox-label { display: flex; justify-content: center; width: 100cqi; \
                  margin-inline: calc((100% - 100cqi) / 2); }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-past-visible.html",
+        what: "a label moved past the right edge of a `main` whose overflow is visible, as \
+               mdBook's is",
+        expect: &[Kind::Wide],
+        inside: "<style>main { overflow-x: visible; max-width: 300px; margin: 0 auto; } \
+                 .content { container-type: inline-size; } \
+                 .checkbox-label { display: flex; justify-content: center; width: 100cqi; \
+                 margin-inline: calc((100% - 100cqi) / 2); }</style>\
+                 <p>A label <span style=\"position: relative; left: 2000px\">moved out</span></p>",
         after: "",
     },
     Canary {
