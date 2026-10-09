@@ -60,7 +60,7 @@ What the field publishes, read on 2026-10-08:
    higher error, a larger absolute bias, a coverage farther from its stated level, more lossy round trips, fewer
    features or more steps. A check fails when a number gets worse than the committed one, unless an accepted ADR names
    that metric. Speed is reported from one reference machine and reviewed (§15), not gated, since CI machines vary.
-4. **Held-out flights and predictions recorded first (M2.7).** A flight is held out when a hash of its id and the seed
+4. **Held-out flights and predictions recorded first (M2.7).** A flight is held out when SHA-256 of its id and the seed
    `ADR-209` falls in the lowest third, a rule fixed before any held-out error is computed and stable as the collection
    grows. Held-out flights never feed a fit or tuning across flights or a choice of model. Their errors were reported
    before this rule, so they are held out from now, not blind; only flights predicted first are blind. A new flight's
