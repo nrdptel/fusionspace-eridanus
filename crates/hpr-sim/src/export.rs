@@ -133,7 +133,7 @@ const UNITS: [(&[&str], &str); 12] = [
 
 /// A column's name as a CSV header writes it: the name's words with spaces, then its unit in
 /// brackets, as the product system's `data.md` writes a header (`time [s]`). The unit is the
-/// name's last word or two, read from [`UNITS`]: `time_s` is `time [s]`,
+/// name's last word or two, read from a table of twelve units: `time_s` is `time [s]`,
 /// `velocity_east_m_s` is `velocity east [m/s]`, `max_acceleration_m_s2` is
 /// `max acceleration [m/s^2]` and `dynamic_pressure_pa` is `dynamic pressure [Pa]`; a name with
 /// no unit, such as `mach` or `drag_scale`, is its words alone. JSON and Parquet keep the name.

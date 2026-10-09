@@ -86,7 +86,7 @@ name, the design and configuration flown, the number of rows, and:
   --json`'s `motors`, whose text line says "from the bundled catalog, as of 2026-09-17". The
   day of the run itself is left out, so the same run writes the same bytes.
 - `kind` and `trust`: what the numbers are (`simulated`) and the
-  [*How far to trust it*](cli.md#the-accuracy-note-on-every-result) note `hpr sim` ends with.
+  [accuracy note](cli.md#the-accuracy-note-on-every-result) `hpr sim` ends with.
 
 A JSON recording from `hpr sim` carries the same four, with `design` and `configuration`, between
 `tool` and `columns`, so a saved flight keeps its note. The library's `export::csv` writes the
