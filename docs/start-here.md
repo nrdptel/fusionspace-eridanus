@@ -236,7 +236,9 @@ out.
   as burnout and each leg of the descent, come with [M7.2](decisions-and-roadmap.md#m7-2), and
   comparing a flight with a simulation of it with [M7.3](decisions-and-roadmap.md#m7-3).
 
-## How far to trust it
+<a id="how-far-to-trust-it"></a>
+
+## Accuracy so far
 
 [Accuracy](accuracy.md) gathers every result so far, gaps included. The accuracy work aims first
 at the flights most rocketeers make, the core band: up to Mach 2.5. It assumes angles of attack of
@@ -392,7 +394,7 @@ the simulator's internal name, then software tool 1.
 | Designation | `FS-ACHERNAR · SW · TOOL 001` |
 | Version | 0.1.0, not yet released |
 | Date of issue | <span id="issue-date">the date of the commit the site is built from</span> |
-| Status | IN PREPARATION: no release yet; how far to trust each result is [above](#how-far-to-trust-it) |
+| Status | IN PREPARATION: no release yet; how far to trust each result is [above](#accuracy-so-far) |
 | Units | SI (meters, kilograms, seconds) first. The text of `hpr sim` and `hpr mc` adds US units in parentheses: feet after heights and distances, feet per second after speeds, miles per hour after the wind and inches after stations along the rocket; `hpr motors show` adds ounces or pounds and inches. The plot gives a second scale in feet, feet per second and g. JSON and exported files stay SI ([units](cli.md#units)) |
 | Data | Thrust curves: ThrustCurve.org's public-domain files, catalog captured 2026-09-17. Atmosphere: U.S. Standard Atmosphere 1976, or a sounding or forecast you supply or fetch ([weather](weather.md)). Magnetic field: WMM2025. Accuracy: the committed [validation report][report]. Every source and its terms: [third-party notices][notices]. |
 | Fonts | Archivo and Cascadia Mono, SIL Open Font License 1.1, served from this site; no page asks another server for anything |

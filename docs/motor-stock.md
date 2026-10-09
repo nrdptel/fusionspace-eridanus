@@ -14,15 +14,15 @@ fly ([A motor from a file](physics/motor.md#a-motor-from-a-file)). At the comman
 price ([Motors you can buy](cli.md#motors-you-can-buy)); a Rust program calls the library, as
 below.
 
-**How far to trust it.** The simulator gives back the site's values unchanged, and the saved copy
-gives them back offline. That is checked on recorded answers, below: eight from motor.fusionspace.co
-and two curve files from ThrustCurve.org, beside three stand-in searches in ThrustCurve.org's shape,
-since ThrustCurve.org grants no license for its motor records (its site reads "All rights under
-copyright reserved"). Whether a vendor really has a motor, at that price, is the vendor's to say. The site's data is up to about an hour old when it is built,
-and the simulator counts its saved copy as fresh for another hour, so a fresh answer can be two
-hours behind the vendor's page; a stale copy is as old as its date says. (ThrustCurve.org's answers
-count as fresh for a day.) The site's terms ask you to check stock
-and price on the vendor's own page before relying on them. Prices are in U.S. dollars.
+> **How far to trust it.** Copied values. The simulator gives back the site's values unchanged, and the saved
+> copy gives them back offline. That is checked on recorded answers, below: eight from motor.fusionspace.co
+> and two curve files from ThrustCurve.org, beside three stand-in searches in ThrustCurve.org's shape,
+> since ThrustCurve.org grants no license for its motor records (its site reads "All rights under
+> copyright reserved"). Whether a vendor really has a motor, at that price, is the vendor's to say. The site's data is up to about an hour old when it is built,
+> and the simulator counts its saved copy as fresh for another hour, so a fresh answer can be two
+> hours behind the vendor's page; a stale copy is as old as its date says. (ThrustCurve.org's answers
+> count as fresh for a day.) The site's terms ask you to check stock
+> and price on the vendor's own page before relying on them. Prices are in U.S. dollars.
 
 The match is by name. On ThrustCurve.org's answers of 1 October 2026, all 282 motors in stock
 matched exactly one ThrustCurve.org record ([below](#matching-motors-to-thrustcurveorg)), and each

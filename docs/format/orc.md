@@ -11,15 +11,15 @@ HPR Sim has those 16 files built in. A program can look a part up by maker and p
 search for one. This page is the reference for that reader: what a file holds, how each value is
 read, and where HPR Sim's reading differs from OpenRocket's.
 
-**How far to trust it.** OpenRocket's own reader was run on the same files as an
-[oracle](../glossary.md#oracle), a program whose answers HPR Sim is checked against. HPR Sim
-reads every part OpenRocket reads, in the same order. Of the 18,306 sizes, masses and densities
-compared, 17,911 come out equal to the last bit. The other 395 (185 masses in ounces, 207
-densities and 3 undefined materials) are counted, and so are the 252 parts whose maker OpenRocket
-names otherwise; each has a known cause
-([Where the simulator's reader and OpenRocket's differ](#where-the-simulators-reader-and-openrockets-differ)). A
-part is only as right as its file, though. The database's README warns that its data may be
-wrong for your rocket and that you should weigh your real parts.
+> **How far to trust it.** Copied values, read from the parts database. OpenRocket's own reader was run on the same files as an
+> [oracle](../glossary.md#oracle), a program whose answers HPR Sim is checked against. HPR Sim
+> reads every part OpenRocket reads, in the same order. Of the 18,306 sizes, masses and densities
+> compared, 17,911 come out equal to the last bit. The other 395 (185 masses in ounces, 207
+> densities and 3 undefined materials) are counted, and so are the 252 parts whose maker OpenRocket
+> names otherwise; each has a known cause
+> ([Where the simulator's reader and OpenRocket's differ](#where-the-simulators-reader-and-openrockets-differ)). A
+> part is only as right as its file, though. The database's README warns that its data may be
+> wrong for your rocket and that you should weigh your real parts.
 
 **Building with it.** The builder makes a rocket's parts from catalog parts, and weighs each
 one as OpenRocket does, with the few differences it names

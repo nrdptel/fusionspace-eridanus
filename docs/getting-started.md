@@ -5,17 +5,16 @@ a short program that flies a rocket from the launch rail to the ground and print
 Then it walks through that program, so you can change it and fly your own variations. It needs
 some Rust, but no knowledge of this project.
 
-> **The numbers this example prints are not validated.** HPR Sim's whole flights match RocketPy's in
-> height, speed and time when both codes are given the same drag, and in where they go, except for
-> rockets that leave the rail slowly in a wind (see [How far to trust it](#how-far-to-trust-it)). With its own drag, HPR Sim flies this rocket about 10% higher than RocketPy does on the drag
-> table RocketPy's example ships (770 m against 700 m in the
-> [validation case](accuracy.md#whole-flights-with-each-codes-own-drag)); which drag is closer to
-> the truth is open. This rocket left no flight log, so it can't be checked against its real flight;
-> seven other rockets have been, and HPR Sim's apogees missed theirs by 6.04% on average, outside
-> the 5% target ([real flights](accuracy.md#real-flights)). Against 55 more, from a private
-> collection, HPR Sim's apogees were +9.83% above the logs on average, and OpenRocket's +9.00%
-> ([private collection](accuracy.md#real-flights-of-the-private-collection)).
-> [How far to trust it](#how-far-to-trust-it) below says what that means for this one.
+> **How far to trust it.** A simulation, not validated: this rocket left no flight log to check
+> it against. On seven other rockets' logged flights HPR Sim's apogees missed by 6.04% on average,
+> outside the 5% target ([real flights](accuracy.md#real-flights)), and on 55 more from a private
+> collection they were +9.83% above the logs, OpenRocket's +9.00%
+> ([private collection](accuracy.md#real-flights-of-the-private-collection)). Given the same drag,
+> its heights, speeds and times match RocketPy's; on its own drag it flies this rocket about 10%
+> higher than RocketPy does on the drag table RocketPy's example ships (770 m against 700 m,
+> [validation case](accuracy.md#whole-flights-with-each-codes-own-drag)). The drag and the drift
+> in a wind are the least certain numbers it prints
+> ([Accuracy of these numbers](#accuracy-of-these-numbers)).
 
 ## Install a release
 
@@ -194,7 +193,7 @@ Below the table:
   climbs, so its apogee is west of the pad. It then drifts east under its parachutes, past the
   pad.
 
-## How far to trust it
+## Accuracy of these numbers
 
 - **Heights, speeds and times match RocketPy's, given the same drag.** Five of RocketPy's example
   rockets, this airframe among them, flown from the pad to the ground by both codes with one

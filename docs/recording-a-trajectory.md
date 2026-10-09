@@ -5,8 +5,9 @@ spreadsheet or a plotting tool reads. It flies the rocket of [Getting started](g
 again, in the same weather, and keeps its height, speed and position every 5 seconds. It needs the
 first page's setup, and a little Rust.
 
-> **These numbers are not validated.** They are the first flight's, and
-> [How far to trust it](getting-started.md#how-far-to-trust-it) on that page applies to them too.
+> **How far to trust it.** A simulation, not validated: these are the first flight's numbers,
+> and [Accuracy of these numbers](getting-started.md#accuracy-of-these-numbers) on that page
+> applies to them too.
 
 ## Run it
 

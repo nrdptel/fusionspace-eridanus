@@ -11,17 +11,17 @@ layout, but no file of theirs has been tried ([the format](format/pf2.md)). Othe
 with [M7.1](decisions-and-roadmap.md#m7-1), the milestone that reads the other formats that
 Debrief, the project owner's earlier flight-log analyzer, read.
 
-**How far to trust it:** on an invented flight whose every number is known, the apogee comes
-within a quarter of a meter and one sample of the truth, and liftoff within a tenth of a second.
-The landing is read at the first sample within 2 m of the pad, so early by the time the last 2 m
-take: 0.33 s at 6 m/s, 0.5 s at 4 m/s. On one real flight, a public log that isn't committed here
-and so isn't checked in CI, the analyzer reads 1,010 ft where the altimeter states 1,009 ft. The
-analyzer has no check yet for a barometer's errors near the speed of sound. If the flight may have
-come near Mach 0.9, about 300 m/s (1,000 ft/s), treat the top speed and the heights near it with
-care: the barometer's error can pull the top speed down too, so a low reading doesn't clear it. The
-rules behind each reading are on [Flight-log readings](physics/log-readings.md), with what they were
-checked against. A reading the log can't support is left out and says why, rather than printed as a
-number.
+> **How far to trust it.** Readings of the altimeter's own log, not a simulation. On an invented flight whose every number is known, the apogee comes
+> within a quarter of a meter and one sample of the truth, and liftoff within a tenth of a second.
+> The landing is read at the first sample within 2 m of the pad, so early by the time the last 2 m
+> take: 0.33 s at 6 m/s, 0.5 s at 4 m/s. On one real flight, a public log that isn't committed here
+> and so isn't checked in CI, the analyzer reads 1,010 ft where the altimeter states 1,009 ft. The
+> analyzer has no check yet for a barometer's errors near the speed of sound. If the flight may have
+> come near Mach 0.9, about 300 m/s (1,000 ft/s), treat the top speed and the heights near it with
+> care: the barometer's error can pull the top speed down too, so a low reading doesn't clear it. The
+> rules behind each reading are on [Flight-log readings](physics/log-readings.md), with what they were
+> checked against. A reading the log can't support is left out and says why, rather than printed as a
+> number.
 
 ## From the command line
 

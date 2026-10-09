@@ -8,7 +8,7 @@ member decide. HPR Sim's margin at rod clearance agrees with OpenRocket 24.12's 
 [calibres](glossary.md#calibre-caliber) on 41 of OpenRocket's 53 example flights, but no margin
 of HPR Sim's has been checked against a measured rocket. On OpenRocket's two pod examples it reads
 0.07 calibres above OpenRocket's, and near the speed of sound its flight margin reads high
-([how far to trust it](#how-far-to-trust-the-margin)). The outputs on this page
+([accuracy of the margin](#accuracy-of-the-margin)). The outputs on this page
 are made by running each command, and CI checks that they still match what `hpr` prints.
 
 The steps:
@@ -224,11 +224,19 @@ motor out of the measurement: an override never covers a motor, in HPR Sim or Op
 add the motor's own mass, so a rocket weighed with its motor in would carry it twice. The margin
 then rests on your rocket's measured mass, not the drawing's.
 
-## How far to trust the margin
+<a id="how-far-to-trust-the-margin"></a>
 
-**HPR Sim's margin has been compared with OpenRocket's, not with a measured rocket.** Both programs
-start from Barrowman's method, so agreement says HPR Sim computes it as OpenRocket does, not that
-either is right ([Accuracy](accuracy.md#the-census)).
+## Accuracy of the margin
+
+> **How far to trust it.** A computed margin, compared with OpenRocket's, not with a measured
+> rocket. Both programs start from Barrowman's method, so agreement says HPR Sim computes it as
+> OpenRocket does, not that either is right ([Accuracy](accuracy.md#the-census)). On OpenRocket's
+> examples it is within 0.016 calibres on 41 of 53 flights. It reads up to 0.1108 calibres above
+> OpenRocket's on private designs, and high near the speed of sound: the flattering side, so leave
+> room for it near any limit. On a design with tube fins, pods or freeform fins, check the margin
+> in both programs and treat the smaller as the more cautious figure, not a bound.
+
+In detail:
 
 - **OpenRocket's examples:** within 0.016 calibres on 41 of 53 flights, with HPR Sim's margin taken
   with the air along the rocket's axis, as OpenRocket's is. The margin `hpr sim` prints is the

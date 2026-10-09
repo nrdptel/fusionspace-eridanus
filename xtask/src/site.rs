@@ -42,6 +42,13 @@
 //!   be that file of the repository, line for line. So the code and output a page shows, such as
 //!   *Getting started*'s example and what it prints, can't drift from the files CI compiles and
 //!   runs. mdBook's `{{#include}}` would render on the site only, not on GitHub.
+//! - **Trust notes** (#379). A result someone might fly on says how far to trust it in one shape:
+//!   a quote block whose first paragraph opens with exactly `**How far to trust it.**`, then what
+//!   kind of figure it is, what it was checked against with numbers, and what to rely on instead
+//!   (`docs/writing.md`). The label "How far to trust" fails anywhere else: bold in other words or
+//!   in another place, in plain text or a link's, or as a heading, which says what its section
+//!   covers instead. So does a quote block that opens with a bold "not validated" sentence, the
+//!   note's older shape. Code is exempt ([`trust_notes`]).
 //!
 //! `cargo test` runs these on the real pages. `cargo xtask site` runs them, builds the site into
 //! `target/site` with mdBook, and checks the built HTML as well: every relative `href` and `src`
@@ -1000,7 +1007,9 @@ fn read_page(text: &str) -> Page {
 const HEADING_LINK: &str = "a link inside a heading: mdBook already makes each heading a link, and \
                             a link inside a link is invalid HTML; move it to the text below";
 
-/// The rules only some pages follow, as (line, message): a model page opens with *In short*;
+/// The rules beyond [`read_page`]'s, as (line, message): every page's quotes and, but on
+/// [`RECORDS`], its [`trust_notes`]; then those only some pages follow: a model page opens with
+/// *In short*;
 /// [`ACCURACY`] traces its numbers, names every case of the report and links every model page;
 /// [`RECORDS`] links every decision and every phase of the roadmap. `links` are the page's, and
 /// `guides` the pages of the site at the top of [`SOURCE`], which are not sources of numbers.
@@ -1012,6 +1021,11 @@ fn page_rules(
     guides: &BTreeSet<String>,
 ) -> Vec<(usize, String)> {
     let mut problems = quotes(root, text);
+    // The records page quotes milestones' and decisions' titles as the roadmap and the records
+    // write them, which may name the note.
+    if name != RECORDS {
+        problems.extend(trust_notes(text));
+    }
     if parent(name) == MODELS {
         problems.extend(in_short(text));
         // Each number *In short* quotes is in the rest of the page, or in a file its item links.
@@ -1120,6 +1134,158 @@ fn page_rules(
                 fs::read_to_string(root.join(crate::roadmap::ARCHIVE)).unwrap_or_default();
             problems.extend(milestone_rows(text, &format!("{roadmap}\n{archive}")));
         }
+    }
+    problems
+}
+
+/// The words a trust note opens with, in bold: the one place on a page the label "How far to
+/// trust" may appear (#379).
+const TRUST_LABEL: &str = "How far to trust it.";
+
+/// What a trust note looks like, for the messages of [`trust_notes`].
+const TRUST_SHAPE: &str = "a trust note is a quote block whose first paragraph opens with exactly \
+                           `**How far to trust it.**`, then says what kind of figure it is, what \
+                           it was checked against, with numbers, and what to rely on instead \
+                           (docs/writing.md)";
+
+/// Where a page's trust notes leave their one shape, as (line, message). The design's writing
+/// rules (`principles.md` §3, `writing.md`'s *How far to trust it*) give every result someone
+/// might fly on a short note in one fixed shape: a quote block whose first paragraph opens with
+/// the bold label [`TRUST_LABEL`], then three parts in order: what kind of figure it is, what it
+/// was checked against with numbers, and what to rely on instead. The label "How far to trust"
+/// fails anywhere else:
+///
+/// - in bold, in any letter case, as other words (`**How far to trust the margin.**`) or in
+///   another place (a paragraph outside a quote block, or later in one);
+/// - as the start of a heading, which says what its section covers instead;
+/// - in plain text or a link's text, capitalized as a label is. Lower case reads as prose ("how
+///   far to trust each result").
+///
+/// A quote block that opens with a bold sentence saying "not validated" fails too: it is the
+/// note's older shape. Code, fenced or inline, and raw HTML are exempt: they quote programs and
+/// output as written.
+fn trust_notes(text: &str) -> Vec<(usize, String)> {
+    let line = line_index(text);
+    let mut problems = Vec::new();
+    let is_label = |words: &str| {
+        words
+            .trim_start()
+            .to_lowercase()
+            .starts_with("how far to trust")
+    };
+    let plain_label = |plain: &str, at: usize, problems: &mut Vec<(usize, String)>| {
+        if plain.contains("How far to trust") {
+            problems.push((
+                line(at),
+                format!("the label \"How far to trust\" in plain text: {TRUST_SHAPE}"),
+            ));
+        }
+    };
+    // A quote block has started, and no block in it yet.
+    let mut quote_opens = false;
+    // The event just read opened the first paragraph of a quote block, so the next one, the
+    // paragraph's first inline, may be the note's label.
+    let mut note_slot = false;
+    // The bold text being read: where it starts, whether it opens a quote block's first
+    // paragraph, and its words. Bold inside bold reads into the outermost.
+    let mut strong: Option<(usize, bool, String)> = None;
+    let mut strong_depth = 0usize;
+    let mut heading: Option<(usize, String)> = None;
+    let mut in_code_block = false;
+    // Consecutive plain text, read as one however the parser splits it.
+    let mut plain = String::new();
+    let mut plain_at = 0;
+    for (event, range) in Parser::new_ext(text, options()).into_offset_iter() {
+        let opens_note = std::mem::take(&mut note_slot);
+        let is_plain = matches!(event, Event::Text(_))
+            && strong.is_none()
+            && heading.is_none()
+            && !in_code_block;
+        if !is_plain && !plain.is_empty() {
+            plain_label(&plain, plain_at, &mut problems);
+            plain.clear();
+        }
+        match event {
+            Event::Start(Tag::BlockQuote(_)) => quote_opens = true,
+            Event::Start(Tag::Paragraph) => note_slot = std::mem::take(&mut quote_opens),
+            Event::Start(Tag::CodeBlock(_)) => {
+                quote_opens = false;
+                in_code_block = true;
+            }
+            Event::End(TagEnd::CodeBlock) => in_code_block = false,
+            Event::Start(Tag::Heading { .. }) => {
+                quote_opens = false;
+                heading = Some((range.start, String::new()));
+            }
+            Event::End(TagEnd::Heading(_)) => {
+                if let Some((at, words)) = heading.take()
+                    && is_label(&words)
+                {
+                    problems.push((
+                        line(at),
+                        format!(
+                            "the heading \"{}\" opens with the trust note's label: name what the \
+                             section covers, such as \"Accuracy of the margin\"; {TRUST_SHAPE}",
+                            words.trim()
+                        ),
+                    ));
+                }
+            }
+            Event::Start(Tag::Strong) => {
+                strong_depth += 1;
+                if strong_depth == 1 {
+                    strong = Some((range.start, opens_note, String::new()));
+                }
+            }
+            Event::End(TagEnd::Strong) => {
+                strong_depth = strong_depth.saturating_sub(1);
+                if strong_depth == 0
+                    && let Some((at, opens, words)) = strong.take()
+                {
+                    if opens && words.to_lowercase().contains("not validated") {
+                        problems.push((
+                            line(at),
+                            format!(
+                                "a quote block opens with \"{}\": write it as a trust note; \
+                                 {TRUST_SHAPE}",
+                                words.trim()
+                            ),
+                        ));
+                    } else if is_label(&words) && !(opens && words == TRUST_LABEL) {
+                        problems.push((
+                            line(at),
+                            format!(
+                                "the bold label \"{}\" outside a trust note's opening: \
+                                 {TRUST_SHAPE}",
+                                words.trim()
+                            ),
+                        ));
+                    }
+                }
+            }
+            // Inline code inside bold or a heading is part of what it says; on its own it quotes
+            // code, and is exempt.
+            Event::Text(words) | Event::Code(words) => {
+                if let Some((_, _, bold)) = strong.as_mut() {
+                    bold.push_str(&words);
+                }
+                if let Some((_, title)) = heading.as_mut() {
+                    title.push_str(&words);
+                }
+                if is_plain {
+                    if plain.is_empty() {
+                        plain_at = range.start;
+                    }
+                    plain.push_str(&words);
+                }
+            }
+            // Any other block opens the quote block instead of a paragraph.
+            Event::Start(_) => quote_opens = false,
+            _ => {}
+        }
+    }
+    if !plain.is_empty() {
+        plain_label(&plain, plain_at, &mut problems);
     }
     problems
 }
@@ -3114,6 +3280,129 @@ mod tests {
                 ("docs/start-here.md:19", "ADR-008"),
                 ("docs/start-here.md:22", "L12"),
             ]
+        );
+    }
+
+    /// The lines [`trust_notes`] reports on `page`.
+    fn trust_lines(page: &str) -> Vec<usize> {
+        trust_notes(page)
+            .into_iter()
+            .map(|(line, _)| line)
+            .collect()
+    }
+
+    #[test]
+    fn a_trust_note_in_its_shape_passes() {
+        let page = "# A page\n\n\
+                    > **How far to trust it.** A simulation, not validated. Checked against 7\n\
+                    > flights: 6.04% apart on average. Rely on your own log.\n\n\
+                    > **How far to trust it.**\n>\n> - A list, after the label alone.\n\n\
+                    - > **How far to trust it.** A note inside a list item.\n\n\
+                    It says how far to trust each result, in lower case, as prose.\n\n\
+                    > **Note.** A quote block that says nothing is **not validated** in its opening.\n\n\
+                    ## Accuracy of the margin\n\n\
+                    `**How far to trust it:**` and `## How far to trust it` in code.\n\n\
+                    ```text\n**How far to trust the margin.**\nHow far to trust it:\n\
+                    > **The numbers are not validated.**\n```\n\n\
+                    <!-- How far to trust it: in a comment no reader sees -->\n";
+        assert_eq!(trust_notes(page), Vec::<(usize, String)>::new());
+        // Through the site's checks too, on a page of the summary.
+        assert_eq!(
+            problems(&[
+                ("docs/SUMMARY.md", "[Start here](start-here.md)\n"),
+                ("docs/start-here.md", page),
+            ]),
+            Vec::<String>::new()
+        );
+    }
+
+    #[test]
+    fn the_trust_label_anywhere_but_a_notes_opening_fails() {
+        let page = "# A page\n\n\
+                    > **How far to trust these numbers.** A variant label.\n\n\
+                    **How far to trust it.** The right words, outside a quote block.\n\n\
+                    > A quote block that opens otherwise.\n>\n> **How far to trust it.** Later.\n\n\
+                    > Text, then **How far to trust it.** in the middle.\n\n\
+                    A paragraph. **how far to trust it:** in bold, in lower case.\n\n\
+                    A paragraph. How far to trust it: in plain text.\n\n\
+                    See [How far to trust it](x.md) as a link's text.\n";
+        let found = trust_notes(page);
+        assert_eq!(
+            found.iter().map(|(line, _)| *line).collect::<Vec<_>>(),
+            [3, 5, 9, 11, 13, 15, 17]
+        );
+        assert!(
+            found[..5]
+                .iter()
+                .all(|(_, why)| why.starts_with("the bold label")),
+            "{found:?}"
+        );
+        assert!(
+            found[5..]
+                .iter()
+                .all(|(_, why)| why.starts_with("the label \"How far to trust\" in plain text")),
+            "{found:?}"
+        );
+        // The site's checks report it with the page and the line.
+        let reported = problems(&[
+            ("docs/SUMMARY.md", "[Start here](start-here.md)\n"),
+            (
+                "docs/start-here.md",
+                "# Start here\n\n**How far to trust it.** Bare.\n",
+            ),
+        ]);
+        assert_eq!(reported.len(), 1, "{reported:?}");
+        assert!(
+            reported[0].starts_with("docs/start-here.md:3: the bold label"),
+            "{reported:?}"
+        );
+    }
+
+    #[test]
+    fn a_heading_named_for_the_trust_note_fails() {
+        let page = "# A page\n\n## How far to trust the margin\n\nText.\n\n\
+                    ### How far to trust `hpr sim`\n\nText.\n\n#### Accuracy of the margin\n";
+        let found = trust_notes(page);
+        assert_eq!(
+            found.iter().map(|(line, _)| *line).collect::<Vec<_>>(),
+            [3, 7]
+        );
+        assert!(
+            found[0]
+                .1
+                .starts_with("the heading \"How far to trust the margin\" opens with"),
+            "{found:?}"
+        );
+        assert!(
+            found[1]
+                .1
+                .starts_with("the heading \"How far to trust hpr sim\" opens with"),
+            "{found:?}"
+        );
+    }
+
+    #[test]
+    fn a_quote_block_that_opens_not_validated_fails() {
+        let page = "# A page\n\n\
+                    > **The numbers this example prints are not validated.** They match a\n\
+                    > second program's.\n\n\
+                    > **The files are exact, the flight is Not Validated.** Copies.\n\n\
+                    > **How far to trust it.** A simulation, not validated: a later **not\n\
+                    > validated** in bold is the note's own words.\n";
+        let found = trust_notes(page);
+        assert_eq!(
+            found.iter().map(|(line, _)| *line).collect::<Vec<_>>(),
+            [3, 6]
+        );
+        assert!(
+            found
+                .iter()
+                .all(|(_, why)| why.starts_with("a quote block opens with \"The")),
+            "{found:?}"
+        );
+        assert_eq!(
+            trust_lines("> **How far to trust it.** Not validated.\n"),
+            [0usize; 0]
         );
     }
 

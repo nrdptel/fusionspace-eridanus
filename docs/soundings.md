@@ -11,24 +11,24 @@ instead of a forecast ([Launch-day weather](weather.md),
 [NOAA forecasts: GFS and RAP](nomads.md)) or the
 [standard atmosphere](glossary.md#standard-atmosphere).
 
-**How far to trust it.**
-
-- HPR Sim turns the archive's answer into a profile that gives back the pressure, temperature,
-  humidity and wind of every level it keeps, to rounding error. That is checked on three recorded
-  soundings, below.
-- A sounding is a measurement, but only at its station and time. The nearest station can be
-  100 km or more from a launch site (Santa Teresa, below, is about 130 km from Spaceport
-  America), and the balloon goes up hours before or after the flight. Nothing here measures how
-  much that changes a flight.
-- Each row's height is checked against the row before it, which catches a gross error in a
-  pressure or height (57 hPa recorded for 557). More than 10 bad rows in a row refuse the answer,
-  and so does a ground that the rows after it agree is wrong. That can refuse a good ground too,
-  when the first few rows after it are a little off. A wrong wind, humidity or
-  temperature is not caught: on layers under about 100 m thick the check allows any temperature
-  from −150 to 80 °C.
-- The archive serves two versions of most soundings, and they can disagree near the ground. In
-  the example below, Calisto is 402 m from the pad at apogee in one and 563 m in the other.
-- The tests replay recorded answers; the live connection to the archive is not tested in CI.
+> **How far to trust it.** A weather balloon's measurement, passed on as the archive gives it.
+>
+> - HPR Sim turns the archive's answer into a profile that gives back the pressure, temperature,
+>   humidity and wind of every level it keeps, to rounding error. That is checked on three recorded
+>   soundings, below.
+> - The measurement holds only at its station and time. The nearest station can be 100 km
+>   or more from a launch site (Santa Teresa, below, is about 130 km from Spaceport
+>   America), and the balloon goes up hours before or after the flight. Nothing here measures how
+>   much that changes a flight.
+> - Each row's height is checked against the row before it, which catches a gross error in a
+>   pressure or height (57 hPa recorded for 557). More than 10 bad rows in a row refuse the answer,
+>   and so does a ground that the rows after it agree is wrong. That can refuse a good ground too,
+>   when the first few rows after it are a little off. A wrong wind, humidity or
+>   temperature is not caught: on layers under about 100 m thick the check allows any temperature
+>   from −150 to 80 °C.
+> - The archive serves two versions of most soundings, and they can disagree near the ground. In
+>   the example below, Calisto is 402 m from the pad at apogee in one and 563 m in the other.
+> - The tests replay recorded answers; the live connection to the archive is not tested in CI.
 
 Code: `hpr_net::wyoming` ([API reference](api/hpr_net/wyoming/index.html)), written for the
 second weather increment, [M5.2b](decisions-and-roadmap.md#m5-2b). It needs the `net` feature of

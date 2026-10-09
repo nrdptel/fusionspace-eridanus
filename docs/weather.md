@@ -6,13 +6,13 @@ The weather arrives as a [sounding](glossary.md#sounding): temperature, pressure
 at a column of heights, from the ground up to about 24 km. It is for anyone who wants a flight in a
 day's forecast instead of the [standard atmosphere](glossary.md#standard-atmosphere) with one wind.
 
-**How far to trust it.** HPR Sim turns Open-Meteo's answer into a profile that gives back the
-pressure, temperature, humidity and wind of every level it keeps, to rounding error. That is
-checked on two recorded answers, below. How good the forecast is depends on the weather model
-behind it, and nothing here measures that: no flight has been flown in Open-Meteo's weather and
-compared with its log, and no forecast has been compared with a weather balloon. The wind on the
-launch rail is the model's wind 10 m above the ground. The tests replay recorded answers; the live,
-encrypted (HTTPS) connection to Open-Meteo was checked once by hand, not in CI.
+> **How far to trust it.** A weather model's forecast. HPR Sim turns Open-Meteo's answer into a profile that gives back the
+> pressure, temperature, humidity and wind of every level it keeps, to rounding error. That is
+> checked on two recorded answers, below. How good the forecast is depends on the weather model
+> behind it, and nothing here measures that: no flight has been flown in Open-Meteo's weather and
+> compared with its log, and no forecast has been compared with a weather balloon. The wind on the
+> launch rail is the model's wind 10 m above the ground. The tests replay recorded answers; the live,
+> encrypted (HTTPS) connection to Open-Meteo was checked once by hand, not in CI.
 
 Code: `hpr_net::open_meteo` ([API reference](api/hpr_net/open_meteo/index.html)), written for
 the first weather increment, [M5.2a](decisions-and-roadmap.md#m5-2a). It needs the `net` feature

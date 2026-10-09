@@ -8,24 +8,25 @@ GeoTIFF ([below](#from-an-elevation-file-of-your-own)). It is for anyone who nee
 above sea level to start a flight at the right air pressure and density. There is no `hpr`
 command for either yet: a Rust program calls the library.
 
-**How far to trust it, online.** HPR Sim gives back Open-Meteo's number unchanged, and the saved
-copy gives it back offline. That is checked on two recorded answers, below. The number comes from a
-terrain model whose cells are about 90 m across, and it is a *surface* height: over trees or
-buildings it sits above the bare ground. The model's makers state its accuracy as better than 4 m
-for 90% of points, averaged over the world outside Antarctica and Greenland; in about 1 area in 90
-it is worse than 10 m. The simulator hasn't measured it. In the standard atmosphere, 10 m of height
-error changes the air's density by about 0.1%: the example below shows it 12.8% thinner over
-1,400 m. The recorded heights are whole meters; Open-Meteo doesn't document its rounding.
+> **How far to trust it.** Online, a copied value: HPR Sim gives back Open-Meteo's number unchanged,
+> and the saved copy gives it back offline. That is checked on two recorded answers, below. The number comes from a
+> terrain model whose cells are about 90 m across, and it is a *surface* height: over trees or
+> buildings it sits above the bare ground. The model's makers state its accuracy as better than 4 m
+> for 90% of points, averaged over the world outside Antarctica and Greenland; in about 1 area in 90
+> it is worse than 10 m. The simulator hasn't measured it. In the standard atmosphere, 10 m of height
+> error changes the air's density by about 0.1%: the example below shows it 12.8% thinner over
+> 1,400 m. The recorded heights are whole meters; Open-Meteo doesn't document its rounding.
 
 The tests replay two saved answers and never contact Open-Meteo. The live service was contacted
 by hand, over an encrypted (HTTPS) connection, to record them. So a change in Open-Meteo's answers
 would show only when a program runs, as a refused answer.
 
-**How far to trust it, from a file.** At a given place, HPR Sim reads the same stored value as GDAL,
-the library most mapping programs read terrain with. That is checked at 2,800 places in seven
-small files, in CI, and at 2,000 places in a whole tile from the US Geological Survey (USGS), on
-machines that have downloaded it, not in CI ([how](#how-the-file-reader-is-checked)). Only files on a latitude and longitude grid are read. How
-accurate the height itself is depends on who made the file; the simulator gives back what is stored.
+> **How far to trust it.** From a file, a copied value: at a given place, HPR Sim reads the same stored
+> value as GDAL,
+> the library most mapping programs read terrain with. That is checked at 2,800 places in seven
+> small files, in CI, and at 2,000 places in a whole tile from the US Geological Survey (USGS), on
+> machines that have downloaded it, not in CI ([how](#how-the-file-reader-is-checked)). Only files on a latitude and longitude grid are read. How
+> accurate the height itself is depends on who made the file; the simulator gives back what is stored.
 
 Code:
 

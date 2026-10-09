@@ -120,8 +120,8 @@ pub const SUPERSONIC_SWITCH_MACH: f64 = hpr_aero::SUPERSONIC_JOIN_START_MACH;
 
 /// How far the static margin read high against OpenRocket 24.12, calibres: the largest gap on
 /// the private designs, 0.1108 (four designs read 0.0350 to 0.1108 calibres more stable in HPR Sim,
-/// none with a measured cause; *How far to trust the margin* on
-/// [the stability page](https://hpr.fusionspace.co/stability-for-certification.html#how-far-to-trust-the-margin),
+/// none with a measured cause; *Accuracy of the margin* on
+/// [the stability page](https://hpr.fusionspace.co/stability-for-certification.html#accuracy-of-the-margin),
 /// [issue #172](https://github.com/nrdptel/fusionspace-eridanus/issues/172)).
 pub const MARGIN_HIGH_BOUND_CAL: f64 = 0.1108;
 

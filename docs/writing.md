@@ -57,9 +57,13 @@ They don't conflict with the rules above; they add these:
   list of exceptions, which it counts on every run. `--fix` replaces words but not names: a
   renamed name that is saved to a file keeps its old key as a serde alias, which HPR Sim reads
   and never writes. An em dash needs its sentence rewritten. CI runs the check in the site step.
-- **How far to trust it**, in a fixed shape, on every result someone might fly on: what kind of
-  figure it is (estimate, measurement, copied value); what it was checked against, with numbers;
-  what to rely on instead when it matters. Never a go/no-go verdict.
+- **A trust note**, in one fixed shape, on every result someone might fly on: a quote block that
+  opens with `**How far to trust it.**`, then says what kind of figure it is (estimate,
+  measurement, copied value); what it was checked against, with numbers; and what to rely on
+  instead when it matters. Never a go/no-go verdict. The label appears nowhere else: a heading
+  says what its section covers ("Accuracy of the margin"), and a qualifier goes in the note's
+  first sentence. The site check fails any other use of the label, and a quote block that opens
+  with a bold "not validated" sentence.
 - **Signal words** are those of ANSI Z535, the US safety-sign standard, and no others: DANGER, WARNING, CAUTION, NOTICE, NOTE, each
   as a panel above the text with the hazard, the consequence and how to avoid it.
 - **Numbers and dates**:

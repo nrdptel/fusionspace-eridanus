@@ -13,8 +13,10 @@ has a barometer and no accelerometer, so every height and speed in it comes from
 This page is the reference for HPR Sim's reader. PerfectFlite publishes no specification of the
 format, so everything here was learned from exported files, by Debrief, the project owner's
 earlier flight-log analyzer, whose reader this one follows. One real file has been read: Debrief's
-public Pnut log. **How far to trust it:** the layout below is what that file and Debrief's
-reader agree on. A variant it doesn't cover is refused or noted, not guessed at.
+public Pnut log.
+
+> **How far to trust it.** The layout below is what that file and Debrief's reader agree on. A
+> variant it doesn't cover is refused or noted, not guessed at.
 
 Code: `hpr_flightdata::perfectflite`
 ([API reference](../api/hpr_flightdata/perfectflite/index.html)), written for

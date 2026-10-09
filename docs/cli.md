@@ -1119,7 +1119,7 @@ None costs $150.00 or less: of the 20 motors in stock the other filters pass, th
 > motor. Fetching online is not tested automatically. Whether a vendor really has a motor at that
 > price is the vendor's to say. A list fetched now, or read from a copy under an hour old, can be
 > up to two hours behind the vendors' pages. A list read with `--offline`, with `--from`, or after a failed fetch is as old as the
-> "built" time on its first line ([How far to trust it](motor-stock.md)).
+> "built" time on its first line ([how far to trust the stock list](motor-stock.md)).
 
 ### Motors from ThrustCurve.org
 

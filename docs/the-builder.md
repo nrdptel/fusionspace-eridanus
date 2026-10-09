@@ -18,7 +18,7 @@ rail. The page runs four example programs and walks through them. It needs the s
 > parts. This rocket has never been flown for real, so no flight checks it. Where it lands in a
 > wind is the least certain number of all: on two of RocketPy's example rockets, HPR Sim's drift and
 > RocketPy's differ by 11 to 43%
-> ([Getting started](getting-started.md#how-far-to-trust-it) explains why).
+> ([Getting started](getting-started.md#accuracy-of-these-numbers) explains why).
 
 ## Run it
 
@@ -263,9 +263,10 @@ what the part is and its size in inches: `PNC-2.56` is a plastic nose cone for t
 ring between the two, and `LP-36-2022` a 36 in parachute. *Structure* is all the parts together,
 without the motor.
 
-> **How far to trust these numbers.** Nearly every part weighs what OpenRocket 24.12 weighs when
-> it builds the same catalog part: within 0.1%, with its center of mass within 0.1% of its
-> length. The few exceptions are counted in "How far to trust it" below. One is deliberate, and
+> **How far to trust it.** These masses are worked out from each part's shape and density. Nearly
+> every part weighs what OpenRocket 24.12 weighs when it builds the same catalog part: within
+> 0.1%, with its center of mass within 0.1% of its length. The few exceptions are counted in
+> [The masses against OpenRocket](#the-masses-against-openrocket) below. One is deliberate, and
 > this nose has it: its [shoulder](glossary.md#shoulder), the short tube that slides into the
 > body, has the nose's own plastic wall here and weighs nothing in OpenRocket. OpenRocket weighs
 > the nose at 61.5 g; here it weighs 87.7 g, 26.1 g of it the shoulder. That is 6% of the
@@ -331,7 +332,7 @@ hollow parts with a shoulder that state their mass, the file's density weighs ne
 mass with the shoulder's wall than without it on 46. The median stated mass is 0.97 of the mass
 with the wall, and 1.30 of the mass without it.
 
-### How far to trust it
+### The masses against OpenRocket
 
 [`tests/catalog_openrocket.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/tests/catalog_openrocket.rs)
 builds every part in the catalog with the builder. It holds each part's mass and center of mass
