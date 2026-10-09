@@ -228,7 +228,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
     println!(
         "page layout: {} pages at {} widths from 320 to 1,920 px, in {:.0} s: none wider than \
          the window, no text cut off or over other text, no figure shrunk with room \
-         for it or without a zoom, and every canary found",
+         for it or without a zoom, no color off the system's roles, rounded corner, shadow or \
+         motion off its durations in either theme or with reduced motion, and every canary found",
         laid_out.pages, laid_out.widths, laid_out.seconds
     );
     Ok(())
