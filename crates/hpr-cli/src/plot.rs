@@ -504,10 +504,18 @@ fn lines(svg: &mut String, lines: &[String], top: f64, left: f64, ink: &str) {
             Some(rest) => (left + 20.0, rest),
             None => (left, line.as_str()),
         };
+        // The trust note's label in bold, as the site sets it.
+        let body = match line.strip_prefix(crate::trust::LABEL) {
+            Some(rest) => format!(
+                "<tspan font-weight=\"600\" fill=\"{INK}\">{}</tspan>{}",
+                escape(crate::trust::LABEL),
+                escape(rest)
+            ),
+            None => escape(line),
+        };
         svg.push_str(&format!(
-            "<text x=\"{x}\" y=\"{:.1}\" fill=\"{ink}\">{}</text>\n",
+            "<text x=\"{x}\" y=\"{:.1}\" fill=\"{ink}\">{body}</text>\n",
             top + i as f64 * LIST_LINE,
-            escape(line)
         ));
     }
 }

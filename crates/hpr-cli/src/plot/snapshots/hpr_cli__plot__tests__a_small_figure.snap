@@ -124,7 +124,7 @@ expression: "svg.replace(&stamp, \"[stamp]\")"
 </g>
 <text x="76" y="1163.0" fill="#566079">Hatched, 5.00 s to 20.00 s: the rocket falls on its airframe alone, on aerodynamics that hold only at small angles of</text>
 <text x="76" y="1181.0" fill="#566079">attack, so this is not a prediction.</text>
-<text x="76" y="1217.0" fill="#566079">How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of fliers&apos; own designs,</text>
+<text x="76" y="1217.0" fill="#566079"><tspan font-weight="600" fill="#0B0F1C">How far to trust it.</tspan> Simulated from the design file, not measured. Against 55 logged flights of fliers&apos; own designs,</text>
 <text x="76" y="1235.0" fill="#566079">the simulated apogee averaged 9.8% above the altimeter&apos;s; it was within 10% on 27 and low on 14, by at most 20%. Plan</text>
 <text x="76" y="1253.0" fill="#566079">a waiver or a field&apos;s ceiling with room above this apogee; the altimeter&apos;s reading is the one to log, and the RSO</text>
 <text x="76" y="1271.0" fill="#566079">decides. More: https://hpr.fusionspace.co/accuracy.html</text>
