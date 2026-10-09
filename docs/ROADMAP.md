@@ -156,11 +156,13 @@ line here, or on an id that is missing or done.
     `writing.md`'s order with the version; the audit's rows name the checks.
 - [ ] **M0.10 The scoreboard** (ADR-209 §3). *Done when:* `cargo xtask scoreboard` writes
   `validation/reports/scoreboard.md`, HPR Sim against OpenRocket and RocketPy on each axis ADR-209 §3
-  names, every number read from a committed report; a test fails when a number is worse than the
-  committed one with no ADR named beside it, and a test that worsens one number fails.
+  names, each number read from a committed report and each unmeasured cell "not measured" with the
+  milestone that fills it; a test fails when a number is worse, as ADR-209 §3 defines per axis,
+  than the committed one unless an accepted ADR names that metric; a test that worsens one fails.
 - [ ] **M0.11 Steps to a first answer** (ADR-209 §10). *Done when:* opening a design, flying it and
   getting its landing spread are scripted in HPR Sim's command line and Python and counted for
-  OpenRocket and RocketPy from their current docs, with versions and dates, in the scoreboard.
+  OpenRocket and RocketPy from their current docs (clicks and entries apart from script lines, a
+  task a tool can't do marked so), with versions and dates, in the scoreboard.
 
 ## Phase 1: Physics core (the heart), with validation interleaved
 
@@ -188,16 +190,17 @@ line here, or on an id that is missing or done.
     its tier A, with their days' weather (ADR-151). Split in two (ADR-163):
     - [ ] **M2.3c2 Logged traces.** *Done when:* each M2.3c1 flight whose log M7.1 reads has its
       altitude-trace RMS from liftoff to apogee, aligned at liftoff, in that report.
-- [ ] **M2.7 Held-out flights, predictions first** (ADR-209 §4). *Done when:* a seeded third of the
-  logged flights is held out, its list kept with the private collection and its seed and hash
-  committed; the fixture report gives both halves; a test fails when a held-out flight feeds a
-  fit; a new flight's prediction is committed with its date before its log is compared.
+- [ ] **M2.7 Held-out flights, predictions first** (ADR-209 §4). *Done when:* a flight is held out
+  when a hash of its id and the seed `ADR-209` falls in the lowest third, fixed before any held-out
+  error is computed; the fixture report gives both halves as aggregates; a refs check fails when a
+  held-out flight feeds a fit across flights; new flights' predictions sit in the private
+  collection before their logs are compared, only their files' hashes committed. Moves: accuracy.
 - [ ] **M2.8 Honest uncertainty** (ADR-209 §5). *Done when:* each logged flight is also flown as a
   dispersion, and the report gives how often its 50% and 90% apogee ranges hold the log, on both
-  halves, with Clopper–Pearson bounds.
+  halves, with two-sided 95% Clopper–Pearson bounds. Moves: honest uncertainty.
 - [ ] **M2.6 An open benchmark** (ADR-209 §9). *Done when:* public cases with design, log and
   weather, each file's license recorded; a runner scores any simulator's predictions file the same
-  way; HPR Sim's and OpenRocket's scores on a docs page from a committed report.
+  way; HPR Sim's and OpenRocket's scores on a docs page from a committed report. Moves: accuracy.
 - [ ] **M1.14 Accuracy inside the envelope** (ADR-143 §6). The core band (Mach 0–2.5) first, then
   the extended band in M1.14h; angle of attack ≤ 15°, high angles M1.14e's. *Done when:* real
   flights meet the 5% mean apogee target, hpr is at least as accurate as OpenRocket on the same
@@ -547,10 +550,11 @@ capability none of them has, checked against its docs with the date (ADR-209).
   M7.2 and M7.3; each archive's smoke test reads a log with no design file; and a fit or residual
   of a flight that meets a condition on ADR-163 §4's list carries its warning.
 - [ ] **M10.3 Release 0.3: accuracy and diagnosis.** *Done when:* the checklist holds after M2.3c2,
-  M7.4, M7.5, M2.7, M2.8, M2.6 and M1.14b to M1.14g, each met or ended by ADR-143's stop rule
-  with its gaps in an ADR; and on the held-out logged flights HPR Sim's mean absolute apogee error
-  is below OpenRocket's, its bias within ±3%, its 90% ranges honest, or an ADR records the miss
-  (ADR-209 §7).
+  M7.4, M7.5, M2.7, M2.8 and M2.6, and M1.14b to M1.14g each met or ended by ADR-143's stop rule
+  with its gaps in an ADR; and on the held-out flights HPR Sim's mean absolute apogee error is
+  below OpenRocket's (a paired bootstrap interval reported), its absolute bias within 3%, and its
+  50% and 90% ranges each hold the logs within their bounds; only if M1.14 ended by the stop rule
+  short of these may an ADR record the miss instead (ADR-209 §7).
 - [ ] **M10.4 Release 0.4: the competition kit.** *Done when:* the checklist holds after M6.3,
   M6.4, M6.2e, M6.6, M6.7, M6.8, M3.5 and M3.6.
 - [ ] **M10.5 Release 0.5: the app preview.** *Done when:* the checklist holds after M4.4, M9.0
