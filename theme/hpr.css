@@ -22,3 +22,18 @@
 /* Table cells get the paragraphs' line height, so a superscript (2⁵³), which mdBook gives no line
    height of its own, stays inside its line instead of rising into the one above. */
 .content td, .content th { line-height: 1.45em; }
+
+/* Figures at their size (#382). A figure's text is drawn at its size, so a figure shown smaller
+   reads smaller: the plot's 12 px text, in its 960 px figure squeezed into mdBook's 750 px prose
+   column, read at 9.4 px. Prose keeps its column; a figure may reach past it on both sides, up to
+   the system's widest content (1,120 px, `foundations.md`, *Width*) or the page's own width, and
+   is shown at its size wherever that holds it. On a narrower page it shrinks to fit, and mdBook's
+   zoom (click it) shows it at its size. `cargo xtask site`'s page check holds both. */
+.content { container-type: inline-size; }
+.content .checkbox-label {
+    display: flex;
+    justify-content: center;
+    width: min(100cqi, 1120px);
+    max-width: none;
+    margin-inline: calc((100% - min(100cqi, 1120px)) / 2);
+}

@@ -89,6 +89,7 @@ use crate::workspace::{Package, Workspace};
 
 mod pages;
 pub(crate) mod theme;
+mod units;
 
 pub const USAGE: &str = "  site [--no-build] [--locked]
                            Check the documentation site's pages, build the site with
@@ -174,8 +175,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
         return Err(failure("the site's pages", &report.problems));
     }
     println!(
-        "site pages: {} pages, {} links ({} to the web, not fetched), no problems",
-        report.pages, report.links, report.web
+        "site pages: {} pages, {} links ({} to the web, not fetched), no problems; {} heights, \
+         distances and speeds in SI alone on {} model, format and records pages, not yet checked (#400)",
+        report.pages, report.links, report.web, report.deferred_units.0, report.deferred_units.1
     );
     let looks = theme::check_sources(&root, &root.join(SOURCE))?;
     if !looks.problems.is_empty() {
@@ -226,7 +228,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
     println!(
         "page layout: {} pages at {} widths from 320 to 1,920 px, in {:.0} s: none wider than \
-         the window, no text cut off or over other text, and every canary found",
+         the window, no text cut off or over other text, no figure shrunk with room \
+         for it or without a zoom, and every canary found",
         laid_out.pages, laid_out.widths, laid_out.seconds
     );
     Ok(())
@@ -463,6 +466,9 @@ struct Report {
     web: usize,
     /// One line each, `docs/<page>:<line>: <what is wrong>`.
     problems: Vec<String>,
+    /// Heights, distances and speeds in SI alone on the pages the units check defers, and how
+    /// many pages hold them (#400; M0.9c16).
+    deferred_units: (usize, usize),
 }
 
 /// Checks the pages `docs/SUMMARY.md` lists, and the summary itself. Fails only when the summary
@@ -519,6 +525,11 @@ fn check_sources(root: &Path) -> Result<Report, String> {
                 let mut page = read_page(&text);
                 page.problems
                     .extend(page_rules(root, name, &text, &page.links, &guides));
+                if units::deferred(name) {
+                    let count = units::si_alone(&text).len();
+                    report.deferred_units.0 += count;
+                    report.deferred_units.1 += usize::from(count > 0);
+                }
                 page.problems.sort_by_key(|(line, _)| *line);
                 pages.insert(name.clone(), page);
             }
@@ -1029,6 +1040,10 @@ fn page_rules(
     // write them, which may name the note.
     if name != RECORDS {
         problems.extend(trust_notes(text));
+    }
+    // Heights, distances and speeds with their US units in brackets (#400), on the guides.
+    if units::covers(name) {
+        problems.extend(units::si_alone(text));
     }
     if parent(name) == MODELS {
         problems.extend(in_short(text));
@@ -2024,7 +2039,9 @@ fn untraced_numbers(
                     .and_then(|cited| files.get(cited)?.as_deref())
                     .into_iter()
                     .collect();
-                for number in quoted(&block.text).into_iter().filter(Quoted::is_checked) {
+                // A quantity's US units in brackets are its SI figure converted, traced with it.
+                let text = units::without_conversions(&block.text);
+                for number in quoted(&text).into_iter().filter(Quoted::is_checked) {
                     let from = if cited.is_some() && number.sign.is_some() && number.percent {
                         &report
                     } else {

@@ -11,9 +11,9 @@ some Rust, but no knowledge of this project.
 > collection they were +9.83% above the logs, OpenRocket's +9.00%
 > ([private collection](accuracy.md#real-flights-of-the-private-collection)). Given the same drag,
 > its heights, speeds and times match RocketPy's; on its own drag it flies this rocket about 10%
-> higher than RocketPy does on the drag table RocketPy's example ships (770 m against 700 m,
-> [validation case](accuracy.md#whole-flights-with-each-codes-own-drag)). The drag and the drift
-> in a wind are the least certain numbers it prints
+> higher than RocketPy does on the drag table RocketPy's example ships: 770 m (2,526 ft) against
+> 700 m (2,297 ft); see the [validation case](accuracy.md#whole-flights-with-each-codes-own-drag).
+> The drag and the drift in a wind are the least certain numbers it prints
 > ([Accuracy of these numbers](#accuracy-of-these-numbers)).
 
 ## Install a release
@@ -130,16 +130,16 @@ Its motor is not a real K400C. It keeps the size and mass of the motor in Rocket
 takes the thrust curve of a K400C, a commercial motor
 ([motor designation](glossary.md#motor-designation)) whose curve the simulator bundles, in place of
 the original's. Like RocketPy's example, HPR Sim flies the curve as it was measured: it adds no
-thrust for the thinner air at the site, 1,400 m above sea level. The rocket launches from a 3 m
-vertical rail, in a 5 m/s wind that blows from the west at every height, and comes down on a
-[drogue and a main](glossary.md#drogue-and-main) parachute.
+thrust for the thinner air at the site, 1,400 m (4,593 ft) above sea level. The rocket launches
+from a 3 m (9.8 ft) vertical rail, in a 5 m/s (11 mph) wind that blows from the west at every
+height, and comes down on a [drogue and a main](glossary.md#drogue-and-main) parachute.
 
 The table lists the flight's [events](glossary.md#event) in order:
 
 | column | meaning |
 |---|---|
 | time | seconds since the motor ignited |
-| CG height | the height of the rocket's [center of gravity](glossary.md#center-of-gravity-cg) above the launch pad. It starts at 0.9 m, not 0: the rocket stands on the rail with its aft end at the rail's foot, and its center of gravity is 0.9 m above that |
+| CG height | the height of the rocket's [center of gravity](glossary.md#center-of-gravity-cg) above the launch pad. It starts at 0.9 m (3.0 ft), not 0: the rocket stands on the rail with its aft end at the rail's foot, and its center of gravity is 0.9 m (3.0 ft) above that |
 | speed | the center of gravity's speed over the ground, not through the air |
 
 And the events:
@@ -152,7 +152,7 @@ And the events:
 | apogee | the highest point, where the rocket stops climbing ([apogee](glossary.md#apogee)) |
 | drogue charge fires | the drogue is set to fire at apogee |
 | drogue opens | half a second later, the drogue's lines are stretched and it takes effect ([deployment](glossary.md#deployment)) |
-| main charge fires | the rocket falls past 150 m above the pad, the main's setting |
+| main charge fires | the rocket falls past 150 m (492 ft) above the pad, the main's setting |
 | main opens | a second later, the main takes effect |
 | landing | the center of gravity reaches the ground |
 
@@ -166,17 +166,17 @@ as it burns.
 - HPR Sim does this on purpose, as RocketPy does, so that the two codes can be compared like for
   like. It is a known approximation, listed with the other gaps on
   [Start here](start-here.md#what-doesnt-work-yet).
-- It is small here: it changes the burnout speed by at most 0.05 m/s
-  ([Rigid-body flight](physics/flight.md#equations-of-motion)).
+- It is small here: it changes the burnout speed by at most 0.05 m/s (0.2 ft/s); see
+  [Rigid-body flight](physics/flight.md#equations-of-motion).
 
 The speed is over the ground, so it includes the drift. At apogee the rocket is still moving
-sideways at 6.4 m/s. At landing it falls at 6.4 m/s while the 5 m/s wind carries it east, 8.1 m/s
-in all (√(6.4² + 5²) ≈ 8.1).
+sideways at 6.4 m/s (21 ft/s). At landing it falls at 6.4 m/s (21 ft/s) while the 5 m/s (11 mph)
+wind carries it east, 8.1 m/s (27 ft/s) in all (√(6.4² + 5²) ≈ 8.1).
 
 Below the table:
 
-- **Apogee** is the highest point, in meters and feet, and where it was: 88.7 m from the pad at a
-  [bearing](glossary.md#bearing) of 270°. A bearing is a direction clockwise from north, so 270°
+- **Apogee** is the highest point, in meters and feet, and where it was: 88.7 m (291 ft) from the pad
+  at a [bearing](glossary.md#bearing) of 270°. A bearing is a direction clockwise from north, so 270°
   is due west.
 - **Top speed** is the fastest the rocket went, over the ground, with its
   [Mach number](glossary.md#mach-number) (its speed through the air as a fraction of the speed of
@@ -188,7 +188,7 @@ Below the table:
   [what is left out](how-a-flight-is-simulated.md#what-is-left-out)). The simulator sets no minimum
   rail-exit speed and doesn't judge whether this one is enough; that call is your range safety
   officer's.
-- **Landing** is where the rocket came down, 90.2 m due east of the pad, and how fast it was
+- **Landing** is where the rocket came down, 90.2 m (296 ft) due east of the pad, and how fast it was
   falling. The rocket [weathercocks](glossary.md#weathercocking): it turns into the wind as it
   climbs, so its apogee is west of the pad. It then drifts east under its parachutes, past the
   pad.
@@ -201,20 +201,20 @@ Below the table:
   ([M2.1b2](decisions-and-roadmap.md#m2-1b2), the whole-flight comparison). That checks the
   equations of motion, the motor and the air, not the drag.
 - **Where it goes in wind is the least certain number.** This airframe was compared with RocketPy
-  only in still air, where its drifts agree within 3%. Here it leaves the rail at 16.2 m/s in a
-  5 m/s wind, at a steep angle to the airflow. At such angles HPR Sim's
+  only in still air, where its drifts agree within 3%. Here it leaves the rail at 16.2 m/s (53 ft/s)
+  in a 5 m/s (11 mph) wind, at a steep angle to the airflow. At such angles HPR Sim's
   [body lift](glossary.md#body-lift), a sideways push on the body that RocketPy leaves out, and
   its later release from the rail put the drifts of two of RocketPy's rockets 10 to 38% from
   RocketPy's; how much body lift a body makes is itself uncertain
-  ([Accuracy](accuracy.md#whole-flights-against-rocketpy)). So this example's apogee 86 m upwind
-  and its landing point are the least trustworthy numbers it prints. Drift and landing have not
+  ([Accuracy](accuracy.md#whole-flights-against-rocketpy)). So this example's apogee 86 m (282 ft)
+  upwind and its landing point are the least trustworthy numbers it prints. Drift and landing have not
   been compared with any real flight yet ([real flights](accuracy.md#real-flights) compare
   heights).
 - **The thrust is likely a little low for this site.** HPR Sim flies the curve as measured, to match
   RocketPy's example. A motor fired on a test stand near sea level gives somewhat more thrust in
-  the thinner air at 1,400 m. With the simulator's correction for that, which assumes a sea-level
-  test, this flight reached 874 m. Motor files don't say where the curve was measured, so neither
-  number is certain; treat 779 m as a little low
+  the thinner air at 1,400 m (4,593 ft). With the simulator's correction for that, which assumes a
+  sea-level test, this flight reached 874 m (2,867 ft). Motor files don't say where the curve was
+  measured, so neither number is certain; treat 779 m (2,556 ft) as a little low
   ([Solid motors](physics/motor.md#thrust-at-altitude)).
 - **The drag is the largest doubt.** HPR Sim computes the
   [drag coefficient](glossary.md#drag-coefficient) from the rocket's shape and surface. For this
@@ -250,8 +250,8 @@ Below the table:
   1.05, from RocketPy's example curve              711.5
   ```
 
-  For this rocket, the three drag values on record move the apogee from 778.7 m to 711.5 m, 8.6%
-  lower. That is a spread, not a bound:
+  For this rocket, the three drag values on record move the apogee from 778.7 m (2,555 ft) to
+  711.5 m (2,334 ft), 8.6% lower. That is a spread, not a bound:
 
   - It shows how much this rocket's apogee depends on its drag. It doesn't say how far the
     simulator's apogee is from the truth.
@@ -262,8 +262,8 @@ Below the table:
     ([Accuracy](accuracy.md#results-by-model)).
   - Another rocket, or this one on another motor, has its own spread.
 
-  So 779 m is this design's answer, and with more drag the same design would peak lower. The
-  rocket that flew had a different motor, so none of these is a prediction of its flight.
+  So 779 m (2,556 ft) is this design's answer, and with more drag the same design would peak
+  lower. The rocket that flew had a different motor, so none of these is a prediction of its flight.
 - **The parachutes are simple.** Each opens fully the moment its lines stretch, with no
   [filling time](glossary.md#inflation-and-filling-time) and no drag overshoot (the canopy's drag
   briefly rising above its steady value as it fills). So the opening load the simulator reports is no
@@ -524,11 +524,11 @@ It has six steps.
    and height. `Environment::standard` gives it the Earth's
    [WGS 84 gravity and rotation](physics/gravity.md), the
    [1976 US Standard Atmosphere](physics/atmosphere.md) and no wind. `with_wind` adds a
-   [constant wind](physics/wind.md): `wind_speed_m_s`, 5 m/s, *from* `wind_from_deg`, 270°,
+   [constant wind](physics/wind.md): `wind_speed_m_s`, 5 m/s (11 mph), *from* `wind_from_deg`, 270°,
    clockwise from north (see [wind direction](glossary.md#wind-direction)). Angles in the code are
    in radians, hence `to_radians()`.
-3. **The rail.** `Rail::vertical(rail_length_m)` is a rail 3 m long pointing straight up, with no
-   friction. Its fields also set its heading, its angle above the horizon and its friction.
+3. **The rail.** `Rail::vertical(rail_length_m)` is a rail 3 m (9.8 ft) long pointing straight up,
+   with no friction. Its fields also set its heading, its angle above the horizon and its friction.
 4. **The simulation.** `Simulation::new` takes the rocket, the name of the configuration to fly
    (a design can hold several, one per motor choice), the surroundings, the rail and the
    integration settings, which say how finely to step through time. It runs the design's checks
@@ -537,8 +537,8 @@ It has six steps.
    [tolerance](glossary.md#tolerance) ([Time integration](physics/integration.md)).
 5. **The parachutes.** Each `Device` has a name, a drag, and a trigger that fires its charge.
    `DeviceDrag::canopy` is a parachute of the given type and
-   [nominal diameter](glossary.md#nominal-area) in meters: 0.6 m for the drogue and 2.4 m for the
-   main.
+   [nominal diameter](glossary.md#nominal-area) in meters: 0.6 m (24 in) for the drogue and
+   2.4 m (94 in) for the main.
    - `CanopyType::FlatCircular` is a flat circular canopy. It is one of thirteen canopy types,
      such as conical, hemispherical, cross and ringslot, each with drag data from Knacke's
      parachute handbook. The [`CanopyType` page](api/hpr_sim/recovery/enum.CanopyType.html) of
@@ -592,10 +592,10 @@ page gives no numbers for them. For example:
   a rail tilted 5° toward the west. The rocket now lands west of the pad, upwind.
 - **Open the main higher.** Change `height_above_ground_m: 150.0` to `300.0`. The rocket spends
   longer under its main and lands farther downwind.
-- **Drop the drogue.** Delete the first `Device`, the drogue. The rocket now falls at over 100 m/s
-  until the main opens, far faster than a real parachute survives. The simulator reports the violent
-  deceleration as it opens, but it has no model of a parachute or its harness failing, so the
-  flight still ends in a gentle landing ([Recovery](physics/recovery.md)).
+- **Drop the drogue.** Delete the first `Device`, the drogue. The rocket now falls at over
+  100 m/s (328 ft/s) until the main opens, far faster than a real parachute survives. The simulator
+  reports the violent deceleration as it opens, but it has no model of a parachute or its harness
+  failing, so the flight still ends in a gentle landing ([Recovery](physics/recovery.md)).
 
 Your edited program no longer prints what `first_flight.output.txt` says, which is expected.
 

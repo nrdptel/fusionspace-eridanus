@@ -64,8 +64,8 @@ says `hpr.Rocket`, `hpr.Flight` and so on; `import fusionspace.hpr as hpr` does 
 This builds a simpler version of the rocket in [Your own rocket](your-own-rocket.md) and
 [The builder](the-builder.md): a 54 mm airframe with an ogive nose, three fins and a Cesaroni
 H54, whose recovery bay here is a point mass and whose nose has no shoulder. It flies from a 1.8 m
-rail leaning 5° into a 5 m/s west wind, with a parachute opened by the motor's ejection charge at
-the end of its [ejection delay](glossary.md#ejection-delay).
+(5.9 ft) rail leaning 5° into a 5 m/s (11 mph) west wind, with a parachute opened by the motor's
+ejection charge at the end of its [ejection delay](glossary.md#ejection-delay).
 
 ```python
 from fusionspace import hpr
@@ -115,9 +115,9 @@ Line by line:
   [US Standard Atmosphere 1976](physics/atmosphere.md). The wind is the same at every height, and
   blows **from** `wind_from_deg`, clockwise from north.
 - `Rocket` takes a name and the airframe's outside diameter, m.
-- The nose is a [tangent ogive](glossary.md#tangent-ogive) 0.22 m long, of ABS, hollow with a
-  1.5 mm wall. The tube is 0.9 m long with a 1.15 mm wall. The motor tube is 0.2 m long, with a
-  29 mm bore and a 1 mm wall.
+- The nose is a [tangent ogive](glossary.md#tangent-ogive) 0.22 m (8.7 in) long, of ABS, hollow
+  with a 1.5 mm wall. The tube is 0.9 m (35.4 in) long with a 1.15 mm wall. The motor tube is 0.2 m
+  (7.9 in) long, with a 29 mm bore and a 1 mm wall.
 - Parts go on from the nose back: the nose, then tubes. Fins, a motor tube and masses go on or in
   the tube before them.
 - Each part names its material by an id from the built-in list, `hpr.materials()`, and takes its
@@ -129,7 +129,7 @@ Line by line:
   so give it as `delay_s`: a parachute opened by the motor needs one. `Motor.from_file` reads a
   RASP [`.eng`](format/eng.md) or RockSim [`.rse`](format/rse.md) file.
 - `static_margin_cal(0.0, 0.3)` is the stability margin at ignition (0 s) and Mach 0.3.
-- `Flight` flies the rocket as soon as it is made. The rail is 1.8 m long and leans
+- `Flight` flies the rocket as soon as it is made. The rail is 1.8 m (5.9 ft) long and leans
   `inclination_deg` above the horizon, 90 by default, toward `heading_deg`, clockwise from north.
 - The landing's `descent_rate_m_s` is how fast it comes down. Its `ground_hit_speed_m_s` is
   faster, as it adds the wind's drift.
@@ -138,7 +138,7 @@ The stability margin is the distance from the
 [center of gravity](glossary.md#center-of-gravity-cg) back to the
 [center of pressure](glossary.md#center-of-pressure-cp), in body diameters
 ([calibres](glossary.md#calibre-caliber)). It is 2.12 here, where The builder's example says
-1.92. That example packs its 200 g recovery bay into a 15 cm cylinder, which moves the bay's
+1.92. That example packs its 200 g recovery bay into a 15 cm (5.9 in) cylinder, which moves the bay's
 center, and so the rocket's center of gravity, aft: about 0.4 calibres less. It also gives the
 nose a capped shoulder, which adds mass at the front: about 0.2 calibres more. A test holds both
 steps to these sizes
@@ -273,14 +273,14 @@ Three options make it RocketPy's flight:
   for gravity instead of HPR Sim's default. Near the ground the two differ in size by about one part
   in 10⁸, but HPR Sim's default also turns with the rocket's position over the ground. On this
   flight the switch moves the apogee by 2 parts in 10⁷ and the landing point by 0.3 m
-  ([Gravity](physics/gravity.md)).
+  (1.0 ft); see [Gravity](physics/gravity.md).
 - **One parachute at a time.** RocketPy flies only the last parachute to open, and HPR Sim adds
   together every one that is open. `released_by` is another parachute's number, counted from 0
   in the order they were added: `add_parachute(..., released_by=1)` cuts this one away once the
   second parachute is fully open ([Recovery](physics/recovery.md#triggers-lag-and-release)).
 
 Here is an invented table with less drag while the motor burns. Calisto flies it in calm air,
-as in the section above, to 2650 m above the pad:
+as in the section above, to 2650 m (8694 ft) above the pad:
 
 ```python
 table = hpr.DragTable([(0.0, 0.5), (3.0, 0.5)], [(0.0, 0.45), (3.0, 0.45)])
@@ -303,11 +303,13 @@ HPR Sim's own summary does:
 
 - RocketPy follows the rocket's [dry center of mass](glossary.md#center-of-dry-mass), its center
   of mass without propellant, and starts that point at ground level. HPR Sim stands the rocket on
-  its rail, so the same point starts 1.250 m up (the first line printed below). The example
-  subtracts 1.250 m from every height, and opens the main 1.250 m above RocketPy's 800 m.
-- RocketPy's rail exit is when its forward rail button leaves the rail, after 3.745 m of travel
-  (RocketPy's `effective_1rl`). HPR Sim's is when its aft-most rail guide clears the top of the
-  5.2 m rail, after 4.45 m of travel, so the example reads RocketPy's off the recording.
+  its rail, so the same point starts 1.250 m (4.10 ft) up (the first line printed below). The
+  example subtracts 1.250 m (4.10 ft) from every height, and opens the main 1.250 m (4.10 ft) above
+  RocketPy's 800 m (2,625 ft).
+- RocketPy's rail exit is when its forward rail button leaves the rail, after 3.745 m (12.29 ft) of
+  travel (RocketPy's `effective_1rl`). HPR Sim's is when its aft-most rail guide clears the top of
+  the 5.2 m (17 ft) rail, after 4.45 m (14.6 ft) of travel, so the example reads RocketPy's off the
+  recording.
 - RocketPy's flight ends when the dry center of mass is back at its starting height.
 
 Run from the repository's root, `python crates/hpr-py/examples/calisto.py` prints:
@@ -452,7 +454,7 @@ The run reads as a dictionary of NumPy arrays, one value a flight: what each fli
 (`motor_1_impulse_scale`, `drag_scale` and the rest) and what it came to (`apogee_m`,
 `landing_distance_m`, `max_mach` and the rest). `run.columns` lists them, in the order of
 [`hpr mc --export`](cli.md#hpr-mc)'s CSV columns. This flies a level 1 certification rocket's
-`.ork` design 200 times from a 1.5 m vertical rail, in its default motor configuration, with the
+`.ork` design 200 times from a 1.5 m (4.9 ft) vertical rail, in its default motor configuration, with the
 parachute stored in its file (`recovery=True`, [A design from a file](#a-design-from-a-file)):
 
 ```python

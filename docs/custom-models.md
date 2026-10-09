@@ -86,12 +86,12 @@ A curve that ends at Mach 0.4 stops the flight: Mach number past the drag curve'
 
 What the lines say:
 
-- **10% more drag** costs 53.9 m of [apogee](glossary.md#apogee), 4.7%, and reaches it 0.41 s
+- **10% more drag** costs 53.9 m (177 ft) of [apogee](glossary.md#apogee), 4.7%, and reaches it 0.41 s
   sooner. That is a quick way to see how much a rougher finish, or an uncertain drag, could
   matter.
-- **The curve** is invented. Its apogee lands within 2 m of the simulator's because of the numbers
-  chosen, which says nothing about whether either is right. A curve from your own data would put
-  your numbers here.
+- **The curve** is invented. Its apogee lands within 2 m (6.6 ft) of the simulator's because of the
+  numbers chosen, which says nothing about whether either is right. A curve from your own data
+  would put your numbers here.
 - **The short curve** refuses to guess past its last point, so the flight stops there and says
   why, instead of flying on made-up drag.
 
@@ -128,9 +128,10 @@ cargo run --example custom_wind -p fusionspace-hpr
 
 The simulator has steady, power-law, log-law and layered winds built in ([Wind](physics/wind.md)),
 and they reach the flight through the same `Wind` trait. This example writes one of its own: a wind
-that grows from 4 m/s at the ground to 10 m/s at 1,000 m, and veers, turning clockwise, from the
-west (270°) to the north-west (315°) on the way up. Above 1,000 m it holds steady. It flies the
-same rocket in that wind and in a steady 4 m/s west wind:
+that grows from 4 m/s (8.9 mph) at the ground to 10 m/s (22 mph) at 1,000 m (3,281 ft), and veers,
+turning clockwise, from the west (270°) to the north-west (315°) on the way up. Above 1,000 m
+(3,281 ft) it holds steady. It flies the same rocket in that wind and in a steady 4 m/s (8.9 mph)
+west wind:
 
 <!-- quote: crates/hpr/examples/custom_wind.output.txt -->
 ```text
@@ -159,9 +160,9 @@ wind blows from, so a west wind moves the air east.
 The simulator refuses a wind velocity that isn't finite wherever it reads the wind. A wind that
 returns a NaN (not a number) or an infinity stops the flight with a `SimError::Domain` error. Its
 message names the wind and gives the height above sea level, in meters, where the wind was asked.
-For a test wind that turns to NaN above 1,700 m, the message reads "height above sea level, m, at
-which the wind's velocity is not finite is outside its domain: 1700.0…", the height of the first
-step to ask above 1,700 m, so its digits depend on the step. This holds
+For a test wind that turns to NaN above 1,700 m (5,577 ft), the message reads "height above sea
+level, m, at which the wind's velocity is not finite is outside its domain: 1700.0…", the height of
+the first step to ask above 1,700 m (5,577 ft), so its digits depend on the step. This holds
 while climbing, under a canopy, and for bodies flown apart after a separation
 ([issue #237](https://github.com/nrdptel/fusionspace-eridanus/issues/237), the report that asked for it).
 Tests pin each case: [`a_wind_that_is_not_finite_stops_the_flight` and
@@ -182,24 +183,24 @@ and whether the model had to extrapolate past its data.
 The simulator refuses air it can't use wherever it reads the air. Every field must be a finite
 number. The temperature, speed of sound and viscosity must also be above zero. The density and
 pressure may be zero, as in a vacuum, but not negative. The simulator's standard atmosphere is the
-reason zero is allowed: far above its 86 km top, its pressure and density shrink to zero.
+reason zero is allowed: far above its 86 km (282,152 ft) top, its pressure and density shrink to zero.
 
 Air that breaks a rule stops the flight with a `SimError::Domain` error. Its message names the
 field and gives the height above sea level, in meters, where the air was asked. For a test
-atmosphere whose density turns to NaN above 1,700 m, the message reads "height above sea level,
-m, at which the air's density is negative or not finite is outside its domain:", then the height
-of the first step to ask above 1,700 m. If more than one field is bad, the first in the order
-density, pressure, temperature, speed of sound, viscosity is the one named.
+atmosphere whose density turns to NaN above 1,700 m (5,577 ft), the message reads "height above
+sea level, m, at which the air's density is negative or not finite is outside its domain:", then
+the height of the first step to ask above 1,700 m (5,577 ft). If more than one field is bad, the
+first in the order density, pressure, temperature, speed of sound, viscosity is the one named.
 
 This holds while climbing, under a canopy, and for bodies flown apart after a separation
 ([issue #301](https://github.com/nrdptel/fusionspace-eridanus/issues/301), the report that asked for it).
 Before, a density that was NaN or negative turned the drag off with no error. In the tests, a
-rocket climbed about twice as high, and bodies flown apart landed at about 140 m/s. Tests pin
+rocket climbed about twice as high, and bodies flown apart landed at about 140 m/s (459 ft/s). Tests pin
 each case: [`air_the_flight_cannot_use_stops_the_climb` and
 `air_the_flight_cannot_use_under_a_canopy_stops_the_descent`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/src/tests.rs),
 and
 [`a_separated_body_refuses_air_it_cannot_use`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/src/recovery.rs).
-Another test checks that the simulator's own atmospheres pass, from 5 km below sea level to a
+Another test checks that the simulator's own atmospheres pass, from 5 km (16,000 ft) below sea level to a
 million kilometers up
 ([`the_check_on_the_air_takes_every_stock_atmosphere`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/src/environment.rs)).
 The simulator can't tell whether air that passes is right; that is up to the model.

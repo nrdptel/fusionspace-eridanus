@@ -13,15 +13,15 @@ Debrief, the project owner's earlier flight-log analyzer, read.
 
 > **How far to trust it.** Readings of the altimeter's own log, not a simulation. On an invented flight whose every number is known, the apogee comes
 > within a quarter of a meter and one sample of the truth, and liftoff within a tenth of a second.
-> The landing is read at the first sample within 2 m of the pad, so early by the time the last 2 m
-> take: 0.33 s at 6 m/s, 0.5 s at 4 m/s. On one real flight, a public log that isn't committed here
-> and so isn't checked in CI, the analyzer reads 1,010 ft where the altimeter states 1,009 ft. The
-> analyzer has no check yet for a barometer's errors near the speed of sound. If the flight may have
-> come near Mach 0.9, about 300 m/s (1,000 ft/s), treat the top speed and the heights near it with
-> care: the barometer's error can pull the top speed down too, so a low reading doesn't clear it. The
-> rules behind each reading are on [Flight-log readings](physics/log-readings.md), with what they were
-> checked against. A reading the log can't support is left out and says why, rather than printed as a
-> number.
+> The landing is read at the first sample within 2 m (6.6 ft) of the pad, so early by the time the
+> last 2 m (6.6 ft) take: 0.33 s at 6 m/s (20 ft/s), 0.5 s at 4 m/s (13 ft/s). On one real flight, a
+> public log that isn't committed here and so isn't checked in CI, the analyzer reads 1,010 ft where
+> the altimeter states 1,009 ft. The analyzer has no check yet for a barometer's errors near the
+> speed of sound. If the flight may have come near Mach 0.9, about 300 m/s (984 ft/s), treat the
+> top speed and the heights near it with care: the barometer's error can pull the top speed down
+> too, so a low reading doesn't clear it. The rules behind each reading are on
+> [Flight-log readings](physics/log-readings.md), with what they were checked against. A reading the
+> log can't support is left out and says why, rather than printed as a number.
 
 ## From the command line
 
@@ -164,24 +164,24 @@ landing           45.85 s; down from apogee at 10.9 m/s on average
 ## What the readings say
 
 The log is of a flight invented for the tests
-([the flight](physics/log-readings.md#checked-against)): 80 m/s at burnout, 2.1 s after the
-start of the log, and a coast with no drag to 390.3 m (1,280.5 ft) at 10.26 s.
+([the flight](physics/log-readings.md#checked-against)): 80 m/s (262 ft/s) at burnout, 2.1 s after
+the start of the log, and a coast with no drag to 390.3 m (1,280.5 ft) at 10.26 s.
 
 - **Liftoff**, 0.55 s: the last sample before the altitude shows the rocket moving. The rocket
-  left the pad at 0.50 s, but its first 0.15 m rounds to 0 ft.
+  left the pad at 0.50 s, but its first 0.15 m (0.5 ft) rounds to 0 ft.
 - **Apogee**, 390.1 m (1,280 ft) at 10.28 s, which is 10.275 s rounded: the top is flat over
   several samples, and the analyzer takes the middle. It is the top of the altitude after a 0.3 s
-  [running median](glossary.md#running-median). It is 0.17 m below the true apogee: the file
-  rounds to whole feet.
-- **The highest sample**, 400.5 m, a second after apogee, is the ejection charge's pressure
-  pulse, not the rocket. The median sets it aside.
-- **The top speed**, 79.9 m/s at 2.10 s: the altimeter's own speed column, which it works out
-  from its barometer. The true speed at burnout is 80.0 m/s; the file rounds to whole feet per
-  second.
+  [running median](glossary.md#running-median). It is 0.17 m (0.6 ft) below the true apogee: the
+  file rounds to whole feet.
+- **The highest sample**, 400.5 m (1,314 ft), a second after apogee, is the ejection charge's
+  pressure pulse, not the rocket. The median sets it aside.
+- **The top speed**, 79.9 m/s (262 ft/s) at 2.10 s: the altimeter's own speed column, which it
+  works out from its barometer. The true speed at burnout is 80.0 m/s (262.5 ft/s); the file rounds
+  to whole feet per second.
 - **The top acceleration** is withheld: a PerfectFlite has no accelerometer.
-- **Landing**, 45.85 s: the first sample within 2 m of the pad. The rocket touches down 0.29 s
-  later, at 6 m/s under its main.
-- **The mean descent rate**, 10.9 m/s: the height lost from apogee to landing over the time
+- **Landing**, 45.85 s: the first sample within 2 m (6.6 ft) of the pad. The rocket touches
+  down 0.29 s later, at 6 m/s (20 ft/s) under its main.
+- **The mean descent rate**, 10.9 m/s (36 ft/s): the height lost from apogee to landing over the time
   taken, drogue and main together.
 
 What the file states about itself, such as the altimeter's own apogee of 1,281 ft, is kept in

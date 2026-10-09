@@ -78,8 +78,9 @@ The [Accuracy](accuracy.md) page gathers every result from steps 3 and 4 in one 
 parachute differs from RocketPy's by +2.865%, inside the 3% tolerance its case allows.
 
 1. **The report.** The [validation report][report] has a row for the case
-   `descent-ndrt-2020-nose-to-tail` and the metric `drift_north_m`: HPR Sim −50.83 m, RocketPy
-   −49.42 m, a difference of +2.865%, a tolerance of 3.000%, and the verdict *pass*.
+   `descent-ndrt-2020-nose-to-tail` and the metric `drift_north_m`: HPR Sim −50.83 m (−166.8 ft),
+   RocketPy −49.42 m (−162.1 ft), a difference of +2.865%, a tolerance of 3.000%, and the verdict
+   *pass*.
 2. **The case.** [`descent-ndrt-2020-nose-to-tail.toml`][ndrt-case] names the rocket's design and
    the reference file, and holds each [metric](glossary.md#metric) to 3%. Its opening comment
    argues why there is no absolute floor, a fixed allowance in meters that would pass any smaller

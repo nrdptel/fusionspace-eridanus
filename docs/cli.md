@@ -167,10 +167,10 @@ command takes.
 ### Typing numbers, and what a refusal says
 
 A number is read the way you would write it by hand. Spaces around it are dropped, and a comma
-between groups of three digits is a thousands separator: `--elevation 1,280` is 1280 m, and a
+between groups of three digits is a thousands separator: `--elevation 1,280` is 1280 m (4199 ft), and a
 `note:` line says so (`note: --elevation 1,280 read as 1280 m`) before anything else, in case the
 comma meant something else. That holds for every option that takes a number, negative ones
-included: `--elevation -1,280` is -1280 m, and `--longitude -106,970` is read as -106970° and
+included: `--elevation -1,280` is -1280 m (-4199 ft), and `--longitude -106,970` is read as -106970° and
 refused, as a longitude is at most 180° east or west. Any other comma is
 refused with a question, as `3,9` is 3.9 in much of the world but could be a typing slip, and so
 is `0,500`, as no number grouped in thousands starts with 0. The decimal point is always a
@@ -437,19 +437,19 @@ flights, and within 0.12% on all 53 ([Recovery](physics/recovery.md#from-an-open
 flights are in calm air: they check how fast and how long the rocket comes down, not where wind
 drifts it. When the first device opens within 1 s of apogee, the landing is no longer marked "not a
 prediction", and neither is a peak set once a device is open. A later first opening, such as a main
-alone at 150 m, keeps the mark on the landing and on any peak in the fall before it, and a note says
-how long the rocket fell first: where and how fast the device opens come from that fall, on the
-airframe alone, as below. The JSON's `recovery` list gives each device's `name`, `body` (the part
-that carries it, [below](#separation)), `opens_at` (`apogee`, `altitude`, `ejection`, `launch` or
-`separation`), `height_above_ground_m`, `delay_s`, `drag_area_m2` and `opened_s`. A device the file
-sets to `never`, or to an ejection charge a plugged motor doesn't fire, opens nothing, and a note
-says so. So does one set to its stage's ejection charge in a stage where no motor lights, as in
-OpenRocket: the note says "`Main` never opens: it opens at its stage's ejection charge, and no motor
-of its stage lights", and the other devices fly. A device the simulator can't fly as written, such
-as one inside a part it doesn't read, is refused: the rocket then flies with none, and a note says
-why.
+alone at 150 m (492 ft), keeps the mark on the landing and on any peak in the fall before it, and a
+note says how long the rocket fell first: where and how fast the device opens come from that fall,
+on the airframe alone, as below. The JSON's `recovery` list gives each device's `name`, `body`
+(the part that carries it, [below](#separation)), `opens_at` (`apogee`, `altitude`, `ejection`,
+`launch` or `separation`), `height_above_ground_m`, `delay_s`, `drag_area_m2` and `opened_s`. A
+device the file sets to `never`, or to an ejection charge a plugged motor doesn't fire, opens
+nothing, and a note says so. So does one set to its stage's ejection charge in a stage where no
+motor lights, as in OpenRocket: the note says "`Main` never opens: it opens at its stage's ejection
+charge, and no motor of its stage lights", and the other devices fly. A device the simulator can't
+fly as written, such as one inside a part it doesn't read, is refused: the rocket then flies with
+none, and a note says why.
 
-This flies the repository's dual-deploy test rocket, a drogue at apogee and a main at 150 m,
+This flies the repository's dual-deploy test rocket, a drogue at apogee and a main at 150 m (492 ft),
 with the catalog's H54 in place of its own motor; the `descent` line gives the speed under the
 drogue as the main opens, then at landing:
 
@@ -522,7 +522,8 @@ refused. Each parachute and streamer rides the part its stage is in
 configurations of OpenRocket's *Two stage high power rocket*, the
 [sustainer](glossary.md#sustainer)'s landing speed is +0.00% off OpenRocket's, and its flight
 time +0.32% and +0.73%. On the first, its main opens 1.09 s before OpenRocket's, mostly as its
-apogee is 1.79% lower and OpenRocket opens 8.9 m below the set height ([Staging](physics/staging.md#against-openrocket)).
+apogee is 1.79% lower and OpenRocket opens 8.9 m (29 ft) below the set height
+([Staging](physics/staging.md#against-openrocket)).
 
 After the split, each part flies as a point, with only its devices' drag. So the booster
 [tumbles](glossary.md#tumble-recovery) from the split until its first own device opens, and a
@@ -555,9 +556,9 @@ marked rough like a booster's.
 - **With the curves `hpr sim` fetches.** The file holds no curves, so `hpr sim` fetches them from
   ThrustCurve.org ([Motors from ThrustCurve.org](#motors-from-thrustcurveorg)), taking the files
   that hold OpenRocket's own curves. Its largest speeds are within 1.67% of OpenRocket's; the first
-  configuration reads 78.61 m/s against OpenRocket's 78.37. Its apogees, with the file's
-  parachutes, are within 1.37% of OpenRocket's own record, which opens them too, and within 2.48%
-  of OpenRocket's flight with nothing deployed.
+  configuration reads 78.61 m/s (257.9 ft/s) against OpenRocket's 78.37 m/s (257.1 ft/s). Its
+  apogees, with the file's parachutes, are within 1.37% of OpenRocket's own record, which opens them
+  too, and within 2.48% of OpenRocket's flight with nothing deployed.
 - **Not validated:** the dropped middle stage's own flight, like the booster's (issue
   [#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179)).
 
@@ -586,10 +587,10 @@ stage, sustainer first, the stages separated by `;`), the note begins "part 1 dr
 with `A3`, `A3` still burning". The impulse it gives, 0.509 N·s, is the one the report's
 [*Parts dropped still burning*](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md#parts-dropped-still-burning)
 section holds. This sustainer is unstable, with a least margin of −4.21 calibres. In the
-conditions of OpenRocket's record, a 0.15 m rod at 28.61° N with no wind, HPR Sim's sustainer turns
-over at 2.04 s. From `hpr sim`'s defaults, a 1.5 m rail with no wind, it does not, so the apogee
-printed assumes it stays upright, and why the two differ is not traced. `hpr sim` warns that the
-rocket is unstable under power and marks that apogee as not a prediction
+conditions of OpenRocket's record, a 0.15 m (5.9 in) rod at 28.61° N with no wind, HPR Sim's
+sustainer turns over at 2.04 s. From `hpr sim`'s defaults, a 1.5 m (4.9 ft) rail with no wind, it
+does not, so the apogee printed assumes it stays upright, and why the two differ is not traced.
+`hpr sim` warns that the rocket is unstable under power and marks that apogee as not a prediction
 ([Flight metrics: unstable under power](physics/metrics.md#unstable-under-power);
 [#335](https://github.com/nrdptel/fusionspace-eridanus/issues/335)). The
 [M4.5n milestone](decisions-and-roadmap.md#m4-5n) shipped this
@@ -620,8 +621,8 @@ the parachute are 25 mm across in a 21 mm bore, so they can't fit as drawn. Thei
 their own inertia ([a packed part wider than its bore](physics/design.md#a-packed-part-wider-than-its-bore)).
 
 - **What the refusal avoids.** Coasting from the split with no drag, the *Deployable payload*'s
-  C6-3 payload would reach 268.8 m, 4.00% above OpenRocket's 258.5 m for the same payload
-  flying on its own airframe.
+  C6-3 payload would reach 268.8 m (882 ft), 4.00% above OpenRocket's 258.5 m (848 ft) for the same
+  payload flying on its own airframe.
 - **Not validated:** the booster's flight after the split, as above (issue
   [#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179)). Nor a real payload whose parachute
   opens late, which would land later and further away: OpenRocket's record holds no such flight.
@@ -636,12 +637,12 @@ The [M4.5g3 milestone](decisions-and-roadmap.md#m4-5g3) shipped this; its
 
 Every flight starts from a rail, at a site, in the
 [standard atmosphere](glossary.md#standard-atmosphere). Without options, the site is at sea level
-at 0° N, 0° E, the rail is vertical and 1.5 m long, and the air is calm. The rail has no
+at 0° N, 0° E, the rail is vertical and 1.5 m (4.9 ft) long, and the air is calm. The rail has no
 friction. `hpr sim` doesn't read the launch conditions an OpenRocket file stores with its
 simulations: give them with these options.
 
 **Set `--elevation` for any real field.** The air thins with height, so the same rocket flies
-higher from a high site: from 1,400 m, the rocket above climbs about 8% higher than from sea
+higher from a high site: from 1,400 m (4,593 ft), the rocket above climbs about 8% higher than from sea
 level. Latitude changes gravity only a little: at 45° N its apogee moves by less than 0.2%. Set
 `--latitude` and `--longitude` too before exporting a map, which is drawn where you say the pad
 is.
@@ -651,7 +652,7 @@ is.
 | `--latitude DEG` | the site's latitude, degrees north (south is negative) | 0 |
 | `--longitude DEG` | the site's longitude, degrees east (west is negative) | 0 |
 | `--elevation M` | the site's height above sea level, m | 0 |
-| `--rail-length M` | the rail's length, from the rocket's aft end to the rail's top, m | 1.5 |
+| `--rail-length M` | the rail's length, from the rocket's aft end to the rail's top, m | 1.5 m (4.9 ft) |
 | `--inclination DEG` | the rail's angle above the horizon, degrees: 90 is vertical | 90 |
 | `--heading DEG` | the direction the rail leans toward, clockwise from true north, degrees (add the [declination](physics/magnetic.md) to a compass reading) | 0 |
 | `--wind M_S` | a wind of this speed at every height, m/s | calm |
@@ -897,16 +898,17 @@ $ hpr sim validation/fixtures/ork/loft-demo/demo-dual-deploy.ork --motor H54 --p
 ```
 
 ![The dual-deploy rocket's flight in three panels against time, 0 to 60 s, every line dashed.
-Altitude climbs to 324 m at 9.12 s, falls quickly under the drogue to 150 m at 22.41 s, then
-slowly under the main to the ground at 53.94 s. Speed peaks at 66 m/s near 2.7 s; the vertical
-speed settles at −14 m/s under the drogue and −4.7 m/s under the main. Acceleration starts near
-50 m/s², passes zero at top speed, sits at about −12 to −10 m/s² vertically in the coast, and
-spikes to about 77 m/s² as the main opens. Six numbered balloons: liftoff, rail exit, burnout,
-apogee with the drogue, the main, and the ground hit; the table under the figure lists their
-nine events. A title block ends the figure.](images/sim-plot.svg)
+Altitude climbs to 324 m (1,063 ft) at 9.12 s, falls quickly under the drogue to 150 m (492 ft) at
+22.41 s, then slowly under the main to the ground at 53.94 s. Speed peaks at 66 m/s (217 ft/s) near
+2.7 s; the vertical speed settles at −14 m/s (−46 ft/s) under the drogue and −4.7 m/s (−15 ft/s)
+under the main. Acceleration starts near 50 m/s², passes zero at top speed, sits at about −12 to
+−10 m/s² vertically in the coast, and spikes to about 77 m/s² as the main opens. Six numbered
+balloons: liftoff, rail exit, burnout, apogee with the drogue, the main, and the ground hit; the
+table under the figure lists their nine events. A title block ends the figure.](images/sim-plot.svg)
 
 `cargo xtask cli` draws this figure with the command above, so it shows what the current `hpr`
-draws.
+draws. This site shows it at its full 960 px, wider than the text, wherever the window has room;
+in a narrower window it shrinks to fit, and a click shows it at full size.
 
 #### The figure's data
 
@@ -976,9 +978,9 @@ the progress still shows on the terminal; with standard error into a file or a p
 
 ### Scattering a flight
 
-This flies the repository's small test rocket on the catalog's Cesaroni H54 200 times, in a 4 m/s
-wind from the west, off a rail leaned 5° into it, each flight's mass, drag, motor, wind and rail
-drawn afresh:
+This flies the repository's small test rocket on the catalog's Cesaroni H54 200 times, in a
+4 m/s (8.9 mph) wind from the west, off a rail leaned 5° into it, each flight's mass, drag, motor,
+wind and rail drawn afresh:
 
 <!-- cli: example `hpr mc validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --runs 200 --seed 2026 --wind 4 --wind-from 270 --inclination 85 --heading 270 --mass-sd 0.02 --drag-sd 0.05 --impulse-sd 0.03 --burn-time-sd 0.02 --wind-sd 0.25 --wind-from-sd 15 --inclination-sd 1 --heading-sd 2` -->
 
@@ -1564,7 +1566,7 @@ is a Pnut's; the StratoLogger and StratoLoggerCF are expected to write the same 
 file of theirs has been tried. Other loggers' files come with
 [M7.1](decisions-and-roadmap.md#m7-1), the milestone that reads the other formats. It has no
 check yet for a barometer's errors near the speed of sound. If the flight may have come near Mach
-0.9, about 300 m/s (1,000 ft/s), treat the top speed and the heights near it with care: the
+0.9, about 300 m/s (984 ft/s), treat the top speed and the heights near it with care: the
 barometer's error can pull the top speed down too.
 
 ```bash
@@ -1610,7 +1612,7 @@ More: https://hpr.fusionspace.co/reading-a-flight-log.html
 
 <!-- cli: end -->
 
-The highest sample in the file is 10.4 m above the apogee: the pressure pulse of the ejection
+The highest sample in the file is 10.4 m (34 ft) above the apogee: the pressure pulse of the ejection
 charge that fired a second after it. The readings are taken from the altitude after a
 [running median](glossary.md#running-median), which sets that pulse aside.
 [Reading a flight log](reading-a-flight-log.md) explains each reading, and how far to trust it.
@@ -1628,7 +1630,7 @@ sources:
 | Open-Meteo | a free weather service's forecast, or its archive of past forecasts ([Launch-day weather](weather.md)) | `hpr weather open-meteo --latitude 32.99 --longitude -106.97 --time 2026-10-02T18:00Z` |
 | University of Wyoming | a weather balloon's measurements, from the station's latest launch before yours ([Weather-balloon soundings](soundings.md)) | `hpr weather wyoming --station 72364 --time 2025-06-21T15:30Z` |
 | GFS | NOAA's global forecast model, on a 0.25° grid, fetched or read from a whole file you download ([NOAA forecasts: GFS and RAP](nomads.md)) | `hpr weather gfs --latitude 32.99 --longitude -106.97 --cycle 2026-09-30T00Z --hour 18` |
-| RAP | NOAA's 13 km forecast model over the contiguous U.S. and nearby Canada and Mexico ([NOAA forecasts: GFS and RAP](nomads.md)) | `hpr weather rap --latitude 32.99 --longitude -106.97 --cycle 2026-09-30T12Z --hour 6` |
+| RAP | NOAA's 13 km (8.1 mi) forecast model over the contiguous U.S. and nearby Canada and Mexico ([NOAA forecasts: GFS and RAP](nomads.md)) | `hpr weather rap --latitude 32.99 --longitude -106.97 --cycle 2026-09-30T12Z --hour 6` |
 | ERA5 | a [netCDF](glossary.md#netcdf) file you download from Europe's climate data service: the past weather, reconstructed ([ERA5 weather files](format/era5.md)) | `hpr weather era5 era5.nc --latitude 47.21 --longitude 9.00 --time 2020-02-22T13:00Z` |
 
 `hpr sim` doesn't fly a profile yet (issue
@@ -1746,9 +1748,10 @@ The first line says where and when the profile is for: for Open-Meteo, its model
 from the four grid points around it; for Wyoming, where the balloon was released. The ground comes
 first: its height above sea level ([MSL](glossary.md#height-above-sea-level-msl)), its pressure in
 hectopascals (hPa; 1013 hPa is sea level's standard), its temperature and humidity, and the wind
-10 m above it. Each pressure level above the ground follows. The levels the model gives below the
-ground are listed as left out: here the ground is at about 1,400 m, and 1000 to 900 hPa lie beneath
-it. Where each value comes from, and why levels are left out, is on the source's page.
+10 m (33 ft) above it. Each pressure level above the ground follows. The levels the model gives
+below the ground are listed as left out: here the ground is at about 1,400 m (4,593 ft), and 1000
+to 900 hPa lie beneath it. Where each value comes from, and why levels are left out, is on the
+source's page.
 
 ### The profile file
 

@@ -25,9 +25,9 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
 The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163): lines
 `N. M<id> title`, ids open in this file (`cargo test -p xtask` checks).
 
-1. M0.9c13 The site's figures and units
-2. M0.9c14 Provenance on the other files
-3. M0.9c15 Next steps and waits
+1. M0.9c14 Provenance on the other files
+2. M0.9c15 Next steps and waits
+3. M0.9c16 US units on the model pages
 4. M0.9d The site
 5. M0.9e The words
 6. M0.10 The scoreboard
@@ -142,12 +142,13 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   - [ ] **M0.9c The CLI, exports and plot to the design** (ADR-208): #377–#382, #392, #395, #400,
     #403, #405, #409–#411, each fix held by a named test failing on its issue's defect, the
     audit's rows naming them; a rule declined has an ADR.
-    - [ ] **M0.9c13 The site's figures and units** (#382, #400; ADR-216). *Done when:* both are
-      closed, with every item they list.
     - [ ] **M0.9c14 Provenance on the other files** (#409; ADR-214). *Done when:* it is closed,
       each item held by a test failing on the build before it.
     - [ ] **M0.9c15 Next steps and waits** (#410, #411). *Done when:* both are closed, each item
       held by a check failing before it.
+    - [ ] **M0.9c16 US units on the model pages** (#400; ADR-219). *Done when:* #400 is closed,
+      with every item it lists: the units check defers no page and reads millimeters, a motor's
+      or mount's size excepted.
   - [ ] **M0.9d The site to the design** (ADR-208). *Done when:* #383 to #385 are closed: no
     mdBook default the system doesn't draw (colors, radii, shadows, motion, icons, metas, print),
     a title block and sheets on every page, notes in the system's shape, and every committed SVG

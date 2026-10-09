@@ -101,13 +101,13 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 A calibre here is the rocket's widest body diameter, 66 mm, so a margin of 1.70 calibres puts the
 center of pressure 1.70 × 66 mm ≈ 112 mm behind the center of gravity. The `CG and CP` line gives
-the two points it came from, measured from the nose tip in meters and inches: 0.811 m and 0.923 m,
-112 mm apart. They are the stations as the rocket leaves the rail, 0.12 s into the burn here, not
-on the pad: some propellant has burned by then, so this center of gravity is a little forward of
-where the loaded rocket balances on the pad, and the margin on the pad is a little smaller than
-the one printed. Balance the loaded rocket, motor in, and compare where it balances with the
-line's center of gravity before trusting the margin: each millimeter the balance point sits aft
-of it takes a millimeter off the distance to the center of pressure. The simulator computes the
+the two points it came from, measured from the nose tip in meters and inches: 0.811 m (31.9 in) and
+0.923 m (36.3 in), 112 mm apart. They are the stations as the rocket leaves the rail, 0.12 s into
+the burn here, not on the pad: some propellant has burned by then, so this center of gravity is a
+little forward of where the loaded rocket balances on the pad, and the margin on the pad is a little
+smaller than the one printed. Balance the loaded rocket, motor in, and compare where it balances
+with the line's center of gravity before trusting the margin: each millimeter the balance point sits
+aft of it takes a millimeter off the distance to the center of pressure. The simulator computes the
 static margin at Mach 0, with the air along the rocket's axis. The margin grows
 as propellant burns and the center of gravity moves forward, so its least value in flight is
 usually the one at the rail. `--json` also gives the flight margin, at the flight's own Mach number
@@ -204,15 +204,15 @@ the sources' guidance, not the simulator's judgement.**
 NAR's code asks for "rigid guidance until the rocket has attained a speed that ensures a stable
 flight"; Tripoli's, 7-3, for guidance "until it has reached the velocity necessary for stable
 flight". Competitions set numbers: the Spaceport America Cup's guide asks for at least 25 m/s
-(5.3.1), and NASA's Student Launch handbook for 52 ft/s (15.8 m/s).
+(82 ft/s) in its section 5.3.1, and NASA's Student Launch handbook for 15.8 m/s (52 ft/s).
 
 The reason is the wind. Just off the rail, a crosswind meets the rocket at an angle whose tangent
-is the wind speed over the rocket's speed. At the guide rocket's 26.3 m/s in a 4 m/s crosswind,
-that is about 8.6°, since 4 / 26.3 = 0.152 and the angle whose tangent is 0.152 is 8.6°. The
-larger that [angle of attack](glossary.md#angle-of-attack), the further the rocket turns into the
-wind, and the simulator's aerodynamics hold only at small angles. Both of its margins are taken with
-the air along the axis, at no angle at all. A longer rail raises the exit speed: `--rail-length`
-sets it, and `--wind` the wind
+is the wind speed over the rocket's speed. At the guide rocket's 26.3 m/s (86 ft/s) in a
+4 m/s (8.9 mph) crosswind, that is about 8.6°, since 4 / 26.3 = 0.152 and the angle whose tangent
+is 0.152 is 8.6°. The larger that [angle of attack](glossary.md#angle-of-attack), the further the
+rocket turns into the wind, and the simulator's aerodynamics hold only at small angles. Both of
+its margins are taken with the air along the axis, at no angle at all. A longer rail raises the
+exit speed: `--rail-length` sets it, and `--wind` the wind
 ([Fly your .ork](fly-your-ork.md#choose-the-configuration-and-the-launch)).
 
 ## Fly the rocket you built

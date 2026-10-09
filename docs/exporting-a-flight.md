@@ -155,15 +155,15 @@ their standards say so:
   [OGC KML 2.2, 07-147r2](https://www.ogc.org/standard/kml/)).
 
 Sea level sits above or below the ellipsoid by the
-[geoid undulation](glossary.md#height-above-sea-level-msl) `N`, up to about 100 m. The simulator has
-no model of it, so it uses the value the flight was given (`Environment::with_geoid_undulation_m`,
-zero unless set), the same for every point of the flight. The geoid's slope, about 5 cm per
-kilometer and up to some 30 cm in mountains, moves it by centimeters to decimeters over a rocket's
+[geoid undulation](glossary.md#height-above-sea-level-msl) `N`, up to about 100 m (328 ft). The simulator
+has no model of it, so it uses the value the flight was given (`Environment::with_geoid_undulation_m`,
+zero unless set), the same for every point of the flight. The geoid's slope, about 5 cm (2.0 in) per
+kilometer and up to some 30 cm (12 in) in mountains, moves it by centimeters to decimeters over a rocket's
 few kilometers. For example, at a site where sea level
-is 25 m below the ellipsoid (`N = −25` m), a point 1500 m above the ellipsoid is written as 1500 m
-in GeoJSON and as 1525 m in KML. The first flight leaves `N` at zero, so its two files agree; at the real
-site sea level is some tens of meters below the ellipsoid, so give `N` for heights you mean to
-trust.
+is 25 m (82 ft) below the ellipsoid (`N = −25` m), a point 1500 m (4921 ft) above the ellipsoid is
+written as 1500 m (4921 ft) in GeoJSON and as 1525 m (5003 ft) in KML. The first flight leaves `N`
+at zero, so its two files agree; at the real site sea level is some tens of meters below the
+ellipsoid, so give `N` for heights you mean to trust.
 
 ## How the files are checked
 

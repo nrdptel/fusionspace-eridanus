@@ -53,6 +53,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9c8 Provenance on every export ([Phase 0](#phase-0-foundations))
 - M0.9c9 Help, roles and progress ([Phase 0](#phase-0-foundations))
 - M0.9c12 The plot's balloons, banking and title block ([Phase 0](#phase-0-foundations))
+- M0.9c13 The site's figures and units ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -419,6 +420,9 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M0.9c12 The plot's balloons, banking and title block** (#382; ADR-218). *Done when:*
       colliding balloons step right on a leader, panels bank toward 45°, a title block and a CSV
       end the figure; each held by a test failing before it.
+    - [x] **M0.9c13 The site's figures and units** (#382, #400; ADR-216, ADR-219). *Done when:*
+      #382 is closed, and #400 on the guides: a site check fails a height, distance or speed in
+      SI alone on every page but those ADR-219 defers.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and
