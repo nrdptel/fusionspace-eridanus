@@ -1276,7 +1276,15 @@ fn axis(values: impl Iterator<Item = f64>) -> (f64, f64, f64) {
             2.0
         };
     }
-    ((lo / step).floor() * step, (hi / step).ceil() * step, step)
+    // An end within a billionth of a step past a tick stays on it, as `tick` lets the last tick
+    // run a hair past: a landing a hair below the ground, which one platform's rounding gives and
+    // another's doesn't, shouldn't add a whole step under it.
+    let slack = 1e-9;
+    (
+        (lo / step + slack).floor() * step,
+        (hi / step - slack).ceil() * step,
+        step,
+    )
 }
 
 /// The axis's `k`th tick from its low end, while it is on the axis (at most 20).

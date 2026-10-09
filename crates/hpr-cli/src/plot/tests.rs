@@ -832,6 +832,11 @@ fn axes_are_round() {
     assert_eq!(axis(std::iter::empty()), (0.0, 1.0, 0.2));
     assert_eq!(axis([f64::NAN, 3.0, 7.0].into_iter()), (3.0, 7.0, 1.0));
     assert_eq!(axis([-f64::MAX, f64::MAX].into_iter()), (0.0, 1.0, 0.2));
+    // A landing a hair below the ground, or an apogee a hair past a tick, adds no step; a real
+    // centimeter below still does.
+    assert_eq!(axis([-1e-12, 0.0, 324.0].into_iter()), (0.0, 400.0, 100.0));
+    assert_eq!(axis([0.0, 400.0 + 1e-12].into_iter()), (0.0, 400.0, 100.0));
+    assert_eq!(axis([-0.01, 324.0].into_iter()), (-100.0, 400.0, 100.0));
     let ticks: Vec<f64> = (0..).map_while(|k| tick(0.0, 0.3, 0.1, k)).collect();
     assert_eq!(ticks.len(), 4, "{ticks:?}");
     assert_eq!(label(-0.0, 1.0), "0");

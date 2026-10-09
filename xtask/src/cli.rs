@@ -122,7 +122,7 @@ pub(crate) fn check(root: &Path) -> Result<(), String> {
 }
 
 /// Where a committed output first differs from what `cargo xtask cli` would write: its line, and
-/// up to 40 characters either side in each, so a failure on another platform shows which number
+/// from 40 characters before it, 160 of each, so a failure on another platform shows which number
 /// moved without a rerun there.
 fn first_difference(committed: Option<&str>, expected: &str) -> String {
     let Some(committed) = committed else {
@@ -431,7 +431,7 @@ mod tests {
         // One text a prefix of the other: the difference is where the shorter ends.
         assert!(first_difference(Some("ab"), "abc").starts_with(" (line 1:"));
         // Multi-byte characters around the difference stay whole.
-        assert!(first_difference(Some("é—1"), "é—2").contains("é—2"));
+        assert!(first_difference(Some("é°1"), "é°2").contains("é°2"));
     }
 
     #[test]
