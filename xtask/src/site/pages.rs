@@ -31,9 +31,9 @@
 //!   page). The theme lets a figure reach past the prose column for this (`theme/hpr.css`). A
 //!   figure with no size the check can read (broken, or an SVG without one) fails.
 //! - **mdBook's defaults** (#383), by computed style: the root element and every element of the
-//!   body, with its
-//!   `::before` and `::after`, drawn now or hidden until asked for (the help popup, the copy
-//!   tooltip), plus a search hit and a search result added as mdBook's search makes them:
+//!   body, with its `::before` and `::after`, drawn now or hidden until asked for (the help
+//!   popup, the copy tooltip), plus a search hit and a search result added as mdBook's search
+//!   makes them:
 //!   - **a color off the system's roles** in the page's theme (`foundations.md`, *Semantic
 //!     roles*: its text, background, drawn borders, outline, underline, and an SVG's fill and
 //!     stroke). Transparent passes, and a background may be a role seen through, as a dialog's
