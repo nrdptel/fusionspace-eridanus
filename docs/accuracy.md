@@ -482,17 +482,17 @@ percentage. Each is held to 3% of RocketPy's apogee (for height) or top speed (f
 All nine flights pass, each well inside its bound. The largest height RMS is Prometheus 2022's,
 35.350931 m against its 110.3 m bound, about a third of it; its apogee is also the furthest off,
 +1.208%. Body lift accounts for that too: RocketPy flown with HPR Sim's body lift and rail release
-reaches 3723.8 m, against HPR Sim's 3723.6 ([case file][prometheus-case]). Juno III's is 14.550623 m
+reaches 3723.8 m, against HPR Sim's 3723.6 ([case file][prometheus-case]). Juno III's is 14.550622 m
 against 78.4 m, about a fifth, and the other seven are at an eighth of theirs or less. The speed
 RMS runs from 0.022685 to 1.553509 m/s ([report][report]).
 
 | case | `series_height_rms_m` | height bound, m | `series_speed_rms_m_s` | speed bound, m/s |
 |---|---|---|---|---|
 | [`flight-calisto-tests-motor-at-minus-1.373`][report] | +1.837754 | 78.3 | +0.058007 | 7.3 |
-| [`flight-valetudo`][report] | +2.115504 | 23.3 | +0.171627 | 3.3 |
+| [`flight-valetudo`][report] | +2.115503 | 23.3 | +0.171627 | 3.3 |
 | [`flight-ndrt-2020-nose-to-tail`][report] | +2.425247 | 36.4 | +0.124657 | 5.4 |
 | [`flight-prometheus-2022-generic-motor`][report] | +35.350931 | 110.3 | +1.553509 | 10 |
-| [`flight-juno-iii`][report] | +14.550623 | 78.4 | +0.810392 | 6.7 |
+| [`flight-juno-iii`][report] | +14.550622 | 78.4 | +0.810392 | 6.7 |
 | [`flight-bella-lui`][report] | +1.657682 | 15.9 | +0.273966 | 2.9 |
 | [`flight-juno-iii-calm`][report] | +2.003892 | 78.6 | +0.065810 | 6.8 |
 | [`flight-calisto-tests-motor-at-minus-1.373-calm`][report] | +1.821296 | 78.4 | +0.051504 | 7.3 |
@@ -634,8 +634,8 @@ apogee or top speed, so it differs from the same-drag bound: Juno III's 54.69966
 |---|---|---|---|---|
 | [`predicted-calisto-tests-motor-at-minus-1.373`][report] | +12.420364 | 84.6 | +0.331462 | 7.4 |
 | [`predicted-valetudo`][report] | +75.375007 | 20.9 | +2.790876 | 3.2 |
-| [`predicted-ndrt-2020-nose-to-tail`][report] | +116.136025 | 38.1 | +6.775468 | 5.5 |
-| [`predicted-prometheus-2022-generic-motor`][report] | +263.920106 | 128.8 | +7.202224 | 10.3 |
+| [`predicted-ndrt-2020-nose-to-tail`][report] | +116.136026 | 38.1 | +6.775468 | 5.5 |
+| [`predicted-prometheus-2022-generic-motor`][report] | +263.920111 | 128.8 | +7.202224 | 10.3 |
 | [`predicted-juno-iii`][report] | +54.699661 | 83.9 | +0.927234 | 6.8 |
 | [`predicted-bella-lui`][report] | +5.264438 | 16.2 | +0.279185 | 2.9 |
 
