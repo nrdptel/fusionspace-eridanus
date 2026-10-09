@@ -51,7 +51,8 @@ the command, so a later run can be compared like for like.
   6.3 MB. Criterion's "Valetudo K400C to the ground" read 1.344 ms, against 1.385 ms after M1.8e6
   (2026-09-19, below).
 - **The flow angles' cosines and sines from the velocity** ([#285](https://github.com/nrdptel/fusionspace-eridanus/issues/285)'s
-  first item, 2026-10-09). Measured in one sitting, the code before the change first, then after:
+  first item, 2026-10-09). Measured in one sitting, the code before the change (1655a0d) first, then
+  after:
   - Valetudo: 3.03 → 2.98 s (1.950 → 1.923 ms a flight).
   - The K940: 9.73 → 9.51 s (5.938 → 5.837 ms a flight).
   - Criterion's "K400C to the ground": 1.3451 → 1.3171 ms, −2.1%.

@@ -750,9 +750,15 @@ struct FlowAngles {
     /// `φ`, rad in `[−π, π]`: the direction the air crosses the body, from `x_B` toward `y_B`,
     /// opposite the lateral velocity; zero when there is none.
     roll_rad: f64,
+    /// `cos α = v_z/|v|`: within a few ulps of `cos(alpha_rad)`, as are the three below.
     cos_alpha: f64,
+    /// `sin α = w/|v|`, `w` the crossflow. `w` comes from `hypot` and `|v|` from a square root of
+    /// the sum of squares, which round apart, so it can exceed 1 by an ulp near α = 90°: clamp it
+    /// before any `asin` or `sqrt(1 − sin²α)`.
     sin_alpha: f64,
+    /// `cos φ = −v_x/w`.
     cos_roll: f64,
+    /// `sin φ = −v_y/w`.
     sin_roll: f64,
 }
 
