@@ -281,9 +281,7 @@ impl Out<'_> {
         // closed standard output does.
         self.diagnostics.flush();
         match self.diagnostics.failure() {
-            Some(error) if error.kind() != io::ErrorKind::BrokenPipe => {
-                Err(Failure::Output(error))
-            }
+            Some(error) if error.kind() != io::ErrorKind::BrokenPipe => Err(Failure::Output(error)),
             _ => Ok(()),
         }
     }
