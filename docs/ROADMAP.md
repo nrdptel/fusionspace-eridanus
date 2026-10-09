@@ -210,10 +210,12 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 - [ ] **M2.6 An open benchmark** (ADR-209 §9). *Done when:* public cases with design, log and
   weather, each file's license recorded; a runner scores any simulator's predictions file the same
   way; HPR Sim's and OpenRocket's scores on a docs page from a committed report. Moves: accuracy.
-- [ ] **M1.14 Accuracy inside the envelope** (ADR-143 §6). The core band (Mach 0–2.5) first, then
-  the extended band in M1.14h; angle of attack ≤ 15°, high angles M1.14e's. *Done when:* real
-  flights meet the 5% mean apogee target, hpr is at least as accurate as OpenRocket on the same
-  real flights, and M1.8's Cd bullet is met or its gap re-measured in an ADR.
+- [ ] **M1.14 Accuracy inside the envelope** (ADR-143 §6, ADR-220). The core band (Mach 0–2.5)
+  first, then the extended band in M1.14h; angle of attack ≤ 15°, high angles M1.14e's. *Done
+  when:* real flights meet the 5% mean apogee target, hpr is at least as accurate as OpenRocket on
+  the same real flights, and on the private collection's flights both fly its mean absolute
+  apogee error is below OpenRocket 24.12's and its newest release's (ADR-212), its mean bias
+  within 3%; and M1.8's Cd bullet is met or its gap re-measured in an ADR.
   - [ ] **M1.14b References, Mach 1.5–2.5.** *Done when:* each in ADR-143 §6b reported or refused.
   - [ ] **M1.14c Transonic, Mach 0.8–1.2.** *Done when:* the stop rule ends it, gaps re-measured.
   - [ ] **M1.14d Supersonic, Mach 1.2–2.5.** First the switches that fall back to slender-body
