@@ -50,6 +50,15 @@ the command, so a later run can be compared like for like.
   build, took 3.90 s and peaked at 20.4 MB resident (`/usr/bin/time -l`); one `hpr sim` peaked at
   6.3 MB. Criterion's "Valetudo K400C to the ground" read 1.344 ms, against 1.385 ms after M1.8e6
   (2026-09-19, below).
+- **The flow angles' cosines and sines from the velocity** ([#285](https://github.com/nrdptel/fusionspace-eridanus/issues/285)'s
+  first item, 2026-10-09). Measured in one sitting, the code before the change first, then after:
+  - Valetudo: 3.03 → 2.98 s (1.950 → 1.923 ms a flight).
+  - The K940: 9.73 → 9.51 s (5.938 → 5.837 ms a flight).
+  - Criterion's "K400C to the ground": 1.3451 → 1.3171 ms, −2.1%.
+
+  A second run after the change read 3.00 s and 9.48 s. The two `atan2` calls are still there,
+  because the aerodynamic model needs the angles themselves. Removing them would need
+  `hpr-aero`'s flow to carry the cosines too.
 - **Before** is the same program, run on 5c7f3d2 (the commit before M6.1d) in the same sitting,
   minus the lines of its one-thread breakdown that time steps the old code didn't have. The
   layout row's "before" is the new program's time to lay a design out alone, which the old code
