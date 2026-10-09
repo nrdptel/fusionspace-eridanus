@@ -22,7 +22,7 @@ use crate::output::{
     CatalogInfo, Delay, FileFormat, ListedMotor, MotorFigures, MotorKind, MotorList, MotorShow,
     MotorSource, Warning, WarningKind,
 };
-use crate::units::{inches, ounces_or_pounds};
+use crate::units::{bracketed, inches, inches_figure, ounces_or_pounds};
 use crate::{Failure, Out};
 
 /// `hpr motors`'s subcommands.
@@ -250,23 +250,41 @@ fn list_text(list: &MotorList, out: &mut dyn Write) -> io::Result<()> {
         "designation",
         "maker",
         "class",
-        "dia mm",
-        "len mm",
+        "dia mm (in)",
+        "len mm (in)",
         "impulse N·s",
         "avg N",
         "burn s",
         "delays",
     ];
+    // The size in inches too, to the places `hpr motors show` gives (ADR-210, ADR-213).
+    let size = |mm: fn(&ListedMotor) -> f64, decimals: usize| {
+        bracketed(
+            &list
+                .motors
+                .iter()
+                .map(|m| {
+                    (
+                        format!("{}", mm(m)),
+                        inches_figure(mm(m) / 1000.0, decimals),
+                    )
+                })
+                .collect::<Vec<_>>(),
+        )
+    };
+    let diameters = size(|m| m.diameter_mm, 2);
+    let lengths = size(|m| m.length_mm, 1);
     let rows: Vec<[String; 9]> = list
         .motors
         .iter()
-        .map(|m| {
+        .zip(diameters.into_iter().zip(lengths))
+        .map(|(m, (diameter, length))| {
             [
                 m.designation.clone(),
                 m.manufacturer_abbrev.clone(),
                 m.impulse_class.clone(),
-                format!("{}", m.diameter_mm),
-                format!("{}", m.length_mm),
+                diameter,
+                length,
                 format!("{:.1}", m.total_impulse_ns),
                 format!("{:.1}", m.average_thrust_n),
                 format!("{:.2}", m.burn_time_s),
@@ -334,6 +352,8 @@ fn from_catalog(name: &str) -> Result<(MotorShow, Vec<Option<String>>), Failure>
         ));
     }
     let mut show = MotorShow {
+        kind: crate::trust::Kind::Copied,
+        trust: crate::trust::catalog_motor(&catalog.snapshot.captured),
         motors: Vec::new(),
         warnings: Vec::new(),
     };
@@ -403,6 +423,8 @@ fn from_file(path: &str, format: MotorFile) -> Result<MotorShow, Failure> {
     };
     let refused = |error| Failure::Input(format!("{path}: {error}"));
     let mut show = MotorShow {
+        kind: crate::trust::Kind::Copied,
+        trust: crate::trust::motor_file(),
         motors: Vec::new(),
         warnings: Vec::new(),
     };
@@ -619,6 +641,7 @@ fn show_text(
             writeln!(out, "  curve file       {curve_url} (public domain)")?;
         }
     }
+    crate::sim_text::trust_lines(&show.trust, out)?;
     for warning in &show.warnings {
         let at = match (&warning.motor, warning.line) {
             (Some(motor), _) => format!("{motor}: "),

@@ -19,7 +19,7 @@ use crate::output::{
     LiftoffReading, LogFormatName, LogReading, LoggerStated, MaxAccelerationReading,
     MaxSpeedReading, ReadingSource, WithheldReading, WithheldReason,
 };
-use crate::units::{meters, speed};
+use crate::units::{gravities, meters, speed};
 use crate::{Failure, Out};
 
 /// `hpr analyze`'s arguments.
@@ -37,6 +37,7 @@ pub(crate) fn run(args: &AnalyzeArgs, to: &mut Out<'_>) -> Result<(), Failure> {
     let lines = text_lines(&document);
     to.emit(&document, |out, diagnostics| {
         lines.iter().try_for_each(|line| writeln!(out, "{line}"))?;
+        crate::sim_text::trust_lines(&document.trust, out)?;
         document
             .log
             .notes
@@ -74,6 +75,8 @@ fn read_log(path: &str) -> Result<FlightLog, Failure> {
 /// The output document.
 fn document(path: &str, log: &FlightLog, read: &Readings) -> Analyze {
     Analyze {
+        kind: crate::trust::Kind::Measured,
+        trust: crate::trust::log(),
         log: AnalyzedLog {
             path: path.to_owned(),
             format: match log.format {
@@ -262,9 +265,12 @@ fn text_lines(document: &Analyze) -> Vec<String> {
     lines.push(row(
         "top acceleration",
         match &document.max_acceleration {
-            LogReading::Read(top) => {
-                format!("{:.1} m/s² at {:.2} s", top.acceleration_m_s2, top.time_s)
-            }
+            LogReading::Read(top) => format!(
+                "{:.1} m/s² ({}) at {:.2} s",
+                top.acceleration_m_s2,
+                gravities(top.acceleration_m_s2),
+                top.time_s
+            ),
             LogReading::Withheld(reading) => withheld(reading),
         },
     ));
@@ -292,6 +298,27 @@ fn text_lines(document: &Analyze) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A top acceleration reads in g too, standard gravity, in brackets after the m/s² (issue
+    /// #392). No log format read so far records one, so the reading is set by hand on a real
+    /// log's document.
+    #[test]
+    fn a_top_acceleration_gives_g() {
+        let text = include_str!("../../../validation/fixtures/logs/synthetic-pnut.pf2");
+        let log = perfectflite::read(text).unwrap();
+        let mut document = document("synthetic-pnut.pf2", &log, &readings::read(&log));
+        document.max_acceleration = LogReading::Read(MaxAccelerationReading {
+            acceleration_m_s2: 98.066_5,
+            time_s: 0.75,
+        });
+        let lines = text_lines(&document);
+        assert!(
+            lines
+                .iter()
+                .any(|line| line == "top acceleration  98.1 m/s² (10.0 g) at 0.75 s"),
+            "{lines:#?}"
+        );
+    }
 
     /// Every reason and source the library has maps to the command's own, of the same name: a
     /// library variant added without a mapping would reach the JSON as `other`.

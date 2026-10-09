@@ -25,6 +25,8 @@ use crate::output::{
     DropReason, DroppedLevel, ProfileLevel, ReadFrom, Weather, WeatherPosition, WeatherSource,
     WeatherSourceName,
 };
+use crate::trust::{self, Kind};
+use crate::units::{bracketed, fahrenheit_figure, feet_figure, fixed, mph_figure};
 use crate::{Failure, Out};
 
 /// The credit ERA5's license (CC BY 4.0) asks for, as `docs/format/era5.md` gives it.
@@ -198,7 +200,8 @@ pub(crate) fn run(command: &WeatherCommand, to: &mut Out<'_>) -> Result<(), Fail
     let document = document(read, output.clone());
     let lines = text_lines(&document);
     to.emit(&document, |out, _| {
-        lines.iter().try_for_each(|line| writeln!(out, "{line}"))
+        lines.iter().try_for_each(|line| writeln!(out, "{line}"))?;
+        crate::sim_text::trust_lines(&document.trust, out)
     })
 }
 
@@ -588,8 +591,16 @@ fn document(read: Read, profile: Option<String>) -> Weather {
             wind_from_deg: level.wind_direction_from_rad.map(f64::to_degrees),
         })
         .collect();
+    let (kind, trust) = match read.source.name {
+        WeatherSourceName::OpenMeteo => (Kind::Forecast, trust::open_meteo()),
+        WeatherSourceName::Wyoming => (Kind::Measured, trust::sounding()),
+        WeatherSourceName::Gfs | WeatherSourceName::Rap => (Kind::Forecast, trust::nomads()),
+        WeatherSourceName::Era5 => (Kind::Reanalysis, trust::reanalysis()),
+    };
     Weather {
         source: read.source,
+        kind,
+        trust,
         read_from: read.read_from,
         position: read.position,
         time: format_utc(read.time_unix_s),
@@ -624,31 +635,8 @@ fn text_lines(document: &Weather) -> Vec<String> {
         read_from_line(&document.read_from),
         document.source.attribution.clone(),
         String::new(),
-        format!(
-            "{:>9}  {:>8}  {:>6}  {:>8}  {:>6}  {:>5}",
-            "height", "pressure", "temp", "humidity", "wind", "from"
-        ),
-        format!(
-            "{:>9}  {:>8}  {:>6}  {:>8}  {:>6}  {:>5}",
-            "m MSL", "hPa", "°C", "%", "m/s", "°"
-        ),
     ];
-    let or_blank = |value: Option<f64>, scale: f64, decimals: usize| {
-        value.map_or("-".to_owned(), |value| {
-            format!("{:.decimals$}", value * scale)
-        })
-    };
-    for level in &document.levels {
-        lines.push(format!(
-            "{:>9.1}  {:>8}  {:>6.1}  {:>8}  {:>6}  {:>5}",
-            level.height_msl_m,
-            or_blank(level.pressure_pa, 0.01, 1),
-            level.temperature_k - 273.15,
-            or_blank(level.relative_humidity, 100.0, 0),
-            or_blank(level.wind_speed_m_s, 1.0, 1),
-            or_blank(level.wind_from_deg, 1.0, 0),
-        ));
-    }
+    lines.extend(levels_table(&document.levels));
     if !document.dropped.is_empty() {
         lines.push(String::new());
         lines.push(format!("Left out: {}", count(document.dropped.len())));
@@ -686,6 +674,105 @@ fn text_lines(document: &Weather) -> Vec<String> {
     if let Some(path) = &document.profile {
         lines.push(String::new());
         lines.push(format!("Profile written to {path}"));
+    }
+    lines
+}
+
+/// The levels as a table, two heading lines over a row each: SI first, with the US units a flyer
+/// in the United States reads in brackets after the height, the temperature and the wind
+/// (ADR-210, ADR-213), and the pressure in hPa alone, as weather pressure is given in both.
+fn levels_table(levels: &[ProfileLevel]) -> Vec<String> {
+    let or_blank = |value: Option<f64>, scale: f64, decimals: usize| {
+        value.map_or("-".to_owned(), |value| fixed(value * scale, decimals))
+    };
+    let height = bracketed(
+        &levels
+            .iter()
+            .map(|level| {
+                (
+                    fixed(level.height_msl_m, 1),
+                    feet_figure(level.height_msl_m),
+                )
+            })
+            .collect::<Vec<_>>(),
+    );
+    let temperature = bracketed(
+        &levels
+            .iter()
+            .map(|level| {
+                (
+                    fixed(level.temperature_k - 273.15, 1),
+                    fahrenheit_figure(level.temperature_k),
+                )
+            })
+            .collect::<Vec<_>>(),
+    );
+    let wind = bracketed(
+        &levels
+            .iter()
+            .map(|level| match level.wind_speed_m_s {
+                Some(speed) => (fixed(speed, 1), mph_figure(speed)),
+                None => ("-".to_owned(), String::new()),
+            })
+            .collect::<Vec<_>>(),
+    );
+    let columns: [(&str, &str, Vec<String>); 6] = [
+        ("height", "m MSL (ft)", height),
+        (
+            "pressure",
+            "hPa",
+            levels
+                .iter()
+                .map(|level| or_blank(level.pressure_pa, 0.01, 1))
+                .collect(),
+        ),
+        ("temp", "°C (°F)", temperature),
+        (
+            "humidity",
+            "%",
+            levels
+                .iter()
+                .map(|level| or_blank(level.relative_humidity, 100.0, 0))
+                .collect(),
+        ),
+        ("wind", "m/s (mph)", wind),
+        (
+            "from",
+            "°",
+            levels
+                .iter()
+                .map(|level| or_blank(level.wind_from_deg, 1.0, 0))
+                .collect(),
+        ),
+    ];
+    let widths = columns.each_ref().map(|(name, unit, cells)| {
+        cells
+            .iter()
+            .map(|cell| cell.chars().count())
+            .chain([name.chars().count(), unit.chars().count()])
+            .max()
+            .unwrap_or(0)
+    });
+    // Every column is right-aligned, two spaces apart, as the table's numbers are.
+    let row = |cells: [&str; 6]| -> String {
+        let mut text = String::new();
+        for (i, (cell, width)) in cells.iter().zip(widths).enumerate() {
+            if i > 0 {
+                text.push_str("  ");
+            }
+            text.push_str(&" ".repeat(width - cell.chars().count()));
+            text.push_str(cell);
+        }
+        text.trim_end().to_owned()
+    };
+    let mut lines = vec![
+        row(columns.each_ref().map(|(name, _, _)| *name)),
+        row(columns.each_ref().map(|(_, unit, _)| *unit)),
+    ];
+    for i in 0..levels.len() {
+        lines.push(row(columns
+            .each_ref()
+            .map(|(_, _, cells)| cells[i].as_str())));
     }
     lines
 }

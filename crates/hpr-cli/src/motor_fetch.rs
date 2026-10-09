@@ -12,6 +12,7 @@ use hpr::hpr_net::thrustcurve::{self, DataFile, Format, ThrustCurveError};
 
 use crate::console::Level;
 use crate::output::{FileFormat, MotorFetch, ThrustCurveMotor};
+use crate::units::inches_figure;
 use crate::weather::{client, now_s, read_from, read_from_line};
 use crate::{Failure, Out, printable};
 
@@ -56,9 +57,11 @@ pub(crate) fn run(args: &FetchArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         ),
         format!("  curve file       {}", file_words(&document.motor)),
         format!(
-            "  case             {:.0} × {:.0} mm",
+            "  case             {:.0} × {:.0} mm ({} × {} in)",
             motor.diameter_m() * 1000.0,
-            motor.length_m() * 1000.0
+            motor.length_m() * 1000.0,
+            inches_figure(motor.diameter_m(), 2),
+            inches_figure(motor.length_m(), 1)
         ),
     ];
     to.emit(&document, |out, diagnostics| {

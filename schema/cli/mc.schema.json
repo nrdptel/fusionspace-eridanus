@@ -441,6 +441,26 @@
           "description": "From a model of the flight, not measured.",
           "type": "string",
           "const": "simulated"
+        },
+        {
+          "description": "Measured: an altimeter's log, or a weather balloon's sounding.",
+          "type": "string",
+          "const": "measured"
+        },
+        {
+          "description": "A weather model's forecast.",
+          "type": "string",
+          "const": "forecast"
+        },
+        {
+          "description": "A reanalysis: a weather model's fit to past observations, such as ERA5.",
+          "type": "string",
+          "const": "reanalysis"
+        },
+        {
+          "description": "Copied from a data file, such as a motor's curve file, or computed from it.",
+          "type": "string",
+          "const": "copied"
         }
       ]
     },

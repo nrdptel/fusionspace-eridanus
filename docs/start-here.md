@@ -229,7 +229,9 @@ out.
 - **The flight-log analyzer reads one logger so far.** `hpr analyze` reads a PerfectFlite
   altimeter's `.pf2` log on its own, with no design file and no simulation, and prints liftoff,
   apogee, the top speed, landing and the descent, each saying where it came from, or withheld with
-  the reason the log can't support it ([Reading a flight log](reading-a-flight-log.md)). The other
+  the reason the log can't support it ([Reading a flight log](reading-a-flight-log.md)). Like
+  `hpr weather` and `hpr motors show`, it ends with how far to trust its figures
+  ([M0.9c4](decisions-and-roadmap.md#m0-9c4)). The other
   loggers come with [M7.1](decisions-and-roadmap.md#m7-1): Altus Metrum (AltOS), Featherweight
   (Raven, Blue Raven and the GPS tracker), Missile Works RRC3, Eggtimer, Entacore AIM,
   Mercury/AltimeterCloud, CATS, and plain CSV with column mapping. The rest of the readings, such
@@ -395,7 +397,7 @@ the simulator's internal name, then software tool 1.
 | Version | 0.1.0, not yet released |
 | Date of issue | <span id="issue-date">the date of the commit the site is built from</span> |
 | Status | IN PREPARATION: no release yet; how far to trust each result is [above](#accuracy-so-far) |
-| Units | SI (meters, kilograms, seconds) first. The text of `hpr sim` and `hpr mc` adds US units in parentheses: feet after heights and distances, feet per second after speeds, miles per hour after the wind and inches after stations along the rocket; `hpr motors show` adds ounces or pounds and inches. The plot gives a second scale in feet, feet per second and g. JSON and exported files stay SI ([units](cli.md#units)) |
+| Units | SI (meters, kilograms, seconds) first. Every command's text adds US units in parentheses: feet after heights and distances, feet per second after speeds, miles per hour after the wind, °F after the air's temperature, g after an acceleration and inches after stations along the rocket and a motor's size; `hpr motors show` adds ounces or pounds. The plot gives a second scale in feet, feet per second and g. JSON and exported files stay SI ([units](cli.md#units)) |
 | Data | Thrust curves: ThrustCurve.org's public-domain files, catalog captured 2026-09-17. Atmosphere: U.S. Standard Atmosphere 1976, or a sounding or forecast you supply or fetch ([weather](weather.md)). Magnetic field: WMM2025. Accuracy: the committed [validation report][report]. Every source and its terms: [third-party notices][notices]. |
 | Fonts | Archivo and Cascadia Mono, SIL Open Font License 1.1, served from this site; no page asks another server for anything |
 

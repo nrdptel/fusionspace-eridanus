@@ -1,4 +1,5 @@
-//! How far to trust a result: the note `hpr sim`, `hpr mc` and the plot end with (ADR-211).
+//! How far to trust a result: the note `hpr sim`, `hpr mc`, the plot, `hpr weather`,
+//! `hpr analyze` and `hpr motors show` end with (ADR-211, ADR-213).
 //!
 //! The note has the three parts the design system's writing guide asks of every result someone
 //! might fly on, in order: what kind of figure it is, what it was checked against with numbers,
@@ -11,6 +12,9 @@
 //! updated.
 
 use std::fmt::Write as _;
+
+/// The site, where each note's page is.
+pub(crate) const SITE: &str = "https://hpr.fusionspace.co/";
 
 /// Where the comparisons are set out in full.
 pub(crate) const ACCURACY_URL: &str = "https://hpr.fusionspace.co/accuracy.html";
@@ -41,6 +45,14 @@ pub(crate) const LOW_AT_MOST_PERCENT: f64 = 20.0;
 pub enum Kind {
     /// From a model of the flight, not measured.
     Simulated,
+    /// Measured: an altimeter's log, or a weather balloon's sounding.
+    Measured,
+    /// A weather model's forecast.
+    Forecast,
+    /// A reanalysis: a weather model's fit to past observations, such as ERA5.
+    Reanalysis,
+    /// Copied from a data file, such as a motor's curve file, or computed from it.
+    Copied,
 }
 
 /// The note's second and third parts: what the apogee was checked against, with the report's
@@ -70,6 +82,97 @@ pub(crate) fn runs() -> String {
         "{LABEL} Simulated from the design file, not measured; the spread above comes from the \
          inputs' scatter alone, not from the model's error. {}",
         checked_and_instead()
+    )
+}
+
+/// What `hpr weather`'s notes say to go by instead: the same for every source.
+const WEATHER_INSTEAD: &str = "On launch day, go by the latest forecast and the wind measured at \
+                               the field; the RSO decides.";
+
+/// Not checked yet, for every weather source: what its figures would need to be compared with.
+const WEATHER_UNCHECKED: &str = "not yet checked here against measured winds or a flight's log";
+
+/// `hpr weather`'s note on a weather model's forecast, Open-Meteo's: its profile gives back the
+/// answer's levels, checked on recorded answers (`docs/weather.md`).
+pub(crate) fn open_meteo() -> String {
+    format!(
+        "{LABEL} A weather model's forecast, not a measurement. HPR Sim's profile gives back \
+         every level of Open-Meteo's answer to rounding error, checked on recorded answers; the \
+         forecast itself is {WEATHER_UNCHECKED}. {WEATHER_INSTEAD}{MORE}{SITE}weather.html"
+    )
+}
+
+/// `hpr weather`'s note on GFS and RAP, decoded from NOAA's files: the decoder is checked
+/// against ecCodes on recorded files (`docs/nomads.md`).
+pub(crate) fn nomads() -> String {
+    format!(
+        "{LABEL} A weather model's forecast, not a measurement. HPR Sim decodes the model's file \
+         as ecCodes, the European weather center's reference decoder, does, checked on recorded \
+         files, and interpolates it to the site; the forecast itself is {WEATHER_UNCHECKED}. \
+         {WEATHER_INSTEAD}{MORE}{SITE}nomads.html"
+    )
+}
+
+/// `hpr weather`'s note on a University of Wyoming balloon sounding (`docs/soundings.md`).
+pub(crate) fn sounding() -> String {
+    format!(
+        "{LABEL} A weather balloon's measurement, at its station and its time, not at the launch \
+         site. HPR Sim's profile gives back every level of the archive's answer to rounding \
+         error, checked on recorded soundings; how much the distance to the station and the \
+         hours between change a flight is not yet checked. {WEATHER_INSTEAD}\
+         {MORE}{SITE}soundings.html"
+    )
+}
+
+/// `hpr weather`'s note on an ERA5 file (`docs/format/era5.md`).
+pub(crate) fn reanalysis() -> String {
+    format!(
+        "{LABEL} A reanalysis: a weather model's fit to past observations, on its grid and at its \
+         hours, not a measurement at the site. HPR Sim reads the file as RocketPy does, checked \
+         on two real launch days; its winds are {WEATHER_UNCHECKED}. For a flight flown, the \
+         altimeter's log is the measurement. {WEATHER_INSTEAD}{MORE}{SITE}format/era5.html"
+    )
+}
+
+/// `hpr analyze`'s note: readings of an altimeter's log (`docs/reading-a-flight-log.md`).
+pub(crate) fn log() -> String {
+    format!(
+        "{LABEL} Measured: the altimeter's own log, read by HPR Sim, not simulated; its heights \
+         are the altimeter's, from its barometer. HPR Sim's readings are checked on an invented \
+         log whose every number is known, not yet on real logs in CI, and nothing yet checks a \
+         barometer's errors near Mach 0.9, which can upset the top speed and the heights near \
+         it. For a record or a certification, the altimeter's own reading is the one to log, and \
+         the RSO decides.{MORE}{SITE}reading-a-flight-log.html"
+    )
+}
+
+/// What `hpr motors show`'s notes say about the figures and what to go by instead.
+const MOTOR_FIGURES: &str = "the size, masses and delays as the file's header gives them, the \
+                             impulse, thrusts and burn time computed from its curve, which can \
+                             differ from the maker's rated figures";
+
+/// What `hpr motors show`'s notes say to go by instead.
+const MOTOR_INSTEAD: &str = "The motor's printed data and its maker's instructions come first, \
+                             and the RSO decides.";
+
+/// `hpr motors show`'s note on the bundled catalog, its files downloaded on `captured`: the
+/// total impulse and peak thrust are held to OpenRocket's on every bundled curve
+/// (`hpr_motor::catalog`'s `openrocket_s_total_impulse_matches_every_bundled_curve`).
+pub(crate) fn catalog_motor(captured: &str) -> String {
+    format!(
+        "{LABEL} Copied from ThrustCurve.org's curve file, downloaded {captured}, not measured \
+         by HPR Sim: {MOTOR_FIGURES}. The total impulse and peak thrust are checked against \
+         OpenRocket's on every bundled curve; no figure is checked against the maker's or the \
+         certifying bodies' data. {MOTOR_INSTEAD}{MORE}{SITE}pick-a-motor.html"
+    )
+}
+
+/// `hpr motors show`'s note on a motor file the user named.
+pub(crate) fn motor_file() -> String {
+    format!(
+        "{LABEL} Read from the motor file named above, not measured by HPR Sim: {MOTOR_FIGURES}. \
+         HPR Sim doesn't check a motor file against the maker's or the certifying bodies' data. \
+         {MOTOR_INSTEAD}{MORE}{SITE}pick-a-motor.html"
     )
 }
 

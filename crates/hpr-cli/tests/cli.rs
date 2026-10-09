@@ -2244,6 +2244,14 @@ fn motors_fetch_reads_a_cached_motor() {
         hpr::hpr_net::thrustcurve::ATTRIBUTION
     );
     let fetched = streams_cached(&["motors", "fetch", "F27R/L"], cache.path());
+    // The case in inches too, in brackets after the SI (issue #392).
+    assert!(
+        fetched
+            .out
+            .contains("\n  case             29 × 83 mm (1.14 × 3.3 in)\n"),
+        "{}",
+        fetched.out
+    );
     assert!(
         fetched
             .err

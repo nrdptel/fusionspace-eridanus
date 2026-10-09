@@ -329,3 +329,55 @@ fn the_plot_gives_both_units() {
         "{figure}"
     );
 }
+
+/// `hpr motors list` gives each motor's diameter and length in inches in brackets after the
+/// millimeters, to the places `hpr motors show` gives them (issue #392, ADR-213), and its
+/// columns line up on both parts.
+#[test]
+fn motors_list_gives_inches() {
+    let text = out(&["motors", "list"]);
+    holds_lines(
+        &text,
+        &[
+            "designation   maker     class  dia mm (in)   len mm (in)  impulse N·s   avg N  burn s  \
+             delays",
+            "B4            Quest     B        18 (0.71)     80  (3.1)          4.9     4.4    1.11  \
+             4-6",
+            "H170M         AeroTech  H        38 (1.50)    191  (7.5)        318.0   165.4    1.92  \
+             2,4,6,8,10,14",
+            "K400C         AeroTech  K        54 (2.13)    359 (14.1)       1307.3   409.8    3.19  14",
+        ],
+    );
+    let json = out(&["motors", "list", "--json"]);
+    let document: Value = serde_json::from_str(&json).unwrap();
+    assert_eq!(document["motors"][0]["diameter_mm"], 18.0);
+}
+
+/// `hpr motors search` gives each motor's diameter in inches in brackets after the millimeters.
+#[test]
+fn motors_search_gives_inches() {
+    let from = repo_file("crates/hpr-net/tests/fixtures/replay/motor-finder-in-stock.json");
+    let text = out(&[
+        "motors",
+        "search",
+        "--in-stock",
+        "--class",
+        "L",
+        "--max-price",
+        "300",
+        "--from",
+        &from,
+    ]);
+    holds_lines(
+        &text,
+        &[
+            "designation  maker     class  dia mm (in)  impulse N·s   avg N  burn s  each $  pack  \
+             vendor",
+        ],
+    );
+    let rows: Vec<&str> = text.lines().filter(|l| l.contains(" L ")).collect();
+    assert!(!rows.is_empty(), "{text}");
+    for row in rows {
+        assert!(row.contains("        75 (2.95)  "), "{row}");
+    }
+}

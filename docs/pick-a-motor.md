@@ -31,13 +31,13 @@ the 32 motors built into the simulator by diameter, impulse class or maker:
 $ hpr motors list --diameter 38
 6 motors from ThrustCurve.org data files marked public domain, downloaded 2026-09-17; size, masses and delays from each file's header, the rest from its curve.
 
-designation  maker     class  dia mm  len mm  impulse N·s  avg N  burn s  delays
-G69N         AeroTech  G          38     106        136.3   72.1    1.89  1000
-H170M        AeroTech  H          38     191        318.0  165.4    1.92  2,4,6,8,10,14
-H125-CT      Loki      H          38   177.8        241.7  125.0    1.93  8-18
-I175WS       AeroTech  I          38     214        333.2  177.5    1.88  5-9-13
-411I175-14A  Cesaroni  I          38     245        411.4  174.1    2.36  6-8-9-11-12-13
-I377-CT      Loki      I          38     292        525.8  377.9    1.39  8-18
+designation  maker     class  dia mm (in)   len mm (in)  impulse N·s  avg N  burn s  delays
+G69N         AeroTech  G        38 (1.50)    106  (4.2)        136.3   72.1    1.89  1000
+H170M        AeroTech  H        38 (1.50)    191  (7.5)        318.0  165.4    1.92  2,4,6,8,10,14
+H125-CT      Loki      H        38 (1.50)  177.8  (7.0)        241.7  125.0    1.93  8-18
+I175WS       AeroTech  I        38 (1.50)    214  (8.4)        333.2  177.5    1.88  5-9-13
+411I175-14A  Cesaroni  I        38 (1.50)    245  (9.6)        411.4  174.1    2.36  6-8-9-11-12-13
+I377-CT      Loki      I        38 (1.50)    292 (11.5)        525.8  377.9    1.39  8-18
 ```
 
 <!-- cli: end -->
@@ -74,6 +74,14 @@ I175WS (AeroTech), from the bundled catalog
   casing           38 mm (1.50 in) across, 214 mm (8.4 in) long
   delays           5 s, 9 s, 13 s
   curve file       https://www.thrustcurve.org/simfiles/5f4294d20002e900000008bf/ (public domain)
+
+How far to trust it. Copied from ThrustCurve.org's curve file, downloaded 2026-09-17, not measured
+by HPR Sim: the size, masses and delays as the file's header gives them, the impulse, thrusts and
+burn time computed from its curve, which can differ from the maker's rated figures. The total
+impulse and peak thrust are checked against OpenRocket's on every bundled curve; no figure is
+checked against the maker's or the certifying bodies' data. The motor's printed data and its maker's
+instructions come first, and the RSO decides.
+More: https://hpr.fusionspace.co/pick-a-motor.html
 ```
 
 <!-- cli: end -->
