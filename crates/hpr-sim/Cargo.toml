@@ -37,6 +37,7 @@ bytes.workspace = true
 criterion.workspace = true
 jsonschema.workspace = true
 parquet-reader.workspace = true
+proptest.workspace = true
 roxmltree.workspace = true
 
 [[example]]

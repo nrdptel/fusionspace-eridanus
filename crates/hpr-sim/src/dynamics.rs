@@ -573,7 +573,8 @@ impl Vehicle {
         if rho <= 0.0 || speed < MIN_AIRSPEED_M_S {
             return Ok(out);
         }
-        let (alpha, roll) = flow_angles(v_cg, speed);
+        let angles = flow_angles(v_cg);
+        let (alpha, roll) = (angles.alpha_rad, angles.roll_rad);
         out.angle_of_attack_rad = alpha;
         let q = 0.5 * rho * speed * speed;
         out.dynamic_pressure_pa = q;
@@ -598,7 +599,7 @@ impl Vehicle {
         let table = self.aero.normal_force_table().is_some();
         if table {
             let normal = self.aero.normal_force(&flow)?;
-            let across = DVec3::new(roll.cos(), roll.sin(), 0.0);
+            let across = DVec3::new(angles.cos_roll, angles.sin_roll, 0.0);
             let side = DVec3::Z.cross(across);
             out.force += across * (normal.coefficient * q * area);
             out.moment += side * (-normal.moment_m * q * area);
@@ -626,7 +627,7 @@ impl Vehicle {
         // `sin α` (ADR-011).
         let roll = self.aero.roll(out.mach)?;
         let d = self.aero.reference_diameter_m();
-        out.moment.z += q * area * d * roll.forcing * alpha.cos()
+        out.moment.z += q * area * d * roll.forcing * angles.cos_alpha
             + 0.25 * rho * speed * area * d * d * roll.damping * omega.z;
         Ok(out)
     }
@@ -646,19 +647,21 @@ impl Vehicle {
         if local_speed < MIN_AIRSPEED_M_S {
             return Ok((DVec3::ZERO, DVec3::ZERO));
         }
-        let (alpha_i, roll_i) = flow_angles(local, local_speed);
-        let normal = self
-            .aero
-            .component_normal_force(index, &Flow::new(local_speed / sound, alpha_i, roll_i))?;
+        let angles = flow_angles(local);
+        let alpha_i = angles.alpha_rad;
+        let normal = self.aero.component_normal_force(
+            index,
+            &Flow::new(local_speed / sound, alpha_i, angles.roll_rad),
+        )?;
         // Fin normal force follows the crossflow `V sin α`, as the body terms do: the small-angle
         // slope times `sin α` rather than `α`, so it vanishes for axial flow either way (ADR-011).
         let fin_scale = if index >= self.first_fin_index && alpha_i > 0.0 {
-            alpha_i.sin() / alpha_i
+            angles.sin_alpha / alpha_i
         } else {
             1.0
         };
         let q_i = 0.5 * rho * local_speed * local_speed * self.reference_area_m2 * fin_scale;
-        let across = DVec3::new(roll_i.cos(), roll_i.sin(), 0.0);
+        let across = DVec3::new(angles.cos_roll, angles.sin_roll, 0.0);
         let side = DVec3::Z.cross(across);
         Ok((
             (across * normal.coefficient + side * normal.side_coefficient) * q_i,
@@ -732,25 +735,71 @@ fn canopy_drag(
     if rho <= 0.0 || speed < MIN_AIRSPEED_M_S || drag_area_m2 <= 0.0 {
         return out;
     }
-    let (alpha, _) = flow_angles(air_velocity_cg_body, speed);
-    out.angle_of_attack_rad = alpha;
+    out.angle_of_attack_rad = flow_angles(air_velocity_cg_body).alpha_rad;
     out.dynamic_pressure_pa = 0.5 * rho * speed * speed;
     out.force = air_velocity_cg_body * (-0.5 * rho * drag_area_m2 * speed);
     out
 }
 
 /// The total angle of attack and the flow roll of a body moving at `v` (body axes) through still
-/// air: `α` between `z_B` and `v`, and `φ` the direction the air crosses the body, from `x_B`
-/// toward `y_B`, which is opposite the lateral velocity (`docs/physics/frames.md`).
-fn flow_angles(v: DVec3, _speed: f64) -> (f64, f64) {
+/// air, with their cosines and sines (`docs/physics/frames.md`).
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct FlowAngles {
+    /// `α`, rad in `[0, π]`: the angle between `z_B` and `v`.
+    alpha_rad: f64,
+    /// `φ`, rad in `[−π, π]`: the direction the air crosses the body, from `x_B` toward `y_B`,
+    /// opposite the lateral velocity; zero when there is none.
+    roll_rad: f64,
+    cos_alpha: f64,
+    sin_alpha: f64,
+    cos_roll: f64,
+    sin_roll: f64,
+}
+
+/// The speed below which [`flow_angles`] takes the cosines and sines from the angles, `2⁻⁵⁰⁰`:
+/// above it `|v|`'s squares lose nothing to underflow that a last bit would show.
+const FLOW_RATIO_MIN_SPEED: f64 = 3.054_936_363_499_605e-151;
+
+/// The flow angles of a body moving at `v` (body axes) through still air
+/// (`docs/physics/frames.md`): with the crossflow `w = √(v_x² + v_y²)`,
+///
+/// - `α = atan2(w, v_z)`, and `cos α = v_z / |v|`, `sin α = w / |v|`;
+/// - `φ = atan2(−v_y, −v_x)`, and `cos φ = −v_x / w`, `sin φ = −v_y / w`; with no crossflow
+///   (`v_x = v_y = 0`) `φ = 0`, so `cos φ = 1` and `sin φ = 0`.
+///
+/// The cosines and sines are the same numbers as `cos` and `sin` of the angles, taken from the
+/// components without the round trip through `atan2` (issue #285); they agree with that round trip
+/// to a few units in the last place of 1. When `|v|` or `w` is too small or too large for the
+/// quotients to hold every digit (zero, subnormal, overflowing or NaN), they come from the angles
+/// as before, so the degenerate cases (`atan2(±0, ±0)`) give what they always gave.
+fn flow_angles(v: DVec3) -> FlowAngles {
+    let crossflow = v.x.hypot(v.y);
     // `atan2` keeps full precision near 0 and π, where `acos` loses half the digits.
-    let alpha = v.x.hypot(v.y).atan2(v.z);
-    let roll = if v.x == 0.0 && v.y == 0.0 {
-        0.0
+    let alpha_rad = crossflow.atan2(v.z);
+    let speed = v.length();
+    let (cos_alpha, sin_alpha) = if (FLOW_RATIO_MIN_SPEED..=f64::MAX).contains(&speed) {
+        (v.z / speed, crossflow / speed)
     } else {
-        (-v.y).atan2(-v.x)
+        (alpha_rad.cos(), alpha_rad.sin())
     };
-    (alpha, roll)
+    let (roll_rad, cos_roll, sin_roll) = if v.x == 0.0 && v.y == 0.0 {
+        (0.0, 1.0, 0.0)
+    } else {
+        let roll = (-v.y).atan2(-v.x);
+        if (f64::MIN_POSITIVE..=f64::MAX).contains(&crossflow) {
+            (roll, -v.x / crossflow, -v.y / crossflow)
+        } else {
+            (roll, roll.cos(), roll.sin())
+        }
+    };
+    FlowAngles {
+        alpha_rad,
+        roll_rad,
+        cos_alpha,
+        sin_alpha,
+        cos_roll,
+        sin_roll,
+    }
 }
 
 /// `u vᵀ`.
@@ -957,7 +1006,8 @@ mod tests {
                 .aerodynamics(&air, v, DVec3::ZERO, cg, BurningAreas::default())
                 .unwrap();
             let q_area = 0.5 * air.density_kg_m3 * speed * speed * vehicle.reference_area_m2;
-            let (a, roll) = flow_angles(v, speed);
+            let angles = flow_angles(v);
+            let (a, roll) = (angles.alpha_rad, angles.roll_rad);
             let flow = Flow::new(mach, a, roll);
             let (mut force, mut moment, mut body) = (0.0, 0.0, 0.0);
             for index in 0..aero.component_count() {
@@ -1129,20 +1179,209 @@ mod tests {
     #[test]
     fn flow_angles_follow_the_frames_conventions() {
         // Moving along +z_B: no angle of attack.
-        let (alpha, _) = flow_angles(DVec3::Z, 1.0);
+        let alpha = flow_angles(DVec3::Z).alpha_rad;
         assert_eq!(alpha, 0.0);
         // Moving along +z_B and +x_B: the air crosses the body toward −x_B (φ = π).
-        let v = DVec3::new(1.0, 0.0, 1.0);
-        let (alpha, roll) = flow_angles(v, v.length());
-        assert!((alpha - std::f64::consts::FRAC_PI_4).abs() < 1e-15);
-        assert!((roll.abs() - std::f64::consts::PI).abs() < 1e-15);
+        let angles = flow_angles(DVec3::new(1.0, 0.0, 1.0));
+        assert!((angles.alpha_rad - std::f64::consts::FRAC_PI_4).abs() < 1e-15);
+        assert!((angles.roll_rad.abs() - std::f64::consts::PI).abs() < 1e-15);
         // Moving along −y_B only: the air crosses toward +y_B (φ = π/2), α = 90°.
-        let (alpha, roll) = flow_angles(-DVec3::Y, 1.0);
-        assert!((alpha - std::f64::consts::FRAC_PI_2).abs() < 1e-15);
-        assert!((roll - std::f64::consts::FRAC_PI_2).abs() < 1e-15);
+        let angles = flow_angles(-DVec3::Y);
+        assert!((angles.alpha_rad - std::f64::consts::FRAC_PI_2).abs() < 1e-15);
+        assert!((angles.roll_rad - std::f64::consts::FRAC_PI_2).abs() < 1e-15);
         // Tail first.
-        let (alpha, _) = flow_angles(-DVec3::Z, 1.0);
+        let alpha = flow_angles(-DVec3::Z).alpha_rad;
         assert!((alpha - std::f64::consts::PI).abs() < 1e-15);
+    }
+
+    /// The flow angles as they were taken before issue #285: `atan2`, then `cos` and `sin` of the
+    /// angles.
+    fn flow_angles_by_atan2(v: DVec3) -> FlowAngles {
+        let alpha_rad = v.x.hypot(v.y).atan2(v.z);
+        let roll_rad = if v.x == 0.0 && v.y == 0.0 {
+            0.0
+        } else {
+            (-v.y).atan2(-v.x)
+        };
+        FlowAngles {
+            alpha_rad,
+            roll_rad,
+            cos_alpha: alpha_rad.cos(),
+            sin_alpha: alpha_rad.sin(),
+            cos_roll: roll_rad.cos(),
+            sin_roll: roll_rad.sin(),
+        }
+    }
+
+    /// The fields' bits, so that `+0` and `−0` differ.
+    fn flow_bits(a: FlowAngles) -> [u64; 6] {
+        [
+            a.alpha_rad,
+            a.roll_rad,
+            a.cos_alpha,
+            a.sin_alpha,
+            a.cos_roll,
+            a.sin_roll,
+        ]
+        .map(f64::to_bits)
+    }
+
+    /// How far the cosines and sines taken from the components may sit from `cos` and `sin` of
+    /// the `atan2` angles, absolute (they are at most 1): `atan2`'s error of up to one unit in the
+    /// last place of an angle up to π (`2ε`), the `cos` or `sin` rounding (`ε/2`), and the
+    /// quotient's own (`|v|` or `w` and the division, under `2ε`).
+    const FLOW_TRIG_TOLERANCE: f64 = 5.0 * f64::EPSILON;
+
+    #[test]
+    fn flow_angles_cut_off_where_v_s_squares_stop_underflowing() {
+        assert_eq!(FLOW_RATIO_MIN_SPEED, 2f64.powi(-500));
+    }
+
+    /// Zero velocity, with every sign of zero, and the purely axial flows give what the `atan2`
+    /// path gave, bit for bit, except where that path's `sin(fl(π))` and `cos(fl(π/2))` leave
+    /// `1.2e-16` and `6.1e-17` in place of zero: there the quotients give the exact zero.
+    #[test]
+    fn flow_angles_keep_the_degenerate_cases() {
+        let zeros = [0.0, -0.0];
+        for x in zeros {
+            for y in zeros {
+                // No velocity: `atan2(0, ±0)` gives `α = 0` or `π`, and `φ = 0`, as before.
+                for z in zeros {
+                    let v = DVec3::new(x, y, z);
+                    assert_eq!(
+                        flow_bits(flow_angles(v)),
+                        flow_bits(flow_angles_by_atan2(v))
+                    );
+                }
+                // Nose first along the axis: α = 0, φ = 0, exactly as before.
+                for z in [1e-300, 1.0, 340.0, 1e300] {
+                    let v = DVec3::new(x, y, z);
+                    assert_eq!(
+                        flow_bits(flow_angles(v)),
+                        flow_bits(flow_angles_by_atan2(v))
+                    );
+                }
+                // Tail first along the axis: α = π and φ = 0 as before, `cos α = −1` and
+                // `sin α = +0`, where the `atan2` path gave `sin(fl(π)) = 1.2e-16`.
+                for z in [-1.0, -340.0] {
+                    let v = DVec3::new(x, y, z);
+                    let (got, was) = (flow_angles(v), flow_angles_by_atan2(v));
+                    assert_eq!(got.alpha_rad.to_bits(), was.alpha_rad.to_bits());
+                    assert_eq!(got.roll_rad.to_bits(), was.roll_rad.to_bits());
+                    assert_eq!(got.alpha_rad, std::f64::consts::PI);
+                    assert_eq!(got.roll_rad.to_bits(), 0.0f64.to_bits());
+                    assert_eq!(got.cos_alpha, -1.0);
+                    assert_eq!(got.sin_alpha.to_bits(), 0.0f64.to_bits());
+                    assert_eq!((got.cos_roll, got.sin_roll.to_bits()), (1.0, 0));
+                    assert_eq!(was.sin_alpha, std::f64::consts::PI.sin());
+                }
+            }
+        }
+        // Crossflow along ±x_B only, with either zero along y_B: φ keeps `atan2`'s ±π or ±0,
+        // and `sin φ` its sign, now an exact zero where `sin(±fl(π))` was ∓1.2e-16.
+        for (x, y) in [(1.0, 0.0), (1.0, -0.0), (-1.0, 0.0), (-1.0, -0.0)] {
+            let v = DVec3::new(x, y, 0.0);
+            let (got, was) = (flow_angles(v), flow_angles_by_atan2(v));
+            assert_eq!(got.alpha_rad.to_bits(), was.alpha_rad.to_bits());
+            assert_eq!(got.roll_rad.to_bits(), was.roll_rad.to_bits());
+            assert_eq!(got.cos_roll, -x);
+            assert_eq!(got.sin_roll, 0.0);
+            assert_eq!(
+                got.sin_roll.is_sign_negative(),
+                was.sin_roll.is_sign_negative()
+            );
+            // Broadside: `cos α` is the exact zero, where `cos(fl(π/2))` was 6.1e-17.
+            assert_eq!(got.cos_alpha.to_bits(), 0.0f64.to_bits());
+            assert_eq!(got.sin_alpha, 1.0);
+            assert_eq!(was.cos_alpha, std::f64::consts::FRAC_PI_2.cos());
+        }
+        // A subnormal crossflow, or a speed whose squares underflow, would cost the quotients
+        // their digits (`hypot(5e-324, 5e-324)` rounds to `5e-324`): there `cos φ` and `sin φ`,
+        // or `cos α` and `sin α`, come from the angles, bit for bit as before.
+        let tiny = f64::from_bits(1);
+        for v in [
+            DVec3::new(tiny, tiny, 1.0),
+            DVec3::new(-tiny, 3.0 * tiny, -1.0),
+            DVec3::new(tiny, -tiny, 0.0),
+        ] {
+            let (got, was) = (
+                flow_bits(flow_angles(v)),
+                flow_bits(flow_angles_by_atan2(v)),
+            );
+            assert_eq!(
+                [got[0], got[1], got[4], got[5]],
+                [was[0], was[1], was[4], was[5]]
+            );
+        }
+        let v = DVec3::new(1e-160, -1e-160, 1e-160);
+        let (got, was) = (flow_angles(v), flow_angles_by_atan2(v));
+        assert_eq!(flow_bits(got)[..4], flow_bits(was)[..4]);
+    }
+
+    /// One velocity component for [`flow_angles_match_the_atan2_path`]: zeros of both signs,
+    /// flight-sized values, tiny ones, subnormals and the full range of normal numbers.
+    fn flow_component() -> impl proptest::strategy::Strategy<Value = f64> {
+        use proptest::prelude::*;
+        prop_oneof![
+            Just(0.0),
+            Just(-0.0),
+            -1e3..1e3,
+            -1e-6..1e-6,
+            -1e-150..1e-150,
+            proptest::num::f64::SUBNORMAL
+                | proptest::num::f64::POSITIVE
+                | proptest::num::f64::NEGATIVE,
+            proptest::num::f64::NORMAL
+                | proptest::num::f64::SUBNORMAL
+                | proptest::num::f64::POSITIVE
+                | proptest::num::f64::NEGATIVE,
+        ]
+    }
+
+    proptest::proptest! {
+        #![proptest_config(proptest::prelude::ProptestConfig::with_cases(20_000))]
+
+        /// The angles are the `atan2` path's, bit for bit, and the cosines and sines are within
+        /// [`FLOW_TRIG_TOLERANCE`] of its `cos` and `sin`, on the unit circle, and of the sign the
+        /// components give.
+        #[test]
+        fn flow_angles_match_the_atan2_path(
+            x in flow_component(),
+            y in flow_component(),
+            z in flow_component(),
+        ) {
+            let v = DVec3::new(x, y, z);
+            let (got, was) = (flow_angles(v), flow_angles_by_atan2(v));
+            proptest::prop_assert_eq!(got.alpha_rad.to_bits(), was.alpha_rad.to_bits());
+            proptest::prop_assert_eq!(got.roll_rad.to_bits(), was.roll_rad.to_bits());
+            let pairs = [
+                (got.cos_alpha, was.cos_alpha),
+                (got.sin_alpha, was.sin_alpha),
+                (got.cos_roll, was.cos_roll),
+                (got.sin_roll, was.sin_roll),
+            ];
+            for (new, old) in pairs {
+                proptest::prop_assert!(
+                    (new - old).abs() <= FLOW_TRIG_TOLERANCE,
+                    "{v:?}: {new:e} against {old:e}"
+                );
+            }
+            for (c, s) in [(got.cos_alpha, got.sin_alpha), (got.cos_roll, got.sin_roll)] {
+                proptest::prop_assert!((c.hypot(s) - 1.0).abs() <= 2.0 * f64::EPSILON);
+            }
+            // The signs the components give: `sin α ≥ 0`; `cos α` goes with `v_z`, `cos φ` with
+            // `−v_x` and `sin φ` with `−v_y` wherever the quotients are taken.
+            proptest::prop_assert!(got.sin_alpha.is_sign_positive());
+            let speed = v.length();
+            if (FLOW_RATIO_MIN_SPEED..=f64::MAX).contains(&speed) && z != 0.0 {
+                proptest::prop_assert_eq!(got.cos_alpha.is_sign_negative(), z < 0.0);
+            }
+            let crossflow = x.hypot(y);
+            if (f64::MIN_POSITIVE..=f64::MAX).contains(&crossflow) {
+                proptest::prop_assert_eq!(got.cos_roll.is_sign_negative(), x.is_sign_positive());
+                proptest::prop_assert_eq!(got.sin_roll.is_sign_negative(), y.is_sign_positive());
+            }
+        }
     }
 
     #[test]
