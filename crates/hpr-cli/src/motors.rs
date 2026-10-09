@@ -46,7 +46,7 @@ pub struct ListArgs {
     #[arg(long)]
     pub class: Option<String>,
     /// Only this casing diameter, mm (within 0.5 mm)
-    #[arg(long, value_name = "MM", allow_negative_numbers = true)]
+    #[arg(long, value_name = "MM", allow_hyphen_values = true, value_parser = crate::typed::number::<f64>())]
     pub diameter: Option<f64>,
     /// Only this manufacturer: its name or abbreviation, any case
     #[arg(long)]
@@ -345,17 +345,68 @@ fn show(motor: &str, to: &mut Out<'_>) -> Result<(), Failure> {
     })
 }
 
+/// The catalog's designations that begin with `name`, as [`Catalog::find`] compares names
+/// (lowercase, without spaces or hyphens), by designation or common name: `J350` begins
+/// `J350W-L`. At most [`MOST_NEAR`].
+fn catalog_near(catalog: &Catalog, name: &str) -> Vec<String> {
+    let key = normalized(name);
+    if key.is_empty() {
+        return Vec::new();
+    }
+    catalog
+        .motors
+        .iter()
+        .filter(|motor| {
+            normalized(&motor.designation).starts_with(&key)
+                || normalized(&motor.common_name).starts_with(&key)
+        })
+        .map(|motor| motor.designation.clone())
+        .take(MOST_NEAR)
+        .collect()
+}
+
+/// The most catalog motors a refusal names.
+const MOST_NEAR: usize = 5;
+
+/// `name` lowercase, without spaces or hyphens, as the catalog compares names.
+fn normalized(name: &str) -> String {
+    name.chars()
+        .filter(|c| !c.is_whitespace() && *c != '-')
+        .map(|c| c.to_ascii_lowercase())
+        .collect()
+}
+
+/// Names as a list in words: `A`, `A and B`, `A, B and C`.
+fn in_words(names: &[String]) -> String {
+    match names {
+        [] => String::new(),
+        [one] => one.clone(),
+        [rest @ .., last] => format!("{} and {last}", rest.join(", ")),
+    }
+}
+
 /// Every catalog motor `name` matches, with its bundled curve, and beside each the propellant
 /// the catalog names (ThrustCurve.org's `propInfo`), which the JSON doesn't carry.
 fn from_catalog(name: &str) -> Result<(MotorShow, Vec<Option<String>>), Failure> {
     let catalog = catalog()?;
     let matches: Vec<&CatalogMotor> = catalog.find(name).collect();
     if matches.is_empty() {
-        return Err(Failure::helped(
-            format!("no motor in the bundled catalog is called {name}"),
+        // The most useful last: the catalog's list, then what ThrustCurve.org answers, then the
+        // catalog's own motors that the name begins.
+        let mut help = vec![
             "`hpr motors list` lists the catalog's motors, and a .eng or .rse file can be shown \
-             by its path",
-        ));
+             by its path"
+                .to_owned(),
+        ];
+        help.extend(crate::motor_fetch::cached_answer(name));
+        let near = catalog_near(&catalog, name);
+        if !near.is_empty() {
+            help.push(format!("the catalog has {}", in_words(&near)));
+        }
+        return Err(Failure::Helped {
+            message: format!("no motor in the bundled catalog is called {name}"),
+            help,
+        });
     }
     let mut show = MotorShow {
         kind: crate::trust::Kind::Copied,
@@ -420,7 +471,7 @@ fn from_catalog(name: &str) -> Result<(MotorShow, Vec<Option<String>>), Failure>
 
 /// Every motor in a `.eng` or `.rse` file.
 fn from_file(path: &str, format: MotorFile) -> Result<MotorShow, Failure> {
-    let bytes = std::fs::read(path).map_err(|error| Failure::Input(format!("{path}: {error}")))?;
+    let bytes = crate::read_file(path)?;
     let text = String::from_utf8(bytes)
         .map_err(|_| Failure::Input(format!("{path}: not a text file in UTF-8")))?;
     let source = || MotorSource::File {

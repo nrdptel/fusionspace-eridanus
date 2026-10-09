@@ -32,7 +32,7 @@ pub struct SearchArgs {
     #[arg(long)]
     pub class: Option<String>,
     /// Only this diameter, mm (within 0.5 mm)
-    #[arg(long, value_name = "MM", allow_negative_numbers = true)]
+    #[arg(long, value_name = "MM", allow_hyphen_values = true, value_parser = crate::typed::number::<f64>())]
     pub diameter: Option<f64>,
     /// Only this manufacturer: AeroTech, Cesaroni or Loki, or its full name, in any case
     #[arg(long)]
@@ -248,7 +248,13 @@ fn cents(text: &str) -> Result<u64, Failure> {
         )
     };
     let digits = |part: &str| !part.is_empty() && part.bytes().all(|b| b.is_ascii_digit());
-    let trimmed = text.trim();
+    let plain = crate::typed::plain(text).map_err(|hint| {
+        Failure::helped(
+            format!("--max-price {text} is not a price in U.S. dollars"),
+            hint,
+        )
+    })?;
+    let trimmed = plain.as_str();
     let (whole, fraction) = trimmed.split_once('.').unwrap_or((trimmed, ""));
     let fraction_ok =
         trimmed.contains('.') && digits(fraction) && fraction.len() <= 2 || !trimmed.contains('.');
@@ -486,7 +492,6 @@ mod tests {
             "$150",
             "1e2",
             "abc",
-            "1,000",
             "1.2.3",
             "+5",
             "184467440737095516.16",
@@ -496,6 +501,13 @@ mod tests {
                 "{text}"
             );
         }
+        // A thousands separator is read, as typed numbers are (`data.md`); any other comma is
+        // asked about.
+        assert_eq!(cents(" 1,000 ").ok(), Some(100_000));
+        assert_eq!(cents("1,234.50").ok(), Some(123_450));
+        assert!(
+            matches!(&cents("1,50"), Err(Failure::Helped { message, help }) if message.contains("--max-price") && help[0].contains("is 1,50 meant as 1.50?")),
+        );
     }
 
     #[test]

@@ -3815,11 +3815,13 @@ fn analyze_refuses_what_it_cannot_read() {
     let folder = tempfile::tempdir().unwrap();
     let missing = folder.path().join("none.pf2");
     let document = json_error(&["analyze", missing.to_str().unwrap()], 1, "input");
-    let message = document["error"]["message"].as_str().unwrap();
-    // The operating system's own "not found", the same code on all three.
+    // In words, with what to do, the same on all three systems.
     assert!(
-        message.contains("none.pf2: ") && message.contains("(os error 2)"),
-        "{message}"
+        said(&document).starts_with(&format!(
+            "{}: there is no such file\nhelp: check the name",
+            missing.to_str().unwrap()
+        )),
+        "{document:#}"
     );
 
     let design = repo_file("validation/fixtures/ork/pod-flights/pods-none.ork");
@@ -4986,4 +4988,395 @@ fn sim_records_one_apogee_off_a_near_horizontal_rail() {
         .filter(|event| event["kind"] == "apogee")
         .count();
     assert_eq!(apogees, 1, "{}", document["events"]);
+}
+
+/// Every numeric option reads a number as a person types it (the product system's `data.md`,
+/// *Copying and typing numbers*): spaces trimmed, a comma read as a thousands separator, and any
+/// other comma refused with a question. Walks the whole command tree, so an option added with
+/// clap's own number parser, which refuses ` 1,280 `, fails here.
+#[test]
+fn every_numeric_option_reads_typed_numbers() {
+    use std::any::TypeId;
+    fn walk(command: &clap::Command, checked: &mut Vec<String>) {
+        for arg in command.get_arguments() {
+            let parser = arg.get_value_parser();
+            let id = parser.type_id();
+            let numeric = [
+                TypeId::of::<f64>(),
+                TypeId::of::<u64>(),
+                TypeId::of::<u32>(),
+                TypeId::of::<usize>(),
+            ]
+            .iter()
+            .any(|t| id == *t);
+            if !numeric {
+                continue;
+            }
+            let name = format!("{} --{}", command.get_name(), arg.get_id());
+            // Clap takes `-1,280` for an option unless the option takes hyphen values, as
+            // `allow_negative_numbers` reads only a plain number as one.
+            assert!(!arg.is_allow_negative_numbers_set(), "{name}");
+            // Each has a value name the note's unit is read from, or one that has none.
+            let value_name = arg
+                .get_value_names()
+                .and_then(|names| names.first())
+                .map(|name| name.as_str().to_owned());
+            assert!(
+                value_name.as_deref().is_some_and(|value_name| [
+                    "M", "MM", "DEG", "S", "M_S", "HOUR", "N", "FRACTION"
+                ]
+                .contains(&value_name)),
+                "{name}: {value_name:?}"
+            );
+            let one = clap::Command::new("t").arg(
+                clap::Arg::new("x")
+                    .long("x")
+                    .allow_hyphen_values(arg.is_allow_hyphen_values_set())
+                    .value_parser(parser.clone()),
+            );
+            if arg.is_allow_hyphen_values_set() {
+                let matches = one
+                    .clone()
+                    .try_get_matches_from(["t", "--x", "-1,280"])
+                    .unwrap_or_else(|e| panic!("{name}: `-1,280` refused: {e}"));
+                assert_eq!(matches.get_one::<f64>("x"), Some(&-1280.0), "{name}");
+                let refused = one
+                    .clone()
+                    .try_get_matches_from(["t", "--x", "-3,9"])
+                    .expect_err(&name)
+                    .to_string();
+                assert!(
+                    refused.contains("is -3,9 meant as -3.9?"),
+                    "{name}: {refused}"
+                );
+            }
+            let matches = one
+                .clone()
+                .try_get_matches_from(["t", "--x", " 1,280 "])
+                .unwrap_or_else(|e| panic!("{name}: ` 1,280 ` refused: {e}"));
+            let read = if id == TypeId::of::<f64>() {
+                *matches.get_one::<f64>("x").unwrap()
+            } else if id == TypeId::of::<u64>() {
+                *matches.get_one::<u64>("x").unwrap() as f64
+            } else if id == TypeId::of::<u32>() {
+                f64::from(*matches.get_one::<u32>("x").unwrap())
+            } else {
+                *matches.get_one::<usize>("x").unwrap() as f64
+            };
+            assert_eq!(read, 1280.0, "{name}");
+            let refused = one
+                .try_get_matches_from(["t", "--x", "3,9"])
+                .expect_err(&name)
+                .to_string();
+            assert!(
+                refused.contains("is 3,9 meant as 3.9?"),
+                "{name}: {refused}"
+            );
+            checked.push(name);
+        }
+        for sub in command.get_subcommands() {
+            walk(sub, checked);
+        }
+    }
+    let mut checked = Vec::new();
+    walk(&hpr_cli::command(), &mut checked);
+    // sim's 9 launch and recording options, mc's 8 launch options, 2 counts and 11 scatters,
+    // the 2 diameters, the weather's 8 site options and 2 hours: 42. A count that drops means
+    // the walk stopped seeing options.
+    assert!(checked.len() >= 42, "{}: {checked:?}", checked.len());
+    for expected in [
+        "sim --elevation",
+        "mc --runs",
+        "list --diameter",
+        "gfs --hour",
+    ] {
+        assert!(
+            checked.iter().any(|c| c == expected),
+            "{expected}: {checked:?}"
+        );
+    }
+}
+
+/// `hpr sim` reads ` 2.0 ` as 2 and `1,280` as 1280, saying the second as read with its unit
+/// before anything else; `3,9` is refused with a question about the comma (#381).
+#[test]
+fn typed_numbers_reach_the_flight() {
+    let probe = repo_file(PROBE);
+    let launch = |elevation: &str| {
+        json(
+            &["sim", &probe, "--motor", "H54", "--elevation", elevation],
+            0,
+            "sim.schema.json",
+        )["launch"]["elevation_m"]
+            .clone()
+    };
+    assert_eq!(launch(" 2.0 "), json!(2.0));
+    assert_eq!(launch("1,280"), json!(1280.0));
+    assert_eq!(launch("-1,280"), json!(-1280.0));
+    // With `--json` the document carries the value, and standard error stays empty.
+    let output = hpr(&[
+        "sim",
+        &probe,
+        "--motor",
+        "H54",
+        "--elevation",
+        "1,280",
+        "--json",
+    ]);
+    assert!(output.stderr.is_empty(), "{}", text(&output.stderr));
+    // A southern latitude with a decimal comma is asked about too, not taken for an option.
+    let output = hpr(&["sim", &probe, "--motor", "H54", "--latitude", "-3,9"]);
+    assert_eq!(output.status.code(), Some(2));
+    assert!(
+        text(&output.stderr).contains("is -3,9 meant as -3.9?"),
+        "{output:?}"
+    );
+    // `--delay` reads its seconds the same way.
+    let output = hpr(&["sim", &probe, "--motor", "H54", "--delay", "3,9"]);
+    assert_eq!(output.status.code(), Some(2));
+    assert!(
+        text(&output.stderr).contains("help: a comma is read only between groups of three digits, as in 1,280: is 3,9 meant as 3.9?"),
+        "{output:?}"
+    );
+    let printed = streams(&["sim", &probe, "--motor", "H54", "--delay", " 1,000 "]);
+    assert!(
+        printed.err.contains("note: --delay 1,000 read as 1000 s"),
+        "{}",
+        printed.err
+    );
+    // An option that takes text gets no note.
+    let output = hpr(&["sim", &probe, "--motor", "H54", "--config", "1,000"]);
+    assert!(!text(&output.stderr).contains("read as"), "{output:?}");
+    let printed = streams(&["sim", &probe, "--motor", "H54", "--elevation", "1,280"]);
+    assert_eq!(
+        printed.err.lines().next(),
+        Some("note: --elevation 1,280 read as 1280 m"),
+        "{}",
+        printed.err
+    );
+    // No note without a separator.
+    let plain = streams(&["sim", &probe, "--motor", "H54", "--elevation", " 1280 "]);
+    assert!(!plain.err.contains("read as"), "{}", plain.err);
+
+    let output = hpr(&["sim", &probe, "--motor", "H54", "--elevation", "3,9"]);
+    assert_eq!(output.status.code(), Some(2));
+    let err = text(&output.stderr);
+    assert!(
+        err.starts_with("error: invalid value '3,9' for '--elevation <M>'"),
+        "{err}"
+    );
+    assert!(
+        err.contains("help: a comma is read only between groups of three digits, as in 1,280: is 3,9 meant as 3.9?"),
+        "{err}"
+    );
+    let output = hpr(&["sim", &probe, "--motor", "H54", "--elevation", "abc"]);
+    assert!(
+        text(&output.stderr).contains("help: give a number in digits"),
+        "{output:?}"
+    );
+    let output = hpr(&["mc", &probe, "--motor", "H54", "--runs", "1.5"]);
+    assert!(
+        text(&output.stderr).contains("help: give a whole number in digits"),
+        "{output:?}"
+    );
+    // `--max-price` reads its dollars the same way.
+    let refused = said(&json_error(
+        &[
+            "motors",
+            "search",
+            "--max-price",
+            "1,50",
+            "--from",
+            "nope.json",
+        ],
+        1,
+        "input",
+    ));
+    assert!(refused.contains("is 1,50 meant as 1.50?"), "{refused}");
+}
+
+/// A launch option the library would refuse in its own terms (a latitude in radians among them)
+/// is refused naming the option, the value as given and its unit, with an example (#381); the
+/// edges the library flies are flown.
+#[test]
+fn launch_options_are_refused_by_name_and_unit() {
+    let probe = repo_file(PROBE);
+    for (flag, value, says) in [
+        ("--latitude", "95", "from -90 to 90"),
+        ("--latitude", "nan", "from -90 to 90"),
+        ("--longitude", "inf", "from -180 to 180"),
+        ("--longitude", "180.5", "from -180 to 180"),
+        ("--elevation", "nan", "number of meters"),
+        ("--rail-length", "0", "greater than 0"),
+        ("--inclination", "0", "more than 0 and at most 90"),
+        ("--inclination", "90.5", "more than 0 and at most 90"),
+        ("--heading", "inf", "clockwise from true north"),
+        ("--wind", "inf", "at least 0"),
+        ("--wind-from", "nan", "clockwise from north"),
+    ] {
+        let mut args = vec!["sim", probe.as_str(), "--motor", "H54", flag, value];
+        if flag == "--wind-from" {
+            args.extend(["--wind", "3"]);
+        }
+        let document = json_error(&args, 1, "input");
+        let message = document["error"]["message"].as_str().unwrap();
+        let as_read = value.parse::<f64>().unwrap();
+        assert!(
+            message.starts_with(&format!("{flag} {as_read}: ")) && message.contains(says),
+            "{flag} {value}: {message}"
+        );
+        assert!(!message.contains("rad"), "{message}");
+        let help = document["error"]["help"].as_array().unwrap();
+        assert_eq!(
+            help.last()
+                .and_then(Value::as_str)
+                .map(|h| h.starts_with(&format!("for example `{flag} "))),
+            Some(true),
+            "{help:?}"
+        );
+    }
+    // A decimal comma read as thousands lands past 180° and is refused, not flown.
+    let document = json_error(
+        &["sim", &probe, "--motor", "H54", "--longitude", "-106,970"],
+        1,
+        "input",
+    );
+    assert!(
+        said(&document).starts_with("--longitude -106970: "),
+        "{document:#}"
+    );
+    // `hpr mc` checks the same options.
+    let document = json_error(
+        &["mc", &probe, "--motor", "H54", "--latitude", "-91"],
+        1,
+        "input",
+    );
+    assert!(
+        said(&document).starts_with("--latitude -91: "),
+        "{document:#}"
+    );
+    for (flag, value) in [
+        ("--latitude", "90"),
+        ("--latitude", "-90"),
+        ("--longitude", "-180"),
+        ("--longitude", "180"),
+        ("--inclination", "90"),
+    ] {
+        json(
+            &["sim", &probe, "--motor", "H54", flag, value],
+            0,
+            "sim.schema.json",
+        );
+    }
+}
+
+/// A file that isn't there says what to do: the closest name in its folder, a missing folder, or
+/// to check the name; a folder given for a file is called one (#381). Every command reads its
+/// files the same way.
+#[test]
+fn a_missing_file_says_what_to_do() {
+    let folder = tempfile::tempdir().unwrap();
+    std::fs::write(folder.path().join("vega.ork"), b"not a design").unwrap();
+    let path = |name: &str| folder.path().join(name).to_str().unwrap().to_owned();
+
+    let refused = said(&json_error(&["sim", &path("vgea.ork")], 1, "input"));
+    assert_eq!(
+        refused,
+        format!(
+            "{}: there is no such file\nhelp: is it {}? It is the closest name in that folder",
+            path("vgea.ork"),
+            path("vega.ork")
+        )
+    );
+    // Nothing close: check the name.
+    let refused = said(&json_error(&["analyze", &path("none.pf2")], 1, "input"));
+    assert!(
+        refused.starts_with(&format!(
+            "{}: there is no such file\nhelp: check the name",
+            path("none.pf2")
+        )),
+        "{refused}"
+    );
+    let gone = folder.path().join("gone").join("x.eng");
+    let refused = said(&json_error(
+        &["motors", "show", gone.to_str().unwrap()],
+        1,
+        "input",
+    ));
+    assert!(refused.contains("help: there is no folder"), "{refused}");
+    std::fs::create_dir(folder.path().join("box.eng")).unwrap();
+    let refused = said(&json_error(
+        &["convert", &path("box.eng"), &path("out.rse")],
+        1,
+        "input",
+    ));
+    assert!(
+        refused.starts_with(&format!(
+            "{} is a folder, not a file\nhelp: give the path of a file inside it",
+            path("box.eng")
+        )),
+        "{refused}"
+    );
+}
+
+/// `hpr motors show` with a name the bundled catalog lacks names the catalog's motors the name
+/// begins, the command that fetches it, and, from the cache, the motors ThrustCurve.org answers
+/// it with, the most useful last (#381).
+#[test]
+fn motors_show_suggests_what_answers_the_name() {
+    let refused = said(&json_error(&["motors", "show", "H5"], 1, "input"));
+    assert_eq!(
+        refused,
+        "no motor in the bundled catalog is called H5\n\
+         help: `hpr motors list` lists the catalog's motors, and a .eng or .rse file can be shown \
+         by its path\n\
+         help: with a network connection, `hpr motors fetch H5` fetches it from ThrustCurve.org, \
+         and `hpr sim --motor` flies it\n\
+         help: the catalog has 168H54-10A"
+    );
+
+    use hpr::hpr_net::on_demand::{self, FindError, Wanted};
+    use hpr::hpr_net::{Cache, Client, Mode};
+    let cache = tempfile::tempdir().unwrap();
+    let online = Client::new(thrustcurve_replay(), Cache::new(cache.path()), Mode::Online);
+    let now_s = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    // The search answers two motors; the cache keeps that answer.
+    let answer = on_demand::find(&online, &Wanted::named("G41"), now_s);
+    assert!(
+        matches!(answer, Err(FindError::Ambiguous { .. })),
+        "{answer:?}"
+    );
+    let document = json_cached(
+        &["motors", "show", "G41"],
+        1,
+        "error.schema.json",
+        cache.path(),
+    );
+    let help = document["error"]["help"].as_array().unwrap();
+    let last = help.last().and_then(Value::as_str).unwrap();
+    assert_eq!(
+        last,
+        "ThrustCurve.org answers G41 with 2 motors, as HPR Sim's cache holds it: AeroTech \
+         G41-INVENTED, Invented G41-OTHER; `hpr sim --motor` flies one named in full",
+        "{help:?}"
+    );
+    // One motor answers: it is named, with the command that flies it.
+    let cache = cache_with(&Wanted::named("F27R/L"));
+    let document = json_cached(
+        &["motors", "show", "F27R/L"],
+        1,
+        "error.schema.json",
+        cache.path(),
+    );
+    let help = document["error"]["help"].as_array().unwrap();
+    assert_eq!(
+        help.last().and_then(Value::as_str),
+        Some(
+            "ThrustCurve.org's AeroTech F27R/L is in HPR Sim's cache: `hpr sim --motor F27R/L` flies it"
+        ),
+        "{help:?}"
+    );
 }

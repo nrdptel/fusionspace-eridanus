@@ -188,6 +188,14 @@ out.
   a CSV, carry the motor catalog's as-of date and how far to trust the numbers (since
   [M0.9c5](decisions-and-roadmap.md#m0-9c5), provenance on the exports). GeoJSON, KML and Parquet
   don't carry them yet ([#403](https://github.com/nrdptel/fusionspace-eridanus/issues/403)).
+- **It reads what you type, and says what to do when it can't.** Numbers are read as written by
+  hand: `--elevation 1,280` is 1280 m, and a comma it can't read as a thousands separator, such as
+  `3,9`, is asked about. A refused option is named with its value and unit and an example, and a
+  file that isn't there with the closest name in its folder
+  ([typing numbers](cli.md#typing-numbers-and-what-a-refusal-says);
+  [M0.9c6](decisions-and-roadmap.md#m0-9c6), errors and typed numbers). A refusal from inside a
+  flight still has no next step
+  ([#405](https://github.com/nrdptel/fusionspace-eridanus/issues/405)).
 - **The command line flies powered separations only.** `hpr sim` flies a `.ork` file or
   an HPR design file, exports its recording ([The command line](cli.md#hpr-sim)), and with `--plot`
   draws its altitude, speed and acceleration against time, events marked and listed in a table,

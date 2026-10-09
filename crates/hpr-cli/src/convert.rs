@@ -423,8 +423,7 @@ fn read_input(
     input: &str,
 ) -> Result<(MotorSource, MotorFile, String, Option<CatalogFigures>), Failure> {
     if let Some(format) = MotorFile::of(input) {
-        let bytes =
-            std::fs::read(input).map_err(|error| Failure::Input(format!("{input}: {error}")))?;
+        let bytes = crate::read_file(input)?;
         let text = String::from_utf8(bytes)
             .map_err(|_| Failure::Input(format!("{input}: not a text file in UTF-8")))?;
         let source = MotorSource::File {

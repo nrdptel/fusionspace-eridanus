@@ -52,6 +52,7 @@ pub mod registry;
 pub mod sim;
 mod sim_text;
 pub mod trust;
+mod typed;
 mod units;
 pub mod weather;
 
@@ -301,6 +302,93 @@ pub(crate) fn write_json<T: Serialize>(out: &mut dyn Write, value: &T) -> io::Re
     writeln!(out, "{}", hpr::hpr_sim::export::ascii(&text))
 }
 
+/// The bytes of the file at `path`, as the user typed it, or why not in words with what to do:
+/// a file that isn't there is named with the closest name in its folder ([`closest_file`]), a
+/// folder given for a file is called one, as the product system's `cli.md` asks (*Errors*).
+pub(crate) fn read_file(path: &str) -> Result<Vec<u8>, Failure> {
+    std::fs::read(path).map_err(|error| {
+        let shown = printable(path);
+        match error.kind() {
+            io::ErrorKind::NotFound => {
+                let file = Path::new(path);
+                let folder = file
+                    .parent()
+                    .filter(|folder| !folder.as_os_str().is_empty())
+                    .unwrap_or(Path::new("."));
+                let help = match closest_file(file, folder) {
+                    Some(closest) => format!(
+                        "is it {}? It is the closest name in that folder",
+                        printable(&closest)
+                    ),
+                    None if !folder.is_dir() => format!(
+                        "there is no folder {} either; a path that doesn't start at the root \
+                         starts from the current folder",
+                        printable(&folder.to_string_lossy())
+                    ),
+                    None => "check the name; a path that doesn't start at the root starts from \
+                             the current folder"
+                        .to_owned(),
+                };
+                Failure::helped(format!("{shown}: there is no such file"), help)
+            }
+            // Asked of the path, as Windows refuses to read a folder as access denied.
+            _ if Path::new(path).is_dir() => Failure::helped(
+                format!("{shown} is a folder, not a file"),
+                "give the path of a file inside it",
+            ),
+            _ => Failure::Input(format!("{shown}: {error}")),
+        }
+    })
+}
+
+/// The most entries of a folder [`closest_file`] reads, so a huge folder can't stall an error.
+const MOST_ENTRIES_COMPARED: usize = 10_000;
+
+/// The name in `folder` closest to `file`'s, as `folder/name` (the folder as given), when one is
+/// within two edits and under half the name's length ([`edits`]), ignoring case, so a name
+/// typed in another case is found too; ties go to the first in sorted order. `None` when the folder can't be read or no name is that close.
+fn closest_file(file: &Path, folder: &Path) -> Option<String> {
+    let wanted = file.file_name()?.to_string_lossy().to_lowercase();
+    let mut names: Vec<String> = std::fs::read_dir(folder)
+        .ok()?
+        .take(MOST_ENTRIES_COMPARED)
+        .filter_map(|entry| Some(entry.ok()?.file_name().to_string_lossy().into_owned()))
+        // The name asked for is listed when it is a link to nothing; it isn't a suggestion.
+        .filter(|name| Some(name.as_str()) != file.file_name().and_then(|name| name.to_str()))
+        .collect();
+    names.sort();
+    let most = 2.min((wanted.chars().count().saturating_sub(1)) / 2);
+    let (distance, name) = names
+        .iter()
+        .map(|name| (edits(&wanted, &name.to_lowercase()), name))
+        .min_by_key(|(distance, _)| *distance)?;
+    (distance <= most).then(|| match file.parent() {
+        Some(parent) if !parent.as_os_str().is_empty() => {
+            parent.join(name).to_string_lossy().into_owned()
+        }
+        _ => name.clone(),
+    })
+}
+
+/// The edit distance between `a` and `b`: the fewest characters inserted, deleted or replaced
+/// that turn one into the other (Levenshtein, 1966).
+fn edits(a: &str, b: &str) -> usize {
+    let b: Vec<char> = b.chars().collect();
+    let mut row: Vec<usize> = (0..=b.len()).collect();
+    for (i, ca) in a.chars().enumerate() {
+        let mut diagonal = row[0];
+        row[0] = i + 1;
+        for (j, cb) in b.iter().enumerate() {
+            let above = row[j + 1];
+            row[j + 1] = (above + 1)
+                .min(row[j] + 1)
+                .min(diagonal + usize::from(ca != *cb));
+            diagonal = above;
+        }
+    }
+    row[b.len()]
+}
+
 /// `text` with each control character, such as an escape that would reach the terminal from a
 /// vendor's page or a fetched answer, shown as `?`.
 pub(crate) fn printable(text: &str) -> String {
@@ -353,10 +441,10 @@ where
     let paints = console.paints(color_flag(&options), json);
     let parsed = command()
         .try_get_matches_from(&args)
-        .and_then(|matches| Cli::from_arg_matches(&matches))
+        .and_then(|matches| Ok((Cli::from_arg_matches(&matches)?, matches)))
         .map_err(|error| error.format(&mut command()));
-    let cli = match parsed {
-        Ok(cli) => cli,
+    let (cli, matches) = match parsed {
+        Ok(parsed) => parsed,
         Err(error) => return usage(&error, json, paints, out, err),
     };
     let command = cli.command.name();
@@ -365,6 +453,13 @@ where
         json,
         diagnostics: Diagnostics::new(err, paints.err),
     };
+    // A number typed with a thousands separator is shown as it was read before anything else,
+    // as `data.md` asks; a JSON document carries the value itself.
+    if !json {
+        for note in typed::read_as(&self::command(), &matches) {
+            let _ = to.diagnostics.line(Level::Note, &note);
+        }
+    }
     // The registry decides what refuses, so the table and the tool can't disagree.
     let outcome = match registry::availability(command) {
         Some(Availability::Planned { milestone }) => {

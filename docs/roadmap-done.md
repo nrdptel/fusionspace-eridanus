@@ -48,6 +48,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9c3 How far to trust a result ([Phase 0](#phase-0-foundations))
 - M0.9c4 Units and trust notes ([Phase 0](#phase-0-foundations))
 - M0.9c5 Provenance ([Phase 0](#phase-0-foundations))
+- M0.9c6 Errors and typed numbers ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -396,6 +397,12 @@ One line per milestone or increment, in the order it was archived within its pha
       `--json` too) on `weather`, `analyze`, `motors show`.
     - [x] **M0.9c5 Provenance** (#380; ADR-214). *Done when:* it is closed, with every item it lists, the
       exports' trust note included.
+    - [x] **M0.9c6 Errors and typed numbers** (#381's *Errors* and *Typed numbers*; ADR-215).
+      *Done when:* each of those items is met with a test: `hpr sim … --latitude 95` names
+      `--latitude`, the degrees typed and the range, with a `help:`; a missing file says what to
+      do, naming the closest file in its folder; `hpr motors show J350` names what answers J350;
+      every numeric option reads ` 2.0 ` and `1,280`, the second shown as read with its unit, and
+      refuses `3,9` with a question; the audit's rows name the tests.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and
