@@ -50,7 +50,8 @@ const MOTOR_WORDS: [&str; 7] = [
 ];
 
 /// Whether a size in millimeters names a motor or its mount: a standard motor diameter followed,
-/// within three words, by a word of [`MOTOR_WORDS`] or a motor's designation (`I175`, `H170M`).
+/// within three words, by a word of [`MOTOR_WORDS`] or a motor's designation after its maker
+/// (`Cesaroni I175`, from [`MAKERS`]).
 /// `after` is the text after `mm`. A list of sizes reaches its noun (`29 mm, 38 mm and 54 mm
 /// motors`): figures, `mm`, and an `and`, `or`, `to`, article or comma before a figure are passed over,
 /// but only before the first word; a figure, `and` or `or` after a word ends the search, so `a
@@ -80,6 +81,7 @@ fn motor_size(si: &[Figure], after: &str) -> bool {
     };
     let mut words = 0;
     let mut named = false;
+    let mut maker = false;
     let mut rest = after;
     loop {
         rest = rest.trim_start_matches(is_space);
@@ -128,8 +130,9 @@ fn motor_size(si: &[Figure], after: &str) -> bool {
         if words > 0 && matches!(token.as_str(), "and" | "or") {
             return false;
         }
+        // A designation names a motor only after its maker: `G10` alone is a fiberglass tube.
         let first = raw.split(['-', '–']).next().unwrap_or_default();
-        if designation(first) {
+        if maker && designation(first) {
             return true;
         }
         for part in token.split(['-', '–']) {
@@ -142,12 +145,18 @@ fn motor_size(si: &[Figure], after: &str) -> bool {
             }
         }
         named = raw.starts_with(|c: char| c.is_uppercase());
+        maker = MAKERS.contains(&token.as_str());
         words += 1;
         if words == 3 {
             return false;
         }
     }
 }
+
+/// Motor makers whose name, before a designation, makes it a motor's (`a 38 mm Cesaroni I175`).
+const MAKERS: [&str; 10] = [
+    "aerotech", "cesaroni", "cti", "loki", "estes", "quest", "apogee", "amw", "klima", "kosdon",
+];
 
 /// Whether a word is a motor's designation: an impulse class from A to O, at least two digits of
 /// average thrust, and the maker's letters for propellant and delay (`I175`, `H170M`, `J350W`).
@@ -937,7 +946,7 @@ mod tests {
             "a 38 mm MMT",
             "a \"29 mm\" case",
             "a 38 mm Cesaroni I175",
-            "the 38 mm H170M's thrust",
+            "a 38 mm AeroTech H170M's thrust",
             "a 38 mm case",
         ] {
             assert!(messages(run).is_empty(), "{run}: {:?}", messages(run));
@@ -960,6 +969,10 @@ mod tests {
             "The airframe is 98 mm in either case.",
             "a 54 mm tube or a 38 mm motor",
             "a 54 mm M3 screw",
+            "a 54 mm G10 tube",
+            "a 98 mm G10 airframe",
+            "a 54 mm C130 frame",
+            "the 38 mm H170M's thrust",
         ] {
             let found = messages(run);
             if run.contains("(2.1 in)") {

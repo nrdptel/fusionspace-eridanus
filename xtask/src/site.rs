@@ -3690,6 +3690,25 @@ mod tests {
     }
 
     #[test]
+    fn a_conversion_doesnt_trace_a_number() {
+        // *In short*'s 98.4 m must be an SI figure in the rest of the page: the 98.4 ft that
+        // converts a 30 m drop is not one (#400). With the meters there, it is traced.
+        let page = |rest: &str| {
+            IN_SHORT_OK.replace(
+                "against its printed values.",
+                "within 98.4 m (323 ft) of its printed values.",
+            ) + rest
+        };
+        let untraced = in_short_problems(&page("\nA 30 m (98.4 ft) drop.\n"));
+        assert_eq!(untraced.len(), 1, "{untraced:?}");
+        assert!(untraced[0].contains("98.4"), "{untraced:?}");
+        assert_eq!(
+            in_short_problems(&page("\nA 98.4 m (323 ft) drop.\n")),
+            Vec::<String>::new()
+        );
+    }
+
+    #[test]
     fn a_model_page_without_in_short_fails() {
         assert_eq!(in_short_problems(IN_SHORT_OK), Vec::<String>::new());
         // A loose list, links and code in the answers, a label wrapped over two lines, and nothing

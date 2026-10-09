@@ -219,7 +219,7 @@ Why these edges:
   13,885 m (45,554 ft) on an M motor, 15,614 m (51,228 ft) on an N and 20,040 m (65,748 ft) on an
   O, in a [2016 snapshot](https://www.realflightsystems.com/techpubs/data/TRA-Records/work/records/single.html).
 - At the legal wind limit (20 mph (8.9 m/s) in NFPA 1127), a rocket leaving the rail at 50 to
-  100 ft/s (15 to 30 m/s (49 to 98 ft/s)) meets the air at about 16° to 30°, the slower the steeper. So 15° covers
+  100 ft/s (15 to 30 m/s) meets the air at about 16° to 30°, the slower the steeper. So 15° covers
   the climb, not the first instant off the rail.
 
 **What is checked today.** Code-to-code whole flights mostly stay below Mach 1.15 and 4 km (2.5 mi); the

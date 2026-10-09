@@ -1525,7 +1525,7 @@ again, as saving makes it do. The results are committed in
 
 In the table, radii are listed forward to aft. "30 to 20" is a transition's forward and aft
 radius, and "\|" is a stage boundary. OpenRocket's column is the settled answer. **unset** is
-OpenRocket's own mark for a radius it hasn't worked out, which it stores as −1 m (−3.3 ft).
+OpenRocket's own mark for a radius it hasn't worked out, which it stores as a radius of `-1`.
 
 | design | what the file says | OpenRocket 24.12 | HPR Sim |
 |---|---|---|---|
