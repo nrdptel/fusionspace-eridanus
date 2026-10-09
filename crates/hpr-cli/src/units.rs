@@ -235,6 +235,8 @@ mod tests {
         assert_eq!(gravities(0.0), "0.0 g");
         assert_eq!(gravities(-0.1), "0.0 g");
         assert_eq!(gravities(-9.806_65), "-1.0 g");
+        // Pinned to standard gravity, not a rounded 9.81, which would print 101.9 g.
+        assert_eq!(gravities(1000.0), "102.0 g");
     }
 
     /// The SI figures align on their right edge and the brackets on theirs; a blank keeps no

@@ -97,7 +97,8 @@ const WEATHER_UNCHECKED: &str = "not yet checked here against measured winds or 
 pub(crate) fn open_meteo() -> String {
     format!(
         "{LABEL} A weather model's forecast, not a measurement. HPR Sim's profile gives back \
-         every level of Open-Meteo's answer to rounding error, checked on recorded answers; the \
+         every level it keeps of Open-Meteo's answer to rounding error, checked on recorded \
+         answers; the \
          forecast itself is {WEATHER_UNCHECKED}. {WEATHER_INSTEAD}{MORE}{SITE}weather.html"
     )
 }
@@ -117,29 +118,40 @@ pub(crate) fn nomads() -> String {
 pub(crate) fn sounding() -> String {
     format!(
         "{LABEL} A weather balloon's measurement, at its station and its time, not at the launch \
-         site. HPR Sim's profile gives back every level of the archive's answer to rounding \
-         error, checked on recorded soundings; how much the distance to the station and the \
+         site. HPR Sim's profile gives back every level it keeps of the archive's answer to \
+         rounding error, checked on recorded soundings; how much the distance to the station and the \
          hours between change a flight is not yet checked. {WEATHER_INSTEAD}\
          {MORE}{SITE}soundings.html"
     )
 }
 
-/// `hpr weather`'s note on an ERA5 file (`docs/format/era5.md`).
+/// The public flights flown in ERA5 weather and compared with their logs: the committed report
+/// `validation/reports/real-flights.json` (M2.3b).
+pub(crate) const ERA5_FLIGHTS: usize = 7;
+/// Their mean absolute apogee error, percent, to a hundredth, as the report's summary gives it.
+pub(crate) const ERA5_MEAN_ABSOLUTE_PERCENT: f64 = 6.04;
+
+/// `hpr weather`'s note on an ERA5 file (`docs/format/era5.md`). The flights it quotes test the
+/// simulation and the weather together, so they bound neither alone.
 pub(crate) fn reanalysis() -> String {
     format!(
         "{LABEL} A reanalysis: a weather model's fit to past observations, on its grid and at its \
-         hours, not a measurement at the site. HPR Sim reads the file as RocketPy does, checked \
-         on two real launch days; its winds are {WEATHER_UNCHECKED}. For a flight flown, the \
-         altimeter's log is the measurement. {WEATHER_INSTEAD}{MORE}{SITE}format/era5.html"
+         hours, not a measurement at the site. HPR Sim reads the file as RocketPy, an open-source \
+         simulator, does, checked on two real launch days, and reads no humidity, so the air is \
+         taken as dry. {ERA5_FLIGHTS} public flights flown in ERA5 weather missed their logged \
+         apogees by {ERA5_MEAN_ABSOLUTE_PERCENT:.2}% on average, the simulation's error and the \
+         weather's together; the winds themselves are not yet checked against measured winds. \
+         For a flight flown, the altimeter's log is the measurement. \
+         {WEATHER_INSTEAD}{MORE}{SITE}format/era5.html"
     )
 }
 
 /// `hpr analyze`'s note: readings of an altimeter's log (`docs/reading-a-flight-log.md`).
 pub(crate) fn log() -> String {
     format!(
-        "{LABEL} Measured: the altimeter's own log, read by HPR Sim, not simulated; its heights \
-         are the altimeter's, from its barometer. HPR Sim's readings are checked on an invented \
-         log whose every number is known, not yet on real logs in CI, and nothing yet checks a \
+        "{LABEL} Measured by the altimeter's barometer, from its own log, read by HPR Sim, not \
+         simulated. HPR Sim's readings are checked on an invented log whose every number is \
+         known, and once by hand on a real one, not in the automatic tests; nothing yet checks a \
          barometer's errors near Mach 0.9, which can upset the top speed and the heights near \
          it. For a record or a certification, the altimeter's own reading is the one to log, and \
          the RSO decides.{MORE}{SITE}reading-a-flight-log.html"
@@ -161,9 +173,9 @@ const MOTOR_INSTEAD: &str = "The motor's printed data and its maker's instructio
 pub(crate) fn catalog_motor(captured: &str) -> String {
     format!(
         "{LABEL} Copied from ThrustCurve.org's curve file, downloaded {captured}, not measured \
-         by HPR Sim: {MOTOR_FIGURES}. The total impulse and peak thrust are checked against \
-         OpenRocket's on every bundled curve; no figure is checked against the maker's or the \
-         certifying bodies' data. {MOTOR_INSTEAD}{MORE}{SITE}pick-a-motor.html"
+         by HPR Sim: {MOTOR_FIGURES}. The total impulse and peak thrust match OpenRocket's \
+         reading of the same file on every bundled curve, a check of the arithmetic, not of the \
+         motor; no figure is checked against the maker's or the certifying bodies' data. {MOTOR_INSTEAD}{MORE}{SITE}pick-a-motor.html"
     )
 }
 
@@ -280,6 +292,29 @@ mod tests {
             assert!(note.ends_with(ACCURACY_URL), "{note}");
         }
         assert!(runs().contains("not from the model's error"));
+    }
+
+    /// The ERA5 note's flights and their mean error are the committed report's.
+    #[test]
+    fn the_era5_notes_numbers_are_the_committed_reports() {
+        let path = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../validation/reports/real-flights.json"
+        );
+        let text = std::fs::read_to_string(path).unwrap_or_else(|e| panic!("{path}: {e}"));
+        let report: serde_json::Value =
+            serde_json::from_str(&text).unwrap_or_else(|e| panic!("{path}: {e}"));
+        let summary = &report["summary"];
+        assert_eq!(summary["flights"].as_u64(), Some(ERA5_FLIGHTS as u64));
+        let mean = summary["mean_absolute_apogee_error_percent"]
+            .as_f64()
+            .unwrap_or(f64::NAN);
+        assert_eq!(
+            format!("{mean:.2}"),
+            format!("{ERA5_MEAN_ABSOLUTE_PERCENT:.2}")
+        );
+        assert!(reanalysis().contains("7 public flights flown in ERA5 weather missed"));
+        assert!(reanalysis().contains("by 6.04% on average"));
     }
 
     #[test]

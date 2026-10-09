@@ -230,8 +230,8 @@ out.
   altimeter's `.pf2` log on its own, with no design file and no simulation, and prints liftoff,
   apogee, the top speed, landing and the descent, each saying where it came from, or withheld with
   the reason the log can't support it ([Reading a flight log](reading-a-flight-log.md)). Like
-  `hpr weather` and `hpr motors show`, it ends with how far to trust its figures
-  ([M0.9c4](decisions-and-roadmap.md#m0-9c4)). The other
+  `hpr weather` and `hpr motors show`, it ends with how far to trust its figures (since
+  [M0.9c4](decisions-and-roadmap.md#m0-9c4), units and trust notes on every readout). The other
   loggers come with [M7.1](decisions-and-roadmap.md#m7-1): Altus Metrum (AltOS), Featherweight
   (Raven, Blue Raven and the GPS tracker), Missile Works RRC3, Eggtimer, Entacore AIM,
   Mercury/AltimeterCloud, CATS, and plain CSV with column mapping. The rest of the readings, such

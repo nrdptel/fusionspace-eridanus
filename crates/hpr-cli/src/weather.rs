@@ -892,6 +892,33 @@ pub(crate) fn format_utc(unix_s: i64) -> String {
 mod tests {
     use super::*;
 
+    /// A level with no wind keeps its row's columns: a dash on the SI figures' edge and no
+    /// brackets; a temperature a hair below freezing prints unsigned, never `-0.0 (32)`.
+    #[test]
+    fn a_blank_wind_and_a_freezing_level_keep_the_table_aligned() {
+        let level = |height_msl_m: f64, temperature_k: f64, wind: Option<f64>| ProfileLevel {
+            height_msl_m,
+            pressure_pa: Some(85_000.0),
+            temperature_k,
+            relative_humidity: None,
+            wind_speed_m_s: wind,
+            wind_from_deg: wind.map(|_| 270.0),
+        };
+        let lines = levels_table(&[
+            level(1500.0, 273.10, Some(12.3)),
+            level(15_000.0, 220.0, None),
+        ]);
+        assert_eq!(
+            lines,
+            [
+                "         height  pressure         temp  humidity       wind  from",
+                "     m MSL (ft)       hPa      °C (°F)         %  m/s (mph)     °",
+                " 1500.0  (4921)     850.0    0.0  (32)         -  12.3 (28)   270",
+                "15000.0 (49213)     850.0  -53.1 (-64)         -     -          -",
+            ]
+        );
+    }
+
     #[test]
     fn times_read_and_write_back() {
         for (text, unix_s) in [

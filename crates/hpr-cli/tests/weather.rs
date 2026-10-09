@@ -865,6 +865,12 @@ fn every_source_ends_with_how_far_to_trust_it() {
         let instead = note.find("On launch day, go by").unwrap_or(usize::MAX);
         assert!(checked < instead && instead < usize::MAX, "{name}: {note}");
         assert!(note.contains("not yet checked"), "{name}: {note}");
+        // The one comparison with real flights committed for a weather source is ERA5's.
+        assert_eq!(
+            note.contains("7 public flights flown in ERA5 weather missed their logged apogees"),
+            kind == "reanalysis",
+            "{name}: {note}"
+        );
         assert!(note.contains("the RSO decides."), "{name}: {note}");
         assert!(
             note.ends_with(&format!("More: https://hpr.fusionspace.co/{page}")),

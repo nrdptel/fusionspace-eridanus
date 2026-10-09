@@ -301,21 +301,21 @@ mod tests {
 
     /// A top acceleration reads in g too, standard gravity, in brackets after the m/s² (issue
     /// #392). No log format read so far records one, so the reading is set by hand on a real
-    /// log's document.
+    /// log's document, at a value where a rounded 9.81 m/s² would print another tenth.
     #[test]
     fn a_top_acceleration_gives_g() {
         let text = include_str!("../../../validation/fixtures/logs/synthetic-pnut.pf2");
         let log = perfectflite::read(text).unwrap();
         let mut document = document("synthetic-pnut.pf2", &log, &readings::read(&log));
         document.max_acceleration = LogReading::Read(MaxAccelerationReading {
-            acceleration_m_s2: 98.066_5,
+            acceleration_m_s2: 1000.0,
             time_s: 0.75,
         });
         let lines = text_lines(&document);
         assert!(
             lines
                 .iter()
-                .any(|line| line == "top acceleration  98.1 m/s² (10.0 g) at 0.75 s"),
+                .any(|line| line == "top acceleration  1000.0 m/s² (102.0 g) at 0.75 s"),
             "{lines:#?}"
         );
     }

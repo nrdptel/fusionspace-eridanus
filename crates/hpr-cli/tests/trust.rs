@@ -150,8 +150,10 @@ fn analyze_says_its_readings_are_measured_and_how_far_to_trust_them() {
     in_order(
         &note,
         &[
-            "Measured: the altimeter's own log, read by HPR Sim, not simulated;",
-            "checked on an invented log whose every number is known, not yet on real logs in CI",
+            "Measured by the altimeter's barometer, from its own log, read by HPR Sim, not \
+             simulated.",
+            "checked on an invented log whose every number is known, and once by hand on a real \
+             one, not in the automatic tests;",
             "the altimeter's own reading is the one to log, and the RSO decides.",
         ],
     );
@@ -179,8 +181,9 @@ fn motors_show_says_where_its_figures_come_from() {
                 "Copied from ThrustCurve.org's curve file, downloaded {captured}, not measured by \
                  HPR Sim:"
             ),
-            "The total impulse and peak thrust are checked against OpenRocket's on every bundled \
-             curve; no figure is checked against the maker's or the certifying bodies' data.",
+            "The total impulse and peak thrust match OpenRocket's reading of the same file on \
+             every bundled curve, a check of the arithmetic, not of the motor; no figure is \
+             checked against the maker's or the certifying bodies' data.",
             "The motor's printed data and its maker's instructions come first, and the RSO \
              decides.",
         ],
