@@ -18,7 +18,7 @@ use hpr::hpr_motor::eng::{self, EngFile};
 use hpr::hpr_motor::rse::{self, RseEngine, RseFile};
 use hpr::hpr_motor::text::WarningKind as ReadWarning;
 
-use crate::console::{Level, Paint};
+use crate::console::{Diagnostics, Level};
 use crate::convert_design;
 use crate::motors::{MotorFile, catalog, read_warnings, warning_kind};
 use crate::output::{Convert, ConvertMotors, ConvertedFile, MotorSource, Warning, WarningKind};
@@ -191,9 +191,8 @@ pub(crate) fn run(args: &ConvertArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         motors: names,
         warnings,
     };
-    let paint = to.paint;
-    to.emit(&Convert::Motors(document.clone()), |out| {
-        text_output(&document, input, out, paint)
+    to.emit(&Convert::Motors(document.clone()), |out, diagnostics| {
+        text_output(&document, input, out, diagnostics)
     })
 }
 
@@ -512,12 +511,12 @@ fn converted_warning(warning: &ConvertWarning) -> Result<Warning, Failure> {
     })
 }
 
-/// `hpr convert` as text: what was read, what was written, and the warnings.
+/// `hpr convert` as text: what was read and what was written, and the warnings on standard error.
 fn text_output(
     document: &ConvertMotors,
     input: &str,
     out: &mut dyn Write,
-    paint: Paint,
+    diagnostics: &mut Diagnostics<'_>,
 ) -> io::Result<()> {
     let from = match &document.input {
         MotorSource::Catalog { curve_url, .. } => format!("the bundled catalog ({curve_url})"),
@@ -536,7 +535,7 @@ fn text_output(
             (None, Some(line)) => format!("line {line}: "),
             (None, None) => String::new(),
         };
-        paint.line(out, Level::Warning, &format!("{at}{}", warning.message))?;
+        diagnostics.line(Level::Warning, &format!("{at}{}", warning.message))?;
     }
     Ok(())
 }

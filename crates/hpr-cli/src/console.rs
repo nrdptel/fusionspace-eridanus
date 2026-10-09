@@ -9,7 +9,8 @@
 //!
 //! The roles are the system's [`fs_style`] constants, ANSI roles only, so the user's terminal
 //! theme picks the actual colors. Every colored word is also a word: `error:`, `warning:`,
-//! `help:`, `note:`.
+//! `help:`, `note:`. Every line with one of those prefixes goes to standard error, beside a
+//! text result too ([`Diagnostics`]); standard output carries the result alone.
 
 use std::io::{self, Write};
 
@@ -153,6 +154,35 @@ impl Paint {
     /// Writes one message line, [`Paint::prefixed`].
     pub(crate) fn line(self, to: &mut dyn Write, level: Level, text: &str) -> io::Result<()> {
         writeln!(to, "{}", self.prefixed(level, text))
+    }
+}
+
+/// Where a command's `warning:`, `note:` and `help:` lines go beside its text result: standard
+/// error, in standard error's paint. `product/cli.md` (*Output*) puts the result alone on
+/// standard output and everything else on standard error, so `hpr sim … > flight.txt` keeps
+/// the file to the flight and the warnings on the terminal. A text renderer gets one of these
+/// and standard output, and can write a prefixed line only here.
+pub(crate) struct Diagnostics<'a> {
+    /// Standard error.
+    to: &'a mut dyn Write,
+    /// Standard error's color.
+    paint: Paint,
+}
+
+impl<'a> Diagnostics<'a> {
+    /// The lines written to `to` (standard error), in `paint` (standard error's).
+    pub(crate) fn new(to: &'a mut dyn Write, paint: Paint) -> Self {
+        Self { to, paint }
+    }
+
+    /// Writes one message line, [`Paint::line`].
+    pub(crate) fn line(&mut self, level: Level, text: &str) -> io::Result<()> {
+        self.paint.line(self.to, level, text)
+    }
+
+    /// Flushes standard error.
+    pub(crate) fn flush(&mut self) -> io::Result<()> {
+        self.to.flush()
     }
 }
 

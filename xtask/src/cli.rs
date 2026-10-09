@@ -9,7 +9,8 @@
 //!   leaves its frame or a clip, and no text overlaps other text. The flights of [`PLOTS`] are
 //!   drawn and checked too, not committed, so a plot that only some flights clip fails here;
 //! - each example in `README.md`, `docs/cli.md` and the how-to guides ([`GUIDES`]): the command
-//!   run in-process, with what it printed. An argument with a `/` in it is a file of the
+//!   run in-process, with what it printed on both streams in the order it wrote them, as a
+//!   terminal shows them ([`Terminal`]). An argument with a `/` in it is a file of the
 //!   repository, given from its root, as a reader who runs the example from a copy of it types it.
 //!   One without a `/` that ends in a file extension of letters, such as `F15.eng`, is a file the
 //!   command writes: it goes to a scratch folder, so running the page never writes into the
@@ -18,8 +19,10 @@
 //!
 //! `--check` (and the test below, which the gate runs) fails when a committed copy differs.
 
+use std::cell::RefCell;
+use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-
+use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use hpr_cli::registry::{Links, command_table};
@@ -303,13 +306,32 @@ fn written(arg: &str) -> bool {
             .is_some_and(|extension| extension.chars().all(|c| c.is_ascii_alphabetic()))
 }
 
+/// Standard output and standard error written into one buffer, in the order `hpr` writes them, as
+/// a terminal shows a run: a result's `warning:`, `note:` and `help:` lines go to standard error,
+/// between the result's own lines on standard output, and a page's example shows them where the
+/// reader will see them. Each clone writes to the same buffer.
+#[derive(Clone, Default)]
+struct Terminal(Rc<RefCell<Vec<u8>>>);
+
+impl Write for Terminal {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        self.0.borrow_mut().extend_from_slice(bytes);
+        Ok(bytes.len())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
 /// A fenced block with the command line and what it printed, and its exit status if not 0; and
 /// that status. The command's paths are read from `root`; the files it writes go to a scratch
 /// folder of this call's own, shown to `read` and then removed, whose path the block must not
 /// show.
 fn example(command: &str, root: &Path, read: &mut dyn FnMut(&Path)) -> (String, u8) {
     static CALLS: AtomicUsize = AtomicUsize::new(0);
-    let (mut out, mut err) = (Vec::new(), Vec::new());
+    let terminal = Terminal::default();
+    let (mut out, mut err) = (terminal.clone(), terminal.clone());
     let scratch = std::env::temp_dir().join(format!(
         "hpr-cli-examples-{}-{}",
         std::process::id(),
@@ -333,16 +355,12 @@ fn example(command: &str, root: &Path, read: &mut dyn FnMut(&Path)) -> (String, 
     // A written file's path differs from run to run and by platform: the page shows it in the
     // scratch folder, with `/`, as text and as JSON writes it (with `\\` escaped on Windows).
     let folder = format!("{}{}", scratch.to_string_lossy(), std::path::MAIN_SEPARATOR);
-    for printed in [&mut out, &mut err] {
-        let mut text = String::from_utf8_lossy(printed).into_owned();
-        for spelled in [folder.clone(), folder.replace('\\', "\\\\")] {
-            text = text.replace(&spelled, "<the scratch folder>/");
-        }
-        *printed = text.into_bytes();
+    let mut printed = String::from_utf8_lossy(&terminal.0.borrow()).into_owned();
+    for spelled in [folder.clone(), folder.replace('\\', "\\\\")] {
+        printed = printed.replace(&spelled, "<the scratch folder>/");
     }
     let mut block = format!("```text\n$ {command}\n");
-    block.push_str(&String::from_utf8_lossy(&out));
-    block.push_str(&String::from_utf8_lossy(&err));
+    block.push_str(&printed);
     if exit.code() != 0 {
         block.push_str(&format!("$ echo $?\n{}\n", exit.code()));
     }

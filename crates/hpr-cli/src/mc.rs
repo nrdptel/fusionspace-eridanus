@@ -259,9 +259,8 @@ pub(crate) fn run(args: &McArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         notes: read.notes,
         warnings: read.warnings,
     };
-    let paint = to.paint;
-    to.emit(&document, |out| {
-        crate::mc_text::print(&document, out, paint)
+    to.emit(&document, |out, diagnostics| {
+        crate::mc_text::print(&document, out, diagnostics)
     })
 }
 

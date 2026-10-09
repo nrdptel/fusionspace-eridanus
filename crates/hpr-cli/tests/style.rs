@@ -114,8 +114,9 @@ fn color_follows_the_flag_then_no_color_then_force_then_auto() {
     }
 }
 
-/// The colors are the roles' ANSI codes: `error:` bold red, `help:` bold blue, on standard error
-/// and standard output. `hpr_cli::console`'s unit tests hold `warning:` and `note:` to theirs.
+/// The colors are the roles' ANSI codes: `error:` bold red, `help:` bold blue, on standard error,
+/// where a refusal's lines and a result's `help:` lines both go. `hpr_cli::console`'s unit tests
+/// hold `warning:` and `note:` to theirs.
 #[test]
 fn prefixes_are_colored_in_their_roles() {
     let refused = run(
@@ -143,11 +144,53 @@ fn prefixes_are_colored_in_their_roles() {
         &[],
     );
     assert_eq!(flown.status.code(), Some(0), "{flown:?}");
-    let stdout = String::from_utf8(flown.stdout).unwrap();
+    let stderr = String::from_utf8(flown.stderr).unwrap();
     assert!(
-        stdout.contains("\n\u{1b}[1m\u{1b}[34mhelp:\u{1b}[0m see the Accuracy page"),
-        "{stdout}"
+        stderr
+            .lines()
+            .any(|line| line.starts_with("\u{1b}[1m\u{1b}[34mhelp:\u{1b}[0m see the Accuracy page")),
+        "{stderr:?}"
     );
+    let stdout = String::from_utf8(flown.stdout).unwrap();
+    assert!(!stdout.contains("help:"), "{stdout}");
+}
+
+/// A result's `warning:`, `note:` and `help:` lines take standard error's color, not standard
+/// output's: colored when standard error is a terminal, plain when it is a pipe, whichever
+/// standard output is. The binary's streams can't be terminals in a test, so this runs the tool
+/// in-process with each [`Console`](hpr_cli::console::Console) split.
+#[test]
+fn a_results_diagnostics_take_standard_errors_color() {
+    use hpr_cli::console::Console;
+    let probe = repo_file(PROBE);
+    let args = ["hpr", "sim", &probe, "--motor", "H54"];
+    for (stdout_terminal, stderr_terminal) in [(true, false), (false, true)] {
+        let console = Console {
+            stdout_terminal,
+            stderr_terminal,
+            ..Console::PIPED
+        };
+        let (mut out, mut err) = (Vec::new(), Vec::new());
+        let exit = hpr_cli::run_with(args, &mut out, &mut err, console);
+        assert_eq!(exit, hpr_cli::Exit::Success);
+        let err = String::from_utf8(err).unwrap();
+        let help = if stderr_terminal {
+            "\u{1b}[1m\u{1b}[34mhelp:\u{1b}[0m see the Accuracy page"
+        } else {
+            "help: see the Accuracy page"
+        };
+        assert!(
+            err.lines().any(|line| line.starts_with(help)),
+            "{console:?}: {err:?}"
+        );
+        assert_eq!(
+            colored(err.as_bytes()),
+            stderr_terminal,
+            "{console:?}: {err:?}"
+        );
+        let out = String::from_utf8(out).unwrap();
+        assert!(!out.contains("help:"), "{console:?}: {out}");
+    }
 }
 
 /// What each command prints, piped with no color variable set, and with `--json` even when

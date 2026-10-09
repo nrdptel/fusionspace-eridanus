@@ -14,7 +14,7 @@ use std::path::Path;
 use hpr::hpr_format::container::{self, Entry, Hprz};
 use hpr::hpr_format::{self, DesignFile};
 
-use crate::console::{Level, Paint};
+use crate::console::{Diagnostics, Level};
 use crate::convert::{ConvertArgs, file_name, output_folder};
 use crate::output::{
     Convert, ConvertDesign, DesignFilePath, DesignFormat, InputWarning, WarningKind,
@@ -134,9 +134,8 @@ pub(crate) fn run(args: &ConvertArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         attachments: written,
         warnings,
     };
-    let paint = to.paint;
-    to.emit(&Convert::Design(document.clone()), |out| {
-        text_output(&document, out, paint)
+    to.emit(&Convert::Design(document.clone()), |out, diagnostics| {
+        text_output(&document, out, diagnostics)
     })
 }
 
@@ -187,8 +186,13 @@ fn extension(format: DesignFormat) -> &'static str {
     }
 }
 
-/// `hpr convert` of a design as text: what was read, what was written, and the warnings.
-fn text_output(document: &ConvertDesign, out: &mut dyn Write, paint: Paint) -> io::Result<()> {
+/// `hpr convert` of a design as text: what was read and what was written, and the warnings on
+/// standard error.
+fn text_output(
+    document: &ConvertDesign,
+    out: &mut dyn Write,
+    diagnostics: &mut Diagnostics<'_>,
+) -> io::Result<()> {
     let migrated = document
         .migrated_from
         .as_ref()
@@ -215,8 +219,7 @@ fn text_output(document: &ConvertDesign, out: &mut dyn Write, paint: Paint) -> i
         writeln!(out, "with   {}", document.attachments.join(", "))?;
     }
     for warning in &document.warnings {
-        paint.line(
-            out,
+        diagnostics.line(
             Level::Warning,
             &format!("{}: {}", warning.at, warning.message),
         )?;

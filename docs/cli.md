@@ -93,9 +93,11 @@ Until FusionSpace named its products after the stars of project Eridanus, in Oct
 
 ### Colors and messages
 
-The result, with its `warning:`, `note:` and `help:` lines, goes to standard output. A refusal
-goes to standard error, or to standard output as a JSON document with `--json`. Each message
-line starts with a word that says what it is, so it reads the same with or without color:
+The result alone goes to standard output. Every message line goes to standard error: a refusal,
+and the `warning:`, `note:` and `help:` lines printed beside a result. With `--json`, standard
+output gets one JSON document instead, which holds the warnings in its own fields, and standard
+error stays empty ([JSON output](#json-output)). Each message line starts with a
+word that says what it is, so it reads the same with or without color:
 
 | prefix | meaning | color |
 |---|---|---|
@@ -114,8 +116,11 @@ The colors are your terminal's own red, yellow and blue, so its theme decides ho
 4. Otherwise (`--color auto`, the default) a stream gets color only when it is a terminal and
    `TERM` isn't `dumb`.
 
-So `hpr sim rocket.ork > flight.txt` writes plain text to the file while an error on the
-terminal stays red. `--json` output never has color, whatever the flag or the variables say. To
+So `hpr sim rocket.ork > flight.txt` writes the flight alone to the file, in plain text, while its
+warnings, notes and hints stay on the terminal, in color; `2> messages.txt` keeps those in a file
+of their own. The examples on this page show what a terminal shows: both streams, in the order
+`hpr` writes them, so a `warning:` line appears among the result's lines though it went to
+standard error. `--json` output never has color, whatever the flag or the variables say. To
 turn color off everywhere, set `NO_COLOR=1`; for one run, give `--color never`, which every
 command takes.
 
@@ -1456,7 +1461,9 @@ checks. The text output and `--json` give the same levels with the direction in 
 ## JSON output
 
 With `--json`, a command prints exactly one [JSON](https://www.json.org) document on standard
-output, and nothing on standard error. That holds when the command fails, too. A failure prints an
+output, and nothing on standard error. That holds when the command fails, too. What the text's
+`warning:` and `note:` lines say is in the document's own fields instead, such as `hpr sim`'s
+`notes`, `warnings`, `flags` and `issues`. A failure prints an
 error document. Each document has a published [JSON Schema](https://json-schema.org), which
 describes its fields and units:
 

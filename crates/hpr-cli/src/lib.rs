@@ -13,7 +13,8 @@
 //!
 //! Every command prints text for a person, or, with `--json`, exactly one JSON document on
 //! standard output: the command's own output type ([`output`]) when it succeeds, and an
-//! [`output::ErrorDocument`] when it doesn't. [`schemas`] generates the published JSON Schema
+//! [`output::ErrorDocument`] when it doesn't. The text puts the result alone on standard output
+//! and every `error:`, `warning:`, `note:` and `help:` line on standard error ([`console`]). [`schemas`] generates the published JSON Schema
 //! of each, which `cargo xtask cli` writes to `schema/cli/`.
 //!
 //! Commands whose milestone hasn't come yet are registered with the rest, so that `hpr --help`,
@@ -60,7 +61,7 @@ use clap::{CommandFactory, FromArgMatches, Parser, Subcommand};
 use clap_complete::Shell;
 use serde::Serialize;
 
-use crate::console::{Console, Level, Paint, Paints};
+use crate::console::{Console, Diagnostics, Level, Paint, Paints};
 use crate::fs_style::ColorWhen;
 use crate::output::{Completions, ErrorDocument, ErrorKind};
 use crate::registry::Availability;
@@ -231,7 +232,7 @@ pub(crate) enum Failure {
         /// The milestone that brings it.
         milestone: &'static str,
     },
-    /// Standard output couldn't be written, such as a closed pipe.
+    /// Standard output, or standard error beside it, couldn't be written, such as a closed pipe.
     Output(io::Error),
 }
 
@@ -247,26 +248,29 @@ impl Failure {
 
 /// Where a command's output goes, and in which form.
 pub(crate) struct Out<'a> {
-    /// Standard output.
+    /// Standard output: the result alone.
     pub(crate) out: &'a mut dyn Write,
     /// Whether `--json` was given.
     pub(crate) json: bool,
-    /// Standard output's color: its `warning:`, `note:` and `help:` prefixes.
-    pub(crate) paint: Paint,
+    /// Standard error, for the text's `warning:`, `note:` and `help:` lines.
+    pub(crate) diagnostics: Diagnostics<'a>,
 }
 
 impl Out<'_> {
     /// Writes `value` as one JSON document, or `text` when `--json` wasn't given, and flushes.
-    /// Only a failure to write standard output is a [`Failure::Output`].
+    /// `text` writes the result to standard output, its first argument, and its `warning:`,
+    /// `note:` and `help:` lines to standard error, its second; a JSON document carries those
+    /// in its own fields, so with `--json` standard error stays empty. Only a failure to write
+    /// either stream is a [`Failure::Output`].
     pub(crate) fn emit<T: Serialize>(
         &mut self,
         value: &T,
-        text: impl FnOnce(&mut dyn Write) -> io::Result<()>,
+        text: impl FnOnce(&mut dyn Write, &mut Diagnostics<'_>) -> io::Result<()>,
     ) -> Result<(), Failure> {
         let written = if self.json {
             write_json(self.out, value)
         } else {
-            text(self.out)
+            text(self.out, &mut self.diagnostics).and_then(|()| self.diagnostics.flush())
         };
         written
             .and_then(|()| self.out.flush())
@@ -346,7 +350,7 @@ where
     let mut to = Out {
         out,
         json,
-        paint: paints.out,
+        diagnostics: Diagnostics::new(err, paints.err),
     };
     // The registry decides what refuses, so the table and the tool can't disagree.
     let outcome = match registry::availability(command) {
@@ -572,7 +576,9 @@ fn completions(shell: Shell, to: &mut Out<'_>) -> Result<(), Failure> {
         shell: shell.to_string(),
         script,
     };
-    to.emit(&document, |out| out.write_all(document.script.as_bytes()))
+    to.emit(&document, |out, _| {
+        out.write_all(document.script.as_bytes())
+    })
 }
 
 /// The JSON Schema of each `--json` output, by file name: what `cargo xtask cli` writes to

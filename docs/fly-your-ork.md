@@ -216,7 +216,9 @@ common reasons, and what to do:
 | it can't tell which configuration to fly | the file has several and no default: name one with `--config` |
 
 Warnings are not refusals. A `warning:` line flags something the design's checks found unusual
-but buildable, such as a motor longer than its mount tube, and the flight goes on.
+but buildable, such as a motor longer than its mount tube, and the flight goes on. Warnings,
+notes and `help:` lines go to standard error, so `hpr sim rocket.ork > flight.txt` saves the
+flight alone and leaves them on the terminal.
 
 ## What it leaves out
 

@@ -116,8 +116,10 @@ landing               0.7 m from the pad at 245.78 s, at 4.4 m/s
 
 <!-- cli: end -->
 
-Then fly your own: `hpr sim my-rocket.ork`. A motor HPR Sim doesn't carry is fetched from
-ThrustCurve.org once, then flies offline. Three guides go further:
+The `help:`, `note:` and `warning:` lines go to standard error, the flight alone to standard
+output, so `> flight.txt` saves the flight and leaves them on the terminal. Then fly your own:
+`hpr sim my-rocket.ork`. A motor HPR Sim doesn't carry is fetched from ThrustCurve.org once, then
+flies offline. Three guides go further:
 [Fly your .ork](https://hpr.fusionspace.co/fly-your-ork.html),
 [Pick a motor](https://hpr.fusionspace.co/pick-a-motor.html) and
 [Check stability for a certification flight](https://hpr.fusionspace.co/stability-for-certification.html).

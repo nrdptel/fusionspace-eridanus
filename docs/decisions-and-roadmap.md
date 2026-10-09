@@ -336,6 +336,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9a2"></a>[M0.9a2][done-0] | The site's pages | done |
 | <a id="m0-9b"></a>[M0.9b][done-0] | The design audit | done |
 | <a id="m0-9c"></a>[M0.9c][phase-0] | The CLI, exports and plot to the design | not yet done |
+| <a id="m0-9c1"></a>[M0.9c1][done-0] | Diagnostics on stderr | done |
+| <a id="m0-9c2"></a>[M0.9c2][phase-0] | Units and trust | not yet done |
+| <a id="m0-9c3"></a>[M0.9c3][phase-0] | Provenance, errors and the plot | not yet done |
 | <a id="m0-9d"></a>[M0.9d][phase-0] | The site to the design | not yet done |
 | <a id="m0-9e"></a>[M0.9e][phase-0] | The words to the design | not yet done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |

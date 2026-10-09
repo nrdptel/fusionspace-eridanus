@@ -61,12 +61,11 @@ pub(crate) fn run(args: &FetchArgs, to: &mut Out<'_>) -> Result<(), Failure> {
             motor.length_m() * 1000.0
         ),
     ];
-    let paint = to.paint;
-    to.emit(&document, |out| {
+    to.emit(&document, |out, diagnostics| {
         lines.iter().try_for_each(|line| writeln!(out, "{line}"))?;
         flies
             .iter()
-            .try_for_each(|(level, line)| paint.line(out, *level, line))?;
+            .try_for_each(|(level, line)| diagnostics.line(*level, line))?;
         writeln!(out, "{}", document.attribution.join(" "))
     })
 }
