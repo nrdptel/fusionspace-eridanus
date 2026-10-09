@@ -71,7 +71,7 @@ Pinned commit: `f45454f44669cc049222f2ab19eb648796e56a52`, as `validation/refs.l
 | `cli.md` | Help | CLI | not met | #381; M0.9c: the link before Usage; no examples |
 | `cli.md` | Errors | CLI | not met | #381; M0.9c: errors that don't name the flag, the unit typed or a next step |
 | `cli.md` | Exit codes | CLI | met | `crates/hpr-cli/src/lib.rs::exit_codes_are_the_documented_ones`, `crates/hpr-cli/tests/cli.rs::every_planned_command_refuses_with_its_milestone` |
-| `cli.md` | Interaction and config | CLI | met | reviewed at `f45454f`: no prompts or config file; HPR_OFFLINE and HPR_CACHE_DIR below the flags |
+| `cli.md` | Interaction and config | CLI | met | reviewed at `f45454f`: it never asks for input and has no config file; HPR_OFFLINE and HPR_CACHE_DIR below the flags |
 | `cli.md` | The banner | CLI | met | reviewed at `f45454f`: allowed, not required; ADR-164 §6 keeps the brand's braille lockup out |
 | `cli.md` | Drop-in styles | CLI | met | `crates/hpr-cli/tests/style.rs::the_styles_are_the_product_systems` |
 | `web.md` | Using it in a project | site | not met | #383; M0.9d: a hand-written fonts.css; one theme-color; mdBook's palettes and icons |

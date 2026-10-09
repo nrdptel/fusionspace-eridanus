@@ -60,7 +60,7 @@ for each re-checked every row: they reproduced each defect and opened each named
    fixed once published is corrected here: the Python package's README said "MIT OR Apache-2.0",
    where its `pyproject.toml` declares `(MIT OR Apache-2.0) AND Apache-2.0`. The rest are the
    command line's behavior and the site, which 0.1.1 can carry. Publishing stays the
-   maintainer's call (*Needs Neer*).
+   maintainer's call.
 7. **Moving the pin reopens the audit.** The test fails when the table's commit differs from
    `validation/refs.lock.toml`'s or doesn't start with the theme's `DESIGN_REV`. A new pin
    means auditing every section again and naming the new commit.
