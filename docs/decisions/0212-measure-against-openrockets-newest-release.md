@@ -1,7 +1,7 @@
 # ADR-212: Measure against OpenRocket's newest release, not only 24.12 (2026-10-08)
 
 - **Status:** accepted; tightens [ADR-209, the best on the market, measured][adr-209] §7 and M10.3; adds M2.3c3
-- **Summary:** OpenRocket's development branch has merged changes since 24.12 that move its apogees: body-in-fin interference, a powered base-drag correction and thrust corrected for air pressure. Release 0.3's target, a held-out mean absolute apogee error below OpenRocket's, would be judged against a version flyers are about to leave. So the comparison follows OpenRocket's releases. A new milestone, M2.3c3, flies the private collection and the public comparison sets on OpenRocket's newest release after 24.12 beside 24.12, on the flights both fly, by the same scripts, each version named. Release 0.3 (M10.3) then needs HPR Sim's held-out error below each version's, on the held-out flights all fly; with no newer release, 24.12's alone, so no release waits for OpenRocket's. Nothing is built from OpenRocket's source.
+- **Summary:** OpenRocket's development branch has merged changes since 24.12 that move its apogees: body-in-fin interference, a powered base-drag correction and thrust corrected for air pressure. Release 0.3's target, a held-out mean absolute apogee error below OpenRocket's, would be judged against a version flyers are about to leave. So the comparison follows OpenRocket's releases. A new milestone, M2.3c3, flies the private collection and the public comparison sets on OpenRocket's newest release after 24.12 beside 24.12, on the flights both fly, by the same scripts, each version named. Release 0.3 (M10.3) then needs HPR Sim's held-out error below 24.12's and below that of any OpenRocket release published before M2.7 is met, on the held-out flights all fly; with none, 24.12's alone, so no release waits for OpenRocket's. Nothing is built from OpenRocket's source.
 
 [adr-143]: 0143-the-operating-envelope-and-a-stop-rule-for.md
 [adr-209]: 0209-the-2026-10-08-best-on-the-market-measured.md
@@ -34,12 +34,15 @@ comparison, and the comparison has to be with the tool as flyers use it.
    after 24.12 beside 24.12, by the same scripts, on the flights both versions fly, with each
    version named. Moves: accuracy (the scoreboard's OpenRocket column names its version).
 3. **Release 0.3 is judged against every version flown.** M10.3's done-when, ADR-209 §7's
-   target, now reads: on the held-out flights that HPR Sim and every OpenRocket version M2.3c3
-   flies all fly, HPR Sim's mean absolute apogee error is below each version's. On one common set
-   that is the same as beating the lower of the errors, and no version can be picked for flying a
-   kinder set. With no release after 24.12, 24.12 alone sets it, so Release 0.3 never waits for
-   OpenRocket's; M2.3c3 waits in the queue after M2.3c2, and a session that reaches it first
-   skips to the next milestone and says so in the status.
+   target, now reads: on the held-out flights that HPR Sim and every OpenRocket version flown all
+   fly, HPR Sim's mean absolute apogee error is below 24.12's and below that of any OpenRocket
+   release published before M2.7 is met. On one common set that is the same as beating the lowest
+   of the errors, and no version can be picked for flying a kinder set; a release out by then must
+   be flown (M2.3c3), not skipped. The cutoff is M2.7 because that is when the held-out
+   predictions are fixed; a release published later sets the next release's bar, so Release 0.3
+   never waits for OpenRocket's. With no release after 24.12, M2.3c3 waits in the queue after
+   M2.3c2, and a session that reaches it first skips to the next milestone and says so in the
+   status.
 4. **The target only tightens.** ADR-209 §7's other terms (the bias within 3%, the ranges'
    coverage, the paired bootstrap interval) are unchanged, and so is [ADR-143][adr-143]'s stop
    rule. Nothing is built from OpenRocket's source to get ahead of its release.

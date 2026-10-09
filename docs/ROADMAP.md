@@ -191,12 +191,12 @@ line here, or on an id that is missing or done.
   - [ ] **M2.3c Corpus flights with logs.** The private designs that have a flight log,
     in their day's weather; *done when* each is in a report as anonymised statistics beside
     M2.3b's. `hpr-sim-fixtures` has 89 in its tier A, with their days' weather (ADR-151). Split
-    (ADR-163, ADR-212):
+    (ADR-163):
     - [ ] **M2.3c2 Logged traces.** *Done when:* each M2.3c1 flight whose log M7.1 reads has its
       altitude-trace RMS from liftoff to apogee, aligned at liftoff, in that report.
     - [ ] **M2.3c3 OpenRocket's newest release** (ADR-212). *Done when:* the fixture and public
       OpenRocket reports fly its newest release after 24.12 beside 24.12 on the flights both
-      fly, each named. Waits for it. Moves: accuracy.
+      fly, each named. Moves: accuracy.
 - [ ] **M2.7 Held-out flights, predictions first** (ADR-209 §4). *Done when:* a flight is held out
   when SHA-256 of its id and the seed `ADR-209` falls in the lowest third, fixed before any held-out
   error is computed; the fixture report gives both halves as aggregates; a refs check fails when a
@@ -560,10 +560,10 @@ capability none of them has, checked against its docs with the date (ADR-209).
 - [ ] **M10.3 Release 0.3: accuracy and diagnosis.** *Done when:* the checklist holds after M2.3c2,
   M7.4, M7.5; with M2.7, M2.8 and M2.6 met; M1.14b to M1.14g each met or ended by ADR-143's stop
   rule with its gaps in an ADR; and on the held-out flights all fly, HPR Sim's mean absolute error
-  is below each OpenRocket version's M2.3c3 flies, or 24.12's (ADR-212; a paired bootstrap interval
-  reported), its absolute bias within 3%, and its 50% and 90% ranges each hold the logs within their
-  bounds; only if M1.14 ended by the stop rule short of these may an ADR record the miss instead
-  (ADR-209 §7).
+  is below 24.12's and that of any OpenRocket release out before M2.7 is met (M2.3c3, ADR-212; a
+  paired bootstrap interval reported), its absolute bias within 3%, and its 50% and 90% ranges each
+  hold the logs within their bounds; only if M1.14 ended by the stop rule short of these may an ADR
+  record the miss instead (ADR-209 §7).
 - [ ] **M10.4 Release 0.4: the competition kit.** *Done when:* the checklist holds after M6.3,
   M6.4, M6.2e, M6.6, M6.7, M6.8, M3.5 and M3.6.
 - [ ] **M10.5 Release 0.5: the app preview.** *Done when:* the checklist holds after M4.4, M9.0
