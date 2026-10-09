@@ -25,13 +25,13 @@ use super::{attributes, html_files, is_web, unescape, visible_text};
 /// The theme folder, relative to the workspace root: mdBook's `theme/` beside `book.toml`.
 const THEME: &str = "theme";
 /// The product system's repository, checked out under `refs/` by `cargo xtask refs`.
-const DESIGN_REFS: &str = "refs/fusionspace-design";
+pub(crate) const DESIGN_REFS: &str = "refs/fusionspace-design";
 /// The revision of the product system the copied files come from (Rev A), as ADR-164 pins it
 /// (moved by ADR-198).
 /// `refs.lock.toml`'s pin must start with it.
-const DESIGN_REV: &str = "f45454f";
+pub(crate) const DESIGN_REV: &str = "f45454f";
 /// The lock file that pins the `refs/` checkouts, relative to the workspace root.
-const REFS_LOCK: &str = "validation/refs.lock.toml";
+pub(crate) const REFS_LOCK: &str = "validation/refs.lock.toml";
 /// The product system's name in [`REFS_LOCK`].
 const DESIGN_NAME: &str = "fusionspace-design";
 /// hpr-sim's `@font-face` rules, relative to [`THEME`]. mdBook serves the folder it is in as
@@ -197,7 +197,7 @@ pub(super) fn check_sources(root: &Path, source: &Path) -> Result<Sources, Strin
 }
 
 /// The commit [`REFS_LOCK`] pins [`DESIGN_NAME`] at.
-fn locked_commit(lock: &str) -> Result<String, String> {
+pub(crate) fn locked_commit(lock: &str) -> Result<String, String> {
     let lock: toml::Value = toml::from_str(lock).map_err(|err| format!("{REFS_LOCK}: {err}"))?;
     lock.get("git")
         .and_then(toml::Value::as_array)
@@ -213,7 +213,7 @@ fn locked_commit(lock: &str) -> Result<String, String> {
 /// A file's bytes as `commit` holds it in the git checkout at `design`: what was committed, not
 /// what the working tree holds, so neither a later checkout nor a line-ending conversion moves
 /// the comparison.
-fn committed_file(design: &Path, commit: &str, path: &str) -> Result<Vec<u8>, String> {
+pub(crate) fn committed_file(design: &Path, commit: &str, path: &str) -> Result<Vec<u8>, String> {
     let output = Command::new("git")
         .arg("-C")
         .arg(design)

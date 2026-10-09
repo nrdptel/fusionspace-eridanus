@@ -183,7 +183,7 @@ fn gap(numbers: &BTreeSet<u32>, prefix: char, what: &str) -> Option<String> {
 
 /// Whether `src` defines `name` as a live test: the `fn` line isn't commented out, and the
 /// attributes right above it include `#[test]` and no `#[ignore]`.
-fn defines_test(src: &str, name: &str) -> bool {
+pub(crate) fn defines_test(src: &str, name: &str) -> bool {
     let lines: Vec<&str> = src.lines().map(str::trim).collect();
     let needle = format!("fn {name}(");
     lines.iter().enumerate().any(|(at, line)| {

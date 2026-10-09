@@ -29,6 +29,8 @@ mod aero_override;
 mod aero_roll;
 mod census;
 mod cli;
+#[cfg(test)]
+mod conformance;
 mod design_checks;
 mod designs;
 #[cfg(test)]

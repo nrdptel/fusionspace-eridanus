@@ -105,6 +105,15 @@ Older pages move to these rules as they are edited. [M0.6](decisions-and-roadmap
 product system milestone, added the check for the first two. Nothing checks the non-breaking
 space yet, and `hpr sim --plot`'s SVG figure, which the rule covers, still writes plain spaces.
 
+Most of the product system's rules are not met yet. The
+[design audit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/design-conformance.md)
+checks each of its sections against the site, the command line, the exports and the plot. Of
+the 64 sections that apply to them today, 8 are met and 49 are not. Each gap has an issue, and
+three milestones close them before the next guides are written: the command line, exports and
+plot first, then the site's look, then the words
+([ADR-208, the design audit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0208-the-design-audit.md)).
+None of these rules changes a number the simulator computes.
+
 ## Four kinds of page
 
 Pages follow [Diátaxis](https://diataxis.fr/), a common way to sort documentation by what the reader is doing. Each page
