@@ -126,7 +126,7 @@ fn ungrouped(text: &str) -> Option<String> {
     Some(plain)
 }
 
-/// The unit an option's value is typed in, by the value name its help shows: `M` is metres.
+/// The unit an option's value is typed in, by the value name its help shows: `M` is meters.
 fn unit(value_name: &str) -> Option<&'static str> {
     match value_name {
         "M" => Some("m"),

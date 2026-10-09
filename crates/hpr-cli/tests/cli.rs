@@ -5139,7 +5139,7 @@ fn launch_options_are_refused_by_name_and_unit() {
         ("--latitude", "95", "from -90 to 90"),
         ("--latitude", "nan", "from -90 to 90"),
         ("--longitude", "inf", "number of degrees"),
-        ("--elevation", "nan", "number of metres"),
+        ("--elevation", "nan", "number of meters"),
         ("--rail-length", "0", "greater than 0"),
         ("--inclination", "0", "more than 0 and at most 90"),
         ("--inclination", "90.5", "more than 0 and at most 90"),

@@ -192,13 +192,11 @@ pub(crate) fn cached_answer(name: &str) -> Option<String> {
              {}; `hpr sim --motor` flies one named in full",
             candidates.join(", ")
         ),
-        Err(error) if error.is_not_cached() => match command(&wanted) {
-            Some(command) => format!(
-                "with a network connection, `{command}` fetches it from ThrustCurve.org, and \
-                 `hpr sim --motor` flies it"
-            ),
-            None => return None,
-        },
+        Err(error) if error.is_not_cached() => format!(
+            "with a network connection, `{}` fetches it from ThrustCurve.org, and `hpr sim \
+             --motor` flies it",
+            command(&wanted)?
+        ),
         Err(_) => return None,
     };
     Some(printable(&line))

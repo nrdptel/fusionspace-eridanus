@@ -322,11 +322,11 @@ pub(crate) fn read_file(path: &str) -> Result<Vec<u8>, Failure> {
                     ),
                     None if !folder.is_dir() => format!(
                         "there is no folder {} either; a path that doesn't start at the root \
-                         starts from the folder hpr runs in",
+                         starts from the current folder",
                         printable(&folder.to_string_lossy())
                     ),
                     None => "check the name; a path that doesn't start at the root starts from \
-                             the folder hpr runs in"
+                             the current folder"
                         .to_owned(),
                 };
                 Failure::helped(format!("{shown}: there is no such file"), help)

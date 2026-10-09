@@ -492,7 +492,6 @@ mod tests {
             "$150",
             "1e2",
             "abc",
-            "1,000",
             "1.2.3",
             "+5",
             "184467440737095516.16",
@@ -502,6 +501,13 @@ mod tests {
                 "{text}"
             );
         }
+        // A thousands separator is read, as typed numbers are (`data.md`); any other comma is
+        // asked about.
+        assert_eq!(cents(" 1,000 ").ok(), Some(100_000));
+        assert_eq!(cents("1,234.50").ok(), Some(123_450));
+        assert!(
+            matches!(&cents("1,50"), Err(Failure::Helped { message, help }) if message.contains("--max-price") && help[0].contains("is 1,50 meant as 1.50?")),
+        );
     }
 
     #[test]

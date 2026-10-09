@@ -713,7 +713,7 @@ fn launch_checks(flight: &FlightArgs) -> Result<(), Failure> {
             format!("for example `--{flag} {example}`"),
         ))
     };
-    if !(flight.latitude.abs() <= 90.0) {
+    if flight.latitude.is_nan() || flight.latitude.abs() > 90.0 {
         return refuse(
             "latitude",
             flight.latitude,
@@ -733,7 +733,7 @@ fn launch_checks(flight: &FlightArgs) -> Result<(), Failure> {
         return refuse(
             "elevation",
             flight.elevation,
-            "the site's height above sea level is a number of metres",
+            "the site's height above sea level is a number of meters",
             "1400",
         );
     }
@@ -741,7 +741,7 @@ fn launch_checks(flight: &FlightArgs) -> Result<(), Failure> {
         return refuse(
             "rail-length",
             flight.rail_length,
-            "the rail's length is a number of metres greater than 0",
+            "the rail's length is a number of meters greater than 0",
             "1.5",
         );
     }
