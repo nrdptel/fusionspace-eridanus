@@ -179,7 +179,7 @@
       "chute_early_s": 0.55,
       "descent": {
         "deployments_within": true,
-        "flight_time_percent": 0.252038,
+        "flight_time_percent": 0.252039,
         "in_scope": true,
         "landing_speed_percent": 0.002428,
         "meets_targets": true,
@@ -439,11 +439,11 @@
     {
       "aborted": false,
       "apogee_outcome": "scored",
-      "apogee_percent": 0.255815,
+      "apogee_percent": 0.255813,
       "chute_early_s": null,
       "descent": {
         "deployments_within": true,
-        "flight_time_percent": 0.366999,
+        "flight_time_percent": 0.366997,
         "in_scope": true,
         "landing_speed_percent": 0.003361,
         "meets_targets": true,
@@ -1006,11 +1006,11 @@
     {
       "aborted": false,
       "apogee_outcome": "scored",
-      "apogee_percent": 1.167295,
+      "apogee_percent": 1.167291,
       "chute_early_s": null,
       "descent": {
         "deployments_within": true,
-        "flight_time_percent": 0.923452,
+        "flight_time_percent": 0.923449,
         "in_scope": true,
         "landing_speed_percent": 0.007575,
         "meets_targets": true,
@@ -1063,7 +1063,7 @@
       "margin_cal": -0.000849,
       "margin_outcome": "scored",
       "max_speed_outcome": "scored",
-      "max_speed_percent": 0.942606,
+      "max_speed_percent": 0.942595,
       "on_openrocket_s_drag": null,
       "reference_same": true,
       "rod_clearance_cg_cal": 0.001506,
@@ -1222,7 +1222,7 @@
         "flight_time_percent": {
           "count": 34,
           "max": 3.716487,
-          "mean_absolute": 1.5200381764705877,
+          "mean_absolute": 1.520038058823529,
           "median": 0.14393899999999998,
           "min": -4.975282
         },
@@ -1291,8 +1291,8 @@
           },
           "no named cause": {
             "count": 28,
-            "max": 1.167295,
-            "mean_absolute": 1.3165132500000003,
+            "max": 1.167291,
+            "mean_absolute": 1.316513035714286,
             "median": -0.308323,
             "min": -4.844469
           },
@@ -1325,7 +1325,7 @@
           "no named cause": {
             "count": 34,
             "max": 2.281658,
-            "mean_absolute": 0.48415555882352945,
+            "mean_absolute": 0.48415523529411764,
             "median": 0.266802,
             "min": -0.65326
           }
