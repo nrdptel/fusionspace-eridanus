@@ -28,8 +28,22 @@ pub(crate) struct CommandHelp {
     pub(crate) path: &'static [&'static str],
     /// Its examples, two or three.
     pub(crate) examples: &'static [Example],
-    /// Its section of the guide: the anchor on [`GUIDE`], or `""` for the page's top.
+    /// Its section of the guide: an anchor on [`GUIDE`], or [`OWN`].
     pub(crate) anchor: &'static str,
+}
+
+/// The section a command's guide link goes to when it has none of its own: the page's top for
+/// `hpr`, else the section its top command's heading makes, such as `hpr weather`'s for every
+/// source under it ([`anchor`]).
+pub(crate) const OWN: &str = "";
+
+/// The anchor of `help`'s section: its own, or the one mdBook makes of the heading `` `hpr
+/// <command>` ``, its first name's: `hpr` and a hyphen before it.
+pub(crate) fn anchor(help: &CommandHelp) -> String {
+    match (help.anchor, help.path.first()) {
+        (OWN, Some(command)) => format!("hpr-{command}"),
+        (anchor, _) => anchor.to_owned(),
+    }
 }
 
 /// Every available command's examples and guide section. A test holds that each example parses
@@ -51,7 +65,7 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                 line: "hpr motors show H170M",
             },
         ],
-        anchor: "",
+        anchor: OWN,
     },
     CommandHelp {
         path: &["sim"],
@@ -69,7 +83,7 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                 line: "hpr sim my-rocket.ork --export flight.csv --plot flight.svg",
             },
         ],
-        anchor: "hpr-sim",
+        anchor: OWN,
     },
     CommandHelp {
         path: &["mc"],
@@ -83,7 +97,7 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                 line: "hpr mc my-rocket.ork --runs 1000 --impulse-sd 0.03 --export flights.csv",
             },
         ],
-        anchor: "hpr-mc",
+        anchor: OWN,
     },
     CommandHelp {
         path: &["convert"],
@@ -97,7 +111,7 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                 line: "hpr convert my-rocket.ork my-rocket.hpr",
             },
         ],
-        anchor: "hpr-convert",
+        anchor: OWN,
     },
     CommandHelp {
         path: &["motors"],
@@ -115,7 +129,7 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                 line: "hpr motors search --class L --in-stock",
             },
         ],
-        anchor: "hpr-motors",
+        anchor: OWN,
     },
     CommandHelp {
         path: &["motors", "list"],
@@ -186,7 +200,7 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                 line: "hpr weather wyoming --station 72489 --time 2026-09-26T16:00Z",
             },
         ],
-        anchor: "hpr-weather",
+        anchor: OWN,
     },
     CommandHelp {
         path: &["weather", "open-meteo"],
@@ -202,7 +216,7 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                        --time 2025-09-20T16:00Z --historical",
             },
         ],
-        anchor: "hpr-weather",
+        anchor: OWN,
     },
     CommandHelp {
         path: &["weather", "wyoming"],
@@ -216,7 +230,7 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                 line: "hpr weather wyoming --station 72489 --time 2026-09-26T16:00Z --bufr",
             },
         ],
-        anchor: "hpr-weather",
+        anchor: OWN,
     },
     CommandHelp {
         path: &["weather", "gfs"],
@@ -231,7 +245,7 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                        --cycle 2026-09-26T00Z --hour 12",
             },
         ],
-        anchor: "hpr-weather",
+        anchor: OWN,
     },
     CommandHelp {
         path: &["weather", "rap"],
@@ -246,7 +260,7 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                        --cycle 2026-09-26T12Z --hour 3",
             },
         ],
-        anchor: "hpr-weather",
+        anchor: OWN,
     },
     CommandHelp {
         path: &["weather", "era5"],
@@ -262,7 +276,7 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                        --time 2020-02-22T13:00Z -o profile.json",
             },
         ],
-        anchor: "hpr-weather",
+        anchor: OWN,
     },
     CommandHelp {
         path: &["analyze"],
@@ -276,13 +290,13 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                 line: "hpr analyze flight.pf2 --json",
             },
         ],
-        anchor: "hpr-analyze",
+        anchor: OWN,
     },
     CommandHelp {
         path: &["completions"],
         examples: &[
             Example {
-                what: "Complete `hpr`'s commands and options in zsh",
+                what: "Complete the commands and options in zsh",
                 line: "hpr completions zsh > ~/.zfunc/_hpr",
             },
             Example {
@@ -290,16 +304,15 @@ pub(crate) const COMMANDS: &[CommandHelp] = &[
                 line: "hpr completions bash > ~/.local/share/bash-completion/completions/hpr",
             },
         ],
-        anchor: "hpr-completions",
+        anchor: OWN,
     },
 ];
 
-/// The guide's address for `anchor`.
-pub(crate) fn guide(anchor: &str) -> String {
-    if anchor.is_empty() {
-        GUIDE.to_owned()
-    } else {
-        format!("{GUIDE}#{anchor}")
+/// The guide's address for `help`'s command: [`GUIDE`] and its [`anchor`].
+pub(crate) fn guide(help: &CommandHelp) -> String {
+    match anchor(help) {
+        anchor if anchor.is_empty() => GUIDE.to_owned(),
+        anchor => format!("{GUIDE}#{anchor}"),
     }
 }
 
@@ -351,7 +364,7 @@ fn guide_line(help: &CommandHelp) -> String {
         "{}Guide:{} {}",
         fs_style::HEADING.render(),
         fs_style::HEADING.render_reset(),
-        guide(help.anchor)
+        guide(help)
     )
 }
 
@@ -486,11 +499,12 @@ mod tests {
                     .collect()
             })
             .collect();
-        for help in COMMANDS.iter().filter(|help| !help.anchor.is_empty()) {
+        for help in COMMANDS.iter().filter(|help| !help.path.is_empty()) {
+            let anchor = anchor(help);
             assert!(
-                anchors.iter().any(|anchor| anchor == help.anchor),
-                "{}: no heading on docs/cli.md",
-                help.anchor
+                anchors.contains(&anchor),
+                "{:?}: no heading {anchor} on docs/cli.md",
+                help.path
             );
         }
     }
