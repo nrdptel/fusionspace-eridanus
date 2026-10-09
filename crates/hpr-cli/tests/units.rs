@@ -323,8 +323,8 @@ fn the_plot_gives_both_units() {
     }
     assert!(
         figure.contains(
-            "Apogee 1,065.1 m (3,494 ft) above the launch site at 11.62 s; top speed \
-                         285.6 m/s (937 ft/s) at 1.73 s."
+            "Apogee 1,065.1\u{a0}m (3,494\u{a0}ft) above the launch site at 11.62\u{a0}s; top \
+                         speed 285.6\u{a0}m/s (937\u{a0}ft/s) at 1.73\u{a0}s."
         ),
         "{figure}"
     );

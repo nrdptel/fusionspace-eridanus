@@ -1,133 +1,134 @@
 ---
 source: crates/hpr-cli/src/plot/tests.rs
+assertion_line: 249
 expression: "svg.replace(&stamp, \"[stamp]\")"
 ---
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1339" viewBox="0 0 960 1339" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" role="img" aria-labelledby="title" aria-describedby="desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1324" viewBox="0 0 960 1324" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" role="img" aria-labelledby="title" aria-describedby="desc">
 <title id="title">Probe: altitude, speed and acceleration against time</title>
-<desc id="desc">Apogee 100.0 m (328 ft) above the launch site at 5.00 s; top speed 1,234.6 m/s (4,050 ft/s) at 4.00 s.</desc>
+<desc id="desc">Apogee 100.0 m (328 ft) above the launch site at 5.00 s; top speed 1,234.6 m/s (4,050 ft/s) at 4.00 s.</desc>
 <metadata>[stamp]</metadata>
 <defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="3" y1="0" x2="3" y2="6" stroke="#98A1B8" stroke-width="1"/></pattern></defs>
-<rect width="960" height="1339" fill="#F3F4F7"/>
-<text x="76" y="28" font-size="16" font-weight="600" fill="#0B0F1C">Probe</text>
-<text x="76" y="48" fill="#566079">configuration 1 of 1: [H54-10]</text>
-<text x="76" y="70.0" fill="#566079">Apogee 100.0 m (328 ft) above the launch site at 5.00 s; top speed 1,234.6 m/s (4,050 ft/s) at 4.00 s.</text>
-<text x="76" y="88.0" fill="#566079">Dashed: simulated by FusionSpace HPR; thick, the size, and thin, the vertical part, up positive. Chain line: the</text>
-<text x="76" y="106.0" fill="#566079">ground. Dotted: an event, numbered as in the table. Each panel&apos;s left scale is SI, its right scale US units.</text>
-<text x="76" y="124.0" fill="#566079">Altitude is the center of gravity&apos;s height above the launch site; speed is over the ground; acceleration is the</text>
-<text x="76" y="142.0" fill="#566079">nose tip&apos;s, relative to the launch frame, not what an accelerometer reads.</text>
-<g id="event-1"><title>0.00 s: liftoff</title><line x1="76.0" y1="176.0" x2="76.0" y2="224.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="76.0" cy="168" r="8" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="76.0" y="171.5" font-size="10" text-anchor="middle" fill="#0B0F1C">1</text></g>
-<g id="event-2"><title>0.05 s: rail exit</title><line x1="78.0" y1="196.0" x2="78.0" y2="224.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="78.0" cy="188" r="8" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="78.0" y="191.5" font-size="10" text-anchor="middle" fill="#0B0F1C">2</text></g>
-<g id="event-3"><title>5.00 s: apogee, charge for `Drogue`, `Drogue` opens</title><line x1="278.0" y1="176.0" x2="278.0" y2="224.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="278.0" cy="168" r="8" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="278.0" y="171.5" font-size="10" text-anchor="middle" fill="#0B0F1C">3</text></g>
-<g id="event-4"><title>20.00 s: ground hit</title><line x1="884.0" y1="176.0" x2="884.0" y2="224.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="884.0" cy="168" r="8" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="884.0" y="171.5" font-size="10" text-anchor="middle" fill="#0B0F1C">4</text></g>
+<rect width="960" height="1324" fill="#F3F4F7"/>
+<text x="76" y="32" font-size="20" font-weight="600" fill="#0B0F1C">Probe</text>
+<text x="76" y="56" fill="#566079">configuration 1 of 1: [H54-10]</text>
+<text x="76" y="80.0" fill="#566079">Apogee 100.0 m (328 ft) above the launch site at 5.00 s; top speed 1,234.6 m/s (4,050 ft/s) at 4.00 s.</text>
+<text x="76" y="96.0" fill="#566079">Dashed: simulated by FusionSpace HPR; thick, the size, and thin, the vertical part, up positive. Chain line: the</text>
+<text x="76" y="112.0" fill="#566079">ground. Dotted: an event, numbered as in the table. Each panel&apos;s left scale is SI, its right scale US units.</text>
+<text x="76" y="128.0" fill="#566079">Altitude is the center of gravity&apos;s height above the launch site; speed is over the ground; acceleration is the</text>
+<text x="76" y="144.0" fill="#566079">nose tip&apos;s, relative to the launch frame, not what an accelerometer reads.</text>
+<g id="event-1"><title>0.00 s: liftoff</title><line x1="76.0" y1="178.0" x2="76.0" y2="232.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="76.0" cy="168" r="10" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="76.0" y="172.0" text-anchor="middle" fill="#0B0F1C">1</text></g>
+<g id="event-2"><title>0.05 s: rail exit</title><line x1="78.0" y1="202.0" x2="78.0" y2="232.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="78.0" cy="192" r="10" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="78.0" y="196.0" text-anchor="middle" fill="#0B0F1C">2</text></g>
+<g id="event-3"><title>5.00 s: apogee, charge for `Drogue`, `Drogue` opens</title><line x1="278.0" y1="178.0" x2="278.0" y2="232.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="278.0" cy="168" r="10" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="278.0" y="172.0" text-anchor="middle" fill="#0B0F1C">3</text></g>
+<g id="event-4"><title>20.00 s: ground hit</title><line x1="884.0" y1="178.0" x2="884.0" y2="232.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/><circle cx="884.0" cy="168" r="10" fill="#FFFFFF" stroke="#0B0F1C" stroke-width="1"/><text x="884.0" y="172.0" text-anchor="middle" fill="#0B0F1C">4</text></g>
 <g id="altitude">
-<clipPath id="altitude-clip"><rect x="75.0" y="255.0" width="810.0" height="182.0"/></clipPath>
-<text x="76" y="244.0" fill="#566079">ALTITUDE · m AGL</text>
-<rect x="76" y="256.0" width="808.0" height="180" fill="#FFFFFF"/>
-<rect x="278.0" y="256.0" width="606.0" height="180" fill="url(#hatch)"/>
-<text x="278.0" y="244.0" text-anchor="start" fill="#566079">not a prediction</text>
-<line x1="76" y1="436.0" x2="884" y2="436.0" stroke="#566079" stroke-width="1" stroke-dasharray="24 3 1 3"/><text x="68.0" y="440.0" text-anchor="end" fill="#566079">0</text>
-<line x1="76" y1="400.0" x2="884" y2="400.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="404.0" text-anchor="end" fill="#566079">20</text>
-<line x1="76" y1="364.0" x2="884" y2="364.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="368.0" text-anchor="end" fill="#566079">40</text>
-<line x1="76" y1="328.0" x2="884" y2="328.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="332.0" text-anchor="end" fill="#566079">60</text>
-<line x1="76" y1="292.0" x2="884" y2="292.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="296.0" text-anchor="end" fill="#566079">80</text>
-<line x1="76" y1="256.0" x2="884" y2="256.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="260.0" text-anchor="end" fill="#566079">100</text>
-<text x="892.0" y="244.0" fill="#566079">ft AGL</text>
-<line x1="884" y1="256.0" x2="884" y2="436.0" stroke="#566079" stroke-width="1"/>
-<line x1="884" y1="436.0" x2="888.0" y2="436.0" stroke="#566079" stroke-width="1"/><text x="892.0" y="440.0" fill="#566079">0</text>
-<line x1="884" y1="381.1" x2="888.0" y2="381.1" stroke="#566079" stroke-width="1"/><text x="892.0" y="385.1" fill="#566079">100</text>
-<line x1="884" y1="326.3" x2="888.0" y2="326.3" stroke="#566079" stroke-width="1"/><text x="892.0" y="330.3" fill="#566079">200</text>
-<line x1="884" y1="271.4" x2="888.0" y2="271.4" stroke="#566079" stroke-width="1"/><text x="892.0" y="275.4" fill="#566079">300</text>
-<line x1="76.0" y1="256.0" x2="76.0" y2="436.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
-<line x1="78.0" y1="256.0" x2="78.0" y2="436.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
-<line x1="278.0" y1="256.0" x2="278.0" y2="436.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
-<line x1="884.0" y1="256.0" x2="884.0" y2="436.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
-<path d="M76.0 436.0L116.4 400.0L156.8 364.0L197.2 328.0L237.6 292.0L278.0 256.0L318.4 268.0L358.8 280.0L399.2 292.0L439.6 304.0L480.0 316.0L520.4 328.0L560.8 340.0L601.2 352.0L641.6 364.0L682.0 376.0L722.4 388.0L762.8 400.0L803.2 412.0L843.6 424.0L884.0 436.0" fill="none" stroke="#A22488" stroke-width="2" stroke-dasharray="8 4" stroke-linejoin="round" clip-path="url(#altitude-clip)"/>
-<line x1="76" y1="256.0" x2="76" y2="436.0" stroke="#566079" stroke-width="1"/>
+<clipPath id="altitude-clip"><rect x="75.0" y="263.0" width="810.0" height="182.0"/></clipPath>
+<text x="76" y="252.0" fill="#566079">ALTITUDE · m AGL</text>
+<rect x="76" y="264.0" width="808.0" height="180" fill="#FFFFFF"/>
+<rect x="278.0" y="264.0" width="606.0" height="180" fill="url(#hatch)"/>
+<text x="278.0" y="252.0" text-anchor="start" fill="#566079">not a prediction</text>
+<line x1="76" y1="444.0" x2="884" y2="444.0" stroke="#566079" stroke-width="1" stroke-dasharray="24 3 1 3"/><text x="68.0" y="448.0" text-anchor="end" fill="#566079">0</text>
+<line x1="76" y1="408.0" x2="884" y2="408.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="412.0" text-anchor="end" fill="#566079">20</text>
+<line x1="76" y1="372.0" x2="884" y2="372.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="376.0" text-anchor="end" fill="#566079">40</text>
+<line x1="76" y1="336.0" x2="884" y2="336.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="340.0" text-anchor="end" fill="#566079">60</text>
+<line x1="76" y1="300.0" x2="884" y2="300.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="304.0" text-anchor="end" fill="#566079">80</text>
+<line x1="76" y1="264.0" x2="884" y2="264.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="268.0" text-anchor="end" fill="#566079">100</text>
+<text x="892.0" y="252.0" fill="#566079">ft AGL</text>
+<line x1="884" y1="264.0" x2="884" y2="444.0" stroke="#566079" stroke-width="1"/>
+<line x1="884" y1="444.0" x2="888.0" y2="444.0" stroke="#566079" stroke-width="1"/><text x="892.0" y="448.0" fill="#566079">0</text>
+<line x1="884" y1="389.1" x2="888.0" y2="389.1" stroke="#566079" stroke-width="1"/><text x="892.0" y="393.1" fill="#566079">100</text>
+<line x1="884" y1="334.3" x2="888.0" y2="334.3" stroke="#566079" stroke-width="1"/><text x="892.0" y="338.3" fill="#566079">200</text>
+<line x1="884" y1="279.4" x2="888.0" y2="279.4" stroke="#566079" stroke-width="1"/><text x="892.0" y="283.4" fill="#566079">300</text>
+<line x1="76.0" y1="264.0" x2="76.0" y2="444.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
+<line x1="78.0" y1="264.0" x2="78.0" y2="444.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
+<line x1="278.0" y1="264.0" x2="278.0" y2="444.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
+<line x1="884.0" y1="264.0" x2="884.0" y2="444.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
+<path d="M76.0 444.0L116.4 408.0L156.8 372.0L197.2 336.0L237.6 300.0L278.0 264.0L318.4 276.0L358.8 288.0L399.2 300.0L439.6 312.0L480.0 324.0L520.4 336.0L560.8 348.0L601.2 360.0L641.6 372.0L682.0 384.0L722.4 396.0L762.8 408.0L803.2 420.0L843.6 432.0L884.0 444.0" fill="none" stroke="#A22488" stroke-width="2" stroke-dasharray="8 4" stroke-linejoin="round" clip-path="url(#altitude-clip)"/>
+<line x1="76" y1="264.0" x2="76" y2="444.0" stroke="#566079" stroke-width="1"/>
 </g>
 <g id="speed">
-<clipPath id="speed-clip"><rect x="75.0" y="483.0" width="810.0" height="182.0"/></clipPath>
-<text x="76" y="472.0" fill="#566079">SPEED · m/s</text>
-<rect x="76" y="484.0" width="808.0" height="180" fill="#FFFFFF"/>
-<rect x="278.0" y="484.0" width="606.0" height="180" fill="url(#hatch)"/>
-<line x1="76" y1="664.0" x2="884" y2="664.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="668.0" text-anchor="end" fill="#566079">−5</text>
-<line x1="76" y1="604.0" x2="884" y2="604.0" stroke="#566079" stroke-width="1"/><text x="68.0" y="608.0" text-anchor="end" fill="#566079">0</text>
-<line x1="76" y1="544.0" x2="884" y2="544.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="548.0" text-anchor="end" fill="#566079">5</text>
-<line x1="76" y1="484.0" x2="884" y2="484.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="488.0" text-anchor="end" fill="#566079">10</text>
-<text x="892.0" y="472.0" fill="#566079">ft/s</text>
-<line x1="884" y1="484.0" x2="884" y2="664.0" stroke="#566079" stroke-width="1"/>
-<line x1="884" y1="640.6" x2="888.0" y2="640.6" stroke="#566079" stroke-width="1"/><text x="892.0" y="644.6" fill="#566079">−10</text>
-<line x1="884" y1="604.0" x2="888.0" y2="604.0" stroke="#566079" stroke-width="1"/><text x="892.0" y="608.0" fill="#566079">0</text>
-<line x1="884" y1="567.4" x2="888.0" y2="567.4" stroke="#566079" stroke-width="1"/><text x="892.0" y="571.4" fill="#566079">10</text>
-<line x1="884" y1="530.8" x2="888.0" y2="530.8" stroke="#566079" stroke-width="1"/><text x="892.0" y="534.8" fill="#566079">20</text>
-<line x1="884" y1="494.3" x2="888.0" y2="494.3" stroke="#566079" stroke-width="1"/><text x="892.0" y="498.3" fill="#566079">30</text>
-<line x1="76.0" y1="484.0" x2="76.0" y2="664.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
-<line x1="78.0" y1="484.0" x2="78.0" y2="664.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
-<line x1="278.0" y1="484.0" x2="278.0" y2="664.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
-<line x1="884.0" y1="484.0" x2="884.0" y2="664.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
-<path d="M76.0 604.0L116.4 580.0L156.8 556.0L197.2 532.0L237.6 508.0L278.0 484.0L318.4 492.0L358.8 500.0L399.2 508.0L439.6 516.0L480.0 524.0L520.4 532.0L560.8 540.0L601.2 548.0L641.6 556.0L682.0 564.0L722.4 572.0L762.8 580.0L803.2 588.0L843.6 596.0L884.0 604.0" fill="none" stroke="#A22488" stroke-width="2" stroke-dasharray="8 4" stroke-linejoin="round" clip-path="url(#speed-clip)"/>
-<path d="M76.0 604.0L116.4 616.0L156.8 628.0L197.2 640.0L237.6 652.0L278.0 664.0L318.4 660.0L358.8 656.0L399.2 652.0L439.6 648.0L480.0 644.0L520.4 640.0L560.8 636.0L601.2 632.0L641.6 628.0L682.0 624.0L722.4 620.0L762.8 616.0L803.2 612.0L843.6 608.0L884.0 604.0" fill="none" stroke="#A22488" stroke-width="1" stroke-dasharray="8 4" stroke-linejoin="round" clip-path="url(#speed-clip)"/>
-<line x1="76" y1="484.0" x2="76" y2="664.0" stroke="#566079" stroke-width="1"/>
-<line x1="76" y1="664.0" x2="884" y2="664.0" stroke="#566079" stroke-width="1"/>
+<clipPath id="speed-clip"><rect x="75.0" y="491.0" width="810.0" height="182.0"/></clipPath>
+<text x="76" y="480.0" fill="#566079">SPEED · m/s</text>
+<rect x="76" y="492.0" width="808.0" height="180" fill="#FFFFFF"/>
+<rect x="278.0" y="492.0" width="606.0" height="180" fill="url(#hatch)"/>
+<line x1="76" y1="672.0" x2="884" y2="672.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="676.0" text-anchor="end" fill="#566079">−5</text>
+<line x1="76" y1="612.0" x2="884" y2="612.0" stroke="#566079" stroke-width="1"/><text x="68.0" y="616.0" text-anchor="end" fill="#566079">0</text>
+<line x1="76" y1="552.0" x2="884" y2="552.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="556.0" text-anchor="end" fill="#566079">5</text>
+<line x1="76" y1="492.0" x2="884" y2="492.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="496.0" text-anchor="end" fill="#566079">10</text>
+<text x="892.0" y="480.0" fill="#566079">ft/s</text>
+<line x1="884" y1="492.0" x2="884" y2="672.0" stroke="#566079" stroke-width="1"/>
+<line x1="884" y1="648.6" x2="888.0" y2="648.6" stroke="#566079" stroke-width="1"/><text x="892.0" y="652.6" fill="#566079">−10</text>
+<line x1="884" y1="612.0" x2="888.0" y2="612.0" stroke="#566079" stroke-width="1"/><text x="892.0" y="616.0" fill="#566079">0</text>
+<line x1="884" y1="575.4" x2="888.0" y2="575.4" stroke="#566079" stroke-width="1"/><text x="892.0" y="579.4" fill="#566079">10</text>
+<line x1="884" y1="538.8" x2="888.0" y2="538.8" stroke="#566079" stroke-width="1"/><text x="892.0" y="542.8" fill="#566079">20</text>
+<line x1="884" y1="502.3" x2="888.0" y2="502.3" stroke="#566079" stroke-width="1"/><text x="892.0" y="506.3" fill="#566079">30</text>
+<line x1="76.0" y1="492.0" x2="76.0" y2="672.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
+<line x1="78.0" y1="492.0" x2="78.0" y2="672.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
+<line x1="278.0" y1="492.0" x2="278.0" y2="672.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
+<line x1="884.0" y1="492.0" x2="884.0" y2="672.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
+<path d="M76.0 612.0L116.4 588.0L156.8 564.0L197.2 540.0L237.6 516.0L278.0 492.0L318.4 500.0L358.8 508.0L399.2 516.0L439.6 524.0L480.0 532.0L520.4 540.0L560.8 548.0L601.2 556.0L641.6 564.0L682.0 572.0L722.4 580.0L762.8 588.0L803.2 596.0L843.6 604.0L884.0 612.0" fill="none" stroke="#A22488" stroke-width="2" stroke-dasharray="8 4" stroke-linejoin="round" clip-path="url(#speed-clip)"/>
+<path d="M76.0 612.0L116.4 624.0L156.8 636.0L197.2 648.0L237.6 660.0L278.0 672.0L318.4 668.0L358.8 664.0L399.2 660.0L439.6 656.0L480.0 652.0L520.4 648.0L560.8 644.0L601.2 640.0L641.6 636.0L682.0 632.0L722.4 628.0L762.8 624.0L803.2 620.0L843.6 616.0L884.0 612.0" fill="none" stroke="#A22488" stroke-width="1" stroke-dasharray="8 4" stroke-linejoin="round" clip-path="url(#speed-clip)"/>
+<line x1="76" y1="492.0" x2="76" y2="672.0" stroke="#566079" stroke-width="1"/>
+<line x1="76" y1="672.0" x2="884" y2="672.0" stroke="#566079" stroke-width="1"/>
 </g>
 <g id="acceleration">
-<clipPath id="acceleration-clip"><rect x="75.0" y="711.0" width="810.0" height="182.0"/></clipPath>
-<text x="76" y="700.0" fill="#566079">ACCELERATION · m/s²</text>
-<rect x="76" y="712.0" width="808.0" height="180" fill="#FFFFFF"/>
-<rect x="278.0" y="712.0" width="606.0" height="180" fill="url(#hatch)"/>
-<line x1="76" y1="892.0" x2="884" y2="892.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="896.0" text-anchor="end" fill="#566079">−10</text>
-<line x1="76" y1="847.0" x2="884" y2="847.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="851.0" text-anchor="end" fill="#566079">−5</text>
-<line x1="76" y1="802.0" x2="884" y2="802.0" stroke="#566079" stroke-width="1"/><text x="68.0" y="806.0" text-anchor="end" fill="#566079">0</text>
-<line x1="76" y1="757.0" x2="884" y2="757.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="761.0" text-anchor="end" fill="#566079">5</text>
-<line x1="76" y1="712.0" x2="884" y2="712.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="716.0" text-anchor="end" fill="#566079">10</text>
-<text x="892.0" y="700.0" fill="#566079">g</text>
-<line x1="884" y1="712.0" x2="884" y2="892.0" stroke="#566079" stroke-width="1"/>
-<line x1="884" y1="890.3" x2="888.0" y2="890.3" stroke="#566079" stroke-width="1"/><text x="892.0" y="894.3" fill="#566079">−1</text>
-<line x1="884" y1="802.0" x2="888.0" y2="802.0" stroke="#566079" stroke-width="1"/><text x="892.0" y="806.0" fill="#566079">0</text>
-<line x1="884" y1="713.7" x2="888.0" y2="713.7" stroke="#566079" stroke-width="1"/><text x="892.0" y="717.7" fill="#566079">1</text>
-<line x1="76.0" y1="712.0" x2="76.0" y2="892.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
-<line x1="78.0" y1="712.0" x2="78.0" y2="892.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
-<line x1="278.0" y1="712.0" x2="278.0" y2="892.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
-<line x1="884.0" y1="712.0" x2="884.0" y2="892.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
-<path d="M76.0 721.0L116.4 721.0L156.8 721.0L197.2 721.0L237.6 721.0L278.0 721.0L318.4 721.0L358.8 721.0L399.2 721.0L439.6 721.0L480.0 721.0L520.4 721.0L560.8 721.0L601.2 721.0L641.6 721.0L682.0 721.0L722.4 721.0L762.8 721.0L803.2 721.0L843.6 721.0L884.0 721.0" fill="none" stroke="#A22488" stroke-width="2" stroke-dasharray="8 4" stroke-linejoin="round" clip-path="url(#acceleration-clip)"/>
-<path d="M76.0 883.0L116.4 883.0L156.8 883.0L197.2 883.0L237.6 883.0L278.0 883.0L318.4 883.0L358.8 883.0L399.2 883.0L439.6 883.0L480.0 883.0L520.4 883.0L560.8 883.0L601.2 883.0L641.6 883.0L682.0 883.0L722.4 883.0L762.8 883.0L803.2 883.0L843.6 883.0L884.0 883.0" fill="none" stroke="#A22488" stroke-width="1" stroke-dasharray="8 4" stroke-linejoin="round" clip-path="url(#acceleration-clip)"/>
-<line x1="76" y1="712.0" x2="76" y2="892.0" stroke="#566079" stroke-width="1"/>
-<line x1="76" y1="892.0" x2="884" y2="892.0" stroke="#566079" stroke-width="1"/>
+<clipPath id="acceleration-clip"><rect x="75.0" y="719.0" width="810.0" height="182.0"/></clipPath>
+<text x="76" y="708.0" fill="#566079">ACCELERATION · m/s²</text>
+<rect x="76" y="720.0" width="808.0" height="180" fill="#FFFFFF"/>
+<rect x="278.0" y="720.0" width="606.0" height="180" fill="url(#hatch)"/>
+<line x1="76" y1="900.0" x2="884" y2="900.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="904.0" text-anchor="end" fill="#566079">−10</text>
+<line x1="76" y1="855.0" x2="884" y2="855.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="859.0" text-anchor="end" fill="#566079">−5</text>
+<line x1="76" y1="810.0" x2="884" y2="810.0" stroke="#566079" stroke-width="1"/><text x="68.0" y="814.0" text-anchor="end" fill="#566079">0</text>
+<line x1="76" y1="765.0" x2="884" y2="765.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="769.0" text-anchor="end" fill="#566079">5</text>
+<line x1="76" y1="720.0" x2="884" y2="720.0" stroke="#D6DAE4" stroke-width="1"/><text x="68.0" y="724.0" text-anchor="end" fill="#566079">10</text>
+<text x="892.0" y="708.0" fill="#566079">g</text>
+<line x1="884" y1="720.0" x2="884" y2="900.0" stroke="#566079" stroke-width="1"/>
+<line x1="884" y1="898.3" x2="888.0" y2="898.3" stroke="#566079" stroke-width="1"/><text x="892.0" y="902.3" fill="#566079">−1</text>
+<line x1="884" y1="810.0" x2="888.0" y2="810.0" stroke="#566079" stroke-width="1"/><text x="892.0" y="814.0" fill="#566079">0</text>
+<line x1="884" y1="721.7" x2="888.0" y2="721.7" stroke="#566079" stroke-width="1"/><text x="892.0" y="725.7" fill="#566079">1</text>
+<line x1="76.0" y1="720.0" x2="76.0" y2="900.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
+<line x1="78.0" y1="720.0" x2="78.0" y2="900.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
+<line x1="278.0" y1="720.0" x2="278.0" y2="900.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
+<line x1="884.0" y1="720.0" x2="884.0" y2="900.0" stroke="#566079" stroke-width="1" stroke-dasharray="1 3"/>
+<path d="M76.0 729.0L116.4 729.0L156.8 729.0L197.2 729.0L237.6 729.0L278.0 729.0L318.4 729.0L358.8 729.0L399.2 729.0L439.6 729.0L480.0 729.0L520.4 729.0L560.8 729.0L601.2 729.0L641.6 729.0L682.0 729.0L722.4 729.0L762.8 729.0L803.2 729.0L843.6 729.0L884.0 729.0" fill="none" stroke="#A22488" stroke-width="2" stroke-dasharray="8 4" stroke-linejoin="round" clip-path="url(#acceleration-clip)"/>
+<path d="M76.0 891.0L116.4 891.0L156.8 891.0L197.2 891.0L237.6 891.0L278.0 891.0L318.4 891.0L358.8 891.0L399.2 891.0L439.6 891.0L480.0 891.0L520.4 891.0L560.8 891.0L601.2 891.0L641.6 891.0L682.0 891.0L722.4 891.0L762.8 891.0L803.2 891.0L843.6 891.0L884.0 891.0" fill="none" stroke="#A22488" stroke-width="1" stroke-dasharray="8 4" stroke-linejoin="round" clip-path="url(#acceleration-clip)"/>
+<line x1="76" y1="720.0" x2="76" y2="900.0" stroke="#566079" stroke-width="1"/>
+<line x1="76" y1="900.0" x2="884" y2="900.0" stroke="#566079" stroke-width="1"/>
 </g>
-<text x="76.0" y="908.0" text-anchor="middle" fill="#566079">0</text>
-<text x="278.0" y="908.0" text-anchor="middle" fill="#566079">5</text>
-<text x="480.0" y="908.0" text-anchor="middle" fill="#566079">10</text>
-<text x="682.0" y="908.0" text-anchor="middle" fill="#566079">15</text>
-<text x="884.0" y="908.0" text-anchor="middle" fill="#566079">20</text>
-<text x="480.0" y="928.0" text-anchor="middle" fill="#566079">TIME · s</text>
+<text x="76.0" y="916.0" text-anchor="middle" fill="#566079">0</text>
+<text x="278.0" y="916.0" text-anchor="middle" fill="#566079">5</text>
+<text x="480.0" y="916.0" text-anchor="middle" fill="#566079">10</text>
+<text x="682.0" y="916.0" text-anchor="middle" fill="#566079">15</text>
+<text x="884.0" y="916.0" text-anchor="middle" fill="#566079">20</text>
+<text x="884.0" y="932.0" text-anchor="end" fill="#566079">TIME · s</text>
 <g id="events">
-<text x="76" y="960.0" fill="#566079">EVENTS · SIMULATED BY FUSIONSPACE HPR</text>
-<text x="100" y="982.0" text-anchor="end" fill="#566079">NO.</text><text x="226" y="982.0" text-anchor="end" fill="#566079">TIME · s</text><text x="376" y="982.0" text-anchor="end" fill="#566079">ALTITUDE · m AGL</text><text x="516" y="982.0" text-anchor="end" fill="#566079">ALTITUDE · ft AGL</text><text x="540" y="982.0" fill="#566079">EVENT</text>
-<line x1="76" y1="989.0" x2="936" y2="989.0" stroke="#0B0F1C" stroke-width="2"/>
-<text x="100" y="1007.0" text-anchor="end" fill="#0B0F1C">1</text><text x="226" y="1007.0" text-anchor="end" fill="#0B0F1C">0.00</text><text x="376" y="1007.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1007.0" text-anchor="end" fill="#0B0F1C">0</text>
-<text x="540" y="1007.0" fill="#0B0F1C">liftoff</text>
-<line x1="76" y1="1014.0" x2="936" y2="1014.0" stroke="#D6DAE4" stroke-width="1"/>
-<text x="100" y="1032.0" text-anchor="end" fill="#0B0F1C">2</text><text x="226" y="1032.0" text-anchor="end" fill="#0B0F1C">0.05</text><text x="376" y="1032.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1032.0" text-anchor="end" fill="#0B0F1C">0</text>
-<text x="540" y="1032.0" fill="#0B0F1C">rail exit</text>
-<line x1="76" y1="1039.0" x2="936" y2="1039.0" stroke="#D6DAE4" stroke-width="1"/>
-<text x="100" y="1057.0" text-anchor="end" fill="#0B0F1C">3</text><text x="226" y="1057.0" text-anchor="end" fill="#0B0F1C">5.00</text><text x="376" y="1057.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1057.0" text-anchor="end" fill="#0B0F1C">0</text>
-<text x="540" y="1057.0" fill="#0B0F1C">apogee</text>
-<line x1="76" y1="1064.0" x2="936" y2="1064.0" stroke="#D6DAE4" stroke-width="1"/>
-<text x="100" y="1082.0" text-anchor="end" fill="#0B0F1C">3</text><text x="226" y="1082.0" text-anchor="end" fill="#0B0F1C">5.00</text><text x="376" y="1082.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1082.0" text-anchor="end" fill="#0B0F1C">0</text>
-<text x="540" y="1082.0" fill="#0B0F1C">charge for `Drogue`</text>
-<line x1="76" y1="1089.0" x2="936" y2="1089.0" stroke="#D6DAE4" stroke-width="1"/>
-<text x="100" y="1107.0" text-anchor="end" fill="#0B0F1C">3</text><text x="226" y="1107.0" text-anchor="end" fill="#0B0F1C">5.00</text><text x="376" y="1107.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1107.0" text-anchor="end" fill="#0B0F1C">0</text>
-<text x="540" y="1107.0" fill="#0B0F1C">`Drogue` opens</text>
-<line x1="76" y1="1114.0" x2="936" y2="1114.0" stroke="#D6DAE4" stroke-width="1"/>
+<text x="76" y="964.0" fill="#566079">EVENTS · SIMULATED BY FUSIONSPACE HPR</text>
+<text x="100" y="988.0" text-anchor="end" fill="#566079">NO.</text><text x="226" y="988.0" text-anchor="end" fill="#566079">TIME · s</text><text x="376" y="988.0" text-anchor="end" fill="#566079">ALTITUDE · m AGL</text><text x="516" y="988.0" text-anchor="end" fill="#566079">ALTITUDE · ft AGL</text><text x="540" y="988.0" fill="#566079">EVENT</text>
+<line x1="76" y1="996.0" x2="936" y2="996.0" stroke="#0B0F1C" stroke-width="2"/>
+<text x="100" y="1012.0" text-anchor="end" fill="#0B0F1C">1</text><text x="226" y="1012.0" text-anchor="end" fill="#0B0F1C">0.00</text><text x="376" y="1012.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1012.0" text-anchor="end" fill="#0B0F1C">0</text>
+<text x="540" y="1012.0" fill="#0B0F1C">liftoff</text>
+<line x1="76" y1="1020.0" x2="936" y2="1020.0" stroke="#D6DAE4" stroke-width="1"/>
+<text x="100" y="1036.0" text-anchor="end" fill="#0B0F1C">2</text><text x="226" y="1036.0" text-anchor="end" fill="#0B0F1C">0.05</text><text x="376" y="1036.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1036.0" text-anchor="end" fill="#0B0F1C">0</text>
+<text x="540" y="1036.0" fill="#0B0F1C">rail exit</text>
+<line x1="76" y1="1044.0" x2="936" y2="1044.0" stroke="#D6DAE4" stroke-width="1"/>
+<text x="100" y="1060.0" text-anchor="end" fill="#0B0F1C">3</text><text x="226" y="1060.0" text-anchor="end" fill="#0B0F1C">5.00</text><text x="376" y="1060.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1060.0" text-anchor="end" fill="#0B0F1C">0</text>
+<text x="540" y="1060.0" fill="#0B0F1C">apogee</text>
+<line x1="76" y1="1068.0" x2="936" y2="1068.0" stroke="#D6DAE4" stroke-width="1"/>
+<text x="100" y="1084.0" text-anchor="end" fill="#0B0F1C">3</text><text x="226" y="1084.0" text-anchor="end" fill="#0B0F1C">5.00</text><text x="376" y="1084.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1084.0" text-anchor="end" fill="#0B0F1C">0</text>
+<text x="540" y="1084.0" fill="#0B0F1C">charge for `Drogue`</text>
+<line x1="76" y1="1092.0" x2="936" y2="1092.0" stroke="#D6DAE4" stroke-width="1"/>
+<text x="100" y="1108.0" text-anchor="end" fill="#0B0F1C">3</text><text x="226" y="1108.0" text-anchor="end" fill="#0B0F1C">5.00</text><text x="376" y="1108.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1108.0" text-anchor="end" fill="#0B0F1C">0</text>
+<text x="540" y="1108.0" fill="#0B0F1C">`Drogue` opens</text>
+<line x1="76" y1="1116.0" x2="936" y2="1116.0" stroke="#D6DAE4" stroke-width="1"/>
 <text x="100" y="1132.0" text-anchor="end" fill="#0B0F1C">4</text><text x="226" y="1132.0" text-anchor="end" fill="#0B0F1C">20.00</text><text x="376" y="1132.0" text-anchor="end" fill="#0B0F1C">0.0</text><text x="516" y="1132.0" text-anchor="end" fill="#0B0F1C">0</text>
 <text x="540" y="1132.0" fill="#0B0F1C">ground hit</text>
-<line x1="76" y1="1139.0" x2="936" y2="1139.0" stroke="#D6DAE4" stroke-width="1"/>
+<line x1="76" y1="1140.0" x2="936" y2="1140.0" stroke="#D6DAE4" stroke-width="1"/>
 </g>
-<text x="76" y="1163.0" fill="#566079">Hatched, 5.00 s to 20.00 s: the rocket falls on its airframe alone, on aerodynamics that hold only at small angles of</text>
-<text x="76" y="1181.0" fill="#566079">attack, so this is not a prediction.</text>
-<text x="76" y="1217.0" fill="#566079">HOW FAR TO TRUST IT</text>
-<text x="76" y="1235.0" fill="#566079">Simulated from the design file, not measured. Against 55 logged flights of fliers&apos; own designs, each logged apogee the</text>
-<text x="76" y="1253.0" fill="#566079">height climbed in the day&apos;s air, the simulated apogee averaged 9.8% above the logged one; it was within 10% on 27 and</text>
-<text x="76" y="1271.0" fill="#566079">read low on 14, by at most 20%. Plan a waiver or a field&apos;s ceiling with room above this apogee; the altimeter&apos;s</text>
-<text x="76" y="1289.0" fill="#566079">reading is the one to log, and the RSO decides. More: https://hpr.fusionspace.co/accuracy.html</text>
-<text x="76" y="1325.0" fill="#566079">[stamp]</text>
+<text x="76" y="1164.0" fill="#566079">Hatched, 5.00 s to 20.00 s: the rocket falls on its airframe alone, on aerodynamics that hold only at small angles of</text>
+<text x="76" y="1180.0" fill="#566079">attack, so this is not a prediction.</text>
+<text x="76" y="1212.0" fill="#566079">HOW FAR TO TRUST IT</text>
+<text x="76" y="1228.0" fill="#566079">Simulated from the design file, not measured. Against 55 logged flights of fliers&apos; own designs, each logged apogee the</text>
+<text x="76" y="1244.0" fill="#566079">height climbed in the day&apos;s air, the simulated apogee averaged 9.8% above the logged one; it was within 10% on 27 and</text>
+<text x="76" y="1260.0" fill="#566079">read low on 14, by at most 20%. Plan a waiver or a field&apos;s ceiling with room above this apogee; the altimeter&apos;s</text>
+<text x="76" y="1276.0" fill="#566079">reading is the one to log, and the RSO decides. More: https://hpr.fusionspace.co/accuracy.html</text>
+<text x="76" y="1308.0" fill="#566079">[stamp]</text>
 </svg>
