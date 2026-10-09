@@ -353,6 +353,8 @@ fn closest_file(file: &Path, folder: &Path) -> Option<String> {
         .ok()?
         .take(MOST_ENTRIES_COMPARED)
         .filter_map(|entry| Some(entry.ok()?.file_name().to_string_lossy().into_owned()))
+        // The name asked for is listed when it is a link to nothing; it isn't a suggestion.
+        .filter(|name| Some(name.as_str()) != file.file_name().and_then(|name| name.to_str()))
         .collect();
     names.sort();
     let most = 2.min((wanted.chars().count().saturating_sub(1)) / 2);

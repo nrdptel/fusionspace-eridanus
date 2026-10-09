@@ -77,6 +77,8 @@ pub(crate) fn read<T: FromStr>(text: &str) -> Result<T, String> {
 pub(crate) fn plain(text: &str) -> Result<String, String> {
     let trimmed = text.trim();
     ungrouped(trimmed).ok_or_else(|| {
+        // Echoed to a terminal: a control character typed in it is shown as `?`.
+        let trimmed = crate::printable(trimmed);
         let decimal = trimmed.replacen(',', ".", 1);
         if trimmed.matches(',').count() == 1 && decimal.parse::<f64>().is_ok() {
             format!(
@@ -94,8 +96,9 @@ pub(crate) fn plain(text: &str) -> Result<String, String> {
 
 /// `text` without its thousands separators, when it has any; `None` when it has a comma that
 /// isn't one. A separator is a comma in the whole-number part, after a first group of one to
-/// three digits and before each group of exactly three: `1,280`, `-12,000.5`, but not `3,9`,
-/// `1,28`, `,280` or `1.2,5`.
+/// three digits that doesn't start with 0 and before each group of exactly three: `1,280`,
+/// `-12,000.5`, but not `3,9`, `1,28`, `,280`, `1.2,5` or `0,500`, which is a decimal comma, as
+/// no grouped number starts with 0.
 fn ungrouped(text: &str) -> Option<String> {
     if !text.contains(',') {
         return Some(text.to_owned());
@@ -112,7 +115,7 @@ fn ungrouped(text: &str) -> Option<String> {
     let mut groups = whole.split(',');
     let first = groups.next()?;
     let digits = |group: &str| group.bytes().all(|b| b.is_ascii_digit());
-    if !(1..=3).contains(&first.len()) || !digits(first) {
+    if !(1..=3).contains(&first.len()) || !digits(first) || first.starts_with('0') {
         return None;
     }
     let mut plain = format!("{sign}{first}");
@@ -134,14 +137,39 @@ fn unit(value_name: &str) -> Option<&'static str> {
         "DEG" => Some("°"),
         "S" => Some("s"),
         "M_S" => Some("m/s"),
+        "HOUR" => Some("h"),
+        "S_OR_P" => Some("s"),
         "DOLLARS" => Some("US dollars"),
         _ => None,
     }
 }
 
+/// The options whose text is read by [`plain`] though their parser isn't a [`Number`]: they read
+/// their own text after it.
+const READ_AS_NUMBERS: [&str; 2] = ["max-price", "delay"];
+
+/// Whether `arg` takes a number: its parser gives one ([`Number`] for each numeric option), or it
+/// is one of [`READ_AS_NUMBERS`].
+fn is_number(arg: &clap::Arg) -> bool {
+    use std::any::TypeId;
+    let id = arg.get_value_parser().type_id();
+    [
+        TypeId::of::<f64>(),
+        TypeId::of::<u64>(),
+        TypeId::of::<u32>(),
+        TypeId::of::<usize>(),
+    ]
+    .iter()
+    .any(|t| id == *t)
+        || arg
+            .get_long()
+            .is_some_and(|long| READ_AS_NUMBERS.contains(&long))
+}
+
 /// A `note:` for each number the command line gave with a thousands separator, saying what it
 /// was read as and in what unit (`--elevation 1,280 read as 1280 m`), so a comma meant otherwise
-/// is caught before the run is trusted. `command` is the command that parsed `matches`.
+/// is caught before the run is trusted; an option that takes text gets none. `command` is the
+/// command that parsed `matches`.
 pub(crate) fn read_as(command: &clap::Command, matches: &clap::ArgMatches) -> Vec<String> {
     let mut notes = Vec::new();
     if let Some((name, sub)) = matches.subcommand()
@@ -149,7 +177,7 @@ pub(crate) fn read_as(command: &clap::Command, matches: &clap::ArgMatches) -> Ve
     {
         notes.extend(read_as(subcommand, sub));
     }
-    for arg in command.get_arguments() {
+    for arg in command.get_arguments().filter(|arg| is_number(arg)) {
         let Some(long) = arg.get_long() else {
             continue;
         };
@@ -174,7 +202,9 @@ pub(crate) fn read_as(command: &clap::Command, matches: &clap::ArgMatches) -> Ve
                 Some(unit) => format!("{plain} {unit}"),
                 None => plain,
             };
-            notes.push(format!("--{long} {trimmed} read as {read}"));
+            notes.push(crate::printable(&format!(
+                "--{long} {trimmed} read as {read}"
+            )));
         }
     }
     notes
@@ -199,7 +229,8 @@ mod tests {
         let hint = read::<f64>("3,9").unwrap_err();
         assert!(hint.contains("is 3,9 meant as 3.9?"), "{hint}");
         for text in [
-            "1,28", ",280", "1,2,3", "1.2,5", "1,280,", "1234,567", "-,5", "1,,280",
+            "1,28", ",280", "1,2,3", "1.2,5", "1,280,", "1234,567", "-,5", "1,,280", "0,500",
+            "00,500", "-0,005",
         ] {
             assert!(read::<f64>(text).is_err(), "{text}");
         }
@@ -208,6 +239,13 @@ mod tests {
                 .unwrap_err()
                 .contains("has one elsewhere")
         );
+        assert!(
+            read::<f64>("0,500")
+                .unwrap_err()
+                .contains("is 0,500 meant as 0.500?")
+        );
+        // A control character typed is echoed as `?`.
+        assert!(read::<f64>("3,9\u{1b}").unwrap_err().contains("3,9?"));
     }
 
     #[test]

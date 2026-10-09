@@ -5013,12 +5013,43 @@ fn every_numeric_option_reads_typed_numbers() {
                 continue;
             }
             let name = format!("{} --{}", command.get_name(), arg.get_id());
+            // Clap takes `-1,280` for an option unless the option takes hyphen values, as
+            // `allow_negative_numbers` reads only a plain number as one.
+            assert!(!arg.is_allow_negative_numbers_set(), "{name}");
+            // Each has a value name the note's unit is read from, or one that has none.
+            let value_name = arg
+                .get_value_names()
+                .and_then(|names| names.first())
+                .map(|name| name.as_str().to_owned());
+            assert!(
+                value_name.as_deref().is_some_and(|value_name| [
+                    "M", "MM", "DEG", "S", "M_S", "HOUR", "N", "FRACTION"
+                ]
+                .contains(&value_name)),
+                "{name}: {value_name:?}"
+            );
             let one = clap::Command::new("t").arg(
                 clap::Arg::new("x")
                     .long("x")
-                    .allow_negative_numbers(true)
+                    .allow_hyphen_values(arg.is_allow_hyphen_values_set())
                     .value_parser(parser.clone()),
             );
+            if arg.is_allow_hyphen_values_set() {
+                let matches = one
+                    .clone()
+                    .try_get_matches_from(["t", "--x", "-1,280"])
+                    .unwrap_or_else(|e| panic!("{name}: `-1,280` refused: {e}"));
+                assert_eq!(matches.get_one::<f64>("x"), Some(&-1280.0), "{name}");
+                let refused = one
+                    .clone()
+                    .try_get_matches_from(["t", "--x", "-3,9"])
+                    .expect_err(&name)
+                    .to_string();
+                assert!(
+                    refused.contains("is -3,9 meant as -3.9?"),
+                    "{name}: {refused}"
+                );
+            }
             let matches = one
                 .clone()
                 .try_get_matches_from(["t", "--x", " 1,280 "])
@@ -5081,6 +5112,41 @@ fn typed_numbers_reach_the_flight() {
     };
     assert_eq!(launch(" 2.0 "), json!(2.0));
     assert_eq!(launch("1,280"), json!(1280.0));
+    assert_eq!(launch("-1,280"), json!(-1280.0));
+    // With `--json` the document carries the value, and standard error stays empty.
+    let output = hpr(&[
+        "sim",
+        &probe,
+        "--motor",
+        "H54",
+        "--elevation",
+        "1,280",
+        "--json",
+    ]);
+    assert!(output.stderr.is_empty(), "{}", text(&output.stderr));
+    // A southern latitude with a decimal comma is asked about too, not taken for an option.
+    let output = hpr(&["sim", &probe, "--motor", "H54", "--latitude", "-3,9"]);
+    assert_eq!(output.status.code(), Some(2));
+    assert!(
+        text(&output.stderr).contains("is -3,9 meant as -3.9?"),
+        "{output:?}"
+    );
+    // `--delay` reads its seconds the same way.
+    let output = hpr(&["sim", &probe, "--motor", "H54", "--delay", "3,9"]);
+    assert_eq!(output.status.code(), Some(2));
+    assert!(
+        text(&output.stderr).contains("help: a comma is read only between groups of three digits, as in 1,280: is 3,9 meant as 3.9?"),
+        "{output:?}"
+    );
+    let printed = streams(&["sim", &probe, "--motor", "H54", "--delay", " 1,000 "]);
+    assert!(
+        printed.err.contains("note: --delay 1,000 read as 1000 s"),
+        "{}",
+        printed.err
+    );
+    // An option that takes text gets no note.
+    let output = hpr(&["sim", &probe, "--motor", "H54", "--config", "1,000"]);
+    assert!(!text(&output.stderr).contains("read as"), "{output:?}");
     let printed = streams(&["sim", &probe, "--motor", "H54", "--elevation", "1,280"]);
     assert_eq!(
         printed.err.lines().next(),
@@ -5138,7 +5204,8 @@ fn launch_options_are_refused_by_name_and_unit() {
     for (flag, value, says) in [
         ("--latitude", "95", "from -90 to 90"),
         ("--latitude", "nan", "from -90 to 90"),
-        ("--longitude", "inf", "number of degrees"),
+        ("--longitude", "inf", "from -180 to 180"),
+        ("--longitude", "180.5", "from -180 to 180"),
         ("--elevation", "nan", "number of meters"),
         ("--rail-length", "0", "greater than 0"),
         ("--inclination", "0", "more than 0 and at most 90"),
@@ -5168,6 +5235,16 @@ fn launch_options_are_refused_by_name_and_unit() {
             "{help:?}"
         );
     }
+    // A decimal comma read as thousands lands past 180° and is refused, not flown.
+    let document = json_error(
+        &["sim", &probe, "--motor", "H54", "--longitude", "-106,970"],
+        1,
+        "input",
+    );
+    assert!(
+        said(&document).starts_with("--longitude -106970: "),
+        "{document:#}"
+    );
     // `hpr mc` checks the same options.
     let document = json_error(
         &["mc", &probe, "--motor", "H54", "--latitude", "-91"],
@@ -5181,6 +5258,8 @@ fn launch_options_are_refused_by_name_and_unit() {
     for (flag, value) in [
         ("--latitude", "90"),
         ("--latitude", "-90"),
+        ("--longitude", "-180"),
+        ("--longitude", "180"),
         ("--inclination", "90"),
     ] {
         json(
@@ -5278,9 +5357,25 @@ fn motors_show_suggests_what_answers_the_name() {
     );
     let help = document["error"]["help"].as_array().unwrap();
     let last = help.last().and_then(Value::as_str).unwrap();
-    assert!(
-        last.starts_with(
-            "ThrustCurve.org answers G41 with 2 motors, as HPR Sim's cache holds it: "
+    assert_eq!(
+        last,
+        "ThrustCurve.org answers G41 with 2 motors, as HPR Sim's cache holds it: AeroTech \
+         G41-INVENTED, Invented G41-OTHER; `hpr sim --motor` flies one named in full",
+        "{help:?}"
+    );
+    // One motor answers: it is named, with the command that flies it.
+    let cache = cache_with(&Wanted::named("F27R/L"));
+    let document = json_cached(
+        &["motors", "show", "F27R/L"],
+        1,
+        "error.schema.json",
+        cache.path(),
+    );
+    let help = document["error"]["help"].as_array().unwrap();
+    assert_eq!(
+        help.last().and_then(Value::as_str),
+        Some(
+            "ThrustCurve.org's AeroTech F27R/L is in HPR Sim's cache: `hpr sim --motor F27R/L` flies it"
         ),
         "{help:?}"
     );

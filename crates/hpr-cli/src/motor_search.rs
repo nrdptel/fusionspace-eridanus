@@ -32,7 +32,7 @@ pub struct SearchArgs {
     #[arg(long)]
     pub class: Option<String>,
     /// Only this diameter, mm (within 0.5 mm)
-    #[arg(long, value_name = "MM", allow_negative_numbers = true, value_parser = crate::typed::number::<f64>())]
+    #[arg(long, value_name = "MM", allow_hyphen_values = true, value_parser = crate::typed::number::<f64>())]
     pub diameter: Option<f64>,
     /// Only this manufacturer: AeroTech, Cesaroni or Loki, or its full name, in any case
     #[arg(long)]

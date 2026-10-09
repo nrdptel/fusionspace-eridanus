@@ -19,20 +19,27 @@ for any other comma, and shown as read.
 **Decision.**
 
 1. **Split.** M0.9c6 takes the errors and the typed numbers, the items about what the user gave;
-   M0.9c9 takes help, the Heading and Literal roles and progress, with #405. The new increment
+   M0.9c9 takes help, the Heading and Literal roles, progress and the landing ellipse's bearing
+   (`data.md`'s *Maps*, added to #381 later), with #405. The new increment
    is numbered after c8, not by renumbering c7 and c8, so the records that name those ids stay
    right; the queue keeps c7 and c8 before it.
 2. **One parser for every number.** `crates/hpr-cli/src/typed.rs`'s `Number<T>` is each numeric
    option's `value_parser`, for `f64`, `u64` and `u32` alike, and `--max-price` and `--delay`,
    which read their own text, share its trimming and comma rule. A comma is a separator only
-   in the whole-number part, after one to three digits and before each group of exactly three.
-   A comma read is shown back as a `note:` on standard error, and only then: a `--json` run's
-   document carries the value read, and standard error stays empty. Values that are not finite
+   in the whole-number part, after one to three digits that don't start with 0 (`0,500` is a
+   decimal comma, so it is asked about) and before each group of exactly three. A signed option
+   takes hyphen values, as clap would otherwise take `-1,280` for an option. A comma read is
+   shown back as a `note:` on standard error, with the unit the option's value name gives, for
+   options that take a number only, and only then: a `--json` run's document carries the value
+   read, and standard error stays empty. Values that are not finite
    (`inf`, `nan`) still parse, as before, and the checks after parsing refuse them.
 3. **The launch's ranges are the library's.** The checks before a flight
    (`crates/hpr-cli/src/sim.rs`, `launch_checks`) copy the ranges the library already refuses
-   outside: a latitude within ±90°, a finite longitude, height, heading and wind direction, a
-   rail longer than 0, an inclination in (0°, 90°] and a wind of at least 0 m/s. The edges the
+   outside: a latitude within ±90°, a finite height, heading and wind direction, a rail longer
+   than 0, an inclination in (0°, 90°] and a wind of at least 0 m/s. The longitude is the one
+   narrower range: within ±180°, as the weather commands already take it, where the library
+   takes any finite one and wraps it, so a decimal comma read as thousands (`-106,970`) is
+   refused rather than flown. The edges the
    library flies are flown, which a test holds.
 4. **A missing file's closest name** is the name in its folder within two edits and under half
    the name's length, case ignored, after reading at most 10,000 entries, so a large folder

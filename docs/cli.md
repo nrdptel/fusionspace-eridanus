@@ -156,8 +156,13 @@ command takes.
 A number is read the way you would write it by hand. Spaces around it are dropped, and a comma
 between groups of three digits is a thousands separator: `--elevation 1,280` is 1280 m, and a
 `note:` line says so (`note: --elevation 1,280 read as 1280 m`) before anything else, in case the
-comma meant something else. Any other comma is refused with a question, as `3,9` is 3.9 in much of
-the world but could be a typing slip. The decimal point is always a period:
+comma meant something else. That holds for every option that takes a number, negative ones
+included: `--elevation -1,280` is -1280 m, and `--longitude -106,970` is read as -106970° and
+refused, as a longitude is at most 180° east or west. Any other comma is
+refused with a question, as `3,9` is 3.9 in much of the world but could be a typing slip, and so
+is `0,500`, as no number grouped in thousands starts with 0. The decimal point is always a
+period. The `<M>` in the first line is the option's value, in meters; a usage error like this one
+exits with [status 2](#exit-codes):
 
 <!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --elevation 3,9`, exits 2 -->
 
@@ -174,9 +179,9 @@ $ echo $?
 
 <!-- cli: end -->
 
-A refusal follows the compilers' habit. The `error:` line says what went wrong and names it the way
-you typed it: the option with its value and unit, or the file's path. The `help:` lines after it
-say what to do, the most useful last. A latitude past the pole is refused in the degrees you gave,
+A refusal has two parts, as a compiler's does: an `error:` line that says what went wrong and
+names it the way you typed it (the option with its value and unit, or the file's path), then
+`help:` lines that say what to do, the most useful last. A latitude past the pole is refused in the degrees you gave,
 with the range `--latitude` takes:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --latitude 95`, exits 1 -->
@@ -191,9 +196,11 @@ $ echo $?
 
 <!-- cli: end -->
 
-A file that isn't there is named with the closest name in its folder, when one is that close
-(`help: is it rockets/vega.ork? It is the closest name in that folder`). A motor the bundled
-catalog lacks is named with the catalog's motors that begin with what you typed, and with what
+A file that isn't there is named with the closest name in its folder, one or two letters away in
+any case, such as `help: is it rockets/vega.ork? It is the closest name in that folder`; or with
+the folder, when that isn't there either. A motor the bundled catalog lacks is named with the
+catalog's motors whose designation or common name begins with what you typed (`H5` begins `H54`,
+the common name of `168H54-10A`), and with what
 [ThrustCurve.org](#motors-from-thrustcurveorg) says of it: the command that fetches it, or, once
 the cache holds its answer, the motors that answer the name:
 

@@ -94,7 +94,7 @@ pub struct FlightArgs {
         long,
         value_name = "DEG",
         default_value_t = 0.0,
-        allow_negative_numbers = true,
+        allow_hyphen_values = true,
         value_parser = crate::typed::number::<f64>()
     )]
     pub latitude: f64,
@@ -103,7 +103,7 @@ pub struct FlightArgs {
         long,
         value_name = "DEG",
         default_value_t = 0.0,
-        allow_negative_numbers = true,
+        allow_hyphen_values = true,
         value_parser = crate::typed::number::<f64>()
     )]
     pub longitude: f64,
@@ -112,7 +112,7 @@ pub struct FlightArgs {
         long,
         value_name = "M",
         default_value_t = 0.0,
-        allow_negative_numbers = true,
+        allow_hyphen_values = true,
         value_parser = crate::typed::number::<f64>()
     )]
     pub elevation: f64,
@@ -123,7 +123,7 @@ pub struct FlightArgs {
     #[arg(long, value_name = "DEG", value_parser = crate::typed::number::<f64>())]
     pub inclination: Option<f64>,
     /// The direction the rail leans toward, degrees clockwise from true north [default: 0]
-    #[arg(long, value_name = "DEG", allow_negative_numbers = true, value_parser = crate::typed::number::<f64>())]
+    #[arg(long, value_name = "DEG", allow_hyphen_values = true, value_parser = crate::typed::number::<f64>())]
     pub heading: Option<f64>,
     /// A wind of this speed at every height, m/s [default: calm]
     #[arg(long, value_name = "M_S", value_parser = crate::typed::number::<f64>())]
@@ -134,7 +134,7 @@ pub struct FlightArgs {
         value_name = "DEG",
         default_value_t = 0.0,
         requires = "wind",
-        allow_negative_numbers = true,
+        allow_hyphen_values = true,
         value_parser = crate::typed::number::<f64>()
     )]
     pub wind_from: f64,
@@ -702,7 +702,8 @@ fn count(n: usize, thing: &str) -> String {
 /// Refuses a launch option outside the range the library flies, naming the option, the value
 /// as given and its unit, with what it takes, as the product system's `cli.md` asks (*Errors*).
 /// Each range is the library's own: [`Environment::new`]'s site (a latitude within ±90°, a
-/// finite longitude and height), [`Environment::with_constant_wind`]'s wind (a finite speed of
+/// finite height; a longitude within ±180°, narrower than the library's finite one, which it
+/// wraps), [`Environment::with_constant_wind`]'s wind (a finite speed of
 /// at least 0, a finite direction), [`FlightBuilder::inputs`]'s rail (an inclination in
 /// `(0°, 90°]`, a finite heading) and [`hpr_sim::Rail`]'s finite, positive length. The library would
 /// refuse the same values in its own terms, a latitude in radians among them.
@@ -721,11 +722,14 @@ fn launch_checks(flight: &FlightArgs) -> Result<(), Failure> {
             "-33.9",
         );
     }
-    if !flight.longitude.is_finite() {
+    // The library takes any finite longitude and wraps it, but past ±180° none is meant: a
+    // decimal comma read as thousands (`-106,970`) lands there.
+    if flight.longitude.is_nan() || flight.longitude.abs() > 180.0 {
         return refuse(
             "longitude",
             flight.longitude,
-            "the site's longitude is a number of degrees, east positive and west negative",
+            "the site's longitude is in degrees, from -180 to 180, east positive and west \
+             negative",
             "-106.9",
         );
     }
@@ -796,15 +800,21 @@ pub(crate) fn file_name(path: &str) -> String {
 }
 
 /// `--delay`: seconds from burnout to the charge, at least 0, or `P` (either case) for a plugged
-/// motor. `-0` is read as 0. Spaces around it are trimmed, as [`crate::typed`] reads numbers.
-fn delay_arg(text: &str) -> Option<Delay> {
-    let text = crate::typed::plain(text).ok()?;
+/// motor. `-0` is read as 0. Spaces around it are trimmed and a comma read, as [`crate::typed`]
+/// reads numbers. The error is the hint to give: [`crate::typed::plain`]'s question about a comma,
+/// or what the option takes.
+fn delay_arg(text: &str) -> Result<Delay, String> {
+    let text = crate::typed::plain(text)?;
     if text.eq_ignore_ascii_case("p") {
-        return Some(Delay::Plugged);
+        return Ok(Delay::Plugged);
     }
     match text.parse::<f64>() {
-        Ok(delay_s) if delay_s.is_finite() && delay_s >= 0.0 => Some(Delay::Seconds(delay_s + 0.0)),
-        _ => None,
+        Ok(delay_s) if delay_s.is_finite() && delay_s >= 0.0 => Ok(Delay::Seconds(delay_s + 0.0)),
+        _ => Err(
+            "give the seconds from burnout to the charge, such as 10, or P for a plugged \
+                  motor"
+                .to_owned(),
+        ),
     }
 }
 
@@ -824,7 +834,7 @@ impl clap::builder::TypedValueParser for DelayArg {
     ) -> Result<Delay, clap::Error> {
         use clap::error::{ContextKind, ContextValue, ErrorKind};
         let text = value.to_string_lossy();
-        delay_arg(&text).ok_or_else(|| {
+        delay_arg(&text).map_err(|hint| {
             let mut error = clap::Error::new(ErrorKind::InvalidValue).with_cmd(command);
             if let Some(arg) = arg {
                 error.insert(
@@ -838,11 +848,7 @@ impl clap::builder::TypedValueParser for DelayArg {
             );
             error.insert(
                 ContextKind::Suggested,
-                ContextValue::StyledStrs(vec![
-                    "give the seconds from burnout to the charge, such as 10, or P for a \
-                     plugged motor"
-                        .into(),
-                ]),
+                ContextValue::StyledStrs(vec![hint.into()]),
             );
             error
         })

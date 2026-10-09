@@ -85,7 +85,7 @@ Pinned commit: `f45454f44669cc049222f2ab19eb648796e56a52`, as `validation/refs.l
 | `data.md` | Readouts | CLI | not met | #401; M2.8: `hpr sim` and `hpr mc` say once, above their figures, that they are simulated, and give the spread in the closing note (ADR-211); `hpr weather`, `hpr analyze` and `hpr motors show` name their kind in theirs (ADR-213); no readout carries a spread of its own |
 | `data.md` | Tables | site, plot, CLI, README | not met | #386; M0.9e: 27 of 333 site tables right-align numbers; code identifiers as heads |
 | `data.md` | Charts | plot, site | not met | #382, #401; M0.9c7, M2.8: no spread band (ADR-211 §5), banking or data table; 10 px balloons |
-| `data.md` | Maps | CLI | not met | #381; M0.9c: `hpr mc`'s landing-ellipse heading gives no T or M; drawn maps wait for M9.4 |
+| `data.md` | Maps | CLI | not met | #381; M0.9c9: `hpr mc`'s landing-ellipse heading gives no T or M; drawn maps wait for M9.4 |
 | `data.md` | Live telemetry | none | later | M13.1, the ground station; nothing live ships |
 | `data.md` | Files and exports | exports | met | `crates/hpr-cli/tests/provenance.rs::a_csv_header_gives_each_unit_in_brackets`, `crates/hpr-cli/tests/provenance.rs::every_export_carries_the_catalogs_date_and_how_far_to_trust_it`, `crates/hpr-cli/tests/style.rs::every_file_hpr_writes_names_the_tool`: units in brackets in the CSV header, the source, tool, version and the catalog's as-of date in a sidecar (ADR-214). The US option waits for the app's units control (M9.1), by ADR-210 |
 | `cli.md` | Output | CLI | not met | #381; M0.9c9: no progress; plain table headers (diagnostics on stderr since #377) |

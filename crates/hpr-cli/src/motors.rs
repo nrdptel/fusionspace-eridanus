@@ -46,7 +46,7 @@ pub struct ListArgs {
     #[arg(long)]
     pub class: Option<String>,
     /// Only this casing diameter, mm (within 0.5 mm)
-    #[arg(long, value_name = "MM", allow_negative_numbers = true, value_parser = crate::typed::number::<f64>())]
+    #[arg(long, value_name = "MM", allow_hyphen_values = true, value_parser = crate::typed::number::<f64>())]
     pub diameter: Option<f64>,
     /// Only this manufacturer: its name or abbreviation, any case
     #[arg(long)]
