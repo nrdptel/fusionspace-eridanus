@@ -48,7 +48,7 @@ go/no-go verdict.** The motor's printed data and your RSO are authoritative.
 
 ## Install and first flight
 
-Release 0.1.0 is built and checked, but not published yet. Once it is:
+Release 0.1.0 is out:
 
 - **the command line:** the `fusionspace-hpr` archive for your system from
   [the releases page](https://github.com/nrdptel/fusionspace-eridanus/releases), or

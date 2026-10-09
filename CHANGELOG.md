@@ -6,10 +6,10 @@ the Python package. Until 1.0, a new minor version (0.2, 0.3) may change the lib
 patch release (0.1.1) carries only a fix for a critical issue
 ([the release plan](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0162-the-suite-and-its-releases.md)).
 
-## 0.1.0 (not yet published)
+## 0.1.0 (2026-10-08)
 
 **The first release: the simulator, as a Rust library, the `hpr` command line and the Python
-package. Its files are built and checked, but not published yet.** Every number it prints is an
+package, on crates.io, PyPI and the releases page.** Every number it prints is an
 estimate from a model, never a go/no-go verdict: a motor's printed data and your range safety
 officer decide.
 
