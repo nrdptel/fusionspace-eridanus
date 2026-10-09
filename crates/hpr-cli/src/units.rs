@@ -155,13 +155,14 @@ pub(crate) fn bearing(degrees: f64, decimals: usize) -> String {
     format!("{}° T", bearing_figure(degrees, decimals))
 }
 
-/// A bearing typed by the user, as typed but turned into `[0, 360)` and padded: `22.5` is
-/// `022.5° T` ([`bearing`]).
+/// A bearing typed by the user, turned into `[0, 360)` and padded, to as many places as were
+/// typed: `22.5` is `022.5° T`, `400.3` is `040.3° T` ([`bearing`]). The places are counted on
+/// the value as read, as the turn can leave a binary remainder (`400.3 − 360` is
+/// `40.30000000000001`).
 pub(crate) fn typed_bearing(degrees: f64) -> String {
-    let turned = degrees.rem_euclid(360.0);
-    let shown = turned.to_string();
-    let decimals = shown.find('.').map_or(0, |point| shown.len() - point - 1);
-    bearing(turned, decimals)
+    let typed = degrees.to_string();
+    let decimals = typed.find('.').map_or(0, |point| typed.len() - point - 1);
+    bearing(degrees, decimals)
 }
 
 #[cfg(test)]
@@ -188,6 +189,9 @@ mod tests {
             (-10.0, "350° T"),
             (360.0, "000° T"),
             (0.125, "000.125° T"),
+            (400.3, "040.3° T"),
+            (725.1, "005.1° T"),
+            (-0.1, "359.9° T"),
         ] {
             assert_eq!(typed_bearing(typed), expected, "{typed}");
         }

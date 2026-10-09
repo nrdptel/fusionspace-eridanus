@@ -680,11 +680,16 @@ fn rest(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
     Ok(())
 }
 
-/// An angle north or south, east or west: `32.99° N`, `106.97° W`.
+/// A latitude or longitude, north or south, east or west, in decimal degrees to five places,
+/// about a meter, as the product system's `data.md` (*Maps*) writes one: `32.99000° N`,
+/// `106.97000° W`.
 fn hemisphere(value: f64, positive: &str, negative: &str) -> String {
-    if value < 0.0 {
-        format!("{}° {negative}", -value)
+    let shown = fixed(value.abs(), 5);
+    // A value that rounds to zero is on the line, not south or west of it.
+    let side = if value < 0.0 && shown != fixed(0.0, 5) {
+        negative
     } else {
-        format!("{value}° {positive}")
-    }
+        positive
+    };
+    format!("{shown}° {side}")
 }

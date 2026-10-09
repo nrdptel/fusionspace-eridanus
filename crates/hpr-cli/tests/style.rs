@@ -606,8 +606,9 @@ fn a_sidecar_may_not_be_another_output() {
 
 /// A long `hpr mc` draws its progress on standard error, as the product system's `cli.md` asks
 /// (*Output*): a count, a bar and an estimate, each over the one before, cleared at the end;
-/// only when standard error is a terminal and the output is text. The flights are the same with
-/// and without it. Run in-process with the delay set to nothing, so a short run draws it.
+/// only when standard error is a terminal that isn't `dumb` and the output is text. The flights
+/// are the same with and without it. Run in-process with the delay set to nothing, so a short
+/// run draws it.
 #[test]
 fn a_long_run_draws_its_progress_on_a_terminal_only() {
     use hpr_cli::console::Console;
@@ -642,7 +643,8 @@ fn a_long_run_draws_its_progress_on_a_terminal_only() {
         ..Console::PIPED
     };
     let (out, err) = run(terminal, false);
-    assert!(err.starts_with("\rflying 0 of 20 flights ["), "{err:?}");
+    // The first line may already count a flight or more: the flights start at once.
+    assert!(err.starts_with("\rflying "), "{err:?}");
     assert!(err.contains(" of 20 flights ["), "{err:?}");
     // The last line drawn is blanked and the cursor returned, before the warnings and notes;
     // spaces after its text only blank a longer line before it.
@@ -662,6 +664,14 @@ fn a_long_run_draws_its_progress_on_a_terminal_only() {
     );
     assert_eq!(out, piped_out, "the same flights");
     assert!(!piped_err.contains("flying"), "{piped_err:?}");
+    let (_, dumb_err) = run(
+        Console {
+            dumb_terminal: true,
+            ..terminal
+        },
+        false,
+    );
+    assert!(!dumb_err.contains("flying"), "{dumb_err:?}");
     let (json, json_err) = run(terminal, true);
     assert!(json_err.is_empty(), "{json_err:?}");
     assert!(json.starts_with('{'), "{json}");

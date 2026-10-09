@@ -570,7 +570,7 @@ fn the_text_names_the_credit_and_the_file() {
     assert_eq!(output.status.code(), Some(0), "{output:?}");
     let text = String::from_utf8(output.stdout).unwrap();
     for expected in [
-        "GFS at 32.9900° N, 106.9700° W, for 2026-09-30T18:00:00Z, run of 2026-09-30T00:00:00Z",
+        "GFS at 32.99000° N, 106.97000° W, for 2026-09-30T18:00:00Z, run of 2026-09-30T00:00:00Z",
         "Read from nomads-gfs.grib2",
         nomads::ATTRIBUTION,
         "below the ground, 6 levels: 1000 hPa, 975 hPa, 950 hPa, 925 hPa, 900 hPa, 850 hPa",

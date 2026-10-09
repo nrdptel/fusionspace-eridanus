@@ -87,7 +87,8 @@ examples of real use with what each does, and last the address of this page. Eve
 `--help` has the same parts, its examples and its section of this page included, such as
 `hpr sim --help` ending with the address of the section on `hpr sim` below. `-h` is the
 short version: one line per option, and the examples' command lines without the words about
-them. A test parses every example as `hpr` does, so none names an option that isn't there.
+them. A test parses every example as `hpr` does, so none names an option that isn't there; it
+doesn't run them.
 
 `hpr --version` prints its version and its designation, `FS-ACHERNAR · SW · TOOL 001`: Achernar,
 the simulator's internal name among FusionSpace's products, then its number as a software tool
@@ -141,7 +142,7 @@ word that says what it is, so it reads the same with or without color:
 The result itself is plain text with two marks of emphasis when its stream gets color: its first
 line, which names what was read, and each table's header row are bold. In a `help:` or `note:`
 line, what to type is bold blue: a command in backticks, such as `` `hpr motors list` ``, and an
-option written on its own, such as `--config`.
+option the line names, such as `--config`.
 
 The colors are your terminal's own red, yellow and blue, so its theme decides how they look.
 `hpr` decides for standard output and standard error separately, in this order:
@@ -208,10 +209,10 @@ $ echo $?
 
 <!-- cli: end -->
 
-A refusal raised while the rocket flies, rather than by an option, says so, rounds the number
-the simulator stopped at, and names the options that shaped the flight, as they were read. Here an
-elevation of a billion meters puts the launch site where there is next to no air, so nothing slows
-the rocket and it passes Mach 5, where the aerodynamics stop:
+A refusal raised by the simulator, rather than by an option, says so, rounds its number to four
+significant digits, and names the options that shaped the flight, as they were read. Here an
+elevation of a billion meters, chosen only to force the refusal, puts the launch site where there
+is next to no air, so nothing slows the rocket and it passes Mach 5, where the aerodynamics stop:
 
 <!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --elevation 1e9`, exits 1 -->
 
@@ -349,7 +350,7 @@ delay                 apogee 7.71 s after burnout
 descent               no recovery device opened, so the fall is not a prediction
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mount`, lit at launch
-launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
+launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
@@ -470,7 +471,7 @@ descent               14.1 m/s (46 ft/s) at 150.0 m (492 ft) under `Drogue parac
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Booster / motor bay`, lit at launch
 recovery: `Main parachute` at 150 m (492 ft) on the way down, 1.052 m² of drag area, opened at 22.41 s
 recovery: `Drogue parachute` at apogee, 0.133 m² of drag area, opened at 9.12 s
-launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
+launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 note: the file's 2 recovery devices fly as OpenRocket flies them: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
@@ -654,7 +655,7 @@ is.
 | `--inclination DEG` | the rail's angle above the horizon, degrees: 90 is vertical | 90 |
 | `--heading DEG` | the direction the rail leans toward, clockwise from true north, degrees (add the [declination](physics/magnetic.md) to a compass reading) | 0 |
 | `--wind M_S` | a wind of this speed at every height, m/s | calm |
-| `--wind-from DEG` | where the wind blows from, clockwise from north, degrees: 270 is a west wind | 0 |
+| `--wind-from DEG` | where the wind blows from, clockwise from true north, degrees: 270 is a west wind | 0 |
 
 OpenRocket measures its launch rod's angle from the vertical instead, so its 5° is 85 here. This
 flies the same rocket from Spaceport America's field, on a rail leaning 5° into a west wind:
@@ -675,7 +676,7 @@ delay                 apogee 7.98 s after burnout
 descent               no recovery device opened, so the fall is not a prediction
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mount`, lit at launch
-launched at 32.99° N, 106.97° W, 1400 m (4593 ft) above sea level, from a 3 m (9.8 ft) rail 85° above the horizon, leaning toward 270° T, in a 5 m/s (11 mph) wind from 270° T
+launched at 32.99000° N, 106.97000° W, 1400 m (4593 ft) above sea level, from a 3 m (9.8 ft) rail 85° above the horizon, leaning toward 270° T, in a 5 m/s (11 mph) wind from 270° T
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
@@ -921,11 +922,12 @@ method, what each dispersion does and how to choose the numbers.
 > good as the standard deviations you give and the simulator's flight models, which are not yet
 > validated against repeated real flights ([Accuracy](accuracy.md)).
 
-On a terminal, a run that goes on past a tenth of a second draws its progress on standard error,
-each line over the one before and gone when the run ends:
+A run that takes more than a tenth of a second draws its progress on standard error when that is
+a terminal, each line over the one before and gone when the run ends:
 `flying 412 of 1000 flights [========            ] 41%, about 6 s left`. The estimate assumes
-the flights left take as long as those flown. Into a file or a pipe, or with `--json`, it draws
-nothing, and the flights are the same either way.
+the flights left take as long as those flown. `> runs.txt` sends only the result to the file, so
+the progress still shows on the terminal; with standard error into a file or a pipe, or with
+`--json`, it draws nothing, and the flights are the same either way.
 
 ### Scattering a flight
 
@@ -954,7 +956,7 @@ landing ellipse                   semi-major            semi-minor  heading   fl
 95%, the next flight        111.1 m (365 ft)       69.0 m (226 ft)   089° T            93.5%
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mount`, lit at launch
-launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) rail 85° above the horizon, leaning toward 270° T, in a 4 m/s (9 mph) wind from 270° T
+launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) rail 85° above the horizon, leaning toward 270° T, in a 4 m/s (9 mph) wind from 270° T
 scattered, one standard deviation each: --mass-sd 0.02, --drag-sd 0.05, --impulse-sd 0.03, --burn-time-sd 0.02, --wind-sd 0.25, --wind-from-sd 15, --inclination-sd 1, --heading-sd 2
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag, the nominal flight: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
@@ -978,8 +980,10 @@ center and the ellipses' axes give feet in parentheses. A failed flight counts a
 that share of a normal scatter with the run's mean and spread, and the last allows for the run's
 spread being only an estimate, so the next flight lands inside it 95% of the time. An ellipse's
 `heading` is the direction of its long axis, in degrees clockwise from true north, written as a
-map's bearing is: three digits and a `T` for true, such as `089° T`, as a compass reads magnetic
-north, more than 10° away in much of the western United States. `flights
+map's bearing is: three digits and a `T` for true, such as `089° T`. True north is not the north
+a compass shows: magnetic north is more than 10° away from it in much of the western United
+States. Every bearing `hpr` prints is from true north, the rail's heading and the wind's
+direction too, and so is every one it reads ([`--heading`](#the-launch)). `flights
 inside` counts the run's own landings inside each, a failed flight counted outside. This rocket
 has no parachute, so its landings are not a prediction, and the note says so.
 
@@ -1656,7 +1660,7 @@ wrote to in full; here that folder is shown as `<the scratch folder>`.)
 
 ```text
 $ hpr weather open-meteo --time 2025-06-21T15:30Z --from crates/hpr-net/tests/fixtures/replay/open-meteo-historical.json --output profile.json
-Open-Meteo at 32.9965° N, 106.9695° W, for 2025-06-21T15:30:00Z
+Open-Meteo at 32.99655° N, 106.96947° W, for 2025-06-21T15:30:00Z
 Read from open-meteo-historical.json
 Weather data by Open-Meteo.com (CC BY 4.0)
 

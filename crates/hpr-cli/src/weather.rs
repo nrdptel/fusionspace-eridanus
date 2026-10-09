@@ -795,10 +795,17 @@ fn count(levels: usize) -> String {
     format!("{levels} level{}", if levels == 1 { "" } else { "s" })
 }
 
-/// An angle in degrees with its hemisphere, such as `106.9700° W`.
+/// A latitude or longitude with its hemisphere, in decimal degrees to five places, about a meter,
+/// as the product system's `data.md` (*Maps*) writes one: `106.97000° W`.
 fn degrees(value: f64, [positive, negative]: [&str; 2]) -> String {
-    let hemisphere = if value < 0.0 { negative } else { positive };
-    format!("{:.4}° {hemisphere}", value.abs())
+    let shown = fixed(value.abs(), 5);
+    // A value that rounds to zero is on the line, not south or west of it.
+    let hemisphere = if value < 0.0 && shown != fixed(0.0, 5) {
+        negative
+    } else {
+        positive
+    };
+    format!("{shown}° {hemisphere}")
 }
 
 /// Reads a UTC time written `YYYY-MM-DDTHH[:MM[:SS]]Z`, as seconds since the Unix epoch.

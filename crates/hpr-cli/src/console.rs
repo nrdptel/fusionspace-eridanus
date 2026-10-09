@@ -68,9 +68,10 @@ impl Console {
     }
 
     /// When a long run draws its progress on standard error: after [`Console::progress_after`]
-    /// when standard error is a terminal and the output is text; never with `--json` or on a pipe.
+    /// when standard error is a terminal that redraws a line (`TERM` isn't `dumb`) and the
+    /// output is text; never with `--json` or on a pipe.
     pub(crate) fn progress(&self, json: bool) -> Option<Duration> {
-        (self.stderr_terminal && !json).then_some(self.progress_after)
+        (self.stderr_terminal && !self.dumb_terminal && !json).then_some(self.progress_after)
     }
 
     /// The paint for each stream, given `--color` and whether `--json` was given.
@@ -265,6 +266,12 @@ impl<'a> Text<'a> {
             }
         }
         Ok(())
+    }
+
+    /// Standard output as it is, unstyled: for a result that is a file's bytes, such as a
+    /// completion script, whose first line a shell reads.
+    pub(crate) fn raw(&mut self) -> &mut dyn Write {
+        &mut *self.to
     }
 
     /// Ends the first line's style if the result ended inside it, with no newline.

@@ -631,22 +631,34 @@ pub(crate) fn input(error: hpr::Error) -> Failure {
     Failure::Input(error.to_string())
 }
 
-/// A refusal raised while the rocket flies, as the command reports it (#405): said of the
-/// flight, in the library's words with each long number rounded ([`rounded`]), a Mach number
-/// past the aerodynamics' range in words of its own, and a `help:` line naming what shaped the
-/// flight: the launch options typed, or else the design. The product system's `cli.md` and
+/// A refusal raised by the flight's builder, as the command reports it (#405): a Mach number
+/// past the aerodynamics' range in words of its own, anything else said of the simulator in the
+/// library's words, each long number rounded ([`rounded`]) and a library's hint split off; then
+/// a `help:` line naming what shaped the flight: the launch options typed, or else the design. The product system's `cli.md` and
 /// `writing.md` (*Errors*) ask for what happened, then what to do, naming things as typed.
 pub(crate) fn flight_refused(error: &hpr::Error, flight: &FlightArgs) -> Failure {
-    let what = match past_mach(error) {
-        Some((mach, limit, model)) => format!(
-            "it reached Mach {}; the aerodynamics stop at Mach {} ({model}'s range)",
-            rounded(&mach.to_string()),
-            rounded(&limit.to_string())
+    // A library's own hint, split off as `lib.rs` does for every refusal, goes before ours.
+    let (message, mut help) = match past_mach(error) {
+        Some((mach, limit, model)) => (
+            format!(
+                "the flight stopped: it reached Mach {}; the aerodynamics stop at Mach {} \
+                 ({model}'s range)",
+                rounded(&mach.to_string()),
+                rounded(&limit.to_string())
+            ),
+            Vec::new(),
         ),
-        None => rounded(&library_words(error)),
+        // Said of the simulator, as the refusal may come before the rocket leaves the rail.
+        None => {
+            let (words, hint) = crate::library_hint(library_words(error));
+            (
+                format!("the simulator refused the flight: {}", rounded(&words)),
+                hint,
+            )
+        }
     };
     let typed = typed_options(flight);
-    let help = if typed.is_empty() {
+    let next = if typed.is_empty() {
         format!(
             "the flight is the design's own: check its motor, masses and parts in {}",
             file_name(&flight.design)
@@ -658,7 +670,8 @@ pub(crate) fn flight_refused(error: &hpr::Error, flight: &FlightArgs) -> Failure
             typed.join(" ")
         )
     };
-    Failure::helped(format!("the flight stopped: {what}"), help)
+    help.push(next);
+    Failure::Helped { message, help }
 }
 
 /// The Mach number, the range's top and the model's name of an aerodynamics refusal for a Mach
@@ -732,9 +745,17 @@ pub(crate) fn rounded(text: &str) -> String {
             .filter(char::is_ascii_digit)
             .count();
         match number.parse::<f64>() {
-            Ok(value) if !inside_word && significant >= 7 && value.is_finite() => {
+            // A zero or a subnormal written out has no magnitude to round to.
+            Ok(value) if !inside_word && significant >= 7 && value.is_normal() => {
                 let magnitude = value.abs().log10().floor();
-                if number.contains(['e', 'E']) && !(-4.0..6.0).contains(&magnitude) {
+                // A number written with an exponent keeps one when it is far from 1, and one
+                // written out keeps its form unless it is too far to write out.
+                let far = if number.contains(['e', 'E']) {
+                    !(-4.0..6.0).contains(&magnitude)
+                } else {
+                    !(-16.0..16.0).contains(&magnitude)
+                };
+                if far {
                     out.push_str(&format!("{value:.3e}"));
                 } else {
                     let decimals = (3.0 - magnitude).max(0.0) as usize;
@@ -758,9 +779,16 @@ fn typed_options(flight: &FlightArgs) -> Vec<String> {
             typed.push(format!("--{name} {value}"));
         }
     };
-    option("config", flight.config.clone());
-    option("motor", flight.motor.clone());
-    option("mount", flight.mount.clone());
+    // A name as a shell takes it back, quoted when it holds a space or another shell character.
+    let word = |value: &Option<String>| {
+        value.as_ref().map(|value| {
+            crate::motor_fetch::shell_word(value)
+                .unwrap_or_else(|| format!("'{}'", value.replace('\'', r"'\''")))
+        })
+    };
+    option("config", word(&flight.config));
+    option("motor", word(&flight.motor));
+    option("mount", word(&flight.mount));
     option(
         "delay",
         flight.delay.map(|delay| match delay {
@@ -2812,9 +2840,44 @@ mod tests {
             ("part ab1234567890: 12 m.", "part ab1234567890: 12 m."),
             ("count 1234567 runs", "count 1234567 runs"),
             ("ends at 5.", "ends at 5."),
+            ("zero 0.0000000 here", "zero 0.0000000 here"),
+            ("tiny 0.00000000001234567 m", "tiny 0.00000000001235 m"),
         ] {
             assert_eq!(rounded(text), expected, "{text}");
         }
+        // Past f64's smallest, written out: read as 0, so left as written, with no panic.
+        let underflow = format!("x 0.{}1234567 y", "0".repeat(330));
+        assert_eq!(rounded(&underflow), underflow);
+        let small = format!("x 0.{}1234567 y", "0".repeat(300));
+        assert_eq!(rounded(&small), "x 1.235e-301 y");
+        let large = format!("x 1234567{}.5 y", "0".repeat(20));
+        assert_eq!(rounded(&large), "x 1.235e26 y");
+    }
+
+    /// A refusal that isn't a Mach number is said of the simulator, its number rounded; with no
+    /// launch option typed, the `help:` line points at the design, by its file's name.
+    #[test]
+    fn a_flight_refusal_with_no_option_points_at_the_design() {
+        use clap::Parser;
+        let cli = crate::Cli::parse_from(["hpr", "sim", "rockets/a.ork"]);
+        let crate::Command::Sim(args) = cli.command else {
+            unreachable!("a sim command line")
+        };
+        let error = hpr::Error::Domain {
+            what: "the drag",
+            value: 1.234_567_89,
+        };
+        let Failure::Helped { message, help } = flight_refused(&error, &args.flight) else {
+            panic!("a refusal with help")
+        };
+        assert_eq!(
+            message,
+            "the simulator refused the flight: the drag is 1.235, outside its domain"
+        );
+        assert_eq!(
+            help,
+            ["the flight is the design's own: check its motor, masses and parts in a.ork"]
+        );
     }
 
     /// The options a refusal names are the ones typed: each launch option off its default, as
@@ -2830,6 +2893,18 @@ mod tests {
             }
         };
         assert!(typed(&["hpr", "sim", "a.ork"]).is_empty());
+        assert_eq!(
+            typed(&[
+                "hpr",
+                "sim",
+                "a.ork",
+                "--config",
+                "Big motor",
+                "--motor",
+                "it's.eng"
+            ]),
+            ["--config \"Big motor\"", "--motor 'it'\\''s.eng'"]
+        );
         assert_eq!(
             typed(&[
                 "hpr",

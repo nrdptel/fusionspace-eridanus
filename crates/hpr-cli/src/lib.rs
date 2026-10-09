@@ -643,7 +643,7 @@ fn library_hints() -> impl Iterator<Item = &'static str> {
 }
 
 /// A refusal's message with a library's hint at its end split off, or as it is.
-fn library_hint(message: String) -> (String, Vec<String>) {
+pub(crate) fn library_hint(message: String) -> (String, Vec<String>) {
     for hint in library_hints() {
         if let Some(fact) = message.strip_suffix(&format!("; {hint}")) {
             return (fact.to_owned(), vec![hint.to_owned()]);
@@ -694,8 +694,9 @@ fn completions(shell: Shell, to: &mut Out<'_>) -> Result<(), Failure> {
         shell: shell.to_string(),
         script,
     };
+    // A script, not a result: its first line is the shell's (`#compdef hpr`), so never styled.
     to.emit(&document, |out, _| {
-        out.write_all(document.script.as_bytes())
+        out.raw().write_all(document.script.as_bytes())
     })
 }
 

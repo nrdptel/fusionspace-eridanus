@@ -588,6 +588,13 @@ fn completions_for_every_shell() {
         let document = json(&["completions", &name], 0, "completions.schema.json");
         assert_eq!(document["shell"], name.as_str());
         assert_eq!(document["script"], script.as_str());
+        // A script is a file a shell reads, so color never reaches it: zsh needs `#compdef`
+        // first.
+        assert_eq!(
+            text_ok(&["completions", &name, "--color", "always"]),
+            script,
+            "{name}"
+        );
     }
 }
 
