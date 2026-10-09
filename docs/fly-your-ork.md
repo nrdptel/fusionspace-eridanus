@@ -215,7 +215,8 @@ hpr sim validation/fixtures/ork/guides/level-1.ork --plot level-1.svg --export l
 ```
 
 The plot is one fixed figure: altitude, speed and acceleration against time, each event marked.
-An SVG opens in any web browser; [Plotting the flight](cli.md#plotting-the-flight) shows one. The
+An SVG opens in any web browser; [Plotting the flight](cli.md#plotting-the-flight) shows one.
+Beside it, `level-1.plot.csv` holds the numbers the figure draws. The
 export holds every quantity the simulator tracks, every 0.01 s; the file's extension picks the
 format (`.csv`, `.json`, `.parquet`, `.geojson` or `.kml`), and
 [Exporting a flight](exporting-a-flight.md) says what each column means. `--json` prints the

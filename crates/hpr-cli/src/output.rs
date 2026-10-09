@@ -362,6 +362,8 @@ pub struct SimFlight {
     /// The `--plot` figure written, if one was: an SVG of the altitude, speed and acceleration
     /// against time, the events marked.
     pub plot: Option<String>,
+    /// The figure's data, written beside it with `--plot`: a CSV of the values it draws.
+    pub plot_data: Option<PlotData>,
     /// What the flight leaves out of the design, such as its parachutes, and what to make of the
     /// numbers it leaves out.
     pub notes: Vec<String>,
@@ -1090,6 +1092,19 @@ pub struct Export {
     /// For a CSV file, the sidecar written beside it, which names the program that wrote it
     /// ([`ExportMeta`]); `null` for the other formats, which name it inside.
     pub meta: Option<String>,
+}
+
+/// The `--plot` figure's data, a CSV file beside it, `flight.plot.csv` for `flight.svg`: a header row
+/// with units in brackets, then the time, altitude, speed and acceleration of each point drawn.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
+pub struct PlotData {
+    /// The CSV file's path.
+    pub path: String,
+    /// The rows written: one every `--interval` seconds, one at every event, and one at each
+    /// integration step's start and end, the points the figure draws.
+    pub rows: usize,
+    /// Its sidecar, which names the program that wrote it ([`ExportMeta`]).
+    pub meta: String,
 }
 
 /// The sidecar `hpr sim --export` writes beside a CSV recording, `flight.meta.json` for

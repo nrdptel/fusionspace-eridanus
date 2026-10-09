@@ -790,8 +790,9 @@ each format keeps it, and what each column and field means.
 altitude, the speed and the acceleration against time, in three panels over one time axis, with
 each [event](glossary.md#event) marked. The figure is always the same set, so any two flights read
 alike. An SVG opens in any web browser. The numbers behind it come from the same flight as the
-text: for the data itself, or a plot of your own, use `--export` (above). The name must end in
-`.svg` and its folder must exist.
+text. Beside the figure, `--plot` writes the numbers it draws as a CSV file: `sim-plot.plot.csv`
+for `sim-plot.svg` (see [The figure's data](#the-figures-data), below). For every quantity the
+simulator tracks, use `--export` (above). The name must end in `.svg` and its folder must exist.
 
 - **Altitude:** the height of the [center of gravity](glossary.md#center-of-gravity-cg) above the
   launch site, as the events table gives it.
@@ -811,9 +812,22 @@ text: for the data itself, or a plot of your own, use `--export` (above). The na
   the ground, feet per second, and g, one standard gravity (9.80665 m/s²). Both scales measure the
   one quantity the panel draws, so the gridlines are the SI scale's alone.
 - **Events:** each instant with events is a numbered balloon (a circle) above the panels, with a
-  dotted line through them. The table under the figure gives each event a row: its balloon's
+  dotted line through them. The balloons sit in one row, in time order. Where two would overlap,
+  as liftoff and rail exit do, the later one steps right and points at its line with a short
+  leader, a thin solid line, as a drawing's balloons do. Near the right edge they step back left
+  instead, so each stays whole. The table under the figure gives each event a row: its balloon's
   number, its time, the altitude then in meters and in feet, and its name, with each parachute or
   streamer by name.
+- **Panel heights:** each panel's height is chosen for its own lines, so that their slopes are
+  easy to compare. The eye compares slopes best near 45°, so the height is the one at which the
+  panel's lines run at 45° on average, each piece of line counted by its length. This is
+  Cleveland's "banking to 45°" (W. S. Cleveland, M. E. McGill and R. McGill, "The Shape Parameter
+  of a Two-Variable Graph", *Journal of the American Statistical Association* 83, 1988). Heights
+  stay between 120 and 360 px. A climb and a slow descent can't both run at 45°, so the climb
+  draws steeper and the descent flatter. In the example below, the altitude and speed panels reach
+  360 px, the cap, where their lines average 39° and 38°, and the acceleration panel is 252 px, at
+  45°, measured on the drawn figure. When every panel was 180 px, the altitude and the speed lines
+  each averaged 22°.
 - **Not a prediction:** when no recovery device opens within 1 s of apogee, the fall from apogee
   to the first opening (or to the ground) is hatched and labeled, the rule the summary's "not a
   prediction" marks follow, for the reason [the landing](#the-landing) gives. The example below
@@ -840,20 +854,28 @@ reader reads out. Numbers on the figure are written for reading, `1,000` and a r
 the balloons' tooltips, a number and its unit are joined by a no-break space, so a wrapped line
 never ends between `100.0` and `m`.
 
-Under the event table the figure ends with three things, so a plot on paper says where it came
-from:
+Under the event table comes the [accuracy note](#the-accuracy-note-on-every-result). The figure
+then ends in a title block, as a drawing does, so a plot on paper says what it is and where it
+came from. It is a box with a 2 px border, and each field is a label in capitals over its value:
 
-1. the [accuracy note](#the-accuracy-note-on-every-result);
-2. the day the bundled motor catalog was downloaded, `Motor catalog as of 2026-09-17.`, as the
-   [exports](exporting-a-flight.md#which-program-wrote-a-file) carry it, whether or not the
-   flight's motor came from the catalog;
-3. last, as a drawing's title block, the program, its version and its designation.
+| Field | Holds |
+|---|---|
+| OWNER | FusionSpace |
+| TITLE | The design's name, cut at 80 characters |
+| TYPE | `Simulated flight` |
+| DESIGNATION | The program's designation, `FS-ACHERNAR · SW · TOOL 001` |
+| PROGRAM | The program and its version, `FusionSpace HPR 0.1.0` |
+| UNITS | The figure's units, SI with the US scales in brackets |
+| DATA | The figure's CSV file ([below](#the-figures-data)) |
+| MOTOR CATALOG | The day the bundled motor catalog was downloaded, as the [exports](exporting-a-flight.md#which-program-wrote-a-file) carry it, whether or not the flight's motor came from the catalog |
+
+The block has no date of issue: the same flight draws the same figure, byte for byte, on any day.
 
 The text is set in Cascadia Mono where it is installed, else another fixed-width font, so the
 lines keep their widths. The title is 20 px; all other text, the balloons' numbers included, is
 12 px, the smallest size the FusionSpace product system allows on a screen. The caption, balloon
-rows and event table are spaced in that system's 4 px steps (16 px from line to line, 24 px from
-row to row). The time axis is titled at its right end, under the last tick, as a drawing labels
+row, event table and title block are spaced in that system's 4 px steps (16 px from line to line,
+24 px from row to row). The time axis is titled at its right end, under the last tick, as a drawing labels
 an axis.
 
 The panels sample the flight every `--interval` (0.01 s unless set), at every event, and at the
@@ -881,10 +903,33 @@ speed settles at −14 m/s under the drogue and −4.7 m/s under the main. Accel
 50 m/s², passes zero at top speed, sits at about −12 to −10 m/s² vertically in the coast, and
 spikes to about 77 m/s² as the main opens. Six numbered balloons: liftoff, rail exit, burnout,
 apogee with the drogue, the main, and the ground hit; the table under the figure lists their
-nine events.](images/sim-plot.svg)
+nine events. A title block ends the figure.](images/sim-plot.svg)
 
 `cargo xtask cli` draws this figure with the command above, so it shows what the current `hpr`
 draws.
+
+#### The figure's data
+
+Every chart in the FusionSpace product system gives its data as well as its picture, for a
+reader who can't see the figure or wants the numbers. So `--plot sim-plot.svg` also writes
+`sim-plot.plot.csv`, with one row for each point the figure draws: every `--interval`, every
+event, and the start and end of each integration step. Its header names each column with its
+unit in brackets:
+
+```text
+time [s],altitude [m AGL],speed [m/s],vertical speed [m/s],acceleration [m/s^2],vertical acceleration [m/s^2]
+```
+
+The values are SI only, with no feet, and plain, as `--export`'s CSV writes them. The vertical
+speed and acceleration, the panels' thin lines, have columns of their own. The rows are not evenly
+spaced: an event or a step's edge adds a row between the `--interval` ones. For every other
+quantity the simulator tracks, use `--export`. Beside it, `sim-plot.plot.meta.json`
+names the program that wrote it, the design and configuration, the row count, the catalog's date
+and the accuracy note, as an exported CSV's [sidecar](exporting-a-flight.md#which-program-wrote-a-file)
+does. The `.plot` in the names keeps them apart from an `--export sim-plot.csv` beside them. If a
+file the run reads or writes has either name, the run stops before it flies. The text result ends
+with a `wrote` line for each of the three files, and `--json` names the two beside the figure under
+`plot_data` (`path`, `rows`, `meta`).
 
 ### What `hpr sim` doesn't fly yet
 

@@ -70,6 +70,7 @@ fn figure_svg(title: &str, unpredicted: Option<(f64, f64)>) -> String {
         title,
         subtitle: "configuration 1 of 1: [H54-10]",
         catalog_as_of: "2026-01-02",
+        data_file: "probe.csv",
         points: &points,
         events: &events,
         devices: &devices,
@@ -178,19 +179,20 @@ fn the_figure_is_three_panels_and_its_events() {
     let texts = texts(&document);
     assert!(texts.contains(&"TIME · s".to_owned()), "{texts:?}");
     assert!(!svg.contains("not a prediction"), "{svg}");
-    // Liftoff and rail exit, 2.2 px apart, sit in two marker rows.
-    let cy = |id: &str| {
+    // Liftoff and rail exit, 2.2 px apart, sit in one row, rail exit's balloon stepped right.
+    let at = |id: &str, name: &str| {
         document
             .descendants()
             .find(|node| node.attribute("id") == Some(id))
             .and_then(|group| group.children().find(|node| node.has_tag_name("circle")))
-            .and_then(|circle| circle.attribute("cy"))
+            .and_then(|circle| circle.attribute(name))
             .unwrap()
-            .to_owned()
+            .parse::<f64>()
+            .unwrap()
     };
-    let cy = |id: &str| cy(id).parse::<f64>().unwrap();
-    assert_eq!(cy("event-2") - cy("event-1"), MARKER_ROW);
-    assert_eq!(cy("event-3"), cy("event-1"));
+    assert_eq!(at("event-2", "cy"), at("event-1", "cy"));
+    assert_eq!(at("event-3", "cy"), at("event-1", "cy"));
+    assert_eq!(at("event-2", "cx") - at("event-1", "cx"), MARKER_ROW);
 }
 
 /// Events grouped under one marker keep their own times in the list: one too close to the
@@ -211,6 +213,7 @@ fn a_grouped_event_keeps_its_time() {
         title: "t",
         subtitle: "s",
         catalog_as_of: "2026-01-02",
+        data_file: "probe.csv",
         points: &points,
         events: &events,
         devices: &devices,
@@ -241,14 +244,21 @@ fn a_grouped_event_keeps_its_time() {
     );
 }
 
-/// The whole figure, byte for byte, for a small flight with a shaded fall; its title block's
-/// line, which holds the version, as `[stamp]`, in its metadata and its last line.
+/// The whole figure, byte for byte, for a small flight with a shaded fall; what holds the
+/// version as `[stamp]`, in its metadata, and `[program]`, in its title block.
 #[test]
 fn a_small_figure() {
     let svg = figure_svg("Probe", Some((5.0, 20.0)));
     let stamp = hpr::hpr_core::tool::stamp();
-    assert_eq!(svg.matches(&stamp).count(), 2, "{svg}");
-    insta::assert_snapshot!(svg.replace(&stamp, "[stamp]"));
+    assert_eq!(svg.matches(&stamp).count(), 1, "{svg}");
+    let svg = svg.replace(&stamp, "[stamp]");
+    let program = format!(
+        "{} {}",
+        hpr::hpr_core::tool::NAME,
+        hpr::hpr_core::tool::VERSION
+    );
+    assert_eq!(svg.matches(&program).count(), 1, "{svg}");
+    insta::assert_snapshot!(svg.replace(&program, "[program]"));
 }
 
 /// The figure ends with how far to trust it, under a label set as its other labels are, as
@@ -264,22 +274,59 @@ fn the_figure_ends_with_how_far_to_trust_it() {
         if unpredicted.is_some() {
             assert!(svg.find("Hatched,").unwrap_or(usize::MAX) < note);
         }
-        // Nothing but the note's lines after it, then the title block's line.
+        // Nothing but the note's lines after it, then the title block.
         let after = &svg[note..];
         assert!(
             after.contains(">Simulated from the design file, not measured."),
             "{after}"
         );
         assert!(after.contains("55 logged flights"), "{after}");
-        let stamp = format!(">{}</text>\n</svg>\n", hpr::hpr_core::tool::stamp());
-        assert!(after.contains("accuracy.html</text>\n<text "), "{after}");
-        assert!(after.ends_with(&stamp), "{after}");
+        assert!(
+            after.contains("accuracy.html</text>\n<g id=\"title-block\">"),
+            "{after}"
+        );
+        assert_eq!(after.matches("<g ").count(), 1, "{after}");
+        assert!(after.ends_with("</g>\n</svg>\n"), "{after}");
     }
 }
 
+/// The title block's cells, in order: each key, its value, and the key's x and baseline. A key
+/// is muted and its value, in ink, on the next line at the same x.
+fn title_block(document: &roxmltree::Document<'_>) -> Vec<(String, String, f64, f64)> {
+    let block = document
+        .descendants()
+        .find(|node| node.attribute("id") == Some("title-block"))
+        .unwrap();
+    let texts: Vec<_> = block
+        .children()
+        .filter(|node| node.has_tag_name("text"))
+        .collect();
+    let number = |node: &roxmltree::Node<'_, '_>, name: &str| -> f64 {
+        node.attribute(name).unwrap().parse().unwrap()
+    };
+    texts
+        .chunks(2)
+        .map(|pair| {
+            let [key, value] = pair else {
+                panic!("a key without its value: {pair:?}")
+            };
+            assert_eq!(key.attribute("fill"), Some(INK_MUTED));
+            assert_eq!(value.attribute("fill"), Some(INK));
+            assert_eq!(number(key, "x"), number(value, "x"));
+            assert_eq!(number(value, "y") - number(key, "y"), 16.0);
+            (
+                key.text().unwrap().to_owned(),
+                value.text().unwrap_or_default().to_owned(),
+                number(key, "x"),
+                number(key, "y"),
+            )
+        })
+        .collect()
+}
+
 /// The figure names the program that drew it, its version and its designation, in its metadata
-/// (ADR-164) and in its last line of visible text, where a printed copy shows it, as a drawing's
-/// title block does (ADR-214): a plot on paper can be traced to the build that drew it.
+/// (ADR-164) and in its title block, where a printed copy shows it, as a drawing's does
+/// (ADR-214): a plot on paper can be traced to the build that drew it.
 #[test]
 fn the_figure_names_its_tool_and_version_where_a_reader_sees_them() {
     let svg = figure_svg("Probe", None);
@@ -294,33 +341,149 @@ fn the_figure_names_its_tool_and_version_where_a_reader_sees_them() {
         "{svg}"
     );
     let document = roxmltree::Document::parse(&svg).unwrap();
-    let texts: Vec<&str> = document
-        .descendants()
-        .filter(|node| node.has_tag_name("text"))
-        .filter_map(|node| node.text())
-        .collect();
-    assert_eq!(texts.last(), Some(&stamp.as_str()), "{svg}");
-    assert_eq!(texts.iter().filter(|text| **text == stamp).count(), 1);
+    let cells = title_block(&document);
+    let value = |key: &str| {
+        cells
+            .iter()
+            .find(|cell| cell.0 == key)
+            .map(|cell| cell.1.clone())
+    };
+    let program = format!("FusionSpace HPR {}", env!("CARGO_PKG_VERSION"));
+    assert_eq!(value("PROGRAM"), Some(program.clone()));
+    assert_eq!(
+        value("DESIGNATION").as_deref(),
+        Some("FS-ACHERNAR · SW · TOOL 001")
+    );
+    // Each once in the text a reader sees.
+    let texts = texts(&document);
+    for said in [program.as_str(), "FS-ACHERNAR · SW · TOOL 001"] {
+        assert_eq!(texts.iter().filter(|text| text.contains(said)).count(), 1);
+    }
 }
 
-/// The figure gives the bundled motor catalog's as-of date as the exports do (#403): on its own
-/// line after the trust note and above the title block's, so a printed copy carries it too.
-/// Before #403 the plot gave no date.
+/// The figure gives the bundled motor catalog's as-of date as the exports do (#403), in its title
+/// block's cell of its own, beside the file of the figure's data, so a printed copy carries both;
+/// a data file's name too long for its cell is cut, never the date. Before #403 the plot gave no
+/// date.
 #[test]
-fn the_figure_dates_the_motor_catalog_above_its_title_block_line() {
-    let svg = figure_svg("Probe", None);
-    let document = roxmltree::Document::parse(&svg).unwrap();
-    let texts = texts(&document);
-    let n = texts.len();
-    assert_eq!(texts[n - 2], "Motor catalog as of 2026-01-02.", "{svg}");
-    assert!(texts[n - 3].ends_with("accuracy.html"), "{svg}");
-    assert_eq!(
-        texts
-            .iter()
-            .filter(|text| text.contains("2026-01-02"))
-            .count(),
-        1
-    );
+fn the_figure_dates_the_motor_catalog_in_its_title_block() {
+    let long = format!("{}.plot.csv", "a-long-flight-name-".repeat(7));
+    // Symbols a fallback face may draw two cells wide.
+    let marks = format!("{}.plot.csv", "✅⭐".repeat(65));
+    for data_file in ["probe.plot.csv", long.as_str(), marks.as_str()] {
+        let points = [point(0.0, 0.0), point(10.0, 50.0)];
+        let svg = svg(&Figure {
+            title: "Probe",
+            subtitle: "s",
+            catalog_as_of: "2026-01-02",
+            data_file,
+            points: &points,
+            events: &[],
+            devices: &[],
+            unpredicted: None,
+            apogee: None,
+            top_speed: None,
+        });
+        let document = roxmltree::Document::parse(&svg).unwrap();
+        let cells = title_block(&document);
+        let value = |key: &str| cells.iter().find(|cell| cell.0 == key).unwrap().1.clone();
+        assert_eq!(value("MOTOR CATALOG"), "as of 2026-01-02", "{svg}");
+        let data = value("DATA");
+        if data_file.len() < 100 {
+            assert_eq!(data, data_file);
+        } else {
+            let kept = data.strip_suffix('…').unwrap();
+            assert!(data_file.starts_with(kept), "{data}");
+            // Inside its cell even at two cells a character past ASCII, 0.6 em a cell.
+            let cells: usize = kept.chars().map(|c| if c.is_ascii() { 1 } else { 2 }).sum();
+            let inner = WIDTH - MARGIN - LEFT - 2.0 * CELL_PAD;
+            assert!((cells + 1) as f64 * 0.6 * 12.0 <= inner, "{data}");
+        }
+        assert_eq!(
+            texts(&document)
+                .iter()
+                .filter(|text| text.contains("2026-01-02"))
+                .count(),
+            1
+        );
+    }
+}
+
+/// The figure ends in a title block (`product/principles.md` §1; #382): after the trust note, a
+/// box with a 2 px ink border (`foundations.md`, *Lines*) holding the fields of
+/// `product/web.md`'s, from ISO 7200, each a capital key over its value, in rows within the
+/// sheet's text width, the figure's last thing. Before #382's fix the figure ended in one line.
+#[test]
+fn the_figure_ends_in_a_title_block() {
+    let long = "A design with a name long enough to fill most of a title block's first row, \
+                and then some";
+    for title in ["Probe", long] {
+        let svg = figure_svg(title, None);
+        let document = roxmltree::Document::parse(&svg).unwrap();
+        let cells = title_block(&document);
+        let keys: Vec<&str> = cells.iter().map(|cell| cell.0.as_str()).collect();
+        assert_eq!(
+            keys,
+            [
+                "OWNER",
+                "TITLE",
+                "TYPE",
+                "DESIGNATION",
+                "PROGRAM",
+                "UNITS",
+                "DATA",
+                "MOTOR CATALOG"
+            ]
+        );
+        let value = |key: &str| cells.iter().find(|cell| cell.0 == key).unwrap().1.clone();
+        assert_eq!(value("OWNER"), "FusionSpace");
+        assert_eq!(value("TITLE"), cut(title, NAME_LIMIT));
+        assert_eq!(value("TYPE"), "Simulated flight");
+        assert_eq!(value("UNITS"), "m, m/s, m/s², s [ft, ft/s, g]");
+        let block = document
+            .descendants()
+            .find(|node| node.attribute("id") == Some("title-block"))
+            .unwrap();
+        let border = block
+            .children()
+            .find(|node| node.has_tag_name("rect"))
+            .unwrap();
+        let number = |node: roxmltree::Node<'_, '_>, name: &str| -> f64 {
+            node.attribute(name).unwrap().parse().unwrap()
+        };
+        assert_eq!(border.attribute("stroke"), Some(INK));
+        assert_eq!(border.attribute("stroke-width"), Some("2"));
+        let (left, top) = (number(border, "x"), number(border, "y"));
+        let (right, bottom) = (
+            left + number(border, "width"),
+            top + number(border, "height"),
+        );
+        assert_eq!((left, right), (LEFT, WIDTH - MARGIN));
+        // Each cell's text inside the box, at a cell's padding from its left edge, each key 16 px
+        // under its row's top, and no two cells of a row overlapping at 0.6 em a character.
+        for (i, (key, value, x, y)) in cells.iter().enumerate() {
+            assert!((y - 16.0 - top) % CELL_HEIGHT == 0.0, "{key}: {y}");
+            assert!(y + 16.0 + 12.0 <= bottom, "{key}");
+            let wide = 0.6 * 12.0 * key.chars().count().max(value.chars().count()) as f64;
+            let end = cells
+                .get(i + 1)
+                .filter(|next| next.3 == *y)
+                .map_or(right, |next| next.2 - CELL_PAD);
+            assert!(x + wide <= end, "{key}: {value} at {x} runs past {end}");
+        }
+        // Whole rows, then the sheet's margin.
+        let height: f64 = document
+            .root_element()
+            .attribute("height")
+            .unwrap()
+            .parse()
+            .unwrap();
+        assert_eq!(((bottom - top) / CELL_HEIGHT).fract(), 0.0, "{svg}");
+        assert_eq!(height, bottom + MARGIN);
+        // Its last: nothing drawn after it.
+        assert!(svg.ends_with("</g>\n</svg>\n"));
+        assert_eq!(block.next_sibling_element(), None);
+    }
 }
 
 /// An unpredicted span is hatched in every panel, labelled above the first, outside the
@@ -416,6 +579,7 @@ fn a_long_event_line_wraps() {
         title: &title,
         subtitle: &subtitle,
         catalog_as_of: "2026-01-02",
+        data_file: "probe.csv",
         points: &points,
         events: &events,
         devices: &devices,
@@ -482,6 +646,7 @@ fn each_panel_gives_its_us_units_on_a_right_scale() {
         title: "t",
         subtitle: "s",
         catalog_as_of: "2026-01-02",
+        data_file: "probe.csv",
         points: &points,
         events: &[apogee],
         devices: &[],
@@ -534,7 +699,13 @@ fn each_panel_gives_its_us_units_on_a_right_scale() {
         .collect();
     assert_eq!(labels, ["0", "100", "200", "300"]);
     let top = altitude[0].1 + 12.0;
-    let y_of_m = |m: f64| top + PANEL_HEIGHT - m / 100.0 * PANEL_HEIGHT;
+    // The panel's height, as drawn: its plot area's.
+    let height = panel("altitude")
+        .children()
+        .find(|node| node.has_tag_name("rect") && node.attribute("fill") == Some(SURFACE))
+        .map(|node| number(node, "height"))
+        .unwrap();
+    let y_of_m = |m: f64| top + height - m / 100.0 * height;
     for (text, y) in &altitude[1..] {
         let feet: f64 = text.parse().unwrap();
         assert!(
@@ -720,6 +891,7 @@ fn the_figure_describes_its_apogee_and_top_speed() {
         title: "t",
         subtitle: "s",
         catalog_as_of: "2026-01-02",
+        data_file: "probe.csv",
         points: &[],
         events: &[],
         devices: &[],
@@ -884,18 +1056,18 @@ fn the_lines_follow_the_product_systems_types() {
         .iter()
         .filter(|line| {
             !line.ancestors().any(|node| {
-                node.attribute("id")
-                    .is_some_and(|id| id.starts_with("event-") || id == "events")
-                    || PANELS
-                        .iter()
-                        .any(|panel| node.attribute("id") == Some(panel.id))
+                node.attribute("id").is_some_and(|id| {
+                    id.starts_with("event-") || id == "events" || id == "title-block"
+                }) || PANELS
+                    .iter()
+                    .any(|panel| node.attribute("id") == Some(panel.id))
                     || node.has_tag_name("pattern")
             })
         })
         .count();
     assert_eq!(outside, 0, "{svg}");
-    // Nor a swatch of any other shape: the only rectangles are the canvas, the plot areas and
-    // the clips, and the only circles the balloons.
+    // Nor a swatch of any other shape: the only rectangles are the canvas, the plot areas, the
+    // clips and the title block's border, and the only circles the balloons.
     let rects: Vec<_> = document
         .descendants()
         .filter(|node| node.has_tag_name("rect"))
@@ -915,8 +1087,15 @@ fn the_lines_follow_the_product_systems_types() {
         .iter()
         .filter(|rect| rect.attribute("fill") == Some(SURFACE))
         .count();
-    assert_eq!((in_clip, canvas, areas), (3, 1, 3));
-    assert_eq!(rects.len(), 7, "{svg}");
+    let block = rects
+        .iter()
+        .filter(|rect| {
+            rect.parent()
+                .is_some_and(|node| node.attribute("id") == Some("title-block"))
+        })
+        .count();
+    assert_eq!((in_clip, canvas, areas, block), (3, 1, 4, 1));
+    assert_eq!(rects.len(), 8, "{svg}");
     let circles: Vec<_> = document
         .descendants()
         .filter(|node| node.has_tag_name("circle"))
@@ -1088,7 +1267,8 @@ fn the_figure_sets_its_type_on_the_scale() {
         .collect();
     rows.sort_by(f64::total_cmp);
     rows.dedup();
-    assert!(rows.len() >= 2, "{rows:?}");
+    // One row: balloons that would collide step right, not down.
+    assert_eq!(rows.len(), 1, "{rows:?}");
     let caption_last = document
         .descendants()
         .filter(|node| node.has_tag_name("text") && node.attribute("x") == Some("76"))
@@ -1139,6 +1319,35 @@ fn the_figure_sets_its_type_on_the_scale() {
         time.attribute("x").unwrap().parse::<f64>().unwrap(),
         WIDTH - RIGHT
     );
+    // The title block: from the note's last line to its top, a key, its value, and its bottom.
+    let block = document
+        .descendants()
+        .find(|node| node.attribute("id") == Some("title-block"))
+        .unwrap();
+    let border = block
+        .children()
+        .find(|node| node.has_tag_name("rect"))
+        .unwrap();
+    let note_last = document
+        .descendants()
+        .filter(|node| node.has_tag_name("text") && !node.ancestors().any(|a| a == block))
+        .map(|node| y(node, "y"))
+        .fold(f64::NEG_INFINITY, f64::max);
+    let cells: Vec<f64> = block
+        .children()
+        .filter(|node| node.has_tag_name("text"))
+        .map(|node| y(node, "y"))
+        .take(2)
+        .collect();
+    let top = y(border, "y");
+    on_scale(&[
+        top - note_last,
+        cells[0] - top,
+        cells[1] - cells[0],
+        CELL_HEIGHT - (cells[1] - top),
+        CELL_PAD,
+        LEADER_GAP,
+    ]);
 }
 
 /// No line of the figure parts a number from its unit (#382; `product/data.md`, *Numbers*):
@@ -1203,6 +1412,7 @@ fn a_number_keeps_its_unit_on_its_line() {
         title: "t",
         subtitle: "s",
         catalog_as_of: "2026-01-02",
+        data_file: "probe.csv",
         points: &[],
         events: &[],
         devices: &[],
@@ -1233,4 +1443,356 @@ fn a_number_keeps_its_unit_on_its_line() {
             );
         }
     }
+}
+
+/// A balloon as drawn: its center's x and y, its event line's x, and its leader's two ends if it
+/// has one.
+type Balloon = (f64, f64, f64, Option<((f64, f64), (f64, f64))>);
+
+/// A panel as drawn: its height, and its lines' runs of points.
+type DrawnPanel = (f64, Vec<Vec<(f64, f64)>>);
+
+/// Each balloon's center and row y, its event line's x, and its leader's two ends if it has one,
+/// in its number's order.
+fn balloons(document: &roxmltree::Document<'_>) -> Vec<Balloon> {
+    let number = |node: roxmltree::Node<'_, '_>, name: &str| -> f64 {
+        node.attribute(name).unwrap().parse().unwrap()
+    };
+    document
+        .descendants()
+        .filter(|node| {
+            node.attribute("id")
+                .is_some_and(|id| id.starts_with("event-"))
+        })
+        .map(|group| {
+            let circle = group
+                .children()
+                .find(|node| node.has_tag_name("circle"))
+                .unwrap();
+            let lines: Vec<_> = group
+                .children()
+                .filter(|node| node.has_tag_name("line"))
+                .collect();
+            let dotted = lines
+                .iter()
+                .find(|line| line.attribute("stroke-dasharray") == Some(DOTTED))
+                .unwrap();
+            let leaders: Vec<_> = lines
+                .iter()
+                .filter(|line| line.attribute("stroke-dasharray").is_none())
+                .collect();
+            assert!(leaders.len() <= 1);
+            let leader = leaders.first().map(|line| {
+                (
+                    (number(**line, "x1"), number(**line, "y1")),
+                    (number(**line, "x2"), number(**line, "y2")),
+                )
+            });
+            assert_eq!(number(*dotted, "x1"), number(*dotted, "x2"));
+            // A leader meets the event's line where the dotted line starts.
+            if let Some((_, end)) = leader {
+                assert_eq!(end, (number(*dotted, "x1"), number(*dotted, "y1")));
+            }
+            let n: usize = group.attribute("id").unwrap()["event-".len()..]
+                .parse()
+                .unwrap();
+            (
+                n,
+                (
+                    number(circle, "cx"),
+                    number(circle, "cy"),
+                    number(*dotted, "x1"),
+                    leader,
+                ),
+            )
+        })
+        .collect::<std::collections::BTreeMap<_, _>>()
+        .into_values()
+        .collect()
+}
+
+/// The figure's balloons, as a drawing sets them, for `events` over a flight from 0 to 100 s:
+/// each stepped balloon's leader runs from its circle's edge to its line, below the row, and
+/// passes no other balloon; no two balloons in a row are nearer than [`MARKER_ROW`], in time
+/// order; every balloon is whole on the figure.
+fn balloons_hold(events: &[FlightEvent]) -> Vec<Balloon> {
+    let points: Vec<Point> = (0..=100).map(|i| point(f64::from(i), 1.0)).collect();
+    let svg = svg(&Figure {
+        title: "t",
+        subtitle: "s",
+        catalog_as_of: "2026-01-02",
+        data_file: "probe.csv",
+        points: &points,
+        events,
+        devices: &[],
+        unpredicted: None,
+        apogee: None,
+        top_speed: None,
+    });
+    let document = roxmltree::Document::parse(&svg).unwrap();
+    let balloons = balloons(&document);
+    let (radius, step) = balloon_size(balloons.len());
+    for (i, (cx, cy, x, leader)) in balloons.iter().enumerate() {
+        assert!(
+            cx - radius >= MARGIN && cx + radius <= WIDTH - MARGIN,
+            "{i}: {cx}"
+        );
+        match leader {
+            None => assert!(
+                (cx - x).abs() < 0.05,
+                "{i}: {cx} off its line {x} with no leader"
+            ),
+            Some((start, end)) => {
+                assert!(
+                    ((start.0 - cx).hypot(start.1 - cy) - radius).abs() < 0.1,
+                    "{i}: {start:?}"
+                );
+                assert!(end.1 > cy + radius, "{i}: {end:?}");
+                // No other balloon of its row on its way: each center at least a radius from the
+                // segment. (A second row, past 38 instants, may sit on the first's leaders.)
+                for (j, (ox, oy, _, _)) in balloons.iter().enumerate() {
+                    if j == i || oy != cy {
+                        continue;
+                    }
+                    let (dx, dy) = (end.0 - start.0, end.1 - start.1);
+                    let t = (((ox - start.0) * dx + (oy - start.1) * dy) / (dx * dx + dy * dy))
+                        .clamp(0.0, 1.0);
+                    let d = (start.0 + t * dx - ox).hypot(start.1 + t * dy - oy);
+                    assert!(d >= radius, "{i}'s leader crosses {j}: {d}");
+                }
+            }
+        }
+    }
+    // In each row, in time order, a step apart at least.
+    let mut rows: Vec<f64> = balloons.iter().map(|b| b.1).collect();
+    rows.sort_by(f64::total_cmp);
+    rows.dedup();
+    for row in rows {
+        let xs: Vec<f64> = balloons
+            .iter()
+            .filter(|b| b.1 == row)
+            .map(|b| b.0)
+            .collect();
+        for pair in xs.windows(2) {
+            assert!(pair[1] - pair[0] >= step - 0.05, "{pair:?}");
+        }
+    }
+    balloons
+}
+
+/// Balloons that would collide step right along a short leader, in one row (`product/data.md`,
+/// *Charts*; #382), at the axis's start and its end, where they step back left from the
+/// figure's margin to stay whole. Before #382's fix they dropped to lower rows.
+#[test]
+fn colliding_balloons_step_right_on_a_leader() {
+    // Liftoff, rail exit 0.4 s on: 3.2 px apart, the second stepped right.
+    let start = balloons_hold(&[
+        event(EventKind::Liftoff, 0.0),
+        event(EventKind::RailExit, 0.4),
+        event(EventKind::Apogee, 50.0),
+    ]);
+    assert_eq!(start.len(), 3);
+    assert!(start.iter().all(|b| b.1 == start[0].1), "{start:?}");
+    assert!(start[0].3.is_none() && start[2].3.is_none(), "{start:?}");
+    assert_eq!(start[1].0 - start[0].0, MARKER_ROW);
+    assert!(start[1].3.is_some(), "{start:?}");
+    // Three in the axis's last 4 px: stepped back from the margin, the last on a leader too.
+    let end = balloons_hold(&[
+        event(EventKind::Apogee, 99.5),
+        event(EventKind::Trigger(0), 99.75),
+        event(EventKind::GroundHit, 100.0),
+    ]);
+    assert!(end.iter().all(|b| b.1 == end[0].1), "{end:?}");
+    assert_eq!(end[2].0, WIDTH - MARGIN - MARKER_RADIUS, "{end:?}");
+    assert!(end.iter().filter(|b| b.3.is_some()).count() >= 2, "{end:?}");
+}
+
+/// More balloons than a row holds, 50 at instants 0.8 px apart, take a second row in turn, each set
+/// as one, every balloon whole on the figure.
+#[test]
+fn a_crowd_of_balloons_stays_on_the_figure() {
+    let events: Vec<FlightEvent> = (0..50)
+        .map(|i| event(EventKind::Apogee, 40.0 + 0.1 * f64::from(i)))
+        .collect();
+    let balloons = balloons_hold(&events);
+    assert_eq!(balloons.len(), 50);
+    let mut rows: Vec<f64> = balloons.iter().map(|b| b.1).collect();
+    rows.sort_by(f64::total_cmp);
+    rows.dedup();
+    assert_eq!(rows.len(), 2, "{rows:?}");
+    assert_eq!(rows[1] - rows[0], MARKER_ROW);
+    // In turn: the first balloon in the first row, the second in the second.
+    assert_eq!(
+        (balloons[0].1, balloons[1].1, balloons[2].1),
+        (rows[0], rows[1], rows[0])
+    );
+}
+
+/// The length-weighted average of a polyline's segments' angles from level, rad: Cleveland's
+/// average absolute orientation, measured on the drawn path's pixels.
+fn orientation(paths: &[Vec<(f64, f64)>]) -> f64 {
+    let (mut sum, mut length) = (0.0, 0.0);
+    for path in paths {
+        for pair in path.windows(2) {
+            let (dx, dy) = ((pair[1].0 - pair[0].0).abs(), (pair[1].1 - pair[0].1).abs());
+            let l = dx.hypot(dy);
+            sum += dy.atan2(dx) * l;
+            length += l;
+        }
+    }
+    sum / length
+}
+
+/// Each panel's height and its lines' points as drawn, px.
+fn drawn_panels(svg: &str) -> Vec<DrawnPanel> {
+    let document = roxmltree::Document::parse(svg).unwrap();
+    PANELS
+        .iter()
+        .map(|panel| {
+            let group = document
+                .descendants()
+                .find(|node| node.attribute("id") == Some(panel.id))
+                .unwrap();
+            let height: f64 = group
+                .children()
+                .find(|node| node.has_tag_name("rect") && node.attribute("fill") == Some(SURFACE))
+                .and_then(|node| node.attribute("height"))
+                .unwrap()
+                .parse()
+                .unwrap();
+            let mut paths = Vec::new();
+            for path in group.children().filter(|node| node.has_tag_name("path")) {
+                let d = path.attribute("d").unwrap();
+                for run in d.split('M').filter(|run| !run.is_empty()) {
+                    paths.push(
+                        run.split('L')
+                            .map(|xy| {
+                                let (x, y) = xy.split_once(' ').unwrap();
+                                (x.parse().unwrap(), y.parse().unwrap())
+                            })
+                            .collect(),
+                    );
+                }
+            }
+            (height, paths)
+        })
+        .collect()
+}
+
+/// Each panel's height is banked to 45° (`product/data.md`, *Charts*, after Cleveland; #382):
+/// within [`PANEL_HEIGHTS`], its lines, as drawn, run at 45° on average, weighted by length,
+/// to the 4 px grid's rounding; at the least height they run steeper, at the greatest flatter.
+/// A sawtooth climb and fall bank inside the bounds, away from the 180 px every panel had
+/// before #382's fix, at which its lines ran at 48°.
+#[test]
+fn panels_bank_toward_45_degrees() {
+    // Legs of 4 s, 161.6 px wide, up and down 100 m.
+    let saw: Vec<Point> = (0..=20)
+        .map(|i| {
+            let t = f64::from(i);
+            let phase = t % 8.0;
+            let h = 25.0 * if phase <= 4.0 { phase } else { 8.0 - phase };
+            Point {
+                time_s: t,
+                height_m: h,
+                speed_m_s: h / 10.0,
+                vertical_speed_m_s: -h / 20.0,
+                acceleration_m_s2: h / 10.0,
+                vertical_acceleration_m_s2: -h / 10.0,
+            }
+        })
+        .collect();
+    let saw_svg = svg(&Figure {
+        title: "t",
+        subtitle: "s",
+        catalog_as_of: "2026-01-02",
+        data_file: "probe.csv",
+        points: &saw,
+        events: &[],
+        devices: &[],
+        unpredicted: None,
+        apogee: None,
+        top_speed: None,
+    });
+    let (least, most) = PANEL_HEIGHTS;
+    let tolerance = 1.0_f64.to_radians();
+    let target = 45.0_f64.to_radians();
+    for svg in [saw_svg.clone(), figure_svg("Probe", None)] {
+        for (height, paths) in drawn_panels(&svg) {
+            let angle = orientation(&paths);
+            assert_eq!(height % 4.0, 0.0);
+            let level = paths
+                .iter()
+                .all(|run| run.windows(2).all(|pair| pair[0].1 == pair[1].1));
+            if level {
+                assert_eq!(height, least);
+            } else if height == least {
+                assert!(
+                    angle >= target - tolerance,
+                    "{height}: {}",
+                    angle.to_degrees()
+                );
+            } else if height == most {
+                assert!(
+                    angle <= target + tolerance,
+                    "{height}: {}",
+                    angle.to_degrees()
+                );
+            } else {
+                assert!(
+                    least < height && height < most && (angle - target).abs() <= tolerance,
+                    "{height}: {}",
+                    angle.to_degrees()
+                );
+            }
+        }
+    }
+    // Every altitude leg rises the whole axis, 0 to 100 m, over 161.6 px, so the lines run at 45°
+    // at 161.6 px, 160 on the 4 px grid, whatever the weighting.
+    assert_eq!(drawn_panels(&saw_svg)[0].0, 160.0);
+}
+
+/// A panel whose lines are all level has no slope to bank and takes the least height.
+#[test]
+fn a_level_panel_takes_the_least_height() {
+    let svg = figure_svg("Probe", None);
+    // The small figure's acceleration is a constant 9 m/s², up and down.
+    let panels = drawn_panels(&svg);
+    assert_eq!(panels[2].0, PANEL_HEIGHTS.0);
+}
+
+/// The figure's data as CSV (`product/data.md`, *Charts* and *Files and exports*; #382): a header
+/// row with units in brackets, then each point's values, in SI, CRLF lines; a value that is not
+/// finite is refused by its column.
+#[test]
+fn the_figures_data_is_a_csv() {
+    let text = csv(&[point(0.0, 10.0), point(1.5, 20.0)]).unwrap();
+    assert_eq!(
+        text,
+        "time [s],altitude [m AGL],speed [m/s],vertical speed [m/s],acceleration [m/s^2],\
+         vertical acceleration [m/s^2]\r\n\
+         0.0,10.0,1.0,-0.5,9.0,-9.0\r\n\
+         1.5,20.0,2.0,-1.0,9.0,-9.0\r\n"
+    );
+    assert!(text.is_ascii());
+    let mut bad = point(2.0, 1.0);
+    bad.speed_m_s = f64::NAN;
+    let error = csv(&[point(0.0, 1.0), bad]).unwrap_err();
+    assert!(error.contains("speed [m/s] at 2 s is NaN"), "{error}");
+}
+
+/// A hundred instants and more draw three-digit numerals: every balloon grows so its numeral
+/// fits inside, 4 px of radius a digit past two, and steps as far, each still whole on the figure.
+#[test]
+fn three_digit_balloons_hold_their_numerals() {
+    let events: Vec<FlightEvent> = (0..120)
+        .map(|i| event(EventKind::Apogee, 0.5 * f64::from(i)))
+        .collect();
+    let balloons = balloons_hold(&events);
+    assert_eq!(balloons.len(), 120);
+    assert_eq!(balloon_size(120), (14.0, 32.0));
+    assert_eq!(balloon_size(99), (MARKER_RADIUS, MARKER_ROW));
+    // "120" at 0.6 em a digit inside the circle's chord at the figures' top and bottom.
+    let (r, half_height) = (14.0_f64, 0.7 * 12.0 / 2.0);
+    assert!(3.0 * 0.6 * 12.0 <= 2.0 * (r * r - half_height * half_height).sqrt());
 }
