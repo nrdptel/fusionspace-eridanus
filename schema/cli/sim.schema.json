@@ -101,7 +101,7 @@
       ]
     },
     "trust": {
-      "description": "How far to trust it, as the text form ends: what the figures are, what HPR Sim's apogee\nwas checked against, with the committed report's numbers, and what to rely on instead\n(decision record ADR-211).",
+      "description": "The trust note the text form ends with: what the figures are, what HPR Sim's apogee\nwas checked against, with the committed report's numbers, and what to rely on instead\n(decision record ADR-211).",
       "type": "string"
     },
     "warnings": {

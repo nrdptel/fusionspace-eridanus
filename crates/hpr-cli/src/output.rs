@@ -336,7 +336,7 @@ pub struct SimFlight {
     pub design: SimDesign,
     /// What kind of result this is: every figure in it is simulated, none measured.
     pub kind: crate::trust::Kind,
-    /// How far to trust it, as the text form ends: what the figures are, what HPR Sim's apogee
+    /// The trust note the text form ends with: what the figures are, what HPR Sim's apogee
     /// was checked against, with the committed report's numbers, and what to rely on instead
     /// (decision record ADR-211).
     pub trust: String,
@@ -379,7 +379,7 @@ pub struct McRun {
     pub design: SimDesign,
     /// What kind of result this is: every figure in it is simulated, none measured.
     pub kind: crate::trust::Kind,
-    /// How far to trust it, as the text form ends: what the figures are, what HPR Sim's apogee
+    /// The trust note the text form ends with: what the figures are, what HPR Sim's apogee
     /// was checked against, with the committed report's numbers, and what to rely on instead
     /// (decision record ADR-211).
     pub trust: String,

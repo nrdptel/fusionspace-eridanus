@@ -81,9 +81,9 @@
 //! offline from the cache only; an answer that doesn't parse is never cached. Show
 //! [`ATTRIBUTION`] (it is on every [`Fetched`]) wherever the sounding is shown.
 //!
-//! **How far to trust it:** the profile gives back every row it keeps as recorded (the tests). A
-//! radiosonde's own errors are small next to how far the air can change between the station and
-//! the launch, and nothing here measures that. The [guide page][guide] says more.
+//! > **How far to trust it.** The profile gives back every row it keeps as recorded (the tests). A
+//! > radiosonde's own errors are small next to how far the air can change between the station and
+//! > the launch, and nothing here measures that. The [guide page][guide] says more.
 //!
 //! ```
 //! use hpr_atmos::WindInterpolation;

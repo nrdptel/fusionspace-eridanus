@@ -17,10 +17,10 @@
 //! - [`Rocket`]: parts added from the nose back, the motor, and the recovery devices.
 //! - [`Flight`]: the rocket flown from a rail, with its apogee, speeds and landing.
 //!
-//! **How far to trust it:** the builder adds no physics of its own. It makes the same design
-//! tree and flies the same simulation as the crates below it, and a test flies a rocket built
-//! both ways to the same numbers, bit for bit. So its numbers are as good as those models are;
-//! the guide's [Accuracy][guide-accuracy] page says how good that is, with every comparison made.
+//! > **How far to trust it.** The builder adds no physics of its own. It makes the same design
+//! > tree and flies the same simulation as the crates below it, and a test flies a rocket built
+//! > both ways to the same numbers, bit for bit. So its numbers are as good as those models are;
+//! > the guide's [Accuracy][guide-accuracy] page says how good that is, with every comparison made.
 //!
 //! [guide-accuracy]: https://hpr.fusionspace.co/accuracy.html
 //!

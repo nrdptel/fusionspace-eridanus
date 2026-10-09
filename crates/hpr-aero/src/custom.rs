@@ -22,9 +22,9 @@
 //! (Reynolds number per meter, whether a motor is thrusting) and HPR Sim's own buildup at that flow,
 //! so a model can adjust HPR Sim's number instead of replacing it.
 //!
-//! **How far to trust it:** as far as the model, and no further than HPR Sim's other models, which
-//! still fly the rest of the rocket. HPR Sim refuses a coefficient that is negative or not finite; it
-//! can't know whether the number is right.
+//! > **How far to trust it.** As far as the model, and no further than HPR Sim's other models, which
+//! > still fly the rest of the rocket. HPR Sim refuses a coefficient that is negative or not finite; it
+//! > can't know whether the number is right.
 //!
 //! ```
 //! use hpr_aero::{AeroError, AeroModel, DragConditions, DragModel, DragQuery, Flow};

@@ -10,9 +10,9 @@
 //! 4. [`beneath`]: the crates under the builder, for what it doesn't offer.
 //! 5. [`examples`]: the example programs, and what each shows.
 //!
-//! **How far to trust it.** The builder adds no physics; its numbers are those of the models
-//! beneath it. The site's [Accuracy][accuracy] page says how well each has been checked, with
-//! every comparison made. Read it before trusting a number.
+//! > **How far to trust it.** The builder adds no physics; its numbers are those of the models
+//! > beneath it. The site's [Accuracy][accuracy] page says how well each has been checked, with
+//! > every comparison made. Read it before trusting a number.
 //!
 //! [accuracy]: https://hpr.fusionspace.co/accuracy.html
 
@@ -210,11 +210,11 @@ pub mod custom_models {
     //! # Ok::<(), hpr::Error>(())
     //! ```
     //!
-    //! **How far to trust it:** as far as the model, and no further than HPR Sim's other models,
-    //! which still fly the rest of the rocket and are not yet validated against real flights.
-    //! HPR Sim refuses a drag coefficient that is negative or not finite; it can't know whether a
-    //! model is right. A model is asked many times a step, so keep it quick, and give the same
-    //! answer to the same question: a flight is only as repeatable as its models.
+    //! > **How far to trust it.** As far as the model, and no further than HPR Sim's other models,
+    //! > which still fly the rest of the rocket and are not yet validated against real flights.
+    //! > HPR Sim refuses a drag coefficient that is negative or not finite; it can't know whether a
+    //! > model is right. A model is asked many times a step, so keep it quick, and give the same
+    //! > answer to the same question: a flight is only as repeatable as its models.
     //!
     //! HPR Sim refuses a wind velocity that isn't finite wherever it reads the wind, climbing or
     //! under a canopy, with a [`SimError::Domain`](hpr_sim::SimError::Domain) that names the wind

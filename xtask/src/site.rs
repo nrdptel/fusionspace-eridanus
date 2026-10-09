@@ -48,7 +48,9 @@
 //!   (`docs/writing.md`). The label "How far to trust" fails anywhere else: bold in other words or
 //!   in another place, in plain text or a link's, or as a heading, which says what its section
 //!   covers instead. So does a quote block that opens with a bold "not validated" sentence, the
-//!   note's older shape. Code is exempt ([`trust_notes`]).
+//!   note's older shape. Code is exempt. Text is read as it renders, wrapped lines joined. The
+//!   check holds the label, its place, headings and that opener, not the note's three parts,
+//!   which a reviewer reads ([`trust_notes`]).
 //!
 //! `cargo test` runs these on the real pages. `cargo xtask site` runs them, builds the site into
 //! `target/site` with mdBook, and checks the built HTML as well: every relative `href` and `src`
@@ -1163,7 +1165,11 @@ const TRUST_SHAPE: &str = "a trust note is a quote block whose first paragraph o
 ///
 /// A quote block that opens with a bold sentence saying "not validated" fails too: it is the
 /// note's older shape. Code, fenced or inline, and raw HTML are exempt: they quote programs and
-/// output as written.
+/// output as written. Text is read a block at a time, as it renders: a line break is a space,
+/// and emphasis doesn't split a block's words.
+///
+/// The check holds the label, its place, headings and the "not validated" opener; it doesn't
+/// read the note's three parts, which a reviewer checks.
 fn trust_notes(text: &str) -> Vec<(usize, String)> {
     let line = line_index(text);
     let mut problems = Vec::new();
@@ -1172,14 +1178,6 @@ fn trust_notes(text: &str) -> Vec<(usize, String)> {
             .trim_start()
             .to_lowercase()
             .starts_with("how far to trust")
-    };
-    let plain_label = |plain: &str, at: usize, problems: &mut Vec<(usize, String)>| {
-        if plain.contains("How far to trust") {
-            problems.push((
-                line(at),
-                format!("the label \"How far to trust\" in plain text: {TRUST_SHAPE}"),
-            ));
-        }
     };
     // A quote block has started, and no block in it yet.
     let mut quote_opens = false;
@@ -1192,19 +1190,26 @@ fn trust_notes(text: &str) -> Vec<(usize, String)> {
     let mut strong_depth = 0usize;
     let mut heading: Option<(usize, String)> = None;
     let mut in_code_block = false;
-    // Consecutive plain text, read as one however the parser splits it.
-    let mut plain = String::new();
-    let mut plain_at = 0;
+    // The text of the block being read (a paragraph, a list item's, a table cell's), however
+    // line breaks and emphasis split it.
+    let mut block = BlockText::default();
     for (event, range) in Parser::new_ext(text, options()).into_offset_iter() {
         let opens_note = std::mem::take(&mut note_slot);
-        let is_plain = matches!(event, Event::Text(_))
-            && strong.is_none()
-            && heading.is_none()
-            && !in_code_block;
-        if !is_plain && !plain.is_empty() {
-            plain_label(&plain, plain_at, &mut problems);
-            plain.clear();
+        // A block starts or ends: the text read so far is whole.
+        let block_edge = match &event {
+            Event::Start(tag) => !inline_tag(&tag.to_end()),
+            Event::End(tag) => !inline_tag(tag),
+            _ => false,
+        };
+        if block_edge {
+            for at in std::mem::take(&mut block).plain_labels() {
+                problems.push((
+                    line(at),
+                    format!("the label \"How far to trust\" in plain text: {TRUST_SHAPE}"),
+                ));
+            }
         }
+        let in_block = heading.is_none() && !in_code_block;
         match event {
             Event::Start(Tag::BlockQuote(_)) => quote_opens = true,
             Event::Start(Tag::Paragraph) => note_slot = std::mem::take(&mut quote_opens),
@@ -1235,6 +1240,9 @@ fn trust_notes(text: &str) -> Vec<(usize, String)> {
                 strong_depth += 1;
                 if strong_depth == 1 {
                     strong = Some((range.start, opens_note, String::new()));
+                    if in_block {
+                        block.bold_from = Some(block.text.len());
+                    }
                 }
             }
             Event::End(TagEnd::Strong) => {
@@ -1242,6 +1250,9 @@ fn trust_notes(text: &str) -> Vec<(usize, String)> {
                 if strong_depth == 0
                     && let Some((at, opens, words)) = strong.take()
                 {
+                    if let Some(from) = block.bold_from.take() {
+                        block.bold.push((from, block.text.len()));
+                    }
                     if opens && words.to_lowercase().contains("not validated") {
                         problems.push((
                             line(at),
@@ -1263,31 +1274,115 @@ fn trust_notes(text: &str) -> Vec<(usize, String)> {
                     }
                 }
             }
-            // Inline code inside bold or a heading is part of what it says; on its own it quotes
-            // code, and is exempt.
-            Event::Text(words) | Event::Code(words) => {
+            // A line break inside a paragraph is a space between its words.
+            Event::Text(_) | Event::Code(_) | Event::SoftBreak | Event::HardBreak => {
+                let words: &str = match &event {
+                    Event::Text(words) | Event::Code(words) => words,
+                    _ => " ",
+                };
                 if let Some((_, _, bold)) = strong.as_mut() {
-                    bold.push_str(&words);
+                    push_words(bold, words);
                 }
                 if let Some((_, title)) = heading.as_mut() {
-                    title.push_str(&words);
+                    push_words(title, words);
                 }
-                if is_plain {
-                    if plain.is_empty() {
-                        plain_at = range.start;
-                    }
-                    plain.push_str(&words);
+                if in_block {
+                    // Inline code inside bold or a heading is part of what it says; on its own
+                    // it quotes code, is exempt, and joins no words around it.
+                    let words = if matches!(event, Event::Code(_)) && strong.is_none() {
+                        CODE_GAP
+                    } else {
+                        words
+                    };
+                    block.chunks.push((block.text.len(), range.start));
+                    push_words(&mut block.text, words);
                 }
+            }
+            // Raw HTML quotes markup as written, and joins no words around it.
+            Event::InlineHtml(_) | Event::InlineMath(_) | Event::DisplayMath(_) if in_block => {
+                push_words(&mut block.text, CODE_GAP);
             }
             // Any other block opens the quote block instead of a paragraph.
             Event::Start(_) => quote_opens = false,
             _ => {}
         }
     }
-    if !plain.is_empty() {
-        plain_label(&plain, plain_at, &mut problems);
+    for at in block.plain_labels() {
+        problems.push((
+            line(at),
+            format!("the label \"How far to trust\" in plain text: {TRUST_SHAPE}"),
+        ));
     }
+    // A block's plain labels come after its bold ones; the page's order is the lines'.
+    problems.sort_by_key(|(at, _)| *at);
     problems
+}
+
+/// What stands for a code span or raw HTML in a block's text for [`trust_notes`]: no words, and
+/// not a space, so the words on either side don't join into a label.
+const CODE_GAP: &str = "\u{1}";
+
+/// Appends `words` to `text` with each run of white space, a line break's included, as one space
+/// and none at the start, so wrapped text reads as it renders.
+fn push_words(text: &mut String, words: &str) {
+    for c in words.chars() {
+        if !c.is_whitespace() {
+            text.push(c);
+        } else if !text.is_empty() && !text.ends_with(' ') {
+            text.push(' ');
+        }
+    }
+}
+
+/// Whether a tag is an inline one, inside a block's text, rather than a block.
+fn inline_tag(tag: &TagEnd) -> bool {
+    matches!(
+        tag,
+        TagEnd::Emphasis
+            | TagEnd::Strong
+            | TagEnd::Strikethrough
+            | TagEnd::Superscript
+            | TagEnd::Subscript
+            | TagEnd::Link
+            | TagEnd::Image
+    )
+}
+
+/// The text of one block for [`trust_notes`], bold and emphasis included, white space as
+/// [`push_words`] leaves it.
+#[derive(Default)]
+struct BlockText {
+    text: String,
+    /// The bold runs in `text`, as byte ranges; [`trust_notes`] reads their words as bold.
+    bold: Vec<(usize, usize)>,
+    /// Where the bold run being read starts in `text`.
+    bold_from: Option<usize>,
+    /// Where each piece of `text` starts, in `text` and in the page.
+    chunks: Vec<(usize, usize)>,
+}
+
+impl BlockText {
+    /// The page offsets of each "How far to trust" in the block not wholly inside bold, which
+    /// [`trust_notes`] reports as bold.
+    fn plain_labels(&self) -> Vec<usize> {
+        const LABEL: &str = "How far to trust";
+        self.text
+            .match_indices(LABEL)
+            .filter(|(at, _)| {
+                !self
+                    .bold
+                    .iter()
+                    .any(|&(from, to)| from <= *at && at + LABEL.len() <= to)
+            })
+            .map(|(at, _)| {
+                self.chunks
+                    .iter()
+                    .rev()
+                    .find(|(start, _)| *start <= at)
+                    .map_or(0, |&(_, page)| page)
+            })
+            .collect()
+    }
 }
 
 /// What a line of the roadmap says about a milestone.
@@ -3356,6 +3451,67 @@ mod tests {
             reported[0].starts_with("docs/start-here.md:3: the bold label"),
             "{reported:?}"
         );
+    }
+
+    #[test]
+    fn a_trust_note_wrapped_across_lines_passes() {
+        assert_eq!(
+            trust_notes("> **How far to trust\n> it.** A real note.\n"),
+            Vec::<(usize, String)>::new()
+        );
+    }
+
+    #[test]
+    fn a_plain_label_wrapped_across_lines_fails() {
+        let found = trust_notes("Prose. How far to\ntrust it: plain.\n");
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert_eq!(found[0].0, 1);
+        assert!(
+            found[0]
+                .1
+                .starts_with("the label \"How far to trust\" in plain text"),
+            "{found:?}"
+        );
+    }
+
+    #[test]
+    fn a_bold_label_wrapped_across_lines_fails() {
+        let found = trust_notes("Prose **How far to\ntrust the margin.** bold.\n");
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert!(
+            found[0]
+                .1
+                .starts_with("the bold label \"How far to trust the margin.\""),
+            "{found:?}"
+        );
+    }
+
+    #[test]
+    fn a_not_validated_opener_wrapped_across_lines_fails() {
+        let found = trust_notes("> **The numbers are not\n> validated.** Old opener.\n");
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert!(
+            found[0]
+                .1
+                .starts_with("a quote block opens with \"The numbers are not validated.\""),
+            "{found:?}"
+        );
+    }
+
+    #[test]
+    fn a_plain_label_split_by_emphasis_fails() {
+        let found = trust_notes("How *far* to trust it.\n");
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert!(
+            found[0]
+                .1
+                .starts_with("the label \"How far to trust\" in plain text"),
+            "{found:?}"
+        );
+        // Bold that covers only part of the label leaves the label in plain text.
+        let found = trust_notes("How far **to trust** it.\n");
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert!(found[0].1.starts_with("the label"), "{found:?}");
     }
 
     #[test]

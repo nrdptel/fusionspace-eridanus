@@ -21,13 +21,13 @@
 //! data from motor.fusionspace.co", and its terms say to check stock and price on the vendor's
 //! own page before relying on them.
 //!
-//! **How far to trust it:** a value is the answer's, unchanged, bar a listing status the API adds
-//! later (`tests/motor_finder.rs` reads every field of every recorded answer back). Whether a vendor really has a motor, at that price,
-//! is the vendor's to say: the finder reads their public listings, up to about an hour old when it
-//! builds its files, and a fresh cached copy may be an hour older again. One value that breaks a
-//! rule refuses the whole file, so the last good copy is kept; a cheapest offer with no price,
-//! which the API allows, and a listing status it adds later (read as
-//! [`ListingStatus::Unknown`]) are read.
+//! > **How far to trust it.** A value is the answer's, unchanged, bar a listing status the API adds
+//! > later (`tests/motor_finder.rs` reads every field of every recorded answer back). Whether a vendor really has a motor, at that price,
+//! > is the vendor's to say: the finder reads their public listings, up to about an hour old when it
+//! > builds its files, and a fresh cached copy may be an hour older again. One value that breaks a
+//! > rule refuses the whole file, so the last good copy is kept; a cheapest offer with no price,
+//! > which the API allows, and a listing status it adds later (read as
+//! > [`ListingStatus::Unknown`]) are read.
 //!
 //! ```
 //! use hpr_net::motor_finder;

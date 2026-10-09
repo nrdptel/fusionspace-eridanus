@@ -68,9 +68,9 @@
 //! keeps only recent runs: on 2026-09-30 its filters listed 10 days of GFS and 2 of RAP). The data is a U.S. government work, free of
 //! copyright; [`ATTRIBUTION`] credits it.
 //!
-//! **How far to trust it:** the decoder gives every value and grid point ecCodes does (the tests),
-//! and the profile gives back the interpolated values at every level it keeps. How good a forecast
-//! is depends on the model, and nothing here measures that. The [guide page][guide] says more.
+//! > **How far to trust it.** The decoder gives every value and grid point ecCodes does (the tests),
+//! > and the profile gives back the interpolated values at every level it keeps. How good a forecast
+//! > is depends on the model, and nothing here measures that. The [guide page][guide] says more.
 //!
 //! ```
 //! use hpr_atmos::WindInterpolation;

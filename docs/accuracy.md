@@ -818,6 +818,10 @@ of the same flight, were flown by HPR Sim and by [OpenRocket](glossary.md#openro
 of their day. Both over-predict: HPR Sim's [apogees](glossary.md#apogee) are +9.83% above the logs
 on average (mean absolute 13.96%), OpenRocket's +9.00% (13.08%). HPR Sim and OpenRocket agree with
 each other within 5% on 53 of the 55 ([report][fixture-report]). Neither meets the 5% target.**
+The [report][fixture-report]'s histogram gives the low side, the one a waiver depends on: its bins
+below zero hold the flights whose simulated apogee read under the log. Each logged apogee is the
+height climbed in the day's air, the altimeter's reading corrected for the weather as the report
+sets out.
 HPR Sim and OpenRocket agree with each other far better than with the logs, so the gap is not a
 difference between the two codes; what causes it is not shown here. The flights' owners allow only
 aggregate statistics, so no flight is named here, and the logs' readings were taken by hand from

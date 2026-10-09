@@ -76,8 +76,9 @@ fn sim_says_its_figures_are_simulated_and_ends_with_how_far_to_trust_them() {
     // The three parts, in order: the kind, what it was checked against, what to rely on instead.
     let parts = [
         "Simulated from the design file, not measured.",
-        "Against 55 logged flights of fliers' own designs, the simulated apogee averaged 9.8% \
-         above the altimeter's; it was within 10% on 27 and low on 14, by at most 20%.",
+        "Against 55 logged flights of fliers' own designs, each logged apogee the height climbed \
+         in the day's air, the simulated apogee averaged 9.8% above the logged one; it was within \
+         10% on 27 and read low on 14, by at most 20%.",
         "Plan a waiver or a field's ceiling with room above this apogee; the altimeter's \
          reading is the one to log, and the RSO decides.",
     ];

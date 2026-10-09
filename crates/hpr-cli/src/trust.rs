@@ -6,7 +6,7 @@
 //! `validation/reports/fixture-flights.json`, HPR Sim's apogee against 55 logged flights of
 //! fliers' own designs, flown as drawn (M2.3c1, ADR-184). That is the largest comparison with
 //! real flights the project has, and the least flattering: on it the simulated apogee averages
-//! 9.8% above the altimeter's. A test holds each figure here to the report, so a regenerated
+//! 9.8% above the logged apogee, each the height climbed in the day's air. A test holds each figure here to the report, so a regenerated
 //! report that moves one fails until the note is updated.
 
 use std::fmt::Write as _;
@@ -23,19 +23,20 @@ pub(crate) const LABEL: &str = "How far to trust it.";
 /// The flights the report compares: those HPR Sim flies of the collection's logged flights.
 pub(crate) const FLIGHTS: usize = 55;
 /// The mean of the apogee errors, percent, to a tenth: simulated less logged, over logged, so
-/// positive is a simulated apogee above the altimeter's.
+/// positive is a simulated apogee above the logged one.
 pub(crate) const MEAN_PERCENT: f64 = 9.8;
 /// The flights whose error is strictly smaller than 10% either way.
 pub(crate) const WITHIN_10: usize = 27;
-/// The flights whose error is below zero: a simulated apogee under the altimeter's.
+/// The flights whose error is below zero: a simulated apogee under the logged one.
 pub(crate) const LOW: usize = 14;
-/// How far below the altimeter's the lowest simulated apogee read, at most, percent: the lower
+/// How far below the logged apogee the lowest simulated apogee read, at most, percent: the lower
 /// edge of the lowest histogram bin holding a flight.
 pub(crate) const LOW_AT_MOST_PERCENT: f64 = 20.0;
 
 /// What kind of result a command printed: the kind every figure in it is.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, schemars::JsonSchema)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum Kind {
     /// From a model of the flight, not measured.
     Simulated,
@@ -45,9 +46,10 @@ pub enum Kind {
 /// numbers, and what to rely on instead, with where to read more.
 fn checked_and_instead() -> String {
     format!(
-        "Against {FLIGHTS} logged flights of fliers' own designs, the simulated apogee averaged \
-         {MEAN_PERCENT:.1}% above the altimeter's; it was within 10% on {WITHIN_10} and low on \
-         {LOW}, by at most {LOW_AT_MOST_PERCENT:.0}%. Plan a waiver or a field's ceiling with room \
+        "Against {FLIGHTS} logged flights of fliers' own designs, each logged apogee the height \
+         climbed in the day's air, the simulated apogee averaged {MEAN_PERCENT:.1}% above the \
+         logged one; it was within 10% on {WITHIN_10} and read low on {LOW}, by at most \
+         {LOW_AT_MOST_PERCENT:.0}%. Plan a waiver or a field's ceiling with room \
          above this apogee; the altimeter's reading is the one to log, and the RSO decides.\
          {MORE}{ACCURACY_URL}"
     )

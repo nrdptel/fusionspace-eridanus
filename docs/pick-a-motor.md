@@ -124,9 +124,10 @@ top Mach number       0.639
 landing               0.7 m (2 ft) from the pad at 202.71 s, at 4.7 m/s (15 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
-fliers' own designs, the simulated apogee averaged 9.8% above the altimeter's; it was within 10% on
-27 and low on 14, by at most 20%. Plan a waiver or a field's ceiling with room above this apogee;
-the altimeter's reading is the one to log, and the RSO decides.
+fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
+averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
+log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 
@@ -176,9 +177,10 @@ top Mach number       1.095
 landing               0.8 m (3 ft) from the pad at 269.86 s, at 5.0 m/s (16 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
-fliers' own designs, the simulated apogee averaged 9.8% above the altimeter's; it was within 10% on
-27 and low on 14, by at most 20%. Plan a waiver or a field's ceiling with room above this apogee;
-the altimeter's reading is the one to log, and the RSO decides.
+fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
+averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
+log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 
@@ -272,9 +274,10 @@ top Mach number       0.830
 landing               0.7 m (2 ft) from the pad at 247.48 s, at 4.5 m/s (15 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
-fliers' own designs, the simulated apogee averaged 9.8% above the altimeter's; it was within 10% on
-27 and low on 14, by at most 20%. Plan a waiver or a field's ceiling with room above this apogee;
-the altimeter's reading is the one to log, and the RSO decides.
+fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
+averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
+log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 

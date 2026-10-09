@@ -93,14 +93,20 @@ Until FusionSpace named its products after the stars of project Eridanus, in Oct
 
 ### The accuracy note on every result
 
-`hpr sim` and `hpr mc` say under the design's name that their figures are simulated, and end
-their result with a trust note on standard output with the result, so a saved
-flight keeps it. The note says what kind of figure it is, what the simulated apogee was checked
-against, with the committed report's numbers, and what to rely on instead: 55 logged flights
-whose simulated apogee averaged 9.8% above the altimeter's ([Accuracy: real flights of
-the private collection](accuracy.md#real-flights-of-the-private-collection)). The plot ends with the same
-note, and `--json` carries it as `trust`, with `kind` set to `simulated`
+`hpr sim` and `hpr mc` end their text result, and the plot, with a three-part trust note: what
+kind of figure this is, what the apogee was checked against, with
+numbers, and what to rely on instead. It is on standard output, so `> flight.txt` keeps it, and
+`--json` carries it as `trust`, with `kind` set to `simulated`
 ([ADR-211](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0211-how-far-to-trust-a-result.md), the decision).
+
+The numbers cover the apogee only: 55 logged flights of fliers' own designs, each logged apogee
+the height climbed in the day's air. The simulated apogee averaged 9.8% above the logged one; it
+was within 10% on 27 and read low on 14, by at most 20%
+([Accuracy: real flights of the private collection](accuracy.md#real-flights-of-the-private-collection)).
+Speed, drift and the margin have no measured spread yet. The note asks for room above the apogee
+when planning a waiver (the permission to fly above a height limit), and leaves the call to the
+RSO, the range safety officer. `hpr weather`, `hpr analyze` and `hpr motors show` print no note:
+their figures are read or fetched, not simulated.
 
 ### Colors and messages
 
@@ -249,9 +255,10 @@ top Mach number       0.525
 landing               17.4 m (57 ft) from the pad at 29.71 s, at 65.9 m/s (216 ft/s): with no recovery device opened soon after apogee, not a prediction
 
 How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
-fliers' own designs, the simulated apogee averaged 9.8% above the altimeter's; it was within 10% on
-27 and low on 14, by at most 20%. Plan a waiver or a field's ceiling with room above this apogee;
-the altimeter's reading is the one to log, and the RSO decides.
+fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
+averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
+log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 
@@ -262,6 +269,7 @@ What each part says:
 | lines | what they say |
 |---|---|
 | the first two | the rocket's name and its file; the [configuration](glossary.md#configuration) flown, by its number in the file and its name ([below](#the-motor-and-the-configuration)). `[H128W-0]` is the file's unnamed configuration, called by the motor it holds, and `with --motor H54` says the H54 flew in its place. The file's other configurations follow, each with why it doesn't fly as read, if it doesn't |
+| `a simulated flight, not a measurement` | that every figure below comes from a model of the flight, not from a measurement |
 | `static margin` | the [static margin](glossary.md#stability-margin) as the rocket leaves the rail, in [calibres](glossary.md#calibre-caliber), at Mach 0, and its least value from there to apogee. Each is the weakest direction's: a rocket with a fin set of one or two fins has a different margin for each direction the air crosses it, and the simulator prints the least; the JSON's `roll_rad` gives that direction ([Flight metrics](physics/metrics.md#stability-margins)) |
 | `CG and CP` | the stations the margin off the rail comes from: the [center of gravity](glossary.md#center-of-gravity-cg) and the [center of pressure](glossary.md#center-of-pressure-cp), each in meters and inches aft of the nose tip, as the rocket leaves the rail. The margin is their distance apart over the reference diameter. The JSON gives them as `cg_station_m` and `cp_station_m` |
 | `apogee` | the [apogee](glossary.md#apogee): the height of the center of gravity above the site, and when |
@@ -372,9 +380,10 @@ top Mach number       0.194
 landing               0.4 m (1 ft) from the pad at 53.94 s, at 4.7 m/s (15 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
-fliers' own designs, the simulated apogee averaged 9.8% above the altimeter's; it was within 10% on
-27 and low on 14, by at most 20%. Plan a waiver or a field's ceiling with room above this apogee;
-the altimeter's reading is the one to log, and the RSO decides.
+fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
+averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
+log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 
@@ -572,9 +581,10 @@ top Mach number       0.556
 landing               310.4 m (1018 ft) from the pad at 28.71 s, at 70.3 m/s (230 ft/s): with no recovery device opened soon after apogee, not a prediction
 
 How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
-fliers' own designs, the simulated apogee averaged 9.8% above the altimeter's; it was within 10% on
-27 and low on 14, by at most 20%. Plan a waiver or a field's ceiling with room above this apogee;
-the altimeter's reading is the one to log, and the RSO decides.
+fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
+averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
+log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 
@@ -816,9 +826,9 @@ warning: stability, the nominal flight: issue #172: the static margin read up to
 
 How far to trust it. Simulated from the design file, not measured; the spread above comes from the
 inputs' scatter alone, not from the model's error. Against 55 logged flights of fliers' own designs,
-the simulated apogee averaged 9.8% above the altimeter's; it was within 10% on 27 and low on 14, by
-at most 20%. Plan a waiver or a field's ceiling with room above this apogee; the altimeter's reading
-is the one to log, and the RSO decides.
+each logged apogee the height climbed in the day's air, the simulated apogee averaged 9.8% above the
+logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan a waiver or a field's
+ceiling with room above this apogee; the altimeter's reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 

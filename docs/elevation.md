@@ -21,12 +21,13 @@ The tests replay two saved answers and never contact Open-Meteo. The live servic
 by hand, over an encrypted (HTTPS) connection, to record them. So a change in Open-Meteo's answers
 would show only when a program runs, as a refused answer.
 
-> **How far to trust it.** From a file, a copied value: at a given place, HPR Sim reads the same stored
-> value as GDAL,
-> the library most mapping programs read terrain with. That is checked at 2,800 places in seven
-> small files, in CI, and at 2,000 places in a whole tile from the US Geological Survey (USGS), on
-> machines that have downloaded it, not in CI ([how](#how-the-file-reader-is-checked)). Only files on a latitude and longitude grid are read. How
-> accurate the height itself is depends on who made the file; the simulator gives back what is stored.
+> **How far to trust it.** From a file, a copied value: at a given place, HPR Sim reads the same
+> stored value as GDAL, the library most mapping programs read terrain with. That is checked at
+> 2,800 places in seven small files, in CI, and at 2,000 places in a whole tile from the US
+> Geological Survey (USGS), on machines that have downloaded it, not in CI
+> ([how](#how-the-file-reader-is-checked)). Only files on a latitude and longitude grid are read.
+> How accurate the height itself is depends on who made the file; the simulator gives back what is
+> stored.
 
 Code:
 

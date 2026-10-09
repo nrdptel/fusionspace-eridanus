@@ -70,9 +70,10 @@ top Mach number       0.842
 landing               0.7 m (2 ft) from the pad at 245.78 s, at 4.4 m/s (15 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
-fliers' own designs, the simulated apogee averaged 9.8% above the altimeter's; it was within 10% on
-27 and low on 14, by at most 20%. Plan a waiver or a field's ceiling with room above this apogee;
-the altimeter's reading is the one to log, and the RSO decides.
+fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
+averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
+log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 
@@ -157,9 +158,10 @@ top Mach number       0.874
 landing               755.8 m (2480 ft) from the pad at 246.17 s, at 6.3 m/s (21 ft/s)
 
 How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
-fliers' own designs, the simulated apogee averaged 9.8% above the altimeter's; it was within 10% on
-27 and low on 14, by at most 20%. Plan a waiver or a field's ceiling with room above this apogee;
-the altimeter's reading is the one to log, and the RSO decides.
+fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
+averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
+log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
 
