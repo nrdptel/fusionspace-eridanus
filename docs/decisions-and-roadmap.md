@@ -365,7 +365,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9c16"></a>[M0.9c16][done-0] | US units on the model pages | done |
 | <a id="m0-9d"></a>[M0.9d][phase-0] | The site to the design | not yet done |
 | <a id="m0-9d1"></a>[M0.9d1][done-0] | The figures in tokens | done |
-| <a id="m0-9d2"></a>[M0.9d2][phase-0] | The site's defaults | not yet done |
+| <a id="m0-9d2"></a>[M0.9d2][done-0] | The site's defaults | done |
 | <a id="m0-9d3"></a>[M0.9d3][phase-0] | The page anatomy | not yet done |
 | <a id="m0-9d4"></a>[M0.9d4][phase-0] | The site's defaults | not yet done |
 | <a id="m0-9e"></a>[M0.9e][phase-0] | The words to the design | not yet done |
