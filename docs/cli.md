@@ -1426,10 +1426,13 @@ simulator flies; where its curve file's header says otherwise, a warning says so
 the figures worked out from them (the mass fraction, the specific impulse, and the mass and center
 of gravity at each point) are rescaled to match, and a warning says that too. The delays are the
 curve file's, which can differ from the ones `hpr motors show` lists. After the line naming the
-program, the file says the catalog's date, the day its curve files were downloaded: a `;` comment in
-`.eng`, an XML comment in `.rse`. An existing file of the output's name is replaced, but never the
-file being read: to rewrite a `.eng` file in the simulator's layout, convert it to a new `.eng` file
-name. Here the Estes F15's `.rse` file, from the catalog's curves, becomes a `.eng` file:
+program, the file says where the curve came from: "Copied from the bundled motor catalog as of" the
+catalog's date, written YYYY-MM-DD, "the day its curve files were downloaded", as a `;` comment in
+`.eng` and an XML comment in `.rse`. A motor read from a file gets no such line. Converted again, a
+`.eng` file keeps the line as one of its comments; a `.rse` file's reader skips XML comments, so it
+is not carried on. An existing file of the output's name is replaced, but never the file being read:
+to rewrite a `.eng` file in the simulator's layout, convert it to a new `.eng` file name. Here the
+Estes F15's `.rse` file, from the catalog's curves, becomes a `.eng` file:
 
 <!-- cli: example `hpr convert crates/hpr-motor/data/thrustcurve/curves/5f923edb1bca5800041716ab.rse F15.eng`; written by `cargo xtask cli`; do not edit -->
 
@@ -1768,12 +1771,13 @@ lowest up, each with:
 | `wind_speed_m_s` | meters per second |
 | `wind_direction_from_rad` | radians clockwise from true north, where the wind comes from |
 
-Before them, after the `tool` object naming the program, `kind` says what the figures are
-(`measured` for a balloon sounding, `forecast`, or `reanalysis` for ERA5), and `trust` holds the
-note the printed result ends with, so a saved profile keeps how far to trust it. The library reads
-past these three keys. Beside the levels, `latitude_rad` is the latitude the profile was measured or
-forecast at, in radians, and `wind_interpolation` says how the wind is blended between levels
-(`speed_direction`). The Rust library reads the file back as a
+The file opens with a `tool` object naming the program that wrote it, then `kind`, which says what
+the figures are (`measured` for a balloon sounding, `forecast`, or `reanalysis` for ERA5), and
+`trust`, the note the printed result ends with, so a saved profile keeps how far to trust it.
+Nothing checks or uses these three keys: the library reads past them, and reads a profile saved
+before they were written too. After them come the `levels` above, then `latitude_rad`, the latitude
+the profile was measured or forecast at, in radians, and `wind_interpolation`, how the wind is
+blended between levels (`speed_direction`). The Rust library reads the file back as a
 [`SoundingProfile`](api/hpr_atmos/profile/struct.SoundingProfile.html), with the same checks. The
 text output and `--json` give the same levels with the direction in degrees.
 

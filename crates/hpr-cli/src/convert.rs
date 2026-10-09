@@ -590,6 +590,41 @@ pub(crate) fn file_name(path: &str) -> String {
 mod tests {
     use super::*;
 
+    /// The catalog's date goes on the second line of either format, and a date that isn't
+    /// `YYYY-MM-DD`, which could hold the `--` an XML comment can't, or a file with no first line
+    /// to follow, is refused rather than written.
+    #[test]
+    fn the_catalog_line_follows_the_first_and_takes_only_a_date() {
+        let line = catalog_line("2026-09-01");
+        assert_eq!(
+            dated("; stamp\nH54\n", MotorFile::Eng, "2026-09-01").unwrap(),
+            format!("; stamp\n; {line}\nH54\n")
+        );
+        assert_eq!(
+            dated(
+                "<!-- stamp -->\n<engine-database>\n",
+                MotorFile::Rse,
+                "2026-09-01"
+            )
+            .unwrap(),
+            format!("<!-- stamp -->\n<!-- {line} -->\n<engine-database>\n")
+        );
+        for date in [
+            "2026-9-01",
+            "2026--9-01",
+            "2026-09-0-",
+            "2026/09/01",
+            "２026-09-01",
+            "",
+        ] {
+            assert!(
+                dated("; stamp\n", MotorFile::Rse, date).is_err(),
+                "{date:?}"
+            );
+        }
+        assert!(dated("; stamp", MotorFile::Eng, "2026-09-01").is_err());
+    }
+
     /// Each figure worked out from a replaced mass or length follows it: `massFrac` as
     /// `propWt / initWt`, `Isp` as `1 / propWt`, `m` as `propWt` and `cg` as the length.
     #[test]

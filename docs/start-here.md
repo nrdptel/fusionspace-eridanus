@@ -189,8 +189,8 @@ out.
   [M0.9c5](decisions-and-roadmap.md#m0-9c5), provenance on the exports), and so do GeoJSON, KML,
   Parquet and the `--plot` figure (since [M0.9c8](decisions-and-roadmap.md#m0-9c8), the date and
   the note on `hpr sim`'s other exports). A catalog motor `hpr convert` writes says the catalog's
-  date, and a weather profile `hpr weather --output` saves keeps its kind and how far to trust it
-  (since [M0.9c14](decisions-and-roadmap.md#m0-9c14), provenance on the other files).
+  date, and a weather profile `hpr weather --output` saves says whether it is measured, a forecast
+  or a reanalysis, and how far to trust it (since [M0.9c14](decisions-and-roadmap.md#m0-9c14), provenance on the other files).
 - **It reads what you type, and says what to do when it can't.** Numbers are read as written by
   hand: `--elevation 1,280` is 1280 m (4199 ft), and a comma it can't read as a thousands
   separator, such as `3,9`, is asked about. A refused option is named with its value and unit and
