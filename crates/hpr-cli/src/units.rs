@@ -135,9 +135,63 @@ pub(crate) fn speed(value: f64) -> String {
     format!("{} m/s ({})", fixed(value, 1), feet_per_second(value))
 }
 
+/// The digits of a bearing from true north, `090`, as the product system's `data.md` (*Maps*)
+/// writes one, before its `° T`: turned into `[0, 360)`, the whole degrees padded to three
+/// digits, and `decimals` places. A value that rounds to 360 is written as 0.
+pub(crate) fn bearing_figure(degrees: f64, decimals: usize) -> String {
+    let text = fixed(degrees.rem_euclid(360.0), decimals);
+    let text = if text.parse::<f64>().is_ok_and(|turned| turned >= 360.0) {
+        fixed(0.0, decimals)
+    } else {
+        text
+    };
+    let whole = text.find('.').unwrap_or(text.len());
+    format!("{}{text}", "0".repeat(3usize.saturating_sub(whole)))
+}
+
+/// A bearing from true north, `090° T` ([`bearing_figure`]): the T says true, not magnetic,
+/// which differs by more than 10° in much of the western United States (`data.md`, *Maps*).
+pub(crate) fn bearing(degrees: f64, decimals: usize) -> String {
+    format!("{}° T", bearing_figure(degrees, decimals))
+}
+
+/// A bearing typed by the user, as typed but turned into `[0, 360)` and padded: `22.5` is
+/// `022.5° T` ([`bearing`]).
+pub(crate) fn typed_bearing(degrees: f64) -> String {
+    let turned = degrees.rem_euclid(360.0);
+    let shown = turned.to_string();
+    let decimals = shown.find('.').map_or(0, |point| shown.len() - point - 1);
+    bearing(turned, decimals)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn bearings_are_three_digits_from_true_north() {
+        for (degrees, decimals, expected) in [
+            (90.0, 0, "090° T"),
+            (0.0, 0, "000° T"),
+            (5.4, 0, "005° T"),
+            (359.6, 0, "000° T"),
+            (-90.0, 0, "270° T"),
+            (450.0, 0, "090° T"),
+            (179.96, 1, "180.0° T"),
+            (62.25, 1, "062.2° T"),
+        ] {
+            assert_eq!(bearing(degrees, decimals), expected, "{degrees}");
+        }
+        for (typed, expected) in [
+            (90.0, "090° T"),
+            (22.5, "022.5° T"),
+            (-10.0, "350° T"),
+            (360.0, "000° T"),
+            (0.125, "000.125° T"),
+        ] {
+            assert_eq!(typed_bearing(typed), expected, "{typed}");
+        }
+    }
 
     /// Zero, a hair either side of it, and a negative that rounds to zero all print unsigned:
     /// never `-0` nor `-0.0`.

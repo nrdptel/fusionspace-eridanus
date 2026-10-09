@@ -659,6 +659,7 @@ dependencies = [
  "fusionspace-hpr",
  "insta",
  "jsonschema",
+ "rayon",
  "roxmltree",
  "schemars",
  "serde",

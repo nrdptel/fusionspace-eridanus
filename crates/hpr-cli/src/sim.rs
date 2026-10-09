@@ -128,7 +128,7 @@ pub struct FlightArgs {
     /// A wind of this speed at every height, m/s [default: calm]
     #[arg(long, value_name = "M_S", value_parser = crate::typed::number::<f64>())]
     pub wind: Option<f64>,
-    /// The direction the wind blows from, degrees clockwise from north
+    /// The direction the wind blows from, degrees clockwise from true north
     #[arg(
         long,
         value_name = "DEG",
@@ -169,7 +169,7 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         (Some(trace), true) => builder.fly_with(trace),
         (Some(trace), false) => builder.fly_with(&mut (&mut recorder, trace)),
     }
-    .map_err(input)?;
+    .map_err(|error| flight_refused(&error, &args.flight))?;
     let motors = setup.motors()?;
     drop(builder);
     let Setup {
@@ -629,6 +629,158 @@ pub(crate) fn launch(flight: &FlightArgs) -> Launch {
 /// A library error, as the command reports it.
 pub(crate) fn input(error: hpr::Error) -> Failure {
     Failure::Input(error.to_string())
+}
+
+/// A refusal raised while the rocket flies, as the command reports it (#405): said of the
+/// flight, in the library's words with each long number rounded ([`rounded`]), a Mach number
+/// past the aerodynamics' range in words of its own, and a `help:` line naming what shaped the
+/// flight: the launch options typed, or else the design. The product system's `cli.md` and
+/// `writing.md` (*Errors*) ask for what happened, then what to do, naming things as typed.
+pub(crate) fn flight_refused(error: &hpr::Error, flight: &FlightArgs) -> Failure {
+    let what = match past_mach(error) {
+        Some((mach, limit, model)) => format!(
+            "it reached Mach {}; the aerodynamics stop at Mach {} ({model}'s range)",
+            rounded(&mach.to_string()),
+            rounded(&limit.to_string())
+        ),
+        None => rounded(&library_words(error)),
+    };
+    let typed = typed_options(flight);
+    let help = if typed.is_empty() {
+        format!(
+            "the flight is the design's own: check its motor, masses and parts in {}",
+            file_name(&flight.design)
+        )
+    } else {
+        format!(
+            "the flight came from {} with `{}`: check those values, or fly it without them",
+            file_name(&flight.design),
+            typed.join(" ")
+        )
+    };
+    Failure::helped(format!("the flight stopped: {what}"), help)
+}
+
+/// The Mach number, the range's top and the model's name of an aerodynamics refusal for a Mach
+/// number past its range, wherever in the flight's error it is.
+fn past_mach(error: &hpr::Error) -> Option<(f64, f64, &'static str)> {
+    fn aero(error: &hpr::hpr_aero::AeroError) -> Option<(f64, f64, &'static str)> {
+        use hpr::hpr_aero::AeroError;
+        match error {
+            AeroError::Mach { mach, limit, model } => Some((*mach, *limit, *model)),
+            AeroError::InComponent { source, .. } | AeroError::DragModel { source } => aero(source),
+            _ => None,
+        }
+    }
+    match error {
+        hpr::Error::Sim(hpr_sim::SimError::Aero(error)) => aero(error),
+        _ => None,
+    }
+}
+
+/// An error's words with those of each error under it that it doesn't already end with, joined
+/// by `": "`: "the integration failed" says nothing alone.
+fn library_words(error: &hpr::Error) -> String {
+    let mut words = error.to_string();
+    let mut source = std::error::Error::source(error);
+    while let Some(cause) = source {
+        let said = cause.to_string();
+        if !words.ends_with(&said) {
+            words = format!("{words}: {said}");
+        }
+        source = cause.source();
+    }
+    words
+}
+
+/// `text` with each number of seven or more significant digits, as a computed `f64` prints,
+/// rounded to four, or to a whole number when it has more digits before its point: a reader
+/// can't use `5.835028905481599`, and a value typed by hand has fewer digits.
+pub(crate) fn rounded(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(start) = rest.find(|c: char| c.is_ascii_digit()) {
+        // A digit inside a word, such as a component's id, isn't a number.
+        let inside_word = rest[..start]
+            .chars()
+            .last()
+            .is_some_and(|c| c.is_alphanumeric() || c == '_');
+        let end = start
+            + rest[start..]
+                .find(|c: char| !(c.is_ascii_digit() || c == '.'))
+                .unwrap_or(rest.len() - start);
+        let mut end = end;
+        // An exponent, such as e-12, belongs to the number.
+        if let Some(exponent) = rest[end..].strip_prefix(['e', 'E']) {
+            let signed = exponent.strip_prefix(['-', '+']).unwrap_or(exponent);
+            let digits = signed
+                .find(|c: char| !c.is_ascii_digit())
+                .unwrap_or(signed.len());
+            if digits > 0 {
+                end += 1 + (exponent.len() - signed.len()) + digits;
+            }
+        }
+        let number = rest[start..end].trim_end_matches('.');
+        let end = start + number.len();
+        out.push_str(&rest[..start]);
+        let significant = number
+            .split(['e', 'E'])
+            .next()
+            .unwrap_or("")
+            .trim_start_matches(['0', '.'])
+            .chars()
+            .filter(char::is_ascii_digit)
+            .count();
+        match number.parse::<f64>() {
+            Ok(value) if !inside_word && significant >= 7 && value.is_finite() => {
+                let magnitude = value.abs().log10().floor();
+                if number.contains(['e', 'E']) && !(-4.0..6.0).contains(&magnitude) {
+                    out.push_str(&format!("{value:.3e}"));
+                } else {
+                    let decimals = (3.0 - magnitude).max(0.0) as usize;
+                    out.push_str(&format!("{value:.decimals$}"));
+                }
+            }
+            _ => out.push_str(number),
+        }
+        rest = &rest[end..];
+    }
+    out.push_str(rest);
+    out
+}
+
+/// The launch options typed on the command line, as `--name value`: each that isn't its
+/// default, the flight's own inputs beside the design's.
+fn typed_options(flight: &FlightArgs) -> Vec<String> {
+    let mut typed = Vec::new();
+    let mut option = |name: &str, value: Option<String>| {
+        if let Some(value) = value {
+            typed.push(format!("--{name} {value}"));
+        }
+    };
+    option("config", flight.config.clone());
+    option("motor", flight.motor.clone());
+    option("mount", flight.mount.clone());
+    option(
+        "delay",
+        flight.delay.map(|delay| match delay {
+            Delay::Seconds(seconds) => seconds.to_string(),
+            _ => "P".to_owned(),
+        }),
+    );
+    let unless = |value: f64, default: f64| (value != default).then(|| value.to_string());
+    option("latitude", unless(flight.latitude, 0.0));
+    option("longitude", unless(flight.longitude, 0.0));
+    option("elevation", unless(flight.elevation, 0.0));
+    option(
+        "rail-length",
+        unless(flight.rail_length, DEFAULT_RAIL_LENGTH_M),
+    );
+    option("inclination", flight.inclination.map(|v| v.to_string()));
+    option("heading", flight.heading.map(|v| v.to_string()));
+    option("wind", flight.wind.map(|v| v.to_string()));
+    option("wind-from", unless(flight.wind_from, 0.0));
+    typed
 }
 
 /// The refusal of a design that doesn't hold together, its parts by name.
@@ -2632,6 +2784,80 @@ fn sim_event(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A computed number, seven significant digits or more, is rounded to four, or to a whole
+    /// number past 1000; a number typed by hand, an id's digits and a range's ends are left.
+    #[test]
+    fn long_numbers_in_library_words_are_rounded() {
+        for (text, expected) in [
+            (
+                "Mach 5.835028905481599 is outside the normal force's range [0, 5)",
+                "Mach 5.835 is outside the normal force's range [0, 5)",
+            ),
+            (
+                "geodetic latitude (rad) is outside its domain: 1.6580627893946132",
+                "geodetic latitude (rad) is outside its domain: 1.658",
+            ),
+            ("t = 0.000123456789 s", "t = 0.0001235 s"),
+            ("at 123456.7890123 m", "at 123457 m"),
+            (
+                "the step fell to 1.234567891e-12 s",
+                "the step fell to 1.235e-12 s",
+            ),
+            (
+                "the step fell to 1e-12 s at t = 3.25 s",
+                "the step fell to 1e-12 s at t = 3.25 s",
+            ),
+            ("-2.718281828459045 below", "-2.718 below"),
+            ("part ab1234567890: 12 m.", "part ab1234567890: 12 m."),
+            ("count 1234567 runs", "count 1234567 runs"),
+            ("ends at 5.", "ends at 5."),
+        ] {
+            assert_eq!(rounded(text), expected, "{text}");
+        }
+    }
+
+    /// The options a refusal names are the ones typed: each launch option off its default, as
+    /// `--name value`, in the order the help lists them; none for a bare command line.
+    #[test]
+    fn a_flight_refusal_names_the_options_typed() {
+        use clap::Parser;
+        let typed = |line: &[&str]| {
+            let cli = crate::Cli::parse_from(line);
+            match cli.command {
+                crate::Command::Sim(args) => typed_options(&args.flight),
+                _ => unreachable!("a sim command line"),
+            }
+        };
+        assert!(typed(&["hpr", "sim", "a.ork"]).is_empty());
+        assert_eq!(
+            typed(&[
+                "hpr",
+                "sim",
+                "a.ork",
+                "--elevation",
+                "1e9",
+                "--motor",
+                "H54",
+                "--delay",
+                "P",
+                "--wind",
+                "4",
+                "--wind-from",
+                "270",
+                "--heading",
+                "-10",
+            ]),
+            [
+                "--motor H54",
+                "--delay P",
+                "--elevation 1000000000",
+                "--heading -10",
+                "--wind 4",
+                "--wind-from 270",
+            ]
+        );
+    }
 
     /// Each of the library's issue kinds prints under its own name, the library's: none falls
     /// into another (M10.1d6).

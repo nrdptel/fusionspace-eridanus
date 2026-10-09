@@ -628,7 +628,7 @@
           "format": "double"
         },
         "major_heading_deg": {
-          "description": "Its long axis's heading, degrees clockwise from north, in `[0, 180)`.",
+          "description": "Its long axis's heading, degrees clockwise from true north, in `[0, 180)`.",
           "type": "number",
           "format": "double"
         },

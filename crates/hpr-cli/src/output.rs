@@ -552,7 +552,7 @@ pub struct McEllipse {
     pub semi_major_m: f64,
     /// Half its short axis, m.
     pub semi_minor_m: f64,
-    /// Its long axis's heading, degrees clockwise from north, in `[0, 180)`.
+    /// Its long axis's heading, degrees clockwise from true north, in `[0, 180)`.
     pub major_heading_deg: f64,
     /// The share of the flights tried that landed inside it, a failed flight counted outside.
     pub inside: f64,

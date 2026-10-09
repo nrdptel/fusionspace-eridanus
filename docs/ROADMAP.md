@@ -25,10 +25,10 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
 The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163): lines
 `N. M<id> title`, ids open in this file (`cargo test -p xtask` checks).
 
-1. M0.9c9 Help, roles and progress
-2. M0.9c12 The plot's balloons, banking and title block
-3. M0.9c13 The site's figures and units
-4. M0.9c14 Provenance on the other files
+1. M0.9c12 The plot's balloons, banking and title block
+2. M0.9c13 The site's figures and units
+3. M0.9c14 Provenance on the other files
+4. M0.9c15 Next steps and waits
 5. M0.9d The site
 6. M0.9e The words
 7. M0.10 The scoreboard
@@ -140,10 +140,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 - [ ] **M0.9 One name, one design** (ADR-205; Neer, 2026-10-08). Every surface says FusionSpace
   HPR as ADR-199 §1 has it, and follows the pinned design system rule by rule, each checked.
   - [ ] **M0.9c The CLI, exports and plot to the design** (ADR-208): #377–#382, #392, #395, #400,
-    #403, #405, #409, in twelve steps, each fix held by a named test failing on its issue's defect, the
+    #403, #405, #409–#411, each fix held by a named test failing on its issue's defect, the
     audit's rows naming them; a rule declined has an ADR.
-    - [ ] **M0.9c9 Help, roles and progress** (#381, #405). *Done when:* both are closed, with
-      all their items.
     - [ ] **M0.9c12 The plot's balloons, banking and title block** (#382). *Done when:*
       colliding balloons step right on a leader, panels bank toward 45°, a title block and a CSV
       end the figure; each held by a test failing before it.
@@ -151,6 +149,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
       closed, with every item they list.
     - [ ] **M0.9c14 Provenance on the other files** (#409; ADR-214). *Done when:* it is closed,
       each item held by a test failing on the build before it.
+    - [ ] **M0.9c15 Next steps and waits** (#410, #411). *Done when:* both are closed, each item
+      held by a check failing before it.
   - [ ] **M0.9d The site to the design** (ADR-208). *Done when:* #383 to #385 are closed: no
     mdBook default the system doesn't draw (colors, radii, shadows, motion, icons, metas, print),
     a title block and sheets on every page, notes in the system's shape, and every committed SVG

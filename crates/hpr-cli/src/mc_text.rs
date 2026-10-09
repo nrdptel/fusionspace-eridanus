@@ -10,12 +10,12 @@
 
 use std::io::{self, Write};
 
-use crate::console::{Diagnostics, Level};
+use crate::console::{Diagnostics, Level, Text};
 use crate::output::{EllipseKind, FlagKind, IssueKind, McDispersion, McRun, McSpread};
 use crate::sim_text::{
     design_lines, flag_help, flag_prefix, launch_lines, motor_lines, note_lines,
 };
-use crate::units::{FOOT_M, fixed, meters};
+use crate::units::{FOOT_M, bearing, fixed, meters};
 
 /// The width of a figure's name in the tables.
 const NAME: usize = 22;
@@ -25,7 +25,7 @@ const AXIS: usize = 22;
 /// The text form of `run`: the run on `out`, its warnings, notes and hints on `diagnostics`.
 pub(crate) fn print(
     run: &McRun,
-    out: &mut dyn Write,
+    out: &mut Text<'_>,
     diagnostics: &mut Diagnostics<'_>,
 ) -> io::Result<()> {
     design_lines(&run.design, out, diagnostics)?;
@@ -40,11 +40,10 @@ pub(crate) fn print(
         "{} simulated flights, seed {}: {failed}",
         run.runs, run.seed
     )?;
-    writeln!(
-        out,
+    out.heading(&format!(
         "{:<NAME$}{:>9}{:>9}{:>9}{:>9}{:>9}{:>9}",
         "", "nominal", "mean", "std dev", "5%", "median", "95%"
-    )?;
+    ))?;
     row(out, "apogee", " AGL", run.nominal.apogee_m, &run.apogee_m)?;
     row(
         out,
@@ -78,7 +77,10 @@ pub(crate) fn print(
         };
         diagnostics.line(
             Level::Warning,
-            &format!("{flights}: {}", crate::printable(&failure.reason)),
+            &format!(
+                "{flights}: {}",
+                crate::printable(&crate::sim::rounded(&failure.reason))
+            ),
         )?;
     }
     for flag in &run.flags {
@@ -152,7 +154,7 @@ fn row(
 }
 
 /// Where the flights landed, and the ellipses about the landings.
-fn landing(run: &McRun, out: &mut dyn Write) -> io::Result<()> {
+fn landing(run: &McRun, out: &mut Text<'_>) -> io::Result<()> {
     let landing = &run.landing;
     let (Some(east), Some(north)) = (landing.center_east_m, landing.center_north_m) else {
         return writeln!(out, "no flight landed");
@@ -181,11 +183,10 @@ fn landing(run: &McRun, out: &mut dyn Write) -> io::Result<()> {
             "too few landings for an ellipse: it takes two, and three for the next flight's"
         );
     }
-    writeln!(
-        out,
+    out.heading(&format!(
         "{:<NAME$}{:>AXIS$}{:>AXIS$}{:>9}{:>17}",
         "landing ellipse", "semi-major", "semi-minor", "heading", "flights inside"
-    )?;
+    ))?;
     for ellipse in &landing.ellipses {
         let name = match ellipse.kind {
             EllipseKind::Scatter => format!("{:.0}%", 100.0 * ellipse.level),
@@ -193,10 +194,10 @@ fn landing(run: &McRun, out: &mut dyn Write) -> io::Result<()> {
         };
         writeln!(
             out,
-            "{name:<NAME$}{:>AXIS$}{:>AXIS$}{:>8.0}°{:>16.1}%",
+            "{name:<NAME$}{:>AXIS$}{:>AXIS$}{:>9}{:>16.1}%",
             meters(ellipse.semi_major_m),
             meters(ellipse.semi_minor_m),
-            ellipse.major_heading_deg,
+            bearing(ellipse.major_heading_deg, 0),
             100.0 * ellipse.inside
         )?;
     }

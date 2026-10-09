@@ -117,6 +117,11 @@ fn color_follows_the_flag_then_no_color_then_force_then_auto() {
     }
 }
 
+/// How a colored `help:` line naming `--config` starts: the prefix in the Help role, the option
+/// in the Literal role (both bold blue).
+const CONFIG_HELP_COLORED: &str =
+    "\u{1b}[1m\u{1b}[34mhelp:\u{1b}[0m \u{1b}[1m\u{1b}[34m--config\u{1b}[0m flies";
+
 /// The colors are the roles' ANSI codes: `error:` bold red, `help:` bold blue, on standard error,
 /// where a refusal's lines and a result's `help:` lines both go. `hpr_cli::console`'s unit tests
 /// hold `warning:` and `note:` to theirs.
@@ -132,7 +137,9 @@ fn prefixes_are_colored_in_their_roles() {
         "{stderr:?}"
     );
     assert!(
-        stderr.contains("\n\u{1b}[1m\u{1b}[34mhelp:\u{1b}[0m `hpr motors list`"),
+        stderr.contains(
+            "\n\u{1b}[1m\u{1b}[34mhelp:\u{1b}[0m `\u{1b}[1m\u{1b}[34mhpr motors list\u{1b}[0m`"
+        ),
         "{stderr:?}"
     );
     let flown = run(
@@ -144,7 +151,7 @@ fn prefixes_are_colored_in_their_roles() {
     assert!(
         stderr
             .lines()
-            .any(|line| line.starts_with("\u{1b}[1m\u{1b}[34mhelp:\u{1b}[0m --config flies")),
+            .any(|line| line.starts_with(CONFIG_HELP_COLORED)),
         "{stderr:?}"
     );
     let stdout = String::from_utf8(flown.stdout).unwrap();
@@ -171,7 +178,7 @@ fn a_results_diagnostics_take_standard_errors_color() {
         assert_eq!(exit, hpr_cli::Exit::Success);
         let err = String::from_utf8(err).unwrap();
         let help = if stderr_terminal {
-            "\u{1b}[1m\u{1b}[34mhelp:\u{1b}[0m --config flies"
+            CONFIG_HELP_COLORED
         } else {
             "help: --config flies"
         };
@@ -595,4 +602,67 @@ fn a_sidecar_may_not_be_another_output() {
     );
     assert!(!Path::new(&csv).exists());
     assert!(!Path::new(&meta).exists());
+}
+
+/// A long `hpr mc` draws its progress on standard error, as the product system's `cli.md` asks
+/// (*Output*): a count, a bar and an estimate, each over the one before, cleared at the end;
+/// only when standard error is a terminal and the output is text. The flights are the same with
+/// and without it. Run in-process with the delay set to nothing, so a short run draws it.
+#[test]
+fn a_long_run_draws_its_progress_on_a_terminal_only() {
+    use hpr_cli::console::Console;
+    let design = repo_file(TWO_CONFIGURATIONS);
+    let args = [
+        "hpr",
+        "mc",
+        &design,
+        "--runs",
+        "20",
+        "--wind",
+        "3",
+        "--wind-sd",
+        "0.2",
+    ];
+    let run = |console: Console, json: bool| {
+        let mut args = args.to_vec();
+        if json {
+            args.push("--json");
+        }
+        let (mut out, mut err) = (Vec::new(), Vec::new());
+        let exit = hpr_cli::run_with(args, &mut out, &mut err, console);
+        assert_eq!(exit, hpr_cli::Exit::Success);
+        (
+            String::from_utf8(out).unwrap(),
+            String::from_utf8(err).unwrap(),
+        )
+    };
+    let terminal = Console {
+        stderr_terminal: true,
+        progress_after: std::time::Duration::ZERO,
+        ..Console::PIPED
+    };
+    let (out, err) = run(terminal, false);
+    assert!(err.starts_with("\rflying 0 of 20 flights ["), "{err:?}");
+    assert!(err.contains(" of 20 flights ["), "{err:?}");
+    // The last line drawn is blanked and the cursor returned, before the warnings and notes;
+    // spaces after its text only blank a longer line before it.
+    let drawn = err.rfind("\rflying").unwrap() + 1;
+    let end = drawn + err[drawn..].find('\r').unwrap();
+    let shown = err[drawn..end].trim_end().chars().count();
+    assert!(
+        err[end..].starts_with(&format!("\r{}\r", " ".repeat(shown))),
+        "{err:?}"
+    );
+    let (piped_out, piped_err) = run(
+        Console {
+            progress_after: std::time::Duration::ZERO,
+            ..Console::PIPED
+        },
+        false,
+    );
+    assert_eq!(out, piped_out, "the same flights");
+    assert!(!piped_err.contains("flying"), "{piped_err:?}");
+    let (json, json_err) = run(terminal, true);
+    assert!(json_err.is_empty(), "{json_err:?}");
+    assert!(json.starts_with('{'), "{json}");
 }

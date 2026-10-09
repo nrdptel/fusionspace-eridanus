@@ -136,7 +136,7 @@ descent               4.9 m/s (16 ft/s) at landing under `Parachute`
 
 motor: 1 × I175WS (from the bundled catalog, as of 2026-09-17) in `Motor mount tube`, lit at launch
 recovery: `Parachute` at the ejection charge, 0.520 m² of drag area, opened at 10.97 s
-launched at 0° N, 0° E, 1400 m (4593 ft) above sea level, from a 2.4 m (7.9 ft) rail 85° above the horizon, leaning toward 270°, in a 4 m/s (9 mph) wind from 270°
+launched at 0° N, 0° E, 1400 m (4593 ft) above sea level, from a 2.4 m (7.9 ft) rail 85° above the horizon, leaning toward 270° T, in a 4 m/s (9 mph) wind from 270° T
 note: the file's 1 recovery device flies as OpenRocket flies it: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
 warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.87 at 1.8 s (https://github.com/nrdptel/fusionspace-eridanus/issues/67)
 warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.87 at 1.8 s (https://github.com/nrdptel/fusionspace-eridanus/issues/68)

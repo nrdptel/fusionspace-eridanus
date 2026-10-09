@@ -40,6 +40,7 @@ mod convert_design;
 // Kept byte for byte as the system writes it, so `cargo fmt` doesn't rewrap it.
 #[rustfmt::skip]
 pub mod fs_style;
+mod help;
 pub mod mc;
 mod mc_text;
 pub mod motor_fetch;
@@ -64,7 +65,7 @@ use clap::{CommandFactory, FromArgMatches, Parser, Subcommand};
 use clap_complete::Shell;
 use serde::Serialize;
 
-use crate::console::{Console, Diagnostics, Level, Paint, Paints};
+use crate::console::{Console, Diagnostics, Level, Paint, Paints, Text};
 use crate::fs_style::ColorWhen;
 use crate::output::{Completions, ErrorDocument, ErrorKind};
 use crate::registry::Availability;
@@ -81,13 +82,14 @@ const VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), " · FS-ACHERNAR · SW 
 const DISPLAY_NAME: &str = hpr::hpr_core::tool::NAME;
 
 /// The command line as clap parses it: [`Cli`]'s derived command, with [`DISPLAY_NAME`] on it and
-/// on every command under it. Without that, clap names a command's version by its
+/// on every command under it, and each command's examples and guide after its help
+/// ([`help::with_examples`]). Without the name, clap names a command's version by its
 /// binary's name and the command's, joined with a hyphen.
 pub fn command() -> clap::Command {
     fn named(command: clap::Command) -> clap::Command {
         command.display_name(DISPLAY_NAME).mut_subcommands(named)
     }
-    named(Cli::command())
+    help::with_examples(named(Cli::command()))
 }
 
 /// How a run of `hpr` ended: its process exit status.
@@ -130,8 +132,7 @@ impl Exit {
     about = "FusionSpace HPR · Sim: flight simulation for hobby and high-power rockets",
     long_about = "FusionSpace HPR · Sim: flight simulation for hobby and high-power rockets.\n\n\
                   Every command prints text, or one JSON document with --json. \
-                  Commands marked \"not available yet\" name the milestone that brings them. \
-                  Guide: https://hpr.fusionspace.co/cli.html",
+                  Commands marked \"not available yet\" name the milestone that brings them.",
     propagate_version = true,
     arg_required_else_help = true,
     styles = fs_style::CLAP_STYLES
@@ -255,13 +256,19 @@ pub(crate) struct Out<'a> {
     pub(crate) out: &'a mut dyn Write,
     /// Whether `--json` was given.
     pub(crate) json: bool,
+    /// Standard output's color, for a text result's first line and table headers ([`Text`]).
+    pub(crate) paint: Paint,
     /// Standard error, for the text's `warning:`, `note:` and `help:` lines.
     pub(crate) diagnostics: Diagnostics<'a>,
+    /// After how long a long run draws its progress on standard error ([`Console::progress`]);
+    /// `None` when it doesn't.
+    pub(crate) progress: Option<std::time::Duration>,
 }
 
 impl Out<'_> {
     /// Writes `value` as one JSON document, or `text` when `--json` wasn't given, and flushes.
-    /// `text` writes the result to standard output, its first argument, and its `warning:`,
+    /// `text` writes the result to standard output, its first argument ([`Text`], which puts
+    /// the first line and table headers in the Heading role), and its `warning:`,
     /// `note:` and `help:` lines to standard error, its second; a JSON document carries those
     /// in its own fields, so with `--json` standard error stays empty. Only a failure to write
     /// either stream is a [`Failure::Output`]; one on standard error waits until the result is
@@ -269,12 +276,13 @@ impl Out<'_> {
     pub(crate) fn emit<T: Serialize>(
         &mut self,
         value: &T,
-        text: impl FnOnce(&mut dyn Write, &mut Diagnostics<'_>) -> io::Result<()>,
+        text: impl FnOnce(&mut Text<'_>, &mut Diagnostics<'_>) -> io::Result<()>,
     ) -> Result<(), Failure> {
         let written = if self.json {
             write_json(self.out, value)
         } else {
-            text(self.out, &mut self.diagnostics)
+            let mut result = Text::new(self.out, self.paint);
+            text(&mut result, &mut self.diagnostics).and_then(|()| result.finish())
         };
         written
             .and_then(|()| self.out.flush())
@@ -451,7 +459,9 @@ where
     let mut to = Out {
         out,
         json,
+        paint: paints.out,
         diagnostics: Diagnostics::new(err, paints.err),
+        progress: console.progress(json),
     };
     // A number typed with a thousands separator is shown as it was read before anything else,
     // as `data.md` asks; a JSON document carries the value itself.

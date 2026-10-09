@@ -35,6 +35,9 @@ anstream.workspace = true
 anstyle.workspace = true
 clap.workspace = true
 clap_complete.workspace = true
+# `hpr mc` flies its samples on every core as `MonteCarlo::run_parallel` does, counting them as
+# they land for its progress line.
+rayon.workspace = true
 schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true

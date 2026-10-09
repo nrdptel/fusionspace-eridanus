@@ -15,13 +15,15 @@
 
 use std::io::{self, Write};
 
-use crate::console::{Diagnostics, Level};
+use crate::console::{Diagnostics, Level, Text};
 use crate::output::{
     Delay, DeviceEvent, EventKind, FlagKind, InputWarning, IssueKind, Launch, SimDesign, SimDevice,
     SimEvent, SimFlight, SimMotor, SimMotorSource, Termination,
 };
 use crate::sim::{braked, first_opened, in_fall};
-use crate::units::{feet, feet_per_second, fixed, inches, meters, miles_per_hour, speed};
+use crate::units::{
+    feet, feet_per_second, fixed, inches, meters, miles_per_hour, speed, typed_bearing,
+};
 
 /// The width of a figure's name in the summary's columns.
 const NAME: usize = 22;
@@ -30,7 +32,7 @@ const NAME: usize = 22;
 /// `diagnostics`.
 pub(crate) fn print(
     flight: &SimFlight,
-    out: &mut dyn Write,
+    out: &mut Text<'_>,
     diagnostics: &mut Diagnostics<'_>,
 ) -> io::Result<()> {
     design_lines(&flight.design, out, diagnostics)?;
@@ -205,18 +207,19 @@ pub(crate) fn launch_lines(launch: &Launch, out: &mut dyn Write) -> io::Result<(
         format!("a {rail_length} vertical rail")
     } else {
         format!(
-            "a {rail_length} rail {}° above the horizon, leaning toward {}°",
-            launch.inclination_deg, launch.heading_deg
+            "a {rail_length} rail {}° above the horizon, leaning toward {}",
+            launch.inclination_deg,
+            typed_bearing(launch.heading_deg)
         )
     };
     let wind = if launch.wind_speed_m_s == 0.0 {
         "calm air".to_owned()
     } else {
         format!(
-            "a {} m/s ({}) wind from {}°",
+            "a {} m/s ({}) wind from {}",
             launch.wind_speed_m_s,
             miles_per_hour(launch.wind_speed_m_s),
-            launch.wind_from_deg
+            typed_bearing(launch.wind_from_deg)
         )
     };
     writeln!(
@@ -545,12 +548,11 @@ fn descent(flight: &SimFlight, braked: bool) -> String {
 }
 
 /// The events, as a table: each height and speed in SI, then in US units in brackets.
-fn events(events: &[SimEvent], out: &mut dyn Write) -> io::Result<()> {
-    writeln!(
-        out,
+fn events(events: &[SimEvent], out: &mut Text<'_>) -> io::Result<()> {
+    out.heading(&format!(
         "{:<18} {:>9} {:>22} {:>24}",
         "event", "time", "height", "speed"
-    )?;
+    ))?;
     for event in events {
         let name = match event.kind {
             EventKind::Liftoff => "liftoff",

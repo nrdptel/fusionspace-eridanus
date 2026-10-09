@@ -82,6 +82,13 @@ cargo install --path crates/hpr-cli --locked
 hpr --help
 ```
 
+`hpr --help` says what the tool does, then how to call it, its commands and options, two or three
+examples of real use with what each does, and last the address of this page. Every command's
+`--help` has the same parts, its examples and its section of this page included, such as
+`hpr sim --help` ending with the address of the section on `hpr sim` below. `-h` is the
+short version: one line per option, and the examples' command lines without the words about
+them. A test parses every example as `hpr` does, so none names an option that isn't there.
+
 `hpr --version` prints its version and its designation, `FS-ACHERNAR · SW · TOOL 001`: Achernar,
 the simulator's internal name among FusionSpace's products, then its number as a software tool
 ([ADR-198, project Eridanus](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0198-the-2026-10-07-project-eridanus.md)).
@@ -130,6 +137,11 @@ word that says what it is, so it reads the same with or without color:
 | `warning:` | something to check; the command went on | bold yellow |
 | `note:` | something worth knowing about the result | bold |
 | `help:` | what to do next, such as the option to add; in a refusal, the last lines | bold blue |
+
+The result itself is plain text with two marks of emphasis when its stream gets color: its first
+line, which names what was read, and each table's header row are bold. In a `help:` or `note:`
+line, what to type is bold blue: a command in backticks, such as `` `hpr motors list` ``, and an
+option written on its own, such as `--config`.
 
 The colors are your terminal's own red, yellow and blue, so its theme decides how they look.
 `hpr` decides for standard output and standard error separately, in this order:
@@ -195,6 +207,26 @@ $ echo $?
 ```
 
 <!-- cli: end -->
+
+A refusal raised while the rocket flies, rather than by an option, says so, rounds the number
+the simulator stopped at, and names the options that shaped the flight, as they were read. Here an
+elevation of a billion meters puts the launch site where there is next to no air, so nothing slows
+the rocket and it passes Mach 5, where the aerodynamics stop:
+
+<!-- cli: example `hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --elevation 1e9`, exits 1 -->
+
+```text
+$ hpr sim validation/fixtures/ork/pod-flights/pods-none.ork --motor H54 --elevation 1e9
+error: the flight stopped: it reached Mach 5.835; the aerodynamics stop at Mach 5 (the normal force's range)
+help: the flight came from pods-none.ork with `--motor H54 --elevation 1000000000`: check those values, or fly it without them
+$ echo $?
+1
+```
+
+<!-- cli: end -->
+
+When no launch option was given, the `help:` line points at the design: its motor, masses and
+parts.
 
 A file that isn't there is named with the closest name in its folder, one or two letters away in
 any case, such as `help: is it rockets/vega.ork? It is the closest name in that folder`; or with
@@ -643,7 +675,7 @@ delay                 apogee 7.98 s after burnout
 descent               no recovery device opened, so the fall is not a prediction
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mount`, lit at launch
-launched at 32.99° N, 106.97° W, 1400 m (4593 ft) above sea level, from a 3 m (9.8 ft) rail 85° above the horizon, leaning toward 270°, in a 5 m/s (11 mph) wind from 270°
+launched at 32.99° N, 106.97° W, 1400 m (4593 ft) above sea level, from a 3 m (9.8 ft) rail 85° above the horizon, leaning toward 270° T, in a 5 m/s (11 mph) wind from 270° T
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
 warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
@@ -889,6 +921,12 @@ method, what each dispersion does and how to choose the numbers.
 > good as the standard deviations you give and the simulator's flight models, which are not yet
 > validated against repeated real flights ([Accuracy](accuracy.md)).
 
+On a terminal, a run that goes on past a tenth of a second draws its progress on standard error,
+each line over the one before and gone when the run ends:
+`flying 412 of 1000 flights [========            ] 41%, about 6 s left`. The estimate assumes
+the flights left take as long as those flown. Into a file or a pipe, or with `--json`, it draws
+nothing, and the flights are the same either way.
+
 ### Scattering a flight
 
 This flies the repository's small test rocket on the catalog's Cesaroni H54 200 times, in a 4 m/s
@@ -911,12 +949,12 @@ landing distance (ft)       941      929      147      685      925     1163
 
 200 of 200 flights landed, centered 281.8 m (925 ft) west and 2.0 m (7 ft) north of the pad
 landing ellipse                   semi-major            semi-minor  heading   flights inside
-50%                          52.8 m (173 ft)       32.8 m (107 ft)      89°            48.5%
-95%                         109.7 m (360 ft)       68.1 m (223 ft)      89°            93.5%
-95%, the next flight        111.1 m (365 ft)       69.0 m (226 ft)      89°            93.5%
+50%                          52.8 m (173 ft)       32.8 m (107 ft)   089° T            48.5%
+95%                         109.7 m (360 ft)       68.1 m (223 ft)   089° T            93.5%
+95%, the next flight        111.1 m (365 ft)       69.0 m (226 ft)   089° T            93.5%
 
 motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mount`, lit at launch
-launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) rail 85° above the horizon, leaning toward 270°, in a 4 m/s (9 mph) wind from 270°
+launched at 0° N, 0° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) rail 85° above the horizon, leaning toward 270° T, in a 4 m/s (9 mph) wind from 270° T
 scattered, one standard deviation each: --mass-sd 0.02, --drag-sd 0.05, --impulse-sd 0.03, --burn-time-sd 0.02, --wind-sd 0.25, --wind-from-sd 15, --inclination-sd 1, --heading-sd 2
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag, the nominal flight: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
@@ -939,7 +977,9 @@ center and the ellipses' axes give feet in parentheses. A failed flight counts a
 [Landing ellipses](monte-carlo.md#landing-ellipses) section's: the 50% and 95% ellipses hold
 that share of a normal scatter with the run's mean and spread, and the last allows for the run's
 spread being only an estimate, so the next flight lands inside it 95% of the time. An ellipse's
-`heading` is the direction of its long axis, in degrees clockwise from north, and `flights
+`heading` is the direction of its long axis, in degrees clockwise from true north, written as a
+map's bearing is: three digits and a `T` for true, such as `089° T`, as a compass reads magnetic
+north, more than 10° away in much of the western United States. `flights
 inside` counts the run's own landings inside each, a failed flight counted outside. This rocket
 has no parachute, so its landings are not a prediction, and the note says so.
 
@@ -1621,7 +1661,7 @@ Read from open-meteo-historical.json
 Weather data by Open-Meteo.com (CC BY 4.0)
 
          height  pressure         temp  humidity       wind  from
-     m MSL (ft)       hPa      °C (°F)         %  m/s (mph)     °
+     m MSL (ft)       hPa      °C (°F)         %  m/s (mph)   ° T
  1400.0  (4593)     859.5   29.6  (85)        18   3.3  (7)   162
  1482.0  (4862)     850.0   28.2  (83)        16   2.9  (6)   189
  2014.4  (6609)     800.0   23.4  (74)        16   2.8  (6)   225
@@ -1636,7 +1676,7 @@ Weather data by Open-Meteo.com (CC BY 4.0)
 16716.8 (54845)     100.0  -70.8 (-95)        12   6.3 (14)   253
 18863.9 (61889)      70.0  -66.2 (-87)         4   7.8 (17)   164
 20940.5 (68703)      50.0  -60.0 (-76)         0   5.4 (12)   108
-24212.5 (79437)      30.0  -54.0 (-65)         0   8.6 (19)    83
+24212.5 (79437)      30.0  -54.0 (-65)         0   8.6 (19)   083
 
 Left out: 5 levels
   below the ground, 5 levels: 1000 hPa, 975 hPa, 950 hPa, 925 hPa, 900 hPa
