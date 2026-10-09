@@ -100,7 +100,7 @@ against, with the committed report's numbers, and what to rely on instead: 55 lo
 whose simulated apogee averaged 9.8% above the altimeter's ([Accuracy: real flights of
 the private collection](accuracy.md#real-flights-of-the-private-collection)). The plot ends with the same
 note, and `--json` carries it as `trust`, with `kind` set to `simulated`
-([ADR-211](decisions/0211-how-far-to-trust-a-result.md), the decision).
+([ADR-211](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0211-how-far-to-trust-a-result.md), the decision).
 
 ### Colors and messages
 
