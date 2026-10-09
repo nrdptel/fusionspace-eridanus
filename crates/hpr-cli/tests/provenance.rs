@@ -220,12 +220,19 @@ fn the_parquet_file_and_the_plot_carry_the_catalogs_date() {
         "f.parquet lacks the recording's pairs"
     );
 
+    // The figure's title block ends with its data: its CSV and the catalog's date, which the
+    // CSV's sidecar carries too.
     let svg = std::fs::read_to_string(path("f.svg")).unwrap();
-    let date = format!(">Motor catalog as of {}.</text>\n<text ", as_of());
-    let stamp = format!(">{}</text>\n</svg>\n", hpr::hpr_core::tool::stamp());
-    let at = svg.find(&date).unwrap_or_else(|| panic!("{svg}"));
-    assert!(svg[at..].ends_with(&stamp), "{}", &svg[at..]);
-    assert_eq!(svg[at + date.len()..].matches("<text ").count(), 0);
+    let data = format!(
+        ">f.plot.csv; motor catalog as of {}</text>\n</g>\n</svg>\n",
+        as_of()
+    );
+    assert!(svg.ends_with(&data), "{svg}");
+    assert_eq!(svg.matches(&as_of()).count(), 1);
+    let meta: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(path("f.plot.meta.json")).unwrap()).unwrap();
+    assert_eq!(meta["catalog_as_of"], as_of().as_str());
+    assert_eq!(meta["kind"], "simulated");
 }
 
 /// The text names the catalog's as-of date beside a motor taken from it, as JSON does.

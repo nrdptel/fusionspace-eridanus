@@ -677,6 +677,18 @@ fn rest(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
             "wrote {plot} (altitude, speed and acceleration against time)"
         )?;
     }
+    if let Some(data) = &flight.plot_data {
+        writeln!(
+            out,
+            "wrote {} (the figure's data, {} rows)",
+            data.path, data.rows
+        )?;
+        writeln!(
+            out,
+            "wrote {} (the program that wrote {})",
+            data.meta, data.path
+        )?;
+    }
     Ok(())
 }
 

@@ -3147,6 +3147,12 @@ fn sim_exports_are_checked_before_the_flight() {
         .join("no/f.csv")
         .to_string_lossy()
         .into_owned();
+    let f_svg = folder.path().join("f.svg").to_string_lossy().into_owned();
+    let plot_csv = folder
+        .path()
+        .join("f.plot.csv")
+        .to_string_lossy()
+        .into_owned();
     let lost_svg = folder
         .path()
         .join("no/f.svg")
@@ -3163,6 +3169,10 @@ fn sim_exports_are_checked_before_the_flight() {
         ),
         (vec!["--export", &lost], "there is no folder"),
         (vec!["--plot", &csv], "--plot writes an .svg file"),
+        (
+            vec!["--export", &plot_csv, "--plot", &f_svg],
+            "--plot writes its data",
+        ),
         (vec!["--plot", &lost_svg], "there is no folder"),
         (vec!["--interval", "0"], "--interval"),
         (vec!["--interval", "0.0005"], "at least 0.001 s"),
@@ -3175,6 +3185,7 @@ fn sim_exports_are_checked_before_the_flight() {
     }
     assert_eq!(std::fs::read(&design).unwrap(), before);
     assert!(!Path::new(&csv).exists());
+    assert!(!Path::new(&f_svg).exists());
 }
 
 /// `--plot` draws the flight: three panels, a numbered marker for each instant with events, each
@@ -3196,6 +3207,51 @@ fn sim_plots_the_flight() {
     ];
     let document = json(&args, 0, "sim.schema.json");
     assert_eq!(document["plot"], svg.as_str());
+    // The figure's data beside it, a CSV of the points it draws, with its sidecar (#382).
+    let data = folder
+        .path()
+        .join("f.plot.csv")
+        .to_string_lossy()
+        .into_owned();
+    let meta = folder
+        .path()
+        .join("f.plot.meta.json")
+        .to_string_lossy()
+        .into_owned();
+    assert_eq!(document["plot_data"]["path"], data.as_str());
+    assert_eq!(document["plot_data"]["meta"], meta.as_str());
+    let text = std::fs::read_to_string(&data).unwrap();
+    let mut lines = text.split("\r\n");
+    assert_eq!(
+        lines.next(),
+        Some(
+            "time [s],altitude [m AGL],speed [m/s],vertical speed [m/s],acceleration [m/s^2],\
+             vertical acceleration [m/s^2]"
+        )
+    );
+    let rows: Vec<Vec<f64>> = lines
+        .filter(|line| !line.is_empty())
+        .map(|line| line.split(',').map(|cell| cell.parse().unwrap()).collect())
+        .collect();
+    assert_eq!(
+        rows.len() as u64,
+        document["plot_data"]["rows"].as_u64().unwrap()
+    );
+    assert!(rows.iter().all(|row| row.len() == 6));
+    assert!(rows.windows(2).all(|pair| pair[0][0] <= pair[1][0]));
+    // Its highest altitude is the summary's apogee.
+    let highest = rows.iter().map(|row| row[1]).fold(f64::MIN, f64::max);
+    assert_eq!(
+        highest,
+        document["summary"]["apogee"]["height_above_ground_m"]
+            .as_f64()
+            .unwrap()
+    );
+    let sidecar: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&meta).unwrap()).unwrap();
+    assert_eq!(sidecar["file"], "f.plot.csv");
+    assert_eq!(sidecar["kind"], "simulated");
+    assert_eq!(sidecar["rows"], document["plot_data"]["rows"]);
     let figure = std::fs::read_to_string(&svg).unwrap();
     let parsed = roxmltree::Document::parse(&figure).unwrap();
     let ids: Vec<&str> = parsed
@@ -3282,8 +3338,11 @@ fn sim_plots_the_flight() {
     assert!(!figure.contains("not a prediction"));
     let output = hpr(&args);
     assert!(output.status.success());
-    assert!(String::from_utf8_lossy(&output.stdout).contains(&format!(
-        "wrote {svg} (altitude, speed and acceleration against time)"
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains(&format!(
+        "wrote {svg} (altitude, speed and acceleration against time)\nwrote {data} (the \
+         figure's data, {} rows)\nwrote {meta} (the program that wrote {data})\n",
+        document["plot_data"]["rows"]
     )));
 
     // With --export too, both files are written, and the recording keeps the rows it keeps

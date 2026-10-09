@@ -400,7 +400,8 @@ fn version_and_every_document_name_the_tool() {
 }
 
 /// Every file `hpr` writes names the tool, its version and its designation: each recording
-/// format, the CSV's sidecar, the plot, the motor files, the design files and a weather profile.
+/// format, the CSV's sidecar, the plot and its data's sidecar, the motor files, the design files
+/// and a weather profile.
 #[test]
 fn every_file_hpr_writes_names_the_tool() {
     let folder = tempfile::tempdir().unwrap();
@@ -434,7 +435,13 @@ fn every_file_hpr_writes_names_the_tool() {
         env!("CARGO_PKG_VERSION")
     );
     // The JSON files carry the `tool` object; the rest the line, in the place their format keeps.
-    for name in ["f.json", "f.geojson", "f.meta.json", "d.hpr"] {
+    for name in [
+        "f.json",
+        "f.geojson",
+        "f.meta.json",
+        "f.plot.meta.json",
+        "d.hpr",
+    ] {
         let document: Value =
             serde_json::from_str(&std::fs::read_to_string(path(name)).unwrap()).unwrap();
         let tool = match name {
@@ -449,9 +456,16 @@ fn every_file_hpr_writes_names_the_tool() {
     }
     for name in ["f.kml", "f.svg", "m.eng", "m.rse"] {
         let text = std::fs::read_to_string(path(name)).unwrap();
-        // The plot's in its metadata and in its last visible line.
-        let count = if name == "f.svg" { 2 } else { 1 };
-        assert_eq!(text.matches(&stamp).count(), count, "{name}: {text}");
+        assert_eq!(text.matches(&stamp).count(), 1, "{name}: {text}");
+    }
+    // The plot's title block gives the program and version, and the designation, in fields.
+    let plot = std::fs::read_to_string(path("f.svg")).unwrap();
+    let block = &plot[plot.find("<g id=\"title-block\">").unwrap()..];
+    for value in [
+        format!(">FusionSpace HPR {}</text>", env!("CARGO_PKG_VERSION")),
+        ">FS-ACHERNAR · SW · TOOL 001</text>".to_owned(),
+    ] {
+        assert_eq!(block.matches(&value).count(), 1, "{value}: {block}");
     }
     // A Parquet file's key-value metadata, and a `.ork`'s zipped document, as bytes.
     let parquet = std::fs::read(path("f.parquet")).unwrap();

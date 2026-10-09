@@ -65,6 +65,17 @@
         "null"
       ]
     },
+    "plot_data": {
+      "description": "The figure's data, written beside it with `--plot`: a CSV of the values it draws.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PlotData"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "recovery": {
       "description": "The recovery devices flown, in the file's order: a `.ork`'s parachutes and streamers as\nOpenRocket flies them (decision record ADR-153). Empty when none is flown; the notes say\nwhy.",
       "type": "array",
@@ -776,6 +787,31 @@
         "time_s",
         "height_above_ground_m",
         "after_apogee"
+      ]
+    },
+    "PlotData": {
+      "description": "The `--plot` figure's data, a CSV file beside it, `flight.plot.csv` for `flight.svg`: a header row\nwith units in brackets, then the time, altitude, speed and acceleration of each point drawn.",
+      "type": "object",
+      "properties": {
+        "meta": {
+          "description": "Its sidecar, which names the program that wrote it ([`ExportMeta`]).",
+          "type": "string"
+        },
+        "path": {
+          "description": "The CSV file's path.",
+          "type": "string"
+        },
+        "rows": {
+          "description": "The rows written: one every `--interval` seconds, one at every event, and one at each\nintegration step's start and end, the points the figure draws.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "path",
+        "rows",
+        "meta"
       ]
     },
     "ReadFrom": {

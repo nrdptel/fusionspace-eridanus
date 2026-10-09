@@ -46,8 +46,10 @@ const RIGHT: f64 = 76.0;
 const MARGIN: f64 = 24.0;
 /// A US scale's tick mark, px out from the panel's right edge.
 const TICK: f64 = 4.0;
-/// A panel's plot height, px.
-const PANEL_HEIGHT: f64 = 180.0;
+/// The least and greatest height of a panel's plot, px. Between them each panel's height is
+/// banked to 45° ([`bank`]); the bounds keep a flight whose slopes all run one way, such as a
+/// motor's near-vertical spike, from drawing a sliver or a tower.
+const PANEL_HEIGHTS: (f64, f64) = (120.0, 360.0);
 /// From one panel's bottom to the next one's top, its axis title between them, px.
 const PANEL_GAP: f64 = 48.0;
 /// The title's size, px: the product system's `subtitle` token, 20 / 24 px at weight 600
@@ -61,8 +63,23 @@ const SUBTITLE_TOP: f64 = TITLE_TOP + 24.0;
 const CAPTION_TOP: f64 = SUBTITLE_TOP + 24.0;
 /// From the last caption line to the first marker row's center, px.
 const CAPTION_GAP: f64 = 24.0;
-/// From one marker row to the next, px; also the least distance between two markers in a row.
+/// From one marker row to the next, px; also the distance between two balloons that would
+/// collide, one stepped right of the other: a diameter and a 4 px gap.
 const MARKER_ROW: f64 = 24.0;
+/// How far under the balloons the leaders meet their events' lines at the least, px: a 8 px step.
+const LEADER_GAP: f64 = 8.0;
+/// The least slope of a leader, its drop over its run: tan 35°, so a leader leaves its row
+/// between its balloon's neighbours, a step away, with the step · sin 35° from their centers, at
+/// least 24 · 0.574 ≈ 13.8 px, more than their radius ([`balloon_size`]).
+const LEADER_SLOPE: f64 = 0.7002;
+/// A title block cell's padding, px: the key's baseline is a 16 px step under its top, the
+/// value's 16 px under the key's, and the cell ends 12 px under the value's.
+const CELL_PAD: f64 = 8.0;
+/// A title block cell's height, px.
+const CELL_HEIGHT: f64 = 16.0 + 16.0 + 12.0;
+/// A character's advance at 12 px, px: 0.6 em, as [`LIST_WIDTH`] counts it; a character of the
+/// East Asian scripts or past them counts two.
+const CHAR_PX: f64 = 7.2;
 /// A marker's radius, px, so its 12 px number, two digits wide, sits inside it.
 const MARKER_RADIUS: f64 = 10.0;
 /// From one line of text under the figure, or of the caption, to the next, px: the `label`
@@ -239,6 +256,9 @@ pub(crate) struct Figure<'a> {
     pub subtitle: &'a str,
     /// The bundled motor catalog's as-of date, as the exports carry it (#403).
     pub catalog_as_of: &'a str,
+    /// The figure's data file, written beside it ([`csv`]), by its name: the title block names
+    /// it as the figure's data.
+    pub data_file: &'a str,
     /// The flight, in time order.
     pub points: &'a [Point],
     /// The flight's events, in time order.
@@ -346,8 +366,11 @@ const LINES: &str = "Dashed: simulated by FusionSpace HPR; thick, the size, and 
 
 /// Events within half a pixel of each other, as one marker.
 struct Group {
+    /// Its events' line, px.
     x: f64,
-    /// Which marker row it sits in, from the top.
+    /// Its balloon's center, px: over its line, or stepped along a leader ([`place`]).
+    balloon_x: f64,
+    /// Which balloon row it sits in, from the top: the first unless a row runs out of room.
     row: usize,
     /// Each event's time, s, its name and its height above the launch site, m, in order.
     events: Vec<(f64, String, f64)>,
@@ -375,9 +398,30 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
         .collect();
     let markers_top = CAPTION_TOP + (caption.len() - 1) as f64 * LIST_LINE + CAPTION_GAP;
     let rows = groups.iter().map(|g| g.row + 1).max().unwrap_or(0);
-    let panels_top = markers_top + rows as f64 * MARKER_ROW;
-    let panel_top = |i: usize| panels_top + PANEL_GAP + i as f64 * (PANEL_HEIGHT + PANEL_GAP);
-    let last_bottom = panel_top(PANELS.len() - 1) + PANEL_HEIGHT;
+    let (radius, step) = balloon_size(groups.len());
+    // Where the leaders meet their lines: a step under the last row, or lower, by whole 4 px
+    // steps, so that each runs down at least [`LEADER_SLOPE`]; the panels move down as far.
+    let last_row = markers_top + rows.saturating_sub(1) as f64 * step;
+    let drop = radius + LEADER_GAP;
+    let lower = groups
+        .iter()
+        .map(|g| {
+            let cy = markers_top + g.row as f64 * step;
+            cy + (g.balloon_x - g.x).abs() * LEADER_SLOPE - (last_row + drop)
+        })
+        .fold(0.0, f64::max);
+    let lower = (lower / 4.0).ceil() * 4.0;
+    let leaders_end = last_row + drop + lower;
+    let panels_top = last_row + step + lower;
+    // Each panel's top and height, the next a gap under it.
+    let mut frames = Vec::with_capacity(PANELS.len());
+    let mut top = panels_top + PANEL_GAP;
+    for panel in PANELS {
+        let height = bank(&panel_paths(figure, panel, &x_of));
+        frames.push((top, height));
+        top += height + PANEL_GAP;
+    }
+    let last_bottom = top - PANEL_GAP;
     // A 32 px step under the time axis's title.
     let table_top = last_bottom + 64.0;
     let (table, table_bottom) = table(&groups, table_top);
@@ -403,17 +447,13 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
     let trust = crate::trust::flight();
     let body = trust.strip_prefix(crate::trust::LABEL).unwrap_or(&trust);
     note.extend(crate::trust::wrap(body, LIST_WIDTH));
-    // The motor catalog's date, as the exports carry it (#403), then the title block's line, last
-    // and where a printed copy shows it, as a drawing's: the program, its version and its
-    // designation (ADR-164, ADR-214).
-    note.push(String::new());
-    note.extend(crate::trust::wrap(
-        &format!("Motor catalog as of {}.", figure.catalog_as_of),
-        LIST_WIDTH,
-    ));
-    note.push(hpr::hpr_core::tool::stamp());
     let note_top = table_bottom + 24.0;
-    let height = note_top + (note.len() - 1) as f64 * LIST_LINE + 16.0;
+    // The title block, last, where a printed copy shows it, as a drawing's (`principles.md` §1).
+    let (block, block_bottom) = title_block(
+        &title_cells(figure),
+        note_top + (note.len() - 1) as f64 * LIST_LINE + 24.0,
+    );
+    let height = block_bottom + MARGIN;
 
     let title = text(figure.title, NAME_LIMIT);
     let drawn_title = text(figure.title, TITLE_LIMIT);
@@ -440,39 +480,50 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
     );
     lines(&mut svg, &caption, CAPTION_TOP, LEFT, INK_MUTED);
 
-    // The markers, numbered in time order, above the panels.
-    for (n, group) in groups.iter().enumerate() {
-        let cy = markers_top + group.row as f64 * MARKER_ROW;
+    // The balloons, numbered in time order, above the panels. A balloon over its line draws the
+    // line from its edge; one stepped aside points at its line with a thin leader, from its edge
+    // toward where the leader meets the line, under the last row. The rows are drawn from the
+    // top, so a lower row's balloons cover the upper rows' leaders behind them.
+    let mut order: Vec<(usize, &Group)> = groups.iter().enumerate().collect();
+    order.sort_by_key(|(n, group)| (group.row, *n));
+    for (n, group) in order {
+        let (x, bx) = (group.x, group.balloon_x);
+        let cy = markers_top + group.row as f64 * step;
+        let (leader, line_top) = if (bx - x).abs() < 0.05 {
+            (String::new(), cy + radius)
+        } else {
+            let (dx, dy) = (x - bx, leaders_end - cy);
+            let length = dx.hypot(dy);
+            (
+                format!(
+                    "<line x1=\"{:.1}\" y1=\"{:.1}\" x2=\"{x:.1}\" y2=\"{leaders_end:.1}\" \
+                     stroke=\"{RULE_STRONG}\" stroke-width=\"1\"/>",
+                    bx + radius * dx / length,
+                    cy + radius * dy / length,
+                ),
+                leaders_end,
+            )
+        };
         svg.push_str(&format!(
-            "<g id=\"event-{}\"><title>{}</title>\
-             <line x1=\"{x:.1}\" y1=\"{:.1}\" x2=\"{x:.1}\" y2=\"{:.1}\" stroke=\"{RULE_STRONG}\" \
-             stroke-width=\"1\" stroke-dasharray=\"{DOTTED}\"/>\
-             <circle cx=\"{x:.1}\" cy=\"{cy}\" r=\"{MARKER_RADIUS}\" fill=\"{SURFACE}\" \
+            "<g id=\"event-{}\"><title>{}</title>{leader}\
+             <line x1=\"{x:.1}\" y1=\"{line_top:.1}\" x2=\"{x:.1}\" y2=\"{:.1}\" \
+             stroke=\"{RULE_STRONG}\" stroke-width=\"1\" stroke-dasharray=\"{DOTTED}\"/>\
+             <circle cx=\"{bx:.1}\" cy=\"{cy}\" r=\"{radius}\" fill=\"{SURFACE}\" \
              stroke=\"{INK}\" stroke-width=\"1\"/>\
-             <text x=\"{x:.1}\" y=\"{:.1}\" text-anchor=\"middle\" \
+             <text x=\"{bx:.1}\" y=\"{:.1}\" text-anchor=\"middle\" \
              fill=\"{INK}\">{}</text></g>\n",
             n + 1,
             escape(&event_line(group)),
-            cy + MARKER_RADIUS,
             // It stops short of the first panel's axis title; the panels carry their own lines.
             panels_top + 16.0,
             // A 12 px numeral's figures, about 8.4 px tall, centered on the marker's.
             cy + 4.0,
             n + 1,
-            x = group.x,
         ));
     }
 
-    for (i, panel) in PANELS.iter().enumerate() {
-        panel_svg(
-            &mut svg,
-            figure,
-            panel,
-            panel_top(i),
-            &x_of,
-            &groups,
-            i == 0,
-        );
+    for (i, (panel, frame)) in PANELS.iter().zip(&frames).enumerate() {
+        panel_svg(&mut svg, figure, panel, *frame, &x_of, &groups, i == 0);
     }
 
     // The shared time axis, under the last panel.
@@ -496,6 +547,7 @@ pub(crate) fn svg(figure: &Figure<'_>) -> String {
     ));
     svg.push_str(&table);
     lines(&mut svg, &note, note_top, LEFT, INK_MUTED);
+    svg.push_str(&block);
     svg.push_str("</svg>\n");
     svg
 }
@@ -611,31 +663,26 @@ fn panel_svg(
     svg: &mut String,
     figure: &Figure<'_>,
     panel: &Panel,
-    top: f64,
+    (top, height): (f64, f64),
     x_of: &dyn Fn(f64) -> f64,
     groups: &[Group],
     first: bool,
 ) {
     let right = WIDTH - RIGHT;
-    let bottom = top + PANEL_HEIGHT;
-    let values = figure
-        .points
-        .iter()
-        .flat_map(|p| panel.series.iter().map(move |s| (s.value)(p)))
-        .chain([0.0]);
-    let (lo, hi, step) = axis(values);
-    let y_of = |v: f64| bottom - (v - lo) / (hi - lo) * PANEL_HEIGHT;
+    let bottom = top + height;
+    let (lo, hi, step) = panel_axis(figure, panel);
+    let y_of = |v: f64| bottom - (v - lo) / (hi - lo) * height;
     let id = panel.id;
     svg.push_str(&format!(
         "<g id=\"{id}\">\n<clipPath id=\"{id}-clip\"><rect x=\"{:.1}\" y=\"{:.1}\" \
          width=\"{:.1}\" height=\"{:.1}\"/></clipPath>\n\
          <text x=\"{LEFT}\" y=\"{:.1}\" fill=\"{INK_MUTED}\">{}</text>\n\
-         <rect x=\"{LEFT}\" y=\"{top:.1}\" width=\"{:.1}\" height=\"{PANEL_HEIGHT}\" \
+         <rect x=\"{LEFT}\" y=\"{top:.1}\" width=\"{:.1}\" height=\"{height}\" \
          fill=\"{SURFACE}\"/>\n",
         LEFT - SPILL,
         top - SPILL,
         right - LEFT + 2.0 * SPILL,
-        PANEL_HEIGHT + 2.0 * SPILL,
+        height + 2.0 * SPILL,
         top - 12.0,
         panel.title,
         right - LEFT,
@@ -644,7 +691,7 @@ fn panel_svg(
         let (x0, x1) = (x_of(from_s).max(LEFT), x_of(to_s).min(right));
         if x1 > x0 {
             svg.push_str(&format!(
-                "<rect x=\"{x0:.1}\" y=\"{top:.1}\" width=\"{:.1}\" height=\"{PANEL_HEIGHT}\" \
+                "<rect x=\"{x0:.1}\" y=\"{top:.1}\" width=\"{:.1}\" height=\"{height}\" \
                  fill=\"url(#hatch)\"/>\n",
                 x1 - x0
             ));
@@ -687,7 +734,7 @@ fn panel_svg(
         ));
         k += 1;
     }
-    us_scale(svg, panel, top, lo, hi, &y_of);
+    us_scale(svg, panel, (top, bottom), lo, hi, &y_of);
     for group in groups {
         svg.push_str(&format!(
             "<line x1=\"{x:.1}\" y1=\"{top:.1}\" x2=\"{x:.1}\" y2=\"{bottom:.1}\" \
@@ -737,13 +784,12 @@ fn panel_svg(
 fn us_scale(
     svg: &mut String,
     panel: &Panel,
-    top: f64,
+    (top, bottom): (f64, f64),
     lo: f64,
     hi: f64,
     y_of: &dyn Fn(f64) -> f64,
 ) {
     let right = WIDTH - RIGHT;
-    let bottom = top + PANEL_HEIGHT;
     svg.push_str(&format!(
         "<text x=\"{:.1}\" y=\"{:.1}\" fill=\"{INK_MUTED}\">{}</text>\n\
          <line x1=\"{right}\" y1=\"{top:.1}\" x2=\"{right}\" y2=\"{bottom:.1}\" \
@@ -820,8 +866,7 @@ fn pixel(y: f64) -> f64 {
     y.clamp(-1.0e4, 1.0e4)
 }
 
-/// The events grouped by instant (within half a pixel), each placed in the highest marker row
-/// where it keeps [`MARKER_ROW`] from the one before it.
+/// The events grouped by instant (within half a pixel), their balloons [`place`]d.
 fn groups(figure: &Figure<'_>, x_of: &dyn Fn(f64) -> f64) -> Vec<Group> {
     let mut groups: Vec<Group> = Vec::new();
     for event in figure.events {
@@ -838,24 +883,291 @@ fn groups(figure: &Figure<'_>, x_of: &dyn Fn(f64) -> f64) -> Vec<Group> {
             Some(group) if (x - group.x).abs() < 0.5 => group.events.push(row),
             _ => groups.push(Group {
                 x,
+                balloon_x: x,
                 row: 0,
                 events: vec![row],
             }),
         }
     }
-    // The x of each row's last marker.
-    let mut rows: Vec<f64> = Vec::new();
-    for group in &mut groups {
-        group.row = rows
-            .iter()
-            .position(|last| group.x - last >= MARKER_ROW)
-            .unwrap_or(rows.len());
-        match rows.get_mut(group.row) {
-            Some(last) => *last = group.x,
-            None => rows.push(group.x),
+    place(&mut groups);
+    groups
+}
+
+/// The balloons' places, as a drawing's balloons are set (`product/data.md`, *Charts*): in one
+/// row over their lines, in time order, each that would collide with the one before it stepped
+/// right to a step from it ([`balloon_size`]), along a leader. Where the steps would run past the figure's
+/// margin, the last balloons step back left from it instead, as far as they must, so every
+/// balloon stays whole on the figure. Only when a row can't hold them all (38 balloons of two
+/// digits) do they take rows under it, as few as hold them, in turn: the first balloon in the
+/// first row, the next in the second, and so on, so each row's balloons spread along the axis
+/// and stay near their lines; each row is set the same way.
+fn place(groups: &mut [Group]) {
+    let (radius, step) = balloon_size(groups.len());
+    let (least, most) = (MARGIN + radius, WIDTH - MARGIN - radius);
+    // The balloons a row holds: one at each end and each step between, at least one.
+    let mut per_row = 1;
+    while least + per_row as f64 * step <= most {
+        per_row += 1;
+    }
+    let rows = groups.len().div_ceil(per_row).max(1);
+    for (i, group) in groups.iter_mut().enumerate() {
+        group.row = i % rows;
+    }
+    for row in 0..rows {
+        let mut before = f64::NEG_INFINITY;
+        for group in groups.iter_mut().filter(|g| g.row == row) {
+            group.balloon_x = group.x.max(before + step).max(least);
+            before = group.balloon_x;
+        }
+        let mut after = f64::INFINITY;
+        for group in groups.iter_mut().rev().filter(|g| g.row == row) {
+            group.balloon_x = group.balloon_x.min(after - step).min(most);
+            after = group.balloon_x;
         }
     }
-    groups
+}
+
+/// The balloons' radius and the step from one to the next in a row, px, for `count` balloons:
+/// [`MARKER_RADIUS`] and [`MARKER_ROW`] while their numerals have two digits at most, and 4 px
+/// more radius for each digit past two, so the widest numeral, 0.6 em a digit, fits inside its
+/// circle's chord at the figures' top and bottom, 0.7 em apart; the step is a diameter and a 4 px
+/// gap.
+fn balloon_size(count: usize) -> (f64, f64) {
+    let digits = count.max(1).to_string().len();
+    let radius = MARKER_RADIUS + 4.0 * digits.saturating_sub(2) as f64;
+    (radius, MARKER_ROW + 2.0 * (radius - MARKER_RADIUS))
+}
+
+/// A panel's value axis, `(lo, hi, step)`: [`axis`] over its series and zero.
+fn panel_axis(figure: &Figure<'_>, panel: &Panel) -> (f64, f64, f64) {
+    axis(
+        figure
+            .points
+            .iter()
+            .flat_map(|p| panel.series.iter().map(move |s| (s.value)(p)))
+            .chain([0.0]),
+    )
+}
+
+/// A panel's lines as drawn, each series' [`thin`]ned runs, its x in px and its value as the
+/// fraction of the panel's axis, 0 at its foot and 1 at its head, whatever the panel's height.
+fn panel_paths(
+    figure: &Figure<'_>,
+    panel: &Panel,
+    x_of: &dyn Fn(f64) -> f64,
+) -> Vec<Vec<(f64, f64)>> {
+    let (lo, hi, _) = panel_axis(figure, panel);
+    panel
+        .series
+        .iter()
+        .flat_map(|series| {
+            let points: Vec<(f64, f64)> = figure
+                .points
+                .iter()
+                .map(|p| (x_of(p.time_s), ((series.value)(p) - lo) / (hi - lo)))
+                .collect();
+            thin(&points)
+        })
+        .collect()
+}
+
+/// A panel's height, px, banked to 45° (`product/data.md`, *Charts*): the height at which its
+/// lines' segments, as drawn, run at 45° on average, each weighted by its length, Cleveland's
+/// average absolute orientation (W. S. Cleveland, M. E. McGill and R. McGill, "The Shape
+/// Parameter of a Two-Variable Graph", *Journal of the American Statistical Association* 83
+/// (402), 1988, pp. 289–300). A taller panel steepens every segment and gives the steep ones more
+/// length, so the average grows with the height and one height meets 45°; it is found by
+/// bisection to 0.01 px, then rounded to the 4 px grid within [`PANEL_HEIGHTS`]. A rocket's climb
+/// and its slower descent can't both run at 45°: the height puts them either side of it, the
+/// longer line nearer. `runs` are [`panel_paths`]: x in px, values as fractions of the axis.
+fn bank(runs: &[Vec<(f64, f64)>]) -> f64 {
+    let (least, most) = PANEL_HEIGHTS;
+    // A panel whose lines are all level, or that draws nothing, has no slope to bank: it takes
+    // the least height.
+    let level = runs
+        .iter()
+        .all(|run| run.windows(2).all(|pair| pair[1].1 == pair[0].1));
+    if level {
+        return least;
+    }
+    let orientation = |height: f64| {
+        let (mut sum, mut length) = (0.0, 0.0);
+        for run in runs {
+            for pair in run.windows(2) {
+                let dx = (pair[1].0 - pair[0].0).abs();
+                let dy = (pair[1].1 - pair[0].1).abs() * height;
+                let l = dx.hypot(dy);
+                if l.is_finite() && l > 0.0 {
+                    sum += dy.atan2(dx) * l;
+                    length += l;
+                }
+            }
+        }
+        if length > 0.0 { sum / length } else { 0.0 }
+    };
+    let target = std::f64::consts::FRAC_PI_4;
+    let (mut lo, mut hi) = (least, most);
+    if orientation(lo) >= target {
+        return least;
+    }
+    if orientation(hi) <= target {
+        return most;
+    }
+    while hi - lo > 0.01 {
+        let mid = 0.5 * (lo + hi);
+        if orientation(mid) < target {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+    ((0.5 * (lo + hi) / 4.0).round() * 4.0).clamp(least, most)
+}
+
+/// The title block's cells, key and value, in order (`product/web.md`, *Title block*, from ISO
+/// 7200): the owner, the title, the document's type, the designation, the program and its version,
+/// the units, and the data, the figure's file and the catalog's date. It has no date of issue: the
+/// same flight draws the same figure, byte for byte, on any day.
+fn title_cells(figure: &Figure<'_>) -> Vec<(&'static str, String)> {
+    use hpr::hpr_core::tool::{DESIGNATION, NAME, VERSION};
+    vec![
+        ("OWNER", "FusionSpace".to_owned()),
+        ("TITLE", cut(figure.title, NAME_LIMIT)),
+        ("TYPE", "Simulated flight".to_owned()),
+        ("DESIGNATION", DESIGNATION.to_owned()),
+        ("PROGRAM", format!("{NAME} {VERSION}")),
+        ("UNITS", "m, m/s, m/s², s [ft, ft/s, g]".to_owned()),
+        (
+            "DATA",
+            format!(
+                "{}; motor catalog as of {}",
+                figure.data_file, figure.catalog_as_of
+            ),
+        ),
+    ]
+}
+
+/// The title block that ends the figure, from `top`: a 2 px ink border around its cells, set
+/// left to right in rows as wide as the sheet's text, each cell as wide as its key or value and
+/// the last of a row reaching the edge, with 1 px rules between them. A key is in capitals,
+/// muted, its value under it in ink, [`fit`] to the cell's widest. The SVG, and its bottom, px.
+fn title_block(cells: &[(&str, String)], top: f64) -> (String, f64) {
+    let (left, right) = (LEFT, WIDTH - MARGIN);
+    let inner = right - left - 2.0 * CELL_PAD;
+    // Each cell's key, value, left edge and row.
+    let mut placed: Vec<(&str, String, f64, usize)> = Vec::new();
+    let (mut x, mut row) = (left, 0);
+    for (key, value) in cells {
+        let value = fit(value, inner);
+        let wide = width_px(key).max(width_px(&value)) + 2.0 * CELL_PAD;
+        let wide = ((wide / 4.0).ceil() * 4.0).min(right - left);
+        if x + wide > right && x > left {
+            row += 1;
+            x = left;
+        }
+        placed.push((key, value, x, row));
+        x += wide;
+    }
+    let rows = placed.last().map_or(0, |cell| cell.3 + 1);
+    let bottom = top + rows as f64 * CELL_HEIGHT;
+    let mut svg = format!(
+        "<g id=\"title-block\">\n<rect x=\"{left}\" y=\"{top:.1}\" width=\"{:.1}\" \
+         height=\"{:.1}\" fill=\"{SURFACE}\" stroke=\"{INK}\" stroke-width=\"2\"/>\n",
+        right - left,
+        bottom - top,
+    );
+    for (key, value, x, row) in &placed {
+        let y = top + *row as f64 * CELL_HEIGHT;
+        if *x > left {
+            svg.push_str(&format!(
+                "<line x1=\"{x:.1}\" y1=\"{y:.1}\" x2=\"{x:.1}\" y2=\"{:.1}\" \
+                 stroke=\"{RULE_STRONG}\" stroke-width=\"1\"/>",
+                y + CELL_HEIGHT
+            ));
+        }
+        if *row > 0 && *x == left {
+            svg.push_str(&format!(
+                "<line x1=\"{left}\" y1=\"{y:.1}\" x2=\"{right}\" y2=\"{y:.1}\" \
+                 stroke=\"{RULE_STRONG}\" stroke-width=\"1\"/>"
+            ));
+        }
+        svg.push_str(&format!(
+            "<text x=\"{:.1}\" y=\"{:.1}\" fill=\"{INK_MUTED}\">{key}</text>\
+             <text x=\"{:.1}\" y=\"{:.1}\" fill=\"{INK}\">{}</text>\n",
+            x + CELL_PAD,
+            y + 16.0,
+            x + CELL_PAD,
+            y + 32.0,
+            escape(value),
+        ));
+    }
+    svg.push_str("</g>\n");
+    (svg, bottom)
+}
+
+/// How wide `s` draws at 12 px, px: [`CHAR_PX`] a character, two for one of the East Asian
+/// scripts or past them (U+1100 on), which the fallback faces set about twice as wide.
+fn width_px(s: &str) -> f64 {
+    s.chars()
+        .map(|c| if c >= '\u{1100}' { 2.0 } else { 1.0 })
+        .sum::<f64>()
+        * CHAR_PX
+}
+
+/// `s` [`cut`] to the most characters that draw within `px`, its ellipsis counted.
+fn fit(s: &str, px: f64) -> String {
+    let s = cut(s, usize::MAX);
+    if width_px(&s) <= px {
+        return s;
+    }
+    let mut out = String::new();
+    for c in s.chars() {
+        let next = format!("{out}{c}");
+        if width_px(&next) + CHAR_PX > px {
+            break;
+        }
+        out = next;
+    }
+    out.push('…');
+    out
+}
+
+/// A column of the figure's data: its CSV header and its value at a point.
+type Column = (&'static str, fn(&Point) -> f64);
+
+/// The figure's data, as a CSV file beside it (`product/data.md`, *Charts*: every chart gives its
+/// data as a table or a CSV): a header row with each column's unit in brackets, then one row for
+/// each [`Point`] the figure draws from, in SI, ASCII and CRLF lines as `hpr sim --export`'s CSV
+/// writes them. A value that is not finite is refused, by its column and time.
+pub(crate) fn csv(points: &[Point]) -> Result<String, String> {
+    let columns: [Column; 6] = [
+        ("time [s]", |p| p.time_s),
+        ("altitude [m AGL]", |p| p.height_m),
+        ("speed [m/s]", |p| p.speed_m_s),
+        ("vertical speed [m/s]", |p| p.vertical_speed_m_s),
+        ("acceleration [m/s^2]", |p| p.acceleration_m_s2),
+        ("vertical acceleration [m/s^2]", |p| {
+            p.vertical_acceleration_m_s2
+        }),
+    ];
+    let mut out = columns.map(|(name, _)| name).join(",");
+    out.push_str("\r\n");
+    for point in points {
+        let mut cells = Vec::with_capacity(columns.len());
+        for (name, value) in &columns {
+            let value = value(point);
+            if !value.is_finite() {
+                return Err(format!(
+                    "the figure's {name} at {} s is {value}, not a number a CSV can hold",
+                    point.time_s
+                ));
+            }
+            cells.push(format!("{value:?}"));
+        }
+        out.push_str(&cells.join(","));
+        out.push_str("\r\n");
+    }
+    Ok(out)
 }
 
 /// A group's marker's tooltip: its events, each after its own time, the events of one printed

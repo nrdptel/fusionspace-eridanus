@@ -110,8 +110,8 @@ Each gives the bundled catalog's date whether or not the flight's motor came fro
 motor from your own `.eng` or `.rse` file is as old as that file. `hpr sim --json`'s `motors`
 says where each motor came from.
 
-The `--plot` figure gives the catalog's date too, on the line above its last
-([Plotting the flight](cli.md#plotting-the-flight)). The library's `export::csv` writes the CSV
+The `--plot` figure gives the catalog's date too, in its title block, and its data file has a
+sidecar of its own ([Plotting the flight](cli.md#plotting-the-flight)). The library's `export::csv` writes the CSV
 alone, and `export::json`, `export::geojson`, `export::kml` and `export::parquet` carry no more
 than the program's name, version and designation; `export::json_with`, `export::geojson_with`,
 `export::kml_with` and `export::parquet_with` add a program's own fields.

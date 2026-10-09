@@ -200,9 +200,11 @@ out.
 - **The command line flies powered separations only.** `hpr sim` flies a `.ork` file or
   an HPR design file, exports its recording ([The command line](cli.md#hpr-sim)), and with `--plot`
   draws its altitude, speed and acceleration against time, events marked and listed in a table,
-  as an SVG in the FusionSpace chart style
+  as an SVG in the FusionSpace chart style, its panels banked to 45° and a title block at its end,
+  with the numbers it draws in a CSV beside it
   ([Plotting the flight](cli.md#plotting-the-flight); [M4.5e](decisions-and-roadmap.md#m4-5e),
-  plots; [M0.6c](decisions-and-roadmap.md#m0-6c), their style).
+  plots; [M0.6c](decisions-and-roadmap.md#m0-6c), their style;
+  [M0.9c12](decisions-and-roadmap.md#m0-9c12), balloons, banking, title block and data).
 - **`hpr sim` reads by name.** It leads with the static margin and the center of gravity and
   center of pressure it came from, apogee, rail exit speed, ejection delay and the descent speed
   under open parachutes, each height and speed in SI with feet or feet per second in parentheses

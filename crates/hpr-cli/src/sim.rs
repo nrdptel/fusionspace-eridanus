@@ -27,8 +27,8 @@ use crate::motors::MotorFile;
 use crate::output::{
     Apogee, DesignConfiguration, DesignFormat, DeviceEvent, EventKind, Export, ExportFormat,
     ExportMeta, FileFormat, FlagKind, InputWarning, IssueKind, Landing, Launch, Margin, Peak,
-    SimDesign, SimDevice, SimEvent, SimFlag, SimFlight, SimIssue, SimMotor, SimMotorSource,
-    Stability, Summary, Termination, ThrustCurveMotor, WarningKind,
+    PlotData, SimDesign, SimDevice, SimEvent, SimFlag, SimFlight, SimIssue, SimMotor,
+    SimMotorSource, Stability, Summary, Termination, ThrustCurveMotor, WarningKind,
 };
 use crate::{Failure, Out};
 
@@ -243,7 +243,9 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
             meta: meta.clone(),
         });
     }
+    let mut plot_data = None;
     if let (Some(path), Some(trace)) = (plot, &trace) {
+        let (data, meta) = plot_files(path);
         // The fall is hatched from apogee to the first opening, or the end, as the summary marks
         // its peaks there.
         let unpredicted = apogee_s.filter(|_| !braked).map(|apogee_s| {
@@ -281,8 +283,31 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
                     unpredicted: !in_fall(&peak(speed, apogee_s), first_opened_s).is_empty(),
                 }
             }),
+            data_file: &file_name(&data),
         });
         std::fs::write(path, figure).map_err(|error| Failure::Input(format!("{path}: {error}")))?;
+        // The figure's data beside it, and the CSV's sidecar, as `--export`'s.
+        let text = crate::plot::csv(trace.points())
+            .map_err(|error| Failure::Input(format!("{data}: {error}")))?;
+        std::fs::write(&data, text).map_err(|error| Failure::Input(format!("{data}: {error}")))?;
+        let document = ExportMeta {
+            file: file_name(&data),
+            design: file_name(&args.flight.design),
+            configuration: configuration_label.clone(),
+            rows: trace.points().len(),
+            catalog_as_of: catalog_as_of.clone(),
+            kind: crate::trust::Kind::Simulated,
+            trust: crate::trust::flight(),
+        };
+        let mut text = Vec::new();
+        crate::write_json(&mut text, &document)
+            .and_then(|()| std::fs::write(&meta, text))
+            .map_err(|error| Failure::Input(format!("{meta}: {error}")))?;
+        plot_data = Some(PlotData {
+            path: data,
+            rows: trace.points().len(),
+            meta,
+        });
     }
     // The figure and the exports follow the stack, which ends where it comes apart with nothing
     // left to burn; the parts' descents keep only their events.
@@ -315,6 +340,7 @@ pub(crate) fn run(args: &SimArgs, to: &mut Out<'_>) -> Result<(), Failure> {
         events: events(flight.result()),
         exports: written,
         plot: plot.map(str::to_owned),
+        plot_data,
         notes: read.notes,
         warnings: read.warnings,
         flags: flags(flight.summary()),
@@ -1043,6 +1069,18 @@ type Written<'a> = (
     Option<&'a str>,
 );
 
+/// Where the `--plot` figure's data go, and the sidecar of that CSV: beside the figure,
+/// `flight.plot.csv` and `flight.plot.meta.json` for `flight.svg`, apart from a `--export
+/// flight.csv` beside it.
+pub(crate) fn plot_files(path: &str) -> (String, String) {
+    let data = Path::new(path)
+        .with_extension("plot.csv")
+        .to_string_lossy()
+        .into_owned();
+    let meta = sidecar(&data);
+    (data, meta)
+}
+
 /// Where the sidecar of a CSV recording goes: beside it, `.meta.json` for `.csv`, as
 /// `flight.meta.json` for `flight.csv`. A CSV opens in a spreadsheet only without comment lines,
 /// so the program that wrote it is named there (the product system's `data.md`, ADR-174).
@@ -1136,6 +1174,20 @@ fn exports(args: &SimArgs) -> Result<Written<'_>, Failure> {
             )));
         }
         seen.push(file);
+    }
+    // So are the figure's data and its sidecar.
+    if let Some(path) = plot {
+        let (data, meta) = plot_files(path);
+        for written in [&data, &meta] {
+            let file = same_file(written);
+            if inputs.contains(&file) || seen.contains(&file) {
+                return Err(Failure::Input(format!(
+                    "{path}: --plot writes its data {data} and their sidecar {meta} beside it, \
+                     and this run reads or writes {written} too"
+                )));
+            }
+            seen.push(file);
+        }
     }
     Ok((exports, plot))
 }
