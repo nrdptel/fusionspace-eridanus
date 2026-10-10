@@ -120,6 +120,9 @@
 //! at 11 px, a chapter link in Archivo, a current page with no underline and one underlined 1 px,
 //! a line of 69 characters after a short one and one of 68, which must pass, mdBook's 20 px
 //! gutters, a right gutter wider than the left, a code block in a list item held to the measure,
+//! four notes drawn as the system draws them, which must pass, a quote block, a caution whose
+//! strip says Note, a note whose signal word is plain text, a warning with no fill and a 1 px
+//! border, a note whose strip sits below its message,
 //! Archivo with no fallback second, a label in faint ink, a paragraph faded to half and a title
 //! faded the same, which must pass, links with no ring and with the browser's own, a hidden
 //! checkbox whose picture takes the browser's ring, a box set apart by its fill alone and one with
@@ -237,6 +240,10 @@ enum Kind {
     Gutter,
     /// A code block or table that scrolls sideways inside a box held to the prose measure.
     Squeezed,
+    /// A quote block in a page's `main`, or a note not drawn as the system's: its kind's signal
+    /// word in a `label` strip across its top, set apart by a rule or a fill, inside its border
+    /// (#384).
+    Note,
     /// Text under WCAG 2.2 AA's contrast against what it is drawn on (#383).
     Contrast,
     /// An element the keyboard reaches without the system's 2 px action-colored focus ring, 2 px
@@ -250,7 +257,7 @@ enum Kind {
 }
 
 impl Kind {
-    const ALL: [Kind; 15] = [
+    const ALL: [Kind; 16] = [
         Kind::Wide,
         Kind::Cut,
         Kind::Overlap,
@@ -262,6 +269,7 @@ impl Kind {
         Kind::Measure,
         Kind::Gutter,
         Kind::Squeezed,
+        Kind::Note,
         Kind::Contrast,
         Kind::Focus,
         Kind::Forced,
@@ -281,6 +289,7 @@ impl Kind {
             Kind::Measure => "a line of prose past 68 characters",
             Kind::Gutter => "gutters off the system's",
             Kind::Squeezed => "a code block or table held to the prose measure",
+            Kind::Note => "a quote block, or a note not the system's",
             Kind::Contrast => "text under the contrast floor",
             Kind::Focus => "a focus ring off the system's",
             Kind::Forced => "something forced colors would erase",
@@ -302,8 +311,66 @@ struct Canary {
     after: &'static str,
 }
 
+/// The system's note styles (`fusionspace.css`, `.fs-note`), for the note canaries, which load
+/// the ordinary canary page's styles, not the site's.
+macro_rules! note_style {
+    () => {
+        "<style>.fs-note { border: 1px solid #566079; background: #FFFFFF; margin: 16px 0; } \
+.fs-note-head { display: flex; gap: 8px; padding: 4px 12px; font: 600 12px/16px \
+'Cascadia Mono', 'Cascadia Mono Fallback', monospace; text-transform: uppercase; \
+border-bottom: 1px solid #566079; color: #0B0F1C; } .fs-note-head svg { width: 14px; \
+height: 14px; } .fs-note-body { padding: 12px; } .fs-note-body > * { margin: 0; } \
+.fs-note[data-kind=\"caution\"] { border-color: #F5AF20; } .fs-note[data-kind=\"caution\"] > \
+.fs-note-head { background: #F5AF20; border-color: #F5AF20; } .fs-note[data-kind=\"warning\"] \
+{ border: 2px solid #AC001E; } .fs-note[data-kind=\"warning\"] > .fs-note-head { background: \
+#AC001E; color: #FFFFFF; border-color: #AC001E; }</style>"
+    };
+}
+
+/// A note of `kind` with the signal word `word` and a short message, as `xtask site` draws one
+/// (`notes.rs`), without its icon.
+macro_rules! note {
+    ($kind:literal, $word:literal) => {
+        concat!(
+            "<aside class=\"fs-note\" data-kind=\"",
+            $kind,
+            "\"><div class=\"fs-note-head\">",
+            $word,
+            "</div><div class=\"fs-note-body\"><p>A message.</p></div></aside>"
+        )
+    };
+}
+
+/// The note canaries' pages.
+const NOTES_OK: &str = concat!(
+    note_style!(),
+    note!("trust", "How far to trust it"),
+    note!("note", "Note"),
+    note!("caution", "Caution"),
+    note!("warning", "Warning")
+);
+const NOTES_WRONG_WORD: &str = concat!(note_style!(), note!("caution", "Note"));
+const NOTES_PLAIN: &str = concat!(
+    note_style!(),
+    "<style>.fs-note-head { font: 16px/24px 'Archivo', 'Archivo Fallback', sans-serif !important; \
+     font-variant-numeric: tabular-nums !important; text-transform: none !important; border: 0 !important; }</style>",
+    note!("trust", "How far to trust it")
+);
+const NOTES_UNFILLED: &str = concat!(
+    note_style!(),
+    "<style>.fs-note[data-kind=\"warning\"] { border-width: 1px !important; } \
+     .fs-note[data-kind=\"warning\"] > .fs-note-head { background: none !important; color: \
+     #0B0F1C !important; }</style>",
+    note!("warning", "Warning")
+);
+const NOTES_BELOW: &str = concat!(
+    note_style!(),
+    "<style>.fs-note { display: flex; flex-direction: column-reverse; }</style>",
+    note!("trust", "How far to trust it")
+);
+
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 56] = [
+const CANARIES: [Canary; 62] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -635,6 +702,49 @@ const CANARIES: [Canary; 56] = [
                  line<br>A \
                  <strong>drag</strong>  coefficient of <code>0.45</code> at Mach 0.3\n on \
                  m<sup>2</sup> of area and a long tail</p></div>",
+        after: "",
+    },
+    Canary {
+        file: "canary-notes.html",
+        what: "a trust note, a note, a caution and a warning drawn as the system draws them, \
+               which must pass",
+        expect: &[],
+        inside: NOTES_OK,
+        after: "",
+    },
+    Canary {
+        file: "canary-note-quote.html",
+        what: "a quote block in `main`, not a note",
+        expect: &[Kind::Note],
+        inside: "<blockquote><p>A plain quote block.</p></blockquote>",
+        after: "",
+    },
+    Canary {
+        file: "canary-note-word.html",
+        what: "a caution whose strip says Note",
+        expect: &[Kind::Note],
+        inside: NOTES_WRONG_WORD,
+        after: "",
+    },
+    Canary {
+        file: "canary-note-plain.html",
+        what: "a note whose signal word is plain text, set apart by no rule or fill",
+        expect: &[Kind::Note],
+        inside: NOTES_PLAIN,
+        after: "",
+    },
+    Canary {
+        file: "canary-note-unfilled.html",
+        what: "a warning whose strip has no fill and whose border is 1 px",
+        expect: &[Kind::Note],
+        inside: NOTES_UNFILLED,
+        after: "",
+    },
+    Canary {
+        file: "canary-note-below.html",
+        what: "a note whose strip sits below its message",
+        expect: &[Kind::Note],
+        inside: NOTES_BELOW,
         after: "",
     },
     Canary {
@@ -996,6 +1106,10 @@ struct Measured {
     squeezed: Vec<Style>,
     #[serde(default)]
     squeezed_count: usize,
+    #[serde(default)]
+    note: Vec<Style>,
+    #[serde(default)]
+    note_count: usize,
     /// What a keyboard, forced colors or a sticky bar needs (#383), the first few of each kind.
     #[serde(default)]
     contrast: Vec<Style>,
@@ -1029,6 +1143,7 @@ impl Measured {
             Kind::Measure => self.measure_count > 0,
             Kind::Gutter => self.gutter_count > 0,
             Kind::Squeezed => self.squeezed_count > 0,
+            Kind::Note => self.note_count > 0,
             Kind::Contrast => self.contrast_count > 0,
             Kind::Focus => self.focus_count > 0,
             Kind::Forced => self.forced_count > 0,
@@ -1099,6 +1214,7 @@ impl Measured {
             Kind::Measure => Style::list(&self.measure),
             Kind::Gutter => Style::list(&self.gutter),
             Kind::Squeezed => Style::list(&self.squeezed),
+            Kind::Note => Style::list(&self.note),
             Kind::Contrast => Style::list(&self.contrast),
             Kind::Focus => Style::list(&self.focus),
             Kind::Forced => Style::list(&self.forced),
@@ -2078,7 +2194,13 @@ mod tests {
         );
         // Each kind has a canary that must show it, and the ordinary page and a line of exactly
         // 68 characters must show none.
-        for kind in [Kind::Type, Kind::Measure, Kind::Gutter, Kind::Squeezed] {
+        for kind in [
+            Kind::Type,
+            Kind::Measure,
+            Kind::Gutter,
+            Kind::Squeezed,
+            Kind::Note,
+        ] {
             assert!(
                 CANARIES.iter().any(|canary| canary.expect == [kind]),
                 "{kind:?}"
