@@ -8,7 +8,7 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
   else the first such entry in file order; an entry whose open increments are all blocked is
   blocked. Open `P-critical` issues come first (ADR-144 §4).
 - A milestone is done only when every *done when* bullet is shown by a command's output and CI is
-  green on all three systems; then check its box, take it off the queue and run
+  green on every platform it runs; then check its box, take it off the queue and run
   `cargo xtask records`, which archives it.
 - A milestone too big to ship at once is split in place into increments (`a`, `b`, `c`…), each with
   its own *done when*; a blocked one is marked `[blocked]`, with the reason.

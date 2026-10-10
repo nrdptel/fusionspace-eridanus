@@ -21,9 +21,11 @@ accepted = [
 # The platforms the release workflow builds on; a dependency only another platform links is left out.
 targets = [
     "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
     "aarch64-apple-darwin",
     "x86_64-apple-darwin",
     "x86_64-pc-windows-msvc",
+    "aarch64-pc-windows-msvc",
 ]
 # Tests and benchmarks aren't shipped. Build scripts and derive macros are kept: they shape the
 # code that is, and listing them costs nothing.

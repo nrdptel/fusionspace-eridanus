@@ -12,7 +12,10 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$root"
 version="$(cargo pkgid --manifest-path crates/hpr-py/Cargo.toml | sed 's/.*[#@]//')"
 
-for python in 3.10 3.13; do
+# CPython's Windows on ARM builds start at 3.11, so there the oldest Python is 3.11 (ADR-222).
+pythons="3.10 3.13"
+case "$(rustc -vV | sed -n 's/^host: //p')" in aarch64-pc-windows-*) pythons="3.11 3.13" ;; esac
+for python in $pythons; do
   echo "smoke-python: $(basename "$file") on Python $python"
   uv run --isolated --no-project --python "$python" --with "$file" -- \
     python scripts/release/smoke_python.py "$version"

@@ -23,14 +23,15 @@ page builds HPR Sim from the repository instead, which works too:
 
 - **The command line, `hpr`.** Download the archive for your system from
   [the releases page](https://github.com/nrdptel/fusionspace-eridanus/releases), unpack it, and put `hpr` on
-  your path. There are archives for Linux on x86-64, Macs with Apple silicon, and Windows on
-  x86-64; each is named `fusionspace-hpr-<version>-<system>`. Elsewhere (an Intel Mac, Linux on
-  ARM), or with Rust installed, `cargo install fusionspace-hpr-cli --locked` builds it. Either way
-  the command is `hpr`.
+  your path. Release 0.1 has archives for Linux on x86-64, Macs with Apple silicon, and Windows
+  on x86-64; from release 0.2 there are also archives for Linux on 64-bit ARM and Windows on
+  ARM. Each is named `fusionspace-hpr-<version>-<system>`. Elsewhere, or with Rust
+  installed, `cargo install fusionspace-hpr-cli --locked` builds it. Either way the command is
+  `hpr`.
   [The command line](cli.md) documents its commands.
 - **The Python package.** `pip install fusionspace-hpr` installs it, and it imports as
   `fusionspace.hpr`: `from fusionspace import hpr`. One wheel
-  serves CPython 3.10 and later on each of those three systems; elsewhere pip builds it from
+  serves CPython 3.10 and later on each of those systems (3.11 on Windows on ARM, its oldest); elsewhere pip builds it from
   source, which needs Rust ([Python](python.md#install-it)).
 - **The library, for your own Rust program.** `cargo add fusionspace-hpr` adds the front-door
   crate, which a program uses as `hpr` (`use hpr::Rocket;`) and which re-exports the others ([The builder](the-builder.md); [the API reference](api.md#using-it-from-your-own-program)).
