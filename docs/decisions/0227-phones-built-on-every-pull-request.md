@@ -22,7 +22,9 @@ Xcode with the iPhone SDKs, and its Ubuntu runners carry the Android NDK
    (a tool for this repository) and `hpr-py` (the Python package isn't built for phones), through
    `scripts/phone-build.sh`, which a Mac with Xcode or a machine with the NDK runs as is. It
    builds, not only checks, so linking the command-line program is covered too, and the C ABI
-   once `hpr-ffi` builds a C library (M4.4).
+   once `hpr-ffi` builds a C library (M4.4). The iPhone build runs as a step of the macOS
+   `validate` job rather than a job of its own, so a run's macOS jobs fit the five GitHub runs at
+   once.
 2. **Android from API level 24 (Android 7.0)**, Tauri 2's default `minSdkVersion`
    ([config reference](https://v2.tauri.app/reference/config/)), revisited if M9.0 picks another
    framework. Only 64-bit ARM: 32-bit Android phones and x86-64 emulators wait for the apps.
@@ -33,7 +35,8 @@ Xcode with the iPhone SDKs, and its Ubuntu runners carry the Android NDK
 
 **Consequences.**
 
-- Two more jobs on every pull request: one macOS, one Linux, each a build without tests.
+- One more job on every pull request (Android, on Linux) and a longer macOS `validate` job, each
+  a build without tests.
 - A dependency that doesn't build for a phone fails CI when it is added, while it is still easy
   to swap.
 
