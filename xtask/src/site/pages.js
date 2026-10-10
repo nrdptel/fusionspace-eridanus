@@ -12,6 +12,10 @@
 
   // How long one load may take before it counts as a failure, in milliseconds.
   const LOAD_TIMEOUT_MS = 60000;
+  // How long the readings of one loaded page may take, in milliseconds. A tab's frames share its
+  // main thread, so three frames of print.html, which holds every chapter (about 45,000
+  // elements), share it as they are read; the readings took more than a minute each in CI.
+  const MEASURE_TIMEOUT_MS = 240000;
   // Text rectangles closer than this, sideways, don't collide: touching runs of one line.
   const OVERLAP_MIN_WIDTH_PX = 2;
   // ... and vertically they must share more than this part of the shorter one's height, so two
@@ -680,20 +684,30 @@
       return r.width > HIDDEN_BOX_PX && r.height > HIDDEN_BOX_PX ? r : null;
     };
 
-    // The focus ring, once for each kind of element, as its short path names it: print.html
-    // holds thousands of links that differ only in where they go.
+    // The focus ring, once for each kind of element: its tag, classes and type, and its
+    // ancestors' tags and classes, four steps up, ids left out. print.html holds every chapter,
+    // thousands of links that differ only in where they go, and each focus lays the page out.
+    const kindOf = function (el) {
+      const steps = [];
+      for (let e = el; e && e.nodeType === 1 && steps.length < 4; e = e.parentElement) {
+        steps.unshift(e.tagName + '.' + Array.from(e.classList).sort().join('.')
+          + (e.getAttribute('type') ? '[' + e.getAttribute('type') + ']' : ''));
+        if (e.tagName === 'BODY') break;
+      }
+      return steps.join('>');
+    };
     const kinds = new Set();
     const before = doc.activeElement;
     for (const el of doc.querySelectorAll(
       'a[href], button, input, select, textarea, summary, [tabindex]')) {
       if (el.tabIndex < 0 || el.disabled) continue;
-      const key = selector(el);
+      const key = kindOf(el);
       if (kinds.has(key)) continue;
       el.focus({ preventScroll: true, focusVisible: true });
       if (doc.activeElement !== el) continue;
       kinds.add(key);
       if (!el.matches(':focus-visible')) {
-        throw new Error('the browser did not draw ' + key + ' as focused by the keyboard');
+        throw new Error('the browser did not draw ' + selector(el) + ' as focused by the keyboard');
       }
       const ring = el.getClientRects().length && !boxOf(el) ? el.nextElementSibling : el;
       if (!ring) {
@@ -711,14 +725,46 @@
     }
     if (doc.activeElement && doc.activeElement !== before) doc.activeElement.blur();
 
-    // Forced colors. The boxes set apart only by a fill, found in the page's own colors.
+    // One sweep in the page's own colors finds what forced colors and a sticky bar could
+    // affect: boxes set apart from what is behind them only by a fill, inline icons, icons
+    // painted through a mask, and bars fixed or stuck to the window's top. mdBook's script takes
+    // its menu bar's `sticky` class off at load, below 1,080 px, and puts it back when the reader
+    // scrolls up: the bar is read as it sticks, on a phone two rows tall.
     const memo = new Map();
     const layers = [];
+    const icons = [];
+    const masked = [];
+    const bars = [];
     const TABLE = ['TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR', 'TH', 'TD', 'CAPTION'];
+    const menuBar = doc.getElementById('mdbook-menu-bar');
+    const unstuck = menuBar !== null && !menuBar.classList.contains('sticky');
+    if (unstuck) menuBar.classList.add('sticky');
     for (const el of els) {
-      if (el instanceof win.SVGElement || TABLE.indexOf(el.tagName) >= 0) continue;
+      if (el instanceof win.SVGElement) {
+        if (el.getClientRects().length) icons.push(el);
+        continue;
+      }
       const s = win.getComputedStyle(el);
-      if (s.display === 'none' || s.display === 'contents' || /^inline/.test(s.display)) continue;
+      if (s.display === 'none') continue;
+      for (const pseudo of [null, '::before', '::after']) {
+        const p = pseudo ? win.getComputedStyle(el, pseudo) : s;
+        if (pseudo && (p.content === 'none' || p.content === 'normal')) continue;
+        const mask = p.getPropertyValue('mask-image') || p.getPropertyValue('-webkit-mask-image');
+        if (mask && mask !== 'none') masked.push([el, pseudo]);
+      }
+      if ((s.position === 'sticky' || s.position === 'fixed') && s.visibility !== 'hidden') {
+        const r = boxOf(el);
+        if (r && r.width >= view / 2 && r.height < tall / 2) {
+          const top = parseFloat(s.top);
+          // A sticky bar sticks `top` from the window's top edge; a fixed one is where it is.
+          const reach = s.position === 'sticky' ? (Number.isFinite(top) ? top + r.height : null)
+            : (r.top <= SLACK_PX ? r.bottom : null);
+          if (reach !== null) bars.push([el, reach]);
+        }
+      }
+      if (s.display === 'contents' || /^inline/.test(s.display) || TABLE.indexOf(el.tagName) >= 0) {
+        continue;
+      }
       const fill = channels(s.backgroundColor);
       if (!fill || fill.a === 0 || !el.parentElement || !boxOf(el)) continue;
       const behind = backdrop(win, doc, el.parentElement, memo).color;
@@ -727,6 +773,19 @@
         && Math.abs(own.b - behind.b) < 1;
       if (!same) layers.push([el, s.backgroundColor]);
     }
+    if (unstuck) menuBar.classList.remove('sticky');
+
+    // The bars, against the padding that keeps what is scrolled to out from under them.
+    const scroller = doc.scrollingElement || doc.documentElement;
+    const padding = parseFloat(win.getComputedStyle(scroller).scrollPaddingTop) || 0;
+    for (const [el, reach] of bars) {
+      if (padding + SLACK_PX < reach) {
+        note('sticky', el, null, 'scroll-padding-top', padding + 'px, under a bar reaching '
+          + Math.round(reach * 10) / 10 + ' px');
+      }
+    }
+
+    // Forced colors: the stylesheets' rules for them applied, each candidate read again.
     const undo = applyMedia(doc, /forced-colors:\s*active/);
     try {
       for (const [el, fill] of layers) {
@@ -739,55 +798,23 @@
         }) || (s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0);
         if (!bordered) note('forced', el, null, 'background-color', fill + ' with no border');
       }
-      for (const el of els) {
-        if (el instanceof win.SVGElement) {
-          if (!el.getClientRects().length) continue;
-          const s = win.getComputedStyle(el);
-          for (const property of ['fill', 'stroke']) {
-            const value = s.getPropertyValue(property);
-            if (value !== 'none' && !/^url\(/.test(value) && value !== s.color) {
-              note('forced', el, null, property, value + ', not its text color ' + s.color);
-            }
+      for (const el of icons) {
+        const s = win.getComputedStyle(el);
+        for (const property of ['fill', 'stroke']) {
+          const value = s.getPropertyValue(property);
+          if (value !== 'none' && !/^url\(/.test(value) && value !== s.color) {
+            note('forced', el, null, property, value + ', not its text color ' + s.color);
           }
-          continue;
         }
-        for (const pseudo of [null, '::before', '::after']) {
-          const s = win.getComputedStyle(el, pseudo);
-          if (pseudo && (s.content === 'none' || s.content === 'normal')) continue;
-          const mask = s.getPropertyValue('mask-image') || s.getPropertyValue('-webkit-mask-image');
-          if (mask && mask !== 'none' && s.forcedColorAdjust !== 'none') {
-            note('forced', el, pseudo, 'mask-image', 'an icon drawn through a mask, its colors forced');
-          }
+      }
+      for (const [el, pseudo] of masked) {
+        if (win.getComputedStyle(el, pseudo).forcedColorAdjust !== 'none') {
+          note('forced', el, pseudo, 'mask-image', 'an icon drawn through a mask, its colors forced');
         }
       }
     } finally {
       undo();
     }
-
-    // A bar at the top, and the padding that keeps what is scrolled to out from under it.
-    // mdBook's script takes its menu bar's `sticky` class off at load, below 1,080 px, and puts
-    // it back when the reader scrolls up: the bar is read as it sticks, on a phone two rows tall.
-    const scroller = doc.scrollingElement || doc.documentElement;
-    const padding = parseFloat(win.getComputedStyle(scroller).scrollPaddingTop) || 0;
-    const menuBar = doc.getElementById('mdbook-menu-bar');
-    const unstuck = menuBar !== null && !menuBar.classList.contains('sticky');
-    if (unstuck) menuBar.classList.add('sticky');
-    for (const el of els) {
-      const s = win.getComputedStyle(el);
-      if (s.position !== 'sticky' && s.position !== 'fixed') continue;
-      if (s.display === 'none' || s.visibility === 'hidden') continue;
-      const r = boxOf(el);
-      if (!r || r.width < view / 2 || r.height >= tall / 2) continue;
-      const top = parseFloat(s.top);
-      // A sticky bar sticks `top` from the window's top edge; a fixed one is where it is.
-      const reach = s.position === 'sticky' ? (Number.isFinite(top) ? top + r.height : null)
-        : (r.top <= SLACK_PX ? r.bottom : null);
-      if (reach !== null && padding + SLACK_PX < reach) {
-        note('sticky', el, null, 'scroll-padding-top', padding + 'px, under a bar reaching '
-          + Math.round(reach * 10) / 10 + ' px');
-      }
-    }
-    if (unstuck) menuBar.classList.remove('sticky');
 
     // The title's click, with every way a script scrolls watched for a smooth scroll.
     const title = doc.querySelector('.menu-title');
@@ -1140,10 +1167,14 @@
         frame.remove();
         resolve(result);
       };
-      const timer = setTimeout(function () {
+      let timer = setTimeout(function () {
         finish({ width: width, error: 'did not load in ' + LOAD_TIMEOUT_MS / 1000 + ' s' });
       }, LOAD_TIMEOUT_MS);
       frame.addEventListener('load', async function () {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          finish({ width: width, error: 'was not read in ' + MEASURE_TIMEOUT_MS / 1000 + ' s' });
+        }, MEASURE_TIMEOUT_MS);
         try {
           const win = frame.contentWindow;
           const doc = frame.contentDocument;

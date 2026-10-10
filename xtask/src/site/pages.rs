@@ -165,7 +165,8 @@ const HEIGHT_PX: u32 = 900;
 const FRAMES_PER_TAB: usize = 3;
 /// The most tabs, each its own browser process; fewer on a machine with fewer cores. With four,
 /// the check took 114 s on an M-series Mac on 2026-10-09, with five readings of each page's style
-/// at each width, and 160 s once it read each page's frame too (#432).
+/// at each width, 160 s once it read each page's frame too, and 191 s with what a keyboard and
+/// forced colors need (#432).
 const MOST_TABS: usize = 4;
 /// How long the check waits for any news from the browser before it gives up.
 const STALL: Duration = Duration::from_secs(300);

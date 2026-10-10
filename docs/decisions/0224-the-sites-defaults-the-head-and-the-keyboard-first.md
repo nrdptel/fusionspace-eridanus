@@ -47,8 +47,10 @@ mdBook. One increment holds the first group with its checks and canaries; it can
    its way down to the title and jumps to the top. The page check wraps every scrolling call
    while it clicks the title, so a smooth scroll from any script fails it.
 
-**Consequences.** The page check takes longer: 218 s for 66 pages at 41 widths on the
-maintainer's machine, against about 160 s before (#432 tracks its time). The forced-colors
+**Consequences.** The page check takes longer: 191 s for 66 pages at 41 widths on the
+maintainer's machine, against about 160 s before (#432 tracks its time). In CI, three frames of
+`print.html` (every chapter on one page) read at once on one thread passed the harness's 60 s
+for a load, so a load keeps 60 s and the readings of a loaded page get 240 s of their own. The forced-colors
 reading applies the stylesheets' `forced-colors: active` rules, as the reduced-motion reading
 does; it can't make the browser paint system colors, so it judges what forced colors would drop
 (fills and shadows) from the page's own colors. The head check reads each page as served: once
