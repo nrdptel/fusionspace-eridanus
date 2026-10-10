@@ -111,7 +111,7 @@ html:not(.js) {
 }
 /* Code in ink on the surface, as `web.md`'s docs pattern has it: mdBook's highlighters color each
    kind of token with colors of their own and never read the theme's `--code-bg`. Comments are
-   secondary text; a diff's lines keep their meaning in the danger and normal inks. */
+   secondary text; a diff's deletions are in danger and its additions in ok. */
 .hljs { color: var(--hpr-ink); background: var(--code-bg); }
 .hljs [class^="hljs-"], .hljs [class*=" hljs-"] { color: inherit; background: transparent; }
 .hljs .hljs-comment, .hljs .hljs-quote, .hljs .hljs-meta { color: var(--hpr-ink-muted); }
@@ -150,9 +150,9 @@ kbd { background-color: var(--hpr-surface); border-color: var(--hpr-rule-strong)
 .sidebar .chapter li.chapter-item a.active { text-decoration: underline 2px; text-underline-offset: 4px; }
 .on-this-page { border-inline-start-width: 1px; }
 
-/* Motion: quick 100 ms, base 160 ms, slow 240 ms; `standard` easing for anything appearing or
-   changing, `exit` for anything leaving (`foundations.md`, *Motion*). The sidebar slides at the
-   slow step; colors change at the quick one. No spinner: the search's busy sign stands still.
+/* Motion: quick 100 ms, base 160 ms, slow 240 ms, with the `standard` easing (`foundations.md`,
+   *Motion*; its `exit` easing has no use here yet, as the sidebar slides both ways). The sidebar
+   slides at the slow step; colors change at the quick one. No spinner: the search's busy sign stands still.
    With reduced motion set, everything snaps. */
 .js:not(.sidebar-resizing) .page-wrapper,
 [dir=rtl].js:not(.sidebar-resizing) .page-wrapper,

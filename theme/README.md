@@ -22,7 +22,8 @@ What `hpr.css` changes in mdBook's own look, where the product system's theme do
 - nothing cut off on a phone: the menu bar's title on a row of its own, the sidebar's frame kept
   off the page with scripts off, long search results wrapped.
 
-`cargo xtask site`'s page check fails if mdBook's colors, corners, shadows or motion come back.
+`cargo xtask site`'s page check fails if mdBook's colors, corners, shadows or motion come back, as far
+as it reads them: hover, focus and the styles scripts set aren't read yet ([#432](https://github.com/nrdptel/fusionspace-eridanus/issues/432)).
 
 `book.toml` sets `hash-files = false`: mdBook 0.5 renames the files it copies to add a hash, and
 rewrites the font addresses only in its own default fonts, so with hashing on, `fonts.css` would
