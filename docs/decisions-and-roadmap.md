@@ -378,7 +378,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9d4"></a>[M0.9d4][done-0] | The head, the keyboard and forced colors | done |
 | <a id="m0-9d5"></a>[M0.9d5][done-0] | The notes | done |
 | <a id="m0-9d6"></a>[M0.9d6][done-0] | The site's chrome | done |
-| <a id="m0-9d7"></a>[M0.9d7][phase-0] | The page's frame | not yet done |
+| <a id="m0-9d7"></a>[M0.9d7][done-0] | The page's frame | done |
 | <a id="m0-9d8"></a>[M0.9d8][phase-0] | Print and vitals | not yet done |
 | <a id="m0-9d9"></a>[M0.9d9][phase-0] | The page anatomy | not yet done |
 | <a id="m0-9e"></a>[M0.9e][phase-0] | The words to the design | not yet done |

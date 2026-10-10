@@ -402,9 +402,9 @@ a page opens its source in GitHub's editor, where you can propose a fix.
 ## Title block
 
 Every page of this site ends with a title block, the box in the corner of an engineering drawing
-that says what a document is, who issued it, when, and which sources it rests on. Its title is
-the page's own; the rest of it, written here, describes the whole site and this version of HPR
-Sim. FusionSpace, the family of tools HPR Sim belongs to, closes its pages this way;
+that says what a document is, who issued it, when, and which sources it rests on. Its entries,
+written here, describe the whole site and this version of HPR Sim; each page adds its own title
+after the site's. FusionSpace, the family of tools HPR Sim belongs to, closes its pages this way;
 `FS-ACHERNAR · SW · TOOL 001` is HPR Sim's number in that family's register: Achernar, the
 simulator's internal name, then software tool 1.
 
@@ -413,6 +413,7 @@ simulator's internal name, then software tool 1.
 | Field | Entry |
 |---|---|
 | Owner | FusionSpace |
+| Title | FusionSpace HPR · Sim: a flight simulator for hobby and high-power rockets, and its documentation |
 | Designation | `FS-ACHERNAR · SW · TOOL 001` |
 | Version | 0.1.0, not yet released |
 | Date of issue | <span id="issue-date">the date of the commit the site is built from</span> |

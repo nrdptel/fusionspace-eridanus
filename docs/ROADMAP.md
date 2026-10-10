@@ -141,10 +141,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     mdBook default the system doesn't draw (colors, radii, shadows, motion, icons, metas, print),
     a title block and sheets on every page, notes in the system's shape, and every committed SVG
     in token colors, each failing `xtask site`, `xtask figures` or a site test when broken.
-    - [ ] **M0.9d7 The page's frame** (#384, ADR-229). *Done when:* every built page has a
-      `header` with the one-color lockup, no menu button from 720 px with the sidebar shown and
-      reachable there, and ends with the title block in a `footer`, each failing `xtask site`'s
-      file check or page check (with canaries) when broken.
     - [ ] **M0.9d8 Print and vitals** (#383, #443, ADR-228). *Done when:* #383 is closed, each
       class of mdBook default it lists failing `xtask site` or a site test when it comes back,
       and #443 is closed, the Core Web Vitals measured by `xtask site`.

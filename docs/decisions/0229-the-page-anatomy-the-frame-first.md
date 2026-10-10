@@ -34,12 +34,13 @@ three parts that rewrite the pages are a second.
      stylesheet hides the menu button from 720 px.
    - Every page ends with the system's title block, a `footer` after the page's arrows. Its
      entries are written once, at the end of the landing page's source; the build takes them
-     from there, gives each page its own title, and draws the block on every page, the landing
-     page and the print page too. The owner's entry carries the mark, one color, at 24 px, the
+     from there and draws the block on every page, the landing page and the print page too,
+     adding after the site's title the page's own (its `h1`; the print page's, the book's), as
+     ISO 7200 adds a supplementary title to a sheet's. The owner's entry carries the mark, one color, at 24 px, the
      brand's least cluster height.
    - A file check fails a built page without one `header` holding the lockup, one `footer`
-     title block after the page's `main` with the fields in ISO 7200's order and the page's own
-     title, or with mdBook's 1,080 px sidebar script left. The page check fails, at every width:
+     title block after the page's `main` with its fields in order and the page's own title, or
+     with mdBook's 1,080 px sidebar script left. The page check fails, at every width:
      a lockup not 24 px tall, not in the ink role, cut by its box or with something inside its
      clear space (0.25 of its height, the brand's rule); a menu button drawn from 720 px; a
      sidebar shown that is `aria-hidden` or whose links the keyboard skips, or put away and not;

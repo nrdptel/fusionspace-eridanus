@@ -251,9 +251,10 @@ only from 1,080 px, behind a menu button below that, and ends a page with its ar
 makes the menu bar the system's header: the FusionSpace lockup, 24 px tall in the text's color,
 then HPR, one link to the landing page. From 720 px the table of contents stays open and the menu
 button goes. Every page ends with the title block, its entries written once at the end of
-[Start here](start-here.md#title-block) and its title the page's own. A file check fails a page
+[Start here](start-here.md#title-block), with the page's own title added after the site's. A file check fails a page
 without one `header` holding the lockup, without one `footer` after the page's text holding the
-title block with ISO 7200's fields in order, or with mdBook's 1,080 px script left. The page
+title block with its fields in order and the page's own title, or with mdBook's 1,080 px script
+left. The page
 check fails, at every width:
 
 - a lockup not 24 px tall, not in the text's ink, cut by its box, or closer than a quarter of its

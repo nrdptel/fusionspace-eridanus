@@ -17,12 +17,13 @@
 //!   `theme/hpr.js` opens the sidebar when a window widens past 720 px);
 //! - every page ends with the system's title block in a `footer`, after the page's arrows. Its
 //!   entries are written once, at the end of the landing page's source (`theme.rs` checks them
-//!   there); each page's title is its own `h1`, and the owner's entry carries the mark.
+//!   there); after the site's title each page adds its own, its `h1`, as ISO 7200's
+//!   supplementary title (the page field), and the owner's entry carries the mark.
 //!
 //! Anything the rewrite expects and doesn't find fails the build, so a newer mdBook that changes
 //! its menu bar, its sidebar script or its arrows can't slip by. [`check`] then fails a built
 //! page without the header, its lockup, the 720 px sidebar script or the title block, or with a
-//! title block's fields out of ISO 7200's order, a title not its own or an undated issue.
+//! title block's fields out of order, a page field not the page's title or an undated issue.
 //! `xtask site`'s page check reads how each is drawn (`pages.rs`, `Kind::Header` and
 //! `Kind::TitleBlock`).
 
@@ -71,8 +72,10 @@ const LANDINGS: [&str; 2] = ["index.html", "start-here.html"];
 const PRINT_PAGE: &str = "print.html";
 /// The sidebar alone, which mdBook loads in a frame for a reader without scripts: no page.
 const SIDEBAR_FRAME: &str = "toc.html";
-/// The field each page fills with its own title, and the one whose entry carries the mark.
-const PAGE_TITLE: &str = "Title";
+/// The field each page fills with its own title, ISO 7200's supplementary title, which follows
+/// the site's [`TITLE_FIELD`]; and the field whose entry carries the mark.
+const PAGE: &str = "Page";
+const TITLE_FIELD: &str = "Title";
 const OWNER: &str = "Owner";
 /// The field that gives the date of issue, which the build fills in as `YYYY-MM-DD`.
 const ISSUED: &str = "Date of issue";
@@ -213,10 +216,9 @@ fn source_entries(html: &str) -> Result<Entries, String> {
         }
     }
     let fields: Vec<&str> = entries.iter().map(|(field, _)| field.as_str()).collect();
-    let wanted: Vec<&str> = FIELDS.into_iter().filter(|f| *f != PAGE_TITLE).collect();
-    if fields != wanted {
+    if fields != FIELDS {
         return Err(format!(
-            "the title block has the fields {fields:?}; it needs {wanted:?}"
+            "the title block has the fields {fields:?}; it needs {FIELDS:?}"
         ));
     }
     Ok(entries)
@@ -320,7 +322,8 @@ fn page_title(html: &str) -> Result<String, String> {
         .ok_or_else(|| format!("{} `h1` and no `<title>`", headings.len()))
 }
 
-/// The title block for page `name` titled `title`, from the landing page's `entries`.
+/// The title block for page `name` titled `title`, from the landing page's `entries`, the page's
+/// title after the site's.
 fn title_block(name: &str, title: &str, entries: &Entries, mark: &str) -> String {
     let mut block = String::from(FOOTER);
     let mut cell = |field: &str, entry: &str, class: &str| {
@@ -340,9 +343,11 @@ fn title_block(name: &str, title: &str, entries: &Entries, mark: &str) -> String
                 &format!("{mark}{}", rebased(entry, name)),
                 " class=\"mark wide\"",
             );
-            cell(PAGE_TITLE, title, "");
         } else {
             cell(field, &rebased(entry, name), "");
+        }
+        if field == TITLE_FIELD {
+            cell(PAGE, title, "");
         }
     }
     block.push_str("</footer>");
@@ -516,8 +521,22 @@ fn page_problems(html: &str, lockup: &str, mark: &str) -> Vec<String> {
     problems
 }
 
+/// The fields every page's title block draws, in order: the landing page's, with the page's own
+/// title after the site's.
+fn built_fields() -> Vec<&'static str> {
+    let mut fields = Vec::with_capacity(FIELDS.len() + 1);
+    for field in FIELDS {
+        fields.push(field);
+        if field == TITLE_FIELD {
+            fields.push(PAGE);
+        }
+    }
+    fields
+}
+
 /// What is wrong with title block `block` on page `html`: fields not ISO 7200's in order, a
-/// title not the page's own, an owner without the mark, a date of issue not `YYYY-MM-DD`.
+/// page entry not the page's own title, an owner without the mark, a date of issue not
+/// `YYYY-MM-DD`.
 fn block_problems(html: &str, block: &str, mark: &str) -> Vec<String> {
     let mut problems = Vec::new();
     let cells: Vec<(&str, &str)> = block
@@ -531,9 +550,10 @@ fn block_problems(html: &str, block: &str, mark: &str) -> Vec<String> {
         })
         .collect();
     let fields: Vec<&str> = cells.iter().map(|(field, _)| *field).collect();
-    if fields != FIELDS {
+    let wanted = built_fields();
+    if fields != wanted {
         problems.push(format!(
-            "the title block has the fields {fields:?}; it needs {FIELDS:?}, in that order"
+            "the title block has the fields {fields:?}; it needs {wanted:?}, in that order"
         ));
     }
     let entry = |name: &str| {
@@ -543,10 +563,10 @@ fn block_problems(html: &str, block: &str, mark: &str) -> Vec<String> {
             .map_or("", |(_, entry)| *entry)
     };
     match page_title(html) {
-        Ok(title) if visible(entry(PAGE_TITLE)) == title => {}
+        Ok(title) if visible(entry(PAGE)) == title => {}
         Ok(title) => problems.push(format!(
-            "the title block's title is `{}`, not the page's, `{title}`",
-            visible(entry(PAGE_TITLE))
+            "the title block's page is `{}`, not the page's title, `{title}`",
+            visible(entry(PAGE))
         )),
         Err(why) => problems.push(why),
     }
@@ -570,7 +590,6 @@ mod tests {
     fn source(date: &str) -> String {
         let rows: String = FIELDS
             .iter()
-            .filter(|field| **field != PAGE_TITLE)
             .map(|field| {
                 let entry = match *field {
                     ISSUED => format!("<span id=\"issue-date\">{date}</span>"),
@@ -660,7 +679,7 @@ mod tests {
         // page's folder.
         let footer = html.split_once(FOOTER).unwrap().1;
         assert!(html.find("</nav>").unwrap() < html.find(FOOTER).unwrap());
-        assert!(footer.contains("<span class=\"k\">Title</span><span class=\"v\">A page</span>"));
+        assert!(footer.contains("<span class=\"k\">Page</span><span class=\"v\">A page</span>"));
         assert!(
             footer.contains("href=\"../start-here.html#accuracy-so-far\""),
             "{footer}"
@@ -818,6 +837,7 @@ mod tests {
     fn a_long_entry_takes_a_row_of_its_own() {
         let entries = vec![
             (OWNER.to_string(), "FusionSpace".to_string()),
+            (TITLE_FIELD.to_string(), "The site".to_string()),
             (
                 "Units".to_string(),
                 "SI first, with US units in brackets after each height".repeat(2),
@@ -829,7 +849,10 @@ mod tests {
             "{block}"
         );
         assert!(
-            block.contains("<div><span class=\"k\">Title</span>"),
+            block.contains(
+                "<div><span class=\"k\">Title</span><span class=\"v\">The site</span></div>\
+                 <div><span class=\"k\">Page</span><span class=\"v\">A</span></div>"
+            ),
             "{block}"
         );
         assert!(

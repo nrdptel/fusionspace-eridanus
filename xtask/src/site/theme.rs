@@ -486,14 +486,9 @@ fn title_block_problems(page: &str, version: &str, captured: &str) -> Vec<String
         })
         .collect();
     let fields: Vec<&str> = rows.iter().map(|(field, _)| field.as_str()).collect();
-    // Each page's title is its own, which the build writes in each page's title block.
-    let wanted: Vec<&str> = FIELDS
-        .into_iter()
-        .filter(|field| *field != "Title")
-        .collect();
-    if fields != wanted {
+    if fields != FIELDS {
         problems.push(format!(
-            "has the fields {fields:?}; it needs {wanted:?}, in that order, one row each"
+            "has the fields {fields:?}; it needs {FIELDS:?}, in that order, one row each"
         ));
     }
     let entry = |name: &str| {
@@ -838,7 +833,7 @@ mod tests {
     fn block() -> String {
         format!(
             "Prose.\n\n{BLOCK_OPEN}\n\n| Field | Entry |\n|---|---|\n| Owner | FusionSpace |\n\
-             | Designation | {DESIGNATION} |\n| Version | 1.2.3, not yet released |\n\
+             | Title | t |\n| Designation | {DESIGNATION} |\n| Version | 1.2.3, not yet released |\n\
              | Date of issue | {ISSUE_DATE} |\n| Status | IN PREPARATION |\n| Units | SI |\n\
              | Data | Thrust curves: catalog captured 2026-01-02. |\n| Fonts | f |\n\n</div>\n\n\
              [x]: https://example.com\n"
@@ -871,17 +866,11 @@ mod tests {
         let dropped = block().replace("| Units | SI |\n", "");
         let problems = title_block_problems(&dropped, "1.2.3", "2026-01-02");
         assert!(problems[0].starts_with("has the fields"), "{problems:?}");
-        let swapped = block()
-            .replace(
-                "| Owner | FusionSpace |\n| Designation |",
-                "| Designation |",
-            )
-            .replace("| Version |", "| Owner | FusionSpace |\n| Version |");
+        let swapped = block().replace(
+            "| Owner | FusionSpace |\n| Title | t |",
+            "| Title | t |\n| Owner | FusionSpace |",
+        );
         let problems = title_block_problems(&swapped, "1.2.3", "2026-01-02");
-        assert!(problems[0].starts_with("has the fields"), "{problems:?}");
-        // Each page's title is its own: the source writes none.
-        let titled = block().replace("| Designation |", "| Title | t |\n| Designation |");
-        let problems = title_block_problems(&titled, "1.2.3", "2026-01-02");
         assert!(problems[0].starts_with("has the fields"), "{problems:?}");
     }
 
