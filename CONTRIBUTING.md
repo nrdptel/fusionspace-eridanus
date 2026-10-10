@@ -53,7 +53,7 @@ time, with extension points left for them now.
 ### 7. Releases are the maintainer's
 
 Publishing packages, creating releases and tags, and changing repository settings are the maintainer's to do.
-Changes reach `main` through pull requests that pass every CI check on all three operating systems.
+Changes reach `main` through pull requests that pass every CI check on all six platforms (Linux, macOS and Windows, each on x86-64 and on ARM).
 
 ## How a change ships
 

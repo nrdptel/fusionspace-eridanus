@@ -19,15 +19,21 @@ entry: what it holds, what works, how far to trust it, and its known gaps.
 | File | What it is | Where it goes |
 |---|---|---|
 | `fusionspace-hpr-<version>-x86_64-unknown-linux-gnu.tar.gz` | the `hpr` command line for Linux on x86-64 | the GitHub release |
+| `fusionspace-hpr-<version>-aarch64-unknown-linux-gnu.tar.gz` | the command line for Linux on 64-bit ARM, such as a Raspberry Pi 4 or 5 on a 64-bit system | the GitHub release |
 | `fusionspace-hpr-<version>-aarch64-apple-darwin.tar.gz` | the command line for Macs with Apple silicon | the GitHub release |
+| `fusionspace-hpr-<version>-x86_64-apple-darwin.tar.gz` | the command line for Intel Macs | the GitHub release |
 | `fusionspace-hpr-<version>-x86_64-pc-windows-msvc.zip` | the command line for Windows on x86-64 | the GitHub release |
-| `fusionspace_hpr-<version>-cp310-abi3-<platform>.whl` | the Python package, one wheel per operating system, for CPython 3.10 and later; it imports as `fusionspace.hpr` | PyPI, as `fusionspace-hpr` |
+| `fusionspace-hpr-<version>-aarch64-pc-windows-msvc.zip` | the command line for Windows on ARM | the GitHub release |
+| `fusionspace_hpr-<version>-cp310-abi3-<platform>.whl` | the Python package, one wheel per platform, for CPython 3.10 and later (3.11 on Windows on ARM, its oldest); it imports as `fusionspace.hpr` | PyPI, as `fusionspace-hpr` |
 | `fusionspace_hpr-<version>.tar.gz` | the Python package's source; installing it compiles it, so it needs Rust | PyPI |
 | 14 crates | `fusionspace-hpr`, the library's front door, the 12 `fusionspace-hpr-*` crates under it, and `fusionspace-hpr-cli`, the command line | crates.io |
 
-Each file is built on the CPU of the machine CI builds it on, so there is no archive or wheel yet
-for Intel Macs or for Linux on ARM; there, `pip install` builds the Python package from its source
-package, which needs [Rust](https://rustup.rs).
+Each file is built and tested on the platform it is for, on that platform's own CPU
+([ADR-222](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0222-six-platforms-tested-on-every-pull-request.md),
+the six platforms): Linux, macOS and Windows, each on x86-64 and on 64-bit ARM. Release 0.1 had
+files for the first three in the table only; the ARM Linux, Intel Mac and ARM Windows files start
+with release 0.2. Anywhere else, `pip install` builds the Python package from its source package,
+which needs [Rust](https://rustup.rs).
 
 **The Linux files run on the GNU C library (glibc) 2.17 or later,** the floor of the
 [manylinux2014](https://peps.python.org/pep-0599/) wheel standard and of Rust's own Linux target:
