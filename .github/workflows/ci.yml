@@ -119,6 +119,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: rustup toolchain install
+      - run: scripts/native-toolchain.sh
+        shell: bash
       - uses: Swatinem/rust-cache@v2
         with:
           # Only main saves: pull requests restore main's cache, and the repository stays under
@@ -194,6 +196,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: rustup toolchain install
+      - run: scripts/native-toolchain.sh
+        shell: bash
       - uses: Swatinem/rust-cache@v2
         with:
           # Only main saves: pull requests restore main's cache, and the repository stays under

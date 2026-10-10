@@ -66,6 +66,8 @@ shows whether a comparison was relying on one.
 - More checks gate every merge. GitHub runs at most 5 macOS jobs at once on a free plan, and the
   Intel image will double each run's macOS jobs, so the slowest runs will wait for a macOS
   runner.
+- The required checks `test (<os>)` pass only when every half passed on every platform, so an
+  outage of GitHub's ARM runners holds every merge until they return.
 - A check that fails only on a new platform is a defect to find, not a tolerance to widen
   ([CONTRIBUTING.md](../../CONTRIBUTING.md), rule 2): the platforms' math libraries differ, so
   the fix is usually a comparison that relied on one, as in the earlier cases.

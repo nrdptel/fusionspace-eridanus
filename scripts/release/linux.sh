@@ -25,9 +25,14 @@ case "$(uname -m)" in
     MANYLINUX_IMAGE="quay.io/pypa/manylinux2014_aarch64:2026.10.03-1"
     MANYLINUX_IMAGE+="@sha256:9026a55e05e76ad74d9a4e6be814a5abda26cde08b1baa659ea4f7ee16b246e3"
     ;;
-  *)
+  x86_64 | amd64)
     MANYLINUX_PLATFORM="linux/amd64"
     MANYLINUX_IMAGE="quay.io/pypa/manylinux2014_x86_64:2026.10.03-1"
     MANYLINUX_IMAGE+="@sha256:ffd6d1f11237599748657996b750db6b3a5b724fea5a81cd9ea65add4f45b6c9"
+    ;;
+  *)
+    # A release builds no other Linux; its scripts run `set -e`, so this stops them.
+    echo "linux.sh: no manylinux image for a $(uname -m) machine" >&2
+    return 1
     ;;
 esac

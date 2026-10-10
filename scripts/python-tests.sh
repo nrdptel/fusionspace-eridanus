@@ -3,7 +3,7 @@
 # installed wheel on each Python named (default: 3.10 and 3.13), with the release build of the
 # command line that `test_montecarlo.py` compares the package's Monte Carlo runs against. The
 # wheel is abi3, one per operating system for CPython 3.10 and later, so the suite runs on the
-# oldest Python it serves and a new one. CI's `python` job runs this on three operating systems,
+# oldest Python it serves and a new one. CI's `python` job runs this on each platform it tests,
 # and `scripts/gate.sh python` runs it here.
 #
 # Needs uv (https://docs.astral.sh/uv/), which fetches the pinned maturin and pytest, NumPy and
