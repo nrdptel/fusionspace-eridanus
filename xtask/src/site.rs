@@ -92,11 +92,13 @@ mod pages;
 pub(crate) mod theme;
 pub(crate) mod units;
 
-pub const USAGE: &str = "  site [--no-build] [--locked]
+pub const USAGE: &str = "  site [--no-build] [--locked] [--widths K/N]
                            Check the documentation site's pages, build the site with
                            mdBook 0.5 into target/site and the workspace's rustdoc into
                            target/site/api, and check the built HTML. --no-build checks the
-                           pages only; --locked is passed on to `cargo doc`.";
+                           pages only; --locked is passed on to `cargo doc`; --widths K/N
+                           checks the built pages' layout at part K of N of the widths,
+                           for CI to spread over N machines.";
 
 /// The site's source directory, relative to the workspace root, as `book.toml` sets it.
 const SOURCE: &str = "docs";
@@ -168,7 +170,7 @@ const MDBOOK_SERIES: &str = "mdbook v0.5.";
 const MDBOOK_INSTALL: &str = "install mdBook 0.5.4: `cargo install mdbook --version 0.5.4 --locked` or `brew install mdbook`";
 
 pub fn run(args: &[String]) -> Result<(), String> {
-    let (build, locked) = parse_args(args)?;
+    let (build, locked, part) = parse_args(args)?;
     let root = crate::designs::root()?;
     crate::spelling::run(&[])?;
     let report = check_sources(&root)?;
@@ -226,12 +228,12 @@ pub fn run(args: &[String]) -> Result<(), String> {
         crates.len(),
         built.api
     );
-    let laid_out = pages::check(&output)?;
+    let laid_out = pages::check(&output, part)?;
     if !laid_out.problems.is_empty() {
         return Err(failure("the pages' layout", &laid_out.problems));
     }
     println!(
-        "page layout: {} pages at {} widths from 320 to 1,920 px, in {:.0} s: none wider than \
+        "page layout: {} pages at {}, in {:.0} s: none wider than \
          the window, no text cut off or over other text, no figure shrunk with room \
          for it or without a zoom, no color off the system's roles, rounded corner, shadow or \
          motion off its durations in either theme or with reduced motion, no text off the type \
@@ -239,23 +241,48 @@ pub fn run(args: &[String]) -> Result<(), String> {
          the measure, no quote block or note off the system's, no text under the contrast floor, focus ring off the system's, box or \
          icon forced colors would erase, or sticky bar taller than the scroll padding, and \
          every canary found",
-        laid_out.pages, laid_out.widths, laid_out.seconds
+        laid_out.pages,
+        if part == pages::Part::WHOLE {
+            format!("{} widths from 320 to 1,920 px", laid_out.widths)
+        } else {
+            format!(
+                "{} widths from 320 to 1,920 px, part {} of {}",
+                laid_out.widths, part.index, part.count
+            )
+        },
+        laid_out.seconds
     );
     Ok(())
 }
 
-/// Reads `site`'s arguments: whether to build the site, and whether `cargo doc` runs `--locked`.
-fn parse_args(args: &[String]) -> Result<(bool, bool), String> {
+/// Reads `site`'s arguments: whether to build the site, whether `cargo doc` runs `--locked`, and
+/// which part of the widths the layout check takes.
+fn parse_args(args: &[String]) -> Result<(bool, bool, pages::Part), String> {
     let mut build = true;
     let mut locked = false;
-    for arg in args {
+    let mut part = None;
+    let mut args = args.iter();
+    while let Some(arg) = args.next() {
         match arg.as_str() {
             "--no-build" => build = false,
             "--locked" => locked = true,
+            "--widths" if part.is_none() => {
+                let text = args
+                    .next()
+                    .ok_or_else(|| format!("`--widths` needs a part, K/N\n\n{USAGE}"))?;
+                part = Some(pages::Part::parse(text)?);
+            }
             _ => return Err(format!("unexpected argument `{arg}`\n\n{USAGE}")),
         }
     }
-    Ok((build, locked))
+    let part = part.unwrap_or(pages::Part::WHOLE);
+    if !build && part != pages::Part::WHOLE {
+        return Err(format!(
+            "`--widths` picks the widths of the built site's layout check, which `--no-build` \
+             skips\n\n{USAGE}"
+        ));
+    }
+    Ok((build, locked, part))
 }
 
 fn failure(what: &str, problems: &[String]) -> String {
@@ -4949,11 +4976,29 @@ mod tests {
     fn the_arguments_are_read_in_any_order() {
         let args =
             |list: &[&str]| parse_args(&list.iter().map(|&arg| arg.to_owned()).collect::<Vec<_>>());
-        assert_eq!(args(&[]), Ok((true, false)));
-        assert_eq!(args(&["--locked"]), Ok((true, true)));
-        assert_eq!(args(&["--locked", "--no-build"]), Ok((false, true)));
+        let whole = pages::Part::WHOLE;
+        assert_eq!(args(&[]), Ok((true, false, whole)));
+        assert_eq!(args(&["--locked"]), Ok((true, true, whole)));
+        assert_eq!(args(&["--locked", "--no-build"]), Ok((false, true, whole)));
+        let two_of_three = pages::Part { index: 2, count: 3 };
+        assert_eq!(
+            args(&["--widths", "2/3", "--locked"]),
+            Ok((true, true, two_of_three))
+        );
+        assert_eq!(
+            args(&["--locked", "--widths", "2/3"]),
+            Ok((true, true, two_of_three))
+        );
         let err = args(&["--fast"]).unwrap_err();
         assert!(err.starts_with("unexpected argument `--fast`"), "{err}");
+        let err = args(&["--widths"]).unwrap_err();
+        assert!(err.starts_with("`--widths` needs a part"), "{err}");
+        let err = args(&["--widths", "4/3"]).unwrap_err();
+        assert!(err.starts_with("`4/3` isn't a part"), "{err}");
+        let err = args(&["--widths", "1/3", "--widths", "2/3"]).unwrap_err();
+        assert!(err.starts_with("unexpected argument `--widths`"), "{err}");
+        let err = args(&["--no-build", "--widths", "1/3"]).unwrap_err();
+        assert!(err.starts_with("`--widths` picks"), "{err}");
     }
 
     #[test]

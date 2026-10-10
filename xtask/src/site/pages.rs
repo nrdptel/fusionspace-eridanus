@@ -213,6 +213,48 @@ fn widths() -> Vec<u32> {
         .collect()
 }
 
+/// Which of [`widths`] one run checks: part `index` of `count`, so CI can spread the check over
+/// several machines. The parts interleave (part 1 of 3 takes the 1st, 4th, 7th width and so on),
+/// so each runs from the narrowest widths to the widest and the parts take about as long; every
+/// width is in exactly one part. Each part's canaries are checked at its own widths, and a canary
+/// must show its problem at every width, so each part proves on its own that it can fail.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) struct Part {
+    /// Which part, from 1.
+    pub index: usize,
+    /// How many parts.
+    pub count: usize,
+}
+
+impl Part {
+    /// Every width, in one run.
+    pub const WHOLE: Part = Part { index: 1, count: 1 };
+
+    /// Reads `K/N`: part K of N, with 1 ≤ K ≤ N and each part holding at least one width.
+    pub fn parse(text: &str) -> Result<Part, String> {
+        let most = widths().len();
+        let bad =
+            || format!("`{text}` isn't a part K/N of the page check, with 1 ≤ K ≤ N ≤ {most}");
+        let (index, count) = text.split_once('/').ok_or_else(bad)?;
+        let index: usize = index.parse().map_err(|_| bad())?;
+        let count: usize = count.parse().map_err(|_| bad())?;
+        if index == 0 || index > count || count > most {
+            return Err(bad());
+        }
+        Ok(Part { index, count })
+    }
+
+    /// The widths this part checks, in order.
+    pub fn widths(self) -> Vec<u32> {
+        widths()
+            .into_iter()
+            .enumerate()
+            .filter(|(at, _)| at % self.count == self.index - 1)
+            .map(|(_, width)| width)
+            .collect()
+    }
+}
+
 /// The kinds of problem a page can have at a width.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum Kind {
@@ -1063,8 +1105,9 @@ few lines so that it wraps at every width the check tries.</p>
 }
 
 /// Runs the page check on the site built in `output`.
-pub(super) fn check(output: &Path) -> Result<Report, String> {
+pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
     let started = Instant::now();
+    let checked = part.widths();
     let mut pages = Vec::new();
     html_files(output, "", &mut pages)?;
     pages.retain(|page| !page.starts_with(&format!("{}/", super::API)));
@@ -1089,7 +1132,7 @@ pub(super) fn check(output: &Path) -> Result<Report, String> {
         .map_or(1, std::num::NonZeroUsize::get)
         .clamp(1, MOST_TABS);
     let plan = serde_json::json!({
-        "widths": widths(),
+        "widths": checked,
         "height": HEIGHT_PX,
         "parallel": FRAMES_PER_TAB,
     })
@@ -1106,7 +1149,7 @@ pub(super) fn check(output: &Path) -> Result<Report, String> {
         })
         .collect();
     let mut browser = Browser::launch(&chrome, &scratch, &urls)?;
-    let collected = collect(&receiver, &mut browser, total, tabs);
+    let collected = collect(&receiver, &mut browser, total, tabs, &checked);
     browser.stop();
     drop(server);
     let results = collected.map_err(|err| {
@@ -1140,7 +1183,7 @@ pub(super) fn check(output: &Path) -> Result<Report, String> {
     }
     Ok(Report {
         pages: pages.len(),
-        widths: widths().len(),
+        widths: checked.len(),
         seconds: started.elapsed().as_secs_f64(),
         problems,
     })
@@ -1397,8 +1440,8 @@ struct PageResults {
     widths: Vec<Measured>,
 }
 
-/// Reads one page's results, and checks they hold every width once, in order.
-fn parse_results(body: &str) -> Result<(String, Vec<Measured>), String> {
+/// Reads one page's results, and checks they hold every width in `checked` once, in order.
+fn parse_results(body: &str, checked: &[u32]) -> Result<(String, Vec<Measured>), String> {
     let results: PageResults =
         serde_json::from_str(body).map_err(|err| format!("unreadable results: {err}"))?;
     let got: Vec<u32> = results
@@ -1406,10 +1449,9 @@ fn parse_results(body: &str) -> Result<(String, Vec<Measured>), String> {
         .iter()
         .map(|measured| measured.width)
         .collect();
-    if got != widths() {
+    if got != checked {
         return Err(format!(
-            "the results for {} are at widths {got:?}, not every width from {NARROWEST_PX} to \
-             {WIDEST_PX} px",
+            "the results for {} are at widths {got:?}, not the widths checked, {checked:?} px",
             results.page
         ));
     }
@@ -1533,6 +1575,7 @@ fn collect(
     browser: &mut Browser,
     pages: usize,
     tabs: usize,
+    checked: &[u32],
 ) -> Result<BTreeMap<String, Vec<Measured>>, String> {
     let started = Instant::now();
     let mut last_news = Instant::now();
@@ -1548,7 +1591,7 @@ fn collect(
         }
         match receiver.recv_timeout(Duration::from_secs(1)) {
             Ok(News::Results(body)) => {
-                let (page, measured) = parse_results(&body)?;
+                let (page, measured) = parse_results(&body, checked)?;
                 results.insert(page, measured);
                 last_news = Instant::now();
             }
@@ -2125,8 +2168,50 @@ mod tests {
     }
 
     fn page_json(page: &str, each: impl Fn(u32) -> String) -> String {
-        let list: Vec<String> = widths().into_iter().map(each).collect();
+        page_json_at(page, &widths(), each)
+    }
+
+    fn page_json_at(page: &str, at: &[u32], each: impl Fn(u32) -> String) -> String {
+        let list: Vec<String> = at.iter().copied().map(each).collect();
         format!(r#"{{"page":"{page}","widths":[{}]}}"#, list.join(","))
+    }
+
+    #[test]
+    fn the_parts_split_the_widths_evenly_and_cover_each_once() {
+        assert_eq!(Part::WHOLE.widths(), widths());
+        for count in [2, 3, 4, 41] {
+            let mut all: Vec<u32> = Vec::new();
+            for index in 1..=count {
+                let part = Part::parse(&format!("{index}/{count}")).unwrap();
+                let list = part.widths();
+                // Interleaved: every part starts among the narrowest and ends among the widest.
+                assert!(
+                    list[0] < NARROWEST_PX + STEP_PX * count as u32,
+                    "{part:?} {list:?}"
+                );
+                assert!(
+                    *list.last().unwrap() + STEP_PX * count as u32 > WIDEST_PX,
+                    "{part:?} {list:?}"
+                );
+                assert!(list.len().abs_diff(widths().len() / count) <= 1, "{part:?}");
+                all.extend(list);
+            }
+            all.sort_unstable();
+            assert_eq!(all, widths(), "{count} parts");
+        }
+        assert_eq!(Part::parse("2/3").unwrap().widths()[..3], [360, 480, 600]);
+    }
+
+    #[test]
+    fn a_part_is_read_as_k_of_n() {
+        assert_eq!(Part::parse("1/1"), Ok(Part::WHOLE));
+        assert_eq!(Part::parse("3/3"), Ok(Part { index: 3, count: 3 }));
+        for bad in [
+            "0/3", "4/3", "1/42", "3", "a/3", "1/", "/3", "-1/3", "1/3/3",
+        ] {
+            let err = Part::parse(bad).unwrap_err();
+            assert!(err.contains(&format!("`{bad}`")), "{bad}: {err}");
+        }
     }
 
     #[test]
@@ -2140,7 +2225,7 @@ mod tests {
                 _ => width_json(w, fits, 0, 0, 0),
             }
         });
-        let (page, measured) = parse_results(&body).unwrap();
+        let (page, measured) = parse_results(&body, &widths()).unwrap();
         assert_eq!(page, "guide.html");
         let problems = page_problems(&page, &measured);
         assert_eq!(problems.len(), 3, "{problems:#?}");
@@ -2163,7 +2248,7 @@ mod tests {
                 1,
             )
         });
-        let (page, measured) = parse_results(&body).unwrap();
+        let (page, measured) = parse_results(&body, &widths()).unwrap();
         let problems = page_problems(&page, &measured);
         assert_eq!(problems.len(), 2, "{problems:#?}");
         assert_eq!(
@@ -2205,7 +2290,7 @@ mod tests {
                 1,
             )
         });
-        let (page, measured) = parse_results(&body).unwrap();
+        let (page, measured) = parse_results(&body, &widths()).unwrap();
         let problems = page_problems(&page, &measured);
         assert_eq!(problems.len(), 4, "{problems:#?}");
         assert_eq!(
@@ -2274,7 +2359,7 @@ mod tests {
                 1,
             )
         });
-        let (page, measured) = parse_results(&body).unwrap();
+        let (page, measured) = parse_results(&body, &widths()).unwrap();
         let problems = page_problems(&page, &measured);
         assert_eq!(problems.len(), 3, "{problems:#?}");
         assert_eq!(
@@ -2327,7 +2412,7 @@ mod tests {
                 1,
             )
         });
-        let (page, measured) = parse_results(&body).unwrap();
+        let (page, measured) = parse_results(&body, &widths()).unwrap();
         let problems = page_problems(&page, &measured);
         assert_eq!(problems.len(), 1, "{problems:#?}");
         assert!(
@@ -2355,7 +2440,7 @@ mod tests {
     #[test]
     fn a_page_without_problems_has_none() {
         let body = page_json("index.html", |w| width_json(w, w - 15, 0, 0, 0));
-        let (page, measured) = parse_results(&body).unwrap();
+        let (page, measured) = parse_results(&body, &widths()).unwrap();
         assert!(page_problems(&page, &measured).is_empty());
     }
 
@@ -2368,7 +2453,7 @@ mod tests {
                 width_json(w, w - 15, 0, 0, 0)
             }
         });
-        let (page, measured) = parse_results(&body).unwrap();
+        let (page, measured) = parse_results(&body, &widths()).unwrap();
         let problems = page_problems(&page, &measured);
         assert_eq!(
             problems,
@@ -2379,8 +2464,21 @@ mod tests {
     #[test]
     fn results_must_hold_every_width() {
         let body = r#"{"page":"a.html","widths":[{"width":320,"error":null}]}"#;
-        assert!(parse_results(body).unwrap_err().contains("not every width"));
-        assert!(parse_results("{").unwrap_err().contains("unreadable"));
+        assert!(
+            parse_results(body, &widths())
+                .unwrap_err()
+                .contains("not the widths checked")
+        );
+        assert!(
+            parse_results("{", &widths())
+                .unwrap_err()
+                .contains("unreadable")
+        );
+        // A part's results hold its own widths, not every width.
+        let part = Part { index: 2, count: 3 };
+        let ok = page_json_at("a.html", &part.widths(), |w| width_json(w, w - 15, 0, 0, 0));
+        assert_eq!(parse_results(&ok, &part.widths()).unwrap().1.len(), 14);
+        assert!(parse_results(&ok, &widths()).is_err());
     }
 
     /// The canary served as `file`.
@@ -2396,11 +2494,11 @@ mod tests {
         let overlap = canary("canary-overlap.html");
         assert_eq!(overlap.expect, &[Kind::Overlap]);
         let found = page_json("x", |w| width_json(w, w - 15, 0, 0, 1));
-        let (_, measured) = parse_results(&found).unwrap();
+        let (_, measured) = parse_results(&found, &widths()).unwrap();
         assert!(canary_verdict(overlap, &measured).is_ok());
         // Missed at one width: the check is broken.
         let missed = page_json("x", |w| width_json(w, w - 15, 0, 0, usize::from(w != 760)));
-        let (_, measured) = parse_results(&missed).unwrap();
+        let (_, measured) = parse_results(&missed, &widths()).unwrap();
         let err = canary_verdict(overlap, &measured).unwrap_err();
         assert!(
             err.contains("at 760 px: `text over text` was not found"),
@@ -2408,16 +2506,16 @@ mod tests {
         );
         // Found with another problem: broken too.
         let extra = page_json("x", |w| width_json(w, w - 15, 0, 1, 1));
-        let (_, measured) = parse_results(&extra).unwrap();
+        let (_, measured) = parse_results(&extra, &widths()).unwrap();
         let err = canary_verdict(overlap, &measured).unwrap_err();
         assert!(err.contains("`text cut off by its box` was found"), "{err}");
         // The ordinary page passes only with nothing found.
         let ordinary = canary("canary-ordinary.html");
         let clean = page_json("x", |w| width_json(w, w - 15, 0, 0, 0));
-        let (_, measured) = parse_results(&clean).unwrap();
+        let (_, measured) = parse_results(&clean, &widths()).unwrap();
         assert!(canary_verdict(ordinary, &measured).is_ok());
         let wide = page_json("x", |w| width_json(w, w + 10, 0, 0, 0));
-        let (_, measured) = parse_results(&wide).unwrap();
+        let (_, measured) = parse_results(&wide, &widths()).unwrap();
         assert!(canary_verdict(ordinary, &measured).is_err());
     }
 
