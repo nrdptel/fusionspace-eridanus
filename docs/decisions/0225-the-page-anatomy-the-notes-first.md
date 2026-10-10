@@ -41,7 +41,8 @@ caution-like paragraph on the landing page, which becomes a `[!NOTE]` alert.
    body, whose head says another kind's word, isn't set in the `label` token, isn't set apart
    by a rule or a fill, isn't across the note's top above its message, misses its kind's fill,
    or whose border is missing or thinner than its kind's. Each of those rules has a canary that
-   breaks it and nothing else (nine in all, a caution's fill and a warning's apart), and one
+   breaks it and nothing else (13 in all: a caution's fill and a warning's apart, and each side
+   of the border once), and one
    with a note of each kind passes. A note is an `aside` with `role="note"`, so a page with
    several doesn't gain an unnamed landmark for each.
 4. **M0.9d7: the rest of #384,** with the old done-when unchanged, after M0.9d6.

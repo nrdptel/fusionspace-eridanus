@@ -122,8 +122,8 @@
 //! gutters, a right gutter wider than the left, a code block in a list item held to the measure,
 //! four notes drawn as the system draws them, which must pass, a quote block, a caution whose
 //! strip says Note, a signal word in body type, a strip with no rule or fill, a warning and a
-//! caution without their fills, a warning bordered 1 px, a body before its head, a strip below
-//! its message,
+//! caution without their fills, a warning bordered 1 px, a note with no left or right border and
+//! one with a dashed top or bottom, a body before its head, a strip below its message,
 //! Archivo with no fallback second, a label in faint ink, a paragraph faded to half and a title
 //! faded the same, which must pass, links with no ring and with the browser's own, a hidden
 //! checkbox whose picture takes the browser's ring, a box set apart by its fill alone and one with
@@ -381,6 +381,27 @@ const NOTES_WARNING_THIN: &str = concat!(
     "<style>.fs-note[data-kind=\"warning\"] { border-width: 1px !important; }</style>",
     note!("warning", "Warning")
 );
+// One side of a note's border each: no width on the left or right, dashed on the top or bottom.
+const NOTES_NO_LEFT: &str = concat!(
+    note_style!(),
+    "<style>.fs-note { border-left-width: 0 !important; }</style>",
+    note!("trust", "How far to trust it")
+);
+const NOTES_NO_RIGHT: &str = concat!(
+    note_style!(),
+    "<style>.fs-note { border-right-width: 0 !important; }</style>",
+    note!("trust", "How far to trust it")
+);
+const NOTES_DASHED_TOP: &str = concat!(
+    note_style!(),
+    "<style>.fs-note { border-top-style: dashed !important; }</style>",
+    note!("trust", "How far to trust it")
+);
+const NOTES_DASHED_BOTTOM: &str = concat!(
+    note_style!(),
+    "<style>.fs-note { border-bottom-style: dashed !important; }</style>",
+    note!("trust", "How far to trust it")
+);
 const NOTES_BODY_FIRST: &str = concat!(
     note_style!(),
     "<aside class=\"fs-note\" data-kind=\"trust\"><div class=\"fs-note-body\"><p>A \
@@ -393,7 +414,7 @@ const NOTES_BELOW: &str = concat!(
 );
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 66] = [
+const CANARIES: [Canary; 70] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -782,6 +803,34 @@ const CANARIES: [Canary; 66] = [
         what: "a warning bordered 1 px, not 2 px",
         expect: &[Kind::Note],
         inside: NOTES_WARNING_THIN,
+        after: "",
+    },
+    Canary {
+        file: "canary-note-no-left.html",
+        what: "a note with no border on its left",
+        expect: &[Kind::Note],
+        inside: NOTES_NO_LEFT,
+        after: "",
+    },
+    Canary {
+        file: "canary-note-no-right.html",
+        what: "a note with no border on its right",
+        expect: &[Kind::Note],
+        inside: NOTES_NO_RIGHT,
+        after: "",
+    },
+    Canary {
+        file: "canary-note-dashed-top.html",
+        what: "a note whose top border is dashed",
+        expect: &[Kind::Note],
+        inside: NOTES_DASHED_TOP,
+        after: "",
+    },
+    Canary {
+        file: "canary-note-dashed-bottom.html",
+        what: "a note whose bottom border is dashed",
+        expect: &[Kind::Note],
+        inside: NOTES_DASHED_BOTTOM,
         after: "",
     },
     Canary {
