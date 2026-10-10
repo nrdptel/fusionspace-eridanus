@@ -304,8 +304,9 @@ page check fails, at every width:
 - a switch not in the header from 960 px or not in the table of contents below it; with buttons
   other than Auto, Light and Dark, under 44 px tall or not in Cascadia Mono 14 px; with a button
   other than Auto chosen for a first-time reader, or the chosen one not filled in the text's
-  color; with mdBook's theme button drawn, or the switch drawn with scripts off. It presses Dark
-  and then Auto, and fails a page whose theme doesn't follow.
+  color; with mdBook's theme button drawn, or the switch drawn with scripts off. Once a run, at
+  the width it reads print at, it presses Dark and then Auto, and fails a page whose theme
+  doesn't follow.
 
 Each page's own status and one-sentence lead in its intro, two to six sheets a page, and every
 page opening with how far to trust it wait for

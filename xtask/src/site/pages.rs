@@ -1832,7 +1832,7 @@ const CANARIES: [Canary; 132] = [
     },
     Canary {
         file: "canary-switch-dead.html",
-        what: "a theme switch that sets no theme when pressed",
+        what: "a theme switch that sets no theme when pressed, once a run, at the width that reads print",
         expect: &[Kind::Switch],
         inside: "",
         after: switch_frame!("", switch_buttons!(), switch_placed!(), ""),
@@ -2133,6 +2133,10 @@ few lines so that it wraps at every width the check tries.</p>
         after = canary.after,
     )
 }
+
+/// The canaries whose problem shows only where the theme switch is pressed, which the harness
+/// does once a run, at the width that reads print ([`print_width`]).
+const PRESSED: [&str; 1] = ["canary-switch-dead.html"];
 
 /// Runs the page check on the site built in `output`.
 pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
@@ -2635,7 +2639,9 @@ fn canary_verdict(canary: &Canary, measured: &[Measured]) -> Result<(), String> 
             )));
         }
         for kind in Kind::ALL {
-            let expected = canary.expect.contains(&kind) && (kind != Kind::Print || m.printed);
+            let expected = canary.expect.contains(&kind)
+                && (kind != Kind::Print || m.printed)
+                && (!PRESSED.contains(&canary.file) || m.printed);
             if m.has(kind) != expected {
                 let verb = if expected {
                     "was not found"

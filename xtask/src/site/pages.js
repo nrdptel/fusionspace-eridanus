@@ -1986,9 +1986,11 @@
 
   // The theme switch pressed: Dark must put the page in mdBook's dark theme (Navy) and press
   // Dark, and Auto must put it back in the theme the reader's system asks for and press Auto.
-  // mdBook remembers a choice in `localStorage`, which the other frames loading in parallel
-  // share, and reads it back to mark the chosen button; while the switch is pressed, this
-  // frame's storage is a store of its own in memory, so nothing is left for them.
+  // Pressing works the same at any width, and restyling a long page twice is slow, so it is
+  // read once a run, at the width that reads print, with transitions held. mdBook remembers a
+  // choice in `localStorage`, which the other frames loading in parallel share, and reads it back
+  // to mark the chosen button; while the switch is pressed, this frame's storage is a store of
+  // its own in memory, so nothing is left for them.
   async function probeSwitchPress(win, doc, result) {
     const group = doc.getElementById('mdbook-theme-list');
     if (!group || !group.classList.contains('fs-seg')
@@ -2009,6 +2011,9 @@
     const auto = button('Auto');
     if (!dark || !auto) return;
     const root = doc.documentElement;
+    const held = doc.createElement('style');
+    held.textContent = '*, *::before, *::after { transition: none !important; }';
+    doc.head.appendChild(held);
     const store = win.Storage.prototype;
     const saved = { get: store.getItem, set: store.setItem, remove: store.removeItem };
     const memory = new Map();
@@ -2035,9 +2040,7 @@
       store.getItem = saved.get;
       store.setItem = saved.set;
       store.removeItem = saved.remove;
-    }
-    for (const a of doc.getAnimations()) {
-      if (Number.isFinite(a.effect.getComputedTiming().endTime)) a.finish();
+      held.remove();
     }
   }
 
@@ -2097,7 +2100,7 @@
           await probeDefaults(win, doc, found);
           if (printed) await probePrint(win, doc, found);
           Object.assign(result, found);
-          await probeSwitchPress(win, doc, result);
+          if (printed) await probeSwitchPress(win, doc, result);
           result.printed = printed;
           // Last, as it changes the frame's width.
           for (const widened of await probeWidened(frame, win, doc)) {
