@@ -88,6 +88,7 @@ use pulldown_cmark::{
 use crate::workspace::{Package, Workspace};
 
 mod chrome;
+mod frame;
 mod notes;
 mod pages;
 pub(crate) mod theme;
@@ -205,18 +206,24 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let dated = theme::fill_issue_date(&output, &issued)?;
     let notes = notes::draw(&output)?;
     let glyphs = chrome::draw(&output)?;
+    let framed = frame::draw(&output)?;
     let workspace = crate::workspace::load(&root)?;
     let crates = rustdoc_build(&root, &workspace, &output.join(API), locked)?;
     let mut built = check_html(&root, &output, &crates)?;
     built.problems.extend(theme::check_built(&root, &output)?);
     built.problems.extend(chrome::check(&output)?);
+    built.problems.extend(frame::check(&output)?);
     if !built.problems.is_empty() {
         return Err(failure("the built site", &built.problems));
     }
     println!(
-        "built theme: every page links the theme and its fonts, nothing a page or stylesheet \
-         loads comes from another server, and the title block ends the landing page, issued \
-         {issued} ({dated} pages)"
+        "built theme: every page links the theme and its fonts, and nothing a page or stylesheet \
+         loads comes from another server"
+    );
+    println!(
+        "built frame: {framed} pages open with a `header` drawing the lockup, show the sidebar \
+         from 720 px and end with the title block in a `footer`, issued {issued} (written on \
+         {dated} pages)"
     );
     println!(
         "built notes: {notes} quote blocks drawn as the system's notes, none left as a plain quote"
@@ -247,7 +254,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
          scale, prose line past 68 characters, gutter off the system's or code block held to \
          the measure, no quote block or note off the system's, no text under the contrast floor, focus ring off the system's, box or \
          icon forced colors would erase, sticky bar taller than the scroll padding, icon off \
-         the system's sizes or selection off the action role, and every canary found",
+         the system's sizes or selection off the action role, no header or title block off \
+         the system's, and every canary found",
         laid_out.pages,
         if part == pages::Part::WHOLE {
             format!("{} widths from 320 to 1,920 px", laid_out.widths)

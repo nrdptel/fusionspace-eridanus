@@ -20,7 +20,7 @@ use std::fs;
 use std::path::Path;
 use std::process::Command;
 
-use super::{attributes, html_files, is_web, unescape, visible_text};
+use super::{attributes, html_files, is_web, unescape};
 
 /// The theme folder, relative to the workspace root: mdBook's `theme/` beside `book.toml`.
 const THEME: &str = "theme";
@@ -43,8 +43,10 @@ const SYSTEM_SPDX: &str = "/* SPDX-License-Identifier: Apache-2.0 · Copyright 2
 const OWN_SPDX: &str = "/* SPDX-License-Identifier: MIT OR Apache-2.0 */";
 /// The files copied unchanged from the product system: where each sits under [`THEME`], and where
 /// it sits in the system's repository. The icons are the ones `chrome.rs` draws in each page's
-/// chrome; the favicon is the system's web kit's, its PNG the 32 px one.
-pub(crate) const COPIED: [(&str, &str); 22] = [
+/// chrome; the favicon is the system's web kit's, its PNG the 32 px one; the lockup and the mark
+/// are the brand kit's one-color files, which `frame.rs` draws in each page's header and title
+/// block.
+pub(crate) const COPIED: [(&str, &str); 24] = [
     (
         "fusionspace-mdbook.css",
         "product/web/mdbook/fusionspace-mdbook.css",
@@ -88,6 +90,14 @@ pub(crate) const COPIED: [(&str, &str); 22] = [
     ("icons/search.svg", "product/icons/search.svg"),
     ("icons/simulate.svg", "product/icons/simulate.svg"),
     ("icons/sun.svg", "product/icons/sun.svg"),
+    (
+        "logo/fusion-space-horizontal-void.svg",
+        "kit/logo/svg/fusion-space-horizontal-void.svg",
+    ),
+    (
+        "logo/fusion-space-mark-void.svg",
+        "kit/logo/svg/fusion-space-mark-void.svg",
+    ),
 ];
 /// hpr-sim's own stylesheets under [`THEME`].
 const OWN: [&str; 1] = ["hpr.css"];
@@ -121,7 +131,7 @@ const BLOCK_OPEN: &str = "<div class=\"title-block\">";
 /// hpr-sim's designation in the product system's register (ADR-164).
 const DESIGNATION: &str = "`FS-ACHERNAR · SW · TOOL 001`";
 /// The title block's fields, in order: ISO 7200's, as the product system's `web.md` names them.
-const FIELDS: [&str; 9] = [
+pub(super) const FIELDS: [&str; 9] = [
     "Owner",
     "Title",
     "Designation",
@@ -476,9 +486,14 @@ fn title_block_problems(page: &str, version: &str, captured: &str) -> Vec<String
         })
         .collect();
     let fields: Vec<&str> = rows.iter().map(|(field, _)| field.as_str()).collect();
-    if fields != FIELDS {
+    // Each page's title is its own, which the build writes in each page's title block.
+    let wanted: Vec<&str> = FIELDS
+        .into_iter()
+        .filter(|field| *field != "Title")
+        .collect();
+    if fields != wanted {
         problems.push(format!(
-            "has the fields {fields:?}; it needs {FIELDS:?}, in that order, one row each"
+            "has the fields {fields:?}; it needs {wanted:?}, in that order, one row each"
         ));
     }
     let entry = |name: &str| {
@@ -533,7 +548,7 @@ pub(super) fn commit_date(root: &Path) -> Result<String, String> {
 }
 
 /// Whether `text` is a date as `YYYY-MM-DD`.
-fn is_date(text: &str) -> bool {
+pub(super) fn is_date(text: &str) -> bool {
     let bytes = text.as_bytes();
     bytes.len() == 10
         && bytes.iter().enumerate().all(|(at, byte)| match at {
@@ -571,8 +586,8 @@ pub(super) fn fill_issue_date(output: &Path, date: &str) -> Result<usize, String
 }
 
 /// Checks the built site: every page of the guide links the theme and the fonts, no page or
-/// stylesheet makes a request that leaves the site, and the title block, its date filled in,
-/// ends the landing page.
+/// stylesheet makes a request that leaves the site. `frame.rs` checks the title block every page
+/// ends with.
 pub(super) fn check_built(root: &Path, output: &Path) -> Result<Vec<String>, String> {
     let mut problems = served_unchanged(&root.join(THEME), output)?;
     let mut names = Vec::new();
@@ -605,12 +620,6 @@ pub(super) fn check_built(root: &Path, output: &Path) -> Result<Vec<String>, Str
             dir.join(path).is_file()
         }));
     }
-    let landing = read(&output.join(LANDING_HTML))?;
-    problems.extend(
-        built_title_block_problems(&landing)
-            .into_iter()
-            .map(|why| format!("{LANDING_HTML}: the title block {why}")),
-    );
     Ok(problems)
 }
 
@@ -762,37 +771,6 @@ fn stylesheet_problems(
     problems
 }
 
-/// What is wrong with the title block on the built landing page: it is missing, text follows it
-/// in the page's `<main>`, or its date of issue was not filled in.
-fn built_title_block_problems(html: &str) -> Vec<String> {
-    let Some((_, block)) = html.split_once(BLOCK_OPEN) else {
-        return vec!["is missing".to_owned()];
-    };
-    let mut problems = Vec::new();
-    let Some((block, after)) = block.split_once("</table>") else {
-        return vec!["has no table".to_owned()];
-    };
-    let rest = after.split_once("</main>").map_or(after, |(rest, _)| rest);
-    let text = visible_text(rest);
-    if !text.trim().is_empty() {
-        problems.push(format!(
-            "must end the page, and `{}` follows it",
-            text.trim()
-        ));
-    }
-    let date = block
-        .split_once("<span id=\"issue-date\">")
-        .and_then(|(_, rest)| rest.split_once("</span>"))
-        .map(|(date, _)| date);
-    if !date.is_some_and(is_date) {
-        problems.push(format!(
-            "has no date of issue as YYYY-MM-DD (`{}`)",
-            date.unwrap_or("")
-        ));
-    }
-    problems
-}
-
 /// The elements named `name` in `html`, each from its `<` to its `>`.
 fn tags<'a>(html: &'a str, name: &str) -> impl Iterator<Item = &'a str> + 'a {
     let open = format!("<{name}");
@@ -860,7 +838,7 @@ mod tests {
     fn block() -> String {
         format!(
             "Prose.\n\n{BLOCK_OPEN}\n\n| Field | Entry |\n|---|---|\n| Owner | FusionSpace |\n\
-             | Title | t |\n| Designation | {DESIGNATION} |\n| Version | 1.2.3, not yet released |\n\
+             | Designation | {DESIGNATION} |\n| Version | 1.2.3, not yet released |\n\
              | Date of issue | {ISSUE_DATE} |\n| Status | IN PREPARATION |\n| Units | SI |\n\
              | Data | Thrust curves: catalog captured 2026-01-02. |\n| Fonts | f |\n\n</div>\n\n\
              [x]: https://example.com\n"
@@ -893,11 +871,17 @@ mod tests {
         let dropped = block().replace("| Units | SI |\n", "");
         let problems = title_block_problems(&dropped, "1.2.3", "2026-01-02");
         assert!(problems[0].starts_with("has the fields"), "{problems:?}");
-        let swapped = block().replace(
-            "| Owner | FusionSpace |\n| Title | t |",
-            "| Title | t |\n| Owner | FusionSpace |",
-        );
+        let swapped = block()
+            .replace(
+                "| Owner | FusionSpace |\n| Designation |",
+                "| Designation |",
+            )
+            .replace("| Version |", "| Owner | FusionSpace |\n| Version |");
         let problems = title_block_problems(&swapped, "1.2.3", "2026-01-02");
+        assert!(problems[0].starts_with("has the fields"), "{problems:?}");
+        // Each page's title is its own: the source writes none.
+        let titled = block().replace("| Designation |", "| Title | t |\n| Designation |");
+        let problems = title_block_problems(&titled, "1.2.3", "2026-01-02");
         assert!(problems[0].starts_with("has the fields"), "{problems:?}");
     }
 
@@ -959,24 +943,6 @@ mod tests {
                 "https://fonts.example/a.css"
             ]
         );
-    }
-
-    #[test]
-    fn the_built_title_block_must_be_last_and_dated() {
-        let page = |date: &str, after: &str| {
-            format!(
-                "<main><p>x</p>{BLOCK_OPEN}<div class=\"table-wrapper\"><table><tr><td>Date of \
-                 issue</td><td><span id=\"issue-date\">{date}</span></td></tr></table></div>\
-                 </div>{after}</main><nav>next</nav>"
-            )
-        };
-        assert!(built_title_block_problems(&page("2026-10-05", "\n")).is_empty());
-        let unfilled = built_title_block_problems(&page("the date", ""));
-        assert_eq!(unfilled.len(), 1, "{unfilled:?}");
-        assert!(unfilled[0].contains("YYYY-MM-DD"), "{unfilled:?}");
-        let followed = built_title_block_problems(&page("2026-10-05", "<p>Later</p>"));
-        assert_eq!(followed, ["must end the page, and `Later` follows it"]);
-        assert_eq!(built_title_block_problems("<main></main>"), ["is missing"]);
     }
 
     #[test]

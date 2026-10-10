@@ -44,6 +44,17 @@ adds a source.
   project removes them or draws its own (ADR-164): it replaces the files and their entries in
   `COPIED` (`xtask/src/site/theme.rs`) and `ICONS` (`xtask/src/site/chrome.rs`).
 
+- **The FusionSpace lockup and mark** (`theme/logo/fusion-space-horizontal-void.svg` and
+  `theme/logo/fusion-space-mark-void.svg`, whose paths the documentation site draws inline, in the
+  text's color, in every page's header and title block): `kit/logo/svg/` of
+  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `f45454f`, unchanged,
+  compared with that revision by `cargo xtask site` when `refs/fusionspace-design` is checked out
+  (ADR-229). They are the FusionSpace trademarks, the project owner's, Neer Patel's, under
+  fusionspace-design's `LICENSE` and `TRADEMARKS.md`: all rights reserved, and **not** covered by
+  this repository's MIT or Apache-2.0 license. A fork that isn't a FusionSpace project removes
+  them (ADR-164): it replaces the files, their entries in `COPIED` (`xtask/src/site/theme.rs`)
+  and the header `xtask/src/site/frame.rs` draws.
+
 - **The FusionSpace mdBook theme** (`theme/fusionspace-mdbook.css`, served by the documentation
   site): `product/web/mdbook/fusionspace-mdbook.css` of
   [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `f45454f` (product system

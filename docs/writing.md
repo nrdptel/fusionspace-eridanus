@@ -246,8 +246,26 @@ then fails:
 - a page with a second `h1` (the print page, which holds every chapter, keeps one per chapter);
 - a favicon that isn't the system's.
 
-`mdbook serve` still shows mdBook's icons and two `h1`; only `cargo xtask site` builds the pages
-as published. Not read: text inside SVG images or over a picture, hover
+mdBook also names the book in text in its menu bar, shows the table of contents beside the page
+only from 1,080 px, behind a menu button below that, and ends a page with its arrows. The build
+makes the menu bar the system's header: the FusionSpace lockup, 24 px tall in the text's color,
+then HPR, one link to the landing page. From 720 px the table of contents stays open and the menu
+button goes. Every page ends with the title block, its entries written once at the end of
+[Start here](start-here.md#title-block) and its title the page's own. A file check fails a page
+without one `header` holding the lockup, without one `footer` after the page's text holding the
+title block with ISO 7200's fields in order, or with mdBook's 1,080 px script left. The page
+check fails, at every width:
+
+- a lockup not 24 px tall, not in the text's ink, cut by its box, or closer than a quarter of its
+  height (the brand's clear space) to another icon or text in the header or to the window's side;
+- a menu button from 720 px, or none under 720 px;
+- a table of contents put away from 720 px, or one that screen readers and the keyboard reach
+  while it is put away, or can't while it shows;
+- a title block without its 2 px ink border, with entries not in Cascadia Mono, or with anything
+  below it.
+
+`mdbook serve` still shows mdBook's icons, menu bar and two `h1`, and the landing page's title
+block as a table; only `cargo xtask site` builds the pages as published. Not read: text inside SVG images or over a picture, hover
 ([#432](https://github.com/nrdptel/fusionspace-eridanus/issues/432)), and three text marks
 mdBook still draws (`❱` on the sidebar's fold toggles, `✓` beside the chosen theme, `»` before a
 heading jumped to). Print and the pages' load speed, Google's Core Web Vitals, are still
