@@ -399,6 +399,13 @@ Every page's source is a Markdown file in the repository's
 [`docs/` folder](https://github.com/nrdptel/fusionspace-eridanus/tree/main/docs). The pencil icon at the top of
 a page opens its source in GitHub's editor, where you can propose a fix.
 
+A page prints in the light theme's colors, whichever theme you read it in, without the table of
+contents or the buttons. Each link's address follows it in parentheses: a whole address for
+another site, and for a page of this one its path from the page, such as `cli.html#units`. The
+[title block](glossary.md#title-block), with the version and date, closes the page. The printer
+icon at the top opens every page as one, to print the whole site; that runs long, as it holds
+every chapter and its links' addresses.
+
 ## Title block
 
 Every page of this site ends with a title block, the box in the corner of an engineering drawing

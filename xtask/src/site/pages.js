@@ -370,6 +370,25 @@
   const ACTION = { light: '#3350D6', navy: '#768DF5' };
   // How opaque the action role is in a selection of text (`fusionspace.css`, `::selection`).
   const SELECTION_ALPHA = 0.22;
+  // A text of marks alone, spaces aside (#383): arrows, technical symbols, shapes, symbols and
+  // dingbats, more arrows, guillemets, pictographs and emoji, and the private-use characters
+  // icon fonts draw in.
+  const MARK = '\\u00AB\\u00BB\\u2039\\u203A\\u2190-\\u21FF\\u2300-\\u23FF\\u25A0-\\u25FF'
+    + '\\u2600-\\u27BF\\u27F0-\\u27FF\\u2900-\\u297F\\u2B00-\\u2BFF\\uE000-\\uF8FF'
+    + '\\u{1F000}-\\u{1FAFF}\\u{F0000}-\\u{10FFFD}\\uFE0F';
+  const MARKS = new RegExp('^\\s*[' + MARK + '][\\s' + MARK + ']*$', 'u');
+  // `:target` in a selector, and the attribute that stands for it while every element with an id
+  // is read as the one jumped to.
+  const TARGET = /:target(?![-\w])/;
+  const TARGETS = /:target(?![-\w])/g;
+  const TARGET_ATTR = 'data-check-target';
+  // On paper (`web.md`, *Print*): what must not be drawn (navigation and controls), what must
+  // stay on one sheet, and the title block's fields that must be drawn.
+  const PRINT_HIDDEN = 'nav, [role="navigation"], button, input, select, textarea, '
+    + '[role="button"], [role="menuitem"], [role="menu"], [role="search"], #mdbook-sidebar, '
+    + '#mdbook-menu-bar';
+  const PRINT_WHOLE = 'tr, .fs-note, .fs-titleblock';
+  const TITLE_BLOCK_PRINTED = ['Version', 'Date of issue'];
   // The sizes the system draws its icons at (`foundations.md`, *Icons*), square.
   const ICON_SIZES = [16, 20, 24];
   // The page's frame (#384; `web.md`, *Page anatomy*): the lockup's height, the brand's clear
@@ -483,8 +502,17 @@
   // tooltip are in every page, hidden until asked for. A search hit (`mark`) and a search result
   // are made only when asked for, so one of each is added for the reading. Hover and focus aren't
   // read. `reduced` reads motion with the stylesheets' reduced-motion rules applied, where
-  // everything must snap; `as` names the reading in its examples.
-  function styleDefaults(win, doc, theme, reduced, found, as) {
+  // everything must snap; `as` names the reading in its examples. `printing` reads a page with
+  // its print rules applied, where neither motion nor a selection shows, and text marks aren't
+  // read.
+  //
+  // Text marks (#383; `foundations.md`, *Icons*): a text that is nothing but marks (arrows,
+  // dingbats, shapes, symbols, guillemets, an icon font's private characters) is an icon drawn
+  // as a character. One fails in the page's chrome, outside its `main`, and as a `::before` or
+  // `::after` anywhere: mdBook's `❱` fold toggles, its `✓` beside the chosen theme and its `»`
+  // before a heading jumped to. A key's legend (`kbd`, as the help popup's `←`) is a key's name,
+  // and prose in `main` may use a mark as a word.
+  function styleDefaults(win, doc, theme, reduced, found, as, printing) {
     const allowed = ROLES[theme];
     const note = function (kind, el, pseudo, property, value) {
       found[kind + '_count']++;
@@ -530,6 +558,14 @@
         return n.nodeType === 3 && n.textContent.trim() !== '';
       });
     };
+    const main = doc.querySelector('main');
+    const markText = function (el) {
+      if (el.closest('kbd') || (main && main.contains(el))) return null;
+      const node = Array.from(el.childNodes).find(function (n) {
+        return n.nodeType === 3 && MARKS.test(n.textContent);
+      });
+      return node ? node.textContent.trim() : null;
+    };
     const els = [doc.documentElement].concat(doc.body
       ? [doc.body].concat(Array.from(doc.body.querySelectorAll('*'))) : []);
     for (const el of els) {
@@ -539,6 +575,12 @@
       for (const pseudo of [null, '::before', '::after']) {
         const s = win.getComputedStyle(el, pseudo);
         if (pseudo && (s.content === 'none' || s.content === 'normal')) continue;
+        if (!reduced && !printing && !svg) {
+          const generated = pseudo ? /^"(.*)"$/s.exec(s.content) : null;
+          const mark = pseudo ? (generated && MARKS.test(generated[1]) ? generated[1] : null)
+            : markText(el);
+          if (mark !== null) note('mark', el, pseudo, 'content', mark);
+        }
         if (!reduced) {
           if (!svg && (pseudo ? /^["']/.test(s.content) && s.content.length > 2 : ownText(el))) {
             legible(el, pseudo, s);
@@ -587,8 +629,8 @@
           if (s.textShadow !== 'none') note('shape', el, pseudo, 'text-shadow', s.textShadow);
           // Text selected is drawn on the action role at 22 % (`principles.md`, *One sweep*),
           // read on each element that shows text of its own; a page without the rule gets the
-          // browser's own.
-          if (!pseudo && !svg && ownText(el)) {
+          // browser's own. Paper shows no selection.
+          if (!printing && !pseudo && !svg && ownText(el)) {
             const value = win.getComputedStyle(el, '::selection').backgroundColor;
             const h = hex(value);
             if (!h || h.rgb !== ACTION[theme] || Math.abs(h.alpha - SELECTION_ALPHA) > 0.005) {
@@ -596,6 +638,7 @@
             }
           }
         }
+        if (printing) continue;
         if (s.scrollBehavior !== 'auto') {
           note('motion', el, pseudo, 'scroll-behavior', s.scrollBehavior);
         }
@@ -647,6 +690,245 @@
         if (index >= 0) sheet.deleteRule(index);
       }
     };
+  }
+
+  // Every style rule of the page's stylesheets that names `:target`, copied after itself with an
+  // attribute in its place, and every element with an id given the attribute: the page as if
+  // each of them were the one jumped to, which a stylesheet can draw a mark before (#383). The
+  // copy has the same specificity and stands where the rule does, so the cascade is the one a
+  // reader who jumps there gets. Returns a function that takes it all out again.
+  function applyTarget(win, doc) {
+    const added = [];
+    const walk = function (holder) {
+      let rules;
+      try { rules = holder.cssRules; } catch (err) { return; }
+      for (let i = rules.length - 1; i >= 0; i--) {
+        const rule = rules[i];
+        if (rule instanceof win.CSSImportRule) {
+          if (rule.styleSheet) walk(rule.styleSheet);
+        } else if (rule instanceof win.CSSStyleRule && TARGET.test(rule.selectorText)) {
+          const copy = rule.cssText.replace(rule.selectorText,
+            rule.selectorText.replace(TARGETS, '[' + TARGET_ATTR + ']'));
+          holder.insertRule(copy, i + 1);
+          added.push(holder.cssRules[i + 1]);
+        } else if (rule.cssRules) {
+          // A grouping rule, or a style rule with rules nested in it.
+          walk(rule);
+        }
+      }
+    };
+    for (const sheet of Array.from(doc.styleSheets)) {
+      if (!sheet.disabled) walk(sheet);
+    }
+    const marked = Array.from(doc.querySelectorAll('[id]'));
+    for (const el of marked) el.setAttribute(TARGET_ATTR, '');
+    return function () {
+      for (const el of marked) el.removeAttribute(TARGET_ATTR);
+      for (const rule of added) {
+        const holder = rule.parentRule || rule.parentStyleSheet;
+        const index = Array.from(holder.cssRules).indexOf(rule);
+        if (index >= 0) holder.deleteRule(index);
+      }
+    };
+  }
+
+  // Whether a media query list applies on paper: a query for print or all, or for no type, whose
+  // features hold (the frame's width stands in for the paper's); `not` turns it over.
+  function onPaper(win, text) {
+    return text.split(',').some(function (part) {
+      let query = part.trim().toLowerCase().replace(/^only\s+/, '');
+      const not = /^not\s+/.test(query);
+      if (not) query = query.replace(/^not\s+/, '');
+      let type = 'all';
+      const typed = /^([a-z-]+)(?:\s+and\s+(.*))?$/.exec(query);
+      if (typed) {
+        type = typed[1];
+        query = typed[2] || '';
+      }
+      const holds = (type === 'all' || type === 'print')
+        && (query === '' || win.matchMedia(query).matches);
+      return not ? !holds : holds;
+    });
+  }
+
+  // The page as it prints (#383): each media list of its stylesheets, their `@media` rules and
+  // imports that names `print` or `screen`, and that applies on paper but not on screen or the
+  // other way round, set to `all` or `not all`, so the stylesheets' print rules apply (mdBook's
+  // `print.css` among them) and their screen rules don't. A headless browser can't be told to
+  // print from a page, so the page is read on screen with paper's rules. Returns a function
+  // that puts every list back.
+  function applyPrint(win, doc) {
+    const changed = [];
+    const flip = function (list) {
+      const text = list.mediaText;
+      if (!/\b(print|screen)\b/i.test(text)) return;
+      const paper = onPaper(win, text);
+      if (win.matchMedia(text).matches === paper) return;
+      list.mediaText = paper ? 'all' : 'not all';
+      changed.push([list, text]);
+    };
+    const walk = function (holder) {
+      let rules;
+      try { rules = holder.cssRules; } catch (err) { return; }
+      for (const rule of Array.from(rules)) {
+        if (rule.media && rule instanceof win.CSSMediaRule) flip(rule.media);
+        if (rule instanceof win.CSSImportRule) {
+          flip(rule.media);
+          if (rule.styleSheet) walk(rule.styleSheet);
+        } else if (rule.cssRules) {
+          walk(rule);
+        }
+      }
+    };
+    for (const sheet of Array.from(doc.styleSheets)) {
+      if (sheet.disabled) continue;
+      flip(sheet.media);
+      walk(sheet);
+    }
+    return function () {
+      for (let i = changed.length - 1; i >= 0; i--) changed[i][0].mediaText = changed[i][1];
+    };
+  }
+
+  // The colors an element and its `::before` and `::after` are drawn in, as one string each, for
+  // comparing two readings of one page.
+  const COLOR_PROPERTIES = ['color', 'background-color', 'border-top-color',
+    'border-right-color', 'border-bottom-color', 'border-left-color', 'outline-color',
+    'text-decoration-color', 'fill', 'stroke'];
+  function colorsOf(win, els) {
+    const out = [];
+    for (const el of els) {
+      for (const pseudo of [null, '::before', '::after']) {
+        const s = win.getComputedStyle(el, pseudo);
+        if (pseudo && (s.content === 'none' || s.content === 'normal')) {
+          out.push(null);
+          continue;
+        }
+        out.push(COLOR_PROPERTIES.map(function (p) { return s.getPropertyValue(p); }));
+      }
+    }
+    return out;
+  }
+
+  // The page on paper (#383; `web.md`, *Print*), read with its print rules applied
+  // ([`applyPrint`]) in the theme it is in, and on mdBook's pages that switch, in the other too:
+  // - the light theme's values whatever the theme: every color one of the light theme's roles,
+  //   with the reading's other checks of color, shape and contrast ([`styleDefaults`]), and on a
+  //   page that switches, every element drawn in the same colors in both themes;
+  // - navigation and the theme's controls hidden: no `nav`, button, text field, menu or search
+  //   drawn, nor anything inside one;
+  // - each link drawn out of the page (not to a place on it), in `main` or around it, as the
+  //   title block's are, followed by its address, as a `::before` or `::after` that holds its
+  //   `href`;
+  // - table rows, notes and title blocks each kept on one sheet (`break-inside: avoid`);
+  // - each title block drawn, with its version and its date of issue.
+  async function probePrint(win, doc, found) {
+    const note = function (el, pseudo, property, value, as) {
+      found.print_count++;
+      if (found.print.length < EXAMPLES) {
+        found.print.push({
+          selector: selector(el) + (pseudo || ''), property: property, value: value, theme: as,
+        });
+      }
+    };
+    const root = doc.documentElement;
+    const themeClass = function () { return root.classList.contains('navy') ? 'navy' : 'light'; };
+    const els = [root].concat(doc.body
+      ? [doc.body].concat(Array.from(doc.body.querySelectorAll('*'))) : [])
+      .filter(function (el) {
+        return ['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE'].indexOf(el.tagName) < 0;
+      });
+    const read = function (as) {
+      const sub = {};
+      for (const kind of ['color', 'shape', 'contrast', 'motion', 'selection', 'mark']) {
+        sub[kind] = [];
+        sub[kind + '_count'] = 0;
+      }
+      styleDefaults(win, doc, 'light', false, sub, as, true);
+      for (const kind of Object.keys(sub).filter(function (k) { return !/_count$/.test(k); })) {
+        found.print_count += sub[kind + '_count'];
+        for (const ex of sub[kind]) {
+          if (found.print.length < EXAMPLES) found.print.push(ex);
+        }
+      }
+      // Navigation is read by what it holds as well: mdBook's page arrows are links fixed to the
+      // window's sides inside a `nav` with no height of its own.
+      for (const el of doc.querySelectorAll(PRINT_HIDDEN)) {
+        if (el.type === 'hidden') continue;
+        const shown = drawn(win, el) ? el : Array.from(el.querySelectorAll('*')).find(function (c) {
+          return drawn(win, c);
+        });
+        if (shown) note(shown, null, 'display', 'drawn on paper', as);
+      }
+      for (const a of doc.querySelectorAll('a[href]')) {
+        const href = a.getAttribute('href');
+        if (href === '' || href.charAt(0) === '#' || !drawn(win, a)) continue;
+        const shows = ['::before', '::after'].some(function (pseudo) {
+          const content = win.getComputedStyle(a, pseudo).content;
+          return /^"/.test(content) && content.indexOf(href) >= 0;
+        });
+        if (!shows) note(a, '::after', 'content', 'no address (' + href + ')', as);
+      }
+      for (const el of doc.querySelectorAll(PRINT_WHOLE)) {
+        const value = win.getComputedStyle(el).breakInside;
+        if (drawn(win, el) && value !== 'avoid' && value !== 'avoid-page') {
+          note(el, null, 'break-inside', value, as);
+        }
+      }
+      for (const block of doc.querySelectorAll('.fs-titleblock')) {
+        if (!drawn(win, block)) {
+          note(block, null, 'display', 'not drawn on paper', as);
+          continue;
+        }
+        for (const name of TITLE_BLOCK_PRINTED) {
+          const field = Array.from(block.querySelectorAll('.k')).find(function (k) {
+            return k.textContent.trim() === name;
+          });
+          const entry = field && field.nextElementSibling;
+          if (!field || !drawn(win, field) || !entry || !drawn(win, entry)
+            || entry.textContent.trim() === '') {
+            note(block, null, name, 'not drawn on paper', as);
+          }
+        }
+      }
+      return colorsOf(win, els);
+    };
+    const undo = applyPrint(win, doc);
+    try {
+      await settle(win, doc);
+      const first = themeClass();
+      const colors = read('print, from ' + first);
+      if (doc.getElementById('mdbook-tomorrow-night-css') && root.classList.contains('js')) {
+        const other = first === 'light' ? 'navy' : 'light';
+        switchTheme(doc, other);
+        await settle(win, doc);
+        const others = read('print, from ' + other);
+        let i = 0;
+        for (const el of els) {
+          for (const pseudo of [null, '::before', '::after']) {
+            const a = colors[i];
+            const b = others[i];
+            i++;
+            if (a === null && b === null) continue;
+            if (a === null || b === null) {
+              note(el, pseudo, 'content', 'drawn from one theme only', 'print');
+              continue;
+            }
+            COLOR_PROPERTIES.forEach(function (p, k) {
+              if (a[k] !== b[k]) {
+                note(el, pseudo, p, a[k] + ' from ' + first + ', ' + b[k] + ' from ' + other,
+                  'print');
+              }
+            });
+          }
+        }
+        switchTheme(doc, first);
+        await settle(win, doc);
+      }
+    } finally {
+      undo();
+      await settle(win, doc);
+    }
   }
 
   // The theme a page is shown in: mdBook gives the dark ones a dark `color-scheme`. It picks
@@ -900,7 +1182,11 @@
       results.appendChild(li);
     }
     const first = themeOf(win, doc);
+    // Read as if every element with an id were the one jumped to, for what a stylesheet draws
+    // before a heading jumped to; the readings after it are of the page as it loads.
+    const untarget = applyTarget(win, doc);
     styleDefaults(win, doc, first, false, found);
+    untarget();
     const undo = applyMedia(doc, /prefers-reduced-motion:\s*reduce/);
     styleDefaults(win, doc, first, true, found);
     undo();
@@ -1259,7 +1545,12 @@
     // Icons (#383; `foundations.md`, *Icons*): each one in the page's chrome, the spans mdBook
     // draws its buttons, arrows and spinner in, is drawn square at one of the system's sizes.
     // One not drawn at this width, or until asked for (`display: none` on it or around it), has
-    // no box and isn't read; one drawn at 0 px is read, and fails.
+    // no box and isn't read; one drawn at 0 px is read, and fails. An icon turning (a fold
+    // toggle's chevron, as its heading opens when the page loads) is read where its turn ends,
+    // as a reader sees it a moment later: a square turned partway has a wider box.
+    for (const a of doc.getAnimations()) {
+      if (Number.isFinite(a.effect.getComputedTiming().endTime)) a.finish();
+    }
     for (const svg of Array.from(doc.querySelectorAll('.fa-svg svg'))) {
       if (svg.getClientRects().length === 0) continue;
       const r = svg.getBoundingClientRect();
@@ -1512,7 +1803,8 @@
     }
   }
 
-  function check(page, width, height) {
+  // `printed`: whether this width reads the page on paper too.
+  function check(page, width, height, printed) {
     return new Promise(function (resolve) {
       const frame = document.createElement('iframe');
       frame.style.cssText = 'position:absolute;left:0;top:0;border:0;margin:0;padding:0;'
@@ -1560,11 +1852,14 @@
             color: [], color_count: 0, shape: [], shape_count: 0, motion: [], motion_count: 0,
             contrast: [], contrast_count: 0, focus: [], focus_count: 0, forced: [],
             forced_count: 0, sticky: [], sticky_count: 0, selection: [], selection_count: 0,
+            mark: [], mark_count: 0, print: [], print_count: 0,
           };
           // Before the defaults' readings, which leave the page in its other theme.
           probeAccess(win, doc, found);
           await probeDefaults(win, doc, found);
+          if (printed) await probePrint(win, doc, found);
           Object.assign(result, found);
+          result.printed = printed;
           // Last, as it changes the frame's width.
           for (const widened of await probeWidened(frame, win, doc)) {
             result.header_count++;
@@ -1598,7 +1893,8 @@
       const worker = async function () {
         while (next < plan.widths.length) {
           const i = next++;
-          results[i] = await check(page, plan.widths[i], plan.height);
+          results[i] = await check(page, plan.widths[i], plan.height,
+            plan.widths[i] === plan.print_width);
         }
       };
       const workers = [];

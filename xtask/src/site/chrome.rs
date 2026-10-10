@@ -17,9 +17,11 @@
 //! book opens each chapter with its title; it loses the menu bar's.
 //!
 //! The checks read the glyphs' spans only. The copy button's icon is painted through a mask from
-//! `docs/images/copy.svg` (`theme/hpr.css`), and mdBook's script and stylesheets still draw three
-//! text glyphs (`❱` on the sidebar's fold toggles, `✓` beside the chosen theme, `»` before a
-//! heading jumped to), which no check reads yet (#383).
+//! `docs/images/copy.svg` (`theme/hpr.css`). mdBook's script and stylesheets also draw three text
+//! marks as icons: `❱` on the sidebar's fold toggles, which [`draw_toc`] swaps for the system's
+//! chevron in `toc.js`, and `✓` beside the chosen theme and `»` before a heading jumped to, which
+//! `theme/hpr.css` takes away. The page check fails a mark drawn as text in the chrome, or as a
+//! `::before` or `::after` anywhere (#383).
 
 use std::fs;
 use std::path::Path;
@@ -200,6 +202,44 @@ fn rewrite(html: &str) -> Result<(String, usize), Vec<String>> {
         None => out,
     };
     Ok((out, count))
+}
+
+/// The script mdBook 0.5 writes the sidebar with, which adds the current page's headings to it,
+/// and how it draws a fold toggle beside a heading that holds others: the text mark `❱`.
+const TOC_SCRIPT: &str = "toc.js";
+const FOLD_MARK: &str = "toggleDiv.textContent = '❱';";
+
+/// The fold toggle as [`draw_toc`] draws it: the system's chevron in a glyph's span, sized by
+/// `theme/hpr.css` and turned a quarter by mdBook's stylesheet when its heading is open; or why
+/// it can't be.
+fn fold_icon() -> Result<String, String> {
+    let chevron = icon("chevron").ok_or("the system's chevron isn't among the chrome's icons")?;
+    Ok(format!(
+        "toggleDiv.innerHTML = '<span class=fa-svg>{chevron}</span>';"
+    ))
+}
+
+/// Swaps the fold toggles' text mark in the sidebar's script under `output` for the system's
+/// chevron. A script that draws its toggles some other way fails the build, so a newer mdBook's
+/// mark can't slip through.
+pub(super) fn draw_toc(output: &Path) -> Result<(), String> {
+    let path = output.join(TOC_SCRIPT);
+    let script = fs::read_to_string(&path)
+        .map_err(|err| format!("could not read {}: {err}", path.display()))?;
+    let drawn = toc_drawn(&script)?;
+    fs::write(&path, drawn).map_err(|err| format!("could not write {}: {err}", path.display()))
+}
+
+/// The sidebar's script with its fold toggles drawn as the system's chevron, or why it can't be.
+fn toc_drawn(script: &str) -> Result<String, String> {
+    match script.matches(FOLD_MARK).count() {
+        1 => Ok(script.replace(FOLD_MARK, &fold_icon()?)),
+        found => Err(format!(
+            "{TOC_SCRIPT} draws its fold toggles {found} time(s) as `{FOLD_MARK}`, not once: \
+             mdBook's sidebar script has changed, so draw its toggles with the system's chevron \
+             in `draw_toc` (xtask/src/site/chrome.rs)"
+        )),
+    }
 }
 
 /// The first few characters of `text`, for a message.
@@ -448,6 +488,32 @@ mod tests {
             page_problems("a.html", &format!("{}{chapters}", page(menu, TITLE_DRAWN))).len(),
             1
         );
+    }
+
+    #[test]
+    fn the_fold_toggles_mark_becomes_the_systems_chevron() {
+        let script = format!("const a = 1;\n{FOLD_MARK}\nconst b = 2;\n");
+        let drawn = toc_drawn(&script).unwrap();
+        assert!(!drawn.contains('❱'), "{drawn}");
+        assert!(drawn.contains(&format!(
+            "'<span class=fa-svg>{}</span>'",
+            icon("chevron").unwrap()
+        )));
+        // The icon is written inside a single-quoted string, so it may hold no quote of that kind
+        // and no line break.
+        assert!(!icon("chevron").unwrap().contains(['\'', '\n']));
+        assert!(drawn.starts_with("const a = 1;\n") && drawn.ends_with("\nconst b = 2;\n"));
+    }
+
+    #[test]
+    fn a_sidebar_script_that_draws_its_toggles_otherwise_fails() {
+        for script in [
+            "toggleDiv.textContent = '>';".to_string(),
+            format!("{FOLD_MARK}\n{FOLD_MARK}"),
+        ] {
+            let err = toc_drawn(&script).unwrap_err();
+            assert!(err.contains("draw_toc"), "{err}");
+        }
     }
 
     #[test]

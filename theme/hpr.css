@@ -321,3 +321,50 @@ h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter { font-family: 'Casc
 .fs-titleblock .full { flex-basis: 100%; }
 .fs-titleblock .mark .v { display: flex; gap: 8px; align-items: center; }
 .fs-titleblock .fs-mark { height: 24px; width: auto; flex: none; }
+
+/* Text marks (#383; `foundations.md`, *Icons*): mdBook draws three icons as characters, which the
+   system draws from its own set or not at all. The sidebar's fold toggles get the system's
+   chevron at 16 px (`xtask site` swaps mdBook's `❱` in `toc.js`); the chosen theme in the theme
+   menu is underlined 2 px, as the current page is in the sidebar, not ticked with `✓`; a heading
+   jumped to takes no `»`, as the scroll padding already brings it to the top of the window. The
+   page check fails a mark drawn as text outside a page's `main`, or as a `::before` or
+   `::after` anywhere. */
+.chapter-fold-toggle .fa-svg svg { width: 16px; height: 16px; }
+.theme-selected::before { content: none; }
+.theme-popup .theme-selected { text-decoration: underline 2px; text-underline-offset: 4px; }
+:is(h1, h2, h3, h4, h5, h6, dt):target::before { content: none; }
+
+/* Print (#383; `web.md`, *Print*): the light theme's values whatever theme the page is read in,
+   navigation and the theme's controls hidden (mdBook's `print.css` hides its sidebar, menu bar
+   and page arrows), link addresses shown after their links, the title block's too, and table
+   rows, notes and the title block, which carries the version and date of issue, each kept on
+   one sheet of paper. Links within the site show their path, relative to the page. mdBook's
+   `print.css` colors links a blue of its own; here they keep the action role. The page check reads
+   every page with the stylesheets' print rules applied, in each theme, and fails a color that
+   differs from the light theme's, a control or navigation drawn, a link without its address, a
+   row, note or title block that can split, or a title block not drawn whole. */
+@media print {
+    html.light, html.rust, html.navy, html.coal, html.ayu, html:not(.js) {
+      color-scheme: light;
+      --bg: #F3F4F7; --fg: #0B0F1C; --sidebar-bg: #FFFFFF; --sidebar-fg: #0B0F1C;
+      --sidebar-non-existant: #98A1B8; --sidebar-active: #3350D6; --sidebar-spacer: #D6DAE4;
+      --scrollbar: #566079; --icons: #566079; --icons-hover: #0B0F1C; --links: #3350D6;
+      --inline-code-color: #0B0F1C; --theme-popup-bg: #FFFFFF; --theme-popup-border: #566079;
+      --theme-hover: #D6DAE4; --quote-bg: #FFFFFF; --quote-border: #566079;
+      --table-border-color: #D6DAE4; --table-header-bg: #FFFFFF; --table-alternate-bg: #F3F4F7;
+      --searchbar-border-color: #566079; --searchbar-bg: #FFFFFF; --searchbar-fg: #0B0F1C;
+      --searchbar-shadow-color: transparent; --searchresults-header-fg: #566079; --searchresults-border-color: #D6DAE4;
+      --searchresults-li-bg: #FFFFFF;
+      --code-bg: #FFFFFF;
+      --hpr-ink: #0B0F1C; --hpr-ink-muted: #566079; --hpr-canvas: #F3F4F7; --hpr-surface: #FFFFFF;
+      --hpr-rule: #D6DAE4; --hpr-rule-strong: #566079; --hpr-action: #3350D6; --hpr-on-action: #FFFFFF;
+      --hpr-danger: #AC001E; --hpr-ok: #0A6355;
+      --hpr-selection: rgb(51 80 214 / 0.22);
+      --sidebar-header-border-color: var(--hpr-rule);
+      --footnote-highlight: var(--hpr-action);
+      --search-mark-bg: var(--hpr-action);
+    }
+    a, a:visited, a:active, a:hover { color: var(--links); }
+    a[href]:not([href^="#"])::after { content: " (" attr(href) ")"; overflow-wrap: anywhere; }
+    tr, .fs-titleblock { break-inside: avoid; }
+}

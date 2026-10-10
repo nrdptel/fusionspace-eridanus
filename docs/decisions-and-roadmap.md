@@ -250,6 +250,7 @@ until someone rewrites it in plainer words.
 | [ADR-227: Phones built on every pull request][adr-227] | CI builds the workspace for iPhone (`aarch64-apple-ios`), its simulator on Apple silicon (`aarch64-apple-ios-sim`) and 64-bit Android (`aarch64-linux-android`, Android 7.0 and later) on every pull request, so the mobile apps ([M9.4](#m9-4)) start from a core that already builds there. Build only: the tests run on phones when the apps do, and no phone archives or wheels are released. |  |
 | [ADR-228: The site's defaults split again: the chrome first][adr-228] | [M0.9d6](#m0-9d6) took the last of #383 and #443: the system's icons for mdBook's Font Awesome glyphs, the favicon, one `h1` a page, print, and the Core Web Vitals measured. [M0.9d6](#m0-9d6) now covers what the page's chrome draws: after mdBook builds the site, `cargo xtask site` swaps each glyph for the system's icon of the same meaning and makes the menu bar's title a paragraph; a file check fails a glyph left, an icon not the system's or a second `h1`; the favicon is the system's; and the page check fails an icon off 16, 20 or 24 px and a selection off the action role at 22 %, each with canaries. The new [M0.9d8](#m0-9d8) keeps the old done-when whole (#383 and #443 closed) and takes print and the Core Web Vitals. The field theme, which the audit counted under #383 but which is no mdBook default, moves to #452. |  |
 | [ADR-229: The page anatomy split again: the frame first][adr-229] | [M0.9d7](#m0-9d7) took the rest of #384: title blocks, sheets, the intro, the lockup header with no menu button from 720 px, the `header` and `footer` landmarks, and every page opening with how far to trust it. [M0.9d7](#m0-9d7) now covers the page's frame, what stands above and below every page's text: after mdBook builds the site, `cargo xtask site` makes the menu bar a `header` that draws the system's one-color horizontal lockup, keeps the sidebar open with no menu button from 720 px, and ends every page with the system's title block in a `footer`, its entries written once at the end of the landing page's source. A file check fails a page without them, and the page check fails a lockup off 24 px or the ink role or without its clear space, a menu button from 720 px, a sidebar a keyboard or screen reader reaches while it is put away (or can't while it is shown), and a title block off the system's shape or not last, each with canaries. The new [M0.9d9](#m0-9d9) keeps the old done-when whole (#384 closed, every rule held) and takes the intro, the sheets and the trust openings. |  |
+| [ADR-230: The site's defaults split again: print and the text marks first][adr-230] | [M0.9d8](#m0-9d8) took the last of #383 and all of #443: print, the three text marks mdBook draws as icons, and the Core Web Vitals measured. [M0.9d8](#m0-9d8) now covers print and the marks: the build draws the sidebar's fold toggle as the system's chevron, the theme menu underlines the chosen theme, a heading jumped to takes no mark, and the site prints in the light theme's values with navigation hidden, link addresses shown and rows, notes and the title block kept whole. The page check fails a text mark drawn as an icon, and reads every page with its print rules applied at the run's width nearest a sheet of paper (720 px), in both themes, failing each print rule with canaries. The new [M0.9d10](#m0-9d10) keeps the old done-when whole (#383 and #443 closed) and takes the Core Web Vitals. |  |
 
 ## The roadmap
 
@@ -379,8 +380,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9d5"></a>[M0.9d5][done-0] | The notes | done |
 | <a id="m0-9d6"></a>[M0.9d6][done-0] | The site's chrome | done |
 | <a id="m0-9d7"></a>[M0.9d7][done-0] | The page's frame | done |
-| <a id="m0-9d8"></a>[M0.9d8][phase-0] | Print and vitals | not yet done |
+| <a id="m0-9d8"></a>[M0.9d8][done-0] | Print and the text marks | done |
 | <a id="m0-9d9"></a>[M0.9d9][phase-0] | The page anatomy | not yet done |
+| <a id="m0-9d10"></a>[M0.9d10][phase-0] | The pages' vitals | not yet done |
 | <a id="m0-9e"></a>[M0.9e][phase-0] | The words to the design | not yet done |
 | <a id="m0-10"></a>[M0.10][phase-0] | The scoreboard | not yet done |
 | <a id="m0-11"></a>[M0.11][phase-0] | Steps to a first answer | not yet done |
@@ -1009,6 +1011,7 @@ is the milestone that added or will add that test.
 [adr-227]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0227-phones-built-on-every-pull-request.md
 [adr-228]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0228-the-sites-defaults-the-chrome-first.md
 [adr-229]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0229-the-page-anatomy-the-frame-first.md
+[adr-230]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0230-the-sites-defaults-print-and-the-marks-first.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
