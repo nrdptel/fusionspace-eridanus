@@ -42,4 +42,13 @@ rules templates carry a source date, a stale-after date and "not legal advice".
 - LATER: a spectator photo card.
 - LATER: an onboard camera planner.
 
+From the 2026-10-09 planning review:
+
+- SOON: airbrakes failed as each rulebook says. User: a EuRoC or IREC team's airbrake lead.
+  Workflow: `hpr mc` flies the controller with the brakes failed in each rule's state (EuRoC 2026:
+  fully extended). Moves: apogee spread under each failure, not measured today. *Done when:* the
+  run reports each state's 90% apogee range with Wilks bounds, each state cited to its rulebook
+  with a source date and a stale-after date.
+
+
 [m6-3]: ../decisions-and-roadmap.md#m6-3

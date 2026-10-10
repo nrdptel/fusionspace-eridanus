@@ -142,23 +142,24 @@ Each idea names its user, workflow, the scoreboard number it moves (ADR-209 §13
   report gives the error above and below the median share, fixed before the errors are read, as
   aggregates.
 
-## The 2026-10-09 planning review
+## The 2026-10-10 planning review
 
-- SOON: the apogee across surface finishes. User: an L2 flyer who can't name a paint's roughness.
-  Workflow: `hpr sim` prints the apogee at the finishes either side of the chosen one. Why: a 2026
-  study measured 17–75% more drag from manufacturing roughness (Seniwan and Mohd Saiah). Moves: the
-  share of the collection's logged apogees inside that band, not measured today. *Done when:* the
-  fixture report gives it with two-sided 95% Clopper–Pearson bounds, failed runs counted as misses.
-- SOON: forecast winds scored against soundings. User: a team sizing a recovery area a day out.
-  Workflow: `hpr weather` shows how far each forecast model it fetches has been from balloon
-  soundings near the site. Why: a 2025 student study scored GFS, NAM and HRRR on 2,900 soundings.
-  Moves: wind error by model and height band, not measured today. *Done when:* a committed report
-  scores each model against NOAA's IGRA soundings at 5 launch sites over a season, with intervals.
-- SOON: airbrakes failed as each rulebook says. User: a EuRoC or IREC team's airbrake lead.
-  Workflow: `hpr mc` flies the controller with the brakes failed in each rule's state (EuRoC 2026:
-  fully extended). Moves: apogee spread under each failure, not measured today. *Done when:* the
-  run reports each state's 90% apogee range with Wilks bounds, each state cited to its rulebook
-  with a source date and a stale-after date.
+- PROMOTED to M2.3c6 ([ADR-226][adr-226]): the gap to OpenRocket split by cause.
+- SOON: every flight's energy closes. User: a flyer showing a waiver flight to a safety reviewer.
+  Workflow: `hpr sim` prints the work done by thrust, drag and gravity beside the change in kinetic
+  and potential energy. Why: in October 2026 RocketPy 1.13 still printed its potential energy with
+  the wrong sign (its issue #1202). Moves: the share of the report's flights whose energy residual
+  is below 1e-6 of the impulse's work, not measured today. *Done when:* the fixture and public
+  reports give that share, and a mutation of drag's sign fails a test.
+- SOON: oracle aborts named, not counted as misses. User: a reader of the OpenRocket comparisons.
+  Workflow: the census lists each flight OpenRocket ends early by its event (a 2026-10-07 fix in its
+  development line removed a false tumble abort on finless boosters; 24.12 still has it). Moves: the
+  OpenRocket examples within 5% (45 of 53 today), with aborts kept apart. *Done when:* the
+  OpenRocket reports count aborts by event, and a probe design with a finless booster shows one.
+- LATER: the flight against its own log, by phase. User: an L2 flyer whose apogee came in low.
+  Workflow: `hpr compare` splits the miss into thrust, coast-drag and recovery parts, by M2.3c6's
+  method. Moves: the collection's MAE, through the part it names. *Done when:* each collection
+  flight with a log M7.1 reads gets the three parts, aggregated in the fixture report.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -196,3 +197,4 @@ Each idea names its user, workflow, the scoreboard number it moves (ADR-209 §13
 [adr-195]: ../decisions/0195-the-2026-10-07-guides-rocketry-explained.md
 [adr-196]: ../decisions/0196-the-2026-10-07-product-guides.md
 [m2-3c3]: ../decisions-and-roadmap.md#m2-3c3
+[adr-226]: ../decisions/0226-the-2026-10-10-review-the-gap-to-openrocket-by-cause.md
