@@ -811,7 +811,7 @@
       }
 
       // A code block or table that scrolls sideways inside a box held to the prose measure: it
-      // keeps the column's width (ADR-222), so nothing around it in `main` may cap it.
+      // keeps the column's width (ADR-223), so nothing around it in `main` may cap it.
       for (const box of main.querySelectorAll('pre, .table-wrapper, table')) {
         if (box.scrollWidth <= box.clientWidth + SLACK_PX) continue;
         for (let e = box.parentElement; e && e !== main; e = e.parentElement) {
