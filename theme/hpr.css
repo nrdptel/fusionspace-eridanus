@@ -27,7 +27,7 @@
 #mdbook-searchresults li, #mdbook-searchresults .teaser { overflow-wrap: anywhere; }
 /* Table cells get the paragraphs' line height, so a superscript (2⁵³), which mdBook gives no line
    height of its own, stays inside its line instead of rising into the one above. */
-.content td, .content th { line-height: 1.45em; }
+.content td, .content tbody th { line-height: 24px; }
 
 /* Figures at their size (#382). A figure's text is drawn at its size, so a figure shown smaller
    reads smaller: the plot's 12 px text, in its 960 px figure squeezed into mdBook's 750 px prose
@@ -169,3 +169,56 @@ mark, #mdbook-searchbar { transition-duration: 100ms; transition-timing-function
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; scroll-behavior: auto !important; }
 }
+
+/* The page's frame (#384; `foundations.md`, *Type* and *Width*; `web.md`, *Page anatomy*). Every
+   text is on the system's type scale, in pixels as the scale gives them: titles, sheet names,
+   section heads, labels, navigation and code in Cascadia Mono; prose in Archivo, with tabular
+   figures. A line of prose holds at most 68 characters, and the gutters are 16 px on a phone and
+   32 px from 720 px. `cargo xtask site`'s page check reads every text's size, line height, family
+   and capitals, counts the characters of each line of prose as drawn, and measures the gutters,
+   at every width. */
+body { font-size: 16px; line-height: 24px; font-variant-numeric: tabular-nums; }
+.content p, .content ol, .content ul { line-height: 24px; }
+/* `title` 28/32, `subtitle` 20/24 for a sheet's name, `heading` 14/20 in capitals for a section
+   head inside one; below that, a run-in head in body type, semibold. */
+h1 { font-size: 28px; line-height: 32px; }
+h2 { font-size: 20px; line-height: 24px; }
+h3 { font-size: 14px; line-height: 20px; text-transform: uppercase; letter-spacing: 0.06em; }
+h4, h5, h6 { font-family: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 16px; line-height: 24px; font-weight: 600; }
+/* `code` 14/20; in a Cascadia Mono heading or column head, the head's own size. */
+code, pre, kbd { font-size: 14px; line-height: 20px; }
+h1 code, h2 code, h3 code, thead th code { font-size: inherit; line-height: inherit; }
+/* Code and symbols stay as written in a head set in capitals: `hpr sim` is a command, `C_lδ` a
+   symbol, and neither means the same in capitals. */
+h3 code, thead th code { text-transform: none; letter-spacing: 0; }
+h4 code, h5 code, h6 code { font-size: 14px; line-height: 20px; }
+kbd { line-height: 20px; }
+/* Column heads and the title block's field names: `label`, 12/16 in capitals. */
+.content thead th, .title-block td:first-child { font-size: 12px; line-height: 16px; }
+/* Footnotes and the copy tooltip: `small`, 14/20. */
+.content .footnote-definition, .content .footnote-definition :is(li, p), .tooltiptext { font-size: 14px; line-height: 20px; }
+/* Navigation in Cascadia Mono 14 (`web.md`, *Page anatomy*): the chapters, their numbers in the
+   same weight, and a part's title as a section head. */
+.sidebar, .chapter { font-family: 'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace; font-size: 14px; line-height: 20px; }
+.chapter li, .chapter a, .chapter code { font-size: 14px; line-height: 20px; }
+/* A button's text in body type: browsers give buttons a font of their own. */
+button { font: inherit; }
+.theme-popup .theme { font-size: 16px; line-height: 24px; }
+.chapter li a strong { font-weight: 400; }
+.chapter li.part-title { font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+/* The menu bar's title, a `subtitle` until the lockup replaces it; the search field in body type. */
+.menu-title { font-size: 20px; line-height: 24px; font-weight: 600; align-self: center; }
+@media only screen and (max-width: 519px) { #mdbook-menu-bar .menu-title { line-height: 24px; } }
+#mdbook-searchbar { font-family: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 16px; line-height: 24px; font-variant-numeric: tabular-nums; }
+/* The measure: 68 characters of Archivo at 16 px take about 400 px, and a line dense with narrow
+   letters (`l`, `i`, `t`) fewer, so prose stops at 24 em
+   (`foundations.md`, *Width*: prose up to 68 characters, content up to 1,120 px). Tables, code
+   and figures keep the column, flush left with the prose, inside a list item or a quote too: an
+   item that holds one, at any depth, keeps the column, and its text sits in paragraphs, which
+   stop at the measure. The page check counts any text set straight in such an item, and fails a
+   code block or table held to the measure. */
+.content main :is(p, li, dd, dt, blockquote, figcaption):not(:has(pre, table, .checkbox-label)) { max-width: 24em; }
+/* Gutters: 16 px on a phone, 32 px from 720 px. mdBook's page adds its own padding to the
+   content's. */
+.content { padding-inline: calc(16px - var(--page-padding)); }
+@media only screen and (min-width: 720px) { .content { padding-inline: calc(32px - var(--page-padding)); } }

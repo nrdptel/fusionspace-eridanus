@@ -243,6 +243,7 @@ until someone rewrites it in plainer words.
 | [ADR-220: The margin bar tightened to 0.2 calibres, M1.14 held to Release 0.3's target][adr-220] | the bar a stability margin or a center of mass is judged by, against OpenRocket, drops from 0.5 to 0.2 calibres. Every difference measured on both comparison sets but one is within 0.111 calibres, so the old bar let a change make the worst agreement four times worse without any row changing its standing; the new one catches a doubling. No row changes its standing: margins within it on 52 of 53 public flights and 35 of 35 private, centers of mass on 54 of 54 and 35 of 35. [M1.14](#m1-14), the accuracy milestone, now also needs its error on the private flight collection below OpenRocket's, 24.12's and its newest release's, with its bias within 3%: what Release 0.3 needs, asked of the milestone meant to deliver it. |  |
 | [ADR-221: The site's defaults split: what the screen's stylesheets draw first][adr-221] | #383 lists seven classes of mdBook default the product system's theme doesn't reach: colors, shape, motion, icons, the head's metas and accessibility, fonts, and print. [M0.9d2](#m0-9d2) now covers the first three as mdBook's stylesheets draw them on screen, each held by `xtask site`'s page check reading every element's computed style in light and navy and with reduced motion set. The new [M0.9d4](#m0-9d4) keeps the old done-when whole (#383 closed, every class held), after [M0.9d3](#m0-9d3), and takes the rest: icons, metas and accessibility, fonts, print (its link color included), and the smooth scroll mdBook's script asks for, which no stylesheet can turn off. |  |
 | [ADR-222: Six platforms, each tested on every pull request][adr-222] | CI's per-platform jobs (the tests, the examples, the Python package and the validation cases) and the release's archives and wheels now run on six platforms: Linux, macOS and Windows, each on x86-64 and on 64-bit ARM. Each runs natively on its own CPU, and a script fails the job if the toolchain would build for another one. Intel Macs are tested on GitHub's last Intel image until it retires (fall 2027), then under Rosetta. Windows on ARM tests the Python package from 3.11, its oldest CPython. Static Linux builds, 32-bit ARM, package managers and math that rounds the same everywhere are follow-ups. |  |
+| [ADR-223: The page anatomy split: the page's frame first][adr-223] | #384 lists eight parts of the product system's page that the site doesn't draw. [M0.9d3](#m0-9d3) now covers the frame every page shares, all in the stylesheet: text on the system's type scale (with tabular figures in Archivo and navigation in Cascadia Mono 14 px, the current page underlined 2 px), prose at most 68 characters a line, and gutters of 16 px on a phone and 32 px from 720 px, each held by `xtask site`'s page check at every width with a canary. The new [M0.9d5](#m0-9d5) keeps the old done-when whole (#384 closed, every rule held), after [M0.9d4](#m0-9d4), and takes what changes each page's markup: title blocks, sheets, the intro, the lockup header with no menu button from 720 px, the system's notes, and every page opening with how far to trust it. |  |
 
 ## The roadmap
 
@@ -367,8 +368,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9d"></a>[M0.9d][phase-0] | The site to the design | not yet done |
 | <a id="m0-9d1"></a>[M0.9d1][done-0] | The figures in tokens | done |
 | <a id="m0-9d2"></a>[M0.9d2][done-0] | The site's colors, corners and motion | done |
-| <a id="m0-9d3"></a>[M0.9d3][phase-0] | The page anatomy | not yet done |
+| <a id="m0-9d3"></a>[M0.9d3][done-0] | The page's frame | done |
 | <a id="m0-9d4"></a>[M0.9d4][phase-0] | The site's defaults | not yet done |
+| <a id="m0-9d5"></a>[M0.9d5][phase-0] | The page anatomy | not yet done |
 | <a id="m0-9e"></a>[M0.9e][phase-0] | The words to the design | not yet done |
 | <a id="m0-10"></a>[M0.10][phase-0] | The scoreboard | not yet done |
 | <a id="m0-11"></a>[M0.11][phase-0] | Steps to a first answer | not yet done |
@@ -989,6 +991,7 @@ is the milestone that added or will add that test.
 [adr-220]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0220-the-margin-bar-tightened-and-m1-14-held-to-release-0-3.md
 [adr-221]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0221-the-sites-defaults-split-by-what-the-screen-draws.md
 [adr-222]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0222-six-platforms-tested-on-every-pull-request.md
+[adr-223]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0223-the-pages-frame-first.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

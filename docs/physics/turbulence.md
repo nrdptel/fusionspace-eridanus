@@ -91,6 +91,7 @@ Exact discretization, so step length never changes the statistics.
 
 - **`u`:** a first-order Gauss–Markov state. Over a step `Δs`, with `ρ = e^(−Δs/L)`:
   `x ← ρx + √(1 − ρ²) n`.
+
 - **`v` and `w`:** two normalized states, driven as `dx₁/ds = (−x₁ + η)/L` and
   `dx₂/ds = (x₁ − x₂)/L`, with output `y = (σ/√2)(√3 x₁ + (1 − √3) x₂)`.
   - The stationary covariance is `P = [[1, ½], [½, ½]]` for every `L`.
@@ -106,8 +107,10 @@ Exact discretization, so step length never changes the statistics.
   - Written with the regularized incomplete gamma function, `Q` keeps full relative precision
     for tiny steps, where the closed form `½ − e^(−2r)(r² + r + ½)` cancels to nothing. The
     noise is drawn through `Q`'s Cholesky factor.
+
 - **State is normalized,** so intensities and lengths may change from one step to the next
   (with altitude, say) without breaking stationarity.
+
 - **Determinism:** draws come in a fixed order (`u`, two for `v`, two for `w`) from a seeded
   xoshiro256++, so the same seed and steps give bit-identical gusts on one platform.
   - The integer stream is identical everywhere.

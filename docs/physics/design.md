@@ -757,12 +757,14 @@ unless the caller sets
   body components stacking through two stages; automatic radii across a stage boundary, the
   fallback, precedence and the unresolvable case; ring, shoulder and packed radii; every refused
   tree; a JSON round trip that refuses unknown fields.
+
 - **Composition by hand:**
   - `tree_structure_matches_parts_placed_by_hand`: the sample rocket's structure equals its eight
     parts placed at hand-worked stations and combined, to 1e-13.
   - `config::tests`: the placed motor's nozzle station, and the rocket's mass, center and inertia
     at loaded, burning and burnt out, by the parallel-axis theorem, to 1e-12; an off-axis mount's
     `I_yz = −m y z`.
+
 - **Clusters by hand:**
   - `parts::tests::a_cluster_is_its_tubes_each_with_its_parallel_axis_term`: four tubes' mass,
     center and roll inertia about the body's axis, to 1e-15.
@@ -774,6 +776,7 @@ unless the caller sets
   - `hpr_sim::staging::tests`: three motors' thrust and mass summed, and the motor out above
     (`cluster_motor_out_produces_pitch_moment`, [Loft lesson L31](../decisions-and-roadmap.md#l31));
     a clustered sustainer lit after a powered separation.
+
 - **Pods by hand** (`tree::tests`): two pods' mass, center and inertia, and one pod off the axis
   with its product of inertia, against the textbook cylinders' sum above, to 1e-15
   (`a_pod_is_its_stack_repeated_with_its_parallel_axis_term`); a mass off a pod's axis turning
@@ -784,11 +787,14 @@ unless the caller sets
   (`pods_stack_hold_motors_and_refuse_the_wrong_trees`); a pod's nose never the reference nose
   (`a_pod_s_nose_is_not_the_reference_nose`). The aerodynamics, the tumble model, a mass shift
   and an ejection each refuse a pod, or a pod's body component, by name ([above](#pods)).
+
 - **Overrides** (`overrides_rescale_move_and_replace`, `nested_overrides_apply_deepest_first`):
   each step, the scopes, a stage override, deeper overrides first, the massless case, and refusal
   of non-finite and unphysical results.
+
 - **Property** (a proptest, which checks a rule on many random inputs): randomly placed masses sum to the structure's mass and center, and
   sliding every part moves the center rigidly without changing the tensor.
+
 - **Checks** (`checks::tests`): each finding and its severity. A cluster pod's block fits and an
   on-axis part in the pod doesn't. Motors miss their mounts in both directions. Parts and a stage
   center lie off the rocket. A layout with a corrupt parent index is skipped, not a panic. A
@@ -800,6 +806,7 @@ unless the caller sets
   motors and a size that isn't nominal (`a_nominal_motor_in_its_matching_tube_only_warns`).
   Mutation probes make these tests fail: the slack given to every diameter, the tolerance
   doubled, a cap allowed anywhere along its parent, off its parent's axis, or over both ends.
+
 - **Against RocketPy 1.13.0** (`config::tests::matches_rocketpy_example_rockets`):
   - Eight cases of the [fixture](../glossary.md#reference-value-and-fixture)
     [`validation/fixtures/design/rocketpy-rocket-mass.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/design/rocketpy-rocket-mass.json):
@@ -836,9 +843,11 @@ unless the caller sets
     exact for a piecewise-linear curve.
   - The comparison sets mass, center and inertia together. So the override steps (rescaling the
     tensor with mass, moving the center) are checked by hand-worked tests, not against RocketPy.
+
 - **Public designs** ([`validation/designs/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/validation/designs), written by `cargo xtask designs`, which a test keeps in
   sync): the eight RocketPy cases and two synthetic rockets resolve with no findings and assemble
   into valid bodies at ignition, mid-burn and burnout.
+
 - **Lessons:** [Loft lesson L47](../decisions-and-roadmap.md#l47) `tests::reference_diameter_ignores_internal_components`;
   [Loft lesson L50](../decisions-and-roadmap.md#l50) `checks::tests::motor_wider_than_mount_is_rejected` and
   `checks::tests::fin_root_must_touch_body`.
