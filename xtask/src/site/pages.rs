@@ -70,10 +70,11 @@
 //! its size with room for all of it, one wider than any window with no zoom, a figure reaching
 //! past a narrow `main` as the theme lays it out, which must pass, a label moved past the
 //! window's edge from such a `main`, a label off the system's colors, the same only in navy (read
-//! after the switch), the same only with scripts off, the root element off them, a label tinted by
-//! a filter, one over a backdrop filter, one with an image as its `::before`, a search hit in ink,
-//! a rounded box, a box with a shadow, a 0.3 s transition, one at the system's base duration that
-//! doesn't snap with reduced motion set and one that does, which must pass, and an ordinary page
+//! after the switch), the same only with scripts off, and only once a slow change to it has run,
+//! the root element off them, a label tinted by a filter, one over a backdrop filter, one with an
+//! image as its `::before`, a search hit in ink, a rounded box, a box with a shadow, a 0.3 s
+//! transition, one at the system's base duration that doesn't snap with reduced motion set and one
+//! that does, which must pass, and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't
@@ -211,7 +212,7 @@ struct Canary {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 24] = [
+const CANARIES: [Canary; 25] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -397,6 +398,18 @@ const CANARIES: [Canary; 24] = [
         inside: "<script>document.documentElement.classList.add('js');</script>\
                  <style>html:not(.js) .bare { color: #008200; }</style>\
                  <p class=\"bare\">Green only without scripts</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-no-script-slow.html",
+        what: "a label that turns a highlighter's green over 240 ms once scripts are off, which \
+               only a reading made after that transition sees",
+        expect: &[Kind::Color],
+        inside: "<script>document.documentElement.classList.add('js');</script>\
+                 <style>.late { transition: color 240ms cubic-bezier(0.2, 0, 0, 1); } \
+                 html:not(.js) .late { color: #008200; } \
+                 @media (prefers-reduced-motion: reduce) { .late { transition-duration: 0s; } }\
+                 </style><p class=\"late\">Green after a slow change</p>",
         after: "",
     },
     Canary {
