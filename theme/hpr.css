@@ -136,6 +136,22 @@ pre > .buttons button.clip-button:hover::before {
     -webkit-mask: url("../images/copy.svg") center / contain no-repeat;
     mask: url("../images/copy.svg") center / contain no-repeat;
 }
+/* Icons: the system's set (`foundations.md`, *Icons*), which `xtask site` draws in place of
+   mdBook's Font Awesome glyphs (`xtask/src/site/chrome.rs`), at the system's sizes: 20 px in the
+   menu bar and the search field, 24 px for the page arrows and a code block's buttons, beside the
+   copy icon. mdBook fills its glyphs; the system's are stroked in the text's color. The previous
+   page's arrow is the next one's, mirrored. The page check fails an icon at another size. */
+.fa-svg svg { width: 20px; height: 20px; fill: none; margin-bottom: 0; vertical-align: middle; }
+.nav-chapters .fa-svg svg, .mobile-nav-chapters .fa-svg svg,
+pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
+.previous .fa-svg svg { transform: scaleX(-1); }
+/* Selection: the action role at 22 %, as the system's `fusionspace.css` sets it (`principles.md`,
+   *One sweep*). The system mixes the action color with transparent, which leaves the color at
+   22 % opacity; here each theme's action value is written at that opacity. */
+.light, .rust, html:not(.js) { --hpr-selection: rgb(51 80 214 / 0.22); }
+.navy, .coal, .ayu { --hpr-selection: rgb(118 141 245 / 0.22); }
+@media (prefers-color-scheme: dark) { html:not(.js) { --hpr-selection: rgb(118 141 245 / 0.22); } }
+::selection { background-color: var(--hpr-selection); }
 /* Lines and shape: square corners, no shadows (`foundations.md`, *Lines and shape*). Layers are
    separated by rules: the help popup has the system's 2 px ink border, a key a 1 px rule. The
    current chapter is underlined 2 px, as `web.md`'s site nav marks the current page, not by the

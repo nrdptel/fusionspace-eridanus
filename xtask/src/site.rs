@@ -87,6 +87,7 @@ use pulldown_cmark::{
 
 use crate::workspace::{Package, Workspace};
 
+mod chrome;
 mod notes;
 mod pages;
 pub(crate) mod theme;
@@ -203,10 +204,12 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let issued = theme::commit_date(&root)?;
     let dated = theme::fill_issue_date(&output, &issued)?;
     let notes = notes::draw(&output)?;
+    let glyphs = chrome::draw(&output)?;
     let workspace = crate::workspace::load(&root)?;
     let crates = rustdoc_build(&root, &workspace, &output.join(API), locked)?;
     let mut built = check_html(&root, &output, &crates)?;
     built.problems.extend(theme::check_built(&root, &output)?);
+    built.problems.extend(chrome::check(&output)?);
     if !built.problems.is_empty() {
         return Err(failure("the built site", &built.problems));
     }
@@ -217,6 +220,10 @@ pub fn run(args: &[String]) -> Result<(), String> {
     );
     println!(
         "built notes: {notes} quote blocks drawn as the system's notes, none left as a plain quote"
+    );
+    println!(
+        "built chrome: {glyphs} glyphs drawn as the system's icons, none left from Font Awesome, \
+         and one `h1` a page, its title (every chapter's on the print page)"
     );
     println!(
         "built site: {} HTML files in {OUTPUT}, every relative link resolves",
@@ -239,8 +246,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
          motion off its durations in either theme or with reduced motion, no text off the type \
          scale, prose line past 68 characters, gutter off the system's or code block held to \
          the measure, no quote block or note off the system's, no text under the contrast floor, focus ring off the system's, box or \
-         icon forced colors would erase, or sticky bar taller than the scroll padding, and \
-         every canary found",
+         icon forced colors would erase, sticky bar taller than the scroll padding, icon off \
+         the system's sizes or selection off the action role, and every canary found",
         laid_out.pages,
         if part == pages::Part::WHOLE {
             format!("{} widths from 320 to 1,920 px", laid_out.widths)

@@ -42,8 +42,9 @@ const SYSTEM_SPDX: &str = "/* SPDX-License-Identifier: Apache-2.0 · Copyright 2
 /// The SPDX line hpr-sim's own stylesheets open with.
 const OWN_SPDX: &str = "/* SPDX-License-Identifier: MIT OR Apache-2.0 */";
 /// The files copied unchanged from the product system: where each sits under [`THEME`], and where
-/// it sits in the system's repository.
-const COPIED: [(&str, &str); 8] = [
+/// it sits in the system's repository. The icons are the ones `chrome.rs` draws in each page's
+/// chrome; the favicon is the system's web kit's, its PNG the 32 px one.
+pub(crate) const COPIED: [(&str, &str); 22] = [
     (
         "fusionspace-mdbook.css",
         "product/web/mdbook/fusionspace-mdbook.css",
@@ -73,6 +74,20 @@ const COPIED: [(&str, &str); 8] = [
         "fonts/OFL-CascadiaMono.txt",
         "product/web/fonts/OFL-CascadiaMono.txt",
     ),
+    ("favicon.svg", "kit/web/favicon.svg"),
+    ("favicon.png", "kit/web/favicon-32.png"),
+    ("icons/chevron.svg", "product/icons/chevron.svg"),
+    ("icons/copy.svg", "product/icons/copy.svg"),
+    ("icons/edit.svg", "product/icons/edit.svg"),
+    ("icons/external.svg", "product/icons/external.svg"),
+    ("icons/menu.svg", "product/icons/menu.svg"),
+    ("icons/minus.svg", "product/icons/minus.svg"),
+    ("icons/plus.svg", "product/icons/plus.svg"),
+    ("icons/print.svg", "product/icons/print.svg"),
+    ("icons/refresh.svg", "product/icons/refresh.svg"),
+    ("icons/search.svg", "product/icons/search.svg"),
+    ("icons/simulate.svg", "product/icons/simulate.svg"),
+    ("icons/sun.svg", "product/icons/sun.svg"),
 ];
 /// hpr-sim's own stylesheets under [`THEME`].
 const OWN: [&str; 1] = ["hpr.css"];
@@ -586,8 +601,9 @@ pub(super) fn check_built(root: &Path, output: &Path) -> Result<Vec<String>, Str
 }
 
 /// Whether the site serves `theme/` as it is committed: each file under `theme/fonts/` as
-/// `fonts/` in the site, and each stylesheet and script in `theme/` as `theme/`. mdBook serves its own fonts
-/// at the same address, `fonts/fonts.css`, when it doesn't take the theme's.
+/// `fonts/` in the site, each stylesheet and script in `theme/` as `theme/`, and the favicons
+/// at the site's root. mdBook serves its own fonts at the same address, `fonts/fonts.css`, when
+/// it doesn't take the theme's, and its own book as the favicon when the theme has none.
 fn served_unchanged(theme: &Path, output: &Path) -> Result<Vec<String>, String> {
     let mut problems = Vec::new();
     let mut served = Vec::new();
@@ -599,8 +615,9 @@ fn served_unchanged(theme: &Path, output: &Path) -> Result<Vec<String>, String> 
             let entry = entry.map_err(|err| format!("could not list {}: {err}", from.display()))?;
             let name = entry.file_name().to_string_lossy().into_owned();
             let path = entry.path();
+            let favicon = dir.is_empty() && name.starts_with("favicon.");
             if path.is_dir()
-                || (dir.is_empty() && !(name.ends_with(".css") || name.ends_with(".js")))
+                || (dir.is_empty() && !(name.ends_with(".css") || name.ends_with(".js") || favicon))
             {
                 continue;
             }
@@ -609,7 +626,12 @@ fn served_unchanged(theme: &Path, output: &Path) -> Result<Vec<String>, String> 
             } else {
                 format!("{THEME}/{dir}/{name}")
             };
-            served.push((path, committed, format!("{site}/{name}")));
+            let at = if favicon {
+                name.clone()
+            } else {
+                format!("{site}/{name}")
+            };
+            served.push((path, committed, at));
         }
     }
     for (path, committed, site) in served {
@@ -1078,7 +1100,18 @@ mod tests {
         fs::write(theme.join("README.md"), "not served").unwrap();
         fs::write(site.join("fonts/fonts.css"), "ours").unwrap();
         fs::write(site.join("theme/x.css"), "x").unwrap();
+        fs::write(theme.join("favicon.svg"), "the mark").unwrap();
+        fs::write(site.join("favicon.svg"), "the mark").unwrap();
         assert!(served_unchanged(&theme, &site).unwrap().is_empty());
+        // mdBook's own book as the favicon.
+        fs::write(site.join("favicon.svg"), "a book").unwrap();
+        let problems = served_unchanged(&theme, &site).unwrap();
+        assert_eq!(problems.len(), 1, "{problems:?}");
+        assert!(
+            problems[0].starts_with("favicon.svg is not theme/favicon.svg"),
+            "{problems:?}"
+        );
+        fs::write(site.join("favicon.svg"), "the mark").unwrap();
         // mdBook's own fonts at the same address.
         fs::write(site.join("fonts/fonts.css"), "open sans").unwrap();
         let problems = served_unchanged(&theme, &site).unwrap();

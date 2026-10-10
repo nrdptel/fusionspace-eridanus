@@ -227,15 +227,22 @@ sizes, prose lines past 68 characters and gutters off 16 or 32 px all fail it. S
   warning's in the danger fill); the note inside a border on every side, 2 px on a warning;
 - a font list without its metric-matched fallback second (a stand-in, Arial or Menlo, scaled to
   the real font's size, so text doesn't jump when the real font arrives), and a smooth scroll a
-  script asks for when the menu bar's title is clicked.
+  script asks for when the menu bar's title is clicked;
+- an icon in the menu bar, the page arrows, the search field or a code block's buttons that isn't
+  square at the system's 16, 20 or 24 px, and selected text not drawn on the action color at
+  22 % opacity.
 
 A file check fails a page whose head doesn't declare light and dark color schemes or doesn't set
 the browser bar to the system's light canvas (`#F3F4F7`) on a light system and its dark one
-(`#0B0F1C`) on a dark one, and a `fonts.css` that isn't the system's. Not read: text inside SVG
-images or over a picture, hover, and selected text
-([#432](https://github.com/nrdptel/fusionspace-eridanus/issues/432)). The icons, a second `h1`
-on every page, the favicon and print are still mdBook's until
-[M0.9d6, the site's last defaults](decisions-and-roadmap.md#m0-9d6).
+(`#0B0F1C`) on a dark one, and a `fonts.css` that isn't the system's. mdBook draws its buttons
+with Font Awesome's icons and names the book in a second `h1` above each page's title; after
+mdBook builds the site, `cargo xtask site` draws each icon as the system's icon of the same
+meaning and makes the book's name a paragraph, and a file check fails a page left with a Font
+Awesome icon, an icon not the system's, or a second `h1` (the print page, which holds every
+chapter, keeps each chapter's), and a favicon other than the system's. Not read: text inside SVG
+images or over a picture, and hover
+([#432](https://github.com/nrdptel/fusionspace-eridanus/issues/432)). Print is still mdBook's
+until [M0.9d8, print and the page's speed](decisions-and-roadmap.md#m0-9d8).
 
 ## Measured, not gated
 
