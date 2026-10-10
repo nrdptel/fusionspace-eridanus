@@ -10,13 +10,13 @@ set -euo pipefail
 
 [ $# -gt 0 ] || { echo "usage: $0 <target>..." >&2; exit 2; }
 
-# The oldest Android that Tauri's mobile apps run on (Android 7.0).
+# Android 7.0, Tauri 2's default minimum (ADR-227).
 android_api=24
 
 for target in "$@"; do
   case "$target" in
     *-linux-android)
-      ndk="${ANDROID_NDK_LATEST_HOME:-${ANDROID_NDK_HOME:-}}"
+      ndk="${ANDROID_NDK_HOME:-}"
       [ -n "$ndk" ] || { echo "phone-build: set ANDROID_NDK_HOME to the Android NDK" >&2; exit 1; }
       # The NDK ships its compilers for an x86-64 host on Linux and as universal programs on macOS,
       # both under the x86_64 name.
