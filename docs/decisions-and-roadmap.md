@@ -241,7 +241,6 @@ until someone rewrites it in plainer words.
 | [ADR-218: The plot's balloons on leaders, banked panels, title block and data file][adr-218] | the `hpr sim --plot` figure sets its balloons in one row, each that would collide stepped right along a short leader, growing for three-digit numerals; each panel's height is banked to 45° by Cleveland's length-weighted average orientation, between 120 and 360 px; the figure ends in an ISO 7200-style title block; and `--plot f.svg` writes the numbers it draws to `f.plot.csv`, with a `f.plot.meta.json` sidecar. Each is held by a test that fails without it. |  |
 | [ADR-219: Figures at their size on the site, US units in the guides' prose; M0.9c13 split][adr-219] | a figure on the site may reach past the 750 px prose column, up to the product system's 1,120 px content width or the page's own, and is shown at its size wherever that holds it; in a narrower window it shrinks and mdBook's zoom shows it at its size. `cargo xtask site`'s page check fails a figure shown smaller than drawn with room for it, or without a zoom. Every height, distance and speed in the guides' prose and tables gives its US units in brackets after the SI, `1,400 m (4,593 ft)`, and a site check fails one in SI alone or with a bracket that isn't its conversion. The model pages, the file formats' pages, the accuracy page, the validation plan and the records page follow in [M0.9c16](#m0-9c16), with millimeters. |  |
 | [ADR-220: The margin bar tightened to 0.2 calibres, M1.14 held to Release 0.3's target][adr-220] | the bar a stability margin or a center of mass is judged by, against OpenRocket, drops from 0.5 to 0.2 calibres. Every difference measured on both comparison sets but one is within 0.111 calibres, so the old bar let a change make the worst agreement four times worse without any row changing its standing; the new one catches a doubling. No row changes its standing: margins within it on 52 of 53 public flights and 35 of 35 private, centers of mass on 54 of 54 and 35 of 35. [M1.14](#m1-14), the accuracy milestone, now also needs its error on the private flight collection below OpenRocket's, 24.12's and its newest release's, with its bias within 3%: what Release 0.3 needs, asked of the milestone meant to deliver it. |  |
-| [ADR-221: The site's defaults split: what the screen's stylesheets draw first][adr-221] | #383 lists seven classes of mdBook default the product system's theme doesn't reach: colors, shape, motion, icons, the head's metas and accessibility, fonts, and print. [M0.9d2](#m0-9d2) now covers the first three as mdBook's stylesheets draw them on screen, each held by `xtask site`'s page check reading every element's computed style in light and navy and with reduced motion set. The new [M0.9d4](#m0-9d4) keeps the old done-when whole (#383 closed, every class held), after [M0.9d3](#m0-9d3), and takes the rest: icons, metas and accessibility, fonts, print (its link color included), and the smooth scroll mdBook's script asks for, which no stylesheet can turn off. |  |
 
 ## The roadmap
 
@@ -365,9 +364,8 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9c16"></a>[M0.9c16][done-0] | US units on the model pages | done |
 | <a id="m0-9d"></a>[M0.9d][phase-0] | The site to the design | not yet done |
 | <a id="m0-9d1"></a>[M0.9d1][done-0] | The figures in tokens | done |
-| <a id="m0-9d2"></a>[M0.9d2][done-0] | The site's defaults | done |
+| <a id="m0-9d2"></a>[M0.9d2][phase-0] | The site's defaults | not yet done |
 | <a id="m0-9d3"></a>[M0.9d3][phase-0] | The page anatomy | not yet done |
-| <a id="m0-9d4"></a>[M0.9d4][phase-0] | The site's defaults | not yet done |
 | <a id="m0-9e"></a>[M0.9e][phase-0] | The words to the design | not yet done |
 | <a id="m0-10"></a>[M0.10][phase-0] | The scoreboard | not yet done |
 | <a id="m0-11"></a>[M0.11][phase-0] | Steps to a first answer | not yet done |
@@ -986,7 +984,6 @@ is the milestone that added or will add that test.
 [adr-218]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0218-the-plots-balloons-banking-title-block-and-data.md
 [adr-219]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0219-figures-at-their-size-and-us-units-on-the-guides.md
 [adr-220]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0220-the-margin-bar-tightened-and-m1-14-held-to-release-0-3.md
-[adr-221]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0221-the-sites-defaults-split-by-what-the-screen-draws.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

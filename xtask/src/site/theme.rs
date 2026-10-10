@@ -139,13 +139,7 @@ pub(super) fn check_sources(root: &Path, source: &Path) -> Result<Sources, Strin
         let dir = Path::new(file).parent().unwrap_or(Path::new(""));
         for url in css_urls(&text) {
             let target = theme.join(dir).join(&url);
-            // mdBook serves a stylesheet at the theme's root from `theme/` in the site, so `../`
-            // from it reaches the guide's own files, under `docs/`.
-            let in_guide = dir.as_os_str().is_empty()
-                && url
-                    .strip_prefix("../")
-                    .is_some_and(|rest| !rest.contains("..") && source.join(rest).is_file());
-            if is_web(&url) || !(target.is_file() || in_guide) {
+            if is_web(&url) || !target.is_file() {
                 problems.push(format!(
                     "{THEME}/{file}: `url({url})` is not a file in {THEME}/, so the site would \
                      not serve it"

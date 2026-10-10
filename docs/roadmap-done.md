@@ -59,7 +59,6 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9c15 Next steps and waits ([Phase 0](#phase-0-foundations))
 - M0.9c16 US units on the model pages ([Phase 0](#phase-0-foundations))
 - M0.9d1 The figures in tokens ([Phase 0](#phase-0-foundations))
-- M0.9d2 The site's colors, corners and motion ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -443,10 +442,6 @@ One line per milestone or increment, in the order it was archived within its pha
       in the system's line types and fonts, the badges in token fills and Cascadia Mono, and
       `xtask figures` failing on a color that isn't a token, a blend, the default black or another
       font, in every committed SVG and each `--plot` figure.
-    - [x] **M0.9d2 The site's colors, corners and motion** (#383, ADR-221). *Done when:* the
-      colors, radii, shadows and motion #383 lists that mdBook's stylesheets give the screen are
-      gone, in light and navy and with reduced motion set, each failing `xtask site`'s page check
-      when it comes back.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and
