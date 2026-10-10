@@ -140,10 +140,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     mdBook default the system doesn't draw (colors, radii, shadows, motion, icons, metas, print),
     a title block and sheets on every page, notes in the system's shape, and every committed SVG
     in token colors, each failing `xtask site`, `xtask figures` or a site test when broken.
-    - [ ] **M0.9d4 The head, the keyboard and forced colors** (#383, ADR-224). *Done when:* the
-      head's metas, the focus ring, forced colors, contrast, the sticky bar's scroll padding,
-      the system's `fonts.css` and the script's smooth scroll each fail `xtask site` or a site
-      test when mdBook's default comes back.
     - [ ] **M0.9d5 The page anatomy** (#384, ADR-223). *Done when:* #384 is closed, each rule it
       lists held by `xtask site`'s page check or a site test.
     - [ ] **M0.9d6 The site's defaults** (#383, #443, ADR-221, ADR-224). *Done when:* #383 is

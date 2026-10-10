@@ -195,25 +195,37 @@ with a sample of each in its key; the plot from `hpr sim --plot` draws all three
 
 ### The pages in the system's look
 
-The same page check reads each page's computed style, so the site keeps the product system's look
-where mdBook, the program that builds the site, would draw its own. Besides the colors, corners,
-motion, type sizes, 68-character lines and gutters, it fails:
+`cargo xtask site`'s page check, which opens every page at every width as described above, also
+reads each page's computed style (the colors, sizes and outlines the browser ends up drawing),
+so the site keeps the product system's look where mdBook, the program that builds the site,
+would draw its own. It reads the light and navy themes, and the light one with scripts off.
+Colors off the system's palette, rounded corners, shadows, motion off its timings, type off its
+sizes, prose lines past 68 characters and gutters off 16 or 32 px all fail it. So do:
 
-- text under WCAG 2.2 AA's contrast against what it is drawn on: 4.5 : 1, or 3 : 1 for text of
-  24 px and over (18.66 px in bold), faded by any opacity between them;
-- a control the keyboard reaches without the system's focus ring, a 2 px outline in the action
-  color (`#3350D6` on the light theme), 2 px off;
-- a box or an icon that Windows' high-contrast mode (forced colors) would erase: a box set apart
-  only by its fill, with no border there, or an icon not drawn in its text's color;
-- a bar stuck to the top of the window that could hide what a reader tabs to, taller than the
-  page's `scroll-padding-top`;
-- a font stack without its metric-matched fallback second, and a smooth scroll a script asks for.
+- text under the contrast that WCAG 2.2 AA (the W3C's Web Content Accessibility Guidelines,
+  level AA) asks for against the background it is drawn on: 4.5 : 1, or 3 : 1 for text of
+  24 px and over (18.66 px in bold), faded by any opacity between the text and that background;
+- one control of each kind the keyboard reaches without the system's focus ring: the outline
+  drawn round a link or button when Tab reaches it, 2 px wide in the action color (`#3350D6` on
+  the light theme) and 2 px clear of its edge;
+- what Windows' high-contrast mode (forced colors, which repaints the page in a few colors of
+  the reader's own) would erase: a box set apart from what is behind it only by its fill, with
+  no border there, or an icon not drawn in its text's color. The check can't switch the mode
+  on; it applies the stylesheets' rules for it and judges from the page's own colors;
+- a bar stuck to the top of the window reaching further down than the page's
+  `scroll-padding-top`, the room the browser leaves at the top when it scrolls to what a reader
+  tabs to, so the bar never hides it;
+- a font list without its metric-matched fallback second (a stand-in, Arial or Menlo, scaled to
+  the real font's size, so text doesn't jump when the real font arrives), and a smooth scroll a
+  script asks for when the menu bar's title is clicked.
 
 A file check fails a page whose head doesn't declare light and dark color schemes or doesn't set
 the browser bar to the system's light canvas (`#F3F4F7`) on a light system and its dark one
-(`#0B0F1C`) on a dark one, and a `fonts.css` that isn't the system's. The icons, a second `h1` on
-every page and print are still mdBook's
-([M0.9d6](decisions-and-roadmap.md#m0-9d6)).
+(`#0B0F1C`) on a dark one, and a `fonts.css` that isn't the system's. Not read: text inside SVG
+images or over a picture, hover, and selected text
+([#432](https://github.com/nrdptel/fusionspace-eridanus/issues/432)). The icons, a second `h1`
+on every page, the favicon and print are still mdBook's until
+[M0.9d6, the site's last defaults](decisions-and-roadmap.md#m0-9d6).
 
 ## Measured, not gated
 

@@ -61,6 +61,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9d1 The figures in tokens ([Phase 0](#phase-0-foundations))
 - M0.9d2 The site's colors, corners and motion ([Phase 0](#phase-0-foundations))
 - M0.9d3 The page's frame ([Phase 0](#phase-0-foundations))
+- M0.9d4 The head, the keyboard and forced colors ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -453,6 +454,10 @@ One line per milestone or increment, in the order it was archived within its pha
       (size, line height, family, capitals), Archivo without tabular figures, navigation not in
       Cascadia Mono 14 px or a current page not underlined 2 px, a prose line past 68 characters,
       and gutters other than 16 px below 720 px and 32 px from it; a canary each; the site passes.
+    - [x] **M0.9d4 The head, the keyboard and forced colors** (#383, ADR-224). *Done when:* the
+      head's metas, the focus ring, forced colors, contrast, the sticky bar's scroll padding,
+      the system's `fonts.css` and the script's smooth scroll each fail `xtask site` or a site
+      test when mdBook's default comes back.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

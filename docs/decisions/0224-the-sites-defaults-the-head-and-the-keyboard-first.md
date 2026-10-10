@@ -14,7 +14,7 @@ change mdBook's page template: its menu bar draws Font Awesome glyphs and a seco
 book's title) on every page, and print needs its own reading in the page check, with light
 values, link addresses and rows kept whole. Replacing the template means carrying a changed copy
 of mdBook's `index.hbs`, which is MPL-2.0, and deciding how that file is kept in step with
-mdBook. One cycle holds the first group with its checks and canaries; it doesn't hold both.
+mdBook. One increment holds the first group with its checks and canaries; it can't hold both.
 
 **Decision.**
 
@@ -51,5 +51,9 @@ mdBook. One cycle holds the first group with its checks and canaries; it doesn't
 maintainer's machine, against about 160 s before (#432 tracks its time). The forced-colors
 reading applies the stylesheets' `forced-colors: active` rules, as the reduced-motion reading
 does; it can't make the browser paint system colors, so it judges what forced colors would drop
-(fills and shadows) from the page's own colors. Hover styles and `::selection` aren't read yet;
-the theme menu still lists mdBook's six themes (#429).
+(fills and shadows) from the page's own colors. The head check reads each page as served: once
+the page loads, mdBook's script sets the first `theme-color` meta, now the light one, to the
+page's background when the reader picks a theme, so a reader who picks the light theme on a dark
+system gets a Void bar over a Paper page, where mdBook's single meta followed the page. The
+system says nothing should depend on the bar's color (`web.md`, *Theme*). Hover styles and
+`::selection` aren't read yet; the theme menu still lists mdBook's six themes (#429).

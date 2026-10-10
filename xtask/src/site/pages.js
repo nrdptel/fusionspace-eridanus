@@ -765,8 +765,13 @@
     }
 
     // A bar at the top, and the padding that keeps what is scrolled to out from under it.
+    // mdBook's script takes its menu bar's `sticky` class off at load, below 1,080 px, and puts
+    // it back when the reader scrolls up: the bar is read as it sticks, on a phone two rows tall.
     const scroller = doc.scrollingElement || doc.documentElement;
     const padding = parseFloat(win.getComputedStyle(scroller).scrollPaddingTop) || 0;
+    const menuBar = doc.getElementById('mdbook-menu-bar');
+    const unstuck = menuBar !== null && !menuBar.classList.contains('sticky');
+    if (unstuck) menuBar.classList.add('sticky');
     for (const el of els) {
       const s = win.getComputedStyle(el);
       if (s.position !== 'sticky' && s.position !== 'fixed') continue;
@@ -782,6 +787,7 @@
           + Math.round(reach * 10) / 10 + ' px');
       }
     }
+    if (unstuck) menuBar.classList.remove('sticky');
 
     // The title's click, with every way a script scrolls watched for a smooth scroll.
     const title = doc.querySelector('.menu-title');
