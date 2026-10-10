@@ -19,6 +19,12 @@
     #mdbook-menu-bar .right-buttons { margin-inline-start: auto; }
     :target { scroll-margin-top: calc(var(--menu-bar-height) + 45px); }
 }
+/* The sidebar's frame for readers without scripts: a frame is 300 px wide unless told otherwise,
+   so in mdBook's sidebar, 80% of a narrow window, 36 px of it stayed over the page with the
+   sidebar put away, covering the first letters of every line. */
+.sidebar-iframe-outer { width: 100%; }
+/* A search result's long identifier wraps instead of running past a narrow window. */
+#mdbook-searchresults li, #mdbook-searchresults .teaser { overflow-wrap: anywhere; }
 /* Table cells get the paragraphs' line height, so a superscript (2⁵³), which mdBook gives no line
    height of its own, stays inside its line instead of rising into the one above. */
 .content td, .content th { line-height: 1.45em; }
@@ -72,7 +78,7 @@ html:not(.js) {
   --table-border-color: #D6DAE4; --table-header-bg: #FFFFFF; --table-alternate-bg: #F3F4F7;
   --searchbar-border-color: #566079; --searchbar-bg: #FFFFFF; --searchbar-fg: #0B0F1C;
   --searchbar-shadow-color: transparent; --searchresults-header-fg: #566079; --searchresults-border-color: #D6DAE4;
-  --searchresults-li-bg: #FFFFFF; --search-mark-bg: #F5AF20;
+  --searchresults-li-bg: #FFFFFF;
   --code-bg: #FFFFFF;
     --hpr-ink: #0B0F1C; --hpr-ink-muted: #566079; --hpr-canvas: #F3F4F7; --hpr-surface: #FFFFFF;
     --hpr-rule: #D6DAE4; --hpr-rule-strong: #566079; --hpr-action: #3350D6; --hpr-on-action: #FFFFFF;
@@ -93,7 +99,7 @@ html:not(.js) {
       --table-border-color: #2A3248; --table-header-bg: #141A2B; --table-alternate-bg: #0B0F1C;
       --searchbar-border-color: #6D7790; --searchbar-bg: #141A2B; --searchbar-fg: #F3F4F7;
       --searchbar-shadow-color: transparent; --searchresults-header-fg: #98A1B8; --searchresults-border-color: #2A3248;
-      --searchresults-li-bg: #141A2B; --search-mark-bg: #F5AF20;
+      --searchresults-li-bg: #141A2B;
       --code-bg: #141A2B;
         --hpr-ink: #F3F4F7; --hpr-ink-muted: #98A1B8; --hpr-canvas: #0B0F1C; --hpr-surface: #141A2B;
         --hpr-rule: #2A3248; --hpr-rule-strong: #6D7790; --hpr-action: #768DF5; --hpr-on-action: #0B0F1C;
@@ -105,7 +111,7 @@ html:not(.js) {
 }
 /* Code in ink on the surface, as `web.md`'s docs pattern has it: mdBook's highlighters color each
    kind of token with colors of their own and never read the theme's `--code-bg`. Comments are
-   secondary text; a diff's lines keep their meaning in the danger and normal inks. */
+   secondary text; a diff's deletions are in danger and its additions in ok. */
 .hljs { color: var(--hpr-ink); background: var(--code-bg); }
 .hljs [class^="hljs-"], .hljs [class*=" hljs-"] { color: inherit; background: transparent; }
 .hljs .hljs-comment, .hljs .hljs-quote, .hljs .hljs-meta { color: var(--hpr-ink-muted); }
@@ -138,15 +144,15 @@ pre > .buttons button.clip-button:hover::before {
 *, *::before, *::after { border-radius: 0 !important; box-shadow: none !important; text-shadow: none !important; }
 kbd { background-color: var(--hpr-surface); border-color: var(--hpr-rule-strong); }
 /* The help popup: a dialog, with a 2 px ink border over the canvas dimmed by Void at 40%, kept
-   16 px from the window's sides on a phone. */
+   16 px from the window's edges on a phone, and scrolling in a window too short for it. */
 #mdbook-help-container { background-color: rgba(11, 15, 28, 0.4); }
-#mdbook-help-popup { border: 2px solid var(--hpr-ink); min-width: 0; max-width: min(500px, calc(100% - 32px)); }
+#mdbook-help-popup { border: 2px solid var(--hpr-ink); min-width: 0; max-width: min(500px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow-y: auto; }
 .sidebar .chapter li.chapter-item a.active { text-decoration: underline 2px; text-underline-offset: 4px; }
 .on-this-page { border-inline-start-width: 1px; }
 
-/* Motion: quick 100 ms, base 160 ms, slow 240 ms; `standard` easing for anything appearing or
-   changing, `exit` for anything leaving (`foundations.md`, *Motion*). The sidebar slides at the
-   slow step; colors change at the quick one. No spinner: the search's busy sign stands still.
+/* Motion: quick 100 ms, base 160 ms, slow 240 ms, with the `standard` easing (`foundations.md`,
+   *Motion*; its `exit` easing has no use here yet, as the sidebar slides both ways). The sidebar
+   slides at the slow step; colors change at the quick one. No spinner: the search's busy sign stands still.
    With reduced motion set, everything snaps. */
 .js:not(.sidebar-resizing) .page-wrapper,
 [dir=rtl].js:not(.sidebar-resizing) .page-wrapper,

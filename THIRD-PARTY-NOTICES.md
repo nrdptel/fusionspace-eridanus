@@ -28,7 +28,7 @@ adds a source.
 
 - **The FusionSpace copy icon** (`docs/images/copy.svg`, the documentation site's copy button):
   `product/icons/copy.svg` of [fusionspace-design](https://github.com/nrdptel/fusionspace-design)
-  at `f45454f` (product system Rev A), its `currentColor` stroke set to `#0B0F1C` (Void). Like the
+  at `f45454f` (product system Rev A), its `currentColor` stroke set to `#0B0F1C` (Void, the system's darkest ink). Like the
   brand files above, it is the project owner's, Neer Patel's, under fusionspace-design's `LICENSE`:
   all rights reserved, and **not** covered by this repository's MIT or Apache-2.0 license. A fork
   that isn't a FusionSpace project removes it or draws its own (ADR-164).

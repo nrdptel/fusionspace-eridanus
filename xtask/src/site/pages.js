@@ -536,13 +536,14 @@
     doc.documentElement.classList.add(theme);
   }
 
-  // Until the transitions a change of class starts have run: colors read during one are
-  // halfway between two roles.
+  // The transitions a change of class starts, run to their end: colors read during one are
+  // halfway between two roles. Finishing them, not waiting, needs no frames, which a busy page
+  // may not get in time.
   async function settle(win, doc) {
+    for (const a of doc.getAnimations()) {
+      if (Number.isFinite(a.effect.getComputedTiming().endTime)) a.finish();
+    }
     await nextFrames(win);
-    await Promise.all(doc.getAnimations().filter(function (a) {
-      return Number.isFinite(a.effect.getComputedTiming().endTime);
-    }).map(function (a) { return a.finished.catch(function () {}); }));
   }
 
   async function probeDefaults(win, doc) {
