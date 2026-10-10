@@ -40,48 +40,49 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 13. M10.2 Release 0.2: the flight analyzer
 14. M2.3c2 Logged traces
 15. M2.3c3 OpenRocket's newest release
-16. M2.7 Held-out flights, predictions first
-17. M2.8 Honest uncertainty
-18. M2.6 An open benchmark
-19. M1.14 Accuracy inside the envelope
-20. M7.4 Fault diagnosis
-21. M7.5 The bias every simulator shares
-22. M10.3 Release 0.3: accuracy and diagnosis
-23. M6.3 Challenge specs and presets
-24. M6.4 Airbrakes
-25. M6.2e Robust mode
-26. M6.6 Submission packs
-27. M6.7 Ejection charges
-28. M3.5 RASAero `.CDX1` import/export
-29. M3.6 RocketPy interop
-30. M6.8 Field kit: checklists, the settings check and the ground-test log
-31. M0.7b Rocketry explained: recovery, wind and motors
-32. M10.4 Release 0.4: the competition kit
-33. M4.4 C ABI and WASM
-34. M9.0 UI architecture ADR plus a spike
-35. M9.2 3D flight replay with a ghost
-36. M10.5 Release 0.5: the app preview
-37. M0.7c Rocketry explained: live figures
-38. M5.6a A catalog of hpr's own: format, search and a parts list
-39. M8.2 Edit model for UIs
-40. M9.1 Desktop app shell
-41. M5.6b Parachutes and recovery hardware
-42. M8.1 Design assistant
-43. M5.6c Motor hardware and rail buttons
-44. M5.6d More makers and electronics
-45. M3.4 RockSim `.rkt` import/export
-46. M9.3 Web PWA
-47. M10.6 Release 1.0: the app
-48. M0.7d Rocketry explained: the rest of the hobby
-49. M11.1 A motor of your own
-50. M11.2 Experimental solids
-51. M12.1 Parachute gores
-52. M12.2 Opening loads
-53. M9.4 Mobile
-54. M9.6 The four web tools, rebuilt
-55. M6.5 Roll control: tail-fin tabs and canards
-56. M13.3 Flight computer logic
-57. M13.1 Ground station
+16. M2.3c6 The gap to OpenRocket, by cause
+17. M2.7 Held-out flights, predictions first
+18. M2.8 Honest uncertainty
+19. M2.6 An open benchmark
+20. M1.14 Accuracy inside the envelope
+21. M7.4 Fault diagnosis
+22. M7.5 The bias every simulator shares
+23. M10.3 Release 0.3: accuracy and diagnosis
+24. M6.3 Challenge specs and presets
+25. M6.4 Airbrakes
+26. M6.2e Robust mode
+27. M6.6 Submission packs
+28. M6.7 Ejection charges
+29. M3.5 RASAero `.CDX1` import/export
+30. M3.6 RocketPy interop
+31. M6.8 Field kit: checklists, the settings check and the ground-test log
+32. M0.7b Rocketry explained: recovery, wind and motors
+33. M10.4 Release 0.4: the competition kit
+34. M4.4 C ABI and WASM
+35. M9.0 UI architecture ADR plus a spike
+36. M9.2 3D flight replay with a ghost
+37. M10.5 Release 0.5: the app preview
+38. M0.7c Rocketry explained: live figures
+39. M5.6a A catalog of hpr's own: format, search and a parts list
+40. M8.2 Edit model for UIs
+41. M9.1 Desktop app shell
+42. M5.6b Parachutes and recovery hardware
+43. M8.1 Design assistant
+44. M5.6c Motor hardware and rail buttons
+45. M5.6d More makers and electronics
+46. M3.4 RockSim `.rkt` import/export
+47. M9.3 Web PWA
+48. M10.6 Release 1.0: the app
+49. M0.7d Rocketry explained: the rest of the hobby
+50. M11.1 A motor of your own
+51. M11.2 Experimental solids
+52. M12.1 Parachute gores
+53. M12.2 Opening loads
+54. M9.4 Mobile
+55. M9.6 The four web tools, rebuilt
+56. M6.5 Roll control: tail-fin tabs and canards
+57. M13.3 Flight computer logic
+58. M13.1 Ground station
 
 ## Phase 0: Foundations
 
@@ -195,6 +196,9 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     - [ ] **M2.3c5 The corpus rechecked.** *Done when:* each corpus flight the collection's
       catalog flags (68 of 83) is settled against its log and evidence, the manifest fixed and
       the fixture report regenerated, saying what moved. Moves: accuracy.
+    - [ ] **M2.3c6 The gap to OpenRocket, by cause** (ADR-226). *Done when:* the fixture report
+      splits each flight's hpr-less-OpenRocket apogee into thrust, mass and drag parts, each
+      input swapped for OpenRocket's in that order, the rest named as other. Moves: accuracy.
 - [ ] **M2.7 Held-out flights, predictions first** (ADR-209 §4). *Done when:* a flight is held out
   when SHA-256 of its id and the seed `ADR-209` falls in the lowest third, fixed before any held-out
   error is computed; the fixture report gives both halves as aggregates; a refs check fails when a

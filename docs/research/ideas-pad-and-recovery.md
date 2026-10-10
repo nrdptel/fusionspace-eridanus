@@ -49,3 +49,11 @@ safety code decide.
 - SOON: parachute gore cutting patterns (DXF and SVG).
 - SOON: single-separation dual deploy (Chute Release, tender descender, cable cutter).
 - SOON: deployment shock loads per section.
+
+From the 2026-10-09 planning review:
+
+- SOON: forecast winds scored against soundings. User: a team sizing a recovery area a day out.
+  Workflow: `hpr weather` shows how far each forecast model it fetches has been from balloon
+  soundings near the site. Why: a 2025 student study scored GFS, NAM and HRRR on 2,900 soundings.
+  Moves: wind error by model and height band, not measured today. *Done when:* a committed report
+  scores each model against NOAA's IGRA soundings at 5 launch sites over a season, with intervals.

@@ -74,5 +74,14 @@ default nozzle exits, separation-charge push, grain CG shift. The rest:
   NASA's supersonic panel code (its license to check).
 - LATER: flexible-airframe dynamics.
 
+From the 2026-10-09 planning review:
+
+- SOON: the apogee across surface finishes. User: an L2 flyer who can't name a paint's roughness.
+  Workflow: `hpr sim` prints the apogee at the finishes either side of the chosen one. Why: a 2026
+  study measured 17–75% more drag from manufacturing roughness (Seniwan and Mohd Saiah). Moves: the
+  share of the collection's logged apogees inside that band, not measured today. *Done when:* the
+  fixture report gives it with two-sided 95% Clopper–Pearson bounds, failed runs counted as misses.
+
+
 [m1-14f]: ../decisions-and-roadmap.md#m1-14f
 [m8-3]: ../decisions-and-roadmap.md#m8-3
