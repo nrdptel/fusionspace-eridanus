@@ -1240,10 +1240,11 @@
 
     // Icons (#383; `foundations.md`, *Icons*): each one in the page's chrome, the spans mdBook
     // draws its buttons, arrows and spinner in, is drawn square at one of the system's sizes.
-    // One not drawn at this width, or until asked for, has no box and isn't read.
+    // One not drawn at this width, or until asked for (`display: none` on it or around it), has
+    // no box and isn't read; one drawn at 0 px is read, and fails.
     for (const svg of Array.from(doc.querySelectorAll('.fa-svg svg'))) {
+      if (svg.getClientRects().length === 0) continue;
       const r = svg.getBoundingClientRect();
-      if (r.width === 0 && r.height === 0) continue;
       const ok = samePx(r.width, r.height)
         && ICON_SIZES.some(function (px) { return samePx(r.width, px); });
       if (!ok) {

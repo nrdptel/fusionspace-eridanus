@@ -138,7 +138,8 @@
 //! a mask and one that keeps its colors, which must pass, a bar fixed to the top without scroll
 //! padding and one with it, which must pass, a title that scrolls smoothly when clicked, an icon
 //! at 13 px, one 24 by 20 px, icons at 16, 20 and 24 px and one at 13 px not drawn, which must
-//! pass, selected text with no color of the page's and on the action role opaque, and an ordinary
+//! pass, an icon at 0 px, selected text with no color of the page's, on the danger role at 22 % and
+//! on the action role opaque, and an ordinary
 //! page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
@@ -494,7 +495,7 @@ const NOTES_BELOW: &str = concat!(
 );
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 75] = [
+const CANARIES: [Canary; 77] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1123,6 +1124,20 @@ const CANARIES: [Canary; 75] = [
                the rule: transparent",
         expect: &[Kind::Selection],
         inside: "<style>::selection { background-color: initial !important; }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-icon-zero.html",
+        what: "an icon drawn at 0 px, as one whose size rule is lost inside a box of no font size",
+        expect: &[Kind::Icon],
+        inside: concat!("<p><span class=fa-svg>", icon!("0px", "0px"), "</span></p>"),
+        after: "",
+    },
+    Canary {
+        file: "canary-selection-color.html",
+        what: "selected text on the danger role at 22 %, the right opacity in the wrong color",
+        expect: &[Kind::Selection],
+        inside: "<style>::selection { background-color: rgb(172 0 30 / 0.22) !important; }</style>",
         after: "",
     },
     Canary {

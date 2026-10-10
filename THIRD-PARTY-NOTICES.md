@@ -41,7 +41,8 @@ adds a source.
   when `refs/fusionspace-design` is checked out (ADR-228). Like the brand files above, they are the
   project owner's, Neer Patel's, under fusionspace-design's `LICENSE`: all rights reserved, and
   **not** covered by this repository's MIT or Apache-2.0 license. A fork that isn't a FusionSpace
-  project removes them or draws its own (ADR-164).
+  project removes them or draws its own (ADR-164): it replaces the files and their entries in
+  `COPIED` (`xtask/src/site/theme.rs`) and `ICONS` (`xtask/src/site/chrome.rs`).
 
 - **The FusionSpace mdBook theme** (`theme/fusionspace-mdbook.css`, served by the documentation
   site): `product/web/mdbook/fusionspace-mdbook.css` of

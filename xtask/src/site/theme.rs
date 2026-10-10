@@ -165,6 +165,7 @@ pub(super) fn check_sources(root: &Path, source: &Path) -> Result<Sources, Strin
             ));
         }
     }
+    problems.extend(missing_copies(&theme));
     for (file, spdx) in OWN_OTHER {
         if read(&theme.join(file))?.lines().next() != Some(spdx) {
             problems.push(format!(
@@ -367,6 +368,19 @@ fn read(path: &Path) -> Result<String, String> {
 
 /// Every font file in `theme/fonts/` without its license beside it: `Family-Style.woff2` needs
 /// `OFL-Family.txt`, as the product system ships them.
+/// Each file of [`COPIED`] missing from `theme`. Where the system's checkout is absent, as in CI,
+/// nothing else would see one gone: mdBook serves its own book as the favicon when the theme has
+/// none, and the served-file check compares only the files the theme holds.
+fn missing_copies(theme: &Path) -> Vec<String> {
+    COPIED
+        .iter()
+        .filter(|(file, _)| !theme.join(file).is_file())
+        .map(|(file, original)| {
+            format!("{THEME}/{file} is missing: copy it unchanged from the system's {original}")
+        })
+        .collect()
+}
+
 fn fonts_without_license(theme: &Path) -> Result<Vec<String>, String> {
     let fonts = theme.join("fonts");
     let entries =
@@ -1118,6 +1132,27 @@ mod tests {
         assert_eq!(problems.len(), 1, "{problems:?}");
         assert!(
             problems[0].starts_with("fonts/fonts.css is not"),
+            "{problems:?}"
+        );
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn a_copy_missing_from_the_theme_fails() {
+        assert!(missing_copies(&crate::designs::root().unwrap().join(THEME)).is_empty());
+        let dir = std::env::temp_dir().join(format!("hpr-copies-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        for (file, _) in COPIED {
+            let path = dir.join(file);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, "x").unwrap();
+        }
+        assert!(missing_copies(&dir).is_empty());
+        fs::remove_file(dir.join("favicon.png")).unwrap();
+        let problems = missing_copies(&dir);
+        assert_eq!(problems.len(), 1, "{problems:?}");
+        assert!(
+            problems[0].starts_with("theme/favicon.png is missing"),
             "{problems:?}"
         );
         fs::remove_dir_all(&dir).unwrap();

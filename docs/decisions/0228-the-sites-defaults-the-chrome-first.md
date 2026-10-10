@@ -7,8 +7,9 @@
 
 **Context.** ADR-224 left M0.9d6 four classes of #383 and all of #443. Three of the classes are
 in the markup mdBook writes around every page: its menu bar, page arrows, search spinner and
-code-block buttons draw Font Awesome 6.2 glyphs, inline (1,024 across the guide's 65 pages, at
-13 px in the menu bar and 40 px for the arrows); its favicon is a book; and its menu bar names
+code-block buttons draw Font Awesome 6.2 glyphs, inline (1,024 across the guide's 65 pages, as
+`cargo xtask site` counts those it swaps; #383 measured them at 13 px in the menu bar and 40 px
+for the arrows); its favicon is a book; and its menu bar names
 the book in an `h1` above the page's own title, so every page has two. ADR-224 named two ways to
 change that markup: carry a changed copy of mdBook's MPL-2.0 page template, or rewrite the built
 HTML as the notes are rewritten (ADR-225). Print needs a reading of its own in the page check
@@ -49,4 +50,7 @@ canaries; it can't hold the two readings too. Two items were added to #383 after
 what `xtask site` builds. The page check reads one more property per element with text in each
 color reading, and one box per icon at each width. The rewrite is tested on mdBook 0.5.4's
 output; a newer mdBook that renames a glyph's place fails the build until `PLACES` names it.
-The copy button keeps its icon painted through a mask (`docs/images/copy.svg`), at 24 px.
+The copy button keeps its icon painted through a mask (`docs/images/copy.svg`), at 24 px. Three
+text marks mdBook still draws, `❱` on the sidebar's fold toggles, `✓` beside the chosen theme and
+`»` before a heading jumped to, are icons no check reads; they stay with #383 for M0.9d8, and the
+audit's *Icons* row stays not met until then.

@@ -15,6 +15,11 @@
 //!
 //! `print.html`, every chapter on one page for printing, keeps each chapter's `h1`, as a printed
 //! book opens each chapter with its title; it loses the menu bar's.
+//!
+//! The checks read the glyphs' spans only. The copy button's icon is painted through a mask from
+//! `docs/images/copy.svg` (`theme/hpr.css`), and mdBook's script and stylesheets still draw three
+//! text glyphs (`❱` on the sidebar's fold toggles, `✓` beside the chosen theme, `»` before a
+//! heading jumped to), which no check reads yet (#383).
 
 use std::fs;
 use std::path::Path;
@@ -291,16 +296,25 @@ mod tests {
     fn page(glyph: &str, title: (&str, &str)) -> String {
         format!(
             "<div class=\"left-buttons\">\n<label id=\"mdbook-sidebar-toggle\" class=\"icon-button\">\n\
-             <span class=fa-svg>{glyph}</span>\n</label>\n<button id=\"mdbook-search-toggle\">\n\
+             <span class=fa-svg>{glyph}</span>\n</label>\n<button id=\"mdbook-theme-toggle\" \
+             class=\"icon-button\" type=\"button\" title=\"Change theme\">\n\
+             <span class=fa-svg>{glyph}</span>\n</button>\n<button id=\"mdbook-search-toggle\">\n\
              <span class=fa-svg>{glyph}</span>\n</button>\n</div>\n{}FusionSpace HPR{}\n\
              <a href=\"print.html\" title=\"Print this book\" aria-label=\"Print this book\">\n\
              <span class=fa-svg id=\"print-button\">{glyph}</span>\n</a>\n\
+             <a href=\"https://example.org/book\" title=\"Git repository\" aria-label=\"Git \
+             repository\">\n<span class=fa-svg>{glyph}</span>\n</a>\n\
+             <a href=\"https://example.org/edit\" title=\"Suggest an edit\" aria-label=\"Suggest \
+             an edit\" rel=\"edit\">\n<span class=fa-svg id=\"git-edit-button\">{glyph}</span>\n</a>\n\
              <div class=\"spinner-wrapper\">\n<span class=fa-svg id=\"fa-spin\">{glyph}</span>\n</div>\n\
              <main><h1 id=\"a-page\"><a class=\"header\" href=\"#a-page\">A page</a></h1></main>\n\
              <a rel=\"prev\" href=\"a.html\" class=\"nav-chapters previous\"><span class=fa-svg>{glyph}</span></a>\n\
              <a rel=\"next prefetch\" href=\"b.html\" class=\"nav-chapters next\"><span class=fa-svg>{glyph}</span></a>\n\
              <template id=fa-eye><span class=fa-svg>{glyph}</span></template>\n\
-             <template id=fa-eye-slash><span class=fa-svg>{glyph}</span></template>\n",
+             <template id=fa-eye-slash><span class=fa-svg>{glyph}</span></template>\n\
+             <template id=fa-copy><span class=fa-svg>{glyph}</span></template>\n\
+             <template id=fa-play><span class=fa-svg>{glyph}</span></template>\n\
+             <template id=fa-clock-rotate-left><span class=fa-svg>{glyph}</span></template>\n",
             title.0, title.1
         )
     }
@@ -312,17 +326,23 @@ mod tests {
     #[test]
     fn every_glyph_takes_the_systems_icon_of_its_place() {
         let (drawn, count) = rewrite(&page(GLYPH, TITLE)).unwrap();
-        assert_eq!(count, 8);
+        assert_eq!(count, 14);
         assert!(!drawn.contains(GLYPH_NOTICE), "{drawn}");
         for (mark, name) in [
             ("mdbook-sidebar-toggle", "menu"),
+            ("mdbook-theme-toggle", "sun"),
             ("mdbook-search-toggle", "search"),
             ("print-button", "print"),
+            ("title=\"Git repository\"", "external"),
+            ("git-edit-button", "edit"),
             ("fa-spin", "refresh"),
             ("rel=\"prev\"", "chevron"),
             ("rel=\"next", "chevron"),
             ("<template id=fa-eye>", "plus"),
             ("<template id=fa-eye-slash>", "minus"),
+            ("<template id=fa-copy>", "copy"),
+            ("<template id=fa-play>", "simulate"),
+            ("<template id=fa-clock-rotate-left>", "refresh"),
         ] {
             let at = drawn.find(mark).unwrap();
             let svg = &drawn[at..][drawn[at..].find("<svg").unwrap()..];
@@ -390,13 +410,13 @@ mod tests {
     fn a_glyph_left_or_an_icon_not_the_systems_fails() {
         let left = page(GLYPH, TITLE_DRAWN);
         let why = page_problems("a.html", &left);
-        assert_eq!(why[0], "8 Font Awesome glyph(s)");
-        assert_eq!(why.len(), 9, "{why:?}");
+        assert_eq!(why[0], "14 Font Awesome glyph(s)");
+        assert_eq!(why.len(), 15, "{why:?}");
         let changed = icon("menu")
             .unwrap()
             .replace("stroke-width=\"1.5\"", "stroke-width=\"2\"");
         let why = page_problems("a.html", &page(&changed, TITLE_DRAWN));
-        assert_eq!(why.len(), 8, "{why:?}");
+        assert_eq!(why.len(), 14, "{why:?}");
         assert!(
             why[0].starts_with("an icon that isn't one of the system's"),
             "{why:?}"
