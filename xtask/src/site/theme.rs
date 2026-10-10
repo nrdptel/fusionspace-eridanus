@@ -75,7 +75,24 @@ const COPIED: [(&str, &str); 8] = [
     ),
 ];
 /// hpr-sim's own stylesheets under [`THEME`].
-const OWN: [&str; 2] = ["fonts/fonts.css", "hpr.css"];
+const OWN: [&str; 1] = ["hpr.css"];
+/// hpr-sim's own files under [`THEME`] that aren't stylesheets, each with the license line it
+/// opens with: the script mdBook adds to every page, and what it adds to every page's head.
+const OWN_OTHER: [(&str, &str); 2] = [
+    ("hpr.js", "// SPDX-License-Identifier: MIT OR Apache-2.0"),
+    (
+        "head.hbs",
+        "{{!-- SPDX-License-Identifier: MIT OR Apache-2.0 --}}",
+    ),
+];
+/// The product system's `@font-face` rules, which [`FONTS_CSS`] holds with the system's folder
+/// ([`FONTS_FOLDER`]) dropped from each address: mdBook serves the file beside the fonts.
+const SYSTEM_FONTS_CSS: &str = "product/web/fonts.css";
+/// How the system's font addresses start, and how hpr-sim's start.
+const FONTS_FOLDER: (&str, &str) = ("url('fonts/", "url('");
+/// The colors the browser's own bar takes on a light system and on a dark one, Paper and Void
+/// (`web.md`, *Theme*; the system's `kit/web/head.html`).
+const THEME_COLORS: [(&str, &str); 2] = [("light", "#F3F4F7"), ("dark", "#0B0F1C")];
 /// The theme's stylesheet, which draws the strip, and the fonts' stylesheet, as every built page
 /// of the guide links them.
 const PAGE_STYLES: [&str; 2] = ["theme/fusionspace-mdbook.css", "fonts/fonts.css"];
@@ -120,7 +137,11 @@ pub(super) struct Sources {
 pub(super) fn check_sources(root: &Path, source: &Path) -> Result<Sources, String> {
     let theme = root.join(THEME);
     let mut problems = Vec::new();
-    for (file, _) in COPIED.iter().filter(|(file, _)| file.ends_with(".css")) {
+    let copied_css = COPIED
+        .iter()
+        .map(|(file, _)| *file)
+        .filter(|file| file.ends_with(".css"));
+    for file in copied_css.chain([FONTS_CSS]) {
         let text = read(&theme.join(file))?;
         if text.lines().next() != Some(SYSTEM_SPDX) {
             problems.push(format!(
@@ -129,9 +150,16 @@ pub(super) fn check_sources(root: &Path, source: &Path) -> Result<Sources, Strin
             ));
         }
     }
-    for file in OWN {
+    for (file, spdx) in OWN_OTHER {
+        if read(&theme.join(file))?.lines().next() != Some(spdx) {
+            problems.push(format!(
+                "{THEME}/{file}: hpr-sim's own file opens with `{spdx}`"
+            ));
+        }
+    }
+    for file in OWN.into_iter().chain([FONTS_CSS]) {
         let text = read(&theme.join(file))?;
-        if text.lines().next() != Some(OWN_SPDX) {
+        if OWN.contains(&file) && text.lines().next() != Some(OWN_SPDX) {
             problems.push(format!(
                 "{THEME}/{file}: hpr-sim's own stylesheet opens with `{OWN_SPDX}`"
             ));
@@ -178,6 +206,20 @@ pub(super) fn check_sources(root: &Path, source: &Path) -> Result<Sources, Strin
                     "could not read {original} at {commit} to compare with {THEME}/{file}: {why}"
                 )),
             }
+        }
+        match committed_file(&design, &commit, SYSTEM_FONTS_CSS) {
+            Ok(theirs) => problems.extend(
+                fonts_problems(
+                    &read(&theme.join(FONTS_CSS))?,
+                    &String::from_utf8_lossy(&theirs),
+                )
+                .into_iter()
+                .map(|why| format!("{THEME}/{FONTS_CSS}: {why} ({SYSTEM_FONTS_CSS} at {commit})")),
+            ),
+            Err(why) => problems.push(format!(
+                "could not read {SYSTEM_FONTS_CSS} at {commit} to compare with \
+                 {THEME}/{FONTS_CSS}: {why}"
+            )),
         }
     }
     let faces = font_faces(&read(&theme.join(FONTS_CSS))?);
@@ -251,6 +293,41 @@ fn first_families(css: &str) -> Vec<String> {
         }
     }
     families
+}
+
+/// Each `@font-face` rule of a stylesheet, from its at-keyword to its closing brace.
+fn face_rules(css: &str) -> Vec<&str> {
+    css.split_inclusive('}')
+        .filter_map(|chunk| chunk.rfind("@font-face").map(|at| chunk[at..].trim()))
+        .collect()
+}
+
+/// How hpr-sim's `@font-face` rules (`ours`) differ from the product system's (`theirs`), each
+/// of the system's taken with [`FONTS_FOLDER`]'s change to its addresses: the same rules, in the
+/// same order, character for character, so the system's `unicode-range` and metric-matched
+/// fallback faces come with them (#383).
+fn fonts_problems(ours: &str, theirs: &str) -> Vec<String> {
+    let (folder, here) = FONTS_FOLDER;
+    let wanted: Vec<String> = face_rules(theirs)
+        .into_iter()
+        .map(|rule| rule.replace(folder, here))
+        .collect();
+    let got = face_rules(ours);
+    let mut problems = Vec::new();
+    for (i, rule) in wanted.iter().enumerate() {
+        match got.get(i) {
+            Some(have) if have == rule => {}
+            Some(have) => problems.push(format!(
+                "`@font-face` rule {} is `{have}`, and the system's is `{rule}`",
+                i + 1
+            )),
+            None => problems.push(format!("lacks the system's `{rule}`")),
+        }
+    }
+    for extra in got.iter().skip(wanted.len()) {
+        problems.push(format!("has `{extra}`, which the system's file lacks"));
+    }
+    problems
 }
 
 /// The families a stylesheet's `@font-face` rules declare.
@@ -482,6 +559,11 @@ pub(super) fn check_built(root: &Path, output: &Path) -> Result<Vec<String>, Str
                     .into_iter()
                     .map(|wanted| format!("{name}: no stylesheet link to `{wanted}`")),
             );
+            problems.extend(
+                head_problems(&html)
+                    .into_iter()
+                    .map(|why| format!("{name}: {why}")),
+            );
         }
     }
     let mut sheets = Vec::new();
@@ -504,7 +586,7 @@ pub(super) fn check_built(root: &Path, output: &Path) -> Result<Vec<String>, Str
 }
 
 /// Whether the site serves `theme/` as it is committed: each file under `theme/fonts/` as
-/// `fonts/` in the site, and each stylesheet in `theme/` as `theme/`. mdBook serves its own fonts
+/// `fonts/` in the site, and each stylesheet and script in `theme/` as `theme/`. mdBook serves its own fonts
 /// at the same address, `fonts/fonts.css`, when it doesn't take the theme's.
 fn served_unchanged(theme: &Path, output: &Path) -> Result<Vec<String>, String> {
     let mut problems = Vec::new();
@@ -517,7 +599,9 @@ fn served_unchanged(theme: &Path, output: &Path) -> Result<Vec<String>, String> 
             let entry = entry.map_err(|err| format!("could not list {}: {err}", from.display()))?;
             let name = entry.file_name().to_string_lossy().into_owned();
             let path = entry.path();
-            if path.is_dir() || (dir.is_empty() && !name.ends_with(".css")) {
+            if path.is_dir()
+                || (dir.is_empty() && !(name.ends_with(".css") || name.ends_with(".js")))
+            {
                 continue;
             }
             let committed = if dir.is_empty() {
@@ -538,6 +622,69 @@ fn served_unchanged(theme: &Path, output: &Path) -> Result<Vec<String>, String> 
         }
     }
     Ok(problems)
+}
+
+/// What a built page's head lacks (#383; `web.md`, *Using it in a project* and *Theme*): a
+/// `color-scheme` meta of `light dark`, and the `theme-color` a browser takes on a light system
+/// and on a dark one, [`THEME_COLORS`]. A browser takes the first `theme-color` meta whose
+/// `media` matches, or that has none, so mdBook's own white one, after hpr-sim's, is never
+/// taken. A `media` other than a color scheme is a problem: the check can't say when it holds.
+fn head_problems(html: &str) -> Vec<String> {
+    let metas: Vec<&str> = tags(html, "meta").collect();
+    let named = |name: &str| {
+        metas
+            .iter()
+            .filter(|tag| attributes(tag, "name").any(|value| value == name))
+            .copied()
+            .collect::<Vec<&str>>()
+    };
+    let mut problems = Vec::new();
+    let schemes = named("color-scheme");
+    if !schemes
+        .iter()
+        .any(|tag| attributes(tag, "content").any(|value| value == "light dark"))
+    {
+        problems.push("no `<meta name=\"color-scheme\" content=\"light dark\">`".to_owned());
+    }
+    let colors = named("theme-color");
+    for (scheme, wanted) in THEME_COLORS {
+        let mut taken = None;
+        for tag in &colors {
+            let media = attributes(tag, "media").map(unescape).next();
+            let matches = match media.as_deref().map(str::trim) {
+                None | Some("") => true,
+                Some(media) => match media
+                    .strip_prefix('(')
+                    .and_then(|rest| rest.strip_suffix(')'))
+                    .and_then(|rest| rest.split_once(':'))
+                    .map(|(feature, value)| (feature.trim(), value.trim()))
+                {
+                    Some(("prefers-color-scheme", value)) => value == scheme,
+                    _ => {
+                        problems.push(format!(
+                            "a `theme-color` meta for `{media}`, which the check can't read"
+                        ));
+                        false
+                    }
+                },
+            };
+            if matches {
+                taken = attributes(tag, "content").map(unescape).next();
+                break;
+            }
+        }
+        match taken {
+            Some(color) if color.eq_ignore_ascii_case(wanted) => {}
+            Some(color) => problems.push(format!(
+                "a browser on a {scheme} system takes the `theme-color` `{color}`, not `{wanted}`"
+            )),
+            None => problems.push(format!(
+                "no `theme-color` meta for a {scheme} system (`{wanted}`)"
+            )),
+        }
+    }
+    problems.dedup();
+    problems
 }
 
 /// The stylesheets of [`PAGE_STYLES`] a built page of the guide doesn't link.
@@ -812,6 +959,80 @@ mod tests {
             link("myfonts/fonts.css")
         );
         assert_eq!(missing_page_styles(&hashed), PAGE_STYLES);
+    }
+
+    #[test]
+    fn a_page_head_names_the_scheme_and_the_bar_colors_first() {
+        let scheme = "<meta name=\"color-scheme\" content=\"light dark\">";
+        let light = "<meta name=\"theme-color\" content=\"#F3F4F7\" \
+                     media=\"(prefers-color-scheme: light)\">";
+        let dark = "<meta name=\"theme-color\" content=\"#0b0f1c\" \
+                    media=\"(prefers-color-scheme: dark)\">";
+        let mdbook = "<meta name=\"theme-color\" content=\"#ffffff\">";
+        let ours = format!("{scheme}{light}{dark}{mdbook}");
+        assert_eq!(head_problems(&ours), Vec::<String>::new());
+        // mdBook's head alone: its white bar on both systems, and no scheme.
+        assert_eq!(
+            head_problems(mdbook),
+            [
+                "no `<meta name=\"color-scheme\" content=\"light dark\">`",
+                "a browser on a light system takes the `theme-color` `#ffffff`, not `#F3F4F7`",
+                "a browser on a dark system takes the `theme-color` `#ffffff`, not `#0B0F1C`",
+            ]
+        );
+        // mdBook's meta first is taken first, on both systems.
+        let late = format!("{scheme}{mdbook}{light}{dark}");
+        assert_eq!(head_problems(&late).len(), 2, "{:?}", head_problems(&late));
+        // Only the light one: a dark system takes mdBook's.
+        let half = format!("{scheme}{light}{mdbook}");
+        assert_eq!(
+            head_problems(&half),
+            ["a browser on a dark system takes the `theme-color` `#ffffff`, not `#0B0F1C`"]
+        );
+        // Without mdBook's, a dark system has none.
+        assert_eq!(
+            head_problems(&format!("{scheme}{light}")),
+            ["no `theme-color` meta for a dark system (`#0B0F1C`)"]
+        );
+        // A media the check can't read is named, once.
+        let wide = "<meta name=\"theme-color\" content=\"#F3F4F7\" media=\"(min-width: 9px)\">";
+        let problems = head_problems(&format!("{scheme}{wide}{light}{dark}"));
+        assert_eq!(
+            problems,
+            ["a `theme-color` meta for `(min-width: 9px)`, which the check can't read"]
+        );
+    }
+
+    #[test]
+    fn the_fonts_are_the_systems_with_their_folder_dropped() {
+        let theirs = "/* the system's */\n\
+            @font-face { font-family: 'Archivo'; src: url('fonts/Archivo-Regular.woff2') \
+            format('woff2'); unicode-range: U+0000-00FF; }\n\
+            @font-face { font-family: 'Archivo Fallback'; src: local('Arial'); size-adjust: 101%; }\n";
+        let ours = "/* hpr-sim's, naming its `@font-face` rules */\n\
+            @font-face { font-family: 'Archivo'; src: url('Archivo-Regular.woff2') \
+            format('woff2'); unicode-range: U+0000-00FF; }\n\
+            @font-face { font-family: 'Archivo Fallback'; src: local('Arial'); size-adjust: 101%; }\n";
+        assert_eq!(fonts_problems(ours, theirs), Vec::<String>::new());
+        // A hand-written file: no `unicode-range`, no fallback face.
+        let own = "@font-face { font-family: 'Archivo'; src: url('Archivo-Regular.woff2') \
+            format('woff2'); }\n";
+        let problems = fonts_problems(own, theirs);
+        assert_eq!(problems.len(), 2, "{problems:?}");
+        assert!(
+            problems[0].starts_with("`@font-face` rule 1 is"),
+            "{}",
+            problems[0]
+        );
+        assert!(problems[1].contains("Archivo Fallback"), "{}", problems[1]);
+        // The system's addresses as they are name a folder mdBook doesn't serve.
+        assert_eq!(fonts_problems(theirs, theirs).len(), 1);
+        // A face the system lacks.
+        let extra = format!("{ours}@font-face {{ font-family: 'Georgia'; }}\n");
+        assert_eq!(
+            fonts_problems(&extra, theirs),
+            ["has `@font-face { font-family: 'Georgia'; }`, which the system's file lacks"]
+        );
     }
 
     #[test]

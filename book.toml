@@ -27,6 +27,9 @@ edit-url-template = "https://github.com/nrdptel/fusionspace-eridanus/edit/main/{
 default-theme = "light"
 preferred-dark-theme = "navy"
 additional-css = ["theme/fusionspace-mdbook.css", "theme/hpr.css"]
+# `theme/hpr.js` takes the menu bar title's click before mdBook's script scrolls smoothly (#383);
+# `theme/head.hbs` adds the color scheme and the browser bar's colors to every page's head.
+additional-js = ["theme/hpr.js"]
 hash-files = false
 
 # Code blocks are quotes and output, not Rust to run in the playground.

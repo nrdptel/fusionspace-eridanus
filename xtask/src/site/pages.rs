@@ -48,16 +48,18 @@
 //!   dark), then as a reader with scripts off gets it (the root's `js` class taken off, which
 //!   applies mdBook's `html:not(.js)` rules), with a light system and with a dark one (the
 //!   stylesheets' dark-scheme rules applied in place), then switched as mdBook's theme menu
-//!   switches it and read in the other once the switch's transitions have run. Hover and focus
-//!   aren't read, nor what a script sets as it runs (mdBook's `scrollTo` with a smooth scroll).
+//!   switches it and read in the other once the switch's transitions have run. Hover isn't
+//!   read, nor what a script sets as it runs; focus and the script's smooth scroll are read
+//!   below.
 //! - **The page's frame** (#384, ADR-223), read once at each width in the theme the page loads
 //!   in:
 //!   - **type off the system's scale** (`foundations.md`, *Type*): every element that shows text,
 //!     drawn or hidden until asked for, its `::before` and `::after` and every text field
 //!     included, must have the size and line height of one of the scale's tokens in that token's
 //!     family (Cascadia Mono 12/16, 14/20, 20/24, 28/32, 40/44; Archivo 14/20, 16/24, 20/28),
-//!     capitals only at Cascadia Mono 12/16 and 14/20, no weight under 400, and tabular figures
-//!     in Archivo. A superscript or subscript may be off the scale, never under 12 px. The
+//!     capitals only at Cascadia Mono 12/16 and 14/20, no weight under 400, tabular figures
+//!     in Archivo, and each family's metric-matched fallback (the system's `fonts.css`) second
+//!     in its stack. A superscript or subscript may be off the scale, never under 12 px. The
 //!     sidebar's text must be Cascadia Mono 14 px, and its current page underlined 2 px
 //!     (`web.md`, *Page anatomy*). Boxes of 2 px or less, for screen readers, are skipped;
 //!   - **a line of prose past 68 characters**: each paragraph, list item, quote or caption in
@@ -71,6 +73,24 @@
 //!     it has reached its widest;
 //!   - **a code block or table held to the prose measure**: one in `main` that scrolls sideways
 //!     inside a box with a `max-width`, as a list item around it would be at the measure.
+//! - What a keyboard, forced colors and a sticky bar need (#383; `web.md`, *Theme* and
+//!   *Accessibility*), each read in the theme the page loads in, contrast in every reading:
+//!   - **text under the contrast floor**: WCAG 2.2 AA (1.4.3), the floor `foundations.md`
+//!     (*Contrast*) sets everywhere: 4.5 : 1 for text, 3 : 1 at 24 px or 18.66 px bold, each
+//!     element's own text and a `::before` or `::after`'s against the background it is drawn on,
+//!     faded by any opacity between them;
+//!   - **a focus ring off the system's**: one element of each kind the keyboard reaches (as its
+//!     short path names it), focused as by the keyboard, must draw a 2 px solid outline in the
+//!     action role, 2 px off; a control hidden for its picture draws it on the element after it;
+//!   - **something forced colors would erase**: with the stylesheets' `forced-colors: active`
+//!     rules applied, a block set apart from what is behind it only by its fill (table parts
+//!     aside: their cells have rules) must have a border or an outline, an inline icon must be
+//!     drawn in its text color, and one painted through a mask must keep its own colors;
+//!   - **a sticky bar that can hide what is focused**: a bar fixed or stuck to the window's top,
+//!     at least half its width and under half its height, reaching further down than the root's
+//!     `scroll-padding-top` (2.4.11);
+//!   - and, as motion, a smooth scroll a script asks for when the menu bar's title is clicked, as
+//!     mdBook's does.
 //!
 //! **How.** A small web server on `127.0.0.1` serves the built site and, under `/__check/`, the
 //! harness ([`HARNESS_JS`]), the plan and the canaries. A few headless Chrome processes (headless
@@ -100,6 +120,12 @@
 //! at 11 px, a chapter link in Archivo, a current page with no underline and one underlined 1 px,
 //! a line of 69 characters after a short one and one of 68, which must pass, mdBook's 20 px
 //! gutters, a right gutter wider than the left, a code block in a list item held to the measure,
+//! Archivo with no fallback second, a label in faint ink, a paragraph faded to half and a title
+//! faded the same, which must pass, links with no ring and with the browser's own, a hidden
+//! checkbox whose picture takes the browser's ring, a box set apart by its fill alone and one with
+//! a border in forced colors, which must pass, an icon in a fill of its own, one painted through
+//! a mask and one that keeps its colors, which must pass, a bar fixed to the top without scroll
+//! padding and one with it, which must pass, a title that scrolls smoothly when clicked,
 //! and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
@@ -139,7 +165,8 @@ const HEIGHT_PX: u32 = 900;
 const FRAMES_PER_TAB: usize = 3;
 /// The most tabs, each its own browser process; fewer on a machine with fewer cores. With four,
 /// the check took 114 s on an M-series Mac on 2026-10-09, with five readings of each page's style
-/// at each width, and 160 s once it read each page's frame too (#432).
+/// at each width, 160 s once it read each page's frame too, and 191 s with what a keyboard and
+/// forced colors need (#432).
 const MOST_TABS: usize = 4;
 /// How long the check waits for any news from the browser before it gives up.
 const STALL: Duration = Duration::from_secs(300);
@@ -197,10 +224,12 @@ enum Kind {
     Color,
     /// A rounded corner or a shadow (#383).
     Shape,
-    /// Motion off the system's durations and easings, or any with reduced motion set (#383).
+    /// Motion off the system's durations and easings, any with reduced motion set, or a smooth
+    /// scroll a script asks for (#383).
     Motion,
-    /// Text off the system's type scale, Archivo without tabular figures, or navigation not in
-    /// Cascadia Mono 14 px with the current page underlined 2 px (#384).
+    /// Text off the system's type scale, Archivo without tabular figures, a family without its
+    /// metric-matched fallback second, or navigation not in Cascadia Mono 14 px with the current
+    /// page underlined 2 px (#384).
     Type,
     /// A line of prose longer than the system's 68 characters (#384).
     Measure,
@@ -208,10 +237,20 @@ enum Kind {
     Gutter,
     /// A code block or table that scrolls sideways inside a box held to the prose measure.
     Squeezed,
+    /// Text under WCAG 2.2 AA's contrast against what it is drawn on (#383).
+    Contrast,
+    /// An element the keyboard reaches without the system's 2 px action-colored focus ring, 2 px
+    /// off (#383).
+    Focus,
+    /// Something forced colors would erase: a box set apart only by its fill, an icon not in its
+    /// text color, or one painted through a mask with its colors forced (#383).
+    Forced,
+    /// A bar stuck to the top of the window taller than the page's `scroll-padding-top` (#383).
+    Sticky,
 }
 
 impl Kind {
-    const ALL: [Kind; 11] = [
+    const ALL: [Kind; 15] = [
         Kind::Wide,
         Kind::Cut,
         Kind::Overlap,
@@ -223,6 +262,10 @@ impl Kind {
         Kind::Measure,
         Kind::Gutter,
         Kind::Squeezed,
+        Kind::Contrast,
+        Kind::Focus,
+        Kind::Forced,
+        Kind::Sticky,
     ];
 
     fn describe(self) -> &'static str {
@@ -238,6 +281,10 @@ impl Kind {
             Kind::Measure => "a line of prose past 68 characters",
             Kind::Gutter => "gutters off the system's",
             Kind::Squeezed => "a code block or table held to the prose measure",
+            Kind::Contrast => "text under the contrast floor",
+            Kind::Focus => "a focus ring off the system's",
+            Kind::Forced => "something forced colors would erase",
+            Kind::Sticky => "a sticky bar that can hide what is focused",
         }
     }
 }
@@ -256,7 +303,7 @@ struct Canary {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 41] = [
+const CANARIES: [Canary; 56] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -453,7 +500,7 @@ const CANARIES: [Canary; 41] = [
         inside: "<script>document.documentElement.classList.add('js');</script>\
                  <style>.late { transition: color 0s 240ms; } \
                  html:not(.js) .late { color: #008200; } \
-                 @media (prefers-color-scheme: dark) { html:not(.js) .late { color: #F3F4F7; } }\
+                 @media (prefers-color-scheme: dark) { html:not(.js) .late { color: #566079; } }\
                  </style>\
                  <p class=\"late\">Green after a delay</p>",
         after: "",
@@ -465,7 +512,7 @@ const CANARIES: [Canary; 41] = [
         expect: &[Kind::Color],
         inside: "<script>document.documentElement.classList.add('js', 'light');</script>\
                  <link rel=\"stylesheet\" id=\"mdbook-tomorrow-night-css\" href=\"data:text/css,\">\
-                 <style>.navy { color-scheme: dark; } .navy mark { background: #768DF5; } \
+                 <style>.navy { color-scheme: dark; } .navy mark { color: #0B0F1C; background: #768DF5; } \
                  .navy .green { color: #008200; }</style>\
                  <p class=\"green\">Green only in navy</p>",
         after: "",
@@ -499,6 +546,13 @@ const CANARIES: [Canary; 41] = [
         what: "a label in a serif, neither of the system's families",
         expect: &[Kind::Type],
         inside: "<p style=\"font-family: Georgia, serif\">A label in a serif</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-type-fallback.html",
+        what: "a label in Archivo with no metric-matched fallback second in its stack",
+        expect: &[Kind::Type],
+        inside: "<p style=\"font-family: 'Archivo', sans-serif\">A label without its fallback</p>",
         after: "",
     },
     Canary {
@@ -543,7 +597,7 @@ const CANARIES: [Canary; 41] = [
         what: "the current page's link with no underline",
         expect: &[Kind::Type],
         inside: "<ol class=\"chapter\"><li><a class=\"active\" href=\"#\" style=\"font: 14px/20px \
-                 'Cascadia Mono', monospace; text-decoration: none\">The current page</a></li></ol>",
+                 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; text-decoration: none\">The current page</a></li></ol>",
         after: "",
     },
     Canary {
@@ -551,7 +605,7 @@ const CANARIES: [Canary; 41] = [
         what: "the current page's link underlined 1 px, not 2",
         expect: &[Kind::Type],
         inside: "<ol class=\"chapter\"><li><a class=\"active\" href=\"#\" style=\"font: 14px/20px \
-                 'Cascadia Mono', monospace; text-decoration: underline 1px\">The current \
+                 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; text-decoration: underline 1px\">The current \
                  page</a></li></ol>",
         after: "",
     },
@@ -605,6 +659,134 @@ const CANARIES: [Canary; 41] = [
         inside: "<style>.content { padding: 0 20px !important; }</style>",
         after: "",
     },
+    Canary {
+        file: "canary-contrast.html",
+        what: "a label in the system's faint ink on the canvas, at 2.35 : 1",
+        expect: &[Kind::Contrast],
+        inside: "<p style=\"color: #98A1B8\">A faint label</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-contrast-faded.html",
+        what: "a paragraph of ink faded to half by its opacity, at 3.51 : 1",
+        expect: &[Kind::Contrast],
+        inside: "<p style=\"opacity: 0.5\">A faded paragraph</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-contrast-large.html",
+        what: "a 28 px title of ink faded to half, at 3.51 : 1, over large text's 3 : 1, which \
+               must pass",
+        expect: &[],
+        inside: "<p style=\"font: 600 28px/32px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; opacity: 0.5\">A \
+                 faded title</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-focus.html",
+        what: "a link whose keyboard focus draws no ring",
+        expect: &[Kind::Focus],
+        inside: "<style>.bare:focus-visible { outline: none; }</style>\
+                 <p><a class=\"bare\" href=\"#\">A link without a ring</a></p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-focus-auto.html",
+        what: "a link whose keyboard focus draws the browser's own ring, as mdBook leaves it",
+        expect: &[Kind::Focus],
+        inside: "<style>.own:focus-visible { outline: auto; }</style>\
+                 <p><a class=\"own\" href=\"#\">A link with the browser's ring</a></p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-focus-hidden.html",
+        what: "a hidden checkbox whose ring, drawn on the picture after it, is the browser's own, \
+               as mdBook's zoom draws it",
+        expect: &[Kind::Focus],
+        inside: "<style>.zoom:focus-visible + img { outline: auto; }</style>\
+                 <p><label><input class=\"checkbox-img zoom\" type=\"checkbox\"><img \
+                 src=\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' \
+                 height='20'%3E%3C/svg%3E\" alt=\"A small figure\"></label></p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-forced-fill.html",
+        what: "a box set apart from the canvas by its fill alone, which forced colors erase",
+        expect: &[Kind::Forced],
+        inside: "<div style=\"background: #FFFFFF; padding: 8px 0\"><p>A layer drawn by its \
+                 fill</p></div>",
+        after: "",
+    },
+    Canary {
+        file: "canary-forced-border.html",
+        what: "a box set apart by its fill, with a border in forced colors, which must pass",
+        expect: &[],
+        inside: "<style>@media (forced-colors: active) { .layer { border: 1px solid CanvasText; } }\
+                 </style><div class=\"layer\" style=\"background: #FFFFFF; padding: 8px 0\"><p>A \
+                 layer with a border</p></div>",
+        after: "",
+    },
+    Canary {
+        file: "canary-forced-icon.html",
+        what: "an inline icon drawn in a fill of its own, not its text color",
+        expect: &[Kind::Forced],
+        inside: "<p>An icon <svg fill=\"currentColor\" width=\"16\" height=\"16\" viewBox=\"0 0 16 \
+                 16\"><rect width=\"16\" height=\"16\" fill=\"#3350D6\"/></svg> in a fill of its \
+                 own</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-forced-mask.html",
+        what: "an icon painted through a mask in its text color, which forced colors repaint in \
+               the canvas color",
+        expect: &[Kind::Forced],
+        inside: "<style>.masked::before { content: \"\"; display: inline-block; width: 16px; \
+                 height: 16px; background-color: currentColor; \
+                 -webkit-mask: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E\"); \
+                 mask: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E\"); }\
+                 </style><p class=\"masked\">A label with a masked icon</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-forced-mask-kept.html",
+        what: "an icon painted through a mask that keeps its own colors in forced colors, which \
+               must pass",
+        expect: &[],
+        inside: "<style>.masked::before { content: \"\"; display: inline-block; width: 16px; \
+                 height: 16px; background-color: currentColor; \
+                 -webkit-mask: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E\"); \
+                 mask: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E\"); } \
+                 @media (forced-colors: active) { .masked::before { forced-color-adjust: none; \
+                 background-color: ButtonText; } }</style><p class=\"masked\">A label with a \
+                 masked icon</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-sticky.html",
+        what: "a 60 px bar fixed to the window's top with no `scroll-padding-top`",
+        expect: &[Kind::Sticky],
+        inside: "",
+        after: "<div style=\"position: fixed; top: 0; left: 0; right: 0; height: 60px; \
+                background: #F3F4F7\"></div>",
+    },
+    Canary {
+        file: "canary-sticky-padded.html",
+        what: "a 60 px bar fixed to the window's top over a 60 px `scroll-padding-top`, which \
+               must pass",
+        expect: &[],
+        inside: "<style>html { scroll-padding-top: 60px; }</style>",
+        after: "<div style=\"position: fixed; top: 0; left: 0; right: 0; height: 60px; \
+                background: #F3F4F7\"></div>",
+    },
+    Canary {
+        file: "canary-smooth.html",
+        what: "a title whose click asks for a smooth scroll to the top, as mdBook's script does",
+        expect: &[Kind::Motion],
+        inside: "<p class=\"menu-title\">A title</p><script>document.querySelector('.menu-title')\
+                 .addEventListener('click', function () { document.scrollingElement.scrollTo({ \
+                 top: 0, behavior: 'smooth' }); });</script>",
+        after: "",
+    },
 ];
 
 /// A canary's page: an ordinary page, as mdBook lays one out, plus what the canary adds.
@@ -625,9 +807,10 @@ fn canary_html(canary: &Canary) -> String {
 <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
 <title>{what}</title>
 <style>
-body {{ margin: 0; font: 16px/24px 'Archivo', sans-serif; font-variant-numeric: tabular-nums; overflow-x: hidden; color: #0B0F1C; background: #F3F4F7; }}
+body {{ margin: 0; font: 16px/24px 'Archivo', 'Archivo Fallback', sans-serif; font-variant-numeric: tabular-nums; overflow-x: hidden; color: #0B0F1C; background: #F3F4F7; }}
 html {{ color: #0B0F1C; background: #F3F4F7; }}
 a {{ color: #3350D6; }}
+:focus-visible, .checkbox-img:focus-visible + img {{ outline: 2px solid #3350D6; outline-offset: 2px; }}
 mark {{ color: #FFFFFF; background: #3350D6; }}
 @media (prefers-color-scheme: dark) {{ mark {{ color: #0B0F1C; background: #768DF5; }} }}
 input {{ color: inherit; }}
@@ -636,13 +819,13 @@ main {{ overflow-x: clip; }}
 .content {{ padding: 0 16px; }}
 @media (min-width: 720px) {{ .content {{ padding: 0 32px; }} }}
 main p:not(:has(> .checkbox-label)), main li {{ max-width: 26em; }}
-code, pre {{ font: 14px/20px 'Cascadia Mono', monospace; }}
-.sidebar {{ font: 14px/20px 'Cascadia Mono', monospace; }}
+code, pre {{ font: 14px/20px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; }}
+.sidebar {{ font: 14px/20px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; }}
 .sidebar a.active {{ text-decoration: underline 2px; }}
 img {{ max-width: 100%; }}
 .checkbox-img {{ position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }}
 .checkbox-img:not(:checked) ~ .img-wrapper {{ display: none; }}
-h1 {{ font: 600 28px/32px 'Cascadia Mono', monospace; }}
+h1 {{ font: 600 28px/32px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; }}
 .scroll, pre {{ overflow-x: auto; }}
 td {{ white-space: nowrap; padding: 0 12px; }}
 .word {{ overflow-wrap: anywhere; }}
@@ -813,6 +996,23 @@ struct Measured {
     squeezed: Vec<Style>,
     #[serde(default)]
     squeezed_count: usize,
+    /// What a keyboard, forced colors or a sticky bar needs (#383), the first few of each kind.
+    #[serde(default)]
+    contrast: Vec<Style>,
+    #[serde(default)]
+    contrast_count: usize,
+    #[serde(default)]
+    focus: Vec<Style>,
+    #[serde(default)]
+    focus_count: usize,
+    #[serde(default)]
+    forced: Vec<Style>,
+    #[serde(default)]
+    forced_count: usize,
+    #[serde(default)]
+    sticky: Vec<Style>,
+    #[serde(default)]
+    sticky_count: usize,
 }
 
 impl Measured {
@@ -829,6 +1029,10 @@ impl Measured {
             Kind::Measure => self.measure_count > 0,
             Kind::Gutter => self.gutter_count > 0,
             Kind::Squeezed => self.squeezed_count > 0,
+            Kind::Contrast => self.contrast_count > 0,
+            Kind::Focus => self.focus_count > 0,
+            Kind::Forced => self.forced_count > 0,
+            Kind::Sticky => self.sticky_count > 0,
         }
     }
 
@@ -895,6 +1099,10 @@ impl Measured {
             Kind::Measure => Style::list(&self.measure),
             Kind::Gutter => Style::list(&self.gutter),
             Kind::Squeezed => Style::list(&self.squeezed),
+            Kind::Contrast => Style::list(&self.contrast),
+            Kind::Focus => Style::list(&self.focus),
+            Kind::Forced => Style::list(&self.forced),
+            Kind::Sticky => Style::list(&self.sticky),
         }
     }
 }
@@ -1766,6 +1974,75 @@ mod tests {
             .map(|canary| canary.file)
             .collect();
         assert!(passing.contains(&"canary-motion-snaps.html"), "{passing:?}");
+    }
+
+    #[test]
+    fn what_a_keyboard_and_forced_colors_need_is_named_by_kind() {
+        let body = page_json("guide.html", |w| {
+            let plain = width_json(w, w - 15, 0, 0, 0);
+            let sticky = usize::from(w >= 1080);
+            plain.replacen(
+                "\"overlap_count\":0}",
+                &format!(
+                    r#""overlap_count":0,"contrast":[{{"selector":"main>p","property":"color","value":"rgb(152, 161, 184) at 2.35 : 1, under 4.5 : 1","theme":"light"}}],"contrast_count":1,"focus":[{{"selector":"button#mdbook-theme-toggle","property":"outline","value":"1px auto rgb(0, 95, 204), offset 0px","theme":"light"}}],"focus_count":1,"forced":[{{"selector":"main>pre>code","property":"background-color","value":"rgb(255, 255, 255) with no border","theme":"light"}}],"forced_count":3,"sticky":[],"sticky_count":{sticky}}}"#
+                ),
+                1,
+            )
+        });
+        let (page, measured) = parse_results(&body).unwrap();
+        let problems = page_problems(&page, &measured);
+        assert_eq!(problems.len(), 4, "{problems:#?}");
+        assert_eq!(
+            problems[0],
+            "guide.html: text under the contrast floor at 320 to 1920 px; at 320 px, `main>p` has \
+             color `rgb(152, 161, 184) at 2.35 : 1, under 4.5 : 1` (light)"
+        );
+        assert_eq!(
+            problems[1],
+            "guide.html: a focus ring off the system's at 320 to 1920 px; at 320 px, \
+             `button#mdbook-theme-toggle` has outline `1px auto rgb(0, 95, 204), offset 0px` \
+             (light)"
+        );
+        assert!(
+            problems[2].starts_with(
+                "guide.html: something forced colors would erase at 320 to 1920 px; at 320 px, \
+                 `main>pre>code` has background-color"
+            ),
+            "{}",
+            problems[2]
+        );
+        assert!(
+            problems[3].starts_with(
+                "guide.html: a sticky bar that can hide what is focused at 1080 to 1920 px"
+            ),
+            "{}",
+            problems[3]
+        );
+        // Each kind has a canary that must show it alone, and one beside it that must pass.
+        for kind in [Kind::Contrast, Kind::Focus, Kind::Forced, Kind::Sticky] {
+            assert!(
+                CANARIES.iter().any(|canary| canary.expect == [kind]),
+                "{kind:?}"
+            );
+        }
+        let passing: Vec<&str> = CANARIES
+            .iter()
+            .filter(|canary| canary.expect.is_empty())
+            .map(|canary| canary.file)
+            .collect();
+        for file in [
+            "canary-contrast-large.html",
+            "canary-forced-border.html",
+            "canary-forced-mask-kept.html",
+            "canary-sticky-padded.html",
+        ] {
+            assert!(passing.contains(&file), "{file}: {passing:?}");
+        }
+        assert!(
+            CANARIES.iter().any(
+                |canary| canary.file == "canary-smooth.html" && canary.expect == [Kind::Motion]
+            )
+        );
     }
 
     #[test]

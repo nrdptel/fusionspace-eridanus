@@ -1,10 +1,15 @@
-/* SPDX-License-Identifier: MIT OR Apache-2.0 */
-/* The documentation site's fonts, served from the site itself so no page asks another server
-   for anything (ADR-164). mdBook links this file from every page in place of its own fonts. The
-   font files are the product system's WOFF2 subsets, unchanged, under the SIL Open Font License
+/* SPDX-License-Identifier: Apache-2.0 · Copyright 2026 Neer Patel */
+/* The documentation site's fonts, served from the site itself so no page asks another server for
+   anything (ADR-164). mdBook links this file from every page in place of its own fonts. Its
+   `@font-face` rules are the product system's `product/web/fonts.css` at f45454f, each with the
+   `fonts/` folder dropped from its address, as mdBook serves this file beside the fonts: the
+   WOFF2 subsets with their `unicode-range`, and the metric-matched fallback faces. `cargo xtask
+   site` checks the rules against the pinned file. The fonts are under the SIL Open Font License
    1.1 (OFL-Archivo.txt and OFL-CascadiaMono.txt, beside them). */
-@font-face { font-family: 'Archivo'; font-style: normal; font-weight: 400; font-display: swap; src: url('Archivo-Regular.woff2') format('woff2'); }
-@font-face { font-family: 'Archivo'; font-style: italic; font-weight: 400; font-display: swap; src: url('Archivo-Italic.woff2') format('woff2'); }
-@font-face { font-family: 'Archivo'; font-style: normal; font-weight: 600; font-display: swap; src: url('Archivo-SemiBold.woff2') format('woff2'); }
-@font-face { font-family: 'Cascadia Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('CascadiaMono-Regular.woff2') format('woff2'); }
-@font-face { font-family: 'Cascadia Mono'; font-style: normal; font-weight: 600; font-display: swap; src: url('CascadiaMono-SemiBold.woff2') format('woff2'); }
+@font-face { font-family: 'Archivo'; font-style: normal; font-weight: 400; font-display: swap; src: url('Archivo-Regular.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2070-209F,U+20AC,U+2100-214F,U+2190-21FF,U+2200-22FF,U+2500-257F,U+25A0-25FF; }
+@font-face { font-family: 'Archivo'; font-style: normal; font-weight: 600; font-display: swap; src: url('Archivo-SemiBold.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2070-209F,U+20AC,U+2100-214F,U+2190-21FF,U+2200-22FF,U+2500-257F,U+25A0-25FF; }
+@font-face { font-family: 'Archivo'; font-style: italic; font-weight: 400; font-display: swap; src: url('Archivo-Italic.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2070-209F,U+20AC,U+2100-214F,U+2190-21FF,U+2200-22FF,U+2500-257F,U+25A0-25FF; }
+@font-face { font-family: 'Cascadia Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('CascadiaMono-Regular.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2070-209F,U+20AC,U+2100-214F,U+2190-21FF,U+2200-22FF,U+2500-257F,U+25A0-25FF; }
+@font-face { font-family: 'Cascadia Mono'; font-style: normal; font-weight: 600; font-display: swap; src: url('CascadiaMono-SemiBold.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2070-209F,U+20AC,U+2100-214F,U+2190-21FF,U+2200-22FF,U+2500-257F,U+25A0-25FF; }
+@font-face { font-family: 'Archivo Fallback'; src: local('Arial'); size-adjust: 101%; }
+@font-face { font-family: 'Cascadia Mono Fallback'; src: local('Menlo'), local('Consolas'); size-adjust: 100%; }

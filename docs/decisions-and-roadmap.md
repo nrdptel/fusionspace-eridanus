@@ -244,6 +244,7 @@ until someone rewrites it in plainer words.
 | [ADR-221: The site's defaults split: what the screen's stylesheets draw first][adr-221] | #383 lists seven classes of mdBook default the product system's theme doesn't reach: colors, shape, motion, icons, the head's metas and accessibility, fonts, and print. [M0.9d2](#m0-9d2) now covers the first three as mdBook's stylesheets draw them on screen, each held by `xtask site`'s page check reading every element's computed style in light and navy and with reduced motion set. The new [M0.9d4](#m0-9d4) keeps the old done-when whole (#383 closed, every class held), after [M0.9d3](#m0-9d3), and takes the rest: icons, metas and accessibility, fonts, print (its link color included), and the smooth scroll mdBook's script asks for, which no stylesheet can turn off. |  |
 | [ADR-222: Six platforms, each tested on every pull request][adr-222] | CI's per-platform jobs (the tests, the examples, the Python package and the validation cases) and the release's archives and wheels now run on six platforms: Linux, macOS and Windows, each on x86-64 and on 64-bit ARM. Each runs natively on its own CPU, and a script fails the job if the toolchain would build for another one. Intel Macs are tested on GitHub's last Intel image until it retires (fall 2027), then under Rosetta. Windows on ARM tests the Python package from 3.11, its oldest CPython. Static Linux builds, 32-bit ARM, package managers and math that rounds the same everywhere are follow-ups. |  |
 | [ADR-223: The page anatomy split: the page's frame first][adr-223] | #384 lists eight parts of the product system's page that the site doesn't draw. [M0.9d3](#m0-9d3) now covers the frame every page shares, all in the stylesheet: text on the system's type scale (with tabular figures in Archivo and navigation in Cascadia Mono 14 px, the current page underlined 2 px), prose at most 68 characters a line, and gutters of 16 px on a phone and 32 px from 720 px, each held by `xtask site`'s page check at every width with a canary. The new [M0.9d5](#m0-9d5) keeps the old done-when whole (#384 closed, every rule held), after [M0.9d4](#m0-9d4), and takes what changes each page's markup: title blocks, sheets, the intro, the lockup header with no menu button from 720 px, the system's notes, and every page opening with how far to trust it. |  |
+| [ADR-224: The site's defaults split again: the head, the keyboard and forced colors first][adr-224] | [M0.9d4](#m0-9d4) took the four classes of mdBook default that [M0.9d2](#m0-9d2) left: icons, the head's metas and accessibility, fonts, and print, with the script's smooth scroll. [M0.9d4](#m0-9d4) now covers what the stylesheets, the head and a script of the site's own can fix without changing mdBook's page template: `color-scheme` and the Paper and Void `theme-color` metas, the 2 px Ion focus ring, forced colors, `scroll-padding-top` under the sticky bar, contrast measured, the system's `fonts.css` with its fallback faces in every stack, and no smooth scroll, each failing `xtask site` or a site test when it comes back. The new [M0.9d6](#m0-9d6) keeps the old done-when whole (#383 closed, every class held), adds #443 (Core Web Vitals measured), and takes what needs the template or a print reading: the system's icons for Font Awesome's, the favicon, one `h1` a page, and print. |  |
 
 ## The roadmap
 
@@ -369,8 +370,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9d1"></a>[M0.9d1][done-0] | The figures in tokens | done |
 | <a id="m0-9d2"></a>[M0.9d2][done-0] | The site's colors, corners and motion | done |
 | <a id="m0-9d3"></a>[M0.9d3][done-0] | The page's frame | done |
-| <a id="m0-9d4"></a>[M0.9d4][phase-0] | The site's defaults | not yet done |
+| <a id="m0-9d4"></a>[M0.9d4][done-0] | The head, the keyboard and forced colors | done |
 | <a id="m0-9d5"></a>[M0.9d5][phase-0] | The page anatomy | not yet done |
+| <a id="m0-9d6"></a>[M0.9d6][phase-0] | The site's defaults | not yet done |
 | <a id="m0-9e"></a>[M0.9e][phase-0] | The words to the design | not yet done |
 | <a id="m0-10"></a>[M0.10][phase-0] | The scoreboard | not yet done |
 | <a id="m0-11"></a>[M0.11][phase-0] | Steps to a first answer | not yet done |
@@ -992,6 +994,7 @@ is the milestone that added or will add that test.
 [adr-221]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0221-the-sites-defaults-split-by-what-the-screen-draws.md
 [adr-222]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0222-six-platforms-tested-on-every-pull-request.md
 [adr-223]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0223-the-pages-frame-first.md
+[adr-224]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0224-the-sites-defaults-the-head-and-the-keyboard-first.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

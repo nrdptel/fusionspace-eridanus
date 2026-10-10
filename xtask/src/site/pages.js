@@ -12,6 +12,10 @@
 
   // How long one load may take before it counts as a failure, in milliseconds.
   const LOAD_TIMEOUT_MS = 60000;
+  // How long the readings of one loaded page may take, in milliseconds. A tab's frames share its
+  // main thread, so three frames of print.html, which holds every chapter (about 45,000
+  // elements), share it as they are read; the readings took more than a minute each in CI.
+  const MEASURE_TIMEOUT_MS = 240000;
   // Text rectangles closer than this, sideways, don't collide: touching runs of one line.
   const OVERLAP_MIN_WIDTH_PX = 2;
   // ... and vertically they must share more than this part of the shorter one's height, so two
@@ -382,6 +386,80 @@
     };
   }
 
+  // A computed `rgb()` or `rgba()` color as its channels, 0 to 255, and its opacity, 0 to 1, or
+  // null for a color that isn't written that way.
+  function channels(value) {
+    const m = /^rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)$/.exec(value);
+    if (!m) return null;
+    return { r: Number(m[1]), g: Number(m[2]), b: Number(m[3]), a: m[4] === undefined ? 1 : Number(m[4]) };
+  }
+
+  // `top` drawn over `under` (opaque) at `top`'s opacity times `alpha`.
+  function over(top, under, alpha) {
+    const a = top.a * alpha;
+    return {
+      r: top.r * a + under.r * (1 - a),
+      g: top.g * a + under.g * (1 - a),
+      b: top.b * a + under.b * (1 - a),
+      a: 1,
+    };
+  }
+
+  // WCAG 2.2's contrast ratio of two opaque colors, from their relative luminance (1.4.3, and
+  // its definition of relative luminance in sRGB).
+  function contrast(a, b) {
+    const lum = function (c) {
+      const lin = [c.r, c.g, c.b].map(function (v) {
+        const s = v / 255;
+        return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
+    };
+    const la = lum(a);
+    const lb = lum(b);
+    return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+  }
+
+  // WCAG 2.2 AA's floor (1.4.3), which `foundations.md` (*Contrast*) makes the floor everywhere:
+  // 4.5 : 1 for text, 3 : 1 for large text, 24 px and over, or 18.66 px (14 pt) and over in bold.
+  const CONTRAST_TEXT = 4.5;
+  const CONTRAST_LARGE = 3;
+  function contrastFloor(s) {
+    const size = parseFloat(s.fontSize);
+    const bold = Number(s.fontWeight) >= 700;
+    return size >= 24 || (bold && size >= 18.66) ? CONTRAST_LARGE : CONTRAST_TEXT;
+  }
+
+  // What an element's own box is drawn on, opaque: its background over its ancestors', down to
+  // the first opaque one, or the browser's own canvas, white or, for a dark `color-scheme`, the
+  // dark one Chrome paints. Also how much of the element's opacity, and its ancestors', comes
+  // between its text and that background. `memo` holds the answers for one reading.
+  function backdrop(win, doc, el, memo) {
+    if (memo.has(el)) return memo.get(el);
+    const s = win.getComputedStyle(el);
+    const own = channels(s.backgroundColor);
+    const opacity = Number(s.opacity);
+    let answer;
+    if (own && own.a === 1) {
+      answer = { color: own, alpha: opacity };
+    } else {
+      const parent = el.parentElement;
+      let under;
+      if (parent) {
+        under = backdrop(win, doc, parent, memo);
+      } else {
+        const dark = /dark/.test(s.colorScheme);
+        under = { color: dark ? { r: 18, g: 18, b: 18, a: 1 } : { r: 255, g: 255, b: 255, a: 1 }, alpha: 1 };
+      }
+      answer = {
+        color: own && own.a > 0 ? over(own, under.color, 1) : under.color,
+        alpha: under.alpha * opacity,
+      };
+    }
+    memo.set(el, answer);
+    return answer;
+  }
+
   // mdBook's defaults, by computed style (#383): colors off the system's roles, rounded corners
   // and shadows, and motion off its durations and easings. Every element of the body is read, its
   // `::before` and `::after` too, whether or not it is drawn now: the help popup and the copy
@@ -410,6 +488,31 @@
         && (h.alpha === 1 || property === 'background-color')));
       if (!ok) note('color', el, pseudo, property, value);
     };
+    // Text against what it is drawn on (`foundations.md`, *Contrast*): each element's own text,
+    // and text a `::before` or `::after` draws, faded by any opacity between it and its
+    // background. An opacity on a group fades its text the same way (#432).
+    const memo = new Map();
+    const legible = function (el, pseudo, s) {
+      const ink = channels(s.color);
+      if (!ink) return;
+      const under = backdrop(win, doc, el, memo);
+      let ground = under.color;
+      if (pseudo) {
+        const fill = channels(s.backgroundColor);
+        if (fill && fill.a > 0) ground = over(fill, ground, 1);
+      }
+      const ratio = contrast(over(ink, ground, under.alpha), ground);
+      const floor = contrastFloor(s);
+      if (ratio < floor) {
+        note('contrast', el, pseudo, 'color', s.color + ' at ' + ratio.toFixed(2) + ' : 1, under '
+          + floor + ' : 1');
+      }
+    };
+    const ownText = function (el) {
+      return Array.from(el.childNodes).some(function (n) {
+        return n.nodeType === 3 && n.textContent.trim() !== '';
+      });
+    };
     const els = [doc.documentElement].concat(doc.body
       ? [doc.body].concat(Array.from(doc.body.querySelectorAll('*'))) : []);
     for (const el of els) {
@@ -420,6 +523,9 @@
         const s = win.getComputedStyle(el, pseudo);
         if (pseudo && (s.content === 'none' || s.content === 'normal')) continue;
         if (!reduced) {
+          if (!svg && (pseudo ? /^["']/.test(s.content) && s.content.length > 2 : ownText(el))) {
+            legible(el, pseudo, s);
+          }
           color(el, pseudo, 'color', s.color);
           color(el, pseudo, 'background-color', s.backgroundColor);
           for (const side of ['top', 'right', 'bottom', 'left']) {
@@ -546,10 +652,207 @@
     await nextFrames(win);
   }
 
-  async function probeDefaults(win, doc) {
-    const found = {
-      color: [], color_count: 0, shape: [], shape_count: 0, motion: [], motion_count: 0,
+  // What a reader with a keyboard, a screen in Windows' high-contrast mode, or a sticky bar over
+  // the page gets (#383; `web.md`, *Theme* and *Accessibility*), read in the theme the page loads
+  // in:
+  // - the focus ring: every element a keyboard reaches, focused as by the keyboard, draws a 2 px
+  //   solid outline in the action role, 2 px from its edge; a control hidden for its picture (the
+  //   zoom's checkbox) draws it on the element after it;
+  // - forced colors, which paint every color in the reader's own few and drop backgrounds' tints:
+  //   a box set apart from what is behind it only by its fill must have a border or an outline
+  //   there, an inline icon must be drawn in its text color, and an icon painted through a mask
+  //   (a background shaped by an image) must keep its own colors (`forced-color-adjust: none`);
+  // - a bar fixed or stuck to the top of the window must be covered by the page's
+  //   `scroll-padding-top`, so what the keyboard focuses never scrolls under it (2.4.11);
+  // - mdBook's script scrolls to the top smoothly on a click on the menu bar's title, motion no
+  //   stylesheet can turn off: the click must ask for no smooth scroll.
+  function probeAccess(win, doc, found) {
+    const theme = themeOf(win, doc);
+    const note = function (kind, el, pseudo, property, value) {
+      found[kind + '_count']++;
+      if (found[kind].length < EXAMPLES) {
+        found[kind].push({
+          selector: selector(el) + (pseudo || ''), property: property, value: value, theme: theme,
+        });
+      }
     };
+    const view = doc.documentElement.clientWidth;
+    const tall = win.innerHeight;
+    const els = doc.body ? Array.from(doc.body.querySelectorAll('*')) : [];
+    const boxOf = function (el) {
+      const r = el.getBoundingClientRect();
+      return r.width > HIDDEN_BOX_PX && r.height > HIDDEN_BOX_PX ? r : null;
+    };
+
+    // The focus ring, once for each kind of element: its tag, classes and type, and its
+    // ancestors' tags and classes, four steps up, ids left out. print.html holds every chapter,
+    // thousands of links that differ only in where they go, and each focus lays the page out.
+    const kindOf = function (el) {
+      const steps = [];
+      for (let e = el; e && e.nodeType === 1 && steps.length < 4; e = e.parentElement) {
+        steps.unshift(e.tagName + '.' + Array.from(e.classList).sort().join('.')
+          + (e.getAttribute('type') ? '[' + e.getAttribute('type') + ']' : ''));
+        if (e.tagName === 'BODY') break;
+      }
+      return steps.join('>');
+    };
+    const kinds = new Set();
+    const before = doc.activeElement;
+    for (const el of doc.querySelectorAll(
+      'a[href], button, input, select, textarea, summary, [tabindex]')) {
+      if (el.tabIndex < 0 || el.disabled) continue;
+      const key = kindOf(el);
+      if (kinds.has(key)) continue;
+      el.focus({ preventScroll: true, focusVisible: true });
+      if (doc.activeElement !== el) continue;
+      kinds.add(key);
+      if (!el.matches(':focus-visible')) {
+        throw new Error('the browser did not draw ' + selector(el) + ' as focused by the keyboard');
+      }
+      const ring = el.getClientRects().length && !boxOf(el) ? el.nextElementSibling : el;
+      if (!ring) {
+        note('focus', el, null, 'outline', 'none: hidden, with nothing after it to draw on');
+        continue;
+      }
+      const s = win.getComputedStyle(ring);
+      const h = hex(s.outlineColor);
+      const ok = s.outlineStyle === 'solid' && s.outlineWidth === '2px'
+        && s.outlineOffset === '2px' && h !== null && h.alpha === 1 && h.rgb === ACTION[theme];
+      if (!ok) {
+        note('focus', ring, null, 'outline', s.outlineWidth + ' ' + s.outlineStyle + ' '
+          + s.outlineColor + ', offset ' + s.outlineOffset);
+      }
+    }
+    if (doc.activeElement && doc.activeElement !== before) doc.activeElement.blur();
+
+    // One sweep in the page's own colors finds what forced colors and a sticky bar could
+    // affect: boxes set apart from what is behind them only by a fill, inline icons, icons
+    // painted through a mask, and bars fixed or stuck to the window's top. mdBook's script takes
+    // its menu bar's `sticky` class off at load, below 1,080 px, and puts it back when the reader
+    // scrolls up: the bar is read as it sticks, on a phone two rows tall.
+    const memo = new Map();
+    const layers = [];
+    const icons = [];
+    const masked = [];
+    const bars = [];
+    const TABLE = ['TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR', 'TH', 'TD', 'CAPTION'];
+    const menuBar = doc.getElementById('mdbook-menu-bar');
+    const unstuck = menuBar !== null && !menuBar.classList.contains('sticky');
+    if (unstuck) menuBar.classList.add('sticky');
+    for (const el of els) {
+      if (el instanceof win.SVGElement) {
+        if (el.getClientRects().length) icons.push(el);
+        continue;
+      }
+      const s = win.getComputedStyle(el);
+      if (s.display === 'none') continue;
+      for (const pseudo of [null, '::before', '::after']) {
+        const p = pseudo ? win.getComputedStyle(el, pseudo) : s;
+        if (pseudo && (p.content === 'none' || p.content === 'normal')) continue;
+        const mask = p.getPropertyValue('mask-image') || p.getPropertyValue('-webkit-mask-image');
+        if (mask && mask !== 'none') masked.push([el, pseudo]);
+      }
+      if ((s.position === 'sticky' || s.position === 'fixed') && s.visibility !== 'hidden') {
+        const r = boxOf(el);
+        if (r && r.width >= view / 2 && r.height < tall / 2) {
+          const top = parseFloat(s.top);
+          // A sticky bar sticks `top` from the window's top edge; a fixed one is where it is.
+          const reach = s.position === 'sticky' ? (Number.isFinite(top) ? top + r.height : null)
+            : (r.top <= SLACK_PX ? r.bottom : null);
+          if (reach !== null) bars.push([el, reach]);
+        }
+      }
+      if (s.display === 'contents' || /^inline/.test(s.display) || TABLE.indexOf(el.tagName) >= 0) {
+        continue;
+      }
+      const fill = channels(s.backgroundColor);
+      if (!fill || fill.a === 0 || !el.parentElement || !boxOf(el)) continue;
+      const behind = backdrop(win, doc, el.parentElement, memo).color;
+      const own = over(fill, behind, 1);
+      const same = Math.abs(own.r - behind.r) < 1 && Math.abs(own.g - behind.g) < 1
+        && Math.abs(own.b - behind.b) < 1;
+      if (!same) layers.push([el, s.backgroundColor]);
+    }
+    if (unstuck) menuBar.classList.remove('sticky');
+
+    // The bars, against the padding that keeps what is scrolled to out from under them.
+    const scroller = doc.scrollingElement || doc.documentElement;
+    const padding = parseFloat(win.getComputedStyle(scroller).scrollPaddingTop) || 0;
+    for (const [el, reach] of bars) {
+      if (padding + SLACK_PX < reach) {
+        note('sticky', el, null, 'scroll-padding-top', padding + 'px, under a bar reaching '
+          + Math.round(reach * 10) / 10 + ' px');
+      }
+    }
+
+    // Forced colors: the stylesheets' rules for them applied, each candidate read again.
+    const undo = applyMedia(doc, /forced-colors:\s*active/);
+    try {
+      for (const [el, fill] of layers) {
+        const s = win.getComputedStyle(el);
+        if (s.forcedColorAdjust === 'none') continue;
+        const bordered = ['top', 'right', 'bottom', 'left'].some(function (side) {
+          const style = s.getPropertyValue('border-' + side + '-style');
+          return style !== 'none' && style !== 'hidden'
+            && parseFloat(s.getPropertyValue('border-' + side + '-width')) > 0;
+        }) || (s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) > 0);
+        if (!bordered) note('forced', el, null, 'background-color', fill + ' with no border');
+      }
+      for (const el of icons) {
+        const s = win.getComputedStyle(el);
+        for (const property of ['fill', 'stroke']) {
+          const value = s.getPropertyValue(property);
+          if (value !== 'none' && !/^url\(/.test(value) && value !== s.color) {
+            note('forced', el, null, property, value + ', not its text color ' + s.color);
+          }
+        }
+      }
+      for (const [el, pseudo] of masked) {
+        if (win.getComputedStyle(el, pseudo).forcedColorAdjust !== 'none') {
+          note('forced', el, pseudo, 'mask-image', 'an icon drawn through a mask, its colors forced');
+        }
+      }
+    } finally {
+      undo();
+    }
+
+    // The title's click, with every way a script scrolls watched for a smooth scroll.
+    const title = doc.querySelector('.menu-title');
+    if (title) {
+      const asked = [];
+      const watched = [
+        [win.Element.prototype, 'scrollTo'], [win.Element.prototype, 'scroll'],
+        [win.Element.prototype, 'scrollBy'], [win.Element.prototype, 'scrollIntoView'],
+        [win, 'scrollTo'], [win, 'scroll'], [win, 'scrollBy'],
+      ];
+      const saved = watched.map(function (w) {
+        return [Object.prototype.hasOwnProperty.call(w[0], w[1]), w[0][w[1]]];
+      });
+      const at = scroller.scrollTop;
+      watched.forEach(function (w, i) {
+        w[0][w[1]] = function (options) {
+          if (options && typeof options === 'object' && options.behavior === 'smooth') {
+            asked.push(w[1]);
+          }
+          return saved[i][1].apply(this, arguments);
+        };
+      });
+      try {
+        title.click();
+      } finally {
+        watched.forEach(function (w, i) {
+          if (saved[i][0]) w[0][w[1]] = saved[i][1]; else delete w[0][w[1]];
+        });
+        scroller.scrollTop = at;
+      }
+      for (const how of asked) {
+        note('motion', title, null, 'scroll-behavior', 'smooth, asked by a script with ' + how
+          + ' on a click');
+      }
+    }
+  }
+
+  async function probeDefaults(win, doc, found) {
     // A search hit and a search result, as mdBook's search makes them.
     const p = doc.querySelector('main p');
     if (p) {
@@ -600,7 +903,6 @@
       if (themeOf(win, doc) !== other) throw new Error('the page did not switch to ' + other);
       styleDefaults(win, doc, other, false, found);
     }
-    return found;
   }
 
   // The product system's type scale (`foundations.md`, *Type*): each token's size and line
@@ -676,6 +978,11 @@
         const shown = size + 'px/' + s.lineHeight + ' ' + family;
         if (family !== 'Archivo' && family !== 'Cascadia Mono') {
           note('type', sel, 'font-family', s.fontFamily);
+        } else {
+          // The family's metric-matched fallback second (the system's `fonts.css`), so text
+          // drawn before the face arrives takes the same room (#383).
+          const second = (s.fontFamily.split(',')[1] || '').trim().replace(/^["']|["']$/g, '');
+          if (second !== family + ' Fallback') note('type', sel, 'font-family', s.fontFamily);
         }
         // A superscript or subscript sits outside the line's scale, but never below 12 px.
         if (el.closest('sup, sub')) {
@@ -860,10 +1167,14 @@
         frame.remove();
         resolve(result);
       };
-      const timer = setTimeout(function () {
+      let timer = setTimeout(function () {
         finish({ width: width, error: 'did not load in ' + LOAD_TIMEOUT_MS / 1000 + ' s' });
       }, LOAD_TIMEOUT_MS);
       frame.addEventListener('load', async function () {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          finish({ width: width, error: 'was not read in ' + MEASURE_TIMEOUT_MS / 1000 + ' s' });
+        }, MEASURE_TIMEOUT_MS);
         try {
           const win = frame.contentWindow;
           const doc = frame.contentDocument;
@@ -875,7 +1186,11 @@
           await Promise.all(faces.map(function (f) { return f.load().catch(function () {}); }));
           await doc.fonts.ready;
           await nextFrames(win);
-          const failed = faces.filter(function (f) { return f.status === 'error'; });
+          // A metric-matched fallback face names a font of the reader's own system (`local()`),
+          // which a system without that font lacks; the page's own faces must all load.
+          const failed = faces.filter(function (f) {
+            return f.status === 'error' && !/ Fallback$/.test(f.family);
+          });
           if (failed.length) {
             const names = Array.from(new Set(failed.map(function (f) { return f.family; })));
             throw new Error('its fonts ' + names.join(', ') + ' did not load, so it was not '
@@ -883,7 +1198,15 @@
           }
           const result = measure(win, doc);
           Object.assign(result, probeFrame(win, doc));
-          Object.assign(result, await probeDefaults(win, doc));
+          const found = {
+            color: [], color_count: 0, shape: [], shape_count: 0, motion: [], motion_count: 0,
+            contrast: [], contrast_count: 0, focus: [], focus_count: 0, forced: [],
+            forced_count: 0, sticky: [], sticky_count: 0,
+          };
+          // Before the defaults' readings, which leave the page in its other theme.
+          probeAccess(win, doc, found);
+          await probeDefaults(win, doc, found);
+          Object.assign(result, found);
           result.width = width;
           result.error = null;
           finish(result);
