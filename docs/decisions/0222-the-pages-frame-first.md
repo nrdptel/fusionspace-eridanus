@@ -46,7 +46,7 @@ holds the frame with its checks; it doesn't hold all eight.
 
 **Consequences.** The page check reads each page's frame once per width, in the theme it loads
 in; type doesn't change with the theme. Counting characters per line costs about two range reads
-a word; the whole check took 161 s for 66 pages at 41 widths on the maintainer's machine, against
-about 114 s before (#432 tracks its time). The prose column is narrower than the tables and code
+a word; the whole check took 160 s for 66 pages at 41 widths on the maintainer's machine, against
+114 s before it (#432 tracks its time). The prose column is narrower than the tables and code
 beside it, which is the system's rule (prose to 68 characters, content to 1,120 px), not a
 layout of its own.
