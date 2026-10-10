@@ -291,6 +291,10 @@ mod tests {
                 ),
                 "4 theme buttons",
             ),
+            (
+                drawn.replace("</header>", "<ul role=\"menu\"></ul></header>"),
+                "a menu",
+            ),
         ] {
             let problems = page_problems(&broken);
             assert!(
