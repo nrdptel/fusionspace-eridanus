@@ -50,6 +50,24 @@
 //!   stylesheets' dark-scheme rules applied in place), then switched as mdBook's theme menu
 //!   switches it and read in the other once the switch's transitions have run. Hover and focus
 //!   aren't read, nor what a script sets as it runs (mdBook's `scrollTo` with a smooth scroll).
+//! - **The page's frame** (#384, ADR-222), read once at each width in the theme the page loads
+//!   in:
+//!   - **type off the system's scale** (`foundations.md`, *Type*): every element that shows text,
+//!     drawn or hidden until asked for, its `::before` and `::after` and every text field
+//!     included, must have the size and line height of one of the scale's tokens in that token's
+//!     family (Cascadia Mono 12/16, 14/20, 20/24, 28/32, 40/44; Archivo 14/20, 16/24, 20/28),
+//!     capitals only at Cascadia Mono 12/16 and 14/20, no weight under 400, and tabular figures
+//!     in Archivo. A superscript or subscript may be off the scale, never under 12 px. The
+//!     sidebar's text must be Cascadia Mono 14 px, and its current page underlined 2 px
+//!     (`web.md`, *Page anatomy*). Boxes of 2 px or less, for screen readers, are skipped;
+//!   - **a line of prose past 68 characters**: each paragraph, list item, quote or caption in
+//!     `main`, outside tables and code, counted line by line as drawn, spaces between words
+//!     counted once. A character more than half a line below the one before starts a new line;
+//!     a word broken across lines is split where it breaks;
+//!   - **gutters off the system's** (`foundations.md`, *Width*): `main` must sit at least 16 px
+//!     from each side of the pane that holds it (mdBook's `.page-wrapper`, beside the sidebar)
+//!     in a window under 720 px, and 32 px from 720 px, and no further on its nearer side unless
+//!     it has reached its widest.
 //!
 //! **How.** A small web server on `127.0.0.1` serves the built site and, under `/__check/`, the
 //! harness ([`HARNESS_JS`]), the plan and the canaries. A few headless Chrome processes (headless
@@ -74,7 +92,10 @@
 //! the root element off them, a label tinted by a filter, one over a backdrop filter, one with an
 //! image as its `::before`, a search hit in ink, a rounded box, a box with a shadow, a 0.3 s
 //! transition, one at the system's base duration that doesn't snap with reduced motion set and one
-//! that does, which must pass, and an ordinary page
+//! that does, which must pass, text at 15 px, on mdBook's 23.2 px line, in a serif, without
+//! tabular figures, at weight 300, a sentence in capitals, an `::after` at 11 px, a chapter link in Archivo, a
+//! current page with no underline, a line of 69 characters and one of 68, which must pass, and
+//! mdBook's 20 px gutters, and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't
@@ -173,10 +194,17 @@ enum Kind {
     Shape,
     /// Motion off the system's durations and easings, or any with reduced motion set (#383).
     Motion,
+    /// Text off the system's type scale, Archivo without tabular figures, or navigation not in
+    /// Cascadia Mono 14 px with the current page underlined 2 px (#384).
+    Type,
+    /// A line of prose longer than the system's 68 characters (#384).
+    Measure,
+    /// Gutters other than the system's: 16 px on a phone, 32 px from 720 px (#384).
+    Gutter,
 }
 
 impl Kind {
-    const ALL: [Kind; 7] = [
+    const ALL: [Kind; 10] = [
         Kind::Wide,
         Kind::Cut,
         Kind::Overlap,
@@ -184,6 +212,9 @@ impl Kind {
         Kind::Color,
         Kind::Shape,
         Kind::Motion,
+        Kind::Type,
+        Kind::Measure,
+        Kind::Gutter,
     ];
 
     fn describe(self) -> &'static str {
@@ -195,6 +226,9 @@ impl Kind {
             Kind::Color => "a color off the system's roles",
             Kind::Shape => "a rounded corner or a shadow",
             Kind::Motion => "motion off the system's durations",
+            Kind::Type => "type off the system's scale",
+            Kind::Measure => "a line of prose past 68 characters",
+            Kind::Gutter => "gutters off the system's",
         }
     }
 }
@@ -213,7 +247,7 @@ struct Canary {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 25] = [
+const CANARIES: [Canary; 37] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -437,6 +471,97 @@ const CANARIES: [Canary; 25] = [
                  </style><p class=\"snaps\">A label that snaps</p>",
         after: "",
     },
+    Canary {
+        file: "canary-type-size.html",
+        what: "a label at 15 px, between the system's sizes",
+        expect: &[Kind::Type],
+        inside: "<p style=\"font-size: 15px\">A label at 15 px</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-type-line.html",
+        what: "a paragraph at 16 px on mdBook's 1.45 em line, 23.2 px, not the system's 24",
+        expect: &[Kind::Type],
+        inside: "<p style=\"line-height: 1.45em\">A paragraph on mdBook's line height</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-type-family.html",
+        what: "a label in a serif, neither of the system's families",
+        expect: &[Kind::Type],
+        inside: "<p style=\"font-family: Georgia, serif\">A label in a serif</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-type-figures.html",
+        what: "a number in Archivo without tabular figures",
+        expect: &[Kind::Type],
+        inside: "<p style=\"font-variant-numeric: normal\">Apogee 1,234 m</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-type-capitals.html",
+        what: "a sentence of body text in capitals",
+        expect: &[Kind::Type],
+        inside: "<p style=\"text-transform: uppercase\">A sentence in capitals</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-type-weight.html",
+        what: "a label at weight 300, lighter than the system's lightest",
+        expect: &[Kind::Type],
+        inside: "<p style=\"font-weight: 300\">A light label</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-type-pseudo.html",
+        what: "text drawn as a label's `::after` at 11 px, below the system's smallest",
+        expect: &[Kind::Type],
+        inside: "<style>.tagged::after { content: \" new\"; font-size: 11px; }</style>\
+                 <p class=\"tagged\">A label</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-nav-font.html",
+        what: "a chapter link in Archivo, not the navigation's Cascadia Mono",
+        expect: &[Kind::Type],
+        inside: "<ol class=\"chapter\"><li><a href=\"#\" style=\"font-family: Archivo, \
+                 sans-serif\">A chapter in Archivo</a></li></ol>",
+        after: "",
+    },
+    Canary {
+        file: "canary-nav-current.html",
+        what: "the current page's link with no underline",
+        expect: &[Kind::Type],
+        inside: "<ol class=\"chapter\"><li><a class=\"active\" href=\"#\" style=\"font: 14px/20px \
+                 'Cascadia Mono', monospace; text-decoration: none\">The current page</a></li></ol>",
+        after: "",
+    },
+    Canary {
+        file: "canary-measure.html",
+        what: "a line of 69 characters, as drawn, in a box that scrolls sideways",
+        expect: &[Kind::Measure],
+        inside: "<div class=\"scroll\"><p style=\"white-space: nowrap; max-width: none\">A \
+                 <strong>drag</strong>  coefficient of <code>0.45</code> at Mach 0.3\n on \
+                 m<sup>2</sup> of area, and a long tail</p></div>",
+        after: "",
+    },
+    Canary {
+        file: "canary-measure-68.html",
+        what: "a line of 68 characters, as drawn, which must pass",
+        expect: &[],
+        inside: "<div class=\"scroll\"><p style=\"white-space: nowrap; max-width: none\">A \
+                 <strong>drag</strong>  coefficient of <code>0.45</code> at Mach 0.3\n on \
+                 m<sup>2</sup> of area and a long tail</p></div>",
+        after: "",
+    },
+    Canary {
+        file: "canary-gutter.html",
+        what: "mdBook's 20 px gutters: wider than a phone's 16 px, narrower than 32 px from 720 px",
+        expect: &[Kind::Gutter],
+        inside: "<style>.content { padding: 0 20px !important; }</style>",
+        after: "",
+    },
 ];
 
 /// A canary's page: an ordinary page, as mdBook lays one out, plus what the canary adds.
@@ -457,7 +582,7 @@ fn canary_html(canary: &Canary) -> String {
 <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
 <title>{what}</title>
 <style>
-body {{ margin: 0; font: 16px/1.5 sans-serif; overflow-x: hidden; color: #0B0F1C; background: #F3F4F7; }}
+body {{ margin: 0; font: 16px/24px 'Archivo', sans-serif; font-variant-numeric: tabular-nums; overflow-x: hidden; color: #0B0F1C; background: #F3F4F7; }}
 html {{ color: #0B0F1C; background: #F3F4F7; }}
 a {{ color: #3350D6; }}
 mark {{ color: #FFFFFF; background: #3350D6; }}
@@ -466,16 +591,21 @@ input {{ color: inherit; }}
 .content {{ overflow-y: auto; }}
 main {{ overflow-x: clip; }}
 .content {{ padding: 0 16px; }}
+@media (min-width: 720px) {{ .content {{ padding: 0 32px; }} }}
+main p:not(:has(> .checkbox-label)), main li {{ max-width: 26em; }}
+code, pre {{ font: 14px/20px 'Cascadia Mono', monospace; }}
+.sidebar {{ font: 14px/20px 'Cascadia Mono', monospace; }}
+.sidebar a.active {{ text-decoration: underline 2px; }}
 img {{ max-width: 100%; }}
 .checkbox-img {{ position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }}
 .checkbox-img:not(:checked) ~ .img-wrapper {{ display: none; }}
-h1 {{ font-size: 2em; line-height: 1.2; }}
+h1 {{ font: 600 28px/32px 'Cascadia Mono', monospace; }}
 .scroll, pre {{ overflow-x: auto; }}
 td {{ white-space: nowrap; padding: 0 12px; }}
 .word {{ overflow-wrap: anywhere; }}
 .sidebar {{ position: fixed; left: 0; top: 0; bottom: 0; width: 300px; transform: translateX(-100%); }}
 </style></head><body>
-<nav class=\"sidebar\"><ol><li><a href=\"#\">A chapter in a sidebar drawer put away</a></li></ol></nav>
+<nav class=\"sidebar\"><ol><li><a class=\"active\" href=\"#\">A chapter in a sidebar drawer put away</a></li></ol></nav>
 <div class=\"content\"><main>
 <h1>An ordinary page, with a title long enough to wrap in a narrow window</h1>
 <p>Paragraphs wrap to the window. This one holds <code>inline code</code>, an area in
@@ -623,6 +753,19 @@ struct Measured {
     motion: Vec<Style>,
     #[serde(default)]
     motion_count: usize,
+    /// The page's frame (#384): its type, measure and gutters, the first few of each kind.
+    #[serde(default)]
+    r#type: Vec<Style>,
+    #[serde(default)]
+    type_count: usize,
+    #[serde(default)]
+    measure: Vec<Style>,
+    #[serde(default)]
+    measure_count: usize,
+    #[serde(default)]
+    gutter: Vec<Style>,
+    #[serde(default)]
+    gutter_count: usize,
 }
 
 impl Measured {
@@ -635,6 +778,9 @@ impl Measured {
             Kind::Color => self.color_count > 0,
             Kind::Shape => self.shape_count > 0,
             Kind::Motion => self.motion_count > 0,
+            Kind::Type => self.type_count > 0,
+            Kind::Measure => self.measure_count > 0,
+            Kind::Gutter => self.gutter_count > 0,
         }
     }
 
@@ -697,11 +843,14 @@ impl Measured {
             Kind::Color => Style::list(&self.color),
             Kind::Shape => Style::list(&self.shape),
             Kind::Motion => Style::list(&self.motion),
+            Kind::Type => Style::list(&self.r#type),
+            Kind::Measure => Style::list(&self.measure),
+            Kind::Gutter => Style::list(&self.gutter),
         }
     }
 }
 
-/// An element whose computed style keeps one of mdBook's defaults.
+/// An element whose computed style keeps one of mdBook's defaults, or breaks the page's frame.
 #[derive(Debug, Deserialize)]
 struct Style {
     /// A short path to its element, `tag#id.class>...`, and `::before` or `::after` for those.
@@ -710,7 +859,8 @@ struct Style {
     property: String,
     /// Its computed value.
     value: String,
-    /// The theme it was read in, and whether with reduced motion.
+    /// The theme it was read in, and whether with reduced motion; for the frame, the window's
+    /// width.
     theme: String,
 }
 
@@ -1567,6 +1717,53 @@ mod tests {
             .map(|canary| canary.file)
             .collect();
         assert!(passing.contains(&"canary-motion-snaps.html"), "{passing:?}");
+    }
+
+    #[test]
+    fn the_frame_is_named_by_kind() {
+        let body = page_json("guide.html", |w| {
+            let plain = width_json(w, w - 15, 0, 0, 0);
+            let gutter = if w >= 720 { 1 } else { 0 };
+            plain.replacen(
+                "\"overlap_count\":0}",
+                &format!(
+                    r#""overlap_count":0,"type":[{{"selector":"main>h1","property":"font","value":"32px/41.6px Cascadia Mono","theme":"{w} px"}}],"type_count":1,"measure":[{{"selector":"main>p","property":"a line of 118 characters","value":"The drag coefficient…","theme":"{w} px"}}],"measure_count":4,"gutter":[],"gutter_count":{gutter}}}"#
+                ),
+                1,
+            )
+        });
+        let (page, measured) = parse_results(&body).unwrap();
+        let problems = page_problems(&page, &measured);
+        assert_eq!(problems.len(), 3, "{problems:#?}");
+        assert_eq!(
+            problems[0],
+            "guide.html: type off the system's scale at 320 to 1920 px; at 320 px, `main>h1` has \
+             font `32px/41.6px Cascadia Mono` (320 px)"
+        );
+        assert_eq!(
+            problems[1],
+            "guide.html: a line of prose past 68 characters at 320 to 1920 px; at 320 px, \
+             `main>p` has a line of 118 characters `The drag coefficient…` (320 px)"
+        );
+        assert!(
+            problems[2].starts_with("guide.html: gutters off the system's at 720 to 1920 px"),
+            "{}",
+            problems[2]
+        );
+        // Each kind has a canary that must show it, and the ordinary page and a line of exactly
+        // 68 characters must show none.
+        for kind in [Kind::Type, Kind::Measure, Kind::Gutter] {
+            assert!(
+                CANARIES.iter().any(|canary| canary.expect == [kind]),
+                "{kind:?}"
+            );
+        }
+        let passing: Vec<&str> = CANARIES
+            .iter()
+            .filter(|canary| canary.expect.is_empty())
+            .map(|canary| canary.file)
+            .collect();
+        assert!(passing.contains(&"canary-measure-68.html"), "{passing:?}");
     }
 
     #[test]

@@ -60,6 +60,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9c16 US units on the model pages ([Phase 0](#phase-0-foundations))
 - M0.9d1 The figures in tokens ([Phase 0](#phase-0-foundations))
 - M0.9d2 The site's colors, corners and motion ([Phase 0](#phase-0-foundations))
+- M0.9d3 The page's frame ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -447,6 +448,11 @@ One line per milestone or increment, in the order it was archived within its pha
       colors, radii, shadows and motion #383 lists that mdBook's stylesheets give the screen are
       gone, in light and navy and with reduced motion set, each failing `xtask site`'s page check
       when it comes back.
+    - [x] **M0.9d3 The page's frame** (#384's type, measure and gutters; ADR-222). *Done when:*
+      `xtask site`'s page check fails, on every page at every width, text off the type scale
+      (size, line height, family, capitals), Archivo without tabular figures, navigation not in
+      Cascadia Mono 14 px or a current page not underlined 2 px, a prose line past 68 characters,
+      and gutters other than 16 px below 720 px and 32 px from it; a canary each; the site passes.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

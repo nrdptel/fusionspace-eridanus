@@ -603,6 +603,233 @@
     return found;
   }
 
+  // The product system's type scale (`foundations.md`, *Type*): each token's size and line
+  // height in pixels and its family. Archivo is the prose family, Cascadia Mono the data one.
+  const SCALE = [
+    [12, 16, 'Cascadia Mono'], // label
+    [14, 20, 'Cascadia Mono'], // heading, code
+    [20, 24, 'Cascadia Mono'], // subtitle
+    [28, 32, 'Cascadia Mono'], // title, readout
+    [40, 44, 'Cascadia Mono'], // display, readout-l
+    [14, 20, 'Archivo'], // small
+    [16, 24, 'Archivo'], // body
+    [20, 28, 'Archivo'], // lead
+  ];
+  // The tokens set in capitals: `label` and `heading`.
+  const CAPITALS = [[12, 16, 'Cascadia Mono'], [14, 20, 'Cascadia Mono']];
+  // No text smaller than this on screen, in pixels (`foundations.md`, *Type*).
+  const SMALLEST_PX = 12;
+  // The longest a line of prose may be, in characters (`foundations.md`, *Type*).
+  const MEASURE_CHARS = 68;
+  // The gutters, in pixels: 16 on a phone, 32 from 720 px (`foundations.md`, *Width*).
+  const GUTTER_PX = 16;
+  const GUTTER_WIDE_PX = 32;
+  const GUTTER_WIDE_FROM_PX = 720;
+  // Prose: the blocks whose lines are held to the measure.
+  const PROSE = ['P', 'LI', 'DD', 'DT', 'BLOCKQUOTE', 'FIGCAPTION'];
+
+  // Whether two lengths in pixels are the same, to sub-pixel rounding.
+  function samePx(a, b) { return Math.abs(a - b) < 0.05; }
+
+  // The page's frame (#384): its type, its measure and its gutters, read once at each width in
+  // the theme the page loads in.
+  function probeFrame(win, doc) {
+    const found = {
+      type: [], type_count: 0, measure: [], measure_count: 0, gutter: [], gutter_count: 0,
+    };
+    const width = win.innerWidth;
+    const note = function (kind, sel, property, value) {
+      found[kind + '_count']++;
+      if (found[kind].length < EXAMPLES) {
+        found[kind].push({ selector: sel, property: property, value: value, theme: width + ' px' });
+      }
+    };
+
+    // Type: every element that shows text, drawn now or hidden until asked for, with its
+    // `::before` and `::after` when they show text, and every field.
+    const els = doc.body ? [doc.body].concat(Array.from(doc.body.querySelectorAll('*'))) : [];
+    for (const el of els) {
+      const tag = el.tagName.toLowerCase();
+      if (tag === 'script' || tag === 'style' || tag === 'noscript' || tag === 'template') continue;
+      if (el instanceof win.SVGElement) continue;
+      // A field that shows text: a text box, a list to choose from. A checkbox shows none.
+      const field = tag === 'textarea' || tag === 'select' || (tag === 'input'
+        && ['text', 'search', 'email', 'url', 'tel', 'number', 'password'].indexOf(el.type) >= 0);
+      const ownText = Array.from(el.childNodes).some(function (n) {
+        return n.nodeType === 3 && /\S/.test(n.data);
+      });
+      for (const pseudo of [null, '::before', '::after']) {
+        const s = win.getComputedStyle(el, pseudo);
+        if (pseudo) {
+          const m = /^"([\s\S]*)"$/.exec(s.content);
+          if (!m || !/\S/.test(m[1])) continue;
+        } else if (!ownText && !field) {
+          continue;
+        }
+        // Text for screen readers only, in a box of 2 px or less.
+        if (parseFloat(s.width) <= HIDDEN_BOX_PX && parseFloat(s.height) <= HIDDEN_BOX_PX) continue;
+        const sel = selector(el) + (pseudo || '');
+        const family = s.fontFamily.split(',')[0].trim().replace(/^["']|["']$/g, '');
+        const size = parseFloat(s.fontSize);
+        const line = s.lineHeight === 'normal' ? NaN : parseFloat(s.lineHeight);
+        const shown = size + 'px/' + s.lineHeight + ' ' + family;
+        if (family !== 'Archivo' && family !== 'Cascadia Mono') {
+          note('type', sel, 'font-family', s.fontFamily);
+        }
+        // A superscript or subscript sits outside the line's scale, but never below 12 px.
+        if (el.closest('sup, sub')) {
+          if (size < SMALLEST_PX - 0.05) note('type', sel, 'font-size', shown);
+        } else if (!SCALE.some(function (t) {
+          return samePx(t[0], size) && samePx(t[1], line) && t[2] === family;
+        })) {
+          note('type', sel, 'font', shown);
+        }
+        const weight = Number(s.fontWeight);
+        if (weight < 400) note('type', sel, 'font-weight', s.fontWeight);
+        if (s.textTransform === 'uppercase' && !CAPITALS.some(function (t) {
+          return samePx(t[0], size) && samePx(t[1], line) && t[2] === family;
+        })) {
+          note('type', sel, 'text-transform', 'uppercase at ' + shown);
+        }
+        if (family === 'Archivo' && s.fontVariantNumeric.split(' ').indexOf('tabular-nums') < 0) {
+          note('type', sel, 'font-variant-numeric', s.fontVariantNumeric);
+        }
+        // Navigation in Cascadia Mono 14 (`web.md`, *Page anatomy*), the current page
+        // underlined 2 px.
+        if (el.closest('.sidebar, ol.chapter')) {
+          if (family !== 'Cascadia Mono' || !samePx(size, 14)) {
+            note('type', sel, 'navigation font', shown);
+          }
+          if (!pseudo && tag === 'a' && el.classList.contains('active')
+            && (s.textDecorationLine.indexOf('underline') < 0
+              || s.textDecorationThickness !== '2px')) {
+            note('type', sel, 'current page', s.textDecorationLine + ' '
+              + s.textDecorationThickness);
+          }
+        }
+      }
+    }
+
+    // The measure: no line of prose in `main` longer than 68 characters, spaces between words
+    // counted once, as drawn. Each text node belongs to its nearest box that isn't inline; the
+    // lines of a prose block are found from where its characters are drawn: a character more
+    // than half a line below the line before starts a new one.
+    const main = doc.querySelector('main');
+    if (main) {
+      const range = doc.createRange();
+      const midAt = function (node, k) {
+        range.setStart(node, k);
+        range.setEnd(node, k + 1);
+        const r = range.getClientRects()[0];
+        return r ? (r.top + r.bottom) / 2 : null;
+      };
+      const blockOf = function (node) {
+        for (let e = node.parentElement; e && e !== main; e = e.parentElement) {
+          const d = win.getComputedStyle(e).display;
+          if (d !== 'inline' && d !== 'contents') return e;
+        }
+        return main;
+      };
+      const blocks = new Map();
+      const walker = doc.createTreeWalker(main, 4);
+      for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+        if (!/\S/.test(n.data)) {
+          // Spaces still part words: note them on the block.
+          const b = blocks.get(blockOf(n));
+          if (b) b.push(n);
+          continue;
+        }
+        const block = blockOf(n);
+        if (PROSE.indexOf(block.tagName) < 0 || block.closest('table, pre')) continue;
+        if (!blocks.has(block)) blocks.set(block, []);
+        blocks.get(block).push(n);
+      }
+      for (const [block, nodes] of blocks) {
+        const s = win.getComputedStyle(block);
+        const half = (s.lineHeight === 'normal' ? 1.2 * parseFloat(s.fontSize)
+          : parseFloat(s.lineHeight)) / 2;
+        let lineMid = null;
+        let chars = 0;
+        let text = '';
+        let longest = 0;
+        let longestText = '';
+        let gap = false; // whitespace since the last word
+        const close = function () {
+          if (chars > longest) { longest = chars; longestText = text; }
+        };
+        const piece = function (str, mid) {
+          if (lineMid === null || mid > lineMid + half) {
+            if (lineMid !== null) close();
+            lineMid = mid;
+            chars = 0;
+            text = '';
+          } else if (gap) {
+            chars += 1;
+            text += ' ';
+          }
+          chars += str.length;
+          text += str;
+          gap = false;
+        };
+        for (const node of nodes) {
+          const data = node.data;
+          const words = /\S+/g;
+          let last = 0;
+          for (let m = words.exec(data); m; m = words.exec(data)) {
+            if (m.index > last) gap = true;
+            last = m.index + m[0].length;
+            let start = m.index;
+            const end = last;
+            while (start < end) {
+              const mid = midAt(node, start);
+              if (mid === null) break;
+              const endMid = midAt(node, end - 1);
+              if (endMid !== null && endMid <= mid + half) {
+                piece(data.slice(start, end), mid);
+                break;
+              }
+              // The word wraps: the last character still on this line.
+              let lo = start;
+              let hi = end - 1;
+              while (hi - lo > 1) {
+                const k = (lo + hi) >> 1;
+                const km = midAt(node, k);
+                if (km !== null && km <= mid + half) lo = k; else hi = k;
+              }
+              piece(data.slice(start, lo + 1), mid);
+              start = lo + 1;
+            }
+          }
+          if (last < data.length) gap = true;
+        }
+        close();
+        if (longest > MEASURE_CHARS) {
+          note('measure', selector(block), 'a line of ' + longest + ' characters',
+            snippet(longestText));
+        }
+      }
+
+      // Gutters: the space between the column and the edges of the pane that holds it, the
+      // page's wrapper beside the sidebar.
+      const paneEl = doc.querySelector('.page-wrapper') || doc.body;
+      const pane = paneEl.getBoundingClientRect();
+      const paneRight = Math.min(pane.right, doc.documentElement.clientWidth);
+      const col = main.getBoundingClientRect();
+      const left = col.left - pane.left;
+      const right = paneRight - col.right;
+      const gutter = width >= GUTTER_WIDE_FROM_PX ? GUTTER_WIDE_PX : GUTTER_PX;
+      const most = parseFloat(win.getComputedStyle(main).maxWidth);
+      const full = Number.isFinite(most) && col.width >= most - SLACK_PX;
+      const round = function (v) { return Math.round(v * 10) / 10; };
+      if (left < gutter - SLACK_PX || right < gutter - SLACK_PX
+        || (!full && Math.min(left, right) > gutter + SLACK_PX)) {
+        note('gutter', 'main', 'gutters', round(left) + ' px left and ' + round(right)
+          + ' px right, against ' + gutter + ' px');
+      }
+    }
+    return found;
+  }
+
   function check(page, width, height) {
     return new Promise(function (resolve) {
       const frame = document.createElement('iframe');
@@ -638,6 +865,7 @@
               + 'measured in its own fonts');
           }
           const result = measure(win, doc);
+          Object.assign(result, probeFrame(win, doc));
           Object.assign(result, await probeDefaults(win, doc));
           result.width = width;
           result.error = null;
