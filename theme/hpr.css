@@ -297,10 +297,12 @@ h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter { font-family: 'Casc
     html:not(.js) #mdbook-sidebar-toggle-anchor ~ .page-wrapper .nav-wide-wrapper { display: none; }
     html:not(.js) #mdbook-sidebar-toggle-anchor ~ .page-wrapper .nav-wrapper { display: block; }
 }
-/* From 720 px the sidebar takes 300 px beside the page, which leaves the menu bar too little room
-   for its buttons and the lockup on one row until about 880 px: there the buttons close up, as
-   mdBook closes them up on a phone, each still 28 px wide. */
-@media only screen and (min-width: 720px) and (max-width: 879px) {
+/* The menu bar holds its buttons and the lockup on one row from 520 px (below, the lockup takes a
+   row of its own) only with the buttons closed up: at mdBook's spacing they take 512 px, more than
+   a 520 px window leaves beside a 15 px scroll bar, as on Linux and Windows. From 720 px the
+   sidebar takes 300 px beside the page, which leaves as little room until about 880 px. Up to
+   there the buttons close up, as mdBook closes them up on a phone, each still 28 px wide. */
+@media only screen and (min-width: 520px) and (max-width: 879px) {
     #mdbook-menu-bar .fa-svg, #mdbook-menu-bar .icon-button { padding: 0 4px; }
     #mdbook-menu-bar .right-buttons { margin: 0 8px; }
 }
