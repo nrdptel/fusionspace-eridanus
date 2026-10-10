@@ -9,6 +9,7 @@ written for a rocketeer who knows some physics and some code, but not this proje
 covers what HPR Sim is, what works today, what doesn't yet, how far to trust it, and how to read
 the other pages.
 
+> [!NOTE]
 > **Every number HPR Sim produces is an estimate from a model, not a measurement, and never a
 > go/no-go verdict.** Your motor's printed data and your range safety officer are authoritative.
 

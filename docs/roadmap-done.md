@@ -62,6 +62,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9d2 The site's colors, corners and motion ([Phase 0](#phase-0-foundations))
 - M0.9d3 The page's frame ([Phase 0](#phase-0-foundations))
 - M0.9d4 The head, the keyboard and forced colors ([Phase 0](#phase-0-foundations))
+- M0.9d5 The notes ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -458,6 +459,9 @@ One line per milestone or increment, in the order it was archived within its pha
       head's metas, the focus ring, forced colors, contrast, the sticky bar's scroll padding,
       the system's `fonts.css` and the script's smooth scroll each fail `xtask site` or a site
       test when mdBook's default comes back.
+    - [x] **M0.9d5 The notes** (#384, ADR-225). *Done when:* every quote block a page writes is
+      drawn as the system's note, its signal word in a strip, and the page check fails a quote
+      block or a note off the system's shape, each with a canary.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

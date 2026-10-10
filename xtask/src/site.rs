@@ -87,6 +87,7 @@ use pulldown_cmark::{
 
 use crate::workspace::{Package, Workspace};
 
+mod notes;
 mod pages;
 pub(crate) mod theme;
 pub(crate) mod units;
@@ -199,6 +200,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let output = root.join(OUTPUT);
     let issued = theme::commit_date(&root)?;
     let dated = theme::fill_issue_date(&output, &issued)?;
+    let notes = notes::draw(&output)?;
     let workspace = crate::workspace::load(&root)?;
     let crates = rustdoc_build(&root, &workspace, &output.join(API), locked)?;
     let mut built = check_html(&root, &output, &crates)?;
@@ -210,6 +212,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
         "built theme: every page links the theme and its fonts, nothing a page or stylesheet \
          loads comes from another server, and the title block ends the landing page, issued \
          {issued} ({dated} pages)"
+    );
+    println!(
+        "built notes: {notes} quote blocks drawn as the system's notes, none left as a plain quote"
     );
     println!(
         "built site: {} HTML files in {OUTPUT}, every relative link resolves",
@@ -231,7 +236,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
          for it or without a zoom, no color off the system's roles, rounded corner, shadow or \
          motion off its durations in either theme or with reduced motion, no text off the type \
          scale, prose line past 68 characters, gutter off the system's or code block held to \
-         the measure, no text under the contrast floor, focus ring off the system's, box or \
+         the measure, no quote block or note off the system's, no text under the contrast floor, focus ring off the system's, box or \
          icon forced colors would erase, or sticky bar taller than the scroll padding, and \
          every canary found",
         laid_out.pages, laid_out.widths, laid_out.seconds

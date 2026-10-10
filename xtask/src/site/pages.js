@@ -927,6 +927,12 @@
   const GUTTER_PX = 16;
   const GUTTER_WIDE_PX = 32;
   const GUTTER_WIDE_FROM_PX = 720;
+  // Each kind of note's signal word, as its head says it (`fusionspace.css`, `.fs-note`; the
+  // strip sets it in capitals), and the fill of the kinds whose strip is filled.
+  const NOTE_WORDS = {
+    trust: 'How far to trust it', note: 'Note', caution: 'Caution', warning: 'Warning',
+  };
+  const NOTE_FILLS = { caution: '#F5AF20', warning: '#AC001E' };
   // Prose: the blocks whose lines are held to the measure.
   const PROSE = ['P', 'LI', 'DD', 'DT', 'BLOCKQUOTE', 'FIGCAPTION'];
 
@@ -938,7 +944,7 @@
   function probeFrame(win, doc) {
     const found = {
       type: [], type_count: 0, measure: [], measure_count: 0, gutter: [], gutter_count: 0,
-      squeezed: [], squeezed_count: 0,
+      squeezed: [], squeezed_count: 0, note: [], note_count: 0,
     };
     const width = win.innerWidth;
     const note = function (kind, sel, property, value) {
@@ -1127,6 +1133,72 @@
             note('squeezed', selector(box), 'a cap of ' + cap + ' from', selector(e));
             break;
           }
+        }
+      }
+
+      // Notes (#384; `web.md`, *Components*): no quote block in `main`, and each note the
+      // system's: a head, then a body, nothing else; its kind's signal word in the head, in the
+      // `label` token (Cascadia Mono 12/16, semibold, in capitals), drawn as a strip across the
+      // top of the note, set apart from the message by a rule or a fill, inside the note's
+      // border on every side. A caution's strip is filled in the caution fill and a warning's
+      // in the danger fill, the warning bordered 2 px (`fusionspace.css`, `.fs-note`).
+      for (const quote of main.querySelectorAll('blockquote')) {
+        note('note', selector(quote), 'a quote block, not a note', snippet(quote.textContent));
+      }
+      for (const box of main.querySelectorAll('.fs-note')) {
+        const sel = selector(box);
+        const head = box.firstElementChild;
+        const body = head && head.nextElementSibling;
+        if (!head || !head.classList.contains('fs-note-head') || !body
+          || !body.classList.contains('fs-note-body') || body.nextElementSibling) {
+          note('note', sel, 'parts', 'not a head, then a body');
+          continue;
+        }
+        const kind = box.getAttribute('data-kind');
+        const word = head.textContent.replace(/\s+/g, ' ').trim();
+        if (!Object.prototype.hasOwnProperty.call(NOTE_WORDS, kind) || NOTE_WORDS[kind] !== word) {
+          note('note', sel, 'signal word', (kind || 'no kind') + ': ' + snippet(word));
+        }
+        const hs = win.getComputedStyle(head);
+        const bs = win.getComputedStyle(box);
+        const family = hs.fontFamily.split(',')[0].trim().replace(/^["']|["']$/g, '');
+        if (family !== 'Cascadia Mono' || !samePx(parseFloat(hs.fontSize), 12)
+          || !samePx(parseFloat(hs.lineHeight), 16) || Number(hs.fontWeight) < 600
+          || hs.textTransform !== 'uppercase') {
+          note('note', sel + '>.fs-note-head', 'signal word type', hs.fontWeight + ' '
+            + hs.fontSize + '/' + hs.lineHeight + ' ' + family + ', ' + hs.textTransform);
+        }
+        const fill = hex(hs.backgroundColor);
+        const filled = fill !== null && fill.alpha > 0;
+        const ruled = parseFloat(hs.borderBottomWidth) >= 1 && hs.borderBottomStyle !== 'none'
+          && hs.borderBottomStyle !== 'hidden';
+        if (!filled && !ruled) note('note', sel + '>.fs-note-head', 'strip', 'no rule or fill');
+        const want = NOTE_FILLS[kind];
+        if (want && (!filled || fill.rgb !== want)) {
+          note('note', sel + '>.fs-note-head', 'fill', (fill ? fill.rgb : 'none') + ' for '
+            + kind);
+        }
+        const least = kind === 'warning' ? 2 : 1;
+        for (const side of ['Top', 'Right', 'Bottom', 'Left']) {
+          if (parseFloat(bs['border' + side + 'Width']) < least - 0.05
+            || bs['border' + side + 'Style'] !== 'solid') {
+            note('note', sel, 'border-' + side.toLowerCase(), bs['border' + side + 'Width']
+              + ' ' + bs['border' + side + 'Style']);
+          }
+        }
+        // The strip spans the note's top, inside its border, above the message.
+        const b = box.getBoundingClientRect();
+        const h = head.getBoundingClientRect();
+        const m = body.getBoundingClientRect();
+        const inner = {
+          left: b.left + parseFloat(bs.borderLeftWidth),
+          right: b.right - parseFloat(bs.borderRightWidth),
+          top: b.top + parseFloat(bs.borderTopWidth),
+        };
+        if (h.height <= HIDDEN_BOX_PX || Math.abs(h.top - inner.top) > SLACK_PX
+          || Math.abs(h.left - inner.left) > SLACK_PX
+          || Math.abs(h.right - inner.right) > SLACK_PX || m.top < h.bottom - SLACK_PX) {
+          note('note', sel + '>.fs-note-head', 'strip', 'not across the top, above the message');
         }
       }
 
