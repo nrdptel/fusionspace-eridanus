@@ -70,7 +70,7 @@
 //! its size with room for all of it, one wider than any window with no zoom, a figure reaching
 //! past a narrow `main` as the theme lays it out, which must pass, a label moved past the
 //! window's edge from such a `main`, a label off the system's colors, the same only in navy (read
-//! after the switch), the same only with scripts off, and only once a slow change to it has run,
+//! after the switch), the same only with scripts off, and only once a delayed change to it has run,
 //! the root element off them, a label tinted by a filter, one over a backdrop filter, one with an
 //! image as its `::before`, a search hit in ink, a rounded box, a box with a shadow, a 0.3 s
 //! transition, one at the system's base duration that doesn't snap with reduced motion set and one
@@ -402,14 +402,16 @@ const CANARIES: [Canary; 25] = [
     },
     Canary {
         file: "canary-no-script-slow.html",
-        what: "a label that turns a highlighter's green over 240 ms once scripts are off, which \
-               only a reading made after that transition sees",
+        what: "a label that turns a highlighter's green 240 ms after scripts are off, keeping its \
+               role color until then, and only with a light system: only the light reading with scripts \
+               off, made after that transition, sees it",
         expect: &[Kind::Color],
         inside: "<script>document.documentElement.classList.add('js');</script>\
-                 <style>.late { transition: color 240ms cubic-bezier(0.2, 0, 0, 1); } \
+                 <style>.late { transition: color 0s 240ms; } \
                  html:not(.js) .late { color: #008200; } \
-                 @media (prefers-reduced-motion: reduce) { .late { transition-duration: 0s; } }\
-                 </style><p class=\"late\">Green after a slow change</p>",
+                 @media (prefers-color-scheme: dark) { html:not(.js) .late { color: #F3F4F7; } }\
+                 </style>\
+                 <p class=\"late\">Green after a delay</p>",
         after: "",
     },
     Canary {
@@ -458,6 +460,7 @@ body {{ margin: 0; font: 16px/1.5 sans-serif; overflow-x: hidden; color: #0B0F1C
 html {{ color: #0B0F1C; background: #F3F4F7; }}
 a {{ color: #3350D6; }}
 mark {{ color: #FFFFFF; background: #3350D6; }}
+@media (prefers-color-scheme: dark) {{ mark {{ color: #0B0F1C; background: #768DF5; }} }}
 input {{ color: inherit; }}
 .content {{ overflow-y: auto; }}
 main {{ overflow-x: clip; }}
