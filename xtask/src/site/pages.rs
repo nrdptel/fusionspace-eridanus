@@ -30,6 +30,26 @@
 //!   size, through mdBook's zoom (a checkbox in the figure's label that shows a copy over the
 //!   page). The theme lets a figure reach past the prose column for this (`theme/hpr.css`). A
 //!   figure with no size the check can read (broken, or an SVG without one) fails.
+//! - **mdBook's defaults** (#383), by computed style: the root element and every element of the
+//!   body, with its `::before` and `::after`, drawn now or hidden until asked for (the help
+//!   popup, the copy tooltip), plus a search hit and a search result added as mdBook's search
+//!   makes them:
+//!   - **a color off the system's roles** in the page's theme (`foundations.md`, *Semantic
+//!     roles*: its text, background, drawn borders, outline, underline, and an SVG's fill and
+//!     stroke). Transparent passes, and a background may be a role seen through, as a dialog's
+//!     dimmed canvas is. A filter, a backdrop filter or an image drawn as `::before` or `::after`
+//!     paints colors the check can't read, and fails; a search hit takes the action fill;
+//!   - **a rounded corner or a shadow** (`foundations.md`, *Lines and shape*);
+//!   - **motion off the system's durations** (0, 100, 160 or 240 ms) or easings, a smooth
+//!     scroll, or an animation that never ends (`foundations.md`, *Motion*); and with the
+//!     stylesheets' reduced-motion rules applied in place, any motion at all.
+//!
+//!   Each page is read in the theme it loads in (mdBook's navy for a browser whose system is
+//!   dark), then as a reader with scripts off gets it (the root's `js` class taken off, which
+//!   applies mdBook's `html:not(.js)` rules), with a light system and with a dark one (the
+//!   stylesheets' dark-scheme rules applied in place), then switched as mdBook's theme menu
+//!   switches it and read in the other once the switch's transitions have run. Hover and focus
+//!   aren't read, nor what a script sets as it runs (mdBook's `scrollTo` with a smooth scroll).
 //!
 //! **How.** A small web server on `127.0.0.1` serves the built site and, under `/__check/`, the
 //! harness ([`HARNESS_JS`]), the plan and the canaries. A few headless Chrome processes (headless
@@ -49,7 +69,12 @@
 //! `main`, a label cut short by its box, two labels drawn over each other, a figure shown at half
 //! its size with room for all of it, one wider than any window with no zoom, a figure reaching
 //! past a narrow `main` as the theme lays it out, which must pass, a label moved past the
-//! window's edge from such a `main`, and an ordinary page
+//! window's edge from such a `main`, a label off the system's colors, the same only in navy (read
+//! after the switch), the same only with scripts off, and only once a delayed change to it has run,
+//! the root element off them, a label tinted by a filter, one over a backdrop filter, one with an
+//! image as its `::before`, a search hit in ink, a rounded box, a box with a shadow, a 0.3 s
+//! transition, one at the system's base duration that doesn't snap with reduced motion set and one
+//! that does, which must pass, and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't
@@ -87,7 +112,8 @@ const HEIGHT_PX: u32 = 900;
 /// overlap the waits on the network and fonts.
 const FRAMES_PER_TAB: usize = 3;
 /// The most tabs, each its own browser process; fewer on a machine with fewer cores. With four,
-/// the check takes about 30 s on an M-series Mac, `print.html` (every page in one) about 14 of it.
+/// the check took 114 s on an M-series Mac on 2026-10-09, with five readings of each page's style
+/// at each width (#432).
 const MOST_TABS: usize = 4;
 /// How long the check waits for any news from the browser before it gives up.
 const STALL: Duration = Duration::from_secs(300);
@@ -141,10 +167,24 @@ enum Kind {
     Overlap,
     /// A figure shown smaller than drawn, with room to show it at its size or no zoom to.
     Shrunk,
+    /// A color that is not one of the product system's roles in the page's theme (#383).
+    Color,
+    /// A rounded corner or a shadow (#383).
+    Shape,
+    /// Motion off the system's durations and easings, or any with reduced motion set (#383).
+    Motion,
 }
 
 impl Kind {
-    const ALL: [Kind; 4] = [Kind::Wide, Kind::Cut, Kind::Overlap, Kind::Shrunk];
+    const ALL: [Kind; 7] = [
+        Kind::Wide,
+        Kind::Cut,
+        Kind::Overlap,
+        Kind::Shrunk,
+        Kind::Color,
+        Kind::Shape,
+        Kind::Motion,
+    ];
 
     fn describe(self) -> &'static str {
         match self {
@@ -152,6 +192,9 @@ impl Kind {
             Kind::Cut => "text cut off by its box",
             Kind::Overlap => "text over text",
             Kind::Shrunk => "a figure shown smaller than drawn",
+            Kind::Color => "a color off the system's roles",
+            Kind::Shape => "a rounded corner or a shadow",
+            Kind::Motion => "motion off the system's durations",
         }
     }
 }
@@ -170,7 +213,7 @@ struct Canary {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 11] = [
+const CANARIES: [Canary; 25] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -272,6 +315,128 @@ const CANARIES: [Canary; 11] = [
         ),
         after: "",
     },
+    Canary {
+        file: "canary-color.html",
+        what: "a label in a highlighter's green, off the system's roles",
+        expect: &[Kind::Color],
+        inside: "<p style=\"color: #008200\">A label in green</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-radius.html",
+        what: "a box with rounded corners",
+        expect: &[Kind::Shape],
+        inside: "<p style=\"border: 1px solid #566079; border-radius: 8px\">A rounded box</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-shadow.html",
+        what: "a box with a soft shadow",
+        expect: &[Kind::Shape],
+        inside: "<p style=\"box-shadow: 0 4px 24px #0B0F1C\">A box with a shadow</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-motion.html",
+        what: "a color change over 0.3 s, off the system's durations",
+        expect: &[Kind::Motion],
+        inside: "<p style=\"transition: color 0.3s ease\">A slow label</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-reduced-motion.html",
+        what: "a color change at the system's base duration that doesn't snap with reduced \
+               motion set",
+        expect: &[Kind::Motion],
+        inside: "<p style=\"transition: color 160ms cubic-bezier(0.2, 0, 0, 1)\">A label that \
+                 never snaps</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-root.html",
+        what: "the page's root element in a highlighter's green, which only a read of `html` sees",
+        expect: &[Kind::Color],
+        inside: "<style>html { background: #008200; }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-filter.html",
+        what: "a label tinted by a filter, as mdBook tints its copy icon, whose colors the check \
+               can't read",
+        expect: &[Kind::Color],
+        inside: "<p style=\"filter: invert(45%)\">A tinted label</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-backdrop.html",
+        what: "a label over a blurred backdrop, a filter whose colors the check can't read",
+        expect: &[Kind::Color],
+        inside: "<p style=\"backdrop-filter: blur(2px)\">A label over a blur</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-content-image.html",
+        what: "an image drawn as a label's `::before`, whose colors the check can't read",
+        expect: &[Kind::Color],
+        inside: "<style>.icon::before { content: url(\"data:image/svg+xml,%3Csvg \
+                 xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3C/svg%3E\"); }\
+                 </style><p class=\"icon\">A label with an icon</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-mark.html",
+        what: "a search hit filled in ink, a role, but not the action fill a selection takes",
+        expect: &[Kind::Color],
+        inside: "<p>A <mark style=\"color: #F3F4F7; background: #0B0F1C\">search hit</mark> in \
+                 ink</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-no-script.html",
+        what: "a label in a highlighter's green only for a reader with scripts off, read with \
+               the page's `js` class taken off",
+        expect: &[Kind::Color],
+        inside: "<script>document.documentElement.classList.add('js');</script>\
+                 <style>html:not(.js) .bare { color: #008200; }</style>\
+                 <p class=\"bare\">Green only without scripts</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-no-script-slow.html",
+        what: "a label that turns a highlighter's green 240 ms after scripts are off, keeping its \
+               role color until then, and only with a light system: only the light reading with scripts \
+               off, made after that transition, sees it",
+        expect: &[Kind::Color],
+        inside: "<script>document.documentElement.classList.add('js');</script>\
+                 <style>.late { transition: color 0s 240ms; } \
+                 html:not(.js) .late { color: #008200; } \
+                 @media (prefers-color-scheme: dark) { html:not(.js) .late { color: #F3F4F7; } }\
+                 </style>\
+                 <p class=\"late\">Green after a delay</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-navy.html",
+        what: "a label in a highlighter's green in the navy theme only, read after the switch \
+               mdBook's theme menu makes",
+        expect: &[Kind::Color],
+        inside: "<script>document.documentElement.classList.add('js', 'light');</script>\
+                 <link rel=\"stylesheet\" id=\"mdbook-tomorrow-night-css\" href=\"data:text/css,\">\
+                 <style>.navy { color-scheme: dark; } .navy mark { background: #768DF5; } \
+                 .navy .green { color: #008200; }</style>\
+                 <p class=\"green\">Green only in navy</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-motion-snaps.html",
+        what: "a color change at the system's base duration that snaps with reduced motion set, \
+               which must pass",
+        expect: &[],
+        inside: "<style>.snaps { transition: color 160ms cubic-bezier(0.2, 0, 0, 1); } \
+                 @media (prefers-reduced-motion: reduce) { .snaps { transition-duration: 0s; } }\
+                 </style><p class=\"snaps\">A label that snaps</p>",
+        after: "",
+    },
 ];
 
 /// A canary's page: an ordinary page, as mdBook lays one out, plus what the canary adds.
@@ -292,7 +457,12 @@ fn canary_html(canary: &Canary) -> String {
 <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
 <title>{what}</title>
 <style>
-body {{ margin: 0; font: 16px/1.5 sans-serif; overflow-x: hidden; }}
+body {{ margin: 0; font: 16px/1.5 sans-serif; overflow-x: hidden; color: #0B0F1C; background: #F3F4F7; }}
+html {{ color: #0B0F1C; background: #F3F4F7; }}
+a {{ color: #3350D6; }}
+mark {{ color: #FFFFFF; background: #3350D6; }}
+@media (prefers-color-scheme: dark) {{ mark {{ color: #0B0F1C; background: #768DF5; }} }}
+input {{ color: inherit; }}
 .content {{ overflow-y: auto; }}
 main {{ overflow-x: clip; }}
 .content {{ padding: 0 16px; }}
@@ -440,6 +610,19 @@ struct Measured {
     shrunk: Vec<Figure>,
     #[serde(default)]
     shrunk_count: usize,
+    /// mdBook's defaults by computed style (#383), the first few of each kind.
+    #[serde(default)]
+    color: Vec<Style>,
+    #[serde(default)]
+    color_count: usize,
+    #[serde(default)]
+    shape: Vec<Style>,
+    #[serde(default)]
+    shape_count: usize,
+    #[serde(default)]
+    motion: Vec<Style>,
+    #[serde(default)]
+    motion_count: usize,
 }
 
 impl Measured {
@@ -449,6 +632,9 @@ impl Measured {
             Kind::Cut => self.cut_count > 0,
             Kind::Overlap => self.overlap_count > 0,
             Kind::Shrunk => self.shrunk_count > 0,
+            Kind::Color => self.color_count > 0,
+            Kind::Shape => self.shape_count > 0,
+            Kind::Motion => self.motion_count > 0,
         }
     }
 
@@ -508,7 +694,38 @@ impl Measured {
                 })
                 .collect::<Vec<_>>()
                 .join("; "),
+            Kind::Color => Style::list(&self.color),
+            Kind::Shape => Style::list(&self.shape),
+            Kind::Motion => Style::list(&self.motion),
         }
+    }
+}
+
+/// An element whose computed style keeps one of mdBook's defaults.
+#[derive(Debug, Deserialize)]
+struct Style {
+    /// A short path to its element, `tag#id.class>...`, and `::before` or `::after` for those.
+    selector: String,
+    /// The property, as CSS names it.
+    property: String,
+    /// Its computed value.
+    value: String,
+    /// The theme it was read in, and whether with reduced motion.
+    theme: String,
+}
+
+impl Style {
+    fn list(styles: &[Style]) -> String {
+        styles
+            .iter()
+            .map(|style| {
+                format!(
+                    "`{}` has {} `{}` ({})",
+                    style.selector, style.property, style.value, style.theme
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("; ")
     }
 }
 
@@ -916,6 +1133,9 @@ fn launch_one(chrome: &Path, scratch: &Scratch, tab: usize, url: &str) -> Result
         .arg("--disable-extensions")
         .arg("--disable-background-networking")
         .arg("--window-size=1920,1080")
+        // A light system, on every machine: mdBook picks a page's first theme by it, and a page
+        // read without scripts is read in that one only, so the check would differ by host.
+        .arg("--blink-settings=preferredColorScheme=1")
         .arg(format!("--user-data-dir={}", profile.display()));
     if cfg!(target_os = "macos") {
         // No prompt for the keychain from a fresh profile.
@@ -1308,6 +1528,45 @@ mod tests {
             problems[1]
         );
         assert!(problems[2].contains("text over text at 1920 px; at 1920 px, \"Apogee\" and \"Top speed\" overlap 40 by 12 px"), "{}", problems[2]);
+    }
+
+    #[test]
+    fn mdbook_defaults_are_named_by_kind() {
+        let body = page_json("guide.html", |w| {
+            let plain = width_json(w, w - 15, 0, 0, 0);
+            plain.replacen(
+                "\"overlap_count\":0}",
+                r#""overlap_count":0,"color":[{"selector":"main>pre>code>span.hljs-string","property":"color","value":"rgb(0, 130, 0)","theme":"light"}],"color_count":1,"shape":[],"shape_count":0,"motion":[{"selector":"nav.sidebar","property":"transition","value":"0.3s ease","theme":"navy"}],"motion_count":2}"#,
+                1,
+            )
+        });
+        let (page, measured) = parse_results(&body).unwrap();
+        let problems = page_problems(&page, &measured);
+        assert_eq!(problems.len(), 2, "{problems:#?}");
+        assert_eq!(
+            problems[0],
+            "guide.html: a color off the system's roles at 320 to 1920 px; at 320 px, \
+             `main>pre>code>span.hljs-string` has color `rgb(0, 130, 0)` (light)"
+        );
+        assert_eq!(
+            problems[1],
+            "guide.html: motion off the system's durations at 320 to 1920 px; at 320 px, \
+             `nav.sidebar` has transition `0.3s ease` (navy)"
+        );
+        // Each kind has a canary that must show it, and the ordinary page and one that snaps
+        // with reduced motion must show none.
+        for kind in [Kind::Color, Kind::Shape, Kind::Motion] {
+            assert!(
+                CANARIES.iter().any(|canary| canary.expect == [kind]),
+                "{kind:?}"
+            );
+        }
+        let passing: Vec<&str> = CANARIES
+            .iter()
+            .filter(|canary| canary.expect.is_empty())
+            .map(|canary| canary.file)
+            .collect();
+        assert!(passing.contains(&"canary-motion-snaps.html"), "{passing:?}");
     }
 
     #[test]
