@@ -234,6 +234,32 @@ jobs:
       # `cargo xtask` without its alias, so the xtask build itself is --locked too.
       - run: cargo run --locked --quiet --package xtask -- wasm-check --locked
 
+  # The workspace builds for phones (ADR-227): iPhone and its simulator, and Android. Build only;
+  # the tests run on phones when the mobile apps (M9.4) do.
+  phone:
+    name: phone (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: ios
+            os: macos-latest
+            targets: aarch64-apple-ios aarch64-apple-ios-sim
+          - name: android
+            os: ubuntu-latest
+            targets: aarch64-linux-android
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          # Only main saves: pull requests restore main's cache, and the repository stays under
+          # GitHub's 10 GB cache limit instead of evicting main's entries.
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - run: scripts/phone-build.sh ${{ matrix.targets }}
+        shell: bash
+
   deny:
     name: deny
     runs-on: ubuntu-latest
@@ -302,7 +328,7 @@ jobs:
   # other check has passed on that commit.
   deploy:
     name: deploy
-    needs: [fmt, clippy, test, examples, python, validate, doc, wasm-check, deny, site]
+    needs: [fmt, clippy, test, examples, python, validate, doc, wasm-check, phone, deny, site]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && needs.site.outputs.pages == 'true'
     runs-on: ubuntu-latest
     permissions:
