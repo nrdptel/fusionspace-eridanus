@@ -227,15 +227,32 @@ sizes, prose lines past 68 characters and gutters off 16 or 32 px all fail it. S
   warning's in the danger fill); the note inside a border on every side, 2 px on a warning;
 - a font list without its metric-matched fallback second (a stand-in, Arial or Menlo, scaled to
   the real font's size, so text doesn't jump when the real font arrives), and a smooth scroll a
-  script asks for when the menu bar's title is clicked.
+  script asks for when the menu bar's title is clicked;
+- an icon in the menu bar, the page arrows, the search field or a code block's buttons that isn't
+  square at one of the system's icon sizes, 16, 20 or 24 px (the site draws them at 20 and
+  24 px; a note's icon, 14 px as the system's note draws it, isn't read), and selected text not
+  drawn on the action color at 22 % opacity.
 
 A file check fails a page whose head doesn't declare light and dark color schemes or doesn't set
 the browser bar to the system's light canvas (`#F3F4F7`) on a light system and its dark one
-(`#0B0F1C`) on a dark one, and a `fonts.css` that isn't the system's. Not read: text inside SVG
-images or over a picture, hover, and selected text
-([#432](https://github.com/nrdptel/fusionspace-eridanus/issues/432)). The icons, a second `h1`
-on every page, the favicon and print are still mdBook's until
-[M0.9d6, the site's last defaults](decisions-and-roadmap.md#m0-9d6).
+(`#0B0F1C`) on a dark one, and a `fonts.css` that isn't the system's.
+
+mdBook draws its buttons with Font Awesome, the icon set it ships, and names the book in an `h1`
+above each page's own title. After mdBook builds the site, `cargo xtask site` draws each icon as
+the system's icon of the same meaning and turns the book's name into a paragraph. A file check
+then fails:
+
+- a page with a Font Awesome icon, or an icon that isn't the system's;
+- a page with a second `h1` (the print page, which holds every chapter, keeps one per chapter);
+- a favicon that isn't the system's.
+
+`mdbook serve` still shows mdBook's icons and two `h1`; only `cargo xtask site` builds the pages
+as published. Not read: text inside SVG images or over a picture, hover
+([#432](https://github.com/nrdptel/fusionspace-eridanus/issues/432)), and three text marks
+mdBook still draws (`❱` on the sidebar's fold toggles, `✓` beside the chosen theme, `»` before a
+heading jumped to). Print and the pages' load speed, Google's Core Web Vitals, are still
+unchecked until [M0.9d8, print and vitals](decisions-and-roadmap.md#m0-9d8); print uses mdBook's
+own print styles meanwhile.
 
 ## Measured, not gated
 

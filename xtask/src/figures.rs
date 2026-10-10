@@ -204,6 +204,18 @@ pub fn run(args: &[String]) -> Result<(), String> {
 /// The folders whose SVGs are checked: the docs, and mdBook's theme beside `book.toml`.
 pub(crate) const FOLDERS: [&str; 2] = ["docs", "theme"];
 
+/// Whether `name`, relative to the root, is an SVG the theme copies unchanged from the product
+/// system (`site::theme::COPIED`), which `cargo xtask site` compares with the pinned revision
+/// instead: the favicon, the system's brand mark (its gradient and its drawing program's markup
+/// are the brand's, as in the brand files under `.github/brand/`), and the icons the site draws
+/// inline, in the text's color (`currentColor`, which no figure may use: an image has no text
+/// color), whose color the page check reads (ADR-228).
+pub(crate) fn systems_copy(name: &Path) -> bool {
+    crate::site::theme::COPIED
+        .iter()
+        .any(|(file, _)| file.ends_with(".svg") && name == Path::new("theme").join(file))
+}
+
 /// Checks every SVG under [`FOLDERS`] of `root`; how many there are, or what is wrong with them.
 pub(crate) fn check_docs(root: &Path) -> Result<usize, String> {
     let mut files = Vec::new();
@@ -213,6 +225,7 @@ pub(crate) fn check_docs(root: &Path) -> Result<usize, String> {
             svgs(&dir, &mut files)?;
         }
     }
+    files.retain(|file| !file.strip_prefix(root).is_ok_and(systems_copy));
     files.sort();
     let mut failures = Vec::new();
     for file in &files {

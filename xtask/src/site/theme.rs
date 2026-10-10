@@ -42,8 +42,9 @@ const SYSTEM_SPDX: &str = "/* SPDX-License-Identifier: Apache-2.0 · Copyright 2
 /// The SPDX line hpr-sim's own stylesheets open with.
 const OWN_SPDX: &str = "/* SPDX-License-Identifier: MIT OR Apache-2.0 */";
 /// The files copied unchanged from the product system: where each sits under [`THEME`], and where
-/// it sits in the system's repository.
-const COPIED: [(&str, &str); 8] = [
+/// it sits in the system's repository. The icons are the ones `chrome.rs` draws in each page's
+/// chrome; the favicon is the system's web kit's, its PNG the 32 px one.
+pub(crate) const COPIED: [(&str, &str); 22] = [
     (
         "fusionspace-mdbook.css",
         "product/web/mdbook/fusionspace-mdbook.css",
@@ -73,6 +74,20 @@ const COPIED: [(&str, &str); 8] = [
         "fonts/OFL-CascadiaMono.txt",
         "product/web/fonts/OFL-CascadiaMono.txt",
     ),
+    ("favicon.svg", "kit/web/favicon.svg"),
+    ("favicon.png", "kit/web/favicon-32.png"),
+    ("icons/chevron.svg", "product/icons/chevron.svg"),
+    ("icons/copy.svg", "product/icons/copy.svg"),
+    ("icons/edit.svg", "product/icons/edit.svg"),
+    ("icons/external.svg", "product/icons/external.svg"),
+    ("icons/menu.svg", "product/icons/menu.svg"),
+    ("icons/minus.svg", "product/icons/minus.svg"),
+    ("icons/plus.svg", "product/icons/plus.svg"),
+    ("icons/print.svg", "product/icons/print.svg"),
+    ("icons/refresh.svg", "product/icons/refresh.svg"),
+    ("icons/search.svg", "product/icons/search.svg"),
+    ("icons/simulate.svg", "product/icons/simulate.svg"),
+    ("icons/sun.svg", "product/icons/sun.svg"),
 ];
 /// hpr-sim's own stylesheets under [`THEME`].
 const OWN: [&str; 1] = ["hpr.css"];
@@ -150,6 +165,7 @@ pub(super) fn check_sources(root: &Path, source: &Path) -> Result<Sources, Strin
             ));
         }
     }
+    problems.extend(missing_copies(&theme));
     for (file, spdx) in OWN_OTHER {
         if read(&theme.join(file))?.lines().next() != Some(spdx) {
             problems.push(format!(
@@ -352,6 +368,19 @@ fn read(path: &Path) -> Result<String, String> {
 
 /// Every font file in `theme/fonts/` without its license beside it: `Family-Style.woff2` needs
 /// `OFL-Family.txt`, as the product system ships them.
+/// Each file of [`COPIED`] missing from `theme`. Where the system's checkout is absent, as in CI,
+/// nothing else would see one gone: mdBook serves its own book as the favicon when the theme has
+/// none, and the served-file check compares only the files the theme holds.
+fn missing_copies(theme: &Path) -> Vec<String> {
+    COPIED
+        .iter()
+        .filter(|(file, _)| !theme.join(file).is_file())
+        .map(|(file, original)| {
+            format!("{THEME}/{file} is missing: copy it unchanged from the system's {original}")
+        })
+        .collect()
+}
+
 fn fonts_without_license(theme: &Path) -> Result<Vec<String>, String> {
     let fonts = theme.join("fonts");
     let entries =
@@ -586,8 +615,9 @@ pub(super) fn check_built(root: &Path, output: &Path) -> Result<Vec<String>, Str
 }
 
 /// Whether the site serves `theme/` as it is committed: each file under `theme/fonts/` as
-/// `fonts/` in the site, and each stylesheet and script in `theme/` as `theme/`. mdBook serves its own fonts
-/// at the same address, `fonts/fonts.css`, when it doesn't take the theme's.
+/// `fonts/` in the site, each stylesheet and script in `theme/` as `theme/`, and the favicons
+/// at the site's root. mdBook serves its own fonts at the same address, `fonts/fonts.css`, when
+/// it doesn't take the theme's, and its own book as the favicon when the theme has none.
 fn served_unchanged(theme: &Path, output: &Path) -> Result<Vec<String>, String> {
     let mut problems = Vec::new();
     let mut served = Vec::new();
@@ -599,8 +629,9 @@ fn served_unchanged(theme: &Path, output: &Path) -> Result<Vec<String>, String> 
             let entry = entry.map_err(|err| format!("could not list {}: {err}", from.display()))?;
             let name = entry.file_name().to_string_lossy().into_owned();
             let path = entry.path();
+            let favicon = dir.is_empty() && name.starts_with("favicon.");
             if path.is_dir()
-                || (dir.is_empty() && !(name.ends_with(".css") || name.ends_with(".js")))
+                || (dir.is_empty() && !(name.ends_with(".css") || name.ends_with(".js") || favicon))
             {
                 continue;
             }
@@ -609,7 +640,12 @@ fn served_unchanged(theme: &Path, output: &Path) -> Result<Vec<String>, String> 
             } else {
                 format!("{THEME}/{dir}/{name}")
             };
-            served.push((path, committed, format!("{site}/{name}")));
+            let at = if favicon {
+                name.clone()
+            } else {
+                format!("{site}/{name}")
+            };
+            served.push((path, committed, at));
         }
     }
     for (path, committed, site) in served {
@@ -1078,13 +1114,45 @@ mod tests {
         fs::write(theme.join("README.md"), "not served").unwrap();
         fs::write(site.join("fonts/fonts.css"), "ours").unwrap();
         fs::write(site.join("theme/x.css"), "x").unwrap();
+        fs::write(theme.join("favicon.svg"), "the mark").unwrap();
+        fs::write(site.join("favicon.svg"), "the mark").unwrap();
         assert!(served_unchanged(&theme, &site).unwrap().is_empty());
+        // mdBook's own book as the favicon.
+        fs::write(site.join("favicon.svg"), "a book").unwrap();
+        let problems = served_unchanged(&theme, &site).unwrap();
+        assert_eq!(problems.len(), 1, "{problems:?}");
+        assert!(
+            problems[0].starts_with("favicon.svg is not theme/favicon.svg"),
+            "{problems:?}"
+        );
+        fs::write(site.join("favicon.svg"), "the mark").unwrap();
         // mdBook's own fonts at the same address.
         fs::write(site.join("fonts/fonts.css"), "open sans").unwrap();
         let problems = served_unchanged(&theme, &site).unwrap();
         assert_eq!(problems.len(), 1, "{problems:?}");
         assert!(
             problems[0].starts_with("fonts/fonts.css is not"),
+            "{problems:?}"
+        );
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn a_copy_missing_from_the_theme_fails() {
+        assert!(missing_copies(&crate::designs::root().unwrap().join(THEME)).is_empty());
+        let dir = std::env::temp_dir().join(format!("hpr-copies-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        for (file, _) in COPIED {
+            let path = dir.join(file);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, "x").unwrap();
+        }
+        assert!(missing_copies(&dir).is_empty());
+        fs::remove_file(dir.join("favicon.png")).unwrap();
+        let problems = missing_copies(&dir);
+        assert_eq!(problems.len(), 1, "{problems:?}");
+        assert!(
+            problems[0].starts_with("theme/favicon.png is missing"),
             "{problems:?}"
         );
         fs::remove_dir_all(&dir).unwrap();

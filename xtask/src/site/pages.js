@@ -368,6 +368,10 @@
   };
   // The action role in each theme, a selection's fill.
   const ACTION = { light: '#3350D6', navy: '#768DF5' };
+  // How opaque the action role is in a selection of text (`fusionspace.css`, `::selection`).
+  const SELECTION_ALPHA = 0.22;
+  // The sizes the system draws its icons at (`foundations.md`, *Icons*), square.
+  const ICON_SIZES = [16, 20, 24];
   // The system's motion (`foundations.md`, *Motion*): no motion, quick, base and slow, as
   // computed styles write them, and its two easings.
   const DURATIONS = ['0s', '0.1s', '0.16s', '0.24s'];
@@ -568,6 +572,16 @@
             }
           }
           if (s.textShadow !== 'none') note('shape', el, pseudo, 'text-shadow', s.textShadow);
+          // Text selected is drawn on the action role at 22 % (`principles.md`, *One sweep*),
+          // read on each element that shows text of its own; a page without the rule gets the
+          // browser's own.
+          if (!pseudo && !svg && ownText(el)) {
+            const value = win.getComputedStyle(el, '::selection').backgroundColor;
+            const h = hex(value);
+            if (!h || h.rgb !== ACTION[theme] || Math.abs(h.alpha - SELECTION_ALPHA) > 0.005) {
+              note('selection', el, '::selection', 'background-color', value);
+            }
+          }
         }
         if (s.scrollBehavior !== 'auto') {
           note('motion', el, pseudo, 'scroll-behavior', s.scrollBehavior);
@@ -944,7 +958,7 @@
   function probeFrame(win, doc) {
     const found = {
       type: [], type_count: 0, measure: [], measure_count: 0, gutter: [], gutter_count: 0,
-      squeezed: [], squeezed_count: 0, note: [], note_count: 0,
+      squeezed: [], squeezed_count: 0, note: [], note_count: 0, icon: [], icon_count: 0,
     };
     const width = win.innerWidth;
     const note = function (kind, sel, property, value) {
@@ -1223,6 +1237,21 @@
           + ' px right, against ' + gutter + ' px');
       }
     }
+
+    // Icons (#383; `foundations.md`, *Icons*): each one in the page's chrome, the spans mdBook
+    // draws its buttons, arrows and spinner in, is drawn square at one of the system's sizes.
+    // One not drawn at this width, or until asked for (`display: none` on it or around it), has
+    // no box and isn't read; one drawn at 0 px is read, and fails.
+    for (const svg of Array.from(doc.querySelectorAll('.fa-svg svg'))) {
+      if (svg.getClientRects().length === 0) continue;
+      const r = svg.getBoundingClientRect();
+      const ok = samePx(r.width, r.height)
+        && ICON_SIZES.some(function (px) { return samePx(r.width, px); });
+      if (!ok) {
+        note('icon', selector(svg), 'size', Math.round(r.width * 10) / 10 + ' by '
+          + Math.round(r.height * 10) / 10 + ' px');
+      }
+    }
     return found;
   }
 
@@ -1273,7 +1302,7 @@
           const found = {
             color: [], color_count: 0, shape: [], shape_count: 0, motion: [], motion_count: 0,
             contrast: [], contrast_count: 0, focus: [], focus_count: 0, forced: [],
-            forced_count: 0, sticky: [], sticky_count: 0,
+            forced_count: 0, sticky: [], sticky_count: 0, selection: [], selection_count: 0,
           };
           // Before the defaults' readings, which leave the page in its other theme.
           probeAccess(win, doc, found);

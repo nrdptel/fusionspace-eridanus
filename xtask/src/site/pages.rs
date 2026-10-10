@@ -42,7 +42,10 @@
 //!   - **a rounded corner or a shadow** (`foundations.md`, *Lines and shape*);
 //!   - **motion off the system's durations** (0, 100, 160 or 240 ms) or easings, a smooth
 //!     scroll, or an animation that never ends (`foundations.md`, *Motion*); and with the
-//!     stylesheets' reduced-motion rules applied in place, any motion at all.
+//!     stylesheets' reduced-motion rules applied in place, any motion at all;
+//!   - **a selection off the action role**: each element that shows text of its own must draw
+//!     selected text on the action role at 22 % opacity (`::selection`, as the system's
+//!     `fusionspace.css` sets it; `principles.md`, *One sweep*), not the browser's own.
 //!
 //!   Each page is read in the theme it loads in (mdBook's navy for a browser whose system is
 //!   dark), then as a reader with scripts off gets it (the root's `js` class taken off, which
@@ -72,7 +75,11 @@
 //!     in a window under 720 px, and 32 px from 720 px, and no further on either side unless
 //!     it has reached its widest;
 //!   - **a code block or table held to the prose measure**: one in `main` that scrolls sideways
-//!     inside a box with a `max-width`, as a list item around it would be at the measure.
+//!     inside a box with a `max-width`, as a list item around it would be at the measure;
+//!   - **an icon off the system's sizes** (`foundations.md`, *Icons*): each icon drawn in the
+//!     spans mdBook keeps its chrome's icons in (`.fa-svg`, the menu bar's buttons, the page
+//!     arrows, the search spinner, a code block's buttons), drawn now at this width, must be
+//!     square at 16, 20 or 24 px. Which icons they are is the file check's (`chrome.rs`).
 //! - What a keyboard, forced colors and a sticky bar need (#383; `web.md`, *Theme* and
 //!   *Accessibility*), each read in the theme the page loads in, contrast in every reading:
 //!   - **text under the contrast floor**: WCAG 2.2 AA (1.4.3), the floor `foundations.md`
@@ -129,8 +136,11 @@
 //! checkbox whose picture takes the browser's ring, a box set apart by its fill alone and one with
 //! a border in forced colors, which must pass, an icon in a fill of its own, one painted through
 //! a mask and one that keeps its colors, which must pass, a bar fixed to the top without scroll
-//! padding and one with it, which must pass, a title that scrolls smoothly when clicked,
-//! and an ordinary page
+//! padding and one with it, which must pass, a title that scrolls smoothly when clicked, an icon
+//! at 13 px, one 24 by 20 px, icons at 16, 20 and 24 px and one at 13 px not drawn, which must
+//! pass, an icon at 0 px, selected text with no color of the page's, on the danger role at 22 % and
+//! on the action role opaque, and an ordinary
+//! page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't
@@ -303,10 +313,15 @@ enum Kind {
     Forced,
     /// A bar stuck to the top of the window taller than the page's `scroll-padding-top` (#383).
     Sticky,
+    /// An icon of the page's chrome drawn at a size other than the system's 16, 20 or 24 px,
+    /// square (#383).
+    Icon,
+    /// Selected text drawn on something other than the action role at 22 % (#383).
+    Selection,
 }
 
 impl Kind {
-    const ALL: [Kind; 16] = [
+    const ALL: [Kind; 18] = [
         Kind::Wide,
         Kind::Cut,
         Kind::Overlap,
@@ -323,6 +338,8 @@ impl Kind {
         Kind::Focus,
         Kind::Forced,
         Kind::Sticky,
+        Kind::Icon,
+        Kind::Selection,
     ];
 
     fn describe(self) -> &'static str {
@@ -343,6 +360,8 @@ impl Kind {
             Kind::Focus => "a focus ring off the system's",
             Kind::Forced => "something forced colors would erase",
             Kind::Sticky => "a sticky bar that can hide what is focused",
+            Kind::Icon => "an icon off the system's sizes",
+            Kind::Selection => "a selection off the action role",
         }
     }
 }
@@ -386,6 +405,20 @@ macro_rules! note {
             "\"><div class=\"fs-note-head\">",
             $word,
             "</div><div class=\"fs-note-body\"><p>A message.</p></div></aside>"
+        )
+    };
+}
+
+/// An icon on the system's grid, drawn `$width` by `$height`, for the icon canaries.
+macro_rules! icon {
+    ($width:literal, $height:literal) => {
+        concat!(
+            "<svg viewBox=\"0 0 24 24\" style=\"width: ",
+            $width,
+            "; height: ",
+            $height,
+            "\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" \
+             aria-hidden=\"true\"><path d=\"M9 5 L16 12 L9 19\"/></svg>"
         )
     };
 }
@@ -462,7 +495,7 @@ const NOTES_BELOW: &str = concat!(
 );
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 70] = [
+const CANARIES: [Canary; 77] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -672,6 +705,7 @@ const CANARIES: [Canary; 70] = [
         inside: "<script>document.documentElement.classList.add('js', 'light');</script>\
                  <link rel=\"stylesheet\" id=\"mdbook-tomorrow-night-css\" href=\"data:text/css,\">\
                  <style>.navy { color-scheme: dark; } .navy mark { color: #0B0F1C; background: #768DF5; } \
+                 .navy ::selection { background-color: rgb(118 141 245 / 0.22); } \
                  .navy .green { color: #008200; }</style>\
                  <p class=\"green\">Green only in navy</p>",
         after: "",
@@ -1045,6 +1079,74 @@ const CANARIES: [Canary; 70] = [
                  top: 0, behavior: 'smooth' }); });</script>",
         after: "",
     },
+    Canary {
+        file: "canary-icon-small.html",
+        what: "an icon drawn at 13 px, as mdBook draws its menu bar's glyphs",
+        expect: &[Kind::Icon],
+        inside: concat!(
+            "<p><span class=fa-svg>",
+            icon!("13px", "13px"),
+            "</span></p>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-icon-oblong.html",
+        what: "an icon 24 px wide and 20 px high",
+        expect: &[Kind::Icon],
+        inside: concat!(
+            "<p><span class=fa-svg>",
+            icon!("24px", "20px"),
+            "</span></p>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-icon-sized.html",
+        what: "icons drawn at 16, 20 and 24 px, and one at 13 px not drawn, which must pass",
+        expect: &[],
+        inside: concat!(
+            "<p><span class=fa-svg>",
+            icon!("16px", "16px"),
+            "</span><span class=fa-svg>",
+            icon!("20px", "20px"),
+            "</span><span class=fa-svg>",
+            icon!("24px", "24px"),
+            "</span><span class=fa-svg style=\"display: none\">",
+            icon!("13px", "13px"),
+            "</span></p>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-selection-default.html",
+        what: "selected text with no color of the page's, as the browser reports a page without \
+               the rule: transparent",
+        expect: &[Kind::Selection],
+        inside: "<style>::selection { background-color: initial !important; }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-icon-zero.html",
+        what: "an icon drawn at 0 px, as one whose size rule is lost inside a box of no font size",
+        expect: &[Kind::Icon],
+        inside: concat!("<p><span class=fa-svg>", icon!("0px", "0px"), "</span></p>"),
+        after: "",
+    },
+    Canary {
+        file: "canary-selection-color.html",
+        what: "selected text on the danger role at 22 %, the right opacity in the wrong color",
+        expect: &[Kind::Selection],
+        inside: "<style>::selection { background-color: rgb(172 0 30 / 0.22) !important; }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-selection-opaque.html",
+        what: "selected text on the action role, opaque",
+        expect: &[Kind::Selection],
+        inside: "<style>::selection { background-color: #3350D6 !important; }</style>",
+        after: "",
+    },
 ];
 
 /// A canary's page: an ordinary page, as mdBook lays one out, plus what the canary adds.
@@ -1071,6 +1173,8 @@ a {{ color: #3350D6; }}
 :focus-visible, .checkbox-img:focus-visible + img {{ outline: 2px solid #3350D6; outline-offset: 2px; }}
 mark {{ color: #FFFFFF; background: #3350D6; }}
 @media (prefers-color-scheme: dark) {{ mark {{ color: #0B0F1C; background: #768DF5; }} }}
+::selection {{ background-color: rgb(51 80 214 / 0.22); }}
+@media (prefers-color-scheme: dark) {{ ::selection {{ background-color: rgb(118 141 245 / 0.22); }} }}
 input {{ color: inherit; }}
 .content {{ overflow-y: auto; }}
 main {{ overflow-x: clip; }}
@@ -1276,6 +1380,15 @@ struct Measured {
     sticky: Vec<Style>,
     #[serde(default)]
     sticky_count: usize,
+    /// The chrome's icons off the system's sizes, and selections off the action role (#383).
+    #[serde(default)]
+    icon: Vec<Style>,
+    #[serde(default)]
+    icon_count: usize,
+    #[serde(default)]
+    selection: Vec<Style>,
+    #[serde(default)]
+    selection_count: usize,
 }
 
 impl Measured {
@@ -1297,6 +1410,8 @@ impl Measured {
             Kind::Focus => self.focus_count > 0,
             Kind::Forced => self.forced_count > 0,
             Kind::Sticky => self.sticky_count > 0,
+            Kind::Icon => self.icon_count > 0,
+            Kind::Selection => self.selection_count > 0,
         }
     }
 
@@ -1368,6 +1483,8 @@ impl Measured {
             Kind::Focus => Style::list(&self.focus),
             Kind::Forced => Style::list(&self.forced),
             Kind::Sticky => Style::list(&self.sticky),
+            Kind::Icon => Style::list(&self.icon),
+            Kind::Selection => Style::list(&self.selection),
         }
     }
 }
@@ -2332,7 +2449,14 @@ mod tests {
             problems[3]
         );
         // Each kind has a canary that must show it alone, and one beside it that must pass.
-        for kind in [Kind::Contrast, Kind::Focus, Kind::Forced, Kind::Sticky] {
+        for kind in [
+            Kind::Contrast,
+            Kind::Focus,
+            Kind::Forced,
+            Kind::Sticky,
+            Kind::Icon,
+            Kind::Selection,
+        ] {
             assert!(
                 CANARIES.iter().any(|canary| canary.expect == [kind]),
                 "{kind:?}"
@@ -2348,6 +2472,7 @@ mod tests {
             "canary-forced-border.html",
             "canary-forced-mask-kept.html",
             "canary-sticky-padded.html",
+            "canary-icon-sized.html",
         ] {
             assert!(passing.contains(&file), "{file}: {passing:?}");
         }

@@ -33,6 +33,17 @@ adds a source.
   all rights reserved, and **not** covered by this repository's MIT or Apache-2.0 license. A fork
   that isn't a FusionSpace project removes it or draws its own (ADR-164).
 
+- **The FusionSpace icons and favicon** (`theme/icons/*.svg`, drawn inline in the documentation
+  site's menu bar, page arrows, search field and code buttons; `theme/favicon.svg` and
+  `theme/favicon.png`, its favicon): `product/icons/` and `kit/web/favicon.svg` and
+  `kit/web/favicon-32.png` of [fusionspace-design](https://github.com/nrdptel/fusionspace-design)
+  at `f45454f` (product system Rev A), unchanged, compared with that revision by `cargo xtask site`
+  when `refs/fusionspace-design` is checked out (ADR-228). Like the brand files above, they are the
+  project owner's, Neer Patel's, under fusionspace-design's `LICENSE`: all rights reserved, and
+  **not** covered by this repository's MIT or Apache-2.0 license. A fork that isn't a FusionSpace
+  project removes them or draws its own (ADR-164): it replaces the files and their entries in
+  `COPIED` (`xtask/src/site/theme.rs`) and `ICONS` (`xtask/src/site/chrome.rs`).
+
 - **The FusionSpace mdBook theme** (`theme/fusionspace-mdbook.css`, served by the documentation
   site): `product/web/mdbook/fusionspace-mdbook.css` of
   [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `f45454f` (product system

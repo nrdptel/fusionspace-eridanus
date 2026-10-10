@@ -63,6 +63,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9d3 The page's frame ([Phase 0](#phase-0-foundations))
 - M0.9d4 The head, the keyboard and forced colors ([Phase 0](#phase-0-foundations))
 - M0.9d5 The notes ([Phase 0](#phase-0-foundations))
+- M0.9d6 The site's chrome ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -462,6 +463,9 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M0.9d5 The notes** (#384, ADR-225). *Done when:* every quote block a page writes is
       drawn as the system's note, its signal word in a strip, and the page check fails a quote
       block or a note off the system's shape, each with a canary.
+    - [x] **M0.9d6 The site's chrome** (#383, ADR-228). *Done when:* `xtask site` fails a Font
+      Awesome glyph, an icon not the system's, a second `h1`, a favicon not the system's, an
+      icon off 16, 20 or 24 px and a selection off the action role, each with a test or canary.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

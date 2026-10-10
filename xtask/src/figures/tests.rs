@@ -53,6 +53,17 @@ fn every_figure_under_docs_fits() {
     assert!(checked >= 4, "only {checked} SVGs found under docs/");
 }
 
+/// The check skips the SVGs copied unchanged from the product system, and nothing else: a figure
+/// of the docs is still read.
+#[test]
+fn only_the_systems_copies_are_skipped() {
+    assert!(super::systems_copy(Path::new("theme/favicon.svg")));
+    assert!(super::systems_copy(Path::new("theme/icons/menu.svg")));
+    assert!(!super::systems_copy(Path::new("theme/icons/new.svg")));
+    assert!(!super::systems_copy(Path::new("docs/images/copy.svg")));
+    assert!(!super::systems_copy(Path::new("docs/flight-phases.svg")));
+}
+
 /// A label of a committed figure moved past its right edge fails, naming it; where it was, it
 /// passes.
 #[test]
