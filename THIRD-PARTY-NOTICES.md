@@ -52,7 +52,9 @@ adds a source.
   product system's WOFF2 subsets from `product/web/fonts/` at `f45454f`, unchanged, under the SIL
   Open Font License 1.1, whose texts sit beside them (`OFL-Archivo.txt`: The Archivo Project
   Authors; `OFL-CascadiaMono.txt`: Microsoft Corporation, Reserved Font Name Cascadia Code). The
-  `@font-face` rules in `theme/fonts/fonts.css` are FusionSpace HPR's own.
+  `@font-face` rules in `theme/fonts/fonts.css` are the product system's `product/web/fonts.css`
+  at `f45454f` (Apache-2.0), each address without its `fonts/` folder, as mdBook serves the file
+  beside the fonts.
 
 - **ThrustCurve.org thrust curves** (`crates/hpr-motor/data/thrustcurve/curves/`, compiled into
   `hpr-motor`): 32 files that ThrustCurve.org marks public domain (license `PD`), unchanged. The

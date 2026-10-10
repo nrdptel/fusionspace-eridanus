@@ -231,7 +231,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
          for it or without a zoom, no color off the system's roles, rounded corner, shadow or \
          motion off its durations in either theme or with reduced motion, no text off the type \
          scale, prose line past 68 characters, gutter off the system's or code block held to \
-         the measure, and every canary found",
+         the measure, no text under the contrast floor, focus ring off the system's, box or \
+         icon forced colors would erase, or sticky bar taller than the scroll padding, and \
+         every canary found",
         laid_out.pages, laid_out.widths, laid_out.seconds
     );
     Ok(())

@@ -222,3 +222,33 @@ button { font: inherit; }
    content's. */
 .content { padding-inline: calc(16px - var(--page-padding)); }
 @media only screen and (min-width: 720px) { .content { padding-inline: calc(32px - var(--page-padding)); } }
+
+/* What a keyboard, forced colors and a sticky bar need (#383; `web.md`, *Theme* and
+   *Accessibility*). `cargo xtask site`'s page check focuses every kind of element the keyboard
+   reaches, reads the page as forced colors would leave it, measures every text's contrast
+   against what it is drawn on, and fails a bar at the top taller than the scroll padding.
+   The focus ring: a 2 px outline in the action role, 2 px off (`foundations.md`, `focus`), on
+   everything, for the keyboard only; the zoom's hidden checkbox draws it on its picture, where
+   mdBook draws the browser's own ring on any focus. */
+:focus-visible { outline: 2px solid var(--hpr-action) !important; outline-offset: 2px !important; }
+.content .checkbox-img:focus + img { outline: none; }
+.content .checkbox-img:focus-visible + img { outline: 2px solid var(--hpr-action); outline-offset: 2px; }
+/* The menu bar sticks to the window's top: what is scrolled to or focused stops below it and its
+   1 px rule (2.4.11), on a phone below its second row too. */
+html { scroll-padding-top: calc(var(--menu-bar-height) + 1px); }
+@media only screen and (max-width: 519px) { html { scroll-padding-top: calc(var(--menu-bar-height) + 45px); } }
+/* Forced colors (Windows' high-contrast mode) paint every color in the reader's own few and drop
+   backgrounds' tints: a box set apart only by its fill (the sidebar, a code block, the copy
+   tooltip, a phone's chapter buttons) gets a border, a search hit keeps the system's highlight,
+   and the copy icon, painted through a mask, keeps the button's text color. */
+@media (forced-colors: active) {
+    .sidebar { border-inline-end: 1px solid CanvasText; }
+    pre > code, .tooltiptext, .mobile-nav-chapters { border: 1px solid CanvasText; }
+    mark { forced-color-adjust: none; color: MarkText; background-color: Mark; }
+    pre > .buttons button.clip-button::before { forced-color-adjust: none; background-color: ButtonText; }
+}
+/* The fonts' metric-matched fallbacks (`fonts/fonts.css`, the system's), second in every stack,
+   so text drawn before a face arrives takes the same room. */
+html, h4, h5, h6, #mdbook-searchbar { font-family: 'Archivo', 'Archivo Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+code, pre, kbd, .hljs { font-family: 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, 'SF Mono', Menlo, Consolas, monospace !important; }
+h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter, .title-block td:first-child { font-family: 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; }

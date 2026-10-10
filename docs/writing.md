@@ -193,6 +193,28 @@ dotted (`1 3`), 1 px, for an event. The figure on
 [*How a flight is simulated*](how-a-flight-is-simulated.md) draws the dashed and chain lines
 with a sample of each in its key; the plot from `hpr sim --plot` draws all three.
 
+### The pages in the system's look
+
+The same page check reads each page's computed style, so the site keeps the product system's look
+where mdBook, the program that builds the site, would draw its own. Besides the colors, corners,
+motion, type sizes, 68-character lines and gutters, it fails:
+
+- text under WCAG 2.2 AA's contrast against what it is drawn on: 4.5 : 1, or 3 : 1 for text of
+  24 px and over (18.66 px in bold), faded by any opacity between them;
+- a control the keyboard reaches without the system's focus ring, a 2 px outline in the action
+  color (`#3350D6` on the light theme), 2 px off;
+- a box or an icon that Windows' high-contrast mode (forced colors) would erase: a box set apart
+  only by its fill, with no border there, or an icon not drawn in its text's color;
+- a bar stuck to the top of the window that could hide what a reader tabs to, taller than the
+  page's `scroll-padding-top`;
+- a font stack without its metric-matched fallback second, and a smooth scroll a script asks for.
+
+A file check fails a page whose head doesn't declare light and dark color schemes or doesn't set
+the browser bar to the system's light canvas (`#F3F4F7`) on a light system and its dark one
+(`#0B0F1C`) on a dark one, and a `fonts.css` that isn't the system's. The icons, a second `h1` on
+every page and print are still mdBook's
+([M0.9d6](decisions-and-roadmap.md#m0-9d6)).
+
 ## Measured, not gated
 
 Readability will be measured, not used to fail a build. A planned `cargo xtask` report will

@@ -1,0 +1,9 @@
+{{!-- SPDX-License-Identifier: MIT OR Apache-2.0 --}}
+{{!-- FusionSpace HPR's additions to every page's head (#383; `web.md`, *Using it in a project*
+     and *Theme*): the page draws in light and dark, and the browser's own bar takes Paper on a
+     light system and Void on a dark one, as the product system's `kit/web/head.html` sets them.
+     mdBook puts this before its own `theme-color` of white, so a browser takes these first.
+     `cargo xtask site` checks every built page for both. --}}
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F3F4F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B0F1C" media="(prefers-color-scheme: dark)">
