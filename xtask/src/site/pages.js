@@ -767,7 +767,7 @@
             chars += 1;
             text += ' ';
           }
-          chars += str.length;
+          chars += Array.from(str).length;
           text += str;
           gap = false;
         };
@@ -821,8 +821,11 @@
       const most = parseFloat(win.getComputedStyle(main).maxWidth);
       const full = Number.isFinite(most) && col.width >= most - SLACK_PX;
       const round = function (v) { return Math.round(v * 10) / 10; };
-      if (left < gutter - SLACK_PX || right < gutter - SLACK_PX
-        || (!full && Math.min(left, right) > gutter + SLACK_PX)) {
+      // Each side the gutter, or more where the column has reached its widest.
+      const off = function (side) {
+        return side < gutter - SLACK_PX || (!full && side > gutter + SLACK_PX);
+      };
+      if (off(left) || off(right)) {
         note('gutter', 'main', 'gutters', round(left) + ' px left and ' + round(right)
           + ' px right, against ' + gutter + ' px');
       }

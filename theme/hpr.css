@@ -188,12 +188,15 @@ h4, h5, h6 { font-family: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-
 /* `code` 14/20; in a Cascadia Mono heading or column head, the head's own size. */
 code, pre, kbd { font-size: 14px; line-height: 20px; }
 h1 code, h2 code, h3 code, thead th code { font-size: inherit; line-height: inherit; }
+/* Code and symbols stay as written in a head set in capitals: `hpr sim` is a command, `C_lδ` a
+   symbol, and neither means the same in capitals. */
+h3 code, thead th code { text-transform: none; letter-spacing: 0; }
 h4 code, h5 code, h6 code { font-size: 14px; line-height: 20px; }
 kbd { line-height: 20px; }
 /* Column heads and the title block's field names: `label`, 12/16 in capitals. */
 .content thead th, .title-block td:first-child { font-size: 12px; line-height: 16px; }
 /* Footnotes and the copy tooltip: `small`, 14/20. */
-.footnote-definition, .tooltiptext { font-size: 14px; line-height: 20px; }
+.content .footnote-definition, .content .footnote-definition :is(li, p), .tooltiptext { font-size: 14px; line-height: 20px; }
 /* Navigation in Cascadia Mono 14 (`web.md`, *Page anatomy*): the chapters, their numbers in the
    same weight, and a part's title as a section head. */
 .sidebar, .chapter { font-family: 'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace; font-size: 14px; line-height: 20px; }
@@ -210,8 +213,10 @@ button { font: inherit; }
 /* The measure: 68 characters of Archivo at 16 px take about 400 px, and a line dense with narrow
    letters (`l`, `i`, `t`) fewer, so prose stops at 24 em
    (`foundations.md`, *Width*: prose up to 68 characters, content up to 1,120 px). Tables, code
-   and figures keep the column, flush left with the prose. */
-.content main :is(p, li, dd, dt, blockquote, figcaption):not(:has(> .checkbox-label)) { max-width: 24em; }
+   and figures keep the column, flush left with the prose, inside a list item or a quote too: an
+   item that holds one stops only its paragraphs at the measure, and the page check counts any
+   text set straight in the item. */
+.content main :is(p, li, dd, dt, blockquote, figcaption):not(:has(> pre, > table, > .table-wrapper, > .checkbox-label, > p > .checkbox-label)) { max-width: 24em; }
 /* Gutters: 16 px on a phone, 32 px from 720 px. mdBook's page adds its own padding to the
    content's. */
 .content { padding-inline: calc(16px - var(--page-padding)); }

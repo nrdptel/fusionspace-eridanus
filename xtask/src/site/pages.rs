@@ -63,10 +63,11 @@
 //!   - **a line of prose past 68 characters**: each paragraph, list item, quote or caption in
 //!     `main`, outside tables and code, counted line by line as drawn, spaces between words
 //!     counted once. A character more than half a line below the one before starts a new line;
-//!     a word broken across lines is split where it breaks;
+//!     a word broken across lines is split where it breaks; characters are counted by code
+//!     point;
 //!   - **gutters off the system's** (`foundations.md`, *Width*): `main` must sit at least 16 px
 //!     from each side of the pane that holds it (mdBook's `.page-wrapper`, beside the sidebar)
-//!     in a window under 720 px, and 32 px from 720 px, and no further on its nearer side unless
+//!     in a window under 720 px, and 32 px from 720 px, and no further on either side unless
 //!     it has reached its widest.
 //!
 //! **How.** A small web server on `127.0.0.1` serves the built site and, under `/__check/`, the
@@ -93,9 +94,10 @@
 //! image as its `::before`, a search hit in ink, a rounded box, a box with a shadow, a 0.3 s
 //! transition, one at the system's base duration that doesn't snap with reduced motion set and one
 //! that does, which must pass, text at 15 px, on mdBook's 23.2 px line, in a serif, without
-//! tabular figures, at weight 300, a sentence in capitals, an `::after` at 11 px, a chapter link in Archivo, a
-//! current page with no underline, a line of 69 characters and one of 68, which must pass, and
-//! mdBook's 20 px gutters, and an ordinary page
+//! tabular figures, at weight 300, a sentence in capitals, an `::after` at 11 px, a superscript
+//! at 11 px, a chapter link in Archivo, a current page with no underline and one underlined 1 px,
+//! a line of 69 characters after a short one and one of 68, which must pass, mdBook's 20 px
+//! gutters, and a right gutter wider than the left, and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't
@@ -247,7 +249,7 @@ struct Canary {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 37] = [
+const CANARIES: [Canary; 40] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -525,7 +527,7 @@ const CANARIES: [Canary; 37] = [
         file: "canary-nav-font.html",
         what: "a chapter link in Archivo, not the navigation's Cascadia Mono",
         expect: &[Kind::Type],
-        inside: "<ol class=\"chapter\"><li><a href=\"#\" style=\"font-family: Archivo, \
+        inside: "<ol class=\"chapter\"><li><a href=\"#\" style=\"font: 14px/20px Archivo, \
                  sans-serif\">A chapter in Archivo</a></li></ol>",
         after: "",
     },
@@ -538,21 +540,47 @@ const CANARIES: [Canary; 37] = [
         after: "",
     },
     Canary {
+        file: "canary-nav-thin.html",
+        what: "the current page's link underlined 1 px, not 2",
+        expect: &[Kind::Type],
+        inside: "<ol class=\"chapter\"><li><a class=\"active\" href=\"#\" style=\"font: 14px/20px \
+                 'Cascadia Mono', monospace; text-decoration: underline 1px\">The current \
+                 page</a></li></ol>",
+        after: "",
+    },
+    Canary {
+        file: "canary-type-sup.html",
+        what: "a superscript at 11 px, below the system's smallest",
+        expect: &[Kind::Type],
+        inside: "<p>An area in m<sup style=\"font-size: 11px\">2</sup></p>",
+        after: "",
+    },
+    Canary {
         file: "canary-measure.html",
-        what: "a line of 69 characters, as drawn, in a box that scrolls sideways",
+        what: "a line of 69 characters, as drawn, after a short one, in a box that scrolls \
+               sideways",
         expect: &[Kind::Measure],
-        inside: "<div class=\"scroll\"><p style=\"white-space: nowrap; max-width: none\">A \
+        inside: "<div class=\"scroll\"><p style=\"white-space: nowrap; max-width: none\">A short \
+                 line<br>A \
                  <strong>drag</strong>  coefficient of <code>0.45</code> at Mach 0.3\n on \
                  m<sup>2</sup> of area, and a long tail</p></div>",
         after: "",
     },
     Canary {
         file: "canary-measure-68.html",
-        what: "a line of 68 characters, as drawn, which must pass",
+        what: "a line of 68 characters, as drawn, after a short one, which must pass",
         expect: &[],
-        inside: "<div class=\"scroll\"><p style=\"white-space: nowrap; max-width: none\">A \
+        inside: "<div class=\"scroll\"><p style=\"white-space: nowrap; max-width: none\">A short \
+                 line<br>A \
                  <strong>drag</strong>  coefficient of <code>0.45</code> at Mach 0.3\n on \
                  m<sup>2</sup> of area and a long tail</p></div>",
+        after: "",
+    },
+    Canary {
+        file: "canary-gutter-right.html",
+        what: "a right gutter of 56 px, wider than the left, which is the system's",
+        expect: &[Kind::Gutter],
+        inside: "<style>.content { padding-right: 56px !important; }</style>",
         after: "",
     },
     Canary {

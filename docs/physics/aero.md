@@ -999,7 +999,7 @@ that would put HPR Sim's center of pressure on the measured one runs from −0.2
 (short model, Mach 1.5) to +0.229 ± 0.084 (long, Mach 3.96), changing sign with Mach number and
 with the model's length. Fitting one share:
 
-| rows | share, per radian | χ² per degree of freedom | from zero | from slender-body theory's 0.178 |
+| rows | share, per radian | `χ²` per degree of freedom | from zero | from slender-body theory's 0.178 |
 |---|---|---|---|---|
 | all eleven | +0.021 ± 0.019 | 4.5 | 1.1 σ | 8.4 σ |
 | the short model's six | −0.016 ± 0.022 | 6.4 | 0.7 σ | 8.7 σ |

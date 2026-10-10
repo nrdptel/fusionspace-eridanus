@@ -30,7 +30,7 @@ holds the frame with its checks; it doesn't hold all eight.
    reached its widest.
 2. **The mapping.** `h1` is the `title` token, `h2` the `subtitle` (a sheet's name), `h3` the
    `heading` (a section head inside a sheet, in capitals), and `h4` to `h6` run-in heads in body
-   type, Archivo 16/24 semibold: the system has no fourth level, and 34 headings use one. Body
+   type, Archivo 16/24 semibold: the system has no fourth level, and 17 headings use one, 11 of them on the aerodynamics page. Body
    text is 16/24, tables' cells too; footnotes and the copy tooltip `small`; column heads and the
    title block's field names `label`; code 14/20, at its heading's own size inside a Cascadia
    Mono heading. Archivo is weighed only against the floor: bold for emphasis is as written.
