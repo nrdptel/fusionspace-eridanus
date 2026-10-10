@@ -399,6 +399,14 @@ Every page's source is a Markdown file in the repository's
 [`docs/` folder](https://github.com/nrdptel/fusionspace-eridanus/tree/main/docs). The pencil icon at the top of
 a page opens its source in GitHub's editor, where you can propose a fix.
 
+Each page opens with HPR Sim's number, `FS-ACHERNAR · SW · TOOL 001`, in a small tag over its
+title (the [title block](#title-block) says what it means), and its sections are numbered as the
+sheets of a drawing set: `SHEET 2 / 5` over a section's name makes it the second of five. The
+theme switch, Auto, Light and Dark, stands in the header before the print and edit buttons on a
+window 960 px wide or wider, and at the top of the table of contents on a narrower one (on a
+phone, behind the menu button). Auto follows your system's light or dark
+setting; a choice you make is kept in your browser, for this site only.
+
 A page prints in the light theme's colors, whichever theme you read it in, without the table of
 contents or the buttons. Each link's address follows it in parentheses: a whole address for
 another site, and for a page of this one its path from the page, such as `cli.html#units`. The

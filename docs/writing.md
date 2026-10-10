@@ -116,10 +116,10 @@ Older pages move to these rules as they are edited. [M0.6](decisions-and-roadmap
 product system milestone, added the check for the first two. Nothing checks the non-breaking
 space yet, and `hpr sim --plot`'s SVG figure, which the rule covers, still writes plain spaces.
 
-Most of the product system's rules are not met yet. The
+Many of the product system's rules are not met yet. The
 [design audit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/design-conformance.md)
 checks each of its sections against the site, the command line, the exports and the plot. Of
-the 64 sections that apply to them today, 11 are met and 46 are not. Each gap has an issue, and
+the 64 sections that apply to them today, 29 are met and 28 are not. Each gap has an issue, and
 three milestones close them before the next guides are written: the command line, exports and
 plot first, then the site's look, then the words
 ([ADR-208, the design audit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0208-the-design-audit.md)).
@@ -278,13 +278,47 @@ The page check fails, at every width:
 - a title block without its 2 px border in the text's color, with entries not in Cascadia Mono,
   or with anything below it.
 
-The header has no theme switch of its own yet, and pages have no sheets or intro: those wait for
-[M0.9d9, the page anatomy](decisions-and-roadmap.md#m0-9d9).
+Inside that frame the build lays each page out as an engineering drawing set is laid out:
+
+- every page opens with an intro: the site's designation, `FS-ACHERNAR · SW · TOOL 001` (the
+  product's number in the FusionSpace register, as the title block gives it), in a small tag with
+  one corner cut off, over the page's title;
+- each `##` section is a sheet: a 2 px rule in the text's color across its top, then its number,
+  `SHEET 2 / 5`, in 12 px capitals over its name. On the print page, which holds every chapter,
+  each chapter counts its own sheets. Write each `##` heading in the page's text, not inside
+  another element, or the build fails;
+- the header holds a theme switch, three buttons: Auto (the theme your system asks for),
+  Light and Dark, the chosen one filled in. From 960 px it stands in the header; narrower, the
+  header has no room for it and it stands at the top of the table of contents, which the menu
+  button opens below 720 px. It needs scripts, so without them it isn't drawn. mdBook's own theme
+  menu, with six themes for two looks, is gone; a reader who had saved one of the other four is
+  put back on Auto.
+
+A file check fails a page without the tag over its title, with a `##` heading outside a sheet or
+sheets numbered out of order, without the switch in place of mdBook's theme menu, or with a
+heading that skips a level going down (a `####` right after a `##`; headings go in order). The
+page check fails, at every width:
+
+- a tag not in Cascadia Mono 12 px, without its cut corner or 1 px border, or not above the title;
+- a sheet without its 2 px rule in the text's color, or with its number missing, out of order,
+  not in Cascadia Mono 12 px or not above its name; a `##` heading outside a sheet;
+- a switch not in the header from 960 px or not in the table of contents below it (read with
+  the table of contents opened below 720 px); with buttons other than Auto, Light and Dark, under
+  44 px tall or not in Cascadia Mono 14 px; with a button other than Auto chosen for a first-time
+  reader, or the chosen one not filled in the text's color; with mdBook's theme button drawn, the
+  switch drawn with scripts off, or the page in one of mdBook's themes the switch doesn't offer.
+  Once a run, at the width it reads print at, it presses Dark and then Auto, and fails a page
+  whose theme doesn't follow; and it loads the page with mdBook's Coal saved, and fails one that
+  doesn't forget it and press Auto.
+
+Each page's own status and one-sentence lead in its intro, two to six sheets a page, and every
+page opening with how far to trust it wait for
+[M0.9d11, the pages' own words](decisions-and-roadmap.md#m0-9d11).
 
 mdBook draws three icons as characters of text: `❱` beside a heading that folds open in the
 table of contents, `✓` beside the chosen theme, and `»` before a heading a link jumped to. The
-build draws the fold toggle as the system's chevron; the chosen theme is underlined, as the
-current page is in the table of contents; a heading jumped to takes no mark, since the page
+build draws the fold toggle as the system's chevron; the chosen theme is filled in on the theme
+switch; a heading jumped to takes no mark, since the page
 scrolls it to the top. The page check fails a text made only of such marks (arrows, technical
 symbols, shapes, dingbats, guillemets, emoji and the private characters icon fonts draw in)
 outside a page's `main`, or drawn by a stylesheet before or after an element anywhere. A key's
@@ -305,8 +339,8 @@ browser would break the pages isn't seen. In the light theme and in the navy one
 - a table row, a note or the title block that can split across two sheets;
 - a title block not drawn, or drawn without its version and date of issue.
 
-`mdbook serve` still shows mdBook's icons, menu bar and two `h1`, and the landing page's title
-block as a table; only `cargo xtask site` builds the pages as published. Not read: text inside
+`mdbook serve` still shows mdBook's icons, menu bar, theme menu and two `h1`, with no sheets,
+and the landing page's title block as a table; only `cargo xtask site` builds the pages as published. Not read: text inside
 SVG images or over a picture, and hover
 ([#432](https://github.com/nrdptel/fusionspace-eridanus/issues/432)). The pages' load speed,
 Google's Core Web Vitals, is still unchecked until

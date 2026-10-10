@@ -209,7 +209,6 @@ kbd { line-height: 20px; }
 .chapter li, .chapter a, .chapter code { font-size: 14px; line-height: 20px; }
 /* A button's text in body type: browsers give buttons a font of their own. */
 button { font: inherit; }
-.theme-popup .theme { font-size: 16px; line-height: 24px; }
 .chapter li a strong { font-weight: 400; }
 .chapter li.part-title { font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
 /* The menu bar's title, the lockup and the product's name in `subtitle`; the search field in body
@@ -264,11 +263,13 @@ html { scroll-padding-top: calc(var(--menu-bar-height) + 1px); }
 @media only screen and (max-width: 519px) { html { scroll-padding-top: calc(var(--menu-bar-height) + 45px); } }
 /* Forced colors (Windows' high-contrast mode) paint every color in the reader's own few and drop
    backgrounds' tints: a box set apart only by its fill (the sidebar, a code block, the copy
-   tooltip, a phone's chapter buttons) gets a border, a search hit keeps the system's highlight,
-   and the copy icon, painted through a mask, keeps the button's text color. */
+   tooltip, a phone's chapter buttons) gets a border, the theme switch's pressed button an
+   outline inside its edge, a search hit keeps the system's highlight, and the copy icon, painted
+   through a mask, keeps the button's text color. */
 @media (forced-colors: active) {
     .sidebar { border-inline-end: 1px solid CanvasText; }
     pre > code, .tooltiptext, .mobile-nav-chapters { border: 1px solid CanvasText; }
+    #mdbook-theme-list.fs-seg .theme[aria-pressed="true"] { outline: 2px solid CanvasText; outline-offset: -4px; }
     mark { forced-color-adjust: none; color: MarkText; background-color: Mark; }
     pre > .buttons button.clip-button::before { forced-color-adjust: none; background-color: ButtonText; }
 }
@@ -322,16 +323,56 @@ h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter { font-family: 'Casc
 .fs-titleblock .mark .v { display: flex; gap: 8px; align-items: center; }
 .fs-titleblock .fs-mark { height: 24px; width: auto; flex: none; }
 
+/* The intro and the sheets (#384; `web.md`, *Page anatomy*; `fusionspace.css`, `.fs-tag` and
+   `.fs-sheet`). `cargo xtask site` opens every page's intro with the site's designation in the
+   system's tag, one corner chamfered 4 px where the mark points (up and right), in Cascadia Mono
+   12/16; and makes each `h2` section a sheet: a 2 px ink rule on top, then the rail, the sheet's
+   number (`SHEET 2 / 5`) in `label` capitals over its name. The rail stands over the sheet's text,
+   as the system's sheet draws it in a narrow box: the docs column beside the sidebar has no room
+   for a 184 px rail beside the prose. The page check fails a tag or a sheet drawn otherwise. */
+.content main .fs-intro > .fs-tag { --c: 4px; box-sizing: border-box; display: flex; width: fit-content; max-width: 100%; align-items: center; margin: 0 0 16px; padding: 2px 10px 2px 8px; min-height: 24px;
+  font: 400 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.04em; color: var(--hpr-ink); border: 1px solid var(--hpr-rule-strong);
+  clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, 0 100%);
+  background: linear-gradient(225deg, transparent calc(var(--c) * 0.7071 - 1px), var(--hpr-rule-strong) 0 calc(var(--c) * 0.7071), transparent 0); }
+.content main .fs-intro > h1 { margin-top: 0; }
+.content main .fs-sheet { border-top: 2px solid var(--hpr-ink); margin-top: 32px; padding-top: 16px; }
+.content main .fs-sheet-rail { display: grid; gap: 8px; margin-bottom: 16px; }
+/* The system's mdBook theme draws the sheet's edge on the `h2` itself; here the sheet draws it. */
+.content main .fs-sheet-rail > h2 { margin: 0; padding-top: 0; border-top: 0; }
+.fs-sheet-no { font: 400 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--hpr-ink-muted); }
+@media print { .fs-sheet-rail { break-after: avoid; } }
+
+/* The theme switch (#384, #429; `web.md`, *Page anatomy*, *Components* and *Theme*;
+   `fusionspace.css`, `.fs-seg`): Auto, Light and Dark, each a button 44 px tall in Cascadia Mono
+   14 inside a 1 px rule, the chosen one filled in ink. `cargo xtask site` makes mdBook's theme
+   menu this group, and `theme/hpr.js` sets each button's `aria-pressed` from mdBook's mark. From
+   960 px it stands in the header's row, before its buttons; narrower, the header has no room
+   for it and `theme/hpr.js` moves it to the top of the sidebar, above the chapters' scrolling
+   list, so it stays in view (`xtask/src/site/switch.rs`, `HEADER_FROM_PX`). mdBook's script
+   hides its menu when focus leaves it, so the group is drawn over that. It needs scripts to
+   work, so without them it isn't drawn. */
+#mdbook-theme-list.fs-seg { position: static; display: inline-flex !important; flex: none; align-self: center; box-sizing: border-box; margin: 0; padding: 0; max-height: none; overflow: visible; list-style: none; border: 1px solid var(--hpr-rule-strong); background: transparent; color: var(--hpr-ink-muted); }
+#mdbook-theme-list.fs-seg > li { display: flex; }
+#mdbook-theme-list.fs-seg .theme { box-sizing: border-box; min-height: 44px; width: auto; margin: 0; padding: 0 12px; font: 400 14px/20px 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-align: center; white-space: nowrap; color: var(--hpr-ink-muted); background: transparent; border: 0; border-left: 1px solid var(--hpr-rule); cursor: pointer; }
+#mdbook-theme-list.fs-seg > li:first-child .theme { border-left: 0; }
+#mdbook-theme-list.fs-seg .theme:hover { color: var(--hpr-ink); background: transparent; }
+#mdbook-theme-list.fs-seg .theme[aria-pressed="true"] { color: var(--hpr-canvas); background: var(--hpr-ink); }
+#mdbook-menu-bar .right-buttons:has(> #mdbook-theme-list) { display: flex; align-items: center; }
+#mdbook-menu-bar #mdbook-theme-list.fs-seg { margin-inline-end: 8px; }
+.sidebar > #mdbook-theme-list.fs-seg { position: absolute; top: 10px; left: 10px; }
+.sidebar:has(> #mdbook-theme-list) > .sidebar-scrollbox { top: 66px; }
+html:not(.js) #mdbook-theme-list.fs-seg { display: none !important; }
+@media print { #mdbook-theme-list.fs-seg { display: none !important; } }
+
 /* Text marks (#383; `foundations.md`, *Icons*): mdBook draws three icons as characters, which the
    system draws from its own set or not at all. The sidebar's fold toggles get the system's
-   chevron at 16 px (`xtask site` swaps mdBook's `❱` in `toc.js`); the chosen theme in the theme
-   menu is underlined 2 px, as the current page is in the sidebar, not ticked with `✓`; a heading
+   chevron at 16 px (`xtask site` swaps mdBook's `❱` in `toc.js`); the chosen theme is filled in
+   ink in the theme switch, not ticked with `✓`; a heading
    jumped to takes no `»`, as the scroll padding already brings it to the top of the window. The
    page check fails a mark drawn as text outside a page's `main`, or as a `::before` or
    `::after` anywhere. */
 .chapter-fold-toggle .fa-svg svg { width: 16px; height: 16px; }
 .theme-selected::before { content: none; }
-.theme-popup .theme-selected { text-decoration: underline 2px; text-underline-offset: 4px; }
 :is(h1, h2, h3, h4, h5, h6, dt):target::before { content: none; }
 
 /* Print (#383; `web.md`, *Print*): the light theme's values whatever theme the page is read in,
