@@ -46,9 +46,10 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 
-  # Every job that runs per OS runs on the six platforms the releases are built for (ADR-222):
-  # Linux, macOS and Windows, each on x86-64 and on 64-bit ARM. Their math libraries round some
-  # functions differently in the last bit, so each platform is checked, not assumed.
+  # Every job that runs per OS runs on each platform the releases are built for (ADR-222): Linux
+  # and Windows on x86-64 and on 64-bit ARM, and Macs with Apple silicon (Intel Macs wait for
+  # issue #438). Their math libraries round some functions differently in the last bit, so each
+  # platform is checked, not assumed.
   #
   # The tests run in two halves per OS, side by side: each half builds the workspace and runs
   # every other test (nextest's `count:` partition), so every test still runs once on each OS.
@@ -58,7 +59,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel, windows-latest, windows-11-arm]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]
         part: [1, 2]
     runs-on: ${{ matrix.os }}
     env:
@@ -97,7 +98,7 @@ jobs:
     if: always()
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel, windows-latest, windows-11-arm]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]
     runs-on: ubuntu-latest
     steps:
       - name: Both halves passed
@@ -111,7 +112,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel, windows-latest, windows-11-arm]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]
     runs-on: ${{ matrix.os }}
     env:
       RUSTFLAGS: -D warnings
@@ -154,7 +155,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel, windows-latest, windows-11-arm]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]
     runs-on: ${{ matrix.os }}
     env:
       # The only job that compiles hpr-py (its Rust test binary is off), so its warnings fail here.
@@ -188,7 +189,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel, windows-latest, windows-11-arm]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest, windows-11-arm]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7

@@ -1,7 +1,7 @@
 # ADR-222: Six platforms, each tested on every pull request (2026-10-09)
 
-- **Status:** accepted
-- **Summary:** CI's per-platform jobs (the tests, the examples, the Python package and the validation cases) and the release's archives and wheels now run on six platforms: Linux, macOS and Windows, each on x86-64 and on 64-bit ARM. Each runs natively on its own CPU, and a script fails the job if the toolchain would build for another one. Intel Macs are tested on GitHub's last Intel image until it retires (fall 2027), then under Rosetta. Windows on ARM tests the Python package from 3.11, its oldest CPython. Static Linux builds, 32-bit ARM, package managers and math that rounds the same everywhere are follow-ups.
+- **Status:** accepted; the Intel Mac rows wait for #438
+- **Summary:** CI's per-platform jobs (the tests, the examples, the Python package and the validation cases) and the release's archives and wheels are to run on six platforms: Linux, macOS and Windows, each on x86-64 and on 64-bit ARM. Five run now. Each runs natively on its own CPU, and a script fails the job if the toolchain would build for another one. Intel Macs, the sixth, join when #438 is fixed: the first run there failed one optimizer test by one seed of 20 and couldn't install `cargo about`; they are then tested on GitHub's last Intel image until it retires (fall 2027), then under Rosetta. Windows on ARM tests the Python package from 3.11, its oldest CPython. Static Linux builds, 32-bit ARM, package managers and math that rounds the same everywhere are follow-ups.
 
 **Context.** Release 0.1 shipped archives and wheels for three platforms: Linux on x86-64, Macs
 with Apple silicon and Windows on x86-64. Anyone else built from source with Rust. The maintainer
@@ -32,7 +32,8 @@ shows whether a comparison was relying on one.
 
 1. **Six platforms, every check that runs per platform.** `test` (both halves), `examples`,
    `python` and `validate` run on `ubuntu-latest`, `ubuntu-24.04-arm`, `macos-latest` (Apple
-   silicon), `macos-15-intel`, `windows-latest` and `windows-11-arm`. The release workflow builds
+   silicon), `macos-15-intel`, `windows-latest` and `windows-11-arm`; `macos-15-intel` joins once
+   #438 is fixed (item 4). The release workflow builds
    and smoke-tests an archive and an abi3 wheel on each; the Linux ones on ARM are linked for
    glibc 2.17 and smoke-tested in the `manylinux2014_aarch64` image, as the x86-64 ones are in
    `manylinux2014_x86_64`. The checks run once, on Linux x86-64, as before: they don't depend on
@@ -44,7 +45,13 @@ shows whether a comparison was relying on one.
 3. **Windows on ARM tests Python from 3.11.** CPython's Windows on ARM builds start at 3.11. The
    wheel keeps the `cp310-abi3` tag, which is harmless there because no 3.10 exists to install it
    on.
-4. **Intel Macs until the tools end.** When GitHub retires `macos-15-intel`, the Intel build moves
+4. **Intel Macs until the tools end.** The first run on `macos-15-intel` failed two things, kept
+   out of this change as #438: `rosenbrock_reaches_its_global_minimum_from_most_seeds` reached
+   the global minimum from 16 of 20 seeds against its bound of 17 ([ADR-138][adr-138] measured
+   17 on Apple silicon and 290 of seeds 1 to 300, 97%), so the count of one fixed set of seeds
+   depends on the platform's math library; and `cargo about` didn't install there. The bound
+   isn't lowered here: #438 replaces it with an outcome that holds on every platform, in its own
+   record. When GitHub retires `macos-15-intel`, the Intel build moves
    to an Apple-silicon runner (`--target x86_64-apple-darwin`) and its tests run under Rosetta,
    which every Apple-silicon runner image installs. When Rosetta narrows (Apple says macOS 28) a
    new record decides whether Intel Macs stay.
@@ -57,10 +64,12 @@ shows whether a comparison was relying on one.
 **Consequences.**
 
 - More checks gate every merge. GitHub runs at most 5 macOS jobs at once on a free plan, and the
-  Intel image doubles each run's macOS jobs, so the slowest runs wait for a macOS runner. The pull
-  request that made this change measured each run's time.
+  Intel image will double each run's macOS jobs, so the slowest runs will wait for a macOS
+  runner.
 - A check that fails only on a new platform is a defect to find, not a tolerance to widen
   ([CONTRIBUTING.md](../../CONTRIBUTING.md), rule 2): the platforms' math libraries differ, so
   the fix is usually a comparison that relied on one, as in the earlier cases.
 - Release 0.2 is the first with the new archives and wheels; release 0.1's files stay on three
   platforms.
+
+[adr-138]: 0138-optimization-cma-es-first-held-to-test-functions.md
