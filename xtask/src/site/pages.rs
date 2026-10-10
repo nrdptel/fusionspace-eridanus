@@ -244,6 +244,12 @@ impl Part {
         Ok(Part { index, count })
     }
 
+    /// The step between this part's widths, in CSS pixels.
+    pub fn step_px(self) -> u32 {
+        // At most 41 parts (`parse`), so the cast keeps the value.
+        STEP_PX * self.count as u32
+    }
+
     /// The widths this part checks, in order.
     pub fn widths(self) -> Vec<u32> {
         widths()
@@ -1179,7 +1185,7 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
         let measured = results
             .get(page)
             .ok_or_else(|| format!("the page check has no results for {page}"))?;
-        problems.extend(page_problems(page, measured));
+        problems.extend(page_problems(page, measured, part.step_px()));
     }
     Ok(Report {
         pages: pages.len(),
@@ -1459,13 +1465,13 @@ fn parse_results(body: &str, checked: &[u32]) -> Result<(String, Vec<Measured>),
 }
 
 /// The widths in `list`, which is in order, as ranges of consecutive steps: `320 to 400, 480`.
-fn ranges(list: &[u32]) -> String {
+fn ranges(list: &[u32], step_px: u32) -> String {
     let mut parts: Vec<String> = Vec::new();
     let mut start = None;
     let mut last = 0;
     for &width in list {
         match start {
-            Some(_) if width == last + STEP_PX => {}
+            Some(_) if width == last + step_px => {}
             Some(first) => {
                 parts.push(span(first, last));
                 start = Some(width);
@@ -1489,14 +1495,14 @@ fn span(first: u32, last: u32) -> String {
 }
 
 /// One line per kind of problem `page` has, and one for the widths it didn't load at.
-fn page_problems(page: &str, measured: &[Measured]) -> Vec<String> {
+fn page_problems(page: &str, measured: &[Measured], step_px: u32) -> Vec<String> {
     let mut problems = Vec::new();
     let failed: Vec<&Measured> = measured.iter().filter(|m| m.error.is_some()).collect();
     if let Some(first) = failed.first() {
         let at: Vec<u32> = failed.iter().map(|m| m.width).collect();
         problems.push(format!(
             "{page}: could not be measured at {} px: {}",
-            ranges(&at),
+            ranges(&at, step_px),
             first.error.as_deref().unwrap_or_default()
         ));
     }
@@ -1510,7 +1516,7 @@ fn page_problems(page: &str, measured: &[Measured]) -> Vec<String> {
             problems.push(format!(
                 "{page}: {} at {} px; at {} px, {}",
                 kind.describe(),
-                ranges(&at),
+                ranges(&at, step_px),
                 first.width,
                 first.example(kind)
             ));
@@ -2114,11 +2120,17 @@ mod tests {
 
     #[test]
     fn ranges_join_consecutive_widths() {
-        assert_eq!(ranges(&[]), "");
-        assert_eq!(ranges(&[320]), "320");
-        assert_eq!(ranges(&[320, 360, 400]), "320 to 400");
-        assert_eq!(ranges(&[320, 360, 400, 480]), "320 to 400, 480");
-        assert_eq!(ranges(&[320, 400, 440, 1920]), "320, 400 to 440, 1920");
+        assert_eq!(ranges(&[], STEP_PX), "");
+        assert_eq!(ranges(&[320], STEP_PX), "320");
+        assert_eq!(ranges(&[320, 360, 400], STEP_PX), "320 to 400");
+        assert_eq!(ranges(&[320, 360, 400, 480], STEP_PX), "320 to 400, 480");
+        assert_eq!(
+            ranges(&[320, 400, 440, 1920], STEP_PX),
+            "320, 400 to 440, 1920"
+        );
+        // A part's widths are a part's step apart: 120 px for part 1 of 3.
+        let step = Part { index: 1, count: 3 }.step_px();
+        assert_eq!(ranges(&[320, 440, 560, 800], step), "320 to 560, 800");
     }
 
     #[test]
@@ -2227,7 +2239,7 @@ mod tests {
         });
         let (page, measured) = parse_results(&body, &widths()).unwrap();
         assert_eq!(page, "guide.html");
-        let problems = page_problems(&page, &measured);
+        let problems = page_problems(&page, &measured, STEP_PX);
         assert_eq!(problems.len(), 3, "{problems:#?}");
         assert!(problems[0].starts_with("guide.html: wider than the window at 320 to 400, 480 px; at 320 px, the page is 395 px wide in a 305 px window; `main>p` (\"Apogee\") reaches 2400 px"), "{}", problems[0]);
         assert!(
@@ -2249,7 +2261,7 @@ mod tests {
             )
         });
         let (page, measured) = parse_results(&body, &widths()).unwrap();
-        let problems = page_problems(&page, &measured);
+        let problems = page_problems(&page, &measured, STEP_PX);
         assert_eq!(problems.len(), 2, "{problems:#?}");
         assert_eq!(
             problems[0],
@@ -2291,7 +2303,7 @@ mod tests {
             )
         });
         let (page, measured) = parse_results(&body, &widths()).unwrap();
-        let problems = page_problems(&page, &measured);
+        let problems = page_problems(&page, &measured, STEP_PX);
         assert_eq!(problems.len(), 4, "{problems:#?}");
         assert_eq!(
             problems[0],
@@ -2360,7 +2372,7 @@ mod tests {
             )
         });
         let (page, measured) = parse_results(&body, &widths()).unwrap();
-        let problems = page_problems(&page, &measured);
+        let problems = page_problems(&page, &measured, STEP_PX);
         assert_eq!(problems.len(), 3, "{problems:#?}");
         assert_eq!(
             problems[0],
@@ -2413,7 +2425,7 @@ mod tests {
             )
         });
         let (page, measured) = parse_results(&body, &widths()).unwrap();
-        let problems = page_problems(&page, &measured);
+        let problems = page_problems(&page, &measured, STEP_PX);
         assert_eq!(problems.len(), 1, "{problems:#?}");
         assert!(
             problems[0].starts_with(
@@ -2441,7 +2453,7 @@ mod tests {
     fn a_page_without_problems_has_none() {
         let body = page_json("index.html", |w| width_json(w, w - 15, 0, 0, 0));
         let (page, measured) = parse_results(&body, &widths()).unwrap();
-        assert!(page_problems(&page, &measured).is_empty());
+        assert!(page_problems(&page, &measured, STEP_PX).is_empty());
     }
 
     #[test]
@@ -2454,7 +2466,7 @@ mod tests {
             }
         });
         let (page, measured) = parse_results(&body, &widths()).unwrap();
-        let problems = page_problems(&page, &measured);
+        let problems = page_problems(&page, &measured, STEP_PX);
         assert_eq!(
             problems,
             ["index.html: could not be measured at 360 px: did not load in 60 s"]

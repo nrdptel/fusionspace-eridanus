@@ -298,8 +298,9 @@ jobs:
       # workspace's rustdoc into target/site/api, checks every link in the built HTML, and checks
       # the pages' layout at this part's widths.
       - run: cargo run --locked --quiet --package xtask -- site --locked --widths ${{ matrix.part }}/3
-      # The built site, packed as GitHub Pages takes it, from one part. The deploy job publishes
-      # it from main.
+      # The built site, packed as GitHub Pages takes it, from one part: each part builds the same
+      # commit with the same mdBook and rustdoc, so their sites match. The deploy job publishes it
+      # from main.
       - if: matrix.part == 1
         uses: actions/upload-pages-artifact@v5
         with:

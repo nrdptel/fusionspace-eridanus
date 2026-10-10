@@ -245,9 +245,15 @@ pub fn run(args: &[String]) -> Result<(), String> {
         if part == pages::Part::WHOLE {
             format!("{} widths from 320 to 1,920 px", laid_out.widths)
         } else {
+            let checked = part.widths();
             format!(
-                "{} widths from 320 to 1,920 px, part {} of {}",
-                laid_out.widths, part.index, part.count
+                "{} widths from {} to {} px, every {} px (part {} of {})",
+                laid_out.widths,
+                checked.first().copied().unwrap_or_default(),
+                checked.last().copied().unwrap_or_default(),
+                part.step_px(),
+                part.index,
+                part.count
             )
         },
         laid_out.seconds
