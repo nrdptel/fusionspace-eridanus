@@ -64,7 +64,7 @@ case "$file" in
   *) package=crates/hpr-cli ;;
 esac
 version="$(cargo pkgid --manifest-path "$root/$package/Cargo.toml" | sed 's/.*[#@]//')"
-docker run --rm --platform linux/amd64 \
+docker run --rm --platform "$MANYLINUX_PLATFORM" \
   -v "$root:/io:ro" -v "$(dirname "$file"):/dist:ro" -w /io \
   -e HPR_RELEASE_VERSION="$version" \
   "$MANYLINUX_IMAGE" \
