@@ -38,7 +38,10 @@ holds the frame with its checks; it doesn't hold all eight.
    with narrow letters holds 69 at 25 em (one list item on the ORK format page did), so prose
    stops at 24 em (384 px). Tables, code and figures keep mdBook's 750 px column, flush left
    with the prose; a paragraph that holds a figure keeps the column too, as ADR-219 lays figures
-   out from it.
+   out from it. So does a list item or quote that holds a table, code or a figure at any depth;
+   its text then sits in paragraphs, which stop at the measure (two lists, on the turbulence and
+   design pages, were made loose for this), and the page check fails a code block or table that
+   scrolls inside a box held to the measure.
 4. **M0.9d5: the rest of #384**, with M0.9d3's old done-when unchanged: title blocks on every
    page, sheets with their rail, the intro (designation tag, status chip, `lead`), the header's
    lockup and no menu button from 720 px, the system's notes, and every page opening with how

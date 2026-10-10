@@ -230,7 +230,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
          the window, no text cut off or over other text, no figure shrunk with room \
          for it or without a zoom, no color off the system's roles, rounded corner, shadow or \
          motion off its durations in either theme or with reduced motion, no text off the type \
-         scale, prose line past 68 characters or gutter off the system's, and every canary found",
+         scale, prose line past 68 characters, gutter off the system's or code block held to \
+         the measure, and every canary found",
         laid_out.pages, laid_out.widths, laid_out.seconds
     );
     Ok(())

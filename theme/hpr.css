@@ -214,9 +214,10 @@ button { font: inherit; }
    letters (`l`, `i`, `t`) fewer, so prose stops at 24 em
    (`foundations.md`, *Width*: prose up to 68 characters, content up to 1,120 px). Tables, code
    and figures keep the column, flush left with the prose, inside a list item or a quote too: an
-   item that holds one stops only its paragraphs at the measure, and the page check counts any
-   text set straight in the item. */
-.content main :is(p, li, dd, dt, blockquote, figcaption):not(:has(> pre, > table, > .table-wrapper, > .checkbox-label, > p > .checkbox-label)) { max-width: 24em; }
+   item that holds one, at any depth, keeps the column, and its text sits in paragraphs, which
+   stop at the measure. The page check counts any text set straight in such an item, and fails a
+   code block or table held to the measure. */
+.content main :is(p, li, dd, dt, blockquote, figcaption):not(:has(pre, table, .checkbox-label)) { max-width: 24em; }
 /* Gutters: 16 px on a phone, 32 px from 720 px. mdBook's page adds its own padding to the
    content's. */
 .content { padding-inline: calc(16px - var(--page-padding)); }

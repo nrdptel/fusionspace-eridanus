@@ -68,7 +68,9 @@
 //!   - **gutters off the system's** (`foundations.md`, *Width*): `main` must sit at least 16 px
 //!     from each side of the pane that holds it (mdBook's `.page-wrapper`, beside the sidebar)
 //!     in a window under 720 px, and 32 px from 720 px, and no further on either side unless
-//!     it has reached its widest.
+//!     it has reached its widest;
+//!   - **a code block or table held to the prose measure**: one in `main` that scrolls sideways
+//!     inside a box with a `max-width`, as a list item around it would be at the measure.
 //!
 //! **How.** A small web server on `127.0.0.1` serves the built site and, under `/__check/`, the
 //! harness ([`HARNESS_JS`]), the plan and the canaries. A few headless Chrome processes (headless
@@ -97,7 +99,8 @@
 //! tabular figures, at weight 300, a sentence in capitals, an `::after` at 11 px, a superscript
 //! at 11 px, a chapter link in Archivo, a current page with no underline and one underlined 1 px,
 //! a line of 69 characters after a short one and one of 68, which must pass, mdBook's 20 px
-//! gutters, and a right gutter wider than the left, and an ordinary page
+//! gutters, a right gutter wider than the left, a code block in a list item held to the measure,
+//! and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't
@@ -203,10 +206,12 @@ enum Kind {
     Measure,
     /// Gutters other than the system's: 16 px on a phone, 32 px from 720 px (#384).
     Gutter,
+    /// A code block or table that scrolls sideways inside a box held to the prose measure.
+    Squeezed,
 }
 
 impl Kind {
-    const ALL: [Kind; 10] = [
+    const ALL: [Kind; 11] = [
         Kind::Wide,
         Kind::Cut,
         Kind::Overlap,
@@ -217,6 +222,7 @@ impl Kind {
         Kind::Type,
         Kind::Measure,
         Kind::Gutter,
+        Kind::Squeezed,
     ];
 
     fn describe(self) -> &'static str {
@@ -231,6 +237,7 @@ impl Kind {
             Kind::Type => "type off the system's scale",
             Kind::Measure => "a line of prose past 68 characters",
             Kind::Gutter => "gutters off the system's",
+            Kind::Squeezed => "a code block or table held to the prose measure",
         }
     }
 }
@@ -249,7 +256,7 @@ struct Canary {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 40] = [
+const CANARIES: [Canary; 41] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -577,6 +584,14 @@ const CANARIES: [Canary; 40] = [
         after: "",
     },
     Canary {
+        file: "canary-squeezed.html",
+        what: "a code block in a list item held to the prose measure, scrolling sideways",
+        expect: &[Kind::Squeezed],
+        inside: "<ul><li style=\"max-width: 10em\">An item<pre><code>let speed_m_per_s = \
+                 drag_coefficient * reference_area_m2;</code></pre></li></ul>",
+        after: "",
+    },
+    Canary {
         file: "canary-gutter-right.html",
         what: "a right gutter of 56 px, wider than the left, which is the system's",
         expect: &[Kind::Gutter],
@@ -794,6 +809,10 @@ struct Measured {
     gutter: Vec<Style>,
     #[serde(default)]
     gutter_count: usize,
+    #[serde(default)]
+    squeezed: Vec<Style>,
+    #[serde(default)]
+    squeezed_count: usize,
 }
 
 impl Measured {
@@ -809,6 +828,7 @@ impl Measured {
             Kind::Type => self.type_count > 0,
             Kind::Measure => self.measure_count > 0,
             Kind::Gutter => self.gutter_count > 0,
+            Kind::Squeezed => self.squeezed_count > 0,
         }
     }
 
@@ -874,6 +894,7 @@ impl Measured {
             Kind::Type => Style::list(&self.r#type),
             Kind::Measure => Style::list(&self.measure),
             Kind::Gutter => Style::list(&self.gutter),
+            Kind::Squeezed => Style::list(&self.squeezed),
         }
     }
 }
@@ -1780,7 +1801,7 @@ mod tests {
         );
         // Each kind has a canary that must show it, and the ordinary page and a line of exactly
         // 68 characters must show none.
-        for kind in [Kind::Type, Kind::Measure, Kind::Gutter] {
+        for kind in [Kind::Type, Kind::Measure, Kind::Gutter, Kind::Squeezed] {
             assert!(
                 CANARIES.iter().any(|canary| canary.expect == [kind]),
                 "{kind:?}"

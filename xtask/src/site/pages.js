@@ -636,6 +636,7 @@
   function probeFrame(win, doc) {
     const found = {
       type: [], type_count: 0, measure: [], measure_count: 0, gutter: [], gutter_count: 0,
+      squeezed: [], squeezed_count: 0,
     };
     const width = win.innerWidth;
     const note = function (kind, sel, property, value) {
@@ -806,6 +807,19 @@
         if (longest > MEASURE_CHARS) {
           note('measure', selector(block), 'a line of ' + longest + ' characters',
             snippet(longestText));
+        }
+      }
+
+      // A code block or table that scrolls sideways inside a box held to the prose measure: it
+      // keeps the column's width (ADR-222), so nothing around it in `main` may cap it.
+      for (const box of main.querySelectorAll('pre, .table-wrapper, table')) {
+        if (box.scrollWidth <= box.clientWidth + SLACK_PX) continue;
+        for (let e = box.parentElement; e && e !== main; e = e.parentElement) {
+          const cap = win.getComputedStyle(e).maxWidth;
+          if (cap !== 'none') {
+            note('squeezed', selector(box), 'a cap of ' + cap + ' from', selector(e));
+            break;
+          }
         }
       }
 
