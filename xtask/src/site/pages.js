@@ -372,6 +372,19 @@
   const SELECTION_ALPHA = 0.22;
   // The sizes the system draws its icons at (`foundations.md`, *Icons*), square.
   const ICON_SIZES = [16, 20, 24];
+  // The page's frame (#384; `web.md`, *Page anatomy*): the lockup's height, the brand's clear
+  // space around it as a share of that height, the inks it may be drawn in (Void on light, Paper
+  // on dark), the width from which the sidebar stays open with no menu button, and the title
+  // block's border.
+  const LOCKUP_PX = 24;
+  const CLEAR_SPACE = 0.25;
+  const INKS = ['rgb(11, 15, 28)', 'rgb(243, 244, 247)'];
+  const SIDEBAR_OPEN_FROM_PX = 720;
+  const TITLE_BLOCK_BORDER_PX = 2;
+  // The width a narrow window is widened to, past 720 px, and how long the sidebar's slide
+  // (240 ms, the system's slow step) is given to run.
+  const SIDEBAR_WIDENED_PX = 800;
+  const SIDEBAR_SLIDE_WAIT_MS = 400;
   // The system's motion (`foundations.md`, *Motion*): no motion, quick, base and slow, as
   // computed styles write them, and its two easings.
   const DURATIONS = ['0s', '0.1s', '0.16s', '0.24s'];
@@ -851,9 +864,13 @@
           return saved[i][1].apply(this, arguments);
         };
       });
+      // The title is a link to the landing page: the frame stays on this page.
+      const stay = function (event) { event.preventDefault(); };
+      win.addEventListener('click', stay, true);
       try {
         title.click();
       } finally {
+        win.removeEventListener('click', stay, true);
         watched.forEach(function (w, i) {
           if (saved[i][0]) w[0][w[1]] = saved[i][1]; else delete w[0][w[1]];
         });
@@ -959,6 +976,7 @@
     const found = {
       type: [], type_count: 0, measure: [], measure_count: 0, gutter: [], gutter_count: 0,
       squeezed: [], squeezed_count: 0, note: [], note_count: 0, icon: [], icon_count: 0,
+      header: [], header_count: 0, title_block: [], title_block_count: 0,
     };
     const width = win.innerWidth;
     const note = function (kind, sel, property, value) {
@@ -1252,7 +1270,246 @@
           + Math.round(r.height * 10) / 10 + ' px');
       }
     }
+    probeHeader(win, doc, note);
+    probeNoScript(win, doc, note);
+    probeTitleBlock(win, doc, note);
     return found;
+  }
+
+  // Whether `el` is drawn: it has a box, more than a screen reader's 2 px, not hidden.
+  function drawn(win, el) {
+    if (el.getClientRects().length === 0) return false;
+    const r = el.getBoundingClientRect();
+    return r.width > HIDDEN_BOX_PX && r.height > HIDDEN_BOX_PX
+      && win.getComputedStyle(el).visibility !== 'hidden';
+  }
+
+  // The header (#384; `web.md`, *Page anatomy*). Each lockup (`.fs-lockup`, which `xtask site`
+  // draws in the menu bar; the file check makes sure it is there) must be 24 px tall, every path
+  // filled in the ink role of the page's theme (the body's text color, Void or Paper), wholly
+  // drawn inside every box around it that clips and inside the window, and kept a quarter of
+  // its height from the window's sides and from every icon and text drawn in its header. From
+  // 720 px no menu button (`#mdbook-sidebar-toggle`) is drawn, and under it one is. The sidebar
+  // (`#mdbook-sidebar`) is drawn from 720 px, and wherever it is drawn a screen reader and the
+  // keyboard reach it (not `aria-hidden`, each link in the tab order); wherever it is put away
+  // (no box, hidden, or wholly off the left edge) neither does.
+  function probeHeader(win, doc, note) {
+    const width = win.innerWidth;
+    const right = doc.documentElement.clientWidth;
+    const ink = win.getComputedStyle(doc.body).color;
+    const round = function (v) { return Math.round(v * 10) / 10; };
+    for (const svg of Array.from(doc.querySelectorAll('.fs-lockup'))) {
+      const sel = selector(svg);
+      if (!drawn(win, svg)) {
+        note('header', sel, 'display', 'not drawn');
+        continue;
+      }
+      const r = svg.getBoundingClientRect();
+      if (!samePx(r.height, LOCKUP_PX)) note('header', sel, 'height', round(r.height) + ' px');
+      for (const path of Array.from(svg.querySelectorAll('path'))) {
+        const fill = win.getComputedStyle(path).fill;
+        if (fill !== ink || INKS.indexOf(fill) < 0) {
+          note('header', sel, 'fill', fill + ', where the ink is ' + ink);
+          break;
+        }
+      }
+      let clip = { left: 0, top: -Infinity, right: right, bottom: Infinity };
+      for (let a = svg.parentElement; a && a !== doc.documentElement; a = a.parentElement) {
+        const s = win.getComputedStyle(a);
+        if (s.overflowX === 'visible' && s.overflowY === 'visible') continue;
+        const b = a.getBoundingClientRect();
+        clip = {
+          left: Math.max(clip.left, s.overflowX === 'visible' ? -Infinity : b.left),
+          right: Math.min(clip.right, s.overflowX === 'visible' ? Infinity : b.right),
+          top: Math.max(clip.top, s.overflowY === 'visible' ? -Infinity : b.top),
+          bottom: Math.min(clip.bottom, s.overflowY === 'visible' ? Infinity : b.bottom),
+        };
+      }
+      if (r.left < clip.left - SLACK_PX || r.right > clip.right + SLACK_PX
+        || r.top < clip.top - SLACK_PX || r.bottom > clip.bottom + SLACK_PX) {
+        note('header', sel, 'cut', 'drawn ' + round(r.left) + ' to ' + round(r.right)
+          + ' px, shown ' + round(clip.left) + ' to ' + round(clip.right) + ' px');
+      }
+      const space = r.height * CLEAR_SPACE;
+      if (r.left - space < -SLACK_PX || r.right + space > right + SLACK_PX) {
+        note('header', sel, 'clear space', round(r.left) + ' px from the left and '
+          + round(right - r.right) + ' px from the right, against ' + round(space) + ' px');
+      }
+      const header = svg.closest('header') || doc.body;
+      for (const el of Array.from(header.querySelectorAll('*'))) {
+        if (el === svg || svg.contains(el) || el.contains(svg)) continue;
+        const own = el instanceof win.SVGSVGElement || Array.from(el.childNodes).some(function (n) {
+          return n.nodeType === 3 && /\S/.test(n.data);
+        });
+        if (!own || !drawn(win, el)) continue;
+        const b = el.getBoundingClientRect();
+        if (b.left < r.right + space - SLACK_PX && b.right > r.left - space + SLACK_PX
+          && b.top < r.bottom + space - SLACK_PX && b.bottom > r.top - space + SLACK_PX) {
+          note('header', sel, 'clear space', selector(el) + ' within ' + round(space) + ' px');
+        }
+      }
+    }
+    const toggle = doc.getElementById('mdbook-sidebar-toggle');
+    const sidebarEl = doc.getElementById('mdbook-sidebar');
+    // A page with the site's header has the sidebar and its menu button too: neither rule
+    // below may pass for want of them.
+    if (doc.querySelector('header#mdbook-menu-bar') && (!toggle || !sidebarEl)) {
+      note('header', 'header#mdbook-menu-bar', 'sidebar', (toggle ? '' : 'no menu button ')
+        + (sidebarEl ? '' : 'no sidebar'));
+    }
+    if (toggle) {
+      const shown = drawn(win, toggle);
+      if (width >= SIDEBAR_OPEN_FROM_PX && shown) {
+        note('header', selector(toggle), 'display', 'a menu button from '
+          + SIDEBAR_OPEN_FROM_PX + ' px');
+      } else if (width < SIDEBAR_OPEN_FROM_PX && !shown) {
+        note('header', selector(toggle), 'display', 'no menu button under '
+          + SIDEBAR_OPEN_FROM_PX + ' px');
+      }
+    }
+    const sidebar = doc.getElementById('mdbook-sidebar');
+    if (sidebar) {
+      const sel = selector(sidebar);
+      const shown = drawn(win, sidebar) && sidebar.getBoundingClientRect().right > SLACK_PX;
+      if (width >= SIDEBAR_OPEN_FROM_PX && !shown) {
+        note('header', sel, 'display', 'put away from ' + SIDEBAR_OPEN_FROM_PX + ' px');
+      }
+      const hidden = sidebar.getAttribute('aria-hidden') === 'true';
+      const links = Array.from(sidebar.querySelectorAll('a[href]'));
+      const reached = links.filter(function (a) { return a.tabIndex >= 0; }).length;
+      if (shown && (hidden || reached < links.length)) {
+        note('header', sel, 'aria-hidden', (hidden ? 'hidden from screen readers' : 'read')
+          + ' and ' + reached + ' of ' + links.length + ' links in the tab order, drawn');
+      } else if (!shown && (!hidden || reached > 0)) {
+        note('header', sel, 'aria-hidden', (hidden ? 'hidden from screen readers' : 'read')
+          + ' and ' + reached + ' of ' + links.length + ' links in the tab order, put away');
+      }
+    }
+  }
+
+  // Whether the sidebar `el` is drawn on the page: a box, not hidden, not wholly off the left.
+  function sidebarShown(win, el) {
+    return drawn(win, el) && el.getBoundingClientRect().right > SLACK_PX;
+  }
+
+  // The sidebar with scripts off (#384): read as the page's markup leaves it before any script
+  // runs (the root without its `js` class, mdBook's sidebar box unticked, the sidebar without
+  // the `display` mdBook's script gives it), with transitions held, then put back. From 720 px
+  // the sidebar is drawn and no menu button is; under 720 px the menu button is, as only it can
+  // open the sidebar without a script. Read only on a page whose script marks the root `js`.
+  function probeNoScript(win, doc, note) {
+    const root = doc.documentElement;
+    const box = doc.getElementById('mdbook-sidebar-toggle-anchor');
+    const sidebar = doc.getElementById('mdbook-sidebar');
+    const toggle = doc.getElementById('mdbook-sidebar-toggle');
+    if (!box || !sidebar || !toggle || !root.classList.contains('js')) return;
+    const width = win.innerWidth;
+    const held = doc.createElement('style');
+    held.textContent = '*, *::before, *::after { transition: none !important; }';
+    const was = { checked: box.checked, display: sidebar.style.display };
+    doc.head.appendChild(held);
+    try {
+      root.classList.remove('js');
+      box.checked = false;
+      sidebar.style.display = '';
+      const shown = sidebarShown(win, sidebar);
+      const button = drawn(win, toggle);
+      if (width >= SIDEBAR_OPEN_FROM_PX && (!shown || button)) {
+        note('header', selector(sidebar), 'scripts off', (shown ? 'drawn' : 'put away')
+          + (button ? ', with a menu button' : '') + ' from ' + SIDEBAR_OPEN_FROM_PX + ' px');
+      } else if (width < SIDEBAR_OPEN_FROM_PX && !button) {
+        note('header', selector(toggle), 'scripts off', 'no menu button under '
+          + SIDEBAR_OPEN_FROM_PX + ' px');
+      }
+    } finally {
+      root.classList.add('js');
+      box.checked = was.checked;
+      sidebar.style.display = was.display;
+      held.remove();
+    }
+  }
+
+  // The sidebar after a window under 720 px widens past it (#384): the frame is widened to
+  // `SIDEBAR_WIDENED_PX` and, once the sidebar's slide has run, the sidebar must be drawn and
+  // reached, and no menu button drawn. Returns what is wrong, as the header's examples.
+  async function probeWidened(frame, win, doc) {
+    const found = [];
+    const sidebar = doc.getElementById('mdbook-sidebar');
+    const toggle = doc.getElementById('mdbook-sidebar-toggle');
+    if (!sidebar || !toggle || win.innerWidth >= SIDEBAR_OPEN_FROM_PX) return found;
+    const from = win.innerWidth;
+    frame.style.width = SIDEBAR_WIDENED_PX + 'px';
+    await new Promise(function (resolve) { setTimeout(resolve, SIDEBAR_SLIDE_WAIT_MS); });
+    await nextFrames(win);
+    const what = 'widened from ' + from + ' to ' + SIDEBAR_WIDENED_PX + ' px';
+    const hidden = sidebar.getAttribute('aria-hidden') === 'true';
+    const links = Array.from(sidebar.querySelectorAll('a[href]'));
+    const reached = links.filter(function (a) { return a.tabIndex >= 0; }).length;
+    if (!sidebarShown(win, sidebar) || hidden || reached < links.length) {
+      found.push({ selector: selector(sidebar), property: 'widened', theme: from + ' px',
+        value: (sidebarShown(win, sidebar) ? 'drawn' : 'put away') + (hidden ? ', hidden' : '')
+          + ', ' + reached + ' of ' + links.length + ' links in the tab order, ' + what });
+    }
+    if (drawn(win, toggle)) {
+      found.push({ selector: selector(toggle), property: 'widened', theme: from + ' px',
+        value: 'a menu button, ' + what });
+    }
+    return found;
+  }
+
+  // The title block (#384; `web.md`, *Page anatomy*; `fusionspace.css`, `.fs-titleblock`). Each
+  // one (`footer.fs-titleblock`; the file check makes sure every page ends with one) must be
+  // drawn inside a 2 px solid border in the ink role on every side, its fields' names and entries
+  // in Cascadia Mono, and nothing may be drawn below its top: no text, picture or field outside
+  // it, other than in a box fixed to the window (the sidebar, the wide page arrows).
+  function probeTitleBlock(win, doc, note) {
+    const ink = win.getComputedStyle(doc.body).color;
+    for (const block of Array.from(doc.querySelectorAll('footer.fs-titleblock'))) {
+      const sel = selector(block);
+      if (!drawn(win, block)) {
+        note('title_block', sel, 'display', 'not drawn');
+        continue;
+      }
+      const s = win.getComputedStyle(block);
+      for (const side of ['Top', 'Right', 'Bottom', 'Left']) {
+        const w = parseFloat(s['border' + side + 'Width']);
+        const style = s['border' + side + 'Style'];
+        const color = s['border' + side + 'Color'];
+        if (!samePx(w, TITLE_BLOCK_BORDER_PX) || style !== 'solid' || color !== ink) {
+          note('title_block', sel, 'border-' + side.toLowerCase(), w + 'px ' + style + ' '
+            + color + ', where the ink is ' + ink);
+        }
+      }
+      for (const cell of Array.from(block.querySelectorAll('.k, .v'))) {
+        const family = win.getComputedStyle(cell).fontFamily.split(',')[0].trim()
+          .replace(/^["']|["']$/g, '');
+        if (family !== 'Cascadia Mono') {
+          note('title_block', selector(cell), 'font-family', family);
+          break;
+        }
+      }
+      const top = block.getBoundingClientRect().top;
+      for (const el of Array.from(doc.body.querySelectorAll('*'))) {
+        // The box first: on a long page nearly everything ends above the block.
+        const b = el.getBoundingClientRect();
+        if (b.bottom <= top + SLACK_PX || block.contains(el) || el.contains(block)) continue;
+        const tag = el.tagName.toLowerCase();
+        if (tag === 'script' || tag === 'style' || tag === 'template' || tag === 'noscript') continue;
+        const own = el instanceof win.SVGSVGElement || tag === 'img' || tag === 'input'
+          || Array.from(el.childNodes).some(function (n) {
+            return n.nodeType === 3 && /\S/.test(n.data);
+          });
+        if (!own || !drawn(win, el)) continue;
+        let fixed = false;
+        for (let a = el; a && a !== doc.body; a = a.parentElement) {
+          if (win.getComputedStyle(a).position === 'fixed') { fixed = true; break; }
+        }
+        if (fixed) continue;
+        note('title_block', selector(el), 'position', 'drawn to ' + Math.round(b.bottom)
+          + ' px, below the title block\'s top at ' + Math.round(top) + ' px');
+        break;
+      }
+    }
   }
 
   function check(page, width, height) {
@@ -1308,6 +1565,11 @@
           probeAccess(win, doc, found);
           await probeDefaults(win, doc, found);
           Object.assign(result, found);
+          // Last, as it changes the frame's width.
+          for (const widened of await probeWidened(frame, win, doc)) {
+            result.header_count++;
+            if (result.header.length < EXAMPLES) result.header.push(widened);
+          }
           result.width = width;
           result.error = null;
           finish(result);

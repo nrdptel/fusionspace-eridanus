@@ -79,7 +79,24 @@
 //!   - **an icon off the system's sizes** (`foundations.md`, *Icons*): each icon drawn in the
 //!     spans mdBook keeps its chrome's icons in (`.fa-svg`, the menu bar's buttons, the page
 //!     arrows, the search spinner, a code block's buttons), drawn now at this width, must be
-//!     square at 16, 20 or 24 px. Which icons they are is the file check's (`chrome.rs`).
+//!     square at 16, 20 or 24 px. Which icons they are is the file check's (`chrome.rs`);
+//!   - **a header off the system's** (`web.md`, *Page anatomy*; ADR-229): each lockup must be
+//!     24 px tall, filled in the ink role of the page's theme, drawn whole inside every box that
+//!     clips it and the window, and kept a quarter of its height (the brand's clear space) from
+//!     the window's sides and every icon and text in its header. From 720 px no menu button is
+//!     drawn and the sidebar is; under 720 px the menu button is. Wherever the sidebar is drawn,
+//!     a screen reader and the keyboard reach it (not `aria-hidden`, every link in the tab
+//!     order), and wherever it is put away neither does. Read again with scripts off (the root
+//!     without `js`, mdBook's sidebar box unticked, transitions held): from 720 px the sidebar is
+//!     drawn and no menu button is, and under 720 px the menu button is. And last, a window under
+//!     720 px is widened to 800 px: once the sidebar's slide has run, it must be drawn and
+//!     reached, with no menu button. A page with the site's header and no sidebar or menu button
+//!     fails. That every page has the header, its lockup, the sidebar and the menu button is the
+//!     file check's (`frame.rs`);
+//!   - **a title block off the system's or not last**: each must sit inside a 2 px solid border
+//!     in the ink role on every side, its fields' names and entries in Cascadia Mono, with no
+//!     text, picture or field drawn below its top outside it, other than in a box fixed to the
+//!     window. That every page ends with one is the file check's (`frame.rs`).
 //! - What a keyboard, forced colors and a sticky bar need (#383; `web.md`, *Theme* and
 //!   *Accessibility*), each read in the theme the page loads in, contrast in every reading:
 //!   - **text under the contrast floor**: WCAG 2.2 AA (1.4.3), the floor `foundations.md`
@@ -139,7 +156,15 @@
 //! padding and one with it, which must pass, a title that scrolls smoothly when clicked, an icon
 //! at 13 px, one 24 by 20 px, icons at 16, 20 and 24 px and one at 13 px not drawn, which must
 //! pass, an icon at 0 px, selected text with no color of the page's, on the danger role at 22 % and
-//! on the action role opaque, and an ordinary
+//! on the action role opaque, a page's frame drawn as the system's, which must pass, a lockup
+//! 20 px tall, one in the action role, one cut by its box, one with the product's name inside
+//! its clear space, a menu button only from 720 px, a sidebar drawn and hidden from screen
+//! readers, one drawn with its link out of the tab order, one put away and still read, one put
+//! away from 720 px and hidden while drawn under it, a sidebar and menu button put away with
+//! scripts off, a sidebar drawn only when the window was wide at load (and a lockup 20 px tall
+//! from 720 px), a title block bordered 1 px, one bordered
+//! in a rule's color, one with its entries in Archivo, one with a paragraph below it, and an
+//! ordinary
 //! page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
@@ -318,10 +343,17 @@ enum Kind {
     Icon,
     /// Selected text drawn on something other than the action role at 22 % (#383).
     Selection,
+    /// A header off the system's: a lockup not 24 px tall in the ink role, cut, or without its
+    /// clear space; a menu button from 720 px or none under it; a sidebar put away from 720 px,
+    /// or one a screen reader or the keyboard reaches while put away, or can't while drawn (#384).
+    Header,
+    /// A title block off the system's: not inside a 2 px ink border, its entries not in Cascadia
+    /// Mono, or something drawn below it (#384).
+    TitleBlock,
 }
 
 impl Kind {
-    const ALL: [Kind; 18] = [
+    const ALL: [Kind; 20] = [
         Kind::Wide,
         Kind::Cut,
         Kind::Overlap,
@@ -340,6 +372,8 @@ impl Kind {
         Kind::Sticky,
         Kind::Icon,
         Kind::Selection,
+        Kind::Header,
+        Kind::TitleBlock,
     ];
 
     fn describe(self) -> &'static str {
@@ -362,6 +396,8 @@ impl Kind {
             Kind::Sticky => "a sticky bar that can hide what is focused",
             Kind::Icon => "an icon off the system's sizes",
             Kind::Selection => "a selection off the action role",
+            Kind::Header => "a header off the system's",
+            Kind::TitleBlock => "a title block off the system's or not last",
         }
     }
 }
@@ -494,8 +530,79 @@ const NOTES_BELOW: &str = concat!(
     note!("trust", "How far to trust it")
 );
 
+/// The system's frame (`web.md`, *Page anatomy*), for the frame canaries, which load the
+/// ordinary canary page's styles, not the site's: a header holding a menu button under 720 px
+/// and the lockup with the product's name, a sidebar drawn from 720 px and reached only there,
+/// then the title block, last.
+macro_rules! frame_style {
+    () => {
+        "<style>.frame-header { display: flex; align-items: center; gap: 16px; padding: 13px \
+16px; } .fs-logo { display: flex; align-items: center; gap: 12px; color: inherit; \
+text-decoration: none; } .fs-lockup { height: 24px; width: auto; flex: none; } .fs-product { \
+font: 600 20px/24px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; } \
+#mdbook-sidebar-toggle { display: inline-flex; } #mdbook-sidebar-toggle svg { width: 20px; \
+height: 20px; } #mdbook-sidebar { display: none; padding: 0 16px; font: 14px/20px 'Cascadia \
+Mono', 'Cascadia Mono Fallback', monospace; } @media (min-width: 720px) { \
+#mdbook-sidebar-toggle { display: none; } #mdbook-sidebar { display: block; } } .fs-titleblock \
+{ display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); border: 2px solid \
+#0B0F1C; background: #FFFFFF; margin: 48px 16px 0; } .fs-titleblock > div { padding: 6px 10px \
+8px; display: grid; gap: 2px; min-width: 0; } .fs-titleblock .k { font: 12px/16px 'Cascadia \
+Mono', 'Cascadia Mono Fallback', monospace; text-transform: uppercase; color: #566079; } \
+.fs-titleblock .v { font: 14px/20px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; \
+overflow-wrap: anywhere; }</style>"
+    };
+}
+
+/// A lockup as `frame.rs` draws one, a single path in the lockup's view box.
+macro_rules! lockup {
+    () => {
+        "<svg class=\"fs-lockup\" viewBox=\"0 0 680.485 115\" fill=\"currentColor\" \
+         aria-hidden=\"true\"><path \
+         fill=\"currentColor\" d=\"M0 0H680V115H0Z\"/></svg>"
+    };
+}
+
+/// The sidebar as the site's script leaves it: hidden from screen readers and the keyboard, and
+/// reached from 720 px, where it is drawn, as the window's width changes too.
+macro_rules! sidebar {
+    () => {
+        "<nav id=\"mdbook-sidebar\" aria-hidden=\"true\"><a href=\"#\" tabindex=\"-1\">A \
+         chapter</a></nav><script>(function () { const m = matchMedia('(min-width: 720px)'); \
+         const s = document.getElementById('mdbook-sidebar'); const set = function () { \
+         s.setAttribute('aria-hidden', String(!m.matches)); s.querySelector('a').tabIndex = \
+         m.matches ? 0 : -1; }; set(); m.addEventListener('change', set); })();</script>"
+    };
+}
+
+/// A page's frame with `$style` added, `$lockup` in its header and `$sidebar` after it, then the
+/// title block and `$after`; its root marked `js`, as the site's script marks it, and mdBook's
+/// sidebar box, for the reading with scripts off.
+macro_rules! frame {
+    ($style:expr, $lockup:expr, $sidebar:expr, $after:expr) => {
+        concat!(
+            frame_style!(),
+            $style,
+            "<input type=\"checkbox\" id=\"mdbook-sidebar-toggle-anchor\" checked \
+             style=\"display: none\"><script>document.documentElement.classList.add('js');\
+             </script><header class=\"frame-header\"><label id=\"mdbook-sidebar-toggle\" \
+             aria-label=\"Menu\"><svg viewBox=\"0 0 24 24\" fill=\"none\" \
+             stroke=\"currentColor\" stroke-width=\"1.5\" aria-hidden=\"true\"><path d=\"M4 7H20M4 \
+             12H20M4 17H20\"/></svg></label><a class=\"fs-logo\" href=\"#\" \
+             aria-label=\"FusionSpace HPR\">",
+            $lockup,
+            "<span class=\"fs-product\">HPR</span></a></header>",
+            $sidebar,
+            "<footer class=\"fs-titleblock\" aria-label=\"Title block\"><div><span \
+             class=\"k\">Owner</span><span class=\"v\">FusionSpace</span></div><div><span \
+             class=\"k\">Title</span><span class=\"v\">A canary</span></div><div><span \
+             class=\"k\">Date of issue</span><span class=\"v\">2026-10-10</span></div></footer>",
+            $after
+        )
+    };
+}
+
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 77] = [
+const CANARIES: [Canary; 93] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1147,6 +1254,207 @@ const CANARIES: [Canary; 77] = [
         inside: "<style>::selection { background-color: #3350D6 !important; }</style>",
         after: "",
     },
+    Canary {
+        file: "canary-frame.html",
+        what: "a page's frame drawn as the system's, which must pass",
+        expect: &[],
+        inside: "",
+        after: frame!("", lockup!(), sidebar!(), ""),
+    },
+    Canary {
+        file: "canary-lockup-small.html",
+        what: "a lockup 20 px tall",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "<style>.fs-lockup { height: 20px !important; }</style>",
+            lockup!(),
+            sidebar!(),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-lockup-action.html",
+        what: "a lockup in the action role, not the ink",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "<style>.fs-logo { color: #3350D6 !important; }</style>",
+            lockup!(),
+            sidebar!(),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-lockup-cut.html",
+        what: "a lockup cut by a box 60 px wide",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "",
+            concat!(
+                "<span style=\"display: inline-block; width: 60px; overflow: hidden\">",
+                lockup!(),
+                "</span>"
+            ),
+            sidebar!(),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-lockup-crowded.html",
+        what: "a lockup with the product's name 2 px from it, inside its clear space",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "<style>.fs-logo { gap: 2px !important; }</style>",
+            lockup!(),
+            sidebar!(),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-menu-wide.html",
+        what: "a menu button drawn only from 720 px",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "<style>#mdbook-sidebar-toggle { display: none !important; } @media (min-width: \
+             720px) { #mdbook-sidebar-toggle { display: inline-flex !important; } }</style>",
+            lockup!(),
+            sidebar!(),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-sidebar-unread.html",
+        what: "a sidebar drawn at every width and hidden from screen readers",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "<style>#mdbook-sidebar { display: block !important; }</style>",
+            lockup!(),
+            "<nav id=\"mdbook-sidebar\" aria-hidden=\"true\"><a href=\"#\">A chapter</a></nav>",
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-sidebar-untabbed.html",
+        what: "a sidebar drawn at every width with its link out of the tab order",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "<style>#mdbook-sidebar { display: block !important; }</style>",
+            lockup!(),
+            "<nav id=\"mdbook-sidebar\" aria-hidden=\"false\"><a href=\"#\" tabindex=\"-1\">A \
+             chapter</a></nav>",
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-sidebar-read.html",
+        what: "a sidebar put away at every width and still read and reached",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "<style>#mdbook-sidebar { display: none !important; }</style>",
+            lockup!(),
+            "<nav id=\"mdbook-sidebar\" aria-hidden=\"false\"><a href=\"#\">A chapter</a></nav>",
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-sidebar-narrow.html",
+        what: "a sidebar put away from 720 px and drawn under it, hidden from screen readers",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "<style>#mdbook-sidebar { display: block !important; } @media (min-width: 720px) { \
+             #mdbook-sidebar { display: none !important; } }</style>",
+            lockup!(),
+            "<nav id=\"mdbook-sidebar\" aria-hidden=\"true\"><a href=\"#\" tabindex=\"-1\">A \
+             chapter</a></nav>",
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-sidebar-noscript.html",
+        what: "a sidebar and a menu button put away with scripts off",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "<style>html:not(.js) #mdbook-sidebar, html:not(.js) #mdbook-sidebar-toggle { \
+             display: none !important; }</style>",
+            lockup!(),
+            sidebar!(),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-sidebar-widened.html",
+        what: "a sidebar drawn only when the window was wide at load, and from 720 px a lockup \
+               20 px tall",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "<style>html:not(.wide-at-load) #mdbook-sidebar { display: none !important; } \
+             @media (min-width: 720px) { .fs-lockup { height: 20px !important; } }</style>\
+             <script>if (matchMedia('(min-width: 720px)').matches) \
+             document.documentElement.classList.add('wide-at-load');</script>",
+            lockup!(),
+            sidebar!(),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-block-thin.html",
+        what: "a title block bordered 1 px",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: frame!(
+            "<style>.fs-titleblock { border-width: 1px !important; }</style>",
+            lockup!(),
+            sidebar!(),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-block-rule.html",
+        what: "a title block bordered in a rule's color, not the ink",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: frame!(
+            "<style>.fs-titleblock { border-color: #566079 !important; }</style>",
+            lockup!(),
+            sidebar!(),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-block-archivo.html",
+        what: "a title block with its entries in Archivo",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: frame!(
+            "<style>.fs-titleblock .v { font-family: 'Archivo', 'Archivo Fallback', sans-serif \
+             !important; font-variant-numeric: tabular-nums !important; }</style>",
+            lockup!(),
+            sidebar!(),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-block-followed.html",
+        what: "a title block with a paragraph below it",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: frame!(
+            "",
+            lockup!(),
+            sidebar!(),
+            "<p>A line after the title block.</p>"
+        ),
+    },
 ];
 
 /// A canary's page: an ordinary page, as mdBook lays one out, plus what the canary adds.
@@ -1389,6 +1697,15 @@ struct Measured {
     selection: Vec<Style>,
     #[serde(default)]
     selection_count: usize,
+    /// The page's header and title block off the system's (#384).
+    #[serde(default)]
+    header: Vec<Style>,
+    #[serde(default)]
+    header_count: usize,
+    #[serde(default)]
+    title_block: Vec<Style>,
+    #[serde(default)]
+    title_block_count: usize,
 }
 
 impl Measured {
@@ -1412,6 +1729,8 @@ impl Measured {
             Kind::Sticky => self.sticky_count > 0,
             Kind::Icon => self.icon_count > 0,
             Kind::Selection => self.selection_count > 0,
+            Kind::Header => self.header_count > 0,
+            Kind::TitleBlock => self.title_block_count > 0,
         }
     }
 
@@ -1485,6 +1804,8 @@ impl Measured {
             Kind::Sticky => Style::list(&self.sticky),
             Kind::Icon => Style::list(&self.icon),
             Kind::Selection => Style::list(&self.selection),
+            Kind::Header => Style::list(&self.header),
+            Kind::TitleBlock => Style::list(&self.title_block),
         }
     }
 }
@@ -2480,6 +2801,30 @@ mod tests {
             CANARIES.iter().any(
                 |canary| canary.file == "canary-smooth.html" && canary.expect == [Kind::Motion]
             )
+        );
+    }
+
+    #[test]
+    fn the_header_and_the_title_block_have_canaries_both_ways() {
+        // Each kind has canaries that must show it alone, and the frame drawn as the system's
+        // must pass.
+        for (kind, least) in [(Kind::Header, 11), (Kind::TitleBlock, 4)] {
+            let failing = CANARIES
+                .iter()
+                .filter(|canary| canary.expect == [kind])
+                .count();
+            assert!(failing >= least, "{kind:?}: {failing}");
+        }
+        assert!(CANARIES.iter().any(|canary| {
+            canary.file == "canary-frame.html"
+                && canary.expect.is_empty()
+                && canary.after.contains("class=\"fs-lockup\"")
+                && canary.after.contains("<footer class=\"fs-titleblock\"")
+        }));
+        assert_eq!(Kind::Header.describe(), "a header off the system's");
+        assert_eq!(
+            Kind::TitleBlock.describe(),
+            "a title block off the system's or not last"
         );
     }
 

@@ -1,15 +1,5 @@
 /* SPDX-License-Identifier: MIT OR Apache-2.0 */
-/* hpr-sim's additions to the product system's mdBook theme (ADR-164). The title block that ends
-   the landing page: a 2 px ink border, as the system's line table gives the title block, and its
-   fields in Cascadia Mono, as data. */
-.title-block { margin-top: 3em; border: 2px solid var(--fg); }
-.title-block table { width: 100%; margin: 0; }
-.title-block thead { display: none; }
-.title-block td { padding: 0.35em 0.8em; vertical-align: top; border-top: 1px solid var(--table-border-color); }
-.title-block tr:first-child td { border-top: 0; }
-.title-block td:first-child { width: 9em; font-family: 'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace; font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.06em; padding-top: 0.6em; }
-.title-block tbody tr:nth-child(2n) { background: transparent; }
-
+/* hpr-sim's additions to the product system's mdBook theme (ADR-164). */
 /* Nothing cut off at any width (M0.7a1; `cargo xtask site` checks every page from 320 to 1,920 px).
    The menu bar's title: between the buttons, mdBook cuts it short with an ellipsis on a window
    narrower than about 500 px. There it takes a row of its own under the buttons, which mdBook's
@@ -222,7 +212,8 @@ button { font: inherit; }
 .theme-popup .theme { font-size: 16px; line-height: 24px; }
 .chapter li a strong { font-weight: 400; }
 .chapter li.part-title { font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
-/* The menu bar's title, a `subtitle` until the lockup replaces it; the search field in body type. */
+/* The menu bar's title, the lockup and the product's name in `subtitle`; the search field in body
+   type. */
 .menu-title { font-size: 20px; line-height: 24px; font-weight: 600; align-self: center; }
 @media only screen and (max-width: 519px) { #mdbook-menu-bar .menu-title { line-height: 24px; } }
 #mdbook-searchbar { font-family: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 16px; line-height: 24px; font-variant-numeric: tabular-nums; }
@@ -285,4 +276,48 @@ html { scroll-padding-top: calc(var(--menu-bar-height) + 1px); }
    so text drawn before a face arrives takes the same room. */
 html, h4, h5, h6, #mdbook-searchbar { font-family: 'Archivo', 'Archivo Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif; }
 code, pre, kbd, .hljs { font-family: 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, 'SF Mono', Menlo, Consolas, monospace !important; }
-h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter, .title-block td:first-child { font-family: 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; }
+h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter { font-family: 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; }
+/* The page's frame (#384; `web.md`, *Page anatomy*). `cargo xtask site` makes the menu bar the
+   system's header and ends every page with its title block, in a `footer`; its page check fails
+   either drawn off the system's. The header: the horizontal lockup, 24 px tall in the text's
+   color (Void on light, Paper on dark, as the brand's one-color files are), with the brand's clear
+   space around it, a quarter of its height, then the product's name; both one link to the landing
+   page. From 720 px the sidebar stays open, so the menu button goes. */
+#mdbook-menu-bar .fs-logo { box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 12px; overflow: visible; padding-inline: 6px; color: var(--hpr-ink); text-decoration: none; }
+#mdbook-menu-bar .fs-lockup { height: 24px; width: auto; flex: none; }
+#mdbook-menu-bar .fs-product { flex: none; }
+@media only screen and (min-width: 720px) { #mdbook-sidebar-toggle { display: none; } }
+/* With scripts off, nothing ticks mdBook's sidebar box, which draws the sidebar: from 720 px the
+   stylesheet draws it instead, as mdBook draws it ticked. */
+@media only screen and (min-width: 720px) {
+    html:not(.js) #mdbook-sidebar-toggle-anchor ~ .sidebar { transform: none; }
+    html:not(.js) #mdbook-sidebar-toggle-anchor ~ .page-wrapper { transform: none; margin-inline-start: calc(var(--sidebar-width) + var(--sidebar-resize-indicator-width)); }
+}
+@media only screen and (min-width: 720px) and (max-width: 1380px) {
+    html:not(.js) #mdbook-sidebar-toggle-anchor ~ .page-wrapper .nav-wide-wrapper { display: none; }
+    html:not(.js) #mdbook-sidebar-toggle-anchor ~ .page-wrapper .nav-wrapper { display: block; }
+}
+/* The menu bar holds its buttons and the lockup on one row from 520 px (below, the lockup takes a
+   row of its own) only with the buttons closed up: at mdBook's spacing they take 512 px, more than
+   a 520 px window leaves beside a 15 px scroll bar, as on Linux and Windows. From 720 px the
+   sidebar takes 300 px beside the page, which leaves as little room until about 880 px. Up to
+   there the buttons close up, as mdBook closes them up on a phone, each still 28 px wide. */
+@media only screen and (min-width: 520px) and (max-width: 879px) {
+    #mdbook-menu-bar .fa-svg, #mdbook-menu-bar .icon-button { padding: 0 4px; }
+    #mdbook-menu-bar .right-buttons { margin: 0 8px; }
+}
+/* The title block (`fusionspace.css`, `.fs-titleblock`): ISO 7200's fields in ruled cells,
+   inside a 2 px ink border on the surface, each field's name in `label` capitals over its entry
+   in Cascadia Mono. The cells wrap as the system's grid does, at least 132 px wide (the owner's
+   264 px), but each row's cells grow to its end, so a row cut short by a long entry, which takes
+   a row of its own, leaves no hole. The owner's carries the mark, at 24 px, the brand's least.
+   It lines up with the page's text and ends the page. */
+.content .fs-titleblock { box-sizing: border-box; max-width: var(--content-max-width); margin: 48px auto 0; display: flex; flex-wrap: wrap; border: 2px solid var(--hpr-ink); background: var(--hpr-surface); }
+.fs-titleblock > div { flex: 1 1 132px; box-sizing: border-box; padding: 6px 10px 8px; border-right: 1px solid var(--hpr-rule-strong); border-bottom: 1px solid var(--hpr-rule-strong); display: grid; gap: 2px; align-content: start; min-width: 0; margin: 0 -1px -1px 0; }
+.fs-titleblock .k { font: 400 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.08em; color: var(--hpr-ink-muted); }
+.fs-titleblock .v { font: 400 14px/20px 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+.fs-titleblock .v code { font-size: inherit; padding: 0; background: none; }
+.fs-titleblock .wide { flex: 2 1 264px; }
+.fs-titleblock .full { flex-basis: 100%; }
+.fs-titleblock .mark .v { display: flex; gap: 8px; align-items: center; }
+.fs-titleblock .fs-mark { height: 24px; width: auto; flex: none; }

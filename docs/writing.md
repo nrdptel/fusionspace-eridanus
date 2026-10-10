@@ -246,8 +246,43 @@ then fails:
 - a page with a second `h1` (the print page, which holds every chapter, keeps one per chapter);
 - a favicon that isn't the system's.
 
-`mdbook serve` still shows mdBook's icons and two `h1`; only `cargo xtask site` builds the pages
-as published. Not read: text inside SVG images or over a picture, hover
+mdBook also names the book in text in its menu bar, shows the table of contents beside the page
+only from 1,080 px with a menu button below that, and ends a page with its arrows. The build
+redraws that frame:
+
+- the menu bar becomes the system's header: the FusionSpace lockup (the logo's mark with the
+  FusionSpace name beside it), 24 px tall in the text's color, then HPR, one link to the landing
+  page;
+- from 720 px the table of contents stays open and the menu button goes, with scripts off too;
+- every page ends with the title block, the box of facts about a document an engineering drawing
+  ends with ([title block](glossary.md#title-block)). Its entries are written once at the end of
+  [Start here](start-here.md#title-block), and each page adds its own title after the site's.
+
+A file check fails a page:
+
+- without one `header` holding the lockup, or without the table of contents, its box or its
+  menu button;
+- with mdBook's script that opens the table of contents only from 1,080 px;
+- without one `footer`, after the page's text, holding the title block with its fields in order
+  and the page's own title.
+
+The page check fails, at every width:
+
+- a lockup not 24 px tall, not in the text's color, cut by its box, or closer than a quarter of
+  its height to another icon or text in the header or to the window's side (the logo's clear
+  space, the brand's rule);
+- a menu button at 720 px or wider, or none below 720 px, with scripts on or off;
+- a table of contents hidden at 720 px or wider (with scripts on or off, and after a narrower
+  window is widened past 720 px); one hidden but still reached by the keyboard or a screen
+  reader; one shown but not reached;
+- a title block without its 2 px border in the text's color, with entries not in Cascadia Mono,
+  or with anything below it.
+
+The header has no theme switch of its own yet, and pages have no sheets or intro: those wait for
+[M0.9d9, the page anatomy](decisions-and-roadmap.md#m0-9d9).
+
+`mdbook serve` still shows mdBook's icons, menu bar and two `h1`, and the landing page's title
+block as a table; only `cargo xtask site` builds the pages as published. Not read: text inside SVG images or over a picture, hover
 ([#432](https://github.com/nrdptel/fusionspace-eridanus/issues/432)), and three text marks
 mdBook still draws (`❱` on the sidebar's fold toggles, `✓` beside the chosen theme, `»` before a
 heading jumped to). Print and the pages' load speed, Google's Core Web Vitals, are still

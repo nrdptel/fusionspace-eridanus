@@ -1270,6 +1270,14 @@ either yet. See [Rigid-body flight](physics/flight.md#phases) and
 [Recovery](physics/recovery.md#separation).
 
 
+## Title block
+
+The box in the corner of an engineering drawing that says what the drawing is, who issued it,
+when, in which units and from which sources; ISO 7200 is the standard that lists its fields.
+Every page of this site ends with one, its entries written once at the end of
+[Start here](start-here.md#title-block), with the page's own title added after the site's.
+
+
 ## Tolerance
 
 How far a result may be from its reference and still pass, such as the 3% every parachute-descent
