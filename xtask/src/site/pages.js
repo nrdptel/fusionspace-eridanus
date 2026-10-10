@@ -400,6 +400,18 @@
   const INKS = ['rgb(11, 15, 28)', 'rgb(243, 244, 247)'];
   const SIDEBAR_OPEN_FROM_PX = 720;
   const TITLE_BLOCK_BORDER_PX = 2;
+  // The intro and the sheets (#384): the tag's type size and border, the sheet's rule on top and
+  // its number's type size. The theme switch: its choices, in order, the width from which it
+  // stands in the header (`switch.rs`, `HEADER_FROM_PX`), and its buttons' least height and type
+  // size (`web.md`, *Components*: buttons 44 px tall in Cascadia Mono 14).
+  const TAG_PX = 12;
+  const TAG_BORDER_PX = 1;
+  const SHEET_RULE_PX = 2;
+  const SHEET_NUMBER_PX = 12;
+  const SWITCH_CHOICES = ['Auto', 'Light', 'Dark'];
+  const SWITCH_HEADER_PX = 960;
+  const SWITCH_BUTTON_PX = 44;
+  const SWITCH_TYPE_PX = 14;
   // The width a narrow window is widened to, past 720 px, and how long the sidebar's slide
   // (240 ms, the system's slow step) is given to run.
   const SIDEBAR_WIDENED_PX = 800;
@@ -1263,6 +1275,7 @@
       type: [], type_count: 0, measure: [], measure_count: 0, gutter: [], gutter_count: 0,
       squeezed: [], squeezed_count: 0, note: [], note_count: 0, icon: [], icon_count: 0,
       header: [], header_count: 0, title_block: [], title_block_count: 0,
+      sheet: [], sheet_count: 0, theme_switch: [], theme_switch_count: 0,
     };
     const width = win.innerWidth;
     const note = function (kind, sel, property, value) {
@@ -1564,6 +1577,8 @@
     probeHeader(win, doc, note);
     probeNoScript(win, doc, note);
     probeTitleBlock(win, doc, note);
+    probeSheets(win, doc, note);
+    probeSwitch(win, doc, note);
     return found;
   }
 
@@ -1803,6 +1818,229 @@
     }
   }
 
+  // The first family of `el`'s font, unquoted.
+  function familyOf(win, el) {
+    return win.getComputedStyle(el).fontFamily.split(',')[0].trim().replace(/^["']|["']$/g, '');
+  }
+
+  // The intro and the sheets (#384; `web.md`, *Page anatomy*; `fusionspace.css`, `.fs-tag` and
+  // `.fs-sheet`). Each designation tag (`.fs-intro > .fs-tag`; the file check makes sure every
+  // title has one) must be drawn above its title, in Cascadia Mono 12 px, inside a 1 px solid
+  // border, one corner chamfered (a `clip-path` polygon). Each `h2` in `main` must be a sheet's
+  // name, in its rail (`section.fs-sheet > .fs-sheet-rail > h2`); each sheet must be drawn under
+  // a 2 px solid rule in the ink role, with its number in Cascadia Mono 12 px drawn above its
+  // name and reading `SHEET n / N`, counted from each intro (a chapter, on the print page).
+  function probeSheets(win, doc, note) {
+    const ink = win.getComputedStyle(doc.body).color;
+    for (const tag of Array.from(doc.querySelectorAll('.fs-intro > .fs-tag'))) {
+      const sel = selector(tag);
+      if (!drawn(win, tag)) {
+        note('sheet', sel, 'display', 'a designation tag not drawn');
+        continue;
+      }
+      const s = win.getComputedStyle(tag);
+      if (familyOf(win, tag) !== 'Cascadia Mono' || !samePx(parseFloat(s.fontSize), TAG_PX)) {
+        note('sheet', sel, 'font', s.fontSize + ' ' + familyOf(win, tag));
+      }
+      if (!/^polygon\(/.test(s.clipPath)) {
+        note('sheet', sel, 'clip-path', s.clipPath + ': a tag with no chamfered corner');
+      }
+      for (const side of ['Top', 'Right', 'Bottom', 'Left']) {
+        const w = parseFloat(s['border' + side + 'Width']);
+        if (!samePx(w, TAG_BORDER_PX) || s['border' + side + 'Style'] !== 'solid') {
+          note('sheet', sel, 'border-' + side.toLowerCase(), w + 'px '
+            + s['border' + side + 'Style']);
+          break;
+        }
+      }
+      const title = tag.parentElement.querySelector(':scope > h1');
+      if (!title || tag.getBoundingClientRect().bottom > title.getBoundingClientRect().top
+        + SLACK_PX) {
+        note('sheet', sel, 'position', 'a designation tag not above its title');
+      }
+    }
+    const main = doc.querySelector('main');
+    if (!main) return;
+    for (const h2 of Array.from(main.querySelectorAll('h2'))) {
+      if (!h2.parentElement || !h2.parentElement.matches('section.fs-sheet > .fs-sheet-rail')) {
+        note('sheet', selector(h2), 'parent', 'a section\'s name outside a sheet\'s rail');
+      }
+    }
+    // The sheets, in runs from each intro.
+    const runs = [];
+    for (const el of Array.from(main.querySelectorAll('.fs-intro, section.fs-sheet'))) {
+      if (el.matches('.fs-intro') || runs.length === 0) runs.push([]);
+      if (el.matches('section.fs-sheet')) runs[runs.length - 1].push(el);
+    }
+    for (const run of runs) {
+      run.forEach(function (sheet, i) {
+        const sel = selector(sheet);
+        const s = win.getComputedStyle(sheet);
+        const w = parseFloat(s.borderTopWidth);
+        if (!samePx(w, SHEET_RULE_PX) || s.borderTopStyle !== 'solid' || s.borderTopColor !== ink) {
+          note('sheet', sel, 'border-top', w + 'px ' + s.borderTopStyle + ' ' + s.borderTopColor
+            + ', where the ink is ' + ink);
+        }
+        const number = sheet.querySelector(':scope > .fs-sheet-rail > .fs-sheet-no');
+        const name = sheet.querySelector(':scope > .fs-sheet-rail > h2');
+        if (!number || !drawn(win, number)) {
+          note('sheet', sel, 'display', 'a sheet without its number drawn');
+          return;
+        }
+        const words = number.textContent.trim();
+        const expected = 'SHEET ' + (i + 1) + ' / ' + run.length;
+        if (words !== expected) {
+          note('sheet', selector(number), 'text', '"' + words + '", not "' + expected + '"');
+        }
+        const n = win.getComputedStyle(number);
+        if (familyOf(win, number) !== 'Cascadia Mono'
+          || !samePx(parseFloat(n.fontSize), SHEET_NUMBER_PX)) {
+          note('sheet', selector(number), 'font', n.fontSize + ' ' + familyOf(win, number));
+        }
+        if (!name || number.getBoundingClientRect().bottom > name.getBoundingClientRect().top
+          + SLACK_PX) {
+          note('sheet', selector(number), 'position', 'a sheet\'s number not above its name');
+        }
+      });
+    }
+  }
+
+  // The theme switch (#384, #429; `web.md`, *Page anatomy*, *Components* and *Theme*;
+  // `fusionspace.css`, `.fs-seg`). Where a page has one (`#mdbook-theme-list.fs-seg`; the file
+  // check makes sure every page does) and scripts run, it must stand in the `header` from
+  // SWITCH_HEADER_PX and in the sidebar under it; hold one button for each of Auto, Light and
+  // Dark, in that order, at least 44 px tall in Cascadia Mono 14 px where drawn; have exactly
+  // one pressed (`aria-pressed`), Auto, as a first-time reader remembers no theme, filled in the
+  // ink role with the others unfilled; and mdBook's theme button must not be drawn. With scripts
+  // off it must not be drawn: nothing would work it.
+  function probeSwitch(win, doc, note) {
+    const group = doc.getElementById('mdbook-theme-list');
+    if (!group || !group.classList.contains('fs-seg')) return;
+    const sel = selector(group);
+    const root = doc.documentElement;
+    if (!root.classList.contains('js')) {
+      if (drawn(win, group)) note('theme_switch', sel, 'scripts off', 'drawn, with nothing to work it');
+      return;
+    }
+    // With scripts off, read as `probeNoScript` reads the sidebar: the root without its `js`
+    // class, transitions held, then put back.
+    const held = doc.createElement('style');
+    held.textContent = '*, *::before, *::after { transition: none !important; }';
+    doc.head.appendChild(held);
+    try {
+      root.classList.remove('js');
+      if (drawn(win, group)) note('theme_switch', sel, 'scripts off', 'drawn, with nothing to work it');
+    } finally {
+      root.classList.add('js');
+      held.remove();
+    }
+    const width = win.innerWidth;
+    const where = group.closest('header') ? 'the header'
+      : group.closest('#mdbook-sidebar') ? 'the sidebar' : 'neither the header nor the sidebar';
+    const wanted = width >= SWITCH_HEADER_PX ? 'the header' : 'the sidebar';
+    if (where !== wanted) {
+      note('theme_switch', sel, 'position', 'in ' + where + ' at ' + width + ' px, not in '
+        + wanted);
+    }
+    const toggle = doc.getElementById('mdbook-theme-toggle');
+    if (toggle && drawn(win, toggle)) {
+      note('theme_switch', selector(toggle), 'display', 'mdBook\'s theme menu button drawn');
+    }
+    const buttons = Array.from(group.querySelectorAll('button'));
+    const names = buttons.map(function (b) { return b.textContent.trim(); });
+    if (names.join('|') !== SWITCH_CHOICES.join('|')) {
+      note('theme_switch', sel, 'buttons', names.join(', ') + ', not '
+        + SWITCH_CHOICES.join(', '));
+    }
+    const pressed = buttons.filter(function (b) { return b.getAttribute('aria-pressed') === 'true'; });
+    if (pressed.length !== 1 || pressed[0].textContent.trim() !== SWITCH_CHOICES[0]) {
+      note('theme_switch', sel, 'aria-pressed', 'pressed: ' + (pressed.map(function (b) {
+        return b.textContent.trim();
+      }).join(', ') || 'none') + ', not ' + SWITCH_CHOICES[0]);
+    }
+    // Under 720 px the sidebar is put away until the menu button opens it: nothing to read.
+    if (where === 'the sidebar' && width < SIDEBAR_OPEN_FROM_PX) return;
+    if (!drawn(win, group)) {
+      note('theme_switch', sel, 'display', 'not drawn');
+      return;
+    }
+    const ink = win.getComputedStyle(doc.body).color;
+    for (const button of buttons) {
+      const s = win.getComputedStyle(button);
+      const h = button.getBoundingClientRect().height;
+      if (h < SWITCH_BUTTON_PX - SLACK_PX) {
+        note('theme_switch', selector(button), 'height', Math.round(h * 10) / 10 + ' px');
+      }
+      if (familyOf(win, button) !== 'Cascadia Mono'
+        || !samePx(parseFloat(s.fontSize), SWITCH_TYPE_PX)) {
+        note('theme_switch', selector(button), 'font', s.fontSize + ' ' + familyOf(win, button));
+      }
+      const on = button.getAttribute('aria-pressed') === 'true';
+      const filled = s.backgroundColor === ink;
+      if (on !== filled) {
+        note('theme_switch', selector(button), 'background-color', s.backgroundColor + ' '
+          + (on ? 'pressed' : 'not pressed') + ', where the ink is ' + ink);
+      }
+    }
+  }
+
+  // The theme switch pressed: Dark must put the page in mdBook's dark theme (Navy) and press
+  // Dark, and Auto must put it back in the theme the reader's system asks for and press Auto.
+  // mdBook remembers a choice in `localStorage`, which the other frames loading in parallel
+  // share, and reads it back to mark the chosen button; while the switch is pressed, this
+  // frame's storage is a store of its own in memory, so nothing is left for them.
+  async function probeSwitchPress(win, doc, result) {
+    const group = doc.getElementById('mdbook-theme-list');
+    if (!group || !group.classList.contains('fs-seg')
+      || !doc.documentElement.classList.contains('js')) return;
+    const note = function (value) {
+      result.theme_switch_count++;
+      if (result.theme_switch.length < EXAMPLES) {
+        result.theme_switch.push({ selector: selector(group), property: 'pressed', value: value,
+          theme: win.innerWidth + ' px' });
+      }
+    };
+    const button = function (name) {
+      return Array.from(group.querySelectorAll('button')).find(function (b) {
+        return b.textContent.trim() === name;
+      });
+    };
+    const dark = button('Dark');
+    const auto = button('Auto');
+    if (!dark || !auto) return;
+    const root = doc.documentElement;
+    const store = win.Storage.prototype;
+    const saved = { get: store.getItem, set: store.setItem, remove: store.removeItem };
+    const memory = new Map();
+    store.getItem = function (key) {
+      return memory.has(String(key)) ? memory.get(String(key)) : null;
+    };
+    store.setItem = function (key, value) { memory.set(String(key), String(value)); };
+    store.removeItem = function (key) { memory.delete(String(key)); };
+    try {
+      dark.click();
+      await nextFrames(win);
+      if (!root.classList.contains('navy') || dark.getAttribute('aria-pressed') !== 'true') {
+        note('Dark pressed leaves the page in `' + root.className + '`, Dark pressed: '
+          + dark.getAttribute('aria-pressed'));
+      }
+      auto.click();
+      await nextFrames(win);
+      const asked = win.matchMedia('(prefers-color-scheme: dark)').matches ? 'navy' : 'light';
+      if (!root.classList.contains(asked) || auto.getAttribute('aria-pressed') !== 'true') {
+        note('Auto pressed leaves the page in `' + root.className + '`, not `' + asked
+          + '`, Auto pressed: ' + auto.getAttribute('aria-pressed'));
+      }
+    } finally {
+      store.getItem = saved.get;
+      store.setItem = saved.set;
+      store.removeItem = saved.remove;
+    }
+    for (const a of doc.getAnimations()) {
+      if (Number.isFinite(a.effect.getComputedTiming().endTime)) a.finish();
+    }
+  }
+
   // `printed`: whether this width reads the page on paper too.
   function check(page, width, height, printed) {
     return new Promise(function (resolve) {
@@ -1859,6 +2097,7 @@
           await probeDefaults(win, doc, found);
           if (printed) await probePrint(win, doc, found);
           Object.assign(result, found);
+          await probeSwitchPress(win, doc, result);
           result.printed = printed;
           // Last, as it changes the frame's width.
           for (const widened of await probeWidened(frame, win, doc)) {

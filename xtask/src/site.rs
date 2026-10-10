@@ -91,6 +91,8 @@ mod chrome;
 mod frame;
 mod notes;
 mod pages;
+mod sheets;
+mod switch;
 pub(crate) mod theme;
 pub(crate) mod units;
 
@@ -208,12 +210,16 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let glyphs = chrome::draw(&output)?;
     chrome::draw_toc(&output)?;
     let framed = frame::draw(&output)?;
+    let switches = switch::draw(&output)?;
+    let (intros, sheets) = sheets::draw(&output)?;
     let workspace = crate::workspace::load(&root)?;
     let crates = rustdoc_build(&root, &workspace, &output.join(API), locked)?;
     let mut built = check_html(&root, &output, &crates)?;
     built.problems.extend(theme::check_built(&root, &output)?);
     built.problems.extend(chrome::check(&output)?);
     built.problems.extend(frame::check(&output)?);
+    built.problems.extend(switch::check(&output)?);
+    built.problems.extend(sheets::check(&output)?);
     if !built.problems.is_empty() {
         return Err(failure("the built site", &built.problems));
     }
@@ -225,6 +231,11 @@ pub fn run(args: &[String]) -> Result<(), String> {
         "built frame: {framed} pages open with a `header` drawing the lockup, show the sidebar \
          from 720 px and end with the title block in a `footer`, issued {issued} (written on \
          {dated} pages)"
+    );
+    println!(
+        "built anatomy: {intros} pages open with the designation tag over their titles, their \
+         {sheets} sections drawn as numbered sheets and their headings in order; {switches} \
+         pages switch themes with Auto, Light and Dark"
     );
     println!(
         "built notes: {notes} quote blocks drawn as the system's notes, none left as a plain quote"
@@ -256,7 +267,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
          the measure, no quote block or note off the system's, no text under the contrast floor, focus ring off the system's, box or \
          icon forced colors would erase, sticky bar taller than the scroll padding, icon off \
          the system's sizes or selection off the action role, no header or title block off \
-         the system's, no text mark drawn as an icon, every page printing in the light \
+         the system's, no intro, sheet or theme switch off the system's and every switch \
+         setting the theme it is pressed for, no text mark drawn as an icon, every page \
+         printing in the light \
          theme's colors without navigation, with its links' addresses, its rows and title \
          block whole, and every canary found",
         laid_out.pages,

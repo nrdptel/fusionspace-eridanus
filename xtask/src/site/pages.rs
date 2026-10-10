@@ -191,8 +191,15 @@
 //! screen-only rule that leaves a color off the roles on paper, navigation and a control drawn
 //! on paper, a page arrow fixed inside a `nav` with no height, a link printed without its
 //! address in `main` and one outside it, links with theirs, which must pass, a row that can
-//! split, and a title block hidden on paper, printed without its date and able to split; and an
-//! ordinary page
+//! split, and a title block hidden on paper, printed without its date and able to split; an
+//! intro and sheets drawn as the system's, which must pass, sheets under a 1 px rule and under
+//! a rule's color, numbered out of order, a section's name outside a sheet, a sheet's number in
+//! Archivo and one below its name, and a designation tag with no chamfer, below its title, at
+//! 14 px and in a dashed border; a theme switch drawn and working as the system's, which must
+//! pass, one offering Navy for Dark, one with Light pressed for a first-time reader, one beside
+//! mdBook's theme button drawn, one that sets no theme when pressed, one placed the other way
+//! round, and, in the header at every width, one with buttons 32 px tall, one in Archivo, one
+//! with its pressed button unfilled and one drawn with scripts off; and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't
@@ -398,10 +405,21 @@ enum Kind {
     /// a control drawn, a link without its address, a row, note or title block that can split,
     /// or a title block without its version and date (#383).
     Print,
+    /// An intro or a sheet off the system's: a designation tag not in Cascadia Mono 12, not
+    /// chamfered, not inside a 1 px border or not above its title; a section's name outside a
+    /// sheet's rail; a sheet without its 2 px ink rule on top, or with its number not drawn,
+    /// not `SHEET n / N` in order, not in Cascadia Mono 12 or not above its name (#384).
+    Sheet,
+    /// A theme switch off the system's: not in the header from 960 px or in the sidebar under
+    /// it; its buttons not Auto, Light and Dark, under 44 px tall or not in Cascadia Mono 14;
+    /// a first-time reader's pressed button not Auto alone, or a fill not the ink exactly where
+    /// pressed; mdBook's theme button drawn; drawn with scripts off; or pressing Dark, then Auto,
+    /// not setting the theme (#384, #429).
+    Switch,
 }
 
 impl Kind {
-    const ALL: [Kind; 22] = [
+    const ALL: [Kind; 24] = [
         Kind::Wide,
         Kind::Cut,
         Kind::Overlap,
@@ -424,6 +442,8 @@ impl Kind {
         Kind::TitleBlock,
         Kind::Mark,
         Kind::Print,
+        Kind::Sheet,
+        Kind::Switch,
     ];
 
     fn describe(self) -> &'static str {
@@ -450,6 +470,8 @@ impl Kind {
             Kind::TitleBlock => "a title block off the system's or not last",
             Kind::Mark => "a text mark drawn as an icon",
             Kind::Print => "a page that prints off the system's",
+            Kind::Sheet => "an intro or a sheet off the system's",
+            Kind::Switch => "a theme switch off the system's",
         }
     }
 }
@@ -669,8 +691,129 @@ macro_rules! switches {
     };
 }
 
+/// The system's intro and sheets (`fusionspace.css`, `.fs-tag` and `.fs-sheet`) as
+/// `theme/hpr.css` draws them, for the sheet canaries: a chapter's intro, the designation tag
+/// over its title, then two sheets, numbered `$first` and `$second`, after `$style`.
+macro_rules! sheets {
+    ($style:expr, $first:expr, $second:expr) => {
+        concat!(
+            "<style>.fs-tag { --c: 4px; display: flex; width: fit-content; margin: 0 0 16px; \
+             padding: 2px 10px 2px 8px; min-height: 24px; font: 400 12px/16px 'Cascadia Mono', \
+             'Cascadia Mono Fallback', monospace; color: #0B0F1C; border: 1px solid #566079; \
+             clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, 0 \
+             100%); } .fs-intro > h1 { margin: 0; } .fs-sheet { border-top: 2px solid #0B0F1C; \
+             margin-top: 32px; padding-top: 16px; } .fs-sheet-rail { display: grid; gap: 8px; \
+             margin-bottom: 16px; } .fs-sheet-rail > h2 { margin: 0; font: 600 20px/24px \
+             'Cascadia Mono', 'Cascadia Mono Fallback', monospace; } .fs-sheet-no { font: 400 \
+             12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; letter-spacing: \
+             0.06em; color: #566079; }</style>",
+            $style,
+            "<div class=\"fs-intro\"><p class=\"fs-tag\">FS-ACHERNAR · SW · TOOL 001</p><h1>A \
+             chapter</h1><p>Its opening.</p></div><section class=\"fs-sheet\"><div \
+             class=\"fs-sheet-rail\"><span class=\"fs-sheet-no\">",
+            $first,
+            "</span><h2>The first sheet</h2></div><div class=\"fs-sheet-body\"><p>Its \
+             text.</p></div></section><section class=\"fs-sheet\"><div \
+             class=\"fs-sheet-rail\"><span class=\"fs-sheet-no\">",
+            $second,
+            "</span><h2>The second sheet</h2></div><div class=\"fs-sheet-body\"><p>Its \
+             text.</p></div></section>"
+        )
+    };
+}
+
+/// The theme switch's buttons as `switch.rs` writes them, Auto pressed, as `theme/hpr.js` marks
+/// it for a first-time reader.
+macro_rules! switch_buttons {
+    () => {
+        "<li role=\"none\"><button type=\"button\" class=\"theme\" \
+         aria-pressed=\"true\">Auto</button></li><li role=\"none\"><button type=\"button\" \
+         class=\"theme\" aria-pressed=\"false\">Light</button></li><li role=\"none\"><button \
+         type=\"button\" class=\"theme\" aria-pressed=\"false\">Dark</button></li>"
+    };
+}
+
+/// Where a switch canary's script puts the switch: as `theme/hpr.js` does, in the header from
+/// 960 px and at the top of the sidebar under it; in the header at every width; or the other
+/// way round.
+macro_rules! switch_placed {
+    () => {
+        "<script>(function () { const g = document.getElementById('mdbook-theme-list'); const m = \
+         matchMedia('(min-width: 960px)'); const place = function () { if (m.matches) \
+         document.querySelector('header').appendChild(g); else \
+         document.getElementById('mdbook-sidebar').prepend(g); }; place(); \
+         m.addEventListener('change', place); })();</script>"
+    };
+}
+macro_rules! switch_in_header {
+    () => {
+        "<script>document.querySelector('header').appendChild(\
+         document.getElementById('mdbook-theme-list'));</script>"
+    };
+}
+macro_rules! switch_placed_inverted {
+    () => {
+        "<script>(function () { const g = document.getElementById('mdbook-theme-list'); const m = \
+         matchMedia('(min-width: 960px)'); const place = function () { if (m.matches) \
+         document.getElementById('mdbook-sidebar').prepend(g); else \
+         document.querySelector('header').appendChild(g); }; place(); \
+         m.addEventListener('change', place); })();</script>"
+    };
+}
+
+/// A switch canary's script that works it as mdBook's does: a button pressed puts the root in
+/// its theme (Auto in the one the system asks for) and is the one pressed.
+macro_rules! switch_works {
+    () => {
+        "<script>document.getElementById('mdbook-theme-list').addEventListener('click', function \
+         (e) { const b = e.target.closest('button'); if (!b) return; const r = \
+         document.documentElement; const n = b.textContent.trim(); const t = n === 'Dark' ? \
+         'navy' : n === 'Light' ? 'light' : matchMedia('(prefers-color-scheme: dark)').matches \
+         ? 'navy' : 'light'; r.classList.remove('light', 'navy'); r.classList.add(t); \
+         this.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', \
+         String(x === b)); }); });</script>"
+    };
+}
+
+/// A page's frame (as [`frame!`] draws it) with the theme switch (`fusionspace.css`, `.fs-seg`,
+/// as `theme/hpr.css` draws it) after its sidebar: `$style` added, `$buttons` in the switch,
+/// then `$place` placing it and `$work` working it. The header wraps, as the site's does on a
+/// phone, so a switch in it at every width fits.
+macro_rules! switch_frame {
+    ($style:expr, $buttons:expr, $place:expr, $work:expr) => {
+        frame!(
+            concat!(
+                "<style>.frame-header { flex-wrap: wrap; } #mdbook-theme-list { display: \
+                 inline-flex; margin: 0; padding: 0; list-style: none; border: 1px solid \
+                 #566079; } #mdbook-theme-list li { display: flex; } #mdbook-theme-list button { \
+                 min-height: 44px; padding: 0 12px; font: 400 14px/20px 'Cascadia Mono', \
+                 'Cascadia Mono Fallback', monospace; color: #566079; background: transparent; \
+                 border: 0; border-left: 1px solid #566079; } #mdbook-theme-list \
+                 li:first-child button { border-left: 0; } #mdbook-theme-list \
+                 [aria-pressed=\"true\"] { color: #F3F4F7; background: #0B0F1C; } \
+                 html:not(.js) #mdbook-theme-list { display: none; } @media (forced-colors: \
+                 active) { #mdbook-theme-list [aria-pressed=\"true\"] { outline: 2px solid \
+                 CanvasText; outline-offset: -4px; } } @media print { #mdbook-theme-list { \
+                 display: none; } }</style>",
+                $style
+            ),
+            lockup!(),
+            concat!(
+                sidebar!(),
+                "<ul id=\"mdbook-theme-list\" class=\"theme-popup fs-seg\" role=\"group\" \
+                 aria-label=\"Theme\">",
+                $buttons,
+                "</ul>",
+                $place,
+                $work
+            ),
+            ""
+        )
+    };
+}
+
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 111] = [
+const CANARIES: [Canary; 132] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1514,6 +1657,247 @@ const CANARIES: [Canary; 111] = [
         ),
     },
     Canary {
+        file: "canary-sheets.html",
+        what: "an intro and sheets drawn as the system's, which must pass",
+        expect: &[],
+        inside: concat!(sheets!("", "SHEET 1 / 2", "SHEET 2 / 2"), ""),
+        after: "",
+    },
+    Canary {
+        file: "canary-sheet-thin.html",
+        what: "a sheet under a 1 px rule",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-sheet { border-top-width: 1px !important; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-sheet-rule.html",
+        what: "a sheet under a rule in a rule's color, not the ink",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-sheet { border-top-color: #566079 !important; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-sheet-order.html",
+        what: "sheets numbered out of order",
+        expect: &[Kind::Sheet],
+        inside: concat!(sheets!("", "SHEET 2 / 2", "SHEET 1 / 2"), ""),
+        after: "",
+    },
+    Canary {
+        file: "canary-sheet-outside.html",
+        what: "a section's name outside a sheet",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!("", "SHEET 1 / 2", "SHEET 2 / 2"),
+            "<h2 style=\"font: 600 20px/24px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace\">A loose section</h2>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-sheet-number-archivo.html",
+        what: "a sheet's number in Archivo 16 px",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-sheet-no { font: 400 16px/24px 'Archivo', 'Archivo Fallback', sans-serif !important; font-variant-numeric: tabular-nums !important; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-sheet-number-below.html",
+        what: "a sheet's number below its name",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-sheet-rail { display: flex !important; flex-direction: column-reverse; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-tag-square.html",
+        what: "a designation tag with no chamfered corner",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-tag { clip-path: none !important; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-tag-below.html",
+        what: "a designation tag below its title",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-intro { display: flex; flex-direction: column-reverse; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-tag-large.html",
+        what: "a designation tag in Cascadia Mono 14 px",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-tag { font-size: 14px !important; line-height: 20px !important; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-tag-dashed.html",
+        what: "a designation tag in a dashed border",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-tag { border-style: dashed !important; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-switch.html",
+        what: "a theme switch drawn and working as the system's, in the header from 960 px and the sidebar under it, which must pass",
+        expect: &[],
+        inside: "",
+        after: switch_frame!("", switch_buttons!(), switch_placed!(), switch_works!()),
+    },
+    Canary {
+        file: "canary-switch-names.html",
+        what: "a theme switch offering Navy, not Dark",
+        expect: &[Kind::Switch],
+        inside: "",
+        after: switch_frame!(
+            "",
+            "<li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"true\">Auto</button></li><li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"false\">Light</button></li><li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"false\">Navy</button></li>",
+            switch_placed!(),
+            switch_works!()
+        ),
+    },
+    Canary {
+        file: "canary-switch-pressed.html",
+        what: "a theme switch with Light pressed for a first-time reader",
+        expect: &[Kind::Switch],
+        inside: "",
+        after: switch_frame!(
+            "",
+            "<li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"false\">Auto</button></li><li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"true\">Light</button></li><li role=\"none\"><button type=\"button\" class=\"theme\" aria-pressed=\"false\">Dark</button></li>",
+            switch_placed!(),
+            switch_works!()
+        ),
+    },
+    Canary {
+        file: "canary-switch-toggle.html",
+        what: "a theme switch beside mdBook's theme menu button, drawn",
+        expect: &[Kind::Switch],
+        inside: "<style>#mdbook-theme-toggle { font: inherit; color: inherit; background: transparent; border: 1px solid #566079; } @media print { #mdbook-theme-toggle { display: none; } }</style><p><button id=\"mdbook-theme-toggle\" type=\"button\">Themes</button></p>",
+        after: switch_frame!("", switch_buttons!(), switch_placed!(), switch_works!()),
+    },
+    Canary {
+        file: "canary-switch-dead.html",
+        what: "a theme switch that sets no theme when pressed",
+        expect: &[Kind::Switch],
+        inside: "",
+        after: switch_frame!("", switch_buttons!(), switch_placed!(), ""),
+    },
+    Canary {
+        file: "canary-switch-inverted.html",
+        what: "a theme switch in the sidebar from 960 px and in the header under it",
+        expect: &[Kind::Switch],
+        inside: "",
+        after: switch_frame!(
+            "",
+            switch_buttons!(),
+            switch_placed_inverted!(),
+            switch_works!()
+        ),
+    },
+    Canary {
+        file: "canary-switch-short.html",
+        what: "a theme switch in the header at every width, its buttons 32 px tall",
+        expect: &[Kind::Switch],
+        inside: "",
+        after: switch_frame!(
+            "<style>#mdbook-theme-list button { min-height: 32px !important; }</style>",
+            switch_buttons!(),
+            switch_in_header!(),
+            switch_works!()
+        ),
+    },
+    Canary {
+        file: "canary-switch-archivo.html",
+        what: "a theme switch in the header at every width, its buttons in Archivo",
+        expect: &[Kind::Switch],
+        inside: "",
+        after: switch_frame!(
+            "<style>#mdbook-theme-list button { font-family: 'Archivo', 'Archivo Fallback', sans-serif !important; font-variant-numeric: tabular-nums; }</style>",
+            switch_buttons!(),
+            switch_in_header!(),
+            switch_works!()
+        ),
+    },
+    Canary {
+        file: "canary-switch-unfilled.html",
+        what: "a theme switch in the header at every width, its pressed button not filled",
+        expect: &[Kind::Switch],
+        inside: "",
+        after: switch_frame!(
+            "<style>#mdbook-theme-list [aria-pressed=\"true\"] { color: #0B0F1C !important; background: transparent !important; }</style>",
+            switch_buttons!(),
+            switch_in_header!(),
+            switch_works!()
+        ),
+    },
+    Canary {
+        file: "canary-switch-noscript.html",
+        what: "a theme switch in the header at every width, drawn with scripts off",
+        expect: &[Kind::Switch],
+        inside: "",
+        after: switch_frame!(
+            "<style>html:not(.js) #mdbook-theme-list { display: inline-flex !important; }</style>",
+            switch_buttons!(),
+            switch_in_header!(),
+            switch_works!()
+        ),
+    },
+    Canary {
         file: "canary-mark-chrome.html",
         what: "a mark drawn as text outside the page's main",
         expect: &[Kind::Mark],
@@ -1951,6 +2335,15 @@ struct Measured {
     print: Vec<Style>,
     #[serde(default)]
     print_count: usize,
+    /// The intro and sheets, and the theme switch, off the system's (#384).
+    #[serde(default)]
+    sheet: Vec<Style>,
+    #[serde(default)]
+    sheet_count: usize,
+    #[serde(default)]
+    theme_switch: Vec<Style>,
+    #[serde(default)]
+    theme_switch_count: usize,
     /// Whether the page was read on paper at this width, as at one width of each run.
     #[serde(default)]
     printed: bool,
@@ -1981,6 +2374,8 @@ impl Measured {
             Kind::TitleBlock => self.title_block_count > 0,
             Kind::Mark => self.mark_count > 0,
             Kind::Print => self.print_count > 0,
+            Kind::Sheet => self.sheet_count > 0,
+            Kind::Switch => self.theme_switch_count > 0,
         }
     }
 
@@ -2058,6 +2453,8 @@ impl Measured {
             Kind::TitleBlock => Style::list(&self.title_block),
             Kind::Mark => Style::list(&self.mark),
             Kind::Print => Style::list(&self.print),
+            Kind::Sheet => Style::list(&self.sheet),
+            Kind::Switch => Style::list(&self.theme_switch),
         }
     }
 }
@@ -3091,6 +3488,33 @@ mod tests {
             Kind::TitleBlock.describe(),
             "a title block off the system's or not last"
         );
+    }
+
+    #[test]
+    fn the_sheets_and_the_switch_have_canaries_both_ways() {
+        // Each kind has canaries that must show it alone, and one drawn as the system's that
+        // must pass.
+        for (kind, least, passing) in [
+            (Kind::Sheet, 10, "canary-sheets.html"),
+            (Kind::Switch, 9, "canary-switch.html"),
+        ] {
+            let failing = CANARIES
+                .iter()
+                .filter(|canary| canary.expect == [kind])
+                .count();
+            assert!(failing >= least, "{kind:?}: {failing}");
+            assert!(
+                CANARIES
+                    .iter()
+                    .any(|canary| canary.file == passing && canary.expect.is_empty()),
+                "{passing}"
+            );
+        }
+        assert_eq!(
+            Kind::Sheet.describe(),
+            "an intro or a sheet off the system's"
+        );
+        assert_eq!(Kind::Switch.describe(), "a theme switch off the system's");
     }
 
     #[test]

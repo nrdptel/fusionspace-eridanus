@@ -129,7 +129,7 @@ const LANDING_HTML: &str = "index.html";
 /// How the landing page's source opens the title block, and how its HTML does.
 const BLOCK_OPEN: &str = "<div class=\"title-block\">";
 /// hpr-sim's designation in the product system's register (ADR-164).
-const DESIGNATION: &str = "`FS-ACHERNAR · SW · TOOL 001`";
+pub(super) const DESIGNATION: &str = "`FS-ACHERNAR · SW · TOOL 001`";
 /// The title block's fields, in order: ISO 7200's, as the product system's `web.md` names them.
 pub(super) const FIELDS: [&str; 9] = [
     "Owner",
