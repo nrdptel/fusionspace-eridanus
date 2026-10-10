@@ -112,7 +112,8 @@ const HEIGHT_PX: u32 = 900;
 /// overlap the waits on the network and fonts.
 const FRAMES_PER_TAB: usize = 3;
 /// The most tabs, each its own browser process; fewer on a machine with fewer cores. With four,
-/// the check takes about 30 s on an M-series Mac, `print.html` (every page in one) about 14 of it.
+/// the check took 114 s on an M-series Mac on 2026-10-09, with five readings of each page's style
+/// at each width (#432).
 const MOST_TABS: usize = 4;
 /// How long the check waits for any news from the browser before it gives up.
 const STALL: Duration = Duration::from_secs(300);
