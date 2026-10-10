@@ -9,7 +9,7 @@ units, errors, provenance); none of them changes a number the simulator computes
 
 It has one row for every `##` section of those files ([ADR-205](../decisions/0205-the-2026-10-08-one-name-one-design.md)
 §2, [ADR-208](../decisions/0208-the-design-audit.md)), so a rule nobody re-read can't be missed.
-Of the 64 sections that apply to something shipping today, 19 are met, 38 are not, 3 wait for a
+Of the 64 sections that apply to something shipping today, 18 are met, 39 are not, 3 wait for a
 later surface and 4 govern nothing the project ships; the 48 sections for apps, watches,
 firmware, hardware and airframes wait for the milestones that build them. How far to trust it:
 a row held by a test is checked on every change; a row "reviewed at" the commit was read against
@@ -63,7 +63,7 @@ Pinned commit: `f45454f44669cc049222f2ab19eb648796e56a52`, as `validation/refs.l
 | `foundations.md` | Type | site, plot, README, banners | not met | #384; M0.9d: a 118-character measure; text under 12 px and off-scale sizes on the site. Figures set text in Cascadia Mono or Archivo since #385 (`xtask/src/figures/drawing/tests.rs::text_is_set_in_the_systems_families`). The plot's text is 12 px, its title the `subtitle` token (`crates/hpr-cli/src/plot/tests.rs::the_figure_sets_its_type_on_the_scale`) |
 | `foundations.md` | Space and layout | site, plot, CLI | not met | #384, #386; M0.9d, M0.9e: no sheet rail; 20 px gutters; left-aligned numbers. The plot's title, caption, line, balloon, table and indent steps are on the 4 px scale, as drawn (`crates/hpr-cli/src/plot/tests.rs::the_figure_sets_its_type_on_the_scale`) |
 | `foundations.md` | Lines and shape | site, plot, README, banners | not met | #383; M0.9d: square corners and no shadows on the site since #425 (`xtask/src/site/pages.rs`, the page check). `flight-phases.svg`'s strokes are 1 and 2 px, dashed, chain and solid by meaning since #385, by hand: no check tells meanings apart |
-| `foundations.md` | Motion | site | not met | #383; M0.9d: mdBook's `scrollTo` to the top scrolls smoothly from a script. Its stylesheets' transitions run at the system's durations and easings and snap with reduced motion since #425 (`xtask/src/site/pages.rs`, the page check) |
+| `foundations.md` | Motion | site | not met | #383; M0.9d: mdBook's `scrollTo` to the top scrolls smoothly from a script. Its stylesheets' transitions run at the system's durations and easings and snap with reduced motion since #425 (`xtask/src/site/pages.rs`, the page check); motion on hover, focus or `:target` and delays aren't read (#432) |
 | `foundations.md` | Icons | site | not met | #383; M0.9d: Font Awesome at 13 and 40 px, not the system's set |
 | `foundations.md` | Tokens | site, CLI, plot | met | `xtask/src/site/theme.rs::the_committed_theme_passes`, `crates/hpr-cli/src/plot/tests.rs::the_tokens_are_the_product_systems`, `crates/hpr-cli/tests/style.rs::the_styles_are_the_product_systems` |
 | `writing.md` | Voice | site, CLI, README, plot | not met | #386; M0.9e: 60-word warnings with stacked colons; long lead notes |
@@ -98,7 +98,7 @@ Pinned commit: `f45454f44669cc049222f2ab19eb648796e56a52`, as `validation/refs.l
 | `cli.md` | Drop-in styles | CLI | met | `crates/hpr-cli/tests/style.rs::the_styles_are_the_product_systems` |
 | `web.md` | Using it in a project | site | not met | #383; M0.9d: a hand-written fonts.css; one theme-color; mdBook's palettes and icons |
 | `web.md` | Page anatomy | site | not met | #384; M0.9d: no title block, sheets, intro or lockup header |
-| `web.md` | Site patterns | site | met | reviewed at `f45454f`: the docs pattern; sheets of prose with a left table of contents, code blocks in Cascadia Mono on the surface since #425, no third-party fonts or tracking; the other patterns are tools' |
+| `web.md` | Site patterns | site | not met | #384; M0.9d: docs aren't sheets yet (no sheet rail on the `h2` rule). Code blocks are in Cascadia Mono on the surface since #425 (their light edge: #429); no third-party fonts or tracking |
 | `web.md` | Components | site | not met | #384; M0.9d: notes as blockquotes, without the signal-word strip |
 | `web.md` | Theme | site | not met | #383; M0.9d: no Paper and Void theme-color, no forced-colors rule |
 | `web.md` | Accessibility | site | not met | #383; M0.9d: default focus ring, two h1, no contrast check. A figure is shown at its size where the page has room, else with a zoom (`cargo xtask site`'s page check, `xtask/src/site/pages.rs::a_figure_shown_smaller_than_drawn_is_named` and its figure canaries; [ADR-219](../decisions/0219-figures-at-their-size-and-us-units-on-the-guides.md)). The plot gives its data as a CSV (`crates/hpr-cli/src/plot/tests.rs::the_figures_data_is_a_csv`) |
