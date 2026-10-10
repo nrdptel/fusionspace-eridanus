@@ -766,7 +766,7 @@ macro_rules! switch_placed_inverted {
 
 /// A switch canary's script that works it as mdBook's does with `theme/hpr.js`: a theme saved
 /// that the switch doesn't offer is forgotten, the root in the one the system asks for; then
-/// [`switch_clicks!`].
+/// `switch_clicks!`.
 macro_rules! switch_works {
     () => {
         concat!(
@@ -782,7 +782,7 @@ macro_rules! switch_works {
 }
 
 /// A switch canary's script that puts the root in a saved theme, as mdBook's does before its
-/// own script runs, and doesn't forget one the switch doesn't offer; then [`switch_clicks!`].
+/// own script runs, and doesn't forget one the switch doesn't offer; then `switch_clicks!`.
 macro_rules! switch_keeps {
     () => {
         concat!(
