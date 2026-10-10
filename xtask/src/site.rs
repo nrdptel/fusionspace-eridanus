@@ -206,6 +206,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let dated = theme::fill_issue_date(&output, &issued)?;
     let notes = notes::draw(&output)?;
     let glyphs = chrome::draw(&output)?;
+    chrome::draw_toc(&output)?;
     let framed = frame::draw(&output)?;
     let workspace = crate::workspace::load(&root)?;
     let crates = rustdoc_build(&root, &workspace, &output.join(API), locked)?;
@@ -255,7 +256,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
          the measure, no quote block or note off the system's, no text under the contrast floor, focus ring off the system's, box or \
          icon forced colors would erase, sticky bar taller than the scroll padding, icon off \
          the system's sizes or selection off the action role, no header or title block off \
-         the system's, and every canary found",
+         the system's, no text mark drawn as an icon, every page printing in the light \
+         theme's colors without navigation, with its links' addresses, its rows and title \
+         block whole, and every canary found",
         laid_out.pages,
         if part == pages::Part::WHOLE {
             format!("{} widths from 320 to 1,920 px", laid_out.widths)

@@ -47,6 +47,14 @@
 //!     selected text on the action role at 22 % opacity (`::selection`, as the system's
 //!     `fusionspace.css` sets it; `principles.md`, *One sweep*), not the browser's own.
 //!
+//!   - **a text mark drawn as an icon**: a text of marks alone (arrows, technical symbols,
+//!     shapes, symbols and dingbats, guillemets, an icon font's private characters), in the
+//!     page's chrome, outside its `main`, or as a `::before` or `::after` anywhere: mdBook's `❱`
+//!     fold toggles, its `✓` beside the chosen theme and its `»` before a heading jumped to. The
+//!     first reading reads every element with an id as the one jumped to (each `:target` rule
+//!     copied with an attribute in its place). A key's legend (`kbd`) and prose in `main` may
+//!     hold one.
+//!
 //!   Each page is read in the theme it loads in (mdBook's navy for a browser whose system is
 //!   dark), then as a reader with scripts off gets it (the root's `js` class taken off, which
 //!   applies mdBook's `html:not(.js)` rules), with a light system and with a dark one (the
@@ -97,6 +105,18 @@
 //!     in the ink role on every side, its fields' names and entries in Cascadia Mono, with no
 //!     text, picture or field drawn below its top outside it, other than in a box fixed to the
 //!     window. That every page ends with one is the file check's (`frame.rs`).
+//! - **A page that prints off the system's** (#383; `web.md`, *Print*), read once a run, at its
+//!   checked width nearest [`PRINT_PX`], with each media list that names `print` or `screen` set
+//!   to how it applies on paper (a headless browser can't print from a page, so the print rules
+//!   are read, not a printed page), in the theme the page is in and, on mdBook's pages that
+//!   switch, the other:
+//!   - a color off the light theme's roles, or a shape or contrast off the system's, as on
+//!     screen; and on a page that switches, an element drawn in other colors from the other theme;
+//!   - navigation or a control drawn: a `nav`, a button, a text field, a menu or a search;
+//!   - a link out of the page (not to a place on it) with no `::before` or `::after` holding its
+//!     address;
+//!   - a table row, a note or a title block that can split across sheets (`break-inside`);
+//!   - a title block not drawn, or without its version and date of issue drawn.
 //! - What a keyboard, forced colors and a sticky bar need (#383; `web.md`, *Theme* and
 //!   *Accessibility*), each read in the theme the page loads in, contrast in every reading:
 //!   - **text under the contrast floor**: WCAG 2.2 AA (1.4.3), the floor `foundations.md`
@@ -163,9 +183,14 @@
 //! away from 720 px and hidden while drawn under it, a sidebar and menu button put away with
 //! scripts off, a sidebar drawn only when the window was wide at load (and a lockup 20 px tall
 //! from 720 px), a title block bordered 1 px, one bordered
-//! in a rule's color, one with its entries in Archivo, one with a paragraph below it, and an
-//! ordinary
-//! page
+//! in a rule's color, one with its entries in Archivo, one with a paragraph below it, a mark as
+//! text outside `main`, one as a heading's `::before` and one only before a paragraph jumped to,
+//! marks as words in prose and a key's legend, which must pass, a page printed in navy's colors
+//! from navy and one printed in light's, which must pass, a link printed in a blue of its own, a
+//! screen-only rule that leaves a color off the roles on paper, navigation and a control drawn
+//! on paper, a link printed without its address and one with it, which must pass, a row that can
+//! split, and a title block hidden on paper, printed without its date and able to split; and an
+//! ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
 //! away off the left edge) that must pass. If one isn't
@@ -197,6 +222,11 @@ const NARROWEST_PX: u32 = 320;
 const WIDEST_PX: u32 = 1920;
 /// The step between widths, in CSS pixels.
 const STEP_PX: u32 = 40;
+/// The width a page is read on paper at, in CSS pixels: about the printable width of an A4 sheet
+/// (718 px) and a Letter one (739 px) inside Chrome's default margins of 0.4 in. Each run reads
+/// print at its checked width nearest this ([`print_width`]).
+const PRINT_PX: u32 = 720;
+
 /// The window's height, in CSS pixels. The whole page is measured, not only what this shows.
 const HEIGHT_PX: u32 = 900;
 /// Frames each tab loads at once. Pages of one tab share its main thread, so more frames mostly
@@ -246,6 +276,15 @@ fn widths() -> Vec<u32> {
     (NARROWEST_PX..=WIDEST_PX)
         .step_by(STEP_PX as usize)
         .collect()
+}
+
+/// The width of `checked` nearest [`PRINT_PX`], the narrower of two as near; 0 for none.
+fn print_width(checked: &[u32]) -> u32 {
+    checked
+        .iter()
+        .copied()
+        .min_by_key(|width| (width.abs_diff(PRINT_PX), *width))
+        .unwrap_or(0)
 }
 
 /// Which of [`widths`] one run checks: part `index` of `count`, so CI can spread the check over
@@ -350,10 +389,17 @@ enum Kind {
     /// A title block off the system's: not inside a 2 px ink border, its entries not in Cascadia
     /// Mono, or something drawn below it (#384).
     TitleBlock,
+    /// A text of marks alone drawn as an icon: in the page's chrome, outside its `main`, or as a
+    /// `::before` or `::after` anywhere (#383).
+    Mark,
+    /// A page that prints off the system's: a color other than the light theme's, navigation or
+    /// a control drawn, a link without its address, a row, note or title block that can split,
+    /// or a title block without its version and date (#383).
+    Print,
 }
 
 impl Kind {
-    const ALL: [Kind; 20] = [
+    const ALL: [Kind; 22] = [
         Kind::Wide,
         Kind::Cut,
         Kind::Overlap,
@@ -374,6 +420,8 @@ impl Kind {
         Kind::Selection,
         Kind::Header,
         Kind::TitleBlock,
+        Kind::Mark,
+        Kind::Print,
     ];
 
     fn describe(self) -> &'static str {
@@ -398,6 +446,8 @@ impl Kind {
             Kind::Selection => "a selection off the action role",
             Kind::Header => "a header off the system's",
             Kind::TitleBlock => "a title block off the system's or not last",
+            Kind::Mark => "a text mark drawn as an icon",
+            Kind::Print => "a page that prints off the system's",
         }
     }
 }
@@ -427,7 +477,8 @@ height: 14px; } .fs-note-body { padding: 12px; } .fs-note-body > * { margin: 0; 
 .fs-note[data-kind=\"caution\"] { border-color: #F5AF20; } .fs-note[data-kind=\"caution\"] > \
 .fs-note-head { background: #F5AF20; border-color: #F5AF20; } .fs-note[data-kind=\"warning\"] \
 { border: 2px solid #AC001E; } .fs-note[data-kind=\"warning\"] > .fs-note-head { background: \
-#AC001E; color: #FFFFFF; border-color: #AC001E; }</style>"
+#AC001E; color: #FFFFFF; border-color: #AC001E; } @media print { .fs-note { break-inside: \
+avoid; } }</style>"
     };
 }
 
@@ -549,7 +600,8 @@ Mono', 'Cascadia Mono Fallback', monospace; } @media (min-width: 720px) { \
 8px; display: grid; gap: 2px; min-width: 0; } .fs-titleblock .k { font: 12px/16px 'Cascadia \
 Mono', 'Cascadia Mono Fallback', monospace; text-transform: uppercase; color: #566079; } \
 .fs-titleblock .v { font: 14px/20px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; \
-overflow-wrap: anywhere; }</style>"
+overflow-wrap: anywhere; } @media print { html #mdbook-sidebar, html #mdbook-sidebar-toggle { \
+display: none !important; } .fs-titleblock { break-inside: avoid; } }</style>"
     };
 }
 
@@ -595,14 +647,28 @@ macro_rules! frame {
             "<footer class=\"fs-titleblock\" aria-label=\"Title block\"><div><span \
              class=\"k\">Owner</span><span class=\"v\">FusionSpace</span></div><div><span \
              class=\"k\">Title</span><span class=\"v\">A canary</span></div><div><span \
+             class=\"k\">Version</span><span class=\"v\">0.1.0</span></div><div><span \
              class=\"k\">Date of issue</span><span class=\"v\">2026-10-10</span></div></footer>",
             $after
         )
     };
 }
 
+/// What a canary needs to be read in mdBook's navy theme too: the root marked `js` and in the light
+/// theme, mdBook's code stylesheet for navy (empty), and, on screen only, the navy theme's dark
+/// color scheme, its links, its search hit and its selection.
+macro_rules! switches {
+    () => {
+        "<link rel=\"stylesheet\" id=\"mdbook-tomorrow-night-css\" href=\"data:text/css,\">\
+         <style>@media screen { .navy { color-scheme: dark; } .navy a { color: #768DF5; } \
+         .navy mark { color: #0B0F1C; background: #768DF5; } .navy ::selection { \
+         background-color: rgb(118 141 245 / 0.22); } }</style>\
+         <script>document.documentElement.classList.add('js', 'light');</script>"
+    };
+}
+
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 93] = [
+const CANARIES: [Canary; 109] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -707,21 +773,22 @@ const CANARIES: [Canary; 93] = [
     Canary {
         file: "canary-color.html",
         what: "a label in a highlighter's green, off the system's roles",
-        expect: &[Kind::Color],
+        expect: &[Kind::Color, Kind::Print],
         inside: "<p style=\"color: #008200\">A label in green</p>",
         after: "",
     },
     Canary {
         file: "canary-radius.html",
-        what: "a box with rounded corners",
+        what: "a box with rounded corners on screen, square on paper",
         expect: &[Kind::Shape],
-        inside: "<p style=\"border: 1px solid #566079; border-radius: 8px\">A rounded box</p>",
+        inside: "<style>@media screen { .rounded { border-radius: 8px; } }</style><p \
+                 class=\"rounded\" style=\"border: 1px solid #566079\">A rounded box</p>",
         after: "",
     },
     Canary {
         file: "canary-shadow.html",
         what: "a box with a soft shadow",
-        expect: &[Kind::Shape],
+        expect: &[Kind::Shape, Kind::Print],
         inside: "<p style=\"box-shadow: 0 4px 24px #0B0F1C\">A box with a shadow</p>",
         after: "",
     },
@@ -744,7 +811,7 @@ const CANARIES: [Canary; 93] = [
     Canary {
         file: "canary-root.html",
         what: "the page's root element in a highlighter's green, which only a read of `html` sees",
-        expect: &[Kind::Color],
+        expect: &[Kind::Color, Kind::Print],
         inside: "<style>html { background: #008200; }</style>",
         after: "",
     },
@@ -752,21 +819,21 @@ const CANARIES: [Canary; 93] = [
         file: "canary-filter.html",
         what: "a label tinted by a filter, as mdBook tints its copy icon, whose colors the check \
                can't read",
-        expect: &[Kind::Color],
+        expect: &[Kind::Color, Kind::Print],
         inside: "<p style=\"filter: invert(45%)\">A tinted label</p>",
         after: "",
     },
     Canary {
         file: "canary-backdrop.html",
         what: "a label over a blurred backdrop, a filter whose colors the check can't read",
-        expect: &[Kind::Color],
+        expect: &[Kind::Color, Kind::Print],
         inside: "<p style=\"backdrop-filter: blur(2px)\">A label over a blur</p>",
         after: "",
     },
     Canary {
         file: "canary-content-image.html",
         what: "an image drawn as a label's `::before`, whose colors the check can't read",
-        expect: &[Kind::Color],
+        expect: &[Kind::Color, Kind::Print],
         inside: "<style>.icon::before { content: url(\"data:image/svg+xml,%3Csvg \
                  xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3C/svg%3E\"); }\
                  </style><p class=\"icon\">A label with an icon</p>",
@@ -775,7 +842,7 @@ const CANARIES: [Canary; 93] = [
     Canary {
         file: "canary-mark.html",
         what: "a search hit filled in ink, a role, but not the action fill a selection takes",
-        expect: &[Kind::Color],
+        expect: &[Kind::Color, Kind::Print],
         inside: "<p>A <mark style=\"color: #F3F4F7; background: #0B0F1C\">search hit</mark> in \
                  ink</p>",
         after: "",
@@ -808,7 +875,7 @@ const CANARIES: [Canary; 93] = [
         file: "canary-navy.html",
         what: "a label in a highlighter's green in the navy theme only, read after the switch \
                mdBook's theme menu makes",
-        expect: &[Kind::Color],
+        expect: &[Kind::Color, Kind::Print],
         inside: "<script>document.documentElement.classList.add('js', 'light');</script>\
                  <link rel=\"stylesheet\" id=\"mdbook-tomorrow-night-css\" href=\"data:text/css,\">\
                  <style>.navy { color-scheme: dark; } .navy mark { color: #0B0F1C; background: #768DF5; } \
@@ -1060,15 +1127,16 @@ const CANARIES: [Canary; 93] = [
     },
     Canary {
         file: "canary-contrast.html",
-        what: "a label in the system's faint ink on the canvas, at 2.35 : 1",
+        what: "a label in the system's faint ink on the canvas, at 2.35 : 1, on screen only",
         expect: &[Kind::Contrast],
-        inside: "<p style=\"color: #98A1B8\">A faint label</p>",
+        inside: "<style>@media screen { .faint { color: #98A1B8; } }</style><p \
+                 class=\"faint\">A faint label</p>",
         after: "",
     },
     Canary {
         file: "canary-contrast-faded.html",
         what: "a paragraph of ink faded to half by its opacity, at 3.51 : 1",
-        expect: &[Kind::Contrast],
+        expect: &[Kind::Contrast, Kind::Print],
         inside: "<p style=\"opacity: 0.5\">A faded paragraph</p>",
         after: "",
     },
@@ -1444,6 +1512,146 @@ const CANARIES: [Canary; 93] = [
         ),
     },
     Canary {
+        file: "canary-mark-chrome.html",
+        what: "a mark drawn as text outside the page's main",
+        expect: &[Kind::Mark],
+        inside: "",
+        after: "<p><a href=\"#\">❱</a></p>",
+    },
+    Canary {
+        file: "canary-mark-before.html",
+        what: "a mark drawn as a heading's ::before",
+        expect: &[Kind::Mark],
+        inside: "<style>main h1::before { content: \"»\"; }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-mark-target.html",
+        what: "a mark drawn before a paragraph only when it is jumped to",
+        expect: &[Kind::Mark],
+        inside: "<style>p:target::before { content: \"» \"; }</style>\
+                 <p id=\"jump\">A paragraph a link can jump to.</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-mark-words.html",
+        what: "marks used as words in prose and a key's legend outside main, which must pass",
+        expect: &[],
+        inside: "<p>Drag falls as Mach → 0; press <kbd style=\"font: 14px/20px 'Cascadia \
+                 Mono', 'Cascadia Mono Fallback', monospace\">←</kbd> to go back.</p><p>✓</p>",
+        after: "<p>Press <kbd style=\"font: 14px/20px 'Cascadia Mono', 'Cascadia Mono \
+                Fallback', monospace\">→</kbd> for the next chapter.</p>",
+    },
+    Canary {
+        file: "canary-print-navy.html",
+        what: "a page that prints in the navy theme's colors when read in navy",
+        expect: &[Kind::Print],
+        inside: "",
+        after: concat!(
+            switches!(),
+            "<style>.navy, .navy body { color: #F3F4F7; background: #0B0F1C; }</style>"
+        ),
+    },
+    Canary {
+        file: "canary-print-navy-light.html",
+        what: "a page that prints in the light theme's colors when read in navy, which must pass",
+        expect: &[],
+        inside: "",
+        after: concat!(
+            switches!(),
+            "<style>.navy, .navy body { color: #F3F4F7; background: #0B0F1C; } @media print { \
+             .navy, .navy body { color: #0B0F1C; background: #F3F4F7; } }</style>"
+        ),
+    },
+    Canary {
+        file: "canary-print-color.html",
+        what: "a link printed in a blue of its own",
+        expect: &[Kind::Print],
+        inside: "<style>@media print { a { color: #4183C4; } }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-print-screen.html",
+        what: "a screen-only rule that keeps its color on paper",
+        expect: &[Kind::Print],
+        inside: "<style>main p { color: #4183C4; } @media screen { main p { color: #0B0F1C; } \
+                 }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-print-nav.html",
+        what: "navigation drawn on paper",
+        expect: &[Kind::Print],
+        inside: "<nav><a href=\"#\">The next chapter</a></nav>",
+        after: "",
+    },
+    Canary {
+        file: "canary-print-control.html",
+        what: "a control drawn on paper",
+        expect: &[Kind::Print],
+        inside: "<p><span role=\"button\" tabindex=\"0\">Change the theme</span></p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-print-link.html",
+        what: "a link to another page printed without its address",
+        expect: &[Kind::Print],
+        inside: "<p>See <a href=\"other.html\">another page</a>.</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-print-address.html",
+        what: "a link to another page printed with its address, which must pass",
+        expect: &[],
+        inside: "<style>@media print { main a[href]:not([href^='#'])::after { content: ' (' \
+                 attr(href) ')'; } }</style><p>See <a href=\"other.html\">another page</a>.</p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-print-row.html",
+        what: "a table row that can split across sheets",
+        expect: &[Kind::Print],
+        inside: "<style>@media print { tr { break-inside: auto !important; } }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-print-block-hidden.html",
+        what: "a title block not drawn on paper",
+        expect: &[Kind::Print],
+        inside: "",
+        after: frame!(
+            "<style>@media print { .fs-titleblock { display: none !important; } }</style>",
+            lockup!(),
+            sidebar!(),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-print-block-undated.html",
+        what: "a title block printed without its date of issue",
+        expect: &[Kind::Print],
+        inside: "",
+        after: frame!(
+            "<style>@media print { .fs-titleblock > div:nth-child(4) { display: none \
+             !important; } }</style>",
+            lockup!(),
+            sidebar!(),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-print-block-split.html",
+        what: "a title block that can split across sheets",
+        expect: &[Kind::Print],
+        inside: "",
+        after: frame!(
+            "<style>@media print { .fs-titleblock { break-inside: auto !important; } }</style>",
+            lockup!(),
+            sidebar!(),
+            ""
+        ),
+    },
+    Canary {
         file: "canary-block-followed.html",
         what: "a title block with a paragraph below it",
         expect: &[Kind::TitleBlock],
@@ -1500,6 +1708,7 @@ h1 {{ font: 600 28px/32px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; 
 td {{ white-space: nowrap; padding: 0 12px; }}
 .word {{ overflow-wrap: anywhere; }}
 .sidebar {{ position: fixed; left: 0; top: 0; bottom: 0; width: 300px; transform: translateX(-100%); }}
+@media print {{ .sidebar {{ display: none; }} tr {{ break-inside: avoid; }} }}
 </style></head><body>
 <nav class=\"sidebar\"><ol><li><a class=\"active\" href=\"#\">A chapter in a sidebar drawer put away</a></li></ol></nav>
 <div class=\"content\"><main>
@@ -1551,6 +1760,7 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
         .clamp(1, MOST_TABS);
     let plan = serde_json::json!({
         "widths": checked,
+        "print_width": print_width(&checked),
         "height": HEIGHT_PX,
         "parallel": FRAMES_PER_TAB,
     })
@@ -1585,12 +1795,19 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
     })?;
     drop(scratch);
 
+    // Every canary not found as it should be, so one run names them all.
+    let mut broken = Vec::new();
     for canary in &CANARIES {
         let page = format!("{CHECK_PREFIX}{}", canary.file);
         let measured = results
             .get(&page)
             .ok_or_else(|| format!("the page check is broken: no results for {page}"))?;
-        canary_verdict(canary, measured)?;
+        if let Err(err) = canary_verdict(canary, measured) {
+            broken.push(err);
+        }
+    }
+    if !broken.is_empty() {
+        return Err(broken.join("\n"));
     }
     let mut problems = Vec::new();
     for page in &pages {
@@ -1706,6 +1923,18 @@ struct Measured {
     title_block: Vec<Style>,
     #[serde(default)]
     title_block_count: usize,
+    /// Text marks drawn as icons, and what prints off the system's (#383).
+    #[serde(default)]
+    mark: Vec<Style>,
+    #[serde(default)]
+    mark_count: usize,
+    #[serde(default)]
+    print: Vec<Style>,
+    #[serde(default)]
+    print_count: usize,
+    /// Whether the page was read on paper at this width, as at one width of each run.
+    #[serde(default)]
+    printed: bool,
 }
 
 impl Measured {
@@ -1731,6 +1960,8 @@ impl Measured {
             Kind::Selection => self.selection_count > 0,
             Kind::Header => self.header_count > 0,
             Kind::TitleBlock => self.title_block_count > 0,
+            Kind::Mark => self.mark_count > 0,
+            Kind::Print => self.print_count > 0,
         }
     }
 
@@ -1806,6 +2037,8 @@ impl Measured {
             Kind::Selection => Style::list(&self.selection),
             Kind::Header => Style::list(&self.header),
             Kind::TitleBlock => Style::list(&self.title_block),
+            Kind::Mark => Style::list(&self.mark),
+            Kind::Print => Style::list(&self.print),
         }
     }
 }
@@ -1944,6 +2177,11 @@ fn page_problems(page: &str, measured: &[Measured], step_px: u32) -> Vec<String>
             first.error.as_deref().unwrap_or_default()
         ));
     }
+    if failed.is_empty() && measured.iter().filter(|m| m.printed).count() != 1 {
+        problems.push(format!(
+            "{page}: was not read on paper at exactly one width of the run"
+        ));
+    }
     for kind in Kind::ALL {
         let hit: Vec<&Measured> = measured
             .iter()
@@ -1964,6 +2202,8 @@ fn page_problems(page: &str, measured: &[Measured], step_px: u32) -> Vec<String>
 }
 
 /// Whether a canary was found as it should be: each problem it expects at every width, no other.
+/// What prints is read at one width of the run, so a print problem is expected there only, and
+/// a run that never read the canary on paper is broken.
 fn canary_verdict(canary: &Canary, measured: &[Measured]) -> Result<(), String> {
     let broken = |what: String| {
         format!(
@@ -1979,7 +2219,7 @@ fn canary_verdict(canary: &Canary, measured: &[Measured]) -> Result<(), String> 
             )));
         }
         for kind in Kind::ALL {
-            let expected = canary.expect.contains(&kind);
+            let expected = canary.expect.contains(&kind) && (kind != Kind::Print || m.printed);
             if m.has(kind) != expected {
                 let verb = if expected {
                     "was not found"
@@ -1998,6 +2238,11 @@ fn canary_verdict(canary: &Canary, measured: &[Measured]) -> Result<(), String> 
                 )));
             }
         }
+    }
+    if measured.iter().filter(|m| m.printed).count() != 1 {
+        return Err(broken(
+            "was not read on paper at exactly one width of the run".to_string(),
+        ));
     }
     Ok(())
 }
@@ -2607,10 +2852,11 @@ mod tests {
             .map(|_| r#"{"a":"Apogee","b":"Top speed","width":40,"height":12}"#.to_owned())
             .collect();
         format!(
-            r#"{{"width":{width},"error":null,"client_width":{cw},"scroll_width":{scroll},
+            r#"{{"width":{width},"error":null,"printed":{printed},"client_width":{cw},"scroll_width":{scroll},
             "past":[{past_list}],"past_count":{past},"cut":[{cut_list}],"cut_count":{cut},
             "overlaps":[{overlap_list}],"overlap_count":{overlap}}}"#,
             cw = width - 15,
+            printed = width == PRINT_PX,
             past_list = examples(past, "right"),
             cut_list = examples(cut, "lost"),
             overlap_list = overlaps.join(","),
@@ -2924,6 +3170,67 @@ mod tests {
         let body = page_json("index.html", |w| width_json(w, w - 15, 0, 0, 0));
         let (page, measured) = parse_results(&body, &widths()).unwrap();
         assert!(page_problems(&page, &measured, STEP_PX).is_empty());
+    }
+
+    #[test]
+    fn print_is_read_at_the_width_nearest_a_sheet_of_paper() {
+        assert_eq!(print_width(&widths()), 720);
+        assert_eq!(print_width(&[320, 680, 760, 1920]), 680);
+        assert_eq!(print_width(&[1040, 400]), 400);
+        assert_eq!(print_width(&[]), 0);
+        for count in [1, 2, 3, 4] {
+            for index in 1..=count {
+                let list = Part { index, count }.widths();
+                let at = print_width(&list);
+                assert!(list.contains(&at), "{index}/{count}");
+                assert!(
+                    at.abs_diff(PRINT_PX) < STEP_PX * count as u32,
+                    "{index}/{count}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn what_prints_is_read_once_and_named() {
+        let printing = r#""overlap_count":0,"print":[{"selector":"main>p>a::after","property":"content","value":"no address (cli.html)","theme":"print, from light"}],"print_count":1}"#;
+        let body = page_json("guide.html", |w| {
+            let plain = width_json(w, w - 15, 0, 0, 0);
+            if w == PRINT_PX {
+                plain.replacen("\"overlap_count\":0}", printing, 1)
+            } else {
+                plain
+            }
+        });
+        let (page, measured) = parse_results(&body, &widths()).unwrap();
+        assert_eq!(
+            page_problems(&page, &measured, STEP_PX),
+            [
+                "guide.html: a page that prints off the system's at 720 px; at 720 px, \
+              `main>p>a::after` has content `no address (cli.html)` (print, from light)"
+            ]
+        );
+        // A canary that prints wrong shows it at the one width read on paper, and passes.
+        let link = canary("canary-print-link.html");
+        assert_eq!(link.expect, &[Kind::Print]);
+        assert!(canary_verdict(link, &measured).is_ok());
+        // Not read on paper at all, or at two widths: the check is broken, and a page fails.
+        for printed in [&[][..], &[680, 720][..]] {
+            let body = page_json("guide.html", |w| {
+                width_json(w, w - 15, 0, 0, 0).replacen(
+                    &format!("\"printed\":{}", w == PRINT_PX),
+                    &format!("\"printed\":{}", printed.contains(&w)),
+                    1,
+                )
+            });
+            let (page, measured) = parse_results(&body, &widths()).unwrap();
+            assert_eq!(
+                page_problems(&page, &measured, STEP_PX),
+                ["guide.html: was not read on paper at exactly one width of the run"]
+            );
+            let err = canary_verdict(canary("canary-mark-words.html"), &measured).unwrap_err();
+            assert!(err.contains("was not read on paper"), "{err}");
+        }
     }
 
     #[test]

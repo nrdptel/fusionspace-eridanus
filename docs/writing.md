@@ -281,13 +281,35 @@ The page check fails, at every width:
 The header has no theme switch of its own yet, and pages have no sheets or intro: those wait for
 [M0.9d9, the page anatomy](decisions-and-roadmap.md#m0-9d9).
 
+mdBook draws three icons as characters of text: `❱` beside a heading that folds open in the
+table of contents, `✓` beside the chosen theme, and `»` before a heading a link jumped to. The
+build draws the fold toggle as the system's chevron; the chosen theme is underlined, as the
+current page is in the table of contents; a heading jumped to takes no mark, since the page
+scrolls it to the top. The page check fails a text made only of such marks (arrows, dingbats,
+shapes, symbols, guillemets) outside a page's `main`, or drawn by a stylesheet before or after
+an element anywhere. A key's name in the help popup (`←`) and a mark used as a word in prose
+(`Mach → 0`) pass.
+
+The check also reads each page as it would print, at the one width of each run nearest the
+printable width of a sheet of paper (720 px: an A4 or Letter sheet inside Chrome's default
+margins), with the stylesheets' print rules applied and their screen-only rules set aside. A
+headless browser can't print from a page, so this reads the print rules, not a printed page:
+where the browser would break the pages isn't seen. In the light theme and in the navy one, it
+fails:
+
+- a color that isn't the light theme's, and on a page with both themes, anything drawn in
+  different colors from the two;
+- navigation or a control drawn: the table of contents, the menu bar, a button or a text field;
+- a link to another page without its address after it, in parentheses;
+- a table row, a note or the title block that can split across two sheets;
+- a title block not drawn, or drawn without its version and date of issue.
+
 `mdbook serve` still shows mdBook's icons, menu bar and two `h1`, and the landing page's title
-block as a table; only `cargo xtask site` builds the pages as published. Not read: text inside SVG images or over a picture, hover
-([#432](https://github.com/nrdptel/fusionspace-eridanus/issues/432)), and three text marks
-mdBook still draws (`❱` on the sidebar's fold toggles, `✓` beside the chosen theme, `»` before a
-heading jumped to). Print and the pages' load speed, Google's Core Web Vitals, are still
-unchecked until [M0.9d8, print and vitals](decisions-and-roadmap.md#m0-9d8); print uses mdBook's
-own print styles meanwhile.
+block as a table; only `cargo xtask site` builds the pages as published. Not read: text inside
+SVG images or over a picture, and hover
+([#432](https://github.com/nrdptel/fusionspace-eridanus/issues/432)). The pages' load speed,
+Google's Core Web Vitals, is still unchecked until
+[M0.9d10, the pages' vitals](decisions-and-roadmap.md#m0-9d10).
 
 ## Measured, not gated
 
