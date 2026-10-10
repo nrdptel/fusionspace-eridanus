@@ -66,10 +66,12 @@ They don't conflict with the rules above; they add these:
   with a bold "not validated" sentence.
 - **Signal words** are those of ANSI Z535, the US safety-sign standard, and no others: DANGER, WARNING, CAUTION, NOTICE, NOTE, each
   as a panel above the text with the hazard, the consequence and how to avoid it.
-  On the site, write one as a GitHub alert, `> [!NOTE]`, `> [!CAUTION]` or `> [!WARNING]`
-  (DANGER and NOTICE have none yet). `cargo xtask site` draws every alert and trust note as the
-  system's note, the signal word in a strip above the message, and fails any other quote block:
-  a page quotes a source in running text.
+  NOTE carries a statement with no hazard. On the site, write one as a GitHub alert (a quote
+  block whose first line is `[!NOTE]`, `[!CAUTION]` or `[!WARNING]`; DANGER and NOTICE have
+  none yet, and `[!TIP]` and `[!IMPORTANT]` fail the build). `cargo xtask site` draws every
+  alert and trust note as the product system's note, the signal word in a strip above the
+  message, and fails any other `>` quote block: quote a source inside a sentence instead.
+  `mdbook serve` shows plain quote blocks; `cargo xtask site` builds the pages as published.
 - **Numbers and dates**:
 
   | rule | write |
@@ -219,9 +221,10 @@ sizes, prose lines past 68 characters and gutters off 16 or 32 px all fail it. S
 - a bar stuck to the top of the window reaching further down than the page's
   `scroll-padding-top`, the room the browser leaves at the top when it scrolls to what a reader
   tabs to, so the bar never hides it;
-- a quote block, or a note not drawn as the system's: its signal word in a strip across its
-  top in Cascadia Mono 12 px capitals, set apart by a rule or, on a caution or warning, its
-  fill, inside the note's border;
+- a `>` quote block left on a page, or a note not drawn as the system's: a head, then the
+  message; the head saying its kind's signal word in Cascadia Mono 12 px semibold capitals,
+  across the note's top, set apart by a rule or a fill (a caution's in the caution fill, a
+  warning's in the danger fill); the note inside a border on every side, 2 px on a warning;
 - a font list without its metric-matched fallback second (a stand-in, Arial or Menlo, scaled to
   the real font's size, so text doesn't jump when the real font arrives), and a smooth scroll a
   script asks for when the menu bar's title is clicked.

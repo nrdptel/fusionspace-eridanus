@@ -121,8 +121,9 @@
 //! a line of 69 characters after a short one and one of 68, which must pass, mdBook's 20 px
 //! gutters, a right gutter wider than the left, a code block in a list item held to the measure,
 //! four notes drawn as the system draws them, which must pass, a quote block, a caution whose
-//! strip says Note, a note whose signal word is plain text, a warning with no fill and a 1 px
-//! border, a note whose strip sits below its message,
+//! strip says Note, a signal word in body type, a strip with no rule or fill, a warning and a
+//! caution without their fills, a warning bordered 1 px, a body before its head, a strip below
+//! its message,
 //! Archivo with no fallback second, a label in faint ink, a paragraph faded to half and a title
 //! faded the same, which must pass, links with no ring and with the browser's own, a hidden
 //! checkbox whose picture takes the browser's ring, a box set apart by its fill alone and one with
@@ -350,18 +351,40 @@ const NOTES_OK: &str = concat!(
     note!("warning", "Warning")
 );
 const NOTES_WRONG_WORD: &str = concat!(note_style!(), note!("caution", "Note"));
-const NOTES_PLAIN: &str = concat!(
+// Each failing note canary breaks one property, so each of the check's rules has a canary of
+// its own.
+const NOTES_TYPE: &str = concat!(
     note_style!(),
     "<style>.fs-note-head { font: 16px/24px 'Archivo', 'Archivo Fallback', sans-serif !important; \
-     font-variant-numeric: tabular-nums !important; text-transform: none !important; border: 0 !important; }</style>",
+     font-variant-numeric: tabular-nums !important; text-transform: none !important; }</style>",
     note!("trust", "How far to trust it")
 );
-const NOTES_UNFILLED: &str = concat!(
+const NOTES_NO_RULE: &str = concat!(
     note_style!(),
-    "<style>.fs-note[data-kind=\"warning\"] { border-width: 1px !important; } \
-     .fs-note[data-kind=\"warning\"] > .fs-note-head { background: none !important; color: \
+    "<style>.fs-note-head { border-bottom: 0 !important; }</style>",
+    note!("trust", "How far to trust it")
+);
+const NOTES_WARNING_UNFILLED: &str = concat!(
+    note_style!(),
+    "<style>.fs-note[data-kind=\"warning\"] > .fs-note-head { background: none !important; color: \
      #0B0F1C !important; }</style>",
     note!("warning", "Warning")
+);
+const NOTES_CAUTION_UNFILLED: &str = concat!(
+    note_style!(),
+    "<style>.fs-note[data-kind=\"caution\"] > .fs-note-head { background: none !important; \
+     }</style>",
+    note!("caution", "Caution")
+);
+const NOTES_WARNING_THIN: &str = concat!(
+    note_style!(),
+    "<style>.fs-note[data-kind=\"warning\"] { border-width: 1px !important; }</style>",
+    note!("warning", "Warning")
+);
+const NOTES_BODY_FIRST: &str = concat!(
+    note_style!(),
+    "<aside class=\"fs-note\" data-kind=\"trust\"><div class=\"fs-note-body\"><p>A \
+     message.</p></div><div class=\"fs-note-head\">How far to trust it</div></aside>"
 );
 const NOTES_BELOW: &str = concat!(
     note_style!(),
@@ -370,7 +393,7 @@ const NOTES_BELOW: &str = concat!(
 );
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 62] = [
+const CANARIES: [Canary; 66] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -727,17 +750,45 @@ const CANARIES: [Canary; 62] = [
         after: "",
     },
     Canary {
-        file: "canary-note-plain.html",
-        what: "a note whose signal word is plain text, set apart by no rule or fill",
+        file: "canary-note-type.html",
+        what: "a note whose signal word is set in body type, not the label token",
         expect: &[Kind::Note],
-        inside: NOTES_PLAIN,
+        inside: NOTES_TYPE,
         after: "",
     },
     Canary {
-        file: "canary-note-unfilled.html",
-        what: "a warning whose strip has no fill and whose border is 1 px",
+        file: "canary-note-no-rule.html",
+        what: "a trust note whose strip has no rule under it, and no fill",
         expect: &[Kind::Note],
-        inside: NOTES_UNFILLED,
+        inside: NOTES_NO_RULE,
+        after: "",
+    },
+    Canary {
+        file: "canary-note-warning-unfilled.html",
+        what: "a warning whose strip has a rule but not the danger fill",
+        expect: &[Kind::Note],
+        inside: NOTES_WARNING_UNFILLED,
+        after: "",
+    },
+    Canary {
+        file: "canary-note-caution-unfilled.html",
+        what: "a caution whose strip has a rule but not the caution fill",
+        expect: &[Kind::Note],
+        inside: NOTES_CAUTION_UNFILLED,
+        after: "",
+    },
+    Canary {
+        file: "canary-note-warning-thin.html",
+        what: "a warning bordered 1 px, not 2 px",
+        expect: &[Kind::Note],
+        inside: NOTES_WARNING_THIN,
+        after: "",
+    },
+    Canary {
+        file: "canary-note-body-first.html",
+        what: "a note whose body comes before its head",
+        expect: &[Kind::Note],
+        inside: NOTES_BODY_FIRST,
         after: "",
     },
     Canary {

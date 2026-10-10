@@ -40,11 +40,14 @@ caution-like paragraph on the landing page, which becomes a `[!NOTE]` alert.
    check fails, at every width, a `blockquote` in `main` and a note that isn't a head then a
    body, whose head says another kind's word, isn't set in the `label` token, isn't set apart
    by a rule or a fill, isn't across the note's top above its message, misses its kind's fill,
-   or whose border is missing or thinner than its kind's. Five canaries fail one way each, and
-   one with a note of each kind passes.
+   or whose border is missing or thinner than its kind's. Each of those rules has a canary that
+   breaks it and nothing else (nine in all, a caution's fill and a warning's apart), and one
+   with a note of each kind passes. A note is an `aside` with `role="note"`, so a page with
+   several doesn't gain an unnamed landmark for each.
 4. **M0.9d7: the rest of #384,** with the old done-when unchanged, after M0.9d6.
 
-**Consequences.** 51 notes on the site, 103 counting the print page's copies, are drawn as the
-system's. The trust note's source shape is unchanged, so writers keep `writing.md`'s rule; the
+**Consequences.** 51 notes on the site's pages are drawn as the system's: `xtask site` counts
+103 drawn, adding the print page's 51 copies and the landing page's note a second time in
+`index.html`, mdBook's copy of the landing page. The trust note's source shape is unchanged, so writers keep `writing.md`'s rule; the
 landing page's note now reads NOTE on GitHub too. The page check reads every note at 41 widths;
-its run stayed at about 190 s.
+its run took 193 s against about 191 s before.

@@ -13,7 +13,7 @@
 //!
 //! After mdBook builds the site, [`draw`] rewrites each such quote block in the guide's pages as
 //! the system's specimen writes a note, `<aside class="fs-note" data-kind="…">` with its head and
-//! body, the icon the specimen gives each kind in the head. Any other quote block fails the
+//! body (and `role="note"`, so a page's notes aren't each a landmark), the icon the specimen gives each kind in the head. Any other quote block fails the
 //! build: a page has no quote block that isn't a note. `theme/hpr.css` draws the notes, and the
 //! page check fails one not drawn as the system draws it.
 
@@ -178,8 +178,14 @@ fn lead(quote: &str) -> String {
 /// it, is not a note.
 fn note(quote: &str) -> Result<(String, usize), Vec<String>> {
     let (kind, body) = if let Some(after) = quote.strip_prefix(TRUST_OPEN) {
-        // The label leaves the message; a label alone in its paragraph leaves no paragraph.
+        // The label leaves the message, with a hard line break after it; a label alone in its
+        // paragraph leaves no paragraph.
         let after = after.trim_start();
+        let after = ["<br>", "<br />"]
+            .iter()
+            .find_map(|br| after.strip_prefix(br))
+            .unwrap_or(after)
+            .trim_start();
         let body = match after.strip_prefix("</p>") {
             Some(next) => next.trim_start_matches('\n').to_owned(),
             None => format!("<p>{after}"),
@@ -219,7 +225,8 @@ fn note(quote: &str) -> Result<(String, usize), Vec<String>> {
     let (_, data_kind, shapes, word) = kind;
     Ok((
         format!(
-            "<aside class=\"fs-note\" data-kind=\"{data_kind}\"><div class=\"fs-note-head\">\
+            "<aside class=\"fs-note\" data-kind=\"{data_kind}\" role=\"note\"><div \
+             class=\"fs-note-head\">\
              {ICON}{shapes}</svg>{word}</div><div class=\"fs-note-body\">\n{body}</div></aside>"
         ),
         1 + inside,
@@ -247,7 +254,7 @@ mod tests {
         .unwrap();
         assert_eq!(count, 1);
         assert!(html.contains(
-            "<aside class=\"fs-note\" data-kind=\"trust\"><div class=\"fs-note-head\"><svg"
+            "<aside class=\"fs-note\" data-kind=\"trust\" role=\"note\"><div class=\"fs-note-head\"><svg"
         ));
         assert!(html.contains(
             "</svg>How far to trust it</div><div class=\"fs-note-body\">\n<p>A simulation,\nnot \
@@ -272,6 +279,23 @@ mod tests {
     }
 
     #[test]
+    fn a_hard_break_after_the_label_leaves_with_it() {
+        // > **How far to trust it.**\
+        // > A simulation.
+        for br in ["<br>", "<br />"] {
+            let (html, _) = rewrite(&page(&format!(
+                "<blockquote>\n<p><strong>How far to trust it.</strong>{br}\nA \
+                 simulation.</p>\n</blockquote>"
+            )))
+            .unwrap();
+            assert!(
+                html.contains("<div class=\"fs-note-body\">\n<p>A simulation.</p>"),
+                "{html}"
+            );
+        }
+    }
+
+    #[test]
     fn alerts_take_the_systems_kinds() {
         for (word, kind, signal) in [
             ("note", "note", "Note"),
@@ -287,7 +311,7 @@ mod tests {
             .unwrap();
             assert_eq!(count, 1);
             assert!(html.contains(&format!(
-                "<aside class=\"fs-note\" data-kind=\"{kind}\"><div class=\"fs-note-head\"><svg \
+                "<aside class=\"fs-note\" data-kind=\"{kind}\" role=\"note\"><div class=\"fs-note-head\"><svg \
                  class=\"\" viewBox=\"0 0 24 24\""
             )));
             assert!(html.contains(&format!(
