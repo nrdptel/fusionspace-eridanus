@@ -86,8 +86,13 @@
 //!     the window's sides and every icon and text in its header. From 720 px no menu button is
 //!     drawn and the sidebar is; under 720 px the menu button is. Wherever the sidebar is drawn,
 //!     a screen reader and the keyboard reach it (not `aria-hidden`, every link in the tab
-//!     order), and wherever it is put away neither does. That every page has the header and its
-//!     lockup is the file check's (`frame.rs`);
+//!     order), and wherever it is put away neither does. Read again with scripts off (the root
+//!     without `js`, mdBook's sidebar box unticked, transitions held): from 720 px the sidebar is
+//!     drawn and no menu button is, and under 720 px the menu button is. And last, a window under
+//!     720 px is widened to 800 px: once the sidebar's slide has run, it must be drawn and
+//!     reached, with no menu button. A page with the site's header and no sidebar or menu button
+//!     fails. That every page has the header, its lockup, the sidebar and the menu button is the
+//!     file check's (`frame.rs`);
 //!   - **a title block off the system's or not last**: each must sit inside a 2 px solid border
 //!     in the ink role on every side, its fields' names and entries in Cascadia Mono, with no
 //!     text, picture or field drawn below its top outside it, other than in a box fixed to the
@@ -155,7 +160,9 @@
 //! 20 px tall, one in the action role, one cut by its box, one with the product's name inside
 //! its clear space, a menu button only from 720 px, a sidebar drawn and hidden from screen
 //! readers, one drawn with its link out of the tab order, one put away and still read, one put
-//! away from 720 px and hidden while drawn under it, a title block bordered 1 px, one bordered
+//! away from 720 px and hidden while drawn under it, a sidebar and menu button put away with
+//! scripts off, a sidebar drawn only when the window was wide at load (and a lockup 20 px tall
+//! from 720 px), a title block bordered 1 px, one bordered
 //! in a rule's color, one with its entries in Archivo, one with a paragraph below it, and an
 //! ordinary
 //! page
@@ -555,25 +562,29 @@ macro_rules! lockup {
     };
 }
 
-/// The sidebar as mdBook's script leaves it: hidden from screen readers and the keyboard, then
-/// reached from 720 px, where it is drawn.
+/// The sidebar as the site's script leaves it: hidden from screen readers and the keyboard, and
+/// reached from 720 px, where it is drawn, as the window's width changes too.
 macro_rules! sidebar {
     () => {
         "<nav id=\"mdbook-sidebar\" aria-hidden=\"true\"><a href=\"#\" tabindex=\"-1\">A \
-         chapter</a></nav><script>if (matchMedia('(min-width: 720px)').matches) { const s = \
-         document.getElementById('mdbook-sidebar'); s.setAttribute('aria-hidden', 'false'); \
-         s.querySelector('a').tabIndex = 0; }</script>"
+         chapter</a></nav><script>(function () { const m = matchMedia('(min-width: 720px)'); \
+         const s = document.getElementById('mdbook-sidebar'); const set = function () { \
+         s.setAttribute('aria-hidden', String(!m.matches)); s.querySelector('a').tabIndex = \
+         m.matches ? 0 : -1; }; set(); m.addEventListener('change', set); })();</script>"
     };
 }
 
 /// A page's frame with `$style` added, `$lockup` in its header and `$sidebar` after it, then the
-/// title block and `$after`.
+/// title block and `$after`; its root marked `js`, as the site's script marks it, and mdBook's
+/// sidebar box, for the reading with scripts off.
 macro_rules! frame {
     ($style:expr, $lockup:expr, $sidebar:expr, $after:expr) => {
         concat!(
             frame_style!(),
             $style,
-            "<header class=\"frame-header\"><label id=\"mdbook-sidebar-toggle\" \
+            "<input type=\"checkbox\" id=\"mdbook-sidebar-toggle-anchor\" checked \
+             style=\"display: none\"><script>document.documentElement.classList.add('js');\
+             </script><header class=\"frame-header\"><label id=\"mdbook-sidebar-toggle\" \
              aria-label=\"Menu\"><svg viewBox=\"0 0 24 24\" fill=\"none\" \
              stroke=\"currentColor\" stroke-width=\"1.5\" aria-hidden=\"true\"><path d=\"M4 7H20M4 \
              12H20M4 17H20\"/></svg></label><a class=\"fs-logo\" href=\"#\" \
@@ -591,7 +602,7 @@ macro_rules! frame {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 91] = [
+const CANARIES: [Canary; 93] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1363,6 +1374,35 @@ const CANARIES: [Canary; 91] = [
             lockup!(),
             "<nav id=\"mdbook-sidebar\" aria-hidden=\"true\"><a href=\"#\" tabindex=\"-1\">A \
              chapter</a></nav>",
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-sidebar-noscript.html",
+        what: "a sidebar and a menu button put away with scripts off",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "<style>html:not(.js) #mdbook-sidebar, html:not(.js) #mdbook-sidebar-toggle { \
+             display: none !important; }</style>",
+            lockup!(),
+            sidebar!(),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-sidebar-widened.html",
+        what: "a sidebar drawn only when the window was wide at load, and from 720 px a lockup \
+               20 px tall",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!(
+            "<style>html:not(.wide-at-load) #mdbook-sidebar { display: none !important; } \
+             @media (min-width: 720px) { .fs-lockup { height: 20px !important; } }</style>\
+             <script>if (matchMedia('(min-width: 720px)').matches) \
+             document.documentElement.classList.add('wide-at-load');</script>",
+            lockup!(),
+            sidebar!(),
             ""
         ),
     },
@@ -2768,7 +2808,7 @@ mod tests {
     fn the_header_and_the_title_block_have_canaries_both_ways() {
         // Each kind has canaries that must show it alone, and the frame drawn as the system's
         // must pass.
-        for (kind, least) in [(Kind::Header, 9), (Kind::TitleBlock, 4)] {
+        for (kind, least) in [(Kind::Header, 11), (Kind::TitleBlock, 4)] {
             let failing = CANARIES
                 .iter()
                 .filter(|canary| canary.expect == [kind])

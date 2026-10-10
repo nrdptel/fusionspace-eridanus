@@ -381,6 +381,10 @@
   const INKS = ['rgb(11, 15, 28)', 'rgb(243, 244, 247)'];
   const SIDEBAR_OPEN_FROM_PX = 720;
   const TITLE_BLOCK_BORDER_PX = 2;
+  // The width a narrow window is widened to, past 720 px, and how long the sidebar's slide
+  // (240 ms, the system's slow step) is given to run.
+  const SIDEBAR_WIDENED_PX = 800;
+  const SIDEBAR_SLIDE_WAIT_MS = 400;
   // The system's motion (`foundations.md`, *Motion*): no motion, quick, base and slow, as
   // computed styles write them, and its two easings.
   const DURATIONS = ['0s', '0.1s', '0.16s', '0.24s'];
@@ -1267,6 +1271,7 @@
       }
     }
     probeHeader(win, doc, note);
+    probeNoScript(win, doc, note);
     probeTitleBlock(win, doc, note);
     return found;
   }
@@ -1295,7 +1300,7 @@
     const round = function (v) { return Math.round(v * 10) / 10; };
     for (const svg of Array.from(doc.querySelectorAll('.fs-lockup'))) {
       const sel = selector(svg);
-      if (svg.getClientRects().length === 0) {
+      if (!drawn(win, svg)) {
         note('header', sel, 'display', 'not drawn');
         continue;
       }
@@ -1345,6 +1350,13 @@
       }
     }
     const toggle = doc.getElementById('mdbook-sidebar-toggle');
+    const sidebarEl = doc.getElementById('mdbook-sidebar');
+    // A page with the site's header has the sidebar and its menu button too: neither rule
+    // below may pass for want of them.
+    if (doc.querySelector('header#mdbook-menu-bar') && (!toggle || !sidebarEl)) {
+      note('header', 'header#mdbook-menu-bar', 'sidebar', (toggle ? '' : 'no menu button ')
+        + (sidebarEl ? '' : 'no sidebar'));
+    }
     if (toggle) {
       const shown = drawn(win, toggle);
       if (width >= SIDEBAR_OPEN_FROM_PX && shown) {
@@ -1373,6 +1385,76 @@
           + ' and ' + reached + ' of ' + links.length + ' links in the tab order, put away');
       }
     }
+  }
+
+  // Whether the sidebar `el` is drawn on the page: a box, not hidden, not wholly off the left.
+  function sidebarShown(win, el) {
+    return drawn(win, el) && el.getBoundingClientRect().right > SLACK_PX;
+  }
+
+  // The sidebar with scripts off (#384): read as the page's markup leaves it before any script
+  // runs (the root without its `js` class, mdBook's sidebar box unticked, the sidebar without
+  // the `display` mdBook's script gives it), with transitions held, then put back. From 720 px
+  // the sidebar is drawn and no menu button is; under 720 px the menu button is, as only it can
+  // open the sidebar without a script. Read only on a page whose script marks the root `js`.
+  function probeNoScript(win, doc, note) {
+    const root = doc.documentElement;
+    const box = doc.getElementById('mdbook-sidebar-toggle-anchor');
+    const sidebar = doc.getElementById('mdbook-sidebar');
+    const toggle = doc.getElementById('mdbook-sidebar-toggle');
+    if (!box || !sidebar || !toggle || !root.classList.contains('js')) return;
+    const width = win.innerWidth;
+    const held = doc.createElement('style');
+    held.textContent = '*, *::before, *::after { transition: none !important; }';
+    const was = { checked: box.checked, display: sidebar.style.display };
+    doc.head.appendChild(held);
+    try {
+      root.classList.remove('js');
+      box.checked = false;
+      sidebar.style.display = '';
+      const shown = sidebarShown(win, sidebar);
+      const button = drawn(win, toggle);
+      if (width >= SIDEBAR_OPEN_FROM_PX && (!shown || button)) {
+        note('header', selector(sidebar), 'scripts off', (shown ? 'drawn' : 'put away')
+          + (button ? ', with a menu button' : '') + ' from ' + SIDEBAR_OPEN_FROM_PX + ' px');
+      } else if (width < SIDEBAR_OPEN_FROM_PX && !button) {
+        note('header', selector(toggle), 'scripts off', 'no menu button under '
+          + SIDEBAR_OPEN_FROM_PX + ' px');
+      }
+    } finally {
+      root.classList.add('js');
+      box.checked = was.checked;
+      sidebar.style.display = was.display;
+      held.remove();
+    }
+  }
+
+  // The sidebar after a window under 720 px widens past it (#384): the frame is widened to
+  // `SIDEBAR_WIDENED_PX` and, once the sidebar's slide has run, the sidebar must be drawn and
+  // reached, and no menu button drawn. Returns what is wrong, as the header's examples.
+  async function probeWidened(frame, win, doc) {
+    const found = [];
+    const sidebar = doc.getElementById('mdbook-sidebar');
+    const toggle = doc.getElementById('mdbook-sidebar-toggle');
+    if (!sidebar || !toggle || win.innerWidth >= SIDEBAR_OPEN_FROM_PX) return found;
+    const from = win.innerWidth;
+    frame.style.width = SIDEBAR_WIDENED_PX + 'px';
+    await new Promise(function (resolve) { setTimeout(resolve, SIDEBAR_SLIDE_WAIT_MS); });
+    await nextFrames(win);
+    const what = 'widened from ' + from + ' to ' + SIDEBAR_WIDENED_PX + ' px';
+    const hidden = sidebar.getAttribute('aria-hidden') === 'true';
+    const links = Array.from(sidebar.querySelectorAll('a[href]'));
+    const reached = links.filter(function (a) { return a.tabIndex >= 0; }).length;
+    if (!sidebarShown(win, sidebar) || hidden || reached < links.length) {
+      found.push({ selector: selector(sidebar), property: 'widened', theme: from + ' px',
+        value: (sidebarShown(win, sidebar) ? 'drawn' : 'put away') + (hidden ? ', hidden' : '')
+          + ', ' + reached + ' of ' + links.length + ' links in the tab order, ' + what });
+    }
+    if (drawn(win, toggle)) {
+      found.push({ selector: selector(toggle), property: 'widened', theme: from + ' px',
+        value: 'a menu button, ' + what });
+    }
+    return found;
   }
 
   // The title block (#384; `web.md`, *Page anatomy*; `fusionspace.css`, `.fs-titleblock`). Each
@@ -1483,6 +1565,11 @@
           probeAccess(win, doc, found);
           await probeDefaults(win, doc, found);
           Object.assign(result, found);
+          // Last, as it changes the frame's width.
+          for (const widened of await probeWidened(frame, win, doc)) {
+            result.header_count++;
+            if (result.header.length < EXAMPLES) result.header.push(widened);
+          }
           result.width = width;
           result.error = null;
           finish(result);

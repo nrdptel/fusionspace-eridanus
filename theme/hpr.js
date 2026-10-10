@@ -11,11 +11,12 @@
 //
 // From 720 px the sidebar stays open and the menu button is gone (`web.md`, *Page anatomy*):
 // the build has mdBook show the sidebar there when a page loads, and a window that widens past
-// 720 px opens it here, through mdBook's own checkbox, so its `aria-hidden` and its links' focus
-// follow as mdBook sets them. mdBook sets its sidebar links' focus once, before its script adds
-// the current page's headings to the sidebar, and again only for the links it found then; so
-// each link here follows the sidebar's `aria-hidden` whenever either changes: out of the tab
-// order while the sidebar is put away, in it while it is shown.
+// 720 px opens it here, through mdBook's own box, after undoing the `display: none` mdBook gives
+// a sidebar put away (only its menu button undoes it). The box, ticked or not, is what draws the
+// sidebar, so the sidebar's `aria-hidden` and its links' focus follow the box here whenever
+// either changes: mdBook sets the links' focus once, before its script adds the current page's
+// headings, and a swipe or a drag can hide the sidebar from screen readers with the box still
+// ticked. The page check reads all of this at every width, after widening a narrow window too.
 'use strict';
 
 document.addEventListener('click', function (event) {
@@ -28,28 +29,29 @@ document.addEventListener('click', function (event) {
 }, true);
 
 (function () {
+    const sidebar = document.getElementById('mdbook-sidebar');
+    const box = document.getElementById('mdbook-sidebar-toggle-anchor');
+    if (!sidebar || !box) return;
     const wide = window.matchMedia('(min-width: 720px)');
-    const open = function () {
-        const box = document.getElementById('mdbook-sidebar-toggle-anchor');
-        if (wide.matches && box && !box.checked) {
+    wide.addEventListener('change', function () {
+        if (wide.matches && !box.checked) {
+            sidebar.style.display = '';
             box.checked = true;
             box.dispatchEvent(new Event('change'));
         }
-    };
-    wide.addEventListener('change', open);
-})();
-
-(function () {
-    const sidebar = document.getElementById('mdbook-sidebar');
-    if (!sidebar) return;
+    });
+    // Sets only what differs, so the observer, which sees every write, stops.
     const follow = function () {
-        const away = sidebar.getAttribute('aria-hidden') === 'true';
+        const hidden = String(!box.checked);
+        if (sidebar.getAttribute('aria-hidden') !== hidden) sidebar.setAttribute('aria-hidden', hidden);
+        const focus = box.checked ? 0 : -1;
         sidebar.querySelectorAll('a').forEach(function (link) {
-            link.tabIndex = away ? -1 : 0;
+            if (link.tabIndex !== focus) link.tabIndex = focus;
         });
     };
     new MutationObserver(follow).observe(sidebar, {
         attributes: true, attributeFilter: ['aria-hidden'], childList: true, subtree: true,
     });
+    box.addEventListener('change', follow);
     follow();
 })();

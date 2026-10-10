@@ -53,7 +53,7 @@ adds a source.
   fusionspace-design's `LICENSE` and `TRADEMARKS.md`: all rights reserved, and **not** covered by
   this repository's MIT or Apache-2.0 license. A fork that isn't a FusionSpace project removes
   them (ADR-164): it replaces the files, their entries in `COPIED` (`xtask/src/site/theme.rs`)
-  and the header `xtask/src/site/frame.rs` draws.
+  and the header code in `xtask/src/site/frame.rs`.
 
 - **The FusionSpace mdBook theme** (`theme/fusionspace-mdbook.css`, served by the documentation
   site): `product/web/mdbook/fusionspace-mdbook.css` of

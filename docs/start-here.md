@@ -402,8 +402,10 @@ a page opens its source in GitHub's editor, where you can propose a fix.
 ## Title block
 
 Every page of this site ends with a title block, the box in the corner of an engineering drawing
-that says what a document is, who issued it, when, and which sources it rests on. Its entries,
-written here, describe the whole site and this version of HPR Sim; each page adds its own title
+that says what a document is, who issued it, when, and which sources it rests on; its fields
+follow ISO 7200, the standard for drawings' title blocks. This page's is at its foot, below the
+page arrows. Its entries are written once, at the end of this section in the page's source, and
+describe the whole site and this version of HPR Sim; each page adds its own title, as "Page",
 after the site's. FusionSpace, the family of tools HPR Sim belongs to, closes its pages this way;
 `FS-ACHERNAR · SW · TOOL 001` is HPR Sim's number in that family's register: Achernar, the
 simulator's internal name, then software tool 1.
@@ -417,7 +419,7 @@ simulator's internal name, then software tool 1.
 | Designation | `FS-ACHERNAR · SW · TOOL 001` |
 | Version | 0.1.0, not yet released |
 | Date of issue | <span id="issue-date">the date of the commit the site is built from</span> |
-| Status | IN PREPARATION: no release yet; how far to trust each result is [above](#accuracy-so-far) |
+| Status | IN PREPARATION: no release yet; how far to trust each result is in [Accuracy so far](#accuracy-so-far) |
 | Units | SI (meters, kilograms, seconds) first. Every command's text adds US units in parentheses: feet after heights and distances, feet per second after speeds, miles per hour after the wind, °F after the air's temperature, g after an acceleration and inches after stations along the rocket and a motor's size; `hpr motors show` adds ounces or pounds. The plot gives a second scale in feet, feet per second and g. This site's pages, unlike the program's output, keep a motor's nominal size in millimeters alone, as motors are named (`a 54 mm motor`); every other height, distance, size and speed on them gives its US units in brackets, checked as conversions ([house style](writing.md)). JSON and exported files stay SI ([units](cli.md#units)) |
 | Data | Thrust curves: ThrustCurve.org's public-domain files, catalog captured 2026-09-17. Atmosphere: U.S. Standard Atmosphere 1976, or a sounding or forecast you supply or fetch ([weather](weather.md)). Magnetic field: WMM2025. Accuracy: the committed [validation report][report]. Every source and its terms: [third-party notices][notices]. |
 | Fonts | Archivo and Cascadia Mono, SIL Open Font License 1.1, served from this site; no page asks another server for anything |

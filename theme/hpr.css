@@ -287,6 +287,16 @@ h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter { font-family: 'Casc
 #mdbook-menu-bar .fs-lockup { height: 24px; width: auto; flex: none; }
 #mdbook-menu-bar .fs-product { flex: none; }
 @media only screen and (min-width: 720px) { #mdbook-sidebar-toggle { display: none; } }
+/* With scripts off, nothing ticks mdBook's sidebar box, which draws the sidebar: from 720 px the
+   stylesheet draws it instead, as mdBook draws it ticked. */
+@media only screen and (min-width: 720px) {
+    html:not(.js) #mdbook-sidebar-toggle-anchor ~ .sidebar { transform: none; }
+    html:not(.js) #mdbook-sidebar-toggle-anchor ~ .page-wrapper { transform: none; margin-inline-start: calc(var(--sidebar-width) + var(--sidebar-resize-indicator-width)); }
+}
+@media only screen and (min-width: 720px) and (max-width: 1380px) {
+    html:not(.js) #mdbook-sidebar-toggle-anchor ~ .page-wrapper .nav-wide-wrapper { display: none; }
+    html:not(.js) #mdbook-sidebar-toggle-anchor ~ .page-wrapper .nav-wrapper { display: block; }
+}
 /* From 720 px the sidebar takes 300 px beside the page, which leaves the menu bar too little room
    for its buttons and the lockup on one row until about 880 px: there the buttons close up, as
    mdBook closes them up on a phone, each still 28 px wide. */

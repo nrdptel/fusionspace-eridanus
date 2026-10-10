@@ -247,23 +247,39 @@ then fails:
 - a favicon that isn't the system's.
 
 mdBook also names the book in text in its menu bar, shows the table of contents beside the page
-only from 1,080 px, behind a menu button below that, and ends a page with its arrows. The build
-makes the menu bar the system's header: the FusionSpace lockup, 24 px tall in the text's color,
-then HPR, one link to the landing page. From 720 px the table of contents stays open and the menu
-button goes. Every page ends with the title block, its entries written once at the end of
-[Start here](start-here.md#title-block), with the page's own title added after the site's. A file check fails a page
-without one `header` holding the lockup, without one `footer` after the page's text holding the
-title block with its fields in order and the page's own title, or with mdBook's 1,080 px script
-left. The page
-check fails, at every width:
+only from 1,080 px with a menu button below that, and ends a page with its arrows. The build
+redraws that frame:
 
-- a lockup not 24 px tall, not in the text's ink, cut by its box, or closer than a quarter of its
-  height (the brand's clear space) to another icon or text in the header or to the window's side;
-- a menu button from 720 px, or none under 720 px;
-- a table of contents put away from 720 px, or one that screen readers and the keyboard reach
-  while it is put away, or can't while it shows;
-- a title block without its 2 px ink border, with entries not in Cascadia Mono, or with anything
-  below it.
+- the menu bar becomes the system's header: the FusionSpace lockup (the logo's mark with the
+  FusionSpace name beside it), 24 px tall in the text's color, then HPR, one link to the landing
+  page;
+- from 720 px the table of contents stays open and the menu button goes, with scripts off too;
+- every page ends with the title block, the box of facts about a document an engineering drawing
+  ends with ([title block](glossary.md#title-block)). Its entries are written once at the end of
+  [Start here](start-here.md#title-block), and each page adds its own title after the site's.
+
+A file check fails a page:
+
+- without one `header` holding the lockup, or without the table of contents, its box or its
+  menu button;
+- with mdBook's script that opens the table of contents only from 1,080 px;
+- without one `footer`, after the page's text, holding the title block with its fields in order
+  and the page's own title.
+
+The page check fails, at every width:
+
+- a lockup not 24 px tall, not in the text's color, cut by its box, or closer than a quarter of
+  its height to another icon or text in the header or to the window's side (the logo's clear
+  space, the brand's rule);
+- a menu button at 720 px or wider, or none below 720 px, with scripts on or off;
+- a table of contents hidden at 720 px or wider (with scripts on or off, and after a narrower
+  window is widened past 720 px); one hidden but still reached by the keyboard or a screen
+  reader; one shown but not reached;
+- a title block without its 2 px border in the text's color, with entries not in Cascadia Mono,
+  or with anything below it.
+
+The header has no theme switch of its own yet, and pages have no sheets or intro: those wait for
+[M0.9d9, the page anatomy](decisions-and-roadmap.md#m0-9d9).
 
 `mdbook serve` still shows mdBook's icons, menu bar and two `h1`, and the landing page's title
 block as a table; only `cargo xtask site` builds the pages as published. Not read: text inside SVG images or over a picture, hover

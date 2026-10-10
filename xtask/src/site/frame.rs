@@ -60,6 +60,13 @@ const SIDEBAR_SCRIPT: &str = "            if (document.body.clientWidth >= 1080)
 const SIDEBAR_DRAWN: &str = "            if (window.matchMedia('(min-width: 720px)').matches) {
                 sidebar = 'visible';
             } else {";
+/// The parts of mdBook 0.5's sidebar the frame keeps working: the sidebar, the box whose tick
+/// draws it, and the menu button that ticks it under 720 px; each must be on every page once.
+const SIDEBAR_PARTS: [(&str, &str); 3] = [
+    ("<nav id=\"mdbook-sidebar\"", "the sidebar"),
+    ("id=\"mdbook-sidebar-toggle-anchor\"", "the sidebar's box"),
+    ("id=\"mdbook-sidebar-toggle\"", "the menu button"),
+];
 /// What mdBook 0.5 ends a page's text with: its arrows for a phone, in a `nav` of their own.
 const ARROWS: &str = "<nav class=\"nav-wrapper\" aria-label=\"Page navigation\">";
 /// How the title block opens, as [`draw`] writes it.
@@ -463,7 +470,8 @@ fn elements<'a>(html: &'a str, tag: &'a str) -> impl Iterator<Item = (usize, &'a
 }
 
 /// What one built page lacks of its frame: one `header`, the menu bar, holding the lockup as
-/// drawn; mdBook's sidebar script shown from 720 px, not 1,080; one `footer`, the title block,
+/// drawn; the sidebar, its box and its menu button, once each; mdBook's sidebar script shown
+/// from 720 px, not 1,080; one `footer`, the title block,
 /// after the page's `main`, with ISO 7200's fields in order, the page's own title, the mark and a
 /// date of issue; and no title block left in the page's text.
 fn page_problems(html: &str, lockup: &str, mark: &str) -> Vec<String> {
@@ -491,6 +499,14 @@ fn page_problems(html: &str, lockup: &str, mark: &str) -> Vec<String> {
             "{} `header` (a page has one, the menu bar)",
             headers.len()
         )),
+    }
+    for (mark, what) in SIDEBAR_PARTS {
+        let found = html.matches(mark).count();
+        if found != 1 {
+            problems.push(format!(
+                "{what} (`{mark}`) is there {found} times, not once"
+            ));
+        }
     }
     if html.contains(SIDEBAR_SCRIPT) || !html.contains(SIDEBAR_DRAWN) {
         problems.push("the sidebar isn't shown from 720 px (mdBook's 1,080 px script)".to_string());
@@ -612,8 +628,10 @@ mod tests {
     /// menu bar, `inside` the page's `main` after its title `h1`, and the arrows.
     fn page(h1: &str, inside: &str) -> String {
         format!(
-            "<body>\n<script>\n            let sidebar = null;\n{SIDEBAR_SCRIPT}\n                \
-             sidebar = 'hidden';\n            }}\n</script>\n<div class=\"page\">\n{MENU_BAR}\n\
+            "<body>\n<input type=\"checkbox\" id=\"mdbook-sidebar-toggle-anchor\" \
+             class=\"hidden\">\n<script>\n            let sidebar = null;\n{SIDEBAR_SCRIPT}\n                \
+             sidebar = 'hidden';\n            }}\n</script>\n<nav id=\"mdbook-sidebar\" \
+             class=\"sidebar\"></nav>\n<div class=\"page\">\n{MENU_BAR}\n\
              <div class=\"left-buttons\">\n<label id=\"mdbook-sidebar-toggle\"></label>\n</div>\n\
              <p class=\"menu-title\">FusionSpace HPR</p>\n<div class=\"right-buttons\">\n\
              <a href=\"print.html\"></a>\n</div>\n</div>\n<div id=\"mdbook-content\" \
@@ -824,6 +842,20 @@ mod tests {
         for (what, html, why) in cases {
             let found = problems(&html);
             assert!(found.iter().any(|f| f.contains(why)), "{what}: {found:?}");
+        }
+        for mark in [
+            "<nav id=\"mdbook-sidebar\"",
+            "id=\"mdbook-sidebar-toggle-anchor\"",
+            "id=\"mdbook-sidebar-toggle\"",
+        ] {
+            let without = good.replacen(mark, "<nav", 1);
+            assert!(
+                problems(&without)
+                    .iter()
+                    .any(|f| f.contains("0 times, not once")),
+                "{mark}: {:?}",
+                problems(&without)
+            );
         }
         let unmarked = good.replacen("class=\"fs-mark\"", "class=\"x\"", 1);
         assert!(
