@@ -400,9 +400,11 @@ Every page's source is a Markdown file in the repository's
 a page opens its source in GitHub's editor, where you can propose a fix.
 
 A page prints in the light theme's colors, whichever theme you read it in, without the table of
-contents or the buttons, with each link's address in parentheses after it and the title block,
-with its version and date, at the end. The printer icon at the top opens every page as one, to
-print the whole site.
+contents or the buttons. Each link's address follows it in parentheses: a whole address for
+another site, and for a page of this one its path from the page, such as `cli.html#units`. The
+[title block](glossary.md#title-block), with the version and date, closes the page. The printer
+icon at the top opens every page as one, to print the whole site; that runs long, as it holds
+every chapter and its links' addresses.
 
 ## Title block
 

@@ -285,14 +285,14 @@ mdBook draws three icons as characters of text: `❱` beside a heading that fold
 table of contents, `✓` beside the chosen theme, and `»` before a heading a link jumped to. The
 build draws the fold toggle as the system's chevron; the chosen theme is underlined, as the
 current page is in the table of contents; a heading jumped to takes no mark, since the page
-scrolls it to the top. The page check fails a text made only of such marks (arrows, dingbats,
-shapes, symbols, guillemets) outside a page's `main`, or drawn by a stylesheet before or after
-an element anywhere. A key's name in the help popup (`←`) and a mark used as a word in prose
+scrolls it to the top. The page check fails a text made only of such marks (arrows, technical
+symbols, shapes, dingbats, guillemets, emoji and the private characters icon fonts draw in)
+outside a page's `main`, or drawn by a stylesheet before or after an element anywhere. A key's name in the help popup (`←`) and a mark used as a word in prose
 (`Mach → 0`) pass.
 
-The check also reads each page as it would print, at the one width of each run nearest the
-printable width of a sheet of paper (720 px: an A4 or Letter sheet inside Chrome's default
-margins), with the stylesheets' print rules applied and their screen-only rules set aside. A
+The check also reads each page as it would print, once, at the window width it tries nearest
+the printable width of a sheet of paper (720 px: an A4 or Letter sheet inside Chrome's default
+margins; CI splits the widths over three machines, and each reads print at its own nearest), with the stylesheets' print rules applied and their screen-only rules set aside. A
 headless browser can't print from a page, so this reads the print rules, not a printed page:
 where the browser would break the pages isn't seen. In the light theme and in the navy one, it
 fails:
@@ -300,7 +300,8 @@ fails:
 - a color that isn't the light theme's, and on a page with both themes, anything drawn in
   different colors from the two;
 - navigation or a control drawn: the table of contents, the menu bar, a button or a text field;
-- a link to another page without its address after it, in parentheses;
+- a link to another page, in the text or the title block, without its address after it, in
+  parentheses (a page of this site shows its path from the page, such as `cli.html#units`);
 - a table row, a note or the title block that can split across two sheets;
 - a title block not drawn, or drawn without its version and date of issue.
 

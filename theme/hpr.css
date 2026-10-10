@@ -336,8 +336,9 @@ h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter { font-family: 'Casc
 
 /* Print (#383; `web.md`, *Print*): the light theme's values whatever theme the page is read in,
    navigation and the theme's controls hidden (mdBook's `print.css` hides its sidebar, menu bar
-   and page arrows), link addresses shown after their links, and table rows, notes and the title
-   block, which carries the version and date of issue, each kept on one sheet of paper. mdBook's
+   and page arrows), link addresses shown after their links, the title block's too, and table
+   rows, notes and the title block, which carries the version and date of issue, each kept on
+   one sheet of paper. Links within the site show their path, relative to the page. mdBook's
    `print.css` colors links a blue of its own; here they keep the action role. The page check reads
    every page with the stylesheets' print rules applied, in each theme, and fails a color that
    differs from the light theme's, a control or navigation drawn, a link without its address, a
@@ -364,6 +365,6 @@ h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter { font-family: 'Casc
       --search-mark-bg: var(--hpr-action);
     }
     a, a:visited, a:active, a:hover { color: var(--links); }
-    main a[href]:not([href^="#"])::after { content: " (" attr(href) ")"; overflow-wrap: anywhere; }
+    a[href]:not([href^="#"])::after { content: " (" attr(href) ")"; overflow-wrap: anywhere; }
     tr, .fs-titleblock { break-inside: avoid; }
 }

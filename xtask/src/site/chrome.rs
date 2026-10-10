@@ -210,10 +210,13 @@ const TOC_SCRIPT: &str = "toc.js";
 const FOLD_MARK: &str = "toggleDiv.textContent = '❱';";
 
 /// The fold toggle as [`draw_toc`] draws it: the system's chevron in a glyph's span, sized by
-/// `theme/hpr.css` and turned a quarter by mdBook's stylesheet when its heading is open.
-fn fold_icon() -> String {
-    let chevron = icon("chevron").unwrap_or_default();
-    format!("toggleDiv.innerHTML = '<span class=fa-svg>{chevron}</span>';")
+/// `theme/hpr.css` and turned a quarter by mdBook's stylesheet when its heading is open; or why
+/// it can't be.
+fn fold_icon() -> Result<String, String> {
+    let chevron = icon("chevron").ok_or("the system's chevron isn't among the chrome's icons")?;
+    Ok(format!(
+        "toggleDiv.innerHTML = '<span class=fa-svg>{chevron}</span>';"
+    ))
 }
 
 /// Swaps the fold toggles' text mark in the sidebar's script under `output` for the system's
@@ -230,7 +233,7 @@ pub(super) fn draw_toc(output: &Path) -> Result<(), String> {
 /// The sidebar's script with its fold toggles drawn as the system's chevron, or why it can't be.
 fn toc_drawn(script: &str) -> Result<String, String> {
     match script.matches(FOLD_MARK).count() {
-        1 => Ok(script.replace(FOLD_MARK, &fold_icon())),
+        1 => Ok(script.replace(FOLD_MARK, &fold_icon()?)),
         found => Err(format!(
             "{TOC_SCRIPT} draws its fold toggles {found} time(s) as `{FOLD_MARK}`, not once: \
              mdBook's sidebar script has changed, so draw its toggles with the system's chevron \

@@ -371,10 +371,12 @@
   // How opaque the action role is in a selection of text (`fusionspace.css`, `::selection`).
   const SELECTION_ALPHA = 0.22;
   // A text of marks alone, spaces aside (#383): arrows, technical symbols, shapes, symbols and
-  // dingbats, more arrows, guillemets and the private-use characters icon fonts draw in.
+  // dingbats, more arrows, guillemets, pictographs and emoji, and the private-use characters
+  // icon fonts draw in.
   const MARK = '\\u00AB\\u00BB\\u2039\\u203A\\u2190-\\u21FF\\u2300-\\u23FF\\u25A0-\\u25FF'
-    + '\\u2600-\\u27BF\\u27F0-\\u27FF\\u2900-\\u297F\\u2B00-\\u2BFF\\uE000-\\uF8FF';
-  const MARKS = new RegExp('^\\s*[' + MARK + '][\\s' + MARK + ']*$');
+    + '\\u2600-\\u27BF\\u27F0-\\u27FF\\u2900-\\u297F\\u2B00-\\u2BFF\\uE000-\\uF8FF'
+    + '\\u{1F000}-\\u{1FAFF}\\u{F0000}-\\u{10FFFD}\\uFE0F';
+  const MARKS = new RegExp('^\\s*[' + MARK + '][\\s' + MARK + ']*$', 'u');
   // `:target` in a selector, and the attribute that stands for it while every element with an id
   // is read as the one jumped to.
   const TARGET = /:target(?![-\w])/;
@@ -702,13 +704,15 @@
       try { rules = holder.cssRules; } catch (err) { return; }
       for (let i = rules.length - 1; i >= 0; i--) {
         const rule = rules[i];
-        if (rule instanceof win.CSSStyleRule) {
-          if (!TARGET.test(rule.selectorText)) continue;
+        if (rule instanceof win.CSSImportRule) {
+          if (rule.styleSheet) walk(rule.styleSheet);
+        } else if (rule instanceof win.CSSStyleRule && TARGET.test(rule.selectorText)) {
           const copy = rule.cssText.replace(rule.selectorText,
             rule.selectorText.replace(TARGETS, '[' + TARGET_ATTR + ']'));
           holder.insertRule(copy, i + 1);
           added.push(holder.cssRules[i + 1]);
         } else if (rule.cssRules) {
+          // A grouping rule, or a style rule with rules nested in it.
           walk(rule);
         }
       }
@@ -812,9 +816,10 @@
   //   with the reading's other checks of color, shape and contrast ([`styleDefaults`]), and on a
   //   page that switches, every element drawn in the same colors in both themes;
   // - navigation and the theme's controls hidden: no `nav`, button, text field, menu or search
-  //   drawn;
-  // - each link out of the page (not to a place on it) followed by its address, as a
-  //   `::before` or `::after` that holds its `href`;
+  //   drawn, nor anything inside one;
+  // - each link drawn out of the page (not to a place on it), in `main` or around it, as the
+  //   title block's are, followed by its address, as a `::before` or `::after` that holds its
+  //   `href`;
   // - table rows, notes and title blocks each kept on one sheet (`break-inside: avoid`);
   // - each title block drawn, with its version and its date of issue.
   async function probePrint(win, doc, found) {
@@ -846,12 +851,16 @@
           if (found.print.length < EXAMPLES) found.print.push(ex);
         }
       }
+      // Navigation is read by what it holds as well: mdBook's page arrows are links fixed to the
+      // window's sides inside a `nav` with no height of its own.
       for (const el of doc.querySelectorAll(PRINT_HIDDEN)) {
-        if (el.type === 'hidden' || !drawn(win, el)) continue;
-        note(el, null, 'display', 'drawn on paper', as);
+        if (el.type === 'hidden') continue;
+        const shown = drawn(win, el) ? el : Array.from(el.querySelectorAll('*')).find(function (c) {
+          return drawn(win, c);
+        });
+        if (shown) note(shown, null, 'display', 'drawn on paper', as);
       }
-      const main = doc.querySelector('main');
-      for (const a of main ? main.querySelectorAll('a[href]') : []) {
+      for (const a of doc.querySelectorAll('a[href]')) {
         const href = a.getAttribute('href');
         if (href === '' || href.charAt(0) === '#' || !drawn(win, a)) continue;
         const shows = ['::before', '::after'].some(function (pseudo) {

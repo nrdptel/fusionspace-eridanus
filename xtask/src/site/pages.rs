@@ -112,9 +112,10 @@
 //!   switch, the other:
 //!   - a color off the light theme's roles, or a shape or contrast off the system's, as on
 //!     screen; and on a page that switches, an element drawn in other colors from the other theme;
-//!   - navigation or a control drawn: a `nav`, a button, a text field, a menu or a search;
-//!   - a link out of the page (not to a place on it) with no `::before` or `::after` holding its
-//!     address;
+//!   - navigation or a control drawn, or anything inside one: a `nav`, a button, a text field,
+//!     a menu or a search;
+//!   - a link drawn out of the page (not to a place on it), in `main` or outside it as the title
+//!     block's are, with no `::before` or `::after` holding its address;
 //!   - a table row, a note or a title block that can split across sheets (`break-inside`);
 //!   - a title block not drawn, or without its version and date of issue drawn.
 //! - What a keyboard, forced colors and a sticky bar need (#383; `web.md`, *Theme* and
@@ -188,7 +189,8 @@
 //! marks as words in prose and a key's legend, which must pass, a page printed in navy's colors
 //! from navy and one printed in light's, which must pass, a link printed in a blue of its own, a
 //! screen-only rule that leaves a color off the roles on paper, navigation and a control drawn
-//! on paper, a link printed without its address and one with it, which must pass, a row that can
+//! on paper, a page arrow fixed inside a `nav` with no height, a link printed without its
+//! address in `main` and one outside it, links with theirs, which must pass, a row that can
 //! split, and a title block hidden on paper, printed without its date and able to split; and an
 //! ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
@@ -668,7 +670,7 @@ macro_rules! switches {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 109] = [
+const CANARIES: [Canary; 111] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1586,6 +1588,14 @@ const CANARIES: [Canary; 109] = [
         after: "",
     },
     Canary {
+        file: "canary-print-arrows.html",
+        what: "a page arrow drawn on paper, fixed to the window's side inside a nav with no height",
+        expect: &[Kind::Print],
+        inside: "",
+        after: "<nav><a href=\"#\" aria-label=\"The next chapter\" style=\"position: fixed; \
+                top: 0; bottom: 0; right: 0; width: 24px\"></a></nav>",
+    },
+    Canary {
         file: "canary-print-control.html",
         what: "a control drawn on paper",
         expect: &[Kind::Print],
@@ -1600,12 +1610,21 @@ const CANARIES: [Canary; 109] = [
         after: "",
     },
     Canary {
-        file: "canary-print-address.html",
-        what: "a link to another page printed with its address, which must pass",
-        expect: &[],
+        file: "canary-print-link-outside.html",
+        what: "a link outside main, as a title block's, printed without its address",
+        expect: &[Kind::Print],
         inside: "<style>@media print { main a[href]:not([href^='#'])::after { content: ' (' \
+                 attr(href) ')'; } }</style>",
+        after: "<p>See <a href=\"other.html\">another page</a>.</p>",
+    },
+    Canary {
+        file: "canary-print-address.html",
+        what: "links to another page, in main and outside it, printed with their addresses, which \
+               must pass",
+        expect: &[],
+        inside: "<style>@media print { a[href]:not([href^='#'])::after { content: ' (' \
                  attr(href) ')'; } }</style><p>See <a href=\"other.html\">another page</a>.</p>",
-        after: "",
+        after: "<p>See <a href=\"https://example.com/\">another site</a>.</p>",
     },
     Canary {
         file: "canary-print-row.html",
