@@ -448,7 +448,7 @@ One line per milestone or increment, in the order it was archived within its pha
       colors, radii, shadows and motion #383 lists that mdBook's stylesheets give the screen are
       gone, in light and navy and with reduced motion set, each failing `xtask site`'s page check
       when it comes back.
-    - [x] **M0.9d3 The page's frame** (#384's type, measure and gutters; ADR-222). *Done when:*
+    - [x] **M0.9d3 The page's frame** (#384's type, measure and gutters; ADR-223). *Done when:*
       `xtask site`'s page check fails, on every page at every width, text off the type scale
       (size, line height, family, capitals), Archivo without tabular figures, navigation not in
       Cascadia Mono 14 px or a current page not underlined 2 px, a prose line past 68 characters,

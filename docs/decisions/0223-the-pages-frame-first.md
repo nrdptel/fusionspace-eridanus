@@ -1,4 +1,4 @@
-# ADR-222: The page anatomy split: the page's frame first (2026-10-09)
+# ADR-223: The page anatomy split: the page's frame first (2026-10-09)
 
 - **Status:** accepted; splits M0.9d3 ([ADR-208][adr-208]'s M0.9d) in two
 - **Summary:** #384 lists eight parts of the product system's page that the site doesn't draw. M0.9d3 now covers the frame every page shares, all in the stylesheet: text on the system's type scale (with tabular figures in Archivo and navigation in Cascadia Mono 14 px, the current page underlined 2 px), prose at most 68 characters a line, and gutters of 16 px on a phone and 32 px from 720 px, each held by `xtask site`'s page check at every width with a canary. The new M0.9d5 keeps the old done-when whole (#384 closed, every rule held), after M0.9d4, and takes what changes each page's markup: title blocks, sheets, the intro, the lockup header with no menu button from 720 px, the system's notes, and every page opening with how far to trust it.

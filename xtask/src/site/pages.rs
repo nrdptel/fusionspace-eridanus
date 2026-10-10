@@ -50,7 +50,7 @@
 //!   stylesheets' dark-scheme rules applied in place), then switched as mdBook's theme menu
 //!   switches it and read in the other once the switch's transitions have run. Hover and focus
 //!   aren't read, nor what a script sets as it runs (mdBook's `scrollTo` with a smooth scroll).
-//! - **The page's frame** (#384, ADR-222), read once at each width in the theme the page loads
+//! - **The page's frame** (#384, ADR-223), read once at each width in the theme the page loads
 //!   in:
 //!   - **type off the system's scale** (`foundations.md`, *Type*): every element that shows text,
 //!     drawn or hidden until asked for, its `::before` and `::after` and every text field

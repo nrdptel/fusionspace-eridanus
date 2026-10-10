@@ -475,8 +475,9 @@ K400C and the K940 can each hit 3,048 m (10,000 ft) within the limits, with any 
 hit with any of them scores the same, so another seed may well settle on another. To prefer one, say
 so in the goal. A small cost for liftoff mass is one way.
 
-Unlike the first example's counts, this run's come out the same on all three operating systems:
-CI checks the output on macOS, Linux and Windows, whose last bits of `ln` and `exp` differ. On
+Unlike the first example's counts, this run's come out the same on every platform CI runs: it
+checks the output on macOS, and on Linux and Windows on x86-64 and ARM, whose last bits of `ln`
+and `exp` differ. On
 the development machine the run was also tried with every flight perturbed (the integrator's
 tolerance changed by up to 1%) and with the step size moved by a few bits each generation, and
 neither changed a line of the output; those trials are not kept. Your own runs repeat bit for bit

@@ -8,7 +8,7 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
   else the first such entry in file order; an entry whose open increments are all blocked is
   blocked. Open `P-critical` issues come first (ADR-144 §4).
 - A milestone is done only when every *done when* bullet is shown by a command's output and CI is
-  green on all three systems; then check its box, take it off the queue and run
+  green on every platform it runs; then check its box, take it off the queue and run
   `cargo xtask records`, which archives it.
 - A milestone too big to ship at once is split in place into increments (`a`, `b`, `c`…), each with
   its own *done when*; a blocked one is marked `[blocked]`, with the reason.
@@ -142,7 +142,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     in token colors, each failing `xtask site`, `xtask figures` or a site test when broken.
     - [ ] **M0.9d4 The site's defaults** (#383, ADR-221). *Done when:* #383 is closed, each class
       of mdBook default it lists failing `xtask site` or a site test when it comes back.
-    - [ ] **M0.9d5 The page anatomy** (#384, ADR-222). *Done when:* #384 is closed, each rule it
+    - [ ] **M0.9d5 The page anatomy** (#384, ADR-223). *Done when:* #384 is closed, each rule it
       lists held by `xtask site`'s page check or a site test.
   - [ ] **M0.9e The words to the design** (ADR-208). *Done when:* #386 and #387 are closed:
     `xtask spelling` fails on the British forms the audit found, a site check fails on a
