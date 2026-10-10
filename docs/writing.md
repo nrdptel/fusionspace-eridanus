@@ -119,7 +119,7 @@ space yet, and `hpr sim --plot`'s SVG figure, which the rule covers, still write
 Many of the product system's rules are not met yet. The
 [design audit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/design-conformance.md)
 checks each of its sections against the site, the command line, the exports and the plot. Of
-the 64 sections that apply to them today, 30 are met and 27 are not. Each gap has an issue, and
+the 64 sections that apply to them today, 29 are met and 28 are not. Each gap has an issue, and
 three milestones close them before the next guides are written: the command line, exports and
 plot first, then the site's look, then the words
 ([ADR-208, the design audit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0208-the-design-audit.md)).
@@ -284,14 +284,15 @@ Inside that frame the build lays each page out as an engineering drawing set is 
   product's number in the FusionSpace register, as the title block gives it), in a small tag with
   one corner cut off, over the page's title;
 - each `##` section is a sheet: a 2 px rule in the text's color across its top, then its number,
-  `SHEET 2 / 5`, in small capitals over its name. On the print page, which holds every chapter,
+  `SHEET 2 / 5`, in 12 px capitals over its name. On the print page, which holds every chapter,
   each chapter counts its own sheets. Write each `##` heading in the page's text, not inside
   another element, or the build fails;
-- the header ends with a theme switch, three buttons: Auto (the theme your system asks for),
+- the header holds a theme switch, three buttons: Auto (the theme your system asks for),
   Light and Dark, the chosen one filled in. From 960 px it stands in the header; narrower, the
   header has no room for it and it stands at the top of the table of contents, which the menu
   button opens below 720 px. It needs scripts, so without them it isn't drawn. mdBook's own theme
-  menu, with six themes for two looks, is gone.
+  menu, with six themes for two looks, is gone; a reader who had saved one of the other four is
+  put back on Auto.
 
 A file check fails a page without the tag over its title, with a `##` heading outside a sheet or
 sheets numbered out of order, without the switch in place of mdBook's theme menu, or with a
@@ -301,12 +302,14 @@ page check fails, at every width:
 - a tag not in Cascadia Mono 12 px, without its cut corner or 1 px border, or not above the title;
 - a sheet without its 2 px rule in the text's color, or with its number missing, out of order,
   not in Cascadia Mono 12 px or not above its name; a `##` heading outside a sheet;
-- a switch not in the header from 960 px or not in the table of contents below it; with buttons
-  other than Auto, Light and Dark, under 44 px tall or not in Cascadia Mono 14 px; with a button
-  other than Auto chosen for a first-time reader, or the chosen one not filled in the text's
-  color; with mdBook's theme button drawn, or the switch drawn with scripts off. Once a run, at
-  the width it reads print at, it presses Dark and then Auto, and fails a page whose theme
-  doesn't follow.
+- a switch not in the header from 960 px or not in the table of contents below it (read with
+  the table of contents opened below 720 px); with buttons other than Auto, Light and Dark, under
+  44 px tall or not in Cascadia Mono 14 px; with a button other than Auto chosen for a first-time
+  reader, or the chosen one not filled in the text's color; with mdBook's theme button drawn, the
+  switch drawn with scripts off, or the page in one of mdBook's themes the switch doesn't offer.
+  Once a run, at the width it reads print at, it presses Dark and then Auto, and fails a page
+  whose theme doesn't follow; and it loads the page with mdBook's Coal saved, and fails one that
+  doesn't forget it and press Auto.
 
 Each page's own status and one-sentence lead in its intro, two to six sheets a page, and every
 page opening with how far to trust it wait for

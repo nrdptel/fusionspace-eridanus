@@ -9,7 +9,7 @@ units, errors, provenance); none of them changes a number the simulator computes
 
 It has one row for every `##` section of those files ([ADR-205](../decisions/0205-the-2026-10-08-one-name-one-design.md)
 §2, [ADR-208](../decisions/0208-the-design-audit.md)), so a rule nobody re-read can't be missed.
-Of the 64 sections that apply to something shipping today, 30 are met, 27 are not, 3 wait for a
+Of the 64 sections that apply to something shipping today, 29 are met, 28 are not, 3 wait for a
 later surface and 4 govern nothing the project ships; the 48 sections for apps, watches,
 firmware, hardware and airframes wait for the milestones that build them. How far to trust it:
 a row held by a test is checked on every change; a row "reviewed at" the commit was read against
@@ -45,7 +45,7 @@ Pinned commit: `f45454f44669cc049222f2ab19eb648796e56a52`, as `validation/refs.l
 | File | Section | Applies to | Status | Held by |
 |---|---|---|---|---|
 | `README.md` | Read in this order | none | n/a | a reading order for the system's own files, each audited in its own rows |
-| `README.md` | The idea in one paragraph | site, CLI, exports, plot | met | Every section of a site page is a numbered sheet under a 2 px edge since [ADR-231](../decisions/0231-the-page-anatomy-the-drawing-first.md) (`xtask/src/site/sheets.rs::a_page_gets_its_intro_and_numbered_sheets`; the page check's sheet canaries, `xtask/src/site/pages.rs::the_sheets_and_the_switch_have_canaries_both_ways`). A title block ends every page since [ADR-229](../decisions/0229-the-page-anatomy-the-frame-first.md) (`xtask/src/site/frame.rs::a_page_without_its_frame_fails`) |
+| `README.md` | The idea in one paragraph | site, CLI, exports, plot | not met | #384; M0.9d11: pages that open with how far to trust them; readable in sun waits on the Field theme (#452). Every section of a site page is a numbered sheet under a 2 px edge since [ADR-231](../decisions/0231-the-page-anatomy-the-drawing-first.md) (`xtask/src/site/sheets.rs::a_page_gets_its_intro_and_numbered_sheets`; the page check's sheet canaries, `xtask/src/site/pages.rs::the_sheets_and_the_switch_have_canaries_both_ways`). A title block ends every page since [ADR-229](../decisions/0229-the-page-anatomy-the-frame-first.md) (`xtask/src/site/frame.rs::a_page_without_its_frame_fails`) |
 | `README.md` | Files | site, CLI, plot | met | `xtask/src/site/theme.rs::the_committed_theme_passes`, `crates/hpr-cli/tests/style.rs::the_styles_are_the_product_systems`: copied files byte for byte at the pin |
 | `README.md` | Pointing a project here | README, site | not met | #387; M0.9e: the README's adaptation drops foundations. Its images and badges draw in the tokens since #385 (`xtask/src/figures/drawing/tests.rs::the_committed_figures_draw_in_the_tokens_and_the_old_colors_fail`) |
 | `README.md` | Status | CLI, site | not met | #386; M0.9e: Rev A's US spelling: `calibres` in `hpr sim` and the site |

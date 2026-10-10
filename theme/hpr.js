@@ -19,11 +19,11 @@
 // The theme switch (`web.md`, *Page anatomy* and *Components*): `cargo xtask site` makes mdBook's
 // theme menu the system's segmented control, whose buttons mdBook's script still works through.
 // It marks the chosen one with a class, which each button's `aria-pressed` follows here. From
-// 960 px the switch ends the header's row; on a narrower window the header has no room for it,
-// and it stands at the top of the sidebar, above the chapters' scrolling list, which a menu
-// button opens under 720 px. The page
-// check reads where it stands and which button is pressed at every width, and presses Dark and
-// then Auto to see the theme follow.
+// 960 px the switch stands in the header's row, before its buttons; on a narrower window the
+// header has no room for it, and it stands at the top of the sidebar, above the chapters'
+// scrolling list, which a menu button opens under 720 px. The page check reads where it stands
+// and which button is pressed at every width, presses Dark and then Auto to see the theme
+// follow, and loads the page with Coal saved to see it forgotten.
 'use strict';
 
 document.addEventListener('click', function (event) {
@@ -75,6 +75,20 @@ document.addEventListener('click', function (event) {
         attributes: true, attributeFilter: ['class'], subtree: true,
     });
     pressed();
+    // A theme saved from mdBook's six-theme menu before the switch, Coal, Ayu or Rust, leaves its
+    // class on the page, drawn in neither of the site's looks, and no button for it to press: it
+    // is forgotten and Auto pressed, as a first-time reader has it.
+    let saved = null;
+    try {
+        saved = localStorage.getItem('mdbook-theme');
+    } catch (e) {
+        // Storage blocked: mdBook saved nothing either.
+    }
+    if (saved !== null && saved !== 'light' && saved !== 'navy') {
+        document.documentElement.classList.remove('coal', 'ayu', 'rust');
+        const auto = document.getElementById('mdbook-theme-default_theme');
+        if (auto) auto.click();
+    }
     const header = document.querySelector('#mdbook-menu-bar .right-buttons');
     const sidebar = document.getElementById('mdbook-sidebar');
     const list = sidebar && sidebar.querySelector('.sidebar-scrollbox');

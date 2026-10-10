@@ -382,7 +382,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9d6"></a>[M0.9d6][done-0] | The site's chrome | done |
 | <a id="m0-9d7"></a>[M0.9d7][done-0] | The page's frame | done |
 | <a id="m0-9d8"></a>[M0.9d8][done-0] | Print and the text marks | done |
-| <a id="m0-9d9"></a>[M0.9d9][done-0] | The page anatomy | done |
+| <a id="m0-9d9"></a>[M0.9d9][done-0] | The anatomy drawn | done |
 | <a id="m0-9d10"></a>[M0.9d10][phase-0] | The pages' vitals | not yet done |
 | <a id="m0-9d11"></a>[M0.9d11][phase-0] | The pages' own words | not yet done |
 | <a id="m0-9e"></a>[M0.9e][phase-0] | The words to the design | not yet done |

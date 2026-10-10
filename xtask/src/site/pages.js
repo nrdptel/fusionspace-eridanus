@@ -409,6 +409,8 @@
   const SHEET_RULE_PX = 2;
   const SHEET_NUMBER_PX = 12;
   const SWITCH_CHOICES = ['Auto', 'Light', 'Dark'];
+  // mdBook's themes the switch doesn't offer, which a reader may have saved before it.
+  const SWITCH_RETIRED = ['coal', 'ayu', 'rust'];
   const SWITCH_HEADER_PX = 960;
   const SWITCH_BUTTON_PX = 44;
   const SWITCH_TYPE_PX = 14;
@@ -1958,10 +1960,44 @@
         return b.textContent.trim();
       }).join(', ') || 'none') + ', not ' + SWITCH_CHOICES[0]);
     }
-    // Under 720 px the sidebar is put away until the menu button opens it: nothing to read.
-    if (where === 'the sidebar' && width < SIDEBAR_OPEN_FROM_PX) return;
+    const retired = SWITCH_RETIRED.filter(function (t) { return root.classList.contains(t); });
+    if (retired.length) {
+      note('theme_switch', 'html', 'class', 'in mdBook\'s ' + retired.join(', ')
+        + ', which the switch doesn\'t offer');
+    }
+    // Under 720 px the sidebar is put away until the menu button opens it: read opened, as
+    // mdBook's script opens it (its box ticked, the root marked `sidebar-visible`, the sidebar
+    // without the `display` that put it away), with transitions held, then put back, the styles
+    // worked out again before the transitions are let go so that none runs.
+    const box = doc.getElementById('mdbook-sidebar-toggle-anchor');
+    const sidebar = doc.getElementById('mdbook-sidebar');
+    const open = where === 'the sidebar' && width < SIDEBAR_OPEN_FROM_PX
+      && !root.classList.contains('sidebar-visible');
+    const was = { checked: box ? box.checked : false, display: sidebar ? sidebar.style.display : '' };
+    if (open) {
+      doc.head.appendChild(held);
+      root.classList.add('sidebar-visible');
+      if (box) box.checked = true;
+      if (sidebar) sidebar.style.display = '';
+    }
+    try {
+      probeSwitchDrawn(win, doc, group, buttons, note);
+    } finally {
+      if (open) {
+        root.classList.remove('sidebar-visible');
+        if (box) box.checked = was.checked;
+        if (sidebar) sidebar.style.display = was.display;
+        void root.getBoundingClientRect();
+        held.remove();
+      }
+    }
+  }
+
+  // The switch's buttons as drawn: 44 px tall in Cascadia Mono 14, the pressed one, and only
+  // it, filled in ink.
+  function probeSwitchDrawn(win, doc, group, buttons, note) {
     if (!drawn(win, group)) {
-      note('theme_switch', sel, 'display', 'not drawn');
+      note('theme_switch', selector(group), 'display', 'not drawn');
       return;
     }
     const ink = win.getComputedStyle(doc.body).color;
@@ -2025,14 +2061,17 @@
     try {
       dark.click();
       await nextFrames(win);
-      if (!root.classList.contains('navy') || dark.getAttribute('aria-pressed') !== 'true') {
+      if (!root.classList.contains('navy') || root.classList.contains('light')
+        || dark.getAttribute('aria-pressed') !== 'true') {
         note('Dark pressed leaves the page in `' + root.className + '`, Dark pressed: '
           + dark.getAttribute('aria-pressed'));
       }
       auto.click();
       await nextFrames(win);
       const asked = win.matchMedia('(prefers-color-scheme: dark)').matches ? 'navy' : 'light';
-      if (!root.classList.contains(asked) || auto.getAttribute('aria-pressed') !== 'true') {
+      const other = asked === 'navy' ? 'light' : 'navy';
+      if (!root.classList.contains(asked) || root.classList.contains(other)
+        || auto.getAttribute('aria-pressed') !== 'true') {
         note('Auto pressed leaves the page in `' + root.className + '`, not `' + asked
           + '`, Auto pressed: ' + auto.getAttribute('aria-pressed'));
       }
@@ -2041,6 +2080,68 @@
       store.setItem = saved.set;
       store.removeItem = saved.remove;
       held.remove();
+    }
+  }
+
+  // A theme saved from mdBook's six-theme menu before the switch: loaded with Coal saved, the
+  // page must forget it, stand in the theme the reader's system asks for with no Coal class,
+  // and press Auto. The page is loaded again in a frame of its own at this width, from its text
+  // with a `base` keeping its addresses and, before any of its scripts, a store in memory holding
+  // Coal, so the frames loading in parallel see nothing. Read with the press, once a run.
+  async function probeSwitchRetired(win, doc, result) {
+    const group = doc.getElementById('mdbook-theme-list');
+    if (!group || !group.classList.contains('fs-seg')
+      || !doc.documentElement.classList.contains('js')) return;
+    const note = function (value) {
+      result.theme_switch_count++;
+      if (result.theme_switch.length < EXAMPLES) {
+        result.theme_switch.push({ selector: 'html', property: 'saved theme', value: value,
+          theme: win.innerWidth + ' px' });
+      }
+    };
+    const address = win.location.href.split('#')[0];
+    const text = await (await fetch(address)).text();
+    const store = '<base href="' + address + '"><script>(function () { const m = new Map(['
+      + '["mdbook-theme", "coal"]]); const s = Storage.prototype; s.getItem = function (k) { '
+      + 'k = String(k); return m.has(k) ? m.get(k) : null; }; s.setItem = function (k, v) { '
+      + 'm.set(String(k), String(v)); }; s.removeItem = function (k) { m.delete(String(k)); }; '
+      + 'window.hprCheckStore = m; })();</script>';
+    const frame = document.createElement('iframe');
+    frame.style.cssText = 'position:absolute;left:0;top:0;border:0;margin:0;padding:0;'
+      + 'width:' + win.innerWidth + 'px;height:' + win.innerHeight + 'px';
+    let timer = null;
+    const loaded = new Promise(function (resolve) {
+      frame.addEventListener('load', function () { resolve(true); }, { once: true });
+      timer = setTimeout(function () { resolve(false); }, LOAD_TIMEOUT_MS);
+    });
+    frame.srcdoc = text.replace(/^(\s*<!doctype[^>]*>)?/i, function (doctype) {
+      return doctype + store;
+    });
+    document.body.appendChild(frame);
+    try {
+      if (!(await loaded)) {
+        note('did not load with Coal saved in ' + LOAD_TIMEOUT_MS / 1000 + ' s');
+        return;
+      }
+      const w = frame.contentWindow;
+      const d = frame.contentDocument;
+      await nextFrames(w);
+      const root = d.documentElement;
+      const asked = w.matchMedia('(prefers-color-scheme: dark)').matches ? 'navy' : 'light';
+      const list = d.getElementById('mdbook-theme-list');
+      const auto = list && Array.from(list.querySelectorAll('button')).find(function (b) {
+        return b.textContent.trim() === SWITCH_CHOICES[0];
+      });
+      const kept = w.hprCheckStore ? w.hprCheckStore.get('mdbook-theme') : 'unread';
+      if (root.classList.contains('coal') || !root.classList.contains(asked) || !auto
+        || auto.getAttribute('aria-pressed') !== 'true' || kept !== undefined) {
+        note('with Coal saved, the page in `' + root.className + '` where the system asks for `'
+          + asked + '`, Auto pressed: ' + (auto ? auto.getAttribute('aria-pressed') : 'no Auto')
+          + ', still saved: ' + (kept === undefined ? 'nothing' : kept));
+      }
+    } finally {
+      clearTimeout(timer);
+      frame.remove();
     }
   }
 
@@ -2101,6 +2202,7 @@
           if (printed) await probePrint(win, doc, found);
           Object.assign(result, found);
           if (printed) await probeSwitchPress(win, doc, result);
+          if (printed) await probeSwitchRetired(win, doc, result);
           result.printed = printed;
           // Last, as it changes the frame's width.
           for (const widened of await probeWidened(frame, win, doc)) {

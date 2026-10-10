@@ -42,9 +42,9 @@ third.
      14, the chosen one filled in ink and `aria-pressed`; mdBook's script still sets the theme,
      through its own buttons, and its menu button stays in the page, hidden, as its script needs
      it. The Field theme joins with #452. The switch stands in the header from 960 px, where the
-     header holds it on one row with room to spare, and `theme/hpr.js` moves it to the top of the sidebar below,
-     the page's navigation, which a menu button opens under 720 px as `web.md` allows. It works
-     only with scripts, so without them it isn't drawn.
+     header holds it on one row with room to spare, and `theme/hpr.js` moves it to the top of
+     the sidebar below, the page's navigation, which a menu button opens under 720 px as
+     `web.md` allows. It works only with scripts, so without them it isn't drawn.
    - **Headings in order.** A file check fails a built page whose headings skip a level going
      down (an `h2` followed by an `h4`).
    - The file check fails a built page without the tag, an `h2` outside a sheet, a sheet
@@ -53,14 +53,16 @@ third.
      isn't in `label` type above its name, a tag not chamfered or not in Cascadia Mono 12, and a
      switch whose buttons aren't Auto, Light and Dark, 44 px tall in Cascadia Mono 14, with the
      page's theme the one pressed and filled in ink, not in the header from 960 px or in the
-     sidebar below, or that doesn't change the theme when pressed. Each has canaries both ways.
+     sidebar below (read opened under 720 px), that doesn't change the theme when pressed, or
+     that keeps a theme saved from mdBook's menu it doesn't offer. Each has canaries both ways.
 2. **M0.9d11: the pages' own words,** with M0.9d9's old done-when unchanged: #384 closed, each
    rule it lists held by `xtask site`'s page check or a site test. It takes the intro's status
    chip and one-sentence lead, two to six sheets a page, and every page opening with what works
    and how far to trust it. It goes after the queued M0.9d10.
 
 **Consequences.** Under 960 px a reader finds the theme switch with the chapters, not in the
-header; under 720 px behind the menu button. Every page's `h2` sections now carry a sheet number,
+header; under 720 px behind the menu button. A reader who saved Coal, Ayu or Rust from mdBook's
+menu is put back on Auto. Every page's `h2` sections now carry a sheet number,
 which on a page of more than six sections, until M0.9d11, reads past the system's six. The
 rewrite is tested on mdBook 0.5.4's output; a newer mdBook that changes the theme menu or the
 headings' markup fails the build until the rewrite learns it. #429 stays open for its other

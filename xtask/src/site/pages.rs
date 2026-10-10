@@ -197,8 +197,10 @@
 //! Archivo and one below its name, and a designation tag with no chamfer, below its title, at
 //! 14 px and in a dashed border; a theme switch drawn and working as the system's, which must
 //! pass, one offering Navy for Dark, one with Light pressed for a first-time reader, one beside
-//! mdBook's theme button drawn, one that sets no theme when pressed, one placed the other way
-//! round, and, in the header at every width, one with buttons 32 px tall, one in Archivo, one
+//! mdBook's theme button drawn, one that sets no theme when pressed, one that keeps a saved Coal,
+//! one placed the other way round, one in its places with buttons 32 px tall, also read in the
+//! sidebar opened under 720 px, and, in the header at every width, one with buttons 32 px tall,
+//! one in Archivo, one
 //! with its pressed button unfilled and one drawn with scripts off; and an ordinary page
 //! (wrapping text, a wide table and a long line of code in boxes that scroll, an unbreakable word
 //! that wraps anywhere, a figure wider than any window with mdBook's zoom, a sidebar drawer put
@@ -413,8 +415,9 @@ enum Kind {
     /// A theme switch off the system's: not in the header from 960 px or in the sidebar under
     /// it; its buttons not Auto, Light and Dark, under 44 px tall or not in Cascadia Mono 14;
     /// a first-time reader's pressed button not Auto alone, or a fill not the ink exactly where
-    /// pressed; mdBook's theme button drawn; drawn with scripts off; or pressing Dark, then Auto,
-    /// not setting the theme (#384, #429).
+    /// pressed; mdBook's theme button drawn; drawn with scripts off; the page in a theme the
+    /// switch doesn't offer; pressing Dark, then Auto, not setting the theme; or a theme saved
+    /// that it doesn't offer, Coal, not forgotten for Auto (#384, #429).
     Switch,
 }
 
@@ -761,9 +764,38 @@ macro_rules! switch_placed_inverted {
     };
 }
 
-/// A switch canary's script that works it as mdBook's does: a button pressed puts the root in
-/// its theme (Auto in the one the system asks for) and is the one pressed.
+/// A switch canary's script that works it as mdBook's does with `theme/hpr.js`: a theme saved
+/// that the switch doesn't offer is forgotten, the root in the one the system asks for; then
+/// [`switch_clicks!`].
 macro_rules! switch_works {
+    () => {
+        concat!(
+            "<script>(function () { let s = null; try { s = \
+             localStorage.getItem('mdbook-theme'); } catch (e) { } if (s === null || s === \
+             'light' || s === 'navy') return; localStorage.removeItem('mdbook-theme'); const r \
+             = document.documentElement; r.classList.remove('light', 'navy'); \
+             r.classList.add(matchMedia('(prefers-color-scheme: dark)').matches ? 'navy' : \
+             'light'); })();</script>",
+            switch_clicks!()
+        )
+    };
+}
+
+/// A switch canary's script that puts the root in a saved theme, as mdBook's does before its
+/// own script runs, and doesn't forget one the switch doesn't offer; then [`switch_clicks!`].
+macro_rules! switch_keeps {
+    () => {
+        concat!(
+            "<script>try { const s = localStorage.getItem('mdbook-theme'); if (s) \
+             document.documentElement.classList.add(s); } catch (e) { }</script>",
+            switch_clicks!()
+        )
+    };
+}
+
+/// A switch canary's script that presses as mdBook's does: a button pressed puts the root in its
+/// theme (Auto in the one the system asks for) and is the one pressed.
+macro_rules! switch_clicks {
     () => {
         "<script>document.getElementById('mdbook-theme-list').addEventListener('click', function \
          (e) { const b = e.target.closest('button'); if (!b) return; const r = \
@@ -778,12 +810,14 @@ macro_rules! switch_works {
 /// A page's frame (as [`frame!`] draws it) with the theme switch (`fusionspace.css`, `.fs-seg`,
 /// as `theme/hpr.css` draws it) after its sidebar: `$style` added, `$buttons` in the switch,
 /// then `$place` placing it and `$work` working it. The header wraps, as the site's does on a
-/// phone, so a switch in it at every width fits.
+/// phone, so a switch in it at every width fits, and the sidebar opens under 720 px as mdBook's
+/// does, the root marked `sidebar-visible`.
 macro_rules! switch_frame {
     ($style:expr, $buttons:expr, $place:expr, $work:expr) => {
         frame!(
             concat!(
-                "<style>.frame-header { flex-wrap: wrap; } #mdbook-theme-list { display: \
+                "<style>.frame-header { flex-wrap: wrap; } html.sidebar-visible \
+                 #mdbook-sidebar { display: block; } #mdbook-theme-list { display: \
                  inline-flex; margin: 0; padding: 0; list-style: none; border: 1px solid \
                  #566079; } #mdbook-theme-list li { display: flex; } #mdbook-theme-list button { \
                  min-height: 44px; padding: 0 12px; font: 400 14px/20px 'Cascadia Mono', \
@@ -813,7 +847,7 @@ macro_rules! switch_frame {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 132] = [
+const CANARIES: [Canary; 134] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1838,6 +1872,25 @@ const CANARIES: [Canary; 132] = [
         after: switch_frame!("", switch_buttons!(), switch_placed!(), ""),
     },
     Canary {
+        file: "canary-switch-retired.html",
+        what: "a theme switch that keeps a saved theme it doesn't offer, Coal, read once a run, at the width that reads print",
+        expect: &[Kind::Switch],
+        inside: "",
+        after: switch_frame!("", switch_buttons!(), switch_placed!(), switch_keeps!()),
+    },
+    Canary {
+        file: "canary-switch-narrow.html",
+        what: "a theme switch in its places, its buttons 32 px tall, read in the sidebar opened under 720 px too",
+        expect: &[Kind::Switch],
+        inside: "",
+        after: switch_frame!(
+            "<style>#mdbook-theme-list button { min-height: 32px !important; }</style>",
+            switch_buttons!(),
+            switch_placed!(),
+            switch_works!()
+        ),
+    },
+    Canary {
         file: "canary-switch-inverted.html",
         what: "a theme switch in the sidebar from 960 px and in the header under it",
         expect: &[Kind::Switch],
@@ -2134,9 +2187,10 @@ few lines so that it wraps at every width the check tries.</p>
     )
 }
 
-/// The canaries whose problem shows only where the theme switch is pressed, which the harness
-/// does once a run, at the width that reads print ([`print_width`]).
-const PRESSED: [&str; 1] = ["canary-switch-dead.html"];
+/// The canaries whose problem shows only where the theme switch is pressed or the page loaded
+/// with a theme saved, which the harness does once a run, at the width that reads print
+/// ([`print_width`]).
+const PRESSED: [&str; 2] = ["canary-switch-dead.html", "canary-switch-retired.html"];
 
 /// Runs the page check on the site built in `output`.
 pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
@@ -3502,7 +3556,7 @@ mod tests {
         // must pass.
         for (kind, least, passing) in [
             (Kind::Sheet, 10, "canary-sheets.html"),
-            (Kind::Switch, 9, "canary-switch.html"),
+            (Kind::Switch, 11, "canary-switch.html"),
         ] {
             let failing = CANARIES
                 .iter()
