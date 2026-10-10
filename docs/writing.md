@@ -287,15 +287,15 @@ build draws the fold toggle as the system's chevron; the chosen theme is underli
 current page is in the table of contents; a heading jumped to takes no mark, since the page
 scrolls it to the top. The page check fails a text made only of such marks (arrows, technical
 symbols, shapes, dingbats, guillemets, emoji and the private characters icon fonts draw in)
-outside a page's `main`, or drawn by a stylesheet before or after an element anywhere. A key's name in the help popup (`←`) and a mark used as a word in prose
-(`Mach → 0`) pass.
+outside a page's `main`, or drawn by a stylesheet before or after an element anywhere. A key's
+name in the help popup (`←`) and a mark used as a word in prose (`Mach → 0`) pass.
 
 The check also reads each page as it would print, once, at the window width it tries nearest
 the printable width of a sheet of paper (720 px: an A4 or Letter sheet inside Chrome's default
-margins; CI splits the widths over three machines, and each reads print at its own nearest), with the stylesheets' print rules applied and their screen-only rules set aside. A
-headless browser can't print from a page, so this reads the print rules, not a printed page:
-where the browser would break the pages isn't seen. In the light theme and in the navy one, it
-fails:
+margins; CI splits the widths over three machines, and each reads print at its own nearest),
+with the stylesheets' print rules applied and their screen-only rules set aside. A headless
+browser can't print from a page, so this reads the print rules, not a printed page: where the
+browser would break the pages isn't seen. In the light theme and in the navy one, it fails:
 
 - a color that isn't the light theme's, and on a page with both themes, anything drawn in
   different colors from the two;
