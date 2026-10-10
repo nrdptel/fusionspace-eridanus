@@ -197,8 +197,9 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
       catalog flags (68 of 83) is settled against its log and evidence, the manifest fixed and
       the fixture report regenerated, saying what moved. Moves: accuracy.
     - [ ] **M2.3c6 The gap to OpenRocket, by cause** (ADR-226). *Done when:* the fixture report
-      splits each flight's hpr-less-OpenRocket apogee into thrust, mass and drag parts, each
-      input swapped for OpenRocket's in that order, the rest named as other. Moves: accuracy.
+      gives, as aggregates, the hpr-less-OpenRocket apogee split into thrust, mass and drag
+      parts, each input swapped for OpenRocket's in that order, the rest named as other, the
+      parts tested to sum to the whole. Moves: accuracy.
 - [ ] **M2.7 Held-out flights, predictions first** (ADR-209 §4). *Done when:* a flight is held out
   when SHA-256 of its id and the seed `ADR-209` falls in the lowest third, fixed before any held-out
   error is computed; the fixture report gives both halves as aggregates; a refs check fails when a

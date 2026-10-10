@@ -146,16 +146,16 @@ Each idea names its user, workflow, the scoreboard number it moves (ADR-209 §13
 
 - PROMOTED to M2.3c6 ([ADR-226][adr-226]): the gap to OpenRocket split by cause.
 - SOON: every flight's energy closes. User: a flyer showing a waiver flight to a safety reviewer.
-  Workflow: `hpr sim` prints the work done by thrust, drag and gravity beside the change in
-  kinetic and potential energy. Why: in October 2026 a widely used simulator still printed its
-  potential energy with the wrong sign. Moves: the share of the report's flights whose energy
-  residual is below 1e-6 of the impulse's work, not measured today. *Done when:* the fixture and
-  public reports give that share, and a mutation of drag's sign fails a test.
+  Workflow: `hpr sim` prints the work done by thrust, drag and gravity beside the change in kinetic
+  and potential energy. Why: in October 2026 RocketPy 1.13 still printed its potential energy with
+  the wrong sign (its issue #1202). Moves: the share of the report's flights whose energy residual
+  is below 1e-6 of the impulse's work, not measured today. *Done when:* the fixture and public
+  reports give that share, and a mutation of drag's sign fails a test.
 - SOON: oracle aborts named, not counted as misses. User: a reader of the OpenRocket comparisons.
-  Workflow: the census lists each flight OpenRocket ends early by its event (a 2026-10-07 fix in
-  its development line removed a false tumble abort on finless boosters; 24.12 still has it).
-  Moves: the OpenRocket examples within 5% (45 of 53 today), with aborts kept apart. *Done when:* the OpenRocket reports count aborts by event, and a probe design
-  with a finless booster shows one.
+  Workflow: the census lists each flight OpenRocket ends early by its event (a 2026-10-07 fix in its
+  development line removed a false tumble abort on finless boosters; 24.12 still has it). Moves: the
+  OpenRocket examples within 5% (45 of 53 today), with aborts kept apart. *Done when:* the
+  OpenRocket reports count aborts by event, and a probe design with a finless booster shows one.
 - LATER: the flight against its own log, by phase. User: an L2 flyer whose apogee came in low.
   Workflow: `hpr compare` splits the miss into thrust, coast-drag and recovery parts, by M2.3c6's
   method. Moves: the collection's MAE, through the part it names. *Done when:* each collection
