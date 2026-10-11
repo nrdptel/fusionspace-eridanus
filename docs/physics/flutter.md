@@ -1,5 +1,8 @@
 # Fin flutter
 
+See how HPR Sim applies Martin's criterion for fin flutter, where bending and twisting feed each
+other, to your fins and your rocket's flight.
+
 ## In short
 
 - **What it models:** whether a fin may [flutter](../glossary.md#flutter), meaning its bending and

@@ -1,5 +1,8 @@
 # Recording a trajectory
 
+Record a whole flight in HPR Sim as a table of height, speed and position over time, for a
+spreadsheet or plotting tool.
+
 This page shows how to get a whole flight out of HPR Sim as a table of numbers over time, which a
 spreadsheet or a plotting tool reads. It flies the rocket of [Getting started](getting-started.md)
 again, in the same weather, and keeps its height, speed and position every 5 seconds. It needs the

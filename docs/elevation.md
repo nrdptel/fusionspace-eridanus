@@ -1,5 +1,8 @@
 # A launch site's elevation
 
+Get a launch site's elevation above sea level from Open-Meteo or a GeoTIFF of your own, so a flight
+starts in the right air.
+
 This page covers two ways to get a launch site's elevation, its altitude above sea level (the
 field elevation a club lists). The first looks it up from [Open-Meteo](https://open-meteo.com), a
 free weather and terrain service; the answer is saved, so the same lookup works later with no

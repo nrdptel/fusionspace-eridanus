@@ -1,5 +1,8 @@
 # Plan
 
+Read the order of FusionSpace HPR's releases, what each one will include, and how likely each goal
+is to work out.
+
 **This page says what each FusionSpace HPR release holds, in what order, and how likely each goal
 is to work out.** It was made on October 6, 2026, from the roadmap as it stood that day. It goes
 out of date as work ships or the roadmap changes. It gives no dates: releases come at product

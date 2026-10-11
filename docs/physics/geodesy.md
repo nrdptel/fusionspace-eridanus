@@ -1,5 +1,8 @@
 # Geodesy: the ellipsoid, coordinates, distance and bearing
 
+HPR Sim models the Earth as a flattened ellipsoid, and this page shows how it converts coordinates
+and measures distance and bearing between places.
+
 ## In short
 
 - **What it models:** the Earth's shape, as the WGS 84 ellipsoid (a sphere slightly flattened at

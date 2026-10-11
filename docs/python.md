@@ -1,5 +1,8 @@
 # Python
 
+Fly a rocket from Python with the `fusionspace-hpr` package, once or as a Monte Carlo run, and get
+its recording back as NumPy arrays.
+
 This page shows how to fly a rocket from Python with the `fusionspace-hpr` package. The package has the same
 four types as the Rust [builder](the-builder.md): an `Environment`, a `Motor`, a `Rocket` and a
 `Flight`. You describe the rocket part by part from the nose back, or read it from a design file,

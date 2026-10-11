@@ -1,5 +1,8 @@
 # Checking a claim
 
+Trace any number HPR Sim computes to its published source, the test that pins it and any comparison
+with another program or a flight.
+
 Every number HPR Sim computes, and every number on this site, should lead back to three things:
 the published source of the model behind it, a test that pins it, and, where one exists, a
 comparison with another program or a real flight. This page shows how to follow that trail, with two worked

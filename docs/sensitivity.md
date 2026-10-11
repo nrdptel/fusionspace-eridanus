@@ -1,5 +1,8 @@
 # Sensitivity analysis
 
+Rank a rocket's uncertain inputs by how much each moves a result, with Morris screening and Sobol'
+indices, so you know what to measure.
+
 A [Monte Carlo](glossary.md#monte-carlo) run shows how far a rocket's apogee spreads. It doesn't
 say which input causes the spread. [Sensitivity analysis](glossary.md#sensitivity-analysis) does:
 it ranks the uncertain inputs by how much each moves a result, so you know which to measure more

@@ -141,8 +141,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     mdBook default the system doesn't draw (colors, radii, shadows, motion, icons, metas, print),
     a title block and sheets on every page, notes in the system's shape, and every committed SVG
     in token colors, each failing `xtask site`, `xtask figures` or a site test when broken.
-    - [ ] **M0.9d11 The pages' own words** (#384, ADR-231). *Done when:* #384 is closed, each
-      rule it lists held by `xtask site`'s page check or a site test.
+    - [ ] **M0.9d12 The pages' sheets and trust** (#384, ADR-233). *Done when:* #384 is closed,
+      each rule it lists held by `xtask site`'s page check or a site test.
   - [ ] **M0.9e The words to the design** (ADR-208). *Done when:* #386 and #387 are closed:
     `xtask spelling` fails on the British forms the audit found, a site check fails on a
     hyphen-minus for minus and on a number column not right-aligned, and the READMEs follow

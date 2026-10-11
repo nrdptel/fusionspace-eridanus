@@ -1,5 +1,8 @@
 # NOAA forecasts: GFS and RAP
 
+Fetch NOAA's GFS and RAP forecasts over a launch site and fly a rocket through the weather they
+predict.
+
 This page covers fetching the United States weather service's own forecasts over a launch site
 and flying a rocket through them. NOAA's National Centers for Environmental Prediction (NCEP) run
 two weather models whose output HPR Sim reads:

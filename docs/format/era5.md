@@ -1,5 +1,8 @@
 # ERA5 weather files
 
+Learn how HPR Sim reads ERA5 weather files to fly a rocket in a real day's temperature, pressure and
+wind over the launch site.
+
 [ERA5](../glossary.md#era5) is a record of the weather over the whole Earth, every hour since
 1940, from the European Centre for Medium-Range Weather Forecasts (ECMWF). It is a
 [reanalysis](../glossary.md#reanalysis): a weather model run over the past and held to the

@@ -1,5 +1,8 @@
 # How a release is built
 
+See what a FusionSpace HPR release will hold, which license files come with it, how each is checked,
+and how to check one yourself.
+
 **Nothing has been released yet: when a release comes, one workflow builds every file of it from
 one commit, tests each as you would get it, and publishes nothing until Neer Patel, who owns the
 project, approves.** This page says what a release holds, which license files come with each file,

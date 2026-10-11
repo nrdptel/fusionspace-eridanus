@@ -1,5 +1,8 @@
 # Fly your .ork
 
+Fly a rocket designed in OpenRocket with `hpr sim` from the command line, and learn to read the
+numbers it prints.
+
 **This guide flies a rocket you designed in [OpenRocket](glossary.md#openrocket) with `hpr sim`,
 from the command line, and says how to read what it prints.** It is for a flier who has a `.ork`
 file and wants a second simulator's view of it. Every flight here is a model's estimate, not a

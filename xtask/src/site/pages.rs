@@ -703,25 +703,56 @@ macro_rules! switches {
     };
 }
 
-/// The system's intro and sheets (`fusionspace.css`, `.fs-tag` and `.fs-sheet`) as
-/// `theme/hpr.css` draws them, for the sheet canaries: a chapter's intro, the designation tag
-/// over its title, then two sheets, numbered `$first` and `$second`, after `$style`.
+/// The system's intro and sheets (`fusionspace.css`, `.fs-tag`, `.fs-status`, `.fs-lead` and
+/// `.fs-sheet`) as `theme/hpr.css` draws them, for the sheet canaries: a chapter's intro, the
+/// designation tag and a status chip of state `$state` (IN PREPARATION's `info` unless given)
+/// over its title and its lead under it, then two sheets, numbered `$first` and `$second`,
+/// after `$style`.
 macro_rules! sheets {
     ($style:expr, $first:expr, $second:expr) => {
+        sheets!(
+            $style,
+            $first,
+            $second,
+            "info",
+            "<path d=\"M3 3 L21 3 L21 21 L3 21 Z\"/><path d=\"M12 10.5 L12 17\"/><circle \
+             cx=\"12\" cy=\"7\" r=\"1.25\" fill=\"currentColor\" stroke=\"none\"/>",
+            "In preparation"
+        )
+    };
+    ($style:expr, $first:expr, $second:expr, $state:expr, $icon:expr, $word:expr) => {
         concat!(
-            "<style>.fs-tag { --c: 4px; display: flex; width: fit-content; margin: 0 0 16px; \
-             padding: 2px 10px 2px 8px; min-height: 24px; font: 400 12px/16px 'Cascadia Mono', \
-             'Cascadia Mono Fallback', monospace; color: #0B0F1C; border: 1px solid #566079; \
-             clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, 0 \
-             100%); } .fs-intro > h1 { margin: 0; } .fs-sheet { border-top: 2px solid #0B0F1C; \
+            "<style>.fs-intro-row { display: flex; flex-wrap: wrap; align-items: center; gap: \
+             8px; margin: 0 0 16px; } .fs-tag { --c: 4px; display: flex; width: fit-content; \
+             margin: 0; padding: 2px 10px 2px 8px; min-height: 24px; font: 400 12px/16px \
+             'Cascadia Mono', 'Cascadia Mono Fallback', monospace; color: #0B0F1C; border: 1px \
+             solid #566079; clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), \
+             100% 100%, 0 100%); } .fs-status { box-sizing: border-box; display: inline-flex; \
+             align-items: center; gap: 6px; min-height: 24px; margin: 0; padding: 2px 8px; \
+             font: 600 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; \
+             text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid transparent; \
+             white-space: nowrap; } .fs-status svg { width: 14px; height: 14px; flex: none; } \
+             .fs-status[data-state=\"ok\"] { background: #0A6355; color: #FFFFFF; } \
+             .fs-status[data-state=\"info\"] { color: #3350D6; border-color: currentColor; } \
+             .fs-intro > h1 { margin: 0; } .fs-lead { font: 400 20px/28px 'Archivo', 'Archivo \
+             Fallback', sans-serif; font-variant-numeric: tabular-nums; color: #566079; } \
+             .fs-sheet { border-top: 2px solid #0B0F1C; \
              margin-top: 32px; padding-top: 16px; } .fs-sheet-rail { display: grid; gap: 8px; \
              margin-bottom: 16px; } .fs-sheet-rail > h2 { margin: 0; font: 600 20px/24px \
              'Cascadia Mono', 'Cascadia Mono Fallback', monospace; } .fs-sheet-no { font: 400 \
              12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; letter-spacing: \
              0.06em; color: #566079; }</style>",
             $style,
-            "<div class=\"fs-intro\"><p class=\"fs-tag\">FS-ACHERNAR · SW · TOOL 001</p><h1>A \
-             chapter</h1><p>Its opening.</p></div><section class=\"fs-sheet\"><div \
+            "<div class=\"fs-intro\"><div class=\"fs-intro-row\"><p class=\"fs-tag\">FS-ACHERNAR \
+             · SW · TOOL 001</p><p class=\"fs-status\" data-state=\"",
+            $state,
+            "\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" \
+             stroke=\"currentColor\" stroke-width=\"1.5\" aria-hidden=\"true\">",
+            $icon,
+            "</svg>",
+            $word,
+            "</p></div><h1>A chapter</h1><p class=\"fs-lead\">What the chapter covers, in one \
+             sentence.</p><p>Its opening.</p></div><section class=\"fs-sheet\"><div \
              class=\"fs-sheet-rail\"><span class=\"fs-sheet-no\">",
             $first,
             "</span><h2>The first sheet</h2></div><div class=\"fs-sheet-body\"><p>Its \
@@ -856,7 +887,7 @@ macro_rules! switch_frame {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 139] = [
+const CANARIES: [Canary; 152] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1716,6 +1747,194 @@ const CANARIES: [Canary; 139] = [
         what: "an intro and sheets drawn as the system's, which must pass",
         expect: &[],
         inside: concat!(sheets!("", "SHEET 1 / 2", "SHEET 2 / 2"), ""),
+        after: "",
+    },
+    Canary {
+        file: "canary-chip-released.html",
+        what: "a RELEASED chip drawn as the system's, which must pass",
+        expect: &[],
+        inside: concat!(
+            sheets!(
+                "",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2",
+                "ok",
+                "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M7.5 12 L10.5 15 L16.5 9\"/>",
+                "Released"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-chip-released-action.html",
+        what: "a RELEASED chip filled in the action color, not the ok fill",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-status[data-state=\"ok\"] { background: #3350D6 !important; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2",
+                "ok",
+                "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M7.5 12 L10.5 15 L16.5 9\"/>",
+                "Released"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-chip-filled.html",
+        what: "an IN PREPARATION chip filled in the action color, not outlined",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-status { background: #3350D6 !important; color: #FFFFFF !important; border-color: #3350D6 !important; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-chip-large.html",
+        what: "a status chip in Cascadia Mono 14 px",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-status { font-size: 14px !important; line-height: 20px !important; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-chip-light.html",
+        what: "a status chip at weight 400, not 600",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-status { font-weight: 400 !important; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-chip-lowercase.html",
+        what: "a status chip not in capitals",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-status { text-transform: none !important; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-chip-short.html",
+        what: "a status chip 18 px tall, under the system's 24",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-status { min-height: 0 !important; padding: 0 8px !important; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-chip-icon.html",
+        what: "a status chip's icon at 20 px, not 14",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-status svg { width: 20px !important; height: 20px !important; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-chip-before.html",
+        what: "a status chip before its tag",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-status { order: -1; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-lead-small.html",
+        what: "a lead in body type, 16/24",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-lead { font-size: 16px !important; line-height: 24px !important; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-lead-ink.html",
+        what: "a lead in the ink, not the muted ink",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-lead { color: #0B0F1C !important; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-lead-mono.html",
+        what: "a lead in Cascadia Mono 20/24",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-lead { font: 400 20px/24px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace !important; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-lead-above.html",
+        what: "a lead above its title",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-intro { display: flex; flex-direction: column; } .fs-lead { order: -1; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
         after: "",
     },
     Canary {
@@ -3699,7 +3918,8 @@ mod tests {
         // Each kind has canaries that must show it alone, and one drawn as the system's that
         // must pass.
         for (kind, least, passing) in [
-            (Kind::Sheet, 10, "canary-sheets.html"),
+            (Kind::Sheet, 22, "canary-sheets.html"),
+            (Kind::Sheet, 22, "canary-chip-released.html"),
             (Kind::Switch, 11, "canary-switch.html"),
         ] {
             let failing = CANARIES

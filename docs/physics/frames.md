@@ -1,5 +1,8 @@
 # Frames and sign conventions
 
+This page defines the axes and signs all of HPR Sim shares, from the Earth-centered frame to the
+rocket's body, attitude and launch angles.
+
 ## In short
 
 - **What it models:** the directions and signs the whole simulator shares: a frame fixed to the

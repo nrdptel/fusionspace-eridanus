@@ -1,5 +1,8 @@
 # Flight metrics
 
+Learn how HPR Sim measures the numbers a flight is judged by, such as apogee, top speed, max q,
+stability margin and landing point.
+
 ## In short
 
 - **What it models:** the numbers a flight is judged by. These are the apogee, the top speed and

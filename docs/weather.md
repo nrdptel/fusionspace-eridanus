@@ -1,5 +1,8 @@
 # Launch-day weather
 
+Fetch the weather over a launch site at launch time from Open-Meteo, and fly a rocket through it
+instead of a standard atmosphere.
+
 This page covers fetching the weather over a launch site at launch time from
 [Open-Meteo](https://open-meteo.com), a free weather service, and flying a rocket through it.
 The weather arrives as a [sounding](glossary.md#sounding): temperature, pressure, humidity and wind

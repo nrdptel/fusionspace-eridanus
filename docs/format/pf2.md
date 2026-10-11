@@ -1,5 +1,8 @@
 # PerfectFlite `.pf2` flight logs
 
+See how HPR Sim reads the flight log a PerfectFlite altimeter saves, a `.pf2` file of barometric
+heights and speeds, and what it refuses.
+
 A `.pf2` file is the flight log a PerfectFlite altimeter's software saves. The one read so far is a
 Pnut's; the StratoLogger and StratoLoggerCF are expected to write the same layout, as the reader in
 Debrief (the project owner's earlier flight-log analyzer) assumes, but no file of theirs has been

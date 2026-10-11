@@ -1,5 +1,8 @@
 # OpenRocket `.ork` design files
 
+This page explains how HPR Sim reads an OpenRocket `.ork` design into a rocket it can fly, part by
+part, and writes one back out.
+
 A `.ork` file is an OpenRocket design: the tree of parts a rocket is built from, the materials they
 are made of, the motors flown in it, and the results of the simulations OpenRocket last ran. It is
 the format hobby designs are most often shared in, so reading it is how a design gets into HPR Sim

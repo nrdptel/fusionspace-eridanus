@@ -1,5 +1,8 @@
 # Recovery
 
+See how HPR Sim brings a rocket down under a parachute or a streamer or by tumbling, and where each
+part drifts and lands.
+
 ## In short
 
 - **What it models:** how a rocket comes down under a parachute, a

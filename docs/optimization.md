@@ -1,5 +1,8 @@
 # Optimization
 
+Search for the design that gives the result you want, such as a target apogee or the lightest stable
+fins, with HPR Sim's optimizers.
+
 Sometimes you know the result you want and need the design that gives it: that is
 [optimization](glossary.md#optimization). That might be a rocket
 that reaches exactly 3,048 m (10,000 ft) for a competition, or the lightest fins that keep it

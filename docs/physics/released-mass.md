@@ -1,5 +1,8 @@
 # Released mass
 
+See what letting go of ballast or a payload in flight does to the rest of the rocket, and where the
+part lands.
+
 ## In short
 
 - **What it models:** a part carried inside the airframe, such as ballast or a payload, let go

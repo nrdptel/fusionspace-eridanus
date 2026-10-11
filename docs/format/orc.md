@@ -1,5 +1,8 @@
 # OpenRocket `.orc` parts catalogs
 
+Look up a maker's parts by part number in the OpenRocket `.orc` catalogs built into HPR Sim, and see
+how each value is read.
+
 A `.orc` file is a parts catalog for OpenRocket, which calls its parts *component presets*.
 It lists nose cones, body tubes, couplers,
 centering rings, bulkheads, transitions, launch lugs, parachutes and streamers, as their makers

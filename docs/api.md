@@ -1,5 +1,8 @@
 # The API reference
 
+Find which crate of FusionSpace HPR holds what, and reach each crate's rustdoc reference for every
+public type, function and constant.
+
 **The API reference documents FusionSpace HPR's code: every public type, function and constant,
 generated from the source by rustdoc, Rust's documentation tool.** Use it when you write a program
 with the `hpr` library, as [Getting started](getting-started.md) does. This page says which crate

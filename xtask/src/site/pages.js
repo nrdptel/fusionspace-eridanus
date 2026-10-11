@@ -407,6 +407,19 @@
   // size (`web.md`, *Components*: buttons 44 px tall in Cascadia Mono 14).
   const TAG_PX = 12;
   const TAG_BORDER_PX = 1;
+  // The status chip beside the tag (`fusionspace.css`, `.fs-status`): `label` type at 600 in
+  // capitals, at least 24 px tall, its icon 14 px; RELEASED (`ok`) in the ok fill with its text,
+  // the same in every theme (`foundations.md`, *Color*), IN PREPARATION (`info`) outlined 1 px
+  // in the action color on no fill. The lead under the title: `lead` type, Archivo 20/28 at 400,
+  // in the muted ink of the page's theme.
+  const CHIP_PX = 12;
+  const CHIP_WEIGHT = 600;
+  const CHIP_MIN_PX = 24;
+  const CHIP_ICON_PX = 14;
+  const CHIP_FILLS = { ok: ['#0A6355', '#FFFFFF'] };
+  const LEAD_PX = 20;
+  const LEAD_LINE_PX = 28;
+  const INK_MUTED = { light: '#566079', navy: '#98A1B8' };
   const SHEET_RULE_PX = 2;
   const SHEET_NUMBER_PX = 12;
   const SWITCH_CHOICES = ['Auto', 'Light', 'Dark'];
@@ -1873,21 +1886,111 @@
     }
   }
 
+  // The status chip and the lead of each intro (see [`probeSheets`]).
+  function probeIntro(win, doc, note) {
+    const theme = themeOf(win, doc);
+    for (const chip of Array.from(doc.querySelectorAll('.fs-intro-row > .fs-status'))) {
+      const sel = selector(chip);
+      if (!drawn(win, chip)) {
+        note('sheet', sel, 'display', 'a status chip not drawn');
+        continue;
+      }
+      const s = win.getComputedStyle(chip);
+      if (familyOf(win, chip) !== 'Cascadia Mono' || !samePx(parseFloat(s.fontSize), CHIP_PX)
+        || Number(s.fontWeight) !== CHIP_WEIGHT || s.textTransform !== 'uppercase') {
+        note('sheet', sel, 'font', s.fontSize + ' ' + familyOf(win, chip) + ' ' + s.fontWeight
+          + ' ' + s.textTransform);
+      }
+      const r = chip.getBoundingClientRect();
+      if (r.height < CHIP_MIN_PX - SLACK_PX) {
+        note('sheet', sel, 'height', Math.round(r.height * 10) / 10 + ' px');
+      }
+      const icon = chip.querySelector(':scope > svg');
+      const ir = icon && icon.getBoundingClientRect();
+      if (!ir || !samePx(ir.width, CHIP_ICON_PX) || !samePx(ir.height, CHIP_ICON_PX)) {
+        note('sheet', sel + '>svg', 'size', ir ? Math.round(ir.width * 10) / 10 + ' by '
+          + Math.round(ir.height * 10) / 10 + ' px' : 'no icon');
+      }
+      const state = chip.getAttribute('data-state');
+      const fill = hex(s.backgroundColor);
+      const text = hex(s.color);
+      if (CHIP_FILLS[state]) {
+        const want = CHIP_FILLS[state];
+        if (!fill || fill.alpha !== 1 || fill.rgb !== want[0] || !text || text.rgb !== want[1]) {
+          note('sheet', sel, 'colors', s.color + ' on ' + s.backgroundColor + ', not '
+            + want[1] + ' on ' + want[0]);
+        }
+      } else if (state === 'info') {
+        const outlined = ['Top', 'Right', 'Bottom', 'Left'].every(function (side) {
+          return samePx(parseFloat(s['border' + side + 'Width']), 1)
+            && s['border' + side + 'Style'] === 'solid'
+            && s['border' + side + 'Color'] === s.color;
+        });
+        if (!text || text.rgb !== ACTION[theme] || (fill && fill.alpha !== 0) || !outlined) {
+          note('sheet', sel, 'colors', s.color + ' on ' + s.backgroundColor + ' in '
+            + s.borderTopWidth + ' ' + s.borderTopStyle + ' ' + s.borderTopColor
+            + ', not outlined in the action color on no fill');
+        }
+      } else {
+        note('sheet', sel, 'data-state', 'a chip of state ' + state + ', none of ok or info');
+      }
+      const row = chip.parentElement;
+      const tag = row.querySelector(':scope > .fs-tag');
+      const t = tag && tag.getBoundingClientRect();
+      if (!t || (r.left < t.right - SLACK_PX && r.top < t.bottom - SLACK_PX)) {
+        note('sheet', sel, 'position', 'a status chip not after its tag, beside it or under it');
+      }
+      const intro = chip.closest('.fs-intro');
+      const title = intro && intro.querySelector(':scope > h1');
+      if (!title || r.bottom > title.getBoundingClientRect().top + SLACK_PX) {
+        note('sheet', sel, 'position', 'a status chip not above its title');
+      }
+    }
+    for (const lead of Array.from(doc.querySelectorAll('.fs-intro > .fs-lead'))) {
+      const sel = selector(lead);
+      if (!drawn(win, lead)) {
+        note('sheet', sel, 'display', 'a lead not drawn');
+        continue;
+      }
+      const s = win.getComputedStyle(lead);
+      if (familyOf(win, lead) !== 'Archivo' || !samePx(parseFloat(s.fontSize), LEAD_PX)
+        || !samePx(parseFloat(s.lineHeight), LEAD_LINE_PX) || Number(s.fontWeight) !== 400) {
+        note('sheet', sel, 'font', s.fontSize + '/' + s.lineHeight + ' ' + familyOf(win, lead)
+          + ' ' + s.fontWeight);
+      }
+      const color = hex(s.color);
+      if (!color || color.rgb !== INK_MUTED[theme]) {
+        note('sheet', sel, 'color', s.color + ', not the muted ink ' + INK_MUTED[theme]);
+      }
+      const title = lead.previousElementSibling;
+      if (!title || title.tagName !== 'H1' || lead.getBoundingClientRect().top
+        < title.getBoundingClientRect().bottom - SLACK_PX) {
+        note('sheet', sel, 'position', 'a lead not right under its title');
+      }
+    }
+  }
+
   // The first family of `el`'s font, unquoted.
   function familyOf(win, el) {
     return win.getComputedStyle(el).fontFamily.split(',')[0].trim().replace(/^["']|["']$/g, '');
   }
 
-  // The intro and the sheets (#384; `web.md`, *Page anatomy*; `fusionspace.css`, `.fs-tag` and
-  // `.fs-sheet`). Each designation tag (`.fs-intro > .fs-tag`; the file check makes sure every
-  // title has one) must be drawn above its title, in Cascadia Mono 12 px, inside a 1 px solid
+  // The intro and the sheets (#384; `web.md`, *Page anatomy*; `fusionspace.css`, `.fs-tag`,
+  // `.fs-status`, `.fs-lead` and `.fs-sheet`). Each designation tag (`.fs-intro-row > .fs-tag`;
+  // the file check makes sure every title has one) must be drawn above its title, in Cascadia Mono 12 px, inside a 1 px solid
   // border, one corner chamfered (a `clip-path` polygon). Each `h2` in `main` must be a sheet's
   // name, in its rail (`section.fs-sheet > .fs-sheet-rail > h2`); each sheet must be drawn under
   // a 2 px solid rule in the ink role, with its number in Cascadia Mono 12 px drawn above its
-  // name and reading `SHEET n / N`, counted from each intro (a chapter, on the print page).
+  // name and reading `SHEET n / N`, counted from each intro (a chapter, on the print page). Each
+  // status chip (`.fs-intro-row > .fs-status`) must be drawn after its tag, beside it or wrapped
+  // under it, and above its title, in [`CHIP_PX`] Cascadia Mono at [`CHIP_WEIGHT`] in capitals,
+  // at least [`CHIP_MIN_PX`] tall, its icon drawn [`CHIP_ICON_PX`] square, in its state's
+  // colors; and each lead (`.fs-intro > .fs-lead`) under its title in `lead` type and the muted
+  // ink.
   function probeSheets(win, doc, note) {
     const ink = win.getComputedStyle(doc.body).color;
-    for (const tag of Array.from(doc.querySelectorAll('.fs-intro > .fs-tag'))) {
+    probeIntro(win, doc, note);
+    for (const tag of Array.from(doc.querySelectorAll('.fs-intro-row > .fs-tag'))) {
       const sel = selector(tag);
       if (!drawn(win, tag)) {
         note('sheet', sel, 'display', 'a designation tag not drawn');
@@ -1908,7 +2011,8 @@
           break;
         }
       }
-      const title = tag.parentElement.querySelector(':scope > h1');
+      const intro = tag.closest('.fs-intro');
+      const title = intro && intro.querySelector(':scope > h1');
       if (!title || tag.getBoundingClientRect().bottom > title.getBoundingClientRect().top
         + SLACK_PX) {
         note('sheet', sel, 'position', 'a designation tag not above its title');

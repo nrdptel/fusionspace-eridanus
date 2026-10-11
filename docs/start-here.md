@@ -1,5 +1,8 @@
 # Start here
 
+Learn what FusionSpace HPR and its simulator are, what works today and what doesn't, and how to find
+your way around this site.
+
 **FusionSpace HPR is a suite of open-source tools for hobby and high-power rockets. Its first
 product, FusionSpace HPR · Sim (HPR Sim for short), is a flight
 simulator, and it is not ready to rely on yet.** A flight analyzer, a competition kit and an app
@@ -400,8 +403,11 @@ Every page's source is a Markdown file in the repository's
 a page opens its source in GitHub's editor, where you can propose a fix.
 
 Each page opens with HPR Sim's number, `FS-ACHERNAR · SW · TOOL 001`, in a small tag over its
-title (the [title block](#title-block) says what it means), and its sections are numbered as the
-sheets of a drawing set: `SHEET 2 / 5` over a section's name makes it the second of five. The
+title (the [title block](#title-block) says what it means). Beside the tag, a chip gives the
+site's status from the title block: IN PREPARATION while the pages describe work after the last
+release, RELEASED when they describe a release as it shipped. Under the title, one sentence in
+larger gray type says what the page covers. The sections are numbered as the sheets of a drawing
+set: `SHEET 2 / 5` over a section's name makes it the second of five. The
 theme switch, Auto, Light and Dark, stands in the header before the print and edit buttons on a
 window 960 px wide or wider, and at the top of the table of contents on a narrower one (on a
 phone, behind the menu button). Auto follows your system's light or dark
@@ -433,9 +439,9 @@ simulator's internal name, then software tool 1.
 | Owner | FusionSpace |
 | Title | FusionSpace HPR · Sim: a flight simulator for hobby and high-power rockets, and its documentation |
 | Designation | `FS-ACHERNAR · SW · TOOL 001` |
-| Version | 0.1.0, not yet released |
+| Version | 0.1.0, released 2026-10-08 ([what it holds](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CHANGELOG.md)); the site is built from the repository's `main` branch, which may be ahead of it |
 | Date of issue | <span id="issue-date">the date of the commit the site is built from</span> |
-| Status | IN PREPARATION: no release yet; how far to trust each result is in [Accuracy so far](#accuracy-so-far) |
+| Status | IN PREPARATION: the release after 0.1.0, as the `main` branch holds it, so a page may describe what 0.1.0 lacks; how far to trust each result is in [Accuracy so far](#accuracy-so-far) |
 | Units | SI (meters, kilograms, seconds) first. Every command's text adds US units in parentheses: feet after heights and distances, feet per second after speeds, miles per hour after the wind, °F after the air's temperature, g after an acceleration and inches after stations along the rocket and a motor's size; `hpr motors show` adds ounces or pounds. The plot gives a second scale in feet, feet per second and g. This site's pages, unlike the program's output, keep a motor's nominal size in millimeters alone, as motors are named (`a 54 mm motor`); every other height, distance, size and speed on them gives its US units in brackets, checked as conversions ([house style](writing.md)). JSON and exported files stay SI ([units](cli.md#units)) |
 | Data | Thrust curves: ThrustCurve.org's public-domain files, catalog captured 2026-09-17. Atmosphere: U.S. Standard Atmosphere 1976, or a sounding or forecast you supply or fetch ([weather](weather.md)). Magnetic field: WMM2025. Accuracy: the committed [validation report][report]. Every source and its terms: [third-party notices][notices]. |
 | Fonts | Archivo and Cascadia Mono, SIL Open Font License 1.1, served from this site; no page asks another server for anything |

@@ -1,5 +1,8 @@
 # Getting started
 
+Install HPR Sim, fly a first rocket from the rail to the ground with a short Rust program, and learn
+to change it.
+
 This page takes you from nothing to a first simulated flight: install Rust, build HPR Sim, and run
 a short program that flies a rocket from the launch rail to the ground and prints what happened.
 Then it walks through that program, so you can change it and fly your own variations. It needs

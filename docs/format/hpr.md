@@ -1,5 +1,8 @@
 # The HPR design format (`.hpr` and `.hprz`)
 
+This page describes the HPR design format, FusionSpace HPR's own open JSON format for rocket
+designs, and how to convert, read and write it.
+
 An `.hpr` file is a rocket design written as one JSON document in the HPR design format, FusionSpace
 HPR's own format, open and described by a published [JSON Schema](#the-schema). It holds everything
 HPR Sim reads from an OpenRocket `.ork`: the rocket's parts, every motor

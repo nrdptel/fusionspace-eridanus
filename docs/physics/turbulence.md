@@ -1,5 +1,8 @@
 # Turbulence
 
+This page describes the random gusts HPR Sim generates from the Dryden model, repeatable from a
+seed, and why no flight uses them.
+
 ## In short
 
 - **What it models:** random gusts from the Dryden model: a gust pattern with a published

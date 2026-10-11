@@ -1,5 +1,8 @@
 # Atmosphere
 
+Learn how HPR Sim builds the air at each height from a standard atmosphere, field conditions or a
+sounding, and what an altimeter reads.
+
 ## In short
 
 - **What it models:** the air's temperature, pressure, density, speed of sound and viscosity by

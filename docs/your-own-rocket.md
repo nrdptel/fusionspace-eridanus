@@ -1,5 +1,8 @@
 # Your own rocket
 
+Build your own rocket in Rust part by part, find its center of gravity, center of pressure and
+stability margin, then fly it.
+
 This page builds a rocket of your own in Rust, part by part: your dimensions, your materials, and a
 motor from the catalog that comes with HPR Sim. It then finds the rocket's
 [center of gravity](glossary.md#center-of-gravity-cg) (CG), its

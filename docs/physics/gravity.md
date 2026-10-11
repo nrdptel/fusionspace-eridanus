@@ -1,5 +1,8 @@
 # Gravity and Earth rotation
 
+This page covers the gravity a rocket feels, which changes with latitude and height, and the
+Coriolis push the spinning Earth gives it.
+
 ## In short
 
 - **What it models:** the pull a rocket feels: WGS 84 normal gravity, the gravity of a smooth,

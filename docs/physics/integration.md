@@ -1,5 +1,8 @@
 # Time integration and events
 
+Learn how HPR Sim steps a flight through time, stops exactly at set times such as burnout, and finds
+events such as apogee and landing.
+
 ## In short
 
 - **What it models:** stepping a flight through time, by Dormand–Prince 5(4), which adapts its
