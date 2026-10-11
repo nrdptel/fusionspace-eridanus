@@ -37,7 +37,7 @@
         "a motor with no curve whose file records no digest, so none is fetched": 20
       }
     },
-    "refs/loft-fixtures": {
+    "refs/hpr-sim-fixtures/imported/loft-fixtures": {
       "files": 27,
       "unreadable": 0,
       "no_configuration": 0,

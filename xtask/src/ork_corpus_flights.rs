@@ -4,7 +4,7 @@
 //! `flights.py` writes OpenRocket 24.12's calm-air flight of every motor configuration of every
 //! design under `refs/` to [`RECORD`], which is gitignored: the designs are other people's, and a
 //! flight's numbers can identify one. This prints only counts, which may be published, split by
-//! where each design came from: the private library `refs/loft-fixtures/`, the examples inside
+//! where each design came from: the private library (`refs/hpr-sim-fixtures/imported/loft-fixtures/`), the examples inside
 //! OpenRocket's jar, and the rest of `refs/`. A file found twice (the same SHA-256) is counted
 //! once per place it was found, and the distinct files are counted too. Another record written by
 //! `flights.py` can be named instead of [`RECORD`]. No error names a file.
@@ -19,8 +19,8 @@ pub(crate) const RECORD: &str = "corpus-out/openrocket-flights.json";
 
 /// Where a design in the record came from.
 pub(crate) fn source(file: &str) -> &'static str {
-    if file.starts_with("refs/loft-fixtures/") {
-        "refs/loft-fixtures"
+    if crate::ork::inside(file, crate::ork::LIBRARY_DIR) {
+        crate::ork::LIBRARY_DIR
     } else if file.contains(".jar!") {
         "OpenRocket's examples"
     } else {
@@ -172,7 +172,8 @@ pub(crate) fn run(record: Option<&str>) -> Result<(), String> {
     let text = fs::read_to_string(root.join(name)).map_err(|error| {
         format!(
             "{name}: {error}; write it with `refs/venv/bin/python \
-             validation/oracles/openrocket/flights.py {RECORD} refs --jar`"
+             validation/oracles/openrocket/flights.py {RECORD} {} --jar`",
+            crate::ork::ORACLE_DIRS
         )
     })?;
     let record: Value = serde_json::from_str(&text).map_err(|error| format!("{name}: {error}"))?;
@@ -188,7 +189,7 @@ mod tests {
     #[test]
     fn each_outcome_is_counted_once_under_its_source() {
         let record = json!({"designs": [
-            {"file": "refs/loft-fixtures/a.ork", "sha256": "x", "flights": [
+            {"file": "refs/hpr-sim-fixtures/imported/loft-fixtures/a.ork", "sha256": "x", "flights": [
                 {"has_motors": false},
                 {"has_motors": true, "refused": "no motor data"},
                 {"has_motors": true, "aborted": true},
@@ -197,16 +198,16 @@ mod tests {
                 {"has_motors": true, "aborted": false, "rod_clearance": {"stability_cal": null},
                  "conditions": {"geodetic": "FLAT"}},
             ], "conditions_from": "first stored simulation"},
-            {"file": "refs/loft-fixtures/copy/a.ork", "sha256": "x", "flights": []},
-            {"file": "refs/loft-fixtures/b.ork", "sha256": "y", "refused": "bad file"},
-            {"file": "refs/loft-fixtures/c.ork", "driver_error": "boom"},
+            {"file": "refs/hpr-sim-fixtures/imported/loft-fixtures/copy/a.ork", "sha256": "x", "flights": []},
+            {"file": "refs/hpr-sim-fixtures/imported/loft-fixtures/b.ork", "sha256": "y", "refused": "bad file"},
+            {"file": "refs/hpr-sim-fixtures/imported/loft-fixtures/c.ork", "driver_error": "boom"},
             {"file": "refs/openrocket/OpenRocket-24.12.jar!datafiles/examples/e.ork",
              "sha256": "e", "flights": [{"has_motors": true, "aborted": true}]},
             {"file": "refs/samples/s.ork", "sha256": "s", "flights": []},
         ]});
         let counts = count(&record).unwrap();
         assert_eq!(
-            counts["refs/loft-fixtures"],
+            counts[crate::ork::LIBRARY_DIR],
             Counts {
                 designs: 4,
                 distinct: 2,
@@ -235,16 +236,19 @@ mod tests {
     #[test]
     fn no_error_names_a_file() {
         for record in [
-            json!({"designs": [{"file": "refs/loft-fixtures/secret.ork", "sha256": "x"}]}),
-            json!({"designs": [{"file": "refs/loft-fixtures/secret.ork", "flights": [{}]}]}),
-            json!({"designs": [{"file": "refs/loft-fixtures/secret.ork",
+            json!({"designs": [{"file": "refs/hpr-sim-fixtures/imported/loft-fixtures/secret.ork", "sha256": "x"}]}),
+            json!({"designs": [{"file": "refs/hpr-sim-fixtures/imported/loft-fixtures/secret.ork", "flights": [{}]}]}),
+            json!({"designs": [{"file": "refs/hpr-sim-fixtures/imported/loft-fixtures/secret.ork",
                                 "flights": [{"has_motors": true}]}]}),
-            json!({"designs": [{"file": "refs/loft-fixtures/secret.ork",
+            json!({"designs": [{"file": "refs/hpr-sim-fixtures/imported/loft-fixtures/secret.ork",
                                 "flights": [{"has_motors": true, "aborted": false}]}]}),
         ] {
             let error = count(&record).unwrap_err();
             assert!(!error.contains("secret"), "{error}");
-            assert!(error.contains("refs/loft-fixtures"), "{error}");
+            assert!(
+                error.contains("refs/hpr-sim-fixtures/imported/loft-fixtures"),
+                "{error}"
+            );
         }
     }
 }

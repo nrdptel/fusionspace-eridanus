@@ -265,6 +265,7 @@ until someone rewrites it in plainer words.
 | [ADR-234: The pages' sheets and trust split again: the sheet count's check first][adr-234] | [M0.9d12](#m0-9d12) took the rest of #384: two to six sheets a page and every page opening with how far to trust it. [M0.9d12](#m0-9d12) now covers the sheet count's check: `cargo xtask site` and a site test count each page's `##` sections, its sheets, and fail a page with fewer than two or more than six, except the 38 pages over six on a list in `xtask/src/site/sheets.rs`, held exact: a listed page at six or fewer fails until it comes off, and so does a listed page the summary doesn't hold. The glossary, 187 sections, one a term, now groups its terms in six by first letter, each term a `###` heading with the same anchor. The new [M0.9d13](#m0-9d13) keeps the old done-when whole (#384 closed, every rule held) and takes the 38 pages' grouping and the trust openings. |  |
 | [ADR-235: Every page in two to six sheets and opening with how far to trust it][adr-235] | The 38 pages that had more than six `##` sections are grouped into two to six sheets, so the check fails any page outside that range and the list of exceptions is gone. Every page but a model page now holds a trust note, a quote block opening with `**How far to trust it.**`, between its title's lead and its first sheet; a model page opens with *In short* instead. `cargo xtask site` and a site test fail a page that doesn't. |  |
 | [ADR-236: Supersonic flights from published comparisons, after Release 0.3][adr-236] | no public real flight FusionSpace HPR is scored against passes Mach 1, and the private collection's report doesn't split its errors by speed. RASAero II's author publishes 36 flights with measured apogees, and says the designs of most ship with RASAero II. [M2.3c7](#m2-3c7) flies those designs, scores them by Mach band beside RASAero II's own published errors, and splits the collection's errors at Mach 1. |  |
+| [ADR-237: One fixture repository: the pin, the labels and a file two packages install][adr-237] | The reference lock pins only the private flight collection `hpr-sim-fixtures`, at its `master` merge commit `7268bcd0`, with a second manifest pin for the design library copied inside it. The two older private repositories are read from its byte-exact `imported/` copies, and the survey counts the library under that path. The OpenRocket round-trip report was flown again because its record predated a writer change. The Python environment check now accepts a file two packages install when it holds either package's copy. |  |
 
 ## The roadmap
 
@@ -528,7 +529,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-3c1"></a>[M2.3c1][done-1] | Logged apogees: the private collection's logged flights against HPR Sim's and OpenRocket's predictions | done |
 | <a id="m2-3c2"></a>[M2.3c2][phase-1] | Logged traces: the same flights' altitude traces, once their logs are read | not yet done |
 | <a id="m2-3c3"></a>[M2.3c3][phase-1] | OpenRocket's newest release | not yet done |
-| <a id="m2-3c4"></a>[M2.3c4][phase-1] | One fixture repo | not yet done |
+| <a id="m2-3c4"></a>[M2.3c4][done-1] | One fixture repo | done |
 | <a id="m2-3c5"></a>[M2.3c5][phase-1] | The corpus rechecked | not yet done |
 | <a id="m2-3c6"></a>[M2.3c6][phase-1] | The gap to OpenRocket, by cause | not yet done |
 | <a id="m2-3c7"></a>[M2.3c7][phase-1] | Faster than sound: published flights | not yet done |
@@ -1036,6 +1037,7 @@ is the milestone that added or will add that test.
 [adr-234]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0234-two-to-six-sheets-the-check-first.md
 [adr-235]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0235-every-page-opens-with-trust.md
 [adr-236]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0236-the-2026-10-11-review-supersonic-flights-from-published-comparisons.md
+[adr-237]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0237-one-fixture-repository.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

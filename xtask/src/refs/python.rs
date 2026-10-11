@@ -86,30 +86,49 @@ impl Records {
 /// The suffix the RECORD check puts on files that belong to no package.
 const UNOWNED: &str = "(not owned by any package)";
 
-const RECORD_SCRIPT: &str = r#"
-import base64, hashlib, importlib.metadata, json, os, sys
+/// The hash check, as a Python function of the installed distributions, kept apart from
+/// [`RECORD_MAIN`] so a test can call it with distributions of its own.
+const RECORD_CHECK: &str = r#"
+import base64, hashlib, os
 
 def key(path):
     return os.path.normcase(os.path.abspath(path))
 
-checked, bad, listed = 0, [], set()
-for dist in importlib.metadata.distributions():
-    for path in dist.files or []:
-        listed.add(key(dist.locate_file(path)))
-        if path.hash is None:
-            continue
-        if path.hash.mode != "sha256":
-            bad.append(f"{path} (hash {path.hash.mode})")
-            continue
+def check_records(dists):
+    # Every file a RECORD lists, and the sha256 values the packages that list it give. A file two
+    # packages both install (a top-level LICENSE, say) holds the copy installed last, so it must
+    # match one of the packages that list it; requiring every one could never pass.
+    listed, bad, claims = set(), [], {}
+    for dist in dists:
+        for path in dist.files or []:
+            full = dist.locate_file(path)
+            listed.add(key(full))
+            if path.hash is None:
+                continue
+            if path.hash.mode != "sha256":
+                bad.append(f"{path} (hash {path.hash.mode})")
+                continue
+            claims.setdefault(key(full), (path, full, []))[2].append(path.hash.value)
+    checked = 0
+    for shown, full, hashes in claims.values():
         try:
-            data = dist.locate_file(path).read_bytes()
+            data = full.read_bytes()
         except OSError:
-            bad.append(f"{path} (unreadable)")
+            bad.append(f"{shown} (unreadable)")
             continue
         checked += 1
         digest = base64.urlsafe_b64encode(hashlib.sha256(data).digest()).rstrip(b"=").decode()
-        if digest != path.hash.value:
-            bad.append(f"{path} (hash differs)")
+        if digest not in hashes:
+            bad.append(f"{shown} (hash differs)")
+    return checked, bad, listed
+"#;
+
+/// The rest of the check, after [`RECORD_CHECK`]: the installed distributions' hashes, then the
+/// files no `RECORD` lists.
+const RECORD_MAIN: &str = r#"
+import importlib.metadata, json, sys
+
+checked, bad, listed = check_records(importlib.metadata.distributions())
 
 # Files no RECORD lists could still run (a sitecustomize.py or .pth file, say). Only the venv's
 # own scaffolding and bytecode caches may be unlisted.
@@ -151,7 +170,8 @@ print(json.dumps({"checked": checked, "bad": bad}))
 /// Re-hashes every installed file that a package's `RECORD` lists with a hash, and reports files
 /// that no `RECORD` lists.
 fn check_records(root: &Path, python: &PythonEnv) -> Result<Records, String> {
-    let json = tool::stdout(python_command(root, python).arg("-c").arg(RECORD_SCRIPT))?;
+    let script = format!("{RECORD_CHECK}{RECORD_MAIN}");
+    let json = tool::stdout(python_command(root, python).arg("-c").arg(script))?;
     parse_records(&json)
 }
 
@@ -332,7 +352,7 @@ mod tests {
 
     #[test]
     fn the_script_and_the_code_agree_on_unowned_files() {
-        assert!(RECORD_SCRIPT.contains(&format!("UNOWNED = \"{UNOWNED}\"")));
+        assert!(RECORD_MAIN.contains(&format!("UNOWNED = \"{UNOWNED}\"")));
         let records = |bad: &[&str]| Records {
             checked: 1,
             bad: bad.iter().map(|b| (*b).to_owned()).collect(),
@@ -340,6 +360,69 @@ mod tests {
         let unowned = format!("lib/sitecustomize.py {UNOWNED}");
         assert!(records(&[&unowned]).only_unowned());
         assert!(!records(&[&unowned, "six.py (hash differs)"]).only_unowned());
+    }
+
+    /// Runs [`RECORD_CHECK`] on stand-in distributions: a file two packages list with different
+    /// hashes passes when it holds either package's copy, and a file matching no package fails.
+    #[test]
+    fn a_file_two_packages_install_matches_either() {
+        let Some(python) = ["python3", "python"].into_iter().find(|name| {
+            Command::new(name)
+                .arg("--version")
+                .output()
+                .is_ok_and(|out| out.status.success())
+        }) else {
+            eprintln!("no python3 or python on PATH; the RECORD check's own test cannot run");
+            return;
+        };
+        let dir = tempfile::tempdir().unwrap();
+        let driver = r#"
+import base64, hashlib, json, pathlib, sys
+
+def b64(data):
+    return base64.urlsafe_b64encode(hashlib.sha256(data).digest()).rstrip(b"=").decode()
+
+class Hash:
+    def __init__(self, value):
+        self.mode, self.value = "sha256", value
+
+class Path(str):
+    def __new__(cls, name, data):
+        path = super().__new__(cls, name)
+        path.hash = Hash(b64(data))
+        return path
+
+class Dist:
+    def __init__(self, root, files):
+        self.root, self.files = pathlib.Path(root), files
+    def locate_file(self, path):
+        return self.root / path
+
+root = sys.argv[1]
+(pathlib.Path(root) / "LICENSE").write_bytes(b"second")
+(pathlib.Path(root) / "edited.py").write_bytes(b"edited")
+dists = [
+    Dist(root, [Path("LICENSE", b"first")]),
+    Dist(root, [Path("LICENSE", b"second"), Path("edited.py", b"original")]),
+]
+checked, bad, listed = check_records(dists)
+print(json.dumps({"checked": checked, "bad": bad}))
+"#;
+        let out = Command::new(python)
+            .arg("-I")
+            .arg("-c")
+            .arg(format!("{RECORD_CHECK}{driver}"))
+            .arg(dir.path())
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        let records = parse_records(&String::from_utf8_lossy(&out.stdout)).unwrap();
+        assert_eq!(records.checked, 2);
+        assert_eq!(records.bad, ["edited.py (hash differs)"]);
     }
 
     #[test]

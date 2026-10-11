@@ -385,12 +385,16 @@ Java 17 and the OpenRocket jar
 ```sh
 refs/venv/bin/python validation/oracles/openrocket/mass.py \
     validation/fixtures/ork/openrocket-mass-loft-demo.json validation/fixtures/ork/loft-demo
-refs/venv/bin/python validation/oracles/openrocket/mass.py corpus-out/openrocket-mass.json refs --jar
+refs/venv/bin/python validation/oracles/openrocket/mass.py corpus-out/openrocket-mass.json \
+    refs refs/hpr-sim-fixtures/imported/loft-fixtures refs/hpr-sim-fixtures/imported/debrief-fixtures --jar
 cargo xtask ork
 ```
 
 The script takes any directory of `.ork` files in place of `refs`; `cargo xtask ork` compares
-HPR Sim with the record of the reference library only.
+HPR Sim with the record of the reference library only. The two `imported/` directories hold the
+private design library and Debrief's private files, copied into the private flight collection;
+they are named because the script doesn't follow the link a local setup may make of
+`refs/hpr-sim-fixtures`.
 
 [adr-060]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0060-m2-2-split-and-the-structures-mass-held-to.md
 

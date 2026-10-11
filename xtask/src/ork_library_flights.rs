@@ -41,9 +41,6 @@ use crate::ork_supply::sha256;
 /// OpenRocket's flights of the library (M2.2e2), gitignored.
 pub(crate) const RECORD: &str = crate::ork_corpus_flights::RECORD;
 
-/// Where the library is.
-const LIBRARY: &str = "refs/loft-fixtures/";
-
 /// The report, as data.
 pub(crate) const REPORT_JSON: &str = "validation/reports/openrocket-library-flights.json";
 
@@ -302,7 +299,8 @@ fn fly_library(root: &Path) -> Result<Value, String> {
     let record = read_json(&root.join(RECORD)).map_err(|_| {
         format!(
             "{RECORD} is missing or unreadable; write it with `refs/venv/bin/python \
-             validation/oracles/openrocket/flights.py {RECORD} refs --jar`"
+             validation/oracles/openrocket/flights.py {RECORD} {} --jar`",
+            crate::ork::ORACLE_DIRS
         )
     })?;
     for (name, path) in SCRIPTS {
@@ -321,7 +319,8 @@ fn fly_library(root: &Path) -> Result<Value, String> {
     let drag_curves = read_json(&root.join(DRAG_CURVES)).map_err(|_| {
         format!(
             "{DRAG_CURVES} is missing or unreadable; write it with `refs/venv/bin/python \
-             validation/oracles/openrocket/drag_curves.py {DRAG_CURVES} refs`"
+             validation/oracles/openrocket/drag_curves.py {DRAG_CURVES} {}`",
+            crate::ork::ORACLE_DIRS
         )
     })?;
     for (name, path) in SCRIPTS
@@ -357,7 +356,7 @@ fn fly_library(root: &Path) -> Result<Value, String> {
         .filter(|entry| {
             entry["file"]
                 .as_str()
-                .is_some_and(|file| file.starts_with(LIBRARY))
+                .is_some_and(|file| crate::ork::inside(file, crate::ork::LIBRARY_DIR))
         })
         .collect();
     let in_library = entries.len();

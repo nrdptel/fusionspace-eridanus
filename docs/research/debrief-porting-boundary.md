@@ -54,7 +54,7 @@ figure the Pnut file states for itself (`lib/parsers/__fixtures__/README.md:14, 
 is the obvious first test for a Rust reader, and the one claim here a reader can check without the
 private corpus.
 There is no public fixture for the AltOS `.eeprom`, the `.rff`, Eggtimer or the RRC3; those live in
-the private corpus (`refs/debrief-fixtures`), which stays uncommitted and unquoted, and only counts
+the private corpus (`refs/hpr-sim-fixtures/imported/debrief-fixtures`), which stays uncommitted and unquoted, and only counts
 and error statistics computed from it may be published ([rule 4](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CONTRIBUTING.md#4-private-data-stays-private)).
 
 ## The five sources it cites

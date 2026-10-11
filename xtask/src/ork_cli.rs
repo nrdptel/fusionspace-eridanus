@@ -566,8 +566,11 @@ mod tests {
     fn a_path_is_named_from_the_root() {
         let root = Path::new("/w/hpr");
         assert_eq!(
-            relative(root, "/w/hpr/refs/loft-fixtures/a.ork"),
-            "refs/loft-fixtures/a.ork"
+            relative(
+                root,
+                "/w/hpr/refs/hpr-sim-fixtures/imported/loft-fixtures/a.ork"
+            ),
+            "refs/hpr-sim-fixtures/imported/loft-fixtures/a.ork"
         );
         assert_eq!(
             crate::ork_corpus_flights::source(&relative(

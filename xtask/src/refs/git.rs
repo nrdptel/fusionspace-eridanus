@@ -288,18 +288,20 @@ fn verify_content(dir: &Path, source: &GitSource) -> Result<String, String> {
         ));
     }
     let mut detail = format!("at {}, tracked files match", pin(source));
-    if let (Some(manifest), Some(pin)) = (&source.manifest, &source.manifest_sha256) {
-        let files = verify_manifest(dir, manifest, pin, source.private)?;
-        detail.push_str(&format!(", {files} manifest hashes match"));
+    for manifest in &source.manifests {
+        let files = verify_manifest(dir, &manifest.path, &manifest.sha256, source.private)?;
+        detail.push_str(&format!(", {files} hashes in {} match", manifest.path));
     }
     Ok(detail)
 }
 
-/// Checks the manifest's own hash, then the hash of every file it lists. Returns the file count.
-/// File names are left out of the error for private repositories, whose names are not public.
+/// Checks the manifest's own hash, then the hash of every file it lists, each by its path from
+/// the manifest's own directory. Returns the file count. File names are left out of the error
+/// for private repositories, whose names are not public.
 fn verify_manifest(dir: &Path, manifest: &str, pin: &str, private: bool) -> Result<usize, String> {
     const SHOWN: usize = 5;
     let path = dir.join(manifest);
+    let base = path.parent().unwrap_or(dir);
     let actual = hash::sha256_file(&path)?;
     if actual != pin {
         return Err(format!(
@@ -311,7 +313,7 @@ fn verify_manifest(dir: &Path, manifest: &str, pin: &str, private: bool) -> Resu
     let entries = hash::parse_manifest(&text).map_err(|err| format!("{manifest}: {err}"))?;
     let mut bad = Vec::new();
     for entry in &entries {
-        match hash::sha256_file(&dir.join(&entry.path)) {
+        match hash::sha256_file(&base.join(&entry.path)) {
             Ok(sha256) if sha256 == entry.sha256 => {}
             Ok(_) => bad.push(format!("{} (hash differs)", entry.path)),
             Err(_) => bad.push(format!("{} (unreadable)", entry.path)),

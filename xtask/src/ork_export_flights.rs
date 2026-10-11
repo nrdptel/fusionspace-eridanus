@@ -30,7 +30,8 @@ pub const USAGE: &str = "\
                            its flights of hpr's export of them (0.5% of the apogee); write
                            validation/reports/openrocket-export-flights.{json,md}, counts only.";
 
-/// OpenRocket's flights of the originals: `flights.py corpus-out/openrocket-flights.json refs --jar`.
+/// OpenRocket's flights of the originals: `flights.py corpus-out/openrocket-flights.json` with
+/// [`crate::ork::ORACLE_DIRS`] and `--jar`.
 const ORIGINALS: &str = "corpus-out/openrocket-flights.json";
 
 /// OpenRocket's flights of the exports: `flights.py corpus-out/openrocket-export-flights.json
@@ -699,7 +700,7 @@ mod tests {
         tallies.into_values().next().expect("one source")
     }
 
-    const FILE: &str = "refs/loft-fixtures/a.ork";
+    const FILE: &str = "refs/hpr-sim-fixtures/imported/loft-fixtures/a.ork";
 
     /// Two records of invented designs: one flown the same and a hair apart, one past the bar, one
     /// refused both ways alike and one not, one with a configuration only its export has; each
@@ -707,21 +708,21 @@ mod tests {
     #[test]
     fn records_compare_configuration_by_configuration() {
         let originals = json!({"designs": [
-            design("refs/loft-fixtures/a.ork", vec![flight("1", 100.0), flight("2", 200.0)]),
+            design("refs/hpr-sim-fixtures/imported/loft-fixtures/a.ork", vec![flight("1", 100.0), flight("2", 200.0)]),
             design("refs/other/b.ork", vec![flight("1", 100.0)]),
             refused("refs/other/c.ork", "no"),
             refused("refs/other/e.ork", "no"),
             design("refs/openrocket/OpenRocket-24.12.jar!datafiles/examples/d.ork", vec![flight("1", 50.0)]),
         ]});
         let exports = json!({"designs": [
-            design("corpus-out/ork-export/refs/loft-fixtures/a.ork", vec![flight("1", 100.0), flight("2", 200.4)]),
+            design("corpus-out/ork-export/refs/hpr-sim-fixtures/imported/loft-fixtures/a.ork", vec![flight("1", 100.0), flight("2", 200.4)]),
             design("corpus-out/ork-export/refs/other/b.ork", vec![flight("1", 101.0)]),
             refused("corpus-out/ork-export/refs/other/c.ork", "no"),
             refused("corpus-out/ork-export/refs/other/e.ork", "other"),
             design("corpus-out/ork-export/refs/openrocket/OpenRocket-24.12.jar/datafiles/examples/d.ork", vec![flight("1", 50.0), flight("9", 1.0)]),
         ]});
         let tallies = compare(&originals, &exports, |_| false).expect("compared");
-        let library = &tallies["refs/loft-fixtures"];
+        let library = &tallies[crate::ork::LIBRARY_DIR];
         assert_eq!(
             (library.compared, library.identical, library.within),
             (2, 1, 2)
@@ -830,8 +831,8 @@ mod tests {
         let originals = json!({"designs": [refused(FILE, "malformed")]});
         let none = json!({"designs": []});
         let unread = compare(&originals, &none, |_| true).expect("compared");
-        assert_eq!(unread["refs/loft-fixtures"].unread, 1);
-        assert!(unread["refs/loft-fixtures"].met());
+        assert_eq!(unread[crate::ork::LIBRARY_DIR].unread, 1);
+        assert!(unread[crate::ork::LIBRARY_DIR].met());
         assert!(compare(&originals, &none, |_| false).is_err());
         let opened = json!({"designs": [design(FILE, vec![])]});
         assert!(compare(&opened, &none, |_| true).is_err());

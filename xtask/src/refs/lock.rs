@@ -63,12 +63,23 @@ pub struct GitSource {
     /// instead of failing, as in CI.
     #[serde(default)]
     pub private: bool,
-    /// A `sha256sum`-style manifest in the checkout (`<hex>  <path>` lines, paths relative to
-    /// the checkout root), and its own sha256. `verify` hashes every file it lists.
-    pub manifest: Option<String>,
-    pub manifest_sha256: Option<String>,
+    /// `sha256sum`-style manifests in the checkout, each pinned by its own sha256. `verify`
+    /// hashes every file each one lists.
+    #[serde(default)]
+    pub manifests: Vec<Manifest>,
     #[serde(flatten)]
     pub terms: Terms,
+}
+
+/// A manifest inside a git checkout: `<hex>  <path>` lines, each path relative to the directory
+/// that holds the manifest, so a repository copied whole into a subdirectory keeps its own.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Manifest {
+    /// The manifest's path, relative to the checkout root.
+    pub path: String,
+    /// The manifest file's own sha256.
+    pub sha256: String,
 }
 
 /// A download whose bytes never change, pinned by sha256.
@@ -268,16 +279,18 @@ fn validate_git(source: &GitSource) -> Result<(), String> {
     if source.commit.len() != 40 || !is_lower_hex(&source.commit) {
         return Err(format!("`{name}`: commit must be a full 40-hex commit id"));
     }
-    match (&source.manifest, &source.manifest_sha256) {
-        (None, None) => Ok(()),
-        (Some(manifest), Some(sha256)) => {
-            check_relative(name, "manifest", manifest)?;
-            check_sha256(name, "manifest_sha256", sha256)
+    let mut paths = BTreeSet::new();
+    for manifest in &source.manifests {
+        check_relative(name, "manifest path", &manifest.path)?;
+        check_sha256(name, "manifest sha256", &manifest.sha256)?;
+        if !paths.insert(manifest.path.as_str()) {
+            return Err(format!(
+                "`{name}`: manifest `{}` is listed more than once",
+                manifest.path
+            ));
         }
-        _ => Err(format!(
-            "`{name}`: manifest and manifest_sha256 go together"
-        )),
     }
+    Ok(())
 }
 
 /// A destination must be a plain relative path strictly inside `refs/`.
@@ -460,8 +473,34 @@ mod tests {
     }
 
     #[test]
-    fn manifest_needs_its_hash() {
-        let err = error_for("shallow = true", r#"manifest = "CHECKSUMS.sha256""#);
-        assert!(err.contains("go together"), "{err}");
+    fn checks_each_manifest() {
+        let one =
+            |path: &str, sha256: &str| format!(r#"{{ path = "{path}", sha256 = "{sha256}" }}"#);
+        let with = |list: &[String]| {
+            Lock::parse(&sample().replacen(
+                "shallow = true",
+                &format!("shallow = true\nmanifests = [{}]", list.join(", ")),
+                1,
+            ))
+        };
+        let lock = with(&[
+            one("CHECKSUMS.sha256", HASH),
+            one("sub/CHECKSUMS.sha256", HASH),
+        ])
+        .unwrap();
+        let paths: Vec<_> = lock.git[0]
+            .manifests
+            .iter()
+            .map(|m| m.path.as_str())
+            .collect();
+        assert_eq!(paths, ["CHECKSUMS.sha256", "sub/CHECKSUMS.sha256"]);
+        let err = with(&[one("../CHECKSUMS.sha256", HASH)]).unwrap_err();
+        assert!(err.contains("manifest path"), "{err}");
+        let err = with(&[one("CHECKSUMS.sha256", "abc")]).unwrap_err();
+        assert!(err.contains("manifest sha256"), "{err}");
+        let err = with(&[one("a.sha256", HASH), one("a.sha256", HASH)]).unwrap_err();
+        assert!(err.contains("more than once"), "{err}");
+        let err = with(&[r#"{ path = "a.sha256" }"#.to_owned()]).unwrap_err();
+        assert!(err.contains("sha256"), "{err}");
     }
 }
