@@ -311,14 +311,16 @@ motor burns says its apogee is not a prediction. In brief:
 - **The scoreboard sets HPR Sim beside OpenRocket and RocketPy, axis by axis,** each number read
   from these reports. It opens with how many of its cells are measured and, where HPR Sim and
   another tool both are, which is ahead; each cell nothing measures yet names the milestone that
-  will. Its steps rows count the steps to open a design, fly it and get its landing spread: 2
-  commands or 9 lines of Python in HPR Sim, run by a test; OpenRocket's and RocketPy's from their
-  documentation, neither able to do all three from the `.ork` file
-  ([M0.11](decisions-and-roadmap.md#m0-11), steps to a first answer). CI fails when one of HPR
-  Sim's numbers there gets worse, unless a decision record accepts it
+  will. CI fails when one of HPR Sim's numbers there gets worse, unless a decision record accepts it
   ([M0.10](decisions-and-roadmap.md#m0-10), the scoreboard;
   [Accuracy](accuracy.md#the-scoreboard);
   [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md)).
+- **The scoreboard counts the steps to a first answer:** opening a design's `.ork` file, flying it
+  and getting its landing spread. HPR Sim takes 2 commands or 10 lines of Python, from files a
+  test runs. Neither OpenRocket nor RocketPy does all three from the `.ork` file: OpenRocket 24.12
+  opens and flies one in 7 clicks but has no Monte Carlo, and RocketPy reads no `.ork` file
+  ([M0.11](decisions-and-roadmap.md#m0-11), steps to a first answer;
+  [Accuracy](accuracy.md#the-scoreboard)).
 - **The descent under a parachute matches RocketPy's.** The comparison flies the descents of five
   of RocketPy's [example rockets](glossary.md#example-rockets) in both codes:
   - Each starts from the same state near apogee, with the first parachute opening at once.

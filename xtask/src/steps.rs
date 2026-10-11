@@ -174,6 +174,10 @@ pub(crate) struct ToolSteps {
     pub released: Option<String>,
     /// When the steps were counted.
     pub counted_on: String,
+    /// What the count assumes, or where the documentation may differ from the release, for the
+    /// page.
+    #[serde(default)]
+    pub note: Option<String>,
     #[serde(default)]
     pub source: Vec<Source>,
     pub way: Vec<Way>,
@@ -262,6 +266,14 @@ impl Record {
             {
                 return Err(at("needs the release read and the date it came out"));
             }
+            for text in tool
+                .source
+                .iter()
+                .map(|source| source.title.as_str())
+                .chain(tool.note.as_deref())
+            {
+                printable(text, false).map_err(at)?;
+            }
             let ids: BTreeSet<&str> = tool.source.iter().map(|s| s.id.as_str()).collect();
             if ids.len() != tool.source.len() {
                 return Err(at("a source id twice"));
@@ -296,6 +308,12 @@ impl Record {
                     if !way.section.is_empty() || way.file.is_some() || cannot.trim().is_empty() {
                         return Err(at("a way in the tool doesn't have lists no steps"));
                     }
+                    printable(cannot, false).map_err(at)?;
+                    if tool.tool == Tool::Hpr && way.milestone.is_none() {
+                        return Err(at(
+                            "HPR Sim can't only until a milestone: name the open one that brings it",
+                        ));
+                    }
                     match (&way.source, &way.milestone) {
                         (Some(source), _) => cite(source, &mut used)?,
                         (None, Some(_)) => {}
@@ -313,6 +331,9 @@ impl Record {
                         "names tasks {tasks:?}; each of open, fly and spread once, in order"
                     )));
                 }
+                if way.section.iter().any(|section| section.tasks.is_empty()) {
+                    return Err(at("a section names no task"));
+                }
                 let last = way.section.len() - 1;
                 for (index, section) in way.section.iter().enumerate() {
                     match (&section.cannot, section.steps.is_empty()) {
@@ -326,6 +347,13 @@ impl Record {
                             if index != last || cannot.trim().is_empty() {
                                 return Err(at("only the last section says it can't"));
                             }
+                            if tool.tool == Tool::Hpr {
+                                return Err(at(
+                                    "a task HPR Sim can't do: say so for the whole way, with \
+                                     the milestone that brings it",
+                                ));
+                            }
+                            printable(cannot, false).map_err(at)?;
                             let source = section
                                 .source
                                 .as_deref()
@@ -345,6 +373,8 @@ impl Record {
                         if step.what.trim().is_empty() {
                             return Err(at("a step says nothing"));
                         }
+                        let code = matches!(step.kind, StepKind::Command | StepKind::Line);
+                        printable(&step.what, code).map_err(at)?;
                         cite(&step.source, &mut used)?;
                     }
                 }
@@ -406,11 +436,35 @@ impl Way {
     }
 }
 
-/// Whether `text` is a date, `YYYY-MM-DD`.
+/// Whether `text` is a date, `YYYY-MM-DD`, with a month from 1 to 12 and a day from 1 to 31.
 fn is_date(text: &str) -> bool {
     let parts: Vec<&str> = text.split('-').collect();
-    matches!(parts[..], [y, m, d] if y.len() == 4 && m.len() == 2 && d.len() == 2
-        && parts.iter().all(|part| part.bytes().all(|b| b.is_ascii_digit())))
+    let number = |part: &str| {
+        part.bytes()
+            .all(|b| b.is_ascii_digit())
+            .then(|| part.parse::<u32>().ok())
+            .flatten()
+    };
+    match parts[..] {
+        [y, m, d] if y.len() == 4 && m.len() == 2 && d.len() == 2 => {
+            number(y).is_some()
+                && number(m).is_some_and(|m| (1..=12).contains(&m))
+                && number(d).is_some_and(|d| (1..=31).contains(&d))
+        }
+        _ => false,
+    }
+}
+
+/// Why `text` can't go on the page as written, if it can't: a `|` or a line break breaks a
+/// table's row, and a backtick a command's or a line's code span.
+fn printable(text: &str, code: bool) -> Result<(), &'static str> {
+    if text.contains('|') || text.contains('\n') || text.contains('\r') {
+        Err("a `|` or a line break, which breaks the page's table")
+    } else if code && text.contains('`') {
+        Err("a backtick in a command or line, which breaks the page's code span")
+    } else {
+        Ok(())
+    }
 }
 
 /// The sections of one of HPR Sim's step files: a `# task: open, fly` line starts one, naming the
@@ -457,11 +511,7 @@ pub(crate) fn parse_file(
                 "an indented line: write each step as one whole statement",
             ));
         }
-        if !whole(line) {
-            return Err(at(
-                "a step that runs onto the next line: write it as one line, so it counts as one",
-            ));
-        }
+        whole(line, interface).map_err(at)?;
         let section = sections
             .last_mut()
             .ok_or_else(|| at("a step before any `# task:` line"))?;
@@ -474,11 +524,29 @@ pub(crate) fn parse_file(
     Ok(sections)
 }
 
-/// Whether `line` is a whole command or statement: its brackets close outside its quoted text, it
-/// opens no triple-quoted text, and it doesn't end in a `\` that joins the next line.
-fn whole(line: &str) -> bool {
+/// Python's compound statements, each a block: one on a single line (`if x: y()`) holds two
+/// statements, so a script line can't start with one.
+const BLOCKS: [&str; 13] = [
+    "if", "elif", "else", "for", "while", "with", "try", "except", "finally", "def", "class",
+    "async", "match",
+];
+
+/// Why `line` isn't one whole step, if it isn't: its brackets must close outside its quoted text,
+/// it must open no triple-quoted text and not end in a `\` that joins the next line, and it must
+/// hold one step: no `;` outside quotes, nor a command's `&` or `|`, nor a script's block.
+fn whole(line: &str, interface: Interface) -> Result<(), &'static str> {
+    const ONTO: &str =
+        "a step that runs onto the next line: write it as one line, so it counts as one";
+    const TWO: &str = "two steps on one line: write each on its own line, so each counts";
     if line.contains("\"\"\"") || line.contains("'''") || line.trim_end().ends_with('\\') {
-        return false;
+        return Err(ONTO);
+    }
+    let first = line
+        .split(|c: char| !(c.is_alphanumeric() || c == '_'))
+        .next()
+        .unwrap_or_default();
+    if interface == Interface::Script && (BLOCKS.contains(&first) || line.starts_with('@')) {
+        return Err("a block on one line: write each step as one simple statement");
     }
     let mut depth = 0_i32;
     let mut quote = None;
@@ -497,18 +565,24 @@ fn whole(line: &str) -> bool {
             None => match c {
                 '"' | '\'' => quote = Some(c),
                 '#' => break,
+                ';' => return Err(TWO),
+                '&' | '|' if interface == Interface::CommandLine => return Err(TWO),
                 '(' | '[' | '{' => depth += 1,
                 ')' | ']' | '}' => {
                     depth -= 1;
                     if depth < 0 {
-                        return false;
+                        return Err(ONTO);
                     }
                 }
                 _ => {}
             },
         }
     }
-    depth == 0 && quote.is_none()
+    if depth == 0 && quote.is_none() {
+        Ok(())
+    } else {
+        Err(ONTO)
+    }
 }
 
 #[cfg(test)]
@@ -521,7 +595,7 @@ mod tests {
     }
 
     /// HPR Sim's counts, from the files the Python tests run: one command opens and flies, a
-    /// second gets the spread; two script lines open, three fly, four get the spread.
+    /// second gets the spread; two script lines open, three fly, five get the spread.
     #[test]
     fn hpr_sims_steps_are_counted_from_its_files() {
         let record = record();
@@ -534,7 +608,7 @@ mod tests {
         let script = hpr.way(Interface::Script).expect("its script");
         assert_eq!(
             script.outcome(),
-            Outcome::Done(Counts(vec![(StepKind::Line, 9)]))
+            Outcome::Done(Counts(vec![(StepKind::Line, 10)]))
         );
         let tasks: Vec<_> = script
             .section
@@ -546,7 +620,7 @@ mod tests {
             [
                 (vec![Task::Open], 2),
                 (vec![Task::Fly], 3),
-                (vec![Task::Spread], 4)
+                (vec![Task::Spread], 5)
             ]
         );
         assert!(matches!(
@@ -565,14 +639,50 @@ mod tests {
             ("# task: open, fly, spread\nrun = f(a,\n  b)\n", 2),
             ("# task: open, fly, spread\nhpr mc x.ork \\\n --runs 3\n", 2),
             ("# task: open, fly, spread\ns = \"\"\"a\nb\"\"\"\n", 2),
-            ("# task: open, fly, spread\nif x:\n    y()\n", 3),
+            ("# task: open, fly, spread\nx = 1\n    y()\n", 3),
         ] {
             let error = parse_file(file, text, Interface::Script).expect_err(text);
             assert!(error.starts_with(&format!("steps.py:{line}: ")), "{error}");
         }
-        let fine = "# task: open, fly, spread\nprint(f\"{a['b)']:.1f}\")  # (\n";
+        let fine = "# task: open, fly, spread\nprint(f\"{a['b)']:.1f}; x\")  # (; y\n";
         let sections = parse_file(file, fine, Interface::Script).expect("one whole line");
         assert_eq!(sections[0].steps.len(), 1);
+    }
+
+    /// Two steps on one line count as two, so the reader refuses the line rather than count it
+    /// as one: a `;`, a block on one line, or a command joined to another.
+    #[test]
+    fn two_steps_on_one_line_are_refused() {
+        for (text, interface, expected) in [
+            ("a = 1; b = 2", Interface::Script, "two steps"),
+            ("if x: y()", Interface::Script, "a block"),
+            ("for x in y: f(x)", Interface::Script, "a block"),
+            ("with open(p) as f: f.read()", Interface::Script, "a block"),
+            (
+                "hpr sim a.ork; hpr mc a.ork",
+                Interface::CommandLine,
+                "two steps",
+            ),
+            (
+                "hpr sim a.ork && hpr mc a.ork",
+                Interface::CommandLine,
+                "two steps",
+            ),
+            (
+                "hpr sim a.ork | tee out",
+                Interface::CommandLine,
+                "two steps",
+            ),
+        ] {
+            let text = format!("# task: open, fly, spread\n{text}\n");
+            let error = parse_file("f", &text, interface).expect_err(&text);
+            assert!(error.contains(expected), "{text}: {error}");
+        }
+        // A Python `|` is an operator, and a word that only starts like a block is a name.
+        for text in ["flags = a | b", "iffy = 1", "format_ = 2"] {
+            let text = format!("# task: open, fly, spread\n{text}\n");
+            parse_file("f", &text, Interface::Script).expect(&text);
+        }
     }
 
     #[test]
@@ -663,6 +773,70 @@ mod tests {
             &|r| r.tool[openrocket].way[0].milestone = Some("M9.1".to_owned()),
             "milestone",
         );
+        /// OpenRocket's window, the way the record lists steps for.
+        fn window(r: &mut Record) -> &mut Way {
+            r.tool[1]
+                .way
+                .iter_mut()
+                .find(|w| !w.section.is_empty())
+                .expect("OpenRocket's window")
+        }
+        refused(&|r| window(r).section[2].source = None, "from no source");
+        refused(
+            &|r| r.tool[openrocket].way[0].source = None,
+            "from no source",
+        );
+        refused(&|r| window(r).section[1].steps.clear(), "no steps");
+        refused(
+            &|r| {
+                let spread = window(r).section[2].clone();
+                window(r).section.insert(1, spread);
+            },
+            "once, in order",
+        );
+        refused(
+            &|r| {
+                let last = window(r).section.pop().unwrap();
+                let fly = window(r).section.last_mut().unwrap();
+                fly.tasks.extend(last.tasks);
+                fly.cannot = last.cannot;
+                fly.source = last.source;
+            },
+            "lists steps",
+        );
+        refused(
+            &|r| {
+                let way = window(r);
+                way.section[1].tasks.push(Task::Spread);
+                way.section[2].tasks.clear();
+            },
+            "names no task",
+        );
+        refused(
+            &|r| window(r).section[0].steps[0].what = " ".to_owned(),
+            "says nothing",
+        );
+        refused(
+            &|r| window(r).section[2].cannot = Some("a | b".to_owned()),
+            "breaks the page's table",
+        );
+        refused(
+            &|r| r.tool[0].way[2].milestone = None,
+            "name the open one that brings it",
+        );
+        refused(
+            &|r| r.tool[openrocket].counted_on = "2026-13-01".to_owned(),
+            "isn't a date",
+        );
+        refused(
+            &|r| {
+                let file = r.tool[0].way[1].clone();
+                r.tool[0].way[1].file = file.file.clone();
+                r.tool[0].way[1].section.clear();
+                r.tool[0].way[1].cannot = Some("x".to_owned());
+            },
+            "lists no steps",
+        );
     }
 
     #[test]
@@ -715,5 +889,8 @@ mod tests {
         assert!(is_date("2026-10-11"));
         assert!(!is_date("2026-1-11"));
         assert!(!is_date("2026-10-1x"));
+        assert!(!is_date("2026-00-11"));
+        assert!(!is_date("2026-10-32"));
+        assert!(!is_date("+026-10-11"));
     }
 }

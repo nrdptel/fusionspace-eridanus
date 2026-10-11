@@ -198,7 +198,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   cells for accuracy, bias and round trips, OpenRocket's and RocketPy's past Mach 1 and for the 50%
   and 90% ranges, and each tool's time for one flight on one reference machine are read from
   committed reports, or name a capability the tool lacks, checked in its current docs with the
-  date. Moves: none of HPR Sim's numbers; it fills the columns they are compared with.
+  date; and RocketPy's steps to a first answer are recounted (ADR-241). Moves: none of HPR Sim's
+  numbers; it fills the columns they are compared with.
 - [ ] **M1.14 Accuracy inside the envelope** (ADR-143 §6, ADR-220). The core band (Mach 0–2.5)
   first, then the extended band in M1.14h; angle of attack ≤ 15°, high angles M1.14e's. *Done
   when:* real flights meet the 5% mean apogee target, hpr is at least as accurate as OpenRocket on

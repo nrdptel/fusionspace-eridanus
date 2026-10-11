@@ -16,4 +16,5 @@ print(f"apogee {flight.apogee_m:.1f} m")
 import numpy
 windy = hpr.Environment(0.0, 0.0, 0.0, wind_speed_m_s=4.0, wind_from_deg=270.0)
 run = hpr.MonteCarlo(rocket, windy, 1.5, wind_sd_fraction=0.25, wind_from_sd_deg=15.0)
-print(f"landing spread {numpy.nanstd(run['landing_distance_m'], ddof=1):.1f} m, one standard deviation")
+axes = numpy.sqrt(numpy.linalg.eigvalsh(numpy.cov(run["landing_east_m"], run["landing_north_m"])))
+print(f"landing ellipse, one standard deviation: {axes[1]:.1f} m by {axes[0]:.1f} m")

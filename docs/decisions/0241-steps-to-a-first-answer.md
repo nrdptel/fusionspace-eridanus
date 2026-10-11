@@ -1,7 +1,7 @@
 # ADR-241: Steps to a first answer: what a step is, and a tool that can't (2026-10-11)
 
 - **Status:** accepted; carries out [ADR-209](0209-the-2026-10-08-best-on-the-market-measured.md) §10; amends [ADR-240](0240-the-scoreboard.md) (the steps rows, a cell that says a tool can't); closes M0.11
-- **Summary:** The scoreboard counts the steps to open a design's `.ork` file, fly it once and see its apogee, and get its landing spread, from a fresh start, in four rows: commands, script lines (one statement each), clicks and typed entries, each kind apart. HPR Sim's commands and Python lines are files a test runs; OpenRocket's and RocketPy's steps come from their documentation, each step citing its page, with the release and the date read. A way in that a tool lacks, or a task it can't do that way, is a cell that says *can't*, with its source and the steps to the last task it reaches. HPR Sim takes 2 commands or 9 script lines; OpenRocket 24.12 opens and flies in 7 clicks but has no Monte Carlo; RocketPy 1.13.0 reads no `.ork` file.
+- **Summary:** The scoreboard counts the steps to open a design's `.ork` file, fly it once and see its apogee, and get its landing spread, from a fresh start, in four rows: commands, script lines (one statement each), clicks and typed entries, each kind apart. HPR Sim's commands and Python lines are files a test runs; OpenRocket's and RocketPy's steps come from their documentation, each step citing its page, with the release and the date read. A way in that a tool lacks, or a task it can't do that way, is a cell that says *can't*, with its source and the steps to the last task it reaches. HPR Sim takes 2 commands or 10 script lines; OpenRocket 24.12 opens and flies in 7 clicks but has no Monte Carlo; RocketPy 1.13.0 reads no `.ork` file.
 
 **Context.** M0.11's *done when*: "opening a design, flying it and getting its landing spread are
 scripted in HPR Sim's command line and Python and counted for OpenRocket and RocketPy from their
@@ -16,8 +16,9 @@ What the tools' documentation said on 2026-10-11:
   apogee shows in the simulation's row. Its features page lists Monte Carlo dispersion under
   *Planned Future Features*, and 24.12's release notes add none. A landing-dispersion analysis is
   merged into its development branch but is in no release. Its command-line arguments set options
-  for the window and fly nothing, and its guide to using its Java core stops at a commented-out
-  `simulation.simulate()`.
+  for the window and fly nothing, and its guide to using its Java core loads a design but stops at
+  a commented-out `simulation.simulate()`; orhelper, a separate wrapper, isn't in its
+  documentation.
 - **RocketPy 1.13.0** (2026-07-22) is a Python library. A rocket is typed in as Python, with its
   drag curves as numbers or files, its mass and inertias; its documentation never mentions a
   `.ork` file. A separate package, `rocketserializer`, converts one into a parameters file, but
@@ -31,13 +32,15 @@ What the tools' documentation said on 2026-10-11:
    it): open the design, fly it once and see its apogee, then get its landing spread, a spread of
    landing points over many flights with their inputs scattered. HPR Sim's runs use the
    [level 1 guide's design](../../validation/fixtures/ork/guides/level-1.ork) and scatter the
-   wind's speed by 25% and its direction by 15° in a 4 m/s wind from the west, the wind being what
-   spreads a landing most ([Monte Carlo dispersion](../monte-carlo.md)).
+   wind's speed by 25% and its direction by 15° in a 4 m/s wind from the west. Both answers are
+   the landing ellipse: `hpr mc` prints it, and the Python script prints its axes, one standard
+   deviation each, which the test holds to `hpr mc`'s 95% ellipse from the same flights.
 2. **What a step is.** A command is one command line. A script line is one statement, imports
-   included, never split over lines: statements, not physical lines, so a formatter's line width
-   can't change the count. A click is one press of a mouse button, a double click one. An entry is
-   one value typed, such as a file's name or a number. Each kind is counted apart, so a row never
-   adds clicks to lines. The count to a task runs through the last step its task names, so a step
+   included, never split over lines nor joined on one (no `;`, no block such as a one-line `if`):
+   statements, not physical lines, so a formatter's line width can't change the count, and the
+   test checks with Python's own parser that each counted line is one simple statement. A click
+   is one press of a mouse button, a double click one. An entry is one value typed, such as a
+   file's name or a number. Each kind is counted apart, so a row never adds clicks to lines. The count to a task runs through the last step its task names, so a step
    that serves two tasks counts once: `hpr sim` opens the design and flies it in one command.
 3. **Where the counts come from.** `validation/steps/steps.toml` lists each tool's three ways in
    (command line, script, window). HPR Sim's command line and script are files beside it,
@@ -45,16 +48,19 @@ What the tools' documentation said on 2026-10-11:
    runs on every platform CI tests, checking each prints its answer; so a counted step works. The
    other tools' steps each cite the page of their documentation they come from, with the release,
    its date and the date read, and quote its labels as printed. The reader refuses what it can't
-   count without a judgment: a statement over two lines, an indented block, tasks out of order, a
-   step or a *can't* with no source, a source that backs nothing.
+   count without a judgment: a statement over two lines, two on one, a block, a command joined to
+   another by `;`, `&` or `|`, a section that names no task, tasks out of order, a step or a
+   *can't* with no source, a source that backs nothing, and text that would break the page's
+   table.
 4. **A tool that can't.** A way in that a tool lacks, or a task it can't do that way, is a cell
    that says *can't*, with its reason and source, and the steps of the row's kind to the last task
    it does reach (OpenRocket: "7 clicks to fly"). No milestone measures such a cell; the
    milestone check passes it, and fails a cell that is measured and says *can't*. HPR Sim's own
    window, which it doesn't have yet, says *can't yet* and names
    [M9.1](../decisions-and-roadmap.md#m9-1), the desktop app, whose entry now counts its clicks
-   and entries. The page's opening summary counts the *can't* cells and calls HPR Sim ahead
-   where it is measured and the other tool can't.
+   and entries; an HPR Sim cell that can't without naming an open milestone fails the check. The
+   page's opening summary counts the *can't* and *can't yet* cells apart, says HPR Sim has a way
+   where the other tool has none, and gives what another tool reaches where HPR Sim can't yet.
 5. **The rows.** `steps.command-line`, `steps.script`, `steps.window-clicks` and
    `steps.window-entries` replace `steps.first-answer`, which held no measured cell. Each is held
    by ADR-240's ratchet, higher being worse, so a change that adds a step to HPR Sim's files fails
@@ -62,8 +68,7 @@ What the tools' documentation said on 2026-10-11:
 6. **Recounting.** The other tools' steps are recounted when either publishes a release: for
    OpenRocket by [M2.3c3](../decisions-and-roadmap.md#m2-3c3), which flies its next release and
    now recounts its steps (its development branch's dispersion analysis would then count); for
-   RocketPy by [M2.9](../decisions-and-roadmap.md#m2-9), whose cells are checked in each tool's
-   current documentation.
+   RocketPy by [M2.9](../decisions-and-roadmap.md#m2-9), whose entry now recounts them too.
 
 **Alternatives.**
 
@@ -82,7 +87,7 @@ What the tools' documentation said on 2026-10-11:
 
 **Consequences.**
 
-- HPR Sim is ahead on the two ways it has: 2 commands and 9 script lines, where neither other tool
+- HPR Sim is ahead on the two ways it has: 2 commands and 10 script lines, where neither other tool
   has a way to the whole answer from the `.ork` file. Its window cells wait on M9.1.
 - OpenRocket opens and flies a design in 7 clicks with nothing typed, in a window; HPR Sim does
   it in one command, and has no window yet.

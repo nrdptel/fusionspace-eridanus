@@ -436,14 +436,16 @@ pub(crate) fn worsenings(old: &Scoreboard, new: &Scoreboard) -> Vec<Worsening> {
         for cell in &row.cells {
             let Some(was) = cell.value else { continue };
             let id = format!("{}.{}", row.id, cell.tool.slug());
-            let now = new_row
-                .and_then(|new_row| new_row.cells.iter().find(|c| c.tool == cell.tool))
-                .and_then(|c| c.value.map(|value| (value, c.count)));
+            let new_cell =
+                new_row.and_then(|new_row| new_row.cells.iter().find(|c| c.tool == cell.tool));
+            let now = new_cell.and_then(|c| c.value.map(|value| (value, c.count)));
             match now {
                 None => found.push(Worsening {
                     cell: id,
                     was: value_text(row, was),
-                    now: "not measured".to_owned(),
+                    now: new_cell
+                        .and_then(|c| c.cannot.clone())
+                        .unwrap_or_else(|| "not measured".to_owned()),
                 }),
                 Some((now, _)) if row.holds(cell.tool) && row.worse.worse(was, now) => {
                     found.push(Worsening {
@@ -571,7 +573,7 @@ pub(crate) fn check_milestones(scoreboard: &Scoreboard, roadmap: &str) -> Result
             }
             match (&cell.value, &cell.milestone) {
                 (Some(_), None) => {}
-                (None, None) if cell.cannot.is_some() => {}
+                (None, None) if cell.cannot.is_some() && cell.tool != Tool::Hpr => {}
                 (None, Some(milestone)) if milestone_words(milestone).is_none() => problems.push(
                     format!("{id}: its milestone {milestone} has no words in `milestone_words`"),
                 ),
@@ -1165,17 +1167,16 @@ fn step_cell(
             value: None,
             count: None,
             source: None,
-            milestone,
-            cannot: Some(match reached {
-                Some((task, counts)) => {
-                    format!(
-                        "{reason}; {} to {}",
-                        kind.words(counts.of(kind)),
-                        task.words()
-                    )
-                }
-                None => reason,
+            cannot: Some(match (reached, milestone.is_some()) {
+                (_, true) => format!("can't yet: {reason}"),
+                (Some((task, counts)), false) => format!(
+                    "{} to {}, then can't: {reason}",
+                    kind.words(counts.of(kind)),
+                    task.words()
+                ),
+                (None, false) => format!("can't: {reason}"),
             }),
+            milestone,
         },
     })
 }
@@ -1215,11 +1216,11 @@ fn cell_text(row: &Row, cell: &Cell) -> String {
             text
         }
         (None, Some(milestone)) => match &cell.cannot {
-            Some(reason) => format!("can't yet: {reason}; {}", milestone_link(milestone)),
+            Some(cannot) => format!("{cannot}; {}", milestone_link(milestone)),
             None => format!("not measured: {}", milestone_link(milestone)),
         },
         (None, None) => match &cell.cannot {
-            Some(reason) => format!("can't: {reason}"),
+            Some(cannot) => cannot.clone(),
             None => "not measured".to_owned(),
         },
     }
@@ -1280,8 +1281,10 @@ fn axis_words(axis: Axis, hpr: &str) -> String {
             comparison table each tool has; the table comes with that guide."
             .to_owned(),
         Axis::Steps => "How many steps it takes to open a design, fly it once and see its \
-            apogee, and get its landing spread (where it may land, from many flights with their \
-            inputs scattered), from a fresh start with the design's `.ork` file on disk. Each \
+            apogee, and get its landing spread: where it may land, from many flights with their \
+            inputs scattered (a [Monte \
+            Carlo](https://hpr.fusionspace.co/glossary.html#monte-carlo) run). It starts fresh, \
+            with the design's `.ork` file on disk. Each \
             command, script line, click and typed entry is a step, each kind counted apart; a step \
             that serves two tasks counts once. HPR Sim's are counted from files a test runs; the \
             other tools' from their documentation, listed one by one under *Steps, one by one* \
@@ -1327,19 +1330,36 @@ fn standing(scoreboard: &Scoreboard) -> String {
         .collect();
     let mut both = Vec::new();
     for row in &scoreboard.rows {
-        let Some(mine) = row
-            .cells
-            .iter()
-            .find(|cell| cell.tool == Tool::Hpr)
-            .and_then(|cell| cell.value)
-        else {
+        let Some(mine) = row.cells.iter().find(|cell| cell.tool == Tool::Hpr) else {
+            continue;
+        };
+        let Some(mine) = mine.value else {
+            // Where HPR Sim can't yet, what another tool does reach.
+            if let Some(yet) = mine.cannot.as_deref() {
+                for cell in row.cells.iter().filter(|cell| cell.tool != Tool::Hpr) {
+                    let reached = match (&cell.value, &cell.cannot) {
+                        (Some(value), _) => Some(value_text(row, *value)),
+                        (None, Some(cannot)) if !cannot.starts_with("can't") => {
+                            cannot.split(", then can't").next().map(str::to_owned)
+                        }
+                        _ => None,
+                    };
+                    if let Some(reached) = reached {
+                        both.push(format!(
+                            "`{}`, {hpr} {yet} and {} {reached}",
+                            row.id,
+                            name(cell.tool)
+                        ));
+                    }
+                }
+            }
             continue;
         };
         for cell in row.cells.iter().filter(|cell| cell.tool != Tool::Hpr) {
             let other = name(cell.tool);
             if cell.value.is_none() && cell.milestone.is_none() && cell.cannot.is_some() {
                 both.push(format!(
-                    "`{}`, {hpr} {} and {other} can't: {hpr} ahead",
+                    "`{}`, {hpr} {} and {other} can't: {hpr} has a way, {other} none",
                     row.id,
                     value_text(row, mine)
                 ));
@@ -1359,19 +1379,25 @@ fn standing(scoreboard: &Scoreboard) -> String {
             ));
         }
     }
-    let cannot = cells
-        .iter()
-        .filter(|cell| cell.value.is_none() && cell.cannot.is_some())
-        .count();
+    let cannot = |yet: bool| {
+        cells
+            .iter()
+            .filter(|cell| {
+                cell.value.is_none() && cell.cannot.is_some() && cell.milestone.is_some() == yet
+            })
+            .count()
+    };
+    let (cannot, cannot_yet) = (cannot(false), cannot(true));
     let mut text = format!(
         "**Where it stands.** {measured} of the {} cells below are measured: {}.",
         cells.len(),
         per_tool.join(", ")
     );
-    if cannot > 0 {
+    if cannot + cannot_yet > 0 {
         let _ = write!(
             text,
-            " {cannot} say a tool can't do the row's task that way."
+            " {cannot} say another tool can't do the row's task that way, and {cannot_yet} that \
+             {hpr} can't yet."
         );
     }
     if both.is_empty() {
@@ -1379,7 +1405,7 @@ fn standing(scoreboard: &Scoreboard) -> String {
     } else {
         let _ = write!(
             text,
-            " Where {hpr} is measured and another tool is measured or can't: {}.",
+            " Where {hpr} and another tool can be set side by side: {}.",
             both.join("; ")
         );
     }
@@ -1395,11 +1421,13 @@ fn write_steps(page: &mut String, scoreboard: &Scoreboard) {
     let _ = writeln!(page, "## Steps, one by one\n");
     let _ = writeln!(
         page,
-        "Each step the steps rows count, from a fresh start: the tool open, or a terminal or a Python \
-         session, and the design's `.ork` file on disk. A command is one command line, a script \
-         line one statement, a click one press of the mouse (a double click is one) and an \
-         entry one value typed ([ADR-241]({BLOB}/docs/decisions/0241-steps-to-a-first-answer.md), \
-         the rules).\n"
+        "Each step the steps rows count, from a fresh start: the tool installed and open, or a \
+         terminal or a Python session, and the design's `.ork` file on disk with its motor \
+         chosen (and, for OpenRocket, a simulation saved in it). Installing isn't counted. A \
+         command is one command line, a script line one statement, a click one press of the \
+         mouse (a double click is one) and an entry one value typed \
+         ([ADR-241]({BLOB}/docs/decisions/0241-steps-to-a-first-answer.md), the rules). These \
+         are counts of documented steps, not timings or a test with flyers.\n"
     );
     for tool in &scoreboard.steps {
         let name = match tool.tool {
@@ -1426,6 +1454,9 @@ fn write_steps(page: &mut String, scoreboard: &Scoreboard) {
                     tool.counted_on
                 );
             }
+        }
+        if let Some(note) = &tool.note {
+            let _ = writeln!(page, "{note}\n");
         }
         let cite = |id: &str| -> String {
             match tool.source.iter().find(|source| source.id == id) {

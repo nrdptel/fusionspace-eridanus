@@ -33,6 +33,7 @@ tool = "openrocket"
 release = "24.12"
 released = "2025-07-27"
 counted_on = "2026-10-11"
+note = "Its guide is built from its development branch and titled with an older release, and its screenshots predate 24.12's reworked simulation table, so a click may differ in 24.12. The count assumes the file dialog already shows the design's folder and a simulation saved in the file; a preference that runs a simulation when its tab opens, whose default the guide doesn't give, would save 2 clicks."
 
 [[tool.source]]
 id = "getting-started"
@@ -45,9 +46,9 @@ title = "OpenRocket's guide: Basic Flight Simulation"
 url = "https://openrocket.readthedocs.io/en/latest/user_guide/basic_flight_simulation.html"
 
 [[tool.source]]
-id = "features"
-title = "OpenRocket's guide: Features (Planned Future Features)"
-url = "https://openrocket.readthedocs.io/en/latest/introduction/features.html"
+id = "release-notes"
+title = "OpenRocket 24.12's release notes"
+url = "https://github.com/openrocket/openrocket/releases/tag/release-24.12"
 
 [[tool.source]]
 id = "command-line-arguments"
@@ -66,7 +67,7 @@ source = "command-line-arguments"
 
 [[tool.way]]
 interface = "script"
-cannot = "no documented script flies a design: the guide's example of its Java core stops at a commented-out `simulation.simulate()` and shows no apogee"
+cannot = "no documented script flies a design: the guide to its Java core loads one but stops at a commented-out `simulation.simulate()` and shows no apogee; the separate orhelper wrapper isn't in OpenRocket's documentation"
 source = "core"
 
 [[tool.way]]
@@ -84,21 +85,22 @@ steps = [
 [[tool.way.section]]
 tasks = ["fly"]
 steps = [
-    { kind = "click", what = "the Flight simulations tab", source = "basic-flight-simulation" },
+    { kind = "click", what = "the Flight Simulations tab", source = "getting-started" },
     { kind = "click", what = "the design's simulation, saved in its file", source = "basic-flight-simulation" },
     { kind = "click", what = "Run simulations; the apogee shows in the simulation's row", source = "basic-flight-simulation" },
 ]
 
 [[tool.way.section]]
 tasks = ["spread"]
-cannot = "no Monte Carlo in 24.12, the newest release: the guide lists Monte Carlo dispersion as planned"
-source = "features"
+cannot = "no Monte Carlo in 24.12, the newest release: its release notes add none, and its development branch's landing-dispersion analysis is in no release"
+source = "release-notes"
 
 [[tool]]
 tool = "rocketpy"
 release = "1.13.0"
 released = "2026-07-22"
 counted_on = "2026-10-11"
+note = "RocketPy flies a rocket typed in as Python and scatters it in a Monte Carlo run; what it can't do is start from the design's `.ork` file, which is the task here."
 
 [[tool.source]]
 id = "docs"
@@ -120,7 +122,7 @@ interface = "script"
 
 [[tool.way.section]]
 tasks = ["open", "fly", "spread"]
-cannot = "RocketPy reads no `.ork` file, and its documentation names no way to load one; a design is typed in as Python, its drag curves, masses and inertias included"
+cannot = "no `.ork` reader: its documentation names no way to load one, and a design is typed in as Python, its drag curves, masses and inertias included"
 source = "first-simulation"
 
 [[tool.way]]

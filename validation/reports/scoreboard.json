@@ -518,7 +518,7 @@
           "count": null,
           "source": null,
           "milestone": null,
-          "cannot": "no command flies a design: its command-line arguments set options for the window"
+          "cannot": "can't: no command flies a design: its command-line arguments set options for the window"
         },
         {
           "tool": "rocketpy",
@@ -526,7 +526,7 @@
           "count": null,
           "source": null,
           "milestone": null,
-          "cannot": "no command flies a design: RocketPy is a Python library"
+          "cannot": "can't: no command flies a design: RocketPy is a Python library"
         }
       ]
     },
@@ -542,7 +542,7 @@
       "cells": [
         {
           "tool": "hpr",
-          "value": 9.0,
+          "value": 10.0,
           "count": null,
           "source": "validation/steps/hpr-python.py, run by crates/hpr-py/tests/test_first_answer.py",
           "milestone": null,
@@ -554,7 +554,7 @@
           "count": null,
           "source": null,
           "milestone": null,
-          "cannot": "no documented script flies a design: the guide's example of its Java core stops at a commented-out `simulation.simulate()` and shows no apogee"
+          "cannot": "can't: no documented script flies a design: the guide to its Java core loads one but stops at a commented-out `simulation.simulate()` and shows no apogee; the separate orhelper wrapper isn't in OpenRocket's documentation"
         },
         {
           "tool": "rocketpy",
@@ -562,7 +562,7 @@
           "count": null,
           "source": null,
           "milestone": null,
-          "cannot": "RocketPy reads no `.ork` file, and its documentation names no way to load one; a design is typed in as Python, its drag curves, masses and inertias included"
+          "cannot": "can't: no `.ork` reader: its documentation names no way to load one, and a design is typed in as Python, its drag curves, masses and inertias included"
         }
       ]
     },
@@ -582,7 +582,7 @@
           "count": null,
           "source": null,
           "milestone": "M9.1",
-          "cannot": "no window"
+          "cannot": "can't yet: no window"
         },
         {
           "tool": "openrocket",
@@ -590,7 +590,7 @@
           "count": null,
           "source": null,
           "milestone": null,
-          "cannot": "no Monte Carlo in 24.12, the newest release: the guide lists Monte Carlo dispersion as planned; 7 clicks to fly"
+          "cannot": "7 clicks to fly, then can't: no Monte Carlo in 24.12, the newest release: its release notes add none, and its development branch's landing-dispersion analysis is in no release"
         },
         {
           "tool": "rocketpy",
@@ -598,7 +598,7 @@
           "count": null,
           "source": null,
           "milestone": null,
-          "cannot": "no window: RocketPy is a Python library"
+          "cannot": "can't: no window: RocketPy is a Python library"
         }
       ]
     },
@@ -618,7 +618,7 @@
           "count": null,
           "source": null,
           "milestone": "M9.1",
-          "cannot": "no window"
+          "cannot": "can't yet: no window"
         },
         {
           "tool": "openrocket",
@@ -626,7 +626,7 @@
           "count": null,
           "source": null,
           "milestone": null,
-          "cannot": "no Monte Carlo in 24.12, the newest release: the guide lists Monte Carlo dispersion as planned; 0 entries to fly"
+          "cannot": "0 entries to fly, then can't: no Monte Carlo in 24.12, the newest release: its release notes add none, and its development branch's landing-dispersion analysis is in no release"
         },
         {
           "tool": "rocketpy",
@@ -634,7 +634,7 @@
           "count": null,
           "source": null,
           "milestone": null,
-          "cannot": "no window: RocketPy is a Python library"
+          "cannot": "can't: no window: RocketPy is a Python library"
         }
       ]
     }
@@ -645,6 +645,7 @@
       "release": null,
       "released": null,
       "counted_on": "2026-10-11",
+      "note": null,
       "source": [],
       "way": [
         {
@@ -757,7 +758,12 @@
                 },
                 {
                   "kind": "line",
-                  "what": "print(f\"landing spread {numpy.nanstd(run['landing_distance_m'], ddof=1):.1f} m, one standard deviation\")",
+                  "what": "axes = numpy.sqrt(numpy.linalg.eigvalsh(numpy.cov(run[\"landing_east_m\"], run[\"landing_north_m\"])))",
+                  "source": "validation/steps/hpr-python.py"
+                },
+                {
+                  "kind": "line",
+                  "what": "print(f\"landing ellipse, one standard deviation: {axes[1]:.1f} m by {axes[0]:.1f} m\")",
                   "source": "validation/steps/hpr-python.py"
                 }
               ],
@@ -780,6 +786,7 @@
       "release": "24.12",
       "released": "2025-07-27",
       "counted_on": "2026-10-11",
+      "note": "Its guide is built from its development branch and titled with an older release, and its screenshots predate 24.12's reworked simulation table, so a click may differ in 24.12. The count assumes the file dialog already shows the design's folder and a simulation saved in the file; a preference that runs a simulation when its tab opens, whose default the guide doesn't give, would save 2 clicks.",
       "source": [
         {
           "id": "getting-started",
@@ -792,9 +799,9 @@
           "url": "https://openrocket.readthedocs.io/en/latest/user_guide/basic_flight_simulation.html"
         },
         {
-          "id": "features",
-          "title": "OpenRocket's guide: Features (Planned Future Features)",
-          "url": "https://openrocket.readthedocs.io/en/latest/introduction/features.html"
+          "id": "release-notes",
+          "title": "OpenRocket 24.12's release notes",
+          "url": "https://github.com/openrocket/openrocket/releases/tag/release-24.12"
         },
         {
           "id": "command-line-arguments",
@@ -817,7 +824,7 @@
         },
         {
           "interface": "script",
-          "cannot": "no documented script flies a design: the guide's example of its Java core stops at a commented-out `simulation.simulate()` and shows no apogee",
+          "cannot": "no documented script flies a design: the guide to its Java core loads one but stops at a commented-out `simulation.simulate()` and shows no apogee; the separate orhelper wrapper isn't in OpenRocket's documentation",
           "source": "core",
           "milestone": null,
           "section": []
@@ -864,8 +871,8 @@
               "steps": [
                 {
                   "kind": "click",
-                  "what": "the Flight simulations tab",
-                  "source": "basic-flight-simulation"
+                  "what": "the Flight Simulations tab",
+                  "source": "getting-started"
                 },
                 {
                   "kind": "click",
@@ -886,8 +893,8 @@
                 "spread"
               ],
               "steps": [],
-              "cannot": "no Monte Carlo in 24.12, the newest release: the guide lists Monte Carlo dispersion as planned",
-              "source": "features"
+              "cannot": "no Monte Carlo in 24.12, the newest release: its release notes add none, and its development branch's landing-dispersion analysis is in no release",
+              "source": "release-notes"
             }
           ]
         }
@@ -898,6 +905,7 @@
       "release": "1.13.0",
       "released": "2026-07-22",
       "counted_on": "2026-10-11",
+      "note": "RocketPy flies a rocket typed in as Python and scatters it in a Monte Carlo run; what it can't do is start from the design's `.ork` file, which is the task here.",
       "source": [
         {
           "id": "docs",
@@ -931,7 +939,7 @@
                 "spread"
               ],
               "steps": [],
-              "cannot": "RocketPy reads no `.ork` file, and its documentation names no way to load one; a design is typed in as Python, its drag curves, masses and inertias included",
+              "cannot": "no `.ork` reader: its documentation names no way to load one, and a design is typed in as Python, its drag curves, masses and inertias included",
               "source": "first-simulation"
             }
           ]

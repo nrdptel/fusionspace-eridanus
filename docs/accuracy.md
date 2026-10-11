@@ -165,15 +165,19 @@ how the scoreboard works). The other tools' numbers are shown, not held. `cargo 
 writes it from the committed reports.
 
 Its steps rows count how many steps it takes to open a design's `.ork` file, fly it once and get
-its landing spread: commands, script lines, clicks and typed entries, each kind apart. HPR Sim's
-come from a command-line file and a Python file that a test runs, so every counted step works: 2
-commands, or 9 lines of Python. OpenRocket's and RocketPy's come from their documentation, each
-step citing its page, with the release and the date read. Where a tool can't do a task one way,
-its cell says so: OpenRocket 24.12 opens and flies a design in 7 clicks but has no Monte Carlo to
-spread the landing, and RocketPy 1.13.0 reads no `.ork` file. The page lists every step under
-*Steps, one by one*
+its landing spread: commands, script lines, clicks and typed entries, each kind counted apart.
+These are counts of documented steps, not timings, and installing isn't counted
 ([ADR-241](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0241-steps-to-a-first-answer.md),
 what counts as a step).
+
+- **HPR Sim:** 2 commands, or 10 lines of Python, from files a test runs, so every counted step
+  works. It has no window yet.
+- **OpenRocket 24.12:** 7 clicks to open and fly a design, from its documentation; it has no
+  Monte Carlo to spread the landing, and no command or documented script that flies a design.
+- **RocketPy 1.13.0:** it reads no `.ork` file; a rocket is typed in as Python instead.
+
+The scoreboard lists every step, each with its source, under
+[*Steps, one by one*](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md#steps-one-by-one).
 
 ## Reading the evidence
 
