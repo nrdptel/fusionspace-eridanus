@@ -310,7 +310,8 @@ pub enum Unit {
     Metric,
     /// Per cent of the reference.
     Percent,
-    /// Calibers. Censuses accepted before M0.9e wrote the key `calibre`, which still reads.
+    /// Calibers. Censuses accepted before October 11, 2026 wrote the key `calibre`, which still
+    /// reads.
     #[serde(alias = "calibre")]
     Caliber,
 }

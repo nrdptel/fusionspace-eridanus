@@ -298,10 +298,10 @@
       "recorded_thrust": null,
       "pressure_reading_max_m": null,
       "gnss_apogee_m": null,
-      "inputs_sha256": "d1455bf9cfadaf11ec33ee3d22eea6388a4858c82aa4b4565345d234a41de869",
+      "inputs_sha256": "0f4d790fb45b59dcc7db798e2e0c8c89a2c09f0568359f7b6f240eea75426ebd",
       "note": "",
       "explanation_kind": "drag",
-      "explanation": "consistent with hpr's drag. On the example's own curves, labelled RASAero II, the apogee is within the target. hpr's drag is below them: at Mach 0.3, 8.3% below power off and 18.3% below power on (the aerodynamics page's comparison; the power-on gap's cause is open), and the design's fin edges are placeholders, since the example records none."
+      "explanation": "consistent with hpr's drag. On the example's own curves, labeled RASAero II, the apogee is within the target. hpr's drag is below them: at Mach 0.3, 8.3% below power off and 18.3% below power on (the aerodynamics page's comparison; the power-on gap's cause is open), and the design's fin edges are placeholders, since the example records none."
     },
     {
       "id": "genesis",
