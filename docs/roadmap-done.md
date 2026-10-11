@@ -69,6 +69,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9d9 The anatomy drawn ([Phase 0](#phase-0-foundations))
 - M0.9d10 The pages' vitals ([Phase 0](#phase-0-foundations))
 - M0.9d11 The intro's chip and lead ([Phase 0](#phase-0-foundations))
+- M0.9d12 Two to six sheets: the check ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -485,6 +486,9 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M0.9d11 The intro's chip and lead** (#384, ADR-233). *Done when:* every page's
       intro shows the title block's status in the system's chip and one sentence in `lead`
       under its title, each failing `xtask site`'s file check or page check (with canaries).
+    - [x] **M0.9d12 Two to six sheets: the check** (#384, ADR-234). *Done when:* `xtask site`
+      and a site test fail a page with under two or over six `##` sections, but the 38 over six
+      on a list they hold exact (one at six or fewer fails); the glossary's terms in six sheets.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

@@ -330,8 +330,11 @@ page check fails, at every width:
   whose theme doesn't follow; and it loads the page with mdBook's Coal saved, and fails one that
   doesn't forget it and press Auto.
 
-Two to six sheets a page, and every page opening with how far to trust it, wait for
-[M0.9d12, the pages' sheets and trust](decisions-and-roadmap.md#m0-9d12).
+A page has two to six sheets, as the system asks: a site test and `xtask site` fail a page with
+fewer than two `##` sections or more than six. The pages that still have more than six are on a
+list in `xtask/src/site/sheets.rs` that only shrinks: a listed page with six or fewer fails until
+it comes off. Grouping those pages' sections, and every page opening with how far to trust it,
+wait for [M0.9d13, the pages' sheets and trust](decisions-and-roadmap.md#m0-9d13).
 
 mdBook draws three icons as characters of text: `❱` beside a heading that folds open in the
 table of contents, `✓` beside the chosen theme, and `»` before a heading a link jumped to. The

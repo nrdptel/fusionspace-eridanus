@@ -53,6 +53,8 @@
 //!   note's older shape. Code is exempt. Text is read as it renders, wrapped lines joined. The
 //!   check holds the label, its place, headings and that opener, not the note's three parts,
 //!   which a reviewer reads ([`trust_notes`]).
+//! - **Sheets** (#384). Every page has two to six `##` sections, each a sheet, as `web.md` asks,
+//!   but the pages over six on a list that only shrinks ([`sheets::sheet_counts`]).
 //!
 //! `cargo test` runs these on the real pages. `cargo xtask site` runs them, builds the site into
 //! `target/site` with mdBook, and checks the built HTML as well: every relative `href` and `src`
@@ -188,6 +190,16 @@ pub fn run(args: &[String]) -> Result<(), String> {
     println!(
         "site pages: {} pages, {} links ({} to the web, not fetched), no problems",
         report.pages, report.links, report.web
+    );
+    let sheets = sheets::sheet_counts(&report.sheets, &sheets::OVER_SIX);
+    if !sheets.is_empty() {
+        return Err(failure("the site's sheets", &sheets));
+    }
+    println!(
+        "site sheets: every page {} to {} sheets, but the {} pages over six that M0.9d13 groups",
+        sheets::SHEETS.start(),
+        sheets::SHEETS.end(),
+        sheets::OVER_SIX.len()
     );
     let looks = theme::check_sources(&root, &root.join(SOURCE))?;
     if !looks.problems.is_empty() {
@@ -594,6 +606,9 @@ struct Report {
     web: usize,
     /// One line each, `docs/<page>:<line>: <what is wrong>`.
     problems: Vec<String>,
+    /// Each page of the summary with its number of `##` sections, its sheets, for
+    /// [`sheets::sheet_counts`].
+    sheets: Vec<(String, usize)>,
 }
 
 /// Checks the pages `docs/SUMMARY.md` lists, and the summary itself. Fails only when the summary
@@ -650,6 +665,10 @@ fn check_sources(root: &Path) -> Result<Report, String> {
                 let mut page = read_page(&text);
                 page.problems
                     .extend(page_rules(root, name, &text, &page.links, &guides));
+                if name != SUMMARY {
+                    let count = headings(&text, Some(HeadingLevel::H2)).len();
+                    report.sheets.push((name.clone(), count));
+                }
                 page.problems.sort_by_key(|(line, _)| *line);
                 pages.insert(name.clone(), page);
             }
@@ -3281,6 +3300,20 @@ mod tests {
             failure("the site's pages", &report.problems)
         );
         assert!(report.pages >= 19, "{} pages", report.pages);
+    }
+
+    #[test]
+    fn every_page_has_two_to_six_sheets() {
+        // `web.md`'s two to six sheets a page (#384), on the real pages: the pages over six wait
+        // on a list that only shrinks.
+        let report = check_sources(&crate::designs::root().unwrap()).unwrap();
+        assert_eq!(report.sheets.len(), report.pages);
+        let problems = sheets::sheet_counts(&report.sheets, &sheets::OVER_SIX);
+        assert!(
+            problems.is_empty(),
+            "{}",
+            failure("the site's sheets", &problems)
+        );
     }
 
     #[test]
