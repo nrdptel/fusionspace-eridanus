@@ -4,8 +4,9 @@
 //! `flights.py` writes OpenRocket 24.12's calm-air flight of every motor configuration of every
 //! design under `refs/` to [`RECORD`], which is gitignored: the designs are other people's, and a
 //! flight's numbers can identify one. This prints only counts, which may be published, split by
-//! where each design came from: the private library (`refs/hpr-sim-fixtures/imported/loft-fixtures/`), the examples inside
-//! OpenRocket's jar, and the rest of `refs/`. A file found twice (the same SHA-256) is counted
+//! where each design came from: the private library
+//! (`refs/hpr-sim-fixtures/imported/loft-fixtures/`), the examples inside OpenRocket's jar, and the
+//! rest of `refs/`. A file found twice (the same SHA-256) is counted
 //! once per place it was found, and the distinct files are counted too. Another record written by
 //! `flights.py` can be named instead of [`RECORD`]. No error names a file.
 
@@ -16,6 +17,15 @@ use serde_json::Value;
 
 /// OpenRocket's flights of everything under `refs/` and the jar's examples.
 pub(crate) const RECORD: &str = "corpus-out/openrocket-flights.json";
+
+/// The `file` of every design in a record written by `flights.py`.
+pub(crate) fn files(record: &Value) -> impl Iterator<Item = &str> {
+    record["designs"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(|design| design["file"].as_str())
+}
 
 /// Where a design in the record came from.
 pub(crate) fn source(file: &str) -> &'static str {
@@ -177,6 +187,9 @@ pub(crate) fn run(record: Option<&str>) -> Result<(), String> {
         )
     })?;
     let record: Value = serde_json::from_str(&text).map_err(|error| format!("{name}: {error}"))?;
+    if name == RECORD {
+        crate::ork::check_corpus_files(RECORD, files(&record))?;
+    }
     print!("{}", lines(&count(&record)?));
     Ok(())
 }

@@ -1996,6 +1996,13 @@ fn landing_problems_in(text: &str) -> Vec<String> {
 mod tests {
     use super::*;
 
+    #[test]
+    fn the_docs_oracle_directories_are_the_surveys() {
+        let dirs = format!("refs {}", crate::ork::IMPORTED.join(" "));
+        assert_eq!(crate::ork::ORACLE_DIRS, dirs);
+        assert_eq!(ORACLE_DIRS_IN_DOCS, format!("{dirs} --jar"));
+    }
+
     /// The old name's two pieces, so that this file's own tests don't spell it.
     fn old() -> String {
         ["hpr", "sim"].join("-")

@@ -19,8 +19,9 @@
 # nextest installed it falls back to `cargo test`.
 # Step refs (M0.5g, ADR-144 §1g): the checks that need the private reference data under refs/, which
 # CI can't run: `ork-flights --check`, `ork-flights --library --check`, `real-flights --check`,
-# `ork-cli --check` (M4.5j; it reads the motor cache `ork-cli --fetch` fills) and
-# `fixture-flights --check` (M2.3c1, ADR-184; it reads the private collection's manifest and records).
+# `ork-cli --check` (M4.5j; it reads the motor cache `ork-cli --fetch` fills),
+# `fixture-flights --check` (M2.3c1, ADR-184; it reads the private collection's manifest and records)
+# and `ork-export-flights --check` (M3.2b; ADR-237: its records went stale unseen before it joined).
 # It joins any run that includes `test` (the default set, or a fix's `scripts/gate.sh clippy test`)
 # when refs/ is present and the branch changes a physics crate (hpr-aero, hpr-sim, hpr-motor,
 # hpr-design, hpr-atmos, hpr-io) against origin/main, and says so when it can't. Name it to run it
@@ -141,7 +142,7 @@ cmd_for() {
     types) echo "$XTASK format --typecheck" ;;
     python) echo "scripts/python-tests.sh" ;;
     ego) echo "cargo bench --locked -p fusionspace-hpr-analysis --bench ego_hartmann6" ;;
-    refs) echo "$XTASK ork-flights --check && $XTASK ork-flights --library --check && $XTASK real-flights --check && $XTASK ork-cli --check && $XTASK fixture-flights --check" ;;
+    refs) echo "$XTASK ork-flights --check && $XTASK ork-flights --library --check && $XTASK real-flights --check && $XTASK ork-cli --check && $XTASK fixture-flights --check && $XTASK ork-export-flights --check" ;;
     *) return 1 ;;
   esac
 }

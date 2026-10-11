@@ -341,6 +341,11 @@ pub fn run(args: &[String]) -> Result<(), String> {
         }
     }
     current(&root, &originals)?;
+    crate::ork::check_corpus_files(ORIGINALS, crate::ork_corpus_flights::files(&originals))?;
+    let originals_of_exports: Vec<String> = crate::ork_corpus_flights::files(&exports)
+        .map(|file| original_of(file).unwrap_or_else(|| file.to_owned()))
+        .collect();
+    crate::ork::check_corpus_files(EXPORTS, originals_of_exports.iter().map(String::as_str))?;
     let mut sources = Sources::new(&root);
     fresh(&root, &originals, &exports, &mut sources)?;
     let unread = |file: &str| {

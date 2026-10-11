@@ -1070,6 +1070,43 @@ fn source_of(root: &Path, name: &str) -> String {
     }
 }
 
+/// The checkouts of the fixture repositories M2.3c4 retired, relative to the workspace root.
+const RETIRED: [&str; 2] = ["refs/loft-fixtures", "refs/debrief-fixtures"];
+
+/// Refuses the designs of a record of the default corpus that the OpenRocket oracle scripts could
+/// only have found outside the survey's set: a design listed twice, or one in the private flight
+/// collection outside its [`IMPORTED`] copies, or in a checkout of a [`RETIRED`] repository. The
+/// scripts walk `refs` whole, so only a collection that is a symbolic link (which they don't
+/// follow) keeps them to the survey's files (ADR-237). Each file is a path from the workspace
+/// root. No error names a file.
+pub(crate) fn check_corpus_files<'a>(
+    name: &str,
+    files: impl IntoIterator<Item = &'a str>,
+) -> Result<(), String> {
+    let mut seen = BTreeSet::new();
+    let (mut twice, mut outside) = (0, 0);
+    for file in files {
+        let file = file.replace('\\', "/");
+        let collection = inside(&file, "refs/hpr-sim-fixtures")
+            && !IMPORTED.iter().any(|copy| inside(&file, copy));
+        if collection || RETIRED.iter().any(|dir| inside(&file, dir)) {
+            outside += 1;
+        }
+        if !seen.insert(file) {
+            twice += 1;
+        }
+    }
+    if twice + outside == 0 {
+        return Ok(());
+    }
+    Err(format!(
+        "{name} lists {twice} design(s) twice and {outside} from the private flight collection \
+         outside its imported copies or from a retired checkout: the oracle scripts walk `refs` \
+         whole, so fly it again with `refs/hpr-sim-fixtures` a symbolic link to a sibling \
+         checkout and no checkout of a retired fixture repository under `refs/` (ADR-237)"
+    ))
+}
+
 /// True if `path`, relative to the workspace root with `/` separators, lies inside `dir`.
 pub(crate) fn inside(path: &str, dir: &str) -> bool {
     path.strip_prefix(dir)
@@ -1398,6 +1435,40 @@ mod tests {
             "refs/hpr-sim-fixtures/imported/loft-fixtures-old/e.ork",
             LIBRARY_DIR
         ));
+    }
+
+    #[test]
+    fn a_corpus_record_holds_only_the_surveys_files() {
+        let survey = [
+            "refs/vendor/a.ork",
+            "refs/hpr-sim-fixtures/imported/loft-fixtures/lib/b.ork",
+            "refs/hpr-sim-fixtures/imported/debrief-fixtures/c.ork",
+            "refs/openrocket/OpenRocket-24.12.jar!datafiles/examples/d.ork",
+        ];
+        assert_eq!(check_corpus_files("record", survey), Ok(()));
+        for (extra, twice, outside) in [
+            ("refs/vendor/a.ork", 1, 0),
+            (
+                "refs/hpr-sim-fixtures/imported/loft-fixtures/lib/b.ork",
+                1,
+                0,
+            ),
+            ("refs/hpr-sim-fixtures/flights/f/flown.ork", 0, 1),
+            ("refs\\hpr-sim-fixtures\\flights\\f\\flown.ork", 0, 1),
+            ("refs/hpr-sim-fixtures/imported/other/e.ork", 0, 1),
+            ("refs/loft-fixtures/lib/b.ork", 0, 1),
+            ("refs/debrief-fixtures/c.ork", 0, 1),
+        ] {
+            let error =
+                check_corpus_files("record", survey.into_iter().chain([extra])).unwrap_err();
+            assert!(
+                error.starts_with(&format!(
+                    "record lists {twice} design(s) twice and {outside} from"
+                )),
+                "{extra}: {error}"
+            );
+            assert!(!error.contains(".ork"), "{error}");
+        }
     }
 
     #[test]

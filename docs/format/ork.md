@@ -119,7 +119,7 @@ coast with no drag after its split.
 >   default of 25 mm (0.98 in), with a warning
 >   ([when an automatic radius has nothing to take](#when-an-automatic-radius-has-nothing-to-take)).
 > - **A written file flies in OpenRocket as its original does.** Of 151 configurations OpenRocket
->   flies both ways, all 151 reach the original's apogee within 0.5%, and 142 exactly. This checks
+>   flies both ways, all 151 reach the original's apogee within 0.5%, and 143 exactly. This checks
 >   the file, not HPR Sim's physics ([checked in OpenRocket](#checked-in-openrocket)).
 
 ## Opening a file today
@@ -423,7 +423,9 @@ The two that do not open are hand-written fixtures for Loft's browser tests, and
 HPR Sim does, so this is the files' fault and not the reader's. They are listed by name in the
 survey, which fails if either one ever behaves differently.
 
-Here the *reference library* is every `.ork` under `refs/`, fetched by `cargo xtask refs fetch`;
+Here the *reference library* is every `.ork` under `refs/`, fetched by `cargo xtask refs fetch`,
+except the private flight collection's own designs (two older repositories copied into it are
+read);
 the 17 example designs inside the OpenRocket jar (also under `refs/`) are counted with it unless a
 table lists them apart.
 
@@ -3396,7 +3398,7 @@ product system, as every file HPR Sim writes does:
 `creator="FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001"` (`hpr-sim` before release 0.1's
 rename; a file with that `creator` still reads).
 The measurements above were remade on 2026-10-11 with files written in this form: OpenRocket
-opens and flies them as before.
+opens and flies them within the same 0.5% bar.
 
 **How it is written.** Each part of the design is written as the tags HPR Sim reads it from. What
 HPR Sim keeps but doesn't model goes back where it was
@@ -3549,8 +3551,10 @@ and a Python environment at `refs/venv` with JPype, which lets the [oracle](../g
 scripts drive OpenRocket, as for [OpenRocket's mass](../physics/mass.md#checked-against-openrocket).
 Without the private library, the commands fly the public files alone. The two `imported/`
 directories in the first command are the private library and one design from Debrief's private
-collection, copied into the private flight collection; they are named because the scripts don't
-follow the symbolic link a local setup may make to that collection.
+collection, copied into the private flight collection. The scripts walk `refs` whole, so these
+commands assume the collection, if present, is a symbolic link to a sibling checkout, which the
+scripts don't follow, and that no checkout of the two older repositories sits under `refs/`; the
+comparing commands refuse a record that holds anything else.
 The first command flies the originals, and is needed only when `refs/` or the flight scripts
 change. The second writes each design back out; the third flies those files; the last compares:
 

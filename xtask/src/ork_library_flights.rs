@@ -303,6 +303,7 @@ fn fly_library(root: &Path) -> Result<Value, String> {
             crate::ork::ORACLE_DIRS
         )
     })?;
+    crate::ork::check_corpus_files(RECORD, crate::ork_corpus_flights::files(&record))?;
     for (name, path) in SCRIPTS {
         let bytes = fs::read(root.join(path)).map_err(|error| format!("{path}: {error}"))?;
         if record["inputs_sha256"][name].as_str() != Some(&sha256(&bytes)) {

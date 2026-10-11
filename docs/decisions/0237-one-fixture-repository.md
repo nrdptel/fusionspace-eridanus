@@ -24,17 +24,22 @@ handoff names what moves: the pin, two manifest hashes, three path constants and
    under `refs/hpr-sim-fixtures/imported/loft-fixtures`, not the retired `refs/loft-fixtures`.
    The default survey reads the two `imported/` copies and still leaves out the rest of the
    collection. It also skips any leftover checkout of the retired repositories, so an old clone
-   can't count a file twice. The gitignored OpenRocket records name each design by path and
-   match it by sha256; since the copies are byte-exact, their paths were relabelled rather than
-   flown again.
+   can't count a file twice in the survey. The OpenRocket oracle scripts walk `refs` whole, so
+   the commands that compare their records refuse a record listing a design twice, or one in
+   the collection outside `imported/` or in a retired checkout. The gitignored OpenRocket records
+   name each design by path and match it by sha256; since the copies are byte-exact, their paths
+   were relabelled rather than flown again.
 4. **The round-trip report was flown again.** `openrocket-export-flights` compares OpenRocket's
    flight of each design with its flight of the file HPR writes back out. Its record of the
-   exports dated from 2026-09-27, before release 0.1's rename changed the `creator` attribute HPR
-   writes, so its own check refused it and it could not be relabelled. Written again and flown
-   again, every export still opens and flies within the 0.5% bar. The same apogee to the last bit
-   now holds for 143 configurations of 151, not 142, and the largest difference is 0.000191%, not
-   0.000162%. That is a fresh measurement of today's writer, not a change this milestone made;
-   no physics moved.
+   exports dated from 2026-09-27, and HPR writes different files today (release 0.1's rename
+   changed at least the `creator` attribute), so its own check refused it and it could not be
+   relabelled. Written again and flown again, every export still opens and flies within the 0.5%
+   bar. The same apogee to the last bit now holds for 143 configurations of 151, not 142, and the
+   largest difference is 0.000191%, not 0.000162%. The shift's cause is untraced: a `creator`
+   string can't change a flight, and the history before the public snapshot can't say what else
+   changed in the writer or the Java environment between the two runs. It is a fresh
+   measurement of today's writer; this milestone changed no simulator code. The check now runs
+   in `scripts/gate.sh refs`, so the record can't go stale unseen again.
 5. **A file two packages install.** `refs verify` re-hashes each installed Python file against
    its package's `RECORD`. Two packages in the oracle environment both install a top-level
    `LICENSE`, so the file holds the copy installed last and could never match both. The check

@@ -393,8 +393,9 @@ cargo xtask ork
 The script takes any directory of `.ork` files in place of `refs`; `cargo xtask ork` compares
 HPR Sim with the record of the reference library only. The two `imported/` directories hold the
 private design library and Debrief's private files, copied into the private flight collection;
-they are named because the script doesn't follow the symbolic link a local setup may make to
-that collection.
+they are named because the script doesn't follow the symbolic link the local setup makes to that
+collection. With the collection as a real directory under `refs/`, the script would read all of
+it, and `cargo xtask ork` refuses the record.
 
 [adr-060]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0060-m2-2-split-and-the-structures-mass-held-to.md
 
