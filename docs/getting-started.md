@@ -10,8 +10,8 @@ some Rust, but no knowledge of this project.
 
 > **How far to trust it.** A simulation, not validated: this rocket left no flight log to check
 > it against. On seven other rockets' logged flights HPR Sim's apogees missed by 6.04% on average,
-> outside the 5% target ([real flights](accuracy.md#real-flights)), and on 55 more from a private
-> collection they were +9.83% above the logs, OpenRocket's +9.00%
+> outside the 5% target ([real flights](accuracy.md#real-flights)), and on 53 more from a private
+> collection they were +8.73% above the logs, OpenRocket's +7.79%
 > ([private collection](accuracy.md#real-flights-of-the-private-collection)). Given the same drag,
 > its heights, speeds and times match RocketPy's; on its own drag it flies this rocket about 10%
 > higher than RocketPy does on the drag table RocketPy's example ships: 770 m (2,526 ft) against

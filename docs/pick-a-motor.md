@@ -8,9 +8,9 @@ ejection delay, all with `hpr` on the command line.** It is for a flier choosing
 design they already have.
 
 > **How far to trust it.** HPR Sim's flights here are estimates from a model, and a motor's data,
-> as `hpr motors show` says, is copied from its curve file, not measured. Against 55 logged flights
-> of fliers' own designs, HPR Sim's apogee averaged 9.8% above the logged one, was within 10% on
-> 27 and read low on 14, by at most 20%, as `hpr sim` says under each flight below;
+> as `hpr motors show` says, is copied from its curve file, not measured. Against 53 logged flights
+> of fliers' own designs, HPR Sim's apogee averaged 8.7% above the logged one, was within 10% on
+> 26 and read low on 13, by at most 20%, as `hpr sim` says under each flight below;
 > [Accuracy](accuracy.md) says how close it comes elsewhere. The outputs on this page are made by running each command, and CI checks that they
 > still match what `hpr` prints. The motor's printed data and your range safety officer have the
 > last word.
@@ -139,9 +139,9 @@ top speed             217.0 m/s (712 ft/s) at 1.56 s
 top Mach number       0.639
 landing               0.7 m (2 ft) from the pad at 202.71 s, at 4.7 m/s (15 ft/s)
 
-How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
+How far to trust it. Simulated from the design file, not measured. Against 53 logged flights of
 fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
-averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+averaged 8.7% above the logged one; it was within 10% on 26 and read low on 13, by at most 20%. Plan
 a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
 log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
@@ -192,9 +192,9 @@ top speed             371.7 m/s (1219 ft/s) at 1.08 s
 top Mach number       1.095
 landing               0.8 m (3 ft) from the pad at 269.86 s, at 5.0 m/s (16 ft/s)
 
-How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
+How far to trust it. Simulated from the design file, not measured. Against 53 logged flights of
 fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
-averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+averaged 8.7% above the logged one; it was within 10% on 26 and read low on 13, by at most 20%. Plan
 a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
 log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
@@ -289,9 +289,9 @@ top speed             281.3 m/s (923 ft/s) at 1.75 s
 top Mach number       0.830
 landing               0.7 m (2 ft) from the pad at 247.48 s, at 4.5 m/s (15 ft/s)
 
-How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
+How far to trust it. Simulated from the design file, not measured. Against 53 logged flights of
 fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
-averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+averaged 8.7% above the logged one; it was within 10% on 26 and read low on 13, by at most 20%. Plan
 a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
 log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html

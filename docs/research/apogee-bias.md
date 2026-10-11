@@ -1,9 +1,9 @@
 # Where the high apogee bias on real flights comes from
 
-On the 55 scored flights of the private collection, HPR Sim's apogee is +9.83% above the logs on
-average (mean absolute 13.96%) and OpenRocket's +9.00%; the two agree within 5% on 53 of 55
-([report](../../validation/reports/fixture-flights.md), [ADR-184: the collection's logged
-apogees](../decisions/0184-logged-apogees-of-the-private-collection.md)). This note sizes the
+On the 55 flights the private collection's report scored when this note was written, HPR Sim's apogee was
++9.83% above the logs on average (mean absolute 13.96%), OpenRocket's +9.00%, and the two agreed within 5% on 53
+([ADR-184](../decisions/0184-logged-apogees-of-the-private-collection.md)); the note's arithmetic keeps those.
+Rechecked ([ADR-238](../decisions/0238-the-corpus-rechecked-against-the-catalog.md)), the [report](../../validation/reports/fixture-flights.md) scores 53: +8.73% and +7.79%. This note sizes the
 published causes that make a simulated apogee run high, each with its sign. **In short: no single
 published cause explains it.** What is bounded of the motor is worth about +0.3%, the barometer a
 few meters either way, ERA5's temperature perhaps under 1%; the rail is already flown at its angle.

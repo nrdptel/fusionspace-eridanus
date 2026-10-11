@@ -15,16 +15,16 @@ example's. **Against the logs of seven real flights, HPR Sim's apogees miss by 6
 outside the 5% target, and by −8.90% to +10.40% one by one** ([real flights](#real-flights),
 [report][real-report]); four of the five misses past 5% are consistent with HPR Sim's drag, and one
 with the motor's impulse. Four of those seven altimeters' kinds are assumed, and none is
-calibrated. **Against 55 more flights from a private collection, HPR Sim's apogees are +9.83% above
-the logs on average and miss by 13.96% (mean absolute), also outside the target; OpenRocket's are
-+9.00% above** ([private collection](#real-flights-of-the-private-collection),
+calibrated. **Against 53 more flights from a private collection, HPR Sim's apogees are +8.73% above
+the logs on average and miss by 12.95% (mean absolute), also outside the target; OpenRocket's are
++7.79% above** ([private collection](#real-flights-of-the-private-collection),
 [report][fixture-report]).
 
 > **How far to trust it.** Comparisons, most of them with other programs: agreement with RocketPy or
 > OpenRocket shows that HPR Sim computes what they compute, not that any of them matches the world.
 > Only the real flights are measurements. On the seven public ones the apogee misses by 6.04% on
-> average ([report][real-report]); on the 55 flights of the private collection it misses by
-> 13.96% (mean absolute), +9.83% high on average ([report][fixture-report]). Both are outside the
+> average ([report][real-report]); on the 53 flights of the private collection it misses by
+> 12.95% (mean absolute), +8.73% high on average ([report][fixture-report]). Both are outside the
 > 5% target. The [census](#the-census), the table below of where each check stands, adds no
 > evidence of its own: it is exactly as good as the reports it counts. Where a number matters, plan
 > with the whole range a row gives, not one figure, and log the flight with your own altimeter.
@@ -41,7 +41,7 @@ What has been checked so far:
   past Mach 1 included;
 - seven real flights, flown in the weather of their day and compared with their altitude logs:
   the apogee and the climb to it ([real flights](#real-flights));
-- 55 more real flights of a private collection, flown by HPR Sim and OpenRocket in the weather of
+- 53 more real flights of a private collection, flown by HPR Sim and OpenRocket in the weather of
   their day and compared with their logged apogees as aggregates
   ([private collection](#real-flights-of-the-private-collection), [report][fixture-report]);
 - the normal force and center of pressure from Mach 0.6 to 4.63, against NASA's wind-tunnel tests
@@ -834,11 +834,13 @@ investigated ([report][real-report]).
 ### Real flights of the private collection
 
 This covers [M2.3c1](decisions-and-roadmap.md#m2-3c1), the logged apogees of a private collection
-([ADR-184][adr-184], the decision). **In short: 55 real flights, each a design paired with the log
-of the same flight, were flown by HPR Sim and by [OpenRocket](glossary.md#openrocket) in the weather
-of their day. Both over-predict: HPR Sim's [apogees](glossary.md#apogee) are +9.83% above the logs
-on average (mean absolute 13.96%), OpenRocket's +9.00% (13.08%). HPR Sim and OpenRocket agree with
-each other within 5% on 53 of the 55 ([report][fixture-report]). Neither meets the 5% target.**
+([ADR-184][adr-184], the decision), and [M2.3c5](decisions-and-roadmap.md#m2-3c5), their recheck
+against the collection's catalog ([ADR-238][adr-238]). **In short: 53 real flights, each a design
+paired with the log of the same flight, were flown by HPR Sim and by
+[OpenRocket](glossary.md#openrocket) in the weather of their day. Both over-predict: HPR Sim's
+[apogees](glossary.md#apogee) are +8.73% above the logs on average (mean absolute 12.95%),
+OpenRocket's +7.79% (12.02%). HPR Sim and OpenRocket agree with each other within 5% on 52 of the
+53 ([report][fixture-report]). Neither meets the 5% target.**
 The [report][fixture-report]'s histogram gives the low side, the one a waiver depends on: its bins
 below zero hold the flights whose simulated apogee read under the log. Each logged apogee is the
 height climbed in the day's air, the altimeter's reading corrected for the weather as the report
@@ -865,7 +867,7 @@ altimeter](glossary.md#barometric-altimeter)'s. Such an altimeter turns pressure
 warm day it reads less than the height climbed: 6.5% less on a day 20 K warmer than the standard
 ([worked example](physics/atmosphere.md#pressure-altitude-what-a-barometric-altimeter-reads)).
 The comparison turns each reading back into a height through the day's ERA5 air. Across these
-flights the heights came out 1.0361 times the readings on average, from 0.9601 to 1.0777 times
+flights the heights came out 1.0360 times the readings on average, from 0.9601 to 1.0777 times
 ([report][fixture-report]). Where a log's highest value was an ejection charge's pressure spike,
 the reading before the charge was taken; 24 of the 83 readings differ from the collection's own
 figure by more than 0.5%, each with its reason recorded ([ADR-184][adr-184]).
@@ -877,14 +879,16 @@ figure by more than 0.5%, each with its reason recorded ([ADR-184][adr-184]).
 | [flown by OpenRocket 24.12][fixture-report] | 79 |
 | [flown by both][fixture-report] | 61 |
 | [left out: an airbrake or canard acted on the climb][fixture-report] | 6 |
-| [compared with the log][fixture-report] | 55 |
+| [left out: the design posted is not the rocket flown][fixture-report] | 1 |
+| [left out: the rocket tumbled through its climb][fixture-report] | 1 |
+| [compared with the log][fixture-report] | 53 |
 
-| [over 55 flights][fixture-report] | mean | median | mean absolute | within 5% | within 10% |
+| [over 53 flights][fixture-report] | mean | median | mean absolute | within 5% | within 10% |
 |---|---:|---:|---:|---:|---:|
-| [HPR Sim][fixture-report] | +9.83% | +9.47% | 13.96% | 10 | 27 |
-| [OpenRocket 24.12][fixture-report] | +9.00% | +6.82% | 13.08% | 9 | 26 |
-| [HPR Sim in OpenRocket's air][fixture-report] | +9.99% | +9.67% | 14.07% | 10 | 26 |
-| [HPR Sim against OpenRocket][fixture-report] | +0.69% | +0.55% | 1.72% | 53 | 55 |
+| [HPR Sim][fixture-report] | +8.73% | +9.47% | 12.95% | 9 | 26 |
+| [OpenRocket 24.12][fixture-report] | +7.79% | +6.82% | 12.02% | 9 | 25 |
+| [HPR Sim in OpenRocket's air][fixture-report] | +8.89% | +9.67% | 13.06% | 9 | 25 |
+| [HPR Sim against OpenRocket][fixture-report] | +0.81% | +0.41% | 1.62% | 52 | 53 |
 
 Each error is the simulated apogee less the logged one, over the logged one, in percent, so a
 positive error is a prediction above the log. The mean absolute error averages the errors without
@@ -892,12 +896,26 @@ their signs. The last row is HPR Sim's apogee less OpenRocket's, over OpenRocket
 value means HPR Sim flies higher. "Within 5%" and "within 10%" count the flights whose error is
 strictly smaller than that, either way ([report][fixture-report]).
 
-**Early deployments.** On 19 of the 55, a parachute charge fired or the rocket separated before
+**Early deployments.** On 19 of the 53, a parachute charge fired or the rocket separated before
 the highest reading, while it was still climbing ([report][fixture-report]). The readers' notes
 put each at under 1.5 s before the peak and a few meters of climb, so the apogee barely moves
-([ADR-184][adr-184]). Without them, over 36 flights, HPR Sim is +5.88% (mean absolute 11.94%) and
-OpenRocket +5.29% (11.24%). The two sets differ in which rockets they hold more than in what the
+([ADR-184][adr-184]). Without them, over 34 flights, HPR Sim is +3.95% (mean absolute 10.26%) and
+OpenRocket +3.19% (9.49%). The two sets differ in which rockets they hold more than in what the
 early charges cost.
+
+**The recheck.** The collection's own catalog later read each flight's sources again and flagged
+68 of the 83 flights where its reading and this comparison's differed. Each flag was settled
+against the flight's log and sources ([ADR-238][adr-238]). Most changed nothing: a simulator's
+miss, a spin or a recovery fault after apogee stays in the comparison. Four flights changed.
+One launch day moved to the event's date, and one logged apogee dropped 0.23% to the reading
+before a drogue charge. Two flights left the errors: one tumbled through its climb, which the
+drawn design, at over 3 calibres of margin, can't show; the other's posted design is the flier's
+later, heavier rebuild. Together they moved HPR Sim's mean from +9.83% over 55 flights to +8.73%
+over 53, and OpenRocket's from +9.00% to +7.79%. Nearly all of that move is the tumbling flight,
+whose error was the largest in the set. The catalog also puts 15 flights below its tier A: one
+fact of the flight inferred (B), or the design not shown to be the rocket flown (C). Over the 44
+compared flights it keeps in tier A, HPR Sim is +7.84% (mean absolute 12.13%) and OpenRocket
++6.99% (11.28%) ([report][fixture-report]).
 
 **What is not flown, and why.** Of the 83, HPR Sim flies 61, and each cause of the rest has an open
 issue ([report][fixture-report]). Most are small reading problems in HPR Sim's `.ork` importer that
@@ -1049,6 +1067,7 @@ rest.
 [real-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
 [adr-184]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0184-logged-apogees-of-the-private-collection.md
+[adr-238]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0238-the-corpus-rechecked-against-the-catalog.md
 [adr-102]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0102-tube-fins-centre-of-pressure-measured-against.md
 [adr-082]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0082-real-flights-read-from-refs-compared-over-the.md
 [adr-083]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0083-m2-3c-blocked-no-private-design-is-the-rocket-of.md

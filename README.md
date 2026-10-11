@@ -114,9 +114,9 @@ top speed             285.6 m/s (937 ft/s) at 1.73 s
 top Mach number       0.842
 landing               0.7 m (2 ft) from the pad at 245.78 s, at 4.4 m/s (15 ft/s)
 
-How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
+How far to trust it. Simulated from the design file, not measured. Against 53 logged flights of
 fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
-averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+averaged 8.7% above the logged one; it was within 10% on 26 and read low on 13, by at most 20%. Plan
 a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
 log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
@@ -185,8 +185,8 @@ ones need files CI doesn't have, so it holds their committed numbers
 
 <!-- census: end -->
 
-The census doesn't count 55 more real flights, from a private collection: HPR Sim's apogees are
-+9.83% above their logs on average and OpenRocket's +9.00%, both outside the 5% target
+The census doesn't count 53 more real flights, from a private collection: HPR Sim's apogees are
++8.73% above their logs on average and OpenRocket's +7.79%, both outside the 5% target
 ([private collection](docs/accuracy.md#real-flights-of-the-private-collection)).
 
 "Patched" means RocketPy 1.13.0 run with two fixes from RocketPy's own pull requests, which

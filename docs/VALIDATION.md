@@ -626,8 +626,10 @@ excellent offline test fixtures for the weather-file readers.
   the exact motor, date, site and the day's ERA5 weather. It is pinned at commit
   `7268bcd036a0e79f75ecb6ee2896327722fb8ab3`, with a `CHECKSUMS.sha256` manifest of 9,557 files;
   since that change it is the only fixture repository, its `imported/` holding the two above.
-  `cargo xtask fixture-flights` flies its 83 tier-A `.ork` flights in HPR Sim and OpenRocket; 55 of
-  them are compared with their logged apogees, and only aggregates are published
+  `cargo xtask fixture-flights` flies its 83 tier-A `.ork` flights in HPR Sim and OpenRocket; 53 of
+  them are compared with their logged apogees, rechecked against the collection's catalog
+  ([ADR-238](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0238-the-corpus-rechecked-against-the-catalog.md)),
+  and only aggregates are published
   ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md),
   [ADR-184, how](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0184-logged-apogees-of-the-private-collection.md);
   [ADR-151, the decision record that adds it](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0151-hpr-sim-fixtures-joins-the-reference-library-as.md)).

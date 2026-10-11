@@ -146,7 +146,7 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
   whose file has no nozzle; the exit is at most the case's area, a sea-level test assumed (a test
   site above the field would make the term negative). Why: OpenRocket's development line added the
   term on 2026-09-23 (its PR #3327). Leaving it out errs low, the flattering side for a waiver; the
-  term raises the apogee, so it grows the collection's +9.83% mean bias. Moves: that bias, and
+  term raises the apogee, so it grows the collection's +8.73% mean bias. Moves: that bias, and
   hpr-less-OpenRocket once M2.3c3 flies its newest release. *Done when:* `hpr sim` prints both; the
   fixture report gives the bound's median and largest as aggregates; a test pins it by hand and
   that the bounded apogee is never below the other.

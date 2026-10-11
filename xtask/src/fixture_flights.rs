@@ -1,6 +1,7 @@
 //! `cargo xtask fixture-flights [conditions | --check]`: flies the private collection's tier-A
 //! flights from a `.ork` in their day's weather, in hpr and in OpenRocket, and compares each with
-//! its logged apogee (M2.3c1, ADR-184).
+//! its logged apogee (M2.3c1, ADR-184; the manifest rechecked against the collection's catalog in
+//! M2.3c5, ADR-238).
 //!
 //! The collection, `hpr-sim-fixtures` (ADR-151), pairs each tier-A flight's design as flown with
 //! the barometric log of the same flight, its exact commercial motor, its date and site, and the
@@ -9,8 +10,8 @@
 //!
 //! - the manifest, [`MANIFEST`] under the gitignored `corpus/`, reads each flight's free-text row
 //!   into numbers: which `.ork` and configuration, when and where, the rail, the ERA5 file, the
-//!   logged apogee and what read it, an early deployment, and why a flight is left out of the
-//!   errors, if it is;
+//!   logged apogee and what read it, an early deployment, why a flight is left out of the
+//!   errors, if it is, and the tier the collection's catalog gives it;
 //! - `validation/oracles/netcdf/fixture_era5.py` converts each ERA5 file to the classic format
 //!   `hpr_io::netcdf` reads, under the gitignored `corpus-out/`;
 //! - `conditions` writes [`CONDITIONS`]: each flight's configuration, as hpr chooses it, and its
@@ -190,6 +191,17 @@ pub(crate) enum LoggedKind {
     Gps,
 }
 
+/// The tier the collection's catalog (`catalog/`, written after M2.3c1) gives a flight: A when
+/// design, motor, log, day and site are each tied to the flight; B with one of those inferred;
+/// C with the design not shown to be the rocket flown. The manifest's flights are all tier A in
+/// `flights.csv`; the catalog put 15 of them lower (ADR-238).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+pub(crate) enum CatalogTier {
+    A,
+    B,
+    C,
+}
+
 /// The motor flown, by its designation (the manufacturer's name is read and ignored).
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct MotorName {
@@ -217,6 +229,7 @@ pub(crate) struct Entry {
     pub early_deployment: Option<bool>,
     pub excluded: Option<String>,
     pub excluded_class: Option<String>,
+    pub catalog_tier: CatalogTier,
 }
 
 /// Flies, or writes OpenRocket's conditions.
@@ -694,6 +707,7 @@ struct Compared {
     hpr_in_openrocket_air_percent: f64,
     hpr_over_openrocket_percent: f64,
     early: bool,
+    below_tier_a: bool,
 }
 
 fn percent(simulated: f64, reference: f64) -> f64 {
@@ -821,19 +835,23 @@ fn fly_all(
         let early = entry.early_deployment == Some(true);
         counts.early_deployments += usize::from(early);
         counts.early_unknown += usize::from(entry.early_deployment.is_none());
+        let below_tier_a = entry.catalog_tier != CatalogTier::A;
+        counts.below_tier_a += usize::from(below_tier_a);
         let row = Compared {
             hpr_percent: percent(hpr_m, logged_m),
             openrocket_percent: percent(openrocket_m, logged_m),
             hpr_in_openrocket_air_percent: percent(hpr_standard_m, logged_m),
             hpr_over_openrocket_percent: percent(hpr_m, openrocket_m),
             early,
+            below_tier_a,
         };
         println!(
-            "fixture-flights: {at:<48} hpr {:+7.2}%  OpenRocket {:+7.2}%  hpr in its air {:+7.2}%{}",
+            "fixture-flights: {at:<48} hpr {:+7.2}%  OpenRocket {:+7.2}%  hpr in its air {:+7.2}%{}{}",
             row.hpr_percent,
             row.openrocket_percent,
             row.hpr_in_openrocket_air_percent,
-            if early { "  early deployment" } else { "" }
+            if early { "  early deployment" } else { "" },
+            if below_tier_a { "  below tier A" } else { "" }
         );
         compared.push(row);
     }
@@ -878,10 +896,14 @@ fn fly_all(
             WITHOUT_EARLY,
             compared.iter().filter(|row| !row.early).collect(),
         ),
+        set(
+            CATALOG_TIER_A,
+            compared.iter().filter(|row| !row.below_tier_a).collect(),
+        ),
     ];
     Ok(Report {
-        milestone: "M2.3c1".to_owned(),
-        decision: "ADR-184".to_owned(),
+        milestone: "M2.3c1, rechecked in M2.3c5".to_owned(),
+        decision: "ADR-184, ADR-238".to_owned(),
         counts,
         not_flown,
         excluded: excluded
@@ -893,9 +915,10 @@ fn fly_all(
     })
 }
 
-/// The two sets of flights the errors are taken over.
+/// The three sets of flights the errors are taken over.
 pub(crate) const EVERY_FLIGHT: &str = "every flight compared";
 pub(crate) const WITHOUT_EARLY: &str = "without the early deployments";
+pub(crate) const CATALOG_TIER_A: &str = "only the flights the catalog keeps in tier A";
 
 /// The committed report: aggregates only, no flight named.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -925,6 +948,8 @@ pub(crate) struct Counts {
     pub early_deployments: usize,
     /// Of those compared, the flights where that is not known.
     pub early_unknown: usize,
+    /// Of those compared, the flights the collection's catalog puts below tier A.
+    pub below_tier_a: usize,
     /// Of all, the flights whose launch hour is not known (flown at local noon).
     pub assumed_times: usize,
     /// Of all, the flights flown on [`DEFAULT_RAIL_M`].
@@ -1132,15 +1157,18 @@ impl Report {
         if c.early_deployments + c.early_unknown > c.compared {
             return fail("more early deployments than flights compared".to_owned());
         }
+        if c.below_tier_a > c.compared {
+            return fail("more flights below tier A than flights compared".to_owned());
+        }
         let names: Vec<&str> = self.sets.iter().map(|s| s.name.as_str()).collect();
-        if names != [EVERY_FLIGHT, WITHOUT_EARLY] {
+        if names != [EVERY_FLIGHT, WITHOUT_EARLY, CATALOG_TIER_A] {
             return fail(format!("the sets are {names:?}"));
         }
-        for (set, flights) in self
-            .sets
-            .iter()
-            .zip([c.compared, c.compared - c.early_deployments])
-        {
+        for (set, flights) in self.sets.iter().zip([
+            c.compared,
+            c.compared - c.early_deployments,
+            c.compared - c.below_tier_a,
+        ]) {
             if set.flights != flights {
                 return fail(format!(
                     "{} holds {} flights, not {flights}",
@@ -1181,7 +1209,10 @@ impl Report {
             "Written by `cargo xtask fixture-flights`; do not edit. The flights are the tier-A \
              flights of a private collection of designs paired with logs of the same flight \
              (ADR-151). Its license allows only aggregate statistics, so no flight is named or \
-             numbered here.\n"
+             numbered here. Each flight's day, logged apogee, early deployment and reason to be \
+             left out were rechecked against the collection's catalog of its sources (ADR-238), \
+             which also puts some flights below tier A: one fact of the flight inferred, or the \
+             design not shown to be the rocket flown.\n"
         );
         let _ = writeln!(page, "## Flights\n");
         let _ = writeln!(page, "| | flights |\n|---|---:|");
@@ -1195,6 +1226,7 @@ impl Report {
             ("compared with the log", c.compared),
             ("of those, with an early deployment", c.early_deployments),
             ("of those, deployment not known", c.early_unknown),
+            ("of those, below tier A in the catalog", c.below_tier_a),
             (
                 "of the 83, launch hour not known (local noon flown)",
                 c.assumed_times,
@@ -1360,6 +1392,53 @@ mod tests {
         let mut stats = Stats::of([1.0, 2.0, 30.0].into_iter());
         stats.within_5_percent = 3;
         assert!(stats.consistent("x").is_err());
+    }
+
+    /// Every entry states the catalog's tier, A, B or C; a missing or unknown tier is refused.
+    #[test]
+    fn the_catalog_tier_is_stated() {
+        let entry = |tier: &str| {
+            let mut value = json!({
+                "flight_id": "x", "design": "x.ork", "configuration_id": null,
+                "motor": {"designation": "K1"}, "launch_utc": "2020-01-01T12:00:00Z",
+                "launch_time_assumed": false, "latitude_deg": 0.0, "longitude_deg": 0.0,
+                "elevation_m": 0.0, "rail_length_m": null, "rail_from_vertical_deg": null,
+                "rail_heading_deg": null, "era5": null, "logged_apogee_m": 1.0,
+                "logged_kind": "barometric", "early_deployment": null, "excluded": null,
+                "excluded_class": null,
+            });
+            if !tier.is_empty() {
+                value["catalog_tier"] = json!(tier);
+            }
+            serde_json::from_value::<Entry>(value).map(|entry| entry.catalog_tier)
+        };
+        assert_eq!(entry("B").unwrap(), CatalogTier::B);
+        assert_eq!(entry("A").unwrap(), CatalogTier::A);
+        assert!(entry("D").is_err());
+        assert!(entry("").is_err());
+    }
+
+    /// The tier-A set must hold the flights compared less those below tier A: a count that
+    /// disagrees with the set, or exceeds the flights compared, is caught.
+    #[test]
+    fn the_tier_a_set_follows_the_count() {
+        let root = crate::designs::root().unwrap();
+        let text = fs::read_to_string(root.join(REPORT_JSON)).unwrap();
+        let report: Report = serde_json::from_str(&text).unwrap();
+        let page = report.to_markdown();
+        report.check_consistent(&page).unwrap();
+        let mut moved = report.clone();
+        moved.counts.below_tier_a += 1;
+        let error = moved.check_consistent(&page).unwrap_err();
+        assert!(error.contains(CATALOG_TIER_A), "{error}");
+        let mut past = report.clone();
+        past.counts.below_tier_a = past.counts.compared + 1;
+        let error = past.check_consistent(&page).unwrap_err();
+        assert!(error.contains("more flights below tier A"), "{error}");
+        let mut dropped = report;
+        dropped.sets.pop();
+        let error = dropped.check_consistent(&page).unwrap_err();
+        assert!(error.contains("the sets are"), "{error}");
     }
 
     /// A refusal's words name its cause; words no cause names keep the generic kind, which no
