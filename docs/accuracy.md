@@ -23,11 +23,11 @@ the logs on average and miss by 13.96% (mean absolute), also outside the target;
 > **How far to trust it.** Comparisons, most of them with other programs: agreement with RocketPy or
 > OpenRocket shows that HPR Sim computes what they compute, not that any of them matches the world.
 > Only the real flights are measurements. On the seven public ones the apogee misses by 6.04% on
-> average ([report][real-report]); on the 55 of the private collection it misses by 13.96% (mean
-> absolute), +9.83% high on average ([report][fixture-report]). Both are outside the 5% target. The
-> [census](#the-census), the table below of where each check stands, adds no evidence of its own:
-> it is exactly as good as the reports it counts. Where a number matters, plan with the whole range
-> a row gives, not one figure, and log the flight with your own altimeter.
+> average ([report][real-report]); on the 55 flights of the private collection it misses by
+> 13.96% (mean absolute), +9.83% high on average ([report][fixture-report]). Both are outside the
+> 5% target. The [census](#the-census), the table below of where each check stands, adds no
+> evidence of its own: it is exactly as good as the reports it counts. Where a number matters, plan
+> with the whole range a row gives, not one figure, and log the flight with your own altimeter.
 
 What has been checked so far:
 
