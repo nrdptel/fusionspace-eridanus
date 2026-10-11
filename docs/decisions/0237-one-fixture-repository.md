@@ -44,5 +44,5 @@ handoff names what moves: the pin, two manifest hashes, three path constants and
 
 **Consequences.** Commands that run the OpenRocket oracle scripts over the default corpus name the
 two `imported/` directories after `refs`, because the scripts don't follow the symlink a local
-setup makes of `refs/hpr-sim-fixtures`. The older repositories can be archived (a "Needs Neer"
-item). Nothing in the simulator changed.
+setup makes of `refs/hpr-sim-fixtures`. The older repositories can be archived, the maintainer's
+call. Nothing in the simulator changed.
