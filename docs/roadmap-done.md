@@ -67,6 +67,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9d7 The page's frame ([Phase 0](#phase-0-foundations))
 - M0.9d8 Print and the text marks ([Phase 0](#phase-0-foundations))
 - M0.9d9 The anatomy drawn ([Phase 0](#phase-0-foundations))
+- M0.9d10 The pages' vitals ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -477,6 +478,9 @@ One line per milestone or increment, in the order it was archived within its pha
       class of mdBook default it lists failing `xtask site` or a site test when it comes back.
     - [x] **M0.9d9 The anatomy drawn** (#384, ADR-231). *Done when:* the designation tag, sheets
       (`SHEET n / N`), the Auto, Light, Dark switch and headings in order, each held by checks.
+    - [x] **M0.9d10 The pages' vitals** (#443, ADR-230, ADR-232). *Done when:* #383 and #443 are closed:
+      each class of mdBook default #383 lists failing `xtask site` or a site test when it comes
+      back, and the Core Web Vitals measured by `xtask site`.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

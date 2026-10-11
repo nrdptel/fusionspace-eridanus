@@ -337,14 +337,60 @@ browser would break the pages isn't seen. In the light theme and in the navy one
 - a link to another page, in the text or the title block, without its address after it, in
   parentheses (a page of this site shows its path from the page, such as `cli.html#units`);
 - a table row, a note or the title block that can split across two sheets;
-- a title block not drawn, or drawn without its version and date of issue.
+- a title block not drawn, or drawn without its version and date of issue;
+- anything fixed to the window, which a browser draws on every sheet over what stands there.
+
+The print page, every chapter on one page, shows on screen only a cover: what it prints, a
+button that prints it and how to print from the browser. Its chapters wait in a template, which a
+browser reads but doesn't draw, and the site's script places them in the page when the browser
+is about to print and takes them away after. Drawn on screen, all of them were too slow for a
+phone (below). The check places them as printing does before it reads the page on paper, and
+fails a page where they don't all arrive, or don't all leave again.
 
 `mdbook serve` still shows mdBook's icons, menu bar, theme menu and two `h1`, with no sheets,
 and the landing page's title block as a table; only `cargo xtask site` builds the pages as published. Not read: text inside
 SVG images or over a picture, and hover
-([#432](https://github.com/nrdptel/fusionspace-eridanus/issues/432)). The pages' load speed,
-Google's Core Web Vitals, is still unchecked until
-[M0.9d10, the pages' vitals](decisions-and-roadmap.md#m0-9d10).
+([#432](https://github.com/nrdptel/fusionspace-eridanus/issues/432)).
+
+### How fast the pages load
+
+Last, the check loads every page as a phone would on a slow mobile network and measures
+Google's three [Core Web Vitals](https://web.dev/articles/vitals), each held to the bound the
+product system sets:
+
+- **Largest Contentful Paint (LCP)**, when the largest text or picture on the first screen is
+  drawn: at most 2.5 s;
+- **Cumulative Layout Shift (CLS)**, how far what is drawn moves afterwards, as a share of the
+  screen: at most 0.1;
+- **Interaction to Next Paint (INP)**, how long the page takes to answer a key or a tap: at most
+  200 ms.
+
+The phone and the network are the ones Google's Lighthouse uses for a phone: a screen 412 pixels
+wide, half a second's wait on every request (562.5 ms) and 1.5 Mbit/s down. A fast computer is
+slowed to the phone's speed: the check first times two short loops as Lighthouse does, and
+slows the processor by the factor that time calls for, 16 times on an Apple M-series laptop and
+about 4 on an older desktop. Every page is loaded cold, nothing cached, then the check presses
+Tab and taps the menu button twice, and takes the slowest of those as INP. A page over a bound
+is loaded three times and judged by the middle result.
+
+It errs slow. The check's server speaks HTTP/1.1, where a browser opens at most six connections
+to one server, while GitHub Pages, which serves the site, speaks HTTP/2 with no such limit. Each
+page is a first visit, though a reader's second page finds the stylesheet, scripts and fonts
+already saved. A real phone visit, the bounds' measure, is often quicker. The least certain
+step is the slowdown for a fast machine, whose factor carries Lighthouse's guide past the
+machines it was fitted to.
+
+On the site as built on 2026-10-10, the slowest LCP was 2.02 s (the print page), the largest
+CLS 0.067 (*How a flight is simulated*) and the slowest INP 88 ms (*Aerodynamics*), with the
+processor slowed 16.1 times. Three pages the check serves itself must each fail their own vital
+and pass the other two, or the check fails: one whose stylesheet arrives late, one that moves its
+text after drawing it and one whose menu button keeps the page busy.
+
+What it took to pass, recorded in
+[ADR-232](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0232-the-pages-vitals-measured.md):
+one stylesheet instead of ten, asked for first with mdBook's sidebar script, then four fonts
+asked for early so that text doesn't move when they arrive; the theme switch placed before the
+page is first drawn; and the print page's cover.
 
 ## Measured, not gated
 

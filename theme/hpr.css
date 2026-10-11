@@ -165,6 +165,14 @@ kbd { background-color: var(--hpr-surface); border-color: var(--hpr-rule-strong)
 html:not(.js) .page-wrapper,
 [dir=rtl]:not(.js) .page-wrapper,
 html:not(.sidebar-resizing) .sidebar { transition-duration: 240ms; transition-timing-function: cubic-bezier(0.2, 0, 0, 1); }
+/* On a phone the page moves over at once when the menu opens, and only the sidebar slides in:
+   mdBook also slides the page (`transform`), and Chrome redraws all of a sliding page each frame,
+   so a tap on the menu button of the longest chapter, the aerodynamics page, took 0.3 s in the
+   vitals check (#443's INP). Its margin, which moves it from 620 px, is still animated. */
+.js:not(.sidebar-resizing) .page-wrapper,
+[dir=rtl].js:not(.sidebar-resizing) .page-wrapper,
+html:not(.js) .page-wrapper,
+[dir=rtl]:not(.js) .page-wrapper { transition-property: margin-left, margin-right; }
 #mdbook-menu-bar .fa-svg, #mdbook-menu-bar .icon-button,
 .nav-chapters, .nav-chapters:hover,
 pre > .buttons, pre > .buttons button,
@@ -193,6 +201,10 @@ h3 { font-size: 14px; line-height: 20px; text-transform: uppercase; letter-spaci
 h4, h5, h6 { font-family: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 16px; line-height: 24px; font-weight: 600; }
 /* `code` 14/20; in a Cascadia Mono heading or column head, the head's own size. */
 code, pre, kbd { font-size: 14px; line-height: 20px; }
+/* Inline code has from the first paint the padding mdBook's stylesheet gives it once its script
+   has marked the code it highlights (`chrome.css`, `:not(pre) > .hljs`), so that mark moves no
+   text after the page is drawn (#443's CLS). */
+:not(pre) > code { padding: 0.1em 0.3em; }
 h1 code, h2 code, h3 code, thead th code { font-size: inherit; line-height: inherit; }
 /* Code and symbols stay as written in a head set in capitals: `hpr sim` is a command, `C_lδ` a
    symbol, and neither means the same in capitals. */
@@ -383,7 +395,8 @@ html:not(.js) #mdbook-theme-list.fs-seg { display: none !important; }
    `print.css` colors links a blue of its own; here they keep the action role. The page check reads
    every page with the stylesheets' print rules applied, in each theme, and fails a color that
    differs from the light theme's, a control or navigation drawn, a link without its address, a
-   row, note or title block that can split, or a title block not drawn whole. */
+   row, note or title block that can split, a title block not drawn whole, or anything fixed to
+   the window. */
 @media print {
     html.light, html.rust, html.navy, html.coal, html.ayu, html:not(.js) {
       color-scheme: light;
@@ -408,4 +421,21 @@ html:not(.js) #mdbook-theme-list.fs-seg { display: none !important; }
     a, a:visited, a:active, a:hover { color: var(--links); }
     a[href]:not([href^="#"])::after { content: " (" attr(href) ")"; overflow-wrap: anywhere; }
     tr, .fs-titleblock { break-inside: avoid; }
+    /* The theme's colored rule along the window's top (`fusionspace-mdbook.css`, `body::before`)
+       is fixed there, and a browser draws what is fixed on every sheet, over the top of the text:
+       it covered the top border of the designation tag that opens each chapter. On paper it
+       stands once, at the top of the first sheet. */
+    body::before { position: static; display: block; }
+    /* The tag's chamfer is a diagonal drawn as a background, which a browser leaves off paper
+       unless asked to print backgrounds; the tag keeps it, so its corner isn't left open. */
+    .content main .fs-intro > .fs-tag { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
+/* The print page's cover, shown on screen; on paper the page is the chapters the site's script
+   places after it as the browser prints (`xtask/src/site/print.rs`). Its button is the system's
+   primary button (`web.md`, *Components*; `fusionspace.css`, `.fs-btn`): square, 44 px tall,
+   Cascadia Mono 14 semibold, filled with ink, the action role on hover. Without the script it
+   can't print, and the cover says so instead. */
+@media print { #hpr-print-cover { display: none; } }
+html:not(.js) #hpr-print { display: none; }
+#hpr-print-cover .fs-btn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 44px; margin: 0; padding: 0 16px; font: 600 14px/20px 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0; white-space: nowrap; cursor: pointer; color: var(--hpr-canvas); background: var(--hpr-ink); border: 2px solid var(--hpr-ink); border-radius: 0; transition: background-color 100ms cubic-bezier(0.2, 0, 0, 1), border-color 100ms cubic-bezier(0.2, 0, 0, 1); }
+#hpr-print-cover .fs-btn:hover { color: var(--hpr-on-action); background: var(--hpr-action); border-color: var(--hpr-action); }

@@ -373,6 +373,18 @@ adds a source.
   > OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   > POSSIBILITY OF SUCH DAMAGE.
 
+- **Lighthouse** (Apache-2.0), `core/lib/page-functions.js` at `2ac69abc`:
+  `computeBenchmarkIndex`, the two half-second loops that measure a machine's BenchmarkIndex,
+  ported to `xtask/src/site/vitals.js` (`hprBenchmarkIndex`) for the site's vitals check. Copyright
+  Google LLC; licensed under the Apache License, Version 2.0
+  (<https://www.apache.org/licenses/LICENSE-2.0>). The port keeps the loops' sizes, durations and
+  arithmetic, and its comments say where it differs (none in what it measures). The CPU slowdown
+  chosen from the result follows the piecewise rule of P. Hulce's
+  `lighthouse-cpu-throttling-calculator`, which publishes no license: the rule is cited as a
+  formula in `xtask/src/site/vitals.rs` (`cpu_slowdown`), and none of its code is copied. The
+  phone's and network's numbers are Lighthouse's published constants (`core/config/constants.js`),
+  cited there too.
+
 ## Rust dependencies
 
 `Cargo.lock` lists the full dependency graph. Direct third-party dependencies, with the workspace
@@ -387,7 +399,7 @@ crates that use them named by folder (`hpr-core` is the package `fusionspace-hpr
 | `clap` | MIT OR Apache-2.0 | `hpr-cli` | the `hpr` command line: arguments, help and usage errors, derived from the argument types (ADR-105) |
 | `clap_complete` | MIT OR Apache-2.0 | `hpr-cli` | `hpr completions`: shell completion scripts from the same argument types |
 | `criterion` | Apache-2.0 OR MIT | `hpr-core` (benchmarks only) | statistics for `cargo bench` (`docs/perf.md`) |
-| `flate2` | MIT OR Apache-2.0 | `hpr-io` | gzip and deflate, with the pure-Rust `miniz_oxide` backend so that `hpr-io` still builds for wasm32 and links no C: one of the three containers a `.ork` design arrives in, and the compression inside the other |
+| `flate2` | MIT OR Apache-2.0 | `hpr-io`; `xtask` | gzip and deflate, with the pure-Rust `miniz_oxide` backend so that `hpr-io` still builds for wasm32 and links no C: one of the three containers a `.ork` design arrives in, and the compression inside the other; in `xtask`, the site's text compressed as GitHub Pages serves it, for the vitals check |
 | `geographiclib-rs` | MIT | `hpr-core` | geodesics on an ellipsoid, distance and bearing between two places (`hpr_core::geodesic`): georust's port of Karney's GeographicLib, held to Karney's test set; no default features, so `libm` is its one dependency (ADR-127) |
 | `hayro-jpeg2000` | Apache-2.0 OR MIT | `hpr-io` | decodes GRIB2 fields packed as JPEG 2000 images (template 5.40); pure Rust with no default features, so no other crate and nothing that stops wasm32 (ADR-124) |
 | `jsonschema` | MIT | `hpr-sim`, `hpr-cli` (tests only) | checks exported GeoJSON against the published GeoJSON schema, and each `hpr --json` output against its schema in `schema/cli/`; no default features, so it fetches and reads nothing (ADR-079) |
@@ -407,6 +419,7 @@ crates that use them named by folder (`hpr-core` is the package `fusionspace-hpr
 | `thiserror` | MIT OR Apache-2.0 | `hpr-core`, `hpr-atmos`, `hpr-motor` | library error types |
 | `tiff` | MIT | `hpr-io` | decodes a user's GeoTIFF elevation file (`hpr_io::geotiff`): image-rs's TIFF decoder, pure Rust, with only its LZW and Deflate codecs, so no JPEG, fax or zstd (C) code (ADR-128) |
 | `sha2` | MIT OR Apache-2.0 | `xtask`; `hpr-motor` (tests only) | SHA-256 of fetched references and of the bundled motor curves |
+| `tungstenite` | MIT OR Apache-2.0 | `xtask` | the WebSocket that carries Chrome's DevTools protocol to the site's vitals check (`xtask/src/site/cdp.rs`), with only its handshake feature: no TLS, no async runtime |
 | `toml` | MIT OR Apache-2.0 | `xtask` | reads `validation/refs.lock.toml` |
 | `tempfile` | MIT OR Apache-2.0 | `xtask`, `hpr-cli` (tests only) | temporary directories for the `refs` tests and `hpr motors show`'s files |
 | `unicode-normalization` | MIT OR Apache-2.0 | `hpr-format` | compares a `.hprz` container's attachment names in canonical decomposition (NFD), as macOS does, so two spellings of one accented letter are refused as one name; pure Rust, no I/O, builds for wasm32 (its one dependency, `tinyvec`, is Zlib OR Apache-2.0 OR MIT) |

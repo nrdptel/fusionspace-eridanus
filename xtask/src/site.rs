@@ -87,14 +87,18 @@ use pulldown_cmark::{
 
 use crate::workspace::{Package, Workspace};
 
+mod bundle;
+mod cdp;
 mod chrome;
 mod frame;
 mod notes;
 mod pages;
+mod print;
 mod sheets;
 mod switch;
 pub(crate) mod theme;
 pub(crate) mod units;
+mod vitals;
 
 pub const USAGE: &str = "  site [--no-build] [--locked] [--widths K/N]
                            Check the documentation site's pages, build the site with
@@ -212,6 +216,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let framed = frame::draw(&output)?;
     let switches = switch::draw(&output)?;
     let (intros, sheets) = sheets::draw(&output)?;
+    let chapters = print::draw(&output)?;
+    let bundled = bundle::draw(&output)?;
     let workspace = crate::workspace::load(&root)?;
     let crates = rustdoc_build(&root, &workspace, &output.join(API), locked)?;
     let mut built = check_html(&root, &output, &crates)?;
@@ -220,6 +226,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
     built.problems.extend(frame::check(&output)?);
     built.problems.extend(switch::check(&output)?);
     built.problems.extend(sheets::check(&output)?);
+    built.problems.extend(print::check(&output)?);
+    built.problems.extend(bundle::check(&output)?);
     if !built.problems.is_empty() {
         return Err(failure("the built site", &built.problems));
     }
@@ -236,6 +244,17 @@ pub fn run(args: &[String]) -> Result<(), String> {
         "built anatomy: {intros} pages open with the designation tag over their titles, their \
          {sheets} sections drawn as numbered sheets and their headings in order; {switches} \
          pages switch themes with Auto, Light and Dark"
+    );
+    println!(
+        "built stylesheet: {bundled} pages link one stylesheet, {}, the {} files they linked \
+         joined in their order",
+        bundle::BUNDLE,
+        bundle::parts().count()
+    );
+    println!(
+        "built print page: {} shows a cover on screen, its {chapters} chapters in a template \
+         the site's script places in the page when it is printed",
+        print::PAGE
     );
     println!(
         "built notes: {notes} quote blocks drawn as the system's notes, none left as a plain quote"
@@ -270,8 +289,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
          the system's, no intro, sheet or theme switch off the system's and every switch \
          setting the theme it is pressed for, no text mark drawn as an icon, every page \
          printing in the light \
-         theme's colors without navigation, with its links' addresses, its rows and title \
-         block whole, and every canary found",
+         theme's colors without navigation or anything fixed over its sheets, with its links' \
+         addresses, its rows and title block whole, and every canary found",
         laid_out.pages,
         if part == pages::Part::WHOLE {
             format!("{} widths from 320 to 1,920 px", laid_out.widths)
@@ -288,6 +307,36 @@ pub fn run(args: &[String]) -> Result<(), String> {
             )
         },
         laid_out.seconds
+    );
+    let vitals = vitals::check(&output, part)?;
+    if !vitals.problems.is_empty() {
+        return Err(failure("the pages' vitals", &vitals.problems));
+    }
+    let [(lcp, lcp_page), (cls, cls_page), (inp, inp_page)] = &vitals.worst;
+    println!(
+        "page vitals: {} pages{} loaded cold by {} {}, each a phone ({} px wide) on slow 4G with \
+         the CPU slowed {:.1}× (this machine's BenchmarkIndex {:.0}), in {:.0} s: LCP at most \
+         {:.2} s ({lcp_page}), CLS at most {:.3} ({cls_page}), INP at most {:.0} ms \
+         ({inp_page}), and every canary failing its vital",
+        vitals.pages,
+        if part == pages::Part::WHOLE {
+            String::new()
+        } else {
+            format!(" (part {} of {})", part.index, part.count)
+        },
+        vitals.browsers,
+        if vitals.browsers == 1 {
+            "browser"
+        } else {
+            "browsers"
+        },
+        vitals::WIDTH_PX,
+        vitals.slowdown,
+        vitals.benchmark,
+        vitals.seconds,
+        lcp / 1000.0,
+        cls,
+        inp,
     );
     Ok(())
 }

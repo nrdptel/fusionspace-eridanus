@@ -7,3 +7,13 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#F3F4F7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0B0F1C" media="(prefers-color-scheme: dark)">
+{{!-- The four faces a page's first screen draws in, asked for as the head is read rather than
+     once the stylesheet has arrived and named them: body text (Archivo), titles (Cascadia Mono
+     SemiBold), inline code (Cascadia Mono) and bold text (Archivo SemiBold). A face that arrives
+     after the text is drawn redraws it in other widths, which moved whole paragraphs on a phone
+     (#443's CLS; ADR-232). The build asks for the stylesheet and mdBook's sidebar script just
+     before these, as the page can't be drawn without them (`xtask/src/site/bundle.rs`). --}}
+<link rel="preload" href="{{ path_to_root }}fonts/Archivo-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ path_to_root }}fonts/CascadiaMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ path_to_root }}fonts/CascadiaMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ path_to_root }}fonts/Archivo-SemiBold.woff2" as="font" type="font/woff2" crossorigin>

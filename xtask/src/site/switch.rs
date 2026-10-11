@@ -7,8 +7,11 @@
 //! segmented control, `role="group"`, its buttons pressed or not (`aria-pressed`), and moves it
 //! from beside the menu button to the start of the header's right-hand buttons. The buttons keep
 //! mdBook's ids and class, so mdBook's script still sets the theme through them and marks the
-//! chosen one; `theme/hpr.js` mirrors that mark as `aria-pressed`, and moves the switch to the
-//! top of the sidebar on a window too narrow to hold it in the header ([`HEADER_FROM_PX`]).
+//! chosen one; `theme/hpr.js` mirrors that mark as `aria-pressed`. On a window too narrow to
+//! hold it in the header ([`HEADER_FROM_PX`]) the switch stands at the top of the sidebar: a
+//! script [`draw`] writes just after the header puts it there while the page is read, before it
+//! is first drawn, so a phone's first screen doesn't jump when it moves (#443's CLS); `hpr.js`
+//! moves it when the window's width crosses that line.
 //! mdBook's menu button stays in the page, `hidden`, since its script looks it up. [`check`]
 //! fails a page whose switch isn't drawn this way, and the page check fails one drawn off the
 //! system's or that doesn't set the theme (`pages.rs`, `Kind::Switch`).
@@ -45,6 +48,22 @@ pub(super) const CHOICES: [(&str, &str); 3] = [
 const SCRIPT: &str = "theme/hpr.js";
 /// Where the switch goes: the header's right-hand buttons, at their start.
 const RIGHT_BUTTONS: &str = "<div class=\"right-buttons\">";
+/// The header the switch is drawn in, and how it ends.
+const HEADER: &str = "<header id=\"mdbook-menu-bar\"";
+const HEADER_END: &str = "</header>";
+
+/// The script written just after the header, which moves the switch to the top of the sidebar
+/// on a window narrower than [`HEADER_FROM_PX`] before the page is first drawn. The sidebar comes
+/// before the header in mdBook's page, so both are there when it runs.
+fn place() -> String {
+    format!(
+        "<script>(function () {{ var list = document.getElementById('mdbook-theme-list'); \
+         var sidebar = document.getElementById('mdbook-sidebar'); \
+         var chapters = sidebar && sidebar.querySelector('.sidebar-scrollbox'); \
+         if (list && chapters && !window.matchMedia('(min-width: {HEADER_FROM_PX}px)').matches) \
+         sidebar.insertBefore(list, chapters); }})();</script>"
+    )
+}
 
 /// The switch as [`draw`] writes it.
 fn switch() -> String {
@@ -132,6 +151,15 @@ fn rewrite(html: &str) -> Result<String, Vec<String>> {
              once"
         )),
     }
+    match (out.matches(HEADER).count(), out.find(HEADER)) {
+        (1, Some(start)) => match out[start..].find(HEADER_END) {
+            Some(end) => out.insert_str(start + end + HEADER_END.len(), &place()),
+            None => problems.push(format!("the header (`{HEADER}`) is never closed")),
+        },
+        (found, _) => problems.push(format!(
+            "the header (`{HEADER}`) is there {found} times, not once"
+        )),
+    }
     if problems.is_empty() {
         Ok(out)
     } else {
@@ -171,9 +199,18 @@ pub(super) fn check(output: &Path) -> Result<Vec<String>, String> {
 }
 
 /// What one built page lacks of its theme switch: the switch once, at the start of the header's
-/// right-hand buttons; mdBook's menu button once, hidden; no theme menu; no other theme button.
+/// right-hand buttons; the script that places it, once, just after the header; mdBook's menu
+/// button once, hidden; no theme menu; no other theme button.
 fn page_problems(html: &str) -> Vec<String> {
     let mut problems = Vec::new();
+    let placed = format!("{HEADER_END}{}", place());
+    if html.matches(&place()).count() != 1 || html.matches(&placed).count() != 1 {
+        problems.push(
+            "the script that puts the theme switch in the sidebar of a narrow window before the \
+             page is drawn isn't there once, just after the header"
+                .to_string(),
+        );
+    }
     let drawn = format!("{RIGHT_BUTTONS}{}", switch());
     match html.matches(&drawn).count() {
         1 => {}
@@ -237,6 +274,8 @@ mod tests {
             "<button type=\"button\" class=\"theme\" id=\"mdbook-theme-navy\" \
              aria-pressed=\"false\">Dark</button>"
         ));
+        assert!(drawn.contains(&format!("</header>{}<main>", place())));
+        assert!(place().contains(&format!("(min-width: {HEADER_FROM_PX}px)")));
         assert_eq!(page_problems(&drawn), Vec::<String>::new());
         // A second rewrite finds no menu, and the check fails a page with the menu left.
         assert!(rewrite(&drawn).is_err());
@@ -294,6 +333,14 @@ mod tests {
             (
                 drawn.replace("</header>", "<ul role=\"menu\"></ul></header>"),
                 "a menu",
+            ),
+            // The placing script gone, or moved after the content the reader sees first.
+            (drawn.replace(&place(), ""), "before the page is drawn"),
+            (
+                drawn
+                    .replace(&place(), "")
+                    .replace("</main>", &format!("{}</main>", place())),
+                "just after the header",
             ),
         ] {
             let problems = page_problems(&broken);
