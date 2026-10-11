@@ -376,6 +376,8 @@ computer is slowed to the phone's speed: the check first times two short loops a
 does, slows the processor by the factor Lighthouse's guide gives for that time, and times the
 loops again to make sure the slowdown took. On the Mac the check was built on the factor is
 about 16; a slower machine gets a smaller one, and the guide puts a high-end desktop at about 4.
+A machine that would need less than 2 is refused, since a slowdown that small can't be told
+from none.
 Every page is loaded cold, nothing cached. A page over a bound is loaded three times and judged
 by the middle result.
 
@@ -389,8 +391,8 @@ real visits, and the site collects no numbers from them.
 In one run on 2026-10-10, the slowest LCP was 2.16 s
 ([*Frames and sign conventions*](physics/frames.md)), the largest CLS 0.067
 ([*How a flight is simulated*](how-a-flight-is-simulated.md)) and the slowest INP 144 ms
-([*Aerodynamics*](physics/aero.md)), with the processor slowed 16.4 times. The slowest INP moved
-between 88 and 152 ms from one run to the next.
+([*Aerodynamics*](physics/aero.md)), with the processor slowed 16.4 times. The slowest INP
+moved between 88 and 152 ms from one run to the next.
 Each run prints its own figures in the line that starts `page vitals:`. Three pages the check
 serves itself must each fail their own vital and pass the other two, or the check fails: one
 whose stylesheet arrives late, one that moves its text after drawing it and one whose menu

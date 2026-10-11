@@ -96,10 +96,23 @@ const MOST_BROWSERS: usize = 4;
 /// again. (Chrome adds the wait before a response's body, not before its first byte.)
 const THROTTLE_HELD: f64 = 0.9;
 
-/// The least share of the CPU slowdown the benchmark, run again under the throttle, must show
-/// for the throttle to count as held: a browser that ignored it would show none. The benchmark
-/// counts loops a second, so a slowdown of 16 leaves it about 16 times fewer.
+/// The least share of the CPU slowdown beyond 1 the benchmark, run again under the throttle,
+/// must show for the throttle to count as held: a browser that ignored it would show none, a
+/// ratio near 1. The benchmark counts loops a second, so a slowdown of 16 leaves it about 16
+/// times fewer.
 const CPU_HELD: f64 = 0.5;
+
+/// The least CPU slowdown whose throttle can be told from none: at 2, a held throttle shows
+/// about 2 and an ignored one about 1, against a bar of 1.5. A machine that needs less, a
+/// BenchmarkIndex under 800, is refused, as an ignored throttle would there pass unseen and
+/// flatter the site. CI's runners scored 2,334 to 2,726 (slowdowns 7.4 to 9.1) on 2026-10-10.
+const CPU_LEAST_SLOWDOWN: f64 = 2.0;
+
+/// Whether a benchmark that ran `shown` times slower under the throttle confirms a `slowdown`:
+/// at least [`CPU_HELD`] of the slowdown beyond 1, and never below [`CPU_LEAST_SLOWDOWN`].
+fn cpu_held_by(slowdown: f64, shown: f64) -> bool {
+    slowdown >= CPU_LEAST_SLOWDOWN && shown >= 1.0 + CPU_HELD * (slowdown - 1.0)
+}
 
 /// A vital.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -409,6 +422,12 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
     let mut first = Browser::launch(&chrome, &scratch, 0)?;
     let benchmark = first.benchmark(&origin)?;
     let slowdown = cpu_slowdown(benchmark)?;
+    if slowdown < CPU_LEAST_SLOWDOWN {
+        return Err(format!(
+            "this machine's BenchmarkIndex is {benchmark:.0}, so it is slowed only {slowdown:.1} \
+             times, too little to confirm the browser throttles it; the check needs at least 800"
+        ));
+    }
     let mut tabs = vec![first];
     for index in 1..browsers {
         let mut tab = Browser::launch(&chrome, &scratch, index)?;
@@ -692,13 +711,13 @@ impl Browser {
     }
 
     /// Fails unless the CPU throttle holds: the benchmark, run again on the blank page, must
-    /// come out at least [`CPU_HELD`] of `slowdown` below the machine's `benchmark`. Nothing else
+    /// come out slower than the machine's `benchmark` by the bar of [`cpu_held_by`]. Nothing else
     /// would notice a browser that took the slowdown and didn't apply it: no canary's vital
     /// depends on the CPU's speed.
     fn cpu_held(&mut self, origin: &str, benchmark: f64, slowdown: f64) -> Result<(), String> {
         let slowed = self.benchmark(origin)?;
         let shown = benchmark / slowed.max(f64::MIN_POSITIVE);
-        if shown >= CPU_HELD * slowdown {
+        if cpu_held_by(slowdown, shown) {
             Ok(())
         } else {
             Err(format!(
@@ -817,13 +836,17 @@ impl Browser {
         for tap in 0..2 {
             let [x, y] = match self.menu_button()? {
                 Menu::At(at) => at,
-                // mdBook's sidebar frame, `toc.html`, has no menu; the frame check requires one on
-                // every other page.
-                Menu::Absent => break,
+                // mdBook's sidebar frame, `toc.html`, is the one page with no menu.
+                Menu::Absent if !page || url.ends_with("/toc.html") => break,
                 Menu::Hidden if !page => break,
-                Menu::Hidden => {
+                menu => {
                     return Err(Failed(format!(
-                        "its menu button is not on screen at {WIDTH_PX} px to tap{}",
+                        "its menu button is {} at {WIDTH_PX} px to tap{}",
+                        if matches!(menu, Menu::Absent) {
+                            "missing"
+                        } else {
+                            "not on screen"
+                        },
                         if tap == 0 { "" } else { " a second time" }
                     )));
                 }
@@ -958,6 +981,27 @@ mod tests {
         }
         // Faster machines are slowed more.
         assert!(at(900.0) > at(700.0) && at(3000.0) > at(1500.0));
+    }
+
+    #[test]
+    fn the_cpu_throttle_holds_only_when_the_benchmark_slows_by_half_the_slowdown_beyond_1() {
+        // An ignored throttle (a ratio near 1) fails at every slowdown, CI's runners' too.
+        for slowdown in [2.0, 7.4, 9.1, 16.4] {
+            assert!(!cpu_held_by(slowdown, 1.0), "{slowdown}");
+            assert!(
+                !cpu_held_by(slowdown, 1.0 + 0.49 * (slowdown - 1.0)),
+                "{slowdown}"
+            );
+            assert!(
+                cpu_held_by(slowdown, 1.0 + 0.5 * (slowdown - 1.0)),
+                "{slowdown}"
+            );
+            assert!(cpu_held_by(slowdown, slowdown), "{slowdown}");
+        }
+        // Below the least slowdown nothing confirms it, not even the full ratio.
+        assert!(!cpu_held_by(1.7, 1.7));
+        assert!(!cpu_held_by(1.0, 1.0));
+        assert!(!cpu_held_by(16.4, f64::NAN));
     }
 
     #[test]

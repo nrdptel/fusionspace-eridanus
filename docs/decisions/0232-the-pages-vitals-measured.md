@@ -17,14 +17,15 @@ make the bound depend on the machine, so the check measures the machine first wi
 `computeBenchmarkIndex` (ported, Apache-2.0) and slows it by the piecewise rule of Lighthouse's
 CPU throttling calculator. This Mac scores about 4,400, which the calculator's last line, carried
 past the machines it was fitted to, turns into a slowdown of 16; a CI runner scores lower and is
-slowed less. A machine under 150 can't be slowed to the phone and is refused. The site is served
+slowed less (CI's runners scored 2,334 to 2,726, slowed 7.4 to 9.1 times). A machine under
+800 is refused: under 150 it can't be slowed to the phone, and under 800 its slowdown, less than
+2, is too small to confirm (decision 1). The site is served
 compressed, as GitHub Pages serves it, but over HTTP/1.1, which allows six connections to one
 server where GitHub Pages' HTTP/2 has no limit, and each page is a first visit. Both err slow.
 
 The API reference is left out, as the layout check leaves it out: its 1,497 pages are rustdoc's
 own, drawn by rustdoc's stylesheets and scripts, not the site's theme, and measuring them would
-add an estimated 35 minutes a run at the rate the guide's pages take. The figures below marked as probes come from development runs at the
-slowdown given, not from committed output.
+add an estimated 35 minutes a run at the rate the guide's pages take.
 
 Chrome 154 has two quirks the method had to meet. The emulated wait shows before a navigation's
 `responseEnd`, not its `responseStart`, so the check confirms throttling by `responseEnd`. A
@@ -32,14 +33,15 @@ headless Chrome flags a layout shift in the half second after a page loads as fo
 (`hadRecentInput`) when nothing was pressed, so the check counts flagged shifts made before its
 first input.
 
-Measured this way on `main` and on this branch as it went, the site failed each vital:
+Measured this way on `main` and on this branch as it went, the site failed each vital. Figures
+marked *(a probe)* come from development runs at the slowdown given, not from committed output.
 
 - **LCP.** Each page linked ten stylesheets, more requests than six connections carry at once,
   so they arrived in rounds and a phone's first paint came after 2.5 s.
 - **CLS.** Text first drawn in the fallback fonts moved when the faces arrived; with the two
-  fonts the system allows preloaded, CLS reached 0.18 on several pages (a probe). The theme switch, moved
-  into the sidebar by the site's script after the first paint, shifted a phone's first screen.
-  Inline code took its padding only when mdBook's script marked it.
+  fonts the system allows preloaded, CLS reached 0.18 on several pages (a probe). The theme
+  switch, moved into the sidebar by the site's script after the first paint, shifted a phone's
+  first screen. Inline code took its padding only when mdBook's script marked it.
 - **INP.** On the print page, every chapter on one page (some 48,000 elements), the check
   measured INP 424 ms and LCP 2.92 s (medians of three loads, slowed 16.9 times); a trace of one
   load put the first Tab at 0.39 s and a menu tap at 0.45 s. On the aerodynamics page, the
@@ -56,9 +58,10 @@ Measured this way on `main` and on this branch as it went, the site failed each 
    by the check, a stylesheet held back 2.5 s, a box that grows 300 ms after load and a menu
    button that keeps the page busy 300 ms, must each fail their own vital alone, or the check
    fails. No canary's vital depends on the CPU's speed, so each browser runs the benchmark
-   again once throttled, and again after its last page, and fails unless it ran at least half
-   the slowdown slower; each load must also show the network's wait. A load that hasn't
-   settled in 15 s fails, and so does a page of the guide whose menu button isn't on screen to tap. Up to
+   again once throttled, and again after its last page, and fails unless it ran slower by at
+   least half the slowdown beyond 1 (a slowdown of 16 needs 8.5; an ignored throttle shows
+   about 1); each load must also show the network's wait. A load that hasn't settled in 15 s
+   fails, and so does a page of the guide whose menu button is missing or off screen. Up to
    four browsers share the pages, and CI's three site machines each take a third.
 2. **One stylesheet, asked for first.** The build joins the ten stylesheets into
    `theme/site.css` in their order (`bundle.rs`), print's inside `@media print`, the highlighting
@@ -104,9 +107,9 @@ Measured this way on `main` and on this branch as it went, the site failed each 
 **Consequences.** In one run on the site as this decision ships it, at a 16.4 times slowdown,
 the slowest LCP was 2.16 s (the frames page), the largest CLS 0.067 (the page on how a flight is
 simulated) and the slowest INP 144 ms (the aerodynamics page). Earlier runs gave 2.02 to 2.03 s,
-0.067 and 88 to 152 ms at 16.1 to 16.4 times: the slowest INP moves by half between runs, and
-its least margin to the bound was 48 ms. The check takes about 100 s on this Mac. The print
-page's "Print this book" button now opens the cover, one more step to the print window, and the
+0.067 and 88 to 152 ms at 16.1 to 16.4 times: the slowest INP ranged from 88 to 152 ms across
+runs, 48 ms under its bound at the closest. The check takes about 100 s on this Mac. The header's
+"Print this book" icon now opens the cover, one more step to the print window, and the
 book prints only with scripts on. The check depends on Chrome's DevTools protocol and its Event
 Timing and layout-shift entries; a Chrome that changes them fails the check through its
 canaries, its throttle checks or a load with nothing to read, rather than passing silently. The
