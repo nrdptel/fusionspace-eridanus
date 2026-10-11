@@ -62,7 +62,7 @@ information 2026; neither the European Commission nor ECMWF is responsible for a
 - Effects left out of a flight: gusts (a turbulence model exists, but no flight uses it), the
   rocket pitching as it leaves the rail, a motor's thrust off its axis, and a parachute's opening
   shock.
-- Accuracy gaps: apogees miss real flights' by more than the target (above); drag past Mach 1 is
+- Accuracy gaps: simulated apogees miss real flights' logged ones by more than the target (above); drag past Mach 1 is
   lightly checked; only small angles of attack are modeled.
   [Start here](docs/start-here.md#what-doesnt-work-yet) lists the gaps you are most likely to meet,
   and [the roadmap](docs/ROADMAP.md) the order of the work.

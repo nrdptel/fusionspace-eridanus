@@ -89,7 +89,9 @@ pub(super) fn number_columns(text: &str) -> Vec<(usize, String)> {
             let head = table.header.get(column).map_or("", |cell| cell.text.trim());
             // A column of versions is a column of labels, `1.10` after `1.9`.
             if *alignment == pulldown_cmark::Alignment::Right
-                || head.to_lowercase().contains("version")
+                || head
+                    .split(|c: char| !c.is_alphanumeric())
+                    .any(|word| word.eq_ignore_ascii_case("version"))
             {
                 continue;
             }
@@ -270,5 +272,8 @@ mod tests {
         let problems = number_columns(page);
         assert_eq!(problems.len(), 1, "{problems:?}");
         assert!(problems[0].1.contains("column 2"), "{problems:?}");
+        // "Conversion" holds the word's letters, not the word.
+        let page = "| Conversion factor |\n|---|\n| 0.3048 |\n";
+        assert_eq!(number_columns(page).len(), 1);
     }
 }
