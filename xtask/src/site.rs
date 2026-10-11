@@ -310,7 +310,11 @@ pub fn run(args: &[String]) -> Result<(), String> {
     );
     let vitals = vitals::check(&output, part)?;
     if !vitals.problems.is_empty() {
-        return Err(failure("the pages' vitals", &vitals.problems));
+        let what = format!(
+            "the pages' vitals (the CPU slowed {:.1}×, this machine's BenchmarkIndex {:.0})",
+            vitals.slowdown, vitals.benchmark
+        );
+        return Err(failure(&what, &vitals.problems));
     }
     let [(lcp, lcp_page), (cls, cls_page), (inp, inp_page)] = &vitals.worst;
     println!(

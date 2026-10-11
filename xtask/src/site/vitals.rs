@@ -884,7 +884,7 @@ impl Browser {
             .events
             .iter()
             .max_by(|a, b| a.2.total_cmp(&b.2))
-            .map_or_else(|| "none timed".to_owned(), |e| format!("a `{}`", e.1));
+            .map_or_else(|| "none timed".to_owned(), |e| e.1.clone());
         Ok(Vitals {
             lcp_ms,
             lcp_what: before.lcp_what,

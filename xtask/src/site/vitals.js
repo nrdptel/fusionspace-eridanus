@@ -60,12 +60,20 @@
     state.shifts.push([entry.startTime, entry.value, moved.join(', '), entry.hadRecentInput]);
     state.last = performance.now();
   });
+  // An event's time in INP's three parts (web.dev/articles/optimize-inp): waiting for the page,
+  // running its handlers, and from them to the next frame drawn.
+  function timed(entry) {
+    const ms = function (t) { return Math.round(t) + ' ms'; };
+    return '`' + entry.name + '`: ' + ms(entry.processingStart - entry.startTime) + ' waiting, ' +
+      ms(entry.processingEnd - entry.processingStart) + ' in its handlers, ' +
+      ms(entry.startTime + entry.duration - entry.processingEnd) + ' to the next frame';
+  }
   observe('event', { durationThreshold: 16 }, function (entry) {
-    if (entry.interactionId) state.events.push([entry.interactionId, entry.name, entry.duration]);
+    if (entry.interactionId) state.events.push([entry.interactionId, timed(entry), entry.duration]);
   });
   observe('first-input', {}, function (entry) {
     state.firstInput = true;
-    state.events.push([entry.interactionId || 0, entry.name, entry.duration]);
+    state.events.push([entry.interactionId || 0, timed(entry), entry.duration]);
   });
   // An input has arrived once its last event has run: `pointerup` after a tap, `keyup` after a
   // key (a tap on a label also clicks its control, so clicks would count it twice). Counted at
