@@ -190,7 +190,7 @@ pub enum StreamerModel {
     ///   does not repeat as an equation),
     /// - `C_D = 0.405 AR^−0.494` at `S = 0.075 m²` (eq. 1; Figure 4 reads `0.4046 AR^−0.494`).
     ///
-    /// HPR Sim interpolates between **neighbouring** curves linearly in `ln S` and holds the end
+    /// HPR Sim interpolates between **neighboring** curves linearly in `ln S` and holds the end
     /// curve outside the fitted range. That interpolation is HPR Sim's, not the paper's. All three
     /// are needed because `C_D` is far from linear in `ln S`: at `AR = 3.3` the middle curve sits
     /// 0.3% *below* the smallest area's rather than 63% of the way to the largest's, so blending
@@ -245,7 +245,7 @@ impl StreamerModel {
                     coefficient * aspect_ratio.powf(exponent)
                 };
                 let curves = Self::FILIPPONE_CURVES;
-                // Between two neighbouring curves, linearly in `ln S`; outside, the end curve.
+                // Between two neighboring curves, linearly in `ln S`; outside, the end curve.
                 let coefficient = if planform_m2 <= curves[0].0 {
                     curve(curves[0])
                 } else if planform_m2 >= curves[2].0 {
@@ -3114,7 +3114,7 @@ mod tests {
         //   terminal speeds. A 20.1 m drop averages 0.97 of terminal at 2.8 m/s and 0.89 at
         //   5.9 m/s, so the correction matters most for the model that predicts the fastest fall.
         //   The prediction here is therefore the same average, from the closed-form fall.
-        // - he **normalised** each rate "by dividing by the actual mass of the attached weight
+        // - he **normalized** each rate "by dividing by the actual mass of the attached weight
         //   and multiplying by 5 g", so the rates belong to a notional 5.000 g weight, not to
         //   Table 1's actual one.
         let length_m = 40.0 * 0.0254;
@@ -3123,7 +3123,7 @@ mod tests {
         let rho = 1.225;
         let drop_m = 20.1;
         let cases = [
-            // (material, streamer mass from Table 1, normalised descent rate, pleated)
+            // (material, streamer mass from Table 1, normalized descent rate, pleated)
             ("crepe paper", 3.3206e-3, 2.80, false),
             ("Micafilm", 4.3412e-3, 2.04, true),
         ];

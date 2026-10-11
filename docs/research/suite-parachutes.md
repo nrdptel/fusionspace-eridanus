@@ -22,7 +22,7 @@ nothing here is implemented yet.
 ## The geometry
 
 For a canopy whose meridian has radius r(s) at arc length s, a gore's width at s is the chord
-between neighbouring meridians, 2 r(s) sin(π/N), for N gores, plus a correction for the cloth's
+between neighboring meridians, 2 r(s) sin(π/N), for N gores, plus a correction for the cloth's
 bulge between seams ([Laboratori d'envol](https://www.laboratoridenvol.com/info/parachute/parachute-gore.en.html);
 a hemisphere worked by [Thyssen](https://www.kiteplans.org/planos/hemisphere/hemisphere.html)).
 Two constructions differ. A gore of chord width laid along the meridian, so its seam equals

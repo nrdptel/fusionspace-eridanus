@@ -347,7 +347,7 @@ fn lambert_points_invert_to_their_indices() {
 
 #[test]
 fn lambert_grid_steps_are_the_grid_length_at_the_tangent_latitude() {
-    // Along a row near the tangent latitude the scale factor is 1, so neighbours are 13.545 km
+    // Along a row near the tangent latitude the scale factor is 1, so neighbors are 13.545 km
     // apart on the sphere (haversine), to the square of the offset from 25°.
     let bytes = message(&[
         identification(),
@@ -789,7 +789,7 @@ fn a_given_radius_is_read_with_its_scale() {
 )]
 fn reusing_one_large_bitmap_costs_no_more_per_field() {
     // 20,000 fields over one bitmap of about a million points, the last point's value read from
-    // each: counting the bitmap per field and per value would read 5 GB, seconds even optimised;
+    // each: counting the bitmap per field and per value would read 5 GB, seconds even optimized;
     // the running counts make each a few dozen bytes.
     let (ni, nj) = (1_440_u32, 721_u32);
     let points = ni * nj;

@@ -55,7 +55,7 @@ default nozzle exits, separation-charge push, grain CG shift. The rest:
   European Rocketry Challenge (EuRoC) each define it.
 - SOON: stability judged by shape, by dynamic stability and by competition rules together.
 - SOON: structural loads, fin divergence and canted-fin roll resonance.
-- SOON: aerodynamic heating past Mach 2, labelled lightly validated.
+- SOON: aerodynamic heating past Mach 2, labeled lightly validated.
 - SOON: a tuned model per rocket (a digital twin; Kennedy and O'Hagan's calibration).
 - SOON: two-knob truing: impulse against drag per Mach band, from ballistics.
 - SOON: normalize a flight to standard conditions.

@@ -3,7 +3,7 @@
 **Bottom line:** design experimental solids first. The physics is textbook, demand is proven by
 openMotor, a runnable oracle exists, and the result is a thrust curve hpr already flies. Hybrids
 come next, then liquids, which have the weakest public validation data and the most
-export-control doubt. Flying a user's own thrust curve, labelled uncertified, costs almost
+export-control doubt. Flying a user's own thrust curve, labeled uncertified, costs almost
 nothing and comes before all of it. This note backs the propulsion milestones ([M11.1 to M11.5](../ROADMAP.md),
 [ADR-162, the suite and its releases][adr-162]). Researched 2026-10-04; nothing here is
 implemented. Items marked *unverified* come from search summaries only. Not legal advice.
@@ -71,8 +71,8 @@ implemented. Items marked *unverified* come from search summaries only. Not lega
 
 ## What the simulator needs
 
-A motor's mass becomes parts at their own positions: tank liquid, tank vapour, fuel grain and
-dry hardware. The tank's center of gravity moves as it drains, the vapour keeps burning after the
+A motor's mass becomes parts at their own positions: tank liquid, tank vapor, fuel grain and
+dry hardware. The tank's center of gravity moves as it drains, the vapor keeps burning after the
 liquid runs out, and oxidizer can be left at burnout. Neither motor file format carries this, so
 the hpr format needs a motor document of its own.
 

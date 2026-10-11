@@ -8,7 +8,7 @@
 //! - **the old name:** `hpr-sim`, in any case and with the non-breaking hyphen U+2011 too,
 //!   anywhere in a surface's text, code formatting and link targets included. The packages'
 //!   names since ADR-203, such as `fusionspace-hpr-sim`, are the new name and don't count;
-//! - **a bare `hpr`:** a lowercase (or capitalised) `hpr` standing as a word in a surface's
+//! - **a bare `hpr`:** a lowercase (or capitalized) `hpr` standing as a word in a surface's
 //!   prose, outside code formatting, as in "hpr's apogees". A word joined to it (`hpr-core`,
 //!   `hpr_sim`, `.hpr`, `hpr.fusionspace.co`, `@fusionspace/hpr`, `hpr::sim`) is a name of
 //!   something else. In a string literal, which has no code formatting, `hpr` is the command
@@ -1229,8 +1229,8 @@ fn record_of_row(line: &str) -> Option<u32> {
     let (label, rest) = title.split_once("][adr-")?;
     let (number, _) = rest.split_once(']')?;
     // The link's label is the record's own: `ADR-NNN: its title`, the same number.
-    let (labelled, _) = label.split_once(':')?;
-    (labelled == number && number.len() == 3 && number.bytes().all(|b| b.is_ascii_digit()))
+    let (labeled, _) = label.split_once(':')?;
+    (labeled == number && number.len() == 3 && number.bytes().all(|b| b.is_ascii_digit()))
         .then(|| number.parse().ok())
         .flatten()
 }

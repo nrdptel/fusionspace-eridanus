@@ -2,9 +2,10 @@
 //!
 //! The product system writes US English and never uses an em dash: a colon, a comma or a period
 //! does the job. This check reads every tracked text file under [`SCOPE`] and reports each em dash
-//! and each form of the eight words on [`RULES`]' list (centre, metre, catalogue, licence, colour,
-//! analyse, behaviour, modelling) in the file's *writing*: the prose of a page, and the comments
-//! and string literals of a source file.
+//! and each British form on [`RULES`]' list (centre, metre, catalogue, licence, colour, analyse,
+//! behaviour, modelling since M0.6d; calibre, labelled, neighbour, vapour, fibre, grey and the
+//! rest since M0.9e) or of an [`ISE_STEMS`] word (normalise, optimisation) in the file's
+//! *writing*: the prose of a page, and the comments and string literals of a source file.
 //!
 //! It leaves out four things, each for a reason:
 //!
@@ -73,8 +74,10 @@ const FROZEN: [&str; 3] = [
 
 /// Each misspelling as a lowercase piece of a word, with its US form. A word is checked against
 /// the pieces in this order and takes the first that it contains, so a longer piece comes before
-/// a shorter one it holds ("centred" before "centre").
-const RULES: [(&str, &str); 17] = [
+/// a shorter one it holds ("centred" before "centre"). M0.9e (#386) added the families after
+/// "modeller": the design audit's (calibre, labelled, organisation, optimisation, normalised,
+/// fibreglass, grey, travelled) and the other British forms a survey of the pages found.
+const RULES: &[(&str, &str)] = &[
     ("centred", "centered"),
     ("centring", "centering"),
     ("centre", "center"),
@@ -93,6 +96,154 @@ const RULES: [(&str, &str); 17] = [
     ("modelling", "modeling"),
     ("modelled", "modeled"),
     ("modeller", "modeler"),
+    // -re for -er.
+    ("calibre", "caliber"),
+    ("fibre", "fiber"),
+    ("litre", "liter"),
+    ("theatre", "theater"),
+    ("meagre", "meager"),
+    ("sombre", "somber"),
+    ("manoeuvred", "maneuvered"),
+    ("manoeuvring", "maneuvering"),
+    ("manoeuvre", "maneuver"),
+    // A doubled l before -ed, -ing and -er, where US English keeps one.
+    ("labelled", "labeled"),
+    ("labelling", "labeling"),
+    ("labeller", "labeler"),
+    ("travelled", "traveled"),
+    ("travelling", "traveling"),
+    ("traveller", "traveler"),
+    ("signalled", "signaled"),
+    ("signalling", "signaling"),
+    ("levelled", "leveled"),
+    ("levelling", "leveling"),
+    ("fuelled", "fueled"),
+    ("fuelling", "fueling"),
+    ("totalled", "totaled"),
+    ("totalling", "totaling"),
+    ("channelled", "channeled"),
+    ("channelling", "channeling"),
+    ("tunnelled", "tunneled"),
+    ("dialled", "dialed"),
+    // -our for -or.
+    ("favour", "favor"),
+    ("neighbour", "neighbor"),
+    ("vapour", "vapor"),
+    ("honour", "honor"),
+    ("labour", "labor"),
+    ("humour", "humor"),
+    ("rumour", "rumor"),
+    ("flavour", "flavor"),
+    ("odour", "odor"),
+    ("harbour", "harbor"),
+    ("armour", "armor"),
+    ("endeavour", "endeavor"),
+    ("rigour", "rigor"),
+    ("vigour", "vigor"),
+    ("savour", "savor"),
+    // -ence for -ense.
+    ("defence", "defense"),
+    ("offence", "offense"),
+    ("pretence", "pretense"),
+    // Single words.
+    ("aluminium", "aluminum"),
+    ("grey", "gray"),
+    ("judgement", "judgment"),
+    ("sulphur", "sulfur"),
+    ("ageing", "aging"),
+    // "Programmer" and "programmed" are US forms too; `misspelling` skips them.
+    ("programme", "program"),
+];
+
+/// The stems that British English ends in -ise, -ising and -isation and US English in -ize,
+/// -izing and -ization (M0.9e): `normal` stands for "normalise", "normalised", "normalising",
+/// "normalisation". Only whole stems are listed, so "otherwise", "exercise", "expertise" and
+/// "optimistic" are never read as misspellings.
+const ISE_STEMS: &[&str] = &[
+    "anonym",
+    "apolog",
+    "author",
+    "capital",
+    "categor",
+    "central",
+    "character",
+    "commercial",
+    "critic",
+    "custom",
+    "digit",
+    "discret",
+    "econom",
+    "emphas",
+    "energ",
+    "equal",
+    "familiar",
+    "final",
+    "formal",
+    "general",
+    "global",
+    "harmon",
+    "hypothes",
+    "initial",
+    "item",
+    "legal",
+    "linear",
+    "local",
+    "material",
+    "maxim",
+    "memor",
+    "minim",
+    "mobil",
+    "modern",
+    "neutral",
+    "normal",
+    "optim",
+    "organ",
+    "parameter",
+    "parametr",
+    "penal",
+    "personal",
+    "polar",
+    "priorit",
+    "random",
+    "rational",
+    "real",
+    "recogn",
+    "regular",
+    "sanit",
+    "sensit",
+    "serial",
+    "special",
+    "stabil",
+    "standard",
+    "steril",
+    "subsid",
+    "summar",
+    "symbol",
+    "synchron",
+    "synthes",
+    "theor",
+    "token",
+    "util",
+    "vapor",
+    "vector",
+    "visual",
+];
+
+/// The British endings of an [`ISE_STEMS`] word, each with its US form, longer first.
+const ISE_ENDINGS: [(&str, &str); 4] = [
+    ("isation", "ization"),
+    ("isable", "izable"),
+    ("ising", "izing"),
+    ("ise", "ize"),
+];
+
+/// Words that hold a piece of [`RULES`] and are US forms as they stand.
+const US_AS_THEY_STAND: [&str; 5] = [
+    "analyses",
+    "programmer",
+    "programmed",
+    "sombrero",
+    "greyhound",
 ];
 
 /// Why a match is allowed to stay.
@@ -112,6 +263,72 @@ enum Reason {
 /// The matches allowed to stay: the file, a phrase on one line of it that holds the match, and
 /// why. Every match inside the phrase is allowed, on every line of the file that holds it.
 const ALLOWED: &[(&str, &str, Reason)] = &[
+    // The DEM's credit names its maker, a company (M0.9e).
+    (
+        "crates/hpr-net/src/elevation.rs",
+        "Airbus Defence and Space",
+        Reason::Name,
+    ),
+    (
+        "crates/hpr/examples/site_elevation.output.txt",
+        "Airbus Defence and Space",
+        Reason::Name,
+    ),
+    (
+        "docs/elevation.md",
+        "Airbus Defence and Space",
+        Reason::Name,
+    ),
+    // The census's unit key before M0.9e, still read.
+    (
+        "crates/hpr-validate/src/census.rs",
+        "#[serde(alias = \"calibre\")]",
+        Reason::Key,
+    ),
+    (
+        "crates/hpr-validate/src/census.rs",
+        "wrote the key `calibre`",
+        Reason::Key,
+    ),
+    (
+        "crates/hpr-validate/src/census/tests.rs",
+        "from_str(\"\\\"calibre\\\"\")",
+        Reason::Key,
+    ),
+    // Built-in materials' names before M0.9e, which designs saved then still hold.
+    (
+        "crates/hpr-design/src/materials.rs",
+        "\"Blue Tube 2.0 (vulcanized fibre)\",",
+        Reason::Key,
+    ),
+    (
+        "crates/hpr-design/src/materials.rs",
+        "(\"Carbon fibre/epoxy laminate\",",
+        Reason::Key,
+    ),
+    (
+        "crates/hpr-design/src/materials.rs",
+        "(\"Aluminium 6061\",",
+        Reason::Key,
+    ),
+    (
+        "crates/hpr-design/src/materials.rs",
+        "(\"Aluminium 7075\",",
+        Reason::Key,
+    ),
+    // A book and a chapter cited by their printed titles.
+    (
+        "crates/hpr-analysis/src/optimize/benchmark.rs",
+        "\"The global optimisation",
+        Reason::Title,
+    ),
+    (
+        "crates/hpr-analysis/src/optimize/benchmark.rs",
+        "*Towards Global Optimisation 2*",
+        Reason::Title,
+    ),
+    // SVG's attribute, spelled as the ARIA standard spells it.
+    ("crates/hpr-cli/src/plot.rs", "aria-labelledby", Reason::Key),
     // Two decision records' file names, frozen with the records, which the name check's
     // allowlist names.
     (
@@ -976,12 +1193,27 @@ fn misspelling(token: &str) -> Option<String> {
         return None;
     }
     let lower = token.to_lowercase();
-    if lower.ends_with("analyses") {
+    if US_AS_THEY_STAND.iter().any(|word| lower.contains(word)) {
         return None;
     }
-    let (piece, us) = RULES.iter().find(|(piece, _)| lower.contains(piece))?;
-    let at = lower.find(piece)?;
-    let replaced = format!("{}{us}{}", &lower[..at], &lower[at + piece.len()..]);
+    // The first piece of [`RULES`] the word holds, then an [`ISE_STEMS`] ending on the result, so
+    // "vapourised" reads as "vaporized".
+    let ruled = RULES.iter().find_map(|(piece, us)| {
+        let at = lower.find(piece)?;
+        Some(format!(
+            "{}{us}{}",
+            &lower[..at],
+            &lower[at + piece.len()..]
+        ))
+    });
+    let word = ruled.as_deref().unwrap_or(&lower);
+    let ised = ISE_STEMS.iter().find_map(|stem| {
+        ISE_ENDINGS.iter().find_map(|(uk, us)| {
+            let at = word.find(&format!("{stem}{uk}"))? + stem.len();
+            Some(format!("{}{us}{}", &word[..at], &word[at + uk.len()..]))
+        })
+    });
+    let replaced = ised.or(ruled)?;
     Some(if token.chars().all(|c| !c.is_lowercase()) {
         replaced.to_uppercase()
     } else if token.chars().next().is_some_and(char::is_uppercase) {
@@ -1247,12 +1479,63 @@ mod tests {
             ("modelling", "modeling"),
             ("modelled", "modeled"),
             ("CENTRE", "CENTER"),
+            // The design audit's forms (M0.9e, #386).
+            ("calibres", "calibers"),
+            ("Calibre", "Caliber"),
+            ("labelled", "labeled"),
+            ("organisations", "organizations"),
+            ("optimisation", "optimization"),
+            ("normalised", "normalized"),
+            ("fibreglass", "fiberglass"),
+            ("grey", "gray"),
+            ("travelled", "traveled"),
+            // The rest of M0.9e's list, a form of each kind.
+            ("neighbouring", "neighboring"),
+            ("vapour", "vapor"),
+            ("Defence", "Defense"),
+            ("aluminium", "aluminum"),
+            ("judgement", "judgment"),
+            ("manoeuvred", "maneuvered"),
+            ("programmes", "programs"),
+            ("ageing", "aging"),
+            // The -ise stems, every ending, with the case kept.
+            ("Normalised", "Normalized"),
+            ("OPTIMISATION", "OPTIMIZATION"),
+            ("summarising", "summarizing"),
+            ("recognisable", "recognizable"),
+            ("anonymise", "anonymize"),
+            // A piece of the list, then an -ise ending on what it gives.
+            ("vapourised", "vaporized"),
         ];
         for (uk, us) in cases {
             assert_eq!(misspelling(uk).as_deref(), Some(us), "{uk}");
         }
         for fine in [
-            "center", "analysis", "analyses", "model", "modeling", "meter", "diameter",
+            "center",
+            "analysis",
+            "analyses",
+            "model",
+            "modeling",
+            "meter",
+            "diameter",
+            // Whole stems only: these hold "-ise" or a stem and are US English.
+            "otherwise",
+            "exercise",
+            "expertise",
+            "advertise",
+            "premise",
+            "optimistic",
+            "characteristic",
+            "organism",
+            "realistic",
+            "emphasis",
+            "itemized",
+            // US forms as they stand that hold a piece of the list.
+            "programmer",
+            "programmed",
+            "sombrero",
+            "greyhound",
+            "polystyrene",
         ] {
             assert_eq!(misspelling(fine), None, "{fine}");
         }

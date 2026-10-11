@@ -12,7 +12,7 @@ LOC Precision LP-36-2022                     70.7
 structure                                   430.1
 
 At liftoff: 0.760 kg, center of gravity 0.728 m from the nose,
-stability margin 1.07 calibres at Mach 0.3.
+stability margin 1.07 calibers at Mach 0.3.
 
 Rail exit:  30.0 m/s
 Apogee:     1119.3 m above the pad, at 11.77 s

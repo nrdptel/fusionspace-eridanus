@@ -72,7 +72,7 @@ q′ = Σ_{n≥1} (−1)^(n+1) 6 ε^(2n)    / ((2n+1)(2n+3))
 **Check.** These reproduce the printed values to their last digit:
 
 | quantity | value | printed in |
-|---|---|---|
+|---|--:|---|
 | `q₀` | 7.334625787083e-5 | eq. B-18 |
 | `q₀′` | 2.688041300461e-3 | eq. B-19 |
 | `γ_e` | 9.7803253359 m/s² | Table 3.6 |

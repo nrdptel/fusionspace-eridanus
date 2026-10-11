@@ -8,6 +8,8 @@ edition = "2024"
 rust-version = "1.98.1"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/nrdptel/fusionspace-eridanus"
+# The project README, shown on each published crate's crates.io page (M0.9e, #387).
+readme = "README.md"
 
 [workspace.dependencies]
 # Workspace crates. Crates in the pure core must not depend on hpr-net, hpr-cli, hpr-py, hpr-ffi

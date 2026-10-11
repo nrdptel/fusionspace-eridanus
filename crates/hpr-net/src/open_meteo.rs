@@ -41,7 +41,7 @@
 //! `tests/open_meteo.rs`). Directions are the meteorological convention, the direction the wind
 //! blows from, clockwise from north. Relative humidity is taken as over liquid water, which is
 //! what [`SoundingLevel`] means by it. A model that reports it over ice at cold levels shifts the
-//! air's density there by `0.378 (e_w − e_i)/p`: at most 27 Pa of vapour pressure (near −12 °C),
+//! air's density there by `0.378 (e_w − e_i)/p`: at most 27 Pa of vapor pressure (near −12 °C),
 //! so under 0.03% at 400 hPa. Higher up the air is colder and the gap smaller: about 6 Pa at
 //! −40 °C, 0.08% even at 30 hPa.
 //!

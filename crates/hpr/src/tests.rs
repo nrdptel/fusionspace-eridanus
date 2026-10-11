@@ -231,7 +231,7 @@ fn the_builder_makes_the_rocket_own_rocket_builds_by_hand() {
     assert_eq!(a.layout.length_m, b.layout.length_m);
     assert_eq!(a.layout.reference_diameter_m, b.layout.reference_diameter_m);
 
-    // The example prints this margin: 1.92 calibres at liftoff, CP 0.779 m from the nose.
+    // The example prints this margin: 1.92 calibers at liftoff, CP 0.779 m from the nose.
     let margin = rocket.margin(0.0, 0.3).unwrap();
     assert_eq!(format!("{:.2}", margin.margin_cal.unwrap()), "1.92");
     assert_eq!(format!("{:.3}", margin.cp_station_m.unwrap()), "0.779");

@@ -630,7 +630,7 @@ fn a_time_without_its_zone_is_refused() {
 /// With `--from`, the options that choose which answer to fetch are refused rather than ignored:
 /// the saved answer says where and when it is for, and nothing could check it against them.
 #[test]
-fn options_a_saved_answer_cant_honour_are_refused() {
+fn options_a_saved_answer_cant_honor_are_refused() {
     let scratch = tempfile::tempdir().unwrap();
     let om = recording("open-meteo-historical.json");
     let wy = recording("wyoming-72364-fm35.csv");

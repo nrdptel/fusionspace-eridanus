@@ -8,16 +8,16 @@ checks them with every motor you might use, and says how far to trust them.** It
 preparing a certification flight; the rules it quotes are Level 1's. HPR Sim gives no verdict: the
 safety codes ask *you* to check stability, and the range safety officer (RSO) and your certifying
 member decide. HPR Sim's margin at rod clearance agrees with OpenRocket 24.12's to within 0.016
-[calibres](glossary.md#calibre-caliber) on 41 of OpenRocket's 53 example flights, but no margin
+[calibers](glossary.md#caliber) on 41 of OpenRocket's 53 example flights, but no margin
 of HPR Sim's has been checked against a measured rocket. On OpenRocket's two pod examples it reads
-0.07 calibres above OpenRocket's, and near the speed of sound its flight margin reads high
+0.07 calibers above OpenRocket's, and near the speed of sound its flight margin reads high
 ([accuracy of the margin](#accuracy-of-the-margin)). The outputs on this page
 are made by running each command, and CI checks that they still match what `hpr` prints.
 
 > **How far to trust it.** A computed margin, compared with OpenRocket's, not with a measured
 > rocket. Both programs start from Barrowman's method, so agreement says HPR Sim computes it as
 > OpenRocket does, not that either is right ([Accuracy](accuracy.md#the-census)). On OpenRocket's
-> examples it is within 0.016 calibres on 41 of 53 flights. It reads up to 0.1108 calibres above
+> examples it is within 0.016 calibers on 41 of 53 flights. It reads up to 0.1108 calibers above
 > OpenRocket's on private designs, and high near the speed of sound: the flattering side, so leave
 > room for it near any limit. On a design with tube fins, pods or freeform fins, check the margin
 > in both programs and treat the smaller as the more cautious figure, not a bound.
@@ -34,7 +34,7 @@ The steps:
 ## What the rules ask
 
 **The safety codes require a stability check, but name no margin.** The words below are the
-organisations' own, read on 2026-10-04; check their current pages before your flight. This is not
+organizations' own, read on 2026-10-04; check their current pages before your flight. This is not
 legal or regulatory advice.
 
 - The NAR's [High Power Rocket Safety Code](https://nar.org/content.aspx?page_id=22&club_id=114127&module_id=669238)
@@ -55,7 +55,7 @@ points, as the rocket leaves the rail, and their separation; `--json` and `--exp
 ## Read the margin
 
 **The `static margin` line is the distance from the center of gravity back to the center of
-pressure, in body diameters (calibres), as the rocket leaves the rail; then its least value up to
+pressure, in body diameters (calibers), as the rocket leaves the rail; then its least value up to
 apogee.** A positive margin turns the nose back into the oncoming air when the rocket is disturbed
 ([stability margin](glossary.md#stability-margin)). This flies the guides' own rocket,
 [`level-1.ork`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/guides/level-1.ork),
@@ -70,7 +70,7 @@ configuration 1 of 2: [H170M-10]
 help: --config flies the others, by number or name: 2 [I175WS-9]
 a simulated flight, not a measurement
 
-static margin         1.70 calibres off the rail; least 1.70 calibres, at 0.12 s, before apogee
+static margin         1.70 calibers off the rail; least 1.70 calibers, at 0.12 s, before apogee
 CG and CP             0.811 m (31.9 in) and 0.923 m (36.3 in) aft of the nose tip, off the rail
 apogee                1065.1 m (3494 ft) above the site at 11.62 s
 rail exit speed       26.3 m/s (86 ft/s)
@@ -84,7 +84,7 @@ note: the file's 1 recovery device flies as OpenRocket flies it: each opens full
 warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.84 at 1.7 s (https://github.com/nrdptel/fusionspace-eridanus/issues/67)
 warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.84 at 1.7 s (https://github.com/nrdptel/fusionspace-eridanus/issues/68)
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
-warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
+warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 event                   time                 height                    speed
 liftoff               0.00 s      0.4 m      (1 ft)     0.0 m/s     (0 ft/s)
@@ -110,7 +110,7 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 <!-- cli: end -->
 
-A calibre here is the rocket's widest body diameter, 66 mm (2.6 in), so a margin of 1.70 calibres puts the
+A caliber here is the rocket's widest body diameter, 66 mm (2.6 in), so a margin of 1.70 calibers puts the
 center of pressure 1.70 × 66 mm ≈ 112 mm (4.4 in) behind the center of gravity. The `CG and CP` line gives
 the two points it came from, measured from the nose tip in meters and inches: 0.811 m (31.9 in) and
 0.923 m (36.3 in), 112 mm (4.4 in) apart. They are the stations as the rocket leaves the rail, 0.12 s into
@@ -141,7 +141,7 @@ configuration 2 of 2: [I175WS-9]
 help: --config flies the others, by number or name: 1 [H170M-10]
 a simulated flight, not a measurement
 
-static margin         1.67 calibres off the rail; least 1.67 calibres, at 0.14 s, before apogee
+static margin         1.67 calibers off the rail; least 1.67 calibers, at 0.14 s, before apogee
 CG and CP             0.813 m (32.0 in) and 0.923 m (36.3 in) aft of the nose tip, off the rail
 apogee                1100.7 m (3611 ft) above the site at 11.48 s
 rail exit speed       28.9 m/s (95 ft/s)
@@ -155,7 +155,7 @@ note: the file's 1 recovery device flies as OpenRocket flies it: each opens full
 warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.83 at 1.8 s (https://github.com/nrdptel/fusionspace-eridanus/issues/67)
 warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.83 at 1.8 s (https://github.com/nrdptel/fusionspace-eridanus/issues/68)
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
-warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
+warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 event                   time                 height                    speed
 liftoff               0.02 s      0.4 m      (1 ft)     0.0 m/s     (0 ft/s)
@@ -188,8 +188,8 @@ where the guidance below asks for more.
 
 ## Compare with published guidance
 
-**Published rules of thumb set a lower bound of one calibre, and more for fast flights; these are
-the sources' guidance, not the simulator's judgement.**
+**Published rules of thumb set a lower bound of one caliber, and more for fast flights; these are
+the sources' guidance, not the simulator's judgment.**
 
 - James Barrowman, who devised the standard way to find the center of pressure, wrote: "A good
   rule of thumb is to have the static margin equal to the largest diameter of the rocket", and
@@ -247,19 +247,19 @@ then rests on your rocket's measured mass, not the drawing's.
 
 The margin's checks, case by case:
 
-- **OpenRocket's examples:** within 0.016 calibres on 41 of 53 flights, with HPR Sim's margin taken
+- **OpenRocket's examples:** within 0.016 calibers on 41 of 53 flights, with HPR Sim's margin taken
   with the air along the rocket's axis, as OpenRocket's is. The margin `hpr sim` prints is the
   weakest plane's, which on a rocket with a fin set of one or two fins can be lower.
-- **The three-stage example:** on its three flights HPR Sim's margin is 0.039 to 0.058 calibres
-  below OpenRocket's. HPR Sim's center of mass at rod clearance sits 0.043 to 0.062 calibres further
+- **The three-stage example:** on its three flights HPR Sim's margin is 0.039 to 0.058 calibers
+  below OpenRocket's. HPR Sim's center of mass at rod clearance sits 0.043 to 0.062 calibers further
   aft than OpenRocket's there, where OpenRocket's recorded mass reads light
   ([#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185)); that cause is not yet sized.
-- **The tube-fin example:** a rocket with tube fins is 1.08 calibres below OpenRocket's: HPR Sim
-  gives 0.79 calibres to OpenRocket's 1.87.
+- **The tube-fin example:** a rocket with tube fins is 1.08 calibers below OpenRocket's: HPR Sim
+  gives 0.79 calibers to OpenRocket's 1.87.
   Neither program has been checked against a measured tube-fin rocket; check such a design in both
   and treat the smaller margin as the more cautious figure, not a bound.
 - **The pods-and-winglets example:** on the five flights of *Pods--airframes and winglets*,
-  HPR Sim's margin is 0.071 to 0.076 calibres *above* OpenRocket's, the flattering side: HPR Sim
+  HPR Sim's margin is 0.071 to 0.076 calibers *above* OpenRocket's, the flattering side: HPR Sim
   calls the rocket more stable than OpenRocket does. Two causes are open: how the two programs count fins
   that interfere across sets ([#325](https://github.com/nrdptel/fusionspace-eridanus/issues/325)), and the
   center of pressure of its kinked freeform wings
@@ -267,10 +267,10 @@ The margin's checks, case by case:
   station, more than four fins between them, warns of #325, and a flight with a freeform fin
   set warns of #326. On a design with pods or freeform
   fins, check the margin in both and treat the smaller as the more cautious figure, not a bound.
-  The three flights of *Pods--powered with recovery deployment* read 0.070 calibres above
+  The three flights of *Pods--powered with recovery deployment* read 0.070 calibers above
   OpenRocket's too, cause not yet traced.
-- **Private designs:** on 35 flights of 11 designs, HPR Sim's margin runs from 0.0166 calibres below
-  OpenRocket's to 0.1108 above. Four designs read 0.0350 to 0.1108 calibres more stable in HPR Sim
+- **Private designs:** on 35 flights of 11 designs, HPR Sim's margin runs from 0.0166 calibers below
+  OpenRocket's to 0.1108 above. Four designs read 0.0350 to 0.1108 calibers more stable in HPR Sim
   than in OpenRocket, none with a measured cause yet
   ([#172](https://github.com/nrdptel/fusionspace-eridanus/issues/172) and
   [#186](https://github.com/nrdptel/fusionspace-eridanus/issues/186), two of the open causes;
@@ -278,7 +278,7 @@ The margin's checks, case by case:
   from a tilted rod, reads 0.0125 to 0.0366 above, most of it traced to the tilt. Reading more
   stable is the flattering side, so leave room for it near any limit.
 - **Near the speed of sound:** between Mach 0.8 and 1.2, HPR Sim's center of pressure is up to 2.36
-  calibres behind NASA's wind-tunnel data, and wherever it misses by more than half a calibre it
+  calibers behind NASA's wind-tunnel data, and wherever it misses by more than half a caliber it
   sits behind, so the flight margin there reads high: the flattering side
   ([Known gaps](accuracy.md#known-gaps)). The static margin is computed at Mach 0, so it says
   nothing about the rocket's stability in that range; use the transonic guidance

@@ -6,6 +6,7 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+readme.workspace = true
 
 # The commands, their output types and the registry the README's command table is generated from.
 # The binary is a thin `main` over `hpr_cli::run`, so tests and `cargo xtask cli` run the same code.

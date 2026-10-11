@@ -238,7 +238,7 @@ impl Variable {
     /// The value the model is given for a draw `x`: `x` itself, or for an integer variable the
     /// whole number nearest `x`, a draw halfway between two going to the lower, clamped to the
     /// bounds. These are the *encoding* of R. Hamano et al., "CMA-ES with Margin", GECCO 2022
-    /// (arXiv:2205.13482, §4.1, p. 5), with thresholds halfway between neighbouring values. NaN
+    /// (arXiv:2205.13482, §4.1, p. 5), with thresholds halfway between neighboring values. NaN
     /// stays NaN (a run stops before it would draw one).
     pub fn encode(&self, x: f64) -> f64 {
         if self.integer {
@@ -539,7 +539,7 @@ mod tests {
             // Bits, so that −0 isn't taken for 0.
             assert_eq!(k.encode(x).to_bits(), value.to_bits(), "{x}");
         }
-        // Up to 2⁵², where `x − 0.5` would round to an even neighbour; past it, clamped.
+        // Up to 2⁵², where `x − 0.5` would round to an even neighbor; past it, clamped.
         let wide = Variable::new("k", 0.0, 1.0)
             .unwrap()
             .within(-MAX_WHOLE, MAX_WHOLE)

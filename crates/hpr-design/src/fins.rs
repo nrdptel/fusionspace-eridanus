@@ -999,11 +999,11 @@ impl TubeFinSet {
     pub const MAX_COUNT: u32 = 64;
 
     /// The outer radius of `count` tubes that close the ring around a body of radius
-    /// `body_radius_m`, each touching the body and its two neighbours, which is the radius
+    /// `body_radius_m`, each touching the body and its two neighbors, which is the radius
     /// OpenRocket 24.12 gives a tube fin set written `auto` ([ADR-098][adr-098]).
     ///
     /// The axes of `N` tubes of radius `r` sit on a circle of radius `R + r`, `2π/N` apart, so
-    /// neighbouring axes are a chord `2(R + r) sin(π/N)` apart. Touching means that chord is `2r`:
+    /// neighboring axes are a chord `2(R + r) sin(π/N)` apart. Touching means that chord is `2r`:
     ///
     /// `r = R sin(π/N) / (1 − sin(π/N))`.
     ///
@@ -1447,18 +1447,18 @@ mod tests {
     }
 
     #[test]
-    fn a_closing_ring_of_tubes_touches_the_body_and_its_neighbours() {
+    fn a_closing_ring_of_tubes_touches_the_body_and_its_neighbors() {
         let body = 0.05;
         for count in 3..=12 {
             let r = TubeFinSet::closing_radius_m(body, count);
             assert!(r > 0.0 && r.is_finite(), "{count}: {r}");
-            // Neighbouring axes, on the circle of radius R + r, are 2r apart: the tubes touch.
+            // Neighboring axes, on the circle of radius R + r, are 2r apart: the tubes touch.
             let step = 2.0 * PI / f64::from(count);
             let (a, b) = (
                 DVec3::new(body + r, 0.0, 0.0),
                 DVec3::new((body + r) * step.cos(), (body + r) * step.sin(), 0.0),
             );
-            close(a.distance(b), 2.0 * r, 1e-14, "neighbours touch");
+            close(a.distance(b), 2.0 * r, 1e-14, "neighbors touch");
         }
         // Six tubes are as wide as the body; four much wider, eight narrower.
         close(TubeFinSet::closing_radius_m(body, 6), body, 1e-15, "six");

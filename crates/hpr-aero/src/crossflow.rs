@@ -27,7 +27,7 @@
 //!   and 6 "in lieu of better information" (p. 18); past 1.6, `η` "probably can be assumed to be
 //!   unity" (p. 17), and HPR Sim holds the last point, 0.984.
 //!
-//! **Combining the two `η`s, a judgement.** Fig. 6 holds for bodies of fineness 10 to 12 only.
+//! **Combining the two `η`s, a judgment.** Fig. 6 holds for bodies of fineness 10 to 12 only.
 //! For another fineness `f`, HPR Sim scales Fig. 6's `η` by how much longer or shorter Fig. 4 makes
 //! the body, and lets that scaling fade as the crossflow speeds up, by the share `s` Fig. 6's own
 //! bodies have risen toward 1:

@@ -737,7 +737,7 @@ fn inner_tube(tag: &str, values: &mut Values<'_>, auto: &mut Vec<AutoDimension>)
 /// A clustered tube's places ([`InnerTube::cluster_m`]), or none for one tube.
 ///
 /// `clusterconfiguration` names one of OpenRocket's patterns ([`cluster_pattern`]), whose points
-/// are in units of the separation between neighbouring tubes' axes: `2 R s`, for the tube's outer
+/// are in units of the separation between neighboring tubes' axes: `2 R s`, for the tube's outer
 /// radius `R` and `clusterscale` `s` (1 unless written), so tubes of scale 1 touch. The pattern is
 /// turned by the tube's roll angle `θ` less `clusterrotation` `ρ` (degrees, as every `.ork` angle):
 ///
@@ -786,7 +786,7 @@ fn cluster(values: &mut Values<'_>, outer_radius_m: f64, angle_rad: f64) -> Vec<
 }
 
 /// OpenRocket's cluster pattern called `name` in a `.ork`: each tube's place in units of the
-/// separation between neighbouring tubes' axes, in the order OpenRocket lists them. These are the
+/// separation between neighboring tubes' axes, in the order OpenRocket lists them. These are the
 /// points OpenRocket 24.12 gives, as measured by `validation/oracles/openrocket/clusters.py`
 /// (`validation/fixtures/ork/openrocket-clusters.json`), written as the figures they are: rows
 /// one apart, a triangle and a square of side one, rings of radius one round a center tube (the

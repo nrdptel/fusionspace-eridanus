@@ -441,6 +441,98 @@ mod tests {
         }
     }
 
+    /// The READMEs in `writing.md`'s order (*READMEs and docs*, #387): what it is, then a status
+    /// in a drawing word (`principles.md` §7) with the version, what works and what doesn't,
+    /// how to install it, where the details are, and last the license with the designation and
+    /// the version. Every published crate shows the project README on crates.io.
+    #[test]
+    fn the_readmes_follow_the_writing_order_with_the_version() {
+        let root = root();
+        let workspace = read(&root.join("Cargo.toml"));
+        let version = workspace["workspace"]["package"]["version"]
+            .as_str()
+            .unwrap();
+        let licensed = format!("`FS-ACHERNAR · SW · TOOL 001` · version {version} · part of");
+        let readmes: [(&str, &[&str]); 2] = [
+            (
+                "README.md",
+                &[
+                    "## What works today",
+                    "## What doesn't work yet",
+                    "## Install and first flight",
+                    "## Where the details are",
+                    "## License",
+                ],
+            ),
+            (
+                "crates/hpr-py/README.md",
+                &[
+                    "## What works today",
+                    "## What doesn't work yet",
+                    "## Install",
+                    "## Where the details are",
+                    "## License",
+                ],
+            ),
+        ];
+        for (path, order) in readmes {
+            let text = fs::read_to_string(root.join(path)).unwrap();
+            // The sections' headings, not a `## ` line inside a fenced block.
+            let mut fenced = false;
+            let headings: Vec<&str> = text
+                .lines()
+                .filter(|line| {
+                    if line.starts_with("```") {
+                        fenced = !fenced;
+                    }
+                    !fenced && line.starts_with("## ")
+                })
+                .collect();
+            let mut at = 0;
+            for heading in order {
+                let found = headings[at..].iter().position(|h| h == heading);
+                assert!(
+                    found.is_some(),
+                    "{path}: `{heading}` missing or out of order"
+                );
+                at += found.unwrap_or_default() + 1;
+            }
+            assert_eq!(
+                headings.last(),
+                order.last(),
+                "{path}: the license comes last"
+            );
+            let before_sections = text.split("\n## ").next().unwrap_or_default();
+            let status = before_sections
+                .lines()
+                .find(|line| line.starts_with("**Status: "))
+                .unwrap_or_else(|| panic!("{path}: no status before the first section"));
+            assert!(
+                ["IN PREPARATION", "RELEASED", "WITHDRAWN"]
+                    .iter()
+                    .any(|word| status.starts_with(&format!("**Status: {word}.**"))),
+                "{path}: the status is not a drawing word: {status}"
+            );
+            assert!(
+                status.contains(&format!("Version {version},")),
+                "{path}: the status doesn't give version {version}"
+            );
+            let license = text.rsplit("\n## License\n").next().unwrap_or_default();
+            assert!(license.contains(&licensed), "{path}: no `{licensed}`");
+        }
+        assert_eq!(
+            workspace["workspace"]["package"]["readme"].as_str(),
+            Some("README.md")
+        );
+        for (name, manifest) in manifests().iter().filter(|(_, m)| publishes(m)) {
+            assert_eq!(
+                manifest["package"]["readme"].get("workspace"),
+                Some(&Value::Boolean(true)),
+                "{name} doesn't show the project README"
+            );
+        }
+    }
+
     /// ADR-199 §2 and §4: the names of the packages, the release and the pages.
     #[test]
     fn every_name_a_user_meets_is_fusionspace_hprs() {

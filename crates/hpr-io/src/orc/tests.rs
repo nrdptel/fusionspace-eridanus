@@ -59,7 +59,7 @@ fn every_bundled_file_reads_with_only_the_known_warnings() {
     // diameter (no nose cone field), three parts state their description twice, three name a
     // material their file doesn't define, three tube-like parts are wider inside than out, three
     // solids are lighter than air (a paper in two files that no part stating a mass uses, and an
-    // elastic), and six ripstop nylons are labelled `g/m2` (five in `generic_materials.orc`,
+    // elastic), and six ripstop nylons are labeled `g/m2` (five in `generic_materials.orc`,
     // which no part uses, and Giant Leap's, whose six canopies state their mass).
     let count = |kind: WarningKind, needle: &str| {
         warnings
@@ -802,7 +802,7 @@ fn a_material_is_found_by_its_kind_and_its_name() {
 
 #[test]
 fn implausible_values_are_read_as_written_with_a_warning() {
-    // A canopy fabric labelled g/m² whose number is plainly kg/m², as in the bundled files.
+    // A canopy fabric labeled g/m² whose number is plainly kg/m², as in the bundled files.
     let text = file(
         "<Material UnitsOfMeasure=\"g/m2\"><Name>Nylon</Name><Density>0.067</Density>\
          <Type>SURFACE</Type></Material>",

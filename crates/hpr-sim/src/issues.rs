@@ -39,7 +39,7 @@
 //! | [#219][i219] | HPR Sim flies the moment the thrust makes about a center of gravity off the axis; OpenRocket doesn't, and no reference sizes it | the center of gravity more than [`OFF_AXIS_CG_LIMIT_M`] off the axis at launch, at a motor's ignition or burnout, at a separation, or fully burnt, on the stack or a sustainer ([`center_of_gravity_issue_warnings`]) |
 //! | [#213][i213] | a single pod's drag and normal force act on the axis, so their trim and roll are left out | a pod set of one pod off the axis that holds a part ([`pod_issue_warnings`]) |
 //! | [#106][i106] | a body part's pitch and yaw damping is sampled away from its own center of pressure | the shock-expansion join, past its start on the stack or on a sustainer, each by its own join and its own top speed ([`body_station_issue_warnings`]) |
-//! | [#8][i8] | a near-calm wind level's direction still swings the interpolated direction | a tabulated level at or below [`NEAR_CALM_WIND_M_S`] turning against its neighbour, inside the flight's heights ([`wind_issue_warnings`]) |
+//! | [#8][i8] | a near-calm wind level's direction still swings the interpolated direction | a tabulated level at or below [`NEAR_CALM_WIND_M_S`] turning against its neighbor, inside the flight's heights ([`wind_issue_warnings`]) |
 //!
 //! Each Mach edge is exclusive, as the envelope's are ([`crate::envelope`]): a flight whose top
 //! Mach number is exactly at an edge raises nothing, and a NaN top Mach number raises every
@@ -118,8 +118,8 @@ pub const STEEP_BOATTAIL_RAD: f64 = 10.0_f64.to_radians();
 /// shock-expansion method joins slender-body theory ([`hpr_aero::SUPERSONIC_JOIN_START_MACH`]).
 pub const SUPERSONIC_SWITCH_MACH: f64 = hpr_aero::SUPERSONIC_JOIN_START_MACH;
 
-/// How far the static margin read high against OpenRocket 24.12, calibres: the largest gap on
-/// the private designs, 0.1108 (four designs read 0.0350 to 0.1108 calibres more stable in HPR Sim,
+/// How far the static margin read high against OpenRocket 24.12, calibers: the largest gap on
+/// the private designs, 0.1108 (four designs read 0.0350 to 0.1108 calibers more stable in HPR Sim,
 /// none with a measured cause; *Accuracy of the margin* on
 /// [the stability page](https://hpr.fusionspace.co/stability-for-certification.html#accuracy-of-the-margin),
 /// [issue #172](https://github.com/nrdptel/fusionspace-eridanus/issues/172)).
@@ -150,7 +150,7 @@ pub const SUBSONIC_BOATTAIL_RULE_RAD: f64 = 0.165_148_677_414_626_83;
 pub const FINS_WITHOUT_INTERFERENCE: u32 = 4;
 
 /// How much of the margin gap on OpenRocket's *Pods--airframes and winglets* example counting
-/// fin sets apart explains, calibres: about 0.029 of 0.071 to 0.076
+/// fin sets apart explains, calibers: about 0.029 of 0.071 to 0.076
 /// ([issue #325](https://github.com/nrdptel/fusionspace-eridanus/issues/325)).
 pub const FIN_SETS_AT_ONE_STATION_CAL: f64 = 0.029;
 
@@ -161,7 +161,7 @@ pub const FIN_SETS_AT_ONE_STATION_CAL: f64 = 0.029;
 /// rule for when a surface is too rough to stay laminar, so every flight on HPR Sim's drag warns.
 pub const LAMINAR_FRICTION_PERCENT: f64 = 3.6;
 
-/// The share of the static margin, calibres, that a kinked freeform fin's center of pressure
+/// The share of the static margin, calibers, that a kinked freeform fin's center of pressure
 /// takes on OpenRocket's *Pods--airframes and winglets* example, where HPR Sim's sits 1.6 mm aft of
 /// OpenRocket 24.12's ([issue #326](https://github.com/nrdptel/fusionspace-eridanus/issues/326)). Unprobed on
 /// other outlines, so every freeform fin set warns.
@@ -242,7 +242,7 @@ pub enum KnownIssue {
     /// tables' 30° does the same.
     SteepTipFallback,
     /// [#172](https://github.com/nrdptel/fusionspace-eridanus/issues/172): the static margin read up to
-    /// 0.1108 calibres higher than OpenRocket's on four private designs, cause unknown.
+    /// 0.1108 calibers higher than OpenRocket's on four private designs, cause unknown.
     MarginReadsHigh,
     /// [#64](https://github.com/nrdptel/fusionspace-eridanus/issues/64): a fin whose leading edge sweeps
     /// forward takes a supersonic normal-force slope that rises past linear theory's start,
@@ -281,7 +281,7 @@ pub enum KnownIssue {
     /// pressure ([`hpr_aero::AeroModel::component_station_m`]).
     BodyDampingStation,
     /// [#8](https://github.com/nrdptel/fusionspace-eridanus/issues/8): a tabulated wind level near calm still
-    /// swings the direction interpolated between it and its neighbour.
+    /// swings the direction interpolated between it and its neighbor.
     NearCalmWindDirection,
 }
 
@@ -578,7 +578,7 @@ impl IssueWarning {
                 )
             }
             KnownIssue::MarginReadsHigh => format!(
-                "the static margin read up to {MARGIN_HIGH_BOUND_CAL} calibres higher than \
+                "the static margin read up to {MARGIN_HIGH_BOUND_CAL} calibers higher than \
                  OpenRocket's on four private designs, for a reason not yet found, so this \
                  flight's margin may read high by as much"
             ),
@@ -598,7 +598,7 @@ impl IssueWarning {
             KnownIssue::FinSetsAtOneStation => format!(
                 "fin sets that share a station, more than {FINS_WITHOUT_INTERFERENCE} fins between \
                  them, are each counted alone for fin–fin interference, where OpenRocket counts \
-                 them together (about {FIN_SETS_AT_ONE_STATION_CAL} calibres of margin on its pods \
+                 them together (about {FIN_SETS_AT_ONE_STATION_CAL} calibers of margin on its pods \
                  example), so the margin may read high"
             ),
             KnownIssue::TurbulentFriction => format!(
@@ -609,7 +609,7 @@ impl IssueWarning {
             ),
             KnownIssue::FreeformFinCenterOfPressure => format!(
                 "a kinked freeform fin's center of pressure sat 1.6 mm aft of OpenRocket's \
-                 (about {FREEFORM_FIN_MARGIN_CAL} calibres of margin on its pods example) and \
+                 (about {FREEFORM_FIN_MARGIN_CAL} calibers of margin on its pods example) and \
                  other freeform outlines are unprobed, so the margin may read high"
             ),
             KnownIssue::BoosterAirframeDrag => "a booster dropped at a separation flies on as a \
@@ -670,7 +670,7 @@ impl IssueWarning {
                 format!(
                     "where the shock-expansion method joins slender-body theory, {span}, a body \
                      part's pitch and yaw damping is sampled at a station away from its own center \
-                     of pressure (4.7 calibres apart at Mach 1.3 on a 54 mm test rocket). The static and \
+                     of pressure (4.7 calibers apart at Mach 1.3 on a 54 mm test rocket). The static and \
                      flight margins don't use the station, but the apogee and the drift may lean \
                      either way, and nothing bounds by how much"
                 )
@@ -1115,7 +1115,7 @@ pub fn highest_height_m(result: &FlightResult) -> f64 {
 /// The wind's issue a flight meets ([#8][i8], [ADR-201][adr-201]): the spans of a tabulated wind
 /// over which its direction is interpolated between two levels ([`hpr_atmos::Wind::direction_turns`])
 /// where the direction still swings although a level is near calm, inside the flight's heights.
-/// A span counts when neither level's speed is exactly 0 (a calm level takes its neighbour's
+/// A span counts when neither level's speed is exactly 0 (a calm level takes its neighbor's
 /// direction, so nothing turns), at least one is at or below [`NEAR_CALM_WIND_M_S`], their
 /// directions differ, and the span reaches inside `heights_msl_m`, the flight's lowest and highest
 /// heights above mean sea level, as a wind is read: the ground and the highest point any body
@@ -1698,7 +1698,7 @@ mod tests {
         assert_eq!(numbers, vec![172]);
         assert!(stability_issue_warnings(None, None, at(0.3)).is_empty());
         let message = stability_issue_warnings(None, margin, at(0.3))[0].message();
-        assert!(message.contains("0.1108 calibres"), "{message}");
+        assert!(message.contains("0.1108 calibers"), "{message}");
         assert!(message.contains("four private designs"), "{message}");
     }
 
@@ -1934,7 +1934,7 @@ mod tests {
         assert_eq!(warning.parts.len(), 1);
         let message = warning.message();
         assert!(message.contains("issue #326"), "{message}");
-        assert!(message.contains("0.047 calibres"), "{message}");
+        assert!(message.contains("0.047 calibers"), "{message}");
         assert!(!message.contains("this flight reaches"), "{message}");
         assert!(KnownIssue::FreeformFinCenterOfPressure.is_stability());
         // The same design's trapezoid and an ellipse never.
@@ -2281,7 +2281,7 @@ mod tests {
             assert!(message.contains("this flight reaches Mach"), "{message}");
         }
         // The premise, as the message quotes it: inside the join the airframe's station sits
-        // calibres from its own small-angle center of pressure (4.71 at Mach 1.3); at the join's end the two
+        // calibers from its own small-angle center of pressure (4.71 at Mach 1.3); at the join's end the two
         // agree again.
         let index = aero
             .bodies()

@@ -179,7 +179,7 @@ The filters tolerate NaN and non-uniform steps throughout, and every window is s
 of clock**, not samples (`index.ts:58-63`): one corpus recording published a 22.8 g apogee shock
 from its CSV and 1.5 g from its eeprom, because a fixed sample count covered 0.13 s in one and
 8.24 s in the other. The despiking is a Hampel filter: a sliding-window median replacing a sample
-more than four robust standard deviations from its neighbours, the scale being 1.4826 times the
+more than four robust standard deviations from its neighbors, the scale being 1.4826 times the
 median absolute deviation (MAD), over 0.3 s; a plain median of that width passes the
 2-to-4-sample spike an ejection charge makes.
 

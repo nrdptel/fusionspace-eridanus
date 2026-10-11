@@ -424,7 +424,7 @@ pub mod zdt {
         /// where `d₀` is the distance to the front at `f₁` itself (or a piece's nearer end):
         /// that window of each piece is searched on a grid of 400 steps in `s` (`f₁ = s²` for
         /// ZDT1 and ZDT3, whose slope is infinite at 0; `f₁ = s` for ZDT2), and the best step
-        /// refined by golden-section search over its two neighbours.
+        /// refined by golden-section search over its two neighbors.
         pub fn distance_to_front(self, f: &[f64]) -> f64 {
             const STEPS: usize = 400;
             let (a, b) = (

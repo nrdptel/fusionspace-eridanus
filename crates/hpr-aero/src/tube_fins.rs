@@ -30,13 +30,13 @@
 //! ring's appears whole at its leading edge and stays, so all its lift is there. Hoerner and Borst
 //! (*Fluid-Dynamic Lift*, 1985, p. 19-16) assume the same of the air turned inside an open tube,
 //! that it turns "at or near the rim of the inlet"; they had no measurement of it. Fletcher's fifth
-//! ring, at `A = 1/3`, is left out, a judgement: its center sits 0.11 of its chord ahead of its
+//! ring, at `A = 1/3`, is left out, a judgment: its center sits 0.11 of its chord ahead of its
 //! leading edge, which he puts down to its low aspect ratio making it act like a body of
 //! revolution (p. 4). HPR Sim infers, beyond his text, that its thick section (a Clark Y 11.7% of a
 //! chord three bores long, outside a straight bore, so walls 0.35 of the bore thick) is what
 //! makes it so, that a paper tube's center lies aft of it, and that his thinner-walled rings may
 //! carry the same forward bias in smaller measure. Holding his point below `A = 1/3` instead put
-//! OpenRocket's *Tube fin rocket* at a margin of 0.29 calibres rather than 0.79, in a one-off run
+//! OpenRocket's *Tube fin rocket* at a margin of 0.29 calibers rather than 0.79, in a one-off run
 //! not kept in the report. No thin tube's center is measured. Rings shorter than a third of their
 //! diameter, past `A = 3`, are refused.
 //!
@@ -58,7 +58,7 @@ use serde::Serialize;
 use crate::error::{AeroError, check_dimension, check_mach};
 
 /// The top of the tube-fin model's range, Mach 0.8, where HPR Sim's fin model leaves its subsonic
-/// method ([`crate::fins::TRANSONIC_START_MACH`]). No source covers tube fins faster; a judgement.
+/// method ([`crate::fins::TRANSONIC_START_MACH`]). No source covers tube fins faster; a judgment.
 pub const TUBE_FIN_MACH_LIMIT: f64 = crate::fins::TRANSONIC_START_MACH;
 
 /// Fletcher's measured aerodynamic center of five annular airfoils, `(A, x_ac/c)`: the aspect
@@ -157,7 +157,7 @@ impl TubeFinSetAero {
     ///
     /// [`AeroError::Unsupported`] for fewer than three tubes, solid tubes, tubes shorter than a
     /// third of their diameter (past Fletcher's measurements) and tubes that overlap their
-    /// neighbours; [`AeroError::Layout`] for a set without the radius of its body tube, and
+    /// neighbors; [`AeroError::Layout`] for a set without the radius of its body tube, and
     /// [`AeroError::Domain`] for a bad dimension.
     pub fn new(
         component: &PlacedComponent,
@@ -193,14 +193,14 @@ impl TubeFinSetAero {
                     .to_owned(),
             ));
         }
-        // Neighbouring axes, `s = R + r` from the rocket's, are `2 s sin(π/N)` apart; tubes that
+        // Neighboring axes, `s = R + r` from the rocket's, are `2 s sin(π/N)` apart; tubes that
         // touch (the closing radius) are `2r` apart, and closer ones overlap, which `N` isolated
         // rings don't describe. The tolerance takes the closing radius's rounding.
         let axis = body_radius + set.outer_radius_m;
         let gap = axis * (PI / f64::from(set.count)).sin();
         if gap < set.outer_radius_m * (1.0 - 1e-9) {
             return Err(AeroError::Unsupported(
-                "tube fins that overlap their neighbours".to_owned(),
+                "tube fins that overlap their neighbors".to_owned(),
             ));
         }
         Ok(Self {

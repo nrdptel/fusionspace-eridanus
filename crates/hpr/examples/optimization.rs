@@ -1,5 +1,5 @@
 //! Optimization: CMA-ES checked against three test functions whose minima are known, then the
-//! nose ballast and body length that send a rocket to 3,048 m (10,000 ft) with a 2.20-calibre
+//! nose ballast and body length that send a rocket to 3,048 m (10,000 ft) with a 2.20-caliber
 //! static margin, the winner checked by flying it again.
 //!
 //! ```text
@@ -33,7 +33,7 @@ const TARGET_M: f64 = 3048.0;
 /// How close counts as a hit when the winner is flown again, m.
 const HIT_M: f64 = 0.1;
 
-/// The static margin to give it, calibres.
+/// The static margin to give it, calibers.
 const MARGIN_CAL: f64 = 2.2;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -138,7 +138,7 @@ fn fly(ballast_kg: f64, body_m: f64, settings: FlightSettings) -> Result<Flight,
         .fly()?)
 }
 
-/// The static margin at launch mass, at Mach 0.3, calibres.
+/// The static margin at launch mass, at Mach 0.3, calibers.
 fn margin(ballast_kg: f64, body_m: f64) -> Result<f64, Box<dyn Error>> {
     Ok(rocket(ballast_kg, body_m)?
         .static_margin_cal(0.0, 0.3)?
@@ -146,7 +146,7 @@ fn margin(ballast_kg: f64, body_m: f64) -> Result<f64, Box<dyn Error>> {
 }
 
 /// How far a design is from the goal: the apogee's miss in meters and the margin's in hundredths
-/// of a calibre, squared and added. Zero only on the one design that meets both.
+/// of a caliber, squared and added. Zero only on the one design that meets both.
 fn miss(ballast_kg: f64, body_m: f64, settings: FlightSettings) -> Result<f64, Box<dyn Error>> {
     let apogee = fly(ballast_kg, body_m, settings)?
         .apogee_m()
@@ -163,7 +163,7 @@ fn hit_the_target(seed: u64) -> Result<(), Box<dyn Error>> {
         Variable::new("body tube (m)", 1.0, 0.1)?.within(0.6, 1.4)?,
     ];
     // Two goals, two variables: one design meets both. Stop within a centimeter and a
-    // ten-thousandth of a calibre of it.
+    // ten-thousandth of a caliber of it.
     let optimizer = Cmaes::new(variables)?
         .with_target(1e-4)?
         .with_max_evaluations(2_000)?;
@@ -180,10 +180,10 @@ fn hit_the_target(seed: u64) -> Result<(), Box<dyn Error>> {
     println!(
         "A 66 mm rocket on a J760: find the nose ballast and body length for a 3,048 m apogee"
     );
-    println!("and a static margin of {MARGIN_CAL:.2} calibres at launch mass, at Mach 0.3");
+    println!("and a static margin of {MARGIN_CAL:.2} calibers at launch mass, at Mach 0.3");
     println!("Not yet validated: see the Accuracy page before trusting these numbers.");
     println!(
-        "Start: 0.30 kg of ballast, a 1.00 m body: apogee {start:.1} m, margin {:.2} calibres",
+        "Start: 0.30 kg of ballast, a 1.00 m body: apogee {start:.1} m, margin {:.2} calibers",
         margin(0.3, 1.0)?
     );
     println!(
@@ -212,7 +212,7 @@ fn hit_the_target(seed: u64) -> Result<(), Box<dyn Error>> {
         .apogee_m()
         .ok_or("no apogee")?;
     let margin = margin(ballast_kg, body_m)?;
-    println!("Flown again: apogee {again:.1} m, margin {margin:.2} calibres");
+    println!("Flown again: apogee {again:.1} m, margin {margin:.2} calibers");
     println!("Flown again, tolerances 100 times tighter: apogee {tighter:.1} m");
     if (again - TARGET_M).abs() > HIT_M || (tighter - TARGET_M).abs() > HIT_M {
         return Err("the winner flown again misses the target".into());

@@ -236,7 +236,7 @@ first key it doesn't know.
   major version, with a migration.
 
 | from | to | what the migration changes |
-|---|---|---|
+|--:|--:|---|
 | 0.1 | 0.2 | `attachments` is renamed `source_files`, leaving "attachment" to mean a file in a `.hprz`. Whether the airframe was read exactly as written, which 0.1 didn't record, is worked out from the motor configurations, or marked unknown |
 
 **What the 0.1 migration can't recover.** 0.1 recorded why a `.ork`'s airframe wasn't read exactly

@@ -403,7 +403,7 @@ impl Variable {
             && (own != Type::Byte || explicit_fill.is_some())
         {
             // Stepped in the variable's own type, so a fill at the largest finite value still
-            // has a finite neighbour.
+            // has a finite neighbor.
             let toward_zero = |x: f64| match own {
                 Type::Float => {
                     let x = x as f32;

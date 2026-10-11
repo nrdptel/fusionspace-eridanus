@@ -645,7 +645,7 @@
       "design": "rocketpy-juno-iii.json",
       "hpr_cd0": 0.3525453753905272,
       "id": "juno-iii-power-off",
-      "origin": "labelled RASAero II by RocketPy's Juno III notebook; a 3-decimal, hand-edited table (broken above Mach 1), used for power-off and power-on",
+      "origin": "labeled RASAero II by RocketPy's Juno III notebook; a 3-decimal, hand-edited table (broken above Mach 1), used for power-off and power-on",
       "relative_error": -0.059878998958594054,
       "sweep": {
         "bands": [
@@ -801,7 +801,7 @@
       "design": "rocketpy-cavour.json",
       "hpr_cd0": 0.5033853327445214,
       "id": "cavour-power-off",
-      "origin": "labelled RASAero II by RocketPy's Cavour notebook; a 3-decimal table from Mach 0.082 to 0.895 with 22 extra rows repeating 13 Mach numbers up to 0.107, 7 of them with values 0.001 apart",
+      "origin": "labeled RASAero II by RocketPy's Cavour notebook; a 3-decimal table from Mach 0.082 to 0.895 with 22 extra rows repeating 13 Mach numbers up to 0.107, 7 of them with values 0.001 apart",
       "relative_error": -0.08308682560196479,
       "sweep": {
         "bands": [
@@ -1106,7 +1106,7 @@
       "design": "rocketpy-valetudo.json",
       "hpr_cd0": 0.5565674289276226,
       "id": "valetudo-power-off",
-      "origin": "labelled RASAero by its file name; a 3-decimal, hand-edited table with no input file, 1.44 times the OpenRocket export for the same rocket in RocketPy's RocketPaper repository at Mach 0.3",
+      "origin": "labeled RASAero by its file name; a 3-decimal, hand-edited table with no input file, 1.44 times the OpenRocket export for the same rocket in RocketPy's RocketPaper repository at Mach 0.3",
       "relative_error": -0.4699357819736928,
       "sweep": {
         "bands": [

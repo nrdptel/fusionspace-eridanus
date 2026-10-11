@@ -131,7 +131,7 @@ print(f"The dry center of mass starts {h0:.3f} m above the ground.")
 # defines it:
 #
 # - **Rail exit** is when RocketPy's forward rail button leaves the rail. The rocket has then
-#   travelled `effective_1rl`, RocketPy's name for that distance: 3.745 m here, from the suite's
+#   traveled `effective_1rl`, RocketPy's name for that distance: 3.745 m here, from the suite's
 #   reference file. hpr's own rail exit comes later, when its aft-most rail guide clears the top of
 #   the 5.2 m rail, so RocketPy's is read off the recording.
 # - **Heights** are the dry center of mass's, above `h0`. At burnout and after, the rocket's

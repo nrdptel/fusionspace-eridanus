@@ -88,7 +88,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let margin_cal = margin.margin_cal.ok_or("no margin")?;
         let mass_kg = rocket.mass_properties(0.0)?.mass_kg;
         let span_mm = span_m * 1000.0;
-        // The usual rule of thumb asks for at least one calibre. With less, a gust can leave the
+        // The usual rule of thumb asks for at least one caliber. With less, a gust can leave the
         // rocket pointing away from its path, or tumbling; don't fly it.
         if margin_cal < 1.0 {
             println!("{span_mm:>8.0} {mass_kg:>8.3} {margin_cal:>7.2}   too little margin to fly");

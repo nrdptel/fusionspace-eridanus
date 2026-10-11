@@ -114,7 +114,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     );
 
     // The static margin just before and after: the center of mass moving aft by Δ takes Δ/d
-    // calibres off it, with d the body's diameter.
+    // calibers off it, with d the body's diameter.
     let margin_at = |t_s: f64| {
         metrics
             .stability()

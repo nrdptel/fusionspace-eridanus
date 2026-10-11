@@ -69,7 +69,7 @@ There is a row every 5 seconds, and one at every [event](glossary.md#event), at 
 happened:
 
 | time (s) | event |
-|---|---|
+|--:|---|
 | 0.002 | [liftoff](glossary.md#liftoff): the push up the rail first beats the weight, and the rocket starts to move |
 | 0.371 | the rocket leaves the 3 m (9.8 ft) rail |
 | 3.259 | burnout |

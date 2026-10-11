@@ -17,7 +17,7 @@ of mass, stability margin and flight.
   from Norton's *Design of Machinery*.
 - **How well it is validated:** against exact answers only. No other simulator or real flight has
   been compared with it. The mass properties match a hand calculation to 1e-15, and the static
-  margin to 1e-12 [calibres](../glossary.md#calibre-caliber). In free flight with nothing acting
+  margin to 1e-12 [calibers](../glossary.md#caliber). In free flight with nothing acting
   on the rocket, its angular momentum is kept to 6.9e-12 of itself and its center's velocity to
   2.6e-12 m/s.
 - **What it leaves out:** a mass that leaves the rocket, which is
@@ -125,7 +125,7 @@ reduced mass and `L` is the line from the rest's center to the part's. Moving th
 only `L`. The tests check the simulator's inertia against this formula.
 
 **The stability margin.** The static margin is the distance from the center of mass back to the
-[center of pressure](../glossary.md#center-of-pressure-cp), in calibres of the rocket's diameter
+[center of pressure](../glossary.md#center-of-pressure-cp), in calibers of the rocket's diameter
 `d` ([Flight metrics: stability margins](metrics.md#stability-margins)). It takes the center of
 pressure with the air along the axis at Mach 0, which doesn't depend on where the mass is. So a
 part moving `Δ` toward the tail changes it by:
@@ -210,7 +210,7 @@ up near the center of mass. The two-body check gives the change too:
   shrinks from 0.3878 m (1.272 ft) to 0.0878 m (0.288 ft).
 - The inertia changes by `0.1511 × (0.0878² − 0.3878²) = −0.0216` kg·m², as the table shows.
 
-The static margin falls from 4.297 calibres to 2.996, a change of −1.302 from the unrounded
+The static margin falls from 4.297 calibers to 2.996, a change of −1.302 from the unrounded
 values. By hand it is `−0.0733 / 0.0563 = −1.302`, with `d = 0.0563` m. The apogee barely moves:
 1749.8 m (5,741 ft) with the ballast moving, 1749.9 m (5,741 ft) with it held still.
 
@@ -227,7 +227,7 @@ measured, where it records it, and in brackets the bound it holds the code to.
 |---|---|---|
 | `a_part_moved_inside_a_body_gives_the_hand_computed_whole` | a point moved inside a cube matches a hand calculation, and the whole rebuilt with the point moved | exact (1e-15) |
 | `mass_properties_before_during_and_after_a_shift_match_the_hand_calculation` | the example's rocket before, halfway and after, against the two-body formula | (1e-15 m and kg·m²) |
-| `a_moving_mass_shifts_the_static_margin_by_the_hand_calculation` | the static margin at every coast sample of the flight equals `−m Δ s(τ)/(M d)` from its start | (1e-12 calibres) |
+| `a_moving_mass_shifts_the_static_margin_by_the_hand_calculation` | the static margin at every coast sample of the flight equals `−m Δ s(τ)/(M d)` from its start | (1e-12 calibers) |
 | `a_part_moving_off_the_axis_keeps_both_momenta_in_free_space` | no air or gravity, the rocket turning about all three axes, the ballast 1 cm (0.39 in) off the axis: the angular momentum about the center and the center's velocity stay constant | 6.9e-12 of the angular momentum (1e-10), 2.6e-12 m/s (1e-10) |
 | `a_shift_s_rates_are_the_derivatives_of_its_mass_properties` | the exact rates against differences of the mass properties, during the burn and after it | `r′` 2e-11 m/s (1e-9), `r″` 3e-8 of itself (1e-7) |
 | `a_fixed_step_follows_a_short_shift_in_its_stops` | the free-flight case with RK4 at 10 ms steps and a 10 ms move: 16 steps across it | 1.2e-4 m/s (3e-4) |

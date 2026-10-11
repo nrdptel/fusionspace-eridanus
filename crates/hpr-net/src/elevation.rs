@@ -66,7 +66,7 @@ pub const TTL_S: u64 = 365 * 86_400;
 /// a 16-bit no-data value.
 pub const HEIGHT_RANGE_M: std::ops::RangeInclusive<f64> = -1_000.0..=9_000.0;
 
-/// The credit Open-Meteo's license (CC BY 4.0) asks for: itself, and the Copernicus programme
+/// The credit Open-Meteo's license (CC BY 4.0) asks for: itself, and the Copernicus program
 /// whose DEM it serves, in the DEM license's words.
 pub const ATTRIBUTION: &str = "Elevation data by Open-Meteo.com (CC BY 4.0), from the Copernicus \
                                DEM GLO-90: © DLR e.V. 2010-2014 and © Airbus Defence and Space \

@@ -806,7 +806,7 @@ pub fn schema() -> serde_json::Value {
 /// [`schema`] as the canonical text committed: two-space indents and a final newline.
 pub fn schema_json() -> String {
     let mut text = serde_json::to_string_pretty(&schema())
-        // A schema is a JSON value built from strings and maps, which always serialises.
+        // A schema is a JSON value built from strings and maps, which always serializes.
         .unwrap_or_default();
     text.push('\n');
     text

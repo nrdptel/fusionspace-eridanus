@@ -76,7 +76,7 @@
 //!   χ = Φ⁻¹(1 − p″):  m ← (ℓ₋ χ₊ + ℓ₊ χ₋)/(χ₋ + χ₊),  A ← (ℓ₊ − ℓ₋)/((χ₋ + χ₊) σ S √C_jj)   (24)
 //! ```
 //!
-//! The thresholds lie halfway between neighbouring whole numbers; the mean, `σ` and `C` are the
+//! The thresholds lie halfway between neighboring whole numbers; the mean, `σ` and `C` are the
 //! updated ones and `A` the old one in `s`. The paths and `C` never see the correction. An
 //! integer variable's draws are never redrawn for its bounds, which its encoding enforces. The
 //! paper's α is the default here; its Figure 4 (p. 7) finds the method works across a range
@@ -622,7 +622,7 @@ impl Run {
 
     /// The margin `α = 1/(n λ)`: the least chance, each generation, that an integer variable's
     /// draw falls on a value other than the one its mean is nearest (at least `α/2` on each side
-    /// when the mean's value has neighbours on both).
+    /// when the mean's value has neighbors on both).
     pub fn integer_margin(&self) -> f64 {
         self.alpha
     }
@@ -806,7 +806,7 @@ impl Run {
                 continue;
             }
             let m = self.mean[j];
-            // The thresholds sit halfway between neighbouring values.
+            // The thresholds sit halfway between neighboring values.
             let first = variable.low() + 0.5;
             let last = variable.high() - 0.5;
             if m <= first || m > last {

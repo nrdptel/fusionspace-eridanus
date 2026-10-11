@@ -69,7 +69,7 @@ mass, or 17–32% more drag. +5.9% on the clean 36 needs about 60% of each.
   and sites.
 - **Unbounded:** production lots against the certification mean (sim high if short; no published
   statistic; one home-tested Estes A10-PT read 20% below its label but about 6% above the catalog
-  [A8]) and propellant ageing (a lower burn rate, no impulse figure, sign unknown [A10]).
+  [A8]) and propellant aging (a lower burn rate, no impulse figure, sign unknown [A10]).
 
 ## 2. The vehicle: drag the codes miss, and as-built mass
 
@@ -176,7 +176,7 @@ B3 CC BY 4.0, A8 and C8 arXiv's license; the rest all rights reserved or unstate
 - **A8.** Courtney and Courtney, arXiv:0903.1555, pp. 1–2. <https://arxiv.org/abs/0903.1555>
 - **A9.** Florczak et al., Cent. Eur. J. Energ. Mater. 11(4), 589–601 (2014).
   <https://wydawnictwa.ipo.lukasiewicz.gov.pl/wp-content/uploads/2021/04/Florczaki-inni.pdf>
-- **A10.** IIT Madras seminar abstract on propellant ageing, 2022-01-21. <https://www.iitm.ac.in/hi/node/10746>
+- **A10.** IIT Madras seminar abstract on propellant aging, 2022-01-21. <https://www.iitm.ac.in/hi/node/10746>
 - **A11.** The project's [sensitivity](../sensitivity.md) and [Monte Carlo](../monte-carlo.md) pages.
 - **B1.** Niskanen, OpenRocket MSc thesis, TKK, 2009, printed pages. <https://openrocket.sourceforge.net/thesis.pdf>
 - **B2.** Gregorek, Estes TR-11, 1970, PDF pages. <https://www.plans.rocketshoppe.com/pubs/Estes/estTR-11/TR-11.pdf>

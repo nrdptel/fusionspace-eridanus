@@ -24,7 +24,7 @@
 //! carries its own ([`DataFile::license`]), which the caller shows.
 //!
 //! > **How far to trust it.** The curve is the file a contributor uploaded, as ThrustCurve serves
-//! > it; which file is taken is the rule above, not a judgement of which is right. A name is matched
+//! > it; which file is taken is the rule above, not a judgment of which is right. A name is matched
 //! > as ThrustCurve's search matches it (on 2026-10-04, a designation exactly but for case), so a
 //! > name ThrustCurve spells differently is not found rather than wrongly matched.
 //!

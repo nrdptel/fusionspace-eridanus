@@ -5,7 +5,7 @@ Not yet validated: see the Accuracy page before trusting these numbers.
 mass (kg)                          0.675     0.579
 center of gravity (m from nose)    0.671     0.610
 center of pressure (m from nose)   0.779     0.779
-stability margin (calibres)         1.92      2.99
+stability margin (calibers)         1.92      2.99
 
 From a 1.8 m rail leaning 5° west, in 5 m/s of wind from the west:
 Rail exit:  21.7 m/s

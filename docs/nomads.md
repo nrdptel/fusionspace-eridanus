@@ -273,7 +273,7 @@ gfs.t00z.pgrb2.0p25.f018 --output profile.json`. It took about a third of a seco
 
 NCEP packs whole files more tightly than the grib filter's cuts, with GRIB2's *complex packing*:
 the values are split into groups, each with its own smallest value and number of bits, and most
-fields store the differences between neighbouring values rather than the values (*spatial
+fields store the differences between neighboring values rather than the values (*spatial
 differencing*). GRIB2 numbers these packings as templates 5.2 and 5.3; the simulator's decoder reads
 both. A whole file also holds 743 [messages](glossary.md#grib2) where a cut holds 147:
 
@@ -298,7 +298,7 @@ by up to 2.4e-6, relatively, at the cut's grid points.
 ### Files in JPEG 2000
 
 Some of NCEP's files compress each field as a picture: the packed whole numbers become a
-greyscale image, stored in the JPEG 2000 image format (GRIB2's template 5.40). RAP's whole
+grayscale image, stored in the JPEG 2000 image format (GRIB2's template 5.40). RAP's whole
 pressure-level files are packed this way. The simulator decodes them with
 [`hayro-jpeg2000`](https://crates.io/crates/hayro-jpeg2000), a JPEG 2000 decoder written in Rust,
 then turns each whole number into a value as it does for the other packings.
@@ -344,7 +344,7 @@ Linux and Windows.
   other platforms' maths libraries can differ in the last digits). The four points' weights add
   up to 1, and the blend of their positions is the site, to 1e-5°.
 - **RAP's wind turn** is `sin 25° × (λ − 265°)`, −5.06° at the site. ecCodes' own positions of two
-  neighbouring grid points show the map's rows bearing 90° + θ from north, to 2.2e-6° (bound
+  neighboring grid points show the map's rows bearing 90° + θ from north, to 2.2e-6° (bound
   3e-6°), which pins the sign. GFS's winds are not turned.
 - **The profile.** The sounding is sampled at the ground and every kept level's height. It gives
   back ecCodes' values interpolated to the site: the pressure within a relative 1e-13, the
@@ -425,7 +425,7 @@ Linux and Windows.
   at 10 hPa, about 31 km (102,000 ft); a whole GFS file goes on to 0.01 hPa, about 79 km (259,000 ft), and
   the layer thickness check above stops at 10 hPa. Above that the sounding continues as the
   [standard atmosphere](glossary.md#standard-atmosphere), shifted to pass through the top level's
-  temperature and pressure, with the top level's share of water vapour (capped where the air
+  temperature and pressure, with the top level's share of water vapor (capped where the air
   saturates). The wind holds the top level's wind. Both are marked as extrapolated. A flight above
   16 km (52,000 ft) in RAP's forecast is flying on that guess.
 - **Underground grid points.** A kept level is blended from the four grid points even where one

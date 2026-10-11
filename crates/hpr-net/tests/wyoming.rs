@@ -146,7 +146,7 @@ fn apply_rule(name: &str) -> (Vec<Recorded>, Vec<usize>, Vec<usize>) {
 /// The done-when of M5.2b: sampling the profile at a kept row's geometric height gives back its
 /// pressure, temperature, humidity and wind as recorded. The rows dropped are exactly the others:
 /// in the coded messages the top row, which has no wind; in the BUFR file the 1,931 rows whose
-/// pressure, to 0.1 hPa, repeats a neighbour's.
+/// pressure, to 0.1 hPa, repeats a neighbor's.
 #[test]
 fn the_profile_reproduces_every_level_it_keeps() {
     // (recording, rows, kept, rows missing a value, other rows of a run)
@@ -295,7 +295,7 @@ fn the_first_row_is_the_ground() {
 /// geometric.
 #[test]
 fn recorded_heights_are_geopotential() {
-    use hpr_atmos::moist::WATER_VAPOUR_MOLECULAR_WEIGHT_KG_PER_KMOL;
+    use hpr_atmos::moist::WATER_VAPOR_MOLECULAR_WEIGHT_KG_PER_KMOL;
     use hpr_atmos::profile::wmo_geopotential_from_geometric_m;
     use hpr_atmos::ussa76::{
         DRY_AIR_GAS_CONSTANT_J_PER_KG_K, SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL,
@@ -305,8 +305,7 @@ fn recorded_heights_are_geopotential() {
     const STANDARD_HPA: [f64; 14] = [
         850.0, 700.0, 500.0, 400.0, 300.0, 250.0, 200.0, 150.0, 100.0, 70.0, 50.0, 30.0, 20.0, 10.0,
     ];
-    let epsilon =
-        WATER_VAPOUR_MOLECULAR_WEIGHT_KG_PER_KMOL / SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL;
+    let epsilon = WATER_VAPOR_MOLECULAR_WEIGHT_KG_PER_KMOL / SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL;
     for name in [FM35, WINTER, BUFR] {
         let (kept, _, _) = apply_rule(name);
         // (pressure hPa, geopotential m, virtual temperature K)
@@ -899,7 +898,7 @@ fn a_bad_ground_is_refused() {
 /// 45 m high fits within its pressures' 1 hPa rounding and is kept; a BUFR row at 150.6 hPa 50 m
 /// high, rounded to 0.1 hPa, doesn't. Blocks of two or three bad rows that fit each other are left
 /// out together, and not the good rows beside them; but bad rows within the allowance of their
-/// neighbours can be kept, and a good row left out instead.
+/// neighbors can be kept, and a good row left out instead.
 #[test]
 fn a_row_that_only_just_fits_is_left_out() {
     let thickness = |body: Vec<u8>| {
@@ -971,7 +970,7 @@ fn a_row_that_only_just_fits_is_left_out() {
             "{name} {lines:?}"
         );
     }
-    // Bad rows that fit their neighbours within the allowance can be kept, and a good row passed
+    // Bad rows that fit their neighbors within the allowance can be kept, and a good row passed
     // by instead: 683 and 673 hPa raised 50 m leave out 664 hPa; four BUFR rows lowered 50 m at
     // 13.9 hPa, where rounding the pressure widens the allowance, leave out two at 14.0 hPa.
     assert_eq!(thickness(moved(FM35, 26..=27, 50.0)), [28]);
@@ -1148,7 +1147,7 @@ fn moved(name: &str, lines: std::ops::RangeInclusive<usize>, by: f64) -> Vec<u8>
 /// to 55 hPa), and separately no humidity, every row after them fits and is kept. With no
 /// temperature there, the layer across the gap is too thick for its two ends' temperatures to
 /// give, and the answer is refused. Two blocks of six raised rows, a good row between them,
-/// are left out without refusing. A row whose vapour would outweigh its air (16 hPa at 30 °C,
+/// are left out without refusing. A row whose vapor would outweigh its air (16 hPa at 30 °C,
 /// saturated) is left out, not taken to fit anything. A row at the bounds that fits (0.1 hPa at
 /// −150 °C, 55.6 km) is kept and makes a profile.
 #[test]
@@ -1204,8 +1203,8 @@ fn gaps_blocks_and_extremes() {
         .collect();
     assert_eq!(lines, [thickness, vec![(229, DropReason::NoData)]].concat());
 
-    let vapour = " 16.0, 5100, 30.0, -4.9, -4.3, 99.97301034739507, 80, 4.79,210, 9.3";
-    let (levels, lines) = dropped(&edited(&[(ROW_549, vapour)]));
+    let vapor = " 16.0, 5100, 30.0, -4.9, -4.3, 99.97301034739507, 80, 4.79,210, 9.3";
+    let (levels, lines) = dropped(&edited(&[(ROW_549, vapor)]));
     assert_eq!(levels, 226);
     assert_eq!(
         lines,

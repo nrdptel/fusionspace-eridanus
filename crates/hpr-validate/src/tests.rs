@@ -96,7 +96,7 @@ pub(crate) fn scratch_case(case_id: &str, edit: impl FnOnce(&mut serde_json::Val
     edit(&mut document);
     scratch.write(
         &case.reference.display().to_string(),
-        &serde_json::to_string_pretty(&document).expect("the reference serialises"),
+        &serde_json::to_string_pretty(&document).expect("the reference serializes"),
     );
     let design_path = format!("validation/designs/{}.json", case.flight.design());
     scratch.write(
@@ -114,7 +114,7 @@ pub(crate) fn scratch_case(case_id: &str, edit: impl FnOnce(&mut serde_json::Val
             cases: vec![case_id.to_owned()],
             slow: Vec::new(),
         })
-        .expect("the lock serialises"),
+        .expect("the lock serializes"),
     );
     scratch
 }
@@ -514,7 +514,7 @@ fn fewer_cases_run_than_the_lock_expects_fails() {
             cases: vec!["descent-nothing-like-this".to_owned()],
             slow: Vec::new(),
         })
-        .expect("the lock serialises"),
+        .expect("the lock serializes"),
     );
     let error =
         run_lock(scratch.path(), false).expect_err("a lock naming a case that is not there");
@@ -531,7 +531,7 @@ fn fewer_cases_run_than_the_lock_expects_fails() {
             cases: Vec::new(),
             slow: Vec::new(),
         })
-        .expect("the lock serialises"),
+        .expect("the lock serializes"),
     );
     let error = run_lock(scratch.path(), false).expect_err("a committed case nobody locked");
     assert!(
@@ -728,7 +728,7 @@ fn the_committed_cases_all_pass_and_the_report_says_so() {
     );
     let mut moved: Report = serde_json::from_str(&read("latest.json")).expect("it parses");
     moved.cases.pop();
-    let moved = serde_json::to_string(&moved).expect("it serialises");
+    let moved = serde_json::to_string(&moved).expect("it serializes");
     let moved_markdown = serde_json::from_str::<Report>(&moved)
         .expect("it parses")
         .to_markdown();
@@ -761,14 +761,14 @@ fn reproducing_forgives_the_last_digits_and_nothing_else() {
         sources: Vec::new(),
     };
     let committed = report(345.240893);
-    let json = serde_json::to_string(&committed).expect("it serialises");
+    let json = serde_json::to_string(&committed).expect("it serializes");
     let markdown = committed.to_markdown();
     let check = |run: &Report, markdown: &str, json: &str| run.reproduces(markdown, json);
     assert_eq!(check(&committed, &markdown, &json), Ok(()));
     // Another platform's last digits, even where they move a printed percentage's last digit.
     assert_eq!(check(&report(345.240895), &markdown, &json), Ok(()));
     let at_a_boundary = report(340.986523 * 1.030_004_999_9);
-    let json_there = serde_json::to_string(&at_a_boundary).expect("it serialises");
+    let json_there = serde_json::to_string(&at_a_boundary).expect("it serializes");
     assert_eq!(
         check(
             &report(340.986523 * 1.030_005_000_1),
@@ -801,7 +801,7 @@ fn reproducing_forgives_the_last_digits_and_nothing_else() {
     let error = check(
         &committed,
         &hand_edited.to_markdown(),
-        &serde_json::to_string(&hand_edited).expect("it serialises"),
+        &serde_json::to_string(&hand_edited).expect("it serializes"),
     )
     .expect_err("a relative difference written by hand");
     assert!(
@@ -896,7 +896,7 @@ fn a_fast_run_says_what_it_left_out() {
             cases: vec!["descent-juno-iii".to_owned()],
             slow: vec!["descent-juno-iii".to_owned()],
         })
-        .expect("the lock serialises"),
+        .expect("the lock serializes"),
     );
     let error = run_lock(scratch.path(), true).expect_err("a fast run that covers nothing");
     assert!(
@@ -998,7 +998,7 @@ fn with_gap(case_id: &str, reason: Option<&str>) -> String {
         .find(|case| case.id == case_id)
         .expect("a committed case");
     case.known_gap = reason.map(str::to_owned);
-    toml::to_string(&case).expect("the case serialises")
+    toml::to_string(&case).expect("the case serializes")
 }
 
 #[test]
@@ -1893,7 +1893,7 @@ fn real_flight_cases_report_apogee_and_trace_rms() {
 fn a_real_flight_explanation_that_stops_holding_fails() {
     // An explanation is a claim checked against the row's numbers: "drag" says the flight on the
     // example's own drag is within the target, so a row where it isn't fails the check.
-    use crate::real_flight::{FlightRow, REPORT_JSON, RealFlightReport, summarise};
+    use crate::real_flight::{FlightRow, REPORT_JSON, RealFlightReport, summarize};
     let text = std::fs::read_to_string(root().join(REPORT_JSON)).expect("the report is committed");
     let fails_with = |kind: &str, change: &dyn Fn(&mut FlightRow), expected: &str| {
         let mut report: RealFlightReport = serde_json::from_str(&text).expect("the report reads");
@@ -1903,7 +1903,7 @@ fn a_real_flight_explanation_that_stops_holding_fails() {
             .find(|row| row.explanation_kind == kind)
             .unwrap_or_else(|| panic!("a flight explained by {kind:?}"));
         change(row);
-        report.summary = summarise(&report.flights);
+        report.summary = summarize(&report.flights);
         let page = report.to_markdown();
         let error = report.check_consistent(&page).unwrap_err();
         assert!(error.contains(expected), "{kind}: {error}");

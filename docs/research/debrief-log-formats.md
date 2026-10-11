@@ -16,7 +16,7 @@ entry in the list (`lib/parsers/index.ts:32-55`). Below 0.6 nothing is claimed a
 column-mapping path takes over. Two decisions worth keeping:
 
 - **Detection reads bytes and text both** (`lib/parsers/types.ts:8-23`). A binary flight record
-  (an AltOS `.eeprom`, an RRC3 `.rff`) cannot be recognised from a decoded string at all, and its
+  (an AltOS `.eeprom`, an RRC3 `.rff`) cannot be recognized from a decoded string at all, and its
   text view is mojibake.
 - **A refusal is a result.** A parser may throw a *guidance* error that reaches the user as a
   sentence (`types.ts:51-56`): this is a design file and not a flight, or a raw card dump with the
@@ -45,7 +45,7 @@ at all: a spreadsheet export and an OpenRocket design.
 | Featherweight GPS | tracker and ground-station CSV | `unixtime`+`lat`+`lon`+`#sats`; or `tracker lat`+`gs lat` | feet, usually |
 | PerfectFlite | `.pf2`, CSV | extension, or a vendor word plus data-shaped rows | feet, ft/s, °F |
 | Missile Works RRC3 | mDACS text | UTF-16, tab or semicolon | feet **or** meters |
-| Missile Works RRC3 | `.rff` | .NET serialisation header | tenths of a millibar |
+| Missile Works RRC3 | `.rff` | .NET serialization header | tenths of a millibar |
 | Eggtimer | CSV | `t`/`alt` plus `vraw`+`vfilt`, or `veloc` plus event columns | feet **or** meters |
 | Entacore AIM | CSV | `pressure msl` and `pressure agl` | Pa, g, °C |
 | Mercury / AltimeterCloud | CSV | `acceleration_total(mg)`, `tilt`, `time(ms)` | mg, ms, centi-°C |
@@ -97,7 +97,7 @@ datasheet page, which, as the file says, catches a transcription slip and not a 
 both readings are the same person's.
 
 **Missile Works `.rff`** (`lib/parsers/missileworksRff.ts`) is a .NET `BinaryFormatter`
-serialisation stream holding a list of 16-bit integers. Four things to carry over:
+serialization stream holding a list of 16-bit integers. Four things to carry over:
 
 - The array is found by scanning for the primitive-array record and its matching member reference,
   and **only the list's `size` slots are real**: the rest is spare capacity, and reading it
@@ -113,7 +113,7 @@ serialisation stream holding a list of 16-bit integers. Four things to carry ove
   (`:189-200`). What the pair *means* is deliberately not decoded: the calibration is not in the
   file.
 
-## Traps that generalise
+## Traps that generalize
 
 - **A second altitude column is a second instrument, not a duplicate.** AltOS writes `altitude`
   twice; the later one is the GPS receiver's, found by position after `longitude` because the name
@@ -152,7 +152,7 @@ serialisation stream holding a list of 16-bit integers. Four things to carry ove
 - **Re-importing an analyzer's own export is a silent corruption**, not an error: derived columns
   claim the roles the recorded ones should have. Measured across the corpus, 19 of 48 recordings
   shifted their peak acceleration, worst +41.4%, and 16 flipped a reading's provenance. Debrief's
-  own export is therefore recognised and refused (`canonical.ts:23-45`).
+  own export is therefore recognized and refused (`canonical.ts:23-45`).
 
 ## What every parser produces
 

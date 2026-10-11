@@ -26,7 +26,7 @@ other, to your fins and your rocket's flight.
 - **What it leaves out:** sweep, and how the fin is mounted: Martin's wings were clamped at the
   root, and a fin glued to a tube is less stiff there. Also left out are stall flutter at high
   angles of attack, Mach-number effects such as a dip near Mach 1, the rocket body's own bending,
-  and fins that aren't trapezoids. G10/FR-4, the commonest fibreglass fin sheet, has no built-in
+  and fins that aren't trapezoids. G10/FR-4, the commonest fiberglass fin sheet, has no built-in
   modulus ([Shear moduli](#shear-moduli)).
 
 ## The model
@@ -126,7 +126,7 @@ titanium's modulus, "to allow a reasonable margin of safety". It then asks how t
 be at each aspect ratio.
 
 | Example | Martin | HPR Sim, from eq. 19 | Difference |
-|---|---|---|---|
+|---|---|--:|--:|
 | `X` for `A = 2`, 4% thick | "about 1.25 × 10⁶" psi | 1.228 × 10⁶ psi | −1.8% |
 | Titanium at 0.8 × 10⁶ psi, `A = 1` | 2.5% thick | 2.54% | +1.6% |
 | Same, `A = 2` | 4.5% | 4.61% | +2.4% |
@@ -140,9 +140,9 @@ example, at the ordinate he chose. HPR Sim checks them with the moduli Martin ma
 axis, each a small box read off the same scan:
 
 | Material | Martin's mark, 10⁶ psi | Figure 3 ratio | Martin says | Against the band |
-|---|---|---|---|---|
+|---|--:|--:|---|---|
 | Magnesium | 2.40 to 2.63 | 0.47 to 0.51 | "in the flutter region" | above |
-| Aluminium | 3.82 to 4.28 | 0.29 to 0.32 | "marginal" | on it |
+| Aluminum | 3.82 to 4.28 | 0.29 to 0.32 | "marginal" | on it |
 | Steel | 8.92 to 11.3 | 0.11 to 0.14 | "probably safe" | below |
 | Titanium, his second example at 0.8 × 10⁶ psi | 5.78 to 6.34 | 0.13 to 0.14 | his design, with "a reasonable margin of safety" | below |
 
@@ -170,9 +170,9 @@ balsa                 0.138         4.4              85               99        
 The columns `V_f 0 m` and `V_f 3 km` are eq. 18's flutter speed in standard air at sea level and
 3 km (1.9 mi) above it. `D/G_E` is the figure 3 ratio at the launch site's pressure.
 
-- **Aluminium** passes both readings: its figure 3 ratio is well below the band, and at max q the
+- **Aluminum** passes both readings: its figure 3 ratio is well below the band, and at max q the
   rocket flies at under a third of `V_f`.
-- **Carbon fibre** at 3.2 mm (0.13 in) has `V_f / V` of 1.46, but its figure 3 ratio, 0.45, is above the
+- **Carbon fiber** at 3.2 mm (0.13 in) has `V_f / V` of 1.46, but its figure 3 ratio, 0.45, is above the
   band, where most of Martin's wings fluttered or failed: not shown to be safe. Its modulus is a unidirectional ply's of
   one aerospace prepreg; a ±45° layup of it would be stiffer, but wet-laid or woven hobby sheet may
   be softer.
@@ -208,8 +208,8 @@ an airfoiled fin's modulus, and a booster's max q.
 - **Thickness ratio at the root.** Martin's wings keep one thickness ratio from root to tip. A
   hobby fin keeps one thickness, so its ratio grows toward the tip. The simulator takes the root's,
   the smallest.
-- **A solid fin's `G_E` is its material's `G`.** Martin says a solid wing of aluminium plots at
-  aluminium's modulus (p. 6), and the simulator does the same. His definition,
+- **A solid fin's `G_E` is its material's `G`.** Martin says a solid wing of aluminum plots at
+  aluminum's modulus (p. 6), and the simulator does the same. His definition,
   `G_E = 6 J G / (c t³)` (eq. 12), assumes a thin airfoil's torsion constant `J ≈ c t³/6` (eq. 10).
   A flat plate's is `c t³/3`, which would double `G_E` and raise the flutter speed by `√2`. The
   simulator keeps the lower reading. The exception runs the other way: for a fin with an airfoil
@@ -233,12 +233,12 @@ range, the lower value is kept. Metals are given in ksi (1000 psi) and Msi (10�
 6.895 GPa.
 
 | Material | `G`, GPa | Source | Basis |
-|---|---|---|---|
-| Aluminium 6061 | 26.2 | MIL-HDBK-5J, Table 3.6.2.0(b1): 3.8 × 10³ ksi | stated |
-| Aluminium 7075 | 26.9 | MIL-HDBK-5J, Table 3.7.6.0(b1): 3.9 × 10³ ksi | stated |
+|---|--:|---|---|
+| Aluminum 6061 | 26.2 | MIL-HDBK-5J, Table 3.6.2.0(b1): 3.8 × 10³ ksi | stated |
+| Aluminum 7075 | 26.9 | MIL-HDBK-5J, Table 3.7.6.0(b1): 3.9 × 10³ ksi | stated |
 | Steel (plain carbon) | 75.8 | MIL-HDBK-5J, Table 2.2.1.0(b): 11.0 × 10³ ksi | stated |
 | Titanium Ti-6Al-4V | 42.7 | MIL-HDBK-5J, Table 5.4.1.0(b): 6.2 × 10³ ksi (TIMET: 6.2 and 6.66 Msi) | stated |
-| Carbon fibre/epoxy | 4.83 | NCAMP (a composite-material qualification programme) report on Hexcel 8552 AS4 tape: in-plane `G₁₂` 0.70 Msi, room temperature | stated |
+| Carbon fiber/epoxy | 4.83 | NCAMP (a composite-material qualification program) report on Hexcel 8552 AS4 tape: in-plane `G₁₂` 0.70 Msi, room temperature | stated |
 | Birch plywood | 0.750 | Riga Wood *Plywood Handbook*, Table 4.11: panel shear | stated |
 | Birch (yellow) | 1.04 | Wood Handbook ratio × bending modulus × 1.10 | derived |
 | Oak (northern red) | 1.11 | same | derived |
@@ -260,10 +260,10 @@ How the derived values are made:
 - **Plastics:** an unfilled plastic taken as isotropic (the same in every direction), from its data
   sheet's tensile modulus `E` and Poisson's ratio `ν`. Nylon soaks up water. Its *conditioned*
   value, measured after it has, is less than half the dry one.
-- **Carbon fibre:** a unidirectional ply's in-plane `G₁₂`. That is a 0/90 laminate's in-plane
+- **Carbon fiber:** a unidirectional ply's in-plane `G₁₂`. That is a 0/90 laminate's in-plane
   shear modulus. Plies at ±45° raise it several times, so for such a laminate this reads low.
 
-No source found states a shear modulus for G10/FR-4, the commonest fibreglass fin sheet: its data
+No source found states a shear modulus for G10/FR-4, the commonest fiberglass fin sheet: its data
 sheets give flexural moduli only. There is none for PLA, ABS, PETG, polycarbonate or acrylic
 either. For those, pass your own `G_E` from a measurement or your supplier. A woven glass/epoxy
 laminate is not isotropic, so `E / (2(1 + ν))` doesn't apply to it.

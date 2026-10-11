@@ -723,7 +723,7 @@ fn density_factor(kind: MaterialKind, unit: &str) -> Option<f64> {
 }
 
 /// The lightest fabric this reads without a warning, kg/m²: 1 g/m². The lightest correctly
-/// labelled in the bundled files is 0.3 mil polyethylene film at 7.05 g/m²; a canopy under 1 g/m²
+/// labeled in the bundled files is 0.3 mil polyethylene film at 7.05 g/m²; a canopy under 1 g/m²
 /// is a unit written wrong, as the six `g/m2` ripstop nylons of the bundled files are (0.067 g/m²
 /// for a fabric of about 67 g/m²).
 const LIGHTEST_FABRIC_KG_M2: f64 = 0.001;

@@ -970,7 +970,7 @@ mod tests {
     /// the estimate to theory must fall within 4 standard errors. For a band of `n` bins averaged
     /// over `K` segments the variance of the mean ratio is
     /// `[1 + 2ρ₁²(n−1)/n + 2ρ₂²(n−2)/n]/(nK)`, where `ρ₁ = 2/3` and `ρ₂ = 1/6` are the Hann
-    /// window's correlations between the transforms at neighbouring bins and bins two apart
+    /// window's correlations between the transforms at neighboring bins and bins two apart
     /// (the bracket tends to 1.94 for wide bands and is 1 for a single bin). The single-bin and
     /// two-bin bands at the bottom are loose (±25%, ±21%); the wide bands above (±1–3%) are what
     /// pin the spectrum.

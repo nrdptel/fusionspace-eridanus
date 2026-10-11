@@ -650,7 +650,7 @@ pub struct MergedBoattail {
 /// thickens (Babb and Fuller 1967, p. 6), and which RASAero II's own comparison with the tunnel
 /// left out as "buried in the boattail boundary layer" (Rogers 2022, slide 2). A flare back toward
 /// the body's full diameter is a compression surface with a drag of its own. Between the two no
-/// source gives a measure, so the fraction is a judgement: 1 while the lip's top rises no more
+/// source gives a measure, so the fraction is a judgment: 1 while the lip's top rises no more
 /// than [`WAKE_FULL_RISE`] of the boattail's drop in diameter above the boattail's aft end, 0 from
 /// [`WAKE_NONE_RISE`], linear between; and it fades with any tube, step down or part between them
 /// over one drop in diameter. A lip may be drawn as a shoulder, as a step up, or as both, and in
@@ -680,7 +680,7 @@ pub const WAKE_FULL_RISE: f64 = 0.25;
 pub const WAKE_NONE_RISE: f64 = 0.5;
 
 /// Two narrowing parts whose half-angles differ by up to this merge wholly ([`BoattailTerm`]), a
-/// judgement for a curved boattail drawn in parts: 3°.
+/// judgment for a curved boattail drawn in parts: 3°.
 pub const MERGE_FULL_TURN_RAD: f64 = 3.0 * std::f64::consts::PI / 180.0;
 
 /// Two narrowing parts whose half-angles differ by this or more don't merge ([`BoattailTerm`]),
@@ -719,7 +719,7 @@ const STEP_LENGTH_RATIO: f64 = 1e-9;
 
 /// Below this half-angle a narrowing part is partly a tube: it merges with a boattail, and a later
 /// part with it, by the smaller of the two angles over the larger, the larger taken as at most
-/// this, a judgement: 1°.
+/// this, a judgment: 1°.
 pub const MERGE_MIN_ANGLE_RAD: f64 = std::f64::consts::PI / 180.0;
 
 /// 1 with no gap, falling linearly to 0 at a gap of `scale`.
@@ -1102,7 +1102,7 @@ impl ComponentDragTerms {
     /// component (`None` for the first, whose fore face counts as a step up from nothing), and its
     /// own pressure drag. `shape` is a nose's or transition's profile shape, `None` for a tube.
     /// A transition that narrows over a length is a [`Boattail`] of its own until
-    /// [`couple_afterbody`] joins it with its neighbours.
+    /// [`couple_afterbody`] joins it with its neighbors.
     ///
     /// A nose or shoulder's fineness ratio is its length over its rise in diameter,
     /// `l/(d_aft − d_fore)`: a nose's `l/d`, and for a shoulder the fineness of the nose with the

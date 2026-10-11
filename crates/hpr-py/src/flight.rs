@@ -473,7 +473,7 @@ impl Flight {
     /// Where the flight's numbers deserve less trust, each a dictionary: its `flag`
     /// (`"unstable_under_power"`, `"unstable_without_margin"`, `"beyond_validated_range"`,
     /// `"high_angle_of_attack"`, `"outside_core_band"` or `"beyond_envelope"`), the peak that
-    /// raised it (`value`, a static margin in calibres, a pitch-moment slope per radian, a Mach
+    /// raised it (`value`, a static margin in calibers, a pitch-moment slope per radian, a Mach
     /// number or an angle of attack in radians, with its `time_s` and `height_above_ground_m`)
     /// and a `message` saying what it means. An empty list for a flight
     /// that raises none.

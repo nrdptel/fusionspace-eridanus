@@ -2,7 +2,7 @@
 
 **What this is.** The project's standing caveats about its models and data, kept by the work
 that found them. Each caveat with a GitHub issue is tracked there too; the open ones by priority are under
-[issues labelled P-critical](https://github.com/nrdptel/fusionspace-eridanus/issues?q=is%3Aopen+label%3AP-critical)
+[issues labeled P-critical](https://github.com/nrdptel/fusionspace-eridanus/issues?q=is%3Aopen+label%3AP-critical)
 and [P-high](https://github.com/nrdptel/fusionspace-eridanus/issues?q=is%3Aopen+label%3AP-high). The user-facing
 account of each model's accuracy is on the site's model pages and *Accuracy*.
 
@@ -17,7 +17,7 @@ account of each model's accuracy is on the site's model pages and *Accuracy*.
   normal force misses the tunnel between Mach 0.8 and 1.2; fins off, the body reads 14–38% high from
   Mach 1.5 to 2.96 (M1.8e9's bullet).
 - A blunt tip's cap (M1.8e7) is checked only on a sphere-cone (#101); a boattail past 16° is worth
-  0.67 to 1.35 calibres of doubt.
+  0.67 to 1.35 calibers of doubt.
 - A marched flare (M1.8e18) reads +51.5% and +50.4% at Mach 3.95 and 4.63; a near-flat flare leaves
   the crossing's pole: +0.129% on the tests' rocket, +4.3% on a short shoulder (#108); a step in
   radius takes the body off the method past 2.7e-11 m tube to tube or 1.3e-13 m at a boattail:

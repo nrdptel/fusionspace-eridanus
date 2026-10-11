@@ -313,7 +313,7 @@ fn lead(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
         .and_then(|stability| stability.static_margin.margin_cal);
     let least = summary.min_static_margin_cal.as_ref().map(|margin| {
         format!(
-            "least {:.2} calibres, at {:.2} s, before apogee",
+            "least {:.2} calibers, at {:.2} s, before apogee",
             margin.value, margin.time_s
         )
     });
@@ -321,12 +321,12 @@ fn lead(flight: &SimFlight, out: &mut dyn Write) -> io::Result<()> {
         (Some(rail), Some(least)) => figure(
             out,
             "static margin",
-            &format!("{rail:.2} calibres off the rail; {least}"),
+            &format!("{rail:.2} calibers off the rail; {least}"),
         )?,
         (Some(rail), None) => figure(
             out,
             "static margin",
-            &format!("{rail:.2} calibres off the rail"),
+            &format!("{rail:.2} calibers off the rail"),
         )?,
         (None, Some(least)) => figure(out, "static margin", &least)?,
         (None, None) => {}

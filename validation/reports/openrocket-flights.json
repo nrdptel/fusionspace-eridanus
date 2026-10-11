@@ -9750,7 +9750,7 @@
           "event": "rod_clearance",
           "kind": "stability_at_event"
         },
-        "difference_unit": "calibres",
+        "difference_unit": "calibers",
         "outcomes": {
           "scored": 53,
           "withheld": 1

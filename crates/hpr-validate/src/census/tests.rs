@@ -739,3 +739,20 @@ fn stored_summaries_are_recomputed_not_trusted() {
     assert_ne!(accepted.refreshed(), accepted);
     assert_eq!(accepted.refreshed().summaries, accepted.census.summaries());
 }
+
+#[test]
+fn a_signed_percent_has_a_real_minus_sign() {
+    assert_eq!(signed_percent(-7.284), "\u{2212}7.28%");
+    assert_eq!(signed_percent(10.3), "+10.30%");
+    assert!(!signed_percent(-0.001).contains('-'));
+}
+
+#[test]
+fn the_caliber_unit_reads_its_old_key_and_writes_the_new_one() {
+    let old: Unit = serde_json::from_str("\"calibre\"").unwrap();
+    assert_eq!(old, Unit::Caliber);
+    assert_eq!(
+        serde_json::to_string(&Unit::Caliber).unwrap(),
+        "\"caliber\""
+    );
+}

@@ -42,7 +42,7 @@ the command, so a later run can be compared like for like.
   - **Valetudo** (`rocketpy-valetudo.json`), 9.7 kg on an AeroTech K400C. Apogee 762 m on
     average, peak Mach 0.29 to 0.40.
   - **A 66 mm rocket with a 54 mm motor mount on a Cesaroni K940**, built in the program: 3.4 kg
-    on the pad, fibreglass. Apogee 3,688 m on average, peak Mach 1.58 to 1.97, so every flight
+    on the pad, fiberglass. Apogee 3,688 m on average, peak Mach 1.58 to 1.97, so every flight
     needs the supersonic table.
 - No flight failed in any run.
 
@@ -378,7 +378,7 @@ The calls a design edit makes, or a Monte Carlo sample that perturbs dimensions.
 
 - **Benchmark:** `cargo bench -p fusionspace-hpr-design --bench mass`, which is criterion, release profile.
 - **When and where:** 2026-09-17 on an Apple M5 with rustc 1.98.1.
-- **Inputs:** a 4-inch (101.6 mm) von Kármán nose 5 calibres long, and a tangent-ogive boattail
+- **Inputs:** a 4-inch (101.6 mm) von Kármán nose 5 calibers long, and a tangent-ogive boattail
   from 101.6 to 76.2 mm over 0.1 m, each filled or with a 2 mm wall. The fins are four
   trapezoidal G10 fins (0.2/0.08 m chords, 0.11 m span) with an airfoil section, and the same set
   as a five-point freeform outline with rounded edges.

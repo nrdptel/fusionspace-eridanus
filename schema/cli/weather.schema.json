@@ -112,7 +112,7 @@
           "const": "out_of_range"
         },
         {
-          "description": "A sounding's row with the same pressure as its neighbours, not the middle one.",
+          "description": "A sounding's row with the same pressure as its neighbors, not the middle one.",
           "type": "string",
           "const": "same_pressure"
         },

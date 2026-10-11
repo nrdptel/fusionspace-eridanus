@@ -87,7 +87,7 @@ in for Open-Meteo's own: set the request's `endpoint`.
   atmosphere continues, and the air is marked as extrapolated.
 - **Humidity** is taken as relative to liquid water. A model that reports it relative to ice at
   cold levels changes the density there by very little: the two differ by at most 27 Pa of water
-  vapour (near −12 °C), which moves the density by under 0.03% at 400 hPa. Higher up the air is
+  vapor (near −12 °C), which moves the density by under 0.03% at 400 hPa. Higher up the air is
   colder and the gap smaller: about 6 Pa at −40 °C, 0.08% even at 30 hPa.
 
 ## An example

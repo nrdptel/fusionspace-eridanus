@@ -329,7 +329,7 @@ network.
 - Every row with a pressure, height and temperature in the three recordings fits the one before
   it, missing by at most 1 m (3.3 ft) beyond rounding: 0 m (0 ft) in the coded messages and
   0.97 m (3.2 ft) in the BUFR file. The test works out the thickness on its own, with the file's
-  mixing ratio (grams of water vapour per kilogram of dry air) for the humidity. Unit tests pin
+  mixing ratio (grams of water vapor per kilogram of dry air) for the humidity. Unit tests pin
   the check, and the worked example above, to thicknesses and allowances worked out by hand,
   0.01 m (0.03 ft) either side of the edge.
 - Rows the chain passes by, with the rest of the answer kept:
@@ -338,7 +338,7 @@ network.
   - A height raised 850 m (2,789 ft), and a height lowered to 4,000 m (13,123 ft).
   - Two bad rows in a row, and two blocks of six raised rows with a good row between them.
   - A bad row after which the balloon bursts and falls back.
-  - A row whose vapour pressure would exceed the air's pressure (16 hPa at 30 °C, saturated).
+  - A row whose vapor pressure would exceed the air's pressure (16 hPa at 30 °C, saturated).
   - A row that only just fits the row before it, alone: 854 hPa 50 m (164 ft) low, 101 hPa
     95 m (312 ft) high, and a BUFR row at 112.8 hPa 35 m (115 ft) high. The next row misses it,
     and a chain through it is not longer and fits less closely. The rows before and after it are
@@ -424,7 +424,7 @@ network.
   - A row whose pressure and height are both wrong yet fit each other.
   - A wrong ground that fits the row after it, or has only one row after it. In the coded message
     a ground 40 m (131 ft) high, or at 80 °C instead of 28.4 °C, fits.
-  - Bad rows that fit their neighbours: a block of them can be kept, and good rows beside them
+  - Bad rows that fit their neighbors: a block of them can be kept, and good rows beside them
     passed by instead, no more than the block holds, and fewer unless the block fits more
     closely. In the coded message, 683 and 673 hPa both raised 50 m (164 ft) are kept, and
     664 hPa is left out. High in a BUFR file, where rounding the pressure to 0.1 hPa widens the

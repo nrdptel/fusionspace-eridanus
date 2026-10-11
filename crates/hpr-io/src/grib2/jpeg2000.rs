@@ -1,13 +1,13 @@
 //! JPEG 2000 packing: data representation template 5.40 (WMO-No. 306, Volume I.2, FM 92 GRIB
 //! edition 2, template 5.40 and code table 5.40).
 //!
-//! The field's integers `X` are a greyscale image, one sample per packed value, coded as a JPEG
+//! The field's integers `X` are a grayscale image, one sample per packed value, coded as a JPEG
 //! 2000 codestream (ISO/IEC 15444-1) in section 7; each unpacks as simple packing's do,
 //! `Y = (R + X · 2^E) / 10^D`. The codestream is decoded by `hayro-jpeg2000` (MIT or Apache-2.0),
 //! in strict mode, so a damaged or cut-short codestream is refused rather than filled in.
 //!
 //! The decoder runs the reversible 5/3 wavelet (ISO/IEC 15444-1, Annex F) in `f32`, whose whole
-//! numbers are exact only below `2^24`. The inverse transform adds two neighbouring high-pass
+//! numbers are exact only below `2^24`. The inverse transform adds two neighboring high-pass
 //! coefficients before each floor, and for `B`-bit samples those sums reach nearly `16 · 2^(B−1)`
 //! (the cascaded 5/3 analysis filters bound a coefficient by about `8.2 · 2^(B−1)`), so every step
 //! stays exact only for `B ≤ 21`: fields of more bits are refused by name. Probes at 24 bits came

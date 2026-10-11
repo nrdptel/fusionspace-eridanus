@@ -614,7 +614,7 @@ pub struct SimFlag {
     pub flag: FlagKind,
     /// The peak that raised it: the top Mach number, for `high_angle_of_attack` the largest
     /// angle of attack that counts, rad, for `unstable_under_power` the least static margin
-    /// while a motor burns, calibres, or for `unstable_without_margin` the largest pitch-moment
+    /// while a motor burns, calibers, or for `unstable_without_margin` the largest pitch-moment
     /// slope C_mα where the margin is undefined while a motor burns, per radian.
     pub peak: Peak,
     /// What the flag means for this flight, in a sentence.
@@ -883,13 +883,13 @@ pub struct Summary {
     pub max_acceleration_m_s2: Option<Peak>,
     /// The top acceleration under the recovery devices, m/s²: the opening shock.
     pub max_descent_acceleration_m_s2: Option<Peak>,
-    /// The least static stability margin, calibres, from the rail exit to apogee or the first
+    /// The least static stability margin, calibers, from the rail exit to apogee or the first
     /// deployment.
     pub min_static_margin_cal: Option<Peak>,
-    /// The least flight margin, calibres, over the same span: the margin at the flight's Mach
+    /// The least flight margin, calibers, over the same span: the margin at the flight's Mach
     /// number, along the axis.
     pub min_flight_margin_cal: Option<Peak>,
-    /// The least static margin, calibres, over the same span while a motor burns: below zero, the
+    /// The least static margin, calibers, over the same span while a motor burns: below zero, the
     /// rocket is unstable under power and `flags` has `unstable_under_power`.
     pub min_powered_static_margin_cal: Option<Peak>,
     /// The largest pitch-moment slope C_mα, per radian, over the same span while a motor burns,
@@ -997,7 +997,7 @@ pub struct Margin {
     pub pitch_moment_slope_per_rad: f64,
     /// The center of pressure, m aft of the nose tip; `null` when the margin is.
     pub cp_station_m: Option<f64>,
-    /// The margin, calibres: positive with the center of pressure aft of the center of mass;
+    /// The margin, calibers: positive with the center of pressure aft of the center of mass;
     /// `null` when the net slope is too small for the quotient to mean anything.
     pub margin_cal: Option<f64>,
 }
@@ -1355,7 +1355,7 @@ pub enum DropReason {
     NoData,
     /// A value is out of range.
     OutOfRange,
-    /// A sounding's row with the same pressure as its neighbours, not the middle one.
+    /// A sounding's row with the same pressure as its neighbors, not the middle one.
     SamePressure,
     /// A sounding's row not above the last one kept.
     NotAbove,

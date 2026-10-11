@@ -80,11 +80,11 @@ pub const OPENROCKET_BAR_PERCENT: f64 = 5.0;
 /// [m2-2a]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-2a
 pub const MASS_BAR_PERCENT: f64 = 1.0;
 
-/// The bar a stability margin or a center of mass is judged by, calibres. It was 0.5, the
+/// The bar a stability margin or a center of mass is judged by, calibers. It was 0.5, the
 /// center-of-pressure target set before the transonic normal force was measured ([M1.8a][m1-8a]);
 /// [ADR-220][adr-220] tightened it to 0.2 when every difference but one public margin (−1.08,
-/// over either bar) measured within 0.111 calibres, about half the new bar, in both corpora. A
-/// difference in either moves the margin by as many calibres.
+/// over either bar) measured within 0.111 calibers, about half the new bar, in both corpora. A
+/// difference in either moves the margin by as many calibers.
 ///
 /// [m1-8a]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m1-8a
 /// [adr-220]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md#adr-220-the-margin-bar-tightened-to-02-calibres-m114-held-to-release-03s-target-2026-10-09
@@ -114,7 +114,7 @@ pub enum Group {
     Predicted,
     /// OpenRocket's calm flights of its own examples.
     OpenRocketExamples,
-    /// OpenRocket's calm flights of the private designs, under anonymised ids.
+    /// OpenRocket's calm flights of the private designs, under anonymized ids.
     OpenRocketLibrary,
     /// Real flights: the teams' altimeter logs.
     FlightLogs,
@@ -310,8 +310,10 @@ pub enum Unit {
     Metric,
     /// Per cent of the reference.
     Percent,
-    /// Calibres.
-    Calibre,
+    /// Calibers. Censuses accepted before October 11, 2026 wrote the key `calibre`, which still
+    /// reads.
+    #[serde(alias = "calibre")]
+    Caliber,
 }
 
 impl Unit {
@@ -319,7 +321,7 @@ impl Unit {
         match self {
             Self::Metric => "",
             Self::Percent => "%",
-            Self::Calibre => " cal",
+            Self::Caliber => " cal",
         }
     }
 }
@@ -329,7 +331,7 @@ impl Unit {
 pub struct Row {
     /// The report it comes from.
     pub group: Group,
-    /// The case: a harness case id, an OpenRocket design and configuration, an anonymised id, or
+    /// The case: a harness case id, an OpenRocket design and configuration, an anonymized id, or
     /// a real flight's id.
     pub case: String,
     /// The metric; empty for a case that isn't flown.
@@ -733,7 +735,7 @@ fn percent_of(hpr: &Value, openrocket: &Value) -> Option<f64> {
 
 const APOGEE_BAR: (Unit, f64) = (Unit::Percent, OPENROCKET_BAR_PERCENT);
 const MASS_BAR: (Unit, f64) = (Unit::Percent, MASS_BAR_PERCENT);
-const CALIBRE_BAR: (Unit, f64) = (Unit::Calibre, MARGIN_BAR_CAL);
+const CALIBER_BAR: (Unit, f64) = (Unit::Caliber, MARGIN_BAR_CAL);
 
 fn openrocket_example_rows(
     report: &Value,
@@ -773,7 +775,7 @@ fn openrocket_example_rows(
                 "rod_clearance_margin_cal",
                 "margin",
                 "difference",
-                CALIBRE_BAR,
+                CALIBER_BAR,
             ),
         ] {
             let entry = &metrics[key];
@@ -806,7 +808,7 @@ fn openrocket_example_rows(
                 percent_of(&hpr["mass_kg"], &openrocket["mass_kg"]),
                 MASS_BAR,
             ),
-            ("rod_clearance_cg", cg, CALIBRE_BAR),
+            ("rod_clearance_cg", cg, CALIBER_BAR),
         ] {
             let value = measured(value, flight, &case, metric, EXAMPLES)?;
             rows.push(barred(group, &case, metric, value, bar, regime));
@@ -861,7 +863,7 @@ fn openrocket_library_rows(
                 "max_speed_outcome",
                 APOGEE_BAR,
             ),
-            ("margin", "margin_cal", "margin_outcome", CALIBRE_BAR),
+            ("margin", "margin_cal", "margin_outcome", CALIBER_BAR),
         ] {
             let value = scored(
                 flight[outcome].as_str(),
@@ -875,7 +877,7 @@ fn openrocket_library_rows(
         for (metric, field, bar) in [
             ("launch_mass", "launch_mass_percent", MASS_BAR),
             ("rod_clearance_mass", "rod_clearance_mass_percent", MASS_BAR),
-            ("rod_clearance_cg", "rod_clearance_cg_cal", CALIBRE_BAR),
+            ("rod_clearance_cg", "rod_clearance_cg_cal", CALIBER_BAR),
         ] {
             let value = measured(flight[field].as_f64(), flight, &case, metric, LIBRARY)?;
             rows.push(barred(group, &case, metric, value, bar, regime));
@@ -1103,18 +1105,22 @@ impl Summary {
         if let (Group::FlightLogs, Some(apogee)) = (self.group, self.apogee_percent) {
             parts.push(format!(
                 "mean absolute apogee error {:.2}% (target {APOGEE_TARGET_PERCENT}%, {}); apogee \
-                 {:+.2}% to {:+.2}%",
+                 {} to {}",
                 apogee.mean_absolute,
                 if apogee.mean_absolute <= APOGEE_TARGET_PERCENT {
                     "met"
                 } else {
                     "missed"
                 },
-                apogee.min,
-                apogee.max,
+                signed_percent(apogee.min),
+                signed_percent(apogee.max),
             ));
         } else if let Some(apogee) = self.apogee_percent {
-            parts.push(format!("apogee {:+.2}% to {:+.2}%", apogee.min, apogee.max));
+            parts.push(format!(
+                "apogee {} to {}",
+                signed_percent(apogee.min),
+                signed_percent(apogee.max)
+            ));
         }
         let bars: Vec<String> = self
             .bars
@@ -1128,7 +1134,7 @@ impl Summary {
                     "{name} within {}{}{of} on {} of {}",
                     bar.scale,
                     match bar.unit {
-                        Unit::Calibre => " calibres",
+                        Unit::Caliber => " calibers",
                         Unit::Percent => "%",
                         Unit::Metric => "",
                     },
@@ -1160,7 +1166,7 @@ impl Summary {
     pub fn headline(&self) -> String {
         format!(
             "{} against {} ({}; {}): {}; {}.",
-            capitalised(self.group.what()),
+            capitalized(self.group.what()),
             self.reference,
             self.group.kind(),
             self.group.bar(),
@@ -1170,7 +1176,7 @@ impl Summary {
     }
 }
 
-fn capitalised(text: &str) -> String {
+fn capitalized(text: &str) -> String {
     let mut chars = text.chars();
     chars.next().map_or_else(String::new, |first| {
         first.to_uppercase().chain(chars).collect()
@@ -1638,7 +1644,7 @@ fn reading(slack_share: f64) -> String {
         ),
         (
             "OpenRocket stability margin, or center of mass",
-            format!("{MARGIN_BAR_CAL} calibres"),
+            format!("{MARGIN_BAR_CAL} calibers"),
         ),
         ("logged apogee", format!("{APOGEE_TARGET_PERCENT}%")),
         (
@@ -1656,6 +1662,12 @@ fn reading(slack_share: f64) -> String {
         slack_share * allowed_m
     );
     out
+}
+
+/// A difference in percent with its sign, to two places, and a real minus sign (U+2212) as the
+/// product system writes one on screen (`data.md`, *Numbers*): `+1.21%`, `−7.28%`.
+fn signed_percent(value: f64) -> String {
+    format!("{value:+.2}%").replace('-', "\u{2212}")
 }
 
 /// The census table, as the README and the accuracy page show it, each row's reference linked to

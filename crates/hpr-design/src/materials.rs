@@ -124,7 +124,7 @@ pub const BUILTIN: &[BuiltinMaterial] = &[
     },
     BuiltinMaterial {
         id: "blue_tube",
-        name: "Blue Tube 2.0 (vulcanized fibre)",
+        name: "Blue Tube 2.0 (vulcanized fiber)",
         density: bulk(1250.0),
         source: "Always Ready Rocketry, BTRSData.zip, MATERIAL.CSV: Vulcanized Fiber, 1.25 g/cm3",
         url: "http://alwaysreadyrocketry.com/Downloads/BTRSData.zip",
@@ -151,22 +151,22 @@ pub const BUILTIN: &[BuiltinMaterial] = &[
         id: "fiberglass_filament_wound",
         name: "Filament-wound E-glass/epoxy (G12)",
         density: bulk(1990.0),
-        source: "Comptec Inc., filament wound technical data: density 0.072 lb/in3; consistent with MIL-HDBK-17 rule of mixtures at 59% fibre (E-glass 2.54 g/cm3)",
+        source: "Comptec Inc., filament wound technical data: density 0.072 lb/in3; consistent with MIL-HDBK-17 rule of mixtures at 59% fiber (E-glass 2.54 g/cm3)",
         url: "https://comptecinc.com/filament-wound-technical-data/",
         basis: Basis::Published,
     },
     BuiltinMaterial {
         id: "carbon_fiber",
-        name: "Carbon fibre/epoxy laminate",
+        name: "Carbon fiber/epoxy laminate",
         density: bulk(1580.0),
-        source: "Hexcel HexPly 8552 product data sheet (AS4 unidirectional, 57.4% fibre volume): nominal laminate density 1.58 g/cm3",
+        source: "Hexcel HexPly 8552 product data sheet (AS4 unidirectional, 57.4% fiber volume): nominal laminate density 1.58 g/cm3",
         url: "https://www.hexcel.com/",
         basis: Basis::Published,
     },
     // Metals.
     BuiltinMaterial {
         id: "aluminum_6061",
-        name: "Aluminium 6061",
+        name: "Aluminum 6061",
         density: bulk(2700.0),
         source: "Kaiser Aluminum, 6061 Sheet, Coil and Plate data sheet, rev. 05/06: 2.70 Mg/m3",
         url: "https://online.kaiseraluminum.com/depot/PublicProductInformation/Document/1015/Kaiser_Aluminum_6061_Sheet_Coil_and_Plate.pdf",
@@ -174,7 +174,7 @@ pub const BUILTIN: &[BuiltinMaterial] = &[
     },
     BuiltinMaterial {
         id: "aluminum_7075",
-        name: "Aluminium 7075",
+        name: "Aluminum 7075",
         density: bulk(2800.0),
         source: "Kaiser Aluminum, 7075 Sheet, Coil and Plate data sheet, rev. 05/06: 2.80 Mg/m3",
         url: "https://online.kaiseraluminum.com/depot/PublicProductInformation/Document/1017/Kaiser_Aluminum_7075_Sheet_Coil_and_Plate.pdf",
@@ -680,12 +680,29 @@ pub fn shear_modulus(id: &str) -> Option<&'static BuiltinShearModulus> {
     SHEAR_MODULI.iter().find(|m| m.id == id)
 }
 
-/// The built-in shear modulus of `material`, a design's copy of a built-in one (its name and
-/// density both match); `None` for a material that isn't built in or has no modulus.
+/// The names built-in materials had in designs saved before October 11, 2026, when they were
+/// spelled in US English, each with its name now. A design keeps the name it was saved with, so both still match.
+const FORMER_NAMES: [(&str, &str); 4] = [
+    (
+        "Blue Tube 2.0 (vulcanized fibre)",
+        "Blue Tube 2.0 (vulcanized fiber)",
+    ),
+    ("Carbon fibre/epoxy laminate", "Carbon fiber/epoxy laminate"),
+    ("Aluminium 6061", "Aluminum 6061"),
+    ("Aluminium 7075", "Aluminum 7075"),
+];
+
+/// The built-in shear modulus of `material`, a design's copy of a built-in one (its name, or the
+/// name the built-in had before its US spelling, and its density both match); `None` for a material that
+/// isn't built in or has no modulus.
 pub fn shear_modulus_of(material: &Material) -> Option<&'static BuiltinShearModulus> {
+    let name = FORMER_NAMES
+        .iter()
+        .find(|(former, _)| *former == material.name)
+        .map_or(material.name.as_str(), |(_, now)| *now);
     let builtin = BUILTIN
         .iter()
-        .find(|m| m.name == material.name && m.density == material.density)?;
+        .find(|m| m.name == name && m.density == material.density)?;
     shear_modulus(builtin.id)
 }
 
@@ -694,6 +711,24 @@ mod tests {
     use std::collections::BTreeSet;
 
     use super::*;
+
+    #[test]
+    fn a_design_saved_with_a_former_name_finds_its_shear_modulus() {
+        for (former, now) in FORMER_NAMES {
+            let builtin = BUILTIN.iter().find(|m| m.name == now).unwrap();
+            let saved = Material {
+                name: former.to_owned(),
+                ..builtin.material()
+            };
+            assert_eq!(
+                shear_modulus_of(&saved).map(|m| m.id),
+                shear_modulus_of(&builtin.material()).map(|m| m.id),
+                "{former}"
+            );
+        }
+        let aluminum = BUILTIN.iter().find(|m| m.name == "Aluminum 6061").unwrap();
+        assert!(shear_modulus_of(&aluminum.material()).is_some());
+    }
 
     #[test]
     fn every_entry_has_a_unique_id_a_source_and_a_positive_density() {

@@ -16,7 +16,7 @@
 //!   reference diameter.
 //!
 //! The flight compared for the climb flies no recovery device, so a reference whose parachute
-//! opened before its apogee is marked, with how long before, and is summarised apart. Each
+//! opened before its apogee is marked, with how long before, and is summarized apart. Each
 //! configuration is then flown again with the file's recovery, as `hpr::ork::recovery` maps it,
 //! and its descent compared with OpenRocket's ([`descent_flight`], ADR-153). A configuration with a powered separation ([`ork::Staging`], M1.9c, ADR-076)
 //! flies it: the sustainer's apogee and largest speed are compared with OpenRocket's, whose
@@ -64,7 +64,7 @@ pub const USAGE: &str = "\
                            another record flights.py wrote. --library flies the
                            private library's configurations from that record and
                            writes validation/reports/openrocket-library-flights.{md,json}
-                           under anonymised ids (with --check, compares instead).";
+                           under anonymized ids (with --check, compares instead).";
 
 /// OpenRocket's flights (M2.2d1).
 pub(crate) const RECORD: &str = "validation/fixtures/ork/openrocket-flights.json";
@@ -230,7 +230,7 @@ fn fly_all(root: &Path, record: &Value) -> Result<Value, String> {
             "the probes have no {WITHOUT_PODS} to measure the pods and the rods against"
         ));
     }
-    let summary = summarise(&flights, &not_flown);
+    let summary = summarize(&flights, &not_flown);
     Ok(json!({
         "generated_by": "cargo xtask ork-flights",
         "record": RECORD,
@@ -246,7 +246,7 @@ fn fly_all(root: &Path, record: &Value) -> Result<Value, String> {
 pub(crate) const WITHOUT_PODS: &str = "pods-none";
 
 /// What a probe's pods or rod change, against [`WITHOUT_PODS`]: the apogee in per cent and the
-/// margin at rod clearance in calibres, each as `[openrocket, hpr]`.
+/// margin at rod clearance in calibers, each as `[openrocket, hpr]`.
 pub(crate) fn probe_change(probe: &Value, without: &Value) -> Option<[[f64; 2]; 2]> {
     let number =
         |flight: &Value, metric: &str, code: &str| flight["metrics"][metric][code].as_f64();
@@ -686,10 +686,10 @@ struct Peaks {
     running_speed_m_s: f64,
     highest_m: Option<f64>,
     /// The least static margin in free flight up to the highest sample so far, in the rocket's
-    /// weakest plane ([`hpr_sim::metrics::weakest_margin`]), calibres; samples with no margin
+    /// weakest plane ([`hpr_sim::metrics::weakest_margin`]), calibers; samples with no margin
     /// left out.
     least_margin_cal: Option<f64>,
-    /// The least static margin in free flight so far, calibres.
+    /// The least static margin in free flight so far, calibers.
     running_margin_cal: Option<f64>,
     /// When the angle of attack first passed 90° in free flight, the air arriving from behind the
     /// rocket's beam, up to the highest sample so far, s.
@@ -2044,7 +2044,7 @@ pub(crate) fn metric_entry(
 }
 
 /// The counts and the spread of each metric's differences.
-pub(crate) fn summarise(flights: &[Value], not_flown: &[Value]) -> Value {
+pub(crate) fn summarize(flights: &[Value], not_flown: &[Value]) -> Value {
     let mut metrics = serde_json::Map::new();
     for (metric, key) in METRICS {
         let mut outcomes: BTreeMap<String, usize> = BTreeMap::new();
@@ -2053,7 +2053,7 @@ pub(crate) fn summarise(flights: &[Value], not_flown: &[Value]) -> Value {
             let entry = &flight["metrics"][key];
             let outcome = entry["outcome"]["outcome"].as_str().unwrap_or("missing");
             *outcomes.entry(outcome.to_owned()).or_default() += 1;
-            // The margin's difference is in calibres; the others' in per cent of OpenRocket's.
+            // The margin's difference is in calibers; the others' in per cent of OpenRocket's.
             let value = if metric == FlightMetric::RodClearanceStability {
                 entry["difference"].as_f64()
             } else {
@@ -2064,7 +2064,7 @@ pub(crate) fn summarise(flights: &[Value], not_flown: &[Value]) -> Value {
             }
         }
         let unit = if metric == FlightMetric::RodClearanceStability {
-            "calibres"
+            "calibers"
         } else {
             "percent of OpenRocket's"
         };
@@ -2417,7 +2417,7 @@ fn with_the_causes_removed(flights: &[Value]) -> Value {
 /// The spread of hpr's mass and center of mass against OpenRocket's (M2.2e1), over the flights
 /// that were not aborted: the mass at launch and at the rod-clearance step in per cent of
 /// OpenRocket's, and the center of mass at that step, hpr's less OpenRocket's distance from the
-/// nose, in OpenRocket's calibres (so it moves the margin by as much, the other way).
+/// nose, in OpenRocket's calibers (so it moves the margin by as much, the other way).
 fn mass_and_cg(flights: &[Value]) -> Value {
     let (mut launch, mut clearance, mut cg) = (Vec::new(), Vec::new(), Vec::new());
     for flight in flights.iter().filter(|f| f["aborted"] != true) {
@@ -2434,7 +2434,7 @@ fn mass_and_cg(flights: &[Value]) -> Value {
 }
 
 /// One flight's differences [`mass_and_cg`] spreads: its mass at launch and at the rod-clearance
-/// step in per cent of OpenRocket's, and its center of mass at that step in OpenRocket's calibres.
+/// step in per cent of OpenRocket's, and its center of mass at that step in OpenRocket's calibers.
 pub(crate) fn mass_and_cg_differences(flight: &Value) -> [Option<f64>; 3] {
     let relative = |hpr: &Value, openrocket: &Value| {
         hpr.as_f64()
@@ -2489,7 +2489,7 @@ pub(crate) const WHOLE_BASE_PROBE: &str = "with_the_whole_base_under_power";
 /// flight ([`DRAG_CURVES`]): its apogee and largest speed against OpenRocket's.
 pub(crate) const OPENROCKET_DRAG_PROBE: &str = "on_openrocket_s_drag";
 
-/// The named cause a flight's difference in `metric` is summarised under. A drag override moves
+/// The named cause a flight's difference in `metric` is summarized under. A drag override moves
 /// every metric but the margin; an early parachute only the apogee. A flight with both is put
 /// under the drag override. A flight with neither whose apogee (or largest speed) hpr brings
 /// within 5% of OpenRocket's by flying OpenRocket's drag has hpr's own drag as that metric's
@@ -2640,7 +2640,7 @@ pub(crate) fn page(report: &Value) -> String {
          the apogee is the highest point above the launch position; the largest speed is the \
          peak speed (hpr's up to its apogee, since the flight compared for the climb flies no \
          parachute: its descent is compared apart, under *Descents*); the margin, in \
-         calibres, is OpenRocket's stability column at its rod-clearance step, which hpr takes \
+         calibers, is OpenRocket's stability column at its rod-clearance step, which hpr takes \
          at that step's time and Mach number with the air along the axis. Differences (Δ) are \
          hpr less OpenRocket. Motors are OpenRocket's configuration names, one bracketed group \
          per stage. The explanation is on the [documentation site][site].\n\n\
@@ -2866,7 +2866,7 @@ fn probes_table(report: &Value) -> String {
 }
 
 /// hpr's margin at rod clearance with its center of pressure at OpenRocket's angle of attack
-/// there, in calibres of hpr's reference diameter: `None` when either is missing.
+/// there, in calibers of hpr's reference diameter: `None` when either is missing.
 pub(crate) fn margin_at_openrocket_alpha_cal(flight: &Value) -> Option<f64> {
     let hpr = &flight["at_rod_clearance"]["hpr"];
     let cp = hpr["cp_from_nose_m_at_openrocket_angle_of_attack"].as_f64()?;
@@ -3220,7 +3220,7 @@ pub(crate) fn summary_lines(report: &Value) -> String {
     out.push_str(
         "\nhpr's mass and center of mass less OpenRocket's ([M2.2e1][m2-2e1], decision \
          [ADR-070][adr-070]), over the flights not aborted: the masses in per cent of \
-         OpenRocket's, the center of mass in OpenRocket's calibres, positive when hpr's is further \
+         OpenRocket's, the center of mass in OpenRocket's calibers, positive when hpr's is further \
          aft, which shortens the margin by as much.\n\n",
     );
     for (key, label, unit, digits) in [
@@ -3924,7 +3924,7 @@ mod tests {
     fn the_summary_and_the_page_are_the_flights() {
         let root = crate::ork::root().unwrap();
         let (_, report) = committed();
-        let summary = summarise(
+        let summary = summarize(
             report["flights"].as_array().unwrap(),
             report["not_flown"].as_array().unwrap(),
         );
@@ -4169,10 +4169,10 @@ mod tests {
     /// carrying pods of bodies, fins, a tail cone, winglets or motors, within 5% of OpenRocket's
     /// apogee and largest speed. So the pods are seen to count, not only the airframe, what each
     /// probe's pods change (its apogee and margin against the same airframe without pods) is held
-    /// too: within 1 point of apogee and 0.005 calibres of OpenRocket's change, and each margin
-    /// within 0.005 calibres of OpenRocket's. The bounds were set after the measurement (0.32
-    /// points, 0.0004 and 0.0014 calibres at most), to catch a pod rule that breaks: a pod fin's
-    /// `K_T(B)` taken on the airframe, by a hand estimate, moves the margin by some 0.04 calibres.
+    /// too: within 1 point of apogee and 0.005 calibers of OpenRocket's change, and each margin
+    /// within 0.005 calibers of OpenRocket's. The bounds were set after the measurement (0.32
+    /// points, 0.0004 and 0.0014 calibers at most), to catch a pod rule that breaks: a pod fin's
+    /// `K_T(B)` taken on the airframe, by a hand estimate, moves the margin by some 0.04 calibers.
     /// The census leaves the probes out (ADR-093), so these bounds are what holds them in CI.
     #[test]
     fn pod_designs_are_within_5_percent_of_openrocket() {
@@ -4297,8 +4297,8 @@ mod tests {
     /// apogee, within 0.1 degrees of OpenRocket's bearing from the pad and 1% of its distance;
     /// what the rod takes off the apogee against the vertical `pods-none`, within 0.5 points of
     /// OpenRocket's; and the margin at rod clearance at OpenRocket's angle of attack there,
-    /// within 0.006 calibres of OpenRocket's. The bounds were set after the measurement (0.03
-    /// degrees, 0.64%, 0.27 points and 0.0048 calibres at most); a bearing read anticlockwise
+    /// within 0.006 calibers of OpenRocket's. The bounds were set after the measurement (0.03
+    /// degrees, 0.64%, 0.27 points and 0.0048 calibers at most); a bearing read anticlockwise
     /// turns the east probes 180 degrees, and an angle read from the horizon makes the vertical
     /// rod a horizontal rail, which hpr refuses. The bearing's 0.03 degrees is motion across the
     /// tilt (0.18 m across 370 m at 20 degrees): hpr's fits Earth's rotation, OpenRocket's goes

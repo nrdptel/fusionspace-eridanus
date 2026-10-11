@@ -15,7 +15,7 @@
 //! use hpr_design::{NoseShape, Profile};
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
-//! // A cone five calibres long on a cylinder of four, 1 m across, at Mach 4.24.
+//! // A cone five calibers long on a cylinder of four, 1 m across, at Mach 4.24.
 //! let body = ShockExpansionBody::new(
 //!     &[
 //!         BodySegment::Profile {
@@ -3442,7 +3442,7 @@ mod tests {
     /// The Arcas Robin's committed nose (a power series, `n` = 0.6369, 9.375 in long on a
     /// 2.25-in body) and the short model's cylinder: four times the default elements move its
     /// slope by under 0.01 per radian and its center of pressure by under 0.01 calibers, through
-    /// Mach 5. Sixteen times the default move a five-calibre elliptical or von Kármán nose's by
+    /// Mach 5. Sixteen times the default move a five-caliber elliptical or von Kármán nose's by
     /// under 0.02: the tangent body settles more slowly on a nose whose slope changes fastest
     /// just behind the cap.
     #[test]
@@ -3482,7 +3482,7 @@ mod tests {
                 "Mach {mach}: {a:?} against {b:?}"
             );
         }
-        // Five-calibre elliptical and von Kármán noses on a cylinder, the default elements
+        // Five-caliber elliptical and von Kármán noses on a cylinder, the default elements
         // against sixteen times as many.
         for shape in [NoseShape::Elliptical {}, NoseShape::VON_KARMAN] {
             let body = |steps| {
@@ -3567,8 +3567,8 @@ mod tests {
 
     /// A cap that shrinks to nothing doesn't reach the cone it sits on: the march starts from the
     /// tangent cone at the handover, and carries that cone's total pressure the whole way, however
-    /// small the cap. A power-series nose of `n` = 0.99, four calibres long, is a 7.1° cone but for
-    /// a tip 1e-55 calibres across, yet at Mach 4 its cylinder carries 1.21 per radian where the
+    /// small the cap. A power-series nose of `n` = 0.99, four calibers long, is a 7.1° cone but for
+    /// a tip 1e-55 calibers across, yet at Mach 4 its cylinder carries 1.21 per radian where the
     /// cone's carries 1.37, because the march runs on the 24° cone's total pressure (107 free
     /// streams against the 7.1° cone's 151). The noses themselves agree to 0.01. Pinned so the
     /// limit is visible and any fix shows here ([issue #101](https://github.com/nrdptel/fusionspace-eridanus/issues/101)).
@@ -3807,7 +3807,7 @@ mod tests {
             }
         }
     }
-    /// A pointed 2.75° cone, five calibres of tube, and a conical flare of `flare_deg`. The two
+    /// A pointed 2.75° cone, five calibers of tube, and a conical flare of `flare_deg`. The two
     /// angles are TN D-4865 model 2's; the layout is **not** (that model is blunt-nosed and has no
     /// tube), and the edge below depends on the tube, which sets the flow reaching the flare. The
     /// method is inviscid, so only angles and ratios of lengths to radii matter.
@@ -4142,7 +4142,7 @@ mod tests {
     #[test]
     fn what_the_crossing_costs_is_the_loading_gap_times_the_element_that_holds_it() {
         // Either side of a body's own crossing, on the body alone: the fraction its `C_Nα` moves
-        // and how far its center of pressure moves, in calibres of the tube ahead of the flare.
+        // and how far its center of pressure moves, in calibers of the tube ahead of the flare.
         let across = |cone_deg: Option<f64>,
                       radius_m: f64,
                       tube_m: f64,
@@ -4175,7 +4175,7 @@ mod tests {
         };
         // The tests' rocket's body, then the same body with a flare seven times as long, then
         // with the tube cut from 0.7 m to 0.1 m, then a 10° cone in front instead of an ogive.
-        for (label, cone, tube, flare, mach, force, calibres) in [
+        for (label, cone, tube, flare, mach, force, calibers) in [
             (
                 "as the rocket has it",
                 None,
@@ -4200,9 +4200,9 @@ mod tests {
             let (moved, shifted) = across(cone, 0.027, tube, flare, mach);
             assert!(
                 (moved - force).abs() < 0.03 * force
-                    && (shifted - calibres).abs() < 0.03 * calibres,
+                    && (shifted - calibers).abs() < 0.03 * calibers,
                 "{label}: the crossing moves the body's slope {moved:+.6} and its center of \
-                 pressure {shifted:+.4} calibres"
+                 pressure {shifted:+.4} calibers"
             );
         }
         // And it is not a sample either: the step is the loading's gap at the pole times the
@@ -4278,9 +4278,9 @@ mod tests {
         assert!(
             (moved + 0.027_72).abs() < 5e-5 && (shifted + 0.137_5).abs() < 5e-4,
             "Mach 2.90 to 2.95 moves the slope {moved:+.5} and the center of pressure \
-             {shifted:+.4} calibres"
+             {shifted:+.4} calibers"
         );
-        // Its neighbours move by a fifth of that or less, so it is the pole and not the trend.
+        // Its neighbors move by a fifth of that or less, so it is the pole and not the trend.
         for pair in [(56, 57), (57, 58), (59, 60), (60, 61)] {
             let step = row(pair.1).0 / row(pair.0).0 - 1.0;
             assert!(

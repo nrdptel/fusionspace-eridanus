@@ -30,7 +30,7 @@ def test_a_constant_python_drag_flies_as_a_table_of_it():
 @pytest.mark.parametrize("cd0", [0.3, 0.45])
 def test_other_constants_fly_as_a_table_to_its_rounding(cd0):
     # A table's linear interpolation, (1 - t) y0 + t y1, can round a constant row to a
-    # neighbouring float, so a table of 0.3 or 0.45 is not always exactly 0.3 or 0.45: the two
+    # neighboring float, so a table of 0.3 or 0.45 is not always exactly 0.3 or 0.45: the two
     # flights agree to that rounding, not to the bit as they do at 0.5.
     table = flight(drag_table=hpr.DragTable([(0.0, cd0), (3.0, cd0)]))
     function = flight(drag=lambda mach, thrusting: cd0)

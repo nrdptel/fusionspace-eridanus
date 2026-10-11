@@ -16,7 +16,7 @@ of mass, inertia and surface area.
   1e-10. Not compared with OpenRocket, weighed parts or a real flight.
 - **What it leaves out:** OpenRocket's documentation doesn't say how it measures wall thickness.
   Measuring it radially instead of square to the surface changes wall volume by 1.4% on a cone
-  three calibres (base diameters) long. Where a steep end is cut square to the axis, rather than
+  three calibers (base diameters) long. Where a steep end is cut square to the axis, rather than
   following the wall's inner corner as HPR Sim does, the part gains up to 2.24% of wall mass in this
   page's examples. The OpenRocket comparison ([M2.2](../decisions-and-roadmap.md#m2-2)) is to check both.
 
@@ -139,7 +139,7 @@ diameter, moved to the reference plane by the parallel-axis theorem. `S` exclude
   - The hollow is integrated separately. It is split where `r_i` reaches zero and where the nearest
     surface point moves between the lateral surface and a rim, since both are kinks.
   - [TD] doesn't say how OpenRocket measures thickness, and [CR] measures it radially. The two
-    differ by a factor `√(1 + y′²)` in wall volume, 1.4% for a cone three calibres long. The
+    differ by a factor `√(1 + y′²)` in wall volume, 1.4% for a cone three calibers long. The
     OpenRocket comparison ([M2.2](../decisions-and-roadmap.md#m2-2)) will measure OpenRocket's choice.
 
 ## Verification

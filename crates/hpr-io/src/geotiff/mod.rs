@@ -148,7 +148,7 @@ pub const MAX_VALUES_PIXELS: u64 = 1 << 28;
 pub const MAX_CHUNK_BYTES: u64 = 256 << 20;
 
 /// The geographic CRSs read, by EPSG code: datums whose latitude and longitude lie within a few
-/// meters of WGS 84's, so a point given in WGS 84 reads the right pixel, or its neighbour on a
+/// meters of WGS 84's, so a point given in WGS 84 reads the right pixel, or its neighbor on a
 /// grid finer than a few meters. They part by plate motion since each was fixed, and by
 /// earthquakes: near the rupture of a large one since a datum was fixed, such as Chile's in 2010
 /// for SIRGAS 2000 or Wenchuan's in 2008 for CGCS2000, the ground moved several meters. JGD2000

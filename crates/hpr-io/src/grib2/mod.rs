@@ -33,12 +33,12 @@
 //! not two's complement (Regulation 92.1.5).
 //!
 //! **Complex packing** (5.2, 5.3) splits the values into groups, each with its own reference and
-//! width, and may pack differences between neighbouring values instead of the values; the
+//! width, and may pack differences between neighboring values instead of the values; the
 //! integers it rebuilds unpack by the same regulation. [`ComplexPacking`] has the details. Its
 //! values can only be read in order, so [`Field::value`] reads the field up to the point asked
 //! for; [`Field::values_at`] reads several points in one pass.
 //!
-//! **JPEG 2000** (5.40) codes the integers `X` as a greyscale image in a JPEG 2000 codestream,
+//! **JPEG 2000** (5.40) codes the integers `X` as a grayscale image in a JPEG 2000 codestream,
 //! decoded by `hayro-jpeg2000`; [`Jpeg2000Packing`] has the limits. The image is decoded whole
 //! each time values are read, so read a field's values once with [`Field::values`] or
 //! [`Field::values_at`].
@@ -191,9 +191,9 @@ pub enum Projection {
         first_lat_deg: f64,
         /// The first point's longitude, degrees east, in `[0, 360)` as GRIB writes it.
         first_lon_deg: f64,
-        /// The spacing in longitude between neighbouring points along `i`, degrees.
+        /// The spacing in longitude between neighboring points along `i`, degrees.
         di_deg: f64,
-        /// The spacing in latitude between neighbouring points along `j`, degrees.
+        /// The spacing in latitude between neighboring points along `j`, degrees.
         dj_deg: f64,
     },
     /// Template 3.30: a Lambert conformal conic projection, on a tangent cone.
@@ -682,7 +682,7 @@ impl Grid {
     }
 
     /// The fractional grid indices `(i, j)` of a place, such that grid point `(⌊i⌋, ⌊j⌋)` and its
-    /// neighbours at `+1` surround it; the place may be outside the grid.
+    /// neighbors at `+1` surround it; the place may be outside the grid.
     #[must_use]
     pub fn index_at(&self, latitude_deg: f64, longitude_deg: f64) -> (f64, f64) {
         let j_sign = if self.south_to_north { 1.0 } else { -1.0 };

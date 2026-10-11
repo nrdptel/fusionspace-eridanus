@@ -1,6 +1,6 @@
 //! Two goals at once: NSGA-II traces the trade-off between a rocket's apogee and its static
 //! margin, over its nose ballast and fin span, and the front it finds is checked twice: each
-//! design flown again, and the best apogee at 2.5 calibres found again by CMA-ES alone.
+//! design flown again, and the best apogee at 2.5 calibers found again by CMA-ES alone.
 //!
 //! ```text
 //! cargo run --example pareto_front -p fusionspace-hpr
@@ -28,13 +28,13 @@ use hpr::{
     NoseShape, Position, Rocket, Trigger,
 };
 
-/// The least static margin a design may have, calibres.
+/// The least static margin a design may have, calibers.
 const LEAST_MARGIN_CAL: f64 = 1.5;
 
-/// The margins at which the front's apogee is shown, calibres.
+/// The margins at which the front's apogee is shown, calibers.
 const SHOWN_CAL: [f64; 4] = [2.0, 2.5, 3.0, 3.5];
 
-/// The margin at which the front is checked against CMA-ES, calibres.
+/// The margin at which the front is checked against CMA-ES, calibers.
 const CHECK_CAL: f64 = 2.5;
 
 /// How far apart the front's apogee and CMA-ES's may be at the check, as a share of CMA-ES's.
@@ -42,9 +42,9 @@ const WITHIN: f64 = 0.005;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let seed = 2026;
-    println!("A 66 mm rocket on a J760: how much apogee each calibre of static margin costs, over");
+    println!("A 66 mm rocket on a J760: how much apogee each caliber of static margin costs, over");
     println!("its nose ballast (0 to 0.8 kg) and fin span (4 to 10 cm), with a margin of at least");
-    println!("{LEAST_MARGIN_CAL} calibres at launch mass, at Mach 0.3");
+    println!("{LEAST_MARGIN_CAL} calibers at launch mass, at Mach 0.3");
     println!("Not yet validated: see the Accuracy page before trusting these numbers.");
 
     let variables = vec![
@@ -122,7 +122,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let close = (on_front - best).abs() <= WITHIN * best;
     println!();
     println!(
-        "At {CHECK_CAL} calibres, CMA-ES alone ({flights} flights): apogee {} m; the front within 0.5%: {}",
+        "At {CHECK_CAL} calibers, CMA-ES alone ({flights} flights): apogee {} m; the front within 0.5%: {}",
         round_to_ten(best),
         if close { "yes" } else { "no" }
     );
@@ -166,7 +166,7 @@ struct Flyer {
 }
 
 impl Flyer {
-    /// The apogee (m) and static margin (calibres, at launch mass, at Mach 0.3) of a design.
+    /// The apogee (m) and static margin (calibers, at launch mass, at Mach 0.3) of a design.
     fn design(&mut self, ballast_kg: f64, span_m: f64) -> Result<(f64, f64), Box<dyn Error>> {
         let rocket = rocket(ballast_kg, span_m)?;
         let margin = rocket.static_margin_cal(0.0, 0.3)?.ok_or("no margin")?;

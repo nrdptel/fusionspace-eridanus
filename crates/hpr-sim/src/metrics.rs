@@ -45,7 +45,7 @@ use crate::recovery::BodySample;
 /// `ε C_Nα,j (x_j − x_cp) / C_Nα`, so by at most `ε κ² L`. A rocket whose slopes all push the same
 /// way has `κ = 1`, and a 1% error in one slope moves its center of pressure by at most 1% of its
 /// length. As the net slope goes to zero, `κ` runs away: the loads become a pure couple with no
-/// line of action, and the quotient is noise (Loft published ±12 to 15 calibres so,
+/// line of action, and the quotient is noise (Loft published ±12 to 15 calibers so,
 /// [lesson L33][l33]). At `κ = √10` a 1% error in one slope can move the center of pressure by a
 /// tenth of the rocket's length; past it HPR Sim gives no margin, only the pitch-moment slope, which
 /// stays finite. The limit is a chosen bound on that sensitivity, not a measurement. The bound
@@ -94,7 +94,7 @@ pub struct Margin {
     pub pitch_moment_slope_per_rad: f64,
     /// The center of pressure, m aft of the nose tip; `None` when the margin is.
     pub cp_station_m: Option<f64>,
-    /// The margin `(x_cp − x_cg) / d`, calibres: positive with the center of pressure aft of the
+    /// The margin `(x_cp − x_cg) / d`, calibers: positive with the center of pressure aft of the
     /// center of mass. `None` when the net slope is not positive or is below
     /// `Σ |C_Nα,i| / MARGIN_CONDITION_LIMIT`, where the quotient would be noise.
     pub margin_cal: Option<f64>,
@@ -366,13 +366,13 @@ pub struct FlightSummary {
     /// follows the inflation model, kept apart from the boost's.
     pub max_descent_acceleration_m_s2: Option<Peak>,
     /// The smallest static margin from the rail exit to apogee or the first deployment,
-    /// calibres, where it is defined, found inside steps as a peak is. After a powered separation
+    /// calibers, where it is defined, found inside steps as a peak is. After a powered separation
     /// the sustainer's margins count its own diameter.
     pub min_static_margin_cal: Option<Peak>,
-    /// The smallest flight margin over the same span, calibres, found the same way. RocketPy's
+    /// The smallest flight margin over the same span, calibers, found the same way. RocketPy's
     /// `min_stability_margin` takes its least over the whole flight, so it can differ.
     pub min_flight_margin_cal: Option<Peak>,
-    /// The smallest static margin over the same span while a motor burns, calibres, found the
+    /// The smallest static margin over the same span while a motor burns, calibers, found the
     /// same way: below zero, the rocket is unstable under power
     /// ([`EnvelopeFlag::UnstableUnderPower`]; [#335][i335]). A step counts when the thrust at its
     /// middle is positive. Every ignition, thrust-curve knot and burnout ends a step, so a motor's
@@ -877,7 +877,7 @@ fn flight_of(s: &Stability) -> &Margin {
 }
 
 /// How far below a least margin another must be to replace it: this fraction of the least, or of
-/// 1 calibre below 1 calibre. A flat margin, which rounding can nudge by an ulp, keeps its first
+/// 1 caliber below 1 caliber. A flat margin, which rounding can nudge by an ulp, keeps its first
 /// time.
 const MARGIN_TIE: f64 = 1e-12;
 
@@ -1159,7 +1159,7 @@ mod tests {
     fn static_margin_undefined_when_cn_alpha_near_zero() {
         // L33: a boattail down to a tenth of the radius all but cancels the nose's slope
         // (2 − 1.98 = 0.02 against a sum of 3.98). The quotient still exists, and it is the kind
-        // of number Loft published: hundreds of calibres.
+        // of number Loft published: hundreds of calibers.
         let cg_m = 0.5;
         let aero = nose_and_boattail(0.005);
         let (slope, sum, moment, cp) = nose_and_boattail_by_hand(0.005, cg_m);
@@ -1182,7 +1182,7 @@ mod tests {
             1e-12,
             "Σ |slopes|",
         );
-        // The couple stays: finite, and destabilising (positive).
+        // The couple stays: finite, and destabilizing (positive).
         close(
             static_margin.pitch_moment_slope_per_rad,
             moment,
@@ -1870,7 +1870,7 @@ mod tests {
     #[test]
     fn least_margins_do_not_depend_on_where_steps_end() {
         // The same flight flown in steps of at most 1 ms gives the same least margins, to a
-        // millionth of a calibre: Valetudo in calm air off a vertical and an 84° rail and in a
+        // millionth of a caliber: Valetudo in calm air off a vertical and an 84° rail and in a
         // crosswind, and Prometheus. On all four both leasts are at the rail exit, where the rocket
         // is heaviest and its center of mass furthest aft: the search inside steps is checked on a
         // two-stage flight (`staging::tests::metrics_follow_a_powered_separation`) instead.
@@ -2449,14 +2449,14 @@ mod tests {
                 .map(EnvelopeFlag::name)
                 .collect::<Vec<_>>()
         };
-        // The margin falls by 1 calibre a second. From 1 − 2⁻³⁰ it is −2⁻³⁰ at the burnout:
+        // The margin falls by 1 caliber a second. From 1 − 2⁻³⁰ it is −2⁻³⁰ at the burnout:
         // unstable under power, however little.
         let (powered, least) = least_powered(|t| Some(1.0 - 2_f64.powi(-30) - t));
         let powered = powered.unwrap();
         assert_eq!((powered.value, powered.time_s), (-tiny, 1.0));
         assert_eq!(names(Some(powered)), ["unstable_under_power"]);
         assert_eq!(least.unwrap().time_s, 2.0);
-        // From 1 + 2⁻³⁰ it is +2⁻³⁰ at the burnout, and falls to −1 calibre in the coast after:
+        // From 1 + 2⁻³⁰ it is +2⁻³⁰ at the burnout, and falls to −1 caliber in the coast after:
         // no flag, as only the margin under power counts.
         let (powered, least) = least_powered(|t| Some(1.0 + 2_f64.powi(-30) - t));
         let powered = powered.unwrap();
@@ -2482,7 +2482,7 @@ mod tests {
         let (powered, _) = least_powered(|t| (t > 1.0).then_some(-1.0));
         assert_eq!(powered, None);
         // A tie can't keep a margin on the stable side of zero: +10⁻¹³ at the start, then
-        // −10⁻¹³ (closer than the tie of 10⁻¹² calibres) from 0.25 s on, all under power.
+        // −10⁻¹³ (closer than the tie of 10⁻¹² calibers) from 0.25 s on, all under power.
         let (powered, _) = least_powered(|t| Some(if t < 0.2 { 1e-13 } else { -1e-13 }));
         let powered = powered.unwrap();
         assert_eq!((powered.value, powered.time_s), (-1e-13, 0.25));

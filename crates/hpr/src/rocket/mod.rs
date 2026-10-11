@@ -446,7 +446,7 @@ impl Mass {
 ///     .set_motor(Motor::from_catalog("H54")?)?;
 ///
 /// // Unstable as it stands: the motor's weight puts the center of gravity behind the center of
-/// // pressure, and the margin, in calibres, is negative.
+/// // pressure, and the margin, in calibers, is negative.
 /// assert!(rocket.static_margin_cal(0.0, 0.3)?.is_some_and(|margin| margin < 0.0));
 /// // 200 g near the top of the tube, a recovery bay, brings it forward of it.
 /// rocket.add_mass(Mass::new(0.2, Position::Top { aft_offset_m: 0.07 }))?;
@@ -858,7 +858,7 @@ impl Rocket {
     }
 
     /// The static stability margin `time_s` seconds after the motor lights, at Mach `mach` with
-    /// the air along the axis, in the rocket's weakest plane ([`Rocket::margin`]), calibres of the
+    /// the air along the axis, in the rocket's weakest plane ([`Rocket::margin`]), calibers of the
     /// reference diameter: how far the center of pressure is behind the center of gravity. `None`
     /// where [`hpr_sim::metrics::margin`] leaves it
     /// undefined: a normal force that doesn't restore, or a center of pressure too ill-conditioned

@@ -486,7 +486,7 @@ pub const FLIGHTS: [RealFlight; 7] = [
         example_drag_source: "cavour_flight_sim.ipynb:250-251",
         note: "",
         explanation: Explanation::Drag(
-            "consistent with hpr's drag. On the example's own curves, labelled RASAero II, the \
+            "consistent with hpr's drag. On the example's own curves, labeled RASAero II, the \
              apogee is within the target. hpr's drag is below them: at Mach 0.3, 8.3% below power \
              off and 18.3% below power on (the aerodynamics page's comparison; the power-on gap's \
              cause is open), and the design's fin edges are placeholders, since the example \
@@ -1700,7 +1700,7 @@ fn percent_of(value: f64, reference: f64) -> f64 {
 
 /// The summary of `rows`.
 #[must_use]
-pub fn summarise(rows: &[FlightRow]) -> Summary {
+pub fn summarize(rows: &[FlightRow]) -> Summary {
     let n = rows.len().max(1) as f64;
     let mean_absolute = rows
         .iter()
@@ -1757,7 +1757,7 @@ pub fn run(root: &Path) -> Result<RealFlightReport, RealFlightError> {
         .iter()
         .map(|flight| fly(root, flight))
         .collect::<Result<Vec<_>, _>>()?;
-    let summary = summarise(&flights);
+    let summary = summarize(&flights);
     Ok(RealFlightReport {
         generated_by: "cargo xtask real-flights".to_owned(),
         align_height_m: ALIGN_HEIGHT_M,
@@ -1777,7 +1777,7 @@ impl RealFlightReport {
     ///
     /// The first thing that doesn't hold, in words.
     pub fn check_consistent(&self, markdown: &str) -> Result<(), String> {
-        if self.summary != summarise(&self.flights) {
+        if self.summary != summarize(&self.flights) {
             return Err("the summary is not the rows'".to_owned());
         }
         let same = crate::report::same_but_for_platform_rounding;

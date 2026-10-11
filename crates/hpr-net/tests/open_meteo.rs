@@ -364,15 +364,14 @@ fn missing_values_drop_a_level_or_refuse_the_surface() {
 /// geometric thickness. The asserts hold each mean to the quoted range, as rounded.
 #[test]
 fn recorded_heights_are_geopotential() {
-    use hpr_atmos::moist::{WATER_VAPOUR_MOLECULAR_WEIGHT_KG_PER_KMOL, vapour_pressure_pa};
+    use hpr_atmos::moist::{WATER_VAPOR_MOLECULAR_WEIGHT_KG_PER_KMOL, vapor_pressure_pa};
     use hpr_atmos::profile::wmo_geopotential_from_geometric_m;
     use hpr_atmos::ussa76::{
         DRY_AIR_GAS_CONSTANT_J_PER_KG_K, SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL,
     };
     /// Standard gravity, which defines the geopotential meter, m/s².
     const G0: f64 = 9.806_65;
-    let epsilon =
-        WATER_VAPOUR_MOLECULAR_WEIGHT_KG_PER_KMOL / SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL;
+    let epsilon = WATER_VAPOR_MOLECULAR_WEIGHT_KG_PER_KMOL / SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL;
     let levels: Vec<u32> = PRESSURE_LEVELS_HPA
         .into_iter()
         .filter(|&p| p <= 500)
@@ -384,7 +383,7 @@ fn recorded_heights_are_geopotential() {
             let virtual_k = |p: u32| {
                 let t = raw(&json, &format!("temperature_{p}hPa"), i) + 273.15;
                 let rh = raw(&json, &format!("relative_humidity_{p}hPa"), i) / 100.0;
-                let e = vapour_pressure_pa(t, rh).unwrap();
+                let e = vapor_pressure_pa(t, rh).unwrap();
                 t / (1.0 - e / (f64::from(p) * 100.0) * (1.0 - epsilon))
             };
             let z = |p: u32| raw(&json, &format!("geopotential_height_{p}hPa"), i);
