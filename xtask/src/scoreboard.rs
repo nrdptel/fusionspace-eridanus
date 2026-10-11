@@ -9,12 +9,15 @@
 //! that measures it.
 //!
 //! - No flag builds the scoreboard from the committed reports and writes it, unless one of HPR
-//!   Sim's cells is worse than the committed scoreboard's.
+//!   Sim's cells is worse than the committed scoreboard's. A missing scoreboard is refused, since
+//!   it is the mark; `--first` writes one where none was ever committed.
 //! - `--check` writes nothing, and fails on the same worsening or when the committed files are not
-//!   what the reports write.
+//!   what the reports write. `--against <revision>` also holds the reports to the scoreboard
+//!   committed there: CI and the gate give `origin/main`, so a pull request that regenerates the
+//!   scoreboard with a worse number still fails against main's.
 //!
-//! A cell is worse when its row's [`Worse`] rule says so at the printed precision, or when a
-//! measured cell is no longer measured; a worsening passes only when an accepted ADR names the
+//! A cell is worse when its row's [`Worse`] rule says so at the printed precision, when it counts
+//! fewer flights or designs, or when a measured cell is no longer measured; a worsening passes only when an accepted ADR names the
 //! cell and the next release in a `- **Scoreboard:**` line (ADR-240). Speed is reported, never
 //! gated (ADR-209 §3), and the other tools' numbers are shown, not held. The `xtask` tests hold
 //! the committed scoreboard to the committed reports, and each unmeasured cell's milestone to an
@@ -24,16 +27,21 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::fs;
 use std::path::Path;
+use std::process::Command;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-pub const USAGE: &str =
-    "  scoreboard [--check]     HPR Sim against OpenRocket and RocketPy on each axis of ADR-209 §3,
+use crate::fixture_flights::{ERA5_CREDIT, FLIGHT_DATA_CREDIT};
+
+pub const USAGE: &str = "  scoreboard [--first | --check [--against <revision>]]
+                           HPR Sim against OpenRocket and RocketPy on each axis of ADR-209 §3,
                            read from the committed reports. Writes
                            validation/reports/scoreboard.{json,md} unless one of HPR Sim's
-                           numbers got worse without an accepted ADR naming it and the next
-                           release; --check writes nothing and fails on that or a stale file.";
+                           numbers got worse than the committed scoreboard without an accepted
+                           ADR naming it and the next release; --first writes one where none was
+                           committed. --check writes nothing and fails on that or a stale file;
+                           --against holds the reports to the scoreboard at that revision too.";
 
 /// The committed scoreboard.
 pub(crate) const SCOREBOARD_JSON: &str = "validation/reports/scoreboard.json";
@@ -138,14 +146,14 @@ impl Worse {
         }
     }
 
-    /// The rule in words, for the page.
+    /// Which way is better, in words, for the page's column.
     fn words(self) -> String {
         match self {
-            Self::Higher => "lower is better".to_owned(),
-            Self::Lower => "higher is better".to_owned(),
-            Self::FartherFromZero => "nearer zero is better".to_owned(),
-            Self::FartherFrom { level } => format!("nearer {level}% is better"),
-            Self::NotGated => "reported, not gated".to_owned(),
+            Self::Higher => "lower".to_owned(),
+            Self::Lower => "higher".to_owned(),
+            Self::FartherFromZero => "nearer zero".to_owned(),
+            Self::FartherFrom { level } => format!("nearer {level}%"),
+            Self::NotGated => "lower, not held".to_owned(),
         }
     }
 }
@@ -212,15 +220,34 @@ pub(crate) struct Worsening {
 /// Runs the command.
 pub fn run(args: &[String]) -> Result<(), String> {
     let mut check = false;
-    for arg in args {
+    let mut first = false;
+    let mut against = None;
+    let mut args = args.iter();
+    while let Some(arg) = args.next() {
         match arg.as_str() {
             "--check" => check = true,
+            "--first" => first = true,
+            "--against" => {
+                against = Some(
+                    args.next()
+                        .ok_or_else(|| format!("`--against` needs a git revision\n\n{USAGE}"))?
+                        .clone(),
+                );
+            }
             other => return Err(format!("unknown argument `{other}`\n\n{USAGE}")),
         }
     }
+    if check && first {
+        return Err(format!(
+            "`--check` and `--first` exclude each other\n\n{USAGE}"
+        ));
+    }
+    if against.is_some() && !check {
+        return Err(format!("`--against` goes with `--check`\n\n{USAGE}"));
+    }
     let root = crate::designs::root()?;
     if check {
-        let lines = check_committed(&root)?;
+        let lines = check_committed(&root, against.as_deref())?;
         for line in lines {
             println!("{line}");
         }
@@ -228,10 +255,12 @@ pub fn run(args: &[String]) -> Result<(), String> {
         return Ok(());
     }
     let scoreboard = build(&root)?;
-    let committed = read_committed(&root)?;
     let release = next_release(&root)?;
     let accepted = accepted_worsenings(&root)?;
-    let lines = gate(committed.as_ref(), &scoreboard, &release, &accepted)?;
+    let lines = match mark(read_committed(&root)?, first)? {
+        Some(committed) => gate(&committed, &scoreboard, &release, &accepted)?,
+        None => Vec::new(),
+    };
     for line in lines {
         println!("{line}");
     }
@@ -244,16 +273,40 @@ pub fn run(args: &[String]) -> Result<(), String> {
     Ok(())
 }
 
-/// Fails unless the committed reports are no worse than the committed scoreboard (or an accepted
-/// ADR names each worsening and the next release), the committed files are what they write, and
-/// each unmeasured cell names an open milestone. Returns the accepted worsenings' lines.
-pub(crate) fn check_committed(root: &Path) -> Result<Vec<String>, String> {
+/// The scoreboard the writer holds a new one to: the committed one, which must be there unless
+/// `first` says none ever was. Without its mark the writer couldn't tell a worse scoreboard from a
+/// first one, so a deleted file would let any number through.
+fn mark(committed: Option<Scoreboard>, first: bool) -> Result<Option<Scoreboard>, String> {
+    match (committed, first) {
+        (Some(committed), false) => Ok(Some(committed)),
+        (None, true) => Ok(None),
+        (Some(_), true) => Err(format!("`--first`: {SCOREBOARD_JSON} is already there")),
+        (None, false) => Err(format!(
+            "{SCOREBOARD_JSON} is missing: restore it (`git checkout -- {SCOREBOARD_JSON}`), since \
+             the scoreboard is held to it; `--first` writes one where none was ever committed"
+        )),
+    }
+}
+
+/// Fails unless the committed reports are no worse than the committed scoreboard, nor than the one
+/// at `against` when given (CI gives `origin/main`), or an accepted ADR names each worsening and
+/// the next release; the committed files are what they write; and each unmeasured cell names an
+/// open milestone. Returns the accepted worsenings' lines.
+pub(crate) fn check_committed(root: &Path, against: Option<&str>) -> Result<Vec<String>, String> {
     let scoreboard = build(root)?;
     let committed = read_committed(root)?
-        .ok_or_else(|| format!("{SCOREBOARD_JSON} is missing: run `cargo xtask scoreboard`"))?;
+        .ok_or_else(|| format!("{SCOREBOARD_JSON} is missing: restore it from git"))?;
     let release = next_release(root)?;
     let accepted = accepted_worsenings(root)?;
-    let lines = gate(Some(&committed), &scoreboard, &release, &accepted)?;
+    let mut lines = gate(&committed, &scoreboard, &release, &accepted)?;
+    if let Some(revision) = against
+        && let Some(base) = scoreboard_at(root, revision)?
+    {
+        lines.extend(
+            gate(&base, &scoreboard, &release, &accepted)
+                .map_err(|error| format!("against {revision}: {error}"))?,
+        );
+    }
     if committed != scoreboard {
         return Err(format!(
             "{SCOREBOARD_JSON} is not what the committed reports give: run `cargo xtask scoreboard`"
@@ -285,18 +338,56 @@ fn read_committed(root: &Path) -> Result<Option<Scoreboard>, String> {
         .map_err(|error| format!("reading {SCOREBOARD_JSON}: {error}"))
 }
 
+/// The scoreboard committed at a git revision, or `None` when that revision has none (before
+/// the first was committed). A revision git doesn't know fails, so a check told to compare never
+/// passes for want of the other side.
+fn scoreboard_at(root: &Path, revision: &str) -> Result<Option<Scoreboard>, String> {
+    let git = |args: &[&str]| {
+        Command::new("git")
+            .args(args)
+            .current_dir(root)
+            .output()
+            .map_err(|error| format!("could not run git: {error}"))
+    };
+    if !git(&[
+        "rev-parse",
+        "--verify",
+        "--quiet",
+        &format!("{revision}^{{commit}}"),
+    ])?
+    .status
+    .success()
+    {
+        return Err(format!(
+            "git knows no revision `{revision}` (fetch it first)"
+        ));
+    }
+    let blob = format!("{revision}:{SCOREBOARD_JSON}");
+    if !git(&["cat-file", "-e", &blob])?.status.success() {
+        return Ok(None);
+    }
+    let shown = git(&["show", &blob])?;
+    if !shown.status.success() {
+        return Err(format!(
+            "git show {blob}: {}",
+            String::from_utf8_lossy(&shown.stderr).trim()
+        ));
+    }
+    serde_json::from_slice(&shown.stdout)
+        .map(Some)
+        .map_err(|error| format!("reading {blob}: {error}"))
+}
+
 /// Holds `new` to `old`: every cell `old` measured that its row holds ([`Row::holds`]) must be no
-/// worse in `new`, and every measured cell of a row that isn't speed must still be measured, unless
-/// `accepted` holds the cell with `release`. Returns a line for each accepted worsening.
+/// worse in `new` and count no fewer flights or designs, and every measured cell of a row that
+/// isn't speed must still be measured, unless `accepted` holds the cell with `release`. Returns a
+/// line for each accepted worsening.
 pub(crate) fn gate(
-    old: Option<&Scoreboard>,
+    old: &Scoreboard,
     new: &Scoreboard,
     release: &str,
     accepted: &BTreeSet<(String, String)>,
 ) -> Result<Vec<String>, String> {
-    let Some(old) = old else {
-        return Ok(Vec::new());
-    };
     let mut refused = Vec::new();
     let mut lines = Vec::new();
     for worsening in worsenings(old, new) {
@@ -324,8 +415,9 @@ pub(crate) fn gate(
 }
 
 /// Each cell `new` holds worse than `old` (ADR-209 §3): a measured value its row holds that is
-/// worse at the printed precision, or a measured cell, in any row but speed's, that is gone or no
-/// longer measured.
+/// worse at the printed precision or counts fewer flights or designs (a number made better by
+/// leaving data out), or a measured cell, in any row but speed's, that is gone or no longer
+/// measured.
 pub(crate) fn worsenings(old: &Scoreboard, new: &Scoreboard) -> Vec<Worsening> {
     let mut found = Vec::new();
     for row in &old.rows {
@@ -338,18 +430,31 @@ pub(crate) fn worsenings(old: &Scoreboard, new: &Scoreboard) -> Vec<Worsening> {
             let id = format!("{}.{}", row.id, cell.tool.slug());
             let now = new_row
                 .and_then(|new_row| new_row.cells.iter().find(|c| c.tool == cell.tool))
-                .and_then(|c| c.value);
+                .and_then(|c| c.value.map(|value| (value, c.count)));
             match now {
                 None => found.push(Worsening {
                     cell: id,
                     was: value_text(row, was),
                     now: "not measured".to_owned(),
                 }),
-                Some(now) if row.holds(cell.tool) && row.worse.worse(was, now) => {
+                Some((now, _)) if row.holds(cell.tool) && row.worse.worse(was, now) => {
                     found.push(Worsening {
                         cell: id,
                         was: value_text(row, was),
                         now: value_text(row, now),
+                    });
+                }
+                Some((now, Some(after)))
+                    if row.holds(cell.tool) && cell.count.is_some_and(|before| after < before) =>
+                {
+                    let counted = |value, count| match count_text(row, count) {
+                        Some(words) => format!("{} {words}", value_text(row, value)),
+                        None => format!("{} over {count}", value_text(row, value)),
+                    };
+                    found.push(Worsening {
+                        cell: id,
+                        was: counted(was, cell.count.unwrap_or(after)),
+                        now: counted(now, after),
                     });
                 }
                 Some(_) => {}
@@ -455,6 +560,9 @@ pub(crate) fn check_milestones(scoreboard: &Scoreboard, roadmap: &str) -> Result
             let id = format!("{}.{}", row.id, cell.tool.slug());
             match (&cell.value, &cell.milestone) {
                 (Some(_), None) => {}
+                (None, Some(milestone)) if milestone_words(milestone).is_none() => problems.push(
+                    format!("{id}: its milestone {milestone} has no words in `milestone_words`"),
+                ),
                 (None, Some(milestone)) if open.contains(milestone.as_str()) => {}
                 (None, Some(milestone)) => problems.push(format!(
                     "{id}: not measured, and its milestone {milestone} has no open entry in \
@@ -507,10 +615,11 @@ fn text<'a>(report: &'a Value, path: &str, pointer: &str) -> Result<&'a str, Str
         .ok_or_else(|| format!("{path} has no string at {pointer}"))
 }
 
-/// `value` rounded to `decimals` places, as the page prints it.
+/// `value` as the page prints it, to `decimals` places: formatted and read back, so the stored
+/// value is the printed one even where `(x * 100).round() / 100` would differ (2.675 prints 2.67).
 fn rounded(value: f64, decimals: u32) -> f64 {
-    let scale = 10_f64.powi(i32::try_from(decimals).unwrap_or(i32::MAX));
-    (value * scale).round() / scale
+    let decimals = usize::try_from(decimals).unwrap_or(usize::MAX);
+    format!("{value:.decimals$}").parse().unwrap_or(value)
 }
 
 /// The reports' data the scoreboard reads.
@@ -704,11 +813,12 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
         .checked_sub(within)
         .and_then(|outside| outside.checked_add(unmatched))
         .ok_or_else(|| format!("{EXPORT_FLIGHTS}: more within tolerance than compared"))?;
-    // Designs that don't make the trip: HPR Sim can't read them, or OpenRocket opens the original
-    // but not the export, or refuses the two for different reasons.
-    let failed = exports_opened
-        .checked_sub(only_exports_opened)
-        .and_then(|both| originals_opened.checked_sub(both))
+    // Designs that don't make the trip: HPR Sim can't read them, or OpenRocket opens one of the
+    // original and the export but not the other, or refuses the two for different reasons.
+    // `exports_opened` counts only designs whose original opened too.
+    let failed = originals_opened
+        .checked_sub(exports_opened)
+        .and_then(|lost| lost.checked_add(only_exports_opened))
         .and_then(|lost| lost.checked_add(unread))
         .and_then(|lost| lost.checked_add(refused_differently))
         .ok_or_else(|| format!("{EXPORT_FLIGHTS}: its design counts don't add up"))?;
@@ -717,26 +827,32 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
         EXPORT_FLIGHTS,
         "/total/largest_percent",
     )?;
-    let counted = |id: &str, label: &str, words: &str, value: u64, count: u64, source: &str| Row {
-        id: id.to_owned(),
-        axis: Axis::Interop,
-        label: label.to_owned(),
-        unit: String::new(),
-        decimals: 0,
-        count_words: words.to_owned(),
-        signed: false,
-        worse: Worse::Higher,
-        cells: vec![
-            measured(
-                Openrocket,
-                exact(value),
-                0,
-                count,
-                format!("{EXPORT_FLIGHTS} {source}"),
-            ),
-            later(Rocketpy, "M3.6"),
-        ],
-    };
+    let tolerance = number(
+        &reports.export_flights,
+        EXPORT_FLIGHTS,
+        "/tolerance_percent",
+    )?;
+    let counted =
+        |id: &str, label: String, words: &str, value: u64, count: u64, source: &str| Row {
+            id: id.to_owned(),
+            axis: Axis::Interop,
+            label,
+            unit: String::new(),
+            decimals: 0,
+            count_words: words.to_owned(),
+            signed: false,
+            worse: Worse::Higher,
+            cells: vec![
+                measured(
+                    Openrocket,
+                    exact(value),
+                    0,
+                    count,
+                    format!("{EXPORT_FLIGHTS} {source}"),
+                ),
+                later(Rocketpy, "M2.9"),
+            ],
+        };
 
     let rows = vec![
         percent(
@@ -864,8 +980,10 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
         },
         counted(
             "interop.changed",
-            "Configurations whose apogee moves by more than 0.5%, or that fly only one way, \
-             after HPR Sim reads the tool's file and writes it back",
+            format!(
+                "Configurations whose apogee moves by more than {tolerance}%, or that fly only one \
+                 way, after HPR Sim reads the tool's file and writes it back"
+            ),
             "of {n}",
             changed,
             compared + unmatched,
@@ -873,12 +991,13 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
         ),
         counted(
             "interop.failed",
-            "Designs that don't make the trip: HPR Sim can't read them, or the tool opens the \
-             original but not the export, or refuses the two differently",
+            "Designs that don't make the trip: HPR Sim can't read them, or the tool opens one of \
+             the original and the export but not the other, or refuses the two differently"
+                .to_owned(),
             "of {n}",
             failed,
             designs,
-            "/total: originals_opened − (exports_opened − only_exports_opened) + unread + \
+            "/total: originals_opened − exports_opened + only_exports_opened + unread + \
              refused_differently",
         ),
         Row {
@@ -898,7 +1017,7 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
                     compared,
                     format!("{EXPORT_FLIGHTS} /total/largest_percent"),
                 ),
-                later(Rocketpy, "M3.6"),
+                later(Rocketpy, "M2.9"),
             ],
         },
         Row {
@@ -958,17 +1077,19 @@ fn value_text(row: &Row, value: f64) -> String {
     format!("{sign}{digits}{}", row.unit)
 }
 
+/// A count as the row words it after a value (`over 53 flights`), or `None` for a row that
+/// prints none.
+fn count_text(row: &Row, count: u64) -> Option<String> {
+    (!row.count_words.is_empty()).then(|| row.count_words.replace("{n}", &count.to_string()))
+}
+
 /// A cell as the page prints it.
 fn cell_text(row: &Row, cell: &Cell) -> String {
     match (cell.value, &cell.milestone) {
         (Some(value), _) => {
             let mut text = value_text(row, value);
-            if let Some(count) = cell.count.filter(|_| !row.count_words.is_empty()) {
-                let _ = write!(
-                    text,
-                    " {}",
-                    row.count_words.replace("{n}", &count.to_string())
-                );
+            if let Some(words) = cell.count.and_then(|count| count_text(row, count)) {
+                let _ = write!(text, " {words}");
             }
             text
         }
@@ -977,73 +1098,230 @@ fn cell_text(row: &Row, cell: &Cell) -> String {
     }
 }
 
-/// A link to a milestone's row on the records page.
+/// A link to a milestone's row on the records page, its words in the link.
 fn milestone_link(milestone: &str) -> String {
     let anchor = milestone.to_ascii_lowercase().replace('.', "-");
-    format!("[{milestone}](https://hpr.fusionspace.co/decisions-and-roadmap.html#{anchor})")
+    let words = milestone_words(milestone).unwrap_or("a milestone");
+    format!(
+        "[{milestone}, {words}](https://hpr.fusionspace.co/decisions-and-roadmap.html#{anchor})"
+    )
 }
 
-/// What each milestone a cell waits on will do, in a few words.
-fn milestone_words(milestone: &str) -> &'static str {
-    match milestone {
-        "M0.8a" => "the simulator's guide, with its comparison table",
-        "M0.11" => "steps to a first answer, counted for each tool",
+/// What each milestone a cell waits on will do, in a few words; `None` for one the page doesn't
+/// know, which [`check_milestones`] refuses.
+fn milestone_words(milestone: &str) -> Option<&'static str> {
+    Some(match milestone {
+        "M0.8a" => "the simulator's guide",
+        "M0.11" => "steps to a first answer",
         "M2.3c7" => "published flights past Mach 1",
-        "M2.6" => "an open benchmark of public flights, scored for each simulator",
-        "M2.7" => "held-out flights, predictions first",
-        "M2.8" => "how often the predicted ranges hold real flights",
-        "M2.9" => "the other tools' cells and every tool's speed",
-        "M3.6" => "reading and writing RocketPy's files",
-        _ => "",
+        "M2.6" => "an open benchmark",
+        "M2.7" => "held-out flights",
+        "M2.8" => "honest uncertainty",
+        "M2.9" => "the other tools' cells",
+        _ => return None,
+    })
+}
+
+/// What an axis measures, in words, above its table.
+fn axis_words(axis: Axis, hpr: &str) -> String {
+    match axis {
+        Axis::Accuracy => "How far each simulator's apogee lands from the logged one, its sign \
+            dropped, averaged over the flights: the mean absolute error, per cent of the logged \
+            apogee. The public flights are RocketPy's example rockets whose altimeter logs are \
+            published; the private collection's are logged flights whose owners allow only \
+            aggregates. Held-out flights are ones no model or setting was tuned on, predicted \
+            before their logs are compared."
+            .to_owned(),
+        Axis::Bias => "The same errors with their signs, averaged: above zero, the simulator's \
+            apogee comes out higher than the log on average."
+            .to_owned(),
+        Axis::Uncertainty => "How often the logged apogee falls inside the range a simulator \
+            predicts for it from a scattered run (a Monte Carlo): a 50% range should hold half \
+            the logs, a 90% range nine in ten."
+            .to_owned(),
+        Axis::Speed => "Time on one machine, the same for every tool. Shown, never held, since \
+            machines differ."
+            .to_owned(),
+        Axis::Interop => format!(
+            "How well {hpr} reads each tool's design file and writes it back: the tool flies the \
+             original and {hpr}'s copy, and the two are compared. So the numbers in the \
+             OpenRocket column are {hpr}'s, through OpenRocket's file, and {hpr}'s own column \
+             is n/a. A configuration is one of a design's motor choices; a design can have \
+             several."
+        ),
+        Axis::Features => "How many of the capabilities listed in the simulator guide's \
+            comparison table each tool has; the table comes with that guide."
+            .to_owned(),
+        Axis::Steps => "How many steps it takes to open a design, fly it and get where it may \
+            land, clicks, typed entries and script lines counted apart."
+            .to_owned(),
     }
+}
+
+/// Who is ahead in a row between HPR Sim's value and another tool's, by the row's rule (lower
+/// for speed): `Some(true)` when HPR Sim, `Some(false)` when the other, `None` when level.
+fn hpr_ahead(row: &Row, hpr: f64, other: f64) -> Option<bool> {
+    let rule = if row.worse == Worse::NotGated {
+        Worse::Higher
+    } else {
+        row.worse
+    };
+    // `worse(old, new)`: whether `new` is the worse of the two.
+    if rule.worse(hpr, other) {
+        Some(true)
+    } else if rule.worse(other, hpr) {
+        Some(false)
+    } else {
+        None
+    }
+}
+
+/// The opening summary: how many cells are measured, per tool, and each row where HPR Sim and
+/// another tool are both measured, with which is ahead.
+fn standing(scoreboard: &Scoreboard) -> String {
+    let name = |tool: Tool| scoreboard.tools.get(&tool).map_or("?", String::as_str);
+    let hpr = name(Tool::Hpr);
+    let cells: Vec<&Cell> = scoreboard.rows.iter().flat_map(|row| &row.cells).collect();
+    let measured = cells.iter().filter(|cell| cell.value.is_some()).count();
+    let per_tool: Vec<String> = scoreboard
+        .tools
+        .iter()
+        .map(|(tool, tool_name)| {
+            let of_tool: Vec<_> = cells.iter().filter(|cell| cell.tool == *tool).collect();
+            let done = of_tool.iter().filter(|cell| cell.value.is_some()).count();
+            format!("{tool_name}'s {done} of {}", of_tool.len())
+        })
+        .collect();
+    let mut both = Vec::new();
+    for row in &scoreboard.rows {
+        let Some(mine) = row
+            .cells
+            .iter()
+            .find(|cell| cell.tool == Tool::Hpr)
+            .and_then(|cell| cell.value)
+        else {
+            continue;
+        };
+        for cell in row.cells.iter().filter(|cell| cell.tool != Tool::Hpr) {
+            let Some(theirs) = cell.value else { continue };
+            let other = name(cell.tool);
+            let verdict = match hpr_ahead(row, mine, theirs) {
+                Some(true) => format!("{hpr} ahead"),
+                Some(false) => format!("{other} ahead"),
+                None => "level".to_owned(),
+            };
+            both.push(format!(
+                "`{}`, {hpr} {} and {other} {}: {verdict}",
+                row.id,
+                value_text(row, mine),
+                value_text(row, theirs)
+            ));
+        }
+    }
+    let mut text = format!(
+        "**Where it stands.** {measured} of its {} cells are measured: {}.",
+        cells.len(),
+        per_tool.join(", ")
+    );
+    if both.is_empty() {
+        let _ = write!(text, " No row yet measures {hpr} and another tool both.");
+    } else {
+        let _ = write!(
+            text,
+            " Where {hpr} and another tool are both measured: {}.",
+            both.join("; ")
+        );
+    }
+    text
 }
 
 /// The scoreboard's page.
 pub(crate) fn render(scoreboard: &Scoreboard) -> String {
     let names: Vec<&str> = scoreboard.tools.values().map(String::as_str).collect();
+    let hpr = scoreboard.tools.get(&Tool::Hpr).map_or("?", String::as_str);
     let mut page = String::new();
     let _ = writeln!(page, "# The scoreboard\n");
     let _ = writeln!(
         page,
-        "{} against {} and {}, axis by axis, as the project's standard asks \
-         ([ADR-209](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0209-the-2026-10-08-best-on-the-market-measured.md)). Generated by \
-         `{}` from the committed reports: each number is read from the report and key its source \
-         line names, rounded as printed; a cell no report measures yet says so and links the \
-         milestone that will.\n",
-        names[0], names[1], names[2], scoreboard.generated_by
+        "{hpr} against {}, axis by axis, by the project's standard: never worse than the best \
+         comparable tool on any axis it measures \
+         ([ADR-209](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0209-the-2026-10-08-best-on-the-market-measured.md), \
+         the decision record that set it). Generated by `{}` from the committed reports: each \
+         number is read from the report and key the sources below name, rounded as printed; a \
+         cell no report measures yet says so and links the milestone that will.\n",
+        names.get(1..).unwrap_or_default().join(" and "),
+        scoreboard.generated_by
     );
+    let _ = writeln!(page, "{}\n", standing(scoreboard));
     let _ = writeln!(
         page,
         "> **How far to trust it.** A cell is exactly as good as the report it comes from. Errors \
          are each simulator's apogee less the logged one, over the logged one; the private \
          collection's are aggregates of flights whose designs and logs are not public. A check \
-         fails when one of {}'s numbers gets worse than this page, or a measured cell is no longer \
-         measured, unless an accepted decision record names that cell and the next release \
-         ([ADR-240](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0240-the-scoreboard.md)). The other \
-         tools' numbers are shown, not held. Speed is reported, never gated.\n",
-        names[0]
+         fails when one of {hpr}'s numbers gets worse than this page, or counts fewer flights or \
+         designs, or a measured cell is no longer measured, unless an accepted decision record \
+         names that cell and the release the change ships in \
+         ([ADR-240](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0240-the-scoreboard.md), \
+         how the check works). The other tools' numbers are shown, not held, and so is speed.\n"
     );
-    let mut milestones = BTreeSet::new();
+    let mut milestones: BTreeMap<&str, Vec<String>> = BTreeMap::new();
+    for row in &scoreboard.rows {
+        for cell in &row.cells {
+            if let Some(milestone) = &cell.milestone {
+                milestones
+                    .entry(milestone.as_str())
+                    .or_default()
+                    .push(format!("`{}.{}`", row.id, cell.tool.slug()));
+            }
+        }
+    }
+    let _ = writeln!(page, "## Reading it\n");
+    let _ = writeln!(
+        page,
+        "- **A cell's id** is its row's and its tool's, such as `accuracy.public.hpr`: the name a \
+         decision record uses to accept a worse number."
+    );
+    let _ = writeln!(
+        page,
+        "- **Not measured** means no committed report measures the cell yet; its link names the \
+         milestone that will. Those milestones, and the cells each fills:"
+    );
+    for (milestone, ids) in &milestones {
+        let _ = writeln!(
+            page,
+            "  - {}: {}.",
+            milestone_link(milestone),
+            ids.join(", ")
+        );
+    }
+    let _ = writeln!(
+        page,
+        "- **n/a:** a round-trip row measures {hpr} reading and writing another tool's file, so \
+         {hpr} has no cell of its own there.\n"
+    );
     for (index, row) in scoreboard.rows.iter().enumerate() {
         if index == 0 || scoreboard.rows[index - 1].axis != row.axis {
             let _ = writeln!(page, "## {}\n", row.axis.heading());
-            let _ = writeln!(page, "| measure | {} |", names.join(" | "));
-            let _ = writeln!(page, "|---|{}", "---:|".repeat(names.len()));
+            let _ = writeln!(page, "{}\n", axis_words(row.axis, hpr));
+            let _ = writeln!(page, "| measure | better | {} |", names.join(" | "));
+            let _ = writeln!(page, "|---|---|{}", "---:|".repeat(names.len()));
         }
-        let mut cells = Vec::new();
-        for tool in scoreboard.tools.keys() {
-            let cell = row.cells.iter().find(|cell| cell.tool == *tool);
-            cells.push(cell.map_or_else(|| "n/a".to_owned(), |cell| cell_text(row, cell)));
-            if let Some(milestone) = cell.and_then(|cell| cell.milestone.as_deref()) {
-                milestones.insert(milestone.to_owned());
-            }
-        }
+        let cells: Vec<String> = scoreboard
+            .tools
+            .keys()
+            .map(|tool| {
+                row.cells
+                    .iter()
+                    .find(|cell| cell.tool == *tool)
+                    .map_or_else(|| "n/a".to_owned(), |cell| cell_text(row, cell))
+            })
+            .collect();
         let _ = writeln!(
             page,
-            "| {} ({}; `{}`) | {} |",
+            "| {} (`{}`) | {} | {} |",
             row.label,
-            row.worse.words(),
             row.id,
+            row.worse.words(),
             cells.join(" | ")
         );
         if scoreboard
@@ -1054,28 +1332,7 @@ pub(crate) fn render(scoreboard: &Scoreboard) -> String {
             page.push('\n');
         }
     }
-    let _ = writeln!(page, "## Reading it\n");
-    let _ = writeln!(
-        page,
-        "- **n/a:** a round-trip row measures {} reading and writing each other tool's file, so \
-         it has no cell of its own.",
-        names[0]
-    );
-    let _ = writeln!(
-        page,
-        "- **A cell's id** is its row's and its tool's, such as `accuracy.public.hpr`: the name a \
-         decision record uses to accept a worse number."
-    );
-    let _ = writeln!(page, "- **The milestones the unmeasured cells wait on:**");
-    for milestone in &milestones {
-        let _ = writeln!(
-            page,
-            "  - {}: {}.",
-            milestone_link(milestone),
-            milestone_words(milestone)
-        );
-    }
-    let _ = writeln!(page, "\n## Sources\n");
+    let _ = writeln!(page, "## Sources\n");
     for row in &scoreboard.rows {
         for cell in &row.cells {
             if let Some(source) = &cell.source {
@@ -1083,6 +1340,9 @@ pub(crate) fn render(scoreboard: &Scoreboard) -> String {
             }
         }
     }
+    let _ = writeln!(page, "\n## Credits\n");
+    let _ = writeln!(page, "{FLIGHT_DATA_CREDIT}\n");
+    let _ = writeln!(page, "{ERA5_CREDIT}");
     page
 }
 
@@ -1105,7 +1365,7 @@ mod tests {
     #[test]
     fn the_committed_scoreboard_holds() {
         let root = crate::designs::root().expect("the repository root");
-        check_committed(&root).expect("the committed scoreboard holds");
+        check_committed(&root, None).expect("the committed scoreboard holds");
     }
 
     /// Every row has a cell per tool except the round trips', which have none for HPR Sim, and
@@ -1161,7 +1421,7 @@ mod tests {
             .pointer_mut(pointer)
             .expect("the error") = (value + 0.01).into();
         let worse = scoreboard(&reports).expect("the scoreboard");
-        let error = gate(Some(&committed), &worse, &release, &none).expect_err("worse fails");
+        let error = gate(&committed, &worse, &release, &none).expect_err("worse fails");
         assert!(error.contains("accuracy.public.hpr"), "{error}");
         // A lower one passes.
         *reports
@@ -1169,7 +1429,7 @@ mod tests {
             .pointer_mut(pointer)
             .expect("the error") = (value - 0.01).into();
         let better = scoreboard(&reports).expect("the scoreboard");
-        gate(Some(&committed), &better, &release, &none).expect("better passes");
+        gate(&committed, &better, &release, &none).expect("better passes");
         reports.real_flights = real;
 
         // A bias farther from zero on the other side.
@@ -1180,7 +1440,7 @@ mod tests {
             .pointer_mut(&pointer)
             .expect("the bias") = (-(value.abs() + 0.01)).into();
         let worse = scoreboard(&reports).expect("the scoreboard");
-        let error = gate(Some(&committed), &worse, &release, &none).expect_err("worse fails");
+        let error = gate(&committed, &worse, &release, &none).expect_err("worse fails");
         assert!(error.contains("bias.collection.hpr"), "{error}");
         // The same size on the other side is no worse.
         *reports
@@ -1188,7 +1448,7 @@ mod tests {
             .pointer_mut(&pointer)
             .expect("the bias") = (-value).into();
         let mirrored = scoreboard(&reports).expect("the scoreboard");
-        gate(Some(&committed), &mirrored, &release, &none).expect("the same size passes");
+        gate(&committed, &mirrored, &release, &none).expect("the same size passes");
         reports.fixture_flights = fixture.clone();
 
         // A round trip that loses a configuration.
@@ -1198,7 +1458,7 @@ mod tests {
             .pointer_mut("/total/within")
             .expect("within") = (within - 1).into();
         let worse = scoreboard(&reports).expect("the scoreboard");
-        let error = gate(Some(&committed), &worse, &release, &none).expect_err("worse fails");
+        let error = gate(&committed, &worse, &release, &none).expect_err("worse fails");
         assert!(error.contains("interop.changed.openrocket"), "{error}");
         reports.export_flights = export;
 
@@ -1210,7 +1470,7 @@ mod tests {
             .pointer_mut(&pointer)
             .expect("the error") = (value + 1.0).into();
         let theirs = scoreboard(&reports).expect("the scoreboard");
-        gate(Some(&committed), &theirs, &release, &none).expect("another tool's number is shown");
+        gate(&committed, &theirs, &release, &none).expect("another tool's number is shown");
     }
 
     /// A change below the printed precision is no change.
@@ -1227,7 +1487,7 @@ mod tests {
             .pointer_mut(pointer)
             .expect("the error") = (printed + 0.004_9).into();
         let nudged = scoreboard(&reports).expect("the scoreboard");
-        gate(Some(&committed), &nudged, &release, &BTreeSet::new()).expect("same printed value");
+        gate(&committed, &nudged, &release, &BTreeSet::new()).expect("same printed value");
     }
 
     /// A measured cell that is no longer measured fails, in any column.
@@ -1246,12 +1506,10 @@ mod tests {
                 *cell = later(Tool::Openrocket, "M2.3c3");
             }
         }
-        let error =
-            gate(Some(&committed), &new, &release, &BTreeSet::new()).expect_err("dropped fails");
+        let error = gate(&committed, &new, &release, &BTreeSet::new()).expect_err("dropped fails");
         assert!(error.contains("accuracy.collection.openrocket"), "{error}");
         new.rows.retain(|row| row.id != "bias.public");
-        let error =
-            gate(Some(&committed), &new, &release, &BTreeSet::new()).expect_err("dropped fails");
+        let error = gate(&committed, &new, &release, &BTreeSet::new()).expect_err("dropped fails");
         assert!(error.contains("bias.public.hpr"), "{error}");
     }
 
@@ -1276,16 +1534,128 @@ mod tests {
             .collect()
         };
         let line = format!("- **Scoreboard:** `accuracy.public.hpr` worse in release {release}.");
-        let lines =
-            gate(Some(&committed), &worse, &release, &adr("accepted", &line)).expect("accepted");
+        let lines = gate(&committed, &worse, &release, &adr("accepted", &line)).expect("accepted");
         assert_eq!(lines.len(), 1, "{lines:?}");
-        assert!(gate(Some(&committed), &worse, &release, &adr("proposed", &line)).is_err());
+        assert!(gate(&committed, &worse, &release, &adr("proposed", &line)).is_err());
         let other = "- **Scoreboard:** `accuracy.public.hpr` worse in release 9.9.";
-        assert!(gate(Some(&committed), &worse, &release, &adr("accepted", other)).is_err());
+        assert!(gate(&committed, &worse, &release, &adr("accepted", other)).is_err());
         let cell = format!("- **Scoreboard:** `bias.public.hpr` worse in release {release}.");
-        assert!(gate(Some(&committed), &worse, &release, &adr("accepted", &cell)).is_err());
+        assert!(gate(&committed, &worse, &release, &adr("accepted", &cell)).is_err());
         let prose = format!("The scoreboard's `accuracy.public.hpr` in release {release}.");
-        assert!(gate(Some(&committed), &worse, &release, &adr("accepted", &prose)).is_err());
+        assert!(gate(&committed, &worse, &release, &adr("accepted", &prose)).is_err());
+    }
+
+    /// The writer needs its mark: a missing scoreboard is refused unless `--first` says none was
+    /// ever committed, and `--first` is refused when one is there.
+    #[test]
+    fn the_writer_needs_its_mark() {
+        let (_, _, committed) = committed();
+        assert!(mark(None, false).is_err());
+        assert_eq!(mark(None, true), Ok(None));
+        assert!(mark(Some(committed.clone()), true).is_err());
+        assert_eq!(mark(Some(committed.clone()), false), Ok(Some(committed)));
+    }
+
+    /// A revision git doesn't know fails rather than comparing with nothing; one it knows gives
+    /// the scoreboard committed there, or none before the first.
+    #[test]
+    fn the_check_against_a_revision_fails_closed() {
+        let root = crate::designs::root().expect("the repository root");
+        let error =
+            scoreboard_at(&root, "no-such-revision-of-the-scoreboard").expect_err("unknown");
+        assert!(error.contains("no revision"), "{error}");
+        // The repository's first commit holds no scoreboard.
+        let first = Command::new("git")
+            .args(["rev-list", "--max-parents=0", "HEAD"])
+            .current_dir(&root)
+            .output()
+            .expect("git");
+        let first = String::from_utf8_lossy(&first.stdout);
+        let first = first.lines().next().expect("a root commit");
+        assert_eq!(scoreboard_at(&root, first), Ok(None));
+    }
+
+    /// A held number made better by counting fewer flights is worse; another tool's isn't held.
+    #[test]
+    fn fewer_flights_is_worse() {
+        let (root, mut reports, committed) = committed();
+        let release = next_release(&root).expect("the release");
+        let flights = whole(&reports.real_flights, REAL_FLIGHTS, "/summary/flights").expect("n");
+        *reports
+            .real_flights
+            .pointer_mut("/summary/flights")
+            .expect("n") = (flights - 1).into();
+        let fewer = scoreboard(&reports).expect("the scoreboard");
+        let error = gate(&committed, &fewer, &release, &BTreeSet::new()).expect_err("fewer fails");
+        assert!(error.contains("accuracy.public.hpr"), "{error}");
+        assert!(
+            error.contains(&format!("over {} flights", flights - 1)),
+            "{error}"
+        );
+        *reports
+            .real_flights
+            .pointer_mut("/summary/flights")
+            .expect("n") = (flights + 1).into();
+        let more = scoreboard(&reports).expect("the scoreboard");
+        gate(&committed, &more, &release, &BTreeSet::new()).expect("more passes");
+    }
+
+    /// Values are stored as the page prints them, by formatting, not by scaling.
+    #[test]
+    fn values_round_as_printed() {
+        assert_eq!(rounded(2.675, 2).to_string(), format!("{:.2}", 2.675_f64));
+        assert_eq!(rounded(0.125, 2).to_string(), format!("{:.2}", 0.125_f64));
+        assert_eq!(rounded(5e-7, 6), 0.0);
+        assert_eq!(rounded(0.000_191, 6), 0.000_191);
+    }
+
+    /// Who is ahead, by each row's rule: the lower error, the bias nearer zero, the coverage
+    /// nearer its level, the lower time.
+    #[test]
+    fn the_standing_names_who_is_ahead() {
+        let (_, reports, _) = committed();
+        let board = scoreboard(&reports).expect("the scoreboard");
+        let row = |id: &str| board.rows.iter().find(|row| row.id == id).expect("the row");
+        assert_eq!(
+            hpr_ahead(row("accuracy.collection"), 12.95, 12.02),
+            Some(false)
+        );
+        assert_eq!(
+            hpr_ahead(row("accuracy.collection"), 12.02, 12.95),
+            Some(true)
+        );
+        assert_eq!(hpr_ahead(row("bias.collection"), -7.0, 8.0), Some(true));
+        assert_eq!(hpr_ahead(row("bias.collection"), 8.0, -8.0), None);
+        assert_eq!(
+            hpr_ahead(row("uncertainty.range-90"), 85.0, 96.0),
+            Some(true)
+        );
+        assert_eq!(hpr_ahead(row("speed.flight"), 2.0, 3.0), Some(true));
+        // The committed collection rows, both measured: the page says who leads each.
+        let mine = |id: &str, tool: Tool| {
+            row(id)
+                .cells
+                .iter()
+                .find(|c| c.tool == tool)
+                .and_then(|c| c.value)
+                .expect("measured")
+        };
+        let text = standing(&board);
+        for id in ["accuracy.collection", "bias.collection"] {
+            let ahead = hpr_ahead(row(id), mine(id, Tool::Hpr), mine(id, Tool::Openrocket));
+            let leader = match ahead {
+                Some(true) => "HPR Sim ahead",
+                Some(false) => "OpenRocket 24.12 ahead",
+                None => "level",
+            };
+            assert!(text.contains(&format!("`{id}`")), "{text}");
+            let after = text
+                .split(&format!("`{id}`"))
+                .nth(1)
+                .expect("the row's entry");
+            let entry = after.split(';').next().expect("its verdict");
+            assert!(entry.contains(leader), "{id}: {entry}");
+        }
     }
 
     /// The next release is the version's next minor.
@@ -1302,11 +1672,17 @@ mod tests {
         let (_, reports, _) = committed();
         let scoreboard = scoreboard(&reports).expect("the scoreboard");
         let open = "- [ ] **M0.8a x\n- [ ] **M0.11 x\n  - [ ] **M2.3c7 x\n- [ ] **M2.6 x\n\
-                    - [ ] **M2.7 x\n- [ ] **M2.8 x\n- [ ] [blocked] **M2.9 x\n- [ ] **M3.6 x\n";
+                    - [ ] **M2.7 x\n- [ ] **M2.8 x\n- [ ] [blocked] **M2.9 x\n";
         check_milestones(&scoreboard, open).expect("all open");
         let closed = open.replace("- [ ] **M2.8", "- [x] **M2.8");
         let error = check_milestones(&scoreboard, &closed).expect_err("M2.8 closed");
         assert!(error.contains("uncertainty.range-50.hpr"), "{error}");
+        // A milestone the page has no words for fails, open or not.
+        let mut unknown = scoreboard.clone();
+        unknown.rows[2].cells[0].milestone = Some("M9.99".to_owned());
+        let open = format!("{open}- [ ] **M9.99 x\n");
+        let error = check_milestones(&unknown, &open).expect_err("no words");
+        assert!(error.contains("M9.99"), "{error}");
     }
 
     /// A worse rule at its edges.

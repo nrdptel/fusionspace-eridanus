@@ -366,14 +366,14 @@
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M3.6"
+          "milestone": "M2.9"
         }
       ]
     },
     {
       "id": "interop.failed",
       "axis": "interop",
-      "label": "Designs that don't make the trip: HPR Sim can't read them, or the tool opens the original but not the export, or refuses the two differently",
+      "label": "Designs that don't make the trip: HPR Sim can't read them, or the tool opens one of the original and the export but not the other, or refuses the two differently",
       "unit": "",
       "decimals": 0,
       "count_words": "of {n}",
@@ -384,7 +384,7 @@
           "tool": "openrocket",
           "value": 2.0,
           "count": 75,
-          "source": "validation/reports/openrocket-export-flights.json /total: originals_opened − (exports_opened − only_exports_opened) + unread + refused_differently",
+          "source": "validation/reports/openrocket-export-flights.json /total: originals_opened − exports_opened + only_exports_opened + unread + refused_differently",
           "milestone": null
         },
         {
@@ -392,7 +392,7 @@
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M3.6"
+          "milestone": "M2.9"
         }
       ]
     },
@@ -418,7 +418,7 @@
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M3.6"
+          "milestone": "M2.9"
         }
       ]
     },

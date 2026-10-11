@@ -309,8 +309,9 @@ motor burns says its apogee is not a prediction. In brief:
   ([private collection](accuracy.md#real-flights-of-the-private-collection),
   [report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md)).
 - **The scoreboard sets HPR Sim beside OpenRocket and RocketPy, axis by axis,** each number read
-  from these reports and each cell nothing measures yet saying which milestone will. CI fails when
-  one of HPR Sim's numbers there gets worse, unless a decision record accepts it
+  from these reports. It opens with how many of its cells are measured and, where HPR Sim and
+  another tool both are, which is ahead; each cell nothing measures yet names the milestone that
+  will. CI fails when one of HPR Sim's numbers there gets worse, unless a decision record accepts it
   ([M0.10](decisions-and-roadmap.md#m0-10), the scoreboard;
   [Accuracy](accuracy.md#the-scoreboard);
   [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md)).

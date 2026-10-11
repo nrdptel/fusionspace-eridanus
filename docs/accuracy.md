@@ -149,15 +149,20 @@ accepted too; otherwise it could slip back later without anyone seeing.
 
 ### The scoreboard
 
-**In short: the [scoreboard][scoreboard] puts HPR Sim beside OpenRocket and RocketPy on each axis
-the project measures itself by (accuracy against logged flights, bias, whether its ranges hold
-real flights, speed, round trips through each tool's file, features, and steps to a first answer),
-every number read from a committed report and every cell no report measures yet saying so, with
-the milestone that will.** It is also a check: CI fails when one of HPR Sim's numbers there gets
-worse, or a measured cell is no longer measured, unless a decision record accepts that cell for the
-next release ([ADR-240](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0240-the-scoreboard.md),
-how the scoreboard works). Where HPR Sim is behind another tool, the scoreboard shows it with both
-numbers. `cargo xtask scoreboard` writes it from the committed reports.
+**In short: the [scoreboard][scoreboard] sets HPR Sim beside OpenRocket and RocketPy, one table
+per axis the project judges itself by.** The axes are accuracy against logged flights, bias,
+whether predicted ranges hold real flights, speed, round trips through each tool's design file,
+features, and steps to a first answer. Every number is read from a committed report. Many cells
+are not measured yet: each says so and links the milestone that will measure it. The page opens
+with how many cells are measured for each tool, and, on each row where HPR Sim and another tool
+both are, which is ahead.
+
+It is also a check. CI fails when one of HPR Sim's numbers there gets worse than the one main
+holds, counts fewer flights, or stops being measured, unless a decision record accepts that cell
+for the release the change ships in
+([ADR-240](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0240-the-scoreboard.md),
+how the scoreboard works). The other tools' numbers are shown, not held. `cargo xtask scoreboard`
+writes it from the committed reports.
 
 ## Reading the evidence
 

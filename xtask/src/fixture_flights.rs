@@ -130,6 +130,21 @@ pub(crate) const OVERRIDE_FLAGS: &str =
     "an airframe not read as written: mass and CG overrides that differ on the parts inside";
 pub(crate) const OFF_AXIS_TUBE: &str =
     "an airframe not read as written: a part inside an off-axis inner tube";
+/// Where the collection's flights come from, credited collectively (ADR-151 §2); every page that
+/// publishes figures from them carries it.
+pub(crate) const FLIGHT_DATA_CREDIT: &str = "Flight data published by university rocketry teams, \
+     rocketry courses and hobbyists on GitHub, team websites and The Rocketry Forum.";
+
+/// The Copernicus attribution and the ERA5 citations the collection's weather needs (ADR-151 §2).
+pub(crate) const ERA5_CREDIT: &str = "Generated using Copernicus Climate Change Service \
+     information 2026. Contains modified Copernicus Climate Change Service information 2026 (the \
+     Earth Data Hub subsets). Neither the European Commission nor ECMWF is responsible for any use \
+     that may be made of the Copernicus information or data it contains. ERA5: Hersbach, H. et al. \
+     (2020), *The ERA5 global reanalysis*, Q. J. R. Meteorol. Soc. 146, 1999–2049, \
+     <https://doi.org/10.1002/qj.3803>; ERA5 hourly data on single levels \
+     (<https://doi.org/10.24381/cds.adbb2d47>) and on pressure levels \
+     (<https://doi.org/10.24381/cds.bd0915c6>), Copernicus Climate Data Store.";
+
 pub(crate) const NO_CURVE: &str = "a motor whose digest OpenRocket 24.12's database lacks";
 
 /// OpenRocket's cause for a configuration it reads with no motor in it.
@@ -1332,22 +1347,8 @@ impl Report {
             }
         }
         let _ = writeln!(page, "\n## Sources\n");
-        let _ = writeln!(
-            page,
-            "Flight data published by university rocketry teams, rocketry courses and hobbyists \
-             on GitHub, team websites and The Rocketry Forum.\n"
-        );
-        let _ = writeln!(
-            page,
-            "Generated using Copernicus Climate Change Service information 2026. Contains \
-             modified Copernicus Climate Change Service information 2026 (the Earth Data Hub \
-             subsets). Neither the European Commission nor ECMWF is responsible for any use that \
-             may be made of the Copernicus information or data it contains. ERA5: Hersbach, H. \
-             et al. (2020), *The ERA5 global reanalysis*, Q. J. R. Meteorol. Soc. 146, \
-             1999–2049, <https://doi.org/10.1002/qj.3803>; ERA5 hourly data on single levels \
-             (<https://doi.org/10.24381/cds.adbb2d47>) and on pressure levels \
-             (<https://doi.org/10.24381/cds.bd0915c6>), Copernicus Climate Data Store."
-        );
+        let _ = writeln!(page, "{FLIGHT_DATA_CREDIT}\n");
+        let _ = writeln!(page, "{ERA5_CREDIT}");
         page
     }
 }
