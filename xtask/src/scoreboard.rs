@@ -2003,6 +2003,17 @@ mod tests {
             error.contains("measured, yet says the tool can't"),
             "{error}"
         );
+        // HPR Sim's own *can't* is only until a milestone: without one it fails.
+        let mut unnamed = scoreboard.clone();
+        let hpr_cant = unnamed
+            .rows
+            .iter_mut()
+            .flat_map(|row| &mut row.cells)
+            .find(|cell| cell.tool == Tool::Hpr && cell.cannot.is_some())
+            .expect("HPR Sim's window cell");
+        hpr_cant.milestone = None;
+        let error = check_milestones(&unnamed, open).expect_err("HPR Sim can't, no milestone");
+        assert!(error.contains("names no milestone"), "{error}");
         let closed = open.replace("- [ ] **M9.1", "- [x] **M9.1");
         let error = check_milestones(&scoreboard, &closed).expect_err("M9.1 closed");
         assert!(error.contains("steps.window-clicks.hpr"), "{error}");
