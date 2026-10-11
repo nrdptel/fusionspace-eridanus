@@ -3443,7 +3443,10 @@ mod tests {
                 .count();
             let found = trust_opening(&text);
             assert_eq!(found.as_ref().map(|(at, _)| *at), Some(line), "{text}");
-            assert!(found.unwrap().1.contains("**How far to trust it.**"), "{text}");
+            assert!(
+                found.unwrap().1.contains("**How far to trust it.**"),
+                "{text}"
+            );
         }
         // The site's run reports it, on every page but a model page.
         let report = check_sources(
