@@ -434,7 +434,7 @@ import. The survey counts both kinds of error for each source. On 2026-09-23, ex
 
 | source | files | read | laid out | errors |
 |---|---|---|---|---|
-| the private design library (`loft-fixtures`, now in `hpr-sim-fixtures/imported/`) | 27 | 27 | 27 | 0 |
+| the private design library (`loft-fixtures`, now copied into the private flight collection) | 27 | 27 | 27 | 0 |
 | the OpenRocket 24.12 jar's examples | 17 | 17 | 17 | 0 |
 | everything else under `refs/` | 34 | 32 | 31 | 2 (the two Loft fixtures that are not XML) |
 
@@ -3501,7 +3501,7 @@ itself flies a written file exactly as it flies the original, since it reads bac
 | where | files |
 |---|---|
 | the example designs that ship with OpenRocket | 17 |
-| the private design library ([the corpus](#openrockets-flights-of-the-private-designs); the report's `refs/hpr-sim-fixtures/imported/loft-fixtures`) | 27 |
+| the private design library ([the corpus](#openrockets-flights-of-the-private-designs); the report's row ending `imported/loft-fixtures`) | 27 |
 | other `.ork` files under `refs/`, mostly Loft's and Debrief's test designs ([listed above](#openrockets-flights-of-the-private-designs); the report's *elsewhere under refs/*) | 31 |
 | all | 75 |
 
@@ -3535,7 +3535,7 @@ flights agree about 2,600 times more closely, so the report also gives the large
 - **Eighteen configurations fly neither way.** Seventeen have no motor. OpenRocket aborts the
   other one both times, for the same cause.
 - **Eight configurations differ, but by very little.** All eight are in the private design
-  library (the report's `refs/hpr-sim-fixtures/imported/loft-fixtures` row). The largest
+  library (the report's row ending `imported/loft-fixtures`). The largest
   difference is 0.000191%. Their cause has not been traced.
 
 The committed report,
@@ -3550,7 +3550,7 @@ scripts drive OpenRocket, as for [OpenRocket's mass](../physics/mass.md#checked-
 Without the private library, the commands fly the public files alone. The two `imported/`
 directories in the first command are the private library and one design from Debrief's private
 collection, copied into the private flight collection; they are named because the scripts don't
-follow the link a local setup may make of `refs/hpr-sim-fixtures`.
+follow the symbolic link a local setup may make to that collection.
 The first command flies the originals, and is needed only when `refs/` or the flight scripts
 change. The second writes each design back out; the third flies those files; the last compares:
 

@@ -608,16 +608,16 @@ excellent offline test fixtures for the weather-file readers.
 - **Eggtimer:** telemetry spec PDF on eggtimerrocketry.com.
 - **Featherweight and PerfectFlite:** no official sample files found. Mark them "needs samples".
 - **`nrdptel/loft-fixtures`** (private): 38 files from OpenRocket, RockSim, RASAero, RocketPy and
-  SpaceCAD. Since M2.3c4 it is read from a byte-exact copy, `imported/loft-fixtures/` in
-  `nrdptel/hpr-sim-fixtures` (below), of the commit Loft used,
-  `37251476e5cfee330c88aa94cf0dd58f93370ccd`; its `CHECKSUMS.sha256` manifest is still pinned at
-  sha256 `d909aeae6e063b629a161ba36dcc0f8b51e45313997789c8ecbc71e342971510`. Many `.ork` files carry
+  SpaceCAD. Since [M2.3c4](decisions-and-roadmap.md#m2-3c4) (one fixture repository) it is read
+  from a byte-exact copy, `imported/loft-fixtures/` in the private flight collection (below), of
+  the commit Loft used, `37251476e5cfee330c88aa94cf0dd58f93370ccd`; its `CHECKSUMS.sha256`
+  manifest is still pinned at sha256 `d909aeae6e063b629a161ba36dcc0f8b51e45313997789c8ecbc71e342971510`. Many `.ork` files carry
   stored OpenRocket simulation results, so they are a free code-to-code reference once the `.ork`
   importer exists. **Never commit these files** ([rule 4 in CONTRIBUTING.md](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CONTRIBUTING.md#4-private-data-stays-private)).
 - **`nrdptel/debrief-fixtures`** (private): flight logs gathered for Debrief, 62 files in its
-  manifest (commit `722f07cd5d9d8595b31c64e2964fb7fbd5e751e7`, read since M2.3c4 from its
-  byte-exact copy `imported/debrief-fixtures/` in `nrdptel/hpr-sim-fixtures`), from about 30 flights of team,
-  certification and sport rockets, recorded by altimeters of a dozen makes. None is a flight of a
+  manifest (commit `722f07cd5d9d8595b31c64e2964fb7fbd5e751e7`, read since the same change from
+  its byte-exact copy `imported/debrief-fixtures/` in the private flight collection, below), from
+  about 30 flights of team, certification and sport rockets, recorded by altimeters of a dozen makes. None is a flight of a
   `loft-fixtures` design ([ADR-083 decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0083-m2-3c-blocked-no-private-design-is-the-rocket-of.md)).
   **Never commit these files** ([rule 4 in CONTRIBUTING.md](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CONTRIBUTING.md#4-private-data-stays-private)).
 - **`nrdptel/hpr-sim-fixtures`** (private): 468 real flights gathered for this project, each a
@@ -625,7 +625,7 @@ excellent offline test fixtures for the weather-file readers.
   the 89 of tier A the source itself ties the design as flown to a numeric barometric log, with
   the exact motor, date, site and the day's ERA5 weather. It is pinned at commit
   `7268bcd036a0e79f75ecb6ee2896327722fb8ab3`, with a `CHECKSUMS.sha256` manifest of 9,557 files;
-  since M2.3c4 it is the only fixture repository, its `imported/` holding the two above.
+  since that change it is the only fixture repository, its `imported/` holding the two above.
   `cargo xtask fixture-flights` flies its 83 tier-A `.ork` flights in HPR Sim and OpenRocket; 55 of
   them are compared with their logged apogees, and only aggregates are published
   ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md),

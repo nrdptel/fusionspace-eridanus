@@ -1,7 +1,7 @@
 # ADR-237: One fixture repository: the pin, the labels and a file two packages install (2026-10-11)
 
 - **Status:** accepted; closes M2.3c4
-- **Summary:** The reference lock pins only the private flight collection `hpr-sim-fixtures`, at its `master` merge commit `7268bcd0`, with a second manifest pin for the design library copied inside it. The two older private repositories are read from its byte-exact `imported/` copies, and the survey counts the library under that path. The OpenRocket round-trip report was flown again because its record predated a writer change. The Python environment check now accepts a file two packages install when it holds either package's copy.
+- **Summary:** The reference lock pins only the private flight collection, at its `master` merge commit `7268bcd0`, with a second manifest pin for the design library copied inside it. The two older private repositories are read from its byte-exact `imported/` copies, and the survey counts the library under that path. The OpenRocket round-trip report was flown again because its record predated a writer change. The Python environment check now accepts a file two packages install when it holds either package's copy.
 
 **Context.** M2.3c4's *done when*: the lock pins only `hpr-sim-fixtures`, at its catalog's merge
 commit, the other two read from its `imported/` copies; `cargo xtask ork` finds the same files;
