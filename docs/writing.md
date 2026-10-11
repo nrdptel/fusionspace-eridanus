@@ -386,18 +386,18 @@ at most six connections to one server, while GitHub Pages, which serves the site
 with no such limit; and each page is a first visit, though a reader's second page finds the
 stylesheet, scripts and fonts already saved. One could err either way: the slowdown for a fast
 machine carries Lighthouse's guide past the machines it was fitted to. And a phone draws text in
-its own fonts until the site's arrive: the fallback is matched to Arial and the Linux and
-ChromeOS fonts drawn to its measures, so the lab on a Mac or on Linux sees little movement, but
-an Android phone draws in Roboto, which isn't matched and isn't measured
+its own fonts until the site's arrive: the fallback is matched to Arial and to the Linux and
+ChromeOS fonts made to Arial's widths, so on a Mac or on CI's Linux runners the largest CLS was
+0.067, but an Android phone draws in Roboto, which isn't matched and isn't measured
 ([#461](https://github.com/nrdptel/fusionspace-eridanus/issues/461)). The bounds are meant for
 real visits, and the site collects no numbers from them.
 
-In one run on 2026-10-10, the slowest LCP was 2.35 s
-([*PerfectFlite `.pf2` flight logs*](format/pf2.md)), the largest CLS 0.067
-([*How a flight is simulated*](how-a-flight-is-simulated.md)) and the slowest INP 88 ms
-([*Aerodynamics*](physics/aero.md)), with the processor slowed 16.1 times. LCP and INP move by a
-tenth or more from one run to the next. The check loads one page at a time, as Lighthouse asks,
-since pages loaded side by side slow each other down.
+In one run on 2026-10-11, the slowest LCP was 2.06 s and the slowest INP 96 ms, both on
+[*Aerodynamics*](physics/aero.md), and the largest CLS 0.067
+([*How a flight is simulated*](how-a-flight-is-simulated.md)), with the processor slowed 16.4
+times. On CI's Linux runners, slowed about 7 times, the worst were 2.19 s, 0.067 and 136 ms. LCP
+moves by a tenth or more from one run to the next. The check loads one page at a time, as
+Lighthouse asks, since pages loaded side by side slow each other down.
 Each run prints its own figures in the line that starts `page vitals:`. Three pages the check
 serves itself must each fail their own vital and pass the other two, or the check fails: one
 whose stylesheet arrives late, one that moves its text after drawing it and one whose menu

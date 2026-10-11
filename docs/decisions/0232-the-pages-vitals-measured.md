@@ -79,19 +79,31 @@ marked *(a probe)* come from development runs at the slowdown given, not from co
    decision ships it, with only the system's two preloaded, CLS was 0.174 on the accuracy page
    and 0.177 on the Python page (medians of three); with four it is at most 0.067. A fifth
    pushed LCP to 2.50 s (a probe). This is a deviation from the system, measured, and the
-   conformance row says so. The italic, not preloaded, arrives after the first paint (3.1 s
-   against 2.3 s on the `.orc` parts catalog page, a probe at the CI runners' slowdown), drawn
-   until then in the fallback face. The system matches Archivo's fallback to Arial, which Linux
-   and ChromeOS lack; CI's Linux runners drew the italic in DejaVu Sans, and the line rewrapped
-   when Archivo Italic arrived, CLS 0.179 there. `theme/hpr.css` adds a second fallback face,
-   Liberation Sans or Arimo, both drawn to Arial's metrics, at the system's 101%. Android has
-   neither and draws in Roboto, which nothing here measures (#461).
+   conformance row says so. The italic, not preloaded, arrives after the first paint: at 3.1 s
+   against 2.3 s on the `.orc` parts catalog page (a probe on this Mac at a 6.6 times
+   slowdown, served uncompressed), drawn until then in the fallback face. The system matches
+   Archivo's fallback to Arial, which Linux and ChromeOS lack. On CI's Linux runners that page
+   measured CLS 0.179, a shift at 2.7 s that moved the text below its first paragraph, the one
+   with an italic; the cause is inferred: a wider face, such as DejaVu Sans, standing in for the
+   italic until Archivo Italic arrived and the line rewrapped. `theme/hpr.css` adds a second
+   fallback face, Liberation Sans or Arimo, both metric-compatible with Arial (the same advance
+   widths), at the system's 101%. In the three CI runs since, the page passed and the largest
+   CLS on its runner's share was 0.067. Android has neither and draws in Roboto, which nothing
+   here measures (#461).
 4. **No shift after the first paint.** A script the build writes after the header places the
    theme switch in the sidebar on a narrow window before the page is drawn; inline code has its
    padding from the stylesheet.
-5. **The menu tap moves the page at once.** On a phone only the sidebar slides; the page's
-   `transform` isn't animated, its margin still is. Measured without this, the aerodynamics
-   page's tap took 0.30 s.
+5. **The menu tap moves the page at once, on a layer of its own.** On a phone only the sidebar
+   slides; the page's `transform` isn't animated, its margin still is. Measured without this,
+   the aerodynamics page's tap took 0.30 s. And under 620 px, where mdBook moves the page by a
+   `transform`, the page is drawn on its own layer (`will-change: transform`), so moving it is
+   the compositor's work, not a new drawing of the page. Without it, the slowest interaction on
+   the aerodynamics page took 96 to 352 ms over three loads at a 16 times slowdown here (a
+   probe), and CI measured 288 and 296 ms on the `.ork` format and aerodynamics pages (that
+   run didn't print its slowdown) and 216 ms on the records page on a runner slowed 14.6 times.
+   With it, 64 to 72 ms here (a
+   probe). No element fixed to the window is drawn inside the page under 620 px, whose place
+   the layer would change.
 6. **The print page is a cover on screen.** The build puts the print page's chapters in a
    `<template>` behind a cover: the designation tag, "Print the guide", what it prints, a button
    that prints and how to print from the browser (`print.rs`). The site's script places a copy of
@@ -113,15 +125,21 @@ marked *(a probe)* come from development runs at the slowdown given, not from co
    page whose chapters don't all arrive as it prints or don't all leave after, with canaries
    both ways.
 
-**Consequences.** In one run on the site as this decision ships it, one page at a time at a 16.1
-times slowdown, the slowest LCP was 2.35 s (the PF2 format page), the largest CLS 0.067 (the page
-on how a flight is simulated) and the slowest INP 88 ms (the aerodynamics page). Runs with four
-browsers at once on this Mac gave 1.99 to 2.16 s, 0.067 and 88 to 152 ms: LCP and INP move by a
-tenth or more between runs, and LCP's least margin to its bound is about 0.15 s. The check takes
-about six minutes on this Mac. The header's "Print this book" icon now opens the cover, one more
-step to the print window, and the book prints only with scripts on. The check depends on Chrome's
-DevTools protocol and its Event Timing and layout-shift entries; a Chrome that changes them fails
-the check through its canaries, its throttle checks or a load with nothing to read, rather than
-passing silently. The lab is not the field: it runs over HTTP/1.1 and loads every page cold, which
-make it slower than a visit, while the CPU slowdown on a fast machine extrapolates Lighthouse's
-calculator, which could err either way. Field numbers would settle it, and the site collects none.
+**Consequences.** In one run on the site as this decision ships it, one page at a time at a 16.4
+times slowdown on this Mac, the slowest LCP was 2.06 s and the slowest INP 96 ms (both the
+aerodynamics page), and the largest CLS 0.067 (the page on how a flight is simulated). On CI's
+three Linux runners in the same commit's run, slowed 6.8 to 7.3 times, the worst were 2.19 s, 0.067
+and 136 ms. LCP moves by a tenth or more between runs (2.35 s on the PF2 format page in an earlier
+run here), so its least margin to its bound is about 0.15 s; INP moved between 88 and 152 ms from
+run to run while four browsers measured at once, and between 80 and 96 ms one page at a time. A
+runner that scores higher is slowed more, and the one that scored 4,004 measured the records page's
+tap at 216 ms before the page's layer, which suggests the slowdown, set from a JavaScript
+benchmark, weighs drawing differently from machine to machine; no run with the layer has yet drawn
+such a runner. The check takes about six minutes on this Mac and two on each CI runner. The
+header's "Print this book" icon now opens the cover, one more step to the print window, and the
+book prints only with scripts on. The check depends on Chrome's DevTools protocol and its Event
+Timing and layout-shift entries; a Chrome that changes them fails the check through its canaries,
+its throttle checks or a load with nothing to read, rather than passing silently. The lab is not
+the field: it runs over HTTP/1.1 and loads every page cold, which make it slower than a visit,
+while the CPU slowdown on a fast machine extrapolates Lighthouse's calculator, which could err
+either way. Field numbers would settle it, and the site collects none.
