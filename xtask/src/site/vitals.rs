@@ -352,6 +352,9 @@ enum Job {
     Canary(usize),
 }
 
+/// What one job measured: the vitals and how many loads they took, or why it couldn't.
+type Measured = Result<(Vitals, usize), String>;
+
 /// Measures the vitals of the site built in `output`: this part's share of its pages, and the
 /// canaries in every part.
 pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
@@ -390,7 +393,7 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
     }
 
     let queue = Mutex::new(queue);
-    let found: Mutex<Vec<(Job, Result<(Vitals, usize), String>)>> = Mutex::new(Vec::new());
+    let found: Mutex<Vec<(Job, Measured)>> = Mutex::new(Vec::new());
     let failed: Mutex<Vec<String>> = Mutex::new(Vec::new());
     thread::scope(|scope| {
         for (index, tab) in tabs.iter_mut().enumerate() {
@@ -644,7 +647,7 @@ impl Browser {
 
     /// The vitals of `url`, and how many loads they are the median of: one, or [`RUNS`] for a
     /// page of the site over a bound (`retry`).
-    fn vitals(&mut self, origin: &str, url: &str, retry: bool) -> Result<(Vitals, usize), String> {
+    fn vitals(&mut self, origin: &str, url: &str, retry: bool) -> Measured {
         let once = self.measure_held(origin, url)?;
         if !retry || once.over().is_empty() {
             return Ok((once, 1));
