@@ -31,7 +31,6 @@
 use std::fs;
 use std::path::Path;
 
-
 /// The page, as mdBook names it.
 pub(super) const PAGE: &str = "print.html";
 /// How mdBook 0.5 opens and closes a page's text.

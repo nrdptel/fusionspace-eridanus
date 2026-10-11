@@ -90,15 +90,16 @@ fn designation() -> &'static str {
 /// The intro's opening as [`draw`] writes it before every title: the intro, and its row of the
 /// designation tag and the chip of the site's `status`, or why `status` has no chip.
 pub(super) fn intro_open(status: &str) -> Result<String, String> {
-    let (_, state, icon, word) = CHIPS
-        .iter()
-        .find(|(name, ..)| *name == status)
-        .ok_or_else(|| {
-            format!(
-                "the title block's status `{status}` has no chip; the chips are {:?}",
-                CHIPS.map(|(name, ..)| name)
-            )
-        })?;
+    let (_, state, icon, word) =
+        CHIPS
+            .iter()
+            .find(|(name, ..)| *name == status)
+            .ok_or_else(|| {
+                format!(
+                    "the title block's status `{status}` has no chip; the chips are {:?}",
+                    CHIPS.map(|(name, ..)| name)
+                )
+            })?;
     Ok(format!(
         "{INTRO}{ROW}{TAG}{}</p>{CHIP}{state}\">{}{word}</p></div>",
         designation(),
@@ -550,7 +551,9 @@ mod tests {
         assert!(drawn.contains(&format!("SHEET 1 / 2</span>{}", h(2, "b"))));
         assert!(drawn.contains(&format!("SHEET 2 / 2</span>{}", h(2, "c"))));
         // The break stands between the chapters, outside the first one's last sheet.
-        assert!(drawn.contains(&format!("</div></section>\n{CHAPTER_BREAK}\n{INTRO}{ROW}{TAG}")));
+        assert!(drawn.contains(&format!(
+            "</div></section>\n{CHAPTER_BREAK}\n{INTRO}{ROW}{TAG}"
+        )));
         assert!(drawn.contains(&format!("{}\n{LEAD}Second.</p>", h(1, "second"))));
         assert_eq!(page_problems(&drawn, &open()), Vec::<String>::new());
     }
@@ -566,9 +569,7 @@ mod tests {
         assert!(why[0].contains("can't be a sheet"), "{why:?}");
         let text = format!("<div>{}</div>", h(1, "t"));
         assert!(rewrite(&page(&text), &open()).unwrap_err()[0].contains("text before"));
-        assert!(
-            rewrite(&page("<p>No title.</p>"), &open()).unwrap_err()[0].contains("no title")
-        );
+        assert!(rewrite(&page("<p>No title.</p>"), &open()).unwrap_err()[0].contains("no title"));
     }
 
     #[test]
@@ -624,7 +625,10 @@ mod tests {
         fails("One sentence. And another.", "more than one sentence");
         fails("A question? And an answer.", "more than one sentence");
         fails("Stop! Then go.", "more than one sentence");
-        fails("The U.S. Standard Atmosphere, by height.", "more than one sentence");
+        fails(
+            "The U.S. Standard Atmosphere, by height.",
+            "more than one sentence",
+        );
         fails("No period at its end", "with a period");
         fails("A question at its end?", "with a period");
         fails("", "with a period");
@@ -678,7 +682,10 @@ mod tests {
         );
         fails(page(&text), "designation tag");
         // The chip: gone, of another state, or not the site's status.
-        fails(drawn.replace(CHIP, "<p class=\"other\" data-state=\""), "status chip");
+        fails(
+            drawn.replace(CHIP, "<p class=\"other\" data-state=\""),
+            "status chip",
+        );
         fails(drawn.replace("info\"><svg", "ok\"><svg"), "status chip");
         fails(drawn.replace("In preparation", "Released"), "status chip");
         let problems = page_problems(&drawn, &intro_open("RELEASED").unwrap());
