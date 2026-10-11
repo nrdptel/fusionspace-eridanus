@@ -837,7 +837,7 @@ impl Browser {
             let [x, y] = match self.menu_button()? {
                 Menu::At(at) => at,
                 // mdBook's sidebar frame, `toc.html`, is the one page with no menu.
-                Menu::Absent if !page || url.ends_with("/toc.html") => break,
+                Menu::Absent if !page || url == format!("{origin}/toc.html") => break,
                 Menu::Hidden if !page => break,
                 menu => {
                     return Err(Failed(format!(
@@ -1002,6 +1002,8 @@ mod tests {
         assert!(!cpu_held_by(1.7, 1.7));
         assert!(!cpu_held_by(1.0, 1.0));
         assert!(!cpu_held_by(16.4, f64::NAN));
+        // The refusal's message names BenchmarkIndex 800 as the least: the floor's index.
+        assert_eq!(cpu_slowdown(800.0).unwrap(), CPU_LEAST_SLOWDOWN);
     }
 
     #[test]
