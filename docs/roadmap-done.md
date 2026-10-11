@@ -182,6 +182,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M2.3b RocketPy's logged flights ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3c1 Logged apogees ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3c4 One fixture repo ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.3c5 The corpus rechecked ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.4 Accuracy census gate ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.11 Ejected sections and payloads ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.11a Pieces at any joint ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -1030,6 +1031,9 @@ One line per milestone or increment, in the order it was archived within its pha
       both copies have their original commits' git trees; the survey reads the same 75 files, by
       content, two labels renamed; `refs verify` 94 ok; the round-trip report flown again with
       today's writer, still met.
+    - [x] **M2.3c5 The corpus rechecked.** (ADR-238) *Done when:* each corpus flight the collection's
+      catalog flags (68 of 83) is settled against its log and evidence, the manifest fixed and
+      the fixture report regenerated, saying what moved. Moves: accuracy.
 - [x] **M2.4 Accuracy census gate.** Generate a summary census (a README table and badge) from the
   report. CI fails on any per-case regression beyond tolerance.
   - Loft lessons: L84, L85, L86, L88.

@@ -119,9 +119,9 @@ file or computed from it. Where nothing has compared a figure with a measurement
 stands for, such as a forecast's winds with measured ones, the note says "not yet checked"
 ([ADR-213](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0213-units-and-trust-notes-on-every-readout.md), the decision).
 
-The numbers cover the apogee only: 55 logged flights of fliers' own designs, each logged apogee
-the height climbed in the day's air. The simulated apogee averaged 9.8% above the logged one; it
-was within 10% on 27 and read low on 14, by at most 20%
+The numbers cover the apogee only: 53 logged flights of fliers' own designs, each logged apogee
+the height climbed in the day's air. The simulated apogee averaged 8.7% above the logged one; it
+was within 10% on 26 and read low on 13, by at most 20%
 ([Accuracy: real flights of the private collection](accuracy.md#real-flights-of-the-private-collection)).
 Speed, drift and the margin have no measured spread yet. The note asks for room above the apogee
 when planning a waiver (the permission to fly above a height limit), and leaves the call to the
@@ -379,9 +379,9 @@ top speed             178.3 m/s (585 ft/s) at 2.31 s
 top Mach number       0.525
 landing               17.4 m (57 ft) from the pad at 29.71 s, at 65.9 m/s (216 ft/s): with no recovery device opened soon after apogee, not a prediction
 
-How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
+How far to trust it. Simulated from the design file, not measured. Against 53 logged flights of
 fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
-averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+averaged 8.7% above the logged one; it was within 10% on 26 and read low on 13, by at most 20%. Plan
 a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
 log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
@@ -504,9 +504,9 @@ top speed             65.9 m/s (216 ft/s) at 2.73 s
 top Mach number       0.194
 landing               0.4 m (1 ft) from the pad at 53.94 s, at 4.7 m/s (15 ft/s)
 
-How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
+How far to trust it. Simulated from the design file, not measured. Against 53 logged flights of
 fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
-averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+averaged 8.7% above the logged one; it was within 10% on 26 and read low on 13, by at most 20%. Plan
 a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
 log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
@@ -706,9 +706,9 @@ top speed             184.3 m/s (605 ft/s) at 2.35 s
 top Mach number       0.556
 landing               310.4 m (1018 ft) from the pad at 28.71 s, at 70.3 m/s (230 ft/s): with no recovery device opened soon after apogee, not a prediction
 
-How far to trust it. Simulated from the design file, not measured. Against 55 logged flights of
+How far to trust it. Simulated from the design file, not measured. Against 53 logged flights of
 fliers' own designs, each logged apogee the height climbed in the day's air, the simulated apogee
-averaged 9.8% above the logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan
+averaged 8.7% above the logged one; it was within 10% on 26 and read low on 13, by at most 20%. Plan
 a waiver or a field's ceiling with room above this apogee; the altimeter's reading is the one to
 log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
@@ -1022,9 +1022,9 @@ warning: drag, the nominal flight: issue #18: skin friction is taken as fully tu
 warning: stability, the nominal flight: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 How far to trust it. Simulated from the design file, not measured; the spread above comes from the
-inputs' scatter alone, not from the model's error. Against 55 logged flights of fliers' own designs,
-each logged apogee the height climbed in the day's air, the simulated apogee averaged 9.8% above the
-logged one; it was within 10% on 27 and read low on 14, by at most 20%. Plan a waiver or a field's
+inputs' scatter alone, not from the model's error. Against 53 logged flights of fliers' own designs,
+each logged apogee the height climbed in the day's air, the simulated apogee averaged 8.7% above the
+logged one; it was within 10% on 26 and read low on 13, by at most 20%. Plan a waiver or a field's
 ceiling with room above this apogee; the altimeter's reading is the one to log, and the RSO decides.
 More: https://hpr.fusionspace.co/accuracy.html
 ```
