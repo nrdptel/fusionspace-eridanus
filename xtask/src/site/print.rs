@@ -61,9 +61,9 @@ fn cover(chapters: usize) -> String {
          site too.</p>\n\
          <p><button type=\"button\" class=\"fs-btn\" id=\"hpr-print\">Print the guide</button></p>\n\
          <p>The browser’s own Print command prints it as well: Ctrl+P, or Command+P on a Mac; on \
-         a phone, Share and then Print. On screen the page shows only this cover, as every \
-         chapter on one page is slow to load and slow to answer a tap on a phone. Each chapter is \
-         also a page of its own, listed in the sidebar.</p>\n\
+         many phones, Share and then Print. On screen this page shows only the cover, because \
+         every chapter at once would load slowly and answer a tap slowly on a phone. Each chapter \
+         is also a page of its own, listed in the sidebar.</p>\n\
          <noscript><p>Printing the whole guide needs the page’s script, which is off here: print \
          each chapter from its own page.</p></noscript></div></div>\n"
     )

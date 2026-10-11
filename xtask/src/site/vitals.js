@@ -33,6 +33,8 @@
     unsupported: [],
   };
   const describe = function (node) {
+    // A shift's source can be a run of text: named by the element it stands in.
+    if (node && node.nodeType === 3) node = node.parentElement;
     if (!node || !node.tagName) return '';
     const text = (node.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40);
     return node.tagName.toLowerCase() + (text ? ' "' + text + '"' : '');
@@ -65,10 +67,11 @@
     state.firstInput = true;
     state.events.push([entry.interactionId || 0, entry.name, entry.duration]);
   });
-  // An interaction has ended once its last event has run: `click` after a tap, `keyup` after a
-  // key. Counted at the window in the capture phase, before the page's own listeners can stop
-  // it, and only when trusted, as Event Timing counts only trusted events.
-  ['click', 'keyup'].forEach(function (type) {
+  // An input has arrived once its last event has run: `pointerup` after a tap, `keyup` after a
+  // key (a tap on a label also clicks its control, so clicks would count it twice). Counted at
+  // the window in the capture phase, before the page's own listeners can stop it, and only when
+  // trusted, as Event Timing counts only trusted events.
+  ['pointerup', 'keyup'].forEach(function (type) {
     window.addEventListener(type, function (event) {
       if (event.isTrusted) state.inputs += 1;
     }, { capture: true, passive: true });

@@ -196,8 +196,9 @@
 //! screen-only rule that leaves a color off the roles on paper, navigation and a control drawn
 //! on paper, a page arrow fixed inside a `nav` with no height, a link printed without its
 //! address in `main` and one outside it, links with theirs, which must pass, a row that can
-//! split, a rule fixed to the window's top on paper, and a title block hidden on paper, printed
-//! without its date and able to split; an
+//! split, a rule fixed to the window's top on paper, a print page whose chapters aren't placed as
+//! it prints and one whose chapters stay after, with one that places and removes them, which must
+//! pass, and a title block hidden on paper, printed without its date and able to split; an
 //! intro and sheets drawn as the system's, which must pass, sheets under a 1 px rule and under
 //! a rule's color, numbered out of order, a section's name outside a sheet, a sheet's number in
 //! Archivo and one below its name, and a designation tag with no chamfer, below its title, at
@@ -853,7 +854,7 @@ macro_rules! switch_frame {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 135] = [
+const CANARIES: [Canary; 138] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -2077,6 +2078,33 @@ const CANARIES: [Canary; 135] = [
         expect: &[Kind::Print],
         inside: "<style>@media print { main::before { content: ''; position: fixed; top: 0; \
                  left: 0; right: 0; height: 4px; } }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-print-unplaced.html",
+        what: "a print page whose chapters aren't placed in the page as it prints",
+        expect: &[Kind::Print],
+        inside: "<template id=\"hpr-book\"><h1 id=\"chapter\">A chapter</h1><p>Its text.</p></template>",
+        after: "",
+    },
+    Canary {
+        file: "canary-print-kept.html",
+        what: "a print page whose chapters stay in the page once printing ends",
+        expect: &[Kind::Print],
+        inside: "<template id=\"hpr-book\"><h1 id=\"chapter\">A chapter</h1><p>Its text.</p></template><script>(function () { const b = document.getElementById('hpr-book'); let p = []; \
+                 addEventListener('beforeprint', function () { const c = b.content.cloneNode(true); \
+                 p = Array.from(c.childNodes); b.parentNode.insertBefore(c, b); }); })();</script>",
+        after: "",
+    },
+    Canary {
+        file: "canary-print-placed.html",
+        what: "a print page whose chapters are placed as it prints and gone after, which must pass",
+        expect: &[],
+        inside: "<template id=\"hpr-book\"><h1 id=\"chapter\">A chapter</h1><p>Its text.</p></template><script>(function () { const b = document.getElementById('hpr-book'); let p = []; \
+                 addEventListener('beforeprint', function () { const c = b.content.cloneNode(true); \
+                 p = Array.from(c.childNodes); b.parentNode.insertBefore(c, b); }); \
+                 addEventListener('afterprint', function () { p.forEach(function (n) { \
+                 n.remove(); }); p = []; }); })();</script>",
         after: "",
     },
     Canary {

@@ -1,5 +1,6 @@
 //! The pages' Core Web Vitals (#443; the product system's `web.md`, *Performance*): every page
-//! of the built site loaded cold in headless Chrome as a mid-tier phone on a slow mobile
+//! of the built guide (not the API reference, rustdoc's own pages, which the layout check leaves
+//! out too) loaded cold in headless Chrome as a mid-tier phone on a slow mobile
 //! network, its Largest Contentful Paint (LCP), Cumulative Layout Shift (CLS) and Interaction
 //! to Next Paint (INP) measured, and each held to the bound `web.md` sets for the 75th
 //! percentile of real visits: LCP at most 2.5 s, CLS at most 0.1, INP at most 200 ms (the
@@ -94,6 +95,11 @@ const MOST_BROWSERS: usize = 4;
 /// its response's end, or the network throttle didn't hold for it and the load is measured
 /// again. (Chrome adds the wait before a response's body, not before its first byte.)
 const THROTTLE_HELD: f64 = 0.9;
+
+/// The least share of the CPU slowdown the benchmark, run again under the throttle, must show
+/// for the throttle to count as held: a browser that ignored it would show none. The benchmark
+/// counts loops a second, so a slowdown of 16 leaves it about 16 times fewer.
+const CPU_HELD: f64 = 0.5;
 
 /// A vital.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -355,6 +361,16 @@ enum Job {
 /// What one job measured: the vitals and how many loads they took, or why it couldn't.
 type Measured = Result<(Vitals, usize), String>;
 
+/// What a load found of the page's menu button.
+enum Menu {
+    /// No button: mdBook's sidebar frame.
+    Absent,
+    /// A button, but not on screen to tap.
+    Hidden,
+    /// A button, tapped at this point of the window.
+    At([f64; 2]),
+}
+
 /// Measures the vitals of the site built in `output`: this part's share of its pages, and the
 /// canaries in every part.
 pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
@@ -369,6 +385,14 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
         .filter(|(i, _)| i % part.count == part.index - 1)
         .map(|(_, page)| page)
         .collect();
+    if pages.is_empty() {
+        return Err(format!(
+            "the vitals check found no page to measure in {} (part {} of {})",
+            output.display(),
+            part.index,
+            part.count
+        ));
+    }
     let mut queue: VecDeque<Job> = (0..CANARIES.len()).map(Job::Canary).collect();
     queue.extend(pages.iter().cloned().map(Job::Page));
 
@@ -399,15 +423,27 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
         for (index, tab) in tabs.iter_mut().enumerate() {
             let (queue, found, failed, origin) = (&queue, &found, &failed, &origin);
             scope.spawn(move || {
-                if let Err(err) = tab.throttle(slowdown) {
+                let fail = |why: String| {
                     if let Ok(mut failed) = failed.lock() {
-                        failed.push(format!("browser {index} could not be throttled: {err}"));
+                        failed.push(format!(
+                            "the vitals check is broken: browser {index}: {why}"
+                        ));
                     }
+                };
+                if let Err(err) = tab
+                    .throttle(slowdown)
+                    .and_then(|()| tab.cpu_held(origin, benchmark, slowdown))
+                {
+                    fail(err);
                     return;
                 }
                 loop {
                     let Some(job) = queue.lock().ok().and_then(|mut queue| queue.pop_front())
                     else {
+                        // The throttle read again after the last page, so it held throughout.
+                        if let Err(err) = tab.cpu_held(origin, benchmark, slowdown) {
+                            fail(format!("after its last page, {err}"));
+                        }
                         return;
                     };
                     let url = match &job {
@@ -454,7 +490,12 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
             )),
             (Job::Page(page), Ok((vitals, runs))) => {
                 for (slot, vital) in [Vital::Lcp, Vital::Cls, Vital::Inp].into_iter().enumerate() {
-                    if vitals.get(vital) > worst[slot].0 || worst[slot].1.is_empty() {
+                    // Ties go to the first page by name, so a run names the same page.
+                    let (value, name) = (vitals.get(vital), &worst[slot].1);
+                    if name.is_empty()
+                        || value > worst[slot].0
+                        || (value == worst[slot].0 && page < *name)
+                    {
                         worst[slot] = (vitals.get(vital), page.clone());
                     }
                 }
@@ -595,6 +636,9 @@ impl Browser {
             "Storage.clearDataForOrigin",
             json!({ "origin": origin, "storageTypes": "all" }),
         )?;
+        // The page before, told apart by when it began: loading the same address again must not
+        // find the old page complete before the new one replaces it.
+        let before = self.evaluate("performance.timeOrigin", CALL_TIMEOUT)?;
         let navigated = self.call("Page.navigate", json!({ "url": url }))?;
         if let Some(why) = navigated["errorText"]
             .as_str()
@@ -603,8 +647,10 @@ impl Browser {
             return Err(format!("could not load {url}: {why}"));
         }
         let loaded = format!(
-            "document.readyState === 'complete' && location.href === {}",
-            Value::from(url)
+            "document.readyState === 'complete' && location.href === {} && \
+             performance.timeOrigin !== {}",
+            Value::from(url),
+            before
         );
         let started = Instant::now();
         while self.evaluate(&loaded, CALL_TIMEOUT)? != Value::Bool(true) {
@@ -645,16 +691,34 @@ impl Browser {
         Ok(())
     }
 
+    /// Fails unless the CPU throttle holds: the benchmark, run again on the blank page, must
+    /// come out at least [`CPU_HELD`] of `slowdown` below the machine's `benchmark`. Nothing else
+    /// would notice a browser that took the slowdown and didn't apply it: no canary's vital
+    /// depends on the CPU's speed.
+    fn cpu_held(&mut self, origin: &str, benchmark: f64, slowdown: f64) -> Result<(), String> {
+        let slowed = self.benchmark(origin)?;
+        let shown = benchmark / slowed.max(f64::MIN_POSITIVE);
+        if shown >= CPU_HELD * slowdown {
+            Ok(())
+        } else {
+            Err(format!(
+                "the CPU throttle didn't hold: the benchmark ran {shown:.1} times slower, not \
+                 {slowdown:.1} (BenchmarkIndex {benchmark:.0}, {slowed:.0} throttled)"
+            ))
+        }
+    }
+
     /// The vitals of `url`, and how many loads they are the median of: one, or [`RUNS`] for a
-    /// page of the site over a bound (`retry`).
-    fn vitals(&mut self, origin: &str, url: &str, retry: bool) -> Measured {
-        let once = self.measure_held(origin, url)?;
-        if !retry || once.over().is_empty() {
+    /// page of the site over a bound. A page of the site (`page`) with a menu button must have it
+    /// on screen to tap; a canary needn't.
+    fn vitals(&mut self, origin: &str, url: &str, page: bool) -> Measured {
+        let once = self.measure_held(origin, url, page)?;
+        if !page || once.over().is_empty() {
             return Ok((once, 1));
         }
         let mut runs = vec![once];
         for _ in 1..RUNS {
-            runs.push(self.measure_held(origin, url)?);
+            runs.push(self.measure_held(origin, url, page)?);
         }
         let worst_of = |vital: Vital| -> (f64, String) {
             let value = median(runs.iter().map(|run| run.get(vital)).collect());
@@ -686,9 +750,9 @@ impl Browser {
     }
 
     /// One measurement of `url`, taken again once if the network throttle didn't hold for it.
-    fn measure_held(&mut self, origin: &str, url: &str) -> Result<Vitals, String> {
-        match self.measure(origin, url) {
-            Err(Unheld(waited)) => match self.measure(origin, url) {
+    fn measure_held(&mut self, origin: &str, url: &str, page: bool) -> Result<Vitals, String> {
+        match self.measure(origin, url, page) {
+            Err(Unheld(waited)) => match self.measure(origin, url, page) {
                 Err(Unheld(again)) => Err(format!(
                     "the network throttle didn't hold: the page arrived {waited:.0} and then \
                      {again:.0} ms after it was asked for, under the {LATENCY_MS} ms every \
@@ -703,13 +767,19 @@ impl Browser {
     }
 
     /// One cold load of `url`, its LCP read before any input, then its inputs, then its shifts
-    /// and their timing.
-    fn measure(&mut self, origin: &str, url: &str) -> Result<Vitals, Miss> {
+    /// and their timing. A page of the site (`page`) fails if its menu button is off screen.
+    fn measure(&mut self, origin: &str, url: &str, page: bool) -> Result<Vitals, Miss> {
         self.load(origin, url)?;
-        self.evaluate(
+        let settled = self.evaluate(
             &format!("window.__hprVitals.settle({QUIET_MS}, {SETTLE_MOST_MS})"),
             Duration::from_millis(SETTLE_MOST_MS) + CALL_TIMEOUT,
         )?;
+        if settled != Value::Bool(true) {
+            return Err(Failed(format!(
+                "the page was still drawing or moving {} s after it was asked for",
+                SETTLE_MOST_MS / 1000
+            )));
+        }
         let before = self.seen()?;
         if !before.visible {
             return Err(Failed(
@@ -744,9 +814,19 @@ impl Browser {
         }
         inputs += 1;
         self.finished(inputs, "Tab")?;
-        for _ in 0..2 {
-            let Some([x, y]) = self.menu_button()? else {
-                break;
+        for tap in 0..2 {
+            let [x, y] = match self.menu_button()? {
+                Menu::At(at) => at,
+                // mdBook's sidebar frame, `toc.html`, has no menu; the frame check requires one on
+                // every other page.
+                Menu::Absent => break,
+                Menu::Hidden if !page => break,
+                Menu::Hidden => {
+                    return Err(Failed(format!(
+                        "its menu button is not on screen at {WIDTH_PX} px to tap{}",
+                        if tap == 0 { "" } else { " a second time" }
+                    )));
+                }
             };
             {
                 for kind in ["mousePressed", "mouseReleased"] {
@@ -792,19 +872,23 @@ impl Browser {
         })
     }
 
-    /// Where to tap the page's menu button, if it has one on screen.
-    fn menu_button(&mut self) -> Result<Option<[f64; 2]>, String> {
+    /// Where to tap the page's menu button: absent, there but not on screen, or at a point.
+    fn menu_button(&mut self) -> Result<Menu, String> {
         let at = self.evaluate(
             "(function () { const b = document.getElementById('mdbook-sidebar-toggle'); \
-             if (!b) return null; const r = b.getBoundingClientRect(); \
+             if (!b) return 'absent'; const r = b.getBoundingClientRect(); \
              if (r.width <= 0 || r.height <= 0 || r.bottom < 0 || r.top > innerHeight || \
              r.right < 0 || r.left > innerWidth) return null; \
              return [r.left + r.width / 2, r.top + r.height / 2]; })()",
             CALL_TIMEOUT,
         )?;
+        if at.as_str() == Some("absent") {
+            return Ok(Menu::Absent);
+        }
         Ok(at
             .as_array()
-            .and_then(|at| Some([at.first()?.as_f64()?, at.get(1)?.as_f64()?])))
+            .and_then(|at| Some([at.first()?.as_f64()?, at.get(1)?.as_f64()?]))
+            .map_or(Menu::Hidden, Menu::At))
     }
 
     /// Waits for the `n`-th input, `what`, to finish and be timed.

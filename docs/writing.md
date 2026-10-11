@@ -354,43 +354,54 @@ SVG images or over a picture, and hover
 
 ### How fast the pages load
 
-Last, the check loads every page as a phone would on a slow mobile network and measures
-Google's three [Core Web Vitals](https://web.dev/articles/vitals), each held to the bound the
-product system sets:
+This part of the check is a lab test of how fast each page loads and answers: a simulated phone
+on a slow network, not measured visits by readers, so it says whether a page is likely to be
+quick, not how quick it is for you. It loads every page of the guide, though not the API
+reference (rustdoc's own pages under `api/`, which the layout check leaves out too), and
+measures Google's three [Core Web Vitals](https://web.dev/articles/vitals), each held to the
+bound the product system sets, Google's "good":
 
 - **Largest Contentful Paint (LCP)**, when the largest text or picture on the first screen is
   drawn: at most 2.5 s;
 - **Cumulative Layout Shift (CLS)**, how far what is drawn moves afterwards, as a share of the
   screen: at most 0.1;
 - **Interaction to Next Paint (INP)**, how long the page takes to answer a key or a tap: at most
-  200 ms.
+  200 ms. The check presses Tab and taps the menu button twice, and takes the slowest of those;
+  search, scrolling and the other buttons aren't tried.
 
-The phone and the network are the ones Google's Lighthouse uses for a phone: a screen 412 pixels
-wide, half a second's wait on every request (562.5 ms) and 1.5 Mbit/s down. A fast computer is
-slowed to the phone's speed: the check first times two short loops as Lighthouse does, and
-slows the processor by the factor that time calls for, 16 times on an Apple M-series laptop and
-about 4 on an older desktop. Every page is loaded cold, nothing cached, then the check presses
-Tab and taps the menu button twice, and takes the slowest of those as INP. A page over a bound
-is loaded three times and judged by the middle result.
+The phone and the network are the ones Google's
+[Lighthouse](https://developer.chrome.com/docs/lighthouse) uses for a phone: a screen 412
+pixels wide, half a second's wait on every request (562.5 ms) and 1.5 Mbit/s down. A fast
+computer is slowed to the phone's speed: the check first times two short loops as Lighthouse
+does, slows the processor by the factor Lighthouse's guide gives for that time, and times the
+loops again to make sure the slowdown took. On the Mac the check was built on the factor is
+about 16; a slower machine gets a smaller one, and the guide puts a high-end desktop at about 4.
+Every page is loaded cold, nothing cached. A page over a bound is loaded three times and judged
+by the middle result.
 
-It errs slow. The check's server speaks HTTP/1.1, where a browser opens at most six connections
-to one server, while GitHub Pages, which serves the site, speaks HTTP/2 with no such limit. Each
-page is a first visit, though a reader's second page finds the stylesheet, scripts and fonts
-already saved. A real phone visit, the bounds' measure, is often quicker. The least certain
-step is the slowdown for a fast machine, whose factor carries Lighthouse's guide past the
-machines it was fitted to.
+Two things make the lab slower than a visit: its server speaks HTTP/1.1, where a browser opens
+at most six connections to one server, while GitHub Pages, which serves the site, speaks HTTP/2
+with no such limit; and each page is a first visit, though a reader's second page finds the
+stylesheet, scripts and fonts already saved. One could err either way: the slowdown for a fast
+machine carries Lighthouse's guide past the machines it was fitted to. The bounds are meant for
+real visits, and the site collects no numbers from them.
 
-On the site as built on 2026-10-10, the slowest LCP was 2.02 s (the print page), the largest
-CLS 0.067 (*How a flight is simulated*) and the slowest INP 88 ms (*Aerodynamics*), with the
-processor slowed 16.1 times. Three pages the check serves itself must each fail their own vital
-and pass the other two, or the check fails: one whose stylesheet arrives late, one that moves its
-text after drawing it and one whose menu button keeps the page busy.
+In one run on 2026-10-10, the slowest LCP was 2.16 s
+([*Frames and sign conventions*](physics/frames.md)), the largest CLS 0.067
+([*How a flight is simulated*](how-a-flight-is-simulated.md)) and the slowest INP 144 ms
+([*Aerodynamics*](physics/aero.md)), with the processor slowed 16.4 times. The slowest INP moved
+between 88 and 152 ms from one run to the next.
+Each run prints its own figures in the line that starts `page vitals:`. Three pages the check
+serves itself must each fail their own vital and pass the other two, or the check fails: one
+whose stylesheet arrives late, one that moves its text after drawing it and one whose menu
+button keeps the page busy.
 
 What it took to pass, recorded in
 [ADR-232](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0232-the-pages-vitals-measured.md):
-one stylesheet instead of ten, asked for first with mdBook's sidebar script, then four fonts
-asked for early so that text doesn't move when they arrive; the theme switch placed before the
-page is first drawn; and the print page's cover.
+one stylesheet instead of ten, asked for first with mdBook's sidebar script; four fonts asked
+for early so that text doesn't move when they arrive, two more than the product system allows
+(with its two, CLS reached 0.17 on two pages); the theme switch placed before
+the page is first drawn; and the print page's cover.
 
 ## Measured, not gated
 

@@ -268,8 +268,9 @@ jobs:
       - run: cargo deny check
 
   # The site's checks run in three parts, one machine each: each builds the site and runs every
-  # check but the layout check, which takes a third of the widths (`--widths K/3`; its canaries
-  # run in every part). The layout check is most of the job's time and splits evenly by width.
+  # check but two, which take a third each: the layout check a third of the widths (`--widths
+  # K/3`), and the vitals check a third of the pages; the canaries of both run in every part. The
+  # layout check is most of the job's time and splits evenly by width.
   site-part:
     name: site (${{ matrix.part }}/3)
     strategy:

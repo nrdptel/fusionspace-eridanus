@@ -158,9 +158,20 @@ fn join(output: &Path) -> Result<String, String> {
         let file = output.join(path);
         let css = fs::read_to_string(&file)
             .map_err(|err| format!("could not read {}: {err}", file.display()))?;
-        if css.to_ascii_lowercase().contains("@import") {
+        let lower = css.to_ascii_lowercase();
+        if lower.contains("@import") {
             return Err(format!(
                 "{path} imports another stylesheet, which the bundle can't follow"
+            ));
+        }
+        // `rebase` reads addresses written `url(` in lower case; another spelling, or an
+        // address given as a string to `image-set()`, would keep a path the bundle breaks.
+        if lower.matches("url(").count() != css.matches("url(").count()
+            || lower.contains("image-set(")
+        {
+            return Err(format!(
+                "{path} gives an address other than as `url(` in lower case, which the bundle \
+                 can't rebase"
             ));
         }
         let folder = path.rsplit_once('/').map_or("", |(dir, _)| dir);
@@ -578,5 +589,12 @@ mod tests {
         assert!(!bundle.contains("/* ayu-highlight.css */ a"));
         fs::write(dir.path().join("css/chrome.css"), "@import url(more.css);").unwrap();
         assert!(join(dir.path()).unwrap_err().contains("imports"));
+        for spelling in ["a { b: URL(x.png) }", "a { b: image-set(\"x.png\" 1x) }"] {
+            fs::write(dir.path().join("css/chrome.css"), spelling).unwrap();
+            assert!(
+                join(dir.path()).unwrap_err().contains("can't rebase"),
+                "{spelling}"
+            );
+        }
     }
 }

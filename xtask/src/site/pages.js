@@ -14,7 +14,7 @@
   const LOAD_TIMEOUT_MS = 60000;
   // How long the readings of one loaded page may take, in milliseconds. A tab's frames share its
   // main thread, so three frames of print.html, which holds every chapter on paper (about
-  // 45,000 elements), share it as they are read there; those readings took more than a minute
+  // 48,000 elements), share it as they are read there; those readings took more than a minute
   // each in CI.
   const MEASURE_TIMEOUT_MS = 240000;
   // Text rectangles closer than this, sideways, don't collide: touching runs of one line.
