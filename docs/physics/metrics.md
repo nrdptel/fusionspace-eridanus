@@ -42,7 +42,11 @@ stability margin and landing point.
     depending on where its body's lift acts ([Stability margins](#stability-margins) says why they
     leave it out).
 
-## Why these rules
+## Purpose and use
+
+Why the metrics are built as they are, and how to ask a flight for them.
+
+### Why these rules
 
 Loft, this project's predecessor, got four things wrong that these metrics are built to avoid:
 
@@ -56,7 +60,7 @@ Loft, this project's predecessor, got four things wrong that these metrics are b
 
 Each is a numbered lesson with a test ([Tests](#tests)).
 
-## Getting the numbers
+### Getting the numbers
 
 Fly a `Simulation` with a
 [`FlightMetrics`](../api/hpr_sim/metrics/struct.FlightMetrics.html) watching it. Then ask the
@@ -118,7 +122,11 @@ The 6 s delay is too short:
 Top speed comes at 3.00 s, before the 3.26 s burnout, because in the thrust curve's last moments
 the motor pushes less than drag and gravity pull back.
 
-## Heights
+## Heights and peaks
+
+Which heights a summary gives, and how each peak is found between the integrator's steps.
+
+### Heights
 
 Every height is of the center of mass: its
 [ellipsoidal height](../glossary.md#ellipsoidal-height) above the launch site's, the same as
@@ -133,7 +141,7 @@ stands on the rail: 0.94 m (3.1 ft) for Valetudo. So the summary gives both:
 A flight ends when its center of mass comes back down to the site's height, so a landing is at
 height 0 by this measure.
 
-## Peaks
+### Peaks
 
 Each peak comes with its time and its height. The watcher looks at every step the integrator takes
 ([Time integration and events](integration.md)), not at a table of recorded rows:
@@ -169,7 +177,12 @@ else: it does not feel gravity.
 Nothing is kept while the rocket sits on the pad. A rocket that never lifts off has no peaks at
 all: `None`, not zero.
 
-## Stability margins
+## Stability
+
+The stability margin over the flight, the largest angle of attack, and the flags for a flight
+unstable under power.
+
+### Stability margins
 
 The margin is how far the [center of pressure](../glossary.md#center-of-pressure-cp) lies behind
 the center of mass, in [calibres](../glossary.md#calibre-caliber) of the reference diameter `d`:
@@ -285,7 +298,7 @@ near a step's end can still hide from the parabola.
 After a powered separation the margins are the sustainer's, in its own diameter. The split has two
 entries in the series: the stack's, then the sustainer's.
 
-### When there is no margin
+#### When there is no margin
 
 As the net slope `Σ C_Nα,i` goes to zero, the air's loads become a pure couple: a turning moment
 with no line of action. The quotient `x_cp` then runs away. That is how Loft came to publish
@@ -344,7 +357,7 @@ A component can be a pure couple on its own. A step down in radius followed by a
 cancels its own slope and still turns the rocket. `C_mα` keeps its moment, which a test also
 checks.
 
-## The largest angle of attack
+### The largest angle of attack
 
 `max_angle_of_attack_rad` is the largest angle between the rocket's axis and the air flowing past
 it, in radians, over the span the envelope's high-angle flag watches
@@ -377,7 +390,7 @@ tests `a_tilted_calm_climb_passes_15_degrees_only_with_too_little_force`,
 `a_wind_layer_met_in_a_fast_coast_raises_the_high_angle_flag` (in the flight engine's `metrics.rs`) fly
 these cases.
 
-## Unstable under power
+### Unstable under power
 
 A flight that is unstable while a motor burns raises one of two flags, and its apogee is not a
 prediction ([#335](https://github.com/nrdptel/fusionspace-eridanus/issues/335)). Unstable means the air turns
@@ -473,7 +486,11 @@ in the coast that follows; with no margin, a `C_mα` of +2⁻³⁰ per radian un
 second flag, −2⁻³⁰ doesn't, nor does +2⁻³⁰ after the burnout. In `hpr-cli`,
 `sim_flags_a_rocket_unstable_where_it_has_no_margin` flies the Valetudo example above.
 
-## Optimum ejection delay
+## Ejection and landing
+
+The delay that fires a charge at apogee, and where each body lands.
+
+### Optimum ejection delay
 
 The optimum delay is the time from a motor's burnout to apogee: the delay that fires its charge at
 the top. [`optimum_delays`](../api/hpr_sim/metrics/fn.optimum_delays.html) flies the rocket again
@@ -491,7 +508,7 @@ even shorter delay. HPR Sim gives the same optimum for delays of 1 s and 20 s.
 - A motor that burns out after the apogee, or never lights, has none either. A flight that never
   reaches an apogee (it never lifts off, or hits its time cap) gives `None`.
 
-## Landing points
+### Landing points
 
 A landing is where the center of mass came back down to the site's height. It is given as a WGS 84
 latitude and longitude, as east and north meters from the site in its local frame, and as the speed
@@ -502,7 +519,11 @@ own landing, with its body number: 0 keeps the nose, and 1 is the stages aft of 
 A flight that did not land has no landing and no ground-hit speed: `None`. A test checks this for a
 flight stopped by its time cap, and the JSON it writes, where the missing values are `null`.
 
-## Tests
+## Tests and references
+
+The tests that pin these metrics, and the sources they follow.
+
+### Tests
 
 In `crates/hpr-sim/src/metrics.rs`, unless named otherwise:
 
@@ -530,7 +551,7 @@ In `crates/hpr-sim/src/metrics.rs`, unless named otherwise:
 | `staging::tests::metrics_follow_a_powered_separation` | Both landings; the sustainer's diameter after the split, with its own entry there; both leasts against a scan of every step at 201 points, to 1e-7 calibres, the flight margin's inside a step; no optimum for the booster's motor |
 | `staging::tests::a_held_flight_holds_a_separation_after_the_last_burnout` | A split after the last burnout is held: the same optimum for delays of 3 s and 30 s |
 
-## References
+### References
 
 - J. Kiefer, "Sequential minimax search for a maximum", *Proceedings of the American Mathematical
   Society* 4(3), 502–506, 1953. The golden-section search.

@@ -25,64 +25,63 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
 The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163): lines
 `N. M<id> title`, ids open in this file (`cargo test -p xtask` checks).
 
-1. M0.9d The site
-2. M2.3c4 One fixture repo
-3. M2.3c5 The corpus rechecked
-4. M0.9e The words
-5. M0.10 The scoreboard
-6. M0.11 Steps to a first answer
-7. M0.7a Rocketry explained: the format and four guides
-8. M0.8a Product guides: the simulator
-9. M9.8 fusionspace.co, rebuilt
-10. M7.1 Flight log importers
-11. M7.2 Readings, reconstruction and ghost data
-12. M7.3 A flight against its simulation
-13. M10.2 Release 0.2: the flight analyzer
-14. M2.3c2 Logged traces
-15. M2.3c3 OpenRocket's newest release
-16. M2.3c6 The gap to OpenRocket, by cause
-17. M2.7 Held-out flights, predictions first
-18. M2.8 Honest uncertainty
-19. M2.6 An open benchmark
-20. M1.14 Accuracy inside the envelope
-21. M7.4 Fault diagnosis
-22. M7.5 The bias every simulator shares
-23. M10.3 Release 0.3: accuracy and diagnosis
-24. M6.3 Challenge specs and presets
-25. M6.4 Airbrakes
-26. M6.2e Robust mode
-27. M6.6 Submission packs
-28. M6.7 Ejection charges
-29. M3.5 RASAero `.CDX1` import/export
-30. M3.6 RocketPy interop
-31. M6.8 Field kit: checklists, the settings check and the ground-test log
-32. M0.7b Rocketry explained: recovery, wind and motors
-33. M10.4 Release 0.4: the competition kit
-34. M4.4 C ABI and WASM
-35. M9.0 UI architecture ADR plus a spike
-36. M9.2 3D flight replay with a ghost
-37. M10.5 Release 0.5: the app preview
-38. M0.7c Rocketry explained: live figures
-39. M5.6a A catalog of hpr's own: format, search and a parts list
-40. M8.2 Edit model for UIs
-41. M9.1 Desktop app shell
-42. M5.6b Parachutes and recovery hardware
-43. M8.1 Design assistant
-44. M5.6c Motor hardware and rail buttons
-45. M5.6d More makers and electronics
-46. M3.4 RockSim `.rkt` import/export
-47. M9.3 Web PWA
-48. M10.6 Release 1.0: the app
-49. M0.7d Rocketry explained: the rest of the hobby
-50. M11.1 A motor of your own
-51. M11.2 Experimental solids
-52. M12.1 Parachute gores
-53. M12.2 Opening loads
-54. M9.4 Mobile
-55. M9.6 The four web tools, rebuilt
-56. M6.5 Roll control: tail-fin tabs and canards
-57. M13.3 Flight computer logic
-58. M13.1 Ground station
+1. M2.3c4 One fixture repo
+2. M2.3c5 The corpus rechecked
+3. M0.9e The words
+4. M0.10 The scoreboard
+5. M0.11 Steps to a first answer
+6. M0.7a Rocketry explained: the format and four guides
+7. M0.8a Product guides: the simulator
+8. M9.8 fusionspace.co, rebuilt
+9. M7.1 Flight log importers
+10. M7.2 Readings, reconstruction and ghost data
+11. M7.3 A flight against its simulation
+12. M10.2 Release 0.2: the flight analyzer
+13. M2.3c2 Logged traces
+14. M2.3c3 OpenRocket's newest release
+15. M2.3c6 The gap to OpenRocket, by cause
+16. M2.7 Held-out flights, predictions first
+17. M2.8 Honest uncertainty
+18. M2.6 An open benchmark
+19. M1.14 Accuracy inside the envelope
+20. M7.4 Fault diagnosis
+21. M7.5 The bias every simulator shares
+22. M10.3 Release 0.3: accuracy and diagnosis
+23. M6.3 Challenge specs and presets
+24. M6.4 Airbrakes
+25. M6.2e Robust mode
+26. M6.6 Submission packs
+27. M6.7 Ejection charges
+28. M3.5 RASAero `.CDX1` import/export
+29. M3.6 RocketPy interop
+30. M6.8 Field kit: checklists, the settings check and the ground-test log
+31. M0.7b Rocketry explained: recovery, wind and motors
+32. M10.4 Release 0.4: the competition kit
+33. M4.4 C ABI and WASM
+34. M9.0 UI architecture ADR plus a spike
+35. M9.2 3D flight replay with a ghost
+36. M10.5 Release 0.5: the app preview
+37. M0.7c Rocketry explained: live figures
+38. M5.6a A catalog of hpr's own: format, search and a parts list
+39. M8.2 Edit model for UIs
+40. M9.1 Desktop app shell
+41. M5.6b Parachutes and recovery hardware
+42. M8.1 Design assistant
+43. M5.6c Motor hardware and rail buttons
+44. M5.6d More makers and electronics
+45. M3.4 RockSim `.rkt` import/export
+46. M9.3 Web PWA
+47. M10.6 Release 1.0: the app
+48. M0.7d Rocketry explained: the rest of the hobby
+49. M11.1 A motor of your own
+50. M11.2 Experimental solids
+51. M12.1 Parachute gores
+52. M12.2 Opening loads
+53. M9.4 Mobile
+54. M9.6 The four web tools, rebuilt
+55. M6.5 Roll control: tail-fin tabs and canards
+56. M13.3 Flight computer logic
+57. M13.1 Ground station
 
 ## Phase 0: Foundations
 
@@ -137,12 +136,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     test and failing when stale (a test each); its *Compared with* section meets ADR-209 §8.
 - [ ] **M0.9 One name, one design** (ADR-205; Neer, 2026-10-08). Every surface says FusionSpace
   HPR as ADR-199 §1 has it, and follows the pinned design system rule by rule, each checked.
-  - [ ] **M0.9d The site to the design** (ADR-208). *Done when:* #383 to #385 are closed: no
-    mdBook default the system doesn't draw (colors, radii, shadows, motion, icons, metas, print),
-    a title block and sheets on every page, notes in the system's shape, and every committed SVG
-    in token colors, each failing `xtask site`, `xtask figures` or a site test when broken.
-    - [ ] **M0.9d13 The pages' sheets and trust** (#384, ADR-234). *Done when:* #384 is closed,
-      each rule it lists held by `xtask site`'s page check or a site test.
   - [ ] **M0.9e The words to the design** (ADR-208). *Done when:* #386 and #387 are closed:
     `xtask spelling` fails on the British forms the audit found, a site check fails on a
     hyphen-minus for minus and on a number column not right-aligned, and the READMEs follow

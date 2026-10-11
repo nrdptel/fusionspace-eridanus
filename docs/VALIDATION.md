@@ -8,6 +8,14 @@ on 2026-09-17 in `validation/refs.lock.toml` (commits and sha256 values; [ADR-00
 source of truth for versions and URLs. Everything downloaded goes to the gitignored `refs/`; only
 small extracted fixtures with a clear license are committed, each with its provenance.
 
+> **How far to trust it.** A plan and an inventory, not results: the rules for how HPR Sim's
+> physics is checked, and the papers, programs, flight logs and data it is checked against. Its 95
+> outside sources are each pinned by a commit or a sha256 hash in
+> [`validation/refs.lock.toml`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/refs.lock.toml),
+> which `cargo xtask refs verify` hashes them against, and a test fails if one has no row in the
+> third-party notices. For how well HPR Sim actually does, rely on [Accuracy](accuracy.md) and the
+> committed report it links, not on this page.
+
 ## Principles
 
 - **Four levels of evidence:**
@@ -452,7 +460,11 @@ outside 5% (NDRT 2020, Prometheus, Cavour and Genesis consistent with HPR Sim's 
 its motor's impulse). Four of the seven altimeters' kinds are assumed barometric; with those four
 read as heights instead, the mean is 6.63%.
 
-## Reference simulators (oracles)
+## Simulators and papers
+
+The simulators HPR Sim is compared with, and the papers its models come from.
+
+### Reference simulators (oracles)
 
 | tool | use | license | where | notes |
 |---|---|---|---|---|
@@ -464,7 +476,7 @@ read as heights instead, the mean is 6.63%.
 | CamPyRoS | dormant; includes Martlet 4 RASAero data | GPL-3.0 | https://github.com/cuspaceflight/CamPyRoS | Run-only if used at all |
 | Missile DATCOM | **do not use** (ITAR) | n/a | n/a | n/a |
 
-## Primary physics sources (download to `refs/papers/`)
+### Primary physics sources (download to `refs/papers/`)
 
 - **Barrowman 1967 thesis** (NTRS 20010047838):
   https://ntrs.nasa.gov/api/citations/20010047838/downloads/20010047838.pdf
@@ -561,7 +573,11 @@ read as heights instead, the mean is 6.63%.
 - **Not available:** there's no legitimate free copy of *Topics in Advanced Model Rocketry*. Don't
   use pirated copies.
 
-## Real flight data
+## Reference data
+
+The flight logs, motor data, recovery tests, design formats and weather sources the checks draw on.
+
+### Real flight data
 
 Most of it lives in the RocketPy repo (MIT; its notebooks record each team's permission), under
 `data/rockets/`.
@@ -624,7 +640,7 @@ excellent offline test fixtures for the weather-file readers.
     `<Location>`, `.ork` `auto` radii are lost on round trip, and stage-boundary auto-radius
     resolution is wrong.
 
-## Motor data
+### Motor data
 
 | source | what | license | notes |
 |---|---|---|---|
@@ -639,7 +655,7 @@ excellent offline test fixtures for the weather-file readers.
 | motor.fusionspace.co API v1 | live US stock and prices (AeroTech, Cesaroni, Loki) | CC BY 4.0, credit "Motor stock data from motor.fusionspace.co" | `https://motor.fusionspace.co/api/v1/{meta,motors,in-stock,vendors}.json`, `/motors/{mfr}/{designation}.json` (`/` becomes `~`), `/openapi.json`. Refreshed hourly, CORS-open, no key. Prices are in integer cents. `schema_version` is 1. Docs: https://github.com/nrdptel/Hobby-Rocket-Motor-Finder/blob/main/docs/api.md |
 | Certification | `certOrg` field in ThrustCurve | n/a | no machine-readable NAR/TRA/CAR lists |
 
-## Recovery
+### Recovery
 
 | source | what | license | notes |
 |---|---|---|---|
@@ -647,7 +663,7 @@ excellent offline test fixtures for the weather-file readers.
 | RocketPy `Flight` from the pad | apogee and time to it, maximum velocity, Mach and acceleration, rail-exit velocity, burnout altitude and velocity, and the trajectory, for the same five example rockets and Bella Lui | MIT | `validation/oracles/rocketpy/flight.py` → `validation/fixtures/flight/rocketpy-whole-flight.json`, the same-drag reference [M2.1b2 milestone](decisions-and-roadmap.md#m2-1b2) scores HPR Sim against. The drag is **declared by the generator** as a constant `C_D0` and handed to RocketPy's `power_off_drag` and `power_on_drag`: RocketPy's own exports carry their own terms and are never committed ([ADR-009 decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0009-subsonic-drag-buildup-surface-finishes-and-drag.md)), and a Mach curve invented here would be an uncited drag model inside the reference ([L18 Loft lesson](decisions-and-roadmap.md#l18)). Same-drag mode scores the equations of motion, not the aerodynamics. Everything but each example's rail comes from the mass fixture by way of `recovery.py`; Bella Lui, added in [M2.1b2 milestone](decisions-and-roadmap.md#m2-1b2) because Prometheus could not be scored until [M1.8a milestone](decisions-and-roadmap.md#m1-8a), declares its site and wind in `flight.py` itself (its example's weather is an ERA5 file). Each case records the parachutes it flew, so the harness reads everything from the reference ([L75 Loft lesson](decisions-and-roadmap.md#l75)). Reproducible byte for byte; the loose run at rtol = atol = 1e-6 (RocketPy's default rtol) moves every metric by at most 3.9e-3. `max_time_step` is bounded at 0.05 s: without it, thrust(0) = 0 and the generator's 6000 s `max_time` let LSODA step over the whole burn and no case leaves the rail (issue #33). Recorded gap until [M1.8a milestone](decisions-and-roadmap.md#m1-8a): Prometheus peaks at Mach 1.013, which HPR Sim refused until its normal force passed Mach 1 ([ADR-027 decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0027-the-normal-force-through-mach-1-supersonic.md)); since then it flies and is scored, its drifts reported as body lift. `max_acceleration` is the whole flight's, which for NDRT and Prometheus is the parachute, so a power-on maximum is recorded beside it. [M2.1b1 milestone](decisions-and-roadmap.md#m2-1b1); scored in [M2.1b2 milestone](decisions-and-roadmap.md#m2-1b2) ([ADR-021 decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0021-whole-flights-against-rocketpy-what-is-compared.md)): five cases pass every scored metric within 3%; Prometheus was a known gap until [M1.8a milestone](decisions-and-roadmap.md#m1-8a). Since [M2.1d3 milestone](decisions-and-roadmap.md#m2-1d3) RocketPy flies with the upstream corrections to its equations (`corrections.py`, [ADR-026 decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0026-the-path-in-wind-rocketpys-corrected-equations.md)): the largest scored whole-flight difference is +1.783% in height, speed and acceleration and, since body lift took Jorgensen's size ([M1.8e6 milestone](decisions-and-roadmap.md#m1-8e6), [ADR-037 decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0037-body-lift-by-jorgensens-crossflow-at-every-speed.md)), −1.811% in a drift (Valetudo's landing), and eight metrics are argued as not scored, five of them drifts in wind that HPR Sim's body lift and rail release account for (`wind_response.py`); [M1.8a milestone](decisions-and-roadmap.md#m1-8a) adds Prometheus's two drifts and its main opening, eleven in all. The trajectory is the `series`, 120 rows of time since ignition, height and speed of the center of dry mass, which [M2.1d1 milestone](decisions-and-roadmap.md#m2-1d1) compares ([ADR-024 decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0024-the-time-series-rms-aligned-at-ignition-held-to.md)): HPR Sim's height and speed at the same times, from the shared ignition clock with no fitted shift, until HPR Sim lands, as a root mean square held to 3% of the reference's apogee and max speed. All eighteen same-drag RMS pass (height 0.09 to 35.4 m (0.30 to 116 ft), speed 0.02 to 1.55 m/s (0.066 to 5.1 ft/s), since [ADR-037 decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0037-body-lift-by-jorgensens-crossflow-at-every-speed.md); the largest are Prometheus's) |
 | Knacke's canopy tables | drag coefficients on the nominal area, canopy fill constants, drag-area growth exponents and opening-force coefficients | no clear terms: cited, never redistributed | transcribed into `hpr_sim::recovery::CanopyType` with the printed page at each accessor, and pinned by `hpr_sim::recovery::tests::default_canopy_cd_carries_its_citation` (which also fixes HPR Sim's default `C_D0` as the middle of each printed range) |
 
-### Streamers and tumble
+#### Streamers and tumble
 
 This section covers the [M1.7b streamer-and-tumble milestone](decisions-and-roadmap.md#m1-7b).
 
@@ -657,7 +673,7 @@ This section covers the [M1.7b streamer-and-tumble milestone](decisions-and-road
 | J. Carruthers and A. Filippone, *J. Aircraft* 42(4), 2005 | wind-tunnel drag of cotton streamers clamped at the luff, `AR` 3.3 to 30, 6 to 18.9 m/s (20 to 62 ft/s) | paywalled; the authors' post-print states no terms: cited, never redistributed | HPR Sim's default streamer model: all three of its fitted curves, eq. 1 (`0.405 AR^−0.494` at 0.075 m²), eq. 2 (`0.561 AR^−0.480` at 0.025 m²) and the trend line printed on Figure 3 (`0.6514 AR^−0.6075` at 0.05 m², which the text does not repeat as an equation), pinned by `streamer_models_reproduce_their_printed_equations`. HPR Sim interpolates between neighbours in `ln S` and holds the end curve outside; blending only the two equations reads 18% low at `AR = 3.3` |
 | OpenRocket technical documentation v13.05 | appendix C's streamer correlation, §3.5's tumbling model with its fin efficiency table, and Table 3.3's five drop-test models | CC BY-SA | all transcribed with their printed pages and pinned by tests. Replaying Table 3.3 through HPR Sim's reading of §3.5 (`the_tumble_model_against_its_own_drop_tests`) gives −5.8%, −5.4%, −7.2%, +19.0% and −10.0%, not the 3 to 14% the documentation claims for its own fit: the finless tube wants a body coefficient near 0.79 where the model prints 0.56, and the text pins neither area convention. The fit covers 6.8 to 160 g at 5 to 6.6 m/s (16 to 22 ft/s), so a high-power body tumbling is an extrapolation (`docs/physics/recovery.md`) |
 
-## Design formats
+### Design formats
 
 | format | spec status | notes |
 |---|---|---|
@@ -668,7 +684,7 @@ This section covers the [M1.7b streamer-and-tumble milestone](decisions-and-road
 | RocketPy `.rpy` | JSON tied to Python class signatures | `rocketpy/utilities.py`, `_encoders.py` (MIT) |
 | Open Rocket Document (`.ord`) | dead since 2016 | GPL; reference the idea only |
 
-## Environment data
+### Environment data
 
 | source | notes |
 |---|---|
@@ -680,7 +696,11 @@ This section covers the [M1.7b streamer-and-tumble milestone](decisions-and-road
 | Copernicus DEM GLO-30/90, NASADEM | free; COG on S3; for terrain and landing elevation |
 | Gravity | Somigliana/WGS84 formula (what RocketPy uses); EGM2008 is optional later |
 
-## Rust crates checked 2026-09-16 (use as a starting point; re-check before adding)
+## Rust crates
+
+The crates surveyed for the workspace: which to use, which to avoid, and where none exists.
+
+### Rust crates checked 2026-09-16 (use as a starting point; re-check before adding)
 
 - **Mature and active:**
   - Math and numerics: glam 0.33, nalgebra 0.35, faer 0.24, rayon 1.12.

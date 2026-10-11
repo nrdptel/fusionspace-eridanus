@@ -54,7 +54,10 @@
 //!   check holds the label, its place, headings and that opener, not the note's three parts,
 //!   which a reviewer reads ([`trust_notes`]).
 //! - **Sheets** (#384). Every page has two to six `##` sections, each a sheet, as `web.md` asks,
-//!   but the pages over six on a list held exact ([`sheets::sheet_counts`]).
+//!   with no exceptions ([`sheets::sheet_counts`]).
+//! - **Openings** (#384). Every page but a model page holds a trust note before its first sheet,
+//!   as `web.md` asks every docs page to start with what works and how far to trust it; a model
+//!   page opens with *In short* ([`trust_opening`]).
 //!
 //! `cargo test` runs these on the real pages. `cargo xtask site` runs them, builds the site into
 //! `target/site` with mdBook, and checks the built HTML as well: every relative `href` and `src`
@@ -191,16 +194,19 @@ pub fn run(args: &[String]) -> Result<(), String> {
         "site pages: {} pages, {} links ({} to the web, not fetched), no problems",
         report.pages, report.links, report.web
     );
-    let sheets = sheets::sheet_counts(&report.sheets, &sheets::OVER_SIX);
+    let sheets = sheets::sheet_counts(&report.sheets);
     if !sheets.is_empty() {
         return Err(failure("the site's sheets", &sheets));
     }
     println!(
-        "site sheets: every page {} to {} sheets, but the {} pages over six that M0.9d13 groups",
+        "site sheets: every page {} to {} sheets",
         sheets::SHEETS.start(),
-        sheets::SHEETS.end(),
-        sheets::OVER_SIX.len()
+        sheets::SHEETS.end()
     );
+    if !report.openings.is_empty() {
+        return Err(failure("the site's openings", &report.openings));
+    }
+    println!("site openings: every page opens with how far to trust it");
     let looks = theme::check_sources(&root, &root.join(SOURCE))?;
     if !looks.problems.is_empty() {
         return Err(failure("the site's theme and title block", &looks.problems));
@@ -609,6 +615,9 @@ struct Report {
     /// Each page of the summary with its number of `##` sections, its sheets, for
     /// [`sheets::sheet_counts`].
     sheets: Vec<(String, usize)>,
+    /// Each page of the summary that doesn't open with how far to trust it, one line each as
+    /// `problems`, from [`trust_opening`].
+    openings: Vec<String>,
 }
 
 /// Checks the pages `docs/SUMMARY.md` lists, and the summary itself. Fails only when the summary
@@ -668,6 +677,13 @@ fn check_sources(root: &Path) -> Result<Report, String> {
                 if name != SUMMARY {
                     let count = headings(&text, Some(HeadingLevel::H2)).len();
                     report.sheets.push((name.clone(), count));
+                    if parent(name) != MODELS
+                        && let Some((line, problem)) = trust_opening(&text)
+                    {
+                        report
+                            .openings
+                            .push(format!("{SOURCE}/{name}:{line}: {problem}"));
+                    }
                 }
                 page.problems.sort_by_key(|(line, _)| *line);
                 pages.insert(name.clone(), page);
@@ -2624,6 +2640,78 @@ fn in_short(text: &str) -> Option<(usize, String)> {
     None
 }
 
+/// How a page other than a model page opens, for the messages of [`trust_opening`].
+const TRUST_OPENING: &str = "every page opens with how far to trust it (`web.md`, *Documentation \
+                             sites*): between its title and its first `##` sheet, a trust note, a \
+                             quote block whose first paragraph opens with `**How far to trust \
+                             it.**`; a model page says it in `## In short` instead";
+
+/// Where a page that isn't a model page fails to open with how far to trust it, as (line,
+/// message): the product system's `web.md` asks every docs page to start "with what works and how
+/// far to trust it". The lead under the title says what the page covers; the page's opening, the
+/// text before its first `##` sheet, must hold a trust note: a quote block standing on the page
+/// itself, inside no other block, whose first paragraph opens with the bold [`TRUST_LABEL`]. One
+/// rule decides what is the page's: a quote block in a list, another quote block or a footnote
+/// isn't, and an alert (`> [!NOTE]`) is another kind of note. Model pages open with *In short*
+/// instead, whose *How well it is validated* item says it ([`in_short`]). The note's three parts
+/// are a reviewer's, as in [`trust_notes`], which holds the label's shape wherever it appears.
+fn trust_opening(text: &str) -> Option<(usize, String)> {
+    let line = line_index(text);
+    // How many blocks are open around the event being read; the page's own blocks are at none.
+    let mut depth = 0usize;
+    // A page-level quote block's first paragraph has just opened, or its bold text is being read.
+    let mut slot = false;
+    let mut label: Option<String> = None;
+    let mut first_sheet = text.len();
+    for (event, range) in Parser::new_ext(text, options()).into_offset_iter() {
+        let opens = std::mem::take(&mut slot);
+        let nesting = match &event {
+            Event::Start(tag) if !inline_tag(&tag.to_end()) => Some(true),
+            Event::End(tag) if !inline_tag(tag) => Some(false),
+            _ => None,
+        };
+        match event {
+            Event::Start(Tag::Heading {
+                level: HeadingLevel::H2,
+                ..
+            }) => {
+                first_sheet = range.start;
+                break;
+            }
+            // The quote block's first event decides; anything but a paragraph isn't a note.
+            Event::Start(Tag::BlockQuote(None)) if depth == 0 => slot = true,
+            Event::Start(Tag::Paragraph) if opens => slot = true,
+            Event::Start(Tag::Strong) if opens => label = Some(String::new()),
+            Event::Text(words) | Event::Code(words) => {
+                if let Some(label) = label.as_mut() {
+                    label.push_str(&words);
+                }
+            }
+            Event::SoftBreak | Event::HardBreak => {
+                if let Some(label) = label.as_mut() {
+                    label.push(' ');
+                }
+            }
+            // The guard takes the bold text read, whether or not it is the label.
+            Event::End(TagEnd::Strong)
+                if label.take().is_some_and(|words| words == TRUST_LABEL) =>
+            {
+                return None;
+            }
+            _ => {}
+        }
+        match nesting {
+            Some(true) => depth += 1,
+            Some(false) => depth = depth.saturating_sub(1),
+            None => {}
+        }
+    }
+    Some((
+        line(first_sheet.min(text.len().saturating_sub(1))),
+        format!("no trust note before the first sheet: {TRUST_OPENING}"),
+    ))
+}
+
 /// The anchors GitHub gives the headings of a Markdown file, which is read for nothing else, and
 /// the `id`s of its `<a id="...">` elements.
 fn anchors_of(text: &str) -> BTreeSet<String> {
@@ -3304,15 +3392,85 @@ mod tests {
 
     #[test]
     fn every_page_has_two_to_six_sheets() {
-        // `web.md`'s two to six sheets a page (#384), on the real pages: the pages over six wait
-        // on a list held exact.
+        // `web.md`'s two to six sheets a page (#384), on every real page.
         let report = check_sources(&crate::designs::root().unwrap()).unwrap();
         assert_eq!(report.sheets.len(), report.pages);
-        let problems = sheets::sheet_counts(&report.sheets, &sheets::OVER_SIX);
+        let problems = sheets::sheet_counts(&report.sheets);
         assert!(
             problems.is_empty(),
             "{}",
             failure("the site's sheets", &problems)
+        );
+    }
+
+    #[test]
+    fn every_page_opens_with_how_far_to_trust_it() {
+        // `web.md`'s "every docs page starts with what works and how far to trust it" (#384), on
+        // the real pages: a trust note before the first sheet, or *In short* on a model page.
+        let report = check_sources(&crate::designs::root().unwrap()).unwrap();
+        assert!(
+            report.openings.is_empty(),
+            "{}",
+            failure("the site's openings", &report.openings)
+        );
+    }
+
+    #[test]
+    fn a_page_without_a_trust_note_in_its_opening_fails() {
+        let note = "> **How far to trust it.** An estimate, checked against 3 flights.\n";
+        let page = |opening: &str| format!("# Title\n\nThe lead.\n\n{opening}\n## One\n\nText.\n");
+        // The note under the lead, after more of the opening, wrapped, or with a list after its
+        // label, passes.
+        for opening in [
+            note.to_owned(),
+            format!("A paragraph.\n\n- an item\n\n{note}"),
+            "> **How far to trust\n> it.** Wrapped.\n".to_owned(),
+            "> **How far to trust it.**\n>\n> - A list.\n".to_owned(),
+        ] {
+            assert_eq!(trust_opening(&page(&opening)), None, "{opening}");
+        }
+        // No note; a note only after the first sheet; a note in a list, another quote block or a
+        // footnote; an alert, even with the label; a label that isn't the note's, or not where the
+        // note's is; no sheet at all.
+        for text in [
+            page(""),
+            format!("{}\n{note}", page("")),
+            page(&format!("- {note}")),
+            page(&format!("> > {}", &note[2..])),
+            page("> [!NOTE]\n> **How far to trust it.** An alert.\n"),
+            page("> [!CAUTION]\n> **How far to trust it.** An alert.\n"),
+            page(&format!("Body[^1].\n\n[^1]: {note}")),
+            page("> **How far to trust the margin.** Text.\n"),
+            page("> First. **How far to trust it.** Text.\n"),
+            page("> Para.\n>\n> **How far to trust it.** Text.\n"),
+            "# Title\n\nThe lead.\n".to_owned(),
+        ] {
+            // Reported at the first sheet's heading, or the page's last line without one.
+            let line = 1 + text[..text.find("## One").unwrap_or(text.len() - 1)]
+                .matches('\n')
+                .count();
+            let found = trust_opening(&text);
+            assert_eq!(found.as_ref().map(|(at, _)| *at), Some(line), "{text}");
+            assert!(
+                found.unwrap().1.contains("**How far to trust it.**"),
+                "{text}"
+            );
+        }
+        // The site's run reports it, on every page but a model page.
+        let report = check_sources(
+            workspace(&[
+                ("docs/SUMMARY.md", SUMMARY_TWO_PAGES),
+                ("docs/start-here.md", "# Start here\n\nA lead.\n\n## One\n"),
+                ("docs/physics/gravity.md", IN_SHORT_OK),
+            ])
+            .path(),
+        )
+        .unwrap();
+        assert_eq!(report.openings.len(), 1, "{:?}", report.openings);
+        assert!(
+            report.openings[0].starts_with("docs/start-here.md:5: no trust note"),
+            "{:?}",
+            report.openings
         );
     }
 

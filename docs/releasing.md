@@ -10,6 +10,15 @@ how each is checked, and how to check one yourself. The building and checking ru
 is started by hand, and on every pull request that changes it or its scripts (`scripts/release/`).
 The publishing steps first ran for 0.1.0, on 2026-10-08.
 
+> **How far to trust it.** This page records how the release workflow builds and checks each file,
+> not a result. Each file is run as you would get it: the archive's example flight must reach
+> 846.1 m (2,776 ft) and the Python page's first example 1118.3 m (3669 ft), each within a meter.
+> Those smoke tests don't check the physics; the test suite and the validation cases do
+> ([Accuracy](accuracy.md)). For what a release does and its known gaps, rely on
+> [the changelog](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CHANGELOG.md), and on
+> [the workflow](https://github.com/nrdptel/fusionspace-eridanus/blob/main/.github/workflows/release.yml)
+> itself where it and this page differ.
+
 ## What a release holds
 
 A release has one version for everything in it, and its title is `FusionSpace HPR <version>`.

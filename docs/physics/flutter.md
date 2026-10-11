@@ -29,14 +29,18 @@ other, to your fins and your rocket's flight.
   and fins that aren't trapezoids. G10/FR-4, the commonest fibreglass fin sheet, has no built-in
   modulus ([Shear moduli](#shear-moduli)).
 
-## What flutter is
+## The model
+
+What flutter is, Martin's criterion for the speed it starts at, and what that speed means against his data.
+
+### What flutter is
 
 Air pushing on a fin twists it a little. The twist changes the fin's angle to the air, so the push
 changes, and the fin bends. Below a certain speed the fin's stiffness damps this out. Above it, each
 cycle feeds the next, and a fin can fail within a second. The speed depends on the fin's shape and
 thickness, how stiff its material is in shear, and the air it flies through.
 
-## The criterion
+### The criterion
 
 Martin starts from Theodorsen and Garrick's flutter speed for a wing that bends and twists (his
 eq. 1, from their NACA Report 685 of 1940). He reduces it to a few numbers from one fin's outline.
@@ -75,7 +79,7 @@ A fin flying at dynamic pressure `q` is below `V_f` by the ratio `V_f / V = √(
 the flight's least ratio the one at its peak dynamic pressure, "max q", which
 [Flight metrics](metrics.md#peaks) already finds between the integrator's steps.
 
-## The line in Martin's data
+### The line in Martin's data
 
 Eq. 18's `V_f` is not the speed at which a fin is known to flutter. Martin plots `D` against `G_E`
 for missiles and wind-tunnel models (his figure 3). Wings that fluttered or failed lie above a
@@ -109,7 +113,11 @@ not shown to be safe.
 psi, half of `39.3 / 14.696 = 2.674`. So its flutter speeds were `√2` too high, about 41%, on the
 unsafe side ([L32](../decisions-and-roadmap.md#l32), a lesson from Loft).
 
-## Martin's worked examples
+## Worked examples
+
+Martin's own two examples, then the criterion on a rocket's fins in a flight.
+
+### Martin's worked examples
 
 Martin gives two examples (pp. 6–7). The first is a wing with `A = 2`, 4% thick, untapered and
 ground-launched. He reads its `X` off his figure 4 as "about 1.25 × 10⁶ psi" and judges the wing by
@@ -138,7 +146,7 @@ axis, each a small box read off the same scan:
 | Steel | 8.92 to 11.3 | 0.11 to 0.14 | "probably safe" | below |
 | Titanium, his second example at 0.8 × 10⁶ psi | 5.78 to 6.34 | 0.13 to 0.14 | his design, with "a reasonable margin of safety" | below |
 
-## A rocket's fins
+### A rocket's fins
 
 The example program `fin_flutter` (in `crates/hpr/examples/`) takes the repository's synthetic
 54 mm (2.1 in) rocket. Its three fins are 3.2 mm (0.13 in) thick, with a 150 mm (5.9 in) root, a 60 mm (2.4 in) tip and a 70 mm (2.8 in) span.
@@ -188,7 +196,11 @@ let margin = panel.margin(g, &summary)?; // V_f/V at max q; `None` if it never f
 and `t/c` from 1% to 10%; the example's 0.667 is inside, and outside that range the numbers are an
 extrapolation.
 
-## Readings where the source leaves room
+## Readings and materials
+
+Which reading HPR Sim takes where the source allows more than one, and the fins' shear moduli.
+
+### Readings where the source leaves room
 
 Most of these give the lower of the flutter speeds the source allows. Two can go the other way:
 an airfoiled fin's modulus, and a booster's max q.
@@ -212,7 +224,7 @@ an airfoiled fin's modulus, and a booster's max q.
   as long as the booster's own dynamic pressure after the separation stays below the flight's
   peak. The simulator doesn't check that.
 
-## Shear moduli
+### Shear moduli
 
 The criterion needs the fin's shear modulus in its own plane. `hpr_design::materials::SHEAR_MODULI`
 gives it for 14 built-in materials, each with its source, page and the web address it was read
@@ -256,7 +268,11 @@ sheets give flexural moduli only. There is none for PLA, ABS, PETG, polycarbonat
 either. For those, pass your own `G_E` from a measurement or your supplier. A woven glass/epoxy
 laminate is not isotropic, so `E / (2(1 + ν))` doesn't apply to it.
 
-## Tests
+## Tests and references
+
+The tests that pin the criterion, and the sources it comes from.
+
+### Tests
 
 In `crates/hpr-sim/src/flutter.rs`, unless named otherwise:
 
@@ -270,7 +286,7 @@ In `crates/hpr-sim/src/flutter.rs`, unless named otherwise:
 | `a_trapezoidal_fin_set_gives_its_panel`, `out_of_range_inputs_are_refused` | A fin set's `A`, `λ` and `t/c`; elliptical and reverse-tapered fins, a taper outside 0 to 1 and inputs that aren't positive are refused by name, from code and from JSON |
 | `hpr_design::materials::tests::shear_moduli_reproduce_the_sources` | Each built-in modulus against its source's numbers |
 
-## References
+### References
 
 - D. J. Martin, *Summary of Flutter Experiences as a Guide to the Preliminary Design of Lifting
   Surfaces on Missiles*, NACA TN 4197, 1958. Appendix, eqs. 1 to 19, pp. 11–15; examples, pp. 6–7;

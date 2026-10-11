@@ -211,7 +211,7 @@ A value with no unit is in SI, as OpenRocket reads it. Each unit is its exact de
 is 0.0254 m (0.083 ft), the foot 0.3048 m (1.000 ft), the pound 0.45359237 kg and the ounce a sixteenth of that,
 0.028349523125 kg (NIST Handbook 44, Appendix C).
 
-## What a file leaves unsaid
+### What a file leaves unsaid
 
 - **A shape's parameter.** A nose cone's or transition's shape is one of `CONICAL`, `OGIVE`,
   `ELLIPSOID`, `PARABOLIC`, `HAACK` and `POWER` (`OGIVE` is a

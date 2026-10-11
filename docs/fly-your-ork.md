@@ -5,11 +5,16 @@ numbers it prints.
 
 **This guide flies a rocket you designed in [OpenRocket](glossary.md#openrocket) with `hpr sim`,
 from the command line, and says how to read what it prints.** It is for a flier who has a `.ork`
-file and wants a second simulator's view of it. Every flight here is a model's estimate, not a
-measurement: [Accuracy](accuracy.md) says how close HPR Sim comes to OpenRocket and to real flights,
-and its summary sits at the top of the [README](https://github.com/nrdptel/fusionspace-eridanus#accuracy-at-a-glance).
-The outputs on this page are made by running each command, and CI checks that they still match
-what `hpr` prints.
+file and wants a second simulator's view of it.
+
+> **How far to trust it.** Every flight here is a model's estimate, not a measurement. Against 55
+> logged flights of fliers' own designs, HPR Sim's apogee averaged 9.8% above the logged one, was
+> within 10% on 27 and read low on 14, by at most 20%, as `hpr sim` says under each result below.
+> [Accuracy](accuracy.md) says how close HPR Sim comes to OpenRocket and to real flights, and its
+> summary sits at the top of the
+> [README](https://github.com/nrdptel/fusionspace-eridanus#accuracy-at-a-glance). The outputs on
+> this page are made by running each command, and CI checks that they still match what `hpr`
+> prints. Log your altimeter's reading; the RSO decides.
 
 The steps:
 

@@ -10,6 +10,12 @@ every page a change touches. Older pages move to it as they are edited, not all 
 The aim is simple: a hobby rocketeer who knows some physics and some code, but not this project,
 reads a page once and knows what it says and how far to trust it.
 
+> **How far to trust it.** This page is rules, not results. The build holds some of them on every
+> change: `cargo xtask spelling` reads each page's words and names, and counts its exceptions on
+> every run; `cargo xtask site` counts each page's sheets, fails one outside two to six, and fails a
+> trust note or an alert off its shape. Reviews hold the rest. Where this page and a check
+> disagree, the check is what the build enforces, and the gap is a bug to report.
+
 ## The rules
 
 1. **Bottom line first.** The first sentence of a page, a section or a paragraph says what it
@@ -122,7 +128,7 @@ space yet, and `hpr sim --plot`'s SVG figure, which the rule covers, still write
 Many of the product system's rules are not met yet. The
 [design audit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/design-conformance.md)
 checks each of its sections against the site, the command line, the exports and the plot. Of
-the 64 sections that apply to them today, 29 are met and 28 are not. Each gap has an issue, and
+the 64 sections that apply to them today, 33 are met and 24 are not. Each gap has an issue, and
 three milestones close them before the next guides are written: the command line, exports and
 plot first, then the site's look, then the words
 ([ADR-208, the design audit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0208-the-design-audit.md)).
@@ -331,11 +337,16 @@ page check fails, at every width:
   doesn't forget it and press Auto.
 
 A page has two to six sheets (its `##` sections, above), as the product system's page anatomy
-asks. `cargo xtask site` and a site test fail a page outside that range. The pages that still
-have more than six are on a list in `xtask/src/site/sheets.rs`, held exact: a listed page with
-six or fewer sheets fails until it comes off. [M0.9d13, the pages' sheets and
-trust](decisions-and-roadmap.md#m0-9d13) will group those pages' sections and make every page
-open with how far to trust it.
+asks. `cargo xtask site` and a site test fail a page outside that range, with no exceptions. A
+page with more to say groups its sections: a `##` heading names the group, and the sections under
+it move down one level, keeping their words, so every link to them still lands
+([M0.9d13, the pages' sheets and trust](decisions-and-roadmap.md#m0-9d13)).
+
+Every page opens with how far to trust it, as the product system asks of a docs site: between
+the title's lead and the first sheet, a trust note in the shape above. A model page says it in its
+first sheet, *In short*, whose *How well it is validated* item gives the evidence. `cargo xtask
+site` and a site test fail a page that doesn't. A page that states rules or records rather than
+results, such as this one, says so in its note, and names what checks it.
 
 mdBook draws three icons as characters of text: `❱` beside a heading that folds open in the
 table of contents, `✓` beside the chosen theme, and `»` before a heading a link jumped to. The

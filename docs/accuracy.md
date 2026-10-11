@@ -20,6 +20,15 @@ the logs on average and miss by 13.96% (mean absolute), also outside the target;
 +9.00% above** ([private collection](#real-flights-of-the-private-collection),
 [report][fixture-report]).
 
+> **How far to trust it.** Comparisons, most of them with other programs: agreement with RocketPy or
+> OpenRocket shows that HPR Sim computes what they compute, not that any of them matches the world.
+> Only the real flights are measurements. On the seven public ones the apogee misses by 6.04% on
+> average ([report][real-report]); on the 55 flights of the private collection it misses by
+> 13.96% (mean absolute), +9.83% high on average ([report][fixture-report]). Both are outside the
+> 5% target. The [census](#the-census), the table below of where each check stands, adds no
+> evidence of its own: it is exactly as good as the reports it counts. Where a number matters, plan
+> with the whole range a row gives, not one figure, and log the flight with your own altimeter.
+
 What has been checked so far:
 
 - each model on its own, against exact answers, its published source and, in places,
@@ -64,7 +73,10 @@ shows how to follow one back to its source and its test, and
 says what each group was compared with, how, how many flights it holds and how fast they flew. It is
 also a check: CI fails when any of those numbers moves, better or worse, until the change is
 accepted with a written reason.** A code-to-code line measures how closely HPR Sim agrees with
-another simulator, not which of the two is right; only the real flights are measurements.
+another simulator, not which of the two is right; only the real flights are measurements. CI
+flies the harness's RocketPy comparisons again on every change. The OpenRocket and real-flight
+reports need files that CI doesn't have, so CI holds their committed numbers, and a change to the
+code that would move them is caught only when someone runs them again and commits the result.
 
 <!-- census: written by `cargo xtask census --accept` from validation/reports/census.json; do not edit -->
 
@@ -135,13 +147,11 @@ the table above. The reason and the list of what changed go into the census page
 can still merge, but only in writing, in the change that brings it. An improvement has to be
 accepted too; otherwise it could slip back later without anyone seeing.
 
-> **How far to trust it.** The census adds no evidence of its own: it is exactly as good as the
-> reports it counts. CI flies the harness's RocketPy comparisons again on every change. The
-> OpenRocket and real-flight reports need files that CI doesn't have, so CI holds their committed
-> numbers, and a change to the code that would move them is caught only when someone runs them again
-> and commits the result.
+## Reading the evidence
 
-## How to read the numbers
+How the numbers are written, and the four kinds of check they come from.
+
+### How to read the numbers
 
 - **Powers of ten.** Very small and very large numbers are written the way programs print them.
   The number after the `e` says how many places the decimal point moves, to the left when it is
@@ -156,7 +166,7 @@ accepted too; otherwise it could slip back later without anyone seeing.
 - **Signs.** A signed difference is HPR Sim's value less the one it is compared with, over that one.
   A plus means HPR Sim's value is the larger in size, a minus the smaller.
 
-## Four kinds of evidence
+### Four kinds of evidence
 
 A model can be checked in four ways, from the weakest to the strongest evidence that it matches
 reality. They are set out in the project's [validation plan][plan].
@@ -175,7 +185,11 @@ published drop tests ([Recovery](physics/recovery.md)), and the normal force aga
 wind-tunnel tests of the Arcas Robin sounding rocket
 ([Aerodynamics](physics/aero.md#normal-force-through-mach-1)): measurements, but not flights.
 
-## Where each model stands
+## Model by model
+
+Which checks each model has passed, then its headline result.
+
+### Where each model stands
 
 A tick means the model has been checked that way; a "no" means it hasn't yet. *In the descents
 only* means RocketPy's air density and wind were compared with HPR Sim's at just the 23 heights its
@@ -208,7 +222,7 @@ parachute descents sample, as part of that comparison, and nowhere else
 | [Interpolation](physics/interpolation.md) | ✓ | no | no | no |
 | [Quadrature](physics/quadrature.md) | ✓ | no | no | no |
 
-## Results by model
+### Results by model
 
 The headline results, one check to a row. Each model page opens with *In short*, and its
 verification section lists every test and its [tolerance](glossary.md#tolerance), how far a result
@@ -279,7 +293,11 @@ may be from its reference and still pass.
 | [Quadrature](physics/quadrature.md) | polynomials, whose integrals are known exactly | exact up to degree 22 |
 | [Quadrature](physics/quadrature.md) | six test integrals with known answers, one of them infinite at an end | within 1e-11 relative |
 
-## The descent under a parachute, against RocketPy
+## Against RocketPy
+
+The descents and whole flights compared with RocketPy, on the same drag and on each code's own.
+
+### The descent under a parachute, against RocketPy
 
 This is one of the two comparisons the validation harness runs; the other is
 [whole flights](#whole-flights-against-rocketpy). The harness is the program behind
@@ -356,7 +374,7 @@ no test has isolated it yet.
 What this shows: the two codes agree on the physics of a descent. It says nothing about whether
 either matches a real parachute on a real day.
 
-## Whole flights against RocketPy
+### Whole flights against RocketPy
 
 Six of RocketPy's example rockets are flown from the pad to the ground in both codes: Calisto,
 Valetudo, NDRT 2020, Juno III, Bella Lui and Prometheus 2022. They are set up the same way
@@ -573,7 +591,7 @@ real flight. The comparison with OpenRocket is on its own page
 ([HPR Sim's flights against OpenRocket's](format/ork.md#the-simulators-flights-against-openrockets)), and the
 real flights are below.
 
-## Whole flights with each code's own drag
+### Whole flights with each code's own drag
 
 The same six flights again, in [predicted](glossary.md#same-drag-and-predicted-mode) mode: HPR Sim
 flies its own drag, from each design's shape, where same-drag mode gives it the declared one; both

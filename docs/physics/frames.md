@@ -19,20 +19,28 @@ rocket's body, attitude and launch angles.
   which is tiny next to a rocket's pitch rates ([ADR-011][adr-011], the rigid-body flight
   decision).
 
-## Code and sources
+## Sources and units
+
+Where the frames are defined in the code, and the units and rotation rules every frame uses.
+
+### Code and sources
 
 This is the single definition of the frames, and every crate follows it. Code:
 `hpr_core::{geodesy, frames, attitude}`. [ADR-003][adr-003], the frames and gravity decision,
 records why these choices were made.
 
-## Units and angles
+### Units and angles
 
 - SI throughout: meters, seconds, kilograms, radians. Degrees exist only at I/O boundaries
   (`Geodetic::from_degrees`).
 - Every rotation is right-handed. `R_x(θ)`, `R_y(θ)` and `R_z(θ)` turn vectors by `+θ` about the
   named axis (active rotations).
 
-## Earth-centered Earth-fixed (ECEF)
+## The frames
+
+The three frames: one fixed to the Earth, one at the launch site, and one fixed to the rocket.
+
+### Earth-centered Earth-fixed (ECEF)
 
 The WGS 84 conventional terrestrial frame:
 
@@ -48,7 +56,7 @@ undulation `N` (`h = H + N`, with `|N|` up to about 100 m (328 ft)). Inputs quot
 converted before use. HPR Sim has no geoid model, so a flight takes `N` at the launch site as an
 input; [Atmosphere](atmosphere.md#height-datum) shows where it is used.
 
-## Launch frame `L` (East-North-Up)
+### Launch frame `L` (East-North-Up)
 
 - **Origin:** the launch site's geodetic position `(φ₀, λ₀, h₀)`, at the pad on the ground.
 - **Axes:** `x_L` east, `y_L` north, `z_L` up along the ellipsoid normal at the origin.
@@ -70,7 +78,7 @@ input; [Atmosphere](atmosphere.md#height-datum) shows where it is used.
   ground contact with that height, not with `z_L` ([Rigid-body flight](flight.md),
   [Loft lesson L35](../decisions-and-roadmap.md#l35)).
 
-## Body frame `B`
+### Body frame `B`
 
 - **Origin:** the nose tip, on the axis ([ADR-007][adr-007], the design-tree decision).
   Positions in mass properties are measured from it.
@@ -81,7 +89,11 @@ input; [Atmosphere](atmosphere.md#height-datum) shows where it is used.
   `z_B = z_ref − s` with `z_ref = 0`, so `z_B = −s` and the whole rocket lies at `z_B ≤ 0`
   ([Design tree](design.md)).
 
-## Aerodynamic angles
+## Angles and attitude
+
+The rocket's angles to the airflow, its attitude, and the launch angles used for input and output.
+
+### Aerodynamic angles
 
 - **Angle of attack `α`:** the total angle between `+z_B` and the rocket's velocity relative to the
   air, in `[0, π]`.
@@ -99,7 +111,7 @@ input; [Atmosphere](atmosphere.md#height-datum) shows where it is used.
   ahead of the nose, and the roll rate `p = ω_z` settles negative
   ([Roll: forcing and damping](aero.md#roll-forcing-and-damping)).
 
-## Attitude
+### Attitude
 
 The attitude is a unit Hamilton quaternion `q` (glam `DQuat`, stored `x, y, z, w`) that maps
 body components to launch-frame components:
@@ -116,7 +128,7 @@ v_L = q ⊗ v_B ⊗ q*        (glam: q.mul_vec3(v_B))
   7.3e-5 rad/s. The flight engine's rotational equations leave that term out ([ADR-011][adr-011],
   the rigid-body flight decision).
 
-## Launch angles
+### Launch angles
 
 Launch-rail-style angles describe the attitude for input and output (`frames::LaunchAngles`):
 

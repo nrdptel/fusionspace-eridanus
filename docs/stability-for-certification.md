@@ -14,6 +14,14 @@ of HPR Sim's has been checked against a measured rocket. On OpenRocket's two pod
 ([accuracy of the margin](#accuracy-of-the-margin)). The outputs on this page
 are made by running each command, and CI checks that they still match what `hpr` prints.
 
+> **How far to trust it.** A computed margin, compared with OpenRocket's, not with a measured
+> rocket. Both programs start from Barrowman's method, so agreement says HPR Sim computes it as
+> OpenRocket does, not that either is right ([Accuracy](accuracy.md#the-census)). On OpenRocket's
+> examples it is within 0.016 calibres on 41 of 53 flights. It reads up to 0.1108 calibres above
+> OpenRocket's on private designs, and high near the speed of sound: the flattering side, so leave
+> room for it near any limit. On a design with tube fins, pods or freeform fins, check the margin
+> in both programs and treat the smaller as the more cautious figure, not a bound.
+
 The steps:
 
 1. [Know what the rules ask](#what-the-rules-ask).
@@ -201,7 +209,11 @@ the sources' guidance, not the simulator's judgement.**
 **A large margin isn't free.** A very stable rocket turns into a crosswind as it leaves the rail
 ([weathercocking](glossary.md#weathercocking)), and so flies off the vertical.
 
-## Rail exit speed
+## The rail and the build
+
+Two checks beyond the margin: how fast the rocket leaves the rail, and the margin of the rocket as built.
+
+### Rail exit speed
 
 **The rocket must leave the rail fast enough to fly straight, and the codes name no figure.** The
 NAR's code asks for "rigid guidance until the rocket has attained a speed that ensures a stable
@@ -218,7 +230,7 @@ its margins are taken with the air along the axis, at no angle at all. A longer 
 exit speed: `--rail-length` sets it, and `--wind` the wind
 ([Fly your .ork](fly-your-ork.md#choose-the-configuration-and-the-launch)).
 
-## Fly the rocket you built
+### Fly the rocket you built
 
 **A design's center of gravity is a calculation; your built rocket's is a measurement, and the
 codes ask you to demonstrate it.** Weigh the finished rocket, ready to fly but without its motor,
@@ -233,15 +245,7 @@ then rests on your rocket's measured mass, not the drawing's.
 
 ## Accuracy of the margin
 
-> **How far to trust it.** A computed margin, compared with OpenRocket's, not with a measured
-> rocket. Both programs start from Barrowman's method, so agreement says HPR Sim computes it as
-> OpenRocket does, not that either is right ([Accuracy](accuracy.md#the-census)). On OpenRocket's
-> examples it is within 0.016 calibres on 41 of 53 flights. It reads up to 0.1108 calibres above
-> OpenRocket's on private designs, and high near the speed of sound: the flattering side, so leave
-> room for it near any limit. On a design with tube fins, pods or freeform fins, check the margin
-> in both programs and treat the smaller as the more cautious figure, not a bound.
-
-In detail:
+The margin's checks, case by case:
 
 - **OpenRocket's examples:** within 0.016 calibres on 41 of 53 flights, with HPR Sim's margin taken
   with the air along the rocket's axis, as OpenRocket's is. The margin `hpr sim` prints is the

@@ -19,7 +19,11 @@ some Rust, but no knowledge of this project.
 > The drag and the drift in a wind are the least certain numbers it prints
 > ([Accuracy of these numbers](#accuracy-of-these-numbers)).
 
-## Install a release
+## Setting up
+
+Install a release, or gather what you need to build HPR Sim yourself.
+
+### Install a release
 
 **Release 0.1.0 is out.** Each part installs without a copy of the repository; the rest of this
 page builds HPR Sim from the repository instead, which works too:
@@ -57,7 +61,7 @@ Two cautions for the downloaded archives:
   `cargo install fusionspace-hpr-cli --locked` builds the command line ([What you need](#what-you-need)) and
   pip builds the Python package from source.
 
-## What you need
+### What you need
 
 - **Rust**, through [rustup](https://rustup.rs), Rust's installer. The repository pins the version
   it is built with (in `rust-toolchain.toml`), and rustup installs that version the first time you
@@ -75,7 +79,11 @@ Two cautions for the downloaded archives:
 
 Nothing else: no Python, Java or other simulator.
 
-## Build it and fly
+## Your first flight
+
+Build HPR Sim, fly the example rocket, and read what it printed and how accurate those numbers are.
+
+### Build it and fly
 
 ```bash
 git clone https://github.com/nrdptel/fusionspace-eridanus.git
@@ -124,7 +132,7 @@ anything but what is committed in
 [`first_flight.output.txt`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/first_flight.output.txt),
 the file quoted above.
 
-## What it printed
+### What it printed
 
 The rocket is Valetudo, which Projeto Jupiter, a student team at the University of São Paulo, flew
 in 2019. [RocketPy](glossary.md#rocketpy), another open-source simulator, uses it as an example, and
@@ -197,7 +205,7 @@ Below the table:
   climbs, so its apogee is west of the pad. It then drifts east under its parachutes, past the
   pad.
 
-## Accuracy of these numbers
+### Accuracy of these numbers
 
 - **Heights, speeds and times match RocketPy's, given the same drag.** Five of RocketPy's example
   rockets, this airframe among them, flown from the pad to the ground by both codes with one
@@ -281,7 +289,7 @@ Below the table:
   where the apogee is, which on each code's own drag differs from RocketPy's by 10% for this
   rocket.
 
-### Checking it yourself
+#### Checking it yourself
 
 You don't have to take these numbers on trust. Four ways to test them:
 
@@ -312,7 +320,11 @@ The project's own comparison of whole flights against RocketPy, with the drag gi
 is [M2.1b2](decisions-and-roadmap.md#m2-1b2); with each code's own drag it is
 [M2.1c2](decisions-and-roadmap.md#m2-1c2).
 
-## The program, step by step
+## Reading the code
+
+Walk through the program line by line, then change it and fly again.
+
+### The program, step by step
 
 This is the whole program. It is also the file CI runs, line for line.
 
@@ -583,7 +595,7 @@ the International System, and its name ends in its unit:
 
 A number with no unit, such as the Mach number (`mach`), has none in its name.
 
-## Change it
+### Change it
 
 Edit the program and run it again. The edits below are for you to try. Each says which way the
 results move; run it to see by how much. Nothing checks these edits or what they print, so this

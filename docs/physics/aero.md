@@ -151,7 +151,12 @@ and, less certainly, supersonic.
   1.5 reads high, and nothing measured checks roll below it
   ([Roll: forcing and damping](#roll-forcing-and-damping)).
 
-## Code and sources
+## Code and conventions
+
+Where the code and its sources are, the symbols the page uses, and how the parts' forces add up to
+your rocket's center of pressure.
+
+### Code and sources
 
 Code: [`hpr_aero::body`](../api/hpr_aero/body/index.html) (bodies of revolution),
 [`hpr_aero::crossflow`](../api/hpr_aero/crossflow/index.html) (body lift),
@@ -258,7 +263,7 @@ Sources:
   Wing-Body-Tail Combinations at Subsonic, Transonic, and Supersonic Speeds*, NACA Report 1307,
   1957 (`naca-report-1307-pitts-nielsen-kaattari-1957-wing-body-tail-lift`).
 
-## Conventions
+### Conventions
 
 An aerodynamic coefficient is a force divided by the
 [dynamic pressure](../glossary.md#dynamic-pressure) `q` (the pressure of the oncoming air,
@@ -296,7 +301,7 @@ In code, these are the names the page uses:
 
 <a id="your-rockets-centre-of-pressure"></a>
 
-## Your rocket's center of pressure
+### Your rocket's center of pressure
 
 HPR Sim works out the CP from the rocket's shape alone, the way
 [Barrowman's method](../glossary.md#barrowmans-method) does by hand. Each nose, transition and fin
@@ -2395,7 +2400,12 @@ a sixth of a calibre, and the force that holds the rocket into the wind grows by
   there.
 - **Drag is unchanged:** the nose's wave drag already covers blunt shapes
   ([Drag through Mach 1](#drag-through-mach-1)). 
-## Fins
+## Fins, pods and overrides
+
+The normal force of fin sets, pods and tube fins, and how a flight can take RASAero II's normal
+force in place of HPR Sim's own.
+
+### Fins
 
 A fin set is `N` identical fins spaced evenly around a body tube. For one fin of the set:
 
@@ -2490,7 +2500,7 @@ A fin set is `N` identical fins spaced evenly around a body tube. For one fin of
     doesn't know is refused. [Pods](../glossary.md#pod) have their own section ([Pods](#pods)).
   - Launch lugs and rail buttons add drag only.
 
-### Fins through Mach 1
+#### Fins through Mach 1
 
 Faster than sound, air can't flow around a fin's edges ahead of it. The fin's lift comes from the
 pressure behind the shock and expansion waves at its surfaces, and a different theory applies.
@@ -2589,7 +2599,7 @@ gives, per fin:
 - *Tuning the join to the wind tunnel* below would shrink its misses by fitting the model to its
   own check. The join's ends come from the sources' speed regions, set before measuring.
 
-### Roll: forcing and damping
+#### Roll: forcing and damping
 
 Fins set at a small angle to the rocket's axis, [cant](../glossary.md#cant), each push sideways as
 a wing at that angle would. Each push acts off the axis, so together they twist the rocket and spin
@@ -2713,7 +2723,7 @@ What it leaves out:
   (TN D-4014 Fig. 14); HPR Sim's is the same at every angle. A single fin's roll from its normal
   force, the body's own roll, and fins' airfoil sections are not modeled.
 
-## Pods
+### Pods
 
 A [pod](../glossary.md#pod) is a body beside the airframe: a side pod, or an outboard motor pod
 ([the design page's *Pods*](design.md#pods)). HPR Sim gives each pod the forces its parts would have
@@ -2917,7 +2927,7 @@ and neither code's roll is compared.
   modeled. So is a pod's tube of no length with a radius, a flat disc the drag buildup has no
   term for.
 
-## Tube fins
+### Tube fins
 
 A [tube fin](../glossary.md#tube-fin) set is a ring of short open tubes around the airframe, in
 place of flat fins. HPR Sim flies each tube as an **annular wing** (a ring wing): a wing bent round
@@ -3139,7 +3149,7 @@ angle. It sums to zero over three or more tubes evenly spaced, which is why the 
 or more. That is a first-order derivation, not a measurement: it takes the body's flow at each
 tube's center and leaves out the rest of their effect on each other.
 
-## The normal force from RASAero II
+### The normal force from RASAero II
 
 A flight can use another program's normal force and center of pressure in place of HPR Sim's own.
 Today that program is [RASAero II](../glossary.md#rasaero-ii), read from the table it exports.
@@ -3178,7 +3188,7 @@ In code, two calls take a file to a flight:
 The decisions are in the record on normal-force overrides, [ADR-032][adr-032]. The milestone is
 [M1.8d](../decisions-and-roadmap.md#m1-8d).
 
-### What the export holds
+#### What the export holds
 
 RASAero II's Aero Plots screen exports a table to CSV (File, Export, To CSV File; [RAS] p. 76).
 There is one row for each Mach number and [angle of attack](../glossary.md#angle-of-attack)
@@ -3200,7 +3210,7 @@ exactly as `sin² α`: at 4° it is (sin 4°/sin 2°)² = 3.995 times its value 
 more slowly: 3.90 times at Mach 1.5, 3.16 at Mach 2, 1.73 at Mach 3 and 1.05 at Mach 4. The export's `CNalpha (0 to 4 deg)` and `CP (0 to 4 deg)` columns
 repeat its 4° values on every row; HPR Sim doesn't read them.
 
-### How the simulator reads it
+#### How the simulator reads it
 
 HPR Sim builds one column for each angle in the export. Each column holds `C_N/α` (the normal force
 over the angle, per radian) and the center of pressure, both against Mach number.
@@ -3262,7 +3272,7 @@ with the angle, as RASAero II's does. The first draft scaled the whole 0.81813 b
 1.2192 m (4.000 ft) instead: 2.0366, 18% less force, with the center of pressure 5.3 cm (2.1 in) further aft. That
 reads the rocket as more stable than the viscous part makes it.
 
-### In a flight
+#### In a flight
 
 The flight takes the table's normal force at the center of mass's airflow and applies it at the
 table's center of pressure.
@@ -3275,7 +3285,7 @@ rocket isn't turning, the difference is exactly zero.
 The flight still stops at Mach 5, where HPR Sim's own parts, which give the damping, end. The table
 gives no side force: RASAero II's rockets are symmetric.
 
-### How it was checked
+#### How it was checked
 
 | check | result | where the numbers are |
 |---|---|---|
@@ -3922,7 +3932,12 @@ and Cubbage's long, gentle boattails 0 to 0.009 where they measure 0.011 to 0.07
 - Nothing models laminar flow, fin-tip vortices, interference drag, fin tabs, fillets, canted fins
   or the flow a boattail guides into the base ([N09] p. 51).
 
-## Validity and open questions
+## Limits and verification
+
+What the models leave open, and the checks that pin them against worked examples, wind tunnels and
+other programs.
+
+### Validity and open questions
 
 - **A flared body's supersonic normal force rests on one measured flare.** Since
   [M1.8e17](../decisions-and-roadmap.md#m1-8e17) a conical flare flies the shock-expansion method
@@ -4021,7 +4036,7 @@ and Cubbage's long, gentle boattails 0 to 0.009 where they measure 0.011 to 0.07
     aspect ratio 1.6 (a measure of how long the span is against the chord). HPR Sim keeps 0.25 to
     Mach 0.8: the Arcas Robin's measured CP moves forward, not aft, from Mach 0.6 to 0.8.
 
-## Verification
+### Verification
 
 - **Barrowman's worked examples** (`hpr_aero::tests::barrowman_worked_examples`). Inputs and
   printed results, with page numbers, are in the [fixture](../glossary.md#reference-value-and-fixture)
@@ -4081,7 +4096,7 @@ and Cubbage's long, gentle boattails 0 to 0.009 where they measure 0.011 to 0.07
   - Refusals: nine fins, Mach 5 for the normal force and Mach 1 for the drag buildup,
     angles out of range.
 
-### Normal force through Mach 1
+#### Normal force through Mach 1
 
 Two references, in the fixture
 [`validation/fixtures/aero/normal-force-vs-mach.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/normal-force-vs-mach.json),
@@ -4192,7 +4207,7 @@ from [`AeroModel::fin_sets`](../api/hpr_aero/model/struct.AeroModel.html#method.
 swept further back start later: a leading edge swept 48° starts at Mach 1.5, and until then it is in
 the join. Nothing past Mach 4.63 has been checked, though the model runs to 5.
 
-#### The body alone, against the 15% target
+##### The body alone, against the 15% target
 
 What this covers: how far HPR Sim's body alone is from NASA's measurement of the same body, and
 where what is left of the gap sits.
@@ -4269,7 +4284,7 @@ so the gap is left visible here rather than tuned away. The rows are in
 [`validation/fixtures/aero/arcas-robin-body-gap.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/arcas-robin-body-gap.json),
 written by `cargo xtask aero`, and a test pins which rows are outside.
 
-### Checking the shock-expansion method
+#### Checking the shock-expansion method
 
 The second-order shock-expansion method of [Bodies faster than sound](#bodies-faster-than-sound),
 which a flight uses from Mach 1.2 on the bodies it covers, against two references in the fixture
@@ -4494,7 +4509,7 @@ readings' half a calibre: the short model at Mach 1.5 and 1.8, where the slope m
 | long | 3.96 | 6.19 | 6.78 (+0.59) | 5.31 (−0.88) |
 | long | 4.63 | 6.40 | 7.35 (+0.96) | 6.12 (−0.28) |
 
-### Drag verification
+#### Drag verification
 
 - **RocketPy's drag curves at Mach 0.3** (`tests::rocketpy_drag_curves_at_mach_0_3`, fixture
   [`validation/fixtures/aero/rocketpy-drag-curves.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/aero/rocketpy-drag-curves.json),
@@ -4611,7 +4626,7 @@ readings' half a calibre: the short model at Mach 1.5 and 1.8, where the slope m
   mark, quoted fields and trailing commas, RASAero II's header with rows at 2° and 4° skipped, and
   malformed text (a bad first row, repeated or unsorted Mach numbers, `nan`) by line.
 
-### Drag against the Arcas Robin wind tunnel
+#### Drag against the Arcas Robin wind tunnel
 
 NASA measured the axial force on its half-scale Arcas Robin models, the same ones as the normal
 force above, from Mach 0.6 to 4.63 ([D4013], [D4014]), fins at 0° and with the fins off. The
@@ -4717,7 +4732,7 @@ a calculation
 and, behind boattails, with measured bases
 ([Boattails faster than sound](#boattails-faster-than-sound)).
 
-### Drag against RASAero II through Mach 2
+#### Drag against RASAero II through Mach 2
 
 [M1.8](../decisions-and-roadmap.md#m1-8) asks for drag within 10% of the curves labelled
 [RASAero](../glossary.md#rasaero-ii) in [RocketPy](../glossary.md#rocketpy)'s example rockets
@@ -4789,7 +4804,7 @@ wave drag no combination had rows within 10% both below Mach 0.8 and from Mach 1
 what is left is within what the unrecorded inputs span; HPR Sim keeps the stated rule rather than
 picking the inputs that fit.
 
-### Drag against MIL-HDBK-762's sample calculation
+#### Drag against MIL-HDBK-762's sample calculation
 
 RASAero II's curves can't show which way HPR Sim leans, because their inputs are guessed. A
 reference with every input known can. MIL-HDBK-762, the U.S. Army's handbook for designing unguided
@@ -4851,7 +4866,7 @@ So HPR Sim's body reads high through Mach 1, from the nose and the base, and 6% 
 than sound, from friction and the base. That is the same sign as Calisto's gap to RASAero II, a
 third of its size. This rocket has no boattail, so it says nothing about a boattail's own drag.
 
-### Roll against the Arcas Robin and the Basic Finner
+#### Roll against the Arcas Robin and the Basic Finner
 
 What is checked: HPR Sim's roll forcing against NASA's measured roll effectiveness of the two Arcas
 Robin models from Mach 1.5 to 4.63 (TN D-4014 Fig. 14, [D4014]), and its roll damping against the

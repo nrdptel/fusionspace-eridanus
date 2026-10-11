@@ -2782,7 +2782,7 @@ mod tests {
         // The design page's JSON is that stage, empty but for each copy's tube.
         let page = include_str!("../../../docs/physics/design.md");
         let block = page
-            .split("\n## Parallel stages\n")
+            .split("\n### Parallel stages\n")
             .nth(1)
             .and_then(|stages| stages.split("```json\n").nth(1))
             .and_then(|json| json.split("```").next())
@@ -3092,7 +3092,7 @@ mod tests {
         // The design page's JSON is the tests' pod set, empty but for its tube.
         let page = include_str!("../../../docs/physics/design.md");
         let block = page
-            .split("\n## Pods\n")
+            .split("\n### Pods\n")
             .nth(1)
             .and_then(|pods| pods.split("```json\n").nth(1))
             .and_then(|json| json.split("```").next())

@@ -25,7 +25,11 @@ Code: `hpr_io::era5` and `hpr_io::netcdf`
 ([M2.3a](../decisions-and-roadmap.md#m2-3a)). The choices are in
 [ADR-081: ERA5 weather read from netCDF classic](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0081-era5-weather-read-from-netcdf-classic-in-hpr-io.md).
 
-## Getting a file
+## Using a file
+
+Where to get a file, how to convert one from today's Data Store, and how to fly a rocket in it.
+
+### Getting a file
 
 ERA5 comes from the Copernicus Climate Data Store. An account is free. The data's license is
 CC BY 4.0: you may use and share it if you credit it ("Contains modified Copernicus Climate Change
@@ -50,7 +54,7 @@ Service information"), and you accept it once on the dataset's page before the f
 6. Choose the [NetCDF](../glossary.md#netcdf) format, then convert the file as below. The simulator does not
    read GRIB, the other format offered (the weather services' own binary format).
 
-## Converting a current file
+### Converting a current file
 
 Files from today's Data Store are netCDF-4. Inside, that is HDF5, a general container format
 that the simulator doesn't read. Three lines of Python, with the xarray and netCDF4 packages
@@ -74,7 +78,7 @@ level to 0.23 m²/s² of [geopotential](../glossary.md#geopotential-height) (abo
 carries the rounding of ECMWF's own archive, so the gaps are consistent with each file's
 rounding. The test pins these largest gaps.
 
-## Reading it
+### Reading it
 
 The example program
 [`era5_weather`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/era5_weather.rs)
@@ -152,7 +156,7 @@ temperature and the wind's east and north parts (`u` and `v`) at every grid poin
   - The wind's east and north parts are interpolated in height, as RocketPy does. With
     `WindInterpolation::SpeedDirection` HPR Sim interpolates speed and direction instead.
 
-## Against RocketPy
+### Against RocketPy
 
 The tests read RocketPy's two ERA5 files for Bella Lui (47.2° N) and NDRT 2020 (41.8° N), plus
 NDRT's day from today's Data Store. RocketPy 1.13 reads the same files.
@@ -188,7 +192,7 @@ Sim's above that. HPR Sim keeps WMO's formula because it is the one it uses for 
 derivation is in the `hpr_io::era5` module's documentation
 ([API reference](../api/hpr_io/era5/index.html)), and a test pins these numbers.
 
-## The netCDF reader
+### The netCDF reader
 
 netCDF is a file format for gridded data, widely used for weather and climate. The simulator reads
 the two classic kinds from Unidata's published specification: the original format and the 64-bit
@@ -219,7 +223,7 @@ number. None of the files the tests read has such values.
 netCDF-4 files, and the rarer 64-bit data format (files beginning `CDF` and 5), are refused with
 the conversion above.
 
-## What it leaves out
+### What it leaves out
 
 - **Humidity.** The simulator doesn't read the humidity yet, so it flies in dry air. At 20 °C and
   50% relative humidity, dry air is about 0.4% denser than the real air.
@@ -233,7 +237,11 @@ the conversion above.
   them as heights above the WGS 84 ellipsoid unless you give the site's geoid height, the height of
   sea level above the ellipsoid, which is up to about 100 m (328 ft, [Geodesy](../physics/geodesy.md)).
 
-## Sources
+## Sources and tests
+
+The documents the reader follows, and the tests that hold it to them.
+
+### Sources
 
 - **[U]** Unidata, *NetCDF File Format Specifications*, "The Classic Format" and "The 64-bit Offset
   Format", and the netCDF Users Guide's "Attribute Conventions", netCDF-C documentation, captured
@@ -248,7 +256,7 @@ the conversion above.
   12.15–12.16, `wmo-no8-vol1-2023`.
 - **RocketPy** 1.13.0 (MIT): its reading of the same files is the reference in the tests.
 
-## Tests that pin this
+### Tests that pin this
 
 - `hpr_io::netcdf::tests::every_file_reads_as_the_unidata_library_reads_it`: every type, record
   variables, the padding cases and the packing conventions, on 12 files the Unidata library wrote

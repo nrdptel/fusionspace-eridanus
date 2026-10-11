@@ -34,7 +34,11 @@ Sources:
 - **[MB]** G. Marsaglia and T. A. Bray, "A convenient method for generating normal variables",
   *SIAM Review* 6(3) (1964): the polar method.
 
-## Dryden spectra
+## The Dryden model
+
+The Dryden spectra, the parameters that size them, and the generator that turns them into gusts.
+
+### Dryden spectra
 
 Turbulence is a frozen random field that the vehicle moves through, so its spectra are functions
 of spatial frequency `Ω` (rad/m, [8785C] §6.2.7). They are one-sided, with
@@ -55,7 +59,7 @@ checks this numerically.
 one document's lengths with the other's formula puts the transverse scales off by two. This code
 uses [8785C]'s form and lengths throughout.
 
-## Parameters
+### Parameters
 
 - **Low altitude** ([8785C] §3.7.3.4, Figs. 10–11). With `h` the height above terrain in ft and
   `u₂₀` the mean wind at 20 ft:
@@ -88,7 +92,7 @@ uses [8785C]'s form and lengths throughout.
     has twice the transverse power at low frequency and 2/3 of it at high frequency.
   - The axes' signs don't matter.
 
-## Generator
+### Generator
 
 Exact discretization, so step length never changes the statistics.
 

@@ -71,7 +71,11 @@ Sources:
   (2001), a research report for NARAM-43, the National Association of Rocketry's annual meet, as
   the measurement both streamer models are checked against.
 
-## Drag area
+## Drag of each device
+
+How much drag a parachute, a streamer or a tumbling body gives.
+
+### Drag area
 
 A device's drag is set by its [drag area](../glossary.md#drag-area) `C_D S`, in m²: a drag
 coefficient times the area that coefficient is measured on. The simulator takes it in one of two
@@ -106,7 +110,7 @@ RocketPy's default parachute `C_D` of 1.4 is not a `C_D0` in this sense: it is a
 canopy's coefficient on the projected area, which it uses only to turn `cd_s` into a radius for its
 added mass. Knacke's hemispherical range on `S₀` is 0.62 to 0.77.
 
-## Streamers
+### Streamers
 
 A [streamer](../glossary.md#streamer) is a strip of fabric of length `l` and width `w`, so a
 planform (one-side) area `S = l w` and an aspect ratio `AR = l/w`. `StreamerModel` picks the
@@ -144,7 +148,7 @@ correlation, the curve fitted to measurements that gives its drag coefficient:
   stated 12 to 27% error on an independent set. It is the only one of the two that uses the
   material.
 
-### Which model is right?
+#### Which model is right?
 
 The two disagree by a factor that depends on the fabric: at `AR = 10` and `l = 1.016 m` the ratio
 of their drag areas is 5.8 at 10 g/m², 3.5 at 32 and 1.9 at 80.
@@ -177,7 +181,7 @@ What the table shows:
 - **Both are a little outside both fits:** 0.1032 m² of planform against Filippone's largest
   0.075 m², and 0.1016 m (0.333 ft) wide by 1.016 m (3.33 ft) long against appendix C's `w ≤ 0.09`, `l ≤ 1.0`.
 
-### Streamers larger than the fits
+#### Streamers larger than the fits
 
 Above 0.075 m², the simulator's **clamp** holds the largest area's curve. Kidwell's streamers are
 above it, so his drops test the clamp, and the evidence pulls two ways:
@@ -198,7 +202,7 @@ above it, so his drops test the clamp, and the evidence pulls two ways:
 The simulator therefore defaults to `Filippone` and keeps `OpenRocket` for comparing with OpenRocket
 ([ADR-013][adr-013], streamer and tumble drag).
 
-## Tumble
+### Tumble
 
 A body with nothing deployed descends broadside, tumbling. `DeviceDrag::tumbling(&assembly)`
 computes its drag area from the airframe by the OpenRocket technical documentation's §3.5
@@ -272,7 +276,11 @@ A tumbling body is a device like any other: give it a trigger, and it starts at 
 The simulator does not decide by itself when a rocket tumbles: nothing citable says when a stage
 becomes unstable enough (the same documentation declines to model the analogous streamer regime).
 
-## Triggers, lag and release
+## Deployment and descent
+
+When each device fires, how a canopy fills, and how the rocket then comes down.
+
+### Triggers, lag and release
 
 A device's charge fires at its `Trigger`:
 
@@ -329,7 +337,7 @@ Trigger times that are known before the flight (a time, or a motor delay) and ev
 end of filling are [stop times](../glossary.md#stop-time), so no integration step straddles a change
 in the drag area.
 
-## Inflation
+### Inflation
 
 A canopy doesn't reach its full drag area at line stretch: it grows over a filling time. Each
 device that has deployed and is not released contributes
@@ -360,7 +368,7 @@ The exponent sets the shape of the growth:
   this law (`n D₀/v` diverges), so the canopy is taken as open at once and fills as the rocket
   picks up speed.
 
-### The fill constant at hobby speeds
+#### The fill constant at hobby speeds
 
 Knacke states the linear form only "in the medium-velocity range of about 150 to 500 ft/s"
 (45.7 to 152.4 m/s (150 to 500 ft/s); `Inflation::FILL_CONSTANT_RANGE_M_S`). A hobby main is slower:
@@ -373,7 +381,7 @@ Knacke states the linear form only "in the medium-velocity range of about 150 to
   extrapolation. At 25 m/s (82 ft/s) the linear form gives a 2.5 m (8.2 ft) main `t_f = 0.8 s`, from a correlation
   fitted at three to six times that speed.
 
-### The opening load
+#### The opening load
 
 The simulator's drag area rises to the steady value and stays there. Knacke writes the opening force
 as `F = (C_D S) q C_x X1` (printed page 5-50), with `q` the
@@ -408,7 +416,7 @@ So the peak load the simulator reports is **no safe bound** on the real one, in 
 method and the hardware's own ratings. Ludtke's law and Pflanz's `X1` reduction factor are
 candidates for a later [milestone](../glossary.md#milestone).
 
-## The descent
+### The descent
 
 Once a device is open the rocket is a point mass: all of its mass at the center of mass, with no
 rotation. In the [launch frame](../glossary.md#launch-frame-enu), with `m` the mass, `v_cg` and
@@ -464,7 +472,11 @@ computes it:
 v_e = √(2 m g / (ρ C_D S))
 ```
 
-## Separation
+## Parts that come apart
+
+How the stack splits at a stage boundary or lets a piece go at a joint.
+
+### Separation
 
 A `Separation` is a trigger and a stage boundary. At the trigger the stack comes apart into two
 bodies:
@@ -536,7 +548,7 @@ This section describes the unpowered case, and the booster's descent after a pow
   refused too: a line cuts a device on its own body. A forward body with a motor still to burn
   flies on as a sustainer ([Staging](staging.md)).
 
-## Ejected pieces
+### Ejected pieces
 
 An ejection lets a piece of the airframe go at a joint of your choosing, not only at a stage
 boundary: a nose cone pushed off its airframe, a body section, or a payload carried inside. Each
@@ -720,7 +732,11 @@ taken that away.
 The decision records on ejected pieces, [ADR-085][adr-085], and on the push and tumbling pieces,
 [ADR-086][adr-086], have the reasoning.
 
-## From an OpenRocket file
+## OpenRocket files and tests
+
+How a `.ork` file's recovery is read and flown, and the tests and comparisons that check it.
+
+### From an OpenRocket file
 
 **A `.ork` file's parachutes and streamers fly as OpenRocket flies them, and land at OpenRocket's
 speed to within 0.02% on 50 of its 53 example flights, and within 0.12% on all 53.** The function
@@ -837,7 +853,7 @@ Several separations under power fly, one after another
 nothing left to burn flies when its own device opens at the split
 ([M4.5g3](../decisions-and-roadmap.md#m4-5g3), a payload's split).
 
-## Verification
+### Verification
 
 `crates/hpr-sim/src/recovery.rs`'s tests, all analytic (checked against exact answers) unless they
 name the [oracle](../glossary.md#oracle):
@@ -902,7 +918,7 @@ The ejected pieces' tests are in `crates/hpr-sim/src/pieces.rs`, also analytic:
 | The tumbling drag areas of an airframe cut into a nose cone and the rest | add to the whole airframe's to 1e-12; a payload or a piece not made is refused |
 | A push that is negative, NaN or infinite | refused when the ejections are given; one on a payload in the nose's own section when the flight starts |
 
-### Against RocketPy
+#### Against RocketPy
 
 HPR Sim's descent is compared with RocketPy's for five of RocketPy's example rockets, a
 [code-to-code comparison](../glossary.md#code-to-code-comparison). **Every compared number agrees
@@ -1023,7 +1039,7 @@ gaps, in order:
   ([ellipsoidal height](../glossary.md#ellipsoidal-height)); RocketPy's height `z` is measured in a
   flat frame. Over Calisto's 1.4 km (0.87 mi) of drift the curvature is 0.15 m (0.49 ft) of height, 0.03 s of descent.
 
-#### Valetudo's north drift
+##### Valetudo's north drift
 
 This tiny number is worth its own section, because it is the one that found the gravity difference
 above.

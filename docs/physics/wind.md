@@ -26,7 +26,11 @@ read from a forecast's table of levels.
   gusts (no flight uses [Turbulence](turbulence.md)). A flight takes one wind model, so a power or
   log law, which keeps growing with height, can't hand over to winds aloft.
 
-## Code and sources
+## Sources and conventions
+
+Where the code and its sources are, and the conventions every wind model follows.
+
+### Code and sources
 
 Code: [`hpr_atmos::wind`](../api/hpr_atmos/wind/index.html) in the API reference. Random gusts on
 top of the steady wind are in [Turbulence](turbulence.md). The example program under
@@ -42,7 +46,7 @@ how to fetch and check it):
   in Aerospace Vehicle Development* (2008), §2.2.5.2 and Table 2-21, `nasa-tm-2008-215633`.
 - **[WMO]** WMO-No. 8 (2023), Vol. I, chapter 5 and its annex, `wmo-no8-vol1-2023`.
 
-## Conventions
+### Conventions
 
 - **Velocity:** a wind model returns the velocity of the air, in m/s, along the east, north and up
   axes of the [launch frame](../glossary.md#launch-frame-enu). The flight engine's airspeed is the
@@ -70,7 +74,12 @@ how to fetch and check it):
     result says so. Ask the model yourself before flying a table, as
     [the example](#an-example-of-each) does: it marks each flagged answer with a star.
 
-## Models
+## Wind models
+
+The wind laws, which height each input is measured from, and an example program that builds each
+one.
+
+### Models
 
 In the laws below, `V` is the wind speed at height `z` above the ground, and `V_ref` the speed
 measured at a reference height `z_ref` above the ground, such as the 10 m (33 ft) mast of a weather
@@ -144,7 +153,7 @@ station. Each law blows from one direction at every height.
 FusionSpace HPR: design-file runs used one wind vector, and forecast profiles stepped at the lowest
 level instead of blending from the surface.
 
-## Which height?
+### Which height?
 
 A flight asks the wind model for the wind at the rocket's
 [height above mean sea level](../glossary.md#height-above-sea-level-msl). The laws are written in
@@ -211,7 +220,7 @@ Three more things to watch:
   ([issue #45](https://github.com/nrdptel/fusionspace-eridanus/issues/45)), so ask the model yourself before
   flying a table, as the example does.
 
-## An example of each
+### An example of each
 
 The example program
 [`wind_profiles.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/wind_profiles.rs)
@@ -422,7 +431,11 @@ fn speed_and_direction_from(velocity_enu_m_s: DVec3) -> (f64, f64) {
 }
 ```
 
-## In JSON
+## Input and limits
+
+How a wind model is written in JSON, and what is not modeled yet.
+
+### In JSON
 
 `WindModel` reads and writes JSON as one object. Its `model` field names the kind of wind, and the
 other fields are that model's inputs:
@@ -439,7 +452,7 @@ other fields are that model's inputs:
 - Reading a file checks it as the model's constructor does: a negative speed, or a field the model
   doesn't have, is an error.
 
-## Not yet modeled
+### Not yet modeled
 
 - Wind that changes with time, or across the field.
 - Vertical mean wind.

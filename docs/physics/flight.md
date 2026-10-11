@@ -36,7 +36,11 @@ as its motor burns.
   and its path through the air), with no stall. A flight that reaches Mach 5, the top of the
   aerodynamic models, stops with an error.
 
-## What the equations do
+## About the model
+
+What the equations do in plain words, and where the code and its sources are.
+
+### What the equations do
 
 At each instant of a flight, HPR Sim adds up every force on the rocket and every turning effect (a
 moment): the thrust, the weight, the air's forces, and the effects of the propellant burning away.
@@ -49,7 +53,7 @@ away some of the rocket's turning (jet damping). The equations keep all three. T
 RocketPy's, from its technical documentation ([RP-EOM], under *Code and sources*), and are written
 out under *Equations of motion*.
 
-## Code and sources
+### Code and sources
 
 Code: `hpr_sim::{dynamics, flight, rail, recorder, state}`. Decisions: [ADR-011][adr-011]
 (equations of motion, aerodynamic coupling, rail, phases and termination). The integrator and
@@ -64,7 +68,12 @@ Sources:
   Six Degree-of-Freedom Rocket Trajectory Simulator", *J. Aerosp. Eng.* 34(6), 2021,
   doi:10.1061/(ASCE)AS.1943-5525.0001331. Cited, not fetched.
 
-## State
+## The equations
+
+The state the engine carries, its equations of motion, and how it applies the aerodynamic
+coefficients.
+
+### State
 
 - **Components.** The state is the nose tip `O`'s position `r_O` and velocity `v_O` in the
   [launch frame](../glossary.md#launch-frame-enu) `L`, the attitude quaternion `q` (four numbers
@@ -76,7 +85,7 @@ Sources:
 - **The quaternion.** Its norm (its length, 1 for a pure rotation) drifts slightly between steps.
   Every use normalizes it, and it is never reset at an event ([Time integration](integration.md)).
 
-## Equations of motion
+### Equations of motion
 
 [RP-EOM] v0 derives the motion of a variable-mass system (one whose mass changes as it flies)
 about a point fixed in the body. It uses two standard tools:
@@ -179,7 +188,7 @@ q̇   = ½ q ⊗ (0, ω)
   `ω` relative to `L`, which differs from the inertial rate by at most 7.3e-5 rad/s ([Frames](frames.md),
   and the rigid-body flight decision [ADR-011][adr-011]).
 
-## Aerodynamics in flight
+### Aerodynamics in flight
 
 `hpr-aero` gives coefficients at a flow condition ([Aerodynamics](aero.md)). The engine applies them as follows.
 
@@ -255,7 +264,11 @@ q̇   = ½ q ⊗ (0, ω)
     flow, and the flight stops with `SimError::Aero`. A drag override table covers drag at any
     Mach, but the normal force still stops at Mach 5.
 
-## Phases
+## Running a flight
+
+The phases a flight passes through, the events that end them, and the integrator's settings.
+
+### Phases
 
 - **Pad.**
   - The rocket starts with its aft end (its body's aft end or its aft-most nozzle exit) at the
@@ -283,7 +296,7 @@ q̇   = ½ q ⊗ (0, ω)
     speed), the true friction `μ(|N₁| + |N₂|)` is larger. No source gives a default coefficient,
     so the default is zero.
 
-## Events and termination
+### Events and termination
 
 - **Stop times.** Thrust-curve knots, burnouts and the time cap. A burnout that is reached records
   a `Burnout` event.
@@ -316,7 +329,7 @@ q̇   = ½ q ⊗ (0, ω)
   [its own page](recovery.md); so are motors lit at their own times and a powered separation,
   on [Staging](staging.md).
 
-## Integration settings
+### Integration settings
 
 - **Defaults.** `FlightSettings::default()` uses Dormand–Prince 5(4) with `rtol = atol = 1e-8`
   and unit weights, a one-hour cap and 10⁶ steps.

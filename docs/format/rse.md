@@ -19,6 +19,13 @@ the 823 RockSim files ThrustCurve.org held on 2026-09-17, 821 read and write bac
 unchanged; the other two have a time that goes backwards
 ([Checked against real files](#checked-against-real-files)).
 
+> **How far to trust it.** Copied values: the reader takes the curve, the masses, the CG and the
+> delays from the file as written, and estimates nothing. On 2026-09-17, 821 of the 823 RockSim
+> files ThrustCurve.org held read, and write back with every value unchanged; the other two are
+> refused, naming the line where time goes backwards. Real files carry typos (one states a
+> propellant mass ten times its curve's), so when a motor's numbers matter, check them against
+> the maker's published data and the motor's certification.
+
 Code: `hpr_motor::rse` ([API reference](../api/hpr_motor/rse/index.html)), written for the
 solid-motor milestone ([M1.3](../decisions-and-roadmap.md#m1-3)). The rules below are from the spec unless marked
 **Observed** (seen in real files) or **Policy** (the simulator's own choice).
@@ -38,7 +45,11 @@ solid-motor milestone ([M1.3](../decisions-and-roadmap.md#m1-3)). The rules belo
   sets) and 10 single-motor API downloads, fetched 2026-09-17 into a local cache,
   `refs/samples/formats/`, that is never committed.
 
-## Structure
+## What a file holds
+
+The file's structure, its attributes and its thrust curve, as the spec gives them and as real files write them.
+
+### Structure
 
 Spec: the minimal example is a bare `<engine …>` holding `<data>` with `<point t="…" f="…"/>`
 children [P p.2]. Observed in 715 of 715 engines:
@@ -56,7 +67,7 @@ children [P p.2]. Observed in 715 of 715 engines:
 </engine-database>                   no XML declaration, DTD or namespace
 ```
 
-## `<engine>` attributes
+### `<engine>` attributes
 
 "Req" is the spec's Required column [P p.1]. Units are from [P p.1, p.3] unless noted.
 
@@ -89,7 +100,7 @@ table and example use `initWt` and `propWt` [P p.1–2]. Only `initWt`/`propWt` 
 are different data (another diameter or mass). `massFrac` and `Isp` are consistent with grams.
 The smallest `initWt` is a 1.2 g micro motor.
 
-## `<eng-data>` point attributes
+### `<eng-data>` point attributes
 
 | Attr | Req | Unit | Meaning |
 |------|-----|------|---------|
@@ -101,7 +112,7 @@ The smallest `initWt` is a 1.2 g micro motor.
 With every observed file setting both auto-calc flags to `1`, RockSim may ignore `m` and `cg`
 [P p.2]. **Policy:** the simulator preserves them for round trips but derives mass and CG itself.
 
-## Thrust curve
+### Thrust curve
 
 - The spec example lists an explicit `t="0.0" f="0.0"` first point and ends with `f="0.0"` at
   `burn-time` [P p.2]. Unlike `.eng`, the origin is written out. The spec is silent on ordering,
@@ -112,7 +123,11 @@ With every observed file setting both auto-calc flags to `1`, RockSim may ignore
   integral within 0.1% in 712, and `avgThrust` = `Itot`/(last `t`) within 0.1% in 712.
   `peakThrust` ≠ max `f` in 9.
 
-## Observed in real files (other)
+## Reading and writing
+
+What else real files do, and what the reader and writer do with each case.
+
+### Observed in real files (other)
 
 - **Delays:** missing in 5. Always comma integers; never `P`. Descending lists are common
   (`15,12,10,8,6`). Checked against ThrustCurve search metadata, `1000` means plugged in 126 of 128
@@ -129,7 +144,7 @@ With every observed file setting both auto-calc flags to `1`, RockSim may ignore
 - **Bad values:** `propWt` 10× `m₀` (a typo), and `cg` 0.1 × len/2. Five engines (four hybrids)
   have every `m` and `cg` = 0, so m₀ = 0 cannot mean "no propellant".
 
-## Reader policy (lenient, with diagnostics)
+### Reader policy (lenient, with diagnostics)
 
 1. Use a conforming XML parser (`roxmltree`): it handles CDATA (raw-text sections), entities
    (escapes such as `&amp;`) and end-of-line normalization [X §2.11]. Refuse DTDs and external
@@ -163,7 +178,7 @@ With every observed file setting both auto-calc flags to `1`, RockSim may ignore
    negative thrust, and on an `Itot` or `peakThrust` that disagrees with the curve by more than 1%.
    `burn-time` is not checked: files round it from the last time.
 
-## Writer policy (strict, round-trip stable)
+### Writer policy (strict, round-trip stable)
 
 Round-trip stable: a file the simulator writes reads back to exactly the values it was written from.
 

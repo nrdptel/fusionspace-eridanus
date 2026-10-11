@@ -40,7 +40,12 @@ Code: `hpr_core::geodesy` and `hpr_core::geodesic`. Conventions: [Frames](frames
 - **[GeodTest]** C. F. F. Karney, *Test set for geodesics*, doi:10.5281/zenodo.32156, CC0.
   Pinned as `karney-geodtest`.
 
-## WGS 84 ellipsoid
+## Ellipsoid and coordinates
+
+The WGS 84 ellipsoid, conversions between latitude, longitude and height and Earth-centered x, y, z,
+and the local axes.
+
+### WGS 84 ellipsoid
 
 - **Defining parameters ([NGA] Table 3.1):** `a = 6378137.0 m` and `1/f = 298.257223563`.
 - **Derived values:** `b = a(1 − f)`, `e² = f(2 − f)` and `E = a e`.
@@ -53,7 +58,7 @@ Code: `hpr_core::geodesy` and `hpr_core::geodesic`. Conventions: [Frames](frames
   | `e²` | 6.694379990141e-3 |
   | `E` | 5.2185400842339e5 m |
 
-## Geodetic to ECEF ([NGA] eqs. 4-14, 4-15)
+### Geodetic to ECEF ([NGA] eqs. 4-14, 4-15)
 
 ```text
 N = a / √(1 − e² sin²φ)
@@ -62,7 +67,7 @@ X = (N + h) cos φ cos λ,   Y = (N + h) cos φ sin λ,   Z = ((b²/a²) N + h) 
 
 The code writes `b²/a²` as `1 − e²`.
 
-## ECEF to geodetic ([Karney] appendix B)
+### ECEF to geodetic ([Karney] appendix B)
 
 This is Vermeille's closed form, which Karney extended to cover points near the Earth's center.
 
@@ -110,7 +115,7 @@ the paper needs its limiting forms (B6)–(B7); the code returns `CoreError::Dom
   −10 km (−6.2 mi) to +1000 km (621 mi);
 - ECEF → geodetic → ECEF: within 1e-7 m per 6400 km (3,977 mi) of radius, out to 46,000 km (28,583 mi).
 
-## Local ENU axes
+### Local ENU axes
 
 `ecef_from_enu_rotation(φ, λ)` has columns `ê`, `n̂` and `û` ([Frames](frames.md)). A test checks that `û`
 equals the normalized gradient of `x²/a² + y²/a² + z²/b²` at the foot point, i.e. the ellipsoid

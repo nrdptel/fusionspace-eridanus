@@ -6,9 +6,14 @@ roadmap and lessons from earlier work.
 This page is the way into the project's three records: the decision log, the roadmap and the
 lessons from Loft. They are files in the repository, not pages of this site, because they are
 written as the work happens. Every label you meet on the other pages, such as a decision record
-(`ADR-` and a number), a milestone (`M` and a number) or a Loft lesson, links into one of them. For
-how the simulator behaves today, trust the model pages; the records say why it behaves that way and what
-comes next.
+(`ADR-` and a number), a milestone (`M` and a number) or a Loft lesson, links into one of them.
+
+> **How far to trust it.** These are records, written as the work happens: each decision as it was
+> made, the plan as it stands, and the lessons learned. A later record can replace an earlier one.
+> `cargo xtask records` writes the lists below from the files, and the site's build fails this page
+> if it misses a link to any decision record or any phase of the roadmap. For how the simulator
+> behaves today, trust the model pages; the records say why it behaves that way and what comes
+> next.
 
 ## Decision records
 
@@ -258,6 +263,7 @@ until someone rewrites it in plainer words.
 | [ADR-232: The pages' vitals, measured as a phone on slow 4G][adr-232] | `cargo xtask site` now loads every page of the guide (not rustdoc's API reference) cold in headless Chrome as Lighthouse's mobile preset (a 412 px phone, 562.5 ms on every request, 1.5 Mbit/s down) with the CPU slowed to a phone's by Lighthouse's BenchmarkIndex and the slowdown confirmed, measures LCP, CLS and INP, and fails a page over 2.5 s, 0.1 or 200 ms (the median of three loads for a page over), with a canary for each vital. To pass, every page links one stylesheet, asked for first with mdBook's sidebar script, and preloads four fonts, two more than the product system's limit; the theme switch is placed before the first paint; a phone's menu tap no longer slides the page; and the print page shows a cover on screen, its chapters placed in the page only when it prints. The page check now also fails anything fixed to the window on paper, which had covered the top of each printed chapter's tag. |  |
 | [ADR-233: The pages' own words split again: the intro's chip and lead first][adr-233] | [M0.9d11](#m0-9d11) took the rest of #384: the intro's status chip and one-sentence lead, two to six sheets a page, and every page opening with how far to trust it. [M0.9d11](#m0-9d11) now covers the intro: after mdBook builds the site, `cargo xtask site` sets the title block's status (IN PREPARATION or RELEASED, the product system's drawing words) in the system's chip beside the designation tag, and makes the paragraph under every page's title its lead, which a file check holds to one sentence of at most 25 words; the page check fails a chip or a lead drawn off the system's, with canaries. The title block's version and status, which still read "not yet released" after 0.1.0 shipped on 2026-10-08, now say what the site describes. The new [M0.9d12](#m0-9d12) keeps the old done-when whole (#384 closed, every rule held) and takes the sheets and the trust openings. |  |
 | [ADR-234: The pages' sheets and trust split again: the sheet count's check first][adr-234] | [M0.9d12](#m0-9d12) took the rest of #384: two to six sheets a page and every page opening with how far to trust it. [M0.9d12](#m0-9d12) now covers the sheet count's check: `cargo xtask site` and a site test count each page's `##` sections, its sheets, and fail a page with fewer than two or more than six, except the 38 pages over six on a list in `xtask/src/site/sheets.rs`, held exact: a listed page at six or fewer fails until it comes off, and so does a listed page the summary doesn't hold. The glossary, 187 sections, one a term, now groups its terms in six by first letter, each term a `###` heading with the same anchor. The new [M0.9d13](#m0-9d13) keeps the old done-when whole (#384 closed, every rule held) and takes the 38 pages' grouping and the trust openings. |  |
+| [ADR-235: Every page in two to six sheets and opening with how far to trust it][adr-235] | The 38 pages that had more than six `##` sections are grouped into two to six sheets, so the check fails any page outside that range and the list of exceptions is gone. Every page but a model page now holds a trust note, a quote block opening with `**How far to trust it.**`, between its title's lead and its first sheet; a model page opens with *In short* instead. `cargo xtask site` and a site test fail a page that doesn't. |  |
 
 ## The roadmap
 
@@ -379,7 +385,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9c14"></a>[M0.9c14][done-0] | Provenance on the other files | done |
 | <a id="m0-9c15"></a>[M0.9c15][done-0] | Next steps and waits | done |
 | <a id="m0-9c16"></a>[M0.9c16][done-0] | US units on the model pages | done |
-| <a id="m0-9d"></a>[M0.9d][phase-0] | The site to the design | not yet done |
+| <a id="m0-9d"></a>[M0.9d][done-0] | The site to the design | done |
 | <a id="m0-9d1"></a>[M0.9d1][done-0] | The figures in tokens | done |
 | <a id="m0-9d2"></a>[M0.9d2][done-0] | The site's colors, corners and motion | done |
 | <a id="m0-9d3"></a>[M0.9d3][done-0] | The page's frame | done |
@@ -392,7 +398,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9d10"></a>[M0.9d10][done-0] | The pages' vitals | done |
 | <a id="m0-9d11"></a>[M0.9d11][done-0] | The intro's chip and lead | done |
 | <a id="m0-9d12"></a>[M0.9d12][done-0] | Two to six sheets: the check | done |
-| <a id="m0-9d13"></a>[M0.9d13][phase-0] | The pages' sheets and trust | not yet done |
+| <a id="m0-9d13"></a>[M0.9d13][done-0] | The pages' sheets and trust | done |
 | <a id="m0-9e"></a>[M0.9e][phase-0] | The words to the design | not yet done |
 | <a id="m0-10"></a>[M0.10][phase-0] | The scoreboard | not yet done |
 | <a id="m0-11"></a>[M0.11][phase-0] | Steps to a first answer | not yet done |
@@ -1026,6 +1032,7 @@ is the milestone that added or will add that test.
 [adr-232]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0232-the-pages-vitals-measured.md
 [adr-233]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0233-the-intro-chip-and-lead-first.md
 [adr-234]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0234-two-to-six-sheets-the-check-first.md
+[adr-235]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0235-every-page-opens-with-trust.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

@@ -40,7 +40,11 @@ Sources:
 - **[B73]** R. P. Brent, *Algorithms for Minimization without Derivatives*, Prentice-Hall, 1973,
   ch. 4 (the zero finder). Cited, not fetched; implemented from the algorithm's description.
 
-## Methods
+## Stepping and events
+
+The two integration methods, how a step lands on a set time, how events are found, and the defaults.
+
+### Methods
 
 - **Dormand–Prince 5(4)** ([DP80]; [HNW] table 5.2). Seven stages, first-same-as-last, so six new
   evaluations per step. The step advances with the fifth-order solution (local extrapolation), and
@@ -74,7 +78,7 @@ Sources:
   dense output is the cubic Hermite interpolant of `y₀, y₁, f₀, f₁` in the same nested form without
   `r₄` (error `O(h⁴)` inside a step). `f₁` is the next step's `k₁`, so it costs nothing extra.
 
-## Stop times and discontinuities
+### Stop times and discontinuities
 
 - `Integrator::advance(system, t_stop)` never steps past `t_stop`. Like `DOPRI5`, it stretches the
   last step up to 1% to land on it exactly (never past `max_step_s`), and `time_s()` equals
@@ -92,7 +96,7 @@ Sources:
 - Each call evaluates `f(t, y)` afresh, so the system can change between calls. The step-size
   estimate carries over.
 
-## Events
+### Events
 
 - An event is a scalar `g(t, y)` with a direction: rising (`g0 < 0 ≤ g1`), falling (`g0 > 0 ≥ g1`)
   or either. The start value must be strictly on one side.
@@ -118,7 +122,7 @@ Sources:
     little as renormalizing a quaternion. The event then fires again moments later. So normalize
     inside the system's functions rather than resetting at an event.
 
-## Defaults and limits
+### Defaults and limits
 
 - `rtol = atol = 1e-8`, no maximum step, and a limit of 10⁶ attempted steps.
 - The flight keeps these defaults with unit weights. On Valetudo's flight on a K400C motor they

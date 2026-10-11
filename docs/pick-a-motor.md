@@ -5,10 +5,15 @@ with `hpr` on the command line.
 
 **This guide shortlists the motors that fit a rocket, flies the rocket on each, and picks an
 ejection delay, all with `hpr` on the command line.** It is for a flier choosing a motor for a
-design they already have. HPR Sim's figures are estimates from a model:
-[Accuracy](accuracy.md) says how close they come, and the motor's printed data and your range
-safety officer have the last word. The outputs on this page are made by running each command, and
-CI checks that they still match what `hpr` prints.
+design they already have.
+
+> **How far to trust it.** HPR Sim's flights here are estimates from a model, and a motor's data,
+> as `hpr motors show` says, is copied from its curve file, not measured. Against 55 logged flights
+> of fliers' own designs, HPR Sim's apogee averaged 9.8% above the logged one, was within 10% on
+> 27 and read low on 14, by at most 20%, as `hpr sim` says under each flight below;
+> [Accuracy](accuracy.md) says how close it comes elsewhere. The outputs on this page are made by running each command, and CI checks that they
+> still match what `hpr` prints. The motor's printed data and your range safety officer have the
+> last word.
 
 The steps:
 

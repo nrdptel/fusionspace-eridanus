@@ -24,7 +24,11 @@ Code: `hpr_core::gravity` (the normal gravity field) and `hpr_core::earth` (what
 uses). Source: **[NGA]** NGA.STND.0036_1.0.0_WGS84 (2014), chapter 4 and appendix B, pinned as
 `wgs84-nga-stnd-0036`.
 
-## What normal gravity is
+## Normal gravity
+
+What normal gravity is, the WGS 84 parameters that define it, and the formulas that compute it.
+
+### What normal gravity is
 
 Normal gravity `γ` is the gravity of the level ellipsoid: the attraction of the WGS 84 ellipsoid
 plus the centrifugal acceleration of the Earth's rotation. It is what a body at rest on the
@@ -35,7 +39,7 @@ rotating Earth feels.
 - Normal gravity ignores the real Earth's gravity anomalies, typically within ±1e-4 relative
   (±100 mGal). A geopotential model such as EGM2008 is a later option.
 
-## Defining parameters and derived constants
+### Defining parameters and derived constants
 
 The four defining parameters ([NGA] Table 3.1) are:
 
@@ -76,7 +80,7 @@ q′ = Σ_{n≥1} (−1)^(n+1) 6 ε^(2n)    / ((2n+1)(2n+3))
 | `k` | 1.931852652458e-3 | Table 3.6 |
 | `m` | 3.449786506841e-3 | Table 3.6 |
 
-## Formulas
+### Formulas
 
 - **On the ellipsoid (Somigliana, eq. 4-1):** `γ = γ_e (1 + k sin²φ)/√(1 − e² sin²φ)`.
 - **Taylor series in height (eq. 4-3):**
@@ -97,7 +101,11 @@ q′ = Σ_{n≥1} (−1)^(n+1) 6 ε^(2n)    / ((2n+1)(2n+3))
   - That sign is confirmed independently. The reference script differentiates the normal
     potential numerically, and its value on the ellipsoid matches Table 3.6's `U₀`.
 
-## Gravity models for the flight engine (`earth::GravityModel`)
+## In the flight engine
+
+The gravity models a flight can use, and RocketPy's formula for like-for-like comparisons.
+
+### Gravity models for the flight engine (`earth::GravityModel`)
 
 | model | vector in `L` | use |
 |---|---|---|
@@ -115,7 +123,7 @@ test checks both at 20 km (12 mi), to 1e-4 east and 1e-3 north (the curvature ch
 U.S. Standard Atmosphere 1976). It is a unit convention, not a model of local gravity. Loft used it
 as gravity, which put Loft 0.3% off RocketPy at the equator ([Loft lesson L1](../decisions-and-roadmap.md#l1)).
 
-## RocketPy 1.13.0, for like-for-like cases
+### RocketPy 1.13.0, for like-for-like cases
 
 Recorded by `validation/oracles/rocketpy/gravity.py` into
 `validation/fixtures/earth/rocketpy-gravity.json`, for the RocketPy comparison of the validation

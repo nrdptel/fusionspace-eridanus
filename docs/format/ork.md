@@ -152,7 +152,11 @@ Code: `hpr_io::ork` ([API reference](../api/hpr_io/ork/index.html)), written for
 [M3.1a](../decisions-and-roadmap.md#m3-1a). Rules below are from the format documentation unless
 marked **Observed** (seen in real files) or **Policy** (HPR Sim's own choice).
 
-## Sources
+## Reading the file
+
+Where the format is described, how the reader unpacks and parses a file, and how it was checked on real files.
+
+### Sources
 
 - **[F]** OpenRocket file format documentation,
   <https://openrocket.readthedocs.io/en/latest/dev_guide/file_specification.html>, and the
@@ -170,7 +174,7 @@ marked **Observed** (seen in real files) or **Policy** (HPR Sim's own choice).
   Apache-2.0 ([ADR-051][adr-051]): it is built from published documentation and real
   files, never from another program's source, which is what "clean room" means here.
 
-## The three containers
+### The three containers
 
 The first bytes say which one a file is in ([F]; [Loft lesson L56](../decisions-and-roadmap.md#l56): Loft told them apart by their magic
 bytes, and a malformed file had to give an error rather than crash):
@@ -194,7 +198,7 @@ so the 1.11 attachments [M3.1c](../decisions-and-roadmap.md#m3-1c) will read
 Nothing reads them yet; they are kept so that
 [M3.1c](../decisions-and-roadmap.md#m3-1c) can, and so an export can put them back.
 
-## The schema version
+### The schema version
 
 The root element carries it: `<openrocket version="1.10" creator="OpenRocket 24.12">`. Version 1.9
 is OpenRocket 23.09, 1.10 is 24.12, and 1.11 (26.xx, documented but not yet released) adds embedded
@@ -215,7 +219,7 @@ is OpenRocket 23.09, 1.10 is 24.12, and 1.11 (26.xx, documented but not yet rele
 file with tags added, and refusing it outright would help nobody. A version that is not
 `major.minor` is an error.
 
-## The document
+### The document
 
 The design document is read into a tree of elements and text and nothing is interpreted. That is
 deliberate: with no schema to check against, the only way to be sure a later step has not quietly
@@ -251,7 +255,7 @@ over generated trees, by `reading_writing_and_reading_again_gives_the_same_docum
 `awkward_text_and_attributes_survive_being_written` on awkward text, and by `cargo xtask ork` over
 every real file in the corpus.
 
-## The values inside the tags
+### The values inside the tags
 
 A component's numbers sit in leaf elements, and three things about them are not obvious. All three
 are mistakes [Loft][loft] made, and each is settled here by what the corpus shows rather than by a
@@ -336,7 +340,7 @@ flag. Not measured: a value other than `true` or `false`, which is dropped with 
 design is not flown), and a flag tag written twice on one part, which is read at its first copy,
 also with a warning.
 
-## Warnings, not failures
+### Warnings, not failures
 
 A design written by an older OpenRocket, or by another program, should still open. Everything that
 departs from [F] but leaves the file readable is a warning that travels with the result
@@ -364,7 +368,7 @@ Only these stop a read:
 - a document that nests more than 64 elements deep;
 - an archive that unpacks to more than 256 MiB.
 
-### Why there are two limits
+#### Why there are two limits
 
 A deflate stream can expand by about a thousand to one, so a `.ork` of a megabyte can ask for more
 than a gigabyte of memory, and one of forty megabytes can ask for more than a machine has. Running
@@ -396,7 +400,7 @@ OpenRocket's own parallel-booster example, where each nested stage or inner tube
 and a component's appearance three. So 64 leaves about three more levels of nesting than anything
 anyone has written.
 
-## Checked against real files
+### Checked against real files
 
 `cargo xtask ork` reads every `.ork` in the reference library and in the OpenRocket jar's example
 set, writes them back out, reads them again, and reports counts. The private corpus stays private:
@@ -448,7 +452,7 @@ a fresh clone: `cargo xtask ork` needs `cargo xtask refs fetch` first, and stops
 [loft]: https://github.com/nrdptel/fusionspace-loft
 [debrief]: https://github.com/nrdptel/fusionspace-debrief
 
-### Snapshots of public designs
+#### Snapshots of public designs
 
 Seven small designs from [Loft][loft], the project owner's earlier tool, are committed in
 `validation/fixtures/ork/loft-demo/` (MIT). The test
@@ -478,7 +482,7 @@ change you can explain (or rerun with `INSTA_UPDATE=always cargo test -p fusions
 diff in git); the new `.snap` file goes in the same pull request. The private reference
 library is never snapshotted; `cargo xtask ork` reports it only as counts, as above.
 
-### Checked against RocketSerializer
+#### Checked against RocketSerializer
 
 **In short.** [RocketSerializer][rocketserializer] is a second program that reads `.ork` files.
 RocketPy's team wrote it to turn an OpenRocket design into RocketPy's inputs. This check compares
@@ -649,7 +653,11 @@ RocketSerializer and OpenRocket read. Comparing HPR Sim's numbers with them is n
 [rocketserializer]: https://github.com/RocketPy-Team/RocketSerializer
 [adr-059]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0059-the-rocketserializer-cross-check-three-readers.md
 
-## The spine: stages and body components
+## The rocket's parts
+
+How the tree of elements becomes a rocket: the stages and body first, then everything on and inside them.
+
+### The spine: stages and body components
 
 The trunk of a design is its **spine**: the stages, and inside each of them the nose cones, body
 tubes and transitions that stack end to end along the axis. `hpr_io::ork::rocket` turns a document's
@@ -701,7 +709,7 @@ otherwise. One document holds no design at all, and two have radii with nothing 
 All 72 designs lay out now.)*
 
 
-## The parts on and inside the body
+### The parts on and inside the body
 
 Everything that is not the spine hangs off it, and HPR Sim reads it into the same
 [`hpr_design::Rocket`][api]. Four families, with the words this page uses for them:
@@ -720,7 +728,7 @@ Everything that is not the spine hangs off it, and HPR Sim reads it into the sam
 Code: [`hpr_io::ork::attached`](../api/hpr_io/ork/attached/index.html), decided in
 [ADR-053: the parts on and inside a `.ork` body][adr-053].
 
-### Opening a design, in full
+#### Opening a design, in full
 
 `rocket` reads the airframe alone. To get the motors as well, call `hpr_io::ork::design` instead
 ([motors and their configurations](#motors-and-their-configurations)).
@@ -840,7 +848,7 @@ cannot depend on whether the tube inside it was written first:
 [Loft lesson L60](../decisions-and-roadmap.md#l60), where Loft resolved as it walked and a bulkhead
 inside a coupler stayed `NaN` (not a number, meaning no numeric value was available).
 
-### Inside a nose cone or a transition
+#### Inside a nose cone or a transition
 
 A coupler, an engine block or a ring can sit inside a hollow nose cone or transition, with its outer
 radius written `auto`. A nose's bore narrows toward the tip, so "the parent's bore" needs a place
@@ -889,7 +897,7 @@ The test `an_automatic_radius_inside_a_nose_reads_as_openrocket_does` in `hpr-va
 HPR Sim to these answers. Before, HPR Sim had no bore to give such a part, so it left the part out
 with a warning, and a design holding one did not fly.
 
-### Tube fins sized from the body
+#### Tube fins sized from the body
 
 A *tube fin set* is a ring of short open tubes glued along the airframe in place of flat fins. In
 OpenRocket, a tube fin set's radius can be written `auto`. OpenRocket then sizes the tubes from
@@ -992,7 +1000,7 @@ drag's ([ADR-099][adr-099], tube fins flown as ring wings). OpenRocket's tube-fi
 against measured flights, so HPR Sim's probably reads low
 ([#228](https://github.com/nrdptel/fusionspace-eridanus/issues/228)).
 
-### The surface finish
+#### The surface finish
 
 A surface finish is a **roughness height** `R_s`, the size of the bumps a painted or bare surface
 leaves, which is what sets skin friction ([drag](../physics/aero.md)). OpenRocket writes one of
@@ -1043,7 +1051,7 @@ raised HPR Sim's apogee 6.0% to 7.3% above OpenRocket's. OpenRocket writes a fin
 part it saves, so this touches hand-written files and other tools' files. Until it is fixed, set a
 finish on every outside part.
 
-### Clusters
+#### Clusters
 
 An inner tube can be a [cluster](../glossary.md#cluster): several like tubes side by side, each
 holding a motor. The file names a pattern in `clusterconfiguration`, spreads it with
@@ -1104,7 +1112,7 @@ OpenRocket's apogee and largest speed, with the parachute-opening cause removed
 ([HPR Sim's flights against OpenRocket's](#the-simulators-flights-against-openrockets); the
 [M1.9c milestone](../decisions-and-roadmap.md#m1-9c), which set a 5% bar before measuring).
 
-### Pods
+#### Pods
 
 A [pod set](../physics/design.md#pods) hangs pods beside a body tube: each pod is the stack of nose
 cones, body tubes and transitions written inside the `podset`, with everything on and in them, and
@@ -1253,7 +1261,7 @@ weighs nothing of its own.
   cone, is read since [M4.5g4](../decisions-and-roadmap.md#m4-5g4)
   ([Fins on a nose cone or a transition](#fins-on-a-nose-cone-or-a-transition)).
 
-### Parallel stages
+#### Parallel stages
 
 **A `<parallelstage>` inside a body tube, on a rocket of one stage on the axis, is read as a stage
 of its own, laid out as a pod set on that tube.** OpenRocket uses one for boosters strapped beside
@@ -1302,7 +1310,7 @@ the same example and `demo-quirks.ork`'s.
 [adr-171]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0171-a-parallel-stage-is-a-pod-set-that-separates.md
 [adr-172]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0172-a-stage-s-first-burnout.md
 
-### What is left out, and why
+#### What is left out, and why
 
 A part HPR Sim cannot give an honest shape is **left out with a `Skipped` warning** naming the part
 and the reason, rather than guessed at. The design still opens and still lays out; what is missing
@@ -1319,7 +1327,7 @@ Another rule left out the 2 tube fin sets whose radius OpenRocket sizes from the
 [M2.2e8](../decisions-and-roadmap.md#m2-2e8) worked that radius out
 ([Tube fins sized from the body](#tube-fins-sized-from-the-body)).
 
-#### Fins on a nose cone or a transition
+##### Fins on a nose cone or a transition
 
 This covers how HPR Sim reads a fin set that sits on a nose cone or a transition, where the body's
 surface is not level along the fin's root (the edge where the fin meets the body). It is checked
@@ -1420,7 +1428,7 @@ component is written `<thickness>filled</thickness>`. An inner tube, coupler or 
 thickness at all is still read as no wall, with a warning; OpenRocket gives it a wall of its own,
 and no file in the library has one ([Mass properties](../physics/mass.md#what-a-ork-leaves-unsaid-and-overrides)).
 
-### Checked against the answers OpenRocket cached
+#### Checked against the answers OpenRocket cached
 
 `auto 0.0125` is not just a flag: the number is what OpenRocket itself last worked out (in
 OpenRocket 24.12, at least; older releases may differ, as the note below explains). That makes
@@ -1491,7 +1499,7 @@ refuses the 19th, below). **67 of 67
 agree**: body radii this time, a different 67 from the cached numbers above. Unlike the cached
 answers, this reaches every body radius, fixed or automatic, including the Dual parachute tube.
 
-### When an automatic radius has nothing to take
+#### When an automatic radius has nothing to take
 
 Sometimes a chain of automatic radii has no fixed radius anywhere along it, so the
 [neighbour rule](../physics/design.md#automatic-dimensions) has nothing to work from. For
@@ -1590,7 +1598,7 @@ gets: `filled`, or a wall at least as thick as 25 mm (0.98 in), is solid to 25 m
 
 How it was decided, and the sources quoted in full, are in [ADR-054][adr-054].
 
-### Measured on the reference library
+#### Measured on the reference library
 
 `cargo xtask ork`, over the 73 readable files, on 2026-09-23, with the rows for parts left out
 and warnings raised from 2026-09-28:
@@ -1671,7 +1679,11 @@ a radius the file doesn't give are
 [p-position]: https://hpr.fusionspace.co/api/hpr_design/tree/enum.Position.html
 [p-layout]: https://hpr.fusionspace.co/api/hpr_design/tree/struct.Rocket.html#method.layout
 
-## Motors and their configurations
+## Motors and recovery
+
+The motors each configuration flies, and when parachutes open and stages separate.
+
+### Motors and their configurations
 
 **In short.** HPR Sim reads every motor a design names, in every configuration, with when it lights
 and its ejection delay. It finds the thrust curve in the file itself, in curves a caller supplies,
@@ -1695,7 +1707,7 @@ places:
 So HPR Sim collects each mount's motor into its configuration. A mount that names a configuration
 the rocket never declares still gets one, with a warning ([L65](../decisions-and-roadmap.md#l65)).
 
-### Where the thrust curve comes from
+#### Where the thrust curve comes from
 
 A `<motor>` names a motor; it does not describe one. HPR Sim looks for its thrust curve in three
 places, in this order:
@@ -1730,7 +1742,7 @@ To fly a motor none of the three places has, build the configuration yourself: r
 with `hpr_motor` ([Solid motors](../physics/motor.md)) and put it in an
 `hpr_design::Configuration`.
 
-### Delays and ignition
+#### Delays and ignition
 
 | the file says | it means | source |
 |---|---|---|
@@ -1820,7 +1832,7 @@ does both at the B6's 0.86 s. So the stage burns out with its first motor, which
 it, not with the main tube's or the last. The record is
 `validation/fixtures/ork/openrocket-first-burnout.json`.
 
-### Which configurations the rocket flies
+#### Which configurations the rocket flies
 
 HPR Sim reads each motor's ignition ([above](#delays-and-ignition)) and each stage's separation
 ([below](#when-parachutes-open-and-stages-separate)) into the flight, since the
@@ -1901,7 +1913,7 @@ let assembly = design.rocket.assemble("c1")?;
 assert_eq!(assembly.motors[0].mount, "body");
 ```
 
-### How many configurations `hpr sim` flies
+#### How many configurations `hpr sim` flies
 
 **In short.** `hpr sim` flies 136 of the survey's 170 motor configurations as saved, offline
 after one fetch, and 9 more with `--accept-design-errors`; 25 are refused. These are counts, not
@@ -1967,7 +1979,7 @@ cargo xtask ork-cli --check   # fails unless the committed report is still what 
 
 [ork-cli-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/ork-cli-flights.md
 
-### Motors in the reference library
+#### Motors in the reference library
 
 **In short.** Most designs in the reference library don't carry their motors' curves. They name each
 curve by its digest, OpenRocket's fingerprint (a hash) of the curve's data, and OpenRocket finds
@@ -2075,7 +2087,7 @@ curves is in [ADR-055][adr-055].
 [adr-067]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0067-curves-come-from-openrockets-own-database-by.md
 [adr-055]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0055-m3-1c-split-and-the-motors-a-ork-flies-its-own.md
 
-## When parachutes open and stages separate
+### When parachutes open and stages separate
 
 **In short.** HPR Sim reads when each parachute and streamer opens, with the drag coefficient it
 states, and when each stage separates, in every configuration. Since the
@@ -2110,7 +2122,7 @@ A stage's **separation** is written the same way, with `<separationevent>`,
 that states it is the one that drops away: OpenRocket's labels (below) speak of the "current
 stage" and the "upper stage".
 
-### What the words mean
+#### What the words mean
 
 OpenRocket's documentation lists none of these words. The committed probe
 `validation/oracles/openrocket/events.py` runs OpenRocket 24.12, sets every value of each event
@@ -2156,7 +2168,7 @@ The same probe measures three things the words do not say:
   2.5 by 44 in streamer's 0.06 far too small. HPR Sim keeps the `auto` or the stated number as the
   file wrote it.
 
-### Flown as OpenRocket flies them
+#### Flown as OpenRocket flies them
 
 **A configuration's parachutes and streamers fly as OpenRocket flies them, and land at
 OpenRocket's speed to within 0.02% on 50 of its 53 example flights, and within 0.12% on all 53.**
@@ -2197,7 +2209,7 @@ has the model and the full results; the decision record on flying a `.ork`'s rec
 [adr-155]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0155-design-checks-that-match-reality.md
 [adr-159]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0159-a-powered-separation-in-hpr-sim.md
 
-### Recovery in the reference library
+#### Recovery in the reference library
 
 `cargo xtask ork`, over the 72 designs, on 2026-10-05, after
 [M4.5m](../decisions-and-roadmap.md#m4-5m) read parallel stages:
@@ -3258,7 +3270,11 @@ is in [ADR-057][adr-057].
 [adr-062]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0062-fins-and-rail-buttons-against-openrocket-roll.md
 [adr-057]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0057-a-ork-designs-stored-simulations-read-back-as.md
 
-## What the simulator keeps for writing the file back
+## Writing the file back
+
+What the simulator keeps that it doesn't model, how it writes a `.ork` with it, and what it does not read yet.
+
+### What the simulator keeps for writing the file back
 
 **In short.** Some of what a `.ork` holds, HPR Sim's design does not model: a parallel stage it
 can't read, OpenRocket's 3D-view settings, a simulation's plug-ins, a part's color, a material's group. HPR Sim keeps
@@ -3336,7 +3352,7 @@ attributes and anything unread inside it are kept. 13 fin tabs in the library ca
 `<tabposition>` this way. That text, and everything else, is still in the document itself, which
 HPR Sim keeps whole when it opens a file ([ADR-051][adr-051]).
 
-### Kept in the reference library
+#### Kept in the reference library
 
 `cargo xtask ork`, over the 73 readable files, on 2026-10-05, after
 [M4.5m](../decisions-and-roadmap.md#m4-5m) read parallel stages:
@@ -3360,7 +3376,7 @@ How this was decided is in [ADR-058][adr-058].
 [adr-075]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0075-a-cluster-is-one-tube-repeated-and-a-motor-in-it.md
 [adr-076]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0076-a-ork-files-ignitions-and-one-powered-separation.md
 
-## Writing a `.ork` back out
+### Writing a `.ork` back out
 
 **In short.** `hpr_io::ork::export` writes a design as a `.ork` file for OpenRocket 24.12: schema
 1.10 (the file-format version OpenRocket 24.12 writes), zipped with the design as `rocket.ork`,
@@ -3470,7 +3486,7 @@ How this was decided is in [ADR-109][adr-109].
 
 [adr-109]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0109-m3-2-split-and-a-ork-written-from-the-design.md
 
-### Checked in OpenRocket
+#### Checked in OpenRocket
 
 **In short.** OpenRocket 24.12 flew each design twice: as the original file, and as HPR Sim's export
 of it. Every export opened where its original did, and every
@@ -3547,7 +3563,7 @@ different files, when an original has changed since it was flown, or when the tw
 flights used a different OpenRocket or different scripts. With `--check`, it compares its result
 with the committed report instead of writing it.
 
-## What is not read yet
+### What is not read yet
 
 A parallel stage on a rocket of several stages on the axis, or anywhere but inside a body tube,
 is kept, not modeled ([what HPR Sim keeps](#what-the-simulator-keeps-for-writing-the-file-back)).
