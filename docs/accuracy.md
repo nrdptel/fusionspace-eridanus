@@ -164,6 +164,17 @@ for the release the change ships in
 how the scoreboard works). The other tools' numbers are shown, not held. `cargo xtask scoreboard`
 writes it from the committed reports.
 
+Its steps rows count how many steps it takes to open a design's `.ork` file, fly it once and get
+its landing spread: commands, script lines, clicks and typed entries, each kind apart. HPR Sim's
+come from a command-line file and a Python file that a test runs, so every counted step works: 2
+commands, or 9 lines of Python. OpenRocket's and RocketPy's come from their documentation, each
+step citing its page, with the release and the date read. Where a tool can't do a task one way,
+its cell says so: OpenRocket 24.12 opens and flies a design in 7 clicks but has no Monte Carlo to
+spread the landing, and RocketPy 1.13.0 reads no `.ork` file. The page lists every step under
+*Steps, one by one*
+([ADR-241](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0241-steps-to-a-first-answer.md),
+what counts as a step).
+
 ## Reading the evidence
 
 How the numbers are written, and the four kinds of check they come from.

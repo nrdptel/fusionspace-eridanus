@@ -21,21 +21,24 @@
           "value": 6.04,
           "count": 7,
           "source": "validation/reports/real-flights.json /summary/mean_absolute_apogee_error_percent",
-          "milestone": null
+          "milestone": null,
+          "cannot": null
         },
         {
           "tool": "openrocket",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.6"
+          "milestone": "M2.6",
+          "cannot": null
         },
         {
           "tool": "rocketpy",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         }
       ]
     },
@@ -54,21 +57,24 @@
           "value": 12.95,
           "count": 53,
           "source": "validation/reports/fixture-flights.json /sets/0/hpr/mean_absolute_percent",
-          "milestone": null
+          "milestone": null,
+          "cannot": null
         },
         {
           "tool": "openrocket",
           "value": 12.02,
           "count": 53,
           "source": "validation/reports/fixture-flights.json /sets/0/openrocket/mean_absolute_percent",
-          "milestone": null
+          "milestone": null,
+          "cannot": null
         },
         {
           "tool": "rocketpy",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         }
       ]
     },
@@ -87,21 +93,24 @@
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.7"
+          "milestone": "M2.7",
+          "cannot": null
         },
         {
           "tool": "openrocket",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.7"
+          "milestone": "M2.7",
+          "cannot": null
         },
         {
           "tool": "rocketpy",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         }
       ]
     },
@@ -120,21 +129,24 @@
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.3c7"
+          "milestone": "M2.3c7",
+          "cannot": null
         },
         {
           "tool": "openrocket",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         },
         {
           "tool": "rocketpy",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         }
       ]
     },
@@ -153,21 +165,24 @@
           "value": -0.25,
           "count": 7,
           "source": "validation/reports/real-flights.json /summary/mean_apogee_error_percent",
-          "milestone": null
+          "milestone": null,
+          "cannot": null
         },
         {
           "tool": "openrocket",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.6"
+          "milestone": "M2.6",
+          "cannot": null
         },
         {
           "tool": "rocketpy",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         }
       ]
     },
@@ -186,21 +201,24 @@
           "value": 8.73,
           "count": 53,
           "source": "validation/reports/fixture-flights.json /sets/0/hpr/mean_percent",
-          "milestone": null
+          "milestone": null,
+          "cannot": null
         },
         {
           "tool": "openrocket",
           "value": 7.79,
           "count": 53,
           "source": "validation/reports/fixture-flights.json /sets/0/openrocket/mean_percent",
-          "milestone": null
+          "milestone": null,
+          "cannot": null
         },
         {
           "tool": "rocketpy",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         }
       ]
     },
@@ -219,21 +237,24 @@
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.7"
+          "milestone": "M2.7",
+          "cannot": null
         },
         {
           "tool": "openrocket",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.7"
+          "milestone": "M2.7",
+          "cannot": null
         },
         {
           "tool": "rocketpy",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         }
       ]
     },
@@ -256,21 +277,24 @@
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.8"
+          "milestone": "M2.8",
+          "cannot": null
         },
         {
           "tool": "openrocket",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         },
         {
           "tool": "rocketpy",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         }
       ]
     },
@@ -293,21 +317,24 @@
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.8"
+          "milestone": "M2.8",
+          "cannot": null
         },
         {
           "tool": "openrocket",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         },
         {
           "tool": "rocketpy",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         }
       ]
     },
@@ -326,21 +353,24 @@
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         },
         {
           "tool": "openrocket",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         },
         {
           "tool": "rocketpy",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         }
       ]
     },
@@ -359,14 +389,16 @@
           "value": 0.0,
           "count": 151,
           "source": "validation/reports/openrocket-export-flights.json /total: compared − within + unmatched",
-          "milestone": null
+          "milestone": null,
+          "cannot": null
         },
         {
           "tool": "rocketpy",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         }
       ]
     },
@@ -385,14 +417,16 @@
           "value": 2.0,
           "count": 75,
           "source": "validation/reports/openrocket-export-flights.json /total: originals_opened − exports_opened + only_exports_opened + unread + refused_differently",
-          "milestone": null
+          "milestone": null,
+          "cannot": null
         },
         {
           "tool": "rocketpy",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         }
       ]
     },
@@ -411,14 +445,16 @@
           "value": 0.000191,
           "count": 151,
           "source": "validation/reports/openrocket-export-flights.json /total/largest_percent",
-          "milestone": null
+          "milestone": null,
+          "cannot": null
         },
         {
           "tool": "rocketpy",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M2.9"
+          "milestone": "M2.9",
+          "cannot": null
         }
       ]
     },
@@ -437,28 +473,103 @@
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M0.8a"
+          "milestone": "M0.8a",
+          "cannot": null
         },
         {
           "tool": "openrocket",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M0.8a"
+          "milestone": "M0.8a",
+          "cannot": null
         },
         {
           "tool": "rocketpy",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M0.8a"
+          "milestone": "M0.8a",
+          "cannot": null
         }
       ]
     },
     {
-      "id": "steps.first-answer",
+      "id": "steps.command-line",
       "axis": "steps",
-      "label": "Steps to open a design, fly it and get its landing spread",
+      "label": "Commands typed at a command line to open a design, fly it and get its landing spread",
+      "unit": "",
+      "decimals": 0,
+      "count_words": "",
+      "signed": false,
+      "worse": "higher",
+      "cells": [
+        {
+          "tool": "hpr",
+          "value": 2.0,
+          "count": null,
+          "source": "validation/steps/hpr-command-line.txt, run by crates/hpr-py/tests/test_first_answer.py",
+          "milestone": null,
+          "cannot": null
+        },
+        {
+          "tool": "openrocket",
+          "value": null,
+          "count": null,
+          "source": null,
+          "milestone": null,
+          "cannot": "no command flies a design: its command-line arguments set options for the window"
+        },
+        {
+          "tool": "rocketpy",
+          "value": null,
+          "count": null,
+          "source": null,
+          "milestone": null,
+          "cannot": "no command flies a design: RocketPy is a Python library"
+        }
+      ]
+    },
+    {
+      "id": "steps.script",
+      "axis": "steps",
+      "label": "Script lines, one statement each and imports included, to open a design, fly it and get its landing spread",
+      "unit": "",
+      "decimals": 0,
+      "count_words": "",
+      "signed": false,
+      "worse": "higher",
+      "cells": [
+        {
+          "tool": "hpr",
+          "value": 9.0,
+          "count": null,
+          "source": "validation/steps/hpr-python.py, run by crates/hpr-py/tests/test_first_answer.py",
+          "milestone": null,
+          "cannot": null
+        },
+        {
+          "tool": "openrocket",
+          "value": null,
+          "count": null,
+          "source": null,
+          "milestone": null,
+          "cannot": "no documented script flies a design: the guide's example of its Java core stops at a commented-out `simulation.simulate()` and shows no apogee"
+        },
+        {
+          "tool": "rocketpy",
+          "value": null,
+          "count": null,
+          "source": null,
+          "milestone": null,
+          "cannot": "RocketPy reads no `.ork` file, and its documentation names no way to load one; a design is typed in as Python, its drag curves, masses and inertias included"
+        }
+      ]
+    },
+    {
+      "id": "steps.window-clicks",
+      "axis": "steps",
+      "label": "Clicks in the tool's window to open a design, fly it and get its landing spread",
       "unit": "",
       "decimals": 0,
       "count_words": "",
@@ -470,21 +581,367 @@
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M0.11"
+          "milestone": "M9.1",
+          "cannot": "no window"
         },
         {
           "tool": "openrocket",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M0.11"
+          "milestone": null,
+          "cannot": "no Monte Carlo in 24.12, the newest release: the guide lists Monte Carlo dispersion as planned; 7 clicks to fly"
         },
         {
           "tool": "rocketpy",
           "value": null,
           "count": null,
           "source": null,
-          "milestone": "M0.11"
+          "milestone": null,
+          "cannot": "no window: RocketPy is a Python library"
+        }
+      ]
+    },
+    {
+      "id": "steps.window-entries",
+      "axis": "steps",
+      "label": "Entries typed into the tool's window on the way: file names, numbers",
+      "unit": "",
+      "decimals": 0,
+      "count_words": "",
+      "signed": false,
+      "worse": "higher",
+      "cells": [
+        {
+          "tool": "hpr",
+          "value": null,
+          "count": null,
+          "source": null,
+          "milestone": "M9.1",
+          "cannot": "no window"
+        },
+        {
+          "tool": "openrocket",
+          "value": null,
+          "count": null,
+          "source": null,
+          "milestone": null,
+          "cannot": "no Monte Carlo in 24.12, the newest release: the guide lists Monte Carlo dispersion as planned; 0 entries to fly"
+        },
+        {
+          "tool": "rocketpy",
+          "value": null,
+          "count": null,
+          "source": null,
+          "milestone": null,
+          "cannot": "no window: RocketPy is a Python library"
+        }
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "tool": "hpr",
+      "release": null,
+      "released": null,
+      "counted_on": "2026-10-11",
+      "source": [],
+      "way": [
+        {
+          "interface": "command-line",
+          "file": "validation/steps/hpr-command-line.txt",
+          "cannot": null,
+          "source": null,
+          "milestone": null,
+          "section": [
+            {
+              "tasks": [
+                "open",
+                "fly"
+              ],
+              "steps": [
+                {
+                  "kind": "command",
+                  "what": "hpr sim validation/fixtures/ork/guides/level-1.ork",
+                  "source": "validation/steps/hpr-command-line.txt"
+                }
+              ],
+              "cannot": null,
+              "source": null
+            },
+            {
+              "tasks": [
+                "spread"
+              ],
+              "steps": [
+                {
+                  "kind": "command",
+                  "what": "hpr mc validation/fixtures/ork/guides/level-1.ork --wind 4 --wind-from 270 --wind-sd 0.25 --wind-from-sd 15",
+                  "source": "validation/steps/hpr-command-line.txt"
+                }
+              ],
+              "cannot": null,
+              "source": null
+            }
+          ]
+        },
+        {
+          "interface": "script",
+          "file": "validation/steps/hpr-python.py",
+          "cannot": null,
+          "source": null,
+          "milestone": null,
+          "section": [
+            {
+              "tasks": [
+                "open"
+              ],
+              "steps": [
+                {
+                  "kind": "line",
+                  "what": "from fusionspace import hpr",
+                  "source": "validation/steps/hpr-python.py"
+                },
+                {
+                  "kind": "line",
+                  "what": "rocket = hpr.Rocket.from_file(\"validation/fixtures/ork/guides/level-1.ork\", recovery=True)",
+                  "source": "validation/steps/hpr-python.py"
+                }
+              ],
+              "cannot": null,
+              "source": null
+            },
+            {
+              "tasks": [
+                "fly"
+              ],
+              "steps": [
+                {
+                  "kind": "line",
+                  "what": "calm = hpr.Environment(0.0, 0.0, 0.0)",
+                  "source": "validation/steps/hpr-python.py"
+                },
+                {
+                  "kind": "line",
+                  "what": "flight = hpr.Flight(rocket, calm, 1.5)",
+                  "source": "validation/steps/hpr-python.py"
+                },
+                {
+                  "kind": "line",
+                  "what": "print(f\"apogee {flight.apogee_m:.1f} m\")",
+                  "source": "validation/steps/hpr-python.py"
+                }
+              ],
+              "cannot": null,
+              "source": null
+            },
+            {
+              "tasks": [
+                "spread"
+              ],
+              "steps": [
+                {
+                  "kind": "line",
+                  "what": "import numpy",
+                  "source": "validation/steps/hpr-python.py"
+                },
+                {
+                  "kind": "line",
+                  "what": "windy = hpr.Environment(0.0, 0.0, 0.0, wind_speed_m_s=4.0, wind_from_deg=270.0)",
+                  "source": "validation/steps/hpr-python.py"
+                },
+                {
+                  "kind": "line",
+                  "what": "run = hpr.MonteCarlo(rocket, windy, 1.5, wind_sd_fraction=0.25, wind_from_sd_deg=15.0)",
+                  "source": "validation/steps/hpr-python.py"
+                },
+                {
+                  "kind": "line",
+                  "what": "print(f\"landing spread {numpy.nanstd(run['landing_distance_m'], ddof=1):.1f} m, one standard deviation\")",
+                  "source": "validation/steps/hpr-python.py"
+                }
+              ],
+              "cannot": null,
+              "source": null
+            }
+          ]
+        },
+        {
+          "interface": "window",
+          "cannot": "no window",
+          "source": null,
+          "milestone": "M9.1",
+          "section": []
+        }
+      ]
+    },
+    {
+      "tool": "openrocket",
+      "release": "24.12",
+      "released": "2025-07-27",
+      "counted_on": "2026-10-11",
+      "source": [
+        {
+          "id": "getting-started",
+          "title": "OpenRocket's guide: Getting Started (the File menu)",
+          "url": "https://openrocket.readthedocs.io/en/latest/setup/getting_started.html"
+        },
+        {
+          "id": "basic-flight-simulation",
+          "title": "OpenRocket's guide: Basic Flight Simulation",
+          "url": "https://openrocket.readthedocs.io/en/latest/user_guide/basic_flight_simulation.html"
+        },
+        {
+          "id": "features",
+          "title": "OpenRocket's guide: Features (Planned Future Features)",
+          "url": "https://openrocket.readthedocs.io/en/latest/introduction/features.html"
+        },
+        {
+          "id": "command-line-arguments",
+          "title": "OpenRocket's guide: Command Line Arguments",
+          "url": "https://openrocket.readthedocs.io/en/latest/dev_guide/command_line_arguments.html"
+        },
+        {
+          "id": "core",
+          "title": "OpenRocket's guide: Using OpenRocket Core in External Applications",
+          "url": "https://openrocket.readthedocs.io/en/latest/dev_guide/using_openrocket_core.html"
+        }
+      ],
+      "way": [
+        {
+          "interface": "command-line",
+          "cannot": "no command flies a design: its command-line arguments set options for the window",
+          "source": "command-line-arguments",
+          "milestone": null,
+          "section": []
+        },
+        {
+          "interface": "script",
+          "cannot": "no documented script flies a design: the guide's example of its Java core stops at a commented-out `simulation.simulate()` and shows no apogee",
+          "source": "core",
+          "milestone": null,
+          "section": []
+        },
+        {
+          "interface": "window",
+          "cannot": null,
+          "source": null,
+          "milestone": null,
+          "section": [
+            {
+              "tasks": [
+                "open"
+              ],
+              "steps": [
+                {
+                  "kind": "click",
+                  "what": "the File menu",
+                  "source": "getting-started"
+                },
+                {
+                  "kind": "click",
+                  "what": "Open…",
+                  "source": "getting-started"
+                },
+                {
+                  "kind": "click",
+                  "what": "the design's file, in a file dialog already showing its folder",
+                  "source": "getting-started"
+                },
+                {
+                  "kind": "click",
+                  "what": "the dialog's Open button",
+                  "source": "getting-started"
+                }
+              ],
+              "cannot": null,
+              "source": null
+            },
+            {
+              "tasks": [
+                "fly"
+              ],
+              "steps": [
+                {
+                  "kind": "click",
+                  "what": "the Flight simulations tab",
+                  "source": "basic-flight-simulation"
+                },
+                {
+                  "kind": "click",
+                  "what": "the design's simulation, saved in its file",
+                  "source": "basic-flight-simulation"
+                },
+                {
+                  "kind": "click",
+                  "what": "Run simulations; the apogee shows in the simulation's row",
+                  "source": "basic-flight-simulation"
+                }
+              ],
+              "cannot": null,
+              "source": null
+            },
+            {
+              "tasks": [
+                "spread"
+              ],
+              "steps": [],
+              "cannot": "no Monte Carlo in 24.12, the newest release: the guide lists Monte Carlo dispersion as planned",
+              "source": "features"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "rocketpy",
+      "release": "1.13.0",
+      "released": "2026-07-22",
+      "counted_on": "2026-10-11",
+      "source": [
+        {
+          "id": "docs",
+          "title": "RocketPy's documentation",
+          "url": "https://docs.rocketpy.org/en/latest/"
+        },
+        {
+          "id": "first-simulation",
+          "title": "RocketPy's guide: First Simulation",
+          "url": "https://docs.rocketpy.org/en/latest/user/first_simulation.html"
+        }
+      ],
+      "way": [
+        {
+          "interface": "command-line",
+          "cannot": "no command flies a design: RocketPy is a Python library",
+          "source": "docs",
+          "milestone": null,
+          "section": []
+        },
+        {
+          "interface": "script",
+          "cannot": null,
+          "source": null,
+          "milestone": null,
+          "section": [
+            {
+              "tasks": [
+                "open",
+                "fly",
+                "spread"
+              ],
+              "steps": [],
+              "cannot": "RocketPy reads no `.ork` file, and its documentation names no way to load one; a design is typed in as Python, its drag curves, masses and inertias included",
+              "source": "first-simulation"
+            }
+          ]
+        },
+        {
+          "interface": "window",
+          "cannot": "no window: RocketPy is a Python library",
+          "source": "docs",
+          "milestone": null,
+          "section": []
         }
       ]
     }

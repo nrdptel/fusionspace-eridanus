@@ -1,0 +1,129 @@
+# Steps to a first answer (M0.11, ADR-241): each tool's steps to open a design, fly it once and see
+# its apogee, and get its landing spread, from a fresh start (the tool open, or a shell or Python
+# prompt, and the design's `.ork` file on disk). `cargo xtask scoreboard` counts them into the
+# scoreboard's steps rows and lists them one by one on its page.
+#
+# Each tool lists its three ways in: the command line, a script and a window. A way's sections
+# each name the tasks (open, fly, spread) their steps reach, in order; a step is a `command`, a
+# script `line` (one statement), a `click` or an `entry` (one value typed), and names the source
+# it comes from. A way, or its last section, that can't says why, from a source. HPR Sim's command
+# line and script are files beside this one that crates/hpr-py/tests/test_first_answer.py runs.
+# The other tools' steps come from their documentation, read on `counted_on`; their UI labels are
+# quoted as the documentation prints them.
+
+[[tool]]
+tool = "hpr"
+counted_on = "2026-10-11"
+
+[[tool.way]]
+interface = "command-line"
+file = "validation/steps/hpr-command-line.txt"
+
+[[tool.way]]
+interface = "script"
+file = "validation/steps/hpr-python.py"
+
+[[tool.way]]
+interface = "window"
+cannot = "no window"
+milestone = "M9.1"
+
+[[tool]]
+tool = "openrocket"
+release = "24.12"
+released = "2025-07-27"
+counted_on = "2026-10-11"
+
+[[tool.source]]
+id = "getting-started"
+title = "OpenRocket's guide: Getting Started (the File menu)"
+url = "https://openrocket.readthedocs.io/en/latest/setup/getting_started.html"
+
+[[tool.source]]
+id = "basic-flight-simulation"
+title = "OpenRocket's guide: Basic Flight Simulation"
+url = "https://openrocket.readthedocs.io/en/latest/user_guide/basic_flight_simulation.html"
+
+[[tool.source]]
+id = "features"
+title = "OpenRocket's guide: Features (Planned Future Features)"
+url = "https://openrocket.readthedocs.io/en/latest/introduction/features.html"
+
+[[tool.source]]
+id = "command-line-arguments"
+title = "OpenRocket's guide: Command Line Arguments"
+url = "https://openrocket.readthedocs.io/en/latest/dev_guide/command_line_arguments.html"
+
+[[tool.source]]
+id = "core"
+title = "OpenRocket's guide: Using OpenRocket Core in External Applications"
+url = "https://openrocket.readthedocs.io/en/latest/dev_guide/using_openrocket_core.html"
+
+[[tool.way]]
+interface = "command-line"
+cannot = "no command flies a design: its command-line arguments set options for the window"
+source = "command-line-arguments"
+
+[[tool.way]]
+interface = "script"
+cannot = "no documented script flies a design: the guide's example of its Java core stops at a commented-out `simulation.simulate()` and shows no apogee"
+source = "core"
+
+[[tool.way]]
+interface = "window"
+
+[[tool.way.section]]
+tasks = ["open"]
+steps = [
+    { kind = "click", what = "the File menu", source = "getting-started" },
+    { kind = "click", what = "Open…", source = "getting-started" },
+    { kind = "click", what = "the design's file, in a file dialog already showing its folder", source = "getting-started" },
+    { kind = "click", what = "the dialog's Open button", source = "getting-started" },
+]
+
+[[tool.way.section]]
+tasks = ["fly"]
+steps = [
+    { kind = "click", what = "the Flight simulations tab", source = "basic-flight-simulation" },
+    { kind = "click", what = "the design's simulation, saved in its file", source = "basic-flight-simulation" },
+    { kind = "click", what = "Run simulations; the apogee shows in the simulation's row", source = "basic-flight-simulation" },
+]
+
+[[tool.way.section]]
+tasks = ["spread"]
+cannot = "no Monte Carlo in 24.12, the newest release: the guide lists Monte Carlo dispersion as planned"
+source = "features"
+
+[[tool]]
+tool = "rocketpy"
+release = "1.13.0"
+released = "2026-07-22"
+counted_on = "2026-10-11"
+
+[[tool.source]]
+id = "docs"
+title = "RocketPy's documentation"
+url = "https://docs.rocketpy.org/en/latest/"
+
+[[tool.source]]
+id = "first-simulation"
+title = "RocketPy's guide: First Simulation"
+url = "https://docs.rocketpy.org/en/latest/user/first_simulation.html"
+
+[[tool.way]]
+interface = "command-line"
+cannot = "no command flies a design: RocketPy is a Python library"
+source = "docs"
+
+[[tool.way]]
+interface = "script"
+
+[[tool.way.section]]
+tasks = ["open", "fly", "spread"]
+cannot = "RocketPy reads no `.ork` file, and its documentation names no way to load one; a design is typed in as Python, its drag curves, masses and inertias included"
+source = "first-simulation"
+
+[[tool.way]]
+interface = "window"
+cannot = "no window: RocketPy is a Python library"
+source = "docs"

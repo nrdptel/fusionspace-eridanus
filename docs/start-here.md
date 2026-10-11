@@ -311,7 +311,11 @@ motor burns says its apogee is not a prediction. In brief:
 - **The scoreboard sets HPR Sim beside OpenRocket and RocketPy, axis by axis,** each number read
   from these reports. It opens with how many of its cells are measured and, where HPR Sim and
   another tool both are, which is ahead; each cell nothing measures yet names the milestone that
-  will. CI fails when one of HPR Sim's numbers there gets worse, unless a decision record accepts it
+  will. Its steps rows count the steps to open a design, fly it and get its landing spread: 2
+  commands or 9 lines of Python in HPR Sim, run by a test; OpenRocket's and RocketPy's from their
+  documentation, neither able to do all three from the `.ork` file
+  ([M0.11](decisions-and-roadmap.md#m0-11), steps to a first answer). CI fails when one of HPR
+  Sim's numbers there gets worse, unless a decision record accepts it
   ([M0.10](decisions-and-roadmap.md#m0-10), the scoreboard;
   [Accuracy](accuracy.md#the-scoreboard);
   [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md)).

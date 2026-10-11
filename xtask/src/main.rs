@@ -71,6 +71,7 @@ mod roadmap;
 mod scoreboard;
 mod site;
 mod spelling;
+mod steps;
 mod validate;
 mod wasm_check;
 mod workspace;

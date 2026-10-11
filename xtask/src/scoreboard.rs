@@ -33,6 +33,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::fixture_flights::{ERA5_CREDIT, FLIGHT_DATA_CREDIT};
+use crate::steps::{self, Interface, Outcome, StepKind};
 
 pub const USAGE: &str = "  scoreboard [--first | --check [--against <revision>]]
                            HPR Sim against OpenRocket and RocketPy on each axis of ADR-209 §3,
@@ -81,7 +82,7 @@ pub(crate) enum Tool {
 
 impl Tool {
     /// The tool's part of a cell id.
-    fn slug(self) -> &'static str {
+    pub(crate) fn slug(self) -> &'static str {
         match self {
             Self::Hpr => "hpr",
             Self::Openrocket => "openrocket",
@@ -170,6 +171,10 @@ pub(crate) struct Cell {
     pub source: Option<String>,
     /// The open milestone that measures an unmeasured cell.
     pub milestone: Option<String>,
+    /// Why the tool can't do what the row measures, for a cell no milestone will measure, or
+    /// that HPR Sim can't do until its milestone does.
+    #[serde(default)]
+    pub cannot: Option<String>,
 }
 
 /// One measure on one axis, with a cell per tool.
@@ -207,6 +212,9 @@ pub(crate) struct Scoreboard {
     /// Each tool's name with its release, in column order.
     pub tools: BTreeMap<Tool, String>,
     pub rows: Vec<Row>,
+    /// Each tool's steps to a first answer, listed one by one on the page (M0.11).
+    #[serde(default)]
+    pub steps: Vec<steps::ToolSteps>,
 }
 
 /// A cell worse than the committed scoreboard's.
@@ -558,8 +566,12 @@ pub(crate) fn check_milestones(scoreboard: &Scoreboard, roadmap: &str) -> Result
     for row in &scoreboard.rows {
         for cell in &row.cells {
             let id = format!("{}.{}", row.id, cell.tool.slug());
+            if cell.value.is_some() && cell.cannot.is_some() {
+                problems.push(format!("{id}: measured, yet says the tool can't"));
+            }
             match (&cell.value, &cell.milestone) {
                 (Some(_), None) => {}
+                (None, None) if cell.cannot.is_some() => {}
                 (None, Some(milestone)) if milestone_words(milestone).is_none() => problems.push(
                     format!("{id}: its milestone {milestone} has no words in `milestone_words`"),
                 ),
@@ -630,6 +642,7 @@ pub(crate) struct Reports {
     pub export_flights: Value,
     pub openrocket_flights: Value,
     pub harness: Value,
+    pub steps: steps::Record,
 }
 
 impl Reports {
@@ -643,6 +656,7 @@ impl Reports {
             export_flights: report(root, EXPORT_FLIGHTS)?,
             openrocket_flights: report(root, OPENROCKET_FLIGHTS)?,
             harness: report(root, HARNESS)?,
+            steps: steps::Record::read(root)?,
         })
     }
 }
@@ -669,6 +683,7 @@ fn measured(tool: Tool, value: f64, decimals: u32, count: u64, source: String) -
         count: Some(count),
         source: Some(source),
         milestone: None,
+        cannot: None,
     }
 }
 
@@ -680,6 +695,7 @@ fn later(tool: Tool, milestone: &str) -> Cell {
         count: None,
         source: None,
         milestone: Some(milestone.to_owned()),
+        cannot: None,
     }
 }
 
@@ -754,6 +770,9 @@ fn every_flight(reports: &Reports) -> Result<(&Value, String, u64), String> {
     }
     Ok((set, pointer, flights))
 }
+
+/// The test that runs HPR Sim's step files.
+const FIRST_ANSWER_TEST: &str = "crates/hpr-py/tests/test_first_answer.py";
 
 /// The scoreboard of `reports`.
 pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
@@ -854,7 +873,7 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
             ],
         };
 
-    let rows = vec![
+    let mut rows = vec![
         percent(
             Axis::Accuracy,
             "accuracy.public",
@@ -1036,26 +1055,128 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
                 later(Rocketpy, "M0.8a"),
             ],
         },
-        Row {
-            id: "steps.first-answer".to_owned(),
-            axis: Axis::Steps,
-            label: "Steps to open a design, fly it and get its landing spread".to_owned(),
-            unit: String::new(),
-            decimals: 0,
-            count_words: String::new(),
-            signed: false,
-            worse: Worse::Higher,
-            cells: vec![
-                later(Hpr, "M0.11"),
-                later(Openrocket, "M0.11"),
-                later(Rocketpy, "M0.11"),
-            ],
-        },
     ];
+    rows.extend(step_rows(&reports.steps)?);
     Ok(Scoreboard {
         generated_by: "cargo xtask scoreboard".to_owned(),
         tools,
         rows,
+        steps: reports.steps.tool.clone(),
+    })
+}
+
+/// The steps rows (M0.11, ADR-241): one a way in and kind of step, each cell the steps of that
+/// kind through the last task, or why the tool can't, with the steps to the last task it reaches.
+fn step_rows(record: &steps::Record) -> Result<Vec<Row>, String> {
+    use Tool::{Hpr, Openrocket, Rocketpy};
+    const TO: &str = "to open a design, fly it and get its landing spread";
+    let rows = [
+        (
+            "steps.command-line",
+            Interface::CommandLine,
+            StepKind::Command,
+            format!("Commands typed at a command line {TO}"),
+        ),
+        (
+            "steps.script",
+            Interface::Script,
+            StepKind::Line,
+            format!("Script lines, one statement each and imports included, {TO}"),
+        ),
+        (
+            "steps.window-clicks",
+            Interface::Window,
+            StepKind::Click,
+            format!("Clicks in the tool's window {TO}"),
+        ),
+        (
+            "steps.window-entries",
+            Interface::Window,
+            StepKind::Entry,
+            "Entries typed into the tool's window on the way: file names, numbers".to_owned(),
+        ),
+    ];
+    rows.into_iter()
+        .map(|(id, interface, kind, label)| {
+            let cells = [Hpr, Openrocket, Rocketpy]
+                .into_iter()
+                .map(|tool| step_cell(record, tool, interface, kind))
+                .collect::<Result<Vec<_>, _>>()?;
+            Ok(Row {
+                id: id.to_owned(),
+                axis: Axis::Steps,
+                label,
+                unit: String::new(),
+                decimals: 0,
+                count_words: String::new(),
+                signed: false,
+                worse: Worse::Higher,
+                cells,
+            })
+        })
+        .collect()
+}
+
+/// One tool's cell in a steps row.
+fn step_cell(
+    record: &steps::Record,
+    tool: Tool,
+    interface: Interface,
+    kind: StepKind,
+) -> Result<Cell, String> {
+    let of_tool = record
+        .of(tool)
+        .ok_or_else(|| format!("{}: no steps for {}", steps::STEPS, tool.slug()))?;
+    let way = of_tool.way(interface).ok_or_else(|| {
+        format!(
+            "{}: {} has no {}",
+            steps::STEPS,
+            tool.slug(),
+            interface.words()
+        )
+    })?;
+    Ok(match way.outcome() {
+        Outcome::Done(counts) => {
+            let source = match (&way.file, &of_tool.release) {
+                (Some(file), _) => format!("{file}, run by {FIRST_ANSWER_TEST}"),
+                (None, Some(release)) => format!(
+                    "{}: {}'s documentation for {release}, read {}",
+                    steps::STEPS,
+                    tool.slug(),
+                    of_tool.counted_on
+                ),
+                (None, None) => format!("{}: {}", steps::STEPS, tool.slug()),
+            };
+            Cell {
+                tool,
+                value: Some(exact(u64::try_from(counts.of(kind)).unwrap_or(u64::MAX))),
+                count: None,
+                source: Some(source),
+                milestone: None,
+                cannot: None,
+            }
+        }
+        Outcome::Cannot {
+            reason,
+            reached,
+            milestone,
+        } => Cell {
+            tool,
+            value: None,
+            count: None,
+            source: None,
+            milestone,
+            cannot: Some(match reached {
+                Some((task, counts)) => {
+                    format!(
+                        "{reason}; {} to {}",
+                        kind.words(counts.of(kind)),
+                        task.words()
+                    )
+                }
+                None => reason,
+            }),
+        },
     })
 }
 
@@ -1093,8 +1214,14 @@ fn cell_text(row: &Row, cell: &Cell) -> String {
             }
             text
         }
-        (None, Some(milestone)) => format!("not measured: {}", milestone_link(milestone)),
-        (None, None) => "not measured".to_owned(),
+        (None, Some(milestone)) => match &cell.cannot {
+            Some(reason) => format!("can't yet: {reason}; {}", milestone_link(milestone)),
+            None => format!("not measured: {}", milestone_link(milestone)),
+        },
+        (None, None) => match &cell.cannot {
+            Some(reason) => format!("can't: {reason}"),
+            None => "not measured".to_owned(),
+        },
     }
 }
 
@@ -1112,12 +1239,12 @@ fn milestone_link(milestone: &str) -> String {
 fn milestone_words(milestone: &str) -> Option<&'static str> {
     Some(match milestone {
         "M0.8a" => "the simulator's guide",
-        "M0.11" => "steps to a first answer",
         "M2.3c7" => "published flights past Mach 1",
         "M2.6" => "an open benchmark",
         "M2.7" => "held-out flights",
         "M2.8" => "honest uncertainty",
         "M2.9" => "the other tools' cells",
+        "M9.1" => "the desktop app",
         _ => return None,
     })
 }
@@ -1152,8 +1279,14 @@ fn axis_words(axis: Axis, hpr: &str) -> String {
         Axis::Features => "How many of the capabilities listed in the simulator guide's \
             comparison table each tool has; the table comes with that guide."
             .to_owned(),
-        Axis::Steps => "How many steps it takes to open a design, fly it and get where it may \
-            land, clicks, typed entries and script lines counted apart."
+        Axis::Steps => "How many steps it takes to open a design, fly it once and see its \
+            apogee, and get its landing spread (where it may land, from many flights with their \
+            inputs scattered), from a fresh start with the design's `.ork` file on disk. Each \
+            command, script line, click and typed entry is a step, each kind counted apart; a step \
+            that serves two tasks counts once. HPR Sim's are counted from files a test runs; the \
+            other tools' from their documentation, listed one by one under *Steps, one by one* \
+            below. A tool that can't do a task a way says so, with the steps to the last task it \
+            reaches."
             .to_owned(),
     }
 }
@@ -1203,8 +1336,16 @@ fn standing(scoreboard: &Scoreboard) -> String {
             continue;
         };
         for cell in row.cells.iter().filter(|cell| cell.tool != Tool::Hpr) {
-            let Some(theirs) = cell.value else { continue };
             let other = name(cell.tool);
+            if cell.value.is_none() && cell.milestone.is_none() && cell.cannot.is_some() {
+                both.push(format!(
+                    "`{}`, {hpr} {} and {other} can't: {hpr} ahead",
+                    row.id,
+                    value_text(row, mine)
+                ));
+                continue;
+            }
+            let Some(theirs) = cell.value else { continue };
             let verdict = match hpr_ahead(row, mine, theirs) {
                 Some(true) => format!("{hpr} ahead"),
                 Some(false) => format!("{other} ahead"),
@@ -1218,21 +1359,139 @@ fn standing(scoreboard: &Scoreboard) -> String {
             ));
         }
     }
+    let cannot = cells
+        .iter()
+        .filter(|cell| cell.value.is_none() && cell.cannot.is_some())
+        .count();
     let mut text = format!(
         "**Where it stands.** {measured} of the {} cells below are measured: {}.",
         cells.len(),
         per_tool.join(", ")
     );
+    if cannot > 0 {
+        let _ = write!(
+            text,
+            " {cannot} say a tool can't do the row's task that way."
+        );
+    }
     if both.is_empty() {
         let _ = write!(text, " No row yet measures {hpr} and another tool both.");
     } else {
         let _ = write!(
             text,
-            " Where {hpr} and another tool are both measured: {}.",
+            " Where {hpr} is measured and another tool is measured or can't: {}.",
             both.join("; ")
         );
     }
     text
+}
+
+/// The page's list of every tool's steps, one by one, with where each comes from.
+fn write_steps(page: &mut String, scoreboard: &Scoreboard) {
+    const BLOB: &str = "https://github.com/nrdptel/fusionspace-eridanus/blob/main";
+    if scoreboard.steps.is_empty() {
+        return;
+    }
+    let _ = writeln!(page, "## Steps, one by one\n");
+    let _ = writeln!(
+        page,
+        "Each step the steps rows count, from a fresh start: the tool open, or a shell or Python \
+         prompt, and the design's `.ork` file on disk. A command is one command line, a script \
+         line one statement, a click one press of the mouse (a double click is one) and an \
+         entry one value typed ([ADR-241]({BLOB}/docs/decisions/0241-steps-to-a-first-answer.md), \
+         the rules).\n"
+    );
+    for tool in &scoreboard.steps {
+        let name = match tool.tool {
+            Tool::Hpr => "HPR Sim",
+            Tool::Openrocket => "OpenRocket",
+            Tool::Rocketpy => "RocketPy",
+        };
+        let _ = writeln!(page, "### {name}\n");
+        match (&tool.release, &tool.released) {
+            (Some(release), Some(released)) => {
+                let _ = writeln!(
+                    page,
+                    "Counted on {} from the documentation of {name} {release}, released \
+                     {released}.\n",
+                    tool.counted_on
+                );
+            }
+            _ => {
+                let _ = writeln!(
+                    page,
+                    "Counted on {} from files a test runs on every change \
+                     ([`{FIRST_ANSWER_TEST}`]({BLOB}/{FIRST_ANSWER_TEST})), so each step \
+                     works.\n",
+                    tool.counted_on
+                );
+            }
+        }
+        let cite = |id: &str| -> String {
+            match tool.source.iter().find(|source| source.id == id) {
+                Some(source) => format!("[{}]({})", source.title, source.url),
+                None => format!("[`{id}`]({BLOB}/{id})"),
+            }
+        };
+        for way in &tool.way {
+            let mut heading = way.interface.words().to_owned();
+            if let Some(first) = heading.get_mut(..1) {
+                first.make_ascii_uppercase();
+            }
+            if let Some(reason) = &way.cannot {
+                let from = match (&way.source, &way.milestone) {
+                    (Some(source), _) => cite(source),
+                    (None, Some(milestone)) => milestone_link(milestone),
+                    (None, None) => String::new(),
+                };
+                let _ = writeln!(page, "- **{heading}:** can't: {reason} ({from}).");
+                continue;
+            }
+            match &way.file {
+                Some(file) => {
+                    let _ = writeln!(page, "- **{heading}** ({}):", cite(file));
+                }
+                None => {
+                    let _ = writeln!(page, "- **{heading}:**");
+                }
+            }
+            let mut number = 0;
+            for section in &way.section {
+                let tasks: Vec<&str> = section.tasks.iter().map(|task| task.words()).collect();
+                let tasks = tasks.join(", ");
+                if let Some(reason) = &section.cannot {
+                    let from = section.source.as_deref().map(cite).unwrap_or_default();
+                    let _ = writeln!(page, "  - *{tasks}:* can't: {reason} ({from}).");
+                    continue;
+                }
+                let _ = writeln!(page, "  - *{tasks}:*");
+                for step in &section.steps {
+                    number += 1;
+                    let kind = match step.kind {
+                        StepKind::Command => "command",
+                        StepKind::Line => "line",
+                        StepKind::Click => "click",
+                        StepKind::Entry => "entry",
+                    };
+                    let what = if matches!(step.kind, StepKind::Command | StepKind::Line) {
+                        format!("`{}`", step.what)
+                    } else {
+                        step.what.clone()
+                    };
+                    if way.file.as_deref() == Some(step.source.as_str()) {
+                        let _ = writeln!(page, "    {number}. {kind}: {what}");
+                    } else {
+                        let _ = writeln!(
+                            page,
+                            "    {number}. {kind}: {what} ({}).",
+                            cite(&step.source)
+                        );
+                    }
+                }
+            }
+        }
+        page.push('\n');
+    }
 }
 
 /// The scoreboard's page.
@@ -1296,6 +1555,11 @@ pub(crate) fn render(scoreboard: &Scoreboard) -> String {
     }
     let _ = writeln!(
         page,
+        "- **can't** means the tool has no way to do the row's task that way, by the source \
+         *Steps, one by one* names; **can't yet** is {hpr}'s, with the milestone that brings it."
+    );
+    let _ = writeln!(
+        page,
         "- **n/a:** a round-trip row measures {hpr} reading and writing another tool's file, so \
          {hpr} has no cell of its own there.\n"
     );
@@ -1332,6 +1596,7 @@ pub(crate) fn render(scoreboard: &Scoreboard) -> String {
             page.push('\n');
         }
     }
+    write_steps(&mut page, scoreboard);
     let _ = writeln!(page, "## Sources\n");
     for row in &scoreboard.rows {
         for cell in &row.cells {
@@ -1688,9 +1953,28 @@ mod tests {
     fn an_unmeasured_cell_needs_an_open_milestone() {
         let (_, reports, _) = committed();
         let scoreboard = scoreboard(&reports).expect("the scoreboard");
-        let open = "- [ ] **M0.8a x\n- [ ] **M0.11 x\n  - [ ] **M2.3c7 x\n- [ ] **M2.6 x\n\
-                    - [ ] **M2.7 x\n- [ ] **M2.8 x\n- [ ] [blocked] **M2.9 x\n";
+        let open = "- [ ] **M0.8a x\n  - [ ] **M2.3c7 x\n- [ ] **M2.6 x\n\
+                    - [ ] **M2.7 x\n- [ ] **M2.8 x\n- [ ] [blocked] **M2.9 x\n- [ ] **M9.1 x\n";
         check_milestones(&scoreboard, open).expect("all open");
+        // A cell a tool can't fill needs no milestone, but a measured one can't say it can't.
+        let cant = |cell: &Cell| cell.cannot.is_some() && cell.milestone.is_none();
+        assert!(scoreboard.rows.iter().flat_map(|row| &row.cells).any(cant));
+        let mut both = scoreboard.clone();
+        let measured = both
+            .rows
+            .iter_mut()
+            .flat_map(|row| &mut row.cells)
+            .find(|cell| cell.value.is_some())
+            .expect("a measured cell");
+        measured.cannot = Some("x".to_owned());
+        let error = check_milestones(&both, open).expect_err("measured and can't");
+        assert!(
+            error.contains("measured, yet says the tool can't"),
+            "{error}"
+        );
+        let closed = open.replace("- [ ] **M9.1", "- [x] **M9.1");
+        let error = check_milestones(&scoreboard, &closed).expect_err("M9.1 closed");
+        assert!(error.contains("steps.window-clicks.hpr"), "{error}");
         let closed = open.replace("- [ ] **M2.8", "- [x] **M2.8");
         let error = check_milestones(&scoreboard, &closed).expect_err("M2.8 closed");
         assert!(error.contains("uncertainty.range-50.hpr"), "{error}");

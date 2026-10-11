@@ -269,6 +269,7 @@ until someone rewrites it in plainer words.
 | [ADR-238: The corpus rechecked against the collection's catalog][adr-238] | Each of the 121 flags the private collection's catalog raised on 68 of the 83 flights the fixture report draws on was settled against the flight's log and sources. Four flights changed in the manifest: one launch day, one logged apogee, and two flights left out; every entry also records the tier the catalog proposes. HPR Sim's mean apogee error over the logs moved from +9.83% (55 flights) to +8.73% (53), OpenRocket's from +9.00% to +7.79%, with nothing in either simulator changed. Leaving out one flight that tumbled through its climb is more than the whole move. The report adds the errors without the flights the catalog proposes below tier A: +7.84% over 44. |
 | [ADR-239: The words to the design: spelling, minus signs, number columns and the READMEs][adr-239] | `xtask spelling` reads the British forms the design audit found and the others a survey of the pages turned up, and the project now writes them in US English, renamed code names included; the site check fails a hyphen-minus written for a minus sign and a table column of numbers that isn't right-aligned; the READMEs follow `writing.md`'s order with a status word and the version, held by a test. What #386 listed beyond [M0.9e](#m0-9e)'s *done when* moves to #476 and a new increment, [M0.9f](#m0-9f), before release 0.2. |  |
 | [ADR-240: The scoreboard: its cells, its ratchet, and the cells no milestone measured][adr-240] | `cargo xtask scoreboard` writes `validation/reports/scoreboard.{json,md}`: HPR Sim against OpenRocket 24.12 and RocketPy 1.13.0 on accuracy, bias, honest uncertainty, speed, round trips, features and steps to a first answer, each number read by key from a committed report and kept as printed, each unmeasured cell naming the open milestone that measures it. A check in the `xtask` tests, and in CI against main's committed scoreboard, fails when one of HPR Sim's numbers prints worse, counts fewer flights or designs, or a measured cell is no longer measured, unless an accepted ADR names that cell and the next release in a `- **Scoreboard:**` line. A new milestone, [M2.9](#m2-9), measures the other tools' cells that no milestone did, and every tool's speed. |  |
+| [ADR-241: Steps to a first answer: what a step is, and a tool that can't][adr-241] | The scoreboard counts the steps to open a design's `.ork` file, fly it once and see its apogee, and get its landing spread, from a fresh start, in four rows: commands, script lines (one statement each), clicks and typed entries, each kind apart. HPR Sim's commands and Python lines are files a test runs; OpenRocket's and RocketPy's steps come from their documentation, each step citing its page, with the release and the date read. A way in that a tool lacks, or a task it can't do that way, is a cell that says *can't*, with its source and the steps to the last task it reaches. HPR Sim takes 2 commands or 9 script lines; OpenRocket 24.12 opens and flies in 7 clicks but has no Monte Carlo; RocketPy 1.13.0 reads no `.ork` file. |  |
 
 ## The roadmap
 
@@ -407,7 +408,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9e"></a>[M0.9e][done-0] | The words to the design | done |
 | <a id="m0-9f"></a>[M0.9f][phase-0] | The rest of the words | not yet done |
 | <a id="m0-10"></a>[M0.10][done-0] | The scoreboard | done |
-| <a id="m0-11"></a>[M0.11][phase-0] | Steps to a first answer | not yet done |
+| <a id="m0-11"></a>[M0.11][done-0] | Steps to a first answer | done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |
 | <a id="m1-2"></a>[M1.2][done-1] | The atmosphere and wind | done |
 | <a id="m1-3"></a>[M1.3][done-1] | Solid motors: thrust curves, motor files, and mass through the burn | done |
@@ -1046,6 +1047,7 @@ is the milestone that added or will add that test.
 [adr-238]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0238-the-corpus-rechecked-against-the-catalog.md
 [adr-239]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0239-the-words-to-the-design.md
 [adr-240]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0240-the-scoreboard.md
+[adr-241]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0241-steps-to-a-first-answer.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
