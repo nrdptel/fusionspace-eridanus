@@ -889,7 +889,7 @@ mod tests {
             "{done:?}"
         );
         // A listed page the summary doesn't hold comes off too.
-        let gone = sheet_counts(&pages[..1], &["long.md", "gone.md"]);
+        let gone = sheet_counts(&pages[..1], &["gone.md", "long.md"]);
         assert_eq!(gone.len(), 1, "{gone:?}");
         assert!(
             gone[0].starts_with("docs/gone.md: on `OVER_SIX`"),
