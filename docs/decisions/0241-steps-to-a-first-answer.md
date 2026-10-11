@@ -26,10 +26,10 @@ What the tools' documentation said on 2026-10-11:
 
 **Decision.**
 
-1. **The task.** From a fresh start (the tool open, or a shell or Python prompt, and the design's
-   `.ork` file on disk with its motor chosen and, for OpenRocket, a simulation saved in it): open
-   the design, fly it once and see its apogee, then get its landing spread, a spread of landing
-   points over many flights with their inputs scattered. HPR Sim's runs use the
+1. **The task.** From a fresh start (the tool open, or a terminal or a Python session, and the
+   design's `.ork` file on disk with its motor chosen and, for OpenRocket, a simulation saved in
+   it): open the design, fly it once and see its apogee, then get its landing spread, a spread of
+   landing points over many flights with their inputs scattered. HPR Sim's runs use the
    [level 1 guide's design](../../validation/fixtures/ork/guides/level-1.ork) and scatter the
    wind's speed by 25% and its direction by 15° in a 4 m/s wind from the west, the wind being what
    spreads a landing most ([Monte Carlo dispersion](../monte-carlo.md)).

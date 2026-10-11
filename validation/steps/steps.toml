@@ -1,7 +1,7 @@
 # Steps to a first answer (M0.11, ADR-241): each tool's steps to open a design, fly it once and see
-# its apogee, and get its landing spread, from a fresh start (the tool open, or a shell or Python
-# prompt, and the design's `.ork` file on disk). `cargo xtask scoreboard` counts them into the
-# scoreboard's steps rows and lists them one by one on its page.
+# its apogee, and get its landing spread, from a fresh start (the tool open, or a terminal or a
+# Python session, and the design's `.ork` file on disk). `cargo xtask scoreboard` counts them into
+# the scoreboard's steps rows and lists them one by one on its page.
 #
 # Each tool lists its three ways in: the command line, a script and a window. A way's sections
 # each name the tasks (open, fly, spread) their steps reach, in order; a step is a `command`, a

@@ -1395,8 +1395,8 @@ fn write_steps(page: &mut String, scoreboard: &Scoreboard) {
     let _ = writeln!(page, "## Steps, one by one\n");
     let _ = writeln!(
         page,
-        "Each step the steps rows count, from a fresh start: the tool open, or a shell or Python \
-         prompt, and the design's `.ork` file on disk. A command is one command line, a script \
+        "Each step the steps rows count, from a fresh start: the tool open, or a terminal or a Python \
+         session, and the design's `.ork` file on disk. A command is one command line, a script \
          line one statement, a click one press of the mouse (a double click is one) and an \
          entry one value typed ([ADR-241]({BLOB}/docs/decisions/0241-steps-to-a-first-answer.md), \
          the rules).\n"

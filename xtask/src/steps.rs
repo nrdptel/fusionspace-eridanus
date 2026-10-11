@@ -13,10 +13,10 @@
 //! included, never split over lines; a click is one press of a mouse button, a double click one;
 //! an entry is one value typed, such as a file's name or a number. Clicks and entries are counted
 //! apart, and apart from commands and script lines. The count to a task runs from a fresh start
-//! (the tool open, or a shell or Python prompt, and the design's `.ork` file on disk) through the
-//! last step its task names, so a step that serves two tasks counts once. The reader refuses what
-//! it can't count without a judgment: a statement over two lines, an indented block, tasks out
-//! of order, a step with no source.
+//! (the tool open, or a terminal or a Python session, and the design's `.ork` file on disk)
+//! through the last step its task names, so a step that serves two tasks counts once. The reader
+//! refuses what it can't count without a judgment: a statement over two lines, an indented block,
+//! tasks out of order, a step with no source.
 
 use std::collections::BTreeSet;
 use std::fs;

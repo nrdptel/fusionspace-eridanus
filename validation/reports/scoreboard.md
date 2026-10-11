@@ -89,7 +89,7 @@ How many steps it takes to open a design, fly it once and see its apogee, and ge
 
 ## Steps, one by one
 
-Each step the steps rows count, from a fresh start: the tool open, or a shell or Python prompt, and the design's `.ork` file on disk. A command is one command line, a script line one statement, a click one press of the mouse (a double click is one) and an entry one value typed ([ADR-241](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0241-steps-to-a-first-answer.md), the rules).
+Each step the steps rows count, from a fresh start: the tool open, or a terminal or a Python session, and the design's `.ork` file on disk. A command is one command line, a script line one statement, a click one press of the mouse (a double click is one) and an entry one value typed ([ADR-241](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0241-steps-to-a-first-answer.md), the rules).
 
 ### HPR Sim
 
