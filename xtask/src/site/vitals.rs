@@ -88,9 +88,12 @@ const CALL_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// How many times a page over a bound is measured; the median is held to the bound.
 const RUNS: usize = 3;
-/// The most browsers that measure at once. Each loads one page at a time, and more than half
-/// the machine's cores would have them slow each other down.
-const MOST_BROWSERS: usize = 4;
+/// How many browsers measure at once: one, loading one page at a time. Lighthouse's
+/// `docs/variability.md`: "DO NOT collect multiple Lighthouse reports at the same time on the
+/// same machine. Concurrent runs can skew performance results due to resource contention." Two
+/// browsers on CI's four-core runners measured the guide's slowest INP at 160 to 208 ms where
+/// one page at a time on a laptop slowed twice as much gave at most 152 ms.
+const BROWSERS: usize = 1;
 /// The share of [`LATENCY_MS`] a page must have taken to arrive, from the navigation's start to
 /// its response's end, or the network throttle didn't hold for it and the load is measured
 /// again. (Chrome adds the wait before a response's body, not before its first byte.)
@@ -413,10 +416,7 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
     let server = pages::Server::start_compressed(output.to_path_buf())?;
     let origin = format!("http://{}", server.address);
     let scratch = Scratch::new()?;
-    let browsers = thread::available_parallelism()
-        .map_or(1, |cores| cores.get() / 2)
-        .clamp(1, MOST_BROWSERS)
-        .min(queue.len());
+    let browsers = BROWSERS.min(queue.len());
 
     // The CPU is measured in the first browser alone, before any page loads.
     let mut first = Browser::launch(&chrome, &scratch, 0)?;

@@ -388,11 +388,12 @@ stylesheet, scripts and fonts already saved. One could err either way: the slowd
 machine carries Lighthouse's guide past the machines it was fitted to. The bounds are meant for
 real visits, and the site collects no numbers from them.
 
-In one run on 2026-10-10, the slowest LCP was 2.16 s
-([*Frames and sign conventions*](physics/frames.md)), the largest CLS 0.067
-([*How a flight is simulated*](how-a-flight-is-simulated.md)) and the slowest INP 144 ms
-([*Aerodynamics*](physics/aero.md)), with the processor slowed 16.4 times. The slowest INP
-moved between 88 and 152 ms from one run to the next.
+In one run on 2026-10-10, the slowest LCP was 2.35 s
+([*PerfectFlite `.pf2` flight logs*](format/pf2.md)), the largest CLS 0.067
+([*How a flight is simulated*](how-a-flight-is-simulated.md)) and the slowest INP 88 ms
+([*Aerodynamics*](physics/aero.md)), with the processor slowed 16.1 times. LCP and INP move by a
+tenth or more from one run to the next. The check loads one page at a time, as Lighthouse asks,
+since pages loaded side by side slow each other down.
 Each run prints its own figures in the line that starts `page vitals:`. Three pages the check
 serves itself must each fail their own vital and pass the other two, or the check fails: one
 whose stylesheet arrives late, one that moves its text after drawing it and one whose menu

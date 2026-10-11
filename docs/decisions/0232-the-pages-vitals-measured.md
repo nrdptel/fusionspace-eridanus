@@ -61,8 +61,11 @@ marked *(a probe)* come from development runs at the slowdown given, not from co
    again once throttled, and again after its last page, and fails unless it ran slower by at
    least half the slowdown beyond 1 (a slowdown of 16 needs 8.5; an ignored throttle shows
    about 1); each load must also show the network's wait. A load that hasn't settled in 15 s
-   fails, and so does a page of the guide whose menu button is missing or off screen. Up to
-   four browsers share the pages, and CI's three site machines each take a third.
+   fails, and so does a page of the guide whose menu button is missing or off screen. One
+   browser loads one page at a time, as Lighthouse's `docs/variability.md` asks ("DO NOT
+   collect multiple Lighthouse reports at the same time on the same machine"), and CI's three
+   site machines each take a third of the pages. With two browsers at once on CI's four-core
+   runners, the slowest INP reached 160 to 208 ms and failed a page.
 2. **One stylesheet, asked for first.** The build joins the ten stylesheets into
    `theme/site.css` in their order (`bundle.rs`), print's inside `@media print`, the highlighting
    for both themes from `highlight.css`, as the theme's own rules color code over all three. Its
@@ -104,15 +107,15 @@ marked *(a probe)* come from development runs at the slowdown given, not from co
    page whose chapters don't all arrive as it prints or don't all leave after, with canaries
    both ways.
 
-**Consequences.** In one run on the site as this decision ships it, at a 16.4 times slowdown,
-the slowest LCP was 2.16 s (the frames page), the largest CLS 0.067 (the page on how a flight is
-simulated) and the slowest INP 144 ms (the aerodynamics page). Earlier runs gave 2.02 to 2.03 s,
-0.067 and 88 to 152 ms at 16.1 to 16.4 times: the slowest INP ranged from 88 to 152 ms across
-runs, 48 ms under its bound at the closest. The check takes about 100 s on this Mac. The header's
-"Print this book" icon now opens the cover, one more step to the print window, and the
-book prints only with scripts on. The check depends on Chrome's DevTools protocol and its Event
-Timing and layout-shift entries; a Chrome that changes them fails the check through its
-canaries, its throttle checks or a load with nothing to read, rather than passing silently. The
-lab is not the field: it runs over HTTP/1.1 and loads every page cold, which make it slower than
-a visit, while the CPU slowdown on a fast machine extrapolates Lighthouse's calculator, which
-could err either way. Field numbers would settle it, and the site collects none.
+**Consequences.** In one run on the site as this decision ships it, one page at a time at a 16.1
+times slowdown, the slowest LCP was 2.35 s (the PF2 format page), the largest CLS 0.067 (the page
+on how a flight is simulated) and the slowest INP 88 ms (the aerodynamics page). Runs with four
+browsers at once on this Mac gave 1.99 to 2.16 s, 0.067 and 88 to 152 ms: LCP and INP move by a
+tenth or more between runs, and LCP's least margin to its bound is about 0.15 s. The check takes
+about six minutes on this Mac. The header's "Print this book" icon now opens the cover, one more
+step to the print window, and the book prints only with scripts on. The check depends on Chrome's
+DevTools protocol and its Event Timing and layout-shift entries; a Chrome that changes them fails
+the check through its canaries, its throttle checks or a load with nothing to read, rather than
+passing silently. The lab is not the field: it runs over HTTP/1.1 and loads every page cold, which
+make it slower than a visit, while the CPU slowdown on a fast machine extrapolates Lighthouse's
+calculator, which could err either way. Field numbers would settle it, and the site collects none.
