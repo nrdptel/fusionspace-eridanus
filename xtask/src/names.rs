@@ -95,6 +95,10 @@ pub struct Allow {
     pub why: &'static str,
 }
 
+/// The directories the docs' OpenRocket oracle commands walk, as they write them: `refs`, then the
+/// two copies inside the private flight collection, by path (ADR-237).
+const ORACLE_DIRS_IN_DOCS: &str = "refs refs/hpr-sim-fixtures/imported/loft-fixtures refs/hpr-sim-fixtures/imported/debrief-fixtures --jar";
+
 /// The mentions that stay, each with its reason.
 pub const ALLOW: &[Allow] = &[
     Allow {
@@ -234,6 +238,20 @@ pub const ALLOW: &[Allow] = &[
         scope: Scope::Text("The program, such as `hpr-sim`."),
         count: 1,
         why: "history: version 0.1's schema names the program as the builds that wrote 0.1 documents did",
+    },
+    Allow {
+        file: "docs/format/ork.md",
+        scope: Scope::Text(ORACLE_DIRS_IN_DOCS),
+        count: 2,
+        why: "`hpr-sim-fixtures`, the private fixtures repository, which kept its name (ADR-151): \
+              the oracle command's paths into it (ADR-237)",
+    },
+    Allow {
+        file: "docs/physics/mass.md",
+        scope: Scope::Text(ORACLE_DIRS_IN_DOCS),
+        count: 2,
+        why: "`hpr-sim-fixtures`, the private fixtures repository, which kept its name (ADR-151): \
+              the oracle command's paths into it (ADR-237)",
     },
     Allow {
         file: "docs/VALIDATION.md",
@@ -1977,6 +1995,13 @@ fn landing_problems_in(text: &str) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_docs_oracle_directories_are_the_surveys() {
+        let dirs = format!("refs {}", crate::ork::IMPORTED.join(" "));
+        assert_eq!(crate::ork::ORACLE_DIRS, dirs);
+        assert_eq!(ORACLE_DIRS_IN_DOCS, format!("{dirs} --jar"));
+    }
 
     /// The old name's two pieces, so that this file's own tests don't spell it.
     fn old() -> String {

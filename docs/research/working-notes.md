@@ -183,8 +183,9 @@ learn something the next person needs. Each bullet is one topic; keep the file u
 - Finish heights: the author's forum post, in `refs/sources/openrocket-finish/`.
 - **Private flight collection `refs/hpr-sim-fixtures`** (ADR-151,
   [rule 4](../../CONTRIBUTING.md#4-private-data-stays-private)): a link to the sibling checkout
-  `../hpr-sim-fixtures`, pinned at `31771d8`; `cargo xtask refs verify hpr-sim-fixtures` takes
-  ~20 s. Start from its `README.md`, `flights.csv` (a row a flight; `tier`
+  `../hpr-sim-fixtures`, pinned at `7268bcd` (ADR-237: its `imported/` holds the older design
+  library and Debrief's logs; oracle runs name both after `refs`); `refs verify hpr-sim-fixtures`
+  takes ~20 s. Start from its `README.md`, `flights.csv` (a row a flight; `tier`
   A 89, B 289, C 90) and `files.csv` (each file's `role`); each flight's `NOTES.md` lists its gaps.
   Values keep the source's units; `unknown` is unknown. Designs: 395 `.ork`, 107 `.rkt`, 37 `.CDX1`;
   Raven `.FIPa` logs have a decoded CSV beside them; ERA5 for 298 flights, its relative humidity

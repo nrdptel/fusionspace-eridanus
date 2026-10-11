@@ -181,6 +181,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M2.3a ERA5 weather ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3b RocketPy's logged flights ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.3c1 Logged apogees ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
+- M2.3c4 One fixture repo ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M2.4 Accuracy census gate ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.11 Ejected sections and payloads ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.11a Pieces at any joint ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -1022,6 +1023,13 @@ One line per milestone or increment, in the order it was archived within its pha
       *Result:* of 83, both fly 61 (hpr 61, OpenRocket 79), the rest under 9 causes, each with an
       issue; over 55 compared, hpr +9.83% (mean absolute 13.96%), OpenRocket +9.00% (13.08%), hpr
       within 5% of OpenRocket on 53.
+    - [x] **M2.3c4 One fixture repo.** *Done when:* the lock pins only `hpr-sim-fixtures`, at its
+      catalog's merge commit, the other two read from its `imported/` copies; `xtask ork` finds
+      the same files; `refs verify` passes. Moves: nothing.
+      *Result:* pinned at `7268bcd0` with the design library's own manifest ([ADR-237](decisions/0237-one-fixture-repository.md));
+      both copies have their original commits' git trees; the survey reads the same 75 files, by
+      content, two labels renamed; `refs verify` 94 ok; the round-trip report flown again with
+      today's writer, still met.
 - [x] **M2.4 Accuracy census gate.** Generate a summary census (a README table and badge) from the
   report. CI fails on any per-case regression beyond tolerance.
   - Loft lessons: L84, L85, L86, L88.

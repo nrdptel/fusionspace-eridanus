@@ -2,9 +2,10 @@
 //! `cargo xtask ork`'s survey through `hpr sim` itself, offline, and writes how many fly (M4.5j).
 //!
 //! The survey is [`crate::ork::default_survey`]: every `.ork` under `refs/` but the generated
-//! scratch tree and the private flight collection, then the example designs inside the pinned
-//! OpenRocket jar. Each configuration is flown by `hpr_cli::run`, the function the `hpr` binary
-//! is a `main` around, as `hpr sim --json --offline --config ID FILE`: exit 0 is a flight. A
+//! scratch tree and the private flight collection, then the two older fixture repositories copied
+//! into that collection's `imported/`, then the example designs inside the pinned OpenRocket jar.
+//! Each configuration is flown by `hpr_cli::run`, the function the `hpr` binary is a `main` around,
+//! as `hpr sim --json --offline --config ID FILE`: exit 0 is a flight. A
 //! configuration refused as saved is flown again with `--accept-design-errors`; one that flies
 //! then is counted as held back only by the design's checks. One refused both ways is counted
 //! under the reason the reader gives for leaving it out as `hpr sim` reads the file, its fetched
@@ -566,8 +567,11 @@ mod tests {
     fn a_path_is_named_from_the_root() {
         let root = Path::new("/w/hpr");
         assert_eq!(
-            relative(root, "/w/hpr/refs/loft-fixtures/a.ork"),
-            "refs/loft-fixtures/a.ork"
+            relative(
+                root,
+                "/w/hpr/refs/hpr-sim-fixtures/imported/loft-fixtures/a.ork"
+            ),
+            "refs/hpr-sim-fixtures/imported/loft-fixtures/a.ork"
         );
         assert_eq!(
             crate::ork_corpus_flights::source(&relative(

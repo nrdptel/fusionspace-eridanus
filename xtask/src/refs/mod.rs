@@ -3,7 +3,7 @@
 //! `validation/refs.lock.toml` pins every outside reference the validation work uses:
 //!
 //! - **git** repositories at a full commit id (RocketPy, openrocket-database, Loft and its
-//!   fixtures). A checkout may carry a `sha256sum` manifest whose own hash is pinned too.
+//!   fixtures). A checkout may carry `sha256sum` manifests whose own hashes are pinned too.
 //! - **file** downloads that never change (the OpenRocket jar, public papers) by sha256.
 //! - **snapshot** captures of live APIs (ThrustCurve, motor.fusionspace.co) by the sha256 and
 //!   date of one capture. When the API has moved on, `fetch` fails and keeps the new capture

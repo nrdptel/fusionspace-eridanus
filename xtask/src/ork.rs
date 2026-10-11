@@ -1,8 +1,8 @@
 //! `cargo xtask ork [--dir <path>]…`: reads every `.ork` file in the reference library and
 //! reports what came back.
 //!
-//! The corpus is private (`refs/loft-fixtures` holds other people's designs, `CONTRIBUTING.md`
-//! rule 4), so the per-file detail (names, versions, warnings, errors) goes to
+//! The corpus is private (the design library [`LIBRARY_DIR`] holds other people's designs,
+//! `CONTRIBUTING.md` rule 4), so the per-file detail (names, versions, warnings, errors) goes to
 //! `corpus-out/ork-survey.json`, which is gitignored. What this prints is counts: how many files
 //! read, how they were packaged, which schema versions they claim, and how many warnings of each
 //! kind they raised. Those counts are the part that may be published.
@@ -10,8 +10,9 @@
 //! With no `--dir`, it reads every `.ork` under `refs/` except the generated, unpinned
 //! `refs/scratch/` tree and the private flight collection `refs/hpr-sim-fixtures/` (designs paired
 //! with their flights' logs, ADR-151, which joins a survey only through an increment of its own),
-//! and the example designs inside the pinned OpenRocket jar (`datafiles/examples/`), which is a
-//! zip like any other. Pass `--dir refs/scratch` or `--dir refs/hpr-sim-fixtures` explicitly to
+//! then the two older fixture repositories copied inside that collection ([`IMPORTED`]), and the
+//! example designs inside the pinned OpenRocket jar (`datafiles/examples/`), which is a zip like
+//! any other. Pass `--dir refs/scratch` or `--dir refs/hpr-sim-fixtures` explicitly to
 //! read either. It fails when any file
 //! cannot be read, which is how milestone M3.1a's "every `.ork` opens" is checked.
 
@@ -42,9 +43,35 @@ pub(crate) const JAR: &str = "refs/openrocket/OpenRocket-24.12.jar";
 const DEFAULT_DIRS: [&str; 1] = ["refs"];
 
 /// Directories under each of [`DEFAULT_DIRS`] the default corpus leaves out: generated scratch
-/// files, which are not pinned, and the private flight collection (ADR-151), whose 396 designs
-/// would move every count `docs/format/ork.md` quotes.
-const EXCLUDED: [&str; 2] = ["scratch", "hpr-sim-fixtures"];
+/// files, which are not pinned; the private flight collection (ADR-151), whose 396 designs would
+/// move every count `docs/format/ork.md` quotes; and the checkouts of the two fixture
+/// repositories it replaced (M2.3c4), which an older clone may still hold. Their files are read
+/// from [`IMPORTED`] instead, so a stale checkout cannot count them twice.
+const EXCLUDED: [&str; 4] = [
+    "scratch",
+    "hpr-sim-fixtures",
+    "loft-fixtures",
+    "debrief-fixtures",
+];
+
+/// The older fixture repositories, copied byte for byte into the flight collection's `imported/`
+/// (M2.3c4), which the default corpus reads although the rest of the collection is left out:
+/// the private design library and the flight-log repository, each the same files as at its old
+/// pin. Relative to the workspace root.
+pub(crate) const IMPORTED: [&str; 2] = [
+    LIBRARY_DIR,
+    "refs/hpr-sim-fixtures/imported/debrief-fixtures",
+];
+
+/// The directories the OpenRocket oracle scripts walk for the default corpus: `refs`, then the
+/// [`IMPORTED`] copies by name, since the scripts don't follow the symlink a local setup may make
+/// of `refs/hpr-sim-fixtures`. For the commands this tool prints when a record is missing.
+pub(crate) const ORACLE_DIRS: &str = "refs refs/hpr-sim-fixtures/imported/loft-fixtures \
+                                      refs/hpr-sim-fixtures/imported/debrief-fixtures";
+
+/// The private design library (other people's designs), relative to the workspace root. Its
+/// files are counted under this path as their source.
+pub(crate) const LIBRARY_DIR: &str = "refs/hpr-sim-fixtures/imported/loft-fixtures";
 
 /// What OpenRocket 24.12 resolved for every body radius of the files its probe ran
 /// (`validation/oracles/openrocket/automatic_radius.py --library`, ADR-054).
@@ -1016,13 +1043,13 @@ fn oracle_key(root: &Path, name: &str) -> String {
 }
 
 /// The source the private design library's files are counted under.
-const LIBRARY_SOURCE: &str = "refs/loft-fixtures";
+const LIBRARY_SOURCE: &str = LIBRARY_DIR;
 
 /// The source the jar's example designs are counted under.
 const EXAMPLES_SOURCE: &str = "OpenRocket 24.12 examples";
 
-/// Where a file came from, for the import counts: the jar, or the directory under `refs/` (or the
-/// directory given) that holds it.
+/// Where a file came from, for the import counts: the jar, one of the [`IMPORTED`] copies, or the
+/// directory under `refs/` (or the directory given) that holds it.
 fn source_of(root: &Path, name: &str) -> String {
     let name = name.replace('\\', "/");
     if name.contains('!') {
@@ -1031,13 +1058,59 @@ fn source_of(root: &Path, name: &str) -> String {
     let relative = oracle_key(root, &name);
     let mut steps = relative.split('/');
     match (steps.next(), steps.next()) {
-        (Some("refs"), Some(dir)) => format!("refs/{dir}"),
+        (Some("refs"), Some(dir)) => IMPORTED
+            .iter()
+            .find(|copy| inside(&relative, copy))
+            .map_or_else(|| format!("refs/{dir}"), |copy| (*copy).to_owned()),
         // A directory outside the repository, given with `--dir`, is its own source.
         (Some(first), _) if !first.is_empty() => first.to_owned(),
         _ => relative
             .rsplit_once('/')
             .map_or_else(|| relative.clone(), |(dir, _)| dir.to_owned()),
     }
+}
+
+/// The checkouts of the fixture repositories M2.3c4 retired, relative to the workspace root.
+const RETIRED: [&str; 2] = ["refs/loft-fixtures", "refs/debrief-fixtures"];
+
+/// Refuses the designs of a record of the default corpus that the OpenRocket oracle scripts could
+/// only have found outside the survey's set: a design listed twice, or one in the private flight
+/// collection outside its [`IMPORTED`] copies, or in a checkout of a [`RETIRED`] repository. The
+/// scripts walk `refs` whole, so only a collection that is a symbolic link (which they don't
+/// follow) keeps them to the survey's files (ADR-237). Each file is a path from the workspace
+/// root. No error names a file.
+pub(crate) fn check_corpus_files<'a>(
+    name: &str,
+    files: impl IntoIterator<Item = &'a str>,
+) -> Result<(), String> {
+    let mut seen = BTreeSet::new();
+    let (mut twice, mut outside) = (0, 0);
+    for file in files {
+        let file = file.replace('\\', "/");
+        let collection = inside(&file, "refs/hpr-sim-fixtures")
+            && !IMPORTED.iter().any(|copy| inside(&file, copy));
+        if collection || RETIRED.iter().any(|dir| inside(&file, dir)) {
+            outside += 1;
+        }
+        if !seen.insert(file) {
+            twice += 1;
+        }
+    }
+    if twice + outside == 0 {
+        return Ok(());
+    }
+    Err(format!(
+        "{name} lists {twice} design(s) twice and {outside} from the private flight collection \
+         outside its imported copies or from a retired checkout: the oracle scripts walk `refs` \
+         whole, so fly it again with `refs/hpr-sim-fixtures` a symbolic link to a sibling \
+         checkout and no checkout of a retired fixture repository under `refs/` (ADR-237)"
+    ))
+}
+
+/// True if `path`, relative to the workspace root with `/` separators, lies inside `dir`.
+pub(crate) fn inside(path: &str, dir: &str) -> bool {
+    path.strip_prefix(dir)
+        .is_some_and(|rest| rest.starts_with('/'))
 }
 
 /// Every body radius OpenRocket resolved in each file its probe opened, by [`oracle_key`].
@@ -1275,14 +1348,18 @@ pub(crate) fn examples_in_jar(jar: &Path) -> Result<Vec<Case>, String> {
     Ok(examples)
 }
 
-/// The default survey's files: every `.ork` under [`DEFAULT_DIRS`] but [`EXCLUDED`], then the
-/// jar's examples when the jar is there. `cargo xtask ork-cli` flies the same set.
+/// The default survey's files: every `.ork` under [`DEFAULT_DIRS`] but [`EXCLUDED`], then those
+/// in the [`IMPORTED`] copies that are there, then the jar's examples when the jar is there.
+/// `cargo xtask ork-cli` flies the same set.
 pub(crate) fn default_survey(root: &Path) -> Result<Vec<Case>, String> {
     let mut files = Vec::new();
     for dir in DEFAULT_DIRS {
         let path = root.join(dir);
         let excluded: Vec<PathBuf> = EXCLUDED.iter().map(|name| path.join(name)).collect();
         collect(&path, &mut files, &excluded)?;
+    }
+    for copy in IMPORTED {
+        collect(&root.join(copy), &mut files, &[])?;
     }
     let jar = root.join(JAR);
     if jar.is_file() {
@@ -1302,6 +1379,97 @@ pub(crate) fn root() -> Result<PathBuf, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_default_survey_reads_the_imported_copies_once() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        let write = |file: &str| {
+            let path = root.join(file);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, file.as_bytes()).unwrap();
+        };
+        let kept = [
+            "refs/hpr-sim-fixtures/imported/loft-fixtures/lib/a.ork",
+            "refs/hpr-sim-fixtures/imported/debrief-fixtures/b.ork",
+            "refs/vendor/c.ork",
+        ];
+        for file in kept {
+            write(file);
+        }
+        // The rest of the collection, another copy, and stale checkouts of the retired repos.
+        for file in [
+            "refs/hpr-sim-fixtures/flights/f/design/flown.ork",
+            "refs/hpr-sim-fixtures/imported/other/d.ork",
+            "refs/hpr-sim-fixtures/imported/loft-fixtures-old/e.ork",
+            "refs/loft-fixtures/lib/a.ork",
+            "refs/debrief-fixtures/b.ork",
+        ] {
+            write(file);
+        }
+
+        let found = default_survey(root).unwrap();
+        let mut names: Vec<String> = found
+            .iter()
+            .map(|(name, _)| oracle_key(root, name))
+            .collect();
+        names.sort();
+        let mut expected = kept.map(str::to_owned).to_vec();
+        expected.sort();
+        assert_eq!(names, expected);
+
+        let sources: Vec<String> = kept
+            .iter()
+            .map(|file| source_of(root, &root.join(file).display().to_string()))
+            .collect();
+        assert_eq!(
+            sources,
+            [
+                LIBRARY_SOURCE,
+                "refs/hpr-sim-fixtures/imported/debrief-fixtures",
+                "refs/vendor"
+            ]
+        );
+        assert_eq!(LIBRARY_SOURCE, IMPORTED[0]);
+        assert!(!inside(
+            "refs/hpr-sim-fixtures/imported/loft-fixtures-old/e.ork",
+            LIBRARY_DIR
+        ));
+    }
+
+    #[test]
+    fn a_corpus_record_holds_only_the_surveys_files() {
+        let survey = [
+            "refs/vendor/a.ork",
+            "refs/hpr-sim-fixtures/imported/loft-fixtures/lib/b.ork",
+            "refs/hpr-sim-fixtures/imported/debrief-fixtures/c.ork",
+            "refs/openrocket/OpenRocket-24.12.jar!datafiles/examples/d.ork",
+        ];
+        assert_eq!(check_corpus_files("record", survey), Ok(()));
+        for (extra, twice, outside) in [
+            ("refs/vendor/a.ork", 1, 0),
+            (
+                "refs/hpr-sim-fixtures/imported/loft-fixtures/lib/b.ork",
+                1,
+                0,
+            ),
+            ("refs/hpr-sim-fixtures/flights/f/flown.ork", 0, 1),
+            ("refs\\hpr-sim-fixtures\\flights\\f\\flown.ork", 0, 1),
+            ("refs/hpr-sim-fixtures/imported/other/e.ork", 0, 1),
+            ("refs/loft-fixtures/lib/b.ork", 0, 1),
+            ("refs/debrief-fixtures/c.ork", 0, 1),
+        ] {
+            let error =
+                check_corpus_files("record", survey.into_iter().chain([extra])).unwrap_err();
+            assert!(
+                error.starts_with(&format!(
+                    "record lists {twice} design(s) twice and {outside} from"
+                )),
+                "{extra}: {error}"
+            );
+            assert!(!error.contains(".ork"), "{error}");
+        }
+    }
 
     #[test]
     fn only_the_default_excluded_directories_are_skipped() {

@@ -10,7 +10,7 @@ Written by `cargo xtask ork-cli` (M4.5j); don't edit it by hand. Every motor con
 |---|---:|---:|---:|---:|---:|---:|---:|
 | OpenRocket's examples | 17 | 0 | 0 | 56 | 54 | 0 | 2 |
 | elsewhere under refs/ | 31 | 2 | 10 | 25 | 5 | 0 | 20 |
-| refs/loft-fixtures | 27 | 0 | 0 | 89 | 77 | 9 | 3 |
+| refs/hpr-sim-fixtures/imported/loft-fixtures | 27 | 0 | 0 | 89 | 77 | 9 | 3 |
 | **All** | 75 | 2 | 10 | 170 | 136 | 9 | 25 |
 
 ## Refused, by reason

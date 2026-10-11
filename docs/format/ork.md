@@ -119,7 +119,7 @@ coast with no drag after its split.
 >   default of 25 mm (0.98 in), with a warning
 >   ([when an automatic radius has nothing to take](#when-an-automatic-radius-has-nothing-to-take)).
 > - **A written file flies in OpenRocket as its original does.** Of 151 configurations OpenRocket
->   flies both ways, all 151 reach the original's apogee within 0.5%, and 142 exactly. This checks
+>   flies both ways, all 151 reach the original's apogee within 0.5%, and 143 exactly. This checks
 >   the file, not HPR Sim's physics ([checked in OpenRocket](#checked-in-openrocket)).
 
 ## Opening a file today
@@ -423,7 +423,9 @@ The two that do not open are hand-written fixtures for Loft's browser tests, and
 HPR Sim does, so this is the files' fault and not the reader's. They are listed by name in the
 survey, which fails if either one ever behaves differently.
 
-Here the *reference library* is every `.ork` under `refs/`, fetched by `cargo xtask refs fetch`;
+Here the *reference library* is every `.ork` under `refs/`, fetched by `cargo xtask refs fetch`,
+except the private flight collection's own designs (two older repositories copied into it are
+read);
 the 17 example designs inside the OpenRocket jar (also under `refs/`) are counted with it unless a
 table lists them apart.
 
@@ -434,7 +436,7 @@ import. The survey counts both kinds of error for each source. On 2026-09-23, ex
 
 | source | files | read | laid out | errors |
 |---|---|---|---|---|
-| the private design library (`loft-fixtures`) | 27 | 27 | 27 | 0 |
+| the private design library (`loft-fixtures`, now copied into the private flight collection) | 27 | 27 | 27 | 0 |
 | the OpenRocket 24.12 jar's examples | 17 | 17 | 17 | 0 |
 | everything else under `refs/` | 34 | 32 | 31 | 2 (the two Loft fixtures that are not XML) |
 
@@ -3387,7 +3389,7 @@ written file gives the same design, bit for bit, for each of the 73 designs HPR 
 `.ork` files the checks use ([which files](#checked-in-openrocket)). Some are other people's
 private designs, so the counts are published but those files are not. OpenRocket 24.12 opens
 every written file whose original it opens, and flies each configuration it can fly (151) to
-the original's apogee within 0.5%: the largest difference is 0.000162%.
+the original's apogee within 0.5%: the largest difference is 0.000191%.
 
 The written file is not a copy of the original. It is laid out afresh, and it states some values
 the original left to OpenRocket's defaults, such as each part's roll angle. Its root's `creator`
@@ -3395,8 +3397,8 @@ attribute names the program that wrote it, its version and its designation in th
 product system, as every file HPR Sim writes does:
 `creator="FusionSpace HPR 0.1.0 · FS-ACHERNAR · SW · TOOL 001"` (`hpr-sim` before release 0.1's
 rename; a file with that `creator` still reads).
-The measurements above were made before the attribute took this form; opening such a file in
-OpenRocket has not been checked since.
+The measurements above were remade on 2026-10-11 with files written in this form: OpenRocket
+opens and flies them within the same 0.5% bar.
 
 **How it is written.** Each part of the design is written as the tags HPR Sim reads it from. What
 HPR Sim keeps but doesn't model goes back where it was
@@ -3501,7 +3503,7 @@ itself flies a written file exactly as it flies the original, since it reads bac
 | where | files |
 |---|---|
 | the example designs that ship with OpenRocket | 17 |
-| the private design library ([the corpus](#openrockets-flights-of-the-private-designs); the report's `refs/loft-fixtures`) | 27 |
+| the private design library ([the corpus](#openrockets-flights-of-the-private-designs); the report's row ending `imported/loft-fixtures`) | 27 |
 | other `.ork` files under `refs/`, mostly Loft's and Debrief's test designs ([listed above](#openrockets-flights-of-the-private-designs); the report's *elsewhere under refs/*) | 31 |
 | all | 75 |
 
@@ -3514,7 +3516,7 @@ when it has none, in calm air, with random seed 1. So a difference between the t
 from the file alone. A configuration passes when the export's apogee is within 0.5% of the
 original's. The 0.5% is the roadmap's bar
 ([M3.2](../decisions-and-roadmap.md#m3-2), writing `.ork` files), set before measuring. The
-flights agree about 3,000 times more closely, so the report also gives the largest difference.
+flights agree about 2,600 times more closely, so the report also gives the largest difference.
 
 | quantity | count |
 |---|---|
@@ -3526,17 +3528,17 @@ flights agree about 3,000 times more closely, so the report also gives the large
 | configurations flown neither way | 18 |
 | configurations flown both ways | 151 |
 | within 0.5% of the original's apogee | 151 |
-| the same apogee to the last bit | 142 |
-| largest apogee difference | 0.000162% |
+| the same apogee to the last bit | 143 |
+| largest apogee difference | 0.000191% |
 
 - **Four designs don't open as written.** HPR Sim can't read two of them, so it writes nothing.
   OpenRocket refuses the exports of the other two with the same error as their originals.
 - **23 opened designs have nothing to fly.** They have no configuration, or none with a motor.
 - **Eighteen configurations fly neither way.** Seventeen have no motor. OpenRocket aborts the
   other one both times, for the same cause.
-- **Nine configurations differ, but by very little.** All nine are in the private design library
-  (the report's `refs/loft-fixtures` row). The largest
-  difference is 0.000162%. Their cause has not been traced.
+- **Eight configurations differ, but by very little.** All eight are in the private design
+  library (the report's row ending `imported/loft-fixtures`). The largest
+  difference is 0.000191%. Their cause has not been traced.
 
 The committed report,
 [`openrocket-export-flights.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-export-flights.md),
@@ -3547,12 +3549,18 @@ gives these counts by where the designs came from. The flights themselves stay i
 **Running it again.** It needs Java 17, the OpenRocket jar fetched by `cargo xtask refs fetch`,
 and a Python environment at `refs/venv` with JPype, which lets the [oracle](../glossary.md#oracle)
 scripts drive OpenRocket, as for [OpenRocket's mass](../physics/mass.md#checked-against-openrocket).
-Without the private library, the commands fly the public files alone.
+Without the private library, the commands fly the public files alone. The two `imported/`
+directories in the first command are the private library and one design from Debrief's private
+collection, copied into the private flight collection. The scripts walk `refs` whole, so these
+commands assume the collection, if present, is a symbolic link to a sibling checkout, which the
+scripts don't follow, and that no checkout of the two older repositories sits under `refs/`; the
+comparing commands refuse a record that holds anything else.
 The first command flies the originals, and is needed only when `refs/` or the flight scripts
 change. The second writes each design back out; the third flies those files; the last compares:
 
 ```text
-refs/venv/bin/python validation/oracles/openrocket/flights.py corpus-out/openrocket-flights.json refs --jar
+refs/venv/bin/python validation/oracles/openrocket/flights.py corpus-out/openrocket-flights.json \
+    refs refs/hpr-sim-fixtures/imported/loft-fixtures refs/hpr-sim-fixtures/imported/debrief-fixtures --jar
 cargo xtask ork --export corpus-out/ork-export
 refs/venv/bin/python validation/oracles/openrocket/flights.py corpus-out/openrocket-export-flights.json corpus-out/ork-export
 cargo xtask ork-export-flights

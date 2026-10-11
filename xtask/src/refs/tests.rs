@@ -37,13 +37,15 @@ fn git_ok(dir: &Path, args: &[&str]) -> String {
     String::from_utf8_lossy(&out.stdout).trim().to_owned()
 }
 
-/// A local upstream: a git repository with a manifest, a file and an API response.
+/// A local upstream: a git repository with two manifests (one in a subdirectory, listing its
+/// file from there), a file and an API response.
 struct Upstream {
     _dir: tempfile::TempDir,
     repo: String,
     commit: String,
     later_commit: String,
     manifest_sha256: String,
+    nested_manifest_sha256: String,
     paper: String,
     paper_sha256: String,
     api_path: std::path::PathBuf,
@@ -61,6 +63,10 @@ fn upstream() -> Upstream {
     fs::write(repo.join("data.csv"), "t,z\n0,0\n").unwrap();
     let manifest = format!("{}  data.csv\n", hash::sha256_bytes(b"t,z\n0,0\n"));
     fs::write(repo.join("CHECKSUMS.sha256"), &manifest).unwrap();
+    fs::create_dir(repo.join("sub")).unwrap();
+    fs::write(repo.join("sub/inner.csv"), "x\n1\n").unwrap();
+    let nested = format!("{}  inner.csv\n", hash::sha256_bytes(b"x\n1\n"));
+    fs::write(repo.join("sub/CHECKSUMS.sha256"), &nested).unwrap();
     git_ok(&repo, &["add", "."]);
     git_ok(&repo, &["commit", "--quiet", "-m", "one"]);
     let commit = git_ok(&repo, &["rev-parse", "HEAD"]);
@@ -79,6 +85,7 @@ fn upstream() -> Upstream {
         commit,
         later_commit,
         manifest_sha256: hash::sha256_bytes(manifest.as_bytes()),
+        nested_manifest_sha256: hash::sha256_bytes(nested.as_bytes()),
         paper: file_url(&paper),
         paper_sha256: hash::sha256_bytes(b"%PDF-1.4 test"),
         api: file_url(&api_path),
@@ -99,8 +106,10 @@ fn lock_text(up: &Upstream) -> String {
         commit = "{}"
         dest = "refs/repo"
         shallow = true
-        manifest = "CHECKSUMS.sha256"
-        manifest_sha256 = "{}"
+        manifests = [
+            {{ path = "CHECKSUMS.sha256", sha256 = "{}" }},
+            {{ path = "sub/CHECKSUMS.sha256", sha256 = "{}" }},
+        ]
         license = "MIT"
         mode = "fetched"
 
@@ -133,6 +142,7 @@ fn lock_text(up: &Upstream) -> String {
         up.repo,
         up.commit,
         up.manifest_sha256,
+        up.nested_manifest_sha256,
         up.repo,
         up.commit,
         up.paper,
@@ -253,12 +263,18 @@ fn verify_checks_the_manifest_pin_and_the_commit() {
     let lock = Lock::parse(&text).unwrap();
     fetch(root, &lock, &["repo".into()], Drift::Fail).unwrap();
 
-    let wrong_manifest = text.replace(&up.manifest_sha256, &"0".repeat(64));
-    let lock = Lock::parse(&wrong_manifest).unwrap();
     assert_eq!(
         verify(root, &lock, &["repo".into()]).unwrap(),
-        tally(0, 0, 0, 1)
+        tally(1, 0, 0, 0)
     );
+    for pin in [&up.manifest_sha256, &up.nested_manifest_sha256] {
+        let wrong_manifest = text.replace(pin.as_str(), &"0".repeat(64));
+        let lock = Lock::parse(&wrong_manifest).unwrap();
+        assert_eq!(
+            verify(root, &lock, &["repo".into()]).unwrap(),
+            tally(0, 0, 0, 1)
+        );
+    }
 
     let wrong_commit = text.replacen(&up.commit, &"1".repeat(40), 1);
     let lock = Lock::parse(&wrong_commit).unwrap();

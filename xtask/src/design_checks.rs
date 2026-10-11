@@ -8,7 +8,8 @@
 //! (CONTRIBUTING.md rule 4), so it goes to `corpus-out/design-checks.json`, which is gitignored.
 //!
 //! With no `--dir` it reads [`crate::ork`]'s default survey: every `.ork` under `refs/` but the
-//! scratch tree and the private flight collection, then OpenRocket's examples inside its jar.
+//! scratch tree and the private flight collection, then the two older fixture repositories copied
+//! into that collection's `imported/`, then OpenRocket's examples inside its jar.
 //! Pass `--dir refs/hpr-sim-fixtures` to read the collection.
 
 use std::collections::BTreeMap;

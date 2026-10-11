@@ -59,41 +59,27 @@ dest = "refs/fusionspace-design"
 license = "Apache-2.0 (code-like files); brand files all rights reserved"
 mode = "fetched"
 
-# Private: other people's design files. Skipped with a note where GitHub access is missing (CI).
-# The manifest pin is the one Loft used.
-[[git]]
-name = "loft-fixtures"
-url = "https://github.com/nrdptel/loft-fixtures.git"
-commit = "37251476e5cfee330c88aa94cf0dd58f93370ccd"
-dest = "refs/loft-fixtures"
-private = true
-manifest = "CHECKSUMS.sha256"
-manifest_sha256 = "d909aeae6e063b629a161ba36dcc0f8b51e45313997789c8ecbc71e342971510"
-license = "private; third-party design files"
-mode = "fetched"
-
-# Private: other people's flight logs, with the ground-truth notes recorded alongside them.
-[[git]]
-name = "debrief-fixtures"
-url = "https://github.com/nrdptel/debrief-fixtures.git"
-commit = "722f07cd5d9d8595b31c64e2964fb7fbd5e751e7"
-dest = "refs/debrief-fixtures"
-private = true
-license = "private; third-party flight logs"
-mode = "fetched"
-
 # Private: designs paired with the logs of the same flight, with each day's weather (ADR-151). Its
-# files carry no licence to redistribute, so only aggregate statistics are published. The default
-# `cargo xtask ork` corpus leaves it out. On Neer's Mac `refs/hpr-sim-fixtures` is a symlink to the
-# sibling checkout `../hpr-sim-fixtures` (a local setup script makes it), at this commit.
+# files carry no licence to redistribute, so only aggregate statistics are published. Skipped with
+# a note where GitHub access is missing (CI). On Neer's Mac `refs/hpr-sim-fixtures` is a symlink to
+# the sibling checkout `../hpr-sim-fixtures` (a local setup script makes it), at this commit.
+#
+# Since M2.3c4 it is the only fixture repository: `imported/` holds byte-exact copies of the two
+# older private repositories, `loft-fixtures` (other people's design files, at 37251476) and
+# `debrief-fixtures` (other people's flight logs with their ground-truth notes, at 722f07cd), each
+# copy's git tree the same as its original commit's. The design library keeps its own manifest,
+# whose pin is the one Loft used; its paths run from `imported/loft-fixtures/`. The default
+# `cargo xtask ork` corpus reads the two `imported/` copies and leaves the rest out.
 [[git]]
 name = "hpr-sim-fixtures"
 url = "https://github.com/nrdptel/hpr-sim-fixtures.git"
-commit = "31771d83051644da7ea545ec9dffbf14a175ea8d"
+commit = "7268bcd036a0e79f75ecb6ee2896327722fb8ab3"
 dest = "refs/hpr-sim-fixtures"
 private = true
-manifest = "CHECKSUMS.sha256"
-manifest_sha256 = "0246921b4ccaaf52c3520f0f596ac4b0e91682334a47d08f54acba2c2abe8265"
+manifests = [
+    { path = "CHECKSUMS.sha256", sha256 = "fdc71d99167ae57ac33487dfc663b381a357a3698376400f930ab7d3d86bfa9f" },
+    { path = "imported/loft-fixtures/CHECKSUMS.sha256", sha256 = "d909aeae6e063b629a161ba36dcc0f8b51e45313997789c8ecbc71e342971510" },
+]
 license = "private; third-party designs paired with flight logs"
 mode = "fetched"
 
