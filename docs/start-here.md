@@ -1,7 +1,7 @@
 # Start here
 
-Learn what FusionSpace HPR and its simulator are, what works today and what doesn't, and how to find
-your way around this site.
+Meet the FusionSpace HPR suite and its flight simulator, FusionSpace HPR · Sim: what works today
+and how to read this site.
 
 **FusionSpace HPR is a suite of open-source tools for hobby and high-power rockets. Its first
 product, FusionSpace HPR · Sim (HPR Sim for short), is a flight
