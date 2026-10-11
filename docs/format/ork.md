@@ -166,7 +166,8 @@ Where the format is described, how the reader unpacks and parses a file, and how
   design corpus, 20 hand-authored fixtures from [Loft][loft] and 1 from Debrief (this project's two
   predecessors), 17 example designs inside the pinned `OpenRocket-24.12.jar`, 9 from the
   `openrocket-database` parts library, and 1 cached elsewhere. Generated files under
-  `refs/scratch/` are excluded from the default survey. By the files' own `creator` attribute,
+  `refs/scratch/` and sources cached for research notes under `refs/research/` are excluded from
+  the default survey. By the files' own `creator` attribute,
   55 of the 73 readable files were written by OpenRocket and 18 were hand-authored, so where a
   count says what a real OpenRocket writes it is given over those 55. Every count below is printed
   by `cargo xtask ork` unless it names another source.

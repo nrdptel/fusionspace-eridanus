@@ -8,7 +8,8 @@
 //! kind they raised. Those counts are the part that may be published.
 //!
 //! With no `--dir`, it reads every `.ork` under `refs/` except the generated, unpinned
-//! `refs/scratch/` tree and the private flight collection `refs/hpr-sim-fixtures/` (designs paired
+//! `refs/scratch/` tree, the unpinned sources cached for research notes (`refs/research/`) and
+//! the private flight collection `refs/hpr-sim-fixtures/` (designs paired
 //! with their flights' logs, ADR-151, which joins a survey only through an increment of its own),
 //! then the two older fixture repositories copied inside that collection ([`IMPORTED`]), and the
 //! example designs inside the pinned OpenRocket jar (`datafiles/examples/`), which is a zip like
@@ -43,12 +44,14 @@ pub(crate) const JAR: &str = "refs/openrocket/OpenRocket-24.12.jar";
 const DEFAULT_DIRS: [&str; 1] = ["refs"];
 
 /// Directories under each of [`DEFAULT_DIRS`] the default corpus leaves out: generated scratch
-/// files, which are not pinned; the private flight collection (ADR-151), whose 396 designs would
-/// move every count `docs/format/ork.md` quotes; and the checkouts of the two fixture
-/// repositories it replaced (M2.3c4), which an older clone may still hold. Their files are read
-/// from [`IMPORTED`] instead, so a stale checkout cannot count them twice.
-const EXCLUDED: [&str; 4] = [
+/// files and the sources cached for research notes (`refs/research/`), neither of them pinned;
+/// the private flight collection (ADR-151), whose 396 designs would move every count
+/// `docs/format/ork.md` quotes; and the checkouts of the two fixture repositories it replaced
+/// (M2.3c4), which an older clone may still hold. Their files are read from [`IMPORTED`] instead,
+/// so a stale checkout cannot count them twice.
+const EXCLUDED: [&str; 5] = [
     "scratch",
+    "research",
     "hpr-sim-fixtures",
     "loft-fixtures",
     "debrief-fixtures",
@@ -1477,6 +1480,7 @@ mod tests {
         let refs = temp.path().join("refs");
         for dir in [
             "scratch",
+            "research/public-flights",
             "hpr-sim-fixtures/flights/f/design",
             "vendor/scratch",
         ] {
@@ -1484,6 +1488,7 @@ mod tests {
         }
         fs::create_dir_all(refs.join("vendor/hpr-sim-fixtures")).unwrap();
         fs::write(refs.join("scratch/generated.ork"), b"generated").unwrap();
+        fs::write(refs.join("research/public-flights/cached.ork"), b"cached").unwrap();
         fs::write(
             refs.join("hpr-sim-fixtures/flights/f/design/flown.ork"),
             b"flown",
