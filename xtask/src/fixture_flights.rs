@@ -191,10 +191,11 @@ pub(crate) enum LoggedKind {
     Gps,
 }
 
-/// The tier the collection's catalog (`catalog/`, written after M2.3c1) gives a flight: A when
-/// design, motor, log, day and site are each tied to the flight; B with one of those inferred;
-/// C with the design not shown to be the rocket flown. The manifest's flights are all tier A in
-/// `flights.csv`; the catalog put 15 of them lower (ADR-238).
+/// The tier the collection's catalog (`catalog/`, a second reading of each flight's sources,
+/// written after M2.3c1) proposes for a flight: A when design, motor, log, day and site are each
+/// tied to the flight; B with one of those inferred (most often the motor); C with the design not
+/// shown to be the rocket flown. The manifest's flights are all tier A in `flights.csv`, the
+/// collection's first grading; the catalog proposes 15 of them lower (ADR-238).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 pub(crate) enum CatalogTier {
     A,
@@ -882,25 +883,7 @@ fn fly_all(
             missing.join("; ")
         ));
     }
-    let set = |name: &str, rows: Vec<&Compared>| ErrorSet {
-        name: name.to_owned(),
-        flights: rows.len(),
-        hpr: Stats::of(rows.iter().map(|r| r.hpr_percent)),
-        openrocket: Stats::of(rows.iter().map(|r| r.openrocket_percent)),
-        hpr_in_openrocket_air: Stats::of(rows.iter().map(|r| r.hpr_in_openrocket_air_percent)),
-        hpr_over_openrocket: Stats::of(rows.iter().map(|r| r.hpr_over_openrocket_percent)),
-    };
-    let sets = vec![
-        set(EVERY_FLIGHT, compared.iter().collect()),
-        set(
-            WITHOUT_EARLY,
-            compared.iter().filter(|row| !row.early).collect(),
-        ),
-        set(
-            CATALOG_TIER_A,
-            compared.iter().filter(|row| !row.below_tier_a).collect(),
-        ),
-    ];
+    let sets = error_sets(&compared);
     Ok(Report {
         milestone: "M2.3c1, rechecked in M2.3c5".to_owned(),
         decision: "ADR-184, ADR-238".to_owned(),
@@ -918,7 +901,31 @@ fn fly_all(
 /// The three sets of flights the errors are taken over.
 pub(crate) const EVERY_FLIGHT: &str = "every flight compared";
 pub(crate) const WITHOUT_EARLY: &str = "without the early deployments";
-pub(crate) const CATALOG_TIER_A: &str = "only the flights the catalog keeps in tier A";
+pub(crate) const CATALOG_TIER_A: &str = "without the flights the catalog proposes below tier A";
+
+/// The errors over each set: every flight compared, those without an early deployment, and those
+/// the catalog keeps in tier A.
+fn error_sets(compared: &[Compared]) -> Vec<ErrorSet> {
+    let set = |name: &str, rows: Vec<&Compared>| ErrorSet {
+        name: name.to_owned(),
+        flights: rows.len(),
+        hpr: Stats::of(rows.iter().map(|r| r.hpr_percent)),
+        openrocket: Stats::of(rows.iter().map(|r| r.openrocket_percent)),
+        hpr_in_openrocket_air: Stats::of(rows.iter().map(|r| r.hpr_in_openrocket_air_percent)),
+        hpr_over_openrocket: Stats::of(rows.iter().map(|r| r.hpr_over_openrocket_percent)),
+    };
+    vec![
+        set(EVERY_FLIGHT, compared.iter().collect()),
+        set(
+            WITHOUT_EARLY,
+            compared.iter().filter(|row| !row.early).collect(),
+        ),
+        set(
+            CATALOG_TIER_A,
+            compared.iter().filter(|row| !row.below_tier_a).collect(),
+        ),
+    ]
+}
 
 /// The committed report: aggregates only, no flight named.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -948,7 +955,7 @@ pub(crate) struct Counts {
     pub early_deployments: usize,
     /// Of those compared, the flights where that is not known.
     pub early_unknown: usize,
-    /// Of those compared, the flights the collection's catalog puts below tier A.
+    /// Of those compared, the flights the collection's catalog proposes below tier A.
     pub below_tier_a: usize,
     /// Of all, the flights whose launch hour is not known (flown at local noon).
     pub assumed_times: usize,
@@ -1209,10 +1216,12 @@ impl Report {
             "Written by `cargo xtask fixture-flights`; do not edit. The flights are the tier-A \
              flights of a private collection of designs paired with logs of the same flight \
              (ADR-151). Its license allows only aggregate statistics, so no flight is named or \
-             numbered here. Each flight's day, logged apogee, early deployment and reason to be \
-             left out were rechecked against the collection's catalog of its sources (ADR-238), \
-             which also puts some flights below tier A: one fact of the flight inferred, or the \
-             design not shown to be the rocket flown.\n"
+             numbered here. Tier A is the collection's first grading of its best-documented \
+             flights. Each flight's day, logged apogee, early deployment and reason to be left out \
+             were rechecked against the collection's catalog, a second reading of each flight's \
+             sources (ADR-238, which sets out what the recheck moved). The catalog proposes some \
+             flights below tier A: one of the design, motor, log, day or site inferred (B), or the \
+             design not shown to be the rocket flown (C).\n"
         );
         let _ = writeln!(page, "## Flights\n");
         let _ = writeln!(page, "| | flights |\n|---|---:|");
@@ -1226,7 +1235,10 @@ impl Report {
             ("compared with the log", c.compared),
             ("of those, with an early deployment", c.early_deployments),
             ("of those, deployment not known", c.early_unknown),
-            ("of those, below tier A in the catalog", c.below_tier_a),
+            (
+                "of those, proposed below tier A by the catalog",
+                c.below_tier_a,
+            ),
             (
                 "of the 83, launch hour not known (local noon flown)",
                 c.assumed_times,
@@ -1430,7 +1442,13 @@ mod tests {
         let mut moved = report.clone();
         moved.counts.below_tier_a += 1;
         let error = moved.check_consistent(&page).unwrap_err();
-        assert!(error.contains(CATALOG_TIER_A), "{error}");
+        let c = &moved.counts;
+        let expected = format!(
+            "{CATALOG_TIER_A} holds {} flights, not {}",
+            c.compared - c.below_tier_a + 1,
+            c.compared - c.below_tier_a
+        );
+        assert!(error.contains(&expected), "{error}");
         let mut past = report.clone();
         past.counts.below_tier_a = past.counts.compared + 1;
         let error = past.check_consistent(&page).unwrap_err();
@@ -1439,6 +1457,34 @@ mod tests {
         dropped.sets.pop();
         let error = dropped.check_consistent(&page).unwrap_err();
         assert!(error.contains("the sets are"), "{error}");
+    }
+
+    /// Each set holds its flights: an early deployment leaves the second, a flight below tier A
+    /// the third, and every flight is in the first.
+    #[test]
+    fn each_set_holds_its_flights() {
+        let row = |percent: f64, early: bool, below_tier_a: bool| Compared {
+            hpr_percent: percent,
+            openrocket_percent: percent,
+            hpr_in_openrocket_air_percent: percent,
+            hpr_over_openrocket_percent: 0.0,
+            early,
+            below_tier_a,
+        };
+        let sets = error_sets(&[
+            row(1.0, false, false),
+            row(20.0, true, false),
+            row(-40.0, false, true),
+        ]);
+        let names: Vec<&str> = sets.iter().map(|s| s.name.as_str()).collect();
+        assert_eq!(names, [EVERY_FLIGHT, WITHOUT_EARLY, CATALOG_TIER_A]);
+        let means: Vec<f64> = sets.iter().map(|s| s.hpr.mean_percent).collect();
+        // (1 + 20 − 40) / 3, (1 − 40) / 2, (1 + 20) / 2.
+        assert_eq!(means, [round(-19.0 / 3.0, 2), -19.5, 10.5]);
+        assert_eq!(
+            sets.iter().map(|s| s.flights).collect::<Vec<_>>(),
+            [3, 2, 2]
+        );
     }
 
     /// A refusal's words name its cause; words no cause names keep the generic kind, which no

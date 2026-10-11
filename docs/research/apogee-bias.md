@@ -9,7 +9,7 @@ published cause explains it.** What is bounded of the motor is worth about +0.3%
 few meters either way, ERA5's temperature perhaps under 1%; the rail is already flown at its angle.
 That leaves drag the Barrowman-family codes miss (fin–body interference alone may be 3–7% of
 apogee) and as-built mass, with no published size. Without the 19 flights flagged for early
-deployment the bias falls to +5.88%. Sizes come mostly from single rockets or small samples:
+deployment the bias fell to +5.88% (+3.95% since the recheck). Sizes come mostly from single rockets or small samples:
 orders of magnitude, not a budget. "Sim high" means a cause makes the simulated apogee read high.
 
 ## What the collection itself says (aggregates only)

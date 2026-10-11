@@ -311,7 +311,7 @@
       }
     },
     {
-      "name": "only the flights the catalog keeps in tier A",
+      "name": "without the flights the catalog proposes below tier A",
       "flights": 44,
       "hpr": {
         "n": 44,

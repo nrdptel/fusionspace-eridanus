@@ -726,7 +726,7 @@ thrust file as it would any other: nothing of the motor is modeled ([ADR-082][ad
 The [private designs](format/ork.md#the-simulators-flights-of-the-private-designs) add none: none of them
 is the rocket of a flight in the [private collection of logs](VALIDATION.md#real-flight-data), so
 none has a log to compare with ([ADR-083][adr-083]). A private flight collection added on
-2026-10-04 pairs designs with their flights' logs; its 55 compared flights are
+2026-10-04 pairs designs with their flights' logs; its 53 compared flights are
 [below](#real-flights-of-the-private-collection).
 
 **Reading the logs.** Every log here comes from a [barometric
@@ -853,8 +853,11 @@ free text.
 **What is flown.** The collection pairs each design as flown with its own flight's log, the
 motor, date, site and the [ERA5](glossary.md#reanalysis) weather of the day
 ([ADR-151](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0151-hpr-sim-fixtures-joins-the-reference-library-as.md)).
-Of its 89 best-documented (tier A) flights, 83 have an OpenRocket `.ork` design
-([report][fixture-report]). HPR Sim flies the whole ERA5 profile of the launch hour: temperature,
+Of its 89 best-documented flights, 83 have an OpenRocket `.ork` design
+([report][fixture-report]). Those 89 are its tier A, the collection's first grading. Its catalog, a
+second reading of each flight's sources made later, proposes a tier for each again: A when the
+design, motor, log, day and site are each tied to the flight; B when one of them is inferred, most
+often the motor; C when the design is not shown to be the rocket flown ([ADR-238][adr-238]). HPR Sim flies the whole ERA5 profile of the launch hour: temperature,
 pressure and wind at every level. OpenRocket 24.12 can take only a temperature and pressure at
 the pad, with the standard atmosphere above, so it gets those, and the same wind every 50 m (164 ft). Both
 fly OpenRocket's curve for the motor the file names, from the same rail, with no parachute
@@ -903,19 +906,31 @@ put each at under 1.5 s before the peak and a few meters of climb, so the apogee
 OpenRocket +3.19% (9.49%). The two sets differ in which rockets they hold more than in what the
 early charges cost.
 
-**The recheck.** The collection's own catalog later read each flight's sources again and flagged
-68 of the 83 flights where its reading and this comparison's differed. Each flag was settled
-against the flight's log and sources ([ADR-238][adr-238]). Most changed nothing: a simulator's
-miss, a spin or a recovery fault after apogee stays in the comparison. Four flights changed.
-One launch day moved to the event's date, and one logged apogee dropped 0.23% to the reading
-before a drogue charge. Two flights left the errors: one tumbled through its climb, which the
-drawn design, at over 3 calibres of margin, can't show; the other's posted design is the flier's
-later, heavier rebuild. Together they moved HPR Sim's mean from +9.83% over 55 flights to +8.73%
-over 53, and OpenRocket's from +9.00% to +7.79%. Nearly all of that move is the tumbling flight,
-whose error was the largest in the set. The catalog also puts 15 flights below its tier A: one
-fact of the flight inferred (B), or the design not shown to be the rocket flown (C). Over the 44
-compared flights it keeps in tier A, HPR Sim is +7.84% (mean absolute 12.13%) and OpenRocket
-+6.99% (11.28%) ([report][fixture-report]).
+**The recheck.** The catalog flagged 68 of the 83 flights where its reading and this
+comparison's differed, and each flag was settled against the flight's log and sources
+([ADR-238][adr-238]). Most changed nothing: a simulator's miss, a spin or a recovery fault after
+apogee stays in the comparison. Four flights changed, and every flight gained its proposed tier:
+
+- one launch day moved to the event's date;
+- one logged apogee dropped 0.23%, to the reading before a drogue charge ([ADR-238][adr-238]);
+- one flight left the errors because it tumbled through its climb, which the drawn design, at over
+  3 [calibres](glossary.md#calibre-caliber) of margin, can't show;
+- one left because its posted design is the flier's later, heavier rebuild.
+
+**Nothing in HPR Sim changed; the comparison's flights did.** HPR Sim's mean went from +9.83%
+over 55 flights to +8.73% over 53, and OpenRocket's from +9.00% to +7.79%. The tumbling flight,
+whose error was the largest in the set by a wide margin, is more than the whole move: leaving it
+out lowers HPR Sim's mean by 1.28 points, and leaving out the rebuild raises it by 0.19
+([ADR-238][adr-238], which gives each step). Without the early deployments the mean went from
++5.88% to +3.95%, mostly for the same reason. The median, +9.47%, did not move.
+
+The catalog proposes 15 flights below tier A ([ADR-238][adr-238]). Over the 44 compared flights it
+keeps in tier A ([report][fixture-report]):
+
+| [over 44 flights][fixture-report] | mean | median | mean absolute | within 5% | within 10% |
+|---|---:|---:|---:|---:|---:|
+| [HPR Sim][fixture-report] | +7.84% | +7.60% | 12.13% | 8 | 23 |
+| [OpenRocket 24.12][fixture-report] | +6.99% | +6.34% | 11.28% | 8 | 22 |
 
 **What is not flown, and why.** Of the 83, HPR Sim flies 61, and each cause of the rest has an open
 issue ([report][fixture-report]). Most are small reading problems in HPR Sim's `.ork` importer that
@@ -928,8 +943,9 @@ lacks ([#362](https://github.com/nrdptel/fusionspace-eridanus/issues/362)). In t
 the flown motor ([#363](https://github.com/nrdptel/fusionspace-eridanus/issues/363)) and one flight's day has no weather file ([#364](https://github.com/nrdptel/fusionspace-eridanus/issues/364)).
 OpenRocket flies 79, missing the motor in one ([#362](https://github.com/nrdptel/fusionspace-eridanus/issues/362)).
 
-> **How far to trust it.** Logged measurements, read from free text and logs by hand, and checked for
-> form, not cross-checked flight by flight by a second reader. Of the 83 flights, 26 have no known
+> **How far to trust it.** Logged measurements, read from free text and logs by hand, checked for
+> form, then rechecked flight by flight against the collection's catalog, a second reading of the
+> same sources ([ADR-238][adr-238]). Of the 83 flights, 26 have no known
 > launch hour and fly at local noon ([report][fixture-report]); the altimeters are not calibrated; the designs are
 > what their fliers drew, whose masses some fliers measured and some did not. Both codes
 > over-predicting alike is common in hobby rocketry, where the real airframe carries rail buttons,

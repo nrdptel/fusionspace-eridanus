@@ -1,6 +1,6 @@
 # Real flights of the private collection: logged apogees (M2.3c1, rechecked in M2.3c5, ADR-184, ADR-238)
 
-Written by `cargo xtask fixture-flights`; do not edit. The flights are the tier-A flights of a private collection of designs paired with logs of the same flight (ADR-151). Its license allows only aggregate statistics, so no flight is named or numbered here. Each flight's day, logged apogee, early deployment and reason to be left out were rechecked against the collection's catalog of its sources (ADR-238), which also puts some flights below tier A: one fact of the flight inferred, or the design not shown to be the rocket flown.
+Written by `cargo xtask fixture-flights`; do not edit. The flights are the tier-A flights of a private collection of designs paired with logs of the same flight (ADR-151). Its license allows only aggregate statistics, so no flight is named or numbered here. Tier A is the collection's first grading of its best-documented flights. Each flight's day, logged apogee, early deployment and reason to be left out were rechecked against the collection's catalog, a second reading of each flight's sources (ADR-238, which sets out what the recheck moved). The catalog proposes some flights below tier A: one of the design, motor, log, day or site inferred (B), or the design not shown to be the rocket flown (C).
 
 ## Flights
 
@@ -15,7 +15,7 @@ Written by `cargo xtask fixture-flights`; do not edit. The flights are the tier-
 | compared with the log | 53 |
 | of those, with an early deployment | 19 |
 | of those, deployment not known | 0 |
-| of those, below tier A in the catalog | 9 |
+| of those, proposed below tier A by the catalog | 9 |
 | of the 83, launch hour not known (local noon flown) | 26 |
 | of the 83, rail not known (6 ft flown) | 2 |
 
@@ -68,7 +68,7 @@ Each simulator's apogee less the logged one, over the logged one, per cent. hpr 
 | hpr in OpenRocket's air | +4.11% | +5.87% | 10.36% | 11.92% | 5 | 19 | 0 0 0 1 3 6 2 3 8 8 0 2 1 0 |
 | hpr against OpenRocket | +0.69% | +0.30% | 1.63% | 2.42% | 33 | 34 | 0 0 0 0 0 0 12 21 1 0 0 0 0 0 |
 
-### only the flights the catalog keeps in tier A (44 flights)
+### without the flights the catalog proposes below tier A (44 flights)
 
 | | mean | median | mean absolute | RMS | within 5% | within 10% | histogram |
 |---|---:|---:|---:|---:|---:|---:|---|
