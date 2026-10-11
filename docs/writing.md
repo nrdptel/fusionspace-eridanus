@@ -74,8 +74,10 @@ They don't conflict with the rules above; they add these:
   `cargo xtask site` fails a hyphen-minus written for a minus sign, `-7.28%`, where the page
   should have the real one, `−7.28%` (U+2212), outside code. It also fails a table column whose
   cells are all numbers (a figure with its units, sign, spread or range, such as `1,400 m
-  (4,593 ft)` or `−7.28%`) unless its delimiter right-aligns it, `---:`; a cell in code, a date
-  or a version is a label, and an empty cell, a dash or "n/a" doesn't count.
+  (4,593 ft)`, `−7.28%` or `−29 to −34%`) unless its delimiter right-aligns it, `---:`. A cell
+  in code, a date or a version (or any cell under a head that says "version") is a label; a cell
+  with any other word makes its column a text column; an empty cell, a dash, "n/a" or "none"
+  doesn't count.
 - **A trust note**, in one fixed shape, on every result someone might fly on: a quote block that
   opens with `**How far to trust it.**`, then says what kind of figure it is (estimate,
   measurement, copied value); what it was checked against, with numbers; and what to rely on

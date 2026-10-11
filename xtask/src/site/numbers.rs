@@ -3,37 +3,42 @@
 //! - **A real minus sign** (U+2212) on screen: `−7.28%`, not `-7.28%`. [`minus_signs`] reads a
 //!   page's text as it renders (not code, which quotes files and output) and fails each
 //!   hyphen-minus that stands for one: right before a digit, or before a decimal point and a
-//!   digit, at the start of a run or after a space, an opening bracket or an operator
-//!   (`=`, `<`, `>`, `≤`, `≥`, `≈`, `~`, `±`, `/`, `×`). A hyphen after a letter or a digit joins
+//!   digit, at the start of a run or after a space, an opening bracket or quote, an operator
+//!   (`=`, `<`, `>`, `≤`, `≥`, `≈`, `~`, `±`, `/`, `×`), a comma, colon or semicolon, or an en
+//!   dash. A hyphen after a letter or a digit joins
 //!   words or names (`ADR-208`, `2026-10-04`, `1e-9`) and is left alone.
 //! - **Numbers right-aligned in columns** ("Numbers right-aligned; text left-aligned", *Tables*).
 //!   [`number_columns`] fails each table column whose body cells are all numbers, at least one
 //!   of them, and whose delimiter doesn't right-align it (`---:`). A number cell is a figure,
 //!   with a sign or a comparison before it if any, then only units, signs and brackets of
 //!   figures: `12`, `−7.28%`, `1,400 m (4,593 ft)`, `5,486 ± 227`, `0.3–0.5`, `1.70 calibers`.
-//!   A cell in code is a value quoted from a file, a date (`2026-10-04`) or a version (`0.1.0`)
-//!   is a label, and a cell with any other word is text. An empty cell, a dash or "n/a" doesn't
-//!   count either way.
+//!   A range may join two figures with "to". A cell in code is a value quoted from a file, a date
+//!   (`2026-10-04`) or a version (`0.1.0`, or any cell of a column whose head says "version") is
+//!   a label, and a cell with any other word is text, so a column holding one is a text column.
+//!   An empty cell, a dash, "n/a", "none" or "Not used" doesn't count either way.
 
 use super::units::rendered_runs;
 
 /// The characters after which a hyphen-minus before a digit is a minus sign: an opening bracket
-/// or an operator. A space or the start of a run count too.
-const BEFORE_A_MINUS: [char; 13] = [
-    '(', '[', '{', '=', '<', '>', '≤', '≥', '≈', '~', '±', '/', '×',
+/// or quote, an operator, a list's comma, colon or semicolon, or a range's en dash
+/// (`−5–-1 m`). A space or the start of a run count too.
+const BEFORE_A_MINUS: [char; 21] = [
+    '(', '[', '{', '=', '<', '>', '≤', '≥', '≈', '~', '±', '/', '×', ',', ':', ';', '"', '“', '\'',
+    '‘', '–',
 ];
 
-/// The words a number cell may hold after its figure: units, as `data.md` writes them, and the
-/// project's own (`cal`, `calibers`, `g` for acceleration). Any other word makes a cell text.
-const UNITS: [&str; 47] = [
+/// The words a number cell may hold after its figure: units, as `data.md` writes them, the
+/// project's own (`cal`, `calibers`, `g` for acceleration), and the "to" of a range. Any other
+/// word makes a cell text.
+const UNITS: [&str; 48] = [
     "m", "km", "cm", "mm", "ft", "in", "mi", "s", "ms", "min", "h", "kg", "g", "lb", "lbf", "oz",
     "N", "kN", "Ns", "Pa", "kPa", "hPa", "MPa", "psi", "K", "C", "F", "rad", "deg", "Hz", "J", "W",
     "mph", "kt", "kn", "cal", "caliber", "calibers", "AGL", "MSL", "Mach", "e", "x", "σ", "kB",
-    "MB", "GB",
+    "MB", "GB", "to",
 ];
 
-/// The cells that hold nothing: empty, a dash, or "n/a".
-const BLANK: [&str; 7] = ["", "–", "-", "−", "n/a", "N/A", "Not used"];
+/// The cells that hold nothing: empty, a dash, "n/a", "none" or "Not used".
+const BLANK: [&str; 9] = ["", "–", "-", "−", "n/a", "N/A", "none", "None", "Not used"];
 
 /// Each hyphen-minus written for a minus sign on a page, as (line, message).
 pub(super) fn minus_signs(text: &str) -> Vec<(usize, String)> {
@@ -81,7 +86,11 @@ pub(super) fn number_columns(text: &str) -> Vec<(usize, String)> {
     let mut problems = Vec::new();
     for table in super::tables(text) {
         for (column, alignment) in table.alignments.iter().enumerate() {
-            if *alignment == pulldown_cmark::Alignment::Right {
+            let head = table.header.get(column).map_or("", |cell| cell.text.trim());
+            // A column of versions is a column of labels, `1.10` after `1.9`.
+            if *alignment == pulldown_cmark::Alignment::Right
+                || head.to_lowercase().contains("version")
+            {
                 continue;
             }
             let cells: Vec<&super::Cell> = table
@@ -91,7 +100,6 @@ pub(super) fn number_columns(text: &str) -> Vec<(usize, String)> {
                 .filter(|cell| !(cell.code.is_empty() && BLANK.contains(&cell.text.trim())))
                 .collect();
             if !cells.is_empty() && cells.iter().all(|cell| is_number(cell)) {
-                let head = table.header.get(column).map_or("", |cell| cell.text.trim());
                 problems.push((
                     table.line,
                     format!(
@@ -182,6 +190,9 @@ mod tests {
     fn a_minus_in_a_table_cell_or_a_link_is_read() {
         let page = "| A | B |\n|---|---:|\n| x | -1.5 |\n\n[down -3 m](a.md)\n";
         assert_eq!(lines(&minus_signs(page)), [3, 5]);
+        // After a list's comma, a colon, a quote or a range's en dash.
+        let page = "At (−1.2,-0.4), a drop:-3 m, \"-5 m\" and −5–-1 m.\n";
+        assert_eq!(minus_signs(page).len(), 4);
     }
 
     #[test]
@@ -218,6 +229,7 @@ mod tests {
             "2.5 × 10⁻³",
             "1e-9",
             "53 (64%)",
+            "−29 to −34%",
         ] {
             let cell = super::super::Cell {
                 text: number.to_owned(),
@@ -253,5 +265,10 @@ mod tests {
             "| Case | Note | Count |\n|---|---|---|\n| 1 | fine | n/a |\n| 2 | 3 flights | – |\n";
         // The first column is numbers; the second text; the third only blanks.
         assert_eq!(number_columns(page).len(), 1);
+        // "none" is blank, so the second column is numbers; a version column is labels.
+        let page = "| Version | Error |\n|---|---|\n| 1.4 | none |\n| 1.10 | +7.0% |\n";
+        let problems = number_columns(page);
+        assert_eq!(problems.len(), 1, "{problems:?}");
+        assert!(problems[0].1.contains("column 2"), "{problems:?}");
     }
 }

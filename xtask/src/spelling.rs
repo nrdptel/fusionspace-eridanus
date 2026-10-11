@@ -224,15 +224,27 @@ const ISE_STEMS: &[&str] = &[
     "theor",
     "token",
     "util",
+    "vapor",
     "vector",
     "visual",
 ];
 
 /// The British endings of an [`ISE_STEMS`] word, each with its US form, longer first.
-const ISE_ENDINGS: [(&str, &str); 3] = [("isation", "ization"), ("ising", "izing"), ("ise", "ize")];
+const ISE_ENDINGS: [(&str, &str); 4] = [
+    ("isation", "ization"),
+    ("isable", "izable"),
+    ("ising", "izing"),
+    ("ise", "ize"),
+];
 
 /// Words that hold a piece of [`RULES`] and are US forms as they stand.
-const US_AS_THEY_STAND: [&str; 3] = ["analyses", "programmer", "programmed"];
+const US_AS_THEY_STAND: [&str; 5] = [
+    "analyses",
+    "programmer",
+    "programmed",
+    "sombrero",
+    "greyhound",
+];
 
 /// Why a match is allowed to stay.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -282,6 +294,38 @@ const ALLOWED: &[(&str, &str, Reason)] = &[
         "crates/hpr-validate/src/census/tests.rs",
         "from_str(\"\\\"calibre\\\"\")",
         Reason::Key,
+    ),
+    // Built-in materials' names before M0.9e, which designs saved then still hold.
+    (
+        "crates/hpr-design/src/materials.rs",
+        "\"Blue Tube 2.0 (vulcanized fibre)\",",
+        Reason::Key,
+    ),
+    (
+        "crates/hpr-design/src/materials.rs",
+        "(\"Carbon fibre/epoxy laminate\",",
+        Reason::Key,
+    ),
+    (
+        "crates/hpr-design/src/materials.rs",
+        "(\"Aluminium 6061\",",
+        Reason::Key,
+    ),
+    (
+        "crates/hpr-design/src/materials.rs",
+        "(\"Aluminium 7075\",",
+        Reason::Key,
+    ),
+    // A book and a chapter cited by their printed titles.
+    (
+        "crates/hpr-analysis/src/optimize/benchmark.rs",
+        "\"The global optimisation",
+        Reason::Title,
+    ),
+    (
+        "crates/hpr-analysis/src/optimize/benchmark.rs",
+        "*Towards Global Optimisation 2*",
+        Reason::Title,
     ),
     // SVG's attribute, spelled as the ARIA standard spells it.
     ("crates/hpr-cli/src/plot.rs", "aria-labelledby", Reason::Key),
@@ -1152,24 +1196,24 @@ fn misspelling(token: &str) -> Option<String> {
     if US_AS_THEY_STAND.iter().any(|word| lower.contains(word)) {
         return None;
     }
-    let replaced = RULES
-        .iter()
-        .find_map(|(piece, us)| {
-            let at = lower.find(piece)?;
-            Some(format!(
-                "{}{us}{}",
-                &lower[..at],
-                &lower[at + piece.len()..]
-            ))
+    // The first piece of [`RULES`] the word holds, then an [`ISE_STEMS`] ending on the result, so
+    // "vapourised" reads as "vaporized".
+    let ruled = RULES.iter().find_map(|(piece, us)| {
+        let at = lower.find(piece)?;
+        Some(format!(
+            "{}{us}{}",
+            &lower[..at],
+            &lower[at + piece.len()..]
+        ))
+    });
+    let word = ruled.as_deref().unwrap_or(&lower);
+    let ised = ISE_STEMS.iter().find_map(|stem| {
+        ISE_ENDINGS.iter().find_map(|(uk, us)| {
+            let at = word.find(&format!("{stem}{uk}"))? + stem.len();
+            Some(format!("{}{us}{}", &word[..at], &word[at + uk.len()..]))
         })
-        .or_else(|| {
-            ISE_STEMS.iter().find_map(|stem| {
-                ISE_ENDINGS.iter().find_map(|(uk, us)| {
-                    let at = lower.find(&format!("{stem}{uk}"))? + stem.len();
-                    Some(format!("{}{us}{}", &lower[..at], &lower[at + uk.len()..]))
-                })
-            })
-        })?;
+    });
+    let replaced = ised.or(ruled)?;
     Some(if token.chars().all(|c| !c.is_lowercase()) {
         replaced.to_uppercase()
     } else if token.chars().next().is_some_and(char::is_uppercase) {
@@ -1435,12 +1479,63 @@ mod tests {
             ("modelling", "modeling"),
             ("modelled", "modeled"),
             ("CENTRE", "CENTER"),
+            // The design audit's forms (M0.9e, #386).
+            ("calibres", "calibers"),
+            ("Calibre", "Caliber"),
+            ("labelled", "labeled"),
+            ("organisations", "organizations"),
+            ("optimisation", "optimization"),
+            ("normalised", "normalized"),
+            ("fibreglass", "fiberglass"),
+            ("grey", "gray"),
+            ("travelled", "traveled"),
+            // The rest of M0.9e's list, a form of each kind.
+            ("neighbouring", "neighboring"),
+            ("vapour", "vapor"),
+            ("Defence", "Defense"),
+            ("aluminium", "aluminum"),
+            ("judgement", "judgment"),
+            ("manoeuvred", "maneuvered"),
+            ("programmes", "programs"),
+            ("ageing", "aging"),
+            // The -ise stems, every ending, with the case kept.
+            ("Normalised", "Normalized"),
+            ("OPTIMISATION", "OPTIMIZATION"),
+            ("summarising", "summarizing"),
+            ("recognisable", "recognizable"),
+            ("anonymise", "anonymize"),
+            // A piece of the list, then an -ise ending on what it gives.
+            ("vapourised", "vaporized"),
         ];
         for (uk, us) in cases {
             assert_eq!(misspelling(uk).as_deref(), Some(us), "{uk}");
         }
         for fine in [
-            "center", "analysis", "analyses", "model", "modeling", "meter", "diameter",
+            "center",
+            "analysis",
+            "analyses",
+            "model",
+            "modeling",
+            "meter",
+            "diameter",
+            // Whole stems only: these hold "-ise" or a stem and are US English.
+            "otherwise",
+            "exercise",
+            "expertise",
+            "advertise",
+            "premise",
+            "optimistic",
+            "characteristic",
+            "organism",
+            "realistic",
+            "emphasis",
+            "itemized",
+            // US forms as they stand that hold a piece of the list.
+            "programmer",
+            "programmed",
+            "sombrero",
+            "greyhound",
+            "polystyrene",
         ] {
             assert_eq!(misspelling(fine), None, "{fine}");
         }

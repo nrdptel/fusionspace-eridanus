@@ -135,12 +135,12 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     test and failing when stale (a test each); its *Compared with* section meets ADR-209 §8.
 - [ ] **M0.9 One name, one design** (ADR-205; Neer, 2026-10-08). Every surface says FusionSpace
   HPR as ADR-199 §1 has it, and follows the pinned design system rule by rule, each checked.
-  - [ ] **M0.9f The rest of the words** (ADR-239). *Done when:* #476 is closed: a site check fails
-    on an ungrouped figure of four or more digits in prose (the identifiers it passes listed), an
-    ISO date in running prose, an en dash between names, and a number split from its unit by a
-    breaking space; number columns' heads give a label and a unit; a test fails on an `hpr sim`
-    warning sentence over 40 words; each over-precise figure #476 names is cut to what is known;
-    the audit's rows name the checks.
+  - [ ] **M0.9f The rest of the words** (ADR-239). *Done when:* #476 is closed: a check of the site
+    and the README fails on an ungrouped figure of four or more digits in prose (the identifiers it
+    passes listed), an ISO date in running prose, an en dash between names, a number split from
+    its unit by a breaking space, and a lead note or table cell over 120 words; number columns'
+    heads give a label and a unit; a test fails on an `hpr sim` warning sentence over 40 words;
+    each over-precise figure #476 names is cut to what is known; the audit's rows name the checks.
 - [ ] **M0.10 The scoreboard** (ADR-209 §3). *Done when:* `cargo xtask scoreboard` writes
   `validation/reports/scoreboard.md`, HPR Sim against OpenRocket and RocketPy on each axis ADR-209 §3
   names, each number read from a committed report and each unmeasured cell "not measured" with the

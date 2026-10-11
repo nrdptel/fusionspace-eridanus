@@ -467,6 +467,7 @@ mod tests {
             (
                 "crates/hpr-py/README.md",
                 &[
+                    "## What works today",
                     "## What doesn't work yet",
                     "## Install",
                     "## Where the details are",
@@ -476,7 +477,17 @@ mod tests {
         ];
         for (path, order) in readmes {
             let text = fs::read_to_string(root.join(path)).unwrap();
-            let headings: Vec<&str> = text.lines().filter(|l| l.starts_with("## ")).collect();
+            // The sections' headings, not a `## ` line inside a fenced block.
+            let mut fenced = false;
+            let headings: Vec<&str> = text
+                .lines()
+                .filter(|line| {
+                    if line.starts_with("```") {
+                        fenced = !fenced;
+                    }
+                    !fenced && line.starts_with("## ")
+                })
+                .collect();
             let mut at = 0;
             for heading in order {
                 let found = headings[at..].iter().position(|h| h == heading);

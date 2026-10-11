@@ -13,13 +13,16 @@ library, from the command line or from Python.
 
 ## What works today
 
-Every model is cited and tested, and the simulator is measured against independent simulators and
-real flight data, with the results published ([Start here](docs/start-here.md#what-works-today)
-lists each part with its page).
+This is what `main` does; [the changelog](CHANGELOG.md) says what release 0.1.0 holds. Every model
+is cited and tested, and the simulator is measured against independent simulators and real flight
+data, with the results published ([Start here](docs/start-here.md#what-works-today) lists each
+part with its page).
 
-- 6-DOF flight with variable mass: aerodynamics from subsonic to supersonic, the standard
-  atmosphere or a measured one, winds and turbulence, staging, clusters and air starts, and
-  recovery with drift.
+- Flight in six degrees of freedom (6-DOF: three of position, three of rotation), with variable
+  mass: aerodynamics from subsonic to supersonic, the standard atmosphere or a measured one, winds
+  that change with height, staging, clusters and air starts, and recovery with drift.
+- Rockets built part by part, with OpenRocket's catalog of 3,449 makers' parts built in, or read
+  from a design file.
 - OpenRocket `.ork` designs read whole and written back, and an open design format of its own
   (`.hpr`, `.hprz`); `.eng` and `.rse` motors, 32 bundled, and any other fetched from
   ThrustCurve.org once.
@@ -38,9 +41,14 @@ lists each part with its page).
 - Flights exported as `.csv`, `.json`, `.parquet`, `.geojson` or `.kml`, and a Python package.
 
 **How far to trust it:** every figure is an estimate from a model, not a measurement, and never a
-go/no-go verdict. Against 53 logged flights of fliers' own designs, the simulated apogee averaged
-8.73% above the logged one, outside the 5% target ([Accuracy at a glance](#accuracy-at-a-glance)
-below). The motor's printed data and your range safety officer (RSO) are authoritative.
+go/no-go verdict. Against 53 logged flights of fliers' own designs, the simulated apogee missed by
+12.95% on average (mean absolute), outside the 5% target, and read high by 8.73% on average. It
+can err either way: from about Mach 0.8 the drag reads high, so a fast rocket's apogee reads low.
+Plan a waiver or a field's ceiling with room above the simulated apogee
+([Accuracy at a glance](#accuracy-at-a-glance) below). The motor's printed data and your range
+safety officer (RSO) are authoritative. The 53 flights' weather is ERA5, generated using Copernicus
+Climate Change Service information 2026, and contains modified Copernicus Climate Change Service
+information 2026; neither the European Commission nor ECMWF is responsible for any use made of it.
 
 ## What doesn't work yet
 
@@ -51,10 +59,13 @@ below). The motor's printed data and your range safety officer (RSO) are authori
   with 3D flight replay.
 - Motors other than commercial solid ones: no hybrids, liquids or research motors before
   release 1.0.
-- Accuracy gaps: apogees read high on real flights (above); drag past Mach 1 is lightly checked;
-  only small angles of attack are modeled. [Start here](docs/start-here.md#what-doesnt-work-yet)
-  lists the gaps you are most likely to meet, and [the roadmap](docs/ROADMAP.md) the order of the
-  work.
+- Effects left out of a flight: gusts (a turbulence model exists, but no flight uses it), the
+  rocket pitching as it leaves the rail, a motor's thrust off its axis, and a parachute's opening
+  shock.
+- Accuracy gaps: apogees miss real flights' by more than the target (above); drag past Mach 1 is
+  lightly checked; only small angles of attack are modeled.
+  [Start here](docs/start-here.md#what-doesnt-work-yet) lists the gaps you are most likely to meet,
+  and [the roadmap](docs/ROADMAP.md) the order of the work.
 
 ## Accuracy at a glance
 

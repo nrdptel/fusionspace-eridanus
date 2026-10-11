@@ -207,8 +207,8 @@ is OpenRocket 23.09, 1.10 is 24.12, and 1.11 (26.xx, documented but not yet rele
 
 **Observed**, across the corpus:
 
-| schema | files | written by |
-|--:|--:|---|
+| schema version | files | written by |
+|---|--:|---|
 | 1.4 | 4 | OpenRocket 13.05, 15.03 |
 | 1.5 | 10 | OpenRocket 15.03 |
 | 1.8 | 5 | OpenRocket 22.02 |
@@ -1068,7 +1068,7 @@ through its public interface (`validation/oracles/openrocket/clusters.py`, [ADR-
 Each pattern is a figure of points `pₖ`, one per tube, in units of `2 R s` (defined below):
 
 | pattern | tubes | figure |
-|---|---|---|
+|---|--:|---|
 | `single` | 1 | one tube |
 | `double`, `3-row`, `4-row` | 2 to 4 | a row, one apart |
 | `3-ring`, `4-ring`, `5-ring` | 3 to 5 | a triangle, a square, a pentagon, each of side one |
@@ -2591,7 +2591,7 @@ the record's, and that every outcome, summary and table follows from HPR Sim's f
 **Results** (HPR Sim less OpenRocket):
 
 | metric | named cause | flights | median | range |
-|---|---|---:|---:|---|
+|---|---|---:|---:|--:|
 | apogee | none | 36 | −0.18% | −4.34% to +1.95% |
 | apogee | OpenRocket's parachute opened before apogee | 15 | +0.10% | −1.24% to +13.80% |
 | apogee | HPR Sim's own drag, sized on OpenRocket's | 1 | +6.95% | +6.95% |
@@ -2613,7 +2613,7 @@ same side. The other 44 flights' margins are within −0.0580 to +0.0045 cal. Be
 The rocket's mass and center of mass, over the same 53 flights (HPR Sim less OpenRocket):
 
 | quantity | flights | median | range |
-|---|---:|---:|---|
+|---|---:|---:|--:|
 | mass at launch | 53 | +0.008% | −0.016% to +0.209% |
 | mass as the rocket leaves the rod | 53 | +0.012% | −0.030% to +3.257% |
 | center of mass as the rocket leaves the rod | 53 | +0.0007 cal | −0.0028 to +0.0624 cal |

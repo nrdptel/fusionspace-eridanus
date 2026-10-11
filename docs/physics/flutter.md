@@ -140,7 +140,7 @@ example, at the ordinate he chose. HPR Sim checks them with the moduli Martin ma
 axis, each a small box read off the same scan:
 
 | Material | Martin's mark, 10⁶ psi | Figure 3 ratio | Martin says | Against the band |
-|---|---|---|---|---|
+|---|--:|--:|---|---|
 | Magnesium | 2.40 to 2.63 | 0.47 to 0.51 | "in the flutter region" | above |
 | Aluminum | 3.82 to 4.28 | 0.29 to 0.32 | "marginal" | on it |
 | Steel | 8.92 to 11.3 | 0.11 to 0.14 | "probably safe" | below |

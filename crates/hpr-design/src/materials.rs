@@ -680,12 +680,29 @@ pub fn shear_modulus(id: &str) -> Option<&'static BuiltinShearModulus> {
     SHEAR_MODULI.iter().find(|m| m.id == id)
 }
 
-/// The built-in shear modulus of `material`, a design's copy of a built-in one (its name and
-/// density both match); `None` for a material that isn't built in or has no modulus.
+/// The names built-in materials had in designs saved before M0.9e spelled them in US English,
+/// each with its name now. A design keeps the name it was saved with, so both still match.
+const FORMER_NAMES: [(&str, &str); 4] = [
+    (
+        "Blue Tube 2.0 (vulcanized fibre)",
+        "Blue Tube 2.0 (vulcanized fiber)",
+    ),
+    ("Carbon fibre/epoxy laminate", "Carbon fiber/epoxy laminate"),
+    ("Aluminium 6061", "Aluminum 6061"),
+    ("Aluminium 7075", "Aluminum 7075"),
+];
+
+/// The built-in shear modulus of `material`, a design's copy of a built-in one (its name, or the
+/// name the built-in had before M0.9e, and its density both match); `None` for a material that
+/// isn't built in or has no modulus.
 pub fn shear_modulus_of(material: &Material) -> Option<&'static BuiltinShearModulus> {
+    let name = FORMER_NAMES
+        .iter()
+        .find(|(former, _)| *former == material.name)
+        .map_or(material.name.as_str(), |(_, now)| *now);
     let builtin = BUILTIN
         .iter()
-        .find(|m| m.name == material.name && m.density == material.density)?;
+        .find(|m| m.name == name && m.density == material.density)?;
     shear_modulus(builtin.id)
 }
 
@@ -694,6 +711,24 @@ mod tests {
     use std::collections::BTreeSet;
 
     use super::*;
+
+    #[test]
+    fn a_design_saved_with_a_former_name_finds_its_shear_modulus() {
+        for (former, now) in FORMER_NAMES {
+            let builtin = BUILTIN.iter().find(|m| m.name == now).unwrap();
+            let saved = Material {
+                name: former.to_owned(),
+                ..builtin.material()
+            };
+            assert_eq!(
+                shear_modulus_of(&saved).map(|m| m.id),
+                shear_modulus_of(&builtin.material()).map(|m| m.id),
+                "{former}"
+            );
+        }
+        let aluminum = BUILTIN.iter().find(|m| m.name == "Aluminum 6061").unwrap();
+        assert!(shear_modulus_of(&aluminum.material()).is_some());
+    }
 
     #[test]
     fn every_entry_has_a_unique_id_a_source_and_a_positive_density() {

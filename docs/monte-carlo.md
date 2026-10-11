@@ -326,7 +326,7 @@ on a J, K or L [impulse class](glossary.md#impulse-class) motor) from ignition t
 under a drogue and a main, take:
 
 | rocket | peak Mach | 10,000 flights, 10 threads | one flight, one thread |
-|---|---|--:|--:|
+|---|--:|--:|--:|
 | Valetudo, one of RocketPy's examples: 9.7 kg on a K400C | 0.3 to 0.4 | 3.0 s | 1.9 ms |
 | a 66 mm (2.6 in) rocket with a 54 mm motor mount on a K940 | 1.6 to 2.0 | 9.4 s | 5.7 ms |
 

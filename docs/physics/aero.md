@@ -483,7 +483,7 @@ compares HPR Sim's body at each point, with the pointed nose fitted to the tunne
 off ([Checking the shock-expansion method](#checking-the-shock-expansion-method)):
 
 | crossflow Mach number `M_n` | points | HPR Sim's `C_N` against the tunnel's | with Galejs's `K` = 1.1 |
-|---|--:|---|---|
+|---|--:|--:|--:|
 | under 0.45 | 21 | −6.9% to +31.7% | +1.9% to +61.4% |
 | 0.45 to 0.95 | 25 | −22.3% to +13.0% | −21.1% to +17.0% |
 | 0.95 and over | 16 | +0.8% to +16.5% | −21.7% to −7.1% |
@@ -661,7 +661,7 @@ since removed, kept here because its size is the measured cost of the model it r
 `a_near_flat_flare_marches_every_row_and_the_fallback_is_still_measured` the last):
 
 | drawing this | normal force | center of pressure | who owns it |
-|---|---|---|---|
+|---|--:|---|---|
 | a step in radius, past a billionth of the local radius | −8.65% | 1.03 calibers | queued: [M1.14d: supersonic accuracy, these switches first](../decisions-and-roadmap.md#m1-14d), and [M1.14h](../decisions-and-roadmap.md#m1-14h) above Mach 2.5; [issue #87: a step has no model of its own](https://github.com/nrdptel/fusionspace-eridanus/issues/87) |
 | a flare behind a boattail and too long for its wake, however small | −27.5% | 0.29 calibers | queued: [M1.14d: supersonic accuracy, these switches first](../decisions-and-roadmap.md#m1-14d), and [M1.14h](../decisions-and-roadmap.md#m1-14h) above Mach 2.5; [issue #120: a lip longer than its wake](https://github.com/nrdptel/fusionspace-eridanus/issues/120) |
 | a pointed tip steeper than the cone tables' 30° | −7.7% | 0.81 calibers | queued: [M1.14d: supersonic accuracy, these switches first](../decisions-and-roadmap.md#m1-14d), and [M1.14h](../decisions-and-roadmap.md#m1-14h) above Mach 2.5; [issue #121: a tip past the cone tables](https://github.com/nrdptel/fusionspace-eridanus/issues/121) |
@@ -1435,7 +1435,7 @@ own `C_N` at those same four angles, [body lift](#body-lift) included, so the tw
 quantity.
 
 | Mach | measured `C_Nα`, per radian | HPR Sim | HPR Sim's error | measured CP, calibers aft of the tip | HPR Sim | HPR Sim − measured, calibers |
-|--:|--:|---|---|--:|---|---|
+|--:|--:|--:|--:|--:|--:|--:|
 | 1.5 | 1.650 | none | none | 0.810 | none | none |
 | 1.9 | 1.800 | 1.766 | −1.9% | 0.888 | 0.934 | 0.046 |
 | 2.3 | 1.667 | 1.784 | +7.0% | 0.921 | 0.926 | 0.005 |
@@ -1458,7 +1458,7 @@ same reading and fit also give **model 1**, a sphere-cone with *no* flare, the b
 costs from what the rest of the body costs:
 
 | Mach | HPR Sim's error, model 1 (no flare) | HPR Sim's error, model 2 (flared) | the flare adds | the report's own method, model 1 | the report's own method, model 2 |
-|--:|--:|---|---|--:|--:|
+|--:|--:|--:|---|--:|--:|
 | 1.5 | −1.2% | none | none | −3.3% | +28.6% |
 | 1.9 | +0.0% | −1.9% | −1.9 points | +2.0% | +24.8% |
 | 2.3 | +7.5% | +7.0% | −0.5 points | +8.5% | +31.6% |
@@ -4146,7 +4146,7 @@ from 1.41 to 2.88 with no trend, so they don't settle whether HPR Sim's 1.91 is 
 | 4.63 | 7.55 | 7.30 | −3.3% | 0.5876 | 0.6073 | +0.34 | 4.15 / 3.95 |
 
 | reference, Mach | `C_Nα` difference | CP difference, calibers | rows within both targets |
-|---|---|---|---|
+|---|--:|--:|---|
 | Arcas, long, 0.6 and 0.8 | +0.7%, +8.9% | −0.36, +0.07 | 2 of 2 |
 | Arcas, long, 0.9 to 1.2 | −8.8% to +27.1% | +0.67 to +2.36 | 0 of 3 |
 | Arcas, long, 1.8 to 2.96 | +8.4% to +9.4% | −0.53 to −0.43 | 1 of 3 |
@@ -4521,7 +4521,7 @@ readings' half a caliber: the short model at Mach 1.5 and 1.8, where the slope m
   reruns the comparison when `refs/rocketpy` is present.
 
   | case | curve | HPR Sim `C_D0` | error | range over inputs |
-  |---|---|--:|--:|---|
+  |---|---|--:|--:|--:|
   | Calisto, 2018 fins | RASAero II export, power-off | 0.3982 | +4.4% | −14.0% to +12.8% |
   | Calisto, getting-started fins (variant) | the same | 0.3537 | −7.3% | −12.9% to +19.3% |
   | Juno III | labeled RASAero II, 3-decimal table | 0.3525 | −6.0% | −10.5% to +24.1% |

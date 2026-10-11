@@ -212,8 +212,8 @@ pub mod mixed {
 }
 
 /// Test functions for global optimization with few evaluations, for [`ego`](super::ego): the
-/// Branin and Hartmann functions of L. C. W. Dixon and G. P. Szegö, "The global optimization
-/// problem: an introduction", in *Towards Global Optimization 2*, North-Holland, 1–15 (1978),
+/// Branin and Hartmann functions of L. C. W. Dixon and G. P. Szegö, "The global optimisation
+/// problem: an introduction", in *Towards Global Optimisation 2*, North-Holland, 1–15 (1978),
 /// on which D. R. Jones, M. Schonlau and W. J. Welch, "Efficient global optimization of
 /// expensive black-box functions", *Journal of Global Optimization* 13, 455–492 (1998),
 /// <https://doi.org/10.1023/A:1008306431147>, run EGO (their Table 1). The constants are as
