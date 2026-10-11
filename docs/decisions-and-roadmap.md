@@ -1,5 +1,8 @@
 # Decisions and the roadmap
 
+See why the simulator works as it does and what comes next, through the project's decision log,
+roadmap and lessons from earlier work.
+
 This page is the way into the project's three records: the decision log, the roadmap and the
 lessons from Loft. They are files in the repository, not pages of this site, because they are
 written as the work happens. Every label you meet on the other pages, such as a decision record
@@ -253,6 +256,7 @@ until someone rewrites it in plainer words.
 | [ADR-230: The site's defaults split again: print and the text marks first][adr-230] | [M0.9d8](#m0-9d8) took the last of #383 and all of #443: print, the three text marks mdBook draws as icons, and the Core Web Vitals measured. [M0.9d8](#m0-9d8) now covers print and the marks: the build draws the sidebar's fold toggle as the system's chevron, the theme menu underlines the chosen theme, a heading jumped to takes no mark, and the site prints in the light theme's values with navigation hidden, link addresses shown and rows, notes and the title block kept whole. The page check fails a text mark drawn as an icon, and reads every page with its print rules applied at the run's width nearest a sheet of paper (720 px), in both themes, failing each print rule with canaries. The new [M0.9d10](#m0-9d10) keeps the old done-when whole (#383 and #443 closed) and takes the Core Web Vitals. |  |
 | [ADR-231: The page anatomy split again: the drawing first][adr-231] | [M0.9d9](#m0-9d9) took the rest of #384: the intro (designation tag, status chip, lead), sheets with their rail and two to six a page, every page opening with how far to trust it, the header's theme switch and headings in order. [M0.9d9](#m0-9d9) now covers what the build can draw on every page as it stands: after mdBook builds the site, `cargo xtask site` opens each page's intro with the designation tag, makes each `h2` section a sheet with `SHEET n / N` in its rail under a 2 px ink rule, and turns mdBook's six-theme menu into the system's segmented switch (Auto, Light, Dark), in the header from 960 px and at the top of the sidebar below. A file check fails a page without them or with a heading that skips a level, and the page check fails each drawn off the system's, with canaries. The new [M0.9d11](#m0-9d11) keeps the old done-when whole (#384 closed, every rule held) and takes what rewrites the pages' own words: the status chip and the one-sentence lead, two to six sheets a page, and every page opening with how far to trust it. |  |
 | [ADR-232: The pages' vitals, measured as a phone on slow 4G][adr-232] | `cargo xtask site` now loads every page of the guide (not rustdoc's API reference) cold in headless Chrome as Lighthouse's mobile preset (a 412 px phone, 562.5 ms on every request, 1.5 Mbit/s down) with the CPU slowed to a phone's by Lighthouse's BenchmarkIndex and the slowdown confirmed, measures LCP, CLS and INP, and fails a page over 2.5 s, 0.1 or 200 ms (the median of three loads for a page over), with a canary for each vital. To pass, every page links one stylesheet, asked for first with mdBook's sidebar script, and preloads four fonts, two more than the product system's limit; the theme switch is placed before the first paint; a phone's menu tap no longer slides the page; and the print page shows a cover on screen, its chapters placed in the page only when it prints. The page check now also fails anything fixed to the window on paper, which had covered the top of each printed chapter's tag. |  |
+| [ADR-233: The pages' own words split again: the intro's chip and lead first][adr-233] | [M0.9d11](#m0-9d11) took the rest of #384: the intro's status chip and one-sentence lead, two to six sheets a page, and every page opening with how far to trust it. [M0.9d11](#m0-9d11) now covers the intro: after mdBook builds the site, `cargo xtask site` sets the title block's status (IN PREPARATION or RELEASED, the product system's drawing words) in the system's chip beside the designation tag, and makes the paragraph under every page's title its lead, which a file check holds to one sentence of at most 25 words; the page check fails a chip or a lead drawn off the system's, with canaries. The title block's version and status, which still read "not yet released" after 0.1.0 shipped on 2026-10-08, now say what the site describes. The new [M0.9d12](#m0-9d12) keeps the old done-when whole (#384 closed, every rule held) and takes the sheets and the trust openings. |  |
 
 ## The roadmap
 
@@ -385,7 +389,8 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9d8"></a>[M0.9d8][done-0] | Print and the text marks | done |
 | <a id="m0-9d9"></a>[M0.9d9][done-0] | The anatomy drawn | done |
 | <a id="m0-9d10"></a>[M0.9d10][done-0] | The pages' vitals | done |
-| <a id="m0-9d11"></a>[M0.9d11][phase-0] | The pages' own words | not yet done |
+| <a id="m0-9d11"></a>[M0.9d11][done-0] | The intro's chip and lead | done |
+| <a id="m0-9d12"></a>[M0.9d12][phase-0] | The pages' sheets and trust | not yet done |
 | <a id="m0-9e"></a>[M0.9e][phase-0] | The words to the design | not yet done |
 | <a id="m0-10"></a>[M0.10][phase-0] | The scoreboard | not yet done |
 | <a id="m0-11"></a>[M0.11][phase-0] | Steps to a first answer | not yet done |
@@ -1017,6 +1022,7 @@ is the milestone that added or will add that test.
 [adr-230]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0230-the-sites-defaults-print-and-the-marks-first.md
 [adr-231]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0231-the-page-anatomy-the-drawing-first.md
 [adr-232]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0232-the-pages-vitals-measured.md
+[adr-233]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0233-the-intro-chip-and-lead-first.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

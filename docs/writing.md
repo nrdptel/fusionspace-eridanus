@@ -1,5 +1,8 @@
 # Writing these pages
 
+Learn the house style that every page and doc comment on this site follows, for its words, its
+layout and its design.
+
 **This page is the house style for FusionSpace HPR's documentation.** It is for anyone who writes or
 edits a page of this site, a model page, or a doc comment. It applies to every new page and to
 every page a change touches. Older pages move to it as they are edited, not all at once.
@@ -284,7 +287,16 @@ Inside that frame the build lays each page out as an engineering drawing set is 
 
 - every page opens with an intro: the site's designation, `FS-ACHERNAR · SW · TOOL 001` (the
   product's number in the FusionSpace register, as the title block gives it), in a small tag with
-  one corner cut off, over the page's title;
+  one corner cut off, beside a status chip, both over the page's title. The chip shows the title
+  block's *Status*, one of the product system's drawing words: IN PREPARATION, outlined in the
+  link color with a square icon, or RELEASED, filled in green with a circle. The site has one
+  status, so every page shows the same chip;
+- the paragraph right under the title is the page's lead, set larger and in gray: one sentence,
+  of at most 25 words, ending in a period, that says what the page covers and what a reader gets
+  from it. Write it as the first paragraph of every page, under the `#` title and before
+  anything else (on a model page, before *In short*). A sentence ends at a period, question mark
+  or exclamation mark followed by a space, so a lead can't name an abbreviation with a period in
+  it: write "the 1976 US Standard Atmosphere", not "the U.S. Standard Atmosphere";
 - each `##` section is a sheet: a 2 px rule in the text's color across its top, then its number,
   `SHEET 2 / 5`, in 12 px capitals over its name. On the print page, which holds every chapter,
   each chapter counts its own sheets. Write each `##` heading in the page's text, not inside
@@ -296,12 +308,17 @@ Inside that frame the build lays each page out as an engineering drawing set is 
   menu, with six themes for two looks, is gone; a reader who had saved one of the other four is
   put back on Auto.
 
-A file check fails a page without the tag over its title, with a `##` heading outside a sheet or
+A file check fails a page without the tag and the chip over its title, without a lead of one
+sentence and at most 25 words under it, with a `##` heading outside a sheet or
 sheets numbered out of order, without the switch in place of mdBook's theme menu, or with a
 heading that skips a level going down (a `####` right after a `##`; headings go in order). The
 page check fails, at every width:
 
 - a tag not in Cascadia Mono 12 px, without its cut corner or 1 px border, or not above the title;
+- a chip not in Cascadia Mono 12 px at weight 600 in capitals, under 24 px tall, with its icon
+  other than 14 px, in other colors than its status's, before its tag or not above the title;
+- a lead not in Archivo 20 px on 28 px lines at weight 400, not in the muted ink, or not right
+  under the title;
 - a sheet without its 2 px rule in the text's color, or with its number missing, out of order,
   not in Cascadia Mono 12 px or not above its name; a `##` heading outside a sheet;
 - a switch not in the header from 960 px or not in the table of contents below it (read with
@@ -313,9 +330,8 @@ page check fails, at every width:
   whose theme doesn't follow; and it loads the page with mdBook's Coal saved, and fails one that
   doesn't forget it and press Auto.
 
-Each page's own status and one-sentence lead in its intro, two to six sheets a page, and every
-page opening with how far to trust it wait for
-[M0.9d11, the pages' own words](decisions-and-roadmap.md#m0-9d11).
+Two to six sheets a page, and every page opening with how far to trust it, wait for
+[M0.9d12, the pages' sheets and trust](decisions-and-roadmap.md#m0-9d12).
 
 mdBook draws three icons as characters of text: `❱` beside a heading that folds open in the
 table of contents, `✓` beside the chosen theme, and `»` before a heading a link jumped to. The

@@ -1,5 +1,8 @@
 # Solid motors
 
+Learn how to fly a commercial solid motor in HPR Sim, and how it models the thrust curve, propellant
+burn, mass and ejection delay.
+
 ## In short
 
 - **What it models:** commercial solid motors: the thrust curve and its statistics (total

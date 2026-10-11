@@ -1,5 +1,8 @@
 # Exporting a flight
 
+Save a flight as CSV, JSON or Parquet tables for a spreadsheet, and as GeoJSON or KML maps of its
+path and landing.
+
 This page shows how to save a flight as files other programs read: a table of numbers over time
 for a spreadsheet or a plotting tool (CSV, JSON or Parquet), and a map of the flight path and the
 landing (GeoJSON or KML, which Google Earth, QGIS and most web maps open). It flies the rocket of

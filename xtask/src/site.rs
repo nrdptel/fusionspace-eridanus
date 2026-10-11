@@ -210,12 +210,13 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let output = root.join(OUTPUT);
     let issued = theme::commit_date(&root)?;
     let dated = theme::fill_issue_date(&output, &issued)?;
+    let status = frame::site_status(&output)?;
     let notes = notes::draw(&output)?;
     let glyphs = chrome::draw(&output)?;
     chrome::draw_toc(&output)?;
     let framed = frame::draw(&output)?;
     let switches = switch::draw(&output)?;
-    let (intros, sheets) = sheets::draw(&output)?;
+    let (intros, sheets) = sheets::draw(&output, &status)?;
     let chapters = print::draw(&output)?;
     let bundled = bundle::draw(&output)?;
     let workspace = crate::workspace::load(&root)?;
@@ -225,7 +226,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     built.problems.extend(chrome::check(&output)?);
     built.problems.extend(frame::check(&output)?);
     built.problems.extend(switch::check(&output)?);
-    built.problems.extend(sheets::check(&output)?);
+    built.problems.extend(sheets::check(&output, &status)?);
     built.problems.extend(print::check(&output)?);
     built.problems.extend(bundle::check(&output)?);
     if !built.problems.is_empty() {
@@ -241,9 +242,10 @@ pub fn run(args: &[String]) -> Result<(), String> {
          {dated} pages)"
     );
     println!(
-        "built anatomy: {intros} pages open with the designation tag over their titles, their \
-         {sheets} sections drawn as numbered sheets and their headings in order; {switches} \
-         pages switch themes with Auto, Light and Dark"
+        "built anatomy: {intros} pages open with the designation tag and the status chip \
+         ({status}) over their titles and a lead of one sentence under them, their {sheets} \
+         sections drawn as numbered sheets and their headings in order; {switches} pages switch \
+         themes with Auto, Light and Dark"
     );
     println!(
         "built stylesheet: {bundled} pages link one stylesheet, {}, the {} files they linked \
@@ -2418,8 +2420,8 @@ fn in_short_span(text: &str) -> Option<std::ops::Range<usize>> {
 }
 
 /// How a model page opens, for the messages of [`in_short`].
-const IN_SHORT_FORM: &str = "a model page opens with *In short*: right under its `# title`, a \
-                             `## In short` section holding only a bulleted list of four items, \
+const IN_SHORT_FORM: &str = "a model page opens with *In short*: right under its `# title` and \
+                             its lead (one paragraph, `sheets.rs`), a `## In short` section holding only a bulleted list of four items, \
                              which open with `**What it models:**`, `**Sources:**`, `**How well it \
                              is validated:**` and `**What it leaves out:**`, in that order, each \
                              followed by its answer";
@@ -2457,8 +2459,15 @@ fn in_short(text: &str) -> Option<(usize, String)> {
         return fail(text.len(), "the title never ends");
     };
 
-    // `## In short`, right under it.
+    // `## In short`, right under it and the lead, the paragraph every title has under it, which
+    // `sheets.rs` checks.
     let mut at = title_end + 1;
+    if matches!(events.get(at), Some((Event::Start(Tag::Paragraph), _))) {
+        at += events[at..]
+            .iter()
+            .position(|(event, _)| matches!(event, Event::End(TagEnd::Paragraph)))
+            .map_or(events.len() - at, |end| end + 1);
+    }
     if !matches!(
         events.get(at),
         Some((
@@ -3849,10 +3858,22 @@ mod tests {
             ),
             Vec::<String>::new()
         );
+        // The lead, one paragraph, may stand between the title and *In short*; no more.
+        assert_eq!(
+            in_short_problems(&IN_SHORT_OK.replace(
+                "# Gravity\n\n",
+                "# Gravity\n\nThe pull a rocket feels, by place.\n\n"
+            )),
+            Vec::<String>::new()
+        );
         for (page, problem) in [
             (
                 "# Gravity\n\nCode: `hpr_core::gravity`.\n\n## Formulas\n",
-                "docs/physics/gravity.md:3: the title is not followed by `## In short`",
+                "docs/physics/gravity.md:5: the first section is `## Formulas`, not `## In short`",
+            ),
+            (
+                "# Gravity\n\nThe lead.\n\nA second paragraph.\n\n## In short\n",
+                "docs/physics/gravity.md:5: the title is not followed by `## In short`",
             ),
             (
                 "Gravity, with no title.\n",

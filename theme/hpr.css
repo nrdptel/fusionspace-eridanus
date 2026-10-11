@@ -287,6 +287,7 @@ html { scroll-padding-top: calc(var(--menu-bar-height) + 1px); }
 @media (forced-colors: active) {
     .sidebar { border-inline-end: 1px solid CanvasText; }
     pre > code, .tooltiptext, .mobile-nav-chapters { border: 1px solid CanvasText; }
+    .content main .fs-intro-row > .fs-status { border: 1px solid CanvasText; }
     #mdbook-theme-list.fs-seg .theme[aria-pressed="true"] { outline: 2px solid CanvasText; outline-offset: -4px; }
     mark { forced-color-adjust: none; color: MarkText; background-color: Mark; }
     pre > .buttons button.clip-button::before { forced-color-adjust: none; background-color: ButtonText; }
@@ -352,12 +353,26 @@ h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter { font-family: 'Casc
    12/16; and makes each `h2` section a sheet: a 2 px ink rule on top, then the rail, the sheet's
    number (`SHEET 2 / 5`) in `label` capitals over its name. The rail stands over the sheet's text,
    as the system's sheet draws it in a narrow box: the docs column beside the sidebar has no room
-   for a 184 px rail beside the prose. The page check fails a tag or a sheet drawn otherwise. */
-.content main .fs-intro > .fs-tag { --c: 4px; box-sizing: border-box; display: flex; width: fit-content; max-width: 100%; align-items: center; margin: 0 0 16px; padding: 2px 10px 2px 8px; min-height: 24px;
+   for a 184 px rail beside the prose. The page check fails a tag or a sheet drawn otherwise.
+   The tag shares the intro's first row with the status chip (`fusionspace.css`, `.fs-status`):
+   the site's status from the title block, a drawing word in `label` capitals, 600, beside its
+   14 px icon; RELEASED in the ok fill, the same in every theme and on paper (`foundations.md`,
+   *Color*), and IN PREPARATION outlined in the action color. The row wraps on a phone, the chip
+   under the tag. Under the title, the page's first paragraph is its lead, one sentence in
+   `lead` type (20/28 Archivo) in the muted ink. The page check fails a chip or a lead drawn
+   otherwise. */
+.content main .fs-intro-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; }
+.content main .fs-intro-row > .fs-tag { --c: 4px; box-sizing: border-box; display: flex; width: fit-content; max-width: 100%; align-items: center; margin: 0; padding: 2px 10px 2px 8px; min-height: 24px;
   font: 400 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.04em; color: var(--hpr-ink); border: 1px solid var(--hpr-rule-strong);
   clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, 0 100%);
   background: linear-gradient(225deg, transparent calc(var(--c) * 0.7071 - 1px), var(--hpr-rule-strong) 0 calc(var(--c) * 0.7071), transparent 0); }
+.content main .fs-intro-row > .fs-status { box-sizing: border-box; display: inline-flex; align-items: center; gap: 6px; min-height: 24px; margin: 0; padding: 2px 8px;
+  font: 600 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid transparent; white-space: nowrap; }
+.content main .fs-intro-row > .fs-status svg { width: 14px; height: 14px; flex: none; }
+.content main .fs-intro-row > .fs-status[data-state="ok"] { background: #0A6355; color: #FFFFFF; }
+.content main .fs-intro-row > .fs-status[data-state="info"] { background: transparent; color: var(--hpr-action); border-color: currentColor; }
 .content main .fs-intro > h1 { margin-top: 0; }
+.content main .fs-intro > .fs-lead { font-size: 20px; line-height: 28px; font-weight: 400; color: var(--hpr-ink-muted); }
 .content main .fs-sheet { border-top: 2px solid var(--hpr-ink); margin-top: 32px; padding-top: 16px; }
 .content main .fs-sheet-rail { display: grid; gap: 8px; margin-bottom: 16px; }
 /* The system's mdBook theme draws the sheet's edge on the `h2` itself; here the sheet draws it. */
@@ -439,7 +454,9 @@ html:not(.js) #mdbook-theme-list.fs-seg { display: none !important; }
     body::before { position: static; display: block; }
     /* The tag's chamfer is a diagonal drawn as a background, which a browser leaves off paper
        unless asked to print backgrounds; the tag keeps it, so its corner isn't left open. */
-    .content main .fs-intro > .fs-tag { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .content main .fs-intro-row > .fs-tag { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    /* The chip's fill is the same on paper as on screen (`foundations.md`, *Color*). */
+    .content main .fs-intro-row > .fs-status { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
 /* The print page's cover, shown on screen; on paper the page is the chapters the site's script
    places after it as the browser prints (`xtask/src/site/print.rs`). Its button is the system's

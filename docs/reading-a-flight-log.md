@@ -1,5 +1,8 @@
 # Reading a flight log
 
+Read a PerfectFlite altimeter's log with FusionSpace HPR's analyzer to learn how high your rocket
+went, how fast it climbed and when it landed.
+
 This page is for anyone with an altimeter's log who wants to know what their rocket did: how high
 it went, how fast it climbed, when it landed. FusionSpace HPR · Analyzer reads the log on its own.
 It needs no design file and runs no simulation, so it works whatever the rocket was designed in, or

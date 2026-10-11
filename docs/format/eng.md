@@ -1,5 +1,8 @@
 # RASP `.eng` motor files
 
+See how HPR Sim reads and writes RASP `.eng` motor files, the plain-text thrust curves
+ThrustCurve.org serves, including the quirks of real files.
+
 A `.eng` file is a motor's [thrust curve](../glossary.md#thrust-curve) in plain text: a one-line
 header with the motor's name, size, delays and masses, then one time and thrust per line. The
 format is named after RASP, the rocket simulation program it comes from. It is the more common of

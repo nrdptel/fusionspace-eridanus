@@ -1,5 +1,8 @@
 # Mass properties of components
 
+See how HPR Sim finds each part's mass, center of mass and inertia from its shape and material, and
+sums them for the rocket.
+
 ## In short
 
 - **What it models:** the mass, center of mass and inertia of each part (tubes, rings, shoulders,

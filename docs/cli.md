@@ -1,5 +1,8 @@
 # The command line
 
+This reference shows what each `hpr` command does and prints, and which exit codes it returns, for
+use from a terminal or a script.
+
 `hpr` is HPR Sim's command-line tool. This page is for anyone who wants to use it from a terminal
 or a script. It says what each command does, shows its output, and lists the exit codes.
 

@@ -1,5 +1,8 @@
 # The builder
 
+Describe your own rocket part by part with the `hpr` crate's builder, add a motor, and fly it from a
+rail.
+
 This page shows the shortest way to fly a rocket of your own with HPR Sim. The `hpr`
 [crate](glossary.md#crate) has four types for it: `Environment`, `Motor`, `Rocket` and `Flight`.
 Add it with `cargo add fusionspace-hpr`; your code says `use hpr::…`.

@@ -1,5 +1,8 @@
 # Weather-balloon soundings
 
+Fetch a weather balloon's measurements from the University of Wyoming's archive and fly a rocket
+through the air they recorded.
+
 This page covers fetching a weather balloon's measurements from the
 [University of Wyoming's archive](https://weather.uwyo.edu/upperair/sounding.shtml) and flying a
 rocket through them. The balloon carries a [radiosonde](glossary.md#radiosonde), which measures

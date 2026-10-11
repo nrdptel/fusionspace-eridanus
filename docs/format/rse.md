@@ -1,5 +1,8 @@
 # RockSim `.rse` motor files
 
+See how HPR Sim reads and writes RockSim `.rse` motor files, the XML thrust curves ThrustCurve.org
+serves, following real files where the spec disagrees.
+
 A `.rse` file is a motor database in XML, a text format of nested, named elements, from the RockSim
 flight simulator. It holds one or more motors ("engines"). Each has its size, masses and delays
 as attributes, and a table of thrust, mass and [center of gravity](../glossary.md#center-of-gravity-cg)

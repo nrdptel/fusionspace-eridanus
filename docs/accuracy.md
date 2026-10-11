@@ -1,5 +1,8 @@
 # Accuracy
 
+Judge how far to trust HPR Sim's numbers from its checks against other programs and real flights,
+model by model, with every known gap.
+
 This page gathers every check HPR Sim has passed so far, and every known gap, in words and
 numbers. Start with the bottom line: **when both codes fly the same drag
 ([same-drag](glossary.md#same-drag-and-predicted-mode)), HPR Sim's whole flights match RocketPy's

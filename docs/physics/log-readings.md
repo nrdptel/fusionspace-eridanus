@@ -1,5 +1,8 @@
 # Flight-log readings
 
+See which readings HPR Sim takes from a flight log alone, such as apogee and descent rate, and when
+it withholds one instead of guessing.
+
 ## In short
 
 - **What it models:** the readings taken from a [flight log](../glossary.md#flight-log) on its own,

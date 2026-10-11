@@ -1,5 +1,8 @@
 # Interpolation tables
 
+Learn how HPR Sim reads values between a table's points, along straight lines or a spline, and what
+each table does past its ends.
+
 ## In short
 
 - **What it models:** reading values between a table's points, such as drag coefficient against

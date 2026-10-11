@@ -1,5 +1,8 @@
 # Monte Carlo dispersion
 
+Fly a rocket many times with its uncertain inputs scattered, see how far its apogee and landing
+spread, and choose each input's scatter.
+
 No two flights of one rocket are the same. The motor burns a little hotter or cooler than its
 label, the rocket weighs a few grams more than the plan, the wind is not the forecast's. A
 [Monte Carlo](glossary.md#monte-carlo) run flies the rocket hundreds or thousands of times. Each

@@ -1,5 +1,8 @@
 # Check stability for a certification flight
 
+Read HPR Sim's stability margin for a certification flight with every motor you might use, and see
+where it can read high.
+
 **This guide reads HPR Sim's stability numbers for a rocket you plan to fly for a certification,
 checks them with every motor you might use, and says how far to trust them.** It is for a flier
 preparing a certification flight; the rules it quotes are Level 1's. HPR Sim gives no verdict: the

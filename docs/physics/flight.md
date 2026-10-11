@@ -1,5 +1,8 @@
 # Rigid-body flight
 
+See the equations that fly a rocket from rail to ground as a rigid body, free to turn, that lightens
+as its motor burns.
+
 ## In short
 
 - **What it models:** a rocket's flight from the pad to the ground, rail included: a rigid body

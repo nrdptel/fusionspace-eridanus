@@ -7,8 +7,9 @@
 //!
 //! So after the anatomy is drawn ([`super::sheets`]), [`draw`] puts the chapters in a template,
 //! `<template id="hpr-book">`. The browser reads a template's contents but neither shows them
-//! nor counts them as part of the page. Before it, [`draw`] writes a cover: the designation tag,
-//! the title "Print the guide", what the page prints, and a button that prints it. When the
+//! nor counts them as part of the page. Before it, [`draw`] writes a cover: the first chapter's
+//! row of the designation tag and the status chip, the title "Print the guide", what the page
+//! prints as its lead, and a button that prints it. When the
 //! browser is about to print (`beforeprint`), `theme/hpr.js` places a copy of the chapters in
 //! the page, highlighting their code as mdBook's script highlights a page's as it loads, and
 //! takes the copy away once printing ends (`afterprint`). `theme/hpr.css` hides the cover on
@@ -30,8 +31,6 @@
 use std::fs;
 use std::path::Path;
 
-use super::theme::DESIGNATION;
-
 /// The page, as mdBook names it.
 pub(super) const PAGE: &str = "print.html";
 /// How mdBook 0.5 opens and closes a page's text.
@@ -39,6 +38,8 @@ const MAIN: (&str, &str) = ("<main>", "</main>");
 /// The template the chapters wait in, and its end; `theme/hpr.js` finds it by its id.
 const BOOK: &str = "<template id=\"hpr-book\">";
 const BOOK_END: &str = "</template>";
+/// How `sheets.rs` opens each chapter's intro, which the cover's opens as.
+const INTRO: &str = "<div class=\"fs-intro\">";
 /// The cover's box, which `theme/hpr.css` hides on paper.
 const COVER: &str = "<div id=\"hpr-print-cover\">";
 /// mdBook 0.5's script that prints the page once it loads, as its template writes it.
@@ -50,15 +51,22 @@ const AUTO_PRINT: &str = "<script>
 /// What [`check`] looks for of [`AUTO_PRINT`], whatever its spacing.
 const AUTO_PRINT_CALL: &str = "window.print, ";
 
-/// The cover of a book of `chapters` chapters, as [`draw`] writes it before the template.
-fn cover(chapters: usize) -> String {
-    let tag = DESIGNATION.trim_matches('`');
+/// What opens the first chapter's intro in `text`, before its title: the intro's row of the tag
+/// and the status chip, as `sheets.rs` draws it on every page, which the cover opens with too.
+fn intro_opening(text: &str) -> &str {
+    let text = text.trim_start();
+    text.find("<h1").map_or("", |at| &text[..at])
+}
+
+/// The cover of a book of `chapters` chapters, its intro opening with `opening`
+/// ([`intro_opening`]), as [`draw`] writes it before the template.
+fn cover(chapters: usize, opening: &str) -> String {
     format!(
-        "{COVER}<div class=\"fs-intro\"><p class=\"fs-tag\">{tag}</p>\
+        "{COVER}{opening}\
          <h1 id=\"print-the-guide\">Print the guide</h1>\n\
-         <p>This page prints the whole guide, its {chapters} chapters one after another, each \
-         from a new sheet. Printed to a PDF file, the guide can be read offline, at the launch \
-         site too.</p>\n\
+         <p class=\"fs-lead\">This page prints the whole guide, its {chapters} chapters one \
+         after another, each from a new sheet.</p>\n\
+         <p>Printed to a PDF file, the guide can be read offline, at the launch site too.</p>\n\
          <p><button type=\"button\" class=\"fs-btn\" id=\"hpr-print\">Print the guide</button></p>\n\
          <p>The browser’s own Print command prints it as well: Ctrl+P, or Command+P on a Mac; on \
          many phones, Share and then Print. On screen this page shows only the cover, because \
@@ -121,6 +129,12 @@ fn rewrite(html: &str) -> Result<(String, usize), String> {
     if chapters == 0 {
         return Err("no chapter (`h1`) in the page's `main`".to_string());
     }
+    // The cover closes the intro it opens with, so the first chapter's must be one.
+    if !intro_opening(text).starts_with(INTRO) {
+        return Err(format!(
+            "the first chapter doesn't open with its intro (`{INTRO}`) before its title"
+        ));
+    }
     let rest = &html[close..];
     let found = rest.matches(AUTO_PRINT).count();
     if found != 1 || html.matches(AUTO_PRINT_CALL).count() != 1 {
@@ -133,7 +147,7 @@ fn rewrite(html: &str) -> Result<(String, usize), String> {
         format!(
             "{}\n{}{BOOK}{text}{BOOK_END}\n{}",
             &html[..open],
-            cover(chapters),
+            cover(chapters, intro_opening(text)),
             rest.replacen(AUTO_PRINT, "", 1)
         ),
         chapters,
@@ -191,7 +205,7 @@ fn page_problems(html: &str) -> Vec<String> {
         problems.push(format!(
             "the page's text doesn't open with the cover (`{COVER}`)"
         ));
-    } else if before != cover(chapters) {
+    } else if before != cover(chapters, intro_opening(book)) {
         problems.push(format!(
             "the cover isn't the one for {chapters} chapters, as the template holds"
         ));
@@ -229,6 +243,11 @@ mod tests {
         // The cover alone stands before the template, and it counts both chapters.
         assert_eq!(titles(&text[..book]), 1);
         assert!(text[..book].contains("its 2 chapters"));
+        // Its intro opens as the first chapter's does, and its first paragraph is its lead.
+        assert!(text[..book].contains(&format!(
+            "{COVER}<div class=\"fs-intro\"><p class=\"fs-tag\">t</p><h1 id=\"print-the-guide\">"
+        )));
+        assert!(text[..book].contains("</h1>\n<p class=\"fs-lead\">This page prints"));
         assert_eq!(titles(&text[book..]), 2);
         // Everything outside `main` is as it was, but for mdBook's script that prints as the
         // page loads.
@@ -249,6 +268,12 @@ mod tests {
             .replace("<h1 id=\"a\">A</h1>", "")
             .replace("<h1 id=\"b\">B</h1>", "");
         assert!(rewrite(&untitled).unwrap_err().contains("no chapter"));
+        let unopened = PRINTED.replacen("<div class=\"fs-intro\">", "<div>", 1);
+        assert!(
+            rewrite(&unopened)
+                .unwrap_err()
+                .contains("doesn't open with its intro")
+        );
         let twice = PRINTED.replace("<nav></nav>", "<main></main>");
         assert!(rewrite(&twice).unwrap_err().contains("2 times"));
         let swapped = PRINTED
@@ -298,7 +323,7 @@ mod tests {
         let empty = format!(
             "{}\n{}{BOOK}{BOOK_END}\n{}",
             &drawn[..open],
-            cover(0),
+            cover(0, ""),
             &drawn[close..]
         );
         assert!(page_problems(&empty)[0].contains("no chapter"));

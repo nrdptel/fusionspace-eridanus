@@ -1,5 +1,8 @@
 # Moving mass
 
+See what ballast or a payload sliding along the airframe during flight does to your rocket's center
+of mass, stability margin and flight.
+
 ## In short
 
 - **What it models:** a part carried inside the airframe, such as ballast or a payload, sliding

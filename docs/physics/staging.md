@@ -1,5 +1,8 @@
 # Staging
 
+Learn how HPR Sim lights each motor at its own time, drops a booster under power, and flies each
+part to its own landing.
+
 ## In short
 
 - **What it models:** motors that light at their own times, and a rocket that drops its booster

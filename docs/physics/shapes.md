@@ -1,5 +1,8 @@
 # Nose cones, transitions and solids of revolution
 
+See the nose cone and transition shapes HPR Sim supports, and how it finds each one's volume, center
+of mass, inertia and surface area.
+
 ## In short
 
 - **What it models:** the outer shape of nose cones and transitions (conical, ogive, elliptical,

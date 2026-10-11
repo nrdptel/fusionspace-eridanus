@@ -1,5 +1,8 @@
 # The design tree, configurations and checks
 
+See how HPR Sim assembles a rocket from its parts, sizes parts from their neighbors, applies
+measured overrides, mounts motors and flags impossible designs.
+
 ## In short
 
 - **What it models:** how parts become a rocket: where each part sits, automatic radii (taken

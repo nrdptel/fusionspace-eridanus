@@ -1,5 +1,8 @@
 # Motor stock and prices
 
+Find which motors vendors have in stock, and at what price, from the motor finder site, saved so the
+list works offline.
+
 This page covers where HPR Sim gets motor stock and prices: [motor.fusionspace.co](https://motor.fusionspace.co)
 (the *motor finder*), a free site that reads a dozen U.S. vendors' public listings every hour and publishes, for every
 AeroTech, Cesaroni and Loki motor of [impulse class](glossary.md#impulse-class) D and up that they

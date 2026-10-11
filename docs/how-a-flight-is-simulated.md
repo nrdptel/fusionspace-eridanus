@@ -1,5 +1,8 @@
 # How a flight is simulated
 
+See what lies behind each number HPR Sim prints, stage by stage from ignition to landing, and which
+model computes it.
+
 This page follows a flight from ignition to landing, and says in plain words what HPR Sim computes
 at each stage and which model does it. Read it to learn what lies behind a number the simulator
 prints, before the model pages it links. It describes the method, not how well it works. When both

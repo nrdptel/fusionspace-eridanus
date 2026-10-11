@@ -1,5 +1,8 @@
 # Start here
 
+Meet the FusionSpace HPR suite and its flight simulator, FusionSpace HPR · Sim: what works today
+and how to read this site.
+
 **FusionSpace HPR is a suite of open-source tools for hobby and high-power rockets. Its first
 product, FusionSpace HPR · Sim (HPR Sim for short), is a flight
 simulator, and it is not ready to rely on yet.** A flight analyzer, a competition kit and an app
@@ -39,9 +42,8 @@ For now it covers only commercial off-the-shelf solid rocket motors
 ([COTS motors](glossary.md#cots-motor)), the kind you buy from a manufacturer. That stays true
 until the first app.
 
-Nothing has been released yet. Release 0.1.0's files are built and checked but not published;
-until they are, you build it from source, and once they are, they install as
-[Install a release](getting-started.md#install-a-release) says. What a release holds, and how each
+Release 0.1.0 came out on 2026-10-08; its files install as
+[Install a release](getting-started.md#install-a-release) says, or you build it from source. What a release holds, and how each
 of its files is checked, is in [How a release is built](releasing.md);
 [the changelog](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CHANGELOG.md) says what 0.1.0 does,
 how far to trust it, and its known gaps, the open issues that make a number look safer than it is
@@ -94,7 +96,7 @@ one and are unchanged ([M0.6e](decisions-and-roadmap.md#m0-6e), US names).
 | Flight logs | Reads a PerfectFlite altimeter's `.pf2` log on its own, with no design file, and takes liftoff, apogee, the top speed, landing and the descent from it, each saying where it came from or why the log can't support it | [Reading a flight log](reading-a-flight-log.md), [Flight-log readings](physics/log-readings.md), [`.pf2` files](format/pf2.md) |
 | Monte Carlo | One rocket flown many times with its mass, drag, motor, wind, rail and recovery delays scattered, seeded so a run repeats exactly; the spread of the apogee, the landing or any number a flight reports, with failed flights counted. From Rust or `hpr mc`, staged flights included; every flight exported as CSV, or, for a design without staging, returned to Python as NumPy arrays, the same numbers to the bit with both built in release mode | [Monte Carlo dispersion](monte-carlo.md), [`hpr mc`](cli.md#hpr-mc) |
 | Optimization | Three optimizers search for the design that makes a result best. [CMA-ES](glossary.md#cma-es) tunes a design's numbers (a ballast mass, a body length) and picks from choices such as a motor or a catalog nose cone, within limits such as a minimum stability margin. [NSGA-II](glossary.md#nsga-ii) weighs two goals against each other, such as apogee against stability. [EGO](optimization.md#few-evaluations-ego), efficient global optimization, is for models so slow that only tens of evaluations can be afforded. Each is held to test functions whose answers are known, and CMA-ES and NSGA-II also to outside implementations. On a rocket, an answer is only as good as HPR Sim's flight models. From Rust only; EGO is checked on two, three and six variables, and competition rule files are not built yet | [Optimization](optimization.md) |
-| Python | The `hpr` package: the builder's rocket, motor, site and flight from Python, with the recording as NumPy arrays and a design read from a file. A Monte Carlo run, its flights as NumPy arrays. Built from source, not on PyPI; no staging; a design read from a file flies its stored parachutes with `recovery=True`, and most `.ork` configurations are refused as they don't fly as written | [Python](python.md) |
+| Python | The `hpr` package: the builder's rocket, motor, site and flight from Python, with the recording as NumPy arrays and a design read from a file. A Monte Carlo run, its flights as NumPy arrays. `pip install fusionspace-hpr` from PyPI, or built from source; no staging; a design read from a file flies its stored parachutes with `recovery=True`, and most `.ork` configurations are refused as they don't fly as written | [Python](python.md) |
 
 ## What doesn't work yet
 
@@ -400,8 +402,11 @@ Every page's source is a Markdown file in the repository's
 a page opens its source in GitHub's editor, where you can propose a fix.
 
 Each page opens with HPR Sim's number, `FS-ACHERNAR · SW · TOOL 001`, in a small tag over its
-title (the [title block](#title-block) says what it means), and its sections are numbered as the
-sheets of a drawing set: `SHEET 2 / 5` over a section's name makes it the second of five. The
+title (the [title block](#title-block) says what it means). Beside the tag, a chip gives the
+site's status from the title block: IN PREPARATION while the pages describe work after the last
+release, RELEASED when they describe a release as it shipped. Under the title, one sentence in
+larger gray type says what the page covers. The sections are numbered as the sheets of a drawing
+set: `SHEET 2 / 5` over a section's name makes it the second of five. The
 theme switch, Auto, Light and Dark, stands in the header before the print and edit buttons on a
 window 960 px wide or wider, and at the top of the table of contents on a narrower one (on a
 phone, behind the menu button). Auto follows your system's light or dark
@@ -433,9 +438,9 @@ simulator's internal name, then software tool 1.
 | Owner | FusionSpace |
 | Title | FusionSpace HPR · Sim: a flight simulator for hobby and high-power rockets, and its documentation |
 | Designation | `FS-ACHERNAR · SW · TOOL 001` |
-| Version | 0.1.0, not yet released |
+| Version | 0.1.0, released 2026-10-08 ([what it holds](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CHANGELOG.md)); the site is built from the repository's `main` branch, which may be ahead of it |
 | Date of issue | <span id="issue-date">the date of the commit the site is built from</span> |
-| Status | IN PREPARATION: no release yet; how far to trust each result is in [Accuracy so far](#accuracy-so-far) |
+| Status | IN PREPARATION: these pages describe the next release as the `main` branch holds it, so a page may describe what 0.1.0 lacks; how far to trust each result is in [Accuracy so far](#accuracy-so-far) |
 | Units | SI (meters, kilograms, seconds) first. Every command's text adds US units in parentheses: feet after heights and distances, feet per second after speeds, miles per hour after the wind, °F after the air's temperature, g after an acceleration and inches after stations along the rocket and a motor's size; `hpr motors show` adds ounces or pounds. The plot gives a second scale in feet, feet per second and g. This site's pages, unlike the program's output, keep a motor's nominal size in millimeters alone, as motors are named (`a 54 mm motor`); every other height, distance, size and speed on them gives its US units in brackets, checked as conversions ([house style](writing.md)). JSON and exported files stay SI ([units](cli.md#units)) |
 | Data | Thrust curves: ThrustCurve.org's public-domain files, catalog captured 2026-09-17. Atmosphere: U.S. Standard Atmosphere 1976, or a sounding or forecast you supply or fetch ([weather](weather.md)). Magnetic field: WMM2025. Accuracy: the committed [validation report][report]. Every source and its terms: [third-party notices][notices]. |
 | Fonts | Archivo and Cascadia Mono, SIL Open Font License 1.1, served from this site; no page asks another server for anything |

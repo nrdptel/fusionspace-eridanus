@@ -43,10 +43,10 @@ const SYSTEM_SPDX: &str = "/* SPDX-License-Identifier: Apache-2.0 · Copyright 2
 const OWN_SPDX: &str = "/* SPDX-License-Identifier: MIT OR Apache-2.0 */";
 /// The files copied unchanged from the product system: where each sits under [`THEME`], and where
 /// it sits in the system's repository. The icons are the ones `chrome.rs` draws in each page's
-/// chrome; the favicon is the system's web kit's, its PNG the 32 px one; the lockup and the mark
+/// chrome, and `ok` and `info`, which `sheets.rs` draws in each page's status chip; the favicon is the system's web kit's, its PNG the 32 px one; the lockup and the mark
 /// are the brand kit's one-color files, which `frame.rs` draws in each page's header and title
 /// block.
-pub(crate) const COPIED: [(&str, &str); 24] = [
+pub(crate) const COPIED: [(&str, &str); 26] = [
     (
         "fusionspace-mdbook.css",
         "product/web/mdbook/fusionspace-mdbook.css",
@@ -82,8 +82,10 @@ pub(crate) const COPIED: [(&str, &str); 24] = [
     ("icons/copy.svg", "product/icons/copy.svg"),
     ("icons/edit.svg", "product/icons/edit.svg"),
     ("icons/external.svg", "product/icons/external.svg"),
+    ("icons/info.svg", "product/icons/info.svg"),
     ("icons/menu.svg", "product/icons/menu.svg"),
     ("icons/minus.svg", "product/icons/minus.svg"),
+    ("icons/ok.svg", "product/icons/ok.svg"),
     ("icons/plus.svg", "product/icons/plus.svg"),
     ("icons/print.svg", "product/icons/print.svg"),
     ("icons/refresh.svg", "product/icons/refresh.svg"),
@@ -143,7 +145,7 @@ pub(super) const FIELDS: [&str; 9] = [
     "Fonts",
 ];
 /// The statuses the product system gives a tool.
-const STATUSES: [&str; 2] = ["RELEASED", "IN PREPARATION"];
+pub(super) const STATUSES: [&str; 2] = ["RELEASED", "IN PREPARATION"];
 /// The date of issue as the source writes it, which the build replaces with the commit's date.
 const ISSUE_DATE: &str =
     "<span id=\"issue-date\">the date of the commit the site is built from</span>";

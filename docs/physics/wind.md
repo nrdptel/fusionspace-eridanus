@@ -1,5 +1,8 @@
 # Wind
 
+Set the steady wind a flight sees at each height: constant, grown from a single measured wind, or
+read from a forecast's table of levels.
+
 ## In short
 
 - **What it models:** the steady wind's speed and direction at each height: constant, growing

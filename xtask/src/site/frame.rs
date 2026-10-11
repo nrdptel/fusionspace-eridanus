@@ -197,6 +197,30 @@ pub(super) fn draw(output: &Path) -> Result<usize, String> {
     }
 }
 
+/// The site's status, as the title block the landing page built under `output` writes it: its
+/// *Status* entry up to the colon that may follow (`IN PREPARATION: what it means`). Read before
+/// [`draw`] moves the block into every page's `footer`.
+pub(super) fn site_status(output: &Path) -> Result<String, String> {
+    let landing = output.join(LANDINGS[0]);
+    let html = fs::read_to_string(&landing)
+        .map_err(|err| format!("could not read {}: {err}", landing.display()))?;
+    let entries = source_entries(&html).map_err(|why| format!("{}: {why}", LANDINGS[0]))?;
+    Ok(status_word(&entries))
+}
+
+/// The *Status* entry of `entries` up to its colon, as text.
+fn status_word(entries: &Entries) -> String {
+    let entry = entries
+        .iter()
+        .find(|(field, _)| field == "Status")
+        .map_or(String::new(), |(_, entry)| visible(entry));
+    entry
+        .split_once(':')
+        .map_or(entry.as_str(), |(word, _)| word)
+        .trim()
+        .to_string()
+}
+
 /// The fields and entries of the title block the landing page's source writes, from its built
 /// HTML: a table of two columns, field then entry, after a head row.
 fn source_entries(html: &str) -> Result<Entries, String> {

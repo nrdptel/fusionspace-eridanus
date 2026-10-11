@@ -1,5 +1,8 @@
 # Glossary
 
+Look up any term these pages use, with a short definition and a link to the page that models or uses
+it most.
+
 This page defines the terms the other pages use, each in a sentence or two, with a link to the page
 that models the term or uses it most. Terms are listed alphabetically, and each has its own
 heading, so any page can link straight to one. Where HPR Sim uses a term in a particular way (a

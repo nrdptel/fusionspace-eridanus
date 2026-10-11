@@ -1,5 +1,8 @@
 # Models of your own
 
+Replace one of HPR Sim's models with your own drag curve, wind profile or atmosphere, and fly a
+rocket with it.
+
 This page shows how to fly a model of your own in place of one of HPR Sim's: a drag model, a wind,
 or an atmosphere. You might have a drag curve from a wind tunnel, from another program, or from
 your own flights, or a wind profile from a weather balloon that none of the built-in winds fits.

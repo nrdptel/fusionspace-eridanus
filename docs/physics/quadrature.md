@@ -1,5 +1,8 @@
 # Adaptive quadrature
 
+See how HPR Sim computes the area under a curve to a requested accuracy, the method behind the
+volume and inertia of curved parts.
+
 ## In short
 
 - **What it models:** a definite integral (the area under a curve) to a requested accuracy,

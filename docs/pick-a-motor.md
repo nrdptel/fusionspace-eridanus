@@ -1,5 +1,8 @@
 # Pick a motor
 
+Shortlist the motors that fit your rocket, fly it on each one, and choose an ejection delay, all
+with `hpr` on the command line.
+
 **This guide shortlists the motors that fit a rocket, flies the rocket on each, and picks an
 ejection delay, all with `hpr` on the command line.** It is for a flier choosing a motor for a
 design they already have. HPR Sim's figures are estimates from a model:

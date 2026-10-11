@@ -1,5 +1,8 @@
 # The API reference
 
+Find which crate of FusionSpace HPR holds what, and reach each crate's rustdoc reference for every
+public type, function and constant.
+
 **The API reference documents FusionSpace HPR's code: every public type, function and constant,
 generated from the source by rustdoc, Rust's documentation tool.** Use it when you write a program
 with the `hpr` library, as [Getting started](getting-started.md) does. This page says which crate
@@ -47,7 +50,7 @@ the public name). `hpr_validate`, `hpr_py`, `hpr_ffi` and `hpr_wasm` aren't publ
 | [`hpr_sim`](api/hpr_sim/index.html) | The flight: the launch rail, the equations of motion, time integration, events and recovery | Staging and [air starts](glossary.md#air-start) fly, checked by tests and against OpenRocket's two-stage, cluster and air-start examples, each flight within 5% in apogee and largest speed ([M1.9c](decisions-and-roadmap.md#m1-9c), a two-stage and a cluster design against OpenRocket). Three cluster apogees are compared with OpenRocket's flight with no parachute, since its parachute opened before apogee. A [cluster](glossary.md#cluster) flies, one mount of several tubes or one mount per motor, and so does a motor out, checked by tests against a hand calculation. A nose cone, a section or a payload can leave the airframe, optionally pushed by its charge, and land on its own under its own parachute or tumbling ([ejection](glossary.md#ejection), [M1.11a](decisions-and-roadmap.md#m1-11a), [M1.11b](decisions-and-roadmap.md#m1-11b)), checked against exact answers only. | [How a flight is simulated](how-a-flight-is-simulated.md), [Rigid-body flight](physics/flight.md), [Time integration](physics/integration.md), [Recovery](physics/recovery.md), [Staging](physics/staging.md) |
 | [`hpr_flightdata`](api/hpr_flightdata/index.html) | Reading a flight log on its own, with no design and no simulation: PerfectFlite's `.pf2` so far, and liftoff, apogee, the top speed, landing and the descent, each saying where it came from or why it was withheld. Depend on this crate directly rather than on `hpr`, which pulls in the simulator | Other loggers' files ([M7.1](decisions-and-roadmap.md#m7-1)); the descent's legs, Mach number and the rest of the readings ([M7.2](decisions-and-roadmap.md#m7-2)) | [Reading a flight log](reading-a-flight-log.md), [Flight-log readings](physics/log-readings.md), [`.pf2` files](format/pf2.md) |
 | [`hpr_validate`](api/hpr_validate/index.html) | The validation harness: cases, reference data, metrics and reports | Whole flights against RocketPy ([M2.1b2](decisions-and-roadmap.md#m2-1b2)) | [Accuracy](accuracy.md), [Checking a claim](checking-a-claim.md) |
-| [`hpr_py`](api/hpr_py/index.html) | The `fusionspace-hpr` Python package (`fusionspace.hpr`): the builder's environment, motor, rocket and flight from Python, designs read from files, and a flight's recording as NumPy arrays. Built by maturin into one wheel per operating system; not on PyPI | A drag table and RocketPy's example flight ([M4.3b](decisions-and-roadmap.md#m4-3b)); a drag and a wind written in Python ([M4.3c](decisions-and-roadmap.md#m4-3c)) | [Python](python.md) |
+| [`hpr_py`](api/hpr_py/index.html) | The `fusionspace-hpr` Python package (`fusionspace.hpr`): the builder's environment, motor, rocket and flight from Python, designs read from files, and a flight's recording as NumPy arrays. Built by maturin into one wheel per operating system; on PyPI as `fusionspace-hpr` | A drag table and RocketPy's example flight ([M4.3b](decisions-and-roadmap.md#m4-3b)); a drag and a wind written in Python ([M4.3c](decisions-and-roadmap.md#m4-3c)) | [Python](python.md) |
 
 The other six crates are for planned work. Each has a front page that says what it will hold.
 One already holds some code, `hpr_io`, as its row says:
@@ -66,15 +69,15 @@ The command-line tool, the package `fusionspace-hpr-cli`, is a program rather th
 
 ## Using it from your own program
 
-Release 0.1.0 is built and checked, but not on crates.io, Rust's public package registry, yet.
-Once it is, `cargo add fusionspace-hpr` adds the front door, which your code calls `hpr` and which
+Release 0.1.0 is on crates.io, Rust's public package registry: `cargo add fusionspace-hpr` adds
+the front door, which your code calls `hpr` and which
 re-exports the crates under it; its
 features `net`, `parquet` and `parallel` add the online data sources, Parquet export and Monte
 Carlo on worker threads ([Install a release](getting-started.md#install-a-release)). Until 1.0, a
 new minor version, such as 0.2, may change the API.
 
-Until then, a program outside this repository can depend on a crate straight from GitHub, pinned
-to a commit, since anything can change between commits. Take the commit's hash from
+To follow `main` instead of a release, a program outside this repository can depend on a crate
+straight from GitHub, pinned to a commit, since anything can change between commits. Take the commit's hash from
 [the history of `main`](https://github.com/nrdptel/fusionspace-eridanus/commits/main), and change it only on
 purpose:
 

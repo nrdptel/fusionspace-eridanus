@@ -1,5 +1,8 @@
 # Validation plan and reference inventory
 
+Learn how HPR Sim's physics is checked, over which flight envelope, and against which papers,
+reference simulators, flight logs and motor data.
+
 This inventory was checked on 2026-09-16. The sources `cargo xtask refs fetch` downloads were pinned
 on 2026-09-17 in `validation/refs.lock.toml` (commits and sha256 values; [ADR-002 decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0002-the-reference-library-lock-file-fetch-verify-and.md)), which is the
 source of truth for versions and URLs. Everything downloaded goes to the gitignored `refs/`; only

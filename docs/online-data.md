@@ -1,5 +1,8 @@
 # Online data and the cache
 
+See how HPR Sim fetches weather, elevation and motor data over the network, and how its cache keeps
+those answers working offline.
+
 This page covers `hpr-net`, the one crate that uses the network, and the cache that makes its
 answers work offline. It is for anyone who will pull weather, elevation or motor data into a
 flight. **Today the crate holds the cache, the offline rule and an HTTP client**

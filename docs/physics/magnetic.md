@@ -1,5 +1,8 @@
 # The magnetic field and declination
 
+Use the World Magnetic Model's declination to turn a compass reading at your launch site into the
+true heading you give HPR Sim.
+
 ## In short
 
 - **What it models:** the Earth's main magnetic field at any place and time from 2025.0 to
