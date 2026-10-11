@@ -680,8 +680,8 @@ pub fn shear_modulus(id: &str) -> Option<&'static BuiltinShearModulus> {
     SHEAR_MODULI.iter().find(|m| m.id == id)
 }
 
-/// The names built-in materials had in designs saved before M0.9e spelled them in US English,
-/// each with its name now. A design keeps the name it was saved with, so both still match.
+/// The names built-in materials had in designs saved before October 11, 2026, when they were
+/// spelled in US English, each with its name now. A design keeps the name it was saved with, so both still match.
 const FORMER_NAMES: [(&str, &str); 4] = [
     (
         "Blue Tube 2.0 (vulcanized fibre)",
@@ -693,7 +693,7 @@ const FORMER_NAMES: [(&str, &str); 4] = [
 ];
 
 /// The built-in shear modulus of `material`, a design's copy of a built-in one (its name, or the
-/// name the built-in had before M0.9e, and its density both match); `None` for a material that
+/// name the built-in had before its US spelling, and its density both match); `None` for a material that
 /// isn't built in or has no modulus.
 pub fn shear_modulus_of(material: &Material) -> Option<&'static BuiltinShearModulus> {
     let name = FORMER_NAMES
