@@ -315,6 +315,12 @@ motor burns says its apogee is not a prediction. In brief:
   ([M0.10](decisions-and-roadmap.md#m0-10), the scoreboard;
   [Accuracy](accuracy.md#the-scoreboard);
   [scoreboard](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md)).
+- **The scoreboard counts the steps to a first answer:** opening a design's `.ork` file, flying it
+  and getting its landing spread. HPR Sim takes 2 commands or 10 lines of Python, from files a
+  test runs. Neither OpenRocket nor RocketPy does all three from the `.ork` file: OpenRocket 24.12
+  opens and flies one in 7 clicks but has no Monte Carlo, and RocketPy reads no `.ork` file
+  ([M0.11](decisions-and-roadmap.md#m0-11), steps to a first answer;
+  [Accuracy](accuracy.md#the-scoreboard)).
 - **The descent under a parachute matches RocketPy's.** The comparison flies the descents of five
   of RocketPy's [example rockets](glossary.md#example-rockets) in both codes:
   - Each starts from the same state near apogee, with the first parachute opening at once.

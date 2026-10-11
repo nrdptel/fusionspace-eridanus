@@ -74,6 +74,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9d13 The pages' sheets and trust ([Phase 0](#phase-0-foundations))
 - M0.9e The words to the design ([Phase 0](#phase-0-foundations))
 - M0.10 The scoreboard ([Phase 0](#phase-0-foundations))
+- M0.11 Steps to a first answer ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -510,6 +511,11 @@ One line per milestone or increment, in the order it was archived within its pha
   milestone that fills it; a test fails when a number is worse, as ADR-209 §3 defines per axis
   (a measured cell turned "not measured" included), than the committed one unless an accepted ADR
   names that metric and that release; a test that worsens one fails.
+- [x] **M0.11 Steps to a first answer** (ADR-209 §10, ADR-241). *Done when:* opening a design, flying it and
+  getting its landing spread are scripted in HPR Sim's command line and Python and counted for
+  OpenRocket and RocketPy from their current docs (clicks and entries apart from script lines, a
+  task a tool can't do marked so), with versions and dates, in the scoreboard.
+
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and
