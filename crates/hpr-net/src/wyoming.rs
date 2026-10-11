@@ -63,7 +63,7 @@
 //! the wind, humidity moves it by a few percent, and on layers under about 100 m any temperature
 //! within the bounds fits), a height error within the allowance, a row whose pressure and height
 //! are both wrong yet fit each other, and a bad ground that fits the row after it or has only one
-//! row after it. A block of bad rows that fit their neighbours can be kept, and good rows beside
+//! row after it. A block of bad rows that fit their neighbors can be kept, and good rows beside
 //! them left out instead, no more than the block holds. A row, or a short block, kept a little too
 //! high leaves out the good rows just above it, which now lie below it: in the tests, at most 2
 //! other levels of a coded message and 10 other rows of a BUFR file (8 for one row).
@@ -107,7 +107,7 @@
 
 use std::f64::consts::TAU;
 
-use hpr_atmos::moist::{WATER_VAPOUR_MOLECULAR_WEIGHT_KG_PER_KMOL, saturation_vapour_pressure_pa};
+use hpr_atmos::moist::{WATER_VAPOR_MOLECULAR_WEIGHT_KG_PER_KMOL, saturation_vapor_pressure_pa};
 use hpr_atmos::profile::geometric_from_wmo_geopotential_m;
 use hpr_atmos::ussa76::{DRY_AIR_GAS_CONSTANT_J_PER_KG_K, SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL};
 use hpr_atmos::{AtmosError, SoundingLevel, SoundingProfile, WindInterpolation};
@@ -870,12 +870,12 @@ fn miss_share(lower: &Thermo, upper: &Thermo, coarse: bool) -> f64 {
 
 /// The virtual temperature, K, of air at `temperature_k` with relative humidity `humidity` (a
 /// fraction over liquid water, taken as at most 1) and pressure `pressure_pa`, as
-/// `hpr_atmos::moist` has it: `T_v = T / (1 − x_v (1 − M_v/M₀))`, with the vapour's share of the
+/// `hpr_atmos::moist` has it: `T_v = T / (1 − x_v (1 − M_v/M₀))`, with the vapor's share of the
 /// pressure `x_v = e/p` at most 1.
 fn virtual_temperature_k(temperature_k: f64, humidity: f64, pressure_pa: f64) -> f64 {
-    let vapour_pa = humidity.min(1.0) * saturation_vapour_pressure_pa(temperature_k);
-    let share = (vapour_pa / pressure_pa).min(1.0);
-    let ratio = WATER_VAPOUR_MOLECULAR_WEIGHT_KG_PER_KMOL / SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL;
+    let vapor_pa = humidity.min(1.0) * saturation_vapor_pressure_pa(temperature_k);
+    let share = (vapor_pa / pressure_pa).min(1.0);
+    let ratio = WATER_VAPOR_MOLECULAR_WEIGHT_KG_PER_KMOL / SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL;
     temperature_k / (1.0 - share * (1.0 - ratio))
 }
 
@@ -1114,7 +1114,7 @@ mod tests {
 
     /// Saturated air at 30 °C: `T_v` is 308.081 K at 1000 hPa and 308.638 K at 900 hPa (WMO-No. 8
     /// eq. 12.18 with eq. 4.B.1's 4,233.8 Pa), by hand. A humidity above 100% is taken as 100%;
-    /// vapour at more than the air's pressure counts as all of it, so `T_v` stays finite.
+    /// vapor at more than the air's pressure counts as all of it, so `T_v` stays finite.
     #[test]
     fn virtual_temperature_follows_the_humidity() {
         for (pressure_pa, expected) in [(100_000.0, 308.081), (90_000.0, 308.638)] {
@@ -1124,9 +1124,9 @@ mod tests {
         }
         assert_eq!(virtual_temperature_k(288.15, 0.0, 100_000.0), 288.15);
         let ratio =
-            WATER_VAPOUR_MOLECULAR_WEIGHT_KG_PER_KMOL / SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL;
-        let all_vapour = virtual_temperature_k(333.15, 1.0, 1_000.0);
-        assert!((all_vapour - 333.15 / ratio).abs() < 1e-9, "{all_vapour}");
+            WATER_VAPOR_MOLECULAR_WEIGHT_KG_PER_KMOL / SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL;
+        let all_vapor = virtual_temperature_k(333.15, 1.0, 1_000.0);
+        assert!((all_vapor - 333.15 / ratio).abs() < 1e-9, "{all_vapor}");
     }
 
     #[test]

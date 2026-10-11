@@ -191,7 +191,7 @@ it has been fetched (`cargo xtask refs fetch`), a
 holds these numbers:
 
 | | the altimeter states | FusionSpace HPR reads |
-|---|---|---|
+|---|--:|---|
 | apogee | 1,009 ft | 1,010 ft (307.8 m) |
 | highest sample | | 1,028 ft, the ejection pulse, set aside |
 | top speed | | 257 ft/s (78.3 m/s) |

@@ -173,7 +173,7 @@ A number is read the way you would write it by hand. Spaces around it are droppe
 between groups of three digits is a thousands separator: `--elevation 1,280` is 1280 m (4199 ft), and a
 `note:` line says so (`note: --elevation 1,280 read as 1280 m`) before anything else, in case the
 comma meant something else. That holds for every option that takes a number, negative ones
-included: `--elevation -1,280` is -1280 m (-4199 ft), and `--longitude -106,970` is read as -106970° and
+included: `--elevation -1,280` is −1280 m (−4199 ft), and `--longitude -106,970` is read as −106970° and
 refused, as a longitude is at most 180° east or west. Any other comma is
 refused with a question, as `3,9` is 3.9 in much of the world but could be a typing slip, and so
 is `0,500`, as no number grouped in thousands starts with 0. The decimal point is always a
@@ -354,7 +354,7 @@ pods-none (pods-none.ork)
 configuration 1 of 1: [H128W-0] with --motor H54
 a simulated flight, not a measurement
 
-static margin         2.69 calibres off the rail; least 2.69 calibres, at 0.15 s, before apogee
+static margin         2.69 calibers off the rail; least 2.69 calibers, at 0.15 s, before apogee
 CG and CP             0.480 m (18.9 in) and 0.641 m (25.2 in) aft of the nose tip, off the rail
 apogee                846.1 m (2776 ft) above the site at 11.21 s
 rail exit speed       21.3 m/s (70 ft/s)
@@ -365,7 +365,7 @@ motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mo
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
-warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
+warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 event                   time                 height                    speed
 liftoff               0.00 s      0.3 m      (1 ft)     0.0 m/s     (0 ft/s)
@@ -395,7 +395,7 @@ What each part says:
 |---|---|
 | the first two | the rocket's name and its file; the [configuration](glossary.md#configuration) flown, by its number in the file and its name ([below](#the-motor-and-the-configuration)). `[H128W-0]` is the file's unnamed configuration, called by the motor it holds, and `with --motor H54` says the H54 flew in its place. The file's other configurations follow, each with why it doesn't fly as read, if it doesn't |
 | `a simulated flight, not a measurement` | that every figure below comes from a model of the flight, not from a measurement |
-| `static margin` | the [static margin](glossary.md#stability-margin) as the rocket leaves the rail, in [calibres](glossary.md#calibre-caliber), at Mach 0, and its least value from there to apogee. Each is the weakest direction's: a rocket with a fin set of one or two fins has a different margin for each direction the air crosses it, and the simulator prints the least; the JSON's `roll_rad` gives that direction ([Flight metrics](physics/metrics.md#stability-margins)) |
+| `static margin` | the [static margin](glossary.md#stability-margin) as the rocket leaves the rail, in [calibers](glossary.md#caliber), at Mach 0, and its least value from there to apogee. Each is the weakest direction's: a rocket with a fin set of one or two fins has a different margin for each direction the air crosses it, and the simulator prints the least; the JSON's `roll_rad` gives that direction ([Flight metrics](physics/metrics.md#stability-margins)) |
 | `CG and CP` | the stations the margin off the rail comes from: the [center of gravity](glossary.md#center-of-gravity-cg) and the [center of pressure](glossary.md#center-of-pressure-cp), each in meters and inches aft of the nose tip, as the rocket leaves the rail. The margin is their distance apart over the reference diameter. The JSON gives them as `cg_station_m` and `cp_station_m` |
 | `apogee` | the [apogee](glossary.md#apogee): the height of the center of gravity above the site, and when |
 | `rail exit speed` | the speed at [rail exit](glossary.md#rail-exit-and-rail-exit-velocity) |
@@ -406,7 +406,7 @@ What each part says:
 | `launched at ...` | the site, the rail and the wind, [below](#the-launch) |
 | `note:` | what the flight leaves out of the design, and which numbers that spoils |
 | `warning:` | what the simulator's `.ork` or motor-file reader accepted with a caveat, such as a part it left out, and what the [design's checks](physics/design.md#checks) found unusual but buildable, each in a sentence naming the parts; the same words about several parts of one name are printed once, with a count such as `(×2)` |
-| `warning: unstable:` | the rocket is unstable while a motor burns, before apogee or the first deployment, and the `apogee` figure says it is not a prediction ([Flight metrics: unstable under power](physics/metrics.md#unstable-under-power)). Either the static margin falls below zero, or, where the simulator can give no margin, the pitching moment's slope `C_mα` is above zero; a flight prints one of the two. A `help:` line links that page. In the JSON, `flags` lists the first as `unstable_under_power`, its `peak` the least margin under power in calibres, which the summary also has as `min_powered_static_margin_cal`; and the second as `unstable_without_margin`, its `peak` the largest `C_mα` per radian where the margin is undefined under power, which the summary also has as `max_powered_moment_slope_per_rad` |
+| `warning: unstable:` | the rocket is unstable while a motor burns, before apogee or the first deployment, and the `apogee` figure says it is not a prediction ([Flight metrics: unstable under power](physics/metrics.md#unstable-under-power)). Either the static margin falls below zero, or, where the simulator can give no margin, the pitching moment's slope `C_mα` is above zero; a flight prints one of the two. A `help:` line links that page. In the JSON, `flags` lists the first as `unstable_under_power`, its `peak` the least margin under power in calibers, which the summary also has as `min_powered_static_margin_cal`; and the second as `unstable_without_margin`, its `peak` the largest `C_mα` per radian where the margin is undefined under power, which the summary also has as `max_powered_moment_slope_per_rad` |
 | `warning: envelope:` | a flag of the [operating envelope](VALIDATION.md#operating-envelope): the flight went faster than any public flight the simulator has been compared with a reference on (currently Mach 1.15; it rises as references are added), past the core band (Mach 2.5) or the envelope (Mach 3.5), or flew above 15° angle of attack while the air was strong enough to matter. Each says when, and a `help:` line links the page. A flag changes no number. In the JSON, `flags` lists them, each with its `flag`, the `peak` that raised it (its `value`, a Mach number or an angle in radians, with its `time_s` and height, as every peak has) and its `message` |
 | `warning: drag:`, `warning: stability:`, `warning: flight:` | a known error in the simulator's drag (#18, #67, #68, #70, #72, #73 or #222), in a separated part's drag (#179 or #354, [when they warn](VALIDATION.md#the-separated-parts-warnings)), in the stability margin (#64, #87, #120, #121, #172, #325 or #326) or in the flight's path (#8, #106, #213 or #219, [when they warn](VALIDATION.md#the-flight-path-warnings)) that the flight meets, by its issue number ([the list, with each one's condition](VALIDATION.md#operating-envelope)). Each says which way its numbers lean. A flight on a drag table of your own prints no drag warning except #179 and #354, which concern a separated part and not your table, and keeps the stability and flight warnings; a normal-force table of its own prints no stability warning. In the JSON, `issues` lists them, each with its `issue` number, its `kind` (`drag`, `stability` or `flight`), `url`, the flight's `max_mach` peak, the `parts` that meet it (their ids; none for #8, #18, #68, #121, #172, #179, #219 or #354) and its `message` |
 | the events | each [event](glossary.md#event)'s time, the height of the [center of gravity](glossary.md#center-of-gravity-cg) above the launch site, and the speed over the ground; the height at liftoff isn't zero, as the rocket stands on the rail |
@@ -473,7 +473,7 @@ Loft Demo 54mm — dual deploy (demo-dual-deploy.ork)
 configuration 1 of 1: [K550W-P] with --motor H54
 a simulated flight, not a measurement
 
-static margin         6.25 calibres off the rail; least 6.25 calibres, at 0.27 s, before apogee
+static margin         6.25 calibers off the rail; least 6.25 calibers, at 0.27 s, before apogee
 CG and CP             1.005 m (39.6 in) and 1.354 m (53.3 in) aft of the nose tip, off the rail
 apogee                324.0 m (1063 ft) above the site at 9.12 s
 rail exit speed       11.2 m/s (37 ft/s)
@@ -486,7 +486,7 @@ recovery: `Drogue parachute` at apogee, 0.133 m² of drag area, opened at 9.12 s
 launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (4.9 ft) vertical rail, in calm air
 note: the file's 2 recovery devices fly as OpenRocket flies them: each opens fully at its event, with the file's drag coefficient or OpenRocket's own, and once one opens the rocket descends as a point under the open devices' drag alone
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
-warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
+warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 event                   time                 height                    speed
 liftoff               0.00 s      0.6 m      (2 ft)     0.0 m/s     (0 ft/s)
@@ -598,7 +598,7 @@ OpenRocket's *Pods--powered with recovery deployment*, `[C6-7; 2× A3-4, B6-0]` 
 stage, sustainer first, the stages separated by `;`), the note begins "part 1 drops at 0.860 s
 with `A3`, `A3` still burning". The impulse it gives, 0.509 N·s, is the one the report's
 [*Parts dropped still burning*](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md#parts-dropped-still-burning)
-section holds. This sustainer is unstable, with a least margin of −4.21 calibres. In the
+section holds. This sustainer is unstable, with a least margin of −4.21 calibers. In the
 conditions of OpenRocket's record, a 0.15 m (5.9 in) rod at 28.61° N with no wind, HPR Sim's
 sustainer turns over at 2.04 s. From `hpr sim`'s defaults, a 1.5 m (4.9 ft) rail with no wind, it
 does not, so the apogee printed assumes it stays upright, and why the two differ is not traced.
@@ -681,7 +681,7 @@ pods-none (pods-none.ork)
 configuration 1 of 1: [H128W-0] with --motor H54
 a simulated flight, not a measurement
 
-static margin         2.71 calibres off the rail; least 2.71 calibres, at 0.21 s, before apogee
+static margin         2.71 calibers off the rail; least 2.71 calibers, at 0.21 s, before apogee
 CG and CP             0.478 m (18.8 in) and 0.641 m (25.2 in) aft of the nose tip, off the rail
 apogee                877.4 m (2879 ft) above the site at 11.48 s
 rail exit speed       30.2 m/s (99 ft/s)
@@ -692,7 +692,7 @@ motor: 1 × 168H54-10A (from the bundled catalog, as of 2026-09-17) in `Motor mo
 launched at 32.99000° N, 106.97000° W, 1400 m (4593 ft) above sea level, from a 3 m (9.8 ft) rail 85° above the horizon, leaning toward 270° T, in a 5 m/s (11 mph) wind from 270° T
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
-warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
+warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 event                   time                 height                    speed
 liftoff               0.00 s      0.3 m      (1 ft)     0.0 m/s     (0 ft/s)
@@ -1019,7 +1019,7 @@ launched at 0.00000° N, 0.00000° E, 0 m (0 ft) above sea level, from a 1.5 m (
 scattered, one standard deviation each: --mass-sd 0.02, --drag-sd 0.05, --impulse-sd 0.03, --burn-time-sd 0.02, --wind-sd 0.25, --wind-from-sd 15, --inclination-sd 1, --heading-sd 2
 note: the file has no recovery device, so the rocket falls from apogee on its airframe alone, on aerodynamics that hold only at small angles of attack: its landing time, speed and place, and any peak it sets in the fall, are not a prediction
 warning: drag, the nominal flight: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
-warning: stability, the nominal flight: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
+warning: stability, the nominal flight: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 How far to trust it. Simulated from the design file, not measured; the spread above comes from the
 inputs' scatter alone, not from the model's error. Against 53 logged flights of fliers' own designs,
@@ -1855,7 +1855,7 @@ document's `help` lists what to do about the failure, the lines the text output 
 
 Units are SI, and each field's name says its unit: `total_impulse_ns` is in newton-seconds and
 `diameter_m` in meters. The exceptions say so in their names too: `hpr sim` gives angles in
-degrees (`latitude_deg`) and margins in calibres (`margin_cal`), `hpr weather` gives the wind's
+degrees (`latitude_deg`) and margins in calibers (`margin_cal`), `hpr weather` gives the wind's
 direction in degrees (`wind_from_deg`) and humidity as a fraction (`relative_humidity`, 0 to 1),
 `hpr motors list` keeps the catalog's millimeters (`diameter_mm`), and `hpr motors search` the
 site's millimeters and cents (`diameter_mm`, `unit_price_cents`). Numbers are not rounded, so a converted value can end in
@@ -1951,7 +1951,7 @@ $ echo $?
 ### Exit codes
 
 | status | `kind` in JSON | meaning |
-|---|---|---|
+|--:|---|---|
 | 0 | - | The command did what was asked. |
 | 1 | `input` | An input was missing, unreadable or refused, such as a motor the catalog doesn't have. |
 | 2 | `usage` | The command line was wrong: an unknown command or option, or a missing argument. |

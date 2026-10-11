@@ -53,7 +53,7 @@ and the local axes.
   (`wgs84_derived_geometry_matches_table_3_5`):
 
   | quantity | value |
-  |---|---|
+  |---|--:|
   | `b` | 6356752.3142 m (20,855,486.595 ft) |
   | `e²` | 6.694379990141e-3 |
   | `E` | 5.2185400842339e5 m |
@@ -156,7 +156,7 @@ its inverse sometimes fails to converge (§7).
 **Worked example.** A pad at 32.9904° N, 106.9750° W and a landing at 33.0000° N, 106.9680° W:
 
 | quantity | value |
-|---|---|
+|---|--:|
 | distance `s₁₂` | 1,249.614 m (4,099.78 ft) |
 | bearing from the pad `α₁` | 31.567° |
 | azimuth on arrival `α₂` | 31.571° |

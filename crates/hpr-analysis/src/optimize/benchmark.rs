@@ -212,8 +212,8 @@ pub mod mixed {
 }
 
 /// Test functions for global optimization with few evaluations, for [`ego`](super::ego): the
-/// Branin and Hartmann functions of L. C. W. Dixon and G. P. Szegö, "The global optimisation
-/// problem: an introduction", in *Towards Global Optimisation 2*, North-Holland, 1–15 (1978),
+/// Branin and Hartmann functions of L. C. W. Dixon and G. P. Szegö, "The global optimization
+/// problem: an introduction", in *Towards Global Optimization 2*, North-Holland, 1–15 (1978),
 /// on which D. R. Jones, M. Schonlau and W. J. Welch, "Efficient global optimization of
 /// expensive black-box functions", *Journal of Global Optimization* 13, 455–492 (1998),
 /// <https://doi.org/10.1023/A:1008306431147>, run EGO (their Table 1). The constants are as
@@ -424,7 +424,7 @@ pub mod zdt {
         /// where `d₀` is the distance to the front at `f₁` itself (or a piece's nearer end):
         /// that window of each piece is searched on a grid of 400 steps in `s` (`f₁ = s²` for
         /// ZDT1 and ZDT3, whose slope is infinite at 0; `f₁ = s` for ZDT2), and the best step
-        /// refined by golden-section search over its two neighbours.
+        /// refined by golden-section search over its two neighbors.
         pub fn distance_to_front(self, f: &[f64]) -> f64 {
             const STEPS: usize = 400;
             let (a, b) = (

@@ -153,7 +153,7 @@ pub fn tn3527_body(
 }
 
 /// The secant ogive through the Arcas Robin's tip and base nearest the report's coordinates: the
-/// arc radius ratio minimising the squared radius misses (golden-section search), and the rms
+/// arc radius ratio minimizing the squared radius misses (golden-section search), and the rms
 /// miss, inches.
 pub fn arcas_nose_ratio() -> Result<(f64, f64), String> {
     let length = ARCAS_NOSE_X_IN[8] * INCH;

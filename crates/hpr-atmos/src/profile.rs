@@ -32,7 +32,7 @@
 //! same geopotential height (the standard's geopotential `H` set equal to `Z`), and flags the
 //! sample.
 //! Below the lowest level the lowest level's relative humidity is held. Above the highest, its
-//! vapour mole fraction is held, capped at saturation, so a humid top does not put water into the
+//! vapor mole fraction is held, capped at saturation, so a humid top does not put water into the
 //! cold stratosphere. The continued pressure is the dry standard's, so in humid air it falls up to
 //! `x_v (1 − M_v/M₀)` (about 1.6% at 30 °C and saturation) faster than hydrostatic balance; the
 //! samples are flagged.
@@ -45,7 +45,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::air::{AirSample, Atmosphere};
 use crate::error::{AtmosError, finite, positive};
-use crate::moist::{check_relative_humidity, moist_air_unchecked, saturation_vapour_pressure_pa};
+use crate::moist::{check_relative_humidity, moist_air_unchecked, saturation_vapor_pressure_pa};
 use crate::ussa76::{DRY_AIR_GAS_CONSTANT_J_PER_KG_K, Ussa76, geometric_from_geopotential_m};
 use crate::wind::{LayeredWind, WindInterpolation, WindLevel};
 use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
@@ -100,8 +100,8 @@ pub struct SoundingProfile {
     humidities: Vec<f64>,
     below: Ussa76,
     above: Ussa76,
-    /// Vapour mole fraction at the highest level.
-    top_vapour_fraction: f64,
+    /// Vapor mole fraction at the highest level.
+    top_vapor_fraction: f64,
     wind: Option<LayeredWind>,
 }
 
@@ -159,9 +159,9 @@ impl From<SoundingProfile> for SoundingProfileData {
     }
 }
 
-/// Vapour pressure (Pa) for relative humidity `u` (none for dry air) at temperature `t`.
-fn vapour(humidity: Option<f64>, t: f64) -> f64 {
-    humidity.map_or(0.0, |u| u * saturation_vapour_pressure_pa(t))
+/// Vapor pressure (Pa) for relative humidity `u` (none for dry air) at temperature `t`.
+fn vapor(humidity: Option<f64>, t: f64) -> f64 {
+    humidity.map_or(0.0, |u| u * saturation_vapor_pressure_pa(t))
 }
 
 /// Virtual temperature `T / (1 − x_v (1 − M_v/M₀))` from the moist-air state's density.
@@ -275,12 +275,12 @@ impl SoundingProfile {
                 (None, Some(&below)) => {
                     let (t0, t1) = (temperatures_k[i - 1], temperatures_k[i]);
                     let dh = geopotentials_m[i] - geopotentials_m[i - 1];
-                    let tv0 = virtual_temperature(t0, below, vapour(humidity_at(i - 1), t0));
+                    let tv0 = virtual_temperature(t0, below, vapor(humidity_at(i - 1), t0));
                     let k = STANDARD_GRAVITY_MPS2 / DRY_AIR_GAS_CONSTANT_J_PER_KG_K * dh;
                     let mut p = below * (-k * inverse_log_mean(t0, t1)).exp();
                     if has_humidity {
                         for _ in 0..FILL_ITERATIONS {
-                            let tv1 = virtual_temperature(t1, p, vapour(humidity_at(i), t1));
+                            let tv1 = virtual_temperature(t1, p, vapor(humidity_at(i), t1));
                             p = below * (-k * inverse_log_mean(tv0, tv1)).exp();
                         }
                     }
@@ -303,8 +303,8 @@ impl SoundingProfile {
             temperatures_k[last],
             pressures_pa[last],
         )?;
-        let top_vapour_fraction =
-            (vapour(humidity_at(last), temperatures_k[last]) / pressures_pa[last]).min(1.0);
+        let top_vapor_fraction =
+            (vapor(humidity_at(last), temperatures_k[last]) / pressures_pa[last]).min(1.0);
         let wind = if has_wind {
             Some(LayeredWind::new(wind_levels, wind_interpolation)?)
         } else {
@@ -323,7 +323,7 @@ impl SoundingProfile {
             humidities,
             below,
             above,
-            top_vapour_fraction,
+            top_vapor_fraction,
             wind,
         })
     }
@@ -364,7 +364,7 @@ impl SoundingProfile {
                 .below
                 .sample(geometric_from_geopotential_m(geopotential)?)?
                 .air;
-            let e = vapour(humidity(0), air.temperature_k);
+            let e = vapor(humidity(0), air.temperature_k);
             return Ok(AirSample {
                 air: moist_air_unchecked(air.temperature_k, air.pressure_pa, e),
                 extrapolated: Some(Side::Below),
@@ -375,8 +375,8 @@ impl SoundingProfile {
                 .above
                 .sample(geometric_from_geopotential_m(geopotential)?)?
                 .air;
-            let e = (self.top_vapour_fraction * air.pressure_pa)
-                .min(saturation_vapour_pressure_pa(air.temperature_k));
+            let e = (self.top_vapor_fraction * air.pressure_pa)
+                .min(saturation_vapor_pressure_pa(air.temperature_k));
             return Ok(AirSample {
                 air: moist_air_unchecked(air.temperature_k, air.pressure_pa, e),
                 extrapolated: Some(Side::Above),
@@ -386,7 +386,7 @@ impl SoundingProfile {
         let upper = self.heights_m.partition_point(|&h| h <= z);
         if upper >= n {
             let t = self.temperatures_k[n - 1];
-            let e = vapour(humidity(n - 1), t);
+            let e = vapor(humidity(n - 1), t);
             return Ok(AirSample {
                 air: moist_air_unchecked(t, self.pressures_pa[n - 1], e),
                 extrapolated: None,
@@ -406,7 +406,7 @@ impl SoundingProfile {
         };
         let p = p0 * ((p1 / p0).ln() * shape).exp();
         let e = match (humidity(i), humidity(upper)) {
-            (Some(u0), Some(u1)) => (u0 + fraction * (u1 - u0)) * saturation_vapour_pressure_pa(t),
+            (Some(u0), Some(u1)) => (u0 + fraction * (u1 - u0)) * saturation_vapor_pressure_pa(t),
             _ => 0.0,
         };
         Ok(AirSample {
@@ -541,7 +541,7 @@ mod tests {
         let gravity = NormalGravity::wgs84();
         let steps = 20_000;
         let dz = (z1 - z0) / f64::from(steps);
-        let vapour_pressure = |z: f64| {
+        let vapor_pressure = |z: f64| {
             // e from the profile's air: ρ R_d T / p = 1 − x_v (1 − M_v/M₀).
             let air = profile.sample(z).unwrap().air;
             let deficit = 1.0
@@ -549,12 +549,12 @@ mod tests {
                     / air.pressure_pa;
             let x = deficit
                 / (1.0
-                    - crate::moist::WATER_VAPOUR_MOLECULAR_WEIGHT_KG_PER_KMOL
+                    - crate::moist::WATER_VAPOR_MOLECULAR_WEIGHT_KG_PER_KMOL
                         / crate::ussa76::SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL);
             (air.temperature_k, x * air.pressure_pa)
         };
         let weight = |z: f64, p: f64| {
-            let (t, e) = vapour_pressure(z);
+            let (t, e) = vapor_pressure(z);
             let g = gravity.taylor_mps2(profile.latitude_rad(), z).unwrap();
             moist_air_unchecked(t, p, e.max(0.0)).density_kg_m3 * g
         };
@@ -599,7 +599,7 @@ mod tests {
 
         // The filled pressures are hydrostatic for the sounding's temperatures and humidity. The
         // fill takes virtual temperature linear in geopotential height, while the profile
-        // interpolates temperature and relative humidity linearly; vapour pressure is exponential
+        // interpolates temperature and relative humidity linearly; vapor pressure is exponential
         // in temperature, so the two differ by about 0.06 K mid-layer here, and the pressures by
         // 1.1e-5 (a tenth of a meter of height). Dry air agrees to 2e-8 (next test).
         for (z, p) in [
@@ -753,8 +753,8 @@ mod tests {
         let h = |z| wmo_geopotential_from_geometric_m(z, LATITUDE_RAD).unwrap();
         let expected = 288.0 - 0.0065 * (h(6_000.0) - h(2_000.0));
         assert!((aloft.temperature_k - expected).abs() < 1e-9);
-        // The saturated top's vapour is capped at saturation in the cold air aloft.
-        let e_sat = saturation_vapour_pressure_pa(aloft.temperature_k);
+        // The saturated top's vapor is capped at saturation in the cold air aloft.
+        let e_sat = saturation_vapor_pressure_pa(aloft.temperature_k);
         let capped = moist_air(aloft.temperature_k, aloft.pressure_pa, e_sat).unwrap();
         assert!((aloft.density_kg_m3 / capped.density_kg_m3 - 1.0).abs() < 1e-14);
         // The continuation is the dry standard's pressure, so it is hydrostatic with the local

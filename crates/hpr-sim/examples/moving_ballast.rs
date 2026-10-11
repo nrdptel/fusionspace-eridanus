@@ -98,7 +98,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     // By hand: the ballast, m, moving Δ aft in a rocket of mass M moves the center mΔ/M aft, and
-    // the static margin by −mΔ/(M d) calibres.
+    // the static margin by −mΔ/(M d) calibers.
     let before = moving.mass_properties(&flight, 4.0);
     let after = moving.mass_properties(&flight, 7.0);
     let margin_at = |t_s: f64| {

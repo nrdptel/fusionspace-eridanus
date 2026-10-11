@@ -78,7 +78,7 @@ def printed(rocket: hpr.Rocket, flight: hpr.Flight) -> str:
         f"{-full['cg_m'][2]:>7.3f} {-empty['cg_m'][2]:>9.3f}",
         "center of pressure (m from nose) "
         f"{liftoff['cp_station_m']:>7.3f} {spent['cp_station_m']:>9.3f}",
-        "stability margin (calibres)      "
+        "stability margin (calibers)      "
         f"{liftoff['margin_cal']:>7.2f} {spent['margin_cal']:>9.2f}",
         "",
         "From a 1.8 m rail leaning 5° west, in 5 m/s of wind from the west:",

@@ -121,12 +121,12 @@ correlation, the curve fitted to measurements that gives its drag coefficient:
   planform area, and prints all three:
 
   | planform area | curve | where |
-  |---|---|---|
+  |--:|---|---|
   | 0.025 m² | `C_D = 0.561 AR^−0.480` | eq. 2 (Figure 2's trend reads `0.561 AR^−0.4795`) |
   | 0.05 m² | `C_D = 0.6514 AR^−0.6075` | the trend line on Figure 3; the text does not repeat it |
   | 0.075 m² | `C_D = 0.405 AR^−0.494` | eq. 1 (Figure 4 reads `0.4046 AR^−0.494`) |
 
-  **The simulator** interpolates between *neighbouring* curves, linearly in the logarithm of the
+  **The simulator** interpolates between *neighboring* curves, linearly in the logarithm of the
   area (`ln S`), and holds the end curve outside the fitted areas; that is the simulator's choice,
   not the paper's. All three curves are needed, because `C_D` is far from linear in `ln S`. At
   `AR = 3.3`, the middle area's `C_D` (0.3154) sits 0.3% *below* the smallest area's (0.3163), not
@@ -160,14 +160,14 @@ Two details of his method decide how to compare, and both were got wrong here be
 
 - His rates are **distance over time**, so they are averages over the drop rather than terminal
   speeds. A 20.1 m (66 ft) drop averages 0.97 of terminal at 2.8 m/s (9.2 ft/s) but 0.89 at 5.9 m/s (19 ft/s).
-- They are **normalised** to a notional 5.000 g weight: scaled to what that standard weight would
+- They are **normalized** to a notional 5.000 g weight: scaled to what that standard weight would
   give.
 
 `streamer_models_against_kidwells_drop_tests` uses the notional mass and compares the same
 average, from the [closed-form](../glossary.md#closed-form) fall:
 
 | case | measured | `C_D` it implies, on `S` | `Filippone` | `OpenRocket` |
-|---|---|---|---|---|
+|---|--:|--:|--:|--:|
 | crêpe paper, 32 g/m², **unpleated** | 2.80 m/s (9.2 ft/s) | 0.155 | 3.05 m/s (10.0 ft/s, +9%) | 5.28 m/s (17.3 ft/s, +88%) |
 | Micafilm, 42 g/m², pleated | 2.04 m/s (6.7 ft/s) | 0.338 | 3.21 m/s (10.5 ft/s, +58%) | 5.19 m/s (17.0 ft/s, +154%) |
 
@@ -240,7 +240,7 @@ C_D S = 1.42 A_f + 0.56 A_bt
 reading of the model (`the_tumble_model_against_its_own_drop_tests`):
 
 | model | fins | measured | HPR Sim |
-|---|---|---|---|
+|---|---|--:|--:|
 | #1 | 3 | 5.6 m/s (18 ft/s) | 5.27 (−5.8%) |
 | #2 | 4 | 6.3 m/s (21 ft/s) | 5.96 (−5.4%) |
 | #3 | 3 | 6.6 m/s (22 ft/s) | 6.13 (−7.2%) |
@@ -690,7 +690,7 @@ comes down under a 0.9 m (3.0 ft) one, and lets the payload out at 300 m (984 ft
 its own terminal speed, `v_e` above, for its own mass and canopy in the air at the ground:
 
 | Body | Mass (kg) | Flies on its own from (s) | Lands (s) | At (m/s) | `v_e` (m/s) | East of the pad (m) |
-|---|---|---|---|---|---|---|
+|---|--:|--:|--:|--:|--:|--:|
 | 0, the nose cone | 0.063 | 16.23 | 562.88 | 3.06 | 3.06 | 2,035.4 |
 | 1, the airframe | 0.556 | 16.23 | 333.54 | 4.54 | 4.54 | 1,115.6 |
 | 2, the payload | 0.250 | 268.05 | 333.14 | 4.57 | 4.57 | 1,114.0 |
@@ -705,7 +705,7 @@ The example then flies the same rocket again with a 1 N·s push at each parting,
 canopy on the nose cone, which tumbles:
 
 | Body | Mass (kg) | Lands (s) | At (m/s) | `v_e` (m/s) | East of the pad (m) | Moved from the first flight (m) |
-|---|---|---|---|---|---|---|
+|---|--:|--:|--:|--:|--:|--:|
 | 0, the nose cone, tumbling | 0.063 | 130.93 | 14.82 | 14.82 | 269.6 | 1,765.7 |
 | 1, the airframe | 0.556 | 333.42 | 4.54 | 4.54 | 1,115.6 | 0.0 |
 | 2, the payload | 0.250 | 333.33 | 4.57 | 4.57 | 1,115.3 | 1.3 |
@@ -957,7 +957,7 @@ gaps, in order:
 **The results.** Measured (HPR Sim against RocketPy, 2026-09-17):
 
 | case | descent time | descent rate under the drogue | impact descent rate | drift | worst drift component |
-|---|---|---|---|---|---|
+|---|--:|--:|--:|---|---|
 | Calisto (drogue 1.0 m², main 10 m² at 800 m (2,625 ft), wind 5 E / 2 N) | +0.08% (257.27 s) | −0.01% (17.967 m/s (58.95 ft/s)) | −0.03% (5.454 m/s (17.89 ft/s)) | +0.08% (1,386.0 m (4,547 ft)) | +0.08% |
 | Valetudo (drogue 0.4537 m², no wind) | −0.02% (45.76 s) | n/a | +0.00% (17.627 m/s (57.83 ft/s)) | −0.89% (0.19 m (0.62 ft), Coriolis only) | −1.77% (north, 19 µm; +2704% under HPR Sim's own gravity, [issue #27](https://github.com/nrdptel/fusionspace-eridanus/issues/27)) |
 | NDRT 2020 (drogue 0.438 m², main 16.05 m² at 167.6 m (550 ft), sheared wind) | +0.71% (61.60 s) | +0.01% (28.156 m/s (92.38 ft/s)) | +0.01% (4.604 m/s (15.10 ft/s)) | +0.28% (327.9 m (1,076 ft)) | +2.86% (north, −50.8 m (−167 ft)) |

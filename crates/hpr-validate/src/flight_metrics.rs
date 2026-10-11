@@ -100,7 +100,7 @@ pub enum FlightMetric {
     FlightTime,
     /// The speed as the rocket leaves the launch rod or rail, m/s.
     RodClearanceSpeed,
-    /// The static stability margin as the rocket leaves the launch rod or rail, calibres.
+    /// The static stability margin as the rocket leaves the launch rod or rail, calibers.
     RodClearanceStability,
     /// The speed at a recovery device's deployment, m/s.
     DeploymentSpeed,
@@ -170,7 +170,7 @@ pub enum Point {
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum Event {
-    /// The first integration step at which the rocket has travelled past the launch rod's
+    /// The first integration step at which the rocket has traveled past the launch rod's
     /// length: OpenRocket 24.12's rod clearance. The rod's end falls between that step and the
     /// one before, so the speed here is above the speed at the rod's end (by 0.06% to 7.50% on
     /// the record's flights).
@@ -242,7 +242,7 @@ pub enum Definition {
     },
     /// The static stability margin at the first occurrence of `event`: the distance from the
     /// center of mass aft to the center of pressure, divided by the tool's reference length, in
-    /// calibres (Niskanen 2009, p. 12). OpenRocket's reference length is by default the largest
+    /// calibers (Niskanen 2009, p. 12). OpenRocket's reference length is by default the largest
     /// body diameter, and was that on every flight of the record.
     StabilityAtEvent {
         /// The event.

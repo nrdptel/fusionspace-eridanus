@@ -67,7 +67,7 @@ struct Case {
     usable_note: Option<&'static str>,
 }
 
-/// Every RocketPy example whose drag curve is labelled RASAero: power-off, and power-on wherever
+/// Every RocketPy example whose drag curve is labeled RASAero: power-off, and power-on wherever
 /// the example has a separate power-on curve that differs from its power-off curve. Calisto's
 /// power-on file is byte-identical to its power-off file, and Juno III uses one file for both.
 const CASES: &[Case] = &[
@@ -103,7 +103,7 @@ const CASES: &[Case] = &[
         curve: "data/rockets/juno3/drag_curve.csv",
         thrusting: false,
         variant_of: None,
-        origin: "labelled RASAero II by RocketPy's Juno III notebook; a 3-decimal, hand-edited \
+        origin: "labeled RASAero II by RocketPy's Juno III notebook; a 3-decimal, hand-edited \
                  table (broken above Mach 1), used for power-off and power-on",
         usable_to_mach: Some(0.92),
         usable_note: Some(
@@ -117,7 +117,7 @@ const CASES: &[Case] = &[
         curve: "data/rockets/polito/drag_coefficient_power_off.csv",
         thrusting: false,
         variant_of: None,
-        origin: "labelled RASAero II by RocketPy's Cavour notebook; a 3-decimal table from Mach \
+        origin: "labeled RASAero II by RocketPy's Cavour notebook; a 3-decimal table from Mach \
                  0.082 to 0.895 with 22 extra rows repeating 13 Mach numbers up to 0.107, 7 of \
                  them with values 0.001 apart",
         usable_to_mach: None,
@@ -142,7 +142,7 @@ const CASES: &[Case] = &[
         curve: "data/rockets/valetudo/Cd_PowerOff_RASAero.csv",
         thrusting: false,
         variant_of: None,
-        origin: "labelled RASAero by its file name; a 3-decimal, hand-edited table with no input \
+        origin: "labeled RASAero by its file name; a 3-decimal, hand-edited table with no input \
                  file, 1.44 times the OpenRocket export for the same rocket in RocketPy's \
                  RocketPaper repository at Mach 0.3",
         usable_to_mach: None,

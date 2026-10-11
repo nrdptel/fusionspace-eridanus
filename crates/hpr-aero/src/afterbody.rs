@@ -58,7 +58,7 @@
 //! every Mach number, and Fig. 5-141 outside its bases' area ratios of 0.25 to 0.67 and angles to
 //! 14°. How well each piece agrees with the measurements is in the guide.
 //!
-//! Calisto's boattail, 0.472 calibres long from `a = 1` to 0.469 (18.4°), at Mach 1.5: the chart
+//! Calisto's boattail, 0.472 calibers long from `a = 1` to 0.469 (18.4°), at Mach 1.5: the chart
 //! gives 0.219 and the 2D limit 0.211, so the attached drag is 0.211; separation takes it 17% of
 //! the way to the base's 0.088, to 0.190.
 //!
@@ -711,7 +711,7 @@ mod tests {
     /// value at `x = 1.4`: continuous there, rising toward the limit's share.
     #[test]
     fn past_the_chart_the_drag_closes_on_the_2d_limit() {
-        // A long, gentle boattail reaches x = 1.4 early: 2 calibres to a = 0.5.
+        // A long, gentle boattail reaches x = 1.4 early: 2 calibers to a = 0.5.
         let b = Boattail::new(0.2, 0.1, 0.1 * 0.5f64.sqrt()).unwrap();
         let mach_end = (1.0 + (2.8 * b.length_ratio).powi(2)).sqrt();
         let chart = b.chart_drag(1.4).unwrap();

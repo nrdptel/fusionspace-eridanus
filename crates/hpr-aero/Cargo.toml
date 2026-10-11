@@ -6,6 +6,7 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+readme.workspace = true
 
 # The library keeps its Rust name, `hpr_aero`, under the package's FusionSpace name (ADR-199).
 [lib]

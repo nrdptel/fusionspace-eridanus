@@ -250,7 +250,7 @@ mod tests {
     }
 
     #[test]
-    fn neighbouring_streams_are_uncorrelated() {
+    fn neighboring_streams_are_uncorrelated() {
         // The first uniform of 20,000 streams keyed 0, 1, 2…: the mean and the lag-one
         // correlation of independent uniforms, within four standard errors.
         let n = 20_000_u64;

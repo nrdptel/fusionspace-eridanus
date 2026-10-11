@@ -117,7 +117,7 @@ fn sim_gives_the_cg_and_cp_of_its_static_margin() {
     holds_lines(
         &text,
         &[
-            "static margin         1.70 calibres off the rail; least 1.70 calibres, at 0.12 s, \
+            "static margin         1.70 calibers off the rail; least 1.70 calibers, at 0.12 s, \
              before apogee",
             "CG and CP             0.811 m (31.9 in) and 0.923 m (36.3 in) aft of the nose tip, \
              off the rail",

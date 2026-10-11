@@ -87,7 +87,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use pulldown_cmark::{
-    BrokenLink, CodeBlockKind, Event, HeadingLevel, LinkType, Options, Parser, Tag, TagEnd,
+    Alignment, BrokenLink, CodeBlockKind, Event, HeadingLevel, LinkType, Options, Parser, Tag, TagEnd,
 };
 
 use crate::workspace::{Package, Workspace};
@@ -97,6 +97,7 @@ mod cdp;
 mod chrome;
 mod frame;
 mod notes;
+mod numbers;
 mod pages;
 mod print;
 mod sheets;
@@ -1198,6 +1199,9 @@ fn page_rules(
     }
     // Heights, distances, sizes and speeds with their US units in brackets (#400).
     problems.extend(units::si_alone(text));
+    // Minus signs, and columns of numbers right-aligned (#386).
+    problems.extend(numbers::minus_signs(text));
+    problems.extend(numbers::number_columns(text));
     if parent(name) == MODELS {
         problems.extend(in_short(text));
         // Each number *In short* quotes is in the rest of the page, or in a file its item links.
@@ -1897,9 +1901,12 @@ struct Cell {
     code: Vec<String>,
 }
 
-/// A Markdown table: its header's cells, and each row's line and cells.
+/// A Markdown table: its first line, its columns' alignments, its header's cells, and each row's
+/// line and cells.
 #[derive(Debug, Default)]
 struct Table {
+    line: usize,
+    alignments: Vec<Alignment>,
     header: Vec<Cell>,
     rows: Vec<(usize, Vec<Cell>)>,
 }
@@ -1912,7 +1919,11 @@ fn tables(text: &str) -> Vec<Table> {
     let mut row: Option<(usize, Vec<Cell>)> = None;
     for (event, range) in Parser::new_ext(text, options()).into_offset_iter() {
         match event {
-            Event::Start(Tag::Table(_)) => found.push(Table::default()),
+            Event::Start(Tag::Table(alignments)) => found.push(Table {
+                line: line(range.start),
+                alignments,
+                ..Table::default()
+            }),
             Event::Start(Tag::TableHead | Tag::TableRow) => row = Some((range.start, Vec::new())),
             Event::End(TagEnd::TableHead) => {
                 if let (Some(table), Some((_, cells))) = (found.last_mut(), row.take()) {
@@ -4283,7 +4294,7 @@ mod tests {
     const GRAVITY: &str = "[Gravity](physics/gravity.md).\n\n";
 
     /// A results table giving all of [`accuracy_problems`]'s report, as it should.
-    const RESULTS: &str = "| case | `drift_m` | `time_s` |\n|---|---|---|\n\
+    const RESULTS: &str = "| case | `drift_m` | `time_s` |\n|---|---:|---:|\n\
                            | [`alpha`][report] | +2.865% | −0.019% |\n\
                            | [`beta`][report] | +0.075% | |\n\n\
                            [report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md\n";

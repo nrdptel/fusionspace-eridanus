@@ -486,7 +486,7 @@ fn the_figure_ends_in_a_title_block() {
     }
 }
 
-/// An unpredicted span is hatched in every panel, labelled above the first, outside the
+/// An unpredicted span is hatched in every panel, labeled above the first, outside the
 /// hatching, and said under the table.
 #[test]
 fn an_unpredicted_fall_is_hatched_and_said() {

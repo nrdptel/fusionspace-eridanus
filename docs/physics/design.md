@@ -6,7 +6,7 @@ measured overrides, mounts motors and flags impossible designs.
 ## In short
 
 - **What it models:** how parts become a rocket: where each part sits, automatic radii (taken
-  from the neighbouring parts), overrides (measured values that replace computed masses, centers
+  from the neighboring parts), overrides (measured values that replace computed masses, centers
   and inertias), the [reference diameter](../glossary.md#reference-area) and the motor in its
   mount. It gives the
   rocket's mass, [center of mass](../glossary.md#center-of-gravity-cg) and inertia (its resistance
@@ -166,7 +166,7 @@ An attached part of extent `L` in a parent spanning stations `[p, p + P]`, with 
 
 An `auto` list names dimensions that the tree resolves. The part's stored value for them is ignored.
 
-- **Body radii** follow neighbours through every stage, stage boundaries included:
+- **Body radii** follow neighbors through every stage, stage boundaries included:
   - a nose cone's base, and a transition's aft radius, take the next component's forward radius;
   - a body tube, and a transition's forward radius, take the previous component's aft radius.
 - **Order.** Sources are followed until nothing changes. A body tube still unresolved then takes
@@ -187,7 +187,7 @@ An `auto` list names dimensions that the tree resolves. The part's stored value 
 - **Packed parts** (mass components and recovery parts) take the parent tube's inner radius, less
   the distance from the parent's axis to the part's axis. An offset outside the bore is refused.
 - **Tube fin sets:** the outer radius `r` is the one at which the tubes close the ring around the
-  body tube of radius `R` they sit on, each touching the body and its two neighbours. For `N ≥ 3`
+  body tube of radius `R` they sit on, each touching the body and its two neighbors. For `N ≥ 3`
   tubes, `r = R sin(π/N) / (1 − sin(π/N))`; one or two tubes take the body's radius. Six tubes on
   a 50 mm (2.0 in) body are 50 mm (2.0 in); four are 120.7 mm (4.8 in). A wall thicker than `r` is cut to it. This is the
   radius OpenRocket 24.12 gives, measured on probes
@@ -337,7 +337,7 @@ a 54 mm (2.1 in) body, and the design checks say so. It is held at rest in a vac
 add anything to the motors' push. With the motor at 0° out, 1 s into the burn:
 
 | quantity | value |
-|---|---|
+|---|--:|
 | each lit motor's thrust `T`, in a vacuum | 193.98 N |
 | the loaded motor, and each lit one at 1 s | 0.4375 kg, 0.3332 kg |
 | the rocket's mass `m` | 1.584 kg |
@@ -473,7 +473,7 @@ the body's axis is `m` times the square of the pod's distance from that line. Bo
 axes:
 
 | quantity (the two pods about their joint center, on the axis) | value |
-|---|---|
+|---|--:|
 | mass | 134.25 g |
 | `I_xx`: no `m d²` | 2 × 2.53675e-4 ≈ 5.0735e-4 kg m² |
 | `I_yy` | 2 × (2.53675e-4 + 1.6781e-4) ≈ 8.4298e-4 kg m² |
@@ -841,7 +841,7 @@ unless the caller sets
   - Worst measured, with the test's tolerance:
 
     | quantity | worst | tolerance |
-    |---|---|---|
+    |---|---|--:|
     | dry mass, center, `I_11`, `I_33`; initial and column propellant mass | 2.4e-16 | 1e-12 |
     | products of inertia (of `I_11`) | 0 | 1e-15 |
     | at LSODA knots: total mass, center (of length), `I_11`, `I_33` | 8.0e-10 | 1e-8 |

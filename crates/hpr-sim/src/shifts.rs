@@ -671,7 +671,7 @@ mod tests {
             }
         }
         assert!(during >= 3 && after >= 3, "{during} during, {after} after");
-        // Measured: 4.30 calibres before, 3.00 after the ballast's 0.3 m (1.30 calibres less).
+        // Measured: 4.30 calibers before, 3.00 after the ballast's 0.3 m (1.30 calibers less).
         let margin_after = coast.last().unwrap().static_margin.margin_cal.unwrap();
         close(margin_before, 4.2973, 1e-4, "before");
         close(margin_before - margin_after, 1.3016, 1e-4, "change");

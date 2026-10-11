@@ -1900,7 +1900,7 @@ fn outline(subpath: &Subpath, style: &Style, half: f64, points: &mut Vec<P>) {
     }
     // Joins: between each two segments, and from the last to the first of a closed subpath. A
     // segment with no length, such as a closepath back to where the path already is, joins
-    // nothing: its neighbours join each other.
+    // nothing: its neighbors join each other.
     let drawn: Vec<&Segment> = segments
         .iter()
         .filter(|s| s.start_direction().is_some())

@@ -429,11 +429,11 @@ mod tests {
     /// 6.43, each those to the nearest half percent).
     ///
     /// His verdicts on the first are the margin half: in solid magnesium the wing "would plot in
-    /// the flutter region", in aluminium it "would be marginal", in steel "probably safe". With
+    /// the flutter region", in aluminum it "would be marginal", in steel "probably safe". With
     /// the moduli he marks on figure 3's axis, each a small box measured on the 250 dpi scan
-    /// (outer walls, × 10⁶ psi: magnesium 2.40 to 2.63, aluminium 3.82 to 4.28, titanium 5.78 to
+    /// (outer walls, × 10⁶ psi: magnesium 2.40 to 2.63, aluminum 3.82 to 4.28, titanium 5.78 to
     /// 6.34, steel 8.92 to 11.3), and his band, magnesium's ratio lies wholly above the band,
-    /// aluminium's overlaps it, and steel's lies wholly below; his second example's titanium, held
+    /// aluminum's overlaps it, and steel's lies wholly below; his second example's titanium, held
     /// to 0.8 × 10⁶ psi, lies below it.
     #[test]
     fn martins_worked_examples() {
@@ -453,14 +453,14 @@ mod tests {
         };
         let first = panel(2.0, 1.0, 0.04);
         let magnesium = ratios(&first, [2.40, 2.63]);
-        let aluminium = ratios(&first, [3.82, 4.28]);
+        let aluminum = ratios(&first, [3.82, 4.28]);
         let steel = ratios(&first, [8.92, 11.3]);
         // The second example's titanium wing: the thickness that holds X at 0.8 × 10⁶ psi.
         let held = panel(2.0, 1.0, 0.04 * (x / 0.8e6).cbrt());
         assert!((ordinate_psi(&held, P0) / 0.8e6 - 1.0).abs() < 1e-12);
         let titanium = ratios(&held, [5.78, 6.34]);
         assert!(magnesium[0] > high, "{magnesium:?}");
-        assert!(aluminium[0] < high && aluminium[1] > low, "{aluminium:?}");
+        assert!(aluminum[0] < high && aluminum[1] > low, "{aluminum:?}");
         assert!(steel[1] < low, "{steel:?}");
         assert!(titanium[1] < low, "{titanium:?}");
     }

@@ -2156,7 +2156,7 @@ fn body_radii(part: &hpr_design::tree::Part) -> Vec<f64> {
 /// The cached numbers (`auto 0.04`) are ignored by OpenRocket, and so by hpr: the number is an
 /// answer OpenRocket last wrote, never an input. And OpenRocket's first reading of one shape (a
 /// tube beside an automatic tube that holds a part of automatic radius) is its default, which it
-/// corrects to the neighbour's radius as soon as it works the design out again; hpr is held to the
+/// corrects to the neighbor's radius as soon as it works the design out again; hpr is held to the
 /// settled answer, and the count of first readings that differ is pinned here too.
 #[test]
 fn a_radius_with_nothing_to_take_is_openrockets_default() {
@@ -2289,7 +2289,7 @@ fn a_tube_given_the_default_has_its_wall_judged_against_it() {
     }
 }
 
-/// Where the neighbour rule does reach a fixed radius, nothing is defaulted and nothing warns: the
+/// Where the neighbor rule does reach a fixed radius, nothing is defaulted and nothing warns: the
 /// default is for a chain with nothing on it, not a fallback for an awkward one.
 #[test]
 fn a_chain_that_reaches_a_fixed_radius_takes_no_default() {

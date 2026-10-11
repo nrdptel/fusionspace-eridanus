@@ -54,7 +54,7 @@ Loft, this project's predecessor, got four things wrong that these metrics are b
   the boost's peak acceleration ([L34](../decisions-and-roadmap.md#l34)).
 - It printed zeros for things that never happened, and never said which height an apogee was
   counted from ([L35](../decisions-and-roadmap.md#l35)).
-- It published margins of ±12 to 15 calibres for rockets where a margin has no meaning
+- It published margins of ±12 to 15 calibers for rockets where a margin has no meaning
   ([L33](../decisions-and-roadmap.md#l33)).
 - Its optimum ejection delay depended on the delay flown ([L94](../decisions-and-roadmap.md#l94)).
 
@@ -185,7 +185,7 @@ unstable under power.
 ### Stability margins
 
 The margin is how far the [center of pressure](../glossary.md#center-of-pressure-cp) lies behind
-the center of mass, in [calibres](../glossary.md#calibre-caliber) of the reference diameter `d`:
+the center of mass, in [calibers](../glossary.md#caliber) of the reference diameter `d`:
 
 ```text
 margin = (x_cp − x_cg) / d,    x_cp = Σ C_Nα,i x_i / Σ C_Nα,i
@@ -203,12 +203,12 @@ instant:
   on the rail and in the descent too, at its solver's steps, so it can differ from HPR Sim's least
   below. No page compares HPR Sim's margins with RocketPy's yet. Against OpenRocket, in calm air at
   rod clearance, where a rocket is still slow, HPR Sim's margin at the flight's Mach number is
-  within 0.016 calibres on 41 of the 53 flights of OpenRocket's own examples. This comparison takes
+  within 0.016 calibers on 41 of the 53 flights of OpenRocket's own examples. This comparison takes
   HPR Sim's margin with the air along the rocket's axis (the 0° plane), as OpenRocket's margin is,
   not in HPR Sim's weakest plane (below). On `[C6-7; B6-0]` of *Pods--powered with recovery
-  deployment*, HPR Sim's margin at rod clearance in the report is +3.74 calibres along the axis,
+  deployment*, HPR Sim's margin at rod clearance in the report is +3.74 calibers along the axis,
   while `hpr sim` prints a least margin of −4.21 in the weakest plane. Where the two programs
-  differ: on the *Tube fin rocket* HPR Sim's is 1.08 calibres below OpenRocket's,
+  differ: on the *Tube fin rocket* HPR Sim's is 1.08 calibers below OpenRocket's,
   [tube fins](aero.md#tube-fins); on the three-stage example's three flights 0.039 to 0.058 below,
   cause not yet sized, [#185](https://github.com/nrdptel/fusionspace-eridanus/issues/185); and on
   the five of *Pods--airframes and winglets* 0.071 to 0.076 above, the flattering side,
@@ -217,7 +217,7 @@ instant:
   *Pods--powered with recovery deployment* 0.070 above, also not yet traced. On 35 flights of
   private designs it is from 0.017 lower to 0.11 higher, cause not yet traced
   ([Accuracy](../accuracy.md)). Near Mach 1 HPR Sim puts the Arcas Robin's center of pressure up to
-  2.36 calibres behind the wind tunnel's
+  2.36 calibers behind the wind tunnel's
   ([Normal force through Mach 1](aero.md#normal-force-through-mach-1)), so there its flight margin
   reads high.
 
@@ -226,7 +226,7 @@ instant:
   slope grows, and from Mach 0.8 their own center moves aft too. Past that their slope falls and
   the body's lift can grow, and the center of pressure mostly moves forward again
   ([Your rocket's center of pressure](aero.md#your-rockets-center-of-pressure)). Valetudo is slow:
-  at its rail exit, at Mach 0.051, both margins read 3.09 calibres.
+  at its rail exit, at Mach 0.051, both margins read 3.09 calibers.
 
 **Both margins are the weakest direction's.** The air can cross a rocket from any direction around
 its axis, and for most rockets the margin is the same in every one. A fin set of one or two fins
@@ -239,12 +239,12 @@ or that flies a normal-force table, keeps its one margin, bit for bit.
 
 A worked case: the sustainer of OpenRocket's *Pods--powered with recovery deployment* example has
 a single fin at 0° and a two-fin strake set at 90°. At Mach 0.2, after the booster drops, its
-margin is +1.86 calibres with the air crossing at 0°, where the single fin lies edge-on and the
+margin is +1.86 calibers with the air crossing at 0°, where the single fin lies edge-on and the
 strakes carry the force. At 45° it is +0.17. At 90° the strakes lie edge-on and only the single
 fin works: −3.44, unstable. OpenRocket 24.12, asked for that sustainer at 90° in a scratch run (not
 committed), puts its center of pressure at 0.2954 m (0.969 ft) with `C_Nα` 3.49; HPR Sim's are 0.2993 m (0.982 ft) and
 3.47. For one of its staged configurations, `[C6-7; B6-0]`, `hpr sim`'s least margin was +1.56
-calibres and is now −4.21, at 0.86 s. That is the sustainer's margin at the split itself, the moment
+calibers and is now −4.21, at 0.86 s. That is the sustainer's margin at the split itself, the moment
 the booster drops, with its own motor just lit and still full and the air at Mach 0.07; the −3.44 is
 a later instant, at Mach 0.2. In the conditions of OpenRocket's record, both programs' flights of
 that configuration turn over before apogee: its site is at 28.61° N, where the Earth's rotation tips
@@ -291,9 +291,9 @@ near a step's end can still hide from the parabola.
 
 - On four test flights, and in the example, both leasts come at the rail exit, where the rocket is
   heaviest and its center of mass furthest aft. Flown in steps of at most 1 ms, those flights give
-  the same leasts to a millionth of a calibre.
+  the same leasts to a millionth of a caliber.
 - On a two-stage test flight the least flight margin comes inside a step, after the split. There
-  it matches a scan of every step at 201 points to 1e-7 calibres, and is never above it.
+  it matches a scan of every step at 201 points to 1e-7 calibers, and is never above it.
 
 After a powered separation the margins are the sustainer's, in its own diameter. The split has two
 entries in the series: the stack's, then the sustainer's.
@@ -302,7 +302,7 @@ entries in the series: the stack's, then the sustainer's.
 
 As the net slope `Σ C_Nα,i` goes to zero, the air's loads become a pure couple: a turning moment
 with no line of action. The quotient `x_cp` then runs away. That is how Loft came to publish
-margins of ±12 to 15 calibres.
+margins of ±12 to 15 calibers.
 
 The simulator judges the net slope against the sum of its terms' sizes:
 
@@ -342,7 +342,7 @@ A worked case, with no fins, pinned by a test:
 - The center of mass is at 0.5 m (1.6 ft).
 
 | Boattail's aft radius | Net slope | `κ` | Margin | `C_mα` |
-|---|---|---|---|---|
+|--:|--:|--:|---|--:|
 | 40 mm (1.6 in) | 1.28 | 2.13 | −7.46 cal | +9.55 |
 | 35 mm (1.4 in) | 0.98 | 3.08 | −11.2 cal | +10.98 |
 | 34.5 mm (1.4 in) | 0.952 | 3.20 | none (the quotient: −11.7 cal) | +11.11 |
@@ -351,7 +351,7 @@ A worked case, with no fins, pinned by a test:
 
 With no fins, every one of these rockets is unstable: its center of pressure lies ahead of its
 center of mass, and `C_mα` is positive. The cut is not about how large the margin is. The 35 mm (1.4 in) and
-34.5 mm (1.4 in) rows have margins near −11 calibres; what differs is whether the quotient can be trusted.
+34.5 mm (1.4 in) rows have margins near −11 calibers; what differs is whether the quotient can be trusted.
 
 A component can be a pure couple on its own. A step down in radius followed by a flare back up
 cancels its own slope and still turns the rocket. `C_mα` keeps its moment, which a test also
@@ -437,12 +437,12 @@ there.
 
 For example, OpenRocket's example *Pods--powered with recovery deployment*, flown on `[C6-7; B6-0]`
 or `[C6-7; 2× A3-4, B6-0]`, separates at 0.86 s. The sustainer left has a static margin of −4.21
-calibres with its C6 still burning. On `[C6-7; B6-0]`:
+calibers with its C6 still burning. On `[C6-7; B6-0]`:
 
 ```text
-static margin         2.05 calibres off the rail; least -4.21 calibres, at 0.86 s, before apogee
+static margin         2.05 calibers off the rail; least -4.21 calibers, at 0.86 s, before apogee
 apogee                251.3 m above the site at 5.74 s, not a prediction: unstable under power
-warning: unstable: the static margin falls to -4.21 calibres at 0.86 s while a motor burns: the rocket is unstable under power, so the air turns it away from its path rather than back, and its apogee is not a prediction
+warning: unstable: the static margin falls to -4.21 calibers at 0.86 s while a motor burns: the rocket is unstable under power, so the air turns it away from its path rather than back, and its apogee is not a prediction
 ```
 
 For the second flag, take RocketPy's Valetudo with its fins taken off and a conical tail that
@@ -455,7 +455,7 @@ apogee                399.1 m above the site at 8.46 s, not a prediction: unstab
 warning: unstable: while a motor burns, the pitching moment turns the rocket away from its path (C_mα +43.9 per radian at 0.25 s) where hpr can give no static margin: the rocket is unstable under power, so its apogee is not a prediction
 ```
 
-With the tail ending at 30 mm (1.2 in) instead, the margin is defined, −34.37 calibres, and the first flag
+With the tail ending at 30 mm (1.2 in) instead, the margin is defined, −34.37 calibers, and the first flag
 fires in its place. These figures are from a run on 2026-10-06; the test
 (`sim_flags_a_rocket_unstable_where_it_has_no_margin`) pins only the flag and a slope above 1.
 
@@ -481,7 +481,7 @@ The tests `the_powered_margin_counts_only_while_a_motor_burns`,
 `a_rocket_without_fins_is_unstable_under_power` (in the flight engine's `metrics.rs`), and
 `the_stability_flag_starts_just_below_a_zero_margin` and
 `the_moment_flag_starts_just_above_zero_and_only_without_the_margin_flag` (in `envelope.rs`) pin
-it: a margin of −2⁻³⁰ calibres at a burnout raises the flag, +2⁻³⁰ doesn't, nor does −1 calibre
+it: a margin of −2⁻³⁰ calibers at a burnout raises the flag, +2⁻³⁰ doesn't, nor does −1 caliber
 in the coast that follows; with no margin, a `C_mα` of +2⁻³⁰ per radian under power raises the
 second flag, −2⁻³⁰ doesn't, nor does +2⁻³⁰ after the burnout. In `hpr-cli`,
 `sim_flags_a_rocket_unstable_where_it_has_no_margin` flies the Valetudo example above.
@@ -533,22 +533,22 @@ In `crates/hpr-sim/src/metrics.rs`, unless named otherwise:
 | `ordinary_rockets_keep_their_margin` | All 13 validation designs keep their margin at Mach 0, 0.3, 0.8, 1.2 and 2 and at 0°, 5°, 10° and 20°, with `κ` below 1.5 |
 | `a_pure_couple_keeps_its_moment` | The step and flare above: `C_mα` against the hand value, to 1e-9 |
 | `a_normal_force_table_gives_its_own_margin` | A table's margin and `C_mα` against its own numbers |
-| `the_least_margin_is_the_weakest_plane_s` | Six layouts of a single fin and a two-fin set, at Mach 0.1, 0.6 and 1.5 and three centers of mass: the least margin is never above any of 3,600 scanned planes', and within 1e-5 calibres of the scan's least, including where the weakest plane lies between the fins' planes; fin sets of three or more fins keep the margin along the axis, bit for bit |
+| `the_least_margin_is_the_weakest_plane_s` | Six layouts of a single fin and a two-fin set, at Mach 0.1, 0.6 and 1.5 and three centers of mass: the least margin is never above any of 3,600 scanned planes', and within 1e-5 calibers of the scan's least, including where the weakest plane lies between the fins' planes; fin sets of three or more fins keep the margin along the axis, bit for bit |
 | `peak_acceleration_is_analytic_and_excludes_opening_shock` | The boost's peak in a vacuum against the hand value, to 1e-6; a 100 Hz finite difference reads it more than 1% low; an opening shock over three times the boost's is kept apart ([L34](../decisions-and-roadmap.md#l34)) |
 | `unlanded_flight_has_no_ground_hit_speed_and_outputs_name_datum` | `None` and `null` for an unlanded flight; the launch height against the rail's geometry, to 1e-9 relative ([L35](../decisions-and-roadmap.md#l35)) |
 | `optimum_delay_independent_of_flown_delay` | Delays of 1 s and 20 s give the same optimum, equal to a flight with no recovery ([L94](../decisions-and-roadmap.md#l94)) |
 | `peaks_are_refined_inside_steps` | On three rockets, max q and top Mach are above every row of a 1 ms record, and the record's best row is within 0.01% of them; on Valetudo max q comes before top speed, and top speed before top Mach |
 | `landings_are_placed_on_the_ellipsoid` | A landing more than 100 m (328 ft) downwind, against the radii of curvature at the site, to second order |
 | `stability_is_kept_from_rail_exit_to_apogee` | The series' ends; the static margin at the rail exit and, in a crosswind, the flight margin at the flight's Mach number, against the model and the masses directly, to 1e-12; the least flight margin is at or below every entry |
-| `least_margins_do_not_depend_on_where_steps_end` | Valetudo in calm air off a vertical and an 84° rail and in a crosswind, and Prometheus: both leasts are at the rail exit, and agree with steps of at most 1 ms to 1e-6 calibres |
+| `least_margins_do_not_depend_on_where_steps_end` | Valetudo in calm air off a vertical and an 84° rail and in a crosswind, and Prometheus: both leasts are at the rail exit, and agree with steps of at most 1 ms to 1e-6 calibers |
 | `a_least_margin_between_step_ends_is_found` | A margin of `2 + (t − 0.37)²` across a step: the search finds 2 at 0.37 s; a margin falling across the step, or undefined in its middle, is not searched |
 | `a_summary_needs_the_flight_it_watched` | A watcher refuses a flight when it missed some of its steps or also watched another flight, naming the steps it saw, and sums up one that ended without a step; a flight started in the air has no launch height, and one started on its way down keeps no stability |
-| `the_powered_margin_counts_only_while_a_motor_burns` | A margin falling 1 calibre a second across a burnout at 1 s: −2⁻³⁰ calibres at the burnout raises the flag, +2⁻³⁰ doesn't, nor does −1 in the coast after; a least inside a powered step is found by the search; a NaN under power is kept, one in the coast isn't; a margin of −10⁻¹³ replaces +10⁻¹³ though the two are closer than the tie |
+| `the_powered_margin_counts_only_while_a_motor_burns` | A margin falling 1 caliber a second across a burnout at 1 s: −2⁻³⁰ calibers at the burnout raises the flag, +2⁻³⁰ doesn't, nor does −1 in the coast after; a least inside a powered step is found by the search; a NaN under power is kept, one in the coast isn't; a margin of −10⁻¹³ replaces +10⁻¹³ though the two are closer than the tie |
 | `a_moment_slope_without_a_margin_counts_only_while_a_motor_burns` | With no margin, a `C_mα` of +2⁻³⁰ per radian under power raises `unstable_without_margin`, −2⁻³⁰ doesn't, nor does +2⁻³⁰ after the burnout at 1 s; a NaN under power is kept; a slope where the margin is defined doesn't count; a margin below zero as well raises only `unstable_under_power` |
-| `a_rocket_without_fins_is_unstable_under_power` | Valetudo with its fins taken off raises `unstable_under_power` at or before its burnout; stock, its least margin under power is above 1 calibre and it raises nothing |
+| `a_rocket_without_fins_is_unstable_under_power` | Valetudo with its fins taken off raises `unstable_under_power` at or before its burnout; stock, its least margin under power is above 1 caliber and it raises nothing |
 | `envelope::tests::the_stability_flag_starts_just_below_a_zero_margin` | The flag from the least negative `f64` down; none at 0, −0 or above |
 | `envelope::tests::the_moment_flag_starts_just_above_zero_and_only_without_the_margin_flag` | `unstable_without_margin` from the least positive `f64` up, and for a NaN; none at 0, −0 or below; never beside `unstable_under_power` |
-| `staging::tests::metrics_follow_a_powered_separation` | Both landings; the sustainer's diameter after the split, with its own entry there; both leasts against a scan of every step at 201 points, to 1e-7 calibres, the flight margin's inside a step; no optimum for the booster's motor |
+| `staging::tests::metrics_follow_a_powered_separation` | Both landings; the sustainer's diameter after the split, with its own entry there; both leasts against a scan of every step at 201 points, to 1e-7 calibers, the flight margin's inside a step; no optimum for the booster's motor |
 | `staging::tests::a_held_flight_holds_a_separation_after_the_last_burnout` | A split after the last burnout is held: the same optimum for delays of 3 s and 30 s |
 
 ### References

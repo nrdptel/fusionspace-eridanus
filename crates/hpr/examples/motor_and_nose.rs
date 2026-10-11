@@ -35,7 +35,7 @@ const TARGET_M: f64 = 3048.0;
 /// How close counts as a hit when the winner is flown again, m.
 const HIT_M: f64 = 0.1;
 
-/// The margins' limits over the ascent, calibres, as the International Rocket Engineering
+/// The margins' limits over the ascent, calibers, as the International Rocket Engineering
 /// Competition's rules set them (Design, Test & Evaluation Guide, 2025, §10.3.1 and §10.4.1): a
 /// dynamic margin of at least 1.5, a static margin of at most 4 and a dynamic one of at most 6.
 /// The dynamic margin is read as the flight margin, at the flight's Mach number.
@@ -66,8 +66,8 @@ const NOSES: [(&str, &str); 4] = [
 
 fn main() -> Result<(), Box<dyn Error>> {
     let seed = 2026;
-    // The motors in order of total impulse, smallest first, so that neighbouring choices are
-    // alike: the optimizer treats a choice as a whole number, and steps between neighbours.
+    // The motors in order of total impulse, smallest first, so that neighboring choices are
+    // alike: the optimizer treats a choice as a whole number, and steps between neighbors.
     let mut motors = MOTORS
         .iter()
         .map(|&name| {
@@ -84,7 +84,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     );
     println!("ballast and the fin span for a 3,048 m apogee, with margins over the ascent of at");
     println!(
-        "least {LEAST_FLIGHT_CAL} calibres (flight), at most {MOST_STATIC_CAL} (static) and {MOST_FLIGHT_CAL} (flight), and at least {RAIL_EXIT_M_S} m/s off a {RAIL_M} m rail"
+        "least {LEAST_FLIGHT_CAL} calibers (flight), at most {MOST_STATIC_CAL} (static) and {MOST_FLIGHT_CAL} (flight), and at least {RAIL_EXIT_M_S} m/s off a {RAIL_M} m rail"
     );
     println!("Not yet validated: see the Accuracy page before trusting these numbers.");
 
@@ -176,7 +176,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         again.apogee_m, again.max_mach, again.rail_exit_m_s, again.mass_kg
     );
     println!(
-        "margins over the ascent: flight {:.2} to {:.2} calibres, static at most {:.2}",
+        "margins over the ascent: flight {:.2} to {:.2} calibers, static at most {:.2}",
         again.least_flight_cal, again.most_flight_cal, again.most_static_cal
     );
     let tight = FlightSettings {
@@ -308,7 +308,7 @@ struct Flown {
 
 impl Flown {
     /// The limits as constraints `g ≤ 0`, each in a unit that makes them count alike: the margins
-    /// in hundredths of a calibre, the rail-exit speed in tenths of a m/s.
+    /// in hundredths of a caliber, the rail-exit speed in tenths of a m/s.
     fn limits(&self) -> [f64; 4] {
         [
             (LEAST_FLIGHT_CAL - self.least_flight_cal) / 0.01,

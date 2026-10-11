@@ -187,7 +187,7 @@
       "description": "A node of the design tree: a part, where it sits, and what hangs off it.",
       "properties": {
         "auto": {
-          "description": "Dimensions taken from neighbours or the parent instead of the part's stored values.",
+          "description": "Dimensions taken from neighbors or the parent instead of the part's stored values.",
           "items": {
             "$ref": "#/$defs/AutoDimension"
           },
@@ -646,7 +646,7 @@
         },
         {
           "additionalProperties": false,
-          "description": "A number OpenRocket works out from the neighbouring components.",
+          "description": "A number OpenRocket works out from the neighboring components.",
           "properties": {
             "cached": {
               "description": "What it last worked out, when the file says (`auto 0.0125`). A bare `auto` gives\n`None`. Either way this is a cached answer, not an input: a reader that resolves the\ndimension itself should prefer its own.",

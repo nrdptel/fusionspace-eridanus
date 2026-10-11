@@ -183,7 +183,7 @@ RocketPy's Earth radius in ECMWF's formula (the WGS 84 ellipsoid's distance from
 center at the site), neither is always the smaller:
 
 | model ground | HPR Sim's error | ECMWF's error, at the ground | ECMWF's, 3 km (1.9 mi) above it |
-|---|---|---|---|
+|---|--:|--:|--:|
 | 407 m (1,335 ft) at 47.2° N | −0.04 m (−0.13 ft) | +0.03 m (0.098 ft) | +0.49 m (1.6 ft) |
 | 1400 m (4,593 ft) at 33° N (like Spaceport America's) | +1.88 m (6.2 ft) | +0.31 m (1.0 ft) | −3.07 m (−10.1 ft) |
 
@@ -215,7 +215,7 @@ The first row matters for ERA5. Many ERA5 files store each value as a 16-bit who
 fill of −32767, and a few values sit at −32768. Two of RocketPy's other ERA5 files (both netCDF-4)
 have them: 102 of 5,241,600 geopotential values and 4 temperatures in one, 298 of 5,184,000
 geopotential values and 2 temperatures in the other. HPR Sim reads those as missing, where
-netCDF4-python returns a number, a temperature of 198.66 K for example, among neighbours near 301 K.
+netCDF4-python returns a number, a temperature of 198.66 K for example, among neighbors near 301 K.
 Such values look like damaged data, so reading them as missing is the safer choice.
 `Era5Profile::read` then refuses the whole reading, naming the level, rather than print a wrong
 number. None of the files the tests read has such values.

@@ -113,18 +113,18 @@ fn coverage(root: &Path) -> Result<Value, String> {
     let noses: [(&str, Profile, f64); 4] = [
         ("arcas robin, the committed nose", arcas, nose.base_radius_m),
         (
-            "von Karman, five calibres",
+            "von Karman, five calibers",
             Profile::nose(NoseShape::VON_KARMAN, 5.0, 0.5).map_err(|e| e.to_string())?,
             0.5,
         ),
         (
-            "power series n = 0.5, five calibres",
+            "power series n = 0.5, five calibers",
             Profile::nose(NoseShape::PowerSeries { exponent: 0.5 }, 5.0, 0.5)
                 .map_err(|e| e.to_string())?,
             0.5,
         ),
         (
-            "elliptical, two calibres",
+            "elliptical, two calibers",
             Profile::nose(NoseShape::Elliptical {}, 2.0, 0.5).map_err(|e| e.to_string())?,
             0.5,
         ),

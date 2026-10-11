@@ -5,7 +5,7 @@
 //! made:
 //!
 //! - **A dimension may be automatic.** `<outerradius>auto 0.0125</outerradius>` means "OpenRocket
-//!   works this out from the neighbours, and 0.0125 m is what it last worked out". Keeping only
+//!   works this out from the neighbors, and 0.0125 m is what it last worked out". Keeping only
 //!   the number turns an automatic dimension into a hand-typed one the next time the design is
 //!   saved ([Loft lesson L58][lessons]). [`Dimension`] keeps both.
 //! - **A tag may have two names.** OpenRocket renamed several, and writes both for older readers.
@@ -65,7 +65,7 @@ pub enum Dimension {
         /// The number, in whatever unit the tag is written in.
         value: f64,
     },
-    /// A number OpenRocket works out from the neighbouring components.
+    /// A number OpenRocket works out from the neighboring components.
     Automatic {
         /// What it last worked out, when the file says (`auto 0.0125`). A bare `auto` gives
         /// `None`. Either way this is a cached answer, not an input: a reader that resolves the

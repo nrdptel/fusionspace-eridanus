@@ -525,7 +525,7 @@ fn a_pattern_tile_cuts_nothing() {
 /// A closepath back to where the path already is joins nothing: the corner's miter is the one
 /// its two real sides make, 45° here, 2.61 half-widths, not the limit's 4.
 #[test]
-fn a_closepath_with_no_length_joins_its_neighbours() {
+fn a_closepath_with_no_length_joins_its_neighbors() {
     let path = |width: &str| {
         figure(&format!(
             "<path d=\"M3 50 L50 3 L50 50 L3 50 Z\" fill=\"none\" stroke=\"#000\" \

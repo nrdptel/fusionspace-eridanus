@@ -63,7 +63,7 @@ use crate::table::{DragTable, NormalForceLookup, NormalForceTable, TableReferenc
 use crate::tube_fins::{TubeFinSetAero, check_tube_fin_mach};
 
 /// The largest fin cant the roll model takes, 15°: past it a fin stalls, where its lift stops
-/// growing with the angle, a judgement ([`AeroModel::roll`]).
+/// growing with the angle, a judgment ([`AeroModel::roll`]).
 pub const MAX_CANT_RAD: f64 = 15.0 * std::f64::consts::PI / 180.0;
 
 /// The top of the normal force's range: Mach 5, where the hypersonic region begins (Niskanen 2009
@@ -71,7 +71,7 @@ pub const MAX_CANT_RAD: f64 = 15.0 * std::f64::consts::PI / 180.0;
 pub const NORMAL_FORCE_MACH_LIMIT: f64 = 5.0;
 
 /// The lowest Mach number at which the body's supersonic join can start ([`SupersonicBody`]):
-/// below it every body keeps slender-body theory's terms. A judgement: the first body that TN
+/// below it every body keeps slender-body theory's terms. A judgment: the first body that TN
 /// 3527's method covers and TN D-4014 measured is at Mach 1.5, the join's end from here.
 pub const SUPERSONIC_JOIN_START_MACH: f64 = 1.2;
 
@@ -2426,7 +2426,7 @@ impl AeroModel {
     /// method's as the weight rises ([`SupersonicBody`]), while the force blends slopes and
     /// moments, so the two agree only at the ends of the join. On a lip riding half in its
     /// boattail's wake, which never reaches an end, the tests' tube sits 0.114 m (about two
-    /// calibres) behind its own center of pressure
+    /// calibers) behind its own center of pressure
     /// ([issue #106](https://github.com/nrdptel/fusionspace-eridanus/issues/106), which measures it and holds
     /// what a fix has to settle). A covered boattail, and a cylinder behind it, keep
     /// slender-body theory's station: their shares may cross zero, where a station would run off
@@ -4886,7 +4886,7 @@ mod tests {
             (f.coefficient, f.cp_station_m.unwrap())
         };
         // Across the old threshold, a quarter of the drop: before M1.8e10 the whole rocket's
-        // normal force fell by a third here and its center of pressure jumped 1.8 calibres
+        // normal force fell by a third here and its center of pressure jumped 1.8 calibers
         // forward (issue #87). What is left is the weight ramping off its clamp, proportional to
         // the change in shape: a ten-thousandth of the force over a ten-thousandth of the drop.
         let (below, above) = (at(0.2499), at(0.2501));
@@ -4924,7 +4924,7 @@ mod tests {
         assert!(
             (gap_force + 0.3295).abs() < 5e-4 && (gap_calibers + 1.774).abs() < 5e-3,
             "at one shape the two models differ by {gap_force} in force and {gap_calibers} \
-             calibres in center of pressure"
+             calibers in center of pressure"
         );
         // What the band is worth, end to end: the jump is gone, but the same difference between
         // the two models is spread over it, and the guide quotes these numbers.
@@ -4932,7 +4932,7 @@ mod tests {
         let calibers = (nearly_none.1 - full.1) / diameter_m;
         assert!(
             (nearly_none.0 / full.0 - 1.0 + 0.291).abs() < 5e-4 && (calibers + 0.932).abs() < 5e-3,
-            "across the band: {full:?} to {nearly_none:?}, {calibers} calibres"
+            "across the band: {full:?} to {nearly_none:?}, {calibers} calibers"
         );
         // The weight is the wake's own share, and it carries the body to slender-body theory by
         // the far edge: at half the drop the method is gone, and just inside it is nearly gone.
@@ -4988,14 +4988,14 @@ mod tests {
         );
         assert!(
             (far.2 - near.2 + 1.973).abs() < 0.01 && (far.1 / near.1 - 1.0 + 0.3381).abs() < 5e-4,
-            "over that tube the force moves {} and the center of pressure {} calibres",
+            "over that tube the force moves {} and the center of pressure {} calibers",
             far.1 / near.1 - 1.0,
             far.2 - near.2
         );
         // Where the method is weighed in only partly, a component's station and its own center of
         // pressure part company: the station blends stations, the force blends slopes and
         // moments, and the two agree only at the ends (issue #106). At half weight the tube's
-        // station sits 0.114 m (about two calibres) behind its own center of pressure.
+        // station sits 0.114 m (about two calibers) behind its own center of pressure.
         let half = lipped(0.375);
         let tube = half
             .component_normal_force(1, &flow(3.0, 0.0, 0.0))
@@ -5189,7 +5189,7 @@ mod tests {
         for (at, gap) in &gaps {
             assert!(
                 *gap > 0.6,
-                "Mach {at}: the fading rule sits {gap} calibres aft"
+                "Mach {at}: the fading rule sits {gap} calibers aft"
             );
         }
         // Every value the guide's table quotes, pinned.
@@ -5201,7 +5201,7 @@ mod tests {
                 .1;
             assert!(
                 (got - want).abs() < 0.02,
-                "Mach {at}: the gap is {got} calibres, the guide says {want}"
+                "Mach {at}: the gap is {got} calibers, the guide says {want}"
             );
         }
         // Continuous in the angle, at the cap and either side of it. Below the cap the read
@@ -6050,7 +6050,7 @@ mod tests {
             );
         }
         // What the method says the rocket is worth, against slender-body theory's answer: the
-        // slope per radian, the center of pressure in calibres of the 0.1598 m reference, and how
+        // slope per radian, the center of pressure in calibers of the 0.1598 m reference, and how
         // far forward of slender-body theory's the method puts it. The guide quotes these.
         let diameter_m = model.reference_diameter_m();
         assert!((diameter_m - 0.159_796).abs() < 5e-7, "{diameter_m} m");
@@ -6065,13 +6065,13 @@ mod tests {
             assert!(
                 (slope - want_slope).abs() < 5e-7
                     && (station_m / diameter_m - want_calibers).abs() < 5e-6,
-                "Mach {mach}: {slope} per rad at {} calibres",
+                "Mach {mach}: {slope} per rad at {} calibers",
                 station_m / diameter_m
             );
             assert!(
                 (old.coefficient / 1e-4 - want_old_slope).abs() < 5e-7
                     && (forward - want_forward).abs() < 5e-6,
-                "Mach {mach} on slender-body theory: {} per rad, the method {forward} calibres \
+                "Mach {mach} on slender-body theory: {} per rad, the method {forward} calibers \
                  forward",
                 old.coefficient / 1e-4
             );
@@ -6314,7 +6314,7 @@ mod tests {
     /// The size of what that switch was worth is still here, because it is the size of the
     /// fallback: [`SupersonicFlare::SlenderBody`] is the reading the model used to drop to.
     /// Against the method, at 4° on this rocket, it is −8.30% of the normal force and 1.16
-    /// calibres at Mach 3 and −4.62% and 0.75 calibres at Mach 2, which is what the two edges
+    /// calibers at Mach 3 and −4.62% and 0.75 calibers at Mach 2, which is what the two edges
     /// [issue #117](https://github.com/nrdptel/fusionspace-eridanus/issues/117) reported used to cross.
     ///
     /// The low-Mach band is a different thing and has not moved: below about Mach 1.56 on this
@@ -6387,13 +6387,13 @@ mod tests {
         assert!(
             (force + 0.083_0).abs() < 5e-5 && (calibers - 1.157_4).abs() < 5e-5,
             "at the band's steep edge the fallback moves the force {force:.4} and the center of \
-             pressure {calibers:.4} calibres"
+             pressure {calibers:.4} calibers"
         );
         let (force, calibers) = dropped(9.018_246_55e-4, 2.0);
         assert!(
             (force + 0.046_2).abs() < 5e-4 && (calibers - 0.752_2).abs() < 5e-4,
             "at the join's shallowest step the fallback moves the force {force:.4} and the center \
-             of pressure {calibers:.4} calibres"
+             of pressure {calibers:.4} calibers"
         );
     }
 
@@ -6519,8 +6519,8 @@ mod tests {
     ///
     /// | crossing it | was worth | is worth |
     /// |---|---|---|
-    /// | the band's steep edge, 0.05882052°, at Mach 3 and 4° | −8.30% and 1.1574 calibres | nothing |
-    /// | the join's shallowest step, 0.00090182°, at Mach 2 and 4° | −4.62% and 0.7522 calibres | nothing |
+    /// | the band's steep edge, 0.05882052°, at Mach 3 and 4° | −8.30% and 1.1574 calibers | nothing |
+    /// | the join's shallowest step, 0.00090182°, at Mach 2 and 4° | −4.62% and 0.7522 calibers | nothing |
     ///
     /// What is left is the crossing itself, and it is small. At the turn where the pressure
     /// behind the corner lands on its tangent cone's, `η` has a pole: an angle a hair below it
@@ -6564,7 +6564,7 @@ mod tests {
             );
         }
         // The whole rocket either side of an angle, as `issue_87s_switches_are_this_big` reads
-        // the switches it lists: the force's fraction and the center of pressure in calibres.
+        // the switches it lists: the force's fraction and the center of pressure in calibers.
         let at = |deg: f64, mach: f64| {
             let model = model(&flared_rocket(deg));
             let force = model
@@ -6585,7 +6585,7 @@ mod tests {
             assert!(
                 force.abs() < 1e-7 && calibers.abs() < 1e-7,
                 "crossing {deg}° at Mach {mach} moves the force {force:.3e} and the center of \
-                 pressure {calibers:.3e} calibres"
+                 pressure {calibers:.3e} calibers"
             );
         }
         // What is left: the corner's crossing, at the row it belongs to. It is a step, so it
@@ -6612,7 +6612,7 @@ mod tests {
                     (force - force_want).abs() < 0.02 * force_want.abs()
                         && (calibers - caliber_want).abs() < 0.02 * caliber_want.abs(),
                     "Mach {mach}: ±{epsilon}° across the crossing at {crossing}° moves the force \
-                     {force:.4e} and the center of pressure {calibers:.4e} calibres"
+                     {force:.4e} and the center of pressure {calibers:.4e} calibers"
                 );
             }
             // The region's other edge, the balance, is where `η` is zero: the exponential form
@@ -6622,12 +6622,12 @@ mod tests {
             assert!(
                 force.abs() < 1e-7 && calibers.abs() < 1e-7,
                 "Mach {mach}: the balance at {balance}° moves the force {force:.3e} and the \
-                 center of pressure {calibers:.3e} calibres"
+                 center of pressure {calibers:.3e} calibers"
             );
         }
         // And the reading really does move smoothly through the whole region, which is what the
         // switch it replaced did not: swept in twenty steps from a cylinder to well past the
-        // region's steep end, no neighbouring pair moves the force by a fifth of a percent, and
+        // region's steep end, no neighboring pair moves the force by a fifth of a percent, and
         // the reading falls all the way, bar the one pair that straddles the crossing.
         let machs = [3.0, 4.0];
         let step = 0.08 / 16.0;
@@ -6671,7 +6671,7 @@ mod tests {
     /// flare behind a boattail on a finless body (`finned_rocket(4)` with its tail and fins cut
     /// off, then a bare flare), so its share is of a body's normal force alone; the other three on
     /// the straight rocket, which keeps its four fins. Each is the whole test body's normal force
-    /// and center of pressure either side of the threshold, as a share and in calibres. The lip's is gone since M1.8e10; these are what remain, and
+    /// and center of pressure either side of the threshold, as a share and in calibers. The lip's is gone since M1.8e10; these are what remain, and
     /// ADR-041 and the guide quote them from here.
     #[test]
     fn issue_87s_switches_are_this_big() {
@@ -6731,8 +6731,8 @@ mod tests {
         assert!(model(&stepped(2.6e-11)).supersonic_body().is_some());
         assert!(model(&stepped(2.8e-11)).supersonic_body().is_none());
         // (what it is, the covered side, the bare side, what the docs say it is worth); a side
-        // is (force, calibres, covered), and the expected pair is signed: bare over covered less
-        // one, and bare's center of pressure less covered's, in calibres.
+        // is (force, calibers, covered), and the expected pair is signed: bare over covered less
+        // one, and bare's center of pressure less covered's, in calibers.
         type Side = (f64, f64, bool);
         let switches: [(&str, Side, Side, (f64, f64)); 4] = [
             (
@@ -6781,7 +6781,7 @@ mod tests {
             assert!(
                 (force - want_force).abs() < 5e-4 && (calibers - want_calibers).abs() < 5e-4,
                 "{what}: the force moves {force:.4} and the center of pressure {calibers:.4} \
-                 calibres, against {want_force} and {want_calibers}"
+                 calibers, against {want_force} and {want_calibers}"
             );
         }
     }
@@ -6891,11 +6891,11 @@ mod tests {
         assert!(marched, "with no step the method covers the body");
         assert!(
             (flush - 0.899_591_695).abs() < 5e-7 && (flush_cp - 16.949_177_4).abs() < 5e-5,
-            "the flush rocket reads {flush} at {flush_cp} calibres"
+            "the flush rocket reads {flush} at {flush_cp} calibers"
         );
 
         // What it costs. At the threshold the body is flush to a part in 1e9, so the whole
-        // difference is the method itself: the same −8.65% and 1.03 calibres wherever the step is
+        // difference is the method itself: the same −8.65% and 1.03 calibers wherever the step is
         // and whichever way it goes. It grows with a step **down**, which takes area off the body;
         // it shrinks with a step **up**, because the area a step up adds carries slender-body
         // normal force of its own. Either way the center of pressure moves aft.
@@ -6923,7 +6923,7 @@ mod tests {
             assert!(
                 (force - want_force).abs() < 5e-6 && (calibers - want_calibers).abs() < 5e-5,
                 "a {drop_m} m step at joint {joint} moves the force {force:.9} and the center of \
-                 pressure {calibers:.7} calibres, against {want_force} and {want_calibers}"
+                 pressure {calibers:.7} calibers, against {want_force} and {want_calibers}"
             );
         }
 
@@ -6985,7 +6985,7 @@ mod tests {
         // length_m`), so a step **up** is refused at 1e-12 × the body's length × the change of
         // slope. On the tests' finned rocket (the same body with a 0.027 → 0.022 m boattail, so
         // 1.3 m and a slope change of 0.1), that is 1.3e-13 m, 208× finer than the 2.7e-11 m a
-        // tube-to-tube joint needs, and it costs more: −11.34% and 1.095 calibres. The threshold
+        // tube-to-tube joint needs, and it costs more: −11.34% and 1.095 calibers. The threshold
         // is a pair, not a number, and this is the common shape it bites on.
         let boattail = |drop_m: f64| {
             let mut rocket = crate::testing::finned_rocket(4);
@@ -7031,7 +7031,7 @@ mod tests {
             assert!(
                 (force + 0.113_409_121).abs() < 5e-6 && (calibers - 1.095_116_4).abs() < 5e-5,
                 "a {drop_m} m step at the boattail moves the force {force:.9} and the center of \
-                 pressure {calibers:.7} calibres"
+                 pressure {calibers:.7} calibers"
             );
         }
     }

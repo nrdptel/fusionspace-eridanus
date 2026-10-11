@@ -109,7 +109,7 @@ fn write_reports(root: &Path, report: &Report) -> Result<&'static str, String> {
         .map_err(|error| format!("writing {}: {error}", markdown.display()))?;
     let json = directory.join(format!("{stem}.json"));
     let text = serde_json::to_string_pretty(report)
-        .map_err(|error| format!("serialising the report: {error}"))?;
+        .map_err(|error| format!("serializing the report: {error}"))?;
     std::fs::write(&json, format!("{text}\n"))
         .map_err(|error| format!("writing {}: {error}", json.display()))?;
     Ok(stem)

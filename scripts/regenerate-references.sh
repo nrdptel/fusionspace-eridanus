@@ -126,7 +126,7 @@ echo
 echo "regenerate: validation/oracles/rocketpy/wind_response.py, for the case files' not_scored reasons:"
 "$python" validation/oracles/rocketpy/wind_response.py || status=$?
 
-# Only validation/ is written above, so only it is summarised: other local edits are not ours.
+# Only validation/ is written above, so only it is summarized: other local edits are not ours.
 echo
 if [[ -z $(git status --porcelain -- validation) ]]; then
     echo "regenerate: nothing changed; the committed references reproduce"

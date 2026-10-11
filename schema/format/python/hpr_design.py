@@ -136,7 +136,7 @@ class Component(TypedDict):
     """A node of the design tree: a part, where it sits, and what hangs off it."""
 
     auto: NotRequired[list["AutoDimension"]]
-    """Dimensions taken from neighbours or the parent instead of the part's stored values."""
+    """Dimensions taken from neighbors or the parent instead of the part's stored values."""
 
     children: NotRequired[list["Component"]]
     """Attached parts, or a pod set's body components."""
@@ -369,7 +369,7 @@ class DimensionStated(TypedDict):
 
 
 class DimensionAutomatic(TypedDict):
-    """A number OpenRocket works out from the neighbouring components."""
+    """A number OpenRocket works out from the neighboring components."""
 
     cached: NotRequired[Union[float, None]]
     """What it last worked out, when the file says (`auto 0.0125`). A bare `auto` gives

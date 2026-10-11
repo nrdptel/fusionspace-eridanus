@@ -50,7 +50,7 @@ Not yet validated: see the Accuracy page before trusting these numbers.
 mass (kg)                          0.675     0.579
 center of gravity (m from nose)    0.671     0.610
 center of pressure (m from nose)   0.779     0.779
-stability margin (calibres)         1.92      2.99
+stability margin (calibers)         1.92      2.99
 
 From a 1.8 m rail leaning 5° west, in 5 m/s of wind from the west:
 Rail exit:  21.7 m/s
@@ -62,7 +62,7 @@ Landing:    877 m east of the pad, at 4.6 m/s, at 246.3 s
 What the lines say:
 
 - **Liftoff and spent.** The rocket loses 96 g of propellant as the motor burns. That moves the CG
-  6 cm (2.4 in) forward, and the margin grows from 1.92 to 2.99 [calibres](glossary.md#calibre-caliber).
+  6 cm (2.4 in) forward, and the margin grows from 1.92 to 2.99 [calibers](glossary.md#caliber).
 - **The CP** is worked out by [Barrowman's method](glossary.md#barrowmans-method) at
   [Mach](glossary.md#mach-number) 0.3, a typical subsonic speed, with the air straight along the
   rocket. It depends on the shape alone, so it doesn't move as the motor burns.
@@ -222,8 +222,8 @@ fin span  liftoff  margin   apogee (m)       in the wind: drift (m)
 Because a rocket is a value built by a function, a design study is a loop. The example's
 `rocket(span_m)` builds the rocket with fins of that span, and the loop weighs and flies each.
 
-- **The margin**, at liftoff and at Mach 0.3, grows fast with the span: from −2.11 calibres, a CP
-  ahead of the CG, to 3.67. The usual rule of thumb asks for at least one calibre
+- **The margin**, at liftoff and at Mach 0.3, grows fast with the span: from −2.11 calibers, a CP
+  ahead of the CG, to 3.67. The usual rule of thumb asks for at least one caliber
   ([stability margin](glossary.md#stability-margin)), so the program doesn't fly the two
   smallest; the example's own fins are the 45 mm (1.8 in) ones.
 - **Bigger fins cost height.** In calm air the 65 mm (2.6 in) fins reach 38 m (125 ft) less than the 45 mm (1.8 in)
@@ -261,7 +261,7 @@ LOC Precision LP-36-2022                     70.7
 structure                                   430.1
 
 At liftoff: 0.760 kg, center of gravity 0.728 m from the nose,
-stability margin 1.07 calibres at Mach 0.3.
+stability margin 1.07 calibers at Mach 0.3.
 
 Rail exit:  30.0 m/s
 Apogee:     1119.3 m above the pad, at 11.77 s
@@ -286,7 +286,7 @@ without the motor.
 > top speed, Mach 0.91, is close to the speed of sound, where drag rises steeply and is least
 > certain ([Drag through Mach 1](physics/aero.md#drag-through-mach-1)). The
 > [stability margin](glossary.md#stability-margin), 1.07
-> [calibres](glossary.md#calibre-caliber), is taken at Mach 0.3, about 100 m/s (328 ft/s), more
+> [calibers](glossary.md#caliber), is taken at Mach 0.3, about 100 m/s (328 ft/s), more
 > than three times the speed the rocket leaves the rail at.
 
 The program is
@@ -353,7 +353,7 @@ to what OpenRocket builds from it, run as an [oracle](glossary.md#oracle) and re
 The tolerances were set before measuring. Every part is in one row:
 
 | Parts | Count | Allowed | Largest difference found |
-|---|---|---|---|
+|---|--:|---|---|
 | Tubes, couplers, rings, bulkheads, lugs, parachutes, streamers | 2,230 | 1e-12 of the mass; center 1e-12 of the length | under 1e-14 of the mass, or 8.8e-10 where it is stated in ounces (below); center under 1e-13 of the length |
 | Filled nose cones and transitions | 1,029 | 1e-3 of the mass; center 1e-3 of the length | 2.0e-4 of the mass, or 8.8e-10 in ounces; center 7.0e-5 of the length |
 | Hollow nose cones and transitions, shoulders taken out | 181 | the same | 6.3e-4 of the mass, or 8.8e-10 in ounces; center 9.7e-4 of the length |

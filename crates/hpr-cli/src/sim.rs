@@ -3300,7 +3300,7 @@ mod tests {
     }
 
     /// Each flag has the library's name in the JSON: a flight at Mach 4 and 0.5 rad, with a
-    /// margin of −1 calibre under power, raises five; with no margin and a moment slope of +2 per
+    /// margin of −1 caliber under power, raises five; with no margin and a moment slope of +2 per
     /// radian under power instead, the sixth.
     #[test]
     fn each_flag_keeps_the_librarys_name() {

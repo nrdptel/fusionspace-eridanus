@@ -1,6 +1,6 @@
 //! `cargo xtask ork-flights --library [--check]`: flies hpr on every configuration of the private
 //! design library that OpenRocket flew and hpr flies, and reports the differences under
-//! anonymised ids (M2.2e3, ADR-072).
+//! anonymized ids (M2.2e3, ADR-072).
 //!
 //! OpenRocket 24.12's flights of the library are in [`RECORD`], which `flights.py` writes under the
 //! gitignored `corpus-out/` (M2.2e2, ADR-071): the designs are other people's. Each is flown by
@@ -13,7 +13,7 @@
 //! What is committed, [`REPORT_JSON`] and [`REPORT_MD`], holds no file name, part name, motor or
 //! value of a design. Each flight is an id, `C09/2` for the second configuration of the ninth
 //! design in the order of their SHA-256, with its differences from OpenRocket's in per cent or
-//! calibres, rounded to [`DIGITS`] decimals, masses to [`MASS_DIGITS`], so that no rounding
+//! calibers, rounded to [`DIGITS`] decimals, masses to [`MASS_DIGITS`], so that no rounding
 //! residue can give a value back; the class of its largest Mach number and of its launch site; how
 //! early OpenRocket's parachute opened, to [`CHUTE_DIGITS`] decimals of a second; what hpr's design checks found, by kind; and the named causes of
 //! [`crate::ork_flights`]. A value is never written, since with its difference it would give back
@@ -34,7 +34,7 @@ use crate::ork_flights::{
     DRAG_CURVES, DRAG_OVERRIDE, EARLY_CHUTE, METRICS, Mode, NO_NAMED_CAUSE, OPENROCKET_DRAG_PROBE,
     OWN_DRAG, WHOLE_BASE_PROBE, descent_lines, descent_row, descent_summary, drag_sizes, fixed,
     fly_design, margin_at_openrocket_alpha_cal, mass_and_cg_differences, probe_percent, read_json,
-    same, signed, spread, summarise,
+    same, signed, spread, summarize,
 };
 use crate::ork_supply::sha256;
 
@@ -60,7 +60,7 @@ const SCRIPTS: [(&str, &str); 3] = [
     ),
 ];
 
-/// The five spreads of M2.2's *done when*, by their keys in an anonymised row.
+/// The five spreads of M2.2's *done when*, by their keys in an anonymized row.
 pub(crate) const FIVE: [&str; 5] = [
     "apogee_percent",
     "max_speed_percent",
@@ -294,7 +294,7 @@ fn configuration_ids(recorded: &[Value]) -> BTreeSet<String> {
         .collect()
 }
 
-/// Flies the library's configurations and builds the anonymised report. No error names a file.
+/// Flies the library's configurations and builds the anonymized report. No error names a file.
 fn fly_library(root: &Path) -> Result<Value, String> {
     let record = read_json(&root.join(RECORD)).map_err(|_| {
         format!(
@@ -410,7 +410,7 @@ fn fly_library(root: &Path) -> Result<Value, String> {
         };
         let flown = fly_design(file, &id, bytes, recorded, &supply, label, &mode)?;
         for flight in &flown.flights {
-            let mut row = anonymised(flight);
+            let mut row = anonymized(flight);
             row["site"] = json!(site_class(recorded, &flight["configuration"]));
             rows.push(row);
         }
@@ -428,7 +428,7 @@ fn fly_library(root: &Path) -> Result<Value, String> {
     }
     // The outcomes and definitions come from the flights; every spread from the rows, as a
     // reader of the committed rows would compute it.
-    let summary = summarise(&flights, &not_flown);
+    let summary = summarize(&flights, &not_flown);
     let spreads = spreads_of(&rows);
     let mut metrics = summary["metrics"].clone();
     for (_, key) in METRICS {
@@ -533,7 +533,7 @@ pub(crate) fn rounded(value: Option<f64>, digits: i32) -> Value {
 }
 
 /// One flight as the report may publish it: differences, never values.
-pub(crate) fn anonymised(flight: &Value) -> Value {
+pub(crate) fn anonymized(flight: &Value) -> Value {
     let metrics = &flight["metrics"];
     let [launch, clearance, cg] = mass_and_cg_differences(flight);
     let at = &flight["at_rod_clearance"];
@@ -630,7 +630,7 @@ fn mach_class(mach: Option<f64>) -> &'static str {
     }
 }
 
-/// The cause an anonymised row's difference in the metric `key` is summarised under, as
+/// The cause an anonymized row's difference in the metric `key` is summarized under, as
 /// [`crate::ork_flights::cause`] names it: a flight with an early parachute names no drag cause.
 pub(crate) fn row_cause(row: &Value, key: &str) -> &'static str {
     let early = !row["chute_early_s"].is_null();
@@ -676,7 +676,7 @@ pub(crate) fn public_designs(root: &Path) -> Result<usize, String> {
         .unwrap_or(&empty)
         .iter()
         .map(|flight| {
-            let mut row = anonymised(flight);
+            let mut row = anonymized(flight);
             row["flight"] = json!(format!(
                 "{}/",
                 flight["design"].as_str().unwrap_or_default()
@@ -843,7 +843,7 @@ pub(crate) fn page(report: &Value) -> String {
         .fold(f64::NEG_INFINITY, f64::max);
     let margin = if widest > 0.0 {
         format!(
-            "hpr's stability margin is larger than OpenRocket's by up to {widest:.4} calibres, so \
+            "hpr's stability margin is larger than OpenRocket's by up to {widest:.4} calibers, so \
              it can call a rocket more stable than OpenRocket does"
         )
     } else {
@@ -879,7 +879,7 @@ pub(crate) fn page(report: &Value) -> String {
          in the report's JSON changes when they would move.\n\
          - Differences (Δ) are hpr less OpenRocket: apogee, largest speed and mass in per cent \
          of OpenRocket's; the stability margin, the center of mass (CG) and the center of \
-         pressure (CP) at rod clearance in OpenRocket's calibres (its reference diameter), the CG \
+         pressure (CP) at rod clearance in OpenRocket's calibers (its reference diameter), the CG \
          and CP positive when hpr's is further aft. A positive margin Δ means hpr calls the \
          rocket more stable; margin Δ = CP Δ − CG Δ when the reference diameters agree. *At \
          OR's α* is the margin Δ with hpr's CP taken at the angle of attack OpenRocket's rocket \
@@ -1332,7 +1332,7 @@ mod tests {
                         "cp_from_nose_m_at_openrocket_angle_of_attack": 0.715},
             },
         });
-        let row = anonymised(&flight);
+        let row = anonymized(&flight);
         assert_eq!(row["mach"], "transonic");
         assert_eq!(row["apogee_percent"], -10.0);
         assert_eq!(row["margin_cal"], -0.1);
@@ -1356,7 +1356,7 @@ mod tests {
         // An aborted flight's mass is not compared, as in the public report.
         let mut aborted = flight.clone();
         aborted["aborted"] = json!(true);
-        assert!(anonymised(&aborted)["launch_mass_percent"].is_null());
+        assert!(anonymized(&aborted)["launch_mass_percent"].is_null());
         // The drag probes: hpr's own drag is the cause when the flight on OpenRocket's is within
         // 5%, for the apogee and the largest speed, and only with no cause named before it.
         let mut probed = flight.clone();
@@ -1370,7 +1370,7 @@ mod tests {
             })
         };
         probed[WHOLE_BASE_PROBE] = probe(-10.7123456, 0.1234567);
-        let row = anonymised(&probed);
+        let row = anonymized(&probed);
         assert_eq!(row["whole_base_under_power"]["apogee_percent"], -10.712346);
         assert!(row["on_openrocket_s_drag"].is_null());
         assert_eq!(row_cause(&row, "apogee_percent"), NO_NAMED_CAUSE);
@@ -1381,7 +1381,7 @@ mod tests {
             (5.000001, -5.0, NO_NAMED_CAUSE, OWN_DRAG),
         ] {
             probed[OPENROCKET_DRAG_PROBE] = probe(apogee, speed);
-            let row = anonymised(&probed);
+            let row = anonymized(&probed);
             assert!(unpublishable(&row).is_none());
             for (key, cause) in [
                 ("apogee_percent", apogee_cause),
@@ -1397,18 +1397,18 @@ mod tests {
             assert_eq!(row_cause(&row, "margin_cal"), NO_NAMED_CAUSE);
         }
         assert_eq!(
-            anonymised(&probed)["on_openrocket_s_drag"]["max_speed_percent"],
+            anonymized(&probed)["on_openrocket_s_drag"]["max_speed_percent"],
             -5.0
         );
         // A probe hpr failed to fly names no cause, and says so.
         probed[OPENROCKET_DRAG_PROBE] = json!({ "failed": true });
-        let row = anonymised(&probed);
+        let row = anonymized(&probed);
         assert_eq!(row["on_openrocket_s_drag"], json!({ "failed": true }));
         assert!(unpublishable(&row).is_none());
         assert_eq!(row_cause(&row, "apogee_percent"), NO_NAMED_CAUSE);
         assert!(page(&json!({ "flights": [row] })).contains("on OR's drag failed"));
         probed["deployed_before_apogee_s"] = json!(0.5);
-        let row = anonymised(&probed);
+        let row = anonymized(&probed);
         assert_eq!(row_cause(&row, "apogee_percent"), EARLY_CHUTE);
         assert_eq!(row_cause(&row, "max_speed_percent"), NO_NAMED_CAUSE);
         // An early parachute's flight probed on OpenRocket's drag: the apogee is against
@@ -1421,7 +1421,7 @@ mod tests {
         });
         early["apogee_with_the_causes_removed"] =
             json!({ "parachutes_held": { "openrocket_m": 200.0 } });
-        let row = anonymised(&early);
+        let row = anonymized(&early);
         assert_eq!(row["on_openrocket_s_drag"]["apogee_percent"], 5.0);
         assert_eq!(row["on_openrocket_s_drag"]["max_speed_percent"], 1.0);
         assert!(unpublishable(&row).is_none());

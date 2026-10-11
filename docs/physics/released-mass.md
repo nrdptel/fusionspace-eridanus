@@ -26,7 +26,7 @@ part lands.
   lands depends on its [drag area](../glossary.md#drag-area), which you give. HPR Sim doesn't warn
   when a release leaves the rocket unstable: dropping a part forward of the center of mass moves
   the center aft, and the [stability margin](../glossary.md#stability-margin) falls by 1.683
-  [calibres](../glossary.md#calibre-caliber) in the example below. Read it from the flight's
+  [calibers](../glossary.md#caliber) in the example below. Read it from the flight's
   metrics ([Flight metrics](metrics.md#stability-margins)).
 
 ## The model
@@ -180,7 +180,7 @@ mass, the one it pitches about. What the example prints:
 
 By hand, the rest's center is at `(0.8188 × 0.6681 − 0.2 × 0.375) / 0.6188 = 0.7628` m aft of the
 tip. It moves 0.09474 m (0.3108 ft) aft, because the ballast sat forward of the center, and the static margin
-falls by `0.09474 / 0.05630 = 1.683` calibres (the body's diameter is 0.05630 m (0.1847 ft)), from 4.297 to
+falls by `0.09474 / 0.05630 = 1.683` calibers (the body's diameter is 0.05630 m (0.1847 ft)), from 4.297 to
 2.615: still stable.
 
 At the release the rocket carries 131.5839 kg·m/s of upward momentum. Every point of the airframe

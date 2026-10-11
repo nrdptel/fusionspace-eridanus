@@ -400,7 +400,7 @@ mod tests {
         format!("{:+.1}%", 100.0 * x).replace('-', "−")
     }
 
-    /// A signed CP difference in calibres as the guide writes it: two decimals, a Unicode minus.
+    /// A signed CP difference in calibers as the guide writes it: two decimals, a Unicode minus.
     fn cal(x: f64) -> String {
         format!("{x:+.2}").replace('-', "−")
     }
@@ -523,7 +523,7 @@ mod tests {
         );
         assert!(joined.contains(&claim), "aero.md doesn't say `{claim}`");
         let margin = format!(
-            "Mach {} by {:.5} calibres",
+            "Mach {} by {:.5} calibers",
             secant["tightest_pass_mach"].as_f64().unwrap(),
             secant["tightest_pass_cp_margin_calibers"].as_f64().unwrap()
         );

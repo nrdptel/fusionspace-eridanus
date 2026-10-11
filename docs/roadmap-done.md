@@ -72,6 +72,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9d11 The intro's chip and lead ([Phase 0](#phase-0-foundations))
 - M0.9d12 Two to six sheets: the check ([Phase 0](#phase-0-foundations))
 - M0.9d13 The pages' sheets and trust ([Phase 0](#phase-0-foundations))
+- M0.9e The words to the design ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -498,6 +499,10 @@ One line per milestone or increment, in the order it was archived within its pha
       on a list they hold exact (one at six or fewer fails); the glossary's terms in six sheets.
     - [x] **M0.9d13 The pages' sheets and trust** (#384, ADR-234, ADR-235). *Done when:* #384 is closed,
       each rule it lists held by `xtask site`'s page check or a site test.
+  - [x] **M0.9e The words to the design** (ADR-208, ADR-239). *Done when:* #386 and #387 are closed:
+    `xtask spelling` fails on the British forms the audit found, a site check fails on a
+    hyphen-minus for minus and on a number column not right-aligned, and the READMEs follow
+    `writing.md`'s order with the version; the audit's rows name the checks.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

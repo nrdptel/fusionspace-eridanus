@@ -130,7 +130,7 @@ export interface CenteringRing {
 
 /** A node of the design tree: a part, where it sits, and what hangs off it. */
 export interface Component {
-  /** Dimensions taken from neighbours or the parent instead of the part's stored values. */
+  /** Dimensions taken from neighbors or the parent instead of the part's stored values. */
   auto?: AutoDimension[];
   /** Attached parts, or a pod set's body components. */
   children?: Component[];
@@ -313,7 +313,7 @@ export type Dimension =
     /** The number, in whatever unit the tag is written in. */
     value: number;
   }
-  /** A number OpenRocket works out from the neighbouring components. */
+  /** A number OpenRocket works out from the neighboring components. */
   | {
     /**
      * What it last worked out, when the file says (`auto 0.0125`). A bare `auto` gives

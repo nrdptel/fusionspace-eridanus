@@ -77,7 +77,7 @@ list you used before.
 ### The terrain model
 
 The heights come from the Copernicus DEM GLO-90, a *digital elevation model* (DEM): a grid of
-heights over the whole Earth, made by the European Union's Copernicus programme from radar
+heights over the whole Earth, made by the European Union's Copernicus program from radar
 satellites. Its points are 3 seconds of arc apart north to south, about 93 m (305 ft). East to west
 they are 93 m (305 ft) apart at the equator and 60 m (197 ft) at 50° of latitude; further north and
 south the spacing
@@ -294,7 +294,7 @@ Check two things in `info()`, the first one first:
   names none; the USGS's own description of its data says its heights are above NAVD88, the North
   American vertical datum. Check your publisher's description.
 
-EGM2008 is a model of the [geoid](#what-the-height-means). NAVD88 was defined by levelling, and
+EGM2008 is a model of the [geoid](#what-the-height-means). NAVD88 was defined by leveling, and
 the US National Geodetic Survey puts it about half a meter off the best geoid models, tilted by
 about a meter from coast to coast ([NGS, new datums](https://geodesy.noaa.gov/datums/newdatums/index.shtml)): a meter or two at most. The simulator takes a height above either as the `H` of
 [What the height means](#what-the-height-means): the height above sea level the air is looked up

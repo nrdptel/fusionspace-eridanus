@@ -6,7 +6,7 @@
 //! improved by giving up another. NSGA-II keeps a population of designs, breeds a new generation
 //! from them, and keeps the best half of parents and children together. They are ranked first by
 //! how many fronts deep they lie, then, within a front, by how far they are from their
-//! neighbours, so the front it finds spreads along the true one instead of bunching at one place.
+//! neighbors, so the front it finds spreads along the true one instead of bunching at one place.
 //!
 //! The method is K. Deb, A. Pratap, S. Agarwal and T. Meyarivan, "A fast and elitist
 //! multiobjective genetic algorithm: NSGA-II", *IEEE Transactions on Evolutionary Computation*
@@ -17,7 +17,7 @@
 //!   removing them gives the next. Rank 0 here is the paper's front 1.
 //! - **Crowding distance** (§III-B, p. 185): in each front and for each goal, the designs sorted
 //!   by that goal; the two ends get an infinite distance, and every other design adds the gap
-//!   between its two neighbours' values divided by the goal's range in the front,
+//!   between its two neighbors' values divided by the goal's range in the front,
 //!   `(f_m(i+1) − f_m(i−1)) / (f_m^max − f_m^min)`.
 //! - **Crowded comparison** (p. 185): a lower rank wins; in one rank, the larger distance wins.
 //! - **The main loop** (§III-C, p. 186): parents and children together, `2N` designs, are
@@ -1009,9 +1009,9 @@ mod tests {
         let d = crowding(&goals);
         assert_eq!(d[0], f64::INFINITY);
         assert_eq!(d[2], f64::INFINITY);
-        // (1, 4): neighbours (0, 6) and (2, 3): 2/3 + 3/6.
+        // (1, 4): neighbors (0, 6) and (2, 3): 2/3 + 3/6.
         assert!((d[1] - (2.0 / 3.0 + 3.0 / 6.0)).abs() <= 1e-15);
-        // (2, 3): neighbours (1, 4) and (3, 0): 2/3 + 4/6.
+        // (2, 3): neighbors (1, 4) and (3, 0): 2/3 + 4/6.
         assert!((d[3] - (2.0 / 3.0 + 4.0 / 6.0)).abs() <= 1e-15);
         // Two or fewer points are all ends; a goal of zero range adds nothing.
         assert_eq!(

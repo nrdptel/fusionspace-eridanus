@@ -146,7 +146,7 @@ def test_a_canopy_takes_its_type_or_a_coefficient():
 
 
 def test_the_margin_moves_as_the_python_page_says():
-    # The guide's Python page explains its rocket's 2.12 calibres against The builder's 1.92:
+    # The guide's Python page explains its rocket's 2.12 calibers against The builder's 1.92:
     # packing the recovery bay takes about 0.4 off, and the capped nose shoulder adds about 0.2.
     def margin(shoulder: bool, packed: bool) -> float:
         rocket = hpr.Rocket("R", 0.0563)

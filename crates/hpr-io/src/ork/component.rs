@@ -8,7 +8,7 @@
 //! What this module does is turn the spine into [`hpr_design`] types: a [`Rocket`] of [`Stage`]s of
 //! [`Component`]s, each of them carrying whatever [`super::attached`] read inside and on it. It
 //! resolves nothing itself. Where OpenRocket wrote `auto`, the component carries an
-//! [`AutoDimension`] and [`Rocket::layout`] works the radius out from the neighbours, which is the
+//! [`AutoDimension`] and [`Rocket::layout`] works the radius out from the neighbors, which is the
 //! one place that rule lives. The one exception is a radius that rule cannot reach (a chain of
 //! automatic radii with no fixed radius anywhere along it), which takes OpenRocket's default,
 //! [`OPENROCKET_DEFAULT_RADIUS_M`], because the design holds no other number for it.
@@ -508,7 +508,7 @@ fn transition(
 
 /// The radius, and what it is worth to a reader before the layout resolves it: `None` when the file
 /// says `auto`, whether or not OpenRocket cached a number with it, because the cached number is the
-/// neighbour it last had and may be stale.
+/// neighbor it last had and may be stale.
 pub(super) fn stated_radius(
     values: &mut Values<'_>,
     names: &[&str],

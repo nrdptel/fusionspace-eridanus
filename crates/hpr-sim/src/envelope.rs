@@ -126,7 +126,7 @@ pub enum EnvelopeFlag {
     /// ([`FlightSummary::min_powered_static_margin_cal`](crate::FlightSummary::min_powered_static_margin_cal)):
     /// the rocket is unstable under power, and its apogee is not a prediction.
     UnstableUnderPower {
-        /// The least static margin while a motor burns, calibres.
+        /// The least static margin while a motor burns, calibers.
         static_margin_cal: Peak,
     },
     /// A pitch-moment slope `C_mα` above zero while a motor burns, from the rail exit to apogee or
@@ -201,7 +201,7 @@ impl EnvelopeFlag {
     pub fn message(&self) -> String {
         match *self {
             Self::UnstableUnderPower { static_margin_cal } => format!(
-                "the static margin falls to {:.2} calibres at {:.2} s while a motor burns: the \
+                "the static margin falls to {:.2} calibers at {:.2} s while a motor burns: the \
                  rocket is unstable under power, so the air turns it away from its path rather \
                  than back, and its apogee is not a prediction",
                 static_margin_cal.value, static_margin_cal.time_s
@@ -411,7 +411,7 @@ mod tests {
         assert_eq!(flag.peak(), peak(-4.21).unwrap());
         assert_eq!(
             flag.message(),
-            "the static margin falls to -4.21 calibres at 3.00 s while a motor burns: the rocket \
+            "the static margin falls to -4.21 calibers at 3.00 s while a motor burns: the rocket \
              is unstable under power, so the air turns it away from its path rather than back, \
              and its apogee is not a prediction"
         );

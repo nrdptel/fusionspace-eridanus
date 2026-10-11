@@ -1,6 +1,6 @@
 # hpr against OpenRocket 24.12's flights of the public designs
 
-Written by `cargo xtask ork-flights` ([M2.2d2][m2-2d2], hpr's flights against OpenRocket's; decision [ADR-069][adr-069]) from OpenRocket 24.12's calm-air flights in `validation/fixtures/ork/openrocket-flights.json` ([M2.2d1][m2-2d1]). OR is OpenRocket. Each metric is taken by the definition hpr holds for OpenRocket 24.12: the apogee is the highest point above the launch position; the largest speed is the peak speed (hpr's up to its apogee, since the flight compared for the climb flies no parachute: its descent is compared apart, under *Descents*); the margin, in calibres, is OpenRocket's stability column at its rod-clearance step, which hpr takes at that step's time and Mach number with the air along the axis. Differences (Δ) are hpr less OpenRocket. Motors are OpenRocket's configuration names, one bracketed group per stage. The explanation is on the [documentation site][site].
+Written by `cargo xtask ork-flights` ([M2.2d2][m2-2d2], hpr's flights against OpenRocket's; decision [ADR-069][adr-069]) from OpenRocket 24.12's calm-air flights in `validation/fixtures/ork/openrocket-flights.json` ([M2.2d1][m2-2d1]). OR is OpenRocket. Each metric is taken by the definition hpr holds for OpenRocket 24.12: the apogee is the highest point above the launch position; the largest speed is the peak speed (hpr's up to its apogee, since the flight compared for the climb flies no parachute: its descent is compared apart, under *Descents*); the margin, in calibers, is OpenRocket's stability column at its rod-clearance step, which hpr takes at that step's time and Mach number with the air along the axis. Differences (Δ) are hpr less OpenRocket. Motors are OpenRocket's configuration names, one bracketed group per stage. The explanation is on the [documentation site][site].
 
 [m2-2d2]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-2d2
 [m2-2d1]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m2-2d1
@@ -24,7 +24,7 @@ Written by `cargo xtask ork-flights` ([M2.2d2][m2-2d2], hpr's flights against Op
 - of those still more than 5% off with their causes removed, within 5% of OpenRocket's flight with nothing deployed when hpr flies OpenRocket's drag, and so put down to the drag coefficient: 2
 - apogees more than 5% off sized instead by hpr flying OpenRocket's drag, within 5% on it, and so put down to hpr's own drag coefficient: 1
 
-hpr's mass and center of mass less OpenRocket's ([M2.2e1][m2-2e1], decision [ADR-070][adr-070]), over the flights not aborted: the masses in per cent of OpenRocket's, the center of mass in OpenRocket's calibres, positive when hpr's is further aft, which shortens the margin by as much.
+hpr's mass and center of mass less OpenRocket's ([M2.2e1][m2-2e1], decision [ADR-070][adr-070]), over the flights not aborted: the masses in per cent of OpenRocket's, the center of mass in OpenRocket's calibers, positive when hpr's is further aft, which shortens the margin by as much.
 
 - mass at launch: 53 compared, median +0.008%, mean absolute 0.024%, from -0.016% to +0.209%
 - mass at rod clearance: 53 compared, median +0.012%, mean absolute 0.186%, from -0.030% to +3.257%

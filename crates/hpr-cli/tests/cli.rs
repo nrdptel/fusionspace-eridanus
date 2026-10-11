@@ -4256,7 +4256,7 @@ fn sim_flags_a_rocket_unstable_under_power() {
     let message = flags[0]["message"].as_str().unwrap();
     assert!(
         message.starts_with(&format!(
-            "the static margin falls to {:.2} calibres",
+            "the static margin falls to {:.2} calibers",
             least["value"].as_f64().unwrap()
         )),
         "{message}"

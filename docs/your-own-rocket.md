@@ -45,7 +45,7 @@ Not yet validated: see the Accuracy page before trusting these numbers.
 mass (kg)                            0.675     0.579
 center of gravity (m from nose)      0.671     0.610
 center of pressure (m from nose)     0.779     0.779
-stability margin (calibres)           1.92      2.99
+stability margin (calibers)           1.92      2.99
 
 Normal-force slope (per radian) and center of pressure, at Mach 0.3:
 nose        2.00 at 0.102 m
@@ -136,7 +136,7 @@ propellant is gone.
   depends on the rocket's shape and speed, not its mass, so it is the same in both columns. Both use
   [Mach](glossary.md#mach-number) 0.3, with the air straight along the rocket's axis.
 - **Stability margin:** how far the CP lies behind the CG, in
-  [calibres](glossary.md#calibre-caliber), that is, in body diameters. At liftoff it is
+  [calibers](glossary.md#caliber), that is, in body diameters. At liftoff it is
   (0.779 − 0.671) m ÷ 0.0563 m ≈ 1.9; the program works from the unrounded values and prints 1.92.
   At burnout the CG has moved forward, so the margin has grown to 2.99. This program works the
   margin out by hand; the simulator also gives it from the rail exit to apogee or the first
@@ -159,7 +159,7 @@ nothing to the slope.)
 The rocket's CP is the average of the parts' CPs, each weighted by its slope:
 
 | part | slope (per radian) | CP (m from the nose tip) | slope × CP |
-|---|---|---|---|
+|---|--:|--:|--:|
 | nose | 2.00 | 0.102 | 0.204 |
 | fins | 4.82 | 1.060 | 5.109 |
 | rocket | 6.82 | | 5.313 |
@@ -210,7 +210,7 @@ which opens when the motor's ejection charge fires.
 This motor has three times near the end of its burn, and they measure different things:
 
 | time | what it is | where it comes from |
-|---|---|---|
+|--:|---|---|
 | 3.12 s | the [burn time](glossary.md#burn-time) [ThrustCurve.org](glossary.md#thrustcurveorg) publishes for the motor | the bundled catalog, which copies ThrustCurve.org's values |
 | 3.13 s | the burn time the simulator works out from this motor's thrust curve, by the same [NFPA 1125](glossary.md#nfpa-1125) rule: from when the thrust first reaches 5% of its peak to when it last falls to 5% | [Solid motors](physics/motor.md#the-bundled-motors) lists it |
 | 3.50 s | [burnout](glossary.md#burnout): the curve's last point, where the thrust reaches zero | the thrust curve; the ejection delay counts from here |
@@ -409,7 +409,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let aero = AeroModel::new(&assembly.layout)?;
     let total = aero.normal_force(&flow)?;
     let cp_m = total.cp_station_m.ok_or("no normal force")?;
-    let calibres = |cg_m: f64| (cp_m - cg_m) / assembly.layout.reference_diameter_m;
+    let calibers = |cg_m: f64| (cp_m - cg_m) / assembly.layout.reference_diameter_m;
 
     println!(
         "{} ({} {}): {:.3} m long, {:.1} mm across",
@@ -426,8 +426,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("mass (kg)                          {m0:>7.3} {m1:>9.3}");
     println!("center of gravity (m from nose)    {cg_liftoff_m:>7.3} {cg_burnout_m:>9.3}");
     println!("center of pressure (m from nose)   {cp_m:>7.3} {cp_m:>9.3}");
-    let (s0, s1) = (calibres(cg_liftoff_m), calibres(cg_burnout_m));
-    println!("stability margin (calibres)        {s0:>7.2} {s1:>9.2}");
+    let (s0, s1) = (calibers(cg_liftoff_m), calibers(cg_burnout_m));
+    println!("stability margin (calibers)        {s0:>7.2} {s1:>9.2}");
     println!();
     println!("Normal-force slope (per radian) and center of pressure, at Mach 0.3:");
     for part in aero.components(&flow)? {
@@ -760,9 +760,9 @@ What the example can't do yet, and where to go from here.
   tubes that run along the body, touching it, in place of flat fins. Each tube's slope comes from
   a cited ring-wing formula. Its center of pressure comes from Fletcher's wind-tunnel rings for
   short tubes and from this project's own derivation for tubes longer than 1.5 diameters, a
-  judgement. The drag applies the flat fins' rules. No tube fin rocket has been checked against a
+  judgment. The drag applies the flat fins' rules. No tube fin rocket has been checked against a
   measurement. HPR Sim's tube-fin drag probably reads low, so treat an apogee as high. On
-  OpenRocket's example HPR Sim's margin is 0.79 calibres against OpenRocket's 1.87; nothing measured
+  OpenRocket's example HPR Sim's margin is 0.79 calibers against OpenRocket's 1.87; nothing measured
   says which is right. A flight that reaches Mach 0.8 stops with the tube-fin model's error. Also
   refused: fewer than three tubes, solid tubes, tubes that overlap each other, a tube shorter
   than a third of its diameter, tube fins on a pod, and a tumbling airframe with tube fins

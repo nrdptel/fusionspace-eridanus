@@ -347,8 +347,8 @@ const ROUND_HEAD_FINENESS: f64 = 1.0;
 /// From the hemisphere up the value holds unchanged to Mach 0.8, and blunter heads follow the flat
 /// face's rise with Mach number; that is HPR Sim's assumption: the measurement is at low speed, and
 /// the drag rise starts near the critical Mach number (the surface's first sonic point, about
-/// 0.65 to 0.7 for a hemisphere by the Prandtl–Glauert rule). A 0.577-calibre ellipsoid gets
-/// 0.0008, a ¼-calibre one 0.074 at Mach 0.
+/// 0.65 to 0.7 for a hemisphere by the Prandtl–Glauert rule). A 0.577-caliber ellipsoid gets
+/// 0.0008, a ¼-caliber one 0.074 at Mach 0.
 ///
 /// [adr-173]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0173-a-blunt-ellipsoid-s-subsonic-pressure-drag-from-hoerner.md
 ///
@@ -1390,7 +1390,7 @@ mod tests {
     /// ADR-173: an ellipsoid below Mach 0.8 is Hoerner's measured forebody pressure drag (1965
     /// p. 3-12, Fig. 20): the hemisphere's 0.01, the round head's −0.05 at one diameter, the line
     /// between held at 0, and eq. B.9's form from the flat face to the hemisphere. *Base drag
-    /// hack*'s 0.577-calibre nose gets 0.0008, not the 0.064 of OpenRocket at Mach 0.3.
+    /// hack*'s 0.577-caliber nose gets 0.0008, not the 0.064 of OpenRocket at Mach 0.3.
     #[test]
     fn a_blunt_ellipsoid_takes_hoerners_measured_forebody_drag() {
         assert_eq!(HEMISPHERE_FOREBODY_PRESSURE_DRAG, 0.01);
@@ -1411,7 +1411,7 @@ mod tests {
                 "hemisphere, by the function",
             );
             // Between the hemisphere and the round head, on the line; past 7/12, 0.
-            close(at(0.577, m), 0.01 - 0.12 * 0.077, 1e-9, "0.577 calibres");
+            close(at(0.577, m), 0.01 - 0.12 * 0.077, 1e-9, "0.577 calibers");
             assert_eq!(at(7.0 / 12.0 + 1e-9, m), 0.0);
             assert_eq!(at(1.0, m), 0.0, "the round head's −0.05 is held at 0");
             assert_eq!(ellipsoid_subsonic_pressure_drag(1.0, m).unwrap(), 0.0);
@@ -1419,12 +1419,12 @@ mod tests {
             // Blunter than a hemisphere: eq. B.9's form from the flat face at the same Mach number.
             let c0 = stagnation_drag_coefficient_for_test(m);
             let e = 1.25f64.ln() / 1.5f64.ln();
-            close(at(0.25, m), c0 * (0.01 / c0).powf(e), 1e-12, "¼ calibre");
+            close(at(0.25, m), c0 * (0.01 / c0).powf(e), 1e-12, "¼ caliber");
         }
-        close(at(0.25, 0.0), 0.0737, 2e-3, "¼ calibre at rest");
+        close(at(0.25, 0.0), 0.0737, 2e-3, "¼ caliber at rest");
         // By hand at Mach 0.5: q_stag/q = 1 + 0.25/4 + 0.0625/40, 0.85 of it 0.90445; to the
         // power ln 1.25/ln 1.5 = 0.55034 between it and 0.01.
-        close(at(0.25, 0.5), 0.075807, 2e-5, "¼ calibre at Mach 0.5");
+        close(at(0.25, 0.5), 0.075807, 2e-5, "¼ caliber at Mach 0.5");
         // A joint that isn't smooth keeps eq. 3.86's 0.8 sin² φ where that is more: 0.0699 at
         // φ = 0.3 against nothing measured at fineness 1, and against 0.0737 measured at ¼.
         let joint = |f: f64, m: f64| {

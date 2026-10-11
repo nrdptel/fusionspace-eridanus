@@ -96,7 +96,7 @@ rocket.add_mass(0.2, position="top", offset_m=0.07, name="recovery bay")
 rocket.set_motor(hpr.Motor.from_catalog("H54", delay_s=10.0))
 rocket.add_parachute("parachute", diameter_m=0.9, trigger="motor_delay")
 
-print(f"Stability at liftoff: {rocket.static_margin_cal(0.0, 0.3):.2f} calibres")
+print(f"Stability at liftoff: {rocket.static_margin_cal(0.0, 0.3):.2f} calibers")
 
 flight = hpr.Flight(rocket, environment, 1.8, inclination_deg=85.0, heading_deg=270.0)
 print(f"Apogee:    {flight.apogee_m:.1f} m at {flight.apogee_time_s:.2f} s")
@@ -108,7 +108,7 @@ print(f"Landing:   {landing['distance_m']:.0f} m from the pad, descending at {la
 It prints:
 
 ```text
-Stability at liftoff: 2.12 calibres
+Stability at liftoff: 2.12 calibers
 Apogee:    1118.3 m at 13.67 s
 Top speed: 190 m/s (Mach 0.57)
 Landing:   905 m from the pad, descending at 4.6 m/s
@@ -143,10 +143,10 @@ Line by line:
 The stability margin is the distance from the
 [center of gravity](glossary.md#center-of-gravity-cg) back to the
 [center of pressure](glossary.md#center-of-pressure-cp), in body diameters
-([calibres](glossary.md#calibre-caliber)). It is 2.12 here, where The builder's example says
+([calibers](glossary.md#caliber)). It is 2.12 here, where The builder's example says
 1.92. That example packs its 200 g recovery bay into a 15 cm (5.9 in) cylinder, which moves the bay's
-center, and so the rocket's center of gravity, aft: about 0.4 calibres less. It also gives the
-nose a capped shoulder, which adds mass at the front: about 0.2 calibres more. A test holds both
+center, and so the rocket's center of gravity, aft: about 0.4 calibers less. It also gives the
+nose a capped shoulder, which adds mass at the front: about 0.2 calibers more. A test holds both
 steps to these sizes
 ([`test_the_margin_moves_as_the_python_page_says`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-py/tests/test_options.py)).
 
@@ -200,7 +200,7 @@ static margin below zero while a motor burns, or `"unstable_without_margin"` for
 that turns the rocket away while a motor burns where the simulator can give no margin
 ([Flight metrics: unstable under power](physics/metrics.md#unstable-under-power)): each a
 dictionary with its `flag`, such as `"beyond_validated_range"`, the `value` that raised it (a Mach
-number, an angle of attack in radians, a margin in calibres, or a pitch-moment slope per radian),
+number, an angle of attack in radians, a margin in calibers, or a pitch-moment slope per radian),
 its `time_s` and
 `height_above_ground_m`, and a `message`. It is empty for a flight that raises none. `flight.issue_warnings` lists the known
 errors in the simulator's drag, stability or flight path the flight meets

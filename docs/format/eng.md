@@ -66,7 +66,7 @@ point   := time thrust                 "usually preceded by a few spaces" [R Dat
 ### Header fields [R Header]
 
 | # | Field | Unit | Meaning |
-|---|-------|------|---------|
+|--:|-------|------|---------|
 | 1 | name | n/a | Common name: "just the impulse class and average thrust" (`F32`) |
 | 2 | diameter | mm | Casing diameter |
 | 3 | length | mm | Casing length |

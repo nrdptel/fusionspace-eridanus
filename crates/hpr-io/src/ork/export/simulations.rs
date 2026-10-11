@@ -32,10 +32,10 @@ use super::xml::{self, Build as _};
 /// The path of the `<simulations>` element, as warnings and kept items give it.
 const SIMULATIONS: &str = "openrocket/simulations";
 
-/// How many neighbouring numbers either side of the first guess are tried when looking for the
+/// How many neighboring numbers either side of the first guess are tried when looking for the
 /// degrees that read back as an angle's radians. Converting there and back is off by a few units
 /// in the last place at most, so eight is ample.
-const NEIGHBOURS: usize = 8;
+const NEIGHBORS: usize = 8;
 
 /// The `<simulations>` element, or `None` when the design has none and keeps nothing that was
 /// inside the file's `<simulations>`.
@@ -364,7 +364,7 @@ fn finite(value: Option<f64>, at: &str, what: &str, warnings: &mut Vec<Warning>)
 /// exactly `radians`: the shortest to write of those near `radians` in degrees, or `None` when
 /// there is none.
 ///
-/// Converting to degrees and back can be a unit in the last place off, so the neighbours of the
+/// Converting to degrees and back can be a unit in the last place off, so the neighbors of the
 /// first guess are tried too.
 fn degrees(radians: f64) -> Option<f64> {
     let guess = radians.to_degrees();
@@ -373,7 +373,7 @@ fn degrees(radians: f64) -> Option<f64> {
     }
     let mut candidates = vec![guess];
     let (mut below, mut above) = (guess, guess);
-    for _ in 0..NEIGHBOURS {
+    for _ in 0..NEIGHBORS {
         below = below.next_down();
         above = above.next_up();
         candidates.extend([below, above]);

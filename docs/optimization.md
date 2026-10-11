@@ -12,7 +12,7 @@ optimizer, [CMA-ES](glossary.md#cma-es). It runs on test functions whose answers
 finds the nose ballast and body length that send a rocket to 3,048 m (10,000 ft) with a chosen
 stability margin. Then it chooses a motor and a catalog nose cone as well, within a competition's
 limits on stability and speed off the rail. Then a second optimizer, [NSGA-II](glossary.md#nsga-ii),
-weighs two goals against each other: how much apogee each extra [calibre](glossary.md#calibre-caliber)
+weighs two goals against each other: how much apogee each extra [caliber](glossary.md#caliber)
 of stability costs. A third, [EGO](#few-evaluations-ego), is for models so slow that only tens
 of evaluations can be afforded. It needs some Rust.
 
@@ -56,7 +56,7 @@ of evaluations can be afforded. It needs some Rust.
 >   fronts lie 1% to 8% closer to the true front than pymoo's, and cover it as evenly, within 3%
 >   (the test allows a factor of 1.25 either way; [Trade-offs](#trade-offs-a-pareto-front)). The third
 >   example's front designs are flown again and give the same apogee and margin to the bit:
->   that shows the result repeats, not that it is right. At 2.5 calibres the front is within
+>   that shows the result repeats, not that it is right. At 2.5 calibers the front is within
 >   0.5% of the apogee CMA-ES finds alone (the example's check).
 > - **Few evaluations** (EGO): from 20 seeds each, two standard test functions with several
 >   local minima, Branin's (two variables) and Hartmann's (three), end within 1% of their known
@@ -175,7 +175,7 @@ run each function from 20 seeds and check:
   bound). Measured, they are within 5%:
 
 | Function | HPR Sim | pycma 4.5.0 |
-|---|---|---|
+|---|--:|--:|
 | sphere | 1,635 | 1,640 |
 | ellipsoid | 5,920 | 5,910 |
 | rotated ellipsoid | 6,010 | 5,930 |
@@ -215,7 +215,7 @@ The example program
 runs CMA-ES on three of the test functions. Then it takes a 66 mm (2.6 in) rocket on a J760, starting from
 a 3 m (9.8 ft) rail at 85° into 5 m/s (11 mph) of wind. It finds the nose ballast and body tube
 length that give it two things at once: an apogee of 3,048 m (10,000 ft) above the pad, and a
-static margin of 2.20 [calibres](glossary.md#calibre-caliber) at launch mass (at Mach 0.3). Run it
+static margin of 2.20 [calibers](glossary.md#caliber) at launch mass (at Mach 0.3). Run it
 from a copy of the repository with:
 
 ```text
@@ -235,10 +235,10 @@ let variables = vec![
     Variable::new("body tube (m)", 1.0, 0.1)?.within(0.6, 1.4)?,
 ];
 let optimizer = Cmaes::new(variables)?
-    .with_target(1e-4)?            // stop within a centimeter and a ten-thousandth of a calibre
+    .with_target(1e-4)?            // stop within a centimeter and a ten-thousandth of a caliber
     .with_max_evaluations(2_000)?;
 let optimum = optimizer.minimize(seed, |x| {
-    // (apogee miss in m)² + (margin miss in hundredths of a calibre)²;
+    // (apogee miss in m)² + (margin miss in hundredths of a caliber)²;
     // a design the simulator refuses ranks last
     miss(x[0], x[1], FlightSettings::default()).unwrap_or(f64::INFINITY)
 })?;
@@ -265,15 +265,15 @@ ellipsoid                          yes                               yes
 rotated ellipsoid                  yes                               yes
 
 A 66 mm rocket on a J760: find the nose ballast and body length for a 3,048 m apogee
-and a static margin of 2.20 calibres at launch mass, at Mach 0.3
+and a static margin of 2.20 calibers at launch mass, at Mach 0.3
 Not yet validated: see the Accuracy page before trusting these numbers.
-Start: 0.30 kg of ballast, a 1.00 m body: apogee 3128.8 m, margin 1.79 calibres
+Start: 0.30 kg of ballast, a 1.00 m body: apogee 3128.8 m, margin 1.79 calibers
 Found: 0.34 kg of ballast, a 1.11 m body (stopped: Target)
-Flown again: apogee 3048.0 m, margin 2.20 calibres
+Flown again: apogee 3048.0 m, margin 2.20 calibers
 Flown again, tolerances 100 times tighter: apogee 3048.0 m
 ```
 
-The rocket started 81 m (266 ft) too high, with a margin of 1.79 calibres. The optimizer found the
+The rocket started 81 m (266 ft) too high, with a margin of 1.79 calibers. The optimizer found the
 design in 300 flights on the development machine, about 50 generations. Flown again with tighter
 tolerances, its apogee moves by 1.4 mm (0.055 in). Limits on other things, such as the rail-exit speed, are the
 subject of [Limits on a design](#limits-on-a-design), and the second example uses them.
@@ -308,9 +308,9 @@ next. It returns the result once the run stops.
 
 ### Limits on a design
 
-A design usually has limits as well as a goal: a stability margin of at least 1.5 calibres, say, or
+A design usually has limits as well as a goal: a stability margin of at least 1.5 calibers, say, or
 at least 15 m/s (49 ft/s) off the rail. The optimizer takes them as constraints, each written as a
-number `g` that must not be above zero. A margin of at least 1.5 calibres is `g = 1.5 − margin`.
+number `g` that must not be above zero. A margin of at least 1.5 calibers is `g = 1.5 − margin`.
 Your model returns an [`Evaluation`]: the value, and the *violation*, the sum of every `g` that is
 above zero. `Evaluation::constrained(value, &[g1, g2])` adds them up for you.
 
@@ -323,8 +323,8 @@ Candidates are ranked by K. Deb's feasibility rules ([ADR-139][adr-139], from De
 | two that break some | the smaller violation |
 
 No penalty weight is needed, because a value is never weighed against a violation. Do scale the
-limits so that they count alike: a margin 0.1 calibre short and a rail speed 0.1 m/s (0.3 ft/s)
-short are not equally bad, so divide each `g` by a size you care about, such as the 1.5 calibres
+limits so that they count alike: a margin 0.1 caliber short and a rail speed 0.1 m/s (0.3 ft/s)
+short are not equally bad, so divide each `g` by a size you care about, such as the 1.5 calibers
 or the 15 m/s (49 ft/s).
 
 Candidates that break a limit are kept and ranked, not redrawn, so a run can close in on an
@@ -364,10 +364,10 @@ keeps at least a small chance, the *margin* (nothing to do with a stability marg
 lands on another value. It does so by
 moving the cloud's center towards the edge between two values, or by widening the cloud in that
 variable. The margin is `1/(n λ)`, for `n` variables and `λ` designs a generation: 1 in 32 for the
-example below. So a choice is never final: its neighbours keep being tried.
+example below. So a choice is never final: its neighbors keep being tried.
 
-Put the list in an order where neighbours are alike, such as motors by total impulse. The
-optimizer steps between neighbouring numbers, so in that order a step up means a little more
+Put the list in an order where neighbors are alike, such as motors by total impulse. The
+optimizer steps between neighboring numbers, so in that order a step up means a little more
 motor. A list in no order still works, but the search has less to go on.
 
 ### The example
@@ -392,10 +392,10 @@ whole ascent, from the rail exit to apogee (§10.3.1 says "from launch"; on the 
 the rocket):
 
 - a [stability margin](glossary.md#stability-margin) of at least 1.5
-  [calibres](glossary.md#calibre-caliber) in flight (§10.3.1 asks for a "dynamic" margin; the
+  [calibers](glossary.md#caliber) in flight (§10.3.1 asks for a "dynamic" margin; the
   example takes the *flight margin*, the margin at the flight's own Mach number, as the
   [flight metrics](physics/metrics.md) define it);
-- a *static* margin, the one at Mach 0, of at most 4 calibres, and a flight margin of at most 6,
+- a *static* margin, the one at Mach 0, of at most 4 calibers, and a flight margin of at most 6,
   so the rocket isn't over-stable (§10.4.1);
 - at least 30 m/s (98 ft/s) off the rail (§10.2.1).
 
@@ -405,7 +405,7 @@ example uses the least flight margin of the ascent, which the flight finds insid
 only at their ends. For the upper limits it uses the largest static and flight margins seen at
 the end of each integration step. The static margin only grows during the burn and stays put
 after it, so its largest is exact. A peak of the flight margin between two step ends could be
-missed; the winner's largest, 4.83 calibres, is well under its limit of 6.
+missed; the winner's largest, 4.83 calibers, is well under its limit of 6.
 
 The heart of it, abridged from the example. A choice is an integer variable: set its bounds with
 `within`, then mark it `integer`, and use the whole number your model is given as a place in your
@@ -455,7 +455,7 @@ It takes about half a minute in a debug build. It prints:
 ```text
 A 2.6 in rocket of Madcow Rocketry's parts: choose the motor, the nose cone, the nose
 ballast and the fin span for a 3,048 m apogee, with margins over the ascent of at
-least 1.5 calibres (flight), at most 4 (static) and 6 (flight), and at least 30 m/s off a 3 m rail
+least 1.5 calibers (flight), at most 4 (static) and 6 (flight), and at least 30 m/s off a 3 m rail
 Not yet validated: see the Accuracy page before trusting these numbers.
 motor    total impulse (N·s)   designs flown   nearest apogee within the limits
 J450DM                1061.6               3   2648 m
@@ -466,7 +466,7 @@ K940                  1636.1              19   3150 m
 Found: the K400C with the PNC26K-W nose (3:1 ogive, plastic), 0.35 kg of ballast, fins 8.9 cm in span
 (stopped: Target, after 360 flights)
 Flown again: apogee 3048.0 m, top speed Mach 1.23, rail exit 33.8 m/s, liftoff mass 2.60 kg;
-margins over the ascent: flight 3.04 to 4.83 calibres, static at most 3.88
+margins over the ascent: flight 3.04 to 4.83 calibers, static at most 3.88
 Flown again, tolerances 100 times tighter: apogee 3048.0 m, rail exit 33.8 m/s
 Both flights within 0.1 m of 3,048 m and within every limit: yes
 ```
@@ -534,7 +534,7 @@ reaches the minimum, with each whole number exactly right. The median evaluation
 test's 25% of the outside implementation's, and measured within 5%:
 
 | Function | Variables | HPR Sim | `cmaes` 0.13.1 |
-|---|---|---|---|
+|---|--:|--:|--:|
 | SphereInt | 10 | 1,855 | 1,850 |
 | SphereInt | 20 | 3,870 | 3,798 |
 | EllipsoidInt | 10 | 3,460 | 3,625 |
@@ -559,7 +559,7 @@ stable, and both cost apogee. There is no single best design then. Instead there
 designs, none of which can improve one goal without giving up some of the other: the [Pareto
 front](glossary.md#pareto-front). A design *dominates* another when it is no worse in either goal
 and better in at least one; the front is the designs nothing dominates. Knowing the front shows
-what each extra calibre of stability costs, before you pick one design from it.
+what each extra caliber of stability costs, before you pick one design from it.
 
 CMA-ES finds one design. For a front, HPR Sim has [NSGA-II](glossary.md#nsga-ii), a genetic
 algorithm by K. Deb and co-authors (2002). It keeps a population of designs and, each
@@ -567,8 +567,8 @@ generation:
 
 1. breeds as many children as there are parents. Each pair of parents is chosen by two
    tournaments: of two designs picked at random, the one on a better front wins, or, on the same
-   front, the one further from its neighbours (its *crowding distance*: the gaps between its two
-   neighbours' values of each goal, each as a share of that goal's range in the front, added
+   front, the one further from its neighbors (its *crowding distance*: the gaps between its two
+   neighbors' values of each goal, each as a share of that goal's range in the front, added
    up). Every design plays two tournaments a generation.
    A pair's children mix their parents' values
    (*crossover*), then a few values are nudged at random (*mutation*);
@@ -595,7 +595,7 @@ The example program
 takes the 66 mm (2.6 in) rocket on a J760 from [An example](#an-example), with its body fixed at
 1.0 m (39 in). It varies two things, the nose ballast (0 to 0.8 kg) and the fins' span, 4–10 cm (1.6–3.9 in),
 for two goals: the highest apogee, and the largest static margin at launch mass, at Mach 0.3. Every
-design must keep at least 1.5 calibres. The heart of it, abridged:
+design must keep at least 1.5 calibers. The heart of it, abridged:
 
 ```rust,ignore
 let variables = vec![
@@ -625,9 +625,9 @@ It takes about a minute in a debug build. It prints:
 
 <!-- quote: crates/hpr/examples/pareto_front.output.txt -->
 ```text
-A 66 mm rocket on a J760: how much apogee each calibre of static margin costs, over
+A 66 mm rocket on a J760: how much apogee each caliber of static margin costs, over
 its nose ballast (0 to 0.8 kg) and fin span (4 to 10 cm), with a margin of at least
-1.5 calibres at launch mass, at Mach 0.3
+1.5 calibers at launch mass, at Mach 0.3
 Not yet validated: see the Accuracy page before trusting these numbers.
 NSGA-II: 20 designs a generation, 25 generations, 500 flights (seed 2026)
 The front: 20 designs, each flown again to the same apogee and margin
@@ -638,16 +638,16 @@ margin (cal)   apogee on the front (m), interpolated between the two designs eit
          3.0       2990
          3.5       2940
 
-At 2.5 calibres, CMA-ES alone (200 flights): apogee 3050 m; the front within 0.5%: yes
+At 2.5 calibers, CMA-ES alone (200 flights): apogee 3050 m; the front within 0.5%: yes
 ```
 
-Between 2 and 3.5 calibres, each extra half calibre of margin costs this rocket 50 m (164 ft) to
+Between 2 and 3.5 calibers, each extra half caliber of margin costs this rocket 50 m (164 ft) to
 60 m (197 ft) of apogee. Each apogee in the table is interpolated in a straight line between the two
 front designs whose margins bracket it. Two checks back the front up:
 
 - Every one of its 20 designs is flown again from a fresh build and gives the same apogee and
   margin to the last bit. That shows the result repeats; it doesn't show it is right.
-- At 2.5 calibres, CMA-ES alone, told to find the highest apogee with at least that margin, gets the
+- At 2.5 calibers, CMA-ES alone, told to find the highest apogee with at least that margin, gets the
   same 3,050 m (10,007 ft), to the nearest 10 m (33 ft), in 200 flights: the front is within 0.5% of
   it, the example's check.
 
@@ -656,7 +656,7 @@ checked in CI. From each of the 26 seeds 2020 to 2045, the front came within the
 below CMA-ES's apogee to 0.18% above (CMA-ES's own answer in 200 flights varies by 0.24% over
 those seeds). An earlier version of the example missed the check: with 20 designs for 12
 generations its front fell 0.66% short, and the generations were raised to 25. (Before that, 24
-designs over wider ranges spread the front from 1.5 to 5.3 calibres, too thinly, and the ranges
+designs over wider ranges spread the front from 1.5 to 5.3 calibers, too thinly, and the ranges
 were narrowed.) The 0.5% was not changed
 ([ADR-141](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0141-several-goals-by-nsga-ii.md)).
 
@@ -695,7 +695,7 @@ is best at its lower bound, and an optimizer that drifts toward its bounds would
 than pymoo without being better. Measured:
 
 | Problem | Measure | HPR Sim median | HPR Sim worst | pymoo median | pymoo worst | Bound on every run |
-|---|---|---|---|---|---|---|
+|---|---|--:|--:|--:|--:|--:|
 | ZDT1 | GD | 1.07e-3 | 1.36e-3 | 1.10e-3 | 1.46e-3 | 2.92e-3 |
 | ZDT1 | IGD | 4.90e-3 | 5.66e-3 | 4.96e-3 | 5.48e-3 | 1.10e-2 |
 | ZDT2 | GD | 9.78e-4 | 1.40e-3 | 9.85e-4 | 1.41e-3 | 2.82e-3 |
@@ -843,7 +843,7 @@ gave the gaps below (macOS debug build; print them with
 `cargo test -p fusionspace-hpr-analysis --test ego -- --nocapture`).
 
 | Function | Variables | Minimum | Budget | Worst of 20 runs |
-|---|---|---|---|---|
+|---|--:|--:|---|---|
 | Branin | 2 | 0.397887 | 50 evaluations | 0.118% above |
 | Hartmann 3 | 3 | −3.86278 | 50 evaluations | 0.124% above |
 | Hartmann 6, `−ln(−y)` | 6 | −3.32237 | 250 evaluations | 0.289% above |

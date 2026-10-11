@@ -235,7 +235,7 @@ fn count_tag(element: &ork::Element, tag: &str) -> usize {
 /// Every automatic dimension a file cached a number with, as `(component id, tag, cached)`.
 ///
 /// This is the only oracle available offline for the resolution rules: `auto 0.025` is the answer
-/// OpenRocket itself last worked out, so a reader that resolves the dimension from the neighbours
+/// OpenRocket itself last worked out, so a reader that resolves the dimension from the neighbors
 /// can be held to it. Only a component the file gives an `<id>` can be matched back, and only the
 /// 104 of 413 automatic dimensions that cache anything say a number at all.
 fn cached_dimensions(element: &ork::Element, found: &mut Vec<(String, String, f64)>) {

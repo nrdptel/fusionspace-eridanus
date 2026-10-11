@@ -111,11 +111,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         cp(&liftoff)?,
         cp(&spent)?
     );
-    let calibres = |margin: &hpr::hpr_sim::metrics::Margin| margin.margin_cal.ok_or("no margin");
+    let calibers = |margin: &hpr::hpr_sim::metrics::Margin| margin.margin_cal.ok_or("no margin");
     println!(
-        "stability margin (calibres)      {:>7.2} {:>9.2}",
-        calibres(&liftoff)?,
-        calibres(&spent)?
+        "stability margin (calibers)      {:>7.2} {:>9.2}",
+        calibers(&liftoff)?,
+        calibers(&spent)?
     );
 
     // Where: Spaceport America, 1,400 m up, with 5 m/s of wind from the west. Longitude is

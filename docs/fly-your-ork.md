@@ -47,7 +47,7 @@ configuration 1 of 2: [H170M-10]
 help: --config flies the others, by number or name: 2 [I175WS-9]
 a simulated flight, not a measurement
 
-static margin         1.70 calibres off the rail; least 1.70 calibres, at 0.12 s, before apogee
+static margin         1.70 calibers off the rail; least 1.70 calibers, at 0.12 s, before apogee
 CG and CP             0.811 m (31.9 in) and 0.923 m (36.3 in) aft of the nose tip, off the rail
 apogee                1065.1 m (3494 ft) above the site at 11.62 s
 rail exit speed       26.3 m/s (86 ft/s)
@@ -61,7 +61,7 @@ note: the file's 1 recovery device flies as OpenRocket flies it: each opens full
 warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.84 at 1.7 s (https://github.com/nrdptel/fusionspace-eridanus/issues/67)
 warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.84 at 1.7 s (https://github.com/nrdptel/fusionspace-eridanus/issues/68)
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
-warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
+warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 event                   time                 height                    speed
 liftoff               0.00 s      0.4 m      (1 ft)     0.0 m/s     (0 ft/s)
@@ -92,7 +92,7 @@ with feet or feet per second in parentheses:
 
 - **`static margin`**: how far the [center of pressure](glossary.md#center-of-pressure-cp) sits
   behind the [center of gravity](glossary.md#center-of-gravity-cg), in body diameters
-  ([calibres](glossary.md#calibre-caliber)), as the rocket leaves the rail, and its least value
+  ([calibers](glossary.md#caliber)), as the rocket leaves the rail, and its least value
   before apogee. A rocket with a fin set of one or two fins has a different margin for each
   direction the air crosses it, and `hpr sim` prints the least
   ([Flight metrics](physics/metrics.md#stability-margins)). [Check stability for a certification flight](stability-for-certification.md)
@@ -135,7 +135,7 @@ configuration 2 of 2: [I175WS-9]
 help: --config flies the others, by number or name: 1 [H170M-10]
 a simulated flight, not a measurement
 
-static margin         1.69 calibres off the rail; least 1.69 calibres, at 0.17 s, before apogee
+static margin         1.69 calibers off the rail; least 1.69 calibers, at 0.17 s, before apogee
 CG and CP             0.811 m (31.9 in) and 0.923 m (36.3 in) aft of the nose tip, off the rail
 apogee                1174.3 m (3853 ft) above the site at 11.51 s
 rail exit speed       36.8 m/s (121 ft/s)
@@ -149,7 +149,7 @@ note: the file's 1 recovery device flies as OpenRocket flies it: each opens full
 warning: drag: issue #67: a cone-like nose's or shoulder's pressure drag reads high from Mach 0.8 (about twice a measured cone's at Mach 0.85, still +15% at 1.5), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.87 at 1.8 s (https://github.com/nrdptel/fusionspace-eridanus/issues/67)
 warning: drag: issue #68: base drag reads high from Mach 0.8 to 1.2 (0.225 against a measured 0.156 at Mach 0.9), so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are; this flight reaches Mach 0.87 at 1.8 s (https://github.com/nrdptel/fusionspace-eridanus/issues/68)
 warning: drag: issue #18: skin friction is taken as fully turbulent, but on a smooth surface the flow stays laminar near the nose, where friction is lower: HPR Sim's drag reads high by 3.6% on RocketPy's Calisto at Mach 0.3; if this surface is that smooth, the drag reads high, so the apogee, the top speed and the drift read low, and the flutter margin and the largest dynamic pressure look better than they are (https://github.com/nrdptel/fusionspace-eridanus/issues/18)
-warning: stability: issue #172: the static margin read up to 0.1108 calibres higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
+warning: stability: issue #172: the static margin read up to 0.1108 calibers higher than OpenRocket's on four private designs, for a reason not yet found, so this flight's margin may read high by as much (https://github.com/nrdptel/fusionspace-eridanus/issues/172)
 
 event                   time                 height                    speed
 liftoff               0.02 s      0.4 m      (1 ft)     0.0 m/s     (0 ft/s)

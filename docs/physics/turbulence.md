@@ -152,7 +152,7 @@ repeatedly and on rejected steps.
   - In every octave band from bin 1 to Nyquist, each component's mean ratio to theory is within
     4 standard errors.
   - The variance of a band's mean ratio is `[1 + 2ρ₁²(n−1)/n + 2ρ₂²(n−2)/n]/(nK)` for `n` bins
-    and `K` segments, with the Hann window's neighbouring-bin correlations `ρ₁ = 2/3` and
+    and `K` segments, with the Hann window's neighboring-bin correlations `ρ₁ = 2/3` and
     `ρ₂ = 1/6`. The bracket tends to 1.94.
   - The one- and two-bin bands at the bottom are loose (±25%, ±21%); the wide bands (±1–3%) pin
     the spectrum.

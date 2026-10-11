@@ -319,8 +319,8 @@ How to read it:
   rod clearance it drops 2.0000, 1.9998 and 2.9944 times as much as HPR Sim's: the count of such
   motors in each configuration. So HPR Sim reads 1.80% to 3.26% heavier as the rocket leaves the rod,
   though the launch masses agree within 0.054%. At that moment HPR Sim's stability margin is 0.039 to
-  0.058 calibres shorter than OpenRocket's, about as much as HPR Sim's center of mass sits further
-  aft, 0.043 to 0.062 calibres. Whether OpenRocket's light mass accounts for that is not sized.
+  0.058 calibers shorter than OpenRocket's, about as much as HPR Sim's center of mass sits further
+  aft, 0.043 to 0.062 calibers. Whether OpenRocket's light mass accounts for that is not sized.
 - **With the curves `hpr sim` fetches.** The file holds no curves, so `hpr sim` fetches them from
   ThrustCurve.org ([Motors from ThrustCurve.org](../cli.md#motors-from-thrustcurveorg)), taking
   the file that holds OpenRocket's curve for each motor's digest
@@ -403,7 +403,7 @@ Each Δ is taken from the report's unrounded heights, so it can differ in the la
 the rounded ones shown.
 
 | motors | split (s) | payload's apogee, OpenRocket / HPR Sim (m) | Δ | coasting with no drag: OpenRocket's free payload / HPR Sim (m) | Δ |
-|---|---:|---|---:|---|---:|
+|---|---:|--:|---:|--:|---:|
 | C6-3 | 4.86 | 233.2 / 233.3 | +0.04% | 258.5 / 268.8 | +4.00% |
 | C6-5 | 6.86 | 265.3 / 264.4 | −0.32% | 266.6 / 265.4 | −0.43% |
 
@@ -453,11 +453,11 @@ configuration under OpenRocket's stored conditions instead (a 1 m (3.3 ft) rod, 
 recovery as saved:
 
 | motors | split (s), OpenRocket / HPR Sim | apogee, OpenRocket / HPR Sim (m) | Δ | largest speed Δ |
-|---|---|---|---:|---:|
+|---|---|--:|---:|---:|
 | I115W-10 and 2× E12-0 | 2.44 / 2.44 | 1123.6 / 1137.5 | +1.23% | +3.25% |
 | I115W-10, boosters empty | none / none | 851.8 / 857.6 | +0.68% | +1.56% |
 
-At rod clearance the masses agree to 0.7 g (0.06%) and the static margins to 0.003 calibre,
+At rod clearance the masses agree to 0.7 g (0.06%) and the static margins to 0.003 caliber,
 and both descents meet the targets of [Recovery](recovery.md#from-an-openrocket-file). The 3.25% in largest speed is not
 traced. [M4.5m](../decisions-and-roadmap.md#m4-5m) shipped this; its decision record is
 [ADR-171](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0171-a-parallel-stage-is-a-pod-set-that-separates.md).
@@ -616,7 +616,7 @@ against 85.0 m (279 ft)) and 4.02% faster (79.9 m/s (262 ft/s) against 76.8 m/s 
 weaker evidence than an apogee: two points on the way up, the second where OpenRocket's flight is
 breaking up. When OpenRocket aborts is its own call, too: its probe of the same configuration
 with nothing deployed aborts at 2.40 s, not 1.81 s. The sustainer's least static margin is −4.21
-calibres at the split. In the record's conditions, a 0.15 m (0.49 ft) rod at 28.61° N with no wind, HPR Sim's
+calibers at the split. In the record's conditions, a 0.15 m (0.49 ft) rod at 28.61° N with no wind, HPR Sim's
 sustainer turns over at 2.04 s. From `hpr sim`'s defaults, a 1.5 m (4.9 ft) rail with no wind, it does
 not, and why the two differ is not traced. `hpr sim` warns that the sustainer is unstable under
 power and that its apogee is not a prediction

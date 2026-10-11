@@ -72,7 +72,7 @@ const MARKER_ROW: f64 = 24.0;
 /// How far under the balloons the leaders meet their events' lines at the least, px: an 8 px step.
 const LEADER_GAP: f64 = 8.0;
 /// The least slope of a leader, its drop over its run: tan 35°, so a leader leaves its row
-/// between its balloon's neighbours, a step away, with the step · sin 35° from their centers, at
+/// between its balloon's neighbors, a step away, with the step · sin 35° from their centers, at
 /// least 24 · 0.574 ≈ 13.8 px, more than their radius ([`balloon_size`]).
 const LEADER_SLOPE: f64 = 0.7002;
 /// A title block cell's padding, px: the key's baseline is a 16 px step under its top, the

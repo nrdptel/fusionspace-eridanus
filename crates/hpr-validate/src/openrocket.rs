@@ -2036,9 +2036,9 @@ mod tests {
         slope_ratio: f64,
         /// OpenRocket's set slope over `N π d²/A_ref`, the long-ring limit of `N` isolated rings.
         over_long_ring_limit: f64,
-        /// hpr's rocket center of pressure less OpenRocket's, calibres.
+        /// hpr's rocket center of pressure less OpenRocket's, calibers.
         gap_cal: f64,
-        /// How far hpr's center moves, calibres, with the tubes at OpenRocket's center alone, and
+        /// How far hpr's center moves, calibers, with the tubes at OpenRocket's center alone, and
         /// with OpenRocket's slope alone.
         center_only_cal: f64,
         slope_only_cal: f64,
@@ -2150,7 +2150,7 @@ mod tests {
                     (number(&rocket["cna_per_rad"]), number(&rocket["cp_x_m"]));
                 // The rest of the rocket, the nose and the body, is nearly the same in both
                 // codes: OpenRocket gives the body tube a slope of 0.003 at its middle, hpr none,
-                // which puts their center 0.015 calibres aft of hpr's nose's.
+                // which puts their center 0.015 calibers aft of hpr's nose's.
                 let rest = whole.slope_per_rad - ours;
                 let rest_moment = whole.moment_slope_m - ours * our_x;
                 let (their_rest, their_rest_moment) = (
@@ -2193,7 +2193,7 @@ mod tests {
         seen
     }
 
-    /// hpr's rocket center of pressure less OpenRocket's on each probe, calibres, at Mach 0.05,
+    /// hpr's rocket center of pressure less OpenRocket's on each probe, calibers, at Mach 0.05,
     /// 0.3, 0.5, 0.6 and 0.75, as measured when ADR-102 was written.
     const TUBE_FIN_GAPS_CAL: [(&str, [f64; 5]); 14] = [
         (
@@ -2254,8 +2254,8 @@ mod tests {
         ),
     ];
 
-    /// Loft lesson L19: Loft put a tube fin set's center of pressure about 0.9 calibres forward of
-    /// OpenRocket's. hpr's is further forward still, and the lesson's bar, a quarter calibre, is
+    /// Loft lesson L19: Loft put a tube fin set's center of pressure about 0.9 calibers forward of
+    /// OpenRocket's. hpr's is further forward still, and the lesson's bar, a quarter caliber, is
     /// not met: this test measures the gap on OpenRocket 24.12's 14 probes, at five Mach numbers,
     /// and on its *Tube fin rocket*, and pins every one, so a change to either code shows
     /// (ADR-102).
@@ -2351,7 +2351,7 @@ mod tests {
         );
         // OpenRocket's own *Tube fin rocket*: the probe record's example and the flight record's
         // are the same OpenRocket answer, and hpr's center, in the flight record, is 1.07
-        // calibres forward of it at rod clearance.
+        // calibers forward of it at rod clearance.
         let flights: Value = serde_json::from_str(include_str!(
             "../../../validation/reports/openrocket-flights.json"
         ))

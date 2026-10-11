@@ -1061,7 +1061,7 @@ fn fly_whole_flight(
         };
         let Some((rail_exit_time_s, rail_exit_speed_m_s)) = peaks.forward_guide_exit else {
             return Ok(Err(format!(
-                "the rocket never travelled RocketPy's effective_1rl, {} m, along the rail",
+                "the rocket never traveled RocketPy's effective_1rl, {} m, along the rail",
                 setup.effective_1rl_m
             )));
         };
@@ -1378,7 +1378,7 @@ impl Peaks {
         Ok(peaks)
     }
 
-    /// How far past the forward guide's exit the rocket has travelled at `t_s`, m.
+    /// How far past the forward guide's exit the rocket has traveled at `t_s`, m.
     fn past_forward_guide(&self, step: &dyn FlightStep, t_s: f64) -> f64 {
         (step.state_at(t_s).position_enu_m - self.start_enu_m).dot(self.rail_axis_enu)
             - self.forward_guide_travel_m

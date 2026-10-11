@@ -62,7 +62,7 @@ enum Closure {
     PrintedFlareAngle,
 }
 
-/// Model 2's geometry in base diameters: the base radius is 0.5, so a "meter" is a calibre and the
+/// Model 2's geometry in base diameters: the base radius is 0.5, so a "meter" is a caliber and the
 /// reference area is `π/4`.
 struct Geometry {
     /// The nose's spherical radius, and the station and radius where its blend arc takes over.
@@ -358,7 +358,7 @@ struct Marched {
     refused: Option<String>,
 }
 
-/// One Mach number's reading, in the body's own units (a calibre, since the base diameter is 1).
+/// One Mach number's reading, in the body's own units (a caliber, since the base diameter is 1).
 struct Reading {
     /// The body's slope, per radian, and its center of pressure aft of the vertex.
     slope_per_rad: f64,
@@ -1358,20 +1358,20 @@ mod tests {
             .unwrap();
         assert!(
             worst < 1e-12,
-            "the blend arc misses its circle by {worst} calibres"
+            "the blend arc misses its circle by {worst} calibers"
         );
         let closed = &geometry["closed_on_the_base"];
         assert!((closed["base_diameter"].as_f64().unwrap() - 1.0).abs() < 1e-12);
         assert!((closed["length"].as_f64().unwrap() - 1.609).abs() < 1e-12);
         let printed = &geometry["printed_lengths"];
         assert!((printed["base_diameter"].as_f64().unwrap() - 1.0).abs() < 1e-12);
-        // The two closures put the juncture 0.0146 calibres apart, which is the drawing's own
+        // The two closures put the juncture 0.0146 calibers apart, which is the drawing's own
         // disagreement: it is the spread the fixture's `printed_lengths` rows measure.
         let apart = closed["juncture_at"].as_f64().unwrap()
             - printed["juncture_at"].as_f64().unwrap() / printed["scale"].as_f64().unwrap();
         assert!(
             (apart - 0.014_617_174_571_5).abs() < 1e-9,
-            "the two closures' junctures are {apart} calibres apart"
+            "the two closures' junctures are {apart} calibers apart"
         );
     }
 }

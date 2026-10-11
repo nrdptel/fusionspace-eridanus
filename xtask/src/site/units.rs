@@ -584,51 +584,83 @@ fn operator_after(after: &str) -> bool {
     }
 }
 
-/// Each quantity in SI alone on a page, as (line, message): its text as it renders, read in runs
-/// that end where a block, a code span, raw HTML or an image's description does.
+/// Each quantity in SI alone on a page, as (line, message): its text as it renders, read in the
+/// runs of [`rendered_runs`].
 pub(super) fn si_alone(text: &str) -> Vec<(usize, String)> {
-    use pulldown_cmark::{Event, Parser, Tag, TagEnd};
-
     let line = super::line_index(text);
     let mut problems = Vec::new();
-    // The run, and where in the source each piece of it starts: (offset in the run, in the page).
-    let mut run = String::new();
-    let mut pieces: Vec<(usize, usize)> = Vec::new();
-    let mut flush = |run: &mut String, pieces: &mut Vec<(usize, usize)>| {
-        for (at, message) in si_alone_in(run) {
-            let source = pieces
-                .iter()
-                .rev()
-                .find(|(start, _)| *start <= at)
-                .map_or(0, |(start, source)| source + (at - start));
-            problems.push((line(source), message));
+    for run in rendered_runs(text) {
+        for (at, message) in si_alone_in(&run.text) {
+            problems.push((line(run.source(at)), message));
         }
-        run.clear();
-        pieces.clear();
+    }
+    problems
+}
+
+/// A run of a page's text as it renders, and where in the page each piece of it starts.
+pub(super) struct Run {
+    /// The text.
+    pub(super) text: String,
+    /// Each piece's start: (byte offset in [`Run::text`], byte offset in the page).
+    pieces: Vec<(usize, usize)>,
+}
+
+impl Run {
+    /// The byte offset in the page of the byte at `at` in the run.
+    pub(super) fn source(&self, at: usize) -> usize {
+        self.pieces
+            .iter()
+            .rev()
+            .find(|(start, _)| *start <= at)
+            .map_or(0, |(start, source)| source + (at - start))
+    }
+}
+
+/// A page's text as it renders (prose, headings, list items, table cells, link text and image
+/// descriptions; not code, which quotes files and output), in runs that end where a block, a
+/// table cell, a code span, raw HTML or an image's description does. Inline formatting and links
+/// continue a run: `**324 m** (1,063 ft)` is one.
+pub(super) fn rendered_runs(text: &str) -> Vec<Run> {
+    use pulldown_cmark::{Event, Parser, Tag, TagEnd};
+
+    let mut runs = Vec::new();
+    let mut run = Run {
+        text: String::new(),
+        pieces: Vec::new(),
+    };
+    let mut flush = |run: &mut Run| {
+        if !run.text.is_empty() {
+            runs.push(std::mem::replace(
+                run,
+                Run {
+                    text: String::new(),
+                    pieces: Vec::new(),
+                },
+            ));
+        }
     };
     let mut in_code_block = false;
     for (event, range) in Parser::new_ext(text, super::options()).into_offset_iter() {
         match event {
             Event::Start(Tag::CodeBlock(_)) => {
-                flush(&mut run, &mut pieces);
+                flush(&mut run);
                 in_code_block = true;
             }
             Event::End(TagEnd::CodeBlock) => in_code_block = false,
             Event::Text(words) if !in_code_block => {
-                pieces.push((run.len(), range.start));
-                run.push_str(&words);
+                run.pieces.push((run.text.len(), range.start));
+                run.text.push_str(&words);
             }
-            Event::SoftBreak | Event::HardBreak => run.push(' '),
-            // Inline formatting and links continue the run: `**324 m** (1,063 ft)` is one.
+            Event::SoftBreak | Event::HardBreak => run.text.push(' '),
             Event::Start(Tag::Emphasis | Tag::Strong | Tag::Strikethrough | Tag::Link { .. })
             | Event::End(
                 TagEnd::Emphasis | TagEnd::Strong | TagEnd::Strikethrough | TagEnd::Link,
             ) => {}
-            _ => flush(&mut run, &mut pieces),
+            _ => flush(&mut run),
         }
     }
-    flush(&mut run, &mut pieces);
-    problems
+    flush(&mut run);
+    runs
 }
 
 /// Each quantity in SI alone in a run of rendered text, as (byte offset in the run, message).

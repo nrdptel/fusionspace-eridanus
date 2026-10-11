@@ -178,7 +178,7 @@ pub fn generate(root: &Path) -> Result<Value, String> {
 mod tests {
     use super::*;
 
-    /// The bullet's judgement, pinned: which rows are outside 15%, and that the whole rocket is
+    /// The bullet's judgment, pinned: which rows are outside 15%, and that the whole rocket is
     /// within it at Mach 3.96 and 4.63 on both configurations (the bullet's second half).
     #[test]
     fn the_bullet_is_judged_the_same_way_every_time() {

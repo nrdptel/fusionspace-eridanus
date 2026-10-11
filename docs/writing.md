@@ -12,8 +12,9 @@ reads a page once and knows what it says and how far to trust it.
 
 > **How far to trust it.** This page is rules, not results. The build holds some of them on every
 > change: `cargo xtask spelling` reads each page's words and names, and counts its exceptions on
-> every run; `cargo xtask site` counts each page's sheets, fails one outside two to six, and fails a
-> trust note or an alert off its shape. Reviews hold the rest. Where this page and a check
+> every run; `cargo xtask site` counts each page's sheets, fails one outside two to six, fails a
+> trust note or an alert off its shape, and fails a hyphen for a minus sign or a column of numbers
+> not right-aligned. Reviews hold the rest. Where this page and a check
 > disagree, the check is what the build enforces, and the gap is a bug to report.
 
 ## The rules
@@ -49,15 +50,18 @@ They don't conflict with the rules above; they add these:
 - **US English**: color, center, meter, catalog, license, analyze, gray. A product or command
   name keeps the spelling it shipped with, and a quotation or a source's title keeps its own.
 - **No em dashes.** Use a colon, a comma or a period. An en dash only in ranges: 5,100–5,500 ft.
-- **Both are checked.** `cargo xtask spelling` flags the UK spelling of eight
-  words, whose US forms are center, meter, catalog, license, color, analyze, behavior and
-  modeling, and names the US word to write; it flags every em dash, in the pages and their code
-  blocks, the crates, `xtask` and the schema alike (since
-  [M0.6d3](decisions-and-roadmap.md#m0-6d3)). Other UK spellings (labelled, neighbours, maths,
-  grey) are not checked yet. It reads the pages, the README, the scripts, the crates, `xtask` and
-  the schema: a page's prose, each code block as its language reads (a `rust` block's comments
-  and strings, a `text` block whole), and a source file's comments and strings. It skips
-  addresses, the frozen decision records and its own word list.
+- **Both are checked.** `cargo xtask spelling` flags each British spelling on its list and names
+  the US word to write: center, meter, catalog, license, color, analyze, behavior and modeling
+  since [M0.6d3](decisions-and-roadmap.md#m0-6d3), and since [M0.9e](decisions-and-roadmap.md#m0-9e)
+  (the words to the design) caliber, fiber, liter, maneuver; labeled, traveled, signaled, fueled
+  and the other doubled l's; favor, neighbor, vapor, honor and the other -our words; defense,
+  aluminum, gray, judgment, sulfur, aging, program; and -ize, -izing and -ization for -ise,
+  -ising and -isation on the stems on its list (normalize, optimization, summarizing). It flags
+  every em dash, in the pages
+  and their code blocks, the crates, `xtask` and the schema alike. It reads the pages, the README,
+  the scripts, the crates, `xtask` and the schema: a page's prose, each code block as its language
+  reads (a `rust` block's comments and strings, a `text` block whole), and a source file's
+  comments and strings. It skips addresses, the frozen decision records and its own word list.
 - **Names are checked too** (since [M0.6e](decisions-and-roadmap.md#m0-6e)): every name in the
   code, a string that is one bare key such as `"center_x"`, and each name in the writing (in
   backticks, joined by `_`, in a format string). It reports `centre_of_pressure_m` as "call it
@@ -66,6 +70,12 @@ They don't conflict with the rules above; they add these:
   list of exceptions, which it counts on every run. `--fix` replaces words but not names: a
   renamed name that is saved to a file keeps its old key as a serde alias, which HPR Sim reads
   and never writes. An em dash needs its sentence rewritten. CI runs the check in the site step.
+- **Numbers on the site are checked** (since [M0.9e](decisions-and-roadmap.md#m0-9e)):
+  `cargo xtask site` fails a hyphen-minus written for a minus sign, `-7.28%`, where the page
+  should have the real one, `−7.28%` (U+2212), outside code. It also fails a table column whose
+  cells are all numbers (a figure with its units, sign, spread or range, such as `1,400 m
+  (4,593 ft)` or `−7.28%`) unless its delimiter right-aligns it, `---:`; a cell in code, a date
+  or a version is a label, and an empty cell, a dash or "n/a" doesn't count.
 - **A trust note**, in one fixed shape, on every result someone might fly on: a quote block that
   opens with `**How far to trust it.**`, then says what kind of figure it is (estimate,
   measurement, copied value); what it was checked against, with numbers; and what to rely on
@@ -128,9 +138,10 @@ space yet, and `hpr sim --plot`'s SVG figure, which the rule covers, still write
 Many of the product system's rules are not met yet. The
 [design audit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/design-conformance.md)
 checks each of its sections against the site, the command line, the exports and the plot. Of
-the 64 sections that apply to them today, 33 are met and 24 are not. Each gap has an issue, and
-three milestones close them before the next guides are written: the command line, exports and
-plot first, then the site's look, then the words
+the 64 sections that apply to them today, 37 are met and 20 are not. Each gap has an issue and
+the milestone that closes it: the command line, exports and plot came first, then the site's
+look, then the spelling, minus signs, number columns and READMEs; the rest of the words
+([M0.9f](decisions-and-roadmap.md#m0-9f)) comes before release 0.2
 ([ADR-208, the design audit](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0208-the-design-audit.md)).
 None of these rules changes a number the simulator computes.
 

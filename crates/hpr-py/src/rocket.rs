@@ -571,7 +571,7 @@ impl Rocket {
         self.notes.clone()
     }
 
-    /// The static stability margin, calibres, `time_s` after ignition at `mach`, with the air
+    /// The static stability margin, calibers, `time_s` after ignition at `mach`, with the air
     /// along the axis, in the rocket's weakest plane (a fin set of one or two fins makes some
     /// planes weaker than others); `None` where the rocket has no normal force to find a center of
     /// pressure from.

@@ -538,7 +538,7 @@ fn the_apis_words_read_with_their_meaning() {
     assert_eq!(find("F27R/L"), (Some(MotorType::SingleUse), Hazmat::Varies));
     assert_eq!(find("D13W"), (Some(MotorType::Reload), Hazmat::NotRequired));
     // The hazmat labels by class, as the rustdoc of `Hazmat` quotes them.
-    let labelled = |classes: &str, hazmat: Hazmat| {
+    let labeled = |classes: &str, hazmat: Hazmat| {
         let motors = all
             .motors
             .iter()
@@ -551,15 +551,15 @@ fn the_apis_words_read_with_their_meaning() {
             .filter(|m| classes.contains(&m.impulse_class))
             .count()
     };
-    assert_eq!(labelled("DE", Hazmat::NotRequired), in_classes("DE"));
+    assert_eq!(labeled("DE", Hazmat::NotRequired), in_classes("DE"));
     assert_eq!(
-        labelled("HIJKLMNO", Hazmat::Required),
+        labeled("HIJKLMNO", Hazmat::Required),
         in_classes("HIJKLMNO")
     );
     assert_eq!(
         (
-            labelled("FG", Hazmat::Varies),
-            labelled("FG", Hazmat::Required)
+            labeled("FG", Hazmat::Varies),
+            labeled("FG", Hazmat::Required)
         ),
         (75, 29)
     );

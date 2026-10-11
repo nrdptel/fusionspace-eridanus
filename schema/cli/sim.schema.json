@@ -721,7 +721,7 @@
           "format": "double"
         },
         "margin_cal": {
-          "description": "The margin, calibres: positive with the center of pressure aft of the center of mass;\n`null` when the net slope is too small for the quotient to mean anything.",
+          "description": "The margin, calibers: positive with the center of pressure aft of the center of mass;\n`null` when the net slope is too small for the quotient to mean anything.",
           "type": [
             "number",
             "null"
@@ -1069,7 +1069,7 @@
           "type": "string"
         },
         "peak": {
-          "description": "The peak that raised it: the top Mach number, for `high_angle_of_attack` the largest\nangle of attack that counts, rad, for `unstable_under_power` the least static margin\nwhile a motor burns, calibres, or for `unstable_without_margin` the largest pitch-moment\nslope C_mα where the margin is undefined while a motor burns, per radian.",
+          "description": "The peak that raised it: the top Mach number, for `high_angle_of_attack` the largest\nangle of attack that counts, rad, for `unstable_under_power` the least static margin\nwhile a motor burns, calibers, or for `unstable_without_margin` the largest pitch-moment\nslope C_mα where the margin is undefined while a motor burns, per radian.",
           "$ref": "#/$defs/Peak"
         }
       },
@@ -1420,7 +1420,7 @@
           ]
         },
         "min_flight_margin_cal": {
-          "description": "The least flight margin, calibres, over the same span: the margin at the flight's Mach\nnumber, along the axis.",
+          "description": "The least flight margin, calibers, over the same span: the margin at the flight's Mach\nnumber, along the axis.",
           "anyOf": [
             {
               "$ref": "#/$defs/Peak"
@@ -1431,7 +1431,7 @@
           ]
         },
         "min_powered_static_margin_cal": {
-          "description": "The least static margin, calibres, over the same span while a motor burns: below zero, the\nrocket is unstable under power and `flags` has `unstable_under_power`.",
+          "description": "The least static margin, calibers, over the same span while a motor burns: below zero, the\nrocket is unstable under power and `flags` has `unstable_under_power`.",
           "anyOf": [
             {
               "$ref": "#/$defs/Peak"
@@ -1442,7 +1442,7 @@
           ]
         },
         "min_static_margin_cal": {
-          "description": "The least static stability margin, calibres, from the rail exit to apogee or the first\ndeployment.",
+          "description": "The least static stability margin, calibers, from the rail exit to apogee or the first\ndeployment.",
           "anyOf": [
             {
               "$ref": "#/$defs/Peak"

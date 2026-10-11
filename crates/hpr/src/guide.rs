@@ -74,7 +74,7 @@ pub mod building {
     //! let liftoff = rocket.mass_properties(0.0)?;
     //! let margin = rocket.margin(0.0, 0.3)?;
     //! assert!(liftoff.mass_kg > 0.4);
-    //! assert!(margin.margin_cal.is_some_and(|calibres| calibres > 1.0));
+    //! assert!(margin.margin_cal.is_some_and(|calibers| calibers > 1.0));
     //! # Ok::<(), hpr::Error>(())
     //! ```
     //!

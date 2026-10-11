@@ -219,9 +219,9 @@ pub fn generate(root: &Path) -> Result<Vec<(String, String)>, String> {
 const WIND_TUNNEL: &str = "validation/fixtures/aero/arcas-robin-wind-tunnel.json";
 const HANDBOOK_SAMPLE: &str = "validation/fixtures/aero/mil-hdbk-762-sample-drag.json";
 
-/// MIL-HDBK-762's sample drag rocket (Fig. 5-155) from the reference's geometry, in calibres of
-/// its 0.16-m diameter: a 3-calibre tangent ogive, a 21-calibre cylinder, and four rectangular fins
-/// two calibres (0.32 m) long, 0.32 calibres (51.2 mm) tall and 0.04 calibres (6.4 mm) thick, with
+/// MIL-HDBK-762's sample drag rocket (Fig. 5-155) from the reference's geometry, in calibers of
+/// its 0.16-m diameter: a 3-caliber tangent ogive, a 21-caliber cylinder, and four rectangular fins
+/// two calibers (0.32 m) long, 0.32 calibers (51.2 mm) tall and 0.04 calibers (6.4 mm) thick, with
 /// their trailing edges flush with the base. The handbook's fins are single wedges, sharp at the
 /// leading edge, a section hpr doesn't have: they take the square section, and `cargo xtask aero`
 /// leaves the fins' pressure drag out of the comparison. The surface is smooth, as the handbook's

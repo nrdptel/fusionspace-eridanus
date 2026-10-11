@@ -176,7 +176,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let aero = AeroModel::new(&assembly.layout)?;
     let total = aero.normal_force(&flow)?;
     let cp_m = total.cp_station_m.ok_or("no normal force")?;
-    let calibres = |cg_m: f64| (cp_m - cg_m) / assembly.layout.reference_diameter_m;
+    let calibers = |cg_m: f64| (cp_m - cg_m) / assembly.layout.reference_diameter_m;
 
     println!(
         "{} ({} {}): {:.3} m long, {:.1} mm across",
@@ -193,8 +193,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("mass (kg)                          {m0:>7.3} {m1:>9.3}");
     println!("center of gravity (m from nose)    {cg_liftoff_m:>7.3} {cg_burnout_m:>9.3}");
     println!("center of pressure (m from nose)   {cp_m:>7.3} {cp_m:>9.3}");
-    let (s0, s1) = (calibres(cg_liftoff_m), calibres(cg_burnout_m));
-    println!("stability margin (calibres)        {s0:>7.2} {s1:>9.2}");
+    let (s0, s1) = (calibers(cg_liftoff_m), calibers(cg_burnout_m));
+    println!("stability margin (calibers)        {s0:>7.2} {s1:>9.2}");
     println!();
     println!("Normal-force slope (per radian) and center of pressure, at Mach 0.3:");
     for part in aero.components(&flow)? {

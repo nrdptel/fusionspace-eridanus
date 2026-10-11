@@ -123,7 +123,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         liftoff.mass_kg, -liftoff.cg_m.z
     );
     println!(
-        "stability margin {:.2} calibres at Mach 0.3.",
+        "stability margin {:.2} calibers at Mach 0.3.",
         margin.margin_cal.ok_or("no margin")?
     );
 

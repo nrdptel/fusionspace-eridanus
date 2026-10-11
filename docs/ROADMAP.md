@@ -25,15 +25,15 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
 The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163): lines
 `N. M<id> title`, ids open in this file (`cargo test -p xtask` checks).
 
-1. M0.9e The words
-2. M0.10 The scoreboard
-3. M0.11 Steps to a first answer
-4. M0.7a Rocketry explained: the format and four guides
-5. M0.8a Product guides: the simulator
-6. M9.8 fusionspace.co, rebuilt
-7. M7.1 Flight log importers
-8. M7.2 Readings, reconstruction and ghost data
-9. M7.3 A flight against its simulation
+1. M0.10 The scoreboard
+2. M0.11 Steps to a first answer
+3. M0.7a Rocketry explained: the format and four guides
+4. M0.8a Product guides: the simulator
+5. M9.8 fusionspace.co, rebuilt
+6. M7.1 Flight log importers
+7. M7.2 Readings, reconstruction and ghost data
+8. M7.3 A flight against its simulation
+9. M0.9f The rest of the words
 10. M10.2 Release 0.2: the flight analyzer
 11. M2.3c2 Logged traces
 12. M2.3c3 OpenRocket's newest release
@@ -111,7 +111,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     ranges, "ground test first" ahead of them.
   - [ ] **M0.7c Live figures,** after release 0.5, on the app's plotting code. *Done when:* inputs
     in the text redraw each figure through `hpr-wasm`, offline, with the CLI's numbers (a test
-    each); outside a model's range it greys out with the reason; scripts off keeps the static
+    each); outside a model's range it grays out with the reason; scripts off keeps the static
     figure; M0.7a's two clipping checks run on the drawn figures at each input's least, default
     and largest value; Neer has used each.
   - [ ] **M0.7d The rest of the hobby,** after 1.0: certification, safety codes and waivers,
@@ -135,10 +135,12 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     test and failing when stale (a test each); its *Compared with* section meets ADR-209 §8.
 - [ ] **M0.9 One name, one design** (ADR-205; Neer, 2026-10-08). Every surface says FusionSpace
   HPR as ADR-199 §1 has it, and follows the pinned design system rule by rule, each checked.
-  - [ ] **M0.9e The words to the design** (ADR-208). *Done when:* #386 and #387 are closed:
-    `xtask spelling` fails on the British forms the audit found, a site check fails on a
-    hyphen-minus for minus and on a number column not right-aligned, and the READMEs follow
-    `writing.md`'s order with the version; the audit's rows name the checks.
+  - [ ] **M0.9f The rest of the words** (ADR-239). *Done when:* #476 is closed: a site check fails
+    on an ungrouped figure of four or more digits in prose (the identifiers it passes listed), an
+    ISO date in running prose, an en dash between names, and a number split from its unit by a
+    breaking space; number columns' heads give a label and a unit; a test fails on an `hpr sim`
+    warning sentence over 40 words; each over-precise figure #476 names is cut to what is known;
+    the audit's rows name the checks.
 - [ ] **M0.10 The scoreboard** (ADR-209 §3). *Done when:* `cargo xtask scoreboard` writes
   `validation/reports/scoreboard.md`, HPR Sim against OpenRocket and RocketPy on each axis ADR-209 §3
   names, each number read from a committed report and each unmeasured cell "not measured" with the
@@ -171,7 +173,7 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   RMS; mean absolute apogee error is reported against the 5% target; each outlier has an
   explanation.
   - [ ] **M2.3c Corpus flights with logs.** The private designs that have a flight log,
-    in their day's weather; *done when* each is in a report as anonymised statistics beside
+    in their day's weather; *done when* each is in a report as anonymized statistics beside
     M2.3b's. `hpr-sim-fixtures` has 89 in its tier A, with their days' weather (ADR-151). Split
     (ADR-163):
     - [ ] **M2.3c2 Logged traces.** *Done when:* each M2.3c1 flight whose log M7.1 reads has its
@@ -583,7 +585,7 @@ guardrails bind each line, and each ships its product guide with its first miles
 
 Motor designer (VISION V36, V37):
 
-- [ ] **M11.1 A motor of your own.** *Done when:* a user's `.eng` or `.rse` flies labelled
+- [ ] **M11.1 A motor of your own.** *Done when:* a user's `.eng` or `.rse` flies labeled
   uncertified, and a motor's mass can sit in parts at their own positions (tested on a
   draining tank's center of gravity against its closed form).
 - [ ] **M11.2 Experimental solids.** Grain regression (BATES first), r = a Pⁿ, Kn, nozzle

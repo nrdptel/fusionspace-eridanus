@@ -238,7 +238,7 @@ OpenRocket 24.12's reading, value by value. The two agree everywhere except in t
 is counted, and each count is checked:
 
 | what | parts | HPR Sim | OpenRocket |
-|---|---|---|---|
+|---|--:|---|---|
 | a mass stated in ounces | 185 | the exact ounce, 0.028349523125 kg | 0.0283495231 kg, so 8.8 parts in 10 billion lighter |
 | two makers' names | 252 | as the file writes them | "LOC/Precision" and "Public Missiles, Ltd." for "LOC Precision" and "Public Missiles" |
 | a solid part that states its mass | 207 | the material keeps the file's density; the part keeps its stated mass | replaces the density with the one that gives the part that mass |
@@ -284,9 +284,9 @@ and reading goes on:
 - **A value that is read as written but looks wrong**:
   - a tube whose inside diameter is not less than its outside diameter;
   - a solid lighter than air (under 1 kg/m³);
-  - a fabric lighter than 1 g/m². The lightest correctly labelled fabric in the built-in files, a
+  - a fabric lighter than 1 g/m². The lightest correctly labeled fabric in the built-in files, a
     polyethylene film, is 7.05 g/m², and their ripstop nylons are tens of g/m², so this is almost
-    certainly a kg/m² value labelled `g/m2`, 1,000 times too light.
+    certainly a kg/m² value labeled `g/m2`, 1,000 times too light.
 
 A file with more than 1,000 warnings lists the first 1,000 and then says how many more there were.
 
@@ -296,7 +296,7 @@ because OpenRocket reads it as whole inches: `3` in `in/64` would come out as 3 
 On the built-in files there are 55 warnings, all of kinds listed above:
 
 | warning | count |
-|---|---|
+|---|--:|
 | a nose cone's inside diameter, ignored | 37 |
 | a description stated twice | 3 |
 | a material not defined (`Carpet Thread` twice in `mpc.orc`, and a balsa in `semroc.orc`) | 3 |
@@ -325,7 +325,7 @@ what it does with a material or a list stated twice. The probe test in the same 
 probe:
 
 | probes | result |
-|---|---|
+|--:|---|
 | 23 | read as OpenRocket reads them, to the bit |
 | 6 | in a unit whose factor OpenRocket rounds: within 2 parts in 10⁹, by HPR Sim's exact factor |
 | 4 | OpenRocket refuses the file; HPR Sim leaves the part out (for `oz/in`, ounces per inch, a cord density neither reads, HPR Sim leaves the material out and reads the part without the cord's density) |

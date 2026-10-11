@@ -685,7 +685,7 @@ fn split(bytes: &[u8]) -> Vec<Vec<u8>> {
 /// geometric thickness. The test holds each mean to those figures as rounded.
 #[test]
 fn recorded_heights_are_geopotential() {
-    use hpr_atmos::moist::{WATER_VAPOUR_MOLECULAR_WEIGHT_KG_PER_KMOL, vapour_pressure_pa};
+    use hpr_atmos::moist::{WATER_VAPOR_MOLECULAR_WEIGHT_KG_PER_KMOL, vapor_pressure_pa};
     use hpr_atmos::profile::wmo_geopotential_from_geometric_m;
     use hpr_atmos::ussa76::{
         DRY_AIR_GAS_CONSTANT_J_PER_KG_K, SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL,
@@ -693,7 +693,7 @@ fn recorded_heights_are_geopotential() {
     /// Standard gravity, which defines the geopotential meter, m/s².
     const G0: f64 = 9.806_65;
     let epsilon =
-        WATER_VAPOUR_MOLECULAR_WEIGHT_KG_PER_KMOL / SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL;
+        WATER_VAPOR_MOLECULAR_WEIGHT_KG_PER_KMOL / SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL;
     let latitude_rad = LATITUDE_DEG.to_radians();
     for (name, _) in recordings() {
         let profile = NomadsProfile::parse(&fixture(name), LATITUDE_DEG, LONGITUDE_DEG).unwrap();
@@ -703,7 +703,7 @@ fn recorded_heights_are_geopotential() {
             .filter(|l| l.pressure_pa <= 50_000.0)
             .collect();
         let virtual_k = |l: &nomads::NomadsLevel| {
-            let e = vapour_pressure_pa(l.temperature_k, l.relative_humidity.min(1.0)).unwrap();
+            let e = vapor_pressure_pa(l.temperature_k, l.relative_humidity.min(1.0)).unwrap();
             l.temperature_k / (1.0 - e / l.pressure_pa * (1.0 - epsilon))
         };
         let (mut as_geopotential, mut as_geometric) = (0.0, 0.0);

@@ -208,7 +208,7 @@ q̇   = ½ q ⊗ (0, ω)
   it is not: the station is joined between the two models while the force joins their slopes and
   moments, and the two agree only at the ends of the join. On a body that sits between the models
   at every speed (a lip riding half in its boattail's wake), a tube's station can sit two
-  calibres from its own center of pressure
+  calibers from its own center of pressure
   ([issue #106](https://github.com/nrdptel/fusionspace-eridanus/issues/106)), which moves the lever arm the
   damping below uses by that much; the margins don't use the station, but the apogee and the
   drift may lean either way, so a flight inside the join warns of it
@@ -286,7 +286,7 @@ The phases a flight passes through, the events that end them, and the integrator
 - **Free.** Six degrees of freedom until the ground.
 - **Rail geometry.**
   - A button's axial extent is its outer diameter, and a lug's is its length.
-  - The rocket leaves after travelling `L − (s_aft − s_guide)`. RocketPy ends its rail phase when
+  - The rocket leaves after traveling `L − (s_aft − s_guide)`. RocketPy ends its rail phase when
     the forward button reaches the top (`flight.py:1716-1730`, `effective_1rl`). HPR Sim keeps the
     rocket guided to the last guide ([Loft lesson L26](../decisions-and-roadmap.md#l26)).
   - The pivot about the last guide ("tip-off") is not modeled, and the rocket leaves the rail
@@ -337,7 +337,7 @@ The phases a flight passes through, the events that end them, and the integrator
   compared with the apogee at 1e-11 (873.98272 m (2,867.3974 ft)):
 
   | `rtol = atol` | apogee error | flight time (release) |
-  |---|---|---|
+  |--:|--:|--:|
   | 1e-4 | 2.3e-2 m | 0.36 ms |
   | 1e-6 | 6.8e-5 m | 0.59 ms |
   | 1e-8 | 1.1e-6 m | 1.13 ms |
@@ -455,7 +455,7 @@ What the two codes still do differently, and how much it moves:
 
 The metrics are measured as RocketPy defines them: speeds and accelerations at the center of dry
 mass; heights from that point's height at launch, since RocketPy's starts at the ground; and the
-rail exit when the rocket has travelled RocketPy's `effective_1rl`, the forward button at the top
+rail exit when the rocket has traveled RocketPy's `effective_1rl`, the forward button at the top
 of the rail, where HPR Sim's own rail-exit event waits for the last one. Each case file argues its
 tolerances; [Accuracy][accuracy] gives every result.
 

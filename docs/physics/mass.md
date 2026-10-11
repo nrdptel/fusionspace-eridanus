@@ -271,7 +271,7 @@ design outside either needs a written reason, not a pass.
 [M4.5m](../decisions-and-roadmap.md#m4-5m) read parallel stages.
 
 | | within 0.1% | within 1% | median |
-|---|---|---|---|
+|---|---|---|--:|
 | mass | 64 of 71 | 70 of 71 | 0.001% |
 | center of mass (share of length) | 67 of 71 | 70 of 71 | 0.000% |
 | pitch inertia | 41 of 71 | 58 of 71 | 0.065% |
@@ -295,7 +295,7 @@ Before [M2.2b1](../decisions-and-roadmap.md#m2-2b1) (reading what a `.ork` leave
 content as below, and fails if a file outside has none:
 
 | cause | what HPR Sim does | what OpenRocket does | files by content |
-|---|---|---|---|
+|---|---|---|--:|
 | airfoil fin sections | integrates the airfoil's section, 0.6851 of a square slab ([below](#fins-rail-buttons-and-roll-inertia)) | weighs the outline times the thickness times 0.85 | 1 |
 
 The fin-section cause is sized, not only present. HPR Sim gives no warning for it, since the section
@@ -356,7 +356,7 @@ OpenRocket draws it, a 30-sided polygon (a test). For each of the 12 files still
 content), `cargo xtask ork` names a cause, and it fails if it can't. Each has exactly one:
 
 | cause | files by content |
-|---|---|
+|---|--:|
 | a mass override covering the parts inside (a departure, [below](#what-a-ork-leaves-unsaid-and-overrides)) | 5 |
 | tube fins, whose roll inertia is a departure ([below](#tube-fins)) | 1 |
 | a cluster's tubes, which OpenRocket weighs stacked on the cluster's axis ([below](#clusters-and-fillets)) | 2 |
@@ -555,7 +555,7 @@ tube, 40 to 50 mm (1.6 to 2.0 in) from the axis on the probe, but the rod puts i
 OpenRocket's figure is the larger there.
 
 | the probe's fin set | HPR Sim's roll inertia (kg·m²) | OpenRocket's | HPR Sim against OpenRocket |
-|---|---|---|---|
+|---|--:|--:|---|
 | rectangular, 100 mm (3.9 in) by 50 mm (2.0 in) | 2.6253e-4 | 2.6250e-4 | +0.013% (the thickness) |
 | the trapezoid above | 1.8284e-4 | 1.7854e-4 | +2.41% |
 | triangular, 100 mm (3.9 in) root, 50 mm (2.0 in) span | 1.0314e-4 | 1.0540e-4 | −2.14% |
@@ -762,7 +762,7 @@ out (at ten thousand times it still keeps 10).
 `c = √(30² + 2 × 30 × 5)` = 34.64 mm and `θ = atan(5/34.64)` = 0.1433 rad (8.21°).
 
 | piece | formula | area |
-|---|---|---|
+|---|---|--:|
 | the triangle | `c r/2` | 86.60 mm² |
 | less the tube's sector | `R² θ/2` | 64.51 mm² |
 | less the fillet circle's sector | `r² (π/2 − θ)/2` | 17.84 mm² |

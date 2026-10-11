@@ -178,7 +178,7 @@ along its long and its short direction.
    `k = √(−2 ln(1 − p))`:
 
    | Level `p` | 50% | 90% | 95% | 99% |
-   |---|---|---|---|---|
+   |---|--:|--:|--:|--:|
    | Scale `k` | 1.177 | 2.146 | 2.448 | 3.035 |
 
    The 95% ellipse's semi-axes are 2.448 × 214.6 m = 525 m and 2.448 × 203.0 m = 497 m.
@@ -326,11 +326,11 @@ on a J, K or L [impulse class](glossary.md#impulse-class) motor) from ignition t
 under a drogue and a main, take:
 
 | rocket | peak Mach | 10,000 flights, 10 threads | one flight, one thread |
-|---|---|---|---|
+|---|---|--:|--:|
 | Valetudo, one of RocketPy's examples: 9.7 kg on a K400C | 0.3 to 0.4 | 3.0 s | 1.9 ms |
 | a 66 mm (2.6 in) rocket with a 54 mm motor mount on a K940 | 1.6 to 2.0 | 9.4 s | 5.7 ms |
 
-No flight failed. These are release builds, with optimisation on: add `--release` to
+No flight failed. These are release builds, with optimization on: add `--release` to
 `cargo run`, or build your program with it. A debug build, what plain `cargo run` gives, is
 many times slower. To time it on your own machine, from a copy of the repository:
 
@@ -375,7 +375,7 @@ The spread a run gives is the spread you put in. Some places to start:
   E12 (1.28%) and an AeroTech G80 (2.3%), hosted on
   [ThrustCurve.org](https://www.thrustcurve.org/motors/cert/60c63bfcb5bc370004713e8f/G80-20071207.pdf).
   So 2% to 3% is a fair guess, and 6.7% the most the code allows.
-- **Ejection delay.** The same code allows a measured delay to differ from the labelled one by
+- **Ejection delay.** The same code allows a measured delay to differ from the labeled one by
   "1.5 seconds or 20 percent (whichever is greater, but not to exceed 3 seconds)". The E12 and G80
   reports' firings of one delay scatter by 0.2 to 0.9 s, and a delay's average can sit more than a
   second from its label: the G80's 7 s delay averaged 5.88 s. A dispersion is about the nominal

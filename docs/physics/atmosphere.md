@@ -54,7 +54,7 @@ Seven layers in geopotential altitude `H`, each with a constant gradient of the 
 temperature `T_M` ([USSA] Table 4):
 
 | base `H_b` (km′) | 0 | 11 | 20 | 32 | 47 | 51 | 71 | 84.852 (top) |
-|---|---|---|---|---|---|---|---|---|
+|---|--:|--:|--:|--:|--:|--:|--:|---|
 | `L_M,b` (K/km′) | −6.5 | 0 | +1.0 | +2.8 | 0 | −2.8 | −2.0 | |
 
 ```text
@@ -105,7 +105,7 @@ height, like a sounding; see the atmosphere decision, [ADR-004][adr-004].
 standard (`conventions.py`):
 
 | height | 3 km (1.9 mi) | 20 km (12 mi) | 30 km (19 mi) |
-|---|---|---|---|
+|---|--:|--:|--:|
 | density | −5.7% | +14% | +30% |
 
 Field conditions suit flights of a few kilometers; higher flights need a sounding.
@@ -149,7 +149,7 @@ Humid air, and profiles built from a sounding or a forecast.
 
 ### Moist air
 
-An ideal mixture of dry air (`M₀`, `γ = 1.4`) and water vapour (`M_v = 18.01528 kg/kmol`,
+An ideal mixture of dry air (`M₀`, `γ = 1.4`) and water vapor (`M_v = 18.01528 kg/kmol`,
 [CIPM] §2.1):
 
 ```text
@@ -166,9 +166,9 @@ C_p    = (1 − x_v)(7/2) R* + x_v · 4 R*,   γ = C_p / (C_p − R*),   a = (γ
 - **Accuracy:**
   - Density agrees with CIPM-2007 (a real-gas equation) to 0.047% over its range: 15–27 °C,
     600–1100 hPa, dry to saturated. Ignoring humidity entirely is 0.4% off at 20 °C and 50% RH.
-  - Taking water vapour's `C_p` as `4R*` instead of its real value near 300 K (about 1% higher)
+  - Taking water vapor's `C_p` as `4R*` instead of its real value near 300 K (about 1% higher)
     moves `a` by 0.009% at 30 °C and saturation.
-  - Viscosity stays dry air's Sutherland value. By Wilke's rule with IAPWS R12-08 vapour
+  - Viscosity stays dry air's Sutherland value. By Wilke's rule with IAPWS R12-08 vapor
     viscosity, saturation at 30 °C lowers it 2.1%, which moves turbulent skin friction about
     0.4%.
   - All these numbers come from `validation/oracles/atmosphere/moist_air.py`.
@@ -198,13 +198,13 @@ catches hPa entered as Pa.
   temperature linear in `Z` ([WMO] eqs. 12.17–12.18).
   - A dry fill agrees with direct integration under WGS 84 normal gravity to 2e-8. The limit is
     WMO's rounded surface gravity constants, 3–5e-8 low.
-  - A humid fill agrees to 1.1e-5, because vapour pressure is exponential in `T` and so not
+  - A humid fill agrees to 1.1e-5, because vapor pressure is exponential in `T` and so not
     quite linear across the layer.
 - **Beyond the levels** the profile continues as the standard atmosphere anchored at the end
   level and evaluated at the same geopotential (so still with the local gravity), and flags the
   sample:
   - Below, it holds relative humidity.
-  - Above, it holds the vapour mole fraction, capped at saturation, so a humid top doesn't
+  - Above, it holds the vapor mole fraction, capped at saturation, so a humid top doesn't
     carry water into the cold stratosphere.
   - The continued pressure is the dry standard's. It is hydrostatic for dry air, but in humid
     air it falls up to `x_v(1 − M_v/M₀)` faster (1.6% of the gradient at 30 °C and

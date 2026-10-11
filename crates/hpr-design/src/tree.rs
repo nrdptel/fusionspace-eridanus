@@ -24,7 +24,7 @@
 //! component or an inner tube. Only inner tubes have children of their own. Radial offsets are
 //! always measured from the body axis.
 //!
-//! **Automatic radii** ([`AutoDimension`]) are taken from neighbours and parents when the tree
+//! **Automatic radii** ([`AutoDimension`]) are taken from neighbors and parents when the tree
 //! resolves; a stored value for an automatic dimension is ignored.
 //!
 //! **Mass.** A component's own mass properties come from its part's geometry, placed. Overrides
@@ -167,7 +167,7 @@ pub struct Component {
     /// none: they stack.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
-    /// Dimensions taken from neighbours or the parent instead of the part's stored values.
+    /// Dimensions taken from neighbors or the parent instead of the part's stored values.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub auto: Vec<AutoDimension>,
     /// Makes a body tube or an inner tube a motor mount.
@@ -1184,7 +1184,7 @@ impl Rocket {
     ///
     /// These are the radii on a chain of automatic radii with no fixed radius anywhere along it:
     /// a nose cone whose base looks back at a tube that looks forward at it, or a stage of tubes
-    /// that all say "automatic". Neighbours are followed by the rule each [`AutoDimension`]
+    /// that all say "automatic". Neighbors are followed by the rule each [`AutoDimension`]
     /// documents. `layout` refuses a design for which this list is not empty; what such a radius
     /// should be is not in the design, so an importer that knows its source program's convention
     /// fills them in first ([`fill_unresolvable_body_radii`](Self::fill_unresolvable_body_radii)).
@@ -1244,7 +1244,7 @@ impl Rocket {
     /// fixed radius `radius_m`, drops its automatic mark, and returns what it filled.
     ///
     /// Every radius on such a chain is listed, so the whole chain takes the one radius. Radii the
-    /// neighbour rule could already reach are left as they are and resolve as before. The design
+    /// neighbor rule could already reach are left as they are and resolve as before. The design
     /// no longer records that the filled radii were automatic, which is the point: it now says
     /// what they are.
     pub fn fill_unresolvable_body_radii(&mut self, radius_m: f64) -> Vec<UnresolvableRadius> {
@@ -1442,7 +1442,7 @@ fn check_node(
     Ok(())
 }
 
-/// Fills in the body components' automatic outer radii from their neighbours, through every stage,
+/// Fills in the body components' automatic outer radii from their neighbors, through every stage,
 /// by [`sweep_body_radii`]'s rule; a radius the sweep leaves unknown is an error.
 fn resolve_body_radii(
     parts: &mut [Part],
@@ -1454,7 +1454,7 @@ fn resolve_body_radii(
         let missing = || {
             tree(
                 ids[i],
-                "an automatic radius has no fixed radius among its neighbours to take",
+                "an automatic radius has no fixed radius among its neighbors to take",
             )
         };
         match part {
@@ -2217,7 +2217,7 @@ mod tests {
     /// stage boundary, a tube takes the transition ahead of it, and a tube with nothing resolvable
     /// ahead takes the next fixed radius.
     #[test]
-    fn automatic_radii_follow_neighbours_across_stages() {
+    fn automatic_radii_follow_neighbors_across_stages() {
         let auto = |mut c: Component, dims: &[AutoDimension]| {
             c.auto = dims.to_vec();
             c
@@ -2352,7 +2352,7 @@ mod tests {
     /// The chain in Loft's quirks fixture: a nose's base, a tube and a transition's forward end all
     /// automatic, with only the transition's aft end fixed. Each automatic radius there looks at
     /// another automatic one, so all three are listed, forward to aft, and filling them is all
-    /// `layout` needs. The fixed tube behind is never listed, and a radius the neighbour rule can
+    /// `layout` needs. The fixed tube behind is never listed, and a radius the neighbor rule can
     /// reach is never filled.
     #[test]
     fn unresolvable_body_radii_are_the_chain_with_nothing_fixed() {
@@ -3897,7 +3897,7 @@ mod tests {
 
     proptest! {
         /// Over random spines, `unresolvable_body_radii` is empty exactly when `layout` succeeds;
-        /// filling what it lists is all `layout` then needs; and every radius the neighbour rule
+        /// filling what it lists is all `layout` then needs; and every radius the neighbor rule
         /// could already reach comes out as it did before the fill.
         #[test]
         fn unresolvable_radii_are_exactly_what_layout_refuses(

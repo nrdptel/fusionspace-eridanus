@@ -192,10 +192,10 @@ records a burnout event and steps exactly to it, because the equations change th
 [Solid motors](physics/motor.md#thrust-curve).
 
 
-### Calibre (caliber)
+### Caliber
 
 A length measured in body diameters. A [stability margin](#stability-margin) is usually quoted in
-calibres, and a nose cone three calibres long is three times as long as its base diameter. See
+calibers, and a nose cone three calibers long is three times as long as its base diameter. See
 [Shapes](physics/shapes.md#solids-of-revolution).
 
 
@@ -310,7 +310,7 @@ on a datum within a few meters of [WGS 84](#wgs-84). See
 ### Decision record (ADR)
 
 A short record of a significant choice, the alternatives considered and why one was picked,
-labelled like [ADR-011][adr-011] (the rigid-body flight decision). All of them are in the
+labeled like [ADR-011][adr-011] (the rigid-body flight decision). All of them are in the
 [decision log][decisions]. See [Decisions and the roadmap](decisions-and-roadmap.md).
 
 
@@ -767,7 +767,7 @@ from Mach 0.5 to 3.2. That is a calculation by the handbook's methods, not a mea
 
 ### Milestone
 
-A step of the [roadmap][roadmap], the ordered plan of work, labelled like [M1.8](decisions-and-roadmap.md#m1-8)
+A step of the [roadmap][roadmap], the ordered plan of work, labeled like [M1.8](decisions-and-roadmap.md#m1-8)
 (transonic and supersonic aerodynamics). The pages link a milestone where they say what it will
 add. See [Decisions and the roadmap](decisions-and-roadmap.md).
 
@@ -991,7 +991,7 @@ on the way up, and its drift, tracked by GPS, gives the wind. About 800 stations
 ### RASAero II
 
 A rocket aerodynamics and flight program. Several of RocketPy's [example rockets](#example-rockets)
-carry drag curves labelled as RASAero's, though only Calisto's traces to an export. HPR Sim's drag
+carry drag curves labeled as RASAero's, though only Calisto's traces to an export. HPR Sim's drag
 is compared with those curves from Mach 0.1 to 2.0, with the fin shapes and surface finish guessed,
 because the curves don't record them. See
 [Aerodynamics](physics/aero.md#drag-against-rasaero-ii-through-mach-2). HPR Sim can also fly the
@@ -1063,7 +1063,7 @@ The height above the ground at which the logarithmic wind law's wind falls to ze
 
 A filter that replaces each sample of a series with the median of the samples around it: the
 middle value once they are sorted. A short spike, fewer samples wide than half the window, is
-outvoted by its neighbours and disappears, while a steady climb or fall passes through unchanged.
+outvoted by its neighbors and disappears, while a steady climb or fall passes through unchanged.
 HPR Sim reads a flight log's altitude after a 0.3 s running median, which removes the pressure pulse
 of an ejection charge ([Flight-log readings](physics/log-readings.md#the-running-median)).
 
@@ -1103,7 +1103,7 @@ leaving at any other joint is an [ejection](#ejection). See
 ### Shear modulus
 
 How hard a material resists being twisted or sheared, `G`, in pascals (Pa): the shear stress over
-the shear strain it causes. Aluminium's is about 26 GPa, birch plywood's 0.75 GPa. A fin twists in
+the shear strain it causes. Aluminum's is about 26 GPa, birch plywood's 0.75 GPa. A fin twists in
 its own plane, so its flutter speed needs the shear modulus in that plane. See
 [Fin flutter](physics/flutter.md#shear-moduli).
 
@@ -1152,7 +1152,7 @@ carry it as `Isp`; HPR Sim works with the exhaust velocity instead. See
 ### Stability margin
 
 How far the [center of pressure](#center-of-pressure-cp) lies behind the
-[center of gravity](#center-of-gravity-cg), usually in [calibres](#calibre-caliber). A positive
+[center of gravity](#center-of-gravity-cg), usually in [calibers](#caliber). A positive
 margin turns the rocket's nose back into the oncoming air when it is disturbed, which in a
 crosswind is not quite its flight path ([weathercocking](#weathercocking)). It changes through a
 flight as propellant burns and speed changes. HPR Sim gives it from the rail exit to apogee or the
@@ -1383,7 +1383,7 @@ The square of the [standard deviation](#standard-deviation): the mean squared di
 
 The surface heights are measured from. NAVD88, the North American Vertical Datum of 1988, and
 EGM2008, a worldwide model of the geoid, are both within a meter or two of the geoid (NAVD88, set
-by levelling, is about half a meter off and tilted about a meter coast to coast:
+by leveling, is about half a meter off and tilted about a meter coast to coast:
 [NGS](https://geodesy.noaa.gov/datums/newdatums/index.shtml)), so HPR Sim takes heights above them
 as [heights above sea level](#height-above-sea-level-msl); an
 [ellipsoidal height](#ellipsoidal-height) is measured from the ellipsoid instead. See
@@ -1393,8 +1393,8 @@ as [heights above sea level](#height-above-sea-level-msl); an
 ### Virtual temperature
 
 The temperature dry air would need to have the density of a humid parcel at the same pressure:
-`T_v = T / (1 − (e/p)(1 − M_v/M₀))`, with `e` the water vapour's pressure and `M_v/M₀ ≈ 0.622`
-the ratio of the molar masses of water and dry air (WMO-No. 8, eq. 12.18). Water vapour is
+`T_v = T / (1 − (e/p)(1 − M_v/M₀))`, with `e` the water vapor's pressure and `M_v/M₀ ≈ 0.622`
+the ratio of the molar masses of water and dry air (WMO-No. 8, eq. 12.18). Water vapor is
 lighter than air, so `T_v` is a little above `T`: about 1.6% at 30 °C, saturation and sea-level
 pressure. See
 [Atmosphere](physics/atmosphere.md).

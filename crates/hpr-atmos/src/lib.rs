@@ -11,7 +11,7 @@
 //!
 //! - [`ussa76`]: the 1976 standard from −5 to 86 km, with temperature offsets and launch-site
 //!   anchoring.
-//! - [`moist`]: saturation vapour pressure and humid-air density and speed of sound.
+//! - [`moist`]: saturation vapor pressure and humid-air density and speed of sound.
 //! - [`profile`]: atmospheres from soundings and forecasts, and WMO geopotential heights.
 //! - [`wind`]: constant, power-law, logarithmic and layered mean winds.
 //! - [`dryden`]: seeded Dryden turbulence.

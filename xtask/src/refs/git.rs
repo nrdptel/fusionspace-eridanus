@@ -255,7 +255,7 @@ fn verify_content(dir: &Path, source: &GitSource) -> Result<String, String> {
     // The checkout's own index caches file timestamps and sizes, so a same-size edit that keeps
     // the timestamp would pass a plain `git status`. A fresh index read from HEAD has no cached
     // stat data, which makes git compare the content of every tracked file with its blob.
-    // `core.autocrlf=false` compares the bytes on disk, not a line-ending-normalised copy.
+    // `core.autocrlf=false` compares the bytes on disk, not a line-ending-normalized copy.
     let index = tool::stdout(tool::git(dir).args(["rev-parse", "--git-path", "hpr-verify.index"]))?;
     let index = dir.join(index);
     let _ = std::fs::remove_file(&index);

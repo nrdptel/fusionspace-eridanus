@@ -134,7 +134,7 @@ station. Each law blows from one direction at every height.
     blow 0.1 m/s (0.33 ft/s) and nothing that way. Where
     the other levels share one direction the swing likely shortens the drift; where they turn it
     can lengthen it. A flight through such a span, a level at or below 1.5 m/s (4.9 ft/s) turning by any
-    angle against its neighbour, warns of it
+    angle against its neighbor, warns of it
     ([the flight-path warnings](../VALIDATION.md#the-flight-path-warnings)). 1.5 m/s (4.9 ft/s) is the top of
     Beaufort force 1, light air, 0.3 to 1.5 m/s (0.98 to 4.9 ft/s) in
     [MeteoSwiss's Beaufort table](https://www.meteoswiss.admin.ch/dam/jcr:c1064242-4a6e-4df2-8d21-96e68d1def7a/Beaufort_Tabelle_en.pdf)

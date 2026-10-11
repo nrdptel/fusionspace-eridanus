@@ -362,7 +362,7 @@
           "radius_share": 0.013738049330554307
         }
       },
-      "nose": "von Karman, five calibres"
+      "nose": "von Karman, five calibers"
     },
     {
       "cap_ends_at": {
@@ -383,7 +383,7 @@
           "radius_share": 0.11230183869521082
         }
       },
-      "nose": "power series n = 0.5, five calibres"
+      "nose": "power series n = 0.5, five calibers"
     },
     {
       "cap_ends_at": {
@@ -404,7 +404,7 @@
           "radius_share": 0.4896048228124485
         }
       },
-      "nose": "elliptical, two calibres"
+      "nose": "elliptical, two calibers"
     },
     {
       "cap_ends_at": {
