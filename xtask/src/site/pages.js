@@ -1916,7 +1916,8 @@
       const text = hex(s.color);
       if (CHIP_FILLS[state]) {
         const want = CHIP_FILLS[state];
-        if (!fill || fill.alpha !== 1 || fill.rgb !== want[0] || !text || text.rgb !== want[1]) {
+        if (!fill || fill.alpha !== 1 || fill.rgb !== want[0] || !text || text.rgb !== want[1]
+          || text.alpha !== 1) {
           note('sheet', sel, 'colors', s.color + ' on ' + s.backgroundColor + ', not '
             + want[1] + ' on ' + want[0]);
         }
@@ -1926,7 +1927,8 @@
             && s['border' + side + 'Style'] === 'solid'
             && s['border' + side + 'Color'] === s.color;
         });
-        if (!text || text.rgb !== ACTION[theme] || (fill && fill.alpha !== 0) || !outlined) {
+        if (!text || text.rgb !== ACTION[theme] || text.alpha !== 1 || (fill && fill.alpha !== 0)
+          || !outlined) {
           note('sheet', sel, 'colors', s.color + ' on ' + s.backgroundColor + ' in '
             + s.borderTopWidth + ' ' + s.borderTopStyle + ' ' + s.borderTopColor
             + ', not outlined in the action color on no fill');
@@ -1959,7 +1961,7 @@
           + ' ' + s.fontWeight);
       }
       const color = hex(s.color);
-      if (!color || color.rgb !== INK_MUTED[theme]) {
+      if (!color || color.rgb !== INK_MUTED[theme] || color.alpha !== 1) {
         note('sheet', sel, 'color', s.color + ', not the muted ink ' + INK_MUTED[theme]);
       }
       const title = lead.previousElementSibling;

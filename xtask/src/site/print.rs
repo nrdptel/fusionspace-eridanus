@@ -38,6 +38,8 @@ const MAIN: (&str, &str) = ("<main>", "</main>");
 /// The template the chapters wait in, and its end; `theme/hpr.js` finds it by its id.
 const BOOK: &str = "<template id=\"hpr-book\">";
 const BOOK_END: &str = "</template>";
+/// How `sheets.rs` opens each chapter's intro, which the cover's opens as.
+const INTRO: &str = "<div class=\"fs-intro\">";
 /// The cover's box, which `theme/hpr.css` hides on paper.
 const COVER: &str = "<div id=\"hpr-print-cover\">";
 /// mdBook 0.5's script that prints the page once it loads, as its template writes it.
@@ -126,6 +128,12 @@ fn rewrite(html: &str) -> Result<(String, usize), String> {
     let chapters = titles(text);
     if chapters == 0 {
         return Err("no chapter (`h1`) in the page's `main`".to_string());
+    }
+    // The cover closes the intro it opens with, so the first chapter's must be one.
+    if !intro_opening(text).starts_with(INTRO) {
+        return Err(format!(
+            "the first chapter doesn't open with its intro (`{INTRO}`) before its title"
+        ));
     }
     let rest = &html[close..];
     let found = rest.matches(AUTO_PRINT).count();
@@ -260,6 +268,12 @@ mod tests {
             .replace("<h1 id=\"a\">A</h1>", "")
             .replace("<h1 id=\"b\">B</h1>", "");
         assert!(rewrite(&untitled).unwrap_err().contains("no chapter"));
+        let unopened = PRINTED.replacen("<div class=\"fs-intro\">", "<div>", 1);
+        assert!(
+            rewrite(&unopened)
+                .unwrap_err()
+                .contains("doesn't open with its intro")
+        );
         let twice = PRINTED.replace("<nav></nav>", "<main></main>");
         assert!(rewrite(&twice).unwrap_err().contains("2 times"));
         let swapped = PRINTED

@@ -379,7 +379,7 @@ fn page_problems(html: &str, open: &str) -> Vec<String> {
             .strip_prefix(LEAD)
             .and_then(|lead| lead.split_once("</p>"))
         {
-            Some((lead, _)) => problems.extend(lead_problems(&super::visible_text(lead))),
+            Some((lead, _)) => problems.extend(lead_problems(&lead_text(lead))),
             None => problems.push(format!(
                 "a title without its lead (`{LEAD}`) right under it: `{}`",
                 snippet(after.trim_start())
@@ -412,6 +412,29 @@ fn page_problems(html: &str, open: &str) -> Vec<String> {
     }
     problems.extend(headings_out_of_order(text));
     problems
+}
+
+/// The text of a lead's HTML as [`lead_problems`] reads it: each tag a space, so a sentence
+/// that ends before a tag (`Mach.<br>It`) still ends before a space; a footnote's mark (mdBook's
+/// `<sup class="footnote-reference">`) dropped, as it stands between a sentence's period and the
+/// next; and a no-break space a space.
+fn lead_text(html: &str) -> String {
+    const FOOTNOTE: &str = "<sup class=\"footnote-reference\"";
+    let mut text = String::with_capacity(html.len());
+    let mut rest = html;
+    while !rest.is_empty() {
+        if rest.starts_with(FOOTNOTE) {
+            rest = rest.split_once("</sup>").map_or("", |(_, after)| after);
+        } else if let Some(tag) = rest.strip_prefix('<') {
+            text.push(' ');
+            rest = tag.split_once('>').map_or("", |(_, after)| after);
+        } else {
+            let end = rest.find('<').unwrap_or(rest.len());
+            text.push_str(&rest[..end]);
+            rest = &rest[end..];
+        }
+    }
+    text.replace("&nbsp;", " ").replace('\u{a0}', " ")
 }
 
 /// What is wrong with a lead whose text a reader sees is `text`: `web.md` asks for one sentence,
@@ -632,6 +655,19 @@ mod tests {
         fails("No period at its end", "with a period");
         fails("A question at its end?", "with a period");
         fails("", "with a period");
+        // A lead's HTML read as its text: a sentence ending before a tag or a footnote's mark
+        // still ends, and a no-break space parts two words.
+        let read = |html: &str| lead_problems(&lead_text(html));
+        assert!(read("Reads <code>a.eng</code> files, <em>fast</em>.").is_empty());
+        let two = |html: &str| read(html).iter().any(|why| why.contains("more than one"));
+        assert!(two("Drag rises.<br>It peaks."));
+        assert!(two(
+            "Drag rises.<sup class=\"footnote-reference\" id=\"fr-1-1\"><a href=\"#footnote-1\">\
+             1</a></sup> It peaks."
+        ));
+        assert!(two("Drag rises.&nbsp;It peaks."));
+        let long = format!("{}.", vec!["word"; LEAD_WORDS + 1].join("&nbsp;"));
+        assert!(read(&long).iter().any(|why| why.contains("more than 25")));
     }
 
     #[test]

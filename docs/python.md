@@ -25,18 +25,17 @@ familiarity with it. Today you also build the package yourself, which needs the 
 > and covers less than the Rust library ([What is not here yet](#what-is-not-here-yet)). The gap
 > that matters most if you bring a design file: most `.ork` configurations are refused
 > ([A design from a file](#a-design-from-a-file)). The package
-> is built and tested on Linux, macOS and Windows, but not published on PyPI, Python's package
-> index.
+> is built and tested on Linux, macOS and Windows, and published on PyPI, Python's package
+> index, as `fusionspace-hpr`.
 
 ## Install it
 
-Release 0.1.0 is built and checked, but not on PyPI yet. Once it is, `pip install fusionspace-hpr`
-installs it, with NumPy. One wheel serves CPython 3.10 and later on Linux on x86-64, Macs with
+`pip install fusionspace-hpr` installs release 0.1.0 from PyPI, with NumPy. One wheel serves CPython 3.10 and later on Linux on x86-64, Macs with
 Apple silicon, and Windows on x86-64, with glibc 2.17 or later on Linux; elsewhere pip builds
 the source package, which needs Rust
 ([Install a release](getting-started.md#install-a-release)).
 
-Until then, you build it from this repository. You need the Rust toolchain
+You can also build it from this repository. You need the Rust toolchain
 from [Getting started](getting-started.md) and [maturin](https://www.maturin.rs/), the tool that
 builds Python packages from Rust. From the repository's root, make a
 [virtual environment](https://docs.python.org/3/library/venv.html) and build into it:

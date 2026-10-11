@@ -1,7 +1,7 @@
 # The magnetic field and declination
 
 Use the World Magnetic Model's declination to turn a compass reading at your launch site into the
-true heading HPR Sim expects.
+true heading you give HPR Sim.
 
 ## In short
 

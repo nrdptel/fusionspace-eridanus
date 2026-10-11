@@ -1,7 +1,7 @@
 # Aerodynamics
 
-See how HPR Sim computes your rocket's drag, normal force, center of pressure and roll from canted
-fins, at subsonic and supersonic speeds.
+See how HPR Sim computes drag, normal force, center of pressure and roll from canted fins, subsonic
+and, less certainly, supersonic.
 
 ## In short
 

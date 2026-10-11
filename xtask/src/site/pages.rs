@@ -887,7 +887,7 @@ macro_rules! switch_frame {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 152] = [
+const CANARIES: [Canary; 155] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1876,6 +1876,51 @@ const CANARIES: [Canary; 152] = [
                 "<style>.fs-status { order: -1; }</style>",
                 "SHEET 1 / 2",
                 "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-chip-below.html",
+        what: "a status chip below its title",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-intro { display: flex; flex-direction: column; } .fs-intro-row { order: 1; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-chip-unoutlined.html",
+        what: "an IN PREPARATION chip without its outline",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "<style>.fs-status { border-color: transparent !important; }</style>",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2"
+            ),
+            ""
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-chip-state.html",
+        what: "a status chip of a state the site doesn't draw",
+        expect: &[Kind::Sheet],
+        inside: concat!(
+            sheets!(
+                "",
+                "SHEET 1 / 2",
+                "SHEET 2 / 2",
+                "caution",
+                "<path d=\"M3 3 L21 3 L21 21 L3 21 Z\"/>",
+                "In preparation"
             ),
             ""
         ),
@@ -3918,8 +3963,8 @@ mod tests {
         // Each kind has canaries that must show it alone, and one drawn as the system's that
         // must pass.
         for (kind, least, passing) in [
-            (Kind::Sheet, 22, "canary-sheets.html"),
-            (Kind::Sheet, 22, "canary-chip-released.html"),
+            (Kind::Sheet, 25, "canary-sheets.html"),
+            (Kind::Sheet, 25, "canary-chip-released.html"),
             (Kind::Switch, 11, "canary-switch.html"),
         ] {
             let failing = CANARIES

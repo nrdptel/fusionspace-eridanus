@@ -135,8 +135,9 @@ flies offline. Three guides go further:
 ## Python
 
 `crates/hpr-py` builds `hpr`, a Python package over the library's builder: build a rocket part by
-part or read a design file, fly it, and get its recording as NumPy arrays. It isn't on PyPI yet;
-[Python](https://hpr.fusionspace.co/python.html) says how to build and use it.
+part or read a design file, fly it, and get its recording as NumPy arrays. `pip install
+fusionspace-hpr` installs it from PyPI; [Python](https://hpr.fusionspace.co/python.html) says how
+to build and use it.
 
 ## The command line
 

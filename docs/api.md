@@ -69,8 +69,8 @@ The command-line tool, the package `fusionspace-hpr-cli`, is a program rather th
 
 ## Using it from your own program
 
-Release 0.1.0 is built and checked, but not on crates.io, Rust's public package registry, yet.
-Once it is, `cargo add fusionspace-hpr` adds the front door, which your code calls `hpr` and which
+Release 0.1.0 is on crates.io, Rust's public package registry: `cargo add fusionspace-hpr` adds
+the front door, which your code calls `hpr` and which
 re-exports the crates under it; its
 features `net`, `parquet` and `parallel` add the online data sources, Parquet export and Monte
 Carlo on worker threads ([Install a release](getting-started.md#install-a-release)). Until 1.0, a

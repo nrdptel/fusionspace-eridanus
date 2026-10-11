@@ -42,9 +42,8 @@ For now it covers only commercial off-the-shelf solid rocket motors
 ([COTS motors](glossary.md#cots-motor)), the kind you buy from a manufacturer. That stays true
 until the first app.
 
-Nothing has been released yet. Release 0.1.0's files are built and checked but not published;
-until they are, you build it from source, and once they are, they install as
-[Install a release](getting-started.md#install-a-release) says. What a release holds, and how each
+Release 0.1.0 came out on 2026-10-08; its files install as
+[Install a release](getting-started.md#install-a-release) says, or you build it from source. What a release holds, and how each
 of its files is checked, is in [How a release is built](releasing.md);
 [the changelog](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CHANGELOG.md) says what 0.1.0 does,
 how far to trust it, and its known gaps, the open issues that make a number look safer than it is
@@ -441,7 +440,7 @@ simulator's internal name, then software tool 1.
 | Designation | `FS-ACHERNAR · SW · TOOL 001` |
 | Version | 0.1.0, released 2026-10-08 ([what it holds](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CHANGELOG.md)); the site is built from the repository's `main` branch, which may be ahead of it |
 | Date of issue | <span id="issue-date">the date of the commit the site is built from</span> |
-| Status | IN PREPARATION: the release after 0.1.0, as the `main` branch holds it, so a page may describe what 0.1.0 lacks; how far to trust each result is in [Accuracy so far](#accuracy-so-far) |
+| Status | IN PREPARATION: these pages describe the next release as the `main` branch holds it, so a page may describe what 0.1.0 lacks; how far to trust each result is in [Accuracy so far](#accuracy-so-far) |
 | Units | SI (meters, kilograms, seconds) first. Every command's text adds US units in parentheses: feet after heights and distances, feet per second after speeds, miles per hour after the wind, °F after the air's temperature, g after an acceleration and inches after stations along the rocket and a motor's size; `hpr motors show` adds ounces or pounds. The plot gives a second scale in feet, feet per second and g. This site's pages, unlike the program's output, keep a motor's nominal size in millimeters alone, as motors are named (`a 54 mm motor`); every other height, distance, size and speed on them gives its US units in brackets, checked as conversions ([house style](writing.md)). JSON and exported files stay SI ([units](cli.md#units)) |
 | Data | Thrust curves: ThrustCurve.org's public-domain files, catalog captured 2026-09-17. Atmosphere: U.S. Standard Atmosphere 1976, or a sounding or forecast you supply or fetch ([weather](weather.md)). Magnetic field: WMM2025. Accuracy: the committed [validation report][report]. Every source and its terms: [third-party notices][notices]. |
 | Fonts | Archivo and Cascadia Mono, SIL Open Font License 1.1, served from this site; no page asks another server for anything |
