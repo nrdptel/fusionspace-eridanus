@@ -2398,7 +2398,8 @@ fn the_validated_range_is_the_fastest_public_reference() {
     // finished), and RocketPy's on the cases. The real flights' report holds hpr's top Mach
     // number only, the logs giving none, and the other public reports none at all; a report that
     // gains one fails here until this reads it, and so does a new report. The private library's
-    // report never counts, and the census only restates the cases' differences. The private
+    // report never counts, and the census only restates the cases' differences, as the scoreboard
+    // (M0.10) restates other reports' aggregates. The private
     // collection's logged flights (M2.3c1) never count either, and publish no Mach number.
     let reports = root().join("validation/reports");
     let read = |name: &str| -> serde_json::Value {
@@ -2413,6 +2414,7 @@ fn the_validated_range_is_the_fastest_public_reference() {
         "openrocket-library-flights.json",
         "census.json",
         "fixture-flights.json",
+        "scoreboard.json",
     ];
     // Only committed files: `latest-fast.json` is a local partial run, never committed.
     let listed = std::process::Command::new("git")

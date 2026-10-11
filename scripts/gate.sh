@@ -134,7 +134,7 @@ cmd_for() {
       fi ;;
     doc) echo "env RUSTDOCFLAGS=-D\\ warnings cargo doc --workspace --no-deps --all-features --locked" ;;
     wasm) echo "$XTASK wasm-check --locked" ;;
-    validate) echo "$XTASK validate --check" ;;
+    validate) echo "$XTASK validate --check && $XTASK scoreboard --check --against origin/main" ;;
     deny) echo "cargo deny check" ;;
     site) echo "$XTASK site --locked" ;;
     examples) echo "$XTASK examples --check --locked" ;;

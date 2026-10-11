@@ -204,6 +204,12 @@ jobs:
           # GitHub's 10 GB cache limit instead of evicting main's entries.
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - run: cargo run --locked --quiet --package xtask -- validate --check
+      # The scoreboard held to main's (M0.10, ADR-240): none of HPR Sim's numbers worse than the
+      # one main committed, unless an accepted ADR names it. The checkout holds no main of its own.
+      - if: matrix.os == 'ubuntu-latest'
+        run: git fetch --no-tags --depth=1 origin +refs/heads/main:refs/remotes/origin/main
+      - if: matrix.os == 'ubuntu-latest'
+        run: cargo run --locked --quiet --package xtask -- scoreboard --check --against origin/main
       # The iPhone build (ADR-227) runs here, not in a job of its own, so a run's macOS jobs fit
       # the five GitHub runs at once.
       - if: matrix.os == 'macos-latest'

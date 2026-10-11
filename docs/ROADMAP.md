@@ -25,34 +25,34 @@ Open work only; done work is [archived](roadmap-done.md) unchanged by `cargo xta
 The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163): lines
 `N. M<id> title`, ids open in this file (`cargo test -p xtask` checks).
 
-1. M0.10 The scoreboard
-2. M0.11 Steps to a first answer
-3. M0.7a Rocketry explained: the format and four guides
-4. M0.8a Product guides: the simulator
-5. M9.8 fusionspace.co, rebuilt
-6. M7.1 Flight log importers
-7. M7.2 Readings, reconstruction and ghost data
-8. M7.3 A flight against its simulation
-9. M0.9f The rest of the words
-10. M10.2 Release 0.2: the flight analyzer
-11. M2.3c2 Logged traces
-12. M2.3c3 OpenRocket's newest release
-13. M2.3c6 The gap to OpenRocket, by cause
-14. M2.7 Held-out flights, predictions first
-15. M2.8 Honest uncertainty
-16. M2.6 An open benchmark
-17. M1.14 Accuracy inside the envelope
-18. M7.4 Fault diagnosis
-19. M7.5 The bias every simulator shares
-20. M10.3 Release 0.3: accuracy and diagnosis
-21. M2.3c7 Faster than sound: published flights
-22. M6.3 Challenge specs and presets
-23. M6.4 Airbrakes
-24. M6.2e Robust mode
-25. M6.6 Submission packs
-26. M6.7 Ejection charges
-27. M3.5 RASAero `.CDX1` import/export
-28. M3.6 RocketPy interop
+1. M0.11 Steps to a first answer
+2. M0.7a Rocketry explained: the format and four guides
+3. M0.8a Product guides: the simulator
+4. M9.8 fusionspace.co, rebuilt
+5. M7.1 Flight log importers
+6. M7.2 Readings, reconstruction and ghost data
+7. M7.3 A flight against its simulation
+8. M0.9f The rest of the words
+9. M10.2 Release 0.2: the flight analyzer
+10. M2.3c2 Logged traces
+11. M2.3c3 OpenRocket's newest release
+12. M2.3c6 The gap to OpenRocket, by cause
+13. M2.7 Held-out flights, predictions first
+14. M2.8 Honest uncertainty
+15. M2.6 An open benchmark
+16. M1.14 Accuracy inside the envelope
+17. M7.4 Fault diagnosis
+18. M7.5 The bias every simulator shares
+19. M10.3 Release 0.3: accuracy and diagnosis
+20. M2.3c7 Faster than sound: published flights
+21. M6.3 Challenge specs and presets
+22. M6.4 Airbrakes
+23. M6.2e Robust mode
+24. M6.6 Submission packs
+25. M6.7 Ejection charges
+26. M3.5 RASAero `.CDX1` import/export
+27. M3.6 RocketPy interop
+28. M2.9 The other tools' cells
 29. M6.8 Field kit: checklists, the settings check and the ground-test log
 30. M0.7b Rocketry explained: recovery, wind and motors
 31. M10.4 Release 0.4: the competition kit
@@ -141,12 +141,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     its unit by a breaking space, and a lead note or table cell over 120 words; number columns'
     heads give a label and a unit; a test fails on an `hpr sim` warning sentence over 40 words;
     each over-precise figure #476 names is cut to what is known; the audit's rows name the checks.
-- [ ] **M0.10 The scoreboard** (ADR-209 §3). *Done when:* `cargo xtask scoreboard` writes
-  `validation/reports/scoreboard.md`, HPR Sim against OpenRocket and RocketPy on each axis ADR-209 §3
-  names, each number read from a committed report and each unmeasured cell "not measured" with the
-  milestone that fills it; a test fails when a number is worse, as ADR-209 §3 defines per axis
-  (a measured cell turned "not measured" included), than the committed one unless an accepted ADR
-  names that metric and that release; a test that worsens one fails.
 - [ ] **M0.11 Steps to a first answer** (ADR-209 §10). *Done when:* opening a design, flying it and
   getting its landing spread are scripted in HPR Sim's command line and Python and counted for
   OpenRocket and RocketPy from their current docs (clicks and entries apart from script lines, a
@@ -206,6 +200,11 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 - [ ] **M2.6 An open benchmark** (ADR-209 §9). *Done when:* public cases with design, log and
   weather, each file's license recorded; a runner scores any simulator's predictions file the same
   way; HPR Sim's and OpenRocket's scores on a docs page from a committed report. Moves: accuracy.
+- [ ] **M2.9 The other tools' cells** (ADR-240), after M3.6. *Done when:* the scoreboard's RocketPy
+  cells for accuracy, bias and round trips, OpenRocket's and RocketPy's past Mach 1 and for the 50%
+  and 90% ranges, and each tool's time for one flight on one reference machine are read from
+  committed reports, or name a capability the tool lacks, checked in its current docs with the
+  date. Moves: none of HPR Sim's numbers; it fills the columns they are compared with.
 - [ ] **M1.14 Accuracy inside the envelope** (ADR-143 §6, ADR-220). The core band (Mach 0–2.5)
   first, then the extended band in M1.14h; angle of attack ≤ 15°, high angles M1.14e's. *Done
   when:* real flights meet the 5% mean apogee target, hpr is at least as accurate as OpenRocket on
