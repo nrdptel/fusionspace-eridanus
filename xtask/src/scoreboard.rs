@@ -1219,7 +1219,7 @@ fn standing(scoreboard: &Scoreboard) -> String {
         }
     }
     let mut text = format!(
-        "**Where it stands.** {measured} of its {} cells are measured: {}.",
+        "**Where it stands.** {measured} of the {} cells below are measured: {}.",
         cells.len(),
         per_tool.join(", ")
     );
@@ -1557,22 +1557,39 @@ mod tests {
     }
 
     /// A revision git doesn't know fails rather than comparing with nothing; one it knows gives
-    /// the scoreboard committed there, or none before the first.
+    /// the scoreboard committed there, or none before the first. Run in a repository of its own,
+    /// since CI's checkouts hold one commit, the scoreboard already in it.
     #[test]
     fn the_check_against_a_revision_fails_closed() {
-        let root = crate::designs::root().expect("the repository root");
-        let error =
-            scoreboard_at(&root, "no-such-revision-of-the-scoreboard").expect_err("unknown");
+        let (_, _, committed) = committed();
+        let repo = std::env::temp_dir().join(format!("scoreboard-at-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&repo);
+        fs::create_dir_all(repo.join("validation/reports")).expect("a scratch repository");
+        let git = |args: &[&str]| {
+            let output = Command::new("git")
+                .args(["-c", "user.name=t", "-c", "user.email=t@example.invalid"])
+                .args(["-c", "commit.gpgsign=false"])
+                .args(args)
+                .current_dir(&repo)
+                .output()
+                .expect("git");
+            assert!(output.status.success(), "git {args:?}: {output:?}");
+        };
+        git(&["init", "--quiet"]);
+        fs::write(repo.join("README"), "x\n").expect("a file");
+        git(&["add", "README"]);
+        git(&["commit", "--quiet", "-m", "before the scoreboard"]);
+        git(&["tag", "before"]);
+        let json = serde_json::to_string_pretty(&committed).expect("json");
+        fs::write(repo.join(SCOREBOARD_JSON), json).expect("the scoreboard");
+        git(&["add", SCOREBOARD_JSON]);
+        git(&["commit", "--quiet", "-m", "the scoreboard"]);
+
+        let error = scoreboard_at(&repo, "no-such-revision").expect_err("unknown");
         assert!(error.contains("no revision"), "{error}");
-        // The repository's first commit holds no scoreboard.
-        let first = Command::new("git")
-            .args(["rev-list", "--max-parents=0", "HEAD"])
-            .current_dir(&root)
-            .output()
-            .expect("git");
-        let first = String::from_utf8_lossy(&first.stdout);
-        let first = first.lines().next().expect("a root commit");
-        assert_eq!(scoreboard_at(&root, first), Ok(None));
+        assert_eq!(scoreboard_at(&repo, "before"), Ok(None));
+        assert_eq!(scoreboard_at(&repo, "HEAD"), Ok(Some(committed)));
+        let _ = fs::remove_dir_all(&repo);
     }
 
     /// A held number made better by counting fewer flights is worse; another tool's isn't held.
