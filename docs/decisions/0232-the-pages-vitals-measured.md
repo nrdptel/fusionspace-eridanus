@@ -17,7 +17,7 @@ make the bound depend on the machine, so the check measures the machine first wi
 `computeBenchmarkIndex` (ported, Apache-2.0) and slows it by the piecewise rule of Lighthouse's
 CPU throttling calculator. This Mac scores about 4,400, which the calculator's last line, carried
 past the machines it was fitted to, turns into a slowdown of 16; a CI runner scores lower and is
-slowed less (CI's runners scored 2,334 to 2,726, slowed 7.4 to 9.1 times). A machine under
+slowed less (CI's runners scored 2,178 to 4,004, slowed 6.8 to 14.6 times). A machine under
 800 is refused: under 150 it can't be slowed to the phone, and under 800 its slowdown, less than
 2, is too small to confirm (decision 1). The site is served
 compressed, as GitHub Pages serves it, but over HTTP/1.1, which allows six connections to one
@@ -94,16 +94,17 @@ marked *(a probe)* come from development runs at the slowdown given, not from co
    theme switch in the sidebar on a narrow window before the page is drawn; inline code has its
    padding from the stylesheet.
 5. **The menu tap moves the page at once, on a layer of its own.** On a phone only the sidebar
-   slides; the page's `transform` isn't animated, its margin still is. Measured without this,
-   the aerodynamics page's tap took 0.30 s. And under 620 px, where mdBook moves the page by a
-   `transform`, the page is drawn on its own layer (`will-change: transform`), so moving it is
-   the compositor's work, not a new drawing of the page. Without it, the slowest interaction on
-   the aerodynamics page took 96 to 352 ms over three loads at a 16 times slowdown here (a
-   probe), and CI measured 288 and 296 ms on the `.ork` format and aerodynamics pages (that
-   run didn't print its slowdown) and 216 ms on the records page on a runner slowed 14.6 times.
-   With it, 64 to 72 ms here (a
-   probe). No element fixed to the window is drawn inside the page under 620 px, whose place
-   the layer would change.
+   slides; the page's `transform` isn't animated, its margin still is. Measured without this, the
+   aerodynamics page's tap took 0.30 s. And under 620 px, where mdBook moves the page by a
+   `transform`, the page is drawn on its own layer (`will-change: transform`), so moving it is the
+   compositor's work, not a new drawing of the page. Without it, the slowest interaction on the
+   aerodynamics page took 96 to 352 ms at a 16 times slowdown here (a probe: the slowest
+   interaction of each of three loads), and CI measured 288 and 296 ms on the `.ork` format and
+   aerodynamics pages (that run didn't print its slowdown) and 216 ms on the records page on a
+   runner slowed 14.6 times. With it, 64 to 72 ms in the same probe; the check's own runs since
+   gave the guide's slowest INP 56 and 96 ms. Something fixed to the window inside the page would
+   move with the layer, so the page check fails anything fixed inside a box that carries it (a box
+   CSSOM View gives it as its `offsetParent`), with a canary.
 6. **The print page is a cover on screen.** The build puts the print page's chapters in a
    `<template>` behind a cover: the designation tag, "Print the guide", what it prints, a button
    that prints and how to print from the browser (`print.rs`). The site's script places a copy of
@@ -131,7 +132,7 @@ aerodynamics page), and the largest CLS 0.067 (the page on how a flight is simul
 three Linux runners in the same commit's run, slowed 6.8 to 7.3 times, the worst were 2.19 s, 0.067
 and 136 ms. LCP moves by a tenth or more between runs (2.35 s on the PF2 format page in an earlier
 run here), so its least margin to its bound is about 0.15 s; INP moved between 88 and 152 ms from
-run to run while four browsers measured at once, and between 80 and 96 ms one page at a time. A
+run to run while four browsers measured at once, and between 56 and 96 ms one page at a time. A
 runner that scores higher is slowed more, and the one that scored 4,004 measured the records page's
 tap at 216 ms before the page's layer, which suggests the slowdown, set from a JavaScript
 benchmark, weighs drawing differently from machine to machine; no run with the layer has yet drawn

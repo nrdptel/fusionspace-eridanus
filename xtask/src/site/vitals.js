@@ -63,7 +63,8 @@
   // An event's time in INP's three parts (web.dev/articles/optimize-inp): waiting for the page,
   // running its handlers, and from them to the next frame drawn.
   function timed(entry) {
-    const ms = function (t) { return Math.round(t) + ' ms'; };
+    // Event Timing rounds `duration` to 8 ms, so the last part can come out a little below 0.
+    const ms = function (t) { return Math.max(0, Math.round(t)) + ' ms'; };
     return '`' + entry.name + '`: ' + ms(entry.processingStart - entry.startTime) + ' waiting, ' +
       ms(entry.processingEnd - entry.processingStart) + ' in its handlers, ' +
       ms(entry.startTime + entry.duration - entry.processingEnd) + ' to the next frame';

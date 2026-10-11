@@ -1120,6 +1120,14 @@
         const mask = p.getPropertyValue('mask-image') || p.getPropertyValue('-webkit-mask-image');
         if (mask && mask !== 'none') masked.push([el, pseudo]);
       }
+      // Fixed to the window, not to a box: a transform or `will-change` on a box around it (the
+      // page's own layer on a phone) would carry it away with the page. CSSOM View gives such an
+      // element an `offsetParent`, and one fixed to the window none.
+      if (s.position === 'fixed' && s.visibility !== 'hidden' && el.offsetParent !== null
+          && boxOf(el)) {
+        note('sticky', el, null, 'position', 'fixed inside ' + selector(el.offsetParent)
+          + ', which carries it with the page');
+      }
       if ((s.position === 'sticky' || s.position === 'fixed') && s.visibility !== 'hidden') {
         const r = boxOf(el);
         if (r && r.width >= view / 2 && r.height < tall / 2) {

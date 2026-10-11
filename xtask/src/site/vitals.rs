@@ -108,7 +108,8 @@ const CPU_HELD: f64 = 0.5;
 /// The least CPU slowdown whose throttle can be told from none: at 2, a held throttle shows
 /// about 2 and an ignored one about 1, against a bar of 1.5. A machine that needs less, a
 /// BenchmarkIndex under 800, is refused, as an ignored throttle would there pass unseen and
-/// flatter the site. CI's runners scored 2,334 to 2,726 (slowdowns 7.4 to 9.1) on 2026-10-10.
+/// flatter the site. CI's runners scored 2,178 to 4,004 (slowdowns 6.8 to 14.6) on 2026-10-10 and
+/// 11.
 const CPU_LEAST_SLOWDOWN: f64 = 2.0;
 
 /// Whether a benchmark that ran `shown` times slower under the throttle confirms a `slowdown`:

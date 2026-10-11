@@ -393,7 +393,9 @@ enum Kind {
     /// Something forced colors would erase: a box set apart only by its fill, an icon not in its
     /// text color, or one painted through a mask with its colors forced (#383).
     Forced,
-    /// A bar stuck to the top of the window taller than the page's `scroll-padding-top` (#383).
+    /// A bar stuck to the top of the window taller than the page's `scroll-padding-top` (#383),
+    /// or something fixed to the window inside a box whose transform or `will-change` carries it
+    /// with the page instead, as the page's own layer on a phone would (ADR-232).
     Sticky,
     /// An icon of the page's chrome drawn at a size other than the system's 16, 20 or 24 px,
     /// square (#383).
@@ -473,7 +475,7 @@ impl Kind {
             Kind::Contrast => "text under the contrast floor",
             Kind::Focus => "a focus ring off the system's",
             Kind::Forced => "something forced colors would erase",
-            Kind::Sticky => "a sticky bar that can hide what is focused",
+            Kind::Sticky => "a sticky bar that can hide what is focused, or one the page carries",
             Kind::Icon => "an icon off the system's sizes",
             Kind::Selection => "a selection off the action role",
             Kind::Header => "a header off the system's",
@@ -854,7 +856,7 @@ macro_rules! switch_frame {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 138] = [
+const CANARIES: [Canary; 139] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1422,6 +1424,16 @@ const CANARIES: [Canary; 138] = [
         inside: "<style>@media print { .bar { display: none; } }</style>",
         after: "<div class=\"bar\" style=\"position: fixed; top: 0; left: 0; right: 0; \
                 height: 60px; background: #F3F4F7\"></div>",
+    },
+    Canary {
+        file: "canary-sticky-carried.html",
+        what: "a box fixed to the window's corner inside a box with `will-change: transform`, \
+               which carries it with the page",
+        expect: &[Kind::Sticky],
+        inside: "<style>@media print { .pin { display: none; } }</style><div style=\"will-change: \
+                 transform\"><div class=\"pin\" style=\"position: fixed; bottom: 16px; right: \
+                 16px; width: 40px; height: 40px; background: #F3F4F7\"></div></div>",
+        after: "",
     },
     Canary {
         file: "canary-sticky-padded.html",
@@ -3617,7 +3629,8 @@ mod tests {
         );
         assert!(
             problems[3].starts_with(
-                "guide.html: a sticky bar that can hide what is focused at 1080 to 1920 px"
+                "guide.html: a sticky bar that can hide what is focused, or one the page carries \
+                 at 1080 to 1920 px"
             ),
             "{}",
             problems[3]

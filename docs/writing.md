@@ -220,7 +220,9 @@ sizes, prose lines past 68 characters and gutters off 16 or 32 px all fail it. S
   on; it applies the stylesheets' rules for it and judges from the page's own colors;
 - a bar stuck to the top of the window reaching further down than the page's
   `scroll-padding-top`, the room the browser leaves at the top when it scrolls to what a reader
-  tabs to, so the bar never hides it;
+  tabs to, so the bar never hides it, or something fixed to the window inside a box whose
+  `transform` or `will-change` would carry it with the page instead, as the page's own layer
+  on a phone would;
 - a `>` quote block left on a page, or a note not drawn as the system's: a head, then the
   message; the head saying its kind's signal word in Cascadia Mono 12 px semibold capitals,
   across the note's top, set apart by a rule or a fill (a caution's in the caution fill, a

@@ -283,9 +283,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
          for it or without a zoom, no color off the system's roles, rounded corner, shadow or \
          motion off its durations in either theme or with reduced motion, no text off the type \
          scale, prose line past 68 characters, gutter off the system's or code block held to \
-         the measure, no quote block or note off the system's, no text under the contrast floor, focus ring off the system's, box or \
-         icon forced colors would erase, sticky bar taller than the scroll padding, icon off \
-         the system's sizes or selection off the action role, no header or title block off \
+         the measure, no quote block or note off the system's, no text under the contrast floor, \
+         focus ring off the system's, box or icon forced colors would erase, sticky bar taller \
+         than the scroll padding or fixed in a box the page carries, icon off the system's sizes or selection off the action role, no header or title block off \
          the system's, no intro, sheet or theme switch off the system's and every switch \
          setting the theme it is pressed for, no text mark drawn as an icon, every page \
          printing in the light \
