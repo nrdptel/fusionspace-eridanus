@@ -173,6 +173,11 @@ html:not(.sidebar-resizing) .sidebar { transition-duration: 240ms; transition-ti
 [dir=rtl].js:not(.sidebar-resizing) .page-wrapper,
 html:not(.js) .page-wrapper,
 [dir=rtl]:not(.js) .page-wrapper { transition-property: margin-left, margin-right; }
+/* And the page is drawn on a layer of its own there, so moving it over is the compositor's work
+   and Chrome doesn't draw the page again. Without it, the longest pages' tap took 96 to 352 ms at
+   a 16 times slowdown on a Mac and up to 296 ms on CI's Linux runners; with it, 64 to 72 ms on the
+   Mac. Nothing fixed is drawn inside the page under 620 px, whose place the layer would move. */
+@media only screen and (max-width: 619px) { .page-wrapper { will-change: transform; } }
 #mdbook-menu-bar .fa-svg, #mdbook-menu-bar .icon-button,
 .nav-chapters, .nav-chapters:hover,
 pre > .buttons, pre > .buttons button,
