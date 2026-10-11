@@ -22,7 +22,11 @@ motor from the catalog that comes with HPR Sim. It then finds the rocket's
 > and seven real flights' ([Accuracy](accuracy.md#real-flights)), but not this one's
 > ([Getting started](getting-started.md#accuracy-of-these-numbers)).
 
-## Run it
+## Running the example
+
+Run the program, meet the rocket it builds, and read what it prints.
+
+### Run it
 
 ```bash
 cargo run --example own_rocket -p fusionspace-hpr-sim
@@ -98,7 +102,7 @@ To fly your own rocket, change the numbers in the program and run it again. Or c
 file in the same folder, say `my_rocket.rs`, and run that with
 `cargo run --example my_rocket -p fusionspace-hpr-sim`.
 
-## The rocket
+### The rocket
 
 The rocket has a 54 mm (2.1 in) airframe (the tube's inside diameter) and flies on a Cesaroni H54, a 29 mm
 reloadable motor (a propellant load for a reusable case). These are the program's inputs:
@@ -115,9 +119,9 @@ reloadable motor (a propellant load for a reusable case). These are the program'
 Every size is in meters, and every round part takes a **radius**, not a diameter: halve the
 diameters on your drawings.
 
-## What it printed
+### What it printed
 
-### Mass, center of gravity and center of pressure
+#### Mass, center of gravity and center of pressure
 
 The table has two columns. **liftoff** is the rocket on the pad, with the motor full.
 **burnout** is the rocket with the motor spent: its case and nozzle are still aboard, its
@@ -145,7 +149,7 @@ motion over the ground combined with the wind. In a crosswind, the same turn swi
 
 The simulator doesn't judge whether a margin is enough; your club's or range's rules do.
 
-### Where the center of pressure comes from
+#### Where the center of pressure comes from
 
 Barrowman's method works out each nose cone, transition and fin set on its own. Each gets a CP and
 a normal-force slope: how fast its sideways push grows with the
@@ -184,7 +188,7 @@ The slopes and CPs of nose cones, transitions and body tubes stay where they are
 `Flow::axial(0.0)` in place of `Flow::axial(0.3)` gives the low-speed value that Barrowman's method
 gives by hand.
 
-### The flight
+#### The flight
 
 The rocket flies from a 1.8 m (5.9 ft) vertical rail, 1,400 m (4,593 ft) up in New Mexico, with no
 wind. It has one parachute, 0.9 m (35 in) across ([nominal diameter](glossary.md#nominal-area)),
@@ -216,7 +220,7 @@ This motor has three times near the end of its burn, and they measure different 
 - From 3.13 s to 3.50 s the motor still pushes, with under 5% of its peak thrust (the curve's peak
   is 103 N, so under about 5 N). The burn time leaves that tail out; the flight doesn't.
 
-### The fin set as a design file
+#### The fin set as a design file
 
 The last lines are the fin set as a design file stores it, in JSON.
 [As a design file](#as-a-design-file), below, explains the form.
@@ -612,7 +616,11 @@ It has eight steps.
 8. **The design file.** The end of the program writes the rocket as JSON, reads it back, and prints
    the fin set's part of it. [As a design file](#as-a-design-file), below, explains.
 
-## As a design file
+## Design files
+
+Write the rocket as a design file, and see what else a design can hold.
+
+### As a design file
 
 A design file is a rocket written as text, to keep, share or edit outside Rust. Here it is the
 rocket's JSON, which is also the `rocket` key of a document of
@@ -658,7 +666,7 @@ A program in the repository writes the files in that folder, so edit a copy rath
 ([M3.3](decisions-and-roadmap.md#m3-3), a documented and versioned design file with a schema) will
 replace it and convert the repository's own designs.
 
-## What else a design can hold
+### What else a design can hold
 
 The example leaves out several kinds of part and setting that a design can have:
 
@@ -676,7 +684,11 @@ The example leaves out several kinds of part and setting that a design can have:
   program's 29 mm mount and it stops with `MotorWiderThanMount`. Warnings, such as a step in the
   body's radius, don't stop a flight.
 
-## What it can't do yet
+## Limits and next steps
+
+What the example can't do yet, and where to go from here.
+
+### What it can't do yet
 
 - **Built only in Rust, or in JSON.** [The builder](the-builder.md) builds the same rocket in
   fewer lines, and [`hpr sim`](cli.md#hpr-sim) flies the JSON file from a terminal, but opens no
@@ -774,7 +786,7 @@ The example leaves out several kinds of part and setting that a design can have:
   simulator has been measured against tested only double-wedge fins, so how well square or rounded
   edges fare is unmeasured ([Drag limits](physics/aero.md#drag-limits)).
 
-## Where next
+### Where next
 
 - [Getting started](getting-started.md#change-it) adds wind, tilts the rail and uses a drogue and a
   main parachute; the same code works with this rocket.

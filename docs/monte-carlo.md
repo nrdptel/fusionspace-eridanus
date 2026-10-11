@@ -31,7 +31,11 @@ the numbers. Its examples need some Rust and follow on from [The builder](the-bu
 >   [What is not dispersed](#what-is-not-dispersed). A run flies what `Flight::builder` sets up,
 >   a staged flight's separations included; events of your own can't be part of one yet.
 
-## A run of 200 flights
+## Running a dispersion
+
+Run one from Rust, from the command line or from Python; all three fly the same flights for the same seed.
+
+### A run of 200 flights
 
 The example program
 [`crates/hpr/examples/monte_carlo.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/monte_carlo.rs)
@@ -118,7 +122,7 @@ How to read it:
   of 1,120 m (3,675 ft). Under the parachute the drift is the wind's speed times the time in the
   air, and the wind's speed is the most uncertain input here.
 
-## From the command line
+### From the command line
 
 [`hpr mc`](cli.md#hpr-mc) flies any design [`hpr sim`](cli.md#hpr-sim) flies, a staged `.ork`
 included, with each dispersion an option in the units the command line uses elsewhere: degrees
@@ -133,7 +137,7 @@ hpr mc my-rocket.ork --runs 200 --seed 2026 --wind 4 --wind-from 270 \
   --mass-sd 0.02 --drag-sd 0.05 --impulse-sd 0.03 --wind-sd 0.25 --wind-from-sd 15
 ```
 
-## From Python
+### From Python
 
 `hpr.MonteCarlo` in the [Python package](python.md#monte-carlo) flies the same run and returns it
 as NumPy arrays. Each array is one column of the table `hpr mc --export` writes, with one value per
@@ -272,7 +276,11 @@ Four cases need a word:
   the split but waits out a dispersed lag would climb through the lag with no drag at all, so the
   simulator refuses that flight, and it counts as failed.
 
-## Failed flights are counted
+## How a run behaves
+
+What a run does with failed flights, how its seed fixes every draw, and how long it takes.
+
+### Failed flights are counted
 
 A run never drops a flight. [`Run::failed`] lists those that failed, saying whether the draw made
 an impossible input or the flight refused it. A spread like [`Run::apogee`] counts every flight
@@ -288,7 +296,7 @@ A share such as "reached 1,100 m (3,609 ft)" is given as two bounds, `share_at_l
 With no failures the two are equal. With some, the truth lies between them, and a wide gap says the
 run can't answer the question.
 
-## The same seed, the same run
+### The same seed, the same run
 
 Every number a flight draws comes from its own stream of random numbers, picked out by the run's
 seed, the flight's number in the run and the input it is for. So:
@@ -311,7 +319,7 @@ On another platform (operating system and processor) a draw can differ in its la
 because the normal numbers use the platform's logarithm; a run then agrees to many digits, not to
 the bit. The decision record is [ADR-134](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0134-monte-carlo-dispersion-independent-normals-one.md).
 
-## How long a run takes
+### How long a run takes
 
 On the development machine, an Apple M5 with 10 cores, 10,000 flights of a Level 2 rocket (one
 on a J, K or L [impulse class](glossary.md#impulse-class) motor) from ignition to the ground,
@@ -390,7 +398,7 @@ whose first revisions FR-7 and FR-8 keep both sentences
 ([`1125_A2021_PYR_AAA_FD_FRStatements.pdf`](https://docinfofiles.nfpa.org/files/AboutTheCodes/1125/1125_A2021_PYR_AAA_FD_FRStatements.pdf)).
 The edition in force today hasn't been checked.
 
-## What is not dispersed
+### What is not dispersed
 
 - Inputs are independent: a heavier rocket isn't also draggier.
 - Every dispersion is normal; there are no uniform or skewed ones.

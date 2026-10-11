@@ -9,6 +9,13 @@ comparison with another program or a real flight. This page shows how to follow 
 examples. It is for anyone who would rather check a claim than trust it. If a trail breaks, that is
 a bug, and the last section says how to report it.
 
+> **How far to trust it.** This page is a method, not a result. Its two worked examples follow
+> trails that exist today: gravity at the equator, 9.7803253359 m/s² as Table 3.6 of the WGS 84
+> standard prints it, and a parachute's north drift, +2.865% from RocketPy's as the
+> [validation report][report] gives it. The site's build checks that each of this page's links
+> into the site or the repository leads somewhere, but not that the steps still describe the
+> code. Where they differ, the source, the test and the report are the authority, not this page.
+
 ## The trail
 
 1. **The page.** Each model has a page on this site. Its *In short* says what the model is, where

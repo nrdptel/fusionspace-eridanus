@@ -251,7 +251,11 @@ Every motor lights at launch, `t = 0`, unless its `ignition` says otherwise: at 
 another motor's burnout, or after its stage separates ([Staging](staging.md)). It then burns on its
 own clock from that moment.
 
-## Code and sources
+## Code and conventions
+
+Where the motor code lives, its sources, and the units and axes it uses.
+
+### Code and sources
 
 Code: `hpr_motor` ([API reference](../api/hpr_motor/index.html)), in its modules `curve`, `class`,
 `motor`, `grains`, `mass`, `delay` and `catalog`. The file formats are described in
@@ -278,7 +282,7 @@ under the name given, so anyone can fetch the same copy ([Checking a claim](../c
 
 Line numbers below, such as "lines 40–91", link to those lines of the source.
 
-## Conventions
+### Conventions
 
 - **Time** `t` is seconds from ignition.
 - **Motor axis:** positions are meters along the motor's axis **from the nozzle exit plane (where
@@ -289,7 +293,11 @@ Line numbers below, such as "lines 40–91", link to those lines of the source.
   transverse axis, both through the part's own center of mass (RocketPy's `I_33` and `I_11`).
 - Motor files keep their own units (mm, kg or g). The model is SI: meters, kilograms and seconds.
 
-## Thrust curve
+## The model
+
+How a motor's thrust, propellant, mass, altitude effect and delay are worked out.
+
+### Thrust curve
 
 A [thrust curve](../glossary.md#thrust-curve) is the motor's thrust against time, as its file
 lists it.
@@ -344,7 +352,7 @@ lists it.
   `O` (`k = 15`), and on to `Z` by doubling. **Upper limits are inclusive:** [NAR] states `C` as
   "5.01 to 10.0 N-sec". Loft gave `B` for 2.5 N·s ([Loft lesson L38](../decisions-and-roadmap.md#l38)).
 
-## Propellant consumption
+### Propellant consumption
 
 The [effective exhaust velocity](../glossary.md#effective-exhaust-velocity) `c` is the thrust
 divided by the rate at which propellant mass leaves, `c = F/ṁ` ([SP] glossary p. 95). **Held
@@ -367,7 +375,7 @@ c = I / m_p0,    ṁ(t) = F(t) / c,    m_p(t) = m_p0 (1 − I(t)/I)
 - All propellant is gone at the last sample. The whole burned mass leaves as exhaust. Inert
   material that also leaves (bits of liner and igniter) is not modeled.
 
-## Where the propellant is
+### Where the propellant is
 
 - **Column** (`Propellant::Column`): a hollow cylinder `(R, r, L)` (outer radius, inner radius,
   length) at a fixed center. It keeps its shape and loses density as it burns, so
@@ -411,7 +419,7 @@ c = I / m_p0,    ṁ(t) = F(t) / c,    m_p(t) = m_p0 (1 − I(t)/I)
     The last term sums `m_g d_k²` over the grain offsets ([RP] [`solid_motor.py:724-740`][rp-724],
     [`784-789`][rp-784]).
 
-## The whole motor
+### The whole motor
 
 - **Dry mass** (case, closures, liner, nozzle: everything but the propellant) is one element:
   mass, center and inertias about its own center. `with_added_dry_mass` joins more hardware, such
@@ -440,7 +448,7 @@ c = I / m_p0,    ṁ(t) = F(t) / c,    m_p(t) = m_p0 (1 − I(t)/I)
   ([Loft lesson L43](../decisions-and-roadmap.md#l43): one header listed a 54 mm motor as a 75 mm motor).
   ThrustCurve.org's own records differ in a few places ([the bundled motors](#the-bundled-motors)).
 
-### The effective exhaust velocity is a units check
+#### The effective exhaust velocity is a units check
 
 Both constructors, `SolidMotor::new` and `SolidMotor::from_envelope`, refuse a motor whose curve
 and propellant mass imply an effective exhaust velocity `c = I/m_p` outside **200 to 5,000 m/s (656 to 16,404 ft/s)**.
@@ -474,7 +482,7 @@ It is a guard against a slip in the units of the propellant mass, not a filter o
 table of percentiles, and two figures that were once got wrong are in
 [the exhaust-velocity note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/exhaust-velocity-guard.md).
 
-## Thrust at altitude
+### Thrust at altitude
 
 A motor pushes harder in thinner air. Its thrust has two parts: the momentum of the exhaust, and a
 pressure term, the exhaust's pressure at the nozzle exit less the air's, times the exit area:
@@ -525,7 +533,7 @@ F(p_a) = F_curve + (p_ref − p_a) A_e,    A_e = π r_e²
   overstates it: on the 411I175 (a 9.5 mm (0.37 in) exit) in vacuum it adds 3.9 N·s in the 0.14 s after the
   NFPA 1125 burn ends, which delivers 0.45 N·s itself; that is 0.95% of total impulse.
 
-## Delays
+### Delays
 
 A motor's [ejection delay](../glossary.md#ejection-delay) is the time from burnout to its ejection
 charge, which deploys the recovery. [TC-G] lists every achievable delay, adjustable ones included.
@@ -535,7 +543,11 @@ the markers files use. A `0` is read as its own "zero or plugged" setting, becau
 says it means ejection at burnout but most files mean plugged. HPR Sim never turns it into an
 ejection event by itself: the user has to decide.
 
-## Validation
+## Validation and example
+
+The tests that pin the motor model, and the whole example program.
+
+### Validation
 
 - **Catalog** (`catalog::tests`): every figure the catalog states is its curve file's own, bit for
   bit, so what `hpr motors` lists is what flies, and all 32 are within 1% of the total impulse,
@@ -612,7 +624,7 @@ ejection event by itself: the user has to decide.
   integration, burn windows, grain volume inversion, the parallel-axis theorem, and the
   impulse-fraction flow integrating to `m_p0`.
 
-## The example program
+### The example program
 
 This is the whole of
 [`crates/hpr-sim/examples/motors.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/motors.rs),

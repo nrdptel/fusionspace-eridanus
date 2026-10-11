@@ -68,7 +68,11 @@ For a design of your own, start from the two-stage design
 [`synthetic-two-stage-75mm-54mm.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/synthetic-two-stage-75mm-54mm.json)
 and the [worked example](#a-worked-example) below. The decision record is [ADR-074][adr-074].
 
-## When a motor lights
+## Ignition and separation
+
+When each motor lights and how a stage drops away under power, with a worked example.
+
+### When a motor lights
 
 Each motor in a [configuration](../glossary.md#configuration) has an `ignition`
 ([`Ignition`][ignition]). The flight's clock starts at launch (`t = 0`). Each motor burns on its own
@@ -97,7 +101,7 @@ separation becomes a stop time when the separation fires. The design refuses:
 - a separation ignition in the aft-most stage, which has nothing aft of it to separate;
 - a time or delay that is negative or not a number.
 
-## Powered separation
+### Powered separation
 
 A separation has a trigger and a stage boundary ([Recovery](recovery.md#separation)). Besides
 apogee, a height on the way down, a time, and a motor's [ejection
@@ -160,7 +164,7 @@ is recorded twice, at the booster's burnout and at the sustainer's.
 to its landing. [`FlightResult::bodies`][bodies] holds the booster's descent, and
 [`FlightResult::landings`][landings] gives both landings, the sustainer's first.
 
-## A worked example
+### A worked example
 
 The program
 [`crates/hpr-sim/examples/two_stage.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/examples/two_stage.rs)
@@ -241,7 +245,11 @@ How to read it:
 These numbers are for a made-up rocket that no other program has flown, so nothing checks them
 beyond the tests below.
 
-## Several separations
+## More stages and boosters
+
+Rockets of three stages or more, dropped payloads, and boosters beside the core.
+
+### Several separations
 
 **A rocket of three stages or more flies, dropping its stages under power one after another, from
 the tail forward.** At each split the stages behind it drop away and descend to their own
@@ -338,7 +346,7 @@ How to read it:
 - A motor lit by a separation can't time a later separation, since its burnout has no time
   before the flight. The `.ork` reader never lights a motor that way.
 
-## A payload dropped with nothing left to burn
+### A payload dropped with nothing left to burn
 
 **When the stack comes apart with nothing ahead of the split left to burn, every part flies on as
 a point with only its own devices' drag, so `hpr sim` flies it only when the part that keeps the
@@ -406,7 +414,7 @@ payload 10.3 m (34 ft) above that, and 3.5 m (11 ft) above the whole stack's own
 has all six. The [M4.5g3 milestone](../decisions-and-roadmap.md#m4-5g3) shipped this; its
 [decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0165-an-unpowered-separation-in-hpr-sim.md) has the reasoning.
 
-## Boosters beside the core
+### Boosters beside the core
 
 **Boosters strapped beside the core, a [parallel stage](design.md#parallel-stages), burn with it
 and drop at a separation of their own; from a `.ork`, on a rocket of one stage on the axis.** No
@@ -454,7 +462,7 @@ and both descents meet the targets of [Recovery](recovery.md#from-an-openrocket-
 traced. [M4.5m](../decisions-and-roadmap.md#m4-5m) shipped this; its decision record is
 [ADR-171](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0171-a-parallel-stage-is-a-pod-set-that-separates.md).
 
-## A booster dropped still burning
+### A booster dropped still burning
 
 **A powered separation may drop a booster whose motors still burn, when it is told to. The
 dropped part then flies with no thrust, so its flight leaves out the impulse those motors had
@@ -494,7 +502,11 @@ The sustainer's flight is not affected: it keeps no thrust from the dropped moto
 program. The dropped booster's own flight is not validated
 ([#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179)).
 
-## Against OpenRocket
+## Validation
+
+How staging compares with OpenRocket's examples, and the tests that pin it.
+
+### Against OpenRocket
 
 **In short.** HPR Sim reads when each motor lights and when the stages come apart from an OpenRocket
 `.ork` file, and flies OpenRocket's own two-stage, three-stage, cluster and air-start examples.
@@ -655,7 +667,7 @@ file's own parachutes and streamers instead,
 and adds the tumbles a part needs; `hpr sim` flies a `.ork` that way
 ([Separation](../cli.md#separation)).
 
-## Tests
+### Tests
 
 In `crates/hpr-sim/src/staging.rs` and `crates/hpr-design/src/config.rs`:
 

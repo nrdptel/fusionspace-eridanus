@@ -18,6 +18,12 @@ real files do, and what it does with each. All 889 RASP files ThrustCurve.org he
 read, and write back with every value unchanged
 ([Checked against real files](#checked-against-real-files)).
 
+> **How far to trust it.** Copied values: the reader takes the curve, the masses and the delays
+> from the file as written, and estimates nothing. On 2026-09-17, all 889 RASP files
+> ThrustCurve.org held and the 721 entries of its manufacturer sets read, and write back with
+> every value unchanged. A curve is only as right as its file, though: when a motor's numbers
+> matter, check them against the maker's published data and the motor's certification.
+
 Code: `hpr_motor::eng` ([API reference](../api/hpr_motor/eng/index.html)), written for the
 solid-motor milestone ([M1.3](../decisions-and-roadmap.md#m1-3)). The rules below are from the spec unless marked
 **Observed** (seen in real files) or **Policy** (the simulator's own choice).
@@ -34,7 +40,11 @@ solid-motor milestone ([M1.3](../decisions-and-roadmap.md#m1-3)). The rules belo
   single-motor API downloads, fetched 2026-09-17 into a local cache, `refs/samples/formats/`,
   that is never committed. Counts below are over those entries.
 
-## Grammar
+## What the spec says
+
+The published format, rule by rule, and the cases it leaves open.
+
+### Grammar
 
 Read `:=` as "is made of", `*` as "any number of", `+` as "one or more", and `|` as "or".
 
@@ -53,7 +63,7 @@ point   := time thrust                 "usually preceded by a few spaces" [R Dat
 - A file may hold several entries; "make sure that each entry is separated by at least one comment
   line". A lone `;` after the data is the customary separator [R Data], [R Problems].
 
-## Header fields [R Header]
+### Header fields [R Header]
 
 | # | Field | Unit | Meaning |
 |---|-------|------|---------|
@@ -65,7 +75,7 @@ point   := time thrust                 "usually preceded by a few spaces" [R Dat
 | 6 | total mass | kg | Motor "loaded and ready for flight" |
 | 7 | manufacturer | n/a | Abbreviation, per the combined motor list of the NAR (National Association of Rocketry) |
 
-## Thrust curve [R Data], [R Problems]
+### Thrust curve [R Data], [R Problems]
 
 - Each point is a time (s) and a thrust (N), as "floating-point numbers".
 - An implicit first point at (0, 0) "is assumed and should not be specified explicitly". An
@@ -78,7 +88,7 @@ point   := time thrust                 "usually preceded by a few spaces" [R Dat
   first point at negative time. Equal times are not addressed.
 - RASP allowed at most 32 points, including the final zero; modern tools don't enforce this.
 
-## Where the spec is silent
+### Where the spec is silent
 
 Number syntax (exponents, sign; its own example uses `.0377`). Whether tabs or several spaces
 separate fields. Line endings, text encoding, and a BOM (byte-order mark: an invisible character
@@ -86,7 +96,11 @@ some editors put at the start of a file). Delay lists that mix numbers with `P`,
 separators. Equal consecutive times. Inline comments. An entry with no comment separator before the
 next header.
 
-## Observed in real files
+## Reading and writing
+
+What real files do, and what the reader and writer do with each case.
+
+### Observed in real files
 
 - **Whitespace:** tabs separate data fields in 4 of 12 sets. 52 headers use several spaces or
   column alignment; one header is indented. Trailing spaces are common. 8 of 25 files use CRLF
@@ -113,7 +127,7 @@ next header.
   times (a vertical drop to zero, or rounded times). 69 have more than 32 points. None have
   decreasing time, negative thrust or an interior zero.
 
-## Reader policy (lenient, with diagnostics)
+### Reader policy (lenient, with diagnostics)
 
 1. The reader takes text and strips a UTF-8 BOM. Decoding bytes into text is the caller's job:
    today, read the file into a string yourself, as with `std::fs::read_to_string`, which expects
@@ -165,7 +179,7 @@ Conversion to a physical curve (`EngEntry::thrust_curve`, not part of the file m
 (0, 0) when the first time is > 0. A leading (0, F) stays a step at ignition. Negative thrust is
 an error there.
 
-## Writer policy (strict, round-trip stable)
+### Writer policy (strict, round-trip stable)
 
 Round-trip stable: a file the simulator writes reads back to exactly the values it was written from.
 

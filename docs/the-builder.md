@@ -23,7 +23,11 @@ rail. The page runs four example programs and walks through them. It needs the s
 > RocketPy's differ by 11 to 43%
 > ([Getting started](getting-started.md#accuracy-of-these-numbers) explains why).
 
-## Run it
+## The first example
+
+Run the first example, then read its program part by part.
+
+### Run it
 
 ```bash
 cargo run --example build_and_fly -p fusionspace-hpr
@@ -70,13 +74,13 @@ What the lines say:
 - **Heights** are the height of the rocket's CG above the launch site. The CG starts above the
   ground, sitting on the rail, so the apogee includes that starting height.
 
-## The program
+### The program
 
 The program is
 [`crates/hpr/examples/build_and_fly.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/build_and_fly.rs).
 It takes four steps: the motor, the rocket, the weighing and the flight.
 
-### The motor
+#### The motor
 
 `Motor::from_catalog("H54")` takes a motor from the catalog built into the simulator. It finds the
 motor by its designation, such as `168H54-10A`, or by its common name, the short form such as `H54`,
@@ -87,7 +91,7 @@ designation: `with_delay_s(10.0)` sets it, and a parachute opened by the motor's
 `Motor::from_eng` reads the text of a [RASP `.eng` file](format/eng.md), such as one downloaded
 from ThrustCurve.org, instead.
 
-### The rocket
+#### The rocket
 
 `Rocket::new(name, diameter_m)` starts an empty rocket with an outer body diameter. Then each
 `add_` call adds one part and returns the rocket, so the calls chain. Body parts stack from the
@@ -124,7 +128,7 @@ here a 90 cm (35 in) flat parachute opened by the ejection charge of motor numbe
 200 g recovery bay. The [recovery page](physics/recovery.md) explains the devices and what opens
 them.
 
-### Weighing it
+#### Weighing it
 
 `mass_properties(t)` gives the mass, CG and inertia `t` seconds after the motor lights.
 `margin(t, mach)` gives the CP and the margin, and `static_margin_cal(t, mach)` the margin alone.
@@ -133,7 +137,7 @@ point 0.671 m (26.4 in) behind the nose tip is at `z = −0.671`. The CP is a st
 of the tip, so the example prints it as it comes and the CG with its sign turned. Weighing runs the same
 checks on the design as a flight does, so a motor wider than its tube is refused by both.
 
-### Flying it
+#### Flying it
 
 `Environment::new(latitude, longitude, elevation)` is the launch site, in degrees north, degrees
 east (so the Americas are negative) and meters. It has the
@@ -152,7 +156,11 @@ ground. The flight's `apogee_m`, `max_speed_m_s`, `rail_exit_speed_m_s` and `lan
 numbers most asked for; `summary()` has every metric the [metrics page](physics/metrics.md)
 describes.
 
-## Which motor
+## Motors, fins and parts
+
+Three more examples: choosing a motor, sizing the fins, and building the rocket from a maker's parts.
+
+### Which motor
 
 The second example flies the same rocket on each 29 mm motor that comes with the simulator, from a
 vertical rail, with the parachute opening at apogee whatever the delay:
@@ -186,7 +194,7 @@ designation names. The H54 burns out at 3.5 s, so on the leaning rail at the top
 at only 10 m/s (33 ft/s), the slowest of the three, and a slow rocket's fins have the least air to
 steer with.
 
-## Sizing fins
+### Sizing fins
 
 The third example builds the same rocket with fins of five spans, the fin's height from the body
 tube to its tip, and flies each from a vertical rail, in calm air and in 5 m/s (11 mph) of wind
@@ -225,7 +233,7 @@ Because a rocket is a value built by a function, a design study is a loop. The e
 - **The landing** is closer with bigger fins, 114 m (374 ft) closer from the 45 mm (1.8 in) to the 65 mm (2.6 in): the
   parachute opens further upwind, and lower, so it drifts for less time.
 
-## Parts from a catalog
+### Parts from a catalog
 
 A rocket can also be built from a maker's parts, as sold, from a parts catalog. HPR Sim bundles
 the one OpenRocket ships: 3,449 parts from Estes, LOC Precision and a dozen more makers, read as
@@ -312,7 +320,7 @@ density, so its mass follows the change. OpenRocket gives a rigid part its state
 way. It gives a parachute its stated mass as an [override](glossary.md#override), which comes to
 the same for a parachute left as it is. It ignores a streamer's.
 
-### What the catalog leaves unsaid
+#### What the catalog leaves unsaid
 
 A catalog leaves some sizes out. The builder fills each one in the way OpenRocket 24.12 does
 when it builds the part, with one exception, a hollow part's shoulder. The shapes are explained
@@ -336,7 +344,7 @@ hollow parts with a shoulder that state their mass, the file's density weighs ne
 mass with the shoulder's wall than without it on 46. The median stated mass is 0.97 of the mass
 with the wall, and 1.30 of the mass without it.
 
-### The masses against OpenRocket
+#### The masses against OpenRocket
 
 [`tests/catalog_openrocket.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/tests/catalog_openrocket.rs)
 builds every part in the catalog with the builder. It holds each part's mass and center of mass
@@ -384,7 +392,11 @@ as the catalog describes it. A catalog's sizes and densities are the makers' or 
 database's, and none was weighed here. Glue, paint and hardware are still missing: weigh the
 finished parts when you can.
 
-## Beyond the builder
+## Limits and next steps
+
+Where the builder stops, what it refuses, and where to go from here.
+
+### Beyond the builder
 
 The builder covers a single-stage rocket with one motor. Two ways lead further, both into the
 crates the builder is made of.
@@ -409,7 +421,7 @@ crates the builder is made of.
   builder's `Flight` methods; `hpr_sim::FlightMetrics` gives the same metrics
   ([Flight metrics](physics/metrics.md)).
 
-## What it refuses
+### What it refuses
 
 Each part's numbers are checked when the part is added: a negative length, a NaN, a zero diameter,
 zero fins, a shape parameter out of range. The error names the number, such as
@@ -431,7 +443,7 @@ bore is no narrower than its outside, or a part stating a mass with no volume to
 error names the part by maker, number and file. `Rocket::add_fitting` also refuses a fitting before
 any body tube, and a part that isn't a fitting.
 
-## What it can't do yet
+### What it can't do yet
 
 - **One motor, one stage.** Clusters, staging and pods go through the design, as above; the
   [staging page](physics/staging.md) explains how they fly.
@@ -441,7 +453,7 @@ any body tube, and a part that isn't a fitting.
   rail's top.
 - **The finish.** Every surface is painted, as above.
 
-## Where next
+### Where next
 
 - [Models of your own](custom-models.md) flies a drag model and a wind of your own in the
   simulator's place.

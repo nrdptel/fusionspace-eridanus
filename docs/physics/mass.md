@@ -67,7 +67,11 @@ Sources:
 - **[AvD]** I. H. Abbott and A. E. von Doenhoff, *Theory of Wing Sections*, Dover (1959), eq. 6.2
   (NACA four-digit thickness distribution).
 
-## Frames and conventions
+## The model
+
+The conventions, the solids and fins each part is weighed as, and the materials.
+
+### Frames and conventions
 
 These conventions were set in [ADR-006][adr-006], the decision on component geometry and mass
 properties.
@@ -92,7 +96,7 @@ properties.
   moments come from cyclic Jacobi ([GVL] algorithm 8.5.1), accurate for repeated eigenvalues where
   the closed-form trigonometric method loses `√ε`.
 
-## Standard solids ([MK])
+### Standard solids ([MK])
 
 - **Hollow cylinder**, radii `R ≥ r`, length `L`: `I_axis = m(R² + r²)/2` and
   `I_across = m((R² + r²)/4 + L²/12)`. This covers body tubes, inner tubes and couplers, centering
@@ -130,7 +134,7 @@ properties.
   through an override ([Design tree](design.md)) or a matching nominal diameter.
 - **Streamer:** `ρ_s × length × width`. **Shock cord:** `ρ_l × length`.
 
-## Fins
+### Fins
 
 - **Planforms** ([TD] §3.2.2):
   - Trapezoidal: root chord `c_r`, tip chord `c_t` parallel to the body, span `s`, and sweep `x_t`
@@ -182,7 +186,7 @@ properties.
 - **Sets** roll the fin to `φ_k = φ₀ + 2πk/N` and combine. Three or more fins are isotropic across
   the axis; one or two are not, and the full tensor keeps the difference.
 
-## Materials
+### Materials
 
 `Density` is `bulk` (kg/m³), `surface` (kg/m²) or `line` (kg/m). A part asking for the wrong kind
 is an error. A design stores the values, not a library key. The built-in values and their sources
@@ -214,7 +218,11 @@ the URL it was read from, and a basis:
   - Its ripstop weights use 31 g/m² per oz/yd² (the factor is 33.906), so they are 8.6% low.
   - Its "Plywood, aircraft" at 337–361 kg/m³ is lite-ply, not birch.
 
-## Checked against OpenRocket
+## Compared with OpenRocket
+
+How the masses compare with OpenRocket's, and each rule where the two differ or a file is silent.
+
+### Checked against OpenRocket
 
 **In short.** HPR Sim adds a design's parts into its *structure*: every stage together, with no
 motor. OpenRocket 24.12 computes the same thing. On 2026-09-21 the two were compared on every file
@@ -386,7 +394,7 @@ HPR Sim with the record of the reference library only.
 
 [adr-060]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0060-m2-2-split-and-the-structures-mass-held-to.md
 
-## What a `.ork` leaves unsaid, and overrides
+### What a `.ork` leaves unsaid, and overrides
 
 **In short.** A design file does not say everything. What does a nose cone's shoulder written with
 a wall thickness of 0 weigh? What is a part that names no material made of? When a part and the
@@ -493,7 +501,7 @@ cargo test -p hpr-validate openrocket
 
 [adr-061]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0061-what-a-ork-leaves-unsaid-read-as-openrocket.md
 
-## Fins, rail buttons and roll inertia
+### Fins, rail buttons and roll inertia
 
 **In short.** A rocket's roll inertia is its resistance to spinning about its long axis. HPR Sim's
 was a median 2.351% from OpenRocket's on the 71 compared designs, and nothing explained it. It is
@@ -620,7 +628,7 @@ script writes these, and `cargo test -p hpr-validate openrocket` checks them.
 [adr-062]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0062-fins-and-rail-buttons-against-openrocket-roll.md
 [adr-168]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0168-pods-powered-flies.md
 
-### Tube fins
+#### Tube fins
 
 A *tube fin set* is a ring of short open tubes along the airframe, in place of flat fins. HPR Sim
 weighs each tube as a hollow cylinder with its axis at `R + r` from the airframe's axis, where `R`
@@ -681,7 +689,7 @@ pitch match their closed forms to 1e-13.
 
 [adr-098]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0098-a-tube-fin-sets-automatic-radius-read-as.md
 
-## Clusters and fillets
+### Clusters and fillets
 
 A [cluster](../glossary.md#cluster) is a motor mount with more than one motor tube. Since
 [M1.9b](../decisions-and-roadmap.md#m1-9b) HPR Sim weighs every tube where it sits, each with its
@@ -708,7 +716,7 @@ off the axis is +0.015% and +0.021%, which the project has not traced. Before
 forward, 2.43% low in roll and 3.68% low in pitch. `each_part_alone_is_openrocket_s_or_pinned` and
 `a_cluster_weighs_as_openrocket_s_but_for_its_tubes_spread` check these.
 
-### Fin fillets
+#### Fin fillets
 
 A [fin fillet](../glossary.md#fillet) is the rounded glue joint along a fin's root, where the fin
 meets the tube. Since [M2.2e7](../decisions-and-roadmap.md#m2-2e7) HPR Sim weighs fillets as
@@ -790,7 +798,7 @@ bead of glue, is weighed as one.
 [adr-064]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0064-clusters-fillets-and-unread-parts-remain-visible.md
 [adr-075]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0075-a-cluster-is-one-tube-repeated-and-a-motor-in-it.md
 
-## Packed parts
+### Packed parts
 
 A parachute, streamer, shock cord or mass component (an altimeter, a battery, ballast) is weighed
 as a solid cylinder: its packed length and packed radius, where it sits in the tube

@@ -58,6 +58,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9c14 Provenance on the other files ([Phase 0](#phase-0-foundations))
 - M0.9c15 Next steps and waits ([Phase 0](#phase-0-foundations))
 - M0.9c16 US units on the model pages ([Phase 0](#phase-0-foundations))
+- M0.9d The site to the design ([Phase 0](#phase-0-foundations))
 - M0.9d1 The figures in tokens ([Phase 0](#phase-0-foundations))
 - M0.9d2 The site's colors, corners and motion ([Phase 0](#phase-0-foundations))
 - M0.9d3 The page's frame ([Phase 0](#phase-0-foundations))
@@ -70,6 +71,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9d10 The pages' vitals ([Phase 0](#phase-0-foundations))
 - M0.9d11 The intro's chip and lead ([Phase 0](#phase-0-foundations))
 - M0.9d12 Two to six sheets: the check ([Phase 0](#phase-0-foundations))
+- M0.9d13 The pages' sheets and trust ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -448,7 +450,10 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M0.9c16 US units on the model pages** (#400; ADR-219). *Done when:* #400 is closed,
       with every item it lists: the units check defers no page and reads millimeters, a motor's
       or mount's size excepted.
-  - **M0.9d** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+  - [x] **M0.9d The site to the design** (ADR-208). *Done when:* #383 to #385 are closed: no
+    mdBook default the system doesn't draw (colors, radii, shadows, motion, icons, metas, print),
+    a title block and sheets on every page, notes in the system's shape, and every committed SVG
+    in token colors, each failing `xtask site`, `xtask figures` or a site test when broken.
     - [x] **M0.9d1 The figures in tokens** (#385). *Done when:* #385 is closed: `flight-phases.svg`
       in the system's line types and fonts, the badges in token fills and Cascadia Mono, and
       `xtask figures` failing on a color that isn't a token, a blend, the default black or another
@@ -489,6 +494,8 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M0.9d12 Two to six sheets: the check** (#384, ADR-234). *Done when:* `xtask site`
       and a site test fail a page with under two or over six `##` sections, but the 38 over six
       on a list they hold exact (one at six or fewer fails); the glossary's terms in six sheets.
+    - [x] **M0.9d13 The pages' sheets and trust** (#384, ADR-234, ADR-235). *Done when:* #384 is closed,
+      each rule it lists held by `xtask site`'s page check or a site test.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

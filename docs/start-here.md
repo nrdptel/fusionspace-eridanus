@@ -12,9 +12,12 @@ written for a rocketeer who knows some physics and some code, but not this proje
 covers what HPR Sim is, what works today, what doesn't yet, how far to trust it, and how to read
 the other pages.
 
-> [!NOTE]
-> **Every number HPR Sim produces is an estimate from a model, not a measurement, and never a
-> go/no-go verdict.** Your motor's printed data and your range safety officer are authoritative.
+> **How far to trust it.** Every number HPR Sim produces is an estimate from a model, not a
+> measurement, and never a go/no-go verdict. Against 55 logged flights of fliers' own designs, its
+> apogee averaged 9.83% above the logged one and was within 10% on 27
+> ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md));
+> [Accuracy so far](#accuracy-so-far) gives the rest. Your motor's printed data, your altimeter
+> and your range safety officer are authoritative.
 
 ## What the simulator is
 

@@ -28,7 +28,11 @@ familiarity with it. Today you also build the package yourself, which needs the 
 > is built and tested on Linux, macOS and Windows, and published on PyPI, Python's package
 > index, as `fusionspace-hpr`.
 
-## Install it
+## First steps
+
+Install the package, fly a first rocket, and read its recording.
+
+### Install it
 
 `pip install fusionspace-hpr` installs release 0.1.0 from PyPI, with NumPy. One wheel serves CPython 3.10 and later on Linux on x86-64, Macs with
 Apple silicon, and Windows on x86-64, with glibc 2.17 or later on Linux; elsewhere pip builds
@@ -61,7 +65,7 @@ The package's distribution name, the one `pip` lists, is `fusionspace-hpr`, and 
 says `hpr.Rocket`, `hpr.Flight` and so on; `import fusionspace.hpr as hpr` does the same.
 `fusionspace` is a namespace that other FusionSpace packages can share; it holds nothing itself.
 
-## A first flight
+### A first flight
 
 This builds a simpler version of the rocket in [Your own rocket](your-own-rocket.md) and
 [The builder](the-builder.md): a 54 mm (2.1 in) airframe with an ogive nose, three fins and a Cesaroni
@@ -146,7 +150,7 @@ nose a capped shoulder, which adds mass at the front: about 0.2 calibres more. A
 steps to these sizes
 ([`test_the_margin_moves_as_the_python_page_says`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-py/tests/test_options.py)).
 
-## The recording
+### The recording
 
 A flight is recorded at every step of the [integrator](physics/integration.md), or every
 `interval_s` seconds (at least 0.001 s) if you give `Flight` one, with a row at every event too.
@@ -205,7 +209,11 @@ errors in the simulator's drag, stability or flight path the flight meets
 `time_s`, the `parts` whose shape meets it, and a `message` saying which way its numbers lean.
 `flight.to_json()` is the whole record as JSON text.
 
-## A design from a file
+## Files and RocketPy
+
+Fly a design read from a file, and fly RocketPy's example rocket as the validation suite flies it.
+
+### A design from a file
 
 `Rocket.from_file` reads a design instead of building one: a file in
 [the HPR design format](format/hpr.md) (`.hpr` or `.hprz`), an OpenRocket `.ork` file ([`.ork`
@@ -256,7 +264,7 @@ the apogee from 7.280% below RocketPy's to 10.302% above
 [same-drag and predicted mode](glossary.md#same-drag-and-predicted-mode)). The next section flies
 Calisto from Python as that suite does, and compares it with RocketPy.
 
-## RocketPy's example, flown as the suite flies it
+### RocketPy's example, flown as the suite flies it
 
 This section flies Calisto again, this time the way the validation suite flies it against
 RocketPy. It is for checking HPR Sim against [RocketPy](glossary.md#rocketpy), or for moving a
@@ -347,7 +355,11 @@ to 10.302% above, as the section before says. The drifts differ most here. On tw
 other example rockets, Juno III and Bella Lui, flown in a wind, the drifts differ by 10 to 38%
 ([Getting started](getting-started.md#accuracy-of-these-numbers) explains why).
 
-## Drag and wind of your own
+## Drag, wind and scatter
+
+Fly a drag and a wind you write in Python, and fly a rocket many times with its inputs scattered.
+
+### Drag and wind of your own
 
 A flight can fly a drag and a wind you write as Python functions, in place of the simulator's own
 drag and the environment's wind: a drag curve from a wind tunnel or another program, say, or a wind
@@ -437,7 +449,7 @@ Each call takes Python's global interpreter lock, so a flight with a Python func
 than one without, and flights in other threads wait while it calls. The functions should give the
 same answer to the same question, or a flight can't be repeated.
 
-## Monte Carlo
+### Monte Carlo
 
 A [Monte Carlo](glossary.md#monte-carlo) run flies the rocket many times, each time with its
 uncertain inputs drawn afresh about their planned values, to show how far the apogee and the
@@ -525,7 +537,11 @@ alone. A run takes 1 to
 100,000 flights; a standard deviation that is negative or not finite raises `hpr.HprError`,
 named by its argument.
 
-## When something is wrong
+## Reference and limits
+
+The errors the package raises, how it names values and units, every call it has, and what it can't do yet.
+
+### When something is wrong
 
 A value out of its range, a part out of order, or a motor or material that isn't there raises
 `hpr.HprError`, a kind of `ValueError`, with the library's own message. So does an argument that
@@ -542,7 +558,7 @@ except hpr.HprError as error:
 no motor with a bundled thrust curve matches `Z9000`
 ```
 
-## Names and units
+### Names and units
 
 Every value is in SI units, and every argument and attribute that carries one names it, as the Rust
 API does: `length_m`, `mass_kg`, `apogee_m`, `max_speed_m_s`, `wind_from_deg`. Names that pick one
@@ -561,7 +577,7 @@ A parachute is either a canopy `diameter_m` across, with its type's drag coeffic
 `drag_coefficient`, or a [drag area](glossary.md#drag-area) `cd_s_m2`, its drag coefficient
 times its area in m², as RocketPy's `cd_s`.
 
-## Every class and method
+### Every class and method
 
 | call | what it does |
 |---|---|
@@ -586,7 +602,7 @@ have no default, but are named too. Each class and method has a docstring that s
 arguments mean: `help(hpr.Rocket.add_fins)`, for example. The Rust reference for the package, [`hpr_py`](api/hpr_py/index.html), says how it is
 built.
 
-## What is not here yet
+### What is not here yet
 
 The package covers the Rust builder, not the whole library. Not yet:
 

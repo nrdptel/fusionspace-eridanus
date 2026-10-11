@@ -48,7 +48,12 @@ under the name given; DLMF is a web reference.
 - **[DLMF]** NIST Digital Library of Mathematical Functions, equation
   [14.10.3](https://dlmf.nist.gov/14.10.E3): the recurrence used for the Legendre functions.
 
-## What declination is
+## Declination
+
+What declination is, how the World Magnetic Model computes it, and a worked example at four launch
+sites.
+
+### What declination is
 
 A compass needle lines up with the horizontal part of the Earth's magnetic field. That points to
 magnetic north, which is not true north (the direction of the North Pole along the ground). The
@@ -72,7 +77,7 @@ magnetic pole, where a compass has nothing horizontal to follow.
 
 Field strengths are in nanoteslas (nT). The Earth's field is 20,000 to 70,000 nT at the surface.
 
-## The model
+### The model
 
 The WMM writes the field as a sum of **spherical harmonics**: patterns over the globe that get
 finer as their **degree** `n` rises, from 1 (one north and one south pole, like a bar magnet) to
@@ -118,14 +123,14 @@ Two details differ from the report's printed text, and NOAA's test values settle
 - **A sign in equation 15.** The rate of `Z′` is printed with `ġ cos mλ − ḣ sin mλ`. The potential
   gives `+`, as in equation 12, and only `+` reproduces NOAA's rates.
 
-### Grid variation
+#### Grid variation
 
 Near the geographic poles, declination swings with every step east or west, so polar navigators
 use **grid variation** instead ([WMM] eq. 1): the angle from a map grid's north, that of the polar
 stereographic grid (Table 6's note), to magnetic north. It is `D − λ` north of 55° N, and `D + λ`
 south of 55° S. Elsewhere the simulator gives none (`None`), as the test values print `NaN`.
 
-### How far a compass can be trusted
+#### How far a compass can be trusted
 
 The report marks a **blackout zone** around each magnetic pole, where the horizontal intensity `H`
 is under 2,000 nT and declination can be wrong by up to 180°, and a **caution zone** around it,
@@ -146,7 +151,7 @@ pole. `MagneticField::declination_uncertainty_rad` returns it. It covers the coe
 errors, the drift of the forecast to 2030, local rocks the model leaves out, and magnetic storms;
 it does not cover a steel rail, a car or a motor case beside the compass.
 
-## A worked example
+### A worked example
 
 The example program
 [`crates/hpr/examples/declination.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/declination.rs)
@@ -172,7 +177,11 @@ At Spaceport America, New Mexico, a rail aimed at magnetic north points 7.75° e
 variation (only at Andøya, north of 55°). The drift is small: Spaceport America's declination
 falls by about 0.08° a year, so it moves well under a degree over the model's five years.
 
-## The test values
+## Tests and limits
+
+The checks the model passes, and where it stops applying.
+
+### The test values
 
 | check | points | what is compared | worst difference | held to |
 |---|---|---|---|---|
@@ -220,7 +229,7 @@ A property test also checks, at random places and times, that `H`, `F`, `I` and 
 Table 1 rounds the surface range to 23,000 to 67,000 nT, but the model itself falls to about
 21,900 nT over South America by 2030, which a test pins at 26° S, 61° W.
 
-## Limits
+### Limits
 
 - **Five years only.** WMM2025 covers 2025.0 to 2030.0. A flight log from 2024 needs WMM2020,
   which the simulator does not bundle; such a date is refused, not extrapolated.

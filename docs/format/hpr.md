@@ -34,7 +34,11 @@ A document of version 0.1 still reads, but 0.1 didn't record whether the rocket'
 exactly as written. When the document can't show it either, `hpr sim` refuses to fly another motor
 in it until the `.ork` is converted again ([versions](#versions)).
 
-## Its names: extension, format id and media type
+## The file
+
+What the format is called, what a document holds, and the zip container that carries other files beside it.
+
+### Its names: extension, format id and media type
 
 | name | value | where it is used |
 |---|---|---|
@@ -48,7 +52,7 @@ suffix, since a document is JSON any JSON tool reads. It isn't registered with I
 take it from `hpr_format::MEDIA_TYPE`. A `.hprz` has no media type of its own yet; as a zip
 archive it is `application/zip` to a program that doesn't know it.
 
-## What a document holds
+### What a document holds
 
 A document is an object with nine keys, always written in this order:
 
@@ -133,7 +137,7 @@ The document therefore records the reason, as `provenance.source.airframe_not_as
 **What the document doesn't keep: the `.ork` reader's warnings.** `hpr convert` prints them once,
 when it reads the `.ork`; `hpr sim` prints them for a `.ork` but not for a `.hpr` or `.hprz`.
 
-## The container (`.hprz`)
+### The container (`.hprz`)
 
 A `.hprz` file is a zip archive holding a design and the files that go with it: flight logs,
 results, photographs, anything. Its first entry, `design.hpr`, is the design exactly as a `.hpr`
@@ -212,7 +216,7 @@ Before it returns, the writer reads its own text back and
 compares it with the design. A value JSON can't carry, such as an infinite number, is refused with
 an error rather than written as something else.
 
-## Versions
+### Versions
 
 A version is two numbers, `major.minor`. The reader checks `format` and `version` before anything
 else, so a file of another kind or another version is refused with that reason, not with the
@@ -254,7 +258,7 @@ marked unknown, convert it to a `.hpr` and look at `provenance.source.airframe_n
 The reasons are in [ADR-111](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0111-m3-3-the-hpr-design-format-its-extensions.md), which set the extensions and the first version policy, and
 [ADR-112](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0112-m3-3b-the-hprz-container-and-migrations.md), which added the container and the first migration.
 
-## Extensions and unknown keys
+### Extensions and unknown keys
 
 What a source file holds that the simulator doesn't model is kept under `extensions`, in a
 namespace: a key that starts with `x-` and names the program the data belongs to. Version 0.2 has
@@ -285,7 +289,7 @@ and every embedded thrust curve must be among the source files. Version 0.1's sc
 it,
 [`hpr-design-0.1.schema.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/schema/format/hpr-design-0.1.schema.json).
 
-## TypeScript and Python
+### TypeScript and Python
 
 Programs in TypeScript (or JavaScript) and Python can read a document with types generated from the
 schema. Each language gets one file, with a reader that checks a document against the schema.
@@ -394,7 +398,7 @@ Each prints:
 read demo-dual-deploy.hpr: stages 1, parts 7, motor configurations 1
 ```
 
-### How the readers are checked
+#### How the readers are checked
 
 Both are checked on every change:
 

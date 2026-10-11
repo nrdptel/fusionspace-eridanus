@@ -5,14 +5,18 @@ model computes it.
 
 This page follows a flight from ignition to landing, and says in plain words what HPR Sim computes
 at each stage and which model does it. Read it to learn what lies behind a number the simulator
-prints, before the model pages it links. It describes the method, not how well it works. When both
-codes fly the same drag, whole flights match RocketPy's in height, speed and time, and in where they
-go, except for rockets that leave the rail slowly in a wind
-([Accuracy](accuracy.md#whole-flights-against-rocketpy)). With HPR Sim's own drag, against RocketPy
-flying the drag its examples ship, heights differ by −7.280% to +10.302%
-([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md);
-[Accuracy](accuracy.md#whole-flights-with-each-codes-own-drag)). [Accuracy](accuracy.md) keeps
-every result so far.
+prints, before the model pages it links.
+
+> **How far to trust it.** This page describes the method, not how well it works; every number it
+> shows is an estimate from the models it names. When both codes fly the same drag, whole flights
+> match RocketPy's in height, speed and time, and in where they go, except for rockets that leave
+> the rail slowly in a wind ([Accuracy](accuracy.md#whole-flights-against-rocketpy)). With HPR
+> Sim's own drag, against RocketPy flying the drag its examples ship, heights differ by −7.280% to
+> +10.302%
+> ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/latest.md);
+> [Accuracy](accuracy.md#whole-flights-with-each-codes-own-drag)). [Accuracy](accuracy.md) keeps
+> every result so far; for a real flight, your altimeter's log and your range safety officer have
+> the last word.
 
 ![A rocket's flight seen from the side. It lifts off the pad, leaves the rail, burns out, and coasts to apogee west of the pad, into the wind. It then drifts east under a drogue and a main parachute, and lands east of the pad. Seven numbered points mark the events: liftoff, rail exit, burnout, apogee, the drogue opening, the main opening, and landing.](images/flight-phases.svg)
 

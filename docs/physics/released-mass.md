@@ -29,7 +29,11 @@ part lands.
   [calibres](../glossary.md#calibre-caliber) in the example below. Read it from the flight's
   metrics ([Flight metrics](metrics.md#stability-margins)).
 
-## Describing a release
+## The model
+
+How a release is described, what it does to the rocket, how the part falls and how it is read back.
+
+### Describing a release
 
 A `MassRelease` names the part, when it leaves, and its drag area once it is out:
 
@@ -63,7 +67,7 @@ A release that would come on the pad or the rail makes `Simulation::run` return 
 flight: the part has nowhere to go. A flight can't combine a release with a separation, ejected
 pieces or a [moving mass](moving-mass.md) yet.
 
-## What happens at the release
+### What happens at the release
 
 At the instant the part leaves, three things happen.
 
@@ -120,7 +124,7 @@ rocket has then landed, at the release. A recorded trajectory's last row is at t
 the rocket as it was before the part left. A release that steps the rest below the ground while
 it is still climbing is an error instead.
 
-## The part's fall
+### The part's fall
 
 Once out, the part is a point mass under its drag area, its weight and the Earth's rotation, the
 equations a separated body falls by:
@@ -143,7 +147,7 @@ uncertain by at least that much. The simulator doesn't build the area for you, b
 model needs body tubes and fins, and a released part has neither. If the part carries a parachute,
 give the parachute's drag area; it is taken as open from the instant the part leaves.
 
-## Reading a release back
+### Reading a release back
 
 - `EventKind::MassRelease(i)` among the flight's events marks release `i` (its place in the list
   given to `with_releases`); its sample is the rocket just before the part left.
@@ -198,7 +202,11 @@ free-flight test below checks that the flight keeps it so.
   9.79 m/s² there ([Gravity](gravity.md)). It lands a little faster, 66.74 m/s (219.0 ft/s), because it is
   still slowing as the air thickens.
 
-## How it is checked
+## Checks, limits and sources
+
+How the model is checked, what it leaves out, and the sources it rests on.
+
+### How it is checked
 
 The tests are in `hpr_sim::releases` and `hpr_design::mass`. The last column gives the value each
 test measured, where its comments record one, and in brackets the bound it holds the code to.
@@ -229,7 +237,7 @@ Every refusal has a test that checks which rule fired, in `releases_that_cannot_
 `parts_with_no_mass_are_refused`, `triggers_a_release_cannot_have_are_refused_in_its_own_words` and
 `a_release_is_refused_with_partings_or_shifts_in_either_order`.
 
-## What it leaves out
+### What it leaves out
 
 - **A push.** Nothing throws the part out: a spring or a charge would add to its velocity and
   take from the rocket's, as an ejection's impulse does
@@ -247,7 +255,7 @@ state, the part leaving at its own velocity and falling under a drag area you gi
 refused. A part that moves along the airframe without leaving it is
 [Moving mass](moving-mass.md).
 
-## References
+### References
 
 - **[MK]** J. L. Meriam and L. G. Kraige, *Engineering Mechanics: Dynamics*: chapter 4 (kinetics
   of systems of particles: the momentum and angular momentum of a system summed over its

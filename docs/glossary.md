@@ -8,9 +8,12 @@ that models the term or uses it most. Terms are listed alphabetically in six gro
 letter: terms starting with a digit and A to C, then D to F, G to L, M to P, Q to S and T to W.
 Each term has its own heading, so any page can link straight to one; search the site for a term
 to jump to it. Headings show in capitals, so the entry's text gives a name's own spelling. Where
-HPR Sim uses a term in a particular way (a sign, a frame, a reference point), the entry says so. The
-definitions follow the model pages; if this page and a model page ever disagree, the model page is
-the authority.
+HPR Sim uses a term in a particular way (a sign, a frame, a reference point), the entry says so.
+
+> **How far to trust it.** These are definitions, not results: each of the 187 terms follows the
+> model page it links. The site's build checks that every link here, and every link other pages
+> make to a term's heading, leads somewhere, and the spelling check reads every entry. If this page
+> and a model page ever disagree, the model page is the authority.
 
 ## Digits and A to C
 

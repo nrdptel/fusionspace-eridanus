@@ -41,7 +41,11 @@ factors set into its inputs, or any function. So you can run the points however 
 threads or many machines. Each method also has a shortcut that takes a closure and runs the points
 itself.
 
-## Morris screening
+## The two methods
+
+Morris's screening ranks the factors cheaply; Sobol' indices split the output's variance among them.
+
+### Morris screening
 
 Morris's method nudges one factor at a time and watches the output move. It works on a grid: each
 factor's range is cut into `p` evenly spaced *levels* (4 is usual). A step moves one factor `p/2`
@@ -87,7 +91,7 @@ indices to settle an order that matters.
 [`hpr_analysis::sensitivity::morris`](api/hpr_analysis/sensitivity/morris/index.html) gives the
 equations and page numbers.
 
-## Sobol' indices
+### Sobol' indices
 
 Sobol's method splits the output's [variance](glossary.md#variance) (the square of its
 [standard deviation](glossary.md#standard-deviation)) among the factors. It reports two shares for

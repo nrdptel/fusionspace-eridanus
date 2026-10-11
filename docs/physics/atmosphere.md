@@ -36,14 +36,19 @@ Sources:
 - **[CIPM]** A. Picard et al., "Revised formula for the density of moist air (CIPM-2007)",
   *Metrologia* 45 (2008) 149–155, `picard-2008-cipm-2007`.
 
-## Height datum
+## The standard atmosphere
+
+The height every atmosphere is queried at, the 1976 standard, offsets for a site's own conditions,
+and what a barometric altimeter reads.
+
+### Height datum
 
 Every atmosphere is queried with **geometric height above mean sea level** (`height_msl_m`). The
 core's heights are ellipsoidal ([Frames](frames.md)), so the flight engine subtracts the geoid undulation
 first: `H_msl = h − N`. Samples carry an `extrapolated` flag, set whenever a model answers outside
 the range it is defined or tabulated over.
 
-## The 1976 standard, −5 km (−3.1 mi) to 86 km (53 mi)
+### The 1976 standard, −5 km (−3.1 mi) to 86 km (53 mi)
 
 Seven layers in geopotential altitude `H`, each with a constant gradient of the molecular-scale
 temperature `T_M` ([USSA] Table 4):
@@ -83,7 +88,7 @@ a   = (γ R* T_M / M₀)^½                                (50)
   - It had only four layers, so at 70 km (43 mi) it gave 335 K against 219.6 K.
   - Its Sutherland constants gave a sea-level viscosity 1.3% high.
 
-## Offsets and launch-site conditions
+### Offsets and launch-site conditions
 
 `Ussa76::with_offset(ΔT, P₀)` adds `ΔT` to `T_M` at every geopotential height and integrates eqs.
 33a/33b from `P₀`, so the atmosphere stays hydrostatic. `Ussa76::anchored(Z, T, P)` picks `ΔT` and
@@ -105,7 +110,7 @@ standard (`conventions.py`):
 
 Field conditions suit flights of a few kilometers; higher flights need a sounding.
 
-## Pressure altitude: what a barometric altimeter reads
+### Pressure altitude: what a barometric altimeter reads
 
 A [barometric altimeter](../glossary.md#barometric-altimeter) measures pressure, not height. It
 turns the pressure into the height at which the 1976 standard has that pressure, its **pressure
@@ -138,7 +143,11 @@ their pressure, Prometheus's and Juno III's, are this reading less the first row
 1.321 m (4.33 ft) over the rows compared
 ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md)).
 
-## Moist air
+## Moist air and weather
+
+Humid air, and profiles built from a sounding or a forecast.
+
+### Moist air
 
 An ideal mixture of dry air (`M₀`, `γ = 1.4`) and water vapour (`M_v = 18.01528 kg/kmol`,
 [CIPM] §2.1):
@@ -164,7 +173,7 @@ C_p    = (1 − x_v)(7/2) R* + x_v · 4 R*,   γ = C_p / (C_p − R*),   a = (γ
     0.4%.
   - All these numbers come from `validation/oracles/atmosphere/moist_air.py`.
 
-## Sounding and forecast profiles
+### Sounding and forecast profiles
 
 `SoundingProfile` takes the site's latitude and levels of geometric height, temperature, optional
 pressure, optional relative humidity, and optional wind speed and direction. Humidity and wind
@@ -214,7 +223,11 @@ catches hPa entered as Pa.
 - **[Loft lesson L5](../decisions-and-roadmap.md#l5):** "today's conditions" kept the standard lapse from the field up,
   ignored humidity and never used sounding temperatures.
 
-## RocketPy 1.13.0, for the code-to-code comparison
+## Comparison and tests
+
+Notes on RocketPy's atmosphere for the code-to-code comparison, and the tests that pin this one.
+
+### RocketPy 1.13.0, for the code-to-code comparison
 
 These are findings from reading `refs/rocketpy` for the RocketPy comparison of the validation
 milestone ([M2.1](../decisions-and-roadmap.md#m2-1)), not yet pinned by fixtures:
@@ -235,7 +248,7 @@ milestone ([M2.1](../decisions-and-roadmap.md#m2-1)), not yet pinned by fixtures
     Earth's.
   - Check which callers rely on that default before the [M2.1](../decisions-and-roadmap.md#m2-1) comparisons.
 
-## Tests that pin this
+### Tests that pin this
 
 - **`ussa76::tests::matches_the_1976_tables_at_32_altitudes`** (the *done when* of
   [M1.2](../decisions-and-roadmap.md#m1-2), the atmosphere and wind milestone):

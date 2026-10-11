@@ -28,7 +28,12 @@ it withholds one instead of guessing.
   check for a barometer's errors near the speed of sound
   ([What it leaves out](#what-it-leaves-out)).
 
-## Why these rules
+## The method
+
+Why the readings follow these rules, the filter applied first, and how each reading is taken or
+withheld.
+
+### Why these rules
 
 Code: `hpr_flightdata::readings`
 ([API reference](../api/hpr_flightdata/readings/index.html)), on the command line
@@ -46,7 +51,7 @@ away from the truth. Take the highest sample as the apogee and you read that swi
 So every height and time comes from the altitude after a running median, which removes the
 swing, and each reading has a rule that says when the log can't support it.
 
-## The running median
+### The running median
 
 The running median replaces each sample with the median of the samples within `K` places of it,
 the window cut short at either end of the log. The code sets `K` from the log's own sample interval
@@ -83,7 +88,7 @@ the 1,009 ft the altimeter states. After the running median, the apogee reads 1,
 invented flight below repeats that shape, so the tests show the difference where anyone can run
 them.
 
-## Each reading
+### Each reading
 
 In the rules below, the **climb** begins at the first sample whose filtered altitude is 3 m (9.8 ft) above
 where the log starts. The **pad** is the median of the altitude before it first rises 1 m (3.3 ft), so no
@@ -114,7 +119,7 @@ The top acceleration is withheld rather than worked out from the altitude. Diffe
 turns the altitude's one-foot steps into spikes: at 20 samples a second, one step differenced
 twice is 0.3048 / 0.05² = 122 m/s², over 12 g.
 
-## When a reading is withheld
+### When a reading is withheld
 
 A withheld reading has a code and a sentence with the log's own numbers. Only the readings that
 need the missing one go: a log that starts in the air loses its liftoff, and with it the time to
@@ -143,7 +148,11 @@ PerfectFlite log.
 An apogee within half a window of the log's end is read, but marked `is_floor`: the log may have
 stopped before the rocket did.
 
-## Checked against
+## Validation and limits
+
+What the readings were checked against, and what they leave out.
+
+### Checked against
 
 **An invented flight.** The file
 [`synthetic-pnut.pf2`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/logs/synthetic-pnut.pf2)
@@ -194,7 +203,7 @@ FusionSpace HPR reads the trace as the altimeter does, not that either is the tr
 A Featherweight Raven flew on the same flight, and Debrief reports it agreeing at about 1,009 ft.
 Reading the Raven's file is [M7.1](../decisions-and-roadmap.md#m7-1)'s work.
 
-## What it leaves out
+### What it leaves out
 
 - **The day's air.** The altitude is the logger's own conversion of its pressure, which assumes a
   standard atmosphere. On a warm day a barometric altimeter reads low, 6.5% on a day 20 K warmer
@@ -216,7 +225,11 @@ Reading the Raven's file is [M7.1](../decisions-and-roadmap.md#m7-1)'s work.
   ([M7.2](../decisions-and-roadmap.md#m7-2)).
 - **Other loggers.** Only PerfectFlite's `.pf2` is read ([M7.1](../decisions-and-roadmap.md#m7-1)).
 
-## Tests
+## Tests and references
+
+The tests that pin the readings, and the sources they follow.
+
+### Tests
 
 - `hpr_flightdata::synthetic`: the invented flight, its readings against the truth, and the
   Hampel filter keeping the pulse the median removes.
@@ -234,7 +247,7 @@ Reading the Raven's file is [M7.1](../decisions-and-roadmap.md#m7-1)'s work.
 - `crates/hpr-cli/tests/cli.rs`: `hpr analyze` on a log alone in a folder, its JSON checked against
   the published schema; the public Pnut log, where fetched.
 
-## References
+### References
 
 - R. K. Pearson, Y. Neuvo, J. Astola and M. Gabbouj, *The Class of Generalized Hampel Filters*,
   23rd European Signal Processing Conference (EUSIPCO), 2015, §2, eqs. 1 and 2. Pinned as

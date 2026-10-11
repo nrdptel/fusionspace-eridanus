@@ -71,7 +71,11 @@ of evaluations can be afforded. It needs some Rust.
 >   [M6.2](decisions-and-roadmap.md#m6-2), the optimization milestone. There is no command-line
 >   or Python front end yet.
 
-## What the optimizer does
+## The optimizer
+
+What CMA-ES changes and minimizes, how it searches, and what it was checked against.
+
+### What the optimizer does
 
 The optimizer changes *variables*: numbers in the design, such as a ballast mass or a body length
 ([`Variable`]). For each variable you give three things:
@@ -84,7 +88,7 @@ The optimizer changes *variables*: numbers in the design, such as a ballast mass
 It *minimizes* one number your model returns. To maximize something, minimize its negative. To hit
 a target, minimize the squared miss: `(apogee − 3,048 m)²` is smallest, zero, on the target.
 
-## How CMA-ES searches
+### How CMA-ES searches
 
 CMA-ES is the *covariance matrix adaptation evolution strategy*, N. Hansen's method ("The CMA
 Evolution Strategy: A Tutorial", [arXiv:1604.00772](https://arxiv.org/abs/1604.00772), 2023). It
@@ -114,7 +118,7 @@ The cloud is shaped in each variable divided by its step, so variables in meters
 kilograms start on an equal footing, as the tutorial advises.
 [`hpr_analysis::optimize::cmaes`](api/hpr_analysis/optimize/cmaes/index.html) lists every equation.
 
-### Bounds
+#### Bounds
 
 A sampled design outside a variable's bounds is thrown away and drawn again, the tutorial's
 simplest way of handling bounds. It works well while the answer lies inside the range. If it
@@ -122,7 +126,7 @@ lies on a bound, the run slows down near it. If any one design of a generation i
 after 1,000 tries, the run stops and says so. With many variables near their bounds this comes
 soon: each such variable halves the chance that a draw falls inside.
 
-### When a run stops
+#### When a run stops
 
 A run stops at the first of these ([`Stop`]):
 
@@ -141,7 +145,7 @@ The result ([`Optimum`]) gives the best design found, its value, how many evalua
 and why it stopped. If every design so far failed (your model returned infinity for each), the
 value is infinite: check it before using the design.
 
-## Checked against
+### Checked against
 
 Four test functions from CMA-ES's authors (N. Hansen, S. D. Müller and P. Koumoutsakos,
 *Evolutionary Computation* 11(1), 2003, Table 1), each with ten variables
@@ -200,7 +204,11 @@ pycma is run by
 [`validation/oracles/cmaes/pycma_runs.py`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/oracles/cmaes/pycma_runs.py),
 whose results are committed beside the test.
 
-## An example
+## Using the optimizer
+
+A first rocket example, then how to fly the designs yourself, choose the settings and add limits.
+
+### An example
 
 The example program
 [`crates/hpr/examples/optimization.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr/examples/optimization.rs)
@@ -270,14 +278,14 @@ design in 300 flights on the development machine, about 50 generations. Flown ag
 tolerances, its apogee moves by 1.4 mm (0.055 in). Limits on other things, such as the rail-exit speed, are the
 subject of [Limits on a design](#limits-on-a-design), and the second example uses them.
 
-## Evaluating designs your own way
+### Evaluating designs your own way
 
 `minimize` flies one design after another. To fly a generation's designs on several threads or
 machines, use the run's steps yourself ([`Run`]): `Cmaes::start` draws the first generation,
 `candidates` lists its designs, and `tell` takes their values, in the same order, and draws the
 next. It returns the result once the run stops.
 
-## Choosing the numbers
+### Choosing the numbers
 
 - **Steps:** about a quarter to a third of the range the answer is likely in, in the variable's
   own units. Steps of very different sizes are fine: the run works in each variable divided by its
@@ -298,7 +306,7 @@ next. It returns the result once the run stops.
   flights, to pass its 0.5% check. The population is also
   how many designs the front can hold. Compare the fronts from two seeds before trusting one.
 
-## Limits on a design
+### Limits on a design
 
 A design usually has limits as well as a goal: a stability margin of at least 1.5 calibres, say, or
 at least 15 m/s (49 ft/s) off the rail. The optimizer takes them as constraints, each written as a

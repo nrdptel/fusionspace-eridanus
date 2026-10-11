@@ -247,7 +247,11 @@ winds aloft is not separated. The calm flight's 5.1 m (17 ft) west is Earth's ro
 rocket is pushed west (the Coriolis effect), as on the [Launch-day weather](weather.md#an-example)
 page. Which model is nearer the air Calisto would have met is not measured.
 
-## A whole GFS file
+## Whole files offline
+
+A whole downloaded file reads with no network, including fields packed as JPEG 2000 images.
+
+### A whole GFS file
 
 Instead of asking NOMADS for a cut, you can download a whole GFS file and read it offline, for
 example before driving out to a launch with no signal. NOMADS keeps the most recent runs, and
@@ -290,7 +294,7 @@ within 1.04e-7 of each value, relatively, and 13 more above them. Why they diffe
 packs its cuts again in fewer bits. Read with ecCodes, without HPR Sim, the two files already differ
 by up to 2.4e-6, relatively, at the cut's grid points.
 
-## Files in JPEG 2000
+### Files in JPEG 2000
 
 Some of NCEP's files compress each field as a picture: the packed whole numbers become a
 greyscale image, stored in the JPEG 2000 image format (GRIB2's template 5.40). RAP's whole

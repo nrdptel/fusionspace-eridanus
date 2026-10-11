@@ -13,11 +13,16 @@ of Wyoming** ([Weather-balloon soundings](soundings.md)), **NOAA's GFS and RAP f
 ([A launch site's elevation](elevation.md)), **motor.fusionspace.co's motor stock and prices,
 and ThrustCurve.org's motor records and thrust curves** (both on
 [Motor stock and prices](motor-stock.md); `hpr sim` and `hpr motors fetch` fetch a curve the
-bundled catalog lacks, [Motors from ThrustCurve.org](cli.md#motors-from-thrustcurveorg)). Its tests replay a small hand-written
-sample response and answers recorded from each, from a folder and from a test web server on the
-machine running the tests, never the live network. Those tests speak plain HTTP only: encrypted
-HTTPS was checked by hand, against Open-Meteo and then through the command line's
-[`hpr weather`](cli.md#hpr-weather) against all four sources, not in CI.
+bundled catalog lacks, [Motors from ThrustCurve.org](cli.md#motors-from-thrustcurveorg)).
+
+> **How far to trust it.** What the crate returns is a copy of what each source served, not a
+> measurement by HPR Sim, and each answer says how fresh it is. Its tests replay a small
+> hand-written sample response and answers recorded from each of the six sources, from a folder
+> and from a test web server on the machine running the tests, never the live network. Those tests
+> speak plain HTTP only: encrypted HTTPS was checked by hand, against Open-Meteo and then through
+> the command line's [`hpr weather`](cli.md#hpr-weather) against all four sources, not in CI. When
+> it matters, rely on the source itself and on the day's conditions at the field, not a cached
+> copy.
 
 ## What it promises
 

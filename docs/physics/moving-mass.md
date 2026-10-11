@@ -26,7 +26,11 @@ of mass, stability margin and flight.
   or turns; and the shock of a part hitting a stop. The motion's shape is a choice made here, not
   something a source gives for rockets.
 
-## Describing a shift
+## The model
+
+How a shift is described, and what it changes in the mass properties and the equations of motion.
+
+### Describing a shift
 
 A `MassShift` names the part, how far it moves, how long it takes, and when it starts:
 
@@ -94,7 +98,7 @@ integrator takes at least 16 steps across it. That matters with fixed-step
 [RK4](../glossary.md#dormandprince-and-rk4): a 10 ms step would otherwise take a 10 ms move in one
 step.
 
-## What the rocket's mass properties do
+### What the rocket's mass properties do
 
 Moving a part inside the rocket doesn't change the rocket's mass. It moves the center of mass
 the same way as the part, by the part's share of the mass. With `M` the rocket's mass, `m` the
@@ -133,7 +137,7 @@ change in static margin = − m Δ / (M d)
 The flight margin, at the flight's own Mach number, moves by the same amount at any one instant,
 since only its center of pressure differs.
 
-## What the equations of motion add
+### What the equations of motion add
 
 The equations of motion ([Rigid-body flight](flight.md)) are written about the nose tip, `O`, a
 point fixed in the airframe, in body axes. `ω` is the airframe's rate of turn and `r` the center
@@ -210,7 +214,11 @@ The static margin falls from 4.297 calibres to 2.996, a change of −1.302 from 
 values. By hand it is `−0.0733 / 0.0563 = −1.302`, with `d = 0.0563` m. The apogee barely moves:
 1749.8 m (5,741 ft) with the ballast moving, 1749.9 m (5,741 ft) with it held still.
 
-## How it is checked
+## Checks, limits and sources
+
+How the model is checked, what it leaves out, and the sources it rests on.
+
+### How it is checked
 
 The tests are in `hpr_sim::shifts` and `hpr_design::mass`. The last column is what each test
 measured, where it records it, and in brackets the bound it holds the code to.
@@ -240,7 +248,7 @@ Every refusal has a test that checks which rule fired, in `shifts_that_cannot_be
 `refusals_that_need_a_design_of_their_own` and
 `triggers_a_shift_cannot_have_are_refused_in_its_own_words`.
 
-## What it leaves out
+### What it leaves out
 
 - **Releasing a mass.** Ballast or a payload that leaves the rocket while the rest flies on is
   [Released mass](released-mass.md), added with [M1.12b](../decisions-and-roadmap.md#m1-12b).
@@ -256,7 +264,7 @@ Every refusal has a test that checks which rule fired, in `shifts_that_cannot_be
 
 The decision record is [ADR-087][adr-087].
 
-## References
+### References
 
 - **[MK]** J. L. Meriam and L. G. Kraige, *Engineering Mechanics: Dynamics*: chapter 4 (kinetics
   of systems of particles: the force and moment equations summed over particles, and angular

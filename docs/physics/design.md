@@ -83,7 +83,11 @@ source code, whose license (GPL) is incompatible with this project's (the clean-
 planned OpenRocket import ([M3.1](../decisions-and-roadmap.md#m3-1), reading `.ork` files) and
 comparison ([M2.2](../decisions-and-roadmap.md#m2-2)) will map them by running OpenRocket itself.
 
-## Stations and the body origin
+## Building the tree
+
+How parts are placed in the tree, sized from their neighbors, overridden and measured.
+
+### Stations and the body origin
 
 - A **[station](../glossary.md#station)** `s` is a distance aft of the nose tip, the way design
   files give positions.
@@ -94,7 +98,7 @@ comparison ([M2.2](../decisions-and-roadmap.md#m2-2)) will map them by running O
   translated by `(0, 0, −s)`. Radial offsets and roll angles stay as the part states them, always
   measured from the body axis.
 
-## The tree
+### The tree
 
 A [`Rocket`](../api/hpr_design/tree/struct.Rocket.html) has stages: sections of the stack, forward
 to aft. A [separation](../glossary.md#separation) splits the rocket at a boundary between two
@@ -145,7 +149,7 @@ Each [`Stage`](../api/hpr_design/tree/struct.Stage.html) lists **body components
   aerodynamics take 1 to 8 fins in a set ([aerodynamics: fin count](aero.md#fins)), so 9 to 64 fins
   are weighed but don't fly.
 
-## Positions
+### Positions
 
 An attached part of extent `L` in a parent spanning stations `[p, p + P]`, with offset `a`
 (positive aft):
@@ -158,7 +162,7 @@ An attached part of extent `L` in a parent spanning stations `[p, p + P]`, with 
 | `after` | the previous sibling's aft end `+ a`, or `p + a` for the first child |
 | `absolute` | `station_m` |
 
-## Automatic dimensions
+### Automatic dimensions
 
 An `auto` list names dimensions that the tree resolves. The part's stored value for them is ignored.
 
@@ -189,7 +193,7 @@ An `auto` list names dimensions that the tree resolves. The part's stored value 
   radius OpenRocket 24.12 gives, measured on probes
   ([`.ork` design files](../format/ork.md#tube-fins-sized-from-the-body)).
 
-## Overrides
+### Overrides
 
 [`Overrides`](../api/hpr_design/tree/struct.Overrides.html) replace computed mass properties with
 measured ones: the mass `m`, the center of mass `c` and the inertia tensor `I` (the 3×3 table of
@@ -230,7 +234,7 @@ Errors inside a stage or component name it (`DesignError::InComponent`).
   [M2.2b1](../decisions-and-roadmap.md#m2-2b1); see
   [Mass properties](mass.md#what-a-ork-leaves-unsaid-and-overrides)).
 
-## Reference diameter
+### Reference diameter
 
 - `maximum` (the default): twice the largest outer radius of any body component in any stage,
   including a bulged ogive's peak (`Profile::max_radius_m`). Internal parts, shoulders, fins, tube
@@ -241,7 +245,11 @@ Errors inside a stage or component name it (`DesignError::InComponent`).
 
 The reference area is `π d²/4`.
 
-## Motors and configurations
+## Motors, pods and stages
+
+How motors, clusters, pods and parallel stages join the rocket.
+
+### Motors and configurations
 
 - **Mounts.** A [`MotorMount`](../api/hpr_design/config/struct.MotorMount.html) on a body tube or
   inner tube holds a motor. Its `overhang_m` is how far the nozzle exit sits aft of the mount's aft
@@ -279,7 +287,7 @@ The reference area is `π d²/4`.
   tensor is moved there before comparing. `I_33` sums the axial moments (every element is on the
   axis).
 
-## Clusters
+### Clusters
 
 A cluster is several like motors side by side. In HPR Sim it is one inner tube repeated: the tube's
 [`cluster_m`](../api/hpr_design/parts/struct.InnerTube.html#structfield.cluster_m) lists each
@@ -348,7 +356,7 @@ all three lit, the thrusts balance, and the rocket turns 225 times slower (0.186
 center of mass sitting 0.033 mm (0.0013 in) off the axis. The numbers are pinned by the test
 `cluster_motor_out_produces_pitch_moment` in `fusionspace-hpr-sim`.
 
-## Pods
+### Pods
 
 A pod is a body beside the airframe: a side pod, or an outboard motor pod. In HPR Sim a
 [`PodSet`](../api/hpr_design/parts/struct.PodSet.html) is attached to a body tube like a fin set,
@@ -478,7 +486,7 @@ where its center is at `z = −0.39041` m, the pod's
 [product of inertia](../glossary.md#product-of-inertia) is `I_yz = −m y z` = 0.067125 × 0.05 ×
 0.39041 = 1.3103e-3 kg m².
 
-## Parallel stages
+### Parallel stages
 
 A parallel stage is a stage strapped beside the airframe instead of stacked behind it: a set of
 boosters around a sustainer, burning beside it and dropping at a separation of their own. In HPR Sim
@@ -549,7 +557,11 @@ body tube `airframe`:
 }
 ```
 
-## Checks
+## Checks and verification
+
+What a design is checked for before it flies, and the tests that pin the tree.
+
+### Checks
 
 [`checks::check`](../api/hpr_design/checks/fn.check.html) resolves a design and returns typed
 [`Finding`](../api/hpr_design/checks/enum.Finding.html)s, each an error (impossible as described,
@@ -591,7 +603,7 @@ slack (`LENGTH_TOLERANCE_M`), so round-off never raises one.
   center override (`cg_xy_m`) can move a center past its parts. It is an error only when an axial
   center override (`cg_aft_m`) is involved; no component-level center is checked.
 
-### Wider than its parent
+#### Wider than its parent
 
 A part drawn a little wider than the bore it sits in is a fit the builder sands. The simulator flies
 it and warns, `internal_part_tight_in_parent`, and the mass where the part crosses its parent's wall
@@ -633,7 +645,7 @@ part that fits.
   holds it whole, such as a ring on a motor tube where it sticks out past the airframe's end
   ([M4.5k](../decisions-and-roadmap.md#m4-5k), a ring around its tube).
 
-### In a nose cone or transition
+#### In a nose cone or transition
 
 A nose cone or transition narrows along its length, so the room a part has depends on where it
 sits. This is a design convention, checked by unit tests and by counting findings over real
@@ -686,7 +698,7 @@ the private flight collection (560 files that open, many of them versions of one
 16 errors in 11 files newly refused, all tubes too wide even at the profile's widest, and 14
 tight-fit, 33 wedged and 240 packed-part warnings.
 
-### A packed part wider than its bore
+#### A packed part wider than its bore
 
 **A packed part drawn wider than its bore warns and flies as drawn.** Its width changes only its
 own inertia; on the one OpenRocket example that has one, that moves the apogee by 12 µm at most.
@@ -721,7 +733,7 @@ Flown both ways, with both parts narrowed in a copy of the file, the five config
 differ by 12 µm at most, 7.5e-8 of the apogee, and their landing times agree to 1 ms
 ([ADR-170's table][adr-170]).
 
-### A nominal motor in its matching tube
+#### A nominal motor in its matching tube
 
 A motor's diameter in the simulator is its nominal size, as ThrustCurve.org and RASP files give it,
 so every 29 mm motor is flown as a 29 mm case. The cases are not all that wide. AeroTech's RMS dimensional drawings
@@ -754,7 +766,7 @@ refuses them with [`SimError::DesignChecks`](../api/hpr_sim/error/enum.SimError.
 unless the caller sets
 [`FlightSettings::accept_design_errors`](../api/hpr_sim/flight/struct.FlightSettings.html#structfield.accept_design_errors).
 
-## Verification
+### Verification
 
 - **Placement and resolution** (`tree::tests`): each position rule at stations worked by hand;
   body components stacking through two stages; automatic radii across a stage boundary, the

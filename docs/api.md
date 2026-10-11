@@ -21,11 +21,13 @@ cargo doc --workspace --no-deps --open
 That opens one crate's front page; the others are in the list of crates on the left. `cargo xtask
 site` builds this whole site, with the reference beside the guide.
 
-The reference is built from the same source that CI, the project's automated checks, compiles on
-every change, so it describes the code as it is. Every link in it is checked in CI, apart from a
-few inside the vector types' documentation, which rustdoc copies from glam, the vector library
-the code uses. Physics items give their equation and cite their source, as the model pages here do.
-Each crate's front page links back to the pages here that explain its models.
+> **How far to trust it.** The reference is generated, not written by hand: rustdoc builds it from
+> the same source that CI, the project's automated checks, compiles on every change, so it
+> describes the code as it is, for each of the 17 crates this page links. Every link in it is
+> checked in CI, apart from a few inside the vector types' documentation, which rustdoc copies
+> from glam, the vector library the code uses. It says what the code does, not how well its
+> numbers match the world: physics items give their equation and cite their source, and the model
+> pages here say how well each model is validated. Each crate's front page links back to them.
 
 ## The crates
 
