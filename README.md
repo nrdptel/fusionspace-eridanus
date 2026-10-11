@@ -60,7 +60,7 @@ Release 0.1.0 is out:
 the details, and [the changelog](https://github.com/nrdptel/fusionspace-eridanus/blob/main/CHANGELOG.md) says
 what 0.1.0 does, how far to trust it, and its known gaps.
 
-Until then, build it from a copy of this repository. You need [Git](https://git-scm.com) and
+To build it yourself instead, use a copy of this repository. You need [Git](https://git-scm.com) and
 [rustup](https://rustup.rs), Rust's installer; the first build fetches the pinned Rust version and
 takes a few minutes.
 [Getting started](https://hpr.fusionspace.co/getting-started.html#what-you-need) lists what

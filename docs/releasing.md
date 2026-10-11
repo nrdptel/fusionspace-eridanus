@@ -8,7 +8,7 @@ from one commit; it tests each as you would get it, and publishes nothing until 
 owns the project, approves.** This page says what a release holds, which license files come with each file,
 how each is checked, and how to check one yourself. The building and checking run when the workflow
 is started by hand, and on every pull request that changes it or its scripts (`scripts/release/`).
-The publishing steps have never run.
+The publishing steps first ran for 0.1.0, on 2026-10-08.
 
 ## What a release holds
 
@@ -106,8 +106,8 @@ suite and the validation cases do that, on every change ([Accuracy](accuracy.md)
 
 **Neer publishes in two steps:** he starts the workflow with *publish* ticked, and then approves
 its `release` [environment](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments),
-a GitHub setting whose required reviewer is him. Until he has made that setting, the workflow is
-never started with *publish* ticked. The crates then go to crates.io, the wheels and
+a GitHub setting whose required reviewer is him; the workflow is started with *publish* ticked
+only with that setting in place. The crates then go to crates.io, the wheels and
 source package to PyPI, and the archives into a draft GitHub release; publishing the draft makes
 the version's tag.
 

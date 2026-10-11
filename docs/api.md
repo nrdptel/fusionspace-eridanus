@@ -76,8 +76,8 @@ features `net`, `parquet` and `parallel` add the online data sources, Parquet ex
 Carlo on worker threads ([Install a release](getting-started.md#install-a-release)). Until 1.0, a
 new minor version, such as 0.2, may change the API.
 
-Until then, a program outside this repository can depend on a crate straight from GitHub, pinned
-to a commit, since anything can change between commits. Take the commit's hash from
+To follow `main` instead of a release, a program outside this repository can depend on a crate
+straight from GitHub, pinned to a commit, since anything can change between commits. Take the commit's hash from
 [the history of `main`](https://github.com/nrdptel/fusionspace-eridanus/commits/main), and change it only on
 purpose:
 
