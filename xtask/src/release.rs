@@ -449,7 +449,9 @@ mod tests {
     fn the_readmes_follow_the_writing_order_with_the_version() {
         let root = root();
         let workspace = read(&root.join("Cargo.toml"));
-        let version = workspace["workspace"]["package"]["version"].as_str().unwrap();
+        let version = workspace["workspace"]["package"]["version"]
+            .as_str()
+            .unwrap();
         let licensed = format!("`FS-ACHERNAR · SW · TOOL 001` · version {version} · part of");
         let readmes: [(&str, &[&str]); 2] = [
             (
@@ -478,10 +480,17 @@ mod tests {
             let mut at = 0;
             for heading in order {
                 let found = headings[at..].iter().position(|h| h == heading);
-                assert!(found.is_some(), "{path}: `{heading}` missing or out of order");
+                assert!(
+                    found.is_some(),
+                    "{path}: `{heading}` missing or out of order"
+                );
                 at += found.unwrap_or_default() + 1;
             }
-            assert_eq!(headings.last(), order.last(), "{path}: the license comes last");
+            assert_eq!(
+                headings.last(),
+                order.last(),
+                "{path}: the license comes last"
+            );
             let before_sections = text.split("\n## ").next().unwrap_or_default();
             let status = before_sections
                 .lines()

@@ -87,7 +87,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use pulldown_cmark::{
-    Alignment, BrokenLink, CodeBlockKind, Event, HeadingLevel, LinkType, Options, Parser, Tag, TagEnd,
+    Alignment, BrokenLink, CodeBlockKind, Event, HeadingLevel, LinkType, Options, Parser, Tag,
+    TagEnd,
 };
 
 use crate::workspace::{Package, Workspace};

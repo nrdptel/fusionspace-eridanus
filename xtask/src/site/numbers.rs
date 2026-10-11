@@ -19,15 +19,17 @@ use super::units::rendered_runs;
 
 /// The characters after which a hyphen-minus before a digit is a minus sign: an opening bracket
 /// or an operator. A space or the start of a run count too.
-const BEFORE_A_MINUS: [char; 13] = ['(', '[', '{', '=', '<', '>', '≤', '≥', '≈', '~', '±', '/', '×'];
+const BEFORE_A_MINUS: [char; 13] = [
+    '(', '[', '{', '=', '<', '>', '≤', '≥', '≈', '~', '±', '/', '×',
+];
 
 /// The words a number cell may hold after its figure: units, as `data.md` writes them, and the
 /// project's own (`cal`, `calibers`, `g` for acceleration). Any other word makes a cell text.
 const UNITS: [&str; 47] = [
     "m", "km", "cm", "mm", "ft", "in", "mi", "s", "ms", "min", "h", "kg", "g", "lb", "lbf", "oz",
-    "N", "kN", "Ns", "Pa", "kPa", "hPa", "MPa", "psi", "K", "C", "F", "rad", "deg", "Hz", "J",
-    "W", "mph", "kt", "kn", "cal", "caliber", "calibers", "AGL", "MSL", "Mach", "e", "x", "σ",
-    "kB", "MB", "GB",
+    "N", "kN", "Ns", "Pa", "kPa", "hPa", "MPa", "psi", "K", "C", "F", "rad", "deg", "Hz", "J", "W",
+    "mph", "kt", "kn", "cal", "caliber", "calibers", "AGL", "MSL", "Mach", "e", "x", "σ", "kB",
+    "MB", "GB",
 ];
 
 /// The cells that hold nothing: empty, a dash, or "n/a".
@@ -89,10 +91,7 @@ pub(super) fn number_columns(text: &str) -> Vec<(usize, String)> {
                 .filter(|cell| !(cell.code.is_empty() && BLANK.contains(&cell.text.trim())))
                 .collect();
             if !cells.is_empty() && cells.iter().all(|cell| is_number(cell)) {
-                let head = table
-                    .header
-                    .get(column)
-                    .map_or("", |cell| cell.text.trim());
+                let head = table.header.get(column).map_or("", |cell| cell.text.trim());
                 problems.push((
                     table.line,
                     format!(
@@ -191,8 +190,14 @@ mod tests {
                     | b | 12 | n/a |\n";
         let problems = number_columns(page);
         assert_eq!(lines(&problems), [1, 1]);
-        assert!(problems[0].1.contains("column 2 (\"Apogee\")"), "{problems:?}");
-        assert!(problems[1].1.contains("column 3 (\"Error\")"), "{problems:?}");
+        assert!(
+            problems[0].1.contains("column 2 (\"Apogee\")"),
+            "{problems:?}"
+        );
+        assert!(
+            problems[1].1.contains("column 3 (\"Error\")"),
+            "{problems:?}"
+        );
         let right = "| Case | Apogee |\n|---|---:|\n| a | 1,400 m |\n";
         assert!(number_columns(right).is_empty());
     }
@@ -220,7 +225,15 @@ mod tests {
             };
             assert!(is_number(&cell), "{number}");
         }
-        for text in ["2026-10-04", "0.1.0", "53 flights", "M1.14a", "none yet", "#386", "Yes"] {
+        for text in [
+            "2026-10-04",
+            "0.1.0",
+            "53 flights",
+            "M1.14a",
+            "none yet",
+            "#386",
+            "Yes",
+        ] {
             let cell = super::super::Cell {
                 text: text.to_owned(),
                 code: Vec::new(),
@@ -236,7 +249,8 @@ mod tests {
 
     #[test]
     fn text_and_blank_columns_are_left_alone() {
-        let page = "| Case | Note | Count |\n|---|---|---|\n| 1 | fine | n/a |\n| 2 | 3 flights | – |\n";
+        let page =
+            "| Case | Note | Count |\n|---|---|---|\n| 1 | fine | n/a |\n| 2 | 3 flights | – |\n";
         // The first column is numbers; the second text; the third only blanks.
         assert_eq!(number_columns(page).len(), 1);
     }

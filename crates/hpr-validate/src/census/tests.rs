@@ -751,5 +751,8 @@ fn a_signed_percent_has_a_real_minus_sign() {
 fn the_caliber_unit_reads_its_old_key_and_writes_the_new_one() {
     let old: Unit = serde_json::from_str("\"calibre\"").unwrap();
     assert_eq!(old, Unit::Caliber);
-    assert_eq!(serde_json::to_string(&Unit::Caliber).unwrap(), "\"caliber\"");
+    assert_eq!(
+        serde_json::to_string(&Unit::Caliber).unwrap(),
+        "\"caliber\""
+    );
 }

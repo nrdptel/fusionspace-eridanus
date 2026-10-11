@@ -160,14 +160,72 @@ const RULES: &[(&str, &str)] = &[
 /// "normalisation". Only whole stems are listed, so "otherwise", "exercise", "expertise" and
 /// "optimistic" are never read as misspellings.
 const ISE_STEMS: &[&str] = &[
-    "anonym", "apolog", "author", "capital", "categor", "central", "character", "commercial",
-    "critic", "custom", "digit", "discret", "econom", "emphas", "energ", "equal", "familiar",
-    "final", "formal", "general", "global", "harmon", "hypothes", "initial", "item", "legal",
-    "linear", "local", "material", "maxim", "memor", "minim", "mobil", "modern", "neutral",
-    "normal", "optim", "organ", "parameter", "parametr", "penal", "personal", "polar", "priorit",
-    "random", "rational", "real", "recogn", "regular", "sanit", "sensit", "serial", "special",
-    "stabil", "standard", "steril", "subsid", "summar", "symbol", "synchron", "synthes", "theor",
-    "token", "util", "vector", "visual",
+    "anonym",
+    "apolog",
+    "author",
+    "capital",
+    "categor",
+    "central",
+    "character",
+    "commercial",
+    "critic",
+    "custom",
+    "digit",
+    "discret",
+    "econom",
+    "emphas",
+    "energ",
+    "equal",
+    "familiar",
+    "final",
+    "formal",
+    "general",
+    "global",
+    "harmon",
+    "hypothes",
+    "initial",
+    "item",
+    "legal",
+    "linear",
+    "local",
+    "material",
+    "maxim",
+    "memor",
+    "minim",
+    "mobil",
+    "modern",
+    "neutral",
+    "normal",
+    "optim",
+    "organ",
+    "parameter",
+    "parametr",
+    "penal",
+    "personal",
+    "polar",
+    "priorit",
+    "random",
+    "rational",
+    "real",
+    "recogn",
+    "regular",
+    "sanit",
+    "sensit",
+    "serial",
+    "special",
+    "stabil",
+    "standard",
+    "steril",
+    "subsid",
+    "summar",
+    "symbol",
+    "synchron",
+    "synthes",
+    "theor",
+    "token",
+    "util",
+    "vector",
+    "visual",
 ];
 
 /// The British endings of an [`ISE_STEMS`] word, each with its US form, longer first.
@@ -204,7 +262,11 @@ const ALLOWED: &[(&str, &str, Reason)] = &[
         "Airbus Defence and Space",
         Reason::Name,
     ),
-    ("docs/elevation.md", "Airbus Defence and Space", Reason::Name),
+    (
+        "docs/elevation.md",
+        "Airbus Defence and Space",
+        Reason::Name,
+    ),
     // The census's unit key before M0.9e, still read.
     (
         "crates/hpr-validate/src/census.rs",
@@ -1094,7 +1156,11 @@ fn misspelling(token: &str) -> Option<String> {
         .iter()
         .find_map(|(piece, us)| {
             let at = lower.find(piece)?;
-            Some(format!("{}{us}{}", &lower[..at], &lower[at + piece.len()..]))
+            Some(format!(
+                "{}{us}{}",
+                &lower[..at],
+                &lower[at + piece.len()..]
+            ))
         })
         .or_else(|| {
             ISE_STEMS.iter().find_map(|stem| {

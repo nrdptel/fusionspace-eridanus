@@ -692,8 +692,7 @@ fn recorded_heights_are_geopotential() {
     };
     /// Standard gravity, which defines the geopotential meter, m/s².
     const G0: f64 = 9.806_65;
-    let epsilon =
-        WATER_VAPOR_MOLECULAR_WEIGHT_KG_PER_KMOL / SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL;
+    let epsilon = WATER_VAPOR_MOLECULAR_WEIGHT_KG_PER_KMOL / SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL;
     let latitude_rad = LATITUDE_DEG.to_radians();
     for (name, _) in recordings() {
         let profile = NomadsProfile::parse(&fixture(name), LATITUDE_DEG, LONGITUDE_DEG).unwrap();

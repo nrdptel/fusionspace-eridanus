@@ -371,8 +371,7 @@ fn recorded_heights_are_geopotential() {
     };
     /// Standard gravity, which defines the geopotential meter, m/s².
     const G0: f64 = 9.806_65;
-    let epsilon =
-        WATER_VAPOR_MOLECULAR_WEIGHT_KG_PER_KMOL / SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL;
+    let epsilon = WATER_VAPOR_MOLECULAR_WEIGHT_KG_PER_KMOL / SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL;
     let levels: Vec<u32> = PRESSURE_LEVELS_HPA
         .into_iter()
         .filter(|&p| p <= 500)

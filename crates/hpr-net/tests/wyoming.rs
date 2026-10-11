@@ -305,8 +305,7 @@ fn recorded_heights_are_geopotential() {
     const STANDARD_HPA: [f64; 14] = [
         850.0, 700.0, 500.0, 400.0, 300.0, 250.0, 200.0, 150.0, 100.0, 70.0, 50.0, 30.0, 20.0, 10.0,
     ];
-    let epsilon =
-        WATER_VAPOR_MOLECULAR_WEIGHT_KG_PER_KMOL / SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL;
+    let epsilon = WATER_VAPOR_MOLECULAR_WEIGHT_KG_PER_KMOL / SEA_LEVEL_MOLECULAR_WEIGHT_KG_PER_KMOL;
     for name in [FM35, WINTER, BUFR] {
         let (kept, _, _) = apply_rule(name);
         // (pressure hPa, geopotential m, virtual temperature K)
