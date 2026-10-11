@@ -385,7 +385,11 @@ Two things make the lab slower than a visit: its server speaks HTTP/1.1, where a
 at most six connections to one server, while GitHub Pages, which serves the site, speaks HTTP/2
 with no such limit; and each page is a first visit, though a reader's second page finds the
 stylesheet, scripts and fonts already saved. One could err either way: the slowdown for a fast
-machine carries Lighthouse's guide past the machines it was fitted to. The bounds are meant for
+machine carries Lighthouse's guide past the machines it was fitted to. And a phone draws text in
+its own fonts until the site's arrive: the fallback is matched to Arial and the Linux and
+ChromeOS fonts drawn to its measures, so the lab on a Mac or on Linux sees little movement, but
+an Android phone draws in Roboto, which isn't matched and isn't measured
+([#461](https://github.com/nrdptel/fusionspace-eridanus/issues/461)). The bounds are meant for
 real visits, and the site collects no numbers from them.
 
 In one run on 2026-10-10, the slowest LCP was 2.35 s

@@ -286,8 +286,13 @@ html { scroll-padding-top: calc(var(--menu-bar-height) + 1px); }
     pre > .buttons button.clip-button::before { forced-color-adjust: none; background-color: ButtonText; }
 }
 /* The fonts' metric-matched fallbacks (`fonts/fonts.css`, the system's), second in every stack,
-   so text drawn before a face arrives takes the same room. */
-html, h4, h5, h6, #mdbook-searchbar { font-family: 'Archivo', 'Archivo Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+   so text drawn before a face arrives takes the same room. The system matches Archivo with Arial,
+   which Linux and ChromeOS lack; they carry Liberation Sans and Arimo, drawn to Arial's metrics
+   (the Liberation fonts' and Croscore fonts' stated aim), so the same 101% matches them. Without
+   them a Linux browser drew an italic, whose face no page preloads, in DejaVu Sans, and the
+   line rewrapped when Archivo Italic arrived: CLS 0.179 on the `.orc` page in the vitals check. */
+@font-face { font-family: 'Archivo Clone Fallback'; src: local('Liberation Sans'), local('LiberationSans'), local('Arimo'); size-adjust: 101%; }
+html, h4, h5, h6, #mdbook-searchbar { font-family: 'Archivo', 'Archivo Fallback', 'Archivo Clone Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif; }
 code, pre, kbd, .hljs { font-family: 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, 'SF Mono', Menlo, Consolas, monospace !important; }
 h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter { font-family: 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; }
 /* The page's frame (#384; `web.md`, *Page anatomy*). `cargo xtask site` makes the menu bar the

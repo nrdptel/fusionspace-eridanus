@@ -79,7 +79,13 @@ marked *(a probe)* come from development runs at the slowdown given, not from co
    decision ships it, with only the system's two preloaded, CLS was 0.174 on the accuracy page
    and 0.177 on the Python page (medians of three); with four it is at most 0.067. A fifth
    pushed LCP to 2.50 s (a probe). This is a deviation from the system, measured, and the
-   conformance row says so.
+   conformance row says so. The italic, not preloaded, arrives after the first paint (3.1 s
+   against 2.3 s on the `.orc` parts catalog page, a probe at the CI runners' slowdown), drawn
+   until then in the fallback face. The system matches Archivo's fallback to Arial, which Linux
+   and ChromeOS lack; CI's Linux runners drew the italic in DejaVu Sans, and the line rewrapped
+   when Archivo Italic arrived, CLS 0.179 there. `theme/hpr.css` adds a second fallback face,
+   Liberation Sans or Arimo, both drawn to Arial's metrics, at the system's 101%. Android has
+   neither and draws in Roboto, which nothing here measures (#461).
 4. **No shift after the first paint.** A script the build writes after the header places the
    theme switch in the sidebar on a narrow window before the page is drawn; inline code has its
    padding from the stylesheet.
