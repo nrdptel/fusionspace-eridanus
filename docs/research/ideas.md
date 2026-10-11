@@ -118,48 +118,41 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 
 ## The 2026-10-08 planning review
 
-Each idea names its user, workflow, the scoreboard number it moves (ADR-209 §13) and a *done when*.
-
-- PROMOTED ([M2.3c3][m2-3c3], ADR-212): OpenRocket's newest release as the bar. User: a flyer
-  choosing a simulator. Workflow: reads the accuracy page against the OpenRocket they run. Moves:
-  the apogee error against OpenRocket, by version. *Done when:* as M2.3c3.
-- SOON: apogees measured above Mach 1, from published comparisons (Rogers' RASAero II reports; the
-  CC-BY Rocket Flight Database v1.2, doi:10.5281/zenodo.19976138, 28 flights). User: a flyer
-  planning a Mach 1.5 flight. Workflow: reads the supersonic row before a waiver. Moves: apogee
-  error above Mach 1, not measured today. *Done when:* the real-flights report scores at least 5
-  COTS-motor flights the reports give geometry for (or an ADR shows fewer exist), rebuilt from them,
-  beside RASAero II's published error on the same flights, with the set's admission rule stated
-  (OpenRocket Plus within ±10%, per its README); research motors wait for 1.0.
-- SOON: a landing spread checked against tracked landings. User: an L2 flyer at a small field.
-  Workflow: sizes the recovery area from `hpr mc`'s 90% region. Moves: the share of GPS-logged
-  landings inside the 50% and 90% regions, not measured today. *Done when:* the fixture report gives
-  both shares with Clopper–Pearson bounds over every flight with a tracked landing, failed runs
-  counted.
-- SOON: weighed against estimated mass at import. User: a flyer whose apogee is 20% off. Workflow:
-  reads which masses are weighed (overrides, and what each covers) and which estimated, with each
-  one's effect on the apogee. Moves: the collection's apogee error split by the share of liftoff
-  mass weighed. *Done when:* `hpr sim` prints that share and each override's scope; the fixture
-  report gives the error above and below the median share, fixed before the errors are read, as
-  aggregates.
+- PROMOTED ([M2.3c3][m2-3c3], ADR-212): OpenRocket's newest release as the bar.
+- PROMOTED ([M2.3c7][m2-3c7], [ADR-236][adr-236], 2026-10-11): apogees measured above Mach 1,
+  from published comparisons.
+- Moved to the theme notes: a landing spread checked against tracked landings
+  ([pad and recovery](ideas-pad-and-recovery.md)); weighed against estimated mass at import
+  ([design and physics](ideas-design-and-physics.md)).
 
 ## The 2026-10-10 planning review
 
 - PROMOTED to M2.3c6 ([ADR-226][adr-226]): the gap to OpenRocket split by cause.
-- SOON: every flight's energy closes. User: a flyer showing a waiver flight to a safety reviewer.
-  Workflow: `hpr sim` prints the work done by thrust, drag and gravity beside the change in kinetic
-  and potential energy. Why: in October 2026 RocketPy 1.13 still printed its potential energy with
-  the wrong sign (its issue #1202). Moves: the share of the report's flights whose energy residual
-  is below 1e-6 of the impulse's work, not measured today. *Done when:* the fixture and public
-  reports give that share, and a mutation of drag's sign fails a test.
-- SOON: oracle aborts named, not counted as misses. User: a reader of the OpenRocket comparisons.
-  Workflow: the census lists each flight OpenRocket ends early by its event (a 2026-10-07 fix in its
-  development line removed a false tumble abort on finless boosters; 24.12 still has it). Moves: the
-  OpenRocket examples within 5% (45 of 53 today), with aborts kept apart. *Done when:* the
-  OpenRocket reports count aborts by event, and a probe design with a finless booster shows one.
-- LATER: the flight against its own log, by phase. User: an L2 flyer whose apogee came in low.
-  Workflow: `hpr compare` splits the miss into thrust, coast-drag and recovery parts, by M2.3c6's
-  method. Moves: the collection's MAE, through the part it names. *Done when:* each collection
-  flight with a log M7.1 reads gets the three parts, aggregated in the fixture report.
+- Moved to the theme notes: every flight's energy closes and oracle aborts named
+  ([design and physics](ideas-design-and-physics.md)); the flight against its own log, by phase
+  ([flight data](ideas-flight-data.md)).
+
+## The 2026-10-11 planning review
+
+- SOON: the tilt-abort window. User: a flyer whose altimeter fires its drogue when the tilt passes
+  90° within 2 s of liftoff, on by default in one maker's two lines. Why: in October 2026 flyers
+  reported such early deployments on fast flights (a Rocketry Forum thread). Workflow: `hpr mc`
+  prints the tilt at the window's end (median, 90th percentile, largest) and how many runs cross the
+  threshold inside it, with two-sided 95% Clopper–Pearson bounds; window and threshold are inputs.
+  Moves: honest uncertainty, and the features the scoreboard counts. *Done when:* `hpr mc` prints both; a
+  test pins that a run touching the threshold counts as a crossing, with a mutation probe.
+- SOON: thrust at altitude, bounded. User: a flyer at a field 1,400 m up comparing tools.
+  Workflow: `hpr sim` gives the apogee with and without the ambient-pressure thrust term for a
+  catalog motor, whose file has no nozzle; the exit is at most the case's area, a sea-level test
+  assumed. Why: OpenRocket's development line added the term on 2026-09-23 (its PR #3327). Moves:
+  the collection's mean bias, +9.83% today. *Done when:* `hpr sim` prints both; the fixture report
+  gives the bound's median and largest over the collection as aggregates; a test pins one by hand.
+- SOON: rail tip-off. User: a flyer of a heavy rocket leaving a short rail slowly. Workflow:
+  `hpr sim` pitches the rocket about the aft guide between the forward guide's release and the
+  aft one's (not modeled today), and prints the pitch rate and angle of attack at rail exit. Why:
+  RocketPy's development line added that phase in September 2026 (its PR #920). Moves: angle of
+  attack at rail exit against RocketPy, not measured today. *Done when:* a rigid pivot under
+  gravity matches its closed form, and RocketPy's example's rail-exit pitch rate is within 5%.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -198,3 +191,5 @@ Each idea names its user, workflow, the scoreboard number it moves (ADR-209 §13
 [adr-196]: ../decisions/0196-the-2026-10-07-product-guides.md
 [m2-3c3]: ../decisions-and-roadmap.md#m2-3c3
 [adr-226]: ../decisions/0226-the-2026-10-10-review-the-gap-to-openrocket-by-cause.md
+[m2-3c7]: ../decisions-and-roadmap.md#m2-3c7
+[adr-236]: ../decisions/0236-the-2026-10-11-review-supersonic-flights-from-published-comparisons.md

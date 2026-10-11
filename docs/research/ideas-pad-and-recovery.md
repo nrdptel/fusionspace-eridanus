@@ -57,3 +57,11 @@ From the 2026-10-09 planning review:
   soundings near the site. Why: a 2025 student study scored GFS, NAM and HRRR on 2,900 soundings.
   Moves: wind error by model and height band, not measured today. *Done when:* a committed report
   scores each model against NOAA's IGRA soundings at 5 launch sites over a season, with intervals.
+
+From the 2026-10-08 planning review:
+
+- SOON: a landing spread checked against tracked landings. User: an L2 flyer at a small field.
+  Workflow: sizes the recovery area from `hpr mc`'s 90% region. Moves: the share of GPS-logged
+  landings inside the 50% and 90% regions, not measured today. *Done when:* the fixture report gives
+  both shares with Clopper–Pearson bounds over every flight with a tracked landing, failed runs
+  counted.

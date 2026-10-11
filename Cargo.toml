@@ -133,3 +133,8 @@ allow_attributes_without_reason = "warn"
 dbg_macro = "warn"
 todo = "warn"
 unimplemented = "warn"
+
+# The optimizer's tests (EGO's surrogate fits) run 50 s unoptimized and 3 s at opt-level 3; every
+# committed report and example output reproduces byte for byte either way (#397, docs/perf.md).
+[profile.dev.package.fusionspace-hpr-analysis]
+opt-level = 3

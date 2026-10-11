@@ -3,6 +3,25 @@
 Measured numbers only, newest first within each section. Record the machine, the toolchain, and
 the command, so a later run can be compared like for like.
 
+## The analysis crate optimized in test builds (#397)
+
+- **What this is.** `fusionspace-hpr-analysis` (Monte Carlo statistics, the optimizers) is built
+  at `opt-level = 3` in the dev profile (the workspace `Cargo.toml`), which the tests, `cargo
+  xtask examples` and `cargo xtask cli` use. Its EGO tests fit Gaussian-process surrogates, which
+  unoptimized code does about 12× slower.
+- **Measured** on an Apple M5, rustc 1.98.1, main 7cdc08b6, warm builds, two runs each: the
+  crate's 176 tests 49.0–51.2 s → 3.1–3.2 s wall (330 → 28 test-seconds); the whole workspace's
+  nextest run, 2,433 tests, 150.3 / 153.6 s → 116.6 / 116.7 s (−23%). A rebuild after touching
+  the crate takes 4.6 s instead of 4.2 s. The examples step doesn't change (133.7 s): its time is
+  flight simulation in other crates.
+- **What moves.** Every committed report and example output reproduces byte for byte (`cargo
+  xtask validate`, `examples`, `cli` and the five `refs` checks, regenerated and diffed). At full
+  precision the dev build's Monte Carlo statistics move by about 1e-12 of their value, and 3 of
+  300 dispersed flights by up to 1.5e-6 of a peak angle of attack: at opt-level 3 LLVM merges
+  `sin_cos` into the platform's `sincos` and inlines `powi`, either of which can round one ulp
+  differently. Results stay bit-identical run to run on one platform, which is the promise; they
+  were already different between the dev and release builds.
+
 ## Ten thousand flights (M6.1d)
 
 - **What this is.** How long 10,000 dispersed flights of a Level 2 rocket take, which
