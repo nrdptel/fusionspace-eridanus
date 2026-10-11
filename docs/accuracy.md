@@ -171,13 +171,14 @@ These are counts of documented steps, not timings, and installing isn't counted
 what counts as a step).
 
 - **HPR Sim:** 2 commands, or 10 lines of Python, from files a test runs, so every counted step
-  works. It has no window yet.
+  works. It has no window yet ([its steps](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md#steps-one-by-one)).
 - **OpenRocket 24.12:** 7 clicks to open and fly a design, from its documentation; it has no
-  Monte Carlo to spread the landing, and no command or documented script that flies a design.
-- **RocketPy 1.13.0:** it reads no `.ork` file; a rocket is typed in as Python instead.
+  Monte Carlo to spread the landing, and no command or documented script that flies a design
+  ([its steps](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md#steps-one-by-one)).
+- **RocketPy 1.13.0:** it reads no `.ork` file; a rocket is typed in as Python instead
+  ([its steps](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md#steps-one-by-one)).
 
-The scoreboard lists every step, each with its source, under
-[*Steps, one by one*](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md#steps-one-by-one).
+The scoreboard lists every step with its source under *Steps, one by one*.
 
 ## Reading the evidence
 
