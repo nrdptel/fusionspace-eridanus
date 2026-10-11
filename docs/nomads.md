@@ -249,7 +249,8 @@ page. Which model is nearer the air Calisto would have met is not measured.
 
 ## Whole files offline
 
-A whole downloaded file reads with no network, including fields packed as JPEG 2000 images.
+A whole downloaded GFS file reads with no network; fields packed as JPEG 2000 images, as RAP's
+whole files are, read too, though no whole RAP file has been tried.
 
 ### A whole GFS file
 

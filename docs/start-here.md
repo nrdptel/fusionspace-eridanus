@@ -14,7 +14,8 @@ the other pages.
 
 > **How far to trust it.** Every number HPR Sim produces is an estimate from a model, not a
 > measurement, and never a go/no-go verdict. Against 55 logged flights of fliers' own designs, its
-> apogee averaged 9.83% above the logged one and was within 10% on 27
+> apogee averaged 9.83% above the logged one, was within 10% on 27 and read low on 14, by at most
+> 20%
 > ([report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md));
 > [Accuracy so far](#accuracy-so-far) gives the rest. Your motor's printed data, your altimeter
 > and your range safety officer are authoritative.

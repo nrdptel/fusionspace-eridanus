@@ -24,8 +24,9 @@ before their first sheet: 14 had none at all, and 2 had one further down, inside
    `every_page_has_two_to_six_sheets`.
 3. **The opening is the text before the first sheet.** A page's title and lead say what it
    covers; before its first `##`, a top-level quote block whose first paragraph opens with the
-   bold `How far to trust it.` says how far to trust it. A note inside a list or another quote
-   block doesn't count, nor does an alert (`[!NOTE]`). The rule asks where the note is, not
+   bold `How far to trust it.` says how far to trust it. One rule says what is the page's: the
+   quote block stands inside no other block, so a note in a list, another quote block or a
+   footnote doesn't count; nor does an alert (`[!NOTE]`), another kind of note. The rule asks where the note is, not
    that it be the first block: a page may set out its steps or a command before it, as long as
    the note comes before the first sheet. More trust notes further down stay allowed, each on a
    result someone might fly on.
@@ -38,12 +39,13 @@ before their first sheet: 14 had none at all, and 2 had one further down, inside
 6. **The check is its own step,** after the sheets, as `site openings`, so the site's fixture
    pages in the tests, which aren't real pages, don't need notes. A site test runs it on the
    real pages, and another on hand-made pages: a note in its place passes, wrapped or followed
-   by a list; no note, one only after the first sheet, one in a list or a nested quote block, an
-   alert, another label, or the label later in a paragraph fails.
+   by a list; no note, one only after the first sheet, one in a list, a nested quote block or a
+   footnote, an alert carrying the label, another label, or the label later in a paragraph fails.
 
 **Consequences.** #384 closes, and with #383 and #385 closed, M0.9d is done. The design
-audit's *Page anatomy*, *Site patterns*, *Type* and *Show the working* rows are met; the rest
-that cited #384 now cite the open issues left (#386, #387, #401, #429, #452). The audit found
-one gap no issue tracked, the search field's missing label, now #465. A new page
+audit's *Page anatomy*, *Site patterns* and *Show the working* rows are met; the rest that
+cited #384 now cite the open issues left (#386, #387, #401, #429, #452). Two gaps no issue
+tracked are issues now: the search field's missing label (#465), and the README banners, which
+no check reads, keeping *Type* not met (#467). A new page
 with more than six sections, or without a note before its first sheet, fails the build until it
 is grouped or given one.

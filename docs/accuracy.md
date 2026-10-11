@@ -22,13 +22,12 @@ the logs on average and miss by 13.96% (mean absolute), also outside the target;
 
 > **How far to trust it.** Comparisons, most of them with other programs: agreement with RocketPy or
 > OpenRocket shows that HPR Sim computes what they compute, not that any of them matches the world.
-> Only the real flights are measurements, and their apogees miss by 6.04% on average, outside the 5%
-> target ([report][real-report]). The [census](#the-census) adds no evidence of its own: it is
-> exactly as good as the reports it counts. CI flies the harness's RocketPy comparisons again on
-> every change. The OpenRocket and real-flight reports need files that CI doesn't have, so CI holds
-> their committed numbers, and a change to the code that would move them is caught only when someone
-> runs them again and commits the result. Where a number matters, plan with the whole range a row
-> gives, not one figure, and log the flight with your own altimeter.
+> Only the real flights are measurements. On the seven public ones the apogee misses by 6.04% on
+> average ([report][real-report]); on the 55 of the private collection it misses by 13.96% (mean
+> absolute), +9.83% high on average ([report][fixture-report]). Both are outside the 5% target. The
+> [census](#the-census), the table below of where each check stands, adds no evidence of its own:
+> it is exactly as good as the reports it counts. Where a number matters, plan with the whole range
+> a row gives, not one figure, and log the flight with your own altimeter.
 
 What has been checked so far:
 
@@ -74,7 +73,10 @@ shows how to follow one back to its source and its test, and
 says what each group was compared with, how, how many flights it holds and how fast they flew. It is
 also a check: CI fails when any of those numbers moves, better or worse, until the change is
 accepted with a written reason.** A code-to-code line measures how closely HPR Sim agrees with
-another simulator, not which of the two is right; only the real flights are measurements.
+another simulator, not which of the two is right; only the real flights are measurements. CI
+flies the harness's RocketPy comparisons again on every change. The OpenRocket and real-flight
+reports need files that CI doesn't have, so CI holds their committed numbers, and a change to the
+code that would move them is caught only when someone runs them again and commits the result.
 
 <!-- census: written by `cargo xtask census --accept` from validation/reports/census.json; do not edit -->
 

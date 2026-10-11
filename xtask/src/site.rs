@@ -2649,22 +2649,27 @@ const TRUST_OPENING: &str = "every page opens with how far to trust it (`web.md`
 /// Where a page that isn't a model page fails to open with how far to trust it, as (line,
 /// message): the product system's `web.md` asks every docs page to start "with what works and how
 /// far to trust it". The lead under the title says what the page covers; the page's opening, the
-/// text before its first `##` sheet, must hold a trust note, a quote block whose first paragraph
-/// opens with the bold [`TRUST_LABEL`]. A note nested in a list or another quote block doesn't
-/// count: it isn't the page's. Model pages open with *In short* instead, whose *How well it is
-/// validated* item says it ([`in_short`]). The note's three parts are a reviewer's, as in
-/// [`trust_notes`], which holds the label's shape wherever it appears.
+/// text before its first `##` sheet, must hold a trust note: a quote block standing on the page
+/// itself, inside no other block, whose first paragraph opens with the bold [`TRUST_LABEL`]. One
+/// rule decides what is the page's: a quote block in a list, another quote block or a footnote
+/// isn't, and an alert (`> [!NOTE]`) is another kind of note. Model pages open with *In short*
+/// instead, whose *How well it is validated* item says it ([`in_short`]). The note's three parts
+/// are a reviewer's, as in [`trust_notes`], which holds the label's shape wherever it appears.
 fn trust_opening(text: &str) -> Option<(usize, String)> {
     let line = line_index(text);
-    // How deep in quote blocks and lists the parser is; a page's note sits at depth one.
-    let mut quotes = 0usize;
-    let mut lists = 0usize;
-    // A top-level quote block's first paragraph has just opened, or its bold text is being read.
+    // How many blocks are open around the event being read; the page's own blocks are at none.
+    let mut depth = 0usize;
+    // A page-level quote block's first paragraph has just opened, or its bold text is being read.
     let mut slot = false;
     let mut label: Option<String> = None;
     let mut first_sheet = text.len();
     for (event, range) in Parser::new_ext(text, options()).into_offset_iter() {
         let opens = std::mem::take(&mut slot);
+        let nesting = match &event {
+            Event::Start(tag) if !inline_tag(&tag.to_end()) => Some(true),
+            Event::End(tag) if !inline_tag(tag) => Some(false),
+            _ => None,
+        };
         match event {
             Event::Start(Tag::Heading {
                 level: HeadingLevel::H2,
@@ -2673,14 +2678,8 @@ fn trust_opening(text: &str) -> Option<(usize, String)> {
                 first_sheet = range.start;
                 break;
             }
-            Event::Start(Tag::BlockQuote(_)) => {
-                quotes += 1;
-                // The quote block's first event decides; anything but a paragraph isn't a note.
-                slot = quotes == 1 && lists == 0;
-            }
-            Event::End(TagEnd::BlockQuote(_)) => quotes = quotes.saturating_sub(1),
-            Event::Start(Tag::List(_)) => lists += 1,
-            Event::End(TagEnd::List(_)) => lists = lists.saturating_sub(1),
+            // The quote block's first event decides; anything but a paragraph isn't a note.
+            Event::Start(Tag::BlockQuote(None)) if depth == 0 => slot = true,
             Event::Start(Tag::Paragraph) if opens => slot = true,
             Event::Start(Tag::Strong) if opens => label = Some(String::new()),
             Event::Text(words) | Event::Code(words) => {
@@ -2700,6 +2699,11 @@ fn trust_opening(text: &str) -> Option<(usize, String)> {
                 return None;
             }
             _ => {}
+        }
+        match nesting {
+            Some(true) => depth += 1,
+            Some(false) => depth = depth.saturating_sub(1),
+            None => {}
         }
     }
     Some((
@@ -3425,14 +3429,17 @@ mod tests {
         ] {
             assert_eq!(trust_opening(&page(&opening)), None, "{opening}");
         }
-        // No note; a note only after the first sheet; a note in a list or another quote block;
-        // an alert; a label that isn't the note's, or not where the note's is; no sheet at all.
+        // No note; a note only after the first sheet; a note in a list, another quote block or a
+        // footnote; an alert, even with the label; a label that isn't the note's, or not where the
+        // note's is; no sheet at all.
         for text in [
             page(""),
             format!("{}\n{note}", page("")),
             page(&format!("- {note}")),
             page(&format!("> > {}", &note[2..])),
-            page("> [!NOTE]\n> How far to trust it.\n"),
+            page("> [!NOTE]\n> **How far to trust it.** An alert.\n"),
+            page("> [!CAUTION]\n> **How far to trust it.** An alert.\n"),
+            page(&format!("Body[^1].\n\n[^1]: {note}")),
             page("> **How far to trust the margin.** Text.\n"),
             page("> First. **How far to trust it.** Text.\n"),
             page("> Para.\n>\n> **How far to trust it.** Text.\n"),
