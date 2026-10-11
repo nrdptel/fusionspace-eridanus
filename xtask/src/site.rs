@@ -2693,10 +2693,11 @@ fn trust_opening(text: &str) -> Option<(usize, String)> {
                     label.push(' ');
                 }
             }
-            Event::End(TagEnd::Strong) => {
-                if label.take().is_some_and(|words| words == TRUST_LABEL) {
-                    return None;
-                }
+            // The guard takes the bold text read, whether or not it is the label.
+            Event::End(TagEnd::Strong)
+                if label.take().is_some_and(|words| words == TRUST_LABEL) =>
+            {
+                return None;
             }
             _ => {}
         }
