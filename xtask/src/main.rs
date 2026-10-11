@@ -68,6 +68,7 @@ mod refs;
 #[cfg(test)]
 mod release;
 mod roadmap;
+mod scoreboard;
 mod site;
 mod spelling;
 mod validate;
@@ -89,6 +90,7 @@ Commands:
 {AERO}
 {VALIDATE}
 {CENSUS}
+{SCOREBOARD}
 {CLI}
 {SITE}
 {SPELLING}
@@ -117,6 +119,7 @@ fn usage() -> String {
         .replace("{AERO}", aero::USAGE)
         .replace("{VALIDATE}", validate::USAGE)
         .replace("{CENSUS}", census::USAGE)
+        .replace("{SCOREBOARD}", scoreboard::USAGE)
         .replace("{CLI}", cli::USAGE)
         .replace("{SITE}", site::USAGE)
         .replace("{SPELLING}", spelling::USAGE)
@@ -147,6 +150,7 @@ fn main() -> ExitCode {
         Some("aero") => aero::run(&args.collect::<Vec<_>>()),
         Some("validate") => validate::run(&args.collect::<Vec<_>>()),
         Some("census") => census::run(&args.collect::<Vec<_>>()),
+        Some("scoreboard") => scoreboard::run(&args.collect::<Vec<_>>()),
         Some("cli") => cli::run(&args.collect::<Vec<_>>()),
         Some("site") => site::run(&args.collect::<Vec<_>>()),
         Some("spelling") => spelling::run(&args.collect::<Vec<_>>()),

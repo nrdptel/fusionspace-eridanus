@@ -147,6 +147,18 @@ the table above. The reason and the list of what changed go into the census page
 can still merge, but only in writing, in the change that brings it. An improvement has to be
 accepted too; otherwise it could slip back later without anyone seeing.
 
+### The scoreboard
+
+**In short: the [scoreboard][scoreboard] puts HPR Sim beside OpenRocket and RocketPy on each axis
+the project measures itself by (accuracy against logged flights, bias, whether its ranges hold
+real flights, speed, round trips through each tool's file, features, and steps to a first answer),
+every number read from a committed report and every cell no report measures yet saying so, with
+the milestone that will.** It is also a check: CI fails when one of HPR Sim's numbers there gets
+worse, or a measured cell is no longer measured, unless a decision record accepts that cell for the
+next release ([ADR-240](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0240-the-scoreboard.md),
+how the scoreboard works). Where HPR Sim is behind another tool, the scoreboard shows it with both
+numbers. `cargo xtask scoreboard` writes it from the committed reports.
+
 ## Reading the evidence
 
 How the numbers are written, and the four kinds of check they come from.
@@ -1082,6 +1094,7 @@ rest.
 [census]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/census.md
 [real-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md
+[scoreboard]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/scoreboard.md
 [adr-184]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0184-logged-apogees-of-the-private-collection.md
 [adr-238]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0238-the-corpus-rechecked-against-the-catalog.md
 [adr-102]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0102-tube-fins-centre-of-pressure-measured-against.md
