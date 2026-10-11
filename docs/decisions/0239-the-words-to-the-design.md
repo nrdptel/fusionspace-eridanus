@@ -21,7 +21,9 @@ rules of the product system's `writing.md` and `data.md`, and #387 for the READM
    optimisation, summarising). Whole stems keep "otherwise", "exercise" and "optimistic" out.
    "Programmer" and "programmed" are US forms as they stand and are skipped, as "analyses" was.
    On the first run it found 1,033 forms in the 664 files it reads, 123 of them in code names; `--fix`
-   replaced the words and the code names were renamed by hand from the check's own list.
+   replaced the words and the code names were renamed by hand from the check's own list. Three
+   open roadmap entries changed in spelling only ("grays out", "anonymized", "labeled"); no
+   criterion changed.
 2. **Renamed names and kept keys.** One renamed name was saved to a file: the census's unit key,
    `calibre`, now written `caliber`, with the old key kept as a serde alias, as `writing.md` has
    it for every renamed key. Three public names of `hpr-atmos` were renamed without an alias:
