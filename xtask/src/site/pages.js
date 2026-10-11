@@ -13,8 +13,9 @@
   // How long one load may take before it counts as a failure, in milliseconds.
   const LOAD_TIMEOUT_MS = 60000;
   // How long the readings of one loaded page may take, in milliseconds. A tab's frames share its
-  // main thread, so three frames of print.html, which holds every chapter (about 45,000
-  // elements), share it as they are read; the readings took more than a minute each in CI.
+  // main thread, so three frames of print.html, which holds every chapter on paper (about
+  // 48,000 elements), share it as they are read there; those readings took more than a minute
+  // each in CI.
   const MEASURE_TIMEOUT_MS = 240000;
   // Text rectangles closer than this, sideways, don't collide: touching runs of one line.
   const OVERLAP_MIN_WIDTH_PX = 2;
@@ -835,7 +836,11 @@
   //   title block's are, followed by its address, as a `::before` or `::after` that holds its
   //   `href`;
   // - table rows, notes and title blocks each kept on one sheet (`break-inside: avoid`);
-  // - each title block drawn, with its version and its date of issue.
+  // - each title block drawn, with its version and its date of issue;
+  // - nothing fixed to the window, which would be drawn over the top of every sheet.
+  // The print page holds its chapters in a template behind a cover (`print.rs`), and the site's
+  // script places them in the page when the browser is about to print: they are placed so here,
+  // and must all arrive, and all leave again when printing ends.
   async function probePrint(win, doc, found) {
     const note = function (el, pseudo, property, value, as) {
       found.print_count++;
@@ -845,6 +850,34 @@
         });
       }
     };
+    const book = doc.getElementById('hpr-book');
+    const main = doc.querySelector('main');
+    const titles = function () { return main ? main.querySelectorAll('h1').length : 0; };
+    const shown = titles();
+    if (book) {
+      win.dispatchEvent(new win.Event('beforeprint'));
+      const chapters = book.content.querySelectorAll('h1').length;
+      if (titles() !== shown + chapters) {
+        note(book, null, 'content', (titles() - shown) + ' of the ' + chapters
+          + ' chapters placed as the page prints', 'print');
+      }
+    }
+    try {
+      await probePrinted(win, doc, found, note);
+    } finally {
+      if (book) {
+        win.dispatchEvent(new win.Event('afterprint'));
+        await settle(win, doc);
+        if (titles() !== shown) {
+          note(book, null, 'content', (titles() - shown) + ' chapters left once printing ends',
+            'print');
+        }
+      }
+    }
+  }
+
+  // The page on paper, as [`probePrint`] reads it, its findings in `found` and taken by `note`.
+  async function probePrinted(win, doc, found, note) {
     const root = doc.documentElement;
     const themeClass = function () { return root.classList.contains('navy') ? 'navy' : 'light'; };
     const els = [root].concat(doc.body
@@ -887,6 +920,18 @@
         const value = win.getComputedStyle(el).breakInside;
         if (drawn(win, el) && value !== 'avoid' && value !== 'avoid-page') {
           note(el, null, 'break-inside', value, as);
+        }
+      }
+      // Nothing fixed to the window: a browser draws it on every sheet, over whatever stands
+      // there, as the theme's colored rule along the window's top once covered the top of each
+      // sheet's first line and box.
+      for (const el of els) {
+        if (!drawn(win, el)) continue;
+        for (const pseudo of [null, '::before', '::after']) {
+          const style = win.getComputedStyle(el, pseudo);
+          if (style.position !== 'fixed' || style.display === 'none') continue;
+          if (pseudo && (style.content === 'none' || style.content === 'normal')) continue;
+          note(el, pseudo, 'position', 'fixed, drawn over every sheet', as);
         }
       }
       for (const block of doc.querySelectorAll('.fs-titleblock')) {
@@ -1074,6 +1119,14 @@
         if (pseudo && (p.content === 'none' || p.content === 'normal')) continue;
         const mask = p.getPropertyValue('mask-image') || p.getPropertyValue('-webkit-mask-image');
         if (mask && mask !== 'none') masked.push([el, pseudo]);
+      }
+      // Fixed to the window, not to a box: a transform or `will-change` on a box around it (the
+      // page's own layer on a phone) would carry it away with the page. CSSOM View gives such an
+      // element an `offsetParent`, and one fixed to the window none.
+      if (s.position === 'fixed' && s.visibility !== 'hidden' && el.offsetParent !== null
+          && boxOf(el)) {
+        note('sticky', el, null, 'position', 'fixed inside ' + selector(el.offsetParent)
+          + ', which carries it with the page');
       }
       if ((s.position === 'sticky' || s.position === 'fixed') && s.visibility !== 'hidden') {
         const r = boxOf(el);

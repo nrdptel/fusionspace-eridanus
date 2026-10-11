@@ -21,9 +21,20 @@
 // It marks the chosen one with a class, which each button's `aria-pressed` follows here. From
 // 960 px the switch stands in the header's row, before its buttons; on a narrower window the
 // header has no room for it, and it stands at the top of the sidebar, above the chapters'
-// scrolling list, which a menu button opens under 720 px. The page check reads where it stands
-// and which button is pressed at every width, presses Dark and then Auto to see the theme
-// follow, and loads the page with Coal saved to see it forgotten.
+// scrolling list, which a menu button opens under 720 px. A script the build writes just after
+// the header puts it there before the page is first drawn, so a phone's first screen doesn't
+// jump (#443); this file moves it when the window's width crosses 960 px. The page check reads
+// where it stands and which button is pressed at every width, presses Dark and then Auto to see
+// the theme follow, and loads the page with Coal saved to see it forgotten.
+//
+// The print page (#443): `cargo xtask site` puts its chapters, every chapter of the guide, in a
+// template behind a cover, as a phone drawing them all on one screen page was slow to load and
+// to answer a tap, and takes out mdBook's call to print as the page loads. The cover's button
+// prints. When the browser is about to print, from the button or its own Print command, a copy
+// of the chapters is placed here after the cover, which hides on paper, and their code
+// highlighted as mdBook's script highlights a page's as it loads: each `code` but a heading's,
+// then marked `hljs` for its colors. The copy goes when printing ends. The page check places
+// them so before it reads the page on paper.
 'use strict';
 
 document.addEventListener('click', function (event) {
@@ -106,4 +117,29 @@ document.addEventListener('click', function (event) {
     };
     wide.addEventListener('change', place);
     place();
+})();
+
+(function () {
+    const book = document.getElementById('hpr-book');
+    if (!book || !book.content) return;
+    const button = document.getElementById('hpr-print');
+    if (button) button.addEventListener('click', function () { window.print(); });
+    let placed = [];
+    window.addEventListener('beforeprint', function () {
+        if (placed.length) return;
+        const copy = book.content.cloneNode(true);
+        const code = Array.from(copy.querySelectorAll('code')).filter(function (block) {
+            return !block.parentElement.classList.contains('header');
+        });
+        code.forEach(function (block) {
+            if (window.hljs) window.hljs.highlightBlock(block);
+            block.classList.add('hljs');
+        });
+        placed = Array.from(copy.childNodes);
+        book.parentNode.insertBefore(copy, book);
+    });
+    window.addEventListener('afterprint', function () {
+        placed.forEach(function (node) { node.remove(); });
+        placed = [];
+    });
 })();

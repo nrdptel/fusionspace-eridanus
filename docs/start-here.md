@@ -411,8 +411,9 @@ A page prints in the light theme's colors, whichever theme you read it in, witho
 contents or the buttons. Each link's address follows it in parentheses: a whole address for
 another site, and for a page of this one its path from the page, such as `cli.html#units`. The
 [title block](glossary.md#title-block), with the version and date, closes the page. The printer
-icon at the top opens every page as one, to print the whole site; that runs long, as it holds
-every chapter and its links' addresses.
+icon at the top opens a cover with a *Print the guide* button, which prints every chapter one
+after another; that runs long, as it holds every chapter and its links' addresses. Printed
+to a PDF file, the guide reads offline.
 
 ## Title block
 

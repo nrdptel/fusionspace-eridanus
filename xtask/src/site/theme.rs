@@ -727,12 +727,20 @@ fn head_problems(html: &str) -> Vec<String> {
     problems
 }
 
-/// The stylesheets of [`PAGE_STYLES`] a built page of the guide doesn't link.
+/// The stylesheets of [`PAGE_STYLES`] a built page of the guide doesn't link. A page that links
+/// the bundle links each file it joins (`bundle.rs`, which checks it joins them as served).
 fn missing_page_styles(html: &str) -> Vec<&'static str> {
-    let styles: Vec<String> = tags(html, "link")
+    let mut styles: Vec<String> = tags(html, "link")
         .filter(|tag| attributes(tag, "rel").any(|rel| rel == "stylesheet"))
         .flat_map(|tag| attributes(tag, "href").map(unescape).collect::<Vec<_>>())
         .collect();
+    let bundle = super::bundle::BUNDLE;
+    if styles
+        .iter()
+        .any(|href| href == bundle || href.ends_with(&format!("/{bundle}")))
+    {
+        styles.extend(super::bundle::parts().map(str::to_owned));
+    }
     PAGE_STYLES
         .into_iter()
         .filter(|wanted| {
@@ -950,6 +958,12 @@ mod tests {
             link("myfonts/fonts.css")
         );
         assert_eq!(missing_page_styles(&hashed), PAGE_STYLES);
+        // The bundle carries both; a file of another name ending in its name doesn't.
+        assert!(missing_page_styles(&link("../theme/site.css")).is_empty());
+        assert_eq!(
+            missing_page_styles(&link("../theme/mysite.css")),
+            PAGE_STYLES
+        );
     }
 
     #[test]

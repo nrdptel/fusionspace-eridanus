@@ -153,6 +153,11 @@ learn something the next person needs. Each bullet is one topic; keep the file u
 - `ROADMAP.md` has byte and line-width budgets (ADR-147, M0.5c); never reflow or
   shorten a *done when* to fit: done entries move to `docs/roadmap-done.md` by `cargo xtask
   records`, unchanged. (Before M0.5, M2.2a to b4, M3.1c3 and c4 were reflowed into prose.)
+- **Site vitals (ADR-232):** `xtask/src/site/vitals.rs` drives Chrome over DevTools (`cdp.rs`).
+  Chrome 154: emulated latency lands before `responseEnd`; headless flags shifts within 0.5 s of
+  load `hadRecentInput`; `window.print()` fires `beforeprint` but never `afterprint`; the first
+  tab reports no paints (use `Target.createTarget`). Over HTTP/1.1 a seventh early request waits
+  a round trip: keep the stylesheet and `toc.js` ahead of the font preloads (`bundle.rs`).
 - **Validation (M2.1, ADR-021 to ADR-026):** CI checks the report on every platform; predicted mode's 3%
   are *targets*; every whole flight names both RMS metrics, each held to 3% of its reference's
   apogee or max speed (ADR-024). The wind oracle flies RocketPy 1.13.0 with #1188 and #1196 by

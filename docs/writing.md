@@ -220,7 +220,9 @@ sizes, prose lines past 68 characters and gutters off 16 or 32 px all fail it. S
   on; it applies the stylesheets' rules for it and judges from the page's own colors;
 - a bar stuck to the top of the window reaching further down than the page's
   `scroll-padding-top`, the room the browser leaves at the top when it scrolls to what a reader
-  tabs to, so the bar never hides it;
+  tabs to, so the bar never hides it, or something fixed to the window inside a box whose
+  `transform` or `will-change` would carry it with the page instead, as the page's own layer
+  on a phone would;
 - a `>` quote block left on a page, or a note not drawn as the system's: a head, then the
   message; the head saying its kind's signal word in Cascadia Mono 12 px semibold capitals,
   across the note's top, set apart by a rule or a fill (a caution's in the caution fill, a
@@ -337,14 +339,80 @@ browser would break the pages isn't seen. In the light theme and in the navy one
 - a link to another page, in the text or the title block, without its address after it, in
   parentheses (a page of this site shows its path from the page, such as `cli.html#units`);
 - a table row, a note or the title block that can split across two sheets;
-- a title block not drawn, or drawn without its version and date of issue.
+- a title block not drawn, or drawn without its version and date of issue;
+- anything fixed to the window, which a browser draws on every sheet over what stands there.
+
+The print page, every chapter on one page, shows on screen only a cover: what it prints, a
+button that prints it and how to print from the browser. Its chapters wait in a template, which a
+browser reads but doesn't draw, and the site's script places them in the page when the browser
+is about to print and takes them away after. Drawn on screen, all of them were too slow for a
+phone (below). The check places them as printing does before it reads the page on paper, and
+fails a page where they don't all arrive, or don't all leave again.
 
 `mdbook serve` still shows mdBook's icons, menu bar, theme menu and two `h1`, with no sheets,
 and the landing page's title block as a table; only `cargo xtask site` builds the pages as published. Not read: text inside
 SVG images or over a picture, and hover
-([#432](https://github.com/nrdptel/fusionspace-eridanus/issues/432)). The pages' load speed,
-Google's Core Web Vitals, is still unchecked until
-[M0.9d10, the pages' vitals](decisions-and-roadmap.md#m0-9d10).
+([#432](https://github.com/nrdptel/fusionspace-eridanus/issues/432)).
+
+### How fast the pages load
+
+This part of the check is a lab test of how fast each page loads and answers: a simulated phone
+on a slow network, not measured visits by readers, so it says whether a page is likely to be
+quick, not how quick it is for you. It loads every page of the guide, though not the API
+reference (rustdoc's own pages under `api/`, which the layout check leaves out too), and
+measures Google's three [Core Web Vitals](https://web.dev/articles/vitals), each held to the
+bound the product system sets, Google's "good":
+
+- **Largest Contentful Paint (LCP)**, when the largest text or picture on the first screen is
+  drawn: at most 2.5 s;
+- **Cumulative Layout Shift (CLS)**, how far what is drawn moves afterwards, as a share of the
+  screen: at most 0.1;
+- **Interaction to Next Paint (INP)**, how long the page takes to answer a key or a tap: at most
+  200 ms. The check presses Tab and taps the menu button twice, and takes the slowest of those;
+  search, scrolling and the other buttons aren't tried.
+
+The phone and the network are the ones Google's
+[Lighthouse](https://developer.chrome.com/docs/lighthouse) uses for a phone: a screen 412
+pixels wide, half a second's wait on every request (562.5 ms) and 1.5 Mbit/s down. A fast
+computer is slowed to the phone's speed: the check first times two short loops as Lighthouse
+does, slows the processor by the factor Lighthouse's guide gives for that time, and times the
+loops again to make sure the slowdown took. On the Mac the check was built on the factor is
+about 16; a slower machine gets a smaller one, and the guide puts a high-end desktop at about 4.
+A machine that would need less than 2 is refused, since a slowdown that small can't be told
+from none.
+Every page is loaded cold, nothing cached. A page over a bound is loaded three times and judged
+by the middle result.
+
+Two things make the lab slower than a visit: its server speaks HTTP/1.1, where a browser opens
+at most six connections to one server, while GitHub Pages, which serves the site, speaks HTTP/2
+with no such limit; and each page is a first visit, though a reader's second page finds the
+stylesheet, scripts and fonts already saved. One could err either way: the slowdown for a fast
+machine carries Lighthouse's guide past the machines it was fitted to. And a phone draws text in
+its own fonts until the site's arrive: the fallback is matched to Arial and to the Linux and
+ChromeOS fonts made to Arial's widths, so on a Mac or on CI's Linux runners the largest CLS was
+0.067, but an Android phone draws in Roboto, which isn't matched and isn't measured
+([#461](https://github.com/nrdptel/fusionspace-eridanus/issues/461)). The bounds are meant for
+real visits, and the site collects no numbers from them.
+
+In one run on 2026-10-11, the slowest LCP was 2.06 s and the slowest INP 96 ms, both on
+[*Aerodynamics*](physics/aero.md), and the largest CLS 0.067
+([*How a flight is simulated*](how-a-flight-is-simulated.md)), with the processor slowed 16.4
+times. On CI's Linux runners, slowed about 7 times, the worst were 2.19 s, 0.067 and 136 ms;
+a runner slowed 12.1 times measured INP 200 ms on the aerodynamics page, at the bound
+([#462](https://github.com/nrdptel/fusionspace-eridanus/issues/462)). LCP
+moves by a tenth or more from one run to the next. The check loads one page at a time, as
+Lighthouse asks, since pages loaded side by side slow each other down.
+Each run prints its own figures in the line that starts `page vitals:`. Three pages the check
+serves itself must each fail their own vital and pass the other two, or the check fails: one
+whose stylesheet arrives late, one that moves its text after drawing it and one whose menu
+button keeps the page busy.
+
+What it took to pass, recorded in
+[ADR-232](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0232-the-pages-vitals-measured.md):
+one stylesheet instead of ten, asked for first with mdBook's sidebar script; four fonts asked
+for early so that text doesn't move when they arrive, two more than the product system allows
+(with its two, CLS reached 0.17 on two pages); the theme switch placed before
+the page is first drawn; and the print page's cover.
 
 ## Measured, not gated
 

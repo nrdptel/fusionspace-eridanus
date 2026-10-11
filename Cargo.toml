@@ -98,6 +98,10 @@ tempfile = "3.27.0"
 tiff = { version = "0.11.3", default-features = false, features = ["deflate", "lzw"] }
 thiserror = "2.0.20"
 toml = "1.1.6"
+# xtask only: the site check's lab measurement of each page's Core Web Vitals talks to headless
+# Chrome over its DevTools protocol, which is JSON over a WebSocket. The client handshake only:
+# no TLS, as the browser listens on the loopback address.
+tungstenite = { version = "0.30.0", default-features = false, features = ["handshake"] }
 # The `.hprz` container compares attachment names in canonical decomposition (NFD), as macOS
 # does, so two spellings of one accented letter are refused as one name. Pure Rust, no I/O.
 unicode-normalization = { version = "0.1.25", default-features = false }

@@ -117,7 +117,12 @@
 //!   - a link drawn out of the page (not to a place on it), in `main` or outside it as the title
 //!     block's are, with no `::before` or `::after` holding its address;
 //!   - a table row, a note or a title block that can split across sheets (`break-inside`);
-//!   - a title block not drawn, or without its version and date of issue drawn.
+//!   - a title block not drawn, or without its version and date of issue drawn;
+//!   - anything fixed to the window, element or `::before` or `::after`, which a browser draws
+//!     on every sheet over what stands there;
+//!   - on the print page, whose chapters wait in a template (`print.rs`), the chapters not all
+//!     placed in the page when it is about to print (`beforeprint`), or not all gone once
+//!     printing ends (`afterprint`).
 //! - What a keyboard, forced colors and a sticky bar need (#383; `web.md`, *Theme* and
 //!   *Accessibility*), each read in the theme the page loads in, contrast in every reading:
 //!   - **text under the contrast floor**: WCAG 2.2 AA (1.4.3), the floor `foundations.md`
@@ -191,7 +196,9 @@
 //! screen-only rule that leaves a color off the roles on paper, navigation and a control drawn
 //! on paper, a page arrow fixed inside a `nav` with no height, a link printed without its
 //! address in `main` and one outside it, links with theirs, which must pass, a row that can
-//! split, and a title block hidden on paper, printed without its date and able to split; an
+//! split, a rule fixed to the window's top on paper, a print page whose chapters aren't placed as
+//! it prints and one whose chapters stay after, with one that places and removes them, which must
+//! pass, and a title block hidden on paper, printed without its date and able to split; an
 //! intro and sheets drawn as the system's, which must pass, sheets under a 1 px rule and under
 //! a rule's color, numbered out of order, a section's name outside a sheet, a sheet's number in
 //! Archivo and one below its name, and a designation tag with no chamfer, below its title, at
@@ -255,7 +262,7 @@ const DEADLINE: Duration = Duration::from_secs(30 * 60);
 /// The environment variable that names the browser's program.
 const CHROME_ENV: &str = "HPR_CHROME";
 /// Where the check's own files are served, beside the site.
-const CHECK_PREFIX: &str = "__check/";
+pub(super) const CHECK_PREFIX: &str = "__check/";
 /// The harness each tab runs: loads, measures and reports.
 const HARNESS_JS: &str = include_str!("pages.js");
 /// The page each tab opens, which runs [`HARNESS_JS`]. Its first script reports an error in the
@@ -386,7 +393,9 @@ enum Kind {
     /// Something forced colors would erase: a box set apart only by its fill, an icon not in its
     /// text color, or one painted through a mask with its colors forced (#383).
     Forced,
-    /// A bar stuck to the top of the window taller than the page's `scroll-padding-top` (#383).
+    /// A bar stuck to the top of the window taller than the page's `scroll-padding-top` (#383),
+    /// or something fixed to the window inside a box whose transform or `will-change` carries it
+    /// with the page instead, as the page's own layer on a phone would (ADR-232).
     Sticky,
     /// An icon of the page's chrome drawn at a size other than the system's 16, 20 or 24 px,
     /// square (#383).
@@ -466,7 +475,7 @@ impl Kind {
             Kind::Contrast => "text under the contrast floor",
             Kind::Focus => "a focus ring off the system's",
             Kind::Forced => "something forced colors would erase",
-            Kind::Sticky => "a sticky bar that can hide what is focused",
+            Kind::Sticky => "a sticky bar that can hide what is focused, or one the page carries",
             Kind::Icon => "an icon off the system's sizes",
             Kind::Selection => "a selection off the action role",
             Kind::Header => "a header off the system's",
@@ -847,7 +856,7 @@ macro_rules! switch_frame {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 134] = [
+const CANARIES: [Canary; 139] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1411,18 +1420,30 @@ const CANARIES: [Canary; 134] = [
         file: "canary-sticky.html",
         what: "a 60 px bar fixed to the window's top with no `scroll-padding-top`",
         expect: &[Kind::Sticky],
-        inside: "",
-        after: "<div style=\"position: fixed; top: 0; left: 0; right: 0; height: 60px; \
-                background: #F3F4F7\"></div>",
+        // Put away on paper, as the site's own bar is, so that only the sticky reading finds it.
+        inside: "<style>@media print { .bar { display: none; } }</style>",
+        after: "<div class=\"bar\" style=\"position: fixed; top: 0; left: 0; right: 0; \
+                height: 60px; background: #F3F4F7\"></div>",
+    },
+    Canary {
+        file: "canary-sticky-carried.html",
+        what: "a box fixed to the window's corner inside a box with `will-change: transform`, \
+               which carries it with the page",
+        expect: &[Kind::Sticky],
+        inside: "<style>@media print { .pin { display: none; } }</style><div style=\"will-change: \
+                 transform\"><div class=\"pin\" style=\"position: fixed; bottom: 16px; right: \
+                 16px; width: 40px; height: 40px; background: #F3F4F7\"></div></div>",
+        after: "",
     },
     Canary {
         file: "canary-sticky-padded.html",
         what: "a 60 px bar fixed to the window's top over a 60 px `scroll-padding-top`, which \
                must pass",
         expect: &[],
-        inside: "<style>html { scroll-padding-top: 60px; }</style>",
-        after: "<div style=\"position: fixed; top: 0; left: 0; right: 0; height: 60px; \
-                background: #F3F4F7\"></div>",
+        inside: "<style>html { scroll-padding-top: 60px; } @media print { .bar { display: none; \
+                 } }</style>",
+        after: "<div class=\"bar\" style=\"position: fixed; top: 0; left: 0; right: 0; \
+                height: 60px; background: #F3F4F7\"></div>",
     },
     Canary {
         file: "canary-smooth.html",
@@ -2062,6 +2083,41 @@ const CANARIES: [Canary; 134] = [
         inside: "<style>@media print { a[href]:not([href^='#'])::after { content: ' (' \
                  attr(href) ')'; } }</style><p>See <a href=\"other.html\">another page</a>.</p>",
         after: "<p>See <a href=\"https://example.com/\">another site</a>.</p>",
+    },
+    Canary {
+        file: "canary-print-fixed.html",
+        what: "a rule fixed to the window's top on paper, drawn over the top of every sheet",
+        expect: &[Kind::Print],
+        inside: "<style>@media print { main::before { content: ''; position: fixed; top: 0; \
+                 left: 0; right: 0; height: 4px; } }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-print-unplaced.html",
+        what: "a print page whose chapters aren't placed in the page as it prints",
+        expect: &[Kind::Print],
+        inside: "<template id=\"hpr-book\"><h1 id=\"chapter\">A chapter</h1><p>Its text.</p></template>",
+        after: "",
+    },
+    Canary {
+        file: "canary-print-kept.html",
+        what: "a print page whose chapters stay in the page once printing ends",
+        expect: &[Kind::Print],
+        inside: "<template id=\"hpr-book\"><h1 id=\"chapter\">A chapter</h1><p>Its text.</p></template><script>(function () { const b = document.getElementById('hpr-book'); let p = []; \
+                 addEventListener('beforeprint', function () { const c = b.content.cloneNode(true); \
+                 p = Array.from(c.childNodes); b.parentNode.insertBefore(c, b); }); })();</script>",
+        after: "",
+    },
+    Canary {
+        file: "canary-print-placed.html",
+        what: "a print page whose chapters are placed as it prints and gone after, which must pass",
+        expect: &[],
+        inside: "<template id=\"hpr-book\"><h1 id=\"chapter\">A chapter</h1><p>Its text.</p></template><script>(function () { const b = document.getElementById('hpr-book'); let p = []; \
+                 addEventListener('beforeprint', function () { const c = b.content.cloneNode(true); \
+                 p = Array.from(c.childNodes); b.parentNode.insertBefore(c, b); }); \
+                 addEventListener('afterprint', function () { p.forEach(function (n) { \
+                 n.remove(); }); p = []; }); })();</script>",
+        after: "",
     },
     Canary {
         file: "canary-print-row.html",
@@ -2793,7 +2849,7 @@ fn collect(
 }
 
 /// The browser's program: [`CHROME_ENV`], else the first of the usual places that exists.
-fn find_chrome() -> Result<PathBuf, String> {
+pub(super) fn find_chrome() -> Result<PathBuf, String> {
     if let Some(named) = std::env::var_os(CHROME_ENV).filter(|value| !value.is_empty()) {
         let path = PathBuf::from(&named);
         if path.is_file() {
@@ -2872,12 +2928,12 @@ fn on_path(name: &str) -> Option<PathBuf> {
 }
 
 /// A fresh folder for the browser's profile and log, removed when dropped.
-struct Scratch {
+pub(super) struct Scratch {
     dir: PathBuf,
 }
 
 impl Scratch {
-    fn new() -> Result<Scratch, String> {
+    pub(super) fn new() -> Result<Scratch, String> {
         let nanos = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map_or(0, |since| since.as_nanos());
@@ -2888,7 +2944,7 @@ impl Scratch {
         Ok(Scratch { dir })
     }
 
-    fn profile(&self, tab: usize) -> PathBuf {
+    pub(super) fn profile(&self, tab: usize) -> PathBuf {
         self.dir.join(format!("profile-{tab}"))
     }
 
@@ -2947,8 +3003,36 @@ impl Browser {
     }
 }
 
+/// Starts one headless browser that the vitals check drives through DevTools
+/// ([`super::vitals`]): its own fresh profile, a blank page, and DevTools on a port the browser
+/// picks and writes into the profile.
+pub(super) fn launch_debuggable(
+    chrome: &Path,
+    scratch: &Scratch,
+    tab: usize,
+) -> Result<Child, String> {
+    launch_with(
+        chrome,
+        scratch,
+        tab,
+        "about:blank",
+        &["--remote-debugging-port=0"],
+    )
+}
+
 /// Starts one headless browser, with its own fresh profile, on `url`.
 fn launch_one(chrome: &Path, scratch: &Scratch, tab: usize, url: &str) -> Result<Child, String> {
+    launch_with(chrome, scratch, tab, url, &[])
+}
+
+/// Starts one headless browser, with its own fresh profile and the arguments `extra`, on `url`.
+fn launch_with(
+    chrome: &Path,
+    scratch: &Scratch,
+    tab: usize,
+    url: &str,
+    extra: &[&str],
+) -> Result<Child, String> {
     let log_path = scratch.log(tab);
     let log = fs::File::create(&log_path)
         .map_err(|err| format!("could not create {}: {err}", log_path.display()))?;
@@ -2981,6 +3065,7 @@ fn launch_one(chrome: &Path, scratch: &Scratch, tab: usize, url: &str) -> Result
         .try_clone()
         .map_err(|err| format!("could not open the browser's log: {err}"))?;
     command
+        .args(extra)
         .arg(url)
         .stdin(Stdio::null())
         .stdout(log)
@@ -2996,8 +3081,8 @@ impl Drop for Browser {
 }
 
 /// The static file server the browser loads the site and the harness from.
-struct Server {
-    address: SocketAddr,
+pub(super) struct Server {
+    pub(super) address: SocketAddr,
     stop: Arc<AtomicBool>,
     thread: Option<JoinHandle<()>>,
 }
@@ -3011,14 +3096,34 @@ struct Shared {
     /// The pages no tab has taken yet.
     queue: Mutex<VecDeque<String>>,
     sender: Mutex<Sender<News>>,
+    /// Whether text is sent compressed with gzip to a browser that accepts it, as GitHub Pages
+    /// sends it (the vitals check); the page check reads the site uncompressed.
+    compress: bool,
 }
 
 impl Server {
+    /// The server the vitals check loads the site from: the site and the check's own files, text
+    /// compressed as GitHub Pages compresses it.
+    pub(super) fn start_compressed(site: PathBuf) -> Result<Server, String> {
+        let (sender, _) = mpsc::channel();
+        Server::open(site, String::new(), Vec::new(), sender, true)
+    }
+
     fn start(
         site: PathBuf,
         plan: String,
         queue: Vec<String>,
         sender: Sender<News>,
+    ) -> Result<Server, String> {
+        Server::open(site, plan, queue, sender, false)
+    }
+
+    fn open(
+        site: PathBuf,
+        plan: String,
+        queue: Vec<String>,
+        sender: Sender<News>,
+        compress: bool,
     ) -> Result<Server, String> {
         let listener = TcpListener::bind("127.0.0.1:0")
             .map_err(|err| format!("could not start the page check's server: {err}"))?;
@@ -3031,6 +3136,7 @@ impl Server {
             plan,
             queue: Mutex::new(queue.into()),
             sender: Mutex::new(sender),
+            compress,
         });
         let stopping = Arc::clone(&stop);
         let thread = thread::spawn(move || {
@@ -3081,6 +3187,7 @@ fn serve(stream: TcpStream, shared: &Shared) -> Result<(), String> {
         .read_line(&mut request_line)
         .map_err(|err| err.to_string())?;
     let mut length = 0usize;
+    let mut gzip = false;
     loop {
         let mut line = String::new();
         let read = reader.read_line(&mut line).map_err(|err| err.to_string())?;
@@ -3088,10 +3195,14 @@ fn serve(stream: TcpStream, shared: &Shared) -> Result<(), String> {
         if read == 0 || line == "\r\n" || line == "\n" || head_bytes > MOST_HEAD_BYTES {
             break;
         }
-        if let Some((name, value)) = line.split_once(':')
-            && name.trim().eq_ignore_ascii_case("content-length")
-        {
-            length = value.trim().parse().unwrap_or(usize::MAX);
+        if let Some((name, value)) = line.split_once(':') {
+            if name.trim().eq_ignore_ascii_case("content-length") {
+                length = value.trim().parse().unwrap_or(usize::MAX);
+            } else if name.trim().eq_ignore_ascii_case("accept-encoding") {
+                gzip = value
+                    .split(',')
+                    .any(|coding| coding.split(';').next().unwrap_or("").trim() == "gzip");
+            }
         }
     }
     let mut parts = request_line.split_whitespace();
@@ -3108,8 +3219,16 @@ fn serve(stream: TcpStream, shared: &Shared) -> Result<(), String> {
             .map_err(|err| err.to_string())?;
         respond(method, target, body, shared)
     };
+    let (body, encoding) = if shared.compress && gzip && compressible(kind) {
+        (
+            gzipped(&body)?,
+            "Content-Encoding: gzip\r\nVary: Accept-Encoding\r\n",
+        )
+    } else {
+        (body, "")
+    };
     let head = format!(
-        "HTTP/1.1 {status} {}\r\nContent-Type: {kind}\r\nContent-Length: {}\r\n\
+        "HTTP/1.1 {status} {}\r\nContent-Type: {kind}\r\nContent-Length: {}\r\n{encoding}\
          Cache-Control: max-age=600\r\nConnection: close\r\n\r\n",
         reason(status),
         body.len()
@@ -3121,6 +3240,23 @@ fn serve(stream: TcpStream, shared: &Shared) -> Result<(), String> {
         writer.write_all(&body).map_err(|err| err.to_string())?;
     }
     writer.flush().map_err(|err| err.to_string())
+}
+
+/// Whether GitHub Pages compresses a response of type `kind`: text, scripts, JSON and SVG, not
+/// fonts or images, which are compressed already.
+fn compressible(kind: &str) -> bool {
+    kind.starts_with("text/") || kind.starts_with("application/json") || kind == "image/svg+xml"
+}
+
+/// `body` compressed with gzip at the default level.
+fn gzipped(body: &[u8]) -> Result<Vec<u8>, String> {
+    use flate2::Compression;
+    use flate2::write::GzEncoder;
+    let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+    encoder
+        .write_all(body)
+        .and_then(|()| encoder.finish())
+        .map_err(|err| format!("could not compress a response: {err}"))
 }
 
 fn reason(status: u16) -> &'static str {
@@ -3165,6 +3301,13 @@ fn respond_check(method: &str, name: &str, body: Vec<u8>, shared: &Shared) -> Re
         }
     };
     let text = || String::from_utf8_lossy(&body).into_owned();
+    if method == "GET"
+        && let Some((kind, body, delay)) = super::vitals::served(name)
+    {
+        // The vitals check's late stylesheet is held back here, on its own connection.
+        thread::sleep(delay);
+        return (200, kind, body);
+    }
     match (method, name) {
         ("GET", "harness.html") => (200, "text/html; charset=utf-8", HARNESS_HTML.into()),
         ("GET", "pages.js") => (200, "text/javascript; charset=utf-8", HARNESS_JS.into()),
@@ -3486,7 +3629,8 @@ mod tests {
         );
         assert!(
             problems[3].starts_with(
-                "guide.html: a sticky bar that can hide what is focused at 1080 to 1920 px"
+                "guide.html: a sticky bar that can hide what is focused, or one the page carries \
+                 at 1080 to 1920 px"
             ),
             "{}",
             problems[3]
