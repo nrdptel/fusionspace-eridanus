@@ -264,6 +264,7 @@ until someone rewrites it in plainer words.
 | [ADR-233: The pages' own words split again: the intro's chip and lead first][adr-233] | [M0.9d11](#m0-9d11) took the rest of #384: the intro's status chip and one-sentence lead, two to six sheets a page, and every page opening with how far to trust it. [M0.9d11](#m0-9d11) now covers the intro: after mdBook builds the site, `cargo xtask site` sets the title block's status (IN PREPARATION or RELEASED, the product system's drawing words) in the system's chip beside the designation tag, and makes the paragraph under every page's title its lead, which a file check holds to one sentence of at most 25 words; the page check fails a chip or a lead drawn off the system's, with canaries. The title block's version and status, which still read "not yet released" after 0.1.0 shipped on 2026-10-08, now say what the site describes. The new [M0.9d12](#m0-9d12) keeps the old done-when whole (#384 closed, every rule held) and takes the sheets and the trust openings. |  |
 | [ADR-234: The pages' sheets and trust split again: the sheet count's check first][adr-234] | [M0.9d12](#m0-9d12) took the rest of #384: two to six sheets a page and every page opening with how far to trust it. [M0.9d12](#m0-9d12) now covers the sheet count's check: `cargo xtask site` and a site test count each page's `##` sections, its sheets, and fail a page with fewer than two or more than six, except the 38 pages over six on a list in `xtask/src/site/sheets.rs`, held exact: a listed page at six or fewer fails until it comes off, and so does a listed page the summary doesn't hold. The glossary, 187 sections, one a term, now groups its terms in six by first letter, each term a `###` heading with the same anchor. The new [M0.9d13](#m0-9d13) keeps the old done-when whole (#384 closed, every rule held) and takes the 38 pages' grouping and the trust openings. |  |
 | [ADR-235: Every page in two to six sheets and opening with how far to trust it][adr-235] | The 38 pages that had more than six `##` sections are grouped into two to six sheets, so the check fails any page outside that range and the list of exceptions is gone. Every page but a model page now holds a trust note, a quote block opening with `**How far to trust it.**`, between its title's lead and its first sheet; a model page opens with *In short* instead. `cargo xtask site` and a site test fail a page that doesn't. |  |
+| [ADR-236: Supersonic flights from published comparisons, after Release 0.3][adr-236] | no public real flight FusionSpace HPR is scored against passes Mach 1, and the private collection's report doesn't split its errors by speed. RASAero II's author publishes 36 flights with measured apogees, and says the designs of most ship with RASAero II. [M2.3c7](#m2-3c7) flies those designs, scores them by Mach band beside RASAero II's own published errors, and splits the collection's errors at Mach 1. |  |
 
 ## The roadmap
 
@@ -530,6 +531,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m2-3c4"></a>[M2.3c4][phase-1] | One fixture repo | not yet done |
 | <a id="m2-3c5"></a>[M2.3c5][phase-1] | The corpus rechecked | not yet done |
 | <a id="m2-3c6"></a>[M2.3c6][phase-1] | The gap to OpenRocket, by cause | not yet done |
+| <a id="m2-3c7"></a>[M2.3c7][phase-1] | Faster than sound: published flights | not yet done |
 | <a id="m2-4"></a>[M2.4][done-1] | A summary of accuracy for the README, and CI that fails on any regression ([ADR-084][adr-084], [Accuracy: the census](accuracy.md#the-census)) | done |
 | <a id="m2-6"></a>[M2.6][phase-1] | An open benchmark | not yet done |
 | <a id="m2-7"></a>[M2.7][phase-1] | Held-out flights, predictions first | not yet done |
@@ -1033,6 +1035,7 @@ is the milestone that added or will add that test.
 [adr-233]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0233-the-intro-chip-and-lead-first.md
 [adr-234]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0234-two-to-six-sheets-the-check-first.md
 [adr-235]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0235-every-page-opens-with-trust.md
+[adr-236]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0236-the-2026-10-11-review-supersonic-flights-from-published-comparisons.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

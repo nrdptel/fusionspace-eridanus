@@ -82,6 +82,28 @@ From the 2026-10-09 planning review:
   share of the collection's logged apogees inside that band, not measured today. *Done when:* the
   fixture report gives it with two-sided 95% Clopper–Pearson bounds, failed runs counted as misses.
 
+From the 2026-10-08 planning review:
+
+- SOON: weighed against estimated mass at import. User: a flyer whose apogee is 20% off. Workflow:
+  reads which masses are weighed (overrides, and what each covers) and which estimated, with each
+  one's effect on the apogee. Moves: the collection's apogee error split by the share of liftoff
+  mass weighed. *Done when:* `hpr sim` prints that share and each override's scope; the fixture
+  report gives the error above and below the median share, fixed before the errors are read, as
+  aggregates.
+
+From the 2026-10-10 planning review:
+
+- SOON: every flight's energy closes. User: a flyer showing a waiver flight to a safety reviewer.
+  Workflow: `hpr sim` prints the work done by thrust, drag and gravity beside the change in kinetic
+  and potential energy. Why: in October 2026 RocketPy 1.13 still printed its potential energy with
+  the wrong sign (its issue #1202). Moves: the share of the report's flights whose energy residual
+  is below 1e-6 of the impulse's work, not measured today. *Done when:* the fixture and public
+  reports give that share, and a mutation of drag's sign fails a test.
+- SOON: oracle aborts named, not counted as misses. User: a reader of the OpenRocket comparisons.
+  Workflow: the census lists each flight OpenRocket ends early by its event (a 2026-10-07 fix in its
+  development line removed a false tumble abort on finless boosters; 24.12 still has it). Moves: the
+  OpenRocket examples within 5% (45 of 53 today), with aborts kept apart. *Done when:* the
+  OpenRocket reports count aborts by event, and a probe design with a finless booster shows one.
 
 [m1-14f]: ../decisions-and-roadmap.md#m1-14f
 [m8-3]: ../decisions-and-roadmap.md#m8-3

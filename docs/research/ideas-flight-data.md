@@ -28,5 +28,12 @@ reconstruction, a flight against its simulation, fault diagnosis).
 - SOON: a season flight recorder with NAR's (the National Association of Rocketry's) outcome codes.
 - SOON: a "flight package" archive format.
 
+From the 2026-10-10 planning review:
+
+- LATER: the flight against its own log, by phase. User: an L2 flyer whose apogee came in low.
+  Workflow: `hpr compare` splits the miss into thrust, coast-drag and recovery parts, by M2.3c6's
+  method. Moves: the collection's MAE, through the part it names. *Done when:* each collection
+  flight with a log M7.1 reads gets the three parts, aggregated in the fixture report.
+
 [m7-1]: ../decisions-and-roadmap.md#m7-1
 [m7-4]: ../decisions-and-roadmap.md#m7-4
