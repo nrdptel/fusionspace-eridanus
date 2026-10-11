@@ -193,10 +193,11 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
       parts tested to sum to the whole. Moves: accuracy.
     - [ ] **M2.3c7 Faster than sound: published flights** (ADR-236). *Done when:* the
       real-flights report scores every COTS-motor flight on RASAero II's published comparison
-      list whose design ships with RASAero II and that hpr flies past Mach 1 and below 3.5 (at
-      least 5, or an ADR shows fewer exist), read by hpr's own `.CDX1` importer, beside RASAero
-      II's published error on the same flights, the list's selection stated. Moves: accuracy
-      above Mach 1.
+      list whose design ships with RASAero II, read by hpr's own `.CDX1` importer, each not read
+      or not flown counted by cause; errors split at Mach 1, 2.5 and 3.5 (the list's measured
+      Mach where given), at least 5 scored past Mach 1 or an ADR shows fewer exist; beside RASAero
+      II's published errors, reconstructions flagged. The fixture report splits at Mach 1 too.
+      Moves: accuracy above Mach 1.
 - [ ] **M2.7 Held-out flights, predictions first** (ADR-209 §4). *Done when:* a flight is held out
   when SHA-256 of its id and the seed `ADR-209` falls in the lowest third, fixed before any held-out
   error is computed; the fixture report gives both halves as aggregates; a refs check fails when a

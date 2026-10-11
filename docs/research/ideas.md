@@ -119,8 +119,7 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 ## The 2026-10-08 planning review
 
 - PROMOTED ([M2.3c3][m2-3c3], ADR-212): OpenRocket's newest release as the bar.
-- PROMOTED ([M2.3c7][m2-3c7], [ADR-236][adr-236], 2026-10-11): apogees measured above Mach 1,
-  from published comparisons.
+- PROMOTED ([M2.3c7][m2-3c7], [ADR-236][adr-236]): apogees above Mach 1, from published comparisons.
 - Moved to the theme notes: a landing spread checked against tracked landings
   ([pad and recovery](ideas-pad-and-recovery.md)); weighed against estimated mass at import
   ([design and physics](ideas-design-and-physics.md)).
@@ -136,23 +135,28 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 
 - SOON: the tilt-abort window. User: a flyer whose altimeter fires its drogue when the tilt passes
   90° within 2 s of liftoff, on by default in one maker's two lines. Why: in October 2026 flyers
-  reported such early deployments on fast flights (a Rocketry Forum thread). Workflow: `hpr mc`
-  prints the tilt at the window's end (median, 90th percentile, largest) and how many runs cross the
-  threshold inside it, with two-sided 95% Clopper–Pearson bounds; window and threshold are inputs.
-  Moves: honest uncertainty, and the features the scoreboard counts. *Done when:* `hpr mc` prints both; a
-  test pins that a run touching the threshold counts as a crossing, with a mutation probe.
-- SOON: thrust at altitude, bounded. User: a flyer at a field 1,400 m up comparing tools.
-  Workflow: `hpr sim` gives the apogee with and without the ambient-pressure thrust term for a
-  catalog motor, whose file has no nozzle; the exit is at most the case's area, a sea-level test
-  assumed. Why: OpenRocket's development line added the term on 2026-09-23 (its PR #3327). Moves:
-  the collection's mean bias, +9.83% today. *Done when:* `hpr sim` prints both; the fixture report
-  gives the bound's median and largest over the collection as aggregates; a test pins one by hand.
+  reported such early deployments on fast flights ([a forum thread][tilt-thread]). Workflow:
+  `hpr mc` prints the tilt at the window's end (median, 90th percentile, largest) and how many runs
+  cross the threshold inside it, with two-sided 95% Clopper–Pearson bounds, failed runs counted;
+  window and threshold are inputs. Moves: honest uncertainty, and the features the scoreboard
+  counts. *Done when:* `hpr mc` prints both; crossings are found on the continuous solution, not
+  at output samples; a test pins that a run touching the threshold counts, with a mutation probe.
+- SOON: thrust at altitude, bounded. User: a flyer at a field 1,400 m up writing a waiver. Workflow:
+  `hpr sim` gives the apogee with and without the ambient-pressure thrust term for a catalog motor,
+  whose file has no nozzle; the exit is at most the case's area, a sea-level test assumed (a test
+  site above the field would make the term negative). Why: OpenRocket's development line added the
+  term on 2026-09-23 (its PR #3327). Leaving it out errs low, the flattering side for a waiver; the
+  term raises the apogee, so it grows the collection's +9.83% mean bias. Moves: that bias, and
+  hpr-less-OpenRocket once M2.3c3 flies its newest release. *Done when:* `hpr sim` prints both; the
+  fixture report gives the bound's median and largest as aggregates; a test pins it by hand and
+  that the bounded apogee is never below the other.
 - SOON: rail tip-off. User: a flyer of a heavy rocket leaving a short rail slowly. Workflow:
-  `hpr sim` pitches the rocket about the aft guide between the forward guide's release and the
-  aft one's (not modeled today), and prints the pitch rate and angle of attack at rail exit. Why:
-  RocketPy's development line added that phase in September 2026 (its PR #920). Moves: angle of
-  attack at rail exit against RocketPy, not measured today. *Done when:* a rigid pivot under
-  gravity matches its closed form, and RocketPy's example's rail-exit pitch rate is within 5%.
+  `hpr sim` lets the rocket pitch about the aft guide, which slides along the rail, between the
+  forward guide's release and the aft one's (not modeled today), and prints the pitch rate and angle
+  of attack at rail exit. Why: RocketPy's development line added that phase in September 2026 (its
+  PR #920). Moves: angle of attack at rail exit against RocketPy, not measured today. *Done when:*
+  a body on a frictionless line under gravity matches the energy integral
+  ω² = 2mgd(sin θ₀ − sin θ)/(I_cg + md² cos² θ), and RocketPy's example's pitch rate is within 5%.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -193,3 +197,4 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 [adr-226]: ../decisions/0226-the-2026-10-10-review-the-gap-to-openrocket-by-cause.md
 [m2-3c7]: ../decisions-and-roadmap.md#m2-3c7
 [adr-236]: ../decisions/0236-the-2026-10-11-review-supersonic-flights-from-published-comparisons.md
+[tilt-thread]: https://www.rocketryforum.com/threads/emergency-deployment-option-for-unstable-flights.194466/

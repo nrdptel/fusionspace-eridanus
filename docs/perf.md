@@ -17,9 +17,9 @@ the command, so a later run can be compared like for like.
 - **What moves.** Every committed report and example output reproduces byte for byte (`cargo
   xtask validate`, `examples`, `cli` and the five `refs` checks, regenerated and diffed). At full
   precision the dev build's Monte Carlo statistics move by about 1e-12 of their value, and 3 of
-  300 dispersed flights by up to 1.5e-6 of a peak angle of attack: at opt-level 3 LLVM merges
-  `sin_cos` into the platform's `sincos` and inlines `powi`, either of which can round one ulp
-  differently. Results stay bit-identical run to run on one platform, which is the promise; they
+  300 dispersed flights by up to 1.5e-6 of a peak angle of attack: at opt-level 3 LLVM merges the
+  dispersed wind's `sin_cos` (`DispersedWind::wind`, called in every flight's derivative) into the
+  platform's `sincos`, which can round one ulp differently, and a flight can grow that. Results stay bit-identical run to run on one platform, which is the promise; they
   were already different between the dev and release builds.
 
 ## Ten thousand flights (M6.1d)
