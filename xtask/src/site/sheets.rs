@@ -82,9 +82,9 @@ const CHIPS: [(&str, &str, &str, &str); 2] = [
 pub(super) const SHEETS: std::ops::RangeInclusive<usize> = 2..=6;
 
 /// The pages with more than six sheets until they are grouped in M0.9d13 (ADR-234), by their
-/// path under `docs/`. [`sheet_counts`] fails a page listed here that has six or fewer, and a
-/// name the summary doesn't list, so the list only shrinks and every other page holds the
-/// rule now.
+/// path under `docs/`, sorted. [`sheet_counts`] fails a page listed here that has six or fewer,
+/// and a name the summary doesn't list, so the list is held exact, shrinks as pages are grouped,
+/// and every other page holds the rule now.
 pub(super) const OVER_SIX: [&str; 38] = [
     "VALIDATION.md",
     "accuracy.md",
@@ -554,6 +554,14 @@ fn headings_out_of_order(text: &str) -> Vec<String> {
 /// does a listed page the summary doesn't hold.
 pub(super) fn sheet_counts(sheets: &[(String, usize)], over_six: &[&str]) -> Vec<String> {
     let mut problems = Vec::new();
+    // Sorted without repeats, so the list's length is the number of pages it excuses.
+    for pair in over_six.windows(2).filter(|pair| pair[0] >= pair[1]) {
+        problems.push(format!(
+            "`OVER_SIX` in xtask/src/site/sheets.rs: `{}` before `{}`; keep it sorted, each page \
+             once",
+            pair[0], pair[1]
+        ));
+    }
     for (name, count) in sheets {
         let listed = over_six.contains(&name.as_str());
         if *count < *SHEETS.start() {
@@ -870,7 +878,7 @@ mod tests {
     }
 
     #[test]
-    fn the_list_over_six_only_shrinks() {
+    fn the_list_over_six_is_held_exact() {
         let pages: Vec<(String, usize)> = vec![("long.md".into(), 9), ("short.md".into(), 6)];
         // A listed page over six passes; listed at six or fewer, it comes off the list.
         assert!(sheet_counts(&pages[..1], &["long.md"]).is_empty());
@@ -889,6 +897,16 @@ mod tests {
         );
         // The list never holds a page under two: that page fails all the same.
         let bare = sheet_counts(&[("bare.md".into(), 1)], &["bare.md"]);
+        assert_eq!(bare.len(), 1, "{bare:?}");
         assert!(bare[0].starts_with("docs/bare.md: 1 sheet(s)"), "{bare:?}");
+        // A page listed twice, or out of order, fails: the list's length counts the pages.
+        let twice = sheet_counts(&pages[..1], &["long.md", "long.md"]);
+        assert_eq!(twice.len(), 1, "{twice:?}");
+        assert!(twice[0].contains("`long.md` before `long.md`"), "{twice:?}");
+        let unsorted = sheet_counts(&pages[..1], &["long.md", "a.md"]);
+        assert!(
+            unsorted[0].contains("`long.md` before `a.md`"),
+            "{unsorted:?}"
+        );
     }
 }

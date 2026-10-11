@@ -54,7 +54,7 @@
 //!   check holds the label, its place, headings and that opener, not the note's three parts,
 //!   which a reviewer reads ([`trust_notes`]).
 //! - **Sheets** (#384). Every page has two to six `##` sections, each a sheet, as `web.md` asks,
-//!   but the pages over six on a list that only shrinks ([`sheets::sheet_counts`]).
+//!   but the pages over six on a list held exact ([`sheets::sheet_counts`]).
 //!
 //! `cargo test` runs these on the real pages. `cargo xtask site` runs them, builds the site into
 //! `target/site` with mdBook, and checks the built HTML as well: every relative `href` and `src`
@@ -3305,7 +3305,7 @@ mod tests {
     #[test]
     fn every_page_has_two_to_six_sheets() {
         // `web.md`'s two to six sheets a page (#384), on the real pages: the pages over six wait
-        // on a list that only shrinks.
+        // on a list held exact.
         let report = check_sources(&crate::designs::root().unwrap()).unwrap();
         assert_eq!(report.sheets.len(), report.pages);
         let problems = sheets::sheet_counts(&report.sheets, &sheets::OVER_SIX);
