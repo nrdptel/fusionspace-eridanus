@@ -544,7 +544,10 @@ fn build(root: &Path) -> Result<Scoreboard, String> {
 }
 
 /// A count as an `f64`: exact, since a report's counts are far below 2^53.
-#[allow(clippy::cast_precision_loss)]
+#[allow(
+    clippy::cast_precision_loss,
+    reason = "a report's counts are far below 2^53, so exact as an f64"
+)]
 fn exact(count: u64) -> f64 {
     count as f64
 }
