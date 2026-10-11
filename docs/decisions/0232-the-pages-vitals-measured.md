@@ -135,12 +135,14 @@ run here), so its least margin to its bound is about 0.15 s; INP moved between 8
 run to run while four browsers measured at once, and between 56 and 96 ms one page at a time. A
 runner that scores higher is slowed more, and the one that scored 4,004 measured the records page's
 tap at 216 ms before the page's layer, which suggests the slowdown, set from a JavaScript
-benchmark, weighs drawing differently from machine to machine; no run with the layer has yet drawn
-such a runner. The check takes about six minutes on this Mac and two on each CI runner. The
-header's "Print this book" icon now opens the cover, one more step to the print window, and the
-book prints only with scripts on. The check depends on Chrome's DevTools protocol and its Event
-Timing and layout-shift entries; a Chrome that changes them fails the check through its canaries,
-its throttle checks or a load with nothing to read, rather than passing silently. The lab is not
-the field: it runs over HTTP/1.1 and loads every page cold, which make it slower than a visit,
-while the CPU slowdown on a fast machine extrapolates Lighthouse's calculator, which could err
-either way. Field numbers would settle it, and the site collects none.
+benchmark, weighs drawing differently from machine to machine. With the layer, a runner slowed 12.1
+times (BenchmarkIndex 3,410) measured the aerodynamics page's INP at 200 ms, at the bound: the
+margin on CI's faster runners is open, with a measured way to widen it (#462). The check takes
+about six minutes on this Mac and two on each CI runner. The header's "Print this book" icon now
+opens the cover, one more step to the print window, and the book prints only with scripts on. The
+check depends on Chrome's DevTools protocol and its Event Timing and layout-shift entries; a Chrome
+that changes them fails the check through its canaries, its throttle checks or a load with nothing
+to read, rather than passing silently. The lab is not the field: it runs over HTTP/1.1 and loads
+every page cold, which make it slower than a visit, while the CPU slowdown on a fast machine
+extrapolates Lighthouse's calculator, which could err either way. Field numbers would settle it,
+and the site collects none.
