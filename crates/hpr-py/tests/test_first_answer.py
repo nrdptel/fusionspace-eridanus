@@ -92,12 +92,15 @@ def test_the_python_steps_work(repo, hpr_cli, monkeypatch):
     assert namespace["rocket"].configuration
     apogee, spread = out.getvalue().splitlines()
     assert re.fullmatch(r"apogee \d+\.\d m", apogee)
-    assert re.fullmatch(r"landing ellipse, one standard deviation: \d+\.\d m by \d+\.\d m", spread)
+    printed = re.fullmatch(r"landing ellipse, one standard deviation: (\d+\.\d) m by (\d+\.\d) m",
+                           spread)
+    assert printed
     run = namespace["run"]
     assert run.flown == run.runs == 100
     # The same flights as `hpr mc`'s, so the same ellipse: its 95% axes are the standard
     # deviations scaled by sqrt(-2 ln 0.05), each within the 0.05 m the command line rounds to.
     minor, major = namespace["axes"]
+    assert printed.groups() == (f"{major:.1f}", f"{minor:.1f}"), "the major axis first"
     scale = math.sqrt(-2.0 * math.log(0.05))
     semi_major, semi_minor = ellipse_95(run_hpr(hpr_cli, repo, MC))
     assert abs(major * scale - semi_major) <= 0.05 + 1e-9
