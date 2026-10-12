@@ -1,6 +1,6 @@
 # ADR-250: The measure as a median and a maximum, a reading scale that grows with the window, and the column flush left, from the product system's Rev B (2026-10-12)
 
-- **Status:** accepted; moves the product system's pin from Rev A (`f45454f`) to Rev B (`1a430cb`), as [ADR-164](0164-the-fusionspace-product-system.md) lets a deliberate update do; reopens the design audit at the new pin ([ADR-208](0208-the-design-audit.md)); amends the page check of [ADR-223](0223-the-pages-frame-first.md)
+- **Status:** accepted; moves the product system's pin from Rev A (`f45454f`) to Rev B (`9bdebfd`), as [ADR-164](0164-the-fusionspace-product-system.md) lets a deliberate update do; reopens the design audit at the new pin ([ADR-208](0208-the-design-audit.md)); amends the page check of [ADR-223](0223-the-pages-frame-first.md)
 - **Summary:** prose on the site stopped at 24 em, so lines averaged 52 characters and a desktop window was mostly empty. The product system's Rev B states the measure as a median line of 60 to 75 characters and none over 80, set as 29.5 em of the text; grows the type scale with the window on a reading page (16 to 18 px body between 1,024 and 1,600 px); sets the column flush left beside the sidebar up to 1,120 px; and ships the code that measures these rules, which the site's page check now runs unchanged.
 
 **Context.** A review of the site on a 1,512 px desktop window found most of the window empty:
@@ -63,7 +63,7 @@ USWDS and GOV.UK stay near 80.
 **Consequences.** On a 1,512 px window body text is 17.7 px and prose about 522 px wide, where it
 was 16 px and 384 px; tables and code may use up to 1,120 px instead of 750. Pages of prose still
 leave the right of a wide window empty, by the measure's choice. The design audit reopens at
-`1a430cb`: its rows reviewed at `f45454f` whose sections did not change are carried over with
+`9bdebfd`: its rows reviewed at `f45454f` whose sections did not change are carried over with
 the comparison that shows it, and the five sections Rev B changed are read again. A second mdBook site would still need this site's build steps
 for the system's notes, sheets, title block and icons; those stay here until a second site
 needs them.

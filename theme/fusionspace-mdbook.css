@@ -66,30 +66,6 @@ html:not(.js) {
   --fs-selection: rgb(118 141 245 / 0.22);
   }
 }
-/* Print: the light values whatever theme the page is read in; links keep the action role and show their
-   addresses; a table row stays on one sheet; the strip, fixed to the window, stands once at the top of
-   the first sheet instead of over the text of every one. */
-@media print {
-  html.light, html.rust, html.navy, html.coal, html.ayu, html:not(.js) {
-  color-scheme: light;
-  --bg: #F3F4F7; --fg: #0B0F1C; --sidebar-bg: #FFFFFF; --sidebar-fg: #0B0F1C;
-  --sidebar-non-existant: #98A1B8; --sidebar-active: #3350D6; --sidebar-spacer: #D6DAE4;
-  --scrollbar: #566079; --icons: #566079; --icons-hover: #0B0F1C; --links: #3350D6;
-  --inline-code-color: #0B0F1C; --theme-popup-bg: #FFFFFF; --theme-popup-border: #566079;
-  --theme-hover: #D6DAE4; --quote-bg: #FFFFFF; --quote-border: #566079;
-  --table-border-color: #D6DAE4; --table-header-bg: #FFFFFF; --table-alternate-bg: #F3F4F7;
-  --searchbar-border-color: #566079; --searchbar-bg: #FFFFFF; --searchbar-fg: #0B0F1C;
-  --searchbar-shadow-color: transparent; --searchresults-header-fg: #566079; --searchresults-border-color: #D6DAE4;
-  --searchresults-li-bg: #FFFFFF; --search-mark-bg: #3350D6;
-  --code-bg: #FFFFFF; --sidebar-header-border-color: #D6DAE4; --footnote-highlight: #3350D6;
-  --fs-ink: #0B0F1C; --fs-ink-muted: #566079; --fs-canvas: #F3F4F7; --fs-surface: #FFFFFF; --fs-rule: #D6DAE4; --fs-rule-strong: #566079; --fs-action: #3350D6; --fs-on-action: #FFFFFF; --fs-danger: #AC001E; --fs-ok: #0A6355;
-  --fs-selection: rgb(51 80 214 / 0.22);
-  }
-  a, a:visited, a:active, a:hover { color: var(--links); }
-  a[href]:not([href^="#"])::after { content: " (" attr(href) ")"; overflow-wrap: anywhere; }
-  tr { break-inside: avoid; }
-  body::before { position: static; display: block; }
-}
 html { font-family: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif; }
 body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg,#DA7C30 0%,#D07D7A 35%,#A188CB 65%,#768DF5 100%); z-index: 1000; }
 code, pre, kbd, .hljs { font-family: 'Cascadia Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace !important; font-variant-numeric: tabular-nums slashed-zero; }
@@ -274,3 +250,28 @@ html { scroll-padding-top: calc(var(--menu-bar-height) + 1px); }
 html, h4, h5, h6, #mdbook-searchbar { font-family: 'Archivo', 'Archivo Fallback', 'Archivo Clone Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif; }
 code, pre, kbd, .hljs { font-family: 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, 'SF Mono', Menlo, Consolas, monospace !important; }
 h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter { font-family: 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; }
+
+/* Print: the light values whatever theme the page is read in; links keep the action role and show their
+   addresses; a table row stays on one sheet; the strip, fixed to the window, stands once at the top of
+   the first sheet instead of over the text of every one. */
+@media print {
+  html.light, html.rust, html.navy, html.coal, html.ayu, html:not(.js) {
+  color-scheme: light;
+  --bg: #F3F4F7; --fg: #0B0F1C; --sidebar-bg: #FFFFFF; --sidebar-fg: #0B0F1C;
+  --sidebar-non-existant: #98A1B8; --sidebar-active: #3350D6; --sidebar-spacer: #D6DAE4;
+  --scrollbar: #566079; --icons: #566079; --icons-hover: #0B0F1C; --links: #3350D6;
+  --inline-code-color: #0B0F1C; --theme-popup-bg: #FFFFFF; --theme-popup-border: #566079;
+  --theme-hover: #D6DAE4; --quote-bg: #FFFFFF; --quote-border: #566079;
+  --table-border-color: #D6DAE4; --table-header-bg: #FFFFFF; --table-alternate-bg: #F3F4F7;
+  --searchbar-border-color: #566079; --searchbar-bg: #FFFFFF; --searchbar-fg: #0B0F1C;
+  --searchbar-shadow-color: transparent; --searchresults-header-fg: #566079; --searchresults-border-color: #D6DAE4;
+  --searchresults-li-bg: #FFFFFF; --search-mark-bg: #3350D6;
+  --code-bg: #FFFFFF; --sidebar-header-border-color: #D6DAE4; --footnote-highlight: #3350D6;
+  --fs-ink: #0B0F1C; --fs-ink-muted: #566079; --fs-canvas: #F3F4F7; --fs-surface: #FFFFFF; --fs-rule: #D6DAE4; --fs-rule-strong: #566079; --fs-action: #3350D6; --fs-on-action: #FFFFFF; --fs-danger: #AC001E; --fs-ok: #0A6355;
+  --fs-selection: rgb(51 80 214 / 0.22);
+  }
+  a, a:visited, a:active, a:hover { color: var(--links); }
+  a[href]:not([href^="#"])::after { content: " (" attr(href) ")"; overflow-wrap: anywhere; }
+  tr { break-inside: avoid; }
+  body::before { position: static; display: block; }
+}

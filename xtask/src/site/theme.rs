@@ -29,7 +29,7 @@ pub(crate) const DESIGN_REFS: &str = "refs/fusionspace-design";
 /// The revision of the product system the copied files come from (Rev B), as ADR-164 pins it
 /// (moved by ADR-198 and ADR-250).
 /// `refs.lock.toml`'s pin must start with it.
-pub(crate) const DESIGN_REV: &str = "1a430cb";
+pub(crate) const DESIGN_REV: &str = "9bdebfd";
 /// The lock file that pins the `refs/` checkouts, relative to the workspace root.
 pub(crate) const REFS_LOCK: &str = "validation/refs.lock.toml";
 /// The product system's name in [`REFS_LOCK`].
