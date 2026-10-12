@@ -68,32 +68,58 @@ pub(super) fn landing_quotes() -> Vec<Quote> {
     vec![
         Quote {
             template: "{} public flights of university rockets, where they missed by {} on average \
-                       without signs",
+                       without signs and by {} with them, outside the project's own {} target",
             holes: |r| {
+                if r.flag(REAL, "/summary/within_target")? {
+                    return Err("the public flights now meet their target".to_owned());
+                }
                 Ok(vec![
                     public_flights(r)?.to_string(),
                     percent(
                         r.number(REAL, "/summary/mean_absolute_apogee_error_percent")?,
                         2,
                     ),
+                    signed_percent(r.number(REAL, "/summary/mean_apogee_error_percent")?, 2),
+                    percent(r.number(REAL, "/summary/target_percent")?, 0),
                 ])
             },
         },
         Quote {
-            template: "{} logged flights of fliers' own designs, where they averaged {} the logged \
-                       ones",
+            template: "{} logged flights of fliers' own designs they missed by {} without signs and \
+                       averaged {} the logged ones",
             holes: |r| {
                 Ok(vec![
                     super::flights(r)?.to_string(),
+                    percent(set_number(r, "hpr", "mean_absolute_percent")?, 2),
                     above(set_number(r, "hpr", "mean_percent")?),
                 ])
             },
         },
         Quote {
-            template: "OpenRocket, flying the same files, averaged {}",
-            holes: |r| Ok(vec![above(set_number(r, "openrocket", "mean_percent")?)]),
+            template: "OpenRocket, flying the same files, missed by {} without signs and averaged {}",
+            holes: |r| {
+                Ok(vec![
+                    percent(set_number(r, "openrocket", "mean_absolute_percent")?, 2),
+                    above(set_number(r, "openrocket", "mean_percent")?),
+                ])
+            },
         },
+        copernicus(),
     ]
+}
+
+/// The ERA5 weather's credit, with the years the fixture report's page gives.
+fn copernicus() -> Quote {
+    Quote {
+        template: "generated using Copernicus Climate Change Service information {}, and contains \
+                   modified Copernicus Climate Change Service information {}",
+        holes: |r| {
+            Ok(vec![
+                r.copernicus_year("Generated using")?,
+                r.copernicus_year("Contains modified")?,
+            ])
+        },
+    }
 }
 
 /// The tour's quotes.
@@ -125,13 +151,21 @@ pub(super) fn tour_quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "{}'s altimeter read {} at the top, {} s after liftoff",
+            template: "{}'s altimeter read {} at the top, {} s after the rocket passed {} on the way \
+                       up",
             holes: |r| {
                 let flight = median_flight(r)?;
                 let name = r.title(&flight)?;
                 let name = name.split(',').next().unwrap_or(name).to_owned();
                 let it = median(r)?;
-                Ok(vec![name, meters(it.logged, 1), fixed(it.logged_s, 1)])
+                // The report times the climb from the height it aligns the traces at, not liftoff.
+                let from = r.number(REAL, "/align_height_m")?;
+                Ok(vec![
+                    name,
+                    meters(it.logged, 1),
+                    fixed(it.logged_s, 1),
+                    meters(from, 0),
+                ])
             },
         },
         Quote {
@@ -150,8 +184,8 @@ pub(super) fn tour_quotes() -> Vec<Quote> {
             template: "For a waiver or a field's ceiling, {}",
             holes: |r| {
                 // A miss is simulated less logged, over logged, so a negative one read low: the
-                // side that flatters a ceiling (`fixture_flights`'
-                // `a_low_simulated_apogee_is_a_negative_miss` pins the sign).
+                // side that flatters a ceiling (this module's
+                // `the_median_flights_miss_follows_from_its_readings_as_written` pins the sign).
                 Ok(vec![
                     if median(r)?.miss < 0.0 {
                         "a low reading is the side that flatters: the rocket climbs past the \
@@ -165,7 +199,7 @@ pub(super) fn tour_quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "The report finds the miss {}",
+            template: "The report puts the miss {}",
             holes: |r| {
                 let flight = median_flight(r)?;
                 let kind = r.text(REAL, &format!("{flight}/explanation_kind"))?;
@@ -178,8 +212,8 @@ pub(super) fn tour_quotes() -> Vec<Quote> {
                 let example =
                     r.number(REAL, &format!("{flight}/example_drag_apogee_error_percent"))?;
                 Ok(vec![format!(
-                    "consistent with HPR Sim's drag: flown on the drag the team's example gives, \
-                     the apogee missed by {}",
+                    "down to HPR Sim's drag: flown on the drag the team's example gives, the \
+                     apogee missed by {}",
                     signed_percent(example, 2)
                 )])
             },
@@ -217,19 +251,28 @@ pub(super) fn tour_quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "sets these beside {} logged flights",
-            holes: |r| Ok(vec![super::flights(r)?.to_string()]),
-        },
-        Quote {
-            template: "generated using Copernicus Climate Change Service information {}, and contains \
-                       modified Copernicus Climate Change Service information {}",
+            template: "So on these flights the misses go both ways, while on {} logged flights of \
+                       fliers' own designs they lean {}, averaging {} the logged ones",
             holes: |r| {
+                // "Both ways" holds while the public flights hold a miss on each side.
+                let flights = public_flights(r)?;
+                let mut sides = (false, false);
+                for at in 0..flights {
+                    let miss = r.number(REAL, &format!("/flights/{at}/apogee_error_percent"))?;
+                    sides = (sides.0 || miss < 0.0, sides.1 || miss > 0.0);
+                }
+                if sides != (true, true) {
+                    return Err("the public flights' misses no longer go both ways".to_owned());
+                }
+                let mean = set_number(r, "hpr", "mean_percent")?;
                 Ok(vec![
-                    r.copernicus_year("Generated using")?,
-                    r.copernicus_year("Contains modified")?,
+                    super::flights(r)?.to_string(),
+                    super::lean(mean).to_owned(),
+                    above(mean),
                 ])
             },
         },
+        copernicus(),
     ]
 }
 

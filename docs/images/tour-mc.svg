@@ -3,8 +3,8 @@
 <desc id="desc">The command line, then each line it printed, long lines wrapped; balloons A, B, C mark the lines the page explains. Drawn by cargo xtask cli from the same run as the page&apos;s text.</desc>
 <rect width="760" height="875" fill="#F3F4F7"/>
 <rect x="40" y="16" width="712" height="843" fill="#FFFFFF" stroke="#D6DAE4" stroke-width="1"/>
-<text x="52" y="39" xml:space="preserve" font-weight="600" fill="#0B0F1C">$ hpr mc validation/fixtures/ork/guides/level-1.ork --runs 200 --seed 2026 --mass-sd 0.02 --drag-sd</text>
-<text x="52" y="55" xml:space="preserve" font-weight="600" fill="#0B0F1C">    0.05 --impulse-sd 0.03</text>
+<text x="52" y="39" xml:space="preserve" font-weight="600" fill="#0B0F1C">$ hpr mc validation/fixtures/ork/guides/level-1.ork --runs 200 --seed 2026 --mass-sd 0.02</text>
+<text x="52" y="55" xml:space="preserve" font-weight="600" fill="#0B0F1C">    --drag-sd 0.05 --impulse-sd 0.03</text>
 <text x="52" y="71" xml:space="preserve" fill="#0B0F1C">Level 1 guide rocket (level-1.ork)</text>
 <text x="52" y="87" xml:space="preserve" fill="#0B0F1C">configuration 1 of 2: [H170M-10]</text>
 <text x="52" y="103" xml:space="preserve" fill="#0B0F1C">help: --config flies the others, by number or name: 2 [I175WS-9]</text>

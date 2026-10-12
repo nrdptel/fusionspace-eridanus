@@ -46,6 +46,9 @@ const PAD: f64 = 12.0;
 /// The balloons' center, left of the panel, and their radius, px.
 const BALLOON_X: f64 = 18.0;
 const BALLOON_R: f64 = 9.0;
+/// The fewest rows between two balloons, so that they don't overlap: a balloon is taller than a
+/// row.
+const BALLOON_ROWS: usize = (2.0 * BALLOON_R / LINE) as usize + 1;
 /// How a wrapped line's rest goes on.
 const CONTINUED: &str = "    ";
 /// The font stack every figure's data is set in.
@@ -57,12 +60,12 @@ fn widest() -> f64 {
     (PANEL_RIGHT - PANEL_LEFT - 2.0 * PAD - 2.0) / SIZE
 }
 
-/// `line` as rows that each fit in `widest` ems: whole when it fits, else broken at the last
-/// space that fits after its indent, or mid-word if none does, each rest indented by
-/// [`CONTINUED`].
-fn wrapped(line: &str, widest: f64) -> Result<Vec<String>, String> {
+/// `line` as rows that each fit in `widest` ems, set in bold if `bold`: whole when it fits, else
+/// broken at the last space that fits after its indent, or mid-word if none does, each rest
+/// indented by [`CONTINUED`].
+fn wrapped(line: &str, widest: f64, bold: bool) -> Result<Vec<String>, String> {
     let width = |text: &str| {
-        crate::figures::monospace_advance(text).ok_or_else(|| {
+        crate::figures::monospace_advance(text, bold).ok_or_else(|| {
             format!("\"{line}\" holds a character the figure check's glyph table lacks")
         })
     };
@@ -120,7 +123,13 @@ pub(super) fn draw(block: &str, callouts: &[(char, &str)]) -> Result<String, Str
     let mut first_row = Vec::with_capacity(lines.len());
     for (at, line) in lines.iter().enumerate() {
         first_row.push(rows.len());
-        for row in wrapped(line, widest())? {
+        // The command line is set in bold, whose glyphs are wider.
+        for row in wrapped(line, widest(), at == 0)? {
+            // Held to the panel by the check's own widths, not only to the frame.
+            let width = crate::figures::monospace_advance(&row, at == 0).unwrap_or(f64::INFINITY);
+            if width > widest() {
+                return Err(format!("\"{row}\" runs past the panel's edge"));
+            }
             rows.push((at, row));
         }
     }
@@ -137,6 +146,15 @@ pub(super) fn draw(block: &str, callouts: &[(char, &str)]) -> Result<String, Str
         let row = first_row[line];
         if let Some((other, _)) = marked.iter().find(|(_, at)| *at == row) {
             return Err(format!("callouts {other} and {letter} mark the same line"));
+        }
+        if let Some((other, _)) = marked
+            .iter()
+            .find(|(_, at)| at.abs_diff(row) < BALLOON_ROWS)
+        {
+            return Err(format!(
+                "callouts {other} and {letter} are fewer than {BALLOON_ROWS} rows apart, so their \
+                 balloons would overlap"
+            ));
         }
         marked.push((letter, row));
     }
@@ -262,11 +280,11 @@ mod tests {
         let svg = draw(&run, &[('A', "warning:")]).unwrap();
         assert_eq!(problems(&svg), Vec::<String>::new(), "{svg}");
         for line in [&warning, &unbroken] {
-            let rows = wrapped(line, widest()).unwrap();
+            let rows = wrapped(line, widest(), false).unwrap();
             assert!(rows.len() > 1, "{line}");
             for row in &rows {
                 assert!(
-                    crate::figures::monospace_advance(row).unwrap() <= widest(),
+                    crate::figures::monospace_advance(row, false).unwrap() <= widest(),
                     "{row}"
                 );
             }
@@ -275,11 +293,48 @@ mod tests {
             assert_eq!(words.concat(), line.split_whitespace().collect::<String>());
         }
         // A wrapped line's rest is indented, and a line that fits is left whole.
-        assert!(wrapped(&warning, widest()).unwrap()[1].starts_with(CONTINUED));
-        assert_eq!(wrapped("short", widest()).unwrap(), ["short"]);
+        assert!(wrapped(&warning, widest(), false).unwrap()[1].starts_with(CONTINUED));
+        assert_eq!(wrapped("short", widest(), false).unwrap(), ["short"]);
         // A paragraph `hpr` wrapped to 100 columns itself is not wrapped again.
         let hundred = "x".repeat(100);
-        assert_eq!(wrapped(&hundred, widest()).unwrap(), std::slice::from_ref(&hundred));
+        assert_eq!(
+            wrapped(&hundred, widest(), false).unwrap(),
+            std::slice::from_ref(&hundred)
+        );
+    }
+
+    #[test]
+    fn the_bold_command_line_wraps_by_the_bold_widths() {
+        // 99 columns fit the panel in the regular weight, not in bold.
+        let command = format!("$ hpr mc {}", "x".repeat(90));
+        assert_eq!(command.len(), 99);
+        assert_eq!(wrapped(&command, widest(), false).unwrap().len(), 1);
+        let rows = wrapped(&command, widest(), true).unwrap();
+        assert_eq!(rows.len(), 2);
+        for row in &rows {
+            assert!(
+                crate::figures::monospace_advance(row, true).unwrap() <= widest(),
+                "{row}"
+            );
+        }
+        let svg = draw(&block(&[&command, "apogee"]), &[]).unwrap();
+        assert_eq!(problems(&svg), Vec::<String>::new(), "{svg}");
+    }
+
+    #[test]
+    fn balloons_on_neighboring_rows_are_refused() {
+        let run = block(&[
+            "$ hpr sim rocket.ork",
+            "static margin 1",
+            "CG and CP 2",
+            "",
+            "apogee 3",
+        ]);
+        let error = draw(&run, &[('A', "static margin"), ('B', "CG and CP")]).unwrap_err();
+        assert!(error.contains("would overlap"), "{error}");
+        // Two rows apart, the balloons clear each other.
+        assert!(draw(&run, &[('A', "CG and CP"), ('B', "apogee")]).is_ok());
+        assert!(2.0 * BALLOON_R < LINE * BALLOON_ROWS as f64);
     }
 
     #[test]

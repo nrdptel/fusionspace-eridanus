@@ -22,23 +22,30 @@ turns to a public flight that left a log. Each step links to the page that cover
 **`hpr sim` flies a design file from the launch rail to the ground and prints what happened.**
 The tour's rocket is
 [`validation/fixtures/ork/guides/level-1.ork`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/guides/level-1.ork),
-a small rocket saved by OpenRocket with two motors to choose from. Its motors are in the catalog
-built into HPR Sim, so it flies with no network. The picture shows the run as a terminal shows it,
+a small rocket saved by OpenRocket with two motors to choose from. Run the commands from a copy of
+the repository (`git clone https://github.com/nrdptel/fusionspace-eridanus`), or download the file
+from its page and put its path in place of the one shown. Its motors are in the catalog built into
+HPR Sim, so it flies with no network. The picture shows the run as a terminal shows it,
 with four parts marked:
 
 ![What `hpr sim` prints for the guide rocket, as a terminal shows it, with balloons A to D at the configuration line, the summary, the warnings and the table of events.](images/tour-sim.svg)
 
 - **A, the configuration.** A design file can hold several motor configurations. With none named,
   `hpr sim` flies the file's default and says how to fly the others with `--config`.
-- **B, the summary.** The static margin, the balance point and the center of pressure, the apogee,
+- **B, the summary.** The static margin in [calibers](glossary.md#caliber), the balance point
+  ([CG](glossary.md#center-of-gravity-cg)) and the
+  [center of pressure](glossary.md#center-of-pressure-cp), the [apogee](glossary.md#apogee),
   the speed off the rail, the motor's delay against the time to apogee, and the descent rate. The
   line under the configuration says what all of them are: a simulated flight, not a measurement.
 - **C, the warnings.** Each names a known gap in HPR Sim's models that bears on this flight, the
   issue that tracks it, and which way it pushes the numbers. Here the drag may read high, so the
   apogee may read low: for a field's ceiling, the side that flatters
   ([Trusting a simulation](trusting-a-simulation.md#which-miss-flatters)).
-- **D, the events.** Liftoff, rail exit, burnout, apogee, the charge, the parachute and the
-  landing, each with its time, height and speed.
+- **D, the events.** Liftoff, rail exit, burnout, apogee, the charge, the parachute's deployment
+  and the ground hit, each with its time, height and speed.
+
+The lines between B and C say what was flown: the motor, the recovery, and the launch. With no site
+given, as here, that is a default: sea level on the equator, a vertical rail and calm air.
 
 The same run as text, to copy or search:
 
@@ -96,7 +103,7 @@ wind, and saving the flight to plot or to open in a spreadsheet.
 
 ## Scatter its inputs
 
-**`hpr mc` flies the same file many times, each flight's inputs drawn afresh, and prints how far
+**`hpr mc` flies the same file many times ([Monte Carlo](glossary.md#monte-carlo)), each flight's inputs drawn afresh, and prints how far
 the apogee and the landing spread.** A design file's masses, its drag and its motor are each a
 little off from the real rocket's. The command takes each scatter as one standard deviation, as a
 share of the value: `--mass-sd 0.02` for the mass, `--drag-sd 0.05` for the drag and
@@ -107,8 +114,12 @@ share of the value: `--mass-sd 0.02` for the mass, `--drag-sd 0.05` for the drag
 - **A, the apogee's spread.** The nominal flight, then the runs' mean, their standard deviation,
   and their [percentiles](glossary.md#percentile): most runs fell between the `5%` and `95%`
   columns.
-- **B, the landing ellipse.** The area that held half the landings, and the one that held most of
-  them. In calm air, as here, the rocket comes down close to the pad.
+- **B, the landing ellipses.** Each is drawn to hold its share of the landings if they scattered
+  as a [normal spread](glossary.md#normal-distribution), and the `flights inside` column counts
+  how many did; the next-flight ellipse is the one to set against a field's edges
+  ([landing ellipse](glossary.md#landing-ellipse)). In calm air, as here, the landings bunch within
+  about a meter of the pad, not as a normal spread, so the counts and the shares differ; a wind
+  (`--wind`) spreads them out.
 - **C, how far to trust it.** The spread comes from the scatter the command was told to apply,
   not from errors in the models, which move every run together. This note gives the miss on real
   flights, which the spread leaves out.
@@ -162,26 +173,28 @@ each column means.
 
 The guide rocket has no log, so its numbers can't be checked against the sky. The public flights
 in the [real-flights report][real-report] can: each is a university team's rocket, flown by HPR
-Sim in a [reanalysis](glossary.md#reanalysis) of its day's weather and set against the team's
-altimeter. The tour takes the middle one by a rule, not by choice: of the 7 flights, the one whose
+Sim in a [reanalysis](glossary.md#reanalysis) of the weather, its own day's for all but one, and set
+against the team's altimeter. The tour takes the middle one by a rule, not by choice: of the 7 flights, the one whose
 miss, without its sign, is the median is Genesis, EuRoC 2023, the report's case *genesis*.
-EuRoC is the European Rocketry Challenge. A rerun of the report that moves the middle names
-another flight, and this page then fails its check until it follows.
+EuRoC is the European Rocketry Challenge. If a rerun of the report moves the middle, the tour moves
+to the new one.
 
-Genesis's altimeter read 2,916.7 m (9,569 ft) at the top, 23.3 s after liftoff. An altimeter
-riding HPR Sim's flight of its design would have read 2,746.0 m (9,009 ft), at 22.4 s: a miss
-of −5.85%, so HPR Sim read low. For a waiver or a field's ceiling, a low reading is the side that
-flatters: the rocket climbs past the height that was planned for. The report finds the miss
-consistent with HPR Sim's drag: flown on the drag the team's example gives, the apogee missed by
-−0.08%.
+Genesis's altimeter read 2,916.7 m (9,569 ft) at the top, 23.3 s after the rocket passed 30 m
+(98 ft) on the way up. An altimeter riding HPR Sim's flight of its design would have read
+2,746.0 m (9,009 ft), at 22.4 s: a miss of −5.85%, so HPR Sim read low. For a waiver or a field's ceiling, a low reading is the side that
+flatters: the rocket climbs past the height that was planned for. The report puts the miss
+down to HPR Sim's drag: flown on the drag the team's example gives, the apogee missed by −0.08%.
+The example records no fin edges or finish, so the design's are placeholders.
 
 One flight says little alone, so here it is beside the rest. On the 7 flights HPR Sim's apogee
 missed by −8.90% to +10.40% one by one, by 6.04% on average without signs, and by −0.25% with
-them. That average is outside the project's own 5% target ([Accuracy](accuracy.md#real-flights)).
-[Trusting a simulation](trusting-a-simulation.md) sets these beside 53 logged flights of fliers'
-own designs, and says which miss to plan for.
+them. That average is outside the project's own 5% target ([Accuracy](accuracy.md#real-flights)). So
+on these flights the misses go both ways, while on 53 logged flights of fliers' own designs they
+lean high, averaging +8.73% above the logged ones: no side can be assumed.
+[Trusting a simulation](trusting-a-simulation.md) sets the two beside each other and says which
+miss to plan for.
 
-**Sources.** The public flights are those RocketPy's documentation flies against their teams'
+**Sources.** The public flights are among those RocketPy's documentation flies against their teams'
 logs. The weather is ERA5, generated using Copernicus Climate Change Service information 2026, and
 contains modified Copernicus Climate Change Service information 2026; neither the European
 Commission nor ECMWF is responsible for any use made of it. The

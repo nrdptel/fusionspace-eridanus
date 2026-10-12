@@ -198,7 +198,8 @@ A new guide goes in `SUMMARY.md` under *Rocketry explained*, and in `guides()` i
 list of guides in `xtask/src/cli.rs`.
 
 The product guides, under *Product guides* (a product's landing page and its tour, such as
-[A tour of HPR Sim](simulator-tour.md)), follow the same format and join the same lists. Their
+[A tour of HPR Sim](simulator-tour.md)), follow the same format and join the same lists: `SUMMARY.md` (under *Product guides*),
+`guides()` and the list of guides in `xtask/src/cli.rs`. Their
 pictures of the command line are terminal figures: `cargo xtask cli` draws each from the run of
 an example on the same page, long lines wrapped and never cut, with lettered balloons at the lines
 the text explains, and fails a committed one the run no longer draws. Each is named, with its

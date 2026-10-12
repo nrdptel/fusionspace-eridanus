@@ -587,8 +587,7 @@ mod tests {
     #[test]
     fn a_terminal_figure_draws_its_pages_run_or_fails() {
         let shot = &SHOTS[0];
-        let block =
-            "```text\n$ hpr sim x\nconfiguration 1\nstatic margin 1\nwarning: w\nevent t\n```\n";
+        let block = "```text\n$ hpr sim x\nconfiguration 1\n\nstatic margin 1\n\nwarning: w\n\nevent t\n```\n";
         let ran = vec![(shot.page, shot.command.to_owned(), block.to_owned())];
         let figure = shot_figure(shot, &ran).unwrap();
         assert!(figure.contains(">$ hpr sim x</text>"), "{figure}");
@@ -599,7 +598,38 @@ mod tests {
             "{error}"
         );
         let other = vec![(shot.page, "hpr sim y".to_owned(), block.to_owned())];
-        assert!(shot_figure(shot, &other).is_err());
+        let error = shot_figure(shot, &other).unwrap_err();
+        assert!(
+            error.contains("which no example on the page runs"),
+            "{error}"
+        );
+    }
+
+    /// Each page lists its figures' balloons, `- **A, …**`, as the figures draw them, in order,
+    /// so the words beside a picture can't drift from its letters.
+    #[test]
+    fn each_page_explains_its_figures_balloons_in_order() {
+        let root = crate::designs::root().unwrap();
+        let mut pages: Vec<&str> = SHOTS.iter().map(|shot| shot.page).collect();
+        pages.dedup();
+        for page in pages {
+            let text = std::fs::read_to_string(root.join(page)).unwrap();
+            let listed: String = text
+                .lines()
+                .filter_map(|line| line.strip_prefix("- **"))
+                .filter_map(|rest| {
+                    let mut chars = rest.chars();
+                    let letter = chars.next()?;
+                    (letter.is_ascii_uppercase() && chars.next() == Some(',')).then_some(letter)
+                })
+                .collect();
+            let drawn: String = SHOTS
+                .iter()
+                .filter(|shot| shot.page == page)
+                .flat_map(|shot| shot.callouts.iter().map(|(letter, _)| *letter))
+                .collect();
+            assert_eq!(listed, drawn, "{page}");
+        }
     }
 
     /// The extra plots draw what the guide's doesn't, as [`PLOTS`] says, and pass the figure

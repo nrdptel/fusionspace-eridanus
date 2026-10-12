@@ -10,21 +10,22 @@ shows it working.
 
 > **How far to trust it.** Every number on this page is read by a test from a committed report.
 > HPR Sim's apogees have been set against 7 public flights of university rockets, where they missed
-> by 6.04% on average without signs ([report][real-report]), and against 53 logged flights of
-> fliers' own designs, where they averaged +8.73% above the logged ones; OpenRocket, flying the
-> same files, averaged +7.79% above ([report][fixture-report]). Those comparisons check apogee
-> alone. HPR Sim gives ranges, not verdicts; the safety code and the range safety officer (the
-> RSO) decide whether a rocket flies.
+> by 6.04% on average without signs and by −0.25% with them, outside the project's own 5% target
+> ([report][real-report]). Against 53 logged flights of fliers' own designs they missed by 12.95%
+> without signs and averaged +8.73% above the logged ones; OpenRocket, flying the same files,
+> missed by 12.02% without signs and averaged +7.79% above ([report][fixture-report]). Those
+> comparisons check apogee alone. HPR Sim gives ranges, not verdicts; the safety code and the range
+> safety officer (the RSO) decide whether a rocket flies.
 
 ## What it is
 
 **A flight simulator for rockets on commercial solid motors.** It reads an OpenRocket `.ork`
-design file as it is and flies it in six degrees of freedom, the rocket's position along three
-axes and its rotation about three, while the motor burns and the mass and balance point move. It
+design file as it is and flies it in [six degrees of freedom](glossary.md#6-dof-six-degrees-of-freedom),
+the rocket's position along three axes and its rotation about three, while the motor burns and the mass and balance point move. It
 prints the apogee, the speeds, the stability margin, the events from liftoff to landing and the
 known gaps in its models that bear on that flight, each with the side it pushes the numbers to.
 
-It comes three ways, all from one code base, and each flies with no network:
+It comes three ways, all from one code base, and none needs a network to fly a rocket:
 
 - **The command line, `hpr`:** fly a file, scatter its inputs to see the spread (Monte Carlo
   dispersion), look up and convert motors, read an altimeter's log, and fetch a launch day's
@@ -35,7 +36,8 @@ It comes three ways, all from one code base, and each flies with no network:
 
 Every model cites a published source, tests pin each one, and the results against RocketPy,
 OpenRocket and real flights are committed to the repository ([Accuracy](accuracy.md)).
-[Start here](start-here.md) lists what works today and what doesn't yet.
+It is early: the first release is out, and [Start here](start-here.md) lists what works today
+and what doesn't yet.
 
 ## Who it is for
 
@@ -44,7 +46,7 @@ OpenRocket and real flights are committed to the repository ([Accuracy](accuracy
 - **A team** that needs a flight's spread, not one number: `hpr mc` flies the file many times with
   its inputs scattered.
 - **A developer** who wants a simulator inside a program, a test or a notebook, offline, with the
-  same numbers from the same inputs and seed.
+  same numbers from the same inputs and seed on one machine.
 
 It is not yet for a rocket on a hybrid, liquid or research motor, which it doesn't fly, nor for
 drawing a design: it reads one made in OpenRocket. A design editor comes with the app.
@@ -69,6 +71,13 @@ what to do on macOS when it can't check the program.
   [Check stability for a certification flight](stability-for-certification.md),
   [Monte Carlo dispersion](monte-carlo.md) and [Reading a flight log](reading-a-flight-log.md).
 - **Before you rely on a number:** [Trusting a simulation](trusting-a-simulation.md).
+
+**Sources.** The public flights are among those RocketPy's documentation flies against their teams'
+logs; the logged flights are published by university rocketry teams, rocketry courses and
+hobbyists. Both fly in ERA5 weather: generated using Copernicus Climate Change Service
+information 2026, and contains modified Copernicus Climate Change Service information 2026; neither
+the European Commission nor ECMWF is responsible for any use made of it. The
+[logged flights' report][fixture-report] gives the full attribution and the ERA5 citations.
 
 [real-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md

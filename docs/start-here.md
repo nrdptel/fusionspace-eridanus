@@ -36,7 +36,8 @@ graphical app is planned.
 OpenRocket `.ork` design files are read today. The command-line tool, `hpr`, flies a `.ork` or a
 rocket's JSON, looks up and converts motor files, searches vendors' motor stock and prices,
 re-runs the validation, reads an altimeter's flight log, and fetches a launch day's weather
-([The command line](cli.md)).
+([The command line](cli.md)). [A tour of HPR Sim](simulator-tour.md) shows it working on a small
+rocket and a public flight, and [HPR Sim](the-simulator.md) is the simulator's guide.
 
 It is also built to be checked. Every model cites a published source, and tests pin every model.
 The simulator is compared against RocketPy, [OpenRocket](https://openrocket.info/) and the logs

@@ -327,13 +327,18 @@ pub(crate) fn check(text: &str) -> Vec<Problem> {
     checker.problems
 }
 
-/// How wide `text` draws, in ems, set in a monospace family at regular weight, as [`check`]
-/// measures it: each character the widest advance of the fonts its table covers, so a layout that
-/// fits by this fits the check. `None` if the table lacks a character, which the check refuses.
-pub(crate) fn monospace_advance(text: &str) -> Option<f64> {
+/// How wide `text` draws, in ems, set in a monospace family at regular weight or, if `bold`, at
+/// 500 and up, as [`check`] measures it: each character the widest advance of the fonts its table
+/// covers, so a layout that fits by this fits the check. `None` if the table lacks a character,
+/// which the check refuses.
+pub(crate) fn monospace_advance(text: &str, bold: bool) -> Option<f64> {
+    let table = if bold {
+        glyphs::MONOSPACE_BOLD
+    } else {
+        glyphs::MONOSPACE
+    };
     text.chars()
         .map(|c| {
-            let table = glyphs::MONOSPACE;
             let at = table.binary_search_by(|(k, _)| k.cmp(&c)).ok()?;
             Some(f64::from(table[at].1[0]) / 1000.0)
         })
