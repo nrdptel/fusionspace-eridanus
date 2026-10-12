@@ -129,6 +129,8 @@ learn something the next person needs. Each bullet is one topic; keep the file u
   `FlightBuilder::separation` (ADR-159); several: `separations`, cut per boundary (ADR-160);
   a lone split with nothing left to burn: `Separation::powered_at`, `RecoveryRefused::Coasts`
   (ADR-165); its comparison flies the climb whole (`ork_flights::climbing`).
+  Docs' Python: blocks between `python: example` and `python: end` comments run in `test_docs.py`;
+  `HPR_WRITE_DOCS=1 scripts/python-tests.sh 3.13` rewrites their output; the guides check trusts them.
 - Tube fins: OR's slope and center per part in `openrocket-tube-fin-aero.json` (`tube_fin_aero.py`,
   ADR-102); a new OR with #3235 moves its center past Mach 0.5; body interference open (#234). #185:
   `unlit_motors.py`. Tube-fin drag likely low (#228); public drag curves: `PUBLIC_DRAG_CURVES`'s

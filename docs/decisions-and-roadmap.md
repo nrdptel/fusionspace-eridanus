@@ -379,7 +379,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-8"></a>[M0.8][phase-0] | Product guides: a landing page and an illustrated tour for each product, every picture generated ([ADR-196][adr-196]) | not yet done |
 | <a id="m0-8a"></a>[M0.8a][phase-0] | The simulator's guide | not yet done |
 | <a id="m0-8a1"></a>[M0.8a1][done-0] | The landing page and the CLI tour | done |
-| <a id="m0-8a2"></a>[M0.8a2][phase-0] | Python in the tour | not yet done |
+| <a id="m0-8a2"></a>[M0.8a2][done-0] | Python in the tour | done |
 | <a id="m0-8a3"></a>[M0.8a3][phase-0] | Compared with | not yet done |
 | <a id="m0-8a4"></a>[M0.8a4][phase-0] | The maintainer's read | blocked |
 | <a id="m0-9"></a>[M0.9][phase-0] | One name, one design | not yet done |

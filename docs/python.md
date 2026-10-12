@@ -9,8 +9,7 @@ four types as the Rust [builder](the-builder.md): an `Environment`, a `Motor`, a
 then fly it from a rail, once or, as a `MonteCarlo` run, many times with its inputs scattered. A
 flight's metrics come back as numbers and dictionaries, and its recording and a run's flights as
 [NumPy](https://numpy.org/) arrays. You need Python 3.10 or later and some
-familiarity with it. Today you also build the package yourself, which needs the Rust toolchain
-([Install it](#install-it)).
+familiarity with it. `pip install fusionspace-hpr` installs it ([Install it](#install-it)).
 
 > **How far to trust it.** The package adds no physics. Each call hands its numbers to the Rust
 > builder and returns what that returns, so a flight made in Python runs the same code as one the

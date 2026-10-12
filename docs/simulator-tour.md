@@ -1,17 +1,17 @@
 # A tour of HPR Sim
 
-Fly a design file with HPR Sim's command line, read what it prints, scatter its inputs, and see how
-it did on a real flight.
+Fly a design file from HPR Sim's command line and Python, read the output, scatter the inputs, and
+see how it did on real flights.
 
 **This tour is for** a flier who has HPR Sim installed, or is deciding whether to install it, and
 wants to see in a few minutes what it does with a design file: what it prints, how to read it,
-and how far it has been from real flights. It flies the small rocket the how-to guides use, then
+how to fly it from Python, and how far it has been from real flights. It flies the small rocket the how-to guides use, then
 turns to a public flight that left a log. Each step links to the page that covers it in full.
 [HPR Sim](the-simulator.md) says what the simulator is and how to install it.
 
 > **How far to trust it.** Every number in this tour's text is read by a test from a committed
-> report, and CI reruns its commands and redraws its pictures from what they print. The guide
-> rocket's flights are simulations, not measurements: it has no flight log. The public flight at
+> report, and CI reruns its commands and its Python examples and redraws its pictures from what
+> they print. The guide rocket's flights are simulations, not measurements: it has no flight log. The public flight at
 > the end is one of 7 university rockets' logged flights, where HPR Sim's apogee missed by 6.04%
 > on average without signs ([report][real-report]); they check apogee alone. The tour gives
 > ranges, not verdicts; the safety code and the range safety officer (the RSO) decide whether a
@@ -168,6 +168,72 @@ More: https://hpr.fusionspace.co/accuracy.html
 
 [Monte Carlo dispersion](monte-carlo.md) covers the other scatters, the wind among them, and what
 each column means.
+
+## The same flight from Python
+
+**The `fusionspace-hpr` package flies the same file from Python and hands the flight back as
+numbers and [NumPy](https://numpy.org/) arrays,** for a notebook, a plot or a script of your own.
+`pip install fusionspace-hpr` installs it ([Python](python.md#install-it) covers the rest). This
+flies the guide rocket with its parachute, from the launch `hpr sim` used above: sea level on the
+equator, a vertical rail of the same length, calm air. Save it as `tour.py` and run
+`python tour.py` from the root of a copy of the repository, or put the downloaded file's path in
+place of the one shown:
+
+<!-- python: example -->
+
+```python
+from fusionspace import hpr
+
+rocket = hpr.Rocket.from_file("validation/fixtures/ork/guides/level-1.ork", recovery=True)
+site = hpr.Environment(0.0, 0.0, 0.0)
+flight = hpr.Flight(rocket, site, 1.5)
+
+print(rocket.name)
+print(f"apogee           {flight.apogee_m:.1f} m at {flight.apogee_time_s:.2f} s")
+print(f"rail exit speed  {flight.rail_exit_speed_m_s:.1f} m/s")
+print(f"top speed        {flight.max_speed_m_s:.1f} m/s, Mach {flight.max_mach:.3f}")
+landing = flight.landing
+print(f"landing          {landing['distance_m']:.1f} m from the pad at {landing['time_s']:.2f} s")
+for warning in flight.issue_warnings:
+    print(f"warning: issue #{warning['issue']}, {warning['kind']}")
+
+time = flight["time_s"]
+fast = time[flight["mach"] > 0.8]
+print(f"above Mach 0.8 from {fast[0]:.2f} s to {fast[-1]:.2f} s, in the recording")
+```
+
+```text
+Level 1 guide rocket
+apogee           1065.1 m at 11.62 s
+rail exit speed  26.3 m/s
+top speed        285.6 m/s, Mach 0.842
+landing          0.7 m from the pad at 245.78 s
+warning: issue #67, drag
+warning: issue #68, drag
+warning: issue #18, drag
+warning: issue #172, stability
+above Mach 0.8 from 1.45 s to 1.89 s, in the recording
+```
+
+<!-- python: end -->
+
+- `Rocket.from_file` reads the design and its motor configuration, the file's default as
+  `hpr sim` flies it with none named. `recovery=True` flies the file's parachute; without it the
+  rocket falls unslowed. This file reads cleanly, but many `.ork` configurations are refused for
+  now ([A design from a file](python.md#a-design-from-a-file)).
+- `Environment` takes the site's latitude and longitude in degrees and its elevation in meters;
+  `Flight` takes the rocket, the site and the rail's length in meters, vertical unless told
+  otherwise, and flies as soon as it is made.
+- The numbers are the ones `hpr sim` printed above, from the same code:
+  [a test](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-py/tests/test_docs.py)
+  holds the apogee, the speeds, the landing and the warnings to that run. The warnings are its
+  warnings as data: each a GitHub issue number, a kind, a message and a link.
+- `flight["mach"]` and the rest are the recording: the flight's values at each recorded time, one
+  NumPy array per column. The last lines find when the rocket flew faster than the Mach number in
+  the code, from which the warnings on the nose's and the base's drag say it reads high.
+
+[Python](python.md) covers building a rocket part by part, Monte Carlo runs, and the recording's
+columns.
 
 ## A real flight
 
