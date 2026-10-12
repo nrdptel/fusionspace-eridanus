@@ -92,7 +92,7 @@ One of the public flights shows the low side. An altimeter riding HPR Sim's flig
 Projeto Jupiter, Spaceport America Cup 2023 would have read 2,923.4 m (9,591 ft) at the top; the
 team's altimeter read 3,151.5 m (10,340 ft), a miss of −7.24% ([report][real-report]). The real
 altimeter read 228.1 m (748 ft) higher than the simulated one, and its log ends just short of the
-top. The report puts this miss down to the motor's impulse, as the example's thrust file gives it.
+top. The report finds this miss consistent with the motor's impulse, as the example sets it.
 So plan a ceiling with room above the simulated apogee; how much room is the flier's and the
 RSO's call, and this guide has no number for it.
 
