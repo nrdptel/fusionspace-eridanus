@@ -16,7 +16,7 @@ the guides in *Rocketry explained*, which explain the physics behind the numbers
 > flights of [Trusting a simulation](trusting-a-simulation.md). That is one rocket's shape, two
 > half-scale models of it in two of NASA's tunnels, their bases left out: no hobby rocket's drag has been measured for these comparisons. On
 > the model the figure draws, HPR Sim's forebody drag read high at every speed, by +7.0% to
-> +154.1%: the side that flatters an apogee ceiling. On hobby rockets the evidence leans the other
+> +154.1%, rounded outward: the side that flatters an apogee ceiling. On hobby rockets the evidence leans the other
 > way: HPR Sim's apogee averaged +8.73% above the logged one on the 53 flights, and drag is one of
 > the inputs that could explain it. The guide gives ranges, not verdicts; the safety code and the
 > range safety officer (the RSO) decide whether a rocket flies.
