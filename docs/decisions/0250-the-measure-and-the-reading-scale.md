@@ -1,6 +1,6 @@
 # ADR-250: The measure as a median and a maximum, a reading scale that grows with the window, and the column flush left, from the product system's Rev B (2026-10-12)
 
-- **Status:** accepted; moves the product system's pin from Rev A (`f45454f`) to Rev B (`e5759b5`), as [ADR-164](0164-the-fusionspace-product-system.md) lets a deliberate update do; reopens the design audit at the new pin ([ADR-208](0208-the-design-audit.md)); amends the page check of [ADR-223](0223-the-pages-frame-first.md)
+- **Status:** accepted; moves the product system's pin from Rev A (`f45454f`) to Rev B (`1a430cb`), as [ADR-164](0164-the-fusionspace-product-system.md) lets a deliberate update do; reopens the design audit at the new pin ([ADR-208](0208-the-design-audit.md)); amends the page check of [ADR-223](0223-the-pages-frame-first.md)
 - **Summary:** prose on the site stopped at 24 em, so lines averaged 52 characters and a desktop window was mostly empty. The product system's Rev B states the measure as a median line of 60 to 75 characters and none over 80, set as 29.5 em of the text; grows the type scale with the window on a reading page (16 to 18 px body between 1,024 and 1,600 px); sets the column flush left beside the sidebar up to 1,120 px; and ships the code that measures these rules, which the site's page check now runs unchanged.
 
 **Context.** A review of the site on a 1,512 px desktop window found most of the window empty:
@@ -45,7 +45,12 @@ USWDS and GOV.UK stay near 80.
    The system's build runs it on its own pages from 320 to 1,920 px.
 5. **The site copies Rev B unchanged** (`theme/fusionspace-mdbook.css`,
    `xtask/src/site/fusionspace-check.js`; `cargo xtask site` compares both with the pinned
-   commit) and drops what moved into the theme from `hpr.css`. Its page check reads the type
+   commit) and drops what moved into the theme from `hpr.css`: the page's frame, and the fixes
+   to mdBook's own defaults that depend on mdBook's markup alone (the roles as `--fs-<role>` in
+   every theme, with scripts off and in print; code in ink; square corners; motion; the focus
+   ring; forced colors; the fonts' fallbacks; nothing cut off on a phone; print's link
+   addresses). `hpr.css` keeps what only this site's build writes (notes, sheets, the title
+   block, the theme switch, the system's icons, the print page's cover): 202 lines, from 469. Its page check reads the type
    scale, the measure and the widths from the copied file instead of its own constants; reads
    every size inside `.content` against the scale times the factor the window's width gives, on
    a page that declares the scale (`--fs-text`), so a page whose scale is off is read against the
@@ -58,7 +63,7 @@ USWDS and GOV.UK stay near 80.
 **Consequences.** On a 1,512 px window body text is 17.7 px and prose about 522 px wide, where it
 was 16 px and 384 px; tables and code may use up to 1,120 px instead of 750. Pages of prose still
 leave the right of a wide window empty, by the measure's choice. The design audit reopens at
-`e5759b5`: its rows reviewed at `f45454f` whose sections did not change are carried over with
-the comparison that shows it, and the five sections Rev B changed are read again. The rest of
-`hpr.css`'s fixes to mdBook's defaults are generic and belong in the system's mdBook theme too;
-that move is left for a later revision.
+`1a430cb`: its rows reviewed at `f45454f` whose sections did not change are carried over with
+the comparison that shows it, and the five sections Rev B changed are read again. A second mdBook site would still need this site's build steps
+for the system's notes, sheets, title block and icons; those stay here until a second site
+needs them.

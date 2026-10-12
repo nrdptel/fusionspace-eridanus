@@ -1,116 +1,12 @@
 /* SPDX-License-Identifier: MIT OR Apache-2.0 */
 /* hpr-sim's additions to the product system's mdBook theme (ADR-164). */
-/* Nothing cut off at any width (M0.7a1; `cargo xtask site` checks every page from 320 to 1,920 px).
-   The menu bar's title: between the buttons, mdBook cuts it short with an ellipsis on a window
-   narrower than about 500 px. There it takes a row of its own under the buttons, which mdBook's
-   menu bar already wraps to, and a heading jumped to clears the taller bar. */
-@media only screen and (max-width: 519px) {
-    #mdbook-menu-bar .menu-title { order: 1; flex: 1 0 100%; white-space: normal; overflow: visible; line-height: 1.4; padding-block-end: 0.3em; }
-    #mdbook-menu-bar .right-buttons { margin-inline-start: auto; }
-    :target { scroll-margin-top: calc(var(--menu-bar-height) + 45px); }
-}
-/* The sidebar's frame for readers without scripts: a frame is 300 px wide unless told otherwise,
-   so in mdBook's sidebar, 80% of a narrow window, 36 px of it stayed over the page with the
-   sidebar put away, covering the first letters of every line. */
-.sidebar-iframe-outer { width: 100%; }
-/* A search result's long identifier wraps instead of running past a narrow window. */
-#mdbook-searchresults li, #mdbook-searchresults .teaser { overflow-wrap: anywhere; }
+/* What the product system's mdBook theme (`fusionspace-mdbook.css`, Rev B) doesn't set, because only
+   this site's markup has it: the copy icon's file, the system's icons in place of Font Awesome's
+   (`xtask/src/site/chrome.rs`), the notes, the menu bar's lockup, the title block, the intro and
+   sheets, the theme switch, the text marks and the print page's cover (`xtask site` draws each).
+   The theme sets the colors and roles (`--fs-ink` and the rest) in every theme, mdBook's own
+   defaults, the type scale, the measure and the column. */
 
-/* Figures at their size (#382). A figure's text is drawn at its size, so a figure shown smaller
-   reads smaller: the plot's 12 px text, in its 960 px figure squeezed into a 750 px column, read
-   at 9.4 px. The column runs up to the system's widest content (1,120 px, `foundations.md`,
-   *Width*), and a figure takes it, flush left, past the measure the prose stops at, so it is
-   shown at its size wherever the window holds it. On a narrower page it shrinks to fit, and
-   mdBook's zoom (click it) shows it at its size. `cargo xtask site`'s page check holds both. */
-.content .checkbox-label {
-    display: flex;
-    justify-content: flex-start;
-    max-width: none;
-    margin-inline: 0;
-}
-
-/* mdBook's own defaults, where the system's theme doesn't reach (#383; `foundations.md`, *Color*,
-   *Lines and shape*, *Motion*). `cargo xtask site`'s page check reads every element's computed
-   style, in the light theme and the navy one and with reduced motion, and fails a color that is
-   not one of the system's roles, a rounded corner, a shadow, or motion off its durations. */
-
-/* Color: the system's roles, light and dark (`foundations.md`, *Semantic roles*). */
-.light, .rust {
-    --hpr-ink: #0B0F1C; --hpr-ink-muted: #566079; --hpr-canvas: #F3F4F7; --hpr-surface: #FFFFFF;
-    --hpr-rule: #D6DAE4; --hpr-rule-strong: #566079; --hpr-action: #3350D6; --hpr-on-action: #FFFFFF;
-    --hpr-danger: #AC001E; --hpr-ok: #0A6355;
-    --sidebar-header-border-color: var(--hpr-rule);
-    --footnote-highlight: var(--hpr-action);
-    --search-mark-bg: var(--hpr-action);
-}
-.navy, .coal, .ayu {
-    --hpr-ink: #F3F4F7; --hpr-ink-muted: #98A1B8; --hpr-canvas: #0B0F1C; --hpr-surface: #141A2B;
-    --hpr-rule: #2A3248; --hpr-rule-strong: #6D7790; --hpr-action: #768DF5; --hpr-on-action: #0B0F1C;
-    --hpr-danger: #FB8083; --hpr-ok: #6AD5B6;
-    --sidebar-header-border-color: var(--hpr-rule);
-    --footnote-highlight: var(--hpr-action);
-    --search-mark-bg: var(--hpr-action);
-}
-/* With scripts off, mdBook gives its own light colors to `html:not(.js)`, which outranks the
-   theme's `.light`: the theme's light values, here. `xtask site` reads this block and the dark
-   one below with the page's `js` class taken off, the second with the dark-scheme rules applied. */
-html:not(.js) {
-  --bg: #F3F4F7; --fg: #0B0F1C; --sidebar-bg: #FFFFFF; --sidebar-fg: #0B0F1C;
-  --sidebar-non-existant: #98A1B8; --sidebar-active: #3350D6; --sidebar-spacer: #D6DAE4;
-  --scrollbar: #566079; --icons: #566079; --icons-hover: #0B0F1C; --links: #3350D6;
-  --inline-code-color: #0B0F1C; --theme-popup-bg: #FFFFFF; --theme-popup-border: #566079;
-  --theme-hover: #D6DAE4; --quote-bg: #FFFFFF; --quote-border: #566079;
-  --table-border-color: #D6DAE4; --table-header-bg: #FFFFFF; --table-alternate-bg: #F3F4F7;
-  --searchbar-border-color: #566079; --searchbar-bg: #FFFFFF; --searchbar-fg: #0B0F1C;
-  --searchbar-shadow-color: transparent; --searchresults-header-fg: #566079; --searchresults-border-color: #D6DAE4;
-  --searchresults-li-bg: #FFFFFF;
-  --code-bg: #FFFFFF;
-    --hpr-ink: #0B0F1C; --hpr-ink-muted: #566079; --hpr-canvas: #F3F4F7; --hpr-surface: #FFFFFF;
-    --hpr-rule: #D6DAE4; --hpr-rule-strong: #566079; --hpr-action: #3350D6; --hpr-on-action: #FFFFFF;
-    --hpr-danger: #AC001E; --hpr-ok: #0A6355;
-    --sidebar-header-border-color: var(--hpr-rule);
-    --footnote-highlight: var(--hpr-action);
-    --search-mark-bg: var(--hpr-action);
-}
-/* With scripts off, mdBook picks its own dark colors for a reader whose system is dark
-   (`html:not(.js)`, which outranks the theme's `.light`): the theme's navy values, here. */
-@media (prefers-color-scheme: dark) {
-    html:not(.js) {
-      --bg: #0B0F1C; --fg: #F3F4F7; --sidebar-bg: #141A2B; --sidebar-fg: #F3F4F7;
-      --sidebar-non-existant: #566079; --sidebar-active: #768DF5; --sidebar-spacer: #2A3248;
-      --scrollbar: #6D7790; --icons: #98A1B8; --icons-hover: #F3F4F7; --links: #768DF5;
-      --inline-code-color: #F3F4F7; --theme-popup-bg: #141A2B; --theme-popup-border: #6D7790;
-      --theme-hover: #2A3248; --quote-bg: #141A2B; --quote-border: #6D7790;
-      --table-border-color: #2A3248; --table-header-bg: #141A2B; --table-alternate-bg: #0B0F1C;
-      --searchbar-border-color: #6D7790; --searchbar-bg: #141A2B; --searchbar-fg: #F3F4F7;
-      --searchbar-shadow-color: transparent; --searchresults-header-fg: #98A1B8; --searchresults-border-color: #2A3248;
-      --searchresults-li-bg: #141A2B;
-      --code-bg: #141A2B;
-        --hpr-ink: #F3F4F7; --hpr-ink-muted: #98A1B8; --hpr-canvas: #0B0F1C; --hpr-surface: #141A2B;
-        --hpr-rule: #2A3248; --hpr-rule-strong: #6D7790; --hpr-action: #768DF5; --hpr-on-action: #0B0F1C;
-        --hpr-danger: #FB8083; --hpr-ok: #6AD5B6;
-        --sidebar-header-border-color: var(--hpr-rule);
-        --footnote-highlight: var(--hpr-action);
-        --search-mark-bg: var(--hpr-action);
-    }
-}
-/* Code in ink on the surface, as `web.md`'s docs pattern has it: mdBook's highlighters color each
-   kind of token with colors of their own and never read the theme's `--code-bg`. Comments are
-   secondary text; a diff's deletions are in danger and its additions in ok. */
-.hljs { color: var(--hpr-ink); background: var(--code-bg); }
-.hljs [class^="hljs-"], .hljs [class*=" hljs-"] { color: inherit; background: transparent; }
-.hljs .hljs-comment, .hljs .hljs-quote, .hljs .hljs-meta { color: var(--hpr-ink-muted); }
-.hljs .hljs-keyword, .hljs .hljs-title, .hljs .hljs-section, .hljs .hljs-strong { font-weight: 600; }
-.hljs .hljs-deletion { color: var(--hpr-danger); }
-.hljs .hljs-addition { color: var(--hpr-ok); }
-/* The copy tooltip: canvas on ink, not white on mdBook's #333. A search hit: the action fill,
-   as a selection, not the caution fill, which means a state. */
-.tooltiptext { color: var(--hpr-canvas); background-color: var(--hpr-ink); }
-/* mdBook's hidden sidebar switch, a checkbox, keeps the browser's own text color otherwise. */
-input[type="checkbox"] { color: inherit; }
-/* The menu bar's links hold only their icons, which take the icons' color; the links take it too. */
-.menu-bar a { color: var(--icons); }
-mark { color: var(--hpr-on-action); }
 /* The copy button's icon: mdBook tints a black image with a filter to a gray of its own; here it
    is the system's copy icon (`product/icons/copy.svg`, drawn in Void for the figures check) as a
    mask, painted in the button's own color. */
@@ -130,61 +26,6 @@ pre > .buttons button.clip-button:hover::before {
 .nav-chapters .fa-svg svg, .mobile-nav-chapters .fa-svg svg,
 pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
 .previous .fa-svg svg { transform: scaleX(-1); }
-/* Selection: the action role at 22 %, as the system's `fusionspace.css` sets it (`principles.md`,
-   *One sweep*). The system mixes the action color with transparent, which leaves the color at
-   22 % opacity; here each theme's action value is written at that opacity. */
-.light, .rust, html:not(.js) { --hpr-selection: rgb(51 80 214 / 0.22); }
-.navy, .coal, .ayu { --hpr-selection: rgb(118 141 245 / 0.22); }
-@media (prefers-color-scheme: dark) { html:not(.js) { --hpr-selection: rgb(118 141 245 / 0.22); } }
-::selection { background-color: var(--hpr-selection); }
-/* Lines and shape: square corners, no shadows (`foundations.md`, *Lines and shape*). Layers are
-   separated by rules: the help popup has the system's 2 px ink border, a key a 1 px rule. The
-   current chapter is underlined 2 px, as `web.md`'s site nav marks the current page, not by the
-   theme's inset shadow; the headings of the page listed under it hang from a 1 px rule, not
-   mdBook's 4 px colored bar. */
-*, *::before, *::after { border-radius: 0 !important; box-shadow: none !important; text-shadow: none !important; }
-kbd { background-color: var(--hpr-surface); border-color: var(--hpr-rule-strong); }
-/* The help popup: a dialog, with a 2 px ink border over the canvas dimmed by Void at 40%, kept
-   16 px from the window's edges on a phone, and scrolling in a window too short for it. */
-#mdbook-help-container { background-color: rgba(11, 15, 28, 0.4); }
-#mdbook-help-popup { border: 2px solid var(--hpr-ink); min-width: 0; max-width: min(500px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow-y: auto; }
-.sidebar .chapter li.chapter-item a.active { text-decoration: underline 2px; text-underline-offset: 4px; }
-.on-this-page { border-inline-start-width: 1px; }
-
-/* Motion: quick 100 ms, base 160 ms, slow 240 ms, with the `standard` easing (`foundations.md`,
-   *Motion*; its `exit` easing has no use here yet, as the sidebar slides both ways). The sidebar
-   slides at the slow step; colors change at the quick one. No spinner: the search's busy sign stands still.
-   With reduced motion set, everything snaps. */
-.js:not(.sidebar-resizing) .page-wrapper,
-[dir=rtl].js:not(.sidebar-resizing) .page-wrapper,
-html:not(.js) .page-wrapper,
-[dir=rtl]:not(.js) .page-wrapper,
-html:not(.sidebar-resizing) .sidebar { transition-duration: 240ms; transition-timing-function: cubic-bezier(0.2, 0, 0, 1); }
-/* On a phone the page moves over at once when the menu opens, and only the sidebar slides in:
-   mdBook also slides the page (`transform`), and Chrome redraws all of a sliding page each frame,
-   so a tap on the menu button of the longest chapter, the aerodynamics page, took 0.3 s in the
-   vitals check (#443's INP). Its margin, which moves it from 620 px, is still animated. */
-.js:not(.sidebar-resizing) .page-wrapper,
-[dir=rtl].js:not(.sidebar-resizing) .page-wrapper,
-html:not(.js) .page-wrapper,
-[dir=rtl]:not(.js) .page-wrapper { transition-property: margin-left, margin-right; }
-/* And the page is drawn on a layer of its own there, so moving it over is the compositor's work
-   and Chrome doesn't draw the page again. Without it, the longest pages' tap took 96 to 352 ms at
-   a 16 times slowdown on a Mac and up to 296 ms on CI's Linux runners; with it, 64 to 72 ms on the
-   Mac (probes, the slowest interaction of three loads). Something fixed to the window inside the
-   page would move with the layer; the page check fails one (ADR-232). */
-@media only screen and (max-width: 619px) { .page-wrapper { will-change: transform; } }
-#mdbook-menu-bar .fa-svg, #mdbook-menu-bar .icon-button,
-.nav-chapters, .nav-chapters:hover,
-pre > .buttons, pre > .buttons button,
-mark, #mdbook-searchbar { transition-duration: 100ms; transition-timing-function: cubic-bezier(0.2, 0, 0, 1); }
-.chapter-fold-toggle div { transition-duration: 160ms; transition-timing-function: cubic-bezier(0.2, 0, 0, 1); }
-#fa-spin { animation: none; }
-.footnote-reference:target { animation: none; }
-@media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; scroll-behavior: auto !important; }
-}
-
 /* The page's frame (#384; `foundations.md`, *Type* and *Space and layout*) is the product system's
    mdBook theme's (`fusionspace-mdbook.css`, Rev B): the type scale on mdBook's elements, growing
    with the window inside the page; the measure; the column flush left beside the sidebar up to
@@ -192,73 +33,44 @@ mark, #mdbook-searchbar { transition-duration: 100ms; transition-timing-function
    every text's size, line height, family and capitals against the scale at the window's width,
    counts the characters of each line of prose as drawn, and measures the gutters, at every
    width, with the system's own check (`fusionspace-check.js`). Here, what only this site's
-   markup needs: the source title block's field names in `label`, and the menu bar's title on a
-   row of its own under 520 px (above) in `subtitle`'s line height. */
+   markup needs: the source title block's field names in `label`. */
 .title-block td:first-child { font-size: var(--fs-12); line-height: var(--fs-16); }
-@media only screen and (max-width: 519px) { #mdbook-menu-bar .menu-title { line-height: var(--fs-24); } }
 /* Notes (#384; `web.md`, *Components*): the signal word in a strip above the message, as an
    ANSI Z535.4 safety label sets it, the system's `.fs-note`. `cargo xtask site` draws every quote
    block a page writes as one (a trust note, or a `[!NOTE]`, `[!CAUTION]` or `[!WARNING]` alert),
    and the page check fails a note not drawn this way. The box stops at the measure, as its
    message does. */
-.content main .fs-note { box-sizing: border-box; margin: 16px 0; border: 1px solid var(--hpr-rule-strong); background: var(--hpr-surface); }
+.content main .fs-note { box-sizing: border-box; margin: 16px 0; border: 1px solid var(--fs-rule-strong); background: var(--fs-surface); }
 .content main .fs-note:not(:has(pre, table)) { max-width: calc(var(--fs-measure) + 26px); }
 .fs-note > .fs-note-head { display: flex; align-items: center; gap: 8px; padding: 4px 12px; font: 600 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace;
-  text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--hpr-rule-strong); color: var(--hpr-ink-muted); }
+  text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--fs-rule-strong); color: var(--fs-ink-muted); }
 .fs-note > .fs-note-head svg { width: 14px; height: 14px; flex: none; }
 .fs-note > .fs-note-body { padding: 12px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .fs-note > .fs-note-body > * { margin-block: 0; }
-.fs-note[data-kind="trust"] > .fs-note-head { color: var(--hpr-ink); }
+.fs-note[data-kind="trust"] > .fs-note-head { color: var(--fs-ink); }
 .fs-note[data-kind="caution"] { border-color: #F5AF20; }
 .fs-note[data-kind="caution"] > .fs-note-head { background: #F5AF20; color: #0B0F1C; border-color: #F5AF20; }
 .fs-note[data-kind="warning"] { border: 2px solid #AC001E; }
 .fs-note[data-kind="warning"] > .fs-note-head { background: #AC001E; color: #FFFFFF; border-color: #AC001E; }
 @media print { .fs-note { break-inside: avoid; } }
 
-/* What a keyboard, forced colors and a sticky bar need (#383; `web.md`, *Theme* and
-   *Accessibility*). `cargo xtask site`'s page check focuses every kind of element the keyboard
-   reaches, reads the page as forced colors would leave it, measures every text's contrast
-   against what it is drawn on, and fails a bar at the top taller than the scroll padding.
-   The focus ring: a 2 px outline in the action role, 2 px off (`foundations.md`, `focus`), on
-   everything, for the keyboard only; the zoom's hidden checkbox draws it on its picture, where
-   mdBook draws the browser's own ring on any focus. */
-:focus-visible { outline: 2px solid var(--hpr-action) !important; outline-offset: 2px !important; }
-.content .checkbox-img:focus + img { outline: none; }
-.content .checkbox-img:focus-visible + img { outline: 2px solid var(--hpr-action); outline-offset: 2px; }
-/* The menu bar sticks to the window's top: what is scrolled to or focused stops below it and its
-   1 px rule (2.4.11), on a phone below its second row too. */
-html { scroll-padding-top: calc(var(--menu-bar-height) + 1px); }
-@media only screen and (max-width: 519px) { html { scroll-padding-top: calc(var(--menu-bar-height) + 45px); } }
-/* Forced colors (Windows' high-contrast mode) paint every color in the reader's own few and drop
-   backgrounds' tints: a box set apart only by its fill (the sidebar, a code block, the copy
-   tooltip, a phone's chapter buttons) gets a border, the theme switch's pressed button an
-   outline inside its edge, a search hit keeps the system's highlight, and the copy icon, painted
-   through a mask, keeps the button's text color. */
+/* Forced colors (Windows' high-contrast mode; #383): the system's mdBook theme borders the boxes
+   mdBook sets apart by their fill alone. Here, this site's own: the status chip gets a border,
+   the theme switch's pressed button an outline inside its edge, and the copy icon, painted
+   through a mask, keeps the button's text color. `cargo xtask site`'s page check reads every
+   page as forced colors would leave it. */
 @media (forced-colors: active) {
-    .sidebar { border-inline-end: 1px solid CanvasText; }
-    pre > code, .tooltiptext, .mobile-nav-chapters { border: 1px solid CanvasText; }
     .content main .fs-intro-row > .fs-status { border: 1px solid CanvasText; }
     #mdbook-theme-list.fs-seg .theme[aria-pressed="true"] { outline: 2px solid CanvasText; outline-offset: -4px; }
-    mark { forced-color-adjust: none; color: MarkText; background-color: Mark; }
     pre > .buttons button.clip-button::before { forced-color-adjust: none; background-color: ButtonText; }
 }
-/* The fonts' metric-matched fallbacks (`fonts/fonts.css`, the system's), second in every stack,
-   so text drawn before a face arrives takes the same room. The system matches Archivo with Arial,
-   which Linux and ChromeOS lack; they carry Liberation Sans and Arimo, metric-compatible with
-   Arial (the same advance widths, the Liberation and Croscore fonts' stated aim), so the same
-   101% matches them. Without them the `.orc` page measured CLS 0.179 on CI's Linux runners, as
-   its italic, whose face no page preloads, arrived after the first paint (ADR-232). */
-@font-face { font-family: 'Archivo Clone Fallback'; src: local('Liberation Sans'), local('LiberationSans'), local('Arimo'); size-adjust: 101%; }
-html, h4, h5, h6, #mdbook-searchbar { font-family: 'Archivo', 'Archivo Fallback', 'Archivo Clone Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif; }
-code, pre, kbd, .hljs { font-family: 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, 'SF Mono', Menlo, Consolas, monospace !important; }
-h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter { font-family: 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; }
 /* The page's frame (#384; `web.md`, *Page anatomy*). `cargo xtask site` makes the menu bar the
    system's header and ends every page with its title block, in a `footer`; its page check fails
    either drawn off the system's. The header: the horizontal lockup, 24 px tall in the text's
    color (Void on light, Paper on dark, as the brand's one-color files are), with the brand's clear
    space around it, a quarter of its height, then the product's name; both one link to the landing
    page. From 720 px the sidebar stays open, so the menu button goes. */
-#mdbook-menu-bar .fs-logo { box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 12px; overflow: visible; padding-inline: 6px; color: var(--hpr-ink); text-decoration: none; }
+#mdbook-menu-bar .fs-logo { box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 12px; overflow: visible; padding-inline: 6px; color: var(--fs-ink); text-decoration: none; }
 #mdbook-menu-bar .fs-lockup { height: 24px; width: auto; flex: none; }
 #mdbook-menu-bar .fs-product { flex: none; }
 @media only screen and (min-width: 720px) { #mdbook-sidebar-toggle { display: none; } }
@@ -287,9 +99,9 @@ h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter { font-family: 'Casc
    264 px), but each row's cells grow to its end, so a row cut short by a long entry, which takes
    a row of its own, leaves no hole. The owner's carries the mark, at 24 px, the brand's least.
    It lines up with the page's text and ends the page. */
-.content .fs-titleblock { box-sizing: border-box; max-width: var(--content-max-width); margin: 48px 0 0; display: flex; flex-wrap: wrap; border: 2px solid var(--hpr-ink); background: var(--hpr-surface); }
-.fs-titleblock > div { flex: 1 1 132px; box-sizing: border-box; padding: 6px 10px 8px; border-right: 1px solid var(--hpr-rule-strong); border-bottom: 1px solid var(--hpr-rule-strong); display: grid; gap: 2px; align-content: start; min-width: 0; margin: 0 -1px -1px 0; }
-.fs-titleblock .k { font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.08em; color: var(--hpr-ink-muted); }
+.content .fs-titleblock { box-sizing: border-box; max-width: var(--content-max-width); margin: 48px 0 0; display: flex; flex-wrap: wrap; border: 2px solid var(--fs-ink); background: var(--fs-surface); }
+.fs-titleblock > div { flex: 1 1 132px; box-sizing: border-box; padding: 6px 10px 8px; border-right: 1px solid var(--fs-rule-strong); border-bottom: 1px solid var(--fs-rule-strong); display: grid; gap: 2px; align-content: start; min-width: 0; margin: 0 -1px -1px 0; }
+.fs-titleblock .k { font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fs-ink-muted); }
 .fs-titleblock .v { font: 400 var(--fs-14)/var(--fs-20) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
 .fs-titleblock .v code { font-size: inherit; padding: 0; background: none; }
 .fs-titleblock .wide { flex: 2 1 264px; }
@@ -313,21 +125,21 @@ h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter { font-family: 'Casc
    otherwise. */
 .content main .fs-intro-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; }
 .content main .fs-intro-row > .fs-tag { --c: 4px; box-sizing: border-box; display: flex; width: fit-content; max-width: 100%; align-items: center; margin: 0; padding: 2px 10px 2px 8px; min-height: 24px;
-  font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.04em; color: var(--hpr-ink); border: 1px solid var(--hpr-rule-strong);
+  font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.04em; color: var(--fs-ink); border: 1px solid var(--fs-rule-strong);
   clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, 0 100%);
-  background: linear-gradient(225deg, transparent calc(var(--c) * 0.7071 - 1px), var(--hpr-rule-strong) 0 calc(var(--c) * 0.7071), transparent 0); }
+  background: linear-gradient(225deg, transparent calc(var(--c) * 0.7071 - 1px), var(--fs-rule-strong) 0 calc(var(--c) * 0.7071), transparent 0); }
 .content main .fs-intro-row > .fs-status { box-sizing: border-box; display: inline-flex; align-items: center; gap: 6px; min-height: 24px; margin: 0; padding: 2px 8px;
   font: 600 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid transparent; white-space: nowrap; }
 .content main .fs-intro-row > .fs-status svg { width: 14px; height: 14px; flex: none; }
 .content main .fs-intro-row > .fs-status[data-state="ok"] { background: #0A6355; color: #FFFFFF; }
-.content main .fs-intro-row > .fs-status[data-state="info"] { background: transparent; color: var(--hpr-action); border-color: currentColor; }
+.content main .fs-intro-row > .fs-status[data-state="info"] { background: transparent; color: var(--fs-action); border-color: currentColor; }
 .content main .fs-intro > h1 { margin-top: 0; }
-.content main .fs-intro > .fs-lead { font-size: var(--fs-20); line-height: var(--fs-28); font-weight: 400; color: var(--hpr-ink-muted); }
-.content main .fs-sheet { border-top: 2px solid var(--hpr-ink); margin-top: 32px; padding-top: 16px; }
+.content main .fs-intro > .fs-lead { font-size: var(--fs-20); line-height: var(--fs-28); font-weight: 400; color: var(--fs-ink-muted); }
+.content main .fs-sheet { border-top: 2px solid var(--fs-ink); margin-top: 32px; padding-top: 16px; }
 .content main .fs-sheet-rail { display: grid; gap: 8px; margin-bottom: 16px; }
 /* The system's mdBook theme draws the sheet's edge on the `h2` itself; here the sheet draws it. */
 .content main .fs-sheet-rail > h2 { margin: 0; padding-top: 0; border-top: 0; }
-.fs-sheet-no { font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--hpr-ink-muted); }
+.fs-sheet-no { font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fs-ink-muted); }
 @media print { .fs-sheet-rail { break-after: avoid; } }
 
 /* The theme switch (#384, #429; `web.md`, *Page anatomy*, *Components* and *Theme*;
@@ -339,12 +151,12 @@ h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter { font-family: 'Casc
    list, so it stays in view (`xtask/src/site/switch.rs`, `HEADER_FROM_PX`). mdBook's script
    hides its menu when focus leaves it, so the group is drawn over that. It needs scripts to
    work, so without them it isn't drawn. */
-#mdbook-theme-list.fs-seg { position: static; display: inline-flex !important; flex: none; align-self: center; box-sizing: border-box; margin: 0; padding: 0; max-height: none; overflow: visible; list-style: none; border: 1px solid var(--hpr-rule-strong); background: transparent; color: var(--hpr-ink-muted); }
+#mdbook-theme-list.fs-seg { position: static; display: inline-flex !important; flex: none; align-self: center; box-sizing: border-box; margin: 0; padding: 0; max-height: none; overflow: visible; list-style: none; border: 1px solid var(--fs-rule-strong); background: transparent; color: var(--fs-ink-muted); }
 #mdbook-theme-list.fs-seg > li { display: flex; }
-#mdbook-theme-list.fs-seg .theme { box-sizing: border-box; min-height: 44px; width: auto; margin: 0; padding: 0 12px; font: 400 var(--fs-14)/var(--fs-20) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-align: center; white-space: nowrap; color: var(--hpr-ink-muted); background: transparent; border: 0; border-left: 1px solid var(--hpr-rule); cursor: pointer; }
+#mdbook-theme-list.fs-seg .theme { box-sizing: border-box; min-height: 44px; width: auto; margin: 0; padding: 0 12px; font: 400 var(--fs-14)/var(--fs-20) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-align: center; white-space: nowrap; color: var(--fs-ink-muted); background: transparent; border: 0; border-left: 1px solid var(--fs-rule); cursor: pointer; }
 #mdbook-theme-list.fs-seg > li:first-child .theme { border-left: 0; }
-#mdbook-theme-list.fs-seg .theme:hover { color: var(--hpr-ink); background: transparent; }
-#mdbook-theme-list.fs-seg .theme[aria-pressed="true"] { color: var(--hpr-canvas); background: var(--hpr-ink); }
+#mdbook-theme-list.fs-seg .theme:hover { color: var(--fs-ink); background: transparent; }
+#mdbook-theme-list.fs-seg .theme[aria-pressed="true"] { color: var(--fs-canvas); background: var(--fs-ink); }
 #mdbook-menu-bar .right-buttons:has(> #mdbook-theme-list) { display: flex; align-items: center; }
 #mdbook-menu-bar #mdbook-theme-list.fs-seg { margin-inline-end: 8px; }
 .sidebar > #mdbook-theme-list.fs-seg { position: absolute; top: 10px; left: 10px; }
@@ -363,49 +175,20 @@ html:not(.js) #mdbook-theme-list.fs-seg { display: none !important; }
 .theme-selected::before { content: none; }
 :is(h1, h2, h3, h4, h5, h6, dt):target::before { content: none; }
 
-/* Print (#383; `web.md`, *Print*): the light theme's values whatever theme the page is read in,
-   navigation and the theme's controls hidden (mdBook's `print.css` hides its sidebar, menu bar
-   and page arrows), link addresses shown after their links, the title block's too, and table
-   rows, notes and the title block, which carries the version and date of issue, each kept on
-   one sheet of paper. Links within the site show their path, relative to the page. mdBook's
-   `print.css` colors links a blue of its own; here they keep the action role. The page check reads
-   every page with the stylesheets' print rules applied, in each theme, and fails a color that
-   differs from the light theme's, a control or navigation drawn, a link without its address, a
-   row, note or title block that can split, a title block not drawn whole, or anything fixed to
-   the window. */
+/* Print (#383; `web.md`, *Print*): the system's mdBook theme prints in the light theme's values
+   whatever theme the page is read in, its links in the action role with their addresses after
+   them, a table row on one sheet, and the strip once at the top of the first sheet (mdBook's
+   `print.css` hides its sidebar, menu bar and page arrows). Here, this site's own: the title
+   block, which carries the version and date of issue, kept on one sheet of paper; the tag's
+   chamfer, a diagonal drawn as a background, which a browser leaves off paper unless asked to
+   print backgrounds; and the chip's fill, the same on paper as on screen (`foundations.md`,
+   *Color*). The page check reads every page with the stylesheets' print rules applied, in each
+   theme, and fails a color that differs from the light theme's, a control or navigation drawn,
+   a link without its address, a row, note or title block that can split, a title block not
+   drawn whole, or anything fixed to the window. */
 @media print {
-    html.light, html.rust, html.navy, html.coal, html.ayu, html:not(.js) {
-      color-scheme: light;
-      --bg: #F3F4F7; --fg: #0B0F1C; --sidebar-bg: #FFFFFF; --sidebar-fg: #0B0F1C;
-      --sidebar-non-existant: #98A1B8; --sidebar-active: #3350D6; --sidebar-spacer: #D6DAE4;
-      --scrollbar: #566079; --icons: #566079; --icons-hover: #0B0F1C; --links: #3350D6;
-      --inline-code-color: #0B0F1C; --theme-popup-bg: #FFFFFF; --theme-popup-border: #566079;
-      --theme-hover: #D6DAE4; --quote-bg: #FFFFFF; --quote-border: #566079;
-      --table-border-color: #D6DAE4; --table-header-bg: #FFFFFF; --table-alternate-bg: #F3F4F7;
-      --searchbar-border-color: #566079; --searchbar-bg: #FFFFFF; --searchbar-fg: #0B0F1C;
-      --searchbar-shadow-color: transparent; --searchresults-header-fg: #566079; --searchresults-border-color: #D6DAE4;
-      --searchresults-li-bg: #FFFFFF;
-      --code-bg: #FFFFFF;
-      --hpr-ink: #0B0F1C; --hpr-ink-muted: #566079; --hpr-canvas: #F3F4F7; --hpr-surface: #FFFFFF;
-      --hpr-rule: #D6DAE4; --hpr-rule-strong: #566079; --hpr-action: #3350D6; --hpr-on-action: #FFFFFF;
-      --hpr-danger: #AC001E; --hpr-ok: #0A6355;
-      --hpr-selection: rgb(51 80 214 / 0.22);
-      --sidebar-header-border-color: var(--hpr-rule);
-      --footnote-highlight: var(--hpr-action);
-      --search-mark-bg: var(--hpr-action);
-    }
-    a, a:visited, a:active, a:hover { color: var(--links); }
-    a[href]:not([href^="#"])::after { content: " (" attr(href) ")"; overflow-wrap: anywhere; }
-    tr, .fs-titleblock { break-inside: avoid; }
-    /* The theme's colored rule along the window's top (`fusionspace-mdbook.css`, `body::before`)
-       is fixed there, and a browser draws what is fixed on every sheet, over the top of the text:
-       it covered the top border of the designation tag that opens each chapter. On paper it
-       stands once, at the top of the first sheet. */
-    body::before { position: static; display: block; }
-    /* The tag's chamfer is a diagonal drawn as a background, which a browser leaves off paper
-       unless asked to print backgrounds; the tag keeps it, so its corner isn't left open. */
+    .fs-titleblock { break-inside: avoid; }
     .content main .fs-intro-row > .fs-tag { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-    /* The chip's fill is the same on paper as on screen (`foundations.md`, *Color*). */
     .content main .fs-intro-row > .fs-status { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
 /* The print page's cover, shown on screen; on paper the page is the chapters the site's script
@@ -415,5 +198,5 @@ html:not(.js) #mdbook-theme-list.fs-seg { display: none !important; }
    can't print, and the cover says so instead. */
 @media print { #hpr-print-cover { display: none; } }
 html:not(.js) #hpr-print { display: none; }
-#hpr-print-cover .fs-btn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 44px; margin: 0; padding: 0 16px; font: 600 var(--fs-14)/var(--fs-20) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0; white-space: nowrap; cursor: pointer; color: var(--hpr-canvas); background: var(--hpr-ink); border: 2px solid var(--hpr-ink); border-radius: 0; transition: background-color 100ms cubic-bezier(0.2, 0, 0, 1), border-color 100ms cubic-bezier(0.2, 0, 0, 1); }
-#hpr-print-cover .fs-btn:hover { color: var(--hpr-on-action); background: var(--hpr-action); border-color: var(--hpr-action); }
+#hpr-print-cover .fs-btn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 44px; margin: 0; padding: 0 16px; font: 600 var(--fs-14)/var(--fs-20) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0; white-space: nowrap; cursor: pointer; color: var(--fs-canvas); background: var(--fs-ink); border: 2px solid var(--fs-ink); border-radius: 0; transition: background-color 100ms cubic-bezier(0.2, 0, 0, 1), border-color 100ms cubic-bezier(0.2, 0, 0, 1); }
+#hpr-print-cover .fs-btn:hover { color: var(--fs-on-action); background: var(--fs-action); border-color: var(--fs-action); }

@@ -54,7 +54,7 @@ mode = "fetched"
 [[git]]
 name = "fusionspace-design"
 url = "https://github.com/nrdptel/fusionspace-design.git"
-commit = "e5759b5ed6fb4472c360d2b90c71327a7a807987"
+commit = "1a430cb7b8fa3024af56c0db92df37ce9d446901"
 dest = "refs/fusionspace-design"
 license = "Apache-2.0 (code-like files); brand files all rights reserved"
 mode = "fetched"

@@ -23,13 +23,14 @@
 //!   and more than a quarter of the shorter one's height: a label drawn over another. Two lines of
 //!   a tight line height, or two runs that touch, don't count.
 //! - **A figure shown smaller than drawn** (#382). A figure's text is drawn at its size, so a
-//!   figure shown smaller reads smaller: the plot's 12 px text, in its 960 px figure shown in
-//!   mdBook's 750 px column, read at 9.4 px. Where the box holding the page's `main` has room for
-//!   a figure, up to the product system's widest content (1,120 px, `foundations.md`, *Width*),
-//!   it must be shown at its size; where it hasn't, the reader must be able to open it at its
-//!   size, through mdBook's zoom (a checkbox in the figure's label that shows a copy over the
-//!   page). The theme lets a figure reach past the prose column for this (`theme/hpr.css`). A
-//!   figure with no size the check can read (broken, or an SVG without one) fails.
+//!   figure shown smaller reads smaller: the plot's 12 px text, in its 960 px figure shown in a
+//!   750 px column, read at 9.4 px. Where the box holding the page's `main` has room for a
+//!   figure, up to the product system's widest content (1,120 px, `foundations.md`, *Width*), it
+//!   must be shown at its size; where it hasn't, the reader must be able to open it at its size,
+//!   through mdBook's zoom (a checkbox in the figure's label that shows a copy over the page).
+//!   The column runs to that width and a figure takes the column, past the measure the prose
+//!   stops at (`theme/fusionspace-mdbook.css`, `theme/hpr.css`). A figure with no size the check
+//!   can read (broken, or an SVG without one) fails.
 //! - **mdBook's defaults** (#383), by computed style: the root element and every element of the
 //!   body, with its `::before` and `::after`, drawn now or hidden until asked for (the help
 //!   popup, the copy tooltip), plus a search hit and a search result added as mdBook's search
