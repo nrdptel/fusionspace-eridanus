@@ -48,10 +48,19 @@ and AerospaceNU's are GPL-3.0 data, so they too stay under `refs/`, read but unc
 5. **Snapshots.** Invented sample files under `crates/hpr-flightdata/tests/` are read in CI and
    pinned by `insta` snapshots of the whole record. The record digests in the report pin every
    real sample the same way without publishing its values.
-6. **`hpr analyze` stays with the `.pf2`.** The readings were set and tested on PerfectFlite logs;
-   reading other loggers' flights waits for M7.2, which validates them.
+6. **`hpr analyze` stays with the `.pf2`, and the readings with PerfectFlite's logs.** The
+   readings were set and tested on PerfectFlite logs; on a record read from another logger's
+   file, `readings::read` withholds every one as *not validated for this logger* until M7.2
+   validates them. On the collection's AltOS logs, liftoff read from the barometer alone came a
+   median 0.28 s, and up to 1.8 s, after the logger's own detection of boost.
+7. **The primary track is barometric.** Its vertical speed is the barometer's or none: AltOS's
+   `baro_speed`, never its `accel_speed` or its flight computer's `speed`, which lean on the
+   accelerometer; those stay channels. A reader refuses a file whose rows hold under a quarter of
+   the cells its header names (past the first 65,536), so that a wide header over short rows can't
+   make it allocate far more than the file holds.
 
-**Consequences.** M7.1a closes with three new layouts read, about 330 distinct files, and the rest
-counted in the report as M7.1b's. The record grows two fields, which every JSON consumer of a
+**Consequences.** M7.1a closes with every file of its five families read, 319 distinct files, and
+2 more AltosUI exports the catalog files as generic CSV; one AltosUI export whose header line is
+damaged is refused and listed; the rest are counted in the report as M7.1b's. The record grows two fields, which every JSON consumer of a
 `FlightLog` sees. A file's hash in the report reveals nothing of its contents, but someone holding
 the file could confirm it is in the collection; that is accepted.

@@ -2,14 +2,14 @@
 //! recognizes the layout from the content, never the file's name, and reads it into the record
 //! every reader fills ([`FlightLog`]).
 //!
-//! The layouts it recognizes, by the first line that isn't blank or a `# ` comment:
+//! The layouts it recognizes, by the first line that isn't blank:
 //!
 //! | Format | First line |
 //! |---|---|
-//! | [PerfectFlite `.pf2`](crate::perfectflite) | names PerfectFlite, such as `PerfectFlite Pnut` |
+//! | [PerfectFlite `.pf2`](crate::perfectflite) | names PerfectFlite, such as `PerfectFlite Pnut`, in a file with no `**!!Data:` line (a `.pfa`'s) |
 //! | [PerfectFlite CSV and text](crate::perfectflite::read_export) | `Time`, `Altitude` and more of an export's names, by commas or tabs |
-//! | [AltOS CSV](crate::altos) | starts `#version,`, or `version,serial,` after `# ` comments |
-//! | [Raven FIP CSV](crate::raven) | holds the Raven's `Axial Accel (Gs)` channel |
+//! | [AltOS CSV](crate::altos) | starts `#version,`, or opens with `#` comments before a `#version,` or `version,serial,` header |
+//! | [Raven FIP CSV](crate::raven) | opens with a time column and holds the Raven's `Axial Accel (Gs)` channel |
 //!
 //! Text is read as UTF-8 with any byte-order mark dropped; a byte that isn't UTF-8 becomes U+FFFD,
 //! as a `.pf2`'s comments may be in another encoding and no reader uses them.
@@ -31,7 +31,7 @@ use crate::log::{FlightLog, LogFormat};
 use crate::{altos, perfectflite, raven};
 
 /// The formats [`read`] recognizes, in the order it tries them.
-pub const FORMATS: [LogFormat; 5] = [
+pub const FORMATS: &[LogFormat] = &[
     LogFormat::PerfectFlitePf2,
     LogFormat::AltosCsv,
     LogFormat::RavenFipCsv,
@@ -52,17 +52,34 @@ pub fn detect(bytes: &[u8]) -> Option<LogFormat> {
 }
 
 fn detect_text(text: &str) -> Option<LogFormat> {
-    // A `# ` line is a comment, as Debrief's AltOS sample opens with; `#version,` is AltOS's header.
-    let first = text
-        .lines()
+    // Lines end in CR, LF or both, as the readers take them.
+    let mut lines = text
+        .split(['\r', '\n'])
         .map(str::trim)
-        .find(|line| !line.is_empty() && *line != "#" && !line.starts_with("# "))?;
-    let lower = first.to_ascii_lowercase();
-    if lower.contains("perfectflite") {
-        Some(LogFormat::PerfectFlitePf2)
-    } else if first.starts_with("#version,") || first.starts_with("version,serial,") {
+        .filter(|line| !line.is_empty());
+    let first = lines.next()?;
+    let altos_header =
+        |line: &str| line.starts_with("#version,") || line.starts_with("version,serial,");
+    if first.to_ascii_lowercase().contains("perfectflite") {
+        // A `.pfa` names PerfectFlite too, but writes its samples after a `**!!Data:` line, one
+        // value a line: a layout no reader knows yet (M7.1b).
+        let pfa = text
+            .split(['\r', '\n'])
+            .any(|line| line.trim_start().starts_with("**!!"));
+        (!pfa).then_some(LogFormat::PerfectFlitePf2)
+    } else if first.starts_with('#') && !altos_header(first) {
+        // Only AltOS's CSV opens with `#` comments, such as `# Comments` or `# product TeleMetrum`,
+        // before its header.
+        std::iter::once(first)
+            .chain(lines)
+            .find(|line| !line.starts_with('#') || altos_header(line))
+            .filter(|line| altos_header(line))
+            .map(|_| LogFormat::AltosCsv)
+    } else if altos_header(first) {
         Some(LogFormat::AltosCsv)
-    } else if first.contains("Axial Accel (Gs)") {
+    } else if first.starts_with("Time") && first.contains("Axial Accel (Gs)") {
+        // The Raven's export opens with a time column; a Blue Raven's names the same channel
+        // further along a header that opens with the date.
         Some(LogFormat::RavenFipCsv)
     } else {
         match perfectflite::export_separator(first)? {
@@ -116,6 +133,23 @@ mod tests {
                 Some(LogFormat::AltosCsv),
             ),
             ("#Component=Raven\n", None),
+            (
+                "#foo\n#version,serial,flight,time\n",
+                Some(LogFormat::AltosCsv),
+            ),
+            ("# a note\nTime,Altitude,Velocity\n", None),
+            (
+                "PerfectFlite Alt15K/WD\nApogee: 900\n**!!Data:\n1200\n",
+                None,
+            ),
+            (
+                "Year,Month,Day,Time,Flight_Time_(s),Axial Accel (Gs)\n",
+                None,
+            ),
+            (
+                "Time,Altitude,Velocity\r0.00,0,0\r0.05,1,8\r",
+                Some(LogFormat::PerfectFliteCsv),
+            ),
             (
                 "Time@Axial Accel (Gs),Axial Accel (Gs),bILBA\n",
                 Some(LogFormat::RavenFipCsv),

@@ -24,6 +24,12 @@ fn the_csv_export_reads_every_column() {
         log.altitude_m.iter().copied().fold(0.0, f64::max),
         900.0 * 0.3048
     );
+    // The worked example of docs/format/flight-logs.md reads these first rows.
+    assert_eq!(&log.time_s[..3], [0.0, 0.5, 1.0]);
+    let speed = log.vertical_speed_m_s.as_ref().unwrap();
+    assert_eq!(format!("{:.2}", speed[2]), "26.82");
+    let temperature = log.temperature_k.as_ref().unwrap();
+    assert_eq!(format!("{:.1}", temperature[0]), "295.1");
     insta::assert_json_snapshot!(log);
 }
 
@@ -68,4 +74,53 @@ fn a_cell_with_another_columns_unit_is_refused() {
     let text = "Time,Altitude,Velocity,Temperature (F)\n0.00,0,0,70.1C\n";
     let error = import::read(text.as_bytes()).unwrap_err();
     assert!(error.to_string().contains("unit"), "{error}");
+}
+
+/// A wide header with short rows would make the readers store a gap for every cell left out: a
+/// file far sparser than its header is refused instead, before it can cost much memory.
+#[test]
+fn a_header_far_wider_than_its_rows_is_refused() {
+    let mut export = String::from("Time,Altitude");
+    let mut altos = String::from("#version,serial,flight,time,height");
+    for i in 0..2_000 {
+        export.push_str(",Voltage");
+        altos.push_str(&format!(",x{i}"));
+    }
+    export.push('\n');
+    altos.push('\n');
+    for i in 0..200 {
+        export.push_str(&format!("{}.0,0\n", i));
+        altos.push_str(&format!("6,1,1,{}.0,0\n", i));
+    }
+    for text in [export, altos] {
+        let error = import::read(text.as_bytes()).unwrap_err().to_string();
+        assert!(error.contains("too few for the"), "{error}");
+    }
+    // The same rows under a header of their own width read.
+    let mut narrow = String::from("Time,Altitude,Voltage\n");
+    for i in 0..200 {
+        narrow.push_str(&format!("{}.0,0\n", i));
+    }
+    assert!(import::read(narrow.as_bytes()).is_ok());
+}
+
+/// A record with gaps survives its own JSON: each `NaN` is written as `null` and read back.
+#[test]
+fn a_record_with_gaps_survives_its_json() {
+    for bytes in [
+        &include_bytes!("samples/raven-fip-status.csv")[..],
+        &include_bytes!("samples/altos-easymega-no-pressure.csv")[..],
+    ] {
+        let log = import::read(bytes).unwrap();
+        let gaps = log
+            .channels
+            .iter()
+            .flat_map(|channel| &channel.values)
+            .filter(|value| value.is_nan())
+            .count();
+        assert!(gaps > 0, "the sample has no gap to test");
+        let json = serde_json::to_string(&log).unwrap();
+        let back: hpr_flightdata::log::FlightLog = serde_json::from_str(&json).unwrap();
+        assert_eq!(serde_json::to_string(&back).unwrap(), json);
+    }
 }

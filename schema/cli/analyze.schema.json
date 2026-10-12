@@ -711,6 +711,11 @@
           "const": "sampled_too_fast"
         },
         {
+          "description": "The readings were tested on PerfectFlite logs only; another logger's wait for M7.2.",
+          "type": "string",
+          "const": "not_validated_for_logger"
+        },
+        {
           "description": "A reason this build of `hpr` doesn't name.",
           "type": "string",
           "const": "other"

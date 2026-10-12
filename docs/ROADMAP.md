@@ -396,14 +396,9 @@ The formats, reading methods and log corpus come from Debrief, written up in `do
   into, carrying every sample the logger wrote. *Done when:* every sample file in refs imports,
   snapshot-tested, and the crate builds with no dependency on `hpr-sim` (`cargo xtask wasm-check`).
   Formats without samples are listed in the docs as needing samples.
-  - [ ] **M7.1a The record, a survey, three families.** *Done when:* `cargo xtask logs` surveys
-    every log sample in refs by family, read or refused with a reason, into a committed
-    report (counts, anonymized ids) the refs step checks; every PerfectFlite (`.pf2`, CSV, text),
-    AltOS CSV and Raven FIP CSV sample imports, each column a channel on its own clock, events
-    kept; pinned by digest (refs) and snapshot (invented samples).
   - [ ] **M7.1b The other importers:** AltOS eeprom, RRC3 and RFF, Eggtimer, Blue Raven,
-    Featherweight GPS, Entacore AIM, AltimeterCloud, spreadsheets, CATS; EuRoC/Juno CSV; generic
-    CSV with column mapping; unit detection. *Done when:* the parent's.
+    Featherweight GPS, PerfectFlite `.pfa`, Entacore AIM, AltimeterCloud, spreadsheets, CATS;
+    EuRoC/Juno CSV; generic CSV with column mapping; unit detection. *Done when:* the parent's.
 - [ ] **M7.2 Readings, reconstruction and ghost data.**
   - The readings a flight gives (apogee, maximum velocity and acceleration, burnout, descent
     rates per phase, flight time), each carrying its provenance: measured, derived, or clipped

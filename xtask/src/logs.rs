@@ -25,6 +25,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use hpr_flightdata::error::LogError;
+use hpr_flightdata::log::LogFormat;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -44,13 +45,14 @@ const DEBRIEF_DIRS: [&str; 2] = [
 ];
 const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 
-/// The families M7.1a reads: every file of these must import.
-pub const M7_1A: [&str; 5] = [
-    "pf2",
-    "perfectflite-csv",
-    "perfectflite-txt",
-    "altos-csv",
-    "raven-csv",
+/// The families M7.1a reads, each with the format its files must read as: every file of these
+/// must import, and in that format.
+pub const M7_1A: [(&str, LogFormat); 5] = [
+    ("pf2", LogFormat::PerfectFlitePf2),
+    ("perfectflite-csv", LogFormat::PerfectFliteCsv),
+    ("perfectflite-txt", LogFormat::PerfectFliteText),
+    ("altos-csv", LogFormat::AltosCsv),
+    ("raven-csv", LogFormat::RavenFipCsv),
 ];
 
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight.
@@ -91,13 +93,23 @@ const DEBRIEF_SKIPPED: [&str; 2] = ["README.md", "sample-design.ork"];
 
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 1] = [(
-    "9c5017ab68168088",
-    "altos-csv",
-    "csv",
-    "a spreadsheet's re-save of an AltOS export, no longer AltosUI's layout: its header edited to \
-     carry units, its `height` column deleted, and three columns holding formulas",
-)];
+const RECLASSIFIED: [(&str, &str, &str, &str); 2] = [
+    (
+        "9c5017ab68168088",
+        "altos-csv",
+        "csv",
+        "a spreadsheet's re-save of an AltOS export, no longer AltosUI's layout: its header \
+         edited to carry units, its `height` column deleted, and three columns holding formulas",
+    ),
+    (
+        "76a7d8937258e946",
+        "csv",
+        "altos-csv-damaged",
+        "an AltosUI export whose header line is damaged: it names 25 columns, two of them run \
+         together, where its rows hold other counts, so no reader can tell which cell is which; \
+         refused",
+    ),
+];
 
 /// The report.
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -109,8 +121,23 @@ struct Report {
     reclassified: Vec<String>,
     /// Files read, by the logger each record names, such as `PerfectFlite SLCF`.
     loggers: BTreeMap<String, usize>,
+    /// What bears out feet in PerfectFlite's exports, whose header states no unit.
+    perfectflite_exports: ExportUnits,
     /// One line a file: `id family source outcome record`, the record `-` when refused.
     files: Vec<String>,
+}
+
+/// The evidence that PerfectFlite's exports are in feet: how many peak at exactly the height of
+/// a `.pf2` beside them, which is in feet, and the climb's time over `√(2h/g₀)`, a fall in vacuum
+/// from the peak `h`, least and greatest: for those, read in feet, and for the others, read in
+/// feet and in meters.
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+struct ExportUnits {
+    files: usize,
+    peak_equals_a_pf2_beside_it: usize,
+    climb_over_fall_beside_a_pf2_in_feet: [f64; 2],
+    climb_over_fall_others_in_feet: [f64; 2],
+    climb_over_fall_others_in_meters: [f64; 2],
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -357,8 +384,14 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     let mut loggers: BTreeMap<String, usize> = BTreeMap::new();
     for sample in samples {
         let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
-        let increment = if M7_1A.contains(&sample.family.as_str()) {
+        let expected = M7_1A
+            .iter()
+            .find(|(family, _)| *family == sample.family)
+            .map(|(_, format)| *format);
+        let increment = if expected.is_some() {
             "M7.1a"
+        } else if sample.family.ends_with("-damaged") {
+            "damaged"
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
             "not a log"
         } else {
@@ -377,6 +410,18 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         let (outcome, record) = match hpr_flightdata::import::read(&sample.bytes) {
             Ok(log) => {
                 row.read += 1;
+                if expected.is_some_and(|format| format != log.format) || increment == "damaged" {
+                    unread.push(format!(
+                        "  {} ({}, {id}): read as {}, where its family {}",
+                        sample.path.display(),
+                        sample.family,
+                        log.format.name(),
+                        match expected {
+                            Some(format) => format!("reads as {}", format.name()),
+                            None => "is listed as damaged, so the list is stale".to_owned(),
+                        }
+                    ));
+                }
                 *loggers.entry(log.logger.clone()).or_default() += 1;
                 // serde_json writes a NaN as null, and the record holds nothing unordered, so
                 // the same file reads to the same bytes.
@@ -408,11 +453,15 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     files.sort();
     let report = Report {
         about: "Every flight-log sample under refs/, read by hpr_flightdata::import (M7.1a, \
-                ADR-251): `cargo xtask logs`. A file's id is the first 16 hex digits of its \
+                ADR-251): `cargo xtask logs`. The samples are the collection's catalog, Debrief's \
+                fixtures and samples, and AerospaceNU's logs; refs/research/public-flights, a \
+                download cache whose flights' logs the collection catalogs, and RocketPy's \
+                processed flight tables are not loggers' files and are left out. A file's id is the first 16 hex digits of its \
                 SHA-256, its record the first 16 of the SHA-256 of the JSON record read from it."
             .to_owned(),
         sources,
         families: families.into_values().collect(),
+        perfectflite_exports: export_units(samples),
         reclassified: RECLASSIFIED
             .iter()
             .map(|(id, from, to, why)| format!("{id} {from} -> {to}: {why}"))
@@ -421,6 +470,80 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         files,
     };
     (report, unread)
+}
+
+/// [`ExportUnits`] over the samples. A climb runs from the first sample above 2% of the peak to
+/// the peak.
+fn export_units(samples: &[Sample]) -> ExportUnits {
+    const G0: f64 = 9.806_65;
+    let peak = |log: &hpr_flightdata::log::FlightLog| {
+        log.altitude_m
+            .iter()
+            .copied()
+            .filter(|value| value.is_finite())
+            .fold(f64::NEG_INFINITY, f64::max)
+    };
+    let mut files = 0;
+    let mut matched = 0;
+    let (mut matched_feet, mut feet, mut meters) = (Vec::new(), Vec::new(), Vec::new());
+    for sample in samples {
+        if !matches!(
+            sample.family.as_str(),
+            "perfectflite-csv" | "perfectflite-txt"
+        ) {
+            continue;
+        }
+        let Ok(log) = hpr_flightdata::import::read(&sample.bytes) else {
+            continue;
+        };
+        files += 1;
+        let top = peak(&log);
+        let beside = sample
+            .path
+            .parent()
+            .and_then(|dir| fs::read_dir(dir).ok())
+            .into_iter()
+            .flatten()
+            .filter_map(|entry| entry.ok().map(|entry| entry.path()))
+            .filter(|path| {
+                path.extension()
+                    .is_some_and(|extension| extension.eq_ignore_ascii_case("pf2"))
+            })
+            .filter_map(|path| fs::read(path).ok())
+            .filter_map(|bytes| hpr_flightdata::import::read(&bytes).ok())
+            .any(|pf2| (peak(&pf2) - top).abs() < 1e-9);
+        if beside {
+            matched += 1;
+        }
+        let (Some(peak_at), Some(lift_at)) = (
+            log.altitude_m.iter().position(|value| *value == top),
+            log.altitude_m.iter().position(|value| *value > 0.02 * top),
+        ) else {
+            continue;
+        };
+        let climb = log.time_s[peak_at] - log.time_s[lift_at];
+        let in_feet = climb / (2.0 * top / G0).sqrt();
+        if beside {
+            matched_feet.push(in_feet);
+        } else {
+            feet.push(in_feet);
+            meters.push(climb / (2.0 * top / hpr_flightdata::perfectflite::FOOT_M / G0).sqrt());
+        }
+    }
+    let range = |values: &[f64]| {
+        let round = |value: f64| (value * 100.0).round() / 100.0;
+        [
+            round(values.iter().copied().fold(f64::INFINITY, f64::min)),
+            round(values.iter().copied().fold(f64::NEG_INFINITY, f64::max)),
+        ]
+    };
+    ExportUnits {
+        files,
+        peak_equals_a_pf2_beside_it: matched,
+        climb_over_fall_beside_a_pf2_in_feet: range(&matched_feet),
+        climb_over_fall_others_in_feet: range(&feet),
+        climb_over_fall_others_in_meters: range(&meters),
+    }
 }
 
 /// A refusal's kind, never its message, which can quote the file.
@@ -442,8 +565,11 @@ fn markdown(report: &Report) -> String {
          Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-log \
          sample under `refs/` read by HPR Sim's importer (M7.1a, ADR-251): the private \
          collection's catalog, Debrief's fixtures and samples, and AerospaceNU's logs, each file \
-         once. A family is the catalog's name for a layout; *unrecognized* means no reader \
-         knows the layout yet.\n\n\
+         once. Left out: `refs/research/public-flights`, a download cache whose flights' logs \
+         the collection catalogs, and RocketPy's processed flight tables, which no logger \
+         wrote. A family is the catalog's name for a layout; *unrecognized* means no reader \
+         knows the layout yet, and *damaged* a file of a known layout no reader can make sense \
+         of.\n\n\
          | Source | Files | Not met before |\n|---|---:|---:|\n",
     );
     for source in &report.sources {
@@ -482,6 +608,20 @@ fn markdown(report: &Report) -> String {
             out += &format!("- `{}\n", line.replacen(": ", "`: ", 1));
         }
     }
+    let units = &report.perfectflite_exports;
+    let ratio = |pair: [f64; 2]| format!("{:.2} to {:.2}", pair[0], pair[1]);
+    out += &format!(
+        "\nPerfectFlite's exports state no unit for their altitude. Of the {} read, {} peak at \
+         exactly the height of a `.pf2` beside them, which is in feet; read in feet, their climbs \
+         take {} times as long as a fall in vacuum from the peak. The other {} take {} times, read \
+         in feet, and would take {} times read in meters.\n",
+        units.files,
+        units.peak_equals_a_pf2_beside_it,
+        ratio(units.climb_over_fall_beside_a_pf2_in_feet),
+        units.files - units.peak_equals_a_pf2_beside_it,
+        ratio(units.climb_over_fall_others_in_feet),
+        ratio(units.climb_over_fall_others_in_meters)
+    );
     out += "\nThe files read, by the logger each names:\n\n| Logger | Files |\n|---|---:|\n";
     for (logger, count) in &report.loggers {
         out += &format!("| {logger} | {count} |\n");

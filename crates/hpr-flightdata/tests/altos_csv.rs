@@ -66,13 +66,10 @@ fn comment_lines_and_pressure_in_hectopascals() {
         "{}",
         pressure.values[0]
     );
-    // `accel_speed` comes first for the vertical speed, as in Debrief's reader.
+    // The primary track's speed is the barometer's, never `accel_speed`'s.
     let speed = log.vertical_speed_m_s.as_ref().unwrap();
-    let accel_speed = log
-        .channels
-        .iter()
-        .find(|c| c.column == "accel_speed")
-        .unwrap();
-    assert_eq!(speed, &accel_speed.values);
+    let column = |name: &str| log.channels.iter().find(|c| c.column == name).unwrap();
+    assert_eq!(speed, &column("baro_speed").values);
+    assert_ne!(speed, &column("accel_speed").values);
     insta::assert_json_snapshot!(log);
 }

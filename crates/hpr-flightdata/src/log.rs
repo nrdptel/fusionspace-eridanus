@@ -26,21 +26,28 @@ pub struct FlightLog {
     pub time_s: Vec<f64>,
     /// The barometric altitude, m, as the logger converts its pressure, above the logger's own
     /// zero: for a PerfectFlite, its reading on the pad.
+    #[serde(with = "gaps")]
     pub altitude_m: Vec<f64>,
     /// The vertical speed, m/s, up positive, as the logger computes it; `None` if the file has
     /// no such column. A barometric logger works it out from its own altitude.
+    #[serde(with = "optional_gaps", default)]
     pub vertical_speed_m_s: Option<Vec<f64>>,
     /// The logger's temperature sensor, K; `None` if the file has no such column. It sits in the
     /// electronics bay, so it reads the bay, not the air.
+    #[serde(with = "optional_gaps", default)]
     pub temperature_k: Option<Vec<f64>>,
     /// The logger's battery voltage, V; `None` if the file has no such column.
+    #[serde(with = "optional_gaps", default)]
     pub battery_v: Option<Vec<f64>>,
     /// Every data column the file holds, in the file's order, each on its own clock and in SI:
     /// the primary track's columns above included, so that the record keeps every sample the
-    /// logger wrote. A clock column is the time of its channels, not a channel itself.
+    /// logger wrote. A clock column is the time of its channels, not a channel itself. Empty in
+    /// a record written before the field was.
+    #[serde(default)]
     pub channels: Vec<Channel>,
     /// What the logger says happened and when, such as an AltOS flight computer's change of
     /// state, in the file's order.
+    #[serde(default)]
     pub events: Vec<Event>,
     /// What the reader noticed and worked around, such as a sample count that differs from the
     /// one the file states.
@@ -58,6 +65,7 @@ impl FlightLog {
 
 /// One column of a flight log, on its own clock.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Channel {
     /// The column's name as the file writes it, such as `Axial Accel (Gs)`: it says which axis
     /// or sensor a quantity came from where the file says so.
@@ -68,6 +76,7 @@ pub struct Channel {
     pub time_s: Vec<f64>,
     /// Each sample's value in the quantity's unit ([`Quantity::unit`]); `NaN` where the file left
     /// the cell empty or wrote something that isn't a number.
+    #[serde(with = "gaps")]
     pub values: Vec<f64>,
 }
 
@@ -137,6 +146,7 @@ impl Quantity {
 
 /// Something the logger says happened, at a time on the log's clock.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Event {
     /// When, s, from the log's zero.
     pub time_s: f64,
@@ -166,23 +176,96 @@ pub enum LogFormat {
     RavenFipCsv,
 }
 
-/// The altitude step of one pascal at sea level, m: ISA's density and standard gravity,
-/// `1 / (1.225 × 9.80665)`. A logger that writes its pressure in whole pascals can't tell two
-/// altitudes nearer than this apart near the ground, however many digits its altitude has.
+/// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
+/// back as `NaN`, so that a record survives its own JSON.
+mod gaps {
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+    /// A list written with its gaps as `null`.
+    pub struct Written<'a>(pub &'a [f64]);
+
+    impl Serialize for Written<'_> {
+        fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            serializer.collect_seq(
+                self.0
+                    .iter()
+                    .map(|value| (!value.is_nan()).then_some(*value)),
+            )
+        }
+    }
+
+    pub fn serialize<S: Serializer>(values: &[f64], serializer: S) -> Result<S::Ok, S::Error> {
+        Written(values).serialize(serializer)
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<f64>, D::Error> {
+        let values: Vec<Option<f64>> = Vec::deserialize(deserializer)?;
+        Ok(values
+            .into_iter()
+            .map(|value| value.unwrap_or(f64::NAN))
+            .collect())
+    }
+}
+
+/// [`gaps`] for a list the file may not have: absent or `null` is `None`.
+mod optional_gaps {
+    use serde::{Deserialize, Deserializer, Serializer};
+
+    pub fn serialize<S: Serializer>(
+        values: &Option<Vec<f64>>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        match values {
+            Some(values) => serializer.serialize_some(&super::gaps::Written(values)),
+            None => serializer.serialize_none(),
+        }
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<Option<Vec<f64>>, D::Error> {
+        let values: Option<Vec<Option<f64>>> = Option::deserialize(deserializer)?;
+        Ok(values.map(|values| {
+            values
+                .into_iter()
+                .map(|value| value.unwrap_or(f64::NAN))
+                .collect()
+        }))
+    }
+}
+
+/// Whether a file's rows hold too few of the cells its header names: under a quarter of them,
+/// past the first 65,536. A reader stores a cell a short row leaves out as a gap, so without this
+/// floor a small file with a wide header and short rows could make it allocate far more than the
+/// file holds: the readers refuse such a file instead.
+pub(crate) fn too_sparse(header_columns: usize, rows: usize, cells_written: usize) -> bool {
+    header_columns.saturating_mul(rows) > cells_written.saturating_mul(4).saturating_add(65_536)
+}
+
+/// The altitude step of one pascal at sea level, m: `1 / (ρ₀ g₀)`, with the International Standard
+/// Atmosphere's sea-level density ρ₀ = 1.225 kg/m³ (ISO 2533:1975) and standard gravity
+/// g₀ = 9.806 65 m/s² (CGPM 1901). A logger whose pressure moves in steps of so many pascals
+/// can't tell two altitudes nearer than that many times this apart near the ground, however many
+/// digits its altitude has; aloft, where the air is thinner, the step is larger.
 const ONE_PASCAL_M: f64 = 1.0 / (1.225 * 9.806_65);
+
+/// The smallest step the Raven's pressure moves by, atm: 4 × 10⁻⁵ atm (4.053 Pa), the smallest
+/// step of `Baro (Atm)` in 74 of the 78 distinct Raven files among the project's sample logs
+/// (the others step by 8 to 16 Pa), though the export prints five decimals.
+const RAVEN_PRESSURE_STEP_ATM: f64 = 4.0e-5;
 
 impl LogFormat {
     /// The altitude's resolution in the format, m: the smallest step between two altitudes the
     /// file can tell apart near the ground. A PerfectFlite writes whole feet; AltOS writes its
-    /// pressure in whole pascals and the Raven in steps of 10⁻⁵ atm (1.013 25 Pa), each step
-    /// 0.083 m or so of altitude at sea level, more aloft.
+    /// pressure in whole pascals, 0.083 m of altitude at sea level; the Raven's pressure moves in
+    /// steps of 4 × 10⁻⁵ atm, 0.337 m at sea level. Aloft, the last two are larger.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
                 crate::perfectflite::FOOT_M
             }
             Self::AltosCsv => ONE_PASCAL_M,
-            Self::RavenFipCsv => 1.013_25 * ONE_PASCAL_M,
+            Self::RavenFipCsv => RAVEN_PRESSURE_STEP_ATM * 101_325.0 * ONE_PASCAL_M,
         }
     }
 
@@ -217,4 +300,29 @@ pub struct Stated {
     pub ground_elevation_msl_m: Option<f64>,
     /// How many samples the file says it holds.
     pub samples: Option<usize>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Each format's resolution against a hand computation: 1 / (1.225 × 9.806 65) =
+    /// 0.083 242 m for a pascal, and 4 × 10⁻⁵ × 101 325 = 4.053 Pa for the Raven's step.
+    #[test]
+    fn each_formats_altitude_resolution_is_its_step() {
+        let cases = [
+            (LogFormat::PerfectFlitePf2, 0.3048),
+            (LogFormat::PerfectFliteCsv, 0.3048),
+            (LogFormat::PerfectFliteText, 0.3048),
+            (LogFormat::AltosCsv, 0.083_242),
+            (LogFormat::RavenFipCsv, 0.337_38),
+        ];
+        for (format, expected) in cases {
+            let resolution = format.altitude_resolution_m();
+            assert!(
+                (resolution - expected).abs() < 5e-6,
+                "{format:?}: {resolution} m, expected {expected} m"
+            );
+        }
+    }
 }

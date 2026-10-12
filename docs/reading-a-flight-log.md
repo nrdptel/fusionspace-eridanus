@@ -195,7 +195,9 @@ speed is `max_speed` in both.
 
 ## What it doesn't do yet
 
-- Read other loggers' files ([M7.1](decisions-and-roadmap.md#m7-1)).
+- Read other loggers' files ([M7.1b](decisions-and-roadmap.md#m7-1b)), or take readings from
+  the AltOS and Raven logs the library already reads
+  ([M7.2](decisions-and-roadmap.md#m7-2)).
 - Split the descent into the drogue's and the main's rates, find the deployments, or give the
   Mach number and dynamic pressure ([M7.2](decisions-and-roadmap.md#m7-2)).
 - Compare a flight with its simulation ([M7.3](decisions-and-roadmap.md#m7-3)).

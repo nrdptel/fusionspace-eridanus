@@ -44,9 +44,11 @@
 //! channels: each state the file changes to is an [`Event`] instead, at the time of the row that
 //! changes it, the first row's state included. The numeric `state` column is kept as a channel.
 //!
-//! **The primary track.** [`FlightLog::altitude_m`] is `height`; the vertical speed is the first
-//! of `accel_speed`, `speed` and `baro_speed` the file has, the order Debrief's reader takes them
-//! in; the temperature is `temperature` and the battery `battery_voltage`. Both `time` and
+//! **The primary track.** [`FlightLog::altitude_m`] is `height`; the vertical speed is
+//! `baro_speed`, the barometer's, and absent without it: `accel_speed` integrates the
+//! accelerometer and `speed` is the flight computer's own estimate, which leans on the
+//! accelerometer on the way up, so both stay channels only (Debrief's reader took `accel_speed`
+//! first). The temperature is `temperature` and the battery `battery_voltage`. Both `time` and
 //! `height` are required.
 //!
 //! **Quirks, and what this reader does about them.**
@@ -61,7 +63,9 @@
 //! - *Acceleration net of gravity.* AltOS writes `acceleration` along the rocket's axis with
 //!   gravity taken out: it reads about 0 at rest, not 1 g, while the TeleMega's body-axis
 //!   `accel_x` on the same row reads about 9.8 m/s² (Debrief's reader, from the data). The
-//!   channel is kept as written, and a note says so.
+//!   channel is kept as written, and a note says so. The pad's reading of 1 g along the axis is
+//!   what comes out, so the channel is the rocket's own acceleration only while it points
+//!   straight up; tilted, it is off by the difference between g and g's share along the axis.
 //! - *GPS before a fix.* AltOS writes a position of exactly (0, 0) before its receiver has a fix
 //!   (Debrief's reader). A row with latitude and longitude both 0 has its latitude, longitude and
 //!   GPS altitude read as gaps, counted in a note. None of the files read has such a row; the
@@ -346,6 +350,9 @@ struct Table {
     /// The first kept row's `serial` and `flight` cells, as written.
     first_serial: Option<String>,
     first_flight: Option<String>,
+    /// The rows read so far, and the cells they wrote, for [`crate::log::too_sparse`].
+    rows: usize,
+    cells_written: usize,
 }
 
 impl Table {
@@ -367,6 +374,8 @@ impl Table {
             flight: find("flight"),
             first_serial: None,
             first_flight: None,
+            rows: 0,
+            cells_written: 0,
         }
     }
 
@@ -398,6 +407,22 @@ impl Table {
             ));
             return Ok(());
         };
+        self.rows += 1;
+        self.cells_written += cells.len().min(columns.len());
+        if crate::log::too_sparse(columns.len(), self.rows, self.cells_written) {
+            return Err(LogError::Syntax {
+                format: FORMAT,
+                line: number,
+                message: format!(
+                    "{} rows hold {} of the {} cells the header's {} columns name: too few for \
+                     the header to be this file's",
+                    self.rows,
+                    self.cells_written,
+                    self.rows.saturating_mul(columns.len()),
+                    columns.len()
+                ),
+            });
+        }
         if cells.len() < columns.len() {
             notes.push(format!(
                 "line {number} has {} cells of the header's {}; the rest read as gaps",
@@ -606,9 +631,9 @@ fn assemble(
             .and_then(|index| converted[index].as_ref())
             .map(|values| kept.iter().map(|&row| values[row]).collect::<Vec<f64>>())
     };
-    let speed = ["accel_speed", "speed", "baro_speed"]
-        .into_iter()
-        .find_map(find);
+    // The primary track is barometric: `accel_speed` integrates the accelerometer, and `speed`
+    // is the flight computer's own estimate, which uses its accelerometer on the way up.
+    let speed = find("baro_speed");
 
     let mut events: Vec<Event> = Vec::new();
     let mut state: Option<&str> = None;
@@ -701,7 +726,7 @@ mod tests {
     use super::*;
 
     const HEAD: &str = "#version,serial,flight,call,time,rssi,lqi,state,state_name,acceleration,\
-                        pressure,altitude,height,speed,temperature,battery_voltage\n";
+                        pressure,altitude,height,baro_speed,temperature,battery_voltage\n";
 
     fn row(time: f64, state: &str, height: f64) -> String {
         format!(
@@ -712,7 +737,7 @@ mod tests {
     }
 
     /// Every column a channel in the file's order, but the clock and the text; the primary
-    /// track from `height`, `speed`, `temperature` and `battery_voltage`, in SI.
+    /// track from `height`, `baro_speed`, `temperature` and `battery_voltage`, in SI.
     #[test]
     fn reads_columns_and_the_primary_track() {
         let text = format!("{HEAD}{}{}", row(-0.5, "pad", 0.0), row(0.0, "boost", 1.25));
@@ -741,7 +766,7 @@ mod tests {
                 "pressure",
                 "altitude",
                 "height",
-                "speed",
+                "baro_speed",
                 "temperature",
                 "battery_voltage"
             ]

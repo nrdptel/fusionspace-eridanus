@@ -1585,10 +1585,12 @@ the rocket lifted off, how high it went, how fast it climbed, and when it landed
 the log. It takes no design file and runs no simulation, so it answers "what did my rocket do?"
 for anyone who flew one, whatever they designed it in.
 
-It reads PerfectFlite's `.pf2` logs so far ([the format](format/pf2.md)). The one real file read
-is a Pnut's; the StratoLogger and StratoLoggerCF are expected to write the same layout, but no
-file of theirs has been tried. Other loggers' files come with
-[M7.1](decisions-and-roadmap.md#m7-1), the milestone that reads the other formats. It has no
+It reads PerfectFlite's `.pf2` logs so far, the Pnut's, the StratoLogger's and the
+StratoLoggerCF's ([the format](format/pf2.md)). The library reads AltOS's CSV, the Featherweight
+Raven's FIP CSV and PerfectFlite's exports too ([the layouts read](format/flight-logs.md));
+`hpr analyze` takes its readings from them with [M7.2](decisions-and-roadmap.md#m7-2), which
+validates the readings on other loggers, and the other loggers' files come with
+[M7.1b](decisions-and-roadmap.md#m7-1b). It has no
 check yet for a barometer's errors near the speed of sound. If the flight may have come near Mach
 0.9, about 300 m/s (984 ft/s), treat the top speed and the heights near it with care: the
 barometer's error can pull the top speed down too.

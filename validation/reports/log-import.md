@@ -1,6 +1,6 @@
 # Flight-log samples, read
 
-Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-log sample under `refs/` read by HPR Sim's importer (M7.1a, ADR-251): the private collection's catalog, Debrief's fixtures and samples, and AerospaceNU's logs, each file once. A family is the catalog's name for a layout; *unrecognized* means no reader knows the layout yet.
+Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-log sample under `refs/` read by HPR Sim's importer (M7.1a, ADR-251): the private collection's catalog, Debrief's fixtures and samples, and AerospaceNU's logs, each file once. Left out: `refs/research/public-flights`, a download cache whose flights' logs the collection catalogs, and RocketPy's processed flight tables, which no logger wrote. A family is the catalog's name for a layout; *unrecognized* means no reader knows the layout yet, and *damaged* a file of a known layout no reader can make sense of.
 
 | Source | Files | Not met before |
 |---|---:|---:|
@@ -14,13 +14,14 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | aerospacenu-sillygoose-txt | M7.1b | 15 | 0 | 15 unrecognized |
 | altimetercloud-csv | M7.1b | 1 | 0 | 1 unrecognized |
 | altos-csv | M7.1a | 48 | 48 | none |
+| altos-csv-damaged | damaged | 1 | 0 | 1 syntax |
 | altos-eeprom | M7.1b | 14 | 0 | 14 unrecognized |
 | altos-telem | M7.1b | 2 | 0 | 2 unrecognized |
 | binary | M7.1b | 4 | 0 | 4 unrecognized |
-| blueraven-csv | M7.1b | 80 | 0 | 4 not-this-format, 76 unrecognized |
+| blueraven-csv | M7.1b | 80 | 0 | 80 unrecognized |
 | blueraven-events-txt | M7.1b | 12 | 0 | 12 unrecognized |
 | blueraven-summary-csv | M7.1b | 23 | 0 | 23 unrecognized |
-| csv | M7.1b | 141 | 2 | 2 syntax, 137 unrecognized |
+| csv | M7.1b | 140 | 2 | 1 syntax, 137 unrecognized |
 | debrief-synthetic-csv | M7.1b | 6 | 0 | 6 unrecognized |
 | e80-imu-txt | M7.1b | 54 | 0 | 54 unrecognized |
 | eggtimer-csv | M7.1b | 43 | 0 | 43 unrecognized |
@@ -40,7 +41,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | perfectflite-csv | M7.1a | 14 | 14 | none |
 | perfectflite-txt | M7.1a | 2 | 2 | none |
 | pf2 | M7.1a | 175 | 175 | none |
-| pfa | M7.1b | 25 | 0 | 25 no-data |
+| pfa | M7.1b | 25 | 0 | 25 unrecognized |
 | png | not a log | 6 | 0 | 6 unrecognized |
 | raven-csv | M7.1a | 80 | 80 | none |
 | raven-fipa | M7.1b | 57 | 0 | 57 unrecognized |
@@ -57,6 +58,9 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 Files whose catalog family isn't their layout, moved to their layout's:
 
 - `9c5017ab68168088 altos-csv -> csv`: a spreadsheet's re-save of an AltOS export, no longer AltosUI's layout: its header edited to carry units, its `height` column deleted, and three columns holding formulas
+- `76a7d8937258e946 csv -> altos-csv-damaged`: an AltosUI export whose header line is damaged: it names 25 columns, two of them run together, where its rows hold other counts, so no reader can tell which cell is which; refused
+
+PerfectFlite's exports state no unit for their altitude. Of the 16 read, 13 peak at exactly the height of a `.pf2` beside them, which is in feet; read in feet, their climbs take 0.94 to 1.05 times as long as a fall in vacuum from the peak. The other 3 take 0.93 to 1.07 times, read in feet, and would take 0.51 to 0.59 times read in meters.
 
 The files read, by the logger each names:
 

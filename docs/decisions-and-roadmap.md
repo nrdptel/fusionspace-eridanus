@@ -670,7 +670,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m3-6"></a>[M3.6][phase-4] | RocketPy scripts and files in and out | not yet done |
 | <a id="m4-4"></a>[M4.4][phase-4] | Use from C, and in the browser through WebAssembly | not yet done |
 | <a id="m7-1"></a>[M7.1][phase-5] | Reading flight logs from altimeters and trackers, with no design file and no simulation | not yet done |
-| <a id="m7-1a"></a>[M7.1a][phase-5] | The flight record every reader fills, a survey of the sample logs, and the PerfectFlite, AltOS and Raven readers | not yet done |
+| <a id="m7-1a"></a>[M7.1a][done-5] | The flight record every reader fills, a survey of the sample logs, and the PerfectFlite, AltOS and Raven readers | done |
 | <a id="m7-1b"></a>[M7.1b][phase-5] | The other loggers' formats, spreadsheets and generic CSV | not yet done |
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |

@@ -258,13 +258,12 @@ pub(crate) fn export_separator(header: &str) -> Option<char> {
 /// such as `58.7F`.
 ///
 /// The units are a `.pf2`'s: seconds, feet, feet per second, and the temperature's stated unit.
-/// The header doesn't state the altitude's, and two checks bear out feet on the collection's 16
-/// exports: each of the 12 CSV files with its flight's `.pf2` beside it peaks at that file's
-/// height, and every export's climb to apogee takes about as long as a fall from that many feet
-/// would (in meters, the fall would take 1.8 times longer than the climb did, which no rocket
-/// slowed by drag can match). An export doesn't name the logger's model, so the logger reads
-/// `PerfectFlite`. A column the reader doesn't know, such as `Acceleration (calculated)`, is kept
-/// as written.
+/// The header doesn't state the altitude's. `cargo xtask logs` bears out feet on the project's
+/// sample exports: most peak at exactly the height of the `.pf2` saved beside them, and the rest
+/// climb, read in feet, as long as those do against a fall in vacuum from the peak (its report,
+/// `validation/reports/log-import.md`, gives the counts and ratios). An export doesn't name the
+/// logger's model, so the logger reads `PerfectFlite`. A column the reader doesn't know, such as
+/// `Acceleration (calculated)`, is kept as written.
 ///
 /// # Errors
 ///
@@ -356,6 +355,13 @@ pub fn read_export(text: &str) -> Result<FlightLog, LogError> {
     };
     fill(&mut log, name, &columns, &values)?;
     log.notes.extend(notes.kept);
+    if notes.left_out > 0 {
+        log.notes.push(format!(
+            "and {} more notes about single lines, left out so that a broken file's list stays \
+             short",
+            notes.left_out
+        ));
+    }
     Ok(log)
 }
 
@@ -603,6 +609,19 @@ fn fill(
         line,
         message,
     };
+    let written: usize = rows.iter().map(|(_, cells)| cells.len()).sum();
+    if crate::log::too_sparse(columns.len(), rows.len(), written) {
+        return Err(syntax(
+            rows.first().map_or(1, |(number, _)| *number),
+            format!(
+                "{} rows hold {written} of the {} cells the {} columns name: too few for the \
+                 columns to be this file's",
+                rows.len(),
+                rows.len().saturating_mul(columns.len()),
+                columns.len()
+            ),
+        ));
+    }
     // Every column's values, the time's included, row by row; a cell a row leaves out is NaN.
     let mut values: Vec<Vec<f64>> = vec![Vec::with_capacity(rows.len()); columns.len()];
     for (number, cells) in rows {

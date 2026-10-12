@@ -21,7 +21,9 @@ it withholds one instead of guessing.
   reads 1,010 ft where the altimeter's own software states 1,009 ft: one flight, and two readings of
   one pressure trace rather than a measurement of the height. That log isn't committed, so this
   check runs only where it has been fetched, not in CI. The private collection of logs Debrief was
-  built on hasn't been read yet: that is [M7.1](../decisions-and-roadmap.md#m7-1)'s work.
+  built on is read by the importer ([M7.1a](../decisions-and-roadmap.md#m7-1a),
+  [the layouts read](../format/flight-logs.md)), but the readings aren't yet checked against it:
+  that is [M7.2](../decisions-and-roadmap.md#m7-2)'s work.
 - **What it leaves out:** the drogue and main descent rates each on its own, Mach number,
   dynamic pressure, burnout, and anything an accelerometer or GPS would give. It takes the
   logger's altitude as the logger converted it, with no correction for the day's air, and has no
@@ -201,7 +203,8 @@ The altimeter's apogee comes from the same pressure trace, so the agreement show
 FusionSpace HPR reads the trace as the altimeter does, not that either is the true height.
 
 A Featherweight Raven flew on the same flight, and Debrief reports it agreeing at about 1,009 ft.
-Reading the Raven's file is [M7.1](../decisions-and-roadmap.md#m7-1)'s work.
+The importer reads the Raven's file ([M7.1a](../decisions-and-roadmap.md#m7-1a)); taking these
+readings from it is [M7.2](../decisions-and-roadmap.md#m7-2)'s work.
 
 ### What it leaves out
 
@@ -223,7 +226,10 @@ Reading the Raven's file is [M7.1](../decisions-and-roadmap.md#m7-1)'s work.
 - **Each leg's descent rate, and deployment events.** One mean rate covers drogue and main.
 - **Mach number, dynamic pressure and burnout.** These need an atmosphere or an accelerometer
   ([M7.2](../decisions-and-roadmap.md#m7-2)).
-- **Other loggers.** Only PerfectFlite's `.pf2` is read ([M7.1](../decisions-and-roadmap.md#m7-1)).
+- **Other loggers.** The readings are taken from PerfectFlite's logs only: on a record read from
+  another logger's file ([the layouts read](../format/flight-logs.md)) each is withheld, as
+  *not validated for this logger*, until [M7.2](../decisions-and-roadmap.md#m7-2) validates them
+  there. Other loggers' files come with [M7.1b](../decisions-and-roadmap.md#m7-1b).
 
 ## Tests and references
 
