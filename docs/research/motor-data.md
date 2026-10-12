@@ -11,8 +11,9 @@ during the burn (`hpr-motor/src/grains.rs`), and the impulse part of [apogee-bia
 its parent company RCS, publishes far more than anyone else: grain count and size on 374 drawings, a throat on about
 302, and hardware masses for 34 case sizes. A geometric bound, the bore of the nozzle cap or the aft closure's
 diameter, cuts the area of today's "exit ≤ case" bound to 0.17–0.58 of it. Certified impulse matches ThrustCurve's
-within 0.5% on 47 of 49 TRA letters; one catalog entry carries a single firing, +3.05%. No source grants a license.
-Cite the facts; never commit the documents.
+within 0.5% on 47 of 49 TRA letters; one catalog entry carries a single firing, +3.05%. NAR's retests of 17 small
+motors (2023–26) ran a median 9.4% below the 1992–2012 test mean, which the catalog keeps on 15. No source grants a
+license. Cite the facts; never commit the documents.
 
 ## 1. What each source gives per motor
 
@@ -33,7 +34,7 @@ How counted: all 325 + 51 drawings and 214 sheets downloaded and searched by a t
 lines; every one of 284 Cesaroni pages fetched; all 1,004 ThrustCurve certification pages crawled 3 s apart, as its
 robots.txt asks, giving **190 documents for 184 motors** (141 NAR, 49 TRA, 0 CAR) [S2]. By group, motors with a
 document: NAR-certified 135/202, TRA 49/466, CAR 0/293 (no Cesaroni motor has one); high power in production 49/521.
-nar.org and tripoli.org refuse scripted fetches, so both were read through Internet Archive snapshots [S3, S5].
+NAR's own list (2026-08-12) links a sheet for each of its 190 motors (3 dead); sampled sheets match the archive [S3].
 
 ## 2. Nozzle exits
 
@@ -109,20 +110,23 @@ lines with the case, though Loki's nozzle number still sets each reload's throat
   [S7], and within 1% of the reload page's value on all 237 that parsed [C7]: the pages repeat the certification.
   CAR integrates between the 5% points [S18, §12.1.3]; the tail outside is a median 0.13% of impulse
   ([thrustcurve-data](thrustcurve-data.md) §2), so CAR figures read low by about that (**Inference**).
-- **Makers publish no per-lot data.** The matrix's N3300R is 14,041 N·s, as ThrustCurve; its letter (tested 2009)
-  measured 14,091 (+0.36%) [M15, S23]. Production lots against the certification mean stay unbounded.
+- **Makers publish no per-lot data; NAR's retests do.** The matrix's N3300R is 14,041 N·s, as ThrustCurve; its letter
+  measured 14,091 (+0.36%) [M15, S23]. Since 2023 NAR S&T retested 18 listed motors, all F or smaller, with lot ids (17)
+  and each firing; its list now prints the retest mean [S24]. On 17 matching their original sheet (146 firings, 4 CATOs
+  left out; the old sheets don't say), impulse is a median −9.4% from the 1992–2012 mean (−21.5% to +8.5%; 15 low, 7
+  below −10%). ThrustCurve keeps the old mean on 15 (**sim high**), nominal on 2. Choice unstated; high power unbounded.
 
 ## 6. Delays
 
-Measured delays run slightly early. NAR, 210 delays on 86 sheets: median −0.06 s, relative p10 −16%, p90 +11% [S8].
-TRA, 121 firings in 13 letters: median −0.09 s, p10 −16%, p90 +14% [S2]. Composite delays can burn more slowly at
-sites thousands of feet up [S3, p. 2]. AeroTech's tool removes 4 or 8 s, 2 s less with its washer [M14, p. 1];
+Measured delays run slightly early. NAR, 210 delays on 86 of the first 157 sheets: median −0.06 s, relative p10 −16%,
+p90 +11% [S8]. TRA, 121 firings in 13 letters: median −0.09 s, p10 −16%, p90 +14% [S2]. Composite delays can burn more
+slowly at sites thousands of feet up [S3, p. 2]. AeroTech's tool removes 4 or 8 s, 2 s less with its washer [M14, p. 1];
 Cesaroni's Pro54 tool up to 10 s [C2, p. 2]; Loki offers five delay lengths per reload [L2].
 
 ## 7. Where the test was fired
 
 NFPA 1125 tests "at or corrected to sea level and 20°C ± 5°C" [S19, FR-8, p. 7]. NAR's manual keeps sites within
-500 ft of sea level [S17, §1.5]; 19 of 157 cached NAR sheets state 20–500 ft and 17–23 °C [S8]. One breaks it:
+500 ft of sea level [S17, §1.5]; 19 of 159 cached NAR sheets state 20–500 ft and 17–23 °C [S8]. One breaks it:
 the Estes L2350 (2021) was fired at 5,276 ft and "corrected to sea level", method unstated [S20]. **No TRA letter
 (0 of 49) and nothing CAR publishes states the site or its conditions.** An uncorrected curve from 1,500 m would
 read high at sea level by (p₀ − p)·A_e: +1.13% of average thrust for the L1500T's 1.4 in exit, +0.58% for the
@@ -133,35 +137,31 @@ I195J, both against the letters' measured averages (**Inference**, ISA). At NAR'
 RCS reserves all rights and grants no license [M17]; Cesaroni allows personal, non-commercial download only [C9];
 Loki asks that nothing be reproduced without permission [L2]. 136 of 141 NAR sheets carry an NAR copyright line;
 TRA letters carry none, and Tripoli says its data is public through thrustcurve.org [S5]. CAR's index is a public
-view with no license [S7]. ThrustCurve's robots.txt asks for 3 s between fetches. **None grants
-redistribution:** facts restated with a citation are fine; a committed table would be re-entered by hand with
-sources, and the PDFs stay under `refs/`.
+view with no license [S7]. ThrustCurve's robots.txt asks for 3 s between fetches. **None grants redistribution:** facts
+restated with a citation are fine; a committed table would be re-entered by hand with sources; PDFs stay in `refs/`.
 
 ## What this suggests
 
-- **Thrust at altitude:** replace "exit ≤ case" with the cap-bore bound for AeroTech RMS and the aft-boss bound for
-  Cesaroni, and a drawn exit where one exists. The bound's term shrinks about 2–6 times (**Inference**, the area
-  ratios in §2). Keep both L1500T exits visible until one is confirmed.
+- **Thrust at altitude:** replace "exit ≤ case" by the cap-bore bound (AeroTech RMS), the aft-boss bound (Cesaroni)
+  or a drawn exit; the term shrinks 2–6 times (**Inference**, §2). Keep both L1500T exits until one is confirmed.
 - **Grains (`grains.rs`):** N, OD and length for about 240 AeroTech motors and Loki's typical cases; the core and
   the density still come from mass. Cesaroni has no published geometry.
-- **Mass:** AeroTech hardware masses split loaded mass into case and reload; burnout mass is measured, propellant
-  mass declared. A check that the catalog impulse equals a certifier's mean, not one firing, would flag the
-  N2700W-PS entry.
+- **Mass and impulse:** AeroTech hardware masses split loaded mass; burnout mass is measured, propellant declared. A
+  check of catalog impulse against a certifier's latest mean would flag N2700W-PS and 17 of NAR's retested motors.
 
 ## Open questions
 
 - Which L1500T exit is current, 1.75 in or 1.4 in; whether RCS's other nozzle pages (not listable) give exits.
-- Where TMT fires and whether it corrects to sea level (unbounded for TRA curves); what TRA's "±" means; how NAR
-  corrected the L2350.
-- Whether Cesaroni's 2001–2014 page masses describe current reloads; AMW (site down), Ellis Mountain (refused the
-  connection), Estes and Quest were not surveyed for drawings.
+- Where TMT fires and whether it corrects to sea level; what TRA's "±" means; how NAR corrected the L2350.
+- Whether Cesaroni's 2001–2014 page masses describe current reloads. AMW's site is a placeholder, Ellis Mountain's
+  domain is gone, Estes's C6-5 page gives nominal impulse and masses but no nozzle or grain [E1]; Quest is unread.
 
 ## Sources
 
-All read 2026-10-11; cached under `refs/research/motor-data/` except M16 (live), S8 (`refs/research/apogee-bias/`)
-and S17, S19 (`refs/papers/`). Terms in §8. RCS files are at
-`https://d3l66gvjdr7rqw.cloudfront.net/Templates/170652/myimages/` (shown as `cf:`); ThrustCurve documents at
-`https://www.thrustcurve.org/motors/cert/` (shown as `tc:`).
+All read 2026-10-11; nar.org and tripoli.org refuse a fetch without a browser user agent (403 or 404). Cached under
+`refs/research/motor-data/` except M16, E1 (live), S8 (`refs/research/apogee-bias/`), S17, S19 (`refs/papers/`),
+S3, S24 (`refs/research/blocked-sources/`). Terms in §8. `tc:` `https://www.thrustcurve.org/motors/cert/`,
+`nar:` `https://www.nar.org/docs.ashx?id=`, `cf:` `https://d3l66gvjdr7rqw.cloudfront.net/Templates/170652/myimages/`.
 
 - **M1–M3** RCS (<https://www.rocketmotorparts.com/>) RMS drawings `page/motor-assembly-drawings`, DMS designs
   `index.aspx?pageid=7452840`, instructions `page/instructions`
@@ -180,21 +180,21 @@ and S17, S19 (`refs/papers/`). Terms in §8. RCS files are at
 - **L1** Loki Tech Info: <https://www.lokiresearch.com/page/Tech_Info>; **L2** Documents:
   <https://www.lokiresearch.com/page/Documents>; **L3, L4** 54 mm Red and Red 2800 sheets on L2; **L5** Loki store
 - **A2, A3** AMW PDFs, 2003–2007, via `web.archive.org`; **G1, G2** <https://gorillarocketmotors.com/reloads/>,
-  `/hardware/`
+  `/hardware/`; **E1** Estes C6-5 page, <https://estesrockets.com/products/c6-5-engines>
 - **S1** ThrustCurve search API, 1,004 solid motors: <https://www.thrustcurve.org/api/v1/search.json>
 - **S2** ThrustCurve certification pages (`/motors/<maker>/<designation>/cert.html`) and their 190 documents
-- **S3** NAR S&T, Combined CAR/NAR/TRA Certified Rocket Motors List, 2024-07-31, via the Internet Archive:
-  <https://www.nar.org/wp-content/uploads/2024/04/CombinedMotorsByImpulse.pdf>
-- **S5, S7** Tripoli Motor Testing <https://www.tripoli.org/TMT> (snapshot 2026-02-15); CAR Certified Motor Index,
+- **S3** NAR S&T list, 2026-08-12: <https://www.nar.org/content.aspx?page_id=22&club_id=114127&module_id=670148>;
+  its Combined CAR/NAR/TRA list, 2026-08-12, `nar:1468138` (the 2024-07-31 edition read via the Internet Archive)
+- **S5, S7** Tripoli Motor Testing <https://www.tripoli.org/TMT> (notices need a login); CAR Certified Motor Index,
   linked from <https://car-acf.org/en/certifications/motor-certifications>
-- **S8** 157 NAR data sheets cached by [apogee-bias](apogee-bias.md) (e.g. <http://nar.org/SandT/pdf/Animal/K365.pdf>)
+- **S8** 159 NAR sheets cached by [apogee-bias](apogee-bias.md), 2 in S24's folder; `nar.org/SandT/pdf/` links now 404
 - **S10, S11** TMT letters, L1500T 1998-12-31 `tc:6178f239caf91100040db736/l1500t-p_tra_cert.pdf`; I195J
   1999-09-26 (scan) `tc:65eb8c68aa7e85000263f5f9/IMG_6176.pdf`
-- **S16** TMT letters 2022–25, e.g. M2700W-PS (2024) `tc:6623cfaef873440002ac6a68/`, N4000W-PS
-  `tc:645072c42cdedd00028df9f4/`
-- **S17, S18** NAR Motor Testing Manual v1.5 (2011),
+- **S16** TMT letters, e.g. M2700W-PS (2024) `tc:6623cfaef873440002ac6a68/`, N4000W-PS `tc:645072c42cdedd00028df9f4/`
+- **S17, S18** NAR Motor Testing Manual v1.5 (2011; this URL now refused, the live copy members-only),
   <https://www.nar.org/wp-content/uploads/2014/08/ST-MotorTestingManual.pdf>; CAR Motor Test Manual r20181121,
   <https://car-acf.org/resources/Documents/car_motor_testing_manual%20r20181121.pdf>
 - **S19** NFPA 1125 (A2021) First Revision statements, FR-8 (as [apogee-bias](apogee-bias.md) A1)
 - **S20, S23** NAR sheet, Estes L2350, 2021-04-17, `tc:61ec5e53a1cd0a000491cffe/Estes%20L2350.pdf`; TMT letter,
   N3300R-P, 2010-01-03, `tc:6239d39422d46000044d09df/n3300r_p_tra_cert_1642718898263.pdf`
+- **S24** NAR S&T retest sheets (18, marked ◊ or ∆ on S3) and originals, e.g. F40W `nar:1771858`, `nar:1481259`

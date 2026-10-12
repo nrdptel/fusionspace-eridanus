@@ -63,13 +63,12 @@ Rows counted from the CSVs; Andromeda's apogees are the index's and the notebook
 
 ### Team repositories on GitHub
 
-21 repository searches and an `extension:ork` code search found 1,157 rocketry repositories; of
-the 1,116 file trees read, 193 hold an `.ork` and 46 a `.rkt` or `.CDX1`. A scan for log and logger
-file names, then a hand check, left 16 with a design and a flight log: 6 MIT, 10 with no license.
-It undercounts: zipped `.ork` files aren't searchable, and no search returned a seventh MIT
-repository (UTRGV's). A sampled GitLab search found none. Apogee is the altimeter's stated value
-(primary / backup); where a StratoLogger states `PWRLOSS` (\*), HPR Sim's reading (`hpr analyze`),
-whose raw peak is an ejection-charge spike up to 1.6% higher. Mach is **Inference** from top speed.
+21 repository searches and an `extension:ork` code search found 1,157 rocketry repositories; of the 1,116 file trees
+read, 193 hold an `.ork` and 46 a `.rkt` or `.CDX1`. A scan for log and logger file names, then a hand check, left 16
+with a design and a flight log: 6 MIT, 10 with no license. It undercounts: zipped `.ork` files aren't searchable, and
+no search returned a seventh MIT repository (UTRGV's). A sampled GitLab search found none. Apogee is the altimeter's
+stated value (primary / backup); where a StratoLogger states `PWRLOSS` (\*), HPR Sim's reading (`hpr analyze`), whose
+raw peak is an ejection-charge spike up to 1.6% higher. Mach is **Inference** from top speed.
 
 | flight | log | apogee | motor | Mach |
 |---|---|---|---|---|
@@ -123,9 +122,8 @@ mostly predicted apogee) and some years every team's report ([2024](https://www.
 | 2024, 2025, 2026 | 80, 93, 81 | 78, 93, 81 |
 
 That makes 264 flights with an official apogee and a report.
-- **The apogee is measured.** The official log is a COTS barometric altimeter read by a judge
-  ([IREC rules](https://www.esrarocket.org/s/IREC-Rules-and-Requirements-Document-2026-v10-f8wf.pdf),
-  2026 v1.0, §2.5, p. 13).
+- **The apogee is measured.** The official log is a COTS barometric altimeter read by a judge ([IREC
+  rules](https://www.esrarocket.org/s/IREC-Rules-and-Requirements-Document-2026-v10-f8wf.pdf), 2026 v1.0, §2.5, p. 13).
 - **The report is not a design file.** Its Appendix A gives length, diameter, fins, masses, CG,
   CP, motor and predicted apogee (§2.6.2.9.1, pp. 18–19), but no nose shape, mass layout or
   finish: each design would be rebuilt from a table, at low fidelity.
@@ -139,52 +137,55 @@ That makes 264 flights with an official apogee and a report.
 ### DOFPro: a college course's flight archive
 
 The Harvey Mudd College high-power course archive
-([DOFPro flight data](https://dofpro.org/RCK/fltdata/FlightData.html)) links 7 OpenRocket designs
-and 89 data files, 2017 to 2023. 39 barometric flights on 6 of the designs (Raven FIP CSV, Entacore
-AIM CSV, a Teensy logger's raw pressure) and 10 GPS-only ones pair with a design, all on COTS C to J
-motors. HPR Sim flies 3 designs as written and 3 more only past its fit checks, and refuses one whose
-mass and CG overrides disagree; it reads none of the log formats yet (M7.1). The site calls its
-resources Creative Commons without naming a license; its course page says the original course
-sites are not CC-licensed. The project's private collection already holds 59 flights from this
-course, so a license would make flights public rather than add new ones.
+([DOFPro flight data](https://dofpro.org/RCK/fltdata/FlightData.html)) links 7 OpenRocket designs and 89 data files,
+2017 to 2023. 39 barometric flights on 6 of the designs (Raven FIP CSV, Entacore AIM CSV, a Teensy logger's raw
+pressure) and 10 GPS-only ones pair with a design, all on COTS C to J motors. HPR Sim flies 3 designs as written and 3
+more only past its fit checks, and refuses one whose mass and CG overrides disagree; it reads none of the log formats
+yet (M7.1). The site calls its resources Creative Commons without naming a license; its course page says the original
+course sites are not CC-licensed. The project's private collection already holds 59 flights from this course, so a
+license would make flights public rather than add new ones.
 
 ## Searched, nothing usable
 
 - **[American Rocketry Challenge](https://www.rocketrychallenge.org/result/2026/):** scores only, no
   designs. A score adds the altitude miss to four times the duration miss: no altitude to recover.
-- **NAR R&D reports:** for members only (HTTP 403). NAR and Tripoli records were not reached.
+- **NAR R&D reports:** the [index](https://www.nar.org/content.aspx?page_id=22&club_id=114127&module_id=674799)
+  is public, but each of its 537 report links leads to the member login (all checked). Cited only.
+- **Contest records name no rocket.** NAR's 133 altitude-event
+  [records](https://www.nar.org/content.aspx?page_id=22&club_id=114127&module_id=673904) (2026-06-10), 1/8A to G, up to
+  2,071 m, and 17 F–O flights on Tripoli's
+  [archived](https://web.archive.org/web/20170117005225/http://www.tripoli.org/Records) 2016–17 pages give altitude and,
+  mostly, motor; never airframe or mass, nor launch weather.
+- **[RocketReviews](https://www.rocketreviews.com/flight-log-by-date.html) flight logs** give a kit, motors and a
+  typed-in altitude; the altimeter is named only in free text, no design file is linked to a log (the site's design-file
+  libraries match no flight), no license is shown.
 - **Altimeter makers** (PerfectFlite, Featherweight, Eggtimer, Altus Metrum, Missile Works, Jolly
   Logic, Entacore) publish manuals and software, no sample flight logs.
-- **Zenodo and Figshare:** 6 Zenodo queries (25 hits each) and 5 Figshare queries (38 hits) found
-  no design paired with a measured hobby flight. Zenodo's
-  "[Rocket Flight Database](https://zenodo.org/records/20531977)" (CC BY 4.0) restates RASAero II's
-  list. [arXiv 2512.22248](https://arxiv.org/abs/2512.22248) (CC BY 4.0) has 12 low-power apogees,
-  no designs; OpenRocket is high on all 8 valid ones, by +12% to +31%.
-- **[RocketSerializer](https://github.com/RocketPy-Team/RocketSerializer)'s** (MIT) `.ork` files of
-  Bella Lui, NDRT, Valetudo and Prometheus are not the rockets as flown: Bella Lui's holds 8.42 kg
-  against the notebook's 18.227 kg.
+- **Zenodo and Figshare:** 6 Zenodo queries (25 hits each) and 5 Figshare queries (38 hits) found no design paired with
+  a measured hobby flight. Zenodo's "[Rocket Flight Database](https://zenodo.org/records/20531977)" (CC BY 4.0) restates
+  RASAero II's list. [arXiv 2512.22248](https://arxiv.org/abs/2512.22248) (CC BY 4.0) has 12 low-power apogees, no
+  designs; OpenRocket is high on all 8 valid ones, by +12% to +31%.
+- **[RocketSerializer](https://github.com/RocketPy-Team/RocketSerializer)'s** (MIT) `.ork` files of Bella Lui, NDRT,
+  Valetudo and Prometheus are not the rockets as flown: Bella Lui's holds 8.42 kg against the notebook's 18.227 kg.
 
 ## Record fixes found on the way
 
 - **Two flown logs are GPL-3.0 files.** RocketPy-Team's GPL-3.0
-  [euroc23-team-data](https://github.com/RocketPy-Team/euroc23-team-data) holds files with the same
-  SHA-256 as the Genesis and Lince logs `hpr_validate::real_flight` reads
-  (`genesis/flight_data_faraday.csv`, `lince/main_data.csv`), and Camões's and Halcyon's. Only
-  statistics and digests are committed, so nothing committed changes; `THIRD-PARTY-NOTICES.md` and
-  ADR-082 should name GPL-3.0 for them.
+  [euroc23-team-data](https://github.com/RocketPy-Team/euroc23-team-data) holds files with the same SHA-256 as the
+  Genesis and Lince logs `hpr_validate::real_flight` reads (`genesis/flight_data_faraday.csv`, `lince/main_data.csv`),
+  and Camões's and Halcyon's. Only statistics and digests are committed, so nothing committed changes;
+  `THIRD-PARTY-NOTICES.md` and ADR-082 should name GPL-3.0 for them.
 - **Erebus 11's motor** is COTS (above): it waits for netCDF-4, not among the team-motor flights.
 - **RocketPy's paper** (Ceotto et al. 2021) is in *Journal of Aerospace Engineering* 34(6)
-  ([doi](https://doi.org/10.1061/(ASCE)AS.1943-5525.0001331)); it covers Bella Lui, NDRT 2020 and
-  Valetudo only.
+  ([doi](https://doi.org/10.1061/(ASCE)AS.1943-5525.0001331)); it covers Bella Lui, NDRT 2020 and Valetudo only.
 
 ## What this suggests
 
 1. Convert EuRoC 2022's weather to classic netCDF and fly Astra, Andromeda and Erebus 11: 7 → 10
    public flights, the cheapest gain. Fly Andromeda on its team curve, with the 17% stated.
-2. Pin the MIT team repositories under `refs/`, like RocketPy, and fly the seven `.pf2` UND flights
-   once each flight's design, ballast and motor are confirmed from the team's reports. The CSV
-   flights wait for the Blue Raven, TeleMega and StratoLogger CSV readers (M7.1). Correct the
-   collection catalog's license field for the UND flights.
+2. Pin the MIT team repositories under `refs/`, like RocketPy, and fly the seven `.pf2` UND flights once each flight's
+   design, ballast and motor are confirmed from the team's reports. The CSV flights wait for the Blue Raven, TeleMega
+   and StratoLogger CSV readers (M7.1). Correct the collection catalog's license field for the UND flights.
 3. Two permissions are worth asking for, a maintainer's call: ESRA's license for its reports and
    score sheets, and DOFPro's named Creative Commons license.
 4. Record GPL-3.0 for the Genesis and Lince logs, and COTS for Erebus 11. Only UTRGV's flight may
@@ -196,5 +197,4 @@ course, so a license would make flights public rather than add new ones.
 - Is Andromeda's 17% impulse gap over the catalog M2020 real? Did UTRGV's flight pass Mach 1?
 - Did Hyperion-II's air brakes open on 2025-08-21? Its Blue Raven event columns may show it.
 - How many 2024–2026 IREC COTS flights used active apogee control? That needs a read of each report.
-- Can ERA5 stand in for Valkyrie's live forecast? Do NAR R&D reports or NAR and Tripoli records
-  hold a public design with a measured flight?
+- Can ERA5 stand in for Valkyrie's live forecast? Does Tripoli's current records search show airframe size and mass?
