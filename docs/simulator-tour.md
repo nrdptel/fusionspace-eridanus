@@ -1,7 +1,7 @@
 # A tour of HPR Sim
 
-Fly a design file with HPR Sim's command line, read what it prints, scatter its inputs, fly the same
-file from Python, and see how it did on a real flight.
+Fly a design file from HPR Sim's command line and Python, read what it prints, scatter its inputs,
+and see how it did on a real flight.
 
 **This tour is for** a flier who has HPR Sim installed, or is deciding whether to install it, and
 wants to see in a few minutes what it does with a design file: what it prints, how to read it,
