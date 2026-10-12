@@ -196,8 +196,8 @@ print(f"landing          {landing['distance_m']:.1f} m from the pad at {landing[
 for warning in flight.issue_warnings:
     print(f"warning: issue #{warning['issue']}, {warning['kind']}")
 
-time = flight.series["time_s"]
-fast = time[flight.series["mach"] > 0.8]
+time = flight["time_s"]
+fast = time[flight["mach"] > 0.8]
 print(f"above Mach 0.8 from {fast[0]:.2f} s to {fast[-1]:.2f} s, in the recording")
 ```
 
@@ -224,11 +224,12 @@ above Mach 0.8 from 1.45 s to 1.89 s, in the recording
 - The numbers are the ones `hpr sim` printed above, from the same code: a test holds the two to
   each other. The warnings are the same four, as data: each an issue number, a kind, a message and
   a link.
-- `flight.series` is the recording, one NumPy array per column. The last lines find when the rocket
-  flew faster than the Mach number from which the first two warnings say the drag reads high.
+- `flight["mach"]` and the rest are the recording, one NumPy array per column. The last lines find
+  when the rocket flew faster than the Mach number from which the first two warnings say the drag
+  reads high.
 
-[Python](python.md) covers building a rocket part by part, Monte Carlo runs, and every column of
-the recording.
+[Python](python.md) covers building a rocket part by part, Monte Carlo runs, and the recording's
+columns.
 
 ## A real flight
 
