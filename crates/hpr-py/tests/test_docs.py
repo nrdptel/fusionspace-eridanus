@@ -104,7 +104,7 @@ def cli_block(page, command):
     return block.group(2)
 
 
-def labelled(block, label, holding=""):
+def summary_line(block, label, holding=""):
     """The one line of `block` that starts with `label` and then two spaces, as `hpr sim` aligns
     its summary, and holds `holding`: the table of events has an apogee line too."""
     lines = block.splitlines()
@@ -120,13 +120,13 @@ def test_the_tours_python_flies_what_its_command_line_printed(repo, monkeypatch)
     rocket, flight = namespace["rocket"], namespace["flight"]
     printed = cli_block(page, "hpr sim validation/fixtures/ork/guides/level-1.ork")
     assert printed.splitlines()[1].startswith(f"{rocket.name} (level-1.ork)")
-    apogee = labelled(printed, "apogee", "above the site")
+    apogee = summary_line(printed, "apogee", "above the site")
     assert f" {flight.apogee_m:.1f} m (" in apogee
     assert apogee.endswith(f" at {flight.apogee_time_s:.2f} s")
-    assert f" {flight.rail_exit_speed_m_s:.1f} m/s (" in labelled(printed, "rail exit speed")
-    assert f" {flight.max_speed_m_s:.1f} m/s (" in labelled(printed, "top speed")
-    assert labelled(printed, "top Mach number").endswith(f" {flight.max_mach:.3f}")
-    landing = labelled(printed, "landing")
+    assert f" {flight.rail_exit_speed_m_s:.1f} m/s (" in summary_line(printed, "rail exit speed")
+    assert f" {flight.max_speed_m_s:.1f} m/s (" in summary_line(printed, "top speed")
+    assert summary_line(printed, "top Mach number").endswith(f" {flight.max_mach:.3f}")
+    landing = summary_line(printed, "landing")
     assert f" {flight.landing['distance_m']:.1f} m (" in landing
     assert f" at {flight.landing['time_s']:.2f} s," in landing
     warned = re.findall(r"^warning: (\w+): issue #(\d+):", printed, re.MULTILINE)
