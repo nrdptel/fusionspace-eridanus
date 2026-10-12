@@ -24,7 +24,12 @@ pp. 2 and 5) corrects it. The research note had named #416 for the 2016 article;
    a committed copy whose numbers sit more than 1e-9 of their size from what the design gives now.
    The tolerance is relative, not ADR-243's absolute one, since a flight's numbers (a dynamic
    pressure near 5 × 10⁴ Pa) carry the platforms' last bits at their own scale; the comparison is
-   the flight reports' own (`ork_flights::same`), which names the first number apart.
+   the flight reports' own (`ork_flights::same`), which names the numbers apart. One number is
+   held otherwise: the height of a flight's peak dynamic pressure, to a centimeter. A peak's place
+   is ill-conditioned where its value is not, moving with about the square root of the flight's
+   last bits; CI put the second flight's 0.13 mm apart on Linux and Windows from macOS while every
+   peak value agreed to 1e-9. The guide prints it to the meter; the peak's time, unused, is left
+   out of the report.
 2. **The fins' modulus is the built-in material's, said so.** The design's birch plywood is
    OpenRocket's, at OpenRocket's density, which `materials::shear_modulus_of` doesn't match to a
    built-in material. The guide takes the built-in birch plywood's cited 0.75 GPa and says why.

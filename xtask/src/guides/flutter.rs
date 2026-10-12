@@ -182,7 +182,6 @@ pub(crate) fn generate(root: &Path) -> Result<Value, String> {
             "max_speed_m_s": flown(&flight, "/summary/max_speed_m_s/value")?,
             "max_mach": flown(&flight, "/summary/max_mach/value")?,
             "max_dynamic_pressure_pa": q,
-            "max_dynamic_pressure_time_s": flown(&flight, "/summary/max_dynamic_pressure_pa/time_s")?,
             "max_dynamic_pressure_height_m": flown(
                 &flight,
                 "/summary/max_dynamic_pressure_pa/height_above_ground_m",
@@ -273,10 +272,11 @@ pub(crate) fn stale(root: &Path) -> Result<Option<String>, String> {
         .ok()
         .and_then(|text| serde_json::from_str::<Value>(&text).ok());
     let apart = apart(committed.as_ref(), &now);
-    Ok(apart.first().map(|first| {
+    Ok((!apart.is_empty()).then(|| {
+        let shown: Vec<&str> = apart.iter().take(3).map(String::as_str).collect();
         format!(
-            "{REPORT} is not what {DESIGN} gives now ({first}); run `cargo xtask guides` and \
-             commit it"
+            "{REPORT} is not what {DESIGN} gives now ({}); run `cargo xtask guides` and commit it",
+            shown.join("; ")
         )
     }))
 }
@@ -285,14 +285,45 @@ pub(crate) fn stale(root: &Path) -> Result<Option<String>, String> {
 /// [`crate::ork_flights::CHECK_RELATIVE`] of their size apart, since a flight's last bits move
 /// between platforms' maths libraries at its own scale, far below the guide's places; and any
 /// key, text or count that differs. A missing report departs everywhere.
+///
+/// The one exception is where a flight's dynamic pressure peaks, held to [`PEAK_PLACE_M`].
 fn apart(committed: Option<&Value>, now: &Value) -> Vec<String> {
     let mut apart = Vec::new();
-    match committed {
-        Some(committed) => crate::ork_flights::same(committed, now, "", &mut apart),
-        None => apart.push("no committed report".to_owned()),
+    let Some(committed) = committed else {
+        apart.push("no committed report".to_owned());
+        return apart;
+    };
+    let mut committed = committed.clone();
+    if let (Some(then), Some(flights)) = (
+        committed.get_mut("flights").and_then(Value::as_array_mut),
+        now.get("flights").and_then(Value::as_array),
+    ) {
+        for (then, flight) in then.iter_mut().zip(flights) {
+            let (Some(a), Some(b)) = (then.get(PEAK_HEIGHT), flight.get(PEAK_HEIGHT)) else {
+                continue;
+            };
+            if let (Some(a), Some(b)) = (a.as_f64(), b.as_f64())
+                && (a - b).abs() <= PEAK_PLACE_M
+            {
+                then[PEAK_HEIGHT] = flight[PEAK_HEIGHT].clone();
+            }
+        }
     }
+    crate::ork_flights::same(&committed, now, "", &mut apart);
     apart
 }
+
+/// A flight's height at its peak dynamic pressure, in the report.
+const PEAK_HEIGHT: &str = "max_dynamic_pressure_height_m";
+/// How far apart a committed and a regenerated report may put [`PEAK_HEIGHT`], m. A peak's place
+/// is ill-conditioned where its value is not: near a smooth maximum the dynamic pressure changes
+/// with the square of the distance from it, so the flight's last bits, which move between
+/// platforms' maths libraries, move the place by about their square root. CI put the guide
+/// rocket's second flight's max q 0.13 mm apart on Linux and Windows from macOS (318.51107 m
+/// against 318.51093 m to 318.51104 m) while every peak value agreed to within
+/// [`crate::ork_flights::CHECK_RELATIVE`]. A centimeter is a hundredth of the meter the guide
+/// prints.
+const PEAK_PLACE_M: f64 = 0.01;
 
 /// A part's size in millimeters to `decimals` places, then in inches to two, converted from the
 /// millimeters as written: `3 mm (0.12 in)`.
@@ -868,6 +899,14 @@ mod tests {
         shorter["by_thickness"].as_array_mut().unwrap().pop();
         assert!(!apart(Some(&shorter), &now).is_empty());
         assert!(!apart(None, &now).is_empty());
+        // The peak's height is held to a centimeter, not to the relative tolerance.
+        let height = now["flights"][1][PEAK_HEIGHT].as_f64().unwrap();
+        let mut near = now.clone();
+        near["flights"][1][PEAK_HEIGHT] = json!(height + 0.5 * PEAK_PLACE_M);
+        assert!(apart(Some(&near), &now).is_empty());
+        let mut far = now.clone();
+        far["flights"][1][PEAK_HEIGHT] = json!(height + 2.0 * PEAK_PLACE_M);
+        assert_eq!(apart(Some(&far), &now).len(), 1);
         assert!(apart(Some(&now.clone()), &now).is_empty());
     }
 
