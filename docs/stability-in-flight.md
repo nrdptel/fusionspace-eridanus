@@ -1,7 +1,7 @@
 # Stability in flight
 
-How far a rocket's center of pressure moves with speed and with the angle it meets the air at, and
-which way HPR Sim's can be wrong.
+How far a rocket's center of pressure moves with speed and angle of attack, and which way HPR
+Sim's can be wrong.
 
 **This guide is for** a flier who reads a stability margin, from HPR Sim, another simulator or a
 hand calculation, and wants to know what it means once the rocket is flying. It explains where the
