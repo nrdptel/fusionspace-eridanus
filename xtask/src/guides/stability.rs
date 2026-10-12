@@ -314,9 +314,12 @@ fn within_target(r: &Reports, rows: &[TunnelRow]) -> Result<(usize, f64), String
     ))
 }
 
+/// Each angle of attack, degrees, with the CP's shift there, calibers, positive aft.
+type Shifts = Vec<(f64, f64)>;
+
 /// The guide rocket's shifts at each angle of attack above zero, and the direction of the shift
 /// at the largest angle.
-fn angle_shifts(r: &Reports) -> Result<(Vec<(f64, f64)>, &'static str), String> {
+fn angle_shifts(r: &Reports) -> Result<(Shifts, &'static str), String> {
     let count = r
         .get(REPORT, "/by_angle")?
         .as_array()

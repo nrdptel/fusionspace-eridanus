@@ -330,6 +330,11 @@ const ALLOWED: &[(&str, &str, Reason)] = &[
     // SVG's attribute, spelled as the ARIA standard spells it.
     ("crates/hpr-cli/src/plot.rs", "aria-labelledby", Reason::Key),
     ("xtask/src/guides.rs", "aria-labelledby", Reason::Key),
+    (
+        "xtask/src/guides/stability.rs",
+        "aria-labelledby",
+        Reason::Key,
+    ),
     // Two decision records' file names, frozen with the records, which the name check's
     // allowlist names.
     (
