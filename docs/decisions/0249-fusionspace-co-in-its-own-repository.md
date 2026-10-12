@@ -1,7 +1,7 @@
 # ADR-249: fusionspace.co in two increments, a static page in its own repository, checked in Chrome at every width (2026-10-12)
 
 - **Status:** accepted; carries out [ADR-217](0217-the-2026-10-09-fusionspace-co-rebuilt.md) §1 to §4 and §6; splits M9.8 into M9.8a and M9.8b and closes M9.8a
-- **Summary:** M9.8, fusionspace.co rebuilt, splits in two, its own *done when* unchanged: the page, its checks and the steps that move the domain (M9.8a), and the maintainer's use (M9.8b, blocked on the maintainer). The page lives in the new public repository `nrdptel/fusionspace-site`, whose first commit is GitHub's own. It is one static page in plain HTML and CSS with one script, served by Cloudflare Pages as the previous site is, with no build step. A check written for it drives Chrome over the DevTools protocol from Node, with no packages. It lays each page out at the 41 widths from 320 to 1,920 px in the light, dark and field themes, under the site's real security policy. It fails on anything cut off, scrolled, past an edge, overlapping or covered, on a font or browser error, on a comparative word with no committed comparison linked beside it, and on a file from another site. Pages built to fail prove each detector can fire.
+- **Summary:** M9.8, fusionspace.co rebuilt, splits in two, its own *done when* unchanged: the page, its checks and the steps that move the domain (M9.8a), and the maintainer's use (M9.8b, blocked on the maintainer). The page lives in the new public repository `nrdptel/fusionspace-site`, whose first commit is GitHub's own. It is one static page in plain HTML and CSS with one script, served by Cloudflare Pages as the previous site is, with no build step. A check written for it drives Chrome over the DevTools protocol from Node, with no packages. It lays each page out at the 41 widths from 320 to 1,920 px, and both sides of each breakpoint, in the light, dark and field themes, under the site's real security policy. It fails on anything cut off, scrolled, past an edge or its parent's content, overlapping or covered, on text drawn by CSS, on a font or browser error, on a comparative word with no committed comparison linked beside it, and on a file from another site. Pages built to fail prove each detector can fire.
 
 [adr-198]: 0198-the-2026-10-07-project-eridanus.md
 [adr-209]: 0209-the-2026-10-08-best-on-the-market-measured.md
@@ -41,7 +41,8 @@ worker at `/sw.js` and has a page per project at `/projects/<id>`. hpr's own pag
    (SIL OFL) and a `fonts.css` of the site's own. The lockup, mark and icons are bundled,
    unchanged, under the brand's terms and listed in the site's notices, as hpr's are. The page is
    `FS · SITE 001` as the system's example sketches it: an intro, sheets and a title block. Its
-   registers are tables that reflow into labelled blocks below 720 px instead of scrolling
+   registers are tables of three columns, each designation set above its product's name so no
+   column is held wide. Below 720 px they reflow into labelled blocks instead of scrolling
    sideways, because a table that scrolls sideways hides its right-hand columns.
 5. **What it lists.** FusionSpace HPR's seven products, with the public names [ADR-199](0199-the-2026-10-07-fusionspace-hpr.md) gives
    them: HPR Sim is released at 0.1.0, with its guide, tour, docs, release, PyPI and crates.io.
@@ -52,17 +53,22 @@ worker at `/sw.js` and has a page per project at `/projects/<id>`. hpr's own pag
    are the system's: Released, In preparation, Withdrawn.
 6. **The check.** `checks/check.mjs` drives headless Chrome over the DevTools protocol, using
    Node's built-in WebSocket. It sets each width as the device's metrics, which lays the page out
-   at 320 px, as a measurement in the page confirmed. It sets light and dark as the system
+   at 320 px, as a measurement in the page confirmed: the 41 widths 40 px apart, and both sides
+   of each breakpoint the stylesheets set. It sets light and dark as the system
    asking for them, and picks field on the page's own switch. It serves the site with the headers
    in `site/_headers`. At each width and theme it fails when:
    - the page is wider than the window;
    - a box that hides or scrolls its overflow has more content than room;
-   - text or a box (after its clipping ancestors) reaches past an edge;
-   - two pieces of text overlap, or something is drawn over a control's centre;
+   - text is cut by a clipping ancestor (overflow, a clip-path, paint containment), or SVG text
+     runs past its drawing;
+   - text or a box (after its clipping ancestors) reaches past the left, right or top edge, or a
+     box reaches past its parent's content (into the page's margin, out of a cell);
+   - two pieces of text overlap, or something, or nothing, is drawn at a control's centre;
+   - CSS draws text (`::before`, `::after`), which can't be measured;
    - a font fails to load, or the browser logs an error (a missing file, a request the security
      policy refused, an exception).
 
-   It finds the pages itself (every `.html` under `site/`). Each of 18 pages under
+   It finds the pages itself (every `.html` under `site/`). Each of 32 pages under
    `checks/canaries/` is built to fail one way and names it; a test requires the check to find
    exactly that kind there, and nothing on a clean page or the site.
 7. **The "better" rule** ([ADR-209][adr-209] §2). A comparative word ("better", "best", "faster",
