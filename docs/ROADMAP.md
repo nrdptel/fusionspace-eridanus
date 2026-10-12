@@ -547,6 +547,8 @@ checklists for its platform, ADR-164.)
   tools until M9.6 replaces each; a check fails on clipped text or controls from 320 to 1,920 px in
   both themes, and on a "better" with no committed comparison; it passes the trace check from its
   first commit; Neer has used it; the domain's switch is written for him. Moves: steps.
+  - [ ] [blocked] **M9.8b The maintainer's use** (blocked on Neer, ADR-249). *Done when:* Neer
+    has used the page.
 ## Phase 8: Releases (ADR-162)
 
 Each release is met when ADR-162 §2's checklist holds at a commit on `main` and its release steps
