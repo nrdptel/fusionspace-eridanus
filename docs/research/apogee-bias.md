@@ -1,16 +1,16 @@
 # Where the high apogee bias on real flights comes from
 
-On the 55 flights the private collection's report scored when this note was written, HPR Sim's apogee was
-+9.83% above the logs on average (mean absolute 13.96%), OpenRocket's +9.00%, and the two agreed within 5% on 53
-([ADR-184](../decisions/0184-logged-apogees-of-the-private-collection.md)); the note's arithmetic keeps those.
-Rechecked ([ADR-238](../decisions/0238-the-corpus-rechecked-against-the-catalog.md)), the [report](../../validation/reports/fixture-flights.md) scores 53: +8.73% and +7.79%. This note sizes the
-published causes that make a simulated apogee run high, each with its sign. **In short: no single
-published cause explains it.** What is bounded of the motor is worth about +0.3%, the barometer a
-few meters either way, ERA5's temperature perhaps under 1%; the rail is already flown at its angle.
-That leaves drag the Barrowman-family codes miss (fin–body interference alone may be 3–7% of
-apogee) and as-built mass, with no published size. Without the 19 flights flagged for early
-deployment the bias fell to +5.88% (+3.95% since the recheck). Sizes come mostly from single rockets or small samples:
-orders of magnitude, not a budget. "Sim high" means a cause makes the simulated apogee read high.
+On the 55 flights the private collection's report scored when this note was written, HPR Sim's apogee was +9.83% above
+the logs on average (mean absolute 13.96%), OpenRocket's +9.00%, and the two agreed within 5% on 53
+([ADR-184](../decisions/0184-logged-apogees-of-the-private-collection.md)); the note's arithmetic keeps those. Rechecked
+([ADR-238](../decisions/0238-the-corpus-rechecked-against-the-catalog.md)), the
+[report](../../validation/reports/fixture-flights.md) scores 53: +8.73% and +7.79%. This note sizes the published causes
+that make a simulated apogee run high, each with its sign. **In short: no single published cause explains it.** What is
+bounded of the motor is worth about +0.3%, the barometer a few meters either way, ERA5's temperature perhaps under 1%;
+the rail is already flown at its angle. That leaves drag the Barrowman-family codes miss (fin–body interference may be
+3–7% of apogee, rail buttons 0.6–4% in all) and as-built mass, with no published size. Without the 19 flights flagged
+for early deployment the bias fell to +5.88% (+3.95% since the recheck). Sizes come mostly from single rockets or small
+samples: orders of magnitude, not a budget. "Sim high" means a cause makes the simulated apogee read high.
 
 ## What the collection itself says (aggregates only)
 
@@ -50,9 +50,9 @@ mass, or 17–32% more drag. +5.9% on the clean 36 needs about 60% of each.
 - **Simulators fly the certification mean, not the label.** NFPA 1125's 2021 revision text tests
   high-power motors "at or corrected to sea level and 20°C ± 5°C", holds the impulse's σ within 6.7%
   of the mean, and says "Imprinted total impulse shall be the mean measured value" [A1, FR-8, p. 7].
-- **The catalog matches the test mean.** Of 138 NAR data sheets parsed, ThrustCurve's impulse sits
-  within 0.5% of the static-test mean on 127 (median 0.00%) [A5, A6]. The printed label runs higher,
-  median +0.99% and up to +14.7% on small black-powder motors (+0.47% median on 28 high-power ones).
+- **The catalog matches the test mean.** Of 140 NAR data sheets parsed, ThrustCurve's impulse sits
+  within 0.5% of the static-test mean on 129 (median 0.00%) [A5, A6]. The printed label runs higher,
+  median +1.01% and up to +14.7% on small black-powder motors (+0.47% median on 28 high-power ones).
   Nobody flies the label. TRA letters agree: catalog impulse equals the measured one for the K480W,
   M1315W and L1500T, and the N3300R is 0.35% off [A7].
 - **Curve files carry slightly more impulse than the catalog.** Over 1,252 high-power files: median
@@ -62,11 +62,10 @@ mass, or 17–32% more drag. +5.9% on the clean 36 needs about 60% of each.
   [A9] (Table 2, p. 600), burn time fell 1.687 → 1.556 → 1.422 s from 233 to 288 to 323 K. The
   integrated chamber pressure stayed within 3.1% over all 90 K with no consistent sign. **Inference:**
   a ±15 °C day moves apogee about ±0.4%, either way. Hobby propellants were not measured.
-- **Thrust at altitude runs the other way.** Certification thrust is taken near sea-level pressure.
-  In flight it gains (p₀ − p)·A_e, which HPR Sim leaves out without an exit size
-  ([motor model](../physics/motor.md)). For an L1500T (35.6 mm exit, 1,473 N average [A7]),
-  **Inference:** about +1% impulse at a 1,300 m site, 0.6–1.3% of apogee; 0.3–1.5% across motors
-  and sites.
+- **Thrust at altitude runs the other way.** Certification thrust is taken near sea-level pressure. In flight it gains
+  (p₀ − p)·A_e, which HPR Sim leaves out without an exit size ([motor model](../physics/motor.md)). For an L1500T
+  (35.6 mm exit, 1,473 N average [A7]), **Inference:** about +1% impulse at a 1,300 m site, 0.6–1.3% of apogee;
+  0.3–1.5% across motors and sites.
 - **Unbounded:** production lots against the certification mean (sim high if short; no published
   statistic; one home-tested Estes A10-PT read 20% below its label but about 6% above the catalog
   [A8]) and propellant aging (a lower burn rate, no impulse figure, sign unknown [A10]).
@@ -87,19 +86,19 @@ mass, or 17–32% more drag. +5.9% on the clean 36 needs about 60% of each.
 "Ours" is this note's arithmetic. [B3]'s stated mean error (19.9 m) doesn't match its columns (43.6 m).
 [B3] and [B8] blame the motor in part; [B4]'s 36 (25 high) include post-flight runs.
 
-**Fin–body interference drag (left out by both codes; sim high; 3–7% of apogee).** Barrowman leaves
-it out and HPR Sim follows ([aero](../physics/aero.md)); Niskanen leaves it out as small [B1] p. 41.
-Gregorek puts it at "as much as 10% above the sum of the fin and body tube drag" [B2] (PDF p. 13).
-In his worked model it is 0.040 of a C_D of 0.339 (12%, all laminar) and 0.052 of 0.538 (10%, all
-turbulent) [B2] (PDF pp. 30–31). **Inference** (× −0.31 to −0.57): 3% to 7% of apogee, if HPR
-fins with fillets carry that much.
+**Fin–body interference drag (left out by both codes; sim high; 3–7% of apogee).** Barrowman leaves it out and HPR Sim
+follows ([aero](../physics/aero.md)); Niskanen leaves it out as small [B1] p. 41. Gregorek puts it at "as much as 10%
+above the sum of the fin and body tube drag" [B2] (PDF p. 13). In his worked model it is 0.040 of a C_D of 0.339 (12%,
+all laminar) and 0.052 of 0.538 (10%, all turbulent) [B2] (PDF pp. 30–31). **Inference** (× −0.31 to −0.57): 3% to 7% of
+apogee, if HPR fins with fillets carry that much.
 
-**Launch lugs and rail buttons (sim high where a code underrates them).** A 1/8 × 2 in lug is 6–9% of
-C_D in Gregorek's model [B2] (PDF pp. 29–31) and +29% on DeMar's BT-20 in a tunnel [B5] p. 8.
-Niskanen's flight test lost 2–3% of apogee to a lug against 1.3% in OpenRocket, about half [B1] p. 85.
-Van Milligan's 10× CFD gives one 1010 rail button 0.931 lbf against 0.180 lbf for a 1/4 × 3 in lug;
-a standoff nearly doubles the button [B6] p. 26. **Inference** (area-scaled, C_D 0.45 assumed): two
-buttons are about 2% of a 98 mm rocket's drag and 7% of a 54 mm one's; neither code's is measured.
+**Launch lugs and rail buttons (sim high where a code underrates them).** A 1/8 × 2 in lug is 6–9% of C_D in Gregorek's
+model [B2] (PDF pp. 29–31), +29% on DeMar's BT-20 in a tunnel [B5] p. 8; a 1/8 × 1 in lug added 16.3% to Van Milligan's
+10× CFD model rocket [B6] pp. 3–4. Niskanen's flight test lost 2–3% of apogee to a lug against 1.3% in OpenRocket, about
+half [B1] p. 85. In the CFD one 1010 rail button draws 0.931 lbf against 0.180 lbf for a 1/4 × 3 in lug, and a standoff
+nearly doubles it [B6] p. 26. **Inference** (area-scaled, C_D 0.45 assumed): two buttons are about 2% of a 98 mm
+rocket's drag and 7% of a 54 mm one's, 0.6–4% of apogee in all. That is no ceiling: installed, the lug added 30 times
+its isolated drag (rows 3–5) [B6] p. 26, and the author calls the results unvalidated [B6] p. 34.
 
 **Surface finish (either sign).** DeMar measured unfinished models +13% and polished ones −10% in C_D
 against painted ones at 120 km/h [B5] p. 7, but at 80 km/h the polished one reads above the painted
@@ -133,15 +132,15 @@ scale closes this cause for a flight; a file built from parts' catalog masses do
   g·τ²/2. **Inference:** a port sized by PerfectFlite's rule [C5] PDF p. 11 lags a few milliseconds,
   and a 1 s centered average costs 0.41 m. Featherweight warns that small vents on a large bay lag
   [C6] PDF p. 7; a bay vented only through leaks might lag seconds (**Inference**), unsized.
-- **ERA5's temperature (likely sim high; about +0.35% per kelvin).** Height from a pressure drop scales
-  with the layer's mean temperature, 1/288 per kelvin (**Inference**, hypsometric equation). ERA5's
-  summer daily range is smaller than observed at 80% of stations, particularly in western North
-  America [C8] p. 15, Fig. 9b. If that means a too-cool afternoon (**Inference**; warm nights would
-  do it too), the true heights come out too low. No source gives the 0–3 km layer-mean error;
-  2 K would be +0.7%.
-- **ERA5's wind (likely sim high in the west).** ERA5 underestimates winds above 4 m/s in the western
-  US [C8] p. 15, so the simulations weathercock too little there. On two loads of one rocket, apogee
-  moved 0.1–2% per mph of wind [C11] pp. 35, 39 (weak). Gusts' extra cost is unbounded.
+- **ERA5's temperature (likely sim high; about +0.35% per kelvin).** Height from a pressure drop scales with the layer's
+  mean temperature, 1/288 per kelvin (**Inference**, hypsometric equation). ERA5's summer daily range is smaller than
+  observed at 80% of stations, particularly in western North America [C8] p. 15, Fig. 9b. If that means a too-cool
+  afternoon (**Inference**; warm nights would do it too), the true heights come out too low. No source gives the 0–3 km
+  layer-mean error; 2 K would be +0.7%.
+- **ERA5's wind (likely sim high in the west).** ERA5 underestimates winds above 4 m/s in the western US [C8] p. 15, so
+  the simulations weathercock too little there. Around cyclones in central and eastern North America its 10 m wind is
+  right on average (−0.7%), 10–17% low in the strongest, and low over the Rockies [C13] pp. 737–738, 740 (Table 1). On
+  two loads of one rocket, apogee moved 0.1–2% per mph of wind [C11] pp. 35, 39 (weak). Gusts' extra cost is unbounded.
 
 ## What this suggests
 
@@ -150,27 +149,27 @@ scale closes this cause for a flight; a file built from parts' catalog masses do
 3. **Split the bias by a whole-rocket mass override** (aggregates only): if it survives, mass is out.
 4. **An opt-in fin–body interference probe** after Gregorek's rule [B2] (PDF p. 29, eq. 21): expected
    3–7% lower apogees. Validate it on wind-tunnel or public flight data, never tuned to these logs.
-5. **A nozzle exit diameter per catalog motor** (TMT letters) for pressure thrust: right, though it
-   moves apogees 0.3–1.5% the other way.
+5. **A nozzle exit diameter per motor** (TMT letters) for pressure thrust: right, though apogees rise 0.3–1.5%.
 
 ## Open questions
 
-- Production-lot impulse against the certification mean; hobby propellants' temperature sensitivity;
-  whether OpenRocket corrects thrust for ambient pressure (not checked: its source is GPL).
-- Hoerner's fin-junction drag for thin, filleted HPR fins; a flight-measured HPR coast C_D against
-  OpenRocket's; the button drag of either code against a measurement.
+- Production-lot impulse against the certification mean; hobby propellants' temperature sensitivity; whether OpenRocket
+  corrects thrust for ambient pressure (not checked: its source is GPL).
+- Hoerner's fin-junction drag for thin, filleted HPR fins; a flight-measured HPR coast C_D against OpenRocket's; the
+  button drag of either code against a measurement.
 - ERA5's 0–3 km layer-mean temperature error on summer afternoons, and its wind 2–5 m above a pad.
-- The Ironbark comparison (OpenRocket reportedly +7.5% and +8.2% on one rocket) was not reachable.
+- Ironbark (Galletly et al. 2026, doi:10.1016/j.ast.2026.111758), unread: OpenRocket's +7.5%, +8.2% are unsourced.
 
 ## Sources
 
-All read 2026-10-11; copies sit under the gitignored `refs/research/apogee-bias/`. Terms: B1 CC BY-NC-ND,
-B3 CC BY 4.0, A8 and C8 arXiv's license; the rest all rights reserved or unstated. Cite, never copy.
+All read 2026-10-11; copies under the gitignored `refs/research/apogee-bias/` and `refs/research/blocked-sources/`.
+Terms: B1 CC BY-NC-ND, B3 CC BY 4.0, C13 CC BY-NC 4.0, A8 and C8 arXiv's; the rest reserved or unstated. Cite, never
+copy.
 
 - **A1.** NFPA 1125 (A2021) First Revision Report, FR-7, FR-8.
   <https://docinfofiles.nfpa.org/files/AboutTheCodes/1125/1125_A2021_PYR_AAA_FD_FRStatements.pdf>
 - **A5.** ThrustCurve.org catalog and curve files, the project's cache of 2026-09-17. <https://www.thrustcurve.org/>
-- **A6.** NAR S&T motor data sheets: 157 from ThrustCurve's links via the Internet Archive, 138 parsed.
+- **A6.** NAR S&T motor data sheets: all 159 of ThrustCurve's links via the Internet Archive, 140 parsed.
 - **A7.** TRA letters (K480W, L1500T, M1315W, N3300R) on ThrustCurve, e.g.
   <https://www.thrustcurve.org/motors/cert/6178f239caf91100040db736/l1500t-p_tra_cert.pdf>
 - **A8.** Courtney and Courtney, arXiv:0903.1555, pp. 1–2. <https://arxiv.org/abs/0903.1555>
@@ -198,3 +197,4 @@ B3 CC BY 4.0, A8 and C8 arXiv's license; the rest all rights reserved or unstate
   <https://www.featherweightaltimeters.com/uploads/1/0/9/5/109510427/blue_raven_users_manual_2025_sept_10.pdf>
 - **C8.** Jin et al., WeatherReal, arXiv:2409.09371v1. <https://arxiv.org/abs/2409.09371>
 - **C11.** Caballes et al., SISE 2021. <https://www.ieworldconference.org/content/SISE2021/Papers/Caballes2.pdf>
+- **C13.** Chen, Collet and Di Luca, Int. J. Climatol. 44(3), 729–747 (2024). <https://doi.org/10.1002/joc.8339>

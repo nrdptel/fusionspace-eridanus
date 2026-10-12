@@ -1,31 +1,29 @@
 # How much drag the fin–body junction adds
 
-[Apogee-bias](apogee-bias.md) named fin–body interference drag as the largest bounded candidate for HPR Sim's
-high apogees on real flights: Gregorek's "as much as 10%" of C_D, or 3–7% of apogee. This note asks what that
-term measures to be. **In short: the junction data don't support 10% on thin HPR fins.** Hoerner's correlation,
-fitted to foils about 10% to 55% thick, crosses zero near 7% thickness. For fins 1–4% thick it extrapolates to
-a small *favorable* term, −0.5% to −5.7% of C_D. The one modern flat-slab measurement (NASA CR-3811) is also
-small and negative. The one subsonic test with fins on and off a rocket body (the Arcas tunnel models) leaves
-about 6% of the forebody's drag (4–8%) for interference at Mach 0.6. HPR Sim already over-predicts that fin
-increment, by 10% at Mach 0.6 and 63% at 0.8. Gregorek's rule cites no source, and no source measured fillets
-on a rocket. So the evidence weakens interference as the cause of the high bias without ruling it out: nobody
-measured a square-edged, filleted, painted HPR fin. "Inference" marks this note's own arithmetic.
+[Apogee-bias](apogee-bias.md) named fin–body interference drag as the largest bounded candidate for HPR Sim's high
+apogees on real flights: Gregorek's "as much as 10%" of C_D, or 3–7% of apogee. This note asks what that term measures
+to be. **In short: the junction data don't support 10% on thin HPR fins.** Hoerner's correlation, fitted to foils about
+10% to 55% thick, crosses zero near 7% thickness. For fins 1–4% thick it extrapolates to a small *favorable* term, −0.5%
+to −5.7% of C_D. NASA CR-3811's flat slab is also small and negative. Of two subsonic tests with fins on and off a
+rocket, the Arcas models leave about 6% of the forebody's drag (4–8%) for interference at Mach 0.6. A 1955 Cranfield
+rocket with 1.2 mm square-edged fins leaves about none at Mach 0.12 (±9% of C_D). HPR Sim over-predicts the Arcas fin
+increment, by 10% at Mach 0.6 and 63% at 0.8. Gregorek's rule cites no source; no source measured fillets on a rocket.
+So the evidence weakens interference as the cause of the high bias without ruling it out: nobody measured a filleted,
+painted HPR fin at flight Reynolds numbers. "Inference" marks this note's own arithmetic.
 
 ## 1. Where Gregorek's 10% comes from
 
 - **The 10% is stated, not sourced.** Estes TR-11 puts interference at "as much as 10% above the sum of the
   fin and body tube drag" [J1] PDF p. 13. It repeats a 10% of total drag at PDF p. 42, again citing nothing.
 - **The estimating rule.** Eq. 21 (printed p. 25, PDF p. 29) extends each fin to the body's centerline:
-  C_D,int = C*_DOF × (c_R·d/2)/S_BT × N. It charges the fin's section drag to the root chord times the
-  body radius. The report says this extra area's drag "has been shown to be about equal to" the
-  interference drag, with no citation [J1] PDF p. 29. Box, Bishop and Hunt use the same form (their eq. 44),
-  crediting Mandell et al. (1973) [J10] p. 13.
+  C_D,int = C*_DOF × (c_R·d/2)/S_BT × N. It charges the fin's section drag to the root chord times the body radius. The
+  report says this extra area's drag "has been shown to be about equal to" the interference drag, with no citation [J1]
+  PDF p. 29. Box, Bishop and Hunt use the same form (their eq. 44), crediting Mandell et al. (1973) [J10] p. 13.
 - **It scales with chord and body diameter, not fin thickness,** unlike the junction data (§2). **Inference:**
   it resembles Hoerner's rule that a wing nacelle's interference nets out to about the profile drag of the
   wing it covers [J2] p. 8-16: a body on a wing, not a thin fin at a tube's stern. A link is not shown.
-- **Its own worked rockets.** The interference row of the Alpha table is 18.6% of total C_D for square-edged
-  fins (0.154 of 0.826), 10.3% for streamlined fins and 7.7% for the up-rated model [J1] PDF p. 48
-  (**Inference**: the percentages).
+- **Its own worked rockets.** The interference row of the Alpha table is 18.6% of total C_D for square-edged fins (0.154
+  of 0.826), 10.3% for streamlined fins and 7.7% for the up-rated model [J1] PDF p. 48 (**Inference**: the percentages).
 - **The flight check leans toward the term, weakly.** C_D came from theodolite-tracked altitudes; the report
   accepts tracks that close within 10% [J1] PDF p. 45. With the term, theory against flight was +6% (Alpha B),
   −31% (Alpha C) and −7% (up-rated) [J1] PDF p. 50; without it −14%, −38% and −14% (**Inference**). B and
@@ -93,26 +91,24 @@ about 0.035, which would multiply that column by about 3.5 [J1] PDF p. 48.
 - Per root, Gregorek's rule is 0.0014–0.0033 of q c². Hoerner's eq. 11 is −0.0003 at t/c 0.02–0.04 and +0.0005
   at 0.10 (+0.0010 per side). So Gregorek's rule is 1.4–7 times even a thick airfoil's junction drag.
 
-## 4. The one subsonic rocket with fins on and off: NASA's Arcas tunnel models
+## 4. A subsonic rocket with fins on and off: NASA's Arcas tunnel models
 
 **The test.** Half-scale Arcas models on a sting in Langley's 8-foot transonic tunnel, 9.8 × 10⁶ per meter
-[J5] pp. 1, 3–4: a 5.72 cm body, four double-wedge fins partly on a 15° boattail, grit strips behind the nose
-and each fin's leading edge; short and long bodies, fins at 0°, 2° and off. The axial force is corrected to
-free-stream base pressure, so these are forebody numbers, ±0.004 in C_A [J5] pp. 4–5, Fig. 11. HPR Sim compares
-against them ([aero, Arcas drag](../physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)).
+[J5] pp. 1, 3–4: a 5.72 cm body, four double-wedge fins partly on a 15° boattail, grit strips behind the nose and
+each fin's leading edge; short and long bodies, fins at 0°, 2° and off. The axial force is corrected to free-stream
+base pressure, so these are forebody numbers, ±0.004 in C_A [J5] pp. 4–5, Fig. 11. HPR Sim compares against them
+([aero, Arcas drag](../physics/aero.md#drag-against-the-arcas-robin-wind-tunnel)); the table's columns are rows
+`arcas-robin-short` of `validation/fixtures/aero/drag-vs-mach.json` (Fig. 11 readings).
 
 | Mach | short model, fins on | fins off | fin increment, measured | HPR Sim's fins |
 |-----:|---------------------:|---------:|------------------------:|---------------:|
 | 0.6 | 0.2987 | 0.2217 | 0.0770 | 0.0848 (+10%) |
 | 0.8 | 0.3299 | 0.2308 | 0.0991 | 0.1615 (+63%) |
 
-All columns: `validation/fixtures/aero/drag-vs-mach.json`, rows `arcas-robin-short` (Fig. 11 readings).
-
-- **A buildup without interference leaves about 6%.** Niskanen's turbulent friction (eq. 3.78), Mach factor
-  (3.82) and thickness factor (3.85) [J12] on the fins' mean chord (7.15 cm, Re 7.0 × 10⁵, wetted over
-  reference area 11.7) give 0.059 at Mach 0.6 and 0.057 at 0.8. That leaves +0.018 ± 0.006 at Mach 0.6
-  (the root-sum-square of two ±0.004 readings): 6.1% of the forebody's drag, 4–8% with the error. At 0.8 it
-  leaves +0.042, 13% (**Inference**).
+- **A buildup without interference leaves about 6%.** Niskanen's turbulent friction (eq. 3.78), Mach factor (3.82) and
+  thickness factor (3.85) [J12] on the fins' mean chord (7.15 cm, Re 7.0 × 10⁵, wetted over reference area 11.7) give
+  0.059 at Mach 0.6 and 0.057 at 0.8. That leaves +0.018 ± 0.006 at Mach 0.6 (the root-sum-square of two ±0.004
+  readings): 6.1% of the forebody's drag, 4–8% with the error. At 0.8 it leaves +0.042, 13% (**Inference**).
 - **That leftover is not all junction, nor a bound.** The grit strips on every fin add drag nobody sized. The
   fins' inner part sits in the body's boundary layer, which lowers their friction, the other sign. The
   leftover grows with Mach while friction falls, as a compressibility effect over the boattail would, not as
@@ -143,17 +139,24 @@ All columns: `validation/fixtures/aero/drag-vs-mach.json`, rows `arcas-robin-sho
   **Inference:** about ±0.01–0.015 in C_D on a straight HPR tail, a fin–base effect, not the junction.
   NACA TR 1160 has RM-10 drag with and without fins at Mach 1.6–3.4 but separates no interference term
   [J9], nor does TN D-4014 on the Arcas models [J6]. No public junction data at Mach 1–2.5 was found.
-- **One HPR flight (Box, Bishop and Hunt).** A 76 mm rocket on an L730, with eq. 44's term in the buildup,
-  simulated 3,539 m against 3,594 m measured (−1.5%) and a peak speed 11% high [J11] Table 8, p. 42.
-  The authors call it "a single result" [J10] p. 16. It bounds nothing about interference.
+- **Low speed, three spans and none (Harris and Appleby, CoA Note 29, 1955).** A full-scale rocket, 59.7 mm by 503 mm,
+  carried four 1.22 mm square-edged plate fins of 21, 30 and 43 mm span on an 82.6 mm root, the aft 29.7 mm of it past
+  the base; no fillets, no trip wires on fin tests; 40 m/s, Mach 0.12 [J16] PDF pp. 2, 5–6, 13. At −1° and +2° the fins
+  added 0.00–0.03 to a fins-off C_D of 0.32–0.34 on the body's cross-section, each ±0.02 (PDF pp. 4, 7, 12).
+  **Inference:** at Re_c ≈ 2 × 10⁵, friction alone on these fins is 0.013–0.025 laminar or 0.028–0.050 turbulent, so the
+  junction leftover is about zero (−0.013 to +0.011 against laminar friction) or negative (against turbulent); at ±0.02
+  it can't be extrapolated to zero span. Gregorek's eq. 21 gives 0.028–0.035 here (0.018–0.023 counting only the 52.8 mm
+  of root ahead of the base), or 0.08–0.12 with square-edged C*_DOF: 2.6–4 times the largest fin-set increment, 0.03.
+- **One HPR flight (Box, Bishop and Hunt).** A 76 mm rocket on an L730, with eq. 44's term, simulated 3,539 m against
+  3,594 m flown (−1.5%), peak speed 11% high [J11] Table 8, p. 42. "A single result" [J10] p. 16; it bounds nothing.
 - **Checked, no answer.** DeMar had no fins-off model, and fin shapes differed "not measurable" [J13] PDF pp. 5,
   8. A 2024 KTH CFD study removed the fins [J14] PDF p. 14. Peak of Flight 514 claims fillets help, unmeasured
   [J15]. RM L55H09 measured the RM-10's fin drag rise at Mach 0.81–1.41 [J8] Fig. 10; not reduced here.
 
 ## What this suggests
 
-1. **Don't add Gregorek's rule as a default.** It is uncited, ignores thickness, over-corrects the one subsonic
-   fins-on/off test at Mach 0.6, and adds 5–19% to C_D on thin HPR fins where the junction data say about zero.
+1. **Don't add Gregorek's rule as a default.** It is uncited, ignores thickness, over-corrects Arcas at Mach 0.6 and
+   Cranfield at 0.12, and adds 5–19% to C_D on thin HPR fins where the junction data say about zero.
 2. **Pin the Arcas fin increment as a check first.** Fins-on less fins-off, short model, Mach 0.6 and 0.8,
    from data already committed. Any later fin-drag change, junction or friction, must not widen it.
 3. **Test the fin friction's Reynolds length** (rocket length against fin mean chord) on that increment
@@ -165,11 +168,8 @@ All columns: `validation/fixtures/aero/drag-vs-mach.json`, rows `arcas-robin-sho
 
 ## Open questions
 
-- No fins-on/fins-off or fillet-on/off measurement of a square-edged hobby fin was found, in a tunnel, in CFD
-  or in flight. The horseshoe vortex ahead of a square leading edge, when the wall layer is 2–13 fin
-  thicknesses deep (CR-3811 had 0.4), is unbounded.
-- Harris, Cranfield College of Aeronautics Note 29 (1955), tested a rocket with three fin spans and no fins
-  [J16]. Extrapolated to zero span it could isolate the junction; its PDF returned HTTP 403 on 2026-10-11.
+- No fillet-on/off test, and no fins-on/off test of a square-edged fin above Re_c 2 × 10⁵, was found. The horseshoe
+  vortex ahead of a square leading edge, in a wall layer 2–13 fin thicknesses deep (CR-3811 had 0.4), is unbounded.
 - The Arcas grit strips' drag; the fin thickness (TN D-4013 Fig. 1(b) labels 0.04d at the root, 2.3 mm against
   the design's 3.81 mm, which would raise the Mach 0.6 leftover to about 0.020); the long model; RM L55H09.
 - Simpson's junction-flow review (Annu. Rev. Fluid Mech. 33, 2001) is paywalled. No ESDU junction item is
@@ -197,4 +197,4 @@ rest are all rights reserved or unstated: cited, not copied.
 - **J13.** DeMar, NAR R&D, 1995. <https://www.rocketmime.com/rockets/ModelRocketDragAnalysis.pdf>
 - **J14.** Seiz de Filippi, KTH, 2024. <https://kth.diva-portal.org/smash/get/diva2:1881325/FULLTEXT01.pdf>
 - **J15.** Apogee Peak of Flight 514. <https://www.apogeerockets.com/education/downloads/Newsletter514.pdf>
-- **J16.** Harris, CoA Note 29, 1955 (catalog page only). <https://aerade.cranfield.ac.uk/handle/1826.2/4398>
+- **J16.** Harris and Appleby, CoA Note 29, 1955; PDF pages. <https://dspace.lib.cranfield.ac.uk/handle/1826/11132>
