@@ -489,6 +489,40 @@ mod tests {
         assert!((1.0 - worst.sqrt().recip() - 0.175).abs() < 1e-3);
     }
 
+    /// The halved constant, `1.337 · (λ + 1)/2` per psi, printed in *Peak of Flight* #291
+    /// (Z. Howard, 2011, eq. 1) and #411 (J. D. Sahr, 2016, eq. 1) and corrected in #615
+    /// (J. K. Bennett, 2023), as Loft also wrote it (L32), reads a higher flutter speed than
+    /// eq. 18 on every panel and in any air, by `√2`, and a ratio `V_f / V` at any dynamic pressure
+    /// higher by the same factor: its error is on the flattering side. The fin-flutter guide marks
+    /// that side by this test.
+    #[test]
+    fn the_halved_constant_reads_a_higher_flutter_speed() {
+        let g = 0.75e9;
+        for (a, lambda, tc) in [(0.79, 0.46, 0.023), (2.0, 1.0, 0.04), (3.1, 0.0, 0.07)] {
+            let p = panel(a, lambda, tc);
+            let q_f = p.flutter_dynamic_pressure_pa(g).unwrap();
+            for (pressure, sound) in [(P0, 340.3), (0.4 * P0, 300.0)] {
+                let ours = p.flutter_speed_m_s(g, pressure, sound).unwrap();
+                let halved_pa = 1.337 * p.shape_factor() * pressure * (lambda + 1.0) / 2.0;
+                let halved = sound * (g / halved_pa).sqrt();
+                assert!(halved > ours, "{a} {lambda} {tc}");
+                assert!(
+                    (halved / ours - 2f64.sqrt()).abs() < 1e-3,
+                    "{a} {lambda} {tc}: {}",
+                    halved / ours
+                );
+                // Its flutter dynamic pressure, `½ γ p (V_f/a)²`, twice the model's: so its
+                // `V_f / V = √(q_f / q)` is `√2` the model's at every dynamic pressure.
+                let halved_q_f = 0.5 * HEAT_CAPACITY_RATIO * pressure * g / halved_pa;
+                assert!(
+                    (halved_q_f / q_f - 2.0).abs() < 2e-3,
+                    "{}",
+                    halved_q_f / q_f
+                );
+            }
+        }
+    }
+
     /// On a real flight the margin is at the peak dynamic pressure and is the least of every
     /// millisecond. At each row, eq. 18 at the pressure and speed of sound its `q` and Mach number
     /// imply (`p = 2q/(γM²)`, `a = V/M`) agrees with `√(q_f/q)`: the two methods are consistent.

@@ -35,10 +35,12 @@ guide cites its sections and puts them in its own words.
    attack, where Barrowman's method stops holding, or what too much margin does.
 2. **Fin flutter.** Calculators exist, but none shows what flutter is or how wide its estimate's
    spread is. The Rocketry Forum's [flutter calculator][trf-flutter] notes that the forms printed
-   in *Peak of Flight* #291 (2011) and #416 (2016) overstate the flutter speed by √2, about 41%,
-   corrected in #615 (2023): the flattering side, and still widely copied. Loft's lesson
-   [L32](../decisions-and-roadmap.md#l32) records the same √2 error in Loft's constant. The issue
-   numbers come from the forum's page; read the issues before a guide repeats them.
+   in *Peak of Flight* #291 (2011) and #411 (2016) overstate the flutter speed by √2, about 41%,
+   corrected in #615 (2023): the flattering side. Loft's lesson
+   [L32](../decisions-and-roadmap.md#l32) records the same √2 error in Loft's constant. Read in
+   the issues themselves (Apogee's PDFs) for M0.7a4: #291's eq. 1 and #411's eq. 1 both carry the
+   halved constant; #615, pp. 2 and 5, corrects it. The 2016 article is #411; this note first
+   said #416.
 3. **How far to trust a simulation.** No source draws error bars on a predicted apogee. hpr's
    committed validation reports have the numbers to do it.
 4. **Drag through Mach 1:** the transonic rise, base drag, surface finish. Static articles only.

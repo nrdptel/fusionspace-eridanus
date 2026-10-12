@@ -557,7 +557,8 @@ format is the logger maker's. `hpr analyze` reads one and prints what it says, w
 A fin shaking itself apart: above a certain speed, the air's push twists the fin, the twist changes
 the push, and the fin's bending and twisting feed each other instead of dying out. How fast that
 happens depends on the fin's outline and thickness, its [shear modulus](#shear-modulus) and the
-air. HPR Sim screens for it with NACA TN 4197's criterion. See [Fin flutter](physics/flutter.md).
+air. HPR Sim screens for it with NACA TN 4197's criterion. See [Fin flutter](physics/flutter.md),
+and [When fins flutter](when-fins-flutter.md) for what its speed means.
 
 ### Forebody
 

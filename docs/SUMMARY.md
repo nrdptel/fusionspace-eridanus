@@ -52,6 +52,7 @@
 
 - [Trusting a simulation](trusting-a-simulation.md)
 - [Stability in flight](stability-in-flight.md)
+- [When fins flutter](when-fins-flutter.md)
 
 # The environment
 

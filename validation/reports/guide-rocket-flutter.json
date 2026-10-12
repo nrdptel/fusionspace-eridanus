@@ -1,0 +1,151 @@
+{
+  "by_thickness": [
+    {
+      "figure_3_ratio": 102.30238954900557,
+      "flutter_speed_m_s": 33.64430337027566,
+      "halved_flutter_speed_m_s": 47.57847780663749,
+      "thickness_m": 0.001
+    },
+    {
+      "figure_3_ratio": 30.311819125631267,
+      "flutter_speed_m_s": 61.80853200643181,
+      "halved_flutter_speed_m_s": 87.4072450234467,
+      "thickness_m": 0.0015
+    },
+    {
+      "figure_3_ratio": 12.787798693625696,
+      "flutter_speed_m_s": 95.16046024567733,
+      "halved_flutter_speed_m_s": 134.57225718242807,
+      "thickness_m": 0.002
+    },
+    {
+      "figure_3_ratio": 6.547352931136355,
+      "flutter_speed_m_s": 132.99078617468805,
+      "halved_flutter_speed_m_s": 188.07044684093344,
+      "thickness_m": 0.0025
+    },
+    {
+      "figure_3_ratio": 3.7889773907039084,
+      "flutter_speed_m_s": 174.8209284677348,
+      "halved_flutter_speed_m_s": 247.22502272365313,
+      "thickness_m": 0.003
+    },
+    {
+      "figure_3_ratio": 2.3860615638252027,
+      "flutter_speed_m_s": 220.29954839944682,
+      "halved_flutter_speed_m_s": 311.53913513916405,
+      "thickness_m": 0.0035
+    },
+    {
+      "figure_3_ratio": 1.598474836703212,
+      "flutter_speed_m_s": 269.15442696220526,
+      "halved_flutter_speed_m_s": 380.6278224530999,
+      "thickness_m": 0.004
+    },
+    {
+      "figure_3_ratio": 1.1226599676159734,
+      "flutter_speed_m_s": 321.166553329161,
+      "halved_flutter_speed_m_s": 454.18136799069475,
+      "thickness_m": 0.0045
+    },
+    {
+      "figure_3_ratio": 0.8184191163920443,
+      "flutter_speed_m_s": 376.1547469578083,
+      "halved_flutter_speed_m_s": 531.9435532080325,
+      "thickness_m": 0.005
+    },
+    {
+      "figure_3_ratio": 0.6148903954861342,
+      "flutter_speed_m_s": 433.965869579609,
+      "halved_flutter_speed_m_s": 613.6978158648196,
+      "thickness_m": 0.0055
+    },
+    {
+      "figure_3_ratio": 0.47362217383798855,
+      "flutter_speed_m_s": 494.4682560514545,
+      "halved_flutter_speed_m_s": 699.2579601875736,
+      "thickness_m": 0.006
+    },
+    {
+      "figure_3_ratio": 0.37251666654166793,
+      "flutter_speed_m_s": 557.547118070381,
+      "halved_flutter_speed_m_s": 788.4616569800287,
+      "thickness_m": 0.0065
+    },
+    {
+      "figure_3_ratio": 0.29825769547815034,
+      "flutter_speed_m_s": 623.1012182623315,
+      "halved_flutter_speed_m_s": 881.1657402475805,
+      "thickness_m": 0.007
+    },
+    {
+      "figure_3_ratio": 0.2424945530050502,
+      "flutter_speed_m_s": 691.0403957792649,
+      "halved_flutter_speed_m_s": 977.2427079920351,
+      "thickness_m": 0.0075
+    },
+    {
+      "figure_3_ratio": 0.1998093545879015,
+      "flutter_speed_m_s": 761.2836819654186,
+      "halved_flutter_speed_m_s": 1076.5780574594246,
+      "thickness_m": 0.008
+    }
+  ],
+  "design": "validation/fixtures/ork/guides/level-1.ork",
+  "figure_3_band": [
+    0.25,
+    0.31
+  ],
+  "figure_3_ratio": 3.7889773907039084,
+  "fins": {
+    "aspect_ratio": 0.7894736842105263,
+    "count": 3,
+    "material": "Birch plywood",
+    "root_chord_m": 0.13,
+    "span_m": 0.075,
+    "sweep_m": 0.07,
+    "taper_ratio": 0.4615384615384615,
+    "thickness_m": 0.003,
+    "thickness_ratio": 0.023076923076923078,
+    "tip_chord_m": 0.06
+  },
+  "flights": [
+    {
+      "configuration": 1,
+      "halved_speed_ratio": 0.878325839956855,
+      "max_dynamic_pressure_height_m": 297.96130054954716,
+      "max_dynamic_pressure_pa": 48526.539849286615,
+      "max_mach": 0.8419606113035268,
+      "max_speed_m_s": 285.5821381789846,
+      "motors": "[H170M-10]",
+      "speed_ratio": 0.6210930315500367
+    },
+    {
+      "configuration": 2,
+      "halved_speed_ratio": 0.8927389219172109,
+      "max_dynamic_pressure_height_m": 318.51106934331347,
+      "max_dynamic_pressure_pa": 46972.286956340424,
+      "max_mach": 0.829596862453704,
+      "max_speed_m_s": 281.29624574323196,
+      "motors": "[I175WS-9]",
+      "speed_ratio": 0.6312849948983726
+    }
+  ],
+  "flutter_dynamic_pressure_pa": 18719.43078204096,
+  "flutter_speed_m_s": 174.8209284677348,
+  "generator": "cargo xtask guides",
+  "halved_flutter_speed_m_s": 247.22502272365313,
+  "halved_per_psi": 1.337,
+  "launch": {
+    "elevation_m": 0.0,
+    "pressure_pa": 101325.0,
+    "speed_of_sound_m_s": 340.2941077869353
+  },
+  "note": "HPR Sim's fin-flutter numbers for the guides' rocket, by D. J. Martin's criterion (NACA TN 4197, eq. 18) as hpr_sim::flutter gives it, with the built-in material's shear modulus. launch: the launch site's standard air. flights: each configuration flown by hpr sim --json; speed_ratio is the flutter speed over the airspeed at the flight's peak dynamic pressure, sqrt(q_f / q). halved_*: the same with the constant 1.337 per psi printed in Peak of Flight #291 and #411, half of Martin's. by_thickness: the same fin outline at other thicknesses, at the launch site. A model's output, not a measurement.",
+  "shear_modulus": {
+    "material": "birch_plywood",
+    "shear_modulus_pa": 750000000.0,
+    "source": "Riga Wood, Plywood Handbook (2022), Table 4.11, p. 89: mean modulus of rigidity in panel shear (EN 789) 750 N/mm2, every thickness, both directions"
+  },
+  "unfailed_mach": 1.3
+}

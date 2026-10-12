@@ -14,8 +14,9 @@
 //!
 //! The figures are drawn from the same reports, by `cargo xtask guides`, and held to the figure
 //! checks; `--check`, run by a test in CI, fails a committed figure that is not what the reports
-//! draw now. The same command writes the one report the guides own, the guide rocket's center of
-//! pressure ([`stability`]), and `--check` fails it when the design no longer gives it.
+//! draw now. The same command writes the two reports the guides own, the guide rocket's center of
+//! pressure ([`stability`]) and its fin-flutter numbers ([`flutter`]), and `--check` fails each
+//! when the design no longer gives it.
 
 use std::cell::RefCell;
 use std::collections::BTreeMap;
@@ -28,19 +29,26 @@ use serde_json::Value;
 
 use crate::fixture_flights::{BINS_PERCENT, REPORT_JSON as FIXTURE, REPORT_MD as FIXTURE_PAGE};
 
+mod flutter;
 mod stability;
 
 pub const USAGE: &str = "  \
-guides [--check]         Write the guide rocket's center-of-pressure report, draw the Rocketry
-                           explained guides' figures from the committed reports, and check every
-                           number in the guides' text against the reports. With --check, fail on
-                           a stale report or figure instead of writing it.";
+guides [--check]         Write the guide rocket's center-of-pressure and flutter reports, draw
+                           the Rocketry explained guides' figures from the committed reports, and
+                           check every number in the guides' text against the reports. With
+                           --check, fail on a stale report or figure instead of writing it.";
 
 /// HPR Sim's apogees against the public flights' logs (M2.3b).
 const REAL: &str = "validation/reports/real-flights.json";
 
 /// The reports a quote or a figure may read, as JSON.
-const REPORTS: [&str; 4] = [FIXTURE, REAL, stability::REPORT, stability::TUNNEL];
+const REPORTS: [&str; 5] = [
+    FIXTURE,
+    REAL,
+    stability::REPORT,
+    stability::TUNNEL,
+    flutter::REPORT,
+];
 /// The reports a quote or a figure may read as text, each read whole at the pointer `""`: the
 /// fixture report's page, which holds the weather's attribution.
 const REPORT_PAGES: [&str; 1] = [FIXTURE_PAGE];
@@ -102,6 +110,14 @@ fn guides() -> Vec<Guide> {
             figures: vec![(
                 "docs/images/stability-cp-against-mach.svg",
                 stability::draw_cp_against_mach,
+            )],
+        },
+        Guide {
+            page: "docs/when-fins-flutter.md",
+            quotes: flutter::quotes(),
+            figures: vec![(
+                "docs/images/flutter-speed-by-thickness.svg",
+                flutter::draw_speed_by_thickness,
             )],
         },
     ]
@@ -910,6 +926,7 @@ fn figures(reports: &Reports) -> Result<Vec<(&'static str, String)>, String> {
 /// Fails unless every guide's numbers are the reports' and every figure is committed as drawn.
 pub(crate) fn check(root: &Path) -> Result<(), String> {
     let mut problems: Vec<String> = stability::stale(root)?.into_iter().collect();
+    problems.extend(flutter::stale(root)?);
     let reports = Reports::load(root)?;
     problems.extend(problems_of(root, &reports)?);
     for (path, figure) in figures(&reports)? {
@@ -936,6 +953,11 @@ pub fn run(args: &[String]) -> Result<(), String> {
                 let report = stability::written(&stability::generate(&root)?)?;
                 fs::write(root.join(stability::REPORT), report)
                     .map_err(|error| format!("{}: {error}", stability::REPORT))?;
+            }
+            if flutter::stale(&root)?.is_some() {
+                let report = flutter::written(&flutter::generate(&root)?)?;
+                fs::write(root.join(flutter::REPORT), report)
+                    .map_err(|error| format!("{}: {error}", flutter::REPORT))?;
             }
             let reports = Reports::load(&root)?;
             for (path, figure) in figures(&reports)? {

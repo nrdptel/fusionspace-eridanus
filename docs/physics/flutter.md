@@ -10,7 +10,8 @@ other, to your fins and your rocket's flight.
   criterion. The first is Martin's own chart check: is the fin on the flutter side of the line his
   flight data draws? The second is the ratio of the criterion's flutter speed to the rocket's
   airspeed at the flight's peak [dynamic pressure](../glossary.md#dynamic-pressure). The first
-  decides; the second alone is not a safe line.
+  decides; the second alone is not a safe line. [When fins flutter](../when-fins-flutter.md), a
+  guide, reads both on the guides' rocket.
 - **Sources:** D. J. Martin's criterion in NACA TN 4197 (1958), eq. 18, and his figure 3, which
   separates missile and wind-tunnel wings that fluttered from those that didn't
   ([References](#references)). The fin's stiffness enters as its
@@ -109,9 +110,12 @@ about 2.0/M: 1.5 at Mach 1.3, but 4.0 at Mach 0.5.
 Martin's data show nothing about a fin above the band on a rocket slower than Mach 1.3: treat it as
 not shown to be safe.
 
-**Loft's mistake.** Loft, this project's predecessor, wrote the constant as `1.337 · (λ + 1)/2` per
-psi, half of `39.3 / 14.696 = 2.674`. So its flutter speeds were `√2` too high, about 41%, on the
-unsafe side ([L32](../decisions-and-roadmap.md#l32), a lesson from Loft).
+**The halved constant.** Loft, this project's predecessor, wrote the constant as
+`1.337 · (λ + 1)/2` per psi, half of `39.3 / 14.696 = 2.674`. So its flutter speeds were `√2` too
+high, about 41%, on the unsafe side ([L32](../decisions-and-roadmap.md#l32), a lesson from Loft).
+Apogee Components' *Peak of Flight* newsletter printed the same halved form in issues #291 (2011)
+and #411 (2016), and corrected it in #615 (2023). [When fins flutter](../when-fins-flutter.md)
+shows what it does to the guides' rocket.
 
 ## Worked examples
 
@@ -281,6 +285,7 @@ In `crates/hpr-sim/src/flutter.rs`, unless named otherwise:
 | `flutter_denominator_matches_tn_4197_eq_18` | The constant against Martin's 39.3 psi, and `D` against eq. 18 on three panels at two pressures, to his rounding; twice Loft's constant ([L32](../decisions-and-roadmap.md#l32)) |
 | `martins_worked_examples` | Both of Martin's examples on his grid, and his three verdicts and his titanium design against the band, through `figure_3_ratio` (the tables above) |
 | `scaling_laws_in_thickness_shear_modulus_and_pressure` | `V_f` as `(t/c)^1.5`, `√G_E`, `1/√p` and `a`, to 1e-12; `q_f` the same in three atmospheres |
+| `the_halved_constant_reads_a_higher_flutter_speed` | The halved constant printed in *Peak of Flight* #291 and #411, and Loft's, reads `√2` above eq. 18's flutter speed on three panels in two airs, and `V_f / V` higher by the same factor: the flattering side, which [When fins flutter](../when-fins-flutter.md) marks |
 | `taper_factor_against_the_frequency_factors` | `(λ + 1)/2` against `1/(f₁² f₂²)`: 3% at `λ = 0`, at most 47% at `λ = 0.308` |
 | `the_margin_is_the_flights_least_at_its_peak_dynamic_pressure` | On the flight of Valetudo (a RocketPy example rocket), the margin is at max q and at or below every row of a 1 ms record; `V_f` from each row's pressure and speed of sound agrees with `√(q_f/q)`, to 1e-12; no peak gives `None`, a peak that isn't a number is refused |
 | `a_trapezoidal_fin_set_gives_its_panel`, `out_of_range_inputs_are_refused` | A fin set's `A`, `λ` and `t/c`; elliptical and reverse-tapered fins, a taper outside 0 to 1 and inputs that aren't positive are refused by name, from code and from JSON |
