@@ -511,13 +511,14 @@ mod tests {
                     "{a} {lambda} {tc}: {}",
                     halved / ours
                 );
-                // Its flutter dynamic pressure, `½ γ p (V_f/a)²`, and so its `√(q_f / q)` at
-                // any `q`.
+                // Its flutter dynamic pressure, `½ γ p (V_f/a)²`, twice the model's: so its
+                // `V_f / V = √(q_f / q)` is `√2` the model's at every dynamic pressure.
                 let halved_q_f = 0.5 * HEAT_CAPACITY_RATIO * pressure * g / halved_pa;
-                for q in [10e3, 50e3] {
-                    let ratio = (halved_q_f / q).sqrt() / (q_f / q).sqrt();
-                    assert!((ratio - 2f64.sqrt()).abs() < 1e-3, "{ratio}");
-                }
+                assert!(
+                    (halved_q_f / q_f - 2.0).abs() < 2e-3,
+                    "{}",
+                    halved_q_f / q_f
+                );
             }
         }
     }

@@ -113,6 +113,7 @@
     {
       "configuration": 1,
       "halved_speed_ratio": 0.878325839956855,
+      "max_dynamic_pressure_height_m": 297.96130054954716,
       "max_dynamic_pressure_pa": 48526.539849286615,
       "max_dynamic_pressure_time_s": 1.730188831403583,
       "max_mach": 0.8419606113035268,
@@ -123,6 +124,7 @@
     {
       "configuration": 2,
       "halved_speed_ratio": 0.8927389219172109,
+      "max_dynamic_pressure_height_m": 318.51106934331347,
       "max_dynamic_pressure_pa": 46972.286956340424,
       "max_dynamic_pressure_time_s": 1.726811577138858,
       "max_mach": 0.829596862453704,

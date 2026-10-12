@@ -9,8 +9,8 @@ what flutter is, what the criterion's speed depends on, what its two readings sa
 guides' rocket, and which errors flatter it. It is one of the guides in *Rocketry explained*,
 which explain the physics behind the numbers HPR Sim prints.
 
-> **How far to trust it.** Every number in this guide's text is read by a test from a committed
-> file: HPR Sim's flutter numbers for the guides' rocket ([report][rocket-report]). They come from
+> **How far to trust it.** Every number written in digits in this guide's text is read by a test
+> from a committed file: HPR Sim's flutter numbers for the guides' rocket ([report][rocket-report]). They come from
 > D. J. Martin's criterion, written at NACA, NASA's forerunner, which HPR Sim reproduces along
 > with Martin's own worked examples ([Fin flutter][model]). Martin drew his line between wings
 > that fluttered and wings that didn't from missiles and wind-tunnel models, the unfailed ones
@@ -49,15 +49,17 @@ rest: the air's pressure and the fin's shape. Read in words:
   speed.
 - **Stiffness counts less.** It grows as the square root of the shear modulus: a material four
   times as stiff in shear doubles it.
-- **Shape.** A fin with a longer span for its chord (a higher aspect ratio) flutters sooner, and
-  so does one whose tip is nearly as wide as its root (a taper ratio near one).
-- **Air.** Thinner air raises the flutter speed, so the same fin can fly faster higher up. But the
-  air's push at that speed, the [dynamic pressure](glossary.md#dynamic-pressure), is the same at
-  every height, so a flight comes closest to its fins' flutter speed where its dynamic pressure
-  peaks, at *max q*.
+- **Shape.** A fin with a longer span for its chord (a higher aspect ratio) flutters sooner. On
+  a fin of one root chord, span and thickness, a narrower tip lowers the flutter speed too: it
+  raises the aspect ratio by more than the narrower tip's taper helps.
+- **Air.** Thinner air raises the flutter speed, so the same fin can fly faster higher up.
+- **Where it comes closest.** The air's push at the flutter speed, the
+  [dynamic pressure](glossary.md#dynamic-pressure) there, is the same at every height. So a
+  flight comes closest to its fins' flutter speed where its own dynamic pressure peaks, at
+  [max q](glossary.md#dynamic-pressure).
 
 Martin's constant comes from the theory, not a fit to data: it assumes the fin's mass sits at
-mid-chord. What his data set is where the line falls, below.
+mid-chord. His data decide only where his line falls, below.
 
 ## The guides' rocket
 
@@ -72,9 +74,12 @@ their leading edges are swept back by 70 mm (2.76 in) over the span.
 
 In the launch site's air, standard air at sea level, the criterion puts their flutter speed at
 175 m/s (574 ft/s), Mach 0.51. On the faster of its motors, the rocket reaches 286 m/s (938 ft/s),
-Mach 0.84. At its max q, 48.5 kPa, the flutter speed is 0.62 times the airspeed there: by this
-criterion, the fins fly faster than their flutter speed. For the flutter speed to reach that
-airspeed, the plywood would have to be 4.2 mm (0.17 in) thick.
+Mach 0.84. Max q comes 298 m (978 ft) above the pad, in air close to the launch site's. At its
+max q, 48.5 kPa, the flutter speed is 0.62 times the airspeed there: by this criterion, the fins
+fly faster than their flutter speed. The criterion's error on fins like these has never been
+measured, so this reading marks the fins for a closer look; it doesn't say they will fail. For
+the flutter speed to reach the airspeed at max q, the plywood would have to be 4.2 mm (0.166 in)
+thick.
 
 The `hpr` command doesn't print these yet; in code, HPR Sim's
 [`FlutterPanel`][flutter-panel] gives the flutter speed and the ratio `V_f / V` at max q
@@ -83,21 +88,25 @@ The `hpr` command doesn't print these yet; in code, HPR Sim's
 ## Two readings
 
 The ratio `V_f / V` is the first reading. The second is Martin's own check: where the fin plots on
-his chart against the line his data draw. He plotted `D` against `G_E` for missiles and
-wind-tunnel models. Wings that fluttered or failed lie above a band, and wings that flew to at
-least Mach 1.3 without known failure lie below it. The band runs at a ratio of 0.25 to 0.31, a
-flutter speed 1.8 to 2.0 times the speed of sound ([The line in Martin's data][band]). So the
-band isn't a speed to stay under: it is how stiff Martin's wings had to be, whatever they flew at.
+his chart against the line his data draw. His chart gives each wing one number, the denominator
+`D` over its shear modulus `G_E`: the higher it is, the less stiff the wing for the air it flies
+in. Wings that fluttered or failed lie above a
+band, and wings that flew to at least Mach 1.3 without known failure lie below it. The band runs
+at a ratio of 0.25 to 0.31, a flutter speed 1.8 to 2.0 times the speed of sound
+([The line in Martin's data][band]). So the band isn't a speed to stay under: it is how stiff
+Martin's unfailed wings were, all of them faster than sound.
 
 The guides' rocket's fins plot at 3.79, above the band; to plot below it with the same outline,
-they would have to be 7.5 mm (0.30 in) thick. That says less than it seems to: Martin's wings
-below the band flew past the speed of sound, and the rocket tops out at Mach 0.84. His data show
-nothing about a fin above the band on a slower rocket: not that it is safe, and not that it will
-flutter.
+they would have to be 7.5 mm (0.296 in) thick. On the figure below, the same fact reads the other
+way up: the fins' flutter speed sits below the band. That says less than it seems to: Martin's
+wings below the band flew past the speed of sound, and the rocket tops out at Mach 0.84. His data
+show nothing about a fin above the band on a slower rocket: not that it is safe, and not that it
+will flutter.
 
-Neither reading alone is a line to fly by. A ratio `V_f / V` above one says only that the rocket
-stays below a speed Martin's data put no error on, and the chart says only where a fin sits among
-missiles that flew faster than most hobby rockets.
+Of the two, Martin's chart is the stricter, and it is his own check: a fin below the band is
+among wings that flew faster than sound unharmed. A ratio `V_f / V` above one says only that the
+rocket stays below the criterion's speed, whose error on hobby fins no one has measured. Neither
+is a line to fly by.
 
 ## A flutter speed that reads high
 
@@ -105,28 +114,36 @@ A flutter speed that reads high flatters: it says a fin is stiffer, or the rocke
 flutter, than it is. The figure draws the guides' rocket's flutter speed by thickness, with the
 best-known such error above it.
 
-![A chart of the guides' rocket's flutter speed against its fins' thickness: HPR Sim's line rises steeply with thickness and crosses the rocket's top speed well before it reaches Martin's band, with the guides' rocket's fins below both; the halved constant's line, marked as the side that flatters, runs above it.](images/flutter-speed-by-thickness.svg)
+![A chart of the guides' rocket's flutter speed against its fins' thickness: HPR Sim's line rises steeply with thickness and crosses the rocket's top speed well before it reaches Martin's band; the guides' rocket's fins sit on HPR Sim's line, below the top speed and the band; the halved constant's line, marked as the side that flatters, runs above it.](images/flutter-speed-by-thickness.svg)
 
-Apogee Components' *Peak of Flight* newsletter printed Martin's formula in issues #291 and #411
-with its constant halved, so its flutter speed reads 41% high; issue #615 corrected it
-([the correction][pof-615]). A calculator or a spreadsheet built from the earlier
-issues gives the higher speed, and HPR Sim's predecessor made the same mistake. On the guides'
+Apogee Components' *Peak of Flight* newsletter printed Martin's formula in issues
+[#291][pof-291] and [#411][pof-411] with its constant halved, so its flutter speed reads 41% high;
+issue [#615][pof-615] corrected it. A calculator or a spreadsheet that copied the printed form
+gives the higher speed, and Loft, HPR Sim's predecessor, made the same mistake
+([L32](decisions-and-roadmap.md#l32), a lesson from Loft). On the guides'
 rocket, the halved constant puts the guides' rocket's flutter speed at 247 m/s (810 ft/s), and the
 ratio at max q at 0.88.
 
 The figure marks the halved constant's line in the caution color. The test
 [`the_halved_constant_reads_a_higher_flutter_speed`][direction-test] pins which way that error
-goes: on any fin, in any air, the halved form's flutter speed is the square root of two times HPR
-Sim's, never below it, and its ratio `V_f / V` higher by the same factor. The guide's own test pins
+goes, on three fins in two kinds of air: the halved form's flutter speed is the square root of two
+times HPR Sim's, never below it, and its ratio `V_f / V` higher by the same factor. Only the
+constant differs, so the factor is the same on every fin in any air. The guide's own test pins
 that the marked line is that speed.
 
-Where Martin leaves a choice, HPR Sim takes the one that gives the lower flutter speed: the
-thickness ratio at the root, the smallest on a fin of one thickness; a solid fin's shear modulus
-as its material's, not the flat plate's reading, which is twice as stiff; and Martin's simpler
-taper factor, which lowers the speed for most tapers ([Readings where the source leaves
-room][readings]). Two choices can go the other way: a fin with an airfoil section reads a few
-percent high, and a booster's fins are held to the whole flight's max q, without a check of the
-booster's own after it separates.
+Where Martin leaves a choice, HPR Sim takes the one that gives the lower flutter speed
+([Readings where the source leaves room][readings]):
+
+- the thickness ratio at the root, the smallest on a fin of one thickness;
+- a solid fin's shear modulus as its material's, not the flat plate's reading, which is twice as
+  stiff;
+- Martin's simpler taper factor, which lowers the speed for most tapers.
+
+Two choices can go the other way: a fin with an airfoil section reads a few percent high, and a
+booster's fins are held to the whole flight's max q, without a check of the booster's own after it
+separates. And the correction in #615 reads where the fin's mass sits from the whole fin's
+outline, not from Martin's section; on a swept fin like the guides' rocket's, that puts the mass
+further aft and the flutter speed lower still. HPR Sim keeps Martin's reading.
 
 What the criterion leaves out may matter more than any of these. Martin's wings were clamped at
 the root; a fin glued to a tube twists more there, so its real flutter speed can be lower, on the
@@ -155,5 +172,7 @@ anyone has measured.
 [moduli]: physics/flutter.md#shear-moduli
 [rocket-fins]: physics/flutter.md#a-rockets-fins
 [flutter-panel]: api/hpr_sim/flutter/struct.FlutterPanel.html
+[pof-291]: https://www.apogeerockets.com/education/downloads/Newsletter291.pdf
+[pof-411]: https://www.apogeerockets.com/education/downloads/Newsletter411.pdf
 [pof-615]: https://www.apogeerockets.com/education/downloads/Newsletter615.pdf
 [direction-test]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-sim/src/flutter.rs

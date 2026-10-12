@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="542" viewBox="0 0 720 542" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" role="img" aria-labelledby="title" aria-describedby="desc">
 <title id="title">The guides&apos; rocket&apos;s flutter speed by fin thickness</title>
-<desc id="desc">HPR Sim&apos;s flutter speed at the launch site (line), by Martin&apos;s criterion, for the rocket&apos;s birch plywood fin outline at each thickness. Shaded: Martin&apos;s band, where his line between wings that fluttered and wings that didn&apos;t falls. Chain: the rocket&apos;s top speed on the faster of its motors.</desc>
+<desc id="desc">HPR Sim&apos;s flutter speed at the launch site (line), by Martin&apos;s criterion, for the rocket&apos;s birch plywood fin outline at each thickness. Shaded: Martin&apos;s band, where his line between wings that fluttered and wings that didn&apos;t falls. Dash-dot line: the rocket&apos;s top speed on the faster of its motors.</desc>
 <rect width="720" height="542" fill="#F3F4F7"/>
 <text x="40" y="36" font-size="18" font-weight="600" fill="#0B0F1C">The guides&apos; rocket&apos;s flutter speed by fin thickness</text>
 <text x="40" y="62" fill="#566079">HPR Sim&apos;s flutter speed at the launch site (line), by Martin&apos;s criterion, for the</text>
 <text x="40" y="78" fill="#566079">rocket&apos;s birch plywood fin outline at each thickness. Shaded: Martin&apos;s band, where his</text>
-<text x="40" y="94" fill="#566079">line between wings that fluttered and wings that didn&apos;t falls. Chain: the rocket&apos;s top</text>
-<text x="40" y="110" fill="#566079">speed on the faster of its motors.</text>
+<text x="40" y="94" fill="#566079">line between wings that fluttered and wings that didn&apos;t falls. Dash-dot line: the</text>
+<text x="40" y="110" fill="#566079">rocket&apos;s top speed on the faster of its motors.</text>
 <rect x="64" y="255.9" width="616.0" height="13.9" fill="#D6DAE4"/>
 <text x="72.0" y="266.8" fill="#566079">Martin's band</text>
 <text x="40" y="138" fill="#566079">flutter speed, m/s</text>

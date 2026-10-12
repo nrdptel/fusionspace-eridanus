@@ -10,7 +10,8 @@ other, to your fins and your rocket's flight.
   criterion. The first is Martin's own chart check: is the fin on the flutter side of the line his
   flight data draws? The second is the ratio of the criterion's flutter speed to the rocket's
   airspeed at the flight's peak [dynamic pressure](../glossary.md#dynamic-pressure). The first
-  decides; the second alone is not a safe line.
+  decides; the second alone is not a safe line. [When fins flutter](../when-fins-flutter.md), a
+  guide, reads both on the guides' rocket.
 - **Sources:** D. J. Martin's criterion in NACA TN 4197 (1958), eq. 18, and his figure 3, which
   separates missile and wind-tunnel wings that fluttered from those that didn't
   ([References](#references)). The fin's stiffness enters as its

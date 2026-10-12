@@ -13,6 +13,7 @@
 use std::fmt::Write as _;
 use std::fs;
 use std::path::Path;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use hpr_atmos::Ussa76;
 use hpr_design::{Component, FinPlanform, FinSet, Part, materials};
@@ -22,7 +23,7 @@ use serde_json::{Value, json};
 
 use super::{
     CANVAS, CAUTION, INK, INK_MUTED, PLOT_BOTTOM, PLOT_LEFT, PLOT_RIGHT, PLOT_TOP, Quote, RULE,
-    Reports, WIDTH, escaped, fixed, written as written_value,
+    Reports, WIDTH, escaped, fixed, meters, written as written_value,
 };
 
 /// The guide rocket's flutter numbers, as HPR Sim gives them.
@@ -46,9 +47,6 @@ const UNFAILED_MACH: f64 = 1.3;
 /// p. 2) the same rearranged; Martin's eq. 18 gives `39.3 / 14.696 = 2.674` in its place, as #615
 /// (J. K. Bennett, 2023, pp. 2 and 5) corrects. Loft's constant was the same (L32).
 const HALVED_PER_PSI: f64 = 1.337;
-/// How far a regenerated report's number may sit from the committed one, relative to its size:
-/// the flights' last bits move between platforms' maths libraries, far below the guide's places.
-const SAME: f64 = 1e-9;
 
 /// The guide rocket's one fin set, from its `.ork`.
 fn fins(root: &Path) -> Result<FinSet, String> {
@@ -82,8 +80,13 @@ fn fins(root: &Path) -> Result<FinSet, String> {
 
 /// `hpr sim --json` on the design's configuration `number`, offline, as the command prints it.
 fn fly(root: &Path, number: usize) -> Result<Value, String> {
-    let scratch =
-        std::env::temp_dir().join(format!("hpr-guide-flutter-{}-{number}", std::process::id()));
+    // Tests fly the design on several threads of one process, so each call has its own folder.
+    static CALLS: AtomicUsize = AtomicUsize::new(0);
+    let scratch = std::env::temp_dir().join(format!(
+        "hpr-guide-flutter-{}-{}",
+        std::process::id(),
+        CALLS.fetch_add(1, Ordering::Relaxed)
+    ));
     let _ = fs::create_dir_all(&scratch);
     let args = [
         "hpr".into(),
@@ -180,6 +183,10 @@ pub(crate) fn generate(root: &Path) -> Result<Value, String> {
             "max_mach": flown(&flight, "/summary/max_mach/value")?,
             "max_dynamic_pressure_pa": q,
             "max_dynamic_pressure_time_s": flown(&flight, "/summary/max_dynamic_pressure_pa/time_s")?,
+            "max_dynamic_pressure_height_m": flown(
+                &flight,
+                "/summary/max_dynamic_pressure_pa/height_above_ground_m",
+            )?,
             // `FlutterMargin::speed_ratio`: √(q_f / q) at the flight's peak.
             "speed_ratio": (q_f / q).sqrt(),
             "halved_speed_ratio": halved_speed / speed * (q_f / q).sqrt(),
@@ -259,38 +266,32 @@ pub(crate) fn written(report: &Value) -> Result<String, String> {
         .map_err(|error| format!("{REPORT}: {error}"))
 }
 
-/// Whether two reports hold the same keys, texts and counts, and numbers within [`SAME`] of
-/// each other's size.
-fn same(a: &Value, b: &Value) -> bool {
-    match (a, b) {
-        (Value::Number(a), Value::Number(b)) => match (a.as_f64(), b.as_f64()) {
-            (Some(a), Some(b)) => (a - b).abs() <= SAME * a.abs().max(b.abs()),
-            _ => false,
-        },
-        (Value::Array(a), Value::Array(b)) => {
-            a.len() == b.len() && a.iter().zip(b).all(|(a, b)| same(a, b))
-        }
-        (Value::Object(a), Value::Object(b)) => {
-            a.len() == b.len()
-                && a.iter()
-                    .all(|(key, a)| b.get(key).is_some_and(|b| same(a, b)))
-        }
-        _ => a == b,
-    }
-}
-
 /// A problem, if the committed report is not what the design gives now.
 pub(crate) fn stale(root: &Path) -> Result<Option<String>, String> {
     let now = generate(root)?;
     let committed = fs::read_to_string(root.join(REPORT))
         .ok()
         .and_then(|text| serde_json::from_str::<Value>(&text).ok());
-    Ok(match committed {
-        Some(committed) if same(&committed, &now) => None,
-        _ => Some(format!(
-            "{REPORT} is not what {DESIGN} gives now; run `cargo xtask guides` and commit it"
-        )),
-    })
+    let apart = apart(committed.as_ref(), &now);
+    Ok(apart.first().map(|first| {
+        format!(
+            "{REPORT} is not what {DESIGN} gives now ({first}); run `cargo xtask guides` and \
+             commit it"
+        )
+    }))
+}
+
+/// Where `now` departs from the `committed` report: numbers more than
+/// [`crate::ork_flights::CHECK_RELATIVE`] of their size apart, since a flight's last bits move
+/// between platforms' maths libraries at its own scale, far below the guide's places; and any
+/// key, text or count that differs. A missing report departs everywhere.
+fn apart(committed: Option<&Value>, now: &Value) -> Vec<String> {
+    let mut apart = Vec::new();
+    match committed {
+        Some(committed) => crate::ork_flights::same(committed, now, "", &mut apart),
+        None => apart.push("no committed report".to_owned()),
+    }
+    apart
 }
 
 /// A part's size in millimeters to `decimals` places, then in inches to two, converted from the
@@ -308,14 +309,19 @@ fn speed(value: f64) -> String {
     format!("{} m/s ({} ft/s)", fixed(value, 0), fixed(feet, 0))
 }
 
-/// A thickness the fins would need, rounded up to a tenth of a millimeter, so the page never
-/// states less than the criterion asks.
+/// A thickness the fins would need, rounded up to a tenth of a millimeter and then in inches to a
+/// thousandth, so neither figure states less than the criterion asks. A thousandth keeps the
+/// rounded-up inches within the site's conversion check, half a last place plus what rounding
+/// the millimeters moves them.
 fn needed(value_m: f64) -> String {
-    millimeters((value_m * 1e4).ceil() / 1e4, 1)
+    let mm = (value_m * 1e4).ceil() / 10.0;
+    let inches = (written_value(mm, 1) / 25.4 * 1000.0).ceil() / 1000.0;
+    format!("{} mm ({} in)", fixed(mm, 1), fixed(inches, 3))
 }
 
 /// The flight with the highest peak dynamic pressure, where the fins come closest to their
-/// flutter speed: its pointer in [`REPORT`].
+/// flutter speed: its pointer in [`REPORT`]. The page calls it the faster flight and draws its
+/// top speed, so it must also be the fastest.
 fn closest(r: &Reports) -> Result<String, String> {
     let count = r
         .get(REPORT, "/flights")?
@@ -323,15 +329,26 @@ fn closest(r: &Reports) -> Result<String, String> {
         .map(Vec::len)
         .ok_or_else(|| format!("{REPORT} has no flights"))?;
     let mut best: Option<(String, f64)> = None;
+    let mut fastest: Option<(String, f64)> = None;
     for at in 0..count {
         let pointer = format!("/flights/{at}");
         let q = r.number(REPORT, &format!("{pointer}/max_dynamic_pressure_pa"))?;
+        let speed = r.number(REPORT, &format!("{pointer}/max_speed_m_s"))?;
         if best.as_ref().is_none_or(|(_, most)| q > *most) {
-            best = Some((pointer, q));
+            best = Some((pointer.clone(), q));
+        }
+        if fastest.as_ref().is_none_or(|(_, most)| speed > *most) {
+            fastest = Some((pointer, speed));
         }
     }
-    best.map(|(pointer, _)| pointer)
-        .ok_or_else(|| format!("{REPORT} has no flights"))
+    match (best, fastest) {
+        (Some((best, _)), Some((fastest, _))) if best == fastest => Ok(best),
+        (Some(_), Some(_)) => Err(format!(
+            "{REPORT}'s flight with the highest max q is not its fastest; the page calls it the \
+             faster"
+        )),
+        _ => Err(format!("{REPORT} has no flights")),
+    }
 }
 
 /// Where a figure 3 ratio sits against Martin's band.
@@ -451,6 +468,16 @@ pub(super) fn quotes() -> Vec<Quote> {
                     speed(r.number(REPORT, &format!("{flight}/max_speed_m_s"))?),
                     fixed(r.number(REPORT, &format!("{flight}/max_mach"))?, 2),
                 ])
+            },
+        },
+        Quote {
+            template: "Max q comes {} above the pad, in air close to the launch site's",
+            holes: |r| {
+                let flight = closest(r)?;
+                Ok(vec![meters(
+                    r.number(REPORT, &format!("{flight}/max_dynamic_pressure_height_m"))?,
+                    0,
+                )])
             },
         },
         Quote {
@@ -589,7 +616,7 @@ fn axis_top(rows: &[Row], others: &[f64]) -> Result<f64, String> {
 
 /// The fin-flutter guide's figure: the guide rocket's flutter speed at the launch site against
 /// its fins' thickness, HPR Sim's line and the halved constant's above it in the caution color,
-/// Martin's band shaded, the rocket's top speed on the faster of its motors as a chain line, and
+/// Martin's band shaded, the rocket's top speed on the faster of its motors as a dash-dot line, and
 /// its own fins as a dot.
 pub(super) fn draw_speed_by_thickness(r: &Reports) -> Result<String, String> {
     let rows = rows(r)?;
@@ -606,7 +633,9 @@ pub(super) fn draw_speed_by_thickness(r: &Reports) -> Result<String, String> {
     let [first, last] = THICKNESS_AXIS_MM;
     if rows
         .iter()
-        .any(|row| row.thickness_m * 1000.0 < first || row.thickness_m * 1000.0 > last)
+        .map(|row| row.thickness_m)
+        .chain([own.0])
+        .any(|thickness_m| thickness_m * 1000.0 < first || thickness_m * 1000.0 > last)
     {
         return Err(format!(
             "a thickness past the figure's axis, {first} to {last} mm"
@@ -621,9 +650,9 @@ pub(super) fn draw_speed_by_thickness(r: &Reports) -> Result<String, String> {
             .to_owned(),
         "rocket's birch plywood fin outline at each thickness. Shaded: Martin's band, where his"
             .to_owned(),
-        "line between wings that fluttered and wings that didn't falls. Chain: the rocket's top"
+        "line between wings that fluttered and wings that didn't falls. Dash-dot line: the"
             .to_owned(),
-        "speed on the faster of its motors.".to_owned(),
+        "rocket's top speed on the faster of its motors.".to_owned(),
     ];
     let mut svg = String::new();
     let _ = writeln!(
@@ -826,12 +855,20 @@ mod tests {
         let q = now["flights"][0]["max_dynamic_pressure_pa"]
             .as_f64()
             .unwrap();
-        moved["flights"][0]["max_dynamic_pressure_pa"] = json!(q * (1.0 + 10.0 * SAME));
-        assert!(!same(&now, &moved));
+        let relative = crate::ork_flights::CHECK_RELATIVE;
+        moved["flights"][0]["max_dynamic_pressure_pa"] = json!(q * (1.0 + 10.0 * relative));
+        assert_eq!(
+            apart(Some(&moved), &now),
+            [format!(
+                "/flights/0/max_dynamic_pressure_pa: {} then, {q} now",
+                q * (1.0 + 10.0 * relative)
+            )]
+        );
         let mut shorter = now.clone();
         shorter["by_thickness"].as_array_mut().unwrap().pop();
-        assert!(!same(&now, &shorter));
-        assert!(same(&now, &now.clone()));
+        assert!(!apart(Some(&shorter), &now).is_empty());
+        assert!(!apart(None, &now).is_empty());
+        assert!(apart(Some(&now.clone()), &now).is_empty());
     }
 
     /// The report's flutter speed and figure 3 ratio are `hpr_sim::flutter`'s on the design's
@@ -919,8 +956,10 @@ mod tests {
     /// Needed thicknesses round up, so the page never states less than the criterion asks.
     #[test]
     fn needed_thicknesses_round_up() {
-        assert_eq!(needed(0.004_01), "4.1 mm (0.16 in)");
-        assert_eq!(needed(0.0074), "7.4 mm (0.29 in)");
+        assert_eq!(needed(0.004_01), "4.1 mm (0.162 in)");
+        // 4.09 mm needed: 4.1 mm, and 0.162 in, 4.115 mm, not 0.16 in, 4.064 mm.
+        assert_eq!(needed(0.004_09), "4.1 mm (0.162 in)");
+        assert_eq!(needed(0.007_41), "7.5 mm (0.296 in)");
         assert_eq!(millimeters(0.003, 0), "3 mm (0.12 in)");
         assert_eq!(speed(175.4), "175 m/s (574 ft/s)");
     }

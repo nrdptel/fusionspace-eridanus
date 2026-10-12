@@ -23,13 +23,17 @@ pp. 2 and 5) corrects it. The research note had named #416 for the 2016 article;
    to 8 mm at the same outline. `cargo xtask guides` writes it; `--check` and the guides' test fail
    a committed copy whose numbers sit more than 1e-9 of their size from what the design gives now.
    The tolerance is relative, not ADR-243's absolute one, since a flight's numbers (a dynamic
-   pressure near 5 × 10⁴ Pa) carry the platforms' last bits at their own scale.
+   pressure near 5 × 10⁴ Pa) carry the platforms' last bits at their own scale; the comparison is
+   the flight reports' own (`ork_flights::same`), which names the first number apart.
 2. **The fins' modulus is the built-in material's, said so.** The design's birch plywood is
    OpenRocket's, at OpenRocket's density, which `materials::shear_modulus_of` doesn't match to a
    built-in material. The guide takes the built-in birch plywood's cited 0.75 GPa and says why.
 3. **Both readings, no verdict.** The guide quotes the ratio `V_f / V` at the faster motor's max q
    and the fins' figure 3 ratio against the band, and the thickness each would need, rounded up to
-   a tenth of a millimeter so the page never asks for less than the criterion does. It says that
+   a tenth of a millimeter and its inches up to a thousandth, so neither figure asks for less than
+   the criterion does (a thousandth keeps the rounded-up inches inside the site's conversion
+   check). The flight quoted is the one with the highest max q, which must also be the fastest,
+   since the page calls it the faster; a design where the two differ fails the quotes. It says that
    Martin's unfailed wings flew to at least Mach 1.3, so his chart shows nothing either way about a
    fin above the band on a slower rocket, and that neither reading is a line to fly by.
 4. **The flattering mark is the halved constant.** The figure draws HPR Sim's flutter speed and,
