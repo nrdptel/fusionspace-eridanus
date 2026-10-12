@@ -65,22 +65,27 @@ worker at `/sw.js` and has a page per project at `/projects/<id>`. hpr's own pag
      bottom, inside something fixed to the window), or a box reaches past its parent's content
      (into the page's margin, out of a cell);
    - two pieces of text overlap, or something, or nothing, is drawn at a control's centre;
-   - CSS draws text (`::before`, `::after`), or a clip-path takes a shape other than `inset()`
-     (but for the designation tag's corner), neither of which can be measured;
+   - CSS draws text (`::before`, `::after`), or a clip-path takes a shape other than `inset()` or
+     a corner cut off the top right (the designation tag's, measured against each line of text),
+     neither of which can be measured;
    - a font fails to load, or the browser logs an error (a missing file, a request the security
      policy refused, an exception).
 
-   It finds the pages itself (every `.html` under `site/`). Of the 37 pages under
-   `checks/canaries/`, 35 are built to fail one way and name it, and a test requires the check to
+   It finds the pages itself (every `.html` under `site/`). Of the 41 pages under
+   `checks/canaries/`, 39 are built to fail one way and name it, and a test requires the check to
    find exactly that kind there; the other two (a clean page, and a claim beside its comparison)
    must pass, as the site must.
-7. **The "better" rule** ([ADR-209][adr-209] §2). A comparative word or phrase ("better",
-   "best", "faster", "more accurate", "outperforms", any "-er than" or "more … than", "smaller
-   error") passes only in the same block of text as a link to an entry of `comparisons.json`. Each entry is a published comparison committed with its inputs
-   and the tools' versions; the first is *Compared with other simulators*. In text that can't carry a
-   link (the title, the description and social tags, `alt`, `aria-label` and the like), such a
-   word always fails. The rule errs strict: a plain comparison ("wider than the window") fails
-   too and is worded another way.
+7. **The "better" rule** ([ADR-209][adr-209] §2), one rule after three rounds of review found
+   phrasings a word list missed: a claim is anything that compares. That is any "than" ("smaller
+   error than", "more reliable than"), any multiple ("twice as accurate as"), and the words that
+   compare without either ("better", "fastest", "most accurate", "outperforms", "lower error").
+   A claim passes only in the same block of text as a link to an entry of `comparisons.json`.
+   Each entry is a published comparison committed with its inputs and the tools' versions; the
+   first is *Compared with other simulators*. In text that can't carry a link (the title, the
+   description and social tags, `alt`, `aria-label` and the like) a claim always fails. The rule
+   errs strict: a plain comparison ("wider than the window") fails too and is worded another
+   way; only "rather than" and "other than" pass. A claim worded with none of these (say "the
+   one to trust") is left to review.
 8. **Staying current.** `checks/links.mjs` fails on a link out of the site that doesn't answer,
    and on a stated release that isn't the latest on PyPI and crates.io. CI runs it on every pull
    request and weekly, so a new release fails it until the page lists it. The page check and the
