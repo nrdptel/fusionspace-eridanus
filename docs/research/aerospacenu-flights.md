@@ -18,9 +18,9 @@ builds on [more public flights](public-flights.md) and [the logger families](deb
   `hpr_validate::real_flight`, could take the 5 EasyMini files and the 2 FCB files timed in seconds: 8 flights.
 - **License:** GPL-3.0, code and data alike; a `refs/` cache with only statistics and digests committed fits it.
 
-What it does offer is 7 flights with two independent loggers aboard. Their barometric peaks differ by 0.2% to
-5.9%, which bounds how far one logger can be trusted as "the measured apogee". A board's filtered height is not
-such a reading: on 2022-06-11 it overshoots the same board's barometers by 21%.
+What it does offer is 7 flights with two independent loggers aboard. Read from pressure, their peaks differ by
+0.3% to 5.7%, which bounds how far one logger can be trusted as "the measured apogee". A logger's own height
+column can overshoot its pressure: by 21% on 2022-06-11, by 5.8% on 2026-05-16.
 
 ## The data repository
 
@@ -111,11 +111,11 @@ the stated apogee); `;` separates two rockets flown that day. "Reads": `pf2` is 
 
 That is 29 VT, 4 FAR, 2 LDRS and 1 HSV. Only the two StratoLoggerCF files state an apogee (1,530 ft and 5,608 ft
 AGL); their raw peaks sit 1.0% and 0.5% above it.
-- **Loggers disagree.** On the 7 flights with two independent loggers, in table order, the second's peak against
-  the first's is −3.4%, +20.5%, −0.2%, −0.9% and −1.7% (MBTA's two boards against the stated apogee), −1.9%,
-  −0.8% (one file doctored) and +5.9%. The +20.5% is 2022-06-11's FCB `pos_z`: its barometers read 0.904 and
-  0.509 (pad, peak), 4,486 m in the standard atmosphere if bar and 4,497 m if atm, within 0.5% of the EasyMini;
-  its GPS rose 4,749 m, as a warm day gives. On 2022-04-23 its barometers give about +4% (`pos_z` −3.4%).
+- **Loggers disagree.** On the 7 two-logger flights, in table order, the second's height-column peak against the
+  first's is −3.4%, +20.5%, −0.2%, −0.9% and −1.7% (MBTA's boards against its stated apogee), −1.9%, −0.8% and
+  +5.9%. From pressure in the standard atmosphere (5-sample median, against spikes): +5.7%, +0.3%, +4.1%, +2.6%
+  and +2.5%, +2.0%, −1.2% and +0.5%. Two height columns overshoot their own pressure: 2022-06-11's FCB `pos_z` by
+  21% (its GPS rose 4,749 m, as a warm day gives) and 2026-05-16's SillyGoose by 5.8%.
 - **Peak speeds that can't be right.** The attributes list 766 m/s (Carby Two), 521 m/s (2023-07-15 Starship) and
   477 m/s (the replayed L265 flight): noise in derived columns, unchecked (**Inference**), and not used here.
 - **Mach.** All 36 sit in the core band (Mach 0–2.5), most well subsonic. 2022-06-11's EasyMini reads 328.9 m/s
@@ -172,7 +172,7 @@ There are none for these rockets:
    data in `THIRD-PARTY-NOTICES.md`. *Done when* a refs check reproduces the 46 digests. *Effect:* none yet.
 2. **A logger-agreement reference for M7.2.** Once M7.1 reads AltOS CSV and SillyGoose text, read the 7 two-logger
    flights' barometric apogees. *Done when* each pair's difference is committed with the logger the readings trust
-   and why. *Effect:* a measured bound, 0.2% to 5.9% here, on "the measured apogee".
+   and why. *Effect:* a measured bound, 0.3% to 5.7% here, on "the measured apogee".
 3. **Ask the club for four designs** (a maintainer's call): MBTA (two L805 flights), the 2022-06-11 Beanboozler and
    the 2023-07-15 L265 flight, under a license that allows caching. *Done when* one `.ork` arrives with its as-flown
    mass. *Effect:* up to 4 more flights, 2 readable now; ADR-209 §4 holds out a flight by its hash's lowest
