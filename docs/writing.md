@@ -280,7 +280,7 @@ sizes all fail it; inside the page the sizes grow with the window, from a 16 px 
 1,024 px window to 18 px from 1,600 px, and the check reads each against the size the window's
 width gives. A line of prose over 80 characters, a median line at the measure outside 60 to 75
 characters, and a column off flush left beside the sidebar or off its 16 or 32 px gutters fail it
-too ([ADR-250](decisions/0250-the-measure-and-the-reading-scale.md)), and so do:
+too ([ADR-250](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0250-the-measure-and-the-reading-scale.md)), and so do:
 
 - text under the contrast that WCAG 2.2 AA (the W3C's Web Content Accessibility Guidelines,
   level AA) asks for against the background it is drawn on: 4.5 : 1, or 3 : 1 for text of
