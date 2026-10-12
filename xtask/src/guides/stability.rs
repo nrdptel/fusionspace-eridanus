@@ -130,8 +130,7 @@ fn same(a: &Value, b: &Value) -> bool {
         }
         (Value::Object(a), Value::Object(b)) => {
             a.len() == b.len()
-                && a
-                    .iter()
+                && a.iter()
                     .all(|(key, a)| b.get(key).is_some_and(|b| same(a, b)))
         }
         _ => a == b,
@@ -506,7 +505,11 @@ pub(super) fn quotes() -> Vec<Quote> {
                     }
                     _ => list.join(""),
                 };
-                Ok(vec![mach(r.number(REPORT, "/angle_mach")?), way.to_owned(), list])
+                Ok(vec![
+                    mach(r.number(REPORT, "/angle_mach")?),
+                    way.to_owned(),
+                    list,
+                ])
             },
         },
     ]
@@ -547,7 +550,9 @@ pub(super) fn draw_cp_against_mach(reports: &Reports) -> Result<String, String> 
         .ok_or("no rows")?
         .ceil();
     if rows.iter().any(|row| row.mach < 0.0 || row.mach > MACH_TOP) {
-        return Err(format!("a row past the figure's Mach axis, 0 to {MACH_TOP}"));
+        return Err(format!(
+            "a row past the figure's Mach axis, 0 to {MACH_TOP}"
+        ));
     }
     let y = |calibers: f64| {
         PLOT_BOTTOM - (calibers - least) / (most - least) * (PLOT_BOTTOM - PLOT_TOP)
@@ -765,10 +770,8 @@ mod tests {
         assert_eq!(stale(&root).unwrap(), None);
         let now = generate(&root).unwrap();
         let mut moved = now.clone();
-        moved["by_angle"][4]["shift_calibers"] = json!(now["by_angle"][4]["shift_calibers"]
-            .as_f64()
-            .unwrap()
-            + 10.0 * SAME);
+        moved["by_angle"][4]["shift_calibers"] =
+            json!(now["by_angle"][4]["shift_calibers"].as_f64().unwrap() + 10.0 * SAME);
         assert!(!same(&now, &moved));
         let mut shorter = now.clone();
         shorter["by_mach"].as_array_mut().unwrap().pop();
