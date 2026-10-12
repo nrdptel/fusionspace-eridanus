@@ -24,7 +24,10 @@ window, and Rev C, the same day, makes the column the limit instead.
 1. **Line length is the column's** (`foundations.md`, *Type*): prose takes its column's whole
    width, as tables, code and figures do, and nothing holds it narrower. The column stops at
    1,120 px, so that is the longest line. `cargo xtask site` prints what the system's counter
-   reads, as a report, not a rule: on 2026-10-12, at all 41 widths, "SUMMARY". That is longer
+   reads, as a report, not a rule: on 2026-10-12, at all 41 widths, "70 of 73 pages set 20
+   lines of prose or more at one or more of these widths, their medians 27 to 118 characters;
+   the longest line of prose on any page 156 characters". The highest medians come from wide
+   windows, where the text beside each sheet's rail is 904 px wide. That is longer
    than print's 45 to 75 and the US Web Design System's 90, by choice. On screen, long lines read
    faster with comprehension unchanged: 100 characters against 25 (Dyson and Kipping, *Visible
    Language* 32, 1998), and 95 the fastest of 35 to 95 (Shaikh and Chaparro, Human Factors and
