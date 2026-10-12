@@ -190,12 +190,15 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 - [ ] **M2.6 An open benchmark** (ADR-209 §9). *Done when:* public cases with design, log and
   weather, each file's license recorded; a runner scores any simulator's predictions file the same
   way; HPR Sim's and OpenRocket's scores on a docs page from a committed report. Moves: accuracy.
-- [ ] **M2.9 The other tools' cells** (ADR-240), after M3.6. *Done when:* the scoreboard's RocketPy
-  cells for accuracy, bias and round trips, OpenRocket's and RocketPy's past Mach 1 and for the 50%
-  and 90% ranges, and each tool's time for one flight on one reference machine are read from
+- [ ] **M2.9 The other tools' cells** (ADR-240, ADR-246), after M3.6. *Done when:* the scoreboard's
+  RocketPy cells for accuracy, bias and round trips, OpenRocket's and RocketPy's past Mach 1 and for
+  the 50% and 90% ranges, and each tool's time for one flight on one reference machine are read from
   committed reports, or name a capability the tool lacks, checked in its current docs with the
-  date; and RocketPy's steps to a first answer are recounted (ADR-241). Moves: none of HPR Sim's
-  numbers; it fills the columns they are compared with.
+  date; RocketPy's steps to a first answer are recounted (ADR-241); and each filled cell names the
+  release it was read from and every defect open in that tool's tracker that its own report says
+  moves apogee by more than 0.5%, with that size (unsized ones marked), flown with the fix too
+  where the fix is public and its license allows (ADR-246). Moves: none of HPR Sim's numbers; it
+  fills the columns they are compared with.
 - [ ] **M1.14 Accuracy inside the envelope** (ADR-143 §6, ADR-220). The core band (Mach 0–2.5)
   first, then the extended band in M1.14h; angle of attack ≤ 15°, high angles M1.14e's. *Done
   when:* real flights meet the 5% mean apogee target, hpr is at least as accurate as OpenRocket on
@@ -258,7 +261,10 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     Cup/IREC-style, NASA Student Launch-style, TARC-style, and a generic target apogee.
 
   *Done when:* each preset is solved end to end from both the CLI and Python, with a Pareto report
-  and a check that the winners satisfy every constraint by re-simulation.
+  and a check that the winners satisfy every constraint by re-simulation; and the Student Launch
+  preset meets ADR-246 §1: the 2027 handbook's 14 College/University limits by requirement number
+  at both ballasts, the four winds, a closed-form second method, and a test and a mutation probe
+  for the side each check errs.
 - [ ] **M6.4 Airbrakes.** Added by Neer on 2026-09-18 (VISION V16).
   - Deployable drag surfaces: added drag as a function of deployment and Mach, from a table or a
     cited semi-empirical estimate; deployment rate limits.

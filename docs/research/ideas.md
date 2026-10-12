@@ -116,47 +116,42 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
-## The 2026-10-08 planning review
+## Earlier planning reviews (2026-10-08 to 2026-10-11)
 
-- PROMOTED ([M2.3c3][m2-3c3], ADR-212): OpenRocket's newest release as the bar.
-- PROMOTED ([M2.3c7][m2-3c7], [ADR-236][adr-236]): apogees above Mach 1, from published comparisons.
-- Moved to the theme notes: a landing spread checked against tracked landings
-  ([pad and recovery](ideas-pad-and-recovery.md)); weighed against estimated mass at import
-  ([design and physics](ideas-design-and-physics.md)).
+PROMOTED: OpenRocket's newest release as the bar ([M2.3c3][m2-3c3], ADR-212), the gap to it by
+cause (M2.3c6, [ADR-226][adr-226]), apogees past Mach 1 ([M2.3c7][m2-3c7], [ADR-236][adr-236]).
+The rest moved to the theme notes on [avionics](ideas-avionics.md), [flight data](ideas-flight-data.md),
+[pad and recovery](ideas-pad-and-recovery.md) and [design and physics](ideas-design-and-physics.md).
 
-## The 2026-10-10 planning review
+## The 2026-10-12 planning review
 
-- PROMOTED to M2.3c6 ([ADR-226][adr-226]): the gap to OpenRocket split by cause.
-- Moved to the theme notes: every flight's energy closes and oracle aborts named
-  ([design and physics](ideas-design-and-physics.md)); the flight against its own log, by phase
-  ([flight data](ideas-flight-data.md)).
-
-## The 2026-10-11 planning review
-
-- SOON: the tilt-abort window. User: a flyer whose altimeter fires its drogue when the tilt passes
-  90° within 2 s of liftoff, on by default in one maker's two lines. Why: in October 2026 flyers
-  reported such early deployments on fast flights ([a forum thread][tilt-thread]). Workflow:
-  `hpr mc` prints the tilt at the window's end (median, 90th percentile, largest) and how many runs
-  cross the threshold inside it, with two-sided 95% Clopper–Pearson bounds, failed runs counted;
-  window and threshold are inputs. Moves: honest uncertainty, and the features the scoreboard
-  counts. *Done when:* `hpr mc` prints both; crossings are found on the continuous solution, not
-  at output samples; a test pins that a run touching the threshold counts, with a mutation probe.
-- SOON: thrust at altitude, bounded. User: a flyer at a field 1,400 m up writing a waiver. Workflow:
-  `hpr sim` gives the apogee with and without the ambient-pressure thrust term for a catalog motor,
-  whose file has no nozzle; the exit is at most the case's area, a sea-level test assumed (a test
-  site above the field would make the term negative). Why: OpenRocket's development line added the
-  term on 2026-09-23 (its PR #3327). Leaving it out errs low, the flattering side for a waiver; the
-  term raises the apogee, so it grows the collection's +8.73% mean bias. Moves: that bias, and
-  hpr-less-OpenRocket once M2.3c3 flies its newest release. *Done when:* `hpr sim` prints both; the
-  fixture report gives the bound's median and largest as aggregates; a test pins it by hand and
-  that the bounded apogee is never below the other.
-- SOON: rail tip-off. User: a flyer of a heavy rocket leaving a short rail slowly. Workflow:
-  `hpr sim` lets the rocket pitch about the aft guide, which slides along the rail, between the
-  forward guide's release and the aft one's (not modeled today), and prints the pitch rate and angle
-  of attack at rail exit. Why: RocketPy's development line added that phase in September 2026 (its
-  PR #920). Moves: angle of attack at rail exit against RocketPy, not measured today. *Done when:*
-  a body on a frictionless line under gravity matches the energy integral
-  ω² = 2mgd(sin θ₀ − sin θ)/(I_cg + md² cos² θ), and RocketPy's example's pitch rate is within 5%.
+- PROMOTED into [M6.3][m6-3] ([ADR-246][adr-246]): Student Launch's 2027 College/University
+  limits by requirement number, a second method for descent, each check's error side pinned.
+- SOON: Student Launch's checks in one command. User: a Student Launch team's safety lead before a
+  design review. Workflow: one `hpr` command runs the M6.3 preset on a design and prints every
+  limit's reading against it, at both ballasts and four winds. Moves: a new
+  `steps.command-line` row for that task, with each tool's count or *can't* by its docs. *Done
+  when:* the row is in `validation/steps/`, HPR Sim's file is run by a test, and the scoreboard
+  shows it.
+- SOON: motor curves checked against the certifier. User: a flyer simulating offline on a cached
+  curve. Why: in September 2026 a contributor replaced 63 ThrustCurve curves and had 70 deleted
+  for rows doubled at time zero, times out of order and impulse off the certification
+  ([its thread][tc-thread]); NAR's retests of 17 motors, F and smaller, ran a median 9.4% below
+  their older test mean, which the catalog keeps on 15 ([motor data](motor-data.md)). Workflow:
+  `hpr motors check` flags each defect class and an impulse off the certifier's latest mean beyond
+  its tolerance; `hpr sim` also flies the certifier's impulse, thrust scaled at a fixed burn time
+  and propellant with it, each check taking its worse side. Moves: `bias.public` and
+  `bias.collection`, flown both ways. *Done when:* a fixture per defect class is flagged and a
+  clean curve isn't; both reports give the bias with flagged flights at the certifier's mean, and
+  their count (groups under 5 flights as a count only).
+- LATER: aero tables OpenRocket can read. User: a flyer checking a design in both tools. Why:
+  OpenRocket's development line reads drag and stability lookup tables, documented in its user
+  guide ([a forum thread][or-tables], 2026-10-03). Workflow: `hpr aero` writes HPR Sim's drag and
+  center of pressure against Mach in that format for OpenRocket to fly. Moves: [M2.3c6][m2-3c6]'s
+  split of the 0.93-point gap in `accuracy.collection`, isolating aerodynamics. *Done when:* on 10
+  public designs and the collection (as aggregates), both tools' apogees with and without the
+  tables are published; a test pins the file to bytes derived by hand from the format's docs.
+- Moved to [flight data](ideas-flight-data.md) on arrival: GNSS altitude distrusted in boost.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -197,4 +192,7 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 [adr-226]: ../decisions/0226-the-2026-10-10-review-the-gap-to-openrocket-by-cause.md
 [m2-3c7]: ../decisions-and-roadmap.md#m2-3c7
 [adr-236]: ../decisions/0236-the-2026-10-11-review-supersonic-flights-from-published-comparisons.md
-[tilt-thread]: https://www.rocketryforum.com/threads/emergency-deployment-option-for-unstable-flights.194466/
+[adr-246]: ../decisions/0246-the-2026-10-12-review-student-launch-by-requirement-and-oracle-defects.md
+[m2-3c6]: ../decisions-and-roadmap.md#m2-3c6
+[tc-thread]: https://www.rocketryforum.com/threads/thrustcurve-open-thread.164391/page-30
+[or-tables]: https://www.rocketryforum.com/threads/omg-openrocket-26xx-sapshot-drag-csv-and-stability-csv.199161/

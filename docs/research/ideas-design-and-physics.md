@@ -104,6 +104,23 @@ From the 2026-10-10 planning review:
   development line removed a false tumble abort on finless boosters; 24.12 still has it). Moves: the
   OpenRocket examples within 5% (45 of 53 today), with aborts kept apart. *Done when:* the
   OpenRocket reports count aborts by event, and a probe design with a finless booster shows one.
+- SOON: thrust at altitude, bounded. User: a flyer at a field 1,400 m up writing a waiver. Workflow:
+  `hpr sim` gives the apogee with and without the ambient-pressure thrust term for a catalog motor,
+  whose file has no nozzle; the exit is the drawn one where published, else bounded by the
+  nozzle cap's bore (AeroTech RMS) or the aft boss (Cesaroni), an inferred bound 2 to 6 times below
+  the case's area ([motor data](motor-data.md) §2), else the case's area, a sea-level test assumed (a test site above the field would make the term negative). Why: OpenRocket's development line added the
+  term on 2026-09-23 (its PR #3327). Leaving it out errs low, the flattering side for a waiver; the
+  term raises the apogee, so it grows the collection's +8.73% mean bias. Moves: that bias, and
+  hpr-less-OpenRocket once M2.3c3 flies its newest release. *Done when:* `hpr sim` prints both; the
+  fixture report gives the bound's median and largest as aggregates; a test pins it by hand and
+  that the bounded apogee is never below the other.
+- SOON: rail tip-off. User: a flyer of a heavy rocket leaving a short rail slowly. Workflow:
+  `hpr sim` lets the rocket pitch about the aft guide, which slides along the rail, between the
+  forward guide's release and the aft one's (not modeled today), and prints the pitch rate and angle
+  of attack at rail exit. Why: RocketPy's development line added that phase in September 2026 (its
+  PR #920). Moves: angle of attack at rail exit against RocketPy, not measured today. *Done when:*
+  a body on a frictionless line under gravity matches the energy integral
+  ω² = 2mgd(sin θ₀ − sin θ)/(I_cg + md² cos² θ), and RocketPy's example's pitch rate is within 5%.
 
 [m1-14f]: ../decisions-and-roadmap.md#m1-14f
 [m8-3]: ../decisions-and-roadmap.md#m8-3

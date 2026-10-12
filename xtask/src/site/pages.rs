@@ -253,8 +253,10 @@ const FRAMES_PER_TAB: usize = 3;
 /// The most tabs, each its own browser process; fewer on a machine with fewer cores. With four,
 /// the check took 114 s on an M-series Mac on 2026-10-09, with five readings of each page's style
 /// at each width, 160 s once it read each page's frame too, and 191 s with what a keyboard and
-/// forced colors need (#432).
-const MOST_TABS: usize = 4;
+/// forced colors need (#432). On 2026-10-12, on a 10-core Mac, the check took 182 s with four, 134 s
+/// with six and 118 s with eight, every count and check the same each time; six keeps the browsers'
+/// summed memory near 10 GB against 12 GB at eight. CI's 4-core runners still run four.
+const MOST_TABS: usize = 6;
 /// How long the check waits for any news from the browser before it gives up.
 const STALL: Duration = Duration::from_secs(300);
 /// How long the whole check may take.
