@@ -71,10 +71,11 @@ worker at `/sw.js` and has a page per project at `/projects/<id>`. hpr's own pag
    - a font fails to load, or the browser logs an error (a missing file, a request the security
      policy refused, an exception).
 
-   It finds the pages itself (every `.html` under `site/`). Of the 46 pages under
-   `checks/canaries/`, 44 are built to fail one way and name it, and a test requires the check to
+   It finds the pages itself (every `.html` under `site/`). Of the 47 pages under
+   `checks/canaries/`, 45 are built to fail one way and name it, and a test requires the check to
    find exactly that kind there; the other two (a clean page, and a claim beside its comparison)
-   must pass, as the site must.
+   must pass, as the site must. One of them holds 23 claim sentences, a paragraph each, and a
+   test requires every one to be reported on its own.
 7. **The "better" rule** ([ADR-209][adr-209] §2), one rule after three rounds of review found
    phrasings a word list missed: a claim is anything that compares. That is any "than" ("smaller
    error than", "more reliable than"), any multiple ("twice as accurate as", "three times the accuracy"), and the words that
