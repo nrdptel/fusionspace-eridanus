@@ -931,9 +931,12 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let root = crate::designs::root()?;
     match args {
         [] => {
-            let report = stability::written(&stability::generate(&root)?)?;
-            fs::write(root.join(stability::REPORT), report)
-                .map_err(|error| format!("{}: {error}", stability::REPORT))?;
+            // Written only when stale, so another platform's last bits leave no diff.
+            if stability::stale(&root)?.is_some() {
+                let report = stability::written(&stability::generate(&root)?)?;
+                fs::write(root.join(stability::REPORT), report)
+                    .map_err(|error| format!("{}: {error}", stability::REPORT))?;
+            }
             let reports = Reports::load(&root)?;
             for (path, figure) in figures(&reports)? {
                 fs::write(root.join(path), figure).map_err(|error| format!("{path}: {error}"))?;

@@ -28,16 +28,25 @@ the center of pressure errs.
 3. **The flattering mark.** A center of pressure aft of the true one makes the margin read high.
    The figure marks each speed with a positive `cp_error_calibers` in the caution color; the new
    `aero_mach` test `a_cp_aft_of_the_reference_reads_a_higher_margin` pins that a CP aft of the
-   reference's is a positive error and a margin higher by that much at any CG, and the guide's
+   reference's is a positive error, and that `hpr_sim::metrics::margin`, the margin HPR Sim
+   prints, reads higher by that much at any CG (on the Arcas Robin's CPs at two speeds), and the guide's
    `the_flattering_marks_are_the_speeds_aft_of_the_tunnel` that the marks are exactly those
    speeds. The guide names the first.
-4. **The worst case is quoted from both models.** The trust note quotes the largest error aft over
-   both of the tunnel's models (2.36 calibers on the longer one), not the drawn model's alone, so
-   the page doesn't state a smaller error than the comparison holds.
-5. **The angle section marks no side.** HPR Sim's body lift is checked against bodies without
+4. **The worst case is quoted from both models, and bounds round outward.** The trust note quotes
+   the largest error aft on each of the tunnel's models (up to 2.37 calibers on the longer one,
+   1.35 on the drawn one), not the drawn model's alone, and the longer model's count within the
+   target beside the drawn one's. Every "up to" or "within" bound rounds up, so the page never
+   states a smaller error than the comparison holds.
+5. **The subsonic disagreement is stated.** From Mach 0.6 to 0.8 the tunnel's center of pressure
+   moved forward while HPR Sim's moved aft, and at Mach 0.8, still on its subsonic fin method,
+   HPR Sim's sat 0.91 calibers aft. The guide quotes both, says the tunnel doesn't bear out the
+   subsonic aft shift on that rocket, and says its worked numbers on the guide rocket are the
+   model's, not a measurement. A test holds the figure's shaded band to HPR Sim's own join on
+   the Arcas fins (`TRANSONIC_START_MACH` to their `supersonic_mach`).
+6. **The angle section marks no side.** HPR Sim's body lift is checked against bodies without
    fins, but nothing measured checks the whole rocket at a larger angle, so the guide says so and
    draws no mark. Its numbers show the model's behavior on the guide rocket.
-6. **The mutation probe also shortens lists.** A count of rows is an array's length, which moving
+7. **The mutation probe also shortens lists.** A count of rows is an array's length, which moving
    a value can't change; the probe now also drops a list's last item, so such a count is probed
    too.
 
@@ -45,8 +54,10 @@ the center of pressure errs.
 
 - **Draw the guide rocket's center of pressure by Mach number.** Rejected as the figure: it is
   HPR Sim's model alone. The guide quotes it in words instead.
-- **Quote the short model's worst error (1.34 calibers) in the trust note.** Rejected: the
-  comparison holds a larger one on the longer model, and the smaller would flatter.
+- **Quote the short model's worst error alone in the trust note.** Rejected: the comparison
+  holds a larger one on the longer model, and the smaller would flatter.
+- **Round bounds to the nearest hundredth.** Rejected: 0.3446 would read "within 0.34", a bound
+  the data breaks, on the flattering side.
 - **Compare the report's text exactly.** Rejected: aerodynamics through `sin`, `atan` and `sqrt`
   can differ in the last bit between platforms, which would fail CI with no change.
 

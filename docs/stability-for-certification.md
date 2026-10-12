@@ -280,6 +280,7 @@ The margin's checks, case by case:
 - **Near the speed of sound:** between Mach 0.8 and 1.2, HPR Sim's center of pressure is up to 2.36
   calibers behind NASA's wind-tunnel data, and wherever it misses by more than half a caliber it
   sits behind, so the flight margin there reads high: the flattering side
-  ([Known gaps](accuracy.md#known-gaps); [Stability in flight](stability-in-flight.md) draws it). The static margin is computed at Mach 0, so it says
+  ([Known gaps](accuracy.md#known-gaps); [Stability in flight](stability-in-flight.md) shows it
+  against the tunnel). The static margin is computed at Mach 0, so it says
   nothing about the rocket's stability in that range; use the transonic guidance
   [above](#compare-with-published-guidance).

@@ -166,6 +166,12 @@ fn calibers(value: f64) -> String {
     fixed(value, 2)
 }
 
+/// A bound in calibers, "up to" or "within" it: rounded up to two places, so the page never
+/// states a smaller error than the comparison holds.
+fn bound(value: f64) -> String {
+    calibers((value * 100.0).ceil() / 100.0)
+}
+
 /// The direction of a move along the rocket: aft for a positive one.
 fn direction(value: f64) -> &'static str {
     if value > 0.0 { "aft" } else { "forward" }
@@ -245,7 +251,7 @@ impl Reports {
             .as_array()
             .map(Vec::len)
             .ok_or_else(|| format!("{TUNNEL}'s {model} has no rows"))?;
-        (0..count)
+        let rows = (0..count)
             .map(|at| {
                 let row = format!("{model}/rows/{at}");
                 let number = |key: &str| self.number(TUNNEL, &format!("{row}/{key}"));
@@ -258,8 +264,20 @@ impl Reports {
                     uncertainty_calibers: number("cp_uncertainty_calibers")?,
                 })
             })
-            .collect()
+            .collect::<Result<Vec<_>, String>>()?;
+        // The quotes read the first and last rows as the slowest and fastest.
+        if rows.windows(2).any(|pair| pair[0].mach >= pair[1].mach) {
+            return Err(format!("{TUNNEL}'s {id} rows are not in rising Mach order"));
+        }
+        Ok(rows)
     }
+}
+
+/// The fastest row on HPR Sim's subsonic fin method, at the transonic band's lower edge.
+fn last_subsonic(rows: &[TunnelRow]) -> Result<&TunnelRow, String> {
+    rows.iter()
+        .rfind(|row| row.band == "subsonic")
+        .ok_or_else(|| "no subsonic row".to_owned())
 }
 
 /// The row where HPR Sim's CP sits furthest aft of the tunnel's, the flattering side.
@@ -333,6 +351,9 @@ fn angle_shifts(r: &Reports) -> Result<(Shifts, &'static str), String> {
             shifts.push((alpha, shift));
         }
     }
+    if shifts.windows(2).any(|pair| pair[0].0 >= pair[1].0) {
+        return Err(format!("{REPORT}'s angles are not in rising order"));
+    }
     let way = direction(shifts.last().ok_or("no angle above zero")?.1);
     Ok((shifts, way))
 }
@@ -341,20 +362,30 @@ fn angle_shifts(r: &Reports) -> Result<(Shifts, &'static str), String> {
 pub(super) fn quotes() -> Vec<Quote> {
     vec![
         Quote {
-            template: "aft of the tunnel's by up to {} calibers",
+            template: "aft of the tunnel's by up to {} calibers on a longer model, and up to {} \
+                       on the one the figure draws",
             holes: |r| {
-                let mut rows = r.tunnel_rows()?;
-                rows.extend(r.tunnel_rows_of(TUNNEL_LONG)?);
-                Ok(vec![calibers(furthest_aft(&rows)?.error_calibers)])
+                let long = r.tunnel_rows_of(TUNNEL_LONG)?;
+                let short = r.tunnel_rows()?;
+                Ok(vec![
+                    bound(furthest_aft(&long)?.error_calibers),
+                    bound(furthest_aft(&short)?.error_calibers),
+                ])
             },
         },
         Quote {
             template: "On the longer model the tunnel also tested, it sat up to {} calibers aft, \
-                       at Mach {}",
+                       at Mach {}, and {} of its {} speeds are within the target",
             holes: |r| {
                 let rows = r.tunnel_rows_of(TUNNEL_LONG)?;
                 let worst = furthest_aft(&rows)?;
-                Ok(vec![calibers(worst.error_calibers), mach(worst.mach)])
+                let (within, _) = within_target(r, &rows)?;
+                Ok(vec![
+                    bound(worst.error_calibers),
+                    mach(worst.mach),
+                    within.to_string(),
+                    rows.len().to_string(),
+                ])
             },
         },
         Quote {
@@ -434,7 +465,7 @@ pub(super) fn quotes() -> Vec<Quote> {
                     .map(|row| row.error_calibers.abs())
                     .reduce(f64::max)
                     .ok_or("no supersonic row")?;
-                Ok(vec![mach(above), calibers(worst)])
+                Ok(vec![mach(above), bound(worst)])
             },
         },
         Quote {
@@ -445,15 +476,51 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "at Mach {} it sat {} calibers aft",
+            template: "In the join it didn't follow either: it sat up to {} calibers aft, at Mach {}",
             holes: |r| {
                 let rows = r.tunnel_rows()?;
-                let worst = furthest_aft(&rows)?;
-                Ok(vec![mach(worst.mach), calibers(worst.error_calibers)])
+                let join: Vec<TunnelRow> = rows
+                    .into_iter()
+                    .filter(|row| row.band == "transonic")
+                    .collect();
+                let worst = furthest_aft(&join)?;
+                Ok(vec![bound(worst.error_calibers), mach(worst.mach)])
             },
         },
         Quote {
-            template: "good to between {} and {} calibers either way",
+            template: "From Mach {} to {} the tunnel's center of pressure moved {} by {} \
+                       calibers, while HPR Sim's moved {} by {}",
+            holes: |r| {
+                let rows = r.tunnel_rows()?;
+                let first = rows.first().ok_or("no rows")?;
+                let last = last_subsonic(&rows)?;
+                let tunnel = last.measured_calibers - first.measured_calibers;
+                let hpr = last.hpr_calibers - first.hpr_calibers;
+                Ok(vec![
+                    mach(first.mach),
+                    mach(last.mach),
+                    direction(tunnel).to_owned(),
+                    calibers(tunnel.abs()),
+                    direction(hpr).to_owned(),
+                    calibers(hpr.abs()),
+                ])
+            },
+        },
+        Quote {
+            template: "At Mach {}, still on its subsonic fin method, HPR Sim's sat {} calibers {} \
+                       of the tunnel's",
+            holes: |r| {
+                let rows = r.tunnel_rows()?;
+                let last = last_subsonic(&rows)?;
+                Ok(vec![
+                    mach(last.mach),
+                    calibers(last.error_calibers.abs()),
+                    direction(last.error_calibers).to_owned(),
+                ])
+            },
+        },
+        Quote {
+            template: "read off the reports' plots to within {} to {} calibers either way",
             holes: |r| {
                 let rows = r.tunnel_rows()?;
                 let uncertainties = rows.iter().map(|row| row.uncertainty_calibers);
@@ -819,6 +886,32 @@ mod tests {
         assert!(crate::figures::drawing::check(&figure).is_empty());
         assert!(figure.contains(">the join<"));
         assert!(figure.contains("flatters a margin"));
+    }
+
+    /// The figure's shaded band is where HPR Sim joins its fin methods on the Arcas Robin: from
+    /// the subsonic method's last Mach number to where linear theory starts for its fins.
+    #[test]
+    fn the_join_edges_are_the_arcas_fins() {
+        let root = crate::designs::root().unwrap();
+        let (_, model) =
+            crate::aero_mach::load_design(&root, "wind-tunnel-arcas-robin-short.json").unwrap();
+        let start = model
+            .fin_sets()
+            .iter()
+            .map(|set| set.fin.supersonic_mach())
+            .reduce(f64::min)
+            .unwrap();
+        let (below, above) = join_edges(&reports().tunnel_rows().unwrap()).unwrap();
+        assert_eq!(below, hpr_aero::fins::TRANSONIC_START_MACH);
+        assert!((above - start).abs() < 1e-9, "{above} against {start}");
+    }
+
+    /// A bound rounds up, so it never states less than the error.
+    #[test]
+    fn bounds_round_up() {
+        assert_eq!(bound(0.3446), "0.35");
+        assert_eq!(bound(2.3633), "2.37");
+        assert_eq!(bound(0.5), "0.50");
     }
 
     /// Mach numbers are written to two places, without trailing zeros.
