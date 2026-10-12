@@ -48,6 +48,11 @@
 
 [Accuracy](accuracy.md)
 
+# Product guides
+
+- [HPR Sim](the-simulator.md)
+  - [A tour of HPR Sim](simulator-tour.md)
+
 # Rocketry explained
 
 - [Trusting a simulation](trusting-a-simulation.md)
