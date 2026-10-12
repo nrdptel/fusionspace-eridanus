@@ -12,7 +12,8 @@ reads a page once and knows what it says and how far to trust it.
 
 > **How far to trust it.** This page is rules, not results. The build holds some of them on every
 > change: `cargo xtask spelling` reads each page's words and names, and counts its exceptions on
-> every run; `cargo xtask site` counts each page's sheets, fails one outside two to six, fails a
+> every run; `cargo xtask guides` reads every number in a guide's text from a committed report;
+> `cargo xtask site` counts each page's sheets, fails one outside two to six, fails a
 > trust note or an alert off its shape, and fails a hyphen for a minus sign or a column of numbers
 > not right-aligned. Reviews hold the rest. Where this page and a check
 > disagree, the check is what the build enforces, and the gap is a bug to report.
@@ -158,6 +159,41 @@ is one kind; a page that mixes them is split when it is next touched.
 | How-to guide | get one task done | [Launch-day weather](weather.md) |
 | Reference | look a fact up | [The command line](cli.md) |
 | Explanation | understand why | [How a flight is simulated](how-a-flight-is-simulated.md) |
+
+### The guides' format
+
+*Rocketry explained*'s guides are explanation pages about the physics behind HPR Sim's numbers,
+such as [Trusting a simulation](trusting-a-simulation.md). Each follows one format
+([the guides' decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0195-the-2026-10-07-guides-rocketry-explained.md)),
+and the build holds the parts marked as checked:
+
+1. **It opens with what it covers, who it is for and how far to trust it:** the one-sentence
+   lead, a paragraph that names its reader, then the trust note.
+2. **Words come before equations, then a worked example** whose numbers a program run in CI
+   prints: a block that `cargo xtask cli` regenerates, or heights and misses quoted from a
+   committed report.
+3. **Every number in its text is read from a committed report, or sits in a regenerated block**
+   (checked). A quote in `xtask/src/guides.rs` fills its numbers from a report, and
+   `cargo xtask guides` fails a page that doesn't hold the quote word for word, and any number in
+   the page's text that no quote reads. Its tests move each value every quote reads and fail
+   unless the page check then fails: a mutation probe for every number. Code, such as a
+   command's flags, and a decision record's label don't count. Write small numbers in digits,
+   so the check sees them.
+4. **Each figure shows one idea,** in the system's drawing language, and is drawn from the
+   reports by `cargo xtask guides` (checked: a test fails a committed figure the reports no
+   longer draw).
+5. **Uncertainty is drawn as a band, and the flattering side is marked,** tied to the test that
+   pins which way the quantity errs; the guide names that test.
+6. **Nothing is clipped** (checked, by the three checks in [Nothing cut off](#nothing-cut-off)).
+7. **No verdicts, and nothing copied.** No guide says a rocket is safe or will pass: the safety
+   code and the range safety officer decide. A charge size appears only as a range, after
+   "ground test first". The NFPA's codes, the certification exams' question pools, the magazines
+   and OpenRocket's share-alike documentation are cited and linked, never copied, and no exam
+   question is answered. NASA's public-domain figures may be reused with credit.
+
+A new guide goes in `SUMMARY.md` under *Rocketry explained*, and in `guides()` in
+`xtask/src/guides.rs` with its quotes and figures; one with a regenerated block also goes in the
+list of guides in `xtask/src/cli.rs`.
 
 ## Nothing cut off
 

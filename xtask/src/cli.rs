@@ -39,10 +39,11 @@ const SCHEMAS: &str = "schema/cli";
 /// The guide's page.
 const PAGE: &str = "docs/cli.md";
 /// The how-to guides, whose examples are run as the guide's are.
-const GUIDES: [&str; 3] = [
+const GUIDES: [&str; 4] = [
     "docs/fly-your-ork.md",
     "docs/pick-a-motor.md",
     "docs/stability-for-certification.md",
+    "docs/trusting-a-simulation.md",
 ];
 /// The guide's `--plot` figure: where it goes, and the command that draws it, its last argument
 /// the file it writes.

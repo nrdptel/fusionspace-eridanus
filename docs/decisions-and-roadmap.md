@@ -270,6 +270,7 @@ until someone rewrites it in plainer words.
 | [ADR-239: The words to the design: spelling, minus signs, number columns and the READMEs][adr-239] | `xtask spelling` reads the British forms the design audit found and the others a survey of the pages turned up, and the project now writes them in US English, renamed code names included; the site check fails a hyphen-minus written for a minus sign and a table column of numbers that isn't right-aligned; the READMEs follow `writing.md`'s order with a status word and the version, held by a test. What #386 listed beyond [M0.9e](#m0-9e)'s *done when* moves to #476 and a new increment, [M0.9f](#m0-9f), before release 0.2. |  |
 | [ADR-240: The scoreboard: its cells, its ratchet, and the cells no milestone measured][adr-240] | `cargo xtask scoreboard` writes `validation/reports/scoreboard.{json,md}`: HPR Sim against OpenRocket 24.12 and RocketPy 1.13.0 on accuracy, bias, honest uncertainty, speed, round trips, features and steps to a first answer, each number read by key from a committed report and kept as printed, each unmeasured cell naming the open milestone that measures it. A check in the `xtask` tests, and in CI against main's committed scoreboard, fails when one of HPR Sim's numbers prints worse, counts fewer flights or designs, or a measured cell is no longer measured, unless an accepted ADR names that cell and the next release in a `- **Scoreboard:**` line. A new milestone, [M2.9](#m2-9), measures the other tools' cells that no milestone did, and every tool's speed. |  |
 | [ADR-241: Steps to a first answer: what a step is, and a tool that can't][adr-241] | The scoreboard counts the steps to open a design's `.ork` file, fly it once and see its apogee, and get its landing spread, from a fresh start, in four rows: commands, script lines (one statement each), clicks and typed entries, each kind apart. HPR Sim's commands and Python lines are files a test runs; OpenRocket's and RocketPy's steps come from their documentation, each step citing its page, with the release and the date read. A way in that a tool lacks, or a task it can't do that way, is a cell that says *can't*, with its source and the steps to the last task it reaches. HPR Sim takes 2 commands or 9 script lines; OpenRocket 24.12 opens and flies in 7 clicks but has no Monte Carlo; RocketPy 1.13.0 reads no `.ork` file. |  |
+| [ADR-242: The guides' format and the trust guide, every number read from a report][adr-242] | The guides' format is a section of the writing guide. The first guide, *How far to trust a simulation*, is a top-level page in a new *Rocketry explained* part of the site. `cargo xtask guides` holds every number in a guide's prose to a committed report: a quote fills its holes from the report's JSON, a page must hold it word for word, and any other number in the prose fails. The tests move every value each quote reads, one at a time, and require each hole to change and the page check to fail: a mutation probe per number, automated. The guide's figure, HPR Sim's apogee misses on 53 logged flights by bin, is drawn from the same report by the same command, the band within 10% shaded and the low side marked as the one that flatters a ceiling, tied to a new test of a miss's sign. |  |
 
 ## The roadmap
 
@@ -362,7 +363,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-7"></a>[M0.7][phase-0] | Rocketry explained: guides to high-power rocketry on the docs site, illustrated, then live ([ADR-195][adr-195]) | not yet done |
 | <a id="m0-7a"></a>[M0.7a][phase-0] | The format and four guides | not yet done |
 | <a id="m0-7a1"></a>[M0.7a1][done-0] | The no-clipping checks | done |
-| <a id="m0-7a2"></a>[M0.7a2][phase-0] | The format and the trust guide | not yet done |
+| <a id="m0-7a2"></a>[M0.7a2][done-0] | The format and the trust guide | done |
 | <a id="m0-7a3"></a>[M0.7a3][phase-0] | Stability | not yet done |
 | <a id="m0-7a4"></a>[M0.7a4][phase-0] | Fin flutter | not yet done |
 | <a id="m0-7a5"></a>[M0.7a5][phase-0] | Drag through Mach 1 | not yet done |
@@ -1048,6 +1049,7 @@ is the milestone that added or will add that test.
 [adr-239]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0239-the-words-to-the-design.md
 [adr-240]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0240-the-scoreboard.md
 [adr-241]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0241-steps-to-a-first-answer.md
+[adr-242]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0242-the-guides-format-and-the-trust-guide.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

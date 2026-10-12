@@ -2293,7 +2293,7 @@ fn untraced_numbers(
 
 /// A number as a page or a source writes it.
 #[derive(Debug, Clone, PartialEq)]
-struct Quoted {
+pub(crate) struct Quoted {
     /// Its digits, with any decimal point and exponent: `2.865`, `1e-6`, `10⁻¹²`, `1.2×10⁻⁶`.
     /// Thousands separators are dropped, and a minus is always `-`.
     digits: String,
@@ -2340,7 +2340,7 @@ const SUPERSCRIPTS: &str = "⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺";
 /// (`M1.8`, `C_D0`, `v1.13.0`), and so is a whole number glued to a [`WORD_SUFFIXES`] after it
 /// (`3D`, `1st`); one glued to its unit (`12.5m`, `3048m`) is a number. A `#` makes an issue's
 /// number (`#39`), which is not quoted.
-fn quoted(text: &str) -> Vec<Quoted> {
+pub(crate) fn quoted(text: &str) -> Vec<Quoted> {
     let chars: Vec<char> = normalized(text).chars().collect();
     let digit = |at: usize| chars.get(at).is_some_and(char::is_ascii_digit);
     let superscript = |at: usize| chars.get(at).is_some_and(|c| SUPERSCRIPTS.contains(*c));

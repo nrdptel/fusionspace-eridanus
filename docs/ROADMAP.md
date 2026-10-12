@@ -99,9 +99,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     page check fails when `scrollWidth > clientWidth` from 320 to 1,920 px in 40 px steps, each
     with a test that moves one label out and fails; a third fails on text over text, with a test
     that overlaps two labels; all three also run on the site's other pages and `--plot` (ADR-198).
-    - [ ] **M0.7a2 The format and the trust guide** (how far to trust a simulation). *Done when:*
-      the format is in `docs/writing.md`; the guide meets it, ADR-195 §7 and M0.7a's terms on
-      numbers and marks, read cold in a docs review, and passes M0.7a1's checks.
     - [ ] **M0.7a3 Stability.** *Done when:* as M0.7a2.
     - [ ] **M0.7a4 Fin flutter.** *Done when:* as M0.7a2.
     - [ ] **M0.7a5 Drag through Mach 1.** *Done when:* as M0.7a2; Neer has read all four guides.

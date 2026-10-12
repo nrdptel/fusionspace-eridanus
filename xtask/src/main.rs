@@ -41,6 +41,7 @@ mod fixture_flights;
 mod format;
 mod format_types;
 mod grib2;
+mod guides;
 mod layering;
 mod motor_catalog;
 mod names;
@@ -97,6 +98,7 @@ Commands:
 {SPELLING}
 {EXAMPLES}
 {FIGURES}
+{GUIDES}
 {FORMAT}
 {GRIB2}
 {ORK}
@@ -126,6 +128,7 @@ fn usage() -> String {
         .replace("{SPELLING}", spelling::USAGE)
         .replace("{EXAMPLES}", examples::USAGE)
         .replace("{FIGURES}", figures::USAGE)
+        .replace("{GUIDES}", guides::USAGE)
         .replace("{FORMAT}", format::USAGE)
         .replace("{GRIB2}", grib2::USAGE)
         .replace("{ORK}", ork::USAGE)
@@ -157,6 +160,7 @@ fn main() -> ExitCode {
         Some("spelling") => spelling::run(&args.collect::<Vec<_>>()),
         Some("examples") => examples::run(&args.collect::<Vec<_>>()),
         Some("figures") => figures::run(&args.collect::<Vec<_>>()),
+        Some("guides") => guides::run(&args.collect::<Vec<_>>()),
         Some("format") => format::run(&args.collect::<Vec<_>>()),
         Some("grib2-values") => grib2::run(&args.collect::<Vec<_>>()),
         Some("ork") => ork::run(&args.collect::<Vec<_>>()),

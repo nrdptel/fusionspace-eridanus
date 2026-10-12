@@ -1396,6 +1396,26 @@ mod tests {
         assert_eq!(Stats::of([-31.0].into_iter()).histogram[0], 1);
     }
 
+    /// A simulated apogee below the logged one is a negative miss, in a bin below zero's bound:
+    /// the low side, which flatters a ceiling, and which the trust guide's figure marks
+    /// (`guides`). One at or above the logged one is in the bin from zero up.
+    #[test]
+    fn a_low_simulated_apogee_is_a_negative_miss() {
+        assert_eq!(percent(90.0, 100.0), -10.0);
+        assert_eq!(percent(110.0, 100.0), 10.0);
+        let zero = BINS_PERCENT.iter().position(|&bound| bound == 0.0).unwrap();
+        let low = Stats::of([percent(99.0, 100.0)].into_iter());
+        assert_eq!(
+            low.histogram.iter().position(|&count| count == 1),
+            Some(zero)
+        );
+        let even = Stats::of([percent(100.0, 100.0)].into_iter());
+        assert_eq!(
+            even.histogram.iter().position(|&count| count == 1),
+            Some(zero + 1)
+        );
+    }
+
     /// A histogram that misses a flight, or counts out of order, is caught.
     #[test]
     fn inconsistent_statistics_are_caught() {
