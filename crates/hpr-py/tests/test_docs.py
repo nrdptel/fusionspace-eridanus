@@ -19,7 +19,10 @@ import re
 BLOCK = re.compile(r"```(python|text)\n(.*?)```", re.DOTALL)
 PYTHON_EXAMPLE = "<!-- python: example -->"
 PYTHON_END = "<!-- python: end -->"
-MARKED = re.compile(re.escape(PYTHON_EXAMPLE) + r"\n(.*?)" + re.escape(PYTHON_END), re.DOTALL)
+# A marker is a line of its own, as the guides check reads it (`xtask/src/guides.rs`).
+MARKED = re.compile(
+    "^" + re.escape(PYTHON_EXAMPLE) + r"\n(.*?)^" + re.escape(PYTHON_END) + "$", re.DOTALL | re.MULTILINE
+)
 WRITE = os.environ.get("HPR_WRITE_DOCS") == "1"
 TOUR = "docs/simulator-tour.md"
 
@@ -45,6 +48,7 @@ def marked_blocks(name, page):
         kinds = [block.group(1) for block in inside]
         assert kinds == ["python", "text"], f"{name}: a marked region holds {kinds}"
         assert page.count("```", region.start(1), region.end(1)) == 4, f"{name}: a stray fence"
+        assert page.count("~~~", region.start(1), region.end(1)) == 0, f"{name}: a stray fence"
         pairs.append((inside[0].group(2), inside[1].span(2)))
     assert page.count(PYTHON_EXAMPLE) == page.count(PYTHON_END) == len(pairs), (
         f"{name}: a python marker without its pair"
