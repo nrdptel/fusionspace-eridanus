@@ -6,7 +6,7 @@
 //! round trips through OpenRocket's file and each tool's count of the table's capabilities from
 //! the scoreboard, which reads them from theirs.
 
-use super::{Quote, REAL, Reports, fixed, percent, set_count, set_number, signed_percent};
+use super::{FIXTURE, Quote, REAL, Reports, above, fixed, percent, set_count, set_number};
 use crate::scoreboard::SCOREBOARD_JSON as SCOREBOARD;
 
 /// The pointer of `tool`'s cell in the scoreboard's row `id`, found by reading the rows' and the
@@ -69,23 +69,37 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "with their signs, HPR Sim's averaged {} and OpenRocket's {}",
+            template: "with their signs, HPR Sim's averaged {} the logged apogees and OpenRocket's {}",
             holes: |r| {
                 Ok(vec![
-                    signed_percent(set_number(r, "hpr", "mean_percent")?, 2),
-                    signed_percent(set_number(r, "openrocket", "mean_percent")?, 2),
+                    above(set_number(r, "hpr", "mean_percent")?),
+                    above(set_number(r, "openrocket", "mean_percent")?),
                 ])
             },
         },
         Quote {
-            template: "On the {} public flights HPR Sim missed by {} on average without signs",
+            template: "HPR Sim flew {} of its {} flights whose design is an OpenRocket file",
             holes: |r| {
+                Ok(vec![
+                    r.count(FIXTURE, "/counts/flown_by_hpr")?.to_string(),
+                    r.count(FIXTURE, "/counts/from_ork")?.to_string(),
+                ])
+            },
+        },
+        Quote {
+            template: "On the {} public flights HPR Sim missed by {} on average without signs, \
+                       outside the project's own {} target",
+            holes: |r| {
+                if r.flag(REAL, "/summary/within_target")? {
+                    return Err("the public flights now meet their target".to_owned());
+                }
                 Ok(vec![
                     r.count(REAL, "/summary/flights")?.to_string(),
                     percent(
                         r.number(REAL, "/summary/mean_absolute_apogee_error_percent")?,
                         2,
                     ),
+                    percent(r.number(REAL, "/summary/target_percent")?, 0),
                 ])
             },
         },

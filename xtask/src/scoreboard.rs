@@ -1299,7 +1299,11 @@ fn axis_words(axis: Axis, hpr: &str) -> String {
              several."
         ),
         Axis::Features => "How many of the capabilities listed in the simulator guide's \
-            comparison table each tool has; the table comes with that guide."
+            comparison table each tool has in full, each read from the tool's own documentation \
+            ([Compared with other \
+            simulators](https://hpr.fusionspace.co/simulator-compared.html)). The rows are the \
+            project's choice, so the count leans toward what HPR Sim was built to do: read the \
+            rows, not the count."
             .to_owned(),
         Axis::Steps => "How many steps it takes to open a design, fly it once and see its \
             apogee, and get its landing spread: where it may land, from many flights with their \

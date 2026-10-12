@@ -19,7 +19,7 @@ name = "OpenRocket"
 release = "24.12"
 released = "2025-07-27"
 checked_on = "2026-10-12"
-note = "Its online guide is built from its development branch and describes features no release has yet, so what the release holds was read from its release notes; its technical documentation is the edition its site still links, and the page numbers below are that file's"
+note = "Its online guide is built from its development branch and describes features no release has yet, so what the release holds was read from its release notes. Its technical documentation is the edition its site still links; the page numbers in the titles are the printed ones, and the links open the file at them"
 
 [[tool.source]]
 id = "release-notes"
@@ -85,7 +85,7 @@ url = "https://github.com/openrocket/openrocket/releases/download/OpenRocket_tec
 id = "rocketpy"
 name = "RocketPy"
 release = "1.13.0"
-released = "2026-07-21"
+released = "2026-07-22"
 checked_on = "2026-10-12"
 
 [[tool.source]]
@@ -322,7 +322,7 @@ source = "staging"
 tool = "rocketpy"
 has = "partly"
 source = "flight"
-note = "it has no staging; a flight can start where another ended, with a rocket of its own for each stage"
+note = "it has no stage object or separation event; a flight can start where another ended, with a rocket of its own for each stage"
 
 [[capability.cell]]
 tool = "rasaero"
@@ -342,17 +342,19 @@ page = "docs/drag-through-mach-1.md"
 tool = "openrocket"
 has = "yes"
 source = "techdoc-supersonic"
+note = "its technical documentation aims at reasonable estimates at transonic and low supersonic speeds"
 
 [[capability.cell]]
 tool = "rocketpy"
 has = "partly"
 source = "rocket"
-note = "its drag comes from curves the user supplies, and its reference describes no supersonic method for the center of pressure"
+note = "its drag comes from curves the user supplies, and its center of pressure varies with Mach, but its reference names no method past the speed of sound"
 
 [[capability.cell]]
 tool = "rasaero"
 has = "yes"
 source = "manual-intro"
+note = "its manual gives drag, normal force and center of pressure from Mach 0.01 to Mach 25"
 
 [[capability]]
 id = "monte-carlo"
@@ -468,7 +470,7 @@ tool = "hpr"
 has = "partly"
 page = "docs/when-fins-flutter.md"
 milestone = "M6.6"
-note = "in the Rust library; the command line and Python don't print it yet"
+note = "in the Rust library; the command line and Python don't print it yet, which the submission packs bring"
 
 [[capability.cell]]
 tool = "openrocket"
@@ -480,6 +482,7 @@ note = "its features page lists fin flutter as planned"
 tool = "rocketpy"
 has = "yes"
 source = "flutter"
+note = "an estimate from the same NACA criterion HPR Sim uses, which its documentation calls only an estimate"
 
 [[capability.cell]]
 tool = "rasaero"
@@ -493,8 +496,10 @@ label = "Reads an altimeter's flight log"
 
 [[capability.cell]]
 tool = "hpr"
-has = "yes"
+has = "partly"
 page = "docs/reading-a-flight-log.md"
+milestone = "M7.1"
+note = "it reads PerfectFlite's logs only, so far"
 
 [[capability.cell]]
 tool = "openrocket"
@@ -506,6 +511,7 @@ note = "its features page lists importing altimeter data as planned"
 tool = "rocketpy"
 has = "yes"
 source = "comparator"
+note = "its examples read a log saved as CSV and set it beside a flight"
 
 [[capability.cell]]
 tool = "rasaero"
@@ -542,7 +548,7 @@ note = "its manual describes no airbrakes or control"
 
 [[capability]]
 id = "hybrid-liquid"
-label = "Models a hybrid or liquid motor's tanks and flow"
+label = "Flies a hybrid or liquid motor with its tanks"
 
 [[capability.cell]]
 tool = "hpr"
@@ -560,6 +566,7 @@ note = "a motor is a thrust-curve file; its features page lists hybrids as plann
 tool = "rocketpy"
 has = "yes"
 source = "tanks"
+note = "its tanks drain as the user prescribes; nothing predicts the flow"
 
 [[capability.cell]]
 tool = "rasaero"
@@ -595,7 +602,7 @@ note = "its warnings, of a marginal and of an unstable rocket, are about the roc
 
 [[capability]]
 id = "gaps"
-label = "Says which way each known gap in its models pushes that flight's numbers"
+label = "Names the known gaps in its models that bear on each flight, and which way each pushes the numbers where that is known"
 
 [[capability.cell]]
 tool = "hpr"
@@ -606,7 +613,7 @@ page = "docs/fly-your-ork.md#fly-the-file-as-it-is"
 tool = "openrocket"
 has = "no"
 source = "techdoc-warnings"
-note = "its warnings name a broken assumption and leave it to the user to judge whether the results still hold; none says which way they err"
+note = "its warnings, as its technical documentation and its newest release's notes describe them, name a broken assumption and leave it to the user to judge whether the results still hold; none says which way they err"
 
 [[capability.cell]]
 tool = "rocketpy"

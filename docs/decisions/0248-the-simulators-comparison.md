@@ -20,19 +20,24 @@ same kind of claim.
    title and an `https` address each). Each capability is one row, with one cell per tool, in
    the tools' order:
    - another tool's cell says `yes`, `partly` or `no` and names the page that shows it; a
-     `partly` or a `no` says in a note what that page shows instead;
+     `partly` or a `no` says in a note what that page shows instead, and a `yes` may carry a
+     limit its documentation states, such as OpenRocket's aim at low supersonic speeds;
    - HPR Sim's `yes` names the page of the site that covers it; its `partly` names that page and
      the open roadmap milestone that brings the rest; its `no` names the milestone. A milestone
      with no open entry in the roadmap fails, so closing one without updating its row fails.
-   `xtask/src/features.rs` reads it and refuses each break of these rules by name, and refuses a
-   record in which no capability has HPR Sim's `yes` and every other tool's `no`.
+   `xtask/src/features.rs` reads it and refuses each break of these rules by name, text that
+   would break the Markdown it is set into (`|`, `[`, `]`, `<`, a line break), and a record in
+   which no capability has HPR Sim's `yes` and every other tool's `no`.
 2. **The page.** The table, in two columns, the capability and every tool's answer in one cell
    that wraps, so it fits a phone's width with nothing scrolled out of sight; the capabilities HPR Sim alone has, the rows where another tool has
    what HPR Sim lacks (each with its milestone), every `partly` and `no` in words, and the pages
    read with their releases and dates, all written between two markers on
    `docs/simulator-compared.md` by `cargo xtask guides`; `--check` fails a stale region. The
    guides' number check leaves that region to its record, as it leaves a command's example to
-   the program, and holds the rest of the page as it holds every guide.
+   the program, and holds the rest of the page as it holds every guide. The markers count on that
+   page only, each once and on a line of its own; anywhere else, or with text beside them, they
+   fail, so no region can exempt text the record doesn't write. Beside the table, the page says a
+   *yes* says nothing of accuracy, past the speed of sound least of all.
 3. **The tools.** OpenRocket, RocketPy and RASAero II: the free simulators the hobby uses most,
    OpenRocket and RocketPy already the scoreboard's columns and the project's oracles, RASAero II
    the hobby's usual tool past Mach 1, which ADR-209's own survey cites. RockSim is left out for

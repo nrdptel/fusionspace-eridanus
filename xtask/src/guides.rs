@@ -692,7 +692,9 @@ fn without_comments(html: &str) -> Option<String> {
 /// collapsed. Every block-level element starts a new block, so a nested item's words never run
 /// into its parent's. Inline code stands as `\u{FFFC}` in its block, so no quote runs across it,
 /// and is a block of its own when it holds a digit.
-fn prose(page: &str) -> Read {
+fn prose(name: &str, page: &str) -> Read {
+    // The comparison table's markers count on its own page only (`features.rs`).
+    let tables_allowed = name == crate::features::PAGE;
     let options = Options::ENABLE_TABLES
         | Options::ENABLE_FOOTNOTES
         | Options::ENABLE_STRIKETHROUGH
@@ -814,11 +816,27 @@ fn prose(page: &str) -> Read {
                              `{PYTHON_END}`, as the docs test finds it"
                         ),
                     ));
-                } else if block_html && trimmed == crate::features::REGION_START {
+                } else if lower.contains("features:")
+                    && !(tables_allowed
+                        && block_html
+                        && (trimmed == crate::features::REGION_START
+                            || trimmed == crate::features::REGION_END))
+                {
+                    markers.push((
+                        at,
+                        format!(
+                            "a comparison table's marker must be a comment on its own, \
+                             `{}` or `{}`, and only on {}",
+                            crate::features::REGION_START,
+                            crate::features::REGION_END,
+                            crate::features::PAGE
+                        ),
+                    ));
+                } else if trimmed == crate::features::REGION_START {
                     if table.replace(at).is_some() {
                         markers.push((at, "a comparison table opens inside another".to_owned()));
                     }
-                } else if block_html && trimmed == crate::features::REGION_END {
+                } else if trimmed == crate::features::REGION_END {
                     match table.take() {
                         Some(opened) => tables.push((opened, at)),
                         None => {
@@ -964,7 +982,7 @@ fn without_quote(text: &str, quote: &str) -> String {
 /// doesn't hold word for word; each number in its text that no quote covers; a number in code
 /// that no block on the page regenerates; and HTML, which the check can't read.
 fn page_problems(name: &str, page: &str, quotes: &[String]) -> Vec<String> {
-    let read = prose(page);
+    let read = prose(name, page);
     let mut problems: Vec<String> = (read.markers.iter())
         .map(|(line, problem)| format!("{name}:{line}: {problem}"))
         .collect();
@@ -1493,23 +1511,44 @@ mod tests {
         let page = format!(
             "# A page\n\n{start}\n\n| a | b |\n|---|---|\n| OpenRocket 24.12 | yes |\n\n{end}\n"
         );
-        assert_eq!(page_problems("p", &page, &[]), Vec::<String>::new());
+        let name = crate::features::PAGE;
+        assert_eq!(page_problems(name, &page, &[]), Vec::<String>::new());
         let after = format!("{page}\nRead on 2026.\n");
-        let problems = page_problems("p", &after, &[]);
+        let problems = page_problems(name, &after, &[]);
         assert!(
             problems.iter().any(|p| p.contains("`2026`")),
             "{problems:?}"
         );
         let open = format!("# A page\n\n{start}\n\n| a |\n|---|\n| 24.12 |\n");
-        let problems = page_problems("p", &open, &[]);
+        let problems = page_problems(name, &open, &[]);
         assert!(
             problems.iter().any(|p| p.contains("never ends")),
             "{problems:?}"
         );
         let twice = format!("{page}\n{end}\n");
-        let problems = page_problems("p", &twice, &[]);
+        let problems = page_problems(name, &twice, &[]);
         assert!(
             problems.iter().any(|p| p.contains("opens none")),
+            "{problems:?}"
+        );
+        // On any other guide, the markers exempt nothing and fail.
+        let problems = page_problems("docs/drag-through-mach-1.md", &page, &[]);
+        assert!(
+            problems.iter().any(|p| p.contains("only on")),
+            "{problems:?}"
+        );
+        assert!(
+            problems.iter().any(|p| p.contains("`24.12`")),
+            "{problems:?}"
+        );
+        // A marker with text after it is no marker, so it can't hold a region open.
+        let tailed = page.replace(
+            &format!("{end}\n"),
+            &format!("{end} tail\n\nWithin 3%.\n\n{end}\n"),
+        );
+        let problems = page_problems(name, &tailed, &[]);
+        assert!(
+            problems.iter().any(|p| p.contains("a comment on its own")),
             "{problems:?}"
         );
     }

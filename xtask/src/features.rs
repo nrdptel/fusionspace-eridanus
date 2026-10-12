@@ -179,6 +179,7 @@ impl Record {
                 }
             }
         }
+        problems.extend(self.text_problems());
         if self.capability.is_empty() {
             problems.push("lists no capability".to_owned());
         } else if self.only_hpr().is_empty() {
@@ -189,6 +190,33 @@ impl Record {
             );
         }
         problems
+    }
+
+    /// Text the region would set into Markdown that could break it: a table's `|`, a link's
+    /// brackets, HTML's `<`, or a line break, in a name, a label, a note or a source's title.
+    fn text_problems(&self) -> Vec<String> {
+        let mut texts: Vec<(String, &str)> = Vec::new();
+        for tool in &self.tool {
+            texts.push((format!("{}'s name", tool.id), &tool.name));
+            if let Some(note) = &tool.note {
+                texts.push((format!("{}'s note", tool.id), note));
+            }
+            for source in &tool.source {
+                texts.push((format!("{}'s source {}", tool.id, source.id), &source.title));
+            }
+        }
+        for capability in &self.capability {
+            texts.push((format!("{}'s label", capability.id), &capability.label));
+            for cell in &capability.cell {
+                if let Some(note) = &cell.note {
+                    texts.push((format!("{}: {}'s note", capability.id, cell.tool), note));
+                }
+            }
+        }
+        (texts.into_iter())
+            .filter(|(_, text)| text.contains(['|', '[', ']', '<', '\n', '\r']))
+            .map(|(what, _)| format!("{what} holds `|`, `[`, `]`, `<` or a line break"))
+            .collect()
     }
 
     /// How many capabilities `tool` has in full: its yes cells.
@@ -226,6 +254,16 @@ impl Record {
     /// the table, what HPR Sim alone has, where it has less, each partly or no in words, and the
     /// pages read.
     pub(crate) fn region(&self, roadmap: &str) -> Result<String, String> {
+        // Held to the rules first, so a cell is where the tools' order says.
+        if let Some(capability) = (self.capability.iter()).find(|capability| {
+            let tools = capability.cell.iter().map(|cell| cell.tool.as_str());
+            !tools.eq(self.tool.iter().map(|tool| tool.id.as_str()))
+        }) {
+            return Err(format!(
+                "{}: its cells aren't the tools' in order",
+                capability.id
+            ));
+        }
         let mut out = format!("{REGION_START}\n\n");
         // Two columns, every tool's answer in one cell that wraps, so the table fits a phone's
         // width without scrolling: a column a tool would push the last ones out of sight.
@@ -249,8 +287,8 @@ impl Record {
             .collect();
         let _ = writeln!(
             out,
-            "Of the capabilities above, HPR Sim alone {}: each of the others' cells in {} says \
-             no, from that tool's documentation.",
+            "Of the capabilities above, as far as each tool's documentation shows, HPR Sim alone \
+             {}: each of the others' cells in {} says no.",
             list(&only),
             if only.len() == 1 {
                 "that row"
@@ -261,7 +299,9 @@ impl Record {
 
         let mut less = Vec::new();
         for capability in &self.capability {
-            let hpr = &capability.cell[0];
+            let Some(hpr) = capability.cell.first() else {
+                continue;
+            };
             let ahead: Vec<&str> = (capability.cell.iter().zip(&self.tool))
                 .skip(1)
                 .filter(|(cell, _)| cell.has == Has::Yes)
@@ -299,19 +339,24 @@ impl Record {
         }
 
         out.push_str(
-            "\n**Each partly and no, in words.** As the page its cell links to shows it.\n\n",
+            "\n**Each cell's note.** Every partly and no says what the page its cell links to shows \
+             instead; a yes may carry a limit its documentation states.\n\n",
         );
         for capability in &self.capability {
             let mut notes = Vec::new();
             for (cell, tool) in capability.cell.iter().zip(&self.tool) {
-                if cell.has == Has::Yes {
-                    continue;
+                match (&cell.note, cell.has) {
+                    (Some(note), has) => notes.push(format!(
+                        "{} ({}): {}",
+                        tool.name,
+                        has.words(),
+                        sentence_end(note)
+                    )),
+                    (None, Has::Yes) => {}
+                    (None, _) => {
+                        return Err(format!("{}: {} has no note", capability.id, cell.tool));
+                    }
                 }
-                let note = cell
-                    .note
-                    .as_deref()
-                    .ok_or_else(|| format!("{}: {} has no note", capability.id, cell.tool))?;
-                notes.push(format!("{}: {}", tool.name, sentence_end(note)));
             }
             if !notes.is_empty() {
                 let _ = writeln!(
@@ -341,20 +386,19 @@ impl Record {
                 Some(date) => format!(", released {}", prose_date(date)?),
                 None => String::new(),
             };
-            let sources: Vec<String> = (tool.source.iter())
-                .map(|source| format!("[{}]({})", source.title, source.url))
-                .collect();
             let note = match &tool.note {
                 Some(note) => format!(" {}", sentence_end(note)),
                 None => String::new(),
             };
             let _ = writeln!(
                 out,
-                "- **{} {release}**{released}, read on {}: {}.{note}",
+                "- **{} {release}**{released}, read on {}.{note}",
                 tool.name,
                 prose_date(checked_on)?,
-                sources.join(", ")
             );
+            for source in &tool.source {
+                let _ = writeln!(out, "  - [{}]({})", source.title, source.url);
+            }
         }
         out.push('\n');
         out.push_str(REGION_END);
@@ -515,6 +559,15 @@ fn sentence_case(label: &str, upper: bool) -> String {
     let mut chars = label.chars();
     match chars.next() {
         Some(first) if upper => first.to_uppercase().chain(chars).collect(),
+        // A name keeps its capital: a first word with a capital past its first letter, as in
+        // "OpenRocket", "RASAero" or "GPS".
+        Some(first)
+            if (chars.clone())
+                .take_while(|c| !c.is_whitespace())
+                .any(char::is_uppercase) =>
+        {
+            std::iter::once(first).chain(chars).collect()
+        }
         Some(first) => first.to_lowercase().chain(chars).collect(),
         None => String::new(),
     }
@@ -569,19 +622,25 @@ fn prose_date(date: &str) -> Result<String, String> {
     Ok(format!("{name} {day}, {year}"))
 }
 
-/// The page's region as it stands, markers included, or why it can't be found.
+/// The page's region as it stands, markers included, or why it can't be found: each marker must
+/// stand once on the page, on a line of its own, the start before the end.
 pub(crate) fn committed_region(page: &str) -> Result<&str, String> {
-    let start = page
-        .find(REGION_START)
-        .ok_or_else(|| format!("{PAGE} has no `{REGION_START}`"))?;
-    let end = page[start..]
-        .find(REGION_END)
-        .map(|at| start + at + REGION_END.len())
-        .ok_or_else(|| format!("{PAGE}'s table never ends with `{REGION_END}`"))?;
-    if page[end..].contains(REGION_START) {
-        return Err(format!("{PAGE} holds the table twice"));
+    for marker in [REGION_START, REGION_END] {
+        let count = page.matches(marker).count();
+        let alone = page.lines().filter(|line| line.trim() == marker).count();
+        if count != 1 || alone != 1 {
+            return Err(format!(
+                "{PAGE} must hold `{marker}` once, on a line of its own; it holds it {count} \
+                 times, {alone} on a line of its own"
+            ));
+        }
     }
-    Ok(&page[start..end])
+    let start = page.find(REGION_START).unwrap_or_default();
+    let end = page.find(REGION_END).unwrap_or_default();
+    if end < start {
+        return Err(format!("{PAGE}'s table ends before it starts"));
+    }
+    Ok(&page[start..end + REGION_END.len()])
 }
 
 /// Whether the page's region is what the record writes now: `Some(problem)` if not.
@@ -754,6 +813,51 @@ mod tests {
             |r| r.capability[1].id = "command-line".to_owned(),
             "listed twice",
         );
+        fails(
+            |r| r.tool[0].release = Some("0.1".to_owned()),
+            "has no release, date or sources",
+        );
+        fails(
+            |r| r.capability[0].cell[0].source = Some("guide".to_owned()),
+            "not a source",
+        );
+        fails(
+            |r| r.capability[1].cell[0].page = Some("docs/cli.md".to_owned()),
+            "a no names no page",
+        );
+        fails(
+            |r| r.capability[0].cell[0].milestone = Some("M9.1".to_owned()),
+            "a yes names no milestone",
+        );
+        fails(
+            |r| r.capability[0].cell[1].page = Some("docs/cli.md".to_owned()),
+            "not a page or a milestone",
+        );
+        fails(
+            |r| r.tool[1].source[0].url = "http://example.org".to_owned(),
+            "an https address",
+        );
+        fails(
+            |r| {
+                let copy = r.tool[1].source[0].clone();
+                r.tool[1].source.push(copy);
+            },
+            "listed twice",
+        );
+        fails(
+            |r| r.tool[2].id = "openrocket".to_owned(),
+            "names a tool twice",
+        );
+        fails(|r| r.capability[0].label = " ".to_owned(), "has no label");
+        fails(|r| r.capability.clear(), "lists no capability");
+        fails(
+            |r| r.capability[0].cell[1].note = Some("a | b".to_owned()),
+            "holds `|`",
+        );
+        fails(
+            |r| r.tool[1].source[0].title = "[a]".to_owned(),
+            "holds `|`",
+        );
     }
 
     /// A partly isn't a yes: it counts for nothing and keeps a capability from being HPR Sim's
@@ -777,10 +881,10 @@ mod tests {
         for expected in [
             "| Capability | Each tool |",
             "| Flies a design from a command line | HPR\u{a0}Sim\u{a0}[yes](cli.md); OpenRocket\u{a0}[no](https://example.org/guide); RocketPy\u{a0}[no](https://example.org/docs) |",
-            "HPR Sim alone *flies a design from a command line*",
             "- **Draws a design in a window:** OpenRocket does; HPR Sim doesn't yet ([M9.1, Desktop app shell](decisions-and-roadmap.md#m9-1)).",
-            "- **Flies a design from a command line.** OpenRocket: its arguments set options for the window. RocketPy: a Python library.",
-            "- **OpenRocket 24.12**, released July 27, 2025, read on October 12, 2026: [Its guide](https://example.org/guide).",
+            "- **Flies a design from a command line.** OpenRocket (no): its arguments set options for the window. RocketPy (no): a Python library.",
+            "- **OpenRocket 24.12**, released July 27, 2025, read on October 12, 2026.\n  - [Its guide](https://example.org/guide)\n",
+            "as far as each tool's documentation shows, HPR Sim alone *flies a design from a command line*: each of the others' cells in that row says no.",
         ] {
             assert!(region.contains(expected), "{expected:?} not in\n{region}");
         }
@@ -792,6 +896,52 @@ mod tests {
         let root = crate::designs::root().unwrap();
         Record::read(&root).unwrap();
         assert_eq!(stale(&root).unwrap(), None);
+    }
+
+    /// A yes's note shows; a partly row reads "in part"; two rows HPR Sim alone has read as a
+    /// list; a label opening on a name keeps its capital.
+    #[test]
+    fn the_region_reads_every_case() {
+        let mut partly = record();
+        partly.capability[1].cell[0].has = Has::Partly;
+        partly.capability[1].cell[0].page = Some("docs/cli.md".to_owned());
+        partly.capability[1].cell[1].note = Some("a limit it states".to_owned());
+        let region = partly.region(ROADMAP).unwrap();
+        assert!(region.contains("HPR Sim does in part"), "{region}");
+        assert!(
+            region.contains("OpenRocket (yes): a limit it states."),
+            "{region}"
+        );
+        let mut two = record();
+        two.capability[1].cell[0] = two.capability[0].cell[0].clone();
+        two.capability[1].cell[1] = two.capability[0].cell[1].clone();
+        two.capability[1].label = "OpenRocket's files, read".to_owned();
+        let region = two.region(ROADMAP).unwrap();
+        assert!(
+            region.contains("*flies a design from a command line* and *OpenRocket's files, read*: each of the others' cells in those rows"),
+            "{region}"
+        );
+        let mut swapped = record();
+        swapped.capability[0].cell.swap(1, 2);
+        assert!(swapped.region(ROADMAP).is_err());
+    }
+
+    /// The page's region is found only when each marker stands once, alone on its line.
+    #[test]
+    fn the_region_is_found_only_whole() {
+        let page = format!("a\n{REGION_START}\n\nx\n\n{REGION_END}\nb\n");
+        assert!(committed_region(&page).unwrap().starts_with(REGION_START));
+        for broken in [
+            page.replace(&format!("{REGION_END}\n"), &format!("{REGION_END} tail\n")),
+            format!("{page}{REGION_END}\n"),
+            format!("{page}{REGION_START}\n"),
+            format!(
+                "{REGION_END}\n{}",
+                page.replace(&format!("{REGION_END}\n"), "")
+            ),
+        ] {
+            assert!(committed_region(&broken).is_err(), "{broken}");
+        }
     }
 
     #[test]
