@@ -1,6 +1,6 @@
 //! The drawing check (M0.9d1, #385): a figure draws in the product system's colors and fonts and
 //! no others. [`check`](super::check) holds a figure to its frame; this holds it to the
-//! FusionSpace product system's foundations (Rev A, `product/foundations.md`; ADR-164), which
+//! FusionSpace product system's foundations (Rev C, `product/foundations.md`; ADR-164), which
 //! name every color a drawing may use and the two families it may set text in:
 //!
 //! - **Colors.** Every paint (`fill`, `stroke`, `stop-color`, `flood-color`, `lighting-color`,

@@ -14,7 +14,7 @@
 //!   window: mdBook's `.content` scrolls (`overflow-y: auto`, so sideways too), and one that
 //!   scrolls or clips and is wider inside than out fails, since the page then scrolls sideways
 //!   inside it, or is cut. One whose overflow is visible hands what reaches past it, such as a
-//!   figure wider than the prose column, to the box around it, which is measured in turn. Only
+//!   figure wider than the column, to the box around it, which is measured in turn. Only
 //!   boxes within `main`, a code block or a table's wrapper, may scroll sideways.
 //! - **Text cut off.** Text that a box which doesn't scroll (`overflow: hidden` or `clip`,
 //!   `text-overflow: ellipsis`) cuts by more than 1 px, so part of it can never be seen. Boxes of
@@ -23,13 +23,14 @@
 //!   and more than a quarter of the shorter one's height: a label drawn over another. Two lines of
 //!   a tight line height, or two runs that touch, don't count.
 //! - **A figure shown smaller than drawn** (#382). A figure's text is drawn at its size, so a
-//!   figure shown smaller reads smaller: the plot's 12 px text, in its 960 px figure shown in
-//!   mdBook's 750 px column, read at 9.4 px. Where the box holding the page's `main` has room for
-//!   a figure, up to the product system's widest content (1,120 px, `foundations.md`, *Width*),
-//!   it must be shown at its size; where it hasn't, the reader must be able to open it at its
-//!   size, through mdBook's zoom (a checkbox in the figure's label that shows a copy over the
-//!   page). The theme lets a figure reach past the prose column for this (`theme/hpr.css`). A
-//!   figure with no size the check can read (broken, or an SVG without one) fails.
+//!   figure shown smaller reads smaller: the plot's 12 px text, in its 960 px figure shown in a
+//!   750 px column, read at 9.4 px. Where the box holding the page's `main` has room for a
+//!   figure, up to the product system's widest content (1,120 px, `foundations.md`, *Width*), it
+//!   must be shown at its size; where it hasn't, the reader must be able to open it at its size,
+//!   through mdBook's zoom (a checkbox in the figure's label that shows a copy over the page).
+//!   The column runs to that width and a figure takes the column, as the prose does
+//!   (`theme/fusionspace-mdbook.css`, `theme/hpr.css`). A figure with no size the check can read
+//!   (broken, or an SVG without one) fails.
 //! - **mdBook's defaults** (#383), by computed style: the root element and every element of the
 //!   body, with its `::before` and `::after`, drawn now or hidden until asked for (the help
 //!   popup, the copy tooltip), plus a search hit and a search result added as mdBook's search
@@ -68,22 +69,30 @@
 //!     drawn or hidden until asked for, its `::before` and `::after` and every text field
 //!     included, must have the size and line height of one of the scale's tokens in that token's
 //!     family (Cascadia Mono 12/16, 14/20, 20/24, 28/32, 40/44; Archivo 14/20, 16/24, 20/28),
-//!     capitals only at Cascadia Mono 12/16 and 14/20, no weight under 400, tabular figures
+//!     times the reading scale's factor inside `.content` on a page that declares the scale
+//!     (`--fs-text`; ×1 up to 1,024 px wide, ×1.125 from 1,600 px, linear between, read from the
+//!     window's width, not the page), capitals only at Cascadia Mono 12/16 and 14/20 (scaled
+//!     the same), no weight under 400, tabular figures
 //!     in Archivo, and each family's metric-matched fallback (the system's `fonts.css`) second
 //!     in its stack. A superscript or subscript may be off the scale, never under 12 px. The
 //!     sidebar's text must be Cascadia Mono 14 px, and its current page underlined 2 px
 //!     (`web.md`, *Page anatomy*). Boxes of 2 px or less, for screen readers, are skipped;
-//!   - **a line of prose past 68 characters**: each paragraph, list item, quote or caption in
-//!     `main`, outside tables and code, counted line by line as drawn, spaces between words
-//!     counted once. A character more than half a line below the one before starts a new line;
-//!     a word broken across lines is split where it breaks; characters are counted by code
-//!     point;
-//!   - **gutters off the system's** (`foundations.md`, *Width*): `main` must sit at least 16 px
-//!     from each side of the pane that holds it (mdBook's `.page-wrapper`, beside the sidebar)
-//!     in a window under 720 px, and 32 px from 720 px, and no further on either side unless
-//!     it has reached its widest;
-//!   - **a code block or table held to the prose measure**: one in `main` that scrolls sideways
-//!     inside a box with a `max-width`, as a list item around it would be at the measure;
+//!   - **prose narrower than its column** (`foundations.md`, *Type*; ADR-250): each paragraph,
+//!     list item, quote or caption in `main`, outside tables and code, and each box around one,
+//!     as wide as the box that holds it allows. One narrower is drawn again with no max-width and
+//!     no width of its own, and fails if it grows: a max-width, a width or margins set to auto
+//!     held it. One laid out by its parent (a grid's or a flex box's item, a table's part), a
+//!     float and a box out of the flow are sized on purpose and skipped. The system's own check
+//!     finds them (`fusionspace-check.js`). Its line counter also reads each page's median and
+//!     longest line, which the run's summary prints: a report, not a rule;
+//!   - **a column off the system's width** (`foundations.md`, *Width*): `main`'s `max-width` must
+//!     be the system's widest content, 1,120 px, at every width;
+//!   - **gutters off the system's** (`foundations.md`, *Width*): `main` must sit 16 px from each
+//!     side of the pane that holds it (mdBook's `.page-wrapper`, beside the sidebar) in a window
+//!     under 720 px and 32 px from 720 px, and once it has reached its widest, centered: as far
+//!     from the left as from the right, and at least that;
+//!   - **a code block or table held narrower than the column**: one in `main` that scrolls
+//!     sideways inside a box with a `max-width`;
 //!   - **an icon off the system's sizes** (`foundations.md`, *Icons*): each icon drawn in the
 //!     spans mdBook keeps its chrome's icons in (`.fa-svg`, the menu bar's buttons, the page
 //!     arrows, the search spinner, a code block's buttons), drawn now at this width, must be
@@ -168,8 +177,13 @@
 //! that does, which must pass, text at 15 px, on mdBook's 23.2 px line, in a serif, without
 //! tabular figures, at weight 300, a sentence in capitals, an `::after` at 11 px, a superscript
 //! at 11 px, a chapter link in Archivo, a current page with no underline and one underlined 1 px,
-//! a line of 69 characters after a short one and one of 68, which must pass, mdBook's 20 px
-//! gutters, a right gutter wider than the left, a code block in a list item held to the measure,
+//! prose held to 10 em by a max-width, by a width and in a box centered by its margins, and to a
+//! fifth of its column by a max-width in percent, prose filling its column in paragraphs, a
+//! list, a definition list and a grid's and a flex box's cells, beside a classic scrollbar and
+//! indented by a margin and padding of its own, which must pass, a page declaring the reading scale and growing with it, which must
+//! pass, and one declaring a scale off the system's, mdBook's 750 px column, a column let run
+//! the pane's width, a 200 px column flush left instead of centered, mdBook's 20 px gutters, a
+//! right gutter wider than the left, a code block in a box held to 10 em,
 //! four notes drawn as the system draws them, which must pass, a quote block, a caution whose
 //! strip says Note, a signal word in body type, a strip with no rule or fill, a warning and a
 //! caution without their fills, a warning bordered 1 px, a note with no left or right border and
@@ -267,17 +281,61 @@ const CHROME_ENV: &str = "HPR_CHROME";
 pub(super) const CHECK_PREFIX: &str = "__check/";
 /// The harness each tab runs: loads, measures and reports.
 const HARNESS_JS: &str = include_str!("pages.js");
-/// The page each tab opens, which runs [`HARNESS_JS`]. Its first script reports an error in the
-/// harness itself, such as one that stops it from running at all.
+/// The product system's rules and the code that measures them, which the harness reads: the
+/// design repository's `product/web/check/fusionspace-check.js`, copied unchanged at the revision
+/// `theme.rs` pins ([`super::theme`] compares it with the pinned file).
+const SYSTEM_JS: &str = include_str!("fusionspace-check.js");
+/// The page each tab opens, which runs [`SYSTEM_JS`] and then [`HARNESS_JS`]. Its first script
+/// reports an error in the harness itself, such as one that stops it from running at all.
 const HARNESS_HTML: &str = "<!doctype html>\n<html lang=\"en\"><head><meta charset=\"utf-8\">\
 <title>Page check</title><style>html, body { margin: 0; }</style>\
 <script>addEventListener('error', function (event) { fetch('/__check/error', \
 { method: 'POST', body: String(event.message) }); });</script></head>\
-<body><script src=\"/__check/pages.js\"></script></body></html>\n";
+<body><script src=\"/__check/fusionspace-check.js\"></script>\
+<script src=\"/__check/pages.js\"></script></body></html>\n";
 /// The largest request body the server takes: one page's results.
 const MOST_BODY_BYTES: usize = 64 << 20;
 /// The largest request head the server takes.
 const MOST_HEAD_BYTES: usize = 64 << 10;
+
+/// The prose in one page's `main` at one width, as the system's counter reads it (ADR-250).
+#[derive(Debug, Default, Deserialize)]
+struct Prose {
+    /// The median line, each block's last left out, in characters; none when fewer than 20 lines
+    /// count.
+    median: Option<f64>,
+    /// The longest line of prose, in characters.
+    longest: usize,
+}
+
+/// The lines of prose across the run's pages and widths, as the system's counter read them: a
+/// report, not a rule, since a line is as long as its column (ADR-250).
+#[derive(Debug, Default)]
+pub(super) struct Measures {
+    /// Pages whose median was judged (20 lines or more) at some width.
+    pub judged: usize,
+    /// The lowest and highest median judged, in characters; none when no page was judged.
+    pub medians: Option<(f64, f64)>,
+    /// The longest line of prose on any page at any width, in characters.
+    pub longest: usize,
+}
+
+impl Measures {
+    fn add(&mut self, measured: &[Measured]) {
+        let mut judged = false;
+        for prose in measured.iter().map(|m| &m.prose) {
+            self.longest = self.longest.max(prose.longest);
+            if let Some(median) = prose.median {
+                judged = true;
+                self.medians = Some(match self.medians {
+                    Some((low, high)) => (low.min(median), high.max(median)),
+                    None => (median, median),
+                });
+            }
+        }
+        self.judged += usize::from(judged);
+    }
+}
 
 /// What the check found.
 pub(super) struct Report {
@@ -289,6 +347,8 @@ pub(super) struct Report {
     pub seconds: f64,
     /// One line per page and kind of problem; empty when every page passes.
     pub problems: Vec<String>,
+    /// The lines the pages' prose was set in.
+    pub measures: Measures,
 }
 
 /// The widths every page is checked at, in CSS pixels: 320 to 1,920 in steps of 40.
@@ -377,11 +437,16 @@ enum Kind {
     /// metric-matched fallback second, or navigation not in Cascadia Mono 14 px with the current
     /// page underlined 2 px (#384).
     Type,
-    /// A line of prose longer than the system's 68 characters (#384).
-    Measure,
-    /// Gutters other than the system's: 16 px on a phone, 32 px from 720 px (#384).
+    /// Prose held narrower than the box that holds it, by a max-width, a width or margins set to
+    /// auto (#384, ADR-250).
+    Narrow,
+    /// A column (`main`) allowed wider or narrower than the system's widest content, 1,120 px
+    /// (ADR-250).
+    Column,
+    /// Gutters other than the system's: 16 px on a phone, 32 px from 720 px, and the same on both
+    /// sides once the column has reached its widest (#384, ADR-250).
     Gutter,
-    /// A code block or table that scrolls sideways inside a box held to the prose measure.
+    /// A code block or table that scrolls sideways inside a box held narrower than the column.
     Squeezed,
     /// A quote block in a page's `main`, or a note not drawn as the system's: its kind's signal
     /// word in a `label` strip across its top, set apart by a rule or a fill, inside its border
@@ -433,7 +498,7 @@ enum Kind {
 }
 
 impl Kind {
-    const ALL: [Kind; 24] = [
+    const ALL: [Kind; 25] = [
         Kind::Wide,
         Kind::Cut,
         Kind::Overlap,
@@ -442,7 +507,8 @@ impl Kind {
         Kind::Shape,
         Kind::Motion,
         Kind::Type,
-        Kind::Measure,
+        Kind::Narrow,
+        Kind::Column,
         Kind::Gutter,
         Kind::Squeezed,
         Kind::Note,
@@ -470,9 +536,10 @@ impl Kind {
             Kind::Shape => "a rounded corner or a shadow",
             Kind::Motion => "motion off the system's durations",
             Kind::Type => "type off the system's scale",
-            Kind::Measure => "a line of prose past 68 characters",
+            Kind::Narrow => "prose narrower than its column",
+            Kind::Column => "a column off the system's width",
             Kind::Gutter => "gutters off the system's",
-            Kind::Squeezed => "a code block or table held to the prose measure",
+            Kind::Squeezed => "a code block or table held narrower than the column",
             Kind::Note => "a quote block, or a note not the system's",
             Kind::Contrast => "text under the contrast floor",
             Kind::Focus => "a focus ring off the system's",
@@ -491,6 +558,25 @@ impl Kind {
 }
 
 /// A page built to test the check, served at `/__check/<file>`.
+/// Running prose long enough to set several lines in any window, for the canaries of prose held
+/// narrower than its column.
+macro_rules! prose {
+    () => {
+        "A rocket's drag is the force the air puts on it against its motion. It grows with the \
+         square of the speed and with the air's density, which falls as the rocket climbs, so \
+         most of it comes in the first seconds after the motor burns out, while the rocket is \
+         fast and low. A simulator works it out from the shape: the nose, the body tube, the \
+         fins and the joints between them, each with a coefficient that changes with the speed \
+         of sound. Near Mach 1 the coefficient rises steeply and then falls again, which is \
+         why a flight past the speed of sound needs a model that knows the shape of that rise. \
+         The base behind the rocket adds its own share, larger while the motor is not burning, \
+         and the paint, the rail buttons and the launch lug add a little more. A measured \
+         flight is the only way to know how close the sum comes to the real rocket, and even \
+         then the wind, the motor's own spread and the altimeter's errors blur the answer, so \
+         a careful flier compares several flights before trusting any one number on its own."
+    };
+}
+
 struct Canary {
     file: &'static str,
     /// What it is, for the message when it isn't found as expected.
@@ -889,7 +975,7 @@ macro_rules! switch_frame {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 155] = [
+const CANARIES: [Canary; 165] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -930,8 +1016,8 @@ const CANARIES: [Canary; 155] = [
         file: "canary-cut.html",
         what: "a label cut short by its box",
         expect: &[Kind::Cut],
-        inside: "<p style=\"width: 6em; white-space: nowrap; overflow: hidden; \
-                 text-overflow: ellipsis\">A label much longer than its box</p>",
+        inside: "<div style=\"width: 6em; white-space: nowrap; overflow: hidden; \
+                 text-overflow: ellipsis\">A label much longer than its box</div>",
         after: "",
     },
     Canary {
@@ -946,12 +1032,12 @@ const CANARIES: [Canary; 155] = [
     },
     Canary {
         file: "canary-past-column.html",
-        what: "a figure reaching past a narrow `main` on both sides, inside the page, as the \
-               theme lays one out, which must pass",
-        expect: &[],
-        inside: "<style>main { overflow-x: visible; max-width: 300px; margin: 0 auto; } \
+        what: "a figure reaching past a `main` held to 300 px on both sides, inside the page, \
+               as the theme lays one out: only the column is off",
+        expect: &[Kind::Column],
+        inside: "<style>main { overflow-x: visible; max-width: 300px; } \
                  .content { container-type: inline-size; } \
-                 .checkbox-label { display: flex; justify-content: center; width: 100cqi; \
+                 .checkbox-label { display: flex; width: 100cqi; \
                  margin-inline: calc((100% - 100cqi) / 2); }</style>",
         after: "",
     },
@@ -959,10 +1045,10 @@ const CANARIES: [Canary; 155] = [
         file: "canary-past-visible.html",
         what: "a label moved past the right edge of a `main` whose overflow is visible, as \
                mdBook's is",
-        expect: &[Kind::Wide],
-        inside: "<style>main { overflow-x: visible; max-width: 300px; margin: 0 auto; } \
+        expect: &[Kind::Wide, Kind::Column],
+        inside: "<style>main { overflow-x: visible; max-width: 300px; } \
                  .content { container-type: inline-size; } \
-                 .checkbox-label { display: flex; justify-content: center; width: 100cqi; \
+                 .checkbox-label { display: flex; width: 100cqi; \
                  margin-inline: calc((100% - 100cqi) / 2); }</style>\
                  <p>A label <span style=\"position: relative; left: 2000px\">moved out</span></p>",
         after: "",
@@ -1205,24 +1291,142 @@ const CANARIES: [Canary; 155] = [
         after: "",
     },
     Canary {
-        file: "canary-measure.html",
-        what: "a line of 69 characters, as drawn, after a short one, in a box that scrolls \
-               sideways",
-        expect: &[Kind::Measure],
-        inside: "<div class=\"scroll\"><p style=\"white-space: nowrap; max-width: none\">A short \
-                 line<br>A \
-                 <strong>drag</strong>  coefficient of <code>0.45</code> at Mach 0.3\n on \
-                 m<sup>2</sup> of area, and a long tail</p></div>",
+        file: "canary-narrow.html",
+        what: "prose held to 10 em by a max-width of its own, narrower than its column",
+        expect: &[Kind::Narrow],
+        inside: concat!(
+            "<style>main p.held { max-width: 10em; }</style><p class=\"held\">",
+            prose!(),
+            "</p>"
+        ),
         after: "",
     },
     Canary {
-        file: "canary-measure-68.html",
-        what: "a line of 68 characters, as drawn, after a short one, which must pass",
+        file: "canary-narrow-width.html",
+        what: "prose held to 10 em by a width of its own, with no max-width",
+        expect: &[Kind::Narrow],
+        inside: concat!(
+            "<style>main p.held { max-width: none; width: 10em; }</style><p class=\"held\">",
+            prose!(),
+            "</p>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-narrow-box.html",
+        what: "prose in a box held to 10 em and centered in the column by its margins",
+        expect: &[Kind::Narrow],
+        inside: concat!(
+            "<div style=\"max-width: 10em; margin-inline: auto\"><p>",
+            prose!(),
+            "</p></div>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-narrow-percent.html",
+        what: "prose held to a fifth of its column by a max-width in percent",
+        expect: &[Kind::Narrow],
+        inside: concat!(
+            "<style>main p.held { max-width: 20%; }</style><p class=\"held\">",
+            prose!(),
+            "</p>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-fill-scrollbar.html",
+        what: "prose filling its column beside a classic scrollbar on `.content` that takes 15 px \
+               of the right gutter, which must pass",
         expect: &[],
-        inside: "<div class=\"scroll\"><p style=\"white-space: nowrap; max-width: none\">A short \
-                 line<br>A \
-                 <strong>drag</strong>  coefficient of <code>0.45</code> at Mach 0.3\n on \
-                 m<sup>2</sup> of area and a long tail</p></div>",
+        inside: concat!(
+            "<style>.content { overflow-y: scroll; padding-right: 1px; } \
+             @media (min-width: 720px) { .content { padding-right: 17px; } } \
+             .content::-webkit-scrollbar { width: 15px; } \
+             .content::-webkit-scrollbar-thumb { background: #5A6275; }</style><p>",
+            prose!(),
+            "</p>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-fill-indent.html",
+        what: "prose indented by a margin and padding of its own, which takes the rest of its \
+               column and must pass",
+        expect: &[],
+        inside: concat!(
+            "<style>main p.held { margin-left: 2em; padding-left: 1em; }</style>\
+             <p class=\"held\">",
+            prose!(),
+            "</p>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-fill.html",
+        what: "prose filling its column: paragraphs, a list, a definition list's margin, and \
+               paragraphs in a grid's cells and a flex box's items, sized by their parents, \
+               which must pass",
+        expect: &[],
+        inside: concat!(
+            "<p>",
+            prose!(),
+            "</p><ul><li>",
+            prose!(),
+            "</li></ul><dl><dt>Drag</dt><dd>",
+            prose!(),
+            "</dd></dl><div style=\"display: grid; grid-template-columns: 6em minmax(0, 1fr); \
+             gap: 1em\"><p>Apogee</p><p>",
+            prose!(),
+            "</p></div><div style=\"display: flex; gap: 1em\"><p>Burnout</p><p>Coast</p></div>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-column.html",
+        what: "mdBook's own 750 px column, narrower than the system's 1,120 px",
+        expect: &[Kind::Column],
+        inside: "<style>main { max-width: 750px; } \
+                 main > p:has(> .checkbox-label) { display: none; }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-column-wide.html",
+        what: "a column let run the pane's width, past the system's 1,120 px",
+        expect: &[Kind::Column],
+        inside: "<style>main { max-width: none; }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-flush-left.html",
+        what: "a 200 px column flush left beside the sidebar instead of centered",
+        expect: &[Kind::Column, Kind::Gutter],
+        inside: "<style>main { max-width: 200px; margin-inline: 0; } \
+                 main > p:has(> .checkbox-label) { display: none; }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-reading.html",
+        what: "a page that declares the reading scale and grows its type with the window as the \
+               scale does, which must pass",
+        expect: &[],
+        inside: concat!(
+            "<style>.content { --fs-text: clamp(1rem, 0.777778rem + 0.347222vw, 1.125rem); ",
+            "font-size: var(--fs-text); line-height: calc(var(--fs-text) * 1.5); } ",
+            ".content h1 { font-size: calc(var(--fs-text) * 1.75); ",
+            "line-height: calc(var(--fs-text) * 2); } .content code, .content pre { ",
+            "font-size: calc(var(--fs-text) * 0.875); line-height: calc(var(--fs-text) * 1.25); ",
+            "}</style>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-reading-off.html",
+        what: "a page that declares a reading scale off the system's: its text at 20/30 at every \
+               width",
+        expect: &[Kind::Type],
+        inside: "<style>.content { --fs-text: 20px; font-size: var(--fs-text); \
+                 line-height: calc(var(--fs-text) * 1.5); }</style>",
         after: "",
     },
     Canary {
@@ -1326,10 +1530,10 @@ const CANARIES: [Canary; 155] = [
     },
     Canary {
         file: "canary-squeezed.html",
-        what: "a code block in a list item held to the prose measure, scrolling sideways",
+        what: "a code block in a box held to 10 em, scrolling sideways",
         expect: &[Kind::Squeezed],
-        inside: "<ul><li style=\"max-width: 10em\">An item<pre><code>let speed_m_per_s = \
-                 drag_coefficient * reference_area_m2;</code></pre></li></ul>",
+        inside: "<div style=\"max-width: 10em\"><pre><code>let speed_m_per_s = \
+                 drag_coefficient * reference_area_m2;</code></pre></div>",
         after: "",
     },
     Canary {
@@ -1341,9 +1545,10 @@ const CANARIES: [Canary; 155] = [
     },
     Canary {
         file: "canary-gutter.html",
-        what: "mdBook's 20 px gutters: wider than a phone's 16 px, narrower than 32 px from 720 px",
-        expect: &[Kind::Gutter],
-        inside: "<style>.content { padding: 0 20px !important; }</style>",
+        what: "mdBook's 20 px gutters, wider than a phone's 16 px and narrower than 32 px from \
+               720 px, on a column let run the pane's width, where they show at every width",
+        expect: &[Kind::Column, Kind::Gutter],
+        inside: "<style>.content { padding: 0 20px !important; } main { max-width: none; }</style>",
         after: "",
     },
     Canary {
@@ -2471,10 +2676,9 @@ mark {{ color: #FFFFFF; background: #3350D6; }}
 @media (prefers-color-scheme: dark) {{ ::selection {{ background-color: rgb(118 141 245 / 0.22); }} }}
 input {{ color: inherit; }}
 .content {{ overflow-y: auto; }}
-main {{ overflow-x: clip; }}
+main {{ overflow-x: clip; max-width: 1120px; margin-inline: auto; }}
 .content {{ padding: 0 16px; }}
 @media (min-width: 720px) {{ .content {{ padding: 0 32px; }} }}
-main p:not(:has(> .checkbox-label)), main li {{ max-width: 26em; }}
 code, pre {{ font: 14px/20px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; }}
 .sidebar {{ font: 14px/20px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; }}
 .sidebar a.active {{ text-decoration: underline 2px; }}
@@ -2593,17 +2797,20 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
         return Err(broken.join("\n"));
     }
     let mut problems = Vec::new();
+    let mut measures = Measures::default();
     for page in &pages {
         let measured = results
             .get(page)
             .ok_or_else(|| format!("the page check has no results for {page}"))?;
         problems.extend(page_problems(page, measured, part.step_px()));
+        measures.add(measured);
     }
     Ok(Report {
         pages: pages.len(),
         widths: checked.len(),
         seconds: started.elapsed().as_secs_f64(),
         problems,
+        measures,
     })
 }
 
@@ -2650,15 +2857,22 @@ struct Measured {
     motion: Vec<Style>,
     #[serde(default)]
     motion_count: usize,
-    /// The page's frame (#384): its type, measure and gutters, the first few of each kind.
+    /// The page's frame (#384): its type, prose, column and gutters, the first few of each kind.
     #[serde(default)]
     r#type: Vec<Style>,
     #[serde(default)]
     type_count: usize,
     #[serde(default)]
-    measure: Vec<Style>,
+    narrow: Vec<Style>,
     #[serde(default)]
-    measure_count: usize,
+    narrow_count: usize,
+    #[serde(default)]
+    column: Vec<Style>,
+    #[serde(default)]
+    column_count: usize,
+    /// What the system's counter read of the prose in `main`, for the run's summary.
+    #[serde(default)]
+    prose: Prose,
     #[serde(default)]
     gutter: Vec<Style>,
     #[serde(default)]
@@ -2740,7 +2954,8 @@ impl Measured {
             Kind::Shape => self.shape_count > 0,
             Kind::Motion => self.motion_count > 0,
             Kind::Type => self.type_count > 0,
-            Kind::Measure => self.measure_count > 0,
+            Kind::Narrow => self.narrow_count > 0,
+            Kind::Column => self.column_count > 0,
             Kind::Gutter => self.gutter_count > 0,
             Kind::Squeezed => self.squeezed_count > 0,
             Kind::Note => self.note_count > 0,
@@ -2819,7 +3034,8 @@ impl Measured {
             Kind::Shape => Style::list(&self.shape),
             Kind::Motion => Style::list(&self.motion),
             Kind::Type => Style::list(&self.r#type),
-            Kind::Measure => Style::list(&self.measure),
+            Kind::Narrow => Style::list(&self.narrow),
+            Kind::Column => Style::list(&self.column),
             Kind::Gutter => Style::list(&self.gutter),
             Kind::Squeezed => Style::list(&self.squeezed),
             Kind::Note => Style::list(&self.note),
@@ -3577,6 +3793,9 @@ fn respond_check(method: &str, name: &str, body: Vec<u8>, shared: &Shared) -> Re
     match (method, name) {
         ("GET", "harness.html") => (200, "text/html; charset=utf-8", HARNESS_HTML.into()),
         ("GET", "pages.js") => (200, "text/javascript; charset=utf-8", HARNESS_JS.into()),
+        ("GET", "fusionspace-check.js") => {
+            (200, "text/javascript; charset=utf-8", SYSTEM_JS.into())
+        }
         ("GET", "pages.json") => (200, "application/json", shared.plan.clone().into_bytes()),
         ("POST", "next") => {
             let next = shared
@@ -3996,7 +4215,7 @@ mod tests {
             plain.replacen(
                 "\"overlap_count\":0}",
                 &format!(
-                    r#""overlap_count":0,"type":[{{"selector":"main>h1","property":"font","value":"32px/41.6px Cascadia Mono","theme":"{w} px"}}],"type_count":1,"measure":[{{"selector":"main>p","property":"a line of 118 characters","value":"The drag coefficient…","theme":"{w} px"}}],"measure_count":4,"gutter":[],"gutter_count":{gutter}}}"#
+                    r#""overlap_count":0,"type":[{{"selector":"main>h1","property":"font","value":"32px/41.6px Cascadia Mono","theme":"{w} px"}}],"type_count":1,"narrow":[{{"selector":"main>p","property":"prose held to 160 px","value":"in a box of 288 px","theme":"{w} px"}}],"narrow_count":4,"gutter":[],"gutter_count":{gutter}}}"#
                 ),
                 1,
             )
@@ -4011,19 +4230,20 @@ mod tests {
         );
         assert_eq!(
             problems[1],
-            "guide.html: a line of prose past 68 characters at 320 to 1920 px; at 320 px, \
-             `main>p` has a line of 118 characters `The drag coefficient…` (320 px)"
+            "guide.html: prose narrower than its column at 320 to 1920 px; at 320 px, \
+             `main>p` has prose held to 160 px `in a box of 288 px` (320 px)"
         );
         assert!(
             problems[2].starts_with("guide.html: gutters off the system's at 720 to 1920 px"),
             "{}",
             problems[2]
         );
-        // Each kind has a canary that must show it, and the ordinary page and a line of exactly
-        // 68 characters must show none.
+        // Each kind has a canary that must show it, and the ordinary page, prose filling its
+        // column and a page on the reading scale must show none.
         for kind in [
             Kind::Type,
-            Kind::Measure,
+            Kind::Narrow,
+            Kind::Column,
             Kind::Gutter,
             Kind::Squeezed,
             Kind::Note,
@@ -4038,7 +4258,9 @@ mod tests {
             .filter(|canary| canary.expect.is_empty())
             .map(|canary| canary.file)
             .collect();
-        assert!(passing.contains(&"canary-measure-68.html"), "{passing:?}");
+        for file in ["canary-fill.html", "canary-reading.html"] {
+            assert!(passing.contains(&file), "{file}: {passing:?}");
+        }
     }
 
     #[test]

@@ -28,9 +28,15 @@
   const HIDDEN_BOX_PX = 2;
   // How many examples of each problem a width reports.
   const EXAMPLES = 3;
-  // The product system's widest content, in pixels (`foundations.md`, *Width*): a figure needn't
-  // be shown wider than this to be shown at its size.
-  const CONTENT_MAX_PX = 1120;
+  // The product system's rules and the code that measures them (`fusionspace-check.js`, copied
+  // unchanged from the design repository at the revision `theme.rs` pins; the check's server
+  // serves it before this file): the type scale, the reading scale, the widths.
+  const FS = window.FusionSpaceCheck;
+  const RULES = FS.RULES;
+  // The system's widest content, in pixels (`foundations.md`, *Width*): the column's widest, and
+  // so the longest line of prose; a figure needn't be shown wider than this to be shown at its
+  // size.
+  const CONTENT_MAX_PX = RULES.width.content_px;
 
   async function post(path, value) {
     await fetch(path, { method: 'POST', body: JSON.stringify(value) });
@@ -1303,44 +1309,50 @@
   }
 
   // The product system's type scale (`foundations.md`, *Type*): each token's size and line
-  // height in pixels and its family. Archivo is the prose family, Cascadia Mono the data one.
-  const SCALE = [
-    [12, 16, 'Cascadia Mono'], // label
-    [14, 20, 'Cascadia Mono'], // heading, code
-    [20, 24, 'Cascadia Mono'], // subtitle
-    [28, 32, 'Cascadia Mono'], // title, readout
-    [40, 44, 'Cascadia Mono'], // display, readout-l
-    [14, 20, 'Archivo'], // small
-    [16, 24, 'Archivo'], // body
-    [20, 28, 'Archivo'], // lead
-  ];
+  // height in pixels at the scale's own sizes, and its family. Archivo is the prose family,
+  // Cascadia Mono the data one. `hero` is for print covers and splash screens, not these pages.
+  const SCALE = RULES.type.scale.filter(function (t) { return t[0] !== 'hero'; })
+    .map(function (t) { return [t[1], t[2], t[3]]; });
   // The tokens set in capitals: `label` and `heading`.
-  const CAPITALS = [[12, 16, 'Cascadia Mono'], [14, 20, 'Cascadia Mono']];
+  const CAPITALS = RULES.type.capitals.map(function (t) { return [t[1], t[2], t[3]]; });
   // No text smaller than this on screen, in pixels (`foundations.md`, *Type*).
-  const SMALLEST_PX = 12;
-  // The longest a line of prose may be, in characters (`foundations.md`, *Type*).
-  const MEASURE_CHARS = 68;
+  const SMALLEST_PX = RULES.type.smallest_px;
   // The gutters, in pixels: 16 on a phone, 32 from 720 px (`foundations.md`, *Width*).
-  const GUTTER_PX = 16;
-  const GUTTER_WIDE_PX = 32;
-  const GUTTER_WIDE_FROM_PX = 720;
+  const GUTTER_PX = RULES.width.gutter_px;
+  const GUTTER_WIDE_PX = RULES.width.gutter_wide_px;
+  const GUTTER_WIDE_FROM_PX = RULES.width.gutter_wide_from_px;
+
+  // The reading scale (`foundations.md`, *Type*): on a page that declares one (`--fs-text`, which
+  // the system's mdBook theme sets on `.content`), every size inside `.content` is the type
+  // scale's size times the factor the window's width gives; the rest of the page, and a page
+  // that declares none, keep the scale's own sizes. The factor comes from the width, not from
+  // the page, so a page whose scale is off is read against the rule.
+  function readingFactor(win, doc) {
+    const content = doc.querySelector('.content');
+    if (!content || !win.getComputedStyle(content).getPropertyValue('--fs-text').trim()) return 1;
+    return FS.scaleAt(win.innerWidth);
+  }
+  // The factor for one element: the reading factor inside `.content`, 1 outside it.
+  function factorOf(el, reading) {
+    return el.closest('.content') ? reading : 1;
+  }
   // Each kind of note's signal word, as its head says it (`fusionspace.css`, `.fs-note`; the
   // strip sets it in capitals), and the fill of the kinds whose strip is filled.
   const NOTE_WORDS = {
     trust: 'How far to trust it', note: 'Note', caution: 'Caution', warning: 'Warning',
   };
   const NOTE_FILLS = { caution: '#F5AF20', warning: '#AC001E' };
-  // Prose: the blocks whose lines are held to the measure.
-  const PROSE = ['P', 'LI', 'DD', 'DT', 'BLOCKQUOTE', 'FIGCAPTION'];
 
   // Whether two lengths in pixels are the same, to sub-pixel rounding.
   function samePx(a, b) { return Math.abs(a - b) < 0.05; }
 
-  // The page's frame (#384): its type, its measure and its gutters, read once at each width in
+  // The page's frame (#384): its type, its prose, its column and its gutters, read once at each width in
   // the theme the page loads in.
   function probeFrame(win, doc) {
+    const reading = readingFactor(win, doc);
     const found = {
-      type: [], type_count: 0, measure: [], measure_count: 0, gutter: [], gutter_count: 0,
+      type: [], type_count: 0, narrow: [], narrow_count: 0, column: [], column_count: 0,
+      gutter: [], gutter_count: 0,
       squeezed: [], squeezed_count: 0, note: [], note_count: 0, icon: [], icon_count: 0,
       header: [], header_count: 0, title_block: [], title_block_count: 0,
       sheet: [], sheet_count: 0, theme_switch: [], theme_switch_count: 0,
@@ -1393,14 +1405,16 @@
         if (el.closest('sup, sub')) {
           if (size < SMALLEST_PX - 0.05) note('type', sel, 'font-size', shown);
         } else if (!SCALE.some(function (t) {
-          return samePx(t[0], size) && samePx(t[1], line) && t[2] === family;
+          const k = factorOf(el, reading);
+          return samePx(t[0] * k, size) && samePx(t[1] * k, line) && t[2] === family;
         })) {
           note('type', sel, 'font', shown);
         }
         const weight = Number(s.fontWeight);
         if (weight < 400) note('type', sel, 'font-weight', s.fontWeight);
         if (s.textTransform === 'uppercase' && !CAPITALS.some(function (t) {
-          return samePx(t[0], size) && samePx(t[1], line) && t[2] === family;
+          const k = factorOf(el, reading);
+          return samePx(t[0] * k, size) && samePx(t[1] * k, line) && t[2] === family;
         })) {
           note('type', sel, 'text-transform', 'uppercase at ' + shown);
         }
@@ -1423,107 +1437,25 @@
       }
     }
 
-    // The measure: no line of prose in `main` longer than 68 characters, spaces between words
-    // counted once, as drawn. Each text node belongs to its nearest box that isn't inline; the
-    // lines of a prose block are found from where its characters are drawn: a character more
-    // than half a line below the line before starts a new one.
+    // Prose (`foundations.md`, *Type*): it takes its column's whole width. The system's own
+    // check (`fusionspace-check.js`) finds each paragraph, list item, quote or caption in `main`,
+    // or a box around one, held narrower than the box that holds it, by a max-width, a width or
+    // margins set to auto; one laid out by its parent (a grid's or a flex box's item, a table's
+    // part), a float or a box out of the flow is sized on purpose and skipped.
     const main = doc.querySelector('main');
     if (main) {
-      const range = doc.createRange();
-      const midAt = function (node, k) {
-        range.setStart(node, k);
-        range.setEnd(node, k + 1);
-        const r = range.getClientRects()[0];
-        return r ? (r.top + r.bottom) / 2 : null;
-      };
-      const blockOf = function (node) {
-        for (let e = node.parentElement; e && e !== main; e = e.parentElement) {
-          const d = win.getComputedStyle(e).display;
-          if (d !== 'inline' && d !== 'contents') return e;
-        }
-        return main;
-      };
-      const blocks = new Map();
-      const walker = doc.createTreeWalker(main, 4);
-      for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-        if (!/\S/.test(n.data)) {
-          // Spaces still part words: note them on the block.
-          const b = blocks.get(blockOf(n));
-          if (b) b.push(n);
-          continue;
-        }
-        const block = blockOf(n);
-        if (PROSE.indexOf(block.tagName) < 0 || block.closest('table, pre')) continue;
-        if (!blocks.has(block)) blocks.set(block, []);
-        blocks.get(block).push(n);
+      const round = function (v) { return Math.round(v * 10) / 10; };
+      for (const n of FS.narrow(win, main)) {
+        note('narrow', selector(n.block), 'prose held to ' + round(n.width) + ' px',
+          'in a box of ' + round(n.room) + ' px');
       }
-      for (const [block, nodes] of blocks) {
-        const s = win.getComputedStyle(block);
-        const half = (s.lineHeight === 'normal' ? 1.2 * parseFloat(s.fontSize)
-          : parseFloat(s.lineHeight)) / 2;
-        let lineMid = null;
-        let chars = 0;
-        let text = '';
-        let longest = 0;
-        let longestText = '';
-        let gap = false; // whitespace since the last word
-        const close = function () {
-          if (chars > longest) { longest = chars; longestText = text; }
-        };
-        const piece = function (str, mid) {
-          if (lineMid === null || mid > lineMid + half) {
-            if (lineMid !== null) close();
-            lineMid = mid;
-            chars = 0;
-            text = '';
-          } else if (gap) {
-            chars += 1;
-            text += ' ';
-          }
-          chars += Array.from(str).length;
-          text += str;
-          gap = false;
-        };
-        for (const node of nodes) {
-          const data = node.data;
-          const words = /\S+/g;
-          let last = 0;
-          for (let m = words.exec(data); m; m = words.exec(data)) {
-            if (m.index > last) gap = true;
-            last = m.index + m[0].length;
-            let start = m.index;
-            const end = last;
-            while (start < end) {
-              const mid = midAt(node, start);
-              if (mid === null) break;
-              const endMid = midAt(node, end - 1);
-              if (endMid !== null && endMid <= mid + half) {
-                piece(data.slice(start, end), mid);
-                break;
-              }
-              // The word wraps: the last character still on this line.
-              let lo = start;
-              let hi = end - 1;
-              while (hi - lo > 1) {
-                const k = (lo + hi) >> 1;
-                const km = midAt(node, k);
-                if (km !== null && km <= mid + half) lo = k; else hi = k;
-              }
-              piece(data.slice(start, lo + 1), mid);
-              start = lo + 1;
-            }
-          }
-          if (last < data.length) gap = true;
-        }
-        close();
-        if (longest > MEASURE_CHARS) {
-          note('measure', selector(block), 'a line of ' + longest + ' characters',
-            snippet(longestText));
-        }
-      }
+      // What the system's counter reads of the prose, for the run's summary, not a rule: the
+      // median line (null under 20 lines) and the longest, in characters.
+      const stats = FS.lineStats(win, main);
+      found.prose = { median: stats.median, longest: stats.longest };
 
-      // A code block or table that scrolls sideways inside a box held to the prose measure: it
-      // keeps the column's width (ADR-223), so nothing around it in `main` may cap it.
+      // A code block or table that scrolls sideways inside a box held narrower: it keeps the
+      // column's width (ADR-223), so nothing around it in `main` may cap it.
       for (const box of main.querySelectorAll('pre, .table-wrapper, table')) {
         if (box.scrollWidth <= box.clientWidth + SLACK_PX) continue;
         for (let e = box.parentElement; e && e !== main; e = e.parentElement) {
@@ -1561,8 +1493,9 @@
         const hs = win.getComputedStyle(head);
         const bs = win.getComputedStyle(box);
         const family = hs.fontFamily.split(',')[0].trim().replace(/^["']|["']$/g, '');
-        if (family !== 'Cascadia Mono' || !samePx(parseFloat(hs.fontSize), 12)
-          || !samePx(parseFloat(hs.lineHeight), 16) || Number(hs.fontWeight) < 600
+        const k = factorOf(head, reading);
+        if (family !== 'Cascadia Mono' || !samePx(parseFloat(hs.fontSize), 12 * k)
+          || !samePx(parseFloat(hs.lineHeight), 16 * k) || Number(hs.fontWeight) < 600
           || hs.textTransform !== 'uppercase') {
           note('note', sel + '>.fs-note-head', 'signal word type', hs.fontWeight + ' '
             + hs.fontSize + '/' + hs.lineHeight + ' ' + family + ', ' + hs.textTransform);
@@ -1601,8 +1534,19 @@
         }
       }
 
+      // The column (`foundations.md`, *Width*): `main` runs up to the system's widest content
+      // and no further, at every width; wider, the lines run past the longest the system sets,
+      // narrower, the prose is a strip in a wide window.
+      const mainStyle = win.getComputedStyle(main);
+      const most = parseFloat(mainStyle.maxWidth);
+      if (!(Math.abs(most - CONTENT_MAX_PX) < 0.5)) {
+        note('column', 'main', 'max-width', mainStyle.maxWidth + ', not ' + CONTENT_MAX_PX + 'px');
+      }
+
       // Gutters: the space between the column and the edges of the pane that holds it, the
-      // page's wrapper beside the sidebar.
+      // page's wrapper beside the sidebar. The column is centered in the pane: the gutter on each
+      // side until the column reaches its widest, then the same on both sides, and the gutter
+      // or more.
       const paneEl = doc.querySelector('.page-wrapper') || doc.body;
       const pane = paneEl.getBoundingClientRect();
       const paneRight = Math.min(pane.right, doc.documentElement.clientWidth);
@@ -1610,16 +1554,13 @@
       const left = col.left - pane.left;
       const right = paneRight - col.right;
       const gutter = width >= GUTTER_WIDE_FROM_PX ? GUTTER_WIDE_PX : GUTTER_PX;
-      const most = parseFloat(win.getComputedStyle(main).maxWidth);
       const full = Number.isFinite(most) && col.width >= most - SLACK_PX;
-      const round = function (v) { return Math.round(v * 10) / 10; };
-      // Each side the gutter, or more where the column has reached its widest.
       const off = function (side) {
         return side < gutter - SLACK_PX || (!full && side > gutter + SLACK_PX);
       };
-      if (off(left) || off(right)) {
+      if (off(left) || off(right) || Math.abs(left - right) > SLACK_PX) {
         note('gutter', 'main', 'gutters', round(left) + ' px left and ' + round(right)
-          + ' px right, against ' + gutter + ' px');
+          + ' px right, against ' + gutter + ' px, or the same on both sides and more');
       }
     }
 
@@ -1889,6 +1830,7 @@
   // The status chip and the lead of each intro (see [`probeSheets`]).
   function probeIntro(win, doc, note) {
     const theme = themeOf(win, doc);
+    const reading = readingFactor(win, doc);
     for (const chip of Array.from(doc.querySelectorAll('.fs-intro-row > .fs-status'))) {
       const sel = selector(chip);
       if (!drawn(win, chip)) {
@@ -1896,7 +1838,7 @@
         continue;
       }
       const s = win.getComputedStyle(chip);
-      if (familyOf(win, chip) !== 'Cascadia Mono' || !samePx(parseFloat(s.fontSize), CHIP_PX)
+      if (familyOf(win, chip) !== 'Cascadia Mono' || !samePx(parseFloat(s.fontSize), CHIP_PX * factorOf(chip, reading))
         || Number(s.fontWeight) !== CHIP_WEIGHT || s.textTransform !== 'uppercase') {
         note('sheet', sel, 'font', s.fontSize + ' ' + familyOf(win, chip) + ' ' + s.fontWeight
           + ' ' + s.textTransform);
@@ -1955,8 +1897,9 @@
         continue;
       }
       const s = win.getComputedStyle(lead);
-      if (familyOf(win, lead) !== 'Archivo' || !samePx(parseFloat(s.fontSize), LEAD_PX)
-        || !samePx(parseFloat(s.lineHeight), LEAD_LINE_PX) || Number(s.fontWeight) !== 400) {
+      const k = factorOf(lead, reading);
+      if (familyOf(win, lead) !== 'Archivo' || !samePx(parseFloat(s.fontSize), LEAD_PX * k)
+        || !samePx(parseFloat(s.lineHeight), LEAD_LINE_PX * k) || Number(s.fontWeight) !== 400) {
         note('sheet', sel, 'font', s.fontSize + '/' + s.lineHeight + ' ' + familyOf(win, lead)
           + ' ' + s.fontWeight);
       }
@@ -1990,6 +1933,7 @@
   // colors; and each lead (`.fs-intro > .fs-lead`) under its title in `lead` type and the muted
   // ink.
   function probeSheets(win, doc, note) {
+    const reading = readingFactor(win, doc);
     const ink = win.getComputedStyle(doc.body).color;
     probeIntro(win, doc, note);
     for (const tag of Array.from(doc.querySelectorAll('.fs-intro-row > .fs-tag'))) {
@@ -1999,7 +1943,7 @@
         continue;
       }
       const s = win.getComputedStyle(tag);
-      if (familyOf(win, tag) !== 'Cascadia Mono' || !samePx(parseFloat(s.fontSize), TAG_PX)) {
+      if (familyOf(win, tag) !== 'Cascadia Mono' || !samePx(parseFloat(s.fontSize), TAG_PX * factorOf(tag, reading))) {
         note('sheet', sel, 'font', s.fontSize + ' ' + familyOf(win, tag));
       }
       if (!/^polygon\(/.test(s.clipPath)) {
@@ -2055,7 +1999,7 @@
         }
         const n = win.getComputedStyle(number);
         if (familyOf(win, number) !== 'Cascadia Mono'
-          || !samePx(parseFloat(n.fontSize), SHEET_NUMBER_PX)) {
+          || !samePx(parseFloat(n.fontSize), SHEET_NUMBER_PX * factorOf(number, reading))) {
           note('sheet', selector(number), 'font', n.fontSize + ' ' + familyOf(win, number));
         }
         if (!name || number.getBoundingClientRect().bottom > name.getBoundingClientRect().top

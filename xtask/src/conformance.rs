@@ -504,7 +504,7 @@ fn read(root: &Path, path: &str) -> String {
 mod tests {
     use super::*;
 
-    const COMMIT: &str = "f45454f44669cc049222f2ab19eb648796e56a52";
+    const COMMIT: &str = "943492da8380ec570173599dc733bbb440f72a57";
 
     fn table(rows: &str) -> String {
         format!("# Audit\n\n{PINNED}{COMMIT}`.\n\n{HEADER}\n|---|---|---|---|---|\n{rows}")
@@ -573,8 +573,31 @@ mod tests {
         let problems = run(&both, SECTIONS_OK, moved);
         assert_eq!(problems.len(), 1, "{problems:?}");
         assert!(problems[0].contains("the theme was copied from"));
-        let short = table(&rows_ok()).replace(COMMIT, "f45454f");
+        let short = table(&rows_ok()).replace(COMMIT, "943492d");
         assert!(run(&short, SECTIONS_OK, COMMIT)[0].contains("not a full commit"));
+    }
+
+    #[test]
+    fn a_review_at_a_short_prefix_of_the_pin_fails() {
+        // Built from the pin, so it stays a true prefix when the pin moves: only its length fails.
+        let first = rows_ok().lines().next().unwrap().to_owned();
+        let at = |prefix: &str| {
+            let row =
+                format!("| `cli.md` | Output | CLI | met | reviewed at `{prefix}`: the help |");
+            run(
+                &table(&rows_ok().replace(&first, &row)),
+                SECTIONS_OK,
+                COMMIT,
+            )
+        };
+        let problems = at(&COMMIT[..MIN_PREFIX - 1]);
+        assert!(
+            problems
+                .iter()
+                .any(|p| p.contains("a review names the pinned commit")),
+            "{problems:?}"
+        );
+        assert_eq!(at(&COMMIT[..MIN_PREFIX]), Vec::<String>::new());
     }
 
     #[test]
@@ -593,11 +616,7 @@ mod tests {
                 "a review names the pinned commit",
             ),
             (
-                "| `cli.md` | Output | CLI | met | reviewed at `f454`: fine |",
-                "a review names the pinned commit",
-            ),
-            (
-                "| `cli.md` | Output | none | met | reviewed at `f45454f`: fine |",
+                "| `cli.md` | Output | none | met | reviewed at `943492d`: fine |",
                 "met, on no surface",
             ),
             (
@@ -634,7 +653,7 @@ mod tests {
             ),
             ("| `cli.md` | Output | CLI | done | M9.4 |", "status `done`"),
             (
-                "| `cli.md` | Output | CLI | met | reviewed at `f45454f` |",
+                "| `cli.md` | Output | CLI | met | reviewed at `943492d` |",
                 "a review says what was read",
             ),
             (
@@ -654,7 +673,7 @@ mod tests {
         }
         let reviewed = rows_ok().replace(
             &first,
-            "| `cli.md` | Output | CLI | met | reviewed at `f45454f44`: the help |",
+            "| `cli.md` | Output | CLI | met | reviewed at `943492da8`: the help |",
         );
         assert_eq!(
             run(&table(&reviewed), SECTIONS_OK, COMMIT),
