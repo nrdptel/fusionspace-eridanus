@@ -1,10 +1,11 @@
 # ADR-246: Student Launch by requirement number, and the other tools' known defects (2026-10-12)
 
 - **Status:** accepted; tightens [M6.3][m6-3] and [M2.9][m2-9]; no release moves
-- **Summary:** M6.3's NASA Student Launch preset takes its nine numeric limits from the 2027 handbook, each by requirement number, with a second calculation method for descent time and landing energy beside the simulation, and each check's error direction pinned. M2.9's cells for the other tools name the release they came from and each open defect that moves that tool's apogee by more than 0.5%, flown with the public fix too.
+- **Summary:** M6.3's NASA Student Launch preset takes the College/University division's 14 numeric limits from the 2027 handbook, each by requirement number and at both ballast settings, with a defined second method for descent time and landing energy beside the simulation, and each check's error side pinned. M2.9's cells for the other tools name the release they came from and each open defect that moves that tool's apogee by more than 0.5%, flown with the public fix too.
 
 [m6-3]: ../decisions-and-roadmap.md#m6-3
 [m2-9]: ../decisions-and-roadmap.md#m2-9
+[adr-151]: 0151-hpr-sim-fixtures-joins-the-reference-library-as.md
 [adr-209]: 0209-the-2026-10-08-best-on-the-market-measured.md
 [adr-240]: 0240-the-scoreboard.md
 [sl27]: https://www.nasa.gov/wp-content/uploads/2026/08/g-739882-2027-sli-handbook-508-aug5.pdf
@@ -14,24 +15,31 @@
 **Context.** A planning review on 2026-10-12 read the competitions' current rules and the other
 tools' trackers.
 
-- **Student Launch.** NASA's [2027 Student Launch handbook][sl27] (issued August 2026) sets nine
-  numeric limits a design must meet:
+- **Student Launch.** NASA's [2027 Student Launch handbook][sl27] (issued August 2026) gives its
+  College/University division these numeric limits that a design and its flight decide:
   - apogee between 4,000 and 6,000 ft above ground, with no altitude points below 3,500 or above
-    6,500 ft (2.1);
-  - a static margin of at least 2.0 on the pad (2.11) and thrust to weight of at least 5.0 (2.12);
-  - at least 52 ft/s at rail exit (2.14), never past Mach 1 (2.20.6), and ballast at most 10% of
-    the unballasted weight (2.20.7);
-  - at most 75 ft-lbf of kinetic energy per independent section at landing (3.2), a recovery area
-    of 2,500 ft radius from the pads (3.10), and a descent of at most 100 s from apogee to
-    touchdown (3.11).
+    6,500 ft (2.1); at most four independent sections (2.5); total impulse at most 5,120 N·s
+    (2.9);
+  - a static margin of at least 2.0 on the pad (2.11), thrust to weight of at least 5.0 (2.12),
+    structural protuberances aft of the burnout center of gravity (2.13), at least 52 ft/s at
+    rail exit (2.14), never past Mach 1 (2.20.6), and ballast at most 10% of the unballasted
+    weight (2.20.7);
+  - the main parachute deployed no lower than 500 ft (3.1.1), an apogee event delayed by at most
+    2 s (3.1.2), at most 75 ft-lbf of kinetic energy per independent section at landing (3.2), a
+    recovery area of 2,500 ft radius from the pads (3.10), and a descent of at most 100 s from
+    apogee to touchdown (3.11).
 
-  Its design reviews ask for the predicted apogee in 5, 10, 15 and 20 mph wind, each section's
-  landing energy and descent time, and "data from a different calculation method to verify that
-  original results are accurate". [M6.3][m6-3] promises a "Student Launch-style" preset, cited and
-  dated, but its done-when asks only that each preset be solved end to end. Nothing makes the
-  preset hold the handbook's own numbers, nor pins which way each check errs. A check that reads
-  the descent short or the landing energy low tells a team it passes when it may not: the
-  flattering side, the worst class of error the project's rules for safety outputs name.
+  Every requirement must hold at both the minimum and the maximum ballast (2.20.7.4). The design
+  reviews ask for the predicted apogee in 5, 10, 15 and 20 mph wind, each section's landing energy
+  and descent time, and "data from a different calculation method to verify that original results
+  are accurate". The High School/Middle School division numbers its requirements differently and
+  sets other values (an apogee of 3,500 to 5,500 ft, for one).
+
+  [M6.3][m6-3] promises a "Student Launch-style" preset, cited and dated, but its done-when asks
+  only that each preset be solved end to end. Nothing makes the preset hold the handbook's own
+  numbers, nor pins which way each check errs. A check that reads the descent short or the landing
+  energy low tells a team it passes when it may not: the flattering side, the worst class of error
+  the project's rules for safety outputs name.
 - **The other tools' known defects.** [M2.9][m2-9] fills the scoreboard's RocketPy cells, among
   others, from RocketPy's release ([ADR-240][adr-240]). As of 2026-10-12 that release is 1.13.0,
   and RocketPy's own tracker holds open defects that move its numbers. Two examples:
@@ -44,30 +52,55 @@ tools' trackers.
   [ADR-209][adr-209] asks HPR Sim to close, and would not say so.
 
 **Decision.**
-1. **M6.3's done-when gains the handbook by number.** The Student Launch preset holds the nine
-   limits above, each named by its requirement number, with the handbook's date, a stale-after date
-   of 2027-08-31 (the next handbook is expected in August) and "not legal advice". Its report gives
-   the apogee in 5, 10, 15 and 20 mph wind. For each section, it also gives the descent time and
-   the landing kinetic energy two ways: by the simulation, and by the closed-form terminal-descent
-   estimate. The difference between the two is printed.
+1. **M6.3's done-when gains the handbook by number.** The College/University division's Student
+   Launch preset holds the 14 limits above, each named by its requirement number. It carries the
+   handbook's date, a stale-after date of 2027-08-31 (the next handbook is expected in August) and
+   "not legal advice". Every check runs at the minimum and the maximum ballast.
+   - **Wind.** The report gives the apogee, the drift radius and each section's descent time in 5,
+     10, 15 and 20 mph wind. The drift and descent checks pass or fail on the 20 mph flight.
+   - **A second method.** Each section's descent time and landing kinetic energy also come from a
+     closed-form terminal-descent estimate, v = √(2mg/(ρC_DA)):
+     - drogue and main phases taken apart;
+     - the air's density through the descent, from the field's elevation and temperature;
+     - the time as ∫dh/v over each phase;
+     - tethered sections under one canopy share its speed;
+     - each section's landing mass by the handbook's rule.
 
-   Each limit check gets a test pinning which way it errs and a mutation probe that shows the
-   flattering side fails the test. The flattering side is low for descent time, landing energy,
-   drift radius and peak Mach, and high for margin, thrust to weight and rail-exit speed.
+     The report prints both methods and their difference. A check passes only when both methods
+     pass it. A test pins which side of the simulation the estimate falls on, with a mutation
+     probe.
+   - **Readings named.** Landing energy prints both the vertical and the ground-relative speed,
+     and names which one the check uses. Thrust to weight names the thrust it uses, never the
+     peak alone.
+   - **Error sides.** Each limit check gets a test pinning which way it errs and a mutation probe
+     that shows the flattering side fails the test. The flattering side is:
+     - low: descent time, landing energy, drift radius, peak Mach, total impulse and the ballast
+       fraction;
+     - high: margin, thrust to weight, rail-exit speed and the main's deployment altitude;
+     - forward: the burnout center of gravity;
+     - for the apogee window, toward the window's inside, tested at both edges.
+
+     The section count (2.5) and the apogee delay (3.1.2) are read from the design, not computed.
 2. **M2.9's done-when gains the known defects.** Each cell M2.9 fills names the tool's release it
    was read from. It also names every defect open in that tool's tracker on the reading date whose
-   own report says it moves apogee by more than 0.5%, with that size. Where the fix is public and
-   the tool's license allows running it, the cell's flights are flown with the fix applied too, and
-   both numbers are shown. The scoreboard compares HPR Sim with the release.
+   own report says it moves apogee by more than 0.5%, with that size; a defect whose report gives no
+   size is listed and marked so. Where the fix is public and the tool's license allows running it,
+   the cell's flights are flown with the fix applied too, and both numbers are shown. The scoreboard
+   compares HPR Sim with the release.
 
 **Consequences.**
-- A Student Launch team gets the handbook's own checks, a second method its reviews ask for, and
-  checks that err toward failing. M6.3 grows by one preset's worth of tests. It stays after Release
-  0.3, so no release moves.
+- A Student Launch team gets:
+  - the handbook's own checks for its division;
+  - the second method its reviews ask for;
+  - checks that err toward failing.
+
+  M6.3 grows by one preset's worth of tests. It stays after Release 0.3, so no release moves. The
+  High School/Middle School division's preset, if one is added, takes its own numbers the same way.
 - M6.3 is user-facing but not in progress, so the limit of three surfaces in progress is not
   touched.
 - The handbook changes every year, so the stale-after date makes the preset fail its own
   freshness check rather than quietly apply last year's numbers.
 - M2.9's RocketPy cells cost one more flight set per open defect with a public fix. RocketPy is
-  MIT-licensed, so running a patched copy is allowed.
+  MIT-licensed, so running a patched copy is allowed. Private flights stay aggregates
+  ([ADR-151][adr-151]).
 - No done-when is loosened: both milestones keep every earlier clause.

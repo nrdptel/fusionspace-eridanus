@@ -125,32 +125,33 @@ The rest moved to the theme notes on [avionics](ideas-avionics.md), [flight data
 
 ## The 2026-10-12 planning review
 
-- PROMOTED into [M6.3][m6-3] ([ADR-246][adr-246]): Student Launch's 2027 limits by requirement
-  number, a second method for descent time and landing energy, each check's error side pinned.
-- SOON: GNSS altitude distrusted during boost. User: a flyer reading back a log with GNSS and
-  barometric altitude. Why: in October 2026 a flyer reported a receiver's altitude 440 m behind
-  the rocket in boost under a valid 3-D fix ([a forum thread][gnss-thread]). Workflow: the
-  readings ([M7.2][m7-2]) distrust GNSS under thrust and until its fix settles, and name the source
-  behind the logged apogee. Moves: `accuracy.collection` and `bias.collection`, through the logs
-  they are measured against. *Done when:* a synthetic log with that lag reads the barometric
-  apogee within its stated error; a mutation trusting GNSS in boost fails a test; the fixture
-  report counts flights whose two apogees differ by more than 2%.
+- PROMOTED into [M6.3][m6-3] ([ADR-246][adr-246]): Student Launch's 2027 College/University
+  limits by requirement number, a second method for descent, each check's error side pinned.
+- SOON: Student Launch's checks in one command. User: a Student Launch team's safety lead before a
+  design review. Workflow: one `hpr` command runs the M6.3 preset on a design and prints every
+  limit's reading against it, at both ballasts and four winds. Moves: a new
+  `steps.command-line` row for that task, with each tool's count or *can't* by its docs. *Done
+  when:* the row is in `validation/steps/`, HPR Sim's file is run by a test, and the scoreboard
+  shows it.
 - SOON: motor curves checked against the certifier. User: a flyer simulating offline on a cached
   curve. Why: in September 2026 a contributor replaced 63 ThrustCurve curves and had 70 deleted
   for rows doubled at time zero, times out of order and impulse off the certification
-  ([its thread][tc-thread]); NAR's retests of 17 small motors ran a median 9.4% below the mean the
-  catalog keeps on 15 ([motor data](motor-data.md)). Workflow: `hpr motors check` flags each
-  defect class and an impulse off the certifier's latest mean beyond its tolerance; `hpr sim`
-  flies both impulses. Moves: `bias.collection` (+8.73%) and `bias.public` (−0.25%). *Done when:*
-  a fixture per defect class is flagged and a clean curve isn't; the fixture and public reports
-  count flights on flagged curves, their mean error beside the rest's.
+  ([its thread][tc-thread]); NAR's retests of 17 motors, F and smaller, ran a median 9.4% below
+  their older test mean, which the catalog keeps on 15 ([motor data](motor-data.md)). Workflow:
+  `hpr motors check` flags each defect class and an impulse off the certifier's latest mean beyond
+  its tolerance; `hpr sim` also flies the certifier's impulse, thrust scaled at a fixed burn time
+  and propellant with it, each check taking its worse side. Moves: `bias.public` and
+  `bias.collection`, flown both ways. *Done when:* a fixture per defect class is flagged and a
+  clean curve isn't; both reports give the bias with flagged flights at the certifier's mean, and
+  their count (groups under 5 flights as a count only).
 - LATER: aero tables OpenRocket can read. User: a flyer checking a design in both tools. Why:
   OpenRocket's development line reads drag and stability lookup tables, documented in its user
   guide ([a forum thread][or-tables], 2026-10-03). Workflow: `hpr aero` writes HPR Sim's drag and
   center of pressure against Mach in that format for OpenRocket to fly. Moves: [M2.3c6][m2-3c6]'s
   split of the 0.93-point gap in `accuracy.collection`, isolating aerodynamics. *Done when:* on 10
-  public designs both tools' apogees with and without the tables are published, and a test pins
-  the file to hand-derived bytes, written from the format's documentation only.
+  public designs and the collection (as aggregates), both tools' apogees with and without the
+  tables are published; a test pins the file to bytes derived by hand from the format's docs.
+- Moved to [flight data](ideas-flight-data.md) on arrival: GNSS altitude distrusted in boost.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -192,8 +193,6 @@ The rest moved to the theme notes on [avionics](ideas-avionics.md), [flight data
 [m2-3c7]: ../decisions-and-roadmap.md#m2-3c7
 [adr-236]: ../decisions/0236-the-2026-10-11-review-supersonic-flights-from-published-comparisons.md
 [adr-246]: ../decisions/0246-the-2026-10-12-review-student-launch-by-requirement-and-oracle-defects.md
-[m7-2]: ../decisions-and-roadmap.md#m7-2
 [m2-3c6]: ../decisions-and-roadmap.md#m2-3c6
-[gnss-thread]: https://www.rocketryforum.com/threads/mitigating-gnss-issues-in-boost.199286/
 [tc-thread]: https://www.rocketryforum.com/threads/thrustcurve-open-thread.164391/page-30
 [or-tables]: https://www.rocketryforum.com/threads/omg-openrocket-26xx-sapshot-drag-csv-and-stability-csv.199161/

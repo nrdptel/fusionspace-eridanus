@@ -196,9 +196,9 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   committed reports, or name a capability the tool lacks, checked in its current docs with the
   date; RocketPy's steps to a first answer are recounted (ADR-241); and each filled cell names the
   release it was read from and every defect open in that tool's tracker that its own report says
-  moves apogee by more than 0.5%, with that size, flown with the fix too where the fix is public
-  and its license allows (ADR-246). Moves: none of HPR Sim's numbers; it fills the columns they are
-  compared with.
+  moves apogee by more than 0.5%, with that size (unsized ones marked), flown with the fix too
+  where the fix is public and its license allows (ADR-246). Moves: none of HPR Sim's numbers; it
+  fills the columns they are compared with.
 - [ ] **M1.14 Accuracy inside the envelope** (ADR-143 §6, ADR-220). The core band (Mach 0–2.5)
   first, then the extended band in M1.14h; angle of attack ≤ 15°, high angles M1.14e's. *Done
   when:* real flights meet the 5% mean apogee target, hpr is at least as accurate as OpenRocket on
@@ -261,12 +261,10 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     Cup/IREC-style, NASA Student Launch-style, TARC-style, and a generic target apogee.
 
   *Done when:* each preset is solved end to end from both the CLI and Python, with a Pareto report
-  and a check that the winners satisfy every constraint by re-simulation; and (ADR-246) the Student
-  Launch preset holds the 2027 handbook's nine numeric limits by requirement number (2.1, 2.11,
-  2.12, 2.14, 2.20.6, 2.20.7, 3.2, 3.10, 3.11), with the handbook's date, a stale-after date and
-  "not legal advice"; its report gives the apogee in 5, 10, 15 and 20 mph wind and each section's
-  descent time and landing energy by the simulation and by a closed-form estimate, with their
-  difference; and each limit check has a test pinning which way it errs, with a mutation probe.
+  and a check that the winners satisfy every constraint by re-simulation; and the Student Launch
+  preset meets ADR-246 §1: the 2027 handbook's 14 College/University limits by requirement number
+  at both ballasts, the four winds, a closed-form second method, and a test and a mutation probe
+  for the side each check errs.
 - [ ] **M6.4 Airbrakes.** Added by Neer on 2026-09-18 (VISION V16).
   - Deployable drag surfaces: added drag as a function of deployment and Mach, from a table or a
     cited semi-empirical estimate; deployment rate limits.
