@@ -14,9 +14,9 @@
 //!
 //! The figures are drawn from the same reports, by `cargo xtask guides`, and held to the figure
 //! checks; `--check`, run by a test in CI, fails a committed figure that is not what the reports
-//! draw now. The same command writes the two reports the guides own, the guide rocket's center of
-//! pressure ([`stability`]) and its fin-flutter numbers ([`flutter`]), and `--check` fails each
-//! when the design no longer gives it.
+//! draw now. The same command writes the three reports the guides own, the guide rocket's center of
+//! pressure ([`stability`]), its fin-flutter numbers ([`flutter`]) and its drag ([`drag`]), and
+//! `--check` fails each when the design no longer gives it.
 
 use std::cell::RefCell;
 use std::collections::BTreeMap;
@@ -29,11 +29,12 @@ use serde_json::Value;
 
 use crate::fixture_flights::{BINS_PERCENT, REPORT_JSON as FIXTURE, REPORT_MD as FIXTURE_PAGE};
 
+mod drag;
 mod flutter;
 mod stability;
 
 pub const USAGE: &str = "  \
-guides [--check]         Write the guide rocket's center-of-pressure and flutter reports, draw
+guides [--check]         Write the guide rocket's center-of-pressure, flutter and drag reports, draw
                            the Rocketry explained guides' figures from the committed reports, and
                            check every number in the guides' text against the reports. With
                            --check, fail on a stale report or figure instead of writing it.";
@@ -42,12 +43,14 @@ guides [--check]         Write the guide rocket's center-of-pressure and flutter
 const REAL: &str = "validation/reports/real-flights.json";
 
 /// The reports a quote or a figure may read, as JSON.
-const REPORTS: [&str; 5] = [
+const REPORTS: [&str; 7] = [
     FIXTURE,
     REAL,
     stability::REPORT,
     stability::TUNNEL,
     flutter::REPORT,
+    drag::REPORT,
+    drag::TUNNEL,
 ];
 /// The reports a quote or a figure may read as text, each read whole at the pointer `""`: the
 /// fixture report's page, which holds the weather's attribution.
@@ -118,6 +121,14 @@ fn guides() -> Vec<Guide> {
             figures: vec![(
                 "docs/images/flutter-speed-by-thickness.svg",
                 flutter::draw_speed_by_thickness,
+            )],
+        },
+        Guide {
+            page: "docs/drag-through-mach-1.md",
+            quotes: drag::quotes(),
+            figures: vec![(
+                "docs/images/drag-against-mach.svg",
+                drag::draw_drag_against_mach,
             )],
         },
     ]
@@ -927,6 +938,7 @@ fn figures(reports: &Reports) -> Result<Vec<(&'static str, String)>, String> {
 pub(crate) fn check(root: &Path) -> Result<(), String> {
     let mut problems: Vec<String> = stability::stale(root)?.into_iter().collect();
     problems.extend(flutter::stale(root)?);
+    problems.extend(drag::stale(root)?);
     let reports = Reports::load(root)?;
     problems.extend(problems_of(root, &reports)?);
     for (path, figure) in figures(&reports)? {
@@ -958,6 +970,11 @@ pub fn run(args: &[String]) -> Result<(), String> {
                 let report = flutter::written(&flutter::generate(&root)?)?;
                 fs::write(root.join(flutter::REPORT), report)
                     .map_err(|error| format!("{}: {error}", flutter::REPORT))?;
+            }
+            if drag::stale(&root)?.is_some() {
+                let report = drag::written(&drag::generate(&root)?)?;
+                fs::write(root.join(drag::REPORT), report)
+                    .map_err(|error| format!("{}: {error}", drag::REPORT))?;
             }
             let reports = Reports::load(&root)?;
             for (path, figure) in figures(&reports)? {

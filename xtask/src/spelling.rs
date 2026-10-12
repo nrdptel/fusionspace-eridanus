@@ -340,6 +340,7 @@ const ALLOWED: &[(&str, &str, Reason)] = &[
         "aria-labelledby",
         Reason::Key,
     ),
+    ("xtask/src/guides/drag.rs", "aria-labelledby", Reason::Key),
     // Two decision records' file names, frozen with the records, which the name check's
     // allowlist names.
     (

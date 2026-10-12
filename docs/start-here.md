@@ -392,6 +392,8 @@ drawn from HPR Sim's own results:
   angle, against a wind tunnel.
 - [When fins flutter](when-fins-flutter.md): what a flutter speed means, and which errors flatter
   it.
+- [Drag through the speed of sound](drag-through-mach-1.md): how drag climbs near Mach 1, what the
+  finish adds, and which way HPR Sim's drag errs against a wind tunnel.
 
 Each model page opens with *In short*: what it models, its sources, how well it is validated and
 what it leaves out. Below that, it names the code that implements the model, the sources it follows

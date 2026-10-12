@@ -99,7 +99,8 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     page check fails when `scrollWidth > clientWidth` from 320 to 1,920 px in 40 px steps, each
     with a test that moves one label out and fails; a third fails on text over text, with a test
     that overlaps two labels; all three also run on the site's other pages and `--plot` (ADR-198).
-    - [ ] **M0.7a5 Drag through Mach 1.** *Done when:* as M0.7a2; Neer has read all four guides.
+    - [ ] [blocked] **M0.7a6 The maintainer's read** (blocked on Neer, ADR-245). *Done when:* Neer
+      has read all four guides.
   - [ ] **M0.7b Recovery, wind and motors** (recovery as one timeline, weathercocking and rail
     exit, thrust curves and delays), after M6.8. *Done when:* as M0.7a; charges only as M6.7's
     ranges, "ground test first" ahead of them.

@@ -971,6 +971,59 @@ fn a_flight_on_a_drag_table_flies_through_mach_1() {
     assert!((1.05..1.6).contains(&fastest.0), "{}", fastest.0);
 }
 
+/// A drag coefficient that reads high flies lower and slower: with the drag scaled up the apogee,
+/// the top speed and the peak dynamic pressure all come out lower, and scaled down, higher. So a
+/// positive drag error, HPR Sim's drag above a reference's, reads an apogee too low, the side
+/// that flatters an apogee ceiling, and a max q too low. The drag guide marks that side by this
+/// test. Flown on a rocket that passes Mach 1 and on one that stays below it.
+#[test]
+fn a_higher_drag_reads_a_lower_apogee() {
+    use crate::metrics::{FlightMetrics, FlightSummary};
+    let fly = |name: &str, motor: &str, scale: f64| -> FlightSummary {
+        let sim = Simulation::new(
+            &design(name),
+            motor,
+            Environment::standard(site()).unwrap(),
+            Rail::vertical(3.0),
+            FlightSettings::default(),
+        )
+        .unwrap()
+        .with_drag_scale(scale)
+        .unwrap();
+        let mut metrics = FlightMetrics::new();
+        let result = sim.run(&mut metrics).unwrap();
+        metrics.summary(&result, sim.environment()).unwrap()
+    };
+    for (name, motor) in [
+        ("synthetic-54mm-three-fin", "i175"),
+        ("rocketpy-valetudo", "example"),
+    ] {
+        let read = |scale: f64| {
+            let summary = fly(name, motor, scale);
+            [
+                summary.apogee.unwrap().gain_m.unwrap(),
+                summary.max_speed_m_s.unwrap().value,
+                summary.max_dynamic_pressure_pa.unwrap().value,
+            ]
+        };
+        let (low, plain, high) = (read(0.9), read(1.0), read(1.1));
+        for at in 0..3 {
+            assert!(
+                high[at] < plain[at],
+                "{name} {at}: {} {}",
+                high[at],
+                plain[at]
+            );
+            assert!(
+                low[at] > plain[at],
+                "{name} {at}: {} {}",
+                low[at],
+                plain[at]
+            );
+        }
+    }
+}
+
 #[test]
 fn a_supersonic_flight_flies_on_the_drag_buildup() {
     // The drag buildup covers Mach 0 to 5 since M1.8b1 (ADR-028), so the same rocket on its own

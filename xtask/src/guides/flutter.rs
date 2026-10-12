@@ -327,7 +327,7 @@ const PEAK_PLACE_M: f64 = 0.01;
 
 /// A part's size in millimeters to `decimals` places, then in inches to two, converted from the
 /// millimeters as written: `3 mm (0.12 in)`.
-fn millimeters(value_m: f64, decimals: usize) -> String {
+pub(super) fn millimeters(value_m: f64, decimals: usize) -> String {
     let mm = value_m * 1000.0;
     let inches = written_value(mm, decimals) / 25.4;
     format!("{} mm ({} in)", fixed(mm, decimals), fixed(inches, 2))
@@ -335,7 +335,7 @@ fn millimeters(value_m: f64, decimals: usize) -> String {
 
 /// A speed in meters a second to the meter, then in feet a second to the foot, converted from
 /// the speed as written: `175 m/s (574 ft/s)`.
-fn speed(value: f64) -> String {
+pub(super) fn speed(value: f64) -> String {
     let feet = written_value(value, 0) / 0.3048;
     format!("{} m/s ({} ft/s)", fixed(value, 0), fixed(feet, 0))
 }
