@@ -8,11 +8,12 @@ it went, how fast it climbed, when it landed. FusionSpace HPR · Analyzer reads 
 It needs no design file and runs no simulation, so it works whatever the rocket was designed in, or
 if it was never designed on a computer at all.
 
-**What works today:** logs from PerfectFlite altimeters in their `.pf2` format. The one real
-file read so far is a Pnut's; the StratoLogger and StratoLoggerCF are expected to write the same
-layout, but no file of theirs has been tried ([the format](format/pf2.md)). Other loggers come
-with [M7.1](decisions-and-roadmap.md#m7-1), the milestone that reads the other formats that
-Debrief, the project owner's earlier flight-log analyzer, read.
+**What works today:** logs from PerfectFlite altimeters in their `.pf2` format, the Pnut's, the
+StratoLogger's and the StratoLoggerCF's ([the format](format/pf2.md)). The library also reads
+PerfectFlite's CSV and text exports, AltOS's CSV and the Featherweight Raven's FIP CSV into the
+same record ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its readings from
+those with [M7.2](decisions-and-roadmap.md#m7-2), which validates them on other loggers. Other
+loggers come with [M7.1b](decisions-and-roadmap.md#m7-1b).
 
 > **How far to trust it.** Readings of the altimeter's own log, not a simulation. On an invented flight whose every number is known, the apogee comes
 > within a quarter of a meter and one sample of the truth, and liftoff within a tenth of a second.
@@ -194,7 +195,9 @@ speed is `max_speed` in both.
 
 ## What it doesn't do yet
 
-- Read other loggers' files ([M7.1](decisions-and-roadmap.md#m7-1)).
+- Read other loggers' files ([M7.1b](decisions-and-roadmap.md#m7-1b)), or take readings from
+  the AltOS and Raven logs the library already reads
+  ([M7.2](decisions-and-roadmap.md#m7-2)).
 - Split the descent into the drogue's and the main's rates, find the deployments, or give the
   Mach number and dynamic pressure ([M7.2](decisions-and-roadmap.md#m7-2)).
 - Compare a flight with its simulation ([M7.3](decisions-and-roadmap.md#m7-3)).

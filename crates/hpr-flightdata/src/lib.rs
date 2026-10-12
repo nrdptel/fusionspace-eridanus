@@ -16,12 +16,17 @@
 //! measured, or clipped because the sensor saturated), and a reading the log cannot support is
 //! withheld with a reason rather than printed.
 //!
-//! Status: pre-alpha. One format is read so far, PerfectFlite's `.pf2` ([`perfectflite`]), into
-//! the record every reader produces ([`log::FlightLog`]), and [`readings`] takes a first set of
-//! readings from it: liftoff, apogee, the top speed, landing and the descent. The guide's
-//! [reading a flight log][guide-log] page shows them on a log. The other loggers' formats are
-//! planned for milestone [M7.1][roadmap] of the roadmap, and the rest of the readings, smoothing and
-//! reconstruction for [M7.2][roadmap].
+//! Status: pre-alpha. [`import::read`] recognizes a log's layout from its content and reads it into
+//! the record every reader produces ([`log::FlightLog`]): PerfectFlite's `.pf2` and its CSV and
+//! text exports ([`perfectflite`]), AltOS's CSV ([`altos`]) and the Featherweight Raven's FIP CSV
+//! ([`raven`]), every column kept as a channel on its own clock. [`readings`] takes a first set of
+//! readings from the record: liftoff, apogee, the top speed, landing and the descent, set and
+//! tested on PerfectFlite logs. The guide's [reading a flight log][guide-log] page shows them on a
+//! log, and [the layouts read][guide-layouts] lists what each reader keeps. The other loggers'
+//! formats are planned for milestone [M7.1b][roadmap] of the roadmap, and the rest of the
+//! readings, smoothing and reconstruction for [M7.2][roadmap].
+//!
+//! [guide-layouts]: https://hpr.fusionspace.co/format/flight-logs.html
 //!
 //! [guide-log]: https://hpr.fusionspace.co/reading-a-flight-log.html
 //!
@@ -41,10 +46,13 @@
 //! # Ok::<(), hpr_flightdata::error::LogError>(())
 //! ```
 
+pub mod altos;
 pub mod error;
 pub mod filter;
+pub mod import;
 pub mod log;
 pub mod perfectflite;
+pub mod raven;
 pub mod readings;
 
 #[cfg(test)]

@@ -360,8 +360,14 @@ adds a source.
   `lib/analyze/index.ts` at `9e72db8`: the layout and units of PerfectFlite's `.pf2` in
   `hpr_flightdata::perfectflite`, and the corpus-set thresholds `hpr_flightdata::readings` takes
   (a 3 m climb for liftoff, landing below 2 m and staying under 5 m for a second, the 4,000 m/s and
-  20% guards on a peak speed), as its documentation says. No code was copied; no flight file of
-  Debrief's is committed.
+  20% guards on a peak speed), as its documentation says. Also `lib/parsers/altusmetrum.ts` and
+  `lib/flight/build.ts` at the same commit: AltOS's CSV columns and their units, the GPS altitude
+  told apart by its place after `longitude`, acceleration net of gravity, the (0, 0) position
+  before a GPS fix, and keeping the first row at each repeated time, in `hpr_flightdata::altos`.
+  Also `lib/parsers/featherweightFip.ts` and `lib/parsers/multiTimebase.ts` at the same commit:
+  the Raven FIP CSV's `Time@` clock and `bILBA` status per channel and their units, in
+  `hpr_flightdata::raven`.
+  No code was copied; no flight file of Debrief's is committed.
 - **DOPRI5** (BSD-2-Clause), E. Hairer and G. Wanner's `dopri5.f`, version of 2004: the
   Dormand–Prince coefficients, the error norm, the PI step-size controller, the starting-step
   estimate and the dense-output formula, re-expressed in Rust in `hpr_sim::integrator`. Its license
@@ -607,6 +613,12 @@ installed with `--no-deps` from that file (M3.1d2, ADR-059). Nothing in it is co
 | `rocketserializer` at `66d8ca8` (after release 0.2.0) | MIT | run, source read | a second reader of `.ork` files: its extractors are called one by one on each design, and `cargo xtask ork` holds HPR Sim's key geometry to theirs. Its declared dependency `orhelper` (GPL-2.0) is not installed |
 | `JPype1` 1.7.1 | Apache-2.0 | run-only | starts the JVM for OpenRocket, as in the oracle environment |
 | `numpy`, `beautifulsoup4`, `soupsieve`, `typing-extensions`, `lxml`, `packaging` | as each package states | run-only | what the extractors and JPype import |
+
+## Research caches (`refs/research/`, outside the lock file)
+
+| source | license | mode | notes |
+|---|---|---|---|
+| [`AerospaceNU/rocket-flight-data`](https://github.com/AerospaceNU/rocket-flight-data) at `e951b1f` | GPL-3.0 | fetched and cached | a university team's flight logs (`docs/research/aerospacenu-flights.md`); never committed. `cargo xtask logs` reads them and publishes counts and anonymized ids only (M7.1a, ADR-251) |
 
 ## Planned sources (not fetched yet)
 

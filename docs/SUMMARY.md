@@ -104,6 +104,7 @@
 - [RASP `.eng` motor files](format/eng.md)
 - [RockSim `.rse` motor files](format/rse.md)
 - [ERA5 weather files](format/era5.md)
+- [Flight logs: the record and the layouts read](format/flight-logs.md)
 - [PerfectFlite `.pf2` flight logs](format/pf2.md)
 
 # Reference

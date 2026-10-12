@@ -291,6 +291,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M6.2d EGO ([Phase 3](#phase-3-uncertainty-optimization-challenges))
 - M6.2d1 Branin and Hartmann 3 ([Phase 3](#phase-3-uncertainty-optimization-challenges))
 - M6.2d2 Hartmann 6 ([Phase 3](#phase-3-uncertainty-optimization-challenges))
+- M7.1a The record, a survey, three families ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M10.1 Release 0.1: the simulator ([Phase 8](#phase-8-releases-adr-162))
 - M10.1a The flight and design fixes ([Phase 8](#phase-8-releases-adr-162))
@@ -1431,6 +1432,14 @@ One line per milestone or increment, in the order it was archived within its pha
 ## Phase 4: More formats and embeddings
 
 ## Phase 5: Flight data and forensics
+
+- **M7.1** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
+  - [x] **M7.1a The record, a survey, three families.** *Done when:* `cargo xtask logs` surveys
+    every log sample in refs by family, read or refused with a reason, into a committed
+    report (counts, anonymized ids) the refs step checks; every PerfectFlite (`.pf2`, CSV, text),
+    AltOS CSV and Raven FIP CSV sample imports, each column a channel on its own clock, events
+    kept; pinned by digest (refs) and snapshot (invented samples).
+    Met (ADR-251): 319 files read; one AltosUI export with a damaged header is refused and listed.
 
 ## Phase 6: Design experience (library level)
 

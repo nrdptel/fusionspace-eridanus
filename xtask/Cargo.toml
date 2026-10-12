@@ -18,6 +18,7 @@ hpr-cli.workspace = true
 hpr-atmos.workspace = true
 hpr-core.workspace = true
 hpr-design.workspace = true
+hpr-flightdata.workspace = true
 hpr-format.workspace = true
 hpr-io.workspace = true
 hpr-validate.workspace = true

@@ -159,6 +159,14 @@ pub enum Reason {
     /// The samples come so often that the [`MEDIAN_WINDOW_S`] window would hold more than
     /// [`MAX_MEDIAN_HALF_WINDOW`] either side.
     SampledTooFast,
+    /// The readings' thresholds were set and tested on PerfectFlite logs only; on another
+    /// logger's they wait for milestone [M7.2], which validates them on other loggers, as
+    /// [ADR-251] decided. On AltOS logs, liftoff read from the barometer alone lands a median
+    /// 0.28 s and up to 1.8 s after the logger's own detection of boost.
+    ///
+    /// [M7.2]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2
+    /// [ADR-251]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0251-flight-log-importers-in-two-increments.md
+    NotValidatedForLogger,
 }
 }
 
@@ -281,8 +289,31 @@ pub struct Readings {
     pub landing: Reading<Landing>,
 }
 
-/// Takes the readings from a flight log.
+/// Takes the readings from a flight log: every reading withheld as
+/// [`Reason::NotValidatedForLogger`] for a logger other than a PerfectFlite.
 pub fn read(log: &FlightLog) -> Readings {
+    if !matches!(
+        log.format,
+        LogFormat::PerfectFlitePf2 | LogFormat::PerfectFliteCsv | LogFormat::PerfectFliteText
+    ) {
+        let detail = format!(
+            "HPR Sim's readings were set and tested on PerfectFlite logs; reading a {} log waits \
+             for roadmap milestone M7.2, which validates them on other loggers",
+            log.format.name()
+        );
+        let reason = Reason::NotValidatedForLogger;
+        return Readings {
+            sample_interval_s: None,
+            median_window_s: None,
+            peak_bound_m: None,
+            pad_altitude_m: None,
+            liftoff: Reading::withheld(reason, &detail),
+            apogee: Reading::withheld(reason, &detail),
+            max_speed: Reading::withheld(reason, &detail),
+            max_acceleration: Reading::withheld(reason, &detail),
+            landing: Reading::withheld(reason, &detail),
+        };
+    }
     let max_acceleration = no_accelerometer(log);
     let every = |reason: Reason, detail: &str| Readings {
         sample_interval_s: None,
@@ -510,15 +541,14 @@ fn arg_max(values: &[f64]) -> Option<usize> {
         .map(|(index, _)| index)
 }
 
-/// The top acceleration, withheld: no format read so far records one.
-fn no_accelerometer(log: &FlightLog) -> Reading<MaxAcceleration> {
-    let detail = match log.format {
-        LogFormat::PerfectFlitePf2 => {
-            "a PerfectFlite logger has no accelerometer; HPR Sim doesn't difference the altitude \
-             twice to make one, as its one-foot steps would read as spikes of many g"
-        }
-    };
-    Reading::withheld(Reason::NoAccelerometer, detail)
+/// The top acceleration, withheld: a PerfectFlite, the only logger the readings take, records
+/// none.
+fn no_accelerometer(_log: &FlightLog) -> Reading<MaxAcceleration> {
+    Reading::withheld(
+        Reason::NoAccelerometer,
+        "a PerfectFlite logger has no accelerometer; HPR Sim doesn't difference the altitude \
+         twice to make one, as its one-foot steps would read as spikes of many g",
+    )
 }
 
 /// The top vertical speed from liftoff to apogee, or why it is withheld.
@@ -664,8 +694,35 @@ mod tests {
             vertical_speed_m_s: Some(speed),
             temperature_k: None,
             battery_v: None,
+            channels: Vec::new(),
+            events: Vec::new(),
             notes: Vec::new(),
         }
+    }
+
+    #[test]
+    fn another_loggers_log_has_every_reading_withheld_until_m7_2() {
+        // The same clean flight a PerfectFlite's readings take, as an AltOS log.
+        let mut altos = log(30.0, flight(6.0));
+        assert!(read(&altos).apogee.value().is_some());
+        altos.format = LogFormat::AltosCsv;
+        let readings = read(&altos);
+        fn reason<T>(reading: &Reading<T>) -> Option<Reason> {
+            match reading {
+                Reading::Read(_) => None,
+                Reading::Withheld(withheld) => Some(withheld.reason),
+            }
+        }
+        for withheld in [
+            reason(&readings.liftoff),
+            reason(&readings.apogee),
+            reason(&readings.max_speed),
+            reason(&readings.max_acceleration),
+            reason(&readings.landing),
+        ] {
+            assert_eq!(withheld, Some(Reason::NotValidatedForLogger));
+        }
+        assert_eq!(readings.pad_altitude_m, None);
     }
 
     /// Up at 20 m/s from 1 s to 6 s (100 m), then down at `descent` m/s to the pad.
@@ -973,7 +1030,7 @@ mod tests {
             (listed, codes.len())
         };
         let reasons = Reason::ALL.iter().map(|r| serde_json::json!(r)).collect();
-        assert_eq!(codes(reasons), (13, 13));
+        assert_eq!(codes(reasons), (14, 14));
         let sources = Source::ALL.iter().map(|s| serde_json::json!(s)).collect();
         assert_eq!(codes(sources), (2, 2));
     }

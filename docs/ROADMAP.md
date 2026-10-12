@@ -391,18 +391,14 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 M7.1 and M7.2 must work with no design file and no simulator, so that analyzing a flight stands on
 its own (ADR-046): `hpr-flightdata` may not depend on `hpr-sim`, and `cargo xtask wasm-check`
 enforces it. M7.3 and M7.4 compare a flight with a simulation of it and live in `hpr-forensics`.
-The formats, reading methods and log corpus come from Debrief (`refs/fusionspace-debrief`), written
-up in `docs/research/`.
-- [ ] **M7.1 Flight log importers.**
-  - AltOS (TeleMetrum/TeleMega/EasyMega, CSV and eeprom), Missile Works RRC3 and RFF, Eggtimer,
-    Featherweight Raven/Blue Raven and Featherweight GPS, PerfectFlite, Entacore AIM,
-    AltimeterCloud, spreadsheet exports, CATS.
-  - The EuRoC/Juno CSV layouts; generic CSV with column mapping; unit detection.
-  - One canonical flight record every importer maps into, carrying every sample the logger wrote.
-
-  *Done when:* every sample file in refs imports, snapshot-tested, and the crate builds with no
-  dependency on `hpr-sim` (`cargo xtask wasm-check`). Formats without samples are listed in the
-  docs as needing samples.
+The formats, reading methods and log corpus come from Debrief, written up in `docs/research/`.
+- [ ] **M7.1 Flight log importers** (ADR-251): one canonical flight record every importer maps
+  into, carrying every sample the logger wrote. *Done when:* every sample file in refs imports,
+  snapshot-tested, and the crate builds with no dependency on `hpr-sim` (`cargo xtask wasm-check`).
+  Formats without samples are listed in the docs as needing samples.
+  - [ ] **M7.1b The other importers:** AltOS eeprom, RRC3 and RFF, Eggtimer, Blue Raven,
+    Featherweight GPS, PerfectFlite `.pfa`, Entacore AIM, AltimeterCloud, spreadsheets, CATS;
+    EuRoC/Juno CSV; generic CSV with column mapping; unit detection. *Done when:* the parent's.
 - [ ] **M7.2 Readings, reconstruction and ghost data.**
   - The readings a flight gives (apogee, maximum velocity and acceleration, burnout, descent
     rates per phase, flight time), each carrying its provenance: measured, derived, or clipped

@@ -1522,6 +1522,8 @@ pub enum WithheldReason {
     BadRecord,
     /// The samples come so often that the 0.3 s median would hold more than 1,000 either side.
     SampledTooFast,
+    /// The readings were tested on PerfectFlite logs only; another logger's wait for M7.2.
+    NotValidatedForLogger,
     /// A reason this build of `hpr` doesn't name.
     Other,
 }

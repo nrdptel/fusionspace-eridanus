@@ -20,3 +20,7 @@ crates/hpr-motor/data/thrustcurve/curves/** -text
 # OpenRocket's parts catalogue files keep the exact bytes OpenRocket 24.12 ships;
 # validation/oracles/openrocket/orc_presets.py checks the jar's copies against them.
 crates/hpr-io/data/openrocket-database/** -text
+
+# Flight-log samples keep their bytes: some end lines in CRLF on purpose, as loggers' software
+# writes them, so that the readers' tests cover it on every OS.
+crates/hpr-flightdata/tests/samples/** -text
