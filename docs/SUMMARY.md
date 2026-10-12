@@ -48,6 +48,10 @@
 
 [Accuracy](accuracy.md)
 
+# Rocketry explained
+
+- [Trusting a simulation](trusting-a-simulation.md)
+
 # The environment
 
 - [Frames and sign conventions](physics/frames.md)

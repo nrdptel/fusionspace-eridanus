@@ -730,6 +730,36 @@ fn percent(simulated: f64, reference: f64) -> f64 {
     100.0 * (simulated - reference) / reference
 }
 
+/// One flight's apogees, m: hpr's in the day's air and in OpenRocket's, OpenRocket's, and the
+/// logged one as the height climbed.
+struct Apogees {
+    hpr_m: f64,
+    openrocket_m: f64,
+    hpr_standard_m: f64,
+    logged_m: f64,
+}
+
+impl Compared {
+    /// One flight's row: each simulator's apogee less the logged one, over the logged one, so a
+    /// simulated apogee below the logged one is a negative miss.
+    fn of(apogees: Apogees, early: bool, below_tier_a: bool) -> Self {
+        let Apogees {
+            hpr_m,
+            openrocket_m,
+            hpr_standard_m,
+            logged_m,
+        } = apogees;
+        Self {
+            hpr_percent: percent(hpr_m, logged_m),
+            openrocket_percent: percent(openrocket_m, logged_m),
+            hpr_in_openrocket_air_percent: percent(hpr_standard_m, logged_m),
+            hpr_over_openrocket_percent: percent(hpr_m, openrocket_m),
+            early,
+            below_tier_a,
+        }
+    }
+}
+
 /// Flies every flight and builds the report.
 fn fly_all(
     root: &Path,
@@ -853,14 +883,16 @@ fn fly_all(
         counts.early_unknown += usize::from(entry.early_deployment.is_none());
         let below_tier_a = entry.catalog_tier != CatalogTier::A;
         counts.below_tier_a += usize::from(below_tier_a);
-        let row = Compared {
-            hpr_percent: percent(hpr_m, logged_m),
-            openrocket_percent: percent(openrocket_m, logged_m),
-            hpr_in_openrocket_air_percent: percent(hpr_standard_m, logged_m),
-            hpr_over_openrocket_percent: percent(hpr_m, openrocket_m),
+        let row = Compared::of(
+            Apogees {
+                hpr_m,
+                openrocket_m,
+                hpr_standard_m,
+                logged_m,
+            },
             early,
             below_tier_a,
-        };
+        );
         println!(
             "fixture-flights: {at:<48} hpr {:+7.2}%  OpenRocket {:+7.2}%  hpr in its air {:+7.2}%{}{}",
             row.hpr_percent,
@@ -1394,6 +1426,40 @@ mod tests {
         assert_eq!(Stats::of([0.0].into_iter()).histogram[7], 1);
         assert_eq!(Stats::of([30.0].into_iter()).histogram[13], 1);
         assert_eq!(Stats::of([-31.0].into_iter()).histogram[0], 1);
+    }
+
+    /// A simulated apogee below the logged one is a negative miss, in a bin below zero's bound:
+    /// the low side, which flatters a ceiling, and which the trust guide's figure marks
+    /// (`guides`). One at or above the logged one is in the bin from zero up.
+    #[test]
+    fn a_low_simulated_apogee_is_a_negative_miss() {
+        // Each simulator's own apogee against the log, in the row the report is built from: hpr
+        // low, OpenRocket high, hpr in OpenRocket's air low.
+        let row = Compared::of(
+            Apogees {
+                hpr_m: 90.0,
+                openrocket_m: 110.0,
+                hpr_standard_m: 95.0,
+                logged_m: 100.0,
+            },
+            false,
+            false,
+        );
+        assert_eq!(row.hpr_percent, -10.0);
+        assert_eq!(row.openrocket_percent, 10.0);
+        assert_eq!(row.hpr_in_openrocket_air_percent, -5.0);
+        assert!(row.hpr_over_openrocket_percent < 0.0);
+        let zero = BINS_PERCENT.iter().position(|&bound| bound == 0.0).unwrap();
+        let low = Stats::of([percent(99.0, 100.0)].into_iter());
+        assert_eq!(
+            low.histogram.iter().position(|&count| count == 1),
+            Some(zero)
+        );
+        let even = Stats::of([percent(100.0, 100.0)].into_iter());
+        assert_eq!(
+            even.histogram.iter().position(|&count| count == 1),
+            Some(zero + 1)
+        );
     }
 
     /// A histogram that misses a flight, or counts out of order, is caught.

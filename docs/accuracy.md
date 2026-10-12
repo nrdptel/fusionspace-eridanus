@@ -4,7 +4,7 @@ Judge how far to trust HPR Sim's numbers from its checks against other programs 
 model by model, with every known gap.
 
 This page gathers every check HPR Sim has passed so far, and every known gap, in words and
-numbers. Start with the bottom line: **when both codes fly the same drag
+numbers; [Trusting a simulation](trusting-a-simulation.md) explains what they mean for a flier. Start with the bottom line: **when both codes fly the same drag
 ([same-drag](glossary.md#same-drag-and-predicted-mode)), HPR Sim's whole flights match RocketPy's
 in height, speed and time, and in where they land without wind. In wind they agree for a rocket
 that leaves the rail fast. For one that leaves it slowly they differ, in large part because HPR Sim
