@@ -1,7 +1,7 @@
 # Drag through the speed of sound
 
-What a rocket's drag is made of, how it climbs near the speed of sound, what the surface finish
-adds, and which way HPR Sim's drag can be wrong.
+What a rocket's drag is made of, how it climbs near the speed of sound, and which way HPR Sim's
+drag can be wrong.
 
 **This guide is for** a flier who reads a drag coefficient, from HPR Sim, another simulator or a
 hand calculation, and wants to know why it changes with speed, why a faster motor doesn't fly a
