@@ -4733,6 +4733,10 @@ a calculation
 and, behind boattails, with measured bases
 ([Boattails faster than sound](#boattails-faster-than-sound)).
 
+[Drag through the speed of sound](../drag-through-mach-1.md) draws this comparison for a flier,
+and marks the side that flatters: a drag that reads high reads the apogee low, as the test
+`a_higher_drag_reads_a_lower_apogee` pins.
+
 #### Drag against RASAero II through Mach 2
 
 [M1.8](../decisions-and-roadmap.md#m1-8) asks for drag within 10% of the curves labeled

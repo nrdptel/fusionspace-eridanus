@@ -53,6 +53,7 @@
 - [Trusting a simulation](trusting-a-simulation.md)
 - [Stability in flight](stability-in-flight.md)
 - [When fins flutter](when-fins-flutter.md)
+- [Drag through the speed of sound](drag-through-mach-1.md)
 
 # The environment
 

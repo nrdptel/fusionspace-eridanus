@@ -119,7 +119,7 @@ pub(crate) fn written(report: &Value) -> Result<String, String> {
 }
 
 /// Whether two reports hold the same keys, texts and flags, and numbers within [`SAME`].
-fn same(a: &Value, b: &Value) -> bool {
+pub(super) fn same(a: &Value, b: &Value) -> bool {
     match (a, b) {
         (Value::Number(a), Value::Number(b)) => match (a.as_f64(), b.as_f64()) {
             (Some(a), Some(b)) => (a - b).abs() <= SAME,
@@ -152,7 +152,7 @@ pub(crate) fn stale(root: &Path) -> Result<Option<String>, String> {
 }
 
 /// A Mach number as the guide writes it: to two places, without trailing zeros (`0.8`, `3`).
-fn mach(value: f64) -> String {
+pub(super) fn mach(value: f64) -> String {
     let text = fixed(value, 2);
     if text.contains('.') {
         text.trim_end_matches('0').trim_end_matches('.').to_owned()

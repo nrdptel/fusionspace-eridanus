@@ -44,6 +44,8 @@ guide cites its sections and puts them in its own words.
 3. **How far to trust a simulation.** No source draws error bars on a predicted apogee. hpr's
    committed validation reports have the numbers to do it.
 4. **Drag through Mach 1:** the transonic rise, base drag, surface finish. Static articles only.
+   Written for M0.7a5 as [Drag through the speed of sound](../drag-through-mach-1.md) (ADR-245),
+   against NASA's Arcas Robin tunnel, the one drag measurement HPR Sim is compared with.
 5. **Wind, weathercocking and rail exit in one picture.** NASA's page is at school level;
    elsewhere it is a single number.
 6. **Recovery as a timeline:** dual deploy's events, descent rates, drift and opening shock in one

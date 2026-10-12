@@ -385,7 +385,8 @@ how draggy a shape is. For the rocket, `C_D0` is the coefficient at zero
 [angle of attack](#angle-of-attack) on the [reference area](#reference-area), built up from skin
 friction, pressure, base and fin terms, or read from a table instead. For a parachute, Knacke's
 `C_D0` is on the canopy's [nominal area](#nominal-area), a different convention. See
-[Aerodynamics](physics/aero.md#drag) and [Recovery](physics/recovery.md#drag-area).
+[Aerodynamics](physics/aero.md#drag) and [Recovery](physics/recovery.md#drag-area), and
+[Drag through the speed of sound](drag-through-mach-1.md) for how it changes with speed.
 
 
 ### Drag crisis

@@ -1,0 +1,188 @@
+{
+  "air": {
+    "density_kg_m3": 1.2249991558877125,
+    "speed_of_sound_m_s": 340.2941077869353
+  },
+  "by_finish": [
+    {
+      "cd": 0.48930574360357454,
+      "finish": "polished",
+      "friction": 0.23995825522831196,
+      "roughness_m": 5e-7
+    },
+    {
+      "cd": 0.5347440620188205,
+      "finish": "aircraft paint",
+      "friction": 0.28539657364355797,
+      "roughness_m": 0.000019999999999999998
+    },
+    {
+      "cd": 0.6048748302233011,
+      "finish": "the design's",
+      "friction": 0.3555273418480386,
+      "roughness_m": 0.00006
+    },
+    {
+      "cd": 0.7016705750946644,
+      "finish": "badly sprayed paint",
+      "friction": 0.45232308671940186,
+      "roughness_m": 0.00019999999999999998
+    }
+  ],
+  "by_mach": [
+    {
+      "base": 0.12129999999999999,
+      "cd": 0.5934824604532071,
+      "fins_pressure": 0.11378506942778324,
+      "friction": 0.3583973910254193,
+      "mach": 0.1,
+      "nose_pressure": 4.596254178118229e-15,
+      "parasitic": 0.0,
+      "pressure": 0.11378506942778784,
+      "reynolds_per_m": 2329633.33674612
+    },
+    {
+      "base": 0.13169999999999998,
+      "cd": 0.6048748302233011,
+      "fins_pressure": 0.11764747692881379,
+      "friction": 0.3555273418480386,
+      "mach": 0.3,
+      "nose_pressure": 1.1446448773999584e-8,
+      "parasitic": 0.0,
+      "pressure": 0.11764748837526257,
+      "reynolds_per_m": 6988900.010238359
+    },
+    {
+      "base": 0.1525,
+      "cd": 0.627756362274836,
+      "fins_pressure": 0.12545833514032803,
+      "friction": 0.34978724349327706,
+      "mach": 0.5,
+      "nose_pressure": 0.000010783641230913704,
+      "parasitic": 0.0,
+      "pressure": 0.12546911878155895,
+      "reynolds_per_m": 11648166.683730599
+    },
+    {
+      "base": 0.2032,
+      "cd": 0.6898511387521842,
+      "fins_pressure": 0.14497793402119846,
+      "friction": 0.33579575375354603,
+      "mach": 0.8,
+      "nose_pressure": 0.005877450977439635,
+      "parasitic": 0.0,
+      "pressure": 0.1508553849986381,
+      "reynolds_per_m": 18637066.69396896
+    },
+    {
+      "base": 0.21392499999999998,
+      "cd": 0.7092035417708793,
+      "fins_pressure": 0.14919442555962062,
+      "friction": 0.33283601553937214,
+      "mach": 0.85,
+      "nose_pressure": 0.013248100671886474,
+      "parasitic": 0.0,
+      "pressure": 0.1624425262315071,
+      "reynolds_per_m": 19801883.362342015
+    },
+    {
+      "base": 0.22529999999999997,
+      "cd": 0.7372027718824139,
+      "fins_pressure": 0.15369979257988556,
+      "friction": 0.32969689925161205,
+      "mach": 0.9,
+      "nose_pressure": 0.02850608005091632,
+      "parasitic": 0.0,
+      "pressure": 0.18220587263080187,
+      "reynolds_per_m": 20966700.030715078
+    },
+    {
+      "base": 0.237325,
+      "cd": 0.7810502838482882,
+      "fins_pressure": 0.15849991694201435,
+      "friction": 0.32637840489026554,
+      "mach": 0.95,
+      "nose_pressure": 0.0588469620160084,
+      "parasitic": 0.0,
+      "pressure": 0.21734687895802274,
+      "reynolds_per_m": 22131516.699088138
+    },
+    {
+      "base": 0.25,
+      "cd": 0.8352164565941345,
+      "fins_pressure": 0.16413878667139717,
+      "friction": 0.30403063319711177,
+      "mach": 1.0,
+      "nose_pressure": 0.11704703672562551,
+      "parasitic": 0.0,
+      "pressure": 0.2811858233970227,
+      "reynolds_per_m": 23296333.367461197
+    },
+    {
+      "base": 0.23809523809523808,
+      "cd": 0.8732664644994221,
+      "fins_pressure": 0.16468889927922356,
+      "friction": 0.2993501165443631,
+      "mach": 1.05,
+      "nose_pressure": 0.1711322105805973,
+      "parasitic": 0.0,
+      "pressure": 0.33582110985982083,
+      "reynolds_per_m": 24461150.03583426
+    },
+    {
+      "base": 0.22727272727272727,
+      "cd": 0.8723757012993317,
+      "fins_pressure": 0.16539429501163389,
+      "friction": 0.29459365016635897,
+      "mach": 1.1,
+      "nose_pressure": 0.1851150288486116,
+      "parasitic": 0.0,
+      "pressure": 0.35050932386024547,
+      "reynolds_per_m": 25625966.70420732
+    },
+    {
+      "base": 0.20833333333333331,
+      "cd": 0.8047972390208042,
+      "fins_pressure": 0.16694205031227938,
+      "friction": 0.28490799489564167,
+      "mach": 1.2,
+      "nose_pressure": 0.1446138604795499,
+      "parasitic": 0.0,
+      "pressure": 0.3115559107918293,
+      "reynolds_per_m": 27955600.040953435
+    },
+    {
+      "base": 0.16666666666666666,
+      "cd": 0.6738634320286839,
+      "fins_pressure": 0.17073926722858562,
+      "friction": 0.25534245350362417,
+      "mach": 1.5,
+      "nose_pressure": 0.08111504462980745,
+      "parasitic": 0.0,
+      "pressure": 0.2518543118583931,
+      "reynolds_per_m": 34944500.0511918
+    },
+    {
+      "base": 0.125,
+      "cd": 0.5696658582436266,
+      "fins_pressure": 0.17352811533690554,
+      "friction": 0.20857915533290228,
+      "mach": 2.0,
+      "nose_pressure": 0.0625585875738188,
+      "parasitic": 0.0,
+      "pressure": 0.23608670291072434,
+      "reynolds_per_m": 46592666.734922394
+    }
+  ],
+  "design": "validation/fixtures/ork/guides/level-1.ork",
+  "finish_mach": 0.3,
+  "generator": "cargo xtask guides",
+  "length_m": 1.1800000000000002,
+  "note": "HPR Sim's zero-lift drag coefficient for the guides' rocket, coasting, on its reference area, from its aerodynamics alone, in the 1976 standard atmosphere's sea-level air (air). by_mach: cd and its terms (friction, pressure, base, parasitic), with the nose's and the fins' pressure drag apart. peak: the largest cd from Mach 0.5 to 2 in hundredths. by_finish: at finish_mach, cd and its friction with every part given each finish, smoothest first. A model's output, not a measurement.",
+  "peak": {
+    "cd": 0.8768711361742834,
+    "mach": 1.07
+  },
+  "reference_area_m2": 0.003421194399759285,
+  "reference_diameter_m": 0.066
+}
