@@ -111,9 +111,10 @@
 //!     fails. That every page has the header, its lockup, the sidebar and the menu button is the
 //!     file check's (`frame.rs`);
 //!   - **a title block off the system's or not last**: each must sit inside a 2 px solid border
-//!     in the ink role on every side, its fields' names and entries in Cascadia Mono, with no
-//!     text, picture or field drawn below its top outside it, other than in a box fixed to the
-//!     window. That every page ends with one is the file check's (`frame.rs`).
+//!     in the ink role on every side, its fields' names and entries in Cascadia Mono, its left
+//!     and right edges on `main`'s, so it is centered as the column is, with no text, picture or
+//!     field drawn below its top outside it, other than in a box fixed to the window. That every
+//!     page ends with one is the file check's (`frame.rs`).
 //! - **A page that prints off the system's** (#383; `web.md`, *Print*), read once a run, at its
 //!   checked width nearest [`PRINT_PX`], with each media list that names `print` or `screen` set
 //!   to how it applies on paper (a headless browser can't print from a page, so the print rules
@@ -203,7 +204,8 @@
 //! away from 720 px and hidden while drawn under it, a sidebar and menu button put away with
 //! scripts off, a sidebar drawn only when the window was wide at load (and a lockup 20 px tall
 //! from 720 px), a title block bordered 1 px, one bordered
-//! in a rule's color, one with its entries in Archivo, one with a paragraph below it, a mark as
+//! in a rule's color, one with its entries in Archivo, one 8 px off the column's edges, one with
+//! a paragraph below it, a mark as
 //! text outside `main`, one as a heading's `::before` and one only before a paragraph jumped to,
 //! marks as words in prose and a key's legend, which must pass, a page printed in navy's colors
 //! from navy and one printed in light's, which must pass, a link printed in a blue of its own, a
@@ -474,7 +476,7 @@ enum Kind {
     /// or one a screen reader or the keyboard reaches while put away, or can't while drawn (#384).
     Header,
     /// A title block off the system's: not inside a 2 px ink border, its entries not in Cascadia
-    /// Mono, or something drawn below it (#384).
+    /// Mono, its edges off the column's, or something drawn below it (#384).
     TitleBlock,
     /// A text of marks alone drawn as an icon: in the page's chrome, outside its `main`, or as a
     /// `::before` or `::after` anywhere (#383).
@@ -720,7 +722,9 @@ height: 20px; } #mdbook-sidebar { display: none; padding: 0 16px; font: 14px/20p
 Mono', 'Cascadia Mono Fallback', monospace; } @media (min-width: 720px) { \
 #mdbook-sidebar-toggle { display: none; } #mdbook-sidebar { display: block; } } .fs-titleblock \
 { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); border: 2px solid \
-#0B0F1C; background: #FFFFFF; margin: 48px 16px 0; } .fs-titleblock > div { padding: 6px 10px \
+#0B0F1C; background: #FFFFFF; box-sizing: border-box; max-width: 1120px; width: calc(100% - \
+32px); margin: 48px auto 0; } @media (min-width: 720px) { .fs-titleblock { width: calc(100% - \
+64px); } } .fs-titleblock > div { padding: 6px 10px \
 8px; display: grid; gap: 2px; min-width: 0; } .fs-titleblock .k { font: 12px/16px 'Cascadia \
 Mono', 'Cascadia Mono Fallback', monospace; text-transform: uppercase; color: #566079; } \
 .fs-titleblock .v { font: 14px/20px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; \
@@ -975,7 +979,7 @@ macro_rules! switch_frame {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 165] = [
+const CANARIES: [Canary; 166] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -2629,6 +2633,18 @@ const CANARIES: [Canary; 165] = [
         inside: "",
         after: frame!(
             "<style>@media print { .fs-titleblock { break-inside: auto !important; } }</style>",
+            lockup!(),
+            sidebar!(),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-block-off.html",
+        what: "a title block 8 px right of the column, off its edges",
+        expect: &[Kind::TitleBlock],
+        inside: "",
+        after: frame!(
+            "<style>.fs-titleblock { position: relative; left: 8px; }</style>",
             lockup!(),
             sidebar!(),
             ""
