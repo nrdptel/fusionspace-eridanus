@@ -386,7 +386,8 @@ Have an OpenRocket design? Three how-to guides take it through `hpr` on the comm
 Want the physics behind a number? *Rocketry explained* holds guides that explain it, each figure
 drawn from HPR Sim's own results. The first is
 [Trusting a simulation](trusting-a-simulation.md): how far a simulated apogee has been
-from real flights, and which way it errs.
+from real flights, and which way it errs. [Stability in flight](stability-in-flight.md) shows how
+the center of pressure moves with speed and angle, against a wind tunnel.
 
 Each model page opens with *In short*: what it models, its sources, how well it is validated and
 what it leaves out. Below that, it names the code that implements the model, the sources it follows

@@ -51,6 +51,7 @@
 # Rocketry explained
 
 - [Trusting a simulation](trusting-a-simulation.md)
+- [Stability in flight](stability-in-flight.md)
 
 # The environment
 

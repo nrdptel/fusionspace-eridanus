@@ -534,4 +534,25 @@ mod tests {
         );
         assert!(joined.contains(&mach_2), "aero.md doesn't say `{mach_2}`");
     }
+
+    /// Which way a CP error errs: a CP HPR Sim puts aft of the reference's is a positive
+    /// `cp_error_calibers`, and a stability margin, the CP's station less the CG's over the
+    /// diameter, reads higher by exactly that error at any CG. So a positive error is a margin
+    /// that reads high, the side that flatters (the stability guide marks it).
+    #[test]
+    fn a_cp_aft_of_the_reference_reads_a_higher_margin() {
+        let diameter_m = 0.05;
+        let (reference_cp_m, hpr_cp_m) = (0.70, 0.75);
+        let row = compare(1.0, (10.0, reference_cp_m), (10.0, hpr_cp_m), diameter_m);
+        let error = row["cp_error_calibers"].as_f64().unwrap();
+        assert!(error > 0.0);
+        for cg_m in [0.55, 0.62, 0.69] {
+            let margin = |cp_m: f64| (cp_m - cg_m) / diameter_m;
+            let read_high = margin(hpr_cp_m) - margin(reference_cp_m);
+            assert!(read_high > 0.0);
+            assert!((read_high - error).abs() < 1e-12);
+        }
+        let forward = compare(1.0, (10.0, hpr_cp_m), (10.0, reference_cp_m), diameter_m);
+        assert!(forward["cp_error_calibers"].as_f64().unwrap() < 0.0);
+    }
 }
