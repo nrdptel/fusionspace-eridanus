@@ -1453,9 +1453,15 @@ mod tests {
         assert_eq!(page_problems("p", python, &quotes), Vec::<String>::new());
         for unmarked in [
             python.replace("<!-- python: example -->", "<!-- python -->"),
-            python.replace("<!-- python: end -->\n", "<!-- python: end -->\n\n```text\n13\n```\n"),
+            python.replace(
+                "<!-- python: end -->\n",
+                "<!-- python: end -->\n\n```text\n13\n```\n",
+            ),
         ] {
-            assert!(!page_problems("p", &unmarked, &quotes).is_empty(), "{unmarked}");
+            assert!(
+                !page_problems("p", &unmarked, &quotes).is_empty(),
+                "{unmarked}"
+            );
         }
         // A quote split by inline code is not the quote.
         let split = "# A page\n\nAcross 53 `logged` flights.\n";
