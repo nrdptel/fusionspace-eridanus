@@ -462,11 +462,14 @@ fn meters(value: f64, decimals: usize) -> String {
 struct Block {
     line: usize,
     text: String,
+    /// Whether it is HTML, not text.
+    html: bool,
 }
 
 /// The text of `page` a reader reads as prose ([module docs](self)), block by block, its spaces
 /// collapsed. Inline code stands as `\u{FFFC}`, so no quote runs across it and no number in it
-/// counts.
+/// counts. HTML other than a comment is a block of its own, `html` set, since the check can't
+/// read what it shows.
 fn prose(page: &str) -> Vec<Block> {
     let options = Options::ENABLE_TABLES
         | Options::ENABLE_FOOTNOTES
@@ -478,6 +481,7 @@ fn prose(page: &str) -> Vec<Block> {
     let mut text = String::new();
     let mut start = None;
     let mut in_code = false;
+    let mut html_blocks = Vec::new();
     let mut flush = |text: &mut String, start: &mut Option<usize>| {
         let words = text.split_whitespace().collect::<Vec<_>>().join(" ");
         if let Some(at) = start.take()
@@ -486,6 +490,7 @@ fn prose(page: &str) -> Vec<Block> {
             blocks.push(Block {
                 line: line(at),
                 text: words,
+                html: false,
             });
         }
         text.clear();
@@ -503,6 +508,15 @@ fn prose(page: &str) -> Vec<Block> {
                 text.push('\u{FFFC}');
             }
             Event::SoftBreak | Event::HardBreak => text.push(' '),
+            Event::Html(html) | Event::InlineHtml(html)
+                if !in_code && !html.trim_start().starts_with("<!--") =>
+            {
+                html_blocks.push(Block {
+                    line: line(range.start),
+                    text: html.trim().to_owned(),
+                    html: true,
+                });
+            }
             Event::End(
                 TagEnd::Paragraph | TagEnd::Heading(_) | TagEnd::TableCell | TagEnd::Item,
             ) => flush(&mut text, &mut start),
@@ -510,6 +524,7 @@ fn prose(page: &str) -> Vec<Block> {
         }
     }
     flush(&mut text, &mut start);
+    blocks.extend(html_blocks);
     blocks
 }
 
@@ -548,6 +563,14 @@ fn page_problems(name: &str, page: &str, quotes: &[String]) -> Vec<String> {
     let mut longest_first: Vec<&String> = quotes.iter().collect();
     longest_first.sort_by_key(|quote| std::cmp::Reverse(quote.len()));
     for block in &blocks {
+        if block.html {
+            problems.push(format!(
+                "{name}:{}: HTML in a guide's text (`{}`) can show numbers the check can't read; \
+                 write it in Markdown",
+                block.line, block.text
+            ));
+            continue;
+        }
         let mut rest = block.text.clone();
         for quote in &longest_first {
             rest = rest.replace(quote.as_str(), " ");
@@ -987,6 +1010,28 @@ mod tests {
         let fine = "# A page\n\nAcross 53 logged flights, `--runs 200`, as ADR-211 decided.\n\n\
                     ```text\n$ hpr mc x --runs 200\n812.3\n```\n";
         assert_eq!(page_problems("p", fine, &quotes), Vec::<String>::new());
+        // HTML can show a number the check can't read; a comment shows nothing.
+        let html = "# A page\n\nAcross 53 logged flights, <span>12</span>.\n";
+        assert!(!page_problems("p", html, &quotes).is_empty());
+        let html = "# A page\n\n<div>Across 53 logged flights.</div>\n";
+        assert!(!page_problems("p", html, &quotes).is_empty());
+        let comment = "# A page\n\nAcross 53 logged flights.\n\n<!-- 12 -->\n";
+        assert!(page_problems("p", comment, &quotes).is_empty());
+        // Only a label's own digits go: a label at the end, or with none, leaves the rest.
+        assert_eq!(without_labels("as ADR-211 said"), "as   said");
+        assert_eq!(without_labels("ADR-"), " ");
+        assert_eq!(without_labels("ADR-x 12 é"), " x 12 é");
+        assert_eq!(
+            crate::site::quoted(&without_labels("ADR-211, ADR-12 by 7%")).len(),
+            1
+        );
+        // A page that drops a quote, with no number left behind, fails on the quote.
+        let dropped = page_problems("p", "# A page\n\nAcross the logged flights.\n", &quotes);
+        assert_eq!(dropped.len(), 1);
+        assert!(
+            dropped[0].contains("doesn't hold \"53 logged flights\""),
+            "{dropped:?}"
+        );
         // A quote split by inline code is not the quote.
         let split = "# A page\n\nAcross 53 `logged` flights.\n";
         assert!(!page_problems("p", split, &quotes).is_empty());
