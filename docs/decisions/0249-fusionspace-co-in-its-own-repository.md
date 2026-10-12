@@ -74,22 +74,28 @@ worker at `/sw.js` and has a page per project at `/projects/<id>`. hpr's own pag
    It finds the pages itself (every `.html` under `site/`). Of the 47 pages under
    `checks/canaries/`, 45 are built to fail one way and name it, and a test requires the check to
    find exactly that kind there; the other two (a clean page, and a claim beside its comparison)
-   must pass, as the site must. One of them holds 23 claim sentences, a paragraph each, and a
+   must pass, as the site must. One of them holds 32 claim sentences, a paragraph each, and a
    test requires every one to be reported on its own.
-7. **The "better" rule** ([ADR-209][adr-209] §2), one rule after three rounds of review found
-   phrasings a word list missed: a claim is anything that compares. That is any "than" ("smaller
-   error than", "more reliable than"), any multiple ("twice as accurate as", "three times the accuracy"), and the words that
-   compare without either ("better", "fastest", "most accurate", "outperforms", "lower error").
+7. **The "better" rule** ([ADR-209][adr-209] §2). Review rounds kept finding phrasings a list of
+   phrases missed, so the check is a closed grammar instead: a claim is anything that compares,
+   and these are what compare:
+   - any "than" ("smaller error than", "closer than"), but "rather than" and "other than";
+   - any multiple, wherever it stands: twice, half, doubles, triples, tenfold, "ten times", "10×",
+     "one third";
+   - the comparative and superlative words ("better", "fastest", "outperforms", "world-class"),
+     "most", "least", "more" or "less" before a quality ("accurate", "reliable" and the like), and
+     "smaller", "lower", "tighter" and the like within a few words of "error", "miss", "spread",
+     "bias", "bounds" or "steps".
+
    Each block's text is read whole, its whitespace made single spaces, and with and without a
    space between its pieces, so a phrase split across lines, inline elements or a line break
-   still counts. A claim passes only in the same block of text as a
-   link to an entry of `comparisons.json`.
-   Each entry is a published comparison committed with its inputs and the tools' versions; the
-   first is *Compared with other simulators*. In text that can't carry a link (the title, the
-   description and social tags, `alt`, `aria-label` and the like) a claim always fails. The rule
-   errs strict: a plain comparison ("wider than the window") fails too and is worded another
-   way; only "rather than" and "other than" pass. A claim worded with none of these (say "the
-   one to trust") is left to review.
+   still counts. A claim passes only in the same block of text as a link to an entry of
+   `comparisons.json`. Each entry is a published comparison committed with its inputs and the
+   tools' versions; the first is *Compared with other simulators*. In text that can't carry a
+   link (the title, the description and social tags, `alt`, `aria-label` and the like) a claim
+   always fails. The grammar errs strict: a plain comparison or multiple ("wider than the window",
+   "half the flights") fails too and is worded another way. A claim in none of these forms (say
+   "the one to trust") is outside it and left to review.
 8. **Staying current.** `checks/links.mjs` fails on a link out of the site that doesn't answer,
    and on a stated release that isn't the latest on PyPI and crates.io. CI runs it on every pull
    request and weekly, so a new release fails it until the page lists it. The page check and the
