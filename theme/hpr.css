@@ -115,10 +115,12 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
    more, the rail stands beside the sheet's text, 184 px wide with a 32 px gap, as the system's
    `.fs-sheet` sets it; in a narrower column it stands over the text, as the system's sheet draws
    it on a phone. The column, not the window, decides, since the sidebar takes part of the window.
-   A figure takes the whole column, under the rail: the text beside the rail is 216 px narrower,
-   and a figure drawn wider than that would be shown smaller than its size, its 12 px labels under
-   12 px. The rail is a float and the figure clears it, so the figure starts below the rail and
-   never over it. The page check fails a tag or a sheet drawn otherwise.
+   A figure starts at the text's left edge, as the text does; one drawn wider than the text beside
+   the rail moves left, under the rail, only as far as it must to be shown at its size (shown
+   smaller, its 12 px labels would read under 12 px). Its paragraph takes the whole column, and an
+   empty first item, 216 px wide, gives way before the figure does. The rail is a float that the
+   figure clears, so the figure starts below the rail and never over it. The page check fails a
+   tag or a sheet drawn otherwise.
    The tag shares the intro's first row with the status chip (`fusionspace.css`, `.fs-status`):
    the site's status from the title block, a drawing word in `label` capitals, 600, beside its
    14 px icon; RELEASED in the ok fill, the same in every theme and on paper (`foundations.md`,
@@ -149,6 +151,7 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
     .content main .fs-sheet-rail { float: left; width: 184px; margin: 0 32px 16px 0; }
     .content main .fs-sheet-body { margin-inline-start: 216px; }
     .content main .fs-sheet-body > p:has(> .checkbox-label) { clear: left; margin-inline-start: -216px; }
+    .content main .fs-sheet-body > p > .checkbox-label::before { content: ""; flex: 0 100000 216px; min-width: 0; }
 }
 @media print { .fs-sheet-rail { break-after: avoid; } }
 
