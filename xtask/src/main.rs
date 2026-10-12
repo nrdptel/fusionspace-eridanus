@@ -36,6 +36,7 @@ mod designs;
 #[cfg(test)]
 mod docs;
 mod examples;
+mod features;
 mod figures;
 mod fixture_flights;
 mod format;

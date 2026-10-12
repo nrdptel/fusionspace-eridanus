@@ -275,6 +275,7 @@ Commission nor ECMWF is responsible for any use made of it. The
 - **From Python or Rust:** [Python](python.md) and [Getting started](getting-started.md).
 - **Before you rely on a number:** [Trusting a simulation](trusting-a-simulation.md) and
   [Accuracy](accuracy.md).
+- **Beside the other simulators:** [Compared with other simulators](simulator-compared.md).
 
 [real-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/real-flights.md
 [fixture-report]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/fixture-flights.md

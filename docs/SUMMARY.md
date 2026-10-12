@@ -52,6 +52,7 @@
 
 - [HPR Sim](the-simulator.md)
   - [A tour of HPR Sim](simulator-tour.md)
+  - [Compared with other simulators](simulator-compared.md)
 
 # Rocketry explained
 

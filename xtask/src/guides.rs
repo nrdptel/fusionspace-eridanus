@@ -31,6 +31,7 @@ use serde_json::Value;
 
 use crate::fixture_flights::{BINS_PERCENT, REPORT_JSON as FIXTURE, REPORT_MD as FIXTURE_PAGE};
 
+mod compared;
 mod drag;
 mod flutter;
 mod stability;
@@ -46,9 +47,10 @@ guides [--check]         Write the guide rocket's center-of-pressure, flutter an
 const REAL: &str = "validation/reports/real-flights.json";
 
 /// The reports a quote or a figure may read, as JSON.
-const REPORTS: [&str; 7] = [
+const REPORTS: [&str; 8] = [
     FIXTURE,
     REAL,
+    crate::scoreboard::SCOREBOARD_JSON,
     stability::REPORT,
     stability::TUNNEL,
     flutter::REPORT,
@@ -134,6 +136,11 @@ fn guides() -> Vec<Guide> {
         Guide {
             page: tour::TOUR,
             quotes: tour::tour_quotes(),
+            figures: Vec::new(),
+        },
+        Guide {
+            page: crate::features::PAGE,
+            quotes: compared::quotes(),
             figures: Vec::new(),
         },
         Guide {
@@ -700,6 +707,9 @@ fn prose(page: &str) -> Read {
     // The code block being read: where it starts, its opening line, and its text.
     let mut code: Option<(usize, String, String)> = None;
     let mut region = Region::Outside;
+    // The comparison table's regions (`features.rs`), as the lines each opens and closes on.
+    let mut tables: Vec<(usize, usize)> = Vec::new();
+    let mut table: Option<usize> = None;
     let flush = |text: &mut String, start: &mut Option<usize>, blocks: &mut Vec<Block>| {
         let words = text.split_whitespace().collect::<Vec<_>>().join(" ");
         if let Some(at) = start.take()
@@ -804,6 +814,17 @@ fn prose(page: &str) -> Read {
                              `{PYTHON_END}`, as the docs test finds it"
                         ),
                     ));
+                } else if block_html && trimmed == crate::features::REGION_START {
+                    if table.replace(at).is_some() {
+                        markers.push((at, "a comparison table opens inside another".to_owned()));
+                    }
+                } else if block_html && trimmed == crate::features::REGION_END {
+                    match table.take() {
+                        Some(opened) => tables.push((opened, at)),
+                        None => {
+                            markers.push((at, "a comparison table's end opens none".to_owned()))
+                        }
+                    }
                 } else if trimmed.starts_with(CLI_EXAMPLE) {
                     if matches!(region, Region::Python { .. }) {
                         markers.push((at, "a command's example opens in a Python one".to_owned()));
@@ -859,6 +880,15 @@ fn prose(page: &str) -> Read {
         }
     }
     flush(&mut text, &mut start, &mut blocks);
+    if let Some(opened) = table {
+        markers.push((opened, "a comparison table never ends".to_owned()));
+    }
+    // The table is written from its record, which `features.rs` holds to its rules and
+    // `--check` to the page, so its words and numbers follow the record, as a command's example
+    // follows the program.
+    blocks.retain(|block| {
+        !(tables.iter()).any(|&(opened, closed)| (opened..=closed).contains(&block.line))
+    });
     if let Region::Python { line: opened, .. } = region {
         markers.push((
             opened,
@@ -1046,6 +1076,7 @@ pub(crate) fn check(root: &Path) -> Result<(), String> {
     let mut problems: Vec<String> = stability::stale(root)?.into_iter().collect();
     problems.extend(flutter::stale(root)?);
     problems.extend(drag::stale(root)?);
+    problems.extend(crate::features::stale(root)?);
     let reports = Reports::load(root)?;
     problems.extend(problems_of(root, &reports)?);
     for (path, figure) in figures(&reports)? {
@@ -1083,6 +1114,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
                 fs::write(root.join(drag::REPORT), report)
                     .map_err(|error| format!("{}: {error}", drag::REPORT))?;
             }
+            crate::features::write(&root)?;
             let reports = Reports::load(&root)?;
             for (path, figure) in figures(&reports)? {
                 fs::write(root.join(path), figure).map_err(|error| format!("{path}: {error}"))?;
@@ -1449,6 +1481,37 @@ mod tests {
                 }
             }
         }
+    }
+
+    /// A number in the comparison table, which `features.rs` writes from its record, passes;
+    /// the same number after the table's end fails, and a table that never ends or ends twice
+    /// fails by its marker.
+    #[test]
+    fn the_comparison_table_follows_its_record() {
+        let start = crate::features::REGION_START;
+        let end = crate::features::REGION_END;
+        let page = format!(
+            "# A page\n\n{start}\n\n| a | b |\n|---|---|\n| OpenRocket 24.12 | yes |\n\n{end}\n"
+        );
+        assert_eq!(page_problems("p", &page, &[]), Vec::<String>::new());
+        let after = format!("{page}\nRead on 2026.\n");
+        let problems = page_problems("p", &after, &[]);
+        assert!(
+            problems.iter().any(|p| p.contains("`2026`")),
+            "{problems:?}"
+        );
+        let open = format!("# A page\n\n{start}\n\n| a |\n|---|\n| 24.12 |\n");
+        let problems = page_problems("p", &open, &[]);
+        assert!(
+            problems.iter().any(|p| p.contains("never ends")),
+            "{problems:?}"
+        );
+        let twice = format!("{page}\n{end}\n");
+        let problems = page_problems("p", &twice, &[]);
+        assert!(
+            problems.iter().any(|p| p.contains("opens none")),
+            "{problems:?}"
+        );
     }
 
     /// A number no quote reads fails, in a paragraph, a heading or an image's description; one
