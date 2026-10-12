@@ -578,6 +578,29 @@ mod tests {
     }
 
     #[test]
+    fn a_review_at_a_short_prefix_of_the_pin_fails() {
+        // Built from the pin, so it stays a true prefix when the pin moves: only its length fails.
+        let first = rows_ok().lines().next().unwrap().to_owned();
+        let at = |prefix: &str| {
+            let row =
+                format!("| `cli.md` | Output | CLI | met | reviewed at `{prefix}`: the help |");
+            run(
+                &table(&rows_ok().replace(&first, &row)),
+                SECTIONS_OK,
+                COMMIT,
+            )
+        };
+        let problems = at(&COMMIT[..MIN_PREFIX - 1]);
+        assert!(
+            problems
+                .iter()
+                .any(|p| p.contains("a review names the pinned commit")),
+            "{problems:?}"
+        );
+        assert_eq!(at(&COMMIT[..MIN_PREFIX]), Vec::<String>::new());
+    }
+
+    #[test]
     fn each_status_needs_what_holds_it() {
         let cases = [
             (
@@ -590,10 +613,6 @@ mod tests {
             ),
             (
                 "| `cli.md` | Output | CLI | met | reviewed at `0123456`: fine |",
-                "a review names the pinned commit",
-            ),
-            (
-                "| `cli.md` | Output | CLI | met | reviewed at `f454`: fine |",
                 "a review names the pinned commit",
             ),
             (

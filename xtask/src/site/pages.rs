@@ -77,14 +77,17 @@
 //!     in its stack. A superscript or subscript may be off the scale, never under 12 px. The
 //!     sidebar's text must be Cascadia Mono 14 px, and its current page underlined 2 px
 //!     (`web.md`, *Page anatomy*). Boxes of 2 px or less, for screen readers, are skipped;
-//!   - **prose past the measure** (`foundations.md`, *Type*): no line over 80 characters in any
+//!   - **prose off the measure** (`foundations.md`, *Type*): no line over 80 characters in any
 //!     paragraph, list item, quote or caption in `main`, outside tables and code, counted line by
 //!     line as drawn, spaces between words counted once; and where blocks are set at the full
 //!     measure (as wide as their own `max-width`), the median of their lines, each block's last
 //!     left out, from 60 to 75 characters, judged on 20 such lines or more. A character more than
 //!     half a line below the one before starts a new line; a word broken across lines is split
 //!     where it breaks; characters are counted by code point. The system's own check counts them
-//!     (`fusionspace-check.js`, which also holds these numbers);
+//!     (`fusionspace-check.js`, which also holds these numbers). Nor may prose of two lines or
+//!     more be held under its measure by anything but the window: a cap on `main` or a box
+//!     around it below the measure, or a width of its own. A box capped at its own measure or
+//!     more (a list item holding a list, a note) only narrows what it holds;
 //!   - **gutters off the system's** (`foundations.md`, *Width*): `main` must sit 16 px from the
 //!     left of the pane that holds it (mdBook's `.page-wrapper`, beside the sidebar) in a window
 //!     under 720 px and 32 px from 720 px, flush left at every width, and as far from the right,
@@ -294,6 +297,43 @@ const MOST_BODY_BYTES: usize = 64 << 20;
 /// The largest request head the server takes.
 const MOST_HEAD_BYTES: usize = 64 << 10;
 
+/// The prose in one page's `main` at one width, as the system's counter reads it (ADR-250).
+#[derive(Debug, Default, Deserialize)]
+struct Prose {
+    /// The median line at the full measure, in characters; none when fewer than 20 lines count.
+    median: Option<f64>,
+    /// The longest line of prose, in characters.
+    longest: usize,
+}
+
+/// The measure across the run's pages and widths, as the system's counter read it.
+#[derive(Debug, Default)]
+pub(super) struct Measures {
+    /// Pages whose median was judged (20 lines or more at the full measure) at some width.
+    pub judged: usize,
+    /// The lowest and highest median judged, in characters; none when no page was judged.
+    pub medians: Option<(f64, f64)>,
+    /// The longest line of prose on any page at any width, in characters.
+    pub longest: usize,
+}
+
+impl Measures {
+    fn add(&mut self, measured: &[Measured]) {
+        let mut judged = false;
+        for prose in measured.iter().map(|m| &m.prose) {
+            self.longest = self.longest.max(prose.longest);
+            if let Some(median) = prose.median {
+                judged = true;
+                self.medians = Some(match self.medians {
+                    Some((low, high)) => (low.min(median), high.max(median)),
+                    None => (median, median),
+                });
+            }
+        }
+        self.judged += usize::from(judged);
+    }
+}
+
 /// What the check found.
 pub(super) struct Report {
     /// The pages of the site checked.
@@ -304,6 +344,8 @@ pub(super) struct Report {
     pub seconds: f64,
     /// One line per page and kind of problem; empty when every page passes.
     pub problems: Vec<String>,
+    /// The measure the pages were set to.
+    pub measures: Measures,
 }
 
 /// The widths every page is checked at, in CSS pixels: 320 to 1,920 in steps of 40.
@@ -486,7 +528,7 @@ impl Kind {
             Kind::Shape => "a rounded corner or a shadow",
             Kind::Motion => "motion off the system's durations",
             Kind::Type => "type off the system's scale",
-            Kind::Measure => "prose past the measure",
+            Kind::Measure => "prose off the measure",
             Kind::Gutter => "gutters off the system's",
             Kind::Squeezed => "a code block or table held to the prose measure",
             Kind::Note => "a quote block, or a note not the system's",
@@ -924,7 +966,7 @@ macro_rules! switch_frame {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 160] = [
+const CANARIES: [Canary; 162] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -985,6 +1027,7 @@ const CANARIES: [Canary; 160] = [
                pass",
         expect: &[],
         inside: "<style>main { overflow-x: visible; max-width: 300px; } \
+                 main p:not(:has(> .checkbox-label)), main li { max-width: 12em; } \
                  .content { container-type: inline-size; } \
                  .checkbox-label { display: flex; width: 100cqi; }</style>",
         after: "",
@@ -995,6 +1038,7 @@ const CANARIES: [Canary; 160] = [
                mdBook's is",
         expect: &[Kind::Wide],
         inside: "<style>main { overflow-x: visible; max-width: 300px; } \
+                 main p:not(:has(> .checkbox-label)), main li { max-width: 12em; } \
                  .content { container-type: inline-size; } \
                  .checkbox-label { display: flex; width: 100cqi; }</style>\
                  <p>A label <span style=\"position: relative; left: 2000px\">moved out</span></p>",
@@ -1266,6 +1310,29 @@ const CANARIES: [Canary; 160] = [
         inside: concat!(
             "<style>main p.held { max-width: 18em; font-size: 14px; line-height: 20px; }</style>",
             "<p class=\"held\">",
+            prose!(),
+            "</p>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-measure-capped.html",
+        what: "prose held under the measure by a cap on `main`, not by its own max-width",
+        expect: &[Kind::Measure],
+        inside: concat!(
+            "<style>main { max-width: 15em; } main > p:has(> .checkbox-label) { display: none; }</style>",
+            "<p>",
+            prose!(),
+            "</p>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-measure-width.html",
+        what: "prose held under the measure by a width of its own, with no max-width",
+        expect: &[Kind::Measure],
+        inside: concat!(
+            "<style>main p.held { max-width: none; width: 15em; }</style><p class=\"held\">",
             prose!(),
             "</p>"
         ),
@@ -2685,17 +2752,20 @@ pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
         return Err(broken.join("\n"));
     }
     let mut problems = Vec::new();
+    let mut measures = Measures::default();
     for page in &pages {
         let measured = results
             .get(page)
             .ok_or_else(|| format!("the page check has no results for {page}"))?;
         problems.extend(page_problems(page, measured, part.step_px()));
+        measures.add(measured);
     }
     Ok(Report {
         pages: pages.len(),
         widths: checked.len(),
         seconds: started.elapsed().as_secs_f64(),
         problems,
+        measures,
     })
 }
 
@@ -2751,6 +2821,9 @@ struct Measured {
     measure: Vec<Style>,
     #[serde(default)]
     measure_count: usize,
+    /// What the system's counter read of the prose in `main`, for the run's summary.
+    #[serde(default)]
+    prose: Prose,
     #[serde(default)]
     gutter: Vec<Style>,
     #[serde(default)]
@@ -4106,7 +4179,7 @@ mod tests {
         );
         assert_eq!(
             problems[1],
-            "guide.html: prose past the measure at 320 to 1920 px; at 320 px, \
+            "guide.html: prose off the measure at 320 to 1920 px; at 320 px, \
              `main>p` has a line of 118 characters `The drag coefficient…` (320 px)"
         );
         assert!(

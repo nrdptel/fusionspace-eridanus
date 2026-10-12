@@ -276,10 +276,13 @@ reads each page's computed style (the colors, sizes and outlines the browser end
 so the site keeps the product system's look where mdBook, the program that builds the site,
 would draw its own. It reads the light and navy themes, and the light one with scripts off.
 Colors off the system's palette, rounded corners, shadows, motion off its timings and type off its
-sizes all fail it; inside the page the sizes grow with the window, from a 16 px body up to a
-1,024 px window to 18 px from 1,600 px, and the check reads each against the size the window's
-width gives. A line of prose over 80 characters, a median line at the measure outside 60 to 75
-characters, and a column off flush left beside the sidebar or off its 16 or 32 px gutters fail it
+sizes all fail it. Body text is 16 px up to a 1,024 px window, grows with the window, and is
+18 px from 1,600 px; the check reads each size against the one the window's width gives. The
+*measure* is how wide a line of prose runs, 29.5 em of its text. A line of prose over 80
+characters fails, and so does a page whose median line at the full measure is outside 60 to 75
+characters, judged once 20 or more such lines are set (a short page passes unjudged). Prose
+held narrower than the measure by anything but the window, a column off flush left beside the
+sidebar (its left edge set against it, not centered), and gutters off 16 or 32 px fail it
 too ([ADR-250](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0250-the-measure-and-the-reading-scale.md)), and so do:
 
 - text under the contrast that WCAG 2.2 AA (the W3C's Web Content Accessibility Guidelines,

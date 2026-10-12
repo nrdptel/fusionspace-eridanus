@@ -304,8 +304,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
          the window, no text cut off or over other text, no figure shrunk with room \
          for it or without a zoom, no color off the system's roles, rounded corner, shadow or \
          motion off its durations in either theme or with reduced motion, no text off the type \
-         scale at the window's reading scale, prose line past 80 characters or median line at \
-         the measure off 60 to 75, gutter off the system's, column off flush left or code \
+         scale at the window's reading scale, prose line past 80 characters, median line at \
+         the measure off 60 to 75 or prose held under the measure, gutter off the system's, column off flush left or code \
          block held to the measure, no quote block or note off the system's, no text under the contrast floor, \
          focus ring off the system's, box or icon forced colors would erase, sticky bar taller \
          than the scroll padding or fixed in a box the page carries, icon off the system's sizes or selection off the action role, no header or title block off \
@@ -330,6 +330,19 @@ pub fn run(args: &[String]) -> Result<(), String> {
             )
         },
         laid_out.seconds
+    );
+    let measures = &laid_out.measures;
+    println!(
+        "page measure: {} of {} pages set 20 lines or more at the full measure at one of these \
+         widths or more, {}; the longest line of prose on any page {} characters (the system's \
+         counter, ADR-250)",
+        measures.judged,
+        laid_out.pages,
+        measures.medians.map_or_else(
+            || "none judged".to_string(),
+            |(low, high)| format!("their medians {low} to {high} characters")
+        ),
+        measures.longest
     );
     let vitals = vitals::check(&output, part)?;
     if !vitals.problems.is_empty() {
