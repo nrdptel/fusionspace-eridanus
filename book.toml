@@ -50,8 +50,12 @@ heading-split-level = 3
 # page's links and found with the browser's own search. It passed again in M0.9c12, at 10.00 MB:
 # the two pages for the project's own contributors, the house style (`writing.md`) and how a
 # release is built (`releasing.md`), are left out too (9.92 MB after), each still in the sidebar
-# and linked from the start page. A lasting fix is #414.
+# and linked from the start page. A lasting fix is #414. It passed once more in M0.8a3, at
+# 10.02 MB, with the simulator's comparison page: the validation plan (`VALIDATION.md`), the
+# maintainers' inventory of references and test layers, is left out too, still in the sidebar and
+# linked from *Accuracy* and *Checking a claim*, whose reader-facing answers the index keeps.
 [output.html.search.chapter]
 "decisions-and-roadmap.md" = { enable = false }
 "writing.md" = { enable = false }
 "releasing.md" = { enable = false }
+"VALIDATION.md" = { enable = false }

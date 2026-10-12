@@ -437,7 +437,7 @@ impl Way {
 }
 
 /// Whether `text` is a date, `YYYY-MM-DD`, with a month from 1 to 12 and a day from 1 to 31.
-fn is_date(text: &str) -> bool {
+pub(crate) fn is_date(text: &str) -> bool {
     let parts: Vec<&str> = text.split('-').collect();
     let number = |part: &str| {
         part.bytes()

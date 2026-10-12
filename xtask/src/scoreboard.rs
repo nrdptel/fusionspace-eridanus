@@ -32,6 +32,7 @@ use std::process::Command;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::features;
 use crate::fixture_flights::{ERA5_CREDIT, FLIGHT_DATA_CREDIT};
 use crate::steps::{self, Interface, Outcome, StepKind};
 
@@ -553,17 +554,23 @@ pub(crate) fn acceptances(adr: &str) -> Vec<(String, String)> {
     pairs
 }
 
-/// Fails unless each unmeasured cell names a milestone with an open entry in the roadmap, so a
-/// milestone can't close while the cell it measures still says "not measured".
-pub(crate) fn check_milestones(scoreboard: &Scoreboard, roadmap: &str) -> Result<(), String> {
-    let open: BTreeSet<&str> = roadmap
+/// The ids of the roadmap's open entries, blocked ones included: `M2.9` from
+/// `- [ ] **M2.9 The other tools' cells**`.
+pub(crate) fn open_milestones(roadmap: &str) -> BTreeSet<&str> {
+    roadmap
         .lines()
         .filter_map(|line| line.trim_start().strip_prefix("- [ ] "))
         .filter_map(|rest| {
             let rest = rest.strip_prefix("[blocked] ").unwrap_or(rest);
             rest.strip_prefix("**")?.split_whitespace().next()
         })
-        .collect();
+        .collect()
+}
+
+/// Fails unless each unmeasured cell names a milestone with an open entry in the roadmap, so a
+/// milestone can't close while the cell it measures still says "not measured".
+pub(crate) fn check_milestones(scoreboard: &Scoreboard, roadmap: &str) -> Result<(), String> {
+    let open = open_milestones(roadmap);
     let mut problems = Vec::new();
     for row in &scoreboard.rows {
         for cell in &row.cells {
@@ -645,6 +652,7 @@ pub(crate) struct Reports {
     pub openrocket_flights: Value,
     pub harness: Value,
     pub steps: steps::Record,
+    pub features: features::Record,
 }
 
 impl Reports {
@@ -659,6 +667,7 @@ impl Reports {
             openrocket_flights: report(root, OPENROCKET_FLIGHTS)?,
             harness: report(root, HARNESS)?,
             steps: steps::Record::read(root)?,
+            features: features::Record::read(root)?,
         })
     }
 }
@@ -1051,11 +1060,23 @@ pub(crate) fn scoreboard(reports: &Reports) -> Result<Scoreboard, String> {
             count_words: "of {n}".to_owned(),
             signed: false,
             worse: Worse::Lower,
-            cells: vec![
-                later(Hpr, "M0.8a"),
-                later(Openrocket, "M0.8a"),
-                later(Rocketpy, "M0.8a"),
-            ],
+            cells: [Hpr, Openrocket, Rocketpy]
+                .into_iter()
+                .map(|tool| {
+                    let has = reports.features.count(tool.slug());
+                    measured(
+                        tool,
+                        exact(has as u64),
+                        0,
+                        reports.features.capability.len() as u64,
+                        format!(
+                            "{}: the capabilities whose {} cell says yes",
+                            features::RECORD,
+                            tool.slug()
+                        ),
+                    )
+                })
+                .collect(),
         },
     ];
     rows.extend(step_rows(&reports.steps)?);
@@ -1278,7 +1299,11 @@ fn axis_words(axis: Axis, hpr: &str) -> String {
              several."
         ),
         Axis::Features => "How many of the capabilities listed in the simulator guide's \
-            comparison table each tool has; the table comes with that guide."
+            comparison table each tool has in full, each read from the tool's own documentation \
+            ([Compared with other \
+            simulators](https://hpr.fusionspace.co/simulator-compared.html)). The rows are the \
+            project's choice, so the count leans toward what HPR Sim was built to do: read the \
+            rows, not the count."
             .to_owned(),
         Axis::Steps => "How many steps it takes to open a design, fly it once and see its \
             apogee, and get its landing spread: where it may land, from many flights with their \

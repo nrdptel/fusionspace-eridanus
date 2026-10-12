@@ -1,0 +1,628 @@
+# The simulator guide's comparison (M0.8a3, ADR-248): what HPR Sim and the comparable
+# simulators each do, one capability a row. `cargo xtask guides` writes it into
+# docs/simulator-compared.md, and `cargo xtask scoreboard` counts each tool's yes cells into the
+# scoreboard's features row.
+#
+# Each tool other than HPR Sim names the release whose documentation was read, when it came out,
+# the date it was read and its pages. Each cell says yes, partly or no: another tool's names the
+# page that shows it, and a partly or a no says in a note what that page shows instead; HPR Sim's
+# yes names the page of this site that covers it, its partly that page and the open milestone
+# that brings the rest, its no the milestone. A yes says a tool can do a thing, never how well.
+
+[[tool]]
+id = "hpr"
+name = "HPR Sim"
+
+[[tool]]
+id = "openrocket"
+name = "OpenRocket"
+release = "24.12"
+released = "2025-07-27"
+checked_on = "2026-10-12"
+note = "Its online guide is built from its development branch and describes features no release has yet, so what the release holds was read from its release notes. Its technical documentation is the edition its site still links; the page numbers in the titles are the printed ones, and the links open the file at them"
+
+[[tool.source]]
+id = "release-notes"
+title = "OpenRocket 24.12's release notes"
+url = "https://github.com/openrocket/openrocket/releases/tag/release-24.12"
+
+[[tool.source]]
+id = "features"
+title = "OpenRocket's guide: Features"
+url = "https://openrocket.readthedocs.io/en/latest/introduction/features.html"
+
+[[tool.source]]
+id = "planned"
+title = "OpenRocket's guide: Features, planned future features"
+url = "https://openrocket.readthedocs.io/en/latest/introduction/features.html#planned-future-features"
+
+[[tool.source]]
+id = "getting-started"
+title = "OpenRocket's guide: Getting Started"
+url = "https://openrocket.readthedocs.io/en/latest/setup/getting_started.html#file"
+
+[[tool.source]]
+id = "ui"
+title = "OpenRocket's guide: Getting Started, the user interface"
+url = "https://openrocket.readthedocs.io/en/latest/setup/getting_started.html#the-user-interface"
+
+[[tool.source]]
+id = "staging"
+title = "OpenRocket's guide: Advanced Rocket Design, staging"
+url = "https://openrocket.readthedocs.io/en/latest/user_guide/advanced_rocket_design.html#conventional-staging"
+
+[[tool.source]]
+id = "command-line"
+title = "OpenRocket's guide: Command Line Arguments"
+url = "https://openrocket.readthedocs.io/en/latest/dev_guide/command_line_arguments.html"
+
+[[tool.source]]
+id = "core"
+title = "OpenRocket's guide: Using OpenRocket Core in External Applications"
+url = "https://openrocket.readthedocs.io/en/latest/dev_guide/using_openrocket_core.html"
+
+[[tool.source]]
+id = "extensions"
+title = "OpenRocket's guide: Simulation Extensions"
+url = "https://openrocket.readthedocs.io/en/latest/user_guide/simulation_extensions.html#example-simulation-extensions-provided-with-openrocket"
+
+[[tool.source]]
+id = "thrust-curves"
+title = "OpenRocket's guide: Thrust Curves"
+url = "https://openrocket.readthedocs.io/en/latest/user_guide/thrust_curves.html"
+
+[[tool.source]]
+id = "techdoc-supersonic"
+title = "OpenRocket's technical documentation, supersonic drag (page 48)"
+url = "https://github.com/openrocket/openrocket/releases/download/OpenRocket_technical_documentation-v13.05/OpenRocket_technical_documentation-v13.05.pdf#page=57"
+
+[[tool.source]]
+id = "techdoc-warnings"
+title = "OpenRocket's technical documentation, warnings (page 78)"
+url = "https://github.com/openrocket/openrocket/releases/download/OpenRocket_technical_documentation-v13.05/OpenRocket_technical_documentation-v13.05.pdf#page=87"
+
+[[tool]]
+id = "rocketpy"
+name = "RocketPy"
+release = "1.13.0"
+released = "2026-07-22"
+checked_on = "2026-10-12"
+
+[[tool.source]]
+id = "home"
+title = "RocketPy's documentation: home"
+url = "https://docs.rocketpy.org/en/latest/index.html"
+
+[[tool.source]]
+id = "flight"
+title = "RocketPy's guide: Flight Class Usage, initial conditions"
+url = "https://docs.rocketpy.org/en/latest/user/flight.html#initial-conditions"
+
+[[tool.source]]
+id = "rocket"
+title = "RocketPy's reference: the Rocket class"
+url = "https://docs.rocketpy.org/en/latest/reference/classes/Rocket.html"
+
+[[tool.source]]
+id = "monte-carlo"
+title = "RocketPy's guide: Monte Carlo class usage"
+url = "https://docs.rocketpy.org/en/latest/notebooks/monte_carlo_analysis/monte_carlo_class_usage.html"
+
+[[tool.source]]
+id = "forecast"
+title = "RocketPy's guide: Forecasts"
+url = "https://docs.rocketpy.org/en/latest/user/environment/1-atm-models/forecast.html#global-forecast-system-gfs"
+
+[[tool.source]]
+id = "installation"
+title = "RocketPy's guide: Installation"
+url = "https://docs.rocketpy.org/en/latest/user/installation.html"
+
+[[tool.source]]
+id = "first-simulation"
+title = "RocketPy's guide: First Simulation"
+url = "https://docs.rocketpy.org/en/latest/user/first_simulation.html"
+
+[[tool.source]]
+id = "flutter"
+title = "RocketPy's reference: fin flutter analysis"
+url = "https://docs.rocketpy.org/en/latest/reference/classes/utils/utilities.html#rocketpy.utilities.fin_flutter_analysis"
+
+[[tool.source]]
+id = "comparator"
+title = "RocketPy's guide: Flight Comparator"
+url = "https://docs.rocketpy.org/en/latest/user/flight_comparator.html"
+
+[[tool.source]]
+id = "airbrakes"
+title = "RocketPy's guide: Air Brakes"
+url = "https://docs.rocketpy.org/en/latest/user/airbrakes.html"
+
+[[tool.source]]
+id = "tanks"
+title = "RocketPy's guide: Tanks Usage"
+url = "https://docs.rocketpy.org/en/latest/user/motors/tanks.html"
+
+[[tool.source]]
+id = "warnings"
+title = "RocketPy's reference: Exceptions and Warnings"
+url = "https://docs.rocketpy.org/en/latest/reference/classes/exceptions.html"
+
+[[tool]]
+id = "rasaero"
+name = "RASAero II"
+release = "1.0.2.0"
+released = "2019-05-22"
+checked_on = "2026-10-12"
+note = "Its manual is for the same release; the page numbers below are the manual's"
+
+[[tool.source]]
+id = "download"
+title = "RASAero II's download page"
+url = "https://www.rasaero.com/dl_software_ii.htm"
+
+[[tool.source]]
+id = "manual-intro"
+title = "RASAero II's manual, introduction (page 4)"
+url = "https://rasaero.com/dloads/RASAero%20II%20Users%20Manual.pdf#page=4"
+
+[[tool.source]]
+id = "manual-contents"
+title = "RASAero II's manual, contents (page 2)"
+url = "https://rasaero.com/dloads/RASAero%20II%20Users%20Manual.pdf#page=2"
+
+[[tool.source]]
+id = "manual-files"
+title = "RASAero II's manual, files (page 8)"
+url = "https://rasaero.com/dloads/RASAero%20II%20Users%20Manual.pdf#page=8"
+
+[[tool.source]]
+id = "manual-stages"
+title = "RASAero II's manual, stages (page 49)"
+url = "https://rasaero.com/dloads/RASAero%20II%20Users%20Manual.pdf#page=49"
+
+[[tool.source]]
+id = "manual-launch-site"
+title = "RASAero II's manual, launch site (page 78)"
+url = "https://rasaero.com/dloads/RASAero%20II%20Users%20Manual.pdf#page=78"
+
+[[tool.source]]
+id = "manual-altimeter"
+title = "RASAero II's manual, altimeter data (page 82)"
+url = "https://rasaero.com/dloads/RASAero%20II%20Users%20Manual.pdf#page=82"
+
+[[tool.source]]
+id = "manual-motors"
+title = "RASAero II's manual, motors (page 93)"
+url = "https://rasaero.com/dloads/RASAero%20II%20Users%20Manual.pdf#page=93"
+
+[[tool.source]]
+id = "manual-warnings"
+title = "RASAero II's manual, warnings and tips (page 114)"
+url = "https://rasaero.com/dloads/RASAero%20II%20Users%20Manual.pdf#page=114"
+
+[[capability]]
+id = "ork-open"
+label = "Opens an OpenRocket `.ork` design file"
+
+[[capability.cell]]
+tool = "hpr"
+has = "yes"
+page = "docs/fly-your-ork.md"
+
+[[capability.cell]]
+tool = "openrocket"
+has = "yes"
+source = "getting-started"
+
+[[capability.cell]]
+tool = "rocketpy"
+has = "no"
+source = "home"
+note = "it has no `.ork` reader; a design is typed in as Python"
+
+[[capability.cell]]
+tool = "rasaero"
+has = "no"
+source = "manual-files"
+note = "it opens its own files and imports RockSim's; its manual names no OpenRocket format"
+
+[[capability]]
+id = "ork-write"
+label = "Writes a design to an `.ork` file"
+
+[[capability.cell]]
+tool = "hpr"
+has = "yes"
+page = "docs/cli.md#converting-a-design"
+
+[[capability.cell]]
+tool = "openrocket"
+has = "yes"
+source = "getting-started"
+
+[[capability.cell]]
+tool = "rocketpy"
+has = "no"
+source = "home"
+note = "nothing in its guide or reference writes a design file for another program"
+
+[[capability.cell]]
+tool = "rasaero"
+has = "no"
+source = "manual-files"
+note = "it saves its own format only"
+
+[[capability]]
+id = "editor"
+label = "Draws and edits a design in a window"
+
+[[capability.cell]]
+tool = "hpr"
+has = "no"
+milestone = "M9.1"
+note = "no window yet; it flies a design drawn in OpenRocket"
+
+[[capability.cell]]
+tool = "openrocket"
+has = "yes"
+source = "ui"
+
+[[capability.cell]]
+tool = "rocketpy"
+has = "no"
+source = "home"
+note = "it is a Python library, with no window"
+
+[[capability.cell]]
+tool = "rasaero"
+has = "yes"
+source = "manual-intro"
+
+[[capability]]
+id = "six-dof"
+label = "Flies in six degrees of freedom"
+
+[[capability.cell]]
+tool = "hpr"
+has = "yes"
+page = "docs/how-a-flight-is-simulated.md"
+
+[[capability.cell]]
+tool = "openrocket"
+has = "yes"
+source = "features"
+
+[[capability.cell]]
+tool = "rocketpy"
+has = "yes"
+source = "home"
+
+[[capability.cell]]
+tool = "rasaero"
+has = "no"
+source = "manual-intro"
+note = "it flies two degrees of freedom in calm air and three with weathercocking when a wind is entered"
+
+[[capability]]
+id = "stages"
+label = "Flies a rocket of more than one stage"
+
+[[capability.cell]]
+tool = "hpr"
+has = "yes"
+page = "docs/cli.md#separation"
+
+[[capability.cell]]
+tool = "openrocket"
+has = "yes"
+source = "staging"
+
+[[capability.cell]]
+tool = "rocketpy"
+has = "partly"
+source = "flight"
+note = "it has no stage object or separation event; a flight can start where another ended, with a rocket of its own for each stage"
+
+[[capability.cell]]
+tool = "rasaero"
+has = "yes"
+source = "manual-stages"
+
+[[capability]]
+id = "supersonic"
+label = "Works out drag and stability past the speed of sound"
+
+[[capability.cell]]
+tool = "hpr"
+has = "yes"
+page = "docs/drag-through-mach-1.md"
+
+[[capability.cell]]
+tool = "openrocket"
+has = "yes"
+source = "techdoc-supersonic"
+note = "its technical documentation aims at reasonable estimates at transonic and low supersonic speeds"
+
+[[capability.cell]]
+tool = "rocketpy"
+has = "partly"
+source = "rocket"
+note = "its drag comes from curves the user supplies, and its center of pressure varies with Mach, but its reference names no method past the speed of sound"
+
+[[capability.cell]]
+tool = "rasaero"
+has = "yes"
+source = "manual-intro"
+note = "its manual gives drag, normal force and center of pressure from Mach 0.01 to Mach 25"
+
+[[capability]]
+id = "monte-carlo"
+label = "Flies a design many times with its inputs scattered, for a landing spread"
+
+[[capability.cell]]
+tool = "hpr"
+has = "yes"
+page = "docs/monte-carlo.md"
+
+[[capability.cell]]
+tool = "openrocket"
+has = "no"
+source = "release-notes"
+note = "its newest release's notes add none, its features page lists it as planned, and the landing-spread page in its guide is on the development branch only"
+
+[[capability.cell]]
+tool = "rocketpy"
+has = "yes"
+source = "monte-carlo"
+
+[[capability.cell]]
+tool = "rasaero"
+has = "no"
+source = "manual-contents"
+note = "neither its contents nor its flight chapter has a spread or a Monte Carlo"
+
+[[capability]]
+id = "weather"
+label = "Fetches a launch day's forecast, reanalysis or balloon sounding into the flight"
+
+[[capability.cell]]
+tool = "hpr"
+has = "yes"
+page = "docs/weather.md"
+
+[[capability.cell]]
+tool = "openrocket"
+has = "partly"
+source = "release-notes"
+note = "its newest release adds wind by height, typed in or read from a file, but fetches nothing"
+
+[[capability.cell]]
+tool = "rocketpy"
+has = "yes"
+source = "forecast"
+
+[[capability.cell]]
+tool = "rasaero"
+has = "no"
+source = "manual-launch-site"
+note = "the launch site takes a temperature, a pressure and one wind speed, on the standard atmosphere"
+
+[[capability]]
+id = "command-line"
+label = "Flies a design file from a command line"
+
+[[capability.cell]]
+tool = "hpr"
+has = "yes"
+page = "docs/cli.md#flying-and-scattering"
+
+[[capability.cell]]
+tool = "openrocket"
+has = "no"
+source = "command-line"
+note = "its command-line arguments set options for the window; none flies a design"
+
+[[capability.cell]]
+tool = "rocketpy"
+has = "no"
+source = "installation"
+note = "it is a Python library; the terminal only installs it"
+
+[[capability.cell]]
+tool = "rasaero"
+has = "no"
+source = "download"
+note = "it runs from its window; its manual describes no command"
+
+[[capability]]
+id = "python"
+label = "Flies a design from a Python script"
+
+[[capability.cell]]
+tool = "hpr"
+has = "yes"
+page = "docs/python.md"
+
+[[capability.cell]]
+tool = "openrocket"
+has = "no"
+source = "core"
+note = "its documentation covers a Java interface only; the separate orhelper package isn't in it"
+
+[[capability.cell]]
+tool = "rocketpy"
+has = "yes"
+source = "first-simulation"
+
+[[capability.cell]]
+tool = "rasaero"
+has = "no"
+source = "manual-contents"
+note = "its manual describes no scripting"
+
+[[capability]]
+id = "flutter"
+label = "Estimates the speed at which the fins flutter"
+
+[[capability.cell]]
+tool = "hpr"
+has = "partly"
+page = "docs/when-fins-flutter.md"
+milestone = "M6.6"
+note = "in the Rust library; the command line and Python don't print it yet, which the submission packs bring"
+
+[[capability.cell]]
+tool = "openrocket"
+has = "no"
+source = "planned"
+note = "its features page lists fin flutter as planned"
+
+[[capability.cell]]
+tool = "rocketpy"
+has = "yes"
+source = "flutter"
+note = "an estimate from the same NACA criterion HPR Sim uses, which its documentation calls only an estimate"
+
+[[capability.cell]]
+tool = "rasaero"
+has = "no"
+source = "manual-contents"
+note = "its manual never mentions flutter"
+
+[[capability]]
+id = "log"
+label = "Reads an altimeter's flight log"
+
+[[capability.cell]]
+tool = "hpr"
+has = "partly"
+page = "docs/reading-a-flight-log.md"
+milestone = "M7.1"
+note = "it reads PerfectFlite's logs only, so far"
+
+[[capability.cell]]
+tool = "openrocket"
+has = "no"
+source = "planned"
+note = "its features page lists importing altimeter data as planned"
+
+[[capability.cell]]
+tool = "rocketpy"
+has = "yes"
+source = "comparator"
+note = "its examples read a log saved as CSV and set it beside a flight"
+
+[[capability.cell]]
+tool = "rasaero"
+has = "no"
+source = "manual-altimeter"
+note = "it suggests writing the altimeter's readings into the design's comments, to compare by hand"
+
+[[capability]]
+id = "airbrakes"
+label = "Flies airbrakes driven by a control law"
+
+[[capability.cell]]
+tool = "hpr"
+has = "no"
+milestone = "M6.4"
+note = "no airbrakes yet"
+
+[[capability.cell]]
+tool = "openrocket"
+has = "no"
+source = "extensions"
+note = "its example extensions control roll, not drag; airbrakes would need a Java extension of one's own"
+
+[[capability.cell]]
+tool = "rocketpy"
+has = "yes"
+source = "airbrakes"
+
+[[capability.cell]]
+tool = "rasaero"
+has = "no"
+source = "manual-contents"
+note = "its manual describes no airbrakes or control"
+
+[[capability]]
+id = "hybrid-liquid"
+label = "Flies a hybrid or liquid motor with its tanks"
+
+[[capability.cell]]
+tool = "hpr"
+has = "no"
+milestone = "M11.3"
+note = "commercial solid motors only until its first full release"
+
+[[capability.cell]]
+tool = "openrocket"
+has = "no"
+source = "thrust-curves"
+note = "a motor is a thrust-curve file; its features page lists hybrids as planned"
+
+[[capability.cell]]
+tool = "rocketpy"
+has = "yes"
+source = "tanks"
+note = "its tanks drain as the user prescribes; nothing predicts the flow"
+
+[[capability.cell]]
+tool = "rasaero"
+has = "no"
+source = "manual-motors"
+note = "a motor is a thrust-curve file or one from its own list"
+
+[[capability]]
+id = "warns"
+label = "Warns when a flight leaves its models' assumptions"
+
+[[capability.cell]]
+tool = "hpr"
+has = "yes"
+page = "docs/fly-your-ork.md#fly-the-file-as-it-is"
+
+[[capability.cell]]
+tool = "openrocket"
+has = "yes"
+source = "techdoc-warnings"
+
+[[capability.cell]]
+tool = "rocketpy"
+has = "no"
+source = "warnings"
+note = "its flight warning says the rocket is unstable at motor ignition, which is about the rocket, not its models"
+
+[[capability.cell]]
+tool = "rasaero"
+has = "no"
+source = "manual-warnings"
+note = "its warnings, of a marginal and of an unstable rocket, are about the rocket, not its models"
+
+[[capability]]
+id = "gaps"
+label = "Names the known gaps in its models that bear on each flight, and which way each pushes the numbers where that is known"
+
+[[capability.cell]]
+tool = "hpr"
+has = "yes"
+page = "docs/fly-your-ork.md#fly-the-file-as-it-is"
+
+[[capability.cell]]
+tool = "openrocket"
+has = "no"
+source = "techdoc-warnings"
+note = "its warnings, as its technical documentation and its newest release's notes describe them, name a broken assumption and leave it to the user to judge whether the results still hold; none says which way they err"
+
+[[capability.cell]]
+tool = "rocketpy"
+has = "no"
+source = "warnings"
+note = "its warnings say nothing of its models' errors"
+
+[[capability.cell]]
+tool = "rasaero"
+has = "no"
+source = "manual-warnings"
+note = "its tips give general settings for a conservative altitude, not a flight's own gaps"

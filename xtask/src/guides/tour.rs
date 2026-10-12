@@ -109,7 +109,7 @@ pub(super) fn landing_quotes() -> Vec<Quote> {
 }
 
 /// The ERA5 weather's credit, with the years the fixture report's page gives.
-fn copernicus() -> Quote {
+pub(super) fn copernicus() -> Quote {
     Quote {
         template: "generated using Copernicus Climate Change Service information {}, and contains \
                    modified Copernicus Climate Change Service information {}",
