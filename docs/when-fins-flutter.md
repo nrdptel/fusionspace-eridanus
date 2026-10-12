@@ -16,9 +16,9 @@ which explain the physics behind the numbers HPR Sim prints.
 > that fluttered and wings that didn't from missiles and wind-tunnel models, the unfailed ones
 > wings that flew to at least Mach 1.3. Nothing here checks the criterion against a hobby
 > rocket's fins, and it leaves out the fins' sweep and how they are attached. So its speed is a
-> screening number with an error no one has measured, not a speed at which a fin is known to fail.
-> The guide gives ranges, not verdicts; the safety code and the range safety officer (the RSO)
-> decide whether a rocket flies.
+> screening number whose error no measurement known to this project sizes, not a speed at which
+> a fin is known to fail. The guide gives ranges, not verdicts; the safety code and the range
+> safety officer (the RSO) decide whether a rocket flies.
 
 ## What flutter is
 
@@ -76,10 +76,10 @@ In the launch site's air, standard air at sea level, the criterion puts their fl
 175 m/s (574 ft/s), Mach 0.51. On the faster of its motors, the rocket reaches 286 m/s (938 ft/s),
 Mach 0.84. Max q comes 298 m (978 ft) above the pad, in air close to the launch site's. At its
 max q, 48.5 kPa, the flutter speed is 0.62 times the airspeed there: by this criterion, the fins
-fly faster than their flutter speed. The criterion's error on fins like these has never been
-measured, so this reading marks the fins for a closer look; it doesn't say they will fail. For
-the flutter speed to reach the airspeed at max q, the plywood would have to be 4.2 mm (0.166 in)
-thick.
+fly faster than their flutter speed. No measurement known to this project sizes the criterion's
+error on fins like these, so this reading marks the fins for a closer look; it doesn't say they
+will fail. For the flutter speed to reach the airspeed at max q, the plywood would have to be
+4.2 mm (0.166 in) thick.
 
 The `hpr` command doesn't print these yet; in code, HPR Sim's
 [`FlutterPanel`][flutter-panel] gives the flutter speed and the ratio `V_f / V` at max q
@@ -105,8 +105,8 @@ will flutter.
 
 Of the two, Martin's chart is the stricter, and it is his own check: a fin below the band is
 among wings that flew faster than sound unharmed. A ratio `V_f / V` above one says only that the
-rocket stays below the criterion's speed, whose error on hobby fins no one has measured. Neither
-is a line to fly by.
+rocket stays below the criterion's speed, whose error on hobby fins no measurement known to this
+project sizes. Neither is a line to fly by.
 
 ## A flutter speed that reads high
 
