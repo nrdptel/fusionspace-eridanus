@@ -642,10 +642,13 @@ fn page_problems(html: &str, lockup: &str, mark: &str) -> Vec<String> {
         );
     }
     if let Some(nav) = html.find(ARROWS) {
-        let arrows = html[nav..].split_once("</nav>").map_or("", |(arrows, _)| arrows);
+        let arrows = html[nav..]
+            .split_once("</nav>")
+            .map_or("", |(arrows, _)| arrows);
         let links = arrows.matches("class=\"mobile-nav-chapters").count();
         let named = arrows.matches(ARROW_NAME).count();
-        if named != links || arrows.contains("aria-label=\"Previous chapter\"")
+        if named != links
+            || arrows.contains("aria-label=\"Previous chapter\"")
             || arrows.contains("aria-label=\"Next chapter\"")
         {
             problems.push(format!(
@@ -1038,8 +1041,14 @@ mod tests {
     #[test]
     fn an_arrow_leads_to_the_page_its_address_names() {
         assert_eq!(linked("a.html", "b.html"), "b.html");
-        assert_eq!(linked("physics/aero.html", "../accuracy.html"), "accuracy.html");
-        assert_eq!(linked("physics/aero.html", "mass.html#a"), "physics/mass.html");
+        assert_eq!(
+            linked("physics/aero.html", "../accuracy.html"),
+            "accuracy.html"
+        );
+        assert_eq!(
+            linked("physics/aero.html", "mass.html#a"),
+            "physics/mass.html"
+        );
         assert_eq!(linked("a.html", "./physics/b.html"), "physics/b.html");
     }
 
@@ -1078,7 +1087,10 @@ mod tests {
         assert!(problem(&html));
         // An arrow to a page with no title is refused, by name.
         let lost = name_arrows("physics/b.html", &html, &HashMap::new()).unwrap_err();
-        assert!(lost.contains("the Previous arrow leads to `../a.html`"), "{lost}");
+        assert!(
+            lost.contains("the Previous arrow leads to `../a.html`"),
+            "{lost}"
+        );
     }
 
     #[test]
