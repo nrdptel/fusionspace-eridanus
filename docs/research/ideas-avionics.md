@@ -26,7 +26,16 @@ Part of the [ideas backlog](ideas.md) (2026-10-03). One line each, with its tier
 - LATER: a pad-hold battery budget.
 - LATER: an avionics data budget (sample rates against storage).
 - LATER: a tracker antenna pointing table.
+- SOON: the tilt-abort window. User: a flyer whose altimeter fires its drogue when the tilt passes
+  90° within 2 s of liftoff, on by default in one maker's two lines. Why: in October 2026 flyers
+  reported such early deployments on fast flights ([a forum thread][tilt-thread]). Workflow:
+  `hpr mc` prints the tilt at the window's end (median, 90th percentile, largest) and how many runs
+  cross the threshold inside it, with two-sided 95% Clopper–Pearson bounds, failed runs counted;
+  window and threshold are inputs. Moves: honest uncertainty, and the features the scoreboard
+  counts. *Done when:* `hpr mc` prints both; crossings are found on the continuous solution, not
+  at output samples; a test pins that a run touching the threshold counts, with a mutation probe.
 
 [m6-4]: ../decisions-and-roadmap.md#m6-4
 [m7-1]: ../decisions-and-roadmap.md#m7-1
 [m7-4]: ../decisions-and-roadmap.md#m7-4
+[tilt-thread]: https://www.rocketryforum.com/threads/emergency-deployment-option-for-unstable-flights.194466/

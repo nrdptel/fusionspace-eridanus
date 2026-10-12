@@ -3,6 +3,22 @@
 Measured numbers only, newest first within each section. Record the machine, the toolchain, and
 the command, so a later run can be compared like for like.
 
+## The site's layout check on six tabs (#469)
+
+- **What this is.** `cargo xtask site` lays out every page at every checked width in Chrome, one
+  browser process per tab, up to `MOST_TABS` (`xtask/src/site/pages.rs`), fewer on a machine with
+  fewer cores. The check reads layout, not timing, so running more tabs at once doesn't change
+  what it finds. The page-vitals pass after it still runs alone, in one browser.
+- **Measured** on an Apple M5 (10 cores, 16 GB), main f0c1a3cc, a full `cargo xtask site
+  --locked` each, in alternating order: the layout check took 182 / 182 s at four tabs, 134 s at
+  six and 118 / 119 s at eight; the whole step 675–703 s, 618 s and 592–594 s. The browsers'
+  summed resident memory peaked at 8.0–8.5, 10.4 and 11.9–12.0 GB (shared pages counted more than
+  once); no swapping in any run. Six was chosen to leave memory for work running beside the gate.
+- **What moves.** The layout line's counts and every other line of the step's log but the vitals'
+  are byte-identical across the five runs, seconds masked; the vitals line's readings vary as much
+  between two four-tab runs. CI's 4-core runners still run four tabs, so CI's time doesn't change.
+  The vitals pass (383 s of the step here) is #469's larger part and is unchanged.
+
 ## The analysis crate optimized in test builds (#397)
 
 - **What this is.** `fusionspace-hpr-analysis` (Monte Carlo statistics, the optimizers) is built
