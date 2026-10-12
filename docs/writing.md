@@ -353,7 +353,7 @@ The page check fails, at every width:
   window is widened past 720 px); one hidden but still reached by the keyboard or a screen
   reader; one shown but not reached;
 - a title block without its 2 px border in the text's color, with entries not in Cascadia Mono,
-  or with anything below it.
+  off the column's edges (it is centered as the column is), or with anything below it.
 
 Inside that frame the build lays each page out as an engineering drawing set is laid out:
 

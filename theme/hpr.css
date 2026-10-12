@@ -96,8 +96,8 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
    in Cascadia Mono. The cells wrap as the system's grid does, at least 132 px wide (the owner's
    264 px), but each row's cells grow to its end, so a row cut short by a long entry, which takes
    a row of its own, leaves no hole. The owner's carries the mark, at 24 px, the brand's least.
-   It lines up with the page's text and ends the page. */
-.content .fs-titleblock { box-sizing: border-box; max-width: var(--content-max-width); margin: 48px 0 0; display: flex; flex-wrap: wrap; border: 2px solid var(--fs-ink); background: var(--fs-surface); }
+   It ends the page, centered as the column is, its edges on the column's. */
+.content .fs-titleblock { box-sizing: border-box; max-width: var(--content-max-width); margin: 48px auto 0; display: flex; flex-wrap: wrap; border: 2px solid var(--fs-ink); background: var(--fs-surface); }
 .fs-titleblock > div { flex: 1 1 132px; box-sizing: border-box; padding: 6px 10px 8px; border-right: 1px solid var(--fs-rule-strong); border-bottom: 1px solid var(--fs-rule-strong); display: grid; gap: 2px; align-content: start; min-width: 0; margin: 0 -1px -1px 0; }
 .fs-titleblock .k { font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fs-ink-muted); }
 .fs-titleblock .v { font: 400 var(--fs-14)/var(--fs-20) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; overflow-wrap: anywhere; }

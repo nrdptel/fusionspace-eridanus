@@ -1775,8 +1775,9 @@
   // The title block (#384; `web.md`, *Page anatomy*; `fusionspace.css`, `.fs-titleblock`). Each
   // one (`footer.fs-titleblock`; the file check makes sure every page ends with one) must be
   // drawn inside a 2 px solid border in the ink role on every side, its fields' names and entries
-  // in Cascadia Mono, and nothing may be drawn below its top: no text, picture or field outside
-  // it, other than in a box fixed to the window (the sidebar, the wide page arrows).
+  // in Cascadia Mono, its left and right edges on the column's (`main`'s), so it is centered as
+  // the column is, and nothing may be drawn below its top: no text, picture or field outside it,
+  // other than in a box fixed to the window (the sidebar, the wide page arrows).
   function probeTitleBlock(win, doc, note) {
     const ink = win.getComputedStyle(doc.body).color;
     for (const block of Array.from(doc.querySelectorAll('footer.fs-titleblock'))) {
@@ -1793,6 +1794,15 @@
         if (!samePx(w, TITLE_BLOCK_BORDER_PX) || style !== 'solid' || color !== ink) {
           note('title_block', sel, 'border-' + side.toLowerCase(), w + 'px ' + style + ' '
             + color + ', where the ink is ' + ink);
+        }
+      }
+      const main = doc.querySelector('main');
+      if (main && drawn(win, main)) {
+        const b = block.getBoundingClientRect();
+        const m = main.getBoundingClientRect();
+        if (Math.abs(b.left - m.left) > SLACK_PX || Math.abs(b.right - m.right) > SLACK_PX) {
+          note('title_block', sel, 'edges', Math.round(b.left) + ' to ' + Math.round(b.right)
+            + ' px, the column ' + Math.round(m.left) + ' to ' + Math.round(m.right) + ' px');
         }
       }
       for (const cell of Array.from(block.querySelectorAll('.k, .v'))) {
