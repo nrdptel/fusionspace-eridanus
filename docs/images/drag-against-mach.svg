@@ -48,7 +48,7 @@
 <text x="680.0" y="410" text-anchor="middle" fill="#566079">5</text>
 <text x="372.0" y="432" text-anchor="middle" fill="#566079">Mach number</text>
 <line x1="64" y1="446.0" x2="64" y2="458.0" stroke="#B34F0C" stroke-width="3"/><text x="74.0" y="456.0" font-weight="600" fill="#B34F0C">flatters a ceiling: HPR Sim's drag high, its apogee low, at 12 of 12 speeds</text>
-<line x1="64" y1="466.0" x2="64" y2="478.0" stroke="#566079" stroke-width="1"/><text x="74.0" y="476.0" fill="#566079">the other side: HPR Sim's drag low, its apogee high</text>
+<line x1="64" y1="466.0" x2="64" y2="478.0" stroke="#566079" stroke-width="1"/><text x="74.0" y="476.0" fill="#566079">the other side: HPR Sim's drag low, its apogee high (none here)</text>
 <text x="40" y="510" fill="#566079">Drawn by cargo xtask guides from validation/fixtures/aero/drag-vs-mach.json.</text>
 <text x="40" y="526" fill="#566079">Measured: NASA TN D-4013 and D-4014, half-scale models of the Arcas Robin.</text>
 </svg>

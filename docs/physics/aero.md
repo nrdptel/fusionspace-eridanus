@@ -4724,10 +4724,6 @@ Why it misses, from the drag by part in the fixture:
   Mach 0.8 to 0.285 at 1.0, sooner than the tunnel's, and the forebody with its fins off reads
   +38.8% to +54.1% from Mach 0.9 to 0.95 and +20.3% to +50.8% from Mach 1.0 to 1.2.
 
-[Drag through the speed of sound](../drag-through-mach-1.md) draws this comparison for a flier,
-and marks the side that flatters: a drag that reads high reads the apogee low, as the test
-`a_higher_drag_reads_a_lower_apogee` pins.
-
 What this shows: HPR Sim's drag reads high for this rocket at every Mach number, from about Mach 1.2
 most of all by its thin, sharp fins, which HPR Sim takes as blunt, and at every speed by its steep
 boattail. The body alone reads +12.0% to +54.1%; before HPR Sim modeled the boattail faster than
@@ -4736,6 +4732,10 @@ a calculation
 ([Drag against MIL-HDBK-762's sample calculation](#drag-against-mil-hdbk-762s-sample-calculation))
 and, behind boattails, with measured bases
 ([Boattails faster than sound](#boattails-faster-than-sound)).
+
+[Drag through the speed of sound](../drag-through-mach-1.md) draws this comparison for a flier,
+and marks the side that flatters: a drag that reads high reads the apogee low, as the test
+`a_higher_drag_reads_a_lower_apogee` pins.
 
 #### Drag against RASAero II through Mach 2
 

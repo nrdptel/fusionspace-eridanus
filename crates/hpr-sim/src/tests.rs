@@ -1000,6 +1000,13 @@ fn a_higher_drag_reads_a_lower_apogee() {
     ] {
         let read = |scale: f64| {
             let summary = fly(name, motor, scale);
+            // The first rocket passes Mach 1 at every scale and the second stays below it.
+            let top = summary.max_mach.unwrap().value;
+            assert_eq!(
+                top > 1.0,
+                name == "synthetic-54mm-three-fin",
+                "{name}: Mach {top}"
+            );
             [
                 summary.apogee.unwrap().gain_m.unwrap(),
                 summary.max_speed_m_s.unwrap().value,

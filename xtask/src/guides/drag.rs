@@ -185,6 +185,16 @@ pub(crate) fn generate(root: &Path) -> Result<Value, String> {
         .filter(|component| outside(component))
         .map(|component| component.finish)
         .collect::<Vec<_>>();
+    // A pod's body components sit under their pod set; the guide's finish rows don't follow them.
+    if layout
+        .components
+        .iter()
+        .any(|component| matches!(component.part, Part::PodSet(_)))
+    {
+        return Err(format!(
+            "{DESIGN} has pods; the guide's finishes don't cover them"
+        ));
+    }
     let own_finish = *own.first().ok_or(format!("{DESIGN} has no components"))?;
     if own.iter().any(|finish| *finish != own_finish) {
         return Err(format!(
@@ -531,8 +541,14 @@ pub(super) fn quotes() -> Vec<Quote> {
             template: "The base's grows from {} at Mach {} to {} at Mach {}, then falls",
             holes: |r| {
                 let at_one = rocket(r, 7, "base")?;
-                if rocket(r, 8, "base")? >= at_one {
-                    return Err("the guide rocket's base drag doesn't fall past Mach 1".to_owned());
+                // It rises at every row to Mach 1 and falls at every row after.
+                for at in 2..12 {
+                    let (this, next) = (rocket(r, at, "base")?, rocket(r, at + 1, "base")?);
+                    if (at < 7 && next <= this) || (at >= 7 && next >= this) {
+                        return Err(
+                            "the guide rocket's base drag doesn't peak at Mach 1".to_owned()
+                        );
+                    }
                 }
                 Ok(vec![
                     coefficient(rocket(r, 2, "base")?),
@@ -557,23 +573,27 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "On the faster of its motors the guides' rocket reaches Mach {}, where the \
-                       rise has begun: by Mach {} its drag coefficient is {}, {} above its value \
-                       at Mach {}",
+            template: "On the faster of its two motors the guides' rocket reaches Mach {}, where \
+                       the rise has begun: at Mach {}, just past that, its drag coefficient is {}, \
+                       {} above its value at Mach {}",
             holes: |r| {
                 let count = r
                     .get(super::flutter::REPORT, "/flights")?
                     .as_array()
                     .map(Vec::len)
                     .ok_or("no flights")?;
+                if count != 2 {
+                    return Err(format!("the guide rocket flies {count} motors, not two"));
+                }
                 let mut top = f64::NEG_INFINITY;
                 for at in 0..count {
                     top = top
                         .max(r.number(super::flutter::REPORT, &format!("/flights/{at}/max_mach"))?);
                 }
-                // The nose's drag starts to rise at Mach 0.8.
-                if top < 0.8 {
-                    return Err("the guide rocket stays below the drag rise".to_owned());
+                // The nose's drag starts to rise at Mach 0.8, and the row quoted is just past
+                // the top speed.
+                if top < 0.8 || top >= rocket(r, 4, "mach")? {
+                    return Err("the guide rocket's top speed isn't just below the row".to_owned());
                 }
                 let cd = rocket(r, 4, "cd")?;
                 Ok(vec![
@@ -651,8 +671,8 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "HPR Sim's read {} at Mach {}, {} at Mach {}, the most below the speed of \
-                       sound, and {} at Mach {}, the least; then more at every faster speed, to {} \
+            template: "HPR Sim's read {} at Mach {}, {} at Mach {}, the most of the readings \
+                       below the speed of sound, and {} at Mach {}, the least; then more at every faster speed, to {} \
                        at Mach {}",
             holes: |r| {
                 let rows = r.drawn_rows()?;
@@ -677,26 +697,33 @@ pub(super) fn quotes() -> Vec<Quote> {
                     mach(first.mach),
                     error(below.error),
                     mach(below.mach),
-                    least(low.error),
+                    error(low.error),
                     mach(low.mach),
-                    most(high.error),
+                    error(high.error),
                     mach(high.mach),
                 ])
             },
         },
         Quote {
-            template: "With its fins off, HPR Sim's read {} to {} high",
+            template: "With the fins off, HPR Sim's read {} to {} high on the short model, and up \
+                       to {} on the long one",
             holes: |r| {
                 let rows = r.drag_rows(TUNNEL_MODEL, false)?;
                 let (low, high) = extremes(&rows)?;
                 if low.error <= 0.0 {
                     return Err("HPR Sim's drag reads low with the fins off".to_owned());
                 }
-                Ok(vec![least(low.error), most(high.error)])
+                let long = r.drag_rows(TUNNEL_LONG, false)?;
+                let (_, long_high) = extremes(&long)?;
+                Ok(vec![
+                    least(low.error),
+                    most(high.error),
+                    most(long_high.error),
+                ])
             },
         },
         Quote {
-            template: "read off the reports' plots to within {} to {} either way",
+            template: "read off the reports' plots to within {} to {} in drag coefficient either way",
             holes: |r| {
                 let rows = r.drawn_rows()?;
                 let uncertainties = rows.iter().map(|row| row.uncertainty);
@@ -706,7 +733,7 @@ pub(super) fn quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "{} of both models' {} readings are within {}",
+            template: "{} of the {} readings, both models' with their fins on and off, are within {}",
             holes: |r| {
                 let target = r.number(TUNNEL, "/target_rel")?;
                 let mut rows = Vec::new();
@@ -720,6 +747,16 @@ pub(super) fn quotes() -> Vec<Quote> {
                     within.to_string(),
                     rows.len().to_string(),
                     share(target),
+                ])
+            },
+        },
+        Quote {
+            template: "generated using Copernicus Climate Change Service information {}, and contains \
+                       modified Copernicus Climate Change Service information {}",
+            holes: |r| {
+                Ok(vec![
+                    r.copernicus_year("Generated using")?,
+                    r.copernicus_year("Contains modified")?,
                 ])
             },
         },
@@ -742,6 +779,11 @@ fn mach_x(value: f64) -> f64 {
 pub(super) fn draw_drag_against_mach(reports: &Reports) -> Result<String, String> {
     let rows = reports.drawn_rows()?;
     let high = rows.iter().filter(|row| row.error > 0.0).count();
+    let other = if high == rows.len() {
+        " (none here)"
+    } else {
+        ""
+    };
     let top = (rows
         .iter()
         .map(|row| row.hpr.max(row.measured + row.uncertainty))
@@ -750,9 +792,14 @@ pub(super) fn draw_drag_against_mach(reports: &Reports) -> Result<String, String
         / CD_STEP)
         .ceil();
     let top = top * CD_STEP;
-    if rows
-        .iter()
-        .any(|row| row.mach < 0.0 || row.mach > MACH_TOP || row.measured - row.uncertainty < 0.0)
+    if top <= 0.0
+        || rows.iter().any(|row| {
+            row.mach < 0.0
+                || row.mach > MACH_TOP
+                || row.measured - row.uncertainty < 0.0
+                || row.uncertainty < 0.0
+                || row.hpr < 0.0
+        })
     {
         return Err(format!(
             "a row past the figure's axes, Mach 0 to {MACH_TOP} and drag from 0"
@@ -925,7 +972,7 @@ pub(super) fn draw_drag_against_mach(reports: &Reports) -> Result<String, String
         svg,
         "<line x1=\"{PLOT_LEFT}\" y1=\"{:.1}\" x2=\"{PLOT_LEFT}\" y2=\"{:.1}\" stroke=\"{INK_MUTED}\" \
          stroke-width=\"1\"/><text x=\"{:.1}\" y=\"{:.1}\" fill=\"{INK_MUTED}\">the other side: \
-         HPR Sim's drag low, its apogee high</text>",
+         HPR Sim's drag low, its apogee high{other}</text>",
         key + 10.0,
         key + 22.0,
         PLOT_LEFT + 10.0,
