@@ -25,7 +25,7 @@ use std::path::Path;
 use pulldown_cmark::{Event, Options, Parser, Tag, TagEnd};
 use serde_json::Value;
 
-use crate::fixture_flights::{BINS_PERCENT, REPORT_JSON as FIXTURE};
+use crate::fixture_flights::{BINS_PERCENT, REPORT_JSON as FIXTURE, REPORT_MD as FIXTURE_PAGE};
 
 pub const USAGE: &str = "  \
 guides [--check]         Draw the Rocketry explained guides' figures from the committed reports,
@@ -35,13 +35,17 @@ guides [--check]         Draw the Rocketry explained guides' figures from the co
 /// HPR Sim's apogees against the public flights' logs (M2.3b).
 const REAL: &str = "validation/reports/real-flights.json";
 
-/// The reports a quote or a figure may read.
+/// The reports a quote or a figure may read, as JSON.
 const REPORTS: [&str; 2] = [FIXTURE, REAL];
+/// The reports a quote or a figure may read as text, each read whole at the pointer `""`: the
+/// fixture report's page, which holds the weather's attribution.
+const REPORT_PAGES: [&str; 1] = [FIXTURE_PAGE];
 
 /// One guide: its page, the quotes its text holds, and the figures it shows.
 struct Guide {
     /// The page, from the repository's root.
     page: &'static str,
+    /// The quotes its text holds.
     quotes: Vec<Quote>,
     /// Each figure's file, from the root, and what draws it.
     figures: Vec<(&'static str, Draw)>,
@@ -52,6 +56,7 @@ type Draw = fn(&Reports) -> Result<String, String>;
 
 /// Text a page holds word for word, its holes (`{}`) filled from the reports.
 struct Quote {
+    /// The text, `{}` for each hole.
     template: &'static str,
     /// The holes' values, in order.
     holes: fn(&Reports) -> Result<Vec<String>, String>,
@@ -96,6 +101,7 @@ pub(crate) struct Reports {
 }
 
 impl Reports {
+    /// Reads [`REPORTS`] and [`REPORT_PAGES`] under `root`.
     fn load(root: &Path) -> Result<Self, String> {
         let mut files = BTreeMap::new();
         for file in REPORTS {
@@ -104,6 +110,11 @@ impl Reports {
             let value: Value =
                 serde_json::from_str(&text).map_err(|error| format!("{file}: {error}"))?;
             files.insert(file, value);
+        }
+        for file in REPORT_PAGES {
+            let text =
+                fs::read_to_string(root.join(file)).map_err(|error| format!("{file}: {error}"))?;
+            files.insert(file, Value::String(text));
         }
         Ok(Self {
             files,
@@ -120,6 +131,7 @@ impl Reports {
             .ok_or_else(|| format!("{file} has no {pointer}"))
     }
 
+    /// The finite number at `pointer` in `file`, recorded as read.
     fn number(&self, file: &'static str, pointer: &str) -> Result<f64, String> {
         self.get(file, pointer)?
             .as_f64()
@@ -127,6 +139,7 @@ impl Reports {
             .ok_or_else(|| format!("{file}'s {pointer} is not a number"))
     }
 
+    /// The count at `pointer` in `file`, recorded as read.
     fn count(&self, file: &'static str, pointer: &str) -> Result<usize, String> {
         self.get(file, pointer)?
             .as_u64()
@@ -134,6 +147,7 @@ impl Reports {
             .ok_or_else(|| format!("{file}'s {pointer} is not a count"))
     }
 
+    /// The text at `pointer` in `file`, recorded as read.
     fn text(&self, file: &'static str, pointer: &str) -> Result<&str, String> {
         self.get(file, pointer)?
             .as_str()
@@ -165,6 +179,32 @@ impl Reports {
             Some(at) if title.ends_with(')') => &title[..at],
             _ => title,
         })
+    }
+
+    /// Whether the flag at `pointer` in `file` is set, recorded as read.
+    fn flag(&self, file: &'static str, pointer: &str) -> Result<bool, String> {
+        self.get(file, pointer)?
+            .as_bool()
+            .ok_or_else(|| format!("{file}'s {pointer} is not a flag"))
+    }
+
+    /// The year the fixture report's page credits the Copernicus Climate Change Service with,
+    /// after `lead` ("Generated using" or "Contains modified").
+    fn copernicus_year(&self, lead: &str) -> Result<String, String> {
+        let page = self.text(FIXTURE_PAGE, "")?;
+        let marker = format!("{lead} Copernicus Climate Change Service information ");
+        let at = page
+            .find(&marker)
+            .ok_or_else(|| format!("{FIXTURE_PAGE} doesn't say \"{marker}\""))?;
+        let year: String = page[at + marker.len()..]
+            .chars()
+            .take_while(char::is_ascii_digit)
+            .collect();
+        if year.len() == 4 {
+            Ok(year)
+        } else {
+            Err(format!("{FIXTURE_PAGE} gives no year after \"{marker}\""))
+        }
     }
 
     /// The pointer of the fixture report's set of every flight compared, its name checked.
@@ -200,6 +240,11 @@ fn low_bins() -> usize {
 /// The flights that read low.
 fn low_count(reports: &Reports) -> Result<usize, String> {
     Ok(reports.histogram()?[..low_bins()].iter().sum())
+}
+
+/// The flights that read high, or as logged: those in the bins from zero up.
+fn high_count(reports: &Reports) -> Result<usize, String> {
+    Ok(reports.histogram()?[low_bins()..].iter().sum())
 }
 
 /// How low the lowest miss read, from the lowest bin that holds a flight: "between 15% and 20%
@@ -250,13 +295,8 @@ fn trust_quotes() -> Vec<Quote> {
             holes: |r| Ok(vec![flights(r)?.to_string()]),
         },
         Quote {
-            template: "averaged {} above the logged one",
-            holes: |r| {
-                Ok(vec![signed_percent(
-                    set_number(r, "hpr", "mean_percent")?,
-                    2,
-                )])
-            },
+            template: "apogee averaged {} the logged one",
+            holes: |r| Ok(vec![above(set_number(r, "hpr", "mean_percent")?)]),
         },
         Quote {
             template: "misses averaged {}, and {} were within 10% either way",
@@ -268,14 +308,24 @@ fn trust_quotes() -> Vec<Quote> {
             },
         },
         Quote {
+            template: "The misses lean {}: {} of the {} simulated apogees are above the logged one",
+            holes: |r| {
+                Ok(vec![
+                    lean(set_number(r, "hpr", "mean_percent")?).to_owned(),
+                    high_count(r)?.to_string(),
+                    flights(r)?.to_string(),
+                ])
+            },
+        },
+        Quote {
             template: "the lowest read {}, the highest {}",
             holes: |r| Ok(vec![lowest(r)?, highest(r)?]),
         },
         Quote {
-            template: "averaged {} above and missed by {} without signs",
+            template: "averaged {} and missed by {} without signs",
             holes: |r| {
                 Ok(vec![
-                    signed_percent(set_number(r, "openrocket", "mean_percent")?, 2),
+                    above(set_number(r, "openrocket", "mean_percent")?),
                     percent(set_number(r, "openrocket", "mean_absolute_percent")?, 2),
                 ])
             },
@@ -295,23 +345,42 @@ fn trust_quotes() -> Vec<Quote> {
         },
         Quote {
             template: "missed them by {} on average without signs, from {} to {} one by one, and \
-                       with signs by {}",
+                       with signs by {}, so on these the highs and lows nearly cancel",
             holes: |r| {
+                let flights = r.get(REAL, "/flights")?.as_array().map_or(0, Vec::len);
+                if flights == 0 || flights != r.count(REAL, "/summary/flights")? {
+                    return Err(format!("{REAL}'s flights and its summary's count differ"));
+                }
                 let mut misses = Vec::new();
-                for at in 0..r.count(REAL, "/summary/flights")? {
+                for at in 0..flights {
                     misses.push(r.number(REAL, &format!("/flights/{at}/apogee_error_percent"))?);
                 }
                 let least = misses.iter().copied().fold(f64::INFINITY, f64::min);
                 let most = misses.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+                let unsigned = r.number(REAL, "/summary/mean_absolute_apogee_error_percent")?;
+                let signed = r.number(REAL, "/summary/mean_apogee_error_percent")?;
+                // "Nearly cancel" holds while the signed mean is under a quarter of the unsigned.
+                if signed.abs() >= unsigned / 4.0 {
+                    return Err(format!(
+                        "the public flights' signed mean, {signed:.2}%, no longer nearly cancels: \
+                         reword the page and this quote"
+                    ));
+                }
                 Ok(vec![
-                    percent(
-                        r.number(REAL, "/summary/mean_absolute_apogee_error_percent")?,
-                        2,
-                    ),
+                    percent(unsigned, 2),
                     signed_percent(least, 2),
                     signed_percent(most, 2),
-                    signed_percent(r.number(REAL, "/summary/mean_apogee_error_percent")?, 2),
+                    signed_percent(signed, 2),
                 ])
+            },
+        },
+        Quote {
+            template: "still outside the project's own {} target",
+            holes: |r| {
+                if r.flag(REAL, "/summary/within_target")? {
+                    return Err("the public flights now meet their target".to_owned());
+                }
+                Ok(vec![percent(r.number(REAL, "/summary/target_percent")?, 0)])
             },
         },
         Quote {
@@ -329,16 +398,16 @@ fn trust_quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "the flight of {} logged {}, and HPR Sim flew its design to {}. The miss is ({} \
-                       − {}) / {} = {}",
+            template: "the public flight of {} read {} on its altimeter at the top, and an altimeter \
+                       riding HPR Sim's flight of its design would have read {}. The miss is ({} − \
+                       {}) / {} = {}",
             holes: |r| {
                 let flight = r.flight("cavour")?;
-                let title = r.title(&flight)?;
                 let logged = r.number(REAL, &format!("{flight}/log_apogee_m"))?;
                 let simulated = r.number(REAL, &format!("{flight}/hpr_apogee_m"))?;
                 let miss = r.number(REAL, &format!("{flight}/apogee_error_percent"))?;
                 Ok(vec![
-                    title.to_owned(),
+                    r.title(&flight)?.to_owned(),
                     meters(logged, 0),
                     meters(simulated, 0),
                     fixed(simulated, 0),
@@ -349,15 +418,15 @@ fn trust_quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "HPR Sim's apogee for {} was {}; its altimeter logged {}, a miss of {}",
+            template: "HPR Sim's flight of {} would have read {} at the top; the team's altimeter \
+                       read {}, a miss of {}",
             holes: |r| {
                 let flight = r.flight("juno-iii")?;
-                let title = r.title(&flight)?;
                 let logged = r.number(REAL, &format!("{flight}/log_apogee_m"))?;
                 let simulated = r.number(REAL, &format!("{flight}/hpr_apogee_m"))?;
                 let miss = r.number(REAL, &format!("{flight}/apogee_error_percent"))?;
                 Ok(vec![
-                    title.to_owned(),
+                    r.title(&flight)?.to_owned(),
                     meters(simulated, 1),
                     meters(logged, 1),
                     signed_percent(miss, 2),
@@ -365,20 +434,52 @@ fn trust_quotes() -> Vec<Quote> {
             },
         },
         Quote {
-            template: "would have been passed by {}",
+            template: "altimeter read {} higher than the simulated one",
             holes: |r| {
                 let flight = r.flight("juno-iii")?;
                 let logged = r.number(REAL, &format!("{flight}/log_apogee_m"))?;
                 let simulated = r.number(REAL, &format!("{flight}/hpr_apogee_m"))?;
-                // The two heights as the page writes them, so the reader's subtraction agrees.
-                let passed = written(logged, 1) - written(simulated, 1);
-                if passed <= 0.0 {
-                    return Err("Juno III's simulated apogee is no longer below its log".to_owned());
+                // The two readings as the page writes them, so the reader's subtraction agrees.
+                let higher = written(logged, 1) - written(simulated, 1);
+                if higher <= 0.0 {
+                    return Err(
+                        "Juno III's simulated reading is no longer below its log".to_owned()
+                    );
                 }
-                Ok(vec![meters(passed, 0)])
+                Ok(vec![meters(higher, 1)])
+            },
+        },
+        Quote {
+            template: "across the {} flights the misses leaned {} on average",
+            holes: |r| {
+                Ok(vec![
+                    flights(r)?.to_string(),
+                    lean(set_number(r, "hpr", "mean_percent")?).to_owned(),
+                ])
+            },
+        },
+        Quote {
+            template: "generated using Copernicus Climate Change Service information {}, and contains \
+                       modified Copernicus Climate Change Service information {}",
+            holes: |r| {
+                Ok(vec![
+                    r.copernicus_year("Generated using")?,
+                    r.copernicus_year("Contains modified")?,
+                ])
             },
         },
     ]
+}
+
+/// A mean miss with the side it lies on: "+8.73% above", "−0.25% below".
+fn above(mean: f64) -> String {
+    let side = if mean < 0.0 { "below" } else { "above" };
+    format!("{} {side}", signed_percent(mean, 2))
+}
+
+/// Which way a mean miss leans: "high" or "low".
+fn lean(mean: f64) -> &'static str {
+    if mean < 0.0 { "low" } else { "high" }
 }
 
 /// The flights compared.
@@ -458,19 +559,56 @@ fn meters(value: f64, decimals: usize) -> String {
     format!("{} m ({} ft)", fixed(value, decimals), fixed(feet, 0))
 }
 
-/// A block of a page's text, as a reader reads it: its line, and its words.
+/// What a block of a page holds.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Kind {
+    /// Text a reader reads: a paragraph, a list item, a table cell, a heading, an image's
+    /// description, or a link's or an image's title.
+    Prose,
+    /// HTML other than a comment, which the check can't read.
+    Html,
+    /// A code block that `cargo xtask cli` doesn't regenerate.
+    Code,
+    /// Inline code that holds a digit.
+    InlineCode,
+}
+
+/// A block of a page: its line, its words and what it is.
 struct Block {
     line: usize,
     text: String,
-    /// Whether it is HTML, not text.
-    html: bool,
+    kind: Kind,
 }
 
-/// The text of `page` a reader reads as prose ([module docs](self)), block by block, its spaces
-/// collapsed. Inline code stands as `\u{FFFC}`, so no quote runs across it and no number in it
-/// counts. HTML other than a comment is a block of its own, `html` set, since the check can't
-/// read what it shows.
-fn prose(page: &str) -> Vec<Block> {
+/// A page as the check reads it: its blocks, and the text of the blocks `cargo xtask cli`
+/// regenerates, between a `<!-- cli: example … -->` and its `<!-- cli: end -->`.
+struct Read {
+    blocks: Vec<Block>,
+    regenerated: String,
+}
+
+/// The marker that opens a block `cargo xtask cli` regenerates, and the one that ends it.
+const CLI_EXAMPLE: &str = "<!-- cli: example";
+const CLI_END: &str = "<!-- cli: end -->";
+
+/// `html` without its comments; `None` if a comment doesn't close in it, which fails closed.
+fn without_comments(html: &str) -> Option<String> {
+    let mut out = String::new();
+    let mut rest = html;
+    while let Some(at) = rest.find("<!--") {
+        out.push_str(&rest[..at]);
+        let end = rest[at + 4..].find("-->")?;
+        rest = &rest[at + 4 + end + 3..];
+    }
+    out.push_str(rest);
+    Some(out)
+}
+
+/// `page` as a reader reads it ([module docs](self)), block by block, each block's spaces
+/// collapsed. Every block-level element starts a new block, so a nested item's words never run
+/// into its parent's. Inline code stands as `\u{FFFC}` in its block, so no quote runs across it,
+/// and is a block of its own when it holds a digit.
+fn prose(page: &str) -> Read {
     let options = Options::ENABLE_TABLES
         | Options::ENABLE_FOOTNOTES
         | Options::ENABLE_STRIKETHROUGH
@@ -478,11 +616,13 @@ fn prose(page: &str) -> Vec<Block> {
         | Options::ENABLE_GFM;
     let line = |offset: usize| 1 + page[..offset].matches('\n').count();
     let mut blocks = Vec::new();
+    let mut regenerated = String::new();
     let mut text = String::new();
-    let mut start = None;
-    let mut in_code = false;
-    let mut html_blocks = Vec::new();
-    let mut flush = |text: &mut String, start: &mut Option<usize>| {
+    let mut start: Option<usize> = None;
+    // The code block being read: where it starts, and its text.
+    let mut code: Option<(usize, String)> = None;
+    let mut in_cli = false;
+    let flush = |text: &mut String, start: &mut Option<usize>, blocks: &mut Vec<Block>| {
         let words = text.split_whitespace().collect::<Vec<_>>().join(" ");
         if let Some(at) = start.take()
             && !words.is_empty()
@@ -490,42 +630,101 @@ fn prose(page: &str) -> Vec<Block> {
             blocks.push(Block {
                 line: line(at),
                 text: words,
-                html: false,
+                kind: Kind::Prose,
             });
         }
         text.clear();
     };
     for (event, range) in Parser::new_ext(page, options).into_offset_iter() {
         match event {
-            Event::Start(Tag::CodeBlock(_)) => in_code = true,
-            Event::End(TagEnd::CodeBlock) => in_code = false,
-            Event::Text(words) if !in_code => {
-                start.get_or_insert(range.start);
-                text.push_str(&words);
+            Event::Start(Tag::CodeBlock(_)) => code = Some((range.start, String::new())),
+            Event::End(TagEnd::CodeBlock) => {
+                if let Some((at, body)) = code.take() {
+                    if in_cli {
+                        regenerated.push_str(&body);
+                        regenerated.push('\n');
+                    } else {
+                        blocks.push(Block {
+                            line: line(at),
+                            text: body,
+                            kind: Kind::Code,
+                        });
+                    }
+                }
             }
-            Event::Code(_) => {
+            Event::Text(words) => match &mut code {
+                Some((_, body)) => body.push_str(&words),
+                None => {
+                    start.get_or_insert(range.start);
+                    text.push_str(&words);
+                }
+            },
+            Event::Code(span) => {
                 start.get_or_insert(range.start);
                 text.push('\u{FFFC}');
+                if span.chars().any(|c| c.is_ascii_digit()) {
+                    blocks.push(Block {
+                        line: line(range.start),
+                        text: span.to_string(),
+                        kind: Kind::InlineCode,
+                    });
+                }
+            }
+            Event::Html(html) | Event::InlineHtml(html) => {
+                let trimmed = html.trim();
+                if trimmed.starts_with(CLI_EXAMPLE) {
+                    in_cli = true;
+                } else if trimmed == CLI_END {
+                    in_cli = false;
+                }
+                let shown = without_comments(&html);
+                if shown
+                    .as_deref()
+                    .is_none_or(|shown| !shown.trim().is_empty())
+                {
+                    blocks.push(Block {
+                        line: line(range.start),
+                        text: trimmed.to_owned(),
+                        kind: Kind::Html,
+                    });
+                }
             }
             Event::SoftBreak | Event::HardBreak => text.push(' '),
-            Event::Html(html) | Event::InlineHtml(html)
-                if !in_code && !html.trim_start().starts_with("<!--") =>
-            {
-                html_blocks.push(Block {
-                    line: line(range.start),
-                    text: html.trim().to_owned(),
-                    html: true,
-                });
+            Event::Start(Tag::Link { title, .. } | Tag::Image { title, .. }) => {
+                if !title.is_empty() {
+                    blocks.push(Block {
+                        line: line(range.start),
+                        text: title.to_string(),
+                        kind: Kind::Prose,
+                    });
+                }
             }
-            Event::End(
-                TagEnd::Paragraph | TagEnd::Heading(_) | TagEnd::TableCell | TagEnd::Item,
-            ) => flush(&mut text, &mut start),
+            Event::Start(
+                Tag::Paragraph
+                | Tag::Heading { .. }
+                | Tag::Item
+                | Tag::List(_)
+                | Tag::TableCell
+                | Tag::BlockQuote(_)
+                | Tag::FootnoteDefinition(_),
+            )
+            | Event::End(
+                TagEnd::Paragraph
+                | TagEnd::Heading(_)
+                | TagEnd::Item
+                | TagEnd::List(_)
+                | TagEnd::TableCell
+                | TagEnd::BlockQuote(_)
+                | TagEnd::FootnoteDefinition,
+            ) => flush(&mut text, &mut start, &mut blocks),
             _ => {}
         }
     }
-    flush(&mut text, &mut start);
-    blocks.extend(html_blocks);
-    blocks
+    flush(&mut text, &mut start, &mut blocks);
+    Read {
+        blocks,
+        regenerated,
+    }
 }
 
 /// `text` without its decision records' labels, `ADR-211`, which name a record, not a quantity.
@@ -543,16 +742,61 @@ fn without_labels(text: &str) -> String {
     out
 }
 
-/// What is wrong with `page` (named `name`), given its quotes as rendered: a quote it doesn't hold
-/// word for word, and each number in its text that no quote covers.
+/// Where `quote` stands in `text` as a whole: not glued to a word or a longer number around it,
+/// so "53 logged flights" is not in "153 logged flights", "M53 logged flights" or "−53 logged
+/// flights", and "within 5%" is not in "within 5.5%".
+fn occurrences(text: &str, quote: &str) -> Vec<std::ops::Range<usize>> {
+    let starts_with_digit = quote.starts_with(|c: char| c.is_ascii_digit());
+    let ends_with_digit = quote.ends_with(|c: char| c.is_ascii_digit());
+    text.match_indices(quote)
+        .map(|(at, _)| at..at + quote.len())
+        .filter(|found| {
+            let before = text[..found.start].chars().next_back();
+            let mut after = text[found.end..].chars();
+            let (next, then) = (after.next(), after.next());
+            let glued_before = before.is_some_and(|c| {
+                c.is_alphanumeric() || (starts_with_digit && "−-+.,#_".contains(c))
+            });
+            let glued_after = next.is_some_and(|c| {
+                c.is_alphanumeric()
+                    || (ends_with_digit
+                        && (c == '%'
+                            || (matches!(c, '.' | ',')
+                                && then.is_some_and(|c| c.is_ascii_digit()))))
+            });
+            !glued_before && !glued_after
+        })
+        .collect()
+}
+
+/// `text` with every whole occurrence of `quote` replaced by a space.
+fn without_quote(text: &str, quote: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut from = 0;
+    for found in occurrences(text, quote) {
+        if found.start < from {
+            continue;
+        }
+        out.push_str(&text[from..found.start]);
+        out.push(' ');
+        from = found.end;
+    }
+    out.push_str(&text[from..]);
+    out
+}
+
+/// What is wrong with `page` (named `name`), given its quotes as rendered: a quote its text
+/// doesn't hold word for word; each number in its text that no quote covers; a number in code
+/// that no block on the page regenerates; and HTML, which the check can't read.
 fn page_problems(name: &str, page: &str, quotes: &[String]) -> Vec<String> {
-    let blocks = prose(page);
+    let read = prose(page);
     let mut problems = Vec::new();
     for quote in quotes {
-        if !blocks
+        let held = read
+            .blocks
             .iter()
-            .any(|block| block.text.contains(quote.as_str()))
-        {
+            .any(|block| block.kind == Kind::Prose && !occurrences(&block.text, quote).is_empty());
+        if !held {
             problems.push(format!(
                 "{name} doesn't hold \"{quote}\", as the committed reports write it now; change \
                  the page to it"
@@ -562,26 +806,44 @@ fn page_problems(name: &str, page: &str, quotes: &[String]) -> Vec<String> {
     // The longest quote first, so a shorter one inside it doesn't leave a piece behind.
     let mut longest_first: Vec<&String> = quotes.iter().collect();
     longest_first.sort_by_key(|quote| std::cmp::Reverse(quote.len()));
-    for block in &blocks {
-        if block.html {
-            problems.push(format!(
-                "{name}:{}: HTML in a guide's text (`{}`) can show numbers the check can't read; \
-                 write it in Markdown",
-                block.line, block.text
-            ));
-            continue;
-        }
-        let mut rest = block.text.clone();
-        for quote in &longest_first {
-            rest = rest.replace(quote.as_str(), " ");
-        }
-        for number in crate::site::quoted(&without_labels(&rest)) {
-            problems.push(format!(
-                "{name}:{}: `{number}` is read from no report: quote it from one in \
-                 xtask/src/guides.rs, show it in a block `cargo xtask cli` regenerates, or write \
-                 the sentence without it",
-                block.line
-            ));
+    for block in &read.blocks {
+        let line = block.line;
+        match block.kind {
+            Kind::Html => problems.push(format!(
+                "{name}:{line}: HTML in a guide (`{}`) can show what the check can't read; write \
+                 it in Markdown",
+                block.text
+            )),
+            Kind::Code => {
+                if let Some(number) = crate::site::quoted(&block.text).first() {
+                    problems.push(format!(
+                        "{name}:{line}: `{number}` is in a code block `cargo xtask cli` doesn't \
+                         regenerate: make it an example the command runs, or leave the number out"
+                    ));
+                }
+            }
+            Kind::InlineCode => {
+                if !read.regenerated.contains(&block.text) {
+                    problems.push(format!(
+                        "{name}:{line}: `{}` holds a number that no block `cargo xtask cli` \
+                         regenerates on the page shows",
+                        block.text
+                    ));
+                }
+            }
+            Kind::Prose => {
+                let mut rest = block.text.clone();
+                for quote in &longest_first {
+                    rest = without_quote(&rest, quote);
+                }
+                for number in crate::site::quoted(&without_labels(&rest)) {
+                    problems.push(format!(
+                        "{name}:{line}: `{number}` is read from no report: quote it from one in \
+                         xtask/src/guides.rs, show it in a block `cargo xtask cli` regenerates, \
+                         or write the sentence without it"
+                    ));
+                }
+            }
         }
     }
     problems
@@ -721,7 +983,8 @@ fn draw_misses(reports: &Reports) -> Result<String, String> {
     // The count axis runs to the next even count above the tallest bar, in steps of two.
     let top = (most / 2 + 1) * 2;
     let per_flight = (PLOT_BOTTOM - PLOT_TOP) / top as f64;
-    let height = PLOT_BOTTOM + 124.0;
+    let height = PLOT_BOTTOM + 140.0;
+    let year = reports.copernicus_year("Contains modified")?;
     let title = format!("HPR Sim's apogee against {flights} logged flights");
     let lines = [
         "Each bar counts the flights whose simulated apogee missed the logged one".to_owned(),
@@ -883,15 +1146,21 @@ fn draw_misses(reports: &Reports) -> Result<String, String> {
     );
     let _ = writeln!(
         svg,
-        "<text x=\"{PLOT_RIGHT}\" y=\"{}\" text-anchor=\"end\" fill=\"{INK_MUTED}\">costs height: \
+        "<text x=\"{PLOT_RIGHT}\" y=\"{}\" text-anchor=\"end\" fill=\"{INK_MUTED}\">mainly costs height: \
          {} read high</text>",
         y + 20.0,
-        flights - low
+        high_count(reports)?
     );
     let _ = writeln!(
         svg,
         "<text x=\"40\" y=\"{}\" fill=\"{INK_MUTED}\">Drawn by cargo xtask guides from \
          {FIXTURE}.</text>",
+        height - 32.0
+    );
+    let _ = writeln!(
+        svg,
+        "<text x=\"40\" y=\"{}\" fill=\"{INK_MUTED}\">Weather: ERA5; contains modified Copernicus \
+         Climate Change Service information {year}.</text>",
         height - 16.0
     );
     svg.push_str("</svg>\n");
@@ -915,19 +1184,34 @@ mod tests {
         check(&root).unwrap();
     }
 
-    /// `value` moved: a count to none, or none to one, so that any bin of a histogram can empty
-    /// or fill; a number by a tenth; text to other text.
-    fn moved(value: &Value) -> Value {
+    /// The moves of `value` the probe tries: a count to none, or none to one, so that any bin of
+    /// a histogram can empty or fill; a number by a tenth and to its negative, so a sign can
+    /// flip; text with every digit moved on and a word added; a flag flipped.
+    fn moves(value: &Value) -> Vec<Value> {
         match value {
             Value::Number(number) if number.is_u64() => {
-                Value::from(u64::from(number.as_u64() == Some(0)))
+                vec![Value::from(u64::from(number.as_u64() == Some(0)))]
             }
             Value::Number(number) => {
                 let value = number.as_f64().unwrap_or(0.0);
-                Value::from(if value == 0.0 { 1.0 } else { value * 1.1 })
+                if value == 0.0 {
+                    vec![Value::from(1.0), Value::from(-1.0)]
+                } else {
+                    vec![Value::from(value * 1.1), Value::from(-value)]
+                }
             }
-            Value::String(text) => Value::from(format!("{text} moved")),
-            other => other.clone(),
+            Value::String(text) => {
+                let moved: String = text
+                    .chars()
+                    .map(|c| match c.to_digit(10) {
+                        Some(digit) => char::from_digit((digit + 1) % 10, 10).unwrap_or(c),
+                        None => c,
+                    })
+                    .collect();
+                vec![Value::from(format!("{moved} moved"))]
+            }
+            Value::Bool(flag) => vec![Value::Bool(!flag)],
+            _ => Vec::new(),
         }
     }
 
@@ -951,13 +1235,19 @@ mod tests {
                 let read: Vec<(&str, String)> = reports.read.borrow().clone();
                 assert!(!read.is_empty(), "\"{}\" reads nothing", quote.template);
                 let mut changed = vec![false; holes.len()];
-                for (file, pointer) in read {
+                let tries = read.iter().flat_map(|(file, pointer)| {
+                    let value = reports.files[file].pointer(pointer).unwrap();
+                    moves(value)
+                        .into_iter()
+                        .map(move |value| (*file, pointer.clone(), value))
+                });
+                for (file, pointer, value) in tries {
                     let mut files = reports.files.clone();
                     let leaf = files
                         .get_mut(file)
                         .and_then(|value| value.pointer_mut(&pointer))
                         .unwrap();
-                    *leaf = moved(leaf);
+                    *leaf = value;
                     let spoiled = Reports {
                         files,
                         read: RefCell::new(Vec::new()),
@@ -1008,7 +1298,8 @@ mod tests {
             assert!(!problems.is_empty(), "{spoiled}");
         }
         let fine = "# A page\n\nAcross 53 logged flights, `--runs 200`, as ADR-211 decided.\n\n\
-                    ```text\n$ hpr mc x --runs 200\n812.3\n```\n";
+                    <!-- cli: example `hpr mc x --runs 200` -->\n\n```text\n\
+                    $ hpr mc x --runs 200\n812.3\n```\n\n<!-- cli: end -->\n";
         assert_eq!(page_problems("p", fine, &quotes), Vec::<String>::new());
         // HTML can show a number the check can't read; a comment shows nothing.
         let html = "# A page\n\nAcross 53 logged flights, <span>12</span>.\n";
@@ -1032,6 +1323,44 @@ mod tests {
             dropped[0].contains("doesn't hold \"53 logged flights\""),
             "{dropped:?}"
         );
+        // A nested item's number doesn't run into its parent's words.
+        let nested = "# A page\n\nAcross 53 logged flights.\n\n- The misses\n  - 12% read low\n";
+        assert!(!page_problems("p", nested, &quotes).is_empty());
+        // HTML after a comment is still HTML; a comment that doesn't close fails closed.
+        let after = "# A page\n\nAcross 53 logged flights.\n\n<!-- c --><div>99</div>\n";
+        assert!(!page_problems("p", after, &quotes).is_empty());
+        let open = "# A page\n\nAcross 53 logged flights.\n\n<!-- c\n12 -->\n";
+        assert!(!page_problems("p", open, &quotes).is_empty());
+        // Titles show as hover text, so they are read.
+        for titled in [
+            "# A page\n\nAcross 53 logged flights ([report](x.md \"missed by 12%\")).\n",
+            "# A page\n\nAcross 53 logged flights.\n\n![bars](x.svg \"12 bars\")\n",
+            "# A page\n\nAcross 53 logged flights ([report][r]).\n\n[r]: x.md \"99 of them\"\n",
+        ] {
+            assert!(!page_problems("p", titled, &quotes).is_empty(), "{titled}");
+        }
+        // A quote glued to a longer number or a word is not the quote.
+        for glued in [
+            "# A page\n\nAcross 153 logged flights.\n",
+            "# A page\n\nAcross M53 logged flights.\n",
+            "# A page\n\nAcross −53 logged flights.\n",
+            "# A page\n\nAcross 53 logged flightsx.\n",
+        ] {
+            assert!(!page_problems("p", glued, &quotes).is_empty(), "{glued}");
+        }
+        // Inline code with a number must be what a regenerated block shows; a code block that
+        // isn't regenerated may hold no number.
+        let regenerated = "# A page\n\nAcross 53 logged flights, `--runs 200` and `95%`.\n\n\
+                           <!-- cli: example `hpr mc x --runs 200` -->\n\n```text\n\
+                           $ hpr mc x --runs 200\n 5%   95%\n```\n\n<!-- cli: end -->\n";
+        assert_eq!(
+            page_problems("p", regenerated, &quotes),
+            Vec::<String>::new()
+        );
+        let unshown = "# A page\n\nAcross 53 logged flights, the median `1072.4` m.\n";
+        assert!(!page_problems("p", unshown, &quotes).is_empty());
+        let plain = "# A page\n\nAcross 53 logged flights.\n\n```text\nmiss = 12 / 100\n```\n";
+        assert!(!page_problems("p", plain, &quotes).is_empty());
         // A quote split by inline code is not the quote.
         let split = "# A page\n\nAcross 53 `logged` flights.\n";
         assert!(!page_problems("p", split, &quotes).is_empty());

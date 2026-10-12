@@ -176,9 +176,11 @@ and the build holds the parts marked as checked:
    (checked). A quote in `xtask/src/guides.rs` fills its numbers from a report, and
    `cargo xtask guides` fails a page that doesn't hold the quote word for word, and any number in
    the page's text that no quote reads. Its tests move each value every quote reads and fail
-   unless the page check then fails: a mutation probe for every number. Code, such as a
-   command's flags, and a decision record's label don't count. Write small numbers in digits,
-   so the check sees them.
+   unless the page check then fails: a mutation probe for every number. Titles and image
+   descriptions count as text. Inline code may hold a number only where a regenerated block on
+   the page shows the same text, such as a command's flag; a code block that isn't regenerated
+   holds none; HTML other than a comment fails. A decision record's label doesn't count. Write
+   small numbers in digits, so the check sees them.
 4. **Each figure shows one idea,** in the system's drawing language, and is drawn from the
    reports by `cargo xtask guides` (checked: a test fails a committed figure the reports no
    longer draw).

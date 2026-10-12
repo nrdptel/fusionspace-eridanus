@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="720" height="516" viewBox="0 0 720 516" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" role="img" aria-labelledby="title" aria-describedby="desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="532" viewBox="0 0 720 532" font-family="'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace" font-size="12" role="img" aria-labelledby="title" aria-describedby="desc">
 <title id="title">HPR Sim&apos;s apogee against 53 logged flights</title>
 <desc id="desc">Each bar counts the flights whose simulated apogee missed the logged one by that much: simulated less logged, over logged, in bins of 5%. The misses averaged +8.73%; 26 of 53 were within 10% either way (shaded). The two outer bars hold every miss past 30% either way.</desc>
-<rect width="720" height="516" fill="#F3F4F7"/>
+<rect width="720" height="532" fill="#F3F4F7"/>
 <text x="40" y="36" font-size="18" font-weight="600" fill="#0B0F1C">HPR Sim&apos;s apogee against 53 logged flights</text>
 <text x="40" y="62" fill="#566079">Each bar counts the flights whose simulated apogee missed the logged one</text>
 <text x="40" y="78" fill="#566079">by that much: simulated less logged, over logged, in bins of 5%.</text>
@@ -46,6 +46,7 @@
 <path d="M 66.0 446.0 V 452.0 H 370.0 V 446.0" fill="none" stroke="#B34F0C" stroke-width="2"/>
 <path d="M 374.0 446.0 V 452.0 H 678.0 V 446.0" fill="none" stroke="#566079" stroke-width="1"/>
 <text x="64" y="472" font-weight="600" fill="#B34F0C">flatters a ceiling: 13 read low</text>
-<text x="680" y="472" text-anchor="end" fill="#566079">costs height: 40 read high</text>
+<text x="680" y="472" text-anchor="end" fill="#566079">mainly costs height: 40 read high</text>
 <text x="40" y="500" fill="#566079">Drawn by cargo xtask guides from validation/reports/fixture-flights.json.</text>
+<text x="40" y="516" fill="#566079">Weather: ERA5; contains modified Copernicus Climate Change Service information 2026.</text>
 </svg>

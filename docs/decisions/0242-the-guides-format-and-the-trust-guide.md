@@ -24,20 +24,27 @@ figure to a report, and no committed figure drew a spread.
    the three lists a new guide joins.
 3. **Every number in a guide's prose is a quote's** (`xtask/src/guides.rs`). A quote is a template
    with holes, filled from the committed reports (`validation/reports/fixture-flights.json`,
-   `real-flights.json`) through JSON pointers. The check reads the page as a reader reads it
-   (paragraphs, items, table cells, headings and image descriptions; not code, not HTML
-   comments), fails a quote the page doesn't hold word for word, and then fails every number left
-   once the quotes are taken out, single digits included. A decision record's label (`ADR-211`)
-   is a name, not a number. Numbers inside a block `cargo xtask cli` regenerates are code, and
-   follow the program. So every number in the guide is either regenerated or read from a report
-   by a test, and one that is neither can't be written.
+   `real-flights.json`, and the fixture report's page for the weather's attribution) through
+   JSON pointers. The check reads the page as a reader reads it: paragraphs, items, table cells,
+   headings, image descriptions and titles, each block-level element a block of its own. It fails
+   a quote the page doesn't hold word for word and whole (not glued to a longer number or a
+   word), then every number left once the quotes are taken out, single digits included. A
+   decision record's label (`ADR-211`) is a name, not a number. Numbers inside a block
+   `cargo xtask cli` regenerates follow the program; inline code may hold a number only where
+   such a block on the page shows the same text (a command's flag, a column's name); a code block
+   that isn't regenerated may hold none; HTML other than a comment fails, since it can show what
+   the check can't read. So every number in the guide is either regenerated or read from a report
+   by a test, and one that is neither fails.
 4. **A mutation probe for every number, run as a test.** The reader records each value a quote
    reads. The test moves each one in turn (a count to none or none to one, so a histogram's bin
-   can empty or fill; a number by a tenth; text to other text) and requires every hole of the
+   can empty or fill; a number by a tenth and to its negative, so a sign can flip; text with its
+   digits moved on; a flag flipped) and requires every hole of the
    quote to change under one of the moves, and the page check to fail on each text that changed.
    A quote whose hole moves with nothing it reads fails the test. A worked miss is also
    recomputed from the heights as the page writes them, so a reader's arithmetic agrees with the
-   report's miss at the page's precision.
+   report's miss at the page's precision. A word that states a direction ("above", "lean high")
+   is a hole too, so a sign that flips fails the page; "nearly cancel" fails once the public
+   flights' signed mean reaches a quarter of their unsigned one.
 5. **The figure.** `docs/images/trust-apogee-misses.svg` draws HPR Sim's error histogram over the
    53 flights, from the report's bins (5% wide, open past ±30%), with the band within 10% either
    way shaded (ADR-195 §6's band; the report's count sits in the key) and zero as a chain line.
@@ -57,6 +64,9 @@ figure to a report, and no committed figure drew a spread.
    not a check; the 7 public flights; which side flatters for which plan, worked in meters on a
    public flight that read low; the Monte Carlo spread as a regenerated worked example; what the
    comparisons leave out. It gives no margin to plan with: that is the flier's and the RSO's call.
+   On the public flights both sides of a miss are altimeter readings (the report's *Heights*), so
+   the worked examples say so; the 53 flights compare heights. Results from ERA5 weather carry the
+   Copernicus attribution on the page and in the figure (ADR-151).
 
 **Alternatives considered.**
 
