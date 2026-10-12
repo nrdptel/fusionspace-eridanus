@@ -14,7 +14,8 @@
 //!
 //! The figures are drawn from the same reports, by `cargo xtask guides`, and held to the figure
 //! checks; `--check`, run by a test in CI, fails a committed figure that is not what the reports
-//! draw now.
+//! draw now. The same command writes the one report the guides own, the guide rocket's center of
+//! pressure ([`stability`]), and `--check` fails it when the design no longer gives it.
 
 use std::cell::RefCell;
 use std::collections::BTreeMap;
@@ -27,16 +28,19 @@ use serde_json::Value;
 
 use crate::fixture_flights::{BINS_PERCENT, REPORT_JSON as FIXTURE, REPORT_MD as FIXTURE_PAGE};
 
+mod stability;
+
 pub const USAGE: &str = "  \
-guides [--check]         Draw the Rocketry explained guides' figures from the committed reports,
-                           and check every number in the guides' text against the reports. With
-                           --check, fail on a stale figure instead of writing it.";
+guides [--check]         Write the guide rocket's center-of-pressure report, draw the Rocketry
+                           explained guides' figures from the committed reports, and check every
+                           number in the guides' text against the reports. With --check, fail on
+                           a stale report or figure instead of writing it.";
 
 /// HPR Sim's apogees against the public flights' logs (M2.3b).
 const REAL: &str = "validation/reports/real-flights.json";
 
 /// The reports a quote or a figure may read, as JSON.
-const REPORTS: [&str; 2] = [FIXTURE, REAL];
+const REPORTS: [&str; 4] = [FIXTURE, REAL, stability::REPORT, stability::TUNNEL];
 /// The reports a quote or a figure may read as text, each read whole at the pointer `""`: the
 /// fixture report's page, which holds the weather's attribution.
 const REPORT_PAGES: [&str; 1] = [FIXTURE_PAGE];
@@ -86,11 +90,21 @@ impl Quote {
 
 /// The guides.
 fn guides() -> Vec<Guide> {
-    vec![Guide {
-        page: "docs/trusting-a-simulation.md",
-        quotes: trust_quotes(),
-        figures: vec![("docs/images/trust-apogee-misses.svg", draw_misses)],
-    }]
+    vec![
+        Guide {
+            page: "docs/trusting-a-simulation.md",
+            quotes: trust_quotes(),
+            figures: vec![("docs/images/trust-apogee-misses.svg", draw_misses)],
+        },
+        Guide {
+            page: "docs/stability-in-flight.md",
+            quotes: stability::quotes(),
+            figures: vec![(
+                "docs/images/stability-cp-against-mach.svg",
+                stability::draw_cp_against_mach,
+            )],
+        },
+    ]
 }
 
 /// The committed reports, parsed, and every value read from them.
@@ -851,7 +865,7 @@ fn page_problems(name: &str, page: &str, quotes: &[String]) -> Vec<String> {
 
 /// What is wrong with the guides as the `reports` render their quotes: every page's problems,
 /// and each quote that can't be rendered.
-fn problems(root: &Path, reports: &Reports) -> Result<Vec<String>, String> {
+fn problems_of(root: &Path, reports: &Reports) -> Result<Vec<String>, String> {
     let mut problems = Vec::new();
     for guide in guides() {
         let page = fs::read_to_string(root.join(guide.page))
@@ -895,8 +909,9 @@ fn figures(reports: &Reports) -> Result<Vec<(&'static str, String)>, String> {
 
 /// Fails unless every guide's numbers are the reports' and every figure is committed as drawn.
 pub(crate) fn check(root: &Path) -> Result<(), String> {
+    let mut problems: Vec<String> = stability::stale(root)?.into_iter().collect();
     let reports = Reports::load(root)?;
-    let mut problems = problems(root, &reports)?;
+    problems.extend(problems_of(root, &reports)?);
     for (path, figure) in figures(&reports)? {
         if fs::read_to_string(root.join(path)).ok().as_deref() != Some(figure.as_str()) {
             problems.push(format!(
@@ -916,6 +931,12 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let root = crate::designs::root()?;
     match args {
         [] => {
+            // Written only when stale, so another platform's last bits leave no diff.
+            if stability::stale(&root)?.is_some() {
+                let report = stability::written(&stability::generate(&root)?)?;
+                fs::write(root.join(stability::REPORT), report)
+                    .map_err(|error| format!("{}: {error}", stability::REPORT))?;
+            }
             let reports = Reports::load(&root)?;
             for (path, figure) in figures(&reports)? {
                 fs::write(root.join(path), figure).map_err(|error| format!("{path}: {error}"))?;
@@ -1186,7 +1207,8 @@ mod tests {
 
     /// The moves of `value` the probe tries: a count to none, or none to one, so that any bin of
     /// a histogram can empty or fill; a number by a tenth and to its negative, so a sign can
-    /// flip; text with every digit moved on and a word added; a flag flipped.
+    /// flip; text with every digit moved on and a word added; a flag flipped; a list without its
+    /// last item, so a count of rows can move.
     fn moves(value: &Value) -> Vec<Value> {
         match value {
             Value::Number(number) if number.is_u64() => {
@@ -1211,6 +1233,9 @@ mod tests {
                 vec![Value::from(format!("{moved} moved"))]
             }
             Value::Bool(flag) => vec![Value::Bool(!flag)],
+            Value::Array(items) if !items.is_empty() => {
+                vec![Value::from(items[..items.len() - 1].to_vec())]
+            }
             _ => Vec::new(),
         }
     }

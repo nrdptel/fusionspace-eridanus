@@ -138,7 +138,7 @@ pub fn hpr_force(
 /// The angles of attack at which the reports give the CP, "low angles": −2° to 2°.
 pub const CP_ANGLES_DEG: [f64; 5] = [-2.0, -1.0, 0.0, 1.0, 2.0];
 
-fn load_design(root: &Path, name: &str) -> Result<(Rocket, AeroModel), String> {
+pub(crate) fn load_design(root: &Path, name: &str) -> Result<(Rocket, AeroModel), String> {
     let path = root.join("validation/designs").join(name);
     let text = fs::read_to_string(&path).map_err(|e| format!("{name}: {e}"))?;
     let rocket: Rocket = serde_json::from_str(&text).map_err(|e| format!("{name}: {e}"))?;
@@ -533,5 +533,36 @@ mod tests {
             pct(secant["mach_2_cn_alpha_error"].as_f64().unwrap())
         );
         assert!(joined.contains(&mach_2), "aero.md doesn't say `{mach_2}`");
+    }
+
+    /// Which way a CP error errs: a CP HPR Sim puts aft of the reference's is a positive
+    /// `cp_error_calibers`, and HPR Sim's own margin (`hpr_sim::metrics::margin`, the one it
+    /// prints) reads higher by exactly that error at any CG. So a positive error is a margin that
+    /// reads high, the side that flatters (the stability guide marks it). The two CPs are the
+    /// Arcas Robin's at Mach 0.6 and 1.2, about two calibers apart.
+    #[test]
+    fn a_cp_aft_of_the_reference_reads_a_higher_margin() {
+        let root = crate::designs::root().unwrap();
+        let (_, model) = load_design(&root, "wind-tunnel-arcas-robin-short.json").unwrap();
+        let diameter_m = model.reference_diameter_m();
+        for cg_m in [0.55, 0.62, 0.69] {
+            let margin =
+                |mach: f64| hpr_sim::metrics::margin(&model, &Flow::axial(mach), cg_m).unwrap();
+            let (slow, fast) = (margin(0.6), margin(1.2));
+            let (reference_cp_m, hpr_cp_m) =
+                (slow.cp_station_m.unwrap(), fast.cp_station_m.unwrap());
+            assert!(hpr_cp_m > reference_cp_m);
+            let row = compare(1.0, (10.0, reference_cp_m), (10.0, hpr_cp_m), diameter_m);
+            let error = row["cp_error_calibers"].as_f64().unwrap();
+            assert!(error > 0.0);
+            let read_high = fast.margin_cal.unwrap() - slow.margin_cal.unwrap();
+            assert!(read_high > 0.0);
+            assert!(
+                (read_high - error).abs() < 1e-9,
+                "{read_high} against {error}"
+            );
+            let forward = compare(1.0, (10.0, hpr_cp_m), (10.0, reference_cp_m), diameter_m);
+            assert!(forward["cp_error_calibers"].as_f64().unwrap() < 0.0);
+        }
     }
 }

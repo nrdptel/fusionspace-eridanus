@@ -2506,9 +2506,10 @@ Faster than sound, air can't flow around a fin's edges ahead of it. The fin's li
 pressure behind the shock and expansion waves at its surfaces, and a different theory applies.
 HPR Sim uses Barrowman's subsonic method to Mach 0.8, supersonic
 [linear theory](../glossary.md#supersonic-linear-theory) from where that theory holds, and a
-straight-line join between them. The body terms don't change with Mach:
+straight-line join between them. Below Mach 1.2 the body terms don't change with Mach:
 [slender-body theory](../glossary.md#slender-body-theory)'s slope and CP hold at any speed
-([B67] p. 18). How well this agrees with a wind tunnel and with RASAero II is under
+([B67] p. 18). Past it, a body that takes the shock-expansion method gains lift with Mach
+([The body faster than sound in a flight](#the-body-faster-than-sound-in-a-flight)). How well this agrees with a wind tunnel and with RASAero II is under
 [Verification](#normal-force-through-mach-1).
 
 **Supersonic linear theory.** Past Mach 1, `β` is redefined as `√(M² − 1)`, which grows from 0 as

@@ -1,0 +1,113 @@
+{
+  "angle_mach": 0.3,
+  "by_angle": [
+    {
+      "alpha_deg": 0.0,
+      "cp_calibers": 14.012161632508843,
+      "cp_m": 0.9248026677455836,
+      "normal_force_over_alpha_per_rad": 10.794945184033143,
+      "shift_calibers": 0.0
+    },
+    {
+      "alpha_deg": 2.0,
+      "cp_calibers": 13.762338766065447,
+      "cp_m": 0.9083143585603196,
+      "normal_force_over_alpha_per_rad": 11.445520430137426,
+      "shift_calibers": -0.249822866443394
+    },
+    {
+      "alpha_deg": 5.0,
+      "cp_calibers": 13.438547777454797,
+      "cp_m": 0.8869441533120167,
+      "normal_force_over_alpha_per_rad": 12.418332657568406,
+      "shift_calibers": -0.5736138550540442
+    },
+    {
+      "alpha_deg": 10.0,
+      "cp_calibers": 13.005976549419065,
+      "cp_m": 0.8583944522616583,
+      "normal_force_over_alpha_per_rad": 14.018325582826463,
+      "shift_calibers": -1.006185083089777
+    },
+    {
+      "alpha_deg": 15.0,
+      "cp_calibers": 12.673892682926205,
+      "cp_m": 0.8364769170731295,
+      "normal_force_over_alpha_per_rad": 15.570371586325527,
+      "shift_calibers": -1.3382689495826374
+    }
+  ],
+  "by_mach": [
+    {
+      "cp_calibers": 13.986990739249803,
+      "cp_m": 0.923141388790487,
+      "mach": 0.0,
+      "slope_per_rad": 10.696617895968618
+    },
+    {
+      "cp_calibers": 14.012161632508843,
+      "cp_m": 0.9248026677455836,
+      "mach": 0.3,
+      "slope_per_rad": 10.794945184033143
+    },
+    {
+      "cp_calibers": 14.058473400050618,
+      "cp_m": 0.9278592444033408,
+      "mach": 0.5,
+      "slope_per_rad": 10.980660956876456
+    },
+    {
+      "cp_calibers": 14.181206494081627,
+      "cp_m": 0.9359596286093874,
+      "mach": 0.8,
+      "slope_per_rad": 11.505219017579554
+    },
+    {
+      "cp_calibers": 14.429532825984474,
+      "cp_m": 0.9523491665149754,
+      "mach": 0.9,
+      "slope_per_rad": 12.492779607567044
+    },
+    {
+      "cp_calibers": 14.64936498606102,
+      "cp_m": 0.9668580890800273,
+      "mach": 1.0,
+      "slope_per_rad": 13.480340197554536
+    },
+    {
+      "cp_calibers": 15.025395161704632,
+      "cp_m": 0.9916760806725057,
+      "mach": 1.2,
+      "slope_per_rad": 15.455461377529518
+    },
+    {
+      "cp_calibers": 14.671256197240526,
+      "cp_m": 0.9683029090178747,
+      "mach": 1.5,
+      "slope_per_rad": 15.514402160486103
+    },
+    {
+      "cp_calibers": 13.595911917468554,
+      "cp_m": 0.8973301865529246,
+      "mach": 2.0,
+      "slope_per_rad": 11.581066428990727
+    },
+    {
+      "cp_calibers": 12.766379487124578,
+      "cp_m": 0.8425810461502222,
+      "mach": 2.5,
+      "slope_per_rad": 9.754985770412803
+    },
+    {
+      "cp_calibers": 12.104347919754636,
+      "cp_m": 0.798886962703806,
+      "mach": 3.0,
+      "slope_per_rad": 8.663771678858634
+    }
+  ],
+  "design": "validation/fixtures/ork/guides/level-1.ork",
+  "fins_supersonic_mach": 1.3678856352455462,
+  "generator": "cargo xtask guides",
+  "note": "HPR Sim's center of pressure for the guides' rocket, from its aerodynamics alone: m aft of the nose tip, and in calibers, over the reference diameter. by_mach: straight into the wind (the small-angle CP). by_angle: at angle_mach, the CP at each angle of attack with the body's lift at that angle, and its shift from the small-angle CP at that speed, positive aft. fins_supersonic_mach: where supersonic linear theory starts for the fins. A model's output, not a measurement.",
+  "reference_diameter_m": 0.066
+}
