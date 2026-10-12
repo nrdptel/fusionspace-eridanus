@@ -68,20 +68,26 @@
 //!     drawn or hidden until asked for, its `::before` and `::after` and every text field
 //!     included, must have the size and line height of one of the scale's tokens in that token's
 //!     family (Cascadia Mono 12/16, 14/20, 20/24, 28/32, 40/44; Archivo 14/20, 16/24, 20/28),
-//!     capitals only at Cascadia Mono 12/16 and 14/20, no weight under 400, tabular figures
+//!     times the reading scale's factor inside `.content` on a page that declares the scale
+//!     (`--fs-text`; ×1 up to 1,024 px wide, ×1.125 from 1,600 px, linear between, read from the
+//!     window's width, not the page), capitals only at Cascadia Mono 12/16 and 14/20 (scaled
+//!     the same), no weight under 400, tabular figures
 //!     in Archivo, and each family's metric-matched fallback (the system's `fonts.css`) second
 //!     in its stack. A superscript or subscript may be off the scale, never under 12 px. The
 //!     sidebar's text must be Cascadia Mono 14 px, and its current page underlined 2 px
 //!     (`web.md`, *Page anatomy*). Boxes of 2 px or less, for screen readers, are skipped;
-//!   - **a line of prose past 68 characters**: each paragraph, list item, quote or caption in
-//!     `main`, outside tables and code, counted line by line as drawn, spaces between words
-//!     counted once. A character more than half a line below the one before starts a new line;
-//!     a word broken across lines is split where it breaks; characters are counted by code
-//!     point;
-//!   - **gutters off the system's** (`foundations.md`, *Width*): `main` must sit at least 16 px
-//!     from each side of the pane that holds it (mdBook's `.page-wrapper`, beside the sidebar)
-//!     in a window under 720 px, and 32 px from 720 px, and no further on either side unless
-//!     it has reached its widest;
+//!   - **prose past the measure** (`foundations.md`, *Type*): no line over 80 characters in any
+//!     paragraph, list item, quote or caption in `main`, outside tables and code, counted line by
+//!     line as drawn, spaces between words counted once; and where blocks are set at the full
+//!     measure (as wide as their own `max-width`), the median of their lines, each block's last
+//!     left out, from 60 to 75 characters, judged on 20 such lines or more. A character more than
+//!     half a line below the one before starts a new line; a word broken across lines is split
+//!     where it breaks; characters are counted by code point. The system's own check counts them
+//!     (`fusionspace-check.js`, which also holds these numbers);
+//!   - **gutters off the system's** (`foundations.md`, *Width*): `main` must sit 16 px from the
+//!     left of the pane that holds it (mdBook's `.page-wrapper`, beside the sidebar) in a window
+//!     under 720 px and 32 px from 720 px, flush left at every width, and as far from the right,
+//!     or further once it has reached its widest;
 //!   - **a code block or table held to the prose measure**: one in `main` that scrolls sideways
 //!     inside a box with a `max-width`, as a list item around it would be at the measure;
 //!   - **an icon off the system's sizes** (`foundations.md`, *Icons*): each icon drawn in the
@@ -168,8 +174,11 @@
 //! that does, which must pass, text at 15 px, on mdBook's 23.2 px line, in a serif, without
 //! tabular figures, at weight 300, a sentence in capitals, an `::after` at 11 px, a superscript
 //! at 11 px, a chapter link in Archivo, a current page with no underline and one underlined 1 px,
-//! a line of 69 characters after a short one and one of 68, which must pass, mdBook's 20 px
-//! gutters, a right gutter wider than the left, a code block in a list item held to the measure,
+//! a line of 81 characters after a short one and one of 80, which must pass, prose held to a
+//! median line of about 40 characters and prose at the system's measure, which must pass, a
+//! page declaring the reading scale and growing with it, which must pass, and one declaring a
+//! scale off the system's, mdBook's 20 px gutters, a right gutter wider than the left, a column
+//! centered instead of flush left, a code block in a list item held to the measure,
 //! four notes drawn as the system draws them, which must pass, a quote block, a caution whose
 //! strip says Note, a signal word in body type, a strip with no rule or fill, a warning and a
 //! caution without their fills, a warning bordered 1 px, a note with no left or right border and
@@ -267,13 +276,18 @@ const CHROME_ENV: &str = "HPR_CHROME";
 pub(super) const CHECK_PREFIX: &str = "__check/";
 /// The harness each tab runs: loads, measures and reports.
 const HARNESS_JS: &str = include_str!("pages.js");
-/// The page each tab opens, which runs [`HARNESS_JS`]. Its first script reports an error in the
-/// harness itself, such as one that stops it from running at all.
+/// The product system's rules and the code that measures them, which the harness reads: the
+/// design repository's `product/web/check/fusionspace-check.js`, copied unchanged at the revision
+/// `theme.rs` pins ([`super::theme`] compares it with the pinned file).
+const SYSTEM_JS: &str = include_str!("fusionspace-check.js");
+/// The page each tab opens, which runs [`SYSTEM_JS`] and then [`HARNESS_JS`]. Its first script
+/// reports an error in the harness itself, such as one that stops it from running at all.
 const HARNESS_HTML: &str = "<!doctype html>\n<html lang=\"en\"><head><meta charset=\"utf-8\">\
 <title>Page check</title><style>html, body { margin: 0; }</style>\
 <script>addEventListener('error', function (event) { fetch('/__check/error', \
 { method: 'POST', body: String(event.message) }); });</script></head>\
-<body><script src=\"/__check/pages.js\"></script></body></html>\n";
+<body><script src=\"/__check/fusionspace-check.js\"></script>\
+<script src=\"/__check/pages.js\"></script></body></html>\n";
 /// The largest request body the server takes: one page's results.
 const MOST_BODY_BYTES: usize = 64 << 20;
 /// The largest request head the server takes.
@@ -377,7 +391,8 @@ enum Kind {
     /// metric-matched fallback second, or navigation not in Cascadia Mono 14 px with the current
     /// page underlined 2 px (#384).
     Type,
-    /// A line of prose longer than the system's 68 characters (#384).
+    /// Prose off the system's measure: a line over 80 characters, or the median line at the full
+    /// measure outside 60 to 75 (#384).
     Measure,
     /// Gutters other than the system's: 16 px on a phone, 32 px from 720 px (#384).
     Gutter,
@@ -470,7 +485,7 @@ impl Kind {
             Kind::Shape => "a rounded corner or a shadow",
             Kind::Motion => "motion off the system's durations",
             Kind::Type => "type off the system's scale",
-            Kind::Measure => "a line of prose past 68 characters",
+            Kind::Measure => "prose past the measure",
             Kind::Gutter => "gutters off the system's",
             Kind::Squeezed => "a code block or table held to the prose measure",
             Kind::Note => "a quote block, or a note not the system's",
@@ -491,6 +506,25 @@ impl Kind {
 }
 
 /// A page built to test the check, served at `/__check/<file>`.
+/// Running prose long enough to set twenty lines and more in a narrow window, for the measure's
+/// median canaries.
+macro_rules! prose {
+    () => {
+        "A rocket's drag is the force the air puts on it against its motion. It grows with the \
+         square of the speed and with the air's density, which falls as the rocket climbs, so \
+         most of it comes in the first seconds after the motor burns out, while the rocket is \
+         fast and low. A simulator works it out from the shape: the nose, the body tube, the \
+         fins and the joints between them, each with a coefficient that changes with the speed \
+         of sound. Near Mach 1 the coefficient rises steeply and then falls again, which is \
+         why a flight past the speed of sound needs a model that knows the shape of that rise. \
+         The base behind the rocket adds its own share, larger while the motor is not burning, \
+         and the paint, the rail buttons and the launch lug add a little more. A measured \
+         flight is the only way to know how close the sum comes to the real rocket, and even \
+         then the wind, the motor's own spread and the altimeter's errors blur the answer, so \
+         a careful flier compares several flights before trusting any one number on its own."
+    };
+}
+
 struct Canary {
     file: &'static str,
     /// What it is, for the message when it isn't found as expected.
@@ -889,7 +923,7 @@ macro_rules! switch_frame {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 155] = [
+const CANARIES: [Canary; 160] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -946,13 +980,12 @@ const CANARIES: [Canary; 155] = [
     },
     Canary {
         file: "canary-past-column.html",
-        what: "a figure reaching past a narrow `main` on both sides, inside the page, as the \
-               theme lays one out, which must pass",
+        what: "a figure reaching past a narrow `main` on its right, inside the page, which must \
+               pass",
         expect: &[],
-        inside: "<style>main { overflow-x: visible; max-width: 300px; margin: 0 auto; } \
+        inside: "<style>main { overflow-x: visible; max-width: 300px; } \
                  .content { container-type: inline-size; } \
-                 .checkbox-label { display: flex; justify-content: center; width: 100cqi; \
-                 margin-inline: calc((100% - 100cqi) / 2); }</style>",
+                 .checkbox-label { display: flex; width: 100cqi; }</style>",
         after: "",
     },
     Canary {
@@ -960,10 +993,9 @@ const CANARIES: [Canary; 155] = [
         what: "a label moved past the right edge of a `main` whose overflow is visible, as \
                mdBook's is",
         expect: &[Kind::Wide],
-        inside: "<style>main { overflow-x: visible; max-width: 300px; margin: 0 auto; } \
+        inside: "<style>main { overflow-x: visible; max-width: 300px; } \
                  .content { container-type: inline-size; } \
-                 .checkbox-label { display: flex; justify-content: center; width: 100cqi; \
-                 margin-inline: calc((100% - 100cqi) / 2); }</style>\
+                 .checkbox-label { display: flex; width: 100cqi; }</style>\
                  <p>A label <span style=\"position: relative; left: 2000px\">moved out</span></p>",
         after: "",
     },
@@ -1206,23 +1238,82 @@ const CANARIES: [Canary; 155] = [
     },
     Canary {
         file: "canary-measure.html",
-        what: "a line of 69 characters, as drawn, after a short one, in a box that scrolls \
+        what: "a line of 81 characters, as drawn, after a short one, in a box that scrolls \
                sideways",
         expect: &[Kind::Measure],
         inside: "<div class=\"scroll\"><p style=\"white-space: nowrap; max-width: none\">A short \
                  line<br>A \
                  <strong>drag</strong>  coefficient of <code>0.45</code> at Mach 0.3\n on \
-                 m<sup>2</sup> of area, and a long tail</p></div>",
+                 m<sup>2</sup> of reference area, and a longer tail</p></div>",
         after: "",
     },
     Canary {
-        file: "canary-measure-68.html",
-        what: "a line of 68 characters, as drawn, after a short one, which must pass",
+        file: "canary-measure-80.html",
+        what: "a line of 80 characters, as drawn, after a short one, which must pass",
         expect: &[],
         inside: "<div class=\"scroll\"><p style=\"white-space: nowrap; max-width: none\">A short \
                  line<br>A \
                  <strong>drag</strong>  coefficient of <code>0.45</code> at Mach 0.3\n on \
-                 m<sup>2</sup> of area and a long tail</p></div>",
+                 m<sup>2</sup> of reference area and a longer tail</p></div>",
+        after: "",
+    },
+    Canary {
+        file: "canary-measure-short.html",
+        what: "prose held to 18 em of its text, a median line of about 40 characters at the \
+               measure",
+        expect: &[Kind::Measure],
+        inside: concat!(
+            "<style>main p.held { max-width: 18em; font-size: 14px; line-height: 20px; }</style>",
+            "<p class=\"held\">",
+            prose!(),
+            "</p>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-measure-median.html",
+        what: "prose at the system's measure, a median line of about 65 characters, which must \
+               pass",
+        expect: &[],
+        inside: concat!(
+            "<style>main p.held { max-width: 29.5em; }</style><p class=\"held\">",
+            prose!(),
+            "</p><p class=\"held\">",
+            prose!(),
+            "</p>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-centered.html",
+        what: "a column centered in the page instead of flush left beside the sidebar",
+        expect: &[Kind::Gutter],
+        inside: "<style>main { max-width: 200px; margin-inline: auto; } \
+                 main > p:has(> .checkbox-label) { display: none; }</style>",
+        after: "",
+    },
+    Canary {
+        file: "canary-reading.html",
+        what: "a page that declares the reading scale and grows its type with the window as the \
+               scale does, which must pass",
+        expect: &[],
+        inside: concat!(
+            "<style>.content { --fs-text: clamp(1rem, 0.777778rem + 0.347222vw, 1.125rem); ",
+            "font-size: var(--fs-text); line-height: calc(var(--fs-text) * 1.5); } ",
+            ".content h1 { font-size: calc(var(--fs-text) * 1.75); ",
+            "line-height: calc(var(--fs-text) * 2); } .content code, .content pre { ",
+            "font-size: calc(var(--fs-text) * 0.875); line-height: calc(var(--fs-text) * 1.25); ",
+            "}</style>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-reading-off.html",
+        what: "a page that declares a reading scale off the system's: its text at 20/30 at every \
+               width",
+        expect: &[Kind::Type],
+        inside: "<style>.content { --fs-text: 20px; font-size: var(--fs-text); \
+                 line-height: calc(var(--fs-text) * 1.5); }</style>",
         after: "",
     },
     Canary {
@@ -3577,6 +3668,9 @@ fn respond_check(method: &str, name: &str, body: Vec<u8>, shared: &Shared) -> Re
     match (method, name) {
         ("GET", "harness.html") => (200, "text/html; charset=utf-8", HARNESS_HTML.into()),
         ("GET", "pages.js") => (200, "text/javascript; charset=utf-8", HARNESS_JS.into()),
+        ("GET", "fusionspace-check.js") => {
+            (200, "text/javascript; charset=utf-8", SYSTEM_JS.into())
+        }
         ("GET", "pages.json") => (200, "application/json", shared.plan.clone().into_bytes()),
         ("POST", "next") => {
             let next = shared
@@ -4011,7 +4105,7 @@ mod tests {
         );
         assert_eq!(
             problems[1],
-            "guide.html: a line of prose past 68 characters at 320 to 1920 px; at 320 px, \
+            "guide.html: prose past the measure at 320 to 1920 px; at 320 px, \
              `main>p` has a line of 118 characters `The drag coefficient…` (320 px)"
         );
         assert!(
@@ -4019,8 +4113,9 @@ mod tests {
             "{}",
             problems[2]
         );
-        // Each kind has a canary that must show it, and the ordinary page and a line of exactly
-        // 68 characters must show none.
+        // Each kind has a canary that must show it, and the ordinary page, a line of exactly 80
+        // characters, prose at the system's measure and a page on the reading scale must show
+        // none.
         for kind in [
             Kind::Type,
             Kind::Measure,
@@ -4038,7 +4133,13 @@ mod tests {
             .filter(|canary| canary.expect.is_empty())
             .map(|canary| canary.file)
             .collect();
-        assert!(passing.contains(&"canary-measure-68.html"), "{passing:?}");
+        for file in [
+            "canary-measure-80.html",
+            "canary-measure-median.html",
+            "canary-reading.html",
+        ] {
+            assert!(passing.contains(&file), "{file}: {passing:?}");
+        }
     }
 
     #[test]

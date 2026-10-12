@@ -26,10 +26,10 @@ use super::{attributes, html_files, is_web, unescape};
 const THEME: &str = "theme";
 /// The product system's repository, checked out under `refs/` by `cargo xtask refs`.
 pub(crate) const DESIGN_REFS: &str = "refs/fusionspace-design";
-/// The revision of the product system the copied files come from (Rev A), as ADR-164 pins it
-/// (moved by ADR-198).
+/// The revision of the product system the copied files come from (Rev B), as ADR-164 pins it
+/// (moved by ADR-198 and ADR-250).
 /// `refs.lock.toml`'s pin must start with it.
-pub(crate) const DESIGN_REV: &str = "f45454f";
+pub(crate) const DESIGN_REV: &str = "e5759b5";
 /// The lock file that pins the `refs/` checkouts, relative to the workspace root.
 pub(crate) const REFS_LOCK: &str = "validation/refs.lock.toml";
 /// The product system's name in [`REFS_LOCK`].
@@ -41,6 +41,14 @@ const FONTS_CSS: &str = "fonts/fonts.css";
 const SYSTEM_SPDX: &str = "/* SPDX-License-Identifier: Apache-2.0 · Copyright 2026 Neer Patel */";
 /// The SPDX line hpr-sim's own stylesheets open with.
 const OWN_SPDX: &str = "/* SPDX-License-Identifier: MIT OR Apache-2.0 */";
+/// The product system's page check, copied unchanged from its repository: where it sits in this
+/// workspace, and where in the system's repository. It holds the numbers the system's web rules
+/// set (the type scale, the reading scale, the measure, the widths) and the code that measures
+/// them, which the page check's harness (`pages.js`) reads.
+pub(crate) const CHECK_JS: (&str, &str) = (
+    "xtask/src/site/fusionspace-check.js",
+    "product/web/check/fusionspace-check.js",
+);
 /// The files copied unchanged from the product system: where each sits under [`THEME`], and where
 /// it sits in the system's repository. The icons are the ones `chrome.rs` draws in each page's
 /// chrome, and `ok` and `info`, which `sheets.rs` draws in each page's status chip; the favicon is the system's web kit's, its PNG the 32 px one; the lockup and the mark
@@ -214,8 +222,9 @@ pub(super) fn check_sources(root: &Path, source: &Path) -> Result<Sources, Strin
     if !commit.starts_with(DESIGN_REV) {
         problems.push(format!(
             "{REFS_LOCK} pins {DESIGN_NAME} at {commit}, and the theme was copied from \
-             {DESIGN_REV}: copy the theme again from the new revision and update {DESIGN_REV} \
-             here, in {THEME}/README.md and in THIRD-PARTY-NOTICES.md"
+             {DESIGN_REV}: copy the theme and {} again from the new revision and update \
+             {DESIGN_REV} here, in {THEME}/README.md and in THIRD-PARTY-NOTICES.md",
+            CHECK_JS.0
         ));
     }
     let design = root.join(DESIGN_REFS);
@@ -234,6 +243,19 @@ pub(super) fn check_sources(root: &Path, source: &Path) -> Result<Sources, Strin
                     "could not read {original} at {commit} to compare with {THEME}/{file}: {why}"
                 )),
             }
+        }
+        let (local, original) = CHECK_JS;
+        let ours =
+            fs::read(root.join(local)).map_err(|err| format!("could not read {local}: {err}"))?;
+        match committed_file(&design, &commit, original) {
+            Ok(theirs) if theirs == ours => {}
+            Ok(_) => problems.push(format!(
+                "{local} differs from {original} at {commit}: copy it unchanged from the pinned \
+                 revision"
+            )),
+            Err(why) => problems.push(format!(
+                "could not read {original} at {commit} to compare with {local}: {why}"
+            )),
         }
         match committed_file(&design, &commit, SYSTEM_FONTS_CSS) {
             Ok(theirs) => problems.extend(

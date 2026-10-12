@@ -275,8 +275,12 @@ with a sample of each in its key; the plot from `hpr sim --plot` draws all three
 reads each page's computed style (the colors, sizes and outlines the browser ends up drawing),
 so the site keeps the product system's look where mdBook, the program that builds the site,
 would draw its own. It reads the light and navy themes, and the light one with scripts off.
-Colors off the system's palette, rounded corners, shadows, motion off its timings, type off its
-sizes, prose lines past 68 characters and gutters off 16 or 32 px all fail it. So do:
+Colors off the system's palette, rounded corners, shadows, motion off its timings and type off its
+sizes all fail it; inside the page the sizes grow with the window, from a 16 px body up to a
+1,024 px window to 18 px from 1,600 px, and the check reads each against the size the window's
+width gives. A line of prose over 80 characters, a median line at the measure outside 60 to 75
+characters, and a column off flush left beside the sidebar or off its 16 or 32 px gutters fail it
+too ([ADR-250](decisions/0250-the-measure-and-the-reading-scale.md)), and so do:
 
 - text under the contrast that WCAG 2.2 AA (the W3C's Web Content Accessibility Guidelines,
   level AA) asks for against the background it is drawn on: 4.5 : 1, or 3 : 1 for text of

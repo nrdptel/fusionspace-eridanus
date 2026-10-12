@@ -304,8 +304,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
          the window, no text cut off or over other text, no figure shrunk with room \
          for it or without a zoom, no color off the system's roles, rounded corner, shadow or \
          motion off its durations in either theme or with reduced motion, no text off the type \
-         scale, prose line past 68 characters, gutter off the system's or code block held to \
-         the measure, no quote block or note off the system's, no text under the contrast floor, \
+         scale at the window's reading scale, prose line past 80 characters or median line at \
+         the measure off 60 to 75, gutter off the system's, column off flush left or code \
+         block held to the measure, no quote block or note off the system's, no text under the contrast floor, \
          focus ring off the system's, box or icon forced colors would erase, sticky bar taller \
          than the scroll padding or fixed in a box the page carries, icon off the system's sizes or selection off the action role, no header or title block off \
          the system's, no intro, sheet or theme switch off the system's and every switch \

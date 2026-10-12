@@ -15,23 +15,18 @@
 .sidebar-iframe-outer { width: 100%; }
 /* A search result's long identifier wraps instead of running past a narrow window. */
 #mdbook-searchresults li, #mdbook-searchresults .teaser { overflow-wrap: anywhere; }
-/* Table cells get the paragraphs' line height, so a superscript (2⁵³), which mdBook gives no line
-   height of its own, stays inside its line instead of rising into the one above. */
-.content td, .content tbody th { line-height: 24px; }
 
 /* Figures at their size (#382). A figure's text is drawn at its size, so a figure shown smaller
-   reads smaller: the plot's 12 px text, in its 960 px figure squeezed into mdBook's 750 px prose
-   column, read at 9.4 px. Prose keeps its column; a figure may reach past it on both sides, up to
-   the system's widest content (1,120 px, `foundations.md`, *Width*) or the page's own width, and
-   is shown at its size wherever that holds it. On a narrower page it shrinks to fit, and mdBook's
-   zoom (click it) shows it at its size. `cargo xtask site`'s page check holds both. */
-.content { container-type: inline-size; }
+   reads smaller: the plot's 12 px text, in its 960 px figure squeezed into a 750 px column, read
+   at 9.4 px. The column runs up to the system's widest content (1,120 px, `foundations.md`,
+   *Width*), and a figure takes it, flush left, past the measure the prose stops at, so it is
+   shown at its size wherever the window holds it. On a narrower page it shrinks to fit, and
+   mdBook's zoom (click it) shows it at its size. `cargo xtask site`'s page check holds both. */
 .content .checkbox-label {
     display: flex;
-    justify-content: center;
-    width: min(100cqi, 1120px);
+    justify-content: flex-start;
     max-width: none;
-    margin-inline: calc((100% - min(100cqi, 1120px)) / 2);
+    margin-inline: 0;
 }
 
 /* mdBook's own defaults, where the system's theme doesn't reach (#383; `foundations.md`, *Color*,
@@ -190,66 +185,25 @@ mark, #mdbook-searchbar { transition-duration: 100ms; transition-timing-function
     *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; scroll-behavior: auto !important; }
 }
 
-/* The page's frame (#384; `foundations.md`, *Type* and *Width*; `web.md`, *Page anatomy*). Every
-   text is on the system's type scale, in pixels as the scale gives them: titles, sheet names,
-   section heads, labels, navigation and code in Cascadia Mono; prose in Archivo, with tabular
-   figures. A line of prose holds at most 68 characters, and the gutters are 16 px on a phone and
-   32 px from 720 px. `cargo xtask site`'s page check reads every text's size, line height, family
-   and capitals, counts the characters of each line of prose as drawn, and measures the gutters,
-   at every width. */
-body { font-size: 16px; line-height: 24px; font-variant-numeric: tabular-nums; }
-.content p, .content ol, .content ul { line-height: 24px; }
-/* `title` 28/32, `subtitle` 20/24 for a sheet's name, `heading` 14/20 in capitals for a section
-   head inside one; below that, a run-in head in body type, semibold. */
-h1 { font-size: 28px; line-height: 32px; }
-h2 { font-size: 20px; line-height: 24px; }
-h3 { font-size: 14px; line-height: 20px; text-transform: uppercase; letter-spacing: 0.06em; }
-h4, h5, h6 { font-family: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 16px; line-height: 24px; font-weight: 600; }
-/* `code` 14/20; in a Cascadia Mono heading or column head, the head's own size. */
-code, pre, kbd { font-size: 14px; line-height: 20px; }
-/* Inline code has from the first paint the padding mdBook's stylesheet gives it once its script
-   has marked the code it highlights (`chrome.css`, `:not(pre) > .hljs`), so that mark moves no
-   text after the page is drawn (#443's CLS). */
-:not(pre) > code { padding: 0.1em 0.3em; }
-h1 code, h2 code, h3 code, thead th code { font-size: inherit; line-height: inherit; }
-/* Code and symbols stay as written in a head set in capitals: `hpr sim` is a command, `C_lδ` a
-   symbol, and neither means the same in capitals. */
-h3 code, thead th code { text-transform: none; letter-spacing: 0; }
-h4 code, h5 code, h6 code { font-size: 14px; line-height: 20px; }
-kbd { line-height: 20px; }
-/* Column heads and the title block's field names: `label`, 12/16 in capitals. */
-.content thead th, .title-block td:first-child { font-size: 12px; line-height: 16px; }
-/* Footnotes and the copy tooltip: `small`, 14/20. */
-.content .footnote-definition, .content .footnote-definition :is(li, p), .tooltiptext { font-size: 14px; line-height: 20px; }
-/* Navigation in Cascadia Mono 14 (`web.md`, *Page anatomy*): the chapters, their numbers in the
-   same weight, and a part's title as a section head. */
-.sidebar, .chapter { font-family: 'Cascadia Mono', ui-monospace, Menlo, Consolas, monospace; font-size: 14px; line-height: 20px; }
-.chapter li, .chapter a, .chapter code { font-size: 14px; line-height: 20px; }
-/* A button's text in body type: browsers give buttons a font of their own. */
-button { font: inherit; }
-.chapter li a strong { font-weight: 400; }
-.chapter li.part-title { font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
-/* The menu bar's title, the lockup and the product's name in `subtitle`; the search field in body
-   type. */
-.menu-title { font-size: 20px; line-height: 24px; font-weight: 600; align-self: center; }
-@media only screen and (max-width: 519px) { #mdbook-menu-bar .menu-title { line-height: 24px; } }
-#mdbook-searchbar { font-family: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 16px; line-height: 24px; font-variant-numeric: tabular-nums; }
-/* The measure: 68 characters of Archivo at 16 px take about 400 px, and a line dense with narrow
-   letters (`l`, `i`, `t`) fewer, so prose stops at 24 em
-   (`foundations.md`, *Width*: prose up to 68 characters, content up to 1,120 px). Tables, code
-   and figures keep the column, flush left with the prose, inside a list item or a quote too: an
-   item that holds one, at any depth, keeps the column, and its text sits in paragraphs, which
-   stop at the measure. The page check counts any text set straight in such an item, and fails a
-   code block or table held to the measure. */
-.content main :is(p, li, dd, dt, blockquote, figcaption):not(:has(pre, table, .checkbox-label)) { max-width: 24em; }
+/* The page's frame (#384; `foundations.md`, *Type* and *Space and layout*) is the product system's
+   mdBook theme's (`fusionspace-mdbook.css`, Rev B): the type scale on mdBook's elements, growing
+   with the window inside the page; the measure; the column flush left beside the sidebar up to
+   1,120 px with its gutters; the page arrows under the page. `cargo xtask site`'s page check reads
+   every text's size, line height, family and capitals against the scale at the window's width,
+   counts the characters of each line of prose as drawn, and measures the gutters, at every
+   width, with the system's own check (`fusionspace-check.js`). Here, what only this site's
+   markup needs: the source title block's field names in `label`, and the menu bar's title on a
+   row of its own under 520 px (above) in `subtitle`'s line height. */
+.title-block td:first-child { font-size: var(--fs-12); line-height: var(--fs-16); }
+@media only screen and (max-width: 519px) { #mdbook-menu-bar .menu-title { line-height: var(--fs-24); } }
 /* Notes (#384; `web.md`, *Components*): the signal word in a strip above the message, as an
    ANSI Z535.4 safety label sets it, the system's `.fs-note`. `cargo xtask site` draws every quote
    block a page writes as one (a trust note, or a `[!NOTE]`, `[!CAUTION]` or `[!WARNING]` alert),
    and the page check fails a note not drawn this way. The box stops at the measure, as its
    message does. */
 .content main .fs-note { box-sizing: border-box; margin: 16px 0; border: 1px solid var(--hpr-rule-strong); background: var(--hpr-surface); }
-.content main .fs-note:not(:has(pre, table)) { max-width: calc(24em + 26px); }
-.fs-note > .fs-note-head { display: flex; align-items: center; gap: 8px; padding: 4px 12px; font: 600 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace;
+.content main .fs-note:not(:has(pre, table)) { max-width: calc(var(--fs-measure) + 26px); }
+.fs-note > .fs-note-head { display: flex; align-items: center; gap: 8px; padding: 4px 12px; font: 600 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace;
   text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--hpr-rule-strong); color: var(--hpr-ink-muted); }
 .fs-note > .fs-note-head svg { width: 14px; height: 14px; flex: none; }
 .fs-note > .fs-note-body { padding: 12px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
@@ -260,10 +214,6 @@ button { font: inherit; }
 .fs-note[data-kind="warning"] { border: 2px solid #AC001E; }
 .fs-note[data-kind="warning"] > .fs-note-head { background: #AC001E; color: #FFFFFF; border-color: #AC001E; }
 @media print { .fs-note { break-inside: avoid; } }
-/* Gutters: 16 px on a phone, 32 px from 720 px. mdBook's page adds its own padding to the
-   content's. */
-.content { padding-inline: calc(16px - var(--page-padding)); }
-@media only screen and (min-width: 720px) { .content { padding-inline: calc(32px - var(--page-padding)); } }
 
 /* What a keyboard, forced colors and a sticky bar need (#383; `web.md`, *Theme* and
    *Accessibility*). `cargo xtask site`'s page check focuses every kind of element the keyboard
@@ -337,10 +287,10 @@ h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter { font-family: 'Casc
    264 px), but each row's cells grow to its end, so a row cut short by a long entry, which takes
    a row of its own, leaves no hole. The owner's carries the mark, at 24 px, the brand's least.
    It lines up with the page's text and ends the page. */
-.content .fs-titleblock { box-sizing: border-box; max-width: var(--content-max-width); margin: 48px auto 0; display: flex; flex-wrap: wrap; border: 2px solid var(--hpr-ink); background: var(--hpr-surface); }
+.content .fs-titleblock { box-sizing: border-box; max-width: var(--content-max-width); margin: 48px 0 0; display: flex; flex-wrap: wrap; border: 2px solid var(--hpr-ink); background: var(--hpr-surface); }
 .fs-titleblock > div { flex: 1 1 132px; box-sizing: border-box; padding: 6px 10px 8px; border-right: 1px solid var(--hpr-rule-strong); border-bottom: 1px solid var(--hpr-rule-strong); display: grid; gap: 2px; align-content: start; min-width: 0; margin: 0 -1px -1px 0; }
-.fs-titleblock .k { font: 400 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.08em; color: var(--hpr-ink-muted); }
-.fs-titleblock .v { font: 400 14px/20px 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+.fs-titleblock .k { font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.08em; color: var(--hpr-ink-muted); }
+.fs-titleblock .v { font: 400 var(--fs-14)/var(--fs-20) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
 .fs-titleblock .v code { font-size: inherit; padding: 0; background: none; }
 .fs-titleblock .wide { flex: 2 1 264px; }
 .fs-titleblock .full { flex-basis: 100%; }
@@ -363,21 +313,21 @@ h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter { font-family: 'Casc
    otherwise. */
 .content main .fs-intro-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; }
 .content main .fs-intro-row > .fs-tag { --c: 4px; box-sizing: border-box; display: flex; width: fit-content; max-width: 100%; align-items: center; margin: 0; padding: 2px 10px 2px 8px; min-height: 24px;
-  font: 400 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.04em; color: var(--hpr-ink); border: 1px solid var(--hpr-rule-strong);
+  font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.04em; color: var(--hpr-ink); border: 1px solid var(--hpr-rule-strong);
   clip-path: polygon(0 0, calc(100% - var(--c)) 0, 100% var(--c), 100% 100%, 0 100%);
   background: linear-gradient(225deg, transparent calc(var(--c) * 0.7071 - 1px), var(--hpr-rule-strong) 0 calc(var(--c) * 0.7071), transparent 0); }
 .content main .fs-intro-row > .fs-status { box-sizing: border-box; display: inline-flex; align-items: center; gap: 6px; min-height: 24px; margin: 0; padding: 2px 8px;
-  font: 600 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid transparent; white-space: nowrap; }
+  font: 600 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid transparent; white-space: nowrap; }
 .content main .fs-intro-row > .fs-status svg { width: 14px; height: 14px; flex: none; }
 .content main .fs-intro-row > .fs-status[data-state="ok"] { background: #0A6355; color: #FFFFFF; }
 .content main .fs-intro-row > .fs-status[data-state="info"] { background: transparent; color: var(--hpr-action); border-color: currentColor; }
 .content main .fs-intro > h1 { margin-top: 0; }
-.content main .fs-intro > .fs-lead { font-size: 20px; line-height: 28px; font-weight: 400; color: var(--hpr-ink-muted); }
+.content main .fs-intro > .fs-lead { font-size: var(--fs-20); line-height: var(--fs-28); font-weight: 400; color: var(--hpr-ink-muted); }
 .content main .fs-sheet { border-top: 2px solid var(--hpr-ink); margin-top: 32px; padding-top: 16px; }
 .content main .fs-sheet-rail { display: grid; gap: 8px; margin-bottom: 16px; }
 /* The system's mdBook theme draws the sheet's edge on the `h2` itself; here the sheet draws it. */
 .content main .fs-sheet-rail > h2 { margin: 0; padding-top: 0; border-top: 0; }
-.fs-sheet-no { font: 400 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--hpr-ink-muted); }
+.fs-sheet-no { font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--hpr-ink-muted); }
 @media print { .fs-sheet-rail { break-after: avoid; } }
 
 /* The theme switch (#384, #429; `web.md`, *Page anatomy*, *Components* and *Theme*;
@@ -391,7 +341,7 @@ h1, h2, h3, .menu-title, table thead th, .sidebar, .chapter { font-family: 'Casc
    work, so without them it isn't drawn. */
 #mdbook-theme-list.fs-seg { position: static; display: inline-flex !important; flex: none; align-self: center; box-sizing: border-box; margin: 0; padding: 0; max-height: none; overflow: visible; list-style: none; border: 1px solid var(--hpr-rule-strong); background: transparent; color: var(--hpr-ink-muted); }
 #mdbook-theme-list.fs-seg > li { display: flex; }
-#mdbook-theme-list.fs-seg .theme { box-sizing: border-box; min-height: 44px; width: auto; margin: 0; padding: 0 12px; font: 400 14px/20px 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-align: center; white-space: nowrap; color: var(--hpr-ink-muted); background: transparent; border: 0; border-left: 1px solid var(--hpr-rule); cursor: pointer; }
+#mdbook-theme-list.fs-seg .theme { box-sizing: border-box; min-height: 44px; width: auto; margin: 0; padding: 0 12px; font: 400 var(--fs-14)/var(--fs-20) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-align: center; white-space: nowrap; color: var(--hpr-ink-muted); background: transparent; border: 0; border-left: 1px solid var(--hpr-rule); cursor: pointer; }
 #mdbook-theme-list.fs-seg > li:first-child .theme { border-left: 0; }
 #mdbook-theme-list.fs-seg .theme:hover { color: var(--hpr-ink); background: transparent; }
 #mdbook-theme-list.fs-seg .theme[aria-pressed="true"] { color: var(--hpr-canvas); background: var(--hpr-ink); }
@@ -465,5 +415,5 @@ html:not(.js) #mdbook-theme-list.fs-seg { display: none !important; }
    can't print, and the cover says so instead. */
 @media print { #hpr-print-cover { display: none; } }
 html:not(.js) #hpr-print { display: none; }
-#hpr-print-cover .fs-btn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 44px; margin: 0; padding: 0 16px; font: 600 14px/20px 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0; white-space: nowrap; cursor: pointer; color: var(--hpr-canvas); background: var(--hpr-ink); border: 2px solid var(--hpr-ink); border-radius: 0; transition: background-color 100ms cubic-bezier(0.2, 0, 0, 1), border-color 100ms cubic-bezier(0.2, 0, 0, 1); }
+#hpr-print-cover .fs-btn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 44px; margin: 0; padding: 0 16px; font: 600 var(--fs-14)/var(--fs-20) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0; white-space: nowrap; cursor: pointer; color: var(--hpr-canvas); background: var(--hpr-ink); border: 2px solid var(--hpr-ink); border-radius: 0; transition: background-color 100ms cubic-bezier(0.2, 0, 0, 1), border-color 100ms cubic-bezier(0.2, 0, 0, 1); }
 #hpr-print-cover .fs-btn:hover { color: var(--hpr-on-action); background: var(--hpr-action); border-color: var(--hpr-action); }
