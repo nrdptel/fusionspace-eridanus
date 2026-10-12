@@ -41,6 +41,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.7a1 The no-clipping checks ([Phase 0](#phase-0-foundations))
 - M0.7a2 The format and the trust guide ([Phase 0](#phase-0-foundations))
 - M0.7a3 Stability ([Phase 0](#phase-0-foundations))
+- M0.7a4 Fin flutter ([Phase 0](#phase-0-foundations))
 - M0.9a The name everywhere ([Phase 0](#phase-0-foundations))
 - M0.9a1 The packages' text ([Phase 0](#phase-0-foundations))
 - M0.9a2 The site's pages ([Phase 0](#phase-0-foundations))
@@ -397,6 +398,7 @@ One line per milestone or increment, in the order it was archived within its pha
       terms on numbers and marks, read cold in a docs review, and passes M0.7a1's checks.
     - [x] **M0.7a3 Stability** (the center of pressure through Mach and angle; ADR-243). *Done
       when:* as M0.7a2.
+    - [x] **M0.7a4 Fin flutter.** *Done when:* as M0.7a2.
 - **M0.9** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
   - [x] **M0.9a The name everywhere,** before 0.1 publishes. *Done when:* `cargo xtask names` fails
     on `hpr-sim` (any case, U+2011 too), or a lowercase `hpr` outside code formatting, on every

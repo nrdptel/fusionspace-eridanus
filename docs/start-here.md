@@ -387,7 +387,8 @@ Want the physics behind a number? *Rocketry explained* holds guides that explain
 drawn from HPR Sim's own results. The first is
 [Trusting a simulation](trusting-a-simulation.md): how far a simulated apogee has been
 from real flights, and which way it errs. [Stability in flight](stability-in-flight.md) shows how
-the center of pressure moves with speed and angle, against a wind tunnel.
+the center of pressure moves with speed and angle, against a wind tunnel, and
+[When fins flutter](when-fins-flutter.md) what a flutter speed means and which errors flatter it.
 
 Each model page opens with *In short*: what it models, its sources, how well it is validated and
 what it leaves out. Below that, it names the code that implements the model, the sources it follows

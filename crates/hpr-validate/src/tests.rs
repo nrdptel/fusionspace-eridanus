@@ -2402,7 +2402,8 @@ fn the_validated_range_is_the_fastest_public_reference() {
     // (M0.10) restates other reports' aggregates. The private
     // collection's logged flights (M2.3c1) never count either, and publish no Mach number. The
     // guide rocket's center of pressure (M0.7a3) is hpr's aerodynamics alone at Mach numbers it
-    // picks, with no reference and no flight, so it never counts.
+    // picks, with no reference and no flight, so it never counts; nor do its flutter numbers
+    // (M0.7a4), hpr's own flights of it with no reference.
     let reports = root().join("validation/reports");
     let read = |name: &str| -> serde_json::Value {
         serde_json::from_str(&std::fs::read_to_string(reports.join(name)).unwrap()).unwrap()
@@ -2418,6 +2419,7 @@ fn the_validated_range_is_the_fastest_public_reference() {
         "fixture-flights.json",
         "scoreboard.json",
         "guide-rocket-cp.json",
+        "guide-rocket-flutter.json",
     ];
     // Only committed files: `latest-fast.json` is a local partial run, never committed.
     let listed = std::process::Command::new("git")
@@ -2466,6 +2468,11 @@ fn the_validated_range_is_the_fastest_public_reference() {
         mach_keys(&read("guide-rocket-cp.json")),
         ["angle_mach", "by_mach", "fins_supersonic_mach", "mach"],
         "guide-rocket-cp.json: hpr's model alone; a reference's key belongs above"
+    );
+    assert_eq!(
+        mach_keys(&read("guide-rocket-flutter.json")),
+        ["max_mach", "unfailed_mach"],
+        "guide-rocket-flutter.json: hpr's flights alone; a reference's key belongs above"
     );
     for name in [
         "openrocket-export-flights.json",
