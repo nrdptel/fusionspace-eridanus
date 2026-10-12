@@ -17,19 +17,26 @@
 # The release workflow runs it on every run; `cargo publish --workspace --dry-run` checks that each
 # crate packages and builds.
 #
+# `--versions-only` stops before publishing anything if a crate's name is not on crates.io yet.
+# The release workflow publishes through crates.io's trusted publishing, whose token can add
+# versions to existing crates but not create one (https://crates.io/docs/trusted-publishing, read
+# 2026-10-11); a new crate goes up once with an API token first (docs/releasing.md).
+#
 # Needs curl and python3; publishing needs CARGO_REGISTRY_TOKEN.
 #
-# Usage: scripts/release/publish-crates.sh [--dry-run]
+# Usage: scripts/release/publish-crates.sh [--dry-run | --versions-only]
 
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$root"
 
 dry_run=no
+versions_only=no
 case "${1:-}" in
   "") ;;
   --dry-run) dry_run=yes ;;
-  *) echo "usage: publish-crates.sh [--dry-run]" >&2; exit 2 ;;
+  --versions-only) versions_only=yes ;;
+  *) echo "usage: publish-crates.sh [--dry-run | --versions-only]" >&2; exit 2 ;;
 esac
 
 # Each crate after every workspace crate it depends on, dev-dependencies included, since
@@ -220,6 +227,17 @@ self_check() {
 
 if [ "$dry_run" = yes ]; then
   self_check
+fi
+
+if [ "$versions_only" = yes ]; then
+  for name in "${CRATES[@]}"; do
+    if [ "$(status "$name" "$(version_of "$name")")" = new-name ]; then
+      echo "publish-crates: $name is not on crates.io yet, and trusted publishing can't create a" \
+        "crate; publish it once with an API token (docs/releasing.md), then run this again." \
+        "Nothing was published." >&2
+      exit 1
+    fi
+  done
 fi
 
 new_names=0

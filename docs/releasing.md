@@ -126,10 +126,19 @@ It lets one account publish 5 new crates at once, then one every 10 minutes
 publishes 14, so 9 of them wait. `scripts/release/publish-crates.sh` publishes the crates one at a
 time, each after the crates it depends on, and once the first five new names are out it waits
 10.5 minutes before each next one: 9 waits, about 95 minutes, plus the time to build each crate.
-The release workflow runs it after you approve the `release` environment, with the repository's
-`CARGO_REGISTRY_TOKEN` secret. A name already on crates.io that `nrdptel` doesn't own stops the
-run. A later release adds
+A name already on crates.io that `nrdptel` doesn't own stops the run. A later release adds
 versions to crates that exist, which crates.io allows 30 at once, so it doesn't wait.
+
+**Later releases publish without a stored token.** The release workflow uses crates.io's
+[trusted publishing](https://crates.io/docs/trusted-publishing): each crate's settings on
+crates.io name this repository, `release.yml` and the `release` environment, and after you
+approve the environment the job trades GitHub's identity token for a crates.io token that lasts
+30 minutes and is revoked when the job ends. That token can add versions but can't create a crate,
+so the workflow runs the script with `--versions-only`, which stops before publishing anything if
+a crate's name is new. A new crate goes up once from your machine
+(`cargo publish --package <name>` with an API token), and then gets the same trusted-publishing
+entry on crates.io (the crate's Settings, then Trusted Publishing: owner `nrdptel`, repository
+`fusionspace-eridanus`, workflow `release.yml`, environment `release`).
 
 **A publish that stops partway can be run again.** A published version can't be withdrawn, only
 [yanked](https://doc.rust-lang.org/cargo/commands/cargo-yank.html) (marked as not for new use), so a second run must not start over. The script asks crates.io's
