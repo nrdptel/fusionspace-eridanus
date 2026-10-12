@@ -1,11 +1,11 @@
 /* SPDX-License-Identifier: MIT OR Apache-2.0 */
 /* hpr-sim's additions to the product system's mdBook theme (ADR-164). */
-/* What the product system's mdBook theme (`fusionspace-mdbook.css`, Rev B) doesn't set, because only
+/* What the product system's mdBook theme (`fusionspace-mdbook.css`, Rev C) doesn't set, because only
    this site's markup has it: the copy icon's file, the system's icons in place of Font Awesome's
    (`xtask/src/site/chrome.rs`), the notes, the menu bar's lockup, the title block, the intro and
    sheets, the theme switch, the text marks and the print page's cover (`xtask site` draws each).
    The theme sets the colors and roles (`--fs-ink` and the rest) in every theme, mdBook's own
-   defaults, the type scale, the measure and the column. */
+   defaults, the type scale and the column. */
 
 /* The copy button's icon: mdBook tints a black image with a filter to a gray of its own; here it
    is the system's copy icon (`product/icons/copy.svg`, drawn in Void for the figures check) as a
@@ -27,21 +27,19 @@ pre > .buttons button.clip-button:hover::before {
 pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
 .previous .fa-svg svg { transform: scaleX(-1); }
 /* The page's frame (#384; `foundations.md`, *Type* and *Space and layout*) is the product system's
-   mdBook theme's (`fusionspace-mdbook.css`, Rev B): the type scale on mdBook's elements, growing
-   with the window inside the page; the measure; the column flush left beside the sidebar up to
-   1,120 px with its gutters; the page arrows under the page. `cargo xtask site`'s page check reads
-   every text's size, line height, family and capitals against the scale at the window's width,
-   counts the characters of each line of prose as drawn, and measures the gutters, at every
-   width, with the system's own check (`fusionspace-check.js`). Here, what only this site's
-   markup needs: the source title block's field names in `label`. */
+   mdBook theme's (`fusionspace-mdbook.css`, Rev C): the type scale on mdBook's elements, growing
+   with the window inside the page; the column centered beside the sidebar up to 1,120 px with
+   its gutters, and the prose filling it; the page arrows under the page. `cargo xtask site`'s
+   page check reads every text's size, line height, family and capitals against the scale at the
+   window's width, fails prose held narrower than its column, and measures the column and its
+   gutters, at every width, with the system's own check (`fusionspace-check.js`). Here, what only
+   this site's markup needs: the source title block's field names in `label`. */
 .title-block td:first-child { font-size: var(--fs-12); line-height: var(--fs-16); }
 /* Notes (#384; `web.md`, *Components*): the signal word in a strip above the message, as an
    ANSI Z535.4 safety label sets it, the system's `.fs-note`. `cargo xtask site` draws every quote
    block a page writes as one (a trust note, or a `[!NOTE]`, `[!CAUTION]` or `[!WARNING]` alert),
-   and the page check fails a note not drawn this way. The box stops at the measure, as its
-   message does. */
+   and the page check fails a note not drawn this way. The box takes the column, as the prose does. */
 .content main .fs-note { box-sizing: border-box; margin: 16px 0; border: 1px solid var(--fs-rule-strong); background: var(--fs-surface); }
-.content main .fs-note:not(:has(pre, table)) { max-width: calc(var(--fs-measure) + 26px); }
 .fs-note > .fs-note-head { display: flex; align-items: center; gap: 8px; padding: 4px 12px; font: 600 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace;
   text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--fs-rule-strong); color: var(--fs-ink-muted); }
 .fs-note > .fs-note-head svg { width: 14px; height: 14px; flex: none; }
@@ -113,9 +111,14 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
    `.fs-sheet`). `cargo xtask site` opens every page's intro with the site's designation in the
    system's tag, one corner chamfered 4 px where the mark points (up and right), in Cascadia Mono
    12/16; and makes each `h2` section a sheet: a 2 px ink rule on top, then the rail, the sheet's
-   number (`SHEET 2 / 5`) in `label` capitals over its name. The rail stands over the sheet's text,
-   as the system's sheet draws it in a narrow box: the docs column beside the sidebar has no room
-   for a 184 px rail beside the prose. The page check fails a tag or a sheet drawn otherwise.
+   number (`SHEET 2 / 5`) in `label` capitals over its name. Where the column is 880 px wide or
+   more, the rail stands beside the sheet's text, 184 px wide with a 32 px gap, as the system's
+   `.fs-sheet` sets it; in a narrower column it stands over the text, as the system's sheet draws
+   it on a phone. The column, not the window, decides, since the sidebar takes part of the window.
+   A figure takes the whole column, under the rail: the text beside the rail is 216 px narrower,
+   and a figure drawn wider than that would be shown smaller than its size, its 12 px labels under
+   12 px. The rail is a float and the figure clears it, so the figure starts below the rail and
+   never over it. The page check fails a tag or a sheet drawn otherwise.
    The tag shares the intro's first row with the status chip (`fusionspace.css`, `.fs-status`):
    the site's status from the title block, a drawing word in `label` capitals, 600, beside its
    14 px icon; RELEASED in the ok fill, the same in every theme and on paper (`foundations.md`,
@@ -140,6 +143,13 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
 /* The system's mdBook theme draws the sheet's edge on the `h2` itself; here the sheet draws it. */
 .content main .fs-sheet-rail > h2 { margin: 0; padding-top: 0; border-top: 0; }
 .fs-sheet-no { font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fs-ink-muted); }
+.content { container-type: inline-size; }
+@container (min-width: 880px) {
+    .content main .fs-sheet { display: flow-root; }
+    .content main .fs-sheet-rail { float: left; width: 184px; margin: 0 32px 16px 0; }
+    .content main .fs-sheet-body { margin-inline-start: 216px; }
+    .content main .fs-sheet-body > p:has(> .checkbox-label) { clear: left; margin-inline-start: -216px; }
+}
 @media print { .fs-sheet-rail { break-after: avoid; } }
 
 /* The theme switch (#384, #429; `web.md`, *Page anatomy*, *Components* and *Theme*;
@@ -200,3 +210,5 @@ html:not(.js) #mdbook-theme-list.fs-seg { display: none !important; }
 html:not(.js) #hpr-print { display: none; }
 #hpr-print-cover .fs-btn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 44px; margin: 0; padding: 0 16px; font: 600 var(--fs-14)/var(--fs-20) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0; white-space: nowrap; cursor: pointer; color: var(--fs-canvas); background: var(--fs-ink); border: 2px solid var(--fs-ink); border-radius: 0; transition: background-color 100ms cubic-bezier(0.2, 0, 0, 1), border-color 100ms cubic-bezier(0.2, 0, 0, 1); }
 #hpr-print-cover .fs-btn:hover { color: var(--fs-on-action); background: var(--fs-action); border-color: var(--fs-action); }
+    .content main .fs-sheet-rail { align-content: start; margin-bottom: 0; }
+}

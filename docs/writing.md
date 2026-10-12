@@ -277,14 +277,11 @@ so the site keeps the product system's look where mdBook, the program that build
 would draw its own. It reads the light and navy themes, and the light one with scripts off.
 Colors off the system's palette, rounded corners, shadows, motion off its timings and type off its
 sizes all fail it. Body text is 16 px up to a 1,024 px window, grows with the window, and is
-18 px from 1,600 px; the check reads each size against the one the window's width gives. The
-*measure* is how wide a line of prose runs, 29.5 em of its text. A line of prose over 80
-characters fails, and so does a page whose median line is outside 60 to 75 characters (the
-middle one when the lines set at the full measure are sorted by length), judged once 20 or more
-such lines are set (a short page passes unjudged). Prose held narrower than the measure by a
-cap or a width (on the column, on a box around the prose, or on the prose itself; margins and
-padding are indentation, left to review), a column off flush left beside the sidebar (its left
-edge set against it, not centered), and gutters off 16 or 32 px fail it too ([ADR-250](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0250-the-measure-and-the-reading-scale.md)), and so do:
+18 px from 1,600 px; the check reads each size against the one the window's width gives. Prose
+takes its column's whole width, and the column stops at 1,120 px, so a line is as long as its
+column allows. Prose held narrower than the box that holds it (by a max-width, a width or
+margins set to auto), a column allowed wider or narrower than 1,120 px, a column off center
+beside the sidebar, and gutters off 16 or 32 px fail it too ([ADR-250](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0250-the-column-and-the-reading-scale.md)), and so do:
 
 - text under the contrast that WCAG 2.2 AA (the W3C's Web Content Accessibility Guidelines,
   level AA) asks for against the background it is drawn on: 4.5 : 1, or 3 : 1 for text of

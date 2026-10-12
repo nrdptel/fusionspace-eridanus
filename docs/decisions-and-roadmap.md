@@ -1072,7 +1072,7 @@ is the milestone that added or will add that test.
 [adr-247]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0247-the-simulators-guide-in-four-increments.md
 [adr-248]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0248-the-simulators-comparison.md
 [adr-249]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0249-fusionspace-co-in-its-own-repository.md
-[adr-250]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0250-the-measure-and-the-reading-scale.md
+[adr-250]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0250-the-column-and-the-reading-scale.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

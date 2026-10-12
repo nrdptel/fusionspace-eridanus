@@ -504,7 +504,7 @@ fn read(root: &Path, path: &str) -> String {
 mod tests {
     use super::*;
 
-    const COMMIT: &str = "9bdebfd3ff2b0fb17e0ecbb01807006b9c0f6bc8";
+    const COMMIT: &str = "943492da8380ec570173599dc733bbb440f72a57";
 
     fn table(rows: &str) -> String {
         format!("# Audit\n\n{PINNED}{COMMIT}`.\n\n{HEADER}\n|---|---|---|---|---|\n{rows}")
@@ -573,7 +573,7 @@ mod tests {
         let problems = run(&both, SECTIONS_OK, moved);
         assert_eq!(problems.len(), 1, "{problems:?}");
         assert!(problems[0].contains("the theme was copied from"));
-        let short = table(&rows_ok()).replace(COMMIT, "9bdebfd");
+        let short = table(&rows_ok()).replace(COMMIT, "943492d");
         assert!(run(&short, SECTIONS_OK, COMMIT)[0].contains("not a full commit"));
     }
 
@@ -616,7 +616,7 @@ mod tests {
                 "a review names the pinned commit",
             ),
             (
-                "| `cli.md` | Output | none | met | reviewed at `9bdebfd`: fine |",
+                "| `cli.md` | Output | none | met | reviewed at `943492d`: fine |",
                 "met, on no surface",
             ),
             (
@@ -653,7 +653,7 @@ mod tests {
             ),
             ("| `cli.md` | Output | CLI | done | M9.4 |", "status `done`"),
             (
-                "| `cli.md` | Output | CLI | met | reviewed at `9bdebfd` |",
+                "| `cli.md` | Output | CLI | met | reviewed at `943492d` |",
                 "a review says what was read",
             ),
             (
@@ -673,7 +673,7 @@ mod tests {
         }
         let reviewed = rows_ok().replace(
             &first,
-            "| `cli.md` | Output | CLI | met | reviewed at `9bdebfd3f`: the help |",
+            "| `cli.md` | Output | CLI | met | reviewed at `943492da8`: the help |",
         );
         assert_eq!(
             run(&table(&reviewed), SECTIONS_OK, COMMIT),

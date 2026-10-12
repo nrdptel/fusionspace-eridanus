@@ -30,11 +30,12 @@
   const EXAMPLES = 3;
   // The product system's rules and the code that measures them (`fusionspace-check.js`, copied
   // unchanged from the design repository at the revision `theme.rs` pins; the check's server
-  // serves it before this file): the type scale, the reading scale, the measure, the widths.
+  // serves it before this file): the type scale, the reading scale, the widths.
   const FS = window.FusionSpaceCheck;
   const RULES = FS.RULES;
-  // The system's widest content, in pixels (`foundations.md`, *Width*): a figure needn't be
-  // shown wider than this to be shown at its size.
+  // The system's widest content, in pixels (`foundations.md`, *Width*): the column's widest, and
+  // so the longest line of prose; a figure needn't be shown wider than this to be shown at its
+  // size.
   const CONTENT_MAX_PX = RULES.width.content_px;
 
   async function post(path, value) {
@@ -1316,9 +1317,6 @@
   const CAPITALS = RULES.type.capitals.map(function (t) { return [t[1], t[2], t[3]]; });
   // No text smaller than this on screen, in pixels (`foundations.md`, *Type*).
   const SMALLEST_PX = RULES.type.smallest_px;
-  // The measure (`foundations.md`, *Type*): the longest a line of prose may be, in characters,
-  // and the range the median line set at the full measure must fall in.
-  const MEASURE = RULES.measure;
   // The gutters, in pixels: 16 on a phone, 32 from 720 px (`foundations.md`, *Width*).
   const GUTTER_PX = RULES.width.gutter_px;
   const GUTTER_WIDE_PX = RULES.width.gutter_wide_px;
@@ -1348,12 +1346,13 @@
   // Whether two lengths in pixels are the same, to sub-pixel rounding.
   function samePx(a, b) { return Math.abs(a - b) < 0.05; }
 
-  // The page's frame (#384): its type, its measure and its gutters, read once at each width in
+  // The page's frame (#384): its type, its prose, its column and its gutters, read once at each width in
   // the theme the page loads in.
   function probeFrame(win, doc) {
     const reading = readingFactor(win, doc);
     const found = {
-      type: [], type_count: 0, measure: [], measure_count: 0, gutter: [], gutter_count: 0,
+      type: [], type_count: 0, narrow: [], narrow_count: 0, column: [], column_count: 0,
+      gutter: [], gutter_count: 0,
       squeezed: [], squeezed_count: 0, note: [], note_count: 0, icon: [], icon_count: 0,
       header: [], header_count: 0, title_block: [], title_block_count: 0,
       sheet: [], sheet_count: 0, theme_switch: [], theme_switch_count: 0,
@@ -1438,73 +1437,25 @@
       }
     }
 
-    // The measure (`foundations.md`, *Type*), counted by the system's own check
-    // (`fusionspace-check.js`): no line of prose in `main` longer than the measure's maximum,
-    // spaces between words counted once, as drawn; and where blocks are set at the full measure
-    // (as wide as their own max-width, not narrowed by the window), the median of their lines,
-    // each block's last left out, inside the measure's range, judged on enough lines to say.
+    // Prose (`foundations.md`, *Type*): it takes its column's whole width. The system's own
+    // check (`fusionspace-check.js`) finds each paragraph, list item, quote or caption in `main`,
+    // or a box around one, held narrower than the box that holds it, by a max-width, a width or
+    // margins set to auto; one laid out by its parent (a grid's or a flex box's item, a table's
+    // part), a float or a box out of the flow is sized on purpose and skipped.
     const main = doc.querySelector('main');
     if (main) {
-      const measured = FS.measure(win, main);
-      // What the counter read, for the run's summary: the median (null when too few lines
-      // count) and the longest line of prose.
-      found.prose = {
-        median: measured.median,
-        longest: measured.blocks.reduce((most, b) => Math.max(most, b.longest ? b.longest.chars : 0), 0),
-      };
-      for (const o of measured.over) {
-        note('measure', selector(o.block), 'a line of ' + o.chars + ' characters', snippet(o.text));
+      const round = function (v) { return Math.round(v * 10) / 10; };
+      for (const n of FS.narrow(win, main)) {
+        note('narrow', selector(n.block), 'prose held to ' + round(n.width) + ' px',
+          'in a box of ' + round(n.room) + ' px');
       }
-      if (!measured.median_ok) {
-        note('measure', 'main', 'a median line of ' + measured.median + ' characters at the measure',
-          measured.counted + ' lines, against ' + MEASURE.median[0] + ' to ' + MEASURE.median[1]);
-      }
+      // What the system's counter reads of the prose, for the run's summary, not a rule: the
+      // median line (null under 20 lines) and the longest, in characters.
+      const stats = FS.lineStats(win, main);
+      found.prose = { median: stats.median, longest: stats.longest };
 
-      // Prose held under the measure by a cap or a width: a max-width on `main` or on a box
-      // between it and the block below the measure, or a width of the block's own. The median
-      // above can't see it, since such a block isn't at its measure. A block's room is what
-      // `main`'s parent leaves inside its padding and scrollbar, less the margins of every box down
-      // to the block and the borders and padding of each around it, and no wider than a box
-      // around it capped at its own measure or more (a list in a list item, a note set to the
-      // measure). A block of two lines or more narrower than both that room and its measure (its
-      // own max-width in px, or the system's measure in its text when it has none or a
-      // percentage) is held. Margins and padding are indentation (a list's, a quote's, a note's)
-      // and count as room, so a block narrowed by its own margins or padding is left to review.
-      const px = (v) => parseFloat(v) || 0;
-      const sides = (s, what) => px(s[what + 'Left']) + px(s[what + 'Right']);
-      const frame = (s) => sides(s, 'padding') + px(s.borderLeftWidth) + px(s.borderRightWidth);
-      const holder = main.parentElement;
-      const given = holder.clientWidth - sides(win.getComputedStyle(holder), 'padding');
-      for (const b of measured.blocks) {
-        const fixed = win.getComputedStyle(b.block).maxWidth.endsWith('px');
-        if ((b.at_measure && fixed) || b.lines.length < 2) continue;
-        const chain = [];
-        for (let e = b.block; e && e !== holder; e = e.parentElement) chain.unshift(e);
-        let room = given;
-        for (const e of chain) {
-          const s = win.getComputedStyle(e);
-          room -= sides(s, 'margin');
-          if (e === b.block) break;
-          const cap = s.maxWidth.endsWith('px') ? parseFloat(s.maxWidth) : NaN;
-          if (Number.isFinite(cap) && cap >= MEASURE.em * px(s.fontSize) - 1) {
-            room = Math.min(room, cap + (s.boxSizing === 'border-box' ? 0 : frame(s)));
-          }
-          room -= frame(s);
-        }
-        const s = win.getComputedStyle(b.block);
-        const most = fixed ? parseFloat(s.maxWidth) : MEASURE.em * px(s.fontSize);
-        const border = s.boxSizing === 'border-box';
-        const drawn = b.block.getBoundingClientRect().width - (border ? 0 : frame(s));
-        const roomBox = room - (border ? 0 : frame(s));
-        if (drawn < Math.min(most, roomBox) - 1) {
-          note('measure', selector(b.block), 'prose held to ' + Math.round(drawn) + ' px',
-            'under its measure of ' + Math.round(most) + ' px and the ' + Math.round(roomBox)
-            + ' px the window leaves it');
-        }
-      }
-
-      // A code block or table that scrolls sideways inside a box held to the prose measure: it
-      // keeps the column's width (ADR-223), so nothing around it in `main` may cap it.
+      // A code block or table that scrolls sideways inside a box held narrower: it keeps the
+      // column's width (ADR-223), so nothing around it in `main` may cap it.
       for (const box of main.querySelectorAll('pre, .table-wrapper, table')) {
         if (box.scrollWidth <= box.clientWidth + SLACK_PX) continue;
         for (let e = box.parentElement; e && e !== main; e = e.parentElement) {
@@ -1583,8 +1534,19 @@
         }
       }
 
+      // The column (`foundations.md`, *Width*): `main` runs up to the system's widest content
+      // and no further, at every width; wider, the lines run past the longest the system sets,
+      // narrower, the prose is a strip in a wide window.
+      const mainStyle = win.getComputedStyle(main);
+      const most = parseFloat(mainStyle.maxWidth);
+      if (!(Math.abs(most - CONTENT_MAX_PX) < 0.5)) {
+        note('column', 'main', 'max-width', mainStyle.maxWidth + ', not ' + CONTENT_MAX_PX + 'px');
+      }
+
       // Gutters: the space between the column and the edges of the pane that holds it, the
-      // page's wrapper beside the sidebar.
+      // page's wrapper beside the sidebar. The column is centered in the pane: the gutter on each
+      // side until the column reaches its widest, then the same on both sides, and the gutter
+      // or more.
       const paneEl = doc.querySelector('.page-wrapper') || doc.body;
       const pane = paneEl.getBoundingClientRect();
       const paneRight = Math.min(pane.right, doc.documentElement.clientWidth);
@@ -1592,17 +1554,13 @@
       const left = col.left - pane.left;
       const right = paneRight - col.right;
       const gutter = width >= GUTTER_WIDE_FROM_PX ? GUTTER_WIDE_PX : GUTTER_PX;
-      const most = parseFloat(win.getComputedStyle(main).maxWidth);
       const full = Number.isFinite(most) && col.width >= most - SLACK_PX;
-      const round = function (v) { return Math.round(v * 10) / 10; };
-      // The left side the gutter at every width: the column sits flush left beside the sidebar
-      // (`foundations.md`, *Width*). The right side the gutter, or more where the column has
-      // reached its widest.
-      const offLeft = left < gutter - SLACK_PX || left > gutter + SLACK_PX;
-      const offRight = right < gutter - SLACK_PX || (!full && right > gutter + SLACK_PX);
-      if (offLeft || offRight) {
+      const off = function (side) {
+        return side < gutter - SLACK_PX || (!full && side > gutter + SLACK_PX);
+      };
+      if (off(left) || off(right) || Math.abs(left - right) > SLACK_PX) {
         note('gutter', 'main', 'gutters', round(left) + ' px left and ' + round(right)
-          + ' px right, against ' + gutter + ' px');
+          + ' px right, against ' + gutter + ' px, or the same on both sides and more');
       }
     }
 

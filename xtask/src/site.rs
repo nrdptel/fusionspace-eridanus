@@ -304,9 +304,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
          the window, no text cut off or over other text, no figure shrunk with room \
          for it or without a zoom, no color off the system's roles, rounded corner, shadow or \
          motion off its durations in either theme or with reduced motion, no text off the type \
-         scale at the window's reading scale, prose line past 80 characters, median line at \
-         the measure off 60 to 75 or prose held under the measure, gutter off the system's, column off flush left or code \
-         block held to the measure, no quote block or note off the system's, no text under the contrast floor, \
+         scale at the window's reading scale, prose held narrower than its column, column off \
+         1,120 px, gutter off the system's or column off center, or code block held narrower \
+         than the column, no quote block or note off the system's, no text under the contrast floor, \
          focus ring off the system's, box or icon forced colors would erase, sticky bar taller \
          than the scroll padding or fixed in a box the page carries, icon off the system's sizes or selection off the action role, no header or title block off \
          the system's, no intro, sheet or theme switch off the system's and every switch \
@@ -333,9 +333,9 @@ pub fn run(args: &[String]) -> Result<(), String> {
     );
     let measures = &laid_out.measures;
     println!(
-        "page measure: {} of {} pages set 20 lines or more at the full measure at one or more \
-         of these widths, {}; the longest line of prose on any page {} characters (the system's \
-         counter, ADR-250)",
+        "line length: {} of {} pages set 20 lines of prose or more at one or more of these \
+         widths, {}; the longest line of prose on any page {} characters (the system's counter, a \
+         report, not a rule, ADR-250)",
         measures.judged,
         laid_out.pages,
         measures.medians.map_or_else(

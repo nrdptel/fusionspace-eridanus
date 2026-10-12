@@ -26,10 +26,10 @@ use super::{attributes, html_files, is_web, unescape};
 const THEME: &str = "theme";
 /// The product system's repository, checked out under `refs/` by `cargo xtask refs`.
 pub(crate) const DESIGN_REFS: &str = "refs/fusionspace-design";
-/// The revision of the product system the copied files come from (Rev B), as ADR-164 pins it
+/// The revision of the product system the copied files come from (Rev C), as ADR-164 pins it
 /// (moved by ADR-198 and ADR-250).
 /// `refs.lock.toml`'s pin must start with it.
-pub(crate) const DESIGN_REV: &str = "9bdebfd";
+pub(crate) const DESIGN_REV: &str = "943492d";
 /// The lock file that pins the `refs/` checkouts, relative to the workspace root.
 pub(crate) const REFS_LOCK: &str = "validation/refs.lock.toml";
 /// The product system's name in [`REFS_LOCK`].
