@@ -2404,7 +2404,7 @@ fn the_validated_range_is_the_fastest_public_reference() {
     // guide rocket's center of pressure (M0.7a3) is hpr's aerodynamics alone at Mach numbers it
     // picks, with no reference and no flight, so it never counts; nor do its flutter numbers
     // (M0.7a4), hpr's own flights of it with no reference, nor its drag (M0.7a5), hpr's model
-    // alone.
+    // alone. Nor does the flight-log survey (M7.1a), which reads logs and compares nothing.
     let reports = root().join("validation/reports");
     let read = |name: &str| -> serde_json::Value {
         serde_json::from_str(&std::fs::read_to_string(reports.join(name)).unwrap()).unwrap()
@@ -2422,6 +2422,7 @@ fn the_validated_range_is_the_fastest_public_reference() {
         "guide-rocket-cp.json",
         "guide-rocket-flutter.json",
         "guide-rocket-drag.json",
+        "log-import.json",
     ];
     // Only committed files: `latest-fast.json` is a local partial run, never committed.
     let listed = std::process::Command::new("git")

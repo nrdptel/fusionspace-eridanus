@@ -1,6 +1,6 @@
-//! PerfectFlite's `.pf2` flight logs, as its software writes a Pnut's flights. The StratoLogger and
-//! StratoLoggerCF are expected to write the same layout, as Debrief's reader assumes; no file of
-//! theirs has been read.
+//! PerfectFlite's `.pf2` flight logs, as its software writes a Pnut's, a StratoLogger's or a
+//! StratoLoggerCF's flights, and the CSV and text exports it writes of them ([`read_export`]).
+//! Every `.pf2` among the project's sample logs reads, of all three models (`cargo xtask logs`).
 //!
 //! A `.pf2` is text: the logger's name on the first line, a preamble of `Key: value` lines, a
 //! `Data:` line naming the columns, then one row per sample, comma-separated, at about 20 Hz:
@@ -36,7 +36,7 @@
 //! in CR, LF or both.
 
 use crate::error::LogError;
-use crate::log::{FlightLog, LogFormat, Stated};
+use crate::log::{Channel, FlightLog, LogFormat, Quantity, Stated};
 
 /// The format's name in errors.
 const FORMAT: &str = ".pf2";
@@ -46,12 +46,15 @@ pub const FOOT_M: f64 = 0.3048;
 
 /// The columns a `.pf2` has when it has no `Data:` line: the order Debrief reads and the Pnut
 /// fixture's `Data:` line states.
-const DEFAULT_COLUMNS: [Column; 5] = [
-    Column::Time,
-    Column::Altitude,
-    Column::Velocity,
-    Column::Temperature(TemperatureUnit::Fahrenheit),
-    Column::Voltage,
+const DEFAULT_COLUMNS: [(Column, &str); 5] = [
+    (Column::Time, "Time"),
+    (Column::Altitude, "Altitude"),
+    (Column::Velocity, "Velocity"),
+    (
+        Column::Temperature(TemperatureUnit::Fahrenheit),
+        "Temperature (F)",
+    ),
+    (Column::Voltage, "Voltage"),
 ];
 
 /// A column of the data rows.
@@ -62,7 +65,7 @@ enum Column {
     Velocity,
     Temperature(TemperatureUnit),
     Voltage,
-    /// A column the reader doesn't know, dropped with a note.
+    /// A column the reader doesn't know, kept as written with a note.
     Unknown,
 }
 
@@ -132,10 +135,12 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
         vertical_speed_m_s: None,
         temperature_k: None,
         battery_v: None,
+        channels: Vec::new(),
+        events: Vec::new(),
         notes: Vec::new(),
     };
     let mut notes = Notes::default();
-    let mut columns: Option<Vec<Column>> = None;
+    let mut columns: Option<Vec<(Column, String)>> = None;
     let mut rows: Vec<(usize, Vec<f64>)> = Vec::new();
 
     for (number, line) in lines {
@@ -188,9 +193,12 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
              temperature (°F) and voltage"
                 .to_owned(),
         );
-        DEFAULT_COLUMNS.to_vec()
+        DEFAULT_COLUMNS
+            .iter()
+            .map(|(column, name)| (*column, (*name).to_owned()))
+            .collect()
     });
-    fill(&mut log, &columns, &rows)?;
+    fill(&mut log, FORMAT, &columns, &rows)?;
     if let Some(stated) = log.stated.samples
         && stated != log.time_s.len()
     {
@@ -209,6 +217,186 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
         ));
     }
     Ok(log)
+}
+
+/// The CSV export's name in errors.
+const EXPORT_CSV: &str = "PerfectFlite CSV";
+/// The text export's name in errors.
+const EXPORT_TEXT: &str = "PerfectFlite text";
+
+/// The column names a PerfectFlite export writes, as the collection's 16 exports write them. A
+/// header row with any other name, or the same name in another case, is another logger's or a
+/// person's, such as the RRC3's `Time,Altitude,Pressure,…` or a bare `time,altitude`, whose
+/// units nothing states.
+const EXPORT_COLUMNS: [&str; 8] = [
+    "Time",
+    "Altitude",
+    "Velocity",
+    "Temperature (F)",
+    "Temperature (C)",
+    "Temp.",
+    "Voltage",
+    "Acceleration (calculated)",
+];
+
+/// The separator of a PerfectFlite export's header row: `Time`, `Altitude` and at least one more
+/// of the names an export writes ([`EXPORT_COLUMNS`]) and no other, by commas or tabs; `None` if
+/// the line isn't one.
+pub(crate) fn export_separator(header: &str) -> Option<char> {
+    [',', '\t'].into_iter().find(|separator| {
+        let names: Vec<&str> = header.split(*separator).map(str::trim).collect();
+        names.len() >= 3
+            && names[0] == "Time"
+            && names[1] == "Altitude"
+            && names.iter().all(|name| EXPORT_COLUMNS.contains(name))
+    })
+}
+
+/// Reads one of the exports PerfectFlite's software writes from a flight: comma-separated, with a
+/// header row such as `Time,Altitude,Velocity,Temperature (F),Voltage`, or tab-separated, with a
+/// header row such as `Time`, `Altitude`, `Temp.`, `Voltage` and temperatures written with their unit,
+/// such as `58.7F`.
+///
+/// The units are a `.pf2`'s: seconds, feet, feet per second, and the temperature's stated unit.
+/// The header doesn't state the altitude's, and two checks bear out feet on the collection's 16
+/// exports: each of the 12 CSV files with its flight's `.pf2` beside it peaks at that file's
+/// height, and every export's climb to apogee takes about as long as a fall from that many feet
+/// would (in meters, the fall would take 1.8 times longer than the climb did, which no rocket
+/// slowed by drag can match). An export doesn't name the logger's model, so the logger reads
+/// `PerfectFlite`. A column the reader doesn't know, such as `Acceleration (calculated)`, is kept
+/// as written.
+///
+/// # Errors
+///
+/// [`LogError::NotThisFormat`] if the first line isn't an export's header row;
+/// [`LogError::Syntax`] for a cell that isn't a number, a temperature in a unit other than its
+/// column's, a row with more cells than the header, or a time that doesn't increase;
+/// [`LogError::NoData`] if there are no rows.
+pub fn read_export(text: &str) -> Result<FlightLog, LogError> {
+    let text = text.strip_prefix('\u{feff}').unwrap_or(text);
+    let text = text.replace("\r\n", "\n").replace('\r', "\n");
+    let mut lines = text
+        .lines()
+        .enumerate()
+        .map(|(index, line)| (index + 1, line.trim()))
+        .filter(|(_, line)| !line.is_empty());
+    let Some((header_line, header)) = lines.next() else {
+        return Err(LogError::NotThisFormat {
+            format: EXPORT_CSV,
+            message: "the file is empty".to_owned(),
+        });
+    };
+    let Some(separator) = export_separator(header) else {
+        return Err(LogError::NotThisFormat {
+            format: EXPORT_CSV,
+            message: format!(
+                "its first line, {:?}, isn't a header row of `Time` then `Altitude`",
+                short(header)
+            ),
+        });
+    };
+    let (format, name) = if separator == ',' {
+        (LogFormat::PerfectFliteCsv, EXPORT_CSV)
+    } else {
+        (LogFormat::PerfectFliteText, EXPORT_TEXT)
+    };
+    let rows: Vec<(usize, Vec<&str>)> = lines
+        .map(|(number, line)| (number, line.split(separator).map(str::trim).collect()))
+        .collect();
+    if rows.is_empty() {
+        return Err(LogError::NoData { format: name });
+    }
+    let mut notes = Notes::default();
+    // A temperature column whose name states no unit takes the one its first cell is written in.
+    let names: Vec<&str> = header.split(separator).collect();
+    let cell_unit = names
+        .iter()
+        .position(|written| written.trim().to_ascii_lowercase().starts_with("temp"))
+        .and_then(|index| rows.iter().find_map(|(_, cells)| cells.get(index)))
+        .and_then(|cell| temperature_suffix(cell));
+    let columns = named_columns(names.into_iter(), cell_unit, &mut notes);
+    require_time_and_altitude(&columns, name, header_line, "header row", header)?;
+
+    let mut values = Vec::with_capacity(rows.len());
+    for (number, cells) in &rows {
+        let row = cells
+            .iter()
+            .zip(&columns)
+            .map(|(cell, (column, _))| export_cell(cell, *column, name, *number))
+            .collect::<Result<Vec<f64>, LogError>>()?;
+        if cells.len() > columns.len() {
+            return Err(LogError::Syntax {
+                format: name,
+                line: *number,
+                message: format!(
+                    "the row has {} values and the columns are {}",
+                    cells.len(),
+                    columns.len()
+                ),
+            });
+        }
+        values.push((*number, row));
+    }
+
+    let mut log = FlightLog {
+        format,
+        logger: "PerfectFlite".to_owned(),
+        serial_number: None,
+        firmware: None,
+        flight_number: None,
+        stated: Stated::default(),
+        time_s: Vec::new(),
+        altitude_m: Vec::new(),
+        vertical_speed_m_s: None,
+        temperature_k: None,
+        battery_v: None,
+        channels: Vec::new(),
+        events: Vec::new(),
+        notes: Vec::new(),
+    };
+    fill(&mut log, name, &columns, &values)?;
+    log.notes.extend(notes.kept);
+    Ok(log)
+}
+
+/// The unit a temperature cell is written in, such as `58.7F`; `None` for a bare number.
+fn temperature_suffix(cell: &str) -> Option<TemperatureUnit> {
+    match cell.trim().chars().last()? {
+        'F' | 'f' => Some(TemperatureUnit::Fahrenheit),
+        'C' | 'c' => Some(TemperatureUnit::Celsius),
+        _ => None,
+    }
+}
+
+/// An export's cell as a number in the file's unit: a temperature may carry its column's unit
+/// letter, and no other.
+fn export_cell(
+    cell: &str,
+    column: Column,
+    format: &'static str,
+    line: usize,
+) -> Result<f64, LogError> {
+    let digits = match (column, temperature_suffix(cell)) {
+        (_, None) => cell,
+        (Column::Temperature(unit), Some(written)) if unit == written => &cell[..cell.len() - 1],
+        _ => {
+            return Err(LogError::Syntax {
+                format,
+                line,
+                message: format!("{:?} carries a unit its column doesn't state", short(cell)),
+            });
+        }
+    };
+    digits
+        .trim()
+        .parse::<f64>()
+        .ok()
+        .filter(|value| value.is_finite())
+        .ok_or_else(|| LogError::Syntax {
+            format,
+            line,
+            message: format!("{:?} isn't a finite number", short(cell)),
+        })
 }
 
 /// The most notes about single lines a log keeps; past it, one more note counts the rest.
@@ -259,24 +447,43 @@ fn data_row(line: &str, number: usize) -> Result<Vec<f64>, LogError> {
         .collect()
 }
 
-/// The columns a `Data:` line names, such as `(Time, Altitude, Velocity, Temperature (F), Voltage)`.
-fn data_columns(value: &str, number: usize, notes: &mut Notes) -> Result<Vec<Column>, LogError> {
+/// The columns a `Data:` line names, such as `(Time, Altitude, Velocity, Temperature (F), Voltage)`,
+/// each with its name as written.
+fn data_columns(
+    value: &str,
+    number: usize,
+    notes: &mut Notes,
+) -> Result<Vec<(Column, String)>, LogError> {
     let inner = value.strip_prefix('(').unwrap_or(value);
     let inner = inner.strip_suffix(')').unwrap_or(inner);
-    let columns: Vec<Column> = inner
-        .split(',')
-        .map(|name| {
-            let name = name.trim().to_ascii_lowercase();
+    let columns = named_columns(inner.split(','), None, notes);
+    require_time_and_altitude(&columns, FORMAT, number, "`Data:` line", value)?;
+    Ok(columns)
+}
+
+/// Each column's meaning from its name, with the name as written. A temperature column whose name
+/// states no unit, such as the text export's `Temp.`, takes `cell_unit`, the unit its cells
+/// carry; without one it is kept as written.
+fn named_columns<'a>(
+    names: impl Iterator<Item = &'a str>,
+    cell_unit: Option<TemperatureUnit>,
+    notes: &mut Notes,
+) -> Vec<(Column, String)> {
+    names
+        .map(|written| {
+            let name = written.trim().to_ascii_lowercase();
             let column = if name.starts_with("time") {
                 Column::Time
             } else if name.starts_with("altitude") {
                 Column::Altitude
             } else if name.starts_with("velocity") {
                 Column::Velocity
-            } else if name.starts_with("temperature") && name.contains("(f)") {
+            } else if name.starts_with("temp") && name.contains("(f)") {
                 Column::Temperature(TemperatureUnit::Fahrenheit)
-            } else if name.starts_with("temperature") && name.contains("(c)") {
+            } else if name.starts_with("temp") && name.contains("(c)") {
                 Column::Temperature(TemperatureUnit::Celsius)
+            } else if let (true, Some(unit)) = (name.starts_with("temp"), cell_unit) {
+                Column::Temperature(unit)
             } else if name.starts_with("voltage") {
                 Column::Voltage
             } else {
@@ -284,25 +491,41 @@ fn data_columns(value: &str, number: usize, notes: &mut Notes) -> Result<Vec<Col
             };
             if column == Column::Unknown {
                 notes.push(format!(
-                    "the column {:?} isn't one this reader knows, and was left out",
+                    "the column {:?} isn't one this reader knows, and was kept as written",
                     short(&name)
                 ));
             }
-            column
+            (column, written.trim().to_owned())
         })
-        .collect();
+        .collect()
+}
+
+/// Refuses a list of columns without exactly one time and one altitude.
+fn require_time_and_altitude(
+    columns: &[(Column, String)],
+    format: &'static str,
+    line: usize,
+    what: &str,
+    written: &str,
+) -> Result<(), LogError> {
     for required in [Column::Time, Column::Altitude] {
-        if columns.iter().filter(|column| **column == required).count() != 1 {
-            return Err(syntax(
-                number,
-                format!(
-                    "the `Data:` line must name one {required:?} column: {:?}",
-                    short(value)
+        if columns
+            .iter()
+            .filter(|(column, _)| *column == required)
+            .count()
+            != 1
+        {
+            return Err(LogError::Syntax {
+                format,
+                line,
+                message: format!(
+                    "the {what} must name one {required:?} column: {:?}",
+                    short(written)
                 ),
-            ));
+            });
         }
     }
-    Ok(columns)
+    Ok(())
 }
 
 /// A stated height, such as `1009' AGL`, in meters; `None`, with a note, for one that isn't a
@@ -371,13 +594,17 @@ const QUOTED_CHARS: usize = 80;
 /// Puts the rows' values into the log's channels, in SI.
 fn fill(
     log: &mut FlightLog,
-    columns: &[Column],
+    format: &'static str,
+    columns: &[(Column, String)],
     rows: &[(usize, Vec<f64>)],
 ) -> Result<(), LogError> {
-    let has = |wanted: fn(&Column) -> bool| columns.iter().any(wanted);
-    let mut speed = has(|c| *c == Column::Velocity).then(Vec::new);
-    let mut temperature = has(|c| matches!(c, Column::Temperature(_))).then(Vec::new);
-    let mut battery = has(|c| *c == Column::Voltage).then(Vec::new);
+    let syntax = |line: usize, message: String| LogError::Syntax {
+        format,
+        line,
+        message,
+    };
+    // Every column's values, the time's included, row by row; a cell a row leaves out is NaN.
+    let mut values: Vec<Vec<f64>> = vec![Vec::with_capacity(rows.len()); columns.len()];
     for (number, cells) in rows {
         if cells.len() > columns.len() {
             return Err(syntax(
@@ -391,18 +618,16 @@ fn fill(
         }
         let mut time = None;
         let mut altitude = None;
-        let (mut v, mut t, mut u) = (f64::NAN, f64::NAN, f64::NAN);
-        for (column, value) in columns.iter().zip(cells) {
+        for (index, (column, _)) in columns.iter().enumerate() {
+            let cell = cells.get(index).copied();
             match column {
-                Column::Time => time = Some(*value),
-                Column::Altitude => altitude = Some(*value * FOOT_M),
-                Column::Velocity => v = *value * FOOT_M,
-                Column::Temperature(unit) => t = unit.kelvin(*value),
-                Column::Voltage => u = *value,
-                Column::Unknown => {}
+                Column::Time => time = cell,
+                Column::Altitude => altitude = cell,
+                _ => {}
             }
+            values[index].push(cell.map_or(f64::NAN, |value| si(*column, value)));
         }
-        let (Some(time), Some(altitude)) = (time, altitude) else {
+        let (Some(time), Some(_)) = (time, altitude) else {
             return Err(syntax(
                 *number,
                 "the row leaves out its time or its altitude".to_owned(),
@@ -417,17 +642,45 @@ fn fill(
             ));
         }
         log.time_s.push(time);
-        log.altitude_m.push(altitude);
-        for (channel, value) in [(&mut speed, v), (&mut temperature, t), (&mut battery, u)] {
-            if let Some(channel) = channel {
-                channel.push(value);
-            }
-        }
     }
-    log.vertical_speed_m_s = speed;
-    log.temperature_k = temperature;
-    log.battery_v = battery;
+    for ((column, name), values) in columns.iter().zip(values) {
+        let quantity = match column {
+            Column::Time => continue,
+            Column::Altitude => {
+                log.altitude_m.clone_from(&values);
+                Quantity::AltitudeAboveGround
+            }
+            Column::Velocity => {
+                log.vertical_speed_m_s = Some(values.clone());
+                Quantity::Speed
+            }
+            Column::Temperature(_) => {
+                log.temperature_k = Some(values.clone());
+                Quantity::Temperature
+            }
+            Column::Voltage => {
+                log.battery_v = Some(values.clone());
+                Quantity::Voltage
+            }
+            Column::Unknown => Quantity::Unrecognized,
+        };
+        log.channels.push(Channel {
+            column: name.clone(),
+            quantity,
+            time_s: log.time_s.clone(),
+            values,
+        });
+    }
     Ok(())
+}
+
+/// A cell's value in SI: feet to meters, temperatures to kelvin, the rest as written.
+fn si(column: Column, value: f64) -> f64 {
+    match column {
+        Column::Altitude | Column::Velocity => value * FOOT_M,
+        Column::Temperature(unit) => unit.kelvin(value),
+        Column::Time | Column::Voltage | Column::Unknown => value,
+    }
 }
 
 #[cfg(test)]

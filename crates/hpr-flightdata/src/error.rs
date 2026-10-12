@@ -18,11 +18,17 @@ pub enum LogError {
         message: String,
     },
     /// The file isn't in the format asked for.
-    #[error("not a {format} file: {message}")]
+    #[error("not read as {format}: {message}")]
     NotThisFormat {
         /// The format the file was read as.
         format: &'static str,
         /// Why it isn't one.
+        message: String,
+    },
+    /// The file is in none of the formats HPR Sim reads.
+    #[error("{message}")]
+    Unrecognized {
+        /// What the file looks like, and the formats HPR Sim reads.
         message: String,
     },
     /// The file has no data rows.

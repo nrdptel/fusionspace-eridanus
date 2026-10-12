@@ -714,6 +714,7 @@ version = "0.1.0"
 dependencies = [
  "fusionspace-hpr-atmos",
  "fusionspace-hpr-core",
+ "insta",
  "proptest",
  "serde",
  "serde_json",
@@ -2642,6 +2643,7 @@ dependencies = [
  "fusionspace-hpr-cli",
  "fusionspace-hpr-core",
  "fusionspace-hpr-design",
+ "fusionspace-hpr-flightdata",
  "fusionspace-hpr-format",
  "fusionspace-hpr-io",
  "fusionspace-hpr-motor",

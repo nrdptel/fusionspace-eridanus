@@ -1,0 +1,617 @@
+//! `cargo xtask logs [--check]`: reads every flight-log sample under `refs/` with
+//! `hpr_flightdata::import` and writes what came of each to `validation/reports/log-import.json`
+//! and `.md` (M7.1a, ADR-251).
+//!
+//! The samples are three sets, each file counted once by its content's SHA-256, in this order:
+//!
+//! - the private collection's catalog, `refs/hpr-sim-fixtures/catalog/logs.csv`, every row but
+//!   those under its unpinned `_scratch/` folder, the family from the catalog's own `format`;
+//! - Debrief's public fixtures and samples (`lib/parsers/__fixtures__`, `public/samples`), the
+//!   family from [`DEBRIEF`], a table of their names;
+//! - AerospaceNU's flight logs under `refs/research/aerospacenu-flights/`, the family from
+//!   [`aerospacenu_family`], a table of their first lines.
+//!
+//! A family never comes from HPR Sim's own recognition of the file, so a reader that fails to
+//! recognize a file of its family shows as a failure, not as a file of another family.
+//!
+//! The report holds counts, and per file an anonymized id (the first 16 hex digits of the file's
+//! SHA-256) with the first 16 of the SHA-256 of the record read from it, as compact JSON. That
+//! digest pins every reading of a sample that may not be committed, as a snapshot would (rule 4,
+//! ADR-151). `--check` writes nothing, and fails unless the report reproduces and every file of
+//! an M7.1a family ([`M7_1A`]) is read.
+
+use std::collections::{BTreeMap, BTreeSet};
+use std::fs;
+use std::path::{Path, PathBuf};
+
+use hpr_flightdata::error::LogError;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+
+pub const USAGE: &str =
+    "  logs [--check]          reads every flight-log sample under refs/ (the collection's
+                           catalog, Debrief's fixtures, AerospaceNU's logs) and writes
+                           validation/reports/log-import.json and .md; --check writes nothing
+                           and fails unless they reproduce and every M7.1a family's file is read";
+
+const REPORT_JSON: &str = "validation/reports/log-import.json";
+const REPORT_MD: &str = "validation/reports/log-import.md";
+const CATALOG: &str = "refs/hpr-sim-fixtures/catalog/logs.csv";
+const COLLECTION: &str = "refs/hpr-sim-fixtures";
+const DEBRIEF_DIRS: [&str; 2] = [
+    "refs/fusionspace-debrief/lib/parsers/__fixtures__",
+    "refs/fusionspace-debrief/public/samples",
+];
+const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
+
+/// The families M7.1a reads: every file of these must import.
+pub const M7_1A: [&str; 5] = [
+    "pf2",
+    "perfectflite-csv",
+    "perfectflite-txt",
+    "altos-csv",
+    "raven-csv",
+];
+
+/// Catalog families that aren't flight logs: pictures and documents filed with a flight.
+const NOT_LOGS: [&str; 5] = ["empty", "jpeg", "pdf", "png", "rtf"];
+
+/// Debrief's fixtures and samples by name, with each one's family in the catalog's words; a file
+/// missing from this table stops the survey.
+const DEBRIEF: [(&str, &str); 23] = [
+    ("aim-xtra.csv", "entacore-aim-csv"),
+    ("altimetercloud-mercury.csv", "altimetercloud-csv"),
+    ("altusmetrum-telemetrum.csv", "altos-csv"),
+    ("blueraven-app-hr.csv", "blueraven-csv"),
+    ("blueraven-app-lr.csv", "blueraven-csv"),
+    ("blueraven-app.summary.csv", "blueraven-summary-csv"),
+    ("featherweight-gps-groundstation.csv", "fwgps-csv"),
+    ("featherweight-gps.csv", "fwgps-csv"),
+    ("featherweight-raven-fip.csv", "raven-csv"),
+    ("perfectflite-pnut.pf2", "pf2"),
+    // A team's own CSV of a StratoLogger's flight, `time_s,altitude_ft,…`: generic CSV.
+    ("perfectflite-stratologger.csv", "csv"),
+    ("sample-spreadsheet.xlsx", "xlsx"),
+    ("sample-altusmetrum.csv", "altos-csv"),
+    ("sample-blueraven.csv", "blueraven-csv"),
+    ("sample-blueraven.summary.csv", "blueraven-summary-csv"),
+    // Debrief's six made-up flights, in its own CSV with a `Synthetic` marker row.
+    ("sample-design-flight.csv", "debrief-synthetic-csv"),
+    ("sample-gps-tracker.csv", "debrief-synthetic-csv"),
+    ("sample-mapper.csv", "debrief-synthetic-csv"),
+    ("sample-pnut.pf2", "pf2"),
+    ("sample-raven-fip.csv", "raven-csv"),
+    ("sample-saturated.csv", "debrief-synthetic-csv"),
+    ("sample-stage-booster.csv", "debrief-synthetic-csv"),
+    ("sample-stage-sustainer.csv", "debrief-synthetic-csv"),
+];
+
+/// Debrief files that aren't logs: its notes and a design.
+const DEBRIEF_SKIPPED: [&str; 2] = ["README.md", "sample-design.ork"];
+
+/// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
+/// the survey doesn't meet stops it, so the table can't outlive its files.
+const RECLASSIFIED: [(&str, &str, &str, &str); 1] = [(
+    "9c5017ab68168088",
+    "altos-csv",
+    "csv",
+    "a spreadsheet's re-save of an AltOS export, no longer AltosUI's layout: its header edited to \
+     carry units, its `height` column deleted, and three columns holding formulas",
+)];
+
+/// The report.
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+struct Report {
+    about: String,
+    sources: Vec<SourceCount>,
+    families: Vec<FamilyRow>,
+    /// Files moved from the catalog's family to their layout's: `id from -> to: why`.
+    reclassified: Vec<String>,
+    /// Files read, by the logger each record names, such as `PerfectFlite SLCF`.
+    loggers: BTreeMap<String, usize>,
+    /// One line a file: `id family source outcome record`, the record `-` when refused.
+    files: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+struct SourceCount {
+    source: String,
+    /// Files the source lists.
+    files: usize,
+    /// Of those, files the survey hadn't met in an earlier source.
+    distinct: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+struct FamilyRow {
+    family: String,
+    /// `M7.1a`, `M7.1b`, or `not a log`.
+    increment: String,
+    files: usize,
+    read: usize,
+    /// Refusals by kind.
+    refused: BTreeMap<String, usize>,
+}
+
+/// One distinct file.
+struct Sample {
+    path: PathBuf,
+    source: &'static str,
+    family: String,
+    bytes: Vec<u8>,
+}
+
+pub fn run(args: &[String]) -> Result<(), String> {
+    let mut check = false;
+    for arg in args {
+        match arg.as_str() {
+            "--check" => check = true,
+            other => return Err(format!("unknown argument `{other}`\n\n{USAGE}")),
+        }
+    }
+    let root = crate::designs::root()?;
+    let (samples, sources) = samples(&root)?;
+    let (report, unread) = survey(&samples, sources);
+    let json = serde_json::to_string_pretty(&report).map_err(|error| error.to_string())? + "\n";
+    let markdown = markdown(&report);
+    if check {
+        for (path, text) in [(REPORT_JSON, &json), (REPORT_MD, &markdown)] {
+            let committed = fs::read_to_string(root.join(path))
+                .map_err(|error| format!("reading {path}: {error}"))?;
+            if committed != *text {
+                return Err(format!("{path} does not reproduce; run `cargo xtask logs`"));
+            }
+        }
+    } else {
+        for (path, text) in [(REPORT_JSON, json), (REPORT_MD, markdown)] {
+            fs::write(root.join(path), text).map_err(|error| format!("writing {path}: {error}"))?;
+        }
+        println!("logs: wrote {REPORT_JSON} and {REPORT_MD}");
+    }
+    for family in &report.families {
+        println!(
+            "logs: {:<26} {:<9} {:>4} files, {:>4} read",
+            family.family, family.increment, family.files, family.read
+        );
+    }
+    if !unread.is_empty() {
+        return Err(format!(
+            "{} file(s) of an M7.1a family not read:\n{}",
+            unread.len(),
+            unread.join("\n")
+        ));
+    }
+    if check {
+        println!("logs: the committed report reproduces, and every M7.1a file is read");
+    }
+    Ok(())
+}
+
+/// Every distinct sample, and each source's counts.
+fn samples(root: &Path) -> Result<(Vec<Sample>, Vec<SourceCount>), String> {
+    let mut seen = BTreeSet::new();
+    let mut met = BTreeSet::new();
+    let mut samples = Vec::new();
+    let mut sources = Vec::new();
+    let mut add = |listed: Vec<(PathBuf, String)>, source: &'static str| -> Result<(), String> {
+        let files = listed.len();
+        let mut distinct = 0;
+        for (path, family) in listed {
+            let bytes =
+                fs::read(&path).map_err(|error| format!("reading {}: {error}", path.display()))?;
+            let hash = hex(&Sha256::digest(&bytes));
+            if seen.insert(hash.clone()) {
+                distinct += 1;
+                let mut family = family;
+                if let Some((_, from, to, _)) =
+                    RECLASSIFIED.iter().find(|(id, ..)| hash.starts_with(id))
+                {
+                    if family != *from {
+                        return Err(format!(
+                            "{} is listed as reclassified from {from}, but its family is {family}",
+                            &hash[..16]
+                        ));
+                    }
+                    family = (*to).to_owned();
+                    met.insert(hash[..16].to_owned());
+                }
+                samples.push(Sample {
+                    path,
+                    source,
+                    family,
+                    bytes,
+                });
+            }
+        }
+        sources.push(SourceCount {
+            source: source.to_owned(),
+            files,
+            distinct,
+        });
+        Ok(())
+    };
+    add(collection(root)?, "collection")?;
+    add(debrief(root)?, "debrief")?;
+    add(aerospacenu(root)?, "aerospacenu")?;
+    for (id, ..) in RECLASSIFIED {
+        if !met.contains(id) {
+            return Err(format!(
+                "the reclassified file {id} isn't among the samples"
+            ));
+        }
+    }
+    Ok((samples, sources))
+}
+
+/// The collection's catalog rows, but its scratch folder's, each with its family.
+fn collection(root: &Path) -> Result<Vec<(PathBuf, String)>, String> {
+    let text = fs::read_to_string(root.join(CATALOG))
+        .map_err(|error| format!("reading {CATALOG}: {error} (the survey needs refs/)"))?;
+    let mut records = csv_records(&text).into_iter();
+    let header = records.next().ok_or(format!("{CATALOG} is empty"))?;
+    let column = |name: &str| {
+        header
+            .iter()
+            .position(|cell| cell == name)
+            .ok_or(format!("{CATALOG} has no `{name}` column"))
+    };
+    let (path, format) = (column("path")?, column("format")?);
+    let mut listed = Vec::new();
+    for record in records {
+        let (Some(file), Some(family)) = (record.get(path), record.get(format)) else {
+            return Err(format!("{CATALOG}: a row has too few cells"));
+        };
+        if file.starts_with("_scratch/") {
+            continue;
+        }
+        listed.push((root.join(COLLECTION).join(file), family.clone()));
+    }
+    Ok(listed)
+}
+
+/// Debrief's fixtures and samples, each family from [`DEBRIEF`].
+fn debrief(root: &Path) -> Result<Vec<(PathBuf, String)>, String> {
+    let mut listed = Vec::new();
+    for dir in DEBRIEF_DIRS {
+        for path in sorted_files(&root.join(dir))? {
+            let name = file_name(&path);
+            if DEBRIEF_SKIPPED.contains(&name.as_str()) {
+                continue;
+            }
+            let family = DEBRIEF
+                .iter()
+                .find(|(file, _)| *file == name)
+                .map(|(_, family)| (*family).to_owned())
+                .ok_or(format!(
+                    "{dir}/{name} isn't in the survey's table of Debrief's files"
+                ))?;
+            listed.push((path, family));
+        }
+    }
+    Ok(listed)
+}
+
+/// AerospaceNU's logs: every `.csv`, `.txt`, `.pf2` and `.eeprom` but the per-flight
+/// `attributes.csv`, each family from [`aerospacenu_family`].
+fn aerospacenu(root: &Path) -> Result<Vec<(PathBuf, String)>, String> {
+    let mut listed = Vec::new();
+    let mut stack = vec![root.join(AEROSPACENU)];
+    let mut files = Vec::new();
+    while let Some(dir) = stack.pop() {
+        for path in sorted_entries(&dir)? {
+            if path.is_dir() {
+                stack.push(path);
+            } else {
+                files.push(path);
+            }
+        }
+    }
+    files.sort();
+    for path in files {
+        let name = file_name(&path);
+        let extension = name.rsplit('.').next().unwrap_or("").to_ascii_lowercase();
+        if name == "attributes.csv"
+            || !["csv", "txt", "pf2", "eeprom"].contains(&extension.as_str())
+        {
+            continue;
+        }
+        let bytes =
+            fs::read(&path).map_err(|error| format!("reading {}: {error}", path.display()))?;
+        listed.push((path, aerospacenu_family(&extension, &bytes).to_owned()));
+    }
+    Ok(listed)
+}
+
+/// An AerospaceNU log's family, from its extension and its first line that isn't blank, in the
+/// catalog's words where the catalog has one (`docs/research/aerospacenu-flights.md` describes
+/// each).
+fn aerospacenu_family(extension: &str, bytes: &[u8]) -> &'static str {
+    let text = String::from_utf8_lossy(bytes);
+    let first = text
+        .lines()
+        .map(str::trim)
+        .find(|line| !line.is_empty())
+        .unwrap_or("");
+    if extension == "eeprom" {
+        "altos-eeprom"
+    } else if extension == "pf2" || first.to_ascii_lowercase().starts_with("perfectflite") {
+        "pf2"
+    } else if first.starts_with("#version,") {
+        "altos-csv"
+    } else if first.contains("packetType") || first.contains("timestamp_ms") {
+        "aerospacenu-fcb-csv"
+    } else if first.starts_with("timestampMs") || first.starts_with("CONFIG") {
+        "aerospacenu-sillygoose-txt"
+    } else if extension == "csv" {
+        "csv"
+    } else {
+        "txt"
+    }
+}
+
+/// Reads every sample; the report, and the M7.1a files that weren't read.
+fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>) {
+    let mut families: BTreeMap<String, FamilyRow> = BTreeMap::new();
+    let mut files = Vec::new();
+    let mut unread = Vec::new();
+    let mut loggers: BTreeMap<String, usize> = BTreeMap::new();
+    for sample in samples {
+        let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
+        let increment = if M7_1A.contains(&sample.family.as_str()) {
+            "M7.1a"
+        } else if NOT_LOGS.contains(&sample.family.as_str()) {
+            "not a log"
+        } else {
+            "M7.1b"
+        };
+        let row = families
+            .entry(sample.family.clone())
+            .or_insert_with(|| FamilyRow {
+                family: sample.family.clone(),
+                increment: increment.to_owned(),
+                files: 0,
+                read: 0,
+                refused: BTreeMap::new(),
+            });
+        row.files += 1;
+        let (outcome, record) = match hpr_flightdata::import::read(&sample.bytes) {
+            Ok(log) => {
+                row.read += 1;
+                *loggers.entry(log.logger.clone()).or_default() += 1;
+                // serde_json writes a NaN as null, and the record holds nothing unordered, so
+                // the same file reads to the same bytes.
+                let record = match serde_json::to_vec(&log) {
+                    Ok(json) => hex(&Sha256::digest(&json))[..16].to_owned(),
+                    Err(_) => "unwritable".to_owned(),
+                };
+                (format!("{:?}", log.format), record)
+            }
+            Err(error) => {
+                let kind = refusal(&error);
+                *row.refused.entry(kind.to_owned()).or_default() += 1;
+                if increment == "M7.1a" {
+                    unread.push(format!(
+                        "  {} ({}, {}): {error}",
+                        sample.path.display(),
+                        sample.family,
+                        id
+                    ));
+                }
+                (format!("refused:{kind}"), "-".to_owned())
+            }
+        };
+        files.push(format!(
+            "{id} {} {} {outcome} {record}",
+            sample.family, sample.source
+        ));
+    }
+    files.sort();
+    let report = Report {
+        about: "Every flight-log sample under refs/, read by hpr_flightdata::import (M7.1a, \
+                ADR-251): `cargo xtask logs`. A file's id is the first 16 hex digits of its \
+                SHA-256, its record the first 16 of the SHA-256 of the JSON record read from it."
+            .to_owned(),
+        sources,
+        families: families.into_values().collect(),
+        reclassified: RECLASSIFIED
+            .iter()
+            .map(|(id, from, to, why)| format!("{id} {from} -> {to}: {why}"))
+            .collect(),
+        loggers,
+        files,
+    };
+    (report, unread)
+}
+
+/// A refusal's kind, never its message, which can quote the file.
+fn refusal(error: &LogError) -> &'static str {
+    match error {
+        LogError::Unrecognized { .. } => "unrecognized",
+        LogError::NotThisFormat { .. } => "not-this-format",
+        LogError::Syntax { .. } => "syntax",
+        LogError::NoData { .. } => "no-data",
+        LogError::Unit { .. } => "unit",
+        _ => "other",
+    }
+}
+
+/// The report as a page: the sources, then each family's counts.
+fn markdown(report: &Report) -> String {
+    let mut out = String::from(
+        "# Flight-log samples, read\n\n\
+         Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-log \
+         sample under `refs/` read by HPR Sim's importer (M7.1a, ADR-251): the private \
+         collection's catalog, Debrief's fixtures and samples, and AerospaceNU's logs, each file \
+         once. A family is the catalog's name for a layout; *unrecognized* means no reader \
+         knows the layout yet.\n\n\
+         | Source | Files | Not met before |\n|---|---:|---:|\n",
+    );
+    for source in &report.sources {
+        out += &format!(
+            "| {} | {} | {} |\n",
+            source.source, source.files, source.distinct
+        );
+    }
+    out += "\n| Family | Increment | Files | Read | Refused |\n|---|---|---:|---:|---|\n";
+    let mut total = (0, 0);
+    for family in &report.families {
+        let refused: Vec<String> = family
+            .refused
+            .iter()
+            .map(|(kind, count)| format!("{count} {kind}"))
+            .collect();
+        out += &format!(
+            "| {} | {} | {} | {} | {} |\n",
+            family.family,
+            family.increment,
+            family.files,
+            family.read,
+            if refused.is_empty() {
+                "none".to_owned()
+            } else {
+                refused.join(", ")
+            }
+        );
+        total.0 += family.files;
+        total.1 += family.read;
+    }
+    out += &format!("| **All** | | {} | {} | |\n", total.0, total.1);
+    if !report.reclassified.is_empty() {
+        out += "\nFiles whose catalog family isn't their layout, moved to their layout's:\n\n";
+        for line in &report.reclassified {
+            out += &format!("- `{}\n", line.replacen(": ", "`: ", 1));
+        }
+    }
+    out += "\nThe files read, by the logger each names:\n\n| Logger | Files |\n|---|---:|\n";
+    for (logger, count) in &report.loggers {
+        out += &format!("| {logger} | {count} |\n");
+    }
+    out
+}
+
+/// The records of a CSV text, quotes and doubled quotes honored.
+fn csv_records(text: &str) -> Vec<Vec<String>> {
+    let mut records = Vec::new();
+    let mut record = Vec::new();
+    let mut cell = String::new();
+    let mut quoted = false;
+    let mut chars = text.chars().peekable();
+    while let Some(c) = chars.next() {
+        match (c, quoted) {
+            ('"', true) if chars.peek() == Some(&'"') => {
+                cell.push('"');
+                chars.next();
+            }
+            ('"', _) => quoted = !quoted,
+            (',', false) => record.push(std::mem::take(&mut cell)),
+            ('\n', false) => {
+                record.push(std::mem::take(&mut cell));
+                records.push(std::mem::take(&mut record));
+            }
+            ('\r', false) => {}
+            _ => cell.push(c),
+        }
+    }
+    if !cell.is_empty() || !record.is_empty() {
+        record.push(cell);
+        records.push(record);
+    }
+    records
+}
+
+fn sorted_entries(dir: &Path) -> Result<Vec<PathBuf>, String> {
+    let mut paths: Vec<PathBuf> = fs::read_dir(dir)
+        .map_err(|error| {
+            format!(
+                "reading {}: {error} (the survey needs refs/)",
+                dir.display()
+            )
+        })?
+        .filter_map(|entry| entry.ok().map(|entry| entry.path()))
+        .collect();
+    paths.sort();
+    Ok(paths)
+}
+
+fn sorted_files(dir: &Path) -> Result<Vec<PathBuf>, String> {
+    Ok(sorted_entries(dir)?
+        .into_iter()
+        .filter(|path| path.is_file())
+        .collect())
+}
+
+fn file_name(path: &Path) -> String {
+    path.file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_default()
+}
+
+fn hex(bytes: &[u8]) -> String {
+    bytes.iter().map(|byte| format!("{byte:02x}")).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn csv_records_honor_quotes() {
+        let records = csv_records("a,b\n\"x, y\",\"say \"\"hi\"\"\"\r\nlast,");
+        assert_eq!(
+            records,
+            [vec!["a", "b"], vec!["x, y", "say \"hi\""], vec!["last", ""]]
+        );
+    }
+
+    #[test]
+    fn aerospacenu_families_come_from_the_first_line() {
+        let cases = [
+            ("eeprom", "{\"anything\"", "altos-eeprom"),
+            ("txt", "PerfectFlite SLCF", "pf2"),
+            ("csv", "#version,serial,flight", "altos-csv"),
+            ("csv", ",packetType,timestamp_ms", "aerospacenu-fcb-csv"),
+            (
+                "txt",
+                "timestampMs\tpressurePa",
+                "aerospacenu-sillygoose-txt",
+            ),
+            ("csv", "timestamp,latitude,longitude", "csv"),
+            ("txt", "{'a': 1}", "txt"),
+        ];
+        for (extension, first, family) in cases {
+            assert_eq!(
+                aerospacenu_family(extension, first.as_bytes()),
+                family,
+                "{first}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_refused_m7_1a_file_is_named_and_counted() {
+        let samples = [
+            Sample {
+                path: "a.csv".into(),
+                source: "test",
+                family: "altos-csv".to_owned(),
+                bytes: b"not a log".to_vec(),
+            },
+            Sample {
+                path: "b.png".into(),
+                source: "test",
+                family: "png".to_owned(),
+                bytes: b"\x89PNG".to_vec(),
+            },
+        ];
+        let (report, unread) = survey(&samples, Vec::new());
+        assert_eq!(unread.len(), 1, "{unread:?}");
+        assert!(unread[0].contains("a.csv"), "{unread:?}");
+        let altos = &report.families[0];
+        assert_eq!(
+            (altos.family.as_str(), altos.increment.as_str(), altos.read),
+            ("altos-csv", "M7.1a", 0)
+        );
+        assert_eq!(altos.refused.get("unrecognized"), Some(&1));
+        assert_eq!(report.families[1].increment, "not a log");
+    }
+}

@@ -3,10 +3,8 @@
 See how HPR Sim reads the flight log a PerfectFlite altimeter saves, a `.pf2` file of barometric
 heights and speeds, and what it refuses.
 
-A `.pf2` file is the flight log a PerfectFlite altimeter's software saves. The one read so far is a
-Pnut's; the StratoLogger and StratoLoggerCF are expected to write the same layout, as the reader in
-Debrief (the project owner's earlier flight-log analyzer) assumes, but no file of theirs has been
-read. It is plain text: a few lines about the altimeter and the flight, then one row per sample,
+A `.pf2` file is the flight log a PerfectFlite altimeter's software saves: the Pnut's, the
+StratoLogger's and the StratoLoggerCF's alike. It is plain text: a few lines about the altimeter and the flight, then one row per sample,
 about 20 a second, with the time, altitude, speed, temperature and battery voltage. A PerfectFlite
 has a barometer and no accelerometer, so every height and speed in it comes from air pressure.
 
@@ -15,10 +13,11 @@ has a barometer and no accelerometer, so every height and speed in it comes from
 
 This page is the reference for HPR Sim's reader. PerfectFlite publishes no specification of the
 format, so everything here was learned from exported files, by Debrief, the project owner's
-earlier flight-log analyzer, whose reader this one follows. One real file has been read: Debrief's
-public Pnut log.
+earlier flight-log analyzer, whose reader this one follows. Every `.pf2` among the project's sample
+logs is read: 175 files, 101 of them a StratoLoggerCF's, 39 a Pnut's and 35 a StratoLogger
+SL100's ([the survey](flight-logs.md#how-it-was-checked)).
 
-> **How far to trust it.** The layout below is what that file and Debrief's reader agree on. A
+> **How far to trust it.** The layout below is what those files and Debrief's reader agree on. A
 > variant it doesn't cover is refused or noted, not guessed at.
 
 Code: `hpr_flightdata::perfectflite`
@@ -93,7 +92,8 @@ These are noted and read around. [`hpr analyze`](../cli.md#hpr-analyze) prints e
 keeps the first 20 notes about them and counts the rest in one more:
 
 - no `Data:` line: the columns are taken to be the five above, in that order, as Debrief takes them;
-- a column the reader doesn't know: left out;
+- a column the reader doesn't know: kept as written, among the record's channels, marked
+  unrecognized ([the record](flight-logs.md#the-record));
 - a line in the header that isn't `Key: value`: skipped;
 - a sample count that differs from `NumSamps:`;
 - a stated apogee or ground elevation that can't be read as feet, such as `PWRLOSS`, `1,009'`,

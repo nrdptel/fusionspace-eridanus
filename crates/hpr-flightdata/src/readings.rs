@@ -510,12 +510,17 @@ fn arg_max(values: &[f64]) -> Option<usize> {
         .map(|(index, _)| index)
 }
 
-/// The top acceleration, withheld: no format read so far records one.
+/// The top acceleration, withheld: a PerfectFlite records none, and the readings don't use the
+/// accelerometers other loggers record until M7.2.
 fn no_accelerometer(log: &FlightLog) -> Reading<MaxAcceleration> {
     let detail = match log.format {
-        LogFormat::PerfectFlitePf2 => {
+        LogFormat::PerfectFlitePf2 | LogFormat::PerfectFliteCsv | LogFormat::PerfectFliteText => {
             "a PerfectFlite logger has no accelerometer; HPR Sim doesn't difference the altitude \
              twice to make one, as its one-foot steps would read as spikes of many g"
+        }
+        _ => {
+            "HPR Sim doesn't read a logger's accelerometer yet: that comes with roadmap \
+             milestone M7.2"
         }
     };
     Reading::withheld(Reason::NoAccelerometer, detail)
@@ -664,6 +669,8 @@ mod tests {
             vertical_speed_m_s: Some(speed),
             temperature_k: None,
             battery_v: None,
+            channels: Vec::new(),
+            events: Vec::new(),
             notes: Vec::new(),
         }
     }
