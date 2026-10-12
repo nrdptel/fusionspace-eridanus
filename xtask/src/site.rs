@@ -333,8 +333,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
     );
     let measures = &laid_out.measures;
     println!(
-        "page measure: {} of {} pages set 20 lines or more at the full measure at one of these \
-         widths or more, {}; the longest line of prose on any page {} characters (the system's \
+        "page measure: {} of {} pages set 20 lines or more at the full measure at one or more \
+         of these widths, {}; the longest line of prose on any page {} characters (the system's \
          counter, ADR-250)",
         measures.judged,
         laid_out.pages,

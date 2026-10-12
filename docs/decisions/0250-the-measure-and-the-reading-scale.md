@@ -21,8 +21,9 @@ is `68ex`); GOV.UK at most 75; WCAG 2.2's SC 1.4.8 (AAA) no more than 80 per lin
 1. **The measure** (`foundations.md`, *Type*): the median line 60 to 75 characters and none over
    80, spaces counted, set in em of the text: 29.5 em of Archivo. `cargo xtask site` prints what
    the system's counter reads: on 2026-10-12, at all 41 widths, "69 of 73 pages set 20 lines or
-   more at the full measure at one of these widths or more, their medians 61 to 67 characters;
-   the longest line of prose on any page 78 characters".
+   more at the full measure at one or more of these widths, their medians 61 to 67 characters;
+   the longest line of prose on any page 78 characters"; the other 4 set too few lines at the
+   full measure to judge.
 2. **A reading scale** (`foundations.md`, *Type*): a reading page (documentation, a report, an
    article) grows the whole type scale together, ×1 up to a 1,024 px window, ×1.125 from 1,600
    px, linear between, so body text goes from 16 to 18 px (17.7 px at 1,512). It is a clamp() of
@@ -55,13 +56,15 @@ is `68ex`); GOV.UK at most 75; WCAG 2.2's SC 1.4.8 (AAA) no more than 80 per lin
    every size inside `.content` against the scale times the factor the window's width gives, on
    a page that declares the scale (`--fs-text`), so a page whose scale is off is read against the
    rule, not against itself; judges the measure with the system's counter, the median only on 20
-   lines or more set at the full measure; fails prose held under the measure by anything but the
-   window (a cap on `main` or a box around it below the measure, or a width of its own), which
-   the median alone can't see; and holds the column's left gutter at every width.
+   lines or more set at the full measure; fails prose held under the measure by a cap or a width
+   (a max-width on `main` or a box around it below the measure, or a width of its own), which
+   the median alone can't see, and leaves prose narrowed by its own margins or padding to
+   review, since those are how lists, quotes and notes indent; and holds the column's left gutter at every width.
    New canaries show each failure at every width (a line of 81 characters, prose held to a
-   median of about 40, prose held by a cap on `main` and by a width of its own, a centered
+   median of about 40, prose held by a cap on `main`, by a width of its own and by a max-width in percent, a centered
    column, a declared scale off the system's) and pass its
-   counterparts (a line of 80, prose at the measure, a page on the reading scale).
+   counterparts (a line of 80, prose at the measure, prose beside a classic scrollbar, indented
+   prose, a page on the reading scale).
 
 **Consequences.** On a 1,512 px window body text is 17.7 px (16 px times the scale's factor there,
 1 + 0.125 × 488 / 576) and prose about 522 px wide (29.5 em of it), where it

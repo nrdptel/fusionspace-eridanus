@@ -1460,21 +1460,24 @@
           measured.counted + ' lines, against ' + MEASURE.median[0] + ' to ' + MEASURE.median[1]);
       }
 
-      // Prose held under the measure by something other than the window: a cap on `main` or on a
-      // box between it and the block, or a width of the block's own. The median above can't see
-      // it, since such a block isn't at its measure. A block's room is what `main`'s parent gives,
-      // less the margins of every box down to the block and the borders and padding of each
-      // around it, and no wider than a box around it capped at its own measure or more (a list in
-      // a list item, a note set to the measure). A block of two lines or more narrower than both
-      // that room and its measure (its own max-width, or the system's measure in its text when it
-      // has none) is held.
+      // Prose held under the measure by a cap or a width: a max-width on `main` or on a box
+      // between it and the block below the measure, or a width of the block's own. The median
+      // above can't see it, since such a block isn't at its measure. A block's room is what
+      // `main`'s parent leaves inside its padding and scrollbar, less the margins of every box down
+      // to the block and the borders and padding of each around it, and no wider than a box
+      // around it capped at its own measure or more (a list in a list item, a note set to the
+      // measure). A block of two lines or more narrower than both that room and its measure (its
+      // own max-width in px, or the system's measure in its text when it has none or a
+      // percentage) is held. Margins and padding are indentation (a list's, a quote's, a note's)
+      // and count as room, so a block narrowed by its own margins or padding is left to review.
       const px = (v) => parseFloat(v) || 0;
       const sides = (s, what) => px(s[what + 'Left']) + px(s[what + 'Right']);
       const frame = (s) => sides(s, 'padding') + px(s.borderLeftWidth) + px(s.borderRightWidth);
       const holder = main.parentElement;
-      const given = holder.getBoundingClientRect().width - frame(win.getComputedStyle(holder));
+      const given = holder.clientWidth - sides(win.getComputedStyle(holder), 'padding');
       for (const b of measured.blocks) {
-        if (b.at_measure || b.lines.length < 2) continue;
+        const fixed = win.getComputedStyle(b.block).maxWidth.endsWith('px');
+        if ((b.at_measure && fixed) || b.lines.length < 2) continue;
         const chain = [];
         for (let e = b.block; e && e !== holder; e = e.parentElement) chain.unshift(e);
         let room = given;
@@ -1482,15 +1485,14 @@
           const s = win.getComputedStyle(e);
           room -= sides(s, 'margin');
           if (e === b.block) break;
-          const cap = parseFloat(s.maxWidth);
+          const cap = s.maxWidth.endsWith('px') ? parseFloat(s.maxWidth) : NaN;
           if (Number.isFinite(cap) && cap >= MEASURE.em * px(s.fontSize) - 1) {
             room = Math.min(room, cap + (s.boxSizing === 'border-box' ? 0 : frame(s)));
           }
           room -= frame(s);
         }
         const s = win.getComputedStyle(b.block);
-        const own = parseFloat(s.maxWidth);
-        const most = Number.isFinite(own) ? own : MEASURE.em * px(s.fontSize);
+        const most = fixed ? parseFloat(s.maxWidth) : MEASURE.em * px(s.fontSize);
         const border = s.boxSizing === 'border-box';
         const drawn = b.block.getBoundingClientRect().width - (border ? 0 : frame(s));
         const roomBox = room - (border ? 0 : frame(s));

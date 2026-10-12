@@ -279,11 +279,12 @@ Colors off the system's palette, rounded corners, shadows, motion off its timing
 sizes all fail it. Body text is 16 px up to a 1,024 px window, grows with the window, and is
 18 px from 1,600 px; the check reads each size against the one the window's width gives. The
 *measure* is how wide a line of prose runs, 29.5 em of its text. A line of prose over 80
-characters fails, and so does a page whose median line at the full measure is outside 60 to 75
-characters, judged once 20 or more such lines are set (a short page passes unjudged). Prose
-held narrower than the measure by anything but the window, a column off flush left beside the
-sidebar (its left edge set against it, not centered), and gutters off 16 or 32 px fail it
-too ([ADR-250](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0250-the-measure-and-the-reading-scale.md)), and so do:
+characters fails, and so does a page whose median line is outside 60 to 75 characters (the
+middle one when the lines set at the full measure are sorted by length), judged once 20 or more
+such lines are set (a short page passes unjudged). Prose held narrower than the measure by a
+cap or a width (on the column, on a box around the prose, or on the prose itself; margins and
+padding are indentation, left to review), a column off flush left beside the sidebar (its left
+edge set against it, not centered), and gutters off 16 or 32 px fail it too ([ADR-250](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0250-the-measure-and-the-reading-scale.md)), and so do:
 
 - text under the contrast that WCAG 2.2 AA (the W3C's Web Content Accessibility Guidelines,
   level AA) asks for against the background it is drawn on: 4.5 : 1, or 3 : 1 for text of

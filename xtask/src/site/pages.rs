@@ -85,9 +85,11 @@
 //!     half a line below the one before starts a new line; a word broken across lines is split
 //!     where it breaks; characters are counted by code point. The system's own check counts them
 //!     (`fusionspace-check.js`, which also holds these numbers). Nor may prose of two lines or
-//!     more be held under its measure by anything but the window: a cap on `main` or a box
-//!     around it below the measure, or a width of its own. A box capped at its own measure or
-//!     more (a list item holding a list, a note) only narrows what it holds;
+//!     more be held under its measure by a cap or a width: a max-width on `main` or on a box
+//!     around it below the measure, or a width of its own (a max-width in percent counts as
+//!     none). A box capped at its own measure or more (a list item holding a list, a note) only
+//!     narrows what it holds. Margins and padding are indentation and count as room, so prose
+//!     narrowed by them is left to review;
 //!   - **gutters off the system's** (`foundations.md`, *Width*): `main` must sit 16 px from the
 //!     left of the pane that holds it (mdBook's `.page-wrapper`, beside the sidebar) in a window
 //!     under 720 px and 32 px from 720 px, flush left at every width, and as far from the right,
@@ -966,7 +968,7 @@ macro_rules! switch_frame {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 162] = [
+const CANARIES: [Canary; 165] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1333,6 +1335,47 @@ const CANARIES: [Canary; 162] = [
         expect: &[Kind::Measure],
         inside: concat!(
             "<style>main p.held { max-width: none; width: 15em; }</style><p class=\"held\">",
+            prose!(),
+            "</p>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-measure-percent.html",
+        what: "prose held to a fifth of its column by a max-width in percent, under the measure \
+               at every width",
+        expect: &[Kind::Measure],
+        inside: concat!(
+            "<style>main p.held { max-width: 20%; }</style><p class=\"held\">",
+            prose!(),
+            "</p>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-measure-scrollbar.html",
+        what: "prose narrowed only by the window, beside a classic scrollbar on `.content` that \
+               takes 15 px of the right gutter, which must pass",
+        expect: &[],
+        inside: concat!(
+            "<style>.content { overflow-y: scroll; padding-right: 1px; } \
+             @media (min-width: 720px) { .content { padding-right: 17px; } } \
+             .content::-webkit-scrollbar { width: 15px; } \
+             .content::-webkit-scrollbar-thumb { background: #5A6275; } \
+             main p.held { max-width: 29.5em; }</style><p class=\"held\">",
+            prose!(),
+            "</p>"
+        ),
+        after: "",
+    },
+    Canary {
+        file: "canary-measure-indent.html",
+        what: "prose indented by margins and padding of its own, which the measure leaves to \
+               review and must pass",
+        expect: &[],
+        inside: concat!(
+            "<style>main p.held { max-width: 29.5em; margin-left: 2em; padding-left: 1em; }\
+             </style><p class=\"held\">",
             prose!(),
             "</p>"
         ),
