@@ -74,7 +74,7 @@ worker at `/sw.js` and has a page per project at `/projects/<id>`. hpr's own pag
    It finds the pages itself (every `.html` under `site/`). Of the 47 pages under
    `checks/canaries/`, 45 are built to fail one way and name it, and a test requires the check to
    find exactly that kind there; the other two (a clean page, and a claim beside its comparison)
-   must pass, as the site must. One of them holds 32 claim sentences, a paragraph each, and a
+   must pass, as the site must. One of them holds claim sentences, a paragraph each, and a
    test requires every one to be reported on its own.
 7. **The "better" rule** ([ADR-209][adr-209] §2). Review rounds kept finding phrasings a list of
    phrases missed, so the check is a closed grammar instead: a claim is anything that compares,
