@@ -6,7 +6,9 @@
 //! and it fails any number in the page's text that no quote covers. The text is what a reader
 //! reads as prose: paragraphs, list items, table cells, headings and image descriptions. Code is
 //! not, since it quotes commands and their output, so the numbers in a block `cargo xtask cli`
-//! regenerates follow the program instead; nor is a decision record's label (`ADR-211`).
+//! regenerates, or in Python and its output that the Python package's docs test runs and rewrites
+//! (`crates/hpr-py/tests/test_docs.py`), follow the program instead; nor is a decision record's
+//! label (`ADR-211`).
 //!
 //! A quote reads the reports through [`Reports`], which records each value read. The tests move
 //! every value a quote read, one at a time, and require each hole to change under one of the moves
@@ -632,8 +634,10 @@ struct Block {
     kind: Kind,
 }
 
-/// A page as the check reads it: its blocks, and the text of the blocks `cargo xtask cli`
-/// regenerates, between a `<!-- cli: example … -->` and its `<!-- cli: end -->`.
+/// A page as the check reads it: its blocks, and the text of the regenerated blocks: those
+/// `cargo xtask cli` writes, between a `<!-- cli: example … -->` and its `<!-- cli: end -->`, and
+/// the Python and its output the Python package's docs test runs and rewrites, between a
+/// `<!-- python: example -->` and its `<!-- python: end -->`.
 struct Read {
     blocks: Vec<Block>,
     regenerated: String,
@@ -642,6 +646,11 @@ struct Read {
 /// The marker that opens a block `cargo xtask cli` regenerates, and the one that ends it.
 const CLI_EXAMPLE: &str = "<!-- cli: example";
 const CLI_END: &str = "<!-- cli: end -->";
+/// The markers around Python and its output that the Python package's docs test runs, holds to
+/// the page and rewrites (`crates/hpr-py/tests/test_docs.py`, which fails a marked block it can't
+/// run). Exact, as the test reads them.
+const PYTHON_EXAMPLE: &str = "<!-- python: example -->";
+const PYTHON_END: &str = "<!-- python: end -->";
 
 /// `html` without its comments; `None` if a comment doesn't close in it, which fails closed.
 fn without_comments(html: &str) -> Option<String> {
@@ -673,7 +682,7 @@ fn prose(page: &str) -> Read {
     let mut start: Option<usize> = None;
     // The code block being read: where it starts, and its text.
     let mut code: Option<(usize, String)> = None;
-    let mut in_cli = false;
+    let mut regenerating = false;
     let flush = |text: &mut String, start: &mut Option<usize>, blocks: &mut Vec<Block>| {
         let words = text.split_whitespace().collect::<Vec<_>>().join(" ");
         if let Some(at) = start.take()
@@ -692,7 +701,7 @@ fn prose(page: &str) -> Read {
             Event::Start(Tag::CodeBlock(_)) => code = Some((range.start, String::new())),
             Event::End(TagEnd::CodeBlock) => {
                 if let Some((at, body)) = code.take() {
-                    if in_cli {
+                    if regenerating {
                         regenerated.push_str(&body);
                         regenerated.push('\n');
                     } else {
@@ -724,10 +733,10 @@ fn prose(page: &str) -> Read {
             }
             Event::Html(html) | Event::InlineHtml(html) => {
                 let trimmed = html.trim();
-                if trimmed.starts_with(CLI_EXAMPLE) {
-                    in_cli = true;
-                } else if trimmed == CLI_END {
-                    in_cli = false;
+                if trimmed.starts_with(CLI_EXAMPLE) || trimmed == PYTHON_EXAMPLE {
+                    regenerating = true;
+                } else if trimmed == CLI_END || trimmed == PYTHON_END {
+                    regenerating = false;
                 }
                 let shown = without_comments(&html);
                 if shown
@@ -869,8 +878,9 @@ fn page_problems(name: &str, page: &str, quotes: &[String]) -> Vec<String> {
             Kind::Code => {
                 if let Some(number) = crate::site::quoted(&block.text).first() {
                     problems.push(format!(
-                        "{name}:{line}: `{number}` is in a code block `cargo xtask cli` doesn't \
-                         regenerate: make it an example the command runs, or leave the number out"
+                        "{name}:{line}: `{number}` is in a code block nothing regenerates: make \
+                         it an example `cargo xtask cli` runs, or Python between \
+                         `{PYTHON_EXAMPLE}` and `{PYTHON_END}`, or leave the number out"
                     ));
                 }
             }
@@ -1436,6 +1446,17 @@ mod tests {
         assert!(!page_problems("p", unshown, &quotes).is_empty());
         let plain = "# A page\n\nAcross 53 logged flights.\n\n```text\nmiss = 12 / 100\n```\n";
         assert!(!page_problems("p", plain, &quotes).is_empty());
+        // Python the docs test runs is regenerated, its output too, and only between its markers.
+        let python = "# A page\n\nAcross 53 logged flights, `print(12)`.\n\n\
+                      <!-- python: example -->\n\n```python\nprint(12)\n```\n\n\
+                      ```text\n12\n```\n\n<!-- python: end -->\n";
+        assert_eq!(page_problems("p", python, &quotes), Vec::<String>::new());
+        for unmarked in [
+            python.replace("<!-- python: example -->", "<!-- python -->"),
+            python.replace("<!-- python: end -->\n", "<!-- python: end -->\n\n```text\n13\n```\n"),
+        ] {
+            assert!(!page_problems("p", &unmarked, &quotes).is_empty(), "{unmarked}");
+        }
         // A quote split by inline code is not the quote.
         let split = "# A page\n\nAcross 53 `logged` flights.\n";
         assert!(!page_problems("p", split, &quotes).is_empty());

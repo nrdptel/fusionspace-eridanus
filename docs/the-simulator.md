@@ -65,7 +65,7 @@ what to do on macOS when it can't check the program.
 ## Next
 
 - **[A tour of HPR Sim](simulator-tour.md):** fly the guide rocket, read what it prints,
-  scatter its inputs, and see how HPR Sim did on a public flight.
+  scatter its inputs, fly it again from Python, and see how HPR Sim did on a public flight.
 - **The task pages:** [Fly your .ork](fly-your-ork.md),
   [Pick a motor](pick-a-motor.md),
   [Check stability for a certification flight](stability-for-certification.md),
