@@ -120,7 +120,7 @@ printed margins, static and flight, are the small-angle ones, so they don't show
 simulated flight does: HPR Sim flies the body lift at each moment's angle, so a rocket leaving the
 rail in a crosswind, or knocked by a gust, turns as this smaller margin turns it.
 
-How far to trust it: HPR Sim's body lift has been checked against wind-tunnel tests of bodies
+HPR Sim's body lift has been checked against wind-tunnel tests of bodies
 without fins ([Body lift](physics/aero.md#body-lift)), but no measurement here checks a whole
 rocket's center of pressure at a large angle, and no test pins which way it errs there. So this
 section marks no side.
