@@ -197,6 +197,15 @@ A new guide goes in `SUMMARY.md` under *Rocketry explained*, and in `guides()` i
 `xtask/src/guides.rs` with its quotes and figures; one with a regenerated block also goes in the
 list of guides in `xtask/src/cli.rs`.
 
+The product guides, under *Product guides* (a product's landing page and its tour, such as
+[A tour of HPR Sim](simulator-tour.md)), follow the same format and join the same lists. Their
+pictures of the command line are terminal figures: `cargo xtask cli` draws each from the run of
+an example on the same page, long lines wrapped and never cut, with lettered balloons at the lines
+the text explains, and fails a committed one the run no longer draws. Each is named, with its
+balloons, in `SHOTS` in `xtask/src/cli.rs`; the example's text block stays on the page beside it,
+for a reader to copy or search
+([the simulator's guide's decision record](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0247-the-simulators-guide-in-four-increments.md)).
+
 ## Nothing cut off
 
 Nothing on this site may be clipped by an edge or a corner: no text, number, mark or button, in a

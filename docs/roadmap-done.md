@@ -79,6 +79,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9e The words to the design ([Phase 0](#phase-0-foundations))
 - M0.10 The scoreboard ([Phase 0](#phase-0-foundations))
 - M0.11 Steps to a first answer ([Phase 0](#phase-0-foundations))
+- M0.8a1 The landing page and the CLI tour ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -527,6 +528,12 @@ One line per milestone or increment, in the order it was archived within its pha
   OpenRocket and RocketPy from their current docs (clicks and entries apart from script lines, a
   task a tool can't do marked so), with versions and dates, in the scoreboard.
 
+- **M0.8** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+  - **M0.8a** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+    - [x] **M0.8a1 The landing page and the CLI tour** (ADR-247). *Done when:* both meet M0.7a's
+      bullets but Neer's read, read cold in a docs review; the tour ends on the report's median
+      flight, by case id, its logged numbers read by a test beside the spread over every flight;
+      its terminal figures come from `xtask cli`'s runs, `--check` failing a stale one (a test).
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

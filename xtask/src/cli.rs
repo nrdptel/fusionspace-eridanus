@@ -8,6 +8,8 @@
 //!   command run in-process and held to the figure check (`crate::figures`): nothing it draws
 //!   leaves its frame or a clip, and no text overlaps other text. The flights of [`PLOTS`] are
 //!   drawn and checked too, not committed, so a plot that only some flights clip fails here;
+//! - the terminal figures of [`SHOTS`], each drawn from the same run as an example on its page
+//!   (`terminal`), so the picture and the text agree, and held to the figure check;
 //! - each example in `README.md`, `docs/cli.md` and the how-to guides ([`GUIDES`]): the command
 //!   run in-process, with what it printed on both streams in the order it wrote them, as a
 //!   terminal shows them ([`Terminal`]). An argument with a `/` in it is a file of the
@@ -27,6 +29,10 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use hpr_cli::registry::{Links, command_table};
 
+mod terminal;
+
+use terminal::Shot;
+
 /// The usage line in `cargo xtask help`.
 pub const USAGE: &str = "  \
 cli [--check]            Write the `hpr` command's generated outputs: its JSON Schemas in
@@ -39,11 +45,38 @@ const SCHEMAS: &str = "schema/cli";
 /// The guide's page.
 const PAGE: &str = "docs/cli.md";
 /// The how-to guides, whose examples are run as the guide's are.
-const GUIDES: [&str; 4] = [
+const GUIDES: [&str; 5] = [
     "docs/fly-your-ork.md",
     "docs/pick-a-motor.md",
     "docs/stability-for-certification.md",
     "docs/trusting-a-simulation.md",
+    "docs/simulator-tour.md",
+];
+/// The terminal figures (ADR-247 §3): each drawn from its page's example of the same command, with
+/// lettered callouts at the lines the page explains.
+const SHOTS: [Shot; 2] = [
+    Shot {
+        page: "docs/simulator-tour.md",
+        command: "hpr sim validation/fixtures/ork/guides/level-1.ork",
+        path: "docs/images/tour-sim.svg",
+        callouts: &[
+            ('A', "configuration "),
+            ('B', "static margin "),
+            ('C', "warning: "),
+            ('D', "event "),
+        ],
+    },
+    Shot {
+        page: "docs/simulator-tour.md",
+        command: "hpr mc validation/fixtures/ork/guides/level-1.ork --runs 200 --seed 2026 \
+                  --mass-sd 0.02 --drag-sd 0.05 --impulse-sd 0.03",
+        path: "docs/images/tour-mc.svg",
+        callouts: &[
+            ('A', "apogee (m AGL) "),
+            ('B', "landing ellipse "),
+            ('C', "How far to trust it."),
+        ],
+    },
 ];
 /// The guide's `--plot` figure: where it goes, and the command that draws it, its last argument
 /// the file it writes.
@@ -97,14 +130,27 @@ pub fn run(args: &[String]) -> Result<(), String> {
 
 /// Fails unless every output is committed as `cargo xtask cli` writes it.
 pub(crate) fn check(root: &Path) -> Result<(), String> {
+    let outputs = outputs(root)?;
+    check_against(root, &outputs, &|path| {
+        std::fs::read_to_string(root.join(path)).ok()
+    })
+}
+
+/// [`check`] of `outputs`, each output's committed text as `committed` reads it, by its path from
+/// the root.
+fn check_against(
+    root: &Path,
+    outputs: &[(PathBuf, String)],
+    committed: &dyn Fn(&Path) -> Option<String>,
+) -> Result<(), String> {
     let mut stale = Vec::new();
-    for (path, text) in outputs(root)? {
-        let committed = std::fs::read_to_string(root.join(&path)).ok();
-        if committed.as_deref() != Some(&text) {
+    for (path, text) in outputs {
+        let committed = committed(path);
+        if committed.as_deref() != Some(text) {
             stale.push(format!(
                 "{}{}",
                 path.display(),
-                first_difference(committed.as_deref(), &text)
+                first_difference(committed.as_deref(), text)
             ));
         }
     }
@@ -112,7 +158,7 @@ pub(crate) fn check(root: &Path) -> Result<(), String> {
         stale.push(format!("{} (no output type makes it)", extra.display()));
     }
     if stale.is_empty() {
-        println!("cli: the schemas, command tables and examples are current");
+        println!("cli: the schemas, command tables, examples and figures are current");
         Ok(())
     } else {
         Err(format!(
@@ -171,8 +217,21 @@ fn outputs(root: &Path) -> Result<Vec<(PathBuf, String)>, String> {
     ));
     let page = splice_table(&read(PAGE)?, &command_table(Links::Guide), PAGE)?;
     outputs.push((PathBuf::from(PAGE), examples(&page, PAGE, root)?));
+    // Each guide's examples as they ran, by page and command, for the terminal figures.
+    let mut ran: Vec<(&str, String, String)> = Vec::new();
     for guide in GUIDES {
-        outputs.push((PathBuf::from(guide), examples(&read(guide)?, guide, root)?));
+        let mut runs = Vec::new();
+        outputs.push((
+            PathBuf::from(guide),
+            examples_ran(&read(guide)?, guide, root, &mut runs)?,
+        ));
+        ran.extend(
+            runs.into_iter()
+                .map(|(command, block)| (guide, command, block)),
+        );
+    }
+    for shot in &SHOTS {
+        outputs.push((PathBuf::from(shot.path), shot_figure(shot, &ran)?));
     }
     outputs.push((PathBuf::from(FIGURE.0), figure(FIGURE.1, root)?));
     for command in PLOTS {
@@ -202,6 +261,41 @@ fn figure(command: &str, root: &Path) -> Result<String, String> {
         Err(format!(
             "`{command}` draws a figure the figure check refuses; change the plot's layout so it \
              fits, never the crop, and draw in the tokens:\n  {}",
+            problems.join("\n  ")
+        ))
+    }
+}
+
+/// The terminal figure `shot` names, drawn from its page's run of its command in `ran` (each
+/// guide's examples: its page, the command and the block), once the figure check finds nothing
+/// wrong with it; an error if the page runs no example of the command.
+fn shot_figure(shot: &Shot, ran: &[(&str, String, String)]) -> Result<String, String> {
+    let command = shot
+        .command
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ");
+    let (.., block) = ran
+        .iter()
+        .find(|(page, run, _)| *page == shot.page && *run == command)
+        .ok_or_else(|| {
+            format!(
+                "{}: the terminal figure {} draws `{command}`, which no example on the page runs",
+                shot.page, shot.path
+            )
+        })?;
+    let figure =
+        terminal::draw(block, shot.callouts).map_err(|error| format!("{}: {error}", shot.path))?;
+    let mut problems = crate::figures::check(&figure);
+    problems.extend(crate::figures::drawing::check(&figure));
+    if problems.is_empty() {
+        Ok(figure)
+    } else {
+        let problems: Vec<String> = problems.iter().map(ToString::to_string).collect();
+        Err(format!(
+            "{} draws a figure the figure check refuses; change its layout so it fits, never the \
+             crop:\n  {}",
+            shot.path,
             problems.join("\n  ")
         ))
     }
@@ -257,6 +351,16 @@ fn block_end(text: &str, body: usize, file: &str, what: &str) -> Result<usize, S
 /// `page` with each example's output replaced by what the command prints now; the repository's
 /// root is at `root`.
 fn examples(page: &str, file: &str, root: &Path) -> Result<String, String> {
+    examples_ran(page, file, root, &mut Vec::new())
+}
+
+/// [`examples`], each run's command and block pushed onto `ran` as well.
+fn examples_ran(
+    page: &str,
+    file: &str,
+    root: &Path,
+    ran: &mut Vec<(String, String)>,
+) -> Result<String, String> {
     let mut result = String::new();
     let mut rest = page;
     while let Some(start) = rest.find(EXAMPLE) {
@@ -314,6 +418,7 @@ fn examples(page: &str, file: &str, root: &Path) -> Result<String, String> {
         result.push('\n');
         result.push_str(&block);
         result.push('\n');
+        ran.push((command.to_owned(), block));
         rest = &rest[end..];
     }
     result.push_str(rest);
@@ -442,10 +547,59 @@ mod tests {
         );
     }
 
+    /// Every output is committed as the command writes it; and the check fails a terminal figure
+    /// whose committed copy differs from what the run draws, naming it.
     #[test]
     fn the_cli_outputs_are_current() {
         let root = crate::designs::root().unwrap();
-        check(&root).unwrap();
+        let outputs = outputs(&root).unwrap();
+        let on_disk = |path: &Path| std::fs::read_to_string(root.join(path)).ok();
+        check_against(&root, &outputs, &on_disk).unwrap();
+        for shot in &SHOTS {
+            let figure = Path::new(shot.path);
+            assert!(
+                outputs.iter().any(|(path, _)| path == figure),
+                "{}",
+                shot.path
+            );
+            // The committed figure with one line of the run moved, as an older run drew it.
+            let moved = |path: &Path| {
+                let text = on_disk(path)?;
+                Some(if path == figure {
+                    text.replacen("</text>", " </text>", 2)
+                } else {
+                    text
+                })
+            };
+            let error = check_against(&root, &outputs, &moved).unwrap_err();
+            assert!(error.contains(&format!("stale: {}", shot.path)), "{error}");
+            let missing = |path: &Path| if path == figure { None } else { on_disk(path) };
+            let error = check_against(&root, &outputs, &missing).unwrap_err();
+            assert!(
+                error.contains(&format!("{} (not committed)", shot.path)),
+                "{error}"
+            );
+        }
+    }
+
+    /// A terminal figure is drawn from its own page's run of its command, and one whose command no
+    /// example on its page runs fails rather than drawing another run.
+    #[test]
+    fn a_terminal_figure_draws_its_pages_run_or_fails() {
+        let shot = &SHOTS[0];
+        let block =
+            "```text\n$ hpr sim x\nconfiguration 1\nstatic margin 1\nwarning: w\nevent t\n```\n";
+        let ran = vec![(shot.page, shot.command.to_owned(), block.to_owned())];
+        let figure = shot_figure(shot, &ran).unwrap();
+        assert!(figure.contains(">$ hpr sim x</text>"), "{figure}");
+        let elsewhere = vec![("docs/cli.md", shot.command.to_owned(), block.to_owned())];
+        let error = shot_figure(shot, &elsewhere).unwrap_err();
+        assert!(
+            error.contains("which no example on the page runs"),
+            "{error}"
+        );
+        let other = vec![(shot.page, "hpr sim y".to_owned(), block.to_owned())];
+        assert!(shot_figure(shot, &other).is_err());
     }
 
     /// The extra plots draw what the guide's doesn't, as [`PLOTS`] says, and pass the figure

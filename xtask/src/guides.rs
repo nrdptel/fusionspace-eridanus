@@ -32,6 +32,7 @@ use crate::fixture_flights::{BINS_PERCENT, REPORT_JSON as FIXTURE, REPORT_MD as 
 mod drag;
 mod flutter;
 mod stability;
+mod tour;
 
 pub const USAGE: &str = "  \
 guides [--check]         Write the guide rocket's center-of-pressure, flutter and drag reports, draw
@@ -122,6 +123,16 @@ fn guides() -> Vec<Guide> {
                 "docs/images/flutter-speed-by-thickness.svg",
                 flutter::draw_speed_by_thickness,
             )],
+        },
+        Guide {
+            page: tour::LANDING,
+            quotes: tour::landing_quotes(),
+            figures: Vec::new(),
+        },
+        Guide {
+            page: tour::TOUR,
+            quotes: tour::tour_quotes(),
+            figures: Vec::new(),
         },
         Guide {
             page: "docs/drag-through-mach-1.md",
