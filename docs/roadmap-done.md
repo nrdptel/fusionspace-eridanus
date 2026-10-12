@@ -291,6 +291,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M6.2d EGO ([Phase 3](#phase-3-uncertainty-optimization-challenges))
 - M6.2d1 Branin and Hartmann 3 ([Phase 3](#phase-3-uncertainty-optimization-challenges))
 - M6.2d2 Hartmann 6 ([Phase 3](#phase-3-uncertainty-optimization-challenges))
+- M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M10.1 Release 0.1: the simulator ([Phase 8](#phase-8-releases-adr-162))
 - M10.1a The flight and design fixes ([Phase 8](#phase-8-releases-adr-162))
 - M10.1b The data, network and Python fixes ([Phase 8](#phase-8-releases-adr-162))
@@ -1435,6 +1436,9 @@ One line per milestone or increment, in the order it was archived within its pha
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)
 
+- **M9.8** is open; its entry: [roadmap](ROADMAP.md#phase-7-ui-3d-web-mobile-after-release-04-adr-162).
+  - [x] **M9.8a The page and its checks** (ADR-249). *Done when:* all of M9.8's bullets but
+    Neer's use hold.
 ## Phase 8: Releases (ADR-162)
 
 - [x] **M10.1 Release 0.1: the simulator.** The library crates, the CLI and the Python package,
