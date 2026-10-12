@@ -1983,7 +1983,7 @@ you press Tab. Save it where your shell looks for completions:
   device ([what it doesn't fly yet](#what-hpr-sim-doesnt-fly-yet)).
 - **One log format.** `hpr analyze` reads PerfectFlite's `.pf2` so far; other loggers' files,
   and readings such as the drogue and main descent rates and the Mach number, come with
-  [M7.1](decisions-and-roadmap.md#m7-1) and [M7.2](decisions-and-roadmap.md#m7-2).
+  [M7.1b](decisions-and-roadmap.md#m7-1b) and [M7.2](decisions-and-roadmap.md#m7-2).
 - **Only OpenRocket's design files and the HPR design format.** `hpr convert` and `hpr sim` read
   OpenRocket's `.ork` and the HPR design format's `.hpr` and `.hprz`, not RockSim's `.rkt` or
   RASAero's `.CDX1`

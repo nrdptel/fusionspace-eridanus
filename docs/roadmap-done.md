@@ -1439,6 +1439,8 @@ One line per milestone or increment, in the order it was archived within its pha
     report (counts, anonymized ids) the refs step checks; every PerfectFlite (`.pf2`, CSV, text),
     AltOS CSV and Raven FIP CSV sample imports, each column a channel on its own clock, events
     kept; pinned by digest (refs) and snapshot (invented samples).
+    Met (ADR-251): 319 files read; one AltosUI export with a damaged header is refused and listed.
+
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)
