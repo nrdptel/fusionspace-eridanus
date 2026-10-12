@@ -42,8 +42,8 @@ notebooks state them, which cover the numbers the report derives, not a redrawn 
 3. **Terminal figures, drawn from the CLI's own runs** (`xtask/src/cli/terminal.rs`). A figure is
    named in `cli.rs` by its page, its command, its file and its callouts. `cargo xtask cli` runs
    the command in-process, as it runs the page's examples, and draws what it printed: the
-   command line after a prompt, then each line of output on a white panel, in Cascadia Mono, each
-   line word-wrapped to the panel by the figure check's own glyph widths, so nothing it draws can
+   command line after the shell's `$`, then each line of output on a white panel, in Cascadia
+   Mono, each line word-wrapped to the panel by the figure check's own glyph widths, so nothing it draws can
    leave the frame, and wrapped lines indented as a terminal continues them. Rules:
    - the page must hold an example of the same command, so the picture and the text a reader
      can copy or search come from the same program and agree; a figure whose command opens no

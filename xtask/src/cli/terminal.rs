@@ -102,7 +102,7 @@ fn escaped(text: &str) -> String {
 }
 
 /// The figure of `block`, a fenced example as `cli.rs`'s `example` writes it (its first line the
-/// prompt and the command), with `callouts`; an error if a callout's line isn't printed, two
+/// shell's `$` and the command), with `callouts`; an error if a callout's line isn't printed, two
 /// callouts mark one line, or a line can't be drawn.
 pub(super) fn draw(block: &str, callouts: &[(char, &str)]) -> Result<String, String> {
     let lines: Vec<&str> = block
