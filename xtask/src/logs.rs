@@ -1,6 +1,6 @@
 //! `cargo xtask logs [--check]`: reads every flight-log sample under `refs/` with
 //! `hpr_flightdata::import` and writes what came of each to `validation/reports/log-import.json`
-//! and `.md` (M7.1a, M7.1b and M7.1c1, ADR-251, ADR-253 and ADR-254).
+//! and `.md` (M7.1a, M7.1b, M7.1c1 and M7.1c2, ADR-251, ADR-253, ADR-254 and ADR-255).
 //!
 //! The samples are three sets, each file counted once by its content's SHA-256, in this order:
 //!
@@ -48,8 +48,8 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The other families'
-/// files are M7.1c2's.
-pub const READ: [(&str, LogFormat, &str); 11] = [
+/// files are M7.1c3's.
+pub const READ: [(&str, LogFormat, &str); 15] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -61,6 +61,10 @@ pub const READ: [(&str, LogFormat, &str); 11] = [
     ("fwgps-csv", LogFormat::FeatherweightGpsCsv, "M7.1c1"),
     ("kml", LogFormat::Kml, "M7.1c1"),
     ("nmea", LogFormat::Nmea0183, "M7.1c1"),
+    ("altimetercloud-csv", LogFormat::AltimeterCloudCsv, "M7.1c2"),
+    ("entacore-aim-csv", LogFormat::EntacoreAimCsv, "M7.1c2"),
+    ("pfa", LogFormat::PerfectFlitePfa, "M7.1c2"),
+    ("eggtimer-txt", LogFormat::EggtimerText, "M7.1c2"),
 ];
 
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight, and maps
@@ -100,9 +104,16 @@ const DEBRIEF: [(&str, &str); 23] = [
 /// Debrief files that aren't logs: its notes and a design.
 const DEBRIEF_SKIPPED: [&str; 2] = ["README.md", "sample-design.ork"];
 
+/// Why a file the catalog files as generic CSV, by its extension, is AltimeterCloud's.
+const ALTIMETERCLOUD: &str = "AltimeterCloud's CSV of a Rocketry Ltd Mercury's flight, filed as \
+    generic CSV by its extension";
+/// Why a file the catalog files as generic CSV is Entacore AIM's.
+const ENTACORE_AIM: &str = "Entacore AIM's CSV, each channel group beside its own time column, \
+    filed as generic CSV by its extension";
+
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 3] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 28] = [
     (
         "9c5017ab68168088",
         "altos-csv",
@@ -126,6 +137,81 @@ const RECLASSIFIED: [(&str, &str, &str, &str); 3] = [
          simulation predicted for several launch times, with pins for the pad, the predicted \
          events and where the rocket landed, and a line measuring the distance to it",
     ),
+    (
+        "1eac3d58c44943fa",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "2d8063ec6a98cac0",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "3c6a8343d5570aa9",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "54f08de4175c5e72",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "6e78a74048da02e5",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "88fcb6bb17c5d9c6",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "8e234dc4a78fcd61",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "d3ac56fff9b7d7c0",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "f021107424bfa9ee",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "f2233f659bd4b671",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    ("28a11da1eaf93e69", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("46d4a9ba5d9b0a58", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("4d8cf9e8c6f3aa1f", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("5dc17a47fd185243", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("5f48e98c9d3b14ee", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("7890f092f27f7d6f", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("9b3616ebe985dd0b", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("9e4dc73ea980b34a", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("a39eb686e97b5997", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("a67bdeaf23283bd7", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("bd3c3e390d38cf68", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("df76575057cffc1e", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("f5df1597457a39ea", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("fe5e01edf5f1202c", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("ff6326c2236a0723", "csv", "entacore-aim-csv", ENTACORE_AIM),
 ];
 
 /// The report.
@@ -174,8 +260,8 @@ struct SourceCount {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct FamilyRow {
     family: String,
-    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1`), `M7.1c2` for one not yet read,
-    /// `damaged`, or `not a log`.
+    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1`, `M7.1c2`), `M7.1c3` for
+    /// one not yet read, `damaged`, or `not a log`.
     increment: String,
     files: usize,
     read: usize,
@@ -420,7 +506,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
             "not a log"
         } else {
-            "M7.1c2"
+            "M7.1c3"
         };
         let row = families
             .entry(sample.family.clone())
@@ -485,7 +571,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     files.sort();
     let report = Report {
         about: "Every flight-log sample under refs/, read by hpr_flightdata::import (M7.1, \
-                ADR-251, ADR-253, ADR-254): `cargo xtask logs`. The samples are the collection's catalog, Debrief's \
+                ADR-251, ADR-253, ADR-254, ADR-255): `cargo xtask logs`. The samples are the collection's catalog, Debrief's \
                 fixtures and samples, and AerospaceNU's logs; refs/research/public-flights, a \
                 download cache whose flights' logs the collection catalogs, and RocketPy's \
                 processed flight tables are not loggers' files and are left out. A file's id is the first 16 hex digits of its \
@@ -596,7 +682,7 @@ fn markdown(report: &Report) -> String {
     let mut out = String::from(
         "# Flight-log samples, read\n\n\
          Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-log \
-         sample under `refs/` read by HPR Sim's importer (M7.1, ADR-251, ADR-253, ADR-254): the private \
+         sample under `refs/` read by HPR Sim's importer (M7.1, ADR-251, ADR-253, ADR-254, ADR-255): the private \
          collection's catalog, Debrief's fixtures and samples, and AerospaceNU's logs, each file \
          once. Left out: `refs/research/public-flights`, a download cache whose flights' logs \
          the collection catalogs, and RocketPy's processed flight tables, which no logger \

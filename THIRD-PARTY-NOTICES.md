@@ -373,7 +373,11 @@ adds a source.
   where cells are separated by semicolons, in `hpr_flightdata::rrc3`, `hpr_flightdata::eggtimer`,
   `hpr_flightdata::blueraven` and the crate's table helpers. Also
   `lib/parsers/featherweightGps.ts` at the same commit: the Featherweight GPS tracker log's
-  `UTCTIME` clock, its columns and its altitude in feet, in `hpr_flightdata::fwgps`.
+  `UTCTIME` clock, its columns and its altitude in feet, in `hpr_flightdata::fwgps`. Also
+  `lib/parsers/altimeterCloud.ts` and `lib/parsers/entacoreAim.ts` at the same commit:
+  AltimeterCloud's layout signature and its centi-degree `bmp_temp(x100)`, in
+  `hpr_flightdata::altimetercloud`, and the Entacore AIM export's `time` column per channel group,
+  in `hpr_flightdata::entacore`.
   No code was copied; no flight file of Debrief's is committed.
 - **DOPRI5** (BSD-2-Clause), E. Hairer and G. Wanner's `dopri5.f`, version of 2004: the
   Dormand–Prince coefficients, the error norm, the PI step-size controller, the starting-step
@@ -626,6 +630,7 @@ installed with `--no-deps` from that file (M3.1d2, ADR-059). Nothing in it is co
 | source | license | mode | notes |
 |---|---|---|---|
 | [`AerospaceNU/rocket-flight-data`](https://github.com/AerospaceNU/rocket-flight-data) at `e951b1f` | GPL-3.0 | fetched and cached | a university team's flight logs (`docs/research/aerospacenu-flights.md`); never committed. `cargo xtask logs` reads them and publishes counts and anonymized ids only (M7.1a, ADR-251) |
+| PerfectFlite's Alt15K/WD manual, data sheet and specification pages, the data-transfer document, and its DataCap download program, from web.archive.org (fetched 2026-10-13), in `refs/research/perfectflite-pfa/` | PerfectFlite's copyright, no license stated | fetched and cached | the `.pfa` layout's sample rate, units and header fields in `hpr_flightdata::perfectflite`, cited and restated, never copied or committed; the program's text strings were read, the program never run (M7.1c2, ADR-255) |
 
 ## Planned sources (not fetched yet)
 

@@ -261,14 +261,15 @@ out.
   the reason the log can't support it ([Reading a flight log](reading-a-flight-log.md)). Like
   `hpr weather` and `hpr motors show`, it ends with how far to trust its figures (since
   [M0.9c4](decisions-and-roadmap.md#m0-9c4), units and trust notes on every readout). The library
-  reads PerfectFlite's exports, AltOS's CSV, the Featherweight Raven's FIP CSV, the Blue Raven's
-  CSV, Missile Works RRC3's and Eggtimer's too, and GPS tracks from Featherweight's GPS tracker,
-  KML and NMEA files, every column kept on its own clock
+  reads PerfectFlite's exports and older `.pfa`, AltOS's CSV, the Featherweight Raven's FIP CSV,
+  the Blue Raven's CSV, Missile Works RRC3's and Eggtimer's too (an Eggtimer TRS's terminal text
+  as well), AltimeterCloud's and Entacore AIM's CSV, and GPS tracks from Featherweight's GPS
+  tracker, KML and NMEA files, every column kept on its own clock
   ([the layouts read](format/flight-logs.md), [M7.1a](decisions-and-roadmap.md#m7-1a),
-  [M7.1b](decisions-and-roadmap.md#m7-1b), [M7.1c1](decisions-and-roadmap.md#m7-1c1)). The
-  other loggers come with [M7.1c2](decisions-and-roadmap.md#m7-1c2): Entacore AIM,
-  Mercury/AltimeterCloud, CATS, AltOS's `.eeprom`, the RRC3's `.rff`, and plain CSV with column
-  mapping. The rest of the readings, such
+  [M7.1b](decisions-and-roadmap.md#m7-1b), [M7.1c1](decisions-and-roadmap.md#m7-1c1),
+  [M7.1c2](decisions-and-roadmap.md#m7-1c2)). The other loggers come with
+  [M7.1c3](decisions-and-roadmap.md#m7-1c3): CATS, AltOS's `.eeprom`, the RRC3's `.rff`, and
+  plain CSV with column mapping. The rest of the readings, such
   as burnout and each leg of the descent, come with [M7.2](decisions-and-roadmap.md#m7-2), and
   comparing a flight with a simulation of it with [M7.3](decisions-and-roadmap.md#m7-3).
 

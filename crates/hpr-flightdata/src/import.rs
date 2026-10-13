@@ -11,11 +11,15 @@
 //! | [NMEA 0183](crate::nmea) | at least 3 of its first 50 lines that aren't blank open with a sentence whose checksum checks out, such as `$GPGGA,…*hh` |
 //! | [Featherweight GPS CSV](crate::fwgps) | the first line opens `UTCTIME,UNIXTIME,` or `TRACKER,DATE,TIME,` and names the latitude and longitude |
 //! | [PerfectFlite `.pf2`](crate::perfectflite) | names PerfectFlite, such as `PerfectFlite Pnut`, in a file with no `**!!Data:` line (a `.pfa`'s) |
+//! | [PerfectFlite `.pfa`](crate::perfectflite::read_pfa) | names PerfectFlite, such as `PerfectFlite Alt15K/WD`, and has a `**!!Data:` line |
 //! | [PerfectFlite CSV and text](crate::perfectflite::read_export) | `Time`, `Altitude` and more of an export's names, by commas or tabs |
 //! | [AltOS CSV](crate::altos) | starts `#version,`, or opens with `#` comments before a `#version,` or `version,serial,` header |
 //! | [Raven FIP CSV](crate::raven) | opens with a time column and holds the Raven's `Axial Accel (Gs)` channel |
 //! | [Blue Raven CSV](crate::blueraven) | opens `Year,Month,Day,Time,Flight_Time_(s),Sync,` |
 //! | [RRC3 CSV](crate::rrc3) | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages` |
+//! | [AltimeterCloud CSV](crate::altimetercloud) | a header within the first 65 lines whose first name is `Time(ms)`, in any case, and which also names `acceleration_total(mG)` and `tilt` |
+//! | [Entacore AIM CSV](crate::entacore) | the first line starts with a `time` column, names at least two, and names one of the AIM's own channels, such as `Pressure AGL` |
+//! | [Eggtimer text](crate::eggtimer::read_text) | an `Eggtimer … Flight Settings` title before an Eggtimer CSV header, within the first 200 lines that aren't blank |
 //! | [Eggtimer CSV](crate::eggtimer) | `T,Alt,` and more of Eggtimer's column names |
 //!
 //! Text is read as UTF-8, or as UTF-16 after its byte-order mark ([`decode`]), with any byte-order
@@ -36,7 +40,10 @@ use std::borrow::Cow;
 
 use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
-use crate::{altos, blueraven, eggtimer, fwgps, kml, nmea, perfectflite, raven, rrc3};
+use crate::{
+    altimetercloud, altos, blueraven, eggtimer, entacore, fwgps, kml, nmea, perfectflite, raven,
+    rrc3,
+};
 
 /// The formats [`read`] recognizes, in the order it tries them.
 pub const FORMATS: &[LogFormat] = &[
@@ -44,10 +51,14 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::Nmea0183,
     LogFormat::FeatherweightGpsCsv,
     LogFormat::PerfectFlitePf2,
+    LogFormat::PerfectFlitePfa,
     LogFormat::AltosCsv,
     LogFormat::RavenFipCsv,
     LogFormat::BlueRavenCsv,
     LogFormat::Rrc3Csv,
+    LogFormat::AltimeterCloudCsv,
+    LogFormat::EntacoreAimCsv,
+    LogFormat::EggtimerText,
     LogFormat::EggtimerCsv,
     LogFormat::PerfectFliteCsv,
     LogFormat::PerfectFliteText,
@@ -107,11 +118,15 @@ fn detect_text(text: &str) -> Option<LogFormat> {
         |line: &str| line.starts_with("#version,") || line.starts_with("version,serial,");
     if first.to_ascii_lowercase().contains("perfectflite") {
         // A `.pfa` names PerfectFlite too, but writes its samples after a `**!!Data:` line, one
-        // value a line: a layout no reader knows yet (M7.1c).
+        // value a line.
         let pfa = text
             .split(['\r', '\n'])
             .any(|line| line.trim_start().starts_with("**!!"));
-        (!pfa).then_some(LogFormat::PerfectFlitePf2)
+        Some(if pfa {
+            LogFormat::PerfectFlitePfa
+        } else {
+            LogFormat::PerfectFlitePf2
+        })
     } else if first.starts_with('#') && !altos_header(first) {
         // Only AltOS's CSV opens with `#` comments, such as `# Comments` or `# product TeleMetrum`,
         // before its header.
@@ -130,6 +145,12 @@ fn detect_text(text: &str) -> Option<LogFormat> {
         Some(LogFormat::BlueRavenCsv)
     } else if rrc3::recognizes(text) {
         Some(LogFormat::Rrc3Csv)
+    } else if altimetercloud::recognizes(text) {
+        Some(LogFormat::AltimeterCloudCsv)
+    } else if entacore::recognizes(text) {
+        Some(LogFormat::EntacoreAimCsv)
+    } else if eggtimer::recognizes_text(text) {
+        Some(LogFormat::EggtimerText)
     } else if eggtimer::recognizes(text) {
         Some(LogFormat::EggtimerCsv)
     } else {
@@ -150,6 +171,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
     let text = decode(bytes);
     match detect_text(&text) {
         Some(LogFormat::PerfectFlitePf2) => perfectflite::read(&text),
+        Some(LogFormat::PerfectFlitePfa) => perfectflite::read_pfa(&text),
         Some(LogFormat::PerfectFliteCsv | LogFormat::PerfectFliteText) => {
             perfectflite::read_export(&text)
         }
@@ -158,6 +180,9 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::BlueRavenCsv) => blueraven::read(&text),
         Some(LogFormat::Rrc3Csv) => rrc3::read(&text),
         Some(LogFormat::EggtimerCsv) => eggtimer::read(&text),
+        Some(LogFormat::EggtimerText) => eggtimer::read_text(&text),
+        Some(LogFormat::AltimeterCloudCsv) => altimetercloud::read(&text),
+        Some(LogFormat::EntacoreAimCsv) => entacore::read(&text),
         Some(LogFormat::FeatherweightGpsCsv) => fwgps::read(&text),
         Some(LogFormat::Kml) => kml::read(&text),
         Some(LogFormat::Nmea0183) => nmea::read(&text),
@@ -197,7 +222,7 @@ mod tests {
             ("# a note\nTime,Altitude,Velocity\n", None),
             (
                 "PerfectFlite Alt15K/WD\nApogee: 900\n**!!Data:\n1200\n",
-                None,
+                Some(LogFormat::PerfectFlitePfa),
             ),
             (
                 "Year,Month,Day,Time,Flight_Time_(s),Axial Accel (Gs)\n",
