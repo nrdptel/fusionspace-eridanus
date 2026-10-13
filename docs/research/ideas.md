@@ -136,9 +136,9 @@ and [competitions](ideas-competitions-and-clubs.md).
 - SOON: the American Rocketry Challenge's expected score. User: an ARC team tuning a design to the
   2027 rules (at most 650 g and 80 N·s, two eggs, an 800 ft qualifying goal, 37 to 40 s;
   [rules][arc27] 4.3 to 4.6). Workflow: `hpr mc` with an ARC preset prints the score's 50% and 90%
-  ranges, as rules 4.5 and 4.6 score it. Moves: a new `steps.command-line` row, each tool's by its
-  docs. *Done when:* tests pin the score at both edges of the duration window and either side of
-  the altitude goal, the row is in `validation/steps/`, and the scoreboard shows it.
+  ranges, as rules 4.5 and 4.6 score it. Moves: a new steps row, `steps.arc-score`, each tool's by
+  its docs. *Done when:* tests pin the score at both edges of the duration window and either side
+  of the altitude goal, the row is in `validation/steps/`, and the scoreboard shows it.
 - SOON: an altimeter's events checked against its flight. User: a flyer whose charge fired at the
   wrong time, such as an apogee charge long after a tilt lockout tripped near liftoff
   ([a forum thread][tilt-thread], October 2026). Workflow: `hpr analyze` lists each event the

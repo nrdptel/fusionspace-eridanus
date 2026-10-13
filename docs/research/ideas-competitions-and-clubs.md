@@ -27,10 +27,9 @@ rules templates carry a source date, a stale-after date and "not legal advice".
   RocketPy file (its rules, §8.5).
 - SOON: Student Launch's checks in one command. User: a Student Launch team's safety lead before a
   design review. Workflow: one `hpr` command runs the M6.3 preset on a design and prints every
-  limit's reading against it, at both ballasts and four winds. Moves: a new
-  `steps.command-line` row for that task, with each tool's count or *can't* by its docs. *Done
-  when:* the row is in `validation/steps/`, HPR Sim's file is run by a test, and the scoreboard
-  shows it.
+  limit's reading against it, at both ballasts and four winds. Moves: a new steps row for that
+  task, `steps.student-launch`, with each tool's count or *can't* by its docs. *Done when:* the row
+  is in `validation/steps/`, HPR Sim's file is run by a test, and the scoreboard shows it.
 
 ## Club operations (LATER)
 

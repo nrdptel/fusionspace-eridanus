@@ -79,7 +79,9 @@ touches_physics() {
 touches_pages() {
   local base changed
   base=$(git merge-base HEAD origin/main 2>/dev/null) || return 2
-  changed=$( { git diff --name-only "$base"; git diff --name-only; git diff --name-only --cached; } 2>/dev/null)
+  # New pages count before they are added, unlike the physics check's files.
+  changed=$( { git diff --name-only "$base"; git diff --name-only; git diff --name-only --cached
+    git ls-files --others --exclude-standard; } 2>/dev/null)
   grep -qE '^docs/|\.md$|^xtask/src/site' <<<"$changed" && return 0
   return 1
 }

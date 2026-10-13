@@ -1,7 +1,7 @@
 # ADR-257: Calibrated intervals for the flight readings and fits, and the post-flight comparison (2026-10-13)
 
 - **Status:** accepted; tightens [M7.2][m7-2] and [M7.3][m7-3]; no release moves and no milestone is added
-- **Summary:** M7.2's "within the stated error" and M7.3's "within tolerance" become one test: on at least 200 seeded synthetic flights, a stated 90% interval must hold the truth in a share whose 95% Clopper–Pearson interval contains 90%, and the test must fail when the intervals are narrowed or widened. M7.3 also reports, on the public logged flights and the collection, apogee predicted from the log up to burnout beside the forward simulation's, which fills a new scoreboard row, and draws the predicted and logged flight under launch-day conditions in one command, the analysis NASA Student Launch asks for after a team's flights.
+- **Summary:** M7.2's "within the stated error" gains, and M7.3's "within tolerance" becomes, one test: on at least 1,000 synthetic flights on fixed seeds, each stated 90% interval must miss on each side about 5% of the time and hold the truth about 90%, judged by 99.9% Clopper–Pearson bands, and the test must fail when the intervals are narrowed, widened or shifted. M7.3 also reports, on the public logged flights and the collection, apogee predicted from the log up to burnout beside the forward simulation's, which fills a new scoreboard row, and draws the predicted and logged flight under launch-day conditions in one command, the analysis NASA Student Launch asks for after a team's flights.
 
 [m7-2]: ../decisions-and-roadmap.md#m7-2
 [m7-3]: ../decisions-and-roadmap.md#m7-3
@@ -34,29 +34,49 @@ apogee the log then records, and to compare that with the forward simulation on 
 
 **Decision.**
 
-1. **One coverage test for every stated interval.** It runs on at least 200 seeded synthetic
-   flights: simulated flights plus the noise models M7.2 documents. A stated 90% interval passes
-   when the share of flights whose truth it holds has a two-sided 95% Clopper–Pearson interval
-   that contains 90%. The test must fail when every interval is narrowed to 0.8 of its width and
-   when widened to 1.25. For normal errors those widths hold the truth about 81% and 96% of the
-   time. At 200 flights only a count from 171 to 188 passes, so both probes are expected to fail;
-   on a fresh seed each would still pass by chance about 7% and 10% of the time, so the probes
-   run on fixed seeds and the test pins that they fail. M7.2 applies it to each reading that states
-   an interval (apogee, maximum velocity and acceleration, burnout, descent rates, flight time).
-   M7.3 applies it to each fitted parameter (drag coefficient scale, mass, impulse scale, wind),
-   for the least-squares fit and for the Bayesian option. M7.2's old clause stays beside the test:
-   the smoothed trajectory recovers the truth within its stated error.
+1. **Every stated interval, tested both ways.** Every reading M7.2 doesn't withhold states a 90%
+   interval (apogee, maximum velocity and acceleration, burnout, descent rates, flight time); so
+   does each parameter M7.3 fits (drag coefficient scale, impulse scale, wind as one constant
+   vector), for the least-squares fit and for the Bayesian option. M7.2's old clause stays beside
+   the test: the smoothed trajectory recovers the truth within its stated error.
+   - **The flights.** At least 1,000 synthetic flights, each drawing its design (from at least 10
+     public designs), motor, wind, launch angle and sensor noise independently, on seeds fixed
+     before any interval is tuned; a seed changed after a failure needs an ADR. Any factor that
+     scales the intervals is fitted on other seeds. Two sets: one from the model the fit uses, and
+     one from a generator that differs from it in named ways (drag against Mach number shaped
+     differently, wind shear, a thrust curve shaped differently), where a parameter's truth is
+     its fit to the noise-free flight. Truths are drawn from stated ranges, not from the Bayesian
+     option's prior, so a fit that learns nothing from the log can't pass by construction.
+   - **The test.** Three counts, each with a two-sided 99.9% Clopper–Pearson interval: flights
+     whose truth lies above the stated interval and flights whose truth lies below it, each of
+     which must contain 5%, and flights whose truth it holds, which must contain 90%. Testing each
+     tail on its own catches an interval that misses on one side only. The 99.9% level is for the
+     family of about 14 intervals: in 400,000 simulated runs of 1,000 flights, a correctly stated
+     interval passed 99.8% of the time, and all 14 together about 97%.
+   - **Mutation probes.** The test must fail when every interval is narrowed to 0.8 of its width,
+     when widened to 1.25 (for normal errors they then hold the truth about 81% and 96% of the
+     time), and when every reading is shifted down by one stated standard error. None of the
+     400,000 simulated runs passed any probe; the fixed seeds pin that each fails.
+   - **What a log can tell.** Thrust and drag act through their ratio to mass, so the fit takes
+     the weighed mass, with its stated uncertainty, as an input (fitting mass only within that
+     uncertainty) and fits the impulse and drag scales against it. Each fitted interval's width is reported beside its stated range's; a
+     parameter whose interval is wider than 0.9 of that range is reported as not identified by
+     the log, not as a fit.
 2. **The apogee reading's error side.** M7.2 reports the apogee reading's mean error on the
    synthetic flights with its sign. A reading too low is the flattering side for a waiver
-   ([ADR-144][adr-144]), so a test pins which way it errs.
-3. **Apogee predicted from the boost.** M7.3's committed report gives the fits for the 7 public
-   logged flights and, as aggregates only, for the collection's flights with a usable log. It
-   also gives the mean absolute error, and the mean error with its sign, of the apogee predicted
-   by a fit to the log up to M7.2's burnout reading. Beside them are the forward simulation's on
-   the same flights and a paired bootstrap 95% interval on the difference. This fills a new
+   ([ADR-144][adr-144]): the upper tail's count in §1 is that side's test, and the shifted-down
+   probe its mutation probe.
+3. **Apogee predicted from the boost.** The log is cut at burnout, found from the samples up to
+   it, before any smoothing or fitting; a test replaces every later sample with noise, and the
+   prediction stays bit-identical. M7.3's committed report gives the fits for the 7 public logged
+   flights and, as aggregates only, for the collection's flights with a usable log. Beside the
+   prediction's mean absolute error, and mean error with its sign, it gives the forward
+   simulation's on the same flights, flown in the same launch-day air and wind. The public
+   flights' difference gets an exact sign-flip interval, since a bootstrap undercovers at 7
+   flights; the collection's gets a paired bootstrap 95% interval. This fills a new
    [scoreboard][adr-240] row, `accuracy.from-boost`. Each other tool's cell is read from its docs:
-   a number if the tool can do it, otherwise *can't*. No bar is set on the difference: the
-   report shows it, whichever way it falls.
+   a number if the tool can do it, otherwise *can't*. No bar is set on the difference: the report
+   shows it, whichever way it falls.
 4. **The post-flight comparison in one command.** One `hpr` command draws a flight's predicted and
    logged altitude and velocity against time, liftoff to landing. It draws the prediction twice:
    as designed, and under launch-day conditions. Those are the log's site and date with the
@@ -65,8 +85,9 @@ apogee the log then records, and to compare that with the forward simulation on 
 5. **What doesn't change.** The order, the releases and the other clauses of both *done when*
    texts stay. Every old clause is kept or made stricter: M7.2's stated error stays and gains the
    coverage test beside it; M7.3's undefined tolerance becomes the coverage test. The command
-   draws residuals M7.3 already reports. M7.1c4's entry drops three layouts M7.1c2 already reads
-   (`.pfa`, Entacore AIM, AltimeterCloud; ADR-255); its *done when* is unchanged.
+   draws residuals M7.3 already reports. M7.1c4's entry drops two layouts M7.1c2 already reads
+   (`.pfa`, AltimeterCloud; ADR-255) and keeps Entacore's unread AIM XTRA; its *done when* is
+   unchanged.
 
 **Consequences.** The analyzer's ranges become claims a test can refute, both ways. The new row
 gives the scoreboard a cell no compared tool fills. A Student Launch team gets its post-flight
