@@ -12,10 +12,11 @@ if it was never designed on a computer at all.
 StratoLogger's and the StratoLoggerCF's ([the format](format/pf2.md)). The library also reads
 PerfectFlite's CSV and text exports, AltOS's CSV, the Featherweight Raven's FIP CSV, the Blue
 Raven's CSV, the RRC3's and Eggtimer's (and an Eggtimer TRS's terminal text), PerfectFlite's `.pfa`,
-AltimeterCloud's and Entacore AIM's CSV, and GPS tracks from Featherweight's GPS tracker, KML and
-NMEA files, into the same record ([the layouts read](format/flight-logs.md)); `hpr analyze` takes
+AltimeterCloud's and Entacore AIM's CSV, AerospaceNU's SillyGoose logs, Silicdyne Fluctus's CSV,
+the ARTS2's interpreted data, and GPS tracks from Featherweight's GPS tracker, KML and NMEA files,
+into the same record ([the layouts read](format/flight-logs.md)); `hpr analyze` takes
 its readings from those with [M7.2](decisions-and-roadmap.md#m7-2), which validates them on other
-loggers. Other loggers come with [M7.1c3](decisions-and-roadmap.md#m7-1c3).
+loggers. Other loggers come with [M7.1c4](decisions-and-roadmap.md#m7-1c4).
 
 > **How far to trust it.** Readings of the altimeter's own log, not a simulation. On an invented flight whose every number is known, the apogee comes
 > within a quarter of a meter and one sample of the truth, and liftoff within a tenth of a second.
@@ -197,7 +198,7 @@ speed is `max_speed` in both.
 
 ## What it doesn't do yet
 
-- Read other loggers' files ([M7.1c3](decisions-and-roadmap.md#m7-1c3)), or take readings from
+- Read other loggers' files ([M7.1c4](decisions-and-roadmap.md#m7-1c4)), or take readings from
   the logs the library already reads beside PerfectFlite's
   ([M7.2](decisions-and-roadmap.md#m7-2)).
 - Split the descent into the drogue's and the main's rates, find the deployments, or give the
