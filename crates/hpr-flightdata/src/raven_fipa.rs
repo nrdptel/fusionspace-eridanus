@@ -50,8 +50,10 @@
 //! | `Baro (Atm)` | slow 8, unsigned, / 25,000 | atm |
 //! | `Velocity (Accel-Ft/Sec)` | slow 9, signed, / 10 | ft/s |
 //!
-//! `trunc` rounds toward zero, and `X1 / 1000` is worked in double precision, as the FIP does
-//! ([`scaled`]); `X1`, `Z1`, `F3`, `X2` and `Z2` are the settings block's: word 0 the
+//! `trunc` rounds toward zero, and `X1 / 1000` is worked in double precision, as the FIP does:
+//! exact integers differ from its export by a hundredth of a g where the product is a whole number
+//! that double precision leaves just under it, as on the 11 sample files whose gain is ±8,040.
+//! `X1`, `Z1`, `F3`, `X2` and `Z2` are the settings block's: word 0 the
 //! axial offset `F3`, words 23–24 the signed 32-bit axial gain `X1`, word 25 the axial zero `Z1`,
 //! words 26–27 the lateral gain `X2`, word 28 the lateral zero `Z2`. A header whose `#Axis` is 1
 //! (a single-axis accelerometer; 2 otherwise) keeps the lateral bits as written, as `lateral
@@ -455,7 +457,8 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
     let date = field("DateTime").map(str::to_owned);
     if let Some(date) = date {
         notes.push(format!(
-            "the header's `#DateTime` is {date:?}, on the computer's clock that downloaded it"
+            "the header's `#DateTime` is {date:?}, as written: the file doesn't say which clock \
+             wrote it"
         ));
     }
 

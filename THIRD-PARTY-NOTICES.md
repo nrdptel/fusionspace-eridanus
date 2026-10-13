@@ -377,7 +377,10 @@ adds a source.
   `lib/parsers/altimeterCloud.ts` and `lib/parsers/entacoreAim.ts` at the same commit:
   AltimeterCloud's layout signature and its centi-degree `bmp_temp(x100)`, in
   `hpr_flightdata::altimetercloud`, and the Entacore AIM export's `time` column per channel group,
-  in `hpr_flightdata::entacore`.
+  in `hpr_flightdata::entacore`. Also `lib/parsers/missileworksRff.ts` at the same commit: the
+  RRC3 `.rff`'s list of 16-bit words found by its member reference and size, the `0x4000`
+  threshold between pressures and auxiliary words, the 500 mbar floor that finds the first reading,
+  and the check of the 20 Hz clock against the once-a-second pairs, in `hpr_flightdata::rrc3_rff`.
   No code was copied; no flight file of Debrief's is committed.
 - **DOPRI5** (BSD-2-Clause), E. Hairer and G. Wanner's `dopri5.f`, version of 2004: the
   Dormand–Prince coefficients, the error norm, the PI step-size controller, the starting-step

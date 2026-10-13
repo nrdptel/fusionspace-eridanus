@@ -471,10 +471,13 @@ fn compare_raw(
     raw: &hpr_flightdata::log::FlightLog,
     export: &hpr_flightdata::log::FlightLog,
 ) -> Option<(usize, f64, f64, Vec<String>)> {
-    let one_clock = export
-        .channels
-        .windows(2)
-        .all(|pair| pair[0].time_s == pair[1].time_s);
+    // One clock needs two channels to share it: a single channel is compared one for one, the
+    // stricter rule.
+    let one_clock = export.channels.len() > 1
+        && export
+            .channels
+            .windows(2)
+            .all(|pair| pair[0].time_s == pair[1].time_s);
     let (mut samples, mut worst_time, mut worst_steps) = (0, 0.0f64, 0.0f64);
     let mut export_only = Vec::new();
     let mut compared_channels = 0;
@@ -1229,6 +1232,140 @@ fn hex(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A record of `format` holding the channels given as name, quantity, times and values.
+    fn record(
+        format: &str,
+        channels: &[(&str, &str, &[f64], &[f64])],
+    ) -> hpr_flightdata::log::FlightLog {
+        let channels: Vec<serde_json::Value> = channels
+            .iter()
+            .map(|(column, quantity, time_s, values)| {
+                serde_json::json!({
+                    "column": column, "quantity": quantity, "time_s": time_s, "values": values,
+                })
+            })
+            .collect();
+        serde_json::from_value(serde_json::json!({
+            "format": format, "logger": "test", "serial_number": null, "firmware": null,
+            "flight_number": null, "stated": {}, "time_s": [], "altitude_m": [],
+            "channels": channels, "notes": [],
+        }))
+        .unwrap()
+    }
+
+    #[test]
+    fn printed_times_agree_to_six_significant_figures() {
+        // A tick exactly halfway, 10.00875 s, prints 10.0087 from single precision.
+        assert!(times_agree(10.0087, 10.008_75));
+        assert!(times_agree(10.0088, 10.008_75));
+        assert!(!times_agree(10.0086, 10.008_75));
+        // Below 1 s the export prints to the microsecond or finer.
+        assert!(times_agree(0.04375, 0.043_75));
+        assert!(!times_agree(0.0437, 0.043_75));
+        assert!(times_agree(0.0, 0.0));
+    }
+
+    #[test]
+    fn a_raw_record_matches_an_export_only_sample_for_sample() {
+        let g = 0.01 * 9.806_65;
+        let raw = record(
+            "raven_fipa",
+            &[(
+                "Axial Accel (Gs)",
+                "acceleration",
+                &[0.0, 0.0025, 0.005],
+                &[g, 2.0 * g, 3.0 * g],
+            )],
+        );
+        // The export's own conversions aren't compared, and are named.
+        let export = |values: &[f64]| {
+            record(
+                "raven_fip_csv",
+                &[
+                    (
+                        "Axial Accel (Gs)",
+                        "acceleration",
+                        &[0.0, 0.0025, 0.005][..values.len()],
+                        values,
+                    ),
+                    (
+                        "[Altitude (Baro-Ft-AGL)]",
+                        "altitude_above_ground",
+                        &[0.0],
+                        &[1.0],
+                    ),
+                ],
+            )
+        };
+        let (samples, _, steps, only) = compare_raw(&raw, &export(&[g, 2.0 * g, 3.4 * g])).unwrap();
+        assert_eq!(samples, 3);
+        assert!((steps - 0.4).abs() < 1e-9, "{steps}");
+        assert_eq!(only, ["[Altitude (Baro-Ft-AGL)]"]);
+        // Stopped early, as the FIP stops the velocity at apogee.
+        assert_eq!(compare_raw(&raw, &export(&[g, 2.0 * g])).unwrap().0, 2);
+        // A value a step off, or a sample past the raw file's end, is a difference.
+        assert_eq!(compare_raw(&raw, &export(&[g, 3.0 * g, 3.0 * g])), None);
+        let longer = record(
+            "raven_fip_csv",
+            &[(
+                "Axial Accel (Gs)",
+                "acceleration",
+                &[0.0, 0.0025, 0.005, 0.0075],
+                &[g; 4],
+            )],
+        );
+        assert_eq!(compare_raw(&raw, &longer), None);
+    }
+
+    #[test]
+    fn a_one_clock_export_holds_each_sample_until_the_next() {
+        let raw = record(
+            "raven_fipa",
+            &[(
+                "Baro (Atm)",
+                "pressure",
+                &[0.00375, 0.05375, 0.10375],
+                &[90_000.0, 89_000.0, 88_000.0],
+            )],
+        );
+        let ticks: Vec<f64> = (0..100).map(|n| f64::from(n) * 0.00125).collect();
+        let held = |at: &dyn Fn(f64) -> f64| -> Vec<f64> { ticks.iter().map(|t| at(*t)).collect() };
+        let export = |values: &[f64]| {
+            record(
+                "raven_fip_csv",
+                &[
+                    ("Baro (Atm)", "pressure", &ticks, values),
+                    ("LiftOff", "number", &ticks, &vec![0.0; ticks.len()]),
+                ],
+            )
+        };
+        // Before the first sample, the first; then each until the next.
+        let right = held(&|t| {
+            if t < 0.053 {
+                90_000.0
+            } else if t < 0.103 {
+                89_000.0
+            } else {
+                88_000.0
+            }
+        });
+        assert_eq!(compare_raw(&raw, &export(&right)).unwrap().0, 100);
+        // Stopped at the second sample, the rest holding it: compared up to the stop.
+        let stopped = held(&|t| if t < 0.053 { 90_000.0 } else { 89_000.0 });
+        assert!(compare_raw(&raw, &export(&stopped)).is_some());
+        // A sample shown a tick late is a difference.
+        let late = held(&|t| {
+            if t < 0.055 {
+                90_000.0
+            } else if t < 0.103 {
+                89_000.0
+            } else {
+                88_000.0
+            }
+        });
+        assert_eq!(compare_raw(&raw, &export(&late)), None);
+    }
 
     #[test]
     fn pfa_checks_count_the_stated_figures_and_the_eighth_sample() {

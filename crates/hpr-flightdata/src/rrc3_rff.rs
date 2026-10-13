@@ -4,20 +4,21 @@
 //! The RRC3 records its pressure at 20 Hz, and its temperature and battery voltage at 1 Hz (*RRC3+
 //! / RRC3 User Manual* v1.71, p. 23). mDACS keeps the download as a .NET `BinaryFormatter` stream,
 //! the layout Microsoft publishes as MS-NRBF (*[MS-NRBF]: .NET Remoting: Binary Format Data
-//! Structure*, v20240423): a serialized `mDACS.AnalysisSupport+FlightRecord` whose flight data is a
-//! `List<Int16>`, the altimeter's memory as it came off the board, one 16-bit word a slot. The
-//! stream has no columns and no times:
+//! Structure*, revision 13.0, 2024-11-19): a serialized `mDACS.AnalysisSupport+FlightRecord` whose
+//! flight data is a `List<Int16>`, the altimeter's memory as it came off the board, one 16-bit word
+//! a slot. The stream has no columns and no times:
 //!
 //! - a word below `0x4000` is a pressure, in tenths of a millibar (10 Pa): `0x4000` is 1,638.4
 //!   mbar, half again the highest pressure measured at sea level, so no reading reaches it;
-//! - a word at or above `0x4000` is an auxiliary word, written in pairs once a second: the
-//!   temperature and battery voltage the manual names, in counts. The file holds no calibration
-//!   for them, and they are kept as written ([`Quantity::Unrecognized`]), in the order the file
-//!   writes them. A few stand alone, not in a pair (in each sample file, three: one near apogee,
+//! - a word at or above `0x4000` is an auxiliary word, written in pairs once a second,
+//!   presumably the temperature and battery voltage the manual names, in counts: Debrief found
+//!   mDACS's export's temperature and voltage tracking them, though not linearly. The file holds
+//!   no calibration for them, and they are kept as written ([`Quantity::Unrecognized`]), in the
+//!   order the file writes them. A few stand alone, not in a pair (in each sample file, three: one near apogee,
 //!   one later, and a last `0xFFFF`); what they mean isn't known, and they are kept as written in
 //!   a channel of their own;
-//! - the readings start at the first word, among the first [`MAX_PREAMBLE`], that a pressure on a
-//!   launch pad can be, at least 500 mbar ([`PAD_FLOOR`], 5,570 m in the standard atmosphere, above
+//! - the readings start at the first word, among the first eight, that a pressure on a
+//!   launch pad can be, at least 500 mbar (5,570 m in the standard atmosphere, above
 //!   any launch site): the words before it are kept, as written, in a note;
 //! - a zero word ends the log: the list's slots after it are unwritten.
 //!
@@ -37,18 +38,18 @@
 //!
 //! **Refused**, naming the byte: a stream with no `List<Int16>` of the flight record's, or more
 //! than one candidate for it; a list whose slots run past the file's end; readings that don't start
-//! among the first [`MAX_PREAMBLE`] words; a word other than a zero after the zero that ends the
+//! among the first eight words; a word other than a zero after the zero that ends the
 //! log; fewer than two seconds of readings; and a clock check that fails.
 //!
 //! **Where this comes from.** The layout, the `0x4000` threshold, the 500 mbar floor, the
 //! preamble's length and the clock check follow the reader in Debrief
 //! (`lib/parsers/missileworksRff.ts`, MIT, the project owner's own; see `THIRD-PARTY-NOTICES.md`),
 //! which was worked out from a raw file and mDACS's export of the same flight; the record types
-//! and their fields are MS-NRBF's (§2.4.3.1 `ArraySinglePrimitive`, §2.5.3 `MemberReference`,
+//! and their fields are MS-NRBF's (§2.4.3.3 `ArraySinglePrimitive`, §2.5.3 `MemberReference`,
 //! §2.6.1 `SerializationHeaderRecord`). Where this reader departs from Debrief's: it keeps the
-//! auxiliary words, paired and single, and the preamble where Debrief drops them; it refuses a stream with two
-//! candidate lists where Debrief takes the longer; and it refuses data after the zero that ends
-//! the log where Debrief stops reading.
+//! auxiliary words, paired and single, and the preamble where Debrief drops them; it refuses a
+//! stream with two candidate lists where Debrief takes the longer; and it refuses data after the
+//! zero that ends the log where Debrief stops reading.
 
 use crate::error::LogError;
 use crate::log::{Channel, FlightLog, LogFormat, Quantity, Stated};
@@ -277,8 +278,9 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
             (by_pairs - by_readings).abs()
         ),
         "the record's primary track is empty: the file holds pressures, not an altitude".to_owned(),
-        "the auxiliary words, the RRC3's temperature and battery voltage in counts, are kept as \
-         written: the file holds no calibration for them"
+        "the once-a-second pairs, presumably the temperature and battery voltage the RRC3 \
+         records at 1 Hz (RRC3 manual p. 23), are kept as written: the file holds no calibration \
+         for them"
             .to_owned(),
     ];
     if start > 0 {

@@ -2,11 +2,13 @@
 //! recognizes the layout from the content, never the file's name, and reads it into the record
 //! every reader fills ([`FlightLog`]).
 //!
-//! The layouts it recognizes, the GPS logs by their own marks, the rest by the first line that
-//! isn't blank:
+//! The layouts it recognizes, the raw downloads by their bytes, the GPS logs by their own marks,
+//! the rest by the first line that isn't blank:
 //!
 //! | Format | Recognized by |
 //! |---|---|
+//! | [Raven `.FIPa`](crate::raven_fipa) | its bytes: they open `#Component=Raven`, and a `#den` line within the first 4,096 is followed by a frame's `:`; told before the file is decoded as text |
+//! | [RRC3 `.rff`](crate::rrc3_rff) | its bytes: an MS-NRBF serialization header, version 1.0, and mDACS's `mDACS.AnalysisSupport+FlightRecord` class name within the first 4,096; told before the file is decoded as text |
 //! | [KML](crate::kml) | its root element is `kml`, after any XML declaration and comments |
 //! | [NMEA 0183](crate::nmea) | at least 3 of its first 50 lines that aren't blank open with a sentence whose checksum checks out, such as `$GPGGA,…*hh` |
 //! | [Featherweight GPS CSV](crate::fwgps) | the first line opens `UTCTIME,UNIXTIME,` or `TRACKER,DATE,TIME,` and names the latitude and longitude |
