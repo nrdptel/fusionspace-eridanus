@@ -551,10 +551,10 @@ fn compare_raw(
             continue;
         };
         let step = raw_step(raw.format, own.quantity)?;
-        // A channel with no samples, or with times and values that don't pair up, compares with
-        // nothing.
+        // A channel with no samples, on either side, or with times and values that don't pair up,
+        // compares with nothing.
         let paired = |c: &hpr_flightdata::log::Channel| c.time_s.len() == c.values.len();
-        if own.values.is_empty() || !paired(own) || !paired(channel) {
+        if own.values.is_empty() || channel.values.is_empty() || !paired(own) || !paired(channel) {
             return None;
         }
         let may_stop = own.quantity == Quantity::Speed;
@@ -1586,6 +1586,16 @@ mod tests {
         };
         let empty = record("raven_fipa", &[("Baro (Atm)", "pressure", &[], &[])]);
         assert_eq!(compare_raw(&empty, &one_clock(&[1.0; 3])), None);
+        // An export's velocity with no rows hasn't stopped early: it holds nothing to compare.
+        let velocity = record(
+            "raven_fipa",
+            &[("Velocity (Accel-Ft/Sec)", "speed", &ticks, &[1.0; 3])],
+        );
+        let none = record(
+            "raven_fip_csv",
+            &[("Velocity (Accel-Ft/Sec)", "speed", &[], &[])],
+        );
+        assert_eq!(compare_raw(&velocity, &none), None);
         // A raw channel, or an export's, with fewer times than values.
         let ragged = record(
             "raven_fipa",
