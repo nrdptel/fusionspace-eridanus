@@ -37,7 +37,8 @@ apogee the log then records, and to compare that with the forward simulation on 
 1. **Every stated interval, tested both ways.** Every reading M7.2 doesn't withhold states a 90%
    interval (apogee, maximum velocity and acceleration, burnout, descent rates, flight time); so
    does each parameter M7.3 fits (drag coefficient scale, impulse scale, wind as one constant
-   vector), for the least-squares fit and for the Bayesian option. M7.2's old clause stays beside
+   vector, and mass within its weighed uncertainty), for the least-squares fit and for the
+   Bayesian option. M7.2's old clause stays beside
    the test: the smoothed trajectory recovers the truth within its stated error.
    - **The flights.** At least 1,000 synthetic flights, each drawing its design (from at least 10
      public designs), motor, wind, launch angle and sensor noise independently, on seeds fixed
@@ -49,19 +50,28 @@ apogee the log then records, and to compare that with the forward simulation on 
      option's prior, so a fit that learns nothing from the log can't pass by construction.
    - **The test.** Three counts, each with a two-sided 99.9% Clopper–Pearson interval: flights
      whose truth lies above the stated interval and flights whose truth lies below it, each of
-     which must contain 5%, and flights whose truth it holds, which must contain 90%. Testing each
-     tail on its own catches an interval that misses on one side only. The 99.9% level is for the
-     family of about 14 intervals: in 400,000 simulated runs of 1,000 flights, a correctly stated
-     interval passed 99.8% of the time, and all 14 together about 97%.
+     which must contain 5%, and flights whose truth it holds, which must contain 90%. At 1,000
+     flights a tail passes with 29 to 74 misses (2.9% to 7.4%). Testing each tail on its own
+     catches an interval that misses on one side only. The 99.9% level is for the family of about
+     14 intervals: in 400,000 simulated runs of 1,000 flights, a correctly stated interval passed
+     99.8% of the time, and all 14 together about 97%. If a correct implementation still fails,
+     the flight count doubles on new seeds fixed the same way, recorded in an ADR; seeds are never
+     swapped one by one. The counts are also reported per design, so a miss on one design can't
+     hide behind another's.
    - **Mutation probes.** The test must fail when every interval is narrowed to 0.8 of its width,
      when widened to 1.25 (for normal errors they then hold the truth about 81% and 96% of the
-     time), and when every reading is shifted down by one stated standard error. None of the
-     400,000 simulated runs passed any probe; the fixed seeds pin that each fails.
+     time), and when every reading is shifted down by one stated standard error. In the same
+     simulation the narrowed probe passed about 3 runs in a million and the others none; the fixed
+     seeds pin that each fails.
    - **What a log can tell.** Thrust and drag act through their ratio to mass, so the fit takes
      the weighed mass, with its stated uncertainty, as an input (fitting mass only within that
-     uncertainty) and fits the impulse and drag scales against it. Each fitted interval's width is reported beside its stated range's; a
-     parameter whose interval is wider than 0.9 of that range is reported as not identified by
-     the log, not as a fit.
+     uncertainty) and fits the impulse and drag scales against it. A fit that ignores the log
+     would pass the coverage test by construction, with intervals as wide as the prior's, so
+     coverage alone doesn't count as a fit: a parameter counts as identified only when its median
+     interval over the flights is at most half the width of the 90% interval its prior or stated
+     range gives with no log. Otherwise it is reported as not identified by the log, and the
+     drag and impulse scales must be identified on the same-model set. A probe feeds the fit pure
+     noise in place of a log, and every parameter must come back as not identified.
 2. **The apogee reading's error side.** M7.2 reports the apogee reading's mean error on the
    synthetic flights with its sign. A reading too low is the flattering side for a waiver
    ([ADR-144][adr-144]): the upper tail's count in §1 is that side's test, and the shifted-down
