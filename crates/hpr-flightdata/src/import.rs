@@ -19,7 +19,7 @@
 //! | [RRC3 CSV](crate::rrc3) | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages` |
 //! | [AltimeterCloud CSV](crate::altimetercloud) | a header within the first 65 lines whose first name is `Time(ms)`, in any case, and which also names `acceleration_total(mG)` and `tilt` |
 //! | [Entacore AIM CSV](crate::entacore) | the first line starts with a `time` column, names at least two, and names one of the AIM's own channels, such as `Pressure AGL` |
-//! | [ARTS2 CSV](crate::arts2) | a first line of exactly `# MET Acc Vel iAlt pAlt`, tried before AltOS's `#` comments |
+//! | [ARTS2 CSV](crate::arts2) | a first line of `#` and the names `MET Acc Vel iAlt pAlt`, by spaces, tabs or commas, in any case; tried before AltOS's `#` comments |
 //! | [SillyGoose text](crate::sillygoose) | the first line, or the one after a `CONFIG` line, starts with `timestampMs` and names `pressurePa` and `altitudeM` |
 //! | [Silicdyne Fluctus CSV](crate::fluctus) | a `sep=` line, or none, then a header starting `time` that names `deltaTime` and `baro-altitude` |
 //! | [Eggtimer text](crate::eggtimer::read_text) | an `Eggtimer … Flight Settings` title before an Eggtimer CSV header, within the first 200 lines that aren't blank |
@@ -53,6 +53,7 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::Kml,
     LogFormat::Nmea0183,
     LogFormat::FeatherweightGpsCsv,
+    LogFormat::Arts2Csv,
     LogFormat::PerfectFlitePf2,
     LogFormat::PerfectFlitePfa,
     LogFormat::AltosCsv,
@@ -63,7 +64,6 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::EntacoreAimCsv,
     LogFormat::SillyGooseText,
     LogFormat::FluctusCsv,
-    LogFormat::Arts2Csv,
     LogFormat::EggtimerText,
     LogFormat::EggtimerCsv,
     LogFormat::PerfectFliteCsv,

@@ -268,7 +268,7 @@ out.
   and NMEA files, every column kept on its own clock
   ([the layouts read](format/flight-logs.md), [M7.1a](decisions-and-roadmap.md#m7-1a),
   [M7.1b](decisions-and-roadmap.md#m7-1b), [M7.1c1](decisions-and-roadmap.md#m7-1c1),
-  [M7.1c2](decisions-and-roadmap.md#m7-1c2), [M7.1c4](decisions-and-roadmap.md#m7-1c4)). The other loggers come with
+  [M7.1c2](decisions-and-roadmap.md#m7-1c2), [M7.1c3](decisions-and-roadmap.md#m7-1c3)). The other loggers come with
   [M7.1c4](decisions-and-roadmap.md#m7-1c4): CATS, AltOS's `.eeprom`, the RRC3's `.rff`, and
   plain CSV with column mapping. The rest of the readings, such
   as burnout and each leg of the descent, come with [M7.2](decisions-and-roadmap.md#m7-2), and

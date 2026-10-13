@@ -23,12 +23,11 @@
 //! Eggtimer's CSV and an Eggtimer TRS's terminal text ([`eggtimer`]), PerfectFlite's older `.pfa`
 //! ([`perfectflite`]), AltimeterCloud's CSV ([`altimetercloud`]) and Entacore AIM's
 //! ([`entacore`]), AerospaceNU's SillyGoose logs ([`sillygoose`]), Silicdyne Fluctus's CSV
-//! ([`fluctus`]), the ARTS2's interpreted data ([`arts2`]), and three GPS logs: Featherweight's tracker and ground-station CSV
-//! ([`fwgps`]), KML ([`kml`]) and NMEA 0183 ([`nmea`]), every column kept as a channel on its own
-//! clock. [`readings`] takes
-//! a first set of readings from the record: liftoff, apogee, the top speed, landing and the
-//! descent, set and tested on PerfectFlite logs. The guide's [reading a flight log][guide-log] page shows them on a
-//! log, and [the layouts read][guide-layouts] lists what each reader keeps. The other loggers'
+//! ([`fluctus`]), the ARTS2's interpreted data ([`arts2`]), and three GPS logs: Featherweight's
+//! tracker and ground-station CSV ([`fwgps`]), KML ([`kml`]) and NMEA 0183 ([`nmea`]), every
+//! column kept as a channel on its own clock. [`readings`] takes a first set of readings from the
+//! record: liftoff, apogee, the top speed, landing and the descent, set and tested on PerfectFlite
+//! logs. The guide's [reading a flight log][guide-log] page shows them on a log, and [the layouts read][guide-layouts] lists what each reader keeps. The other loggers'
 //! formats, spreadsheets and plain CSV are planned for milestone [M7.1c4][roadmap] of the roadmap,
 //! and the rest of the readings, smoothing and reconstruction for [M7.2][roadmap].
 //!

@@ -47,6 +47,9 @@ decided, [M7.1c1](../decisions-and-roadmap.md#m7-1c1) (the GPS logs), as
 decided, and [M7.1c2](../decisions-and-roadmap.md#m7-1c2) (AltimeterCloud, Entacore AIM,
 PerfectFlite's `.pfa` and an Eggtimer TRS's terminal text), as
 [ADR-255](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0255-text-loggers-before-the-rest-of-the-importers.md)
+decided, and [M7.1c3](../decisions-and-roadmap.md#m7-1c3) (the SillyGoose, Fluctus and ARTS2
+readers), as
+[ADR-256](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0256-three-club-and-team-layouts-before-the-rest.md)
 decided.
 
 ## The layouts read
@@ -66,8 +69,8 @@ decided.
 | AltimeterCloud CSV | Rocketry Ltd Nano V1 and Mercury, as a flight page on altimetercloud.com hands the log back | a header within the first 65 lines whose first name is `Time(ms)` (in any case) and which also names `acceleration_total(mG)` and `tilt` | `hpr_flightdata::altimetercloud` ([below](#units-the-file-decides)) |
 | Entacore AIM CSV | Entacore AIM XTRA (the flight computer's own log) and AIM BASE (the telemetry its ground station received), as the AIM software's *Export to Excel…* writes them | the first line starts with a `time` column, names at least two, and names one of the AIM's own channels, such as `Pressure AGL`, `lat. X accel.` or `eject. bat. voltage` | `hpr_flightdata::entacore` ([below](#units-the-file-decides)) |
 | SillyGoose text | AerospaceNU's SillyGoose flight computer: its own log, tab- or space-separated, with or without a `CONFIG` settings line | a first line, or the one after `CONFIG`, starting `timestampMs` and naming `pressurePa` and `altitudeM` | `hpr_flightdata::sillygoose` ([below](#units-the-file-decides)) |
-| Silicdyne Fluctus CSV | Silicdyne Fluctus, as its Fluctus Control Center exports a flight | a `sep=;` line, or none, then a header starting `time` that names `deltaTime` and `baro-altitude` | `hpr_flightdata::fluctus` ([below](#units-the-file-decides)) |
-| ARTS2 CSV | Ozark Aerospace ARTS2, its interpreted data as its software exports a flight | a first line of exactly `# MET Acc Vel iAlt pAlt` | `hpr_flightdata::arts2` ([below](#units-the-file-decides)) |
+| Silicdyne Fluctus CSV | Silicdyne Fluctus, as its Fluctus Control Center exports a flight | a `sep=` line (such as `sep=;`) within the first 16 lines, or none, then a header starting `time` that names `deltaTime` and `baro-altitude` | `hpr_flightdata::fluctus` ([below](#units-the-file-decides)) |
+| ARTS2 CSV | Ozark Aerospace ARTS2, its interpreted data as its software exports a flight | a first line of `#` and the names `MET Acc Vel iAlt pAlt`, by spaces, tabs or commas, in any case | `hpr_flightdata::arts2` ([below](#units-the-file-decides)) |
 | Featherweight GPS CSV | Featherweight's GPS tracker: its own log, and its ground station's log of every tracker it hears | a first line opening `UTCTIME,UNIXTIME,` or `TRACKER,DATE,TIME,` that names the latitude and longitude (`LAT` and `LON`, or `TRACKER Lat` and `TRACKER Lon`) | [below](#gps-logs) |
 | KML | GPS tracks as AltOS, Missile Works' RTx, Big Red Bee's BeeLine, fw2kml (a converter of Featherweight's logs), GPS Visualizer and others write them for Google Earth | the document's root element is `kml` | [below](#gps-logs) |
 | NMEA 0183 | a GPS receiver's own sentences, written to a file as it sends them | at least 3 of the first 50 lines open with a sentence whose checksum checks out, such as `$GPGGA,…*hh`, or, in a shorter file, every line does | [below](#gps-logs) |
@@ -277,36 +280,49 @@ sample logs:
     AIM detects launch only after the rocket has kept above 30 m/s (98 ft/s) for half a second
     (p36), so that event comes after liftoff.
 - **A SillyGoose's units, its header checked against its values.** AerospaceNU's SillyGoose board
-  names most units in its columns, such as `pressurePa`, `tempK` and `altitudeM`, but one sample
-  file's values contradict its names: temperatures below zero under `tempK`, an accelerometer
-  that reads 1 at rest. So the reader checks each named unit against the file, and keeps a column
-  as written, with a note, where the values refute it.
-  - *Accelerometer:* m/s² or g, whichever the board reads as 1 g, within 10%, for at least a
-    second and twice as long as the other, on the pad and under a parachute.
-  - *Gyroscope:* rad/s or °/s, from matching its rates, while the board reads about 1 g, against
-    how far gravity's direction turns in the accelerometer; a log too short to show a turn keeps
-    it as written.
-  - *Temperatures:* kelvin where every value lies within 233.15 to 333.15 K (−40 to 60 °C);
-    otherwise kept as written.
-  - *Heights and speed:* `altitudeM` must climb within 25% of what the pressure gives in the
-    standard atmosphere, or the file is refused; `unfiltAlt` is read in meters on the same check,
-    otherwise kept as written; `velocityMS` must match the altitude's rate of climb.
+  names most units in its columns, such as `pressurePa`, `tempK` and `altitudeM`, but two sample
+  files' values contradict their names. One has temperatures below zero under `tempK` and an
+  accelerometer that reads 1 at rest. The other, which looks replayed rather than recorded (it
+  starts in the boost, stops near apogee, and its temperature never changes), has
+  `angularVelRadS_*` rates beyond what a gyroscope (a sensor of the rate of turn) can read. So
+  the reader checks each named unit against the file, and keeps a column as written, with a note,
+  where the values refute it.
+  - *Accelerometer:* m/s² or g. A board at rest on the pad or hanging under a parachute reads
+    1 g. The reader takes the unit in which the board reads 1 g, within 10%, for at least 1 s and
+    for at least twice as long as in the other.
+  - *Gyroscope:* rad/s or °/s. While the board reads about 1 g, the reader compares how far its
+    rates say it turned with how far gravity's direction turned in the accelerometer. A log too
+    short to show a turn keeps the gyroscope as written.
+  - *Temperatures:* kelvin where every value lies within 233.15 to 333.15 K (−40 to 60 °C), the
+    range the project takes for an electronics bay; otherwise kept as written.
+  - *Heights:* `altitudeM` must climb within 25% of what the pressure gives in the standard
+    atmosphere, or the file is refused, as the record's altitude would have no unit. `unfiltAlt`
+    is read in meters on the same check, and otherwise kept as written.
+  - *Speed:* `velocityMS` must match the altitude's rate of climb, within 25%.
   - *Events:* each rise of `drogueFired` and `mainFired`; the flight-state codes, which no source
     publishes, are kept as numbers.
 - **A Fluctus's GPS altitude, worked out from the file.** Silicdyne's Fluctus writes each unit in
   brackets in its header, such as `baro-altitude (m)`, with a decimal comma (*Fluctus – Full
   Documentation* v1.7b, p27, p58), but `gpsAltMSL` has none, in the header or the manual. It is
-  read in meters where its highest rise above its first reading comes within 10% of the
-  barometric apogee, which must be at least 100 m (328 ft); in feet the rise would be 3.28 times
-  smaller. Otherwise, as where the GPS lost its fix in the climb, it is kept as written. The
+  read in meters only where the barometric altitude bears it out at the GPS's fresh fixes, the
+  rows where its reading changes: at least 10 fixes, spanning at least 120 m (394 ft) of the
+  barometric altitude, lying along a straight line (scatter within 10% of that span), whose slope
+  is within 10% of 1; in feet it would be 3.28. The 120 m lets two readings each 6 m (20 ft) off
+  move the slope by no more than 10%: twice the manual's ±3 m horizontal figure (p18), as a GPS's
+  vertical error runs about 1.6 times its horizontal. Otherwise, as where the GPS lost its fix in
+  the climb or lags the flight, it is kept as written; in all 6 sample files it is kept. The
   latitude and longitude are degrees, from the manual (p38) and a range check, and each change of
   `status` is an event named as the manual names it (p23).
 - **An ARTS2's unit system, worked out from the flight.** The ARTS2's interpreted data comes in
   English or metric units, and neither the file nor the manual (*ARTS2 User Manual* V1.0.0, Ozark
   Aerospace, 2007) says which. So the reader works it out from the flight:
-  - *Velocity:* at apogee the drag vanishes, and the logged velocity falls at g: 9.81 a second in
-    m/s, 32.17 in ft/s. The reader takes whichever fits within 25%, over the second before the
-    velocity crosses zero; at most one can.
+  - *Velocity, and the length unit:* at apogee the drag vanishes, and the logged velocity falls at
+    g: 9.81 a second in m/s, 32.17 in ft/s. The reader fits the last second of coast before the
+    velocity crosses zero, or, if the acceleration jumps in the 2 s before (a parachute out
+    early), the second before the jump. Separately, the barometric altitude moves in steps of one
+    sensor count, about 92 Pa (the manual's MPXA4100A sensor and 10-bit converter, p16): 5.5 to
+    14.8 m (18 to 49 ft) near any ground, so 17.9 to 48.6 written in feet. The file is read only
+    when both give the same unit, which also pins the clock in seconds.
   - *Acceleration:* g, or the velocity's unit per second, whichever makes its integral over the
     boost the velocity's rise, within 10%.
   - *Altitudes:* the inertial altitude `iAlt` must be the velocity's integral, and the barometric
@@ -316,7 +332,10 @@ sample logs:
   A file whose velocity or barometric altitude no check settles is refused; an acceleration or
   inertial altitude none settles is kept as written. The barometric altitude is the record's
   altitude, above the pad reading the logger took on entering flight mode (p17); the file starts
-  at launch.
+  at launch. The velocity and inertial altitude are the logger's integrals of its accelerometer,
+  and drift by the end of the descent, so the record keeps them as channels, not as its vertical
+  speed. The record's readings withhold on these layouts, as on every logger's but PerfectFlite's
+  `.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
 
 A unit read in the wrong one of feet and meters would put every height 3.28 times too high or too
 low, so the RRC3's is never assumed where its pressure can settle it, and the Eggtimer's rests on

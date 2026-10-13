@@ -142,12 +142,13 @@ Units no header states, as each file's reader decided them, or kept the column a
 | altimetercloud-csv | `target_alt` kept as written | 4 |
 | arts2-csv | `Acc` read in meters per second squared, from `Vel` | 1 |
 | arts2-csv | `Acc` read in standard gravities, 9.806 65 m/s², from `Vel` | 3 |
-| arts2-csv | `Vel` read in feet per second, from the apogee | 3 |
-| arts2-csv | `Vel` read in meters per second, from the apogee | 1 |
+| arts2-csv | `MET` read in seconds, from the apogee | 4 |
+| arts2-csv | `Vel` read in feet per second, from the apogee and the barometer's step | 3 |
+| arts2-csv | `Vel` read in meters per second, from the apogee and the barometer's step | 1 |
 | arts2-csv | `iAlt` read in feet, from `Vel` | 3 |
 | arts2-csv | `iAlt` read in meters, from `Vel` | 1 |
-| arts2-csv | `pAlt` read in feet, from `Vel` | 3 |
-| arts2-csv | `pAlt` read in meters, from `Vel` | 1 |
+| arts2-csv | `pAlt` read in feet, from its step and `Vel` | 3 |
+| arts2-csv | `pAlt` read in meters, from its step and `Vel` | 1 |
 | blueraven-csv | `Accel_X`, `Accel_Y` and `Accel_Z` read in standard gravities, from the manual and the pad | 35 |
 | blueraven-csv | `Current` kept as written, in a unit no source states | 35 |
 | blueraven-csv | `Gyro_X`, `Gyro_Y` and `Gyro_Z` read in degrees per second, from the manual and the summary | 35 |
@@ -192,8 +193,7 @@ Units no header states, as each file's reader decided them, or kept the column a
 | entacore-aim-csv | `pressure` read in pascals, from the values | 16 |
 | entacore-aim-csv | `temperature` read in degrees Celsius, from the heights' unit and the manual, p33 | 16 |
 | entacore-aim-csv | `time` read in seconds, from `GPS Time of Week` | 16 |
-| fluctus-csv | `gpsAltMSL` kept as written, in a unit no source states | 4 |
-| fluctus-csv | `gpsAltMSL` read in meters, from the barometric altitude | 2 |
+| fluctus-csv | `gpsAltMSL` kept as written, in a unit no source states | 6 |
 | fluctus-csv | `gpsLat` read in degrees, from the manual and the values | 6 |
 | fluctus-csv | `gpsLng` read in degrees, from the manual and the values | 6 |
 | fwgps-csv | `ALT` and `Altitude AGL` read in feet, from the manual alone | 1 |
