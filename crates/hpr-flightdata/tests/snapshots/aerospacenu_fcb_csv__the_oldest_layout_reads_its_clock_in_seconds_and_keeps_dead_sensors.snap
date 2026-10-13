@@ -1,0 +1,867 @@
+---
+source: crates/hpr-flightdata/tests/aerospacenu_fcb_csv.rs
+expression: condensed(&log)
+---
+{
+  "altitude_m": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.046875,
+    0.1875,
+    0.421875,
+    0.75,
+    1.171875,
+    1.6875,
+    2.296875,
+    3.0,
+    3.796875,
+    4.6875,
+    5.671875,
+    6.75,
+    7.921875,
+    9.1875,
+    10.546875,
+    12.0,
+    40.77416875,
+    67.096675,
+    90.96751875000001,
+    112.3867,
+    131.35421875,
+    147.87007499999999,
+    161.93426874999997,
+    173.54679999999996,
+    182.70766874999995,
+    189.41687499999995,
+    193.67441874999994,
+    195.48029999999994,
+    194.83451874999994,
+    194.43451874999994,
+    194.03451874999993,
+    193.63451874999993,
+    193.23451874999992,
+    192.83451874999992,
+    192.4345187499999,
+    192.0345187499999,
+    191.6345187499999,
+    191.2345187499999,
+    190.8345187499999,
+    190.43451874999988,
+    190.03451874999988,
+    189.63451874999987,
+    189.23451874999986,
+    188.83451874999986,
+    188.43451874999985,
+    188.03451874999985,
+    187.63451874999984,
+    187.23451874999984,
+    186.83451874999983,
+    186.43451874999982,
+    186.03451874999982,
+    185.6345187499998,
+    185.2345187499998,
+    184.8345187499998,
+    184.4345187499998,
+    184.0345187499998,
+    183.63451874999978,
+    183.23451874999978,
+    182.83451874999977,
+    182.43451874999977,
+    162.43451874999977,
+    142.43451874999977
+  ],
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "",
+      "first": 1000.0,
+      "last": 1072.0,
+      "quantity": "number",
+      "samples": 73
+    },
+    {
+      "column": "timestamp_ms",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu1_accel_x",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu1_accel_y",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu1_accel_z",
+      "first": 1366.0,
+      "last": 1366.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu1_gyro_x",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu1_gyro_y",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu1_gyro_z",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu1_mag_x",
+      "first": -310.0,
+      "last": -310.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu1_mag_y",
+      "first": 1220.0,
+      "last": 1220.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu1_mag_z",
+      "first": 1405.0,
+      "last": 1405.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu2_accel_x",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu2_accel_y",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu2_accel_z",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu2_gyro_x",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu2_gyro_y",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu2_gyro_z",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu2_mag_x",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu2_mag_y",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu2_mag_z",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "high_g_accel_x",
+      "first": 352.0,
+      "last": 352.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "high_g_accel_y",
+      "first": 48.0,
+      "last": 48.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "high_g_accel_z",
+      "first": 336.0,
+      "last": 336.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "baro1_temp",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "baro1_pres",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "baro2_temp",
+      "first": 23.08,
+      "last": 23.08,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "baro2_pres",
+      "first": 98361.0,
+      "last": 96702.0,
+      "quantity": "pressure",
+      "samples": 73
+    },
+    {
+      "column": "gps_lat",
+      "first": 12.5,
+      "last": 12.5,
+      "quantity": "latitude",
+      "samples": 73
+    },
+    {
+      "column": "gps_long",
+      "first": -34.75,
+      "last": -34.75,
+      "quantity": "longitude",
+      "samples": 73
+    },
+    {
+      "column": "gps_alt",
+      "first": 262.5,
+      "last": 262.5,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "battery_voltage",
+      "first": 7.9,
+      "last": 7.9,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "pyro_cont",
+      "first": 3.0,
+      "last": 3.0,
+      "quantity": "number",
+      "samples": 73
+    },
+    {
+      "column": "pyro_status",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "number",
+      "samples": 73
+    },
+    {
+      "column": "heading",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "vtg",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "pos_x",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "pos_y",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "pos_z",
+      "first": 0.0,
+      "last": 142.43451874999977,
+      "quantity": "altitude_above_ground",
+      "samples": 73
+    },
+    {
+      "column": "vel_x",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "vel_y",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "vel_z",
+      "first": 0.0,
+      "last": -20.0,
+      "quantity": "speed",
+      "samples": 73
+    },
+    {
+      "column": "acc_x",
+      "first": 9.8057870148,
+      "last": 9.8057870148,
+      "quantity": "acceleration",
+      "samples": 73
+    },
+    {
+      "column": "acc_y",
+      "first": -0.0,
+      "last": -0.0,
+      "quantity": "acceleration",
+      "samples": 73
+    },
+    {
+      "column": "acc_z",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "acceleration",
+      "samples": 73
+    },
+    {
+      "column": "q_x",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "number",
+      "samples": 73
+    },
+    {
+      "column": "q_y",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "number",
+      "samples": 73
+    },
+    {
+      "column": "q_z",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "number",
+      "samples": 73
+    },
+    {
+      "column": "q_w",
+      "first": 1.0,
+      "last": 1.0,
+      "quantity": "number",
+      "samples": 73
+    },
+    {
+      "column": "state",
+      "first": 7.0,
+      "last": 5.0,
+      "quantity": "number",
+      "samples": 73
+    },
+    {
+      "column": "gps_lat_mod",
+      "first": 12.5,
+      "last": 12.5,
+      "quantity": "latitude",
+      "samples": 73
+    },
+    {
+      "column": "gps_long_mod",
+      "first": -34.75,
+      "last": -34.75,
+      "quantity": "longitude",
+      "samples": 73
+    },
+    {
+      "column": "imu1_accel_x_real",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "acceleration",
+      "samples": 73
+    },
+    {
+      "column": "imu1_accel_y_real",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "acceleration",
+      "samples": 73
+    },
+    {
+      "column": "imu1_accel_z_real",
+      "first": 9.8057870148,
+      "last": 9.8057870148,
+      "quantity": "acceleration",
+      "samples": 73
+    },
+    {
+      "column": "imu2_accel_x_real",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu2_accel_y_real",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu2_accel_z_real",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu1_gyro_x_real",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "angular_rate",
+      "samples": 73
+    },
+    {
+      "column": "imu1_gyro_y_real",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "angular_rate",
+      "samples": 73
+    },
+    {
+      "column": "imu1_gyro_z_real",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "angular_rate",
+      "samples": 73
+    },
+    {
+      "column": "imu2_gyro_x_real",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu2_gyro_y_real",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu2_gyro_z_real",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu1_mag_x_real",
+      "first": -0.1798,
+      "last": -0.1798,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu1_mag_y_real",
+      "first": 0.7076,
+      "last": 0.7076,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu1_mag_z_real",
+      "first": 0.8149,
+      "last": 0.8149,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu2_mag_x_real",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu2_mag_y_real",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu2_mag_z_real",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu_accel_x_avg",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu_accel_y_avg",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu_accel_z_avg",
+      "first": 4.9028935074,
+      "last": 4.9028935074,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu_gyro_x_avg",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu_gyro_y_avg",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu_gyro_z_avg",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu_mag_x_avg",
+      "first": -0.0899,
+      "last": -0.0899,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu_mag_y_avg",
+      "first": 0.3538,
+      "last": 0.3538,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "imu_mag_z_avg",
+      "first": 0.40745,
+      "last": 0.40745,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "high_g_accel_x_real",
+      "first": 10.35584,
+      "last": 10.35584,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "high_g_accel_y_real",
+      "first": 1.41216,
+      "last": 1.41216,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "high_g_accel_z_real",
+      "first": 9.88512,
+      "last": 9.88512,
+      "quantity": "unrecognized",
+      "samples": 73
+    },
+    {
+      "column": "baro_pres_avg",
+      "first": 98361.0,
+      "last": 96702.0,
+      "quantity": "pressure",
+      "samples": 73
+    },
+    {
+      "column": "baro_temp_avg",
+      "first": 0.0,
+      "last": 0.0,
+      "quantity": "unrecognized",
+      "samples": 73
+    }
+  ],
+  "events": [],
+  "firmware": null,
+  "flight_number": null,
+  "format": "aerospace_nu_fcb_csv",
+  "logger": "AerospaceNU flight computer board",
+  "notes": [
+    "`baro1_pres` kept as written: every value is 0, a barometer that isn't working",
+    "`baro2_pres` read in atmospheres, from its size and its step: on the pad it reads 0.9707475943745374, within the 0.5 to 1.1 that only atmospheres and bars of the units a barometer is written in put a pad, and each of its 73 cells written precisely enough to test is a whole number of pascals over 101,325 within a millionth of a step, as a barometer's pascals written in atmospheres are and in bars, over 100,000, aren't",
+    "`baro_pres_avg` read in atmospheres, from its size and its step: on the pad it reads 0.9707475943745374, within the 0.5 to 1.1 that only atmospheres and bars of the units a barometer is written in put a pad, and each of its 73 cells written precisely enough to test is a whole number of pascals over 101,325 within a millionth of a step, as a barometer's pascals written in atmospheres are and in bars, over 100,000, aren't",
+    "`timestamp_s` read in seconds, from its spacing and the climb: its rows' median step is 0.024999999999977263 as written, and the climb the pressure reads from the launch, over the one the raw accelerometer integrates to in its pad reading's 1 g, is, read in milliseconds, none, too little to tell, and read in seconds, 1.051; a row every 5 to 500 ms, as the board logs, and a ratio within a factor of 10 of 1 are taken",
+    "`imu1_accel_x_real`, `imu1_accel_y_real` and `imu1_accel_z_real` read in meters per second squared, from the pad's gravity and the sensor's scale: at rest they read 9.806, 1 g in that unit within 10%, and each is its raw count times 0.0071785, in that unit one of the counts of STMicroelectronics' LSM9DS1 (0.061, 0.122, 0.244 or 0.732 mg)",
+    "`imu2_accel_x_real`, `imu2_accel_y_real` and `imu2_accel_z_real` kept as written: every value is 0, a sensor that isn't working",
+    "`high_g_accel_x_real`, `high_g_accel_y_real` and `high_g_accel_z_real` kept as written: the pad's gravity and the sensor's scale don't both bear one unit out: at rest they read 14.386, 1 g within 10% in neither m/s² nor g; each is its raw count times 0.0294200, none of the LSM9DS1's counts in either unit",
+    "`imu_accel_x_avg`, `imu_accel_y_avg` and `imu_accel_z_avg` kept as written: the pad's gravity and the IMUs don't both bear one unit out: the IMUs' scaled columns they average aren't all read in one unit, so neither is their mean; at rest they read 4.903",
+    "`acc_x`, `acc_y` and `acc_z` read in meters per second squared, from the pad's gravity and the climb: at rest they read 9.806, and the pressure's climb from the launch over the one they integrate to is, read in m/s², 1.051, and read in g, 0.088; 1 g within 10% and a ratio within a factor of 1.8 of 1 are taken",
+    "`imu1_gyro_x_real`, `imu1_gyro_y_real` and `imu1_gyro_z_real` read in radians per second, from the board's turning and the sensor's scale: over 3 stretches of 10 steps at most 0.05 s apart with the accelerometer within 15% of 1 g, its direction turns 0.600 rad, and the rates turn the board across it 0.600 rad read in radians per second, 0.010 rad read in degrees; the unit whose turn is within a quarter to 4 times the accelerometer's is taken, from 3 stretches and 0.2 rad; and each is its raw count times 0.0003054, in that unit one of the counts of STMicroelectronics' LSM9DS1 (8.75, 17.5 or 70 m°/s)",
+    "`imu2_gyro_x_real`, `imu2_gyro_y_real` and `imu2_gyro_z_real` kept as written: every value is 0, a sensor that isn't working",
+    "`imu_gyro_x_avg`, `imu_gyro_y_avg` and `imu_gyro_z_avg` kept as written: the board's turning and the IMUs don't both bear one unit out: the IMUs' scaled columns they average aren't all read in one unit, so neither is their mean; over 3 stretches of 10 steps at most 0.05 s apart with the accelerometer within 15% of 1 g, its direction turns 0.600 rad, and the rates turn the board across it 0.300 rad read in radians per second, 0.005 rad read in degrees; the unit whose turn is within a quarter to 4 times the accelerometer's is taken, from 3 stretches and 0.2 rad",
+    "`gps_alt` kept as written: the pressure's climb and the accelerometer's don't agree on a unit: its climb at the GPS's fresh fixes up to the apogee over the pressure's in the standard atmosphere is none, too little to tell as written, and its climb from the launch over the one the accelerometer integrates to is 0.000; a gain within 25% of 1 and a ratio within a factor of 1.8 are taken",
+    "`pos_z` read in meters, from the pressure's climb and the accelerometer's: its climb from the pad to its highest over the pressure's in the standard atmosphere is 1.000 as written, and its climb from the launch over the one the accelerometer integrates to is 1.051; a gain within 25% of 1 and a ratio within a factor of 1.8 are taken",
+    "`vel_z` read in meters per second, from `pos_z` and the accelerometer: over the steps at most 0.05 s long, `pos_z`'s change in meters is 1.000 times what it integrates to as written, and from the launch it is 1.000 times the speed the accelerometer integrates to; a slope within 25% of 1 and a ratio within a factor of 1.8 are taken",
+    "`gps_lat` and `gps_long` read in NMEA 0183's degrees and minutes, ddmm.mmmm, from their values and their companions: they pass 90 or 180, which no degrees do, and every one's last two digits before the point, its minutes, are under 60, and `gps_lat_mod` and `gps_long_mod` hold them converted from degrees and minutes to degrees",
+    "`gps_lat_mod` and `gps_long_mod` read in degrees, from `gps_lat` and `gps_long`: each is its companion, read in degrees and minutes, converted to degrees",
+    "`imu1_accel_x`, `imu1_accel_y` and `imu1_accel_z` kept as written: a sensor's raw counts, which the columns named with `_real` hold scaled",
+    "`imu1_gyro_x`, `imu1_gyro_y` and `imu1_gyro_z` kept as written: a sensor's raw counts, which the columns named with `_real` hold scaled",
+    "`imu1_mag_x`, `imu1_mag_y` and `imu1_mag_z` kept as written: a sensor's raw counts, which the columns named with `_real` hold scaled",
+    "`imu2_accel_x`, `imu2_accel_y` and `imu2_accel_z` kept as written: a sensor's raw counts, which the columns named with `_real` hold scaled",
+    "`imu2_gyro_x`, `imu2_gyro_y` and `imu2_gyro_z` kept as written: a sensor's raw counts, which the columns named with `_real` hold scaled",
+    "`imu2_mag_x`, `imu2_mag_y` and `imu2_mag_z` kept as written: a sensor's raw counts, which the columns named with `_real` hold scaled",
+    "`high_g_accel_x`, `high_g_accel_y` and `high_g_accel_z` kept as written: a sensor's raw counts, which the columns named with `_real` hold scaled",
+    "`imu1_mag_x_real`, `imu1_mag_y_real` and `imu1_mag_z_real` kept as written: a magnetometer's reading, a quantity HPR Sim doesn't hold",
+    "`imu2_mag_x_real`, `imu2_mag_y_real` and `imu2_mag_z_real` kept as written: a magnetometer's reading, a quantity HPR Sim doesn't hold",
+    "`imu_mag_x_avg`, `imu_mag_y_avg` and `imu_mag_z_avg` kept as written: a magnetometer's reading, a quantity HPR Sim doesn't hold",
+    "`timestamp_ms` kept as written: every value is 0; the other clock column holds the times",
+    "`baro1_temp` kept as written: every value is 0, and its name states no unit",
+    "`baro2_temp` kept as written: its name states no unit, and its values, 23.08 to 23.08, lie within a barometer's working −40 to 85 °C read in degrees Celsius or in Fahrenheit; no other column holds a temperature to tell the two apart",
+    "`battery_voltage` kept as written: its name states no unit, and nothing in the file checks one",
+    "`heading` kept as written: every value is 0, and its name states no unit",
+    "`vtg` kept as written: every value is 0, and its name states no unit",
+    "`pos_x` kept as written: every value is 0, and its name states no unit",
+    "`pos_y` kept as written: every value is 0, and its name states no unit",
+    "`vel_x` kept as written: every value is 0, and its name states no unit",
+    "`vel_y` kept as written: every value is 0, and its name states no unit",
+    "`baro_temp_avg` kept as written: every value is 0, and its name states no unit"
+  ],
+  "serial_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "temperature_k": null,
+  "time_s": [
+    600.0,
+    600.1,
+    600.2,
+    600.3,
+    600.4,
+    600.5,
+    600.6,
+    600.7,
+    600.8,
+    600.9,
+    601.0,
+    601.025,
+    601.05,
+    601.075,
+    601.1,
+    601.125,
+    601.15,
+    601.175,
+    601.2,
+    601.225,
+    601.25,
+    601.275,
+    601.3,
+    601.325,
+    601.35,
+    601.375,
+    601.4,
+    601.9,
+    602.4,
+    602.9,
+    603.4,
+    603.9,
+    604.4,
+    604.9,
+    605.4,
+    605.9,
+    606.4,
+    606.9,
+    607.4,
+    607.9,
+    607.92,
+    607.94,
+    607.96,
+    607.98,
+    608.0,
+    608.02,
+    608.04,
+    608.06,
+    608.08,
+    608.1,
+    608.12,
+    608.14,
+    608.16,
+    608.18,
+    608.2,
+    608.22,
+    608.24,
+    608.26,
+    608.28,
+    608.3,
+    608.32,
+    608.34,
+    608.36,
+    608.38,
+    608.4,
+    608.42,
+    608.44,
+    608.46,
+    608.48,
+    608.5,
+    608.52,
+    609.52,
+    610.52
+  ],
+  "vertical_speed_m_s": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    3.75,
+    7.5,
+    11.25,
+    15.0,
+    18.75,
+    22.5,
+    26.25,
+    30.0,
+    33.75,
+    37.5,
+    41.25,
+    45.0,
+    48.75,
+    52.5,
+    56.25,
+    60.0,
+    55.096675,
+    50.193349999999995,
+    45.29002499999999,
+    40.38669999999999,
+    35.48337499999999,
+    30.58004999999999,
+    25.67672499999999,
+    20.77339999999999,
+    15.870074999999993,
+    10.966749999999994,
+    6.063424999999994,
+    1.1600999999999946,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0,
+    -20.0
+  ]
+}

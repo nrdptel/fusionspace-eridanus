@@ -98,6 +98,7 @@ use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
 use crate::error::LogError;
 use crate::log::{Channel, FlightLog, LogFormat, Quantity, Stated};
 use crate::perfectflite::FOOT_M;
+use crate::table::finite;
 
 /// The format's name in errors.
 const FORMAT: &str = "Raven FIP CSV";
@@ -235,8 +236,8 @@ impl Clock {
 /// [`LogError::NotThisFormat`] if the first line isn't a FIP export's header (a clock column first,
 /// and a channel name the Raven writes); [`LogError::Syntax`] for a header the reader can't lay
 /// out, a file with no altitude above the pad, a row whose cells don't fall into its channels, a
-/// time or value that isn't a number, or a time that goes back; [`LogError::NoData`] if the
-/// altitude has no samples.
+/// time or value that isn't a number, a value too large to convert to SI, or a time that goes
+/// back; [`LogError::NoData`] if the altitude has no samples.
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let text = text.strip_prefix('\u{feff}').unwrap_or(text);
     let mut lines = numbered_lines(text).filter(|(_, line)| !line.trim().is_empty());
@@ -452,6 +453,9 @@ fn read_sample(
                 ),
             )
         })?;
+        // A finite cell that its unit's conversion makes infinite, such as `1.7e308` g or °F, is
+        // refused on its line (ADR-258 §3).
+        let value = finite(value, FORMAT, number, &column.name)?;
         at += 1;
         let status = if column.status.is_some() {
             let cell = sample[at];
@@ -954,6 +958,35 @@ mod tests {
         for (text, expected) in cases {
             let error = read(&text).unwrap_err().to_string();
             assert!(error.contains(expected), "{text:?}: {error}");
+        }
+    }
+
+    /// A value near the largest `f64` is finite as written and infinite once converted: in g to
+    /// m/s², in atmospheres to pascals, in °F to kelvin. Each is refused on its line (ADR-258 §3).
+    #[test]
+    fn a_value_its_conversion_makes_infinite_is_refused() {
+        let cases = [
+            (
+                format!("{HEADER}\n0,1,b0,0,1,b0,0,0,b0\n0.1,1.7e308,b0,,,,\n"),
+                "Raven FIP CSV line 3: the column Axial Accel (Gs) holds a value too large for \
+                 its unit's conversion to SI",
+            ),
+            (
+                format!("{HEADER}\n0,1,b0,0,-1.7e308,b0,0,0,b0\n"),
+                "Raven FIP CSV line 2: the column Baro (Atm) holds a value too large for its \
+                 unit's conversion to SI",
+            ),
+            (
+                "Time@Temperature (F),Temperature (F),\
+                 Time@[Altitude (Baro-Ft-AGL)],[Altitude (Baro-Ft-AGL)]\n\
+                 0,70,0,0\n0.1,1.7e308,0.1,1\n"
+                    .to_owned(),
+                "Raven FIP CSV line 3: the column Temperature (F) holds a value too large for \
+                 its unit's conversion to SI",
+            ),
+        ];
+        for (text, expected) in cases {
+            assert_eq!(read(&text).unwrap_err().to_string(), expected, "{text:?}");
         }
     }
 

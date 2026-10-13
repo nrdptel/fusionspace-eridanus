@@ -157,7 +157,7 @@ use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
 use crate::error::LogError;
 use crate::log::{Channel, Event, FlightLog, LogFormat, Quantity, Stated};
 use crate::perfectflite::FOOT_M;
-use crate::table::{Notes, number, numbered_lines, short};
+use crate::table::{Notes, finite, number, numbered_lines, short};
 
 /// The format's name in errors.
 const FORMAT: &str = "Entacore AIM CSV";
@@ -394,6 +394,8 @@ struct Group {
     /// The times, as written until the clock's unit is decided, then in seconds.
     time_s: Vec<f64>,
     columns: Vec<Column>,
+    /// The line each sample was read from, one to a time.
+    lines: Vec<usize>,
     /// Samples whose time cell is empty.
     empty_times: usize,
 }
@@ -533,6 +535,7 @@ fn header_groups(header: &str, line: usize, notes: &mut Notes) -> Result<Vec<Gro
                 first: index,
                 time_s: Vec::new(),
                 columns: Vec::new(),
+                lines: Vec::new(),
                 empty_times: 0,
             });
             continue;
@@ -615,6 +618,7 @@ fn read_sample(group: &mut Group, cells: &[&str], line: usize) -> Result<(), Log
         group.empty_times += 1;
     }
     group.time_s.push(time_s);
+    group.lines.push(line);
     for (column, value) in group.columns.iter_mut().zip(values) {
         if value.is_nan() {
             column.empty += 1;
@@ -812,7 +816,13 @@ fn build(
                 ));
             }
             let pressure_factor = pressure_pa.map(|(factor, _)| factor);
-            let (quantity, values) = si(column, pressure_factor, scale, feet, &mut out_of_range);
+            let (quantity, written) = si(column, pressure_factor, scale, feet, &mut out_of_range);
+            // A value that its unit's conversion makes infinite, a pressure in kPa or inHg, an
+            // acceleration in g or a temperature in °F, is refused on its row's line (ADR-258 §3).
+            let mut values = Vec::with_capacity(written.len());
+            for (line, value) in group.lines.iter().zip(written) {
+                values.push(finite(value, FORMAT, *line, &column.name)?);
+            }
             if let Role::Flag { event: true } = column.role {
                 for (pair, time) in column.values.windows(2).zip(group.time_s.iter().skip(1)) {
                     if pair[0] == 0.0 && pair[1] == 1.0 && time.is_finite() {
@@ -1976,6 +1986,45 @@ mod tests {
             Err(LogError::NoData { .. })
         ));
         assert!(matches!(read(""), Err(LogError::NotThisFormat { .. })));
+    }
+
+    /// An acceleration in g, a pressure in kPa and a temperature in °F near the largest `f64` are
+    /// finite as written and infinite in SI: each is refused on its line (ADR-258 §3).
+    #[test]
+    fn a_value_its_conversion_makes_infinite_is_refused() {
+        let g = small("time,acceleration", ["0,1", "1,-1.7e308"]);
+        assert_eq!(
+            read(&g).unwrap_err().to_string(),
+            "Entacore AIM CSV line 3: the column acceleration holds a value too large for its \
+             unit's conversion to SI"
+        );
+
+        let mut kpa = String::from("time,pressure,Pressure AGL,time,launch detect\n");
+        for (row, height) in [0.0, 100.0].iter().enumerate() {
+            let p = pressure_at(300.0 + height).round();
+            let agl = altitude_of(p) - altitude_of(pressure_at(300.0).round());
+            kpa.push_str(&format!("{row},{},{agl:.3},{row},0\n", p / 1_000.0));
+        }
+        kpa.push_str("2,1.7e308,50,2,0\n");
+        assert_eq!(
+            read(&kpa).unwrap_err().to_string(),
+            "Entacore AIM CSV line 4: the column pressure holds a value too large for its unit's \
+             conversion to SI"
+        );
+
+        // In feet, so the temperature is read in °F.
+        let mut fahrenheit = String::from("time,pressure,Pressure AGL,time,temperature\n");
+        for (row, height) in [0.0, 100.0].iter().enumerate() {
+            let p = pressure_at(300.0 + height).round();
+            let agl = altitude_of(p) - altitude_of(pressure_at(300.0).round());
+            let cell = if row == 0 { "70" } else { "-1.7e308" };
+            fahrenheit.push_str(&format!("{row},{p},{:.3},{row},{cell}\n", agl / FOOT_M));
+        }
+        assert_eq!(
+            read(&fahrenheit).unwrap_err().to_string(),
+            "Entacore AIM CSV line 3: the column temperature holds a value too large for its \
+             unit's conversion to SI"
+        );
     }
 
     #[test]

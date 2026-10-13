@@ -176,8 +176,10 @@
 //!   sample files, every such time is its marker's to the millisecond. Any other time, such as `T
 //!   @ Max Velocity`, or one that differs from its marker's, is an event of its own named as the
 //!   summary names it, a difference noted. A time of 0 is no event: the manual writes zeroes for a
-//!   channel that didn't fire (p25). The events are in time order, the table's first where two
-//!   share a time.
+//!   channel that didn't fire (p25). Nor is a time past the table's last: no event of the flight
+//!   comes after its last sample, so such a time isn't in seconds, and it is kept as written in a
+//!   note rather than read in another unit on one check. The events are in time order, the
+//!   table's first where two share a time.
 //! - **The other summary lines**, listed as written in one note: the base temperature with its
 //!   unit mark (`F` in the sample files, `C` in the manual's example), the flight time, the beep
 //!   code, the top speed and acceleration, and the heights at each event; `Last Flight Phase` with
@@ -185,13 +187,27 @@
 //!
 //! Each note lists at most 40 lines, the rest counted. The summary's figures beside the table's
 //! are the logger's own and are never put in place of HPR Sim's readings.
+//!
+//! **The download saved as RTF.** A terminal capture pasted into a text editor and saved as an
+//! RTF document is the same text wrapped in RTF's markup, [`LogFormat::EggtimerRtf`]. The reader
+//! unwraps it, not parses it ([ADR-258][adr-258] §4): it keeps the document's plain text, by a
+//! small subset of the RTF specification ([`read_rtf`] lists it), and reads that as the terminal
+//! download above, an error naming the document's line. As of 2026-10-13, of the three sample
+//! files filed as RTF, one is such a document, written by a Mac's text editor, a line of text a
+//! line of the file, and holding four downloads one after another: the first is read and the
+//! others counted in a note. The other two hold no Eggtimer download and are refused by name.
+//! Its downloads' firmware writes most summary times without the TRS manual's spacing
+//! (`T@Apogee`), so they are kept as written; the one with it lies far past the table's last
+//! sample, so it can't be in seconds, and it is kept as written too, never an event.
+//!
+//! [adr-258]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md
 
 use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
 
 use crate::error::LogError;
 use crate::log::{Channel, Event, FlightLog, LogFormat, Quantity, Stated};
 use crate::perfectflite::FOOT_M;
-use crate::table::{Notes, number, numbered_lines, short};
+use crate::table::{Notes, finite, number, numbered_lines, short};
 
 /// The format's name in errors.
 const FORMAT: &str = "Eggtimer CSV";
@@ -573,12 +589,17 @@ fn build(
                 short(&column.name)
             ));
         }
+        // A value in g that the factor makes infinite is refused on its row's line (ADR-258 §3).
         let (quantity, factor) = column.kind.quantity();
+        let mut si = Vec::with_capacity(values.len());
+        for ((line, _), value) in rows.iter().zip(values) {
+            si.push(finite(value * factor, FORMAT, *line, &column.name)?);
+        }
         log.channels.push(Channel {
             column: column.name.clone(),
             quantity,
             time_s: time_s.clone(),
-            values: values.iter().map(|value| value * factor).collect(),
+            values: si,
         });
     }
     log.events = events(&columns, &written, &time_s, &mut notes);
@@ -1324,9 +1345,20 @@ fn marker_for(summary_name: &str) -> Option<&'static str> {
 /// header row within the first [`MAX_PREAMBLE_LINES`] lines that aren't blank; otherwise what
 /// [`read`] refuses in the table, naming the file's line.
 pub fn read_text(text: &str) -> Result<FlightLog, LogError> {
+    read_download(text, TEXT_FORMAT, &|line| line)
+}
+
+/// A terminal download read as [`read_text`] reads it, its errors naming `format` and the line
+/// `file_line` gives for each of the text's lines: the line itself in a text file, the RTF
+/// document's line in [`read_rtf`].
+fn read_download(
+    text: &str,
+    format: &'static str,
+    file_line: &dyn Fn(usize) -> usize,
+) -> Result<FlightLog, LogError> {
     let Some(download) = split_download(text) else {
         return Err(LogError::NotThisFormat {
-            format: TEXT_FORMAT,
+            format,
             message: format!(
                 "no title `Eggtimer … Flight Settings` comes before an Eggtimer header row, \
                  such as `T,Alt,Veloc,…`, within the first {MAX_PREAMBLE_LINES} lines that \
@@ -1337,17 +1369,12 @@ pub fn read_text(text: &str) -> Result<FlightLog, LogError> {
     let shift = download.header_line.saturating_sub(1);
     let mut log = read(download.table).map_err(|error| match error {
         LogError::Syntax { line, message, .. } => LogError::Syntax {
-            format: TEXT_FORMAT,
-            line: line.saturating_add(shift),
+            format,
+            line: file_line(line.saturating_add(shift)),
             message,
         },
-        LogError::NoData { .. } => LogError::NoData {
-            format: TEXT_FORMAT,
-        },
-        LogError::NotThisFormat { message, .. } => LogError::NotThisFormat {
-            format: TEXT_FORMAT,
-            message,
-        },
+        LogError::NoData { .. } => LogError::NoData { format },
+        LogError::NotThisFormat { message, .. } => LogError::NotThisFormat { format, message },
         other => other,
     })?;
     let (model, firmware) = title_words(download.title);
@@ -1399,22 +1426,30 @@ pub fn read_text(text: &str) -> Result<FlightLog, LogError> {
 /// The summary's times read as events, with the notes saying how: a time that is its marker's
 /// event in the table, to [`SAME_TIME_S`], is that event; one of no marker, or of another time,
 /// is an event of its own, named as the summary names it; a time of 0 is no event, as the manual
-/// writes zeroes for a channel that didn't fire (TRS p25). The events end up in time order, the
-/// table's first where two share a time.
+/// writes zeroes for a channel that didn't fire (TRS p25); a time past the table's last, by more
+/// than [`SAME_TIME_S`], is no event either, as no event of the flight comes after its last
+/// sample: such a time isn't in seconds. The events end up in time order, the table's first where
+/// two share a time.
 fn summary_events(log: &mut FlightLog, preamble: &Preamble) {
     if preamble.times.is_empty() {
         return;
     }
-    let (mut same, mut own, mut differ, mut zero) = (
+    let (mut same, mut own, mut differ, mut zero, mut past) = (
+        Items::default(),
         Items::default(),
         Items::default(),
         Items::default(),
         Items::default(),
     );
+    let last_s = log.time_s.last().copied().unwrap_or(0.0);
     let mut events = Vec::new();
     for (name, time_s) in &preamble.times {
         if *time_s == 0.0 {
             zero.push(format!("`{name}`"));
+            continue;
+        }
+        if *time_s > last_s + SAME_TIME_S {
+            past.push(format!("`{name}` {}", plain(*time_s, 3)));
             continue;
         }
         let marker = marker_for(name);
@@ -1453,7 +1488,10 @@ fn summary_events(log: &mut FlightLog, preamble: &Preamble) {
          the flight summary's times in `secs.` (p36), and its LDA at 0.700 secs. as \"700ms \
          into the flight\" (p37)"
     };
-    log.notes.push(how.to_owned());
+    // Said only of times read: those of 0 and those past the table aren't.
+    if !(same.is_empty() && own.is_empty() && differ.is_empty()) {
+        log.notes.push(how.to_owned());
+    }
     if !same.is_empty() {
         log.notes.push(format!(
             "the flight summary's times are its table markers' to the millisecond, one event \
@@ -1481,29 +1519,591 @@ fn summary_events(log: &mut FlightLog, preamble: &Preamble) {
             zero.joined(", ")
         ));
     }
+    if !past.is_empty() {
+        log.notes.push(format!(
+            "the flight summary's times past the table's last, {} s, kept as written and not \
+             read as events: no event of the flight comes after its last sample, so they aren't \
+             in seconds: {}",
+            plain(last_s, 3),
+            past.joined(", ")
+        ));
+    }
     log.events.extend(events);
     log.events
         .sort_by(|first, second| first.time_s.total_cmp(&second.time_s));
 }
 
-/// Whether the text is an RTF document: it opens with `{\\rtf`.
+// The terminal download saved inside an RTF document (ADR-258 §4).
+
+/// The RTF-wrapped download's name in errors.
+const RTF_FORMAT: &str = "Eggtimer RTF";
+
+/// The deepest an RTF document's groups may nest. Word processors nest a few levels, a style or a
+/// table a few more; a document deeper than this is refused rather than tracked.
+pub const MAX_RTF_DEPTH: usize = 64;
+
+/// The most letters of a control word the reader keeps: the RTF specification caps a control word
+/// at 32 characters. A longer one is read to its end and matches no word the reader knows.
+const MAX_CONTROL_WORD: usize = 32;
+
+/// The most fallback characters a `\ucN` may ask to be skipped after each `\uN`; the
+/// specification's default is 1.
+const MAX_FALLBACK: usize = 16;
+
+/// What Windows code page 1252 maps bytes 0x80 to 0x9F to, in order; `None` for the five bytes it
+/// leaves undefined. From 0xA0 on, the code page is ISO 8859-1, whose bytes are the same Unicode
+/// code points (the Unicode Consortium's mapping table for it, `CP1252.TXT`).
+const CP1252_80_9F: [Option<char>; 32] = [
+    Some('\u{20ac}'),
+    None,
+    Some('\u{201a}'),
+    Some('\u{0192}'),
+    Some('\u{201e}'),
+    Some('\u{2026}'),
+    Some('\u{2020}'),
+    Some('\u{2021}'),
+    Some('\u{02c6}'),
+    Some('\u{2030}'),
+    Some('\u{0160}'),
+    Some('\u{2039}'),
+    Some('\u{0152}'),
+    None,
+    Some('\u{017d}'),
+    None,
+    None,
+    Some('\u{2018}'),
+    Some('\u{2019}'),
+    Some('\u{201c}'),
+    Some('\u{201d}'),
+    Some('\u{2022}'),
+    Some('\u{2013}'),
+    Some('\u{2014}'),
+    Some('\u{02dc}'),
+    Some('\u{2122}'),
+    Some('\u{0161}'),
+    Some('\u{203a}'),
+    Some('\u{0153}'),
+    None,
+    Some('\u{017e}'),
+    Some('\u{0178}'),
+];
+
+/// Whether the text is an RTF document: it opens with `{\rtf`, after any byte-order mark and
+/// white space.
 pub(crate) fn recognizes_rtf(text: &str) -> bool {
-    text.trim_start().starts_with("{\\rtf")
+    text.trim_start_matches(|c: char| c == '\u{feff}' || c.is_whitespace())
+        .starts_with("{\\rtf")
 }
 
-/// Reads an Eggtimer TRS's terminal download saved inside an RTF document.
+/// An RTF document's plain text, its lines each mapped to the document's line it starts on.
+#[derive(Debug, Default)]
+struct Unwrapped {
+    /// The text, its lines ended by `\n` alone.
+    text: String,
+    /// For each of the text's lines, the document's line, from 1, that it starts on.
+    starts: Vec<usize>,
+    /// Whether the next character written starts a line.
+    at_line_start: bool,
+    /// Escaped bytes the document's code page leaves undefined, or in a code page the reader
+    /// doesn't map, each read as U+FFFD.
+    unmapped: usize,
+    /// Characters after the document's closing brace that aren't white space, left unread.
+    after_end: usize,
+}
+
+impl Unwrapped {
+    /// Writes a character found on the document's line `line`; CR and LF end a line.
+    fn push(&mut self, c: char, line: usize) {
+        if c == '\r' || c == '\n' {
+            self.line_break(line);
+            return;
+        }
+        if self.at_line_start {
+            self.starts.push(line);
+            self.at_line_start = false;
+        }
+        self.text.push(c);
+    }
+
+    /// Ends the text's line, at the document's line `line`.
+    fn line_break(&mut self, line: usize) {
+        if self.at_line_start {
+            self.starts.push(line);
+        }
+        self.text.push('\n');
+        self.at_line_start = true;
+    }
+
+    /// The document's line that the text's line `line`, from 1, starts on; past the last, the
+    /// last's.
+    fn file_line(&self, line: usize) -> usize {
+        line.checked_sub(1)
+            .and_then(|index| self.starts.get(index))
+            .or(self.starts.last())
+            .copied()
+            .unwrap_or(1)
+    }
+}
+
+/// One group's state: whether its text is skipped, as a destination the reader doesn't read, and
+/// how many fallback characters follow each `\uN` in it.
+#[derive(Debug, Clone, Copy)]
+struct Group {
+    skip: bool,
+    fallback: usize,
+}
+
+/// A refusal of the RTF document's markup at its line.
+fn rtf_syntax(line: usize, message: String) -> LogError {
+    LogError::Syntax {
+        format: RTF_FORMAT,
+        line,
+        message,
+    }
+}
+
+/// The plain text of an RTF document, by the subset of the RTF specification that
+/// [`read_rtf`] lists.
+fn unwrap_rtf(document: &str) -> Result<Unwrapped, LogError> {
+    let mut out = Unwrapped {
+        at_line_start: true,
+        ..Unwrapped::default()
+    };
+    let mut chars = document
+        .strip_prefix('\u{feff}')
+        .unwrap_or(document)
+        .chars();
+    let mut line = 1_usize;
+    let mut groups: Vec<Group> = Vec::new();
+    let mut opened = false;
+    let mut code_page_1252 = true;
+    // Fallback characters left to skip after a `\uN`.
+    let mut skip_fallback = 0_usize;
+    while let Some(c) = chars.next() {
+        match c {
+            '\r' => {
+                if chars.as_str().starts_with('\n') {
+                    chars.next();
+                }
+                line += 1;
+            }
+            '\n' => line += 1,
+            '{' => {
+                if groups.len() >= MAX_RTF_DEPTH {
+                    return Err(rtf_syntax(
+                        line,
+                        format!("the document's groups nest deeper than {MAX_RTF_DEPTH}"),
+                    ));
+                }
+                let group = groups.last().copied().unwrap_or(Group {
+                    skip: false,
+                    fallback: 1,
+                });
+                groups.push(group);
+                opened = true;
+                skip_fallback = 0;
+            }
+            '}' => {
+                if groups.pop().is_none() {
+                    return Err(rtf_syntax(
+                        line,
+                        "a `}` closes a group that was never opened".to_owned(),
+                    ));
+                }
+                skip_fallback = 0;
+                if groups.is_empty() {
+                    out.after_end = chars.filter(|c| !c.is_whitespace()).count();
+                    return Ok(out);
+                }
+            }
+            _ if groups.is_empty() => {
+                if !c.is_whitespace() {
+                    return Err(rtf_syntax(
+                        line,
+                        "text comes before the document's opening `{`".to_owned(),
+                    ));
+                }
+            }
+            '\\' => {
+                let skip = groups.last().is_some_and(|group| group.skip);
+                let Some(next) = chars.next() else {
+                    break;
+                };
+                if next.is_ascii_alphabetic() {
+                    let mut word = String::new();
+                    word.push(next);
+                    while let Some(letter) = chars.as_str().chars().next() {
+                        if !letter.is_ascii_alphabetic() {
+                            break;
+                        }
+                        chars.next();
+                        if word.len() <= MAX_CONTROL_WORD {
+                            word.push(letter);
+                        }
+                    }
+                    let parameter = control_parameter(&mut chars);
+                    if chars.as_str().starts_with(' ') {
+                        chars.next();
+                    }
+                    control_word(
+                        &word,
+                        parameter,
+                        &mut ControlState {
+                            out: &mut out,
+                            groups: &mut groups,
+                            chars: &mut chars,
+                            line: &mut line,
+                            code_page_1252: &mut code_page_1252,
+                            skip_fallback: &mut skip_fallback,
+                        },
+                    );
+                    continue;
+                }
+                let symbol = match next {
+                    '\\' | '{' | '}' => Some(next),
+                    '\'' => {
+                        let high = chars.next().and_then(|c| c.to_digit(16));
+                        let low = chars.next().and_then(|c| c.to_digit(16));
+                        let (Some(high), Some(low)) = (high, low) else {
+                            return Err(rtf_syntax(
+                                line,
+                                "a `\\'` escape isn't followed by two hexadecimal digits"
+                                    .to_owned(),
+                            ));
+                        };
+                        let c = code_page_character(high * 16 + low, code_page_1252);
+                        if c.is_none() && !skip && skip_fallback == 0 {
+                            out.unmapped += 1;
+                        }
+                        Some(c.unwrap_or(char::REPLACEMENT_CHARACTER))
+                    }
+                    '~' => Some('\u{a0}'),
+                    '_' => Some('-'),
+                    '\r' | '\n' => {
+                        // `\` at a line's end is `\par`.
+                        if !skip {
+                            out.line_break(line);
+                        }
+                        if next == '\r' && chars.as_str().starts_with('\n') {
+                            chars.next();
+                        }
+                        line += 1;
+                        continue;
+                    }
+                    // `\*` marks a destination a reader that doesn't know it may skip: this one
+                    // skips every such destination.
+                    '*' => {
+                        if let Some(group) = groups.last_mut() {
+                            group.skip = true;
+                        }
+                        continue;
+                    }
+                    // `\-`, an optional hyphen, and the symbols the reader doesn't know.
+                    _ => None,
+                };
+                if let Some(c) = symbol
+                    && !skip
+                {
+                    if skip_fallback > 0 {
+                        skip_fallback -= 1;
+                    } else {
+                        out.push(c, line);
+                    }
+                }
+            }
+            _ => {
+                if groups.last().is_some_and(|group| group.skip) {
+                    continue;
+                }
+                if skip_fallback > 0 {
+                    skip_fallback -= 1;
+                } else if c == '\t' || !c.is_control() {
+                    out.push(c, line);
+                }
+            }
+        }
+    }
+    if opened {
+        Err(rtf_syntax(
+            line,
+            format!(
+                "the document ends with {} groups open: its braces don't balance",
+                groups.len()
+            ),
+        ))
+    } else {
+        Err(LogError::NotThisFormat {
+            format: RTF_FORMAT,
+            message: "the file holds no RTF group, `{\\rtf…}`".to_owned(),
+        })
+    }
+}
+
+/// What a control word may change as [`unwrap_rtf`] reads it.
+struct ControlState<'a, 'b> {
+    out: &'a mut Unwrapped,
+    groups: &'a mut Vec<Group>,
+    chars: &'a mut std::str::Chars<'b>,
+    line: &'a mut usize,
+    code_page_1252: &'a mut bool,
+    skip_fallback: &'a mut usize,
+}
+
+/// Acts on one control word and its number, if any.
+fn control_word(word: &str, parameter: Option<i64>, state: &mut ControlState<'_, '_>) {
+    let skip = state.groups.last().is_some_and(|group| group.skip);
+    match word {
+        "fonttbl" | "colortbl" | "stylesheet" | "info" | "pict" | "object" => {
+            if let Some(group) = state.groups.last_mut() {
+                group.skip = true;
+            }
+        }
+        "uc" => {
+            if let Some(group) = state.groups.last_mut() {
+                group.fallback = usize::try_from(parameter.unwrap_or(1))
+                    .map_or(0, |count| count.min(MAX_FALLBACK));
+            }
+        }
+        "ansicpg" => *state.code_page_1252 = parameter == Some(1252),
+        "mac" | "pc" | "pca" => *state.code_page_1252 = false,
+        "bin" => {
+            // The data's bytes aren't text: skipped, however many it states, to the document's
+            // end at most.
+            let count = usize::try_from(parameter.unwrap_or(0)).unwrap_or(0);
+            for _ in 0..count {
+                match state.chars.next() {
+                    Some('\n') => *state.line += 1,
+                    Some(_) => {}
+                    None => break,
+                }
+            }
+        }
+        _ if skip => {}
+        "u" => {
+            // A signed 16-bit number, negative for the code points from 0x8000.
+            let code = parameter.unwrap_or(0);
+            let code = if code < 0 { code + 0x1_0000 } else { code };
+            let c = u32::try_from(code)
+                .ok()
+                .and_then(char::from_u32)
+                .unwrap_or(char::REPLACEMENT_CHARACTER);
+            state.out.push(c, *state.line);
+            *state.skip_fallback = state.groups.last().map_or(1, |group| group.fallback);
+        }
+        "par" | "line" | "sect" | "page" | "row" => state.out.line_break(*state.line),
+        "tab" | "cell" => state.out.push('\t', *state.line),
+        _ => {
+            if let Some(c) = word_character(word) {
+                state.out.push(c, *state.line);
+            }
+        }
+    }
+}
+
+/// A control word's number, if one follows: an optional `-` and digits, read saturating at the
+/// `i64` range, so a number of any length is read without overflow.
+fn control_parameter(chars: &mut std::str::Chars<'_>) -> Option<i64> {
+    let mut ahead = chars.as_str().chars();
+    let negative = ahead.next() == Some('-') && ahead.next().is_some_and(|c| c.is_ascii_digit());
+    if negative {
+        chars.next();
+    }
+    let mut value: Option<i64> = None;
+    while let Some(digit) = chars.as_str().chars().next().and_then(|c| c.to_digit(10)) {
+        chars.next();
+        value = Some(
+            value
+                .unwrap_or(0)
+                .saturating_mul(10)
+                .saturating_add(i64::from(digit)),
+        );
+    }
+    value.map(|value| if negative { -value } else { value })
+}
+
+/// The character a `\'hh` byte stands for: ASCII below 0x80; from 0x80, Windows 1252's if that
+/// is the document's code page, `None` where it leaves the byte undefined or in another code page.
+fn code_page_character(byte: u32, code_page_1252: bool) -> Option<char> {
+    match byte {
+        0..0x80 => char::from_u32(byte),
+        _ if !code_page_1252 => None,
+        0x80..0xa0 => usize::try_from(byte - 0x80)
+            .ok()
+            .and_then(|index| CP1252_80_9F.get(index))
+            .copied()
+            .flatten(),
+        _ => char::from_u32(byte),
+    }
+}
+
+/// The character a control word writes, for the few words that write one.
+fn word_character(word: &str) -> Option<char> {
+    match word {
+        "emdash" => Some('\u{2014}'),
+        "endash" => Some('\u{2013}'),
+        "emspace" | "enspace" | "qmspace" => Some(' '),
+        "bullet" => Some('\u{2022}'),
+        "lquote" => Some('\u{2018}'),
+        "rquote" => Some('\u{2019}'),
+        "ldblquote" => Some('\u{201c}'),
+        "rdblquote" => Some('\u{201d}'),
+        _ => None,
+    }
+}
+
+/// Whether a line of a download's text could be one of its table's rows: it opens with a digit,
+/// a sign or a point. A line that doesn't, after a table, is the next download's lead-in, such as
+/// its `Flight Summary:` heading.
+fn row_like(line: &str) -> bool {
+    line.trim_start()
+        .starts_with(|c: char| c.is_ascii_digit() || matches!(c, '-' | '+' | '.'))
+}
+
+/// The lines, from 1, of each download's title after the line `after_line`: a line `Eggtimer …`
+/// ending in `Flight Settings`, or followed by a line `Flight Settings`, as [`split_download`]
+/// reads a title.
+fn later_titles(text: &str, after_line: usize) -> Vec<usize> {
+    let lines: Vec<(usize, &str)> = numbered_lines(text)
+        .map(|(number, line)| (number, line.trim()))
+        .filter(|(number, line)| *number > after_line && !line.is_empty())
+        .collect();
+    lines
+        .iter()
+        .enumerate()
+        .filter(|(index, (_, line))| {
+            line.strip_prefix("Eggtimer ").is_some_and(|rest| {
+                rest.ends_with("Flight Settings")
+                    || lines
+                        .get(index + 1)
+                        .is_some_and(|(_, next)| *next == "Flight Settings")
+            })
+        })
+        .map(|(_, (number, _))| *number)
+        .collect()
+}
+
+/// Reads an Eggtimer TRS's terminal download saved inside an RTF document, as a text editor saves
+/// what a terminal program captured: the document's plain text, unwrapped from its markup, read
+/// as [`read_text`] reads a terminal download ([ADR-258][adr-258] §4).
 ///
-/// Scaffold: written in milestone M7.1c4 (ADR-258).
+/// The text is unwrapped by the subset of the RTF specification (Microsoft, *Rich Text Format
+/// (RTF) Specification*, version 1.9.1, 2008) that a saved terminal capture needs:
+///
+/// - groups, `{` to `}`, nested at most [`MAX_RTF_DEPTH`] deep; the document is one group, and
+///   an unbalanced brace is refused;
+/// - control words, `\` and letters, then an optional signed number and one space ending the
+///   word, which isn't text; a number of any length is read saturating, never overflowing;
+/// - `\par`, `\line`, `\sect`, `\page` and `\row` as line breaks, and `\` at a line's end as
+///   `\par`; `\tab` and `\cell` as a tab; `\emdash`, `\endash`, `\bullet`, the space words and
+///   the quote words as their characters;
+/// - control symbols: `\\`, `\{` and `\}` as the character; `\~` a no-break space, `\_` a hyphen,
+///   `\-` nothing; `\'hh` a byte in the document's code page, Windows 1252 (`\ansi`, the default,
+///   or `\ansicpg1252`), any other code page's bytes from 0x80 counted and read as U+FFFD;
+/// - `\uN` a Unicode character, the `\ucN` fallback characters after it skipped;
+/// - destinations skipped whole: a group opening `\*`, and the font, color and style tables, the
+///   document's information, pictures and objects; `\binN`'s N bytes skipped;
+/// - raw line ends, other control words and other control symbols ignored, as the specification
+///   says a reader may.
+///
+/// The work is one pass with a stack of groups, no recursion, and the text is never longer than
+/// the document.
+///
+/// A document may hold several downloads one after another, each with its title, settings,
+/// summary and table. A record holds one flight: the first download is read, its table ending at
+/// its last row before the next download's lead-in, and the others are counted in a note with the
+/// lines of their titles. An error names the RTF document's line.
+///
+/// [adr-258]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md
 ///
 /// # Errors
 ///
-/// [`LogError::NotThisFormat`] until the reader is written.
+/// [`LogError::NotThisFormat`] if the file isn't an RTF document, or if its text holds no Eggtimer
+/// download: no title `Eggtimer … Flight Settings` before an Eggtimer header row within the first
+/// [`MAX_PREAMBLE_LINES`] lines that aren't blank; [`LogError::Syntax`] for RTF markup the reader
+/// refuses (unbalanced braces, groups nested deeper than [`MAX_RTF_DEPTH`], a `\'` escape without
+/// two hexadecimal digits); otherwise what [`read_text`] refuses, naming the document's line.
 pub fn read_rtf(text: &str) -> Result<FlightLog, LogError> {
-    let _ = text;
-    Err(LogError::NotThisFormat {
-        format: "Eggtimer RTF",
-        message: "not read yet".to_owned(),
-    })
+    if !recognizes_rtf(text) {
+        return Err(LogError::NotThisFormat {
+            format: RTF_FORMAT,
+            message: "the file doesn't open with `{\\rtf`, an RTF document's opening group"
+                .to_owned(),
+        });
+    }
+    let unwrapped = unwrap_rtf(text)?;
+    let Some(first) = split_download(&unwrapped.text) else {
+        return Err(LogError::NotThisFormat {
+            format: RTF_FORMAT,
+            message: format!(
+                "the RTF document's text holds no Eggtimer terminal download: no title \
+                 `Eggtimer … Flight Settings` comes before an Eggtimer header row, such as \
+                 `T,Alt,Veloc,…`, within the first {MAX_PREAMBLE_LINES} lines that aren't blank"
+            ),
+        });
+    };
+    let others = later_titles(&unwrapped.text, first.header_line);
+    // The first download ends at its last row-like line before the next one's title.
+    let download = match others.first() {
+        Some(&next_title) => {
+            let last_row = numbered_lines(&unwrapped.text)
+                .take_while(|(number, _)| *number < next_title)
+                .filter(|(_, line)| row_like(line))
+                .map(|(number, _)| number)
+                .last()
+                .unwrap_or(first.header_line)
+                .max(first.header_line);
+            // The text's lines end in `\n` alone, so its line `last_row` ends at that newline.
+            let end = unwrapped
+                .text
+                .match_indices('\n')
+                .nth(last_row.saturating_sub(1))
+                .map_or(unwrapped.text.len(), |(at, _)| at);
+            unwrapped.text.get(..end).unwrap_or(&unwrapped.text)
+        }
+        None => unwrapped.text.as_str(),
+    };
+    let mut log = read_download(download, RTF_FORMAT, &|line| unwrapped.file_line(line))?;
+    log.format = LogFormat::EggtimerRtf;
+    log.notes.insert(
+        0,
+        "the text was unwrapped from an RTF document, as a text editor saves a terminal \
+         program's capture: its groups, control words and escapes taken out, its paragraph and \
+         line breaks read as the download's lines; a line named is the document's"
+            .to_owned(),
+    );
+    if !others.is_empty() {
+        let lines: Vec<String> = others
+            .iter()
+            .take(MAX_LISTED)
+            .map(|line| unwrapped.file_line(*line).to_string())
+            .collect();
+        let more = others.len().saturating_sub(MAX_LISTED);
+        log.notes.push(format!(
+            "the document holds {} Eggtimer downloads one after another; the first was read, as \
+             a record holds one flight, and the titles of those that weren't are on lines {}{}",
+            others.len() + 1,
+            lines.join(", "),
+            if more > 0 {
+                format!(" and {more} more")
+            } else {
+                String::new()
+            }
+        ));
+    }
+    if unwrapped.unmapped > 0 {
+        log.notes.push(format!(
+            "{} escaped bytes are undefined in the document's code page, or in a code page the \
+             reader doesn't map (it maps Windows 1252), and were read as U+FFFD",
+            unwrapped.unmapped
+        ));
+    }
+    if unwrapped.after_end > 0 {
+        log.notes.push(format!(
+            "{} characters after the document's closing brace weren't read",
+            unwrapped.after_end
+        ));
+    }
+    Ok(log)
 }
 
 #[cfg(test)]
@@ -2104,6 +2704,28 @@ mod tests {
         }
     }
 
+    /// A value in g near the largest `f64` is finite as written and infinite in m/s²: refused on
+    /// its line, in the CSV and in the terminal download, whose table is the same (ADR-258 §3).
+    #[test]
+    fn a_value_its_conversion_makes_infinite_is_refused() {
+        let csv = "T,Alt,AccelG,LDA\n0,0,1,0\n0.05,1,-1.7e308,0\n";
+        assert_eq!(
+            read(csv).unwrap_err().to_string(),
+            "Eggtimer CSV line 3: the column AccelG holds a value too large for its unit's \
+             conversion to SI"
+        );
+        let text = format!("Eggtimer TRS 2.07 Flight Settings\n...Units...Feet\n{csv}");
+        assert_eq!(
+            read_text(&text).unwrap_err().to_string(),
+            "Eggtimer text line 5: the column AccelG holds a value too large for its unit's \
+             conversion to SI"
+        );
+        // The largest value that stays finite in m/s² is read.
+        let largest = f64::MAX / 9.806_65;
+        let log = read(&format!("T,Alt,AccelG\n0,0,{largest:e}\n")).unwrap();
+        assert!(log.channels[1].values[0].is_finite());
+    }
+
     /// A wide header over short rows is refused before its columns are allocated.
     #[test]
     fn a_wide_header_over_short_rows_is_refused() {
@@ -2412,8 +3034,12 @@ mod tests {
         let times: String = (0..30)
             .map(|index| format!("T @ Thing {index}: {}.5\n", index + 1))
             .collect();
+        // A table in seconds out to 40 s, past the last time, so every time is an event.
+        let rows: String = (0..=40)
+            .map(|second| format!("{second},0,0,0,0,0,0,0,0,0,0\n"))
+            .collect();
         let text = format!(
-            "Eggtimer {} 9.99 Flight Settings\n{settings}{times}{TRS}\n0,0,0,0,0,0,0,0,0,0,0\n",
+            "Eggtimer {} 9.99 Flight Settings\n{settings}{times}{TRS}\n{rows}",
             "Z".repeat(500)
         );
         let log = read_text(&text).unwrap();
@@ -2490,6 +3116,142 @@ mod tests {
                     proptest::prop_assert!(log.time_s.contains(&event.time_s));
                 }
             }
+        }
+    }
+
+    /// The RTF document's text: groups, control words with their delimiter, control symbols,
+    /// escapes in Windows 1252, Unicode characters with their fallback, and the destinations
+    /// skipped.
+    #[test]
+    fn rtf_unwraps_to_its_text() {
+        let document = "{\\rtf1\\ansi{\\fonttbl\\f0 Helvetica;}{\\colortbl;\\red0;}\
+                        {\\stylesheet{\\s0 Normal;}}{\\info{\\title Hidden}}{\\*\\generator X;}\
+                        a\\\\b\\{c\\}\\'85\\'41\\tab d\\par e\\line f\\~g\\_h\\-i\\u8364?j\
+                        {\\uc0\\u955 k}\\emdash\\b0\\par}";
+        let text = unwrap_rtf(document).unwrap().text;
+        assert_eq!(
+            text,
+            "a\\b{c}\u{2026}A\td\ne\nf\u{a0}g-hi\u{20ac}j\u{3bb}k\u{2014}\n"
+        );
+    }
+
+    /// Each of the text's lines maps to the document's line it starts on; raw line ends aren't
+    /// text, and `\` at a line's end is a paragraph.
+    #[test]
+    fn rtf_lines_map_to_the_documents() {
+        let unwrapped = unwrap_rtf("{\\rtf1\n\\f0 a\\\r\nb\\par\n\nc}").unwrap();
+        assert_eq!(unwrapped.text, "a\nb\nc");
+        assert_eq!(unwrapped.starts, [2, 3, 5]);
+        assert_eq!(unwrapped.file_line(3), 5);
+        assert_eq!(unwrapped.file_line(9), 5);
+        assert_eq!(unwrapped.file_line(0), 5);
+    }
+
+    /// Numbers of any size are read without overflow; `\bin`'s data is skipped, to the end at
+    /// most; a byte outside Windows 1252, or undefined in it, is counted.
+    #[test]
+    fn rtf_numbers_binary_and_code_pages_are_bounded() {
+        let huge = "9".repeat(400);
+        let text = unwrap_rtf(&format!(
+            "{{\\rtf1\\fs{huge} a\\u{huge}?\\u-3913?{{\\uc{huge}\\u65 bc}} d\\fs-{huge} e}}"
+        ))
+        .unwrap()
+        .text;
+        assert_eq!(text, "a\u{fffd}\u{f0b7}A de");
+        assert_eq!(unwrap_rtf("{\\rtf1 a\\bin3 {}}b}").unwrap().text, "ab");
+        let error = unwrap_rtf(&format!("{{\\rtf1 a\\bin{huge} b}}"))
+            .unwrap_err()
+            .to_string();
+        assert_eq!(
+            error,
+            "Eggtimer RTF line 1: the document ends with 1 groups open: its braces don't balance"
+        );
+        let other = unwrap_rtf("{\\rtf1\\ansi\\ansicpg1251 \\'e0\\'41\\'81}").unwrap();
+        assert_eq!(other.text, "\u{fffd}A\u{fffd}");
+        assert_eq!(other.unmapped, 2);
+        let undefined = unwrap_rtf("{\\rtf1\\ansi \\'81\\'e9\\'9f}").unwrap();
+        assert_eq!(undefined.text, "\u{fffd}\u{e9}\u{178}");
+        assert_eq!(undefined.unmapped, 1);
+        let after = unwrap_rtf("{\\rtf1 a}\r\n x}").unwrap();
+        assert_eq!((after.text.as_str(), after.after_end), ("a", 2));
+    }
+
+    /// Markup the reader refuses, each at its line: unbalanced braces, groups nested past the
+    /// cap, a broken escape, text outside the document's group.
+    #[test]
+    fn rtf_markup_is_refused_where_it_goes_wrong() {
+        let deep = "{".repeat(MAX_RTF_DEPTH + 1);
+        let cases = [
+            (
+                "}{\\rtf1 a}",
+                "line 1: a `}` closes a group that was never opened",
+            ),
+            (
+                "{\\rtf1\n{a}\n",
+                "line 3: the document ends with 1 groups open",
+            ),
+            (
+                deep.as_str(),
+                "line 1: the document's groups nest deeper than 64",
+            ),
+            (
+                "{\\rtf1\n\\'4g}",
+                "line 2: a `\\'` escape isn't followed by two hexadecimal digits",
+            ),
+            (
+                "x{\\rtf1 a}",
+                "line 1: text comes before the document's opening `{`",
+            ),
+            ("", "the file holds no RTF group"),
+        ];
+        for (document, expected) in cases {
+            let error = unwrap_rtf(document).unwrap_err().to_string();
+            assert!(error.contains(expected), "{document:?}: {error}");
+        }
+        // A deep document that stays under the cap is read.
+        let nested = format!(
+            "{}a{}",
+            "{".repeat(MAX_RTF_DEPTH),
+            "}".repeat(MAX_RTF_DEPTH)
+        );
+        assert_eq!(unwrap_rtf(&nested).unwrap().text, "a");
+    }
+
+    /// A file that isn't RTF, or whose text holds no download, is refused by name.
+    #[test]
+    fn rtf_without_a_download_is_refused_by_name() {
+        for (text, expected) in [
+            ("T,Alt\n0,0\n", "doesn't open with `{\\rtf`"),
+            (
+                "{\\rtf1 Eggtimer notes\\par T,Alt\\par 0,0}",
+                "the RTF document's text holds no Eggtimer terminal download",
+            ),
+        ] {
+            let error = read_rtf(text).unwrap_err();
+            assert!(
+                matches!(&error, LogError::NotThisFormat { format: "Eggtimer RTF", message }
+                    if message.contains(expected)),
+                "{error}"
+            );
+        }
+    }
+
+    proptest::proptest! {
+        /// Any markup is unwrapped or refused, never a panic; the text is never longer than the
+        /// document, and each of its lines has the document's line it starts on.
+        #[test]
+        fn any_rtf_is_unwrapped_or_refused(
+            body in "[{}\\\\a-z0-9 '\\-*~_?\r\n]{0,80}"
+        ) {
+            let document = format!("{{\\rtf1 {body}}}");
+            if let Ok(unwrapped) = unwrap_rtf(&document) {
+                proptest::prop_assert!(unwrapped.text.len() <= document.len());
+                let text = &unwrapped.text;
+                let lines = text.matches('\n').count()
+                    + usize::from(!text.is_empty() && !text.ends_with('\n'));
+                proptest::prop_assert_eq!(lines, unwrapped.starts.len());
+            }
+            let _ = read_rtf(&document);
         }
     }
 }

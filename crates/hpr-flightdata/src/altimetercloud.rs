@@ -143,7 +143,7 @@ use std::collections::HashSet;
 
 use crate::error::LogError;
 use crate::log::{Channel, Event, FlightLog, LogFormat, Quantity, Stated};
-use crate::table::{self, Notes, numbered_lines, short};
+use crate::table::{self, Notes, finite, numbered_lines, short};
 
 /// The format's name in errors.
 const FORMAT: &str = "AltimeterCloud CSV";
@@ -355,8 +355,9 @@ struct Rows {
 ///
 /// [`LogError::NotThisFormat`] if no line within the first 65 is this layout's header;
 /// [`LogError::Syntax`] for a header naming a column twice or leaving a name empty, a row of the
-/// wrong width, a cell that isn't a number, or a time that is missing or doesn't increase, naming
-/// the line; [`LogError::NoData`] if no row follows the header.
+/// wrong width, a cell that isn't a number or is too large to convert to SI, or a time that is
+/// missing or doesn't increase, naming the line; [`LogError::NoData`] if no row follows the
+/// header.
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let Some((header_line, header, above)) = find_header(text) else {
         return Err(LogError::NotThisFormat {
@@ -376,7 +377,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     if rows.time_ms.is_empty() {
         return Err(LogError::NoData { format: FORMAT });
     }
-    Ok(build(&columns, rows, &above))
+    build(&columns, rows, &above)
 }
 
 /// The header's columns; a name given twice, or left empty, is refused. A last empty name, the
@@ -512,7 +513,15 @@ fn names_of(columns: &[Column], kinds: &[Kind]) -> Option<String> {
 
 /// The record from the rows read: each column's unit, the placeholders, the summary and the
 /// notes.
-fn build(columns: &[Column], rows: Rows, summary_lines: &[(usize, &str)]) -> FlightLog {
+///
+/// # Errors
+///
+/// [`LogError::Syntax`] for a value that its unit's conversion makes infinite.
+fn build(
+    columns: &[Column],
+    rows: Rows,
+    summary_lines: &[(usize, &str)],
+) -> Result<FlightLog, LogError> {
     let mercury = columns.iter().any(|column| {
         MERCURY_ONLY
             .iter()
@@ -625,7 +634,12 @@ fn build(columns: &[Column], rows: Rows, summary_lines: &[(usize, &str)]) -> Fli
                 (Quantity::Unrecognized, |v| v)
             }
         };
-        let mut converted: Vec<f64> = values.iter().map(|value| scale(*value)).collect();
+        // A finite cell that its unit's conversion makes infinite, such as `1.7e308` mG or hPa, is
+        // refused on its row's line (ADR-258 §3).
+        let mut converted: Vec<f64> = Vec::with_capacity(values.len());
+        for (value, &line) in values.iter().zip(&rows.lines) {
+            converted.push(finite(scale(*value), FORMAT, line, &column.written)?);
+        }
         if matches!(column.kind, Kind::Axis | Kind::Total) {
             for value in converted.iter_mut().take(pad_rows) {
                 *value = f64::NAN;
@@ -672,7 +686,7 @@ fn build(columns: &[Column], rows: Rows, summary_lines: &[(usize, &str)]) -> Fli
     log.time_s = time_s;
     summary(&mut log, summary_lines);
     log.notes.extend(line_notes.into_vec());
-    log
+    Ok(log)
 }
 
 /// How many leading rows are the accelerometer's placeholders: before lift-off, with all three
@@ -1131,6 +1145,32 @@ mod tests {
             "`pitch`, `roll`, `yaw` and `tilt` read in degrees, from the Nano V1 manual: ",
         );
         assert!(log.events.is_empty());
+    }
+
+    /// A value near the largest `f64` is finite as written and infinite once converted: in
+    /// thousandths of g to m/s², in hPa to pascals. Each is refused on its line (ADR-258 §3).
+    #[test]
+    fn a_value_its_conversion_makes_infinite_is_refused() {
+        let text = nano(&[
+            nano_row(0, 0.0, [10, 20, -990], "", 0.0),
+            nano_row(25, 0.5, [600, 20, -4000], "", 0.0).replacen(",600,", ",1.7e308,", 1),
+        ]);
+        assert_eq!(
+            read(&text).unwrap_err().to_string(),
+            "AltimeterCloud CSV line 3: the column acceleration_x(mG) holds a value too large \
+             for its unit's conversion to SI"
+        );
+        let text = format!(
+            "{NANO_HEADER},pressure(hPa)\n{}1013.25\n{}-1.7e308\n{}1012.5\n",
+            nano_row(0, 0.0, [10, 20, -990], "", 0.0),
+            nano_row(25, 0.5, [600, 20, -4000], "", 0.0),
+            nano_row(50, 1.0, [600, 20, -4000], "", 0.0),
+        );
+        assert_eq!(
+            read(&text).unwrap_err().to_string(),
+            "AltimeterCloud CSV line 3: the column pressure(hPa) holds a value too large for its \
+             unit's conversion to SI"
+        );
     }
 
     #[test]

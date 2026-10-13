@@ -127,10 +127,13 @@
 //! **Rows.** Every row must have as many cells as the header has names; a row of another width, a
 //! clock cell that isn't a number, or a time that doesn't come after the row above's is refused,
 //! naming its line. Any other cell that is empty or isn't a number, such as `nan`, is a gap,
-//! counted per column in a note; so is a reading its unit's conversion carries past the largest
-//! number an `f64` holds, as `1e308` in `deg f`. Blank lines are skipped; lines may end in CR, LF or both, and a
+//! counted per column in a note. A reading its unit's conversion carries past the largest number
+//! an `f64` holds, as `1e308` in `deg f` or `1.7e308` in `g`, is refused, naming its line
+//! ([ADR-258][adr-258] §3). Blank lines are skipped; lines may end in CR, LF or both, and a
 //! byte-order mark is dropped. A note counts the steps of the clock longer than its commonest. A
 //! header of more than [`MAX_COLUMNS`] names, or naming a column twice, is refused.
+//!
+//! [adr-258]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md
 
 use std::collections::{HashMap, HashSet};
 
@@ -227,15 +230,18 @@ impl Unit {
         }
     }
 
-    /// The value in SI (or degrees); a value too large for an `f64` once converted, as `1e308`
-    /// in `deg f`, is a gap, NaN.
+    /// The value in SI (or degrees); infinite for a value too large for an `f64` once
+    /// converted, as `1e308` in `deg f`, where the conversion multiplies by 5 before dividing by 9.
     fn convert(self, written: f64) -> f64 {
-        let converted = written * self.multiply / self.divide + self.add;
-        if converted.is_finite() {
-            converted
-        } else {
-            f64::NAN
-        }
+        written * self.multiply / self.divide + self.add
+    }
+
+    /// The value in SI (or degrees), a value the conversion makes infinite refused on its line
+    /// as a value too large for its unit ([ADR-258][adr-258] §3).
+    ///
+    /// [adr-258]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md
+    fn convert_on(self, written: f64, line: usize, column: &str) -> Result<f64, LogError> {
+        table::finite(self.convert(written), FORMAT, line, column)
     }
 }
 
@@ -696,8 +702,9 @@ fn syntax(line: usize, message: String) -> LogError {
 /// [`LogError::NotThisFormat`] if the file's first lines aren't this layout's (module docs,
 /// *Recognition*); [`LogError::Unit`] if the clock isn't in a unit of time or `baro-altitude` in
 /// one of length; [`LogError::Syntax`] for a header of more than [`MAX_COLUMNS`] names, naming a
-/// column twice or leaving a name empty, a row of the wrong width, or a clock cell that isn't a
-/// number or doesn't increase, naming the line; [`LogError::NoData`] if no row follows the header.
+/// column twice or leaving a name empty, a row of the wrong width, a clock cell that isn't a
+/// number or doesn't increase, or a reading its unit's conversion makes infinite, naming the
+/// line; [`LogError::NoData`] if no row follows the header.
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let Some(header) = find_header(text) else {
         return Err(LogError::NotThisFormat {
@@ -717,7 +724,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     if rows.clock.is_empty() {
         return Err(LogError::NoData { format: FORMAT });
     }
-    Ok(build(&columns, &rows))
+    build(&columns, &rows)
 }
 
 /// What the reader does with a column, decided from its kind, its unit and, for the position and
@@ -735,17 +742,13 @@ enum Reading {
 /// No conversion.
 const AS_WRITTEN: Unit = Unit::new(Dimension::Length, 1.0, 1.0, 0.0);
 
-/// The record from the rows read.
-fn build(columns: &[Column], rows: &Rows) -> FlightLog {
-    let clock_unit = columns
-        .first()
-        .and_then(|clock| clock.unit)
-        .unwrap_or(AS_WRITTEN);
-    let time_s: Vec<f64> = rows
-        .clock
-        .iter()
-        .map(|time| clock_unit.convert(*time))
-        .collect();
+/// The record from the rows read; a reading its unit's conversion makes infinite is refused on
+/// its line.
+fn build(columns: &[Column], rows: &Rows) -> Result<FlightLog, LogError> {
+    let clock = columns.first();
+    let clock_name = clock.map_or("time", |clock| clock.written.as_str());
+    let clock_unit = clock.and_then(|clock| clock.unit).unwrap_or(AS_WRITTEN);
+    let time_s = convert_column(clock_unit, &rows.clock, &rows.lines, clock_name)?;
     let mut log = FlightLog {
         format: LogFormat::FluctusCsv,
         logger: "Silicdyne Fluctus".to_owned(),
@@ -765,15 +768,19 @@ fn build(columns: &[Column], rows: &Rows) -> FlightLog {
     // The notes on columns kept as written, at most one a column, and few.
     let mut kept = Notes::default();
     // The barometric altitude, m, which the GPS altitude is measured against.
-    let altitude_m: Vec<f64> = columns
+    let altitude_m: Vec<f64> = match columns
         .iter()
         .zip(&rows.values)
         .find(|(column, _)| matches!(column.kind, Kind::Reading(_, _, Role::Altitude)))
-        .map(|(column, values)| {
-            let unit = column.unit.unwrap_or(AS_WRITTEN);
-            values.iter().map(|value| unit.convert(*value)).collect()
-        })
-        .unwrap_or_default();
+    {
+        Some((column, values)) => convert_column(
+            column.unit.unwrap_or(AS_WRITTEN),
+            values,
+            &rows.lines,
+            &column.written,
+        )?,
+        None => Vec::new(),
+    };
     let mut events: Vec<(usize, Event)> = Vec::new();
 
     for (index, column) in columns.iter().enumerate().skip(1) {
@@ -819,26 +826,7 @@ fn build(columns: &[Column], rows: &Rows) -> FlightLog {
                 column.placeholder_line
             ));
         }
-        let converted: Vec<f64> = values.iter().map(|value| unit.convert(*value)).collect();
-        // Readings a conversion carried past the largest `f64`: gaps, counted.
-        let mut overflowed = values
-            .iter()
-            .zip(&converted)
-            .filter(|(value, converted)| value.is_finite() && converted.is_nan())
-            .map(|(value, _)| *value);
-        if let Some(example) = overflowed.next() {
-            let number = 1 + overflowed.count();
-            log.notes.push(format!(
-                "the column `{name}` holds {} too large to convert from its unit, such as \
-                 {example:e}: {}",
-                count(number, "cell"),
-                if number == 1 {
-                    "it is a gap"
-                } else {
-                    "they are gaps"
-                }
-            ));
-        }
+        let converted = convert_column(unit, values, &rows.lines, &column.written)?;
         if let Kind::Reading(_, _, role) = column.kind
             && quantity != Quantity::Unrecognized
         {
@@ -869,7 +857,24 @@ fn build(columns: &[Column], rows: &Rows) -> FlightLog {
     clock_steps(&time_s, &rows.lines, &mut log.notes);
     log.notes.extend(kept.into_vec());
     log.time_s = time_s;
-    log
+    Ok(log)
+}
+
+/// A column's values converted from its unit, each with its row's line: a value the conversion
+/// makes infinite, as `1.7e308` in `hPa` or `g`, is refused on its line ([ADR-258][adr-258] §3).
+///
+/// [adr-258]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md
+fn convert_column(
+    unit: Unit,
+    values: &[f64],
+    lines: &[usize],
+    column: &str,
+) -> Result<Vec<f64>, LogError> {
+    values
+        .iter()
+        .zip(lines)
+        .map(|(value, line)| unit.convert_on(*value, *line, column))
+        .collect()
 }
 
 /// The note on a column kept as written, saying why.
@@ -1891,46 +1896,41 @@ mod tests {
         assert_eq!(degrees(&[f64::NAN, -91.0], 90.0), Degrees::Beyond(-91.0));
     }
 
-    /// A reading a conversion carries past the largest `f64` is a gap, counted in a note, never
-    /// an infinity.
+    /// A reading a conversion carries past the largest `f64` is refused on its line, never an
+    /// infinity nor a gap (ADR-258 §3): `deg f` multiplies by 5 before dividing by 9, `hPa`
+    /// multiplies by 100 and `g` by 9.806 65.
     #[test]
-    fn a_conversion_past_the_largest_number_is_a_gap() {
+    fn a_value_its_conversion_makes_infinite_is_refused() {
         for (unit, written) in [("deg f", 1e308), ("hPa", 1e307), ("kPa", -1e306)] {
             let converted = unit_of(unit).map(|u| u.convert(written));
-            assert!(converted.is_some_and(f64::is_nan), "{unit}: {converted:?}");
+            assert!(
+                converted.is_some_and(f64::is_infinite),
+                "{unit}: {converted:?}"
+            );
         }
-        let text = "sep=;\ntime (ms);deltaTime (ms);baro-altitude (m);amb-temp (deg f);\
-                    pitot (hPa)\n1000;20;0;1e308;1013\n1020;20;0;70;1e307\n1040;20;0;1e308;1013\n";
-        let log = read(text).unwrap();
-        let temperature = log.temperature_k.clone().unwrap_or_default();
-        assert!(temperature[0].is_nan() && temperature[2].is_nan());
-        assert!((temperature[1] - 294.261_111).abs() < 1e-5);
-        assert!(
-            log.channels
-                .iter()
-                .all(|c| c.values.iter().all(|v| !v.is_infinite()))
-        );
+        let header = "sep=;\ntime (ms);deltaTime (ms);baro-altitude (m);amb-temp (deg f);\
+                      pitot (hPa);accel (g)\n";
+        let cases = [
+            ("1e308;1013;1", 3, "amb-temp (deg f)"),
+            ("70;1.7e308;1", 3, "pitot (hPa)"),
+            ("70;1013;-1.7e308", 3, "accel (g)"),
+        ];
+        for (cells, line, column) in cases {
+            let text = format!("{header}1000;20;0;{cells}\n1020;20;0;70;1013;1\n");
+            assert_eq!(
+                read(&text).unwrap_err().to_string(),
+                format!(
+                    "Silicdyne Fluctus CSV line {line}: the column {column} holds a value too \
+                     large for its unit's conversion to SI"
+                )
+            );
+        }
+        // On a later row, the refusal names that row's line.
+        let text = format!("{header}1000;20;0;70;1013;1\n1020;20;0;70;1013;1.7e308\n");
         assert_eq!(
-            notes_starting(
-                &log,
-                "the column `amb-temp (deg f)` holds 2 cells too large to convert from its unit, \
-                 such as 1e308: they are gaps"
-            )
-            .len(),
-            1,
-            "{:?}",
-            log.notes
-        );
-        assert_eq!(
-            notes_starting(
-                &log,
-                "the column `pitot (hPa)` holds 1 cell too large to convert from its unit, such \
-                 as 1e307: it is a gap"
-            )
-            .len(),
-            1,
-            "{:?}",
-            log.notes
+            read(&text).unwrap_err().to_string(),
+            "Silicdyne Fluctus CSV line 4: the column accel (g) holds a value too large for its \
+             unit's conversion to SI"
         );
     }
 

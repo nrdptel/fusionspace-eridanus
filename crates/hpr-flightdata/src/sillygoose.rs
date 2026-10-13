@@ -139,13 +139,16 @@
 //! firmware; the other settings are left out, counted in a note, as no source gives their units.
 //! Without a `BOARD_NAME` the logger is `AerospaceNU SillyGoose`.
 //!
-//! **Cells.** An empty cell, or one that isn't a number, is a gap (`NaN`), counted in a note, as is
-//! a value too large to hold once converted to its unit (a gyroscope's 10³⁰⁸ rad/s in °/s). A row
-//! with fewer cells than the header names has the rest as gaps, counted in a note; a row with more
-//! is refused, naming its line, as is a file whose rows hold under a quarter of the cells the header
-//! names (past the first 65,536), so that a short file can't make the reader store far more gaps
-//! than it writes cells. Lines may end in CR, LF or both, blank lines are skipped, and a byte-order
+//! **Cells.** An empty cell, or one that isn't a number, is a gap (`NaN`), counted in a note. A
+//! value too large to hold once converted to its unit, such as an accelerometer's 10³⁰⁸ g in m/s²
+//! or a gyroscope's 10³⁰⁸ rad/s in °/s, is refused, naming its line and column
+//! ([ADR-258][adr-258] §3). A row with fewer cells than the header names has the rest as gaps,
+//! counted in a note; a row with more is refused, naming its line, as is a file whose rows hold
+//! under a quarter of the cells the header names (past the first 65,536), so that a short file
+//! can't make the reader store far more gaps than it writes cells. Lines may end in CR, LF or both, blank lines are skipped, and a byte-order
 //! mark is dropped.
+//!
+//! [adr-258]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md
 
 use std::collections::BTreeSet;
 use std::f64::consts::PI;
@@ -155,7 +158,7 @@ use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
 
 use crate::error::LogError;
 use crate::log::{Channel, Event, FlightLog, LogFormat, Quantity, Stated};
-use crate::table::{Notes, number, numbered_lines, short};
+use crate::table::{Notes, finite, number, numbered_lines, short};
 
 /// The format's name in messages.
 const FORMAT: &str = "SillyGoose text";
@@ -446,8 +449,9 @@ impl Column {
 ///
 /// [`LogError::NotThisFormat`] if the first line that isn't blank, or the one after a `CONFIG`
 /// line, isn't this layout's header; [`LogError::Syntax`] for a header with an empty name or a
-/// name given twice, a row with more cells than the header names, or a file whose rows hold too
-/// few of the cells its header names; [`LogError::NoData`] if no row has a time;
+/// name given twice, a row with more cells than the header names, a file whose rows hold too
+/// few of the cells its header names, or a value its unit's conversion makes too large for an
+/// `f64`; [`LogError::NoData`] if no row has a time;
 /// [`LogError::Unit`] if `altitudeM`'s climb is more than 25% off the pressure's (module docs).
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let mut lines = numbered_lines(text).filter(|(_, line)| !line.trim().is_empty());
@@ -502,6 +506,8 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let width = columns.len() + 1;
 
     let mut times: Vec<f64> = Vec::new();
+    // Each row's line in the file, for a refusal that names it.
+    let mut row_lines: Vec<usize> = Vec::new();
     let mut gaps = 0usize;
     let mut first_gap = None;
     let mut short_rows = 0usize;
@@ -531,6 +537,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
             None => f64::NAN,
         };
         times.push(value_at(0) / 1_000.0);
+        row_lines.push(number_of_line);
         for (index, column) in columns.iter_mut().enumerate() {
             column.values.push(value_at(index + 1));
         }
@@ -579,21 +586,13 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
 
     let (logger, firmware, config_note) = settings(config);
 
-    // Every channel, in its unit; a value too large to hold once converted is a gap.
-    let mut overflows = 0usize;
-    let mut first_overflow: Option<usize> = None;
+    // Every channel, in its unit. A value that its factor makes infinite, such as 10³⁰⁸ g in
+    // m/s², is refused on its row's line (ADR-258 §3).
     let mut channels: Vec<Channel> = Vec::with_capacity(columns.len());
-    for (at, column) in columns.iter().enumerate() {
+    for column in &columns {
         let mut values = Vec::with_capacity(column.values.len());
-        for value in &column.values {
-            let converted = value * column.scale;
-            if value.is_finite() && !converted.is_finite() {
-                overflows += 1;
-                first_overflow.get_or_insert(at);
-                values.push(f64::NAN);
-            } else {
-                values.push(converted);
-            }
+        for (line, value) in row_lines.iter().zip(&column.values) {
+            values.push(finite(value * column.scale, FORMAT, *line, &column.name)?);
         }
         channels.push(Channel {
             column: column.name.clone(),
@@ -687,13 +686,6 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
             "{short_rows} rows, the first on line {}, hold fewer cells than the header names: the \
              cells they leave out are gaps",
             first_short.unwrap_or(header_line)
-        ));
-    }
-    if let Some(at) = first_overflow {
-        line_notes.push(format!(
-            "{overflows} values, the first in {}, are too large to hold once converted to their \
-             unit: each is a gap",
-            columns[at].quoted()
         ));
     }
     if events_left_out > 0 {
@@ -1922,11 +1914,8 @@ mod tests {
         assert!(counted(kept).is_some());
     }
 
-    /// A value too large to hold once converted to its unit is a gap, counted in a note, not an
-    /// infinity.
-    #[test]
-    fn a_value_that_overflows_its_conversion_is_a_gap() {
-        // The file in g, with one pad sample's `accelX` and `gyroY` at 10³⁰⁸.
+    /// The invented flight in g, with one cell of its second sample replaced.
+    fn text_in_g_with(cell: usize, value: &str) -> String {
         let text = text(Written {
             accel: 1.0 / G,
             ..Written::default()
@@ -1936,27 +1925,39 @@ mod tests {
         for (k, line) in lines.enumerate() {
             let mut cells: Vec<String> = line.split('\t').map(str::to_owned).collect();
             if k == 1 {
-                cells[3] = "1e308".to_owned();
-                cells[7] = "1e308".to_owned();
+                cells[cell] = value.to_owned();
             }
             out.push_str(&cells.join("\t"));
             out.push('\n');
         }
-        let log = read(&out).unwrap();
-        assert_eq!(quantity(&log, "accelX"), Quantity::Acceleration);
-        assert_eq!(quantity(&log, "gyroY"), Quantity::AngularRate);
-        assert!(values(&log, "accelX")[1].is_nan());
-        assert!(values(&log, "gyroY")[1].is_nan());
-        assert!(close(values(&log, "accelZ")[1], G));
-        assert!(
-            log.channels
-                .iter()
-                .all(|c| c.values.iter().all(|v| !v.is_infinite()))
+        out
+    }
+
+    /// A value in g near the largest `f64` is finite as written and infinite in m/s²: refused on
+    /// its line, the file's third (ADR-258 §3).
+    #[test]
+    fn a_value_its_conversion_makes_infinite_is_refused() {
+        assert_eq!(
+            read(&text_in_g_with(3, "-1.7e308"))
+                .unwrap_err()
+                .to_string(),
+            "SillyGoose text line 3: the column accelX holds a value too large for its unit's \
+             conversion to SI"
         );
-        note(
-            &log,
-            "2 values, the first in `accelX`, are too large to hold once converted to their unit: \
-             each is a gap",
+        // Just below the overflow, the value is read, in m/s².
+        let log = read(&text_in_g_with(3, "1e307")).unwrap();
+        assert_eq!(quantity(&log, "accelX"), Quantity::Acceleration);
+        assert!(close(values(&log, "accelX")[1], 1e307 * G));
+    }
+
+    /// A gyroscope's rate in rad/s near the largest `f64` is infinite in °/s: refused on its line
+    /// (ADR-258 §3).
+    #[test]
+    fn a_value_its_conversion_makes_infinite_is_refused_for_the_gyroscope() {
+        assert_eq!(
+            read(&text_in_g_with(7, "1.7e308")).unwrap_err().to_string(),
+            "SillyGoose text line 3: the column gyroY holds a value too large for its unit's \
+             conversion to SI"
         );
     }
 

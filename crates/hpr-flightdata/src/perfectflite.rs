@@ -101,6 +101,7 @@
 
 use crate::error::LogError;
 use crate::log::{Channel, FlightLog, LogFormat, Quantity, Stated};
+use crate::table::finite;
 
 /// The format's name in errors.
 const FORMAT: &str = ".pf2";
@@ -153,8 +154,9 @@ impl TemperatureUnit {
 /// # Errors
 ///
 /// [`LogError::NotThisFormat`] if the first line doesn't name PerfectFlite;
-/// [`LogError::Syntax`] for a row that isn't numbers, a time that doesn't increase, or a `Data:`
-/// line without a time or an altitude column; [`LogError::Unit`] for a stated height that isn't
+/// [`LogError::Syntax`] for a row that isn't numbers, a time that doesn't increase, a
+/// temperature too large to convert to kelvin, or a `Data:` line without a time or an altitude
+/// column; [`LogError::Unit`] for a stated height that isn't
 /// in feet; [`LogError::NoData`] if there are no rows.
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let text = text.strip_prefix('\u{feff}').unwrap_or(text);
@@ -333,7 +335,8 @@ pub(crate) fn export_separator(header: &str) -> Option<char> {
 ///
 /// [`LogError::NotThisFormat`] if the first line isn't an export's header row;
 /// [`LogError::Syntax`] for a cell that isn't a number, a temperature in a unit other than its
-/// column's, a row with more cells than the header, or a time that doesn't increase;
+/// column's or too large to convert to kelvin, a row with more cells than the header, or a time
+/// that doesn't increase;
 /// [`LogError::NoData`] if there are no rows.
 pub fn read_export(text: &str) -> Result<FlightLog, LogError> {
     let text = text.strip_prefix('\u{feff}').unwrap_or(text);
@@ -701,14 +704,20 @@ fn fill(
         }
         let mut time = None;
         let mut altitude = None;
-        for (index, (column, _)) in columns.iter().enumerate() {
+        for (index, (column, name)) in columns.iter().enumerate() {
             let cell = cells.get(index).copied();
             match column {
                 Column::Time => time = cell,
                 Column::Altitude => altitude = cell,
                 _ => {}
             }
-            values[index].push(cell.map_or(f64::NAN, |value| si(*column, value)));
+            // °F to kelvin multiplies by 5 before it divides by 9, so a temperature near the
+            // largest `f64` is infinite in kelvin: refused on its row's line (ADR-258 §3).
+            let value = match cell {
+                Some(value) => finite(si(*column, value), format, *number, name)?,
+                None => f64::NAN,
+            };
+            values[index].push(value);
         }
         let (Some(time), Some(_)) = (time, altitude) else {
             return Err(syntax(
@@ -1095,6 +1104,32 @@ mod tests {
                         Apogee: 1280' AGL\r\nGround Elevation: 600' MSL\r\nNumSamps: 3\r\n\
                         Flight Number: 2\r\nComments: \r\n\r\n\
                         Data: (Time, Altitude, Velocity, Temperature (F), Voltage)\r\n";
+
+    /// A temperature in °F near the largest `f64` is finite as written and infinite in kelvin, as
+    /// the conversion multiplies by 5 before it divides by 9: refused on its line, in the `.pf2`
+    /// and in both exports (ADR-258 §3). Feet only shrink, so no height or speed can overflow.
+    #[test]
+    fn a_value_its_conversion_makes_infinite_is_refused() {
+        let pf2 = format!("{HEAD}0.00, 0, 0, 32.00, 4.20\r\n0.05, 1, 10, -1.7e308, 4.2\r\n");
+        assert_eq!(
+            read(&pf2).unwrap_err().to_string(),
+            ".pf2 line 12: the column Temperature (F) holds a value too large for its unit's \
+             conversion to SI"
+        );
+        let csv = "Time,Altitude,Velocity,Temperature (F),Voltage\n0,0,0,70,9\n\
+                   0.05,1,1,-1.7e308,9\n";
+        assert_eq!(
+            read_export(csv).unwrap_err().to_string(),
+            "PerfectFlite CSV line 3: the column Temperature (F) holds a value too large for its \
+             unit's conversion to SI"
+        );
+        let text = "Time\tAltitude\tTemp.\tVoltage\n0\t0\t70F\t9\n0.05\t1\t-1.7e308F\t9\n";
+        assert_eq!(
+            read_export(text).unwrap_err().to_string(),
+            "PerfectFlite text line 3: the column Temp. holds a value too large for its unit's \
+             conversion to SI"
+        );
+    }
 
     /// Every value in SI, a short row's missing cells gaps, and the preamble's statements read.
     #[test]

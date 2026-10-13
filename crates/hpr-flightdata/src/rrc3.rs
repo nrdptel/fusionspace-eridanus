@@ -154,7 +154,7 @@ use hpr_atmos::ussa76::Ussa76;
 use crate::error::LogError;
 use crate::log::{Channel, Event, FlightLog, LogFormat, Quantity, Stated};
 use crate::perfectflite::FOOT_M;
-use crate::table::{self, Notes, numbered_lines, short};
+use crate::table::{self, Notes, finite, numbered_lines, short};
 
 /// The format's name in errors.
 const FORMAT: &str = "RRC3 CSV";
@@ -432,7 +432,8 @@ struct Rows {
 /// [`LogError::NotThisFormat`] if the first line that isn't blank isn't an mDACS export's header;
 /// [`LogError::Unit`] for a bracketed unit the reader doesn't know, or a unit the pressure or the
 /// altitude contradicts (module docs); [`LogError::Syntax`] for a row of the wrong width, a cell
-/// that isn't a number or an event, or a time that doesn't increase, naming the line;
+/// that isn't a number or an event, a time that doesn't increase, or a value its unit's conversion
+/// makes infinite, naming the line;
 /// [`LogError::NoData`] if no row has a time.
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let mut lines = numbered_lines(text).filter(|(_, line)| !line.trim().is_empty());
@@ -741,6 +742,11 @@ fn build(
                 }
             }
         };
+        // A value that its unit's conversion makes infinite, a pressure in hPa or a temperature
+        // in °F, is refused on its row's line (ADR-258 §3).
+        for (line, value) in rows.lines.iter().zip(&decided.values) {
+            finite(*value, FORMAT, *line, &column.written)?;
+        }
         log.channels.push(Channel {
             column: column.written.clone(),
             quantity: decided.quantity,
@@ -1427,6 +1433,29 @@ mod tests {
 
     fn notes_starting<'a>(log: &'a FlightLog, start: &str) -> Vec<&'a String> {
         log.notes.iter().filter(|n| n.starts_with(start)).collect()
+    }
+
+    /// A pressure in hPa and a temperature in °F near the largest `f64` are finite as written and
+    /// infinite in SI: each is refused on its line (ADR-258 §3).
+    #[test]
+    fn a_value_its_conversion_makes_infinite_is_refused() {
+        let cases = [
+            (
+                "Time,Altitude,Pressure [hPa],Velocity\n0,0,1013,0\n0.05,1,1.7e308,0\n",
+                "line 3: the column Pressure [hPa] holds",
+            ),
+            (
+                "Time,Altitude,Pressure,Velocity,Temperature [F]\n0,0,1013,0,70\n\
+                 0.05,1,1013,0,-1.7e308\n",
+                "line 3: the column Temperature [F] holds",
+            ),
+        ];
+        for (text, refusal) in cases {
+            assert_eq!(
+                read(text).unwrap_err().to_string(),
+                format!("RRC3 CSV {refusal} a value too large for its unit's conversion to SI")
+            );
+        }
     }
 
     #[test]

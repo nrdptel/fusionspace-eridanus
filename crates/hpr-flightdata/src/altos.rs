@@ -100,6 +100,7 @@
 
 use crate::error::LogError;
 use crate::log::{Channel, Event, FlightLog, LogFormat, Quantity, Stated};
+use crate::table::finite;
 
 /// The format's name in errors.
 const FORMAT: &str = "AltOS CSV";
@@ -197,8 +198,8 @@ struct Preamble {
 ///
 /// [`LogError::NotThisFormat`] if the first line that isn't a `#` comment isn't AltOS's header
 /// (`version,serial,flight,…`, with or without a leading `#`); [`LogError::Syntax`] for a header
-/// without a `time` or a `height` column, or a row with more cells than the header names;
-/// [`LogError::NoData`] if no row has a time.
+/// without a `time` or a `height` column, a row with more cells than the header names, or a
+/// pressure in hPa too large to convert to pascals; [`LogError::NoData`] if no row has a time.
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let text = text.strip_prefix('\u{feff}').unwrap_or(text);
     let text = text.replace("\r\n", "\n").replace('\r', "\n");
@@ -256,7 +257,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     if table.time_s.is_empty() {
         return Err(LogError::NoData { format: FORMAT });
     }
-    Ok(assemble(&names, &columns, table, &preamble, notes))
+    assemble(&names, &columns, table, &preamble, notes)
 }
 
 /// Whether a line, its `#` taken off, is AltOS's header.
@@ -333,6 +334,8 @@ fn header_columns(names: &[String], number: usize) -> Result<Vec<Column>, LogErr
 struct Table {
     /// Each kept row's time, in the file's order.
     time_s: Vec<f64>,
+    /// Each kept row's line in the file.
+    lines: Vec<usize>,
     /// Each column's values, row by row, as written (no unit converted yet); empty for the clock
     /// and text columns.
     values: Vec<Vec<f64>>,
@@ -364,6 +367,7 @@ impl Table {
         };
         Self {
             time_s: Vec::new(),
+            lines: Vec::new(),
             values: vec![Vec::new(); columns.len()],
             gaps: vec![0; columns.len()],
             states: Vec::new(),
@@ -435,6 +439,7 @@ impl Table {
             self.first_flight = cell(self.flight).filter(|s| !s.is_empty()).map(short);
         }
         self.time_s.push(time);
+        self.lines.push(number);
         for (index, column) in columns.iter().enumerate() {
             if matches!(column.role, Role::Clock | Role::Text) {
                 continue;
@@ -486,13 +491,17 @@ fn pressure_factor(values: &[f64]) -> Option<f64> {
 }
 
 /// Builds the log from the rows.
+///
+/// # Errors
+///
+/// [`LogError::Syntax`] for a pressure in hPa that the factor of 100 makes infinite.
 fn assemble(
     names: &[String],
     columns: &[Column],
     mut table: Table,
     preamble: &Preamble,
     line_notes: Notes,
-) -> FlightLog {
+) -> Result<FlightLog, LogError> {
     let mut notes: Vec<String> = Vec::new();
     let mut column_notes = Notes::default();
     let n = table.time_s.len();
@@ -542,8 +551,10 @@ fn assemble(
             Role::Pressure => match pressure_factor(&values) {
                 Some(factor) => {
                     if factor != 1.0 {
-                        for value in &mut values {
-                            *value *= factor;
+                        // A finite cell that the factor makes infinite, such as `-1.7e308` hPa,
+                        // is refused on its row's line (ADR-258 §3).
+                        for (value, &line) in values.iter_mut().zip(&table.lines) {
+                            *value = finite(*value * factor, FORMAT, line, name)?;
                         }
                         notes.push(format!(
                             "the `{}` column never reaches 1,200 and was read as hPa, not Pa",
@@ -678,7 +689,7 @@ fn assemble(
         ));
     }
 
-    FlightLog {
+    Ok(FlightLog {
         format: LogFormat::AltosCsv,
         logger: match &preamble.product {
             Some(product) => format!("AltOS {product}"),
@@ -697,7 +708,7 @@ fn assemble(
         channels,
         events,
         notes,
-    }
+    })
 }
 
 /// A count and its noun, such as `1 row` or `3 rows`.
@@ -903,6 +914,19 @@ mod tests {
                 .any(|n| n.contains("\"2001\" and the rows as \"2002\"")),
             "{:?}",
             log.notes
+        );
+    }
+
+    /// A pressure near the lowest `f64`, in a column read as hPa, is finite as written and
+    /// infinite in pascals: refused on its line (ADR-258 §3).
+    #[test]
+    fn a_value_its_conversion_makes_infinite_is_refused() {
+        let head = "#version,serial,flight,time,state_name,pressure,height\n";
+        let text = format!("{head}5,1,1,0,pad,983.25,0\n5,1,1,1,pad,-1.7e308,10\n");
+        assert_eq!(
+            read(&text).unwrap_err().to_string(),
+            "AltOS CSV line 3: the column pressure holds a value too large for its unit's \
+             conversion to SI"
         );
     }
 

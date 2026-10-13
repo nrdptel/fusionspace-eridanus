@@ -55,6 +55,15 @@ pub(crate) fn number(cell: &str, decimal_comma: bool) -> Option<f64> {
 /// A value after its unit conversion, refused if the conversion made it infinite: a finite cell
 /// near the largest `f64`, such as `1.7e308` g, overflows when it is scaled to SI, and a channel
 /// holds SI values or `NaN` gaps, nothing else ([ADR-258][adr-258] §3). `NaN`, a gap, passes.
+/// The error names the row's line, or the line of the figure for a value a file states once.
+///
+/// Only a conversion that can grow a value can overflow, and the readers check each of those:
+/// g to m/s² (× 9.806 65), thousandths of a g (multiplied by 9.806 65 before the division by
+/// 1,000), atmospheres, hectopascals, kilopascals and inches of mercury to pascals, degrees
+/// Fahrenheit to kelvins (`(v − 32) × 5 / 9`, whose `× 5` overflows first), radians per second
+/// to degrees per second (× 180/π) and thousands of feet to meters (× 304.8). A shrinking one can't
+/// overflow and isn't checked: feet to meters, milliseconds to seconds, knots to m/s, and
+/// degrees Celsius to kelvins, whose `+ 273.15` keeps a finite value finite.
 ///
 /// [adr-258]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md
 #[allow(dead_code, reason = "the readers take it up as ADR-258 §3 lands")]
