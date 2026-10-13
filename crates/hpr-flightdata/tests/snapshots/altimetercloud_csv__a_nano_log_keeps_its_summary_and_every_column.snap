@@ -36,8 +36,8 @@ expression: log
     40.0,
     44.0,
     47.0,
-    50.0,
-    52.0
+    114.219,
+    120.0
   ],
   "altitude_m": [
     0.0,
@@ -62,8 +62,8 @@ expression: log
     444.915,
     420.915,
     402.915,
-    384.915,
-    372.915
+    -0.4,
+    -0.4
   ],
   "vertical_speed_m_s": [
     0.0,
@@ -88,8 +88,8 @@ expression: log
     -6.0,
     -6.0,
     -6.0,
-    -6.0,
-    -6.0
+    0.0,
+    0.0
   ],
   "temperature_k": [
     294.15,
@@ -145,8 +145,8 @@ expression: log
         40.0,
         44.0,
         47.0,
-        50.0,
-        52.0
+        114.219,
+        120.0
       ],
       "values": [
         0.0,
@@ -171,8 +171,8 @@ expression: log
         444.915,
         420.915,
         402.915,
-        384.915,
-        372.915
+        -0.4,
+        -0.4
       ]
     },
     {
@@ -201,8 +201,8 @@ expression: log
         40.0,
         44.0,
         47.0,
-        50.0,
-        52.0
+        114.219,
+        120.0
       ],
       "values": [
         0.0,
@@ -227,8 +227,8 @@ expression: log
         -6.0,
         -6.0,
         -6.0,
-        -6.0,
-        -6.0
+        0.0,
+        0.0
       ]
     },
     {
@@ -257,8 +257,8 @@ expression: log
         40.0,
         44.0,
         47.0,
-        50.0,
-        52.0
+        114.219,
+        120.0
       ],
       "values": [
         null,
@@ -283,8 +283,8 @@ expression: log
         0.0392266,
         0.0392266,
         0.0392266,
-        0.0392266,
-        0.0392266
+        0.1176798,
+        0.1176798
       ]
     },
     {
@@ -313,8 +313,8 @@ expression: log
         40.0,
         44.0,
         47.0,
-        50.0,
-        52.0
+        114.219,
+        120.0
       ],
       "values": [
         null,
@@ -339,8 +339,8 @@ expression: log
         -0.02941995,
         -0.02941995,
         -0.02941995,
-        -0.02941995,
-        -0.02941995
+        -0.0784532,
+        -0.0784532
       ]
     },
     {
@@ -369,8 +369,8 @@ expression: log
         40.0,
         44.0,
         47.0,
-        50.0,
-        52.0
+        114.219,
+        120.0
       ],
       "values": [
         null,
@@ -395,8 +395,8 @@ expression: log
         0.39226599999999995,
         0.39226599999999995,
         0.39226599999999995,
-        0.39226599999999995,
-        0.39226599999999995
+        9.836069949999999,
+        9.836069949999999
       ]
     },
     {
@@ -425,8 +425,8 @@ expression: log
         40.0,
         44.0,
         47.0,
-        50.0,
-        52.0
+        114.219,
+        120.0
       ],
       "values": [
         null,
@@ -451,8 +451,8 @@ expression: log
         -9.411442005000001,
         -9.411442005000001,
         -9.411442005000001,
-        -9.411442005000001,
-        -9.411442005000001
+        0.030400615,
+        0.030400615
       ]
     },
     {
@@ -481,8 +481,8 @@ expression: log
         40.0,
         44.0,
         47.0,
-        50.0,
-        52.0
+        114.219,
+        120.0
       ],
       "values": [
         0.0,
@@ -537,8 +537,8 @@ expression: log
         40.0,
         44.0,
         47.0,
-        50.0,
-        52.0
+        114.219,
+        120.0
       ],
       "values": [
         0.0,
@@ -593,8 +593,8 @@ expression: log
         40.0,
         44.0,
         47.0,
-        50.0,
-        52.0
+        114.219,
+        120.0
       ],
       "values": [
         5.0,
@@ -669,8 +669,8 @@ expression: log
         40.0,
         44.0,
         47.0,
-        50.0,
-        52.0
+        114.219,
+        120.0
       ],
       "values": [
         1.5,
@@ -725,8 +725,8 @@ expression: log
         40.0,
         44.0,
         47.0,
-        50.0,
-        52.0
+        114.219,
+        120.0
       ],
       "values": [
         -0.5,
@@ -781,8 +781,8 @@ expression: log
         40.0,
         44.0,
         47.0,
-        50.0,
-        52.0
+        114.219,
+        120.0
       ],
       "values": [
         10.0,
@@ -837,8 +837,8 @@ expression: log
         40.0,
         44.0,
         47.0,
-        50.0,
-        52.0
+        114.219,
+        120.0
       ],
       "values": [
         2.0,
@@ -893,8 +893,8 @@ expression: log
         40.0,
         44.0,
         47.0,
-        50.0,
-        52.0
+        114.219,
+        120.0
       ],
       "values": [
         100000.0,
@@ -919,8 +919,8 @@ expression: log
         94861.477,
         95131.80170000001,
         95335.0505,
-        95538.7336,
-        95674.7641
+        100004.74,
+        100004.74
       ]
     },
     {
@@ -949,8 +949,8 @@ expression: log
         40.0,
         44.0,
         47.0,
-        50.0,
-        52.0
+        114.219,
+        120.0
       ],
       "values": [
         0.0,
@@ -975,8 +975,8 @@ expression: log
         444.919,
         420.923,
         402.915,
-        384.919,
-        372.923
+        -0.396,
+        -0.4
       ]
     }
   ],
@@ -994,7 +994,7 @@ expression: log
       "name": "Ejection"
     },
     {
-      "time_s": 49.8,
+      "time_s": 114.219,
       "name": "Landing"
     }
   ],
@@ -1002,11 +1002,12 @@ expression: log
     "the logger is taken as a Rocketry Ltd Nano V1: its header is the layout the Nano V1 manual's page *CSV Flight log format* describes",
     "`gyro_x`, `gyro_y` and `gyro_z` read in degrees per second, from the Nano V1 manual: its page *CSV Flight log format* gives each as the rate of turn about one of the board's axes in °/s, as whole numbers; the altimeter's gyroscope reads up to ±2,000 °/s",
     "`pitch`, `roll`, `yaw` and `tilt` read in degrees, from the Nano V1 manual: its page *CSV Flight log format* gives the pitch, roll and yaw as attitude angles from their zero on the pad and the tilt as the angle from vertical, each in degrees",
+    "`acceleration_total(mG)` read in thousandths of standard gravity, from its name and the Nano V1 manual: its page *CSV Flight log format* gives it as the acceleration's magnitude with the 1 g of gravity taken out, so it sits near zero at rest; it is kept so, the magnitude less 1 g, not an acceleration along any axis, and reads −1 g in free fall",
     "the last 1 readings of `Board temp(C)`, from line 31, are exactly 0 °C after a reading of 21.80 °C on line 27: a board can't cool so far between two readings and hold there, so they aren't readings and are gaps",
     "`yaw` reaches ±327.67° or beyond on 1 rows, the first on line 23: in no sample log does the yaw pass ±327.68°, ±32,768 hundredths of a degree, the range of a signed 16-bit number, so a yaw beyond it isn't written as it was, but clipped or wrapped to the other end; kept as written",
     "the first 3 rows, before lift-off, to line 13, write 0 on all three of the accelerometer's axes, which reads 1 g at rest: it hasn't read yet, so `acceleration_x(mG)`, `acceleration_y(mG)`, `acceleration_z(mG)` and `acceleration_total(mG)` are gaps on them",
     "`Apogee time` read in seconds, from the altitude: the highest altitude is at 12.2 s, within 0.5 s of its 12.198, where read in milliseconds it would be at the lift-off",
-    "`Landing time` read in seconds, assumed: it sits beside `Apogee time` in the summary the logger writes",
+    "`Landing time` read in seconds, from the altitude: at 114.219 s, after the highest altitude at 12.2 s, the altitude is -0.400 m, within 0.01 m of the summary's `Landing meters`, -0.4 m, the height the rocket came to rest at (Nano V1 manual, *Flight info page*); read in milliseconds, 114.219 ms comes before the highest altitude, at 12.2 s",
     "the summary's other 15 entries, such as `Landing meters`, are left out: the record has no place for them"
   ]
 }

@@ -1,10 +1,11 @@
 //! Rocketry Ltd's logs as AltimeterCloud hands them back, read through the importer from invented
 //! files and pinned whole by snapshots (M7.1c2). The files hold a made-up flight, 2 s of boost to
-//! 100 m/s, a coast to about 610 m and a 6 m/s descent: a Nano V1's log with its summary, its
-//! pressure and raw altitude, CR LF line ends; the same with an adjusted log, an apogee time the
-//! altitude doesn't bear out, a column no source names, a byte-order mark and LF; and a Mercury's,
-//! in lower case, its header ending in a comma, with its centi-degree temperature and its sparse
-//! prediction and air-brake columns.
+//! 100 m/s, a coast to about 610 m and a 6 m/s descent to a landing at 114.219 s: a Nano V1's log
+//! with its summary, its pressure and raw altitude, CR LF line ends; the same, cut short at 52 s,
+//! with an adjusted log, an apogee time the altitude doesn't bear out, a landing time with no
+//! landing height, a column no source names, a byte-order mark and LF; and a Mercury's, in lower
+//! case, its header ending in a comma, with its centi-degree temperature and its sparse prediction
+//! and air-brake columns.
 
 use hpr_flightdata::import;
 use hpr_flightdata::log::{FlightLog, LogFormat, Quantity};
@@ -36,7 +37,7 @@ fn a_nano_log_keeps_its_summary_and_every_column() {
     assert_eq!(log.stated.apogee_m, Some(609.81));
     assert_eq!(log.time_s.len(), 24);
     assert_eq!(log.time_s[0], -0.4);
-    assert_eq!(log.time_s[23], 52.0);
+    assert_eq!(log.time_s[23], 120.0);
     let quantities: Vec<(&str, Quantity)> = log
         .channels
         .iter()
@@ -91,7 +92,7 @@ fn a_nano_log_keeps_its_summary_and_every_column() {
             (2.0, "Burnout"),
             (12.198, "Apogee"),
             (12.5, "Ejection"),
-            (49.8, "Landing")
+            (114.219, "Landing")
         ]
     );
     note(&log, "the logger is taken as a Rocketry Ltd Nano V1: ");
@@ -108,7 +109,13 @@ fn a_nano_log_keeps_its_summary_and_every_column() {
         "`yaw` reaches ±327.67° or beyond on 1 rows, the first on line 23",
     );
     note(&log, "`Apogee time` read in seconds, from the altitude: ");
-    note(&log, "`Landing time` read in seconds, assumed: ");
+    assert!(
+        note(
+            &log,
+            "`Landing time` read in seconds, from the altitude: at 114.219 s, "
+        )
+        .contains("the altitude is -0.400 m")
+    );
     note(
         &log,
         "the summary's other 15 entries, such as `Landing meters`",
@@ -117,8 +124,8 @@ fn a_nano_log_keeps_its_summary_and_every_column() {
 }
 
 /// An adjusted log, its apogee time 8 s from the highest altitude's: the events from the summary
-/// in milliseconds stay, the apogee's and the landing's are left out; a column no source names is
-/// kept as written.
+/// in milliseconds stay, the apogee's is left out, and the landing's, with no landing height to
+/// check it against; a column no source names is kept as written.
 #[test]
 fn an_adjusted_nano_log_leaves_out_an_apogee_time_the_altitude_denies() {
     let log = import::read(include_bytes!("samples/altimetercloud-nano-adjusted.csv")).unwrap();
@@ -130,12 +137,10 @@ fn an_adjusted_nano_log_leaves_out_an_apogee_time_the_altitude_denies() {
         .map(|e| (e.time_s, e.name.as_str()))
         .collect();
     assert_eq!(events, [(2.0, "Burnout")]);
+    assert!(note(&log, "the summary's `Apogee time`, 4, is left out: ").contains("12.2 s"));
     assert!(
-        note(
-            &log,
-            "the summary's `Apogee time`, 4, and `Landing time` are left out: "
-        )
-        .contains("12.2 s")
+        note(&log, "the summary's `Landing time`, 49.8, is left out: ")
+            .contains("no landing height")
     );
     note(&log, "the summary's `Adjusted log` is \"yes\": ");
     let spare = channel(&log, "spare_channel").unwrap();

@@ -4,11 +4,11 @@
 //! Rocketry Ltd's altimeters, the Nano V1, the Mercury V1 and Mercury Plus, and the Jupiter, upload
 //! their flights to AltimeterCloud, which shows each on a flight page and gives back its log as a
 //! CSV file. Every one has a Bosch BMP581 barometer, and the Nano V1 and Mercury V1 a ±32 g
-//! accelerometer and a ±2,000 °/s gyroscope (*Altimeters*, altimetercloud.com/altimeters, read
-//! 2026-10-13). Two layouts are in the project's sample logs. A Nano V1's opens with a flight
-//! summary of keys and values, then a blank line, then its header; its columns are those of the
-//! Nano V1 manual's page *CSV Flight log format* (altimetercloud.com/support/nano-v1/
-//! flight-log-format, read 2026-10-13):
+//! accelerometer and a ±2,000 °/s gyroscope (*Altimeters*,
+//! <https://www.altimetercloud.com/altimeters/>, read 2026-10-13). Two layouts are in the
+//! project's sample logs. A Nano V1's opens with a flight summary of keys and values, then a blank
+//! line, then its header; its columns are those of the Nano V1 manual's page *CSV Flight log
+//! format* (<https://www.altimetercloud.com/support/nano-v1/flight-log-format/>, read 2026-10-13):
 //!
 //! ```text
 //! Apogee meters,120.50,,Landing meters,-0.40,Burnout time (ms),900,
@@ -21,8 +21,8 @@
 //!
 //! A Mercury's opens straight on its header, in lower case, with the channels the Mercury V1
 //! manual says it logs, "temperature, pressure, air density, predicted apogee and air brake
-//! output" beside the Nano's (*Mercury V1 manual*, altimetercloud.com/support/mercuryv1, read
-//! 2026-10-13):
+//! output" beside the Nano's (*Mercury V1 manual*,
+//! <https://www.altimetercloud.com/support/mercuryv1/>, read 2026-10-13):
 //!
 //! ```text
 //! time(ms),altitude(m),velocity_pressure(m/s),acceleration_x(mG),…,bmp_temp(x100),pitch,roll,
@@ -52,7 +52,7 @@
 //! | `Altitude(m)`, `altitude(m)` | [`Quantity::AltitudeAboveGround`], m: the primary track | the header; Nano manual: the height above the pad after the logger's TrueFuse and TruePath processing |
 //! | `Velocity(m/s)`, `velocity_pressure(m/s)` | [`Quantity::Speed`], m/s, up positive: the primary track's vertical speed | the header; Nano manual: the vertical speed of the processed altitude; the Mercury's, by its name, the barometer's |
 //! | `acceleration_x(mG)`, `_y`, `_z` | [`Quantity::Acceleration`], thousandths of standard gravity, 9.806 65 m/s² | the header; Nano manual: along each of the board's axes |
-//! | `acceleration_total(mG)` | [`Quantity::Acceleration`], as the axes: the acceleration's magnitude less 1 g | the header; Nano manual ("with the 1 g of gravity taken out, so it sits near zero at rest") |
+//! | `acceleration_total(mG)` | [`Quantity::Acceleration`], as the axes, but the acceleration's magnitude less 1 g, −1 g in free fall, along no axis; the record has no quantity for that, and a note says what it is | the header; Nano manual ("with the 1 g of gravity taken out, so it sits near zero at rest") |
 //! | `gyro_x`, `gyro_y`, `gyro_z` | [`Quantity::AngularRate`], °/s | the Nano manual; a note says so |
 //! | `Board temp(C)` | [`Quantity::Temperature`], °C | the header; Nano manual |
 //! | `bmp_temp(x100)` | [`Quantity::Temperature`], hundredths of a °C, when the values bear it out (below) | the name; Debrief's reader; a note says how |
@@ -69,9 +69,10 @@
 //! its name says and Debrief's reader takes it: 2150 for 21.50 °C, a whole number in every one of
 //! the 4 Mercury files among the project's sample logs as of 2026-10-13. It is read so if every
 //! reading is a whole number, every one divided by 100 lies within the −40 to +85 °C the BMP581
-//! works in, and at least one as written lies beyond it, so that the column can't be in degrees
-//! (Bosch Sensortec's BMP581 data as SparkFun's *Qwiic Pressure Sensor (BMP581) Hookup Guide*
-//! tabulates it). Otherwise it is kept as written, [`Quantity::Unrecognized`], with a note.
+//! measures, and at least one as written lies beyond it, so that the column can't be in degrees
+//! (Bosch Sensortec, *BMP581 data sheet*, BST-BMP581-DS004-13, revision 1.13, April 2025, table 2,
+//! p. 10: the temperature measurement range, −40 to 85 °C). Otherwise it is kept as written,
+//! [`Quantity::Unrecognized`], with a note.
 //!
 //! **Placeholders.** Two kinds of cell, as of 2026-10-13 in every one of the 11 files among the
 //! project's sample logs, hold a number that isn't a reading; each is a gap, counted in a note:
@@ -103,10 +104,23 @@
 //!   altitude's time lies within 0.5 s of it read in seconds. The key states no unit; as of
 //!   2026-10-13, in the 7 files among the project's sample logs with a summary, it lies within
 //!   0.01 s of the highest altitude's time read in seconds, and a thousand times off read in
-//!   milliseconds. `Landing time`, beside it in the summary, is then read in seconds too, assumed,
-//!   as an event, `Landing`. A note says how each was read;
+//!   milliseconds;
+//! - `Landing time` as an event, `Landing`, in seconds if the altitude bears it out: if, read in
+//!   seconds, it comes after the highest altitude and the altitude there (on the line between the
+//!   rows either side, if no row is at that time) lies within 0.01 m of the summary's `Landing
+//!   meters`, and read in milliseconds it doesn't do both. The Nano manual's page *Flight info
+//!   page* (<https://www.altimetercloud.com/support/nano-v1/flight-info-page/>, read 2026-10-13)
+//!   gives the landing as "when it landed, and the height it came to rest at", but no unit for
+//!   either. Both are written to the millimetre, and the margin is ten times that; as of
+//!   2026-10-13, in the 7 files among the project's sample logs with a summary, the altitude at the
+//!   landing time read in seconds lies within 0.001 m of the landing height, and read in
+//!   milliseconds, on the climb, more than a metre from it. Without a landing height to check, the
+//!   landing time is left out.
+//!
+//!   A note says how each time was read, or why it was left out;
 //! - `Adjusted log`: a value other than `no` gets a note, as AltimeterCloud can hand back a log
-//!   adjusted after the flight (Mercury manual).
+//!   recalculated after the flight with another pressure or temperature (Nano manual: the key
+//!   "reads 'no' for an original flight").
 //!
 //! The events are in time order, as a summary has no order of its own. The other entries, such as
 //! the settings the logger flew with, are counted in a note and left out.
@@ -121,7 +135,7 @@
 //!
 //! **Where this comes from.** The recognition and the centi-degree temperature follow Debrief's
 //! reader; the columns' units, the clock's zero and the placeholders' rules are the Nano manual's
-//! and the files'. Where this reader departs from Debrief's: it keeps every column, where Debrief
+//! and the files'; the summary's times are read as the altitude bears them out. Where this reader departs from Debrief's: it keeps every column, where Debrief
 //! leaves the gyroscope, the attitude angles and the Mercury's prediction and air-brake columns out;
 //! it keeps the summary's apogee, serial number and events; and it refuses what Debrief passes over.
 
@@ -140,7 +154,7 @@ const MAX_SUMMARY_LINES: usize = 64;
 /// Standard gravity, m/s² (CGPM 1901): a thousandth of it is one `mG`.
 const G0_M_S2: f64 = 9.806_65;
 
-/// The temperatures the BMP581 works in, °C (module docs).
+/// The temperatures the BMP581 measures, °C (module docs).
 const BMP581_RANGE_C: (f64, f64) = (-40.0, 85.0);
 
 /// How far, °C, from 0 the reading before a closing run of zeros must lie for the zeros to be
@@ -150,6 +164,10 @@ const TEMPERATURE_JUMP_C: f64 = 5.0;
 /// How far, s, the stated apogee time may lie from the highest altitude's for it to be read in
 /// seconds (module docs).
 const APOGEE_TIME_MARGIN_S: f64 = 0.5;
+
+/// How far, m, the altitude at the stated landing time may lie from the stated landing height
+/// for the time to be read so (module docs): ten times the millimetre both are written to.
+const LANDING_HEIGHT_MARGIN_M: f64 = 0.01;
 
 /// The yaw, degrees, from which a note counts the rows as at the end of its range (module docs).
 const YAW_END_DEG: f64 = 327.67;
@@ -251,24 +269,25 @@ struct Column {
     written: String,
 }
 
-/// The header's cells, trimmed, with a last empty one, the line's closing comma, dropped.
-fn header_cells(line: &str) -> Vec<&str> {
-    let mut cells: Vec<&str> = line.split(',').map(str::trim).collect();
-    if cells.len() > 1 && cells.last().is_some_and(|cell| cell.is_empty()) {
-        cells.pop();
-    }
-    cells
-}
-
-/// Whether a line is this layout's header (module docs, *Recognition*).
+/// Whether a line is this layout's header (module docs, *Recognition*). The cells are looked at
+/// one by one, never collected, so a long line costs no memory.
 fn is_header(line: &str) -> bool {
-    let cells = header_cells(line);
-    let names = |name: &str| cells.iter().any(|cell| cell.eq_ignore_ascii_case(name));
-    cells
-        .first()
+    let mut cells = line.split(',').map(str::trim);
+    if !cells
+        .next()
         .is_some_and(|first| first.eq_ignore_ascii_case("time(ms)"))
-        && names("acceleration_total(mg)")
-        && names("tilt")
+    {
+        return false;
+    }
+    let (mut total, mut tilt) = (false, false);
+    for cell in cells {
+        total |= cell.eq_ignore_ascii_case("acceleration_total(mg)");
+        tilt |= cell.eq_ignore_ascii_case("tilt");
+        if total && tilt {
+            return true;
+        }
+    }
+    false
 }
 
 /// Lines of the file, each with its number from 1.
@@ -301,26 +320,24 @@ struct Entry<'a> {
 }
 
 /// The summary's entries: on each line, a key and the cell after it, an empty cell between
-/// groups skipped where a key would be (module docs, *The summary*).
-fn summary_entries<'a>(lines: &[(usize, &'a str)]) -> Vec<Entry<'a>> {
-    let mut entries = Vec::new();
-    for &(line, text) in lines {
-        let cells: Vec<&str> = text.split(',').map(str::trim).collect();
-        let mut at = 0;
-        while let Some(&key) = cells.get(at) {
-            if key.is_empty() {
-                at += 1;
-                continue;
+/// groups skipped where a key would be (module docs, *The summary*). An iterator, made afresh for
+/// each look-up, so that a long summary line costs no memory.
+fn summary_entries<'a>(lines: &'a [(usize, &'a str)]) -> impl Iterator<Item = Entry<'a>> + 'a {
+    lines.iter().flat_map(|&(line, text)| {
+        let mut cells = text.split(',').map(str::trim);
+        std::iter::from_fn(move || {
+            loop {
+                let key = cells.next()?;
+                if !key.is_empty() {
+                    return Some(Entry {
+                        line,
+                        key,
+                        value: cells.next().unwrap_or_default(),
+                    });
+                }
             }
-            entries.push(Entry {
-                line,
-                key,
-                value: cells.get(at + 1).copied().unwrap_or_default(),
-            });
-            at += 2;
-        }
-    }
-    entries
+        })
+    })
 }
 
 /// The rows read: each row's line and time as written, ms, and each column's cells, `NaN` where
@@ -359,19 +376,23 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     if rows.time_ms.is_empty() {
         return Err(LogError::NoData { format: FORMAT });
     }
-    let entries = summary_entries(&above);
-    Ok(build(&columns, rows, &entries))
+    Ok(build(&columns, rows, &above))
 }
 
-/// The header's columns; a name given twice, or left empty, is refused.
+/// The header's columns; a name given twice, or left empty, is refused. A last empty name, the
+/// line's closing comma, is dropped. The names are read one by one, so a header refused for an
+/// empty name costs no memory for the names after it.
 fn columns(header: &str, line: usize) -> Result<Vec<Column>, LogError> {
-    let cells = header_cells(header);
-    let mut columns: Vec<Column> = Vec::with_capacity(cells.len());
+    let mut columns: Vec<Column> = Vec::new();
     // The names met, in lower case: a set, so that a header of many names isn't checked in
     // quadratic time.
-    let mut seen: HashSet<String> = HashSet::with_capacity(cells.len());
-    for (index, cell) in cells.iter().enumerate() {
+    let mut seen: HashSet<String> = HashSet::new();
+    let mut cells = header.split(',').map(str::trim).enumerate().peekable();
+    while let Some((index, cell)) = cells.next() {
         if cell.is_empty() {
+            if index > 0 && cells.peek().is_none() {
+                break;
+            }
             return Err(syntax(
                 line,
                 format!("the header's column {} has no name", index + 1),
@@ -385,7 +406,7 @@ fn columns(header: &str, line: usize) -> Result<Vec<Column>, LogError> {
         }
         columns.push(Column {
             kind: kind_of(cell),
-            written: (*cell).to_owned(),
+            written: cell.to_owned(),
         });
     }
     if !columns.iter().any(|column| column.kind == Kind::Altitude) {
@@ -491,7 +512,7 @@ fn names_of(columns: &[Column], kinds: &[Kind]) -> Option<String> {
 
 /// The record from the rows read: each column's unit, the placeholders, the summary and the
 /// notes.
-fn build(columns: &[Column], rows: Rows, entries: &[Entry<'_>]) -> FlightLog {
+fn build(columns: &[Column], rows: Rows, summary_lines: &[(usize, &str)]) -> FlightLog {
     let mercury = columns.iter().any(|column| {
         MERCURY_ONLY
             .iter()
@@ -547,6 +568,14 @@ fn build(columns: &[Column], rows: Rows, entries: &[Entry<'_>]) -> FlightLog {
             "{names} read in degrees, from {manual}: its page *CSV Flight log format* gives the \
              pitch, roll and yaw as attitude angles from their zero on the pad and the tilt as the \
              angle from vertical, each in degrees"
+        ));
+    }
+    if let Some(names) = names_of(columns, &[Kind::Total]) {
+        log.notes.push(format!(
+            "{names} read in thousandths of standard gravity, from its name and {manual}: its page \
+             *CSV Flight log format* gives it as the acceleration's magnitude with the 1 g of \
+             gravity taken out, so it sits near zero at rest; it is kept so, the magnitude less \
+             1 g, not an acceleration along any axis, and reads −1 g in free fall"
         ));
     }
 
@@ -641,7 +670,7 @@ fn build(columns: &[Column], rows: Rows, entries: &[Entry<'_>]) -> FlightLog {
     }
     log.temperature_k = temperature;
     log.time_s = time_s;
-    summary(&mut log, entries);
+    summary(&mut log, summary_lines);
     log.notes.extend(line_notes.into_vec());
     log
 }
@@ -680,7 +709,7 @@ fn centi_degrees(values: &[f64], written: &str, notes: &mut Vec<String>) -> bool
         notes.push(format!(
             "`{}` read in hundredths of a degree Celsius, from its name and the values: every \
              reading, {span} as written, is a whole number and lies within the {low} to {high} °C \
-             the BMP581 works in when divided by 100, and {beyond} lie beyond it as written",
+             the BMP581 measures when divided by 100, and {beyond} lie beyond it as written",
             short(written)
         ));
         true
@@ -692,11 +721,11 @@ fn centi_degrees(values: &[f64], written: &str, notes: &mut Vec<String>) -> bool
         } else if !scaled {
             format!(
                 "its readings, {span}, don't all lie within the {low} to {high} °C the BMP581 \
-                 works in when divided by 100"
+                 measures when divided by 100"
             )
         } else {
             format!(
-                "its readings, {span}, all lie within the {low} to {high} °C the BMP581 works in \
+                "its readings, {span}, all lie within the {low} to {high} °C the BMP581 measures \
                  as written too, so they could be degrees"
             )
         };
@@ -777,8 +806,8 @@ fn span(values: &[f64]) -> String {
 }
 
 /// Keeps what the summary states (module docs, *The summary*): the apogee, the serial number, the
-/// firmware and the events, with notes.
-fn summary(log: &mut FlightLog, entries: &[Entry<'_>]) {
+/// firmware and the events, with notes. `lines` are the lines above the header.
+fn summary(log: &mut FlightLog, lines: &[(usize, &str)]) {
     const USED: [&str; 8] = [
         "Apogee meters",
         "Apogee time",
@@ -789,11 +818,8 @@ fn summary(log: &mut FlightLog, entries: &[Entry<'_>]) {
         "Firmware",
         "Adjusted log",
     ];
-    let entry = |key: &str| {
-        entries
-            .iter()
-            .find(|entry| entry.key.eq_ignore_ascii_case(key))
-    };
+    let entry =
+        |key: &str| summary_entries(lines).find(|entry| entry.key.eq_ignore_ascii_case(key));
     let mut notes = Vec::new();
     let number = |key: &str, notes: &mut Vec<String>| {
         let entry = entry(key)?;
@@ -827,20 +853,21 @@ fn summary(log: &mut FlightLog, entries: &[Entry<'_>]) {
             });
         }
     }
+    // The highest altitude's time, the first if it is reached twice.
+    let peak_s = log
+        .altitude_m
+        .iter()
+        .enumerate()
+        .filter(|(_, value)| !value.is_nan())
+        .fold(
+            None,
+            |best: Option<(usize, f64)>, (row, &value)| match best {
+                Some((_, top)) if top >= value => best,
+                _ => Some((row, value)),
+            },
+        )
+        .and_then(|(row, _)| log.time_s.get(row).copied());
     if let Some(apogee_s) = number("Apogee time", &mut notes) {
-        let peak = log
-            .altitude_m
-            .iter()
-            .enumerate()
-            .filter(|(_, value)| !value.is_nan())
-            .fold(
-                None,
-                |best: Option<(usize, f64)>, (row, &value)| match best {
-                    Some((_, top)) if top >= value => best,
-                    _ => Some((row, value)),
-                },
-            );
-        let peak_s = peak.and_then(|(row, _)| log.time_s.get(row).copied());
         match peak_s {
             Some(peak_s) if (apogee_s - peak_s).abs() <= APOGEE_TIME_MARGIN_S => {
                 notes.push(format!(
@@ -852,25 +879,30 @@ fn summary(log: &mut FlightLog, entries: &[Entry<'_>]) {
                     time_s: apogee_s,
                     name: "Apogee".to_owned(),
                 });
-                if let Some(landing_s) = number("Landing time", &mut notes) {
-                    notes.push(
-                        "`Landing time` read in seconds, assumed: it sits beside `Apogee time` \
-                         in the summary the logger writes"
-                            .to_owned(),
-                    );
-                    events.push(Event {
-                        time_s: landing_s,
-                        name: "Landing".to_owned(),
-                    });
-                }
             }
             _ => notes.push(format!(
-                "the summary's `Apogee time`, {apogee_s}, and `Landing time` are left out: the \
-                 key states no unit, and read in seconds it isn't within {APOGEE_TIME_MARGIN_S} s \
-                 of the highest altitude's time, {}",
+                "the summary's `Apogee time`, {apogee_s}, is left out: the key states no unit, and \
+                 read in seconds it isn't within {APOGEE_TIME_MARGIN_S} s of the highest \
+                 altitude's time, {}",
                 peak_s.map_or("which the file doesn't give".to_owned(), |t| format!(
                     "{t} s"
                 ))
+            )),
+        }
+    }
+    if let Some(landing) = number("Landing time", &mut notes) {
+        let height_m = entry("Landing meters").and_then(|entry| table::number(entry.value, false));
+        match landing_in_seconds(log, landing, height_m, peak_s) {
+            Ok(note) => {
+                notes.push(note);
+                events.push(Event {
+                    time_s: landing,
+                    name: "Landing".to_owned(),
+                });
+            }
+            Err(why) => notes.push(format!(
+                "the summary's `Landing time`, {landing}, is left out: the key states no unit, \
+                 and {why}"
             )),
         }
     }
@@ -880,25 +912,97 @@ fn summary(log: &mut FlightLog, entries: &[Entry<'_>]) {
         && !adjusted.value.eq_ignore_ascii_case("no")
     {
         notes.push(format!(
-            "the summary's `Adjusted log` is {:?}: AltimeterCloud can hand back a log adjusted \
-             after the flight (Mercury V1 manual), so this one's figures may not be the logger's \
-             own",
+            "the summary's `Adjusted log` is {:?}: AltimeterCloud can hand back a log \
+             recalculated after the flight with another pressure or temperature (Nano V1 manual), \
+             so this one's figures may not be the logger's own",
             short(adjusted.value)
         ));
     }
-    let others: Vec<&Entry<'_>> = entries
-        .iter()
-        .filter(|entry| !USED.iter().any(|key| entry.key.eq_ignore_ascii_case(key)))
-        .collect();
-    if let Some(first) = others.first() {
+    let is_other = |entry: &Entry<'_>| !USED.iter().any(|key| entry.key.eq_ignore_ascii_case(key));
+    if let Some(first) = summary_entries(lines).find(is_other) {
         notes.push(format!(
             "the summary's other {} entries, such as `{}`, are left out: the record has no place \
              for them",
-            others.len(),
+            summary_entries(lines).filter(is_other).count(),
             short(first.key)
         ));
     }
     log.notes.extend(notes);
+}
+
+/// The altitude at a time, m: the row's at that time, or on a straight line between the rows
+/// either side of it; `None` outside the log or beside a row without an altitude.
+fn altitude_at(time_s: &[f64], altitude_m: &[f64], at_s: f64) -> Option<f64> {
+    let after = time_s.partition_point(|&time| time < at_s);
+    let (t1, a1) = (*time_s.get(after)?, *altitude_m.get(after)?);
+    let altitude = if t1 == at_s {
+        a1
+    } else {
+        let before = after.checked_sub(1)?;
+        let (t0, a0) = (*time_s.get(before)?, *altitude_m.get(before)?);
+        a0 + (at_s - t0) / (t1 - t0) * (a1 - a0)
+    };
+    altitude.is_finite().then_some(altitude)
+}
+
+/// Whether the summary's landing time, `landing` as written, is in seconds (module docs, *The
+/// summary*): the note saying so, or why it is left out. It is if, read so, it comes after the
+/// highest altitude and the altitude there is the stated landing height, `height_m`, within
+/// [`LANDING_HEIGHT_MARGIN_M`], and read in milliseconds it doesn't do both.
+fn landing_in_seconds(
+    log: &FlightLog,
+    landing: f64,
+    height_m: Option<f64>,
+    peak_s: Option<f64>,
+) -> Result<String, String> {
+    let Some(height_m) = height_m else {
+        return Err(
+            "the summary gives no landing height, `Landing meters`, to check it \
+                    against"
+                .to_owned(),
+        );
+    };
+    let Some(peak_s) = peak_s else {
+        return Err("the log gives no highest altitude to check it against".to_owned());
+    };
+    let at = |time_s: f64| altitude_at(&log.time_s, &log.altitude_m, time_s);
+    let agrees = |time_s: f64| {
+        time_s >= peak_s
+            && at(time_s).is_some_and(|a| (a - height_m).abs() <= LANDING_HEIGHT_MARGIN_M)
+    };
+    // What the altitude says of a reading that doesn't agree, the time as written with its unit.
+    let denies = |time_s: f64, written: &str| {
+        if time_s < peak_s {
+            format!("{written} comes before the highest altitude, at {peak_s} s")
+        } else {
+            match at(time_s) {
+                Some(a) => format!(
+                    "the altitude at {written} is {a:.3} m, not within \
+                     {LANDING_HEIGHT_MARGIN_M} m of the stated landing height, {height_m} m"
+                ),
+                None => format!("the log gives no altitude at {written}"),
+            }
+        }
+    };
+    let ms_s = landing / 1000.0;
+    match (agrees(landing), agrees(ms_s)) {
+        (true, false) => Ok(format!(
+            "`Landing time` read in seconds, from the altitude: at {landing} s, after the highest \
+             altitude at {peak_s} s, the altitude is {:.3} m, within {LANDING_HEIGHT_MARGIN_M} m \
+             of the summary's `Landing meters`, {height_m} m, the height the rocket came to rest \
+             at (Nano V1 manual, *Flight info page*); read in milliseconds, {}",
+            at(landing).unwrap_or(f64::NAN),
+            denies(ms_s, &format!("{landing} ms"))
+        )),
+        (true, true) => Err(format!(
+            "read in seconds or in milliseconds alike, the altitude there, after the highest, is \
+             within {LANDING_HEIGHT_MARGIN_M} m of the stated landing height, {height_m} m"
+        )),
+        (false, _) => Err(format!(
+            "read in seconds, {}",
+            denies(landing, &format!("{landing} s"))
+        )),
+    }
 }
 
 #[cfg(test)]
@@ -964,16 +1068,17 @@ mod tests {
 
     #[test]
     fn summary_entries_pair_keys_with_values_across_empty_cells() {
-        let entries = summary_entries(&[
+        let lines = [
             (
                 1,
                 "Apogee meters,12.5,,Landing meters,-0.1,Burnout time (ms),900,",
             ),
             (2, "Device tag,Unit A,,Competitor tag,,"),
             (3, "Firmware, 1.00,,Lockouts,0,"),
-        ]);
-        let pairs: Vec<(usize, &str, &str)> =
-            entries.iter().map(|e| (e.line, e.key, e.value)).collect();
+        ];
+        let pairs: Vec<(usize, &str, &str)> = summary_entries(&lines)
+            .map(|e| (e.line, e.key, e.value))
+            .collect();
         assert_eq!(
             pairs,
             [
@@ -1285,12 +1390,12 @@ mod tests {
         )
     }
 
-    /// The apogee time in seconds when the altitude bears it out, and the landing time with it;
-    /// left out, both, when it doesn't.
+    /// The apogee time and the landing time in seconds when the altitude bears them out; left
+    /// out when it doesn't.
     #[test]
     fn the_summary_gives_the_apogee_the_serial_and_the_events() {
         let summary = "Apogee meters,101.00,,Landing meters,0.0,Burnout time (ms),1200,\n\
-                       Apogee time,5.150,,Landing time,29.000,\n\
+                       Apogee time,5.150,,Landing time,30.000,\n\
                        Serial number,0000-0000-0001,,Ejection time (ms),5300,\n\
                        Firmware, 1.00,,Adjusted log,no,\n\
                        Device tag,Unit A,,Competitor tag,,";
@@ -1309,13 +1414,21 @@ mod tests {
                 (1.2, "Burnout"),
                 (5.15, "Apogee"),
                 (5.3, "Ejection"),
-                (29.0, "Landing")
+                (30.0, "Landing")
             ]
         );
         assert!(
             note(&log, "`Apogee time` read in seconds, from the altitude: ").contains("at 5.1 s")
         );
-        note(&log, "`Landing time` read in seconds, assumed: ");
+        assert!(
+            note(
+                &log,
+                "`Landing time` read in seconds, from the altitude: at 30 s, "
+            )
+            .contains(
+                "the altitude is 0.000 m, within 0.01 m of the summary's `Landing meters`, 0 m"
+            )
+        );
         assert!(
             note(
                 &log,
@@ -1325,16 +1438,15 @@ mod tests {
         );
         assert!(!has_note(&log, "the summary's `Adjusted log`"));
 
-        // An apogee time a thousand times off is left out with the landing's.
-        let summary = "Apogee time,5150,,Landing time,29000,\nAdjusted log,yes,";
+        // An apogee time a thousand times off is left out, and a landing time with no landing
+        // height to check it against.
+        let summary = "Apogee time,5150,,Landing time,30000,\nAdjusted log,yes,";
         let log = read(&with_summary(summary)).unwrap();
         assert!(log.events.is_empty());
+        assert!(note(&log, "the summary's `Apogee time`, 5150, is left out").contains("5.1 s"));
         assert!(
-            note(
-                &log,
-                "the summary's `Apogee time`, 5150, and `Landing time` are left out"
-            )
-            .contains("5.1 s")
+            note(&log, "the summary's `Landing time`, 30000, is left out: ")
+                .contains("gives no landing height")
         );
         note(&log, "the summary's `Adjusted log` is \"yes\"");
         assert_eq!(log.stated.apogee_m, None);
@@ -1342,6 +1454,115 @@ mod tests {
         note(
             &log,
             "the summary's `Apogee meters` on line 1, \"high\", isn't a number",
+        );
+    }
+
+    /// The landing time in seconds only where the altitude, after the highest, is the stated
+    /// landing height, and in milliseconds it isn't; between rows, on the line joining them.
+    #[test]
+    fn the_landing_time_is_read_in_seconds_only_where_the_altitude_agrees() {
+        let landing = |height: &str, time: &str| {
+            let summary = format!("Landing meters,{height},,Landing time,{time},");
+            read(&with_summary(&summary)).unwrap()
+        };
+        let events = |log: &FlightLog| -> Vec<(f64, String)> {
+            log.events
+                .iter()
+                .map(|e| (e.time_s, e.name.clone()))
+                .collect()
+        };
+        // Between the rows at 5.2 s, 100.5 m, and 30 s, 0 m: 4.052 m at 29 s.
+        let log = landing("4.05", "29.000");
+        assert_eq!(events(&log), [(29.0, "Landing".to_owned())]);
+        assert!(
+            note(
+                &log,
+                "`Landing time` read in seconds, from the altitude: at 29 s, "
+            )
+            .contains("the altitude is 4.052 m")
+        );
+        // A landing height 2 cm off, or a time the log doesn't reach, or one before the highest
+        // altitude, is left out.
+        for (height, time, written, why) in [
+            (
+                "4.07",
+                "29.000",
+                "29",
+                "the altitude at 29 s is 4.052 m, not within 0.01 m",
+            ),
+            ("0.0", "31.000", "31", "the log gives no altitude at 31 s"),
+            (
+                "50.0",
+                "2.600",
+                "2.6",
+                "2.6 s comes before the highest altitude, at 5.1 s",
+            ),
+        ] {
+            let log = landing(height, time);
+            assert!(events(&log).is_empty(), "{time}");
+            let start = format!("the summary's `Landing time`, {written}, is left out: ");
+            assert!(note(&log, &start).contains(why), "{time}");
+            assert!(!has_note(&log, "`Landing time` read in"), "{time}");
+        }
+        // A log whose altitude peaks at once, so that read in milliseconds too the landing time
+        // comes after the highest altitude where the altitude is the landing height: left out.
+        let text = format!(
+            "Landing meters,0.0,,Landing time,20.000,\n\n{}",
+            nano(&[
+                nano_row(0, 5.0, [1, 2, 3], "", 0.0),
+                nano_row(10, 0.0, [1, 2, 3], "", 0.0),
+                nano_row(20_000, 0.0, [1, 2, 3], "", 0.0),
+            ])
+        );
+        let log = read(&text).unwrap();
+        assert!(log.events.is_empty());
+        assert!(
+            note(&log, "the summary's `Landing time`, 20, is left out: ")
+                .contains("in seconds or in milliseconds alike")
+        );
+    }
+
+    #[test]
+    fn the_altitude_at_a_time_is_a_rows_or_on_the_line_between_two() {
+        let time = [0.0, 1.0, 3.0, 4.0];
+        let altitude = [0.0, 10.0, 30.0, f64::NAN];
+        assert_eq!(altitude_at(&time, &altitude, 1.0), Some(10.0));
+        assert_eq!(altitude_at(&time, &altitude, 2.5), Some(25.0));
+        assert_eq!(altitude_at(&time, &altitude, 0.0), Some(0.0));
+        assert_eq!(altitude_at(&time, &altitude, -0.5), None);
+        assert_eq!(altitude_at(&time, &altitude, 3.5), None);
+        assert_eq!(altitude_at(&time, &altitude, 5.0), None);
+    }
+
+    /// A long line of commas, above a header or as the whole file, is read without collecting
+    /// its cells.
+    #[test]
+    fn a_long_line_of_commas_is_no_header_and_no_summary() {
+        let commas = ",".repeat(1 << 20);
+        assert!(!recognizes(&commas));
+        assert!(!recognizes(&format!("Time(ms){commas}")));
+        let log = read(&format!(
+            "{commas}\n\n{}",
+            nano(&[nano_row(0, 0.0, [1, 2, 3], "", 0.0)])
+        ))
+        .unwrap();
+        assert!(!has_note(&log, "the summary's other"));
+        // A header with an empty name in the middle is refused; a closing one is dropped.
+        let error = read(&format!("{NANO_HEADER}{commas}x\n")).unwrap_err();
+        assert!(error.to_string().contains("has no name"), "{error}");
+    }
+
+    /// The total acceleration's note says it is the magnitude less 1 g.
+    #[test]
+    fn the_total_acceleration_is_noted_as_the_magnitude_less_one_g() {
+        let log = read(&nano(&[nano_row(0, 0.0, [1, 2, 3], "", 0.0)])).unwrap();
+        assert!(
+            note(
+                &log,
+                "`acceleration_total(mG)` read in thousandths of standard gravity, from its name \
+                 and the Nano V1 manual: "
+            )
+            .contains("the magnitude less 1 g, not an acceleration along any axis")
         );
     }
 
