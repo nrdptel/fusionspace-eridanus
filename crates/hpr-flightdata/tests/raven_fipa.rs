@@ -335,3 +335,36 @@ fn a_header_without_frames_is_not_this_format() {
         None
     );
 }
+
+proptest::proptest! {
+    /// Any words in the blocks, and any bytes changed in a whole file, are read or refused, never a
+    /// panic; what is read keeps each channel's times rising, one a value.
+    #[test]
+    fn any_file_is_read_or_refused(
+        words in proptest::collection::vec(proptest::prelude::any::<u16>(), 0..400),
+        changes in proptest::collection::vec((0usize..4000, proptest::prelude::any::<u8>()), 0..6),
+        cut in 0usize..5000,
+    ) {
+        let settings = settings();
+        let mut blocks = vec![block((1025, 1000), 612, slow(0), [0, 0]); 5];
+        blocks.push(settings);
+        for chunk in words.chunks(32) {
+            let mut block = [0xffffu16; 32];
+            block[..chunk.len()].copy_from_slice(chunk);
+            blocks.push(block);
+        }
+        let mut bytes = file(&header(&settings, "2"), &blocks);
+        for (at, byte) in changes {
+            if let Some(slot) = bytes.get_mut(at) {
+                *slot = byte;
+            }
+        }
+        bytes.truncate(bytes.len().saturating_sub(cut % 600));
+        if let Ok(log) = import::read(&bytes) {
+            for channel in &log.channels {
+                proptest::prop_assert_eq!(channel.time_s.len(), channel.values.len());
+                proptest::prop_assert!(channel.time_s.windows(2).all(|pair| pair[0] < pair[1]));
+            }
+        }
+    }
+}

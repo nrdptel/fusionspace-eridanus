@@ -169,3 +169,27 @@ fn under_two_seconds_of_readings_has_no_data() {
         })
     );
 }
+
+proptest::proptest! {
+    /// Any words in the list, and any bytes changed in a whole stream, are read or refused, never a
+    /// panic; what is read keeps each channel's times in order, one a value.
+    #[test]
+    fn any_stream_is_read_or_refused(
+        words in proptest::collection::vec(proptest::prelude::any::<u16>(), 0..300),
+        changes in proptest::collection::vec((0usize..700, proptest::prelude::any::<u8>()), 0..6),
+        spare in 0usize..40,
+    ) {
+        let mut bytes = stream(&words, words.len() + spare, 2);
+        for (at, byte) in changes {
+            if let Some(slot) = bytes.get_mut(at) {
+                *slot = byte;
+            }
+        }
+        if let Ok(log) = import::read(&bytes) {
+            for channel in &log.channels {
+                proptest::prop_assert_eq!(channel.time_s.len(), channel.values.len());
+                proptest::prop_assert!(channel.time_s.windows(2).all(|pair| pair[0] <= pair[1]));
+            }
+        }
+    }
+}
