@@ -70,15 +70,24 @@ fn a_metric_file_reads_in_meters() {
     assert!(vel[60].is_nan() && vel[59] == -14.8);
     assert!(log.vertical_speed_m_s.is_none());
     assert!(log.temperature_k.is_none() && log.battery_v.is_none());
-    note(&log, "`Vel` read in meters per second, from the apogee: ");
-    note(&log, "`pAlt` read in meters, from `Vel`: ");
+    note(
+        &log,
+        "`Vel` read in meters per second, from the apogee and the barometer's step: ",
+    );
+    // The invented barometer's count, 9.12 m, is in the band of meters and not of feet.
+    let step = note(&log, "`pAlt` read in meters, from its step and `Vel`: ");
+    assert!(
+        step.contains("its smallest step, 9.12, ") && step.contains("(5.46 to 14.83 m)"),
+        "{step}"
+    );
+    note(&log, "`MET` read in seconds, from the apogee: ");
     note(
         &log,
         "`Acc` read in meters per second squared, from `Vel`: ",
     );
     note(&log, "`iAlt` read in meters, from `Vel`: ");
     note(&log, "the last 1 rows, from line 62, write `Vel` as 0");
-    assert_eq!(log.notes.len(), 5, "{:#?}", log.notes);
+    assert_eq!(log.notes.len(), 6, "{:#?}", log.notes);
     insta::assert_json_snapshot!(log);
 }
 
@@ -102,12 +111,20 @@ fn an_english_file_reads_in_feet_and_g() {
     let inertial = channel(&log, "iAlt").unwrap();
     assert_eq!(inertial.quantity, Quantity::InertialAltitude);
     assert!((inertial.values[3] - 156.85 * FOOT_M).abs() < 1e-9);
-    let vel_note = note(&log, "`Vel` read in feet per second, from the apogee: ");
+    let vel_note = note(
+        &log,
+        "`Vel` read in feet per second, from the apogee and the barometer's step: ",
+    );
     assert!(
         vel_note.contains("of standard gravity's 32.174 ft/s²"),
         "{vel_note}"
     );
-    note(&log, "`pAlt` read in feet, from `Vel`: ");
+    let step = note(&log, "`pAlt` read in feet, from its step and `Vel`: ");
+    assert!(
+        step.contains("its smallest step, 29.60, ") && step.contains("(17.91 to 48.64 ft)"),
+        "{step}"
+    );
+    note(&log, "`MET` read in seconds, from the apogee: ");
     let acc_note = note(
         &log,
         "`Acc` read in standard gravities, 9.806 65 m/s², from `Vel`: ",
@@ -119,7 +136,7 @@ fn an_english_file_reads_in_feet_and_g() {
         &log,
         "`Acc` has 1 cells that are empty or aren't a number, the first on line 42: gaps",
     );
-    assert_eq!(log.notes.len(), 6, "{:#?}", log.notes);
+    assert_eq!(log.notes.len(), 7, "{:#?}", log.notes);
     insta::assert_json_snapshot!(log);
 }
 
