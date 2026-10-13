@@ -282,8 +282,9 @@ sample logs:
 - **A SillyGoose's units, its header checked against its values.** AerospaceNU's SillyGoose board
   names most units in its columns, such as `pressurePa`, `tempK` and `altitudeM`, but two sample
   files' values contradict their names. One has temperatures below zero under `tempK` and an
-  accelerometer that reads 1 at rest. The other, which looks replayed rather than recorded (it
-  starts in the boost, stops near apogee, and its temperature never changes), has
+  accelerometer that reads 1 at rest. The other, which looks replayed rather than recorded (after
+  a few samples on the pad it jumps into the boost, it ends still climbing, and its temperature
+  never changes), has
   `angularVelRadS_*` rates beyond what a gyroscope (a sensor of the rate of turn) can read. So
   the reader checks each named unit against the file, and keeps a column as written, with a note,
   where the values refute it.
@@ -309,8 +310,9 @@ sample logs:
   barometric altitude, lying along a straight line (scatter within 10% of that span), whose slope
   is within 10% of 1; in feet it would be 3.28. The 120 m (394 ft) lets two readings each 6 m
   (20 ft) off move the slope by no more than 10%: twice the manual's ±3 m (9.8 ft) horizontal
-  figure (p18), as a GPS's vertical error runs about 1.6 times its horizontal. Otherwise, as where the GPS lost its fix in
-  the climb or lags the flight, it is kept as written; in all 6 sample files it is kept. The
+  figure (p18), as a GPS's vertical error runs about 1.6 times its horizontal. Otherwise, as
+  where the GPS lost its fix in the climb or lags the flight, it is kept as written; in all 6
+  sample files it is kept. The
   latitude and longitude are degrees, from the manual (p38) and a range check, and each change of
   `status` is an event named as the manual names it (p23).
 - **An ARTS2's unit system, worked out from the flight.** The ARTS2's interpreted data comes in
