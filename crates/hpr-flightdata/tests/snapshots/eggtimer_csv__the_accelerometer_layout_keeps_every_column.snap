@@ -2034,11 +2034,11 @@ expression: log
     "`Alt` read in feet, from the manual: the Classic's and TRS's manuals (p37) give the altitude in feet, the Quantum's and Proton's set every altitude in feet, and no Eggtimer manual offers another unit; the file's `AccelFPSS` is 32.19 times its `AccelG`, and one g is 32.17 ft/s²",
     "`Veloc` read in feet per second, from the altitude: it is the change in `Alt` over the step, within 1 % or 1 ft/s, in 39 of 39 rows after the first",
     "`VAccel` read in feet per second, from the manual: the Proton's manual (p45) gives the accelerometer's velocity in ft/sec",
-    "`AltAccel` read in feet, from the manual: the Proton's manual (p45) gives the accelerometer's distance travelled in ft",
+    "`AltAccel` read in feet, from the manual: the Proton's manual (p45) gives the accelerometer's distance traveled in ft",
     "`FAlt` read in feet, from the manual: it is the logger's filtered `Alt` (Quantum p38, Proton p45), in the same unit",
     "`FVeloc` read in feet per second, from the altitude: it is the change in `FAlt` over the step, within 1 % or 1 ft/s, in 39 of 39 rows after the first",
     "`FAccelVel` read in feet per second, from the manual: the Proton's manual (p45) gives the accelerometer's velocity in ft/sec",
-    "`FAccelAlt` read in feet, from the manual: the Proton's manual (p45) gives the accelerometer's distance travelled in ft",
+    "`FAccelAlt` read in feet, from the manual: the Proton's manual (p45) gives the accelerometer's distance traveled in ft",
     "5 rows hold only empty cells, and were skipped"
   ]
 }

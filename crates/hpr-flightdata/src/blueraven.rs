@@ -131,7 +131,7 @@
 //! read has one. A row with fewer cells than the header has the rest as gaps, counted in a note;
 //! a row with more is refused, as is a row whose clock cell isn't a number. A file whose rows, down
 //! to any row, hold under a quarter of the cells its header names (past the first 65,536) is
-//! refused at that row (ADR-251), so a wide header over short rows can't make the reader allocate
+//! refused at that row, so a wide header over short rows can't make the reader allocate
 //! far more than the file holds. Blank lines are skipped;
 //! lines may end in CR, LF or both; a byte-order mark is dropped; cells may be padded with spaces.
 //!

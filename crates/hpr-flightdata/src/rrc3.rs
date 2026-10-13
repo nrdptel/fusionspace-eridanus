@@ -1105,8 +1105,8 @@ mod tests {
         }
         heights.push(0.0);
         let count = heights.len();
-        // The speed at each row: the altitude's rate across its neighbours, or to its one
-        // neighbour at either end.
+        // The speed at each row: the altitude's rate across its neighbors, or to its one
+        // neighbor at either end.
         let speed = |index: usize| {
             let before = index.saturating_sub(1);
             let after = (index + 1).min(count - 1);

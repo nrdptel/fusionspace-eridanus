@@ -138,7 +138,7 @@ enum Kind {
     AccelerationFtS2,
     /// The accelerometer's velocity, ft/s.
     InertialSpeed,
-    /// The accelerometer's distance travelled, ft.
+    /// The accelerometer's distance traveled, ft.
     InertialAltitude,
     /// An event marker: 0, or at its event the raw altitude (or, for `MaxV` and `MaxA`, the
     /// speed or acceleration).
@@ -611,7 +611,7 @@ fn unit_note(
         ),
         Kind::InertialAltitude => format!(
             "`{name}` read in feet, from the manual: the Proton's manual (p45) gives the \
-             accelerometer's distance travelled in ft"
+             accelerometer's distance traveled in ft"
         ),
         Kind::Altitude
         | Kind::AccelerationG
