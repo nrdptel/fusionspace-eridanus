@@ -34,11 +34,12 @@
 //! unspecified locality" (W3C, *XML Schema Part 2*, §3.2.7).
 //!
 //! **Tracks and channels.** No KML file holds a barometer's record, so the record's primary track
-//! is empty and every value is a channel, with a note (ADR-254 §2). Each geometry, in the file's
-//! order, inside a `MultiGeometry` too, is a track: each `LineString`, `gx:Track` and `Point`. A
-//! track's channels are named after its `Placemark`'s `name`, or `track` if it has none; a
-//! placemark holding several geometries numbers them, `<name> part 2`, and a name already used
-//! gains ` (2)`, ` (3)` …, so no two tracks share a name:
+//! is empty and every value is a channel, with a note, as the GPS logs' decision,
+//! [ADR-254][adr-254] §2, has it. Each geometry, in the file's order, inside a `MultiGeometry` too,
+//! is a track: each `LineString`, `gx:Track` and `Point`. A track's channels are named after its
+//! `Placemark`'s `name`, or `track` if it has none; a placemark holding several geometries numbers
+//! them, `<name> part 2`, and a name already used gains ` (2)`, ` (3)` …, so no two tracks share a
+//! name:
 //!
 //! | Channel | Quantity | From |
 //! |---|---|---|
@@ -56,13 +57,13 @@
 //! tuple that isn't two or three numbers, or a latitude or longitude out of range, is a gap,
 //! `NaN`, counted in a note.
 //!
-//! **Times.** A point's time is the one the file gives it (ADR-254 §3): a `gx:Track`'s `when`; a
-//! `Point` placemark's `TimeStamp`; or, where a writer puts a comment right after a tuple, the
-//! time in the comment. The log's zero is the first point the file times, and a note names it. A
-//! point the file gives no time keeps its place with its time a gap, `NaN` (§4), as every point
-//! of a path without times does, with a note. Times stay in the file's order; a note says how
-//! often and how far they go back. A `Point` with a time is also an [`Event`] named after its
-//! placemark. Times on two kinds of clock in one file (none of the samples) can't share a zero:
+//! **Times.** A point's time is the one the file gives it ([ADR-254][adr-254] §3): a `gx:Track`'s
+//! `when`; a `Point` placemark's `TimeStamp`; or, where a writer puts a comment right after a
+//! tuple, the time in the comment. The log's zero is the first point the file times, and a note
+//! names it. A point the file gives no time keeps its place with its time a gap, `NaN` (§4), as
+//! every point of a path without times does, with a note. Times stay in the file's order; a note
+//! says how often and how far they go back. A `Point` with a time is also an [`Event`] named after
+//! its placemark. Times on two kinds of clock in one file (none of the samples) can't share a zero:
 //! those not on the first timed point's clock are gaps, with a note.
 //!
 //! **Comments beside points.** Three layouts are read, case aside:
@@ -159,6 +160,8 @@
 //! **Where this comes from.** The standard and Google's reference as cited, and the files
 //! themselves; no KML reader was ported. Debrief, the project owner's own earlier tool, writes
 //! KML but doesn't read it.
+//!
+//! [adr-254]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0254-gps-tracks-first-among-the-other-importers.md
 
 use std::borrow::Cow;
 use std::collections::HashMap;

@@ -73,8 +73,11 @@ pub struct Channel {
     /// What the column measures, which sets its unit.
     pub quantity: Quantity,
     /// Each sample's time, s, from the log's zero, the same zero as [`FlightLog::time_s`]; `NaN`
-    /// where the file gives the sample no time, as a KML path without times does (ADR-254). In
-    /// the file's order, so a time may go back where the logger's clock did.
+    /// where the file gives the sample no time, as a KML path without times does (the GPS logs'
+    /// decision, [ADR-254][adr-254]). In the file's order, so a time may go back where the
+    /// logger's clock did.
+    ///
+    /// [adr-254]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0254-gps-tracks-first-among-the-other-importers.md
     #[serde(with = "gaps")]
     pub time_s: Vec<f64>,
     /// Each sample's value in the quantity's unit ([`Quantity::unit`]); `NaN` where the file left

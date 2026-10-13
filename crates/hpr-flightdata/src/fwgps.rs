@@ -25,8 +25,12 @@
 //! written, its spaces at either end trimmed.
 //!
 //! **No barometer.** The files hold a GPS receiver's positions only, so the record's primary track
-//! is empty (as for a Blue Raven's high-rate file, ADR-253 §6, and by ADR-254 §2) and every column
-//! is a channel, with a note saying so. The readings withhold on such a log.
+//! is empty, as for a Blue Raven's high-rate file ([ADR-253][adr-253] §6, on the RRC3, Eggtimer
+//! and Blue Raven readers) and as [ADR-254][adr-254] §2 decided for GPS logs, and every column is
+//! a channel, with a note saying so. The readings withhold on such a log.
+//!
+//! [adr-253]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0253-rrc3-eggtimer-and-blue-raven-csv-first.md
+//! [adr-254]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0254-gps-tracks-first-among-the-other-importers.md
 //!
 //! **Channels.** Every column but the clock's parts, the tracker's name and `Found rocket ID` is a
 //! channel, in the file's order, in the record's SI unit ([`Quantity::unit`]):
@@ -90,8 +94,8 @@
 //!   reads 0 on every row of the 8 shorter ground-station logs. A value outside 0 to 5 keeps it as
 //!   written.
 //!
-//! The speeds' and heights' unit is also what fw2kml's KML of the same flights shows (ADR-254
-//! §5), a check across files the reader can't make.
+//! The speeds' and heights' unit is also what fw2kml's KML of the same flights shows (the GPS
+//! logs' decision, [ADR-254][adr-254] §5), a check across files the reader can't make.
 //!
 //! **The clock.** The tracker's clock is `UTCTIME`, written `Apr 17 2021 19:06:45.800 UTC`: an
 //! English month's first three letters, the day, the year, the time of day and `UTC`. Read as UTC,
