@@ -104,10 +104,15 @@
 //! coming halfway down, so their velocity is kept as written. The 0.1% allowed is more than ten
 //! times the largest share any of those records' ends could leave out. On invented flights 20 m
 //! to 1 km up, coming down at 10 to 40 m/s, their velocity late by up to 3 s or smoothed by a
-//! first-order filter or a moving average over up to 3 s, in each unit, and cut off at each tenth
-//! of the way through from 30%, none is decided in the wrong unit, and a whole record up to 1 s
-//! late is decided from 50 m up (the module's tests; `tests/rrc3_csv.rs` adds km/h and ft/s
-//! flights 1 and 2 s late, 100 to 300 m up). Otherwise the column is kept as written, [`Quantity::Unrecognized`], with a note: also
+//! first-order filter or a trailing moving average over up to 3 s, in each unit, and cut off at
+//! each tenth of the way through from 30%, none is decided in the wrong unit, and a whole record
+//! up to 1 s late is decided from 50 m up (the module's tests; `tests/rrc3_csv.rs` adds km/h and
+//! ft/s flights 1 and 2 s late, 100 to 300 m up). These filters only look back. A smoothing that
+//! also looks ahead, centered on each sample, starts the velocity above rest at the record's
+//! first row, so the integral misses the start of the climb: over a window of 3 to 5 s, a few in
+//! a thousand such invented flights read about 8% low, enough to take km/h for ft/s. None of the
+//! sample files starts that way. Otherwise the column is kept as written,
+//! [`Quantity::Unrecognized`], with a note: also
 //! when the altitude climbs under 50 m, where half a step of the pressure, 0.42 m at sea level,
 //! is 0.8% of the climb and a larger share of the area of a flight that spends its time low; and
 //! when the altitude's own unit was only assumed. A stated velocity unit that both measures

@@ -58,7 +58,7 @@ decided.
 | Eggtimer CSV | Eggtimer Classic, TRS, Quantum and Proton, through Eggtimer's download | `T,Alt,` and more of Eggtimer's column names | `hpr_flightdata::eggtimer` |
 
 The Blue Raven app writes each flight as a low-rate file, logged 50 times a second, and a
-high-rate file, 500 times a second; each is read on its own, as a record of its own, not joined
+high-rate file, 500 times a second (*Blue Raven User's Guide*, 2026-05-12, p18); each is read on its own, as a record of its own, not joined
 to the other. The high-rate file holds no altitude, so its record's
 [primary track](#the-record) is empty and its channels hold everything; the low-rate file of the
 same flight holds the altitude. The app's summary and events files beside them aren't read yet. The other
@@ -126,8 +126,8 @@ Most units come from the file's own column names or from the maker's manual. A f
 ### Units the file decides
 
 Three layouts leave some units out of their headers. For some, the reader works the unit out from
-the file as it reads it; for the rest, it takes the unit the maker's manual gives and checks the
-file against it. Either way it writes a note giving the decision and this file's evidence, and
+the file as it reads it; for the rest, it takes the unit the maker's manual gives, and checks it
+against the file where the file can show a disagreement. Either way it writes a note giving the decision and this file's evidence, and
 the [survey's report](#how-it-was-checked) counts the decisions over the sample logs:
 
 - **An RRC3's altitude, speed and clock, worked out from the file.** Missile Works' mDACS (the

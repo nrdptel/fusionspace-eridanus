@@ -51,9 +51,10 @@ Eggtimer set to meters has the direction backwards (`docs/research/debrief-log-f
    pad's 1 g bear out. An RRC3's temperature without brackets is assumed in the unit the RRC3's
    settings pair with the altitude's (°F with feet, °C with meters). The Blue Raven's `Current`,
    whose unit no source states, is kept as written.
-4. **Every decision is a note the survey counts.** A note on a decided unit reads `` `<column>`
-   read in <unit>, <from what>: <evidence> ``, or `` `<column>` kept as written, <why>: … ``, the
-   part before the colon the same for every file decided alike. `cargo xtask logs` counts those parts by family into its report
+4. **Every decision is a note the survey counts.** A note on a decided unit reads
+   `` `<column>` read in <unit>, <from what>: <evidence> ``, or
+   `` `<column>` kept as written, <why>: … ``, the part before the colon the same for every file
+   decided alike. `cargo xtask logs` counts those parts by family into its report
    (`unit_decisions`), so a page quoting a count quotes the tool.
 5. **The record grows two quantities**: a rate of turn, in degrees per second, for the Blue
    Raven's gyroscopes, and a time of day on the logger's own clock, in seconds after its
