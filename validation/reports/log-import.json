@@ -1,5 +1,5 @@
 {
-  "about": "Every flight-log sample under refs/, read by hpr_flightdata::import (M7.1, ADR-251, ADR-252): `cargo xtask logs`. The samples are the collection's catalog, Debrief's fixtures and samples, and AerospaceNU's logs; refs/research/public-flights, a download cache whose flights' logs the collection catalogs, and RocketPy's processed flight tables are not loggers' files and are left out. A file's id is the first 16 hex digits of its SHA-256, its record the first 16 of the SHA-256 of the JSON record read from it.",
+  "about": "Every flight-log sample under refs/, read by hpr_flightdata::import (M7.1, ADR-251, ADR-253): `cargo xtask logs`. The samples are the collection's catalog, Debrief's fixtures and samples, and AerospaceNU's logs; refs/research/public-flights, a download cache whose flights' logs the collection catalogs, and RocketPy's processed flight tables are not loggers' files and are left out. A file's id is the first 16 hex digits of its SHA-256, its record the first 16 of the SHA-256 of the JSON record read from it.",
   "sources": [
     {
       "source": "collection",

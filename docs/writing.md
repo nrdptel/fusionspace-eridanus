@@ -330,7 +330,12 @@ redraws that frame:
 - the menu bar becomes the system's header: the FusionSpace lockup (the logo's mark with the
   FusionSpace name beside it), 24 px tall in the text's color, then HPR, one link to the landing
   page;
-- from 720 px the table of contents stays open and the menu button goes, with scripts off too;
+- the menu button stays at every width. From 720 px it puts the table of contents away and
+  brings it back, and dragging the table's edge to the window's side puts it away too. The
+  choice is kept from page to page, and a first visit shows the table from 720 px. With scripts
+  off, the table stays open from 720 px and the button goes;
+- the arrows under the page name the pages they lead to ("Previous" or "Next", then the page's
+  title) and stand under the text, inside the column;
 - every page ends with the title block, the box of facts about a document an engineering drawing
   ends with ([title block](glossary.md#title-block)). Its entries are written once at the end of
   [Start here](start-here.md#title-block), and each page adds its own title after the site's.
@@ -339,7 +344,9 @@ A file check fails a page:
 
 - without one `header` holding the lockup, or without the table of contents, its box or its
   menu button;
-- with mdBook's script that opens the table of contents only from 1,080 px;
+- with mdBook's script that opens the table of contents only from 1,080 px, or with one that
+  forgets that the reader put it away;
+- with an arrow under the page that doesn't name the page it leads to;
 - without one `footer`, after the page's text, holding the title block with its fields in order
   and the page's own title.
 
@@ -348,10 +355,15 @@ The page check fails, at every width:
 - a lockup not 24 px tall, not in the text's color, cut by its box, or closer than a quarter of
   its height to another icon or text in the header or to the window's side (the logo's clear
   space, the brand's rule);
-- a menu button at 720 px or wider, or none below 720 px, with scripts on or off;
-- a table of contents hidden at 720 px or wider (with scripts on or off, and after a narrower
-  window is widened past 720 px); one hidden but still reached by the keyboard or a screen
-  reader; one shown but not reached;
+- no menu button, with scripts on; with scripts off, a menu button at 720 px or wider, or none
+  below 720 px;
+- a table of contents hidden at 720 px or wider on a first visit (with scripts on or off, and
+  after a narrower window is widened past 720 px); one hidden but still reached by the keyboard
+  or a screen reader; one shown but not reached;
+- once a run, a menu button that doesn't put the table of contents away or bring it back, or a
+  drag of its edge to the window's side that doesn't put it away;
+- arrows under the page outside the column or off its edges, under 44 px tall, or naming no
+  page;
 - a title block without its 2 px border in the text's color, with entries not in Cascadia Mono,
   off the column's edges (it is centered as the column is), or with anything below it.
 

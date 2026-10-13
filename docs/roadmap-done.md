@@ -1442,11 +1442,11 @@ One line per milestone or increment, in the order it was archived within its pha
     kept; pinned by digest (refs) and snapshot (invented samples).
     Met (ADR-251): 319 files read; one AltosUI export with a damaged header is refused and listed.
 
-  - [x] **M7.1b RRC3, Eggtimer and Blue Raven CSV** (ADR-252). *Done when:* every `rrc3-csv`,
+  - [x] **M7.1b RRC3, Eggtimer and Blue Raven CSV** (ADR-253). *Done when:* every `rrc3-csv`,
     `eggtimer-csv` and `blueraven-csv` sample in refs imports, as M7.1a's families do (`cargo xtask
     logs --check` fails on one not read); a unit the header doesn't name is decided from the file's
     own evidence and the evidence stated, or the assumption stated in a note.
-    Met (ADR-252): 173 files read (50, 43, 80); 24 kinds of unit decision counted in the report.
+    Met (ADR-253): 173 files read (50, 43, 80); 24 kinds of unit decision counted in the report.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

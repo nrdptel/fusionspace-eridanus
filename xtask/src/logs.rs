@@ -1,6 +1,6 @@
 //! `cargo xtask logs [--check]`: reads every flight-log sample under `refs/` with
 //! `hpr_flightdata::import` and writes what came of each to `validation/reports/log-import.json`
-//! and `.md` (M7.1a and M7.1b, ADR-251 and ADR-252).
+//! and `.md` (M7.1a and M7.1b, ADR-251 and ADR-253).
 //!
 //! The samples are three sets, each file counted once by its content's SHA-256, in this order:
 //!
@@ -473,7 +473,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     files.sort();
     let report = Report {
         about: "Every flight-log sample under refs/, read by hpr_flightdata::import (M7.1, \
-                ADR-251, ADR-252): `cargo xtask logs`. The samples are the collection's catalog, Debrief's \
+                ADR-251, ADR-253): `cargo xtask logs`. The samples are the collection's catalog, Debrief's \
                 fixtures and samples, and AerospaceNU's logs; refs/research/public-flights, a \
                 download cache whose flights' logs the collection catalogs, and RocketPy's \
                 processed flight tables are not loggers' files and are left out. A file's id is the first 16 hex digits of its \
@@ -584,7 +584,7 @@ fn markdown(report: &Report) -> String {
     let mut out = String::from(
         "# Flight-log samples, read\n\n\
          Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-log \
-         sample under `refs/` read by HPR Sim's importer (M7.1, ADR-251, ADR-252): the private \
+         sample under `refs/` read by HPR Sim's importer (M7.1, ADR-251, ADR-253): the private \
          collection's catalog, Debrief's fixtures and samples, and AerospaceNU's logs, each file \
          once. Left out: `refs/research/public-flights`, a download cache whose flights' logs \
          the collection catalogs, and RocketPy's processed flight tables, which no logger \

@@ -41,7 +41,7 @@ logs, and the PerfectFlite, AltOS and Raven readers), as
 [ADR-251](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0251-flight-log-importers-in-two-increments.md)
 decided, and [M7.1b](../decisions-and-roadmap.md#m7-1b) (the Blue Raven, RRC3 and Eggtimer
 readers), as
-[ADR-252](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0252-rrc3-eggtimer-and-blue-raven-csv-first.md)
+[ADR-253](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0253-rrc3-eggtimer-and-blue-raven-csv-first.md)
 decided.
 
 ## The layouts read

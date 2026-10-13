@@ -27,6 +27,7 @@
 //! `xtask site`'s page check reads how each is drawn (`pages.rs`, `Kind::Header` and
 //! `Kind::TitleBlock`).
 
+use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
@@ -50,15 +51,16 @@ const LOGO_OPEN: &str = "<a class=\"menu-title fs-logo\" href=\"";
 /// The product's name, after the lockup.
 const PRODUCT: &str = "<span class=\"fs-product\">HPR</span>";
 /// mdBook 0.5's script that decides, before the page is drawn, whether the sidebar shows: from
-/// 1,080 px, as an earlier visit left it. And what [`draw`] makes of it: from 720 px, always, by
-/// the same media query the stylesheet hides the menu button with, so a window's scroll bar
-/// can't leave a width with neither.
+/// 1,080 px, as an earlier visit left it. And what [`draw`] makes of it: from 720 px, unless the
+/// reader put it away (`web.md`, *Site patterns*, Docs): the menu button and the sidebar's drag
+/// handle store `hidden` under mdBook's own key when they do, and a first visit shows it.
 const SIDEBAR_SCRIPT: &str = "            if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
             } else {";
 const SIDEBAR_DRAWN: &str = "            if (window.matchMedia('(min-width: 720px)').matches) {
-                sidebar = 'visible';
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar === 'hidden' ? 'hidden' : 'visible';
             } else {";
 /// The parts of mdBook 0.5's sidebar the frame keeps working: the sidebar, the box whose tick
 /// draws it, and the menu button that ticks it under 720 px; each must be on every page once.
@@ -69,6 +71,25 @@ const SIDEBAR_PARTS: [(&str, &str); 3] = [
 ];
 /// What mdBook 0.5 ends a page's text with: its arrows for a phone, in a `nav` of their own.
 const ARROWS: &str = "<nav class=\"nav-wrapper\" aria-label=\"Page navigation\">";
+/// Each of those arrows as mdBook 0.5 opens it, before and after its address, and the word that
+/// names its direction. mdBook names each by its direction alone, in `title` and `aria-label`;
+/// [`name_arrows`] drops both and writes the direction and the page's title in the link, as
+/// `web.md` (*Page anatomy*) has page arrows name their pages, so the name a screen reader reads
+/// is the text drawn (WCAG 2.5.3).
+const ARROW_LINKS: [(&str, &str, &str); 2] = [
+    (
+        "<a rel=\"prev\" href=\"",
+        "\" class=\"mobile-nav-chapters previous\" title=\"Previous chapter\" aria-label=\"Previous chapter\"",
+        "Previous",
+    ),
+    (
+        "<a rel=\"next prefetch\" href=\"",
+        "\" class=\"mobile-nav-chapters next\" title=\"Next chapter\" aria-label=\"Next chapter\"",
+        "Next",
+    ),
+];
+/// How [`name_arrows`] opens the name it writes in an arrow.
+const ARROW_NAME: &str = "<span class=\"fs-nav-name\">";
 /// How the title block opens, as [`draw`] writes it.
 const FOOTER: &str = "<footer class=\"fs-titleblock\" aria-label=\"Title block\">";
 /// How the landing page's source opens its title block, where the entries are written.
@@ -168,16 +189,29 @@ pub(super) fn draw(output: &Path) -> Result<usize, String> {
     let entries = source_entries(&html).map_err(|why| format!("{}: {why}", LANDINGS[0]))?;
     let mut names = Vec::new();
     html_files(output, "", &mut names)?;
-    let mut count = 0;
-    let mut problems = Vec::new();
-    for name in names
+    let pages: Vec<&String> = names
         .iter()
         .filter(|name| !name.starts_with("api/") && name.as_str() != SIDEBAR_FRAME)
-    {
+        .collect();
+    // Each page's title, for the arrows that lead to it.
+    let mut titles = HashMap::new();
+    for name in &pages {
         let path = output.join(name);
         let html = fs::read_to_string(&path)
             .map_err(|err| format!("could not read {}: {err}", path.display()))?;
-        match rewrite(name, &html, &entries, &lockup, &mark) {
+        if let Ok(title) = page_title(&html) {
+            titles.insert(name.to_string(), title);
+        }
+    }
+    let mut count = 0;
+    let mut problems = Vec::new();
+    for name in pages {
+        let path = output.join(name);
+        let html = fs::read_to_string(&path)
+            .map_err(|err| format!("could not read {}: {err}", path.display()))?;
+        let drawn = rewrite(name, &html, &entries, &lockup, &mark)
+            .and_then(|html| name_arrows(name, &html, &titles).map_err(|why| vec![why]));
+        match drawn {
             Ok(drawn) => {
                 fs::write(&path, drawn)
                     .map_err(|err| format!("could not write {}: {err}", path.display()))?;
@@ -385,6 +419,74 @@ fn title_block(name: &str, title: &str, entries: &Entries, mark: &str) -> String
     block
 }
 
+/// Page `name`'s HTML with each of its arrows under the page naming the page it leads to: the
+/// direction (`Previous`, `Next`) and the page's title from `titles`, by path under the site; or
+/// why an arrow can't be named. A page with no arrows (the print page) is left as it is.
+fn name_arrows(name: &str, html: &str, titles: &HashMap<String, String>) -> Result<String, String> {
+    let Some(nav) = html.find(ARROWS) else {
+        return Ok(html.to_string());
+    };
+    let end = html[nav..]
+        .find("</nav>")
+        .map(|end| nav + end)
+        .ok_or_else(|| format!("no end to the page's arrows (`{ARROWS}`)"))?;
+    let mut arrows = html[nav..end].to_string();
+    for (open, attributes, word) in ARROW_LINKS {
+        let Some(start) = arrows.find(open) else {
+            continue;
+        };
+        let at = start + open.len();
+        let href_end = arrows[at..]
+            .find('"')
+            .map(|end| at + end)
+            .ok_or_else(|| format!("an arrow's address is never closed: `{open}`"))?;
+        let href = arrows[at..href_end].to_string();
+        if !arrows[href_end..].starts_with(attributes) {
+            return Err(format!(
+                "the {word} arrow isn't as mdBook 0.5 writes it: `{attributes}` after its address"
+            ));
+        }
+        let target = linked(name, &href);
+        let title = titles
+            .get(&target)
+            .ok_or_else(|| format!("the {word} arrow leads to `{href}`, which has no title"))?;
+        let close = arrows[href_end..]
+            .find("</a>")
+            .map(|end| href_end + end)
+            .ok_or_else(|| format!("the {word} arrow is never closed"))?;
+        arrows.insert_str(
+            close,
+            &format!(
+                "{ARROW_NAME}<span class=\"fs-nav-dir\">{word}</span> <span class=\"fs-nav-title\">{title}</span></span>"
+            ),
+        );
+        let kept = attributes
+            .split(" title=")
+            .next()
+            .unwrap_or(attributes)
+            .to_string();
+        arrows.replace_range(href_end..href_end + attributes.len(), &kept);
+    }
+    Ok(format!("{}{arrows}{}", &html[..nav], &html[end..]))
+}
+
+/// The page under the site that `href`, written in page `name`, leads to: `../a.html` from
+/// `physics/b.html` is `a.html`.
+fn linked(name: &str, href: &str) -> String {
+    let mut parts: Vec<&str> = name.split('/').collect();
+    parts.pop();
+    for part in href.split(['#', '?']).next().unwrap_or(href).split('/') {
+        match part {
+            "" | "." => {}
+            ".." => {
+                parts.pop();
+            }
+            part => parts.push(part),
+        }
+    }
+    parts.join("/")
+}
+
 /// Page `name`'s HTML with its frame drawn, from the landing page's title block `entries` and
 /// the drawn `lockup` and `mark`; or what the rewrite expected and didn't find.
 fn rewrite(
@@ -533,7 +635,26 @@ fn page_problems(html: &str, lockup: &str, mark: &str) -> Vec<String> {
         }
     }
     if html.contains(SIDEBAR_SCRIPT) || !html.contains(SIDEBAR_DRAWN) {
-        problems.push("the sidebar isn't shown from 720 px (mdBook's 1,080 px script)".to_string());
+        problems.push(
+            "the sidebar isn't shown from 720 px unless the reader put it away (mdBook's 1,080 px \
+             script)"
+                .to_string(),
+        );
+    }
+    if let Some(nav) = html.find(ARROWS) {
+        let arrows = html[nav..]
+            .split_once("</nav>")
+            .map_or("", |(arrows, _)| arrows);
+        let links = arrows.matches("class=\"mobile-nav-chapters").count();
+        let named = arrows.matches(ARROW_NAME).count();
+        if named != links
+            || arrows.contains("aria-label=\"Previous chapter\"")
+            || arrows.contains("aria-label=\"Next chapter\"")
+        {
+            problems.push(format!(
+                "{named} of the page's {links} arrows under the page name the page they lead to"
+            ));
+        }
     }
     if html.contains(SOURCE_BLOCK) {
         problems.push("the landing page's title block is left in the page's text".to_string());
@@ -915,5 +1036,68 @@ mod tests {
             block.contains("<div class=\"full\"><span class=\"k\">Units</span>"),
             "{block}"
         );
+    }
+
+    #[test]
+    fn an_arrow_leads_to_the_page_its_address_names() {
+        assert_eq!(linked("a.html", "b.html"), "b.html");
+        assert_eq!(
+            linked("physics/aero.html", "../accuracy.html"),
+            "accuracy.html"
+        );
+        assert_eq!(
+            linked("physics/aero.html", "mass.html#a"),
+            "physics/mass.html"
+        );
+        assert_eq!(linked("a.html", "./physics/b.html"), "physics/b.html");
+    }
+
+    #[test]
+    fn each_arrow_names_its_page() {
+        let html = format!(
+            "<main></main>\n{ARROWS}\n<a rel=\"prev\" href=\"../a.html\" \
+             class=\"mobile-nav-chapters previous\" title=\"Previous chapter\" \
+             aria-label=\"Previous chapter\" aria-keyshortcuts=\"Left\"><span \
+             class=fa-svg></span></a>\n<a rel=\"next prefetch\" href=\"c.html\" \
+             class=\"mobile-nav-chapters next\" title=\"Next chapter\" aria-label=\"Next \
+             chapter\" aria-keyshortcuts=\"Right\"><span class=fa-svg></span></a>\n</nav>\n"
+        );
+        let titles = HashMap::from([
+            ("a.html".to_string(), "Start here".to_string()),
+            ("physics/c.html".to_string(), "Drag &amp; lift".to_string()),
+        ]);
+        let named = name_arrows("physics/b.html", &html, &titles).unwrap();
+        assert!(named.contains(
+            "href=\"../a.html\" class=\"mobile-nav-chapters previous\" aria-keyshortcuts=\"Left\""
+        ));
+        assert!(named.contains(
+            "<span class=\"fs-nav-dir\">Previous</span> <span class=\"fs-nav-title\">Start \
+             here</span></span></a>"
+        ));
+        assert!(named.contains("<span class=\"fs-nav-title\">Drag &amp; lift</span>"));
+        assert!(!named.contains("aria-label=\"Previous chapter\""));
+        assert!(!named.contains("aria-label=\"Next chapter\""));
+        // The file check passes the named arrows and fails mdBook's own.
+        let problem = |html: &str| {
+            page_problems(html, "", "")
+                .into_iter()
+                .any(|p| p.contains("arrows under the page name the page"))
+        };
+        assert!(!problem(&named));
+        assert!(problem(&html));
+        // An arrow to a page with no title is refused, by name.
+        let lost = name_arrows("physics/b.html", &html, &HashMap::new()).unwrap_err();
+        assert!(
+            lost.contains("the Previous arrow leads to `../a.html`"),
+            "{lost}"
+        );
+    }
+
+    #[test]
+    fn the_sidebar_keeps_a_readers_choice() {
+        // From 720 px, mdBook's stored `hidden` is kept and anything else shows the sidebar.
+        assert!(SIDEBAR_DRAWN.contains("localStorage.getItem('mdbook-sidebar')"));
+        assert!(SIDEBAR_DRAWN.contains("sidebar === 'hidden' ? 'hidden' : 'visible'"));
+        assert!(SIDEBAR_DRAWN.contains("(min-width: 720px)"));
     }
 }

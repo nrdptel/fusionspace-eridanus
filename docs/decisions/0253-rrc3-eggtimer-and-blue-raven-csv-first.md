@@ -1,4 +1,4 @@
-# ADR-252: M7.1b in two: the RRC3's, Eggtimer's and Blue Raven's CSV exports first, each unit a header leaves out decided from the file or stated as assumed (2026-10-12)
+# ADR-253: M7.1b in two: the RRC3's, Eggtimer's and Blue Raven's CSV exports first, each unit a header leaves out decided from the file or stated as assumed (2026-10-12)
 
 - **Status:** accepted; narrows M7.1b to three families and moves the rest, with M7.1b's old *done when* (the parent's), to a new M7.1c; follows [ADR-251](0251-flight-log-importers-in-two-increments.md)
 - **Summary:** M7.1b listed every layout M7.1a left, about 30 families, too many for one increment. It now reads the three CSV exports with the most sample files among them, the RRC3's, Eggtimer's and the Blue Raven's (173 distinct files), into the record M7.1a built; M7.1c reads the rest. A unit a header doesn't name is decided from the file, such as an RRC3's altitude from its pressure, or taken from the maker's manual, and either way stated in a note the survey counts; a Blue Raven's high-rate file, which holds no altitude, reads with an empty primary track.

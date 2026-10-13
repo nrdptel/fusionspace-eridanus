@@ -100,16 +100,25 @@
 //!   - **a header off the system's** (`web.md`, *Page anatomy*; ADR-229): each lockup must be
 //!     24 px tall, filled in the ink role of the page's theme, drawn whole inside every box that
 //!     clips it and the window, and kept a quarter of its height (the brand's clear space) from
-//!     the window's sides and every icon and text in its header. From 720 px no menu button is
-//!     drawn and the sidebar is; under 720 px the menu button is. Wherever the sidebar is drawn,
+//!     the window's sides and every icon and text in its header. The menu button is drawn at
+//!     every width, and the sidebar from 720 px on a first visit. Wherever the sidebar is drawn,
 //!     a screen reader and the keyboard reach it (not `aria-hidden`, every link in the tab
 //!     order), and wherever it is put away neither does. Read again with scripts off (the root
 //!     without `js`, mdBook's sidebar box unticked, transitions held): from 720 px the sidebar is
 //!     drawn and no menu button is, and under 720 px the menu button is. And last, a window under
 //!     720 px is widened to 800 px: once the sidebar's slide has run, it must be drawn and
-//!     reached, with no menu button. A page with the site's header and no sidebar or menu button
+//!     reached, with its menu button. Once a run, at the width that reads print, on a page with
+//!     mdBook's drag handle, the menu button must put the sidebar away (put away, hidden from
+//!     screen readers, out of the tab order, the menu button still drawn, the page starting at
+//!     the window's left) and, pressed again, bring it back; and a drag of the handle to the
+//!     window's side must put it away (`web.md`, *Site patterns*, Docs), with nothing stored for
+//!     the pages loaded beside it. A page with the site's header and no sidebar or menu button
 //!     fails. That every page has the header, its lockup, the sidebar and the menu button is the
 //!     file check's (`frame.rs`);
+//!   - **page arrows off the system's** (`web.md`, *Page anatomy*): each link of the arrows
+//!     under the page, drawn under the text and inside the column, the previous at `main`'s left
+//!     edge and the next at its right, at least 44 px tall, naming its page in text, not an
+//!     arrow alone;
 //!   - **a title block off the system's or not last**: each must sit inside a 2 px solid border
 //!     in the ink role on every side, its fields' names and entries in Cascadia Mono, its left
 //!     and right edges on `main`'s, so it is centered as the column is, with no text, picture or
@@ -199,7 +208,10 @@
 //! pass, an icon at 0 px, selected text with no color of the page's, on the danger role at 22 % and
 //! on the action role opaque, a page's frame drawn as the system's, which must pass, a lockup
 //! 20 px tall, one in the action role, one cut by its box, one with the product's name inside
-//! its clear space, a menu button only from 720 px, a sidebar drawn and hidden from screen
+//! its clear space, no menu button at any width, a sidebar its menu button and a drag put away
+//! and bring back, which must pass, a menu button and a drag that leave it drawn, page arrows
+//! lined up with the column and naming their pages, which must pass, arrows at the window's
+//! sides and arrows naming no page, a sidebar drawn and hidden from screen
 //! readers, one drawn with its link out of the tab order, one put away and still read, one put
 //! away from 720 px and hidden while drawn under it, a sidebar and menu button put away with
 //! scripts off, a sidebar drawn only when the window was wide at load (and a lockup 20 px tall
@@ -472,12 +484,17 @@ enum Kind {
     /// Selected text drawn on something other than the action role at 22 % (#383).
     Selection,
     /// A header off the system's: a lockup not 24 px tall in the ink role, cut, or without its
-    /// clear space; a menu button from 720 px or none under it; a sidebar put away from 720 px,
-    /// or one a screen reader or the keyboard reaches while put away, or can't while drawn (#384).
+    /// clear space; no menu button; a sidebar put away from 720 px on a first visit, one the menu
+    /// button or a drag to the window's side doesn't put away, or one a screen reader or the
+    /// keyboard reaches while put away, or can't while drawn (#384).
     Header,
     /// A title block off the system's: not inside a 2 px ink border, its entries not in Cascadia
     /// Mono, its edges off the column's, or something drawn below it (#384).
     TitleBlock,
+    /// Page arrows off the system's: under the text and inside the column, the previous at its
+    /// left edge and the next at its right, at least 44 px tall, each naming its page
+    /// (`web.md`, *Page anatomy*).
+    Arrows,
     /// A text of marks alone drawn as an icon: in the page's chrome, outside its `main`, or as a
     /// `::before` or `::after` anywhere (#383).
     Mark,
@@ -500,7 +517,7 @@ enum Kind {
 }
 
 impl Kind {
-    const ALL: [Kind; 25] = [
+    const ALL: [Kind; 26] = [
         Kind::Wide,
         Kind::Cut,
         Kind::Overlap,
@@ -522,6 +539,7 @@ impl Kind {
         Kind::Selection,
         Kind::Header,
         Kind::TitleBlock,
+        Kind::Arrows,
         Kind::Mark,
         Kind::Print,
         Kind::Sheet,
@@ -551,6 +569,7 @@ impl Kind {
             Kind::Selection => "a selection off the action role",
             Kind::Header => "a header off the system's",
             Kind::TitleBlock => "a title block off the system's or not last",
+            Kind::Arrows => "page arrows off the system's",
             Kind::Mark => "a text mark drawn as an icon",
             Kind::Print => "a page that prints off the system's",
             Kind::Sheet => "an intro or a sheet off the system's",
@@ -720,7 +739,8 @@ font: 600 20px/24px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; } \
 #mdbook-sidebar-toggle { display: inline-flex; } #mdbook-sidebar-toggle svg { width: 20px; \
 height: 20px; } #mdbook-sidebar { display: none; padding: 0 16px; font: 14px/20px 'Cascadia \
 Mono', 'Cascadia Mono Fallback', monospace; } @media (min-width: 720px) { \
-#mdbook-sidebar-toggle { display: none; } #mdbook-sidebar { display: block; } } .fs-titleblock \
+html:not(.js) #mdbook-sidebar-toggle { display: none; } #mdbook-sidebar { display: block; } } \
+.fs-titleblock \
 { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); border: 2px solid \
 #0B0F1C; background: #FFFFFF; box-sizing: border-box; max-width: 1120px; width: calc(100% - \
 32px); margin: 48px auto 0; } @media (min-width: 720px) { .fs-titleblock { width: calc(100% - \
@@ -751,6 +771,72 @@ macro_rules! sidebar {
          const s = document.getElementById('mdbook-sidebar'); const set = function () { \
          s.setAttribute('aria-hidden', String(!m.matches)); s.querySelector('a').tabIndex = \
          m.matches ? 0 : -1; }; set(); m.addEventListener('change', set); })();</script>"
+    };
+}
+
+/// mdBook's sidebar as its script and stylesheet work it, in brief, for the canaries that put it
+/// away: with scripts on, its box draws it (unticked, it goes), the menu button ticks and unticks the box when
+/// `$button` is true, and dragging the drag handle (`#mdbook-sidebar-resize-handle`) within
+/// 20 px of the window's side unticks it when `$drag` is true. The sidebar is read and reached
+/// only where it is drawn: from 720 px, with its box ticked.
+macro_rules! put_away {
+    ($button:expr, $drag:expr) => {
+        concat!(
+            "<nav id=\"mdbook-sidebar\" aria-hidden=\"true\"><a href=\"#\" tabindex=\"-1\">A \
+             chapter</a></nav><div id=\"mdbook-sidebar-resize-handle\"></div><style>html.js \
+             #mdbook-sidebar-toggle-anchor:not(:checked) ~ #mdbook-sidebar { display: none \
+             !important; }</style><script>(function () { const box = \
+             document.getElementById('mdbook-sidebar-toggle-anchor'); const s = \
+             document.getElementById('mdbook-sidebar'); const a = s.querySelector('a'); const m \
+             = matchMedia('(min-width: 720px)'); const set = function () { const on = m.matches \
+             && box.checked; s.setAttribute('aria-hidden', String(!on)); a.tabIndex = on ? 0 : \
+             -1; }; const flip = function (on) { box.checked = on; \
+             box.dispatchEvent(new Event('change')); }; box.addEventListener('change', set); \
+             m.addEventListener('change', set); set(); if (",
+            $button,
+            ") document.getElementById('mdbook-sidebar-toggle').addEventListener('click', \
+             function () { flip(!box.checked); }); if (",
+            $drag,
+            ") document.getElementById('mdbook-sidebar-resize-handle').addEventListener(\
+             'mousedown', function () { const move = function (e) { if (e.clientX < 20) \
+             flip(false); }; window.addEventListener('mousemove', move); \
+             window.addEventListener('mouseup', function () { \
+             window.removeEventListener('mousemove', move); }, { once: true }); }); \
+             })();</script>"
+        )
+    };
+}
+
+/// The page arrows under the text as the system's mdBook theme and `frame.rs` draw them, lined
+/// up with the column (`$style` added): the previous at its left edge and the next at its right,
+/// each a bordered button 44 px tall or more naming its page in `$name` and `$next_name`.
+macro_rules! arrows {
+    ($style:expr, $name:expr, $next_name:expr) => {
+        concat!(
+            "<style>.nav-wrapper { display: flex; justify-content: space-between; gap: 16px; \
+             box-sizing: border-box; max-width: 1120px; width: calc(100% - 32px); margin: 48px \
+             auto 0; } @media (min-width: 720px) { .nav-wrapper { width: calc(100% - 64px); } } \
+             .nav-wrapper a { box-sizing: border-box; display: flex; align-items: center; gap: \
+             8px; min-height: 44px; padding: 8px 12px; color: #3350D6; text-decoration: none; \
+             border: 1px solid #566079; } .nav-wrapper a.next { flex-direction: row-reverse; } \
+             .nav-wrapper .fa-svg svg { width: 24px; height: 24px; display: block; } \
+             .fs-nav-dir { font: 400 12px/16px 'Cascadia Mono', 'Cascadia Mono Fallback', \
+             monospace; text-transform: uppercase; letter-spacing: 0.06em; color: #566079; \
+             display: block; } @media print { .nav-wrapper { display: none; } }</style>",
+            $style,
+            "<nav class=\"nav-wrapper\" aria-label=\"Page navigation\"><a rel=\"prev\" \
+             href=\"#\" class=\"mobile-nav-chapters previous\"><span class=\"fa-svg\"><svg \
+             viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" \
+             stroke=\"currentColor\" aria-hidden=\"true\"><path d=\"M15 5 L8 12 L15 \
+             19\"/></svg></span>",
+            $name,
+            "</a><a rel=\"next\" href=\"#\" class=\"mobile-nav-chapters next\"><span \
+             class=\"fa-svg\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" \
+             fill=\"none\" stroke=\"currentColor\" aria-hidden=\"true\"><path d=\"M9 5 L16 12 \
+             L9 19\"/></svg></span>",
+            $next_name,
+            "</a></nav>"
+        )
     };
 }
 
@@ -979,7 +1065,7 @@ macro_rules! switch_frame {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 166] = [
+const CANARIES: [Canary; 172] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1824,17 +1910,85 @@ const CANARIES: [Canary; 166] = [
         ),
     },
     Canary {
-        file: "canary-menu-wide.html",
-        what: "a menu button drawn only from 720 px",
+        file: "canary-menu-none.html",
+        what: "no menu button at any width, so nothing puts the sidebar away from 720 px",
         expect: &[Kind::Header],
         inside: "",
         after: frame!(
-            "<style>#mdbook-sidebar-toggle { display: none !important; } @media (min-width: \
-             720px) { #mdbook-sidebar-toggle { display: inline-flex !important; } }</style>",
+            "<style>#mdbook-sidebar-toggle { display: none !important; }</style>",
             lockup!(),
             sidebar!(),
             ""
         ),
+    },
+    Canary {
+        file: "canary-sidebar-away.html",
+        what: "a sidebar its menu button puts away and brings back, and a drag to the window's \
+               side puts away, as mdBook's, which must pass",
+        expect: &[],
+        inside: "",
+        after: frame!("", lockup!(), put_away!("true", "true"), ""),
+    },
+    Canary {
+        file: "canary-sidebar-stuck.html",
+        what: "a menu button that leaves the sidebar drawn, pressed at the width that reads print",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!("", lockup!(), put_away!("false", "true"), ""),
+    },
+    Canary {
+        file: "canary-sidebar-undragged.html",
+        what: "a drag to the window's side that leaves the sidebar drawn, at the width that reads \
+               print",
+        expect: &[Kind::Header],
+        inside: "",
+        after: frame!("", lockup!(), put_away!("true", "false"), ""),
+    },
+    Canary {
+        file: "canary-arrows.html",
+        what: "page arrows under the text, lined up with the column, each naming its page, \
+               which must pass",
+        expect: &[],
+        inside: "",
+        after: frame!(
+            "",
+            lockup!(),
+            concat!(
+                sidebar!(),
+                arrows!(
+                    "",
+                    "<span><span class=\"fs-nav-dir\">Previous</span> A page</span>",
+                    "<span><span class=\"fs-nav-dir\">Next</span> Another page</span>"
+                )
+            ),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-arrows-sides.html",
+        what: "page arrows at the window's sides, as mdBook draws them, past the column",
+        expect: &[Kind::Arrows],
+        inside: "",
+        after: frame!(
+            "",
+            lockup!(),
+            concat!(
+                sidebar!(),
+                arrows!(
+                    "<style>.nav-wrapper { width: 100% !important; max-width: none; }</style>",
+                    "<span><span class=\"fs-nav-dir\">Previous</span> A page</span>",
+                    "<span><span class=\"fs-nav-dir\">Next</span> Another page</span>"
+                )
+            ),
+            ""
+        ),
+    },
+    Canary {
+        file: "canary-arrows-bare.html",
+        what: "page arrows that hold only an arrow, naming no page",
+        expect: &[Kind::Arrows],
+        inside: "",
+        after: frame!("", lockup!(), concat!(sidebar!(), arrows!("", "", "")), ""),
     },
     Canary {
         file: "canary-sidebar-unread.html",
@@ -2729,10 +2883,16 @@ few lines so that it wraps at every width the check tries.</p>
     )
 }
 
-/// The canaries whose problem shows only where the theme switch is pressed or the page loaded
-/// with a theme saved, which the harness does once a run, at the width that reads print
+/// The canaries whose problem shows only where the theme switch is pressed, the page loaded with
+/// a theme saved, or the sidebar put away, which the harness does once a run, at the width that
+/// reads print
 /// ([`print_width`]).
-const PRESSED: [&str; 2] = ["canary-switch-dead.html", "canary-switch-retired.html"];
+const PRESSED: [&str; 4] = [
+    "canary-switch-dead.html",
+    "canary-switch-retired.html",
+    "canary-sidebar-stuck.html",
+    "canary-sidebar-undragged.html",
+];
 
 /// Runs the page check on the site built in `output`.
 pub(super) fn check(output: &Path, part: Part) -> Result<Report, String> {
@@ -2936,6 +3096,11 @@ struct Measured {
     title_block: Vec<Style>,
     #[serde(default)]
     title_block_count: usize,
+    /// The page arrows off the system's (`web.md`, *Page anatomy*).
+    #[serde(default)]
+    arrows: Vec<Style>,
+    #[serde(default)]
+    arrows_count: usize,
     /// Text marks drawn as icons, and what prints off the system's (#383).
     #[serde(default)]
     mark: Vec<Style>,
@@ -2983,6 +3148,7 @@ impl Measured {
             Kind::Selection => self.selection_count > 0,
             Kind::Header => self.header_count > 0,
             Kind::TitleBlock => self.title_block_count > 0,
+            Kind::Arrows => self.arrows_count > 0,
             Kind::Mark => self.mark_count > 0,
             Kind::Print => self.print_count > 0,
             Kind::Sheet => self.sheet_count > 0,
@@ -3063,6 +3229,7 @@ impl Measured {
             Kind::Selection => Style::list(&self.selection),
             Kind::Header => Style::list(&self.header),
             Kind::TitleBlock => Style::list(&self.title_block),
+            Kind::Arrows => Style::list(&self.arrows),
             Kind::Mark => Style::list(&self.mark),
             Kind::Print => Style::list(&self.print),
             Kind::Sheet => Style::list(&self.sheet),
