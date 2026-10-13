@@ -716,6 +716,7 @@ dependencies = [
  "fusionspace-hpr-core",
  "insta",
  "proptest",
+ "roxmltree",
  "serde",
  "serde_json",
  "thiserror",

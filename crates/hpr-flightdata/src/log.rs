@@ -72,7 +72,13 @@ pub struct Channel {
     pub column: String,
     /// What the column measures, which sets its unit.
     pub quantity: Quantity,
-    /// Each sample's time, s, from the log's zero, the same zero as [`FlightLog::time_s`].
+    /// Each sample's time, s, from the log's zero, the same zero as [`FlightLog::time_s`]; `NaN`
+    /// where the file gives the sample no time, as a KML path without times does (the GPS logs'
+    /// decision, [ADR-254][adr-254]). In the file's order, so a time may go back where the
+    /// logger's clock did.
+    ///
+    /// [adr-254]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0254-gps-tracks-first-among-the-other-importers.md
+    #[serde(with = "gaps")]
     pub time_s: Vec<f64>,
     /// Each sample's value in the quantity's unit ([`Quantity::unit`]); `NaN` where the file left
     /// the cell empty or wrote something that isn't a number.
@@ -191,6 +197,16 @@ pub enum LogFormat {
     /// its barometric and inertial figures, or a high-rate file of its inertial sensors, each
     /// with a header row such as `Year,Month,Day,Time,Flight_Time_(s),…`.
     BlueRavenCsv,
+    /// A Featherweight GPS tracker's CSV, as its ground station's app or software writes it: the
+    /// tracker's log, with a header row such as `UTCTIME,UNIXTIME,ALT,LAT,LON,#SATS,…`, or the
+    /// ground station's, such as `TRACKER,DATE,TIME,LAT,LON,ALT,…`. Positions only, no barometer.
+    FeatherweightGpsCsv,
+    /// A KML file (OGC 07-147r2) holding a GPS track as a path or a `gx:Track`, as AltOS, Missile
+    /// Works' RTx, Big Red Bee's BeeLine, fw2kml and others write it. Positions only.
+    Kml,
+    /// A GPS receiver's NMEA 0183 sentences as it wrote them, such as `$GPGGA,…*hh`. Positions
+    /// only.
+    Nmea0183,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -287,7 +303,10 @@ impl LogFormat {
     /// writes its pressure in whole pascals, 0.083 m of altitude at sea level; the Raven's
     /// pressure moves in steps of 4 × 10⁻⁵ atm, 0.337 m at sea level, the Blue Raven's in steps of
     /// 2 × 10⁻⁵ atm, 0.169 m, and an RRC3's export in steps of 0.1 hPa, 0.832 m. Aloft, those
-    /// from a pressure are larger.
+    /// from a pressure are larger. A GPS log has no barometric altitude; its formats give the
+    /// coarsest step its GNSS altitude is written in among the sample files: whole feet in
+    /// Featherweight's older tracker log, whole meters in Missile Works' and Big Red Bee's KML,
+    /// and a tenth of a meter in NMEA's `GGA`. A receiver's own error is far larger.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -298,6 +317,9 @@ impl LogFormat {
             Self::EggtimerCsv => crate::perfectflite::FOOT_M,
             Self::Rrc3Csv => RRC3_PRESSURE_STEP_PA * ONE_PASCAL_M,
             Self::BlueRavenCsv => BLUE_RAVEN_PRESSURE_STEP_ATM * 101_325.0 * ONE_PASCAL_M,
+            Self::FeatherweightGpsCsv => crate::perfectflite::FOOT_M,
+            Self::Kml => 1.0,
+            Self::Nmea0183 => 0.1,
         }
     }
 
@@ -310,8 +332,10 @@ impl LogFormat {
             | Self::RavenFipCsv
             | Self::Rrc3Csv
             | Self::EggtimerCsv
-            | Self::BlueRavenCsv => ".csv",
-            Self::PerfectFliteText => ".txt",
+            | Self::BlueRavenCsv
+            | Self::FeatherweightGpsCsv => ".csv",
+            Self::PerfectFliteText | Self::Nmea0183 => ".txt",
+            Self::Kml => ".kml",
         }
     }
 
@@ -326,6 +350,9 @@ impl LogFormat {
             Self::Rrc3Csv => "RRC3 CSV",
             Self::EggtimerCsv => "Eggtimer CSV",
             Self::BlueRavenCsv => "Blue Raven CSV",
+            Self::FeatherweightGpsCsv => "Featherweight GPS CSV",
+            Self::Kml => "KML",
+            Self::Nmea0183 => "NMEA 0183",
         }
     }
 }
@@ -360,6 +387,9 @@ mod tests {
             (LogFormat::Rrc3Csv, 0.832_42),
             (LogFormat::EggtimerCsv, 0.3048),
             (LogFormat::BlueRavenCsv, 0.168_69),
+            (LogFormat::FeatherweightGpsCsv, 0.3048),
+            (LogFormat::Kml, 1.0),
+            (LogFormat::Nmea0183, 0.1),
         ];
         for (format, expected) in cases {
             let resolution = format.altitude_resolution_m();

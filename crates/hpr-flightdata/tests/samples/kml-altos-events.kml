@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+  <name>AO Flight#2 S/N: 5678</name>
+  <Snippet maxLines="8">
+Product: TeleMetrum-v9.9
+Firmware: 9.9.9
+Date: 2030-01-02
+Time: 10:00:00
+Max baro height:   3600 ft
+Max GPS Height:   3633 ft
+Max speed:    500 fps
+Max accel:    300 ft/s²
+  </Snippet>
+  <open>1</open>
+  <Folder>
+    <name>Barometric Altitude</name>
+    <Placemark>
+      <name>Barometric Altitude</name>
+      <LineString>
+        <tessellate>1</tessellate>
+        <altitudeMode>absolute</altitudeMode>
+        <coordinates>
+          -100.0000000,40.0000000,3.2500000 <!-- alt    2.0000000 time    0.0000000 sats 8 -->
+          -100.0000010,40.0000020,150.5000000 <!-- alt   60.0000000 time    0.0000000 sats 8 -->
+          -100.0000040,40.0000090,900.1250000 <!-- alt  700.0000000 time    0.0000000 sats 7 -->
+          -100.0000080,40.0000150,1100.0000000 <!-- alt 1110.0000000 time    0.0000000 sats 9 -->
+          -100.0000200,40.0000300,2.5000000 <!-- alt    4.0000000 time    0.0000000 sats 9 -->
+        </coordinates>
+      </LineString>
+    </Placemark>
+    <Placemark>
+      <name>Boost (Baro)</name>
+      <Point>
+        <tessellate>1</tessellate>
+        <altitudeMode>absolute</altitudeMode>
+        <coordinates>
+          -100.0000000,40.0000000,-0.2500000 <!-- alt    2.0000000 time    0.0000000 sats 8 -->
+        </coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Boost (Baro)</name>
+      <Point>
+        <tessellate>1</tessellate>
+        <altitudeMode>absolute</altitudeMode>
+        <coordinates>
+          -100.0000010,40.0000020,150.5000000 <!-- alt   60.0000000 time    0.0000000 sats 8 -->
+        </coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>Drogue (Baro)</name>
+      <Point>
+        <tessellate>1</tessellate>
+        <altitudeMode>absolute</altitudeMode>
+        <coordinates>
+          -100.0000080,40.0000150,1100.0000000 <!-- alt 1110.0000000 time    0.0000000 sats 9 -->
+        </coordinates>
+      </Point>
+    </Placemark>
+  </Folder>
+  <Folder>
+    <name>GPS Altitude</name>
+    <Placemark>
+      <name>GPS Altitude</name>
+      <LineString>
+        <tessellate>1</tessellate>
+        <altitudeMode>absolute</altitudeMode>
+        <coordinates>
+          -100.0000000,40.0000000,2.0000000 <!-- alt    2.0000000 time    0.0000000 sats 8 -->
+          -100.0000010,40.0000020,60.0000000 <!-- alt   60.0000000 time    0.0000000 sats 8 -->
+          -100.0000040,40.0000090,700.0000000 <!-- alt  700.0000000 time    0.0000000 sats 7 -->
+          -100.0000080,40.0000150,1110.0000000 <!-- alt 1110.0000000 time    0.0000000 sats 9 -->
+          -100.0000200,40.0000300,4.0000000 <!-- alt    4.0000000 time    0.0000000 sats 9 -->
+        </coordinates>
+      </LineString>
+    </Placemark>
+    <Placemark>
+      <name>Drogue (GPS)</name>
+      <Point>
+        <tessellate>1</tessellate>
+        <altitudeMode>absolute</altitudeMode>
+        <coordinates>
+          -100.0000080,40.0000150,1110.0000000 <!-- alt 1110.0000000 time    0.0000000 sats 9 -->
+        </coordinates>
+      </Point>
+    </Placemark>
+  </Folder>
+</Document>
+</kml>

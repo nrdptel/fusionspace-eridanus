@@ -1,6 +1,6 @@
 //! `cargo xtask logs [--check]`: reads every flight-log sample under `refs/` with
 //! `hpr_flightdata::import` and writes what came of each to `validation/reports/log-import.json`
-//! and `.md` (M7.1a and M7.1b, ADR-251 and ADR-253).
+//! and `.md` (M7.1a, M7.1b and M7.1c1, ADR-251, ADR-253 and ADR-254).
 //!
 //! The samples are three sets, each file counted once by its content's SHA-256, in this order:
 //!
@@ -48,8 +48,8 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The other families'
-/// files are M7.1c's.
-pub const READ: [(&str, LogFormat, &str); 8] = [
+/// files are M7.1c2's.
+pub const READ: [(&str, LogFormat, &str); 11] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -58,10 +58,14 @@ pub const READ: [(&str, LogFormat, &str); 8] = [
     ("rrc3-csv", LogFormat::Rrc3Csv, "M7.1b"),
     ("eggtimer-csv", LogFormat::EggtimerCsv, "M7.1b"),
     ("blueraven-csv", LogFormat::BlueRavenCsv, "M7.1b"),
+    ("fwgps-csv", LogFormat::FeatherweightGpsCsv, "M7.1c1"),
+    ("kml", LogFormat::Kml, "M7.1c1"),
+    ("nmea", LogFormat::Nmea0183, "M7.1c1"),
 ];
 
-/// Catalog families that aren't flight logs: pictures and documents filed with a flight.
-const NOT_LOGS: [&str; 5] = ["empty", "jpeg", "pdf", "png", "rtf"];
+/// Catalog families that aren't flight logs: pictures and documents filed with a flight, and maps
+/// of a flight's prediction.
+const NOT_LOGS: [&str; 6] = ["empty", "jpeg", "kml-map", "pdf", "png", "rtf"];
 
 /// Debrief's fixtures and samples by name, with each one's family in the catalog's words; a file
 /// missing from this table stops the survey.
@@ -98,7 +102,7 @@ const DEBRIEF_SKIPPED: [&str; 2] = ["README.md", "sample-design.ork"];
 
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 2] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 3] = [
     (
         "9c5017ab68168088",
         "altos-csv",
@@ -113,6 +117,14 @@ const RECLASSIFIED: [(&str, &str, &str, &str); 2] = [
         "an AltosUI export whose header line is damaged: it names 25 columns, two of them run \
          together, where its rows hold other counts, so no reader can tell which cell is which; \
          refused",
+    ),
+    (
+        "c7936ac4d86f259f",
+        "kml",
+        "kml-map",
+        "a map of a flight made in a map program, not a logger's file: the tracks a \
+         simulation predicted for several launch times, with pins for the pad, the predicted \
+         events and where the rocket landed, and a line measuring the distance to it",
     ),
 ];
 
@@ -162,7 +174,7 @@ struct SourceCount {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct FamilyRow {
     family: String,
-    /// The increment whose reader reads it (`M7.1a`, `M7.1b`), `M7.1c` for one not yet read,
+    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1`), `M7.1c2` for one not yet read,
     /// `damaged`, or `not a log`.
     increment: String,
     files: usize,
@@ -408,7 +420,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
             "not a log"
         } else {
-            "M7.1c"
+            "M7.1c2"
         };
         let row = families
             .entry(sample.family.clone())
@@ -473,7 +485,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     files.sort();
     let report = Report {
         about: "Every flight-log sample under refs/, read by hpr_flightdata::import (M7.1, \
-                ADR-251, ADR-253): `cargo xtask logs`. The samples are the collection's catalog, Debrief's \
+                ADR-251, ADR-253, ADR-254): `cargo xtask logs`. The samples are the collection's catalog, Debrief's \
                 fixtures and samples, and AerospaceNU's logs; refs/research/public-flights, a \
                 download cache whose flights' logs the collection catalogs, and RocketPy's \
                 processed flight tables are not loggers' files and are left out. A file's id is the first 16 hex digits of its \
@@ -584,7 +596,7 @@ fn markdown(report: &Report) -> String {
     let mut out = String::from(
         "# Flight-log samples, read\n\n\
          Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-log \
-         sample under `refs/` read by HPR Sim's importer (M7.1, ADR-251, ADR-253): the private \
+         sample under `refs/` read by HPR Sim's importer (M7.1, ADR-251, ADR-253, ADR-254): the private \
          collection's catalog, Debrief's fixtures and samples, and AerospaceNU's logs, each file \
          once. Left out: `refs/research/public-flights`, a download cache whose flights' logs \
          the collection catalogs, and RocketPy's processed flight tables, which no logger \

@@ -1,0 +1,90 @@
+---
+source: crates/hpr-flightdata/tests/kml.rs
+expression: log
+---
+{
+  "format": "kml",
+  "logger": "KML",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "Path latitude",
+      "quantity": "latitude",
+      "time_s": [
+        0.0,
+        0.75,
+        1.5,
+        3.25,
+        4.75,
+        30.25
+      ],
+      "values": [
+        40.0,
+        40.0000003,
+        40.0000006,
+        40.0000009,
+        40.0000012,
+        40.0000015
+      ]
+    },
+    {
+      "column": "Path longitude",
+      "quantity": "longitude",
+      "time_s": [
+        0.0,
+        0.75,
+        1.5,
+        3.25,
+        4.75,
+        30.25
+      ],
+      "values": [
+        -100.0,
+        -100.0000005,
+        -100.000001,
+        -100.0000015,
+        -100.000002,
+        -100.0000025
+      ]
+    },
+    {
+      "column": "Path height above ground",
+      "quantity": "distance",
+      "time_s": [
+        0.0,
+        0.75,
+        1.5,
+        3.25,
+        4.75,
+        30.25
+      ],
+      "values": [
+        0.0,
+        35.5,
+        180.25,
+        402.0,
+        398.75,
+        -2.5
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "the record's altitude track is empty: a KML file holds tracks of positions, not an altimeter's record over time, so every value is a channel",
+    "the log's zero is the first point the file times: `Seconds` -0.25",
+    "`coordinates` read in meters, from the KML standard: OGC 07-147r2 states a tuple's altitude in meters, and 1 of the file's 1 tracks carry one",
+    "`Seconds` read in seconds, from its name: the points run 30.250 s from first to last"
+  ]
+}

@@ -293,6 +293,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M6.2d2 Hartmann 6 ([Phase 3](#phase-3-uncertainty-optimization-challenges))
 - M7.1a The record, a survey, three families ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1b RRC3, Eggtimer and Blue Raven CSV ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c1 GPS tracks ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M10.1 Release 0.1: the simulator ([Phase 8](#phase-8-releases-adr-162))
 - M10.1a The flight and design fixes ([Phase 8](#phase-8-releases-adr-162))
@@ -1447,6 +1448,13 @@ One line per milestone or increment, in the order it was archived within its pha
     logs --check` fails on one not read); a unit the header doesn't name is decided from the file's
     own evidence and the evidence stated, or the assumption stated in a note.
     Met (ADR-253): 173 files read (50, 43, 80); 24 kinds of unit decision counted in the report.
+  - **M7.1c** is open; its entry: [roadmap](ROADMAP.md#phase-5-flight-data-and-forensics).
+    - [x] **M7.1c1 GPS tracks:** Featherweight's GPS CSV (tracker and ground station), KML,
+      NMEA 0183, each with an empty primary track. *Done when:* every `fwgps-csv`, `kml` and
+      `nmea` sample in refs imports (`cargo xtask logs --check`), and a unit or clock the file
+      doesn't state is decided from the file or a source in a note the survey counts.
+      Met (ADR-254): 94 files read (40, 42, 12) and a map of predicted tracks counted apart; 24
+      kinds of unit or clock decision counted in the report.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

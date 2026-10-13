@@ -20,11 +20,13 @@
 //! the record every reader produces ([`log::FlightLog`]): PerfectFlite's `.pf2` and its CSV and
 //! text exports ([`perfectflite`]), AltOS's CSV ([`altos`]), the Featherweight Raven's FIP CSV
 //! ([`raven`]), the Blue Raven's CSV ([`blueraven`]), Missile Works RRC3's ([`rrc3`]) and
-//! Eggtimer's ([`eggtimer`]), every column kept as a channel on its own clock. [`readings`] takes
+//! Eggtimer's ([`eggtimer`]), and three GPS logs: Featherweight's tracker and ground-station CSV
+//! ([`fwgps`]), KML ([`kml`]) and NMEA 0183 ([`nmea`]), every column kept as a channel on its own
+//! clock. [`readings`] takes
 //! a first set of readings from the record: liftoff, apogee, the top speed, landing and the
 //! descent, set and tested on PerfectFlite logs. The guide's [reading a flight log][guide-log] page shows them on a
 //! log, and [the layouts read][guide-layouts] lists what each reader keeps. The other loggers'
-//! formats, spreadsheets and plain CSV are planned for milestone [M7.1c][roadmap] of the roadmap,
+//! formats, spreadsheets and plain CSV are planned for milestone [M7.1c2][roadmap] of the roadmap,
 //! and the rest of the readings, smoothing and reconstruction for [M7.2][roadmap].
 //!
 //! [guide-layouts]: https://hpr.fusionspace.co/format/flight-logs.html
@@ -52,8 +54,11 @@ pub mod blueraven;
 pub mod eggtimer;
 pub mod error;
 pub mod filter;
+pub mod fwgps;
 pub mod import;
+pub mod kml;
 pub mod log;
+pub mod nmea;
 pub mod perfectflite;
 pub mod raven;
 pub mod readings;
