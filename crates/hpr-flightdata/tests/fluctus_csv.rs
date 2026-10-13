@@ -1,10 +1,11 @@
 //! Silicdyne Fluctus exports, as its Fluctus Control Center writes them, read through the importer
 //! from invented files and pinned whole by snapshots (M7.1c3). The files hold made-up flights, a
 //! row every 500 ms rather than the logger's 20 ms to keep them short: a flight in the full
-//! layout whose GPS altitude follows the barometric one to apogee, with a `nan` cell and a missing
-//! row; a flight whose dead reckoning stops, written as the largest 32-bit number, and whose GPS
-//! altitude stays near the pad, with CR LF line ends and a byte-order mark; and a header stating
-//! other units than the logger's own, with points for decimals.
+//! layout whose GPS altitude follows the barometric one in meters but for two rows where it holds
+//! its last fix, with a `nan` cell and a missing row; a flight whose dead reckoning stops, written
+//! as the largest 32-bit number, and whose GPS altitude stays near the pad, with CR LF line ends
+//! and a byte-order mark; a flight whose GPS altitude, in feet, regains its fix low in the descent;
+//! and a header stating other units than the logger's own, with points for decimals.
 
 use hpr_flightdata::import;
 use hpr_flightdata::log::{FlightLog, LogFormat, Quantity};
@@ -97,7 +98,11 @@ fn a_flight_reads_every_column_and_its_events() {
             &log,
             "`gpsAltMSL` read in meters, from the barometric altitude: "
         )
-        .contains("320, lies within 10% of the barometric altitude's highest, 321 m")
+        .contains(
+            "at its 24 fresh fixes it rises 1.00 for each meter of the barometric altitude, \
+             within 10% of 1, where in feet it would be 3.28, over 321 m of the barometric \
+             altitude, and scatters 2 about that line"
+        )
     );
     note(
         &log,
@@ -151,10 +156,37 @@ fn a_flight_with_placeholders_and_a_lost_gps() {
             &log,
             "`gpsAltMSL` kept as written, in a unit no source states: "
         )
-        .contains("12, doesn't lie within 10% of the barometric altitude's highest, 191 m")
+        .contains("it changes on 2 rows where the barometric altitude is read, fewer than the 10")
     );
     assert_eq!(log.channels[17].values[0], -41.234567);
     assert_eq!(events(&log), [(246.02, "ASCENT")]);
+    insta::assert_json_snapshot!(log);
+}
+
+/// A GPS altitude written in feet whose receiver loses its fix in the climb and regains it at
+/// 150 m in the descent: its highest fixed reading rises 492 above the pad's, within 10% of the
+/// 500 m apogee, so a check of that rise alone would read it in meters, 3.28 times too high. At
+/// its fresh fixes it rises 3.28 for each meter of the barometric altitude: kept as written.
+#[test]
+fn a_feet_gps_altitude_that_regains_its_fix_late_is_kept() {
+    let log = import::read(include_bytes!("samples/fluctus-late-fix-feet.csv")).unwrap();
+    assert_eq!(log.format, LogFormat::FluctusCsv);
+    let gps = log
+        .channels
+        .iter()
+        .find(|c| c.column == "gpsAltMSL")
+        .unwrap();
+    assert_eq!(
+        (gps.quantity, gps.values[0]),
+        (Quantity::Unrecognized, 500.0)
+    );
+    assert!(
+        note(
+            &log,
+            "`gpsAltMSL` kept as written, in a unit no source states: "
+        )
+        .contains("at its 13 fresh fixes it rises 3.28 for each meter of the barometric altitude")
+    );
     insta::assert_json_snapshot!(log);
 }
 

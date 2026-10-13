@@ -78,19 +78,39 @@
 //!
 //! *The position in degrees.* No unit is in the header for `gpsLat` and `gpsLng`; the manual's
 //! picture of the FCC's *Locate* tab shows the position in decimal degrees to six places (p38), as
-//! the file writes it. Each is read in degrees if every reading lies within ±90° for the latitude
-//! or ±180° for the longitude; otherwise it is kept as written, with a note.
+//! the file writes it. Each is read in degrees if it holds at least one reading and every reading
+//! lies within ±90° for the latitude or ±180° for the longitude; otherwise it is kept as written,
+//! with a note.
 //!
 //! *The GPS altitude in meters.* No unit is in the header for `gpsAltMSL`, nor in the manual (p27),
 //! and Silicdyne's changelog says only that the firmware logs it from update 1.6. It is read in
-//! meters if the barometric altitude bears it out: the GPS altitude's highest rise above its first
-//! reading, on the pad, lies within 10% of the barometric altitude's highest, and that highest is
-//! at least 100 m, so that the margin is at least 10 m, more than the ±3 m the manual gives the GPS
-//! (p18). Read in feet, the same rise would be 3.28 times smaller. Otherwise it is kept as written,
-//! [`Quantity::Unrecognized`], with a note: the receiver often loses its fix in the climb and
-//! regains it late, and as of 2026-10-13, 2 of the 6 sample files pass the check, their GPS
-//! altitude's rise within 3% of the barometric apogee, and in the other 4 the GPS altitude rises at
-//! less than three quarters of it.
+//! meters only if the barometric altitude bears it out, at the GPS's fresh fixes: the rows where
+//! the GPS altitude differs from its last reading before, the first included. A reading that
+//! repeats the last, as the receiver holds its last fix while it has none, and a gap are left out.
+//! Through those fixes a straight line is drawn by least squares, the GPS altitude against the
+//! barometric; in meters it rises 1 for each meter, in feet 3.28. The GPS altitude is read in
+//! meters where all four hold:
+//!
+//! - there are at least 10 fresh fixes, more than the two that fix a line exactly, so that the
+//!   scatter about it is measured too;
+//! - they span at least 120 m of the barometric altitude. The manual's ±3 m for the GPS (p18) is
+//!   its horizontal position; a GPS receiver's vertical error is larger, the U.S. government's
+//!   standard for GPS giving 13 m against 8 m horizontal, 95% of the time, 1.6 times (*GPS
+//!   Standard Positioning Service Performance Standard*, 5th ed., 2020, Table 3.8-3, p58). Allowing
+//!   twice the horizontal, 6 m, two readings that far off in opposite directions at the span's ends
+//!   tilt the slope by 12 m over the span: over 120 m, the 10% margin below;
+//! - they scatter about the line, RMS, by at most 10% of that span. A receiver that lags far
+//!   behind the flight traces a loop rather than a line, and the slope of a loop doesn't tell the
+//!   unit: a feet GPS lagging by a 10 s filter can come out near 1 (a test pins one at 3 times the
+//!   allowed scatter);
+//! - the slope lies within 10% of 1, far from the 3.28 of feet.
+//!
+//! Otherwise it is kept as written, [`Quantity::Unrecognized`], with a note saying which failed.
+//! A GPS that loses its fix in the climb and regains it low in the descent, the fixes spanning
+//! little of the flight, is kept: its highest reading's rise above the pad can match the apogee in
+//! feet by chance, but the span or the slope gives it away. As of 2026-10-13, none of the 6 sample
+//! files passes: in each, the GPS altitude lags the barometric one by hundreds of meters in the
+//! descent, and every slope is below 0.75.
 //!
 //! **Events.** Each change of `status` is an event named as the manual names the code it changes
 //! to (p23): 0 `IDLE`, 1 `ARMED`, 2 `COUNTDOWN ENGAGED`, 3 `WAITING FOR LAUNCH`, 4 `ASCENT` (the
@@ -107,7 +127,8 @@
 //! **Rows.** Every row must have as many cells as the header has names; a row of another width, a
 //! clock cell that isn't a number, or a time that doesn't come after the row above's is refused,
 //! naming its line. Any other cell that is empty or isn't a number, such as `nan`, is a gap,
-//! counted per column in a note. Blank lines are skipped; lines may end in CR, LF or both, and a
+//! counted per column in a note; so is a reading its unit's conversion carries past the largest
+//! number an `f64` holds, as `1e308` in `deg f`. Blank lines are skipped; lines may end in CR, LF or both, and a
 //! byte-order mark is dropped. A note counts the steps of the clock longer than its commonest. A
 //! header of more than [`MAX_COLUMNS`] names, or naming a column twice, is refused.
 
@@ -132,13 +153,26 @@ pub const MAX_COLUMNS: usize = 256;
 /// How many lines from the file's start the `sep=` line and the header may lie within.
 const HEAD_LINES: usize = 16;
 
-/// The GPS altitude's highest rise must lie within this share of the barometric altitude's
-/// highest to be read in meters (module docs, *The GPS altitude in meters*).
-const GPS_RISE_MARGIN: f64 = 0.1;
-
-/// The barometric altitude's highest, m, below which the GPS altitude isn't measured against it
+/// How far the slope of the GPS altitude against the barometric altitude, at the GPS's fresh
+/// fixes, may lie from 1 for the GPS altitude to be read in meters; in feet it would be 3.28
 /// (module docs, *The GPS altitude in meters*).
-const GPS_CHECK_FLOOR_M: f64 = 100.0;
+const GPS_SLOPE_MARGIN: f64 = 0.1;
+
+/// The least span of the barometric altitude, m, across the GPS's fresh fixes for the slope to be
+/// measured: two readings each 6 m off, the vertical error allowed for, in opposite directions at
+/// the span's ends tilt the slope by 12 m over it, which over 120 m is the 10% margin (module
+/// docs, *The GPS altitude in meters*).
+const GPS_SPAN_FLOOR_M: f64 = 120.0;
+
+/// The fewest fresh fixes the slope is measured from: more than the two that fix a line exactly,
+/// so that the scatter about it is measured too.
+const GPS_MIN_FIXES: usize = 10;
+
+/// The most the fresh fixes may scatter about their line, RMS, as a share of the barometric
+/// altitude's span across them: a receiver that lags far behind the flight traces a loop, not a
+/// line, and the slope of a loop doesn't tell the unit (module docs, *The GPS altitude in
+/// meters*).
+const GPS_SCATTER_SHARE: f64 = 0.1;
 
 /// How far, s, the `deltaTime` may lie from the clock's step for the two to agree: a microsecond,
 /// far below the millisecond both are written in.
@@ -193,8 +227,15 @@ impl Unit {
         }
     }
 
+    /// The value in SI (or degrees); a value too large for an `f64` once converted, as `1e308`
+    /// in `deg f`, is a gap, NaN.
     fn convert(self, written: f64) -> f64 {
-        written * self.multiply / self.divide + self.add
+        let converted = written * self.multiply / self.divide + self.add;
+        if converted.is_finite() {
+            converted
+        } else {
+            f64::NAN
+        }
     }
 }
 
@@ -779,6 +820,25 @@ fn build(columns: &[Column], rows: &Rows) -> FlightLog {
             ));
         }
         let converted: Vec<f64> = values.iter().map(|value| unit.convert(*value)).collect();
+        // Readings a conversion carried past the largest `f64`: gaps, counted.
+        let mut overflowed = values
+            .iter()
+            .zip(&converted)
+            .filter(|(value, converted)| value.is_finite() && converted.is_nan())
+            .map(|(value, _)| *value);
+        if let Some(example) = overflowed.next() {
+            let number = 1 + overflowed.count();
+            log.notes.push(format!(
+                "the column `{name}` holds {} too large to convert from its unit, such as \
+                 {example:e}: {}",
+                count(number, "cell"),
+                if number == 1 {
+                    "it is a gap"
+                } else {
+                    "they are gaps"
+                }
+            ));
+        }
         if let Kind::Reading(_, _, role) = column.kind
             && quantity != Quantity::Unrecognized
         {
@@ -899,7 +959,15 @@ fn decided(
                     .map_or(kept, |unit| Reading::Channel(quantity, unit));
             }
             match degrees(values, limit) {
-                Ok(()) => {
+                Degrees::NoReading => {
+                    notes.push(format!(
+                        "`{}` kept as written, in a unit no reading bears out: the header states \
+                         none, and the column holds no reading to check against ±{limit}°",
+                        short(&column.written)
+                    ));
+                    Reading::Kept(true)
+                }
+                Degrees::Within => {
                     notes.push(format!(
                         "`{}` read in degrees, from the manual and the values: the header states \
                          no unit; the manual's picture of the Locate tab shows the position in \
@@ -908,7 +976,7 @@ fn decided(
                     ));
                     Reading::Channel(quantity, AS_WRITTEN)
                 }
-                Err(beyond) => {
+                Degrees::Beyond(beyond) => {
                     notes.push(format!(
                         "`{}` kept as written, in a unit the values don't bear out: the header \
                          states none, and a reading of {beyond} lies beyond ±{limit}°, so it \
@@ -926,16 +994,19 @@ fn decided(
                 return reading;
             }
             match gps_check(values, altitude_m) {
-                GpsCheck::Meters { rise, highest } => {
+                GpsCheck::Meters(fit) => {
                     notes.push(format!(
                         "`{}` read in meters, from the barometric altitude: the header and the \
-                         manual state no unit; its highest rise above its first reading, {}, lies \
-                         within {:.0}% of the barometric altitude's highest, {} m, and in feet it \
-                         would be 3.28 times smaller",
+                         manual state no unit; at its {} fresh fixes it rises {:.2} for each meter \
+                         of the barometric altitude, within {:.0}% of 1, where in feet it would be \
+                         3.28, over {} m of the barometric altitude, and scatters {} about that \
+                         line",
                         short(&column.written),
-                        rounded(rise),
-                        GPS_RISE_MARGIN * 100.0,
-                        rounded(highest)
+                        fit.fixes,
+                        fit.slope,
+                        GPS_SLOPE_MARGIN * 100.0,
+                        rounded(fit.span_m),
+                        rounded(fit.scatter)
                     ));
                     Reading::Channel(Quantity::GnssAltitude, AS_WRITTEN)
                 }
@@ -987,64 +1058,162 @@ fn rounded(value: f64) -> String {
     format!("{value:.0}")
 }
 
-/// `Ok` if every reading lies within ±`limit`; otherwise the first that doesn't.
-fn degrees(values: &[f64], limit: f64) -> Result<(), f64> {
-    match values.iter().find(|value| value.abs() > limit) {
-        Some(beyond) => Err(*beyond),
-        None => Ok(()),
+/// What the position's check found (module docs, *The position in degrees*).
+#[derive(Debug, PartialEq)]
+enum Degrees {
+    /// At least one reading, and every one within ±`limit`.
+    Within,
+    /// The first reading beyond ±`limit`.
+    Beyond(f64),
+    /// No reading at all: every cell a gap.
+    NoReading,
+}
+
+/// Whether every reading, gaps aside, lies within ±`limit`; a column of gaps alone bears out
+/// nothing.
+fn degrees(values: &[f64], limit: f64) -> Degrees {
+    if !values.iter().any(|value| value.is_finite()) {
+        return Degrees::NoReading;
     }
+    match values.iter().find(|value| value.abs() > limit) {
+        Some(beyond) => Degrees::Beyond(*beyond),
+        None => Degrees::Within,
+    }
+}
+
+/// The GPS altitude's straight line against the barometric altitude, by least squares at the
+/// GPS's fresh fixes.
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct GpsFit {
+    /// The fresh fixes the line is drawn through.
+    fixes: usize,
+    /// The barometric altitude's span across them, m.
+    span_m: f64,
+    /// The GPS altitude's change for each meter of the barometric altitude's.
+    slope: f64,
+    /// The fixes' RMS distance from the line, in the GPS altitude's own unit, on `fixes − 2`
+    /// degrees of freedom.
+    scatter: f64,
 }
 
 /// What the GPS altitude's check found (module docs, *The GPS altitude in meters*).
 #[derive(Debug, PartialEq)]
 enum GpsCheck {
-    Meters {
-        rise: f64,
-        highest: f64,
-    },
+    Meters(GpsFit),
     /// Why the check can't decide.
     Undecided(String),
 }
 
-/// Measures the GPS altitude's highest rise against the barometric altitude's highest, m.
-fn gps_check(gps: &[f64], altitude_m: &[f64]) -> GpsCheck {
-    let highest = altitude_m
+/// The (barometric altitude, GPS altitude) pairs at the GPS's fresh fixes: the rows where the GPS
+/// altitude differs from its last reading before, the first reading included. A reading that
+/// repeats the last, as the receiver holds its last fix while it has none, or a gap, is left out;
+/// so is a row whose barometric altitude is a gap.
+fn fresh_fixes(gps: &[f64], altitude_m: &[f64]) -> Vec<(f64, f64)> {
+    let mut fixes = Vec::new();
+    let mut last: Option<f64> = None;
+    for (&reading, &altitude) in gps.iter().zip(altitude_m) {
+        if !reading.is_finite() {
+            continue;
+        }
+        if last != Some(reading) && altitude.is_finite() {
+            fixes.push((altitude, reading));
+        }
+        last = Some(reading);
+    }
+    fixes
+}
+
+/// The least-squares line through the fixes, about their means; `None` for fewer than three
+/// fixes or none apart in the barometric altitude.
+fn gps_fit(fixes: &[(f64, f64)]) -> Option<GpsFit> {
+    if fixes.len() < 3 {
+        return None;
+    }
+    let n = fixes.len() as f64;
+    let mean_x = fixes.iter().map(|(x, _)| x).sum::<f64>() / n;
+    let mean_y = fixes.iter().map(|(_, y)| y).sum::<f64>() / n;
+    let sxx: f64 = fixes.iter().map(|(x, _)| (x - mean_x).powi(2)).sum();
+    let sxy: f64 = fixes.iter().map(|(x, y)| (x - mean_x) * (y - mean_y)).sum();
+    let apart = sxx > 0.0;
+    if !apart {
+        return None;
+    }
+    let slope = sxy / sxx;
+    let residuals: f64 = fixes
         .iter()
-        .copied()
-        .filter(|value| value.is_finite())
-        .fold(f64::NAN, f64::max);
-    let first = gps.iter().copied().find(|value| value.is_finite());
-    let (Some(first), true) = (first, highest.is_finite()) else {
+        .map(|(x, y)| (y - mean_y - slope * (x - mean_x)).powi(2))
+        .sum();
+    let (low, high) = fixes
+        .iter()
+        .fold((f64::INFINITY, f64::NEG_INFINITY), |(low, high), (x, _)| {
+            (low.min(*x), high.max(*x))
+        });
+    Some(GpsFit {
+        fixes: fixes.len(),
+        span_m: high - low,
+        slope,
+        scatter: (residuals / (n - 2.0)).sqrt(),
+    })
+}
+
+/// Measures the GPS altitude against the barometric altitude, m, at the GPS's fresh fixes: read
+/// in meters only where the fixes are enough, span enough of the flight, lie along a line and
+/// that line's slope is within [`GPS_SLOPE_MARGIN`] of 1. Every comparison fails closed, so a NaN
+/// decides nothing.
+fn gps_check(gps: &[f64], altitude_m: &[f64]) -> GpsCheck {
+    let fixes = fresh_fixes(gps, altitude_m);
+    if fixes.is_empty() {
         return GpsCheck::Undecided(
             "the file has no GPS altitude or no barometric altitude to measure it against"
                 .to_owned(),
         );
-    };
-    let rise = gps
-        .iter()
-        .copied()
-        .filter(|value| value.is_finite())
-        .fold(f64::NAN, f64::max)
-        - first;
-    if highest < GPS_CHECK_FLOOR_M {
+    }
+    if fixes.len() < GPS_MIN_FIXES {
         return GpsCheck::Undecided(format!(
-            "the barometric altitude's highest, {} m, is below the {} m the check needs to tell \
-             meters from feet",
-            rounded(highest),
-            rounded(GPS_CHECK_FLOOR_M)
+            "it changes on {} where the barometric altitude is read, fewer than the \
+             {GPS_MIN_FIXES} fresh fixes the check needs to measure a line and the scatter about \
+             it",
+            count(fixes.len(), "row")
         ));
     }
-    if (rise - highest).abs() <= GPS_RISE_MARGIN * highest {
-        GpsCheck::Meters { rise, highest }
-    } else {
-        GpsCheck::Undecided(format!(
-            "its highest rise above its first reading, {}, doesn't lie within {:.0}% of the \
-             barometric altitude's highest, {} m, as when the receiver loses its fix in the climb",
-            rounded(rise),
-            GPS_RISE_MARGIN * 100.0,
-            rounded(highest)
-        ))
+    let span = |fit: Option<GpsFit>| fit.map_or(0.0, |fit| fit.span_m);
+    let fit = gps_fit(&fixes);
+    let fit = match fit {
+        Some(fit) if fit.span_m >= GPS_SPAN_FLOOR_M => fit,
+        _ => {
+            return GpsCheck::Undecided(format!(
+                "its {} fresh fixes span {} m of the barometric altitude, less than the {} m the \
+                 check needs to tell meters from feet",
+                fixes.len(),
+                rounded(span(fit)),
+                rounded(GPS_SPAN_FLOOR_M)
+            ));
+        }
+    };
+    let on_a_line = fit.scatter <= GPS_SCATTER_SHARE * fit.span_m;
+    if !on_a_line {
+        return GpsCheck::Undecided(format!(
+            "its {} fresh fixes scatter {} about their line, more than {:.0}% of the {} m of \
+             the barometric altitude they span: they trace a loop, as a receiver lagging far \
+             behind the flight does, and the slope of a loop doesn't tell the unit",
+            fit.fixes,
+            rounded(fit.scatter),
+            GPS_SCATTER_SHARE * 100.0,
+            rounded(fit.span_m)
+        ));
     }
+    let near_1 = (fit.slope - 1.0).abs() <= GPS_SLOPE_MARGIN;
+    if !near_1 {
+        return GpsCheck::Undecided(format!(
+            "at its {} fresh fixes it rises {:.2} for each meter of the barometric altitude, \
+             over {} m of it, not within {:.0}% of 1 as in meters; in feet it would be 3.28",
+            fit.fixes,
+            fit.slope,
+            rounded(fit.span_m),
+            GPS_SLOPE_MARGIN * 100.0
+        ));
+    }
+    GpsCheck::Meters(fit)
 }
 
 /// The manual's name for a flight sequencer's code (p23), or `status` and the number.
@@ -1344,7 +1513,7 @@ mod tests {
                 ("inFreefall", Quantity::Number),
                 ("gpsLat", Quantity::Latitude),
                 ("gpsLng", Quantity::Longitude),
-                // A flight below 100 m can't settle the GPS altitude's unit.
+                // A GPS altitude that never changes can't settle its unit.
                 ("gpsAltMSL", Quantity::Unrecognized),
                 ("gpsState", Quantity::Number),
                 ("gpsSats", Quantity::Number),
@@ -1373,64 +1542,231 @@ mod tests {
             1
         );
         assert_eq!(
-            notes_starting(&log, "`gpsAltMSL` kept as written, in a unit no source states: the barometric altitude's highest, 1 m, is below").len(),
+            notes_starting(
+                &log,
+                "`gpsAltMSL` kept as written, in a unit no source states: it changes on 1 row \
+                 where the barometric altitude is read, fewer than the 10 fresh fixes"
+            )
+            .len(),
             1,
             "{:?}",
             log.notes
         );
     }
 
-    /// The climb, read in meters: the GPS altitude rises 300 m over a barometric apogee of 300 m,
-    /// where the margin is 30 m either side.
-    fn gps_flight(gps_rise: i32, apogee: i32) -> FlightLog {
-        let pad = 150;
-        read(&file(&[
-            (1000, 3, 0, pad),
-            (1020, 4, apogee / 2, pad),
-            (1040, 4, apogee, pad + gps_rise / 2),
-            (1060, 5, apogee - 10, pad + gps_rise),
-            (1080, 5, 0, pad),
-        ]))
-        .unwrap()
+    /// A flight of `rows` rows, a GPS fix on each, climbing to `apogee` m and back down in a
+    /// straight line each way, the GPS altitude `150 + slope × altitude` and half a unit up and
+    /// down on alternate rows, so that no two rows in a row repeat a reading.
+    fn gps_line(slope: f64, apogee: f64, rows: usize) -> FlightLog {
+        let mut text = "sep=;\ntime (ms);deltaTime (ms);baro-altitude (m);gpsAltMSL\n".to_owned();
+        let last = (rows - 1) as f64;
+        for row in 0..rows {
+            let share = 1.0 - (2.0 * row as f64 / last - 1.0).abs();
+            let altitude = apogee * share;
+            let wobble = if row % 2 == 0 { 0.5 } else { -0.5 };
+            let gps = 150.0 + slope * altitude + wobble;
+            text.push_str(&format!(
+                "{};1000;{altitude:.3};{gps:.3}\n",
+                1000 * (row + 1)
+            ));
+        }
+        read(&text).unwrap()
+    }
+
+    fn gps_quantity(log: &FlightLog) -> Quantity {
+        channel(log, "gpsAltMSL").quantity
+    }
+
+    fn gps_note(log: &FlightLog) -> &String {
+        let notes: Vec<&String> = log
+            .notes
+            .iter()
+            .filter(|n| n.starts_with("`gpsAltMSL` "))
+            .collect();
+        assert_eq!(notes.len(), 1, "{:?}", log.notes);
+        notes[0]
     }
 
     #[test]
-    fn the_gps_altitude_is_read_in_meters_only_within_the_margin() {
-        for (rise, meters) in [
-            (300, true),
-            (271, true),
-            (269, false),
-            (329, true),
-            (331, false),
+    fn the_gps_altitude_is_read_in_meters_only_where_its_slope_is_near_1() {
+        for (slope, meters) in [
+            (1.0, true),
+            (0.92, true),
+            (0.88, false),
+            (1.08, true),
+            (1.12, false),
+            // In feet, the GPS altitude rises 3.28 for each meter.
+            (1.0 / FOOT_M, false),
+            (0.5, false),
         ] {
-            let log = gps_flight(rise, 300);
-            let quantity = channel(&log, "gpsAltMSL").quantity;
+            let log = gps_line(slope, 300.0, 21);
             assert_eq!(
-                quantity == Quantity::GnssAltitude,
+                gps_quantity(&log) == Quantity::GnssAltitude,
                 meters,
-                "rise {rise}: {:?}",
+                "slope {slope}: {:?}",
                 log.notes
             );
             let start = if meters {
                 "`gpsAltMSL` read in meters, from the barometric altitude: "
             } else {
-                "`gpsAltMSL` kept as written, in a unit no source states: "
+                "`gpsAltMSL` kept as written, in a unit no source states: at its 21 fresh fixes \
+                 it rises "
             };
-            assert_eq!(notes_starting(&log, start).len(), 1, "{:?}", log.notes);
+            assert!(gps_note(&log).starts_with(start), "{:?}", log.notes);
         }
-        // The same climb's GPS altitude in feet is 3.28 times the barometric apogee: kept.
-        let feet = gps_flight(984, 300);
-        assert_eq!(channel(&feet, "gpsAltMSL").quantity, Quantity::Unrecognized);
-        // A flight below 100 m can't tell: kept, though the rise matches.
-        let low = gps_flight(99, 99);
-        assert_eq!(channel(&low, "gpsAltMSL").quantity, Quantity::Unrecognized);
-        let at_floor = gps_flight(100, 100);
+        let log = gps_line(1.0, 300.0, 21);
+        assert!(
+            gps_note(&log).contains(
+                "at its 21 fresh fixes it rises 1.00 for each meter of the barometric altitude, \
+                 within 10% of 1, where in feet it would be 3.28, over 300 m"
+            ),
+            "{:?}",
+            log.notes
+        );
+        // Read as written, in meters: 150.5 m on the pad.
+        assert_eq!(channel(&log, "gpsAltMSL").values[0], 150.5);
+    }
+
+    #[test]
+    fn the_gps_altitude_needs_120_m_of_span_and_10_fresh_fixes() {
+        let at_floor = gps_line(1.0, 120.0, 21);
+        assert_eq!(gps_quantity(&at_floor), Quantity::GnssAltitude);
+        let below = gps_line(1.0, 119.0, 21);
+        assert_eq!(gps_quantity(&below), Quantity::Unrecognized);
+        assert!(
+            gps_note(&below).contains(
+                "its 21 fresh fixes span 119 m of the barometric altitude, less than the 120 m"
+            ),
+            "{:?}",
+            below.notes
+        );
         assert_eq!(
-            channel(&at_floor, "gpsAltMSL").quantity,
+            gps_quantity(&gps_line(1.0, 300.0, 10)),
             Quantity::GnssAltitude
         );
-        // Read as written, in meters: 150 m on the pad.
-        assert_eq!(channel(&at_floor, "gpsAltMSL").values[0], 150.0);
+        let few = gps_line(1.0, 300.0, 9);
+        assert_eq!(gps_quantity(&few), Quantity::Unrecognized);
+        assert!(
+            gps_note(&few).contains("it changes on 9 rows where the barometric altitude is read"),
+            "{:?}",
+            few.notes
+        );
+    }
+
+    /// The reviewed failure: a GPS altitude in feet that loses its fix in the climb and regains
+    /// it low in the descent, its highest fixed reading 295 ft (90 m) above the pad's against a
+    /// 300 m apogee. Its rise alone is within 10% of the apogee; its fresh fixes span 90 m, too
+    /// little to tell the unit, and the slope over them is 3.28.
+    #[test]
+    fn a_feet_gps_altitude_regaining_its_fix_late_is_never_read_in_meters() {
+        let mut altitude = vec![0.0, 0.0, 100.0, 200.0, 280.0, 300.0, 290.0, 250.0, 200.0];
+        let mut gps = vec![
+            500.0, 501.0, 501.0, 501.0, 501.0, 501.0, 501.0, 501.0, 501.0,
+        ];
+        for (row, height_m) in (0..=9).rev().map(|step| f64::from(step) * 10.0).enumerate() {
+            altitude.push(height_m);
+            gps.push((500.0 + height_m / FOOT_M + if row % 2 == 0 { 0.4 } else { -0.4 }).round());
+        }
+        let check = gps_check(&gps, &altitude);
+        let GpsCheck::Undecided(why) = check else {
+            panic!("read in meters: {check:?}");
+        };
+        assert!(why.contains("span 90 m"), "{why}");
+        // Over a wider span, the slope settles it.
+        let fixes = fresh_fixes(&gps, &altitude);
+        let fit = gps_fit(&fixes).unwrap();
+        assert!((fit.slope - 1.0 / FOOT_M).abs() < 0.05, "{fit:?}");
+    }
+
+    /// A receiver that holds its last fix while it has none writes the same reading on row after
+    /// row: those rows, and gaps, aren't fixes. This GPS holds the pad's reading through the
+    /// climb, then follows the descent in meters; drawn through every row, the line would bend
+    /// toward the held reading.
+    #[test]
+    fn held_readings_and_gaps_are_not_fresh_fixes() {
+        let mut altitude = Vec::new();
+        let mut gps = Vec::new();
+        for step in 0..=10 {
+            altitude.push(f64::from(step) * 30.0);
+            gps.push(if step == 5 { f64::NAN } else { 150.0 });
+        }
+        for step in (0..10).rev() {
+            let height_m = f64::from(step) * 30.0 + 15.0;
+            altitude.push(height_m);
+            gps.push(150.0 + height_m + if step % 2 == 0 { 0.5 } else { -0.5 });
+        }
+        // A gap in the barometric altitude leaves its row out.
+        altitude.push(f64::NAN);
+        gps.push(100.0);
+        let fixes = fresh_fixes(&gps, &altitude);
+        assert_eq!(fixes.len(), 11, "{fixes:?}");
+        assert!(
+            matches!(gps_check(&gps, &altitude), GpsCheck::Meters(fit) if fit.fixes == 11),
+            "{:?}",
+            gps_check(&gps, &altitude)
+        );
+        // Every row, held readings included: the slope falls far from 1.
+        let every: Vec<(f64, f64)> = altitude
+            .iter()
+            .zip(&gps)
+            .filter(|(a, g)| a.is_finite() && g.is_finite())
+            .map(|(a, g)| (*a, *g))
+            .collect();
+        let bent = gps_fit(&every).unwrap();
+        assert!(bent.slope < 0.8, "{bent:?}");
+    }
+
+    /// A GPS altitude in feet that lags the flight by a first-order filter of 10 s: its slope
+    /// against the barometric altitude comes out near 1, but its fixes trace a loop that scatters
+    /// far more than 10% of the span about the line, so it is kept.
+    #[test]
+    fn a_lagging_gps_altitude_whose_slope_is_near_1_is_kept_by_its_scatter() {
+        let (step_s, tau_s) = (0.02, 10.0);
+        let (mut time_s, mut lagged) = (0.0_f64, 0.0_f64);
+        let (mut altitude, mut gps) = (Vec::new(), Vec::new());
+        let mut next_fix_s = 0.0;
+        while time_s < 53.0 {
+            let height_m = if time_s < 3.0 {
+                300.0 * (std::f64::consts::FRAC_PI_2 * time_s / 3.0).sin()
+            } else {
+                (300.0 - 15.0 * (time_s - 3.0)).max(0.0)
+            };
+            lagged += (height_m / FOOT_M - lagged) * step_s / tau_s;
+            if time_s >= next_fix_s {
+                altitude.push(height_m);
+                gps.push(lagged);
+                next_fix_s += 1.0;
+            }
+            time_s += step_s;
+        }
+        let fit = gps_fit(&fresh_fixes(&gps, &altitude)).unwrap();
+        assert!(
+            (fit.slope - 1.0).abs() <= GPS_SLOPE_MARGIN,
+            "the slope alone would pass: {fit:?}"
+        );
+        assert!(
+            fit.scatter > 3.0 * GPS_SCATTER_SHARE * fit.span_m,
+            "{fit:?}"
+        );
+        let check = gps_check(&gps, &altitude);
+        let GpsCheck::Undecided(why) = check else {
+            panic!("read in meters: {check:?}");
+        };
+        assert!(why.contains("they trace a loop"), "{why}");
+    }
+
+    #[test]
+    fn no_gps_altitude_or_no_barometric_altitude_decides_nothing() {
+        let nan = vec![f64::NAN; 20];
+        let line: Vec<f64> = (0..20).map(|row| f64::from(row) * 20.0).collect();
+        for (gps, altitude) in [(&nan, &line), (&line, &nan), (&nan, &nan)] {
+            assert!(
+                matches!(gps_check(gps, altitude), GpsCheck::Undecided(ref why)
+                    if why.starts_with("the file has no GPS altitude")),
+                "{:?}",
+                gps_check(gps, altitude)
+            );
+        }
     }
 
     #[test]
@@ -1523,6 +1859,79 @@ mod tests {
         );
         // An unknown temperature column isn't the record's temperature.
         assert_eq!(log.temperature_k, None);
+    }
+
+    /// A position column of gaps alone bears out no unit: kept, with no claim about its readings.
+    #[test]
+    fn a_position_of_gaps_alone_is_kept() {
+        let text = "sep=;\ntime (ms);deltaTime (ms);baro-altitude (m);gpsLat;gpsLng\n\
+                    1000;20;0;nan;1,5\n1020;20;0;;2,5\n";
+        let log = read(text).unwrap();
+        assert_eq!(channel(&log, "gpsLat").quantity, Quantity::Unrecognized);
+        assert_eq!(channel(&log, "gpsLng").quantity, Quantity::Longitude);
+        assert_eq!(
+            notes_starting(
+                &log,
+                "`gpsLat` kept as written, in a unit no reading bears out: the header states \
+                 none, and the column holds no reading"
+            )
+            .len(),
+            1,
+            "{:?}",
+            log.notes
+        );
+        assert!(
+            log.notes
+                .iter()
+                .all(|n| !n.contains("every reading lies within ±90°"))
+        );
+        assert_eq!(degrees(&[f64::NAN, f64::NAN], 90.0), Degrees::NoReading);
+        assert_eq!(degrees(&[], 90.0), Degrees::NoReading);
+        assert_eq!(degrees(&[f64::NAN, 45.0], 90.0), Degrees::Within);
+        assert_eq!(degrees(&[f64::NAN, -91.0], 90.0), Degrees::Beyond(-91.0));
+    }
+
+    /// A reading a conversion carries past the largest `f64` is a gap, counted in a note, never
+    /// an infinity.
+    #[test]
+    fn a_conversion_past_the_largest_number_is_a_gap() {
+        for (unit, written) in [("deg f", 1e308), ("hPa", 1e307), ("kPa", -1e306)] {
+            let converted = unit_of(unit).map(|u| u.convert(written));
+            assert!(converted.is_some_and(f64::is_nan), "{unit}: {converted:?}");
+        }
+        let text = "sep=;\ntime (ms);deltaTime (ms);baro-altitude (m);amb-temp (deg f);\
+                    pitot (hPa)\n1000;20;0;1e308;1013\n1020;20;0;70;1e307\n1040;20;0;1e308;1013\n";
+        let log = read(text).unwrap();
+        let temperature = log.temperature_k.clone().unwrap_or_default();
+        assert!(temperature[0].is_nan() && temperature[2].is_nan());
+        assert!((temperature[1] - 294.261_111).abs() < 1e-5);
+        assert!(
+            log.channels
+                .iter()
+                .all(|c| c.values.iter().all(|v| !v.is_infinite()))
+        );
+        assert_eq!(
+            notes_starting(
+                &log,
+                "the column `amb-temp (deg f)` holds 2 cells too large to convert from its unit, \
+                 such as 1e308: they are gaps"
+            )
+            .len(),
+            1,
+            "{:?}",
+            log.notes
+        );
+        assert_eq!(
+            notes_starting(
+                &log,
+                "the column `pitot (hPa)` holds 1 cell too large to convert from its unit, such \
+                 as 1e307: it is a gap"
+            )
+            .len(),
+            1,
+            "{:?}",
+            log.notes
+        );
     }
 
     #[test]
