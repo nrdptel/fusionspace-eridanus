@@ -1,0 +1,506 @@
+---
+source: crates/hpr-flightdata/tests/blue_raven_csv.rs
+expression: log
+---
+{
+  "format": "blue_raven_csv",
+  "logger": "Featherweight Blue Raven",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "Year",
+      "quantity": "number",
+      "time_s": [
+        -0.006,
+        -0.004,
+        -0.002,
+        0.0,
+        0.002,
+        0.004,
+        0.006,
+        0.008,
+        0.01,
+        0.012
+      ],
+      "values": [
+        2026.0,
+        2026.0,
+        2026.0,
+        2026.0,
+        2026.0,
+        2026.0,
+        2026.0,
+        2026.0,
+        2026.0,
+        2026.0
+      ]
+    },
+    {
+      "column": "Month",
+      "quantity": "number",
+      "time_s": [
+        -0.006,
+        -0.004,
+        -0.002,
+        0.0,
+        0.002,
+        0.004,
+        0.006,
+        0.008,
+        0.01,
+        0.012
+      ],
+      "values": [
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0
+      ]
+    },
+    {
+      "column": "Day",
+      "quantity": "number",
+      "time_s": [
+        -0.006,
+        -0.004,
+        -0.002,
+        0.0,
+        0.002,
+        0.004,
+        0.006,
+        0.008,
+        0.01,
+        0.012
+      ],
+      "values": [
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0
+      ]
+    },
+    {
+      "column": "Time",
+      "quantity": "time_of_day",
+      "time_s": [
+        -0.006,
+        -0.004,
+        -0.002,
+        0.0,
+        0.002,
+        0.004,
+        0.006,
+        0.008,
+        0.01,
+        0.012
+      ],
+      "values": [
+        50551.236,
+        50551.236,
+        50551.236,
+        50551.236,
+        50551.244,
+        50551.244,
+        50551.244,
+        50551.244,
+        50551.252,
+        50551.252
+      ]
+    },
+    {
+      "column": "Sync",
+      "quantity": "number",
+      "time_s": [
+        -0.006,
+        -0.004,
+        -0.002,
+        0.0,
+        0.002,
+        0.004,
+        0.006,
+        0.008,
+        0.01,
+        0.012
+      ],
+      "values": [
+        234.0,
+        236.0,
+        238.0,
+        240.0,
+        242.0,
+        244.0,
+        246.0,
+        248.0,
+        0.0,
+        2.0
+      ]
+    },
+    {
+      "column": "Gyro_X",
+      "quantity": "angular_rate",
+      "time_s": [
+        -0.006,
+        -0.004,
+        -0.002,
+        0.0,
+        0.002,
+        0.004,
+        0.006,
+        0.008,
+        0.01,
+        0.012
+      ],
+      "values": [
+        0.12,
+        0.12,
+        0.12,
+        4.5,
+        6.0,
+        7.5,
+        9.0,
+        10.5,
+        12.0,
+        13.5
+      ]
+    },
+    {
+      "column": "Gyro_Y",
+      "quantity": "angular_rate",
+      "time_s": [
+        -0.006,
+        -0.004,
+        -0.002,
+        0.0,
+        0.002,
+        0.004,
+        0.006,
+        0.008,
+        0.01,
+        0.012
+      ],
+      "values": [
+        -0.08,
+        -0.08,
+        -0.08,
+        -1.2,
+        -1.6,
+        -2.0,
+        -2.4,
+        -2.8,
+        -3.2,
+        -3.6
+      ]
+    },
+    {
+      "column": "Gyro_Z",
+      "quantity": "angular_rate",
+      "time_s": [
+        -0.006,
+        -0.004,
+        -0.002,
+        0.0,
+        0.002,
+        0.004,
+        0.006,
+        0.008,
+        0.01,
+        0.012
+      ],
+      "values": [
+        0.31,
+        0.31,
+        0.31,
+        36.0,
+        48.0,
+        60.0,
+        72.0,
+        84.0,
+        96.0,
+        108.0
+      ]
+    },
+    {
+      "column": "Accel_X",
+      "quantity": "acceleration",
+      "time_s": [
+        -0.006,
+        -0.004,
+        -0.002,
+        0.0,
+        0.002,
+        0.004,
+        0.006,
+        0.008,
+        0.01,
+        0.012
+      ],
+      "values": [
+        0.196133,
+        0.196133,
+        0.196133,
+        0.196133,
+        0.196133,
+        0.196133,
+        0.196133,
+        0.196133,
+        0.196133,
+        0.196133
+      ]
+    },
+    {
+      "column": "Accel_Y",
+      "quantity": "acceleration",
+      "time_s": [
+        -0.006,
+        -0.004,
+        -0.002,
+        0.0,
+        0.002,
+        0.004,
+        0.006,
+        0.008,
+        0.01,
+        0.012
+      ],
+      "values": [
+        -0.0980665,
+        -0.0980665,
+        -0.0980665,
+        -0.0980665,
+        -0.0980665,
+        -0.0980665,
+        -0.0980665,
+        -0.0980665,
+        -0.0980665,
+        -0.0980665
+      ]
+    },
+    {
+      "column": "Accel_Z",
+      "quantity": "acceleration",
+      "time_s": [
+        -0.006,
+        -0.004,
+        -0.002,
+        0.0,
+        0.002,
+        0.004,
+        0.006,
+        0.008,
+        0.01,
+        0.012
+      ],
+      "values": [
+        9.80665,
+        9.80665,
+        9.80665,
+        101.98916,
+        104.93115499999999,
+        107.87315,
+        110.815145,
+        113.75713999999999,
+        116.699135,
+        119.64112999999999
+      ]
+    },
+    {
+      "column": "Quat_1",
+      "quantity": "number",
+      "time_s": [
+        -0.006,
+        -0.004,
+        -0.002,
+        0.0,
+        0.002,
+        0.004,
+        0.006,
+        0.008,
+        0.01,
+        0.012
+      ],
+      "values": [
+        0.0012,
+        0.0012,
+        0.0012,
+        0.0012,
+        0.0012,
+        0.0012,
+        0.0012,
+        0.0012,
+        0.0012,
+        0.0012
+      ]
+    },
+    {
+      "column": "Quat_2",
+      "quantity": "number",
+      "time_s": [
+        -0.006,
+        -0.004,
+        -0.002,
+        0.0,
+        0.002,
+        0.004,
+        0.006,
+        0.008,
+        0.01,
+        0.012
+      ],
+      "values": [
+        -0.0008,
+        -0.0008,
+        -0.0008,
+        -0.0008,
+        -0.0008,
+        -0.0008,
+        -0.0008,
+        -0.0008,
+        -0.0008,
+        -0.0008
+      ]
+    },
+    {
+      "column": "Quat_3",
+      "quantity": "number",
+      "time_s": [
+        -0.006,
+        -0.004,
+        -0.002,
+        0.0,
+        0.002,
+        0.004,
+        0.006,
+        0.008,
+        0.01,
+        0.012
+      ],
+      "values": [
+        0.0003,
+        0.0004,
+        0.0005,
+        0.0006,
+        0.0007,
+        0.0008,
+        0.0009,
+        0.001,
+        0.0011,
+        0.0012
+      ]
+    },
+    {
+      "column": "Quat_4",
+      "quantity": "number",
+      "time_s": [
+        -0.006,
+        -0.004,
+        -0.002,
+        0.0,
+        0.002,
+        0.004,
+        0.006,
+        0.008,
+        0.01,
+        0.012
+      ],
+      "values": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "Aux_Volts",
+      "quantity": "voltage",
+      "time_s": [
+        -0.006,
+        -0.004,
+        -0.002,
+        0.0,
+        0.002,
+        0.004,
+        0.006,
+        0.008,
+        0.01,
+        0.012
+      ],
+      "values": [
+        0.021,
+        0.021,
+        0.021,
+        0.021,
+        0.021,
+        0.021,
+        0.021,
+        0.021,
+        0.021,
+        0.021
+      ]
+    },
+    {
+      "column": "Current",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.006,
+        -0.004,
+        -0.002,
+        0.0,
+        0.002,
+        0.004,
+        0.006,
+        0.008,
+        0.01,
+        0.012
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.614,
+        2.614
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "`Gyro_X`, `Gyro_Y` and `Gyro_Z` read in degrees per second, from the manual and the summary: the largest rate in the file is 108, against the gyros' range of ±2000 deg/sec the manual gives",
+    "`Accel_X`, `Accel_Y` and `Accel_Z` read in standard gravities, from the manual and the pad: the median magnitude of the three axes over the 3 rows before liftoff is 1.000, where a logger at rest reads 1 g",
+    "`Current` kept as written, in a unit no source states: it is other than 0 in 2 of 10 rows, at most 2.614; amperes would fit the manual's limit of about 4 A on the board's current, the USB download's milliamperes would not",
+    "the file has no `Baro_Altitude_AGL_(feet)`, so the record's altitude track is empty: a Blue Raven's high-rate file holds its inertial sensors only, and the low-rate file of the same flight holds the altitude"
+  ]
+}

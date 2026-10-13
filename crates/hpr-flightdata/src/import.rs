@@ -10,9 +10,13 @@
 //! | [PerfectFlite CSV and text](crate::perfectflite::read_export) | `Time`, `Altitude` and more of an export's names, by commas or tabs |
 //! | [AltOS CSV](crate::altos) | starts `#version,`, or opens with `#` comments before a `#version,` or `version,serial,` header |
 //! | [Raven FIP CSV](crate::raven) | opens with a time column and holds the Raven's `Axial Accel (Gs)` channel |
+//! | [Blue Raven CSV](crate::blueraven) | opens `Year,Month,Day,Time,Flight_Time_(s),Sync,` |
+//! | [RRC3 CSV](crate::rrc3) | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages` |
+//! | [Eggtimer CSV](crate::eggtimer) | `T,Alt,` and more of Eggtimer's column names |
 //!
-//! Text is read as UTF-8 with any byte-order mark dropped; a byte that isn't UTF-8 becomes U+FFFD,
-//! as a `.pf2`'s comments may be in another encoding and no reader uses them.
+//! Text is read as UTF-8, or as UTF-16 after its byte-order mark ([`decode`]), with any byte-order
+//! mark dropped; a byte that isn't UTF-8 becomes U+FFFD, as a `.pf2`'s comments may be in another
+//! encoding and no reader uses them.
 //!
 //! ```
 //! use hpr_flightdata::{import, log::LogFormat};
@@ -28,21 +32,44 @@ use std::borrow::Cow;
 
 use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
-use crate::{altos, perfectflite, raven};
+use crate::{altos, blueraven, eggtimer, perfectflite, raven, rrc3};
 
 /// The formats [`read`] recognizes, in the order it tries them.
 pub const FORMATS: &[LogFormat] = &[
     LogFormat::PerfectFlitePf2,
     LogFormat::AltosCsv,
     LogFormat::RavenFipCsv,
+    LogFormat::BlueRavenCsv,
+    LogFormat::Rrc3Csv,
+    LogFormat::EggtimerCsv,
     LogFormat::PerfectFliteCsv,
     LogFormat::PerfectFliteText,
 ];
 
-/// A file's bytes as text: UTF-8, any byte-order mark dropped, a byte that isn't UTF-8 replaced.
+/// A file's bytes as text: UTF-8, or UTF-16 if the file opens with UTF-16's byte-order mark, as
+/// Debrief's notes say some mDACS exports of an RRC3's flight are (none of the project's sample
+/// files is); any byte-order mark dropped, and a byte, or a pair of them, that isn't a character
+/// replaced by U+FFFD.
 pub fn decode(bytes: &[u8]) -> Cow<'_, str> {
-    let bytes = bytes.strip_prefix(b"\xef\xbb\xbf").unwrap_or(bytes);
-    String::from_utf8_lossy(bytes)
+    let utf16 = |bytes: &[u8], unit: fn([u8; 2]) -> u16| {
+        let (pairs, odd) = bytes.as_chunks::<2>();
+        // An odd byte at the end is half a character.
+        let odd = (!odd.is_empty()).then_some(char::REPLACEMENT_CHARACTER);
+        Cow::Owned(
+            char::decode_utf16(pairs.iter().map(|pair| unit(*pair)))
+                .map(|c| c.unwrap_or(char::REPLACEMENT_CHARACTER))
+                .chain(odd)
+                .collect(),
+        )
+    };
+    if let Some(rest) = bytes.strip_prefix(b"\xff\xfe") {
+        utf16(rest, u16::from_le_bytes)
+    } else if let Some(rest) = bytes.strip_prefix(b"\xfe\xff") {
+        utf16(rest, u16::from_be_bytes)
+    } else {
+        let bytes = bytes.strip_prefix(b"\xef\xbb\xbf").unwrap_or(bytes);
+        String::from_utf8_lossy(bytes)
+    }
 }
 
 /// The format of a log, recognized from its first line that isn't blank; `None` for a layout HPR
@@ -62,7 +89,7 @@ fn detect_text(text: &str) -> Option<LogFormat> {
         |line: &str| line.starts_with("#version,") || line.starts_with("version,serial,");
     if first.to_ascii_lowercase().contains("perfectflite") {
         // A `.pfa` names PerfectFlite too, but writes its samples after a `**!!Data:` line, one
-        // value a line: a layout no reader knows yet (M7.1b).
+        // value a line: a layout no reader knows yet (M7.1c).
         let pfa = text
             .split(['\r', '\n'])
             .any(|line| line.trim_start().starts_with("**!!"));
@@ -81,6 +108,12 @@ fn detect_text(text: &str) -> Option<LogFormat> {
         // The Raven's export opens with a time column; a Blue Raven's names the same channel
         // further along a header that opens with the date.
         Some(LogFormat::RavenFipCsv)
+    } else if blueraven::recognizes(text) {
+        Some(LogFormat::BlueRavenCsv)
+    } else if rrc3::recognizes(text) {
+        Some(LogFormat::Rrc3Csv)
+    } else if eggtimer::recognizes(text) {
+        Some(LogFormat::EggtimerCsv)
     } else {
         match perfectflite::export_separator(first)? {
             ',' => Some(LogFormat::PerfectFliteCsv),
@@ -104,6 +137,9 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         }
         Some(LogFormat::AltosCsv) => altos::read(&text),
         Some(LogFormat::RavenFipCsv) => raven::read(&text),
+        Some(LogFormat::BlueRavenCsv) => blueraven::read(&text),
+        Some(LogFormat::Rrc3Csv) => rrc3::read(&text),
+        Some(LogFormat::EggtimerCsv) => eggtimer::read(&text),
         None => {
             let known: Vec<&str> = FORMATS.iter().map(|format| format.name()).collect();
             Err(LogError::Unrecognized {
@@ -166,21 +202,46 @@ mod tests {
                 "Time\tAltitude\tTemp.\tVoltage\n",
                 Some(LogFormat::PerfectFliteText),
             ),
-            // A team's own export in feet: the generic reader's, M7.1b.
+            // A team's own export in feet: the generic reader's, M7.1c.
             ("time_s,altitude_ft,temperature,voltage\n", None),
             ("Time,Pressure\n", None),
             ("time,altitude\n", None),
             ("Time,Altitude\n", None),
-            // A Missile Works RRC3's: M7.1b.
             (
                 "Time,Altitude,Pressure,Velocity,Temperature,Events,Voltages\n",
-                None,
+                Some(LogFormat::Rrc3Csv),
+            ),
+            (
+                "T,Alt,Veloc,FAlt,FVeloc,LDA,LowV,Apogee,N-O,Drogue,Main\r\r\n",
+                Some(LogFormat::EggtimerCsv),
+            ),
+            (
+                "Year,Month,Day,Time,Flight_Time_(s),Sync,Gyro_X\n",
+                Some(LogFormat::BlueRavenCsv),
             ),
             ("", None),
         ];
         for (text, format) in cases {
             assert_eq!(detect(text.as_bytes()), format, "{text:?}");
         }
+    }
+
+    #[test]
+    fn utf16_is_read_by_its_byte_order_mark() {
+        let text = "Time\tAltitude é\n";
+        let mut le = vec![0xff, 0xfe];
+        let mut be = vec![0xfe, 0xff];
+        for unit in text.encode_utf16() {
+            le.extend(unit.to_le_bytes());
+            be.extend(unit.to_be_bytes());
+        }
+        assert_eq!(decode(&le), text);
+        assert_eq!(decode(&be), text);
+        // An odd byte at the end, and half a surrogate pair, are each one replaced character.
+        le.push(b'x');
+        assert_eq!(decode(&le), format!("{text}\u{fffd}"));
+        assert_eq!(decode(&[0xff, 0xfe, 0x3d, 0xd8]), "\u{fffd}");
+        assert_eq!(decode(b"\xef\xbb\xbfa\xff"), "a\u{fffd}");
     }
 
     #[test]

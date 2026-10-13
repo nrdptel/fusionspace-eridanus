@@ -281,6 +281,7 @@ until someone rewrites it in plainer words.
 | [ADR-250: The measure as a median and a maximum, a reading scale that grows with the window, and the column flush left, from the product system's Rev B][adr-250] | Prose on the site stopped at 24 em, about 384 px, so a desktop window was mostly empty. The product system's Rev B states the measure as a median line of 60 to 75 characters and none over 80, set as 29.5 em of the text; grows the type scale with the window on a reading page (16 to 18 px body between 1,024 and 1,600 px); sets the column flush left beside the sidebar up to 1,120 px; and ships the code that measures these rules, which the site's page check now runs unchanged. |  |
 | [ADR-251: Flight log importers in two increments: the record every reader fills, a survey of the sample logs pinned by digest, and the PerfectFlite, AltOS and Raven readers first][adr-251] | The sample logs under `refs/` number about 1,000 distinct files in some 20 layouts, too many for one increment. [M7.1a](#m7-1a) builds the flight record every reader fills (every column a channel on its own clock, the logger's events), a survey that reads every sample and writes a committed report of counts and anonymized ids, and readers for the PerfectFlite text exports, AltOS CSV and the Raven's FIP CSV; [M7.1b](#m7-1b) reads the rest. A private or unlicensed log is pinned by a digest of what was read from it, never by a snapshot of its values. |  |
 | [ADR-252: The sidebar put away at every width, and page arrows that name their pages, from the product system's Rev D][adr-252] | A review of the site found two things on a desktop window. The sidebar could be resized but not put away, and the page arrows were easy to miss: small icons at the window's sides, at the foot of the page, far from the centered column. The product system's Rev D lets a docs site's table of contents be put away and brought back at every width, with the menu button or by dragging its edge to the window's side, and keeps the choice from page to page. It puts the page arrows under the text, inside the column, as bordered buttons that name their pages. |  |
+| [ADR-253: M7.1b in two: the RRC3's, Eggtimer's and Blue Raven's CSV exports first, each unit a header leaves out decided from the file or stated as assumed][adr-253] | [M7.1b](#m7-1b) listed every layout [M7.1a](#m7-1a) left, about 30 families, too many for one increment. It now reads the three CSV exports with the most sample files among them, the RRC3's, Eggtimer's and the Blue Raven's (173 distinct files), into the record [M7.1a](#m7-1a) built; [M7.1c](#m7-1c) reads the rest. A unit a header doesn't name is decided from the file, such as an RRC3's altitude from its pressure, or taken from the maker's manual, and either way stated in a note the survey counts; a Blue Raven's high-rate file, which holds no altitude, reads with an empty primary track. |  |
 
 ## The roadmap
 
@@ -672,7 +673,8 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m4-4"></a>[M4.4][phase-4] | Use from C, and in the browser through WebAssembly | not yet done |
 | <a id="m7-1"></a>[M7.1][phase-5] | Reading flight logs from altimeters and trackers, with no design file and no simulation | not yet done |
 | <a id="m7-1a"></a>[M7.1a][done-5] | The flight record every reader fills, a survey of the sample logs, and the PerfectFlite, AltOS and Raven readers | done |
-| <a id="m7-1b"></a>[M7.1b][phase-5] | The other loggers' formats, spreadsheets and generic CSV | not yet done |
+| <a id="m7-1b"></a>[M7.1b][done-5] | The RRC3's, Eggtimer's and the Blue Raven's CSV, each unit a header leaves out decided from the file or stated as assumed | done |
+| <a id="m7-1c"></a>[M7.1c][phase-5] | The other loggers' formats, spreadsheets and generic CSV | not yet done |
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
@@ -1079,6 +1081,7 @@ is the milestone that added or will add that test.
 [adr-250]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0250-the-column-and-the-reading-scale.md
 [adr-251]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0251-flight-log-importers-in-two-increments.md
 [adr-252]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0252-the-sidebar-put-away-and-named-page-arrows.md
+[adr-253]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0253-rrc3-eggtimer-and-blue-raven-csv-first.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

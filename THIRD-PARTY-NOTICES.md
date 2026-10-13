@@ -366,7 +366,12 @@ adds a source.
   before a GPS fix, and keeping the first row at each repeated time, in `hpr_flightdata::altos`.
   Also `lib/parsers/featherweightFip.ts` and `lib/parsers/multiTimebase.ts` at the same commit:
   the Raven FIP CSV's `Time@` clock and `bILBA` status per channel and their units, in
-  `hpr_flightdata::raven`.
+  `hpr_flightdata::raven`. Also `lib/parsers/missileworksRrc3.ts`, `lib/parsers/eggtimer.ts`,
+  `lib/parsers/blueraven.ts` and `lib/csv.ts` at the same commit: the RRC3 export's columns and
+  the check of its altitude's unit against its pressure, Eggtimer's two clocks told apart by
+  their step, the Blue Raven app's low- and high-rate files and their units, and decimal commas
+  where cells are separated by semicolons, in `hpr_flightdata::rrc3`, `hpr_flightdata::eggtimer`,
+  `hpr_flightdata::blueraven` and the crate's table helpers.
   No code was copied; no flight file of Debrief's is committed.
 - **DOPRI5** (BSD-2-Clause), E. Hairer and G. Wanner's `dopri5.f`, version of 2004: the
   Dormand–Prince coefficients, the error norm, the PI step-size controller, the starting-step

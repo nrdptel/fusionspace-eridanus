@@ -1,6 +1,6 @@
 //! `cargo xtask logs [--check]`: reads every flight-log sample under `refs/` with
 //! `hpr_flightdata::import` and writes what came of each to `validation/reports/log-import.json`
-//! and `.md` (M7.1a, ADR-251).
+//! and `.md` (M7.1a and M7.1b, ADR-251 and ADR-253).
 //!
 //! The samples are three sets, each file counted once by its content's SHA-256, in this order:
 //!
@@ -18,7 +18,7 @@
 //! SHA-256) with the first 16 of the SHA-256 of the record read from it, as compact JSON. That
 //! digest pins every reading of a sample that may not be committed, as a snapshot would (rule 4,
 //! ADR-151). `--check` writes nothing, and fails unless the report reproduces and every file of
-//! an M7.1a family ([`M7_1A`]) is read.
+//! a family a reader has been written for ([`READ`]) is read.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -33,7 +33,8 @@ pub const USAGE: &str =
     "  logs [--check]          reads every flight-log sample under refs/ (the collection's
                            catalog, Debrief's fixtures, AerospaceNU's logs) and writes
                            validation/reports/log-import.json and .md; --check writes nothing
-                           and fails unless they reproduce and every M7.1a family's file is read";
+                           and fails unless they reproduce and every file of a family
+                           with a reader is read";
 
 const REPORT_JSON: &str = "validation/reports/log-import.json";
 const REPORT_MD: &str = "validation/reports/log-import.md";
@@ -45,14 +46,18 @@ const DEBRIEF_DIRS: [&str; 2] = [
 ];
 const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 
-/// The families M7.1a reads, each with the format its files must read as: every file of these
-/// must import, and in that format.
-pub const M7_1A: [(&str, LogFormat); 5] = [
-    ("pf2", LogFormat::PerfectFlitePf2),
-    ("perfectflite-csv", LogFormat::PerfectFliteCsv),
-    ("perfectflite-txt", LogFormat::PerfectFliteText),
-    ("altos-csv", LogFormat::AltosCsv),
-    ("raven-csv", LogFormat::RavenFipCsv),
+/// The families read so far, each with the format its files must read as and the increment that
+/// wrote its reader: every file of these must import, and in that format. The other families'
+/// files are M7.1c's.
+pub const READ: [(&str, LogFormat, &str); 8] = [
+    ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
+    ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
+    ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
+    ("altos-csv", LogFormat::AltosCsv, "M7.1a"),
+    ("raven-csv", LogFormat::RavenFipCsv, "M7.1a"),
+    ("rrc3-csv", LogFormat::Rrc3Csv, "M7.1b"),
+    ("eggtimer-csv", LogFormat::EggtimerCsv, "M7.1b"),
+    ("blueraven-csv", LogFormat::BlueRavenCsv, "M7.1b"),
 ];
 
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight.
@@ -123,6 +128,11 @@ struct Report {
     loggers: BTreeMap<String, usize>,
     /// What bears out feet in PerfectFlite's exports, whose header states no unit.
     perfectflite_exports: ExportUnits,
+    /// How the readers decided the units no header states, by family: each decision, the part of
+    /// a record's note before its first `: `, such as `` `Altitude` read in feet, from the
+    /// pressure ``, with the number of files whose record carries it.
+    #[serde(default)]
+    unit_decisions: BTreeMap<String, BTreeMap<String, usize>>,
     /// One line a file: `id family source outcome record`, the record `-` when refused.
     files: Vec<String>,
 }
@@ -152,7 +162,8 @@ struct SourceCount {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct FamilyRow {
     family: String,
-    /// `M7.1a`, `M7.1b`, or `not a log`.
+    /// The increment whose reader reads it (`M7.1a`, `M7.1b`), `M7.1c` for one not yet read,
+    /// `damaged`, or `not a log`.
     increment: String,
     files: usize,
     read: usize,
@@ -203,13 +214,16 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
     if !unread.is_empty() {
         return Err(format!(
-            "{} file(s) of an M7.1a family not read:\n{}",
+            "{} file(s) of a family with a reader not read:\n{}",
             unread.len(),
             unread.join("\n")
         ));
     }
     if check {
-        println!("logs: the committed report reproduces, and every M7.1a file is read");
+        println!(
+            "logs: the committed report reproduces, and every file of a family with a reader is \
+             read"
+        );
     }
     Ok(())
 }
@@ -376,26 +390,25 @@ fn aerospacenu_family(extension: &str, bytes: &[u8]) -> &'static str {
     }
 }
 
-/// Reads every sample; the report, and the M7.1a files that weren't read.
+/// Reads every sample; the report, and the files of a family with a reader that weren't read.
 fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>) {
     let mut families: BTreeMap<String, FamilyRow> = BTreeMap::new();
     let mut files = Vec::new();
     let mut unread = Vec::new();
     let mut loggers: BTreeMap<String, usize> = BTreeMap::new();
+    let mut unit_decisions: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
     for sample in samples {
         let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
-        let expected = M7_1A
-            .iter()
-            .find(|(family, _)| *family == sample.family)
-            .map(|(_, format)| *format);
-        let increment = if expected.is_some() {
-            "M7.1a"
+        let read_by = READ.iter().find(|(family, _, _)| *family == sample.family);
+        let expected = read_by.map(|(_, format, _)| *format);
+        let increment = if let Some((_, _, increment)) = read_by {
+            increment
         } else if sample.family.ends_with("-damaged") {
             "damaged"
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
             "not a log"
         } else {
-            "M7.1b"
+            "M7.1c"
         };
         let row = families
             .entry(sample.family.clone())
@@ -423,6 +436,13 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                     ));
                 }
                 *loggers.entry(log.logger.clone()).or_default() += 1;
+                for decision in log.notes.iter().filter_map(|note| unit_decision(note)) {
+                    *unit_decisions
+                        .entry(sample.family.clone())
+                        .or_default()
+                        .entry(decision.to_owned())
+                        .or_default() += 1;
+                }
                 // serde_json writes a NaN as null, and the record holds nothing unordered, so
                 // the same file reads to the same bytes.
                 let record = match serde_json::to_vec(&log) {
@@ -434,7 +454,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
             Err(error) => {
                 let kind = refusal(&error);
                 *row.refused.entry(kind.to_owned()).or_default() += 1;
-                if increment == "M7.1a" {
+                if expected.is_some() {
                     unread.push(format!(
                         "  {} ({}, {}): {error}",
                         sample.path.display(),
@@ -452,8 +472,8 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     }
     files.sort();
     let report = Report {
-        about: "Every flight-log sample under refs/, read by hpr_flightdata::import (M7.1a, \
-                ADR-251): `cargo xtask logs`. The samples are the collection's catalog, Debrief's \
+        about: "Every flight-log sample under refs/, read by hpr_flightdata::import (M7.1, \
+                ADR-251, ADR-253): `cargo xtask logs`. The samples are the collection's catalog, Debrief's \
                 fixtures and samples, and AerospaceNU's logs; refs/research/public-flights, a \
                 download cache whose flights' logs the collection catalogs, and RocketPy's \
                 processed flight tables are not loggers' files and are left out. A file's id is the first 16 hex digits of its \
@@ -467,6 +487,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
             .map(|(id, from, to, why)| format!("{id} {from} -> {to}: {why}"))
             .collect(),
         loggers,
+        unit_decisions,
         files,
     };
     (report, unread)
@@ -563,7 +584,7 @@ fn markdown(report: &Report) -> String {
     let mut out = String::from(
         "# Flight-log samples, read\n\n\
          Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-log \
-         sample under `refs/` read by HPR Sim's importer (M7.1a, ADR-251): the private \
+         sample under `refs/` read by HPR Sim's importer (M7.1, ADR-251, ADR-253): the private \
          collection's catalog, Debrief's fixtures and samples, and AerospaceNU's logs, each file \
          once. Left out: `refs/research/public-flights`, a download cache whose flights' logs \
          the collection catalogs, and RocketPy's processed flight tables, which no logger \
@@ -622,11 +643,32 @@ fn markdown(report: &Report) -> String {
         ratio(units.climb_over_fall_others_in_feet),
         ratio(units.climb_over_fall_others_in_meters)
     );
+    if !report.unit_decisions.is_empty() {
+        out += "\nUnits no header states, as each file's reader decided them, or kept the column \
+                as written, and noted:\n\n\
+                | Family | Decision | Files |\n|---|---|---:|\n";
+        for (family, decisions) in &report.unit_decisions {
+            for (decision, count) in decisions {
+                out += &format!("| {family} | {decision} | {count} |\n");
+            }
+        }
+    }
     out += "\nThe files read, by the logger each names:\n\n| Logger | Files |\n|---|---:|\n";
     for (logger, count) in &report.loggers {
         out += &format!("| {logger} | {count} |\n");
     }
     out
+}
+
+/// A record's note on a unit no header states, cut to its decision: the text before the first
+/// `: ` of a note that opens with a column's name in backticks and says how it was `read in`, or
+/// that it was `kept as written`, as the readers write them, such as `` `Velocity` read in miles
+/// per hour, from the altitude``.
+fn unit_decision(note: &str) -> Option<&str> {
+    let (decision, _) = note.split_once(": ")?;
+    (decision.starts_with('`')
+        && (decision.contains("` read in ") || decision.contains("` kept as written")))
+    .then_some(decision)
 }
 
 /// The records of a CSV text, quotes and doubled quotes honored.
@@ -725,6 +767,45 @@ mod tests {
                 "{first}"
             );
         }
+    }
+
+    #[test]
+    fn unit_decisions_are_the_notes_before_their_evidence() {
+        let decided = "`Velocity` read in miles per hour, from the altitude: the slope is 0.68";
+        assert_eq!(
+            unit_decision(decided),
+            Some("`Velocity` read in miles per hour, from the altitude")
+        );
+        let listed = "`Gyro_X` and `Gyro_Y` read in degrees per second, from the manual: 300";
+        assert_eq!(
+            unit_decision(listed),
+            Some("`Gyro_X` and `Gyro_Y` read in degrees per second, from the manual")
+        );
+        let kept = "`Current` kept as written, in a unit no source states: 2 rows";
+        assert_eq!(
+            unit_decision(kept),
+            Some("`Current` kept as written, in a unit no source states")
+        );
+        for other in [
+            "the column \"x\" isn't one this reader knows: kept",
+            "`AccelG` has gravity taken out, from the pad: 0.1 g",
+            "`Velocity` read in feet per second",
+        ] {
+            assert_eq!(unit_decision(other), None, "{other}");
+        }
+    }
+
+    #[test]
+    fn a_refused_file_of_an_m7_1b_family_is_named_too() {
+        let samples = [Sample {
+            path: "e.csv".into(),
+            source: "test",
+            family: "eggtimer-csv".to_owned(),
+            bytes: b"not a log".to_vec(),
+        }];
+        let (report, unread) = survey(&samples, Vec::new());
+        assert_eq!(unread.len(), 1, "{unread:?}");
+        assert_eq!(report.families[0].increment, "M7.1b");
     }
 
     #[test]
