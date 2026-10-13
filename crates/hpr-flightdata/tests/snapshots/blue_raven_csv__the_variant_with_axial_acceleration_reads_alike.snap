@@ -1,0 +1,1859 @@
+---
+source: crates/hpr-flightdata/tests/blue_raven_csv.rs
+expression: log
+---
+{
+  "format": "blue_raven_csv",
+  "logger": "Featherweight Blue Raven",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [
+    -0.04,
+    -0.02,
+    0.0,
+    0.02,
+    0.04
+  ],
+  "altitude_m": [
+    0.0,
+    0.0,
+    0.0,
+    0.12192000000000001,
+    0.42672
+  ],
+  "vertical_speed_m_s": null,
+  "temperature_k": [
+    295.15,
+    295.15,
+    295.15,
+    295.15,
+    295.15
+  ],
+  "battery_v": [
+    4.02,
+    4.02,
+    4.02,
+    4.02,
+    4.02
+  ],
+  "channels": [
+    {
+      "column": "Year",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        2026.0,
+        2026.0,
+        2026.0,
+        2026.0,
+        2026.0
+      ]
+    },
+    {
+      "column": "Month",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0
+      ]
+    },
+    {
+      "column": "Day",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0
+      ]
+    },
+    {
+      "column": "Time",
+      "quantity": "time_of_day",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        86399.95,
+        86399.97,
+        86399.99,
+        0.01,
+        0.03
+      ]
+    },
+    {
+      "column": "Sync",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        230.0,
+        0.0,
+        20.0,
+        40.0,
+        60.0
+      ]
+    },
+    {
+      "column": "Temperature_(F)",
+      "quantity": "temperature",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        295.15,
+        295.15,
+        295.15,
+        295.15,
+        295.15
+      ]
+    },
+    {
+      "column": "Baro_Press_(atm)",
+      "quantity": "pressure",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        97393.59000000001,
+        97393.59000000001,
+        97393.59000000001,
+        97393.59000000001,
+        97393.59000000001
+      ]
+    },
+    {
+      "column": "Baro_Altitude_ASL_(feet)",
+      "quantity": "altitude_msl",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        655.32,
+        655.32,
+        655.32,
+        655.4419200000001,
+        655.7467200000001
+      ]
+    },
+    {
+      "column": "Baro_Altitude_AGL_(feet)",
+      "quantity": "altitude_above_ground",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.12192000000000001,
+        0.42672
+      ]
+    },
+    {
+      "column": "Batt_Volts",
+      "quantity": "voltage",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        4.02,
+        4.02,
+        4.02,
+        4.02,
+        4.02
+      ]
+    },
+    {
+      "column": "Apo_Volts",
+      "quantity": "voltage",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        3.98,
+        3.98,
+        3.98,
+        3.98,
+        3.98
+      ]
+    },
+    {
+      "column": "Main_Volts",
+      "quantity": "voltage",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        3.97,
+        3.97,
+        3.97,
+        3.97,
+        3.97
+      ]
+    },
+    {
+      "column": "Axial Accel (Gs)",
+      "quantity": "acceleration",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        9.80665,
+        9.9047165,
+        82.57199299999999,
+        83.45459149999999,
+        83.0623255
+      ]
+    },
+    {
+      "column": "Lateral Accel (Gs)",
+      "quantity": "acceleration",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0980665,
+        0.0,
+        1.1767979999999998,
+        0.8825985,
+        0.980665
+      ]
+    },
+    {
+      "column": "Velocity_Up",
+      "quantity": "speed",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        12.192,
+        18.288
+      ]
+    },
+    {
+      "column": "Velocity_DR",
+      "quantity": "speed",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.9144000000000001,
+        0.9144000000000001,
+        0.9144000000000001,
+        0.9144000000000001,
+        0.9144000000000001
+      ]
+    },
+    {
+      "column": "Velocity_CR",
+      "quantity": "speed",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        -0.3048,
+        -0.3048,
+        -0.3048,
+        -0.3048,
+        -0.3048
+      ]
+    },
+    {
+      "column": "Inertial_Altitude",
+      "quantity": "inertial_altitude",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.3048
+      ]
+    },
+    {
+      "column": "Inertial_DR_Position",
+      "quantity": "distance",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        3.6576000000000004,
+        3.6576000000000004,
+        3.6576000000000004,
+        3.6576000000000004,
+        3.6576000000000004
+      ]
+    },
+    {
+      "column": "Inertial_CR_position",
+      "quantity": "distance",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        -1.2192,
+        -1.2192,
+        -1.2192,
+        -1.2192,
+        -1.2192
+      ]
+    },
+    {
+      "column": "Tilt_Angle_(deg)",
+      "quantity": "angle",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        3.5,
+        3.5,
+        3.5,
+        3.5,
+        3.5
+      ]
+    },
+    {
+      "column": "Future_Angle_(deg)",
+      "quantity": "angle",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0
+      ]
+    },
+    {
+      "column": "Roll_Angle_(deg)",
+      "quantity": "angle",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        27.0,
+        27.0,
+        27.0,
+        27.0,
+        27.0
+      ]
+    },
+    {
+      "column": "Reserved_1",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Reserved_2",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Reserved_3",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Rocket_FER_Hex",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        512.0,
+        512.0,
+        257.0,
+        257.0,
+        257.0
+      ]
+    },
+    {
+      "column": "Apo_FER_Hex",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        1.0,
+        1.0,
+        2049.0,
+        2049.0,
+        2049.0
+      ]
+    },
+    {
+      "column": "Main_FER_Hex",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        1.0,
+        1.0,
+        2049.0,
+        2049.0,
+        2049.0
+      ]
+    },
+    {
+      "column": "3rd_FER_Hex",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        1.0,
+        1.0,
+        2049.0,
+        2049.0,
+        2049.0
+      ]
+    },
+    {
+      "column": "4th_FER_Hex",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        1.0,
+        1.0,
+        2049.0,
+        2049.0,
+        2049.0
+      ]
+    },
+    {
+      "column": "Liftoff",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "Apogee",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Press_Increasing",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Burnout_Coast",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Apo_fired",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Main_fired",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "3rd_fired",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "4th_fired",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Normal_Ascent",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "Accel_Vel_LE_0",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        1.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "ECI_Vvel_le_0",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Reserved",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Reserved",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_AGL1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "GT_AGL2",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_FANG1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_FANG2",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_FUTANG",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_TVAL1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_TVAL2",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_VEL1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_VEL2",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_BVEL1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_BURN",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Armed",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "Reserved",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Reserved",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_AGL1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "GT_AGL2",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_FANG1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_FANG2",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_FUTANG",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_TVAL1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_TVAL2",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_VEL1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_VEL2",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_BVEL1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_BURN",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Armed",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "Reserved",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Reserved",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_AGL1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "GT_AGL2",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_FANG1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_FANG2",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_FUTANG",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_TVAL1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_TVAL2",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_VEL1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_VEL2",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_BVEL1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_BURN",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Armed",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "Reserved",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Reserved",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_AGL1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "GT_AGL2",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_FANG1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_FANG2",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_FUTANG",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_TVAL1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_TVAL2",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_VEL1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_VEL2",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "LT_BVEL1",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GT_BURN",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Armed",
+      "quantity": "number",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "Reserved",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Reserved",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.04,
+        -0.02,
+        0.0,
+        0.02,
+        0.04
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "events": [
+    {
+      "time_s": 0.0,
+      "name": "Liftoff"
+    }
+  ],
+  "notes": [
+    "`Velocity_Up`, `Velocity_DR` and `Velocity_CR` read in feet per second, from the manual and the summary: over the climb to the barometer's highest sample, `Velocity_Up` integrates to 1 ft against the barometer's rise of 1 ft, a ratio of 1.00",
+    "`Inertial_Altitude`, `Inertial_DR_Position` and `Inertial_CR_position` read in feet, from the manual and the summary: `Inertial_Altitude` peaks at 1 ft against the barometric altitude's 1 ft",
+    "13 columns named `Reserved…` hold what the manual doesn't describe, and were kept as written",
+    "the logger's time of day, \"Time\", goes back 1 times, by up to 86399.980 s: it is kept as written, and `Flight_Time_(s)` is the clock"
+  ]
+}

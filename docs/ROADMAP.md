@@ -396,7 +396,7 @@ The formats, reading methods and log corpus come from Debrief, written up in `do
   into, carrying every sample the logger wrote. *Done when:* every sample file in refs imports,
   snapshot-tested, and the crate builds with no dependency on `hpr-sim` (`cargo xtask wasm-check`).
   Formats without samples are listed in the docs as needing samples.
-  - [ ] **M7.1b The other importers:** AltOS eeprom, RRC3 and RFF, Eggtimer, Blue Raven,
+  - [ ] **M7.1c The other importers:** AltOS eeprom, RRC3 RFF, Blue Raven's other files,
     Featherweight GPS, PerfectFlite `.pfa`, Entacore AIM, AltimeterCloud, spreadsheets, CATS;
     EuRoC/Juno CSV; generic CSV with column mapping; unit detection. *Done when:* the parent's.
 - [ ] **M7.2 Readings, reconstruction and ghost data.**

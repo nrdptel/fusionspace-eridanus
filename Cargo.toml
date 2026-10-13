@@ -140,3 +140,14 @@ unimplemented = "warn"
 # committed report and example output reproduces byte for byte either way (#397, docs/perf.md).
 [profile.dev.package.fusionspace-hpr-analysis]
 opt-level = 3
+
+# The flight-log survey (`cargo xtask logs`) reads about 1,000 sample logs, some of 20 MB, hashes
+# them and writes each record as JSON: 167 s unoptimized, 25 s with the readers, SHA-256 and
+# serde_json's float writer (`zmij`) at opt-level 3. Its committed report reproduces byte for
+# byte either way (M7.1b).
+[profile.dev.package.fusionspace-hpr-flightdata]
+opt-level = 3
+[profile.dev.package.sha2]
+opt-level = 3
+[profile.dev.package.zmij]
+opt-level = 3

@@ -47,6 +47,8 @@
 //! ```
 
 pub mod altos;
+pub mod blueraven;
+pub mod eggtimer;
 pub mod error;
 pub mod filter;
 pub mod import;
@@ -54,6 +56,8 @@ pub mod log;
 pub mod perfectflite;
 pub mod raven;
 pub mod readings;
+pub mod rrc3;
+mod table;
 
 #[cfg(test)]
 mod synthetic;

@@ -113,8 +113,13 @@ pub enum Quantity {
     Longitude,
     /// An angle, degrees, such as a tilt or a bearing.
     Angle,
+    /// A rate of turn, degrees per second, such as a gyroscope's about one of its axes.
+    AngularRate,
     /// A distance, m, such as a GNSS receiver's range from the pad.
     Distance,
+    /// A time of day on the logger's own clock, s after its midnight, in whatever time zone the
+    /// clock was set to: files state none.
+    TimeOfDay,
     /// A number with no unit, such as a count of satellites, a signal strength, a flag or a
     /// state code, as the file writes it.
     Number,
@@ -139,6 +144,8 @@ impl Quantity {
             Self::Voltage => "V",
             Self::Current => "A",
             Self::Latitude | Self::Longitude | Self::Angle => "°",
+            Self::AngularRate => "°/s",
+            Self::TimeOfDay => "s",
             Self::Number | Self::Unrecognized => "",
         }
     }
@@ -174,6 +181,16 @@ pub enum LogFormat {
     /// The Featherweight Raven's FIP CSV, as the Featherweight Interface Program exports it: each
     /// channel its own `Time@` column, its values, and a status column.
     RavenFipCsv,
+    /// Missile Works' mDACS export of an RRC3's flight: a header row `Time, Altitude, Pressure,
+    /// Velocity, Temperature, Events, Voltages`, then rows on one clock.
+    Rrc3Csv,
+    /// An Eggtimer's flight data, as its own download writes it: a header row such as `T, Alt,
+    /// VRaw, VFilt`, then rows on one clock.
+    EggtimerCsv,
+    /// The Featherweight Blue Raven's CSV, as its phone app exports a flight: a low-rate file of
+    /// its barometric and inertial figures, or a high-rate file of its inertial sensors, each
+    /// with a header row such as `Year,Month,Day,Time,Flight_Time_(s),…`.
+    BlueRavenCsv,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -254,11 +271,23 @@ const ONE_PASCAL_M: f64 = 1.0 / (1.225 * 9.806_65);
 /// (the others step by 8 to 16 Pa), though the export prints five decimals.
 const RAVEN_PRESSURE_STEP_ATM: f64 = 4.0e-5;
 
+/// The step an RRC3's export writes its pressure in, Pa: 0.1 hPa (10 Pa), the smallest step of
+/// `Pressure` in all 50 RRC3 files among the project's sample logs.
+const RRC3_PRESSURE_STEP_PA: f64 = 10.0;
+
+/// The Blue Raven's pressure step, atm: 2 × 10⁻⁵ atm (2.0265 Pa), as its USB download writes the
+/// pressure in atmospheres times 50,000 (*Blue Raven User's Guide*, 2026-05-12, p23). The app's
+/// file prints the pressure to 10⁻⁴ atm, but its altitude above the pad steps by 0.5 to 0.6 ft near
+/// the pad, as this finer step makes it.
+const BLUE_RAVEN_PRESSURE_STEP_ATM: f64 = 2.0e-5;
+
 impl LogFormat {
     /// The altitude's resolution in the format, m: the smallest step between two altitudes the
-    /// file can tell apart near the ground. A PerfectFlite writes whole feet; AltOS writes its
-    /// pressure in whole pascals, 0.083 m of altitude at sea level; the Raven's pressure moves in
-    /// steps of 4 × 10⁻⁵ atm, 0.337 m at sea level. Aloft, the last two are larger.
+    /// file can tell apart near the ground. A PerfectFlite and an Eggtimer write whole feet; AltOS
+    /// writes its pressure in whole pascals, 0.083 m of altitude at sea level; the Raven's
+    /// pressure moves in steps of 4 × 10⁻⁵ atm, 0.337 m at sea level, the Blue Raven's in steps of
+    /// 2 × 10⁻⁵ atm, 0.169 m, and an RRC3's export in steps of 0.1 hPa, 0.832 m. Aloft, those
+    /// from a pressure are larger.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -266,6 +295,9 @@ impl LogFormat {
             }
             Self::AltosCsv => ONE_PASCAL_M,
             Self::RavenFipCsv => RAVEN_PRESSURE_STEP_ATM * 101_325.0 * ONE_PASCAL_M,
+            Self::EggtimerCsv => crate::perfectflite::FOOT_M,
+            Self::Rrc3Csv => RRC3_PRESSURE_STEP_PA * ONE_PASCAL_M,
+            Self::BlueRavenCsv => BLUE_RAVEN_PRESSURE_STEP_ATM * 101_325.0 * ONE_PASCAL_M,
         }
     }
 
@@ -273,7 +305,12 @@ impl LogFormat {
     pub fn extension(self) -> &'static str {
         match self {
             Self::PerfectFlitePf2 => ".pf2",
-            Self::PerfectFliteCsv | Self::AltosCsv | Self::RavenFipCsv => ".csv",
+            Self::PerfectFliteCsv
+            | Self::AltosCsv
+            | Self::RavenFipCsv
+            | Self::Rrc3Csv
+            | Self::EggtimerCsv
+            | Self::BlueRavenCsv => ".csv",
             Self::PerfectFliteText => ".txt",
         }
     }
@@ -286,6 +323,9 @@ impl LogFormat {
             Self::PerfectFliteText => "PerfectFlite text",
             Self::AltosCsv => "AltOS CSV",
             Self::RavenFipCsv => "Raven FIP CSV",
+            Self::Rrc3Csv => "RRC3 CSV",
+            Self::EggtimerCsv => "Eggtimer CSV",
+            Self::BlueRavenCsv => "Blue Raven CSV",
         }
     }
 }
@@ -307,7 +347,8 @@ mod tests {
     use super::*;
 
     /// Each format's resolution against a hand computation: 1 / (1.225 × 9.806 65) =
-    /// 0.083 242 m for a pascal, and 4 × 10⁻⁵ × 101 325 = 4.053 Pa for the Raven's step.
+    /// 0.083 242 m for a pascal, 4 × 10⁻⁵ × 101 325 = 4.053 Pa for the Raven's step,
+    /// 2 × 10⁻⁵ × 101 325 = 2.0265 Pa for the Blue Raven's, and 10 Pa for an RRC3's.
     #[test]
     fn each_formats_altitude_resolution_is_its_step() {
         let cases = [
@@ -316,6 +357,9 @@ mod tests {
             (LogFormat::PerfectFliteText, 0.3048),
             (LogFormat::AltosCsv, 0.083_242),
             (LogFormat::RavenFipCsv, 0.337_38),
+            (LogFormat::Rrc3Csv, 0.832_42),
+            (LogFormat::EggtimerCsv, 0.3048),
+            (LogFormat::BlueRavenCsv, 0.168_69),
         ];
         for (format, expected) in cases {
             let resolution = format.altitude_resolution_m();
