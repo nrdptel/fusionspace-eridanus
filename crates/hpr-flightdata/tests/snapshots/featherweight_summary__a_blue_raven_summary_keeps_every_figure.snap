@@ -406,7 +406,7 @@ expression: log
   "events": [],
   "notes": [
     "a summary holds no samples, so the record's clock and tracks are empty: the flight's samples are in the Blue Raven's low-rate CSV exported beside it",
-    "`Main chute descent rate` kept as written, in `feet`, which isn't a speed: the file writes `-20.0 feet`",
+    "`Main chute descent rate` kept as written, in a unit that isn't a speed: the file writes `-20.0 feet`",
     "`Low-G accel pad offset` kept as written, in a unit no source states: the file writes `0.0010,0.0000,-0.0020`",
     "`Hi-G accel pad offset` kept as written, in a unit no source states: the file writes `0.50,0.25,1.00`",
     "`Pad Hi-G accel` kept as written, in a unit no source states: the file writes `0.05,0.90,1.50`",

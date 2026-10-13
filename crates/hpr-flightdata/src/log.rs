@@ -254,7 +254,7 @@ pub enum LogFormat {
     Rrc3Rff,
     /// A Featherweight summary, as the Featherweight UI app exports a Blue Raven's or a GPS
     /// tracker's flight beside its data: one `name,value` row a figure, such as `Max
-    /// Altitude,4034.98 feet`, and no samples.
+    /// Altitude,2500.25 feet`, and no samples.
     FeatherweightSummaryCsv,
 }
 
@@ -471,13 +471,13 @@ pub struct Stated {
     /// How many samples the file says it holds.
     pub samples: Option<usize>,
     /// Every figure a summary file states, in the file's order, such as a Featherweight
-    /// summary's `Max velocity,700.36 feet/sec`; empty for a file of samples, and then left out of
+    /// summary's `Max velocity,500.50 feet/sec`; empty for a file of samples, and then left out of
     /// the record's JSON, so that a record written before the field was reads the same.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub figures: Vec<Figure>,
 }
 
-/// A figure a file states once about its flight, such as a summary's `Max Altitude,4034.98
+/// A figure a file states once about its flight, such as a summary's `Max Altitude,2500.25
 /// feet`: kept as the file writes it, and in SI where its unit is known.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -485,7 +485,7 @@ pub struct Figure {
     /// The figure's name as the file writes it, such as `Max Altitude`.
     pub name: String,
     /// The value as the file writes it, unit and all, its cells joined by commas, such as
-    /// `4034.98 feet` or `-0.9998,-0.0219,0.0029`.
+    /// `2500.25 feet` or `-1.0000,0.0000,0.0000`.
     pub written: String,
     /// What the figure measures, which sets the unit of [`Figure::values`]; `None` for text, such
     /// as a date, a time of day or a name, and [`Quantity::Unrecognized`] for numbers kept as
@@ -493,7 +493,8 @@ pub struct Figure {
     pub quantity: Option<Quantity>,
     /// The value in the quantity's unit ([`Quantity::unit`]), one number for each the file
     /// writes: three for a vector, such as a direction's components along the logger's axes;
-    /// empty for text. Every one is finite.
+    /// empty for text. Every one a reader writes is finite: a `NaN` here would be written to JSON
+    /// as `null`, which doesn't read back.
     pub values: Vec<f64>,
 }
 

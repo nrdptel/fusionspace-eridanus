@@ -16,8 +16,8 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > files allow. Where a header names no unit, the reader decides it from the file and says how in
 > a note ([units the file decides](#units-the-file-decides)); the few units no source states are
 > named [below](#units-no-source-states). In the four layouts read since
-> [M7.1c4](../decisions-and-roadmap.md#m7-1c4), a unit two checks don't settle is kept as written,
-> so many of their columns keep the file's own numbers, and no reading is taken from them yet.
+> [M7.1c4](../decisions-and-roadmap.md#m7-1c4), a unit two checks don't settle is kept as written
+> (the file's number stored unchanged, with no SI value made from it), so many of their columns keep the file's own numbers, and no reading is taken from them yet.
 > The two raw downloads read since [M7.1c5](../decisions-and-roadmap.md#m7-1c5), the Raven's
 > `.FIPa` and the RRC3's `.rff`, match their makers' exports of the same flights in every sample,
 > wherever an export sits beside them; 7 of their 63 sample files have none, and are unchecked
@@ -592,10 +592,10 @@ figure's name, then its value, with the unit written after the number:
 
 ```text
 Rocket Name,Club demo
-Max Altitude,4034.98 feet
-Max velocity,700.36 feet/sec
-Thrust tilt efficiency,99.42%
-Direction of 1st motion,-0.9998,-0.0219,0.0029
+Max Altitude,2500.25 feet
+Max velocity,500.50 feet/sec
+Thrust tilt efficiency,98.50%
+Direction of 1st motion,-1.0000,0.0000,0.0000
 ```
 
 > **How far to trust it.** The logger's own figures, copied as the file states them, not HPR
@@ -635,16 +635,16 @@ lists every figure:
 | `Max Altitude`, `Main chute deploy altitude` | altitude above the pad, m | `feet` or `ft`, × 0.3048 |
 | `Pad altitude ASL` (a Blue Raven's), `Pad altitude` (a tracker's) | altitude above sea level, m | `feet` or `ft`, × 0.3048 |
 | `Max velocity`, `Drogue descent rate`, a tracker's velocities | speed, m/s | `feet/sec` or `ft/sec`, × 0.3048 |
-| `Max motor burn acceleration`, `Peak drag deceleration`, each output's maximum, `Max landing accel` | acceleration, m/s² | `Gs`, × 9.806 65 |
+| `Max motor burn acceleration`, `Peak drag deceleration`, each deployment output's maximum (`Apo channel max accel` and the like), `Max landing accel` | acceleration, m/s² | `Gs`, × 9.806 65 |
 | `Temperature on pad`, `Max Temperature`, `Min Temperature` | temperature, K | `F`, degrees Fahrenheit |
-| `Time to first burnout`, each output's firing time | time, s | `sec` |
+| `Time to first burnout`, each deployment output's firing time | time, s | `sec` |
 | `Thrust tilt efficiency` | a fraction | `%`, ÷ 100 |
 | `Direction of 1st motion`, `Gravity direction on pad` | a direction of unit length, a number an axis | none |
 
 The Blue Raven's manual describes the same summary as the logger's USB port prints it, with each
-field's unit (p31–33). Its unit words agree with the app's, but for two figures; the USB form
-scales some figures, such as accelerations in g × 10, and that scaling isn't compared. These
-are kept as written in every file, never guessed:
+field's unit (p31–33). The manual's unit words match the app's except for the two figures
+below. The USB form also scales some figures (accelerations in g × 10); that scaling isn't
+compared. These two are kept as written in every file, never guessed:
 
 - **`Main chute descent rate`**: the app writes its value in `feet`, a length, where the manual
   gives the USB summary's average descent under the main in "feet/second x 10". A figure whose
@@ -674,7 +674,7 @@ refused, as is a name stated twice, and a value too large for its unit's convers
 - `Temperature on pad,77.0 F` is 298.15 K (77.0 °F).
 - `Thrust tilt efficiency,98.50%` is the fraction 0.985.
 - `Main chute descent rate,-20.0 feet` stays −20.0 as written, with the note
-  `` `Main chute descent rate` kept as written, in `feet`, which isn't a speed: the file writes `-20.0 feet` ``.
+  `` `Main chute descent rate` kept as written, in a unit that isn't a speed: the file writes `-20.0 feet` ``.
 
 ### Checked against the files beside
 
@@ -685,12 +685,14 @@ not its high-rate one, or a tracker's CSV. It
 compares the summary's maximum altitude with the file's highest altitude above the pad (for a
 tracker, its highest GNSS altitude less the pad altitude the summary states). It compares the pad
 altitude with the median of the file's first 20 altitudes above sea level. A figure agrees within
-10%, and its ratio, summary over file, is the one nearest 1.
+10%. When several files sit beside a summary, the ratio, summary over file, nearest 1 is the one
+counted.
 
 Feet and meters are 3.28 apart, so a band of 10% tells them apart. A summary that would agree
 only were its feet meters contradicts its unit, and `cargo xtask logs --check` fails on it. A
 folder may hold other flights' files, so agreeing is counted, not required. The
-[survey's report](#how-it-was-checked) prints the counts:
+[survey's report](#how-it-was-checked) prints the counts, naming a file by the survey's id, the
+first 16 hex digits of its SHA-256:
 
 | Logger | Summaries | With a file beside | Stating an apogee | Apogee agrees | Its ratios | Pad agrees | Its ratios | Agreeing in neither | Contradicted |
 |---|---:|---:|---:|---:|---:|---:|---:|---|---|
@@ -699,7 +701,8 @@ folder may hold other flights' files, so agreeing is counted, not required. The
 
 No summary agrees only as meters. Of the tracker summaries, 5 of the 5 that state an apogee
 agree in it. The one of each logger that agrees in neither figure agrees with no file beside it,
-not even as meters; the survey doesn't show why
+not even as meters; the survey doesn't show why. Nor is it measured why a Blue Raven's stated
+apogee runs up to 3% below its low-rate file's highest altitude
 ([ADR-260, the summaries' check](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0260-featherweight-summaries-before-the-rest.md)
 §4). The summaries with no file of samples beside them are read by the same rules, unchecked. No
 other figure is checked. Summaries inside zip archives and spreadsheets aren't read yet: they

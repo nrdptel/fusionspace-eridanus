@@ -11,10 +11,10 @@
 //!
 //! ```text
 //! Rocket Name,Club demo
-//! Max Altitude,4034.98 feet
-//! Max velocity,700.36 feet/sec
-//! Thrust tilt efficiency,99.42%
-//! Direction of 1st motion,-0.9998,-0.0219,0.0029
+//! Max Altitude,2500.25 feet
+//! Max velocity,500.50 feet/sec
+//! Thrust tilt efficiency,98.50%
+//! Direction of 1st motion,-1.0000,0.0000,0.0000
 //! ```
 //!
 //! A file is a summary when its first line that isn't blank names `Rocket Name`, and a line among
@@ -67,7 +67,11 @@
 //!
 //! A name the reader doesn't know is kept as written too: as numbers, [`Quantity::Unrecognized`],
 //! if every cell is one, else as text. Each figure kept as written has a note, such as
-//! `` `Main chute descent rate` kept as written, in `feet`, which isn't a speed: … ``.
+//! `` `Main chute descent rate` kept as written, in a unit that isn't a speed: the file writes
+//! `-18.0 feet` ``; for a name the reader doesn't know, `a figure HPR Sim doesn't know kept as
+//! written: …`, the name after the colon, as the survey's public report counts each note by the
+//! words before it. A temperature below absolute zero, and a latitude or longitude past its
+//! range, is kept as written too.
 //!
 //! **What the summary states.** The record's [`Stated::apogee_m`] is `Max Altitude` in SI: the
 //! barometer's altitude above the pad for a Blue Raven, and for a tracker its receiver's altitude
@@ -85,6 +89,8 @@
 //! row's end are dropped, as some files pad every row to four cells. Blank lines are skipped;
 //! lines may end in CR, LF or both; a byte-order mark is dropped. A row whose name is empty or a
 //! number is refused, as is a name stated twice and a value too large for its unit's conversion.
+//! A row of nothing but commas, padding, is skipped as a blank line is. A figure's value as
+//! written is the row's text after the name, padding dropped from its end.
 //! A known figure whose cells aren't the numbers it needs, such as a direction with two
 //! components, is kept as written, with a note.
 //!
@@ -281,7 +287,7 @@ pub(crate) fn recognizes(text: &str) -> bool {
         && names.any(|name| name == "max altitude" || name == "launch time utc")
 }
 
-/// A cell as a number and the unit written after it, such as `4034.98 feet` as 4034.98 and
+/// A cell as a number and the unit written after it, such as `2500.25 feet` as 2500.25 and
 /// `feet`; `None` if it doesn't open with a finite number.
 fn measured_cell(cell: &str) -> Option<(f64, &str)> {
     let bytes = cell.as_bytes();
@@ -322,14 +328,24 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let mut lines_of: HashMap<String, usize> = HashMap::new();
     let mut notes = Notes::default();
     for (line, row) in numbered_lines(text) {
-        if row.trim().is_empty() {
+        // A row padded to four cells may be all padding, `,,,`: blank, as an empty line is.
+        if row
+            .trim_matches(|c: char| c == ',' || c.is_whitespace())
+            .is_empty()
+        {
             continue;
         }
-        let mut cells: Vec<&str> = row.split(',').map(str::trim).collect();
-        while cells.len() > 1 && cells.last() == Some(&"") {
-            cells.pop();
-        }
-        let name = cells[0];
+        let (name, value) = row.split_once(',').unwrap_or((row, ""));
+        let name = name.trim();
+        // The value as written, but for the padding: empty cells at the row's end dropped.
+        let value = value
+            .trim_end_matches(|c: char| c == ',' || c.is_whitespace())
+            .trim();
+        let cells: Vec<&str> = if value.is_empty() {
+            Vec::new()
+        } else {
+            value.split(',').map(str::trim).collect()
+        };
         if name.is_empty() || number(name, false).is_some() {
             return Err(syntax(
                 line,
@@ -349,7 +365,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
                 ),
             ));
         }
-        figures.push(figure(name, &cells[1..], kind(&key), line, &mut notes)?);
+        figures.push(figure(name, value, &cells, kind(&key), line, &mut notes)?);
         keys.push(key);
     }
     let tracker = keys.iter().any(|key| key == "launch time utc");
@@ -415,27 +431,38 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     })
 }
 
-/// One row's figure: `cells` are its value's, after the name.
+/// One row's figure: `written` is its value as the file writes it, after the name, and `cells` the
+/// value's cells, trimmed.
 fn figure(
     name: &str,
+    written: &str,
     cells: &[&str],
     kind: Option<Kind>,
     line: usize,
     notes: &mut Notes,
 ) -> Result<Figure, LogError> {
-    let written = cells.join(",");
+    let written = written.to_owned();
     let bare: Option<Vec<f64>> = cells.iter().map(|cell| number(cell, false)).collect();
     // Kept as written, each cell's number, its unit, if any, left in `written`.
     let numbers: Option<Vec<f64>> = cells
         .iter()
         .map(|cell| measured_cell(cell).map(|(value, _)| value))
         .collect();
+    // A note's part before its first `: ` is what the survey's public report counts, so it holds
+    // only the reader's own words and a name from its table; what the file writes comes after.
     let as_written = |notes: &mut Notes, why: String| {
-        notes.push(format!(
-            "`{}` kept as written, {why}: the file writes `{}`",
-            short(name),
-            short(&written)
-        ));
+        notes.push(match kind {
+            Some(_) => format!(
+                "`{}` kept as written, {why}: the file writes `{}`",
+                short(name),
+                short(&written)
+            ),
+            None => format!(
+                "a figure HPR Sim doesn't know kept as written: `{}`, the file writes `{}`",
+                short(name),
+                short(&written)
+            ),
+        });
         match &numbers {
             Some(values) if !values.is_empty() => Figure::new(
                 name,
@@ -457,13 +484,14 @@ fn figure(
                 Some((value, word)) => match units.iter().find(|(unit, _)| *unit == word) {
                     Some((_, conversion)) => {
                         let value = finite(conversion.apply(value), FORMAT, line, name)?;
-                        let out_of_range = match quantity {
-                            Quantity::Latitude => value.abs() > 90.0,
-                            Quantity::Longitude => value.abs() > 180.0,
-                            _ => false,
+                        let impossible = match quantity {
+                            Quantity::Latitude => (value.abs() > 90.0).then_some("that large"),
+                            Quantity::Longitude => (value.abs() > 180.0).then_some("that large"),
+                            Quantity::Temperature => (value < 0.0).then_some("below absolute zero"),
+                            _ => None,
                         };
-                        if out_of_range {
-                            as_written(notes, format!("as no {what} is that large"))
+                        if let Some(impossible) = impossible {
+                            as_written(notes, format!("as no {what} is {impossible}"))
                         } else {
                             Figure::new(name, written.clone(), Some(quantity), vec![value])
                         }
@@ -471,12 +499,11 @@ fn figure(
                     None if word.is_empty() => {
                         as_written(notes, format!("with no unit, where a {what} needs one"))
                     }
-                    None => {
-                        as_written(notes, format!("in `{}`, which isn't a {what}", short(word)))
-                    }
+                    None => as_written(notes, format!("in a unit that isn't a {what}")),
                 },
                 None => as_written(notes, "not a number".to_owned()),
             },
+            [] => as_written(notes, "with no value".to_owned()),
             _ => as_written(
                 notes,
                 format!("as {} cells, where a {what} is one", cells.len()),
@@ -498,7 +525,7 @@ fn figure(
             ),
         },
         Some(Kind::Unstated) => as_written(notes, "in a unit no source states".to_owned()),
-        None => as_written(notes, "a figure HPR Sim doesn't know".to_owned()),
+        None => as_written(notes, String::new()),
     };
     Ok(figure)
 }
@@ -573,16 +600,16 @@ mod tests {
 
     #[test]
     fn a_unit_the_name_doesnt_allow_is_kept_as_written() {
-        let text = format!("{HEAD}Main chute descent rate,-23.5 feet\n");
+        let text = format!("{HEAD}Main chute descent rate,-18.0 feet\n");
         let log = read(&text).unwrap();
         let rate = figure_of(&log, "Main chute descent rate");
         assert_eq!(rate.quantity, Some(Quantity::Unrecognized));
-        assert_eq!(rate.values, [-23.5]);
-        assert_eq!(rate.written, "-23.5 feet");
+        assert_eq!(rate.values, [-18.0]);
+        assert_eq!(rate.written, "-18.0 feet");
         assert!(
             log.notes.contains(
-                &"`Main chute descent rate` kept as written, in `feet`, which isn't a speed: the \
-              file writes `-23.5 feet`"
+                &"`Main chute descent rate` kept as written, in a unit that isn't a speed: the \
+              file writes `-18.0 feet`"
                     .to_owned()
             )
         );
@@ -594,7 +621,11 @@ mod tests {
         assert_eq!(log.stated.apogee_m, None);
         let apogee = figure_of(&log, "Max Altitude");
         assert_eq!(apogee.quantity, Some(Quantity::Unrecognized));
-        assert!(log.notes[1].starts_with("`Max Altitude` kept as written, in `meters`"));
+        assert_eq!(
+            log.notes[1],
+            "`Max Altitude` kept as written, in a unit that isn't a length: the file writes `300 \
+             meters`"
+        );
     }
 
     #[test]
@@ -638,7 +669,7 @@ mod tests {
         assert_eq!(measured_cell("1.5e3 feet"), Some((1500.0, "feet")));
         assert_eq!(measured_cell("2E-1 Gs"), Some((0.2, "Gs")));
         assert_eq!(measured_cell("12feet"), Some((12.0, "feet")));
-        assert_eq!(measured_cell("99.42%"), Some((99.42, "%")));
+        assert_eq!(measured_cell("98.50%"), Some((98.5, "%")));
         assert_eq!(measured_cell("feet"), None);
         assert_eq!(measured_cell(""), None);
     }

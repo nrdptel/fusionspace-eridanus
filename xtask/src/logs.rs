@@ -25,7 +25,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use hpr_flightdata::error::LogError;
-use hpr_flightdata::log::{FlightLog, LogFormat, Quantity};
+use hpr_flightdata::log::{Channel, FlightLog, LogFormat};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -763,20 +763,32 @@ fn raw_checks(samples: &[Sample]) -> BTreeMap<String, RawChecks> {
 }
 
 /// A Featherweight summary's logger, as its record names it, with the format of the file of
-/// samples the app exports beside it and the quantity of that file's channel whose start is the
-/// pad's altitude above sea level.
-const SUMMARY_TRACKS: [(&str, LogFormat, Quantity); 2] = [
+/// samples the app exports beside it and the columns of that file whose start is the pad's
+/// altitude above sea level, the first the file has: a Blue Raven's barometric altitude, or a
+/// tracker's own GNSS altitude in its log or in a ground station's (not the station's `GS Alt
+/// asl`).
+const SUMMARY_TRACKS: [(&str, LogFormat, &[&str]); 2] = [
     (
         "Featherweight Blue Raven",
         LogFormat::BlueRavenCsv,
-        Quantity::AltitudeMsl,
+        &["Baro_Altitude_ASL_(feet)"],
     ),
     (
         "Featherweight GPS tracker",
         LogFormat::FeatherweightGpsCsv,
-        Quantity::GnssAltitude,
+        &["ALT", "TRACKER Alt asl"],
     ),
 ];
+
+/// The first of `columns` that `track` has, as a channel.
+fn track_channel<'a>(track: &'a FlightLog, columns: &[&str]) -> Option<&'a Channel> {
+    columns.iter().find_map(|column| {
+        track
+            .channels
+            .iter()
+            .find(|channel| channel.column == *column)
+    })
+}
 
 /// How near 1 a summary's figure over a file's must be for the two to agree. The summaries
 /// write their lengths in feet; were a file's in meters, the ratio would be 3.28 or 0.30, so any
@@ -865,7 +877,7 @@ fn summary_checks(samples: &[Sample]) -> BTreeMap<String, SummaryChecks> {
         if summary.format != LogFormat::FeatherweightSummaryCsv {
             continue;
         }
-        let Some((logger, track_format, pad_quantity)) = SUMMARY_TRACKS
+        let Some((logger, track_format, pad_columns)) = SUMMARY_TRACKS
             .iter()
             .find(|(logger, ..)| *logger == summary.logger)
         else {
@@ -880,7 +892,7 @@ fn summary_checks(samples: &[Sample]) -> BTreeMap<String, SummaryChecks> {
             .filter(|other| hpr_flightdata::import::detect(&other.bytes) == Some(*track_format))
             .filter_map(|other| hpr_flightdata::import::read(&other.bytes).ok())
             .filter(|track| {
-                !track.altitude_m.is_empty() || track.channels_of(*pad_quantity).next().is_some()
+                !track.altitude_m.is_empty() || track_channel(track, pad_columns).is_some()
             })
             .collect();
         if beside.is_empty() {
@@ -900,7 +912,7 @@ fn summary_checks(samples: &[Sample]) -> BTreeMap<String, SummaryChecks> {
         };
         let (mut apogees, mut pads) = (Vec::new(), Vec::new());
         for track in &beside {
-            let pad_channel = track.channels_of(*pad_quantity).next();
+            let pad_channel = track_channel(track, pad_columns);
             // The Blue Raven's track is its barometer's altitude above the pad; a tracker's is
             // its receiver's above sea level, so its highest is taken above the stated pad.
             let peak = if *track_format == LogFormat::BlueRavenCsv {
@@ -1577,13 +1589,18 @@ fn markdown(report: &Report) -> String {
 /// A record's note on a unit no header states, cut to its decision: the text before the first
 /// `: ` of a note that opens with a column's name in backticks and says how it was `read in`, or
 /// that it was `kept as written`, as the readers write them, such as `` `Velocity` read in miles
-/// per hour, from the altitude``.
+/// per hour, from the altitude``, or a Featherweight summary's [`UNKNOWN_FIGURE`].
 fn unit_decision(note: &str) -> Option<&str> {
     let (decision, _) = note.split_once(": ")?;
-    (decision.starts_with('`')
+    ((decision.starts_with('`')
         && (decision.contains("` read in ") || decision.contains("` kept as written")))
-    .then_some(decision)
+        || decision == UNKNOWN_FIGURE)
+        .then_some(decision)
 }
+
+/// A Featherweight summary's note on a figure its reader doesn't know, before its colon: the name
+/// comes after, so the public report counts the note without quoting what a file wrote.
+const UNKNOWN_FIGURE: &str = "a figure HPR Sim doesn't know kept as written";
 
 /// The records of a CSV text, quotes and doubled quotes honored.
 fn csv_records(text: &str) -> Vec<Vec<String>> {
@@ -2228,6 +2245,110 @@ mod tests {
         let checks = &report.summary_checks["Featherweight Blue Raven"];
         assert_eq!((checks.apogee_agrees, checks.contradicted.len()), (0, 0));
         assert!(unread.is_empty(), "{unread:?}");
+    }
+
+    /// Each length is checked on its own: one written in meters fails the check though the other
+    /// agrees, and a ratio just inside 10% agrees where one just outside doesn't.
+    #[test]
+    fn each_length_is_checked_and_the_band_is_ten_percent() {
+        // 20 rows on the pad at 1,000 ft above sea level, then a climb to 1,000 ft above it.
+        let mut csv = String::from(
+            "Year,Month,Day,Time,Flight_Time_(s),Sync,Baro_Altitude_ASL_(feet),\
+             Baro_Altitude_AGL_(feet)\n",
+        );
+        for (i, agl) in [0.0; 20].iter().chain(&[500.0, 1000.0, 0.0]).enumerate() {
+            csv += &format!(
+                "2026,5,23,10:15:{i:02}.000,{}.0,0,{},{agl}\n",
+                i as f64 - 20.0,
+                1000.0 + agl
+            );
+        }
+        let checks = |apogee_ft: f64, pad_ft: f64| {
+            let summary = format!(
+                "Rocket Name,Demo\nMax Altitude,{apogee_ft} feet\nPad altitude ASL,{pad_ft} feet\n"
+            );
+            let sample = |name: &str, family: &str, bytes: Vec<u8>| Sample {
+                path: PathBuf::from("flight").join(name),
+                source: "test",
+                family: family.to_owned(),
+                bytes,
+            };
+            let (report, unread) = survey(
+                &[
+                    sample("summary.csv", "blueraven-summary-csv", summary.into_bytes()),
+                    sample("low.csv", "blueraven-csv", csv.clone().into_bytes()),
+                ],
+                Vec::new(),
+            );
+            let checks = &report.summary_checks["Featherweight Blue Raven"];
+            (
+                checks.apogee_agrees,
+                checks.pad_agrees,
+                checks.contradicted.len(),
+                unread.len(),
+            )
+        };
+        // The apogee in meters, the pad right; then the reverse.
+        assert_eq!(checks(304.8, 1000.0), (0, 1, 1, 1));
+        assert_eq!(checks(1000.0, 304.8), (1, 0, 1, 1));
+        // 9% high agrees, 11% high doesn't, and neither contradicts the feet.
+        assert_eq!(checks(1090.0, 1000.0), (1, 1, 0, 0));
+        assert_eq!(checks(1110.0, 1000.0), (0, 1, 0, 0));
+    }
+
+    /// A tracker's summary is checked against its own GNSS altitude, the highest taken above the
+    /// pad the summary states; its feet written as meters fail the check.
+    #[test]
+    fn a_trackers_summary_is_checked_above_its_stated_pad() {
+        const TRACKER: &[u8] =
+            include_bytes!("../../crates/hpr-flightdata/tests/samples/fwgps-tracker-older.csv");
+        let track = hpr_flightdata::import::read(TRACKER).unwrap();
+        let altitude = &track_channel(&track, &["ALT"]).unwrap().values;
+        let pad_m = pad_median(altitude).unwrap();
+        let peak_m = altitude.iter().copied().fold(f64::MIN, f64::max);
+        let sample = |name: &str, family: &str, bytes: Vec<u8>| Sample {
+            path: PathBuf::from("flight").join(name),
+            source: "test",
+            family: family.to_owned(),
+            bytes,
+        };
+        let run = |scale: f64| {
+            let summary = format!(
+                "Rocket Name,Demo\nLaunch time UTC,2024-02-29\nMax Altitude,{:.2} feet\n\
+                 Pad altitude,{:.2} ft\n",
+                (peak_m - pad_m) / 0.3048 * scale,
+                pad_m / 0.3048 * scale
+            );
+            let (report, unread) = survey(
+                &[
+                    sample(
+                        "summary.csv",
+                        "featherweight-summary-csv",
+                        summary.into_bytes(),
+                    ),
+                    sample("track.csv", "fwgps-csv", TRACKER.to_vec()),
+                ],
+                Vec::new(),
+            );
+            let checks = &report.summary_checks["Featherweight GPS tracker"];
+            (
+                checks.stating_an_apogee,
+                checks.apogee_agrees,
+                checks.pad_agrees,
+                checks.contradicted.len(),
+                unread.len(),
+            )
+        };
+        assert_eq!(run(1.0), (1, 1, 1, 0, 0));
+        // The same flight's meters, written as feet.
+        assert_eq!(run(0.3048), (1, 0, 0, 1, 1));
+    }
+
+    #[test]
+    fn an_unknown_figures_note_is_counted_without_its_name() {
+        let note =
+            "a figure HPR Sim doesn't know kept as written: `Spin rate`, the file writes `3`";
+        assert_eq!(unit_decision(note), Some(UNKNOWN_FIGURE));
     }
 
     #[test]

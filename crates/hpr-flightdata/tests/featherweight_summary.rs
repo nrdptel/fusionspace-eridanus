@@ -147,7 +147,7 @@ fn a_blue_raven_summary_keeps_every_figure() {
     assert!(log.notes[0].starts_with("a summary holds no samples"));
     assert_eq!(
         log.notes[1],
-        "`Main chute descent rate` kept as written, in `feet`, which isn't a speed: the file \
+        "`Main chute descent rate` kept as written, in a unit that isn't a speed: the file \
          writes `-20.0 feet`"
     );
     insta::assert_json_snapshot!(log);
@@ -217,7 +217,37 @@ fn a_figure_that_doesnt_fit_its_name_is_kept_as_written() {
             "`Direction of 1st motion` kept as written, as it isn't 3 plain numbers",
             "`Max velocity` kept as written, with no unit, where a speed needs one",
             "`Pad Latitude` kept as written, as no latitude is that large",
-            "`Spin rate` kept as written, a figure HPR Sim doesn't know",
+            "a figure HPR Sim doesn't know kept as written",
+        ]
+    );
+}
+
+/// Padding and odd rows: a row of nothing but commas is skipped, a value keeps its own text and
+/// spaces, an empty value and a temperature below absolute zero are kept as written.
+#[test]
+fn padding_is_dropped_and_impossible_values_kept_as_written() {
+    let text = "Rocket Name,Demo,,,\n,,,\nMax Altitude,100 feet,,\n , , \n\
+                Firmware,v1.2, build 3,,\nMax velocity,,,\nTemperature on pad,-500 F\n";
+    let log = import::read(text.as_bytes()).unwrap();
+    assert_eq!(log.stated.figures.len(), 5);
+    assert_eq!(log.firmware.as_deref(), Some("v1.2, build 3"));
+    assert_eq!(figure(&log, "Rocket Name").unwrap().written, "Demo");
+    let speed = figure(&log, "Max velocity").unwrap();
+    assert_eq!((speed.quantity, speed.written.as_str()), (None, ""));
+    let cold = figure(&log, "Temperature on pad").unwrap();
+    assert_eq!(cold.quantity, Some(Quantity::Unrecognized));
+    assert_eq!(cold.values, [-500.0]);
+    let decisions: Vec<&str> = log
+        .notes
+        .iter()
+        .skip(1)
+        .map(|note| note.split(": ").next().unwrap())
+        .collect();
+    assert_eq!(
+        decisions,
+        [
+            "`Max velocity` kept as written, with no value",
+            "`Temperature on pad` kept as written, as no temperature is below absolute zero",
         ]
     );
 }

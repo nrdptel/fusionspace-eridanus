@@ -8,7 +8,7 @@ files, 310 of which no reader reads. A survey of all 21 shows few are ready:
 
 - **Featherweight's summaries** (48 files, under the catalog's `blueraven-summary-csv` and
   `featherweight-summary-csv`; 36 are a Blue Raven's, 12 a GPS tracker's) are `name,value` rows,
-  the unit written after each number (`4034.98 feet`, `700.36 feet/sec`, `24.1 Gs`). The Blue
+  the unit written after each number (invented: `2500.25 feet`, `500.50 feet/sec`, `12.0 Gs`). The Blue
   Raven's manual describes the same summary as its USB port prints it (*Blue Raven User's Guide*,
   May 12 2026, p31–33), with each field's unit, and those words agree with the app's but for the
   main's descent rate, which the app writes in `feet`. 33 of the 36 Blue Raven summaries have a

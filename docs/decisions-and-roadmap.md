@@ -686,8 +686,8 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1c2"></a>[M7.1c2][done-5] | The rest | done |
 | <a id="m7-1c3"></a>[M7.1c3][done-5] | Club layouts | done |
 | <a id="m7-1c4"></a>[M7.1c4][done-5] | AerospaceNU's board, a phone app's CSV, Eggtimer RTF | done |
-| <a id="m7-1c5"></a>[M7.1c5][done-5] | The rest | done |
-| <a id="m7-1c6"></a>[M7.1c6][done-5] | The rest | done |
+| <a id="m7-1c5"></a>[M7.1c5][done-5] | Raw downloads, checked against their makers' exports | done |
+| <a id="m7-1c6"></a>[M7.1c6][done-5] | Featherweight's summaries | done |
 | <a id="m7-1c7"></a>[M7.1c7][phase-5] | The rest | not yet done |
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |

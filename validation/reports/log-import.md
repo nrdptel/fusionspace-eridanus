@@ -311,7 +311,7 @@ Units no header states, as each file's reader decided them, or kept the column a
 | blueraven-csv | `Velocity_Up`, `Velocity_DR` and `Velocity_CR` read in feet per second, from the manual and the summary | 45 |
 | blueraven-summary-csv | `Hi-G accel pad offset` kept as written, in a unit no source states | 23 |
 | blueraven-summary-csv | `Low-G accel pad offset` kept as written, in a unit no source states | 23 |
-| blueraven-summary-csv | `Main chute descent rate` kept as written, in `feet`, which isn't a speed | 23 |
+| blueraven-summary-csv | `Main chute descent rate` kept as written, in a unit that isn't a speed | 23 |
 | blueraven-summary-csv | `Pad Hi-G accel` kept as written, in a unit no source states | 23 |
 | blueraven-summary-csv | `Pad Low-G Accel` kept as written, in a unit no source states | 23 |
 | eggtimer-csv | `AltAccel` read in feet, from the manual | 4 |
@@ -362,7 +362,7 @@ Units no header states, as each file's reader decided them, or kept the column a
 | entacore-aim-csv | `time` read in seconds, from `GPS Time of Week` | 16 |
 | featherweight-summary-csv | `Hi-G accel pad offset` kept as written, in a unit no source states | 13 |
 | featherweight-summary-csv | `Low-G accel pad offset` kept as written, in a unit no source states | 13 |
-| featherweight-summary-csv | `Main chute descent rate` kept as written, in `feet`, which isn't a speed | 13 |
+| featherweight-summary-csv | `Main chute descent rate` kept as written, in a unit that isn't a speed | 13 |
 | featherweight-summary-csv | `Pad Hi-G Accel` kept as written, in a unit no source states | 1 |
 | featherweight-summary-csv | `Pad Hi-G accel` kept as written, in a unit no source states | 12 |
 | featherweight-summary-csv | `Pad Low-G Accel` kept as written, in a unit no source states | 12 |
