@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
+	<Document id="1">
+		<Placemark id="40">
+			<name>fw2kml - Flight 0</name>
+			<gx:Track id="60">
+				<altitudeMode>absolute</altitudeMode>
+				<when>2030-01-02T10:00:00.000+02:00</when>
+				<when>2030-01-02T10:00:00.500+02:00</when>
+				<when>2030-01-02T10:00:01.000+02:00</when>
+				<gx:coord>-100.00000000 40.00000000 500.0000</gx:coord>
+				<gx:coord>-100.00000000 40.00000000 540.0000</gx:coord>
+				<gx:coord>-100.00001000 40.00002000 610.0000</gx:coord>
+			</gx:Track>
+		</Placemark>
+	</Document>
+</kml>
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
+	<Document id="1">
+		<Placemark id="40">
+			<name>fw2kml - Flight 0</name>
+			<gx:Track id="60">
+				<altitudeMode>absolute</altitudeMode>
+				<when>2030-01-02T10:00:00.000+02:00</when>
+				<when>2030-01-02T10:00:00.500+02:00</when>
+				<when>2030-01-02T10:00:01.000+02:00</when>
+				<gx:coord>-100.00000000 40.00000000 500.0000</gx:coord>
+				<gx:coord>-100.00000000 40.00000000 540.0000</gx:coord>
+				<gx:coord>-100.00001000 40.00002000 610.0000</gx:coord>
+			</gx:Track>
+		</Placemark>
+	</Document>
+</kml>
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
+	<Document id="1">
+		<Placemark id="40">
+			<name>fw2kml - Flight 0</name>
+			<gx:Track id="60">
+				<altitudeMode>absolute</altitudeMode>
+				<when>2030-01-02T10:00:00.000+02:00</when>
+				<when>2030-01-02T10:00:00.500+02:00</when>
+				<when>2030-01-02T10:00:01.000+02:00</when>
+				<gx:coord>-100.00000000 40.00000000 500.0000</gx:coord>
+				<gx:coord>-100.00000000 40.00000000 540.0000</gx:coord>
+				<gx:coord>-100.00001000 40.00002000 610.0000</gx:coord>
+			</gx:Track>
+		</Placemark>
+	</Document>
+</kml>

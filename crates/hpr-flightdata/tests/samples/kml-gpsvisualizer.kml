@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name><![CDATA[2030-01-02-Log]]></name>
+    <visibility>1</visibility>
+    <Snippet><![CDATA[created using <a href="https://www.gpsvisualizer.com/?ref=ge">GPS Visualizer</a>]]></Snippet>
+    <Folder id="Tracks">
+      <name>Tracks</name>
+      <Placemark>
+        <name><![CDATA[2030-01-02-Log]]></name>
+        <MultiGeometry>
+          <LineString>
+            <tessellate>0</tessellate>
+            <altitudeMode>absolute</altitudeMode>
+            <coordinates>-100.0,40.0,30 -100.00001,40.00001,450 -100.00002,40.00003,1650 -100.00004,40.00006,900</coordinates>
+          </LineString>
+          <LineString>
+            <tessellate>0</tessellate>
+            <altitudeMode>absolute</altitudeMode>
+            <coordinates>-100.0001,40.0001,-12 </coordinates>
+          </LineString>
+        </MultiGeometry>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>

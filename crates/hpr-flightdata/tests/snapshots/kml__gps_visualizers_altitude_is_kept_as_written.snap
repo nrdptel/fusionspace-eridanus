@@ -1,0 +1,107 @@
+---
+source: crates/hpr-flightdata/tests/kml.rs
+expression: log
+---
+{
+  "format": "kml",
+  "logger": "GPS Visualizer",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "2030-01-02-Log part 1 latitude",
+      "quantity": "latitude",
+      "time_s": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        40.0,
+        40.00001,
+        40.00003,
+        40.00006
+      ]
+    },
+    {
+      "column": "2030-01-02-Log part 1 longitude",
+      "quantity": "longitude",
+      "time_s": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        -100.0,
+        -100.00001,
+        -100.00002,
+        -100.00004
+      ]
+    },
+    {
+      "column": "2030-01-02-Log part 1 altitude",
+      "quantity": "unrecognized",
+      "time_s": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        30.0,
+        450.0,
+        1650.0,
+        900.0
+      ]
+    },
+    {
+      "column": "2030-01-02-Log part 2 latitude",
+      "quantity": "latitude",
+      "time_s": [
+        null
+      ],
+      "values": [
+        40.0001
+      ]
+    },
+    {
+      "column": "2030-01-02-Log part 2 longitude",
+      "quantity": "longitude",
+      "time_s": [
+        null
+      ],
+      "values": [
+        -100.0001
+      ]
+    },
+    {
+      "column": "2030-01-02-Log part 2 altitude",
+      "quantity": "unrecognized",
+      "time_s": [
+        null
+      ],
+      "values": [
+        -12.0
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "the record's altitude track is empty: a KML file holds tracks of positions, not an altimeter's record over time, so every value is a channel",
+    "the file gives none of its 5 points a time: their times are gaps",
+    "`coordinates` kept as written, as GPS Visualizer takes a source's altitude as meters unless the source's header names feet: 2 tracks carry an altitude, the highest 1620 above the first"
+  ]
+}

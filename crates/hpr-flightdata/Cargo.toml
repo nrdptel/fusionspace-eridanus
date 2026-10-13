@@ -28,6 +28,8 @@ forbids = ["fusionspace-hpr-sim"]
 [dependencies]
 hpr-core.workspace = true
 hpr-atmos.workspace = true
+# KML's XML (M7.1c1); it refuses a document type declaration, so no entity can expand.
+roxmltree.workspace = true
 serde.workspace = true
 thiserror.workspace = true
 

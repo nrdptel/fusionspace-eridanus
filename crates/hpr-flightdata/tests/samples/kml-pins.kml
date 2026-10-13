@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+  <name>Field day</name>
+  <Placemark>
+    <name>Path</name>
+    <LineString>
+      <coordinates>
+        -100.0,40.0 -100.0001,40.0002
+        -100.0003,40.0004
+      </coordinates>
+    </LineString>
+  </Placemark>
+  <Placemark>
+    <name>Pad</name>
+    <TimeStamp><when>2030-01-02T10:00:00Z</when></TimeStamp>
+    <Point><altitudeMode>absolute</altitudeMode><coordinates>-100.0,40.0,500</coordinates></Point>
+  </Placemark>
+  <Placemark>
+    <name>Landing</name>
+    <TimeStamp><when>2030-01-02T10:02:30.5Z</when></TimeStamp>
+    <Point><coordinates>-100.0003,40.0004</coordinates></Point>
+  </Placemark>
+  <Placemark>
+    <name>Note</name>
+    <Point><coordinates>-100.0002,40.0003,0</coordinates></Point>
+  </Placemark>
+</Document>
+</kml>

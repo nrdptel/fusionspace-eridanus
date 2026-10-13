@@ -2,10 +2,14 @@
 //! recognizes the layout from the content, never the file's name, and reads it into the record
 //! every reader fills ([`FlightLog`]).
 //!
-//! The layouts it recognizes, by the first line that isn't blank:
+//! The layouts it recognizes, the GPS logs by their own marks, the rest by the first line that
+//! isn't blank:
 //!
-//! | Format | First line |
+//! | Format | Recognized by |
 //! |---|---|
+//! | [KML](crate::kml) | its root element is `kml`, after any XML declaration and comments |
+//! | [NMEA 0183](crate::nmea) | at least 3 of its first 50 lines that aren't blank open with a sentence whose checksum checks out, such as `$GPGGA,…*hh` |
+//! | [Featherweight GPS CSV](crate::fwgps) | the first line opens `UTCTIME,UNIXTIME,` or `TRACKER,DATE,TIME,` and names the latitude and longitude |
 //! | [PerfectFlite `.pf2`](crate::perfectflite) | names PerfectFlite, such as `PerfectFlite Pnut`, in a file with no `**!!Data:` line (a `.pfa`'s) |
 //! | [PerfectFlite CSV and text](crate::perfectflite::read_export) | `Time`, `Altitude` and more of an export's names, by commas or tabs |
 //! | [AltOS CSV](crate::altos) | starts `#version,`, or opens with `#` comments before a `#version,` or `version,serial,` header |
@@ -32,10 +36,13 @@ use std::borrow::Cow;
 
 use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
-use crate::{altos, blueraven, eggtimer, perfectflite, raven, rrc3};
+use crate::{altos, blueraven, eggtimer, fwgps, kml, nmea, perfectflite, raven, rrc3};
 
 /// The formats [`read`] recognizes, in the order it tries them.
 pub const FORMATS: &[LogFormat] = &[
+    LogFormat::Kml,
+    LogFormat::Nmea0183,
+    LogFormat::FeatherweightGpsCsv,
     LogFormat::PerfectFlitePf2,
     LogFormat::AltosCsv,
     LogFormat::RavenFipCsv,
@@ -85,6 +92,17 @@ fn detect_text(text: &str) -> Option<LogFormat> {
         .map(str::trim)
         .filter(|line| !line.is_empty());
     let first = lines.next()?;
+    // A GPS log is told by its own marks, which need not be on its first line: an NMEA file may
+    // open with the receiver's power-up noise, a KML file with an XML declaration.
+    if kml::recognizes(text) {
+        return Some(LogFormat::Kml);
+    }
+    if nmea::recognizes(text) {
+        return Some(LogFormat::Nmea0183);
+    }
+    if fwgps::recognizes(text) {
+        return Some(LogFormat::FeatherweightGpsCsv);
+    }
     let altos_header =
         |line: &str| line.starts_with("#version,") || line.starts_with("version,serial,");
     if first.to_ascii_lowercase().contains("perfectflite") {
@@ -140,6 +158,9 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::BlueRavenCsv) => blueraven::read(&text),
         Some(LogFormat::Rrc3Csv) => rrc3::read(&text),
         Some(LogFormat::EggtimerCsv) => eggtimer::read(&text),
+        Some(LogFormat::FeatherweightGpsCsv) => fwgps::read(&text),
+        Some(LogFormat::Kml) => kml::read(&text),
+        Some(LogFormat::Nmea0183) => nmea::read(&text),
         None => {
             let known: Vec<&str> = FORMATS.iter().map(|format| format.name()).collect();
             Err(LogError::Unrecognized {
@@ -157,7 +178,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn each_format_is_recognized_by_its_first_line() {
+    fn each_format_is_recognized_by_its_marks() {
         let cases = [
             ("PerfectFlite Pnut\n", Some(LogFormat::PerfectFlitePf2)),
             (
@@ -219,6 +240,32 @@ mod tests {
                 "Year,Month,Day,Time,Flight_Time_(s),Sync,Gyro_X\n",
                 Some(LogFormat::BlueRavenCsv),
             ),
+            (
+                "<?xml version=\"1.0\"?>\n<!-- a track -->\n<kml xmlns=\"http://www.opengis.net/kml/2.2\"></kml>\n",
+                Some(LogFormat::Kml),
+            ),
+            ("<?xml version=\"1.0\"?>\n<gpx></gpx>\n", None),
+            (
+                "\u{fffd}\u{fffd}x\r\n\
+                 $GPGGA,120000.00,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*67\r\n\
+                 $GPRMC,120001.00,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*4B\r\n\
+                 $GPGSA,A,3,04,05,,09,12,,,24,,,,,2.5,1.3,2.1*39\r\n",
+                Some(LogFormat::Nmea0183),
+            ),
+            // A sentence quoted inside another log's line isn't NMEA.
+            (
+                "t=1 rx $GPGGA,120000.00,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*67\n",
+                None,
+            ),
+            (
+                "UTCTIME,UNIXTIME,ALT,LAT,LON,#SATS,FIX,HORZV,VERTV,HEAD,FLAGS\n",
+                Some(LogFormat::FeatherweightGpsCsv),
+            ),
+            (
+                "TRACKER,DATE,TIME,LAT,LON,ALT,FIX,HORZV,VERTV,HEAD,FLAGS,#TOT\r\n",
+                Some(LogFormat::FeatherweightGpsCsv),
+            ),
+            ("TRACKER,DATE,TIME,RSSI\n", None),
             ("", None),
         ];
         for (text, format) in cases {
