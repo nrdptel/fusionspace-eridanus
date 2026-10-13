@@ -2,15 +2,12 @@
 //! packet a line, as the ground station parsed it.
 //!
 //! AerospaceNU, Northeastern University's rocketry club, flies a flight computer board (the FCB)
-//! that sends its readings to a ground station by radio. The club publishes the ground station's
-//! text beside its flights' logs, with a summary of each flight, `attributes.csv`, whose keys
-//! carry units: `peak_altitude_m`, `peak_velocity_ms` and `peak_acceleration_mss` (AerospaceNU,
-//! *rocket-flight-data*, `flight-data/<date> <rocket>/attributes.csv`, read 2026-10-13). In each
-//! of the four flights with a ground station's text among the project's sample logs, those three
-//! are the highest `fcb_altitude`, `v_speed` and accelerometer magnitude in the text: the club's
-//! own statement that the board sends meters, meters per second and meters per second squared.
-//! No published document describes the packets, so every other unit here comes from checks on
-//! the file's values, and a unit no two checks settle is kept as written.
+//! that sends its readings to a ground station by radio, and publishes the ground station's text
+//! beside its flights' logs. No published document describes the packets or their units, so
+//! every unit a field's name doesn't state comes from two checks on the file's own values that
+//! don't depend on each other (ADR-258 §2), and a unit no two checks settle is kept as written.
+//! The club's per-flight summaries aren't read and aren't a check: they exist for few flights
+//! and needn't match the packets the ground station received.
 //!
 //! **Layout.** A `RUN START` line with the ground station's local date and time when it started,
 //! then one line a packet or message, each opening with the ground station's time of day when it
@@ -53,13 +50,13 @@
 //! |---|---|---|---|
 //! | every board packet | `time_stamp_ms` | the clock (below) | ms, from its name and the ground station's clock |
 //! | every board packet | `radio_id`, `lqi`, `software_version`, `board_serial_number`, `rssi` | [`Quantity::Number`] | as written (`rssi` in dB, as its text says) |
-//! | `Position Data` | `fcb_altitude` | [`Quantity::AltitudeAboveGround`]: the primary track | m, from the club's summaries and the barometer (below) |
-//! | `Position Data` | `v_speed` | [`Quantity::Speed`], up positive: [`FlightLog::vertical_speed_m_s`] | m/s, from the club's summaries and the altitude (below) |
+//! | `Position Data` | `fcb_altitude` | [`Quantity::AltitudeAboveGround`]: the primary track | m, from the barometer and the coast (below) |
+//! | `Position Data` | `v_speed` | [`Quantity::Speed`], up positive: [`FlightLog::vertical_speed_m_s`] | m/s, from the barometer and the coast (below) |
 //! | `Position Data` | `fcb_latitude`, `fcb_longitude` | [`Quantity::Latitude`], [`Quantity::Longitude`] | degrees, from their range and their fractions (below) |
 //! | `Position Data` | `gps_time` | [`Quantity::TimeOfDay`] | the time of day it writes, in whatever time zone |
 //! | `Position Data` | `gps_sats`, `fcb_state_number`, `ble_client` | [`Quantity::Number`] | as written; no source gives the state codes' meanings |
 //! | `Position Data` | `temperature`, `fcb_battery_voltage`, `gps_alt`, `ground_speed`, `course_over_ground` | [`Quantity::Unrecognized`] | kept as written (below) |
-//! | `Orientation` | `accel_x`, `accel_y`, `accel_z` | [`Quantity::Acceleration`] | m/s², from the club's summaries and the pad's gravity (below) |
+//! | `Orientation` | `accel_x`, `accel_y`, `accel_z` | [`Quantity::Acceleration`] | m/s², from the pad's gravity and the barometer (below) |
 //! | `Orientation` | `rot_vel_x`, `rot_vel_y`, `rot_vel_z` | [`Quantity::AngularRate`] | rad/s, from the board's turning and its tilt (below) |
 //! | `Orientation` | `angle_vertical` | [`Quantity::Angle`] | degrees, from its range and the accelerometer (below) |
 //! | `Orientation` | `orientation_quaternion[i]`, `fcb_state_number` | [`Quantity::Number`] | a quaternion's parts have no unit |
@@ -119,35 +116,57 @@
 //!   read in atmospheres: atmospheres and bars are 1.3% apart, and the two are read at one place
 //!   and time, so no weather comes between them (within 0.08% in the sample files). It is an
 //!   average, not one reading, so it has no step to check.
-//! - *`fcb_altitude`* is read in meters, as the club's summaries give its highest value, where the
-//!   barometer bears them out: from `barometer_pressure`'s first value, on the pad, to its lowest,
-//!   the climb in the U.S. Standard Atmosphere, 1976 ([`hpr_atmos::ussa76`]), against
-//!   `fcb_altitude`'s between the `Position Data` packets nearest those two, within 0.5 s. Within
-//!   25%, meters are borne out; feet, 3.28 times off, can't be. A climb under 10 m, or no pressure
-//!   read in atmospheres, leaves the check unmade, and `fcb_altitude` is kept as written, the
-//!   record's altitude track empty; a climb beyond 25% refuses the file ([`LogError::Unit`]). The
-//!   barometer can't tell meters from a unit within 25% of them, and the summaries say nothing of
-//!   a file; neither check depends on the other. In the sample files the column climbs 1.006 to
-//!   1.090 times the barometer.
-//! - *`v_speed`* is read in meters per second, as the club's summaries give its highest value,
-//!   where `fcb_altitude`, read in meters, bears them out: over the steps of the `Position Data`
-//!   packets at most 0.5 s apart, the least-squares slope of the altitude's change on the speed's
-//!   integral lies within 25% of 1, given at least 10 m of movement (0.91 to 1.06 in the sample
-//!   files). Otherwise it is kept as written.
+//! - *`fcb_altitude`* is read in meters by the barometer and the coast. The barometer: from
+//!   `barometer_pressure`'s first value, on the pad, to its lowest, the climb in the U.S. Standard
+//!   Atmosphere, 1976 ([`hpr_atmos::ussa76`]), against `fcb_altitude`'s between the `Position
+//!   Data` packets nearest those two, within 0.5 s, must lie within 25%; feet, 3.28 times off,
+//!   can't, and a climb beyond 25% refuses the file ([`LogError::Unit`]). The coast: an upward
+//!   coast slows at standard gravity and more, as drag adds to it, so from the later sample of the
+//!   column's fastest step (of those at most 1 s long), the end of the boost, to its highest
+//!   value, which leaves out a parachute opened at apogee, the least-squares parabola's
+//!   deceleration must lie within a factor of 1.8 of 9.806 65 m/s² either way, at least 5 samples
+//!   across at least 1 s; read in meters, a column in feet would slow 3.28 g or more (1.8² =
+//!   3.24). A parachute opened before apogee, or a coast too short to fit, fails the check and
+//!   keeps the column; it can't make feet pass. The barometer checks the
+//!   column against the pressure and the coast against gravity and the clock, so neither depends
+//!   on the other. A climb under 10 m, no pressure read in atmospheres, or a coast too short or
+//!   outside the band keeps `fcb_altitude` as written, the record's altitude track empty. In the
+//!   sample files the column climbs 1.006 to 1.090 times the barometer and its coast slows 1.08
+//!   to 1.28 g.
+//! - *`v_speed`* is read in meters per second by the barometer and the coast, neither of which
+//!   looks at `fcb_altitude`, whose unit is as unknown. The barometer: over its ascent, from its
+//!   lowest pressure back to where the pressure last began to fall, the climb in the standard
+//!   atmosphere must lie within 25% of the speed's integral over the same times, at least 10 m,
+//!   the speed taken as a straight line between samples, across gaps in the reception too, as a
+//!   coast's speed falls nearly in a line (the longest step bridged is named in the note; 7.1 s
+//!   in one sample file). The coast: from its highest value to its first at or below 0 after it,
+//!   the least-squares line's deceleration must lie within a factor of 1.8 of 9.806 65 m/s², at
+//!   least 5 samples across at least 1 s. In the sample files the climb is 0.909 to 1.004 times
+//!   the integral and the coast slows 1.00 to 1.47 g. Otherwise it is kept as written.
 //! - *The positions* (`fcb_latitude` and `fcb_longitude`, `gs_lat` and `gs_lon`, `Latitude` and
 //!   `Longitude`), each pair decided together as one fix, are read in degrees by their range and
 //!   their fractions. A position of exactly (0, 0) is the receiver's mark for no fix, a gap, as
 //!   [`crate::altos`] reads AltOS's, counted in a note. Range: every fix lies within ±90° and
-//!   ±180°, and one lies beyond ±π/2 or ±π, which radians can't, nor 10⁻⁷ degrees or NMEA's
-//!   `ddmm.mmmm` written as one number, which lie far beyond ±180. Fractions: in one fix or another
-//!   the latitude's or the longitude's part after the whole degrees is 0.6 or more, which degrees
-//!   and minutes run together, `dd.mmmm`, can't be. A pair with no fix, or failing either check, is
-//!   kept as written.
-//! - *The accelerometer* (`accel_x`, `accel_y`, `accel_z`) is read in meters per second squared,
-//!   as the club's summaries give its highest magnitude, where the pad's gravity bears them out,
-//!   as [`crate::sillygoose`] checks it: the time the three axes' magnitude lies within 10% of
-//!   9.806 65, each sample counting until the next but at most 1 s, is at least 1 s and twice the
-//!   time it lies within 10% of 1.
+//!   ±180°, and most fixes lie beyond ±π/2 or ±π, which radians can't, nor 10⁻⁷ degrees or NMEA's
+//!   `ddmm.mmmm` written as one number, which lie far beyond ±180. Fractions: in most fixes the
+//!   latitude's or the longitude's part after the whole degrees is 0.6 or more, which degrees and
+//!   minutes run together, `dd.mmmm`, can't be. Most, so that one stray fix decides nothing (in
+//!   the sample files every fix passes both). A pair with no fix, or failing either check, is kept
+//!   as written.
+//! - *The accelerometer* (`accel_x`, `accel_y`, `accel_z`) is read in meters per second squared
+//!   by the pad's gravity and the barometer. The pad's gravity, as [`crate::sillygoose`] checks
+//!   it: the time the three axes' magnitude lies within 10% of 9.806 65, each sample counting
+//!   until the next but at most 1 s, is at least 1 s and twice the time it lies within 10% of 1.
+//!   The barometer, as [`crate::aerospacenu_fcb`] checks the board's own CSV: from the launch,
+//!   the first sample of at least 3 times the median magnitude of the 10 before it (at least 3),
+//!   the next two at least 2 times, the specific force along those samples' median direction,
+//!   less 9.806 65, is integrated read in m/s², by trapezoids over steps of at most 0.5 s, to a
+//!   speed and a climb until the speed falls to 0; at each pressure the integrated climb passes
+//!   10 m by, within 0.5 s, the barometer's climb from its last pressure at or before the launch,
+//!   in the standard atmosphere, over the integrated climb; the median of at least 3 must lie
+//!   within a factor of 1.8 of 1. Read in g the speed falls to 0 at once; in feet per second
+//!   squared the pad reads 3.28 g. In the sample files 3 of the 4 accelerometers pass both, the
+//!   median 0.997 to 1.090, and one reads 0 throughout.
 //! - *`angle_vertical`* is read in degrees by its range and the accelerometer: every value lies
 //!   within 0 to 180° and one beyond π, as no angle in radians from vertical can; and at the
 //!   samples where the accelerometer, read in m/s², reads within 5% of 1 g, at least 10, the median
@@ -189,7 +208,7 @@
 //! atmospheres, refuses the file, naming its line ([`LogError::Syntax`]), so that every channel holds
 //! values in SI or gaps.
 
-use std::collections::{BTreeSet, HashMap};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::f64::consts::PI;
 
 use hpr_atmos::ussa76::Ussa76;
@@ -270,16 +289,42 @@ const NEAREST_S: f64 = 0.5;
 /// The least climb, m, from which the pressure checks the altitude's unit.
 const CHECK_CLIMB_M: f64 = 10.0;
 
-/// How far, as a share, the altitude's climb may be from the pressure's, and the speed's slope
-/// from 1.
+/// How far, as a share, the altitude's climb may be from the pressure's, and the pressure's climb
+/// from the speed's integral.
 const MARGIN: f64 = 0.25;
 
-/// The longest step, s, between two `Position Data` samples the speed check uses: the board sends
-/// one about every 0.2 s; a longer step is a gap in the reception.
-const SPEED_STEP_S: f64 = 0.5;
+/// How many times off, either way, a coast's deceleration or the accelerometer's climb may be
+/// and bear meters out: 1.8² = 3.24 is under the 3.28 between feet and meters.
+const GRAVITY_FACTOR: f64 = 1.8;
 
-/// The least movement, m, the speed integrates to for the speed check to decide.
-const SPEED_LEAST_M: f64 = 10.0;
+/// The longest step, s, between two `Position Data` samples that the search for the coast's
+/// start takes: the board sends one about every 0.2 s; a longer step is a gap in the reception.
+const COAST_STEP_S: f64 = 1.0;
+
+/// The fewest samples a coast's fit takes.
+const COAST_LEAST_SAMPLES: usize = 5;
+
+/// The least time, s, a coast's fit spans.
+const COAST_LEAST_S: f64 = 1.0;
+
+/// The launch: the first accelerometer sample of at least this many times the pad's reading…
+const LAUNCH_FORCE: f64 = 3.0;
+
+/// …the next two of at least this many.
+const LAUNCH_HELD: f64 = 2.0;
+
+/// The most samples before a launch that its pad reading is the median of.
+const PAD_SAMPLES: usize = 10;
+
+/// The fewest samples before a launch that its pad reading is taken from.
+const PAD_LEAST_SAMPLES: usize = 3;
+
+/// The longest step, s, the accelerometer's integration bridges: the board sends about 5
+/// samples a second.
+const INTEGRATE_STEP_S: f64 = 0.5;
+
+/// The fewest pressures the accelerometer's climb is weighed at.
+const INTEGRATED_LEAST: usize = 3;
 
 /// How far, as a share, the accelerometer's magnitude may lie from 1 g to count as reading it.
 const GRAVITY_MARGIN: f64 = 0.1;
@@ -362,20 +407,30 @@ enum Value {
 }
 
 /// Parses a Python literal (module docs), the whole of `text` but spaces around it.
+#[cfg(test)]
 fn parse_literal(text: &str) -> Result<Value, String> {
-    let mut parser = Parser { text, at: 0 };
+    parse_from(text, 0)
+}
+
+/// Parses a Python literal, the whole of `line` from byte `start` but spaces around it; an error
+/// names the place it found, as a character position in `line` counted from 1.
+fn parse_from(line: &str, start: usize) -> Result<Value, String> {
+    let mut parser = Parser {
+        text: line,
+        at: start,
+    };
     let value = parser.value(0)?;
     parser.skip_space();
-    if parser.at < text.len() {
+    if parser.at < line.len() {
         return Err(format!(
-            "text after the literal, at character {}",
-            parser.at + 1
+            "text after the literal, at character {} of the line",
+            parser.place(parser.at)
         ));
     }
     Ok(value)
 }
 
-/// A walk through a literal's bytes; structure is ASCII, so every place it stops is a character
+/// A walk through a line's bytes; structure is ASCII, so every place it stops is a character
 /// boundary.
 struct Parser<'a> {
     text: &'a str,
@@ -385,6 +440,14 @@ struct Parser<'a> {
 impl Parser<'_> {
     fn peek(&self) -> Option<u8> {
         self.text.as_bytes().get(self.at).copied()
+    }
+
+    /// The character position in the line, from 1, of the byte at `at`.
+    fn place(&self, at: usize) -> usize {
+        self.text
+            .get(..at)
+            .map_or(at, |before| before.chars().count())
+            + 1
     }
 
     fn skip_space(&mut self) {
@@ -404,8 +467,8 @@ impl Parser<'_> {
             Some(b'-' | b'+' | b'.' | b'0'..=b'9') => self.number(),
             Some(byte) if byte.is_ascii_alphabetic() => self.word(),
             Some(_) => Err(format!(
-                "an unexpected character at character {}",
-                self.at + 1
+                "an unexpected character at character {} of the line",
+                self.place(self.at)
             )),
         }
     }
@@ -431,9 +494,9 @@ impl Parser<'_> {
             }
             Some(byte) if byte == close => Ok(()),
             _ => Err(format!(
-                "no comma or `{}` after an item, at character {}",
+                "no comma or `{}` after an item, at character {} of the line",
                 close as char,
-                self.at + 1
+                self.place(self.at)
             )),
         }
     }
@@ -441,6 +504,7 @@ impl Parser<'_> {
     fn dict(&mut self, depth: usize) -> Result<Value, String> {
         self.open(depth)?;
         let mut entries: Vec<(String, Value)> = Vec::new();
+        let mut keys: HashSet<String> = HashSet::new();
         loop {
             self.skip_space();
             if self.peek() == Some(b'}') {
@@ -453,12 +517,15 @@ impl Parser<'_> {
             let Value::Text(key) = self.value(depth)? else {
                 return Err("a key that isn't text".to_owned());
             };
-            if entries.iter().any(|(known, _)| *known == key) {
+            if !keys.insert(key.clone()) {
                 return Err(format!("the key {:?} given twice", short(&key)));
             }
             self.skip_space();
             if self.peek() != Some(b':') {
-                return Err(format!("no `:` after a key, at character {}", self.at + 1));
+                return Err(format!(
+                    "no `:` after a key, at character {} of the line",
+                    self.place(self.at)
+                ));
             }
             self.at += 1;
             let value = self.value(depth)?;
@@ -525,8 +592,8 @@ impl Parser<'_> {
         }
         if digits == 0 {
             return Err(format!(
-                "a number without digits, at character {}",
-                start + 1
+                "a number without digits, at character {} of the line",
+                self.place(start)
             ));
         }
         if matches!(self.peek(), Some(b'e' | b'E')) {
@@ -536,8 +603,8 @@ impl Parser<'_> {
             }
             if self.digits() == 0 {
                 return Err(format!(
-                    "an exponent without digits, at character {}",
-                    start + 1
+                    "an exponent without digits, at character {} of the line",
+                    self.place(start)
                 ));
             }
         }
@@ -546,14 +613,19 @@ impl Parser<'_> {
             .is_some_and(|byte| byte.is_ascii_alphanumeric() || byte == b'_' || byte == b'.')
         {
             return Err(format!(
-                "a number Python wouldn't write, at character {}",
-                start + 1
+                "a number Python wouldn't write, at character {} of the line",
+                self.place(start)
             ));
         }
         self.text[start..self.at]
             .parse::<f64>()
             .map(Value::Number)
-            .map_err(|_| format!("a number that doesn't parse, at character {}", start + 1))
+            .map_err(|_| {
+                format!(
+                    "a number that doesn't parse, at character {} of the line",
+                    self.place(start)
+                )
+            })
     }
 
     fn digits(&mut self) -> usize {
@@ -613,8 +685,8 @@ impl Parser<'_> {
         let digits = self.text.get(self.at..self.at + count).unwrap_or("");
         if digits.len() != count || !digits.chars().all(|c| c.is_digit(radix)) {
             return Err(format!(
-                "an escape without its {count} digits, at character {}",
-                self.at
+                "an escape without its {count} digits, at character {} of the line",
+                self.place(self.at)
             ));
         }
         self.at += count;
@@ -860,7 +932,13 @@ impl Reading {
                 self.counts.first_left_out.get_or_insert(line);
                 return;
             }
-            let base = field.split('[').next().unwrap_or(field);
+            // A list's item is `key[i]`, and takes its role by `key`; any other name is the
+            // field's own, a `[` in it as well.
+            let base = if listed {
+                field.rsplit_once('[').map_or(field, |(key, _)| key)
+            } else {
+                field
+            };
             let role = role_of(packet, base, listed);
             let quantity = match role {
                 Role::Number => Quantity::Number,
@@ -1080,7 +1158,8 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
         let parsed = if name.is_empty() || name.chars().count() > MAX_NAME_CHARS {
             Err("no packet name, or one longer than 64 characters".to_owned())
         } else {
-            parse_literal(&format!("{{{body}"))
+            // `body` follows the line's ` {`, so the literal opens one byte before it.
+            parse_from(line, line.len() - body.len() - 1)
         };
         let fields = match parsed {
             Ok(Value::Dict(fields)) => fields,
@@ -1164,9 +1243,10 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
         .find(POSITION, Role::VerticalSpeed)
         .filter(|at| reading.channels[*at].quantity == Quantity::Speed);
     let (mut time_s, mut altitude_m, mut vertical) = (Vec::new(), Vec::new(), Vec::new());
-    if let Some(primary) = primary {
+    // Only the board's clocks are left out of `channels`, so both are there when read.
+    let output = |at: usize| index_of.get(&at).map(|&k| &channels[k]);
+    if let Some((primary, channel)) = primary.and_then(|at| Some((at, output(at)?))) {
         let build = &reading.channels[primary];
-        let channel = &channels[index_of[&primary]];
         let mut order: Vec<usize> = (0..build.slots.len())
             .filter(|&i| channel.time_s[i].is_finite())
             .collect();
@@ -1186,13 +1266,15 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
             ));
         }
         let speed_at = |slot: usize| -> f64 {
-            speed.map_or(f64::NAN, |speed| {
-                let build = &reading.channels[speed];
-                build
-                    .slots
-                    .binary_search(&slot)
-                    .map_or(f64::NAN, |k| channels[index_of[&speed]].values[k])
-            })
+            let Some((build, written)) =
+                speed.and_then(|at| Some((&reading.channels[at], output(at)?)))
+            else {
+                return f64::NAN;
+            };
+            build
+                .slots
+                .binary_search(&slot)
+                .map_or(f64::NAN, |k| written.values[k])
         };
         for i in order {
             time_s.push(channel.time_s[i]);
@@ -1235,24 +1317,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
 
 /// Places every packet on the record's clock (module docs); whether the board's clock is read.
 fn place_on_clock(slots: &mut [Slot], notes: &mut Vec<String>) -> bool {
-    // The stretches: each a list of packets whose gap from the ground station stays near its
-    // first's.
-    let mut stretches: Vec<Vec<usize>> = Vec::new();
-    let mut first_gap = f64::NAN;
-    for (at, slot) in slots.iter().enumerate() {
-        let Some(ms) = slot.board_ms else { continue };
-        let gap = slot.received_s - ms / 1_000.0;
-        match stretches.last_mut() {
-            Some(stretch) if (gap - first_gap).abs() <= STRETCH_GAP_S => stretch.push(at),
-            _ => {
-                stretches.push(vec![at]);
-                first_gap = gap;
-            }
-        }
-    }
-    if stretches.is_empty() {
-        return true;
-    }
+    let stretches = stretches_of(slots);
     let span = |stretch: &[usize]| {
         let received = stretch.iter().map(|&at| slots[at].received_s);
         let (lo, hi) = received.fold((f64::INFINITY, f64::NEG_INFINITY), |(lo, hi), t| {
@@ -1260,10 +1325,10 @@ fn place_on_clock(slots: &mut [Slot], notes: &mut Vec<String>) -> bool {
         });
         hi - lo
     };
-    let Some(longest) = stretches.iter().max_by(|a, b| span(a).total_cmp(&span(b))) else {
+    let Some((longest, received)) = longest_stretch(&stretches, span) else {
         return true;
     };
-    let received = span(longest);
+    let longest = &stretches[longest];
     let board = {
         let ms = longest.iter().filter_map(|&at| slots[at].board_ms);
         let (lo, hi) = ms.fold((f64::INFINITY, f64::NEG_INFINITY), |(lo, hi), t| {
@@ -1295,7 +1360,10 @@ fn place_on_clock(slots: &mut [Slot], notes: &mut Vec<String>) -> bool {
             .filter_map(|&at| Some(slots[at].received_s - slots[at].board_ms? / 1_000.0))
             .collect();
         gaps.sort_by(f64::total_cmp);
-        let median = gaps[gaps.len() / 2];
+        // Every packet in a stretch has a board stamp, so `gaps` is never empty.
+        let Some(&median) = gaps.get(gaps.len() / 2) else {
+            continue;
+        };
         for &at in stretch {
             if let Some(ms) = slots[at].board_ms {
                 slots[at].time_s = ms / 1_000.0 + median;
@@ -1311,6 +1379,40 @@ fn place_on_clock(slots: &mut [Slot], notes: &mut Vec<String>) -> bool {
         ));
     }
     true
+}
+
+/// The stretches (module docs): each the packets with a board stamp, in the file's order, whose
+/// gap from the ground station's clock stays within [`STRETCH_GAP_S`] of its first's.
+fn stretches_of(slots: &[Slot]) -> Vec<Vec<usize>> {
+    let mut stretches: Vec<Vec<usize>> = Vec::new();
+    let mut first_gap = f64::NAN;
+    for (at, slot) in slots.iter().enumerate() {
+        let Some(ms) = slot.board_ms else { continue };
+        let gap = slot.received_s - ms / 1_000.0;
+        match stretches.last_mut() {
+            Some(stretch) if (gap - first_gap).abs() <= STRETCH_GAP_S => stretch.push(at),
+            _ => {
+                stretches.push(vec![at]);
+                first_gap = gap;
+            }
+        }
+    }
+    stretches
+}
+
+/// The stretch spanning the most of the ground station's clock, the last of the longest if
+/// several, and its span: each stretch's span is taken once, so the search is linear in the
+/// packets however the stretches fall.
+fn longest_stretch(
+    stretches: &[Vec<usize>],
+    mut span: impl FnMut(&[usize]) -> f64,
+) -> Option<(usize, f64)> {
+    let spans: Vec<f64> = stretches.iter().map(|stretch| span(stretch)).collect();
+    spans
+        .iter()
+        .copied()
+        .enumerate()
+        .max_by(|a, b| a.1.total_cmp(&b.1))
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1498,8 +1600,158 @@ fn beside(reading: &Reading, barometer: usize, altitude: usize) -> Vec<(f64, f64
     pairs
 }
 
-/// Decides `fcb_altitude` by the barometer's climb (module docs), refusing the file if they
-/// disagree.
+/// The `barometer_pressure` channel, if read in atmospheres.
+fn barometer(reading: &Reading) -> Option<usize> {
+    reading
+        .named(&format!("{ALT_INFO}.barometer_pressure"))
+        .filter(|at| reading.channels[*at].quantity == Quantity::Pressure)
+}
+
+/// A channel's numbers on the record's clock, times its scale: `(time, value)` in time order.
+fn series(reading: &Reading, at: usize) -> Vec<(f64, f64)> {
+    let build = &reading.channels[at];
+    let mut points: Vec<(f64, f64)> = build
+        .slots
+        .iter()
+        .zip(&build.values)
+        .map(|(slot, value)| (reading.time(*slot), value * build.scale))
+        .filter(|(time, value)| time.is_finite() && value.is_finite())
+        .collect();
+    points.sort_by(|a, b| a.0.total_cmp(&b.0));
+    points
+}
+
+/// The index of the highest value, the first if several.
+fn highest(points: &[(f64, f64)]) -> Option<usize> {
+    let mut best: Option<usize> = None;
+    for (i, point) in points.iter().enumerate() {
+        if best.is_none_or(|b| point.1 > points[b].1) {
+            best = Some(i);
+        }
+    }
+    best
+}
+
+/// Whether a deceleration, m/s², lies within [`GRAVITY_FACTOR`] of standard gravity either way.
+fn near_gravity(deceleration: f64) -> bool {
+    let share = deceleration / STANDARD_GRAVITY_MPS2;
+    share.is_finite() && (1.0 / GRAVITY_FACTOR..=GRAVITY_FACTOR).contains(&share)
+}
+
+/// The second derivative of the least-squares parabola through `points`, `(t, z)`: twice its
+/// `t²` coefficient, from the normal equations solved by Cramer's rule about the mean time.
+fn curvature(points: &[(f64, f64)]) -> f64 {
+    #[allow(clippy::cast_precision_loss, reason = "a count of samples")]
+    let n = points.len() as f64;
+    let mean = points.iter().map(|p| p.0).sum::<f64>() / n;
+    let (mut s, mut y) = ([0.0; 5], [0.0; 3]);
+    for &(t, z) in points {
+        let x = t - mean;
+        let mut power = 1.0;
+        for (k, sum) in s.iter_mut().enumerate() {
+            *sum += power;
+            if let Some(moment) = y.get_mut(k) {
+                *moment += z * power;
+            }
+            power *= x;
+        }
+    }
+    let det = |m: [[f64; 3]; 3]| {
+        m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
+            - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+            + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0])
+    };
+    let normal = [[s[0], s[1], s[2]], [s[1], s[2], s[3]], [s[2], s[3], s[4]]];
+    let mut quadratic = normal;
+    for (row, moment) in quadratic.iter_mut().zip(y) {
+        row[2] = moment;
+    }
+    2.0 * det(quadratic) / det(normal)
+}
+
+/// The slope of the least-squares line through `points`, `(t, v)`.
+fn slope(points: &[(f64, f64)]) -> f64 {
+    #[allow(clippy::cast_precision_loss, reason = "a count of samples")]
+    let n = points.len() as f64;
+    let mean_t = points.iter().map(|p| p.0).sum::<f64>() / n;
+    let mean_v = points.iter().map(|p| p.1).sum::<f64>() / n;
+    let (mut cross, mut square) = (0.0, 0.0);
+    for &(t, v) in points {
+        cross += (t - mean_t) * (v - mean_v);
+        square += (t - mean_t) * (t - mean_t);
+    }
+    cross / square
+}
+
+/// A coast's fit: its samples, the time it spans, s, and the deceleration it finds, m/s² read in
+/// the candidate unit; `None` with under [`COAST_LEAST_SAMPLES`] samples or [`COAST_LEAST_S`].
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct Coast {
+    samples: usize,
+    span_s: f64,
+    deceleration: f64,
+}
+
+impl Coast {
+    fn of(window: &[(f64, f64)], fit: fn(&[(f64, f64)]) -> f64) -> Option<Self> {
+        let span_s = window.last()?.0 - window.first()?.0;
+        (window.len() >= COAST_LEAST_SAMPLES && span_s >= COAST_LEAST_S).then(|| Self {
+            samples: window.len(),
+            span_s,
+            deceleration: -fit(window),
+        })
+    }
+
+    /// The evidence, `what` naming the fit.
+    fn text(found: Option<Self>, what: &str, unit: &str) -> String {
+        found.map_or_else(
+            || {
+                format!(
+                    "the coast holds fewer than {COAST_LEAST_SAMPLES} samples or spans under \
+                     {COAST_LEAST_S} s, too little to fit"
+                )
+            },
+            |coast| {
+                format!(
+                    "over the coast, {} samples across {:.1} s, {what} slows it {:.2} {unit}, \
+                     {:.3} g read so; an upward coast slows at least 1 g, and the band is a \
+                     factor of {GRAVITY_FACTOR} either way, where feet would read 3.28 times",
+                    coast.samples,
+                    coast.span_s,
+                    coast.deceleration,
+                    coast.deceleration / STANDARD_GRAVITY_MPS2
+                )
+            },
+        )
+    }
+}
+
+/// The altitude's coast (module docs): from the later sample of its fastest step, of those at most
+/// [`COAST_STEP_S`] long, to its highest value, the least-squares parabola's deceleration.
+fn altitude_coast(points: &[(f64, f64)]) -> Option<Coast> {
+    let top = highest(points)?;
+    let mut fastest: Option<(f64, usize)> = None;
+    for (i, pair) in points[..=top].windows(2).enumerate() {
+        let step = pair[1].0 - pair[0].0;
+        let rate = (pair[1].1 - pair[0].1) / step;
+        if step > 0.0 && step <= COAST_STEP_S && fastest.is_none_or(|(best, _)| rate > best) {
+            fastest = Some((rate, i + 1));
+        }
+    }
+    let (_, start) = fastest?;
+    Coast::of(&points[start..=top], curvature)
+}
+
+/// The speed's coast (module docs): from its highest value to its first at or below 0 after it,
+/// the least-squares line's deceleration.
+fn speed_coast(points: &[(f64, f64)]) -> Option<Coast> {
+    let top = highest(points)?;
+    let end = (top..points.len()).find(|&i| points[i].1 <= 0.0)?;
+    Coast::of(&points[top..=end], slope)
+}
+
+/// Decides `fcb_altitude` by the barometer's climb and the coast (module docs), refusing the file
+/// if the barometer refutes meters.
 fn decide_altitude(
     reading: &mut Reading,
     start_line: usize,
@@ -1509,148 +1761,167 @@ fn decide_altitude(
         return Ok(());
     };
     let quoted = reading.channels[altitude].quoted();
-    let barometer = reading
-        .named(&format!("{ALT_INFO}.barometer_pressure"))
-        .filter(|at| reading.channels[*at].quantity == Quantity::Pressure);
-    let unchecked = |why: String, notes: &mut Vec<String>| {
+    let Some(barometer) = barometer(reading) else {
         notes.push(format!(
-            "{quoted} kept as written, the barometer not checking the club's meters: {why}"
+            "{quoted} kept as written, with no barometer read in atmospheres: its climb is \
+             checked against `barometer_pressure`'s"
         ));
-    };
-    let Some(barometer) = barometer else {
-        unchecked(
-            "the file has no `barometer_pressure` read in atmospheres to check it by".to_owned(),
-            notes,
-        );
         reading.channels[altitude].keep();
         return Ok(());
     };
     let pairs = beside(reading, barometer, altitude);
-    let (Some(pad), Some(top)) = (
-        pairs.first().copied(),
-        pairs.iter().copied().min_by(|a, b| a.0.total_cmp(&b.0)),
-    ) else {
-        unchecked(
+    let atmosphere = Ussa76::standard();
+    let climbs = pairs.first().copied().and_then(|pad| {
+        let top = pairs.iter().copied().min_by(|a, b| a.0.total_cmp(&b.0))?;
+        let high = atmosphere.pressure_altitude_m(top.0).ok()?;
+        let ground = atmosphere.pressure_altitude_m(pad.0).ok()?;
+        Some((high - ground, top.1 - pad.1))
+    });
+    let (barometer_text, borne) = match climbs {
+        None => (
             format!(
                 "no `{POSITION}` sample lies within {NEAREST_S} s of a pressure of \
-                 `barometer_pressure`"
+                 `barometer_pressure` that has an altitude in the standard atmosphere"
             ),
-            notes,
-        );
-        reading.channels[altitude].keep();
-        return Ok(());
-    };
-    let atmosphere = Ussa76::standard();
-    let climb = atmosphere.pressure_altitude_m(top.0).and_then(|high| {
-        atmosphere
-            .pressure_altitude_m(pad.0)
-            .map(|ground| high - ground)
-    });
-    let column = Some(top.1 - pad.1);
-    match (climb, column) {
-        (Ok(climb), Some(column)) if climb >= CHECK_CLIMB_M => {
+            false,
+        ),
+        Some((climb, _)) if climb < CHECK_CLIMB_M => (
+            format!(
+                "the barometer climbs {climb:.2} m in the standard atmosphere, under the \
+                 {CHECK_CLIMB_M} m from which it checks a unit"
+            ),
+            false,
+        ),
+        Some((climb, column)) => {
             let evidence = format!(
-                "from `barometer_pressure`'s first value to its lowest, each within {NEAREST_S} s of \
-                 a sample of the column, the standard atmosphere climbs {climb:.1} m and the \
-                 column {column:.1}, {:.3} times",
+                "from `barometer_pressure`'s first value to its lowest, each within {NEAREST_S} s \
+                 of a sample of the column, the standard atmosphere climbs {climb:.1} m and the \
+                 column {column:.1}, {:.3} times; meters need within 25%",
                 column / climb
             );
-            if (column / climb - 1.0).abs() <= MARGIN {
-                notes.push(format!(
-                    "{quoted} read in meters, from the club's summaries and the barometer: \
-                     {evidence}; within 25%"
-                ));
-                reading.channels[altitude].quantity = Quantity::AltitudeAboveGround;
-                Ok(())
-            } else {
-                Err(LogError::Unit {
+            if (column / climb - 1.0).abs() > MARGIN {
+                return Err(LogError::Unit {
                     format: FORMAT,
                     line: start_line,
-                    message: format!(
-                        "{quoted} isn't in meters as the club's summaries give it: {evidence}, \
-                         not within 25%"
-                    ),
-                })
+                    message: format!("{quoted} isn't in meters, by the barometer: {evidence}"),
+                });
             }
+            (evidence, true)
         }
-        (Ok(climb), Some(_)) => {
-            unchecked(
-                format!(
-                    "the barometer climbs {climb:.2} m in the standard atmosphere, under the \
-                     {CHECK_CLIMB_M} m from which it checks a unit"
-                ),
-                notes,
-            );
-            reading.channels[altitude].keep();
-            Ok(())
-        }
-        _ => {
-            unchecked(
-                "the pressure has no altitude in the standard atmosphere".to_owned(),
-                notes,
-            );
-            reading.channels[altitude].keep();
-            Ok(())
-        }
+    };
+    let coast = altitude_coast(&series(reading, altitude));
+    let evidence = format!(
+        "{barometer_text}; {}",
+        Coast::text(coast, "the column's least-squares parabola", "m/s²")
+    );
+    if borne && coast.is_some_and(|coast| near_gravity(coast.deceleration)) {
+        notes.push(format!(
+            "{quoted} read in meters, from the barometer and the coast: {evidence}"
+        ));
+        reading.channels[altitude].quantity = Quantity::AltitudeAboveGround;
+    } else {
+        notes.push(format!(
+            "{quoted} kept as written, the barometer and the coast not both bearing meters out: \
+             {evidence}"
+        ));
+        reading.channels[altitude].keep();
     }
+    Ok(())
 }
 
-/// Decides `v_speed` against `fcb_altitude` read in meters (module docs).
+/// The ascent the barometer reads: from the lowest pressure back to the last sample before the
+/// pressure stops falling, its first and last times, s, and its climb in the standard atmosphere,
+/// m.
+fn ascent(points: &[(f64, f64)]) -> Option<(f64, f64, f64)> {
+    let mut top: Option<usize> = None;
+    for (i, point) in points.iter().enumerate() {
+        if point.1 > 0.0 && top.is_none_or(|t| point.1 < points[t].1) {
+            top = Some(i);
+        }
+    }
+    let top = top?;
+    let mut start = top;
+    while start > 0 && points[start - 1].1 > points[start].1 {
+        start -= 1;
+    }
+    let atmosphere = Ussa76::standard();
+    let high = atmosphere.pressure_altitude_m(points[top].1).ok()?;
+    let ground = atmosphere.pressure_altitude_m(points[start].1).ok()?;
+    Some((points[start].0, points[top].0, high - ground))
+}
+
+/// A speed's integral, m, from `from` to `to`, s, the speed taken as a straight line between
+/// samples, and the longest step it bridges; `None` unless samples lie on both sides.
+fn integral(points: &[(f64, f64)], from: f64, to: f64) -> Option<(f64, f64)> {
+    if points.first()?.0 > from || points.last()?.0 < to {
+        return None;
+    }
+    let (mut sum, mut longest) = (0.0, 0.0_f64);
+    for pair in points.windows(2) {
+        let ((t0, v0), (t1, v1)) = (pair[0], pair[1]);
+        let (lo, hi) = (t0.max(from), t1.min(to));
+        if t1 <= t0 || hi <= lo {
+            continue;
+        }
+        let at = |t: f64| v0 + (v1 - v0) * (t - t0) / (t1 - t0);
+        sum += 0.5 * (at(lo) + at(hi)) * (hi - lo);
+        longest = longest.max(t1 - t0);
+    }
+    Some((sum, longest))
+}
+
+/// Decides `v_speed` by the barometer's climb and the coast (module docs).
 fn decide_speed(reading: &mut Reading, notes: &mut Vec<String>) {
     let Some(speed) = reading.find(POSITION, Role::VerticalSpeed) else {
         return;
     };
     let quoted = reading.channels[speed].quoted();
-    let altitude = reading
-        .find(POSITION, Role::Altitude)
-        .filter(|at| reading.channels[*at].quantity == Quantity::AltitudeAboveGround);
-    let Some(altitude) = altitude else {
+    let Some(barometer) = barometer(reading) else {
         notes.push(format!(
-            "{quoted} kept as written, with no altitude read in meters to check the club's \
-             meters per second: `fcb_altitude` isn't"
+            "{quoted} kept as written, with no barometer read in atmospheres: its integral is \
+             checked against `barometer_pressure`'s climb"
         ));
         reading.channels[speed].keep();
         return;
     };
-    let pairs = reading.paired(altitude, speed);
-    let (mut cross, mut square, mut moved) = (0.0, 0.0, 0.0);
-    for pair in pairs.windows(2) {
-        let (a, z0, v0) = pair[0];
-        let (b, z1, v1) = pair[1];
-        let step = reading.time(b) - reading.time(a);
-        let traveled = 0.5 * (v0 + v1) * step;
-        let risen = z1 - z0;
-        if !(step > 0.0 && step <= SPEED_STEP_S && traveled.is_finite() && risen.is_finite()) {
-            continue;
+    let points = series(reading, speed);
+    let climb = ascent(&series(reading, barometer))
+        .and_then(|(from, to, climb)| Some((from, to, climb, integral(&points, from, to)?)));
+    let (barometer_text, borne) = match climb {
+        None => (
+            "the barometer reads no ascent the column's samples span".to_owned(),
+            false,
+        ),
+        Some((from, to, climb, (moved, longest))) => {
+            let ratio = climb / moved;
+            (
+                format!(
+                    "over the barometer's ascent, the {:.1} s from where its pressure last began \
+                     to fall to its lowest, the standard atmosphere climbs {climb:.1} m and the \
+                     column integrates to \
+                     {moved:.1}, the speed taken as a straight line between samples up to \
+                     {longest:.1} s apart; the climb is {ratio:.3} times that, and meters per \
+                     second need at least {CHECK_CLIMB_M} m and within 25%",
+                    to - from
+                ),
+                climb >= CHECK_CLIMB_M && (ratio - 1.0).abs() <= MARGIN,
+            )
         }
-        cross += traveled * risen;
-        square += traveled * traveled;
-        moved += traveled.abs();
-    }
-    let slope = cross / square;
-    let evidence = if slope.is_finite() {
-        format!(
-            "over the steps at most {SPEED_STEP_S} s apart it integrates to {moved:.1} m of \
-             movement, and `fcb_altitude` changes {slope:.3} times that"
-        )
-    } else {
-        format!(
-            "over the steps at most {SPEED_STEP_S} s apart it integrates to {moved:.1} m of \
-             movement, against which `fcb_altitude`'s change can't be weighed"
-        )
     };
-    // Written to fail closed: a slope that is `NaN` isn't within it.
-    if moved >= SPEED_LEAST_M && (slope - 1.0).abs() <= MARGIN {
+    let coast = speed_coast(&points);
+    let evidence = format!(
+        "{barometer_text}; {}",
+        Coast::text(coast, "the column's least-squares line", "m/s²")
+    );
+    if borne && coast.is_some_and(|coast| near_gravity(coast.deceleration)) {
         notes.push(format!(
-            "{quoted} read in meters per second, from the club's summaries and the altitude: \
-             {evidence}; within 25% of once"
+            "{quoted} read in meters per second, from the barometer and the coast: {evidence}"
         ));
         reading.channels[speed].quantity = Quantity::Speed;
     } else {
         notes.push(format!(
-            "{quoted} kept as written, the altitude not bearing out the club's meters per \
-             second: {evidence}; meters per second need at least {SPEED_LEAST_M} m and within \
-             25% of once"
+            "{quoted} kept as written, the barometer and the coast not both bearing meters per \
+             second out: {evidence}"
         ));
         reading.channels[speed].keep();
     }
@@ -1699,21 +1970,24 @@ fn decide_positions(reading: &mut Reading, notes: &mut Vec<String>) -> usize {
             .all(|(a, b)| a.abs() <= 90.0 && b.abs() <= 180.0);
         let beyond_radians = fixes
             .iter()
-            .any(|(a, b)| a.abs() > PI / 2.0 || b.abs() > PI);
+            .filter(|(a, b)| a.abs() > PI / 2.0 || b.abs() > PI)
+            .count();
         let fraction = |v: f64| v.abs().fract();
-        let largest_fraction = fixes
+        let past_minutes = fixes
             .iter()
-            .map(|(a, b)| fraction(*a).max(fraction(*b)))
-            .fold(0.0, f64::max);
+            .filter(|(a, b)| fraction(*a).max(fraction(*b)) >= 0.6)
+            .count();
+        // Most fixes, not one, so that a stray fix decides nothing.
+        let most = |count: usize| 2 * count > fixes.len();
         let evidence = format!(
-            "{} fixes, {} within ±90° and ±180°, {} beyond ±π/2 or ±π; the largest part after \
-             the whole degrees is {largest_fraction:.3}, where degrees and minutes run together \
-             stay under 0.6",
+            "{} fixes, {} within ±90° and ±180°, {beyond_radians} beyond ±π/2 or ±π, and \
+             {past_minutes} with a part after the whole degrees of 0.6 or more, where degrees and \
+             minutes run together stay under 0.6; degrees need all within and most of the fixes \
+             past both",
             fixes.len(),
             if within { "all" } else { "not all" },
-            if beyond_radians { "some" } else { "none" },
         );
-        if within && beyond_radians && largest_fraction >= 0.6 {
+        if within && most(beyond_radians) && most(past_minutes) {
             notes.push(format!(
                 "{names} read in degrees, from their range and their fractions: {evidence}"
             ));
@@ -1783,8 +2057,111 @@ fn listed(reading: &Reading, at: &[usize]) -> String {
     }
 }
 
-/// Decides the accelerometer from the pad's gravity (module docs): 1 g in the written unit, if
-/// read in m/s².
+/// The median of some numbers, `None` if there are none.
+fn median(mut values: Vec<f64>) -> Option<f64> {
+    values.sort_by(f64::total_cmp);
+    values.get(values.len() / 2).copied()
+}
+
+/// The climb check of the accelerometer (module docs): how many pressures it is weighed at, and
+/// the median of the barometer's climb over the accelerometer's there; or why it can't be made.
+fn accelerometer_climb(reading: &Reading, axes: [usize; 3]) -> Result<(usize, f64), String> {
+    let Some(barometer) = barometer(reading) else {
+        return Err("the file has no `barometer_pressure` read in atmospheres".to_owned());
+    };
+    let mut samples: Vec<(f64, [f64; 3])> = reading
+        .tripled(axes)
+        .into_iter()
+        .map(|(slot, a)| (reading.time(slot), a))
+        .filter(|(t, a)| t.is_finite() && a.iter().all(|v| v.is_finite()))
+        .collect();
+    samples.sort_by(|a, b| a.0.total_cmp(&b.0));
+    let force = |i: usize| magnitude(samples[i].1);
+    let launch = (0..samples.len().saturating_sub(2)).find_map(|i| {
+        let before = &samples[i.saturating_sub(PAD_SAMPLES)..i];
+        if before.len() < PAD_LEAST_SAMPLES {
+            return None;
+        }
+        let one_g = median(before.iter().map(|s| magnitude(s.1)).collect())?;
+        (one_g > 0.0
+            && force(i) >= LAUNCH_FORCE * one_g
+            && force(i + 1) >= LAUNCH_HELD * one_g
+            && force(i + 2) >= LAUNCH_HELD * one_g)
+            .then_some((i, before))
+    });
+    let Some((launch, before)) = launch else {
+        return Err(format!(
+            "no launch: no sample reads {LAUNCH_FORCE} times the median of the {PAD_SAMPLES} \
+             before it and the next two {LAUNCH_HELD} times"
+        ));
+    };
+    let pad: Vec<f64> = (0..3)
+        .filter_map(|axis| median(before.iter().map(|s| s.1[axis]).collect()))
+        .collect();
+    let pad_g = (pad.iter().map(|v| v * v).sum::<f64>()).sqrt();
+    if pad.len() != 3 || pad_g <= 0.0 {
+        return Err("the pad's reading has no direction".to_owned());
+    }
+    let up: Vec<f64> = pad.iter().map(|v| v / pad_g).collect();
+    let net = |i: usize| {
+        let a = samples[i].1;
+        a[0] * up[0] + a[1] * up[1] + a[2] * up[2] - STANDARD_GRAVITY_MPS2
+    };
+    let launched_s = samples[launch].0;
+    let mut rows: Vec<(f64, f64)> = Vec::new();
+    let (mut speed, mut climb) = (0.0, 0.0);
+    for i in launch..samples.len() - 1 {
+        let step = samples[i + 1].0 - samples[i].0;
+        if !(step > 0.0 && step <= INTEGRATE_STEP_S) {
+            break;
+        }
+        let next = speed + 0.5 * (net(i) + net(i + 1)) * step;
+        climb += 0.5 * (speed + next) * step;
+        speed = next;
+        if speed.is_nan() || speed <= 0.0 {
+            break;
+        }
+        rows.push((samples[i + 1].0, climb));
+    }
+    let pressures = series(reading, barometer);
+    let atmosphere = Ussa76::standard();
+    let Some(pad_m) = pressures
+        .iter()
+        .rev()
+        .find(|(t, p)| *t <= launched_s && *p > 0.0)
+        .and_then(|(_, p)| atmosphere.pressure_altitude_m(*p).ok())
+    else {
+        return Err("no pressure on the pad at or before the launch".to_owned());
+    };
+    let mut ratios = Vec::new();
+    for &(t, p) in pressures.iter().filter(|(t, _)| *t > launched_s) {
+        let k = rows.partition_point(|row| row.0 < t);
+        let near = [k.checked_sub(1), Some(k)]
+            .into_iter()
+            .flatten()
+            .filter_map(|k| rows.get(k))
+            .filter(|row| (row.0 - t).abs() <= NEAREST_S)
+            .min_by(|a, b| (a.0 - t).abs().total_cmp(&(b.0 - t).abs()));
+        let (Some(&(_, integrated)), Ok(height)) = (near, atmosphere.pressure_altitude_m(p)) else {
+            continue;
+        };
+        if integrated >= CHECK_CLIMB_M {
+            ratios.push((height - pad_m) / integrated);
+        }
+    }
+    let count = ratios.len();
+    match median(ratios) {
+        Some(ratio) if count >= INTEGRATED_LEAST => Ok((count, ratio)),
+        _ => Err(format!(
+            "from the launch, it integrates to {climb:.1} m before its speed falls to 0 or a \
+             step passes {INTEGRATE_STEP_S} s, past {CHECK_CLIMB_M} m at {count} pressures, \
+             under {INTEGRATED_LEAST}"
+        )),
+    }
+}
+
+/// Decides the accelerometer from the pad's gravity and the barometer's climb (module docs):
+/// 1 g in the written unit, if read in m/s².
 fn decide_accelerometer(reading: &mut Reading, notes: &mut Vec<String>) -> Option<f64> {
     let axes = axes(reading, Role::Accel)?;
     let names = listed(reading, &axes);
@@ -1804,21 +2181,35 @@ fn decide_accelerometer(reading: &mut Reading, notes: &mut Vec<String>) -> Optio
             in_g += weight;
         }
     }
+    let pad = in_ms2 >= GRAVITY_LEAST_S && in_ms2 >= GRAVITY_LEAD * in_g;
+    let climb = accelerometer_climb(reading, axes);
+    let climbs = climb.as_ref().is_ok_and(|&(_, ratio)| {
+        ratio.is_finite() && (1.0 / GRAVITY_FACTOR..=GRAVITY_FACTOR).contains(&ratio)
+    });
+    let climb_text = match &climb {
+        Ok((count, ratio)) => format!(
+            "from the launch, its specific force along the pad's reading, less 9.806 65, \
+             integrates read in m/s² to a climb, and at {count} pressures past {CHECK_CLIMB_M} m \
+             of it the barometer's climb in the standard atmosphere is {ratio:.3} times it, as a \
+             median; the band is a factor of {GRAVITY_FACTOR} either way"
+        ),
+        Err(why) => format!("the climb check can't be made: {why}"),
+    };
     let evidence = format!(
         "the three axes' magnitude reads within 10% of 9.806 65 for {in_ms2:.1} s of the file's \
          time and within 10% of 1 for {in_g:.1} s; a board at rest or under a parachute reads \
-         1 g, and meters per second squared need at least 1 s and twice the other's"
+         1 g, and meters per second squared need at least 1 s and twice the other's; {climb_text}"
     );
-    let decided = in_ms2 >= GRAVITY_LEAST_S && in_ms2 >= GRAVITY_LEAD * in_g;
+    let decided = pad && climbs;
     if decided {
         notes.push(format!(
-            "{names} read in meters per second squared, from the club's summaries and the pad's \
-             gravity: {evidence}"
+            "{names} read in meters per second squared, from the pad's gravity and the \
+             barometer: {evidence}"
         ));
     } else {
         notes.push(format!(
-            "{names} kept as written, the pad's gravity not bearing out the club's meters per \
-             second squared: {evidence}"
+            "{names} kept as written, the pad's gravity and the barometer not both bearing \
+             meters per second squared out: {evidence}"
         ));
     }
     for at in axes {
@@ -2178,77 +2569,125 @@ fn notes_on_kept(reading: &mut Reading, notes: &mut Vec<String>) {
     for (packet, members) in unknown {
         let first = &reading.channels[members[0]].column;
         let field = first.strip_prefix(&format!("{packet}.")).unwrap_or(first);
-        unknown_notes.push(format!(
-            "{} fields of the `{}` packets, such as `{}`, aren't ones this reader knows: their \
-             values are kept as written",
-            members.len(),
-            short(&packet),
-            short(field)
-        ));
+        unknown_notes.push(if members.len() == 1 {
+            format!(
+                "1 field of the `{}` packets, `{}`, isn't one this reader knows: its values are \
+                 kept as written",
+                short(&packet),
+                short(field)
+            )
+        } else {
+            format!(
+                "{} fields of the `{}` packets, such as `{}`, aren't ones this reader knows: \
+                 their values are kept as written",
+                members.len(),
+                short(&packet),
+                short(field)
+            )
+        });
     }
     notes.extend(unknown_notes.into_vec());
+}
+
+/// A count of things and where the first is, as a note's subject: `1 line, on line 5,` or
+/// `2 lines, the first on line 5,`.
+fn counted(count: usize, one: &str, many: &str, line: usize) -> String {
+    if count == 1 {
+        format!("1 {one}, on line {line},")
+    } else {
+        format!("{count} {many}, the first on line {line},")
+    }
+}
+
+/// The word for one thing, or for several.
+fn agree<'a>(count: usize, one: &'a str, many: &'a str) -> &'a str {
+    if count == 1 { one } else { many }
 }
 
 /// The notes about lines and values skipped.
 fn line_notes_into(counts: &Counts, no_fix: usize, notes: &mut Notes) {
     if let Some(line) = counts.first_corrupt {
+        let n = counts.corrupt;
         notes.push(format!(
-            "{} packets, the first on line {line}, are left out: the ground station marks their \
-             `crc` other than `'Good'`, their bytes having failed the radio's checksum",
-            counts.corrupt
+            "{} {} left out: the ground station marks {} `crc` other than `'Good'`, {} bytes \
+             having failed the radio's checksum",
+            counted(n, "packet", "packets", line),
+            agree(n, "is", "are"),
+            agree(n, "its", "their"),
+            agree(n, "its", "their"),
         ));
     }
     if let Some((line, text)) = &counts.first_message {
-        notes.push(format!(
-            "{} lines are the ground station's own messages, not packets, such as {text:?} on \
-             line {line}: skipped",
-            counts.messages
-        ));
+        notes.push(if counts.messages == 1 {
+            format!(
+                "1 line is the ground station's own message, not a packet, {text:?} on line \
+                 {line}: skipped"
+            )
+        } else {
+            format!(
+                "{} lines are the ground station's own messages, not packets, such as {text:?} \
+                 on line {line}: skipped",
+                counts.messages
+            )
+        });
     }
     if let Some((line, why)) = &counts.first_unparsed {
+        let n = counts.unparsed;
         notes.push(format!(
-            "{} packet lines don't parse as a Python literal, the first on line {line}: {}; \
-             skipped",
-            counts.unparsed,
+            "{} {} parse as a Python literal: {}; skipped",
+            counted(n, "packet line", "packet lines", *line),
+            agree(n, "doesn't", "don't"),
             short(why)
         ));
     }
     if let Some(line) = counts.first_other {
+        let n = counts.other;
         notes.push(format!(
-            "{} lines, the first on line {line}, open with no time of day `HH:MM:SS`: skipped",
-            counts.other
+            "{} {} with no time of day `HH:MM:SS`: skipped",
+            counted(n, "line", "lines", line),
+            agree(n, "opens", "open")
         ));
     }
     if let Some(line) = counts.first_long {
+        let n = counts.long;
         notes.push(format!(
-            "{} lines, the first on line {line}, are longer than {MAX_LINE_BYTES} bytes: skipped",
-            counts.long
+            "{} {} longer than {MAX_LINE_BYTES} bytes: skipped",
+            counted(n, "line", "lines", line),
+            agree(n, "is", "are")
         ));
     }
     if let Some(line) = counts.first_run {
+        let n = counts.runs;
         notes.push(format!(
-            "{} more `RUN START` lines, the first on line {line}, are skipped: the times follow \
-             the first",
-            counts.runs
+            "{} {} skipped: the times follow the first",
+            counted(n, "more `RUN START` line", "more `RUN START` lines", line),
+            agree(n, "is", "are")
         ));
     }
     if let Some(line) = counts.first_gap {
+        let n = counts.gaps;
         notes.push(format!(
-            "{} values, the first on line {line}, are `None`, `nan`, `inf` or text that isn't a \
-             number: each is a gap",
-            counts.gaps
+            "{} {} `None`, `nan`, `inf` or text that isn't a number: {} a gap",
+            counted(n, "value", "values", line),
+            agree(n, "is", "are"),
+            agree(n, "it is", "each is")
         ));
     }
     if no_fix > 0 {
         notes.push(format!(
-            "{no_fix} positions of (0, 0), the receiver's mark for no fix, are gaps"
+            "{no_fix} {} of (0, 0), the receiver's mark for no fix, {}",
+            agree(no_fix, "position", "positions"),
+            agree(no_fix, "is a gap", "are gaps")
         ));
     }
     if let Some(line) = counts.first_left_out {
+        let n = counts.left_out;
         notes.push(format!(
-            "{} values, the first on line {line}, are left out: their fields' names are longer \
-             than {MAX_NAME_CHARS} characters, or past the first {MAX_CHANNELS} channels",
-            counts.left_out
+            "{} {} left out: {} longer than {MAX_NAME_CHARS} characters, or past the first \
+             {MAX_CHANNELS} channels",
+            counted(n, "value", "values", line),
+            agree(n, "is", "are"),
+            agree(n, "its field's name is", "their fields' names are")
         ));
     }
     let names = |set: &BTreeSet<String>| {
@@ -2299,8 +2738,15 @@ mod tests {
     struct Written {
         per_pa: f64,
         accel: f64,
+        /// The accelerometer's readings off the pad, on top of `accel`.
+        boost: f64,
         gyro: f64,
         altitude: f64,
+        speed: f64,
+        /// The altitude written as a straight line through the coast, its ends kept.
+        straight_coast: bool,
+        /// The speed written as its mean through the coast, its integral kept.
+        steady_coast: bool,
         stamp: f64,
         latitude: f64,
         longitude: f64,
@@ -2312,8 +2758,12 @@ mod tests {
             Self {
                 per_pa: 1.0 / ATM_PA,
                 accel: 1.0,
+                boost: 1.0,
                 gyro: 1.0,
                 altitude: 1.0,
+                speed: 1.0,
+                straight_coast: false,
+                steady_coast: false,
                 stamp: 1.0,
                 latitude: 41.7102,
                 longitude: -70.8301,
@@ -2453,6 +2903,19 @@ mod tests {
             } * written.stamp;
             let (z, v, swing, swing_rate) = state(t);
             let descending = t >= apogee_s();
+            let coasting = (BURNOUT_S..apogee_s()).contains(&t);
+            let top = state(apogee_s()).0;
+            let written_z = if written.straight_coast && coasting {
+                80.0 + (top - 80.0) * (t - BURNOUT_S) / (apogee_s() - BURNOUT_S)
+            } else {
+                z
+            };
+            let written_v = if written.steady_coast && coasting {
+                40.0
+            } else {
+                v
+            } * written.speed;
+            let accel_scale = written.accel * if flying { written.boost } else { 1.0 };
             let state_number = if descending { "3" } else { "2" }.to_owned();
             let (accel, gyro, tilt_deg) = if t < BOOST_S {
                 let lean = 5.0_f64.to_radians();
@@ -2482,9 +2945,9 @@ mod tests {
                             ("rot_vel_x", f(gyro[0] * written.gyro)),
                             ("rot_vel_y", f(gyro[1] * written.gyro)),
                             ("rot_vel_z", f(gyro[2] * written.gyro)),
-                            ("accel_x", f(accel[0] * written.accel)),
-                            ("accel_y", f(accel[1] * written.accel)),
-                            ("accel_z", f(accel[2] * written.accel)),
+                            ("accel_x", f(accel[0] * accel_scale)),
+                            ("accel_y", f(accel[1] * accel_scale)),
+                            ("accel_z", f(accel[2] * accel_scale)),
                             ("magnetic_field_x", f(0.21)),
                             ("magnetic_field_y", f(-0.13)),
                             ("magnetic_field_z", f(0.42)),
@@ -2509,8 +2972,8 @@ mod tests {
                         Some(board_ms),
                         &[
                             ("temperature", py(single(25.5))),
-                            ("fcb_altitude", py(single(z * written.altitude))),
-                            ("v_speed", py(single(v))),
+                            ("fcb_altitude", py(single(written_z * written.altitude))),
+                            ("v_speed", py(single(written_v))),
                             ("fcb_latitude", py(written.latitude + 1e-4 * z / 400.0)),
                             ("fcb_longitude", py(written.longitude)),
                             ("gps_alt", py(single(((300.0 + z) * 10.0).round() / 10.0))),
@@ -2806,16 +3269,14 @@ mod tests {
              step: ",
             "`Ground Station GPS.gs_baro` read in atmospheres, from its size and its step: ",
             "`Alt Info & Cfg.press_ref` read in atmospheres, from its size and the barometer's: ",
-            "`Position Data.fcb_altitude` read in meters, from the club's summaries and the \
-             barometer: ",
-            "`Position Data.v_speed` read in meters per second, from the club's summaries and the \
-             altitude: ",
+            "`Position Data.fcb_altitude` read in meters, from the barometer and the coast: ",
+            "`Position Data.v_speed` read in meters per second, from the barometer and the coast: ",
             "`Position Data.fcb_latitude` and `Position Data.fcb_longitude` read in degrees, from \
              their range and their fractions: ",
             "`Ground Station GPS.gs_lat` and `Ground Station GPS.gs_lon` read in degrees, from \
              their range and their fractions: ",
             "`Orientation.accel_x`, `Orientation.accel_y` and `Orientation.accel_z` read in meters \
-             per second squared, from the club's summaries and the pad's gravity: ",
+             per second squared, from the pad's gravity and the barometer: ",
             "`Orientation.angle_vertical` read in degrees, from its range and the accelerometer: ",
             "`Orientation.rot_vel_x`, `Orientation.rot_vel_y` and `Orientation.rot_vel_z` read in \
              radians per second, from the board's turning and its tilt: ",
@@ -2826,9 +3287,9 @@ mod tests {
              `Orientation.orientation_rpy[0]`, `Orientation.orientation_rpy[1]` and \
              `Orientation.orientation_rpy[2]` kept as written, with no check of their unit but \
              their range: ",
-            "1 positions of (0, 0), the receiver's mark for no fix, are gaps",
-            "1 lines are the ground station's own messages, not packets, such as \"Switching radio \
-             to band 1\" on line 5: skipped",
+            "1 position of (0, 0), the receiver's mark for no fix, is a gap",
+            "1 line is the ground station's own message, not a packet, \"Switching radio to band \
+             1\" on line 5: skipped",
             "the fields `callsign`, `radio_name` hold text, not numbers",
         ] {
             note(&log, start);
@@ -2877,12 +3338,17 @@ mod tests {
         );
         note(
             &log,
-            "`Position Data.fcb_altitude` kept as written, the barometer not checking the club's \
-             meters: the file has no `barometer_pressure` read in atmospheres",
+            "`Position Data.fcb_altitude` kept as written, with no barometer read in atmospheres: ",
         );
         note(
             &log,
-            "`Position Data.v_speed` kept as written, with no altitude read in meters",
+            "`Position Data.v_speed` kept as written, with no barometer read in atmospheres: ",
+        );
+        note(
+            &log,
+            "`Orientation.accel_x`, `Orientation.accel_y` and `Orientation.accel_z` kept as \
+             written, the pad's gravity and the barometer not both bearing meters per second \
+             squared out: ",
         );
         assert!(log.time_s.is_empty() && log.altitude_m.is_empty());
         assert!(log.vertical_speed_m_s.is_none());
@@ -2941,7 +3407,7 @@ mod tests {
         }
     }
 
-    /// An altitude in feet: the barometer refutes the club's meters, and the file is refused.
+    /// An altitude in feet: the barometer refutes meters, and the file is refused.
     #[test]
     fn an_altitude_the_barometer_refutes_refuses_the_file() {
         let error = read(&flight(Written {
@@ -2954,15 +3420,14 @@ mod tests {
         };
         assert_eq!(*line, 3);
         assert!(
-            message.starts_with(
-                "`Position Data.fcb_altitude` isn't in meters as the club's summaries give it: "
-            ) && message.contains(" 3.2")
-                && message.ends_with(" times, not within 25%"),
+            message.starts_with("`Position Data.fcb_altitude` isn't in meters, by the barometer: ")
+                && message.contains(" 3.2")
+                && message.ends_with(" times; meters need within 25%"),
             "{message}"
         );
     }
 
-    /// An accelerometer in g: the pad's gravity refutes the club's meters per second squared;
+    /// An accelerometer in g: the pad's gravity and the climb refute meters per second squared;
     /// it is kept, and the tilt and the gyroscope that are checked by it.
     #[test]
     fn an_accelerometer_in_g_is_kept_and_what_rests_on_it() {
@@ -2974,9 +3439,14 @@ mod tests {
         let kept = note(
             &log,
             "`Orientation.accel_x`, `Orientation.accel_y` and `Orientation.accel_z` kept as \
-             written, the pad's gravity not bearing out the club's meters per second squared: ",
+             written, the pad's gravity and the barometer not both bearing meters per second \
+             squared out: ",
         );
-        assert!(kept.contains("within 10% of 9.806 65 for 0.0 s"), "{kept}");
+        assert!(
+            kept.contains("within 10% of 9.806 65 for 0.0 s")
+                && kept.contains("past 10 m at 0 pressures, under 3"),
+            "{kept}"
+        );
         note(
             &log,
             "`Orientation.angle_vertical` kept as written, with no accelerometer read in m/s²",
@@ -3159,7 +3629,7 @@ mod tests {
         );
         let unparsed = next(
             &mut text,
-            "15:00:40.200000: Pyro Info {'crc': 'Good', 'flash_usage': 1,,}",
+            "15:00:40.200000: Pyro Info {'crc': 'Good', 'flash_usage': 'é', 'n': 1,,}",
         );
         let other = next(&mut text, "garbage without a time");
         let long = next(
@@ -3178,31 +3648,39 @@ mod tests {
         let log = read(&text).unwrap();
         note(
             &log,
-            &format!("1 packets, the first on line {corrupt}, are left out"),
+            &format!(
+                "1 packet, on line {corrupt}, is left out: the ground station marks its `crc` \
+                 other than `'Good'`, its bytes"
+            ),
         );
         note(&log, "2 lines are the ground station's own messages");
+        // The place is a character of the line as written, its clock and name before it: the
+        // second comma is its 71st character, its 72nd byte past the two-byte `é`.
         note(
             &log,
             &format!(
-                "1 packet lines don't parse as a Python literal, the first on line {unparsed}: an \
-                 unexpected character"
+                "1 packet line, on line {unparsed}, doesn't parse as a Python literal: an \
+                 unexpected character at character 71 of the line; skipped"
             ),
         );
         note(
             &log,
-            &format!("1 lines, the first on line {other}, open with no time of day"),
+            &format!("1 line, on line {other}, opens with no time of day"),
         );
         note(
             &log,
-            &format!("1 lines, the first on line {long}, are longer than 65536 bytes"),
+            &format!("1 line, on line {long}, is longer than 65536 bytes"),
         );
         note(
             &log,
-            &format!("1 more `RUN START` lines, the first on line {run}, are skipped"),
+            &format!("1 more `RUN START` line, on line {run}, is skipped"),
         );
         note(
             &log,
-            &format!("1 values, the first on line {gap}, are `None`, `nan`, `inf`"),
+            &format!(
+                "1 value, on line {gap}, is `None`, `nan`, `inf` or text that isn't a number: it \
+                 is a gap"
+            ),
         );
         note(
             &log,
@@ -3210,7 +3688,8 @@ mod tests {
         );
         note(
             &log,
-            "1 fields of the `CLI Data` packets, such as `x`, aren't ones this reader knows",
+            "1 field of the `CLI Data` packets, `x`, isn't one this reader knows: its values are \
+             kept as written",
         );
         // The corrupt packet's temperature is nowhere in the record.
         let temperature = channel(&log, "Position Data.temperature");
@@ -3272,6 +3751,255 @@ mod tests {
             channel(&log, "Position Data.fcb_latitude").quantity,
             Quantity::Unrecognized
         );
+    }
+
+    /// An altitude whose barometer check holds but whose coast is a straight line: the coast
+    /// refutes meters on its own, so the column is kept, and the record has no track.
+    #[test]
+    fn an_altitude_whose_coast_isnt_gravitys_is_kept() {
+        let log = read(&flight(Written {
+            straight_coast: true,
+            ..Written::default()
+        }))
+        .unwrap();
+        let kept = note(
+            &log,
+            "`Position Data.fcb_altitude` kept as written, the barometer and the coast not both \
+             bearing meters out: ",
+        );
+        assert!(
+            kept.contains("meters need within 25%; over the coast,"),
+            "{kept}"
+        );
+        assert_eq!(
+            channel(&log, "Position Data.fcb_altitude").quantity,
+            Quantity::Unrecognized
+        );
+        assert!(log.time_s.is_empty());
+        // The speed rests on the barometer and its own coast, not on the altitude.
+        assert_eq!(
+            channel(&log, "Position Data.v_speed").quantity,
+            Quantity::Speed
+        );
+    }
+
+    /// A speed in feet per second: the barometer's climb is 0.305 times its integral, and its
+    /// coast slows 3.4 g; it is kept.
+    #[test]
+    fn a_speed_in_feet_per_second_is_kept() {
+        let log = read(&flight(Written {
+            speed: 1.0 / 0.3048,
+            ..Written::default()
+        }))
+        .unwrap();
+        let kept = note(
+            &log,
+            "`Position Data.v_speed` kept as written, the barometer and the coast not both bearing \
+             meters per second out: ",
+        );
+        assert!(
+            kept.contains("the climb is 0.30") && kept.contains(" 3.4"),
+            "{kept}"
+        );
+        assert_eq!(
+            channel(&log, "Position Data.v_speed").quantity,
+            Quantity::Unrecognized
+        );
+        assert!(log.vertical_speed_m_s.is_none());
+        assert_eq!(
+            channel(&log, "Position Data.fcb_altitude").quantity,
+            Quantity::AltitudeAboveGround
+        );
+    }
+
+    /// A speed that integrates to the barometer's climb but holds steady through the coast: the
+    /// coast refutes meters per second on its own.
+    #[test]
+    fn a_speed_steady_through_the_coast_is_kept() {
+        let log = read(&flight(Written {
+            steady_coast: true,
+            ..Written::default()
+        }))
+        .unwrap();
+        let kept = note(
+            &log,
+            "`Position Data.v_speed` kept as written, the barometer and the coast not both bearing \
+             meters per second out: ",
+        );
+        let ratio = kept
+            .split("the climb is ")
+            .nth(1)
+            .and_then(|rest| rest.split(' ').next())
+            .and_then(|r| r.parse::<f64>().ok())
+            .unwrap_or(f64::NAN);
+        assert!((ratio - 1.0).abs() <= MARGIN, "{kept}");
+        assert_eq!(
+            channel(&log, "Position Data.v_speed").quantity,
+            Quantity::Unrecognized
+        );
+    }
+
+    /// An accelerometer that reads 1 g at rest but three times its force in flight: the pad's
+    /// gravity holds and the barometer's climb refutes it, so it is kept, and what rests on it.
+    #[test]
+    fn an_accelerometer_whose_climb_the_barometer_refutes_is_kept() {
+        let log = read(&flight(Written {
+            boost: 3.0,
+            ..Written::default()
+        }))
+        .unwrap();
+        let kept = note(
+            &log,
+            "`Orientation.accel_x`, `Orientation.accel_y` and `Orientation.accel_z` kept as \
+             written, the pad's gravity and the barometer not both bearing meters per second \
+             squared out: ",
+        );
+        let ratio = kept
+            .split("standard atmosphere is ")
+            .nth(1)
+            .and_then(|rest| rest.split(' ').next())
+            .and_then(|r| r.parse::<f64>().ok())
+            .unwrap_or(f64::NAN);
+        assert!(ratio < 1.0 / GRAVITY_FACTOR, "{kept}");
+        assert!(kept.contains("within 10% of 9.806 65 for 6.0 s"), "{kept}");
+        for column in ["Orientation.accel_z", "Orientation.angle_vertical"] {
+            assert_eq!(
+                channel(&log, column).quantity,
+                Quantity::Unrecognized,
+                "{column}"
+            );
+        }
+    }
+
+    /// The coasts' fits: a parabola slowing at 1 g reads 1 g in meters and 3.28 g in feet, a
+    /// line the same, and a coast too short to fit decides nothing.
+    #[test]
+    fn the_coast_fits_tell_meters_from_feet() {
+        let mut points: Vec<(f64, f64)> = (0..5).map(|k| (f64::from(k) * 0.2, 0.0)).collect();
+        for k in 0..=40 {
+            let t = 1.0 + 0.2 * f64::from(k);
+            let s = t - 1.0;
+            points.push((t, 300.0 * s + 60.0 * s - 0.5 * G * s * s));
+        }
+        let found = altitude_coast(&points).unwrap();
+        assert!((found.deceleration - G).abs() < 1e-6, "{found:?}");
+        assert!(near_gravity(found.deceleration));
+        let feet: Vec<(f64, f64)> = points.iter().map(|&(t, z)| (t, z / 0.3048)).collect();
+        let found = altitude_coast(&feet).unwrap();
+        assert!(!near_gravity(found.deceleration), "{found:?}");
+        let speeds: Vec<(f64, f64)> = (0..=30)
+            .map(|k| f64::from(k) * 0.25)
+            .map(|t| (t, 70.0 - G * t))
+            .collect();
+        let found = speed_coast(&speeds).unwrap();
+        assert!((found.deceleration - G).abs() < 1e-9, "{found:?}");
+        assert!(!near_gravity(found.deceleration / 0.3048));
+        assert!(near_gravity(G / 1.79) && near_gravity(G * 1.79));
+        assert!(!near_gravity(G / 1.81) && !near_gravity(G * 1.81) && !near_gravity(f64::NAN));
+        // Four samples, or five within a second, are too few.
+        assert_eq!(speed_coast(&speeds[26..]), None);
+        let close: Vec<(f64, f64)> = (0..6)
+            .map(|k| (0.1 * f64::from(k), 5.0 - f64::from(k)))
+            .collect();
+        assert_eq!(speed_coast(&close), None);
+    }
+
+    /// The clock's longest stretch, on a long steady stretch then one-packet stretches each a
+    /// different gap: every stretch's span is taken once, so the work is one visit a packet.
+    #[test]
+    fn the_longest_stretch_is_found_in_linear_work() {
+        let packets: u32 = 20_000;
+        let mut slots: Vec<Slot> = (0..packets)
+            .map(|k| {
+                let received_s = 0.1 * f64::from(k);
+                let board_ms = if k < packets / 2 {
+                    received_s * 1_000.0
+                } else if k % 2 == 0 {
+                    0.0
+                } else {
+                    100_000_000.0
+                };
+                Slot {
+                    line: 1,
+                    received_s,
+                    board_ms: Some(board_ms),
+                    time_s: received_s,
+                }
+            })
+            .collect();
+        let stretches = stretches_of(&slots);
+        assert_eq!(stretches.len(), 1 + usize::try_from(packets / 2).unwrap());
+        let mut visits = 0;
+        let longest = longest_stretch(&stretches, |stretch| {
+            visits += stretch.len();
+            #[allow(clippy::cast_precision_loss, reason = "a count of packets")]
+            let span = stretch.len() as f64;
+            span
+        });
+        assert_eq!(longest.map(|(at, _)| at), Some(0));
+        assert_eq!(visits, usize::try_from(packets).unwrap());
+        // And the whole check on that input reads the board's clock by its long stretch.
+        let mut notes = Vec::new();
+        assert!(place_on_clock(&mut slots, &mut notes));
+        assert!(notes[0].contains("999.9 s of that clock"), "{notes:?}");
+    }
+
+    /// A key holding a `[` that isn't a list's item takes no role by the name before it.
+    #[test]
+    fn a_bracket_in_a_key_isnt_a_list_item() {
+        let mut text = String::from("RUN START 2025-01-01 10:00:00\n");
+        for k in 0..3 {
+            text.push_str(&format!(
+                "10:00:0{k}.0: Position Data {{'crc': 'Good', 'fcb_altitude[1]': 5.0, \
+                 'pyro_status': [1, 0]}}\n"
+            ));
+        }
+        let log = read(&text).unwrap();
+        note(
+            &log,
+            "1 field of the `Position Data` packets, `fcb_altitude[1]`, isn't one this reader \
+             knows: ",
+        );
+        assert!(
+            !log.notes
+                .iter()
+                .any(|n| n.starts_with("`Position Data.fcb_altitude")),
+            "{:#?}",
+            log.notes
+        );
+        assert_eq!(
+            channel(&log, "Position Data.fcb_altitude[1]").quantity,
+            Quantity::Unrecognized
+        );
+        // A list's items take their role by the list's name.
+        assert_eq!(
+            channel(&log, "Position Data.pyro_status[0]").quantity,
+            Quantity::Number
+        );
+    }
+
+    /// Positions in radians with one stray fix in degrees: one fix beyond ±π/2 decides nothing,
+    /// so the pair is kept; most fixes must pass.
+    #[test]
+    fn one_stray_fix_doesnt_make_degrees() {
+        let text = flight(Written {
+            latitude: 0.728,
+            longitude: -1.2362,
+            ..Written::default()
+        });
+        let (text, _) = changed(
+            &text,
+            POSITION,
+            "'fcb_latitude': 0.728,",
+            "'fcb_latitude': 41.71,",
+        );
+        let log = read(&text).unwrap();
+        let kept = note(
+            &log,
+            "`Position Data.fcb_latitude` and `Position Data.fcb_longitude` kept as written, their \
+             range or their fractions not degrees': ",
+        );
+        assert!(kept.contains(", 1 beyond ±π/2 or ±π,"), "{kept}");
     }
 
     #[test]

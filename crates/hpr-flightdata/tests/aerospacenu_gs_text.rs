@@ -3,7 +3,8 @@
 //! atmosphere's, in whole pascals, for their altitude above a pad 250 m up, sent as 32-bit
 //! floats in atmospheres: a whole flight, its board swinging under a parachute, with two packets
 //! that failed the radio's checksum and a `nan`; and a short record from a board with no working
-//! accelerometer or GPS, whose clock restarts on the pad, with a packet this reader doesn't know.
+//! accelerometer or GPS, whose clock restarts on the pad, with a packet this reader doesn't know
+//! and positions once a second.
 
 use hpr_flightdata::error::LogError;
 use hpr_flightdata::import;
@@ -95,8 +96,20 @@ fn the_flight_reads_every_unit_by_its_two_checks() {
     );
     note(
         &log,
-        "1 values, the first on line 106, are `None`, `nan`, `inf`",
+        "1 value, on line 106, is `None`, `nan`, `inf` or text that isn't a number: it is a gap",
     );
+    // Each unit by two checks, neither the club's word: the barometer's climb and the coast's
+    // gravity for the altitude and the speed, the pad's gravity and the barometer's climb for
+    // the accelerometer.
+    for start in [
+        "`Position Data.fcb_altitude` read in meters, from the barometer and the coast: ",
+        "`Position Data.v_speed` read in meters per second, from the barometer and the coast: ",
+        "`Orientation.accel_x`, `Orientation.accel_y` and `Orientation.accel_z` read in meters \
+         per second squared, from the pad's gravity and the barometer: ",
+    ] {
+        note(&log, start);
+    }
+    assert!(log.notes.iter().all(|n| !n.contains("summar")));
     assert!(log.notes.iter().all(|n| !n.contains("assum")));
     let channels: Vec<serde_json::Value> = log.channels.iter().map(summary).collect();
     insta::assert_json_snapshot!(serde_json::json!({
@@ -111,9 +124,9 @@ fn the_flight_reads_every_unit_by_its_two_checks() {
     }));
 }
 
-/// The short record: the clock read through the board's restart, the altitude read, and the
-/// rest kept as written for want of a check (an accelerometer reading 0, no GPS fix, positions
-/// once a second).
+/// The short record: the clock read through the board's restart, the altitude and the speed read
+/// from positions once a second, and the rest kept as written for want of a check (an
+/// accelerometer reading 0, no GPS fix).
 #[test]
 fn the_short_record_keeps_what_it_cant_check() {
     let log = import::read(KEPT).unwrap();
@@ -125,12 +138,17 @@ fn the_short_record_keeps_what_it_cant_check() {
     note(
         &log,
         "`Orientation.accel_x`, `Orientation.accel_y` and `Orientation.accel_z` kept as written, \
-         the pad's gravity not bearing out the club's meters per second squared: ",
+         the pad's gravity and the barometer not both bearing meters per second squared out: ",
     );
-    note(
+    // The speed's integral bridges the second between positions, and the coast holds 8.
+    let speed = note(
         &log,
-        "`Position Data.v_speed` kept as written, the altitude not bearing out the club's meters \
-         per second: ",
+        "`Position Data.v_speed` read in meters per second, from the barometer and the coast: ",
+    );
+    assert!(
+        speed.contains("between samples up to 1.0 s apart")
+            && speed.contains("over the coast, 8 samples"),
+        "{speed}"
     );
     note(
         &log,
@@ -144,7 +162,10 @@ fn the_short_record_keeps_what_it_cant_check() {
     );
     assert_eq!(log.time_s.len(), 26);
     assert!(log.time_s.windows(2).all(|pair| pair[1] > pair[0]));
-    assert!(log.vertical_speed_m_s.is_none());
+    assert_eq!(
+        log.vertical_speed_m_s.as_ref().map(Vec::len),
+        Some(log.time_s.len())
+    );
     insta::assert_json_snapshot!(log);
 }
 

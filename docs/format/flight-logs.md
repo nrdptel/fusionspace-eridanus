@@ -394,32 +394,41 @@ sample logs:
     Fahrenheit alike; the battery voltages; the magnetometers; and the raw counts the scaled
     columns are made from. The state codes, in three numberings no source publishes, are kept as
     numbers, so the record takes no events from them.
-- **AerospaceNU's ground station text, the board's units from the club's summaries.** The same
-  board sends its readings by radio, and the club's ground station logs each packet as a line:
-  the time of day it arrived, the packet's name and its fields as a Python dictionary, under a
-  `RUN START` line. An invented line, shortened:
+- **AerospaceNU's ground station text, each unit by two checks.** The same board sends its
+  readings by radio, and the club's ground station logs each packet as a line: the time of day it
+  arrived, the packet's name and its fields as a Python dictionary, under a `RUN START` line. An
+  invented line, shortened:
 
   ```text
   10:00:01.512345: Position Data {'crc': 'Good', 'time_stamp_ms': 61000, 'fcb_altitude': 0.25, …}
   ```
 
-  The club's summary of each flight, `attributes.csv`, names units in its keys, such as
-  `peak_altitude_m`, and in all 4 sample files those peaks are the highest altitude, speed and
-  acceleration in the text: the club's word that the board sends meters, m/s and m/s². Each is
-  read so only where a check on the file bears it out, and every other unit needs two checks:
+  No document describes the packets' units, so each unit a name doesn't state is read only where
+  two checks on the file's own values agree, neither resting on a column whose unit is as
+  unknown; otherwise it is kept as written, with a note. The club's per-flight summaries aren't
+  a check: they exist for few flights and needn't match the packets received. In the 4 sample
+  files:
   - *Altitude, `fcb_altitude`, the record's altitude:* its climb within 25% of the barometer's
-    climb in the standard atmosphere, where feet would be 3.28 times off; a climb further off
-    refuses the file. Read in meters in all 4.
-  - *Vertical speed, `v_speed`:* its integral against the altitude's change, within 25%. In m/s
-    in all 4.
-  - *Accelerometer:* 1 g at rest on the pad, in m/s² rather than g. Read so in 3; kept as
-    written in 1.
+    climb in the standard atmosphere, where feet would be 3.28 times off (a climb further off
+    refuses the file); and its coast, from the end of the boost to its highest value, slowing
+    within a factor of 1.8 of 1 g, where feet would read 3.28 g or more. Read in meters in all 4:
+    climbs 1.006 to 1.090 times the barometer's, coasts slowing 1.08 to 1.28 g.
+  - *Vertical speed, `v_speed`:* its integral over the barometer's ascent within 25% of the
+    barometer's climb, the speed taken as a straight line across gaps in the reception; and its
+    coast, from its highest value to its first at or below 0, slowing within a factor of 1.8 of
+    1 g. Neither check uses `fcb_altitude`. In m/s in all 4: the climb 0.909 to 1.004 times the
+    integral, coasts slowing 1.00 to 1.47 g.
+  - *Accelerometer:* 1 g at rest on the pad, in m/s² rather than g; and, from the launch, its
+    force along the pad's direction less 1 g, integrated to a climb, within a factor of 1.8 of the
+    barometer's climb (the median 0.997 to 1.090). Read so in 3; kept as written in 1, which
+    reads 0 throughout.
   - *Pressures, in atmospheres:* by their size and their whole-pascal step, as in the board's CSV.
   - *Rates of turn, in rad/s:* by the board's turning against the accelerometer's, and by its
     tilt from vertical, which can change no faster than the board turns. Read so in 3; kept as
     written in 1, whose accelerometer isn't read.
-  - *Positions, in degrees:* one fix passes ±π/2 or ±π, which radians can't, and one has a
-    fraction of a degree of 0.6 or more, which degrees and minutes run together can't.
+  - *Positions, in degrees:* most fixes pass ±π/2 or ±π, which radians can't, and most have a
+    fraction of a degree of 0.6 or more, which degrees and minutes run together can't; one stray
+    fix decides nothing.
   - *Clock:* the board's `time_stamp_ms`, in milliseconds by its name, must advance 0.8 to
     1.25 s for each second of the ground station's own clock, over at least 20 s. Packets after
     the board restarts are placed by the ground station's clock.
