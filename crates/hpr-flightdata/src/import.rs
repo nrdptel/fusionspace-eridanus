@@ -19,6 +19,9 @@
 //! | [RRC3 CSV](crate::rrc3) | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages` |
 //! | [AltimeterCloud CSV](crate::altimetercloud) | a header within the first 65 lines whose first name is `Time(ms)`, in any case, and which also names `acceleration_total(mG)` and `tilt` |
 //! | [Entacore AIM CSV](crate::entacore) | the first line starts with a `time` column, names at least two, and names one of the AIM's own channels, such as `Pressure AGL` |
+//! | [ARTS2 CSV](crate::arts2) | a first line of `#` and the names `MET Acc Vel iAlt pAlt`, by spaces, tabs or commas, in any case; tried before AltOS's `#` comments |
+//! | [SillyGoose text](crate::sillygoose) | the first line, or the one after a `CONFIG` line, starts with `timestampMs` and names `pressurePa` and `altitudeM` |
+//! | [Silicdyne Fluctus CSV](crate::fluctus) | a `sep=` line, or none, then a header starting `time` that names `deltaTime` and `baro-altitude` |
 //! | [Eggtimer text](crate::eggtimer::read_text) | an `Eggtimer … Flight Settings` title before an Eggtimer CSV header, within the first 200 lines that aren't blank |
 //! | [Eggtimer CSV](crate::eggtimer) | `T,Alt,` and more of Eggtimer's column names |
 //!
@@ -41,8 +44,8 @@ use std::borrow::Cow;
 use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
 use crate::{
-    altimetercloud, altos, blueraven, eggtimer, entacore, fwgps, kml, nmea, perfectflite, raven,
-    rrc3,
+    altimetercloud, altos, arts2, blueraven, eggtimer, entacore, fluctus, fwgps, kml, nmea,
+    perfectflite, raven, rrc3, sillygoose,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
@@ -50,6 +53,7 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::Kml,
     LogFormat::Nmea0183,
     LogFormat::FeatherweightGpsCsv,
+    LogFormat::Arts2Csv,
     LogFormat::PerfectFlitePf2,
     LogFormat::PerfectFlitePfa,
     LogFormat::AltosCsv,
@@ -58,6 +62,8 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::Rrc3Csv,
     LogFormat::AltimeterCloudCsv,
     LogFormat::EntacoreAimCsv,
+    LogFormat::SillyGooseText,
+    LogFormat::FluctusCsv,
     LogFormat::EggtimerText,
     LogFormat::EggtimerCsv,
     LogFormat::PerfectFliteCsv,
@@ -116,6 +122,10 @@ fn detect_text(text: &str) -> Option<LogFormat> {
     }
     let altos_header =
         |line: &str| line.starts_with("#version,") || line.starts_with("version,serial,");
+    // ARTS2's header opens with `#`, which would otherwise be taken for AltOS's comments.
+    if arts2::recognizes(text) {
+        return Some(LogFormat::Arts2Csv);
+    }
     if first.to_ascii_lowercase().contains("perfectflite") {
         // A `.pfa` names PerfectFlite too, but writes its samples after a `**!!Data:` line, one
         // value a line.
@@ -149,6 +159,10 @@ fn detect_text(text: &str) -> Option<LogFormat> {
         Some(LogFormat::AltimeterCloudCsv)
     } else if entacore::recognizes(text) {
         Some(LogFormat::EntacoreAimCsv)
+    } else if sillygoose::recognizes(text) {
+        Some(LogFormat::SillyGooseText)
+    } else if fluctus::recognizes(text) {
+        Some(LogFormat::FluctusCsv)
     } else if eggtimer::recognizes_text(text) {
         Some(LogFormat::EggtimerText)
     } else if eggtimer::recognizes(text) {
@@ -183,6 +197,9 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::EggtimerText) => eggtimer::read_text(&text),
         Some(LogFormat::AltimeterCloudCsv) => altimetercloud::read(&text),
         Some(LogFormat::EntacoreAimCsv) => entacore::read(&text),
+        Some(LogFormat::SillyGooseText) => sillygoose::read(&text),
+        Some(LogFormat::FluctusCsv) => fluctus::read(&text),
+        Some(LogFormat::Arts2Csv) => arts2::read(&text),
         Some(LogFormat::FeatherweightGpsCsv) => fwgps::read(&text),
         Some(LogFormat::Kml) => kml::read(&text),
         Some(LogFormat::Nmea0183) => nmea::read(&text),
@@ -215,6 +232,17 @@ mod tests {
                 Some(LogFormat::AltosCsv),
             ),
             ("#Component=Raven\n", None),
+            ("# MET Acc Vel iAlt pAlt\n", Some(LogFormat::Arts2Csv)),
+            ("MET,Acc(HI),Acc/Baro(LO),Baro(HI),State\n", None),
+            (
+                "sep=;\ntime (ms);deltaTime (ms);status;baro-altitude (m)\n",
+                Some(LogFormat::FluctusCsv),
+            ),
+            ("T;Alt;Veloc;FAlt\n", None),
+            (
+                "timestampMs\tpressurePa\ttempK\taltitudeM\n",
+                Some(LogFormat::SillyGooseText),
+            ),
             (
                 "#foo\n#version,serial,flight,time\n",
                 Some(LogFormat::AltosCsv),

@@ -220,6 +220,15 @@ pub enum LogFormat {
     /// Entacore AIM's CSV, as its software exports a flight: each channel beside its own `time`
     /// column.
     EntacoreAimCsv,
+    /// AerospaceNU's SillyGoose flight computer's log, as the board writes it: tab-separated
+    /// text under a header such as `timestampMs pressurePa tempK …`.
+    SillyGooseText,
+    /// Silicdyne's Fluctus flight computer's CSV: a `sep=;` line, then a semicolon-separated
+    /// table whose names carry their units, such as `time (ms);baro-altitude (m);…`.
+    FluctusCsv,
+    /// Ozark Aerospace's ARTS2 interpreted data: a `# MET Acc Vel iAlt pAlt` header, then
+    /// comma-separated rows from launch.
+    Arts2Csv,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -317,7 +326,9 @@ impl LogFormat {
     /// User’s Manual*, p. 10): the step the file writes is taken, not the coarser one, so that a
     /// tolerance built on it stays tight; AltOS and Entacore AIM write their pressure in whole
     /// pascals, 0.083 m of altitude at sea level; AltimeterCloud writes its altitude to the
-    /// millimeter, and it steps by that; the Raven's pressure moves in steps of 4 × 10⁻⁵ atm, 0.337
+    /// millimeter, and it steps by that, a SillyGoose to the centimeter, a Fluctus to the whole
+    /// meter, and an ARTS2's barometric altitude moves by its barometer's count, 8.8 m at most
+    /// near the ground among the sample files; the Raven's pressure moves in steps of 4 × 10⁻⁵ atm, 0.337
     /// m at sea level, the Blue Raven's in steps of 2 × 10⁻⁵ atm, 0.169 m, and an RRC3's export in
     /// steps of 0.1 hPa, 0.832 m. Aloft, those from a pressure are larger. A GPS log has no
     /// barometric altitude; its formats give the coarsest step its GNSS altitude is written in
@@ -340,6 +351,9 @@ impl LogFormat {
             Self::PerfectFlitePfa | Self::EggtimerText => crate::perfectflite::FOOT_M,
             Self::AltimeterCloudCsv => 0.001,
             Self::EntacoreAimCsv => ONE_PASCAL_M,
+            Self::SillyGooseText => crate::sillygoose::ALTITUDE_STEP_M,
+            Self::FluctusCsv => crate::fluctus::ALTITUDE_STEP_M,
+            Self::Arts2Csv => crate::arts2::ALTITUDE_STEP_M,
         }
     }
 
@@ -355,8 +369,12 @@ impl LogFormat {
             | Self::BlueRavenCsv
             | Self::FeatherweightGpsCsv
             | Self::AltimeterCloudCsv
-            | Self::EntacoreAimCsv => ".csv",
-            Self::PerfectFliteText | Self::Nmea0183 | Self::EggtimerText => ".txt",
+            | Self::EntacoreAimCsv
+            | Self::FluctusCsv
+            | Self::Arts2Csv => ".csv",
+            Self::PerfectFliteText | Self::Nmea0183 | Self::EggtimerText | Self::SillyGooseText => {
+                ".txt"
+            }
             Self::PerfectFlitePfa => ".pfa",
             Self::Kml => ".kml",
         }
@@ -380,6 +398,9 @@ impl LogFormat {
             Self::EggtimerText => "Eggtimer text",
             Self::AltimeterCloudCsv => "AltimeterCloud CSV",
             Self::EntacoreAimCsv => "Entacore AIM CSV",
+            Self::SillyGooseText => "SillyGoose text",
+            Self::FluctusCsv => "Silicdyne Fluctus CSV",
+            Self::Arts2Csv => "ARTS2 CSV",
         }
     }
 }
@@ -421,6 +442,9 @@ mod tests {
             (LogFormat::EggtimerText, 0.3048),
             (LogFormat::EntacoreAimCsv, 0.083_242),
             (LogFormat::AltimeterCloudCsv, 0.001),
+            (LogFormat::SillyGooseText, 0.01),
+            (LogFormat::FluctusCsv, 1.0),
+            (LogFormat::Arts2Csv, 8.805_672),
         ];
         for (format, expected) in cases {
             let resolution = format.altitude_resolution_m();

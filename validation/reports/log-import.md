@@ -10,34 +10,38 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 
 | Family | Increment | Files | Read | Refused |
 |---|---|---:|---:|---|
-| aerospacenu-fcb-csv | M7.1c3 | 20 | 0 | 20 unrecognized |
-| aerospacenu-sillygoose-txt | M7.1c3 | 15 | 0 | 15 unrecognized |
+| aerospacenu-fcb-csv | M7.1c4 | 20 | 0 | 20 unrecognized |
+| aerospacenu-sillygoose-gs-csv | M7.1c4 | 1 | 0 | 1 unrecognized |
+| aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
 | altos-csv-damaged | damaged | 1 | 0 | 1 syntax |
-| altos-eeprom | M7.1c3 | 14 | 0 | 14 unrecognized |
-| altos-telem | M7.1c3 | 2 | 0 | 2 unrecognized |
-| binary | M7.1c3 | 4 | 0 | 4 unrecognized |
+| altos-eeprom | M7.1c4 | 14 | 0 | 14 unrecognized |
+| altos-telem | M7.1c4 | 2 | 0 | 2 unrecognized |
+| arts2-csv | M7.1c3 | 4 | 4 | none |
+| arts2-raw-csv | M7.1c4 | 3 | 0 | 3 unrecognized |
+| binary | M7.1c4 | 4 | 0 | 4 unrecognized |
 | blueraven-csv | M7.1b | 80 | 80 | none |
-| blueraven-events-txt | M7.1c3 | 12 | 0 | 12 unrecognized |
-| blueraven-summary-csv | M7.1c3 | 23 | 0 | 23 unrecognized |
-| csv | M7.1c3 | 115 | 2 | 1 syntax, 112 unrecognized |
-| debrief-synthetic-csv | M7.1c3 | 6 | 0 | 6 unrecognized |
-| e80-imu-txt | M7.1c3 | 54 | 0 | 54 unrecognized |
+| blueraven-events-txt | M7.1c4 | 12 | 0 | 12 unrecognized |
+| blueraven-summary-csv | M7.1c4 | 23 | 0 | 23 unrecognized |
+| csv | M7.1c4 | 102 | 2 | 1 syntax, 99 unrecognized |
+| debrief-synthetic-csv | M7.1c4 | 6 | 0 | 6 unrecognized |
+| e80-imu-txt | M7.1c4 | 54 | 0 | 54 unrecognized |
 | eggtimer-csv | M7.1b | 43 | 43 | none |
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c3 | 2 | 0 | 2 unrecognized |
-| featherweight-summary-csv | M7.1c3 | 25 | 0 | 25 unrecognized |
+| entacore-xtra | M7.1c4 | 2 | 0 | 2 unrecognized |
+| featherweight-summary-csv | M7.1c4 | 25 | 0 | 25 unrecognized |
+| fluctus-csv | M7.1c3 | 6 | 6 | none |
 | fwgps-csv | M7.1c1 | 40 | 40 | none |
 | jpeg | not a log | 1 | 0 | 1 unrecognized |
 | kml | M7.1c1 | 42 | 42 | none |
 | kml-map | not a log | 1 | 1 | none |
-| missileworks-rtx | M7.1c3 | 5 | 0 | 5 unrecognized |
+| missileworks-rtx | M7.1c4 | 5 | 0 | 5 unrecognized |
 | nmea | M7.1c1 | 12 | 12 | none |
-| odf | M7.1c3 | 3 | 0 | 3 unrecognized |
-| ods | M7.1c3 | 4 | 0 | 4 unrecognized |
+| odf | M7.1c4 | 3 | 0 | 3 unrecognized |
+| ods | M7.1c4 | 4 | 0 | 4 unrecognized |
 | pdf | not a log | 1 | 0 | 1 unrecognized |
 | perfectflite-csv | M7.1a | 14 | 14 | none |
 | perfectflite-txt | M7.1a | 2 | 2 | none |
@@ -45,16 +49,16 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | pfa | M7.1c2 | 25 | 25 | none |
 | png | not a log | 6 | 0 | 6 unrecognized |
 | raven-csv | M7.1a | 80 | 80 | none |
-| raven-fipa | M7.1c3 | 57 | 0 | 57 unrecognized |
+| raven-fipa | M7.1c4 | 57 | 0 | 57 unrecognized |
 | rrc3-csv | M7.1b | 50 | 50 | none |
-| rrc3-rff | M7.1c3 | 6 | 0 | 6 unrecognized |
+| rrc3-rff | M7.1c4 | 6 | 0 | 6 unrecognized |
 | rtf | not a log | 3 | 0 | 3 unrecognized |
-| txt | M7.1c3 | 39 | 0 | 39 unrecognized |
-| xls | M7.1c3 | 1 | 0 | 1 unrecognized |
-| xlsx | M7.1c3 | 32 | 0 | 32 unrecognized |
-| xml | M7.1c3 | 2 | 0 | 2 unrecognized |
-| zip | M7.1c3 | 8 | 0 | 8 unrecognized |
-| **All** | | 1103 | 643 | |
+| txt | M7.1c4 | 39 | 0 | 39 unrecognized |
+| xls | M7.1c4 | 1 | 0 | 1 unrecognized |
+| xlsx | M7.1c4 | 32 | 0 | 32 unrecognized |
+| xml | M7.1c4 | 2 | 0 | 2 unrecognized |
+| zip | M7.1c4 | 8 | 0 | 8 unrecognized |
+| **All** | | 1103 | 667 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
@@ -86,6 +90,20 @@ Files whose catalog family isn't their layout, moved to their layout's:
 - `f5df1597457a39ea csv -> entacore-aim-csv`: Entacore AIM's CSV, each channel group beside its own time column, filed as generic CSV by its extension
 - `fe5e01edf5f1202c csv -> entacore-aim-csv`: Entacore AIM's CSV, each channel group beside its own time column, filed as generic CSV by its extension
 - `ff6326c2236a0723 csv -> entacore-aim-csv`: Entacore AIM's CSV, each channel group beside its own time column, filed as generic CSV by its extension
+- `0bc847e6d3d9a9ee csv -> fluctus-csv`: Silicdyne Fluctus's CSV, a `sep=;` line then a semicolon-separated table whose names carry their units, filed as generic CSV by its extension
+- `5f6d8d9b2a364465 csv -> fluctus-csv`: Silicdyne Fluctus's CSV, a `sep=;` line then a semicolon-separated table whose names carry their units, filed as generic CSV by its extension
+- `aad887197af5df0e csv -> fluctus-csv`: Silicdyne Fluctus's CSV, a `sep=;` line then a semicolon-separated table whose names carry their units, filed as generic CSV by its extension
+- `b8bd3d94f2a563d0 csv -> fluctus-csv`: Silicdyne Fluctus's CSV, a `sep=;` line then a semicolon-separated table whose names carry their units, filed as generic CSV by its extension
+- `f544929da1867b18 csv -> fluctus-csv`: Silicdyne Fluctus's CSV, a `sep=;` line then a semicolon-separated table whose names carry their units, filed as generic CSV by its extension
+- `f5ffeb304d9213e8 csv -> fluctus-csv`: Silicdyne Fluctus's CSV, a `sep=;` line then a semicolon-separated table whose names carry their units, filed as generic CSV by its extension
+- `88b16ea55c9a6415 csv -> arts2-csv`: Ozark Aerospace ARTS2's interpreted data, a `# MET Acc Vel iAlt pAlt` header then comma-separated rows, filed as generic CSV by its extension
+- `9559781b880bbec8 csv -> arts2-csv`: Ozark Aerospace ARTS2's interpreted data, a `# MET Acc Vel iAlt pAlt` header then comma-separated rows, filed as generic CSV by its extension
+- `e5f252c299d9dbe5 csv -> arts2-csv`: Ozark Aerospace ARTS2's interpreted data, a `# MET Acc Vel iAlt pAlt` header then comma-separated rows, filed as generic CSV by its extension
+- `f3e56b3adb3d1581 csv -> arts2-csv`: Ozark Aerospace ARTS2's interpreted data, a `# MET Acc Vel iAlt pAlt` header then comma-separated rows, filed as generic CSV by its extension
+- `b4f7a3949e33ca0d csv -> arts2-raw-csv`: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; read with the ARTS2's own `.odf` files
+- `c392977fab8558c2 csv -> arts2-raw-csv`: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; read with the ARTS2's own `.odf` files
+- `eda453d88e88e9c5 csv -> arts2-raw-csv`: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; read with the ARTS2's own `.odf` files
+- `88f33383ccf621a0 aerospacenu-sillygoose-txt -> aerospacenu-sillygoose-gs-csv`: a SillyGoose flight as a ground station's conversion wrote it: a `CONFIG` line, then 28 comma-separated columns with no header, in another order than the board's own log, so nothing in the file says which column is which; for the column mapper
 
 PerfectFlite's exports state no unit for their altitude. Of the 16 read, 13 peak at exactly the height of a `.pf2` beside them, which is in feet; read in feet, their climbs take 0.94 to 1.05 times as long as a fall in vacuum from the peak. The other 3 take 0.93 to 1.07 times, read in feet, and would take 0.51 to 0.59 times read in meters.
 
@@ -95,6 +113,19 @@ Units no header states, as each file's reader decided them, or kept the column a
 
 | Family | Decision | Files |
 |---|---|---:|
+| aerospacenu-sillygoose-txt | `accelX`, `accelY` and `accelZ` read in meters per second squared, from the pad's gravity | 13 |
+| aerospacenu-sillygoose-txt | `accelX`, `accelY` and `accelZ` read in standard gravities, × 9.806 65 m/s², from the pad's gravity | 1 |
+| aerospacenu-sillygoose-txt | `altitudeM` read in meters, from its name | 2 |
+| aerospacenu-sillygoose-txt | `angularVelRadS_x`, `angularVelRadS_y` and `angularVelRadS_z` kept as written | 1 |
+| aerospacenu-sillygoose-txt | `gyroX`, `gyroY` and `gyroZ` kept as written | 1 |
+| aerospacenu-sillygoose-txt | `gyroX`, `gyroY` and `gyroZ` read in degrees per second, from the board's turning | 2 |
+| aerospacenu-sillygoose-txt | `gyroX`, `gyroY` and `gyroZ` read in radians per second, from the board's turning | 11 |
+| aerospacenu-sillygoose-txt | `imuTemp` kept as written | 2 |
+| aerospacenu-sillygoose-txt | `imuTemp` read in kelvin, from the values | 12 |
+| aerospacenu-sillygoose-txt | `tempK` kept as written | 1 |
+| aerospacenu-sillygoose-txt | `unfiltAlt` kept as written | 2 |
+| aerospacenu-sillygoose-txt | `unfiltAlt` read in meters, from the pressure | 12 |
+| aerospacenu-sillygoose-txt | `velocityMS` read in meters per second, from its name | 1 |
 | altimetercloud-csv | `Apogee time` read in seconds, from the altitude | 7 |
 | altimetercloud-csv | `Landing time` read in seconds, from the altitude | 7 |
 | altimetercloud-csv | `acceleration_total(mG)` read in thousandths of standard gravity, from its name and the Nano V1 manual | 7 |
@@ -109,6 +140,15 @@ Units no header states, as each file's reader decided them, or kept the column a
 | altimetercloud-csv | `pitch`, `roll`, `yaw` and `tilt` read in degrees, from the Nano V1 manual | 7 |
 | altimetercloud-csv | `pitch`, `roll`, `yaw` and `tilt` read in degrees, from the Nano V1 manual, whose layout has the same columns | 4 |
 | altimetercloud-csv | `target_alt` kept as written | 4 |
+| arts2-csv | `Acc` read in meters per second squared, from `Vel` | 1 |
+| arts2-csv | `Acc` read in standard gravities, 9.806 65 m/s², from `Vel` | 3 |
+| arts2-csv | `MET` read in seconds, from the apogee | 4 |
+| arts2-csv | `Vel` read in feet per second, from the apogee and the barometer's step | 3 |
+| arts2-csv | `Vel` read in meters per second, from the apogee and the barometer's step | 1 |
+| arts2-csv | `iAlt` read in feet, from `Vel` | 3 |
+| arts2-csv | `iAlt` read in meters, from `Vel` | 1 |
+| arts2-csv | `pAlt` read in feet, from its step and `Vel` | 3 |
+| arts2-csv | `pAlt` read in meters, from its step and `Vel` | 1 |
 | blueraven-csv | `Accel_X`, `Accel_Y` and `Accel_Z` read in standard gravities, from the manual and the pad | 35 |
 | blueraven-csv | `Current` kept as written, in a unit no source states | 35 |
 | blueraven-csv | `Gyro_X`, `Gyro_Y` and `Gyro_Z` read in degrees per second, from the manual and the summary | 35 |
@@ -153,6 +193,9 @@ Units no header states, as each file's reader decided them, or kept the column a
 | entacore-aim-csv | `pressure` read in pascals, from the values | 16 |
 | entacore-aim-csv | `temperature` read in degrees Celsius, from the heights' unit and the manual, p33 | 16 |
 | entacore-aim-csv | `time` read in seconds, from `GPS Time of Week` | 16 |
+| fluctus-csv | `gpsAltMSL` kept as written, in a unit no source states | 6 |
+| fluctus-csv | `gpsLat` read in degrees, from the manual and the values | 6 |
+| fluctus-csv | `gpsLng` read in degrees, from the manual and the values | 6 |
 | fwgps-csv | `ALT` and `Altitude AGL` read in feet, from the manual alone | 1 |
 | fwgps-csv | `ALT` and `Altitude AGL` read in feet, from the manual and the horizontal speed | 20 |
 | fwgps-csv | `ALT` read in feet, from the manual alone | 2 |
@@ -192,6 +235,7 @@ The files read, by the logger each names:
 
 | Logger | Files |
 |---|---:|
+| AerospaceNU SillyGoose | 13 |
 | AltOS | 52 |
 | AltOS TeleGPS-v1.0 | 3 |
 | AltOS TeleGPS-v2.0 | 4 |
@@ -210,6 +254,7 @@ The files read, by the logger each names:
 | Missile Works RRC3 | 50 |
 | Missile Works RTx | 12 |
 | NMEA 0183 receiver (talker GP) | 12 |
+| Ozark Aerospace ARTS2 | 4 |
 | PerfectFlite | 16 |
 | PerfectFlite Alt15K/WD | 25 |
 | PerfectFlite Pnut | 39 |
@@ -217,4 +262,6 @@ The files read, by the logger each names:
 | PerfectFlite SLCF | 101 |
 | Rocketry Ltd Mercury | 4 |
 | Rocketry Ltd Nano V1 | 7 |
+| Silicdyne Fluctus | 6 |
+| SillyGooseV2 | 1 |
 | fw2kml | 14 |
