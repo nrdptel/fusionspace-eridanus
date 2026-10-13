@@ -62,11 +62,12 @@ Files whose catalog family isn't their layout, moved to their layout's:
 
 PerfectFlite's exports state no unit for their altitude. Of the 16 read, 13 peak at exactly the height of a `.pf2` beside them, which is in feet; read in feet, their climbs take 0.94 to 1.05 times as long as a fall in vacuum from the peak. The other 3 take 0.93 to 1.07 times, read in feet, and would take 0.51 to 0.59 times read in meters.
 
-Units no header states, as each file's reader decided them and noted:
+Units no header states, as each file's reader decided them, or kept the column as written, and noted:
 
 | Family | Decision | Files |
 |---|---|---:|
 | blueraven-csv | `Accel_X`, `Accel_Y` and `Accel_Z` read in standard gravities, from the manual and the pad | 35 |
+| blueraven-csv | `Current` kept as written, in a unit no source states | 35 |
 | blueraven-csv | `Gyro_X`, `Gyro_Y` and `Gyro_Z` read in degrees per second, from the manual and the summary | 35 |
 | blueraven-csv | `Inertial_Altitude`, `Inertial_DR_Position` and `Inertial_CR_position` read in feet, from the manual and the summary | 45 |
 | blueraven-csv | `Velocity_Up`, `Velocity_DR` and `Velocity_CR` read in feet per second, from the manual and the summary | 45 |
@@ -75,16 +76,18 @@ Units no header states, as each file's reader decided them and noted:
 | eggtimer-csv | `FAccelAlt` read in feet, from the manual | 4 |
 | eggtimer-csv | `FAccelVel` read in feet per second, from the manual | 4 |
 | eggtimer-csv | `FAlt` read in feet, from the manual | 38 |
-| eggtimer-csv | `FVeloc` read in feet per second, from the altitude | 43 |
+| eggtimer-csv | `FVeloc` read in feet per second, from the manual | 43 |
 | eggtimer-csv | `Filt_Alt` read in feet, from the manual | 5 |
 | eggtimer-csv | `T` read in milliseconds, from the step | 3 |
 | eggtimer-csv | `T` read in seconds, from the step | 40 |
 | eggtimer-csv | `VAccel` read in feet per second, from the manual | 4 |
-| eggtimer-csv | `Veloc` read in feet per second, from the altitude | 40 |
+| eggtimer-csv | `Veloc` read in feet per second, from the manual | 40 |
 | rrc3-csv | `Altitude` read in feet, from the pressure | 46 |
 | rrc3-csv | `Pressure` read in hectopascals, from the values | 46 |
 | rrc3-csv | `Temperature` read in degrees Fahrenheit, assumed | 40 |
-| rrc3-csv | `Velocity` read in feet per second, from the altitude | 38 |
+| rrc3-csv | `Time` read in seconds, from the step | 46 |
+| rrc3-csv | `Velocity` kept as written, its unit unknown | 2 |
+| rrc3-csv | `Velocity` read in feet per second, from the altitude | 36 |
 | rrc3-csv | `Velocity` read in miles per hour, from the altitude | 8 |
 | rrc3-csv | `Voltages` read in volts, assumed | 42 |
 

@@ -22,8 +22,8 @@
 //! semicolons or tabs, in which case a number may be written with a decimal comma: Debrief's notes
 //! describe a European-locale export, semicolon-separated with decimal commas
 //! (`lib/parsers/missileworksRrc3.ts`, MIT, the project owner's own; see
-//! `THIRD-PARTY-NOTICES.md`). Every one of the 50 RRC3 exports among the project's sample logs is
-//! comma-separated.
+//! `THIRD-PARTY-NOTICES.md`). As of 2026-10-12, every one of the 50 RRC3 files among the
+//! project's sample logs is comma-separated.
 //!
 //! **Units.** Most exports name none; some name each in brackets, as `Time [s],Altitude
 //! [ft],Pressure [mbar],Velocity [ft/s],Temperature [F],Events,Voltages [V]`. A bracketed unit is
@@ -33,19 +33,28 @@
 //!
 //! | Column | Quantity | Read from | When the header names no unit |
 //! |---|---|---|---|
-//! | `Time` | the clock, s | `[s]` | seconds: mDACS's chart is timed in seconds (mDACS manual p. 8) |
+//! | `Time` | the clock, s | `[s]` | seconds, from the step: the median step between rows within 5% of 0.05 s, the RRC3's 20 Hz pressure rate (RRC3 manual p. 23); otherwise assumed, as mDACS's chart is timed in seconds (mDACS manual p. 8) |
 //! | `Altitude` | [`Quantity::AltitudeAboveGround`] | `[ft]`, `[m]` | feet or meters, from the pressure (below); feet assumed if the pressure can't tell |
-//! | `Pressure` | [`Quantity::Pressure`] | `[mbar]`, `[hPa]`, × 100 Pa | hectopascals if its highest value lies within the 10 to 1,200 mbar the RRC3 measures (RRC3 manual p. 9); otherwise kept as written |
+//! | `Pressure` | [`Quantity::Pressure`] | `[mbar]`, `[hPa]`, × 100 Pa | hectopascals if the first row's value, on the pad, lies within 500 to 1,100 hPa (below) and the highest within the 10 to 1,200 mbar the RRC3 measures (RRC3 manual p. 9); otherwise kept as written |
 //! | `Velocity` | [`Quantity::Speed`], up positive | `[ft/s]`, `[mph]`, `[m/s]`, `[km/h]` (or the RRC3's `fps`, `mps`, `kph`) | measured against the altitude (below); otherwise kept as written |
 //! | `Temperature` | [`Quantity::Temperature`] | `[F]`, `[C]` | assumed: °F if the altitude is in feet, °C if in meters, as the RRC3's unit settings pair them (RRC3 manual p. 12) |
 //! | `Voltages` | [`Quantity::Voltage`] | `[V]` | assumed volts: the RRC3's battery voltage (mDACS manual p. 2), from a battery of at most 10 V (RRC3 manual p. 6) |
 //! | `Events` | [`FlightLog::events`] | | |
 //!
 //! mDACS sets the altitude's, the velocity's and the temperature's units by preference (mDACS
-//! manual p. 5), and the velocity's apart from the altitude's: among the sample logs, 8 of the 50
-//! write their velocity in miles per hour beside an altitude in feet. The RRC3's own settings name
-//! four sets: feet, °F and ft/s; meters, °C and km/h; feet, °F and mph; meters, °C and m/s, the
-//! first the default (RRC3 manual p. 12).
+//! manual p. 5), and the velocity's apart from the altitude's: as of 2026-10-12, 8 of the 50 RRC3
+//! files among the project's sample logs write their velocity in miles per hour beside an
+//! altitude in feet. The RRC3's own settings name four sets: feet, °F and ft/s; meters, °C and
+//! km/h; feet, °F and mph; meters, °C and m/s, the first the default (RRC3 manual p. 12).
+//!
+//! *The pressure on the pad.* The RRC3 measures 10 to 1,200 mbar, but kilopascals (about 100 at
+//! sea level) and inches of mercury (about 30) lie within that too, so the first row's pressure,
+//! taken on the pad, must also be a launch site's: at least 500 hPa, the U.S. Standard
+//! Atmosphere's pressure about 5,570 m up, above any launch site, and at most 1,100 hPa, above
+//! both the highest sea-level pressure on record below 750 m of elevation, 1,083.8 hPa (WMO,
+//! *Records of Weather and Climate Extremes*, as of 31 July 2025), and the standard atmosphere's
+//! 1,066 hPa at the lowest dry land, the Dead Sea's shore about 430 m below sea level. A pressure
+//! outside either range is kept as written, with a note, and the altitude's unit is then assumed.
 //!
 //! *The altitude from the pressure.* mDACS converts pressure to altitude by NOAA's pressure
 //! altitude, the standard atmosphere's (RRC3 manual p. 23), or by a geopotential method that
@@ -56,25 +65,53 @@
 //! read in feet and in meters. The unit within 25% of the pressure's climb is taken: a day's air
 //! from −40 °C to +50 °C is within about 20% of the standard's temperature, which is how far the
 //! geopotential method can move the altitude, and feet and meters are 3.28 times apart, so at
-//! most one unit can be within 25%. On the 50 sample logs feet came within 0.05% every time,
-//! meters 228% off. Neither within 25% is refused ([`LogError::Unit`]), as is a stated unit the
+//! most one unit can be within 25%. As of 2026-10-12, over the 50 RRC3 files among the project's
+//! sample logs, feet came within 0.05% every time and meters at least 227% off. Neither within 25%
+//! is refused ([`LogError::Unit`]), as is a stated unit the
 //! pressure contradicts by more. Below a climb of 10 m the pressure can't settle it: a step of the
 //! pressure, 0.1 hPa in every sample log, is 0.83 m of altitude at sea level, more than 8% of
 //! such a climb. Then, or with a pressure of unknown unit, feet are assumed, the RRC3's default.
 //!
 //! *The velocity against the altitude.* The velocity is mDACS's rate of the altitude, in its own
-//! unit: ft/s, mph, m/s and km/h are 3.2808, 2.2369, 1 and 3.6 times a speed in m/s. The reader
-//! integrates the velocity over the flight and fits the running integral to the altitude above
-//! the first row, in meters, by least squares through zero; the slope is the velocity's unit per
-//! m/s. Integrating keeps the slope free of the filter's delay and of the altitude's steps,
-//! which make a sample-by-sample ratio scatter. On the 50 sample logs the slope came within 1.3%
-//! of the unit each file is in (42 ft/s, 8 mph), and within 0.4% on all but one. The nearest unit
-//! within 3% is taken: ft/s and km/h, the nearest two, are 9.7% apart, so the runner-up is then at
-//! least 6.4% off. Otherwise the column is kept as written, [`Quantity::Unrecognized`], with a
-//! note: also when the altitude climbs under 100 m, where on an invented flight with a second's
-//! filter delay the slope missed by 0.6 to 1.7% at 100 m, by up to 4% at 50 m and 27% at 10 m, and
-//! when the altitude's own unit was only assumed. A stated velocity unit the slope contradicts,
-//! landing within 3% of another unit, is refused.
+//! unit: ft/s, mph, m/s and km/h are 3.2808, 2.2369, 1 and 3.6 times a speed in m/s. The RRC3
+//! works it out through a 21-element filter at 20 Hz (RRC3 manual p. 23), so it runs behind the
+//! altitude, and mDACS may smooth both for its viewer (mDACS manual p. 5). The reader integrates
+//! the velocity by trapezoids from zero at the first row, on the pad, and measures the running
+//! integral against the altitude above the first row, in meters, two ways:
+//!
+//! - *By the fit:* the least-squares slope, through zero, of the integral against the altitude as
+//!   it was a delay earlier, the delay from −2 to 4 s, in steps of 0.05 s, that fits best. A
+//!   velocity that is the altitude's rate a delay late integrates to the altitude that delay late,
+//!   times the unit, so the delay is fitted out rather than read as a smaller slope. Smoothing
+//!   still rounds off the integral's apogee, which moves the slope.
+//! - *By the areas:* the area under the integral over the area under the delayed altitude, both
+//!   over the record. A filter that passes a steady speed unchanged (one of unit gain) keeps the
+//!   area of what it filters, however it delays or spreads it, so this measure holds exactly when
+//!   the record runs from rest on the pad to rest on the ground, as the RRC3's does: it stops
+//!   after the velocity has stayed above −3 ft/s for 2 s (RRC3 manual p. 10). A record that ends
+//!   with the altitude still moving at a rate `v` leaves out about `σ²·v / 2` of the area, `σ²`
+//!   the filter's variance. The reader takes `σ` as the delay (a first-order filter's spread
+//!   equals its delay, a moving average's is 0.58 times it, a pure delay's is zero), `v` as the
+//!   faster of the altitude's rates over the last second and over the second a delay earlier, and
+//!   requires the share left out to be at most 0.1%; and the record must end at most halfway up
+//!   the climb, as near apogee this estimate fails.
+//!
+//! The unit is taken only when both measures land within 3% of the same one. ft/s and km/h, the
+//! nearest two, are 9.7% apart, so the runner-up is then at least 6.4% off. As of 2026-10-12, over
+//! the 50 RRC3 files among the project's sample logs, 48 records end low and still enough, and on
+//! each both measures came within 0.26% of the unit the file is in (ft/s or mph; 4 of them state
+//! it in brackets) and put the runner-up at least 8.8% off; the other 2 records stop before
+//! coming halfway down, so their velocity is kept as written. The 0.1% allowed is more than ten
+//! times the largest share any of those records' ends could leave out. On invented flights 20 m
+//! to 1 km up, coming down at 10 to 40 m/s, their velocity late by up to 3 s or smoothed by a
+//! first-order filter or a moving average over up to 3 s, in each unit, and cut off at each tenth
+//! of the way through from 30%, none is decided in the wrong unit, and a whole record up to 1 s
+//! late is decided from 50 m up (the module's tests; `tests/rrc3_csv.rs` adds km/h and ft/s
+//! flights 1 and 2 s late, 100 to 300 m up). Otherwise the column is kept as written, [`Quantity::Unrecognized`], with a note: also
+//! when the altitude climbs under 50 m, where half a step of the pressure, 0.42 m at sea level,
+//! is 0.8% of the climb and a larger share of the area of a flight that spends its time low; and
+//! when the altitude's own unit was only assumed. A stated velocity unit that both measures
+//! place within 3% of another unit is refused.
 //!
 //! **Events.** The `Events` column marks a deployment: ` -` for none, ` Drogue`, ` Main` or ` Aux`
 //! at the sample it fired, the three events mDACS charts (mDACS manual p. 8). It holds words, not
@@ -83,15 +120,15 @@
 //! a cell that isn't a word is refused.
 //!
 //! **Short rows.** The temperature and battery voltage are written on every row (their 1 Hz
-//! snapshot repeated), but in 45 of the 50 sample logs the last 11 to 30 rows leave those cells
-//! out and close up the rest: a 7-column file's tail rows hold 5 cells, `Time`, `Altitude`,
-//! `Pressure`, `Velocity`, `Events`, and a file with one of the two columns, one cell fewer than
-//! its header. Two more pad those rows back to the header's width with empty cells after `Events`
-//! instead; the 3 files with neither column have no short rows.
-//! The reader takes a row as wide as the header, cell for cell; a row as wide as the header
-//! without `Temperature` and `Voltages`, or as wide as the header but empty from that width on,
-//! as the other columns in order, its temperature and voltage gaps (`NaN`), counted in a note.
-//! So `-`, an event cell, can't land in the temperature. One sample log ends with two rows that
+//! snapshot repeated), but as of 2026-10-12, in 45 of the 50 RRC3 files among the project's sample
+//! logs, the last 11 to 30 rows leave those cells out and close up the rest: a 7-column file's
+//! tail rows hold 5 cells, `Time`, `Altitude`, `Pressure`, `Velocity`, `Events`, and a file with
+//! one of the two columns, one cell fewer than its header. Two more pad those rows back to the
+//! header's width with empty cells after `Events` instead; the 3 files with neither column have
+//! no short rows. The reader takes a row as wide as the header, cell for cell; a row as wide as
+//! the header without `Temperature` and `Voltages`, or as wide as the header but empty from that
+//! width on, as the other columns in order, its temperature and voltage gaps (`NaN`), counted in
+//! a note. So `-`, an event cell, can't land in the temperature. Some exports end with rows that
 //! have no time and only an altitude cell; such rows are skipped, counted in a note. Any other
 //! row of another width, a cell that isn't a number, or a time that doesn't increase, is refused,
 //! naming its line. Lines may end in CR, LF or both, and a byte-order mark is dropped.
@@ -124,6 +161,19 @@ const HPA_PA: f64 = 100.0;
 /// p. 9).
 const PRESSURE_RANGE_HPA: (f64, f64) = (10.0, 1_200.0);
 
+/// The pressure, hPa, the first row (on the pad) may hold for the pressure to be read in
+/// hectopascals: 500 hPa is the standard atmosphere's at about 5,570 m, above any launch site, and
+/// 1,100 hPa is above the highest sea-level pressure on record and the air at the lowest dry land
+/// (module docs).
+const PAD_RANGE_HPA: (f64, f64) = (500.0, 1_100.0);
+
+/// The RRC3's pressure rate, 20 Hz, as a step between rows, s (RRC3 manual p. 23).
+const PRESSURE_STEP_S: f64 = 0.05;
+
+/// How far, as a fraction, the median step between rows may be from [`PRESSURE_STEP_S`] for the
+/// time to be read in seconds from it.
+const STEP_MARGIN: f64 = 0.05;
+
 /// The least climb, m, from which the pressure tells feet from meters (module docs).
 const SETTLING_CLIMB_M: f64 = 10.0;
 
@@ -131,10 +181,22 @@ const SETTLING_CLIMB_M: f64 = 10.0;
 const ALTITUDE_MARGIN: f64 = 0.25;
 
 /// The least climb, m, over which the velocity's unit is measured against the altitude.
-const VELOCITY_CLIMB_M: f64 = 100.0;
+const VELOCITY_CLIMB_M: f64 = 50.0;
 
-/// How far, as a fraction, the velocity's slope may be from its unit's.
+/// How far, as a fraction, each of the velocity's two measures may be from its unit's.
 const VELOCITY_MARGIN: f64 = 0.03;
+
+/// The earliest and latest delay, s, of the velocity behind the altitude that the fit tries, and
+/// its step: the RRC3's own filter runs about half a second behind (module docs).
+const DELAY_SEARCH_S: (f64, f64, f64) = (-2.0, 4.0, 0.05);
+
+/// The highest the record may end, as a fraction of the climb above the first row, for the
+/// velocity to be measured: it must have come down at least halfway (module docs).
+const END_HEIGHT: f64 = 0.5;
+
+/// The most, as a fraction, that the record ending with the altitude still moving may move the
+/// velocity's measure by the areas (module docs).
+const END_ERROR: f64 = 0.001;
 
 /// The velocity units mDACS may write: the unit's words, its bracketed spellings in lower case,
 /// and meters per second in one of it. A mile is 1,609.344 m and a foot 0.3048 m, exactly.
@@ -632,7 +694,13 @@ fn build(
 
     for (column, values) in columns.iter().zip(&rows.values) {
         let decided = match column.kind {
-            Kind::Time | Kind::Events => continue,
+            Kind::Time => {
+                if column.unit.is_none() {
+                    log.notes.push(time_note(&column.written, &rows.time_s));
+                }
+                continue;
+            }
+            Kind::Events => continue,
             Kind::Altitude => Decided {
                 quantity: Quantity::AltitudeAboveGround,
                 values: altitude_m.clone(),
@@ -657,7 +725,7 @@ fn build(
                         "`{}` read in volts, assumed: the RRC3 records its battery's voltage \
                          (mDACS manual p. 2) and takes a battery of at most 10 V (RRC3 manual \
                          p. 6); its values, as written, run {}",
-                        column.written,
+                        short(&column.written),
                         span(values)
                     ));
                 }
@@ -717,12 +785,40 @@ fn build(
     Ok(log)
 }
 
+/// The note on the time read in seconds when the header names no unit: from the step between
+/// rows if it is the RRC3's 20 Hz, else assumed (module docs).
+fn time_note(written: &str, time_s: &[f64]) -> String {
+    let mut steps: Vec<f64> = time_s.windows(2).map(|pair| pair[1] - pair[0]).collect();
+    steps.sort_by(f64::total_cmp);
+    let chart = "mDACS's chart is timed in seconds (mDACS manual p. 8)";
+    match steps.get(steps.len() / 2) {
+        Some(&median) if (median / PRESSURE_STEP_S - 1.0).abs() <= STEP_MARGIN => format!(
+            "`{}` read in seconds, from the step: the median step between rows, {median} as \
+             written, is within {:.0}% of the {PRESSURE_STEP_S} s of the 20 Hz the RRC3 records \
+             its pressure at (RRC3 manual p. 23)",
+            short(written),
+            STEP_MARGIN * 100.0
+        ),
+        Some(&median) => format!(
+            "`{}` read in seconds, assumed: the median step between rows, {median} as written, \
+             isn't within {:.0}% of the {PRESSURE_STEP_S} s of the 20 Hz the RRC3 records its \
+             pressure at (RRC3 manual p. 23); {chart}",
+            short(written),
+            STEP_MARGIN * 100.0
+        ),
+        None => format!(
+            "`{}` read in seconds, assumed: a single row has no step to measure; {chart}",
+            short(written)
+        ),
+    }
+}
+
 /// The 1 Hz columns the header names, as a note lists them.
 fn slow_names(columns: &[Column]) -> String {
     let names: Vec<String> = columns
         .iter()
         .filter(|column| column.kind.is_slow())
-        .map(|column| format!("`{}`", column.written))
+        .map(|column| format!("`{}`", short(&column.written)))
         .collect();
     match names.as_slice() {
         [one] => format!("{one} cell"),
@@ -745,33 +841,47 @@ fn span(values: &[f64]) -> String {
     }
 }
 
-/// The pressure's unit: hectopascals if stated or if its highest value is within what the RRC3
-/// measures; otherwise kept as written.
+/// The pressure's unit: hectopascals if stated, or if the first row's value is a launch site's
+/// and the highest is within what the RRC3 measures; otherwise kept as written (module docs).
 fn decide_pressure(
     values: &[f64],
     units: &HeaderUnits,
     written: &str,
     notes: &mut Vec<String>,
 ) -> Decided {
+    let in_hpa = Decided {
+        quantity: Quantity::Pressure,
+        values: values.iter().map(|value| value * HPA_PA).collect(),
+    };
+    if units.pressure_hpa {
+        return in_hpa;
+    }
     let highest = values.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+    let pad = values.first().copied().unwrap_or(f64::NAN);
     let (low, high) = PRESSURE_RANGE_HPA;
-    let in_range = (low..=high).contains(&highest);
-    if units.pressure_hpa || in_range {
-        if !units.pressure_hpa {
-            notes.push(format!(
-                "`{written}` read in hectopascals, from the values: the highest, {highest}, \
-                 lies within the {low} to {high} mbar the RRC3 measures (RRC3 manual p. 9); in \
-                 pascals it would be a hundredth of the air's pressure at any launch site"
-            ));
-        }
-        Decided {
-            quantity: Quantity::Pressure,
-            values: values.iter().map(|value| value * HPA_PA).collect(),
-        }
+    let (pad_low, pad_high) = PAD_RANGE_HPA;
+    let measured = (low..=high).contains(&highest);
+    let on_a_pad = (pad_low..=pad_high).contains(&pad);
+    let ranges = format!(
+        "the first row's, {pad}, {} the {pad_low} to {pad_high} hPa of any launch site, and the \
+         highest, {highest}, {} the {low} to {high} mbar the RRC3 measures (RRC3 manual p. 9)",
+        if on_a_pad {
+            "lies within"
+        } else {
+            "lies outside"
+        },
+        if measured { "within" } else { "outside" }
+    );
+    if measured && on_a_pad {
+        notes.push(format!(
+            "`{}` read in hectopascals, from the values: {ranges}",
+            short(written)
+        ));
+        in_hpa
     } else {
         notes.push(format!(
-            "`{written}` kept as written, its unit unknown: its highest value, {highest}, lies \
-             outside the {low} to {high} mbar the RRC3 measures (RRC3 manual p. 9)"
+            "`{}` kept as written, its unit unknown: {ranges}",
+            short(written)
         ));
         Decided {
             quantity: Quantity::Unrecognized,
@@ -831,8 +941,9 @@ fn decide_altitude(
             None => "a pressure isn't positive, so it gives no climb".to_owned(),
         };
         notes.push(format!(
-            "`{written}` read in feet, assumed: {why}; feet are the RRC3's default unit (RRC3 \
-             manual p. 12)"
+            "`{}` read in feet, assumed: {why}; feet are the RRC3's default unit (RRC3 manual p. \
+             12)",
+            short(written)
         ));
         return Ok((Length::Feet, false));
     };
@@ -863,7 +974,8 @@ fn decide_altitude(
                 format: FORMAT,
                 line: header_line,
                 message: format!(
-                    "{written:?} states {}, which the pressure contradicts: {evidence}",
+                    "{:?} states {}, which the pressure contradicts: {evidence}",
+                    short(written),
                     stated.words()
                 ),
             });
@@ -879,35 +991,139 @@ fn decide_altitude(
             format: FORMAT,
             line: header_line,
             message: format!(
-                "{written:?} is in neither feet nor meters by the pressure, within {:.0}%: \
-                 {evidence}",
+                "{:?} is in neither feet nor meters by the pressure, within {:.0}%: {evidence}",
+                short(written),
                 ALTITUDE_MARGIN * 100.0
             ),
         });
     };
     notes.push(format!(
-        "`{written}` read in {}, from the pressure: {evidence}",
+        "`{}` read in {}, from the pressure: {evidence}",
+        short(written),
         length.words()
     ));
     Ok((length, true))
 }
 
-/// The velocity's unit per m/s of the altitude's rate: the least-squares slope, through zero, of
-/// the velocity's running integral (by trapezoids) against the altitude above the first row, m.
-/// `None` if the altitude never leaves the first row's.
-fn velocity_slope(time_s: &[f64], altitude_m: &[f64], velocity: &[f64]) -> Option<f64> {
-    let first = *altitude_m.first()?;
+/// The velocity's unit per m/s of the altitude's rate, measured two ways (module docs).
+#[derive(Debug, Clone, Copy)]
+struct Scale {
+    /// The area under the velocity's running integral over the area under the altitude above
+    /// the first row, both over the whole record.
+    by_area: f64,
+    /// The least-squares slope, through zero, of the running integral against the altitude above
+    /// the first row taken `delay_s` earlier, the delay that fits best.
+    by_fit: f64,
+    /// How far, s, the velocity runs behind the altitude, as the fit finds it.
+    delay_s: f64,
+    /// The last row's altitude above the first row's, as a fraction of the climb.
+    end_height: f64,
+    /// About the most a filter as spread as the delay can move `by_area`, as a fraction, given
+    /// the altitude's rate at the record's end (module docs).
+    end_error: f64,
+}
+
+/// The velocity's running integral by trapezoids, zero at the first row.
+fn running_integral(time_s: &[f64], velocity: &[f64]) -> Vec<f64> {
     let mut integral = 0.0;
-    let (mut product, mut square) = (0.0, 0.0);
-    for index in 1..time_s.len().min(altitude_m.len()).min(velocity.len()) {
-        integral +=
-            0.5 * (velocity[index] + velocity[index - 1]) * (time_s[index] - time_s[index - 1]);
-        let above = altitude_m[index] - first;
-        product += integral * above;
-        square += above * above;
+    let mut out = Vec::with_capacity(time_s.len().min(velocity.len()));
+    let mut previous: Option<(f64, f64)> = None;
+    for (&time, &value) in time_s.iter().zip(velocity) {
+        if let Some((before_s, before)) = previous {
+            integral += 0.5 * (value + before) * (time - before_s);
+        }
+        out.push(integral);
+        previous = Some((time, value));
     }
-    let slope = product / square;
-    (square > 0.0 && slope.is_finite()).then_some(slope)
+    out
+}
+
+/// The altitude above the first row at a time, linear between rows, and the first or the last
+/// row's before or after the record. `cursor` is the row at or before the time last asked for,
+/// so that asking in increasing order walks the rows once.
+fn altitude_at(time_s: &[f64], above_m: &[f64], time: f64, cursor: &mut usize) -> f64 {
+    while time_s.get(*cursor + 1).is_some_and(|next| *next <= time) {
+        *cursor += 1;
+    }
+    match (
+        time_s.get(*cursor),
+        time_s.get(*cursor + 1),
+        above_m.get(*cursor),
+        above_m.get(*cursor + 1),
+    ) {
+        (Some(&from_s), _, Some(&from), _) if time <= from_s => from,
+        (Some(&from_s), Some(&to_s), Some(&from), Some(&to)) => {
+            from + (to - from) * (time - from_s) / (to_s - from_s)
+        }
+        _ => above_m.last().copied().unwrap_or_default(),
+    }
+}
+
+/// The velocity's unit per m/s, by the areas and by the fit with a delay (module docs); `None`
+/// if the altitude never leaves the first row's or a measure isn't a number.
+fn velocity_scale(time_s: &[f64], altitude_m: &[f64], velocity: &[f64]) -> Option<Scale> {
+    let first = *altitude_m.first()?;
+    let above: Vec<f64> = altitude_m.iter().map(|value| value - first).collect();
+    let integral = running_integral(time_s, velocity);
+    let rows = integral.len().min(above.len());
+    let (time_s, above, integral) = (&time_s[..rows], &above[..rows], &integral[..rows]);
+
+    let (earliest, latest, step) = DELAY_SEARCH_S;
+    let steps = ((latest - earliest) / step).round() as i32;
+    let mut best: Option<(f64, f64, f64)> = None;
+    for at in 0..=steps {
+        let delay_s = earliest + f64::from(at) * step;
+        let (mut product, mut square) = (0.0, 0.0);
+        let mut cursor = 0;
+        for (&time, &value) in time_s.iter().zip(integral) {
+            let earlier = altitude_at(time_s, above, time - delay_s, &mut cursor);
+            product += value * earlier;
+            square += earlier * earlier;
+        }
+        // The residual is Σ I² − (Σ I h)² / Σ h²: the best delay explains the most of it.
+        let explained = product * product / square;
+        if square > 0.0 && best.is_none_or(|(most, _, _)| explained > most) {
+            best = Some((explained, product / square, delay_s));
+        }
+    }
+    let (_, by_fit, delay_s) = best?;
+    // The areas, both over the record, under the integral and under the altitude as it was
+    // `delay_s` earlier, by trapezoids.
+    let mut cursor = 0;
+    let earlier: Vec<f64> = time_s
+        .iter()
+        .map(|time| altitude_at(time_s, above, time - delay_s, &mut cursor))
+        .collect();
+    let (mut integral_area, mut altitude_area) = (0.0, 0.0);
+    for index in 1..rows {
+        let step_s = time_s[index] - time_s[index - 1];
+        integral_area += 0.5 * (integral[index] + integral[index - 1]) * step_s;
+        altitude_area += 0.5 * (earlier[index] + earlier[index - 1]) * step_s;
+    }
+    let by_area = integral_area / altitude_area;
+    let climb_m = above.iter().copied().fold(0.0, f64::max);
+    let (&end_s, &end_m) = (time_s.last()?, above.last()?);
+    // The altitude's rate over the record's last second, and over the second the velocity's
+    // last row reflects, `delay_s` earlier: the faster of the two.
+    let span_s = (end_s - time_s.first()?).min(1.0);
+    let rate_to = |to_s: f64| {
+        (altitude_at(time_s, above, to_s, &mut 0)
+            - altitude_at(time_s, above, to_s - span_s, &mut 0))
+            / span_s
+    };
+    let end_rate = rate_to(end_s).abs().max(rate_to(end_s - delay_s).abs());
+    let end_error = delay_s * delay_s * end_rate / (2.0 * altitude_area);
+    (altitude_area > 0.0 && by_area.is_finite() && by_fit.is_finite()).then_some(Scale {
+        by_area,
+        by_fit,
+        delay_s,
+        end_height: end_m / climb_m,
+        end_error: if span_s > 0.0 {
+            end_error
+        } else {
+            f64::INFINITY
+        },
+    })
 }
 
 /// Each speed unit's miss from a slope, as a fraction, nearest first.
@@ -929,6 +1145,27 @@ struct Track<'a> {
     known: bool,
 }
 
+/// The speed unit both measures land nearest, each within [`VELOCITY_MARGIN`], as an index into
+/// [`SPEEDS`]; `None` if they don't, or if the record ends too high or still moving for the
+/// measure by the areas to hold (module docs).
+fn agreed_unit(scale: &Scale) -> Option<usize> {
+    if !(scale.end_height <= END_HEIGHT && scale.end_error <= END_ERROR) {
+        return None;
+    }
+    let (area_unit, area_miss) = *speed_misses(scale.by_area).first()?;
+    let (fit_unit, fit_miss) = *speed_misses(scale.by_fit).first()?;
+    (area_unit == fit_unit
+        && area_miss.abs() <= VELOCITY_MARGIN
+        && fit_miss.abs() <= VELOCITY_MARGIN)
+        .then_some(area_unit)
+}
+
+/// A speed unit's words and its miss from each measure, as a note writes them.
+fn unit_misses(index: usize, scale: &Scale) -> (&'static str, f64, f64) {
+    let (words, _, m_s) = SPEEDS.get(index).copied().unwrap_or(SPEEDS[0]);
+    (words, scale.by_area * m_s - 1.0, scale.by_fit * m_s - 1.0)
+}
+
 /// The velocity's unit, from the header or measured against the altitude (module docs).
 fn decide_velocity(
     values: &[f64],
@@ -945,10 +1182,9 @@ fn decide_velocity(
     } = *track;
     let first = altitude_m.first().copied().unwrap_or_default();
     let climb_m = altitude_m.iter().copied().fold(first, f64::max) - first;
-    let measured = (altitude_known && climb_m >= VELOCITY_CLIMB_M)
-        .then(|| velocity_slope(time_s, altitude_m, values))
+    let scale = (altitude_known && climb_m >= VELOCITY_CLIMB_M)
+        .then(|| velocity_scale(time_s, altitude_m, values))
         .flatten();
-    let nearest = measured.map(|slope| (slope, speed_misses(slope)));
     let in_si = |index: usize| {
         let m_s = SPEEDS.get(index).map_or(1.0, |(_, _, m_s)| *m_s);
         Decided {
@@ -956,21 +1192,36 @@ fn decide_velocity(
             values: values.iter().map(|value| value * m_s).collect(),
         }
     };
-    let decided = nearest.as_ref().and_then(|(slope, misses)| {
-        let (index, miss) = *misses.first()?;
-        (miss.abs() <= VELOCITY_MARGIN).then_some((*slope, index, miss, misses.get(1).copied()))
+    // The unit both measures land nearest, each within the margin, if there is one.
+    let nearest = scale.map(|scale| {
+        let by_area = speed_misses(scale.by_area);
+        let by_fit = speed_misses(scale.by_fit);
+        (scale, by_area, by_fit)
     });
+    let decided = nearest.as_ref().and_then(|(scale, by_area, _)| {
+        let index = agreed_unit(scale)?;
+        Some((*scale, index, by_area.get(1).map(|(other, _)| *other)))
+    });
+    let measures = |scale: &Scale| {
+        format!(
+            "against the altitude above the first row, in meters, as it was {:.2} s earlier, \
+             the area under its running integral is {:.4} times the altitude's, and the \
+             integral's least-squares slope is {:.4}",
+            scale.delay_s, scale.by_area, scale.by_fit
+        )
+    };
     if let Some(stated) = units.velocity {
-        if let Some((slope, index, _, _)) = decided
+        if let Some((scale, index, _)) = decided
             && index != stated
         {
             return Err(LogError::Unit {
                 format: FORMAT,
                 line: header_line,
                 message: format!(
-                    "{written:?} states {}, but its integral against the altitude gives {slope:.4} \
-                     per m/s, which is {}",
+                    "{:?} states {}, but {}, which is {}",
+                    short(written),
                     SPEEDS.get(stated).map_or("", |unit| unit.0),
+                    measures(&scale),
                     SPEEDS.get(index).map_or("", |unit| unit.0)
                 ),
             });
@@ -978,27 +1229,27 @@ fn decide_velocity(
         return Ok(in_si(stated));
     }
     match decided {
-        Some((slope, index, miss, runner_up)) => {
+        Some((scale, index, runner_up)) => {
             let runner_up = runner_up
-                .and_then(|(other, other_miss)| {
-                    SPEEDS.get(other).map(|unit| {
-                        format!(
-                            "; the next nearest, {}, would give {:.4} ({:+.1}%)",
-                            unit.0,
-                            1.0 / unit.2,
-                            other_miss * 100.0
-                        )
-                    })
+                .map(|other| {
+                    let (words, by_area, by_fit) = unit_misses(other, &scale);
+                    format!(
+                        "; the next nearest, {words}, would miss them by {:+.1}% and {:+.1}%",
+                        by_area * 100.0,
+                        by_fit * 100.0
+                    )
                 })
                 .unwrap_or_default();
-            let (words, _, m_s) = SPEEDS.get(index).copied().unwrap_or(SPEEDS[0]);
+            let (words, by_area, by_fit) = unit_misses(index, &scale);
             notes.push(format!(
-                "`{written}` read in {words}, from the altitude: over {} rows, the velocity's \
-                 running integral against the altitude above the first row gives {slope:.4} as \
-                 written per m/s, and {words} would give {:.4} ({:+.2}%){runner_up}",
+                "`{}` read in {words}, from the altitude: over {} rows, {}; {words} would give \
+                 {:.4} per m/s, {:+.2}% off the first and {:+.2}% off the second{runner_up}",
+                short(written),
                 time_s.len(),
-                1.0 / m_s,
-                miss * 100.0
+                measures(&scale),
+                1.0 / SPEEDS.get(index).map_or(1.0, |unit| unit.2),
+                by_area * 100.0,
+                by_fit * 100.0
             ));
             Ok(in_si(index))
         }
@@ -1014,20 +1265,54 @@ fn decide_velocity(
                 )
             } else {
                 match &nearest {
-                    Some((slope, misses)) => format!(
-                        "its running integral against the altitude gives {slope:.4} as written \
-                         per m/s, within {:.0}% of none of ft/s, mph, m/s and km/h (the nearest \
-                         {:+.1}% off)",
-                        VELOCITY_MARGIN * 100.0,
-                        misses.first().map_or(f64::NAN, |miss| miss.1) * 100.0
-                    ),
+                    Some((scale, _, _))
+                        if scale.end_height > END_HEIGHT || scale.end_height.is_nan() =>
+                    {
+                        format!(
+                            "the record ends {:.0}% of the way up the climb, above the {:.0}% it must \
+                         come down to for the velocity to be measured against the altitude",
+                            scale.end_height * 100.0,
+                            END_HEIGHT * 100.0
+                        )
+                    }
+                    Some((scale, _, _))
+                        if scale.end_error > END_ERROR || scale.end_error.is_nan() =>
+                    {
+                        format!(
+                            "the record ends with the altitude still moving, which could move \
+                             the area under the velocity's running integral by about {:.2}%, \
+                             over the {:.1}% allowed",
+                            scale.end_error * 100.0,
+                            END_ERROR * 100.0
+                        )
+                    }
+                    Some((scale, by_area, by_fit)) => {
+                        let nearest_of = |misses: &[(usize, f64)]| {
+                            misses.first().map_or(String::new(), |(index, miss)| {
+                                format!(
+                                    "{} {:+.1}%",
+                                    SPEEDS.get(*index).map_or("", |unit| unit.0),
+                                    miss * 100.0
+                                )
+                            })
+                        };
+                        format!(
+                            "{}; the two don't both land within {:.0}% of one of ft/s, mph, \
+                             m/s and km/h (the nearest {} and {})",
+                            measures(scale),
+                            VELOCITY_MARGIN * 100.0,
+                            nearest_of(by_area),
+                            nearest_of(by_fit)
+                        )
+                    }
                     None => {
                         "its running integral can't be measured against the altitude".to_owned()
                     }
                 }
             };
             notes.push(format!(
-                "`{written}` kept as written, its unit unknown: {why}"
+                "`{}` kept as written, its unit unknown: {why}",
+                short(written)
             ));
             Ok(Decided {
                 quantity: Quantity::Unrecognized,
@@ -1051,10 +1336,11 @@ fn decide_temperature(
             Length::Meters => (Temperature::Celsius, "degrees Celsius"),
         };
         notes.push(format!(
-            "`{written}` read in {words}, assumed: the altitude is in {}, and the RRC3's unit \
-             settings pair feet with °F and meters with °C (RRC3 manual p. 12), though mDACS sets \
-             each by its own preference (mDACS manual p. 5) and the file states neither; its \
-             values, as written, run {}",
+            "`{}` read in {words}, assumed: the altitude is in {}, and the RRC3's unit settings \
+             pair feet with °F and meters with °C (RRC3 manual p. 12), though mDACS sets each by \
+             its own preference (mDACS manual p. 5) and the file states neither; its values, as \
+             written, run {}",
+            short(written),
             length.words(),
             span(values)
         ));
@@ -1200,7 +1486,12 @@ mod tests {
             196.85 * FOOT_M
         ));
         let temperature = log.temperature_k.as_deref().unwrap();
-        assert!(close(temperature[0], (70.0 - 32.0) * 5.0 / 9.0 + 273.15));
+        // 70 °F is 294.261 K (21.111 °C).
+        assert!(
+            (temperature[0] - 294.261).abs() < 1e-3,
+            "{}",
+            temperature[0]
+        );
         let n = log.time_s.len();
         assert!(temperature[n - 2..].iter().all(|t| t.is_nan()));
         assert!(temperature[n - 3].is_finite());
@@ -1215,6 +1506,7 @@ mod tests {
             "`Pressure` read in hectopascals, from the values: ",
             "`Temperature` read in degrees Fahrenheit, assumed: ",
             "`Voltages` read in volts, assumed: ",
+            "`Time` read in seconds, assumed: ",
             "2 rows, the first on line ",
         ] {
             assert_eq!(
@@ -1267,13 +1559,24 @@ mod tests {
     /// altitude whose unit is only assumed, is kept as written.
     #[test]
     fn a_velocity_that_cant_be_told_is_kept_as_written() {
+        // Cut off before the descent: the last row stands above half the climb.
+        let full = flight(300.0, 60.0, FOOT_M, 1.0 / FOOT_M, 0);
+        let cut: String = full
+            .lines()
+            .take(14)
+            .map(|line| format!("{line}\n"))
+            .collect();
         let cases = [
-            (flight(300.0, 60.0, FOOT_M, 3.0, 0), "within 3% of none"),
             (
-                flight(60.0, 30.0, FOOT_M, 1.0 / FOOT_M, 0),
-                "under the 100 m",
+                flight(300.0, 60.0, FOOT_M, 3.0, 0),
+                "don't both land within 3% of one",
+            ),
+            (
+                flight(40.0, 20.0, FOOT_M, 1.0 / FOOT_M, 0),
+                "under the 50 m",
             ),
             (flight(8.0, 4.0, FOOT_M, 1.0 / FOOT_M, 0), "only assumed"),
+            (cut, "of the way up the climb, above the 50%"),
         ];
         for (text, why) in cases {
             let log = read(&text).unwrap();
@@ -1314,10 +1617,8 @@ mod tests {
         );
         let log = read(&text).unwrap();
         assert!(close(log.vertical_speed_m_s.as_deref().unwrap()[1], 60.0));
-        assert!(close(
-            log.temperature_k.as_deref().unwrap()[0],
-            (70.0 - 32.0) * 5.0 / 9.0 + 273.15
-        ));
+        // 70 °F is 294.261 K.
+        assert!((log.temperature_k.as_deref().unwrap()[0] - 294.261).abs() < 1e-3);
         assert!(
             log.notes.iter().all(|n| !n.contains(" read in ")),
             "{:?}",
@@ -1334,7 +1635,7 @@ mod tests {
         let wrong_speed = text.replacen("Velocity [kph]", "Velocity [m/s]", 1);
         let error = read(&wrong_speed).unwrap_err();
         assert!(
-            matches!(&error, LogError::Unit { line: 1, message, .. } if message.contains("states meters per second") && message.contains("which is kilometers per hour")),
+            matches!(&error, LogError::Unit { line: 1, message, .. } if message.contains("\"Velocity [m/s]\" states meters per second, but against the altitude") && message.contains("which is kilometers per hour")),
             "{error:?}"
         );
         for header in [
@@ -1529,32 +1830,257 @@ mod tests {
         assert!(error.to_string().chars().count() < 400, "{error}");
     }
 
-    /// The velocity's slope against the altitude, on a flight whose velocity lags its altitude:
-    /// the integral takes the lag out where a sample-by-sample ratio wouldn't.
-    #[test]
-    fn the_velocity_slope_survives_a_lag() {
-        let time_s: Vec<f64> = (0..600).map(|i| f64::from(i) * 0.05).collect();
-        // Up at 50 m/s for 5 s, then down at 12.5 m/s to the pad; the velocity half a second late.
-        let rate = |t: f64| {
-            if t < 0.0 {
-                0.0
-            } else if t < 5.0 {
-                50.0
-            } else if t < 25.0 {
-                -12.5
+    /// An invented flight sampled at 20 Hz, as (time, height, climb rate): a second on the pad, a
+    /// boost at 80 m/s² and a coast at 12 m/s² to `top_m`, a fall at 9.8 m/s² to
+    /// `descent_m_s`, that speed to the ground, and three seconds there.
+    fn arc(top_m: f64, descent_m_s: f64) -> (Vec<f64>, Vec<f64>, Vec<f64>) {
+        let (boost, coast, gravity) = (80.0, 12.0, 9.8);
+        let boost_s = (top_m / (boost / 2.0 + boost * boost / (2.0 * coast))).sqrt();
+        let burnout_m_s = boost * boost_s;
+        let apogee_s = boost_s + burnout_m_s / coast;
+        let fall_s = descent_m_s / gravity;
+        let (mut times, mut heights, mut rates) = (vec![], vec![], vec![]);
+        let mut landed_s = None;
+        for row in 0_u32.. {
+            let t = f64::from(row) * 0.05 - 1.0;
+            let (height, rate): (f64, f64) = if t < 0.0 {
+                (0.0, 0.0)
+            } else if t < boost_s {
+                (boost * t * t / 2.0, boost * t)
+            } else if t < apogee_s {
+                let u = t - boost_s;
+                (
+                    boost * boost_s * boost_s / 2.0 + burnout_m_s * u - coast * u * u / 2.0,
+                    burnout_m_s - coast * u,
+                )
+            } else if t < apogee_s + fall_s {
+                let u = t - apogee_s;
+                (top_m - gravity * u * u / 2.0, -gravity * u)
             } else {
-                0.0
+                let u = t - apogee_s - fall_s;
+                (
+                    top_m - gravity * fall_s * fall_s / 2.0 - descent_m_s * u,
+                    -descent_m_s,
+                )
+            };
+            let (height, rate) = if height <= 0.0 && t > 0.0 {
+                (0.0, 0.0)
+            } else {
+                (height, rate)
+            };
+            if t > 0.0 && height == 0.0 {
+                landed_s.get_or_insert(t);
             }
+            if landed_s.is_some_and(|landed| t > landed + 3.0) {
+                break;
+            }
+            times.push(t + 1.0);
+            heights.push(height);
+            rates.push(rate);
+        }
+        (times, heights, rates)
+    }
+
+    /// The velocity's unit is never decided wrong on invented flights 20 m to 1 km up, coming
+    /// down at 10 to 40 m/s, the pressure written to 0.1 hPa and the altitude worked back from
+    /// it, the velocity late by up to 3 s or smoothed over up to 3 s, in each of the four units,
+    /// and each record cut off anywhere from 30% of the way through to its end. Many are left
+    /// unknown; none is decided in another unit.
+    #[test]
+    fn the_velocity_unit_is_never_decided_wrong() {
+        let atmosphere = Ussa76::standard();
+        let height_of = |hpa: f64| {
+            atmosphere
+                .pressure_altitude_m(hpa * HPA_PA)
+                .unwrap_or(f64::NAN)
+        };
+        let pad_m = height_of((pressure_hpa(0.0) * 10.0).round() / 10.0);
+        let lags = [
+            ("late", 0.0),
+            ("late", 1.0),
+            ("late", 2.0),
+            ("late", 3.0),
+            ("first-order", 0.5),
+            ("first-order", 1.0),
+            ("first-order", 2.0),
+            ("first-order", 3.0),
+            ("moving average", 1.0),
+            ("moving average", 2.0),
+            ("moving average", 3.0),
+        ];
+        let (mut decided, mut cases) = (0, 0);
+        for top_m in [20.0, 30.0, 50.0, 100.0, 200.0, 300.0, 1_000.0] {
+            for descent_m_s in [10.0, 25.0, 40.0] {
+                let (time_s, height_m, rate_m_s) = arc(top_m, descent_m_s);
+                let altitude_m: Vec<f64> = height_m
+                    .iter()
+                    .map(|height| {
+                        let hpa = (pressure_hpa(*height) * 10.0).round() / 10.0;
+                        ((height_of(hpa) - pad_m) * 100.0).round() / 100.0
+                    })
+                    .collect();
+                for (kind, lag_s) in lags {
+                    let steps = (lag_s / 0.05_f64).round() as usize;
+                    let lagged: Vec<f64> = match kind {
+                        "late" => (0..rate_m_s.len())
+                            .map(|i| i.checked_sub(steps).map_or(0.0, |j| rate_m_s[j]))
+                            .collect(),
+                        "first-order" => {
+                            let mut smoothed = 0.0;
+                            rate_m_s
+                                .iter()
+                                .map(|rate| {
+                                    smoothed += (rate - smoothed) * 0.05 / (lag_s + 0.05);
+                                    smoothed
+                                })
+                                .collect()
+                        }
+                        _ => (0..rate_m_s.len())
+                            .map(|i| {
+                                let from = (i + 1).saturating_sub(steps);
+                                rate_m_s[from..=i].iter().sum::<f64>() / steps as f64
+                            })
+                            .collect(),
+                    };
+                    for (unit, (words, _, m_s)) in SPEEDS.iter().enumerate() {
+                        let velocity: Vec<f64> = lagged
+                            .iter()
+                            .map(|rate| (rate / m_s * 100.0).round() / 100.0)
+                            .collect();
+                        for tenths in 3..=10 {
+                            let rows = time_s.len() * tenths / 10;
+                            let Some(scale) =
+                                velocity_scale(&time_s[..rows], &altitude_m[..rows], &velocity)
+                            else {
+                                continue;
+                            };
+                            cases += 1;
+                            let agreed = agreed_unit(&scale);
+                            // A whole record, its velocity up to 1 s late, is decided from 50 m up.
+                            if kind == "late" && lag_s <= 1.0 && tenths == 10 && top_m >= 50.0 {
+                                assert_eq!(
+                                    agreed,
+                                    Some(unit),
+                                    "{top_m} m, {descent_m_s} m/s, {lag_s} s late, {words}: \
+                                     {scale:?}"
+                                );
+                            }
+                            if let Some(index) = agreed {
+                                decided += 1;
+                                assert_eq!(
+                                    index, unit,
+                                    "{top_m} m, {descent_m_s} m/s, {kind} {lag_s} s, {words}, \
+                                     {tenths}0% of the record: {scale:?}"
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // The rule decides a fair share, not only the whole records.
+        assert!(decided * 10 > cases, "{decided} of {cases}");
+    }
+
+    /// The two measures of the velocity's unit, on a flight whose velocity runs 1.5 s behind
+    /// its altitude: the delay found, and neither measure moved by it.
+    #[test]
+    fn the_velocity_scale_takes_out_a_delay() {
+        let time_s: Vec<f64> = (0..800).map(|i| f64::from(i) * 0.05).collect();
+        // Up at 50 m/s for 5 s, down at 12.5 m/s to the pad, then at rest.
+        let rate = |t: f64| match t {
+            t if t < 1.0 => 0.0,
+            t if t < 6.0 => 50.0,
+            t if t < 26.0 => -12.5,
+            _ => 0.0,
         };
         let mut altitude_m = vec![0.0];
         for pair in time_s.windows(2) {
             let last = altitude_m.last().copied().unwrap_or_default();
-            altitude_m.push(last + rate(pair[0]) * (pair[1] - pair[0]));
+            altitude_m.push(last + 0.5 * (rate(pair[0]) + rate(pair[1])) * (pair[1] - pair[0]));
         }
-        let velocity: Vec<f64> = time_s.iter().map(|t| rate(t - 0.5) * 2.0).collect();
-        let slope = velocity_slope(&time_s, &altitude_m, &velocity).unwrap();
-        assert!((slope / 2.0 - 1.0).abs() < 0.03, "{slope}");
-        assert_eq!(velocity_slope(&[0.0, 1.0], &[5.0, 5.0], &[1.0, 1.0]), None);
+        let velocity: Vec<f64> = time_s.iter().map(|t| rate(t - 1.5) * 2.0).collect();
+        let scale = velocity_scale(&time_s, &altitude_m, &velocity).unwrap();
+        assert!((scale.delay_s - 1.5).abs() < 1e-9, "{scale:?}");
+        assert!((scale.by_area / 2.0 - 1.0).abs() < 1e-3, "{scale:?}");
+        assert!((scale.by_fit / 2.0 - 1.0).abs() < 1e-3, "{scale:?}");
+        assert!(
+            scale.end_height.abs() < 1e-9 && scale.end_error < 1e-9,
+            "{scale:?}"
+        );
+        assert!(velocity_scale(&[0.0, 1.0], &[5.0, 5.0], &[1.0, 1.0]).is_none());
+    }
+
+    /// The time read in seconds from a 20 Hz step, assumed at another step or with one row, and
+    /// with no note when the header states `[s]`.
+    #[test]
+    fn the_time_is_read_in_seconds_from_the_step_or_assumed() {
+        let rows = |step: f64, count: usize| -> String {
+            (0..count)
+                .map(|i| format!("{:.2},0,1000,0\n", i as f64 * step))
+                .collect()
+        };
+        let header = "Time,Altitude,Pressure,Velocity\n";
+        let log = read(&format!("{header}{}", rows(0.05, 5))).unwrap();
+        let from_step = notes_starting(&log, "`Time` read in seconds, from the step: ");
+        assert!(
+            from_step[0].contains("step between rows, 0.05"),
+            "{from_step:?}"
+        );
+        let log = read(&format!("{header}{}", rows(0.5, 5))).unwrap();
+        let assumed = notes_starting(&log, "`Time` read in seconds, assumed: ");
+        assert!(
+            assumed[0].contains("0.5 as written, isn't within 5%"),
+            "{assumed:?}"
+        );
+        let log = read(&format!("{header}{}", rows(0.05, 1))).unwrap();
+        assert_eq!(
+            notes_starting(&log, "`Time` read in seconds, assumed: a single row").len(),
+            1
+        );
+        let log = read(&format!(
+            "Time [s],Altitude,Pressure,Velocity\n{}",
+            rows(0.05, 5)
+        ))
+        .unwrap();
+        assert!(
+            log.notes.iter().all(|n| !n.contains("`Time")),
+            "{:?}",
+            log.notes
+        );
+    }
+
+    /// A pressure whose first row isn't a launch site's, in hectopascals, is kept as written:
+    /// kilopascals (about 100) and inches of mercury (about 30) lie within what the RRC3 measures,
+    /// so only the pad tells them apart; the altitude is then assumed in feet.
+    #[test]
+    fn a_pressure_off_the_pad_range_is_kept_as_written() {
+        for (pad, next) in [
+            (101.3, 101.2),
+            (29.92, 29.9),
+            (499.0, 498.9),
+            (1_101.0, 1_100.9),
+        ] {
+            let text = format!("{HEADER}\n0,0,{pad},0,70, -,9.2\n0.05,1,{next},1,70, -,9.2\n");
+            let log = read(&text).unwrap();
+            assert_eq!(log.channels[1].quantity, Quantity::Unrecognized, "{pad}");
+            assert_eq!(log.channels[1].values, [pad, next]);
+            let kept = notes_starting(&log, "`Pressure` kept as written, its unit unknown: ");
+            assert!(
+                kept[0].contains(&format!(
+                    "the first row's, {pad}, lies outside the 500 to 1100"
+                )),
+                "{kept:?}"
+            );
+            let assumed = notes_starting(&log, "`Altitude` read in feet, assumed: ");
+            assert!(assumed[0].contains("unit is unknown"), "{assumed:?}");
+        }
+        // At either edge of the pad's range, hectopascals.
+        for (pad, next) in [(500.0, 499.9), (1_100.0, 1_099.9)] {
+            let text = format!("{HEADER}\n0,0,{pad},0,70, -,9.2\n0.05,1,{next},1,70, -,9.2\n");
+            let log = read(&text).unwrap();
+            assert_eq!(log.channels[1].quantity, Quantity::Pressure, "{pad}");
+        }
     }
 
     proptest::proptest! {

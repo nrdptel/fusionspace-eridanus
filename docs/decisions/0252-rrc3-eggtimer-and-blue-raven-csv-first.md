@@ -31,22 +31,29 @@ Eggtimer set to meters has the direction backwards (`docs/research/debrief-log-f
    *done when*, the parent's.
 2. **A unit is decided from the file where the file can.** An RRC3's altitude unit is the one,
    feet or meters, whose climb is within 25% of the climb its pressure implies in the standard
-   atmosphere (USSA 1976): on the 50 samples, feet misses by 0.04% and meters by 228%. Its speed
-   unit is the one of feet per second, miles per hour, meters per second and kilometers per hour
-   within 3% of the speed's slope against the altitude's rate of climb, the runner-up at least
-   8.9% off on every sample; with none, the column is kept as written. An Eggtimer's clock is in
+   atmosphere (USSA 1976): on the 50 samples, feet misses by at most 0.05% and meters by at least
+   227%. Its speed unit is the one of feet per second, miles per hour, meters per second and
+   kilometers per hour that two measures put within 3%: the speed's running integral against the
+   altitude a fitted delay earlier, by a least-squares slope and by the ratio of their areas, so
+   that a speed lagging the altitude, as a filtered one does, isn't read as a smaller unit (ft/s
+   and km/h are 9.7% apart). With no such unit, or a record that stops before the rocket is
+   halfway down, the column is kept as written. On the 48 samples measured, the unit each is in
+   came within 0.26% and the runner-up at least 8.8% off; 2 stop early. An Eggtimer's clock is in
    milliseconds when the median step is above 5, as the manuals' 1 to 33 samples a second put a
-   step in seconds below 1 and in milliseconds above 30.
+   step in seconds below 1 and in milliseconds above 30; an RRC3's is in seconds where its step is
+   the RRC3's 20 samples a second.
 3. **Otherwise from the maker, or assumed, and said.** An Eggtimer's heights are feet: the
-   Classic and TRS manuals state it, the others set every height in feet, and none offers meters.
+   Classic and TRS manuals state it, the Quantum and Proton manuals give every height in feet,
+   and none offers meters; its speeds are feet per second where they match the altitude's change
+   on at least 90% of rows, else kept as written.
    The Blue Raven's bare columns take the units the manual gives for its USB download of the same
    figures (feet per second, feet, degrees per second, g), which the app's summary files and the
    pad's 1 g bear out. An RRC3's temperature without brackets is assumed in the unit the RRC3's
    settings pair with the altitude's (°F with feet, °C with meters). The Blue Raven's `Current`,
    whose unit no source states, is kept as written.
 4. **Every decision is a note the survey counts.** A note on a decided unit reads `` `<column>`
-   read in <unit>, <from what>: <evidence> ``, the part before the colon the same for every file
-   decided alike. `cargo xtask logs` counts those parts by family into its report
+   read in <unit>, <from what>: <evidence> ``, or `` `<column>` kept as written, <why>: … ``, the
+   part before the colon the same for every file decided alike. `cargo xtask logs` counts those parts by family into its report
    (`unit_decisions`), so a page quoting a count quotes the tool.
 5. **The record grows two quantities**: a rate of turn, in degrees per second, for the Blue
    Raven's gyroscopes, and a time of day on the logger's own clock, in seconds after its

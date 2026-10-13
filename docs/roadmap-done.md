@@ -1446,7 +1446,7 @@ One line per milestone or increment, in the order it was archived within its pha
     `eggtimer-csv` and `blueraven-csv` sample in refs imports, as M7.1a's families do (`cargo xtask
     logs --check` fails on one not read); a unit the header doesn't name is decided from the file's
     own evidence and the evidence stated, or the assumption stated in a note.
-    Met (ADR-252): 173 files read (50, 43, 80); 21 kinds of unit decision counted in the report.
+    Met (ADR-252): 173 files read (50, 43, 80); 24 kinds of unit decision counted in the report.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

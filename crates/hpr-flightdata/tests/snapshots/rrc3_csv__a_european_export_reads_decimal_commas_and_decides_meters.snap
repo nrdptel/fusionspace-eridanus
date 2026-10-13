@@ -871,9 +871,10 @@ expression: log
     }
   ],
   "notes": [
-    "`Pressure` read in hectopascals, from the values: the highest, 1009.7, lies within the 10 to 1200 mbar the RRC3 measures (RRC3 manual p. 9); in pascals it would be a hundredth of the air's pressure at any launch site",
+    "`Pressure` read in hectopascals, from the values: the first row's, 1009.7, lies within the 500 to 1100 hPa of any launch site, and the highest, 1009.7, within the 10 to 1200 mbar the RRC3 measures (RRC3 manual p. 9)",
     "`Altitude` read in meters, from the pressure: from line 2 to line 16 the pressure falls from 1009.70 hPa to 983.40 hPa, a climb of 221.9 m in the U.S. Standard Atmosphere (1976), and the altitude climbs 221.15 as written, -69.62% off it read in feet and -0.3% read in meters",
-    "`Velocity` read in meters per second, from the altitude: over 53 rows, the velocity's running integral against the altitude above the first row gives 0.9882 as written per m/s, and meters per second would give 1.0000 (-1.18%); the next nearest, miles per hour, would give 2.2369 (-55.8%)",
+    "`Velocity` read in meters per second, from the altitude: over 53 rows, against the altitude above the first row, in meters, as it was 0.00 s earlier, the area under its running integral is 0.9818 times the altitude's, and the integral's least-squares slope is 0.9882; meters per second would give 1.0000 per m/s, -1.82% off the first and -1.18% off the second; the next nearest, miles per hour, would miss them by -56.1% and -55.8%",
+    "`Time` read in seconds, assumed: the median step between rows, 0.5 as written, isn't within 5% of the 0.05 s of the 20 Hz the RRC3 records its pressure at (RRC3 manual p. 23); mDACS's chart is timed in seconds (mDACS manual p. 8)",
     "`Temperature` read in degrees Celsius, assumed: the altitude is in meters, and the RRC3's unit settings pair feet with °F and meters with °C (RRC3 manual p. 12), though mDACS sets each by its own preference (mDACS manual p. 5) and the file states neither; its values, as written, run from 19.8 to 21",
     "`Voltages` read in volts, assumed: the RRC3 records its battery's voltage (mDACS manual p. 2) and takes a battery of at most 10 V (RRC3 manual p. 6); its values, as written, run from 8.95 to 9.2",
     "3 rows, the first on line 52, leave out the 1 Hz `Temperature` and `Voltages` cells: they are gaps"

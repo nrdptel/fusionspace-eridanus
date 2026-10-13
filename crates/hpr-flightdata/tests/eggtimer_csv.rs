@@ -66,7 +66,7 @@ fn the_layout_in_milliseconds_reads_its_clock_in_seconds() {
     );
     // Every raw speed is its altitude's change over the step in seconds.
     assert!(
-        log.notes[2].ends_with("in 25 of 25 rows after the first"),
+        log.notes[2].contains("in 25 of 25 rows after the first"),
         "{}",
         log.notes[2]
     );

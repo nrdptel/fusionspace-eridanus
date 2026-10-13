@@ -10,9 +10,13 @@
 //! | [PerfectFlite CSV and text](crate::perfectflite::read_export) | `Time`, `Altitude` and more of an export's names, by commas or tabs |
 //! | [AltOS CSV](crate::altos) | starts `#version,`, or opens with `#` comments before a `#version,` or `version,serial,` header |
 //! | [Raven FIP CSV](crate::raven) | opens with a time column and holds the Raven's `Axial Accel (Gs)` channel |
+//! | [Blue Raven CSV](crate::blueraven) | opens `Year,Month,Day,Time,Flight_Time_(s),Sync,` |
+//! | [RRC3 CSV](crate::rrc3) | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages` |
+//! | [Eggtimer CSV](crate::eggtimer) | `T,Alt,` and more of Eggtimer's column names |
 //!
-//! Text is read as UTF-8 with any byte-order mark dropped; a byte that isn't UTF-8 becomes U+FFFD,
-//! as a `.pf2`'s comments may be in another encoding and no reader uses them.
+//! Text is read as UTF-8, or as UTF-16 after its byte-order mark ([`decode`]), with any byte-order
+//! mark dropped; a byte that isn't UTF-8 becomes U+FFFD, as a `.pf2`'s comments may be in another
+//! encoding and no reader uses them.
 //!
 //! ```
 //! use hpr_flightdata::{import, log::LogFormat};
@@ -85,7 +89,7 @@ fn detect_text(text: &str) -> Option<LogFormat> {
         |line: &str| line.starts_with("#version,") || line.starts_with("version,serial,");
     if first.to_ascii_lowercase().contains("perfectflite") {
         // A `.pfa` names PerfectFlite too, but writes its samples after a `**!!Data:` line, one
-        // value a line: a layout no reader knows yet (M7.1b).
+        // value a line: a layout no reader knows yet (M7.1c).
         let pfa = text
             .split(['\r', '\n'])
             .any(|line| line.trim_start().starts_with("**!!"));
@@ -198,7 +202,7 @@ mod tests {
                 "Time\tAltitude\tTemp.\tVoltage\n",
                 Some(LogFormat::PerfectFliteText),
             ),
-            // A team's own export in feet: the generic reader's, M7.1b.
+            // A team's own export in feet: the generic reader's, M7.1c.
             ("time_s,altitude_ft,temperature,voltage\n", None),
             ("Time,Pressure\n", None),
             ("time,altitude\n", None),

@@ -24,8 +24,8 @@
 //! named `AccelG`, `AccelFPSS`, `VAccel`, `AltAccel` and filtered `FAccel…` where its manual writes
 //! `Accel`, `AccelFPSS`, `VelocAcc` and `AltAcc` (*Eggtimer Proton User's Guide*, software 2.01C,
 //! p45). The Proton lets its owner name each deployment channel, up to 8 characters, and writes
-//! that name in the header (*Eggtimer Proton Release Notes*, version 2.01C, p2), so a marker
-//! column may carry any name.
+//! that name in the header (Proton p26; *Eggtimer Proton Release Notes*, version 2.01C, p2), so a
+//! marker column may carry any name.
 //!
 //! A file is this layout if its first line that isn't blank is comma-separated, names `T` then
 //! `Alt`, and names at least one more column this reader knows (the table below). That keeps out a
@@ -36,25 +36,40 @@
 //! | Column | Read as | From |
 //! |---|---|---|
 //! | `T` | the clock: seconds, or milliseconds when the step says so (below) | the Classic's and TRS's manuals (p37) and the Excel guide (p3): milliseconds; the Quantum's (*Eggtimer Quantum User's Guide*, software 1.09G, p38) and Proton's (p45): seconds |
-//! | `Alt` | [`Quantity::AltitudeAboveGround`], ft | the Classic's and TRS's manuals (p37): "the altitude in feet"; the Quantum's and Proton's state no unit, but set every altitude in feet (Quantum p24: launch detect "50’-500’") |
+//! | `Alt` | [`Quantity::AltitudeAboveGround`], ft | the Classic and TRS manuals (p37) state feet; the Quantum and Proton manuals state no unit for the download, but give every height in feet (Quantum p24: launch detect "50’-500’"), and no Eggtimer manual offers meters |
 //! | `FAlt`, `Filt_Alt`, `KAlt` | [`Quantity::AltitudeAboveGround`], ft: the logger's filtered `Alt` | Quantum p38, Proton p45; Classic p37 ("the two K fields are filtered data") |
-//! | `Veloc`, `VRaw` | [`Quantity::Speed`], ft/s: the change in `Alt` over the step | Classic and TRS p37 ("velocity in ft/sec"); Quantum p38; the files (below) |
-//! | `FVeloc`, `KVeloc`, `VFilt` | [`Quantity::Speed`], ft/s: the change in the filtered altitude over the step | Quantum p38, Proton p46; the Excel guide (p3, p7: "Velocity in ft/sec"); the files |
-//! | `AccelG`, `Accel`, `FAccelG` | [`Quantity::Acceleration`], g × 9.806 65 m/s² (standard gravity) | Proton p45 ("in G's"); the name |
+//! | `Veloc`, `VRaw` | [`Quantity::Speed`], ft/s: the change in `Alt` over the step | Classic and TRS p37 ("velocity in ft/sec"); Quantum p38, Proton p45; checked against `Alt` (below) |
+//! | `FVeloc`, `KVeloc`, `VFilt` | [`Quantity::Speed`], ft/s: the change in the filtered altitude over the step | Quantum p38, Proton p46; the Excel guide (p3, p7: "Velocity in ft/sec"); checked against the filtered altitude (below) |
+//! | `Accel` | [`Quantity::Acceleration`], g × 9.806 65 m/s² (standard gravity) | Proton p45 ("in G's") |
+//! | `AccelG`, `FAccelG` | [`Quantity::Acceleration`], g × 9.806 65 m/s² | the name; Proton p45 |
 //! | `AccelFPSS`, `FAccelFPSS` | [`Quantity::Acceleration`], ft/s² | Proton p45 ("ft/sec^2"); the name |
 //! | `VAccel`, `VelocAcc`, `FAccelVel` | [`Quantity::Speed`], ft/s, from the accelerometer | Proton p45 ("the velocity derived from the accelerometer in ft/sec") |
 //! | `AltAccel`, `AltAcc`, `FAccelAlt` | [`Quantity::InertialAltitude`], ft | Proton p45 ("the DISTANCE TRAVELED derived from the accelerometer in ft.") |
 //! | `LDA`, `LowV`, `Apogee`, `N-O`, `Drogue`, `Main`, `AUX`, `BurnT`, `CHA`, `CHB`, `CH1`…, `MaxV`, `MaxA`, `Boost#1`…, `BO#1`…, and any column after `LDA` | [`Quantity::Unrecognized`], as written: an event marker (below) | Quantum p38–39, Proton p46 |
 //!
 //! No Eggtimer manual offers a unit other than feet: the Classic's, TRS's, Quantum's and Proton's
-//! manuals and release notes name no meter or metric setting. On the 43 Eggtimer files among the
-//! project's sample logs, `Veloc` equals the change in `Alt` over the step, in that step's unit,
-//! in all but a few rows of each, and `FVeloc` the change in the filtered altitude; in the four
-//! with an accelerometer, `AccelFPSS` is about 32 times `AccelG` (32.17 ft/s² is one g), `VAccel`
-//! tracks the sum of `AccelFPSS` over the steps, and `AccelG` reads about 0 on the pad, so the
-//! acceleration has gravity taken out; it is kept as written. The `F`-prefixed accelerometer
-//! columns are read as their unfiltered namesakes, as `FAlt` is `Alt` filtered: no manual
-//! describes them.
+//! manuals and release notes name no meter or metric setting. Each column whose name doesn't state
+//! its unit gets a note on the record saying how it was read, once per name.
+//!
+//! **Speeds checked.** A speed is read in feet per second only if the rows bear out that it is its
+//! altitude's change over the step: `Veloc` and `VRaw` of `Alt`, `FVeloc`, `KVeloc` and `VFilt` of
+//! the first filtered altitude, within 1 % or 1 ft/s, on at least 90 % of the rows after the first.
+//! A speed that falls short is kept as written, [`Quantity::Unrecognized`], with a note; a file of
+//! one row, or a filtered speed with no filtered altitude, has nothing to check, and is read as the
+//! manual says. As of 2026-10-12, over the 43 Eggtimer files among the project's sample logs, the
+//! least share is 95.9 %, and with the clock read in the wrong unit, a factor of 1,000 off, at
+//! most 9.5 %: the check also guards the time's unit (below).
+//!
+//! **The accelerometer.** As of 2026-10-12, in the 4 of those files with an accelerometer,
+//! `AccelFPSS` is about 32 times `AccelG` (32.17 ft/s² is one g), `VAccel` tracks the sum of
+//! `AccelFPSS` over the steps, and `AccelG`'s median before the start of flight (`T` below 0) is
+//! 0 to 0.2 g. Standing on the pad, an accelerometer that keeps gravity reads 1 g, so the Proton's
+//! acceleration has gravity taken out. Its manual doesn't say so; its release notes have it
+//! calibrate the accelerometer as it is armed, standing up (2.01C, p8). A note on the record says
+//! whether this file's acceleration holds gravity, from its own pad reading: taken out below
+//! 0.5 g, held within 0.5 g of 1 g, not known otherwise or with no rows before the start of
+//! flight. The values are kept as written either way. The `F`-prefixed accelerometer columns are
+//! read as their unfiltered namesakes, as `FAlt` is `Alt` filtered: no manual describes them.
 //!
 //! **The time's unit.** The Classic's and TRS's downloads, and the older guide's, write `T` in
 //! milliseconds; the Quantum's and Proton's in seconds; and the sample logs hold eleven-column
@@ -69,17 +84,20 @@
 //! RAW altitude data", in feet (Quantum p38; Proton p46). `MaxV` and `MaxA` hold the top speed and
 //! acceleration instead, ft/s and ft/s² (*Eggtimer Proton Release Notes*, version 1.02N, p13: "now
 //! referenced to the actual value"); in the sample logs they are the whole part of `VAccel` and
-//! `AccelFPSS` on their row. A marker may also be held from its event to the end of the file, as
-//! three are in one of the sample logs. Each marker column is kept as a channel as written,
-//! [`Quantity::Unrecognized`]: its 0 means "no event", not 0 ft, so converting it as a height would
-//! mislead. Each run of non-zero samples is an [`Event`] named as the column, at the run's first
-//! sample. An event that happened at a raw altitude of exactly 0 ft can't be told from no event,
-//! and is lost. A column after `LDA` whose name this reader doesn't know, such as a Proton
-//! channel's own name, is read as a marker, with a note.
+//! `AccelFPSS` on their row. A marker may also be held from its event to the end of the file, as 3
+//! marker columns among the 43 sample files are (as of 2026-10-12). Each marker column is kept as a
+//! channel as written, [`Quantity::Unrecognized`]: its 0 means "no event", not 0 ft, so converting
+//! it as a height would mislead. One note on the record lists them. Each run of non-zero samples is
+//! an [`Event`] named as the column (a name past 80 characters cut short, as a note quotes it), at
+//! the run's first sample, up to [`MAX_EVENTS_PER_MARKER`] a column; past that, the rises are
+//! counted in a note. An event that happened at a raw altitude of exactly 0 ft can't be told from
+//! no event, and is lost. A column after `LDA` whose name this reader doesn't know, such as a
+//! Proton channel's own name, is read as a marker, with a note.
 //!
 //! **The primary track.** [`FlightLog::altitude_m`] is `Alt`, the barometer's raw altitude above
-//! the logger's zero. The vertical speed is `Veloc` (or `VRaw`), the barometer's; without it, the
-//! filtered `FVeloc` (or `KVeloc`, `VFilt`), also the barometer's, with a note. `VAccel` is the
+//! the logger's zero. The vertical speed is `Veloc` (or `VRaw`), the barometer's; without it, or
+//! with it kept as written because its check failed, the filtered `FVeloc` (or `KVeloc`, `VFilt`),
+//! also the barometer's, with a note. `VAccel` is the
 //! accelerometer's, a channel only. The file names no model, serial number or flight, so the logger
 //! reads `Eggtimer`.
 //!
@@ -120,6 +138,26 @@ const MILLISECONDS_ABOVE: f64 = 5.0;
 /// whole feet or hundredths, and a few rows fall across a change of sampling rate.
 const SPEED_MATCH_RELATIVE: f64 = 0.01;
 const SPEED_MATCH_FT_S: f64 = 1.0;
+
+/// The least share of the rows after the first on which a speed must be its altitude's change
+/// over the step for the reader to read it in feet per second; below it, the column is kept as
+/// written. As of 2026-10-12, over the 43 Eggtimer files among the project's sample logs, the
+/// least share is 95.9 %, and with the clock read in the wrong unit, a factor of 1,000 off, the
+/// most is 9.5 %: 90 % sits between the two, near the first.
+const SPEED_MATCH_SHARE: f64 = 0.9;
+
+/// The most events one marker column gives; past it, the column's rises are counted in a note
+/// instead. A marker marks one event of the flight (Quantum p38, Proton p46): as of 2026-10-12, no
+/// marker column among the 43 Eggtimer files in the project's sample logs rises more than once.
+/// The cap keeps a file whose marker flips on every row from filling the record with events.
+pub const MAX_EVENTS_PER_MARKER: usize = 16;
+
+/// The pad reading, in g, below which an acceleration is taken to have gravity out, and within
+/// which of 1 g to have it in: halfway between the two.
+const GRAVITY_READING_G: f64 = 0.5;
+
+/// The most names a note lists; past it, the rest are counted.
+const MAX_LISTED: usize = 6;
 
 /// What a column is.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -231,6 +269,18 @@ struct Column {
     kind: Kind,
 }
 
+impl Column {
+    /// Whether the column's name states its unit: `AccelG` and `FAccelG` name g, `AccelFPSS` and
+    /// `FAccelFPSS` ft/s². No other name the reader knows does.
+    fn names_its_unit(&self) -> bool {
+        match self.kind {
+            Kind::AccelerationG => self.name.ends_with('G'),
+            Kind::AccelerationFtS2 => self.name.ends_with("FPSS"),
+            _ => false,
+        }
+    }
+}
+
 /// Reads an Eggtimer's flight data from its text.
 ///
 /// # Errors
@@ -300,7 +350,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     if rows.is_empty() {
         return Err(LogError::NoData { format: FORMAT });
     }
-    build(&columns, &rows, blank_rows, notes)
+    build(columns, &rows, blank_rows, notes)
 }
 
 /// The header's columns after the time, each with what it is. The time is `T` and the altitude
@@ -378,7 +428,7 @@ fn row_values(cells: &[&str], columns: &[Column], line: usize) -> Result<Vec<f64
 
 /// The record from the rows read: the clock, every channel, the events and the notes.
 fn build(
-    columns: &[Column],
+    mut columns: Vec<Column>,
     rows: &[(usize, Vec<f64>)],
     blank_rows: usize,
     mut notes: Notes,
@@ -413,14 +463,23 @@ fn build(
                 .collect()
         })
         .collect();
-
-    unit_notes.push(altitude_note(columns, &written));
     let step_s: Vec<f64> = time_s.windows(2).map(|pair| pair[1] - pair[0]).collect();
-    for (index, column) in columns.iter().enumerate().skip(1) {
-        if let Some(note) = unit_note(index, column, columns, &written, &step_s) {
+    let checks = speed_checks(&mut columns, &written, &step_s, &mut notes);
+
+    // One note per name decided, so a header repeating a name doesn't repeat its note.
+    unit_notes.push(altitude_note(&columns, &written));
+    let mut noted: Vec<&str> = Vec::new();
+    for (column, check) in columns.iter().zip(&checks) {
+        if noted.contains(&column.name.as_str()) {
+            continue;
+        }
+        if let Some(note) = unit_note(column, *check, &columns) {
+            noted.push(&column.name);
             unit_notes.push(note);
         }
     }
+    unit_notes.extend(gravity_note(&columns, &written, &written_time));
+    unit_notes.extend(marker_note(&columns));
 
     let mut log = FlightLog {
         format: LogFormat::EggtimerCsv,
@@ -454,46 +513,28 @@ fn build(
             values: values.iter().map(|value| value * factor).collect(),
         });
     }
+    log.events = events(&columns, &written, &time_s, &mut notes);
 
-    // The events: each run of non-zero samples in a marker column, at its first sample, in the
-    // file's order, row by row.
-    let markers: Vec<usize> = columns
-        .iter()
-        .enumerate()
-        .filter(|(_, column)| column.kind == Kind::Marker)
-        .map(|(index, _)| index)
-        .collect();
-    let marked = |value: f64| value != 0.0 && !value.is_nan();
-    for (row, time) in time_s.iter().enumerate() {
-        for &index in &markers {
-            let value = written[index][row];
-            let before = row
-                .checked_sub(1)
-                .is_some_and(|above| marked(written[index][above]));
-            if marked(value) && !before {
-                log.events.push(Event {
-                    time_s: *time,
-                    name: columns[index].name.clone(),
-                });
-            }
-        }
-    }
-
-    // The primary track: `Alt`, and the barometer's raw speed, or its filtered one.
-    log.altitude_m = log.channels[0].values.clone();
+    // The primary track: `Alt`, and the barometer's raw speed, or its filtered one. Invariant:
+    // `Alt` is the header's name after `T` (`is_header`), so it is the first channel.
+    log.altitude_m = log
+        .channels
+        .first()
+        .map(|channel| channel.values.clone())
+        .unwrap_or_default();
     let speed = |kind: Kind| {
         columns
             .iter()
-            .position(|column| column.kind == kind)
-            .map(|index| (index, log.channels[index].values.clone()))
+            .zip(&log.channels)
+            .find(|(column, _)| column.kind == kind)
+            .map(|(column, channel)| (column.name.as_str(), channel.values.clone()))
     };
     if let Some((_, values)) = speed(Kind::RawSpeed) {
         log.vertical_speed_m_s = Some(values);
-    } else if let Some((index, values)) = speed(Kind::FilteredSpeed) {
+    } else if let Some((name, values)) = speed(Kind::FilteredSpeed) {
         log.notes.push(format!(
-            "the file has no raw velocity, `Veloc`; the vertical speed is its filtered barometric \
-             {:?}",
-            columns[index].name
+            "the file has no raw velocity, `Veloc`, read as a speed; the vertical speed is its \
+             filtered barometric {name:?}"
         ));
         log.vertical_speed_m_s = Some(values);
     }
@@ -504,6 +545,151 @@ fn build(
     }
     log.notes.extend(notes.into_vec());
     Ok(log)
+}
+
+/// What the rows say of a speed: the column of the altitude it should be the change of, and on
+/// how many of the rows after the first it is, of how many can be checked.
+#[derive(Debug, Clone, Copy)]
+struct SpeedCheck {
+    altitude: usize,
+    matching: usize,
+    rows: usize,
+}
+
+/// Each speed checked against the altitude it should be the change of: `Veloc` and `VRaw` against
+/// `Alt`, `FVeloc`, `KVeloc` and `VFilt` against the file's first filtered altitude. A speed that
+/// matches on fewer than [`SPEED_MATCH_SHARE`] of the rows checked is kept as written, with a
+/// note; the others get their check, `None` for a column that isn't a speed or has no altitude to
+/// check it against.
+fn speed_checks(
+    columns: &mut [Column],
+    written: &[Vec<f64>],
+    step_s: &[f64],
+    notes: &mut Notes,
+) -> Vec<Option<SpeedCheck>> {
+    let filtered = columns
+        .iter()
+        .position(|column| column.kind == Kind::FilteredAltitude);
+    let mut checks = vec![None; columns.len()];
+    for (index, check) in checks.iter_mut().enumerate() {
+        // `Alt` is the first column: the header's name after `T` (`is_header`).
+        let altitude = match columns.get(index).map(|column| column.kind) {
+            Some(Kind::RawSpeed) => Some(0),
+            Some(Kind::FilteredSpeed) => filtered,
+            _ => None,
+        };
+        let (Some(altitude), Some(speed)) = (altitude, written.get(index)) else {
+            continue;
+        };
+        let Some(altitude_values) = written.get(altitude) else {
+            continue;
+        };
+        let (matching, rows) = speed_matches(speed, altitude_values, step_s);
+        // Row counts are far below 2^52, where an `f64` holds every whole number.
+        let enough = rows == 0 || matching as f64 >= SPEED_MATCH_SHARE * rows as f64;
+        if enough {
+            *check = Some(SpeedCheck {
+                altitude,
+                matching,
+                rows,
+            });
+            continue;
+        }
+        let altitude_name = columns
+            .get(altitude)
+            .map(|column| short(&column.name))
+            .unwrap_or_default();
+        if let Some(column) = columns.get_mut(index) {
+            notes.push(format!(
+                "`{}` kept as written, not read as a speed: it is the change in \
+                 `{altitude_name}` over the step, within 1 % or 1 ft/s, in only {matching} of \
+                 {rows} rows after the first, under the 90 % the reader asks",
+                short(&column.name)
+            ));
+            column.kind = Kind::Unknown;
+        }
+    }
+    checks
+}
+
+/// On how many rows after the first a speed is its altitude's change over the step, within 1 %
+/// or 1 ft/s, of how many hold both and a finite change.
+fn speed_matches(speed: &[f64], altitude: &[f64], step_s: &[f64]) -> (usize, usize) {
+    let (mut rows, mut matching) = (0_usize, 0_usize);
+    for (row, step) in step_s.iter().enumerate() {
+        let (Some(&low), Some(&high), Some(&value)) =
+            (altitude.get(row), altitude.get(row + 1), speed.get(row + 1))
+        else {
+            continue;
+        };
+        let change = (high - low) / step;
+        if !(change.is_finite() && value.is_finite()) {
+            continue;
+        }
+        rows += 1;
+        if (value - change).abs() <= (SPEED_MATCH_RELATIVE * change.abs()).max(SPEED_MATCH_FT_S) {
+            matching += 1;
+        }
+    }
+    (matching, rows)
+}
+
+/// The events: each run of non-zero samples in a marker column, at its first sample, row by row
+/// and in the file's order within a row; past [`MAX_EVENTS_PER_MARKER`] in one column, the rest
+/// counted in a note. An event's name is the column's, cut as a note quotes it.
+fn events(
+    columns: &[Column],
+    written: &[Vec<f64>],
+    time_s: &[f64],
+    notes: &mut Notes,
+) -> Vec<Event> {
+    struct Marker<'a> {
+        name: String,
+        values: &'a [f64],
+        kept: usize,
+        left_out: usize,
+    }
+    let mut markers: Vec<Marker> = columns
+        .iter()
+        .zip(written)
+        .filter(|(column, _)| column.kind == Kind::Marker)
+        .map(|(column, values)| Marker {
+            name: short(&column.name),
+            values,
+            kept: 0,
+            left_out: 0,
+        })
+        .collect();
+    let marked = |value: f64| value != 0.0 && !value.is_nan();
+    let mut events = Vec::new();
+    for (row, time) in time_s.iter().enumerate() {
+        for marker in &mut markers {
+            let value = marker.values.get(row).copied().unwrap_or(f64::NAN);
+            let before = row
+                .checked_sub(1)
+                .and_then(|above| marker.values.get(above))
+                .is_some_and(|&above| marked(above));
+            if !marked(value) || before {
+                continue;
+            }
+            if marker.kept < MAX_EVENTS_PER_MARKER {
+                marker.kept += 1;
+                events.push(Event {
+                    time_s: *time,
+                    name: marker.name.clone(),
+                });
+            } else {
+                marker.left_out += 1;
+            }
+        }
+    }
+    for marker in markers.iter().filter(|marker| marker.left_out > 0) {
+        notes.push(format!(
+            "the marker {:?} rises {} more times than the {MAX_EVENTS_PER_MARKER} kept as events",
+            marker.name, marker.left_out
+        ));
+    }
+    events
 }
 
 /// The time's units in a second, 1 or 1,000, decided from the median step between rows, with the
@@ -520,6 +706,8 @@ fn time_unit(written: &[f64], unit_notes: &mut Vec<String>) -> f64 {
         return 1.0;
     }
     steps.sort_by(f64::total_cmp);
+    // Invariant: `steps` isn't empty (above), so `middle` is a place in it, and so is the one
+    // before it when the count is even.
     let middle = steps.len() / 2;
     let median = if steps.len().is_multiple_of(2) {
         (steps[middle - 1] + steps[middle]) / 2.0
@@ -543,17 +731,19 @@ fn time_unit(written: &[f64], unit_notes: &mut Vec<String>) -> f64 {
 /// The note saying how `Alt` was read in feet; for a file with the accelerometer in both g and
 /// ft/s², what the two say of each other.
 fn altitude_note(columns: &[Column], written: &[Vec<f64>]) -> String {
-    let mut note = "`Alt` read in feet, from the manual: the Classic's and TRS's manuals (p37) \
-                    give the altitude in feet, the Quantum's and Proton's set every altitude in \
-                    feet, and no Eggtimer manual offers another unit"
+    let mut note = "`Alt` read in feet, from the manual: the Classic and TRS manuals (p37) state \
+                    feet; the Quantum and Proton manuals give every height in feet and no \
+                    Eggtimer manual offers meters"
         .to_owned();
-    let find = |name: &str| {
+    let find = |names: &[&str]| {
         columns
             .iter()
-            .position(|column| column.name == name)
-            .and_then(|index| written.get(index))
+            .zip(written)
+            .find(|(column, _)| names.contains(&column.name.as_str()))
     };
-    if let (Some(g), Some(ft_s2)) = (find("AccelG").or_else(|| find("Accel")), find("AccelFPSS")) {
+    if let (Some((g_column, g)), Some((ft_column, ft_s2))) =
+        (find(&["AccelG", "Accel"]), find(&["AccelFPSS"]))
+    {
         // The least-squares ratio of the two through zero.
         let (mut product, mut square) = (0.0, 0.0);
         for (g, ft_s2) in g.iter().zip(ft_s2) {
@@ -565,46 +755,59 @@ fn altitude_note(columns: &[Column], written: &[Vec<f64>]) -> String {
         let ratio = product / square;
         if ratio.is_finite() {
             note.push_str(&format!(
-                "; the file's `AccelFPSS` is {} times its `AccelG`, and one g is 32.17 ft/s²",
-                plain(ratio, 2)
+                "; the file's `{}` is {} times its `{}`, and one g is 32.17 ft/s²",
+                ft_column.name,
+                plain(ratio, 2),
+                g_column.name
             ));
         }
     }
     note
 }
 
-/// The note saying how a length or speed column other than `Alt` was read, `None` for one whose
-/// name states its unit, or that is kept as written. `index` is the column's among `columns`.
-fn unit_note(
-    index: usize,
-    column: &Column,
-    columns: &[Column],
-    written: &[Vec<f64>],
-    step_s: &[f64],
-) -> Option<String> {
-    let name = &column.name;
+/// The note saying how a column other than `Alt` was read, `None` for one whose name states its
+/// unit, or that is kept as written. `check` is what the rows say of a speed.
+fn unit_note(column: &Column, check: Option<SpeedCheck>, columns: &[Column]) -> Option<String> {
+    let name = short(&column.name);
+    let evidence = |what: &str| match check {
+        Some(check) if check.rows > 0 => format!(
+            "it is the change in `{}` over the step, within 1 % or 1 ft/s, in {} of {} rows after \
+             the first, where the reader asks 90 %",
+            columns
+                .get(check.altitude)
+                .map(|altitude| short(&altitude.name))
+                .unwrap_or_default(),
+            check.matching,
+            check.rows
+        ),
+        Some(_) => format!("the file has one row, so no step to check it against {what} on"),
+        None => format!("the file has no {what} to check it against"),
+    };
     let note = match column.kind {
         Kind::FilteredAltitude => format!(
             "`{name}` read in feet, from the manual: it is the logger's filtered `Alt` (Quantum \
              p38, Proton p45), in the same unit"
         ),
-        Kind::RawSpeed => speed_note(name, "Alt", &written[index], &written[0], step_s),
-        Kind::FilteredSpeed => match columns
-            .iter()
-            .position(|other| other.kind == Kind::FilteredAltitude)
-        {
-            Some(altitude) => speed_note(
-                name,
-                &columns[altitude].name,
-                &written[index],
-                &written[altitude],
-                step_s,
-            ),
-            None => format!(
-                "`{name}` read in feet per second, from the manual: the logger's filtered \
-                 velocity, which the Excel guide (p3, p7) graphs in ft/sec"
-            ),
-        },
+        Kind::RawSpeed => format!(
+            "`{name}` read in feet per second, from the manual: the Classic and TRS manuals (p37) \
+             give the velocity in ft/sec, and the Proton's (p45) as the change in `Alt` over the \
+             step; {}",
+            evidence("`Alt`")
+        ),
+        Kind::FilteredSpeed => format!(
+            "`{name}` read in feet per second, from the manual: the Proton's manual (p46) gives \
+             it as the change in the filtered altitude over the step, and the Excel guide (p7) \
+             graphs the velocity in ft/sec; {}",
+            evidence("filtered altitude")
+        ),
+        Kind::AccelerationG if !column.names_its_unit() => format!(
+            "`{name}` read in g, from the manual: the Proton's manual (p45) gives the \
+             accelerometer's raw value in G's"
+        ),
+        Kind::AccelerationFtS2 if !column.names_its_unit() => format!(
+            "`{name}` read in feet per second squared, from the manual: the Proton's manual \
+             (p45) gives the accelerometer's data in ft/sec^2"
+        ),
         Kind::InertialSpeed => format!(
             "`{name}` read in feet per second, from the manual: the Proton's manual (p45) gives \
              the accelerometer's velocity in ft/sec"
@@ -622,36 +825,115 @@ fn unit_note(
     Some(note)
 }
 
-/// The note saying a speed was read in feet per second because it is its altitude's change over
-/// the step, with how many rows bear that out.
-fn speed_note(
-    name: &str,
-    altitude_name: &str,
-    speed: &[f64],
-    altitude: &[f64],
-    step_s: &[f64],
-) -> String {
-    let (mut rows, mut matching) = (0_usize, 0_usize);
-    for (row, step) in step_s.iter().enumerate() {
-        let (Some(&low), Some(&high), Some(&value)) =
-            (altitude.get(row), altitude.get(row + 1), speed.get(row + 1))
-        else {
-            continue;
-        };
-        let change = (high - low) / step;
-        if !(change.is_finite() && value.is_finite()) {
-            continue;
-        }
-        rows += 1;
-        if (value - change).abs() <= (SPEED_MATCH_RELATIVE * change.abs()).max(SPEED_MATCH_FT_S) {
-            matching += 1;
-        }
+/// The note saying whether the file's acceleration has gravity in it, judged from its first
+/// acceleration column on the pad: the median of its rows before the start of flight, where `T`
+/// is below 0 (the Proton's `T` counts from the start of flight, p45). Standing on the pad, an
+/// accelerometer that keeps gravity reads 1 g and one that takes it out 0. `None` for a file
+/// without one.
+fn gravity_note(columns: &[Column], written: &[Vec<f64>], written_time: &[f64]) -> Option<String> {
+    let ft_s2_per_g = STANDARD_GRAVITY_MPS2 / FOOT_M;
+    let mut accelerations = columns
+        .iter()
+        .zip(written)
+        .filter_map(|(column, values)| match column.kind {
+            Kind::AccelerationG => Some((column, values, 1.0)),
+            Kind::AccelerationFtS2 => Some((column, values, ft_s2_per_g)),
+            _ => None,
+        });
+    let (column, values, per_g) = accelerations.next()?;
+    let others = if accelerations.next().is_some() {
+        "; the file's other acceleration columns are the same accelerometer's"
+    } else {
+        ""
+    };
+    let name = short(&column.name);
+    let mut pad: Vec<f64> = written_time
+        .iter()
+        .zip(values)
+        .filter(|(time, value)| **time < 0.0 && value.is_finite())
+        .map(|(_, value)| value / per_g)
+        .collect();
+    let source = "the Proton's manual doesn't say, and its release notes (2.01C, p8) have it \
+                  calibrate the accelerometer as it is armed, standing up";
+    if pad.is_empty() {
+        return Some(format!(
+            "`{name}` may or may not hold gravity, not known: the file has no rows before the \
+             start of flight (`T` below 0) to read the pad on; {source}{others}"
+        ));
     }
-    format!(
-        "`{name}` read in feet per second, from the altitude: it is the change in \
-         `{altitude_name}` over the step, within 1 % or 1 ft/s, in {matching} of {rows} rows \
-         after the first"
-    )
+    pad.sort_by(f64::total_cmp);
+    // Invariant: `pad` isn't empty (above), so `middle` is a place in it, and so is the one
+    // before it when the count is even.
+    let middle = pad.len() / 2;
+    let median = if pad.len().is_multiple_of(2) {
+        (pad[middle - 1] + pad[middle]) / 2.0
+    } else {
+        pad[middle]
+    };
+    let reading = format!(
+        "its median over the {} rows before the start of flight (`T` below 0) is {} g, where an \
+         accelerometer that keeps gravity reads 1 g standing still and one that takes it out 0; \
+         {source}{others}",
+        pad.len(),
+        plain(median, 2)
+    );
+    Some(if median.abs() < GRAVITY_READING_G {
+        format!("`{name}` has gravity taken out, from the pad: {reading}")
+    } else if (median - 1.0).abs() < GRAVITY_READING_G {
+        format!("`{name}` holds gravity, from the pad: {reading}")
+    } else {
+        format!("`{name}` may or may not hold gravity, not known: {reading}")
+    })
+}
+
+/// The note listing the marker columns, kept as written; `None` for a file without one.
+fn marker_note(columns: &[Column]) -> Option<String> {
+    let markers: Vec<String> = columns
+        .iter()
+        .filter(|column| column.kind == Kind::Marker)
+        .map(|column| format!("`{}`", short(&column.name)))
+        .take(MAX_LISTED + 1)
+        .collect();
+    let count = columns
+        .iter()
+        .filter(|column| column.kind == Kind::Marker)
+        .count();
+    if count == 0 {
+        return None;
+    }
+    let speeds = if columns
+        .iter()
+        .any(|column| column.name == "MaxV" || column.name == "MaxA")
+    {
+        ", and the Proton's release notes (1.02N, p13) the top speed, ft/s, in `MaxV` and the \
+         top acceleration, ft/s², in `MaxA`"
+    } else {
+        ""
+    };
+    Some(format!(
+        "the marker columns, kept as written: {}; each is 0 but at the sample that marks its \
+         event, where the Quantum's and Proton's manuals (p38, p46) put the raw altitude, in \
+         feet{speeds}",
+        list(&markers, count)
+    ))
+}
+
+/// Names joined as `a`, `a and b`, or `a, b and c`; of more than [`MAX_LISTED`], the first few
+/// and a count of the rest. `count` is how many there are; `names` may hold only the first.
+fn list(names: &[String], count: usize) -> String {
+    if count > MAX_LISTED {
+        let shown = MAX_LISTED - 1;
+        return format!(
+            "{} and {} more columns",
+            names.get(..shown).unwrap_or(names).join(", "),
+            count - shown
+        );
+    }
+    match names {
+        [] => String::new(),
+        [only] => only.clone(),
+        [rest @ .., last] => format!("{} and {last}", rest.join(", ")),
+    }
 }
 
 /// A number as a note writes it: rounded to `decimals` places, trailing zeros dropped.
@@ -762,25 +1044,39 @@ mod tests {
                 (0.2, "Drogue")
             ]
         );
-        assert_eq!(log.notes.len(), 5, "{:?}", log.notes);
+        assert_eq!(log.notes.len(), 6, "{:?}", log.notes);
         assert_eq!(
             log.notes[0],
             "`T` read in seconds, from the step: the median step between rows is 0.05, and the \
              reader reads one above 5 as milliseconds (at the manuals' 1 to 33 samples a second, \
              a step is 0.03 to 1 in seconds and 30 to 1,000 in milliseconds)"
         );
-        assert!(log.notes[1].starts_with("`Alt` read in feet, from the manual: "));
+        assert_eq!(
+            log.notes[1],
+            "`Alt` read in feet, from the manual: the Classic and TRS manuals (p37) state feet; \
+             the Quantum and Proton manuals give every height in feet and no Eggtimer manual \
+             offers meters"
+        );
         assert_eq!(
             log.notes[2],
-            "`Veloc` read in feet per second, from the altitude: it is the change in `Alt` over \
-             the step, within 1 % or 1 ft/s, in 4 of 4 rows after the first"
+            "`Veloc` read in feet per second, from the manual: the Classic and TRS manuals (p37) \
+             give the velocity in ft/sec, and the Proton's (p45) as the change in `Alt` over the \
+             step; it is the change in `Alt` over the step, within 1 % or 1 ft/s, in 4 of 4 rows \
+             after the first, where the reader asks 90 %"
         );
         assert!(log.notes[3].starts_with("`FAlt` read in feet, from the manual: "));
         assert!(
-            log.notes[4].starts_with("`FVeloc` read in feet per second, from the altitude: ")
-                && log.notes[4].ends_with("in 4 of 4 rows after the first"),
+            log.notes[4].starts_with("`FVeloc` read in feet per second, from the manual: ")
+                && log.notes[4].contains("the change in `FAlt` over the step")
+                && log.notes[4].contains("in 4 of 4 rows after the first"),
             "{}",
             log.notes[4]
+        );
+        assert_eq!(
+            log.notes[5],
+            "the marker columns, kept as written: `LDA`, `LowV`, `Apogee`, `N-O`, `Drogue` and \
+             `Main`; each is 0 but at the sample that marks its event, where the Quantum's \
+             and Proton's manuals (p38, p46) put the raw altitude, in feet"
         );
     }
 
@@ -862,9 +1158,262 @@ mod tests {
             "{}",
             log.notes[1]
         );
+        // `AccelG` and `AccelFPSS` name their units, so get no unit note.
+        assert!(log.notes[2].starts_with("`Veloc` read in feet per second, from the manual: "));
         assert!(log.notes[3].starts_with("`VAccel` read in feet per second, from the manual: "));
         assert!(log.notes[4].starts_with("`AltAccel` read in feet, from the manual: "));
-        assert_eq!(log.notes.len(), 5, "{:?}", log.notes);
+        assert_eq!(
+            log.notes[5],
+            "`AccelG` has gravity taken out, from the pad: its median over the 1 rows before the \
+             start of flight (`T` below 0) is 0 g, where an accelerometer that keeps gravity reads \
+             1 g standing still and one that takes it out 0; the Proton's manual doesn't say, and \
+             its release notes (2.01C, p8) have it calibrate the accelerometer as it is armed, \
+             standing up; the file's other acceleration columns are the same accelerometer's"
+        );
+        assert!(
+            log.notes[6].starts_with(
+                "the marker columns, kept as written: `LDA`, `MaxV`, `MaxA` and `CH1`; "
+            ) && log.notes[6].ends_with(
+                ", and the Proton's release notes (1.02N, p13) the top speed, ft/s, in `MaxV` \
+                     and the top acceleration, ft/s², in `MaxA`"
+            ),
+            "{}",
+            log.notes[6]
+        );
+        assert_eq!(log.notes.len(), 7, "{:?}", log.notes);
+    }
+
+    /// The Proton manual's `Accel` doesn't name its unit, so it gets a note, and is the one the
+    /// altitude's note and the gravity note name, as written. A pad reading near 1 g holds
+    /// gravity; one near neither, or no rows before the start of flight, leaves it not known.
+    #[test]
+    fn the_acceleration_unit_and_gravity_are_noted() {
+        let log = read(
+            "T,Alt,Accel,AccelFPSS,LDA
+-0.1,0,1,32.2,0
+0,0,1.1,35.4,0
+0.1,3,6,193,3
+",
+        )
+        .unwrap();
+        let notes = log.notes.join("\n");
+        assert!(
+            notes.contains(
+                "`Accel` read in g, from the manual: the Proton's manual (p45) gives the \
+                 accelerometer's raw value in G's"
+            ),
+            "{notes}"
+        );
+        assert!(
+            notes.contains("the file's `AccelFPSS` is 32.17 times its `Accel`"),
+            "{notes}"
+        );
+        assert!(
+            notes.contains(
+                "`Accel` holds gravity, from the pad: its median over the 1 rows before the start \
+                 of flight (`T` below 0) is 1 g"
+            ),
+            "{notes}"
+        );
+        assert!(!notes.contains("AccelG"), "{notes}");
+        assert!(close(log.channels[1].values[0], 9.806_65));
+
+        let unsure = read(
+            "T,Alt,AccelG,LDA
+-0.2,0,3,0
+-0.1,0,3,0
+0,1,4,0
+",
+        )
+        .unwrap();
+        assert!(
+            unsure.notes.iter().any(|note| note.starts_with(
+                "`AccelG` may or may not hold gravity, not known: its median over the 2 rows \
+                 before the start of flight (`T` below 0) is 3 g"
+            )),
+            "{:?}",
+            unsure.notes
+        );
+        let no_pad = read(
+            "T,Alt,FAccelFPSS,LDA
+0,0,0,0
+0.1,1,64,0
+",
+        )
+        .unwrap();
+        assert!(
+            no_pad.notes.iter().any(|note| note.starts_with(
+                "`FAccelFPSS` may or may not hold gravity, not known: the file has no rows before \
+                 the start of flight"
+            )),
+            "{:?}",
+            no_pad.notes
+        );
+        // A pad reading in ft/s² is judged in g.
+        let in_ft = read(
+            "T,Alt,AccelFPSS,LDA
+-0.1,0,32.2,0
+0,1,40,0
+",
+        )
+        .unwrap();
+        assert!(
+            in_ft
+                .notes
+                .iter()
+                .any(|note| note.starts_with("`AccelFPSS` holds gravity, from the pad: ")),
+            "{:?}",
+            in_ft.notes
+        );
+    }
+
+    /// A speed that isn't its altitude's change over the step on 90 % of the rows is kept as
+    /// written, and the vertical speed falls to the filtered one; at 90 % it is read.
+    #[test]
+    fn a_speed_that_isnt_its_altitudes_change_is_kept_as_written() {
+        // Every `Veloc` is 1,000 times the change: a clock in milliseconds read as seconds would
+        // do this.
+        let text = "T,Alt,Veloc,FAlt,FVeloc,LDA
+0,0,0,0,0,0
+1,10,10000,5,5,0
+2,30,20000,15,10,0
+";
+        let log = read(text).unwrap();
+        assert_eq!(log.channels[1].column, "Veloc");
+        assert_eq!(log.channels[1].quantity, Quantity::Unrecognized);
+        assert_eq!(log.channels[1].values, [0.0, 10000.0, 20000.0]);
+        assert_eq!(log.channels[3].quantity, Quantity::Speed);
+        assert_eq!(
+            log.vertical_speed_m_s.as_deref(),
+            Some(&[0.0, 5.0 * 0.3048, 10.0 * 0.3048][..])
+        );
+        let notes = log.notes.join("\n");
+        assert!(
+            notes.contains(
+                "`Veloc` kept as written, not read as a speed: it is the change in `Alt` over the \
+                 step, within 1 % or 1 ft/s, in only 0 of 2 rows after the first, under the 90 % \
+                 the reader asks"
+            ),
+            "{notes}"
+        );
+        assert!(!notes.contains("`Veloc` read in"), "{notes}");
+        assert!(notes.contains("the file has no raw velocity, `Veloc`, read as a speed"));
+
+        // 9 of 10 rows match: read; 8 of 10: kept as written.
+        let rows = |misses: usize| -> String {
+            (0..=10)
+                .map(|i| {
+                    let speed = if i > 0 && i <= misses {
+                        99
+                    } else {
+                        10 * usize::from(i > 0)
+                    };
+                    format!("{i},{},{speed},0\n", 10 * i)
+                })
+                .collect()
+        };
+        let nine = read(&format!("T,Alt,Veloc,LDA\n{}", rows(1))).unwrap();
+        assert_eq!(nine.channels[1].quantity, Quantity::Speed);
+        assert!(
+            nine.notes
+                .iter()
+                .any(|note| note.contains("in 9 of 10 rows after the first"))
+        );
+        let eight = read(&format!("T,Alt,Veloc,LDA\n{}", rows(2))).unwrap();
+        assert_eq!(eight.channels[1].quantity, Quantity::Unrecognized);
+        assert!(eight.vertical_speed_m_s.is_none());
+    }
+
+    /// A header repeating a name gets that name's unit note once.
+    #[test]
+    fn a_repeated_name_is_noted_once() {
+        let log = read(
+            "T,Alt,Veloc,Veloc,LDA
+0,0,0,0,0
+0.1,1,10,10,0
+",
+        )
+        .unwrap();
+        let veloc = log
+            .notes
+            .iter()
+            .filter(|note| note.starts_with("`Veloc` read in"))
+            .count();
+        assert_eq!(veloc, 1, "{:?}", log.notes);
+        assert_eq!(log.channels[2].quantity, Quantity::Speed);
+    }
+
+    /// A marker column with a very long name rising on every other row gives at most
+    /// [`MAX_EVENTS_PER_MARKER`] events, each naming it cut short, and one note counting the rest:
+    /// the record stays near the file's size.
+    #[test]
+    fn a_long_marker_name_rising_often_is_bounded() {
+        let name = "X".repeat(100_000);
+        let rows: String = (0..4000).map(|i| format!("{i},0,0,{}\n", i % 2)).collect();
+        let text = format!("T,Alt,LDA,{name}\n{rows}");
+        let log = read(&text).unwrap();
+        assert_eq!(log.events.len(), MAX_EVENTS_PER_MARKER);
+        assert!(
+            log.events
+                .iter()
+                .all(|event| event.name.chars().count() <= 80)
+        );
+        assert!(log.events[0].name.ends_with('…'));
+        assert_eq!(log.events[15].time_s, 31.0);
+        let notes = log.notes.join("\n");
+        assert!(
+            notes.contains(&format!(
+                "rises {} more times than the 16 kept as events",
+                2000 - MAX_EVENTS_PER_MARKER
+            )),
+            "{}",
+            short(&notes)
+        );
+        let bytes: usize = log.notes.iter().map(String::len).sum::<usize>()
+            + log
+                .events
+                .iter()
+                .map(|event| event.name.len())
+                .sum::<usize>();
+        assert!(bytes < 10_000, "{bytes} bytes of notes and event names");
+        // The channel keeps the name as written.
+        assert_eq!(log.channels[2].column.len(), 100_000);
+    }
+
+    /// The marker note lists at most a few columns, and counts the rest.
+    #[test]
+    fn the_marker_note_stays_short() {
+        let markers: String = (1..=40).map(|i| format!(",CH{i}")).collect();
+        let text = format!(
+            "T,Alt,LDA{markers}
+0,0{}
+",
+            ",0".repeat(41)
+        );
+        let log = read(&text).unwrap();
+        let note = log
+            .notes
+            .iter()
+            .find(|note| note.starts_with("the marker columns, kept as written: "))
+            .unwrap();
+        assert!(
+            note.starts_with(
+                "the marker columns, kept as written: `LDA`, `CH1`, `CH2`, `CH3`, `CH4` and 36 more \
+                 columns; "
+            ),
+            "{note}"
+        );
+        assert!(
+            read(
+                "T,Alt,Veloc
+0,0,0
+"
+            )
+            .unwrap()
+            .notes
+            .iter()
+            .all(|note| !note.contains("marker columns"))
+        );
     }
 
     /// A marker held over several samples, or to the end, is one event; two runs are two.
@@ -903,7 +1452,12 @@ mod tests {
             old.vertical_speed_m_s.as_deref(),
             Some(&[0.0, 20.0 * 0.3048, 40.0 * 0.3048][..])
         );
-        assert!(old.notes[2].starts_with("`VRaw` read in feet per second, from the altitude: "));
+        assert!(old.notes[2].starts_with("`VRaw` read in feet per second, from the manual: "));
+        assert!(
+            old.notes[3].ends_with("the file has no filtered altitude to check it against"),
+            "{}",
+            old.notes[3]
+        );
         assert!(old.notes[3].starts_with("`VFilt` read in feet per second, from the manual: "));
         assert!(
             read("T,Alt,LDA\n0,0,0\n")

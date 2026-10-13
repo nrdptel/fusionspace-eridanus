@@ -53,9 +53,9 @@
 //! velocities in ft/sec, the inertial altitude and the down-range and cross-range positions in
 //! feet, gyro rates in deg/s × 100, accelerations in G × 100, current in mA. The app writes the
 //! gyro rates and accelerations unscaled by the hundred, so its file's units are decided from what
-//! the app's own files show. The counts below are over the 80 Blue Raven files among the project's
-//! sample logs (45 low-rate, 35 high-rate), most of them in the private collection of flights this
-//! project checks against:
+//! the app's own files show. The counts below are, as of 2026-10-12, over the 80 Blue Raven files
+//! among the project's sample logs (45 low-rate, 35 high-rate), most of them in the private
+//! collection of flights this project checks against:
 //!
 //! - *Velocities and the inertial altitude, in feet.* Beside a flight, the app's summary file
 //!   states "Max velocity" in "feet/sec" and "Inertial navigation max alt" in "feet". Of the 32
@@ -99,9 +99,9 @@
 //!
 //! Seven flags mark a moment and become an [`Event`], named as the column, at each row where the
 //! flag goes from 0 to 1: `Liftoff`, `Apogee`, `Burnout_Coast`, `Apo_fired`, `Main_fired`,
-//! `3rd_fired` and `4th_fired`. In the 45 low-rate files each rises once or twice (twice in a
-//! file holding two flights, or a stage's second burn), but for one file whose three output flags
-//! rise 15 times each, every 4 s. The others stay channels only: `Press_Increasing`,
+//! `3rd_fired` and `4th_fired`. As of 2026-10-12, in the 45 low-rate files among the project's
+//! sample logs, each rises at most 15 times in a file, and in most once or twice (twice in a file
+//! holding two flights, or a stage's second burn). The others stay channels only: `Press_Increasing`,
 //! `Normal_Ascent`, `Accel_Vel_LE_0`, `ECI_Vvel_le_0` and `Tilt Exceeded 90deg` state a condition
 //! that comes and goes (`ECI_Vvel_le_0` rises up to 34 times in a file), and the channel flags
 //! are a deployment logic's conditions, not what happened. A flag already 1 on the first row
@@ -110,20 +110,21 @@
 //!
 //! **Clocks.** `Flight_Time_(s)` is the clock: strictly increasing in every file read, from a
 //! negative time on the pad in all but one. A time that doesn't increase is refused, naming its
-//! line. The wall clock `Time` is a channel only: in 5 of the high-rate files it holds one value
-//! for several rows at a time, and in 4 of the low-rate files it steps back: hundreds of times in
-//! two, by up to 3 minutes; 16 times in one, by up to about 14.5 hours; once in one, by about
-//! 20 s. It is kept as written, and a note says when it goes back. `Sync` steps by 2 a row in the high-rate files and
-//! by 20 in the low-rate ones (40 in one, logged every 0.04 s), in milliseconds, wrapping at 250.
+//! line. The wall clock `Time` is a channel only: as of 2026-10-12, among the sample logs, it
+//! holds one value for several rows at a time in 5 of the high-rate files, and steps back in 4 of
+//! the low-rate files, from once to hundreds of times, by up to about 14.5 hours. It is kept as
+//! written, and a note says when it goes back. `Sync` steps by 2 a row in the high-rate files and
+//! by 20 in the low-rate ones (40 where the file is logged every 0.04 s), in milliseconds, wrapping
+//! at 250.
 //!
 //! **The primary track.** For a low-rate file, [`FlightLog::time_s`] is `Flight_Time_(s)` and
 //! [`FlightLog::altitude_m`] is `Baro_Altitude_AGL_(feet)`, the barometer's altitude above the
 //! pad; the temperature and battery are `Temperature_(F)` and `Batt_Volts`. The vertical speed is
 //! `None`: `Velocity_Up` is the inertial solution's, which "lose\[s\] track of which way is up"
 //! when the rocket turns faster than the gyros measure (p23), not the barometer's, so it is a
-//! channel only. In 10 of the 45 low-rate files `Inertial_Altitude` steps by more than 32,768 ft
-//! between two rows, as a 16-bit count of feet does when it wraps; it is kept as written, with a
-//! note. A high-rate file holds no altitude: it is read with an empty primary track and every
+//! channel only. As of 2026-10-12, in 10 of the 45 low-rate files `Inertial_Altitude` steps by
+//! more than 32,768 ft between two rows, as a 16-bit count of feet does when it wraps; it is kept
+//! as written, with a note. A high-rate file holds no altitude: it is read with an empty primary track and every
 //! column as a channel, with a note that the low-rate file of the same flight holds the altitude.
 //!
 //! **Cells and rows.** A cell that is empty, or isn't a number (or a time of day, or hexadecimal

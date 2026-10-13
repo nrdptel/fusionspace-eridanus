@@ -16,7 +16,7 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > files allow. Where a header names no unit, the reader decides it from the file and says how in
 > a note ([units the file decides](#units-the-file-decides)); the few units no source states are
 > named [below](#units-no-source-states). Other layouts are refused, not guessed at; they come
-> with [M7.1c](../decisions-and-roadmap.md#m7-1c).
+> with [M7.1c](../decisions-and-roadmap.md#m7-1c), the other loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -54,11 +54,14 @@ decided.
 | AltOS CSV | Altus Metrum's TeleMetrum, TeleMega, EasyMega, EasyMini, through AltosUI (Altus Metrum's ground software) | `#version,serial,flight,`, or `#` comment lines and then that header or `version,serial,flight,` | `hpr_flightdata::altos` |
 | Raven FIP CSV | Featherweight Raven, through the Featherweight Interface Program | opens with a time column and holds the Raven's `Axial Accel (Gs)` channel | `hpr_flightdata::raven` |
 | Blue Raven CSV | Featherweight Blue Raven, through its phone app: a low-rate file (barometer, inertial figures, flags) and a high-rate file (gyroscopes, accelerometers, attitude) | `Year,Month,Day,Time,Flight_Time_(s),Sync,` | `hpr_flightdata::blueraven` |
-| RRC3 CSV | Missile Works RRC3, through Missile Works' mDACS software | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages`, perhaps with units in brackets | `hpr_flightdata::rrc3` |
+| RRC3 CSV | Missile Works RRC3, through mDACS, Missile Works' program that downloads its flights | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages`, perhaps with units in brackets | `hpr_flightdata::rrc3` |
 | Eggtimer CSV | Eggtimer Classic, TRS, Quantum and Proton, through Eggtimer's download | `T,Alt,` and more of Eggtimer's column names | `hpr_flightdata::eggtimer` |
 
-A Blue Raven's high-rate file holds no altitude, so its record's primary track is empty and its
-channels hold everything; the low-rate file of the same flight holds the altitude. The other
+The Blue Raven app writes each flight as a low-rate file, logged 50 times a second, and a
+high-rate file, 500 times a second; each is read on its own, as a record of its own, not joined
+to the other. The high-rate file holds no altitude, so its record's
+[primary track](#the-record) is empty and its channels hold everything; the low-rate file of the
+same flight holds the altitude. The app's summary and events files beside them aren't read yet. The other
 layouts in the sample logs, among them PerfectFlite's older `.pfa`, AltOS's binary `.eeprom`, the
 RRC3's binary `.rff`, the Raven's `.fipa`, Featherweight's GPS tracker and spreadsheets, are
 refused today, most as *unrecognized*; the [survey's report](#how-it-was-checked) counts them by
@@ -122,31 +125,45 @@ Most units come from the file's own column names or from the maker's manual. A f
 
 ### Units the file decides
 
-Three layouts leave some units out of their headers, and the reader works each out from the file
-itself, writing a note that gives the decision and this file's evidence. The
-[survey's report](#how-it-was-checked) counts the decisions over the sample logs:
+Three layouts leave some units out of their headers. For some, the reader works the unit out from
+the file as it reads it; for the rest, it takes the unit the maker's manual gives and checks the
+file against it. Either way it writes a note giving the decision and this file's evidence, and
+the [survey's report](#how-it-was-checked) counts the decisions over the sample logs:
 
-- **An RRC3's altitude and speed.** Missile Works' mDACS writes the altitude, speed and
-  temperature each in the unit chosen in its preferences, and the header says none of them unless
-  the units are in brackets. The pressure settles the altitude: the climb the pressure implies in
-  the standard atmosphere is set against the altitude column's climb read in feet and in meters,
-  3.28 times apart, and the unit within 25% of it is taken. The speed is then set against the
-  altitude's rate of climb, and the nearest of feet per second, miles per hour, meters per second
-  and kilometers per hour within 3% is taken; if none is, the column is kept as written, with a
-  note. Of the 50 RRC3 exports among the sample logs, 46 are read in feet from the pressure and 4
-  state feet; 38 have speeds in feet per second and 8 in miles per hour.
-- **An Eggtimer's clock and heights.** The Classic and TRS write their time in milliseconds, the
-  Quantum and Proton in seconds, under the same `T`. The reader takes milliseconds when the
-  median step is above 5: the manuals' rates, 1 to 33 samples a second, put a step between 0.03
-  and 1 in seconds and between 30 and 1,000 in milliseconds. Heights are read in feet, as the
-  Classic and TRS manuals state; the Quantum and Proton manuals set every height in feet, and no
-  Eggtimer manual offers meters. Of the 43 Eggtimer files, 3 are read in milliseconds and 40 in
-  seconds.
-- **A Blue Raven's speeds, inertial positions, rates of turn and accelerations.** The manual
-  gives their units for the logger's USB download: feet per second, feet, degrees per second and
-  g (*Blue Raven User's Guide*, 2026-05-12, p23). The app's own files agree: its summary of a
-  flight states the top speed in feet per second and the inertial altitude in feet, and its
-  accelerometers read 1 g at rest on the pad.
+- **An RRC3's altitude, speed and clock, worked out from the file.** Missile Works' mDACS (the
+  program that downloads an RRC3's flights to a computer) writes the altitude, speed and
+  temperature each in the unit chosen in its preferences, and the header names none of them
+  unless the units are in brackets. The pressure settles the altitude: the climb the pressure
+  implies in the standard atmosphere is set against the altitude column's climb read in feet and
+  in meters, 3.28 times apart, and the unit within 25% of it is taken. The speed is set against
+  the altitude's rate of climb, allowing for the speed to lag behind it: of feet per second,
+  miles per hour, meters per second and kilometers per hour, the one two measures agree on within
+  3% is taken. Where they don't, or the record stops before the rocket is halfway down, the column
+  is kept as written, with a note. The time is in seconds where its step is the RRC3's 20 samples
+  a second. Of the 50 RRC3 exports among the sample logs, 46 are read in feet from the pressure
+  and 4 state feet; 36 have speeds in feet per second and 8 in miles per hour, 4 state feet per
+  second, and 2, whose records stop early, keep their speeds as written.
+- **An Eggtimer's clock, worked out from the file.** The Classic and TRS write their time in
+  milliseconds, the Quantum and Proton in seconds, under the same `T`. The reader takes
+  milliseconds when the median step is above 5: the manuals' rates, 1 to 33 samples a second, put
+  a step between 0.03 and 1 in seconds and between 30 and 1,000 in milliseconds. Of the 43
+  Eggtimer files, 3 are read in milliseconds and 40 in seconds.
+- **An Eggtimer's heights and speeds, from the manuals.** The Classic and TRS manuals state feet
+  and feet per second. The Quantum and Proton manuals state no unit for the download, but give
+  every height in feet, and no Eggtimer manual offers meters; the heights are read in feet for
+  every model. A speed is read in feet per second only where it matches the altitude's change
+  over the step on at least 90% of rows (on the sample logs, 95.9% or more); otherwise it is kept
+  as written.
+- **A Blue Raven's speeds, inertial positions, rates of turn and accelerations, from the
+  manual.** The manual gives their units for the logger's USB download: feet per second, feet,
+  degrees per second and g (*Blue Raven User's Guide*, 2026-05-12, p23). The app's own files
+  agree: its summary of a flight states the top speed in feet per second and the inertial
+  altitude in feet, and its accelerometers read 1 g at rest on the pad. A file that disagreed
+  would still be read in these units; its note would show the disagreement.
+
+A unit read in the wrong one of feet and meters would put every height 3.28 times too high or too
+low, so the RRC3's is never assumed where its pressure can settle it, and the Eggtimer's rests on
+the manuals.
 
 ### A worked example
 

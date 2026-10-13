@@ -644,7 +644,8 @@ fn markdown(report: &Report) -> String {
         ratio(units.climb_over_fall_others_in_meters)
     );
     if !report.unit_decisions.is_empty() {
-        out += "\nUnits no header states, as each file's reader decided them and noted:\n\n\
+        out += "\nUnits no header states, as each file's reader decided them, or kept the column \
+                as written, and noted:\n\n\
                 | Family | Decision | Files |\n|---|---|---:|\n";
         for (family, decisions) in &report.unit_decisions {
             for (decision, count) in decisions {
@@ -660,11 +661,14 @@ fn markdown(report: &Report) -> String {
 }
 
 /// A record's note on a unit no header states, cut to its decision: the text before the first
-/// `: ` of a note that opens with a column's name in backticks and says how it was `read in`, as
-/// the readers write them, such as `` `Velocity` read in miles per hour, from the altitude``.
+/// `: ` of a note that opens with a column's name in backticks and says how it was `read in`, or
+/// that it was `kept as written`, as the readers write them, such as `` `Velocity` read in miles
+/// per hour, from the altitude``.
 fn unit_decision(note: &str) -> Option<&str> {
     let (decision, _) = note.split_once(": ")?;
-    (decision.starts_with('`') && decision.contains("` read in ")).then_some(decision)
+    (decision.starts_with('`')
+        && (decision.contains("` read in ") || decision.contains("` kept as written")))
+    .then_some(decision)
 }
 
 /// The records of a CSV text, quotes and doubled quotes honored.
@@ -777,9 +781,14 @@ mod tests {
             unit_decision(listed),
             Some("`Gyro_X` and `Gyro_Y` read in degrees per second, from the manual")
         );
+        let kept = "`Current` kept as written, in a unit no source states: 2 rows";
+        assert_eq!(
+            unit_decision(kept),
+            Some("`Current` kept as written, in a unit no source states")
+        );
         for other in [
             "the column \"x\" isn't one this reader knows: kept",
-            "`Current` kept as written, in a unit no source states: 2 rows",
+            "`AccelG` has gravity taken out, from the pad: 0.1 g",
             "`Velocity` read in feet per second",
         ] {
             assert_eq!(unit_decision(other), None, "{other}");
