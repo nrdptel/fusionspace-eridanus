@@ -7,9 +7,9 @@
 //!
 //! ```text
 //! #Component=Raven
-//! #DateTime=4/15/2017 2:38:06 PM
-//! #FlightNum=2
-//! #FlightState=#2  O  88  1882  …      (tab-separated: the settings block's 32 words)
+//! #DateTime=1/2/2020 3:04:05 PM         (invented values throughout)
+//! #FlightNum=7
+//! #FlightState=#7  O  5  1000  …        (tab-separated: the settings block's words)
 //! #BinaryFormat 1.0
 //! #R 3.0                                (the firmware's version)
 //! #Num 25
@@ -33,8 +33,10 @@
 //! | `S` | the `k`th slow channel | `4k + 3` |
 //!
 //! so the axial accelerometer runs at 400 Hz, the lateral at 200 Hz and the slow channels at 20
-//! Hz, the rates Featherweight's manual gives (*Raven User's Manual, updated for the Raven4*,
-//! 2020-08-15). Time zero is the first sample before the launch, as in the FIP's export.
+//! Hz, as the blocks lay them out and as the FIP's export times them; Featherweight's manual says
+//! the Raven records the data its deployment logic uses at 20 Hz (*Raven User's Manual, updated
+//! for the Raven4*, 2020-08-15). Time zero is the first sample before the launch, as in the FIP's
+//! export.
 //!
 //! **Values.** Each into the FIP's export's column, by the export's own arithmetic, then SI as
 //! [`crate::raven`] reads that column:
@@ -46,15 +48,15 @@
 //! | `Current Draw (A)` | slow 0, signed, / 1000 | A |
 //! | `Volts Pyro Apogee (V)`, `… Main`, `… 3rd`, `… 4th` | slow 1 to 4, signed, / 1000 | V |
 //! | `Volts Battery (V)` | slow 6, signed, / 1000 | V |
-//! | `Temperature (F)` | slow 7, signed, / 100 | °F |
+//! | `Temperature (F)` | slow 7, signed (no sample file holds a negative one to show it), / 100 | °F |
 //! | `Baro (Atm)` | slow 8, unsigned, / 25,000 | atm |
 //! | `Velocity (Accel-Ft/Sec)` | slow 9, signed, / 10 | ft/s |
 //!
 //! `trunc` rounds toward zero, and `X1 / 1000` is worked in double precision, as the FIP does:
 //! exact integers differ from its export by a hundredth of a g where the product is a whole number
-//! that double precision leaves just under it, as on the 11 sample files whose gain is ±8,040.
-//! `X1`, `Z1`, `F3`, `X2` and `Z2` are the settings block's: word 0 the
-//! axial offset `F3`, words 23–24 the signed 32-bit axial gain `X1`, word 25 the axial zero `Z1`,
+//! that double precision leaves just under it, as on 11 of the sample files ([ADR-259][adr-259]).
+//! `X1`, `Z1`, `F3`, `X2` and `Z2` are the settings block's: word 0 the axial offset `F3` (read
+//! signed, though no sample file's is negative), words 23–24 the signed 32-bit axial gain `X1`, word 25 the axial zero `Z1`,
 //! words 26–27 the lateral gain `X2`, word 28 the lateral zero `Z2`. A header whose `#Axis` is 1
 //! (a single-axis accelerometer; 2 otherwise) keeps the lateral bits as written, as `lateral
 //! counts`, since the Raven calibrates no lateral axis. Slow channel 5, which the FIP
@@ -72,15 +74,18 @@
 //!
 //! **Checked against the FIP.** The layout and the arithmetic were worked out from raw files and the
 //! FIP's exports of the same flights; wherever the project's sample logs hold both, `cargo xtask
-//! logs` compares every sample of every channel the export holds with the raw file's.
+//! logs` compares every sample of every channel the export holds with the raw file's: 55 of the 57
+//! sample files have an export beside them, and all 55 match it.
 //!
 //! **Refused**, naming the byte: a header without its `#Num` and `#den` ticks, or a
 //! `#BinaryFormat` other than 1.0; a frame whose checksum fails; anything after the frames but
-//! `#DONE` and a line end; a settings block other than `#FlightState`'s words; an `#Axis` other
+//! `#DONE` and a line end; a settings block other than `#FlightState`'s words, or a
+//! `#FlightState` listing none; an `#Axis` other
 //! than 1 or 2; fewer than the five
 //! blocks before the launch and the settings block; and a used block after an unused one.
 //!
 //! [M7.2]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2
+//! [adr-259]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0259-raw-downloads-against-their-makers-exports-first.md
 
 use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
 
@@ -217,7 +222,7 @@ impl Calibration {
 /// double precision, as the FIP's export works it. Exact integer arithmetic, `trunc(gain × counts /
 /// 1000)`, differs from the export by a hundredth of a g where the product is a whole number that
 /// rounding in double precision leaves just under it: on 11 of the 55 sample files with the
-/// FIP's export beside them, those whose gain is ±8,040. Both operands are below 2³², so the
+/// FIP's export beside them (ADR-259). Both operands are below 2³², so the
 /// conversions are exact.
 fn scaled(gain: i64, counts: i64) -> i64 {
     ((gain as f64 / 1000.0) * counts as f64).trunc() as i64
@@ -331,12 +336,15 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
     let settings = blocks[SETTINGS];
     if let Some(state) = field("FlightState") {
         let listed: Vec<&str> = state.split('\t').skip(2).collect();
-        let agrees = listed.len() <= WORDS
+        // Each listed word as the settings block holds it, signed or not: a value outside 16 bits
+        // is no word of it.
+        let agrees = !listed.is_empty()
+            && listed.len() <= WORDS
             && listed.iter().zip(settings).all(|(listed, word)| {
-                listed
-                    .trim()
-                    .parse::<i64>()
-                    .is_ok_and(|value| value as u16 == word)
+                listed.trim().parse::<i64>().is_ok_and(|value| {
+                    (i64::from(i16::MIN)..=i64::from(u16::MAX)).contains(&value)
+                        && value as u16 == word
+                })
             });
         if !agrees {
             return Err(binary(

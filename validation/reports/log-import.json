@@ -568,7 +568,8 @@
       "files": 57,
       "with_an_export_beside": 55,
       "matching_an_export": 55,
-      "samples_compared": 6877752,
+      "raw_samples_compared": 6016104,
+      "velocity_samples_after_the_export_stops": 140865,
       "worst_time_s": 0.0005000000000165983,
       "worst_value_steps": 0.000010000000000961644,
       "export_only": {
@@ -586,8 +587,9 @@
       "files": 6,
       "with_an_export_beside": 1,
       "matching_an_export": 1,
-      "samples_compared": 3541,
-      "worst_time_s": 0.0,
+      "raw_samples_compared": 3541,
+      "velocity_samples_after_the_export_stops": 0,
+      "worst_time_s": 0.010000000000019327,
       "worst_value_steps": 7.275957614183426e-13,
       "export_only": {
         "Altitude": 1,

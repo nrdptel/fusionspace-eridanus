@@ -8,14 +8,14 @@ use hpr_flightdata::error::LogError;
 use hpr_flightdata::import;
 use hpr_flightdata::log::{Channel, FlightLog, LogFormat, Quantity};
 
-/// The invented calibration: axial offset 0.05 g, ground 1,000 ft, axial gain 8,040 (thousandths
+/// The invented calibration: axial offset 0.05 g, ground 1,000 ft, axial gain 8,200 (thousandths
 /// of a hundredth of a g a count) about 1,000 counts, lateral gain 2,000 about 512 counts.
 fn settings() -> [u16; 32] {
     let mut words = [0u16; 32];
     words[0] = 5;
     words[1] = 1000;
     words[23] = 0;
-    words[24] = 8040;
+    words[24] = 8200;
     words[25] = 1000;
     words[26] = 0;
     words[27] = 2000;
@@ -132,16 +132,16 @@ fn a_flight_reads_every_channel_on_its_own_clock() {
     assert_eq!(axial.time_s[..2], [0.0, 2.0 * TICK_S]);
     // After the settings block, one tick later: the sixth data block starts at tick 200 + 1.
     assert_eq!(axial.time_s[100], 201.0 * TICK_S);
-    // 1,025 counts: 8.04 × 25 is 200.999… in double precision, so trunc gives 200, + 5: 2.05 g
-    // (exact integers would give 2.06); 1,000 counts: 0 + 5, 0.05 g.
-    assert_eq!(axial.values[0], 2.05 * STANDARD_GRAVITY_MPS2);
+    // 1,025 counts: 8.2 × 25 is 204.999… in double precision, so trunc gives 204, + 5: 2.09 g
+    // (exact integers would give 2.10); 1,000 counts: 0 + 5, 0.05 g.
+    assert_eq!(axial.values[0], 2.09 * STANDARD_GRAVITY_MPS2);
     assert_eq!(axial.values[1], 0.05 * STANDARD_GRAVITY_MPS2);
-    // 1,100 counts: 8.04 × 100 is 803.999… in double precision, so trunc gives 803, + 5: 8.08
-    // g, where exact integers would give 8.09; 1,025: 2.05 g.
-    assert_eq!(axial.values[100], 8.08 * STANDARD_GRAVITY_MPS2);
-    assert_eq!(axial.values[101], 2.05 * STANDARD_GRAVITY_MPS2);
-    // 900 counts: trunc(8.04 × −100) = −803, toward zero, + 5: −7.98 g.
-    assert_eq!(axial.values[120], -7.98 * STANDARD_GRAVITY_MPS2);
+    // 1,100 counts: 8.2 × 100 is 819.999… in double precision, so trunc gives 819, + 5: 8.24 g,
+    // where exact integers would give 8.25; 1,025: 2.09 g.
+    assert_eq!(axial.values[100], 8.24 * STANDARD_GRAVITY_MPS2);
+    assert_eq!(axial.values[101], 2.09 * STANDARD_GRAVITY_MPS2);
+    // 900 counts: trunc(8.2 × −100) = −819, toward zero, + 5: −8.14 g.
+    assert_eq!(axial.values[120], -8.14 * STANDARD_GRAVITY_MPS2);
 
     let lateral = channel(&log, "Lateral Accel (Gs)");
     assert_eq!(lateral.values.len(), 8 * 10);
@@ -272,6 +272,41 @@ fn a_settings_block_other_than_the_headers_is_refused() {
     blocks.push(pad);
     let (_, message) = refused_at(&file(&header(&settings, "2"), &blocks));
     assert!(message.contains("#FlightState"), "{message}");
+}
+
+#[test]
+fn a_flight_state_listing_no_word_or_one_past_16_bits_is_refused() {
+    let settings = settings();
+    let pad = block((1025, 1000), 612, slow(0), [0, 0]);
+    let mut blocks = vec![pad; 5];
+    blocks.push(settings);
+    blocks.push(pad);
+    let listed: Vec<String> = settings[..29].iter().map(|w| w.to_string()).collect();
+    let good = header(&settings, "2");
+    let empty = good.replace(&listed.join("\t"), "");
+    let (_, message) = refused_at(&file(&empty, &blocks));
+    assert!(message.contains("#FlightState"), "{message}");
+    // 65,536 more than word 1 is the same word in 16 bits, but no word of the block.
+    let mut wide = listed.clone();
+    wide[1] = (u32::from(settings[1]) + 65_536).to_string();
+    let wide = good.replace(&listed.join("\t"), &wide.join("\t"));
+    let (_, message) = refused_at(&file(&wide, &blocks));
+    assert!(message.contains("#FlightState"), "{message}");
+}
+
+#[test]
+fn a_temperature_below_zero_fahrenheit_reads_signed() {
+    let settings = settings();
+    let mut cold = slow(0);
+    cold[7] = (-1050i16) as u16;
+    let pad = block((1025, 1000), 612, cold, [0, 0]);
+    let mut blocks = vec![pad; 5];
+    blocks.push(settings);
+    blocks.push(pad);
+    let log = import::read(&file(&header(&settings, "2"), &blocks)).unwrap();
+    // −10.50 °F.
+    let temperature = channel(&log, "Temperature (F)");
+    assert_eq!(temperature.values[0], (-10.5 - 32.0) * 5.0 / 9.0 + 273.15);
 }
 
 #[test]

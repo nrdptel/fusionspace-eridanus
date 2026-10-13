@@ -714,10 +714,17 @@ Raven's `.FIPa` and Missile Works' RRC3 `.rff`. Each holds the sensors' readings
 *counts*, which the reader turns into SI by the maker's own arithmetic. Neither holds an altitude.
 
 > **How far to trust it.** The logger's own readings, decoded from layouts no maker publishes, and
-> checked sample by sample against the makers' exports of the same flights: in all 56 files with
-> an export beside them, every sample of every channel the two share agrees, 6,881,293 samples,
-> with no value off by a step of the raw format. The 7 files with no export beside them are
-> decoded by the same rules, unchecked by an export. Where a number matters, set it beside the
+> checked sample by sample against the makers' exports of the same flights.
+>
+> - **Raven `.FIPa`:** 55 of the 57 sample files have the FIP's export beside them, and in all 55
+>   every sample of every channel the two share agrees, 6,016,104 raw samples, with no value off
+>   by a step. The other 2 are decoded by the same rules, unchecked by an export.
+> - **RRC3 `.rff`:** 1 of the 6 has mDACS's export beside it, and its 3,541 pressures agree, each
+>   to the step. The pairs and single words have no calibration to check; the other 5 files are
+>   decoded by the same rules, unchecked by an export.
+>
+> Not compared: the exports' altitudes, flags and the velocities they work out, which are their
+> programs' conversions, not the altimeter's words. Where a number matters, set it beside the
 > maker's program's export of the same flight.
 
 ### The Raven's `.FIPa`
@@ -732,10 +739,12 @@ turns among the channels:
 - the lateral accelerometer, 10 bits, 200 times a second;
 - ten slow channels, a word each, 20 times a second: the current draw, the four pyro channels'
   voltages, the battery's voltage, the temperature, the pressure, the speed the Raven integrates
-  from its accelerometer, and one, slow channel 5, that the FIP doesn't export.
+  from its accelerometer, and the sixth, which the FIP doesn't export (the reader names it
+  `slow channel 5`, counting from zero).
 
-These are the rates Featherweight's manual gives (*Raven User's Manual, updated for the Raven4*,
-2020-08-15). The first five blocks are the quarter second before the Raven detected the launch,
+The rates follow from the blocks' layout, and the FIP's export times its rows by them;
+Featherweight's manual says the Raven records the data its deployment logic uses at 20 Hz
+(*Raven User's Manual, updated for the Raven4*, 2020-08-15). The first five blocks are the quarter second before the Raven detected the launch,
 and the sixth is the settings block, which holds the accelerometers' calibration and the ground's
 elevation. Time zero is the first sample before the launch, as in the FIP's export.
 
@@ -743,18 +752,18 @@ Each word becomes the value the FIP's export prints, by the export's own arithme
 as the [Raven FIP CSV](#the-layouts-read) reader reads that column. The pressure word counts
 1/25,000 of an atmosphere, the voltages thousandths of a volt, the temperature hundredths of a
 degree Fahrenheit, and the speed tenths of a foot per second. Kept as written, as *unrecognized*:
-slow channel 5, the two words after each block's samples, and, on a Raven whose header says its
+the sixth slow channel, the two words after each block's samples, and, on a Raven whose header says its
 accelerometer has one axis (one sample file), the lateral bits, as `lateral counts`, since that
 Raven calibrates no lateral axis. A frame whose checksum fails is refused, naming its byte.
 
 **A worked example**, with invented numbers, which the crate's test `tests/raven_fipa.rs` reads
 and checks. The axial accelerometer reads in g as (trunc(X1 × (a − Z1) / 1000) + F3) / 100, where
 `a` is the count; the settings block gives the gain X1, the zero Z1, and the offset F3 in
-hundredths of a g; trunc drops the fraction. Take a gain of 8,040, a zero of 1,000 counts and an
+hundredths of a g; trunc drops the fraction. Take a gain of 8,200, a zero of 1,000 counts and an
 offset of 5 hundredths. A count of 1,025 is 25 above the zero. The FIP works X1 / 1000 in
-double-precision floating point, where 8.04 is stored a hair below 8.04, so 8.04 × 25 comes to
-200.999… and truncates to 200. Adding the offset gives 205 hundredths: 2.05 g, or 20.10 m/s².
-Exact whole-number arithmetic would give 201 and 2.06 g. The reader works as the FIP does.
+double-precision floating point, where 8.2 is stored a hair below 8.2, so 8.2 × 25 comes to
+204.999… and truncates to 204. Adding the offset gives 209 hundredths: 2.09 g, or 20.50 m/s².
+Exact whole-number arithmetic would give 205 and 2.10 g. The reader works as the FIP does.
 
 ### The RRC3's `.rff`
 
@@ -764,12 +773,14 @@ came off the board. The list has no columns and no times, so the reader tells th
 their size, as Debrief, the project owner's earlier analyzer, does:
 
 - **A word below `0x4000` (16,384) is a pressure**, in tenths of a millibar. `0x2710`, 10,000, is
-  1,000.0 mbar, or 100,000 Pa. `0x4000` would be 1,638.4 mbar, half again the highest pressure
-  measured at sea level, so no reading reaches it.
+  1,000.0 mbar, or 100,000 Pa. `0x4000` would be 1,638.4 mbar, above the 1,200 mbar at which the
+  RRC3 itself reports a pressure sensor fault (its manual, p. 9), so no reading reaches it.
 - **A word at or above `0x4000` is an auxiliary word.** Most come in pairs once a second,
   presumably the temperature and battery voltage the RRC3 records once a second, in counts. A few
-  stand alone (three in each sample file), and what they mean isn't known. The file holds no
-  calibration for either, so both are kept as written, as *unrecognized*, in channels of their own.
+  stand alone (three in each sample file: one near apogee, one later, and a last `0xFFFF`); the
+  first two fall where the manual's low-voltage samples, taken as the drogue and the main fire,
+  would, but that is a guess. The file holds no calibration for either, so both are kept as
+  written, as *unrecognized*, in channels of their own.
 - **A zero word ends the log.** The words before the first one that can be a launch pad's
   pressure, at least 500 mbar, among the first eight, are kept in a note.
 
@@ -793,19 +804,26 @@ A raw download and its maker's export of the same flight are two readings of the
 one checks the other sample by sample. `cargo xtask logs` pairs each raw file with every export
 in its folder that the export's own reader reads. It counts a match when every sample of every
 channel the two share agrees: the value within half a step of the raw format's resolution, and
-the time within what the export prints (six significant figures in the FIP's newer exports).
+the time as the export prints it. Every raw sample counts once. The FIP's export prints a row
+every tick of the Raven's clock and holds each channel's latest sample in it, so every raw sample
+must show at a row of its own time, none skipped. Only the velocity may stop before the raw
+file's last sample, as the FIP stops it at apogee; its samples after the stop are counted apart.
 `cargo xtask logs --check` fails on a raw file with an export beside it that matches none. The
 [survey's report](#how-it-was-checked) prints the counts, in its section on the raw downloads:
 
-| Layout | Files | With an export beside | Matching | Samples compared | Worst value, steps | Worst time, s |
-|---|---:|---:|---:|---:|---:|---:|
-| Raven `.FIPa` | 57 | 55 | 55 | 6,877,752 | 0 | 0.0005 |
-| RRC3 `.rff` | 6 | 1 | 1 | 3,541 | 0 | 0 |
+| Layout | Files | With an export beside | Matching | Raw samples compared | Velocity after the stop | Worst value, steps | Worst time, s |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Raven `.FIPa` | 57 | 55 | 55 | 6,016,104 | 140,865 | 0 | 0.0005 |
+| RRC3 `.rff` | 6 | 1 | 1 | 3,541 | 0 | 0 | 0.01 |
 
-The worst time, 0.0005 s, is within what the export's six figures print. Every value matches only
-with the FIP's own arithmetic: with exact whole-number arithmetic for the accelerometer's gain,
-the 11 files whose gain is ±8,040 differ from their exports by a hundredth of a g, as in the
-worked example above, and 44 of the 55 would match. The one RRC3 export is mDACS's, in UTF-16
+The worst times are the exports' own rounding. The FIP's newer exports print a time to six
+significant figures, 0.0005 s at most here. mDACS keeps its clock as 0.05 s added up row by row in
+single precision, which runs a hundredth of a second ahead of the RRC3's 20 Hz from 156.65 s;
+worked that way, the survey reproduces all 3,541 of its export's times exactly. Every value
+matches only with the FIP's own arithmetic: with exact whole-number arithmetic for the
+accelerometer's gain, 11 files differ from their exports by a hundredth of a g, as in the worked
+example above, and 44 of the 55 would match ([ADR-259](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0259-raw-downloads-against-their-makers-exports-first.md),
+a decision record, gives the probes). The one RRC3 export is mDACS's, in UTF-16
 with a UTF-8 byte-order mark written a second time inside it; the importer's text decoding now
 drops that mark, so the export reads as [RRC3 CSV](#the-layouts-read).
 

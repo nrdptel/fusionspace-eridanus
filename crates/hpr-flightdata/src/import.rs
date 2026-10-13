@@ -388,6 +388,14 @@ mod tests {
         assert_eq!(decode(&le), format!("{text}\u{fffd}"));
         assert_eq!(decode(&[0xff, 0xfe, 0x3d, 0xd8]), "\u{fffd}");
         assert_eq!(decode(b"\xef\xbb\xbfa\xff"), "a\u{fffd}");
+
+        // A UTF-8 mark's three bytes written as UTF-16 units after the UTF-16 mark are dropped,
+        // once, and only at the start.
+        let mut inner = vec![0xff, 0xfe];
+        for unit in "\u{ef}\u{bb}\u{bf}Time\u{ef}\u{bb}\u{bf}".encode_utf16() {
+            inner.extend(unit.to_le_bytes());
+        }
+        assert_eq!(decode(&inner), "Time\u{ef}\u{bb}\u{bf}");
     }
 
     #[test]

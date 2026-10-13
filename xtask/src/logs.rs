@@ -395,7 +395,9 @@ impl PfaChecks {
 
 /// A raw download's family against its maker's exports: of its files, how many have an export
 /// beside them, in the same folder, that their reader reads, and how many of those match one of
-/// them in every sample of every channel the two share; how many samples were compared, and the
+/// them in every sample of every channel the two share; how many of the raw files' samples were
+/// compared, each once however many of the export's rows show it, and how many of the
+/// accelerometer's velocity samples come after the export stops that channel, not compared; the
 /// worst difference in time, s, and in value, in steps of the raw format's resolution, over the
 /// matching pairs; the export's channels the raw file doesn't hold, such as the export's own
 /// conversions, by name with the number of pairs; and the files with an export beside them that
@@ -405,7 +407,8 @@ struct RawChecks {
     files: usize,
     with_an_export_beside: usize,
     matching_an_export: usize,
-    samples_compared: usize,
+    raw_samples_compared: usize,
+    velocity_samples_after_the_export_stops: usize,
     worst_time_s: f64,
     worst_value_steps: f64,
     export_only: BTreeMap<String, usize>,
@@ -429,6 +432,32 @@ fn times_agree(export: f64, raw: f64) -> bool {
         0.5 * 10f64.powf(raw.abs().log10().floor() - 5.0)
     };
     (export - raw).abs() <= printed.max(1e-6) + raw.abs() * 2f64.powi(-24)
+}
+
+/// mDACS's clock for an export's first `rows` rows, in hundredths of a second as it prints them:
+/// 0.05 s summed row by row in single precision, written to seven significant figures, then
+/// rounded half up to two decimals. Its sum drifts from `n / 20` and, by 156.65 s, the printed
+/// time runs a hundredth ahead: all 3,541 times of the one mDACS export beside a raw file read
+/// so, where `n / 20` misses 408 of them.
+fn mdacs_clock(rows: usize) -> Vec<i64> {
+    let mut sum = 0.0f32;
+    let mut clock = Vec::with_capacity(rows);
+    for _ in 0..rows {
+        // Seven significant figures: digits `d.dddddd` and an exponent, the value `digits ×
+        // 10^(exponent − 6)`; in hundredths, `digits × 10^(exponent − 4)`, rounded half up.
+        let written = format!("{:.6e}", f64::from(sum));
+        let (mantissa, exponent) = written.split_once('e').unwrap_or((&written, "0"));
+        let digits: i64 = mantissa.replace('.', "").parse().unwrap_or(i64::MAX);
+        let exponent: i32 = exponent.parse().unwrap_or(0);
+        clock.push(if exponent >= 4 {
+            digits.saturating_mul(10i64.saturating_pow((exponent - 4).unsigned_abs()))
+        } else {
+            let divisor = 10i64.saturating_pow((4 - exponent).unsigned_abs());
+            (digits + divisor / 2) / divisor
+        });
+        sum += 0.05f32;
+    }
+    clock
 }
 
 /// The step of a raw format's channel, in SI: its word's resolution, from the readers' docs.
@@ -457,29 +486,59 @@ fn channel_key(column: &str) -> String {
     column.trim().to_ascii_lowercase()
 }
 
-/// How a raw record compares with an export's: `None` if a sample differs; otherwise the samples
-/// compared, the worst time and value differences, and the export's channels the raw lacks.
+/// What a raw record's comparison with an export found, where every sample compared agrees.
+#[derive(Debug, Default, PartialEq)]
+struct Compared {
+    raw_samples: usize,
+    velocity_after_the_stop: usize,
+    worst_time_s: f64,
+    worst_value_steps: f64,
+    export_only: Vec<String>,
+}
+
+impl Compared {
+    /// A sample's value against the raw one, within half a step; `false` if they differ.
+    fn value(&mut self, export: f64, raw: f64, step: f64) -> bool {
+        // A gap in the export is a gap in the raw file too, or a difference.
+        if export.is_nan() || raw.is_nan() {
+            return export.is_nan() && raw.is_nan();
+        }
+        let steps = (export - raw).abs() / step;
+        // A difference is no sample compared, so it doesn't count toward the worst.
+        let agrees = steps <= 0.5;
+        if agrees {
+            self.worst_value_steps = self.worst_value_steps.max(steps);
+        }
+        agrees
+    }
+
+    fn time(&mut self, export: f64, raw: f64) {
+        self.worst_time_s = self.worst_time_s.max((export - raw).abs());
+    }
+}
+
+/// How a raw record compares with an export's: `None` if a sample differs.
 ///
-/// An export whose channels each keep their own clock lists the raw channel's samples one for
-/// one, though it may stop a channel early, as the FIP does the accelerometer's velocity at
-/// apogee. An export with one clock for every channel, a row each tick, holds each channel's
-/// last sample until its next: each of its values must be the raw channel's latest sample at or
-/// before its time, or its first before that, and every raw sample within the export's span then
-/// shows at its own tick; such an export stops a channel early by holding its last value to the
-/// end.
+/// An export channel as long as the raw one lists its samples one for one, each at the raw
+/// sample's time as the export prints it (mDACS's by [`mdacs_clock`], the FIP's by
+/// [`times_agree`]). An export with one clock for every channel and more rows than the raw
+/// channel has samples, a row each tick, holds each sample until the next: each row's value must
+/// be the raw channel's latest sample at or before its time, or its first before that, and every
+/// raw sample must show at a row of its own time, none skipped. Only the accelerometer's velocity
+/// may stop early, as the FIP stops it at apogee, by ending the column or by holding its last
+/// value to the end; every other channel must run to the raw file's last sample.
 fn compare_raw(
     raw: &hpr_flightdata::log::FlightLog,
     export: &hpr_flightdata::log::FlightLog,
-) -> Option<(usize, f64, f64, Vec<String>)> {
-    // One clock needs two channels to share it: a single channel is compared one for one, the
-    // stricter rule.
+) -> Option<Compared> {
+    use hpr_flightdata::log::Quantity;
+    // One clock needs two channels to share it.
     let one_clock = export.channels.len() > 1
         && export
             .channels
             .windows(2)
             .all(|pair| pair[0].time_s == pair[1].time_s);
-    let (mut samples, mut worst_time, mut worst_steps) = (0, 0.0f64, 0.0f64);
-    let mut export_only = Vec::new();
+    let mut out = Compared::default();
     let mut compared_channels = 0;
     for channel in &export.channels {
         let key = channel_key(&channel.column);
@@ -488,53 +547,75 @@ fn compare_raw(
             .iter()
             .find(|own| channel_key(&own.column) == key && own.quantity == channel.quantity)
         else {
-            export_only.push(channel.column.clone());
+            out.export_only.push(channel.column.clone());
             continue;
         };
         let step = raw_step(raw.format, own.quantity)?;
-        if own.values.is_empty() || (!one_clock && channel.values.len() > own.values.len()) {
+        let may_stop = own.quantity == Quantity::Speed;
+        let (rows, samples) = (channel.values.len(), own.values.len());
+        let reached = if rows == samples || (rows < samples && may_stop && !one_clock) {
+            let clock = (raw.format == LogFormat::Rrc3Rff).then(|| mdacs_clock(rows));
+            for i in 0..rows {
+                let (time, raw_time) = (channel.time_s[i], own.time_s[i]);
+                let agrees = match &clock {
+                    Some(clock) => (time * 100.0).round() as i64 == clock[i],
+                    None => times_agree(time, raw_time),
+                };
+                out.time(time, raw_time);
+                if !agrees || !out.value(channel.values[i], own.values[i], step) {
+                    return None;
+                }
+            }
+            rows
+        } else if one_clock && rows > samples {
+            held(channel, own, may_stop, step, &mut out)?
+        } else {
             return None;
-        }
-        let mut j = 0;
-        for (i, (time, value)) in channel.time_s.iter().zip(&channel.values).enumerate() {
-            if one_clock {
-                while j + 1 < own.time_s.len()
-                    && (own.time_s[j + 1] <= *time || times_agree(*time, own.time_s[j + 1]))
-                {
-                    j += 1;
-                }
-            } else {
-                j = i;
-                if !times_agree(*time, own.time_s[j]) {
-                    return None;
-                }
-                worst_time = worst_time.max((time - own.time_s[j]).abs());
-            }
-            // A gap in the export is a gap in the raw file too, or a difference.
-            if value.is_nan() != own.values[j].is_nan() {
-                return None;
-            }
-            if !value.is_nan() {
-                let steps = (value - own.values[j]).abs() / step;
-                if steps > 0.5 {
-                    // A one-clock export stops a channel early by holding its last value to the
-                    // end: the rest isn't compared.
-                    let held = i > 0
-                        && channel.values[i..]
-                            .iter()
-                            .all(|later| later.to_bits() == channel.values[i - 1].to_bits());
-                    if one_clock && held {
-                        break;
-                    }
-                    return None;
-                }
-                worst_steps = worst_steps.max(steps);
-            }
-            samples += 1;
-        }
+        };
+        out.raw_samples += reached;
+        out.velocity_after_the_stop += samples - reached;
         compared_channels += 1;
     }
-    (compared_channels > 0).then_some((samples, worst_time, worst_steps, export_only))
+    (compared_channels > 0).then_some(out)
+}
+
+/// A one-clock export's channel against the raw one ([`compare_raw`]): the raw samples it reaches,
+/// or `None` if a value differs, a raw sample shows at no row of its own time, or the channel
+/// stops early where it may not.
+fn held(
+    channel: &hpr_flightdata::log::Channel,
+    own: &hpr_flightdata::log::Channel,
+    may_stop: bool,
+    step: f64,
+    out: &mut Compared,
+) -> Option<usize> {
+    let samples = own.values.len();
+    // The raw sample the row shows, and how many raw samples have shown at their own time.
+    let (mut j, mut timed) = (0, 0);
+    for (i, (&time, &value)) in channel.time_s.iter().zip(&channel.values).enumerate() {
+        let from = j;
+        while j + 1 < samples && (own.time_s[j + 1] <= time || times_agree(time, own.time_s[j + 1]))
+        {
+            j += 1;
+        }
+        if j > from + 1 || timed < j {
+            return None;
+        }
+        if timed == j && times_agree(time, own.time_s[j]) {
+            out.time(time, own.time_s[j]);
+            timed += 1;
+        }
+        if !out.value(value, own.values[j], step) {
+            // Stopped early: the export holds its previous value to the end.
+            let stopped = may_stop
+                && i > 0
+                && channel.values[i..]
+                    .iter()
+                    .all(|later| later.to_bits() == channel.values[i - 1].to_bits());
+            return stopped.then_some(j);
+        }
+    }
+    (timed == samples).then_some(samples)
 }
 
 /// [`RawChecks`] over the samples, each raw family's files against the exports in their folder.
@@ -559,12 +640,15 @@ fn raw_checks(samples: &[Sample]) -> BTreeMap<String, RawChecks> {
             }
             entry.with_an_export_beside += 1;
             match exports.iter().find_map(|export| compare_raw(&raw, export)) {
-                Some((compared, time, steps, only)) => {
+                Some(compared) => {
                     entry.matching_an_export += 1;
-                    entry.samples_compared += compared;
-                    entry.worst_time_s = entry.worst_time_s.max(time);
-                    entry.worst_value_steps = entry.worst_value_steps.max(steps);
-                    for column in only.into_iter().collect::<BTreeSet<_>>() {
+                    entry.raw_samples_compared += compared.raw_samples;
+                    entry.velocity_samples_after_the_export_stops +=
+                        compared.velocity_after_the_stop;
+                    entry.worst_time_s = entry.worst_time_s.max(compared.worst_time_s);
+                    entry.worst_value_steps =
+                        entry.worst_value_steps.max(compared.worst_value_steps);
+                    for column in compared.export_only.into_iter().collect::<BTreeSet<_>>() {
                         *entry.export_only.entry(column).or_default() += 1;
                     }
                 }
@@ -1106,13 +1190,17 @@ fn markdown(report: &Report) -> String {
     );
     if !report.raw_checks.is_empty() {
         out += "\nThe raw downloads against their makers' exports of the same flight, an export \
-                being one beside the raw file, in its folder, that its reader reads; a match \
-                agrees in every sample of every channel the two share, within half a step of the \
-                raw format's resolution and the export's printed time (six significant figures, or a \
-                microsecond):\n\n\
-                | Family | Files | With an export | Matching one | Samples compared | Worst \
-                time, s | Worst value, steps | Export only | Differing |\n\
-                |---|---:|---:|---:|---:|---:|---:|---|---|\n";
+                being one beside the raw file, in its folder, that its reader reads. A match agrees \
+                in every sample of every channel the two share: the value within half a step of \
+                the raw format's resolution, the time as the export prints it (the FIP's to six \
+                significant figures; mDACS's from its own clock, 0.05 s summed in single \
+                precision, which runs a hundredth of a second ahead of the RRC3's by 157 s). Each \
+                raw sample is counted once; only the accelerometer's velocity may stop early, as \
+                the FIP stops it at apogee, and its samples after the stop are counted apart:\n\n\
+                | Family | Files | With an export | Matching one | Raw samples compared | \
+                Velocity after the stop | Worst time, s | Worst value, steps | Export only | \
+                Differing |\n\
+                |---|---:|---:|---:|---:|---:|---:|---:|---|---|\n";
         for (family, checks) in &report.raw_checks {
             let only: Vec<String> = checks
                 .export_only
@@ -1120,11 +1208,12 @@ fn markdown(report: &Report) -> String {
                 .map(|(column, pairs)| format!("`{column}` ({pairs})"))
                 .collect();
             out += &format!(
-                "| {family} | {} | {} | {} | {} | {:.1e} | {:.3} | {} | {} |\n",
+                "| {family} | {} | {} | {} | {} | {} | {:.1e} | {:.3} | {} | {} |\n",
                 checks.files,
                 checks.with_an_export_beside,
                 checks.matching_an_export,
-                checks.samples_compared,
+                checks.raw_samples_compared,
+                checks.velocity_samples_after_the_export_stops,
                 checks.worst_time_s,
                 checks.worst_value_steps,
                 if only.is_empty() {
@@ -1267,81 +1356,169 @@ mod tests {
     }
 
     #[test]
+    fn mdacs_clock_sums_its_step_in_single_precision() {
+        let clock = mdacs_clock(3_200);
+        assert_eq!(&clock[..4], [0, 5, 10, 15]);
+        // n / 20 until the single-precision sum, written to seven figures, crosses a half.
+        assert_eq!(clock[1_000], 5_000);
+        assert_eq!(clock[3_133], 15_666);
+        assert!(clock.windows(2).all(|pair| pair[1] - pair[0] == 5
+            || pair[1] - pair[0] == 6
+            || pair[1] - pair[0] == 4));
+    }
+
+    /// An export of `format` beside a raw record: an acceleration channel and an altitude on a
+    /// clock of its own (so no one clock), its conversions named and not compared.
+    fn index_export(acceleration: &[f64], velocity: &[f64]) -> hpr_flightdata::log::FlightLog {
+        let times = [0.0, 0.0025, 0.005, 0.0075];
+        record(
+            "raven_fip_csv",
+            &[
+                (
+                    "Axial Accel (Gs)",
+                    "acceleration",
+                    &times[..acceleration.len()],
+                    acceleration,
+                ),
+                (
+                    "Velocity (Accel-Ft/Sec)",
+                    "speed",
+                    &times[..velocity.len()],
+                    velocity,
+                ),
+                (
+                    "[Altitude (Baro-Ft-AGL)]",
+                    "altitude_above_ground",
+                    &[0.0],
+                    &[1.0],
+                ),
+            ],
+        )
+    }
+
+    #[test]
     fn a_raw_record_matches_an_export_only_sample_for_sample() {
-        let g = 0.01 * 9.806_65;
+        let (g, v) = (0.01 * 9.806_65, 0.1 * 0.3048);
+        let times = [0.0, 0.0025, 0.005];
         let raw = record(
             "raven_fipa",
-            &[(
-                "Axial Accel (Gs)",
-                "acceleration",
-                &[0.0, 0.0025, 0.005],
-                &[g, 2.0 * g, 3.0 * g],
-            )],
+            &[
+                (
+                    "Axial Accel (Gs)",
+                    "acceleration",
+                    &times,
+                    &[g, 2.0 * g, 3.0 * g],
+                ),
+                (
+                    "Velocity (Accel-Ft/Sec)",
+                    "speed",
+                    &times,
+                    &[v, 2.0 * v, 3.0 * v],
+                ),
+            ],
         );
-        // The export's own conversions aren't compared, and are named.
-        let export = |values: &[f64]| {
+        let right = [g, 2.0 * g, 3.4 * g];
+        let compared = compare_raw(&raw, &index_export(&right, &[v, 2.0 * v, 3.0 * v])).unwrap();
+        assert_eq!(compared.raw_samples, 6);
+        assert_eq!(compared.velocity_after_the_stop, 0);
+        assert!(
+            (compared.worst_value_steps - 0.4).abs() < 1e-9,
+            "{compared:?}"
+        );
+        assert_eq!(compared.export_only, ["[Altitude (Baro-Ft-AGL)]"]);
+        // The velocity stopped early, as the FIP stops it at apogee: counted apart.
+        let stopped = compare_raw(&raw, &index_export(&right, &[v, 2.0 * v])).unwrap();
+        assert_eq!(
+            (stopped.raw_samples, stopped.velocity_after_the_stop),
+            (5, 1)
+        );
+        // Any other channel stopping early is a difference.
+        assert_eq!(
+            compare_raw(&raw, &index_export(&right[..2], &[v, 2.0 * v, 3.0 * v])),
+            None
+        );
+        // A value a step off, or a sample past the raw file's end, is a difference, and a
+        // difference sets no worst.
+        assert_eq!(
+            compare_raw(
+                &raw,
+                &index_export(&[g, 3.0 * g, 3.0 * g], &[v, 2.0 * v, 3.0 * v])
+            ),
+            None
+        );
+        assert_eq!(
+            compare_raw(&raw, &index_export(&[g; 4], &[v, 2.0 * v, 3.0 * v])),
+            None
+        );
+        // A time the export prints apart from the raw sample's is a difference.
+        let mut late = index_export(&right, &[v, 2.0 * v, 3.0 * v]);
+        late.channels[0].time_s[1] = 0.0026;
+        assert_eq!(compare_raw(&raw, &late), None);
+    }
+
+    #[test]
+    fn an_mdacs_export_runs_on_its_own_clock() {
+        let rows = 3_200;
+        let times: Vec<f64> = (0..rows).map(|n| n as f64 / 20.0).collect();
+        let pressure: Vec<f64> = (0..rows).map(|n| 100_000.0 - 10.0 * n as f64).collect();
+        let raw = record("rrc3_rff", &[("Pressure", "pressure", &times, &pressure)]);
+        let printed: Vec<f64> = mdacs_clock(rows)
+            .iter()
+            .map(|c| *c as f64 / 100.0)
+            .collect();
+        let export = |time_s: &[f64]| {
             record(
-                "raven_fip_csv",
+                "rrc3_csv",
                 &[
-                    (
-                        "Axial Accel (Gs)",
-                        "acceleration",
-                        &[0.0, 0.0025, 0.005][..values.len()],
-                        values,
-                    ),
-                    (
-                        "[Altitude (Baro-Ft-AGL)]",
-                        "altitude_above_ground",
-                        &[0.0],
-                        &[1.0],
-                    ),
+                    ("Pressure", "pressure", time_s, &pressure),
+                    ("Altitude", "altitude_above_ground", &[0.0], &[0.0]),
                 ],
             )
         };
-        let (samples, _, steps, only) = compare_raw(&raw, &export(&[g, 2.0 * g, 3.4 * g])).unwrap();
-        assert_eq!(samples, 3);
-        assert!((steps - 0.4).abs() < 1e-9, "{steps}");
-        assert_eq!(only, ["[Altitude (Baro-Ft-AGL)]"]);
-        // Stopped early, as the FIP stops the velocity at apogee.
-        assert_eq!(compare_raw(&raw, &export(&[g, 2.0 * g])).unwrap().0, 2);
-        // A value a step off, or a sample past the raw file's end, is a difference.
-        assert_eq!(compare_raw(&raw, &export(&[g, 3.0 * g, 3.0 * g])), None);
-        let longer = record(
+        let compared = compare_raw(&raw, &export(&printed)).unwrap();
+        assert_eq!(compared.raw_samples, rows);
+        assert!((compared.worst_time_s - 0.01).abs() < 1e-9, "{compared:?}");
+        // `n / 20`, the raw clock itself, isn't how mDACS prints it this far into a log.
+        assert_eq!(compare_raw(&raw, &export(&times)), None);
+    }
+
+    /// A raw pressure channel at 20 Hz from 0.00375 s, and a one-clock export of it at 800 Hz
+    /// holding `at`'s value each tick.
+    fn held_pair(
+        samples: &[(f64, f64)],
+        quantity: &str,
+        at: &dyn Fn(f64) -> f64,
+    ) -> (
+        hpr_flightdata::log::FlightLog,
+        hpr_flightdata::log::FlightLog,
+    ) {
+        let column = if quantity == "speed" {
+            "Velocity (Accel-Ft/Sec)"
+        } else {
+            "Baro (Atm)"
+        };
+        let (times, values): (Vec<f64>, Vec<f64>) = samples.iter().copied().unzip();
+        let raw = record("raven_fipa", &[(column, quantity, &times, &values)]);
+        let ticks: Vec<f64> = (0..100).map(|n| f64::from(n) * 0.00125).collect();
+        let held: Vec<f64> = ticks.iter().map(|t| at(*t)).collect();
+        let export = record(
             "raven_fip_csv",
-            &[(
-                "Axial Accel (Gs)",
-                "acceleration",
-                &[0.0, 0.0025, 0.005, 0.0075],
-                &[g; 4],
-            )],
+            &[
+                (column, quantity, &ticks, &held),
+                ("LiftOff", "number", &ticks, &vec![0.0; ticks.len()]),
+            ],
         );
-        assert_eq!(compare_raw(&raw, &longer), None);
+        (raw, export)
     }
 
     #[test]
     fn a_one_clock_export_holds_each_sample_until_the_next() {
-        let raw = record(
-            "raven_fipa",
-            &[(
-                "Baro (Atm)",
-                "pressure",
-                &[0.00375, 0.05375, 0.10375],
-                &[90_000.0, 89_000.0, 88_000.0],
-            )],
-        );
-        let ticks: Vec<f64> = (0..100).map(|n| f64::from(n) * 0.00125).collect();
-        let held = |at: &dyn Fn(f64) -> f64| -> Vec<f64> { ticks.iter().map(|t| at(*t)).collect() };
-        let export = |values: &[f64]| {
-            record(
-                "raven_fip_csv",
-                &[
-                    ("Baro (Atm)", "pressure", &ticks, values),
-                    ("LiftOff", "number", &ticks, &vec![0.0; ticks.len()]),
-                ],
-            )
-        };
-        // Before the first sample, the first; then each until the next.
-        let right = held(&|t| {
+        let samples = [
+            (0.00375, 90_000.0),
+            (0.05375, 89_000.0),
+            (0.10375, 88_000.0),
+        ];
+        let each = |t: f64| {
             if t < 0.053 {
                 90_000.0
             } else if t < 0.103 {
@@ -1349,13 +1526,25 @@ mod tests {
             } else {
                 88_000.0
             }
-        });
-        assert_eq!(compare_raw(&raw, &export(&right)).unwrap().0, 100);
-        // Stopped at the second sample, the rest holding it: compared up to the stop.
-        let stopped = held(&|t| if t < 0.053 { 90_000.0 } else { 89_000.0 });
-        assert!(compare_raw(&raw, &export(&stopped)).is_some());
+        };
+        let (raw, export) = held_pair(&samples, "pressure", &each);
+        // 100 ticks reach 0.12375 s: every raw sample shows at its own time.
+        assert_eq!(compare_raw(&raw, &export).unwrap().raw_samples, 3);
+
+        // Stopped at the second sample, the rest holding it: a velocity may stop, compared up to
+        // the stop; a pressure may not.
+        let stopped = |t: f64| if t < 0.053 { 90_000.0 } else { 89_000.0 };
+        let (raw, export) = held_pair(&samples, "speed", &stopped);
+        let compared = compare_raw(&raw, &export).unwrap();
+        assert_eq!(
+            (compared.raw_samples, compared.velocity_after_the_stop),
+            (2, 1)
+        );
+        let (raw, export) = held_pair(&samples, "pressure", &stopped);
+        assert_eq!(compare_raw(&raw, &export), None);
+
         // A sample shown a tick late is a difference.
-        let late = held(&|t| {
+        let late = |t: f64| {
             if t < 0.055 {
                 90_000.0
             } else if t < 0.103 {
@@ -1363,8 +1552,97 @@ mod tests {
             } else {
                 88_000.0
             }
+        };
+        let (raw, export) = held_pair(&samples, "pressure", &late);
+        assert_eq!(compare_raw(&raw, &export), None);
+
+        // A raw sample between two ticks, which no row shows at its own time, is a difference
+        // even where the rows hold the right values around it.
+        let skipped = [(0.00375, 90_000.0), (0.0040, 90_000.0), (0.10375, 88_000.0)];
+        let (raw, export) = held_pair(&skipped, "pressure", &|t| {
+            if t < 0.103 { 90_000.0 } else { 88_000.0 }
         });
-        assert_eq!(compare_raw(&raw, &export(&late)), None);
+        assert_eq!(compare_raw(&raw, &export), None);
+    }
+
+    #[test]
+    fn a_raw_file_that_differs_from_the_export_beside_it_is_unread() {
+        // An invented RRC3 download of three seconds and mDACS's export of it, in one folder.
+        let rows = 60;
+        let mut words: Vec<u16> = Vec::new();
+        for n in 0..rows {
+            words.push(9_800 - n as u16);
+            if n % 20 == 19 {
+                words.extend([0x6e00, 0x7e00]);
+            }
+        }
+        let rff = |words: &[u16]| {
+            let mut bytes = vec![0u8];
+            for value in [1i32, -1, 1, 0] {
+                bytes.extend(value.to_le_bytes());
+            }
+            bytes.extend(b"\x0c\x02\x00\x00\x00mDACS.AnalysisSupport+FlightRecord\x09");
+            bytes.extend(2i32.to_le_bytes());
+            for _ in 0..2 {
+                bytes.extend((words.len() as i32).to_le_bytes());
+            }
+            bytes.push(0x0f);
+            bytes.extend(2i32.to_le_bytes());
+            bytes.extend((words.len() as i32 + 1).to_le_bytes());
+            bytes.push(7);
+            for word in words.iter().chain(&[0]) {
+                bytes.extend(word.to_le_bytes());
+            }
+            bytes.push(0x0b);
+            bytes
+        };
+        let mut csv = "Time,Altitude,Pressure,Velocity,Temperature,Events,Voltages\n".to_owned();
+        for (n, time) in mdacs_clock(rows).iter().enumerate() {
+            let hpa = f64::from(9_800 - n as u16) / 10.0;
+            // The standard atmosphere's height above the first reading, in feet.
+            let height_ft = 145_366.45 * (1.0 - (hpa / 1013.25).powf(0.190_284))
+                - 145_366.45 * (1.0 - (980.0f64 / 1013.25).powf(0.190_284));
+            csv += &format!(
+                "{}.{:02},{height_ft:.2},{hpa:.2},{:.2},71.60, -,9.20\n",
+                time / 100,
+                time % 100,
+                height_ft / 3.0
+            );
+        }
+        let sample = |name: &str, family: &str, bytes: Vec<u8>| Sample {
+            path: PathBuf::from("flight").join(name),
+            source: "test",
+            family: family.to_owned(),
+            bytes,
+        };
+        let export = sample("flight.csv", "rrc3-csv", csv.clone().into_bytes());
+        assert_eq!(
+            hpr_flightdata::import::detect(&export.bytes),
+            Some(LogFormat::Rrc3Csv)
+        );
+        let raw = sample("flight.rff", "rrc3-rff", rff(&words));
+        let (report, unread) = survey(&[raw, export], Vec::new());
+        let checks = &report.raw_checks["rrc3-rff"];
+        assert_eq!(
+            (checks.files, checks.matching_an_export),
+            (1, 1),
+            "{unread:?}"
+        );
+        assert!(unread.is_empty(), "{unread:?}");
+
+        // One reading a step off: the raw file differs, and the survey lists it unread.
+        words[30] -= 1;
+        let raw = sample("flight.rff", "rrc3-rff", rff(&words));
+        let export = sample("flight.csv", "rrc3-csv", csv.into_bytes());
+        let (report, unread) = survey(&[raw, export], Vec::new());
+        let checks = &report.raw_checks["rrc3-rff"];
+        assert_eq!((checks.matching_an_export, checks.differing.len()), (0, 1));
+        assert!(
+            unread
+                .iter()
+                .any(|line| line.contains("differs from every export")),
+            "{unread:?}"
+        );
     }
 
     #[test]

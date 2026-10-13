@@ -9,14 +9,17 @@
 //! a slot. The stream has no columns and no times:
 //!
 //! - a word below `0x4000` is a pressure, in tenths of a millibar (10 Pa): `0x4000` is 1,638.4
-//!   mbar, half again the highest pressure measured at sea level, so no reading reaches it;
+//!   mbar, above the 1,200 mbar at which the RRC3 itself reports a pressure sensor fault (p. 9),
+//!   so no reading reaches it;
 //! - a word at or above `0x4000` is an auxiliary word, written in pairs once a second,
 //!   presumably the temperature and battery voltage the manual names, in counts: Debrief found
 //!   mDACS's export's temperature and voltage tracking them, though not linearly. The file holds
 //!   no calibration for them, and they are kept as written ([`Quantity::Unrecognized`]), in the
-//!   order the file writes them. A few stand alone, not in a pair (in each sample file, three: one near apogee,
-//!   one later, and a last `0xFFFF`); what they mean isn't known, and they are kept as written in
-//!   a channel of their own;
+//!   order the file writes them. A few stand alone, not in a pair (in each sample file, three: one
+//!   near apogee, one later, and a last `0xFFFF`); the first two fall where the manual's low-voltage
+//!   samples taken as the drogue and the main fire would (p. 23), but that is a guess, and they
+//!   are kept as written in a channel of their own. Three or more auxiliary words in a row, which
+//!   no sample file holds, are read as pairs from the first, with an odd last one kept alone;
 //! - the readings start at the first word, among the first eight, that a pressure on a
 //!   launch pad can be, at least 500 mbar (5,570 m in the standard atmosphere, above
 //!   any launch site): the words before it are kept, as written, in a note;
@@ -26,9 +29,10 @@
 //! the `n`th reading at `n / 20` s, and the auxiliary pairs' times are the time of the reading
 //! before them. Two checks stand behind it: the pairs, one a second, must count the same seconds as
 //! the readings do at 20 a second, within 10% and two pairs, or the file is refused; and wherever
-//! the project's sample logs hold mDACS's export of the same flight, its `Time` column steps by
-//! 0.05 s and its pressures match the raw readings one for one (`cargo xtask logs` counts the
-//! pairs and compares them).
+//! the project's sample logs hold mDACS's export of the same flight, its pressures match the raw
+//! readings one for one, and its `Time` column is this 20 Hz clock as mDACS keeps it: 0.05 s
+//! summed in single precision, so that it runs a hundredth of a second ahead late in a long log
+//! (`cargo xtask logs` counts the pairs and compares them).
 //!
 //! **The record.** One [`Quantity::Pressure`] channel, `Pressure`, and the three auxiliary
 //! channels. The primary track is empty, with a note: the file holds no altitude, and working one
@@ -198,6 +202,8 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         });
     }
     let list = find_list(bytes)?;
+    // Every index asked for is below `list.size`, at most the list's length, whose slots
+    // `find_list` checked lie inside the file: the indexing can't fail.
     let word = |index: usize| {
         let at = list.at + 2 * index;
         u16::from_le_bytes([bytes[at], bytes[at + 1]])

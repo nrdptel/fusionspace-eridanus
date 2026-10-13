@@ -143,12 +143,12 @@ PerfectFlite's exports state no unit for their altitude. Of the 16 read, 13 peak
 
 A `.pfa` states neither its rate nor its unit; its reader takes 10 samples a second, in feet, from PerfectFlite's documents. Of the 25 read, 25 hold as many heights as `NumSamps:` states and 25 state an `Apogee:` equal to their highest; 17 first reach 80 ft, the height that sets off launch detection, at their eighth sample, 0.7 s, and 8 first reach 40 ft, the least it can be set to, there.
 
-The raw downloads against their makers' exports of the same flight, an export being one beside the raw file, in its folder, that its reader reads; a match agrees in every sample of every channel the two share, within half a step of the raw format's resolution and the export's printed time (six significant figures, or a microsecond):
+The raw downloads against their makers' exports of the same flight, an export being one beside the raw file, in its folder, that its reader reads. A match agrees in every sample of every channel the two share: the value within half a step of the raw format's resolution, the time as the export prints it (the FIP's to six significant figures; mDACS's from its own clock, 0.05 s summed in single precision, which runs a hundredth of a second ahead of the RRC3's by 157 s). Each raw sample is counted once; only the accelerometer's velocity may stop early, as the FIP stops it at apogee, and its samples after the stop are counted apart:
 
-| Family | Files | With an export | Matching one | Samples compared | Worst time, s | Worst value, steps | Export only | Differing |
-|---|---:|---:|---:|---:|---:|---:|---|---|
-| raven-fipa | 57 | 55 | 55 | 6877752 | 5.0e-4 | 0.000 | `LiftOff` (1), `[Altitude (Accel-Ft)]` (38), `[Altitude (Baro-Ft-AGL)]` (55), `[Altitude (Baro-Ft-ASL)]` (55), `[Velocity (Accel-Ft/Sec)]` (38), `[Velocity (Accel-MPH)]` (38), `bILBA` (37) | none |
-| rrc3-rff | 6 | 1 | 1 | 3541 | 0.0e0 | 0.000 | `Altitude` (1), `Temperature` (1), `Velocity` (1), `Voltages` (1) | none |
+| Family | Files | With an export | Matching one | Raw samples compared | Velocity after the stop | Worst time, s | Worst value, steps | Export only | Differing |
+|---|---:|---:|---:|---:|---:|---:|---:|---|---|
+| raven-fipa | 57 | 55 | 55 | 6016104 | 140865 | 5.0e-4 | 0.000 | `LiftOff` (1), `[Altitude (Accel-Ft)]` (38), `[Altitude (Baro-Ft-AGL)]` (55), `[Altitude (Baro-Ft-ASL)]` (55), `[Velocity (Accel-Ft/Sec)]` (38), `[Velocity (Accel-MPH)]` (38), `bILBA` (37) | none |
+| rrc3-rff | 6 | 1 | 1 | 3541 | 0 | 1.0e-2 | 0.000 | `Altitude` (1), `Temperature` (1), `Velocity` (1), `Voltages` (1) | none |
 
 Units no header states, as each file's reader decided them, or kept the column as written, and noted:
 

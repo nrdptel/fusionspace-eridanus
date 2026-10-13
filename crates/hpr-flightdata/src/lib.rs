@@ -27,7 +27,8 @@
 //! CSV ([`aerospacenu_fcb`]) and its ground station's text ([`aerospacenu_gs`]), a phone app's
 //! `launch` CSV ([`phone_launch`]), an Eggtimer's download saved as RTF ([`eggtimer`]), two raw
 //! downloads, the Raven's `.FIPa` ([`raven_fipa`]) and the RRC3's `.rff` ([`rrc3_rff`]), each
-//! checked against its maker's export of the same flights, and three GPS logs: Featherweight's
+//! checked against its maker's export of the same flight where the sample logs hold one (55 of the
+//! 57 `.FIPa` files, 1 of the 6 `.rff`), and three GPS logs: Featherweight's
 //! tracker and ground-station CSV ([`fwgps`]), KML ([`kml`]) and NMEA 0183 ([`nmea`]), every
 //! column kept as a channel on its own clock. [`readings`] takes a first set of readings from the
 //! record: liftoff, apogee, the top speed, landing and the descent, set and tested on PerfectFlite
