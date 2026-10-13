@@ -32,7 +32,7 @@ use std::borrow::Cow;
 
 use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
-use crate::{altos, blueraven, eggtimer, perfectflite, raven, rrc3};
+use crate::{altos, blueraven, eggtimer, fwgps, kml, nmea, perfectflite, raven, rrc3};
 
 /// The formats [`read`] recognizes, in the order it tries them.
 pub const FORMATS: &[LogFormat] = &[
@@ -42,6 +42,9 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::BlueRavenCsv,
     LogFormat::Rrc3Csv,
     LogFormat::EggtimerCsv,
+    LogFormat::FeatherweightGpsCsv,
+    LogFormat::Kml,
+    LogFormat::Nmea0183,
     LogFormat::PerfectFliteCsv,
     LogFormat::PerfectFliteText,
 ];
@@ -85,6 +88,17 @@ fn detect_text(text: &str) -> Option<LogFormat> {
         .map(str::trim)
         .filter(|line| !line.is_empty());
     let first = lines.next()?;
+    // A GPS log is told by its own marks, which need not be on its first line: an NMEA file may
+    // open with the receiver's power-up noise, a KML file with an XML declaration.
+    if kml::recognizes(text) {
+        return Some(LogFormat::Kml);
+    }
+    if nmea::recognizes(text) {
+        return Some(LogFormat::Nmea0183);
+    }
+    if fwgps::recognizes(text) {
+        return Some(LogFormat::FeatherweightGpsCsv);
+    }
     let altos_header =
         |line: &str| line.starts_with("#version,") || line.starts_with("version,serial,");
     if first.to_ascii_lowercase().contains("perfectflite") {
@@ -140,6 +154,9 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::BlueRavenCsv) => blueraven::read(&text),
         Some(LogFormat::Rrc3Csv) => rrc3::read(&text),
         Some(LogFormat::EggtimerCsv) => eggtimer::read(&text),
+        Some(LogFormat::FeatherweightGpsCsv) => fwgps::read(&text),
+        Some(LogFormat::Kml) => kml::read(&text),
+        Some(LogFormat::Nmea0183) => nmea::read(&text),
         None => {
             let known: Vec<&str> = FORMATS.iter().map(|format| format.name()).collect();
             Err(LogError::Unrecognized {
