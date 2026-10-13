@@ -72,7 +72,11 @@ pub const READ: [(&str, LogFormat, &str); 22] = [
     ),
     ("fluctus-csv", LogFormat::FluctusCsv, "M7.1c3"),
     ("arts2-csv", LogFormat::Arts2Csv, "M7.1c3"),
-    ("aerospacenu-fcb-csv", LogFormat::AerospaceNuFcbCsv, "M7.1c4"),
+    (
+        "aerospacenu-fcb-csv",
+        LogFormat::AerospaceNuFcbCsv,
+        "M7.1c4",
+    ),
     (
         "aerospacenu-gs-txt",
         LogFormat::AerospaceNuGroundStationText,
