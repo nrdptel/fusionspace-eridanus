@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: MIT OR Apache-2.0 */
 /* hpr-sim's additions to the product system's mdBook theme (ADR-164). */
-/* What the product system's mdBook theme (`fusionspace-mdbook.css`, Rev C) doesn't set, because only
+/* What the product system's mdBook theme (`fusionspace-mdbook.css`, Rev D) doesn't set, because only
    this site's markup has it: the copy icon's file, the system's icons in place of Font Awesome's
    (`xtask/src/site/chrome.rs`), the notes, the menu bar's lockup, the title block, the intro and
    sheets, the theme switch, the text marks and the print page's cover (`xtask site` draws each).
@@ -26,8 +26,14 @@ pre > .buttons button.clip-button:hover::before {
 .nav-chapters .fa-svg svg, .mobile-nav-chapters .fa-svg svg,
 pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
 .previous .fa-svg svg { transform: scaleX(-1); }
+/* The page arrows' names (`web.md`, *Page anatomy*; `frame.rs` writes them, and the system's
+   mdBook theme draws the arrows as buttons under the text, inside the column): the direction in
+   `label` capitals over the page's title, which wraps rather than run out of its button. */
+.nav-wrapper .fs-nav-name { display: grid; gap: 2px; min-width: 0; }
+.nav-wrapper .fs-nav-dir { font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fs-ink-muted); }
+.nav-wrapper .fs-nav-title { overflow-wrap: anywhere; }
 /* The page's frame (#384; `foundations.md`, *Type* and *Space and layout*) is the product system's
-   mdBook theme's (`fusionspace-mdbook.css`, Rev C): the type scale on mdBook's elements, growing
+   mdBook theme's (`fusionspace-mdbook.css`, Rev D): the type scale on mdBook's elements, growing
    with the window inside the page; the column centered beside the sidebar up to 1,120 px with
    its gutters, and the prose filling it; the page arrows under the page. `cargo xtask site`'s
    page check reads every text's size, line height, family and capitals against the scale at the
@@ -67,14 +73,17 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
    either drawn off the system's. The header: the horizontal lockup, 24 px tall in the text's
    color (Void on light, Paper on dark, as the brand's one-color files are), with the brand's clear
    space around it, a quarter of its height, then the product's name; both one link to the landing
-   page. From 720 px the sidebar stays open, so the menu button goes. */
+   page. The menu button stands at every width: from 720 px it puts the sidebar away and brings it
+   back, as dragging the sidebar's edge to the window's side puts it away (`web.md`, *Site
+   patterns*, Docs), and mdBook keeps the choice from page to page. */
 #mdbook-menu-bar .fs-logo { box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 12px; overflow: visible; padding-inline: 6px; color: var(--fs-ink); text-decoration: none; }
 #mdbook-menu-bar .fs-lockup { height: 24px; width: auto; flex: none; }
 #mdbook-menu-bar .fs-product { flex: none; }
-@media only screen and (min-width: 720px) { #mdbook-sidebar-toggle { display: none; } }
 /* With scripts off, nothing ticks mdBook's sidebar box, which draws the sidebar: from 720 px the
-   stylesheet draws it instead, as mdBook draws it ticked. */
+   stylesheet draws it instead, as mdBook draws it ticked, and the menu button, which nothing
+   would answer, goes. */
 @media only screen and (min-width: 720px) {
+    html:not(.js) #mdbook-sidebar-toggle { display: none; }
     html:not(.js) #mdbook-sidebar-toggle-anchor ~ .sidebar { transform: none; }
     html:not(.js) #mdbook-sidebar-toggle-anchor ~ .page-wrapper { transform: none; margin-inline-start: calc(var(--sidebar-width) + var(--sidebar-resize-indicator-width)); }
 }
@@ -85,9 +94,11 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
 /* The menu bar holds its buttons and the lockup on one row from 520 px (below, the lockup takes a
    row of its own) only with the buttons closed up: at mdBook's spacing they take 512 px, more than
    a 520 px window leaves beside a 15 px scroll bar, as on Linux and Windows. From 720 px the
-   sidebar takes 300 px beside the page, which leaves as little room until about 880 px. Up to
-   there the buttons close up, as mdBook closes them up on a phone, each still 28 px wide. */
-@media only screen and (min-width: 520px) and (max-width: 879px) {
+   sidebar takes 300 px beside the page, and the menu button stays, which leaves as little room
+   until about 1,000 px once the theme switch joins the row at 960 px: there, beside the sidebar
+   and a 15 px scroll bar, the row needs about 648 px and has 637. Up to 1,040 px the buttons
+   close up, as mdBook closes them up on a phone, each still 28 px wide. */
+@media only screen and (min-width: 520px) and (max-width: 1039px) {
     #mdbook-menu-bar .fa-svg, #mdbook-menu-bar .icon-button { padding: 0 4px; }
     #mdbook-menu-bar .right-buttons { margin: 0 8px; }
 }

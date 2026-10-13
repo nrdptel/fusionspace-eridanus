@@ -7,10 +7,11 @@
 // first, on its way down to the title, and the link is simply followed. `cargo xtask site`'s
 // page check clicks the title and fails any smooth scroll a script asks for.
 //
-// From 720 px the sidebar stays open and the menu button is gone (`web.md`, *Page anatomy*):
-// the build has mdBook show the sidebar there when a page loads, and a window that widens past
-// 720 px opens it here, through mdBook's own box, after undoing the `display: none` mdBook gives
-// a sidebar put away (only its menu button undoes it). The box, ticked or not, is what draws the
+// From 720 px the sidebar is open unless the reader put it away, with the menu button or by
+// dragging its edge to the window's side (`web.md`, *Site patterns*, Docs): the build has mdBook
+// show it there when a page loads unless mdBook stored `hidden`, and a window that widens past
+// 720 px opens it here, unless the reader put it away, through mdBook's own box, after undoing
+// the `display: none` mdBook gives a sidebar put away (only its menu button undoes it). The box, ticked or not, is what draws the
 // sidebar, so the sidebar's `aria-hidden` and its links' focus follow the box here whenever
 // either changes: mdBook sets the links' focus once, before its script adds the current page's
 // headings, and a swipe or a drag can hide the sidebar from screen readers with the box still
@@ -49,7 +50,13 @@ document.addEventListener('click', function (event) {
     if (!sidebar || !box) return;
     const wide = window.matchMedia('(min-width: 720px)');
     wide.addEventListener('change', function () {
-        if (wide.matches && !box.checked) {
+        let kept = null;
+        try {
+            kept = localStorage.getItem('mdbook-sidebar');
+        } catch (e) {
+            // Storage blocked: nothing was kept.
+        }
+        if (wide.matches && !box.checked && kept !== 'hidden') {
             sidebar.style.display = '';
             box.checked = true;
             box.dispatchEvent(new Event('change'));
@@ -69,6 +76,32 @@ document.addEventListener('click', function (event) {
     });
     box.addEventListener('change', follow);
     follow();
+})();
+
+// Dragging the sidebar's edge to the window's side puts it away (`web.md`, *Site patterns*,
+// Docs). mdBook's drag handle marks the sidebar hidden once the edge is within 20 px of the side,
+// but leaves its box ticked, so the sidebar stays drawn as a strip with its links reachable. When
+// such a drag ends, the box is unticked here, as the menu button unticks it, which has mdBook put
+// the sidebar away and store the choice; its width goes back to what it was before the drag,
+// for when the menu button brings it back.
+(function () {
+    const handle = document.getElementById('mdbook-sidebar-resize-handle');
+    const box = document.getElementById('mdbook-sidebar-toggle-anchor');
+    if (!handle || !box) return;
+    const root = document.documentElement;
+    handle.addEventListener('mousedown', function () {
+        const before = root.style.getPropertyValue('--sidebar-target-width');
+        window.addEventListener('mouseup', function () {
+            if (root.classList.contains('sidebar-visible') || !box.checked) return;
+            if (before) {
+                root.style.setProperty('--sidebar-target-width', before);
+            } else {
+                root.style.removeProperty('--sidebar-target-width');
+            }
+            box.checked = false;
+            box.dispatchEvent(new Event('change'));
+        }, { once: true });
+    });
 })();
 
 (function () {

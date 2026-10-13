@@ -400,13 +400,15 @@
   const ICON_SIZES = [16, 20, 24];
   // The page's frame (#384; `web.md`, *Page anatomy*): the lockup's height, the brand's clear
   // space around it as a share of that height, the inks it may be drawn in (Void on light, Paper
-  // on dark), the width from which the sidebar stays open with no menu button, and the title
+  // on dark), the width from which the sidebar is open on a first visit, and the title
   // block's border.
   const LOCKUP_PX = 24;
   const CLEAR_SPACE = 0.25;
   const INKS = ['rgb(11, 15, 28)', 'rgb(243, 244, 247)'];
   const SIDEBAR_OPEN_FROM_PX = 720;
   const TITLE_BLOCK_BORDER_PX = 2;
+  // The page arrows' least height (`web.md`, *Page anatomy*), the system's touch target.
+  const ARROW_MIN_PX = 44;
   // The intro and the sheets (#384): the tag's type size and border, the sheet's rule on top and
   // its number's type size. The theme switch: its choices, in order, the width from which it
   // stands in the header (`switch.rs`, `HEADER_FROM_PX`), and its buttons' least height and type
@@ -1355,6 +1357,7 @@
       gutter: [], gutter_count: 0,
       squeezed: [], squeezed_count: 0, note: [], note_count: 0, icon: [], icon_count: 0,
       header: [], header_count: 0, title_block: [], title_block_count: 0,
+      arrows: [], arrows_count: 0,
       sheet: [], sheet_count: 0, theme_switch: [], theme_switch_count: 0,
     };
     const width = win.innerWidth;
@@ -1586,6 +1589,7 @@
     probeHeader(win, doc, note);
     probeNoScript(win, doc, note);
     probeTitleBlock(win, doc, note);
+    probeArrows(win, doc, note);
     probeSheets(win, doc, note);
     probeSwitch(win, doc, note);
     return found;
@@ -1603,11 +1607,12 @@
   // draws in the menu bar; the file check makes sure it is there) must be 24 px tall, every path
   // filled in the ink role of the page's theme (the body's text color, Void or Paper), wholly
   // drawn inside every box around it that clips and inside the window, and kept a quarter of
-  // its height from the window's sides and from every icon and text drawn in its header. From
-  // 720 px no menu button (`#mdbook-sidebar-toggle`) is drawn, and under it one is. The sidebar
-  // (`#mdbook-sidebar`) is drawn from 720 px, and wherever it is drawn a screen reader and the
-  // keyboard reach it (not `aria-hidden`, each link in the tab order); wherever it is put away
-  // (no box, hidden, or wholly off the left edge) neither does.
+  // its height from the window's sides and from every icon and text drawn in its header. The menu
+  // button (`#mdbook-sidebar-toggle`) is drawn at every width, as it puts the sidebar away and
+  // brings it back (`web.md`, *Site patterns*, Docs; `probePutAway` presses it). The sidebar
+  // (`#mdbook-sidebar`) is drawn from 720 px on a first visit, and wherever it is drawn a screen
+  // reader and the keyboard reach it (not `aria-hidden`, each link in the tab order); wherever it
+  // is put away (no box, hidden, or wholly off the left edge) neither does.
   function probeHeader(win, doc, note) {
     const width = win.innerWidth;
     const right = doc.documentElement.clientWidth;
@@ -1672,15 +1677,8 @@
       note('header', 'header#mdbook-menu-bar', 'sidebar', (toggle ? '' : 'no menu button ')
         + (sidebarEl ? '' : 'no sidebar'));
     }
-    if (toggle) {
-      const shown = drawn(win, toggle);
-      if (width >= SIDEBAR_OPEN_FROM_PX && shown) {
-        note('header', selector(toggle), 'display', 'a menu button from '
-          + SIDEBAR_OPEN_FROM_PX + ' px');
-      } else if (width < SIDEBAR_OPEN_FROM_PX && !shown) {
-        note('header', selector(toggle), 'display', 'no menu button under '
-          + SIDEBAR_OPEN_FROM_PX + ' px');
-      }
+    if (toggle && !drawn(win, toggle)) {
+      note('header', selector(toggle), 'display', 'no menu button');
     }
     const sidebar = doc.getElementById('mdbook-sidebar');
     if (sidebar) {
@@ -1765,11 +1763,127 @@
         value: (sidebarShown(win, sidebar) ? 'drawn' : 'put away') + (hidden ? ', hidden' : '')
           + ', ' + reached + ' of ' + links.length + ' links in the tab order, ' + what });
     }
-    if (drawn(win, toggle)) {
+    if (!drawn(win, toggle)) {
       found.push({ selector: selector(toggle), property: 'widened', theme: from + ' px',
-        value: 'a menu button, ' + what });
+        value: 'no menu button, ' + what });
     }
     return found;
+  }
+
+  // The sidebar put away and brought back (`web.md`, *Site patterns*, Docs), read once a run, at
+  // the width that reads print (widened past 720 px when it is narrower, by `probeWidened`), on a
+  // page with mdBook's sidebar and its drag handle
+  // (`#mdbook-sidebar-resize-handle`). The menu button must put the sidebar away (no box, hidden
+  // or wholly off the left; hidden from screen readers; no link in the tab order) and leave
+  // itself drawn to bring it back, and the pane beside it must then start at the window's left,
+  // so the column re-centers in the whole window; pressed again, it must bring the sidebar back,
+  // drawn and reached. Dragging the handle to the window's side must put the sidebar away too.
+  // mdBook stores the reader's choice; nothing is stored here, so pages loaded beside this one
+  // still read a first visit. Transitions are held while it runs: it reads where the sidebar and
+  // the page end up, which a slide still running on a long page would hide. Returns what is
+  // wrong, as the header's examples.
+  async function probePutAway(win, doc) {
+    const found = [];
+    const sidebar = doc.getElementById('mdbook-sidebar');
+    const toggle = doc.getElementById('mdbook-sidebar-toggle');
+    const handle = doc.getElementById('mdbook-sidebar-resize-handle');
+    if (!sidebar || !toggle || !handle || win.innerWidth < SIDEBAR_OPEN_FROM_PX
+      || !doc.documentElement.classList.contains('js')) return found;
+    const add = function (sel, value) {
+      found.push({ selector: sel, property: 'put away', theme: win.innerWidth + ' px',
+        value: value });
+    };
+    const settle = async function () {
+      await new Promise(function (resolve) { setTimeout(resolve, SIDEBAR_SLIDE_WAIT_MS); });
+      await nextFrames(win);
+    };
+    const state = function () {
+      const links = Array.from(sidebar.querySelectorAll('a[href]'));
+      const shown = sidebarShown(win, sidebar);
+      const hidden = sidebar.getAttribute('aria-hidden') === 'true';
+      const reached = links.filter(function (a) { return a.tabIndex >= 0; }).length;
+      return {
+        away: !shown && hidden && reached === 0,
+        back: shown && !hidden && reached === links.length,
+        said: (shown ? 'drawn' : 'put away') + (hidden ? ', hidden' : ', read') + ', '
+          + reached + ' of ' + links.length + ' links in the tab order',
+      };
+    };
+    const storage = win.Storage && win.Storage.prototype;
+    const store = storage && storage.setItem;
+    if (storage) storage.setItem = function () {};
+    const held = doc.createElement('style');
+    held.textContent = '*, *::before, *::after { transition: none !important; }';
+    doc.head.appendChild(held);
+    try {
+      toggle.click();
+      await settle();
+      let now = state();
+      if (!now.away) add(selector(sidebar), 'the menu button left it ' + now.said);
+      if (!drawn(win, toggle)) add(selector(toggle), 'no menu button to bring the sidebar back');
+      const paneEl = doc.querySelector('.page-wrapper');
+      const left = paneEl ? paneEl.getBoundingClientRect().left : 0;
+      if (left > SLACK_PX) {
+        add(selector(paneEl), 'the page starts ' + Math.round(left) + ' px from the window\'s '
+          + 'left with the sidebar put away');
+      }
+      toggle.click();
+      await settle();
+      now = state();
+      if (!now.back) add(selector(sidebar), 'the menu button, pressed again, left it ' + now.said);
+      const at = sidebar.getBoundingClientRect().right;
+      const mouse = function (type, x, target) {
+        target.dispatchEvent(new win.MouseEvent(type, { bubbles: true, clientX: x, clientY: 200 }));
+      };
+      mouse('mousedown', at, handle);
+      mouse('mousemove', Math.round(at / 2), win);
+      mouse('mousemove', 2, win);
+      mouse('mouseup', 2, win);
+      await settle();
+      now = state();
+      if (!now.away) add(selector(handle), 'dragged to the window\'s side, it left the sidebar ' + now.said);
+      if (!now.back) {
+        toggle.click();
+        await settle();
+      }
+    } finally {
+      if (storage) storage.setItem = store;
+      held.remove();
+    }
+    return found;
+  }
+
+  // The page arrows (`web.md`, *Page anatomy*): each link in the arrows under the page
+  // (`.nav-wrapper a`) drawn under the text and inside the column, the previous at `main`'s left
+  // edge and the next at its right, at least `ARROW_MIN_PX` tall, its page named in text drawn
+  // inside it (`frame.rs` writes the names), not an arrow alone.
+  function probeArrows(win, doc, note) {
+    const main = doc.querySelector('main');
+    if (!main || !drawn(win, main)) return;
+    const m = main.getBoundingClientRect();
+    for (const link of Array.from(doc.querySelectorAll('.nav-wrapper a'))) {
+      if (!drawn(win, link)) continue;
+      const sel = selector(link);
+      const r = link.getBoundingClientRect();
+      const round = function (v) { return Math.round(v); };
+      const next = /\bnext\b/.test(link.getAttribute('rel') || '');
+      const edge = next ? Math.abs(r.right - m.right) : Math.abs(r.left - m.left);
+      if (r.left < m.left - SLACK_PX || r.right > m.right + SLACK_PX || edge > SLACK_PX
+        || r.top < m.bottom - SLACK_PX) {
+        note('arrows', sel, 'position', round(r.left) + ' to ' + round(r.right) + ' px at '
+          + round(r.top) + ' px, the column ' + round(m.left) + ' to ' + round(m.right)
+          + ' px ending at ' + round(m.bottom) + ' px');
+      }
+      if (r.height < ARROW_MIN_PX - SLACK_PX) {
+        note('arrows', sel, 'height', round(r.height) + ' px');
+      }
+      const words = Array.from(link.querySelectorAll('*')).concat([link]).some(function (el) {
+        return drawn(win, el) && Array.from(el.childNodes).some(function (n) {
+          return n.nodeType === 3 && /\S/.test(n.data);
+        });
+      });
+      if (!words) note('arrows', sel, 'name', 'an arrow alone, no page named');
+    }
   }
 
   // The title block (#384; `web.md`, *Page anatomy*; `fusionspace.css`, `.fs-titleblock`). Each
@@ -2321,6 +2435,14 @@
           for (const widened of await probeWidened(frame, win, doc)) {
             result.header_count++;
             if (result.header.length < EXAMPLES) result.header.push(widened);
+          }
+          // Then, at the width that reads print, the sidebar put away: at that width from 720 px,
+          // or at the widened width when that width is narrower.
+          if (printed) {
+            for (const away of await probePutAway(win, doc)) {
+              result.header_count++;
+              if (result.header.length < EXAMPLES) result.header.push(away);
+            }
           }
           result.width = width;
           result.error = null;
