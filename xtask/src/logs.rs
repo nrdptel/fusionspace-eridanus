@@ -139,6 +139,10 @@ const ARTS2_RAW: &str = "Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Ba
 /// Why a file the catalog files as generic CSV is the phone app's.
 const PHONE_LAUNCH: &str = "a phone app's `launch….csv`, a header opening \
     `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension";
+/// Why a file the catalog files as RTF is a radio telemetry stream, for M7.1c5.
+const TELEMETRY_RTF: &str = "a radio telemetry stream, lines such as `255,T,…` in a layout no \
+    maker's document names yet, saved inside an RTF document; filed as RTF, not a log, by its \
+    extension";
 /// Why a file the catalog files as RTF is an Eggtimer's download.
 const EGGTIMER_RTF: &str = "an Eggtimer TRS's terminal download, its settings, summary and \
     `T,Alt,…` table, saved inside an RTF document; filed as RTF, not a log, by its extension";
@@ -284,9 +288,9 @@ const RECLASSIFIED: [(&str, &str, &str, &str); 72] = [
     ("db13cb37b77732af", "csv", "phone-launch-csv", PHONE_LAUNCH),
     ("e556289cc743ecd9", "csv", "phone-launch-csv", PHONE_LAUNCH),
     ("ec774588ec195de6", "csv", "phone-launch-csv", PHONE_LAUNCH),
-    ("3a36f081e5be9e9d", "rtf", "eggtimer-rtf", EGGTIMER_RTF),
+    ("3a36f081e5be9e9d", "rtf", "telemetry-rtf", TELEMETRY_RTF),
     ("70415b30a59d4411", "rtf", "eggtimer-rtf", EGGTIMER_RTF),
-    ("8720c50cdeaf8ad3", "rtf", "eggtimer-rtf", EGGTIMER_RTF),
+    ("8720c50cdeaf8ad3", "rtf", "telemetry-rtf", TELEMETRY_RTF),
     (
         "88f33383ccf621a0",
         "aerospacenu-sillygoose-txt",

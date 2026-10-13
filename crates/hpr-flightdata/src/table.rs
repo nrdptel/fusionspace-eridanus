@@ -66,7 +66,6 @@ pub(crate) fn number(cell: &str, decimal_comma: bool) -> Option<f64> {
 /// degrees Celsius to kelvins, whose `+ 273.15` keeps a finite value finite.
 ///
 /// [adr-258]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md
-#[allow(dead_code, reason = "the readers take it up as ADR-258 §3 lands")]
 pub(crate) fn finite(
     value: f64,
     format: &'static str,

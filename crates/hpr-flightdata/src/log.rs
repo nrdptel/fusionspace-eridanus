@@ -340,7 +340,11 @@ impl LogFormat {
     /// pascals, 0.083 m of altitude at sea level; AltimeterCloud writes its altitude to the
     /// millimeter, and it steps by that, a SillyGoose to the centimeter, a Fluctus to the whole
     /// meter, and an ARTS2's barometric altitude moves by its barometer's count, 8.8 m at most
-    /// near the ground among the sample files; the Raven's pressure moves in steps of 4 × 10⁻⁵ atm, 0.337
+    /// near the ground among the sample files; AerospaceNU's flight computer board reads whole
+    /// pascals, 0.083 m near sea level, in its CSV and in its ground station's text, where its
+    /// altitude is a filtered estimate with no step of its own; a phone app's `launch` CSV writes
+    /// its pressure as a 32-bit float, in steps of 2⁻¹⁴ hPa between 512 and 1,024 hPa,
+    /// 0.000 51 m at sea level; the Raven's pressure moves in steps of 4 × 10⁻⁵ atm, 0.337
     /// m at sea level, the Blue Raven's in steps of 2 × 10⁻⁵ atm, 0.169 m, and an RRC3's export in
     /// steps of 0.1 hPa, 0.832 m. Aloft, those from a pressure are larger. A GPS log has no
     /// barometric altitude; its formats give the coarsest step its GNSS altitude is written in
