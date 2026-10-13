@@ -307,9 +307,9 @@ sample logs:
   read in meters only where the barometric altitude bears it out at the GPS's fresh fixes, the
   rows where its reading changes: at least 10 fixes, spanning at least 120 m (394 ft) of the
   barometric altitude, lying along a straight line (scatter within 10% of that span), whose slope
-  is within 10% of 1; in feet it would be 3.28. The 120 m lets two readings each 6 m (20 ft) off
-  move the slope by no more than 10%: twice the manual's ±3 m horizontal figure (p18), as a GPS's
-  vertical error runs about 1.6 times its horizontal. Otherwise, as where the GPS lost its fix in
+  is within 10% of 1; in feet it would be 3.28. The 120 m (394 ft) lets two readings each 6 m
+  (20 ft) off move the slope by no more than 10%: twice the manual's ±3 m (9.8 ft) horizontal
+  figure (p18), as a GPS's vertical error runs about 1.6 times its horizontal. Otherwise, as where the GPS lost its fix in
   the climb or lags the flight, it is kept as written; in all 6 sample files it is kept. The
   latitude and longitude are degrees, from the manual (p38) and a range check, and each change of
   `status` is an event named as the manual names it (p23).
