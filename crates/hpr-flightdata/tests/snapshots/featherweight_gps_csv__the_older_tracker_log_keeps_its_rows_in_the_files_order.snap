@@ -1,0 +1,483 @@
+---
+source: crates/hpr-flightdata/tests/featherweight_gps_csv.rs
+expression: log
+---
+{
+  "format": "featherweight_gps_csv",
+  "logger": "Featherweight GPS tracker",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "UTCTIME",
+      "quantity": "time_of_day",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        1.2,
+        0.4,
+        0.5,
+        0.5,
+        0.6,
+        1.6
+      ],
+      "values": [
+        86399.6,
+        86399.7,
+        86399.8,
+        86399.9,
+        0.8,
+        0.0,
+        0.1,
+        0.1,
+        0.2,
+        1.2
+      ]
+    },
+    {
+      "column": "UNIXTIME",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        1.2,
+        0.4,
+        0.5,
+        0.5,
+        0.6,
+        1.6
+      ],
+      "values": [
+        1709272799.6,
+        1709272799.7,
+        1709272799.8,
+        1709272799.9,
+        1709272800.8,
+        1709272800.0,
+        1709272800.1,
+        1709272800.1,
+        1709272800.2,
+        1709272801.2
+      ]
+    },
+    {
+      "column": "ALT",
+      "quantity": "gnss_altitude",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        1.2,
+        0.4,
+        0.5,
+        0.5,
+        0.6,
+        1.6
+      ],
+      "values": [
+        609.6,
+        611.124,
+        612.648,
+        614.172,
+        627.888,
+        615.696,
+        617.22,
+        617.22,
+        618.744,
+        633.984
+      ]
+    },
+    {
+      "column": "LAT",
+      "quantity": "latitude",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        1.2,
+        0.4,
+        0.5,
+        0.5,
+        0.6,
+        1.6
+      ],
+      "values": [
+        12.3456789,
+        12.3456799,
+        12.3456809,
+        12.3456819,
+        12.3456909,
+        12.3456829,
+        12.3456839,
+        12.3456839,
+        12.3456849,
+        12.3456949
+      ]
+    },
+    {
+      "column": "LON",
+      "quantity": "longitude",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        1.2,
+        0.4,
+        0.5,
+        0.5,
+        0.6,
+        1.6
+      ],
+      "values": [
+        -98.7654321,
+        -98.7654321,
+        -98.7654321,
+        -98.7654321,
+        -98.7654321,
+        -98.7654321,
+        -98.7654321,
+        -98.7654321,
+        -98.7654321,
+        -98.7654321
+      ]
+    },
+    {
+      "column": "#SATS",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        1.2,
+        0.4,
+        0.5,
+        0.5,
+        0.6,
+        1.6
+      ],
+      "values": [
+        14.0,
+        14.0,
+        14.0,
+        14.0,
+        14.0,
+        14.0,
+        14.0,
+        14.0,
+        14.0,
+        14.0
+      ]
+    },
+    {
+      "column": "FIX",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        1.2,
+        0.4,
+        0.5,
+        0.5,
+        0.6,
+        1.6
+      ],
+      "values": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ]
+    },
+    {
+      "column": "HORZV",
+      "quantity": "speed",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        1.2,
+        0.4,
+        0.5,
+        0.5,
+        0.6,
+        1.6
+      ],
+      "values": [
+        1.524,
+        1.8288000000000002,
+        2.1336,
+        2.4384,
+        2.7432000000000003,
+        3.048,
+        3.3528000000000002,
+        3.6576000000000004,
+        3.9624,
+        4.2672
+      ]
+    },
+    {
+      "column": "VERTV",
+      "quantity": "speed",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        1.2,
+        0.4,
+        0.5,
+        0.5,
+        0.6,
+        1.6
+      ],
+      "values": [
+        15.24,
+        15.24,
+        15.24,
+        15.24,
+        15.24,
+        15.24,
+        15.24,
+        15.24,
+        15.24,
+        15.24
+      ]
+    },
+    {
+      "column": "HEAD",
+      "quantity": "angle",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        1.2,
+        0.4,
+        0.5,
+        0.5,
+        0.6,
+        1.6
+      ],
+      "values": [
+        -179.0,
+        -139.0,
+        -99.0,
+        -59.0,
+        -19.0,
+        21.0,
+        61.0,
+        101.0,
+        141.0,
+        -179.0
+      ]
+    },
+    {
+      "column": "FLAGS",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        1.2,
+        0.4,
+        0.5,
+        0.5,
+        0.6,
+        1.6
+      ],
+      "values": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ]
+    },
+    {
+      "column": ">40",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        1.2,
+        0.4,
+        0.5,
+        0.5,
+        0.6,
+        1.6
+      ],
+      "values": [
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+      ]
+    },
+    {
+      "column": ">32",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        1.2,
+        0.4,
+        0.5,
+        0.5,
+        0.6,
+        1.6
+      ],
+      "values": [
+        8.0,
+        8.0,
+        8.0,
+        8.0,
+        8.0,
+        8.0,
+        8.0,
+        8.0,
+        8.0,
+        8.0
+      ]
+    },
+    {
+      "column": ">24",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        1.2,
+        0.4,
+        0.5,
+        0.5,
+        0.6,
+        1.6
+      ],
+      "values": [
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0
+      ]
+    },
+    {
+      "column": "RSSI",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        1.2,
+        0.4,
+        0.5,
+        0.5,
+        0.6,
+        1.6
+      ],
+      "values": [
+        -61.0,
+        -61.0,
+        -61.0,
+        -61.0,
+        -61.0,
+        -61.0,
+        -61.0,
+        -61.0,
+        -61.0,
+        -61.0
+      ]
+    },
+    {
+      "column": "BATT",
+      "quantity": "voltage",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        1.2,
+        0.4,
+        0.5,
+        0.5,
+        0.6,
+        1.6
+      ],
+      "values": [
+        3.95,
+        3.951,
+        3.952,
+        3.953,
+        3.954,
+        3.955,
+        3.956,
+        3.957,
+        3.958,
+        3.959
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "`VERTV` read in feet per second, from the manual and the change of altitude: the file has too few pairs of moving rows to compare, 1 of the 10 needed",
+    "`HORZV` read in feet per second, from the manual and the change of position: the file has too few pairs of moving rows to compare, 0 of the 10 needed",
+    "`ALT` read in feet, from the manual and the vertical speed: the manual gives `VERTV` in feet per second, and the file has too few pairs of moving rows to compare, 1 of the 10 needed",
+    "`HEAD` read in degrees, from the manual and its range: it runs from -179 to 141",
+    "`BATT` read in volts, from its range: it runs from 3.95 to 3.959, where one lithium cell reads up to about 4.2 V and the ground station's serial millivolts would be thousands",
+    "`UNIXTIME` kept as written, off `UTCTIME` by whole hours: it runs 6 h ahead of `UTCTIME` on every row; read as UTC at the first fix's longitude, `UTCTIME` gives 17.4 h of local mean solar time and `UNIXTIME` 23.4 h",
+    "the log has no barometer, so the record's altitude track is empty: a GPS tracker's file holds positions only, and every column is a channel",
+    "the log's clock is `UTCTIME`, read as UTC, and its zero is the first row's, \"Feb 29 2024 23:59:59.600 UTC\"",
+    "times go back 1 times from one row to the next, by up to 0.800 s, and 1 rows repeat a time already written: every row is kept, in the file's order"
+  ]
+}
