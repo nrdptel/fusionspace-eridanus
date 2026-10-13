@@ -981,7 +981,7 @@ const COAST_WINDOW_S: f64 = 3.0;
 const COAST_SEARCH_S: f64 = 4.0;
 
 /// How far, as a share of the altitude's rise over the window, a row's altitude may be from its
-/// neighbours' median before it is a jump: an ejection's pressure, or a canopy opening. A coast
+/// neighbors' median before it is a jump: an ejection's pressure, or a canopy opening. A coast
 /// rises `g W²/2` over a window `W` into its top, 145 ft over 3 s. As of 2026-10-13, in the 3
 /// terminal downloads among the project's sample logs, a row in the window strays from its
 /// median by under a quarter of the window's rise, and the one jump that ends a window by several
