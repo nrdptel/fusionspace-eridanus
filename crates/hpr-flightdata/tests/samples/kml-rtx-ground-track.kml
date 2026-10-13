@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.1">
+<Document>
+<name>RTx/GPS Flight</name>
+<visibility>1</visibility>
+<Folder>
+<name>Track</name>
+<Placemark>
+<name>Flight Track</name>
+<Style><LineStyle><color>FF00A5FF</color><width>4</width></LineStyle></Style>
+<LineString>
+<altitudeMode>absolute</altitudeMode>
+<coordinates>
+-100.000000,40.000000,0
+-100.000007,40.000009,0
+-100.000014,40.000018,0
+-100.000021,40.000027,0
+-100.000028,40.000036,0
+-100.000035,40.000045,35
+-100.000042,40.000054,120
+-100.000049,40.000063,260
+-100.000056,40.000072,390
+-100.000063,40.000081,470
+-100.000070,40.000090,498
+-100.000077,40.000099,480
+-100.000084,40.000108,400
+-100.000091,40.000117,250
+-100.000098,40.000126,90
+-100.000105,40.000135,0
+-100.000112,40.000144,0
+-100.000119,40.000153,0
+-100.000126,40.000162,0
+</coordinates></LineString>
+</Placemark>
+<Placemark>
+<name>Ground Track</name>
+<Style><LineStyle><color>FFFF00FF</color><width>4</width></LineStyle></Style>
+<LineString>
+<altitudeMode>clampToGround</altitudeMode>
+<coordinates>
+-100.000000,40.000000
+-100.000007,40.000009
+-100.000014,40.000018
+-100.000021,40.000027
+-100.000028,40.000036
+-100.000035,40.000045
+-100.000042,40.000054
+-100.000049,40.000063
+-100.000056,40.000072
+-100.000063,40.000081
+-100.000070,40.000090
+-100.000077,40.000099
+-100.000084,40.000108
+-100.000091,40.000117
+-100.000098,40.000126
+-100.000105,40.000135
+-100.000112,40.000144
+-100.000119,40.000153
+-100.000126,40.000162
+</coordinates></LineString>
+</Placemark></Folder></Document></kml>

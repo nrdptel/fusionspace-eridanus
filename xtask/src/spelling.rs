@@ -876,8 +876,12 @@ enum Kind {
 }
 
 /// The kind of file `path` is, or `None` for data the check doesn't read (motor files, logs,
-/// rasters, other people's formats).
+/// rasters, other people's formats). A test's sample logs are data whatever their extension, such
+/// as an NMEA receiver's `.txt`, which may hold bytes that aren't text.
 fn kind(path: &str) -> Option<Kind> {
+    if path.contains("/tests/samples/") {
+        return None;
+    }
     let extension = path.rsplit_once('.').map(|(_, e)| e)?;
     Some(match extension {
         "md" => Kind::Markdown,

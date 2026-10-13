@@ -1,0 +1,84 @@
+---
+source: crates/hpr-flightdata/tests/kml.rs
+expression: log
+---
+{
+  "format": "kml",
+  "logger": "fw2kml",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "fw2kml - Flight 0 latitude",
+      "quantity": "latitude",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.5,
+        1.5
+      ],
+      "values": [
+        40.0,
+        40.0,
+        40.00002,
+        40.00005,
+        40.00012
+      ]
+    },
+    {
+      "column": "fw2kml - Flight 0 longitude",
+      "quantity": "longitude",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.5,
+        1.5
+      ],
+      "values": [
+        -100.0,
+        -100.0,
+        -100.00001,
+        -100.00003,
+        -100.0001
+      ]
+    },
+    {
+      "column": "fw2kml - Flight 0 altitude",
+      "quantity": "gnss_altitude",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.5,
+        1.5
+      ],
+      "values": [
+        500.0,
+        501.0,
+        560.5,
+        700.25,
+        805.0
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "the record's altitude track is empty: a KML file holds tracks of positions, not an altimeter's record over time, so every value is a channel",
+    "the log's zero is the first point the file times: `when` 2030-01-02T23:59:59.800Z",
+    "`coordinates` read in meters, from the KML standard: OGC 07-147r2 states a tuple's altitude in meters, and 1 of the file's 1 tracks carry one",
+    "`when` read in UTC, from the KML standard: 5 times state their zone, `Z` or an offset, as XML Schema's date-time allows"
+  ]
+}

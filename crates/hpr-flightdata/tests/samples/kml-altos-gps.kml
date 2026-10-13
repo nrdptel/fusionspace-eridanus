@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+  <name>AO Flight#4 S/N: 1234</name>
+  <Snippet maxLines="8">
+Product: TeleGPS-v9.9
+Firmware: 9.9.9
+Date: 2030-01-02
+Time: 10:00:00
+Max GPS Height:   4029 ft
+  </Snippet>
+  <open>1</open>
+  <Folder>
+    <name>GPS Altitude</name>
+    <Placemark>
+      <name>GPS Altitude</name>
+      <LineString>
+        <tessellate>1</tessellate>
+        <altitudeMode>absolute</altitudeMode>
+        <coordinates>
+          -100.0000000,40.0000000,12.0000000 <!-- alt     12.0000000 time    0.0000000 sats 5 -->
+          -100.0000031,40.0000017,11.0000000 <!-- alt     11.0000000 time    0.0000000 sats 5 -->
+          -100.0000062,40.0000034,11.0000000 <!-- alt     11.0000000 time    0.0000000 sats 7 -->
+          -100.0000093,40.0000051,40.0000000 <!-- alt     40.0000000 time    0.0000000 sats 8 -->
+          -100.0000124,40.0000068,380.0000000 <!-- alt    380.0000000 time    0.0000000 sats 8 -->
+          -100.0000155,40.0000085,902.0000000 <!-- alt    902.0000000 time    0.0000000 sats 8 -->
+          -100.0000186,40.0000102,1240.0000000 <!-- alt   1240.0000000 time    0.0000000 sats 9 -->
+          -100.0000217,40.0000119,1180.0000000 <!-- alt   1180.0000000 time    0.0000000 sats 9 -->
+          -100.0000248,40.0000136,700.0000000 <!-- alt    700.0000000 time    0.0000000 sats 10 -->
+          -100.0000279,40.0000153,240.0000000 <!-- alt    240.0000000 time    0.0000000 sats 10 -->
+          -100.0000310,40.0000170,14.0000000 <!-- alt     14.0000000 time    0.0000000 sats 11 -->
+        </coordinates>
+      </LineString>
+    </Placemark>
+  </Folder>
+</Document>
+</kml>

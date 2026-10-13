@@ -229,7 +229,8 @@ readings from it is [M7.2](../decisions-and-roadmap.md#m7-2)'s work.
 - **Other loggers.** The readings are taken from PerfectFlite's logs only: on a record read from
   another logger's file ([the layouts read](../format/flight-logs.md)) each is withheld, as
   *not validated for this logger*, until [M7.2](../decisions-and-roadmap.md#m7-2) validates them
-  there. Other loggers' files come with [M7.1c](../decisions-and-roadmap.md#m7-1c).
+  there. A GPS log has no barometric track, so every reading withholds on it. Other loggers' files
+  come with [M7.1c2](../decisions-and-roadmap.md#m7-1c2).
 
 ## Tests and references
 

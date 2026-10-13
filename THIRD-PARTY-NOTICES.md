@@ -371,7 +371,9 @@ adds a source.
   the check of its altitude's unit against its pressure, Eggtimer's two clocks told apart by
   their step, the Blue Raven app's low- and high-rate files and their units, and decimal commas
   where cells are separated by semicolons, in `hpr_flightdata::rrc3`, `hpr_flightdata::eggtimer`,
-  `hpr_flightdata::blueraven` and the crate's table helpers.
+  `hpr_flightdata::blueraven` and the crate's table helpers. Also
+  `lib/parsers/featherweightGps.ts` at the same commit: the Featherweight GPS tracker log's
+  `UTCTIME` clock, its columns and its altitude in feet, in `hpr_flightdata::fwgps`.
   No code was copied; no flight file of Debrief's is committed.
 - **DOPRI5** (BSD-2-Clause), E. Hairer and G. Wanner's `dopri5.f`, version of 2004: the
   Dormand–Prince coefficients, the error norm, the PI step-size controller, the starting-step
