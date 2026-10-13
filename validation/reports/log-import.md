@@ -61,16 +61,16 @@ Files whose catalog family isn't their layout, moved to their layout's:
 - `9c5017ab68168088 altos-csv -> csv`: a spreadsheet's re-save of an AltOS export, no longer AltosUI's layout: its header edited to carry units, its `height` column deleted, and three columns holding formulas
 - `76a7d8937258e946 csv -> altos-csv-damaged`: an AltosUI export whose header line is damaged: it names 25 columns, two of them run together, where its rows hold other counts, so no reader can tell which cell is which; refused
 - `c7936ac4d86f259f kml -> kml-map`: a map of a flight made in a map program, not a logger's file: the tracks a simulation predicted for several launch times, with pins for the pad, the predicted events and where the rocket landed, and a line measuring the distance to it
-- `1eac3d58c44943fa csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd Mercury's flight, filed as generic CSV by its extension
-- `2d8063ec6a98cac0 csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd Mercury's flight, filed as generic CSV by its extension
-- `3c6a8343d5570aa9 csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd Mercury's flight, filed as generic CSV by its extension
-- `54f08de4175c5e72 csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd Mercury's flight, filed as generic CSV by its extension
-- `6e78a74048da02e5 csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd Mercury's flight, filed as generic CSV by its extension
-- `88fcb6bb17c5d9c6 csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd Mercury's flight, filed as generic CSV by its extension
-- `8e234dc4a78fcd61 csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd Mercury's flight, filed as generic CSV by its extension
-- `d3ac56fff9b7d7c0 csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd Mercury's flight, filed as generic CSV by its extension
-- `f021107424bfa9ee csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd Mercury's flight, filed as generic CSV by its extension
-- `f2233f659bd4b671 csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd Mercury's flight, filed as generic CSV by its extension
+- `1eac3d58c44943fa csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd altimeter's flight, a Nano V1's or a Mercury's, filed as generic CSV by its extension
+- `2d8063ec6a98cac0 csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd altimeter's flight, a Nano V1's or a Mercury's, filed as generic CSV by its extension
+- `3c6a8343d5570aa9 csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd altimeter's flight, a Nano V1's or a Mercury's, filed as generic CSV by its extension
+- `54f08de4175c5e72 csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd altimeter's flight, a Nano V1's or a Mercury's, filed as generic CSV by its extension
+- `6e78a74048da02e5 csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd altimeter's flight, a Nano V1's or a Mercury's, filed as generic CSV by its extension
+- `88fcb6bb17c5d9c6 csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd altimeter's flight, a Nano V1's or a Mercury's, filed as generic CSV by its extension
+- `8e234dc4a78fcd61 csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd altimeter's flight, a Nano V1's or a Mercury's, filed as generic CSV by its extension
+- `d3ac56fff9b7d7c0 csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd altimeter's flight, a Nano V1's or a Mercury's, filed as generic CSV by its extension
+- `f021107424bfa9ee csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd altimeter's flight, a Nano V1's or a Mercury's, filed as generic CSV by its extension
+- `f2233f659bd4b671 csv -> altimetercloud-csv`: AltimeterCloud's CSV of a Rocketry Ltd altimeter's flight, a Nano V1's or a Mercury's, filed as generic CSV by its extension
 - `28a11da1eaf93e69 csv -> entacore-aim-csv`: Entacore AIM's CSV, each channel group beside its own time column, filed as generic CSV by its extension
 - `46d4a9ba5d9b0a58 csv -> entacore-aim-csv`: Entacore AIM's CSV, each channel group beside its own time column, filed as generic CSV by its extension
 - `4d8cf9e8c6f3aa1f csv -> entacore-aim-csv`: Entacore AIM's CSV, each channel group beside its own time column, filed as generic CSV by its extension
@@ -89,12 +89,16 @@ Files whose catalog family isn't their layout, moved to their layout's:
 
 PerfectFlite's exports state no unit for their altitude. Of the 16 read, 13 peak at exactly the height of a `.pf2` beside them, which is in feet; read in feet, their climbs take 0.94 to 1.05 times as long as a fall in vacuum from the peak. The other 3 take 0.93 to 1.07 times, read in feet, and would take 0.51 to 0.59 times read in meters.
 
+A `.pfa` states neither its rate nor its unit; its reader takes 10 samples a second, in feet, from PerfectFlite's documents. Of the 25 read, 25 hold as many heights as `NumSamps:` states and 25 state an `Apogee:` equal to their highest; 17 first reach 80 ft, the height that sets off launch detection, at their eighth sample, 0.7 s, and 8 first reach 40 ft, the least it can be set to, there.
+
 Units no header states, as each file's reader decided them, or kept the column as written, and noted:
 
 | Family | Decision | Files |
 |---|---|---:|
 | altimetercloud-csv | `Apogee time` read in seconds, from the altitude | 7 |
-| altimetercloud-csv | `Landing time` read in seconds, assumed | 7 |
+| altimetercloud-csv | `Landing time` read in seconds, from the altitude | 7 |
+| altimetercloud-csv | `acceleration_total(mG)` read in thousandths of standard gravity, from its name and the Nano V1 manual | 7 |
+| altimetercloud-csv | `acceleration_total(mG)` read in thousandths of standard gravity, from its name and the Nano V1 manual, whose layout has the same columns | 4 |
 | altimetercloud-csv | `air_brake_percent` read in percent, from its name | 4 |
 | altimetercloud-csv | `air_density` kept as written | 4 |
 | altimetercloud-csv | `apogee_prediction` kept as written | 4 |

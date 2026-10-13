@@ -161,7 +161,7 @@
 //!   digit, as the firmware.
 //! - **The flight settings**, the lines `...<setting>...<value>`, listed as written in one note.
 //!   A settings line with no value is the name the owner gave the flight computer (the manual's
-//!   settings screen shows `MY EGGTIMER`, p23): free text that may name a person, it is left out
+//!   settings screen shows `MY EGGTIMER`, p24): free text that may name a person, it is left out
 //!   of the record and only counted.
 //! - **`ASL Alt.`**, "the measured ASL altitude of the launch site" (p36), as
 //!   [`Stated::ground_elevation_msl_m`], and **`Apogee`** as [`Stated::apogee_m`]: each read by
@@ -176,7 +176,7 @@
 //!   sample files, every such time is its marker's to the millisecond. Any other time, such as `T
 //!   @ Max Velocity`, or one that differs from its marker's, is an event of its own named as the
 //!   summary names it, a difference noted. A time of 0 is no event: the manual writes zeroes for a
-//!   channel that didn't fire (p24). The events are in time order, the table's first where two
+//!   channel that didn't fire (p25). The events are in time order, the table's first where two
 //!   share a time.
 //! - **The other summary lines**, listed as written in one note: the base temperature with its
 //!   unit mark (`F` in the sample files, `C` in the manual's example), the flight time, the beep
@@ -1372,7 +1372,7 @@ pub fn read_text(text: &str) -> Result<FlightLog, LogError> {
     if preamble.names > 0 {
         log.notes.push(format!(
             "{} of the flight settings holds no setting: the name its owner gave the flight \
-             computer (TRS manual p23), left out of the record as free text that may name a \
+             computer (TRS manual p24), left out of the record as free text that may name a \
              person",
             if preamble.names == 1 {
                 "1 line".to_owned()
@@ -1399,7 +1399,7 @@ pub fn read_text(text: &str) -> Result<FlightLog, LogError> {
 /// The summary's times read as events, with the notes saying how: a time that is its marker's
 /// event in the table, to [`SAME_TIME_S`], is that event; one of no marker, or of another time,
 /// is an event of its own, named as the summary names it; a time of 0 is no event, as the manual
-/// writes zeroes for a channel that didn't fire (TRS p24). The events end up in time order, the
+/// writes zeroes for a channel that didn't fire (TRS p25). The events end up in time order, the
 /// table's first where two share a time.
 fn summary_events(log: &mut FlightLog, preamble: &Preamble) {
     if preamble.times.is_empty() {
@@ -1477,7 +1477,7 @@ fn summary_events(log: &mut FlightLog, preamble: &Preamble) {
     if !zero.is_empty() {
         log.notes.push(format!(
             "the flight summary's times of 0, no event, as the TRS manual writes zeroes for a \
-             channel that didn't fire (p24): {}",
+             channel that didn't fire (p25): {}",
             zero.joined(", ")
         ));
     }
@@ -2267,12 +2267,12 @@ mod tests {
                 "the flight summary's times of no marker in the table, each an event of its own: \
                  `Max Velocity`",
                 "the flight summary's times of 0, no event, as the TRS manual writes zeroes for a \
-                 channel that didn't fire (p24): `Main Deploy`",
+                 channel that didn't fire (p25): `Main Deploy`",
                 "the flight settings, as the file writes them: `Drogue <1=Normal,2=Backup,0=OFF>` \
                  1; `Main Altitude <50-2000 by 50, 0=OFF>` 300; `Frequency (Ctrl-F to change)` \
                  915; `ID Code` 4",
                 "1 line of the flight settings holds no setting: the name its owner gave the \
-                 flight computer (TRS manual p23), left out of the record as free text that may \
+                 flight computer (TRS manual p24), left out of the record as free text that may \
                  name a person",
                 "the flight summary's other lines, as the file writes them: `Base Temp: 20.5 C`; \
                  `Last Flight Phase: 9` (landing detected, TRS manual p37); `Max Velocity: 300 \

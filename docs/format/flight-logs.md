@@ -200,27 +200,39 @@ sample logs:
   on the table's clock: in both sample files every one matches its marker's row to the
   millisecond. So a summary time with a matching marker is kept once, as the marker's event; the
   top speed's time, which no marker marks, becomes an event of its own; and a time of 0 means a
-  channel that didn't fire (p24). The settings and the other summary lines, such as the base
+  channel that didn't fire (p25). The settings and the other summary lines, such as the base
   temperature with its own `F` or `C`, are kept as written in the record's notes. The name the
   owner gave the flight computer is left out, since it may name a person.
 - **AltimeterCloud's temperature and summary times, worked out from the file.** The Nano V1's
-  manual has a page on its CSV layout (*CSV Flight log format*, altimetercloud.com/support/nano-v1,
-  read 2026-10-13). It gives every column's unit: time in milliseconds from liftoff, altitude
-  above the pad in meters, acceleration in thousandths of a g, and rates of turn and attitude
-  angles in degrees. The Mercury's CSV uses the same names for the same columns, so its rates and
-  angles are read in the Nano's units too, and the record's notes say so. The Mercury's
-  temperature column, `bmp_temp(x100)`, holds hundredths of a degree Celsius: it is read so only
-  when every value is a whole number, every value divided by 100 falls within the barometer's
-  working range, −40 to +85 °C, and some values as written fall outside it, so the column can't
-  already be in degrees; otherwise it is kept as written. The summary block at the top of a Nano
-  log gives the apogee's time with no unit; it is read in seconds when the log's highest altitude
-  falls within half a second of it (in all 7 sample logs with a summary, they agree within
-  0.01 s), and the landing time beside it in seconds too, an assumption. The Mercury's air
-  density, predicted apogee, target altitude and `mt1_temp` have no published unit and are kept
-  as written. Two kinds of value aren't readings and become gaps, each counted in a note: the
-  zeros the accelerometer writes on the pad before its first reading, and the exact 0 °C
-  temperatures that end every sample log after readings of 27 to 44 °C. The reader follows
-  Debrief's in recognizing the layout and in the centi-degree temperature.
+  manual has a page on its CSV layout (*CSV Flight log format*,
+  <https://www.altimetercloud.com/support/nano-v1/flight-log-format/>, read 2026-10-13). The
+  reader follows Debrief's in recognizing the layout and in the centi-degree temperature.
+  - *From the manual:* time in milliseconds from liftoff, altitude above the pad in meters,
+    acceleration in thousandths of a g, rates of turn and attitude angles in degrees. The
+    Mercury's CSV uses the same names for the same columns, so its rates and angles are read in
+    the Nano's units too, with a note saying so.
+  - *Total acceleration:* `acceleration_total(mG)` is the acceleration's magnitude with 1 g taken
+    out, so it reads about zero at rest and −1 g in free fall; it is kept so, as an acceleration
+    along no axis, and its note says what it is.
+  - *The Mercury's temperature:* `bmp_temp(x100)` holds hundredths of a degree Celsius. It is read
+    so only when every value is a whole number, every value divided by 100 falls within the
+    barometer's measurement range, −40 to 85 °C (Bosch Sensortec, *BMP581 data sheet*,
+    BST-BMP581-DS004-13, table 2, p. 10), and some values as written fall outside it, so the
+    column can't already be in degrees; otherwise it is kept as written.
+  - *The summary's times:* the block at the top of a Nano log gives the apogee's and the
+    landing's times with no unit. The apogee time is read in seconds when the log's highest
+    altitude falls within half a second of it (in all 7 sample logs with a summary, within
+    0.01 s). The landing time is read in seconds when, read so, it comes after the highest
+    altitude and the log's altitude there is the summary's landing height within 0.01 m, and read
+    in milliseconds it isn't; the manual's *Flight info page* gives the landing as "when it
+    landed, and the height it came to rest at". In all 7, the two agree within 0.001 m, where read
+    in milliseconds the time falls on the climb, more than a meter from the landing height. A time
+    the altitude doesn't bear out is left out, with a note saying why.
+  - *Kept as written:* the Mercury's air density, predicted apogee, target altitude and
+    `mt1_temp`, which have no published unit.
+  - *Gaps:* two kinds of value aren't readings and become gaps, each counted in a note: the zeros
+    the accelerometer writes on the pad before its first reading, and the exact 0 °C
+    temperatures that end every sample log after readings of 27 to 44 °C.
 - **Entacore AIM's pressure, heights and clock, worked out from the file.** The AIM's export puts a
   `time` column before each group of channels, each group on its own clock (*AIM XTRA/BASE v4.x.x
   Manual*, Entacore, 2 February 2025, p40), and every column is kept on its own clock, following
@@ -374,18 +386,20 @@ The file has no time column and names no unit. The altimeter's manual says it ta
 every 100 milliseconds (*Alt15K/WD User's Manual*, p. 2) and reports heights in feet (p. 6), and
 the help of DataCap 1.10 for the Mac (AltCapWD) says 10 samples a second, so each height is read
 in feet above the pad, 0.1 s after the one before. The 25 sample `.pfa`s bear it out: in every
-one, `NumSamps:` is the number of heights and `Apogee:` the highest of them. Each record says so
-in a note, which [the survey](#how-it-was-checked) counts.
+one, `NumSamps:` is the number of heights and `Apogee:` the highest of them
+([the survey's report](#how-it-was-checked) prints these checks). Each record says so in a note,
+which the survey counts.
 
 Two things in the file aren't what they look like:
 
 - **Time zero isn't liftoff.** The altimeter notices a launch once the rocket is 80 ft up
   (manual, p. 2; a later revision lets it be set from 40 to 250 ft, PerfectFlite's Alt15K
-  specifications page), and keeps the 8 samples before that (p. 2): DataCap's help says sampling
-  "begins at a point 0.7 seconds before the launch is detected". So time zero is 0.7 s before the
+  specifications page), and saves its last 8 samples, the one that noticed among them (p. 2):
+  DataCap's help says sampling "begins at a point 0.7 seconds before the launch is detected",
+  seven steps of 0.1 s. So time zero is 0.7 s before the
   altimeter noticed the launch. The rocket left the pad before it noticed; a slow rocket may
   have left before time zero, so the file can miss the first moments of the climb. Every sample
-  `.pfa` first reaches 40 or 80 ft at 0.7 s (17 at 80 ft, 8 at 40 ft).
+  `.pfa` first reaches 40 or 80 ft at 0.7 s (17 at 80 ft, 8 at 40 ft, as the report prints).
 - **`Ground:` isn't the pad's elevation.** It is the pad's pressure altitude: the height the day's
   air pressure would mean if sea-level pressure were the standard 29.92 inches of mercury (inHg).
   DataCap's help says it is about 100 ft off for every 0.1 inHg the day differs, and gives it

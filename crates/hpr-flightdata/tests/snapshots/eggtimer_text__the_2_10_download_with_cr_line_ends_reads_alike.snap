@@ -1337,9 +1337,9 @@ expression: log
     "`T @` and `Time @` read in seconds, from the manual: the TRS manual's download writes the flight summary's times in `secs.` (p36), and its LDA at 0.700 secs. as \"700ms into the flight\" (p37)",
     "the flight summary's times are its table markers' to the millisecond, one event each, the marker's: `Apogee` at `Apogee`, `LDA` at `LDA`, `Unlock` at `LowV`, `N-O` at `N-O`, `Drogue` at `Drogue`",
     "the flight summary's times of no marker in the table, each an event of its own: `Max Veloc`",
-    "the flight summary's times of 0, no event, as the TRS manual writes zeroes for a channel that didn't fire (p24): `Main`",
+    "the flight summary's times of 0, no event, as the TRS manual writes zeroes for a channel that didn't fire (p25): `Main`",
     "the flight settings, as the file writes them: `Drogue <1=Normal,2=Backup,0=OFF>` 1; `Main Alt <50-2000 by 50, 0=OFF>` 0; `Freq (Ctrl-F to change)` 921; `ID Code` 0",
-    "1 line of the flight settings holds no setting: the name its owner gave the flight computer (TRS manual p23), left out of the record as free text that may name a person",
+    "1 line of the flight settings holds no setting: the name its owner gave the flight computer (TRS manual p24), left out of the record as free text that may name a person",
     "the flight summary's other lines, as the file writes them: `Base Temp: 51.5 F`; `Beep Code: 0`; `Last Flight Phase: 7` (drogue, TRS manual p37); `Flight Time: 12.000`; `Max Veloc: 200 ft/sec`; `Avg Accel @ Max Veloc: 200.00 ft/sec2`; `G: 6.21`; `LDA: 64 ft`; `Alt @ Unlock: 577 ft`; `Alt @ N-O: 625 ft`; `Alt @ Drogue: 625 ft`; `Alt @ Main: 0 ft`"
   ]
 }

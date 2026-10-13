@@ -226,6 +226,7 @@ struct Report {
     loggers: BTreeMap<String, usize>,
     /// What bears out feet in PerfectFlite's exports, whose header states no unit.
     perfectflite_exports: ExportUnits,
+    pfa_checks: PfaChecks,
     /// How the readers decided the units no header states, by family: each decision, the part of
     /// a record's note before its first `: `, such as `` `Altitude` read in feet, from the
     /// pressure ``, with the number of files whose record carries it.
@@ -246,6 +247,46 @@ struct ExportUnits {
     climb_over_fall_beside_a_pf2_in_feet: [f64; 2],
     climb_over_fall_others_in_feet: [f64; 2],
     climb_over_fall_others_in_meters: [f64; 2],
+}
+
+/// What the `.pfa` samples show of the rate and unit their reader takes from PerfectFlite's
+/// documents, not the file: how many state as many samples as they hold, and an apogee equal to
+/// their highest height; and how many first reach the height that sets off launch detection, 80
+/// ft or the least it can be set to, 40 ft, at their eighth sample, 0.7 s, as 10 samples a second
+/// from 0.7 s before detection place it.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct PfaChecks {
+    files: usize,
+    samples_as_stated: usize,
+    apogee_is_the_highest: usize,
+    detected_at_80_ft: usize,
+    detected_at_40_ft: usize,
+}
+
+impl PfaChecks {
+    fn add(&mut self, log: &hpr_flightdata::log::FlightLog) {
+        const FOOT_M: f64 = 0.3048;
+        self.files += 1;
+        if log.stated.samples == Some(log.altitude_m.len()) {
+            self.samples_as_stated += 1;
+        }
+        let highest = log
+            .altitude_m
+            .iter()
+            .copied()
+            .fold(f64::NEG_INFINITY, f64::max);
+        if log.stated.apogee_m == Some(highest) {
+            self.apogee_is_the_highest += 1;
+        }
+        if let (Some(before), Some(eighth)) = (log.altitude_m.get(6), log.altitude_m.get(7)) {
+            let crosses = |feet: f64| *before < feet * FOOT_M && feet * FOOT_M <= *eighth;
+            if crosses(80.0) {
+                self.detected_at_80_ft += 1;
+            } else if crosses(40.0) {
+                self.detected_at_40_ft += 1;
+            }
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -495,6 +536,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     let mut unread = Vec::new();
     let mut loggers: BTreeMap<String, usize> = BTreeMap::new();
     let mut unit_decisions: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
+    let mut pfa_checks = PfaChecks::default();
     for sample in samples {
         let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
         let read_by = READ.iter().find(|(family, _, _)| *family == sample.family);
@@ -534,6 +576,9 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                     ));
                 }
                 *loggers.entry(log.logger.clone()).or_default() += 1;
+                if log.format == LogFormat::PerfectFlitePfa {
+                    pfa_checks.add(&log);
+                }
                 for decision in log.notes.iter().filter_map(|note| unit_decision(note)) {
                     *unit_decisions
                         .entry(sample.family.clone())
@@ -580,6 +625,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         sources,
         families: families.into_values().collect(),
         perfectflite_exports: export_units(samples),
+        pfa_checks,
         reclassified: RECLASSIFIED
             .iter()
             .map(|(id, from, to, why)| format!("{id} {from} -> {to}: {why}"))
@@ -741,6 +787,19 @@ fn markdown(report: &Report) -> String {
         ratio(units.climb_over_fall_others_in_feet),
         ratio(units.climb_over_fall_others_in_meters)
     );
+    let pfa = &report.pfa_checks;
+    out += &format!(
+        "\nA `.pfa` states neither its rate nor its unit; its reader takes 10 samples a second, in \
+         feet, from PerfectFlite's documents. Of the {} read, {} hold as many heights as \
+         `NumSamps:` states and {} state an `Apogee:` equal to their highest; {} first reach 80 ft, \
+         the height that sets off launch detection, at their eighth sample, 0.7 s, and {} first \
+         reach 40 ft, the least it can be set to, there.\n",
+        pfa.files,
+        pfa.samples_as_stated,
+        pfa.apogee_is_the_highest,
+        pfa.detected_at_80_ft,
+        pfa.detected_at_40_ft
+    );
     if !report.unit_decisions.is_empty() {
         out += "\nUnits no header states, as each file's reader decided them, or kept the column \
                 as written, and noted:\n\n\
@@ -833,6 +892,38 @@ fn hex(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn pfa_checks_count_the_stated_figures_and_the_eighth_sample() {
+        // Invented flights: the first detected at 80 ft at its eighth sample, its figures as
+        // stated; the second at 40 ft, stating one sample too many and an apogee above its highest.
+        let pfa = |ground: &str, heights: &[u32]| {
+            let mut text = format!(
+                "PerfectFlite Alt15K/WD\rGround: 100\rApogee: {ground}\rNumSamps: {}\rComments: \r\r**!!Data: \r",
+                heights.len()
+            );
+            for h in heights {
+                text += &format!("{h:05}\r");
+            }
+            text
+        };
+        let mut checks = PfaChecks::default();
+        let first = pfa("120", &[2, 5, 10, 20, 35, 50, 70, 85, 100, 120, 110, 60, 0]);
+        checks.add(&hpr_flightdata::import::read(first.as_bytes()).unwrap());
+        let second = pfa("90", &[1, 3, 6, 10, 18, 25, 33, 45, 60, 80, 70, 40, 0])
+            .replace("NumSamps: 13", "NumSamps: 14");
+        checks.add(&hpr_flightdata::import::read(second.as_bytes()).unwrap());
+        assert_eq!(
+            checks,
+            PfaChecks {
+                files: 2,
+                samples_as_stated: 1,
+                apogee_is_the_highest: 1,
+                detected_at_80_ft: 1,
+                detected_at_40_ft: 1,
+            }
+        );
+    }
 
     #[test]
     fn csv_records_honor_quotes() {

@@ -83,7 +83,7 @@ fn the_2_10_download_with_cr_line_ends_reads_alike() {
     );
     assert!(log.notes.iter().any(|note| note
         == "the flight summary's times of 0, no event, as the TRS manual writes zeroes for a \
-            channel that didn't fire (p24): `Main`"));
+            channel that didn't fire (p25): `Main`"));
     assert!(log.notes.iter().any(|note| note.starts_with(
         "the flight settings, as the file writes them: `Drogue <1=Normal,2=Backup,0=OFF>` 1; \
          `Main Alt <50-2000 by 50, 0=OFF>` 0; `Freq (Ctrl-F to change)` 921"

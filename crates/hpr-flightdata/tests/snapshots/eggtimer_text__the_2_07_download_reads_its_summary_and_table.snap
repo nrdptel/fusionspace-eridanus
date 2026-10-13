@@ -1342,7 +1342,7 @@ expression: log
     "the flight summary's times are its table markers' to the millisecond, one event each, the marker's: `Apogee` at `Apogee`, `LDA` at `LDA`, `Unlock` at `LowV`, `N-O` at `N-O`, `Drogue Deploy` at `Drogue`, `Main Deploy` at `Main`",
     "the flight summary's times of no marker in the table, each an event of its own: `Max Velocity`",
     "the flight settings, as the file writes them: `Drogue <1=Normal,2=Backup,0=OFF>` 1; `Main Altitude <50-2000 by 50, 0=OFF>` 300; `Frequency (Ctrl-F to change)` 915; `ID Code` 3",
-    "1 line of the flight settings holds no setting: the name its owner gave the flight computer (TRS manual p23), left out of the record as free text that may name a person",
+    "1 line of the flight settings holds no setting: the name its owner gave the flight computer (TRS manual p24), left out of the record as free text that may name a person",
     "the flight summary's other lines, as the file writes them: `Base Temp: 68.0 F`; `Beep Code: 0`; `Last Flight Phase: 8` (main deployed, TRS manual p37); `Flight Time: 12.000`; `Max Velocity: 160 ft/sec`; `Avg Accel @ Max Veloc: 160.00 ft/sec2`; `G: 4.97`; `LDA: 65 ft`; `Altitude @ Unlock: 380 ft`; `Altitude @ N-O: 460 ft`; `Altitude @ Drogue Deploy: 460 ft`; `Altitude @ Main Deploy: 300 ft`"
   ]
 }
