@@ -1587,8 +1587,9 @@ for anyone who flew one, whatever they designed it in.
 
 It reads PerfectFlite's `.pf2` logs so far, the Pnut's, the StratoLogger's and the
 StratoLoggerCF's ([the format](format/pf2.md)). The library reads AltOS's CSV, the Featherweight
-Raven's FIP CSV, the Blue Raven's, the RRC3's and Eggtimer's CSV, PerfectFlite's exports and GPS
-tracks too ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its readings from them
+Raven's FIP CSV, the Blue Raven's, the RRC3's and Eggtimer's CSV, an Eggtimer TRS's terminal text,
+PerfectFlite's exports and older `.pfa`, AltimeterCloud's and Entacore AIM's CSV, and GPS tracks
+too ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its readings from them
 with [M7.2](decisions-and-roadmap.md#m7-2), which validates the readings on other loggers, and the
 other loggers' files come with [M7.1c3](decisions-and-roadmap.md#m7-1c3). It has no
 check yet for a barometer's errors near the speed of sound. If the flight may have come near Mach

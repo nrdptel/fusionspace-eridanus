@@ -310,24 +310,20 @@ const RRC3_PRESSURE_STEP_PA: f64 = 10.0;
 /// the pad, as this finer step makes it.
 const BLUE_RAVEN_PRESSURE_STEP_ATM: f64 = 2.0e-5;
 
-/// The Alt15K/WD's altitude resolution at sea level, ft: "4’@SL, 6’@15KMSL" (*Alt15K/WD User’s
-/// Manual*, PerfectFlite, printed p. 10). Its `.pfa` writes whole feet, finer than the sensor
-/// tells apart.
-const PFA_RESOLUTION_FT: f64 = 4.0;
-
 impl LogFormat {
-    /// The altitude's resolution in the format, m: the smallest step between two altitudes the
-    /// file can tell apart near the ground. A PerfectFlite and an Eggtimer write whole feet,
-    /// though the sensor of an Alt15K/WD, whose `.pfa` does too, tells apart only 4 ft at sea
-    /// level; AltOS and Entacore AIM write their pressure in whole pascals, 0.083 m of altitude at
-    /// sea level; AltimeterCloud writes its altitude to the millimeter, and it steps by that; the
-    /// Raven's
-    /// pressure moves in steps of 4 × 10⁻⁵ atm, 0.337 m at sea level, the Blue Raven's in steps of
-    /// 2 × 10⁻⁵ atm, 0.169 m, and an RRC3's export in steps of 0.1 hPa, 0.832 m. Aloft, those
-    /// from a pressure are larger. A GPS log has no barometric altitude; its formats give the
-    /// coarsest step its GNSS altitude is written in among the sample files: whole feet in
-    /// Featherweight's older tracker log, whole meters in Missile Works' and Big Red Bee's KML,
-    /// and a tenth of a meter in NMEA's `GGA`. A receiver's own error is far larger.
+    /// The altitude's resolution in the format, m: the smallest step between two altitudes the file
+    /// can tell apart near the ground. A PerfectFlite and an Eggtimer write whole feet, an
+    /// Alt15K/WD's `.pfa` too, though that sensor's own resolution is 4 ft at sea level (*Alt15K/WD
+    /// User’s Manual*, p. 10): the step the file writes is taken, not the coarser one, so that a
+    /// tolerance built on it stays tight; AltOS and Entacore AIM write their pressure in whole
+    /// pascals, 0.083 m of altitude at sea level; AltimeterCloud writes its altitude to the
+    /// millimeter, and it steps by that; the Raven's pressure moves in steps of 4 × 10⁻⁵ atm, 0.337
+    /// m at sea level, the Blue Raven's in steps of 2 × 10⁻⁵ atm, 0.169 m, and an RRC3's export in
+    /// steps of 0.1 hPa, 0.832 m. Aloft, those from a pressure are larger. A GPS log has no
+    /// barometric altitude; its formats give the coarsest step its GNSS altitude is written in
+    /// among the sample files: whole feet in Featherweight's older tracker log, whole meters in
+    /// Missile Works' and Big Red Bee's KML, and a tenth of a meter in NMEA's `GGA`. A receiver's
+    /// own error is far larger.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -341,8 +337,7 @@ impl LogFormat {
             Self::FeatherweightGpsCsv => crate::perfectflite::FOOT_M,
             Self::Kml => 1.0,
             Self::Nmea0183 => 0.1,
-            Self::PerfectFlitePfa => PFA_RESOLUTION_FT * crate::perfectflite::FOOT_M,
-            Self::EggtimerText => crate::perfectflite::FOOT_M,
+            Self::PerfectFlitePfa | Self::EggtimerText => crate::perfectflite::FOOT_M,
             Self::AltimeterCloudCsv => 0.001,
             Self::EntacoreAimCsv => ONE_PASCAL_M,
         }
@@ -422,7 +417,7 @@ mod tests {
             (LogFormat::FeatherweightGpsCsv, 0.3048),
             (LogFormat::Kml, 1.0),
             (LogFormat::Nmea0183, 0.1),
-            (LogFormat::PerfectFlitePfa, 1.2192),
+            (LogFormat::PerfectFlitePfa, 0.3048),
             (LogFormat::EggtimerText, 0.3048),
             (LogFormat::EntacoreAimCsv, 0.083_242),
             (LogFormat::AltimeterCloudCsv, 0.001),

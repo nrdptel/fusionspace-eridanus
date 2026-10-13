@@ -105,8 +105,8 @@ const DEBRIEF: [(&str, &str); 23] = [
 const DEBRIEF_SKIPPED: [&str; 2] = ["README.md", "sample-design.ork"];
 
 /// Why a file the catalog files as generic CSV, by its extension, is AltimeterCloud's.
-const ALTIMETERCLOUD: &str = "AltimeterCloud's CSV of a Rocketry Ltd Mercury's flight, filed as \
-    generic CSV by its extension";
+const ALTIMETERCLOUD: &str = "AltimeterCloud's CSV of a Rocketry Ltd altimeter's flight, a Nano \
+    V1's or a Mercury's, filed as generic CSV by its extension";
 /// Why a file the catalog files as generic CSV is Entacore AIM's.
 const ENTACORE_AIM: &str = "Entacore AIM's CSV, each channel group beside its own time column, \
     filed as generic CSV by its extension";

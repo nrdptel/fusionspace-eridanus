@@ -152,7 +152,8 @@ Most units come from the file's own column names or from the maker's manual. A f
 
 ### Units the file decides
 
-Six layouts leave some units out of their headers, and a `.pfa` states none
+These layouts leave some units out of their headers: the RRC3's, Eggtimer's (CSV and terminal
+text), the Blue Raven's, AltimeterCloud's and Entacore AIM's; a `.pfa` states none
 ([below](#perfectflites-older-pfa)). For some, the reader works the unit out from the file as it
 reads it; for the rest, it takes the unit the maker's manual gives, and checks it against the file
 where the file can show a disagreement. Either way it writes a note giving the decision and this
@@ -365,26 +366,34 @@ program as a `.pfa`: a line naming the altimeter, then `Ground:`, `Apogee:`, `Nu
 `Comments:` lines, a blank line, a `**!!Data:` line, and one height a line, such as `00274`. Most
 end their lines in a carriage return alone, as old Macs did; some in CR LF. Both read.
 
+> **How far to trust it.** The file states neither its rate nor its unit; both come from
+> PerfectFlite's documents, not the file, and the 25 sample `.pfa`s agree with them (the survey's
+> `pfa` row of unit decisions counts the note on each).
+
 The file has no time column and names no unit. The altimeter's manual says it takes a sample
-every 100 milliseconds (*Alt15K/WD User's Manual*, p. 2) and reports heights in feet, and
-DataCap's own help says 10 samples a second, so each height is read in feet above the pad, 0.1 s
-after the one before. The 25 sample `.pfa`s bear it out: in every one, `NumSamps:` is the number
-of heights and `Apogee:` the highest of them. Each record says so in a note, which
-[the survey](#how-it-was-checked) counts.
+every 100 milliseconds (*Alt15K/WD User's Manual*, p. 2) and reports heights in feet (p. 6), and
+the help of DataCap 1.10 for the Mac (AltCapWD) says 10 samples a second, so each height is read
+in feet above the pad, 0.1 s after the one before. The 25 sample `.pfa`s bear it out: in every
+one, `NumSamps:` is the number of heights and `Apogee:` the highest of them. Each record says so
+in a note, which [the survey](#how-it-was-checked) counts.
 
 Two things in the file aren't what they look like:
 
-- **Time zero isn't liftoff.** The altimeter keeps the samples from 0.7 s before it noticed the
-  launch, which it does once the rocket is 80 ft up (or the height it was set to, 40 to 250 ft).
-  So it noticed the launch at 0.7 s, and the rocket left the pad before that; a slow one, before
-  time zero. Every sample `.pfa` first reaches 40 or 80 ft at 0.7 s (17 at 80 ft, 8 at 40 ft).
+- **Time zero isn't liftoff.** The altimeter notices a launch once the rocket is 80 ft up
+  (manual, p. 2; a later revision lets it be set from 40 to 250 ft, PerfectFlite's Alt15K
+  specifications page), and keeps the 8 samples before that (p. 2): DataCap's help says sampling
+  "begins at a point 0.7 seconds before the launch is detected". So time zero is 0.7 s before the
+  altimeter noticed the launch. The rocket left the pad before it noticed; a slow rocket may
+  have left before time zero, so the file can miss the first moments of the climb. Every sample
+  `.pfa` first reaches 40 or 80 ft at 0.7 s (17 at 80 ft, 8 at 40 ft).
 - **`Ground:` isn't the pad's elevation.** It is the pad's pressure altitude: the height the day's
-  air pressure would mean if sea-level pressure were the standard 29.92 inHg. DataCap's help
-  says it is about 100 ft off for every 0.1 inHg the day differs, and gives it "for interest
-  only". The record keeps it in a note, not as the ground elevation.
+  air pressure would mean if sea-level pressure were the standard 29.92 inches of mercury (inHg).
+  DataCap's help says it is about 100 ft off for every 0.1 inHg the day differs, and gives it
+  "for interest only". The record keeps it in a note, not as the ground elevation.
 
-A worked example: in the invented sample `perfectflite-alt15k.pfa`, the eighth height, `00088`, is
-the sample at 0.7 s, the first at 80 ft or more, and reads as 88 × 0.3048 = 26.82 m above the pad.
+A worked example: in the invented sample `perfectflite-alt15k.pfa` (read by the test
+`tests/perfectflite_pfa.rs`), the eighth height, `00088`, is the sample at 0.7 s, the first at
+80 ft or more, and reads as 88 × 0.3048 = 26.82 m above the pad.
 
 DataCap's help also says a `NumSamps:` of 2,200 (a revision 2 altimeter) or 2,400 (the original)
 likely means the altimeter lost power in flight, and that older flights then follow this one in

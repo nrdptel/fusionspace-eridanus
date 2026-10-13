@@ -1,13 +1,13 @@
 # ADR-255: M7.1c2 in two: four text loggers first (AltimeterCloud, Entacore AIM, PerfectFlite's `.pfa`, an Eggtimer TRS's terminal text), the rest to M7.1c3 (2026-10-13)
 
 - **Status:** accepted; narrows M7.1c2 to a first increment and moves the rest, with M7.1c2's old entry and *done when* (the parent's), to M7.1c3; follows [ADR-254](0254-gps-tracks-first-among-the-other-importers.md)
-- **Summary:** After M7.1c1, 26 families of sample logs, 653 files, still had no reader: binary downloads, spreadsheets, companion summaries, teams' own CSV and text, and four text layouts a single maker writes. M7.1c2 now reads those four, 54 files: AltimeterCloud's CSV and Entacore AIM's, each with the generic `csv` family's files in its layout moved to it by id, PerfectFlite's `.pfa` and an Eggtimer TRS's terminal text. M7.1c3 keeps the rest and the parent's *done when*, in a planned order: club and app text layouts, raw downloads checked against their makers' exports, AltOS's raw files and the RDAS's, then containers, summaries and the column mapper.
+- **Summary:** After M7.1c1, 26 families of sample logs, 503 files, still had no reader: binary downloads, spreadsheets, companion summaries, teams' own CSV and text, and four text layouts a single maker writes. M7.1c2 now reads those four, 54 files: AltimeterCloud's CSV and Entacore AIM's, each with the generic `csv` family's files in its layout moved to it by id, PerfectFlite's `.pfa` and an Eggtimer TRS's terminal text. M7.1c3 keeps the rest and the parent's *done when*, in a planned order: club and app text layouts, raw downloads checked against their makers' exports, AltOS's raw files and the RDAS's, then containers, summaries and the column mapper.
 
 **Context.** `cargo xtask logs` on main after M7.1c1 (#517) counts 26 families no reader reads,
 from 1 file to 140. A survey of their files sorted them by what reading them takes:
 
 - **One maker's text layout, each in a handful of files:** AltimeterCloud's CSV of a Rocketry
-  Ltd Mercury's flight (1 file in its family, about 10 more filed as generic `csv`), Entacore
+  Ltd Nano V1's or Mercury's flight (1 file in its family, about 10 more filed as generic `csv`), Entacore
   AIM's CSV with a time column before each channel group (1, and about 15 filed as `csv`),
   PerfectFlite's `.pfa`, an Alt15K/WD's flight as one altitude a line with no sample rate in the
   file (25), and an Eggtimer TRS's terminal download, its settings and summary above the table its
