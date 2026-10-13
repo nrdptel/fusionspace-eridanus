@@ -705,9 +705,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m9-5"></a>[M9.5][phase-7] | Optional accounts that save designs and flights and sync them across devices | not yet done |
 | <a id="m9-6"></a>[M9.6][phase-7] | Neer's four web tools (Motor Finder, Charge, Window, Muster) rebuilt as library code and app screens | not yet done |
 | <a id="m9-7"></a>[M9.7][phase-7] | Field equipment and frequencies | not yet done |
-| <a id="m9-8"></a>[M9.8][phase-7] | fusionspace.co, rebuilt | not yet done |
+| <a id="m9-8"></a>[M9.8][done-7] | fusionspace.co, rebuilt | done |
 | <a id="m9-8a"></a>[M9.8a][done-7] | The page and its checks | done |
-| <a id="m9-8b"></a>[M9.8b][phase-7] | The maintainer's use | blocked |
+| <a id="m9-8b"></a>[M9.8b][done-7] | The maintainer's use | done |
 | <a id="m10-1"></a>[M10.1][done-8] | Release 0.1: the simulator | done |
 | <a id="m10-1a"></a>[M10.1a][done-8] | The flight and design fixes | done |
 | <a id="m10-1b"></a>[M10.1b][done-8] | The data, network and Python fixes | done |
