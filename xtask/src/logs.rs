@@ -48,8 +48,8 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The other families'
-/// files are M7.1c5's.
-pub const READ: [(&str, LogFormat, &str); 22] = [
+/// files are M7.1c6's.
+pub const READ: [(&str, LogFormat, &str); 24] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -84,6 +84,8 @@ pub const READ: [(&str, LogFormat, &str); 22] = [
     ),
     ("phone-launch-csv", LogFormat::PhoneLaunchCsv, "M7.1c4"),
     ("eggtimer-rtf", LogFormat::EggtimerRtf, "M7.1c4"),
+    ("raven-fipa", LogFormat::RavenFipa, "M7.1c5"),
+    ("rrc3-rff", LogFormat::Rrc3Rff, "M7.1c5"),
 ];
 
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight, and maps
@@ -136,14 +138,14 @@ const FLUCTUS: &str = "Silicdyne Fluctus's CSV, a `sep=;` line then a semicolon-
 /// Why a file the catalog files as generic CSV is an ARTS2's interpreted data.
 const ARTS2: &str = "Ozark Aerospace ARTS2's interpreted data, a `# MET Acc Vel iAlt pAlt` \
     header then comma-separated rows, filed as generic CSV by its extension";
-/// Why a file the catalog files as generic CSV is an ARTS2's raw data, for M7.1c5.
+/// Why a file the catalog files as generic CSV is an ARTS2's raw data, for M7.1c6.
 const ARTS2_RAW: &str = "Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),\
     State` header then the sensors' counts with no calibration in the file, filed as generic CSV \
     by its extension; read with the ARTS2's own `.odf` files";
 /// Why a file the catalog files as generic CSV is the phone app's.
 const PHONE_LAUNCH: &str = "a phone app's `launch….csv`, a header opening \
     `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension";
-/// Why a file the catalog files as RTF is a radio telemetry stream, for M7.1c5.
+/// Why a file the catalog files as RTF is a radio telemetry stream, for M7.1c6.
 const TELEMETRY_RTF: &str = "a radio telemetry stream, lines such as `255,T,…` in a layout no \
     maker's document names yet, saved inside an RTF document; filed as RTF, not a log, by its \
     extension";
@@ -153,7 +155,15 @@ const EGGTIMER_RTF: &str = "an Eggtimer TRS's terminal download, its settings, s
 
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 72] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 73] = [
+    (
+        "d306250ba73ea7f4",
+        "txt",
+        "rrc3-csv",
+        "an mDACS export of an RRC3's flight, tab-separated and in UTF-16, opening after its \
+         UTF-16 byte-order mark with a UTF-8 mark written as three UTF-16 characters; filed as \
+         text by its extension",
+    ),
     (
         "9c5017ab68168088",
         "altos-csv",
@@ -318,6 +328,9 @@ struct Report {
     /// What bears out feet in PerfectFlite's exports, whose header states no unit.
     perfectflite_exports: ExportUnits,
     pfa_checks: PfaChecks,
+    /// The raw downloads against their makers' exports of the same flight, by raw family.
+    #[serde(default)]
+    raw_checks: BTreeMap<String, RawChecks>,
     /// How the readers decided the units no header states, by family: each decision, the part of
     /// a record's note before its first `: `, such as `` `Altitude` read in feet, from the
     /// pressure ``, with the number of files whose record carries it.
@@ -380,6 +393,188 @@ impl PfaChecks {
     }
 }
 
+/// A raw download's family against its maker's exports: of its files, how many have an export
+/// beside them, in the same folder, that their reader reads, and how many of those match one of
+/// them in every sample of every channel the two share; how many samples were compared, and the
+/// worst difference in time, s, and in value, in steps of the raw format's resolution, over the
+/// matching pairs; the export's channels the raw file doesn't hold, such as the export's own
+/// conversions, by name with the number of pairs; and the files with an export beside them that
+/// none matches, by id.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct RawChecks {
+    files: usize,
+    with_an_export_beside: usize,
+    matching_an_export: usize,
+    samples_compared: usize,
+    worst_time_s: f64,
+    worst_value_steps: f64,
+    export_only: BTreeMap<String, usize>,
+    differing: Vec<String>,
+}
+
+/// The raw families, each with its maker's export's format.
+const RAW_EXPORTS: [(&str, LogFormat); 2] = [
+    ("raven-fipa", LogFormat::RavenFipCsv),
+    ("rrc3-rff", LogFormat::Rrc3Csv),
+];
+
+/// Whether an export's time is a raw file's, printed: the FIP's newer exports print a time to six
+/// significant figures, so the two agree within half a unit of the sixth, or a microsecond, and
+/// the rounding of a single-precision float, `2⁻²⁴` of the time, as a tick exactly halfway, at
+/// 10.00875 s, prints 10.0087.
+fn times_agree(export: f64, raw: f64) -> bool {
+    let printed = if raw == 0.0 {
+        0.0
+    } else {
+        0.5 * 10f64.powf(raw.abs().log10().floor() - 5.0)
+    };
+    (export - raw).abs() <= printed.max(1e-6) + raw.abs() * 2f64.powi(-24)
+}
+
+/// The step of a raw format's channel, in SI: its word's resolution, from the readers' docs.
+fn raw_step(format: LogFormat, quantity: hpr_flightdata::log::Quantity) -> Option<f64> {
+    use hpr_flightdata::log::Quantity as Q;
+    const G0: f64 = 9.806_65;
+    match (format, quantity) {
+        (LogFormat::RavenFipa, Q::Acceleration) => Some(0.01 * G0),
+        (LogFormat::RavenFipa, Q::Pressure) => Some(101_325.0 / 25_000.0),
+        (LogFormat::RavenFipa, Q::Voltage | Q::Current) => Some(0.001),
+        (LogFormat::RavenFipa, Q::Temperature) => Some(0.01 * 5.0 / 9.0),
+        (LogFormat::RavenFipa, Q::Speed) => Some(0.1 * 0.3048),
+        (LogFormat::Rrc3Rff, Q::Pressure) => Some(10.0),
+        _ => None,
+    }
+}
+
+/// A channel's name for matching: in lower case, with a bracketed unit after it, such as
+/// `Pressure [mbar]`, taken off.
+fn channel_key(column: &str) -> String {
+    let column = column.trim();
+    let column = match column.rfind(" [") {
+        Some(at) if column.ends_with(']') && at > 0 => &column[..at],
+        _ => column,
+    };
+    column.trim().to_ascii_lowercase()
+}
+
+/// How a raw record compares with an export's: `None` if a sample differs; otherwise the samples
+/// compared, the worst time and value differences, and the export's channels the raw lacks.
+///
+/// An export whose channels each keep their own clock lists the raw channel's samples one for
+/// one, though it may stop a channel early, as the FIP does the accelerometer's velocity at
+/// apogee. An export with one clock for every channel, a row each tick, holds each channel's
+/// last sample until its next: each of its values must be the raw channel's latest sample at or
+/// before its time, or its first before that, and every raw sample within the export's span then
+/// shows at its own tick; such an export stops a channel early by holding its last value to the
+/// end.
+fn compare_raw(
+    raw: &hpr_flightdata::log::FlightLog,
+    export: &hpr_flightdata::log::FlightLog,
+) -> Option<(usize, f64, f64, Vec<String>)> {
+    let one_clock = export
+        .channels
+        .windows(2)
+        .all(|pair| pair[0].time_s == pair[1].time_s);
+    let (mut samples, mut worst_time, mut worst_steps) = (0, 0.0f64, 0.0f64);
+    let mut export_only = Vec::new();
+    let mut compared_channels = 0;
+    for channel in &export.channels {
+        let key = channel_key(&channel.column);
+        let Some(own) = raw
+            .channels
+            .iter()
+            .find(|own| channel_key(&own.column) == key && own.quantity == channel.quantity)
+        else {
+            export_only.push(channel.column.clone());
+            continue;
+        };
+        let step = raw_step(raw.format, own.quantity)?;
+        if own.values.is_empty() || (!one_clock && channel.values.len() > own.values.len()) {
+            return None;
+        }
+        let mut j = 0;
+        for (i, (time, value)) in channel.time_s.iter().zip(&channel.values).enumerate() {
+            if one_clock {
+                while j + 1 < own.time_s.len()
+                    && (own.time_s[j + 1] <= *time || times_agree(*time, own.time_s[j + 1]))
+                {
+                    j += 1;
+                }
+            } else {
+                j = i;
+                if !times_agree(*time, own.time_s[j]) {
+                    return None;
+                }
+                worst_time = worst_time.max((time - own.time_s[j]).abs());
+            }
+            // A gap in the export is a gap in the raw file too, or a difference.
+            if value.is_nan() != own.values[j].is_nan() {
+                return None;
+            }
+            if !value.is_nan() {
+                let steps = (value - own.values[j]).abs() / step;
+                if steps > 0.5 {
+                    // A one-clock export stops a channel early by holding its last value to the
+                    // end: the rest isn't compared.
+                    let held = i > 0
+                        && channel.values[i..]
+                            .iter()
+                            .all(|later| later.to_bits() == channel.values[i - 1].to_bits());
+                    if one_clock && held {
+                        break;
+                    }
+                    return None;
+                }
+                worst_steps = worst_steps.max(steps);
+            }
+            samples += 1;
+        }
+        compared_channels += 1;
+    }
+    (compared_channels > 0).then_some((samples, worst_time, worst_steps, export_only))
+}
+
+/// [`RawChecks`] over the samples, each raw family's files against the exports in their folder.
+fn raw_checks(samples: &[Sample]) -> BTreeMap<String, RawChecks> {
+    let mut checks = BTreeMap::new();
+    for (family, export_format) in RAW_EXPORTS {
+        let entry: &mut RawChecks = checks.entry(family.to_owned()).or_default();
+        for sample in samples.iter().filter(|sample| sample.family == family) {
+            let Ok(raw) = hpr_flightdata::import::read(&sample.bytes) else {
+                continue;
+            };
+            entry.files += 1;
+            let folder = sample.path.parent();
+            let exports: Vec<_> = samples
+                .iter()
+                .filter(|other| other.path.parent() == folder && other.path != sample.path)
+                .filter(|other| hpr_flightdata::import::detect(&other.bytes) == Some(export_format))
+                .filter_map(|other| hpr_flightdata::import::read(&other.bytes).ok())
+                .collect();
+            if exports.is_empty() {
+                continue;
+            }
+            entry.with_an_export_beside += 1;
+            match exports.iter().find_map(|export| compare_raw(&raw, export)) {
+                Some((compared, time, steps, only)) => {
+                    entry.matching_an_export += 1;
+                    entry.samples_compared += compared;
+                    entry.worst_time_s = entry.worst_time_s.max(time);
+                    entry.worst_value_steps = entry.worst_value_steps.max(steps);
+                    for column in only.into_iter().collect::<BTreeSet<_>>() {
+                        *entry.export_only.entry(column).or_default() += 1;
+                    }
+                }
+                None => entry
+                    .differing
+                    .push(hex(&Sha256::digest(&sample.bytes))[..16].to_owned()),
+            }
+        }
+        entry.differing.sort();
+    }
+    checks
+}
+
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct SourceCount {
     source: String,
@@ -393,7 +588,7 @@ struct SourceCount {
 struct FamilyRow {
     family: String,
     /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1`, `M7.1c2`, `M7.1c3`),
-    /// `M7.1c5` for one not yet read, `damaged`, or `not a log`.
+    /// `M7.1c6` for one not yet read, `damaged`, or `not a log`.
     increment: String,
     files: usize,
     read: usize,
@@ -643,7 +838,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
             "not a log"
         } else {
-            "M7.1c5"
+            "M7.1c6"
         };
         let row = families
             .entry(sample.family.clone())
@@ -721,6 +916,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         families: families.into_values().collect(),
         perfectflite_exports: export_units(samples),
         pfa_checks,
+        raw_checks: raw_checks(samples),
         reclassified: RECLASSIFIED
             .iter()
             .map(|(id, from, to, why)| format!("{id} {from} -> {to}: {why}"))
@@ -729,6 +925,15 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         unit_decisions,
         files,
     };
+    // A raw file must match an export beside it wherever one is: a decoding that differs from
+    // the maker's own is as unread as a refusal.
+    for (family, checks) in &report.raw_checks {
+        for id in &checks.differing {
+            unread.push(format!(
+                "  {id} ({family}): differs from every export of its maker's beside it"
+            ));
+        }
+    }
     (report, unread)
 }
 
@@ -814,6 +1019,7 @@ fn refusal(error: &LogError) -> &'static str {
         LogError::Syntax { .. } => "syntax",
         LogError::NoData { .. } => "no-data",
         LogError::Unit { .. } => "unit",
+        LogError::Binary { .. } => "binary",
         _ => "other",
     }
 }
@@ -895,6 +1101,42 @@ fn markdown(report: &Report) -> String {
         pfa.detected_at_80_ft,
         pfa.detected_at_40_ft
     );
+    if !report.raw_checks.is_empty() {
+        out += "\nThe raw downloads against their makers' exports of the same flight, an export \
+                being one beside the raw file, in its folder, that its reader reads; a match \
+                agrees in every sample of every channel the two share, within half a step of the \
+                raw format's resolution and the export's printed time (six significant figures, or a \
+                microsecond):\n\n\
+                | Family | Files | With an export | Matching one | Samples compared | Worst \
+                time, s | Worst value, steps | Export only | Differing |\n\
+                |---|---:|---:|---:|---:|---:|---:|---|---|\n";
+        for (family, checks) in &report.raw_checks {
+            let only: Vec<String> = checks
+                .export_only
+                .iter()
+                .map(|(column, pairs)| format!("`{column}` ({pairs})"))
+                .collect();
+            out += &format!(
+                "| {family} | {} | {} | {} | {} | {:.1e} | {:.3} | {} | {} |\n",
+                checks.files,
+                checks.with_an_export_beside,
+                checks.matching_an_export,
+                checks.samples_compared,
+                checks.worst_time_s,
+                checks.worst_value_steps,
+                if only.is_empty() {
+                    "none".to_owned()
+                } else {
+                    only.join(", ")
+                },
+                if checks.differing.is_empty() {
+                    "none".to_owned()
+                } else {
+                    checks.differing.join(", ")
+                }
+            );
+        }
+    }
     if !report.unit_decisions.is_empty() {
         out += "\nUnits no header states, as each file's reader decided them, or kept the column \
                 as written, and noted:\n\n\

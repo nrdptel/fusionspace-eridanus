@@ -45,11 +45,14 @@ use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
 use crate::{
     aerospacenu_fcb, aerospacenu_gs, altimetercloud, altos, arts2, blueraven, eggtimer, entacore,
-    fluctus, fwgps, kml, nmea, perfectflite, phone_launch, raven, rrc3, sillygoose,
+    fluctus, fwgps, kml, nmea, perfectflite, phone_launch, raven, raven_fipa, rrc3, rrc3_rff,
+    sillygoose,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
 pub const FORMATS: &[LogFormat] = &[
+    LogFormat::RavenFipa,
+    LogFormat::Rrc3Rff,
     LogFormat::EggtimerRtf,
     LogFormat::AerospaceNuGroundStationText,
     LogFormat::Kml,
@@ -75,20 +78,23 @@ pub const FORMATS: &[LogFormat] = &[
 ];
 
 /// A file's bytes as text: UTF-8, or UTF-16 if the file opens with UTF-16's byte-order mark, as
-/// Debrief's notes say some mDACS exports of an RRC3's flight are (none of the project's sample
-/// files is); any byte-order mark dropped, and a byte, or a pair of them, that isn't a character
-/// replaced by U+FFFD.
+/// some mDACS exports of an RRC3's flight are; any byte-order mark dropped, and a byte, or a pair
+/// of them, that isn't a character replaced by U+FFFD. One such export, among the project's sample
+/// files, opens after its UTF-16 mark with a UTF-8 mark's three bytes, each written as a UTF-16
+/// character (`ï»¿`): they are dropped too, as the mark they are.
 pub fn decode(bytes: &[u8]) -> Cow<'_, str> {
     let utf16 = |bytes: &[u8], unit: fn([u8; 2]) -> u16| {
         let (pairs, odd) = bytes.as_chunks::<2>();
         // An odd byte at the end is half a character.
         let odd = (!odd.is_empty()).then_some(char::REPLACEMENT_CHARACTER);
-        Cow::Owned(
-            char::decode_utf16(pairs.iter().map(|pair| unit(*pair)))
-                .map(|c| c.unwrap_or(char::REPLACEMENT_CHARACTER))
-                .chain(odd)
-                .collect(),
-        )
+        let text: String = char::decode_utf16(pairs.iter().map(|pair| unit(*pair)))
+            .map(|c| c.unwrap_or(char::REPLACEMENT_CHARACTER))
+            .chain(odd)
+            .collect();
+        Cow::Owned(match text.strip_prefix("\u{ef}\u{bb}\u{bf}") {
+            Some(rest) => rest.to_owned(),
+            None => text,
+        })
     };
     if let Some(rest) = bytes.strip_prefix(b"\xff\xfe") {
         utf16(rest, u16::from_le_bytes)
@@ -103,7 +109,18 @@ pub fn decode(bytes: &[u8]) -> Cow<'_, str> {
 /// The format of a log, recognized from its first line that isn't blank; `None` for a layout HPR
 /// Sim doesn't read.
 pub fn detect(bytes: &[u8]) -> Option<LogFormat> {
-    detect_text(&decode(bytes))
+    detect_binary(bytes).or_else(|| detect_text(&decode(bytes)))
+}
+
+/// The binary formats, told by their bytes: their text would be mojibake.
+fn detect_binary(bytes: &[u8]) -> Option<LogFormat> {
+    if raven_fipa::recognizes(bytes) {
+        Some(LogFormat::RavenFipa)
+    } else if rrc3_rff::recognizes(bytes) {
+        Some(LogFormat::Rrc3Rff)
+    } else {
+        None
+    }
 }
 
 fn detect_text(text: &str) -> Option<LogFormat> {
@@ -197,8 +214,14 @@ fn detect_text(text: &str) -> Option<LogFormat> {
 /// [`LogError::Unrecognized`] for a layout HPR Sim doesn't read, naming those it does; otherwise
 /// whatever the format's reader refuses.
 pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
-    let text = decode(bytes);
-    match detect_text(&text) {
+    // A binary file isn't decoded as text: its bytes are the reader's.
+    let binary = detect_binary(bytes);
+    let text = if binary.is_some() {
+        Cow::Borrowed("")
+    } else {
+        decode(bytes)
+    };
+    match binary.or_else(|| detect_text(&text)) {
         Some(LogFormat::PerfectFlitePf2) => perfectflite::read(&text),
         Some(LogFormat::PerfectFlitePfa) => perfectflite::read_pfa(&text),
         Some(LogFormat::PerfectFliteCsv | LogFormat::PerfectFliteText) => {
@@ -222,6 +245,8 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::AerospaceNuGroundStationText) => aerospacenu_gs::read(&text),
         Some(LogFormat::PhoneLaunchCsv) => phone_launch::read(&text),
         Some(LogFormat::EggtimerRtf) => eggtimer::read_rtf(&text),
+        Some(LogFormat::RavenFipa) => raven_fipa::read(bytes),
+        Some(LogFormat::Rrc3Rff) => rrc3_rff::read(bytes),
         None => {
             let known: Vec<&str> = FORMATS.iter().map(|format| format.name()).collect();
             Err(LogError::Unrecognized {

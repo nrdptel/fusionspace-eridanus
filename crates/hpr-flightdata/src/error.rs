@@ -37,6 +37,16 @@ pub enum LogError {
         /// The file format.
         format: &'static str,
     },
+    /// A binary file's bytes aren't laid out as its format's, such as a frame whose checksum fails.
+    #[error("{format} byte {offset}: {message}")]
+    Binary {
+        /// The file format.
+        format: &'static str,
+        /// The 0-based offset of the byte where the reader found the fault.
+        offset: usize,
+        /// What is wrong.
+        message: String,
+    },
     /// The file states its values in a unit the reader doesn't know, such as a PerfectFlite file
     /// whose stated apogee carries no foot mark.
     #[error("{format} line {line}: {message}")]

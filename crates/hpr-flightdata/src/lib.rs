@@ -72,8 +72,10 @@ pub mod nmea;
 pub mod perfectflite;
 pub mod phone_launch;
 pub mod raven;
+pub mod raven_fipa;
 pub mod readings;
 pub mod rrc3;
+pub mod rrc3_rff;
 pub mod sillygoose;
 mod table;
 
