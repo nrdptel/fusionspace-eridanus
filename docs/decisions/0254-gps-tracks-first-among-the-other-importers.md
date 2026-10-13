@@ -23,8 +23,8 @@ in where a point's time is:
   each point's time, height or satellite count in an XML comment beside it instead (AltOS, Big
   Red Bee's BeeLine and one more); the rest (fw2kml's paths, Missile Works' RTx, GPS Visualizer)
   give no time at all. One sample is four identical documents one after another; one isn't
-  valid UTF-8; two end in a 128 KiB hex dump inside a comment. One, a map drawn in Google Earth
-  of a design's predicted tracks, isn't a flight log.
+  valid UTF-8; two end in a 128 KiB hex dump inside a comment. One, a map of a flight's predicted
+  tracks made before it flew, isn't a flight log.
 
 **Decision.**
 
@@ -57,7 +57,7 @@ in where a point's time is:
    the data (fw2kml's KML of the same flight holds `ALT` × 0.3048 m; `VERTV` matches the change
    of `ALT` a second), each a counted note. A writer known to break the standard's unit has its
    column kept as written, with a note.
-6. **Not every KML is a flight.** The Google Earth map of predicted tracks moves to a family of
+6. **Not every KML is a flight.** The map of predicted tracks moves to a family of
    files that aren't logs, by id, with the reason, as M7.1a's reclassified files do.
 7. **Hostile input stays bounded.** XML is parsed by `roxmltree`, already a dependency, which
    refuses a document type declaration and so any entity expansion; per-satellite and

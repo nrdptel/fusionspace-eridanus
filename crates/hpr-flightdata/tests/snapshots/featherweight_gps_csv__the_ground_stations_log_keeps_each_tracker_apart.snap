@@ -412,9 +412,9 @@ expression: log
   ],
   "events": [],
   "notes": [
-    "`VERTV` read in feet per second, from the manual and the change of altitude: the file has too few pairs of moving rows to compare, 1 of the 10 needed",
-    "`HORZV` read in feet per second, from the manual and the change of position: the file has too few pairs of moving rows to compare, 0 of the 10 needed",
-    "`ALT` read in feet, from the manual and the vertical speed: the manual gives `VERTV` in feet per second, and the file has too few pairs of moving rows to compare, 1 of the 10 needed",
+    "`VERTV` read in feet per second, from the manual alone: the file has too few pairs of moving rows to compare, 1 of the 10 needed",
+    "`HORZV` read in feet per second, from the manual alone: the file has too few pairs of moving rows to compare, 0 of the 10 needed",
+    "`ALT` read in feet, from the manual alone: the manual gives `VERTV` in feet per second, and the file has too few pairs of moving rows to compare, 1 of the 10 needed",
     "`HEAD` read in degrees, from the manual and its range: it runs from 0 to 180",
     "`BATT` read in volts, from its range: it reads 0 on every row, which no unit changes",
     "the log has no barometer, so the record's altitude track is empty: a GPS tracker's file holds positions only, and every column is a channel",

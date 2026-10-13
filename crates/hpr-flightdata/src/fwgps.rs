@@ -49,7 +49,7 @@
 //! | `Launch detection`, `Apogee detection`, `Landing detection` | [`Quantity::Number`], 1 for `TRUE` and 0 for `FALSE` | the manual's "flag"s (p17) |
 //!
 //! `>40`, `>32` and `>24` are, in the manual's words, the "Number of GPS satellites with > 40
-//! signal strength" and so on (p17), its colour table giving signal strengths in dB-Hz (p10). `FLAGS` is written in hexadecimal (`0x03`) in the
+//! signal strength" and so on (p17), its color table giving signal strengths in dB-Hz (p10). `FLAGS` is written in hexadecimal (`0x03`) in the
 //! older tracker log and both ground-station logs, and in decimal in the newer tracker log; either
 //! is read as the number it writes. A column the reader doesn't know is kept as written,
 //! [`Quantity::Unrecognized`], with a note.
@@ -70,7 +70,8 @@
 //!   or more, and between 0.95 and 1.32 for `HORZV` in the 37 such files (1.32 in one
 //!   ground-station log, the rest below 1.08); meters per second would give 3.28, knots 1.69,
 //!   miles per hour 1.47. A median outside 0.7 to 1.4 over 10 pairs or more keeps the column as
-//!   written, with a note; with fewer pairs the manual decides. Kilometers per hour would give 0.91, inside the band: the manual,
+//!   written, with a note; with fewer pairs the manual decides,
+//!   and the note says `from the manual alone`. Kilometers per hour would give 0.91, inside the band: the manual,
 //!   not the check, rules them out. Pairs a tenth of a second apart are left out: in one of the
 //!   older tracker logs, whose rows step back and repeat, the distance over such pairs runs 1.6
 //!   times `HORZV`, where over pairs a second apart it runs 1.02 times.
@@ -1083,6 +1084,15 @@ impl Check {
             ),
         }
     }
+
+    /// What decided the unit, as a note says before its colon: the manual and `checked` where
+    /// the check ran, the manual alone where it had too few pairs.
+    fn source(self, checked: &str) -> String {
+        match self {
+            Self::TooFew(_) => "from the manual alone".to_owned(),
+            Self::Agrees(..) | Self::Disagrees(..) => format!("from the manual and {checked}"),
+        }
+    }
 }
 
 /// What a speed is checked against.
@@ -1202,8 +1212,8 @@ impl Decisions {
             );
             notes.push(if vertical_read {
                 format!(
-                    "`VERTV` read in feet per second, from the manual and the change of altitude: \
-                     {evidence}"
+                    "`VERTV` read in feet per second, {}: {evidence}",
+                    vertical.source("the change of altitude")
                 )
             } else {
                 format!(
@@ -1223,8 +1233,8 @@ impl Decisions {
                 horizontal.words("the distance between fixes a second, in feet,", "HORZV");
             notes.push(if horizontal_read {
                 format!(
-                    "`HORZV` read in feet per second, from the manual and the change of position: \
-                     {evidence}"
+                    "`HORZV` read in feet per second, {}: {evidence}",
+                    horizontal.source("the change of position")
                 )
             } else {
                 format!(
@@ -1434,7 +1444,10 @@ fn heights_note(
     } else {
         (
             true,
-            format!("{names} read in feet, from the manual and the vertical speed: {evidence}"),
+            format!(
+                "{names} read in feet, {}: {evidence}",
+                vertical.source("the vertical speed")
+            ),
         )
     }
 }
@@ -1820,7 +1833,7 @@ mod tests {
         assert_eq!(channel(&log, "ALT").quantity, Quantity::GnssAltitude);
         assert_eq!(
             log.notes[0],
-            "`VERTV` read in feet per second, from the manual and the change of altitude: the file \
+            "`VERTV` read in feet per second, from the manual alone: the file \
              has too few pairs of moving rows to compare, 4 of the 10 needed"
         );
     }

@@ -397,10 +397,6 @@ The formats, reading methods and log corpus come from Debrief, written up in `do
   snapshot-tested, and the crate builds with no dependency on `hpr-sim` (`cargo xtask wasm-check`).
   Formats without samples are listed in the docs as needing samples.
   - [ ] **M7.1c The other importers** (ADR-254): in two.
-    - [ ] **M7.1c1 GPS tracks:** Featherweight's GPS CSV (tracker and ground station), KML,
-      NMEA 0183, each with an empty primary track. *Done when:* every `fwgps-csv`, `kml` and
-      `nmea` sample in refs imports (`cargo xtask logs --check`), and a unit or clock the file
-      doesn't state is decided from the file or a source in a note the survey counts.
     - [ ] **M7.1c2 The rest:** AltOS eeprom, RRC3 RFF, Blue Raven's other files, PerfectFlite
       `.pfa`, Entacore AIM, AltimeterCloud, spreadsheets, CATS; EuRoC/Juno CSV; generic CSV
       with column mapping; unit detection. *Done when:* the parent's.

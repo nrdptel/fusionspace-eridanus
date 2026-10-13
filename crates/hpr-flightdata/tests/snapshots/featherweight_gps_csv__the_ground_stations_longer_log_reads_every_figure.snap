@@ -540,8 +540,8 @@ expression: log
   ],
   "events": [],
   "notes": [
-    "`VERTV` read in feet per second, from the manual and the change of altitude: the file has too few pairs of moving rows to compare, 2 of the 10 needed",
-    "`HORZV` read in feet per second, from the manual and the change of position: the file has too few pairs of moving rows to compare, 0 of the 10 needed",
+    "`VERTV` read in feet per second, from the manual alone: the file has too few pairs of moving rows to compare, 2 of the 10 needed",
+    "`HORZV` read in feet per second, from the manual alone: the file has too few pairs of moving rows to compare, 0 of the 10 needed",
     "`GS Alt asl`, `TRACKER Alt asl`, `Found rocket altitude` and `GS_ASL_offset` read in feet, from the manual and `Alt AGL (ft)`: `Alt AGL (ft)` is `TRACKER Alt asl` less `GS Alt asl` and `GS_ASL_offset`, to 0.15 ft, on 3 of 3 rows",
     "`HEAD` read in degrees, from the manual and its range: it runs from 45 to 45",
     "`BATT` read in volts, from its range: it runs from 4.01 to 4.01, where one lithium cell reads up to about 4.2 V and the ground station's serial millivolts would be thousands",
