@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+  <name>AO Flight#7 S/N: 4321</name>
+  <description>
+Date:   2147483647-2147483647-2147483647
+Time:     2147483647:2147483647:2147483647
+  </description>
+  <open>0</open>
+  <Style id="ao-flightstate-pad">
+    <LineStyle><color>FF000000</color><width>4</width></LineStyle>
+  </Style>
+  <Placemark>
+    <name>pad</name>
+    <styleUrl>#ao-flightstate-pad</styleUrl>
+    <LineString>
+      <tessellate>1</tessellate>
+      <altitudeMode>absolute</altitudeMode>
+      <coordinates>
+        -100.0000000,40.0000000,600.2500000 <!-- alt 602.0000000 time  300.0000000 sats 7 -->
+        -100.0000000,40.0000000,601.5000000 <!-- alt 602.0000000 time  301.0000000 sats 7 -->
+      </coordinates>
+    </LineString>
+  </Placemark>
+  <Style id="ao-flightstate-boost">
+    <LineStyle><color>FF000000</color><width>4</width></LineStyle>
+  </Style>
+  <Placemark>
+    <name>boost</name>
+    <styleUrl>#ao-flightstate-boost</styleUrl>
+    <LineString>
+      <tessellate>1</tessellate>
+      <altitudeMode>absolute</altitudeMode>
+      <coordinates>
+        -100.0000000,40.0000000,601.5000000 <!-- alt 602.0000000 time  301.0000000 sats 7 -->
+        -100.0000000,40.0000000,900.7500000 <!-- alt 640.0000000 time  302.0000000 sats 4 -->
+        -100.0000000,40.0000000,1500.5000000 <!-- alt 640.0000000 time  303.0100000 sats 3 -->
+      </coordinates>
+    </LineString>
+  </Placemark>
+  <Style id="ao-flightstate-drogue">
+    <LineStyle><color>FF000000</color><width>4</width></LineStyle>
+  </Style>
+  <Placemark>
+    <name>drogue</name>
+    <styleUrl>#ao-flightstate-drogue</styleUrl>
+    <LineString>
+      <tessellate>1</tessellate>
+      <altitudeMode>absolute</altitudeMode>
+      <coordinates>
+        -100.0000000,40.0000000,1500.5000000 <!-- alt 640.0000000 time  303.0100000 sats 3 -->
+        -100.0000050,40.0000000,1450.0000000 <!-- alt 640.0000000 time  304.0000000 sats 3 -->
+        -100.0000090,40.0000000,1400.2500000 <!-- alt 1395.0000000 time  305.0000000 sats 6 -->
+      </coordinates>
+    </LineString>
+  </Placemark>
+</Document>
+</kml>

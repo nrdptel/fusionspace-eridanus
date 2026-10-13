@@ -1,0 +1,384 @@
+---
+source: crates/hpr-flightdata/tests/kml.rs
+expression: log
+---
+{
+  "format": "kml",
+  "logger": "AltOS TeleMetrum-v9.9",
+  "serial_number": "5678",
+  "firmware": "9.9.9",
+  "flight_number": 2,
+  "stated": {
+    "apogee_m": 1097.28,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "Barometric Altitude latitude",
+      "quantity": "latitude",
+      "time_s": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        40.0,
+        40.000002,
+        40.000009,
+        40.000015,
+        40.00003
+      ]
+    },
+    {
+      "column": "Barometric Altitude longitude",
+      "quantity": "longitude",
+      "time_s": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        -100.0,
+        -100.000001,
+        -100.000004,
+        -100.000008,
+        -100.00002
+      ]
+    },
+    {
+      "column": "Barometric Altitude altitude",
+      "quantity": "altitude_msl",
+      "time_s": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        3.25,
+        150.5,
+        900.125,
+        1100.0,
+        2.5
+      ]
+    },
+    {
+      "column": "Barometric Altitude GPS altitude",
+      "quantity": "gnss_altitude",
+      "time_s": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        2.0,
+        60.0,
+        700.0,
+        1110.0,
+        4.0
+      ]
+    },
+    {
+      "column": "Barometric Altitude satellites",
+      "quantity": "number",
+      "time_s": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        8.0,
+        8.0,
+        7.0,
+        9.0,
+        9.0
+      ]
+    },
+    {
+      "column": "Boost (Baro) latitude",
+      "quantity": "latitude",
+      "time_s": [
+        null
+      ],
+      "values": [
+        40.0
+      ]
+    },
+    {
+      "column": "Boost (Baro) longitude",
+      "quantity": "longitude",
+      "time_s": [
+        null
+      ],
+      "values": [
+        -100.0
+      ]
+    },
+    {
+      "column": "Boost (Baro) altitude",
+      "quantity": "altitude_msl",
+      "time_s": [
+        null
+      ],
+      "values": [
+        -0.25
+      ]
+    },
+    {
+      "column": "Boost (Baro) GPS altitude",
+      "quantity": "gnss_altitude",
+      "time_s": [
+        null
+      ],
+      "values": [
+        2.0
+      ]
+    },
+    {
+      "column": "Boost (Baro) satellites",
+      "quantity": "number",
+      "time_s": [
+        null
+      ],
+      "values": [
+        8.0
+      ]
+    },
+    {
+      "column": "Boost (Baro) (2) latitude",
+      "quantity": "latitude",
+      "time_s": [
+        null
+      ],
+      "values": [
+        40.000002
+      ]
+    },
+    {
+      "column": "Boost (Baro) (2) longitude",
+      "quantity": "longitude",
+      "time_s": [
+        null
+      ],
+      "values": [
+        -100.000001
+      ]
+    },
+    {
+      "column": "Boost (Baro) (2) altitude",
+      "quantity": "altitude_msl",
+      "time_s": [
+        null
+      ],
+      "values": [
+        150.5
+      ]
+    },
+    {
+      "column": "Boost (Baro) (2) GPS altitude",
+      "quantity": "gnss_altitude",
+      "time_s": [
+        null
+      ],
+      "values": [
+        60.0
+      ]
+    },
+    {
+      "column": "Boost (Baro) (2) satellites",
+      "quantity": "number",
+      "time_s": [
+        null
+      ],
+      "values": [
+        8.0
+      ]
+    },
+    {
+      "column": "Drogue (Baro) latitude",
+      "quantity": "latitude",
+      "time_s": [
+        null
+      ],
+      "values": [
+        40.000015
+      ]
+    },
+    {
+      "column": "Drogue (Baro) longitude",
+      "quantity": "longitude",
+      "time_s": [
+        null
+      ],
+      "values": [
+        -100.000008
+      ]
+    },
+    {
+      "column": "Drogue (Baro) altitude",
+      "quantity": "altitude_msl",
+      "time_s": [
+        null
+      ],
+      "values": [
+        1100.0
+      ]
+    },
+    {
+      "column": "Drogue (Baro) GPS altitude",
+      "quantity": "gnss_altitude",
+      "time_s": [
+        null
+      ],
+      "values": [
+        1110.0
+      ]
+    },
+    {
+      "column": "Drogue (Baro) satellites",
+      "quantity": "number",
+      "time_s": [
+        null
+      ],
+      "values": [
+        9.0
+      ]
+    },
+    {
+      "column": "GPS Altitude latitude",
+      "quantity": "latitude",
+      "time_s": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        40.0,
+        40.000002,
+        40.000009,
+        40.000015,
+        40.00003
+      ]
+    },
+    {
+      "column": "GPS Altitude longitude",
+      "quantity": "longitude",
+      "time_s": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        -100.0,
+        -100.000001,
+        -100.000004,
+        -100.000008,
+        -100.00002
+      ]
+    },
+    {
+      "column": "GPS Altitude altitude",
+      "quantity": "gnss_altitude",
+      "time_s": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        2.0,
+        60.0,
+        700.0,
+        1110.0,
+        4.0
+      ]
+    },
+    {
+      "column": "GPS Altitude satellites",
+      "quantity": "number",
+      "time_s": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        8.0,
+        8.0,
+        7.0,
+        9.0,
+        9.0
+      ]
+    },
+    {
+      "column": "Drogue (GPS) latitude",
+      "quantity": "latitude",
+      "time_s": [
+        null
+      ],
+      "values": [
+        40.000015
+      ]
+    },
+    {
+      "column": "Drogue (GPS) longitude",
+      "quantity": "longitude",
+      "time_s": [
+        null
+      ],
+      "values": [
+        -100.000008
+      ]
+    },
+    {
+      "column": "Drogue (GPS) altitude",
+      "quantity": "gnss_altitude",
+      "time_s": [
+        null
+      ],
+      "values": [
+        1110.0
+      ]
+    },
+    {
+      "column": "Drogue (GPS) satellites",
+      "quantity": "number",
+      "time_s": [
+        null
+      ],
+      "values": [
+        9.0
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "the record's altitude track is empty: a KML file holds a track's positions, not a barometer's record, so every value is a channel",
+    "the comments' `time` is 0 beside every point, as AltOS leaves it unset in most of its exports: those points have no time",
+    "the file gives none of its 14 points a time: their times are gaps",
+    "`coordinates` read in meters, from the KML standard: OGC 07-147r2 states a tuple's altitude in meters, and 6 of the file's 6 tracks carry one",
+    "the tuples' altitude of 4 AltOS tracks is the barometer's, above sea level: it differs from the GPS altitude AltOS writes beside each point, as its KML export has reported both since AltOS 1.8.3",
+    "`alt` read in meters, from the coordinates: it equals the tuple's altitude at 6 of the 14 points that carry it, and lies 1.2 m from it at the first"
+  ]
+}

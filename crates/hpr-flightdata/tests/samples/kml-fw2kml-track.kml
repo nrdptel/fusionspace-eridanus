@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2">
+	<Document id="1">
+		<Style id="2">
+			<LineStyle id="9">
+				<color>FF61A692</color>
+				<colorMode>normal</colorMode>
+			</LineStyle>
+		</Style>
+		<open>1</open>
+		<Placemark id="40">
+			<name>fw2kml - Flight 0</name>
+			<styleUrl>#2</styleUrl>
+			<gx:Track id="60">
+				<extrude>1</extrude>
+				<altitudeMode>absolute</altitudeMode>
+				<when>2030-01-02T23:59:59.800Z</when>
+				<when>2030-01-02T23:59:59.900Z</when>
+				<when>2030-01-03T00:00:00.000Z</when>
+				<when>2030-01-03T00:00:00.300Z</when>
+				<when>2030-01-03T00:00:01.300Z</when>
+				<gx:coord>-100.00000000 40.00000000 500.0000</gx:coord>
+				<gx:coord>-100.00000000 40.00000000 501.0000</gx:coord>
+				<gx:coord>-100.00001000 40.00002000 560.5000</gx:coord>
+				<gx:coord>-100.00003000 40.00005000 700.2500</gx:coord>
+				<gx:coord>-100.00010000 40.00012000 805.0000</gx:coord>
+			</gx:Track>
+		</Placemark>
+		<gx:Tour>
+			<name>Play Flight Tour</name>
+			<gx:Playlist>
+				<gx:FlyTo>
+					<gx:duration>5.0</gx:duration>
+					<Camera>
+						<longitude>-100.00003000</longitude>
+						<latitude>40.00005000</latitude>
+						<altitude>800.2500</altitude>
+						<altitudeMode>absolute</altitudeMode>
+					</Camera>
+				</gx:FlyTo>
+			</gx:Playlist>
+		</gx:Tour>
+	</Document>
+</kml>

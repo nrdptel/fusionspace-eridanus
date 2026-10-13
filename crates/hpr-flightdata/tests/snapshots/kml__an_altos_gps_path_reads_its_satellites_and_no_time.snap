@@ -1,0 +1,150 @@
+---
+source: crates/hpr-flightdata/tests/kml.rs
+expression: log
+---
+{
+  "format": "kml",
+  "logger": "AltOS TeleGPS-v9.9",
+  "serial_number": "1234",
+  "firmware": "9.9.9",
+  "flight_number": 4,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "GPS Altitude latitude",
+      "quantity": "latitude",
+      "time_s": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        40.0,
+        40.0000017,
+        40.0000034,
+        40.0000051,
+        40.0000068,
+        40.0000085,
+        40.0000102,
+        40.0000119,
+        40.0000136,
+        40.0000153,
+        40.000017
+      ]
+    },
+    {
+      "column": "GPS Altitude longitude",
+      "quantity": "longitude",
+      "time_s": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        -100.0,
+        -100.0000031,
+        -100.0000062,
+        -100.0000093,
+        -100.0000124,
+        -100.0000155,
+        -100.0000186,
+        -100.0000217,
+        -100.0000248,
+        -100.0000279,
+        -100.000031
+      ]
+    },
+    {
+      "column": "GPS Altitude altitude",
+      "quantity": "gnss_altitude",
+      "time_s": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        12.0,
+        11.0,
+        11.0,
+        40.0,
+        380.0,
+        902.0,
+        1240.0,
+        1180.0,
+        700.0,
+        240.0,
+        14.0
+      ]
+    },
+    {
+      "column": "GPS Altitude satellites",
+      "quantity": "number",
+      "time_s": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "values": [
+        5.0,
+        5.0,
+        7.0,
+        8.0,
+        8.0,
+        8.0,
+        9.0,
+        9.0,
+        10.0,
+        10.0,
+        11.0
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "the record's altitude track is empty: a KML file holds a track's positions, not a barometer's record, so every value is a channel",
+    "the comments' `time` is 0 beside every point, as AltOS leaves it unset in most of its exports: those points have no time",
+    "the file gives none of its 11 points a time: their times are gaps",
+    "`coordinates` read in meters, from the KML standard: OGC 07-147r2 states a tuple's altitude in meters, and 1 of the file's 1 tracks carry one"
+  ]
+}

@@ -1,0 +1,232 @@
+---
+source: crates/hpr-flightdata/tests/kml.rs
+expression: log
+---
+{
+  "format": "kml",
+  "logger": "AltOS",
+  "serial_number": "4321",
+  "firmware": null,
+  "flight_number": 7,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "pad latitude",
+      "quantity": "latitude",
+      "time_s": [
+        0.0,
+        1.0
+      ],
+      "values": [
+        40.0,
+        40.0
+      ]
+    },
+    {
+      "column": "pad longitude",
+      "quantity": "longitude",
+      "time_s": [
+        0.0,
+        1.0
+      ],
+      "values": [
+        -100.0,
+        -100.0
+      ]
+    },
+    {
+      "column": "pad altitude",
+      "quantity": "altitude_msl",
+      "time_s": [
+        0.0,
+        1.0
+      ],
+      "values": [
+        600.25,
+        601.5
+      ]
+    },
+    {
+      "column": "pad GPS altitude",
+      "quantity": "gnss_altitude",
+      "time_s": [
+        0.0,
+        1.0
+      ],
+      "values": [
+        602.0,
+        602.0
+      ]
+    },
+    {
+      "column": "pad satellites",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0
+      ],
+      "values": [
+        7.0,
+        7.0
+      ]
+    },
+    {
+      "column": "boost latitude",
+      "quantity": "latitude",
+      "time_s": [
+        1.0,
+        2.0,
+        3.01
+      ],
+      "values": [
+        40.0,
+        40.0,
+        40.0
+      ]
+    },
+    {
+      "column": "boost longitude",
+      "quantity": "longitude",
+      "time_s": [
+        1.0,
+        2.0,
+        3.01
+      ],
+      "values": [
+        -100.0,
+        -100.0,
+        -100.0
+      ]
+    },
+    {
+      "column": "boost altitude",
+      "quantity": "altitude_msl",
+      "time_s": [
+        1.0,
+        2.0,
+        3.01
+      ],
+      "values": [
+        601.5,
+        900.75,
+        1500.5
+      ]
+    },
+    {
+      "column": "boost GPS altitude",
+      "quantity": "gnss_altitude",
+      "time_s": [
+        1.0,
+        2.0,
+        3.01
+      ],
+      "values": [
+        602.0,
+        640.0,
+        640.0
+      ]
+    },
+    {
+      "column": "boost satellites",
+      "quantity": "number",
+      "time_s": [
+        1.0,
+        2.0,
+        3.01
+      ],
+      "values": [
+        7.0,
+        4.0,
+        3.0
+      ]
+    },
+    {
+      "column": "drogue latitude",
+      "quantity": "latitude",
+      "time_s": [
+        3.01,
+        4.0,
+        5.0
+      ],
+      "values": [
+        40.0,
+        40.0,
+        40.0
+      ]
+    },
+    {
+      "column": "drogue longitude",
+      "quantity": "longitude",
+      "time_s": [
+        3.01,
+        4.0,
+        5.0
+      ],
+      "values": [
+        -100.0,
+        -100.000005,
+        -100.000009
+      ]
+    },
+    {
+      "column": "drogue altitude",
+      "quantity": "altitude_msl",
+      "time_s": [
+        3.01,
+        4.0,
+        5.0
+      ],
+      "values": [
+        1500.5,
+        1450.0,
+        1400.25
+      ]
+    },
+    {
+      "column": "drogue GPS altitude",
+      "quantity": "gnss_altitude",
+      "time_s": [
+        3.01,
+        4.0,
+        5.0
+      ],
+      "values": [
+        640.0,
+        640.0,
+        1395.0
+      ]
+    },
+    {
+      "column": "drogue satellites",
+      "quantity": "number",
+      "time_s": [
+        3.01,
+        4.0,
+        5.0
+      ],
+      "values": [
+        3.0,
+        3.0,
+        6.0
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "the record's altitude track is empty: a KML file holds a track's positions, not a barometer's record, so every value is a channel",
+    "the log's zero is the first point the file times: `time` 300.0000000",
+    "`coordinates` read in meters, from the KML standard: OGC 07-147r2 states a tuple's altitude in meters, and 3 of the file's 3 tracks carry one",
+    "the tuples' altitude of 3 AltOS tracks is the barometer's, above sea level: it differs from the GPS altitude AltOS writes beside each point, as its KML export has reported both since AltOS 1.8.3",
+    "`alt` read in meters, from the coordinates: it equals the tuple's altitude at 0 of the 8 points that carry it, and lies 1.8 m from it at the first",
+    "`time` read in seconds, from the steps between points: the median step between points of distinct times is 1.00 s, as a GPS receiver reporting once a second gives"
+  ]
+}

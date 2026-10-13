@@ -1,0 +1,164 @@
+---
+source: crates/hpr-flightdata/tests/kml.rs
+expression: log
+---
+{
+  "format": "kml",
+  "logger": "Big Red Bee BeeLine",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "gps latitude",
+      "quantity": "latitude",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        40.0,
+        40.000013,
+        40.000026,
+        40.000039,
+        40.000052,
+        40.000065,
+        40.000078,
+        40.000091,
+        40.000104
+      ]
+    },
+    {
+      "column": "gps longitude",
+      "quantity": "longitude",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        -100.0,
+        -100.000011,
+        -100.000022,
+        -100.000033,
+        -100.000044,
+        -100.000055,
+        -100.000066,
+        -100.000077,
+        -100.000088
+      ]
+    },
+    {
+      "column": "gps altitude",
+      "quantity": "gnss_altitude",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        742.0,
+        742.0,
+        743.0,
+        1350.0,
+        1890.0,
+        2105.0,
+        1980.0,
+        1400.0,
+        760.0
+      ]
+    },
+    {
+      "column": "gps satellites",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        5.0,
+        9.0,
+        9.0,
+        9.0,
+        9.0,
+        9.0,
+        9.0,
+        9.0,
+        9.0
+      ]
+    },
+    {
+      "column": "gps offset",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        4000.0,
+        4015.0,
+        4030.0,
+        4045.0,
+        4060.0,
+        4075.0,
+        4090.0,
+        4105.0,
+        4120.0
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "the record's altitude track is empty: a KML file holds a track's positions, not a barometer's record, so every value is a channel",
+    "the file holds 1 comments outside its document, the longest 410 characters, as Big Red Bee's BeeLine writes its memory in hexadecimal there: they are not read",
+    "the document holds 2 comments outside any `coordinates`: they are not read",
+    "2 comments in `coordinates` follow no point's tuple: they are not read",
+    "the log's zero is the first point the file times: `UTC` 23:59:57 UTC",
+    "the time of day steps back past midnight 1 times: a day is added at each",
+    "`coordinates` read in meters, from the KML standard: OGC 07-147r2 states a tuple's altitude in meters, and 1 of the file's 1 tracks carry one",
+    "`UTC` read in hours, minutes and seconds of the UTC day, from its name and layout: the points run 8 s from first to last"
+  ]
+}

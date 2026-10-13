@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+<name>0123456789abcdef.kml</name><description></description><open>0</open><Style id="ao-flightstate-stateless"><LineStyle><color>FFFF0000</color><width>4</width></LineStyle>
+</Style><Placemark><name>Path</name><styleUrl>#ao-flightstate-stateless</styleUrl><LineString><tessellate>1</tessellate><altitudeMode>relativeToGround</altitudeMode><coordinates>
+-100.0000000,40.0000000,0  <!-- Alt 0 Seconds -0.194 -->
+-100.0000005,40.0000003,35.5  <!-- Alt 35.5 Seconds 0.512 -->
+-100.0000010,40.0000006,180.25  <!-- Alt 180.25 Seconds 1.25 -->
+-100.0000015,40.0000009,402.0  <!-- Alt 402.0 Seconds 3.0 -->
+-100.0000020,40.0000012,398.75  <!-- Alt 398.75 Seconds 4.5 -->
+-100.0000025,40.0000015,-2.5  <!-- Alt -2.5 Seconds 30.0 -->
+</coordinates></LineString></Placemark></Document></kml>
