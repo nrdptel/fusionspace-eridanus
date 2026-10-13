@@ -388,16 +388,15 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
   *Done when:* the C example and the Node test run in CI and reproduce a reference flight.
 ## Phase 5: Flight data and forensics
 
-M7.1 and M7.2 must work with no design file and no simulator, so that analyzing a flight stands on
-its own (ADR-046): `hpr-flightdata` may not depend on `hpr-sim`, and `cargo xtask wasm-check`
-enforces it. M7.3 and M7.4 compare a flight with a simulation of it and live in `hpr-forensics`.
-The formats, reading methods and log corpus come from Debrief, written up in `docs/research/`.
+M7.1 and M7.2 need no design file or simulator (ADR-046): `hpr-flightdata` may not depend on
+`hpr-sim` (`cargo xtask wasm-check`). M7.3 and M7.4, in `hpr-forensics`, compare a flight with its
+simulation. Formats, methods and log corpus come from Debrief (`docs/research/`).
 - [ ] **M7.1 Flight log importers** (ADR-251): one canonical flight record every importer maps
   into, carrying every sample the logger wrote. *Done when:* every sample file in refs imports,
   snapshot-tested, and the crate builds with no dependency on `hpr-sim` (`cargo xtask wasm-check`).
   Formats without samples are listed in the docs as needing samples.
-  - [ ] **M7.1c The other importers** (ADR-254): in two.
-    - [ ] **M7.1c2 The rest:** AltOS eeprom, RRC3 RFF, Blue Raven's other files, PerfectFlite
+  - [ ] **M7.1c The other importers** (ADR-254, ADR-255): in three.
+    - [ ] **M7.1c3 The rest:** AltOS eeprom, RRC3 RFF, Blue Raven's other files, PerfectFlite
       `.pfa`, Entacore AIM, AltimeterCloud, spreadsheets, CATS; EuRoC/Juno CSV; generic CSV
       with column mapping; unit detection. *Done when:* the parent's.
 - [ ] **M7.2 Readings, reconstruction and ghost data.**

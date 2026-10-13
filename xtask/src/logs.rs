@@ -1,6 +1,6 @@
 //! `cargo xtask logs [--check]`: reads every flight-log sample under `refs/` with
 //! `hpr_flightdata::import` and writes what came of each to `validation/reports/log-import.json`
-//! and `.md` (M7.1a, M7.1b and M7.1c1, ADR-251, ADR-253 and ADR-254).
+//! and `.md` (M7.1a, M7.1b, M7.1c1 and M7.1c2, ADR-251, ADR-253, ADR-254 and ADR-255).
 //!
 //! The samples are three sets, each file counted once by its content's SHA-256, in this order:
 //!
@@ -48,8 +48,8 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The other families'
-/// files are M7.1c2's.
-pub const READ: [(&str, LogFormat, &str); 11] = [
+/// files are M7.1c3's.
+pub const READ: [(&str, LogFormat, &str); 15] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -61,6 +61,10 @@ pub const READ: [(&str, LogFormat, &str); 11] = [
     ("fwgps-csv", LogFormat::FeatherweightGpsCsv, "M7.1c1"),
     ("kml", LogFormat::Kml, "M7.1c1"),
     ("nmea", LogFormat::Nmea0183, "M7.1c1"),
+    ("altimetercloud-csv", LogFormat::AltimeterCloudCsv, "M7.1c2"),
+    ("entacore-aim-csv", LogFormat::EntacoreAimCsv, "M7.1c2"),
+    ("pfa", LogFormat::PerfectFlitePfa, "M7.1c2"),
+    ("eggtimer-txt", LogFormat::EggtimerText, "M7.1c2"),
 ];
 
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight, and maps
@@ -100,9 +104,16 @@ const DEBRIEF: [(&str, &str); 23] = [
 /// Debrief files that aren't logs: its notes and a design.
 const DEBRIEF_SKIPPED: [&str; 2] = ["README.md", "sample-design.ork"];
 
+/// Why a file the catalog files as generic CSV, by its extension, is AltimeterCloud's.
+const ALTIMETERCLOUD: &str = "AltimeterCloud's CSV of a Rocketry Ltd altimeter's flight, a Nano \
+    V1's or a Mercury's, filed as generic CSV by its extension";
+/// Why a file the catalog files as generic CSV is Entacore AIM's.
+const ENTACORE_AIM: &str = "Entacore AIM's CSV, each channel group beside its own time column, \
+    filed as generic CSV by its extension";
+
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 3] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 28] = [
     (
         "9c5017ab68168088",
         "altos-csv",
@@ -126,6 +137,81 @@ const RECLASSIFIED: [(&str, &str, &str, &str); 3] = [
          simulation predicted for several launch times, with pins for the pad, the predicted \
          events and where the rocket landed, and a line measuring the distance to it",
     ),
+    (
+        "1eac3d58c44943fa",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "2d8063ec6a98cac0",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "3c6a8343d5570aa9",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "54f08de4175c5e72",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "6e78a74048da02e5",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "88fcb6bb17c5d9c6",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "8e234dc4a78fcd61",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "d3ac56fff9b7d7c0",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "f021107424bfa9ee",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    (
+        "f2233f659bd4b671",
+        "csv",
+        "altimetercloud-csv",
+        ALTIMETERCLOUD,
+    ),
+    ("28a11da1eaf93e69", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("46d4a9ba5d9b0a58", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("4d8cf9e8c6f3aa1f", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("5dc17a47fd185243", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("5f48e98c9d3b14ee", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("7890f092f27f7d6f", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("9b3616ebe985dd0b", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("9e4dc73ea980b34a", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("a39eb686e97b5997", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("a67bdeaf23283bd7", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("bd3c3e390d38cf68", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("df76575057cffc1e", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("f5df1597457a39ea", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("fe5e01edf5f1202c", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("ff6326c2236a0723", "csv", "entacore-aim-csv", ENTACORE_AIM),
 ];
 
 /// The report.
@@ -140,6 +226,7 @@ struct Report {
     loggers: BTreeMap<String, usize>,
     /// What bears out feet in PerfectFlite's exports, whose header states no unit.
     perfectflite_exports: ExportUnits,
+    pfa_checks: PfaChecks,
     /// How the readers decided the units no header states, by family: each decision, the part of
     /// a record's note before its first `: `, such as `` `Altitude` read in feet, from the
     /// pressure ``, with the number of files whose record carries it.
@@ -162,6 +249,46 @@ struct ExportUnits {
     climb_over_fall_others_in_meters: [f64; 2],
 }
 
+/// What the `.pfa` samples show of the rate and unit their reader takes from PerfectFlite's
+/// documents, not the file: how many state as many samples as they hold, and an apogee equal to
+/// their highest height; and how many first reach the height that sets off launch detection, 80
+/// ft or the least it can be set to, 40 ft, at their eighth sample, 0.7 s, as 10 samples a second
+/// from 0.7 s before detection place it.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct PfaChecks {
+    files: usize,
+    samples_as_stated: usize,
+    apogee_is_the_highest: usize,
+    detected_at_80_ft: usize,
+    detected_at_40_ft: usize,
+}
+
+impl PfaChecks {
+    fn add(&mut self, log: &hpr_flightdata::log::FlightLog) {
+        const FOOT_M: f64 = 0.3048;
+        self.files += 1;
+        if log.stated.samples == Some(log.altitude_m.len()) {
+            self.samples_as_stated += 1;
+        }
+        let highest = log
+            .altitude_m
+            .iter()
+            .copied()
+            .fold(f64::NEG_INFINITY, f64::max);
+        if log.stated.apogee_m == Some(highest) {
+            self.apogee_is_the_highest += 1;
+        }
+        if let (Some(before), Some(eighth)) = (log.altitude_m.get(6), log.altitude_m.get(7)) {
+            let crosses = |feet: f64| *before < feet * FOOT_M && feet * FOOT_M <= *eighth;
+            if crosses(80.0) {
+                self.detected_at_80_ft += 1;
+            } else if crosses(40.0) {
+                self.detected_at_40_ft += 1;
+            }
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct SourceCount {
     source: String,
@@ -174,8 +301,8 @@ struct SourceCount {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct FamilyRow {
     family: String,
-    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1`), `M7.1c2` for one not yet read,
-    /// `damaged`, or `not a log`.
+    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1`, `M7.1c2`), `M7.1c3` for
+    /// one not yet read, `damaged`, or `not a log`.
     increment: String,
     files: usize,
     read: usize,
@@ -409,6 +536,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     let mut unread = Vec::new();
     let mut loggers: BTreeMap<String, usize> = BTreeMap::new();
     let mut unit_decisions: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
+    let mut pfa_checks = PfaChecks::default();
     for sample in samples {
         let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
         let read_by = READ.iter().find(|(family, _, _)| *family == sample.family);
@@ -420,7 +548,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
             "not a log"
         } else {
-            "M7.1c2"
+            "M7.1c3"
         };
         let row = families
             .entry(sample.family.clone())
@@ -448,6 +576,9 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                     ));
                 }
                 *loggers.entry(log.logger.clone()).or_default() += 1;
+                if log.format == LogFormat::PerfectFlitePfa {
+                    pfa_checks.add(&log);
+                }
                 for decision in log.notes.iter().filter_map(|note| unit_decision(note)) {
                     *unit_decisions
                         .entry(sample.family.clone())
@@ -485,7 +616,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     files.sort();
     let report = Report {
         about: "Every flight-log sample under refs/, read by hpr_flightdata::import (M7.1, \
-                ADR-251, ADR-253, ADR-254): `cargo xtask logs`. The samples are the collection's catalog, Debrief's \
+                ADR-251, ADR-253, ADR-254, ADR-255): `cargo xtask logs`. The samples are the collection's catalog, Debrief's \
                 fixtures and samples, and AerospaceNU's logs; refs/research/public-flights, a \
                 download cache whose flights' logs the collection catalogs, and RocketPy's \
                 processed flight tables are not loggers' files and are left out. A file's id is the first 16 hex digits of its \
@@ -494,6 +625,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         sources,
         families: families.into_values().collect(),
         perfectflite_exports: export_units(samples),
+        pfa_checks,
         reclassified: RECLASSIFIED
             .iter()
             .map(|(id, from, to, why)| format!("{id} {from} -> {to}: {why}"))
@@ -596,7 +728,7 @@ fn markdown(report: &Report) -> String {
     let mut out = String::from(
         "# Flight-log samples, read\n\n\
          Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-log \
-         sample under `refs/` read by HPR Sim's importer (M7.1, ADR-251, ADR-253, ADR-254): the private \
+         sample under `refs/` read by HPR Sim's importer (M7.1, ADR-251, ADR-253, ADR-254, ADR-255): the private \
          collection's catalog, Debrief's fixtures and samples, and AerospaceNU's logs, each file \
          once. Left out: `refs/research/public-flights`, a download cache whose flights' logs \
          the collection catalogs, and RocketPy's processed flight tables, which no logger \
@@ -654,6 +786,19 @@ fn markdown(report: &Report) -> String {
         units.files - units.peak_equals_a_pf2_beside_it,
         ratio(units.climb_over_fall_others_in_feet),
         ratio(units.climb_over_fall_others_in_meters)
+    );
+    let pfa = &report.pfa_checks;
+    out += &format!(
+        "\nA `.pfa` states neither its rate nor its unit; its reader takes 10 samples a second, in \
+         feet, from PerfectFlite's documents. Of the {} read, {} hold as many heights as \
+         `NumSamps:` states and {} state an `Apogee:` equal to their highest; {} first reach 80 ft, \
+         the height that sets off launch detection, at their eighth sample, 0.7 s, and {} first \
+         reach 40 ft, the least it can be set to, there.\n",
+        pfa.files,
+        pfa.samples_as_stated,
+        pfa.apogee_is_the_highest,
+        pfa.detected_at_80_ft,
+        pfa.detected_at_40_ft
     );
     if !report.unit_decisions.is_empty() {
         out += "\nUnits no header states, as each file's reader decided them, or kept the column \
@@ -747,6 +892,38 @@ fn hex(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn pfa_checks_count_the_stated_figures_and_the_eighth_sample() {
+        // Invented flights: the first detected at 80 ft at its eighth sample, its figures as
+        // stated; the second at 40 ft, stating one sample too many and an apogee above its highest.
+        let pfa = |ground: &str, heights: &[u32]| {
+            let mut text = format!(
+                "PerfectFlite Alt15K/WD\rGround: 100\rApogee: {ground}\rNumSamps: {}\rComments: \r\r**!!Data: \r",
+                heights.len()
+            );
+            for h in heights {
+                text += &format!("{h:05}\r");
+            }
+            text
+        };
+        let mut checks = PfaChecks::default();
+        let first = pfa("120", &[2, 5, 10, 20, 35, 50, 70, 85, 100, 120, 110, 60, 0]);
+        checks.add(&hpr_flightdata::import::read(first.as_bytes()).unwrap());
+        let second = pfa("90", &[1, 3, 6, 10, 18, 25, 33, 45, 60, 80, 70, 40, 0])
+            .replace("NumSamps: 13", "NumSamps: 14");
+        checks.add(&hpr_flightdata::import::read(second.as_bytes()).unwrap());
+        assert_eq!(
+            checks,
+            PfaChecks {
+                files: 2,
+                samples_as_stated: 1,
+                apogee_is_the_highest: 1,
+                detected_at_80_ft: 1,
+                detected_at_40_ft: 1,
+            }
+        );
+    }
 
     #[test]
     fn csv_records_honor_quotes() {

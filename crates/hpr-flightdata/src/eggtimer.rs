@@ -117,6 +117,74 @@
 //! the filtered one; it reads the layouts without `Veloc`, which Debrief doesn't recognize; and it
 //! refuses what Debrief passes over, naming the line. Debrief's note that the logger can be set to
 //! metric units cites no source, and none of the manuals above offers such a setting.
+//!
+//! **The terminal download.** A TRS's flight can also be downloaded in a terminal program, which
+//! prints three parts: the flight settings, the summary data ("apogee, length of flight, maximum
+//! velocity, etc.") and the detail data, the table above (*Eggtimer TRS Flight Computer User's
+//! Manual*, firmware 2.07, p35). The manual shows the first two over a page (p36) and the table
+//! after them (p37); the file the terminal captures holds all three, as [`LogFormat::EggtimerText`]:
+//!
+//! ```text
+//! Flight Summary:
+//! Eggtimer TRS 2.07    Flight Settings
+//! ...Drogue <1=Normal,2=Backup,0=OFF>...1
+//! ...Main Altitude <50-2000 by 50, 0=OFF>...600
+//! ...Frequency (Ctrl-F to change)...915
+//! ...ID Code...3
+//! ...MY EGGTIMER
+//! ASL Alt.: 1200 ft
+//! Base Temp: 70.0 F
+//! Apogee: 1500 ft
+//! T @ Apogee: 9.500
+//! Max Velocity: 400 ft/sec
+//! T @ Max Velocity: 1.300
+//! Altitude @ Main Deploy: 590 ft
+//! T @ Main Deploy: 40.000
+//! T,Alt,Veloc,Filt_Alt,FVeloc,LDA,LowV,Apogee,N-O,Drogue,Main
+//! 0,0,0.00,0.00,0.00,0,0,0,0,0,0
+//! ```
+//!
+//! Firmware 2.10 writes `Main Alt`, `Freq`, `Max Veloc`, `Alt @ …` and `T @ Drogue` where 2.07
+//! writes `Main Altitude`, `Frequency`, `Max Velocity`, `Altitude @ …` and `T @ Drogue Deploy`.
+//!
+//! A file is this layout if a title, a line `Eggtimer <model> <firmware>` ending in `Flight
+//! Settings` (or followed by a line `Flight Settings`, as the manual's example prints it, p36), comes
+//! before an Eggtimer header row, both within the first [`MAX_PREAMBLE_LINES`] lines that aren't
+//! blank. A `Flight Summary:` heading may come before the title; any other line there is counted
+//! in a note. The CSV download opens with its header row, so it is never this layout.
+//!
+//! What the reader keeps:
+//!
+//! - **The table**, read as [`read`] reads the CSV download, every rule above the same, its time's
+//!   unit decided by its step; an error names the file's line.
+//! - **The title**: the logger, such as `Eggtimer TRS`, and its last word, if it starts with a
+//!   digit, as the firmware.
+//! - **The flight settings**, the lines `...<setting>...<value>`, listed as written in one note.
+//!   A settings line with no value is the name the owner gave the flight computer (the manual's
+//!   settings screen shows `MY EGGTIMER`, p24): free text that may name a person, it is left out
+//!   of the record and only counted.
+//! - **`ASL Alt.`**, "the measured ASL altitude of the launch site" (p36), as
+//!   [`Stated::ground_elevation_msl_m`], and **`Apogee`** as [`Stated::apogee_m`]: each read by
+//!   its unit mark, `ft` (or `m`), with a note; without one it is kept as written. In both sample
+//!   files the stated apogee is the table's highest `Alt`, so it is above the logger's zero.
+//! - **The summary's times**, `T @ …` and `Time @ LDA`, as [`Event`]s, in seconds: the manual's
+//!   download writes them in `secs.` and its LDA at 0.700 secs. is "700ms into the flight" (p36,
+//!   p37); the sample files leave the mark out. A time that is its marker's event in the table,
+//!   within half a millisecond, is that event, kept once: `Apogee` is `Apogee`'s, `LDA` `LDA`'s,
+//!   `Unlock` `LowV`'s (the end of the Mach lockout, p37), `N-O` and `Nose-Over` `N-O`'s, `Drogue`
+//!   and `Drogue Deploy` `Drogue`'s, `Main` and `Main Deploy` `Main`'s. As of 2026-10-13, in both
+//!   sample files, every such time is its marker's to the millisecond. Any other time, such as `T
+//!   @ Max Velocity`, or one that differs from its marker's, is an event of its own named as the
+//!   summary names it, a difference noted. A time of 0 is no event: the manual writes zeroes for a
+//!   channel that didn't fire (p25). The events are in time order, the table's first where two
+//!   share a time.
+//! - **The other summary lines**, listed as written in one note: the base temperature with its
+//!   unit mark (`F` in the sample files, `C` in the manual's example), the flight time, the beep
+//!   code, the top speed and acceleration, and the heights at each event; `Last Flight Phase` with
+//!   its meaning, from the manual's codes (p37).
+//!
+//! Each note lists at most 40 lines, the rest counted. The summary's figures beside the table's
+//! are the logger's own and are never put in place of HPR Sim's readings.
 
 use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
 
@@ -954,6 +1022,470 @@ fn syntax(line: usize, message: String) -> LogError {
     }
 }
 
+// The terminal download: the flight settings and the flight summary, then the table above.
+
+/// The terminal download's name in errors.
+const TEXT_FORMAT: &str = "Eggtimer text";
+
+/// The most lines that aren't blank the reader looks through for the title and the table's
+/// header row. The manual's download (TRS p36) and the sample logs' put about 30 before the
+/// header.
+pub const MAX_PREAMBLE_LINES: usize = 200;
+
+/// The most items one note about the preamble lists, each cut as a note quotes it; past it, the
+/// rest are counted.
+const MAX_PREAMBLE_ITEMS: usize = 40;
+
+/// How far apart, s, a summary's time and a marker's event may be and still be the same moment:
+/// half a millisecond, the summary's last digit.
+const SAME_TIME_S: f64 = 0.000_5;
+
+/// What each `Last Flight Phase` code means (TRS manual p37).
+const FLIGHT_PHASES: [&str; 10] = [
+    "flight not started",
+    "waiting for LDA",
+    "LDA reached",
+    "not used",
+    "not used",
+    "Mach lockout expired",
+    "nose-over",
+    "drogue",
+    "main deployed",
+    "landing detected",
+];
+
+/// Whether the text is an Eggtimer's terminal download: a title `Eggtimer … Flight Settings`, then
+/// an Eggtimer header row, within the first [`MAX_PREAMBLE_LINES`] lines that aren't blank.
+pub(crate) fn recognizes_text(text: &str) -> bool {
+    split_download(text).is_some()
+}
+
+/// A terminal download, split: its title, the preamble's lines after it, and the table.
+struct Download<'a> {
+    /// The title's words between `Eggtimer` and `Flight Settings`, such as `TRS 2.07`.
+    title: &'a str,
+    /// How many lines that aren't blank come before the title, `Flight Summary:` aside.
+    before_title: usize,
+    /// The lines between the title and the table's header row, blank ones left out, each
+    /// trimmed.
+    preamble: Vec<&'a str>,
+    /// The text from the header row on.
+    table: &'a str,
+    /// The header row's line number in the file.
+    header_line: usize,
+}
+
+/// The download's parts; `None` unless a title `Eggtimer … Flight Settings`, or a line
+/// `Eggtimer …` over a line `Flight Settings`, comes before an Eggtimer header row, both within
+/// the first [`MAX_PREAMBLE_LINES`] lines that aren't blank.
+fn split_download(text: &str) -> Option<Download<'_>> {
+    let mut title: Option<&str> = None;
+    // A line `Eggtimer …` that doesn't end in `Flight Settings`, which the next line may finish.
+    let mut pending: Option<&str> = None;
+    let mut before_title = 0_usize;
+    let mut preamble = Vec::new();
+    let lines = numbered_lines(text).filter(|(_, line)| !line.trim().is_empty());
+    for (number, line) in lines.take(MAX_PREAMBLE_LINES) {
+        let trimmed = line.trim();
+        if let Some(title) = title {
+            if is_header(trimmed) {
+                // `line` is a slice of `text`: the table starts where it does.
+                let start = (line.as_ptr() as usize).checked_sub(text.as_ptr() as usize)?;
+                return Some(Download {
+                    title,
+                    before_title,
+                    preamble,
+                    table: text.get(start..)?,
+                    header_line: number,
+                });
+            }
+            preamble.push(trimmed);
+            continue;
+        }
+        if let Some(words) = pending.take() {
+            if trimmed == "Flight Settings" {
+                title = Some(words);
+                continue;
+            }
+            before_title += 1;
+        }
+        if let Some(rest) = trimmed.strip_prefix("Eggtimer ") {
+            match rest.strip_suffix("Flight Settings") {
+                Some(words) => title = Some(words.trim()),
+                None => pending = Some(rest.trim()),
+            }
+        } else if is_header(trimmed) {
+            // A table with no title before it is the CSV download's.
+            return None;
+        } else if trimmed != "Flight Summary:" {
+            before_title += 1;
+        }
+    }
+    None
+}
+
+/// The logger's model and firmware from the title's words: the last word the firmware if it
+/// starts with a digit, such as `2.07`, the words before it the model, such as `TRS`.
+fn title_words(words: &str) -> (String, Option<String>) {
+    let words: Vec<&str> = words.split_whitespace().collect();
+    match words.split_last() {
+        Some((last, model)) if last.starts_with(|c: char| c.is_ascii_digit()) => {
+            (short(&model.join(" ")), Some(short(last)))
+        }
+        _ => (short(&words.join(" ")), None),
+    }
+}
+
+/// A preamble's items as a note lists them: the first [`MAX_PREAMBLE_ITEMS`] kept, the rest
+/// counted.
+#[derive(Default)]
+struct Items {
+    kept: Vec<String>,
+    left_out: usize,
+}
+
+impl Items {
+    fn push(&mut self, item: String) {
+        if self.kept.len() < MAX_PREAMBLE_ITEMS {
+            self.kept.push(item);
+        } else {
+            self.left_out += 1;
+        }
+    }
+
+    fn is_empty(&self) -> bool {
+        self.kept.is_empty()
+    }
+
+    /// The items joined by `separator`, and a count of those left out.
+    fn joined(&self, separator: &str) -> String {
+        let mut text = self.kept.join(separator);
+        if self.left_out > 0 {
+            text.push_str(&format!("{separator}and {} more", self.left_out));
+        }
+        text
+    }
+}
+
+/// What the preamble after the title states.
+#[derive(Default)]
+struct Preamble {
+    /// The flight settings, each label and value as written.
+    settings: Items,
+    /// How many settings lines hold no value: the name the owner gave the flight computer.
+    names: usize,
+    /// The summary's lines not read into the record, as written.
+    summary: Items,
+    /// `ASL Alt.`, m above sea level.
+    ground_m: Option<f64>,
+    /// `Apogee`, m above the logger's zero.
+    apogee_m: Option<f64>,
+    /// Each summary time, `T @ …` or `Time @ …`: the event's name as written, and s.
+    times: Vec<(String, f64)>,
+    /// How many of the times carry a unit mark, such as `secs.`.
+    marked_times: usize,
+    /// The notes saying how the heights were read.
+    unit_notes: Vec<String>,
+}
+
+/// Reads the preamble's lines after the title.
+fn read_preamble(lines: &[&str]) -> Preamble {
+    let mut preamble = Preamble::default();
+    for line in lines {
+        if let Some(body) = line.strip_prefix("...") {
+            match body.rsplit_once("...") {
+                Some((label, value)) => preamble.settings.push(format!(
+                    "`{}` {}",
+                    short(label.trim()),
+                    short(value.trim())
+                )),
+                None => preamble.names += 1,
+            }
+            continue;
+        }
+        let Some((key, value)) = line.split_once(':') else {
+            preamble.summary.push(format!("`{}`", short(line)));
+            continue;
+        };
+        let (key, value) = (key.trim(), value.trim());
+        let as_written = format!("`{}`", short(&format!("{key}: {value}")));
+        let event = key
+            .strip_prefix("T @")
+            .or_else(|| key.strip_prefix("Time @"))
+            .map(str::trim)
+            .filter(|name| !name.is_empty());
+        match (key, event) {
+            (_, Some(name)) if preamble.times.len() < MAX_PREAMBLE_LINES => {
+                match summary_time(value) {
+                    Some((time_s, marked)) => {
+                        preamble.times.push((short(name), time_s));
+                        preamble.marked_times += usize::from(marked);
+                    }
+                    None => preamble.summary.push(as_written),
+                }
+            }
+            ("ASL Alt." | "Apogee", _) => {
+                let (field, what) = if key == "Apogee" {
+                    (
+                        &mut preamble.apogee_m,
+                        "the logger's apogee above its zero, kept beside the table's altitudes",
+                    )
+                } else {
+                    (
+                        &mut preamble.ground_m,
+                        "the launch site's elevation above sea level, as the logger measured it",
+                    )
+                };
+                match (field.is_some(), height(value)) {
+                    (false, Some((height_m, unit))) => {
+                        *field = Some(height_m);
+                        preamble.unit_notes.push(format!(
+                            "`{key}` read in {unit}, from its unit mark: the flight summary \
+                             writes {}; {what} (TRS manual p36)",
+                            short(value)
+                        ));
+                    }
+                    (false, None) => {
+                        preamble.unit_notes.push(format!(
+                            "`{key}` kept as written, with no unit mark the reader knows: the \
+                             flight summary writes {:?}, where the TRS manual's writes `ft` (p36)",
+                            short(value)
+                        ));
+                        preamble.summary.push(as_written);
+                    }
+                    (true, _) => preamble.summary.push(as_written),
+                }
+            }
+            ("Last Flight Phase", _) => {
+                let meaning = value
+                    .parse::<usize>()
+                    .ok()
+                    .and_then(|code| FLIGHT_PHASES.get(code));
+                preamble.summary.push(match meaning {
+                    Some(meaning) => format!("{as_written} ({meaning}, TRS manual p37)"),
+                    None => as_written,
+                });
+            }
+            _ => preamble.summary.push(as_written),
+        }
+    }
+    preamble
+}
+
+/// A height as the summary writes it, such as `1500 ft`: m, and the unit's name; `None` without a
+/// number and a unit mark `ft` or `m`.
+fn height(value: &str) -> Option<(f64, &'static str)> {
+    let mut words = value.split_whitespace();
+    let written = number(words.next()?, false)?;
+    let unit = words.next()?;
+    if words.next().is_some() {
+        return None;
+    }
+    match unit {
+        "ft" => Some((written * FOOT_M, "feet")),
+        "m" => Some((written, "meters")),
+        _ => None,
+    }
+}
+
+/// A time as the summary writes it, such as `9.500` or `9.500 secs.`: s, and whether it carries
+/// a unit mark; `None` for anything else.
+fn summary_time(value: &str) -> Option<(f64, bool)> {
+    let mut words = value.split_whitespace();
+    let seconds = number(words.next()?, false)?;
+    let marked = match (words.next(), words.next()) {
+        (None, _) => false,
+        (Some("secs." | "secs" | "sec." | "sec" | "s"), None) => true,
+        _ => return None,
+    };
+    Some((seconds, marked))
+}
+
+/// The table's marker for an event the summary names: the summary's `Unlock` is the end of the
+/// Mach lockout, which the `LowV` marker marks (TRS manual p37).
+fn marker_for(summary_name: &str) -> Option<&'static str> {
+    match summary_name {
+        "Apogee" => Some("Apogee"),
+        "Unlock" => Some("LowV"),
+        "N-O" | "Nose-Over" => Some("N-O"),
+        "Drogue" | "Drogue Deploy" => Some("Drogue"),
+        "Main" | "Main Deploy" => Some("Main"),
+        "LDA" => Some("LDA"),
+        _ => None,
+    }
+}
+
+/// Reads an Eggtimer TRS's flight from its terminal download: the flight settings and the flight
+/// summary, then the table the CSV download writes, read as [`read`] reads it.
+///
+/// # Errors
+///
+/// [`LogError::NotThisFormat`] if no title `Eggtimer … Flight Settings` comes before an Eggtimer
+/// header row within the first [`MAX_PREAMBLE_LINES`] lines that aren't blank; otherwise what
+/// [`read`] refuses in the table, naming the file's line.
+pub fn read_text(text: &str) -> Result<FlightLog, LogError> {
+    let Some(download) = split_download(text) else {
+        return Err(LogError::NotThisFormat {
+            format: TEXT_FORMAT,
+            message: format!(
+                "no title `Eggtimer … Flight Settings` comes before an Eggtimer header row, \
+                 such as `T,Alt,Veloc,…`, within the first {MAX_PREAMBLE_LINES} lines that \
+                 aren't blank"
+            ),
+        });
+    };
+    let shift = download.header_line.saturating_sub(1);
+    let mut log = read(download.table).map_err(|error| match error {
+        LogError::Syntax { line, message, .. } => LogError::Syntax {
+            format: TEXT_FORMAT,
+            line: line.saturating_add(shift),
+            message,
+        },
+        LogError::NoData { .. } => LogError::NoData {
+            format: TEXT_FORMAT,
+        },
+        LogError::NotThisFormat { message, .. } => LogError::NotThisFormat {
+            format: TEXT_FORMAT,
+            message,
+        },
+        other => other,
+    })?;
+    let (model, firmware) = title_words(download.title);
+    log.format = LogFormat::EggtimerText;
+    log.logger = if model.is_empty() {
+        "Eggtimer".to_owned()
+    } else {
+        format!("Eggtimer {model}")
+    };
+    log.firmware = firmware;
+    let preamble = read_preamble(&download.preamble);
+    log.stated.apogee_m = preamble.apogee_m;
+    log.stated.ground_elevation_msl_m = preamble.ground_m;
+    log.notes.extend(preamble.unit_notes.iter().cloned());
+    summary_events(&mut log, &preamble);
+    if !preamble.settings.is_empty() {
+        log.notes.push(format!(
+            "the flight settings, as the file writes them: {}",
+            preamble.settings.joined("; ")
+        ));
+    }
+    if preamble.names > 0 {
+        log.notes.push(format!(
+            "{} of the flight settings holds no setting: the name its owner gave the flight \
+             computer (TRS manual p24), left out of the record as free text that may name a \
+             person",
+            if preamble.names == 1 {
+                "1 line".to_owned()
+            } else {
+                format!("{} lines", preamble.names)
+            }
+        ));
+    }
+    if !preamble.summary.is_empty() {
+        log.notes.push(format!(
+            "the flight summary's other lines, as the file writes them: {}",
+            preamble.summary.joined("; ")
+        ));
+    }
+    if download.before_title > 0 {
+        log.notes.push(format!(
+            "{} lines before the title `Eggtimer … Flight Settings` weren't read",
+            download.before_title
+        ));
+    }
+    Ok(log)
+}
+
+/// The summary's times read as events, with the notes saying how: a time that is its marker's
+/// event in the table, to [`SAME_TIME_S`], is that event; one of no marker, or of another time,
+/// is an event of its own, named as the summary names it; a time of 0 is no event, as the manual
+/// writes zeroes for a channel that didn't fire (TRS p25). The events end up in time order, the
+/// table's first where two share a time.
+fn summary_events(log: &mut FlightLog, preamble: &Preamble) {
+    if preamble.times.is_empty() {
+        return;
+    }
+    let (mut same, mut own, mut differ, mut zero) = (
+        Items::default(),
+        Items::default(),
+        Items::default(),
+        Items::default(),
+    );
+    let mut events = Vec::new();
+    for (name, time_s) in &preamble.times {
+        if *time_s == 0.0 {
+            zero.push(format!("`{name}`"));
+            continue;
+        }
+        let marker = marker_for(name);
+        let marked: Vec<f64> = log
+            .events
+            .iter()
+            .filter(|event| Some(event.name.as_str()) == marker)
+            .map(|event| event.time_s)
+            .collect();
+        match (marker, marked.first()) {
+            (Some(marker), Some(_))
+                if marked
+                    .iter()
+                    .any(|marked_s| (marked_s - time_s).abs() <= SAME_TIME_S) =>
+            {
+                same.push(format!("`{name}` at `{marker}`"));
+                continue;
+            }
+            (Some(marker), Some(marked_s)) => differ.push(format!(
+                "`{name}` at {} s, the marker `{marker}` at {} s",
+                plain(*time_s, 3),
+                plain(*marked_s, 3)
+            )),
+            _ => own.push(format!("`{name}`")),
+        }
+        events.push(Event {
+            time_s: *time_s,
+            name: name.clone(),
+        });
+    }
+    let how = if preamble.marked_times == preamble.times.len() {
+        "`T @` and `Time @` read in seconds, from their unit mark: the flight summary writes \
+         `secs.` after each, as the TRS manual's download does (p36)"
+    } else {
+        "`T @` and `Time @` read in seconds, from the manual: the TRS manual's download writes \
+         the flight summary's times in `secs.` (p36), and its LDA at 0.700 secs. as \"700ms \
+         into the flight\" (p37)"
+    };
+    log.notes.push(how.to_owned());
+    if !same.is_empty() {
+        log.notes.push(format!(
+            "the flight summary's times are its table markers' to the millisecond, one event \
+             each, the marker's: {}",
+            same.joined(", ")
+        ));
+    }
+    if !own.is_empty() {
+        log.notes.push(format!(
+            "the flight summary's times of no marker in the table, each an event of its own: {}",
+            own.joined(", ")
+        ));
+    }
+    if !differ.is_empty() {
+        log.notes.push(format!(
+            "the flight summary's times that differ from their markers' in the table, both kept \
+             as events: {}",
+            differ.joined("; ")
+        ));
+    }
+    if !zero.is_empty() {
+        log.notes.push(format!(
+            "the flight summary's times of 0, no event, as the TRS manual writes zeroes for a \
+             channel that didn't fire (p25): {}",
+            zero.joined(", ")
+        ));
+    }
+    log.events.extend(events);
+    log.events
+        .sort_by(|first, second| first.time_s.total_cmp(&second.time_s));
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1608,6 +2140,316 @@ mod tests {
         assert_eq!(plain(50.0, 4), "50");
         assert_eq!(plain(32.166, 2), "32.17");
         assert_eq!(plain(-0.0, 2), "-0");
+    }
+
+    /// An invented terminal download: firmware 2.07's spellings, the table in milliseconds.
+    const DOWNLOAD: &str = "Flight Summary:\n\
+        \n\
+        Eggtimer TRS 2.07    Flight Settings\n\
+        ...Drogue <1=Normal,2=Backup,0=OFF>...1\n\
+        ...Main Altitude <50-2000 by 50, 0=OFF>...300\n\
+        ...Frequency (Ctrl-F to change)...915\n\
+        ...ID Code...4\n\
+        ...SECRET NAME\n\
+        ASL Alt.: 1000 ft\n\
+        Base Temp: 20.5 C\n\
+        Last Flight Phase: 9\n\
+        Apogee: 30 ft\n\
+        T @ Apogee: 0.150\n\
+        Max Velocity: 300 ft/sec\n\
+        T @ Max Velocity: 0.100\n\
+        Time @ LDA:0.100\n\
+        Altitude @ Main Deploy: 0 ft\n\
+        T @ Main Deploy: 0.000\n\
+        T,Alt,Veloc,Filt_Alt,FVeloc,LDA,LowV,Apogee,N-O,Drogue,Main\n\
+        0,0,0.00,0.00,0.00,0,0,0,0,0,0\n\
+        50,10,200.00,2.00,40.00,0,0,0,0,0,0\n\
+        100,25,300.00,7.00,100.00,25,0,0,0,0,0\n\
+        150,30,100.00,13.50,130.00,0,0,30,0,0,0\n\
+        200,29,-20.00,18.00,90.00,0,0,0,29,29,0\n";
+
+    #[test]
+    fn recognizes_the_terminal_download_and_no_other_layout() {
+        let table = format!("{TRS}\n0,0,0,0,0,0,0,0,0,0,0\n");
+        for text in [
+            DOWNLOAD.to_owned(),
+            format!("Eggtimer TRS 2.10    Flight Settings\r{table}"),
+            format!("\u{feff}Eggtimer TRS 2.07\nFlight Settings\n...ID Code...0\n{table}"),
+            format!("Flight Summary:\nEggtimer Flight Settings\n{table}"),
+            format!("Saved Flight Summary\nEggtimer TRS 2.07 Flight Settings\n{table}"),
+        ] {
+            assert!(recognizes_text(&text), "{text:?}");
+            assert!(read_text(&text).is_ok(), "{text:?}");
+        }
+        for text in [
+            String::new(),
+            table.clone(),
+            DOWNLOAD.replace("Flight Settings", "Settings"),
+            format!("Eggtimer TRS 2.07\nFlight Summary:\n{table}"),
+            format!("{table}Eggtimer TRS 2.07 Flight Settings\n{table}"),
+            "Eggtimer TRS 2.07 Flight Settings\nTime,Altitude,Velocity\n0,0,0\n".to_owned(),
+            "Eggtimer TRS 2.07 Flight Settings\nT,Alt\n0,0\n".to_owned(),
+            format!(
+                "Eggtimer TRS 2.07 Flight Settings\n{}{table}",
+                "Beep Code: 0\n".repeat(MAX_PREAMBLE_LINES)
+            ),
+            "PerfectFlite Pnut\nEggtimer TRS 2.07 Flight Settings\n".to_owned(),
+        ] {
+            assert!(!recognizes_text(&text), "{text:?}");
+            assert!(
+                matches!(
+                    read_text(&text),
+                    Err(LogError::NotThisFormat {
+                        format: TEXT_FORMAT,
+                        ..
+                    })
+                ),
+                "{text:?}"
+            );
+        }
+        // The preamble may fill all but the header's line of those looked through.
+        let full = format!(
+            "Eggtimer TRS 2.07 Flight Settings\n{}{table}",
+            "Beep Code: 0\n".repeat(MAX_PREAMBLE_LINES - 2)
+        );
+        assert!(recognizes_text(&full));
+        // The CSV download isn't this layout, nor this one the CSV's.
+        assert!(recognizes(&table) && !recognizes(DOWNLOAD));
+    }
+
+    /// The title, the settings, the summary's heights and times, and the table, as the module's
+    /// documentation says each is read.
+    #[test]
+    fn reads_the_settings_the_summary_and_the_table() {
+        let log = read_text(DOWNLOAD).unwrap();
+        assert_eq!(log.format, LogFormat::EggtimerText);
+        assert_eq!(log.logger, "Eggtimer TRS");
+        assert_eq!(log.firmware.as_deref(), Some("2.07"));
+        assert_eq!(log.time_s, [0.0, 0.05, 0.1, 0.15, 0.2]);
+        assert!(close(log.stated.apogee_m.unwrap(), 30.0 * 0.3048));
+        assert!(close(
+            log.stated.ground_elevation_msl_m.unwrap(),
+            1000.0 * 0.3048
+        ));
+        assert_eq!(log.stated.samples, None);
+        // The table's markers, and the summary's `Max Velocity`, which no marker marks, in time
+        // order; `Apogee` and `LDA` are their markers', and `Main Deploy` at 0 is no event.
+        let events: Vec<(f64, &str)> = log
+            .events
+            .iter()
+            .map(|event| (event.time_s, event.name.as_str()))
+            .collect();
+        assert_eq!(
+            events,
+            [
+                (0.1, "LDA"),
+                (0.1, "Max Velocity"),
+                (0.15, "Apogee"),
+                (0.2, "N-O"),
+                (0.2, "Drogue")
+            ]
+        );
+        let notes = &log.notes[6..];
+        assert_eq!(
+            notes,
+            [
+                "`ASL Alt.` read in feet, from its unit mark: the flight summary writes 1000 ft; \
+                 the launch site's elevation above sea level, as the logger measured it (TRS \
+                 manual p36)",
+                "`Apogee` read in feet, from its unit mark: the flight summary writes 30 ft; the \
+                 logger's apogee above its zero, kept beside the table's altitudes (TRS manual \
+                 p36)",
+                "`T @` and `Time @` read in seconds, from the manual: the TRS manual's download \
+                 writes the flight summary's times in `secs.` (p36), and its LDA at 0.700 secs. \
+                 as \"700ms into the flight\" (p37)",
+                "the flight summary's times are its table markers' to the millisecond, one event \
+                 each, the marker's: `Apogee` at `Apogee`, `LDA` at `LDA`",
+                "the flight summary's times of no marker in the table, each an event of its own: \
+                 `Max Velocity`",
+                "the flight summary's times of 0, no event, as the TRS manual writes zeroes for a \
+                 channel that didn't fire (p25): `Main Deploy`",
+                "the flight settings, as the file writes them: `Drogue <1=Normal,2=Backup,0=OFF>` \
+                 1; `Main Altitude <50-2000 by 50, 0=OFF>` 300; `Frequency (Ctrl-F to change)` \
+                 915; `ID Code` 4",
+                "1 line of the flight settings holds no setting: the name its owner gave the \
+                 flight computer (TRS manual p24), left out of the record as free text that may \
+                 name a person",
+                "the flight summary's other lines, as the file writes them: `Base Temp: 20.5 C`; \
+                 `Last Flight Phase: 9` (landing detected, TRS manual p37); `Max Velocity: 300 \
+                 ft/sec`; `Altitude @ Main Deploy: 0 ft`",
+            ]
+        );
+        assert!(log.notes[0].starts_with("`T` read in milliseconds, from the step: "));
+        // The owner's name for the flight computer is nowhere in the record.
+        let json = serde_json::to_string(&log).unwrap();
+        assert!(!json.contains("SECRET"));
+    }
+
+    /// A time with its unit mark, a time that isn't its marker's, a height in meters, one with no
+    /// unit mark, a repeated one, and lines before the title.
+    #[test]
+    fn summary_lines_read_by_what_they_state() {
+        let text = format!(
+            "Captured with a terminal\n\
+             Eggtimer TRS 2.07    Flight Settings\n\
+             Apogee: 9 m\n\
+             Apogee: 30 ft\n\
+             ASL Alt.: 1000\n\
+             T @ Apogee: 0.200 secs.\n\
+             T @ Nose-Over: 0.2 s\n\
+             T @ Unlock: soon\n\
+             a line with no colon\n\
+             {TRS}\n\
+             0,0,0,0,0,0,0,0,0,0,0\n\
+             50,10,200,2,40,0,0,0,0,0,0\n\
+             100,25,300,7,100,25,0,0,0,0,0\n\
+             150,30,100,13.5,130,0,0,30,0,0,0\n\
+             200,29,-20,18,90,0,0,0,29,29,0\n"
+        );
+        let log = read_text(&text).unwrap();
+        assert_eq!(log.stated.apogee_m, Some(9.0));
+        assert_eq!(log.stated.ground_elevation_msl_m, None);
+        let names: Vec<(f64, &str)> = log
+            .events
+            .iter()
+            .map(|event| (event.time_s, event.name.as_str()))
+            .collect();
+        assert_eq!(
+            names,
+            [
+                (0.1, "LDA"),
+                (0.15, "Apogee"),
+                (0.2, "N-O"),
+                (0.2, "Drogue"),
+                (0.2, "Apogee")
+            ]
+        );
+        let has = |wanted: &str| log.notes.iter().any(|note| note == wanted);
+        assert!(has(
+            "`Apogee` read in meters, from its unit mark: the flight summary writes 9 m; the \
+             logger's apogee above its zero, kept beside the table's altitudes (TRS manual p36)"
+        ));
+        assert!(has(
+            "`ASL Alt.` kept as written, with no unit mark the reader knows: the flight summary \
+             writes \"1000\", where the TRS manual's writes `ft` (p36)"
+        ));
+        assert!(has(
+            "`T @` and `Time @` read in seconds, from their unit mark: the flight summary writes \
+             `secs.` after each, as the TRS manual's download does (p36)"
+        ));
+        assert!(has(
+            "the flight summary's times that differ from their markers' in the table, both kept \
+             as events: `Apogee` at 0.2 s, the marker `Apogee` at 0.15 s"
+        ));
+        assert!(has(
+            "the flight summary's times are its table markers' to the millisecond, one event \
+             each, the marker's: `Nose-Over` at `N-O`"
+        ));
+        assert!(has(
+            "the flight summary's other lines, as the file writes them: `Apogee: 30 ft`; `ASL \
+             Alt.: 1000`; `T @ Unlock: soon`; `a line with no colon`"
+        ));
+        assert!(has(
+            "1 lines before the title `Eggtimer … Flight Settings` weren't read"
+        ));
+    }
+
+    /// What the table refuses is refused naming the file's line, and the download's format.
+    #[test]
+    fn the_tables_errors_name_the_files_line() {
+        let bad = DOWNLOAD.replace("100,25,300.00", "100,x,300.00");
+        assert_eq!(
+            read_text(&bad).unwrap_err(),
+            LogError::Syntax {
+                format: TEXT_FORMAT,
+                line: 22,
+                message: "\"x\" in cell 2, under \"Alt\", isn't a number".to_owned(),
+            }
+        );
+        let cr = bad.replace('\n', "\r");
+        assert!(matches!(
+            read_text(&cr),
+            Err(LogError::Syntax { line: 22, .. })
+        ));
+        let headless = DOWNLOAD
+            .split_once("0,0,0.00")
+            .map(|(head, _)| head)
+            .unwrap();
+        assert_eq!(
+            read_text(headless).unwrap_err(),
+            LogError::NoData {
+                format: TEXT_FORMAT
+            }
+        );
+    }
+
+    /// A long preamble's notes list at most [`MAX_PREAMBLE_ITEMS`] lines, each cut short.
+    #[test]
+    fn the_preamble_notes_stay_short() {
+        let settings: String = (0..150)
+            .map(|index| format!("...Setting {index} {}...1\n", "y".repeat(500)))
+            .collect();
+        let times: String = (0..30)
+            .map(|index| format!("T @ Thing {index}: {}.5\n", index + 1))
+            .collect();
+        let text = format!(
+            "Eggtimer {} 9.99 Flight Settings\n{settings}{times}{TRS}\n0,0,0,0,0,0,0,0,0,0,0\n",
+            "Z".repeat(500)
+        );
+        let log = read_text(&text).unwrap();
+        assert!(log.logger.chars().count() < 100);
+        assert_eq!(log.firmware.as_deref(), Some("9.99"));
+        assert_eq!(log.events.len(), 30);
+        let settings = log
+            .notes
+            .iter()
+            .find(|note| note.starts_with("the flight settings"))
+            .unwrap();
+        assert!(settings.ends_with("; and 110 more"), "{settings}");
+        assert!(settings.len() < 40 * 100 + 200, "{} bytes", settings.len());
+        for note in &log.notes {
+            assert!(note.len() < 5_000, "{} bytes", note.len());
+        }
+    }
+
+    #[test]
+    fn the_title_names_the_model_and_firmware() {
+        assert_eq!(
+            title_words("TRS 2.07"),
+            ("TRS".to_owned(), Some("2.07".to_owned()))
+        );
+        assert_eq!(title_words("TRS"), ("TRS".to_owned(), None));
+        assert_eq!(title_words(""), (String::new(), None));
+        assert_eq!(
+            title_words("2.10"),
+            (String::new(), Some("2.10".to_owned()))
+        );
+        assert_eq!(height("12 ft"), Some((12.0 * 0.3048, "feet")));
+        assert_eq!(height("12"), None);
+        assert_eq!(height("12 ft extra"), None);
+        assert_eq!(summary_time("1.5 secs."), Some((1.5, true)));
+        assert_eq!(summary_time("1.5"), Some((1.5, false)));
+        assert_eq!(summary_time("1.5 hours"), None);
+    }
+
+    proptest::proptest! {
+        /// Any preamble is read or refused, never a panic; what is read has increasing times and
+        /// its events in time order.
+        #[test]
+        fn any_preamble_is_read_or_refused(
+            lines in proptest::collection::vec("[.:@ A-Za-z0-9<>=,-]{0,30}", 0..12)
+        ) {
+            let text = format!(
+                "Eggtimer TRS 2.07 Flight Settings\n{}\n{TRS}\n0,0,0,0,0,0,0,0,0,0,0\n",
+                lines.join("\n")
+            );
+            if let Ok(log) = read_text(&text) {
+                proptest::prop_assert!(log.time_s.windows(2).all(|pair| pair[1] > pair[0]));
+                proptest::prop_assert!(
+                    log.events.windows(2).all(|pair| pair[0].time_s <= pair[1].time_s)
+                );
+            }
+        }
     }
 
     proptest::proptest! {

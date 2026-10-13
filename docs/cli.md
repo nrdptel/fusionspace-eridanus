@@ -1587,10 +1587,11 @@ for anyone who flew one, whatever they designed it in.
 
 It reads PerfectFlite's `.pf2` logs so far, the Pnut's, the StratoLogger's and the
 StratoLoggerCF's ([the format](format/pf2.md)). The library reads AltOS's CSV, the Featherweight
-Raven's FIP CSV, the Blue Raven's, the RRC3's and Eggtimer's CSV, PerfectFlite's exports and GPS
-tracks too ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its readings from them
+Raven's FIP CSV, the Blue Raven's, the RRC3's and Eggtimer's CSV, an Eggtimer TRS's terminal text,
+PerfectFlite's exports and older `.pfa`, AltimeterCloud's and Entacore AIM's CSV, and GPS tracks
+too ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its readings from them
 with [M7.2](decisions-and-roadmap.md#m7-2), which validates the readings on other loggers, and the
-other loggers' files come with [M7.1c2](decisions-and-roadmap.md#m7-1c2). It has no
+other loggers' files come with [M7.1c3](decisions-and-roadmap.md#m7-1c3). It has no
 check yet for a barometer's errors near the speed of sound. If the flight may have come near Mach
 0.9, about 300 m/s (984 ft/s), treat the top speed and the heights near it with care: the
 barometer's error can pull the top speed down too.
@@ -1983,7 +1984,7 @@ you press Tab. Save it where your shell looks for completions:
   device ([what it doesn't fly yet](#what-hpr-sim-doesnt-fly-yet)).
 - **One log format.** `hpr analyze` reads PerfectFlite's `.pf2` so far; other loggers' files,
   and readings such as the drogue and main descent rates and the Mach number, come with
-  [M7.1c2](decisions-and-roadmap.md#m7-1c2) and [M7.2](decisions-and-roadmap.md#m7-2).
+  [M7.1c3](decisions-and-roadmap.md#m7-1c3) and [M7.2](decisions-and-roadmap.md#m7-2).
 - **Only OpenRocket's design files and the HPR design format.** `hpr convert` and `hpr sim` read
   OpenRocket's `.ork` and the HPR design format's `.hpr` and `.hprz`, not RockSim's `.rkt` or
   RASAero's `.CDX1`

@@ -283,6 +283,7 @@ until someone rewrites it in plainer words.
 | [ADR-252: The sidebar put away at every width, and page arrows that name their pages, from the product system's Rev D][adr-252] | A review of the site found two things on a desktop window. The sidebar could be resized but not put away, and the page arrows were easy to miss: small icons at the window's sides, at the foot of the page, far from the centered column. The product system's Rev D lets a docs site's table of contents be put away and brought back at every width, with the menu button or by dragging its edge to the window's side, and keeps the choice from page to page. It puts the page arrows under the text, inside the column, as bordered buttons that name their pages. |  |
 | [ADR-253: M7.1b in two: the RRC3's, Eggtimer's and Blue Raven's CSV exports first, each unit a header leaves out decided from the file or stated as assumed][adr-253] | [M7.1b](#m7-1b) listed every layout [M7.1a](#m7-1a) left, about 30 families, too many for one increment. It now reads the three CSV exports with the most sample files among them, the RRC3's, Eggtimer's and the Blue Raven's (173 distinct files), into the record [M7.1a](#m7-1a) built; [M7.1c](#m7-1c) reads the rest. A unit a header doesn't name is decided from the file, such as an RRC3's altitude from its pressure, or taken from the maker's manual, and either way stated in a note the survey counts; a Blue Raven's high-rate file, which holds no altitude, reads with an empty primary track. |  |
 | [ADR-254: M7.1c in two: GPS tracks first (Featherweight's GPS CSV, KML and NMEA), read with an empty primary track and each point on the clock the file gives it][adr-254] | [M7.1c](#m7-1c) named about 27 families of sample logs, too many for one increment. [M7.1c1](#m7-1c1) reads the three that record a GPS receiver's track: Featherweight's GPS tracker and ground-station CSV, KML, and NMEA 0183, 95 distinct sample files. None has a barometer, so each reads with an empty primary track and every column a channel. A point's time is the one the file gives it, from a column, a sentence, a `when` or the comment a writer puts beside each point; a KML path that states no time keeps its points with their times as gaps. A KML altitude is in meters, as the KML standard sets, unless the file's writer is known to write another unit. |  |
+| [ADR-255: M7.1c2 in two: four text loggers first (AltimeterCloud, Entacore AIM, PerfectFlite's `.pfa`, an Eggtimer TRS's terminal text), the rest to M7.1c3][adr-255] | After [M7.1c1](#m7-1c1), 26 families of sample logs, 503 files, still had no reader: binary downloads, spreadsheets, companion summaries, teams' own CSV and text, and four text layouts a single maker writes. [M7.1c2](#m7-1c2) now reads those four, 54 files: AltimeterCloud's CSV and Entacore AIM's, each with the generic `csv` family's files in its layout moved to it by id, PerfectFlite's `.pfa` and an Eggtimer TRS's terminal text. [M7.1c3](#m7-1c3) keeps the rest and the parent's *done when*, in a planned order: club and app text layouts, raw downloads checked against their makers' exports, AltOS's raw files and the RDAS's, then containers, summaries and the column mapper. |  |
 
 ## The roadmap
 
@@ -677,7 +678,8 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1b"></a>[M7.1b][done-5] | The RRC3's, Eggtimer's and the Blue Raven's CSV, each unit a header leaves out decided from the file or stated as assumed | done |
 | <a id="m7-1c"></a>[M7.1c][phase-5] | The other loggers' formats, spreadsheets and generic CSV | not yet done |
 | <a id="m7-1c1"></a>[M7.1c1][done-5] | GPS tracks | done |
-| <a id="m7-1c2"></a>[M7.1c2][phase-5] | The rest | not yet done |
+| <a id="m7-1c2"></a>[M7.1c2][done-5] | The rest | done |
+| <a id="m7-1c3"></a>[M7.1c3][phase-5] | The rest | not yet done |
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
@@ -1086,6 +1088,7 @@ is the milestone that added or will add that test.
 [adr-252]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0252-the-sidebar-put-away-and-named-page-arrows.md
 [adr-253]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0253-rrc3-eggtimer-and-blue-raven-csv-first.md
 [adr-254]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0254-gps-tracks-first-among-the-other-importers.md
+[adr-255]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0255-text-loggers-before-the-rest-of-the-importers.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

@@ -294,6 +294,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1a The record, a survey, three families ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1b RRC3, Eggtimer and Blue Raven CSV ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c1 GPS tracks ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c2 Text loggers ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M10.1 Release 0.1: the simulator ([Phase 8](#phase-8-releases-adr-162))
 - M10.1a The flight and design fixes ([Phase 8](#phase-8-releases-adr-162))
@@ -1455,6 +1456,13 @@ One line per milestone or increment, in the order it was archived within its pha
       doesn't state is decided from the file or a source in a note the survey counts.
       Met (ADR-254): 94 files read (40, 42, 12) and a map of predicted tracks counted apart; 24
       kinds of unit or clock decision counted in the report.
+    - [x] **M7.1c2 Text loggers.** *Done when:* every AltimeterCloud (`altimetercloud-csv`),
+      Entacore AIM (`entacore-aim-csv`), PerfectFlite `pfa` and Eggtimer `eggtimer-txt` sample in
+      refs imports, the `csv` family's files in the first two's layouts moved to them by id
+      (`cargo xtask logs --check` fails on one not read); a unit, clock or sample rate a file
+      doesn't state is decided from the file or a source, in a note the survey counts.
+      Met (ADR-255): 54 files read (11, 16, 25, 2), 25 of them moved from generic CSV by id; 43
+      kinds of decision counted, none assumed; the `.pfa` checks printed in the report.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

@@ -16,7 +16,7 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > files allow. Where a header names no unit, the reader decides it from the file and says how in
 > a note ([units the file decides](#units-the-file-decides)); the few units no source states are
 > named [below](#units-no-source-states). Other layouts are refused, not guessed at; they come
-> with [M7.1c2](../decisions-and-roadmap.md#m7-1c2), the other loggers' formats.
+> with [M7.1c3](../decisions-and-roadmap.md#m7-1c3), the other loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -42,8 +42,11 @@ logs, and the PerfectFlite, AltOS and Raven readers), as
 decided, and [M7.1b](../decisions-and-roadmap.md#m7-1b) (the Blue Raven, RRC3 and Eggtimer
 readers), as
 [ADR-253](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0253-rrc3-eggtimer-and-blue-raven-csv-first.md)
-decided, and [M7.1c1](../decisions-and-roadmap.md#m7-1c1) (the GPS logs), as
+decided, [M7.1c1](../decisions-and-roadmap.md#m7-1c1) (the GPS logs), as
 [ADR-254](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0254-gps-tracks-first-among-the-other-importers.md)
+decided, and [M7.1c2](../decisions-and-roadmap.md#m7-1c2) (AltimeterCloud, Entacore AIM,
+PerfectFlite's `.pfa` and an Eggtimer TRS's terminal text), as
+[ADR-255](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0255-text-loggers-before-the-rest-of-the-importers.md)
 decided.
 
 ## The layouts read
@@ -53,11 +56,15 @@ decided.
 | PerfectFlite `.pf2` | Pnut, StratoLogger, StratoLoggerCF | names PerfectFlite | [`.pf2` files](pf2.md) |
 | PerfectFlite CSV export | the same, through PerfectFlite's software | `Time,Altitude,` and more of the export's own column names | [below](#perfectflites-exports) |
 | PerfectFlite text export | the same | the same names, separated by tabs | [below](#perfectflites-exports) |
+| PerfectFlite `.pfa` | Alt15K/WD, an older PerfectFlite altimeter, through PerfectFlite's DataCap program (AltCapWD on the Mac) | names PerfectFlite and has a `**!!Data:` line | [below](#perfectflites-older-pfa) |
 | AltOS CSV | Altus Metrum's TeleMetrum, TeleMega, EasyMega, EasyMini, through AltosUI (Altus Metrum's ground software) | `#version,serial,flight,`, or `#` comment lines and then that header or `version,serial,flight,` | `hpr_flightdata::altos` |
 | Raven FIP CSV | Featherweight Raven, through the Featherweight Interface Program | opens with a time column and holds the Raven's `Axial Accel (Gs)` channel | `hpr_flightdata::raven` |
 | Blue Raven CSV | Featherweight Blue Raven, through its phone app: a low-rate file (barometer, inertial figures, flags) and a high-rate file (gyroscopes, accelerometers, attitude) | `Year,Month,Day,Time,Flight_Time_(s),Sync,` | `hpr_flightdata::blueraven` |
 | RRC3 CSV | Missile Works RRC3, through mDACS, Missile Works' program that downloads its flights | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages`, perhaps with units in brackets | `hpr_flightdata::rrc3` |
 | Eggtimer CSV | Eggtimer Classic, TRS, Quantum and Proton, through Eggtimer's download | `T,Alt,` and more of Eggtimer's column names | `hpr_flightdata::eggtimer` |
+| Eggtimer text | Eggtimer TRS, its download captured by a terminal program | a title `Eggtimer <model> <firmware> … Flight Settings`, then Eggtimer's header row `T,Alt,…` | `hpr_flightdata::eggtimer` ([below](#units-the-file-decides)) |
+| AltimeterCloud CSV | Rocketry Ltd Nano V1 and Mercury, as a flight page on altimetercloud.com hands the log back | a header within the first 65 lines whose first name is `Time(ms)` (in any case) and which also names `acceleration_total(mG)` and `tilt` | `hpr_flightdata::altimetercloud` ([below](#units-the-file-decides)) |
+| Entacore AIM CSV | Entacore AIM XTRA (the flight computer's own log) and AIM BASE (the telemetry its ground station received), as the AIM software's *Export to Excel…* writes them | the first line starts with a `time` column, names at least two, and names one of the AIM's own channels, such as `Pressure AGL`, `lat. X accel.` or `eject. bat. voltage` | `hpr_flightdata::entacore` ([below](#units-the-file-decides)) |
 | Featherweight GPS CSV | Featherweight's GPS tracker: its own log, and its ground station's log of every tracker it hears | a first line opening `UTCTIME,UNIXTIME,` or `TRACKER,DATE,TIME,` that names the latitude and longitude (`LAT` and `LON`, or `TRACKER Lat` and `TRACKER Lon`) | [below](#gps-logs) |
 | KML | GPS tracks as AltOS, Missile Works' RTx, Big Red Bee's BeeLine, fw2kml (a converter of Featherweight's logs), GPS Visualizer and others write them for Google Earth | the document's root element is `kml` | [below](#gps-logs) |
 | NMEA 0183 | a GPS receiver's own sentences, written to a file as it sends them | at least 3 of the first 50 lines open with a sentence whose checksum checks out, such as `$GPGGA,…*hh`, or, in a shorter file, every line does | [below](#gps-logs) |
@@ -66,11 +73,10 @@ The Blue Raven app writes each flight as a low-rate file, logged 50 times a seco
 high-rate file, 500 times a second (*Blue Raven User's Guide*, 2026-05-12, p18); each is read on its own, as a record of its own, not joined
 to the other. The high-rate file holds no altitude, so its record's
 [primary track](#the-record) is empty and its channels hold everything; the low-rate file of the
-same flight holds the altitude. The app's summary and events files beside them aren't read yet. The other
-layouts in the sample logs, among them PerfectFlite's older `.pfa`, AltOS's binary `.eeprom`, the
-RRC3's binary `.rff`, the Raven's `.fipa` and spreadsheets, are
-refused today, most as *unrecognized*; the [survey's report](#how-it-was-checked) counts them by
-layout.
+same flight holds the altitude. The app's summary and events files beside them aren't read yet.
+The other layouts in the sample logs, among them AltOS's `.eeprom`, the RRC3's binary `.rff`, the
+Raven's `.fipa` and spreadsheets, are refused today, most as *unrecognized*; the
+[survey's report](#how-it-was-checked) counts them by layout.
 
 ## The record
 
@@ -143,13 +149,22 @@ Most units come from the file's own column names or from the maker's manual. A f
 - AltOS's KML also writes the GPS receiver's `alt` beside every point. Where it never equals the
   path's altitude, as in 3 of its older sample files, nothing in the file shows its unit, and it is
   kept as written.
+- AltimeterCloud's Mercury writes an air density, a predicted apogee, a target altitude and a
+  second temperature (`mt1_temp`) that no published page gives a unit for; each is kept as
+  written, unrecognized.
+- Entacore AIM's magnetometer (`Mag X`, `Mag Y`, `Mag Z`) is kept as written, unrecognized: its
+  manual names tesla, but the sample files' values are 17 to 34 times the Earth's field read so
+  ([below](#units-the-file-decides)).
 
 ### Units the file decides
 
-Three layouts leave some units out of their headers. For some, the reader works the unit out from
-the file as it reads it; for the rest, it takes the unit the maker's manual gives, and checks it
-against the file where the file can show a disagreement. Either way it writes a note giving the decision and this file's evidence, and
-the [survey's report](#how-it-was-checked) counts the decisions over the sample logs:
+These layouts leave some units out of their headers: the RRC3's, Eggtimer's (CSV and terminal
+text), the Blue Raven's, AltimeterCloud's and Entacore AIM's; a `.pfa` states none
+([below](#perfectflites-older-pfa)). For some, the reader works the unit out from the file as it
+reads it; for the rest, it takes the unit the maker's manual gives, and checks it against the file
+where the file can show a disagreement. Either way it writes a note giving the decision and this
+file's evidence, and the [survey's report](#how-it-was-checked) counts the decisions over the
+sample logs:
 
 - **An RRC3's altitude, speed and clock, worked out from the file.** Missile Works' mDACS (the
   program that downloads an RRC3's flights to a computer) writes the altitude, speed and
@@ -181,6 +196,82 @@ the [survey's report](#how-it-was-checked) counts the decisions over the sample 
   agree: its summary of a flight states the top speed in feet per second and the inertial
   altitude in feet, and its accelerometers read 1 g at rest on the pad. A file that disagreed
   would still be read in these units; its note would show the disagreement.
+- **An Eggtimer TRS's terminal download, its preamble by its own unit marks.** Captured in a
+  terminal program, a TRS's download prints its flight settings and a flight summary before the
+  table its CSV download writes (*Eggtimer TRS Flight Computer User's Manual*, firmware 2.07,
+  p35–37). The table is read as the CSV download is, its clock decided by its step. The summary's
+  apogee becomes the record's stated apogee, and its `ASL Alt.` the launch site's elevation, each
+  read by its own unit mark, `ft`. The summary's event times, written without a unit in both
+  sample files, are read in seconds, as the manual's download writes them (`secs.`, p36). They are
+  on the table's clock: in both sample files every one matches its marker's row to the
+  millisecond. So a summary time with a matching marker is kept once, as the marker's event; the
+  top speed's time, which no marker marks, becomes an event of its own; and a time of 0 means a
+  channel that didn't fire (p25). The settings and the other summary lines, such as the base
+  temperature with its own `F` or `C`, are kept as written in the record's notes. The name the
+  owner gave the flight computer is left out, since it may name a person.
+- **AltimeterCloud's temperature and summary times, worked out from the file.** The Nano V1's
+  manual has a page on its CSV layout (*CSV Flight log format*,
+  <https://www.altimetercloud.com/support/nano-v1/flight-log-format/>, read 2026-10-13). The
+  reader follows Debrief's in recognizing the layout and in the centi-degree temperature.
+  - *From the manual:* time in milliseconds from liftoff, altitude above the pad in meters,
+    acceleration in thousandths of a g, rates of turn and attitude angles in degrees. The
+    Mercury's CSV uses the same names for the same columns, so its rates and angles are read in
+    the Nano's units too, with a note saying so.
+  - *Total acceleration:* `acceleration_total(mG)` is the acceleration's magnitude with 1 g taken
+    out, so it reads about zero at rest and −1 g in free fall; it is kept so, as an acceleration
+    along no axis, and its note says what it is.
+  - *The Mercury's temperature:* `bmp_temp(x100)` holds hundredths of a degree Celsius. It is read
+    so only when every value is a whole number, every value divided by 100 falls within the
+    barometer's measurement range, −40 to 85 °C (Bosch Sensortec, *BMP581 data sheet*,
+    BST-BMP581-DS004-13, table 2, p. 10), and some values as written fall outside it, so the
+    column can't already be in degrees; otherwise it is kept as written.
+  - *The summary's times:* the block at the top of a Nano log gives the apogee's and the landing's
+    times with no unit. The apogee time is read in seconds when the log's highest altitude falls
+    within half a second of it (in all 7 sample logs with a summary, within 0.01 s). The landing
+    time is read in seconds when, read so, it comes after the highest altitude and the log's
+    altitude there is the summary's landing height within 0.01 m (0.033 ft), and read in
+    milliseconds it isn't; the manual's *Flight info page* gives the landing as "when it landed, and
+    the height it came to rest at". In all 7, the two agree within 0.001 m (0.0033 ft), where read
+    in milliseconds the time falls on the climb, more than a meter from the landing height. A time
+    the altitude doesn't bear out is left out, with a note saying why.
+  - *Kept as written:* the Mercury's air density, predicted apogee, target altitude and
+    `mt1_temp`, which have no published unit.
+  - *Gaps:* two kinds of value aren't readings and become gaps, each counted in a note: the zeros
+    the accelerometer writes on the pad before its first reading, and the exact 0 °C
+    temperatures that end every sample log after readings of 27 to 44 °C.
+- **Entacore AIM's pressure, heights and clock, worked out from the file.** The AIM's export puts
+  a `time` column before each group of channels, each group on its own clock (*AIM XTRA/BASE
+  v4.x.x Manual*, Entacore, 2 February 2025, p40), and every column is kept on its own clock,
+  following Debrief's reader. The record's altitude is the AIM's own `Pressure AGL`, its
+  barometric height above the ground it was set to. Any unit its evidence doesn't settle is kept
+  as written, with a note saying why.
+  - *From the manual:* g for the accelerations (p23–24), degrees per second for the gyroscope
+    (p24), and dBm for the ground station's `RSSI` (p29), kept as written.
+  - *Pressure:* pascals, as its first value that is a launch site's pressure in any unit is one in
+    pascals (the manual's sample export writes pascals too, Table 2, p40).
+  - *Heights:* `Pressure MSL` and `Pressure AGL` are in meters or feet, whichever matches how far
+    the pressure climbs in the standard atmosphere, as for the RRC3, from a climb of 2 m (6.6 ft); a
+    file that fits neither, or whose pressure can't settle it, is refused.
+  - *Clock:* `time` is in seconds where `GPS Time of Week`, in milliseconds, rises about 1,000 for
+    each unit of it, and in milliseconds where it rises about 1; without it, the step between
+    samples decides, against the AIM's 10 to 500 ms sampling periods (p2, p21), and a file it
+    can't settle is refused.
+  - *Temperature:* it follows the heights' unit system, °C beside meters and °F beside feet, as the
+    software uses one unit system for all it shows (p33), and its first value must be one an
+    electronics bay can have.
+  - *Voltages:* volts, as every value lies within 0 to 20, where the batteries the manual names
+    are 3.5 to 10 V (p10) and millivolts would read in thousands.
+  - *`GPS MSL`:* in the heights' unit where it reads within 300 m (984 ft) of `Pressure MSL` in that
+    unit and not in the other; at a site too low for the 3.28 factor to show, kept as written.
+  - *Magnetometer:* kept as written: the manual says tesla, but the sample files' field would then
+    be 17 to 34 times the Earth's at its strongest, about 65 µT.
+  - *A run-out GPS group:* in 11 of the 13 sample files with GPS columns, the export writes the GPS
+    group one empty cell too wide once the GPS stops logging, pushing every later column one place
+    right; the reader drops that cell only where every group is then whole, and counts each drop
+    in a note. A header naming a column twice is refused.
+  - *Events:* the rises of `launch detect`, `apogee detect` and the outputs' `A on.` … `D on`. The
+    AIM detects launch only after the rocket has kept above 30 m/s (98 ft/s) for half a second
+    (p36), so that event comes after liftoff.
 
 A unit read in the wrong one of feet and meters would put every height 3.28 times too high or too
 low, so the RRC3's is never assumed where its pressure can settle it, and the Eggtimer's rests on
@@ -299,6 +390,50 @@ A header with any other name, or these names in another case, isn't read as Perf
 RRC3's `Time,Altitude,Pressure,…` is the RRC3's, and a bare `time,altitude` says nothing of its
 units.
 
+## PerfectFlite's older `.pfa`
+
+The Alt15K/WD, an older PerfectFlite altimeter, saves its flights through PerfectFlite's DataCap
+program as a `.pfa`: a line naming the altimeter, then `Ground:`, `Apogee:`, `NumSamps:` and
+`Comments:` lines, a blank line, a `**!!Data:` line, and one height a line, such as `00274`. Most
+end their lines in a carriage return alone, as old Macs did; some in CR LF. Both read.
+
+> **How far to trust it.** The file states neither its rate nor its unit; both come from
+> PerfectFlite's documents, not the file, and the 25 sample `.pfa`s agree with them (the survey's
+> `pfa` row of unit decisions counts the note on each).
+
+The file has no time column and names no unit. The altimeter's manual says it takes a sample
+every 100 milliseconds (*Alt15K/WD User's Manual*, p. 2) and reports heights in feet (p. 6), and
+the help of DataCap 1.10 for the Mac (AltCapWD) says 10 samples a second, so each height is read
+in feet above the pad, 0.1 s after the one before. The 25 sample `.pfa`s bear it out: in every
+one, `NumSamps:` is the number of heights and `Apogee:` the highest of them
+([the survey's report](#how-it-was-checked) prints these checks). Each record says so in a note,
+which the survey counts.
+
+Two things in the file aren't what they look like:
+
+- **Time zero isn't liftoff.** The altimeter notices a launch once the rocket is 80 ft up
+  (manual, p. 2; a later revision lets it be set from 40 to 250 ft, PerfectFlite's Alt15K
+  specifications page), and saves its last 8 samples, the one that noticed among them (p. 2):
+  DataCap's help says sampling "begins at a point 0.7 seconds before the launch is detected",
+  seven steps of 0.1 s. So time zero is 0.7 s before the
+  altimeter noticed the launch. The rocket left the pad before it noticed; a slow rocket may
+  have left before time zero, so the file can miss the first moments of the climb. Every sample
+  `.pfa` first reaches 40 or 80 ft at 0.7 s (17 at 80 ft, 8 at 40 ft, as the report prints).
+- **`Ground:` isn't the pad's elevation.** It is the pad's pressure altitude: the height the day's
+  air pressure would mean if sea-level pressure were the standard 29.92 inches of mercury (inHg).
+  DataCap's help says it is about 100 ft off for every 0.1 inHg the day differs, and gives it
+  "for interest only". The record keeps it in a note, not as the ground elevation.
+
+A worked example: in the invented sample `perfectflite-alt15k.pfa` (read by the test
+`tests/perfectflite_pfa.rs`), the eighth height, `00088`, is the sample at 0.7 s, the first at
+80 ft or more, and reads as 88 × 0.3048 = 26.82 m above the pad.
+
+DataCap's help also says a `NumSamps:` of 2,200 (a revision 2 altimeter) or 2,400 (the original)
+likely means the altimeter lost power in flight, and that older flights then follow this one in
+the data. Such a file reads, with a note saying so; none of the sample files is one. A line among
+the heights that isn't a whole number, or an empty line between them, is refused, naming the line:
+every line is a step of 0.1 s, so one left out would move every time after it.
+
 ## How it was checked
 
 `cargo xtask logs`, a command of the project's own build tool, reads every sample log the project
@@ -317,7 +452,9 @@ reason printed: one is a spreadsheet's re-save of an AltOS export, its header ed
 generic CSV; another is an AltOS export whose header line is damaged, two column names run
 together, which no reader can line up with its rows and which is refused; a third, a KML file, is
 a map of a flight made in a map program, its predicted tracks with the pad and landing spot
-pinned, read but counted apart as not a log.
+pinned, read but counted apart as not a log. And 25 files the catalog files as generic CSV, by
+their extension, are in AltimeterCloud's layout (10) or Entacore AIM's (15), and are held to
+those readers.
 
 The collection is other people's data, Debrief's fixtures come from flights shared on terms nobody
 recorded, and AerospaceNU's are published under the GPL, so no file and no value read from one is

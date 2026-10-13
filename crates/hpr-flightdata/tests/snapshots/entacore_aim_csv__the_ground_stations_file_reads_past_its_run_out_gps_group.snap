@@ -1,0 +1,538 @@
+---
+source: crates/hpr-flightdata/tests/entacore_aim_csv.rs
+expression: log
+---
+{
+  "format": "entacore_aim_csv",
+  "logger": "Entacore AIM",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [
+    -2.9,
+    -1.7,
+    -0.5,
+    0.7,
+    1.9,
+    3.1,
+    4.3,
+    5.5,
+    6.7,
+    7.9,
+    9.1
+  ],
+  "altitude_m": [
+    0.0,
+    0.0,
+    0.0,
+    14.7622,
+    108.346,
+    241.73,
+    351.07,
+    435.936,
+    496.246,
+    532.19,
+    542.341
+  ],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "lat",
+      "quantity": "latitude",
+      "time_s": [
+        -3.0,
+        -1.5,
+        0.0,
+        1.5
+      ],
+      "values": [
+        47.549997,
+        47.549998,
+        47.55,
+        47.550002
+      ]
+    },
+    {
+      "column": "long",
+      "quantity": "longitude",
+      "time_s": [
+        -3.0,
+        -1.5,
+        0.0,
+        1.5
+      ],
+      "values": [
+        -122.309997,
+        -122.309999,
+        -122.31,
+        -122.310001
+      ]
+    },
+    {
+      "column": "GPS MSL",
+      "quantity": "unrecognized",
+      "time_s": [
+        -3.0,
+        -1.5,
+        0.0,
+        1.5
+      ],
+      "values": [
+        275.0,
+        275.0,
+        275.0,
+        342.5
+      ]
+    },
+    {
+      "column": "SVs",
+      "quantity": "number",
+      "time_s": [
+        -3.0,
+        -1.5,
+        0.0,
+        1.5
+      ],
+      "values": [
+        7.0,
+        7.0,
+        7.0,
+        7.0
+      ]
+    },
+    {
+      "column": "pressure",
+      "quantity": "pressure",
+      "time_s": [
+        -2.9,
+        -1.7,
+        -0.5,
+        0.7,
+        1.9,
+        3.1,
+        4.3,
+        5.5,
+        6.7,
+        7.9,
+        9.1
+      ],
+      "values": [
+        98358.0,
+        98358.0,
+        98358.0,
+        98185.0,
+        97094.0,
+        95556.0,
+        94310.0,
+        93352.0,
+        92676.0,
+        92275.0,
+        92162.0
+      ]
+    },
+    {
+      "column": "Pressure MSL",
+      "quantity": "altitude_msl",
+      "time_s": [
+        -2.9,
+        -1.7,
+        -0.5,
+        0.7,
+        1.9,
+        3.1,
+        4.3,
+        5.5,
+        6.7,
+        7.9,
+        9.1
+      ],
+      "values": [
+        249.96,
+        249.96,
+        249.96,
+        264.722,
+        358.306,
+        491.69,
+        601.03,
+        685.896,
+        746.206,
+        782.15,
+        792.302
+      ]
+    },
+    {
+      "column": "Pressure AGL",
+      "quantity": "altitude_above_ground",
+      "time_s": [
+        -2.9,
+        -1.7,
+        -0.5,
+        0.7,
+        1.9,
+        3.1,
+        4.3,
+        5.5,
+        6.7,
+        7.9,
+        9.1
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        14.7622,
+        108.346,
+        241.73,
+        351.07,
+        435.936,
+        496.246,
+        532.19,
+        542.341
+      ]
+    },
+    {
+      "column": "RSSI",
+      "quantity": "number",
+      "time_s": [
+        -2.8,
+        -1.9,
+        -1.0,
+        -0.1,
+        0.8,
+        1.7,
+        2.6,
+        3.5,
+        4.4,
+        5.3,
+        6.2,
+        7.1,
+        8.0,
+        8.9
+      ],
+      "values": [
+        -80.25,
+        -80.25,
+        -80.25,
+        -80.25,
+        -81.85,
+        -83.65,
+        -85.45,
+        -87.25,
+        -89.05,
+        -90.85,
+        -92.65,
+        -94.45,
+        -96.25,
+        -98.05
+      ]
+    },
+    {
+      "column": "launch detect",
+      "quantity": "number",
+      "time_s": [
+        -2.7,
+        -0.7,
+        1.3,
+        3.3,
+        5.3,
+        7.3,
+        9.3
+      ],
+      "values": [
+        0.0,
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "apogee detect",
+      "quantity": "number",
+      "time_s": [
+        -2.7,
+        -0.7,
+        1.3,
+        3.3,
+        5.3,
+        7.3,
+        9.3
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "column": "A cont.",
+      "quantity": "number",
+      "time_s": [
+        -2.7,
+        -0.7,
+        1.3,
+        3.3,
+        5.3,
+        7.3,
+        9.3
+      ],
+      "values": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "B cont.",
+      "quantity": "number",
+      "time_s": [
+        -2.7,
+        -0.7,
+        1.3,
+        3.3,
+        5.3,
+        7.3,
+        9.3
+      ],
+      "values": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "C cont.",
+      "quantity": "number",
+      "time_s": [
+        -2.7,
+        -0.7,
+        1.3,
+        3.3,
+        5.3,
+        7.3,
+        9.3
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "D cont.",
+      "quantity": "number",
+      "time_s": [
+        -2.7,
+        -0.7,
+        1.3,
+        3.3,
+        5.3,
+        7.3,
+        9.3
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "A on.",
+      "quantity": "number",
+      "time_s": [
+        -2.7,
+        -0.7,
+        1.3,
+        3.3,
+        5.3,
+        7.3,
+        9.3
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "B on",
+      "quantity": "number",
+      "time_s": [
+        -2.7,
+        -0.7,
+        1.3,
+        3.3,
+        5.3,
+        7.3,
+        9.3
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "C on",
+      "quantity": "number",
+      "time_s": [
+        -2.7,
+        -0.7,
+        1.3,
+        3.3,
+        5.3,
+        7.3,
+        9.3
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "D on",
+      "quantity": "number",
+      "time_s": [
+        -2.7,
+        -0.7,
+        1.3,
+        3.3,
+        5.3,
+        7.3,
+        9.3
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "comp. bat. voltage",
+      "quantity": "voltage",
+      "time_s": [
+        -2.6,
+        0.4,
+        3.4,
+        6.4,
+        9.4
+      ],
+      "values": [
+        4.11,
+        4.11,
+        4.11,
+        4.11,
+        4.11
+      ]
+    },
+    {
+      "column": "temperature",
+      "quantity": "temperature",
+      "time_s": [
+        -2.5,
+        0.5,
+        3.5,
+        6.5,
+        9.5
+      ],
+      "values": [
+        291.9,
+        291.9,
+        291.9,
+        291.9,
+        291.9
+      ]
+    },
+    {
+      "column": "GPS Time of Week",
+      "quantity": "unrecognized",
+      "time_s": [
+        -2.4,
+        0.1,
+        2.6,
+        5.1,
+        7.6,
+        10.1
+      ],
+      "values": [
+        400000000.0,
+        400002500.0,
+        400005000.0,
+        400007500.0,
+        400010000.0,
+        400012500.0
+      ]
+    }
+  ],
+  "events": [
+    {
+      "time_s": 1.3,
+      "name": "launch detect"
+    },
+    {
+      "time_s": 9.3,
+      "name": "apogee detect"
+    }
+  ],
+  "notes": [
+    "`time` read in seconds, from `GPS Time of Week`: it counts milliseconds, below a week's 604,800,000, and climbs by a median of 1000.0 per unit of its `time`, a millisecond's per second",
+    "`pressure` read in pascals, from the values: its first value that is a launch site's pressure in pascals, kilopascals or inches of mercury (50,000 to 110,000 Pa), 98358, is one in pascals",
+    "`Pressure MSL` and `Pressure AGL` read in meters, from the pressure: from the pressure's pad sample to the one of lowest pressure, the standard atmosphere climbs 542.3 m and the column 542.3 meters",
+    "`GPS MSL` kept as written, in a unit `Pressure MSL` doesn't settle: over 4 GPS samples within 1 s of one of it, the median difference is 25.0 m read in meters and -166.1 m in feet, so the 300 m a day's weather moves a standard-atmosphere altitude doesn't tell the units apart",
+    "`temperature` read in degrees Celsius, from the heights' unit and the manual, p33: the heights are in meters, decided from the pressure, and the software sets one unit system for all its displays (p33), here metric, its sensor reading °C or °F (p25); the first value, 18.75, is a bay's temperature in them, -40 to 60",
+    "`comp. bat. voltage` read in volts, from the values: they lie within 4.11 to 4.11, inside the 0 to 20 V of a battery or an output line (the computer's battery is 3.5 to 8.4 V and the ejection battery at most 10 V, manual p10), where millivolts would be thousands",
+    "`lat` and `long` read in degrees, from the values: decimal numbers, as the manual's sample export writes them (Table 2, p40)",
+    "`SVs` kept as written, a count, from the manual: the satellites used in the GPS's solution (p25)",
+    "`RSSI` kept as written, in dBm, from the manual: the strength of the radio signal the AIM BASE received, \"in decibels (dBm)\" (p29): a power level in decibels against a milliwatt, not an SI unit, and the record has no quantity for a signal's strength",
+    "`GPS Time of Week` kept as written, in milliseconds, from the values: they stay below a week's 604,800,000 and rise by a median of 1000.0 a second of the clock; the record has no quantity for a time of the GPS week",
+    "`launch detect`, `apogee detect`, `A cont.`, `B cont.`, `C cont.`, `D cont.`, `A on.`, `B on`, `C on` and `D on` kept as written, flags, from the values: each is 0 or 1, the AIM's flight event status and its lines' continuity (manual p2, p36)",
+    "10 rows, the first on line 6, write the run-out GPS group, `time,lat,…`, one empty cell too wide: the cell after it was dropped, so that the groups to its right are read under their names",
+    "the file holds `RSSI`, the radio's strength at the AIM BASE: it is the telemetry the ground station received, at the radio's rates, not the flight computer's own log"
+  ]
+}

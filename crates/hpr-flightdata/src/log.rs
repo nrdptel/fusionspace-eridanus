@@ -46,7 +46,8 @@ pub struct FlightLog {
     #[serde(default)]
     pub channels: Vec<Channel>,
     /// What the logger says happened and when, such as an AltOS flight computer's change of
-    /// state, in the file's order.
+    /// state: in the file's order, or in time order where the file states them apart from its
+    /// rows, as an Eggtimer's summary does.
     #[serde(default)]
     pub events: Vec<Event>,
     /// What the reader noticed and worked around, such as a sample count that differs from the
@@ -207,6 +208,18 @@ pub enum LogFormat {
     /// A GPS receiver's NMEA 0183 sentences as it wrote them, such as `$GPGGA,…*hh`. Positions
     /// only.
     Nmea0183,
+    /// PerfectFlite's older `.pfa`, as its software saves an Alt15K/WD's flight: `Ground:`,
+    /// `Apogee:` and `NumSamps:` lines, then `**!!Data:` and one altitude a line.
+    PerfectFlitePfa,
+    /// An Eggtimer TRS's flight as its terminal download prints it: the flight settings and the
+    /// flight summary, then the table the CSV download writes.
+    EggtimerText,
+    /// AltimeterCloud's CSV of a Rocketry Ltd Nano V1's or Mercury's flight, as a flight page on
+    /// altimetercloud.com hands it back: a header row such as `Time(ms),Altitude(m),…`.
+    AltimeterCloudCsv,
+    /// Entacore AIM's CSV, as its software exports a flight: each channel beside its own `time`
+    /// column.
+    EntacoreAimCsv,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -298,15 +311,19 @@ const RRC3_PRESSURE_STEP_PA: f64 = 10.0;
 const BLUE_RAVEN_PRESSURE_STEP_ATM: f64 = 2.0e-5;
 
 impl LogFormat {
-    /// The altitude's resolution in the format, m: the smallest step between two altitudes the
-    /// file can tell apart near the ground. A PerfectFlite and an Eggtimer write whole feet; AltOS
-    /// writes its pressure in whole pascals, 0.083 m of altitude at sea level; the Raven's
-    /// pressure moves in steps of 4 × 10⁻⁵ atm, 0.337 m at sea level, the Blue Raven's in steps of
-    /// 2 × 10⁻⁵ atm, 0.169 m, and an RRC3's export in steps of 0.1 hPa, 0.832 m. Aloft, those
-    /// from a pressure are larger. A GPS log has no barometric altitude; its formats give the
-    /// coarsest step its GNSS altitude is written in among the sample files: whole feet in
-    /// Featherweight's older tracker log, whole meters in Missile Works' and Big Red Bee's KML,
-    /// and a tenth of a meter in NMEA's `GGA`. A receiver's own error is far larger.
+    /// The altitude's resolution in the format, m: the smallest step between two altitudes the file
+    /// can tell apart near the ground. A PerfectFlite and an Eggtimer write whole feet, an
+    /// Alt15K/WD's `.pfa` too, though that sensor's own resolution is 4 ft at sea level (*Alt15K/WD
+    /// User’s Manual*, p. 10): the step the file writes is taken, not the coarser one, so that a
+    /// tolerance built on it stays tight; AltOS and Entacore AIM write their pressure in whole
+    /// pascals, 0.083 m of altitude at sea level; AltimeterCloud writes its altitude to the
+    /// millimeter, and it steps by that; the Raven's pressure moves in steps of 4 × 10⁻⁵ atm, 0.337
+    /// m at sea level, the Blue Raven's in steps of 2 × 10⁻⁵ atm, 0.169 m, and an RRC3's export in
+    /// steps of 0.1 hPa, 0.832 m. Aloft, those from a pressure are larger. A GPS log has no
+    /// barometric altitude; its formats give the coarsest step its GNSS altitude is written in
+    /// among the sample files: whole feet in Featherweight's older tracker log, whole meters in
+    /// Missile Works' and Big Red Bee's KML, and a tenth of a meter in NMEA's `GGA`. A receiver's
+    /// own error is far larger.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -320,6 +337,9 @@ impl LogFormat {
             Self::FeatherweightGpsCsv => crate::perfectflite::FOOT_M,
             Self::Kml => 1.0,
             Self::Nmea0183 => 0.1,
+            Self::PerfectFlitePfa | Self::EggtimerText => crate::perfectflite::FOOT_M,
+            Self::AltimeterCloudCsv => 0.001,
+            Self::EntacoreAimCsv => ONE_PASCAL_M,
         }
     }
 
@@ -333,8 +353,11 @@ impl LogFormat {
             | Self::Rrc3Csv
             | Self::EggtimerCsv
             | Self::BlueRavenCsv
-            | Self::FeatherweightGpsCsv => ".csv",
-            Self::PerfectFliteText | Self::Nmea0183 => ".txt",
+            | Self::FeatherweightGpsCsv
+            | Self::AltimeterCloudCsv
+            | Self::EntacoreAimCsv => ".csv",
+            Self::PerfectFliteText | Self::Nmea0183 | Self::EggtimerText => ".txt",
+            Self::PerfectFlitePfa => ".pfa",
             Self::Kml => ".kml",
         }
     }
@@ -353,6 +376,10 @@ impl LogFormat {
             Self::FeatherweightGpsCsv => "Featherweight GPS CSV",
             Self::Kml => "KML",
             Self::Nmea0183 => "NMEA 0183",
+            Self::PerfectFlitePfa => "PerfectFlite .pfa",
+            Self::EggtimerText => "Eggtimer text",
+            Self::AltimeterCloudCsv => "AltimeterCloud CSV",
+            Self::EntacoreAimCsv => "Entacore AIM CSV",
         }
     }
 }
@@ -390,6 +417,10 @@ mod tests {
             (LogFormat::FeatherweightGpsCsv, 0.3048),
             (LogFormat::Kml, 1.0),
             (LogFormat::Nmea0183, 0.1),
+            (LogFormat::PerfectFlitePfa, 0.3048),
+            (LogFormat::EggtimerText, 0.3048),
+            (LogFormat::EntacoreAimCsv, 0.083_242),
+            (LogFormat::AltimeterCloudCsv, 0.001),
         ];
         for (format, expected) in cases {
             let resolution = format.altitude_resolution_m();
