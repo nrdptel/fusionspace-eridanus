@@ -11,7 +11,7 @@
 #   scripts/gate.sh clippy test     # just these steps
 #   GATE_TAIL=80 scripts/gate.sh    # show more of each failure (default 40 lines)
 #
-# Steps: fmt clippy test doc wasm validate deny site examples, and refs when it applies (below).
+# Steps: fmt clippy test doc wasm validate deny site examples, and pages and refs when they apply.
 # The test step runs the tests with cargo-nextest, each test its own process, in parallel, then the
 # doctests with `cargo test --doc` (nextest doesn't run doctests); together they run what
 # `cargo test` runs in about half the time (146 s against 296 to 309 s, single runs on 2026-10-04,
@@ -27,6 +27,13 @@
 # when refs/ is present and the branch changes a physics crate (hpr-aero, hpr-sim, hpr-motor,
 # hpr-design, hpr-atmos, hpr-io) or the log readers (hpr-flightdata) against origin/main, and says so when it can't. Name it to run it
 # anyway (`scripts/gate.sh refs`), or set GATE_REFS=0 to leave it out.
+# Step pages: the site's page checks alone (`xtask site --no-build`, about 80 s, single runs on
+# 2026-10-13). It joins any run that includes `site` when the branch changes the pages (docs/, a
+# Markdown file, or xtask's site checks) against origin/main, and runs right after fmt. A failing
+# pages step stops the run as fmt does: the site step, last, would fail the same way after every
+# other step had run (the site step failed in 21 of its 54 runs from 2026-10-12 to 10-13, about 9
+# of them on page checks this step runs). Name it to run it alone (`scripts/gate.sh pages`), or set
+# GATE_PAGES=0 to leave it out.
 # Step ego (M6.2d2, ADR-152): EGO's 20 runs on Hartmann's six-variable function, each held within
 # 1% of the minimum in 250 evaluations (`cargo bench -p fusionspace-hpr-analysis --bench ego_hartmann6`, a
 # release build; about 3 minutes on 10 cores, hours in the debug build CI tests with, so CI doesn't
@@ -68,6 +75,15 @@ touches_physics() {
   return 1
 }
 
+# Whether this branch changes the site's pages, as touches_physics tells for the physics crates.
+touches_pages() {
+  local base changed
+  base=$(git merge-base HEAD origin/main 2>/dev/null) || return 2
+  changed=$( { git diff --name-only "$base"; git diff --name-only; git diff --name-only --cached; } 2>/dev/null)
+  grep -qE '^docs/|\.md$|^xtask/src/site' <<<"$changed" && return 0
+  return 1
+}
+
 # Whether this branch changes EGO or what it calls, as touches_physics tells for the physics crates.
 # Path prefixes: the optimizer's module and its parent (bounds, scaling), the bench, the seeded
 # random streams every run draws from, and the crate's manifest.
@@ -101,6 +117,24 @@ case " $STEPS " in
       fi
     elif [ "$physics" -eq 2 ]; then
       echo "SKIP refs: no origin/main to tell whether a physics crate changed (git fetch origin)"
+    fi ;;
+esac
+# The page checks join any run that builds the site, when the pages changed, right after fmt.
+case " $STEPS " in
+  *" pages "*) ;;
+  *" site "*)
+    touches_pages; pages=$?
+    if [ "$pages" -eq 0 ]; then
+      if [ "${GATE_PAGES:-1}" = 0 ]; then
+        echo "SKIP pages: the pages changed, but GATE_PAGES=0"
+      else
+        case " $STEPS " in
+          *" fmt "*) STEPS=" $STEPS "; STEPS="${STEPS/ fmt / fmt pages }"; STEPS="${STEPS# }"; STEPS="${STEPS% }" ;;
+          *) STEPS="pages $STEPS" ;;
+        esac
+      fi
+    elif [ "$pages" -eq 2 ]; then
+      echo "SKIP pages: no origin/main to tell whether the pages changed (git fetch origin)"
     fi ;;
 esac
 # EGO's measurement joins any run that tests, when EGO changed.
@@ -138,6 +172,7 @@ cmd_for() {
     validate) echo "$XTASK validate --check && $XTASK scoreboard --check --against origin/main" ;;
     deny) echo "cargo deny check" ;;
     site) echo "$XTASK site --locked" ;;
+    pages) echo "$XTASK site --no-build" ;;
     examples) echo "$XTASK examples --check --locked" ;;
     docs) echo "cargo test --locked -p xtask" ;;
     types) echo "$XTASK format --typecheck" ;;
@@ -149,7 +184,7 @@ cmd_for() {
 }
 
 for step in $STEPS; do
-  cmd_for "$step" >/dev/null || { echo "unknown step: $step (known: $ALL refs ego docs types python)" >&2; exit 64; }
+  cmd_for "$step" >/dev/null || { echo "unknown step: $step (known: $ALL pages refs ego docs types python)" >&2; exit 64; }
 done
 mkdir -p "$LOGDIR"
 
@@ -198,6 +233,10 @@ for step in $STEPS; do
     failed="$failed $step"
     if [ "$step" = fmt ] && [ "$STEPS" != fmt ]; then
       echo "    run \`cargo fmt --all\`, then the gate again: the other steps would check code it changes"
+      break
+    fi
+    if [ "$step" = pages ] && [ "$STEPS" != pages ]; then
+      echo "    fix the pages, then the gate again: the site step would fail the same way, last"
       break
     fi
   fi

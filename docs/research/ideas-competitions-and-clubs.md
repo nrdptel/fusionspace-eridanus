@@ -17,14 +17,20 @@ rules templates carry a source date, a stale-after date and "not legal advice".
   timeline, vibration as gRMS (root-mean-square acceleration in g) scaled by Reynolds number
   ([doi 10.2514/1.A36444](https://doi.org/10.2514/1.A36444)).
 - SOON: landing-survival g for eggs and payloads.
-- SOON: an American Rocketry Challenge two-target tuner (a 36 to 39 s duration and 229 m, or
-  750 ft), with a day-of grid of ballast and launch angle.
+- SOON: an American Rocketry Challenge two-target tuner (the 2027 rules: a 37 to 40 s duration
+  and 800 ft, or 244 m, for qualifying), with a day-of grid of ballast and launch angle.
 - SOON: contest optimizer presets for the National Association of Rocketry (NAR).
 - SOON: the low-g window.
 - SOON: thermal sensitivity of the duration.
 - SOON: requirements as code.
 - SOON: RocketPy export raised in priority: the European Rocketry Challenge (EuRoC) requires a
   RocketPy file (its rules, §8.5).
+- SOON: Student Launch's checks in one command. User: a Student Launch team's safety lead before a
+  design review. Workflow: one `hpr` command runs the M6.3 preset on a design and prints every
+  limit's reading against it, at both ballasts and four winds. Moves: a new
+  `steps.command-line` row for that task, with each tool's count or *can't* by its docs. *Done
+  when:* the row is in `validation/steps/`, HPR Sim's file is run by a test, and the scoreboard
+  shows it.
 
 ## Club operations (LATER)
 
