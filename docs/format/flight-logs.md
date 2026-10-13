@@ -297,10 +297,10 @@ sample logs:
   brackets in its header, such as `baro-altitude (m)`, with a decimal comma (*Fluctus – Full
   Documentation* v1.7b, p27, p58), but `gpsAltMSL` has none, in the header or the manual. It is
   read in meters where its highest rise above its first reading comes within 10% of the
-  barometric apogee, which must be at least 100 m; in feet the rise would be 3.28 times smaller.
-  Otherwise, as where the GPS lost its fix in the climb, it is kept as written. The latitude and
-  longitude are degrees, from the manual (p38) and a range check, and each change of `status` is
-  an event named as the manual names it (p23).
+  barometric apogee, which must be at least 100 m (328 ft); in feet the rise would be 3.28 times
+  smaller. Otherwise, as where the GPS lost its fix in the climb, it is kept as written. The
+  latitude and longitude are degrees, from the manual (p38) and a range check, and each change of
+  `status` is an event named as the manual names it (p23).
 - **An ARTS2's unit system, worked out from the flight.** The ARTS2's interpreted data comes in
   English or metric units, and neither the file nor the manual (*ARTS2 User Manual* V1.0.0, Ozark
   Aerospace, 2007) says which. So the reader works it out from the flight:
@@ -310,7 +310,8 @@ sample logs:
   - *Acceleration:* g, or the velocity's unit per second, whichever makes its integral over the
     boost the velocity's rise, within 10%.
   - *Altitudes:* the inertial altitude `iAlt` must be the velocity's integral, and the barometric
-    altitude `pAlt`'s peak within 25% of the climb the velocity gives, from a climb of 176 m.
+    altitude `pAlt`'s peak within 25% of the climb the velocity gives, from a climb of 176 m
+    (577 ft).
 
   A file whose velocity or barometric altitude no check settles is refused; an acceleration or
   inertial altitude none settles is kept as written. The barometric altitude is the record's
