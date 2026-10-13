@@ -295,8 +295,9 @@ fn a_flight_state_listing_no_word_or_one_past_16_bits_is_refused() {
 }
 
 #[test]
-fn a_temperature_below_zero_fahrenheit_reads_signed() {
-    let settings = settings();
+fn a_temperature_below_zero_fahrenheit_and_a_negative_offset_read_signed() {
+    let mut settings = settings();
+    settings[0] = (-5i16) as u16;
     let mut cold = slow(0);
     cold[7] = (-1050i16) as u16;
     let pad = block((1025, 1000), 612, cold, [0, 0]);
@@ -307,6 +308,9 @@ fn a_temperature_below_zero_fahrenheit_reads_signed() {
     // −10.50 °F.
     let temperature = channel(&log, "Temperature (F)");
     assert_eq!(temperature.values[0], (-10.5 - 32.0) * 5.0 / 9.0 + 273.15);
+    // 1,025 counts with an offset of −5 hundredths: 204 − 5, 1.99 g.
+    let axial = channel(&log, "Axial Accel (Gs)");
+    assert_eq!(axial.values[0], 1.99 * STANDARD_GRAVITY_MPS2);
 }
 
 #[test]

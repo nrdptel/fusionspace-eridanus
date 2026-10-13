@@ -551,6 +551,12 @@ fn compare_raw(
             continue;
         };
         let step = raw_step(raw.format, own.quantity)?;
+        // A channel with no samples, or with times and values that don't pair up, compares with
+        // nothing.
+        let paired = |c: &hpr_flightdata::log::Channel| c.time_s.len() == c.values.len();
+        if own.values.is_empty() || !paired(own) || !paired(channel) {
+            return None;
+        }
         let may_stop = own.quantity == Quantity::Speed;
         let (rows, samples) = (channel.values.len(), own.values.len());
         let reached = if rows == samples || (rows < samples && may_stop && !one_clock) {
@@ -601,10 +607,7 @@ fn held(
         if j > from + 1 || timed < j {
             return None;
         }
-        if timed == j && times_agree(time, own.time_s[j]) {
-            out.time(time, own.time_s[j]);
-            timed += 1;
-        }
+        let at_its_time = timed == j && times_agree(time, own.time_s[j]);
         if !out.value(value, own.values[j], step) {
             // Stopped early: the export holds its previous value to the end.
             let stopped = may_stop
@@ -613,6 +616,10 @@ fn held(
                     .iter()
                     .all(|later| later.to_bits() == channel.values[i - 1].to_bits());
             return stopped.then_some(j);
+        }
+        if at_its_time {
+            out.time(time, own.time_s[j]);
+            timed += 1;
         }
     }
     (timed == samples).then_some(samples)
@@ -1194,7 +1201,7 @@ fn markdown(report: &Report) -> String {
                 in every sample of every channel the two share: the value within half a step of \
                 the raw format's resolution, the time as the export prints it (the FIP's to six \
                 significant figures; mDACS's from its own clock, 0.05 s summed in single \
-                precision, which runs a hundredth of a second ahead of the RRC3's by 157 s). Each \
+                precision, which runs a hundredth of a second ahead of the RRC3's from 156.65 s). Each \
                 raw sample is counted once; only the accelerometer's velocity may stop early, as \
                 the FIP stops it at apogee, and its samples after the stop are counted apart:\n\n\
                 | Family | Files | With an export | Matching one | Raw samples compared | \
@@ -1563,6 +1570,45 @@ mod tests {
             if t < 0.103 { 90_000.0 } else { 88_000.0 }
         });
         assert_eq!(compare_raw(&raw, &export), None);
+    }
+
+    #[test]
+    fn an_empty_or_ragged_channel_is_a_difference_not_a_panic() {
+        let ticks = [0.0, 0.00125, 0.0025];
+        let one_clock = |values: &[f64]| {
+            record(
+                "raven_fip_csv",
+                &[
+                    ("Baro (Atm)", "pressure", &ticks, values),
+                    ("LiftOff", "number", &ticks, &[0.0; 3]),
+                ],
+            )
+        };
+        let empty = record("raven_fipa", &[("Baro (Atm)", "pressure", &[], &[])]);
+        assert_eq!(compare_raw(&empty, &one_clock(&[1.0; 3])), None);
+        // A raw channel, or an export's, with fewer times than values.
+        let ragged = record(
+            "raven_fipa",
+            &[("Baro (Atm)", "pressure", &[0.0], &[1.0, 1.0])],
+        );
+        assert_eq!(compare_raw(&ragged, &one_clock(&[1.0; 3])), None);
+        let raw = record(
+            "raven_fipa",
+            &[("Baro (Atm)", "pressure", &ticks, &[1.0; 3])],
+        );
+        let short_times = record(
+            "raven_fip_csv",
+            &[
+                ("Baro (Atm)", "pressure", &ticks[..2], &[1.0; 3]),
+                (
+                    "[Altitude (Baro-Ft-AGL)]",
+                    "altitude_above_ground",
+                    &[0.0],
+                    &[1.0],
+                ),
+            ],
+        );
+        assert_eq!(compare_raw(&raw, &short_times), None);
     }
 
     #[test]

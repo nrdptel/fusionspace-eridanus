@@ -774,7 +774,8 @@ their size, as Debrief, the project owner's earlier analyzer, does:
 
 - **A word below `0x4000` (16,384) is a pressure**, in tenths of a millibar. `0x2710`, 10,000, is
   1,000.0 mbar, or 100,000 Pa. `0x4000` would be 1,638.4 mbar, above the 1,200 mbar at which the
-  RRC3 itself reports a pressure sensor fault (its manual, p. 9), so no reading reaches it.
+  RRC3 itself reports a pressure sensor fault (*RRC3+ / RRC3 User Manual* v1.71, p. 9), so no
+  reading reaches it.
 - **A word at or above `0x4000` is an auxiliary word.** Most come in pairs once a second,
   presumably the temperature and battery voltage the RRC3 records once a second, in counts. A few
   stand alone (three in each sample file: one near apogee, one later, and a last `0xFFFF`); the
