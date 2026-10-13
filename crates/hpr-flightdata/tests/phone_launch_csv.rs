@@ -3,7 +3,9 @@
 //! 100 m above sea level, 1 s of boost at 15 g net, a drag-free coast to 1,176.8 m at 16 s and a
 //! 15 m/s descent, its gyroscope stopping at 1,000 °/s in the boost, its heading crossing north,
 //! CR LF line ends. The older layout's file holds 1.15 s on the pad at 20 Hz, its barometer
-//! writing 0 on every row.
+//! writing 0 on every row. In both, the accelerometer's axes point along gravity's direction for
+//! the phone's pitch and roll, and the magnetometer reads an invented field of 22 µT north and
+//! 42 µT down turned by the whole attitude, so that the yaw is the azimuth of the phone's y axis.
 
 use hpr_flightdata::import;
 use hpr_flightdata::log::{FlightLog, LogFormat, Quantity};

@@ -77,7 +77,7 @@ decided.
 | ARTS2 CSV | Ozark Aerospace ARTS2, its interpreted data as its software exports a flight | a first line of `#` and the names `MET Acc Vel iAlt pAlt`, by spaces, tabs or commas, in any case | `hpr_flightdata::arts2` ([below](#units-the-file-decides)) |
 | AerospaceNU board CSV | AerospaceNU's flight computer board (FCB), its binary log as the club's tools turn it into a CSV | a first line whose first name is empty (the club's row number) and which names `packetType`, `timestamp_ms` or `timestamp_s` | `hpr_flightdata::aerospacenu_fcb` ([below](#units-the-file-decides)) |
 | AerospaceNU ground station text | the same board's radio downlink, one packet a line, as the club's ground station logged it | a first line that isn't blank starting `RUN START` | `hpr_flightdata::aerospacenu_gs` ([below](#units-the-file-decides)) |
-| Phone app `launch` CSV | an app, named in none of its files, that logs a phone's own sensors in flight | a first line that isn't blank starting `Seconds,Timestamp,AltitudeMSLGPS` | `hpr_flightdata::phone_launch` ([below](#units-the-file-decides)) |
+| Phone app `launch` CSV | an app, named in none of its files, that logs a phone's own sensors in flight | a first line that isn't blank starting `Seconds,Timestamp,AltitudeMSLGPS`, the only mark the files carry: any file whose header opens so is read as this app's, as the app's name is unknown | `hpr_flightdata::phone_launch` ([below](#units-the-file-decides)) |
 | Featherweight GPS CSV | Featherweight's GPS tracker: its own log, and its ground station's log of every tracker it hears | a first line opening `UTCTIME,UNIXTIME,` or `TRACKER,DATE,TIME,` that names the latitude and longitude (`LAT` and `LON`, or `TRACKER Lat` and `TRACKER Lon`) | [below](#gps-logs) |
 | KML | GPS tracks as AltOS, Missile Works' RTx, Big Red Bee's BeeLine, fw2kml (a converter of Featherweight's logs), GPS Visualizer and others write them for Google Earth | the document's root element is `kml` | [below](#gps-logs) |
 | NMEA 0183 | a GPS receiver's own sentences, written to a file as it sends them | at least 3 of the first 50 lines open with a sentence whose checksum checks out, such as `$GPGGA,…*hh`, or, in a shorter file, every line does | [below](#gps-logs) |
@@ -438,11 +438,12 @@ sample logs:
     and yaw are kept as written.
 - **A phone app's `launch` CSV, each unit by two checks.** An app that no file names logs a
   phone's GPS, accelerometer, gyroscope, magnetometer and, in newer files, barometer, about 20
-  rows a second. No description of the format was found. Of the 27 sample files, 19 are an
-  older layout of 35 columns with no barometer, and 8 a newer one of 67 or 69 columns that adds
-  one. `Seconds` is the clock, by its name. Every other column is read in a unit only where two
-  checks that look at different evidence agree; otherwise it is kept as written, with a note. An
-  invented start of a file, shortened:
+  rows a second (from the 27 sample files' timestamps). No description of the format was found.
+  Of the 27 sample files, 19 are an older layout of 35 columns with no barometer, and 8 a newer
+  one of 67 or 69 columns that adds one. `Seconds` is the clock, by its name. Every other column
+  is read in a unit only where two checks agree that read different numbers (two columns, a
+  column against another of settled unit or direction, or a column's extent against its steps);
+  otherwise it is kept as written, with a note. An invented start of a file, shortened:
 
   ```text
   Seconds,Timestamp,AltitudeMSLGPS,Record,Static,Latitude,Longitude,GTotal,Gx,Gy,Gz,…
@@ -459,16 +460,28 @@ sample logs:
   - *Accelerations, in g:* the pad reads 1, and the boost's integral matches the barometric climb
     rate. The older files have no barometer for the second check, so their accelerations are
     kept as written: read in g in 6 files, kept in 21.
-  - *Attitude and rates of turn, in radians and rad/s:* `Yaw`, `Roll` and `Pitch` by their range
-    and by wrapping at ±π (for the pitch, by gravity's direction in the accelerometer); the
-    gyroscope by the attitude's turn and by a full scale a phone's gyroscope offers. The
-    gyroscope reads in rad/s in 7 files and is kept as written in 20.
-  - *Position, heading and time stamp:* degrees, as some value passes what radians reach; the
-    heading also wraps at 360; `Timestamp` is a Unix time in milliseconds, its steps the clock's
-    and its date in this century.
+  - *Attitude, in radians:* each angle by its range (within ±π, the pitch ±π/2), and by its
+    direction against a sensor that needs no unit, on rows where the phone is still: the pitch
+    and roll against gravity's direction in the accelerometer, the yaw against magnetic north in
+    the magnetometer, as Android's `SensorManager.getOrientation` defines the three. Read so: the
+    pitch in 25 files, the roll in 24, the yaw in 10 (the 8 newer; in most older files the yaw
+    doesn't follow the magnetometer, so it is kept as written).
+  - *Rates of turn, in rad/s:* the gyroscope by the attitude's turn, where all three angles are
+    read, and by a full scale a phone's gyroscope offers. Read so in 7 files, kept as written in 20.
+  - *Heading, in degrees:* by its range (0 to 360, some reading past 2π) and by its period:
+    crossing north it jumps by 360 less its turn, where gradians would jump by 400 less it.
+  - *Position, in degrees:* the latitude and longitude together, both or neither, by the
+    latitude's largest reading (past π/2, within 90) and the longitude's (past π, within 180).
+    That rules out radians, scaled integers and NMEA's degrees and minutes run together, the last
+    for any site on land. No range can tell degrees from gradians (0.9°); degrees are taken as
+    phones' location services give them.
+  - *Time stamp:* a Unix time in milliseconds, its steps the clock's and its date in this century.
   - *GPS altitude, kept as written in all 27:* only one check reaches it, its gain against the
-    pressure altitude. Fixes once a second can't show the coast, and on the pad the weather moves
-    a pressure altitude further than meters and feet are apart below 4,000 m (13,123 ft).
+    pressure altitude. Fixes once a second can't show the coast. On the pad, the weather on record
+    moves a pressure altitude across a band 1,840 m wide, and a GPS reading `N` read in meters and
+    in feet differs by 0.695 `N` m, so the pad separates the two only where `N` tops about 2,650:
+    a pad above about 2,650 m (8,690 ft) if the column is in meters, 810 m if in feet. No sample
+    file's pad is that high.
 - **An Eggtimer's download saved as RTF, unwrapped.** One sample file is an Eggtimer TRS's
   terminal download that a text editor saved as an RTF document (Rich Text Format, a word
   processor's markup). The reader takes the document's plain text, following the parts of the RTF

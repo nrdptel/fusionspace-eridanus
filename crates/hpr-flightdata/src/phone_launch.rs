@@ -44,11 +44,12 @@
 //! | `VelocityBarometer`, `VelocityBarometerRaw` | [`Quantity::Speed`], m/s: the first the primary track's | the barometric altitude's rate; gravity in the coast |
 //! | `Gx`, `Gy`, `Gz`, `GTotal` | [`Quantity::Acceleration`], g × 9.806 65 m/s² | 1 g at rest; the boost against the barometric climb |
 //! | `NoGravGx`, `NoGravGy`, `NoGravGz`, `NoGravGTotal` | [`Quantity::Acceleration`], g, gravity taken out | the accelerometer's unit and gravity's 1 g between them |
-//! | `Yaw`, `Roll` | [`Quantity::Angle`], radians × 180/π | within ±π; wrapping at ±π |
+//! | `Yaw` | [`Quantity::Angle`], radians × 180/π | within ±π; the magnetic field's direction |
+//! | `Roll` | [`Quantity::Angle`], radians × 180/π | within ±π; gravity's direction |
 //! | `Pitch` | [`Quantity::Angle`], radians × 180/π | within ±π/2; gravity's direction |
 //! | `GyroX`, `GyroY`, `GyroZ` | [`Quantity::AngularRate`], rad/s × 180/π | the attitude's turn; a full scale in °/s |
-//! | `Heading` | [`Quantity::Angle`], degrees | within 0 to 360 and past 2π; wrapping at 360 |
-//! | `Latitude`, `Longitude` | [`Quantity::Latitude`], [`Quantity::Longitude`], degrees | within ±90° and ±180°; past ±π/2 or ±π |
+//! | `Heading` | [`Quantity::Angle`], degrees | within 0 to 360 and past 2π; its wrap's period, 360 |
+//! | `Latitude`, `Longitude` | [`Quantity::Latitude`], [`Quantity::Longitude`], degrees, both or neither | the latitude past π/2 and within 90; the longitude past π and within 180 |
 //! | `AltitudeMSLGPS`, `AltitudeMSLMaxGPS` | [`Quantity::Unrecognized`], as written | no second check (below) |
 //! | `Record`, `Static`, `UsbState`, `Satellites` | [`Quantity::Number`], as written | flags, a state and a count |
 //! | `GMax`, `NoGravGMax`, `AltitudeRelativeMaxBarometer`, `VelocityBarometerMax`, `VelocityBarometerMin` | [`Quantity::Unrecognized`], as written | running extremes, not tied to their columns |
@@ -56,9 +57,10 @@
 //! | `MagnetometerX`, `…Y`, `…Z`, `HeadingX`, `…Y`, `…Z` | [`Quantity::Unrecognized`], as written | no quantity for a magnetic field |
 //! | `Revolutions`, `RevApogee`, `RevolutionsClock`, `HorizontalResGPS`, `VerticalResGPS`, `Battery`, `AltitudeRelativeSerial`, `AltitudeRelativeMaxSerial`, `Usb…`, `Reserved…` | [`Quantity::Unrecognized`], as written | no source states their units |
 //!
-//! **The checks.** Each pair looks at different evidence, so that one flight's quirk can't pass
-//! both; a check the file can't run (too few rows, no barometer, no rest) counts as failed.
-//!
+//! **The checks.** The two checks of a pair read different numbers: two columns, a column against
+//! another of settled unit or direction, or one column's extent against its steps. Each item below
+//! says what each check reads and which rival units it rules out on its own. A check the file
+//! can't run (too few rows, no barometer, no rest) counts as failed.
 //! - *The pressure.* `hPa` names its unit. The first reading, on the pad, must also be a launch
 //!   site's, 500 to 1,100 hPa, the bounds [`crate::rrc3`] cites (the U.S. Standard Atmosphere's
 //!   pressure about 5,570 m up, and above the highest sea-level pressure on record); otherwise the
@@ -90,14 +92,28 @@
 //!   so (2) can't run: their accelerations, which in 18 of the 19 read 0.94 to 1.06 at their
 //!   quietest second and clip near 2 on each axis, are kept as written. The `NoGrav…` columns'
 //!   median gives 1.00 to 1.12 in the 8, 6 of them within 0.95 to 1.05.
-//! - *The attitude, in radians.* `Yaw` and `Roll`: (1) every reading within ±π; (2) the column
-//!   wraps: between two rows it steps by more than 3π/2 from one sign to the other, as an angle
-//!   does crossing ±π. A column in degrees can't stay within ±3.14° while turning that fast.
-//!   `Pitch`: (1) every reading within ±π/2; (2) where the accelerometer reads its rest magnitude
-//!   within 3% and the pitch is at least 0.2 from level, |sin pitch| is gravity's share along the
-//!   phone's y axis, `|Gy|` over the axes' magnitude, whatever the accelerometer's unit: the median
-//!   difference must be at most 0.2, and at most half what the pitch read in degrees gives, over
-//!   at least 20 rows.
+//! - *The attitude, in radians.* Each angle: (1) every reading within ±π (the pitch, ±π/2), the
+//!   angle's extent, which a column in degrees or gradians fails once the phone turns past 3.14 of
+//!   them from 0; (2) its direction against a sensor that measures it with no unit, which rules out
+//!   every unit but radians on its own. On the rows where the accelerometer reads its rest, within
+//!   3% of the magnitude of its quietest second (before the steepest climb where the barometer
+//!   gives one, else in the whole file), the accelerometer's axes point up whatever their unit, and
+//!   the magnetometer's field, taken across up, points east whatever its unit. The angle read in
+//!   radians must lie from what they give by a median of at most 0.2 rad over at least 20 rows,
+//!   and by at most half the median the angle read in degrees gives. Rows where the angle lies
+//!   within 0.2 of 0 (for the roll, of a half-turn), where an angle in degrees reads nearly as one
+//!   in radians, are left out. The angles are those of Android's `SensorManager.getOrientation`
+//!   (Android API reference). `Pitch`, about x: |sin pitch| is gravity's share along the phone's y
+//!   axis, `|Gy|` over the axes' magnitude. `Roll`, about y: its distance from the nearest
+//!   half-turn is gravity's angle about y, atan(`|Gx|` / `|Gz|`), on rows with the y axis at least
+//!   0.2 from vertical. Neither uses gravity's sign, so axes that point the other way pass too.
+//!   `Yaw`, the azimuth: the angle from magnetic north toward east of the phone's y axis, with east
+//!   the field across up and north up across east, on rows with the y axis at least 0.2 from
+//!   vertical. As of 2026-10-13, (2) gives medians of 0.17 rad or less for the yaw in 10 files, the
+//!   8 newer and 2 of the 19 older; in 16 of the other older ones the yaw lies a median 0.90 to
+//!   3.02 rad from the field's azimuth, and one has too few rows, so their yaw is kept as written.
+//!   For the roll, 0.07 rad or less in 24 files; 0.34 and 0.36 rad in two, and too few rows in
+//!   one, kept.
 //! - *The gyroscope, in rad/s.* (1) With the attitude read in radians, the turn between rows five
 //!   apart (the angle of the rotation from one attitude to the other, each yaw about z, then pitch
 //!   about x, then roll about y) is 0.7 to 1.3 times the gyroscope's rate summed over those rows,
@@ -105,27 +121,48 @@
 //!   degrees per second it would be 57 times smaller. (2) An axis sits at its largest reading on at
 //!   least 5 rows, its full scale, and that is within 1% of one a MEMS gyroscope offers, ±125,
 //!   ±250, ±500, ±1,000 or ±2,000 °/s (Bosch Sensortec, *BMI160 data sheet*, BST-BMI160-DS000,
-//!   table 2), read in rad/s. As of 2026-10-13, (1) gives 0.80 to 1.02 in the 25 files whose
-//!   attitude is read, and the newer files' gyroscopes stop at 1,000 °/s; the older ones' never
-//!   stop at a full scale, and are kept as written.
-//! - *The heading, in degrees.* (1) Every reading within 0 to 360 and one past 2π, the most an
-//!   angle in radians reaches; (2) between two rows it steps by more than 300, as a heading does
-//!   crossing north.
-//! - *The position, in degrees.* (1) Every latitude within ±90° and longitude within ±180°; (2) one
-//!   lies past ±π/2 or ±π, the most a latitude or longitude in radians reaches.
+//!   table 2), read in rad/s. As of 2026-10-13, (1) gives 0.80 to 1.02 in the 9 files whose
+//!   attitude is read whole, and the newer files' gyroscopes stop at 1,000 °/s; the older ones'
+//!   never stop at a full scale, and are kept as written.
+//! - *The heading, in degrees.* (1) Its extent: every reading within 0 to 360 and one past 2π.
+//!   Radians, which never pass 2π, always fail it; a unit that runs to more than 360, gradians to
+//!   400, fails it once the heading passes 360 of it. (2) Its period, from its steps: some step
+//!   between rows crosses north by more than 300 and, less 360 in its direction, turns as the
+//!   steps on either side do, of their sign and within a factor of 2 of each. Crossing north, a
+//!   heading steps by its period less its turn in that row. Radians can't step 300; a heading in
+//!   gradians steps 400 less its turn, and less 360 that turns against the rows on either side
+//!   unless the heading turns 80 to 100 gradians a row, 4 to 5 turns a second at 20 rows a second.
+//! - *The position, in degrees.* `Latitude` and `Longitude` are decided together, both read or
+//!   both kept, on two columns' extents: (1) the latitude's largest reading from 0 lies past π/2,
+//!   which radians never pass, and within 90; (2) the longitude's past π and within 180. Radians
+//!   fail both, as do scaled integers (such as 10⁻⁷°). NMEA 0183's degrees and minutes run
+//!   together (4230.0 for 42.5°), and minutes of arc, pass the latitude's only within 1.5° of the
+//!   equator and the longitude's only within 3° of the prime meridian: the pair passes both only
+//!   for a site in the open sea of the Gulf of Guinea. A site in degrees within 1.57° of the
+//!   equator or 3.14° of the prime meridian fails closed, both kept. Neither check can separate a
+//!   unit within about 11% of the degree: the gradian, 0.9°, passes both below 81° of latitude and
+//!   162° of longitude. No check in the file rules it out; the reader takes degrees over it
+//!   because phones' location services give positions in degrees (Android's
+//!   `Location.getLatitude`, Apple's `CLLocationDegrees`).
 //! - *The time stamp, a Unix time in ms.* (1) Each step between rows, divided by 1,000, is the
 //!   clock's step, `Seconds`, within 1.5 ms; (2) the first, read so, falls between 2000 and 2100, where
 //!   read in seconds it would be tens of thousands of years on. It is kept as the time of day in
 //!   UTC, [`Quantity::TimeOfDay`], s after midnight.
 //! - *The GPS altitude, kept as written.* Against the pressure altitude at the GPS's fresh fixes
 //!   (the rows where the altitude or position changes), a least-squares gain near 1 says meters
-//!   and 3.28 feet, but that is one check, and the files hold no second: fixes once a second, and
-//!   lagging in flight, can't show gravity's pull in the coast, and on the pad the height above sea
-//!   level can't tell meters from feet within the weather's reach: the extremes of sea-level
-//!   pressure on record, 870 to 1,083.8 hPa (WMO, *Records of Weather and Climate Extremes*), move
-//!   the pressure altitude about −570 m to +1,270 m, more than meters and feet are apart below
-//!   4,000 m. The note gives the gain where the file has a barometer. As of 2026-10-13, the gain
-//!   is 0.69 to 1.11 in 7 of the 8 newer files; in the eighth the GPS didn't follow the flight.
+//!   and 3.28 feet, but that is one check, and the files hold no second. Fixes once a second, and
+//!   lagging in flight, can't show gravity's pull in the coast. On the pad, the GPS's height above
+//!   sea level against the pad's pressure altitude separates the units only on a high pad. The
+//!   extremes of sea-level pressure on record, 870 to 1,083.8 hPa (WMO, *Records of Weather and
+//!   Climate Extremes*), move the pressure altitude about −570 m to +1,270 m from the height, a
+//!   band 1,840 m wide (wider with the GPS's own error). A reading `N` is `N` m read in meters and
+//!   0.3048 `N` m read in feet, 0.695 `N` m apart, so both readings fall in the band for some
+//!   weather unless `N` tops 1,840 / 0.695, about 2,650: a pad above about 2,650 m if the column is
+//!   in meters, or above 810 m if it is in feet. That check isn't used: no sample file's pad reads
+//!   that high, so it would settle none of them, and the gain it would pair with has no pass band
+//!   of its own yet. The note gives the gain where the file has a barometer. As of 2026-10-13, the
+//!   gain is 0.69 to 1.11 in 7 of the 8 newer files; in the eighth the GPS didn't follow the
+//!   flight.
 //!
 //! **The primary track.** The barometric altitude, where it is read in meters, on every row, its
 //! vertical speed `VelocityBarometer` where that is read in m/s. Otherwise the track is empty, as a
@@ -137,8 +174,9 @@
 //!
 //! **The altitude's step.** `hPa` is written from a 32-bit float, which between 512 and 1,024 hPa
 //! steps by 2⁻¹⁴ hPa: every pressure in the 8 newer sample files is a whole number of those. That
-//! is 0.000 51 m of altitude at sea level, [`ALTITUDE_STEP_M`]; the barometer's own noise is far
-//! larger.
+//! is 0.000 51 m of altitude at sea level, [`ALTITUDE_STEP_M`], the barometer's step; the
+//! barometer's own noise is far larger. The track, `AltitudeRelativeBarometer`, is written in finer
+//! steps of its own, as small as 0.25 mm in those files.
 //!
 //! **Values too large.** A cell is refused if its unit's conversion to SI makes it infinite, such
 //! as `1.7e308` in `hPa` ([ADR-258][adr-258] §3).
@@ -157,9 +195,10 @@ const FORMAT: &str = "phone app launch CSV";
 /// The pressure's step, hPa: a 32-bit float's between 512 and 1,024 hPa, 2⁻¹⁴ hPa (module docs).
 const PRESSURE_STEP_HPA: f64 = 1.0 / 16_384.0;
 
-/// The barometric altitude's step, m: the pressure's, 2⁻¹⁴ hPa, at sea level, where a
-/// pascal is `1 / (ρ₀ g₀)` m with the International Standard Atmosphere's ρ₀ = 1.225 kg/m³ (ISO
-/// 2533:1975) and standard gravity g₀ (CGPM 1901): 0.000 508 m.
+/// The barometer's step as an altitude, m: the `hPa` column's step, 2⁻¹⁴ hPa, at sea level, where
+/// a pascal is `1 / (ρ₀ g₀)` m with the International Standard Atmosphere's ρ₀ = 1.225 kg/m³ (ISO
+/// 2533:1975) and standard gravity g₀ (CGPM 1901): 0.000 508 m. It is the barometer's step, not the
+/// track's: `AltitudeRelativeBarometer` is written in finer steps, as small as 0.25 mm.
 pub const ALTITUDE_STEP_M: f64 = PRESSURE_STEP_HPA * 100.0 / (1.225 * G0_M_S2);
 
 /// Standard gravity, m/s² (CGPM 1901).
@@ -212,12 +251,11 @@ const TOTAL_TIE_G: f64 = 0.11;
 /// The median magnitude of the axes less the `NoGrav…` axes, g, that reads those in g.
 const GRAVITY_TIE_G: (f64, f64) = (0.95, 1.05);
 
-/// The least step, rad, of a wrap across ±π.
-const WRAP_STEP_RAD: f64 = 1.5 * std::f64::consts::PI;
-
-/// The pitch's gravity check: the rest band's share, the least pitch from level, rad, the largest
-/// median difference and the least rows.
-const PITCH_CHECK: (f64, f64, f64, usize) = (0.03, 0.2, 0.2, 20);
+/// The attitude's direction checks, gravity's for the pitch and roll and the magnetic field's for
+/// the yaw: the rest band's share, the least angle, rad, a row's angle and axis must keep from
+/// where the comparison says nothing (module docs), the largest median difference, rad, and the
+/// least rows.
+const ATTITUDE_CHECK: (f64, f64, f64, usize) = (0.03, 0.2, 0.2, 20);
 
 /// The gyroscope's rotation check: rows a span, the summed turn's bounds, rad, the ratio's bounds
 /// and the least spans.
@@ -242,6 +280,10 @@ const FULL_SCALE_MATCH: f64 = 0.01;
 
 /// The least step, °, of a heading's wrap across north.
 const HEADING_WRAP_DEG: f64 = 300.0;
+
+/// How far, as a factor either way, a wrap's step less 360° may lie from the steps on either side
+/// of it.
+const HEADING_WRAP_FACTOR: f64 = 2.0;
 
 /// How far, s, a `Timestamp` step over 1,000 may lie from the clock's, `Seconds`.
 const STAMP_STEP_S: f64 = 0.0015;
@@ -734,28 +776,39 @@ fn build(table: &Table) -> Result<FlightLog, LogError> {
     accelerations(table, coast.as_ref(), &mut notes, &mut set);
 
     // The attitude and the gyroscope.
+    let up = rest_directions(table, coast.as_ref());
     let mut radians = [false; 3];
     for (slot, name) in ["Yaw", "Pitch", "Roll"].into_iter().enumerate() {
         let Some(values) = table.column(name) else {
             continue;
         };
-        let outcome = if name == "Pitch" {
-            Outcome::both(
-                within(values, std::f64::consts::FRAC_PI_2, "±π/2"),
-                pitch_gravity(table, values),
-            )
-        } else {
-            Outcome::both(within(values, std::f64::consts::PI, "±π"), wraps(values))
+        let (outcome, evidence) = match name {
+            "Pitch" => (
+                Outcome::both(
+                    within(values, std::f64::consts::FRAC_PI_2, "±π/2"),
+                    pitch_gravity(up.as_deref(), values),
+                ),
+                "gravity's direction",
+            ),
+            "Roll" => (
+                Outcome::both(
+                    within(values, std::f64::consts::PI, "±π"),
+                    roll_gravity(up.as_deref(), values),
+                ),
+                "gravity's direction",
+            ),
+            _ => (
+                Outcome::both(
+                    within(values, std::f64::consts::PI, "±π"),
+                    yaw_magnetic(table, up.as_deref(), values),
+                ),
+                "the magnetic field's direction",
+            ),
         };
         if outcome.passed {
             radians[slot] = true;
             notes.push(format!(
-                "`{name}` read in radians, from its range and {}: {}",
-                if name == "Pitch" {
-                    "gravity's direction"
-                } else {
-                    "its wrap"
-                },
+                "`{name}` read in radians, from its range and {evidence}: {}",
                 outcome.evidence
             ));
             set(
@@ -778,7 +831,7 @@ fn build(table: &Table) -> Result<FlightLog, LogError> {
         let outcome = Outcome::both(heading_range(values), heading_wraps(values));
         if outcome.passed {
             notes.push(format!(
-                "`Heading` read in degrees, from its range and its wrap: {}",
+                "`Heading` read in degrees, from its range and its wrap's period: {}",
                 outcome.evidence
             ));
             set(
@@ -798,42 +851,35 @@ fn build(table: &Table) -> Result<FlightLog, LogError> {
     }
 
     // The position, the time stamp and the GPS altitude.
-    for (name, quantity, most) in [
-        ("Latitude", Quantity::Latitude, 90.0_f64),
-        ("Longitude", Quantity::Longitude, 180.0),
-    ] {
-        let Some(values) = table.column(name) else {
-            continue;
-        };
-        let radian_most = most.to_radians();
-        let readings_of: Vec<f64> = values.iter().copied().filter(|v| v.is_finite()).collect();
-        let largest = readings_of.iter().fold(0.0_f64, |m, v| m.max(v.abs()));
+    let position = table.names_of(&[Kind::Latitude, Kind::Longitude]);
+    if !position.is_empty() {
         let outcome = Outcome::both(
-            (
-                !readings_of.is_empty() && largest <= most,
-                format!("its largest reading from 0 is {largest:.1}, where degrees reach {most}"),
-            ),
-            (
-                largest > radian_most,
-                format!("past the {radian_most:.4} radians reach"),
-            ),
+            position_range(table, "Latitude", 90.0),
+            position_range(table, "Longitude", 180.0),
         );
         if outcome.passed {
             notes.push(format!(
-                "`{name}` read in degrees, from its range: {}",
+                "{} read in degrees, from the latitude's range and the longitude's: {}",
+                listed(&position),
                 outcome.evidence
             ));
-            set(
-                table,
-                &[name],
-                Reading {
-                    quantity,
-                    convert: Convert::Scale(1.0),
-                },
-            );
+            for (name, quantity) in [
+                ("Latitude", Quantity::Latitude),
+                ("Longitude", Quantity::Longitude),
+            ] {
+                set(
+                    table,
+                    &[name],
+                    Reading {
+                        quantity,
+                        convert: Convert::Scale(1.0),
+                    },
+                );
+            }
         } else {
             notes.push(format!(
-                "`{name}` kept as written, in a unit two checks don't settle: {}",
+                "{} kept as written, in a unit two checks don't settle: {}",
+                listed(&position),
                 outcome.evidence
             ));
         }
@@ -1355,7 +1401,7 @@ fn accelerations(
             ));
         }
     }
-    let burnout_row = coast.map(|c| time.partition_point(|t| *t < c.climb.1));
+    let burnout_row = climb_row(time, coast);
     let rest = quietest(time, [x, y, z], burnout_row.unwrap_or(time.len()));
     let first = match rest {
         Some((last, g)) => (
@@ -1504,73 +1550,196 @@ fn within(values: &[f64], most: f64, written: &str) -> (bool, String) {
     }
 }
 
-/// Check 2 of the yaw and roll: a step across ±π.
-fn wraps(values: &[f64]) -> (bool, String) {
-    let count = values
-        .windows(2)
-        .filter(|pair| {
-            pair[0].is_finite()
-                && pair[1].is_finite()
-                && pair[0].signum() != pair[1].signum()
-                && (pair[1] - pair[0]).abs() > WRAP_STEP_RAD
-        })
-        .count();
-    (
-        count > 0,
-        format!(
-            "{} from one sign to the other by more than 3π/2, as a turn across ±π in radians \
-             does",
-            counted(
-                count,
-                "step between rows crosses",
-                "steps between rows cross"
-            )
-        ),
-    )
+/// The first row of the steepest climb, where the barometric altitude gives one: the rows before
+/// it hold the pad.
+fn climb_row(time: &[f64], coast: Option<&Coast>) -> Option<usize> {
+    coast.map(|c| time.partition_point(|t| *t < c.climb.1))
 }
 
-/// Check 2 of the pitch: gravity's direction where the phone is still (module docs).
-fn pitch_gravity(table: &Table, pitch: &[f64]) -> (bool, String) {
+/// Where the phone is still, the direction up, as a unit vector along the accelerometer's axes, on
+/// each row whose magnitude lies within [`ATTITUDE_CHECK`]'s share of the quietest second's before
+/// the steepest climb (or in the whole file, without a barometric climb); `None` on the others. At
+/// rest an accelerometer reads the push that holds the phone up, so its axes point up whatever
+/// their unit. `Err` gives why there are no such rows.
+fn rest_directions(table: &Table, coast: Option<&Coast>) -> Result<Vec<Option<[f64; 3]>>, String> {
     let (Some(x), Some(y), Some(z)) = (table.column("Gx"), table.column("Gy"), table.column("Gz"))
     else {
-        return (
-            false,
-            "the file hasn't the accelerometer's three axes".to_owned(),
-        );
+        return Err("the file hasn't the accelerometer's three axes".to_owned());
     };
-    let Some((_, rest)) = quietest(&table.time_s, [x, y, z], table.time_s.len()) else {
-        return (false, "the file has no quiet second".to_owned());
+    let time = &table.time_s;
+    let before = climb_row(time, coast).unwrap_or(time.len());
+    let Some((_, rest)) = quietest(time, [x, y, z], before) else {
+        return Err("the file has no quiet second".to_owned());
     };
-    let (share, least, most, rows) = PITCH_CHECK;
-    let mut radians = Vec::new();
-    let mut degrees = Vec::new();
-    for row in 0..pitch.len() {
-        let magnitude = (x[row] * x[row] + y[row] * y[row] + z[row] * z[row]).sqrt();
-        let p = pitch[row];
-        if (magnitude - rest).abs() <= share * rest && p.abs() >= least && magnitude > 0.0 {
-            let gravity = y[row].abs() / magnitude;
-            radians.push((p.sin().abs() - gravity).abs());
-            degrees.push((p.to_radians().sin().abs() - gravity).abs());
-        }
-    }
+    let share = ATTITUDE_CHECK.0;
+    Ok((0..time.len())
+        .map(|row| {
+            let magnitude = (x[row] * x[row] + y[row] * y[row] + z[row] * z[row]).sqrt();
+            ((magnitude - rest).abs() <= share * rest && magnitude > 0.0)
+                .then(|| [x[row] / magnitude, y[row] / magnitude, z[row] / magnitude])
+        })
+        .collect())
+}
+
+/// The distance, rad, between two angles on the circle, 0 to π.
+fn circular(a: f64, b: f64) -> f64 {
+    let d = (a - b).rem_euclid(std::f64::consts::TAU);
+    d.min(std::f64::consts::TAU - d)
+}
+
+/// The distance, rad, of an angle from the nearest half-turn, 0 to π/2: `atan |tan a|`.
+fn from_half_turn(a: f64) -> f64 {
+    let d = a.rem_euclid(std::f64::consts::PI);
+    d.min(std::f64::consts::PI - d)
+}
+
+/// A direction check's verdict from the differences on its rows, read in radians and in degrees
+/// (module docs): the median in radians at most [`ATTITUDE_CHECK`]'s and at most half that in
+/// degrees, over at least its rows.
+fn direction_verdict(
+    radians: Vec<f64>,
+    degrees: Vec<f64>,
+    rows_are: &str,
+    differs: &str,
+) -> (bool, String) {
+    let (_, _, most, rows) = ATTITUDE_CHECK;
     let count = radians.len();
     match (median(radians), median(degrees)) {
         (Some(r), Some(d)) if count >= rows => (
             r <= most && r <= d / 2.0,
             format!(
-                "on {count} rows where the accelerometer reads its rest and the pitch is at least \
-                 {least} from level, |sin pitch| differs from gravity's share along y by a median \
-                 {r:.3} read in radians and {d:.3} in degrees"
+                "on {count} rows where {rows_are}, {differs} by a median {r:.3} read in radians \
+                 and {d:.3} in degrees"
             ),
         ),
         _ => (
             false,
-            format!(
-                "only {count} rows have the accelerometer at its rest and the pitch at least \
-                 {least} from level, fewer than {rows}"
-            ),
+            format!("only {count} rows are where {rows_are}, fewer than {rows}"),
         ),
     }
+}
+
+/// Check 2 of the pitch: gravity's direction where the phone is still (module docs).
+fn pitch_gravity(up: Result<&[Option<[f64; 3]>], &String>, pitch: &[f64]) -> (bool, String) {
+    let up = match up {
+        Ok(up) => up,
+        Err(why) => return (false, why.clone()),
+    };
+    let least = ATTITUDE_CHECK.1;
+    let mut radians = Vec::new();
+    let mut degrees = Vec::new();
+    for (p, u) in pitch.iter().zip(up) {
+        if let Some(u) = u
+            && p.abs() >= least
+        {
+            let gravity = u[1].abs();
+            radians.push((p.sin().abs() - gravity).abs());
+            degrees.push((p.to_radians().sin().abs() - gravity).abs());
+        }
+    }
+    direction_verdict(
+        radians,
+        degrees,
+        &format!("the accelerometer reads its rest and the pitch is at least {least} from level"),
+        "|sin pitch| differs from gravity's share along y",
+    )
+}
+
+/// Check 2 of the roll: gravity's direction about the phone's y axis where the phone is still
+/// (module docs).
+fn roll_gravity(up: Result<&[Option<[f64; 3]>], &String>, roll: &[f64]) -> (bool, String) {
+    let up = match up {
+        Ok(up) => up,
+        Err(why) => return (false, why.clone()),
+    };
+    let least = ATTITUDE_CHECK.1;
+    let mut radians = Vec::new();
+    let mut degrees = Vec::new();
+    for (r, u) in roll.iter().zip(up) {
+        if let Some(u) = u
+            && u[0].hypot(u[2]) >= least.sin()
+            && from_half_turn(*r) >= least
+        {
+            let gravity = u[0].abs().atan2(u[2].abs());
+            radians.push((from_half_turn(*r) - gravity).abs());
+            degrees.push((from_half_turn(r.to_radians()) - gravity).abs());
+        }
+    }
+    direction_verdict(
+        radians,
+        degrees,
+        &format!(
+            "the accelerometer reads its rest, its y axis is at least {least} from vertical and \
+             the roll at least {least} from a half-turn"
+        ),
+        "the roll's angle from the nearest half-turn differs from gravity's about y, \
+         atan(|Gx| / |Gz|),",
+    )
+}
+
+/// Check 2 of the yaw: the magnetic field's direction where the phone is still (module docs).
+fn yaw_magnetic(
+    table: &Table,
+    up: Result<&[Option<[f64; 3]>], &String>,
+    yaw: &[f64],
+) -> (bool, String) {
+    let up = match up {
+        Ok(up) => up,
+        Err(why) => return (false, why.clone()),
+    };
+    let (Some(mx), Some(my), Some(mz)) = (
+        table.column("MagnetometerX"),
+        table.column("MagnetometerY"),
+        table.column("MagnetometerZ"),
+    ) else {
+        return (
+            false,
+            "the file hasn't the magnetometer's three axes".to_owned(),
+        );
+    };
+    let least = ATTITUDE_CHECK.1;
+    let mut radians = Vec::new();
+    let mut degrees = Vec::new();
+    for (row, (a, u)) in yaw.iter().zip(up).enumerate() {
+        let Some(u) = u else {
+            continue;
+        };
+        if u[1].abs() > least.cos() || a.abs() < least {
+            continue;
+        }
+        // East is the field across up, north up across east; the azimuth is the phone's y axis's
+        // angle from north toward east.
+        let field = [mx[row], my[row], mz[row]];
+        let east = cross(field, *u);
+        let size = (east[0] * east[0] + east[1] * east[1] + east[2] * east[2]).sqrt();
+        if !(size.is_finite() && size > 0.0) {
+            continue;
+        }
+        let east = [east[0] / size, east[1] / size, east[2] / size];
+        let north = cross(*u, east);
+        let azimuth = east[1].atan2(north[1]);
+        radians.push(circular(*a, azimuth));
+        degrees.push(circular(a.to_radians(), azimuth));
+    }
+    direction_verdict(
+        radians,
+        degrees,
+        &format!(
+            "the accelerometer reads its rest, its y axis is at least {least} from vertical and \
+             the yaw at least {least} from 0"
+        ),
+        "the yaw differs from the azimuth of the phone's y axis from magnetic north, which the \
+         magnetometer's and the accelerometer's directions give,",
+    )
+}
+
+/// The cross product `a × b`.
+fn cross(a: [f64; 3], b: [f64; 3]) -> [f64; 3] {
+    [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0],
+    ]
 }
 
 /// A rotation matrix from the attitude in radians: yaw about z, then pitch about x, then roll
@@ -1813,17 +1982,59 @@ fn heading_range(values: &[f64]) -> (bool, String) {
     )
 }
 
-/// Check 2 of the heading: a step across north.
+/// Check 2 of the heading: its wrap's period. A step between rows larger than
+/// [`HEADING_WRAP_DEG`] that, less 360 in its direction, continues the turn of the steps on either
+/// side: of their sign and within [`HEADING_WRAP_FACTOR`] of each's size.
 fn heading_wraps(values: &[f64]) -> (bool, String) {
     let count = values
-        .windows(2)
-        .filter(|pair| (pair[1] - pair[0]).abs() > HEADING_WRAP_DEG)
+        .windows(4)
+        .filter(|w| {
+            let (before, step, after) = (w[1] - w[0], w[2] - w[1], w[3] - w[2]);
+            let rest = step - 360.0_f64.copysign(step);
+            step.abs() > HEADING_WRAP_DEG
+                && [before, after].iter().all(|side| {
+                    side.is_finite()
+                        && *side != 0.0
+                        && side.signum() == rest.signum()
+                        && rest.abs() <= HEADING_WRAP_FACTOR * side.abs()
+                        && side.abs() <= HEADING_WRAP_FACTOR * rest.abs()
+                })
+        })
         .count();
     (
         count > 0,
         format!(
-            "{} larger than {HEADING_WRAP_DEG}, as a heading's across north in degrees is",
-            counted(count, "step between rows is", "steps between rows are")
+            "{} north as a heading in degrees does: by more than {HEADING_WRAP_DEG}, and, less \
+             360, turning as the steps on either side do, within a factor of \
+             {HEADING_WRAP_FACTOR}",
+            counted(
+                count,
+                "step between rows crosses",
+                "steps between rows cross"
+            )
+        ),
+    )
+}
+
+/// One check of the position: the column's largest reading from 0 past what radians reach,
+/// `most` in degrees in radians, and within `most`, what degrees reach.
+fn position_range(table: &Table, name: &str, most: f64) -> (bool, String) {
+    let what = if name == "Latitude" {
+        "the latitude"
+    } else {
+        "the longitude"
+    };
+    let Some(values) = table.column(name) else {
+        return (false, format!("the file has no `{name}`"));
+    };
+    let radian_most = most.to_radians();
+    let readings: Vec<f64> = values.iter().copied().filter(|v| v.is_finite()).collect();
+    let largest = readings.iter().fold(0.0_f64, |m, v| m.max(v.abs()));
+    (
+        !readings.is_empty() && largest <= most && largest > radian_most,
+        format!(
+            "{what}'s largest reading from 0 is {largest:.1}, where radians reach \
+             {radian_most:.4} and degrees {most}"
         ),
     )
 }
@@ -2240,7 +2451,7 @@ mod tests {
         let log = log_of(&scaled(NEWER, &all, G0_M_S2));
         let kept = note(&log, "`Gx`, `Gy`, `Gz` and `GTotal` kept as written");
         assert!(
-            kept.contains("reads 9.807 in the axes' magnitude"),
+            kept.contains("reads 9.705 in the axes' magnitude"),
             "{kept}"
         );
         assert_eq!(quantity(&log, "Gx"), Quantity::Unrecognized);
@@ -2255,7 +2466,9 @@ mod tests {
         });
         let log = log_of(&boost);
         let kept = note(&log, "`Gx`, `Gy`, `Gz` and `GTotal` kept as written");
-        assert!(kept.contains("reads 1.000"), "{kept}");
+        // The phone turns on the invented pad, so the quietest second's mean reads a little
+        // under 1.
+        assert!(kept.contains("reads 0.990"), "{kept}");
         assert!(
             kept.contains("3.21 times the barometric climb rate"),
             "{kept}"
@@ -2271,8 +2484,21 @@ mod tests {
         assert_eq!(quantity(&log, "Gx"), Quantity::Acceleration);
     }
 
-    /// The yaw in degrees fails its range; a yaw that never wraps fails the second check alone;
-    /// the gyroscope then can't be read either.
+    /// The yaw turned by a whole number of turns and half a radian, so that it stays within ±π.
+    fn yaw_turned(text: &str, by: f64) -> String {
+        edit(text, |row| {
+            let yaw = row.get("Yaw");
+            row.set(
+                "Yaw",
+                (yaw + by + std::f64::consts::PI).rem_euclid(std::f64::consts::TAU)
+                    - std::f64::consts::PI,
+            );
+        })
+    }
+
+    /// The yaw in degrees fails its range; a yaw half a radian off the magnetic field's azimuth
+    /// fails the second check alone, and the gyroscope then can't be read either. The field's
+    /// direction, not its size, is checked: a magnetometer in another unit changes nothing.
     #[test]
     fn a_yaw_is_read_in_radians_only_where_both_checks_hold() {
         let log = log_of(&scaled(NEWER, &["Yaw"], 180.0 / std::f64::consts::PI));
@@ -2284,11 +2510,25 @@ mod tests {
             note(&log, "`GyroX`, `GyroY` and `GyroZ` kept as written")
                 .contains("isn't all read in radians")
         );
-        let log = log_of(&edit(NEWER, |row| {
-            let t = row.get("Seconds");
-            row.set("Yaw", 0.5 * t.sin());
-        }));
-        assert!(note(&log, "`Yaw` kept as written").contains("(2) 0 steps between rows"));
+        let log = log_of(&yaw_turned(NEWER, 0.5));
+        let kept = note(&log, "`Yaw` kept as written");
+        assert!(
+            kept.contains("(1) its largest reading from 0 is 3.1"),
+            "{kept}"
+        );
+        assert!(kept.contains("by a median 0.500 read in radians"), "{kept}");
+        assert_eq!(quantity(&log, "Yaw"), Quantity::Unrecognized);
+        let names = ["MagnetometerX", "MagnetometerY", "MagnetometerZ"];
+        let log = log_of(&scaled(NEWER, &names, 1_000.0));
+        let read = note(&log, "`Yaw` read in radians");
+        assert!(read.contains("by a median 0.000 read in radians"), "{read}");
+        // Without a magnetometer the second check can't run, and fails.
+        let log = log_of(&scaled(NEWER, &names, 0.0));
+        assert!(
+            note(&log, "`Yaw` kept as written").contains("(2) only 0 rows are where"),
+            "{:#?}",
+            log.notes
+        );
     }
 
     /// The pitch in degrees fails its range; a pitch gravity denies fails the second check alone.
@@ -2303,6 +2543,35 @@ mod tests {
             "{kept}"
         );
         assert!(kept.contains("by a median 0.453 read in radians"), "{kept}");
+    }
+
+    /// The roll in degrees fails its range; a roll half a radian off gravity's direction fails the
+    /// second check alone. Gravity's direction, not its size, is checked: an accelerometer in m/s²
+    /// changes nothing.
+    #[test]
+    fn a_roll_is_read_in_radians_only_where_both_checks_hold() {
+        let log = log_of(&scaled(NEWER, &["Roll"], 180.0 / std::f64::consts::PI));
+        let kept = note(&log, "`Roll` kept as written");
+        assert!(
+            kept.contains("its largest reading from 0 is 178.76"),
+            "{kept}"
+        );
+        assert_eq!(quantity(&log, "Roll"), Quantity::Unrecognized);
+        let log = log_of(&edit(NEWER, |row| {
+            let roll = row.get("Roll");
+            row.set("Roll", roll * 0.5);
+        }));
+        let kept = note(&log, "`Roll` kept as written");
+        assert!(
+            kept.contains("(1) its largest reading from 0 is 1.5"),
+            "{kept}"
+        );
+        assert!(kept.contains("differs from gravity's about y"), "{kept}");
+        assert_eq!(quantity(&log, "Roll"), Quantity::Unrecognized);
+        let axes = ["Gx", "Gy", "Gz", "GTotal"];
+        let log = log_of(&scaled(NEWER, &axes, G0_M_S2));
+        let read = note(&log, "`Roll` read in radians");
+        assert!(read.contains("by a median 0.000 read in radians"), "{read}");
     }
 
     /// The gyroscope in degrees per second fails the attitude's turn; one that stops at no
@@ -2328,12 +2597,14 @@ mod tests {
         assert_eq!(quantity(&log, "GyroY"), Quantity::Unrecognized);
     }
 
-    /// The heading in radians fails its range; one that never crosses north fails the second
-    /// check alone.
+    /// The heading in radians or gradians fails its range; one that never crosses north fails the
+    /// second check alone.
     #[test]
     fn a_heading_is_read_in_degrees_only_where_both_checks_hold() {
         let log = log_of(&scaled(NEWER, &["Heading"], std::f64::consts::PI / 180.0));
         assert_eq!(quantity(&log, "Heading"), Quantity::Unrecognized);
+        let log = log_of(&scaled(NEWER, &["Heading"], 400.0 / 360.0));
+        assert!(note(&log, "`Heading` kept as written").contains("don't lie within 0 to 360"));
         let log = log_of(&edit(NEWER, |row| {
             let t = row.get("Seconds");
             row.set("Heading", 180.0 + t);
@@ -2341,20 +2612,68 @@ mod tests {
         assert!(note(&log, "`Heading` kept as written").contains("(2) 0 steps between rows"));
     }
 
-    /// A position in radians fails both checks; a latitude near the equator fails the second
-    /// alone and is kept, never guessed.
+    /// The wrap's period, by hand: a heading turning 10 a row that crosses north as degrees do,
+    /// from 350 to 0, passes; one that crosses as gradians do, from 390 to 0, steps by 30 less
+    /// than 360 against the turn and fails, as does a jump against the turn on either side.
+    #[test]
+    fn the_headings_wrap_has_the_period_of_degrees() {
+        assert!(heading_wraps(&[330.0, 340.0, 350.0, 0.0, 10.0, 20.0]).0);
+        assert!(heading_wraps(&[30.0, 20.0, 10.0, 0.0, 350.0, 340.0]).0);
+        assert!(!heading_wraps(&[370.0, 380.0, 390.0, 0.0, 10.0, 20.0]).0);
+        assert!(!heading_wraps(&[30.0, 20.0, 10.0, 0.0, 390.0, 380.0]).0);
+        // The step, less 360, must turn as the rows on either side do, and as fast within 2.
+        assert!(!heading_wraps(&[360.0, 350.0, 340.0, 0.0, 10.0, 20.0]).0);
+        assert!(!heading_wraps(&[349.0, 350.0, 351.0, 9.0, 10.0, 11.0]).0);
+        assert!(!heading_wraps(&[340.0, 350.0, 350.0, 0.0, 10.0, 20.0]).0);
+    }
+
+    /// A position in radians fails both checks; a latitude near the equator fails the first alone
+    /// and a longitude near the prime meridian the second, and either keeps both, never guessed;
+    /// so does a latitude in NMEA's degrees and minutes. A pair in degrees and minutes within 1°
+    /// of (0°, 0°), open sea, passes both: the limit the module docs state.
     #[test]
     fn a_position_is_read_in_degrees_only_where_both_checks_hold() {
-        let log = log_of(&scaled(
-            NEWER,
-            &["Latitude", "Longitude"],
-            std::f64::consts::PI / 180.0,
-        ));
+        let both = ["Latitude", "Longitude"];
+        let log = log_of(&scaled(NEWER, &both, std::f64::consts::PI / 180.0));
+        let kept = note(&log, "`Latitude` and `Longitude` kept as written");
+        assert!(
+            kept.contains("(1) the latitude's largest reading from 0 is 0.7"),
+            "{kept}"
+        );
         assert_eq!(quantity(&log, "Latitude"), Quantity::Unrecognized);
         assert_eq!(quantity(&log, "Longitude"), Quantity::Unrecognized);
-        let log = log_of(&edit(NEWER, |row| row.set("Latitude", 1.25)));
-        assert_eq!(quantity(&log, "Latitude"), Quantity::Unrecognized);
+        for (name, value) in [
+            ("Latitude", 1.25),
+            ("Longitude", -3.0),
+            ("Latitude", 4006.0),
+        ] {
+            let log = log_of(&edit(NEWER, |row| row.set(name, value)));
+            assert!(
+                note(&log, "`Latitude` and `Longitude` kept as written")
+                    .contains(&format!("largest reading from 0 is {:.1}", value.abs()))
+            );
+            assert_eq!(quantity(&log, "Latitude"), Quantity::Unrecognized, "{name}");
+            assert_eq!(
+                quantity(&log, "Longitude"),
+                Quantity::Unrecognized,
+                "{name}"
+            );
+        }
+        let log = log_of(&edit(NEWER, |row| {
+            row.set("Latitude", 30.0);
+            row.set("Longitude", 112.0);
+        }));
+        assert_eq!(quantity(&log, "Latitude"), Quantity::Latitude);
         assert_eq!(quantity(&log, "Longitude"), Quantity::Longitude);
+        let mut lines: Vec<String> = NEWER.lines().map(str::to_owned).collect();
+        for line in &mut lines {
+            let mut cells: Vec<&str> = line.split(',').collect();
+            cells.remove(6);
+            *line = cells.join(",");
+        }
+        let log = log_of(&(lines.join("\n") + "\n"));
+        let kept = note(&log, "`Latitude` kept as written");
+        assert!(kept.contains("(2) the file has no `Longitude`"), "{kept}");
     }
 
     /// A time stamp in seconds fails both checks; one whose steps stray from the clock's fails
@@ -2413,7 +2732,7 @@ mod tests {
         );
         let kept = note(&log, "`Gx`, `Gy`, `Gz` and `GTotal` kept as written");
         assert!(
-            kept.contains("(1) the quietest second, to 1.15 s, reads 1.000"),
+            kept.contains("(1) the quietest second, to 1.15 s, reads 0.999"),
             "{kept}"
         );
         assert!(
