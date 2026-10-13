@@ -326,7 +326,9 @@ impl LogFormat {
     /// User’s Manual*, p. 10): the step the file writes is taken, not the coarser one, so that a
     /// tolerance built on it stays tight; AltOS and Entacore AIM write their pressure in whole
     /// pascals, 0.083 m of altitude at sea level; AltimeterCloud writes its altitude to the
-    /// millimeter, and it steps by that; the Raven's pressure moves in steps of 4 × 10⁻⁵ atm, 0.337
+    /// millimeter, and it steps by that, a SillyGoose to the centimeter, a Fluctus to the whole
+    /// meter, and an ARTS2's barometric altitude moves by its barometer's count, 8.8 m at most
+    /// near the ground among the sample files; the Raven's pressure moves in steps of 4 × 10⁻⁵ atm, 0.337
     /// m at sea level, the Blue Raven's in steps of 2 × 10⁻⁵ atm, 0.169 m, and an RRC3's export in
     /// steps of 0.1 hPa, 0.832 m. Aloft, those from a pressure are larger. A GPS log has no
     /// barometric altitude; its formats give the coarsest step its GNSS altitude is written in
@@ -440,6 +442,9 @@ mod tests {
             (LogFormat::EggtimerText, 0.3048),
             (LogFormat::EntacoreAimCsv, 0.083_242),
             (LogFormat::AltimeterCloudCsv, 0.001),
+            (LogFormat::SillyGooseText, 0.01),
+            (LogFormat::FluctusCsv, 1.0),
+            (LogFormat::Arts2Csv, 8.805_672),
         ];
         for (format, expected) in cases {
             let resolution = format.altitude_resolution_m();
