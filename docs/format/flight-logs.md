@@ -221,7 +221,16 @@ sample logs:
 - **An Eggtimer TRS's terminal download, its preamble by its own unit marks.** Captured in a
   terminal program, a TRS's download prints its flight settings and a flight summary before the
   table its CSV download writes (*Eggtimer TRS Flight Computer User's Manual*, firmware 2.07,
-  p35–37). The table is read as the CSV download is, its clock decided by its step. The summary's
+  p35–37). The table is read as the CSV download is, but its clock and its heights each rest on
+  two checks that agree: the clock on its step and the coast, the heights on the manuals' feet
+  and the coast. Just before the top nothing pushes the rocket and its drag fades as it slows,
+  so its altitude curves down at gravity: 32.17 ft/s² in feet and seconds, 9.81 m/s² in meters.
+  The reader fits a parabola to each height over the 3 s up to the top, or up to the row before a
+  charge's marker (an Eggtimer can fire one on the way up) or a jump in the altitude, and takes a
+  slowing of 0.7 to 1.3 g; a clock 1,000 times off would put it a million times off. A file whose
+  clock this doesn't bear out, or with no such coast, is refused; a height that slows at g in
+  meters rather than feet is kept as written, with the speeds that are its change. In the 3 sample
+  files, two text and one RTF, the raw heights slow at 0.96 to 1.02 g in feet. The summary's
   apogee becomes the record's stated apogee, and its `ASL Alt.` the launch site's elevation, each
   read by its own unit mark, `ft`. The summary's event times, written without a unit in both
   sample files, are read in seconds, as the manual's download writes them (`secs.`, p36). They are
@@ -488,9 +497,9 @@ sample logs:
   specification (Microsoft, version 1.9.1, 2008) a saved capture needs: groups, control words and
   escaped characters, with fonts, colors and pictures skipped. It reads that text as it reads a
   terminal download (above). A document holding several downloads gives the first; the rest are
-  counted in a note. In the sample file, the table's clock is in milliseconds by its step and its
-  heights in feet by the manuals; its speeds, which don't follow the altitude's change, are kept
-  as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
+  counted in a note. In the sample file, the table's clock is in milliseconds and its heights in
+  feet, each by two checks, the coast among them (above); its speeds, which don't follow the
+  altitude's change, are kept as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
   knows. An RTF document holding anything else is refused as not an Eggtimer's, among them the
   radio telemetry stream in two other sample files, which comes with
   [M7.1c5](../decisions-and-roadmap.md#m7-1c5).

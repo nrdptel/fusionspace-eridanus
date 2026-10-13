@@ -51,7 +51,18 @@ fn the_2_07_download_reads_its_summary_and_table() {
             (10.5, "Main"),
         ]
     );
-    assert!(log.notes[0].starts_with("`T` read in milliseconds, from the step: "));
+    // The clock and both altitudes are decided by two checks: the coast up to the row before the
+    // `Apogee` marker, 3 s of it at 2 rows a second, slows at 1 g in feet.
+    assert!(
+        log.notes[0].starts_with("`T` read in milliseconds, from the step and the coast: "),
+        "{}",
+        log.notes[0]
+    );
+    assert!(log.notes[0].contains(
+        "over the rows from 2.5 s to 5.5 s, up to the row before the marker `Apogee` at 6 s"
+    ));
+    assert!(log.notes[1].starts_with("`Alt` read in feet, from the manual and the coast: "));
+    assert!(log.notes[3].starts_with("`Filt_Alt` read in feet, from the manual and the coast: "));
     assert!(log.notes.iter().any(|note| note
         == "the flight summary's times are its table markers' to the millisecond, one event \
             each, the marker's: `Apogee` at `Apogee`, `LDA` at `LDA`, `Unlock` at `LowV`, \

@@ -3,7 +3,9 @@
 //! written as a Mac text editor writes one: font and color tables, an `\*` destination, the
 //! document's information, a paragraph a line ended by `\` at the line's end, an escaped byte
 //! in Windows 1252, escaped braces, a `\tab` and a `\u` character with its fallback. It holds two
-//! downloads one after another, a made-up flight and a short second one.
+//! downloads one after another, a made-up flight and a short second one. The made-up flight boosts
+//! for 1 s at 20 rows a second, coasts at 4 rows a second slowing at 1 g in feet to its top at 6 s,
+//! where its `Apogee` marker is, and descends at 40 ft/s, a row a second.
 
 use hpr_flightdata::import;
 use hpr_flightdata::log::{FlightLog, LogFormat, Quantity};
@@ -28,15 +30,15 @@ fn the_first_download_is_read_and_the_second_counted() {
     assert_eq!(log.format, LogFormat::EggtimerRtf);
     assert_eq!(log.logger, "Eggtimer TRS");
     assert_eq!(log.firmware.as_deref(), Some("2.07"));
-    // The first table's 14 rows, in milliseconds, and none of the second's.
-    assert_eq!(log.time_s.len(), 14);
+    // The first table's 44 rows, in milliseconds, and none of the second's.
+    assert_eq!(log.time_s.len(), 44);
     assert_eq!(log.time_s[..3], [0.0, 0.05, 0.1]);
-    assert_eq!(log.time_s.last(), Some(&0.65));
+    assert_eq!(log.time_s.last(), Some(&9.0));
     assert_eq!(log.channels.len(), 10);
     assert_eq!(log.channels[2].column, "FAlt");
     assert_eq!(log.channels[2].quantity, Quantity::AltitudeAboveGround);
     let apogee = log.stated.apogee_m.unwrap();
-    assert!((apogee - 120.0 * FOOT_M).abs() < 1e-9, "{apogee}");
+    assert!((apogee - 483.0 * FOOT_M).abs() < 1e-9, "{apogee}");
     let peak = log.altitude_m.iter().copied().fold(f64::MIN, f64::max);
     assert_eq!(peak, apogee);
     let ground = log.stated.ground_elevation_msl_m.unwrap();
@@ -45,13 +47,24 @@ fn the_first_download_is_read_and_the_second_counted() {
         events(&log),
         [
             (0.1, "LDA"),
-            (0.25, "LowV"),
-            (0.4, "Apogee"),
-            (0.45, "N-O"),
-            (0.45, "Drogue")
+            (4.0, "LowV"),
+            (6.0, "Apogee"),
+            (7.0, "N-O"),
+            (7.0, "Drogue")
         ]
     );
     assert!(log.notes[0].starts_with("the text was unwrapped from an RTF document"));
+    // The clock and both altitudes are decided by two checks: the coast up to the row before the
+    // `Apogee` marker, 3 s of it at 4 rows a second, slows at 1 g in feet.
+    assert!(log.notes[1].starts_with(
+        "`T` read in milliseconds, from the step and the coast: the median step between rows is \
+         250, "
+    ));
+    assert!(log.notes[1].contains(
+        "over the rows from 2.75 s to 5.75 s, up to the row before the marker `Apogee` at 6 s"
+    ));
+    assert!(log.notes[2].starts_with("`Alt` read in feet, from the manual and the coast: "));
+    assert!(log.notes[4].starts_with("`FAlt` read in feet, from the manual and the coast: "));
     let has = |text: &str| log.notes.iter().any(|note| note.contains(text));
     // The escaped braces and the `\tab` are the setting's text; the escaped byte, an ellipsis in
     // Windows 1252, makes the comments line a name line, left out of the record.
@@ -61,13 +74,13 @@ fn the_first_download_is_read_and_the_second_counted() {
     assert!(has("`Base Temp: 61.0 \u{b0}F`"), "{:#?}", log.notes);
     // A summary time past the table's last sample isn't in seconds: no event.
     assert!(has(
-        "the flight summary's times past the table's last, 0.65 s, kept as written and not read \
+        "the flight summary's times past the table's last, 9 s, kept as written and not read \
          as events: no event of the flight comes after its last sample, so they aren't in \
          seconds: `Unlock` 9500"
     ));
     assert!(has(
         "the document holds 2 Eggtimer downloads one after another; the first was read, as a \
-         record holds one flight, and the titles of those that weren't are on lines 47"
+         record holds one flight, and the titles of those that weren't are on lines 77"
     ));
     let json = serde_json::to_string(&log).unwrap();
     assert!(!json.contains('\u{fffd}'));
@@ -79,7 +92,7 @@ fn the_first_download_is_read_and_the_second_counted() {
 /// A bad cell in the table is refused naming the RTF document's line.
 #[test]
 fn a_bad_cell_names_the_documents_line() {
-    let text = String::from_utf8_lossy(SAMPLE).replacen("\n250,60,", "\n250,x,", 1);
+    let text = String::from_utf8_lossy(SAMPLE).replacen("\n250,5,", "\n250,x,", 1);
     let error = import::read(text.as_bytes()).unwrap_err().to_string();
     assert_eq!(
         error,
@@ -97,8 +110,8 @@ fn a_value_its_conversion_makes_infinite_is_refused_on_the_documents_line() {
             1,
         )
         .replacen(
-            "\n250,60,400.00,46.00,340.00,",
-            "\n250,60,400.00,46.00,1.7e308,",
+            "\n250,5,40.00,2.53,21.20,",
+            "\n250,5,40.00,2.53,1.7e308,",
             1,
         );
     let error = import::read(text.as_bytes()).unwrap_err().to_string();
@@ -127,6 +140,6 @@ fn other_documents_are_refused_by_name() {
     let error = import::read(open.as_bytes()).unwrap_err().to_string();
     assert_eq!(
         error,
-        "Eggtimer RTF line 54: the document ends with 1 groups open: its braces don't balance"
+        "Eggtimer RTF line 84: the document ends with 1 groups open: its braces don't balance"
     );
 }
