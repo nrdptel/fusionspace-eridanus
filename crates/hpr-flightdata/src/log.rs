@@ -344,7 +344,8 @@ impl LogFormat {
     /// pascals, 0.083 m near sea level, in its CSV and in its ground station's text, where its
     /// altitude is a filtered estimate with no step of its own; a phone app's `launch` CSV writes
     /// its pressure as a 32-bit float, in steps of 2⁻¹⁴ hPa between 512 and 1,024 hPa,
-    /// 0.000 51 m at sea level; the Raven's pressure moves in steps of 4 × 10⁻⁵ atm, 0.337
+    /// 0.000 51 m at sea level: the barometer's step, as its barometric altitude, the track, is
+    /// written in finer steps of its own, as small as 0.25 mm; the Raven's pressure moves in steps of 4 × 10⁻⁵ atm, 0.337
     /// m at sea level, the Blue Raven's in steps of 2 × 10⁻⁵ atm, 0.169 m, and an RRC3's export in
     /// steps of 0.1 hPa, 0.832 m. Aloft, those from a pressure are larger. A GPS log has no
     /// barometric altitude; its formats give the coarsest step its GNSS altitude is written in

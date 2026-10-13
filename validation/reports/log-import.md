@@ -164,9 +164,11 @@ Units no header states, as each file's reader decided them, or kept the column a
 | aerospacenu-fcb-csv | `dynamixel_length` kept as written | 2 |
 | aerospacenu-fcb-csv | `gps_alt` kept as written | 8 |
 | aerospacenu-fcb-csv | `gps_alt` read in meters, from the pressure's climb and the accelerometer's | 12 |
-| aerospacenu-fcb-csv | `gps_lat_mod` and `gps_long_mod` read in degrees, from `gps_lat` and `gps_long` | 15 |
-| aerospacenu-fcb-csv | `gps_lat` and `gps_long` read in NMEA 0183's degrees and minutes, ddmm.mmmm, from their values and their companions | 15 |
-| aerospacenu-fcb-csv | `gps_lat`, `gps_long`, `gps_lat_mod` and `gps_long_mod` kept as written | 5 |
+| aerospacenu-fcb-csv | `gps_lat_mod` and `gps_long_mod` kept as written | 4 |
+| aerospacenu-fcb-csv | `gps_lat_mod` and `gps_long_mod` read in degrees, from `gps_lat` and `gps_long` | 16 |
+| aerospacenu-fcb-csv | `gps_lat` and `gps_long` kept as written | 1 |
+| aerospacenu-fcb-csv | `gps_lat` and `gps_long` read in NMEA 0183's degrees and minutes, ddmm.mmmm, from their ranges and their minutes | 15 |
+| aerospacenu-fcb-csv | `gps_lat` and `gps_long` read in degrees, from the latitudes' range and the longitudes' | 4 |
 | aerospacenu-fcb-csv | `heading` kept as written | 20 |
 | aerospacenu-fcb-csv | `high_g_accel_x_real`, `high_g_accel_y_real` and `high_g_accel_z_real` kept as written | 20 |
 | aerospacenu-fcb-csv | `high_g_accel_x`, `high_g_accel_y` and `high_g_accel_z` kept as written | 20 |
@@ -220,8 +222,8 @@ Units no header states, as each file's reader decided them, or kept the column a
 | aerospacenu-gs-txt | `Groundstation Status.gs_baro` read in atmospheres, from its size and its step | 1 |
 | aerospacenu-gs-txt | `Groundstation Status.gs_lat` and `Groundstation Status.gs_lon` kept as written, holding no fix | 1 |
 | aerospacenu-gs-txt | `Groundstation Status.gs_temp` kept as written, in degrees Celsius or Fahrenheit alike | 1 |
-| aerospacenu-gs-txt | `Orientation.accel_x`, `Orientation.accel_y` and `Orientation.accel_z` kept as written, the pad's gravity not bearing out the club's meters per second squared | 1 |
-| aerospacenu-gs-txt | `Orientation.accel_x`, `Orientation.accel_y` and `Orientation.accel_z` read in meters per second squared, from the club's summaries and the pad's gravity | 3 |
+| aerospacenu-gs-txt | `Orientation.accel_x`, `Orientation.accel_y` and `Orientation.accel_z` kept as written, the pad's gravity and the barometer not both bearing meters per second squared out | 1 |
+| aerospacenu-gs-txt | `Orientation.accel_x`, `Orientation.accel_y` and `Orientation.accel_z` read in meters per second squared, from the pad's gravity and the barometer | 3 |
 | aerospacenu-gs-txt | `Orientation.angle_vertical` kept as written, with no accelerometer read in m/s² to check it by | 1 |
 | aerospacenu-gs-txt | `Orientation.angle_vertical` read in degrees, from its range and the accelerometer | 3 |
 | aerospacenu-gs-txt | `Orientation.magnetic_field_x`, `Orientation.magnetic_field_y` and `Orientation.magnetic_field_z` kept as written, with no quantity for a magnetic field | 4 |
@@ -229,13 +231,13 @@ Units no header states, as each file's reader decided them, or kept the column a
 | aerospacenu-gs-txt | `Orientation.rot_vel_x`, `Orientation.rot_vel_y` and `Orientation.rot_vel_z` kept as written, with no accelerometer read in m/s² | 1 |
 | aerospacenu-gs-txt | `Orientation.rot_vel_x`, `Orientation.rot_vel_y` and `Orientation.rot_vel_z` read in radians per second, from the board's turning and its tilt | 3 |
 | aerospacenu-gs-txt | `Position Data.course_over_ground` kept as written, in a unit nothing in the file checks | 4 |
-| aerospacenu-gs-txt | `Position Data.fcb_altitude` read in meters, from the club's summaries and the barometer | 4 |
+| aerospacenu-gs-txt | `Position Data.fcb_altitude` read in meters, from the barometer and the coast | 4 |
 | aerospacenu-gs-txt | `Position Data.fcb_battery_voltage` kept as written, in a unit nothing in the file checks | 4 |
 | aerospacenu-gs-txt | `Position Data.fcb_latitude` and `Position Data.fcb_longitude` read in degrees, from their range and their fractions | 4 |
 | aerospacenu-gs-txt | `Position Data.gps_alt` kept as written, with no check of its unit but the barometer's | 4 |
 | aerospacenu-gs-txt | `Position Data.ground_speed` kept as written, in a unit nothing in the file checks | 4 |
 | aerospacenu-gs-txt | `Position Data.temperature` kept as written, in degrees Celsius or Fahrenheit alike | 4 |
-| aerospacenu-gs-txt | `Position Data.v_speed` read in meters per second, from the club's summaries and the altitude | 4 |
+| aerospacenu-gs-txt | `Position Data.v_speed` read in meters per second, from the barometer and the coast | 4 |
 | aerospacenu-gs-txt | `time_stamp_ms` read in milliseconds, from its name and the ground station's clock | 4 |
 | aerospacenu-sillygoose-txt | `accelX`, `accelY` and `accelZ` read in meters per second squared, from the pad's gravity | 13 |
 | aerospacenu-sillygoose-txt | `accelX`, `accelY` and `accelZ` read in standard gravities, × 9.806 65 m/s², from the pad's gravity | 1 |
@@ -290,19 +292,19 @@ Units no header states, as each file's reader decided them, or kept the column a
 | eggtimer-csv | `VAccel` read in feet per second, from the manual | 4 |
 | eggtimer-csv | `Veloc` read in feet per second, from the manual | 40 |
 | eggtimer-rtf | `ASL Alt.` kept as written, with no unit mark the reader knows | 1 |
-| eggtimer-rtf | `Alt` read in feet, from the manual | 1 |
+| eggtimer-rtf | `Alt` read in feet, from the manual and the coast | 1 |
 | eggtimer-rtf | `Apogee` kept as written, with no unit mark the reader knows | 1 |
-| eggtimer-rtf | `FAlt` read in feet, from the manual | 1 |
+| eggtimer-rtf | `FAlt` read in feet, from the manual and the coast | 1 |
 | eggtimer-rtf | `FVeloc` kept as written, not read as a speed | 1 |
-| eggtimer-rtf | `T` read in milliseconds, from the step | 1 |
+| eggtimer-rtf | `T` read in milliseconds, from the step and the coast | 1 |
 | eggtimer-rtf | `Veloc` kept as written, not read as a speed | 1 |
 | eggtimer-txt | `ASL Alt.` read in feet, from its unit mark | 2 |
-| eggtimer-txt | `Alt` read in feet, from the manual | 2 |
+| eggtimer-txt | `Alt` read in feet, from the manual and the coast | 2 |
 | eggtimer-txt | `Apogee` read in feet, from its unit mark | 2 |
 | eggtimer-txt | `FVeloc` read in feet per second, from the manual | 2 |
-| eggtimer-txt | `Filt_Alt` read in feet, from the manual | 2 |
+| eggtimer-txt | `Filt_Alt` read in feet, from the manual and the coast | 2 |
 | eggtimer-txt | `T @` and `Time @` read in seconds, from the manual | 2 |
-| eggtimer-txt | `T` read in milliseconds, from the step | 2 |
+| eggtimer-txt | `T` read in milliseconds, from the step and the coast | 2 |
 | eggtimer-txt | `Veloc` read in feet per second, from the manual | 2 |
 | entacore-aim-csv | `A Voltage` read in volts, from the values | 9 |
 | entacore-aim-csv | `B Voltage` read in volts, from the values | 9 |
@@ -365,10 +367,9 @@ Units no header states, as each file's reader decided them, or kept the column a
 | phone-launch-csv | `Gx`, `Gy`, `Gz` and `GTotal` read in standard gravity, from the pad and the boost | 6 |
 | phone-launch-csv | `GyroX`, `GyroY` and `GyroZ` kept as written, in a unit two checks don't settle | 20 |
 | phone-launch-csv | `GyroX`, `GyroY` and `GyroZ` read in radians per second, from the attitude and the full scale | 7 |
-| phone-launch-csv | `Heading` read in degrees, from its range and its wrap | 27 |
+| phone-launch-csv | `Heading` read in degrees, from its range and its wrap's period | 27 |
 | phone-launch-csv | `HorizontalResGPS` and `VerticalResGPS` kept as written | 27 |
-| phone-launch-csv | `Latitude` read in degrees, from its range | 27 |
-| phone-launch-csv | `Longitude` read in degrees, from its range | 27 |
+| phone-launch-csv | `Latitude` and `Longitude` read in degrees, from the latitude's range and the longitude's | 27 |
 | phone-launch-csv | `MagnetometerX`, `MagnetometerY`, `MagnetometerZ`, `HeadingX`, `HeadingY` and `HeadingZ` kept as written | 27 |
 | phone-launch-csv | `NoGravGx`, `NoGravGy`, `NoGravGz` and `NoGravGTotal` kept as written, in a unit two checks don't settle | 2 |
 | phone-launch-csv | `NoGravGx`, `NoGravGy`, `NoGravGz` and `NoGravGTotal` read in standard gravity, with the accelerometer's axes | 6 |
@@ -380,7 +381,8 @@ Units no header states, as each file's reader decided them, or kept the column a
 | phone-launch-csv | `Reserved1`, `Reserved2`, `Reserved3` and `Reserved4` kept as written | 8 |
 | phone-launch-csv | `Revolutions` and `RevApogee` kept as written | 11 |
 | phone-launch-csv | `Revolutions`, `RevApogee` and `RevolutionsClock` kept as written | 8 |
-| phone-launch-csv | `Roll` read in radians, from its range and its wrap | 27 |
+| phone-launch-csv | `Roll` kept as written, in a unit two checks don't settle | 3 |
+| phone-launch-csv | `Roll` read in radians, from its range and gravity's direction | 24 |
 | phone-launch-csv | `Temperature` kept as written, in a unit no two checks settle | 8 |
 | phone-launch-csv | `Timestamp` read in milliseconds since 1970 UTC, from the clock and the date | 27 |
 | phone-launch-csv | `UsbV1`, `UsbV2`, `UsbV3`, `UsbV4`, `UsbT1`, `UsbT2`, `UsbT3`, `UsbT4`, `UsbT5`, `UsbT6`, `UsbUR1`, `UsbUR2`, `UsbUR3`, `UsbUR4`, `UsbUR5`, `UsbUR6`, `UsbUR7` and `UsbUR8` kept as written | 7 |
@@ -388,7 +390,8 @@ Units no header states, as each file's reader decided them, or kept the column a
 | phone-launch-csv | `VelocityBarometerRaw` read in meters per second, from the barometric altitude and the coast | 7 |
 | phone-launch-csv | `VelocityBarometer` and `VelocityBarometerRaw` kept as written, in a unit two checks don't settle | 1 |
 | phone-launch-csv | `VelocityBarometer` read in meters per second, from the barometric altitude and the coast | 7 |
-| phone-launch-csv | `Yaw` read in radians, from its range and its wrap | 27 |
+| phone-launch-csv | `Yaw` kept as written, in a unit two checks don't settle | 17 |
+| phone-launch-csv | `Yaw` read in radians, from its range and the magnetic field's direction | 10 |
 | phone-launch-csv | `hPa` read in hectopascals, from its name and the pad | 8 |
 | rrc3-csv | `Altitude` read in feet, from the pressure | 46 |
 | rrc3-csv | `Pressure` read in hectopascals, from the values | 46 |

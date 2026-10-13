@@ -400,7 +400,8 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
       sample imports (`cargo xtask logs --check`); each unit a file doesn't state is settled by
       two agreeing checks or kept as written, in a counted note; a conversion's `inf` is refused.
     - [ ] **M7.1c5 The rest:** AltOS eeprom, RRC3 RFF, Blue Raven's other files, Entacore AIM
-      XTRA, spreadsheets, CATS; EuRoC/Juno CSV; generic CSV with column mapping; unit detection.
+      XTRA, spreadsheets, CATS; EuRoC/Juno CSV; generic CSV with column mapping; unit detection
+      (and `telemetry-rtf`, ADR-258).
       *Done when:* the parent's.
 - [ ] **M7.2 Readings, reconstruction and ghost data.**
   - The readings a flight gives (apogee, maximum velocity and acceleration, burnout, descent

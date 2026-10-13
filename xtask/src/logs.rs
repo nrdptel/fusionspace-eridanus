@@ -611,7 +611,9 @@ fn aerospacenu_family(extension: &str, bytes: &[u8]) -> &'static str {
         "altos-csv"
     } else if first.starts_with("RUN START") {
         "aerospacenu-gs-txt"
-    } else if first.contains("packetType") || first.contains("timestamp_ms") {
+    } else if hpr_flightdata::aerospacenu_fcb::recognizes(&text) {
+        // The board's own reader's test: an empty first name, then `packetType`, `timestamp_ms`
+        // or `timestamp_s`.
         "aerospacenu-fcb-csv"
     } else if first.starts_with("timestampMs") || first.starts_with("CONFIG") {
         "aerospacenu-sillygoose-txt"
@@ -1034,6 +1036,7 @@ mod tests {
             ("txt", "PerfectFlite SLCF", "pf2"),
             ("csv", "#version,serial,flight", "altos-csv"),
             ("csv", ",packetType,timestamp_ms", "aerospacenu-fcb-csv"),
+            ("csv", ",timestamp_s,baro1_pres", "aerospacenu-fcb-csv"),
             (
                 "txt",
                 "timestampMs\tpressurePa",

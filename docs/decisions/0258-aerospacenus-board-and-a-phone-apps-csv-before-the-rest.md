@@ -8,7 +8,7 @@ ADR-256 held back AerospaceNU's board and the phone app's files over open unit c
 their files since settles most of them from the files:
 
 - **The board's pressure is in atmospheres.** Every pressure in the 20 board files is a whole
-  number of pascals divided by 101,325 (the largest residual 5 × 10⁻¹⁰ atm over 248,000
+  number of pascals divided by 101,325 (the largest residual 5 × 10⁻¹⁰ of a step over 248,000
   samples); divided by 100,000 almost none is. At the four pads well above sea level, the pad's
   pressure altitude read in atmospheres lies within 26 m of the GPS altitude, and in bars 82 to
   113 m from it. Near sea level the two readings are 110 m apart and the weather moves either

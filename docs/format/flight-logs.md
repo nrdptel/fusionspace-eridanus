@@ -15,8 +15,11 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > Debrief, the project owner's earlier flight-log analyzer, with each unit checked where the
 > files allow. Where a header names no unit, the reader decides it from the file and says how in
 > a note ([units the file decides](#units-the-file-decides)); the few units no source states are
-> named [below](#units-no-source-states). Other layouts are refused, not guessed at; they come
-> with [M7.1c5](../decisions-and-roadmap.md#m7-1c5), the other loggers' formats.
+> named [below](#units-no-source-states). In the four layouts read since
+> [M7.1c4](../decisions-and-roadmap.md#m7-1c4), a unit two checks don't settle is kept as written,
+> so many of their columns keep the file's own numbers, and no reading is taken from them yet.
+> Other layouts are refused, not guessed at; they come with
+> [M7.1c5](../decisions-and-roadmap.md#m7-1c5), the other loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -131,10 +134,11 @@ cell the file leaves empty, or fills with something that isn't a number, is a ga
 number") in the record, and `null` in its JSON, which reads back as a gap. A channel's time is a
 gap in the same way where the file gives a sample no time, as a KML path without times does.
 
-A cell that is a number but that its unit's conversion to SI makes infinite, such as `1.7e308`
-in g, which times 9.806 65 passes the largest number a computer's `f64` holds, refuses the file,
-naming its line. Every reader applies this rule, so a channel holds SI values or gaps and nothing
-else ([ADR-258, the rule for infinite values](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md),
+A cell can be a valid number and still overflow when it is converted to SI: `1.7e308` read as g
+becomes 1.7e308 × 9.806 65, more than the largest value a 64-bit floating-point number holds,
+about 1.8e308. The reader then refuses the whole file and names the line, so a bad cell never
+reaches a channel as an infinite value. Every reader applies this rule, so a channel holds SI
+values or gaps and nothing else ([ADR-258, the rule for infinite values](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md),
 §3).
 
 ### Units no source states
@@ -209,7 +213,8 @@ sample logs:
 - **An Eggtimer's heights and speeds, from the manuals.** The Classic and TRS manuals state feet
   and feet per second. The Quantum and Proton manuals state no unit for the download, but give
   every height in feet, and no Eggtimer manual offers meters; the heights are read in feet for
-  every model. A speed is read in feet per second only where it matches the altitude's change
+  every model, and in a terminal download, plain or saved as RTF, only where the coast before
+  apogee also slows at about g in feet (below). A speed is read in feet per second only where it matches the altitude's change
   over the step on at least 90% of rows (on the sample logs, 95.9% or more); otherwise it is kept
   as written.
 - **A Blue Raven's speeds, inertial positions, rates of turn and accelerations, from the
