@@ -54,6 +54,7 @@ fn words(seconds: usize) -> Vec<u16> {
     words
 }
 
+#[cfg(test)]
 fn read(bytes: &[u8]) -> FlightLog {
     assert_eq!(import::detect(bytes), Some(LogFormat::Rrc3Rff));
     import::read(bytes).unwrap()
@@ -101,6 +102,7 @@ fn a_log_reads_its_pressures_on_the_20_hz_clock_and_keeps_every_other_word() {
 }
 
 /// The byte a refusal names, and its message.
+#[cfg(test)]
 fn refused(bytes: &[u8]) -> (usize, String) {
     match import::read(bytes) {
         Err(LogError::Binary {

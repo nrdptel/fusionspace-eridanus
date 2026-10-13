@@ -70,7 +70,7 @@ fn header(settings: &[u16; 32], axis: &str) -> String {
 fn file(header: &str, blocks: &[[u16; 32]]) -> Vec<u8> {
     let mut bytes = header.as_bytes().to_vec();
     let mut blocks = blocks.to_vec();
-    while blocks.len() % 4 != 0 {
+    while !blocks.len().is_multiple_of(4) {
         blocks.push([0xffff; 32]);
     }
     for frame in blocks.chunks(4) {
@@ -100,6 +100,7 @@ fn flight(axis: &str) -> Vec<u8> {
 }
 
 /// The channel named `column`.
+#[cfg(test)]
 fn channel<'a>(log: &'a FlightLog, column: &str) -> &'a Channel {
     log.channels
         .iter()
@@ -219,6 +220,7 @@ fn a_one_axis_header_keeps_the_lateral_bits_as_counts() {
 }
 
 /// The byte a refusal names.
+#[cfg(test)]
 fn refused_at(bytes: &[u8]) -> (usize, String) {
     match import::read(bytes) {
         Err(LogError::Binary {

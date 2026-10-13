@@ -306,12 +306,9 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
                 ),
             ));
         }
-        for block in data.chunks_exact(2 * WORDS) {
-            let mut words = [0u16; WORDS];
-            for (word, pair) in words.iter_mut().zip(block.chunks_exact(2)) {
-                *word = u16::from_be_bytes([pair[0], pair[1]]);
-            }
-            blocks.push(words);
+        let (pairs, _) = data.as_chunks::<2>();
+        for block in pairs.as_chunks::<WORDS>().0 {
+            blocks.push(block.map(u16::from_be_bytes));
         }
         at += FRAME;
     }
@@ -392,8 +389,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         let shift = u64::from(index > SETTINGS);
         let first = data_blocks * BLOCK_TICKS;
         data_blocks += 1;
-        for (k, triplet) in block[..30].chunks_exact(3).enumerate() {
-            let (a, b, s) = (triplet[0], triplet[1], triplet[2]);
+        for (k, &[a, b, s]) in block[..30].as_chunks::<3>().0.iter().enumerate() {
             let base = first + 4 * k as u64 + shift;
             axial.push(base, calibration.axial_g(a >> 5) * STANDARD_GRAVITY_MPS2);
             let count = ((a & 0x1f) << 5) | (b >> 11);

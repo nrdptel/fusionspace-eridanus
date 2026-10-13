@@ -395,13 +395,6 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
   snapshot-tested, and the crate builds with no dependency on `hpr-sim` (`cargo xtask wasm-check`).
   Formats without samples are listed in the docs as needing samples.
   - [ ] **M7.1c The other importers** (ADR-254, ADR-255, ADR-256, ADR-258, ADR-259): in six.
-    - [ ] **M7.1c5 Raw downloads against their makers' exports, first: the Raven's `.FIPa` and
-      the RRC3's `.rff`** (ADR-259). *Done when:* every sample of `raven-fipa` and `rrc3-rff` in
-      refs imports (`cargo xtask logs --check` fails on one not read); every one with its maker's
-      export beside it matches that export in every sample of every channel the two share, within
-      half a step of the raw format's resolution, counted by the survey, and `--check` fails on one
-      that doesn't; a word the file holds no calibration for is kept as written; and a frame whose
-      checksum fails, or a clock check that fails, is refused by name.
     - [ ] **M7.1c6 The rest:** AltOS eeprom, Blue Raven's other files, Entacore AIM XTRA,
       spreadsheets, CATS; EuRoC/Juno CSV; generic CSV with column mapping; unit detection (and
       `telemetry-rtf`, ADR-258; ARTS2 raw and `.odf`, RTx, ADR-259).
