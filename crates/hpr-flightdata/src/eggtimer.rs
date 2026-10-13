@@ -3985,9 +3985,7 @@ mod tests {
         assert!(close(log.altitude_m[200], 1448.0 * FOOT_M));
     }
 
-    /// A clock in milliseconds written 250 times a second, a step of 4, reads as seconds by its
-    /// step; on that clock the coast's 3 s hold one row, and the file is refused. So is a coast
-    /// that slows at g in neither feet nor meters, and a table with no coast.
+    /// A coast window cut short at more than `COAST_CUTS` jumps is refused, in a bounded search.
     #[test]
     fn a_coast_cut_at_every_few_rows_is_refused_after_a_bounded_search() {
         // A spike on every third row of a long climb, one row a second: each cut ends the window
@@ -4008,6 +4006,9 @@ mod tests {
         );
     }
 
+    /// A clock in milliseconds written 250 times a second, a step of 4, reads as seconds by its
+    /// step; on that clock the coast's 3 s hold one row, and the file is refused. So is a coast
+    /// that slows at g in neither feet nor meters, and a table with no coast.
     #[test]
     fn a_clock_the_coast_doesnt_bear_out_is_refused() {
         let text = coast_download(&flight(1000.0, 0.004, G_FT, None, 12.0), |_, _| {});
