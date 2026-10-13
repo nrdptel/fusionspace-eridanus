@@ -225,13 +225,13 @@ sample logs:
     barometer's measurement range, −40 to 85 °C (Bosch Sensortec, *BMP581 data sheet*,
     BST-BMP581-DS004-13, table 2, p. 10), and some values as written fall outside it, so the
     column can't already be in degrees; otherwise it is kept as written.
-  - *The summary's times:* the block at the top of a Nano log gives the apogee's and the
-    landing's times with no unit. The apogee time is read in seconds when the log's highest
-    altitude falls within half a second of it (in all 7 sample logs with a summary, within
-    0.01 s). The landing time is read in seconds when, read so, it comes after the highest
-    altitude and the log's altitude there is the summary's landing height within 0.01 m, and read
-    in milliseconds it isn't; the manual's *Flight info page* gives the landing as "when it
-    landed, and the height it came to rest at". In all 7, the two agree within 0.001 m, where read
+  - *The summary's times:* the block at the top of a Nano log gives the apogee's and the landing's
+    times with no unit. The apogee time is read in seconds when the log's highest altitude falls
+    within half a second of it (in all 7 sample logs with a summary, within 0.01 s). The landing
+    time is read in seconds when, read so, it comes after the highest altitude and the log's
+    altitude there is the summary's landing height within 0.01 m (0.033 ft), and read in
+    milliseconds it isn't; the manual's *Flight info page* gives the landing as "when it landed, and
+    the height it came to rest at". In all 7, the two agree within 0.001 m (0.0033 ft), where read
     in milliseconds the time falls on the climb, more than a meter from the landing height. A time
     the altitude doesn't bear out is left out, with a note saying why.
   - *Kept as written:* the Mercury's air density, predicted apogee, target altitude and
@@ -250,8 +250,8 @@ sample logs:
   - *Pressure:* pascals, as its first value that is a launch site's pressure in any unit is one in
     pascals (the manual's sample export writes pascals too, Table 2, p40).
   - *Heights:* `Pressure MSL` and `Pressure AGL` are in meters or feet, whichever matches how far
-    the pressure climbs in the standard atmosphere, as for the RRC3, from a climb of 2 m; a file
-    that fits neither, or whose pressure can't settle it, is refused.
+    the pressure climbs in the standard atmosphere, as for the RRC3, from a climb of 2 m (6.6 ft); a
+    file that fits neither, or whose pressure can't settle it, is refused.
   - *Clock:* `time` is in seconds where `GPS Time of Week`, in milliseconds, rises about 1,000 for
     each unit of it, and in milliseconds where it rises about 1; without it, the step between
     samples decides, against the AIM's 10 to 500 ms sampling periods (p2, p21), and a file it
@@ -261,8 +261,8 @@ sample logs:
     electronics bay can have.
   - *Voltages:* volts, as every value lies within 0 to 20, where the batteries the manual names
     are 3.5 to 10 V (p10) and millivolts would read in thousands.
-  - *`GPS MSL`:* in the heights' unit where it reads within 300 m of `Pressure MSL` in that unit
-    and not in the other; at a site too low for the 3.28 factor to show, kept as written.
+  - *`GPS MSL`:* in the heights' unit where it reads within 300 m (984 ft) of `Pressure MSL` in that
+    unit and not in the other; at a site too low for the 3.28 factor to show, kept as written.
   - *Magnetometer:* kept as written: the manual says tesla, but the sample files' field would then
     be 17 to 34 times the Earth's at its strongest, about 65 µT.
   - *A run-out GPS group:* in 11 of the 13 sample files with GPS columns, the export writes the GPS
