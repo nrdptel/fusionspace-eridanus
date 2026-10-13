@@ -2067,7 +2067,7 @@ mod tests {
         );
     }
 
-    /// The infinite-value rule (ADR-258 §3, #520): a finite cell its conversion overflows is
+    /// The infinite-value rule (ADR-258 §3, #518): a finite cell its conversion overflows is
     /// refused on its line.
     #[test]
     fn a_value_its_conversion_overflows_is_refused_by_line() {

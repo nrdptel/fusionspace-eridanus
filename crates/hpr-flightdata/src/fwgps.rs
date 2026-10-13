@@ -31,6 +31,7 @@
 //!
 //! [adr-253]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0253-rrc3-eggtimer-and-blue-raven-csv-first.md
 //! [adr-254]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0254-gps-tracks-first-among-the-other-importers.md
+//! [adr-258]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md
 //!
 //! **Channels.** Every column but the clock's parts, the tracker's name and `Found rocket ID` is a
 //! channel, in the file's order, in the record's SI unit ([`Quantity::unit`]):
@@ -154,7 +155,8 @@
 //! the literal `NaN` in `Distance (feet)` (27 cells over the 21 newer tracker logs), is a gap,
 //! counted per column in a note. A row with fewer cells than the header has the rest as gaps; a
 //! row with more is refused, as is a value its unit's factor makes too large for an `f64`, such
-//! as `LoRa Max Range (kft)` near 10³⁰⁸, naming its line (ADR-258 §3). A file whose rows, down to
+//! as `LoRa Max Range (kft)` near 10³⁰⁸, naming its line ([the rule for infinite values][adr-258],
+//! §3). A file whose rows, down to
 //! any row, hold under a quarter of the cells its header names (past the first 65,536) is refused
 //! at that row. Blank lines are skipped; lines may end in CR, LF or both (2 of the shorter
 //! ground-station logs end in CR LF); a byte-order mark is dropped.
