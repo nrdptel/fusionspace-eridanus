@@ -296,7 +296,9 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c1 GPS tracks ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c2 Text loggers ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c3 Club layouts ([Phase 5](#phase-5-flight-data-and-forensics))
+- M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
+- M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M10.1 Release 0.1: the simulator ([Phase 8](#phase-8-releases-adr-162))
 - M10.1a The flight and design fixes ([Phase 8](#phase-8-releases-adr-162))
 - M10.1b The data, network and Python fixes ([Phase 8](#phase-8-releases-adr-162))
@@ -1473,9 +1475,15 @@ One line per milestone or increment, in the order it was archived within its pha
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)
 
-- **M9.8** is open; its entry: [roadmap](ROADMAP.md#phase-7-ui-3d-web-mobile-after-release-04-adr-162).
+- [x] **M9.8 fusionspace.co, rebuilt** (ADR-217; Neer, 2026-10-09). *Done when:* the page in its
+  own repository lists each project and product with status, guide, docs and release, and the old
+  tools until M9.6 replaces each; a check fails on clipped text or controls from 320 to 1,920 px in
+  both themes, and on a "better" with no committed comparison; it passes the trace check from its
+  first commit; Neer has used it; the domain's switch is written for him. Moves: steps.
   - [x] **M9.8a The page and its checks** (ADR-249). *Done when:* all of M9.8's bullets but
     Neer's use hold.
+  - [x] **M9.8b The maintainer's use** (ADR-249). *Done when:* Neer has used the page. Met
+    2026-10-13: Neer used it on desktop and phone after the domain moved to the new repository's site.
 ## Phase 8: Releases (ADR-162)
 
 - [x] **M10.1 Release 0.1: the simulator.** The library crates, the CLI and the Python package,
