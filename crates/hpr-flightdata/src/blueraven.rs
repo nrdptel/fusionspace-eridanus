@@ -152,7 +152,7 @@ use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
 use crate::error::LogError;
 use crate::log::{Channel, Event, FlightLog, LogFormat, Quantity, Stated, too_sparse};
 use crate::perfectflite::FOOT_M;
-use crate::table::{Notes, number, numbered_lines, short};
+use crate::table::{Notes, finite, number, numbered_lines, short};
 
 /// The format's name in errors.
 const FORMAT: &str = "Blue Raven CSV";
@@ -309,9 +309,9 @@ impl Column {
 ///
 /// [`LogError::NotThisFormat`] if the first line isn't the app's header; [`LogError::Syntax`] for
 /// a header column with no name, a row with more cells than the header, a row whose
-/// `Flight_Time_(s)` is missing, isn't a number or doesn't come after the row above's, or rows
-/// holding under a quarter of the cells the header names; [`LogError::NoData`] if no row follows
-/// the header.
+/// `Flight_Time_(s)` is missing, isn't a number or doesn't come after the row above's, a value
+/// too large to convert to SI, or rows holding under a quarter of the cells the header names;
+/// [`LogError::NoData`] if no row follows the header.
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let mut lines = numbered_lines(text).filter(|(_, line)| !line.trim().is_empty());
     let Some((header_line, header)) = lines.next() else {
@@ -480,7 +480,11 @@ fn read_row(
             continue;
         }
         let value = match column.role {
-            Role::Value(_, scale) => number_cell(cell).map(|value| si(scale, value)),
+            // A finite cell that its unit's conversion makes infinite, such as `1.7e308` g or °F,
+            // is refused on its line (ADR-258 §3).
+            Role::Value(_, scale) => number_cell(cell)
+                .map(|value| finite(si(scale, value), FORMAT, number, &column.name))
+                .transpose()?,
             Role::TimeOfDay => time_of_day(cell),
             Role::Hex => hex(cell),
             Role::Flag { .. } => number_cell(cell),
@@ -1373,6 +1377,32 @@ mod tests {
             panic!("refused for another reason");
         };
         assert_eq!(format, FORMAT);
+    }
+
+    /// A value near the largest `f64` is finite as written and infinite once converted: in g to
+    /// m/s², in atmospheres to pascals. Each is refused on its line (ADR-258 §3).
+    #[test]
+    fn a_value_its_conversion_makes_infinite_is_refused() {
+        let high = format!(
+            "{HIGH_HEADER}\n{}\n{}\n",
+            high_row(0.0, "10:00:00", "0.1"),
+            high_row(0.002, "10:00:00", "0.1").replacen(",300,0.6,", ",300,1.7e308,", 1)
+        );
+        assert_eq!(
+            read(&high).unwrap_err().to_string(),
+            "Blue Raven CSV line 3: the column Accel_X holds a value too large for its unit's \
+             conversion to SI"
+        );
+        let low = format!(
+            "{}\n{}\n",
+            low_header(),
+            low_row(0.0, "10:00:00", 0.0, 0.0, NO_FLAGS).replacen(",50,0.95,", ",50,-1.7e308,", 1)
+        );
+        assert_eq!(
+            read(&low).unwrap_err().to_string(),
+            "Blue Raven CSV line 2: the column Baro_Press_(atm) holds a value too large for its \
+             unit's conversion to SI"
+        );
     }
 
     /// A header naming far more columns than its rows fill is refused before the reader allocates

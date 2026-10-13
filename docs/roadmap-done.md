@@ -296,6 +296,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c1 GPS tracks ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c2 Text loggers ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c3 Club layouts ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c4 AerospaceNU's board, a phone app's CSV, Eggtimer RTF ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1471,6 +1472,10 @@ One line per milestone or increment, in the order it was archived within its pha
       Fluctus and ARTS2 files moved by id (`cargo xtask logs --check` fails on one not read); a
       unit a header doesn't state, or that a file's values contradict, is decided from the file or
       a source, or the column kept as written, in a note the survey counts.
+    - [x] **M7.1c4 AerospaceNU's board, a phone app's CSV, Eggtimer RTF** (ADR-258). *Done when:*
+      every `aerospacenu-fcb-csv`, `aerospacenu-gs-txt`, `phone-launch-csv` and `eggtimer-rtf`
+      sample imports (`cargo xtask logs --check`); each unit a file doesn't state is settled by
+      two agreeing checks or kept as written, in a counted note; a conversion's `inf` is refused.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

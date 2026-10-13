@@ -5,6 +5,8 @@
 //! in a file whose cells are separated by something other than a comma, with a comma, as a
 //! European locale writes `1,5` for 1.5: the comma can't be both a separator and a decimal mark.
 
+use crate::error::LogError;
+
 /// The most characters of the file an error or note quotes.
 const QUOTED_CHARS: usize = 80;
 
@@ -48,6 +50,40 @@ pub(crate) fn number(cell: &str, decimal_comma: bool) -> Option<f64> {
         cell.parse::<f64>()
     };
     parsed.ok().filter(|value| value.is_finite())
+}
+
+/// A value after its unit conversion, refused if the conversion made it infinite: a finite cell
+/// near the largest `f64`, such as `1.7e308` g, overflows when it is scaled to SI, and a channel
+/// holds SI values or `NaN` gaps, nothing else ([ADR-258][adr-258] §3). `NaN`, a gap, passes.
+/// The error names the row's line, or the line of the figure for a value a file states once.
+///
+/// Only a conversion that can grow a value can overflow, and the readers check each of those:
+/// g to m/s² (× 9.806 65), thousandths of a g (multiplied by 9.806 65 before the division by
+/// 1,000), atmospheres, hectopascals, kilopascals and inches of mercury to pascals, degrees
+/// Fahrenheit to kelvins (`(v − 32) × 5 / 9`, whose `× 5` overflows first), radians per second
+/// to degrees per second (× 180/π) and thousands of feet to meters (× 304.8). A shrinking one can't
+/// overflow and isn't checked: feet to meters, milliseconds to seconds, knots to m/s, and
+/// degrees Celsius to kelvins, whose `+ 273.15` keeps a finite value finite.
+///
+/// [adr-258]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md
+pub(crate) fn finite(
+    value: f64,
+    format: &'static str,
+    line: usize,
+    column: &str,
+) -> Result<f64, LogError> {
+    if value.is_infinite() {
+        Err(LogError::Syntax {
+            format,
+            line,
+            message: format!(
+                "the column {} holds a value too large for its unit's conversion to SI",
+                short(column)
+            ),
+        })
+    } else {
+        Ok(value)
+    }
 }
 
 /// Text from the file as an error or note quotes it: cut to [`QUOTED_CHARS`] characters, so a

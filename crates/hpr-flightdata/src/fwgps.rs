@@ -31,6 +31,7 @@
 //!
 //! [adr-253]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0253-rrc3-eggtimer-and-blue-raven-csv-first.md
 //! [adr-254]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0254-gps-tracks-first-among-the-other-importers.md
+//! [adr-258]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md
 //!
 //! **Channels.** Every column but the clock's parts, the tracker's name and `Found rocket ID` is a
 //! channel, in the file's order, in the record's SI unit ([`Quantity::unit`]):
@@ -153,10 +154,12 @@
 //! `FALSE` (1 or 0), or a number followed by `%`. A cell that is empty or none of these, such as
 //! the literal `NaN` in `Distance (feet)` (27 cells over the 21 newer tracker logs), is a gap,
 //! counted per column in a note. A row with fewer cells than the header has the rest as gaps; a
-//! row with more is refused. A file whose rows, down to any row, hold under a quarter of the cells
-//! its header names (past the first 65,536) is refused at that row. Blank lines are skipped; lines
-//! may end in CR, LF or both (2 of the shorter ground-station logs end in CR LF); a byte-order mark
-//! is dropped.
+//! row with more is refused, as is a value its unit's factor makes too large for an `f64`, such
+//! as `LoRa Max Range (kft)` near 10³⁰⁸, naming its line ([the rule for infinite values][adr-258],
+//! §3). A file whose rows, down to
+//! any row, hold under a quarter of the cells its header names (past the first 65,536) is refused
+//! at that row. Blank lines are skipped; lines may end in CR, LF or both (2 of the shorter
+//! ground-station logs end in CR LF); a byte-order mark is dropped.
 //!
 //! **What the file says about itself.** The logger is a `Featherweight GPS tracker` or a
 //! `Featherweight GPS ground station`; the files state no serial number, firmware, flight number,
@@ -177,7 +180,7 @@ use std::collections::HashMap;
 use crate::error::LogError;
 use crate::log::{Channel, FlightLog, LogFormat, Quantity, Stated, too_sparse};
 use crate::perfectflite::FOOT_M;
-use crate::table::{Notes, number, numbered_lines, short};
+use crate::table::{Notes, finite, number, numbered_lines, short};
 
 /// The format's name in errors.
 const FORMAT: &str = "Featherweight GPS CSV";
@@ -363,6 +366,8 @@ struct Column {
 struct Set {
     name: String,
     times_ns: Vec<i64>,
+    /// Each row's line in the file.
+    lines: Vec<usize>,
     values: Vec<Vec<f64>>,
 }
 
@@ -382,8 +387,9 @@ struct Position {
 ///
 /// [`LogError::NotThisFormat`] if the first line isn't one of the four headers;
 /// [`LogError::Syntax`] for a header column with no name, a row with more cells than the header,
-/// a row whose clock is missing or isn't a time, or rows holding under a quarter of the cells the
-/// header names; [`LogError::NoData`] if no row follows the header.
+/// a row whose clock is missing or isn't a time, rows holding under a quarter of the cells the
+/// header names, or a value its unit's factor makes too large for an `f64`; [`LogError::NoData`]
+/// if no row follows the header.
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let mut lines = numbered_lines(text).filter(|(_, line)| !line.trim().is_empty());
     let Some((header_line, header)) = lines.next() else {
@@ -495,6 +501,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
                 sets.push(Set {
                     name: tracker.to_owned(),
                     times_ns: Vec::new(),
+                    lines: Vec::new(),
                     values: vec![Vec::new(); columns.len()],
                 });
                 sets.len() - 1
@@ -506,6 +513,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
         };
         let set = &mut sets[index];
         set.times_ns.push(instant);
+        set.lines.push(line_number);
         read_cells(set, &mut columns, &cells, instant);
         for position in &mut positions {
             no_fix(set, position);
@@ -525,9 +533,9 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     if let Some(note) = left_out.note() {
         file_notes.push(note);
     }
-    Ok(build(
+    build(
         layout, &columns, sets, &positions, &first_row, notes, file_notes,
-    ))
+    )
 }
 
 /// Where a layout's clock is.
@@ -871,7 +879,7 @@ fn build(
     first_row: &(String, i64),
     notes: Notes,
     file_notes: Vec<String>,
-) -> FlightLog {
+) -> Result<FlightLog, LogError> {
     let decisions = Decisions::from_file(columns, &sets);
     let mut log = FlightLog {
         format: LogFormat::FeatherweightGpsCsv,
@@ -963,15 +971,21 @@ fn build(
             } else {
                 column.name.clone()
             };
+            // A value that the factor makes infinite, such as thousands of feet near the largest
+            // `f64`, is refused on its row's line (ADR-258 §3).
+            let mut si = Vec::with_capacity(values.len());
+            for (line, value) in set.lines.iter().zip(values) {
+                si.push(finite(value * factor, FORMAT, *line, &column.name)?);
+            }
             log.channels.push(Channel {
                 column: name,
                 quantity,
                 time_s: time_s.clone(),
-                values: values.into_iter().map(|value| value * factor).collect(),
+                values: si,
             });
         }
     }
-    log
+    Ok(log)
 }
 
 /// The note on the log's clock: its zero, and for the ground station the zone it doesn't state.
@@ -2042,6 +2056,24 @@ mod tests {
                 "`VERTV` read in feet per second, in the altitude's unit, from the manual alone: the file \
                  has too few pairs of moving rows to check `VERTV` over, 4 of the 10 needed",
             ]
+        );
+    }
+
+    /// A range in thousands of feet near the largest `f64` is finite as written and infinite in
+    /// meters: refused on its row's line (ADR-258 §3).
+    #[test]
+    fn a_value_its_conversion_makes_infinite_is_refused() {
+        let row = |range: &str| {
+            format!(
+                "T,2026-03-08,09:15:10,20,-100,3000,20.001,-100,4000,3,4,0,45,0x01,24,6,12,2,-50,\
+                 -55,364.8,1005,0,{range},100%,4.0,4.1,1,1,0,1,1,,0,0,0,0,0,-60,-5"
+            )
+        };
+        let file = format!("{LONGER}\n{}\n{}\n", row("12.5"), row("1.7e308"));
+        assert_eq!(
+            read(&file).unwrap_err().to_string(),
+            "Featherweight GPS CSV line 3: the column LoRa Max Range (kft) holds a value too \
+             large for its unit's conversion to SI"
         );
     }
 

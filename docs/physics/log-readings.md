@@ -230,7 +230,7 @@ readings from it is [M7.2](../decisions-and-roadmap.md#m7-2)'s work.
   another logger's file ([the layouts read](../format/flight-logs.md)) each is withheld, as
   *not validated for this logger*, until [M7.2](../decisions-and-roadmap.md#m7-2) validates them
   there. A GPS log has no barometric track, so every reading withholds on it. Other loggers' files
-  come with [M7.1c4](../decisions-and-roadmap.md#m7-1c4).
+  come with [M7.1c5, the rest of the importers](../decisions-and-roadmap.md#m7-1c5).
 
 ## Tests and references
 

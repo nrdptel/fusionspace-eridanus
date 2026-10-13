@@ -136,9 +136,9 @@
 //!
 //! **Cells.** Every row must hold five cells, and its `MET` a number greater than the row
 //! before's; otherwise the file is refused, naming the line. Any other cell that is empty or isn't
-//! a number is a gap (`NaN`), counted in a note, and so is a value too large to convert to SI (one
-//! whose product with its unit isn't finite). Lines may end in CR, LF or both, blank lines are
-//! skipped, and a byte-order mark is dropped. As every row must be five cells wide, the record
+//! a number is a gap (`NaN`), counted in a note. A value finite as written that its unit makes
+//! infinite, such as `1e308` g, is refused, naming its line, as every reader refuses one. Lines may
+//! end in CR, LF or both, blank lines are skipped, and a byte-order mark is dropped. As every row must be five cells wide, the record
 //! never holds more values than the file has cells, and a row is read no further than its sixth
 //! cell before it is refused.
 
@@ -148,7 +148,7 @@ use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
 use crate::error::LogError;
 use crate::log::{Channel, FlightLog, LogFormat, Quantity, Stated};
 use crate::perfectflite::FOOT_M;
-use crate::table::{number, numbered_lines, short};
+use crate::table::{finite, number, numbered_lines, short};
 
 /// The format's name in messages.
 const FORMAT: &str = "ARTS2 CSV";
@@ -341,7 +341,7 @@ const PALT: usize = 3;
 /// - [`LogError::NotThisFormat`] if the first line that isn't blank isn't the export's header.
 /// - [`LogError::NoData`] without a row.
 /// - [`LogError::Syntax`] for a row not five cells wide, or whose `MET` isn't a number greater
-///   than the row before's.
+///   than the row before's, or a value too large to convert to SI.
 /// - [`LogError::Unit`] where the file's evidence settles no unit for `Vel` or `pAlt` (module
 ///   docs): the primary track would have no unit.
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
@@ -383,23 +383,14 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let length = units.length.meters();
     let acc_scale = units.acceleration.unwrap_or(1.0);
     let ialt_scale = if units.inertial { length } else { 1.0 };
-    let [acc, vel, ialt, altitude_m] = [
-        (ACC, acc_scale),
-        (VEL, length),
-        (IALT, ialt_scale),
-        (PALT, length),
-    ]
-    .map(|(column, scale)| {
+    let convert_column = |column: usize, scale: f64| {
         let column_values = values.get(column).map_or(&[][..], Vec::as_slice);
-        let (converted, overflowed) = convert(column_values, scale, &rows.lines);
-        if let Some((count, line)) = overflowed {
-            notes.push(format!(
-                "`{}` has {count} values too large to convert, the first on line {line}: gaps",
-                NAMES[column + 1]
-            ));
-        }
-        converted
-    });
+        convert(column_values, scale, &rows.lines, NAMES[column + 1])
+    };
+    let acc = convert_column(ACC, acc_scale)?;
+    let vel = convert_column(VEL, length)?;
+    let ialt = convert_column(IALT, ialt_scale)?;
+    let altitude_m = convert_column(PALT, length)?;
     if let Some(first) = altitude_m.first()
         && first.is_finite()
         && first.abs() > ALTITUDE_STEP_M
@@ -449,26 +440,26 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     })
 }
 
-/// A column's values times `scale`, a written value whose product isn't finite (too large to
-/// convert) a gap; and, if any, how many such and the line of the first.
-fn convert(values: &[f64], scale: f64, lines: &[usize]) -> (Vec<f64>, Option<(usize, usize)>) {
-    let mut overflowed: Option<(usize, usize)> = None;
-    let converted = values
+/// A column's values times `scale`, each row's on its line in `lines` (the rows keep a line for
+/// every value).
+///
+/// # Errors
+///
+/// [`LogError::Syntax`] for a value finite as written that `scale` makes infinite, such as
+/// `1e308` g, on its row's line ([ADR-258] §3).
+///
+/// [ADR-258]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md
+fn convert(
+    values: &[f64],
+    scale: f64,
+    lines: &[usize],
+    column: &str,
+) -> Result<Vec<f64>, LogError> {
+    values
         .iter()
-        .enumerate()
-        .map(|(row, value)| {
-            let product = value * scale;
-            if value.is_finite() && !product.is_finite() {
-                let line = lines.get(row).copied().unwrap_or_default();
-                let (count, _) = overflowed.get_or_insert((0, line));
-                *count += 1;
-                f64::NAN
-            } else {
-                product
-            }
-        })
-        .collect();
-    (converted, overflowed)
+        .zip(lines)
+        .map(|(value, &line)| finite(value * scale, FORMAT, line, column))
+        .collect()
 }
 
 /// The data rows below the header.
@@ -1533,33 +1524,30 @@ mod tests {
         }
     }
 
-    /// An `Acc` in g too large to convert to m/s² is a gap, counted in a note, not an infinity.
+    /// An `Acc` in g finite as written and infinite in m/s² is refused on its line (ADR-258 §3).
     #[test]
-    fn a_value_too_large_to_convert_is_a_gap() {
+    fn a_value_its_conversion_makes_infinite_is_refused() {
         let text = english();
         let at = text.find("\n17.000,").unwrap() + 1;
         let end = at + text[at..].find(',').unwrap();
         let next = end + 1 + text[end + 1..].find(',').unwrap();
         let text = format!("{}1e308{}", &text[..=end], &text[next..]);
-        let log = read(&text).unwrap();
-        let acc = &log.channels[0];
-        assert_eq!(acc.quantity, Quantity::Acceleration);
-        assert!(acc.values[170].is_nan(), "{}", acc.values[170]);
-        assert!(acc.values.iter().all(|v| !v.is_infinite()));
-        assert!(
-            log.notes.iter().any(|n| n.starts_with(
-                "`Acc` has 1 values too large to convert, the first on line 172: gaps"
-            )),
-            "{:#?}",
-            log.notes
+        assert_eq!(
+            read(&text).unwrap_err().to_string(),
+            "ARTS2 CSV line 172: the column Acc holds a value too large for its unit's \
+             conversion to SI"
         );
         // `1e308` is finite as written, and as written it is kept when `Acc` has no unit.
-        let (values, overflowed) = convert(&[1e308, f64::NAN, 2.0], 1.0, &[2, 3, 4]);
-        assert_eq!(overflowed, None);
+        let values = convert(&[1e308, f64::NAN, 2.0], 1.0, &[2, 3, 4], "Acc").unwrap();
         assert!(values[0] == 1e308 && values[1].is_nan() && values[2] == 2.0);
-        let (values, overflowed) = convert(&[1e308, -1e308, 2.0], 10.0, &[2, 3, 4]);
-        assert_eq!(overflowed, Some((2, 2)));
-        assert!(values[0].is_nan() && values[1].is_nan() && values[2] == 20.0);
+        // The first value the scale makes infinite is refused, on its own line.
+        assert_eq!(
+            convert(&[2.0, -1e308, 1e308], 10.0, &[2, 3, 4], "Acc")
+                .unwrap_err()
+                .to_string(),
+            "ARTS2 CSV line 3: the column Acc holds a value too large for its unit's conversion \
+             to SI"
+        );
     }
 
     /// `Vel`'s closing zeros are judged against `Acc`'s reach only where the boost check read

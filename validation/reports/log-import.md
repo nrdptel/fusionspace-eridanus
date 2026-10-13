@@ -10,55 +10,58 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 
 | Family | Increment | Files | Read | Refused |
 |---|---|---:|---:|---|
-| aerospacenu-fcb-csv | M7.1c4 | 20 | 0 | 20 unrecognized |
-| aerospacenu-sillygoose-gs-csv | M7.1c4 | 1 | 0 | 1 unrecognized |
+| aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
+| aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
+| aerospacenu-sillygoose-gs-csv | M7.1c5 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
 | altos-csv-damaged | damaged | 1 | 0 | 1 syntax |
-| altos-eeprom | M7.1c4 | 14 | 0 | 14 unrecognized |
-| altos-telem | M7.1c4 | 2 | 0 | 2 unrecognized |
+| altos-eeprom | M7.1c5 | 14 | 0 | 14 unrecognized |
+| altos-telem | M7.1c5 | 2 | 0 | 2 unrecognized |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
-| arts2-raw-csv | M7.1c4 | 3 | 0 | 3 unrecognized |
-| binary | M7.1c4 | 4 | 0 | 4 unrecognized |
+| arts2-raw-csv | M7.1c5 | 3 | 0 | 3 unrecognized |
+| binary | M7.1c5 | 4 | 0 | 4 unrecognized |
 | blueraven-csv | M7.1b | 80 | 80 | none |
-| blueraven-events-txt | M7.1c4 | 12 | 0 | 12 unrecognized |
-| blueraven-summary-csv | M7.1c4 | 23 | 0 | 23 unrecognized |
-| csv | M7.1c4 | 102 | 2 | 1 syntax, 99 unrecognized |
-| debrief-synthetic-csv | M7.1c4 | 6 | 0 | 6 unrecognized |
-| e80-imu-txt | M7.1c4 | 54 | 0 | 54 unrecognized |
+| blueraven-events-txt | M7.1c5 | 12 | 0 | 12 unrecognized |
+| blueraven-summary-csv | M7.1c5 | 23 | 0 | 23 unrecognized |
+| csv | M7.1c5 | 75 | 2 | 1 syntax, 72 unrecognized |
+| debrief-synthetic-csv | M7.1c5 | 6 | 0 | 6 unrecognized |
+| e80-imu-txt | M7.1c5 | 54 | 0 | 54 unrecognized |
 | eggtimer-csv | M7.1b | 43 | 43 | none |
+| eggtimer-rtf | M7.1c4 | 1 | 1 | none |
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c4 | 2 | 0 | 2 unrecognized |
-| featherweight-summary-csv | M7.1c4 | 25 | 0 | 25 unrecognized |
+| entacore-xtra | M7.1c5 | 2 | 0 | 2 unrecognized |
+| featherweight-summary-csv | M7.1c5 | 25 | 0 | 25 unrecognized |
 | fluctus-csv | M7.1c3 | 6 | 6 | none |
 | fwgps-csv | M7.1c1 | 40 | 40 | none |
 | jpeg | not a log | 1 | 0 | 1 unrecognized |
 | kml | M7.1c1 | 42 | 42 | none |
 | kml-map | not a log | 1 | 1 | none |
-| missileworks-rtx | M7.1c4 | 5 | 0 | 5 unrecognized |
+| missileworks-rtx | M7.1c5 | 5 | 0 | 5 unrecognized |
 | nmea | M7.1c1 | 12 | 12 | none |
-| odf | M7.1c4 | 3 | 0 | 3 unrecognized |
-| ods | M7.1c4 | 4 | 0 | 4 unrecognized |
+| odf | M7.1c5 | 3 | 0 | 3 unrecognized |
+| ods | M7.1c5 | 4 | 0 | 4 unrecognized |
 | pdf | not a log | 1 | 0 | 1 unrecognized |
 | perfectflite-csv | M7.1a | 14 | 14 | none |
 | perfectflite-txt | M7.1a | 2 | 2 | none |
 | pf2 | M7.1a | 175 | 175 | none |
 | pfa | M7.1c2 | 25 | 25 | none |
+| phone-launch-csv | M7.1c4 | 27 | 27 | none |
 | png | not a log | 6 | 0 | 6 unrecognized |
 | raven-csv | M7.1a | 80 | 80 | none |
-| raven-fipa | M7.1c4 | 57 | 0 | 57 unrecognized |
+| raven-fipa | M7.1c5 | 57 | 0 | 57 unrecognized |
 | rrc3-csv | M7.1b | 50 | 50 | none |
-| rrc3-rff | M7.1c4 | 6 | 0 | 6 unrecognized |
-| rtf | not a log | 3 | 0 | 3 unrecognized |
-| txt | M7.1c4 | 39 | 0 | 39 unrecognized |
-| xls | M7.1c4 | 1 | 0 | 1 unrecognized |
-| xlsx | M7.1c4 | 32 | 0 | 32 unrecognized |
-| xml | M7.1c4 | 2 | 0 | 2 unrecognized |
-| zip | M7.1c4 | 8 | 0 | 8 unrecognized |
-| **All** | | 1103 | 667 | |
+| rrc3-rff | M7.1c5 | 6 | 0 | 6 unrecognized |
+| telemetry-rtf | M7.1c5 | 2 | 0 | 2 not-this-format |
+| txt | M7.1c5 | 35 | 0 | 35 unrecognized |
+| xls | M7.1c5 | 1 | 0 | 1 unrecognized |
+| xlsx | M7.1c5 | 32 | 0 | 32 unrecognized |
+| xml | M7.1c5 | 2 | 0 | 2 unrecognized |
+| zip | M7.1c5 | 8 | 0 | 8 unrecognized |
+| **All** | | 1103 | 719 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
@@ -103,6 +106,36 @@ Files whose catalog family isn't their layout, moved to their layout's:
 - `b4f7a3949e33ca0d csv -> arts2-raw-csv`: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; read with the ARTS2's own `.odf` files
 - `c392977fab8558c2 csv -> arts2-raw-csv`: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; read with the ARTS2's own `.odf` files
 - `eda453d88e88e9c5 csv -> arts2-raw-csv`: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; read with the ARTS2's own `.odf` files
+- `1a5db9dc7064aff9 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `1b9914f2b095a2ca csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `292cd2cbeeb151d1 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `2eb51f234ada08a3 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `34ffb9c40a52f8a5 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `3682e0a8fb151b8f csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `385526be706eaacb csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `53116705370ee99f csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `53d675d508e843fa csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `5488847e996f7ed6 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `5e38d29923392275 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `6d3ba122c9852293 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `80167395bac22d32 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `810aa6083d876fff csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `81693d9be93bd905 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `836ec61f238d97b3 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `af9709847c264b99 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `b1bc4b3a856d71f1 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `c8405deebb6c61de csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `cb3c53e2a90c8811 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `cba087e4c9ac6ef3 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `cc9cb757ee5ff666 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `d1da0707d6023367 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `d516f89cea3600b4 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `db13cb37b77732af csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `e556289cc743ecd9 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `ec774588ec195de6 csv -> phone-launch-csv`: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension
+- `3a36f081e5be9e9d rtf -> telemetry-rtf`: a radio telemetry stream, lines such as `255,T,…` in a layout no maker's document names yet, saved inside an RTF document; filed as RTF, not a log, by its extension
+- `70415b30a59d4411 rtf -> eggtimer-rtf`: an Eggtimer TRS's terminal download, its settings, summary and `T,Alt,…` table, saved inside an RTF document; filed as RTF, not a log, by its extension
+- `8720c50cdeaf8ad3 rtf -> telemetry-rtf`: a radio telemetry stream, lines such as `255,T,…` in a layout no maker's document names yet, saved inside an RTF document; filed as RTF, not a log, by its extension
 - `88f33383ccf621a0 aerospacenu-sillygoose-txt -> aerospacenu-sillygoose-gs-csv`: a SillyGoose flight as a ground station's conversion wrote it: a `CONFIG` line, then 28 comma-separated columns with no header, in another order than the board's own log, so nothing in the file says which column is which; for the column mapper
 
 PerfectFlite's exports state no unit for their altitude. Of the 16 read, 13 peak at exactly the height of a `.pf2` beside them, which is in feet; read in feet, their climbs take 0.94 to 1.05 times as long as a fall in vacuum from the peak. The other 3 take 0.93 to 1.07 times, read in feet, and would take 0.51 to 0.59 times read in meters.
@@ -113,6 +146,99 @@ Units no header states, as each file's reader decided them, or kept the column a
 
 | Family | Decision | Files |
 |---|---|---:|
+| aerospacenu-fcb-csv | `acc_x`, `acc_y` and `acc_z` read in meters per second squared, from the pad's gravity and the climb | 19 |
+| aerospacenu-fcb-csv | `baro1_alt` read in meters, from the pressure's climb and the accelerometer's | 1 |
+| aerospacenu-fcb-csv | `baro1_pres` kept as written | 1 |
+| aerospacenu-fcb-csv | `baro1_pres` read in atmospheres, from its size and its step | 19 |
+| aerospacenu-fcb-csv | `baro1_temp` kept as written | 20 |
+| aerospacenu-fcb-csv | `baro2_pres` read in atmospheres, from its size and its step | 18 |
+| aerospacenu-fcb-csv | `baro2_temp` kept as written | 18 |
+| aerospacenu-fcb-csv | `baro_height` read in meters, from the pressure's climb and the accelerometer's | 1 |
+| aerospacenu-fcb-csv | `baro_pres_avg` read in atmospheres, from its size and its step | 20 |
+| aerospacenu-fcb-csv | `baro_temp_avg` kept as written | 20 |
+| aerospacenu-fcb-csv | `baroalt_agl` read in meters, from the pressure's climb and the accelerometer's | 1 |
+| aerospacenu-fcb-csv | `battery_voltage_1` kept as written | 2 |
+| aerospacenu-fcb-csv | `battery_voltage_2` kept as written | 2 |
+| aerospacenu-fcb-csv | `battery_voltage` kept as written | 18 |
+| aerospacenu-fcb-csv | `dynamixel_length_1` kept as written | 2 |
+| aerospacenu-fcb-csv | `dynamixel_length` kept as written | 2 |
+| aerospacenu-fcb-csv | `gps_alt` kept as written | 8 |
+| aerospacenu-fcb-csv | `gps_alt` read in meters, from the pressure's climb and the accelerometer's | 12 |
+| aerospacenu-fcb-csv | `gps_lat_mod` and `gps_long_mod` kept as written | 4 |
+| aerospacenu-fcb-csv | `gps_lat_mod` and `gps_long_mod` read in degrees, from `gps_lat` and `gps_long` | 16 |
+| aerospacenu-fcb-csv | `gps_lat` and `gps_long` kept as written | 1 |
+| aerospacenu-fcb-csv | `gps_lat` and `gps_long` read in NMEA 0183's degrees and minutes, ddmm.mmmm, from their ranges and their minutes | 15 |
+| aerospacenu-fcb-csv | `gps_lat` and `gps_long` read in degrees, from the latitudes' range and the longitudes' | 4 |
+| aerospacenu-fcb-csv | `heading` kept as written | 20 |
+| aerospacenu-fcb-csv | `high_g_accel_x_real`, `high_g_accel_y_real` and `high_g_accel_z_real` kept as written | 20 |
+| aerospacenu-fcb-csv | `high_g_accel_x`, `high_g_accel_y` and `high_g_accel_z` kept as written | 20 |
+| aerospacenu-fcb-csv | `imu1_accel_x_real`, `imu1_accel_y_real` and `imu1_accel_z_real` kept as written | 2 |
+| aerospacenu-fcb-csv | `imu1_accel_x_real`, `imu1_accel_y_real` and `imu1_accel_z_real` read in meters per second squared, from the pad's gravity and the sensor's scale | 18 |
+| aerospacenu-fcb-csv | `imu1_accel_x`, `imu1_accel_y` and `imu1_accel_z` kept as written | 20 |
+| aerospacenu-fcb-csv | `imu1_gyro_x_real`, `imu1_gyro_y_real` and `imu1_gyro_z_real` kept as written | 3 |
+| aerospacenu-fcb-csv | `imu1_gyro_x_real`, `imu1_gyro_y_real` and `imu1_gyro_z_real` read in radians per second, from the board's turning and the sensor's scale | 17 |
+| aerospacenu-fcb-csv | `imu1_gyro_x`, `imu1_gyro_y` and `imu1_gyro_z` kept as written | 20 |
+| aerospacenu-fcb-csv | `imu1_mag_x_real`, `imu1_mag_y_real` and `imu1_mag_z_real` kept as written | 20 |
+| aerospacenu-fcb-csv | `imu1_mag_x`, `imu1_mag_y` and `imu1_mag_z` kept as written | 20 |
+| aerospacenu-fcb-csv | `imu2_accel_x_real`, `imu2_accel_y_real` and `imu2_accel_z_real` kept as written | 5 |
+| aerospacenu-fcb-csv | `imu2_accel_x_real`, `imu2_accel_y_real` and `imu2_accel_z_real` read in meters per second squared, from the pad's gravity and the sensor's scale | 13 |
+| aerospacenu-fcb-csv | `imu2_accel_x`, `imu2_accel_y` and `imu2_accel_z` kept as written | 18 |
+| aerospacenu-fcb-csv | `imu2_gyro_x_real`, `imu2_gyro_y_real` and `imu2_gyro_z_real` kept as written | 4 |
+| aerospacenu-fcb-csv | `imu2_gyro_x_real`, `imu2_gyro_y_real` and `imu2_gyro_z_real` read in radians per second, from the board's turning and the sensor's scale | 14 |
+| aerospacenu-fcb-csv | `imu2_gyro_x`, `imu2_gyro_y` and `imu2_gyro_z` kept as written | 18 |
+| aerospacenu-fcb-csv | `imu2_mag_x_real`, `imu2_mag_y_real` and `imu2_mag_z_real` kept as written | 18 |
+| aerospacenu-fcb-csv | `imu2_mag_x`, `imu2_mag_y` and `imu2_mag_z` kept as written | 18 |
+| aerospacenu-fcb-csv | `imu_accel_x_avg`, `imu_accel_y_avg` and `imu_accel_z_avg` kept as written | 7 |
+| aerospacenu-fcb-csv | `imu_accel_x_avg`, `imu_accel_y_avg` and `imu_accel_z_avg` read in meters per second squared, from the pad's gravity and the IMUs | 13 |
+| aerospacenu-fcb-csv | `imu_gyro_x_avg`, `imu_gyro_y_avg` and `imu_gyro_z_avg` kept as written | 4 |
+| aerospacenu-fcb-csv | `imu_gyro_x_avg`, `imu_gyro_y_avg` and `imu_gyro_z_avg` read in radians per second, from the board's turning and the IMUs | 16 |
+| aerospacenu-fcb-csv | `imu_mag_x_avg`, `imu_mag_y_avg` and `imu_mag_z_avg` kept as written | 20 |
+| aerospacenu-fcb-csv | `pos_x` kept as written | 20 |
+| aerospacenu-fcb-csv | `pos_y` kept as written | 20 |
+| aerospacenu-fcb-csv | `pos_z` read in meters, from the pressure's climb and the accelerometer's | 20 |
+| aerospacenu-fcb-csv | `timestamp_ms` kept as written | 7 |
+| aerospacenu-fcb-csv | `timestamp_ms` read in milliseconds, from its spacing and the climb | 12 |
+| aerospacenu-fcb-csv | `timestamp_s` read in milliseconds, from its spacing and the climb | 6 |
+| aerospacenu-fcb-csv | `timestamp_s` read in seconds, from its spacing and the climb | 2 |
+| aerospacenu-fcb-csv | `vel_x` kept as written | 20 |
+| aerospacenu-fcb-csv | `vel_y` kept as written | 20 |
+| aerospacenu-fcb-csv | `vel_z` kept as written | 2 |
+| aerospacenu-fcb-csv | `vel_z` read in meters per second, from `pos_z` and the accelerometer | 18 |
+| aerospacenu-fcb-csv | `vtg` kept as written | 20 |
+| aerospacenu-gs-txt | `Alt Info & Cfg.barometer_2_pressure` read in atmospheres, from its size and its step | 4 |
+| aerospacenu-gs-txt | `Alt Info & Cfg.barometer_pressure` read in atmospheres, from its size and its step | 4 |
+| aerospacenu-gs-txt | `Alt Info & Cfg.ground_elev` kept as written, in a unit nothing in the file checks | 4 |
+| aerospacenu-gs-txt | `Alt Info & Cfg.ground_temp` kept as written, in degrees Celsius or Fahrenheit alike | 4 |
+| aerospacenu-gs-txt | `Alt Info & Cfg.pitot_ducer_press` kept as written, in a unit nothing in the file checks | 4 |
+| aerospacenu-gs-txt | `Alt Info & Cfg.press_ref` read in atmospheres, from its size and the barometer's | 4 |
+| aerospacenu-gs-txt | `GPS Passthrough.GPS Alt` kept as written, with no check of its unit but the barometer's | 1 |
+| aerospacenu-gs-txt | `GPS Passthrough.Latitude` and `GPS Passthrough.Longitude` kept as written, holding no fix | 1 |
+| aerospacenu-gs-txt | `Ground Station GPS.gs_alt` kept as written, with no check of its unit but the barometer's | 3 |
+| aerospacenu-gs-txt | `Ground Station GPS.gs_baro` read in atmospheres, from its size and its step | 3 |
+| aerospacenu-gs-txt | `Ground Station GPS.gs_lat` and `Ground Station GPS.gs_lon` kept as written, holding no fix | 1 |
+| aerospacenu-gs-txt | `Ground Station GPS.gs_lat` and `Ground Station GPS.gs_lon` read in degrees, from their range and their fractions | 2 |
+| aerospacenu-gs-txt | `Ground Station GPS.gs_temp` kept as written, in degrees Celsius or Fahrenheit alike | 3 |
+| aerospacenu-gs-txt | `Groundstation Status.gs_alt` kept as written, with no check of its unit but the barometer's | 1 |
+| aerospacenu-gs-txt | `Groundstation Status.gs_baro` read in atmospheres, from its size and its step | 1 |
+| aerospacenu-gs-txt | `Groundstation Status.gs_lat` and `Groundstation Status.gs_lon` kept as written, holding no fix | 1 |
+| aerospacenu-gs-txt | `Groundstation Status.gs_temp` kept as written, in degrees Celsius or Fahrenheit alike | 1 |
+| aerospacenu-gs-txt | `Orientation.accel_x`, `Orientation.accel_y` and `Orientation.accel_z` kept as written, the pad's gravity and the barometer not both bearing meters per second squared out | 1 |
+| aerospacenu-gs-txt | `Orientation.accel_x`, `Orientation.accel_y` and `Orientation.accel_z` read in meters per second squared, from the pad's gravity and the barometer | 3 |
+| aerospacenu-gs-txt | `Orientation.angle_vertical` kept as written, with no accelerometer read in m/s² to check it by | 1 |
+| aerospacenu-gs-txt | `Orientation.angle_vertical` read in degrees, from its range and the accelerometer | 3 |
+| aerospacenu-gs-txt | `Orientation.magnetic_field_x`, `Orientation.magnetic_field_y` and `Orientation.magnetic_field_z` kept as written, with no quantity for a magnetic field | 4 |
+| aerospacenu-gs-txt | `Orientation.roll`, `Orientation.pitch`, `Orientation.yaw`, `Orientation.orientation_rpy[0]`, `Orientation.orientation_rpy[1]` and `Orientation.orientation_rpy[2]` kept as written, with no check of their unit but their range | 4 |
+| aerospacenu-gs-txt | `Orientation.rot_vel_x`, `Orientation.rot_vel_y` and `Orientation.rot_vel_z` kept as written, with no accelerometer read in m/s² | 1 |
+| aerospacenu-gs-txt | `Orientation.rot_vel_x`, `Orientation.rot_vel_y` and `Orientation.rot_vel_z` read in radians per second, from the board's turning and its tilt | 3 |
+| aerospacenu-gs-txt | `Position Data.course_over_ground` kept as written, in a unit nothing in the file checks | 4 |
+| aerospacenu-gs-txt | `Position Data.fcb_altitude` read in meters, from the barometer and the coast | 4 |
+| aerospacenu-gs-txt | `Position Data.fcb_battery_voltage` kept as written, in a unit nothing in the file checks | 4 |
+| aerospacenu-gs-txt | `Position Data.fcb_latitude` and `Position Data.fcb_longitude` read in degrees, from their range and their fractions | 4 |
+| aerospacenu-gs-txt | `Position Data.gps_alt` kept as written, with no check of its unit but the barometer's | 4 |
+| aerospacenu-gs-txt | `Position Data.ground_speed` kept as written, in a unit nothing in the file checks | 4 |
+| aerospacenu-gs-txt | `Position Data.temperature` kept as written, in degrees Celsius or Fahrenheit alike | 4 |
+| aerospacenu-gs-txt | `Position Data.v_speed` read in meters per second, from the barometer and the coast | 4 |
+| aerospacenu-gs-txt | `time_stamp_ms` read in milliseconds, from its name and the ground station's clock | 4 |
 | aerospacenu-sillygoose-txt | `accelX`, `accelY` and `accelZ` read in meters per second squared, from the pad's gravity | 13 |
 | aerospacenu-sillygoose-txt | `accelX`, `accelY` and `accelZ` read in standard gravities, × 9.806 65 m/s², from the pad's gravity | 1 |
 | aerospacenu-sillygoose-txt | `altitudeM` read in meters, from its name | 2 |
@@ -165,13 +291,20 @@ Units no header states, as each file's reader decided them, or kept the column a
 | eggtimer-csv | `T` read in seconds, from the step | 40 |
 | eggtimer-csv | `VAccel` read in feet per second, from the manual | 4 |
 | eggtimer-csv | `Veloc` read in feet per second, from the manual | 40 |
+| eggtimer-rtf | `ASL Alt.` kept as written, with no unit mark the reader knows | 1 |
+| eggtimer-rtf | `Alt` read in feet, from the manual and the coast | 1 |
+| eggtimer-rtf | `Apogee` kept as written, with no unit mark the reader knows | 1 |
+| eggtimer-rtf | `FAlt` read in feet, from the manual and the coast | 1 |
+| eggtimer-rtf | `FVeloc` kept as written, not read as a speed | 1 |
+| eggtimer-rtf | `T` read in milliseconds, from the step and the coast | 1 |
+| eggtimer-rtf | `Veloc` kept as written, not read as a speed | 1 |
 | eggtimer-txt | `ASL Alt.` read in feet, from its unit mark | 2 |
-| eggtimer-txt | `Alt` read in feet, from the manual | 2 |
+| eggtimer-txt | `Alt` read in feet, from the manual and the coast | 2 |
 | eggtimer-txt | `Apogee` read in feet, from its unit mark | 2 |
 | eggtimer-txt | `FVeloc` read in feet per second, from the manual | 2 |
-| eggtimer-txt | `Filt_Alt` read in feet, from the manual | 2 |
+| eggtimer-txt | `Filt_Alt` read in feet, from the manual and the coast | 2 |
 | eggtimer-txt | `T @` and `Time @` read in seconds, from the manual | 2 |
-| eggtimer-txt | `T` read in milliseconds, from the step | 2 |
+| eggtimer-txt | `T` read in milliseconds, from the step and the coast | 2 |
 | eggtimer-txt | `Veloc` read in feet per second, from the manual | 2 |
 | entacore-aim-csv | `A Voltage` read in volts, from the values | 9 |
 | entacore-aim-csv | `B Voltage` read in volts, from the values | 9 |
@@ -222,6 +355,44 @@ Units no header states, as each file's reader decided them, or kept the column a
 | nmea | `GSA` and `GSV` read in the time of the `GGA` or `RMC` before them, from the sentence order | 12 |
 | nmea | `RMC date` read in UTC days, from status-`A` sentences only | 12 |
 | pfa | `Data` read in feet, 0.1 s apart, from the manual | 25 |
+| phone-launch-csv | `AltitudeMSLGPS` and `AltitudeMSLMaxGPS` kept as written, in a unit no second check settles | 27 |
+| phone-launch-csv | `AltitudeRelativeBarometer` kept as written, holding no reading | 19 |
+| phone-launch-csv | `AltitudeRelativeBarometer` kept as written, in a unit two checks don't settle | 1 |
+| phone-launch-csv | `AltitudeRelativeBarometer` read in meters, from the pressure and the coast | 7 |
+| phone-launch-csv | `AltitudeRelativeSerial` and `AltitudeRelativeMaxSerial` kept as written | 19 |
+| phone-launch-csv | `Battery` kept as written | 27 |
+| phone-launch-csv | `GMax` and `AltitudeRelativeMaxBarometer` kept as written, as running extremes | 19 |
+| phone-launch-csv | `GMax`, `AltitudeRelativeMaxBarometer`, `NoGravGMax`, `VelocityBarometerMax` and `VelocityBarometerMin` kept as written, as running extremes | 8 |
+| phone-launch-csv | `Gx`, `Gy`, `Gz` and `GTotal` kept as written, in a unit two checks don't settle | 21 |
+| phone-launch-csv | `Gx`, `Gy`, `Gz` and `GTotal` read in standard gravity, from the pad and the boost | 6 |
+| phone-launch-csv | `GyroX`, `GyroY` and `GyroZ` kept as written, in a unit two checks don't settle | 20 |
+| phone-launch-csv | `GyroX`, `GyroY` and `GyroZ` read in radians per second, from the attitude and the full scale | 7 |
+| phone-launch-csv | `Heading` read in degrees, from its range and its wrap's period | 27 |
+| phone-launch-csv | `HorizontalResGPS` and `VerticalResGPS` kept as written | 27 |
+| phone-launch-csv | `Latitude` and `Longitude` read in degrees, from the latitude's range and the longitude's | 27 |
+| phone-launch-csv | `MagnetometerX`, `MagnetometerY`, `MagnetometerZ`, `HeadingX`, `HeadingY` and `HeadingZ` kept as written | 27 |
+| phone-launch-csv | `NoGravGx`, `NoGravGy`, `NoGravGz` and `NoGravGTotal` kept as written, in a unit two checks don't settle | 2 |
+| phone-launch-csv | `NoGravGx`, `NoGravGy`, `NoGravGz` and `NoGravGTotal` read in standard gravity, with the accelerometer's axes | 6 |
+| phone-launch-csv | `Pitch` kept as written, in a unit two checks don't settle | 2 |
+| phone-launch-csv | `Pitch` read in radians, from its range and gravity's direction | 25 |
+| phone-launch-csv | `Record` and `Static` kept as written, as numbers with no unit | 19 |
+| phone-launch-csv | `Record`, `Static`, `UsbState` and `Satellites` kept as written, as numbers with no unit | 8 |
+| phone-launch-csv | `Reserved1` and `Reserved2` kept as written | 8 |
+| phone-launch-csv | `Reserved1`, `Reserved2`, `Reserved3` and `Reserved4` kept as written | 8 |
+| phone-launch-csv | `Revolutions` and `RevApogee` kept as written | 11 |
+| phone-launch-csv | `Revolutions`, `RevApogee` and `RevolutionsClock` kept as written | 8 |
+| phone-launch-csv | `Roll` kept as written, in a unit two checks don't settle | 3 |
+| phone-launch-csv | `Roll` read in radians, from its range and gravity's direction | 24 |
+| phone-launch-csv | `Temperature` kept as written, in a unit no two checks settle | 8 |
+| phone-launch-csv | `Timestamp` read in milliseconds since 1970 UTC, from the clock and the date | 27 |
+| phone-launch-csv | `UsbV1`, `UsbV2`, `UsbV3`, `UsbV4`, `UsbT1`, `UsbT2`, `UsbT3`, `UsbT4`, `UsbT5`, `UsbT6`, `UsbUR1`, `UsbUR2`, `UsbUR3`, `UsbUR4`, `UsbUR5`, `UsbUR6`, `UsbUR7` and `UsbUR8` kept as written | 7 |
+| phone-launch-csv | `UsbV1`, `UsbV2`, `UsbV3`, `UsbV4`, `UsbT1`, `UsbT2`, `UsbT3`, `UsbT4`, `UsbUR1`, `UsbUR2`, `UsbUR3`, `UsbUR4`, `UsbUR5`, `UsbUR6`, `UsbUR7` and `UsbUR8` kept as written | 1 |
+| phone-launch-csv | `VelocityBarometerRaw` read in meters per second, from the barometric altitude and the coast | 7 |
+| phone-launch-csv | `VelocityBarometer` and `VelocityBarometerRaw` kept as written, in a unit two checks don't settle | 1 |
+| phone-launch-csv | `VelocityBarometer` read in meters per second, from the barometric altitude and the coast | 7 |
+| phone-launch-csv | `Yaw` kept as written, in a unit two checks don't settle | 17 |
+| phone-launch-csv | `Yaw` read in radians, from its range and the magnetic field's direction | 10 |
+| phone-launch-csv | `hPa` read in hectopascals, from its name and the pad | 8 |
 | rrc3-csv | `Altitude` read in feet, from the pressure | 46 |
 | rrc3-csv | `Pressure` read in hectopascals, from the values | 46 |
 | rrc3-csv | `Temperature` read in degrees Fahrenheit, assumed | 40 |
@@ -236,6 +407,8 @@ The files read, by the logger each names:
 | Logger | Files |
 |---|---:|
 | AerospaceNU SillyGoose | 13 |
+| AerospaceNU flight computer board | 20 |
+| AerospaceNU flight computer board, by its ground station | 4 |
 | AltOS | 52 |
 | AltOS TeleGPS-v1.0 | 3 |
 | AltOS TeleGPS-v2.0 | 4 |
@@ -243,6 +416,7 @@ The files read, by the logger each names:
 | AltOS TeleMetrum-v2.0 | 1 |
 | Big Red Bee BeeLine | 2 |
 | Eggtimer | 43 |
+| Eggtimer Build_1.52 | 1 |
 | Eggtimer TRS | 2 |
 | Entacore AIM | 16 |
 | Featherweight Blue Raven | 80 |
@@ -265,3 +439,4 @@ The files read, by the logger each names:
 | Silicdyne Fluctus | 6 |
 | SillyGooseV2 | 1 |
 | fw2kml | 14 |
+| phone app | 27 |
