@@ -16,7 +16,7 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > files allow. Where a header names no unit, the reader decides it from the file and says how in
 > a note ([units the file decides](#units-the-file-decides)); the few units no source states are
 > named [below](#units-no-source-states). Other layouts are refused, not guessed at; they come
-> with [M7.1c4](../decisions-and-roadmap.md#m7-1c4), the other loggers' formats.
+> with [M7.1c5](../decisions-and-roadmap.md#m7-1c5), the other loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -50,6 +50,9 @@ PerfectFlite's `.pfa` and an Eggtimer TRS's terminal text), as
 decided, and [M7.1c3](../decisions-and-roadmap.md#m7-1c3) (the SillyGoose, Fluctus and ARTS2
 readers), as
 [ADR-256](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0256-three-club-and-team-layouts-before-the-rest.md)
+decided, and [M7.1c4](../decisions-and-roadmap.md#m7-1c4) (AerospaceNU's flight computer board
+and ground station, a phone app's `launch` CSV and an Eggtimer's RTF), as
+[ADR-258](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md)
 decided.
 
 ## The layouts read
@@ -66,11 +69,15 @@ decided.
 | RRC3 CSV | Missile Works RRC3, through mDACS, Missile Works' program that downloads its flights | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages`, perhaps with units in brackets | `hpr_flightdata::rrc3` |
 | Eggtimer CSV | Eggtimer Classic, TRS, Quantum and Proton, through Eggtimer's download | `T,Alt,` and more of Eggtimer's column names | `hpr_flightdata::eggtimer` |
 | Eggtimer text | Eggtimer TRS, its download captured by a terminal program | a title `Eggtimer <model> <firmware> … Flight Settings`, then Eggtimer's header row `T,Alt,…` | `hpr_flightdata::eggtimer` ([below](#units-the-file-decides)) |
+| Eggtimer RTF | the same terminal download, saved by a text editor as an RTF document | opens with `{\rtf`, and its text holds the terminal download's title and header row | `hpr_flightdata::eggtimer` ([below](#units-the-file-decides)) |
 | AltimeterCloud CSV | Rocketry Ltd Nano V1 and Mercury, as a flight page on altimetercloud.com hands the log back | a header within the first 65 lines whose first name is `Time(ms)` (in any case) and which also names `acceleration_total(mG)` and `tilt` | `hpr_flightdata::altimetercloud` ([below](#units-the-file-decides)) |
 | Entacore AIM CSV | Entacore AIM XTRA (the flight computer's own log) and AIM BASE (the telemetry its ground station received), as the AIM software's *Export to Excel…* writes them | the first line starts with a `time` column, names at least two, and names one of the AIM's own channels, such as `Pressure AGL`, `lat. X accel.` or `eject. bat. voltage` | `hpr_flightdata::entacore` ([below](#units-the-file-decides)) |
 | SillyGoose text | AerospaceNU's SillyGoose flight computer: its own log, tab- or space-separated, with or without a `CONFIG` settings line | a first line, or the one after `CONFIG`, starting `timestampMs` and naming `pressurePa` and `altitudeM` | `hpr_flightdata::sillygoose` ([below](#units-the-file-decides)) |
 | Silicdyne Fluctus CSV | Silicdyne Fluctus, as its Fluctus Control Center exports a flight | a `sep=` line (such as `sep=;`) within the first 16 lines, or none, then a header starting `time` that names `deltaTime` and `baro-altitude` | `hpr_flightdata::fluctus` ([below](#units-the-file-decides)) |
 | ARTS2 CSV | Ozark Aerospace ARTS2, its interpreted data as its software exports a flight | a first line of `#` and the names `MET Acc Vel iAlt pAlt`, by spaces, tabs or commas, in any case | `hpr_flightdata::arts2` ([below](#units-the-file-decides)) |
+| AerospaceNU board CSV | AerospaceNU's flight computer board (FCB), its binary log as the club's tools turn it into a CSV | a first line whose first name is empty (the club's row number) and which names `packetType`, `timestamp_ms` or `timestamp_s` | `hpr_flightdata::aerospacenu_fcb` ([below](#units-the-file-decides)) |
+| AerospaceNU ground station text | the same board's radio downlink, one packet a line, as the club's ground station logged it | a first line that isn't blank starting `RUN START` | `hpr_flightdata::aerospacenu_gs` ([below](#units-the-file-decides)) |
+| Phone app `launch` CSV | an app, named in none of its files, that logs a phone's own sensors in flight | a first line that isn't blank starting `Seconds,Timestamp,AltitudeMSLGPS` | `hpr_flightdata::phone_launch` ([below](#units-the-file-decides)) |
 | Featherweight GPS CSV | Featherweight's GPS tracker: its own log, and its ground station's log of every tracker it hears | a first line opening `UTCTIME,UNIXTIME,` or `TRACKER,DATE,TIME,` that names the latitude and longitude (`LAT` and `LON`, or `TRACKER Lat` and `TRACKER Lon`) | [below](#gps-logs) |
 | KML | GPS tracks as AltOS, Missile Works' RTx, Big Red Bee's BeeLine, fw2kml (a converter of Featherweight's logs), GPS Visualizer and others write them for Google Earth | the document's root element is `kml` | [below](#gps-logs) |
 | NMEA 0183 | a GPS receiver's own sentences, written to a file as it sends them | at least 3 of the first 50 lines open with a sentence whose checksum checks out, such as `$GPGGA,…*hh`, or, in a shorter file, every line does | [below](#gps-logs) |
@@ -81,7 +88,8 @@ to the other. The high-rate file holds no altitude, so its record's
 [primary track](#the-record) is empty and its channels hold everything; the low-rate file of the
 same flight holds the altitude. The app's summary and events files beside them aren't read yet.
 The other layouts in the sample logs, among them AltOS's `.eeprom`, the RRC3's binary `.rff`, the
-Raven's `.fipa` and spreadsheets, are refused today, most as *unrecognized*; the
+Raven's `.fipa`, spreadsheets and a radio telemetry stream saved as RTF, are refused today, most as
+*unrecognized*; they come with [M7.1c5](../decisions-and-roadmap.md#m7-1c5), and the
 [survey's report](#how-it-was-checked) counts them by layout.
 
 ## The record
@@ -122,6 +130,12 @@ A foot is 0.3048 m (1.000 ft), a g 9.806 65 m/s² and an atmosphere 101 325 Pa, 
 cell the file leaves empty, or fills with something that isn't a number, is a gap: `NaN` ("not a
 number") in the record, and `null` in its JSON, which reads back as a gap. A channel's time is a
 gap in the same way where the file gives a sample no time, as a KML path without times does.
+
+A cell that is a number but that its unit's conversion to SI makes infinite, such as `1.7e308`
+in g, which times 9.806 65 passes the largest number a computer's `f64` holds, refuses the file,
+naming its line. Every reader applies this rule, so a channel holds SI values or gaps and nothing
+else ([ADR-258, the rule for infinite values](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md),
+§3).
 
 ### Units no source states
 
@@ -165,9 +179,10 @@ Most units come from the file's own column names or from the maker's manual. A f
 ### Units the file decides
 
 These layouts leave some units out of their headers: the RRC3's, Eggtimer's (CSV and terminal
-text), the Blue Raven's, AltimeterCloud's, Entacore AIM's, a Fluctus's and an ARTS2's; a `.pfa`
-states none ([below](#perfectflites-older-pfa)), and a SillyGoose's header names units that one
-file's values contradict. For some, the reader works the unit out from the file as it
+text, and that text saved as RTF), the Blue Raven's, AltimeterCloud's, Entacore AIM's, a
+Fluctus's, an ARTS2's, AerospaceNU's flight computer board's and its ground station's, and a phone
+app's; a `.pfa` states none ([below](#perfectflites-older-pfa)), and a SillyGoose's header names
+units that one file's values contradict. For some, the reader works the unit out from the file as it
 reads it; for the rest, it takes the unit the maker's manual gives, and checks it against the file
 where the file can show a disagreement. Either way it writes a note giving the decision and this
 file's evidence, and the [survey's report](#how-it-was-checked) counts the decisions over the
@@ -336,8 +351,130 @@ sample logs:
   altitude, above the pad reading the logger took on entering flight mode (p17); the file starts
   at launch. The velocity and inertial altitude are the logger's integrals of its accelerometer,
   and drift by the end of the descent, so the record keeps them as channels, not as its vertical
-  speed. The record's readings withhold on these layouts, as on every logger's but PerfectFlite's
-  `.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
+  speed.
+- **AerospaceNU's flight computer board, each unit by two checks.** The flight computer board
+  (FCB) of AerospaceNU, Northeastern University's rocketry club, logs a binary file, which the
+  club's tools turn into a CSV; the club publishes both (AerospaceNU, *rocket-flight-data*,
+  `README.md`, read October 12, 2026). The 20 sample files come under eight headers of 73 to 87
+  columns. No document describes the columns, so a unit a column's name doesn't state is read
+  only where two checks on the file's values agree. Neither check compares the column with
+  another of the same unknown unit, and neither can be met by the weather or the flight in the
+  wrong unit. Where they don't agree, the column is kept as written, with a note:
+  - *Pressure, in atmospheres:* a pad's pressure lies near 1 in atmospheres or bars, and far
+    from it in pascals, hectopascals, psi or inches of mercury. And every value is a whole number
+    of pascals divided by 101,325, the club's conversion, a step no flight or weather can mimic;
+    in bars the values would miss a step of 1/100,000 by up to half a step. Every barometer that
+    reads in the 20 files is in atmospheres; one that reads 0 throughout is kept as written.
+  - *Clock, in milliseconds or seconds,* whatever the column's name says: the rows' median step
+    must lie within 5 to 500 ms, and the climb the pressure gives must match, within a factor of
+    10, the one the accelerometer integrates to on that clock. A file neither unit fits is
+    refused, as nothing in it would have a time. Of the 20, `timestamp_ms` holds milliseconds in
+    12, and `timestamp_s` holds milliseconds in 6 and seconds in 2.
+  - *Accelerations, in m/s² or g:* the board reads 1 g at rest, and each scaled column is its raw
+    counts times one of the inertial unit's published sensitivities (*LSM9DS1* data sheet,
+    STMicroelectronics, DocID025715 Rev 3, Table 3). The board's own estimate, `acc_*`, is
+    checked by the pad's 1 g and the climb instead. One board, the FCBV2 in both its files,
+    reads 1.5 g at rest, its counts scaled for another part, and is kept as written, as is the
+    high-g accelerometer in every file, whose scale is none of the LSM9DS1's.
+  - *Rates of turn, in rad/s:* the gyroscope's turn must match how far gravity's direction turned
+    in the accelerometer while the board read about 1 g, and its scale must be one of the
+    LSM9DS1's gyroscope sensitivities.
+  - *Heights and speed, in meters and m/s:* `pos_z`, the board's filtered altitude above the pad
+    and the record's altitude, and the other heights must climb within 25% of the pressure's
+    climb and within a factor of 1.8 of the accelerometer's (1.8² is 3.24, under the 3.28 between
+    meters and feet). `vel_z` must match `pos_z`'s rate and the accelerometer's speed. `pos_z`
+    reads in meters in all 20 files, `gps_alt` in 12 (kept as written in 8) and `vel_z` in 18.
+  - *GPS position:* `gps_lat` and `gps_long` are read as NMEA 0183's degrees and minutes run
+    together (42.5° written `4230.0`) where some value passes 90 or 180, which no degrees do, and
+    their companions `gps_lat_mod` and `gps_long_mod` hold every value converted to degrees. In
+    15 files both checks pass. In three later files the "minutes" pass 60, so the values aren't
+    degrees and minutes, yet the companions hold them converted as if they were; all four
+    columns are kept as written there, as in 2 more.
+  - *Kept as written:* the temperatures, which read as a barometer's in degrees Celsius or
+    Fahrenheit alike; the battery voltages; the magnetometers; and the raw counts the scaled
+    columns are made from. The state codes, in three numberings no source publishes, are kept as
+    numbers, so the record takes no events from them.
+- **AerospaceNU's ground station text, the board's units from the club's summaries.** The same
+  board sends its readings by radio, and the club's ground station logs each packet as a line:
+  the time of day it arrived, the packet's name and its fields as a Python dictionary, under a
+  `RUN START` line. An invented line, shortened:
+
+  ```text
+  10:00:01.512345: Position Data {'crc': 'Good', 'time_stamp_ms': 61000, 'fcb_altitude': 0.25, …}
+  ```
+
+  The club's summary of each flight, `attributes.csv`, names units in its keys, such as
+  `peak_altitude_m`, and in all 4 sample files those peaks are the highest altitude, speed and
+  acceleration in the text: the club's word that the board sends meters, m/s and m/s². Each is
+  read so only where a check on the file bears it out, and every other unit needs two checks:
+  - *Altitude, `fcb_altitude`, the record's altitude:* its climb within 25% of the barometer's
+    climb in the standard atmosphere, where feet would be 3.28 times off; a climb further off
+    refuses the file. Read in meters in all 4.
+  - *Vertical speed, `v_speed`:* its integral against the altitude's change, within 25%. In m/s
+    in all 4.
+  - *Accelerometer:* 1 g at rest on the pad, in m/s² rather than g. Read so in 3; kept as
+    written in 1.
+  - *Pressures, in atmospheres:* by their size and their whole-pascal step, as in the board's CSV.
+  - *Rates of turn, in rad/s:* by the board's turning against the accelerometer's, and by its
+    tilt from vertical, which can change no faster than the board turns. Read so in 3; kept as
+    written in 1, whose accelerometer isn't read.
+  - *Positions, in degrees:* one fix passes ±π/2 or ±π, which radians can't, and one has a
+    fraction of a degree of 0.6 or more, which degrees and minutes run together can't.
+  - *Clock:* the board's `time_stamp_ms`, in milliseconds by its name, must advance 0.8 to
+    1.25 s for each second of the ground station's own clock, over at least 20 s. Packets after
+    the board restarts are placed by the ground station's clock.
+  - *Left out or kept as written:* a packet whose radio checksum failed (its `crc` not `'Good'`)
+    is left out and counted, as its bytes can't be trusted. The temperatures, the GPS altitudes
+    (only the barometer could check them, one check), the battery voltage and the roll, pitch
+    and yaw are kept as written.
+- **A phone app's `launch` CSV, each unit by two checks.** An app that no file names logs a
+  phone's GPS, accelerometer, gyroscope, magnetometer and, in newer files, barometer, about 20
+  rows a second. No description of the format was found. Of the 27 sample files, 19 are an
+  older layout of 35 columns with no barometer, and 8 a newer one of 67 or 69 columns that adds
+  one. `Seconds` is the clock, by its name. Every other column is read in a unit only where two
+  checks that look at different evidence agree; otherwise it is kept as written, with a note. An
+  invented start of a file, shortened:
+
+  ```text
+  Seconds,Timestamp,AltitudeMSLGPS,Record,Static,Latitude,Longitude,GTotal,Gx,Gy,Gz,…
+  0.000,1941868800000,100,1,12,40.123456,-100.234567,1.000000,0.000000,0.932039,0.362358,…
+  ```
+
+  - *Pressure, `hPa`:* it names its unit, and its first reading must be a launch site's, 500 to
+    1,100 hPa.
+  - *Barometric altitude, the record's altitude, in meters:* it must be the pressure altitude of
+    `hPa` in the standard atmosphere, which in feet would be 3.28 times as large. And in the
+    coast before apogee it must slow at 0.7 g to 0.7 × 3.28 g, as gravity and drag slow a coasting
+    rocket by at least 1 g, which an altitude written in feet can't. Read so in 7 of the 8 newer
+    files. The barometric speeds are read in m/s by the altitude's rate and the same coast.
+  - *Accelerations, in g:* the pad reads 1, and the boost's integral matches the barometric climb
+    rate. The older files have no barometer for the second check, so their accelerations are
+    kept as written: read in g in 6 files, kept in 21.
+  - *Attitude and rates of turn, in radians and rad/s:* `Yaw`, `Roll` and `Pitch` by their range
+    and by wrapping at ±π (for the pitch, by gravity's direction in the accelerometer); the
+    gyroscope by the attitude's turn and by a full scale a phone's gyroscope offers. The
+    gyroscope reads in rad/s in 7 files and is kept as written in 20.
+  - *Position, heading and time stamp:* degrees, as some value passes what radians reach; the
+    heading also wraps at 360; `Timestamp` is a Unix time in milliseconds, its steps the clock's
+    and its date in this century.
+  - *GPS altitude, kept as written in all 27:* only one check reaches it, its gain against the
+    pressure altitude. Fixes once a second can't show the coast, and on the pad the weather moves
+    a pressure altitude further than meters and feet are apart below 4,000 m (13,123 ft).
+- **An Eggtimer's download saved as RTF, unwrapped.** One sample file is an Eggtimer TRS's
+  terminal download that a text editor saved as an RTF document (Rich Text Format, a word
+  processor's markup). The reader takes the document's plain text, following the parts of the RTF
+  specification (Microsoft, version 1.9.1, 2008) a saved capture needs: groups, control words and
+  escaped characters, with fonts, colors and pictures skipped. It reads that text as it reads a
+  terminal download (above). A document holding several downloads gives the first; the rest are
+  counted in a note. In the sample file, the table's clock is in milliseconds by its step and its
+  heights in feet by the manuals; its speeds, which don't follow the altitude's change, are kept
+  as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
+  knows. An RTF document holding anything else is refused as not an Eggtimer's, among them the
+  radio telemetry stream in two other sample files, which comes with
+  [M7.1c5](../decisions-and-roadmap.md#m7-1c5).
+
+The record's readings withhold on all these layouts, as on every logger's but PerfectFlite's
+`.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
 
 A unit read in the wrong one of feet and meters would put every height 3.28 times too high or too
 low, so the RRC3's is never assumed where its pressure can settle it, and the Eggtimer's rests on
@@ -518,11 +655,14 @@ reason printed: one is a spreadsheet's re-save of an AltOS export, its header ed
 generic CSV; another is an AltOS export whose header line is damaged, two column names run
 together, which no reader can line up with its rows and which is refused; a third, a KML file, is
 a map of a flight made in a map program, its predicted tracks with the pad and landing spot
-pinned, read but counted apart as not a log. And 35 files the catalog files as generic CSV, by
-their extension, are in AltimeterCloud's layout (10), Entacore AIM's (15), a Fluctus's (6) or an
-ARTS2's interpreted data (4), and are held to those readers. Four more are moved to layouts not
-read yet: three of an ARTS2's raw sensor counts, which carry no calibration, and a ground
-station's conversion of a SillyGoose flight, its columns in another order under no header.
+pinned, read but counted apart as not a log. And 62 files the catalog files as generic CSV, by
+their extension, are in AltimeterCloud's layout (10), Entacore AIM's (15), a Fluctus's (6), an
+ARTS2's interpreted data (4) or the phone app's `launch` CSV (27), and are held to those readers.
+Of the 3 RTF files the catalog files as not a log, by their extension, one is an Eggtimer's
+download, held to its reader, and two a radio telemetry stream, refused until
+[M7.1c5](../decisions-and-roadmap.md#m7-1c5). Four more are moved to layouts not read yet: three
+of an ARTS2's raw sensor counts, which carry no calibration, and a ground station's conversion
+of a SillyGoose flight, its columns in another order under no header.
 
 The collection is other people's data, Debrief's fixtures come from flights shared on terms nobody
 recorded, and AerospaceNU's are published under the GPL, so no file and no value read from one is
