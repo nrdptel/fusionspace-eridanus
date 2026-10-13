@@ -231,8 +231,9 @@ sample logs:
   and the coast. Just before the top nothing pushes the rocket and its drag fades as it slows,
   so its altitude curves down at gravity: 32.17 ft/s² in feet and seconds, 9.81 m/s² in meters.
   The reader fits a parabola to each height over the 3 s up to the top, or up to the row before a
-  charge's marker (an Eggtimer can fire one on the way up) or a jump in the altitude, and takes a
-  slowing of 0.7 to 1.3 g; a clock 1,000 times off would put it a million times off. A file whose
+  charge's marker (an Eggtimer can fire one on the way up) or a jump in the altitude, cut short
+  16 times at most before the file is refused as having no clean coast, and takes a slowing of
+  0.7 to 1.3 g; a clock 1,000 times off would put it a million times off. A file whose
   clock this doesn't bear out, or with no such coast, is refused; a height that slows at g in
   meters rather than feet is kept as written, with the speeds that are its change. In the 3 sample
   files, two text and one RTF, the raw heights slow at 0.96 to 1.02 g in feet. The summary's
