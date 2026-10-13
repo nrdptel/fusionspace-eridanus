@@ -61,8 +61,8 @@ apogee the log then records, and to compare that with the forward simulation on 
    - **Mutation probes.** The test must fail when every interval is narrowed to 0.8 of its width,
      when widened to 1.25 (for normal errors they then hold the truth about 81% and 96% of the
      time), and when every reading is shifted down by one stated standard error. In the same
-     simulation the narrowed probe passed about 3 runs in a million and the others none; the fixed
-     seeds pin that each fails.
+     simulation no probe passed; computed exactly, the narrowed probe passes about 3 runs in a
+     million, the others far fewer. The fixed seeds pin that each fails.
    - **What a log can tell.** Thrust and drag act through their ratio to mass, so the fit takes
      the weighed mass, with its stated uncertainty, as an input (fitting mass only within that
      uncertainty) and fits the impulse and drag scales against it. A fit that ignores the log
