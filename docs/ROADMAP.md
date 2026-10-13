@@ -396,11 +396,6 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
   snapshot-tested, and the crate builds with no dependency on `hpr-sim` (`cargo xtask wasm-check`).
   Formats without samples are listed in the docs as needing samples.
   - [ ] **M7.1c The other importers** (ADR-254, ADR-255): in three.
-    - [ ] **M7.1c2 Text loggers.** *Done when:* every AltimeterCloud (`altimetercloud-csv`),
-      Entacore AIM (`entacore-aim-csv`), PerfectFlite `pfa` and Eggtimer `eggtimer-txt` sample in
-      refs imports, the `csv` family's files in the first two's layouts moved to them by id
-      (`cargo xtask logs --check` fails on one not read); a unit, clock or sample rate a file
-      doesn't state is decided from the file or a source, in a note the survey counts.
     - [ ] **M7.1c3 The rest:** AltOS eeprom, RRC3 RFF, Blue Raven's other files, PerfectFlite
       `.pfa`, Entacore AIM, AltimeterCloud, spreadsheets, CATS; EuRoC/Juno CSV; generic CSV
       with column mapping; unit detection. *Done when:* the parent's.

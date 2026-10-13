@@ -678,7 +678,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1b"></a>[M7.1b][done-5] | The RRC3's, Eggtimer's and the Blue Raven's CSV, each unit a header leaves out decided from the file or stated as assumed | done |
 | <a id="m7-1c"></a>[M7.1c][phase-5] | The other loggers' formats, spreadsheets and generic CSV | not yet done |
 | <a id="m7-1c1"></a>[M7.1c1][done-5] | GPS tracks | done |
-| <a id="m7-1c2"></a>[M7.1c2][phase-5] | The rest | not yet done |
+| <a id="m7-1c2"></a>[M7.1c2][done-5] | The rest | done |
 | <a id="m7-1c3"></a>[M7.1c3][phase-5] | The rest | not yet done |
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |
