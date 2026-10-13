@@ -1461,6 +1461,8 @@ One line per milestone or increment, in the order it was archived within its pha
       refs imports, the `csv` family's files in the first two's layouts moved to them by id
       (`cargo xtask logs --check` fails on one not read); a unit, clock or sample rate a file
       doesn't state is decided from the file or a source, in a note the survey counts.
+      Met (ADR-255): 54 files read (11, 16, 25, 2), 25 of them moved from generic CSV by id; 43
+      kinds of decision counted, none assumed; the `.pfa` checks printed in the report.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)
