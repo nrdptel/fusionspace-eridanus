@@ -1007,6 +1007,12 @@ const COAST_TOP_S: f64 = 1.0;
 /// so at most one unit falls within it; a clock 1,000 times off puts the slowing 10⁶ times off.
 const COAST_BAND: (f64, f64) = (0.7, 1.3);
 
+/// The most times the coast window may be cut short at a jump or a motor's marker before the
+/// reader gives up on finding a clean coast: a flight has a few such rows near its top, and a
+/// file with more, such as one spike every few rows, would otherwise cost a scan of the window
+/// for each.
+const COAST_CUTS: usize = 16;
+
 /// What a marker column marks, for the coast window.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum MarkerRole {
@@ -1182,11 +1188,21 @@ fn coast(columns: &[Column], written: &[Vec<f64>], time_s: &[f64]) -> Result<Coa
             plain(time(row), 3)
         );
     }
+    // The first row at or after a time, at or before `end`: the times strictly increase (the
+    // reader refuses a file whose time doesn't), so a binary search finds it.
+    let first_from = |end: usize, from_s: f64| {
+        let row = time_s
+            .get(..=end)
+            .map_or(0, |times| times.partition_point(|t| *t < from_s));
+        (row <= end).then_some(row)
+    };
+    let motors: Vec<(String, &[f64])> = markers(MarkerRole::Motor).collect();
     // Then before the first jump, or motor marker, within the search span before the end; each
-    // move ends it earlier, so the loop ends.
+    // move ends it earlier, so the loop ends, after at most `COAST_CUTS` moves.
+    let mut cuts = 0;
     let first = loop {
         let end_s = time(end);
-        let Some(first) = (0..=end).find(|row| time(*row) >= end_s - COAST_WINDOW_S) else {
+        let Some(first) = first_from(end, end_s - COAST_WINDOW_S) else {
             return Err("the table holds no row before the window's end".to_owned());
         };
         if time(0) > end_s - COAST_WINDOW_S {
@@ -1204,10 +1220,7 @@ fn coast(columns: &[Column], written: &[Vec<f64>], time_s: &[f64]) -> Result<Coa
                 plain(COAST_WINDOW_S, 1)
             ));
         }
-        let from = (0..=end)
-            .find(|row| time(*row) >= end_s - COAST_SEARCH_S)
-            .unwrap_or(end);
-        let motors: Vec<(String, &[f64])> = markers(MarkerRole::Motor).collect();
+        let from = first_from(end, end_s - COAST_SEARCH_S).unwrap_or(end);
         let stop = (from..=end).find_map(|row| {
             let value = alt.get(row).copied().unwrap_or(f64::NAN);
             let level = levels.get(row).copied().unwrap_or(f64::NAN);
@@ -1237,6 +1250,13 @@ fn coast(columns: &[Column], written: &[Vec<f64>], time_s: &[f64]) -> Result<Coa
         });
         match stop {
             Some((row, why)) => {
+                cuts += 1;
+                if cuts > COAST_CUTS {
+                    return Err(format!(
+                        "the coast window is cut short more than {COAST_CUTS} times by jumps or \
+                         motor markers before the top, the last {why}"
+                    ));
+                }
                 let Some(before) = row.checked_sub(1) else {
                     return Err(format!("the coast window ends at the first row, {why}"));
                 };
@@ -3968,6 +3988,26 @@ mod tests {
     /// A clock in milliseconds written 250 times a second, a step of 4, reads as seconds by its
     /// step; on that clock the coast's 3 s hold one row, and the file is refused. So is a coast
     /// that slows at g in neither feet nor meters, and a table with no coast.
+    #[test]
+    fn a_coast_cut_at_every_few_rows_is_refused_after_a_bounded_search() {
+        // A spike on every third row of a long climb, one row a second: each cut ends the window
+        // a few rows earlier, and with no bound the cuts would run back to the first row, each
+        // costing a search of the rows before it, quadratic in the rows.
+        let mut text = String::from("Eggtimer TRS 2.07 Flight Settings\nT,Alt,Apogee\n");
+        for row in 0..20_000 {
+            let spike = if row % 3 == 1 { 100_000 } else { 0 };
+            text.push_str(&format!("{row},{},0\n", row + spike));
+        }
+        let error = read_text(&text).unwrap_err().to_string();
+        assert!(
+            error.contains(&format!(
+                "the coast window is cut short more than {COAST_CUTS} times by jumps or motor \
+                 markers before the top"
+            )),
+            "{error}"
+        );
+    }
+
     #[test]
     fn a_clock_the_coast_doesnt_bear_out_is_refused() {
         let text = coast_download(&flight(1000.0, 0.004, G_FT, None, 12.0), |_, _| {});
