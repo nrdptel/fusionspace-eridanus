@@ -267,7 +267,8 @@ out.
   SillyGoose logs and its flight computer board's CSV and ground station text, Silicdyne
   Fluctus's CSV, the ARTS2's interpreted data, a phone app's `launch` CSV, and GPS tracks from
   Featherweight's GPS tracker, KML and NMEA files, every column kept on its own clock; in the
-  four layouts M7.1c4 added, every unit a file doesn't state is decided by two checks or kept as
+  four layouts [M7.1c4](decisions-and-roadmap.md#m7-1c4) added (the board's, its ground station's,
+  the phone app's and the Eggtimer's RTF), every unit a file doesn't state is decided by two checks or kept as
   written
   ([the layouts read](format/flight-logs.md), [M7.1a](decisions-and-roadmap.md#m7-1a),
   [M7.1b](decisions-and-roadmap.md#m7-1b), [M7.1c1](decisions-and-roadmap.md#m7-1c1),

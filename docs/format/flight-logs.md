@@ -510,9 +510,9 @@ sample logs:
   - *Time stamp:* a Unix time in milliseconds, its steps the clock's and its date in this century.
   - *GPS altitude, kept as written in all 27:* only one check reaches it, its gain against the
     pressure altitude. Fixes once a second can't show the coast. On the pad, the weather on record
-    moves a pressure altitude across a band 1,840 m wide, and a GPS reading `N` read in meters and
+    moves a pressure altitude across a band 1,840 m (6,037 ft) wide, and a GPS reading `N` read in meters and
     in feet differs by 0.695 `N` m, so the pad separates the two only where `N` tops about 2,650:
-    a pad above about 2,650 m (8,690 ft) if the column is in meters, 810 m if in feet. No sample
+    a pad above about 2,650 m (8,694 ft) if the column is in meters, 810 m (2,657 ft) if in feet. No sample
     file's pad is that high.
 - **An Eggtimer's download saved as RTF, unwrapped.** One sample file is an Eggtimer TRS's
   terminal download that a text editor saved as an RTF document (Rich Text Format, a word
