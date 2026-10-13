@@ -21,8 +21,12 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > The two raw downloads read since [M7.1c5](../decisions-and-roadmap.md#m7-1c5), the Raven's
 > `.FIPa` and the RRC3's `.rff`, match their makers' exports of the same flights in every sample,
 > wherever an export sits beside them; 7 of their 63 sample files have none, and are unchecked
-> ([raw downloads](#raw-downloads)). Other layouts are refused, not guessed at; they come with
-> [M7.1c6](../decisions-and-roadmap.md#m7-1c6), the other loggers' formats.
+> ([raw downloads](#raw-downloads)). The Featherweight app's flight summaries, read since
+> [M7.1c6](../decisions-and-roadmap.md#m7-1c6), hold the logger's own figures and no samples;
+> only their maximum and pad altitudes are checked, against the files of samples beside them
+> ([Featherweight's summaries](#featherweights-summaries)). Other layouts are refused, not
+> guessed at; they come with [M7.1c7](../decisions-and-roadmap.md#m7-1c7), the other loggers'
+> formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -62,6 +66,9 @@ and ground station, a phone app's `launch` CSV and an Eggtimer's RTF), as
 decided, and [M7.1c5](../decisions-and-roadmap.md#m7-1c5) (the Raven's `.FIPa` and the RRC3's
 `.rff` raw downloads), as
 [ADR-259](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0259-raw-downloads-against-their-makers-exports-first.md)
+decided, and [M7.1c6](../decisions-and-roadmap.md#m7-1c6) (Featherweight's summaries, and the
+files filed as not logs), as
+[ADR-260](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0260-featherweight-summaries-before-the-rest.md)
 decided.
 
 ## The layouts read
@@ -89,6 +96,7 @@ decided.
 | AerospaceNU board CSV | AerospaceNU's flight computer board (FCB), its binary log as the club's tools turn it into a CSV | a first line whose first name is empty (the club's row number) and which names `packetType`, `timestamp_ms` or `timestamp_s` | `hpr_flightdata::aerospacenu_fcb` ([below](#units-the-file-decides)) |
 | AerospaceNU ground station text | the same board's radio downlink, one packet a line, as the club's ground station logged it | a first line that isn't blank starting `RUN START` | `hpr_flightdata::aerospacenu_gs` ([below](#units-the-file-decides)) |
 | Phone app `launch` CSV | an app, named in none of its files, that logs a phone's own sensors in flight | a first line that isn't blank starting `Seconds,Timestamp,AltitudeMSLGPS`, the only mark the files carry: any file whose header opens so is read as this app's, as the app's name is unknown | `hpr_flightdata::phone_launch` ([below](#units-the-file-decides)) |
+| Featherweight summary CSV | Featherweight Blue Raven and GPS tracker: the flight's summary, as the Featherweight app exports it beside the samples | a first line that isn't blank naming `Rocket Name`, and `Max Altitude` or `Launch time UTC` among the first 200 lines | `hpr_flightdata::fwsummary` ([below](#featherweights-summaries)) |
 | Featherweight GPS CSV | Featherweight's GPS tracker: its own log, and its ground station's log of every tracker it hears | a first line opening `UTCTIME,UNIXTIME,` or `TRACKER,DATE,TIME,` that names the latitude and longitude (`LAT` and `LON`, or `TRACKER Lat` and `TRACKER Lon`) | [below](#gps-logs) |
 | KML | GPS tracks as AltOS, Missile Works' RTx, Big Red Bee's BeeLine, fw2kml (a converter of Featherweight's logs), GPS Visualizer and others write them for Google Earth | the document's root element is `kml` | [below](#gps-logs) |
 | NMEA 0183 | a GPS receiver's own sentences, written to a file as it sends them | at least 3 of the first 50 lines open with a sentence whose checksum checks out, such as `$GPGGA,…*hh`, or, in a shorter file, every line does | [below](#gps-logs) |
@@ -97,11 +105,17 @@ The Blue Raven app writes each flight as a low-rate file, logged 50 times a seco
 high-rate file, 500 times a second (*Blue Raven User's Guide*, 2026-05-12, p18); each is read on its own, as a record of its own, not joined
 to the other. The high-rate file holds no altitude, so its record's
 [primary track](#the-record) is empty and its channels hold everything; the low-rate file of the
-same flight holds the altitude. The app's summary and events files beside them aren't read yet.
-The other layouts in the sample logs, among them AltOS's `.eeprom`, the Blue Raven's other files,
-an ARTS2's raw sensor counts, spreadsheets and a radio telemetry stream saved as RTF, are refused
-today, most as *unrecognized*; they come with [M7.1c6](../decisions-and-roadmap.md#m7-1c6), and
-the [survey's report](#how-it-was-checked) counts them by layout.
+same flight holds the altitude. The app's summary of the flight is read too, as a record of
+figures with no samples ([below](#featherweights-summaries)).
+
+Some files among the sample logs aren't flight logs, and are counted apart as such: Debrief's
+made-up sample flights, which say so in their first row; a team's checklists for preparing a
+flight; a Blue Raven's deployment settings saved as spreadsheets; and the events files a flyer's
+own program wrote from a Blue Raven's low-rate file. The other layouts in the sample logs, among
+them AltOS's `.eeprom`, an ARTS2's raw sensor counts, spreadsheets and a radio telemetry stream
+saved as RTF, are refused today, most as *unrecognized*; they come with
+[M7.1c7](../decisions-and-roadmap.md#m7-1c7), and the [survey's report](#how-it-was-checked)
+counts them by layout.
 
 ## The record
 
@@ -109,12 +123,15 @@ Every reader fills the same record, `FlightLog`, in SI units:
 
 - **What the file says about itself:** the logger's name, serial number, firmware and flight
   number where the file states them, and figures the logger worked out itself, such as its apogee,
-  kept beside HPR Sim's readings and never in place of them.
+  kept beside HPR Sim's readings and never in place of them. A file that states many such
+  figures, as a [Featherweight summary](#featherweights-summaries) does, keeps each one in the
+  record's `stated.figures`, its name and value as written.
 - **The primary track:** the barometric altitude above the pad (AGL, above ground level) on the
   logger's clock, with the barometer's vertical speed, the temperature and the battery voltage
   where they share that clock. The [readings](../physics/log-readings.md) are taken from it. A
   log with no barometer, such as a [GPS log](#gps-logs), has an empty primary track, and so does
-  a [raw download](#raw-downloads), whose barometer's readings are pressures, not altitudes.
+  a [raw download](#raw-downloads), whose barometer's readings are pressures, not altitudes. A
+  [summary](#featherweights-summaries) has no samples at all, so its clock and tracks are empty.
 - **Every column, as a channel:** each data column of the file, in the file's order, with the
   name the file gives it, what it measures, and its own clock. Nothing the logger wrote is dropped:
   a column HPR Sim can't name a quantity for is kept as written and marked *unrecognized*.
@@ -188,6 +205,9 @@ Most units come from the file's own column names or from the maker's manual. A f
 - Entacore AIM's magnetometer (`Mag X`, `Mag Y`, `Mag Z`) is kept as written, unrecognized: its
   manual names tesla, but the sample files' values are 17 to 34 times the Earth's field read so
   ([below](#units-the-file-decides)).
+- A Featherweight summary's four pad accelerations and offsets (`Pad Low-G Accel`, `Pad Hi-G
+  accel`, `Low-G accel pad offset`, `Hi-G accel pad offset`) are kept as written: three numbers
+  with no unit, which no source states ([below](#featherweights-summaries)).
 
 ### Units the file decides
 
@@ -535,7 +555,7 @@ sample logs:
   altitude's change, are kept as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
   knows. An RTF document holding anything else is refused as not an Eggtimer's, among them the
   radio telemetry stream in two other sample files, which comes with
-  [M7.1c6](../decisions-and-roadmap.md#m7-1c6).
+  [M7.1c7](../decisions-and-roadmap.md#m7-1c7).
 
 The record's readings withhold on all these layouts, as on every logger's but PerfectFlite's
 `.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
@@ -561,6 +581,129 @@ It reads into a record whose primary track has the times 0, 0.5 and 1 s and the 
 26.82 m/s (88.0 ft/s); `Temperature (F)`, whose 71.5 reads as 295.1 K (71.5 °F); `Voltage`; and
 `Acceleration (calculated)`, which the export doesn't explain and is kept as written,
 unrecognized.
+
+### Featherweight's summaries
+
+A Featherweight summary is the logger's own account of a flight, a figure a row, with no samples.
+The Featherweight app exports one beside a Blue Raven's or a GPS tracker's samples. The Blue Raven
+"records three sets of data for each flight", the first "flight summary data such as maximum
+altitude and speed" (*Blue Raven User's Guide*, updated May 12, 2026, p18). Each row is a
+figure's name, then its value, with the unit written after the number:
+
+```text
+Rocket Name,Club demo
+Max Altitude,4034.98 feet
+Max velocity,700.36 feet/sec
+Thrust tilt efficiency,99.42%
+Direction of 1st motion,-0.9998,-0.0219,0.0029
+```
+
+> **How far to trust it.** The logger's own figures, copied as the file states them, not HPR
+> Sim's readings. Two are checked: the maximum altitude and the pad's altitude, against the file
+> of samples beside each summary, and 32 of the 33 Blue Raven summaries with such a file agree in
+> both ([checked against the files beside](#checked-against-the-files-beside)). The speeds,
+> accelerations, times and the rest are converted from the unit the file writes and checked
+> against nothing. Where a number matters, set it beside the samples the app exported with it.
+
+**How it is recognized.** A file is a summary when its first line that isn't blank names
+`Rocket Name`, and a line among its first 200 names `Max Altitude` or `Launch time UTC`, figures
+only a summary states. A tracker's summary is told from a Blue Raven's by its `Launch time UTC`.
+A name is matched without regard to case or repeated spaces, and kept as written.
+
+**What the record holds.** A summary fills the part of the [record](#the-record) that says what
+the file states about the flight, and nothing else:
+
+- **Every row is a figure** in the record's `stated.figures`, in the file's order: its name and
+  value as written, its quantity, and its value in SI where the reader knows the figure.
+- **The stated apogee** is `Max Altitude` in SI: the barometer's altitude above the pad for a Blue
+  Raven, and for a tracker its receiver's altitude above the pad altitude it states.
+- **The pad's elevation** is a Blue Raven's `Pad altitude ASL`, its barometric altitude of the pad,
+  or a tracker's `Pad altitude`, its receiver's.
+- **The serial number and firmware** are the rows' text as written, and the flight number is
+  `Flight number` where it is a whole number.
+- **The clock, the tracks and the channels are empty**, with a note saying the samples are in the
+  file exported beside it: the Blue Raven's low-rate CSV or the tracker's CSV. So every reading
+  withholds on a summary.
+
+**A unit is read only where the figure's name allows it**, as a header's unit is read for a
+column. Each figure the reader knows names its quantity and the words the files write for its
+unit. The main ones are these; the [reader's reference](../api/hpr_flightdata/fwsummary/index.html)
+lists every figure:
+
+| Figures | Read as | Unit the file writes |
+|---|---|---|
+| `Max Altitude`, `Main chute deploy altitude` | altitude above the pad, m | `feet` or `ft`, × 0.3048 |
+| `Pad altitude ASL` (a Blue Raven's), `Pad altitude` (a tracker's) | altitude above sea level, m | `feet` or `ft`, × 0.3048 |
+| `Max velocity`, `Drogue descent rate`, a tracker's velocities | speed, m/s | `feet/sec` or `ft/sec`, × 0.3048 |
+| `Max motor burn acceleration`, `Peak drag deceleration`, each output's maximum, `Max landing accel` | acceleration, m/s² | `Gs`, × 9.806 65 |
+| `Temperature on pad`, `Max Temperature`, `Min Temperature` | temperature, K | `F`, degrees Fahrenheit |
+| `Time to first burnout`, each output's firing time | time, s | `sec` |
+| `Thrust tilt efficiency` | a fraction | `%`, ÷ 100 |
+| `Direction of 1st motion`, `Gravity direction on pad` | a direction of unit length, a number an axis | none |
+
+The Blue Raven's manual describes the same summary as the logger's USB port prints it, with each
+field's unit (p31–33). Its unit words agree with the app's, but for two figures; the USB form
+scales some figures, such as accelerations in g × 10, and that scaling isn't compared. These
+are kept as written in every file, never guessed:
+
+- **`Main chute descent rate`**: the app writes its value in `feet`, a length, where the manual
+  gives the USB summary's average descent under the main in "feet/second x 10". A figure whose
+  unit isn't one its name allows is kept as written, with a note, and isn't made into a speed.
+- **The four pad accelerations and offsets**: each three numbers with no unit. The manual gives the
+  USB summary's in "units of Gs x 10,000"; the app's are not scaled so, and no source states
+  what they are in.
+
+A name the reader doesn't know is kept as written too, and so is a known figure whose cells
+aren't the numbers it needs, such as a direction with two components; each has a note. A zero is
+kept as the file states it: what a zero means is a reading, which comes with
+[M7.2](../decisions-and-roadmap.md#m7-2). The [survey's report](#how-it-was-checked) counts
+each figure kept as written by the catalog's family. The main's descent rate, for one, is kept
+in 23 files filed as `blueraven-summary-csv` and 13 filed as `featherweight-summary-csv`.
+
+**Cells and rows.** Cells are separated by commas and trimmed of spaces. Empty cells at a row's
+end are dropped, as some files pad every row to four cells. Blank lines are skipped, lines may
+end in CR, LF or both, and a byte-order mark is dropped. A row whose name is empty or a number is
+refused, as is a name stated twice, and a value too large for its unit's conversion.
+
+**A worked example**, from the invented Blue Raven summary that the crate's test
+`tests/featherweight_summary.rs` reads and checks:
+
+- `Max Altitude,2500.25 feet` gives the stated apogee, 2500.25 × 0.3048 = 762.08 m.
+- `Max velocity,500.50 feet/sec` is a speed of 152.55 m/s (500.50 ft/s).
+- `Max motor burn acceleration,12.0 Gs` is 12.0 × 9.806 65 = 117.68 m/s².
+- `Temperature on pad,77.0 F` is 298.15 K (77.0 °F).
+- `Thrust tilt efficiency,98.50%` is the fraction 0.985.
+- `Main chute descent rate,-20.0 feet` stays −20.0 as written, with the note
+  `` `Main chute descent rate` kept as written, in `feet`, which isn't a speed: the file writes `-20.0 feet` ``.
+
+### Checked against the files beside
+
+A summary and the samples exported beside it describe the same flight, so the survey checks the
+two lengths a summary states against them. `cargo xtask logs` takes each file of samples in the
+summary's folder that its reader reads and that holds an altitude: a Blue Raven's low-rate CSV,
+not its high-rate one, or a tracker's CSV. It
+compares the summary's maximum altitude with the file's highest altitude above the pad (for a
+tracker, its highest GNSS altitude less the pad altitude the summary states). It compares the pad
+altitude with the median of the file's first 20 altitudes above sea level. A figure agrees within
+10%, and its ratio, summary over file, is the one nearest 1.
+
+Feet and meters are 3.28 apart, so a band of 10% tells them apart. A summary that would agree
+only were its feet meters contradicts its unit, and `cargo xtask logs --check` fails on it. A
+folder may hold other flights' files, so agreeing is counted, not required. The
+[survey's report](#how-it-was-checked) prints the counts:
+
+| Logger | Summaries | With a file beside | Stating an apogee | Apogee agrees | Its ratios | Pad agrees | Its ratios | Agreeing in neither | Contradicted |
+|---|---:|---:|---:|---:|---:|---:|---:|---|---|
+| Featherweight Blue Raven | 36 | 33 | 33 | 32 | 0.9698 to 1.0091 | 32 | 0.9770 to 1.0032 | `cd1bfe19ff70e17d` | none |
+| Featherweight GPS tracker | 12 | 11 | 5 | 5 | 0.9995 to 1.0000 | 10 | 0.9766 to 0.9999 | `413de085a44f4872` | none |
+
+No summary agrees only as meters. Of the tracker summaries, 5 of the 5 that state an apogee
+agree in it. The one of each logger that agrees in neither figure agrees with no file beside it,
+not even as meters; the survey doesn't show why
+([ADR-260, the summaries' check](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0260-featherweight-summaries-before-the-rest.md)
+§4). The summaries with no file of samples beside them are read by the same rules, unchecked. No
+other figure is checked. Summaries inside zip archives and spreadsheets aren't read yet: they
+wait for the containers of [M7.1c7](../decisions-and-roadmap.md#m7-1c7).
 
 ## GPS logs
 
@@ -842,9 +985,11 @@ tables, which no logger wrote. It writes what came of each to
 [`validation/reports/log-import.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md):
 per layout, how many files were read and how many refused and why; how many files' readers
 decided each unit their headers leave out, and how; how each raw download compares with its
-maker's export ([above](#checked-against-the-makers-exports)); and per file an anonymized id (the start of a
-hash of the file, which says nothing of its contents) with a digest, a hash, of the record read
-from it.
+maker's export ([above](#checked-against-the-makers-exports)); how each Featherweight summary
+compares with the files of samples beside it ([above](#checked-against-the-files-beside)); and
+per file an anonymized id (the start of a hash of the file, which says nothing of its contents)
+with a digest, a hash, of the record read from it. Of the 1,103 files it holds today, 831 are
+read.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
 reason printed: one is a spreadsheet's re-save of an AltOS export, its header edited, which is
@@ -856,9 +1001,16 @@ their extension, are in AltimeterCloud's layout (10), Entacore AIM's (15), a Flu
 ARTS2's interpreted data (4) or the phone app's `launch` CSV (27), and are held to those readers.
 Of the 3 RTF files the catalog files as not a log, by their extension, one is an Eggtimer's
 download, held to its reader, and two a radio telemetry stream, refused until
-[M7.1c6](../decisions-and-roadmap.md#m7-1c6). Four more are moved to layouts not read yet: three
+[M7.1c7](../decisions-and-roadmap.md#m7-1c7). Four more are moved to layouts not read yet: three
 of an ARTS2's raw sensor counts, which carry no calibration, and a ground station's conversion
 of a SillyGoose flight, its columns in another order under no header.
+
+Some files aren't flight logs, and are counted apart as not logs, as pictures and maps are. By
+id: four spreadsheets of a team's checklist for preparing a flight, its steps and no measurement,
+and nine spreadsheets of a Blue Raven's deployment settings, a `Hardware_Channel:` row naming its
+outputs. By family: Debrief's six made-up sample flights, whose first row says each isn't a
+recording of anything, and twelve text files a flyer's own program wrote from a Blue Raven's
+low-rate file, titled as that file's events.
 
 The collection is other people's data, Debrief's fixtures come from flights shared on terms nobody
 recorded, and AerospaceNU's are published under the GPL, so no file and no value read from one is

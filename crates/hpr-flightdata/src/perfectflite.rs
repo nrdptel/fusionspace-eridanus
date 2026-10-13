@@ -1057,6 +1057,7 @@ pub fn read_pfa(text: &str) -> Result<FlightLog, LogError> {
             // `Ground:` is a pressure altitude, not the site's elevation: in a note, not here.
             ground_elevation_msl_m: None,
             samples: stated_samples,
+            figures: Vec::new(),
         },
         channels: vec![Channel {
             column: PFA_CHANNEL.to_owned(),

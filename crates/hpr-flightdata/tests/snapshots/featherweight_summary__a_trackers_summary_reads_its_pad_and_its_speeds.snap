@@ -1,0 +1,142 @@
+---
+source: crates/hpr-flightdata/tests/featherweight_summary.rs
+expression: log
+---
+{
+  "format": "featherweight_summary_csv",
+  "logger": "Featherweight GPS tracker",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": 609.6,
+    "ground_elevation_msl_m": 457.20000000000005,
+    "samples": null,
+    "figures": [
+      {
+        "name": "Rocket Name",
+        "written": "Demo tracker",
+        "quantity": null,
+        "values": []
+      },
+      {
+        "name": "Launch time UTC",
+        "written": "2026-06-01 15:00:00 UTC",
+        "quantity": null,
+        "values": []
+      },
+      {
+        "name": "Launch time local time zone",
+        "written": "2026-06-01 10:00:00",
+        "quantity": null,
+        "values": []
+      },
+      {
+        "name": "Max Altitude",
+        "written": "2000.00 feet",
+        "quantity": "altitude_above_ground",
+        "values": [
+          609.6
+        ]
+      },
+      {
+        "name": "Pad altitude",
+        "written": "1500.0 ft",
+        "quantity": "gnss_altitude",
+        "values": [
+          457.20000000000005
+        ]
+      },
+      {
+        "name": "Pad Latitude",
+        "written": "35.12345 deg",
+        "quantity": "latitude",
+        "values": [
+          35.12345
+        ]
+      },
+      {
+        "name": "Pad Longtitude",
+        "written": "-100.54321 deg",
+        "quantity": "longitude",
+        "values": [
+          -100.54321
+        ]
+      },
+      {
+        "name": "Distance at launch",
+        "written": "10 ft",
+        "quantity": "distance",
+        "values": [
+          3.048
+        ]
+      },
+      {
+        "name": "Distance at apogee",
+        "written": "900 ft",
+        "quantity": "distance",
+        "values": [
+          274.32
+        ]
+      },
+      {
+        "name": "Distance at landing",
+        "written": "2500 ft",
+        "quantity": "distance",
+        "values": [
+          762.0
+        ]
+      },
+      {
+        "name": "Max vertical velocity",
+        "written": "450 ft/sec",
+        "quantity": "speed",
+        "values": [
+          137.16
+        ]
+      },
+      {
+        "name": "Max horizontal velocity",
+        "written": "120 ft/sec",
+        "quantity": "speed",
+        "values": [
+          36.576
+        ]
+      },
+      {
+        "name": "Horizontal velocity at apogee",
+        "written": "60 ft/sec",
+        "quantity": "speed",
+        "values": [
+          18.288
+        ]
+      },
+      {
+        "name": "Horizontal velocity at laniding",
+        "written": "5 ft/sec",
+        "quantity": "speed",
+        "values": [
+          1.524
+        ]
+      },
+      {
+        "name": "Vertical velocity at landing",
+        "written": "-20 ft/sec",
+        "quantity": "speed",
+        "values": [
+          -6.096
+        ]
+      }
+    ]
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [],
+  "events": [],
+  "notes": [
+    "a summary holds no samples, so the record's clock and tracks are empty: the flight's samples are in the tracker's CSV exported beside it"
+  ]
+}

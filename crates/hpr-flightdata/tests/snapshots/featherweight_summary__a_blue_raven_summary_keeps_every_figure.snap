@@ -1,0 +1,415 @@
+---
+source: crates/hpr-flightdata/tests/featherweight_summary.rs
+expression: log
+---
+{
+  "format": "featherweight_summary_csv",
+  "logger": "Featherweight Blue Raven",
+  "serial_number": "SN100 Demo",
+  "firmware": "a1b2c3 01/02/2026 03:04:05",
+  "flight_number": 7,
+  "stated": {
+    "apogee_m": 762.0762000000001,
+    "ground_elevation_msl_m": 244.0686,
+    "samples": null,
+    "figures": [
+      {
+        "name": "Rocket Name",
+        "written": "Demo rocket",
+        "quantity": null,
+        "values": []
+      },
+      {
+        "name": "Firmware",
+        "written": "a1b2c3 01/02/2026 03:04:05",
+        "quantity": null,
+        "values": []
+      },
+      {
+        "name": "Serial number",
+        "written": "SN100 Demo",
+        "quantity": null,
+        "values": []
+      },
+      {
+        "name": "Max Altitude",
+        "written": "2500.25 feet",
+        "quantity": "altitude_above_ground",
+        "values": [
+          762.0762000000001
+        ]
+      },
+      {
+        "name": "Max velocity",
+        "written": "500.50 feet/sec",
+        "quantity": "speed",
+        "values": [
+          152.5524
+        ]
+      },
+      {
+        "name": "Pad altitude ASL",
+        "written": "800.75 feet",
+        "quantity": "altitude_msl",
+        "values": [
+          244.0686
+        ]
+      },
+      {
+        "name": "Launch date",
+        "written": "01-Jun-26",
+        "quantity": null,
+        "values": []
+      },
+      {
+        "name": "Launch time",
+        "written": "10:00:00.000",
+        "quantity": null,
+        "values": []
+      },
+      {
+        "name": "Time to first burnout",
+        "written": "1.5 sec",
+        "quantity": "duration",
+        "values": [
+          1.5
+        ]
+      },
+      {
+        "name": "Time to Apo channel fire",
+        "written": "14.0 sec",
+        "quantity": "duration",
+        "values": [
+          14.0
+        ]
+      },
+      {
+        "name": "Time to gyro overload",
+        "written": "0.0 sec",
+        "quantity": "duration",
+        "values": [
+          0.0
+        ]
+      },
+      {
+        "name": "Time to third channel fire",
+        "written": "15.0 sec",
+        "quantity": "duration",
+        "values": [
+          15.0
+        ]
+      },
+      {
+        "name": "Time to main channel fire",
+        "written": "60.0 sec",
+        "quantity": "duration",
+        "values": [
+          60.0
+        ]
+      },
+      {
+        "name": "Time to fourth channel fire",
+        "written": "0.0 sec",
+        "quantity": "duration",
+        "values": [
+          0.0
+        ]
+      },
+      {
+        "name": "Launch rod angle",
+        "written": "3.0 deg",
+        "quantity": "angle",
+        "values": [
+          3.0
+        ]
+      },
+      {
+        "name": "Tilt angle at burnout",
+        "written": "4.0 deg",
+        "quantity": "angle",
+        "values": [
+          4.0
+        ]
+      },
+      {
+        "name": "Roll rate at burnout",
+        "written": "-30.0 deg/sec",
+        "quantity": "angular_rate",
+        "values": [
+          -30.0
+        ]
+      },
+      {
+        "name": "Thrust tilt efficiency",
+        "written": "98.50%",
+        "quantity": "number",
+        "values": [
+          0.985
+        ]
+      },
+      {
+        "name": "Number of ascent rolls",
+        "written": "-0.250",
+        "quantity": "number",
+        "values": [
+          -0.25
+        ]
+      },
+      {
+        "name": "Horiz. velocity at apogee",
+        "written": "40.0 feet/sec",
+        "quantity": "speed",
+        "values": [
+          12.192
+        ]
+      },
+      {
+        "name": "Inertial navigation max alt",
+        "written": "2600.0 feet",
+        "quantity": "inertial_altitude",
+        "values": [
+          792.48
+        ]
+      },
+      {
+        "name": "Max motor burn acceleration",
+        "written": "12.0 Gs",
+        "quantity": "acceleration",
+        "values": [
+          117.6798
+        ]
+      },
+      {
+        "name": "Peak drag deceleration",
+        "written": "3.0 Gs",
+        "quantity": "acceleration",
+        "values": [
+          29.41995
+        ]
+      },
+      {
+        "name": "Apo channel max accel",
+        "written": "20.0 Gs",
+        "quantity": "acceleration",
+        "values": [
+          196.13299999999998
+        ]
+      },
+      {
+        "name": "Main channel max accel",
+        "written": "25.0 Gs",
+        "quantity": "acceleration",
+        "values": [
+          245.16625
+        ]
+      },
+      {
+        "name": "3rd channel max accel",
+        "written": "10.0 Gs",
+        "quantity": "acceleration",
+        "values": [
+          98.06649999999999
+        ]
+      },
+      {
+        "name": "4th channel max accel",
+        "written": "0.0 Gs",
+        "quantity": "acceleration",
+        "values": [
+          0.0
+        ]
+      },
+      {
+        "name": "Max landing accel",
+        "written": "5.0 Gs",
+        "quantity": "acceleration",
+        "values": [
+          49.033249999999995
+        ]
+      },
+      {
+        "name": "Drogue descent rate",
+        "written": "-60.0 feet/sec",
+        "quantity": "speed",
+        "values": [
+          -18.288
+        ]
+      },
+      {
+        "name": "Main chute deploy altitude",
+        "written": "700.0 feet",
+        "quantity": "altitude_above_ground",
+        "values": [
+          213.36
+        ]
+      },
+      {
+        "name": "Main chute descent rate",
+        "written": "-20.0 feet",
+        "quantity": "unrecognized",
+        "values": [
+          -20.0
+        ]
+      },
+      {
+        "name": "Landing Time",
+        "written": "10:02:00.000",
+        "quantity": null,
+        "values": []
+      },
+      {
+        "name": "Temperature on pad",
+        "written": "77.0 F",
+        "quantity": "temperature",
+        "values": [
+          298.15
+        ]
+      },
+      {
+        "name": "Max Temperature",
+        "written": "80.6 F",
+        "quantity": "temperature",
+        "values": [
+          300.15
+        ]
+      },
+      {
+        "name": "Min Temperature",
+        "written": "68.0 F",
+        "quantity": "temperature",
+        "values": [
+          293.15
+        ]
+      },
+      {
+        "name": "Battery voltage on pad",
+        "written": "4.10 V",
+        "quantity": "voltage",
+        "values": [
+          4.1
+        ]
+      },
+      {
+        "name": "Min Battery voltage",
+        "written": "4.00 V",
+        "quantity": "voltage",
+        "values": [
+          4.0
+        ]
+      },
+      {
+        "name": "Battery voltage at landing",
+        "written": "4.05 V",
+        "quantity": "voltage",
+        "values": [
+          4.05
+        ]
+      },
+      {
+        "name": "Build date",
+        "written": "02-Jan-26",
+        "quantity": null,
+        "values": []
+      },
+      {
+        "name": "Build time",
+        "written": "03:04:05.000",
+        "quantity": null,
+        "values": []
+      },
+      {
+        "name": "Flight number",
+        "written": "7",
+        "quantity": "number",
+        "values": [
+          7.0
+        ]
+      },
+      {
+        "name": "Direction of 1st motion",
+        "written": "-1.0000,0.0000,0.0000",
+        "quantity": "number",
+        "values": [
+          -1.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "name": "Gravity direction on pad",
+        "written": "-0.6000,0.8000,0.0000",
+        "quantity": "number",
+        "values": [
+          -0.6,
+          0.8,
+          0.0
+        ]
+      },
+      {
+        "name": "Low-G accel pad offset",
+        "written": "0.0010,0.0000,-0.0020",
+        "quantity": "unrecognized",
+        "values": [
+          0.001,
+          0.0,
+          -0.002
+        ]
+      },
+      {
+        "name": "Hi-G accel pad offset",
+        "written": "0.50,0.25,1.00",
+        "quantity": "unrecognized",
+        "values": [
+          0.5,
+          0.25,
+          1.0
+        ]
+      },
+      {
+        "name": "Pad gyro rates (deg/sec)",
+        "written": "0.10,-0.20,0.30",
+        "quantity": "angular_rate",
+        "values": [
+          0.1,
+          -0.2,
+          0.3
+        ]
+      },
+      {
+        "name": "Pad Hi-G accel",
+        "written": "0.05,0.90,1.50",
+        "quantity": "unrecognized",
+        "values": [
+          0.05,
+          0.9,
+          1.5
+        ]
+      },
+      {
+        "name": "Pad Low-G Accel",
+        "written": "-1.00,0.01,0.00",
+        "quantity": "unrecognized",
+        "values": [
+          -1.0,
+          0.01,
+          0.0
+        ]
+      }
+    ]
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [],
+  "events": [],
+  "notes": [
+    "a summary holds no samples, so the record's clock and tracks are empty: the flight's samples are in the Blue Raven's low-rate CSV exported beside it",
+    "`Main chute descent rate` kept as written, in `feet`, which isn't a speed: the file writes `-20.0 feet`",
+    "`Low-G accel pad offset` kept as written, in a unit no source states: the file writes `0.0010,0.0000,-0.0020`",
+    "`Hi-G accel pad offset` kept as written, in a unit no source states: the file writes `0.50,0.25,1.00`",
+    "`Pad Hi-G accel` kept as written, in a unit no source states: the file writes `0.05,0.90,1.50`",
+    "`Pad Low-G Accel` kept as written, in a unit no source states: the file writes `-1.00,0.01,0.00`"
+  ]
+}

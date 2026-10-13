@@ -25,7 +25,8 @@
 //! ([`entacore`]), AerospaceNU's SillyGoose logs ([`sillygoose`]), Silicdyne Fluctus's CSV
 //! ([`fluctus`]), the ARTS2's interpreted data ([`arts2`]), AerospaceNU's flight computer board's
 //! CSV ([`aerospacenu_fcb`]) and its ground station's text ([`aerospacenu_gs`]), a phone app's
-//! `launch` CSV ([`phone_launch`]), an Eggtimer's download saved as RTF ([`eggtimer`]), two raw
+//! `launch` CSV ([`phone_launch`]), an Eggtimer's download saved as RTF ([`eggtimer`]), the
+//! Featherweight app's summaries of a Blue Raven's or a GPS tracker's flight ([`fwsummary`]), two raw
 //! downloads, the Raven's `.FIPa` ([`raven_fipa`]) and the RRC3's `.rff` ([`rrc3_rff`]), each
 //! checked against its maker's export of the same flight where the sample logs hold one (55 of the
 //! 57 `.FIPa` files, 1 of the 6 `.rff`), and three GPS logs: Featherweight's
@@ -33,7 +34,7 @@
 //! column kept as a channel on its own clock. [`readings`] takes a first set of readings from the
 //! record: liftoff, apogee, the top speed, landing and the descent, set and tested on PerfectFlite
 //! logs. The guide's [reading a flight log][guide-log] page shows them on a log, and [the layouts read][guide-layouts] lists what each reader keeps. The other loggers'
-//! formats, spreadsheets and plain CSV are planned for milestone [M7.1c6][roadmap] of the roadmap,
+//! formats, spreadsheets and plain CSV are planned for milestone [M7.1c7][roadmap] of the roadmap,
 //! and the rest of the readings, smoothing and reconstruction for [M7.2][roadmap].
 //!
 //! [guide-layouts]: https://hpr.fusionspace.co/format/flight-logs.html
@@ -68,6 +69,7 @@ pub mod error;
 pub mod filter;
 pub mod fluctus;
 pub mod fwgps;
+pub mod fwsummary;
 pub mod import;
 pub mod kml;
 pub mod log;

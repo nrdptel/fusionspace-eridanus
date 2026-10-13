@@ -25,7 +25,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use hpr_flightdata::error::LogError;
-use hpr_flightdata::log::LogFormat;
+use hpr_flightdata::log::{FlightLog, LogFormat, Quantity};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -48,8 +48,8 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The other families'
-/// files are M7.1c6's.
-pub const READ: [(&str, LogFormat, &str); 24] = [
+/// files are M7.1c7's.
+pub const READ: [(&str, LogFormat, &str); 26] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -86,11 +86,34 @@ pub const READ: [(&str, LogFormat, &str); 24] = [
     ("eggtimer-rtf", LogFormat::EggtimerRtf, "M7.1c4"),
     ("raven-fipa", LogFormat::RavenFipa, "M7.1c5"),
     ("rrc3-rff", LogFormat::Rrc3Rff, "M7.1c5"),
+    // The catalog files some Blue Raven summaries under each name, and the trackers' under the
+    // second; one reader reads both.
+    (
+        "blueraven-summary-csv",
+        LogFormat::FeatherweightSummaryCsv,
+        "M7.1c6",
+    ),
+    (
+        "featherweight-summary-csv",
+        LogFormat::FeatherweightSummaryCsv,
+        "M7.1c6",
+    ),
 ];
 
-/// Catalog families that aren't flight logs: pictures and documents filed with a flight, and maps
-/// of a flight's prediction.
-const NOT_LOGS: [&str; 5] = ["empty", "jpeg", "kml-map", "pdf", "png"];
+/// Catalog families that aren't flight logs: pictures and documents filed with a flight, maps of a
+/// flight's prediction, checklists and an altimeter's settings, a flyer's own program's reading of
+/// a log, and Debrief's made-up flights, which say so in their first line.
+const NOT_LOGS: [&str; 9] = [
+    "blueraven-events-txt",
+    "blueraven-settings-xlsx",
+    "checklist",
+    "debrief-synthetic-csv",
+    "empty",
+    "jpeg",
+    "kml-map",
+    "pdf",
+    "png",
+];
 
 /// Debrief's fixtures and samples by name, with each one's family in the catalog's words; a file
 /// missing from this table stops the survey.
@@ -111,7 +134,8 @@ const DEBRIEF: [(&str, &str); 23] = [
     ("sample-altusmetrum.csv", "altos-csv"),
     ("sample-blueraven.csv", "blueraven-csv"),
     ("sample-blueraven.summary.csv", "blueraven-summary-csv"),
-    // Debrief's six made-up flights, in its own CSV with a `Synthetic` marker row.
+    // Debrief's six made-up flights, in its own CSV with a `Synthetic` marker row whose text says
+    // the file "is not a recording of anything": not a log.
     ("sample-design-flight.csv", "debrief-synthetic-csv"),
     ("sample-gps-tracker.csv", "debrief-synthetic-csv"),
     ("sample-mapper.csv", "debrief-synthetic-csv"),
@@ -138,14 +162,14 @@ const FLUCTUS: &str = "Silicdyne Fluctus's CSV, a `sep=;` line then a semicolon-
 /// Why a file the catalog files as generic CSV is an ARTS2's interpreted data.
 const ARTS2: &str = "Ozark Aerospace ARTS2's interpreted data, a `# MET Acc Vel iAlt pAlt` \
     header then comma-separated rows, filed as generic CSV by its extension";
-/// Why a file the catalog files as generic CSV is an ARTS2's raw data, for M7.1c6.
+/// Why a file the catalog files as generic CSV is an ARTS2's raw data, for M7.1c7.
 const ARTS2_RAW: &str = "Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),\
     State` header then the sensors' counts with no calibration in the file, filed as generic CSV \
     by its extension; read with the ARTS2's own `.odf` files";
 /// Why a file the catalog files as generic CSV is the phone app's.
 const PHONE_LAUNCH: &str = "a phone app's `launch….csv`, a header opening \
     `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension";
-/// Why a file the catalog files as RTF is a radio telemetry stream, for M7.1c6.
+/// Why a file the catalog files as RTF is a radio telemetry stream, for M7.1c7.
 const TELEMETRY_RTF: &str = "a radio telemetry stream, lines such as `255,T,…` in a layout no \
     maker's document names yet, saved inside an RTF document; filed as RTF, not a log, by its \
     extension";
@@ -153,9 +177,17 @@ const TELEMETRY_RTF: &str = "a radio telemetry stream, lines such as `255,T,…`
 const EGGTIMER_RTF: &str = "an Eggtimer TRS's terminal download, its settings, summary and \
     `T,Alt,…` table, saved inside an RTF document; filed as RTF, not a log, by its extension";
 
+/// Why a spreadsheet is a team's checklist, not a log.
+const CHECKLIST: &str = "a team's checklist for preparing a flight, its steps in a spreadsheet's \
+    cells and no measurement; not a log";
+/// Why a spreadsheet is a Blue Raven's settings, not a log.
+const BLUERAVEN_SETTINGS: &str = "a Blue Raven's deployment settings saved as a spreadsheet, a \
+    `Hardware_Channel:` row naming its outputs (`Apo_Pri`, `Apo_Sec`, …) and their conditions; an \
+    altimeter's settings, not a flight's data";
+
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 73] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 86] = [
     (
         "d306250ba73ea7f4",
         "txt",
@@ -313,6 +345,64 @@ const RECLASSIFIED: [(&str, &str, &str, &str); 73] = [
          comma-separated columns with no header, in another order than the board's own log, so \
          nothing in the file says which column is which; for the column mapper",
     ),
+    ("0ad26ad4cfc8539b", "ods", "checklist", CHECKLIST),
+    ("34affe179ab66e72", "ods", "checklist", CHECKLIST),
+    ("8e23a8dc0c55248b", "ods", "checklist", CHECKLIST),
+    ("c560a04cf2a5dccf", "ods", "checklist", CHECKLIST),
+    (
+        "0f9a81a6d3406353",
+        "xlsx",
+        "blueraven-settings-xlsx",
+        BLUERAVEN_SETTINGS,
+    ),
+    (
+        "1887d4ff0c2ac130",
+        "xlsx",
+        "blueraven-settings-xlsx",
+        BLUERAVEN_SETTINGS,
+    ),
+    (
+        "40d01ca400d6085a",
+        "xlsx",
+        "blueraven-settings-xlsx",
+        BLUERAVEN_SETTINGS,
+    ),
+    (
+        "526a2e2c94f25728",
+        "xlsx",
+        "blueraven-settings-xlsx",
+        BLUERAVEN_SETTINGS,
+    ),
+    (
+        "63543ab201ee2fbd",
+        "xlsx",
+        "blueraven-settings-xlsx",
+        BLUERAVEN_SETTINGS,
+    ),
+    (
+        "936ac194735a318a",
+        "xlsx",
+        "blueraven-settings-xlsx",
+        BLUERAVEN_SETTINGS,
+    ),
+    (
+        "afcf758d866f6e78",
+        "xlsx",
+        "blueraven-settings-xlsx",
+        BLUERAVEN_SETTINGS,
+    ),
+    (
+        "d2a7db8b9da843ef",
+        "xlsx",
+        "blueraven-settings-xlsx",
+        BLUERAVEN_SETTINGS,
+    ),
+    (
+        "d3354f2054b6b18c",
+        "xlsx",
+        "blueraven-settings-xlsx",
+        BLUERAVEN_SETTINGS,
+    ),
 ];
 
 /// The report.
@@ -331,6 +421,9 @@ struct Report {
     /// The raw downloads against their makers' exports of the same flight, by raw family.
     #[serde(default)]
     raw_checks: BTreeMap<String, RawChecks>,
+    /// The Featherweight summaries against the files of samples beside them, by logger.
+    #[serde(default)]
+    summary_checks: BTreeMap<String, SummaryChecks>,
     /// How the readers decided the units no header states, by family: each decision, the part of
     /// a record's note before its first `: `, such as `` `Altitude` read in feet, from the
     /// pressure ``, with the number of files whose record carries it.
@@ -669,6 +762,184 @@ fn raw_checks(samples: &[Sample]) -> BTreeMap<String, RawChecks> {
     checks
 }
 
+/// A Featherweight summary's logger, as its record names it, with the format of the file of
+/// samples the app exports beside it and the quantity of that file's channel whose start is the
+/// pad's altitude above sea level.
+const SUMMARY_TRACKS: [(&str, LogFormat, Quantity); 2] = [
+    (
+        "Featherweight Blue Raven",
+        LogFormat::BlueRavenCsv,
+        Quantity::AltitudeMsl,
+    ),
+    (
+        "Featherweight GPS tracker",
+        LogFormat::FeatherweightGpsCsv,
+        Quantity::GnssAltitude,
+    ),
+];
+
+/// How near 1 a summary's figure over a file's must be for the two to agree. The summaries
+/// write their lengths in feet; were a file's in meters, the ratio would be 3.28 or 0.30, so any
+/// band narrower than a factor of √3.28 ≈ 1.81 either way tells the two units apart, and 10%
+/// also leaves out most other flights a folder holds. The figures that agree do so far closer
+/// (the report gives their least and greatest ratio).
+const SUMMARY_AGREES: f64 = 0.10;
+
+/// How many of a file's first altitudes above sea level the pad's altitude is the median of.
+const PAD_SAMPLES: usize = 20;
+
+/// A logger's Featherweight summaries against the files of samples exported beside them, in the
+/// same folder, that their reader reads and that hold an altitude (a Blue Raven's low-rate file,
+/// not its high-rate one; a tracker's file with a GNSS altitude): how many summaries there are,
+/// and have such a file beside them; of those, how many state a maximum altitude in SI, how many
+/// state one that agrees with a file's highest altitude above the pad, and how many state a pad
+/// altitude that agrees with a file's, each within [`SUMMARY_AGREES`], with the least and
+/// greatest ratio, summary over file, of those that do; the summaries with a file beside that
+/// agree in neither, by id; and those that would agree only were their feet read as meters,
+/// which contradicts the unit they write.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct SummaryChecks {
+    files: usize,
+    with_a_file_beside: usize,
+    stating_an_apogee: usize,
+    apogee_agrees: usize,
+    apogee_ratios: Option<[f64; 2]>,
+    pad_agrees: usize,
+    pad_ratios: Option<[f64; 2]>,
+    agreeing_in_neither: Vec<String>,
+    contradicted: Vec<String>,
+}
+
+/// The median of the first [`PAD_SAMPLES`] finite values; `None` if there are none.
+fn pad_median(values: &[f64]) -> Option<f64> {
+    let mut first: Vec<f64> = values
+        .iter()
+        .copied()
+        .filter(|value| value.is_finite())
+        .take(PAD_SAMPLES)
+        .collect();
+    first.sort_by(f64::total_cmp);
+    let middle = first.len() / 2;
+    match first.len() {
+        0 => None,
+        n if n % 2 == 1 => Some(first[middle]),
+        _ => Some((first[middle - 1] + first[middle]) / 2.0),
+    }
+}
+
+/// A summary's stated figure over a file's, `None` unless both are finite and the file's isn't 0.
+fn ratio(stated: Option<f64>, file: Option<f64>) -> Option<f64> {
+    let (stated, file) = (stated?, file?);
+    (stated.is_finite() && file.is_finite() && file != 0.0).then(|| stated / file)
+}
+
+/// How a summary's figure fares against the files beside it: the ratio nearest 1 among those that
+/// agree, or none, and whether one would agree were the summary's feet meters.
+fn agreement(ratios: &[f64]) -> (Option<f64>, bool) {
+    const FOOT_M: f64 = 0.3048;
+    let agrees = |ratio: f64| (ratio - 1.0).abs() <= SUMMARY_AGREES;
+    let nearest = ratios
+        .iter()
+        .copied()
+        .filter(|ratio| agrees(*ratio))
+        .min_by(|a, b| (a - 1.0).abs().total_cmp(&(b - 1.0).abs()));
+    let as_meters = ratios.iter().any(|ratio| agrees(ratio / FOOT_M));
+    (nearest, nearest.is_none() && as_meters)
+}
+
+/// Widens a least-and-greatest pair to hold `value`.
+fn widen(range: &mut Option<[f64; 2]>, value: f64) {
+    *range = Some(match *range {
+        Some([least, greatest]) => [least.min(value), greatest.max(value)],
+        None => [value, value],
+    });
+}
+
+/// [`SummaryChecks`] over the samples, each summary against the files of samples in its folder.
+fn summary_checks(samples: &[Sample]) -> BTreeMap<String, SummaryChecks> {
+    let mut checks: BTreeMap<String, SummaryChecks> = BTreeMap::new();
+    for sample in samples {
+        let Ok(summary) = hpr_flightdata::import::read(&sample.bytes) else {
+            continue;
+        };
+        if summary.format != LogFormat::FeatherweightSummaryCsv {
+            continue;
+        }
+        let Some((logger, track_format, pad_quantity)) = SUMMARY_TRACKS
+            .iter()
+            .find(|(logger, ..)| *logger == summary.logger)
+        else {
+            continue;
+        };
+        let entry = checks.entry((*logger).to_owned()).or_default();
+        entry.files += 1;
+        let folder = sample.path.parent();
+        let beside: Vec<FlightLog> = samples
+            .iter()
+            .filter(|other| other.path.parent() == folder && other.path != sample.path)
+            .filter(|other| hpr_flightdata::import::detect(&other.bytes) == Some(*track_format))
+            .filter_map(|other| hpr_flightdata::import::read(&other.bytes).ok())
+            .filter(|track| {
+                !track.altitude_m.is_empty() || track.channels_of(*pad_quantity).next().is_some()
+            })
+            .collect();
+        if beside.is_empty() {
+            continue;
+        }
+        entry.with_a_file_beside += 1;
+        let stated = &summary.stated;
+        if stated.apogee_m.is_some() {
+            entry.stating_an_apogee += 1;
+        }
+        let highest = |values: &[f64]| {
+            values
+                .iter()
+                .copied()
+                .filter(|value| value.is_finite())
+                .max_by(f64::total_cmp)
+        };
+        let (mut apogees, mut pads) = (Vec::new(), Vec::new());
+        for track in &beside {
+            let pad_channel = track.channels_of(*pad_quantity).next();
+            // The Blue Raven's track is its barometer's altitude above the pad; a tracker's is
+            // its receiver's above sea level, so its highest is taken above the stated pad.
+            let peak = if *track_format == LogFormat::BlueRavenCsv {
+                highest(&track.altitude_m)
+            } else {
+                pad_channel
+                    .and_then(|channel| highest(&channel.values))
+                    .zip(stated.ground_elevation_msl_m)
+                    .map(|(peak, pad)| peak - pad)
+            };
+            apogees.extend(ratio(stated.apogee_m, peak));
+            let pad = pad_channel.and_then(|channel| pad_median(&channel.values));
+            pads.extend(ratio(stated.ground_elevation_msl_m, pad));
+        }
+        let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
+        let (apogee, apogee_as_meters) = agreement(&apogees);
+        let (pad, pad_as_meters) = agreement(&pads);
+        if let Some(ratio) = apogee {
+            entry.apogee_agrees += 1;
+            widen(&mut entry.apogee_ratios, ratio);
+        }
+        if let Some(ratio) = pad {
+            entry.pad_agrees += 1;
+            widen(&mut entry.pad_ratios, ratio);
+        }
+        if apogee.is_none() && pad.is_none() {
+            entry.agreeing_in_neither.push(id.clone());
+        }
+        if apogee_as_meters || pad_as_meters {
+            entry.contradicted.push(id);
+        }
+    }
+    for entry in checks.values_mut() {
+        entry.agreeing_in_neither.sort();
+        entry.contradicted.sort();
+    }
+    checks
+}
+
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct SourceCount {
     source: String,
@@ -682,7 +953,7 @@ struct SourceCount {
 struct FamilyRow {
     family: String,
     /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1`, `M7.1c2`, `M7.1c3`),
-    /// `M7.1c6` for one not yet read, `damaged`, or `not a log`.
+    /// `M7.1c7` for one not yet read, `damaged`, or `not a log`.
     increment: String,
     files: usize,
     read: usize,
@@ -932,7 +1203,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
             "not a log"
         } else {
-            "M7.1c6"
+            "M7.1c7"
         };
         let row = families
             .entry(sample.family.clone())
@@ -1011,6 +1282,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         perfectflite_exports: export_units(samples),
         pfa_checks,
         raw_checks: raw_checks(samples),
+        summary_checks: summary_checks(samples),
         reclassified: RECLASSIFIED
             .iter()
             .map(|(id, from, to, why)| format!("{id} {from} -> {to}: {why}"))
@@ -1025,6 +1297,16 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         for id in &checks.differing {
             unread.push(format!(
                 "  {id} ({family}): differs from every export of its maker's beside it"
+            ));
+        }
+    }
+    // A summary whose lengths agree with the file beside it only as meters contradicts the feet
+    // it writes.
+    for (logger, checks) in &report.summary_checks {
+        for id in &checks.contradicted {
+            unread.push(format!(
+                "  {id} ({logger}'s summary): agrees with a file beside it only were its feet \
+                 meters"
             ));
         }
     }
@@ -1233,6 +1515,45 @@ fn markdown(report: &Report) -> String {
                 } else {
                     checks.differing.join(", ")
                 }
+            );
+        }
+    }
+    if !report.summary_checks.is_empty() {
+        out += "\nThe Featherweight summaries against the files of samples exported beside each, \
+                in its folder, that their reader reads: a Blue Raven's low-rate CSV, a GPS \
+                tracker's CSV, each holding an altitude. The stated maximum altitude is compared with a file's highest \
+                altitude above the pad (for a tracker, its highest GNSS altitude less the pad \
+                altitude the summary states), and the stated pad altitude with the median of a \
+                file's first 20 altitudes above sea level, each in SI; a figure agrees within 10%, \
+                and its ratio, summary over file, is the one nearest 1. A folder may hold other \
+                flights' files, so a summary may agree with none; one that would agree only were \
+                its feet meters contradicts its unit and fails the check:\n\n\
+                | Logger | Summaries | With a file beside | Stating an apogee | Apogee agrees | \
+                Its ratios | Pad agrees | Its ratios | Agreeing in neither | Contradicted |\n\
+                |---|---:|---:|---:|---:|---|---:|---|---|---|\n";
+        let range = |range: &Option<[f64; 2]>| match range {
+            Some([least, greatest]) => format!("{least:.4} to {greatest:.4}"),
+            None => "none".to_owned(),
+        };
+        let ids = |ids: &[String]| {
+            if ids.is_empty() {
+                "none".to_owned()
+            } else {
+                ids.join(", ")
+            }
+        };
+        for (logger, checks) in &report.summary_checks {
+            out += &format!(
+                "| {logger} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
+                checks.files,
+                checks.with_a_file_beside,
+                checks.stating_an_apogee,
+                checks.apogee_agrees,
+                range(&checks.apogee_ratios),
+                checks.pad_agrees,
+                range(&checks.pad_ratios),
+                ids(&checks.agreeing_in_neither),
+                ids(&checks.contradicted)
             );
         }
     }
@@ -1832,5 +2153,90 @@ mod tests {
         );
         assert_eq!(altos.refused.get("unrecognized"), Some(&1));
         assert_eq!(report.families[1].increment, "not a log");
+    }
+
+    /// A summary agrees with the Blue Raven file beside it in feet; one whose figures are the
+    /// same flight's meters, labeled feet, agrees only were its feet meters, and fails the check.
+    #[test]
+    fn a_summary_whose_feet_are_meters_is_contradicted() {
+        let mut csv = String::from(
+            "Year,Month,Day,Time,Flight_Time_(s),Sync,Baro_Altitude_ASL_(feet),\
+             Baro_Altitude_AGL_(feet)\n",
+        );
+        // 20 rows on the pad, then the flight, a row a second.
+        let flight = [500.0, 1000.0, 500.0, 0.0];
+        for (i, agl) in [0.0; 20].iter().chain(&flight).enumerate() {
+            csv += &format!(
+                "2026,5,23,10:15:{i:02}.000,{}.0,0,{},{agl}\n",
+                i as f64 - 20.0,
+                1000.0 + agl
+            );
+        }
+        let sample = |name: &str, family: &str, bytes: Vec<u8>| Sample {
+            path: PathBuf::from("flight").join(name),
+            source: "test",
+            family: family.to_owned(),
+            bytes,
+        };
+        let summary = |feet: &str| {
+            format!("Rocket Name,Demo\nMax Altitude,{feet} feet\nPad altitude ASL,{feet} feet\n")
+                .into_bytes()
+        };
+        let low_rate = || sample("low.csv", "blueraven-csv", csv.clone().into_bytes());
+        let read = |feet: &str| {
+            survey(
+                &[
+                    sample("summary.csv", "blueraven-summary-csv", summary(feet)),
+                    low_rate(),
+                ],
+                Vec::new(),
+            )
+        };
+        let (report, unread) = read("1000.00");
+        let checks = &report.summary_checks["Featherweight Blue Raven"];
+        assert_eq!(
+            (
+                checks.files,
+                checks.with_a_file_beside,
+                checks.stating_an_apogee,
+                checks.apogee_agrees,
+                checks.pad_agrees
+            ),
+            (1, 1, 1, 1, 1)
+        );
+        assert_eq!(checks.apogee_ratios, Some([1.0, 1.0]));
+        assert!(
+            checks.contradicted.is_empty() && unread.is_empty(),
+            "{unread:?}"
+        );
+
+        // 1,000 ft is 304.8 m: the same flight's figures in meters, written as feet.
+        let (report, unread) = read("304.80");
+        let checks = &report.summary_checks["Featherweight Blue Raven"];
+        assert_eq!((checks.apogee_agrees, checks.pad_agrees), (0, 0));
+        assert_eq!(checks.contradicted.len(), 1);
+        assert_eq!(checks.agreeing_in_neither, checks.contradicted);
+        assert!(
+            unread
+                .iter()
+                .any(|line| line.contains("only were its feet meters")),
+            "{unread:?}"
+        );
+
+        // Another flight's file, 3 times higher: no agreement, and no contradiction either.
+        let (report, unread) = read("3000.00");
+        let checks = &report.summary_checks["Featherweight Blue Raven"];
+        assert_eq!((checks.apogee_agrees, checks.contradicted.len()), (0, 0));
+        assert!(unread.is_empty(), "{unread:?}");
+    }
+
+    #[test]
+    fn a_pad_is_the_median_of_the_first_finite_altitudes() {
+        assert_eq!(pad_median(&[]), None);
+        assert_eq!(pad_median(&[f64::NAN, 3.0, 1.0, 2.0]), Some(2.0));
+        assert_eq!(pad_median(&[4.0, 1.0]), Some(2.5));
+        let mut long = vec![10.0; PAD_SAMPLES];
+        long.extend([1000.0; 100]);
+        assert_eq!(pad_median(&long), Some(10.0));
     }
 }

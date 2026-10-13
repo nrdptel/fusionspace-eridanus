@@ -93,7 +93,9 @@ pub struct Channel {
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum Quantity {
-    /// A barometric altitude above the logger's own zero, m.
+    /// A barometric altitude above the logger's own zero, m; in a Featherweight GPS tracker's
+    /// summary ([`LogFormat::FeatherweightSummaryCsv`]), its receiver's altitude above the pad it
+    /// states.
     AltitudeAboveGround,
     /// A barometric altitude above mean sea level, m.
     AltitudeMsl,
@@ -127,8 +129,11 @@ pub enum Quantity {
     /// A time of day on the logger's own clock, s after its midnight, in whatever time zone the
     /// clock was set to: files state none.
     TimeOfDay,
+    /// A length of time, s, such as a summary's time from liftoff to an event.
+    Duration,
     /// A number with no unit, such as a count of satellites, a signal strength, a flag or a
-    /// state code, as the file writes it.
+    /// state code, as the file writes it, or a fraction, such as a percentage the file writes,
+    /// divided by 100.
     Number,
     /// A column HPR Sim doesn't know: its values as the file writes them, in a unit HPR Sim
     /// doesn't know either.
@@ -152,7 +157,7 @@ impl Quantity {
             Self::Current => "A",
             Self::Latitude | Self::Longitude | Self::Angle => "°",
             Self::AngularRate => "°/s",
-            Self::TimeOfDay => "s",
+            Self::TimeOfDay | Self::Duration => "s",
             Self::Number | Self::Unrecognized => "",
         }
     }
@@ -247,6 +252,10 @@ pub enum LogFormat {
     /// Missile Works' RRC3 raw flight file, `.rff`, as mDACS saves a download: a .NET
     /// `BinaryFormatter` stream holding the altimeter's 16-bit words.
     Rrc3Rff,
+    /// A Featherweight summary, as the Featherweight UI app exports a Blue Raven's or a GPS
+    /// tracker's flight beside its data: one `name,value` row a figure, such as `Max
+    /// Altitude,4034.98 feet`, and no samples.
+    FeatherweightSummaryCsv,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -357,7 +366,8 @@ impl LogFormat {
     /// barometric altitude; its formats give the coarsest step its GNSS altitude is written in
     /// among the sample files: whole feet in Featherweight's older tracker log, whole meters in
     /// Missile Works' and Big Red Bee's KML, and a tenth of a meter in NMEA's `GGA`. A receiver's
-    /// own error is far larger.
+    /// own error is far larger. A Featherweight summary has no track: its maximum altitude is
+    /// written to the hundredth of a foot.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -383,6 +393,7 @@ impl LogFormat {
             Self::EggtimerRtf => crate::perfectflite::FOOT_M,
             Self::RavenFipa => RAVEN_PRESSURE_STEP_ATM * 101_325.0 * ONE_PASCAL_M,
             Self::Rrc3Rff => RRC3_PRESSURE_STEP_PA * ONE_PASCAL_M,
+            Self::FeatherweightSummaryCsv => 0.01 * crate::perfectflite::FOOT_M,
         }
     }
 
@@ -402,7 +413,8 @@ impl LogFormat {
             | Self::FluctusCsv
             | Self::Arts2Csv
             | Self::AerospaceNuFcbCsv
-            | Self::PhoneLaunchCsv => ".csv",
+            | Self::PhoneLaunchCsv
+            | Self::FeatherweightSummaryCsv => ".csv",
             Self::PerfectFliteText
             | Self::Nmea0183
             | Self::EggtimerText
@@ -443,12 +455,13 @@ impl LogFormat {
             Self::EggtimerRtf => "Eggtimer RTF",
             Self::RavenFipa => "Raven .FIPa",
             Self::Rrc3Rff => "RRC3 .rff",
+            Self::FeatherweightSummaryCsv => "Featherweight summary CSV",
         }
     }
 }
 
 /// What a flight log states about the flight, in SI.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Stated {
     /// The apogee the logger computed, m above its own zero; `None` if the file states none, or
     /// states something that isn't a height, such as a PerfectFlite's `PWRLOSS`.
@@ -457,6 +470,48 @@ pub struct Stated {
     pub ground_elevation_msl_m: Option<f64>,
     /// How many samples the file says it holds.
     pub samples: Option<usize>,
+    /// Every figure a summary file states, in the file's order, such as a Featherweight
+    /// summary's `Max velocity,700.36 feet/sec`; empty for a file of samples, and then left out of
+    /// the record's JSON, so that a record written before the field was reads the same.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub figures: Vec<Figure>,
+}
+
+/// A figure a file states once about its flight, such as a summary's `Max Altitude,4034.98
+/// feet`: kept as the file writes it, and in SI where its unit is known.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct Figure {
+    /// The figure's name as the file writes it, such as `Max Altitude`.
+    pub name: String,
+    /// The value as the file writes it, unit and all, its cells joined by commas, such as
+    /// `4034.98 feet` or `-0.9998,-0.0219,0.0029`.
+    pub written: String,
+    /// What the figure measures, which sets the unit of [`Figure::values`]; `None` for text, such
+    /// as a date, a time of day or a name, and [`Quantity::Unrecognized`] for numbers kept as
+    /// written, in a unit HPR Sim doesn't know or that the figure's name contradicts.
+    pub quantity: Option<Quantity>,
+    /// The value in the quantity's unit ([`Quantity::unit`]), one number for each the file
+    /// writes: three for a vector, such as a direction's components along the logger's axes;
+    /// empty for text. Every one is finite.
+    pub values: Vec<f64>,
+}
+
+impl Figure {
+    /// A figure, its value in the quantity's unit.
+    pub fn new(
+        name: impl Into<String>,
+        written: impl Into<String>,
+        quantity: Option<Quantity>,
+        values: Vec<f64>,
+    ) -> Self {
+        Self {
+            name: name.into(),
+            written: written.into(),
+            quantity,
+            values,
+        }
+    }
 }
 
 #[cfg(test)]
