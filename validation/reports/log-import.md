@@ -133,22 +133,25 @@ Units no header states, as each file's reader decided them, or kept the column a
 | eggtimer-txt | `T @` and `Time @` read in seconds, from the manual | 2 |
 | eggtimer-txt | `T` read in milliseconds, from the step | 2 |
 | eggtimer-txt | `Veloc` read in feet per second, from the manual | 2 |
-| entacore-aim-csv | `A Voltage` read in volts, assumed | 9 |
-| entacore-aim-csv | `B Voltage` read in volts, assumed | 9 |
-| entacore-aim-csv | `C Voltage` read in volts, assumed | 16 |
-| entacore-aim-csv | `D Voltage` read in volts, assumed | 15 |
-| entacore-aim-csv | `GPS MSL` read in meters, assumed | 13 |
-| entacore-aim-csv | `GPS Time of Week` kept as written, in milliseconds | 16 |
+| entacore-aim-csv | `A Voltage` read in volts, from the values | 9 |
+| entacore-aim-csv | `B Voltage` read in volts, from the values | 9 |
+| entacore-aim-csv | `C Voltage` read in volts, from the values | 16 |
+| entacore-aim-csv | `D Voltage` read in volts, from the values | 15 |
+| entacore-aim-csv | `GPS MSL` read in meters, from `Pressure MSL` | 13 |
+| entacore-aim-csv | `GPS Time of Week` kept as written, in milliseconds, from the values | 16 |
 | entacore-aim-csv | `Gyro X`, `Gyro Y` and `Gyro Z` read in degrees per second, from the manual | 9 |
 | entacore-aim-csv | `Mag X`, `Mag Y` and `Mag Z` kept as written, in a unit no source bears out | 9 |
 | entacore-aim-csv | `Pressure MSL` and `Pressure AGL` read in meters, from the pressure | 16 |
+| entacore-aim-csv | `RSSI` kept as written, in dBm, from the manual | 7 |
+| entacore-aim-csv | `SVs` kept as written, a count, from the manual | 13 |
 | entacore-aim-csv | `acceleration` read in g, from the manual | 7 |
 | entacore-aim-csv | `acceleration`, `lat. X accel.` and `lat. Y accel.` read in g, from the manual | 9 |
-| entacore-aim-csv | `comp. bat. voltage` read in volts, assumed | 16 |
-| entacore-aim-csv | `eject. bat. voltage` read in volts, assumed | 16 |
+| entacore-aim-csv | `comp. bat. voltage` read in volts, from the values | 16 |
+| entacore-aim-csv | `eject. bat. voltage` read in volts, from the values | 16 |
 | entacore-aim-csv | `lat` and `long` read in degrees, from the values | 13 |
+| entacore-aim-csv | `launch detect`, `apogee detect`, `A cont.`, `B cont.`, `C cont.`, `D cont.`, `A on.`, `B on`, `C on` and `D on` kept as written, flags, from the values | 16 |
 | entacore-aim-csv | `pressure` read in pascals, from the values | 16 |
-| entacore-aim-csv | `temperature` read in degrees Celsius, assumed | 16 |
+| entacore-aim-csv | `temperature` read in degrees Celsius, from the heights' unit and the manual, p33 | 16 |
 | entacore-aim-csv | `time` read in seconds, from `GPS Time of Week` | 16 |
 | fwgps-csv | `ALT` and `Altitude AGL` read in feet, from the manual alone | 1 |
 | fwgps-csv | `ALT` and `Altitude AGL` read in feet, from the manual and the horizontal speed | 20 |

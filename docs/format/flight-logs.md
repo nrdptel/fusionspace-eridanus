@@ -153,7 +153,7 @@ Most units come from the file's own column names or from the maker's manual. A f
   second temperature (`mt1_temp`) that no published page gives a unit for; each is kept as
   written, unrecognized.
 - Entacore AIM's magnetometer (`Mag X`, `Mag Y`, `Mag Z`) is kept as written, unrecognized: its
-  manual names tesla, but the sample files' values are many times the Earth's field read so
+  manual names tesla, but the sample files' values are 17 to 34 times the Earth's field read so
   ([below](#units-the-file-decides)).
 
 ### Units the file decides
@@ -239,26 +239,39 @@ sample logs:
   - *Gaps:* two kinds of value aren't readings and become gaps, each counted in a note: the zeros
     the accelerometer writes on the pad before its first reading, and the exact 0 °C
     temperatures that end every sample log after readings of 27 to 44 °C.
-- **Entacore AIM's pressure, heights and clock, worked out from the file.** The AIM's export puts a
-  `time` column before each group of channels, each group on its own clock (*AIM XTRA/BASE v4.x.x
-  Manual*, Entacore, 2 February 2025, p40), and every column is kept on its own clock, following
-  Debrief's reader. The record's altitude is the AIM's own `Pressure AGL`, its barometric height
-  above the ground it was set to. The manual gives g for the accelerations (p23–24) and degrees
-  per second for the gyroscope (p24); the rest the reader decides and notes. The pressure is in
-  pascals, as the first sample, on the pad, is a launch site's pressure in pascals (the manual's
-  own sample export writes pascals too, Table 2, p40). `Pressure MSL` and `Pressure AGL` are in
-  meters or feet, whichever matches how far the pressure climbs in the standard atmosphere, as
-  for the RRC3; a file that fits neither is refused. `time` is in seconds, as `GPS Time of Week`,
-  in milliseconds, rises about 1,000 for each unit of it. The temperature and `GPS MSL` follow the
-  heights' unit system, an assumption: the software uses one unit system for all it shows (p33).
-  The voltages are taken as volts, which the manual never names. The magnetometer is kept as
-  written: the manual says tesla, but the sample files read 20 to 40 times the Earth's field in
-  tesla. In 11 of the 13 sample files with GPS columns, the export writes the GPS group one empty
-  cell too wide once the GPS stops logging, pushing every later column one place right; the
-  reader drops that cell and counts each drop in a note. The rises of `launch detect`,
-  `apogee detect` and the outputs' `A on.` … `D on` become events; the AIM detects launch only
-  after the rocket has kept above 30 m/s (98 ft/s) for half a second (p36), so that event comes after
-  liftoff.
+- **Entacore AIM's pressure, heights and clock, worked out from the file.** The AIM's export puts
+  a `time` column before each group of channels, each group on its own clock (*AIM XTRA/BASE
+  v4.x.x Manual*, Entacore, 2 February 2025, p40), and every column is kept on its own clock,
+  following Debrief's reader. The record's altitude is the AIM's own `Pressure AGL`, its
+  barometric height above the ground it was set to. Any unit its evidence doesn't settle is kept
+  as written, with a note saying why.
+  - *From the manual:* g for the accelerations (p23–24), degrees per second for the gyroscope
+    (p24), and dBm for the ground station's `RSSI` (p29), kept as written.
+  - *Pressure:* pascals, as its first value that is a launch site's pressure in any unit is one in
+    pascals (the manual's sample export writes pascals too, Table 2, p40).
+  - *Heights:* `Pressure MSL` and `Pressure AGL` are in meters or feet, whichever matches how far
+    the pressure climbs in the standard atmosphere, as for the RRC3, from a climb of 2 m; a file
+    that fits neither, or whose pressure can't settle it, is refused.
+  - *Clock:* `time` is in seconds where `GPS Time of Week`, in milliseconds, rises about 1,000 for
+    each unit of it, and in milliseconds where it rises about 1; without it, the step between
+    samples decides, against the AIM's 10 to 500 ms sampling periods (p2, p21), and a file it
+    can't settle is refused.
+  - *Temperature:* it follows the heights' unit system, °C beside meters and °F beside feet, as the
+    software uses one unit system for all it shows (p33), and its first value must be one an
+    electronics bay can have.
+  - *Voltages:* volts, as every value lies within 0 to 20, where the batteries the manual names
+    are 3.5 to 10 V (p10) and millivolts would read in thousands.
+  - *`GPS MSL`:* in the heights' unit where it reads within 300 m of `Pressure MSL` in that unit
+    and not in the other; at a site too low for the 3.28 factor to show, kept as written.
+  - *Magnetometer:* kept as written: the manual says tesla, but the sample files' field would then
+    be 17 to 34 times the Earth's at its strongest, about 65 µT.
+  - *A run-out GPS group:* in 11 of the 13 sample files with GPS columns, the export writes the GPS
+    group one empty cell too wide once the GPS stops logging, pushing every later column one place
+    right; the reader drops that cell only where every group is then whole, and counts each drop
+    in a note. A header naming a column twice is refused.
+  - *Events:* the rises of `launch detect`, `apogee detect` and the outputs' `A on.` … `D on`. The
+    AIM detects launch only after the rocket has kept above 30 m/s (98 ft/s) for half a second
+    (p36), so that event comes after liftoff.
 
 A unit read in the wrong one of feet and meters would put every height 3.28 times too high or too
 low, so the RRC3's is never assumed where its pressure can settle it, and the Eggtimer's rests on
