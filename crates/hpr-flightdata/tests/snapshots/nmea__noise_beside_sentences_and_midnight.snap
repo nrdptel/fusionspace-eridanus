@@ -1,0 +1,704 @@
+---
+source: crates/hpr-flightdata/tests/nmea.rs
+expression: log
+---
+{
+  "format": "nmea0183",
+  "logger": "NMEA 0183 receiver (talker GP)",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "GPGGA latitude",
+      "quantity": "latitude",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        null,
+        -33.8568,
+        -33.8568,
+        -33.8568,
+        -33.8568
+      ]
+    },
+    {
+      "column": "GPGGA longitude",
+      "quantity": "longitude",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        null,
+        -70.6483,
+        -70.6483,
+        -70.6483,
+        -70.6483
+      ]
+    },
+    {
+      "column": "GPGGA fix quality",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "GPGGA satellites used",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        0.0,
+        8.0,
+        8.0,
+        8.0,
+        8.0
+      ]
+    },
+    {
+      "column": "GPGGA HDOP",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        null,
+        0.9,
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    {
+      "column": "GPGGA DGPS station",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GPGGA altitude",
+      "quantity": "gnss_altitude",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        null,
+        702.0,
+        703.0,
+        704.0,
+        705.0
+      ]
+    },
+    {
+      "column": "GPGGA geoid separation",
+      "quantity": "distance",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        0.0,
+        46.9,
+        46.9,
+        46.9,
+        46.9
+      ]
+    },
+    {
+      "column": "GPGSA selection",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "GPGSA fix type",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        1.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ]
+    },
+    {
+      "column": "GPGSA PDOP",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        null,
+        1.6,
+        1.6,
+        1.6,
+        1.6
+      ]
+    },
+    {
+      "column": "GPGSA HDOP",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        null,
+        0.9,
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    {
+      "column": "GPGSA VDOP",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        null,
+        1.3,
+        1.3,
+        1.3,
+        1.3
+      ]
+    },
+    {
+      "column": "GPGSA satellites used",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        0.0,
+        8.0,
+        8.0,
+        8.0,
+        8.0
+      ]
+    },
+    {
+      "column": "GPRMC status",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "GPRMC latitude",
+      "quantity": "latitude",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        null,
+        -33.8568,
+        -33.8568,
+        -33.8568,
+        -33.8568
+      ]
+    },
+    {
+      "column": "GPRMC longitude",
+      "quantity": "longitude",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        null,
+        -70.6483,
+        -70.6483,
+        -70.6483,
+        -70.6483
+      ]
+    },
+    {
+      "column": "GPRMC speed",
+      "quantity": "speed",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        null,
+        0.5144444444444445,
+        0.5144444444444445,
+        0.5144444444444445,
+        0.5144444444444445
+      ]
+    },
+    {
+      "column": "GPRMC course",
+      "quantity": "angle",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        null,
+        10.0,
+        10.0,
+        10.0,
+        10.0
+      ]
+    },
+    {
+      "column": "GPRMC mode",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0
+      ],
+      "values": [
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "GPGSV satellites in view",
+      "quantity": "number",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        10.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 4 elevation",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        45.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 4 azimuth",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        120.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 4 SNR",
+      "quantity": "number",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        40.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 5 elevation",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        30.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 5 azimuth",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        200.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 5 SNR",
+      "quantity": "number",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        35.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 9 elevation",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        10.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 9 azimuth",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        300.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 9 SNR",
+      "quantity": "number",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        22.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 12 elevation",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        60.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 12 azimuth",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        10.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 12 SNR",
+      "quantity": "number",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        44.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 17 elevation",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        25.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 17 azimuth",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        45.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 17 SNR",
+      "quantity": "number",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        38.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 24 elevation",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        5.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 24 azimuth",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        80.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 24 SNR",
+      "quantity": "number",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        20.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 25 elevation",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        70.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 25 azimuth",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        250.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 25 SNR",
+      "quantity": "number",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        41.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 28 elevation",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        15.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 28 azimuth",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        330.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 28 SNR",
+      "quantity": "number",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        30.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 30 elevation",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        3.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 30 azimuth",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        170.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 30 SNR",
+      "quantity": "number",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        null
+      ]
+    },
+    {
+      "column": "GPGSV PRN 32 elevation",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        8.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 32 azimuth",
+      "quantity": "angle",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        220.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 32 SNR",
+      "quantity": "number",
+      "time_s": [
+        1.0
+      ],
+      "values": [
+        null
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "the file holds a GNSS receiver's sentences and no barometer, so the record's altitude track is empty: every value is a channel, named for its sentence's address and field, such as `GPGGA altitude`",
+    "`RMC date` read in UTC days, from status-`A` sentences only: the log's zero, the first sentence with a time, is 23:59:57.000 UTC on 2025-12-31, the date of the first `RMC` with status `A`",
+    "`GSA` and `GSV` read in the time of the `GGA` or `RMC` before them, from the sentence order: in 5 of the file's 5 `GGA` and `RMC` pairs, the `RMC` has the `GGA`'s time",
+    "the time of day passes midnight 1 times: without a date, a time of day more than 12 hours before the last is the next day's, and one more than 12 hours after it the day before's",
+    "1 lines hold a sentence whose checksum fails, or with bytes NMEA 0183 doesn't allow, the first line 12, \"$GPGSA,A,����,,,,,,,*1E\": skipped",
+    "1 lines hold bytes beside their sentences, the first line 1, \"��ef���$GPGGA,235957.000,,,,,0,00,,,M,0.0,M,,0000*59\": the sentences are read and the bytes left out",
+    "the file holds 9 NUL bytes, or stand-ins (U+FFFD) for bytes that aren't UTF-8, on 2 lines, the last line 12: left out",
+    "sentences of types this reader doesn't read, `GPVTG` (1): their fields are left out"
+  ]
+}

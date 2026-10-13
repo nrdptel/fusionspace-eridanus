@@ -1,0 +1,724 @@
+---
+source: crates/hpr-flightdata/tests/nmea.rs
+expression: log
+---
+{
+  "format": "nmea0183",
+  "logger": "NMEA 0183 receiver (talker GP)",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "GPGGA latitude",
+      "quantity": "latitude",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "column": "GPGGA longitude",
+      "quantity": "longitude",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "column": "GPGGA fix quality",
+      "quantity": "number",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GPGGA satellites used",
+      "quantity": "number",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GPGGA HDOP",
+      "quantity": "number",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "column": "GPGGA DGPS station",
+      "quantity": "number",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GPGGA altitude",
+      "quantity": "gnss_altitude",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "column": "GPGGA geoid separation",
+      "quantity": "distance",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GPGSA selection",
+      "quantity": "number",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "GPGSA fix type",
+      "quantity": "number",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "column": "GPGSA PDOP",
+      "quantity": "number",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "column": "GPGSA HDOP",
+      "quantity": "number",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "column": "GPGSA VDOP",
+      "quantity": "number",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "column": "GPGSA satellites used",
+      "quantity": "number",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GPRMC status",
+      "quantity": "number",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GPRMC latitude",
+      "quantity": "latitude",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "column": "GPRMC longitude",
+      "quantity": "longitude",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "column": "GPRMC speed",
+      "quantity": "speed",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "column": "GPRMC course",
+      "quantity": "angle",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "column": "GPRMC mode",
+      "quantity": "number",
+      "time_s": [
+        null,
+        0.0,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0,
+        6.0,
+        7.0,
+        8.0
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "GPGSV satellites in view",
+      "quantity": "number",
+      "time_s": [
+        4.0
+      ],
+      "values": [
+        4.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 1 elevation",
+      "quantity": "angle",
+      "time_s": [
+        4.0
+      ],
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 1 azimuth",
+      "quantity": "angle",
+      "time_s": [
+        4.0
+      ],
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 1 SNR",
+      "quantity": "number",
+      "time_s": [
+        4.0
+      ],
+      "values": [
+        35.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 14 elevation",
+      "quantity": "angle",
+      "time_s": [
+        4.0
+      ],
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 14 azimuth",
+      "quantity": "angle",
+      "time_s": [
+        4.0
+      ],
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 14 SNR",
+      "quantity": "number",
+      "time_s": [
+        4.0
+      ],
+      "values": [
+        25.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 16 elevation",
+      "quantity": "angle",
+      "time_s": [
+        4.0
+      ],
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 16 azimuth",
+      "quantity": "angle",
+      "time_s": [
+        4.0
+      ],
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 16 SNR",
+      "quantity": "number",
+      "time_s": [
+        4.0
+      ],
+      "values": [
+        null
+      ]
+    },
+    {
+      "column": "GPGSV PRN 18 elevation",
+      "quantity": "angle",
+      "time_s": [
+        4.0
+      ],
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 18 azimuth",
+      "quantity": "angle",
+      "time_s": [
+        4.0
+      ],
+      "values": [
+        0.0
+      ]
+    },
+    {
+      "column": "GPGSV PRN 18 SNR",
+      "quantity": "number",
+      "time_s": [
+        4.0
+      ],
+      "values": [
+        33.0
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "the file holds a GNSS receiver's sentences and no barometer, so the record's altitude track is empty: every value is a channel, named for its sentence's address and field, such as `GPGGA altitude`",
+    "`RMC date` read in UTC days, from status-`A` sentences only: no `RMC` has status `A`, so the times are times of day alone, from the first sentence with a time, at 22:25:40.969 UTC; 7 status-`V` `RMC` carry 1 distinct dates, 1 of which no status-`A` one gives, as a receiver writes a placeholder before its fix",
+    "`GSA` and `GSV` read in the time of the `GGA` or `RMC` before them, from the sentence order: in 9 of the file's 9 `GGA` and `RMC` pairs, the `RMC` has the `GGA`'s time; 1 come before any sentence with a time, and their times are gaps",
+    "2 `GGA` and `RMC` sentences have an empty time, as a receiver writes before it knows the time: their samples' times are gaps",
+    "1 lines hold no sentence, no `$`: noise, or a sentence cut at its start, the first line 1, \"Y�6Vk\": skipped",
+    "1 lines hold a sentence whose checksum fails, or with bytes NMEA 0183 doesn't allow, the first line 33, \"$GPGGA,222549.969,,,,,0,00,,,M,0.0,M,,0000*5B��������������\\0\\0\\0\\u{1}+���������������…\": skipped",
+    "the file holds 38 NUL bytes, or stand-ins (U+FFFD) for bytes that aren't UTF-8, on 2 lines, the last line 33: left out",
+    "no `GGA` or `RMC` holds a position: the receiver never had a fix, so every latitude and longitude is a gap"
+  ]
+}
