@@ -366,9 +366,12 @@ sample logs:
   club's tools turn into a CSV; the club publishes both (AerospaceNU, *rocket-flight-data*,
   `README.md`, read October 12, 2026). The 20 sample files come under eight headers of 73 to 87
   columns. No document describes the columns, so a unit a column's name doesn't state is read
-  only where two checks on the file's values agree. Neither check compares the column with
-  another of the same unknown unit, and neither can be met by the weather or the flight in the
-  wrong unit. Where they don't agree, the column is kept as written, with a note:
+  only where two checks on the file's values agree, neither of which the weather or the flight
+  can meet in the wrong unit. A check sets the column against a physical mark (1 g at rest, a
+  barometer's whole pascals, a sensor's published sensitivity) or against another column; where
+  that is a sibling, such as the inertial units' average against the units, it counts only once
+  the sibling's own unit is decided, so no counted check relates two columns that share one
+  unknown unit. Where the checks don't agree, the column is kept as written, with a note:
   - *Pressure, in atmospheres:* a pad's pressure lies near 1 in atmospheres or bars, and far
     from it in pascals, hectopascals, psi or inches of mercury. And every value is a whole number
     of pascals divided by 101,325, the club's conversion, a step no flight or weather can mimic;
@@ -391,14 +394,29 @@ sample logs:
   - *Heights and speed, in meters and m/s:* `pos_z`, the board's filtered altitude above the pad
     and the record's altitude, and the other heights must climb within 25% of the pressure's
     climb and within a factor of 1.8 of the accelerometer's (1.8² is 3.24, under the 3.28 between
-    meters and feet). `vel_z` must match `pos_z`'s rate and the accelerometer's speed. `pos_z`
+    meters and feet). `vel_z` must match `pos_z`'s rate and the accelerometer's speed. A GPS
+    may write 0, or hold an old value, until its first fix, so `gps_alt` is checked only at its
+    fresh fixes (a new value other than 0), each check a line fitted with its own offset, so that
+    no pad reading enters either; a pad reading far from where its fixes put the pad is a held
+    value, and the column is kept as written. Where `gps_alt` is read, a 0 is a gap. `pos_z`
     reads in meters in all 20 files, `gps_alt` in 12 (kept as written in 8) and `vel_z` in 18.
-  - *GPS position:* `gps_lat` and `gps_long` are read as NMEA 0183's degrees and minutes run
-    together (42.5° written `4230.0`) where some value passes 90 or 180, which no degrees do, and
-    their companions `gps_lat_mod` and `gps_long_mod` hold every value converted to degrees. In
-    15 files both checks pass. In three later files the "minutes" pass 60, so the values aren't
-    degrees and minutes, yet the companions hold them converted as if they were; all four
-    columns are kept as written there, as in 2 more.
+  - *GPS position:* NMEA 0183's degrees and minutes run together (42.5° written `4230.0`) put
+    every latitude more than 1° from the equator past 90 and every longitude more than 2° from
+    the prime meridian past 180, which no degrees reach. `gps_lat` and `gps_long` are read in
+    degrees and minutes where most latitudes pass 90 and most longitudes 180, every value's
+    minutes are under 60 and every converted value is a latitude or longitude; in degrees where
+    every latitude lies within ±90 and every longitude within ±180. A position (0, 0) is no fix:
+    it takes no part, and where the position is read it is a gap. The companions `gps_lat_mod`
+    and `gps_long_mod` count in neither decision; they are read in degrees only where they hold
+    the decided position in degrees. Of the 20 files, 15 read in degrees and minutes, 4 in
+    degrees (their companions kept as written in 3, which hold the values converted as if they
+    were degrees and minutes), and 1, with no fix, is kept as written. NMEA 0183 writes the
+    hemisphere (N or S, E or W) in a field of its own, which the board's columns drop, so only
+    a sign can carry it: where no value in `gps_lat` or `gps_long` is negative, a place west of
+    the prime meridian can't be told from its mirror east, and the position and its companions
+    are kept as written, with a note saying how the checks would read them so that someone who
+    knows the site can sign them. Each of the 19 files with a fix writes its longitudes
+    negative, west, and is read.
   - *Kept as written:* the temperatures, which read as a barometer's in degrees Celsius or
     Fahrenheit alike; the battery voltages; the magnetometers; and the raw counts the scaled
     columns are made from. The state codes, in three numberings no source publishes, are kept as

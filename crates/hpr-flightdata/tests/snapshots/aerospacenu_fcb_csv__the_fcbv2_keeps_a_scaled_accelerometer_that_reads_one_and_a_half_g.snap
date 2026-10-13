@@ -203,14 +203,14 @@ expression: condensed(&log)
       "column": "gps_lat",
       "first": 12.5,
       "last": 12.5,
-      "quantity": "unrecognized",
+      "quantity": "latitude",
       "samples": 73
     },
     {
       "column": "gps_long",
       "first": -34.75,
       "last": -34.75,
-      "quantity": "unrecognized",
+      "quantity": "longitude",
       "samples": 73
     },
     {
@@ -601,10 +601,11 @@ expression: condensed(&log)
     "`imu1_gyro_x_real`, `imu1_gyro_y_real` and `imu1_gyro_z_real` read in radians per second, from the board's turning and the sensor's scale: over 3 stretches of 10 steps at most 0.05 s apart with the accelerometer within 15% of 1 g, its direction turns 0.600 rad, and the rates turn the board across it 0.600 rad read in radians per second, 0.010 rad read in degrees; the unit whose turn is within a quarter to 4 times the accelerometer's is taken, from 3 stretches and 0.2 rad; and each is its raw count times 0.0012217, in that unit one of the counts of STMicroelectronics' LSM9DS1 (8.75, 17.5 or 70 m°/s)",
     "`imu_gyro_x_avg`, `imu_gyro_y_avg` and `imu_gyro_z_avg` read in radians per second, from the board's turning and the IMUs: over 3 stretches of 10 steps at most 0.05 s apart with the accelerometer within 15% of 1 g, its direction turns 0.600 rad, and the rates turn the board across it 0.600 rad read in radians per second, 0.010 rad read in degrees; the unit whose turn is within a quarter to 4 times the accelerometer's is taken, from 3 stretches and 0.2 rad; and each is the mean of the IMUs' scaled columns, read in it",
     "`baroalt_agl` read in meters, from the pressure's climb and the accelerometer's: its climb from the pad to its highest over the pressure's in the standard atmosphere is 1.006 as written, and its climb from the launch over the one the accelerometer integrates to is 1.057; a gain within 25% of 1 and a ratio within a factor of 1.8 are taken",
-    "`gps_alt` read in meters, from the pressure's climb and the accelerometer's: its climb at the GPS's fresh fixes up to the apogee over the pressure's in the standard atmosphere is 1.000 as written, and its climb from the launch over the one the accelerometer integrates to is 1.051; a gain within 25% of 1 and a ratio within a factor of 1.8 are taken",
+    "`gps_alt` read in meters, from the pressure's climb and the accelerometer's: its rise over the pressure's climb in the standard atmosphere, a line with a free offset through its 28 fresh fixes up to the apogee, is 1.001 as written, and over the climb the accelerometer integrates to, through its 28 fresh fixes from the launch, 1.064; a gain within 25% of 1 and a ratio within a factor of 1.8 are taken, each over a climb of at least 30 m",
     "`pos_z` read in meters, from the pressure's climb and the accelerometer's: its climb from the pad to its highest over the pressure's in the standard atmosphere is 1.000 as written, and its climb from the launch over the one the accelerometer integrates to is 1.051; a gain within 25% of 1 and a ratio within a factor of 1.8 are taken",
     "`vel_z` read in meters per second, from `pos_z` and the accelerometer: over the steps at most 0.05 s long, `pos_z`'s change in meters is 1.000 times what it integrates to as written, and from the launch it is 1.000 times the speed the accelerometer integrates to; a slope within 25% of 1 and a ratio within a factor of 1.8 are taken",
-    "`gps_lat`, `gps_long`, `gps_lat_mod` and `gps_long_mod` kept as written: the values and their companions don't both bear one unit out: every value lies within ±90 and ±180, as degrees and degrees and minutes both can; `gps_lat_mod` and `gps_long_mod` hold them converted as degrees and minutes are",
+    "`gps_lat` and `gps_long` read in degrees, from the latitudes' range and the longitudes': at each of its 73 fixes the latitude lies within ±90 and the longitude within ±180, where degrees and minutes would put the place within 1° of the equator and 2° of the prime meridian, both at once only at sea in the Gulf of Guinea; each value's last two digits before the point are under 60, as degrees and minutes' would be, so they tell nothing here",
+    "`gps_lat_mod` and `gps_long_mod` kept as written: `gps_lat` and `gps_long` are read in degrees, as written, and they hold the values converted as if they were degrees and minutes, which they aren't",
     "`imu1_accel_x`, `imu1_accel_y` and `imu1_accel_z` kept as written: a sensor's raw counts, which the columns named with `_real` hold scaled",
     "`imu1_gyro_x`, `imu1_gyro_y` and `imu1_gyro_z` kept as written: a sensor's raw counts, which the columns named with `_real` hold scaled",
     "`imu1_mag_x`, `imu1_mag_y` and `imu1_mag_z` kept as written: a sensor's raw counts, which the columns named with `_real` hold scaled",

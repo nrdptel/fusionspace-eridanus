@@ -163,7 +163,7 @@ fn the_boards_csv_reads_each_decided_column_in_si() {
         "`gps_alt` read in meters, from the pressure's climb and the accelerometer's: ",
         "`vel_z` read in meters per second, from `pos_z` and the accelerometer: ",
         "`gps_lat` and `gps_long` read in NMEA 0183's degrees and minutes, ddmm.mmmm, from their \
-         values and their companions: ",
+         ranges and their minutes: ",
         "`gps_lat_mod` and `gps_long_mod` read in degrees, from `gps_lat` and `gps_long`: ",
         "`high_g_accel_x_real`, `high_g_accel_y_real` and `high_g_accel_z_real` kept as written: ",
         "`baro1_temp` kept as written: ",
@@ -222,8 +222,9 @@ fn the_oldest_layout_reads_its_clock_in_seconds_and_keeps_dead_sensors() {
 }
 
 /// The FCBV2: its scaled accelerometer reads 1.5 g at rest, so it and its average are kept as
-/// written while the estimate `acc_*` is read; `baroalt_agl` read in meters; the GPS in degrees,
-/// whose companions hold it converted as if it were degrees and minutes, kept as written.
+/// written while the estimate `acc_*` is read; `baroalt_agl` read in meters; the GPS read in
+/// degrees by its ranges, and its companions, which hold it converted as if it were degrees and
+/// minutes, kept as written.
 #[test]
 fn the_fcbv2_keeps_a_scaled_accelerometer_that_reads_one_and_a_half_g() {
     let log = read(FCBV2);
@@ -251,16 +252,19 @@ fn the_fcbv2_keeps_a_scaled_accelerometer_that_reads_one_and_a_half_g() {
         &log,
         "`imu1_gyro_x_real`, `imu1_gyro_y_real` and `imu1_gyro_z_real` read in radians ",
     );
+    note(
+        &log,
+        "`gps_lat` and `gps_long` read in degrees, from the latitudes' range and the longitudes': ",
+    );
     assert!(
-        note(
-            &log,
-            "`gps_lat`, `gps_long`, `gps_lat_mod` and `gps_long_mod` kept as written: "
-        )
-        .contains("hold them converted as degrees and minutes are")
+        note(&log, "`gps_lat_mod` and `gps_long_mod` kept as written: ")
+            .contains("converted as if they were degrees and minutes, which they aren't")
     );
     assert_eq!(quantity(&log, "dynamixel_degrees"), Quantity::Angle);
     assert_eq!(quantity(&log, "dynamixel_length"), Quantity::Unrecognized);
-    assert_eq!(quantity(&log, "gps_lat"), Quantity::Unrecognized);
+    assert_eq!(quantity(&log, "gps_lat"), Quantity::Latitude);
+    assert_eq!(quantity(&log, "gps_lat_mod"), Quantity::Unrecognized);
+    assert_eq!(channel(&log, "gps_long")[0], -34.75);
     insta::assert_json_snapshot!(condensed(&log));
 }
 
@@ -578,21 +582,305 @@ fn the_altitude_and_the_speed_are_read_in_meters_or_feet() {
     assert!(note(&doubled, "`vel_z` kept as written: ").contains("in meters is none"));
 }
 
-/// Companions that copy the values check no unit: the position is kept even past 90 and 180.
+/// A column's cells, as numbers.
+#[cfg(test)]
+fn column(text: &str, name: &str) -> Vec<f64> {
+    let mut lines = text.lines();
+    let at = lines
+        .next()
+        .unwrap()
+        .split(',')
+        .position(|n| n == name)
+        .unwrap();
+    lines
+        .map(|line| line.split(',').nth(at).unwrap().parse::<f64>().unwrap())
+        .collect()
+}
+
+/// The board's `gps_alt` with a late fix: 0, the receiver's mark for no fix, until `pos_z` passes
+/// 30 m, then the site's elevation plus the climb. A line with a free offset through the fixes
+/// reads it in the unit it is written in at a site 400 or 1,500 m up, the zeros as gaps; through
+/// a pad of 0 its climb would read the elevation too, and at 400 m up meters would read as feet.
 #[test]
-fn a_position_without_its_converted_companions_is_kept() {
+fn a_late_gps_fix_at_a_high_site_is_read_in_its_unit() {
+    let climb = column(BOARD, "pos_z");
+    let late = |elevation_m: f64, per_m: f64| {
+        let climb = climb.clone();
+        edit(BOARD, &["gps_alt"], move |row, _| {
+            if climb[row] < 30.0 {
+                "0.0".to_owned()
+            } else {
+                format!("{:?}", (elevation_m + climb[row]) * per_m)
+            }
+        })
+    };
+    let blank = climb.iter().filter(|z| **z < 30.0).count();
+    for elevation_m in [400.0, 1_500.0] {
+        for (unit, per_m) in [("meters", 1.0), ("feet", 1.0 / 0.3048)] {
+            let log = read(&late(elevation_m, per_m));
+            note(
+                &log,
+                &format!(
+                    "`gps_alt` read in {unit}, from the pressure's climb and the accelerometer's: "
+                ),
+            );
+            note(
+                &log,
+                &format!(
+                    "{blank} rows of `gps_alt` hold 0, the receiver's mark for no fix: each is a \
+                     gap"
+                ),
+            );
+            assert_eq!(quantity(&log, "gps_alt"), Quantity::GnssAltitude);
+            let gps = channel(&log, "gps_alt");
+            assert_eq!(gps.iter().filter(|v| v.is_nan()).count(), blank);
+            let top = gps
+                .iter()
+                .copied()
+                .filter(|v| v.is_finite())
+                .fold(0.0, f64::max);
+            assert!(
+                (top - (elevation_m + 195.48)).abs() < 0.01,
+                "{elevation_m} {unit}: {top}"
+            );
+        }
+    }
+}
+
+/// A value held before the first fix, 100 m where the fixes' line puts the pad at 262 m, isn't
+/// the pad's altitude: the column is kept as written, though both checks read meters.
+#[test]
+fn a_gps_altitude_held_from_before_its_first_fix_is_kept() {
+    let climb = column(BOARD, "pos_z");
+    let held = edit(BOARD, &["gps_alt"], |row, cell| {
+        if climb[row] < 30.0 {
+            "100.0".to_owned()
+        } else {
+            cell.to_owned()
+        }
+    });
+    let log = read(&held);
+    let kept = note(&log, "`gps_alt` kept as written: ");
+    assert!(
+        kept.contains("its pad reading isn't where its climb starts") && kept.contains("reads 100"),
+        "{kept}"
+    );
+    assert_eq!(quantity(&log, "gps_alt"), Quantity::Unrecognized);
+}
+
+/// Companions that copy the values check nothing: the position is read in degrees and minutes on
+/// its own ranges and minutes, and the copies kept as written.
+#[test]
+fn companions_that_copy_the_values_are_kept() {
     let text = edit(BOARD, &["gps_lat_mod"], |_, _| "1250.0".to_owned());
     let text = edit(&text, &["gps_long_mod"], |_, _| "-3445.0".to_owned());
     let text = edit(&text, &["gps_lat"], |_, _| "1250.0".to_owned());
-    let text = edit(&text, &["gps_long"], |_, _| "-3445.0".to_owned());
+    let log = read(&text);
+    note(
+        &log,
+        "`gps_lat` and `gps_long` read in NMEA 0183's degrees and minutes, ddmm.mmmm, from their \
+         ranges and their minutes: ",
+    );
+    assert!(
+        note(&log, "`gps_lat_mod` and `gps_long_mod` kept as written: ")
+            .contains("they aren't their companions read as decided")
+    );
+    assert!((channel(&log, "gps_lat")[0] - (12.0 + 50.0 / 60.0)).abs() < 1e-9);
+    assert_eq!(quantity(&log, "gps_lat_mod"), Quantity::Unrecognized);
+}
+
+/// One corrupt fix in a file of degrees, a latitude of 3230.0 alone or with a longitude of
+/// -10645.0, doesn't make the file degrees and minutes: most of its latitudes and longitudes lie
+/// within ±90 and ±180, so the ranges bear no unit out and the position is kept.
+#[test]
+fn one_glitch_beyond_90_doesnt_make_degrees_degrees_and_minutes() {
+    let at_row_40 = |value: &'static str| {
+        move |row: usize, cell: &str| {
+            if row == 40 {
+                value.to_owned()
+            } else {
+                cell.to_owned()
+            }
+        }
+    };
+    let latitude = edit(FCBV2, &["gps_lat"], at_row_40("3230.0"));
+    let both = edit(&latitude, &["gps_long"], at_row_40("-10645.0"));
+    for (glitch, longitudes) in [(&latitude, 0), (&both, 1)] {
+        let log = read(glitch);
+        let kept = note(&log, "`gps_lat` and `gps_long` kept as written: ");
+        assert!(
+            kept.contains(&format!(
+                "of its 73 fixes, 1 latitudes pass ±90 and {longitudes} longitudes ±180"
+            )),
+            "{kept}"
+        );
+        note(&log, "`gps_lat_mod` and `gps_long_mod` kept as written: ");
+        assert_eq!(quantity(&log, "gps_lat"), Quantity::Unrecognized);
+        assert_eq!(quantity(&log, "gps_long"), Quantity::Unrecognized);
+    }
+
+    // A file of degrees and minutes with one value whose minutes pass 60, or that converts past
+    // 90°, is kept too.
+    for (cell, says) in [
+        (
+            "1275.0",
+            "some value's last two digits before the point are 60 or more",
+        ),
+        (
+            "9230.0",
+            "converted from degrees and minutes, a latitude passes ±90",
+        ),
+    ] {
+        let text = edit(BOARD, &["gps_lat"], |row, old| {
+            if row == 40 {
+                cell.to_owned()
+            } else {
+                old.to_owned()
+            }
+        });
+        let log = read(&text);
+        let kept = note(&log, "`gps_lat` and `gps_long` kept as written: ");
+        assert!(kept.contains(says), "{kept}");
+        assert_eq!(quantity(&log, "gps_lat"), Quantity::Unrecognized);
+        note(&log, "`gps_lat_mod` and `gps_long_mod` kept as written: ");
+    }
+}
+
+/// Degrees and minutes within 1° of the equator lie within ±90: the latitudes' range then says
+/// degrees and the longitudes' degrees and minutes, so the position is kept.
+#[test]
+fn a_position_whose_ranges_disagree_is_kept() {
+    let text = edit(BOARD, &["gps_lat"], |_, _| "30.0".to_owned());
+    let text = edit(&text, &["gps_lat_mod"], |_, _| "0.5".to_owned());
     let log = read(&text);
     assert!(
+        note(&log, "`gps_lat` and `gps_long` kept as written: ")
+            .contains("the latitudes' range and the longitudes' don't both bear one unit out")
+    );
+}
+
+/// A position (0, 0) is the receiver's mark for no fix: it takes no part in the checks, and where
+/// the position is read, it and its companions are gaps, counted in a note.
+#[test]
+fn a_position_of_zero_zero_is_a_gap() {
+    let early = |row: usize, cell: &str| {
+        if row < 5 {
+            "0.0".to_owned()
+        } else {
+            cell.to_owned()
+        }
+    };
+    let text = edit(
+        BOARD,
+        &["gps_lat", "gps_long", "gps_lat_mod", "gps_long_mod"],
+        early,
+    );
+    let log = read(&text);
+    note(
+        &log,
+        "`gps_lat` and `gps_long` read in NMEA 0183's degrees and minutes, ddmm.mmmm, from their \
+         ranges and their minutes: of its 68 fixes, ",
+    );
+    note(
+        &log,
+        "`gps_lat_mod` and `gps_long_mod` read in degrees, from `gps_lat` and `gps_long`: ",
+    );
+    note(
+        &log,
+        "5 rows of `gps_lat` and `gps_long` hold the position (0, 0), the receiver's mark for no \
+         fix: each is a gap",
+    );
+    for column in ["gps_lat", "gps_long", "gps_lat_mod", "gps_long_mod"] {
+        let values = channel(&log, column);
+        assert!(values[..5].iter().all(|v| v.is_nan()), "{column}");
+        assert!(values[5..].iter().all(|v| v.is_finite()), "{column}");
+    }
+
+    // Every position (0, 0): no fix, kept as written.
+    let none = edit(
+        BOARD,
+        &["gps_lat", "gps_long", "gps_lat_mod", "gps_long_mod"],
+        |_, _| "0.0".to_owned(),
+    );
+    let log = read(&none);
+    assert!(
+        note(&log, "`gps_lat` and `gps_long` kept as written: ").contains("no row holds a fix")
+    );
+    note(&log, "`gps_lat_mod` and `gps_long_mod` kept as written: ");
+}
+
+/// A file whose every latitude and longitude is 0 or more writes no hemisphere: the position and
+/// its companions are kept as written, the note saying how the ranges would read them, in degrees
+/// and minutes or in degrees; a (0, 0) row stays as written, not a gap.
+#[test]
+fn a_position_with_no_negative_value_shows_no_hemisphere_and_is_kept() {
+    let east = edit(BOARD, &["gps_long"], |_, _| "3445.0".to_owned());
+    let east = edit(&east, &["gps_long_mod"], |_, _| "34.75".to_owned());
+    let east = edit(&east, &["gps_lat", "gps_long"], |row, cell| {
+        if row == 0 { "0.0" } else { cell }.to_owned()
+    });
+    let degrees = edit(FCBV2, &["gps_long"], |_, _| "34.75".to_owned());
+    for (text, would) in [
+        (
+            &east,
+            "read in NMEA 0183's degrees and minutes, ddmm.mmmm, from their ranges",
+        ),
+        (
+            &degrees,
+            "read in degrees, from the latitudes' range and the longitudes'",
+        ),
+    ] {
+        let log = read(text);
+        let kept = note(
+            &log,
+            "`gps_lat` and `gps_long` kept as written, with no hemisphere: every value in them is \
+             0 or more and the file writes no hemisphere",
+        );
+        assert!(
+            kept.contains(&format!("Unsigned, they would be {would}")),
+            "{kept}"
+        );
         note(
             &log,
-            "`gps_lat`, `gps_long`, `gps_lat_mod` and `gps_long_mod` kept as written: "
-        )
-        .contains("a copy that checks no unit")
-    );
+            "`gps_lat_mod` and `gps_long_mod` kept as written, with no hemisphere: ",
+        );
+        assert!(
+            !log.notes
+                .iter()
+                .any(|n| n.contains("the receiver's mark for no fix: each"))
+        );
+        for column in ["gps_lat", "gps_long", "gps_lat_mod", "gps_long_mod"] {
+            assert_eq!(quantity(&log, column), Quantity::Unrecognized, "{column}");
+        }
+    }
+    let log = read(&east);
+    assert_eq!(channel(&log, "gps_lat")[0], 0.0);
+    assert_eq!(channel(&log, "gps_long")[1], 3445.0);
+}
+
+/// A file that writes negative values shows its hemisphere, in either coordinate: south and
+/// east, the latitudes negative and the longitudes positive, is read with each sign, as the
+/// samples' west, the longitudes negative, is.
+#[test]
+fn a_position_with_negative_values_is_read_with_its_signs() {
+    let south = edit(BOARD, &["gps_lat"], |_, _| "-1230.0".to_owned());
+    let south = edit(&south, &["gps_lat_mod"], |_, _| "-12.5".to_owned());
+    let south = edit(&south, &["gps_long"], |_, _| "3445.0".to_owned());
+    let south = edit(&south, &["gps_long_mod"], |_, _| "34.75".to_owned());
+    for (text, latitude, longitude) in [(south.as_str(), -12.5, 34.75), (BOARD, 12.5, -34.75)] {
+        let log = read(text);
+        note(
+            &log,
+            "`gps_lat` and `gps_long` read in NMEA 0183's degrees and minutes, ddmm.mmmm, from \
+             their ranges and their minutes: ",
+        );
+        assert!(!log.notes.iter().any(|n| n.contains("no hemisphere")));
+        assert_eq!(quantity(&log, "gps_long"), Quantity::Longitude);
+        assert_eq!(quantity(&log, "gps_lat_mod"), Quantity::Latitude);
+        assert!((channel(&log, "gps_lat")[0] - latitude).abs() < 1e-9);
+        assert!((channel(&log, "gps_long")[0] - longitude).abs() < 1e-9);
+        assert!((channel(&log, "gps_long_mod")[0] - longitude).abs() < 1e-9);
+    }
 }
 
 /// A column the reader doesn't know is kept as written with a note; the header's errors are

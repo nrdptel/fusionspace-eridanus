@@ -42,10 +42,10 @@
 //! | `imu_gyro_*_avg` | [`Quantity::AngularRate`] | the IMUs' unit, from the turning and the mean (below) |
 //! | `pos_z` | [`Quantity::AltitudeAboveGround`]: the primary track | meters or feet, from the pressure's climb and the accelerometer's (below) |
 //! | `baro_height`, `baroalt_agl`, `baro1_alt` | [`Quantity::AltitudeAboveGround`] | as `pos_z` |
-//! | `gps_alt` | [`Quantity::GnssAltitude`] | as `pos_z`, at the GPS's fresh fixes (below) |
+//! | `gps_alt` | [`Quantity::GnssAltitude`] | meters or feet, from the pressure's climb and the accelerometer's at the GPS's fresh fixes (below); a 0, the receiver's mark for no fix, is a gap |
 //! | `vel_z` | [`Quantity::Speed`], up positive: [`FlightLog::vertical_speed_m_s`] | m/s or ft/s, from `pos_z` and the accelerometer (below) |
-//! | `gps_lat`, `gps_long` | [`Quantity::Latitude`], [`Quantity::Longitude`] | NMEA 0183's degrees and minutes, from the values and their companions (below) |
-//! | `gps_lat_mod`, `gps_long_mod` | [`Quantity::Latitude`], [`Quantity::Longitude`] | degrees, where they are `gps_lat` and `gps_long` converted from degrees and minutes (below) |
+//! | `gps_lat`, `gps_long` | [`Quantity::Latitude`], [`Quantity::Longitude`] | NMEA 0183's degrees and minutes or degrees, from the latitudes' and the longitudes' ranges, where the file writes a negative value to show its hemisphere (below); a position (0, 0), no fix, is a gap |
+//! | `gps_lat_mod`, `gps_long_mod` | [`Quantity::Latitude`], [`Quantity::Longitude`] | degrees, where they are `gps_lat` and `gps_long`, once decided, in degrees (below) |
 //! | `dynamixel_degrees`, `dynamixel_degrees_1` | [`Quantity::Angle`] | degrees, from their names: a servo's angle |
 //! | `packetType`, `state`, `pyro_cont`, `pyro_status`, `trigger_status`, `gps_fix_quality`, `gps_sats_tracked`, `gps_hdop`, `q_x` … `q_w` | [`Quantity::Number`] | codes, flags, counts, a dilution of precision and an attitude quaternion's parts, as written: no published source gives the codes' meanings |
 //! | `imu1_accel_*`, `imu1_gyro_*`, `imu1_mag_*`, the same of `imu2`, `high_g_accel_*` | [`Quantity::Unrecognized`] | a sensor's raw counts, kept as written: the `_real` columns hold them scaled |
@@ -55,10 +55,15 @@
 //! | `heading`, `vtg`, `pos_x`, `pos_y`, `vel_x`, `vel_y` | [`Quantity::Unrecognized`] | kept as written: the names state no unit, and in the sample files they hold only 0 but for one file's `vel_x` |
 //!
 //! Each unit a check decides gets a note saying on what evidence, and each column kept as written
-//! a note saying why. Every decision rests on two checks that must agree, neither of which
-//! compares the column with another of the same unknown unit, nor can be met by the weather or
-//! the flight in the wrong unit; a check without enough data to tell decides nothing. The checks,
-//! with what they found in the 20 sample files:
+//! a note saying why. Every decision rests on two checks that must agree and that the weather or
+//! the flight can't meet in the wrong unit; a check without enough data to tell decides nothing.
+//! Most checks set a column against a physical mark (1 g at rest, a barometer's whole pascals, a
+//! sensor's published sensitivity, the board's turning) or against a column whose unit is already
+//! decided (the pressure, an accelerometer). Some set a column against its siblings: the IMUs'
+//! averages are checked against the IMUs' scaled columns, `vel_z` against `pos_z`, and the GPS's
+//! `_mod` companions against `gps_lat` and `gps_long`; each such check counts only once the
+//! sibling is read in a unit by its own two checks, so no counted check relates two columns that
+//! share one unknown unit. The checks, with what they found in the 20 sample files:
 //!
 //! - *The pressures' size and step.* A pad lies 0.5 to 1.1 from sea level's pressure in
 //!   atmospheres or bars, and far from it in pascals, hectopascals, kilopascals, psi or inches or
@@ -115,34 +120,68 @@
 //!   files the factor is 17.5 or 70 m°/s in rad/s, and the turning ratio 0.54 to 2.34 where it is
 //!   read; one file's is 6.6 and 8.4, and two have no stretches to check, so those are kept as
 //!   written. `imu_gyro_*_avg` must bear the IMUs' unit out by the turning and be their mean.
-//! - *The climbs: `pos_z`, `baro_height`, `baroalt_agl`, `baro1_alt`, `gps_alt`.* First, the
-//!   column's climb from its pad reading to its highest (its 5-row running median) over the
-//!   pressure's, which must be at least 30 m, must lie within 25% of 1 in meters or in feet;
-//!   `gps_alt`'s is the least-squares slope, through the pad, of its rise on the pressure's at
-//!   the rows up to the apogee where it changes, a fresh fix, from at least 3. Second, its climb
-//!   over the one the accelerometer integrates to, as above, with the first of `acc_*`, the IMUs'
+//! - *The climbs: `pos_z`, `baro_height`, `baroalt_agl`, `baro1_alt`.* First, the column's climb
+//!   from its pad reading to its highest (its 5-row running median) over the pressure's, which
+//!   must be at least 30 m, must lie within 25% of 1 in meters or in feet. Second, its climb over
+//!   the one the accelerometer integrates to, as above, with the first of `acc_*`, the IMUs'
 //!   scaled columns and their average read in a unit, must lie within a factor of 1.8 of 1:
 //!   1.8² = 3.24 is under the 3.28 between meters and feet. The pressure and the accelerometer
 //!   are decided by their own checks above, so neither shares the column's unknown unit. In the
 //!   sample files `pos_z` is read in meters in every file, its gain 0.90 to 1.21 and its ratio 0.82
-//!   to 1.11; `gps_alt` in 12, gains 0.92 to 1.10, and kept as written in 8, where it reads 0,
-//!   has too few fresh fixes, or climbs far short of the pressure or the accelerometer.
+//!   to 1.11.
+//! - *`gps_alt`.* A receiver may write 0, or hold an old value, until its first fix, so a pad
+//!   reading taken from the first rows can be no altitude at all: subtracted from the climb, a
+//!   pad of 0 at a site 1,000 m up would inflate both checks above alike. So the GPS's checks use
+//!   only its fresh fixes, the rows past the first where it holds a number other than 0 that
+//!   differs from the row before's, and each fits its own line with a free offset, so that no pad
+//!   reading enters either. First, the line's slope on the pressure's climb, at the fresh fixes up
+//!   to the apogee, at least 3 over at least 30 m of climb, must lie within 25% of 1 in meters or
+//!   in feet. Second, its slope on the climb the accelerometer integrates to, as above, at the
+//!   fresh fixes from the launch, at least 5 over at least 30 m, must lie within a factor of 1.8.
+//!   Where the first rows hold a number other than 0, their median, the pad reading, must lie
+//!   within a quarter of the GPS's rise over the fixes of where the first line puts the pad: a
+//!   value further off is one held from before the first fix, and the column is kept as written,
+//!   as a pad that far off would move a gain taken through it by more than its whole 25% margin.
+//!   Where the column is read, each 0 is a gap, counted in a note. In the sample files every GPS
+//!   altitude but one that reads 0 throughout holds a number other than 0 from the first row;
+//!   `gps_alt` is read in meters in 12, its gains 0.91 to 1.10 and
+//!   its ratios 0.86 to 1.39, its pad reading within 6% of its rise of where the line puts the
+//!   pad, and kept as written in 8, where it reads 0, has too few fresh fixes, or climbs far short
+//!   of the pressure or the accelerometer.
 //! - *`vel_z`.* First, over the steps at most 0.05 s long, the least-squares slope of `pos_z`'s
 //!   change, in meters, on `vel_z` times the step must lie within 25% of 1 in m/s or of 0.3048 in
 //!   ft/s, from at least 10 m of movement. Second, the median, over the rows past 10 m/s, of it
 //!   over the speed the accelerometer integrates to must lie within a factor of 1.8. In the sample
 //!   files the slope is 0.92 to 1.00 and the ratio 0.80 to 1.24 in m/s; one file's `vel_z` reads 0
 //!   throughout and one's slope is 0.59, kept as written.
-//! - *The GPS position.* NMEA 0183's degrees and minutes write a latitude of 42.5° as 4230.0. The
-//!   first check: some latitude passes 90 or longitude 180, which no degrees do, and every value's
-//!   last two digits before the point, its minutes, are under 60. The second: `gps_lat_mod` and
-//!   `gps_long_mod` hold every value converted from degrees and minutes to degrees, within a
-//!   millionth. Then the values are read in degrees and minutes and their companions in degrees;
-//!   otherwise all four are kept as written. 15 sample files pass both. In three later ones a
-//!   longitude's "minutes" pass 60, so the values aren't degrees and minutes, and the companions
-//!   hold them converted as if they were: the values read like degrees, but no second check bears
-//!   that out. In one the GPS reads 0 throughout, and in one a longitude's "minutes" pass 60 and
-//!   the companions copy the values, which checks no unit.
+//! - *The GPS position.* NMEA 0183's degrees and minutes write a latitude of 42.5° as 4230.0, so
+//!   they put every latitude more than 1° from the equator past 90 and every longitude more than
+//!   2° from the prime meridian past 180, which no degrees reach. The checks take only the fixes:
+//!   a position (0, 0) is the receiver's mark for none, and where the position is read it is a gap,
+//!   counted in a note. Degrees and minutes: most latitudes pass ±90 and, a second check on
+//!   another measurement, most longitudes pass ±180; every value's last two digits before the
+//!   point, its minutes, are under 60; and converted, every latitude lies within ±90 and every
+//!   longitude within ±180. "Most" keeps one corrupt fix from deciding a file. Degrees: every
+//!   latitude lies within ±90 and, the second check, every longitude within ±180, which in
+//!   degrees and minutes would put the place within 1° of the equator and 2° of the prime meridian
+//!   at once, at sea in the Gulf of Guinea. Otherwise both are kept as written.
+//!   `gps_lat_mod` and `gps_long_mod` count in neither decision: they are read in degrees only
+//!   where `gps_lat` and `gps_long` are read and, at every fix, they hold them in degrees within a
+//!   millionth (converted from degrees and minutes, or as written), and are kept as written
+//!   otherwise. In the sample files 15 positions are read in degrees and minutes, every fix past
+//!   ±90 and ±180, and their companions in degrees; 4 in degrees, every fix within, whose
+//!   companions in 3 hold the values converted as if they were degrees and minutes, and are kept,
+//!   and in 1 copy them, and are read; in one the GPS reads 0 throughout.
+//! - *The GPS hemisphere.* NMEA 0183 writes the hemisphere in a field of its own beside each
+//!   coordinate (N or S, E or W); the board's columns have no such field, so the sign is all
+//!   that can carry it. A file that writes a negative value in `gps_lat` or `gps_long` shows its
+//!   signs, and the position is read by the checks above, each coordinate with its sign. Where
+//!   every value in both is 0 or more, a place south of the equator or west of the prime
+//!   meridian can't be told from its mirror north or east, so both, and their companions, are
+//!   kept as written, with a note giving how the checks above would read them, so that a person
+//!   who knows the site can sign them; no hemisphere is guessed from anything else. In the
+//!   sample files every one of the 19 with a fix writes its longitudes negative, west, and its
+//!   latitudes positive, and is read; none is kept for want of a hemisphere.
 //!
 //! **The primary track.** The record's altitude is `pos_z`, the board's filtered altitude above
 //! the pad, where it is read in a unit; otherwise the track is empty and a note says so, as no
@@ -1646,7 +1685,8 @@ fn integrated(
     }
 }
 
-/// Decides `pos_z`'s, the barometric altitudes' and the GPS altitude's units (module docs).
+/// Decides `pos_z`'s and the barometric altitudes' units (module docs); the GPS altitude's is
+/// [`decide_gps_altitude`]'s.
 fn decide_lengths(
     columns: &mut [Column],
     flight: &Flight,
@@ -1657,7 +1697,11 @@ fn decide_lengths(
     let pressure_climb = flight.apogee.map(|row| flight.climb_m(row));
     for column in columns.iter_mut() {
         let role = column.role;
-        if !matches!(role, Role::Height | Role::BaroAltitude | Role::GpsAltitude) {
+        if role == Role::GpsAltitude {
+            decide_gps_altitude(column, flight, &rows, decisions);
+            continue;
+        }
+        if !matches!(role, Role::Height | Role::BaroAltitude) {
             continue;
         }
         let name = column.quoted();
@@ -1672,19 +1716,11 @@ fn decide_lengths(
             continue;
         };
         // Check 1: the gain against the pressure's climb.
-        let (gain, gain_how) = if role == Role::GpsAltitude {
-            (
-                fresh_fix_gain(column, flight, pad),
-                "at the GPS's fresh fixes up to the apogee",
-            )
-        } else {
-            let smooth = running_median(&column.values);
-            let top = highest(&smooth).map(|row| smooth[row] - pad);
-            let gain = match (top, pressure_climb) {
-                (Some(top), Some(climb)) if climb >= LEAST_CLIMB_M => Some(top / climb),
-                _ => None,
-            };
-            (gain, "from the pad to its highest")
+        let smooth = running_median(&column.values);
+        let top = highest(&smooth).map(|row| smooth[row] - pad);
+        let gain = match (top, pressure_climb) {
+            (Some(top), Some(climb)) if climb >= LEAST_CLIMB_M => Some(top / climb),
+            _ => None,
         };
         // Check 2: the climb against the accelerometer's.
         let ratio = climb_ratio(&rows, |row| column.values[row] - pad);
@@ -1694,26 +1730,17 @@ fn decide_lengths(
         let by_climb = LENGTH_UNITS
             .iter()
             .position(|(_, s)| ratio.is_some_and(|r| within_factor(r * s, LENGTH_FACTOR)));
-        let text = |x: Option<f64>| {
-            x.map_or_else(
-                || "none, too little to tell".to_owned(),
-                |x| format!("{x:.3}"),
-            )
-        };
         let evidence = format!(
-            "its climb {gain_how} over the pressure's in the standard atmosphere is {} as written, \
-             and its climb from the launch over the one the accelerometer integrates to is {}; a \
-             gain within 25% of 1 and a ratio within a factor of {LENGTH_FACTOR} are taken",
-            text(gain),
-            text(ratio)
+            "its climb from the pad to its highest over the pressure's in the standard atmosphere \
+             is {} as written, and its climb from the launch over the one the accelerometer \
+             integrates to is {}; a gain within 25% of 1 and a ratio within a factor of \
+             {LENGTH_FACTOR} are taken",
+            measured(gain),
+            measured(ratio)
         );
-        let quantity = match role {
-            Role::GpsAltitude => Quantity::GnssAltitude,
-            _ => Quantity::AltitudeAboveGround,
-        };
         match (by_gain, by_climb) {
             (Some(g), Some(c)) if g == c => {
-                column.read_as(quantity, LENGTH_UNITS[g].1);
+                column.read_as(Quantity::AltitudeAboveGround, LENGTH_UNITS[g].1);
                 decisions.push(format!(
                     "{name} read in {}, from the pressure's climb and the accelerometer's: \
                      {evidence}",
@@ -1728,24 +1755,165 @@ fn decide_lengths(
     }
 }
 
-/// The GPS altitude's gain against the pressure's: at the rows up to the apogee where it differs
-/// from the row before, a fresh fix, the least squares slope through the pad of its rise on the
-/// pressure's; `None` under 3 fixes or a pressure climb under [`LEAST_CLIMB_M`] among them.
-fn fresh_fix_gain(column: &Column, flight: &Flight, pad: f64) -> Option<f64> {
-    let apogee = flight.apogee?;
-    let (mut cross, mut square, mut fixes, mut top) = (0.0, 0.0, 0usize, 0.0f64);
-    for row in 1..=apogee.min(column.values.len().saturating_sub(1)) {
-        let (before, value) = (column.values[row - 1], column.values[row]);
-        let climb = flight.climb_m(row);
-        if value == before || !(value.is_finite() && climb.is_finite()) {
-            continue;
-        }
-        cross += climb * (value - pad);
-        square += climb * climb;
-        fixes += 1;
-        top = top.max(climb);
+/// A measured value in a note, or that there was too little to measure it.
+fn measured(x: Option<f64>) -> String {
+    x.map_or_else(
+        || "none, too little to tell".to_owned(),
+        |x| format!("{x:.3}"),
+    )
+}
+
+/// Whether a GPS altitude's row is a fresh fix: past the first row, a number other than 0, the
+/// receiver's mark for no fix, that differs from the row before's. A value held unchanged, before
+/// the first fix or between two, is none.
+fn fresh_fix(values: &[f64], row: usize) -> bool {
+    let value = values[row];
+    row > 0 && value.is_finite() && value != 0.0 && value != values[row - 1]
+}
+
+/// A least-squares line `y = intercept + slope x`, its intercept free.
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct Line {
+    slope: f64,
+    intercept: f64,
+    /// How many points it was fitted to.
+    points: usize,
+    /// The points' spread in x, greatest less least.
+    span: f64,
+}
+
+/// The least-squares line through points, its intercept free; `None` under `least` points or
+/// with a spread in x under [`LEAST_CLIMB_M`].
+fn fit_line(points: &[(f64, f64)], least: usize) -> Option<Line> {
+    if points.is_empty() || points.len() < least {
+        return None;
     }
-    (fixes >= 3 && top >= LEAST_CLIMB_M).then_some(cross / square)
+    let count = points.len() as f64;
+    let (low, high) = points
+        .iter()
+        .fold((f64::INFINITY, f64::NEG_INFINITY), |(lo, hi), p| {
+            (lo.min(p.0), hi.max(p.0))
+        });
+    let span = high - low;
+    // Written to fail closed: a `NaN` spread is too little.
+    if span.is_nan() || span < LEAST_CLIMB_M {
+        return None;
+    }
+    let mean_x = points.iter().map(|p| p.0).sum::<f64>() / count;
+    let mean_y = points.iter().map(|p| p.1).sum::<f64>() / count;
+    let (mut cross, mut square) = (0.0, 0.0);
+    for (x, y) in points {
+        cross += (x - mean_x) * (y - mean_y);
+        square += (x - mean_x) * (x - mean_x);
+    }
+    let slope = cross / square;
+    let intercept = mean_y - slope * mean_x;
+    (slope.is_finite() && intercept.is_finite()).then_some(Line {
+        slope,
+        intercept,
+        points: points.len(),
+        span,
+    })
+}
+
+/// Decides the GPS altitude's unit (module docs): its rise at its fresh fixes against the
+/// pressure's climb and against the accelerometer's, each a line fitted with its own free offset,
+/// so that neither rests on a value the receiver wrote before its first fix; and its pad reading,
+/// where it has one other than 0, must lie near where the first line puts the pad.
+fn decide_gps_altitude(
+    column: &mut Column,
+    flight: &Flight,
+    integrated: &[Integrated],
+    decisions: &mut Vec<String>,
+) {
+    let name = column.quoted();
+    if column.all_zero() {
+        decisions.push(format!(
+            "{name} kept as written: every value is 0, the receiver's mark for no fix"
+        ));
+        return;
+    }
+    let values = &column.values;
+    // Check 1: against the pressure's climb, at the fresh fixes up to the apogee.
+    let by_pressure: Vec<(f64, f64)> = flight.apogee.map_or_else(Vec::new, |apogee| {
+        (0..=apogee.min(values.len().saturating_sub(1)))
+            .filter(|&row| fresh_fix(values, row))
+            .map(|row| (flight.climb_m(row), values[row]))
+            .filter(|(climb, _)| climb.is_finite())
+            .collect()
+    });
+    let pressure_line = fit_line(&by_pressure, 3);
+    // Check 2: against the accelerometer's climb, at the fresh fixes from the launch.
+    let by_accelerometer: Vec<(f64, f64)> = integrated
+        .iter()
+        .filter(|(row, _, _)| *row < values.len() && fresh_fix(values, *row))
+        .map(|&(row, _, climb)| (climb, values[row]))
+        .collect();
+    let accelerometer_line = fit_line(&by_accelerometer, LEAST_ROWS);
+    let gain = pressure_line.map(|line| line.slope);
+    let ratio = accelerometer_line.map(|line| line.slope);
+    let by_gain = LENGTH_UNITS
+        .iter()
+        .position(|(_, s)| gain.is_some_and(|g| within_margin(g * s, GAIN_MARGIN)));
+    let by_climb = LENGTH_UNITS
+        .iter()
+        .position(|(_, s)| ratio.is_some_and(|r| within_factor(r * s, LENGTH_FACTOR)));
+    // The pad: the median of the first rows' numbers other than 0, if any. It must lie within a
+    // quarter of the GPS's own rise over the fixes of where the first line puts the pad, or it is
+    // a value held from before the first fix.
+    let pad = median(values.iter().take(PAD_ROWS).copied().filter(|v| *v != 0.0));
+    let held = match (pad, pressure_line) {
+        (Some(pad), Some(line)) => {
+            let off = (pad - line.intercept).abs();
+            let allowed = GAIN_MARGIN * (line.slope * line.span).abs();
+            // Written to fail closed: a `NaN` distance is too far.
+            (off.is_nan() || off > allowed).then_some((pad, line.intercept, allowed))
+        }
+        _ => None,
+    };
+    let fixes = |line: Option<Line>| line.map_or(0, |l| l.points);
+    let evidence = format!(
+        "its rise over the pressure's climb in the standard atmosphere, a line with a free offset \
+         through its {} fresh fixes up to the apogee, is {} as written, and over the climb the \
+         accelerometer integrates to, through its {} fresh fixes from the launch, {}; a gain \
+         within 25% of 1 and a ratio within a factor of {LENGTH_FACTOR} are taken, each over a \
+         climb of at least {LEAST_CLIMB_M} m",
+        fixes(pressure_line),
+        measured(gain),
+        fixes(accelerometer_line),
+        measured(ratio)
+    );
+    match (by_gain, by_climb, held) {
+        (_, _, Some((pad, start, allowed))) => decisions.push(format!(
+            "{name} kept as written: its pad reading isn't where its climb starts, a value held \
+             from before its first fix: on the pad it reads {pad}, and its fixes' line puts the \
+             pad at {start:.1}, more than {allowed:.1} away, a quarter of its rise over the \
+             fixes; {evidence}"
+        )),
+        (Some(g), Some(c), None) if g == c => {
+            column.read_as(Quantity::GnssAltitude, LENGTH_UNITS[g].1);
+            let mut no_fix = 0usize;
+            for value in &mut column.values {
+                if *value == 0.0 {
+                    *value = f64::NAN;
+                    no_fix += 1;
+                }
+            }
+            decisions.push(format!(
+                "{name} read in {}, from the pressure's climb and the accelerometer's: {evidence}",
+                LENGTH_UNITS[g].0
+            ));
+            if no_fix > 0 {
+                decisions.push(format!(
+                    "{no_fix} rows of {name} hold 0, the receiver's mark for no fix: each is a gap"
+                ));
+            }
+        }
+        _ => decisions.push(format!(
+            "{name} kept as written: the pressure's climb and the accelerometer's don't agree on \
+             a unit: {evidence}"
+        )),
+    }
 }
 
 /// Decides `vel_z`'s unit by `pos_z`'s change and the accelerometer's speed (module docs).
@@ -1831,92 +1999,261 @@ fn decide_climb(
     }
 }
 
-/// Decides the GPS's position: NMEA's degrees and minutes if the values and their `_mod`
-/// companions both say so (module docs).
+/// How a GPS's latitudes or longitudes lie against the bound degrees reach, 90 or 180: at its
+/// fixes, how many there are and how many pass it.
+#[derive(Debug, Clone, Copy)]
+struct Range {
+    fixes: usize,
+    beyond: usize,
+}
+
+impl Range {
+    fn of(values: impl Iterator<Item = f64>, bound: f64) -> Self {
+        let (mut fixes, mut beyond) = (0, 0);
+        for value in values {
+            fixes += 1;
+            // Written to fail closed: a `NaN` passes no bound and is never among the fixes.
+            if value.is_nan() || value.abs() > bound {
+                beyond += 1;
+            }
+        }
+        Self { fixes, beyond }
+    }
+
+    /// Whether most pass the bound, as degrees and minutes put every coordinate but those within
+    /// 1° of the equator (a latitude) or 2° of the prime meridian (a longitude).
+    fn says_degrees_minutes(self) -> bool {
+        self.fixes > 0 && 2 * self.beyond > self.fixes
+    }
+
+    /// Whether none passes it, as no degrees do.
+    fn says_degrees(self) -> bool {
+        self.fixes > 0 && self.beyond == 0
+    }
+}
+
+/// How the GPS's position is read.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Position {
+    DegreesMinutes,
+    Degrees,
+}
+
+/// Decides the GPS's position: NMEA's degrees and minutes, or degrees, from the ranges of its
+/// latitudes and its longitudes and, for degrees and minutes, the minutes (module docs). A
+/// position (0, 0) is the receiver's mark for no fix: it takes no part in the checks and, where
+/// the position is read, is a gap. `gps_lat_mod` and `gps_long_mod` are checked against the
+/// position once it is decided, and count in no check of it. Where no value of `gps_lat` or
+/// `gps_long` is negative, the file shows no hemisphere, and all four are kept as written.
 fn decide_position(columns: &mut [Column], decisions: &mut Vec<String>) {
     let find = |role: Role| columns.iter().position(|c| c.role == role);
     let (Some(lat), Some(long)) = (find(Role::Latitude), find(Role::Longitude)) else {
         return;
     };
-    let mods = (find(Role::LatitudeMod), find(Role::LongitudeMod));
-    let mut at = vec![lat, long];
-    at.extend(mods.0);
-    at.extend(mods.1);
-    let names = listed(columns, &[lat, long]);
-    let all_names = listed(columns, &at);
-    if columns[lat].all_zero() && columns[long].all_zero() {
-        decisions.push(format!(
-            "{all_names} kept as written: every value is 0, a receiver without a fix"
-        ));
-        return;
-    }
-    let numbers = |i: usize| columns[i].values.iter().copied().filter(|v| v.is_finite());
-    // Check 1: the values. Degrees reach 90 and 180; degrees and minutes write minutes under 60.
-    let beyond_degrees =
-        numbers(lat).any(|v| v.abs() > 90.0) || numbers(long).any(|v| v.abs() > 180.0);
-    let minutes_ok = numbers(lat)
-        .chain(numbers(long))
-        .all(|v| v.abs() % 100.0 < 60.0);
-    // Check 2: the companions hold the values converted from degrees and minutes.
-    let converted = |value: usize, companion: Option<usize>| {
-        companion.is_some_and(|c| {
-            let mut any = false;
-            let all = columns[value]
-                .values
-                .iter()
-                .zip(&columns[c].values)
-                .filter(|(v, m)| v.is_finite() && m.is_finite())
-                .all(|(v, m)| {
-                    any = true;
-                    let expected = degrees_minutes(*v);
-                    (expected - m).abs() <= SAME * expected.abs().max(1.0)
-                });
-            any && all
-        })
-    };
-    let companions = converted(lat, mods.0) && converted(long, mods.1);
-    let values_say = if beyond_degrees && minutes_ok {
-        "they pass 90 or 180, which no degrees do, and every one's last two digits before the \
-         point, its minutes, are under 60"
-    } else if !minutes_ok {
-        "a value's last two digits before the point are 60 or more, which no minutes are, so they \
-         aren't degrees and minutes"
-    } else {
-        "every value lies within ±90 and ±180, as degrees and degrees and minutes both can"
-    };
-    if beyond_degrees && minutes_ok && companions {
-        columns[lat].quantity = Quantity::Latitude;
-        columns[lat].conversion = Conversion::DegreesMinutes;
-        columns[long].quantity = Quantity::Longitude;
-        columns[long].conversion = Conversion::DegreesMinutes;
-        decisions.push(format!(
-            "{names} read in NMEA 0183's degrees and minutes, ddmm.mmmm, from their values and \
-             their companions: {values_say}, and `gps_lat_mod` and `gps_long_mod` hold them \
-             converted from degrees and minutes to degrees"
-        ));
-        if let (Some(lat_mod), Some(long_mod)) = mods {
-            columns[lat_mod].read_as(Quantity::Latitude, 1.0);
-            columns[long_mod].read_as(Quantity::Longitude, 1.0);
+    let mods = match (find(Role::LatitudeMod), find(Role::LongitudeMod)) {
+        (Some(a), Some(b)) => Some((a, b)),
+        (Some(lone), None) | (None, Some(lone)) => {
             decisions.push(format!(
-                "{} read in degrees, from {names}: each is its companion, read in degrees and \
-                 minutes, converted to degrees",
-                listed(columns, &[lat_mod, long_mod])
+                "{} kept as written: its companion of the other coordinate is missing, and the \
+                 two are checked as one position",
+                columns[lone].quoted()
+            ));
+            None
+        }
+        (None, None) => None,
+    };
+    let names = listed(columns, &[lat, long]);
+    let mod_names = mods.map(|(a, b)| listed(columns, &[a, b]));
+    let keep_mods = |decisions: &mut Vec<String>| {
+        if let Some(mod_names) = &mod_names {
+            decisions.push(format!(
+                "{mod_names} kept as written: {names} aren't read in a unit, and a companion is \
+                 checked only against a position that is"
             ));
         }
-    } else {
-        let copied = |value: usize, companion: Option<usize>| {
-            companion.is_some_and(|c| columns[value].values == columns[c].values)
-        };
-        let companions_say = if companions {
-            "`gps_lat_mod` and `gps_long_mod` hold them converted as degrees and minutes are"
-        } else if copied(lat, mods.0) && copied(long, mods.1) {
-            "`gps_lat_mod` and `gps_long_mod` hold the same values, a copy that checks no unit"
-        } else {
-            "`gps_lat_mod` and `gps_long_mod` don't hold them converted from degrees and minutes"
-        };
+    };
+    let rows = columns[lat].values.len();
+    let pair = |row: usize| (columns[lat].values[row], columns[long].values[row]);
+    let no_fix = |row: usize| pair(row) == (0.0, 0.0);
+    let fixed: Vec<usize> = (0..rows)
+        .filter(|&row| {
+            let (a, b) = pair(row);
+            a.is_finite() && b.is_finite() && !no_fix(row)
+        })
+        .collect();
+    if fixed.is_empty() {
         decisions.push(format!(
-            "{all_names} kept as written: the values and their companions don't both bear one unit out: \
-             {values_say}; {companions_say}"
+            "{names} kept as written: no row holds a fix: every position is (0, 0), the \
+             receiver's mark for none, or a gap"
+        ));
+        keep_mods(decisions);
+        return;
+    }
+    let latitudes = Range::of(fixed.iter().map(|&row| pair(row).0), 90.0);
+    let longitudes = Range::of(fixed.iter().map(|&row| pair(row).1), 180.0);
+    let fixes = fixed.len();
+    let minutes_ok = fixed.iter().all(|&row| {
+        let (a, b) = pair(row);
+        a.abs() % 100.0 < 60.0 && b.abs() % 100.0 < 60.0
+    });
+    let converted_ok = fixed.iter().all(|&row| {
+        let (a, b) = pair(row);
+        degrees_minutes(a).abs() <= 90.0 && degrees_minutes(b).abs() <= 180.0
+    });
+    let ranges = format!(
+        "of its {fixes} fixes, {} latitudes pass ±90 and {} longitudes ±180, which no degrees do",
+        latitudes.beyond, longitudes.beyond
+    );
+    let minutes = if minutes_ok {
+        "every value's last two digits before the point, its minutes in degrees and minutes, \
+         are under 60"
+    } else {
+        "some value's last two digits before the point are 60 or more, which no minutes are"
+    };
+    // How the ranges read the position, and the note's words after the columns' names: "read
+    // in …" where they decide a unit, "kept as written: …" where they don't.
+    let (decided, said) = if latitudes.says_degrees_minutes() && longitudes.says_degrees_minutes() {
+        if minutes_ok && converted_ok {
+            (
+                Some(Position::DegreesMinutes),
+                format!(
+                    "read in NMEA 0183's degrees and minutes, ddmm.mmmm, from their ranges and \
+                     their minutes: {ranges}: most of each, as degrees and minutes write any \
+                     place more than 1° from the equator and 2° from the prime meridian; \
+                     {minutes}; and converted, every latitude lies within ±90 and every \
+                     longitude within ±180"
+                ),
+            )
+        } else {
+            let converted = if converted_ok {
+                ""
+            } else {
+                "; converted from degrees and minutes, a latitude passes ±90 or a longitude ±180"
+            };
+            (
+                None,
+                format!(
+                    "kept as written: their ranges say degrees and minutes, but their values \
+                     aren't all degrees and minutes: {ranges}; {minutes}{converted}"
+                ),
+            )
+        }
+    } else if latitudes.says_degrees() && longitudes.says_degrees() {
+        let minutes = if minutes_ok {
+            "each value's last two digits before the point are under 60, as degrees and \
+             minutes' would be, so they tell nothing here"
+        } else {
+            "some value's last two digits before the point are 60 or more, which no degrees and \
+             minutes are"
+        };
+        (
+            Some(Position::Degrees),
+            format!(
+                "read in degrees, from the latitudes' range and the longitudes': at each of its \
+                 {fixes} fixes the latitude lies within ±90 and the longitude within ±180, where \
+                 degrees and minutes would put the place within 1° of the equator and 2° of the \
+                 prime meridian, both at once only at sea in the Gulf of Guinea; {minutes}"
+            ),
+        )
+    } else {
+        (
+            None,
+            format!(
+                "kept as written: the latitudes' range and the longitudes' don't both bear one \
+                 unit out: {ranges}; degrees and minutes need most of each to, and degrees none"
+            ),
+        )
+    };
+    // The hemisphere: NMEA 0183 writes it in a field of its own beside each coordinate (N or S,
+    // E or W), and the board's columns drop it. A file that writes a negative value in either
+    // column shows its signs; one whose every value is 0 or more can't tell a place south of
+    // the equator or west of the prime meridian from its mirror, so it is kept as written, its
+    // note saying how its ranges would read it. No hemisphere is guessed from anything else.
+    let signed = [lat, long]
+        .iter()
+        .any(|&at| columns[at].values.iter().any(|&v| v < 0.0));
+    if !signed {
+        decisions.push(format!(
+            "{names} kept as written, with no hemisphere: every value in them is 0 or more and \
+             the file writes no hemisphere, which NMEA 0183 writes in a field of its own, so a \
+             place south of the equator or west of the prime meridian reads as its mirror north \
+             or east; a person who knows the site can sign them. Unsigned, they would be {said}"
+        ));
+        if let Some(mod_names) = &mod_names {
+            decisions.push(format!(
+                "{mod_names} kept as written, with no hemisphere: {names} are kept for want of \
+                 one, and a companion is read only beside a position that is"
+            ));
+        }
+        return;
+    }
+    decisions.push(format!("{names} {said}"));
+    let Some(decided) = decided else {
+        keep_mods(decisions);
+        return;
+    };
+    let conversion = match decided {
+        Position::DegreesMinutes => Conversion::DegreesMinutes,
+        Position::Degrees => Conversion::Scale(1.0),
+    };
+    // The companions: each, at every fix, the value read as decided, within a millionth.
+    let companions_hold = mods.is_some_and(|(lat_mod, long_mod)| {
+        [(lat, lat_mod), (long, long_mod)]
+            .iter()
+            .all(|&(value, companion)| {
+                fixed.iter().all(|&row| {
+                    let expected = conversion.apply(columns[value].values[row]);
+                    let held = columns[companion].values[row];
+                    (expected - held).abs() <= SAME * expected.abs().max(1.0)
+                })
+            })
+    });
+    let blank = (0..rows).filter(|&row| no_fix(row)).collect::<Vec<_>>();
+    let mut read = vec![lat, long];
+    for (at, quantity) in [(lat, Quantity::Latitude), (long, Quantity::Longitude)] {
+        columns[at].quantity = quantity;
+        columns[at].conversion = conversion;
+    }
+    if let (Some((lat_mod, long_mod)), Some(mod_names)) = (mods, &mod_names) {
+        let read_as = match decided {
+            Position::DegreesMinutes => "read in degrees and minutes, converted to degrees",
+            Position::Degrees => "read in degrees, as written",
+        };
+        if companions_hold {
+            columns[lat_mod].read_as(Quantity::Latitude, 1.0);
+            columns[long_mod].read_as(Quantity::Longitude, 1.0);
+            read.extend([lat_mod, long_mod]);
+            decisions.push(format!(
+                "{mod_names} read in degrees, from {names}: at every fix each is its companion, \
+                 {read_as}"
+            ));
+        } else {
+            let holds = if decided == Position::Degrees
+                && fixed.iter().all(|&row| {
+                    let expected = degrees_minutes(columns[lat].values[row]);
+                    let held = columns[lat_mod].values[row];
+                    (expected - held).abs() <= SAME * expected.abs().max(1.0)
+                }) {
+                "they hold the values converted as if they were degrees and minutes, which they \
+                 aren't"
+            } else {
+                "they aren't their companions read as decided"
+            };
+            decisions.push(format!(
+                "{mod_names} kept as written: {names} are {read_as}, and {holds}"
+            ));
+        }
+    }
+    if !blank.is_empty() {
+        for &at in &read {
+            for &row in &blank {
+                columns[at].values[row] = f64::NAN;
+            }
+        }
+        decisions.push(format!(
+            "{} rows of {names} hold the position (0, 0), the receiver's mark for no fix: each is \
+             a gap",
+            blank.len()
         ));
     }
 }
@@ -2320,5 +2657,38 @@ mod tests {
         assert!(!within_factor(f64::NAN, 10.0));
         assert!(!within_margin(f64::NAN, 0.25));
         assert!(within_factor(0.11, 10.0) && !within_factor(0.09, 10.0));
+    }
+
+    /// A line with a free intercept takes the slope whatever the offset: a site 1,500 m up
+    /// written in feet still rises 3.28 ft a meter. Too few points or too short a climb fit none.
+    #[test]
+    fn a_free_intercept_takes_the_slope_whatever_the_offset() {
+        let points: Vec<(f64, f64)> = (0..10)
+            .map(|i| {
+                let climb = 30.0 + 20.0 * f64::from(i);
+                (climb, (1_500.0 + climb) / FOOT_M)
+            })
+            .collect();
+        let line = fit_line(&points, 3).unwrap();
+        assert!((line.slope - 1.0 / FOOT_M).abs() < 1e-9, "{line:?}");
+        assert!((line.intercept - 1_500.0 / FOOT_M).abs() < 1e-6, "{line:?}");
+        assert_eq!((line.points, line.span), (10, 180.0));
+        assert!(fit_line(&points[..2], 3).is_none());
+        assert!(
+            fit_line(&points[..2], 2).is_none(),
+            "a 20 m climb is under 30 m"
+        );
+        assert!(fit_line(&points[..3], 3).is_some());
+        assert!(fit_line(&[(f64::NAN, 1.0); 5], 3).is_none());
+    }
+
+    /// A GPS altitude's fresh fix is a number other than 0 that differs from the row before's.
+    #[test]
+    fn a_fresh_fix_is_a_new_number_other_than_0() {
+        let values = [0.0, 0.0, 250.0, 250.0, 251.0, f64::NAN, 251.0, 0.0];
+        let fresh: Vec<usize> = (0..values.len())
+            .filter(|&row| fresh_fix(&values, row))
+            .collect();
+        assert_eq!(fresh, [2, 4, 6]);
     }
 }
