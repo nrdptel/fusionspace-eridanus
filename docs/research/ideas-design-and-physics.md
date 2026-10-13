@@ -121,6 +121,30 @@ From the 2026-10-10 planning review:
   PR #920). Moves: angle of attack at rail exit against RocketPy, not measured today. *Done when:*
   a body on a frictionless line under gravity matches the energy integral
   ω² = 2mgd(sin θ₀ − sin θ)/(I_cg + md² cos² θ), and RocketPy's example's pitch rate is within 5%.
+- SOON: motor curves checked against the certifier. User: a flyer simulating offline on a cached
+  curve. Why: in September 2026 a contributor replaced 63 ThrustCurve curves and had 70 deleted
+  for rows doubled at time zero, times out of order and impulse off the certification
+  ([its thread][tc-thread]); NAR's retests of 17 motors, F and smaller, ran a median 9.4% below
+  their older test mean, which the catalog keeps on 15 ([motor data](motor-data.md)). Workflow:
+  `hpr motors check` flags each defect class and an impulse off the certifier's latest mean beyond
+  its tolerance; `hpr sim` also flies the certifier's impulse, thrust scaled at a fixed burn time
+  and propellant with it, each check taking its worse side. It also flags a curve whose samples
+  duplicate another motor's: one catalog H255 curve was another motor's file, reported
+  2026-10-11 on [OpenRocket #2348][or-2348]. Moves: `bias.public` and `bias.collection`, flown
+  both ways. *Done when:* a fixture per defect class is flagged and a
+  clean curve isn't; both reports give the bias with flagged flights at the certifier's mean, and
+  their count (groups under 5 flights as a count only).
+- LATER: aero tables OpenRocket can read. User: a flyer checking a design in both tools. Why:
+  OpenRocket's development line reads drag and stability lookup tables, documented in its user
+  guide ([a forum thread][or-tables], 2026-10-03). Workflow: `hpr aero` writes HPR Sim's drag and
+  center of pressure against Mach in that format for OpenRocket to fly. Moves: [M2.3c6][m2-3c6]'s
+  split of the 0.93-point gap in `accuracy.collection`, isolating aerodynamics. *Done when:* on 10
+  public designs and the collection (as aggregates), both tools' apogees with and without the
+  tables are published; a test pins the file to bytes derived by hand from the format's docs.
 
 [m1-14f]: ../decisions-and-roadmap.md#m1-14f
 [m8-3]: ../decisions-and-roadmap.md#m8-3
+[tc-thread]: https://www.rocketryforum.com/threads/thrustcurve-open-thread.164391/page-30
+[or-tables]: https://www.rocketryforum.com/threads/omg-openrocket-26xx-sapshot-drag-csv-and-stability-csv.199161/
+[or-2348]: https://github.com/openrocket/openrocket/issues/2348
+[m2-3c6]: ../decisions-and-roadmap.md#m2-3c6

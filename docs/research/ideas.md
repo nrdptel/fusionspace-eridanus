@@ -116,42 +116,41 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
-## Earlier planning reviews (2026-10-08 to 2026-10-11)
+## Earlier planning reviews (2026-10-08 to 2026-10-12)
 
 PROMOTED: OpenRocket's newest release as the bar ([M2.3c3][m2-3c3], ADR-212), the gap to it by
-cause (M2.3c6, [ADR-226][adr-226]), apogees past Mach 1 ([M2.3c7][m2-3c7], [ADR-236][adr-236]).
-The rest moved to the theme notes on [avionics](ideas-avionics.md), [flight data](ideas-flight-data.md),
-[pad and recovery](ideas-pad-and-recovery.md) and [design and physics](ideas-design-and-physics.md).
+cause (M2.3c6, [ADR-226][adr-226]), apogees past Mach 1 ([M2.3c7][m2-3c7], [ADR-236][adr-236]),
+Student Launch's limits by requirement number ([M6.3][m6-3], [ADR-246][adr-246]). The rest moved
+to the theme notes on [avionics](ideas-avionics.md), [flight data](ideas-flight-data.md),
+[pad and recovery](ideas-pad-and-recovery.md), [design and physics](ideas-design-and-physics.md)
+and [competitions](ideas-competitions-and-clubs.md).
 
-## The 2026-10-12 planning review
+## The 2026-10-13 planning review
 
-- PROMOTED into [M6.3][m6-3] ([ADR-246][adr-246]): Student Launch's 2027 College/University
-  limits by requirement number, a second method for descent, each check's error side pinned.
-- SOON: Student Launch's checks in one command. User: a Student Launch team's safety lead before a
-  design review. Workflow: one `hpr` command runs the M6.3 preset on a design and prints every
-  limit's reading against it, at both ballasts and four winds. Moves: a new
-  `steps.command-line` row for that task, with each tool's count or *can't* by its docs. *Done
-  when:* the row is in `validation/steps/`, HPR Sim's file is run by a test, and the scoreboard
-  shows it.
-- SOON: motor curves checked against the certifier. User: a flyer simulating offline on a cached
-  curve. Why: in September 2026 a contributor replaced 63 ThrustCurve curves and had 70 deleted
-  for rows doubled at time zero, times out of order and impulse off the certification
-  ([its thread][tc-thread]); NAR's retests of 17 motors, F and smaller, ran a median 9.4% below
-  their older test mean, which the catalog keeps on 15 ([motor data](motor-data.md)). Workflow:
-  `hpr motors check` flags each defect class and an impulse off the certifier's latest mean beyond
-  its tolerance; `hpr sim` also flies the certifier's impulse, thrust scaled at a fixed burn time
-  and propellant with it, each check taking its worse side. Moves: `bias.public` and
-  `bias.collection`, flown both ways. *Done when:* a fixture per defect class is flagged and a
-  clean curve isn't; both reports give the bias with flagged flights at the certifier's mean, and
-  their count (groups under 5 flights as a count only).
-- LATER: aero tables OpenRocket can read. User: a flyer checking a design in both tools. Why:
-  OpenRocket's development line reads drag and stability lookup tables, documented in its user
-  guide ([a forum thread][or-tables], 2026-10-03). Workflow: `hpr aero` writes HPR Sim's drag and
-  center of pressure against Mach in that format for OpenRocket to fly. Moves: [M2.3c6][m2-3c6]'s
-  split of the 0.93-point gap in `accuracy.collection`, isolating aerodynamics. *Done when:* on 10
-  public designs and the collection (as aggregates), both tools' apogees with and without the
-  tables are published; a test pins the file to bytes derived by hand from the format's docs.
-- Moved to [flight data](ideas-flight-data.md) on arrival: GNSS altitude distrusted in boost.
+- PROMOTED into [M7.2][m7-2] and [M7.3][m7-3] ([ADR-257][adr-257]): the post-flight comparison.
+  User: a Student Launch team after a flight; its 2027 handbook asks for the predicted and actual
+  flight compared, the drag coefficient estimated from launch data and a post-flight simulation
+  (pp. 26 and 32). Workflow: one `hpr` command draws predicted and logged altitude and velocity,
+  as designed and under launch-day conditions. Moves: a new row, `accuracy.from-boost`, apogee
+  predicted from the log up to burnout. *Done when:* M7.3's.
+- SOON: the American Rocketry Challenge's expected score. User: an ARC team tuning a design to the
+  2027 rules (at most 650 g and 80 N·s, two eggs, an 800 ft qualifying goal, 37 to 40 s;
+  [rules][arc27] 4.3 to 4.6). Workflow: `hpr mc` with an ARC preset prints the score's 50% and 90%
+  ranges, as rules 4.5 and 4.6 score it. Moves: a new steps row, `steps.arc-score`, each tool's by
+  its docs. *Done when:* tests pin the score at both edges of the duration window and either side
+  of the altitude goal, the row is in `validation/steps/`, and the scoreboard shows it.
+- SOON: an altimeter's events checked against its flight. User: a flyer whose charge fired at the
+  wrong time, such as an apogee charge long after a tilt lockout tripped near liftoff
+  ([a forum thread][tilt-thread], October 2026). Workflow: `hpr analyze` lists each event the
+  logger recorded (launch, tilt lockout, burnout, apogee, deployments) beside the time the log's
+  own motion puts it, and flags each disagreement. Moves: a new row, the share of logged events
+  checked. *Done when:* a synthetic log with a lockout near liftoff is flagged and a clean one
+  isn't (a missed flag, the flattering side, has its own test); the reports count events checked
+  and flagged on the public logs and, as aggregates, the collection's.
+- SOON: HPR Sim's speed cell before [M2.9][m2-9]'s. User: someone choosing a tool by speed.
+  Workflow: `cargo xtask scoreboard` reads the one-flight benchmark ([performance](../perf.md))
+  from a committed record. Moves: `speed.flight` for HPR Sim, 14 to 15 of 51 cells. *Done when:*
+  the cell names machine, toolchain and commit; `--check` fails on a record older than the code.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -193,6 +192,9 @@ The rest moved to the theme notes on [avionics](ideas-avionics.md), [flight data
 [m2-3c7]: ../decisions-and-roadmap.md#m2-3c7
 [adr-236]: ../decisions/0236-the-2026-10-11-review-supersonic-flights-from-published-comparisons.md
 [adr-246]: ../decisions/0246-the-2026-10-12-review-student-launch-by-requirement-and-oracle-defects.md
-[m2-3c6]: ../decisions-and-roadmap.md#m2-3c6
-[tc-thread]: https://www.rocketryforum.com/threads/thrustcurve-open-thread.164391/page-30
-[or-tables]: https://www.rocketryforum.com/threads/omg-openrocket-26xx-sapshot-drag-csv-and-stability-csv.199161/
+[adr-257]: ../decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
+[m7-2]: ../decisions-and-roadmap.md#m7-2
+[m7-3]: ../decisions-and-roadmap.md#m7-3
+[m2-9]: ../decisions-and-roadmap.md#m2-9
+[arc27]: https://www.rocketrychallenge.org/wp-content/uploads/2027_AmericanRocketryChallenge_Rules.pdf
+[tilt-thread]: https://www.rocketryforum.com/threads/emergency-deployment-option-for-unstable-flights.194466/

@@ -19,6 +19,24 @@ the command, so a later run can be compared like for like.
   between two four-tab runs. CI's 4-core runners still run four tabs, so CI's time doesn't change.
   The vitals pass (383 s of the step here) is #469's larger part and is unchanged.
 
+## The aerodynamics crate optimized in test builds (#494)
+
+- **What this is.** `fusionspace-hpr-aero` is built at `opt-level = 3` in the test profile (the
+  workspace `Cargo.toml`), which `cargo test` and `cargo nextest` use, but not in the dev profile
+  that `cargo xtask` runs. Its tests sweep the flare, boattail and potential-flow models over many
+  shapes and Mach numbers, and unoptimized they took a third of the workspace's test time.
+- **Measured** on an Apple M5, rustc 1.98.1, main ee26ec70, warm builds: the crate's 245 tests
+  49.9–50.0 s → 30.0–30.1 s (`cargo nextest run -p fusionspace-hpr-aero`, two runs each); the whole
+  workspace's nextest run 167.5–167.8 s → 142.4–142.8 s (three runs each, −15%), its summed
+  test-seconds 1,032 → 794 (the aerodynamics crate's 352 → 202, `fusionspace-hpr-sim`'s 108 → 69). The
+  first test build after the change took 31.6 s.
+- **What moves.** Nothing committed. In the dev profile the same setting moved the refs/ reports'
+  full-precision numbers in about the ninth digit (in `ork-flights`, one apogee's relative error
+  1.2320332389% → 1.2320332403%; the cause wasn't traced, likely the `sincos` merge #397 found), so
+  the reports' generator keeps the unoptimized build and still reproduces every report byte for
+  byte (`cargo xtask validate --check`, `examples --check` and the `refs` checks). The tests pass
+  at either level.
+
 ## The analysis crate optimized in test builds (#397)
 
 - **What this is.** `fusionspace-hpr-analysis` (Monte Carlo statistics, the optimizers) is built

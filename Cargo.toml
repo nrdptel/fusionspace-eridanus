@@ -140,6 +140,12 @@ unimplemented = "warn"
 # committed report and example output reproduces byte for byte either way (#397, docs/perf.md).
 [profile.dev.package.fusionspace-hpr-analysis]
 opt-level = 3
+# The aerodynamics tests (the flare, boattail and potential-flow sweeps) took 352 of the workspace's
+# 1,032 test-seconds unoptimized and 202 at opt-level 3 (2026-10-13, #494). In the test profile only:
+# in the dev profile, which `cargo xtask` runs, the refs/ reports move in the ninth digit (one
+# apogee's relative error 1.2320332389% → 1.2320332403% in `ork-flights`), so they stay as they are.
+[profile.test.package.fusionspace-hpr-aero]
+opt-level = 3
 
 # The flight-log survey (`cargo xtask logs`) reads about 1,000 sample logs, some of 20 MB, hashes
 # them and writes each record as JSON: 167 s unoptimized, 25 s with the readers, SHA-256 and

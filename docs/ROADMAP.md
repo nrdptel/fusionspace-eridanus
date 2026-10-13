@@ -395,9 +395,9 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
   snapshot-tested, and the crate builds with no dependency on `hpr-sim` (`cargo xtask wasm-check`).
   Formats without samples are listed in the docs as needing samples.
   - [ ] **M7.1c The other importers** (ADR-254, ADR-255, ADR-256): in four.
-    - [ ] **M7.1c4 The rest:** AltOS eeprom, RRC3 RFF, Blue Raven's other files, PerfectFlite
-      `.pfa`, Entacore AIM, AltimeterCloud, spreadsheets, CATS; EuRoC/Juno CSV; generic CSV
-      with column mapping; unit detection. *Done when:* the parent's.
+    - [ ] **M7.1c4 The rest:** AltOS eeprom, RRC3 RFF, Blue Raven's other files, Entacore AIM
+      XTRA, spreadsheets, CATS; EuRoC/Juno CSV; generic CSV with column mapping; unit detection.
+      *Done when:* the parent's.
 - [ ] **M7.2 Readings, reconstruction and ghost data.**
   - The readings a flight gives (apogee, maximum velocity and acceleration, burnout, descent
     rates per phase, flight time), each carrying its provenance: measured, derived, or clipped
@@ -409,7 +409,9 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
 
   *Done when:*
   - On synthetic data (a simulated flight plus a noise model), the smoother recovers the truth
-    within the stated error, and real RocketPy flights produce ghost files.
+    within the stated error; every reading not withheld states a 90% interval that passes
+    ADR-257's test (§1–2: 1,000 flights, each tail, its probes). Real RocketPy flights produce
+    ghost files.
   - Every reading names its method and its provenance, and the corpus has a case for each
     withheld reading.
   - A flight is read end to end with no design file present, from the library and from
@@ -418,9 +420,14 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
   mass, motor impulse scale and wind to a log (Levenberg–Marquardt plus a Bayesian option with
   uncertainty). The first milestone in `hpr-forensics`.
 
-  *Done when:* residuals are reported for a real flight against its simulation, synthetic-truth
-  recovery is within tolerance, and real-flight fits are reported. A reading keeps the provenance
-  M7.2 gave it wherever it meets a simulated number.
+  *Done when* (all of ADR-257 §1–4): residuals are reported for a real flight against its
+  simulation; each fitted parameter's 90% interval, least squares and Bayesian, passes M7.2's
+  test; a committed report gives the 7 public logged flights' fits, the collection's as
+  aggregates, and apogee predicted from the log cut at burnout beside the forward simulation's
+  (`accuracy.from-boost`);
+  one `hpr` command draws predicted and logged altitude and velocity, liftoff to landing, under
+  launch-day conditions. A reading keeps the provenance M7.2 gave it wherever it meets a simulated
+  number.
 - [ ] **M7.4 Fault diagnosis.**
   - A hypothesis library with simulate-able fault models: motor under/over-performance, CATO or
     early burnout, high drag or damage, weathercocking, marginal stability/coning,
