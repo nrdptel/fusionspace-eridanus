@@ -48,8 +48,8 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The other families'
-/// files are M7.1c3's.
-pub const READ: [(&str, LogFormat, &str); 15] = [
+/// files are M7.1c4's.
+pub const READ: [(&str, LogFormat, &str); 18] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -65,6 +65,13 @@ pub const READ: [(&str, LogFormat, &str); 15] = [
     ("entacore-aim-csv", LogFormat::EntacoreAimCsv, "M7.1c2"),
     ("pfa", LogFormat::PerfectFlitePfa, "M7.1c2"),
     ("eggtimer-txt", LogFormat::EggtimerText, "M7.1c2"),
+    (
+        "aerospacenu-sillygoose-txt",
+        LogFormat::SillyGooseText,
+        "M7.1c3",
+    ),
+    ("fluctus-csv", LogFormat::FluctusCsv, "M7.1c3"),
+    ("arts2-csv", LogFormat::Arts2Csv, "M7.1c3"),
 ];
 
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight, and maps
@@ -111,9 +118,20 @@ const ALTIMETERCLOUD: &str = "AltimeterCloud's CSV of a Rocketry Ltd altimeter's
 const ENTACORE_AIM: &str = "Entacore AIM's CSV, each channel group beside its own time column, \
     filed as generic CSV by its extension";
 
+/// Why a file the catalog files as generic CSV is a Silicdyne Fluctus's.
+const FLUCTUS: &str = "Silicdyne Fluctus's CSV, a `sep=;` line then a semicolon-separated table \
+    whose names carry their units, filed as generic CSV by its extension";
+/// Why a file the catalog files as generic CSV is an ARTS2's interpreted data.
+const ARTS2: &str = "Ozark Aerospace ARTS2's interpreted data, a `# MET Acc Vel iAlt pAlt` \
+    header then comma-separated rows, filed as generic CSV by its extension";
+/// Why a file the catalog files as generic CSV is an ARTS2's raw data, for M7.1c4.
+const ARTS2_RAW: &str = "Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),\
+    State` header then the sensors' counts with no calibration in the file, filed as generic CSV \
+    by its extension; read with the ARTS2's own `.odf` files";
+
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 28] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 42] = [
     (
         "9c5017ab68168088",
         "altos-csv",
@@ -212,6 +230,27 @@ const RECLASSIFIED: [(&str, &str, &str, &str); 28] = [
     ("f5df1597457a39ea", "csv", "entacore-aim-csv", ENTACORE_AIM),
     ("fe5e01edf5f1202c", "csv", "entacore-aim-csv", ENTACORE_AIM),
     ("ff6326c2236a0723", "csv", "entacore-aim-csv", ENTACORE_AIM),
+    ("0bc847e6d3d9a9ee", "csv", "fluctus-csv", FLUCTUS),
+    ("5f6d8d9b2a364465", "csv", "fluctus-csv", FLUCTUS),
+    ("aad887197af5df0e", "csv", "fluctus-csv", FLUCTUS),
+    ("b8bd3d94f2a563d0", "csv", "fluctus-csv", FLUCTUS),
+    ("f544929da1867b18", "csv", "fluctus-csv", FLUCTUS),
+    ("f5ffeb304d9213e8", "csv", "fluctus-csv", FLUCTUS),
+    ("88b16ea55c9a6415", "csv", "arts2-csv", ARTS2),
+    ("9559781b880bbec8", "csv", "arts2-csv", ARTS2),
+    ("e5f252c299d9dbe5", "csv", "arts2-csv", ARTS2),
+    ("f3e56b3adb3d1581", "csv", "arts2-csv", ARTS2),
+    ("b4f7a3949e33ca0d", "csv", "arts2-raw-csv", ARTS2_RAW),
+    ("c392977fab8558c2", "csv", "arts2-raw-csv", ARTS2_RAW),
+    ("eda453d88e88e9c5", "csv", "arts2-raw-csv", ARTS2_RAW),
+    (
+        "88f33383ccf621a0",
+        "aerospacenu-sillygoose-txt",
+        "aerospacenu-sillygoose-gs-csv",
+        "a SillyGoose flight as a ground station's conversion wrote it: a `CONFIG` line, then 28 \
+         comma-separated columns with no header, in another order than the board's own log, so \
+         nothing in the file says which column is which; for the column mapper",
+    ),
 ];
 
 /// The report.
@@ -301,8 +340,8 @@ struct SourceCount {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct FamilyRow {
     family: String,
-    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1`, `M7.1c2`), `M7.1c3` for
-    /// one not yet read, `damaged`, or `not a log`.
+    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1`, `M7.1c2`, `M7.1c3`),
+    /// `M7.1c4` for one not yet read, `damaged`, or `not a log`.
     increment: String,
     files: usize,
     read: usize,
@@ -548,7 +587,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
             "not a log"
         } else {
-            "M7.1c3"
+            "M7.1c4"
         };
         let row = families
             .entry(sample.family.clone())

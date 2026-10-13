@@ -220,6 +220,15 @@ pub enum LogFormat {
     /// Entacore AIM's CSV, as its software exports a flight: each channel beside its own `time`
     /// column.
     EntacoreAimCsv,
+    /// AerospaceNU's SillyGoose flight computer's log, as the board writes it: tab-separated
+    /// text under a header such as `timestampMs pressurePa tempK …`.
+    SillyGooseText,
+    /// Silicdyne's Fluctus flight computer's CSV: a `sep=;` line, then a semicolon-separated
+    /// table whose names carry their units, such as `time (ms);baro-altitude (m);…`.
+    FluctusCsv,
+    /// Ozark Aerospace's ARTS2 interpreted data: a `# MET Acc Vel iAlt pAlt` header, then
+    /// comma-separated rows from launch.
+    Arts2Csv,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -340,6 +349,9 @@ impl LogFormat {
             Self::PerfectFlitePfa | Self::EggtimerText => crate::perfectflite::FOOT_M,
             Self::AltimeterCloudCsv => 0.001,
             Self::EntacoreAimCsv => ONE_PASCAL_M,
+            Self::SillyGooseText => crate::sillygoose::ALTITUDE_STEP_M,
+            Self::FluctusCsv => crate::fluctus::ALTITUDE_STEP_M,
+            Self::Arts2Csv => crate::arts2::ALTITUDE_STEP_M,
         }
     }
 
@@ -355,8 +367,12 @@ impl LogFormat {
             | Self::BlueRavenCsv
             | Self::FeatherweightGpsCsv
             | Self::AltimeterCloudCsv
-            | Self::EntacoreAimCsv => ".csv",
-            Self::PerfectFliteText | Self::Nmea0183 | Self::EggtimerText => ".txt",
+            | Self::EntacoreAimCsv
+            | Self::FluctusCsv
+            | Self::Arts2Csv => ".csv",
+            Self::PerfectFliteText | Self::Nmea0183 | Self::EggtimerText | Self::SillyGooseText => {
+                ".txt"
+            }
             Self::PerfectFlitePfa => ".pfa",
             Self::Kml => ".kml",
         }
@@ -380,6 +396,9 @@ impl LogFormat {
             Self::EggtimerText => "Eggtimer text",
             Self::AltimeterCloudCsv => "AltimeterCloud CSV",
             Self::EntacoreAimCsv => "Entacore AIM CSV",
+            Self::SillyGooseText => "SillyGoose text",
+            Self::FluctusCsv => "Silicdyne Fluctus CSV",
+            Self::Arts2Csv => "ARTS2 CSV",
         }
     }
 }

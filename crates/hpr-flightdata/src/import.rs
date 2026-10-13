@@ -41,8 +41,8 @@ use std::borrow::Cow;
 use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
 use crate::{
-    altimetercloud, altos, blueraven, eggtimer, entacore, fwgps, kml, nmea, perfectflite, raven,
-    rrc3,
+    altimetercloud, altos, arts2, blueraven, eggtimer, entacore, fluctus, fwgps, kml, nmea,
+    perfectflite, raven, rrc3, sillygoose,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
@@ -58,6 +58,9 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::Rrc3Csv,
     LogFormat::AltimeterCloudCsv,
     LogFormat::EntacoreAimCsv,
+    LogFormat::SillyGooseText,
+    LogFormat::FluctusCsv,
+    LogFormat::Arts2Csv,
     LogFormat::EggtimerText,
     LogFormat::EggtimerCsv,
     LogFormat::PerfectFliteCsv,
@@ -116,6 +119,10 @@ fn detect_text(text: &str) -> Option<LogFormat> {
     }
     let altos_header =
         |line: &str| line.starts_with("#version,") || line.starts_with("version,serial,");
+    // ARTS2's header opens with `#`, which would otherwise be taken for AltOS's comments.
+    if arts2::recognizes(text) {
+        return Some(LogFormat::Arts2Csv);
+    }
     if first.to_ascii_lowercase().contains("perfectflite") {
         // A `.pfa` names PerfectFlite too, but writes its samples after a `**!!Data:` line, one
         // value a line.
@@ -149,6 +156,10 @@ fn detect_text(text: &str) -> Option<LogFormat> {
         Some(LogFormat::AltimeterCloudCsv)
     } else if entacore::recognizes(text) {
         Some(LogFormat::EntacoreAimCsv)
+    } else if sillygoose::recognizes(text) {
+        Some(LogFormat::SillyGooseText)
+    } else if fluctus::recognizes(text) {
+        Some(LogFormat::FluctusCsv)
     } else if eggtimer::recognizes_text(text) {
         Some(LogFormat::EggtimerText)
     } else if eggtimer::recognizes(text) {
@@ -183,6 +194,9 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::EggtimerText) => eggtimer::read_text(&text),
         Some(LogFormat::AltimeterCloudCsv) => altimetercloud::read(&text),
         Some(LogFormat::EntacoreAimCsv) => entacore::read(&text),
+        Some(LogFormat::SillyGooseText) => sillygoose::read(&text),
+        Some(LogFormat::FluctusCsv) => fluctus::read(&text),
+        Some(LogFormat::Arts2Csv) => arts2::read(&text),
         Some(LogFormat::FeatherweightGpsCsv) => fwgps::read(&text),
         Some(LogFormat::Kml) => kml::read(&text),
         Some(LogFormat::Nmea0183) => nmea::read(&text),

@@ -53,11 +53,13 @@
 
 pub mod altimetercloud;
 pub mod altos;
+pub mod arts2;
 pub mod blueraven;
 pub mod eggtimer;
 pub mod entacore;
 pub mod error;
 pub mod filter;
+pub mod fluctus;
 pub mod fwgps;
 pub mod import;
 pub mod kml;
@@ -67,6 +69,7 @@ pub mod perfectflite;
 pub mod raven;
 pub mod readings;
 pub mod rrc3;
+pub mod sillygoose;
 mod table;
 
 #[cfg(test)]
