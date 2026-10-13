@@ -111,10 +111,10 @@
 //!   meters`, and read in milliseconds it doesn't do both. The Nano manual's page *Flight info
 //!   page* (<https://www.altimetercloud.com/support/nano-v1/flight-info-page/>, read 2026-10-13)
 //!   gives the landing as "when it landed, and the height it came to rest at", but no unit for
-//!   either. Both are written to the millimetre, and the margin is ten times that; as of
+//!   either. Both are written to the millimeter, and the margin is ten times that; as of
 //!   2026-10-13, in the 7 files among the project's sample logs with a summary, the altitude at the
 //!   landing time read in seconds lies within 0.001 m of the landing height, and read in
-//!   milliseconds, on the climb, more than a metre from it. Without a landing height to check, the
+//!   milliseconds, on the climb, more than a meter from it. Without a landing height to check, the
 //!   landing time is left out.
 //!
 //!   A note says how each time was read, or why it was left out;
@@ -166,7 +166,7 @@ const TEMPERATURE_JUMP_C: f64 = 5.0;
 const APOGEE_TIME_MARGIN_S: f64 = 0.5;
 
 /// How far, m, the altitude at the stated landing time may lie from the stated landing height
-/// for the time to be read so (module docs): ten times the millimetre both are written to.
+/// for the time to be read so (module docs): ten times the millimeter both are written to.
 const LANDING_HEIGHT_MARGIN_M: f64 = 0.01;
 
 /// The yaw, degrees, from which a note counts the rows as at the end of its range (module docs).
