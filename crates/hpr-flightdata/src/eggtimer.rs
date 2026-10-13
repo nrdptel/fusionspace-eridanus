@@ -1486,6 +1486,26 @@ fn summary_events(log: &mut FlightLog, preamble: &Preamble) {
         .sort_by(|first, second| first.time_s.total_cmp(&second.time_s));
 }
 
+/// Whether the text is an RTF document: it opens with `{\\rtf`.
+pub(crate) fn recognizes_rtf(text: &str) -> bool {
+    text.trim_start().starts_with("{\\rtf")
+}
+
+/// Reads an Eggtimer TRS's terminal download saved inside an RTF document.
+///
+/// Scaffold: written in milestone M7.1c4 (ADR-258).
+///
+/// # Errors
+///
+/// [`LogError::NotThisFormat`] until the reader is written.
+pub fn read_rtf(text: &str) -> Result<FlightLog, LogError> {
+    let _ = text;
+    Err(LogError::NotThisFormat {
+        format: "Eggtimer RTF",
+        message: "not read yet".to_owned(),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

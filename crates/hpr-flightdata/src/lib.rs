@@ -51,6 +51,8 @@
 //! # Ok::<(), hpr_flightdata::error::LogError>(())
 //! ```
 
+pub mod aerospacenu_fcb;
+pub mod aerospacenu_gs;
 pub mod altimetercloud;
 pub mod altos;
 pub mod arts2;
@@ -66,6 +68,7 @@ pub mod kml;
 pub mod log;
 pub mod nmea;
 pub mod perfectflite;
+pub mod phone_launch;
 pub mod raven;
 pub mod readings;
 pub mod rrc3;

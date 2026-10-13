@@ -48,8 +48,8 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The other families'
-/// files are M7.1c4's.
-pub const READ: [(&str, LogFormat, &str); 18] = [
+/// files are M7.1c5's.
+pub const READ: [(&str, LogFormat, &str); 22] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -72,11 +72,19 @@ pub const READ: [(&str, LogFormat, &str); 18] = [
     ),
     ("fluctus-csv", LogFormat::FluctusCsv, "M7.1c3"),
     ("arts2-csv", LogFormat::Arts2Csv, "M7.1c3"),
+    ("aerospacenu-fcb-csv", LogFormat::AerospaceNuFcbCsv, "M7.1c4"),
+    (
+        "aerospacenu-gs-txt",
+        LogFormat::AerospaceNuGroundStationText,
+        "M7.1c4",
+    ),
+    ("phone-launch-csv", LogFormat::PhoneLaunchCsv, "M7.1c4"),
+    ("eggtimer-rtf", LogFormat::EggtimerRtf, "M7.1c4"),
 ];
 
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight, and maps
 /// of a flight's prediction.
-const NOT_LOGS: [&str; 6] = ["empty", "jpeg", "kml-map", "pdf", "png", "rtf"];
+const NOT_LOGS: [&str; 5] = ["empty", "jpeg", "kml-map", "pdf", "png"];
 
 /// Debrief's fixtures and samples by name, with each one's family in the catalog's words; a file
 /// missing from this table stops the survey.
@@ -124,14 +132,20 @@ const FLUCTUS: &str = "Silicdyne Fluctus's CSV, a `sep=;` line then a semicolon-
 /// Why a file the catalog files as generic CSV is an ARTS2's interpreted data.
 const ARTS2: &str = "Ozark Aerospace ARTS2's interpreted data, a `# MET Acc Vel iAlt pAlt` \
     header then comma-separated rows, filed as generic CSV by its extension";
-/// Why a file the catalog files as generic CSV is an ARTS2's raw data, for M7.1c4.
+/// Why a file the catalog files as generic CSV is an ARTS2's raw data, for M7.1c5.
 const ARTS2_RAW: &str = "Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),\
     State` header then the sensors' counts with no calibration in the file, filed as generic CSV \
     by its extension; read with the ARTS2's own `.odf` files";
+/// Why a file the catalog files as generic CSV is the phone app's.
+const PHONE_LAUNCH: &str = "a phone app's `launch….csv`, a header opening \
+    `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension";
+/// Why a file the catalog files as RTF is an Eggtimer's download.
+const EGGTIMER_RTF: &str = "an Eggtimer TRS's terminal download, its settings, summary and \
+    `T,Alt,…` table, saved inside an RTF document; filed as RTF, not a log, by its extension";
 
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 42] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 72] = [
     (
         "9c5017ab68168088",
         "altos-csv",
@@ -243,6 +257,36 @@ const RECLASSIFIED: [(&str, &str, &str, &str); 42] = [
     ("b4f7a3949e33ca0d", "csv", "arts2-raw-csv", ARTS2_RAW),
     ("c392977fab8558c2", "csv", "arts2-raw-csv", ARTS2_RAW),
     ("eda453d88e88e9c5", "csv", "arts2-raw-csv", ARTS2_RAW),
+    ("1a5db9dc7064aff9", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("1b9914f2b095a2ca", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("292cd2cbeeb151d1", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("2eb51f234ada08a3", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("34ffb9c40a52f8a5", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("3682e0a8fb151b8f", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("385526be706eaacb", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("53116705370ee99f", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("53d675d508e843fa", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("5488847e996f7ed6", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("5e38d29923392275", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("6d3ba122c9852293", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("80167395bac22d32", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("810aa6083d876fff", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("81693d9be93bd905", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("836ec61f238d97b3", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("af9709847c264b99", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("b1bc4b3a856d71f1", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("c8405deebb6c61de", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("cb3c53e2a90c8811", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("cba087e4c9ac6ef3", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("cc9cb757ee5ff666", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("d1da0707d6023367", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("d516f89cea3600b4", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("db13cb37b77732af", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("e556289cc743ecd9", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("ec774588ec195de6", "csv", "phone-launch-csv", PHONE_LAUNCH),
+    ("3a36f081e5be9e9d", "rtf", "eggtimer-rtf", EGGTIMER_RTF),
+    ("70415b30a59d4411", "rtf", "eggtimer-rtf", EGGTIMER_RTF),
+    ("8720c50cdeaf8ad3", "rtf", "eggtimer-rtf", EGGTIMER_RTF),
     (
         "88f33383ccf621a0",
         "aerospacenu-sillygoose-txt",
@@ -341,7 +385,7 @@ struct SourceCount {
 struct FamilyRow {
     family: String,
     /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1`, `M7.1c2`, `M7.1c3`),
-    /// `M7.1c4` for one not yet read, `damaged`, or `not a log`.
+    /// `M7.1c5` for one not yet read, `damaged`, or `not a log`.
     increment: String,
     files: usize,
     read: usize,
@@ -557,6 +601,8 @@ fn aerospacenu_family(extension: &str, bytes: &[u8]) -> &'static str {
         "pf2"
     } else if first.starts_with("#version,") {
         "altos-csv"
+    } else if first.starts_with("RUN START") {
+        "aerospacenu-gs-txt"
     } else if first.contains("packetType") || first.contains("timestamp_ms") {
         "aerospacenu-fcb-csv"
     } else if first.starts_with("timestampMs") || first.starts_with("CONFIG") {
@@ -587,7 +633,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
             "not a log"
         } else {
-            "M7.1c4"
+            "M7.1c5"
         };
         let row = families
             .entry(sample.family.clone())

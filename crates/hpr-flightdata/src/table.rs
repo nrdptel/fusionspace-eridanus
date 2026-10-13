@@ -5,6 +5,8 @@
 //! in a file whose cells are separated by something other than a comma, with a comma, as a
 //! European locale writes `1,5` for 1.5: the comma can't be both a separator and a decimal mark.
 
+use crate::error::LogError;
+
 /// The most characters of the file an error or note quotes.
 const QUOTED_CHARS: usize = 80;
 
@@ -48,6 +50,32 @@ pub(crate) fn number(cell: &str, decimal_comma: bool) -> Option<f64> {
         cell.parse::<f64>()
     };
     parsed.ok().filter(|value| value.is_finite())
+}
+
+/// A value after its unit conversion, refused if the conversion made it infinite: a finite cell
+/// near the largest `f64`, such as `1.7e308` g, overflows when it is scaled to SI, and a channel
+/// holds SI values or `NaN` gaps, nothing else ([ADR-258][adr-258] §3). `NaN`, a gap, passes.
+///
+/// [adr-258]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md
+#[allow(dead_code, reason = "the readers take it up as ADR-258 §3 lands")]
+pub(crate) fn finite(
+    value: f64,
+    format: &'static str,
+    line: usize,
+    column: &str,
+) -> Result<f64, LogError> {
+    if value.is_infinite() {
+        Err(LogError::Syntax {
+            format,
+            line,
+            message: format!(
+                "the column {} holds a value too large for its unit's conversion to SI",
+                short(column)
+            ),
+        })
+    } else {
+        Ok(value)
+    }
 }
 
 /// Text from the file as an error or note quotes it: cut to [`QUOTED_CHARS`] characters, so a

@@ -229,6 +229,18 @@ pub enum LogFormat {
     /// Ozark Aerospace's ARTS2 interpreted data: a `# MET Acc Vel iAlt pAlt` header, then
     /// comma-separated rows from launch.
     Arts2Csv,
+    /// AerospaceNU's flight computer board's CSV, as the club's tools write a flight: a header
+    /// row opening `,packetType,timestamp_ms,…` or `,timestamp_s,…`, then one row a sample.
+    AerospaceNuFcbCsv,
+    /// AerospaceNU's ground station's text, as it parses the flight computer board's downlink: a
+    /// `RUN START` line, then one packet a line, `HH:MM:SS.ffffff: <packet> {…}`.
+    AerospaceNuGroundStationText,
+    /// A phone app's `launch….csv`: a header row opening `Seconds,Timestamp,AltitudeMSLGPS,…`,
+    /// then one row a sample. The app isn't named in its files.
+    PhoneLaunchCsv,
+    /// An Eggtimer TRS's terminal download, as [`LogFormat::EggtimerText`] reads it, saved inside
+    /// an RTF document.
+    EggtimerRtf,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -354,6 +366,10 @@ impl LogFormat {
             Self::SillyGooseText => crate::sillygoose::ALTITUDE_STEP_M,
             Self::FluctusCsv => crate::fluctus::ALTITUDE_STEP_M,
             Self::Arts2Csv => crate::arts2::ALTITUDE_STEP_M,
+            Self::AerospaceNuFcbCsv => crate::aerospacenu_fcb::ALTITUDE_STEP_M,
+            Self::AerospaceNuGroundStationText => crate::aerospacenu_gs::ALTITUDE_STEP_M,
+            Self::PhoneLaunchCsv => crate::phone_launch::ALTITUDE_STEP_M,
+            Self::EggtimerRtf => crate::perfectflite::FOOT_M,
         }
     }
 
@@ -371,10 +387,15 @@ impl LogFormat {
             | Self::AltimeterCloudCsv
             | Self::EntacoreAimCsv
             | Self::FluctusCsv
-            | Self::Arts2Csv => ".csv",
-            Self::PerfectFliteText | Self::Nmea0183 | Self::EggtimerText | Self::SillyGooseText => {
-                ".txt"
-            }
+            | Self::Arts2Csv
+            | Self::AerospaceNuFcbCsv
+            | Self::PhoneLaunchCsv => ".csv",
+            Self::PerfectFliteText
+            | Self::Nmea0183
+            | Self::EggtimerText
+            | Self::SillyGooseText
+            | Self::AerospaceNuGroundStationText => ".txt",
+            Self::EggtimerRtf => ".rtf",
             Self::PerfectFlitePfa => ".pfa",
             Self::Kml => ".kml",
         }
@@ -401,6 +422,10 @@ impl LogFormat {
             Self::SillyGooseText => "SillyGoose text",
             Self::FluctusCsv => "Silicdyne Fluctus CSV",
             Self::Arts2Csv => "ARTS2 CSV",
+            Self::AerospaceNuFcbCsv => "AerospaceNU flight computer CSV",
+            Self::AerospaceNuGroundStationText => "AerospaceNU ground station text",
+            Self::PhoneLaunchCsv => "phone app launch CSV",
+            Self::EggtimerRtf => "Eggtimer RTF",
         }
     }
 }

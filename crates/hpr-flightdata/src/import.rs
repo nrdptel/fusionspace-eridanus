@@ -44,12 +44,14 @@ use std::borrow::Cow;
 use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
 use crate::{
-    altimetercloud, altos, arts2, blueraven, eggtimer, entacore, fluctus, fwgps, kml, nmea,
-    perfectflite, raven, rrc3, sillygoose,
+    aerospacenu_fcb, aerospacenu_gs, altimetercloud, altos, arts2, blueraven, eggtimer, entacore,
+    fluctus, fwgps, kml, nmea, perfectflite, phone_launch, raven, rrc3, sillygoose,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
 pub const FORMATS: &[LogFormat] = &[
+    LogFormat::EggtimerRtf,
+    LogFormat::AerospaceNuGroundStationText,
     LogFormat::Kml,
     LogFormat::Nmea0183,
     LogFormat::FeatherweightGpsCsv,
@@ -64,6 +66,8 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::EntacoreAimCsv,
     LogFormat::SillyGooseText,
     LogFormat::FluctusCsv,
+    LogFormat::AerospaceNuFcbCsv,
+    LogFormat::PhoneLaunchCsv,
     LogFormat::EggtimerText,
     LogFormat::EggtimerCsv,
     LogFormat::PerfectFliteCsv,
@@ -109,6 +113,13 @@ fn detect_text(text: &str) -> Option<LogFormat> {
         .map(str::trim)
         .filter(|line| !line.is_empty());
     let first = lines.next()?;
+    // An RTF document is told by its opening group; only an Eggtimer's download is read in one.
+    if eggtimer::recognizes_rtf(text) {
+        return Some(LogFormat::EggtimerRtf);
+    }
+    if aerospacenu_gs::recognizes(text) {
+        return Some(LogFormat::AerospaceNuGroundStationText);
+    }
     // A GPS log is told by its own marks, which need not be on its first line: an NMEA file may
     // open with the receiver's power-up noise, a KML file with an XML declaration.
     if kml::recognizes(text) {
@@ -163,6 +174,10 @@ fn detect_text(text: &str) -> Option<LogFormat> {
         Some(LogFormat::SillyGooseText)
     } else if fluctus::recognizes(text) {
         Some(LogFormat::FluctusCsv)
+    } else if aerospacenu_fcb::recognizes(text) {
+        Some(LogFormat::AerospaceNuFcbCsv)
+    } else if phone_launch::recognizes(text) {
+        Some(LogFormat::PhoneLaunchCsv)
     } else if eggtimer::recognizes_text(text) {
         Some(LogFormat::EggtimerText)
     } else if eggtimer::recognizes(text) {
@@ -203,6 +218,10 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::FeatherweightGpsCsv) => fwgps::read(&text),
         Some(LogFormat::Kml) => kml::read(&text),
         Some(LogFormat::Nmea0183) => nmea::read(&text),
+        Some(LogFormat::AerospaceNuFcbCsv) => aerospacenu_fcb::read(&text),
+        Some(LogFormat::AerospaceNuGroundStationText) => aerospacenu_gs::read(&text),
+        Some(LogFormat::PhoneLaunchCsv) => phone_launch::read(&text),
+        Some(LogFormat::EggtimerRtf) => eggtimer::read_rtf(&text),
         None => {
             let known: Vec<&str> = FORMATS.iter().map(|format| format.name()).collect();
             Err(LogError::Unrecognized {
