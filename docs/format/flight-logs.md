@@ -149,6 +149,12 @@ Most units come from the file's own column names or from the maker's manual. A f
 - AltOS's KML also writes the GPS receiver's `alt` beside every point. Where it never equals the
   path's altitude, as in 3 of its older sample files, nothing in the file shows its unit, and it is
   kept as written.
+- AltimeterCloud's Mercury writes an air density, a predicted apogee, a target altitude and a
+  second temperature (`mt1_temp`) that no published page gives a unit for; each is kept as
+  written, unrecognized.
+- Entacore AIM's magnetometer (`Mag X`, `Mag Y`, `Mag Z`) is kept as written, unrecognized: its
+  manual names tesla, but the sample files' values are many times the Earth's field read so
+  ([below](#units-the-file-decides)).
 
 ### Units the file decides
 
