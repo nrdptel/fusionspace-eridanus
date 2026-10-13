@@ -18,8 +18,11 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > named [below](#units-no-source-states). In the four layouts read since
 > [M7.1c4](../decisions-and-roadmap.md#m7-1c4), a unit two checks don't settle is kept as written,
 > so many of their columns keep the file's own numbers, and no reading is taken from them yet.
-> Other layouts are refused, not guessed at; they come with
-> [M7.1c5](../decisions-and-roadmap.md#m7-1c5), the other loggers' formats.
+> The two raw downloads read since [M7.1c5](../decisions-and-roadmap.md#m7-1c5), the Raven's
+> `.FIPa` and the RRC3's `.rff`, match their makers' exports of the same flights in every sample,
+> wherever an export sits beside them; 7 of their 63 sample files have none, and are unchecked
+> ([raw downloads](#raw-downloads)). Other layouts are refused, not guessed at; they come with
+> [M7.1c6](../decisions-and-roadmap.md#m7-1c6), the other loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -56,6 +59,9 @@ readers), as
 decided, and [M7.1c4](../decisions-and-roadmap.md#m7-1c4) (AerospaceNU's flight computer board
 and ground station, a phone app's `launch` CSV and an Eggtimer's RTF), as
 [ADR-258](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md)
+decided, and [M7.1c5](../decisions-and-roadmap.md#m7-1c5) (the Raven's `.FIPa` and the RRC3's
+`.rff` raw downloads), as
+[ADR-259](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0259-raw-downloads-against-their-makers-exports-first.md)
 decided.
 
 ## The layouts read
@@ -68,8 +74,10 @@ decided.
 | PerfectFlite `.pfa` | Alt15K/WD, an older PerfectFlite altimeter, through PerfectFlite's DataCap program (AltCapWD on the Mac) | names PerfectFlite and has a `**!!Data:` line | [below](#perfectflites-older-pfa) |
 | AltOS CSV | Altus Metrum's TeleMetrum, TeleMega, EasyMega, EasyMini, through AltosUI (Altus Metrum's ground software) | `#version,serial,flight,`, or `#` comment lines and then that header or `version,serial,flight,` | `hpr_flightdata::altos` |
 | Raven FIP CSV | Featherweight Raven, through the Featherweight Interface Program | opens with a time column and holds the Raven's `Axial Accel (Gs)` channel | `hpr_flightdata::raven` |
+| Raven `.FIPa` | Featherweight Raven, its memory as the Featherweight Interface Program downloads it, before any export | opens `#Component=Raven`, and its text lines end, within the first 4,096 bytes, in a `#den` line followed by a frame's `:` | `hpr_flightdata::raven_fipa` ([below](#raw-downloads)) |
 | Blue Raven CSV | Featherweight Blue Raven, through its phone app: a low-rate file (barometer, inertial figures, flags) and a high-rate file (gyroscopes, accelerometers, attitude) | `Year,Month,Day,Time,Flight_Time_(s),Sync,` | `hpr_flightdata::blueraven` |
 | RRC3 CSV | Missile Works RRC3, through mDACS, Missile Works' program that downloads its flights | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages`, perhaps with units in brackets | `hpr_flightdata::rrc3` |
+| RRC3 `.rff` | Missile Works RRC3, its memory as mDACS downloads it, before any export | a .NET serialization header (MS-NRBF, version 1.0) and, within the first 4,096 bytes, mDACS's class name `mDACS.AnalysisSupport+FlightRecord` | `hpr_flightdata::rrc3_rff` ([below](#raw-downloads)) |
 | Eggtimer CSV | Eggtimer Classic, TRS, Quantum and Proton, through Eggtimer's download | `T,Alt,` and more of Eggtimer's column names | `hpr_flightdata::eggtimer` |
 | Eggtimer text | Eggtimer TRS, its download captured by a terminal program | a title `Eggtimer <model> <firmware> … Flight Settings`, then Eggtimer's header row `T,Alt,…` | `hpr_flightdata::eggtimer` ([below](#units-the-file-decides)) |
 | Eggtimer RTF | the same terminal download, saved by a text editor as an RTF document | opens with `{\rtf`, and its text holds the terminal download's title and header row | `hpr_flightdata::eggtimer` ([below](#units-the-file-decides)) |
@@ -90,10 +98,10 @@ high-rate file, 500 times a second (*Blue Raven User's Guide*, 2026-05-12, p18);
 to the other. The high-rate file holds no altitude, so its record's
 [primary track](#the-record) is empty and its channels hold everything; the low-rate file of the
 same flight holds the altitude. The app's summary and events files beside them aren't read yet.
-The other layouts in the sample logs, among them AltOS's `.eeprom`, the RRC3's binary `.rff`, the
-Raven's `.fipa`, spreadsheets and a radio telemetry stream saved as RTF, are refused today, most as
-*unrecognized*; they come with [M7.1c5](../decisions-and-roadmap.md#m7-1c5), and the
-[survey's report](#how-it-was-checked) counts them by layout.
+The other layouts in the sample logs, among them AltOS's `.eeprom`, the Blue Raven's other files,
+an ARTS2's raw sensor counts, spreadsheets and a radio telemetry stream saved as RTF, are refused
+today, most as *unrecognized*; they come with [M7.1c6](../decisions-and-roadmap.md#m7-1c6), and
+the [survey's report](#how-it-was-checked) counts them by layout.
 
 ## The record
 
@@ -105,7 +113,8 @@ Every reader fills the same record, `FlightLog`, in SI units:
 - **The primary track:** the barometric altitude above the pad (AGL, above ground level) on the
   logger's clock, with the barometer's vertical speed, the temperature and the battery voltage
   where they share that clock. The [readings](../physics/log-readings.md) are taken from it. A
-  log with no barometer, such as a [GPS log](#gps-logs), has an empty primary track.
+  log with no barometer, such as a [GPS log](#gps-logs), has an empty primary track, and so does
+  a [raw download](#raw-downloads), whose barometer's readings are pressures, not altitudes.
 - **Every column, as a channel:** each data column of the file, in the file's order, with the
   name the file gives it, what it measures, and its own clock. Nothing the logger wrote is dropped:
   a column HPR Sim can't name a quantity for is kept as written and marked *unrecognized*.
@@ -526,7 +535,7 @@ sample logs:
   altitude's change, are kept as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
   knows. An RTF document holding anything else is refused as not an Eggtimer's, among them the
   radio telemetry stream in two other sample files, which comes with
-  [M7.1c5](../decisions-and-roadmap.md#m7-1c5).
+  [M7.1c6](../decisions-and-roadmap.md#m7-1c6).
 
 The record's readings withhold on all these layouts, as on every logger's but PerfectFlite's
 `.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
@@ -631,7 +640,12 @@ longitude `01131.0000,E` is 11 degrees and 31 minutes east, 11.5167°. The altit
 reads as 22.4 × 1852/3600 = 11.52 m/s (37.8 ft/s), and the course is 84.4° from true north. The
 record's zero is the first sentence's time, 12:35:19 UTC on 23 March 1994.
 
-## PerfectFlite's exports
+## PerfectFlite's other files
+
+Besides the `.pf2`, which has [a page of its own](pf2.md), PerfectFlite's software exports a
+flight as CSV or text, and an older PerfectFlite altimeter saves its flights as a `.pfa`.
+
+### PerfectFlite's exports
 
 PerfectFlite's software exports a flight as CSV, `Time,Altitude,Velocity,Temperature (F),Voltage`,
 sometimes with `Acceleration (calculated)` after them, or as tab-separated text, `Time`,
@@ -648,7 +662,7 @@ A header with any other name, or these names in another case, isn't read as Perf
 RRC3's `Time,Altitude,Pressure,…` is the RRC3's, and a bare `time,altitude` says nothing of its
 units.
 
-## PerfectFlite's older `.pfa`
+### PerfectFlite's older `.pfa`
 
 The Alt15K/WD, an older PerfectFlite altimeter, saves its flights through PerfectFlite's DataCap
 program as a `.pfa`: a line naming the altimeter, then `Ground:`, `Apogee:`, `NumSamps:` and
@@ -692,6 +706,132 @@ the data. Such a file reads, with a note saying so; none of the sample files is 
 the heights that isn't a whole number, or an empty line between them, is refused, naming the line:
 every line is a step of 0.1 s, so one left out would move every time after it.
 
+## Raw downloads
+
+A raw download is an altimeter's memory as its maker's program copies it to a computer, before
+that program turns it into an export with columns and units. HPR Sim reads two: the Featherweight
+Raven's `.FIPa` and Missile Works' RRC3 `.rff`. Each holds the sensors' readings as whole numbers,
+*counts*, which the reader turns into SI by the maker's own arithmetic. Neither holds an altitude.
+
+> **How far to trust it.** The logger's own readings, decoded from layouts no maker publishes, and
+> checked sample by sample against the makers' exports of the same flights.
+>
+> - **Raven `.FIPa`:** 55 of the 57 sample files have the FIP's export beside them, and in all 55
+>   every sample of every channel the two share agrees, 6,016,104 raw samples, with no value off
+>   by a step. The other 2 are decoded by the same rules, unchecked by an export.
+> - **RRC3 `.rff`:** 1 of the 6 has mDACS's export beside it, and its 3,541 pressures agree, each
+>   to the step. The pairs and single words have no calibration to check; the other 5 files are
+>   decoded by the same rules, unchecked by an export.
+>
+> Not compared: the exports' altitudes, flags and the velocities they work out, which are their
+> programs' conversions, not the altimeter's words. Where a number matters, set it beside the
+> maker's program's export of the same flight.
+
+### The Raven's `.FIPa`
+
+The Featherweight Interface Program (FIP) saves a `.FIPa` as a few text lines starting `#`, then
+the memory. The text lines give the firmware, the flight's number, the settings and the length of
+a tick of the Raven's clock. The memory comes in frames of a `:`, 256 bytes and a checksum byte.
+A frame holds four blocks of 32 words of 16 bits, and each block covers 0.05 s, its words taking
+turns among the channels:
+
+- the axial accelerometer, 11 bits, 400 times a second;
+- the lateral accelerometer, 10 bits, 200 times a second;
+- ten slow channels, a word each, 20 times a second: the current draw, the four pyro channels'
+  voltages, the battery's voltage, the temperature, the pressure, the speed the Raven integrates
+  from its accelerometer, and the sixth, which the FIP doesn't export (the reader names it
+  `slow channel 5`, counting from zero).
+
+The rates follow from the blocks' layout, and the FIP's export times its rows by them;
+Featherweight's manual says the Raven records the data its deployment logic uses at 20 Hz
+(*Raven User's Manual, updated for the Raven4*, 2020-08-15). The first five blocks are the quarter second before the Raven detected the launch,
+and the sixth is the settings block, which holds the accelerometers' calibration and the ground's
+elevation. Time zero is the first sample before the launch, as in the FIP's export.
+
+Each word becomes the value the FIP's export prints, by the export's own arithmetic, and then SI
+as the [Raven FIP CSV](#the-layouts-read) reader reads that column. The pressure word counts
+1/25,000 of an atmosphere, the voltages thousandths of a volt, the temperature hundredths of a
+degree Fahrenheit, and the speed tenths of a foot per second. Kept as written, as *unrecognized*:
+the sixth slow channel, the two words after each block's samples, and, on a Raven whose header says its
+accelerometer has one axis (one sample file), the lateral bits, as `lateral counts`, since that
+Raven calibrates no lateral axis. A frame whose checksum fails is refused, naming its byte.
+
+**A worked example**, with invented numbers, which the crate's test `tests/raven_fipa.rs` reads
+and checks. The axial accelerometer reads in g as (trunc(X1 × (a − Z1) / 1000) + F3) / 100, where
+`a` is the count; the settings block gives the gain X1, the zero Z1, and the offset F3 in
+hundredths of a g; trunc drops the fraction. Take a gain of 8,200, a zero of 1,000 counts and an
+offset of 5 hundredths. A count of 1,025 is 25 above the zero. The FIP works X1 / 1000 in
+double-precision floating point, where 8.2 is stored a hair below 8.2, so 8.2 × 25 comes to
+204.999… and truncates to 204. Adding the offset gives 209 hundredths: 2.09 g, or 20.50 m/s².
+Exact whole-number arithmetic would give 205 and 2.10 g. The reader works as the FIP does.
+
+### The RRC3's `.rff`
+
+mDACS, Missile Works' program, saves an RRC3's download as a .NET serialized object, the layout
+Microsoft publishes as MS-NRBF, holding one list of 16-bit words: the altimeter's memory as it
+came off the board. The list has no columns and no times, so the reader tells the words apart by
+their size, as Debrief, the project owner's earlier analyzer, does:
+
+- **A word below `0x4000` (16,384) is a pressure**, in tenths of a millibar. `0x2710`, 10,000, is
+  1,000.0 mbar, or 100,000 Pa. `0x4000` would be 1,638.4 mbar, above the 1,200 mbar at which the
+  RRC3 itself reports a pressure sensor fault (*RRC3+ / RRC3 User Manual* v1.71, p. 9), so no
+  reading reaches it.
+- **A word at or above `0x4000` is an auxiliary word.** Most come in pairs once a second,
+  presumably the temperature and battery voltage the RRC3 records once a second, in counts. A few
+  stand alone (three in each sample file: one near apogee, one later, and a last `0xFFFF`); the
+  first two fall where the manual's low-voltage samples, taken as the drogue and the main fire,
+  would, but that is a guess. The file holds no calibration for either, so both are kept as
+  written, as *unrecognized*, in channels of their own.
+- **A zero word ends the log.** The words before the first one that can be a launch pad's
+  pressure, at least 500 mbar, among the first eight, are kept in a note.
+
+The pressures are on the RRC3's 20 Hz clock, from its manual (*RRC3+ / RRC3 User Manual* v1.71,
+p. 23): the *n*th at *n*/20 s. The file has no times to confirm it, so the reader checks it
+another way: the once-a-second pairs must count the same seconds as the pressures do at 20 a
+second, within 10% and two pairs, or the file is refused.
+
+### What the record keeps
+
+Neither file holds an altitude: the altitudes in the FIP's and mDACS's exports are those programs'
+conversions of the pressure. So each record has an empty [primary track](#the-record), with a
+note, as a [GPS log](#gps-logs) and the Blue Raven's high-rate file have, and its channels hold
+everything, the pressure among them. Working an altitude out of the pressure is a reading, which
+comes with [M7.2](../decisions-and-roadmap.md#m7-2). From the Raven's settings block, the ground's
+elevation becomes the launch site's, and its flight number and firmware are kept as stated.
+
+### Checked against the makers' exports
+
+A raw download and its maker's export of the same flight are two readings of the same bytes, so
+one checks the other sample by sample. `cargo xtask logs` pairs each raw file with every export
+in its folder that the export's own reader reads. It counts a match when every sample of every
+channel the two share agrees: the value within half a step of the raw format's resolution, and
+the time as the export prints it. Every raw sample counts once. The FIP's export prints a row
+every tick of the Raven's clock and holds each channel's latest sample in it, so every raw sample
+must show at a row of its own time, none skipped. Only the velocity may stop before the raw
+file's last sample, as the FIP stops it at apogee; its samples after the stop are counted apart.
+`cargo xtask logs --check` fails on a raw file with an export beside it that matches none. The
+[survey's report](#how-it-was-checked) prints the counts, in its section on the raw downloads:
+
+| Layout | Files | With an export beside | Matching | Raw samples compared | Velocity after the stop | Worst value, steps | Worst time, s |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Raven `.FIPa` | 57 | 55 | 55 | 6,016,104 | 140,865 | 0 | 0.0005 |
+| RRC3 `.rff` | 6 | 1 | 1 | 3,541 | 0 | 0 | 0.01 |
+
+The worst times are the exports' own rounding. The FIP's newer exports print a time to six
+significant figures, 0.0005 s at most here. mDACS keeps its clock as 0.05 s added up row by row in
+single precision, which runs a hundredth of a second ahead of the RRC3's 20 Hz from 156.65 s;
+worked that way, the survey reproduces all 3,541 of its export's times exactly. Every value
+matches only with the FIP's own arithmetic: with exact whole-number arithmetic for the
+accelerometer's gain, 11 files differ from their exports by a hundredth of a g, as in the worked
+example above, and 44 of the 55 would match ([ADR-259](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0259-raw-downloads-against-their-makers-exports-first.md),
+a decision record, gives the probes). The one RRC3 export is mDACS's, in UTF-16
+with a UTF-8 byte-order mark written a second time inside it; the importer's text decoding now
+drops that mark, so the export reads as [RRC3 CSV](#the-layouts-read).
+
+Two `.FIPa` files and five `.rff` files have no export beside them. They are decoded by the same
+rules, and pass the checks each file carries (every frame's checksum, the RRC3's clock check),
+but no export checks their values.
+
 ## How it was checked
 
 `cargo xtask logs`, a command of the project's own build tool, reads every sample log the project
@@ -701,7 +841,8 @@ of downloads whose flights' logs the collection already catalogs, and RocketPy's
 tables, which no logger wrote. It writes what came of each to
 [`validation/reports/log-import.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/log-import.md):
 per layout, how many files were read and how many refused and why; how many files' readers
-decided each unit their headers leave out, and how; and per file an anonymized id (the start of a
+decided each unit their headers leave out, and how; how each raw download compares with its
+maker's export ([above](#checked-against-the-makers-exports)); and per file an anonymized id (the start of a
 hash of the file, which says nothing of its contents) with a digest, a hash, of the record read
 from it.
 
@@ -715,7 +856,7 @@ their extension, are in AltimeterCloud's layout (10), Entacore AIM's (15), a Flu
 ARTS2's interpreted data (4) or the phone app's `launch` CSV (27), and are held to those readers.
 Of the 3 RTF files the catalog files as not a log, by their extension, one is an Eggtimer's
 download, held to its reader, and two a radio telemetry stream, refused until
-[M7.1c5](../decisions-and-roadmap.md#m7-1c5). Four more are moved to layouts not read yet: three
+[M7.1c6](../decisions-and-roadmap.md#m7-1c6). Four more are moved to layouts not read yet: three
 of an ARTS2's raw sensor counts, which carry no calibration, and a ground station's conversion
 of a SillyGoose flight, its columns in another order under no header.
 

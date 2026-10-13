@@ -241,6 +241,12 @@ pub enum LogFormat {
     /// An Eggtimer TRS's terminal download, as [`LogFormat::EggtimerText`] reads it, saved inside
     /// an RTF document.
     EggtimerRtf,
+    /// The Featherweight Raven's raw download, `.FIPa`, as the Featherweight Interface Program
+    /// saves the altimeter's memory: a text header, then checksummed binary frames.
+    RavenFipa,
+    /// Missile Works' RRC3 raw flight file, `.rff`, as mDACS saves a download: a .NET
+    /// `BinaryFormatter` stream holding the altimeter's 16-bit words.
+    Rrc3Rff,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -375,6 +381,8 @@ impl LogFormat {
             Self::AerospaceNuGroundStationText => crate::aerospacenu_gs::ALTITUDE_STEP_M,
             Self::PhoneLaunchCsv => crate::phone_launch::ALTITUDE_STEP_M,
             Self::EggtimerRtf => crate::perfectflite::FOOT_M,
+            Self::RavenFipa => RAVEN_PRESSURE_STEP_ATM * 101_325.0 * ONE_PASCAL_M,
+            Self::Rrc3Rff => RRC3_PRESSURE_STEP_PA * ONE_PASCAL_M,
         }
     }
 
@@ -401,6 +409,8 @@ impl LogFormat {
             | Self::SillyGooseText
             | Self::AerospaceNuGroundStationText => ".txt",
             Self::EggtimerRtf => ".rtf",
+            Self::RavenFipa => ".FIPa",
+            Self::Rrc3Rff => ".rff",
             Self::PerfectFlitePfa => ".pfa",
             Self::Kml => ".kml",
         }
@@ -431,6 +441,8 @@ impl LogFormat {
             Self::AerospaceNuGroundStationText => "AerospaceNU ground station text",
             Self::PhoneLaunchCsv => "phone app launch CSV",
             Self::EggtimerRtf => "Eggtimer RTF",
+            Self::RavenFipa => "Raven .FIPa",
+            Self::Rrc3Rff => "RRC3 .rff",
         }
     }
 }

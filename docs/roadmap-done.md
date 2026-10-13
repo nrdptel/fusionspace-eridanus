@@ -297,6 +297,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c2 Text loggers ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c3 Club layouts ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c4 AerospaceNU's board, a phone app's CSV, Eggtimer RTF ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c5 Raw downloads: the Raven's `.FIPa` and the RRC3's `.rff` ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1476,6 +1477,12 @@ One line per milestone or increment, in the order it was archived within its pha
       every `aerospacenu-fcb-csv`, `aerospacenu-gs-txt`, `phone-launch-csv` and `eggtimer-rtf`
       sample imports (`cargo xtask logs --check`); each unit a file doesn't state is settled by
       two agreeing checks or kept as written, in a counted note; a conversion's `inf` is refused.
+    - [x] **M7.1c5 Raw downloads: the Raven's `.FIPa` and the RRC3's `.rff`** (ADR-259).
+      *Done when:* every sample of `raven-fipa` and `rrc3-rff` in refs imports (`cargo xtask logs --check` fails on one not read); each with its maker's export
+      beside it matches it in every sample of every shared channel, within half a step of the raw
+      resolution, counted by the survey, `--check` failing on one that doesn't; a word with no
+      calibration in the file is kept as written; and a frame whose checksum fails, or a failed
+      clock check, is refused by name.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

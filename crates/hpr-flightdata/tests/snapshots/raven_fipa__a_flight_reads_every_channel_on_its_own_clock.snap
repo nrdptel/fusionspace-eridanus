@@ -1,0 +1,11 @@
+---
+source: crates/hpr-flightdata/tests/raven_fipa.rs
+expression: log.notes
+---
+[
+  "the record's primary track is empty: the Raven records a pressure, not an altitude; the FIP's export works its altitudes out of the pressure",
+  "read from the Raven's memory: 8 blocks of 0.05 s, the first 5 before the launch; a tick is 25/20 ms",
+  "`slow channel 5` and `block word 30` and `31` are kept as written: the FIP's export holds neither",
+  "the memory is unused from block 9 of 12",
+  "the header's `#DateTime` is \"1/2/2020 3:04:05 PM\", as written: the file doesn't say which clock wrote it"
+]

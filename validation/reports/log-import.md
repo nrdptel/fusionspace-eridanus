@@ -12,38 +12,38 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 |---|---|---:|---:|---|
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
-| aerospacenu-sillygoose-gs-csv | M7.1c5 | 1 | 0 | 1 unrecognized |
+| aerospacenu-sillygoose-gs-csv | M7.1c6 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
 | altos-csv-damaged | damaged | 1 | 0 | 1 syntax |
-| altos-eeprom | M7.1c5 | 14 | 0 | 14 unrecognized |
-| altos-telem | M7.1c5 | 2 | 0 | 2 unrecognized |
+| altos-eeprom | M7.1c6 | 14 | 0 | 14 unrecognized |
+| altos-telem | M7.1c6 | 2 | 0 | 2 unrecognized |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
-| arts2-raw-csv | M7.1c5 | 3 | 0 | 3 unrecognized |
-| binary | M7.1c5 | 4 | 0 | 4 unrecognized |
+| arts2-raw-csv | M7.1c6 | 3 | 0 | 3 unrecognized |
+| binary | M7.1c6 | 4 | 0 | 4 unrecognized |
 | blueraven-csv | M7.1b | 80 | 80 | none |
-| blueraven-events-txt | M7.1c5 | 12 | 0 | 12 unrecognized |
-| blueraven-summary-csv | M7.1c5 | 23 | 0 | 23 unrecognized |
-| csv | M7.1c5 | 75 | 2 | 1 syntax, 72 unrecognized |
-| debrief-synthetic-csv | M7.1c5 | 6 | 0 | 6 unrecognized |
-| e80-imu-txt | M7.1c5 | 54 | 0 | 54 unrecognized |
+| blueraven-events-txt | M7.1c6 | 12 | 0 | 12 unrecognized |
+| blueraven-summary-csv | M7.1c6 | 23 | 0 | 23 unrecognized |
+| csv | M7.1c6 | 75 | 2 | 1 syntax, 72 unrecognized |
+| debrief-synthetic-csv | M7.1c6 | 6 | 0 | 6 unrecognized |
+| e80-imu-txt | M7.1c6 | 54 | 0 | 54 unrecognized |
 | eggtimer-csv | M7.1b | 43 | 43 | none |
 | eggtimer-rtf | M7.1c4 | 1 | 1 | none |
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c5 | 2 | 0 | 2 unrecognized |
-| featherweight-summary-csv | M7.1c5 | 25 | 0 | 25 unrecognized |
+| entacore-xtra | M7.1c6 | 2 | 0 | 2 unrecognized |
+| featherweight-summary-csv | M7.1c6 | 25 | 0 | 25 unrecognized |
 | fluctus-csv | M7.1c3 | 6 | 6 | none |
 | fwgps-csv | M7.1c1 | 40 | 40 | none |
 | jpeg | not a log | 1 | 0 | 1 unrecognized |
 | kml | M7.1c1 | 42 | 42 | none |
 | kml-map | not a log | 1 | 1 | none |
-| missileworks-rtx | M7.1c5 | 5 | 0 | 5 unrecognized |
+| missileworks-rtx | M7.1c6 | 5 | 0 | 5 unrecognized |
 | nmea | M7.1c1 | 12 | 12 | none |
-| odf | M7.1c5 | 3 | 0 | 3 unrecognized |
-| ods | M7.1c5 | 4 | 0 | 4 unrecognized |
+| odf | M7.1c6 | 3 | 0 | 3 unrecognized |
+| ods | M7.1c6 | 4 | 0 | 4 unrecognized |
 | pdf | not a log | 1 | 0 | 1 unrecognized |
 | perfectflite-csv | M7.1a | 14 | 14 | none |
 | perfectflite-txt | M7.1a | 2 | 2 | none |
@@ -52,19 +52,20 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | phone-launch-csv | M7.1c4 | 27 | 27 | none |
 | png | not a log | 6 | 0 | 6 unrecognized |
 | raven-csv | M7.1a | 80 | 80 | none |
-| raven-fipa | M7.1c5 | 57 | 0 | 57 unrecognized |
-| rrc3-csv | M7.1b | 50 | 50 | none |
-| rrc3-rff | M7.1c5 | 6 | 0 | 6 unrecognized |
-| telemetry-rtf | M7.1c5 | 2 | 0 | 2 not-this-format |
-| txt | M7.1c5 | 35 | 0 | 35 unrecognized |
-| xls | M7.1c5 | 1 | 0 | 1 unrecognized |
-| xlsx | M7.1c5 | 32 | 0 | 32 unrecognized |
-| xml | M7.1c5 | 2 | 0 | 2 unrecognized |
-| zip | M7.1c5 | 8 | 0 | 8 unrecognized |
-| **All** | | 1103 | 719 | |
+| raven-fipa | M7.1c5 | 57 | 57 | none |
+| rrc3-csv | M7.1b | 51 | 51 | none |
+| rrc3-rff | M7.1c5 | 6 | 6 | none |
+| telemetry-rtf | M7.1c6 | 2 | 0 | 2 not-this-format |
+| txt | M7.1c6 | 34 | 0 | 34 unrecognized |
+| xls | M7.1c6 | 1 | 0 | 1 unrecognized |
+| xlsx | M7.1c6 | 32 | 0 | 32 unrecognized |
+| xml | M7.1c6 | 2 | 0 | 2 unrecognized |
+| zip | M7.1c6 | 8 | 0 | 8 unrecognized |
+| **All** | | 1103 | 783 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
+- `d306250ba73ea7f4 txt -> rrc3-csv`: an mDACS export of an RRC3's flight, tab-separated and in UTF-16, opening after its UTF-16 byte-order mark with a UTF-8 mark written as three UTF-16 characters; filed as text by its extension
 - `9c5017ab68168088 altos-csv -> csv`: a spreadsheet's re-save of an AltOS export, no longer AltosUI's layout: its header edited to carry units, its `height` column deleted, and three columns holding formulas
 - `76a7d8937258e946 csv -> altos-csv-damaged`: an AltosUI export whose header line is damaged: it names 25 columns, two of them run together, where its rows hold other counts, so no reader can tell which cell is which; refused
 - `c7936ac4d86f259f kml -> kml-map`: a map of a flight made in a map program, not a logger's file: the tracks a simulation predicted for several launch times, with pins for the pad, the predicted events and where the rocket landed, and a line measuring the distance to it
@@ -141,6 +142,13 @@ Files whose catalog family isn't their layout, moved to their layout's:
 PerfectFlite's exports state no unit for their altitude. Of the 16 read, 13 peak at exactly the height of a `.pf2` beside them, which is in feet; read in feet, their climbs take 0.94 to 1.05 times as long as a fall in vacuum from the peak. The other 3 take 0.93 to 1.07 times, read in feet, and would take 0.51 to 0.59 times read in meters.
 
 A `.pfa` states neither its rate nor its unit; its reader takes 10 samples a second, in feet, from PerfectFlite's documents. Of the 25 read, 25 hold as many heights as `NumSamps:` states and 25 state an `Apogee:` equal to their highest; 17 first reach 80 ft, the height that sets off launch detection, at their eighth sample, 0.7 s, and 8 first reach 40 ft, the least it can be set to, there.
+
+The raw downloads against their makers' exports of the same flight, an export being one beside the raw file, in its folder, that its reader reads. A match agrees in every sample of every channel the two share: the value within half a step of the raw format's resolution, the time as the export prints it (the FIP's to six significant figures; mDACS's from its own clock, 0.05 s summed in single precision, which runs a hundredth of a second ahead of the RRC3's from 156.65 s). Each raw sample is counted once; only the accelerometer's velocity may stop early, as the FIP stops it at apogee, and its samples after the stop are counted apart:
+
+| Family | Files | With an export | Matching one | Raw samples compared | Velocity after the stop | Worst time, s | Worst value, steps | Export only | Differing |
+|---|---:|---:|---:|---:|---:|---:|---:|---|---|
+| raven-fipa | 57 | 55 | 55 | 6016104 | 140865 | 5.0e-4 | 0.000 | `LiftOff` (1), `[Altitude (Accel-Ft)]` (38), `[Altitude (Baro-Ft-AGL)]` (55), `[Altitude (Baro-Ft-ASL)]` (55), `[Velocity (Accel-Ft/Sec)]` (38), `[Velocity (Accel-MPH)]` (38), `bILBA` (37) | none |
+| rrc3-rff | 6 | 1 | 1 | 3541 | 0 | 1.0e-2 | 0.000 | `Altitude` (1), `Temperature` (1), `Velocity` (1), `Voltages` (1) | none |
 
 Units no header states, as each file's reader decided them, or kept the column as written, and noted:
 
@@ -393,14 +401,14 @@ Units no header states, as each file's reader decided them, or kept the column a
 | phone-launch-csv | `Yaw` kept as written, in a unit two checks don't settle | 17 |
 | phone-launch-csv | `Yaw` read in radians, from its range and the magnetic field's direction | 10 |
 | phone-launch-csv | `hPa` read in hectopascals, from its name and the pad | 8 |
-| rrc3-csv | `Altitude` read in feet, from the pressure | 46 |
-| rrc3-csv | `Pressure` read in hectopascals, from the values | 46 |
-| rrc3-csv | `Temperature` read in degrees Fahrenheit, assumed | 40 |
-| rrc3-csv | `Time` read in seconds, from the step | 46 |
+| rrc3-csv | `Altitude` read in feet, from the pressure | 47 |
+| rrc3-csv | `Pressure` read in hectopascals, from the values | 47 |
+| rrc3-csv | `Temperature` read in degrees Fahrenheit, assumed | 41 |
+| rrc3-csv | `Time` read in seconds, from the step | 47 |
 | rrc3-csv | `Velocity` kept as written, its unit unknown | 2 |
 | rrc3-csv | `Velocity` read in feet per second, from the altitude | 36 |
-| rrc3-csv | `Velocity` read in miles per hour, from the altitude | 8 |
-| rrc3-csv | `Voltages` read in volts, assumed | 42 |
+| rrc3-csv | `Velocity` read in miles per hour, from the altitude | 9 |
+| rrc3-csv | `Voltages` read in volts, assumed | 43 |
 
 The files read, by the logger each names:
 
@@ -422,10 +430,10 @@ The files read, by the logger each names:
 | Featherweight Blue Raven | 80 |
 | Featherweight GPS ground station | 12 |
 | Featherweight GPS tracker | 28 |
-| Featherweight Raven | 80 |
+| Featherweight Raven | 137 |
 | GPS Visualizer | 1 |
 | KML | 3 |
-| Missile Works RRC3 | 50 |
+| Missile Works RRC3 | 57 |
 | Missile Works RTx | 12 |
 | NMEA 0183 receiver (talker GP) | 12 |
 | Ozark Aerospace ARTS2 | 4 |
