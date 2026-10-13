@@ -1183,14 +1183,14 @@ fn decide_speed(columns: &mut [Column], times: &[f64], decisions: &mut Vec<Strin
     let (mut cross, mut square, mut moved) = (0.0, 0.0, 0.0);
     for row in 0..times.len().saturating_sub(1) {
         let step = times[row + 1] - times[row];
-        let travelled = 0.5 * (v[row] + v[row + 1]) * step;
+        let traveled = 0.5 * (v[row] + v[row + 1]) * step;
         let risen = z[row + 1] - z[row];
-        if !(step > 0.0 && step <= FAST_STEP_S && travelled.is_finite() && risen.is_finite()) {
+        if !(step > 0.0 && step <= FAST_STEP_S && traveled.is_finite() && risen.is_finite()) {
             continue;
         }
-        cross += travelled * risen;
-        square += travelled * travelled;
-        moved += travelled.abs();
+        cross += traveled * risen;
+        square += traveled * traveled;
+        moved += traveled.abs();
     }
     let name = columns[speed].quoted();
     if moved < SPEED_LEAST_M {
