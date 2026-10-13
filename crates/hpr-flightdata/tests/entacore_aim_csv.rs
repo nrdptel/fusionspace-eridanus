@@ -65,7 +65,7 @@ fn the_flight_computers_log_reads_every_group_on_its_clock() {
             ("GPS Time of Week", Quantity::Unrecognized, 4),
             ("lat", Quantity::Latitude, 6),
             ("long", Quantity::Longitude, 6),
-            ("GPS MSL", Quantity::GnssAltitude, 6),
+            ("GPS MSL", Quantity::Unrecognized, 6),
             ("SVs", Quantity::Number, 6),
         ]
     );
@@ -97,8 +97,19 @@ fn the_flight_computers_log_reads_every_group_on_its_clock() {
         &log,
         "`Pressure MSL` and `Pressure AGL` read in meters, from the pressure: ",
     );
-    note(&log, "`GPS MSL` read in meters, assumed: ");
-    note(&log, "`temperature` read in degrees Celsius, assumed: ");
+    // A site 250 m up is too low for the factor between feet and meters to show against the
+    // barometric altitude, so `GPS MSL` is kept as written.
+    assert!(
+        note(
+            &log,
+            "`GPS MSL` kept as written, in a unit `Pressure MSL` doesn't settle: "
+        )
+        .contains("doesn't tell the units apart")
+    );
+    note(
+        &log,
+        "`temperature` read in degrees Celsius, from the heights' unit and the manual, p33: ",
+    );
     note(
         &log,
         "`acceleration`, `lat. X accel.` and `lat. Y accel.` read in g, from the manual: ",
@@ -106,9 +117,11 @@ fn the_flight_computers_log_reads_every_group_on_its_clock() {
     note(&log, "`Mag X`, `Mag Y` and `Mag Z` kept as written, ");
     note(
         &log,
-        "`GPS Time of Week` kept as written, in milliseconds: ",
+        "`GPS Time of Week` kept as written, in milliseconds, from the values: ",
     );
-    note(&log, "`A Voltage` read in volts, assumed: ");
+    note(&log, "`A Voltage` read in volts, from the values: ");
+    note(&log, "`SVs` kept as written, a count, from the manual: ");
+    assert!(log.notes.iter().all(|n| !n.contains("assumed")));
     note(
         &log,
         "24 rows, the first on line 8, write the run-out GPS group",
@@ -158,12 +171,17 @@ fn the_ground_stations_file_reads_past_its_run_out_gps_group() {
         &log,
         "the file holds `RSSI`, the radio's strength at the AIM BASE",
     );
-    note(&log, "`comp. bat. voltage` read in volts, assumed: ");
+    note(
+        &log,
+        "`comp. bat. voltage` read in volts, from the values: ",
+    );
+    note(&log, "`RSSI` kept as written, in dBm, from the manual: ");
+    assert!(log.notes.iter().all(|n| !n.contains("assumed")));
     insta::assert_json_snapshot!(log);
 }
 
 /// A file in imperial units: the altitudes decided in feet from the pressure, the temperature then
-/// assumed in °F, and the clock assumed in seconds with no `GPS Time of Week` to check it by.
+/// in °F, and the clock decided in seconds from its step, with no `GPS Time of Week`.
 #[test]
 fn a_file_in_feet_reads_the_same_heights() {
     let log = import::read(include_bytes!("samples/entacore-feet.csv")).unwrap();
@@ -184,12 +202,17 @@ fn a_file_in_feet_reads_the_same_heights() {
         &log,
         "`Pressure MSL` and `Pressure AGL` read in feet, from the pressure: ",
     );
-    note(&log, "`temperature` read in degrees Fahrenheit, assumed: ");
-    // 71.2 °F is 21.777… °C.
-    assert!((log.channels[4].values[0] - (71.2 - 32.0) * 5.0 / 9.0 - 273.15).abs() < 1e-9);
     note(
         &log,
-        "`time` read in seconds, assumed: the file has no `GPS Time of Week`",
+        "`temperature` read in degrees Fahrenheit, from the heights' unit and the manual, p33: ",
     );
+    // 71.2 °F is 21.777… °C.
+    assert!((log.channels[4].values[0] - (71.2 - 32.0) * 5.0 / 9.0 - 273.15).abs() < 1e-9);
+    // No `GPS Time of Week`: the clock is decided from the step, 0.5 s.
+    assert!(
+        note(&log, "`time` read in seconds, from the step: ")
+            .contains("the file has no `GPS Time of Week`")
+    );
+    assert!(log.notes.iter().all(|n| !n.contains("assumed")));
     insta::assert_json_snapshot!(log);
 }

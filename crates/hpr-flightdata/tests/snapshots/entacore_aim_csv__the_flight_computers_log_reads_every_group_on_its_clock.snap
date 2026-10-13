@@ -1175,7 +1175,7 @@ expression: log
     },
     {
       "column": "GPS MSL",
-      "quantity": "gnss_altitude",
+      "quantity": "unrecognized",
       "time_s": [
         -1.6,
         -0.6,
@@ -1229,19 +1229,21 @@ expression: log
     }
   ],
   "notes": [
-    "`time` read in seconds, from `GPS Time of Week`: it counts milliseconds, below a week's 604,800,000, and climbs by a median of 1000.0 per unit of its `time`",
-    "`pressure` read in pascals, from the values: its first sample, on the pad, is 98358, a launch site's pressure in pascals (50,000 to 110,000 Pa)",
-    "`Pressure MSL` and `Pressure AGL` read in meters, from the pressure: from the first sample to the one of lowest pressure, the standard atmosphere climbs 543.4 m and the column 543.4 meters",
-    "`GPS MSL` read in meters, assumed: as the barometric altitudes, the software setting one unit system for its displays (p33)",
-    "`temperature` read in degrees Celsius, assumed: the manual's sensor reads °C or °F (p25), and the software sets one unit system for its displays (p33), here the altitudes' meters",
+    "`time` read in seconds, from `GPS Time of Week`: it counts milliseconds, below a week's 604,800,000, and climbs by a median of 1000.0 per unit of its `time`, a millisecond's per second",
+    "`pressure` read in pascals, from the values: its first value that is a launch site's pressure in pascals, kilopascals or inches of mercury (50,000 to 110,000 Pa), 98358, is one in pascals",
+    "`Pressure MSL` and `Pressure AGL` read in meters, from the pressure: from the pressure's pad sample to the one of lowest pressure, the standard atmosphere climbs 543.4 m and the column 543.4 meters",
+    "`GPS MSL` kept as written, in a unit `Pressure MSL` doesn't settle: over 6 GPS samples within 1 s of one of it, the median difference is 58.2 m read in meters and -164.6 m in feet, so the 300 m a day's weather moves a standard-atmosphere altitude doesn't tell the units apart",
+    "`temperature` read in degrees Celsius, from the heights' unit and the manual, p33: the heights are in meters, decided from the pressure, and the software sets one unit system for all its displays (p33), here metric, its sensor reading °C or °F (p25); the first value, 22.5, is a bay's temperature in them, -40 to 60",
+    "`eject. bat. voltage` read in volts, from the values: they lie within 8.21 to 8.21, inside the 0 to 20 V of a battery or an output line (the computer's battery is 3.5 to 8.4 V and the ejection battery at most 10 V, manual p10), where millivolts would be thousands",
+    "`comp. bat. voltage` read in volts, from the values: they lie within 3.98 to 3.98, inside the 0 to 20 V of a battery or an output line (the computer's battery is 3.5 to 8.4 V and the ejection battery at most 10 V, manual p10), where millivolts would be thousands",
+    "`A Voltage` read in volts, from the values: they lie within 0.12 to 3.3, inside the 0 to 20 V of a battery or an output line (the computer's battery is 3.5 to 8.4 V and the ejection battery at most 10 V, manual p10), where millivolts would be thousands",
     "`acceleration`, `lat. X accel.` and `lat. Y accel.` read in g, from the manual: it plots the accelerations \"in G's\", the long axis's with gravity in it (p23–24)",
     "`Gyro X`, `Gyro Y` and `Gyro Z` read in degrees per second, from the manual: \"degrees/sec\" (p24)",
-    "`eject. bat. voltage` read in volts, assumed: the manual plots the batteries' and the four lines' voltages without naming a unit (p24)",
-    "`comp. bat. voltage` read in volts, assumed: the manual plots the batteries' and the four lines' voltages without naming a unit (p24)",
-    "`A Voltage` read in volts, assumed: the manual plots the batteries' and the four lines' voltages without naming a unit (p24)",
     "`lat` and `long` read in degrees, from the values: decimal numbers, as the manual's sample export writes them (Table 2, p40)",
-    "`Mag X`, `Mag Y` and `Mag Z` kept as written, in a unit no source bears out: the manual gives tesla (p24), but the field the sample files' columns make, 0.0011 to 0.0022, is 20 to 40 times the Earth's, and the record has no quantity for a magnetic field",
-    "`GPS Time of Week` kept as written, in milliseconds: the record has no quantity for a time of the GPS week",
+    "`SVs` kept as written, a count, from the manual: the satellites used in the GPS's solution (p25)",
+    "`Mag X`, `Mag Y` and `Mag Z` kept as written, in a unit no source bears out: the manual gives tesla (p24); read so, the field the columns make, 0.00152 to 0.00152, would be 23 to 23 times the Earth's at its strongest, about 65 µT; and the record has no quantity for a magnetic field",
+    "`GPS Time of Week` kept as written, in milliseconds, from the values: they stay below a week's 604,800,000 and rise by a median of 1000.0 a second of the clock; the record has no quantity for a time of the GPS week",
+    "`launch detect`, `apogee detect`, `A cont.`, `B cont.`, `C cont.`, `D cont.`, `A on.`, `B on`, `C on` and `D on` kept as written, flags, from the values: each is 0 or 1, the AIM's flight event status and its lines' continuity (manual p2, p36)",
     "24 rows, the first on line 8, write the run-out GPS group, `time,lat,…`, one empty cell too wide: the cell after it was dropped, so that the groups to its right are read under their names"
   ]
 }

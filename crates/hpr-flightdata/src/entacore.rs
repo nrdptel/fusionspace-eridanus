@@ -4,12 +4,13 @@
 //!
 //! The AIM XTRA samples its sensors at different rates: its barometer every 20 ms, its 100 g
 //! accelerometer, 16 g three-axis accelerometer and gyroscope every 10 ms, its magnetometer every
-//! 100 ms, its temperature every 500 ms and its GPS's position every 200 ms (manual p2), each slowed
-//! by a factor the owner sets for each phase of the flight (p21). So the export gives each group of
-//! channels its own clock: "there are multiple time columns. Each time column applies to the
-//! columns to its right until another time column is reached" (p40). One header line names the
-//! columns; each row below holds the next sample of every group, so a row's cells for different
-//! groups were taken at different times, and a group that has run out leaves its cells empty:
+//! 100 ms, its temperature every 500 ms and its GPS's position every 200 ms (manual p2), each
+//! written at a whole multiple of its period that the owner sets for each phase of the flight
+//! (p21). So the export gives each group of channels its own clock: "there are multiple time
+//! columns. Each time column applies to the columns to its right until another time column is
+//! reached" (p40). One header line names the columns; each row below holds the next sample of
+//! every group, so a row's cells for different groups were taken at different times, and a group
+//! that has run out leaves its cells empty:
 //!
 //! ```text
 //! time,Gyro X,Gyro Y,Gyro Z,time,pressure,Pressure MSL,Pressure AGL,time,acceleration,…
@@ -21,67 +22,91 @@
 //!
 //! **Recognition.** The first line that isn't blank is comma-separated, starts with a `time`
 //! column, names at least two, and names at least one of the AIM's own channels, such as `Pressure
-//! AGL`, `lat. X accel.` or `eject. bat. voltage` ([`MARKS`]); names are compared trimmed and
-//! without regard to case. A Raven's export starts with `Time@…` columns and names none of them.
+//! AGL`, `lat. X accel.` or `eject. bat. voltage` (the reader's `MARKS`); names are compared
+//! trimmed, without trailing points and without regard to case. A Raven's export starts with
+//! `Time@…` columns and names none of them.
 //!
 //! **Channels.** Each name the reader knows, what it is read as, and where its unit comes from.
-//! The column keeps the file's name, trimmed:
+//! The column keeps the file's name, trimmed. A header naming a column twice is refused:
 //!
 //! | Column | Quantity | Unit, and from where |
 //! |---|---|---|
-//! | `time` | the clock of the columns to its right (p40) | seconds, from `GPS Time of Week` (below) |
-//! | `pressure` | [`Quantity::Pressure`] | Pa, from the values (below); the manual's sample export writes 100182 (Table 2, p40) |
-//! | `Pressure MSL` | [`Quantity::AltitudeMsl`] | m, from the pressure (below): the software's altitude from "Standard Atmospheric table data" (p22) |
+//! | `time` | the clock of the columns to its right (p40) | seconds or milliseconds, from `GPS Time of Week` or the step (below) |
+//! | `pressure` | [`Quantity::Pressure`] | Pa, kPa or inHg, from the values (below); the manual's sample export writes 100182 (Table 2, p40) |
+//! | `Pressure MSL` | [`Quantity::AltitudeMsl`] | m or ft, from the pressure (below): the software's altitude from "Standard Atmospheric table data" (p22) |
 //! | `Pressure AGL` | [`Quantity::AltitudeAboveGround`]: the primary track | as `Pressure MSL` |
 //! | `acceleration`, `lat. X accel.`, `lat. Y accel.` | [`Quantity::Acceleration`] | g, × 9.806 65 m/s² (standard gravity): the manual plots accelerations "in G's" (p23–24) |
 //! | `Gyro X`, `Gyro Y`, `Gyro Z` | [`Quantity::AngularRate`] | degrees per second (p24) |
 //! | `Mag X`, `Mag Y`, `Mag Z` | [`Quantity::Unrecognized`], as written | below |
-//! | `eject. bat. voltage`, `comp. bat. voltage`, `A Voltage` … `D Voltage` | [`Quantity::Voltage`] | volts, assumed: the manual plots the batteries' and the four lines' voltages without a unit (p24) |
-//! | `temperature` | [`Quantity::Temperature`] | °C or °F, assumed with the altitudes' unit (below) |
+//! | `eject. bat. voltage`, `comp. bat. voltage`, `A Voltage` … `D Voltage` | [`Quantity::Voltage`] | volts, from the values (below) |
+//! | `temperature` | [`Quantity::Temperature`] | °C or °F, from the altitudes' unit and the manual (below) |
 //! | `lat`, `long` | [`Quantity::Latitude`], [`Quantity::Longitude`] | decimal degrees, as the manual's sample export writes them (Table 2, p40); a value beyond ±90° or ±180° is a gap |
-//! | `GPS MSL` | [`Quantity::GnssAltitude`] | assumed with the altitudes' unit |
-//! | `GPS Time of Week` | [`Quantity::Unrecognized`], as written | milliseconds (below) |
-//! | `SVs`, `RSSI` | [`Quantity::Number`] | the satellites in the fix (p25), the radio's received strength in dBm (p29) |
+//! | `GPS MSL` | [`Quantity::GnssAltitude`] | the altitudes' unit, if it agrees with `Pressure MSL` (below) |
+//! | `GPS Time of Week` | [`Quantity::Unrecognized`], as written | milliseconds, where the clock is decided by it (below) |
+//! | `SVs` | [`Quantity::Number`] | the satellites used in the GPS's solution (p25) |
+//! | `RSSI` | [`Quantity::Number`], as written | dBm, the strength of the radio signal the AIM BASE received (p29), not an SI unit |
 //! | `launch detect`, `apogee detect`, `A cont.` … `D cont.`, `A on.` … `D on` | [`Quantity::Number`], 0 or 1 | flags; see Events |
 //!
 //! A column the reader doesn't know is kept as written, [`Quantity::Unrecognized`], with a note.
-//! Each unit gets a note on the record saying how it was read and on what evidence.
+//! Each unit gets a note on the record saying how it was read and on what evidence; a unit no
+//! evidence settles is kept as written, [`Quantity::Unrecognized`], and the note says why.
 //!
 //! *The clock.* The manual states no unit for `time`. `GPS Time of Week` counts milliseconds: its
-//! values stay below a week's 604,800,000, which seconds would pass, and the manual's sample
-//! export counts it up by 5,000 over 5 of its `time` before the GPS has a fix (Table 2, p40). The
-//! reader takes the median, over the channel's consecutive samples, of its rise over its clock's:
-//! within 10% of 1,000, `time` is in seconds by the file. As of 2026-10-13 it is 969.8 to 1,002.4
-//! in the 16 AIM files among the project's sample logs (the BASE's clock, the time a packet came in,
-//! is the less regular). A file without the channel, or with another median, has its `time` read
-//! in seconds all the same, assumed, with the median in the note. The time's zero is the
-//! software's: the start of the recording, or the time the owner chose to make zero, such as the
-//! launch (p33).
+//! values stay below a week's 604,800,000, and the manual's sample export counts it up by 5,000
+//! over 5 of its `time` in seconds (Table 2, p40). The reader takes the median, over the
+//! channel's consecutive samples, of its rise over its clock's: within 10% of 1,000, `time` is in
+//! seconds; within 10% of 1, in milliseconds, and every clock is read × 0.001. As of 2026-10-13
+//! the median is 969.8 to 1,002.4 in the 16 AIM files among the project's sample logs (the BASE's
+//! clock, the time a packet came in, is the less regular). Without such a channel, the unit comes
+//! from the step, as the Eggtimer reader's does: the AIM writes each sensor every 10 to 500 ms
+//! (p2) times a whole multiple the owner sets (p21), so the fastest clock's median step reads
+//! 0.009 to 2 in seconds (the 10 ms period less 10%, to 2 s; 0.0097 to 0.773 in the sample
+//! files) and 9 to 2,000 in milliseconds. A step in neither range, or no clock with two samples,
+//! is refused ([`LogError::Unit`]). The time's zero is the software's: the start of the
+//! recording, or the time the owner chose to make zero, such as the launch (p33).
 //!
 //! *The pressure.* The manual's software shows the pressure in kPa or inHg (p25), but its sample
-//! export writes pascals (Table 2, p40). The reader takes the unit from the first sample, on the
-//! pad: pascals if it lies within 50,000 to 110,000, as a launch site's does (the bounds
-//! [`crate::rrc3`] argues), kilopascals within 50 to 110, inches of mercury (3,386.389 Pa, NIST
-//! SP 811) within 14.8 to 32.5; otherwise the column is kept as written. Every sample file is in
-//! whole pascals.
+//! export writes pascals (Table 2, p40). The reader takes the unit from the first value that is
+//! a launch site's pressure in one of them, on the pad, so a placeholder ahead of it is passed
+//! over: pascals within 50,000 to 110,000 (the bounds [`crate::rrc3`] argues), kilopascals
+//! within 50 to 110, inches of mercury (3,386.389 Pa, NIST SP 811) within 14.8 to 32.5;
+//! otherwise the column is kept as written. Every sample file is in whole pascals.
 //!
 //! *The altitudes.* `Pressure MSL` is the pressure's altitude in the standard atmosphere, and
 //! `Pressure AGL` the same less the logger's ground altitude: over the 16 sample files `Pressure
 //! MSL` is within 0.06 m of the U.S. Standard Atmosphere's pressure altitude of `pressure`, and
 //! `Pressure MSL` less `Pressure AGL` is constant to 0.02 m in each. The software offers metric or
 //! imperial units (p33); the reader decides between meters and feet as [`crate::rrc3`] does: from
-//! the first sample to the one of lowest pressure, the climb the pressure implies in the U.S.
-//! Standard Atmosphere, 1976 ([`hpr_atmos::ussa76`]), against the column's climb read in meters
-//! and in feet; the unit within 25% is taken, and a file with neither is refused
-//! ([`LogError::Unit`]). Below a 10 m climb, or without a pressure of known unit beside them,
-//! meters are assumed, the unit of the manual's sample export and of its calibration (p22). The
-//! temperature is assumed in °C beside meters and °F beside feet, and `GPS MSL` in the altitudes'
-//! unit, as the software sets one unit system for its displays (p33); the sample files' readings,
-//! 25.8 to 50.6, are an electronics bay's in °C.
+//! the pressure's pad sample to the one of lowest pressure, the climb the pressure implies in the
+//! U.S. Standard Atmosphere, 1976 ([`hpr_atmos::ussa76`]), against the column's climb read in
+//! meters and in feet; the unit within 25% is taken. A climb under 2 m (where the pressure's
+//! 1 Pa step, 0.08 m at sea level, is 4% of it), a file without a pressure of known unit beside
+//! the altitudes on their clock, or a climb in neither unit is refused ([`LogError::Unit`]): the
+//! primary track has no unit to be read in.
 //!
-//! *The magnetometer.* The manual gives tesla (p24), but the field the sample files' columns make,
-//! 0.0011 to 0.0022, is 20 to 40 times the Earth's at its strongest, 65 µT, so no source bears a
-//! unit out; the record has no quantity for a magnetic field either.
+//! *The temperature* is read in °C beside meters and °F beside feet: the software sets one unit
+//! system, metric or imperial, for all its displays (p33), and its sensor reads °C or °F (p25).
+//! Its first value must also be one an electronics bay can have in that unit, −40 to 60 °C
+//! (−40 to 140 °F), or the column is kept as written; the sample files' first values, 27.4 to
+//! 50.6, are in °C.
+//!
+//! *The voltages* are read in volts where every value lies within 0 to 20: the computer's battery
+//! is 3.5 to 8.4 V and the ejection battery at most 10 V (p10), and the lines' readings sit
+//! between, where millivolts would be thousands. A column with a value outside is kept as
+//! written. The sample files' values are 0.05 to 8.33.
+//!
+//! *`GPS MSL`* is read in the altitudes' unit if it agrees with `Pressure MSL`: over the GPS
+//! samples within 1 s of a barometric one, the median difference is within 300 m in that unit
+//! and beyond 300 m in the other. 300 m is the error a day's weather gives a standard-atmosphere
+//! altitude when the sea-level pressure is 36 hPa off the standard 1,013.25 (8.4 m a hPa near sea
+//! level); the manual's own sample export reads 283 m by GPS beside 95.6 m by pressure (Table 2,
+//! p40), and the sample files' medians are 28 to 173 m. Otherwise, as at a site too low for the
+//! units' factor of 3.28 to show, the column is kept as written.
+//!
+//! *The magnetometer.* The manual gives tesla (p24), but the field the sample files' three
+//! columns make, 0.0011 to 0.0022 in the 9 with them, would be 17 to 34 times the Earth's at its
+//! strongest, about 65 µT, so no source bears a unit out; the record has no quantity for a
+//! magnetic field either, and each file's note gives its own range.
 //!
 //! **The primary track.** The record's time and altitude are `Pressure AGL`'s, on its own clock:
 //! the AIM's barometric altitude above the ground it was calibrated to (p22), the altitude above
@@ -106,10 +131,10 @@
 //! GPS group (`time,lat,long,GPS MSL,SVs`) runs out holds one cell more than the header: the group
 //! is written as six empty cells, not five, so the groups to its right sit one cell right of
 //! their names. A row one cell wider than the header whose GPS group's cells and the one after
-//! them are all empty has that one after dropped, counted in a note. After it, in every row of
-//! every sample file, each group's cells are all filled or all empty. Any other row of another
-//! width is refused, naming its line, so the record never holds more values than the file has
-//! cells.
+//! them are all empty has that one after dropped, counted in a note, if every group's cells are
+//! then all filled or all empty, as they are in every such row of every sample file; otherwise
+//! the extra cell is somewhere else, and the row is refused, naming its line. Any other row of
+//! another width is refused too, so the record never holds more values than the file has cells.
 //!
 //! **Cells.** A group with any cell filled in a row is a sample: an empty time or value in it is a
 //! gap (`NaN`), counted in a note; a cell that isn't a number is refused, naming its line. Lines may
@@ -123,6 +148,8 @@
 //! above ground from the export's own column where Debrief works one out from the pressure; it
 //! drops the extra cell of a run-out GPS group, which Debrief reads shifted; and it states the
 //! flags' rises as events.
+
+use std::collections::BTreeSet;
 
 use hpr_atmos::ussa76::Ussa76;
 use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
@@ -140,7 +167,7 @@ const CLOCK: &str = "time";
 
 /// Names only the AIM's export writes, trimmed, in lower case and without trailing points: a header
 /// must name one of them, as well as two clocks, to be recognized.
-pub const MARKS: [&str; 10] = [
+pub(crate) const MARKS: &[&str] = &[
     "pressure msl",
     "pressure agl",
     "lat. x accel",
@@ -164,8 +191,10 @@ const KPA_PA: f64 = 1_000.0;
 const INHG_PA: f64 = 3_386.389;
 
 /// The least climb, m, from which the pressure settles the altitudes' unit: the pressure's step,
-/// 1 Pa in every sample file, is 0.08 m of altitude at sea level, under 1% of it.
-const SETTLING_CLIMB_M: f64 = 10.0;
+/// 1 Pa in every sample file, is 0.08 m of altitude at sea level, 4% of it and 1% of an 8 m hop,
+/// inside [`ALTITUDE_MARGIN`]; and the altitude columns are worked out from the same samples, so
+/// the sensor's noise moves both climbs alike.
+const SETTLING_CLIMB_M: f64 = 2.0;
 
 /// How far, as a share, an altitude column's climb may be from the pressure's for its unit to be
 /// taken: feet and meters are 3.28 times apart, so at most one unit can be within 25%.
@@ -174,12 +203,39 @@ const ALTITUDE_MARGIN: f64 = 0.25;
 /// `GPS Time of Week`'s rise over a second of `time` if `time` is in seconds: milliseconds.
 const TOW_RATE: f64 = 1_000.0;
 
-/// How far, as a share, the median rise may be from [`TOW_RATE`] for `time` to be read in seconds
-/// by the file; the BASE's least, as of 2026-10-13, is 3% under.
+/// How far, as a share, the median rise may be from [`TOW_RATE`] (seconds) or 1 (milliseconds)
+/// for `time`'s unit to be taken from it; the BASE's least, as of 2026-10-13, is 3% under 1,000.
 const TOW_MARGIN: f64 = 0.1;
 
 /// A week in milliseconds: a GPS time of week counted in them stays below it.
 const WEEK_MS: f64 = 604_800_000.0;
+
+/// The fastest clock's median step, as written, read as seconds: the AIM's fastest period, 10 ms
+/// (manual p2), less 10%, to 2 s, its sensors' periods times the whole multiples the owner sets
+/// (p21). The 16 sample files' are 0.0097 to 0.773.
+const STEP_SECONDS: (f64, f64) = (0.009, 2.0);
+
+/// The same steps as [`STEP_SECONDS`], written in milliseconds.
+const STEP_MILLISECONDS: (f64, f64) = (9.0, 2_000.0);
+
+/// The most a voltage column may read, in volts, to be read in them: twice the ejection
+/// battery's 10 V cap, the computer's battery being 3.5 to 8.4 V (manual p10).
+const VOLTS_MAX: f64 = 20.0;
+
+/// The temperatures, °C, an electronics bay on a pad can have: a winter launch to a bay in the
+/// desert sun.
+const BAY_C: (f64, f64) = (-40.0, 60.0);
+
+/// How far, m, `GPS MSL` may read from `Pressure MSL` in the same unit: the error of a
+/// standard-atmosphere altitude when a day's sea-level pressure is 36 hPa off the standard
+/// 1,013.25, at 8.4 m a hPa near sea level.
+const GPS_AGREEMENT_M: f64 = 300.0;
+
+/// How far apart in time, s, a GPS and a barometric sample may be to be compared.
+const PAIR_S: f64 = 1.0;
+
+/// The Earth's magnetic field at its strongest, about 65 µT, in tesla.
+const EARTH_FIELD_T: f64 = 65e-6;
 
 /// How far, m, the altitude above ground may read from zero at the track's first sample before a
 /// note says the logger's ground isn't where the record starts.
@@ -207,8 +263,10 @@ enum Role {
     Latitude,
     Longitude,
     TimeOfWeek,
-    /// A count or a signal strength.
-    Number,
+    /// The satellites used in the GPS's solution.
+    Satellites,
+    /// The radio's received strength at the AIM BASE, dBm.
+    SignalStrength,
     /// A 0-or-1 flag, and whether its rise is an event.
     Flag {
         event: bool,
@@ -241,8 +299,8 @@ const KNOWN: [(&str, Role); 31] = [
     ("lat", Role::Latitude),
     ("long", Role::Longitude),
     ("gps time of week", Role::TimeOfWeek),
-    ("svs", Role::Number),
-    ("rssi", Role::Number),
+    ("svs", Role::Satellites),
+    ("rssi", Role::SignalStrength),
     ("launch detect", Role::Flag { event: true }),
     ("apogee detect", Role::Flag { event: true }),
     ("a on", Role::Flag { event: true }),
@@ -251,13 +309,15 @@ const KNOWN: [(&str, Role); 31] = [
     ("d on", Role::Flag { event: true }),
 ];
 
-/// A header name trimmed, in lower case, and without trailing points, as [`KNOWN`] and [`MARKS`]
-/// list them: the export writes both `A on.` and `B on`.
+/// A header name trimmed and without trailing points, its case kept.
+fn bare(name: &str) -> &str {
+    name.trim().trim_end_matches('.').trim()
+}
+
+/// A header name as [`KNOWN`] and [`MARKS`] list them: [`bare`], in lower case. The export writes
+/// both `A on.` and `B on`.
 fn key(name: &str) -> String {
-    name.trim()
-        .trim_end_matches('.')
-        .trim()
-        .to_ascii_lowercase()
+    bare(name).to_ascii_lowercase()
 }
 
 /// What a column is, by its name.
@@ -284,12 +344,29 @@ fn first_line(text: &str) -> Option<&str> {
 }
 
 /// Whether a header line is an AIM export's: a `time` column first, at least two, and one of the
-/// AIM's own names.
+/// AIM's own names. The names are compared in place, and the walk stops once both are seen, so a
+/// long first line costs no copy of each cell.
 fn is_header(line: &str) -> bool {
-    let keys: Vec<String> = line.split(',').map(key).collect();
-    keys.first().is_some_and(|first| first == CLOCK)
-        && keys.iter().filter(|name| *name == CLOCK).count() >= 2
-        && keys.iter().any(|name| MARKS.contains(&name.as_str()))
+    let mut names = line.split(',').map(bare);
+    if !names
+        .next()
+        .is_some_and(|first| first.eq_ignore_ascii_case(CLOCK))
+    {
+        return false;
+    }
+    let mut clocks = 1usize;
+    let mut marked = false;
+    for name in names {
+        if name.eq_ignore_ascii_case(CLOCK) {
+            clocks += 1;
+        } else if !marked && MARKS.iter().any(|mark| name.eq_ignore_ascii_case(mark)) {
+            marked = true;
+        }
+        if clocks >= 2 && marked {
+            return true;
+        }
+    }
+    false
 }
 
 /// Whether the text is this layout: its first line that isn't blank is an AIM export's header.
@@ -305,12 +382,16 @@ struct Column {
     values: Vec<f64>,
     /// Empty cells in samples of the group.
     empty: usize,
+    /// Whether no evidence settled the unit its role would be read in, so the column is kept as
+    /// written, [`Quantity::Unrecognized`].
+    as_written: bool,
 }
 
 /// A clock and the columns to its right, up to the next.
 struct Group {
     /// The clock's column, 0-based.
     first: usize,
+    /// The times, as written until the clock's unit is decided, then in seconds.
     time_s: Vec<f64>,
     columns: Vec<Column>,
     /// Samples whose time cell is empty.
@@ -322,6 +403,15 @@ impl Group {
     fn width(&self) -> usize {
         1 + self.columns.len()
     }
+
+    /// Whether the row holds some of the group's cells filled and some empty.
+    fn part_filled(&self, cells: &[&str]) -> bool {
+        cells
+            .get(self.first..self.first + self.width())
+            .is_some_and(|run| {
+                run.iter().any(|cell| cell.is_empty()) && run.iter().any(|cell| !cell.is_empty())
+            })
+    }
 }
 
 /// Reads an Entacore AIM CSV export from its text.
@@ -329,11 +419,11 @@ impl Group {
 /// # Errors
 ///
 /// [`LogError::NotThisFormat`] if the first line isn't an AIM export's header;
-/// [`LogError::Syntax`] for a header with an empty name or a clock without columns, a file without
-/// `Pressure AGL`, a row of another width than the header's (but for the GPS group's extra cell),
-/// or a cell that isn't a number; [`LogError::Unit`] if the altitudes' climb is in neither meters
-/// nor feet against the pressure's; [`LogError::NoData`] if `Pressure AGL` has no sample with a
-/// time.
+/// [`LogError::Syntax`] for a header with an empty name, a name given twice or a clock without
+/// columns, a file without `Pressure AGL`, a row of another width than the header's (but for the
+/// GPS group's extra cell), or a cell that isn't a number; [`LogError::NoData`] if `Pressure AGL`
+/// has no sample with a time; [`LogError::Unit`] if neither `GPS Time of Week` nor the clocks'
+/// step settles the clock's unit, or the pressure doesn't settle the altitudes' (module docs).
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let text = text.strip_prefix('\u{feff}').unwrap_or(text);
     let mut lines = numbered_lines(text).filter(|(_, line)| !line.trim().is_empty());
@@ -373,6 +463,22 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
                 .is_some_and(|run| run.iter().all(|cell| cell.is_empty()))
         {
             cells.remove(first + gps_width);
+            // Dropped there, the cell must leave every group whole, as the export writes them;
+            // otherwise the extra cell is elsewhere, and the row is refused as any row of another
+            // width is.
+            if let Some(group) = groups.iter().find(|group| group.part_filled(&cells)) {
+                return Err(syntax(
+                    number,
+                    format!(
+                        "the row has {} cells where the header names {width}, and dropping the \
+                         cell after its empty GPS group would leave the group in columns {} to {} \
+                         part filled",
+                        width + 1,
+                        group.first + 1,
+                        group.first + group.width()
+                    ),
+                ));
+            }
             repaired += 1;
             first_repaired.get_or_insert(number);
         }
@@ -402,6 +508,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
 /// The groups the header lays out: each `time` column and the columns to its right.
 fn header_groups(header: &str, line: usize, notes: &mut Notes) -> Result<Vec<Group>, LogError> {
     let mut groups: Vec<Group> = Vec::new();
+    let mut seen: BTreeSet<String> = BTreeSet::new();
     for (index, name) in header.split(',').map(str::trim).enumerate() {
         if name.is_empty() {
             return Err(syntax(
@@ -409,7 +516,8 @@ fn header_groups(header: &str, line: usize, notes: &mut Notes) -> Result<Vec<Gro
                 format!("the header's column {} has no name", index + 1),
             ));
         }
-        if key(name) == CLOCK {
+        let name_key = key(name);
+        if name_key == CLOCK {
             if let Some(last) = groups.last()
                 && last.columns.is_empty()
             {
@@ -429,6 +537,16 @@ fn header_groups(header: &str, line: usize, notes: &mut Notes) -> Result<Vec<Gro
             });
             continue;
         }
+        if !seen.insert(name_key) {
+            return Err(syntax(
+                line,
+                format!(
+                    "the header names {:?} twice, in column {} and before",
+                    short(name),
+                    index + 1
+                ),
+            ));
+        }
         // Invariant: the header starts with a clock (`is_header`), so a group is open here.
         let Some(group) = groups.last_mut() else {
             continue;
@@ -445,6 +563,7 @@ fn header_groups(header: &str, line: usize, notes: &mut Notes) -> Result<Vec<Gro
             role,
             values: Vec::new(),
             empty: 0,
+            as_written: false,
         });
     }
     if let Some(last) = groups.last()
@@ -505,110 +624,109 @@ fn read_sample(group: &mut Group, cells: &[&str], line: usize) -> Result<(), Log
     Ok(())
 }
 
-/// How the altitudes' unit was decided.
-enum AltitudeEvidence {
-    /// From the pressure's climb in the standard atmosphere and the column's.
-    Pressure { pressure_m: f64, column_m: f64 },
-    /// Assumed, for the reason given.
-    Assumed(&'static str),
+/// The place, group and column, of the first column with the role.
+fn locate(groups: &[Group], role: Role) -> Option<(usize, usize)> {
+    groups.iter().enumerate().find_map(|(at, group)| {
+        group
+            .columns
+            .iter()
+            .position(|c| c.role == role)
+            .map(|column| (at, column))
+    })
 }
 
 /// The record from the groups read: units decided, every channel, the primary track, the events
 /// and the notes.
 fn build(
-    groups: Vec<Group>,
+    mut groups: Vec<Group>,
     header_line: usize,
     notes: Notes,
     repair_note: Option<String>,
 ) -> Result<FlightLog, LogError> {
+    // The primary track's column, and a sample of it with a time, before any unit is decided.
+    let Some((agl_group, _)) = locate(&groups, Role::AltitudeAgl) else {
+        return Err(syntax(
+            header_line,
+            "the file has no `Pressure AGL`, the logger's altitude above the ground, which the \
+             record's altitude is"
+                .to_owned(),
+        ));
+    };
+    if !groups[agl_group].time_s.iter().any(|t| t.is_finite()) {
+        return Err(LogError::NoData { format: FORMAT });
+    }
+
     let mut decisions: Vec<String> = Vec::new();
 
-    // The clock.
-    decisions.push(time_note(&groups));
+    // The clock, applied to every group.
+    let clock = clock(&groups, header_line)?;
+    for group in &mut groups {
+        for time in &mut group.time_s {
+            *time *= clock.to_s;
+        }
+    }
+    decisions.push(clock.note);
 
-    // The pressure, from its first sample.
-    let pressure = groups.iter().find_map(|group| {
-        group
-            .columns
-            .iter()
-            .position(|c| c.role == Role::Pressure)
-            .map(|at| (group, at))
-    });
-    let pressure_pa = pressure.and_then(|(group, at)| {
-        let pad = group.columns[at]
+    // The pressure, from its first value that is a pad's.
+    let pressure = locate(&groups, Role::Pressure);
+    let mut pressure_pa: Option<(f64, usize)> = None;
+    if let Some((group, at)) = pressure {
+        let column = &groups[group].columns[at];
+        let pad = column
             .values
             .iter()
-            .copied()
-            .find(|v| v.is_finite())?;
-        let (scale, unit) = pressure_unit(pad)?;
-        decisions.push(format!(
-            "`{}` read in {unit}, from the values: its first sample, on the pad, is {pad}, a \
-             launch site's pressure in {unit} (50,000 to 110,000 Pa)",
-            group.columns[at].name
-        ));
-        Some(scale)
-    });
-    if let (Some((group, at)), None) = (pressure, pressure_pa) {
-        let first = group.columns[at]
-            .values
-            .iter()
-            .copied()
-            .find(|v| v.is_finite());
-        decisions.push(format!(
-            "`{}` kept as written, in a unit its values don't settle: its first sample, {}, is a \
-             launch site's pressure in none of pascals, kilopascals or inches of mercury",
-            group.columns[at].name,
-            first.map_or("empty".to_owned(), |v| v.to_string())
-        ));
+            .enumerate()
+            .find_map(|(index, &value)| pressure_unit(value).map(|unit| (index, value, unit)));
+        match pad {
+            Some((index, value, (factor, unit))) => {
+                decisions.push(format!(
+                    "`{}` read in {unit}, from the values: its first value that is a launch \
+                     site's pressure in pascals, kilopascals or inches of mercury (50,000 to \
+                     110,000 Pa), {value}{}, is one in {unit}",
+                    column.name,
+                    if index > 0 {
+                        format!(", after {index} samples that aren't")
+                    } else {
+                        String::new()
+                    }
+                ));
+                pressure_pa = Some((factor, index));
+            }
+            None => decisions.push(format!(
+                "`{}` kept as written, in a unit its values don't settle: none of them is a \
+                 launch site's pressure in pascals, kilopascals or inches of mercury (50,000 to \
+                 110,000 Pa)",
+                column.name
+            )),
+        }
     }
 
     // The altitudes, against the pressure.
     let altitude_names = names_of(&groups, |role| {
         matches!(role, Role::AltitudeMsl | Role::AltitudeAgl)
     });
-    let (feet, evidence) = altitude_unit(&groups, pressure_pa, header_line)?;
+    let (feet, pressure_m, column_m) = altitude_unit(&groups, pressure, pressure_pa, header_line)?;
     let (unit, scale) = if feet {
         ("feet", FOOT_M)
     } else {
         ("meters", 1.0)
     };
-    if !altitude_names.is_empty() {
-        decisions.push(match evidence {
-            AltitudeEvidence::Pressure {
-                pressure_m,
-                column_m,
-            } => format!(
-                "{} read in {unit}, from the pressure: from the first sample to the one of lowest \
-                 pressure, the standard atmosphere climbs {pressure_m:.1} m and the column \
-                 {column_m:.1} {unit}",
-                listed(&altitude_names)
-            ),
-            AltitudeEvidence::Assumed(reason) => format!(
-                "{} read in meters, assumed: {reason}; the manual's sample export (Table 2, p40) \
-                 and its calibration (p22) are in meters",
-                listed(&altitude_names)
-            ),
-        });
+    decisions.push(format!(
+        "{} read in {unit}, from the pressure: from the pressure's pad sample to the one of lowest \
+         pressure, the standard atmosphere climbs {pressure_m:.1} m and the column \
+         {column_m:.1} {unit}",
+        listed(&altitude_names)
+    ));
+    if let Some((note, agrees)) = gps_altitude(&groups, scale, unit) {
+        decisions.push(note);
+        if !agrees {
+            set_as_written(&mut groups, |role| role == Role::GpsAltitude);
+        }
     }
-    let gps_altitude = names_of(&groups, |role| role == Role::GpsAltitude);
-    if !gps_altitude.is_empty() {
-        decisions.push(format!(
-            "{} read in {unit}, assumed: as the barometric altitudes, the software setting one \
-             unit system for its displays (p33)",
-            listed(&gps_altitude)
-        ));
-    }
-    let temperature = names_of(&groups, |role| role == Role::Temperature);
-    if !temperature.is_empty() {
-        let degrees = if feet { "Fahrenheit" } else { "Celsius" };
-        decisions.push(format!(
-            "{} read in degrees {degrees}, assumed: the manual's sensor reads °C or °F (p25), \
-             and the software sets one unit system for its displays (p33), here the altitudes' \
-             {unit}",
-            listed(&temperature)
-        ));
-    }
-    let fixed: [(RoleTest, &str); 5] = [
+    decide_temperatures(&mut groups, feet, unit, &mut decisions);
+    decide_voltages(&mut groups, &mut decisions);
+
+    let fixed: [(RoleTest, &str); 4] = [
         (
             |role| role == Role::Acceleration,
             "read in g, from the manual: it plots the accelerations \"in G's\", the long axis's \
@@ -619,50 +737,57 @@ fn build(
             "read in degrees per second, from the manual: \"degrees/sec\" (p24)",
         ),
         (
-            |role| role == Role::Voltage,
-            "read in volts, assumed: the manual plots the batteries' and the four lines' \
-             voltages without naming a unit (p24)",
-        ),
-        (
             |role| matches!(role, Role::Latitude | Role::Longitude),
             "read in degrees, from the values: decimal numbers, as the manual's sample export \
              writes them (Table 2, p40)",
         ),
         (
-            |role| role == Role::Magnetic,
-            "kept as written, in a unit no source bears out: the manual gives tesla (p24), but \
-             the field the sample files' columns make, 0.0011 to 0.0022, is 20 to 40 times the \
-             Earth's, and the record has no quantity for a magnetic field",
+            |role| role == Role::Satellites,
+            "kept as written, a count, from the manual: the satellites used in the GPS's \
+             solution (p25)",
         ),
     ];
     for (is, how) in fixed {
         let names = names_of(&groups, is);
-        if names.is_empty() {
-            continue;
-        }
-        if is(Role::Voltage) {
-            // One note a voltage: the files hold different sets of them.
-            for name in &names {
-                decisions.push(format!("`{name}` {how}"));
-            }
-        } else {
+        if !names.is_empty() {
             decisions.push(format!("{} {how}", listed(&names)));
         }
     }
-
-    let time_of_week = names_of(&groups, |role| role == Role::TimeOfWeek);
-    if !time_of_week.is_empty() {
+    let rssi = names_of(&groups, |role| role == Role::SignalStrength);
+    if !rssi.is_empty() {
         decisions.push(format!(
-            "{} kept as written, in milliseconds: the record has no quantity for a time of the \
-             GPS week",
-            listed(&time_of_week)
+            "{} kept as written, in dBm, from the manual: the strength of the radio signal the \
+             AIM BASE received, \"in decibels (dBm)\" (p29): a power level in decibels against a \
+             milliwatt, not an SI unit, and the record has no quantity for a signal's strength",
+            listed(&rssi)
         ));
     }
+    if let Some(note) = magnetic_note(&groups) {
+        decisions.push(note);
+    }
+    let time_of_week = names_of(&groups, |role| role == Role::TimeOfWeek);
+    if !time_of_week.is_empty() {
+        decisions.push(match clock.tow_rate_per_s {
+            Some(rate) => format!(
+                "{} kept as written, in milliseconds, from the values: they stay below a week's \
+                 604,800,000 and rise by a median of {rate:.1} a second of the clock; the record \
+                 has no quantity for a time of the GPS week",
+                listed(&time_of_week)
+            ),
+            None => format!(
+                "{} kept as written, in a unit its values don't settle: they don't rise by a \
+                 millisecond's per second of `time` in either of its units; the record has no \
+                 quantity for a time of the GPS week",
+                listed(&time_of_week)
+            ),
+        });
+    }
+    decisions.extend(flag_notes(&groups));
 
     let base = groups
         .iter()
         .flat_map(|group| &group.columns)
-        .any(|column| key(&column.name) == "rssi");
+        .any(|column| column.role == Role::SignalStrength);
 
     // Every channel, in SI.
     let mut channel_notes = notes;
@@ -686,7 +811,8 @@ fn build(
                     column.empty
                 ));
             }
-            let (quantity, values) = si(column, pressure_pa, scale, feet, &mut out_of_range);
+            let pressure_factor = pressure_pa.map(|(factor, _)| factor);
+            let (quantity, values) = si(column, pressure_factor, scale, feet, &mut out_of_range);
             if let Role::Flag { event: true } = column.role {
                 for (pair, time) in column.values.windows(2).zip(group.time_s.iter().skip(1)) {
                     if pair[0] == 0.0 && pair[1] == 1.0 && time.is_finite() {
@@ -733,12 +859,8 @@ fn build(
         .iter()
         .position(|c| c.quantity == Quantity::AltitudeAboveGround)
     else {
-        return Err(syntax(
-            header_line,
-            "the file has no `Pressure AGL`, the logger's altitude above the ground, which the \
-             record's altitude is"
-                .to_owned(),
-        ));
+        // Invariant: `Pressure AGL` was found above, and its quantity is always this one.
+        return Err(LogError::NoData { format: FORMAT });
     };
     let track = &channels[primary];
     let mut samples: Vec<(f64, f64)> = track
@@ -794,7 +916,7 @@ fn build(
         .map(|c| c.values.clone());
     let battery_v = channels
         .iter()
-        .filter(|c| key(&c.column) == "comp. bat. voltage")
+        .filter(|c| c.quantity == Quantity::Voltage && key(&c.column) == "comp. bat. voltage")
         .find(on_track)
         .map(|c| c.values.clone());
 
@@ -820,6 +942,15 @@ fn build(
     })
 }
 
+/// Marks every column whose role is as asked as kept as written.
+fn set_as_written(groups: &mut [Group], is: impl Fn(Role) -> bool) {
+    for column in groups.iter_mut().flat_map(|group| &mut group.columns) {
+        if is(column.role) {
+            column.as_written = true;
+        }
+    }
+}
+
 /// A column's quantity and its values in SI. A latitude or longitude out of range is a gap,
 /// counted in `out_of_range` by the column's name.
 fn si(
@@ -830,6 +961,9 @@ fn si(
     out_of_range: &mut Vec<(String, usize)>,
 ) -> (Quantity, Vec<f64>) {
     let scaled = |factor: f64| -> Vec<f64> { column.values.iter().map(|v| v * factor).collect() };
+    if column.as_written {
+        return (Quantity::Unrecognized, column.values.clone());
+    }
     match column.role {
         Role::Pressure => match pressure_pa {
             Some(factor) => (Quantity::Pressure, scaled(factor)),
@@ -879,15 +1013,17 @@ fn si(
             }
             (quantity, values)
         }
-        Role::Number | Role::Flag { .. } => (Quantity::Number, column.values.clone()),
+        Role::Satellites | Role::SignalStrength | Role::Flag { .. } => {
+            (Quantity::Number, column.values.clone())
+        }
         Role::TimeOfWeek | Role::Magnetic | Role::Unknown => {
             (Quantity::Unrecognized, column.values.clone())
         }
     }
 }
 
-/// The pressure's unit from its first sample, on the pad: the factor to pascals and the unit's
-/// name; `None` if it is a launch site's pressure in none of them.
+/// The pressure's unit from a value on the pad: the factor to pascals and the unit's name; `None`
+/// if it is a launch site's pressure in none of them.
 fn pressure_unit(pad: f64) -> Option<(f64, &'static str)> {
     [
         (1.0, "pascals"),
@@ -898,39 +1034,49 @@ fn pressure_unit(pad: f64) -> Option<(f64, &'static str)> {
     .find(|(factor, _)| (PAD_PA.0..=PAD_PA.1).contains(&(pad * factor)))
 }
 
-/// The altitudes' unit, `true` for feet, and on what evidence: the climb of `Pressure MSL`, or
-/// else `Pressure AGL`, in the pressure's group, against the pressure's in the U.S. Standard
-/// Atmosphere, from the first sample to the one of lowest pressure.
+/// The altitudes' unit, `true` for feet, with the pressure's climb in meters and the column's as
+/// written: the climb of `Pressure MSL`, or else `Pressure AGL`, in the pressure's group, against
+/// the pressure's in the U.S. Standard Atmosphere, from the pressure's pad sample to the one of
+/// lowest pressure. A file where that can't be measured is refused.
 fn altitude_unit(
     groups: &[Group],
-    pressure_pa: Option<f64>,
+    pressure: Option<(usize, usize)>,
+    pressure_pa: Option<(f64, usize)>,
     header_line: usize,
-) -> Result<(bool, AltitudeEvidence), LogError> {
-    let Some(factor) = pressure_pa else {
-        return Ok((
-            false,
-            AltitudeEvidence::Assumed("the pressure's unit isn't known"),
-        ));
+) -> Result<(bool, f64, f64), LogError> {
+    let refuse = |why: String| LogError::Unit {
+        format: FORMAT,
+        line: header_line,
+        message: format!(
+            "the altitudes' unit, meters or feet, can't be decided from the pressure: {why}"
+        ),
     };
-    let beside = groups.iter().find_map(|group| {
-        let pressure = group.columns.iter().find(|c| c.role == Role::Pressure)?;
-        let altitude = group
-            .columns
-            .iter()
-            .find(|c| c.role == Role::AltitudeMsl)
-            .or_else(|| group.columns.iter().find(|c| c.role == Role::AltitudeAgl))?;
-        Some((pressure, altitude))
-    });
-    let Some((pressure, altitude)) = beside else {
-        return Ok((
-            false,
-            AltitudeEvidence::Assumed("no pressure is beside them on their clock"),
+    let Some((group, at)) = pressure else {
+        return Err(refuse("the file has no `pressure`".to_owned()));
+    };
+    let group = &groups[group];
+    let pressure = &group.columns[at];
+    let Some((factor, pad)) = pressure_pa else {
+        return Err(refuse(format!(
+            "`{}` is in a unit its values don't settle",
+            pressure.name
+        )));
+    };
+    let Some(altitude) = group
+        .columns
+        .iter()
+        .find(|c| c.role == Role::AltitudeMsl)
+        .or_else(|| group.columns.iter().find(|c| c.role == Role::AltitudeAgl))
+    else {
+        return Err(refuse(
+            "no altitude column is beside the pressure on its clock".to_owned(),
         ));
     };
     let pairs: Vec<(f64, f64)> = pressure
         .values
         .iter()
         .zip(&altitude.values)
+        .skip(pad)
         .filter(|(p, a)| p.is_finite() && *p * factor > 0.0 && a.is_finite())
         .map(|(p, a)| (p * factor, *a))
         .collect();
@@ -938,9 +1084,8 @@ fn altitude_unit(
         pairs.first(),
         pairs.iter().min_by(|a, b| a.0.total_cmp(&b.0)),
     ) else {
-        return Ok((
-            false,
-            AltitudeEvidence::Assumed("no sample holds both the pressure and the altitude"),
+        return Err(refuse(
+            "no sample holds both the pressure and the altitude".to_owned(),
         ));
     };
     let atmosphere = Ussa76::standard();
@@ -948,54 +1093,56 @@ fn altitude_unit(
         .pressure_altitude_m(lowest.0)
         .and_then(|low| atmosphere.pressure_altitude_m(first.0).map(|pad| low - pad));
     let Ok(pressure_m) = climb else {
-        return Ok((
-            false,
-            AltitudeEvidence::Assumed("the pressure has no altitude in the standard atmosphere"),
+        return Err(refuse(
+            "the pressure has no altitude in the standard atmosphere".to_owned(),
         ));
     };
     if pressure_m < SETTLING_CLIMB_M {
-        return Ok((
-            false,
-            AltitudeEvidence::Assumed(
-                "the pressure climbs less than 10 m, too little to tell meters from feet",
-            ),
-        ));
+        return Err(refuse(format!(
+            "the pressure climbs {pressure_m:.2} m, under the {SETTLING_CLIMB_M} m from which \
+             meters and feet can be told apart"
+        )));
     }
     let column = lowest.1 - first.1;
     let within = |climb_m: f64| (climb_m / pressure_m - 1.0).abs() <= ALTITUDE_MARGIN;
     if within(column) {
-        Ok((
-            false,
-            AltitudeEvidence::Pressure {
-                pressure_m,
-                column_m: column,
-            },
-        ))
+        Ok((false, pressure_m, column))
     } else if within(column * FOOT_M) {
-        Ok((
-            true,
-            AltitudeEvidence::Pressure {
-                pressure_m,
-                column_m: column,
-            },
-        ))
+        Ok((true, pressure_m, column))
     } else {
         Err(LogError::Unit {
             format: FORMAT,
             line: header_line,
             message: format!(
-                "`{}` climbs {column:.1} from the first sample to the one of lowest pressure, \
-                 where the pressure's climb in the standard atmosphere is {pressure_m:.1} m: \
-                 neither meters nor feet within 25%",
+                "`{}` climbs {column:.1} from the pressure's pad sample to the one of lowest \
+                 pressure, where the pressure's climb in the standard atmosphere is \
+                 {pressure_m:.1} m: neither meters nor feet within 25%",
                 altitude.name
             ),
         })
     }
 }
 
-/// The note saying how `time` was read: in seconds, from `GPS Time of Week` if its median rise
-/// over its clock's is a millisecond's per second, otherwise assumed.
-fn time_note(groups: &[Group]) -> String {
+/// How `time` is read.
+struct Clock {
+    /// The factor from `time` as written to seconds.
+    to_s: f64,
+    /// The note saying how, and on what evidence.
+    note: String,
+    /// `GPS Time of Week`'s median rise a second of the clock, where it decided the unit.
+    tow_rate_per_s: Option<f64>,
+}
+
+/// The median of the values, `None` if there are none.
+fn median(mut values: Vec<f64>) -> Option<f64> {
+    values.sort_by(f64::total_cmp);
+    values.get(values.len() / 2).copied()
+}
+
+/// The clock's unit: from `GPS Time of Week`'s median rise over its clock's, a millisecond's per
+/// second (seconds) or per millisecond (milliseconds); else from the fastest clock's median step
+/// against the AIM's periods; else refused.
+fn clock(groups: &[Group], header_line: usize) -> Result<Clock, LogError> {
     let tow = groups.iter().find_map(|group| {
         group
             .columns
@@ -1003,72 +1150,375 @@ fn time_note(groups: &[Group]) -> String {
             .find(|c| c.role == Role::TimeOfWeek)
             .map(|c| (group, c))
     });
-    let Some((group, column)) = tow else {
-        return "`time` read in seconds, assumed: the file has no `GPS Time of Week` to check it \
-                by; the manual's sample export counts that up by 5,000 over 5 of its `time` \
-                (Table 2, p40)"
-            .to_owned();
-    };
-    let samples: Vec<(f64, f64)> = group
-        .time_s
-        .iter()
-        .zip(&column.values)
-        .filter(|(t, v)| t.is_finite() && v.is_finite())
-        .map(|(t, v)| (*t, *v))
-        .collect();
-    let mut rates: Vec<f64> = samples
-        .windows(2)
-        .filter(|pair| pair[1].0 > pair[0].0)
-        .map(|pair| (pair[1].1 - pair[0].1) / (pair[1].0 - pair[0].0))
-        .collect();
-    let largest = samples
-        .iter()
-        .map(|s| s.1)
-        .fold(f64::NEG_INFINITY, f64::max);
-    if rates.is_empty() {
-        return format!(
-            "`time` read in seconds, assumed: `{}` has too few samples to check it by",
-            column.name
-        );
-    }
-    rates.sort_by(f64::total_cmp);
-    let median = rates[rates.len() / 2];
-    let milliseconds = largest < WEEK_MS;
-    if milliseconds && (median / TOW_RATE - 1.0).abs() <= TOW_MARGIN {
-        format!(
-            "`time` read in seconds, from `{}`: it counts milliseconds, below a week's \
-             604,800,000, and climbs by a median of {median:.1} per unit of its `time`",
-            column.name
-        )
-    } else {
-        format!(
-            "`time` read in seconds, assumed: `{}` climbs by a median of {median:.1} per unit of \
-             its `time`{}, not the 1,000 of milliseconds per second",
-            column.name,
-            if milliseconds {
-                ""
-            } else {
-                ", and passes a week's milliseconds"
+    let why = match tow {
+        None => "the file has no `GPS Time of Week` to decide it by".to_owned(),
+        Some((group, column)) => {
+            let samples: Vec<(f64, f64)> = group
+                .time_s
+                .iter()
+                .zip(&column.values)
+                .filter(|(t, v)| t.is_finite() && v.is_finite())
+                .map(|(t, v)| (*t, *v))
+                .collect();
+            let rates: Vec<f64> = samples
+                .windows(2)
+                .filter(|pair| pair[1].0 > pair[0].0)
+                .map(|pair| (pair[1].1 - pair[0].1) / (pair[1].0 - pair[0].0))
+                .collect();
+            let below_a_week = samples.iter().all(|s| s.1 < WEEK_MS);
+            let near = |rate: f64, target: f64| (rate / target - 1.0).abs() <= TOW_MARGIN;
+            match median(rates) {
+                None => format!("`{}` has too few samples to decide it by", column.name),
+                Some(_) if !below_a_week => format!(
+                    "`{}` passes a week's 604,800,000 milliseconds, so it doesn't count them",
+                    column.name
+                ),
+                Some(rate) if near(rate, TOW_RATE) => {
+                    return Ok(Clock {
+                        to_s: 1.0,
+                        note: format!(
+                            "`time` read in seconds, from `{}`: it counts milliseconds, below a \
+                             week's 604,800,000, and climbs by a median of {rate:.1} per unit of \
+                             its `time`, a millisecond's per second",
+                            column.name
+                        ),
+                        tow_rate_per_s: Some(rate),
+                    });
+                }
+                Some(rate) if near(rate, 1.0) => {
+                    return Ok(Clock {
+                        to_s: 0.001,
+                        note: format!(
+                            "`time` read in milliseconds, from `{}`: it counts milliseconds, \
+                             below a week's 604,800,000, and climbs by a median of {rate:.3} per \
+                             unit of its `time`, a millisecond's per millisecond",
+                            column.name
+                        ),
+                        tow_rate_per_s: Some(rate * 1_000.0),
+                    });
+                }
+                Some(rate) => format!(
+                    "`{}` climbs by a median of {rate:.1} per unit of its `time`, neither the \
+                     1,000 of milliseconds per second nor the 1 per millisecond",
+                    column.name
+                ),
             }
-        )
+        }
+    };
+    // The fastest clock's median step, as written.
+    let step = groups
+        .iter()
+        .filter_map(|group| {
+            let times: Vec<f64> = group
+                .time_s
+                .iter()
+                .copied()
+                .filter(|t| t.is_finite())
+                .collect();
+            median(
+                times
+                    .windows(2)
+                    .map(|pair| pair[1] - pair[0])
+                    .filter(|step| *step > 0.0)
+                    .collect(),
+            )
+        })
+        .min_by(f64::total_cmp);
+    let periods = "the AIM writes its sensors every 10 to 500 ms (manual p2) times a whole \
+                   multiple the owner sets (p21)";
+    match step {
+        Some(step) if (STEP_SECONDS.0..=STEP_SECONDS.1).contains(&step) => Ok(Clock {
+            to_s: 1.0,
+            note: format!(
+                "`time` read in seconds, from the step: {why}; the fastest clock's median step, \
+                 {step} as written, is a step of 0.009 to 2 s, as {periods}, where milliseconds \
+                 would be 9 to 2,000"
+            ),
+            tow_rate_per_s: None,
+        }),
+        Some(step) if (STEP_MILLISECONDS.0..=STEP_MILLISECONDS.1).contains(&step) => Ok(Clock {
+            to_s: 0.001,
+            note: format!(
+                "`time` read in milliseconds, from the step: {why}; the fastest clock's median \
+                 step, {step} as written, is a step of 9 to 2,000 ms, as {periods}, where seconds \
+                 would be 0.009 to 2"
+            ),
+            tow_rate_per_s: None,
+        }),
+        Some(step) => Err(LogError::Unit {
+            format: FORMAT,
+            line: header_line,
+            message: format!(
+                "the clock's unit can't be decided: {why}, and the fastest clock's median step, \
+                 {step}, is a step in neither seconds (0.009 to 2) nor milliseconds (9 to 2,000), \
+                 as {periods}"
+            ),
+        }),
+        None => Err(LogError::Unit {
+            format: FORMAT,
+            line: header_line,
+            message: format!(
+                "the clock's unit can't be decided: {why}, and no clock has two samples to \
+                 measure a step by"
+            ),
+        }),
     }
 }
 
-/// The distinct names of the columns whose role is as asked, in the file's order.
-fn names_of(groups: &[Group], is: impl Fn(Role) -> bool) -> Vec<String> {
-    // Keyed by the place of the name's key in `KNOWN`, the first name written for each kept, so
-    // the same columns give the same note whatever their order, and a header can't list a name
-    // more than once a key.
-    let mut names: Vec<(usize, String)> = Vec::new();
-    for column in groups.iter().flat_map(|group| &group.columns) {
-        let key = key(&column.name);
-        let Some(place) = KNOWN.iter().position(|(known, _)| *known == key) else {
+/// The note on `GPS MSL`'s unit, and whether it agrees with the altitudes': the median
+/// difference, over the GPS samples within [`PAIR_S`] of a `Pressure MSL` sample, within
+/// [`GPS_AGREEMENT_M`] in the altitudes' unit and beyond it in the other. `None` without the
+/// column.
+fn gps_altitude(groups: &[Group], scale: f64, unit: &str) -> Option<(String, bool)> {
+    let (gps_group, gps_at) = locate(groups, Role::GpsAltitude)?;
+    let gps = &groups[gps_group].columns[gps_at];
+    let kept = |why: String| {
+        Some((
+            format!(
+                "`{}` kept as written, in a unit `Pressure MSL` doesn't settle: {why}",
+                gps.name
+            ),
+            false,
+        ))
+    };
+    let Some((baro_group, baro_at)) = locate(groups, Role::AltitudeMsl) else {
+        return kept("the file has no `Pressure MSL` to compare it with".to_owned());
+    };
+    let mut barometric: Vec<(f64, f64)> = groups[baro_group]
+        .time_s
+        .iter()
+        .zip(&groups[baro_group].columns[baro_at].values)
+        .filter(|(t, v)| t.is_finite() && v.is_finite())
+        .map(|(t, v)| (*t, *v))
+        .collect();
+    barometric.sort_by(|a, b| a.0.total_cmp(&b.0));
+    let other = if scale == 1.0 { FOOT_M } else { 1.0 };
+    let other_unit = if scale == 1.0 { "feet" } else { "meters" };
+    let mut same_m = Vec::new();
+    let mut other_m = Vec::new();
+    for (time, value) in groups[gps_group].time_s.iter().zip(&gps.values) {
+        if !(time.is_finite() && value.is_finite()) {
             continue;
-        };
-        if is(column.role) && !names.iter().any(|(at, _)| *at == place) {
-            names.push((place, column.name.clone()));
+        }
+        let after = barometric.partition_point(|(t, _)| t < time);
+        let nearest = [after.checked_sub(1), Some(after)]
+            .into_iter()
+            .flatten()
+            .filter_map(|at| barometric.get(at))
+            .min_by(|a, b| (a.0 - time).abs().total_cmp(&(b.0 - time).abs()));
+        if let Some(&(t, baro)) = nearest
+            && (t - time).abs() <= PAIR_S
+        {
+            same_m.push((value - baro) * scale);
+            other_m.push(value * other - baro * scale);
         }
     }
+    let pairs = same_m.len();
+    let (Some(same), Some(differs)) = (median(same_m), median(other_m)) else {
+        return kept("no GPS sample is within 1 s of a `Pressure MSL` sample".to_owned());
+    };
+    let measured = format!(
+        "over {pairs} GPS samples within 1 s of one of it, the median difference is {same:.1} m \
+         read in {unit} and {differs:.1} m in {other_unit}"
+    );
+    if same.abs() <= GPS_AGREEMENT_M && differs.abs() > GPS_AGREEMENT_M {
+        Some((
+            format!(
+                "`{}` read in {unit}, from `Pressure MSL`: {measured}, within the 300 m a day's \
+                 weather moves a standard-atmosphere altitude only in {unit}",
+                gps.name
+            ),
+            true,
+        ))
+    } else {
+        kept(format!(
+            "{measured}, so the 300 m a day's weather moves a standard-atmosphere altitude \
+             doesn't tell the units apart"
+        ))
+    }
+}
+
+/// Decides each temperature column's unit from the altitudes', and its first value's range.
+fn decide_temperatures(groups: &mut [Group], feet: bool, unit: &str, decisions: &mut Vec<String>) {
+    let (degrees, low, high) = if feet {
+        (
+            "Fahrenheit",
+            BAY_C.0 * 9.0 / 5.0 + 32.0,
+            BAY_C.1 * 9.0 / 5.0 + 32.0,
+        )
+    } else {
+        ("Celsius", BAY_C.0, BAY_C.1)
+    };
+    let system = if feet { "imperial" } else { "metric" };
+    for column in groups.iter_mut().flat_map(|group| &mut group.columns) {
+        if column.role != Role::Temperature {
+            continue;
+        }
+        let first = column.values.iter().copied().find(|v| v.is_finite());
+        match first {
+            Some(value) if (low..=high).contains(&value) => decisions.push(format!(
+                "`{}` read in degrees {degrees}, from the heights' unit and the manual, p33: the \
+                 heights are in {unit}, decided from the pressure, and the software sets one \
+                 unit system for all its displays (p33), here {system}, its sensor reading °C or \
+                 °F (p25); the first value, {value}, is a bay's temperature in them, {low} to \
+                 {high}",
+                column.name
+            )),
+            _ => {
+                column.as_written = true;
+                decisions.push(format!(
+                    "`{}` kept as written, in a unit its values don't settle: the heights are in \
+                     {unit}, so the displays are {system} (p33), but its first value, {}, isn't \
+                     a bay's temperature in degrees {degrees}, {low} to {high}",
+                    column.name,
+                    first.map_or("none".to_owned(), |v| v.to_string())
+                ));
+            }
+        }
+    }
+}
+
+/// Decides each voltage column's unit from its values: volts if every one lies within 0 to
+/// [`VOLTS_MAX`].
+fn decide_voltages(groups: &mut [Group], decisions: &mut Vec<String>) {
+    for column in groups.iter_mut().flat_map(|group| &mut group.columns) {
+        if column.role != Role::Voltage {
+            continue;
+        }
+        let (low, high) = column
+            .values
+            .iter()
+            .filter(|v| v.is_finite())
+            .fold((f64::INFINITY, f64::NEG_INFINITY), |(low, high), &v| {
+                (low.min(v), high.max(v))
+            });
+        if low <= high && low >= 0.0 && high <= VOLTS_MAX {
+            decisions.push(format!(
+                "`{}` read in volts, from the values: they lie within {low} to {high}, inside the \
+                 0 to 20 V of a battery or an output line (the computer's battery is 3.5 to \
+                 8.4 V and the ejection battery at most 10 V, manual p10), where millivolts would \
+                 be thousands",
+                column.name
+            ));
+        } else {
+            column.as_written = true;
+            decisions.push(format!(
+                "`{}` kept as written, in a unit its values don't settle: {}",
+                column.name,
+                if low <= high {
+                    format!(
+                        "they lie within {low} to {high}, not all inside the 0 to 20 V of a \
+                         battery or an output line (manual p10)"
+                    )
+                } else {
+                    "it holds no value".to_owned()
+                }
+            ));
+        }
+    }
+}
+
+/// The note on the magnetometer's columns, kept as written: the field they would make in the
+/// manual's tesla, against the Earth's. `None` without them.
+fn magnetic_note(groups: &[Group]) -> Option<String> {
+    let names = names_of(groups, |role| role == Role::Magnetic);
+    if names.is_empty() {
+        return None;
+    }
+    // The field from the magnetic columns of the first group holding one, sample by sample.
+    let group = groups
+        .iter()
+        .find(|group| group.columns.iter().any(|c| c.role == Role::Magnetic))?;
+    let axes: Vec<&Column> = group
+        .columns
+        .iter()
+        .filter(|c| c.role == Role::Magnetic)
+        .collect();
+    let (low, high) = (0..group.time_s.len())
+        .filter_map(|at| {
+            let squares: Option<f64> = axes
+                .iter()
+                .map(|axis| axis.values.get(at).copied().filter(|v| v.is_finite()))
+                .try_fold(0.0, |sum, v| v.map(|v| sum + v * v));
+            squares.map(f64::sqrt)
+        })
+        .fold((f64::INFINITY, f64::NEG_INFINITY), |(low, high), v| {
+            (low.min(v), high.max(v))
+        });
+    let field = if low <= high {
+        format!(
+            "read so, the field {} make{}, {low:.5} to {high:.5}, would be {:.0} to {:.0} times \
+             the Earth's at its strongest, about 65 µT",
+            if axes.len() == 1 {
+                "its column"
+            } else {
+                "the columns"
+            },
+            if axes.len() == 1 { "s" } else { "" },
+            low / EARTH_FIELD_T,
+            high / EARTH_FIELD_T
+        )
+    } else {
+        "the file holds no sample of them all to check it by".to_owned()
+    };
+    Some(format!(
+        "{} kept as written, in a unit no source bears out: the manual gives tesla (p24); \
+         {field}; and the record has no quantity for a magnetic field",
+        listed(&names)
+    ))
+}
+
+/// The notes on the flags: kept as written, 0 or 1 by their values, or else in a unit no source
+/// states.
+fn flag_notes(groups: &[Group]) -> Vec<String> {
+    let mut flags = Vec::new();
+    let mut others = Vec::new();
+    for column in groups.iter().flat_map(|group| &group.columns) {
+        if let Role::Flag { .. } = column.role {
+            if column
+                .values
+                .iter()
+                .all(|v| v.is_nan() || *v == 0.0 || *v == 1.0)
+            {
+                flags.push(column.name.clone());
+            } else {
+                others.push(column.name.clone());
+            }
+        }
+    }
+    let mut notes = Vec::new();
+    if !flags.is_empty() {
+        notes.push(format!(
+            "{} kept as written, flags, from the values: each is 0 or 1, the AIM's flight event \
+             status and its lines' continuity (manual p2, p36)",
+            listed(&flags)
+        ));
+    }
+    if !others.is_empty() {
+        notes.push(format!(
+            "{} kept as written, in a unit no source states: they hold values other than 0 and 1, \
+             so they are no flags",
+            listed(&others)
+        ));
+    }
+    notes
+}
+
+/// The names of the columns whose role is as asked, in the order of [`KNOWN`], so the same
+/// columns give the same note whatever their order (a header names each once).
+fn names_of(groups: &[Group], is: impl Fn(Role) -> bool) -> Vec<String> {
+    let mut names: Vec<(usize, String)> = groups
+        .iter()
+        .flat_map(|group| &group.columns)
+        .filter(|column| is(column.role))
+        .filter_map(|column| {
+            let key = key(&column.name);
+            KNOWN
+                .iter()
+                .position(|(known, _)| *known == key)
+                .map(|place| (place, column.name.clone()))
+        })
+        .collect();
     names.sort_by_key(|(place, _)| *place);
     names.into_iter().map(|(_, name)| name).collect()
 }
@@ -1104,6 +1554,11 @@ mod tests {
         101_325.0 * (1.0 - altitude_m / 44_330.8).powf(1.0 / 0.190_263)
     }
 
+    /// The standard atmosphere's altitude of a pressure, in the troposphere.
+    fn altitude_of(pressure_pa: f64) -> f64 {
+        44_330.8 * (1.0 - (pressure_pa / 101_325.0).powf(0.190_263))
+    }
+
     fn close(a: f64, b: f64) -> bool {
         (a - b).abs() <= 1e-9 * b.abs().max(1.0)
     }
@@ -1115,7 +1570,7 @@ mod tests {
         for (row, height) in heights.iter().enumerate() {
             let t = row as f64 - 1.0;
             let p = pressure_at(300.0 + height).round();
-            let msl = 44_330.8 * (1.0 - (p / 101_325.0).powf(0.190_263));
+            let msl = altitude_of(p);
             let agl = msl - 300.0;
             let launch = u8::from(row >= 1);
             let apogee = u8::from(row >= 4);
@@ -1134,10 +1589,38 @@ mod tests {
         text
     }
 
+    /// A two-row file of the pressure, its altitude above a pad 300 m up and one more group, the
+    /// times 0 and 1 s: a climb of 100 m.
+    fn small(extra_header: &str, extra_rows: [&str; 2]) -> String {
+        let mut text = format!("time,pressure,Pressure AGL,{extra_header}\n");
+        for (row, height) in [0.0, 100.0].iter().enumerate() {
+            let p = pressure_at(300.0 + height).round();
+            let agl = altitude_of(p) - altitude_of(pressure_at(300.0).round());
+            text.push_str(&format!("{row},{p},{agl:.3},{}\n", extra_rows[row]));
+        }
+        text
+    }
+
     fn note<'a>(log: &'a FlightLog, start: &str) -> &'a str {
         let matching: Vec<&String> = log.notes.iter().filter(|n| n.starts_with(start)).collect();
         assert_eq!(matching.len(), 1, "{start}: {:?}", log.notes);
         matching[0]
+    }
+
+    /// The survey's reading of a note (`xtask logs`' `unit_decision`): the text before the first
+    /// `: ` of a note opening with a name in backticks that is `read in` or `kept as written`.
+    fn counted(note: &str) -> Option<&str> {
+        let (decision, _) = note.split_once(": ")?;
+        (decision.starts_with('`')
+            && (decision.contains("` read in ") || decision.contains("` kept as written")))
+        .then_some(decision)
+    }
+
+    fn unit_error(text: &str) -> String {
+        match read(text) {
+            Err(LogError::Unit { message, .. }) => message,
+            other => panic!("{other:?}"),
+        }
     }
 
     #[test]
@@ -1160,10 +1643,15 @@ mod tests {
         ] {
             assert!(!recognizes(other), "{other:?}");
         }
+        // A long first line is walked, not copied, and stops at the first answer.
+        let long = format!("time,Pressure AGL,time,{}\n", "x,".repeat(200_000));
+        assert!(recognizes(&long));
+        assert!(!recognizes(&format!("time,{}\n", "x,".repeat(200_000))));
     }
 
     /// Each group on its own clock, in SI; the primary track `Pressure AGL`'s; meters from the
-    /// pressure, seconds from `GPS Time of Week`; the flags' rises as events.
+    /// pressure, seconds from `GPS Time of Week`; the flags' rises as events; every column's unit
+    /// in a note the survey counts.
     #[test]
     fn reads_each_group_on_its_clock_in_si() {
         let log = read(&flight(1.0)).unwrap();
@@ -1215,7 +1703,26 @@ mod tests {
             &log,
             "`Gyro X` read in degrees per second, from the manual: ",
         );
+        note(
+            &log,
+            "`launch detect`, `apogee detect` and `A on.` kept as written, flags, from the \
+             values: ",
+        );
+        note(
+            &log,
+            "`GPS Time of Week` kept as written, in milliseconds, from the values: ",
+        );
         assert!(log.temperature_k.is_none() && log.battery_v.is_none());
+        // Every column is named in a note the survey counts, and none is assumed.
+        let decisions: Vec<&str> = log.notes.iter().filter_map(|n| counted(n)).collect();
+        for channel in &log.channels {
+            let named = format!("`{}`", channel.column);
+            assert!(
+                decisions.iter().any(|d| d.contains(&named)),
+                "{named}: {decisions:?}"
+            );
+        }
+        assert!(log.notes.iter().all(|n| !n.contains("assumed")));
     }
 
     /// The same flight with its altitudes in feet reads the same heights; one in neither unit is
@@ -1231,60 +1738,140 @@ mod tests {
             &feet,
             "`Pressure MSL` and `Pressure AGL` read in feet, from the pressure: ",
         );
-        let error = read(&flight(0.5)).unwrap_err();
-        let LogError::Unit { message, .. } = &error else {
-            panic!("{error:?}");
+        assert!(unit_error(&flight(0.5)).contains("neither meters nor feet"));
+    }
+
+    /// A hop of 8 m, written in feet, is told from meters: the pressure's 1 Pa step is about 1%
+    /// of the climb. Under 2 m the file is refused, never assumed.
+    #[test]
+    fn a_short_hop_in_feet_is_decided_and_a_flat_file_refused() {
+        let hop = |height_m: f64| {
+            let mut text = "time,pressure,Pressure AGL,time,launch detect\n".to_owned();
+            for (row, height) in [0.0, height_m / 2.0, height_m, 0.0].iter().enumerate() {
+                let p = pressure_at(100.0 + height).round();
+                let agl = altitude_of(p) - altitude_of(pressure_at(100.0).round());
+                text.push_str(&format!("{row},{p},{:.2},{row},0\n", agl / FOOT_M));
+            }
+            text
         };
-        assert!(message.contains("neither meters nor feet"), "{message}");
+        let log = read(&hop(8.0)).unwrap();
+        note(&log, "`Pressure AGL` read in feet, from the pressure: ");
+        let top = log.altitude_m.iter().copied().fold(0.0, f64::max);
+        assert!((top - 8.0).abs() < 0.2, "{top}");
+        assert!(unit_error(&hop(1.0)).contains("under the 2 m"));
     }
 
     #[test]
-    fn a_pressure_unit_comes_from_the_pad_or_is_left_as_written() {
+    fn a_pressure_unit_comes_from_the_pad_or_the_file_is_refused() {
         assert_eq!(pressure_unit(97_000.0), Some((1.0, "pascals")));
         assert_eq!(pressure_unit(97.0), Some((KPA_PA, "kilopascals")));
         assert_eq!(pressure_unit(28.6), Some((INHG_PA, "inches of mercury")));
-        for pad in [970.0, 5.0, 300_000.0, 40.0] {
+        for pad in [970.0, 5.0, 300_000.0, 40.0, 0.0, f64::NAN] {
             assert_eq!(pressure_unit(pad), None, "{pad}");
         }
-        let text = "time,pressure,Pressure AGL,time,launch detect\n0,970,0,0,0\n1,960,90,1,1\n";
+        // A placeholder ahead of the pad's pressure is passed over, and the climb measured from
+        // the pad's sample.
+        let text = "time,pressure,Pressure AGL,time,launch detect\n\
+                    0,0,0,0,0\n1,97000,0,1,0\n2,96000,85.2,2,1\n";
         let log = read(text).unwrap();
-        assert_eq!(log.channels[0].quantity, Quantity::Unrecognized);
-        note(
-            &log,
-            "`pressure` kept as written, in a unit its values don't settle: ",
+        assert!(
+            note(&log, "`pressure` read in pascals, from the values: ")
+                .contains("97000, after 1 samples that aren't")
         );
-        note(
-            &log,
-            "`Pressure AGL` read in meters, assumed: the pressure's unit isn't known",
-        );
+        note(&log, "`Pressure AGL` read in meters, from the pressure: ");
+        // A pressure in no unit leaves the altitudes with none: refused.
+        let text = "time,pressure,Pressure AGL,time,launch detect\n0,970,0,0,0\n1,960,90,1,1\n";
+        assert!(unit_error(text).contains("`pressure` is in a unit its values don't settle"));
+        let text = "time,Pressure AGL,time,launch detect\n0,0,0,0\n1,90,1,1\n";
+        assert!(unit_error(text).contains("the file has no `pressure`"));
     }
 
+    /// `time` in seconds or milliseconds by `GPS Time of Week`, else by the step, else refused.
     #[test]
-    fn time_is_seconds_by_the_time_of_week_or_assumed() {
+    fn the_clock_is_decided_by_the_time_of_week_or_the_step() {
         let by_tow = read(&flight(1.0)).unwrap();
         assert!(note(&by_tow, "`time` read in seconds, from ").contains("median of 1000.0"));
-        // A time of week rising by 1 per unit of `time`: `time` would be in milliseconds.
-        let text: String = flight(1.0)
+        // The same flight with every clock written in milliseconds reads the same times.
+        let millis: String = flight(1.0)
             .lines()
             .enumerate()
             .map(|(row, line)| {
                 if row == 0 {
-                    format!("{line}\n")
-                } else {
-                    let (head, _) = line.rsplit_once(',').unwrap();
-                    format!("{head},{}\n", 1_000 + row)
+                    return format!("{line}\n");
                 }
+                let cells: Vec<String> = line
+                    .split(',')
+                    .enumerate()
+                    .map(|(at, cell)| {
+                        if [0, 2, 6, 10].contains(&at) {
+                            format!("{}", (cell.parse::<f64>().unwrap() * 1_000.0).round())
+                        } else {
+                            cell.to_owned()
+                        }
+                    })
+                    .collect();
+                format!("{}\n", cells.join(","))
             })
             .collect();
-        let log = read(&text).unwrap();
-        assert!(note(&log, "`time` read in seconds, assumed: ").contains("median of 1.0"));
-        let without =
-            read("time,pressure,Pressure AGL,time,launch detect\n0,97000,0,0,0\n").unwrap();
-        note(&without, "`time` read in seconds, assumed: the file has no");
+        let log = read(&millis).unwrap();
+        assert!(
+            note(
+                &log,
+                "`time` read in milliseconds, from `GPS Time of Week`: "
+            )
+            .contains("median of 1.000")
+        );
+        for (a, b) in log.time_s.iter().zip(&by_tow.time_s) {
+            assert!((a - b).abs() < 1e-9, "{a} {b}");
+        }
+        assert!((log.events[0].time_s - 0.01).abs() < 1e-9);
+        note(
+            &log,
+            "`GPS Time of Week` kept as written, in milliseconds, from the values: ",
+        );
+        // A time of week rising by 7 per unit of `time`: the step decides, 1 s.
+        let odd: String = flight(1.0)
+            .lines()
+            .enumerate()
+            .map(|(row, line)| {
+                if row == 0 {
+                    return format!("{line}\n");
+                }
+                let (head, _) = line.rsplit_once(',').unwrap();
+                format!("{head},{}\n", 1_000 + 7 * row)
+            })
+            .collect();
+        let log = read(&odd).unwrap();
+        assert!(
+            note(&log, "`time` read in seconds, from the step: ")
+                .contains("neither the 1,000 of milliseconds per second")
+        );
+        note(
+            &log,
+            "`GPS Time of Week` kept as written, in a unit its values don't settle: ",
+        );
+        // No time of week: steps of 1 s, or 1,000 ms.
+        let seconds = read(&small("time,launch detect", ["0,0", "1,1"])).unwrap();
+        assert!(
+            note(&seconds, "`time` read in seconds, from the step: ")
+                .contains("the file has no `GPS Time of Week`")
+        );
+        let ms = small("time,launch detect", ["0,0", "1000,1"]).replace("\n1,", "\n1000,");
+        let ms = read(&ms).unwrap();
+        note(&ms, "`time` read in milliseconds, from the step: ");
+        assert_eq!(ms.time_s, [0.0, 1.0]);
+        // A step of 5 is neither; a single row has none.
+        let five = small("time,launch detect", ["0,0", "5,1"]).replace("\n1,", "\n5,");
+        assert!(unit_error(&five).contains("in neither seconds"));
+        let one = format!(
+            "time,pressure,Pressure AGL,time,launch detect\n0,{},0,0,0\n",
+            pressure_at(300.0)
+        );
+        assert!(unit_error(&one).contains("no clock has two samples"));
     }
 
-    /// The GPS group's extra empty cell is dropped only where the GPS group is empty; any other
-    /// row of another width is refused.
+    /// The GPS group's extra empty cell is dropped only where the GPS group is empty and every
+    /// group is then whole; any other row of another width is refused.
     #[test]
     fn a_run_out_gps_group_s_extra_cell_is_dropped() {
         let header = "time,lat,long,GPS MSL,SVs,time,pressure,Pressure AGL";
@@ -1310,6 +1897,18 @@ mod tests {
         let log = read(&narrow).unwrap();
         assert_eq!(log.time_s, [0.0, 1.0]);
         assert!(log.notes.iter().all(|n| !n.contains("run-out")));
+        // The extra cell at the row's end: dropping the one after the GPS group would leave the
+        // next group part filled and shift the last, so the row is refused.
+        let header = "time,lat,long,GPS MSL,SVs,time,temperature,time,Pressure AGL";
+        let elsewhere = format!("{header}\n,,,,,,,1.0,5.0,\n");
+        match read(&elsewhere) {
+            Err(LogError::Syntax {
+                line: 2, message, ..
+            }) => {
+                assert!(message.contains("columns 6 to 7 part filled"), "{message}");
+            }
+            other => panic!("{other:?}"),
+        }
     }
 
     #[test]
@@ -1339,7 +1938,9 @@ mod tests {
             "`Pressure AGL` reads -2500.0 m at the track's first sample",
         );
         note(&log, "the file holds `RSSI`");
-        let log = read("time,pressure,Pressure AGL,time,RSSI\n0,97000,-50,0,-90\n").unwrap();
+        assert!(note(&log, "`RSSI` kept as written, in dBm, from the manual: ").contains("(p29)"));
+        assert_eq!(log.channels[2].quantity, Quantity::Number);
+        let log = read(&small("time,RSSI", ["0,-90", "1,-95"])).unwrap();
         assert!(
             log.notes
                 .iter()
@@ -1356,6 +1957,9 @@ mod tests {
             ("time,Pressure AGL,time,x\n0,1,0\n", 2),
             ("time,Pressure AGL,time,x\n0,1,0,abc\n", 2),
             ("time,Gyro X,time,launch detect\n0,1,0,0\n", 1),
+            // A column named twice, in another case or without its point.
+            ("time,Pressure AGL,time,pressure agl\n0,1,0,1\n", 1),
+            ("time,Pressure AGL,A on.,time,A on\n0,1,0,0,0\n", 1),
         ];
         for (text, line) in cases {
             match read(text) {
@@ -1363,6 +1967,10 @@ mod tests {
                 other => panic!("{text:?}: {other:?}"),
             }
         }
+        let Err(error) = read("time,Pressure AGL,A on.,time,a on\n") else {
+            panic!("read");
+        };
+        assert!(error.to_string().contains("twice"), "{error}");
         assert!(matches!(
             read("time,Pressure AGL,time,x\n,,,1\n"),
             Err(LogError::NoData { .. })
@@ -1372,12 +1980,12 @@ mod tests {
 
     #[test]
     fn unknown_columns_and_out_of_range_positions_are_kept_and_noted() {
-        let text = "time,Pressure AGL,widget,time,lat,long\n0,0,7,0,91,-117\n1,5,,1,34,200\n";
-        let log = read(text).unwrap();
-        assert_eq!(log.channels[1].quantity, Quantity::Unrecognized);
-        assert!(log.channels[1].values[1].is_nan());
-        assert!(log.channels[2].values[0].is_nan() && log.channels[2].values[1] == 34.0);
-        assert!(log.channels[3].values[1].is_nan());
+        let text = small("widget,time,lat,long", ["7,0,91,-117", ",1,34,200"]);
+        let log = read(&text).unwrap();
+        assert_eq!(log.channels[2].quantity, Quantity::Unrecognized);
+        assert!(log.channels[2].values[1].is_nan());
+        assert!(log.channels[3].values[0].is_nan() && log.channels[3].values[1] == 34.0);
+        assert!(log.channels[4].values[1].is_nan());
         note(&log, "the column \"widget\" isn't one this reader knows");
         note(&log, "the column \"widget\" leaves 1 samples' values empty");
         note(
@@ -1396,12 +2004,18 @@ mod tests {
         assert_eq!(role_of(" B on"), Role::Flag { event: true });
         assert_eq!(role_of("cont"), Role::Unknown);
         assert_eq!(role_of("lat. X accel."), Role::Acceleration);
-        let log = read("time,Pressure AGL,time,A cont.\n0,0,0,0\n1,9,1,1\n").unwrap();
+        let log = read(&small("time,A cont.", ["0,0", "1,1"])).unwrap();
         assert!(log.events.is_empty());
+        note(&log, "`A cont.` kept as written, flags, from the values: ");
+        let log = read(&small("time,A cont.", ["0,0", "1,7"])).unwrap();
+        note(
+            &log,
+            "`A cont.` kept as written, in a unit no source states: ",
+        );
     }
 
     #[test]
-    fn the_temperature_follows_the_altitudes_unit() {
+    fn the_temperature_follows_the_altitudes_unit_within_a_bay_s_range() {
         let header = "time,pressure,Pressure MSL,Pressure AGL,time,temperature";
         let mut text = format!("{header}\n");
         for (row, height) in [0.0, 200.0].iter().enumerate() {
@@ -1413,11 +2027,115 @@ mod tests {
             ));
         }
         let log = read(&text).unwrap();
-        note(&log, "`temperature` read in degrees Fahrenheit, assumed: ");
+        assert!(
+            note(
+                &log,
+                "`temperature` read in degrees Fahrenheit, from the heights' unit and the manual, \
+                 p33: "
+            )
+            .contains("here imperial")
+        );
         assert!(close(log.channels[3].values[0], 293.15));
         let celsius = read(&flight(1.0).replace("Gyro X", "temperature")).unwrap();
-        note(&celsius, "`temperature` read in degrees Celsius, assumed: ");
+        note(
+            &celsius,
+            "`temperature` read in degrees Celsius, from the heights' unit and the manual, p33: ",
+        );
         assert!(close(celsius.channels[0].values[1], 0.5 + 273.15));
+        // 68 is no bay's temperature in °C: kept as written.
+        let hot = read(&small("time,temperature", ["0,68", "1,68"])).unwrap();
+        note(
+            &hot,
+            "`temperature` kept as written, in a unit its values don't settle: ",
+        );
+        assert_eq!(hot.channels[2].quantity, Quantity::Unrecognized);
+        assert_eq!(hot.channels[2].values[0], 68.0);
+    }
+
+    #[test]
+    fn voltages_are_volts_by_their_values_or_kept_as_written() {
+        let log = read(&small(
+            "time,comp. bat. voltage,A Voltage",
+            ["0,3.9,0", "1,3.8,7.5"],
+        ))
+        .unwrap();
+        assert!(
+            note(
+                &log,
+                "`comp. bat. voltage` read in volts, from the values: "
+            )
+            .contains("within 3.8 to 3.9")
+        );
+        note(&log, "`A Voltage` read in volts, from the values: ");
+        assert_eq!(log.channels[2].quantity, Quantity::Voltage);
+        // Millivolts: kept as written.
+        let log = read(&small("time,comp. bat. voltage", ["0,3900", "1,3850"])).unwrap();
+        note(
+            &log,
+            "`comp. bat. voltage` kept as written, in a unit its values don't settle: ",
+        );
+        assert_eq!(log.channels[2].quantity, Quantity::Unrecognized);
+    }
+
+    /// `GPS MSL` in the altitudes' unit where it agrees with `Pressure MSL` and the other unit
+    /// doesn't; kept as written where it disagrees, or where the site is too low to tell.
+    #[test]
+    fn the_gps_altitude_is_decided_against_the_barometric_one() {
+        let file = |pad_m: f64, gps: &dyn Fn(f64) -> f64| {
+            let mut text =
+                "time,pressure,Pressure MSL,Pressure AGL,time,lat,long,GPS MSL,SVs\n".to_owned();
+            for (row, height) in [0.0, 100.0, 300.0].iter().enumerate() {
+                let p = pressure_at(pad_m + height).round();
+                let msl = altitude_of(p);
+                let agl = msl - altitude_of(pressure_at(pad_m).round());
+                text.push_str(&format!(
+                    "{row},{p},{msl:.2},{agl:.2},{row}.3,34.5,-117.25,{:.1},9\n",
+                    gps(msl)
+                ));
+            }
+            text
+        };
+        // 40 m above the barometric altitude, in meters.
+        let log = read(&file(800.0, &|msl| msl + 40.0)).unwrap();
+        assert!(
+            note(&log, "`GPS MSL` read in meters, from `Pressure MSL`: ")
+                .contains("over 3 GPS samples")
+        );
+        assert_eq!(log.channels[5].quantity, Quantity::GnssAltitude);
+        // The same in feet beside meters: kept as written.
+        let log = read(&file(800.0, &|msl| (msl + 40.0) / FOOT_M)).unwrap();
+        note(
+            &log,
+            "`GPS MSL` kept as written, in a unit `Pressure MSL` doesn't settle: ",
+        );
+        assert_eq!(log.channels[5].quantity, Quantity::Unrecognized);
+        // A site 50 m up: feet and meters both within 300 m, so neither is taken.
+        let log = read(&file(50.0, &|msl| msl + 20.0)).unwrap();
+        assert!(
+            note(
+                &log,
+                "`GPS MSL` kept as written, in a unit `Pressure MSL` doesn't settle: "
+            )
+            .contains("doesn't tell the units apart")
+        );
+    }
+
+    #[test]
+    fn the_magnetometer_note_gives_the_file_s_field() {
+        let log = read(&small(
+            "time,Mag X,Mag Y,Mag Z",
+            ["0,0.0012,0.0016,0", "1,0.0006,0.0008,0"],
+        ))
+        .unwrap();
+        let mag = note(
+            &log,
+            "`Mag X`, `Mag Y` and `Mag Z` kept as written, in a unit no source bears out: ",
+        );
+        // 0.001 T and 0.002 T are 15 and 31 times 65 µT.
+        assert!(
+            mag.contains("0.00100 to 0.00200, would be 15 to 31 times"),
+            "{mag}"
+        );
     }
 
     #[test]

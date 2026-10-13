@@ -305,10 +305,11 @@ expression: log
     }
   ],
   "notes": [
-    "`time` read in seconds, assumed: the file has no `GPS Time of Week` to check it by; the manual's sample export counts that up by 5,000 over 5 of its `time` (Table 2, p40)",
-    "`pressure` read in pascals, from the values: its first sample, on the pad, is 98358, a launch site's pressure in pascals (50,000 to 110,000 Pa)",
-    "`Pressure MSL` and `Pressure AGL` read in feet, from the pressure: from the first sample to the one of lowest pressure, the standard atmosphere climbs 543.5 m and the column 1783.2 feet",
-    "`temperature` read in degrees Fahrenheit, assumed: the manual's sensor reads °C or °F (p25), and the software sets one unit system for its displays (p33), here the altitudes' feet",
-    "`acceleration` read in g, from the manual: it plots the accelerations \"in G's\", the long axis's with gravity in it (p23–24)"
+    "`time` read in seconds, from the step: the file has no `GPS Time of Week` to decide it by; the fastest clock's median step, 0.5 as written, is a step of 0.009 to 2 s, as the AIM writes its sensors every 10 to 500 ms (manual p2) times a whole multiple the owner sets (p21), where milliseconds would be 9 to 2,000",
+    "`pressure` read in pascals, from the values: its first value that is a launch site's pressure in pascals, kilopascals or inches of mercury (50,000 to 110,000 Pa), 98358, is one in pascals",
+    "`Pressure MSL` and `Pressure AGL` read in feet, from the pressure: from the pressure's pad sample to the one of lowest pressure, the standard atmosphere climbs 543.5 m and the column 1783.2 feet",
+    "`temperature` read in degrees Fahrenheit, from the heights' unit and the manual, p33: the heights are in feet, decided from the pressure, and the software sets one unit system for all its displays (p33), here imperial, its sensor reading °C or °F (p25); the first value, 71.2, is a bay's temperature in them, -40 to 140",
+    "`acceleration` read in g, from the manual: it plots the accelerations \"in G's\", the long axis's with gravity in it (p23–24)",
+    "`launch detect` and `apogee detect` kept as written, flags, from the values: each is 0 or 1, the AIM's flight event status and its lines' continuity (manual p2, p36)"
   ]
 }
