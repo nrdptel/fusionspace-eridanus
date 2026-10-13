@@ -31,10 +31,9 @@
 //! pairs and compares them).
 //!
 //! **The record.** One [`Quantity::Pressure`] channel, `Pressure`, and the three auxiliary
-//! channels.
-//! The primary track is empty, with a note: the file holds no altitude, and working one out of the
-//! pressure is a reading, not this reader's to make (M7.2's), as mDACS's export's `Altitude` is
-//! mDACS's.
+//! channels. The primary track is empty, with a note: the file holds no altitude, and working one
+//! out of the pressure is a reading, not this reader's to make (milestone [M7.2], the readings,
+//! takes it), as mDACS's export's `Altitude` is mDACS's.
 //!
 //! **Refused**, naming the byte: a stream with no `List<Int16>` of the flight record's, or more
 //! than one candidate for it; a list whose slots run past the file's end; readings that don't start
@@ -50,6 +49,8 @@
 //! auxiliary words, paired and single, and the preamble where Debrief drops them; it refuses a
 //! stream with two candidate lists where Debrief takes the longer; and it refuses data after the
 //! zero that ends the log where Debrief stops reading.
+//!
+//! [M7.2]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2
 
 use crate::error::LogError;
 use crate::log::{Channel, FlightLog, LogFormat, Quantity, Stated};

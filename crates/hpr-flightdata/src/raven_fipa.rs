@@ -66,7 +66,7 @@
 //! **The record.** The primary track is empty, with a note: the Raven records a pressure, not an
 //! altitude; the export's `[Altitude (Baro-Ft-AGL)]` and `[Altitude (Baro-Ft-ASL)]` are the FIP's
 //! conversions, and working an altitude out of the pressure is a reading, not this reader's to make
-//! (M7.2's). The settings block's word 1, the ground's elevation in feet, which the FIP's export
+//! (milestone [M7.2], the readings, takes it). The settings block's word 1, the ground's elevation in feet, which the FIP's export
 //! takes from the altitude above sea level to give it above the pad, is stated as the launch
 //! site's elevation; `#FlightNum` is the flight's number and `#R` the firmware.
 //!
@@ -79,6 +79,8 @@
 //! `#DONE` and a line end; a settings block other than `#FlightState`'s words; an `#Axis` other
 //! than 1 or 2; fewer than the five
 //! blocks before the launch and the settings block; and a used block after an unused one.
+//!
+//! [M7.2]: https://hpr.fusionspace.co/decisions-and-roadmap.html#m7-2
 
 use hpr_core::gravity::STANDARD_GRAVITY_MPS2;
 
