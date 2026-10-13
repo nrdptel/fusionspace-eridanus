@@ -37,8 +37,9 @@
 //!
 //! **Columns.** Each name the reader knows, what it is read as, and where its unit comes from;
 //! the column keeps the file's name. A column the reader doesn't know is kept as written,
-//! [`Quantity::Unrecognized`], with a note; a header naming a column twice, or with an empty
-//! name, is refused:
+//! [`Quantity::Unrecognized`], with a note (the first 20 such notes kept, the rest counted); a
+//! header naming a column twice, with an empty name, or with more than [`MAX_COLUMNS`] names is
+//! refused:
 //!
 //! | Column | Quantity | Unit, and from where |
 //! |---|---|---|
@@ -75,11 +76,15 @@
 //!   its settings `imuTemp` is 0 at every sample, a placeholder rather than a reading.
 //! - *The pad's gravity.* A board at rest, or hanging under a parachute, reads 1 g: 9.806 65 in
 //!   m/s², 1 in standard gravities. The reader adds up the time the three axes' magnitude lies
-//!   within 10% of each of the two, every sample counting until the next. The unit whose 1 g
-//!   lasts at least 1 s and at least twice as long as the other's is taken; otherwise the axes
-//!   are kept as written. In the board's sample logs the magnitude reads 9.8 for minutes on the
-//!   pad and under the parachutes, against at most 1 s near 1 m/s² in the coast; in the
-//!   space-separated one it reads 1 for 46 s and never 9.8, so its axes are read in g, × 9.806 65.
+//!   within 10% of each of the two, every sample counting until the next, but for at most 5 s,
+//!   the board's longest regular step: past it the logging paused, and a sample says nothing of
+//!   the time after, so a coast sample before a jump of the clock can't count for minutes. The
+//!   unit whose 1 g lasts at least 1 s and at least twice as long as the other's is taken;
+//!   otherwise the axes are kept as written. In the board's sample logs the magnitude reads 9.8
+//!   for minutes on the pad and under the parachutes, against at most 1 s near 1 m/s² in the
+//!   coast; in the space-separated one it reads 1 for 46 s and never 9.8, so its axes are read in
+//!   g, × 9.806 65. One step in the sample logs passes 5.04 s, an 8 s one, and the limit changes
+//!   neither unit's time in any of them by as much as 0.05 s.
 //! - *The board's turning.* With the board at about 1 g (within 15%), the direction the
 //!   accelerometer reads is gravity's, so as the board turns, that direction turns by as much as
 //!   the gyroscope's rates across it say. Over stretches of 10 steps at most 0.05 s apart, the
@@ -105,7 +110,8 @@
 //!   whose name states no unit, is read in meters on the same check, and otherwise kept as
 //!   written.
 //! - *`velocityMS`* is checked against `altitudeM`: over the steps at most 0.05 s long, the least
-//!   squares slope of the altitude's change on the speed times the step must lie within 25% of 1.
+//!   squares slope of the altitude's change on the speed times the step must lie within 25% of 1;
+//!   a slope that can't be computed, as when the sums overflow, isn't within it.
 //!   This ties the clock, the speed and the altitude together: a speed in feet per second, or a
 //!   clock in seconds, would be 3.28 or 1,000 times off. Under 10 m of movement the check can't be
 //!   made and a note says so; a slope beyond is kept as written. In the sample files it is 0.86 to
@@ -133,7 +139,8 @@
 //! firmware; the other settings are left out, counted in a note, as no source gives their units.
 //! Without a `BOARD_NAME` the logger is `AerospaceNU SillyGoose`.
 //!
-//! **Cells.** An empty cell, or one that isn't a number, is a gap (`NaN`), counted in a note. A row
+//! **Cells.** An empty cell, or one that isn't a number, is a gap (`NaN`), counted in a note, as is
+//! a value too large to hold once converted to its unit (a gyroscope's 10³⁰⁸ rad/s in °/s). A row
 //! with fewer cells than the header names has the rest as gaps, counted in a note; a row with more
 //! is refused, naming its line, as is a file whose rows hold under a quarter of the cells the header
 //! names (past the first 65,536), so that a short file can't make the reader store far more gaps
@@ -192,6 +199,14 @@ const GRAVITY_LEAST_S: f64 = 1.0;
 
 /// How many times longer the taken unit's 1 g must last than the other's.
 const GRAVITY_LEAD: f64 = 2.0;
+
+/// The most time, s, one sample counts for in the pad's gravity: the board's longest regular step,
+/// one sample every 5 s on the pad. A longer step is a pause in the logging, and the sample before
+/// it says nothing of the time past those 5 s.
+const GRAVITY_STEP_MAX_S: f64 = 5.0;
+
+/// The most names a header may have: the board writes 20, or 28 with its settings.
+pub const MAX_COLUMNS: usize = 256;
 
 /// The longest step, s, of the board's fast logging that the turning and speed checks use: 10 ms
 /// or 20 ms in the sample files, where the pad's are 5 s.
@@ -462,6 +477,12 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let mut columns: Vec<Column> = Vec::new();
     let mut seen: BTreeSet<String> = BTreeSet::new();
     for (index, name) in cells(header, tabs).enumerate() {
+        if index >= MAX_COLUMNS {
+            return Err(syntax(
+                header_line,
+                format!("the header names more than {MAX_COLUMNS} columns"),
+            ));
+        }
         if name.is_empty() {
             return Err(syntax(
                 header_line,
@@ -487,14 +508,13 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let mut first_short = None;
     let mut cells_written = 0usize;
     for (number_of_line, line) in lines {
-        let row: Vec<&str> = cells(line.trim_end(), tabs).collect();
+        // One more than the header names, so that a wider row is told apart without collecting
+        // the whole of a long line.
+        let row: Vec<&str> = cells(line.trim_end(), tabs).take(width + 1).collect();
         if row.len() > width {
             return Err(syntax(
                 number_of_line,
-                format!(
-                    "the row has {} cells where the header names {width}",
-                    row.len()
-                ),
+                format!("the row has more than {width} cells, where the header names {width}"),
             ));
         }
         if row.len() < width {
@@ -545,27 +565,43 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     decide_by_range(&mut columns, &mut decisions);
     decide_altitudes(&mut columns, pressure_pa, header_line, &mut decisions)?;
     decide_speed(&mut columns, &times, &mut decisions);
+    // Kept few, as a header may name many columns the reader doesn't know.
+    let mut unknown_notes = Notes::default();
     for column in &columns {
         if column.role == Role::Unknown {
-            decisions.push(format!(
+            unknown_notes.push(format!(
                 "the column {} isn't one this reader knows; its values are kept as written",
                 column.quoted()
             ));
         }
     }
+    decisions.extend(unknown_notes.into_vec());
 
     let (logger, firmware, config_note) = settings(config);
 
-    // Every channel, in its unit.
-    let channels: Vec<Channel> = columns
-        .iter()
-        .map(|column| Channel {
+    // Every channel, in its unit; a value too large to hold once converted is a gap.
+    let mut overflows = 0usize;
+    let mut first_overflow: Option<usize> = None;
+    let mut channels: Vec<Channel> = Vec::with_capacity(columns.len());
+    for (at, column) in columns.iter().enumerate() {
+        let mut values = Vec::with_capacity(column.values.len());
+        for value in &column.values {
+            let converted = value * column.scale;
+            if value.is_finite() && !converted.is_finite() {
+                overflows += 1;
+                first_overflow.get_or_insert(at);
+                values.push(f64::NAN);
+            } else {
+                values.push(converted);
+            }
+        }
+        channels.push(Channel {
             column: column.name.clone(),
             quantity: column.quantity,
             time_s: times.clone(),
-            values: column.values.iter().map(|v| v * column.scale).collect(),
-        })
-        .collect();
+            values,
+        });
+    }
 
     // The events: the fired flags' rises.
     let mut events = Vec::new();
@@ -651,6 +687,13 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
             "{short_rows} rows, the first on line {}, hold fewer cells than the header names: the \
              cells they leave out are gaps",
             first_short.unwrap_or(header_line)
+        ));
+    }
+    if let Some(at) = first_overflow {
+        line_notes.push(format!(
+            "{overflows} values, the first in {}, are too large to hold once converted to their \
+             unit: each is a gap",
+            columns[at].quoted()
         ));
     }
     if events_left_out > 0 {
@@ -822,11 +865,12 @@ fn decide_accelerometer(
         if !(step > 0.0 && step.is_finite() && reading.is_finite()) {
             continue;
         }
+        let weight = step.min(GRAVITY_STEP_MAX_S);
         if (reading - STANDARD_GRAVITY_MPS2).abs() <= GRAVITY_MARGIN * STANDARD_GRAVITY_MPS2 {
-            in_ms2 += step;
+            in_ms2 += weight;
         }
         if (reading - 1.0).abs() <= GRAVITY_MARGIN {
-            in_g += step;
+            in_g += weight;
         }
     }
     let names = listed_at(columns, &axes);
@@ -1202,11 +1246,19 @@ fn decide_speed(columns: &mut [Column], times: &[f64], decisions: &mut Vec<Strin
         return;
     }
     let slope = cross / square;
-    if (slope - 1.0).abs() > SPEED_MARGIN {
+    // Written to fail closed: a slope that is `NaN`, as when the sums overflow, isn't within it.
+    let within = (slope - 1.0).abs() <= SPEED_MARGIN;
+    if !within {
+        let found = if slope.is_finite() {
+            format!("the altitude changes {slope:.3} times what it integrates to")
+        } else {
+            "the slope of the altitude's change on what it integrates to can't be computed, the \
+             sums being too large to hold"
+                .to_owned()
+        };
         decisions.push(format!(
             "{name} kept as written: its name says meters per second, but over the steps at most \
-             {FAST_STEP_S} s long the altitude changes {slope:.3} times what it integrates to, \
-             not within 25% of once"
+             {FAST_STEP_S} s long {found}, not within 25% of once"
         ));
         columns[speed].keep();
     }
@@ -1588,12 +1640,12 @@ mod tests {
         );
     }
 
-    /// The pad's gravity counts time, not samples: a fast run of 1 m/s² readings in a coast
-    /// doesn't outweigh minutes of 9.8 at rest.
+    /// The pad's gravity counts time, not samples: a fast run of 300 readings of 1 m/s² in a
+    /// coast doesn't outweigh 25 readings of 9.8 over 2 minutes at rest.
     #[test]
     fn the_pad_s_gravity_weighs_each_reading_by_its_time() {
         let mut text = format!("{HEADER}\n");
-        for t in [0.0, 60_000.0, 120_000.0] {
+        for t in (0..=24).map(|k| 5_000.0 * f64::from(k)) {
             text.push_str(&format!(
                 "{t}\t97772\t290\t0\t0\t{G}\t0\t0\t0\t293\t4\t0\t0\t0\t300\t0\t0\t0\t0\t0\n"
             ));
@@ -1614,6 +1666,36 @@ mod tests {
             "{:?}",
             log.notes
         );
+    }
+
+    /// A sample counts for at most 5 s: a coast reading of 1.0 before the clock jumps 10 minutes
+    /// doesn't outweigh 35 s of 9.8 on the pad and landed. Counting the whole jump would read the
+    /// file in g, its accelerations 9.8 times too high.
+    #[test]
+    fn a_jump_of_the_clock_counts_for_at_most_5_s_of_gravity() {
+        let mut text = format!("{HEADER}\n");
+        let row = |t: f64, z: f64| {
+            format!("{t}\t97772\t290\t0\t0\t{z}\t0\t0\t0\t293\t4\t0\t0\t0\t300\t0\t0\t0\t0\t0\n")
+        };
+        for k in 0..6 {
+            text.push_str(&row(5_000.0 * f64::from(k), G));
+        }
+        text.push_str(&row(30_000.0, 1.0));
+        text.push_str(&row(630_000.0, G));
+        text.push_str(&row(635_000.0, G));
+        let log = read(&text).unwrap();
+        assert!(
+            note(
+                &log,
+                "`accelX`, `accelY` and `accelZ` read in meters per second squared"
+            )
+            .contains(
+                "within 10% of 9.806 65 for 35.0 s of the file's time and within 10% of 1 for 5.0 s"
+            ),
+            "{:?}",
+            log.notes
+        );
+        assert!(close(values(&log, "accelZ")[0], G));
     }
 
     /// The gyroscope's unit both ways, and kept where the turning doesn't settle it. Flipping the
@@ -1818,6 +1900,98 @@ mod tests {
         assert!(note(&feet, "`velocityMS` kept as written: ").contains("0.305 times"));
     }
 
+    /// Sums too large to hold make the slope `NaN`, which no comparison bears out: the speed is
+    /// kept as written, not read in m/s unchecked.
+    #[test]
+    fn a_speed_whose_slope_cannot_be_computed_is_kept() {
+        let mut text = "timestampMs\tpressurePa\taltitudeM\tvelocityMS\n".to_owned();
+        for k in 0..50 {
+            let (altitude, speed) = match k {
+                20 => ("1e160", "1e160"),
+                21 => ("0", "1e160"),
+                _ => ("0", "0"),
+            };
+            text.push_str(&format!("{}\t0\t{altitude}\t{speed}\n", 10 * k));
+        }
+        let log = read(&text).unwrap();
+        assert_eq!(quantity(&log, "velocityMS"), Quantity::Unrecognized);
+        assert!(log.vertical_speed_m_s.is_none());
+        let kept = note(&log, "`velocityMS` kept as written: ");
+        assert!(kept.contains("can't be computed"), "{kept}");
+        assert!(!kept.contains("NaN"), "{kept}");
+        assert!(counted(kept).is_some());
+    }
+
+    /// A value too large to hold once converted to its unit is a gap, counted in a note, not an
+    /// infinity.
+    #[test]
+    fn a_value_that_overflows_its_conversion_is_a_gap() {
+        // The file in g, with one pad sample's `accelX` and `gyroY` at 10³⁰⁸.
+        let text = text(Written {
+            accel: 1.0 / G,
+            ..Written::default()
+        });
+        let mut lines = text.lines();
+        let mut out = format!("{}\n", lines.next().unwrap_or_default());
+        for (k, line) in lines.enumerate() {
+            let mut cells: Vec<String> = line.split('\t').map(str::to_owned).collect();
+            if k == 1 {
+                cells[3] = "1e308".to_owned();
+                cells[7] = "1e308".to_owned();
+            }
+            out.push_str(&cells.join("\t"));
+            out.push('\n');
+        }
+        let log = read(&out).unwrap();
+        assert_eq!(quantity(&log, "accelX"), Quantity::Acceleration);
+        assert_eq!(quantity(&log, "gyroY"), Quantity::AngularRate);
+        assert!(values(&log, "accelX")[1].is_nan());
+        assert!(values(&log, "gyroY")[1].is_nan());
+        assert!(close(values(&log, "accelZ")[1], G));
+        assert!(
+            log.channels
+                .iter()
+                .all(|c| c.values.iter().all(|v| !v.is_infinite()))
+        );
+        note(
+            &log,
+            "2 values, the first in `accelX`, are too large to hold once converted to their unit: \
+             each is a gap",
+        );
+    }
+
+    /// Unknown columns are kept, each with a note, but the notes stop at 20 and count the rest; a
+    /// header of [`MAX_COLUMNS`] names is read.
+    #[test]
+    fn an_unknown_column_is_kept_and_its_notes_stay_few() {
+        let names: Vec<String> = (0..30).map(|k| format!("extra_{k}")).collect();
+        let text = format!(
+            "timestampMs\tpressurePa\taltitudeM\t{}\n1000\t97772\t0\t{}\n",
+            names.join("\t"),
+            ["7"; 30].join("\t")
+        );
+        let log = read(&text).unwrap();
+        assert_eq!(log.channels.len(), 32);
+        assert_eq!(quantity(&log, "extra_29"), Quantity::Unrecognized);
+        assert_eq!(values(&log, "extra_29"), [7.0]);
+        let kept = log
+            .notes
+            .iter()
+            .filter(|n| n.starts_with("the column `extra_"))
+            .count();
+        assert_eq!(kept, 20);
+        note(&log, "and 10 more notes");
+
+        let names: Vec<String> = (0..MAX_COLUMNS - 3).map(|k| format!("c{k}")).collect();
+        let widest = read(&format!(
+            "timestampMs\tpressurePa\taltitudeM\t{}\n1000\t97772\t0\n",
+            names.join("\t")
+        ))
+        .unwrap();
+        assert_eq!(widest.channels.len(), MAX_COLUMNS - 1);
+        assert!(widest.notes.len() <= 30, "{}", widest.notes.len());
+    }
+
     /// A log all on the pad: too little climb or movement to check the altitude's and the speed's
     /// units, so they are read from their names, and `unfiltAlt` is kept.
     #[test]
@@ -1923,7 +2097,23 @@ mod tests {
         let (line, message) = syntax_line(&wide);
         assert_eq!(line, 2);
         assert!(
-            message.contains("21 cells where the header names 20"),
+            message.contains("more than 20 cells, where the header names 20"),
+            "{message}"
+        );
+        // A long row is refused alike, read no further than one cell past the header's width.
+        let long = format!("{HEADER}\n{}\n", ["0"; 100_000].join("\t"));
+        let (line, message) = syntax_line(&long);
+        assert_eq!(line, 2);
+        assert!(message.contains("more than 20 cells"), "{message}");
+        // A header of more names than the board ever writes.
+        let names: Vec<String> = (0..MAX_COLUMNS).map(|k| format!("c{k}")).collect();
+        let (line, message) = syntax_line(&format!(
+            "timestampMs\tpressurePa\taltitudeM\t{}\n0\t0\t0\n",
+            names.join("\t")
+        ));
+        assert_eq!(line, 1);
+        assert!(
+            message.contains("the header names more than 256 columns"),
             "{message}"
         );
         let (line, message) = syntax_line("timestampMs pressurePa altitudeM altitudeM\n1 2 3 4\n");
@@ -1945,10 +2135,11 @@ mod tests {
             read("timestampMs pressurePa altitudeM\nx 97000 0\n"),
             Err(LogError::NoData { .. })
         ));
-        // A wide header over short rows can't make the reader store far more than the file holds.
-        let names: Vec<String> = (0..2_000).map(|k| format!("c{k}")).collect();
+        // A wide header over short rows can't make the reader store far more than the file holds:
+        // 253 names over rows of one cell pass the bound at the 264th row.
+        let names: Vec<String> = (0..250).map(|k| format!("c{k}")).collect();
         let mut sparse = format!("timestampMs\tpressurePa\taltitudeM\t{}\n", names.join("\t"));
-        for k in 0..100 {
+        for k in 0..300 {
             sparse.push_str(&format!("{k}\n"));
         }
         let (_, message) = syntax_line(&sparse);

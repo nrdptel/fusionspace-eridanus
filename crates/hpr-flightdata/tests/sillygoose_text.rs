@@ -107,7 +107,7 @@ fn the_boards_log_reads_every_column_in_si() {
 fn the_space_separated_file_is_read_by_its_values_not_its_names() {
     let log = import::read(include_bytes!("samples/sillygoose-spaces.txt")).unwrap();
     assert_eq!(log.format, LogFormat::SillyGooseText);
-    assert_eq!(log.time_s.len(), 67);
+    assert_eq!(log.time_s.len(), 68);
     // At rest the z axis reads 1 g, here 9.806 65 m/s², not 1 m/s².
     assert!((channel(&log, "accelZ")[0] - G).abs() < 1e-9);
     let turning = channel(&log, "gyroX").iter().copied().fold(0.0, f64::max);

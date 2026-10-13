@@ -2253,7 +2253,7 @@ expression: log
   ],
   "notes": [
     "`imuTemp` read in kelvin, from the values: they run from 293.4 to 293.87, within the 233.15 to 333.15 K an electronics bay can have, where in degrees Celsius or Fahrenheit they would be hotter than any bay survives",
-    "`accelX`, `accelY` and `accelZ` read in meters per second squared, from the pad's gravity: the three axes' magnitude reads within 10% of 9.806 65 for 45.7 s of the file's time and within 10% of 1 for 0.0 s; a board at rest or under a parachute reads 1 g, and the unit whose 1 g lasts at least 1 s and twice as long as the other's is taken",
+    "`accelX`, `accelY` and `accelZ` read in meters per second squared, from the pad's gravity: the three axes' magnitude reads within 10% of 9.806 65 for 20.6 s of the file's time and within 10% of 1 for 0.0 s; a board at rest or under a parachute reads 1 g, and the unit whose 1 g lasts at least 1 s and twice as long as the other's is taken",
     "`gyroX`, `gyroY` and `gyroZ` read in radians per second, from the board's turning: over 3 stretches of 10 steps at most 0.05 s apart with the accelerometer within 15% of 1 g, as at rest or under a parachute, its direction turns 0.600 rad, and the gyroscope's rates turn the board across it 0.600 rad read in radians per second, 0.010 rad read in degrees; the unit whose turn is within a quarter to 4 times the accelerometer's is taken",
     "`unfiltAlt` read in meters, from the pressure: from the first sample to the one of lowest pressure it climbs 300.0 where the standard atmosphere climbs 300.0 m, within 25%"
   ]
