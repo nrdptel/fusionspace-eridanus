@@ -5,7 +5,8 @@
 //! that sends its readings to a ground station by radio, and publishes the ground station's text
 //! beside its flights' logs. No published document describes the packets or their units, so
 //! every unit a field's name doesn't state comes from two checks on the file's own values that
-//! don't depend on each other (ADR-258 §2), and a unit no two checks settle is kept as written.
+//! don't depend on each other ([ADR-258][adr-258] §2, the rule that a unit needs two checks),
+//! and a unit no two checks settle is kept as written.
 //! The club's per-flight summaries aren't read and aren't a check: they exist for few flights
 //! and needn't match the packets the ground station received.
 //!
@@ -207,6 +208,8 @@
 //! **Values.** A value too large to hold once converted to its unit, such as a pressure of 10³⁰⁸
 //! atmospheres, refuses the file, naming its line ([`LogError::Syntax`]), so that every channel holds
 //! values in SI or gaps.
+//!
+//! [adr-258]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md
 
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::f64::consts::PI;
