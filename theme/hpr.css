@@ -152,6 +152,11 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
 .content main .fs-intro > h1 { margin-top: 0; }
 .content main .fs-intro > .fs-lead { font-size: var(--fs-20); line-height: var(--fs-28); font-weight: 400; color: var(--fs-ink-muted); }
 .content main .fs-sheet { border-top: 2px solid var(--fs-ink); margin-top: 32px; padding-top: 16px; }
+/* A sheet off screen skips style, layout and paint until it nears the window, so a tap that moves the
+   page, such as the menu's, redraws only what is on screen: on the page with the most equations it halved
+   that tap's work. A sheet keeps its last drawn height; 1,200 px stands in until it is first drawn.
+   Paper draws every sheet. */
+@media screen { .content main .fs-sheet { content-visibility: auto; contain-intrinsic-size: auto 1200px; } }
 .content main .fs-sheet-rail { display: grid; gap: 8px; margin-bottom: 16px; }
 /* The system's mdBook theme draws the sheet's edge on the `h2` itself; here the sheet draws it. */
 .content main .fs-sheet-rail > h2 { margin: 0; padding-top: 0; border-top: 0; }

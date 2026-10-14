@@ -2421,6 +2421,14 @@
           const win = frame.contentWindow;
           const doc = frame.contentDocument;
           if (!doc || !doc.body) throw new Error('the frame has no document');
+          // A box with `content-visibility: auto` skips laying out its contents while it is off
+          // screen, which would leave them unmeasured: each is drawn as it is once on screen,
+          // shown, with the layout, style and paint containment `auto` keeps.
+          for (const el of doc.querySelectorAll('*')) {
+            if (win.getComputedStyle(el).contentVisibility !== 'auto') continue;
+            el.style.setProperty('content-visibility', 'visible', 'important');
+            el.style.setProperty('contain', 'layout style paint', 'important');
+          }
           // Every face the page declares, loaded before measuring: `font-display: swap` draws
           // a fallback until a face is asked for and arrives, and `fonts.ready` right after the
           // load can resolve before layout has asked.
