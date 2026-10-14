@@ -232,7 +232,7 @@ readings from it is [M7.2](../decisions-and-roadmap.md#m7-2)'s work.
   there. A GPS log has no barometric track, and a raw download's barometer records pressures, not
   altitudes, so every reading withholds on both, and on a Featherweight summary, which holds no
   samples. Other loggers' files
-  come with [M7.1c7, the rest of the importers](../decisions-and-roadmap.md#m7-1c7).
+  come with [M7.1c8, the rest of the importers](../decisions-and-roadmap.md#m7-1c8).
 
 ## Tests and references
 

@@ -24,9 +24,10 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > ([raw downloads](#raw-downloads)). The Featherweight app's flight summaries, read since
 > [M7.1c6](../decisions-and-roadmap.md#m7-1c6), hold the logger's own figures and no samples;
 > only their maximum and pad altitudes are checked, against the files of samples beside them
-> ([Featherweight's summaries](#featherweights-summaries)). Other layouts are refused, not
-> guessed at; they come with [M7.1c7](../decisions-and-roadmap.md#m7-1c7), the other loggers'
-> formats.
+> ([Featherweight's summaries](#featherweights-summaries)). A zip archive of a flight's files,
+> unpacked since [M7.1c7](../decisions-and-roadmap.md#m7-1c7), is read file by file, each as if
+> it lay on its own ([zip archives](#zip-archives)). Other layouts are refused, not guessed at;
+> they come with [M7.1c8](../decisions-and-roadmap.md#m7-1c8), the other loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -69,6 +70,9 @@ decided, and [M7.1c5](../decisions-and-roadmap.md#m7-1c5) (the Raven's `.FIPa` a
 decided, and [M7.1c6](../decisions-and-roadmap.md#m7-1c6) (Featherweight's summaries, and the
 files filed as not logs), as
 [ADR-260](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0260-featherweight-summaries-before-the-rest.md)
+decided, and [M7.1c7](../decisions-and-roadmap.md#m7-1c7) (zip archives, PerfectFlite's exports
+with no header row and Blue Raven files with no date), as
+[ADR-261](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0261-archives-and-two-readers-variants-before-the-rest.md)
 decided.
 
 ## The layouts read
@@ -77,12 +81,12 @@ decided.
 |---|---|---|---|
 | PerfectFlite `.pf2` | Pnut, StratoLogger, StratoLoggerCF | names PerfectFlite | [`.pf2` files](pf2.md) |
 | PerfectFlite CSV export | the same, through PerfectFlite's software | `Time,Altitude,` and more of the export's own column names | [below](#perfectflites-exports) |
-| PerfectFlite text export | the same | the same names, separated by tabs | [below](#perfectflites-exports) |
+| PerfectFlite text export | the same | the same names, separated by tabs; or, with no header row, rows of four tab-separated numbers, the third a temperature followed by its unit's letter, such as `71.5F` | [below](#perfectflites-exports) |
 | PerfectFlite `.pfa` | Alt15K/WD, an older PerfectFlite altimeter, through PerfectFlite's DataCap program (AltCapWD on the Mac) | names PerfectFlite and has a `**!!Data:` line | [below](#perfectflites-older-pfa) |
 | AltOS CSV | Altus Metrum's TeleMetrum, TeleMega, EasyMega, EasyMini, through AltosUI (Altus Metrum's ground software) | `#version,serial,flight,`, or `#` comment lines and then that header or `version,serial,flight,` | `hpr_flightdata::altos` |
 | Raven FIP CSV | Featherweight Raven, through the Featherweight Interface Program | opens with a time column and holds the Raven's `Axial Accel (Gs)` channel | `hpr_flightdata::raven` |
 | Raven `.FIPa` | Featherweight Raven, its memory as the Featherweight Interface Program downloads it, before any export | opens `#Component=Raven`, and its text lines end, within the first 4,096 bytes, in a `#den` line followed by a frame's `:` | `hpr_flightdata::raven_fipa` ([below](#raw-downloads)) |
-| Blue Raven CSV | Featherweight Blue Raven, through its phone app: a low-rate file (barometer, inertial figures, flags) and a high-rate file (gyroscopes, accelerometers, attitude) | `Year,Month,Day,Time,Flight_Time_(s),Sync,` | `hpr_flightdata::blueraven` |
+| Blue Raven CSV | Featherweight Blue Raven, through its phone app: a low-rate file (barometer, inertial figures, flags) and a high-rate file (gyroscopes, accelerometers, attitude) | `Year,Month,Day,Time,Flight_Time_(s),Sync,`, or `Flight_Time_(s),Sync,` in a file with no date | `hpr_flightdata::blueraven` |
 | RRC3 CSV | Missile Works RRC3, through mDACS, Missile Works' program that downloads its flights | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages`, perhaps with units in brackets | `hpr_flightdata::rrc3` |
 | RRC3 `.rff` | Missile Works RRC3, its memory as mDACS downloads it, before any export | a .NET serialization header (MS-NRBF, version 1.0) and, within the first 4,096 bytes, mDACS's class name `mDACS.AnalysisSupport+FlightRecord` | `hpr_flightdata::rrc3_rff` ([below](#raw-downloads)) |
 | Eggtimer CSV | Eggtimer Classic, TRS, Quantum and Proton, through Eggtimer's download | `T,Alt,` and more of Eggtimer's column names | `hpr_flightdata::eggtimer` |
@@ -100,6 +104,7 @@ decided.
 | Featherweight GPS CSV | Featherweight's GPS tracker: its own log, and its ground station's log of every tracker it hears | a first line opening `UTCTIME,UNIXTIME,` or `TRACKER,DATE,TIME,` that names the latitude and longitude (`LAT` and `LON`, or `TRACKER Lat` and `TRACKER Lon`) | [below](#gps-logs) |
 | KML | GPS tracks as AltOS, Missile Works' RTx, Big Red Bee's BeeLine, fw2kml (a converter of Featherweight's logs), GPS Visualizer and others write them for Google Earth | the document's root element is `kml` | [below](#gps-logs) |
 | NMEA 0183 | a GPS receiver's own sentences, written to a file as it sends them | at least 3 of the first 50 lines open with a sentence whose checksum checks out, such as `$GPGGA,…*hh`, or, in a shorter file, every line does | [below](#gps-logs) |
+| Zip archive | not a log: a flight's files, zipped to share them | its bytes open `PK` then 3, 4 | `hpr_flightdata::archive` ([below](#zip-archives)) |
 
 The Blue Raven app writes each flight as a low-rate file, logged 50 times a second, and a
 high-rate file, 500 times a second (*Blue Raven User's Guide*, 2026-05-12, p18); each is read on its own, as a record of its own, not joined
@@ -110,11 +115,13 @@ figures with no samples ([below](#featherweights-summaries)).
 
 Some files among the sample logs aren't flight logs, and are counted apart as such: Debrief's
 made-up sample flights, which say so in their first row; a team's checklists for preparing a
-flight; a Blue Raven's deployment settings saved as spreadsheets; and the events files a flyer's
-own program wrote from a Blue Raven's low-rate file. The other layouts in the sample logs, among
+flight; a Blue Raven's deployment settings saved as spreadsheets or CSV; the events files a
+flyer's own program wrote from a Blue Raven's low-rate file, and the descriptions of a rocket
+such programs read; a team flight computer's saved state, one row; an OpenRocket simulation's
+export; and a wind profile. The other layouts in the sample logs, among
 them AltOS's `.eeprom`, an ARTS2's raw sensor counts, spreadsheets and a radio telemetry stream
 saved as RTF, are refused today, most as *unrecognized*; they come with
-[M7.1c7](../decisions-and-roadmap.md#m7-1c7), and the [survey's report](#how-it-was-checked)
+[M7.1c8](../decisions-and-roadmap.md#m7-1c8), and the [survey's report](#how-it-was-checked)
 counts them by layout.
 
 ## The record
@@ -555,7 +562,7 @@ sample logs:
   altitude's change, are kept as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
   knows. An RTF document holding anything else is refused as not an Eggtimer's, among them the
   radio telemetry stream in two other sample files, which comes with
-  [M7.1c7](../decisions-and-roadmap.md#m7-1c7).
+  [M7.1c8](../decisions-and-roadmap.md#m7-1c8).
 
 The record's readings withhold on all these layouts, as on every logger's but PerfectFlite's
 `.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
@@ -705,8 +712,9 @@ not even as meters; the survey doesn't show why. Nor is it measured why a Blue R
 apogee runs up to 3% below its low-rate file's highest altitude
 ([ADR-260, the summaries' check](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0260-featherweight-summaries-before-the-rest.md)
 §4). The summaries with no file of samples beside them are read by the same rules, unchecked. No
-other figure is checked. Summaries inside zip archives and spreadsheets aren't read yet: they
-wait for the containers of [M7.1c7](../decisions-and-roadmap.md#m7-1c7).
+other figure is checked. Summaries inside zip archives are read and checked as the others are,
+against the files of samples in the same archive ([zip archives](#zip-archives)); those inside
+spreadsheets wait for [M7.1c8](../decisions-and-roadmap.md#m7-1c8).
 
 ## GPS logs
 
@@ -795,14 +803,22 @@ flight as CSV or text, and an older PerfectFlite altimeter saves its flights as 
 
 PerfectFlite's software exports a flight as CSV, `Time,Altitude,Velocity,Temperature (F),Voltage`,
 sometimes with `Acceleration (calculated)` after them, or as tab-separated text, `Time`,
-`Altitude`, `Temp.`, `Voltage`, whose temperatures carry their unit letter, such as `58.7F`. The
-units are a `.pf2`'s: seconds, feet and feet per second. The header doesn't state the altitude's
-unit, and the sample logs bear out feet. Of the 16 exports among them, 13 peak at exactly the
-height of the `.pf2` saved beside them, which states feet. Read in feet, those 13 climb in 0.94 to
-1.05 times as long as a fall in vacuum from their peak would take, and the other 3 in 0.93 to
-1.07 times, alike; read in meters, the 3 would climb in 0.51 to 0.59 times
-([the survey's report](#how-it-was-checked) prints these). An export doesn't name the
-altimeter's model, so its logger reads `PerfectFlite`.
+`Altitude`, `Temp.`, `Voltage`, whose temperatures carry their unit letter, such as `58.7F`. One
+sample CSV export names its temperature `Temp`, without the dot, and is read alike. Some text
+exports have no header row at all: rows of four tab-separated numbers, the third a temperature
+with its unit letter (`0.05`, `3`, `71.5F`, `9.2`). No other layout HPR Sim knows writes a unit's
+letter after a number in a row of numbers, so such a row is read as the text export's four
+columns, and the record notes that its columns were taken, not read.
+
+The units are a `.pf2`'s: seconds, feet and feet per second. The header doesn't state the
+altitude's unit, and the sample logs bear out feet. Of the 21 exports among them, 16 peak at
+exactly the height of the `.pf2` saved beside them, which states feet. Read in feet, those 16
+climb in 0.94 to 1.05 times as long as a fall in vacuum from their peak would take. The other 5
+climb in 0.63 to 1.07 times, read in feet, and would climb in 0.35 to 0.59 times read in meters
+([the survey's report](#how-it-was-checked) prints these). The 0.63 is a headerless file with no
+`.pf2` beside it, whose altitude is ragged near its peak; why it climbs so fast isn't measured,
+but feet is the nearer reading on it, as on every other. An export doesn't name the altimeter's
+model, so its logger reads `PerfectFlite`.
 
 A header with any other name, or these names in another case, isn't read as PerfectFlite's: the
 RRC3's `Time,Altitude,Pressure,…` is the RRC3's, and a bare `time,altitude` says nothing of its
@@ -978,6 +994,44 @@ Two `.FIPa` files and five `.rff` files have no export beside them. They are dec
 rules, and pass the checks each file carries (every frame's checksum, the RRC3's clock check),
 but no export checks their values.
 
+## Zip archives
+
+Flyers often share a flight as one zip archive: a Blue Raven's high-rate and low-rate files with
+the app's summary, or a folder of everything the flight left behind. An archive isn't a log, so
+`hpr_flightdata::import::read` refuses one with a reason that says so. Instead
+`hpr_flightdata::archive::unpack` takes its files out, in memory, each a name and its bytes, and
+each is read as it would be on its own. Nothing is written to disk, so a file's name, folders
+and all, is only a label. An archive inside an archive is one of its files, and isn't opened.
+
+```rust,ignore
+let bytes = std::fs::read("flight.zip")?;
+for member in hpr_flightdata::archive::unpack(&bytes)? {
+    match hpr_flightdata::import::read(&member.bytes) {
+        Ok(log) => println!("{}: {} ({} channels)", member.name, log.format.name(), log.channels.len()),
+        Err(error) => println!("{}: not read, {error}", member.name),
+    }
+}
+```
+
+An archive comes from someone else, and a small one can be built to unpack to far more than
+memory holds (a *zip bomb*). So at most 256 MiB come out of one archive, eight times the largest
+sample (32 MB), counted as the bytes decompress, never taken from the sizes the archive states.
+An archive is refused, with its reason, when two of its files share a name (the zip reader would
+silently keep one), when a file is a symbolic link, is encrypted, is compressed by a method other
+than the two zip archives of logs use (stored and deflated), or fails its checksum. The tests
+build such archives, and a property test feeds damaged ones to the reader to show it refuses
+them or stays within the bound, never crashes.
+
+The 8 archives among the sample logs hold 29 files. 10 are byte-for-byte copies of files already
+among the samples. The other 19 are 8 Blue Raven high-rate and low-rate files, 3 of the app's
+summaries, a GPS tracker's KML track, and 7 files that aren't logs; every one of the 12 logs
+reads. The 3 summaries are checked against the Blue Raven files in their archive, as the others
+are ([checked against the files beside](#checked-against-the-files-beside)), and all 3 agree.
+Two CSV files in one archive name other altimeters' formats in their file names and use the Blue
+Raven's column names, but their values differ from the Blue Raven's at the same moments by
+hundreds of feet: they hold other loggers' data under borrowed names, and aren't read as a Blue
+Raven's. They wait for the column mapping of [M7.1c8](../decisions-and-roadmap.md#m7-1c8).
+
 ## How it was checked
 
 `cargo xtask logs`, a command of the project's own build tool, reads every sample log the project
@@ -991,8 +1045,9 @@ decided each unit their headers leave out, and how; how each raw download compar
 maker's export ([above](#checked-against-the-makers-exports)); how each Featherweight summary
 compares with the files of samples beside it ([above](#checked-against-the-files-beside)); and
 per file an anonymized id (the start of a hash of the file, which says nothing of its contents)
-with a digest, a hash, of the record read from it. Of the 1,103 files it holds today, 831 are
-read.
+with a digest, a hash, of the record read from it. The files inside the zip archives among them
+are unpacked and counted too, each once: of the 29 in the 8 archives, 19 are in no other source
+([zip archives](#zip-archives)). Of the 1,122 files it holds today, 857 are read.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
 reason printed: one is a spreadsheet's re-save of an AltOS export, its header edited, which is
@@ -1004,7 +1059,11 @@ their extension, are in AltimeterCloud's layout (10), Entacore AIM's (15), a Flu
 ARTS2's interpreted data (4) or the phone app's `launch` CSV (27), and are held to those readers.
 Of the 3 RTF files the catalog files as not a log, by their extension, one is an Eggtimer's
 download, held to its reader, and two a radio telemetry stream, refused until
-[M7.1c7](../decisions-and-roadmap.md#m7-1c7). Four more are moved to layouts not read yet: three
+[M7.1c8](../decisions-and-roadmap.md#m7-1c8). Five files filed as generic CSV or text are
+PerfectFlite's exports: four with no header row and one that names its temperature `Temp`. A
+Blue Raven high-rate file with no date is held to the Blue Raven's reader; its low-rate partner,
+which a person edited in a spreadsheet (a column with no name, two columns named in words the
+app doesn't write), is refused, counted as damaged. Four more are moved to layouts not read yet: three
 of an ARTS2's raw sensor counts, which carry no calibration, and a ground station's conversion
 of a SillyGoose flight, its columns in another order under no header.
 
@@ -1013,7 +1072,13 @@ id: four spreadsheets of a team's checklist for preparing a flight, its steps an
 and nine spreadsheets of a Blue Raven's deployment settings, a `Hardware_Channel:` row naming its
 outputs. By family: Debrief's six made-up sample flights, whose first row says each isn't a
 recording of anything, and twelve text files a flyer's own program wrote from a Blue Raven's
-low-rate file, titled as that file's events.
+low-rate file, titled as that file's events. By id, since
+[M7.1c7](../decisions-and-roadmap.md#m7-1c7): two more of those events files, and three
+descriptions of a rocket written for a flyer's or a team's own program; three one-row files of a
+team flight computer's saved state (a boot count, gyro biases, the pressure before boost); and an
+OpenRocket simulation's export, a simulation and not a flight. Inside the archives, by id: three
+more events files, one more description of a rocket, a Blue Raven's settings as a spreadsheet
+and as CSV, and a wind profile, altitude against wind speed and direction.
 
 The collection is other people's data, Debrief's fixtures come from flights shared on terms nobody
 recorded, and AerospaceNU's are published under the GPL, so no file and no value read from one is

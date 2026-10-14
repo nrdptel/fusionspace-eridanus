@@ -1,0 +1,103 @@
+---
+source: crates/hpr-flightdata/tests/perfectflite_export.rs
+expression: log
+---
+{
+  "format": "perfect_flite_csv",
+  "logger": "PerfectFlite",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [
+    0.0,
+    0.05,
+    0.1,
+    0.15,
+    0.2
+  ],
+  "altitude_m": [
+    0.0,
+    0.6096,
+    2.7432000000000003,
+    6.4008,
+    11.5824
+  ],
+  "vertical_speed_m_s": null,
+  "temperature_k": [
+    290.65,
+    290.65,
+    290.54999999999995,
+    290.54999999999995,
+    290.54999999999995
+  ],
+  "battery_v": [
+    4.11,
+    4.11,
+    4.1,
+    4.1,
+    4.09
+  ],
+  "channels": [
+    {
+      "column": "Altitude",
+      "quantity": "altitude_above_ground",
+      "time_s": [
+        0.0,
+        0.05,
+        0.1,
+        0.15,
+        0.2
+      ],
+      "values": [
+        0.0,
+        0.6096,
+        2.7432000000000003,
+        6.4008,
+        11.5824
+      ]
+    },
+    {
+      "column": "Temp",
+      "quantity": "temperature",
+      "time_s": [
+        0.0,
+        0.05,
+        0.1,
+        0.15,
+        0.2
+      ],
+      "values": [
+        290.65,
+        290.65,
+        290.54999999999995,
+        290.54999999999995,
+        290.54999999999995
+      ]
+    },
+    {
+      "column": "Voltage",
+      "quantity": "voltage",
+      "time_s": [
+        0.0,
+        0.05,
+        0.1,
+        0.15,
+        0.2
+      ],
+      "values": [
+        4.11,
+        4.11,
+        4.1,
+        4.1,
+        4.09
+      ]
+    }
+  ],
+  "events": [],
+  "notes": []
+}

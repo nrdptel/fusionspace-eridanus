@@ -9,7 +9,10 @@
 //! - Debrief's public fixtures and samples (`lib/parsers/__fixtures__`, `public/samples`), the
 //!   family from [`DEBRIEF`], a table of their names;
 //! - AerospaceNU's flight logs under `refs/research/aerospacenu-flights/`, the family from
-//!   [`aerospacenu_family`], a table of their first lines.
+//!   [`aerospacenu_family`], a table of their first lines;
+//! - the files inside those of the three that are zip archives ([`ARCHIVE_FAMILY`]), unpacked by
+//!   `hpr_flightdata::archive` as `archives`, the family of each one no set holds from
+//!   [`ARCHIVED`], a table of their ids.
 //!
 //! A family never comes from HPR Sim's own recognition of the file, so a reader that fails to
 //! recognize a file of its family shows as a failure, not as a file of another family.
@@ -48,7 +51,7 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The other families'
-/// files are M7.1c7's.
+/// files are M7.1c8's.
 pub const READ: [(&str, LogFormat, &str); 26] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
@@ -100,19 +103,64 @@ pub const READ: [(&str, LogFormat, &str); 26] = [
     ),
 ];
 
+/// The family of zip archives, read when they unpack ([`ARCHIVE_INCREMENT`]): each of their files
+/// is then a sample of its own.
+const ARCHIVE_FAMILY: &str = "zip";
+
+/// The increment that unpacks [`ARCHIVE_FAMILY`]'s files.
+const ARCHIVE_INCREMENT: &str = "M7.1c7";
+
 /// Catalog families that aren't flight logs: pictures and documents filed with a flight, maps of a
 /// flight's prediction, checklists and an altimeter's settings, a flyer's own program's reading of
-/// a log, and Debrief's made-up flights, which say so in their first line.
-const NOT_LOGS: [&str; 9] = [
+/// a log or its description of a rocket, a team flight computer's saved state, a simulation's
+/// export, a wind profile, and Debrief's made-up flights, which say so in their first line.
+const NOT_LOGS: [&str; 14] = [
     "blueraven-events-txt",
+    "blueraven-settings-csv",
     "blueraven-settings-xlsx",
     "checklist",
     "debrief-synthetic-csv",
     "empty",
+    "flight-computer-params-csv",
     "jpeg",
     "kml-map",
+    "openrocket-simulation-csv",
     "pdf",
     "png",
+    "rocket-parameters",
+    "wind-profile-csv",
+];
+
+/// The files inside the sample zip archives that no source holds on its own, by id, each with its
+/// family, decided by reading it as the catalog's families were decided. A file missing from the
+/// table stops the survey, as does an entry it doesn't meet. Files an archive shares with a
+/// source, byte for byte, are counted once, as that source's.
+const ARCHIVED: [(&str, &str); 19] = [
+    // A Blue Raven's high-rate and low-rate files, as the app exports them.
+    ("92aab3f3d5a5604a", "blueraven-csv"),
+    ("93227763f88a65cc", "blueraven-csv"),
+    ("a18dd4fa3f9a3379", "blueraven-csv"),
+    ("0da542e62eb9221a", "blueraven-csv"),
+    ("c96241f103ecc57e", "blueraven-csv"),
+    ("632d9640d30c91a6", "blueraven-csv"),
+    ("1bd061a33dad51bf", "blueraven-csv"),
+    ("4acaa35bbf175a1c", "blueraven-csv"),
+    // The app's summaries of those flights.
+    ("261d753bc922b301", "blueraven-summary-csv"),
+    ("ba85f42d4d359fca", "blueraven-summary-csv"),
+    ("c67e39be7ddf16d3", "blueraven-summary-csv"),
+    // A GPS tracker's track as KML.
+    ("ee9fef531a92dd3b", "kml"),
+    // A Blue Raven's deployment settings, as a spreadsheet and as CSV.
+    ("447c80b042a64226", "blueraven-settings-xlsx"),
+    ("8bb7e4827716686e", "blueraven-settings-csv"),
+    // A flyer's own program's events read from a low-rate file, and its description of the rocket.
+    ("ee725a7e0b36471d", "blueraven-events-txt"),
+    ("dc014691471f301d", "blueraven-events-txt"),
+    ("e72518ad914a3f67", "blueraven-events-txt"),
+    ("b70be23d233b6648", "rocket-parameters"),
+    // A wind profile, altitude against wind speed and direction.
+    ("7513ab8018b8019f", "wind-profile-csv"),
 ];
 
 /// Debrief's fixtures and samples by name, with each one's family in the catalog's words; a file
@@ -187,7 +235,7 @@ const BLUERAVEN_SETTINGS: &str = "a Blue Raven's deployment settings saved as a 
 
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 86] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 102] = [
     (
         "d306250ba73ea7f4",
         "txt",
@@ -402,6 +450,112 @@ const RECLASSIFIED: [(&str, &str, &str, &str); 86] = [
         "xlsx",
         "blueraven-settings-xlsx",
         BLUERAVEN_SETTINGS,
+    ),
+    (
+        "77e28512645441b1",
+        "csv",
+        "perfectflite-txt",
+        "a PerfectFlite text export with no header row, tab-separated, each temperature written \
+         with its unit's letter; filed as CSV by its extension",
+    ),
+    (
+        "0ed0a85f84b31849",
+        "txt",
+        "perfectflite-txt",
+        "a PerfectFlite text export with no header row, its temperatures in °F",
+    ),
+    (
+        "c9bcbd7bdcf795bd",
+        "txt",
+        "perfectflite-txt",
+        "a PerfectFlite text export with no header row, its temperatures in °F",
+    ),
+    (
+        "06ba9b8df63e90ca",
+        "txt",
+        "perfectflite-txt",
+        "a PerfectFlite text export with no header row, its temperatures in °C",
+    ),
+    (
+        "a0f814e69afe42b6",
+        "csv",
+        "perfectflite-csv",
+        "a PerfectFlite CSV export whose header names its temperature `Temp`, without the text \
+         export's dot, each temperature written with its unit's letter",
+    ),
+    (
+        "6ad288f13a3ec6d8",
+        "csv",
+        "blueraven-csv",
+        "a Blue Raven high-rate file whose header opens `Flight_Time_(s),Sync`, with no date or \
+         time of day",
+    ),
+    (
+        "ff3ad892e63f060d",
+        "csv",
+        "blueraven-csv-damaged",
+        "a Blue Raven low-rate file a person edited in a spreadsheet: no date or time of day, a \
+         column with no name, and two columns named in words the app doesn't write",
+    ),
+    (
+        "12fd94ba690475b8",
+        "txt",
+        "blueraven-events-txt",
+        "a flyer's own program's events read from a Blue Raven's low-rate file, titled with the \
+         file it read",
+    ),
+    (
+        "4aae566440b3f002",
+        "txt",
+        "blueraven-events-txt",
+        "a flyer's own program's events read from a Blue Raven's low-rate file, titled with the \
+         file it read",
+    ),
+    (
+        "b26cc0ad79d74a7b",
+        "txt",
+        "rocket-parameters",
+        "a flyer's own program's description of a rocket and its motor, `# Name = value` lines",
+    ),
+    (
+        "b2f63e295244a1c5",
+        "txt",
+        "rocket-parameters",
+        "a flyer's own program's description of a rocket and its motor, `# Name = value` lines",
+    ),
+    (
+        "386d1424975a627f",
+        "txt",
+        "rocket-parameters",
+        "a team's description of a rocket for its own program, `name: value` lines",
+    ),
+    (
+        "45df38a00638c4ae",
+        "csv",
+        "flight-computer-params-csv",
+        "a team flight computer's saved state, one row: a boot count, gyro biases and the \
+         pressure before boost",
+    ),
+    (
+        "ca5fce4c1fca4c14",
+        "csv",
+        "flight-computer-params-csv",
+        "a team flight computer's saved state, one row: a boot count, gyro biases and the \
+         pressure before boost",
+    ),
+    (
+        "62b4c3516138c59a",
+        "csv",
+        "flight-computer-params-csv",
+        "a team flight computer's saved state, one row: a boot count, gyro biases and the \
+         pressure before boost",
+    ),
+    (
+        "35d8b51bbba48517",
+        "csv",
+        "openrocket-simulation-csv",
+        "an OpenRocket simulation's export, `# Simulation` comment lines then simulated values: \
+         a simulation, not a flight",
     ),
 ];
 
@@ -964,8 +1118,8 @@ struct SourceCount {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct FamilyRow {
     family: String,
-    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1`, `M7.1c2`, `M7.1c3`),
-    /// `M7.1c7` for one not yet read, `damaged`, or `not a log`.
+    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1` … `M7.1c7`), `M7.1c8` for
+    /// one not yet read, `damaged`, or `not a log`.
     increment: String,
     files: usize,
     read: usize,
@@ -1083,6 +1237,52 @@ fn samples(root: &Path) -> Result<(Vec<Sample>, Vec<SourceCount>), String> {
             ));
         }
     }
+    // The archives' files, after every source, so that a file an archive shares with a source
+    // is that source's. An archive that doesn't unpack is the survey's to report.
+    let mut files = 0;
+    let mut archived = Vec::new();
+    for archive in samples
+        .iter()
+        .filter(|sample| sample.family == ARCHIVE_FAMILY)
+    {
+        let Ok(members) = hpr_flightdata::archive::unpack(&archive.bytes) else {
+            continue;
+        };
+        for member in members {
+            files += 1;
+            let hash = hex(&Sha256::digest(&member.bytes));
+            if !seen.insert(hash.clone()) {
+                continue;
+            }
+            let Some((_, family)) = ARCHIVED.iter().find(|(id, _)| hash.starts_with(id)) else {
+                return Err(format!(
+                    "{} in {} has no family in ARCHIVED",
+                    &hash[..16],
+                    archive.path.display()
+                ));
+            };
+            met.insert(hash[..16].to_owned());
+            archived.push(Sample {
+                path: archive.path.join(&member.name),
+                source: "archives",
+                family: (*family).to_owned(),
+                bytes: member.bytes,
+            });
+        }
+    }
+    for (id, _) in ARCHIVED {
+        if !met.contains(id) {
+            return Err(format!(
+                "the archived file {id} isn't in any sample archive"
+            ));
+        }
+    }
+    sources.push(SourceCount {
+        source: "archives".to_owned(),
+        files,
+        distinct: archived.len(),
+    });
+    samples.extend(archived);
     Ok((samples, sources))
 }
 
@@ -1210,12 +1410,14 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         let expected = read_by.map(|(_, format, _)| *format);
         let increment = if let Some((_, _, increment)) = read_by {
             increment
+        } else if sample.family == ARCHIVE_FAMILY {
+            ARCHIVE_INCREMENT
         } else if sample.family.ends_with("-damaged") {
             "damaged"
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
             "not a log"
         } else {
-            "M7.1c7"
+            "M7.1c8"
         };
         let row = families
             .entry(sample.family.clone())
@@ -1227,6 +1429,37 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                 refused: BTreeMap::new(),
             });
         row.files += 1;
+        if sample.family == ARCHIVE_FAMILY {
+            let (outcome, record) = match hpr_flightdata::archive::unpack(&sample.bytes) {
+                Ok(members) => {
+                    row.read += 1;
+                    // The archive's record: its files' ids, in order.
+                    let ids: Vec<String> = members
+                        .iter()
+                        .map(|member| hex(&Sha256::digest(&member.bytes))[..16].to_owned())
+                        .collect();
+                    (
+                        format!("Archive:{}", members.len()),
+                        hex(&Sha256::digest(ids.join(",").as_bytes()))[..16].to_owned(),
+                    )
+                }
+                Err(error) => {
+                    let kind = refusal(&error);
+                    *row.refused.entry(kind.to_owned()).or_default() += 1;
+                    unread.push(format!(
+                        "  {} ({}, {id}): {error}",
+                        sample.path.display(),
+                        sample.family
+                    ));
+                    (format!("refused:{kind}"), "-".to_owned())
+                }
+            };
+            files.push(format!(
+                "{id} {} {} {outcome} {record}",
+                sample.family, sample.source
+            ));
+            continue;
+        }
         let (outcome, record) = match hpr_flightdata::import::read(&sample.bytes) {
             Ok(log) => {
                 row.read += 1;
@@ -1284,7 +1517,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     let report = Report {
         about: "Every flight-log sample under refs/, read by hpr_flightdata::import (M7.1, \
                 ADR-251, ADR-253, ADR-254, ADR-255): `cargo xtask logs`. The samples are the collection's catalog, Debrief's \
-                fixtures and samples, and AerospaceNU's logs; refs/research/public-flights, a \
+                fixtures and samples, AerospaceNU's logs, and the files inside the zip archives among them; refs/research/public-flights, a \
                 download cache whose flights' logs the collection catalogs, and RocketPy's \
                 processed flight tables are not loggers' files and are left out. A file's id is the first 16 hex digits of its \
                 SHA-256, its record the first 16 of the SHA-256 of the JSON record read from it."
@@ -1408,6 +1641,7 @@ fn refusal(error: &LogError) -> &'static str {
         LogError::NoData { .. } => "no-data",
         LogError::Unit { .. } => "unit",
         LogError::Binary { .. } => "binary",
+        LogError::Archive { .. } => "archive",
         _ => "other",
     }
 }

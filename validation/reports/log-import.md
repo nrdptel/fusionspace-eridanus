@@ -7,62 +7,69 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | collection | 1056 | 1039 |
 | debrief | 23 | 14 |
 | aerospacenu | 66 | 50 |
+| archives | 29 | 19 |
 
 | Family | Increment | Files | Read | Refused |
 |---|---|---:|---:|---|
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
-| aerospacenu-sillygoose-gs-csv | M7.1c7 | 1 | 0 | 1 unrecognized |
+| aerospacenu-sillygoose-gs-csv | M7.1c8 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
 | altos-csv-damaged | damaged | 1 | 0 | 1 syntax |
-| altos-eeprom | M7.1c7 | 14 | 0 | 14 unrecognized |
-| altos-telem | M7.1c7 | 2 | 0 | 2 unrecognized |
+| altos-eeprom | M7.1c8 | 14 | 0 | 14 unrecognized |
+| altos-telem | M7.1c8 | 2 | 0 | 2 unrecognized |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
-| arts2-raw-csv | M7.1c7 | 3 | 0 | 3 unrecognized |
-| binary | M7.1c7 | 4 | 0 | 4 unrecognized |
-| blueraven-csv | M7.1b | 80 | 80 | none |
-| blueraven-events-txt | not a log | 12 | 0 | 12 unrecognized |
-| blueraven-settings-xlsx | not a log | 9 | 0 | 9 unrecognized |
-| blueraven-summary-csv | M7.1c6 | 23 | 23 | none |
-| checklist | not a log | 4 | 0 | 4 unrecognized |
-| csv | M7.1c7 | 75 | 2 | 1 syntax, 72 unrecognized |
+| arts2-raw-csv | M7.1c8 | 3 | 0 | 3 unrecognized |
+| binary | M7.1c8 | 4 | 0 | 4 unrecognized |
+| blueraven-csv | M7.1b | 89 | 89 | none |
+| blueraven-csv-damaged | damaged | 1 | 0 | 1 unrecognized |
+| blueraven-events-txt | not a log | 17 | 0 | 17 unrecognized |
+| blueraven-settings-csv | not a log | 1 | 0 | 1 unrecognized |
+| blueraven-settings-xlsx | not a log | 10 | 0 | 10 archive |
+| blueraven-summary-csv | M7.1c6 | 26 | 26 | none |
+| checklist | not a log | 4 | 0 | 4 archive |
+| csv | M7.1c8 | 67 | 2 | 1 syntax, 64 unrecognized |
 | debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
-| e80-imu-txt | M7.1c7 | 54 | 0 | 54 unrecognized |
+| e80-imu-txt | M7.1c8 | 54 | 0 | 54 unrecognized |
 | eggtimer-csv | M7.1b | 43 | 43 | none |
 | eggtimer-rtf | M7.1c4 | 1 | 1 | none |
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c7 | 2 | 0 | 2 unrecognized |
+| entacore-xtra | M7.1c8 | 2 | 0 | 2 unrecognized |
 | featherweight-summary-csv | M7.1c6 | 25 | 25 | none |
+| flight-computer-params-csv | not a log | 3 | 0 | 3 unrecognized |
 | fluctus-csv | M7.1c3 | 6 | 6 | none |
 | fwgps-csv | M7.1c1 | 40 | 40 | none |
 | jpeg | not a log | 1 | 0 | 1 unrecognized |
-| kml | M7.1c1 | 42 | 42 | none |
+| kml | M7.1c1 | 43 | 43 | none |
 | kml-map | not a log | 1 | 1 | none |
-| missileworks-rtx | M7.1c7 | 5 | 0 | 5 unrecognized |
+| missileworks-rtx | M7.1c8 | 5 | 0 | 5 unrecognized |
 | nmea | M7.1c1 | 12 | 12 | none |
-| odf | M7.1c7 | 3 | 0 | 3 unrecognized |
+| odf | M7.1c8 | 3 | 0 | 3 unrecognized |
+| openrocket-simulation-csv | not a log | 1 | 0 | 1 unrecognized |
 | pdf | not a log | 1 | 0 | 1 unrecognized |
-| perfectflite-csv | M7.1a | 14 | 14 | none |
-| perfectflite-txt | M7.1a | 2 | 2 | none |
+| perfectflite-csv | M7.1a | 15 | 15 | none |
+| perfectflite-txt | M7.1a | 6 | 6 | none |
 | pf2 | M7.1a | 175 | 175 | none |
 | pfa | M7.1c2 | 25 | 25 | none |
 | phone-launch-csv | M7.1c4 | 27 | 27 | none |
 | png | not a log | 6 | 0 | 6 unrecognized |
 | raven-csv | M7.1a | 80 | 80 | none |
 | raven-fipa | M7.1c5 | 57 | 57 | none |
+| rocket-parameters | not a log | 4 | 0 | 4 unrecognized |
 | rrc3-csv | M7.1b | 51 | 51 | none |
 | rrc3-rff | M7.1c5 | 6 | 6 | none |
-| telemetry-rtf | M7.1c7 | 2 | 0 | 2 not-this-format |
-| txt | M7.1c7 | 34 | 0 | 34 unrecognized |
-| xls | M7.1c7 | 1 | 0 | 1 unrecognized |
-| xlsx | M7.1c7 | 23 | 0 | 23 unrecognized |
-| xml | M7.1c7 | 2 | 0 | 2 unrecognized |
-| zip | M7.1c7 | 8 | 0 | 8 unrecognized |
-| **All** | | 1103 | 831 | |
+| telemetry-rtf | M7.1c8 | 2 | 0 | 2 not-this-format |
+| txt | M7.1c8 | 26 | 0 | 26 unrecognized |
+| wind-profile-csv | not a log | 1 | 0 | 1 unrecognized |
+| xls | M7.1c8 | 1 | 0 | 1 unrecognized |
+| xlsx | M7.1c8 | 23 | 0 | 23 archive |
+| xml | M7.1c8 | 2 | 0 | 2 unrecognized |
+| zip | M7.1c7 | 8 | 8 | none |
+| **All** | | 1122 | 857 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
@@ -152,8 +159,24 @@ Files whose catalog family isn't their layout, moved to their layout's:
 - `afcf758d866f6e78 xlsx -> blueraven-settings-xlsx`: a Blue Raven's deployment settings saved as a spreadsheet, a `Hardware_Channel:` row naming its outputs (`Apo_Pri`, `Apo_Sec`, …) and their conditions; an altimeter's settings, not a flight's data
 - `d2a7db8b9da843ef xlsx -> blueraven-settings-xlsx`: a Blue Raven's deployment settings saved as a spreadsheet, a `Hardware_Channel:` row naming its outputs (`Apo_Pri`, `Apo_Sec`, …) and their conditions; an altimeter's settings, not a flight's data
 - `d3354f2054b6b18c xlsx -> blueraven-settings-xlsx`: a Blue Raven's deployment settings saved as a spreadsheet, a `Hardware_Channel:` row naming its outputs (`Apo_Pri`, `Apo_Sec`, …) and their conditions; an altimeter's settings, not a flight's data
+- `77e28512645441b1 csv -> perfectflite-txt`: a PerfectFlite text export with no header row, tab-separated, each temperature written with its unit's letter; filed as CSV by its extension
+- `0ed0a85f84b31849 txt -> perfectflite-txt`: a PerfectFlite text export with no header row, its temperatures in °F
+- `c9bcbd7bdcf795bd txt -> perfectflite-txt`: a PerfectFlite text export with no header row, its temperatures in °F
+- `06ba9b8df63e90ca txt -> perfectflite-txt`: a PerfectFlite text export with no header row, its temperatures in °C
+- `a0f814e69afe42b6 csv -> perfectflite-csv`: a PerfectFlite CSV export whose header names its temperature `Temp`, without the text export's dot, each temperature written with its unit's letter
+- `6ad288f13a3ec6d8 csv -> blueraven-csv`: a Blue Raven high-rate file whose header opens `Flight_Time_(s),Sync`, with no date or time of day
+- `ff3ad892e63f060d csv -> blueraven-csv-damaged`: a Blue Raven low-rate file a person edited in a spreadsheet: no date or time of day, a column with no name, and two columns named in words the app doesn't write
+- `12fd94ba690475b8 txt -> blueraven-events-txt`: a flyer's own program's events read from a Blue Raven's low-rate file, titled with the file it read
+- `4aae566440b3f002 txt -> blueraven-events-txt`: a flyer's own program's events read from a Blue Raven's low-rate file, titled with the file it read
+- `b26cc0ad79d74a7b txt -> rocket-parameters`: a flyer's own program's description of a rocket and its motor, `# Name = value` lines
+- `b2f63e295244a1c5 txt -> rocket-parameters`: a flyer's own program's description of a rocket and its motor, `# Name = value` lines
+- `386d1424975a627f txt -> rocket-parameters`: a team's description of a rocket for its own program, `name: value` lines
+- `45df38a00638c4ae csv -> flight-computer-params-csv`: a team flight computer's saved state, one row: a boot count, gyro biases and the pressure before boost
+- `ca5fce4c1fca4c14 csv -> flight-computer-params-csv`: a team flight computer's saved state, one row: a boot count, gyro biases and the pressure before boost
+- `62b4c3516138c59a csv -> flight-computer-params-csv`: a team flight computer's saved state, one row: a boot count, gyro biases and the pressure before boost
+- `35d8b51bbba48517 csv -> openrocket-simulation-csv`: an OpenRocket simulation's export, `# Simulation` comment lines then simulated values: a simulation, not a flight
 
-PerfectFlite's exports state no unit for their altitude. Of the 16 read, 13 peak at exactly the height of a `.pf2` beside them, which is in feet; read in feet, their climbs take 0.94 to 1.05 times as long as a fall in vacuum from the peak. The other 3 take 0.93 to 1.07 times, read in feet, and would take 0.51 to 0.59 times read in meters.
+PerfectFlite's exports state no unit for their altitude. Of the 21 read, 16 peak at exactly the height of a `.pf2` beside them, which is in feet; read in feet, their climbs take 0.94 to 1.05 times as long as a fall in vacuum from the peak. The other 5 take 0.63 to 1.07 times, read in feet, and would take 0.35 to 0.59 times read in meters.
 
 A `.pfa` states neither its rate nor its unit; its reader takes 10 samples a second, in feet, from PerfectFlite's documents. Of the 25 read, 25 hold as many heights as `NumSamps:` states and 25 state an `Apogee:` equal to their highest; 17 first reach 80 ft, the height that sets off launch detection, at their eighth sample, 0.7 s, and 8 first reach 40 ft, the least it can be set to, there.
 
@@ -168,7 +191,7 @@ The Featherweight summaries against the files of samples exported beside each, i
 
 | Logger | Summaries | With a file beside | Stating an apogee | Apogee agrees | Its ratios | Pad agrees | Its ratios | Agreeing in neither | Contradicted |
 |---|---:|---:|---:|---:|---|---:|---|---|---|
-| Featherweight Blue Raven | 36 | 33 | 33 | 32 | 0.9698 to 1.0091 | 32 | 0.9770 to 1.0032 | cd1bfe19ff70e17d | none |
+| Featherweight Blue Raven | 39 | 36 | 36 | 35 | 0.9698 to 1.0091 | 35 | 0.9770 to 1.0032 | cd1bfe19ff70e17d | none |
 | Featherweight GPS tracker | 12 | 11 | 5 | 5 | 0.9995 to 1.0000 | 10 | 0.9766 to 0.9999 | 413de085a44f4872 | none |
 
 Units no header states, as each file's reader decided them, or kept the column as written, and noted:
@@ -304,16 +327,16 @@ Units no header states, as each file's reader decided them, or kept the column a
 | arts2-csv | `iAlt` read in meters, from `Vel` | 1 |
 | arts2-csv | `pAlt` read in feet, from its step and `Vel` | 3 |
 | arts2-csv | `pAlt` read in meters, from its step and `Vel` | 1 |
-| blueraven-csv | `Accel_X`, `Accel_Y` and `Accel_Z` read in standard gravities, from the manual and the pad | 35 |
-| blueraven-csv | `Current` kept as written, in a unit no source states | 35 |
-| blueraven-csv | `Gyro_X`, `Gyro_Y` and `Gyro_Z` read in degrees per second, from the manual and the summary | 35 |
-| blueraven-csv | `Inertial_Altitude`, `Inertial_DR_Position` and `Inertial_CR_position` read in feet, from the manual and the summary | 45 |
-| blueraven-csv | `Velocity_Up`, `Velocity_DR` and `Velocity_CR` read in feet per second, from the manual and the summary | 45 |
-| blueraven-summary-csv | `Hi-G accel pad offset` kept as written, in a unit no source states | 23 |
-| blueraven-summary-csv | `Low-G accel pad offset` kept as written, in a unit no source states | 23 |
-| blueraven-summary-csv | `Main chute descent rate` kept as written, in a unit that isn't a speed | 23 |
-| blueraven-summary-csv | `Pad Hi-G accel` kept as written, in a unit no source states | 23 |
-| blueraven-summary-csv | `Pad Low-G Accel` kept as written, in a unit no source states | 23 |
+| blueraven-csv | `Accel_X`, `Accel_Y` and `Accel_Z` read in standard gravities, from the manual and the pad | 40 |
+| blueraven-csv | `Current` kept as written, in a unit no source states | 40 |
+| blueraven-csv | `Gyro_X`, `Gyro_Y` and `Gyro_Z` read in degrees per second, from the manual and the summary | 40 |
+| blueraven-csv | `Inertial_Altitude`, `Inertial_DR_Position` and `Inertial_CR_position` read in feet, from the manual and the summary | 49 |
+| blueraven-csv | `Velocity_Up`, `Velocity_DR` and `Velocity_CR` read in feet per second, from the manual and the summary | 49 |
+| blueraven-summary-csv | `Hi-G accel pad offset` kept as written, in a unit no source states | 26 |
+| blueraven-summary-csv | `Low-G accel pad offset` kept as written, in a unit no source states | 26 |
+| blueraven-summary-csv | `Main chute descent rate` kept as written, in a unit that isn't a speed | 26 |
+| blueraven-summary-csv | `Pad Hi-G accel` kept as written, in a unit no source states | 26 |
+| blueraven-summary-csv | `Pad Low-G Accel` kept as written, in a unit no source states | 26 |
 | eggtimer-csv | `AltAccel` read in feet, from the manual | 4 |
 | eggtimer-csv | `Alt` read in feet, from the manual | 43 |
 | eggtimer-csv | `FAccelAlt` read in feet, from the manual | 4 |
@@ -389,7 +412,7 @@ Units no header states, as each file's reader decided them, or kept the column a
 | kml | `alt` read in meters, from the coordinates | 1 |
 | kml | `coordinates` kept as written, as GPS Visualizer takes a source's altitude as meters unless the source's header names feet | 1 |
 | kml | `coordinates` read in meters as the barometer's altitude above sea level, from the GPS altitude AltOS writes beside each point | 4 |
-| kml | `coordinates` read in meters, from the KML standard | 41 |
+| kml | `coordinates` read in meters, from the KML standard | 42 |
 | kml | `time` read in seconds, from the steps between points | 3 |
 | kml | `when` read in UTC, from the KML standard | 2 |
 | kml-map | `coordinates` kept as written, in a track whose altitude mode tells a viewer to ignore its altitude | 1 |
@@ -460,7 +483,7 @@ The files read, by the logger each names:
 | Eggtimer Build_1.52 | 1 |
 | Eggtimer TRS | 2 |
 | Entacore AIM | 16 |
-| Featherweight Blue Raven | 116 |
+| Featherweight Blue Raven | 128 |
 | Featherweight GPS ground station | 12 |
 | Featherweight GPS tracker | 40 |
 | Featherweight Raven | 137 |
@@ -470,7 +493,7 @@ The files read, by the logger each names:
 | Missile Works RTx | 12 |
 | NMEA 0183 receiver (talker GP) | 12 |
 | Ozark Aerospace ARTS2 | 4 |
-| PerfectFlite | 16 |
+| PerfectFlite | 21 |
 | PerfectFlite Alt15K/WD | 25 |
 | PerfectFlite Pnut | 39 |
 | PerfectFlite SL100 | 35 |
@@ -479,5 +502,5 @@ The files read, by the logger each names:
 | Rocketry Ltd Nano V1 | 7 |
 | Silicdyne Fluctus | 6 |
 | SillyGooseV2 | 1 |
-| fw2kml | 14 |
+| fw2kml | 15 |
 | phone app | 27 |

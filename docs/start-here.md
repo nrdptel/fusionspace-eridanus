@@ -268,7 +268,8 @@ out.
   Fluctus's CSV, the ARTS2's interpreted data, a phone app's `launch` CSV, the Raven's `.FIPa`
   and the RRC3's `.rff` raw downloads, the Featherweight app's flight summaries (figures, no
   samples), and GPS tracks from Featherweight's GPS tracker, KML and NMEA files, every column kept
-  on its own clock; in the four layouts
+  on its own clock, and unpacks a zip archive of a flight's files to read each one
+  ([M7.1c7](decisions-and-roadmap.md#m7-1c7)); in the four layouts
   [M7.1c4](decisions-and-roadmap.md#m7-1c4) added (the board's, its ground station's, the phone
   app's and the Eggtimer's RTF), every unit a file doesn't state is decided by two checks or kept
   as written, and the two raw downloads [M7.1c5](decisions-and-roadmap.md#m7-1c5) added match
@@ -278,7 +279,7 @@ out.
   [M7.1b](decisions-and-roadmap.md#m7-1b), [M7.1c1](decisions-and-roadmap.md#m7-1c1),
   [M7.1c2](decisions-and-roadmap.md#m7-1c2), [M7.1c3](decisions-and-roadmap.md#m7-1c3),
   [M7.1c4](decisions-and-roadmap.md#m7-1c4), [M7.1c5](decisions-and-roadmap.md#m7-1c5)). The
-  other loggers come with [M7.1c7, the rest of the importers](decisions-and-roadmap.md#m7-1c7):
+  other loggers come with [M7.1c8, the rest of the importers](decisions-and-roadmap.md#m7-1c8):
   AltOS's `.eeprom`, the Blue Raven's other files, Entacore AIM XTRA's own files, spreadsheets,
   CATS, EuRoC and Juno CSV, and plain CSV with column mapping and unit detection. The rest of the readings, such
   as burnout and each leg of the descent, come with [M7.2](decisions-and-roadmap.md#m7-2), and

@@ -290,17 +290,18 @@ const EXPORT_CSV: &str = "PerfectFlite CSV";
 /// The text export's name in errors.
 const EXPORT_TEXT: &str = "PerfectFlite text";
 
-/// The column names a PerfectFlite export writes, as the collection's 16 exports write them. A
-/// header row with any other name, or the same name in another case, is another logger's or a
-/// person's, such as the RRC3's `Time,Altitude,Pressure,…` or a bare `time,altitude`, whose
-/// units nothing states.
-const EXPORT_COLUMNS: [&str; 8] = [
+/// The column names a PerfectFlite export writes, as the project's 17 sample exports with a
+/// header row write them (one names its temperature `Temp`, without the dot). A header row with
+/// any other name, or the same name in another case, is another logger's or a person's, such as
+/// the RRC3's `Time,Altitude,Pressure,…` or a bare `time,altitude`, whose units nothing states.
+const EXPORT_COLUMNS: [&str; 9] = [
     "Time",
     "Altitude",
     "Velocity",
     "Temperature (F)",
     "Temperature (C)",
     "Temp.",
+    "Temp",
     "Voltage",
     "Acceleration (calculated)",
 ];
@@ -318,10 +319,37 @@ pub(crate) fn export_separator(header: &str) -> Option<char> {
     })
 }
 
+/// The columns a tab-separated export with no header row holds, in order: the header row the
+/// text exports with one write.
+const HEADERLESS_COLUMNS: &str = "Time\tAltitude\tTemp.\tVoltage";
+
+/// Whether a line is the first row of a tab-separated export written with no header row: four
+/// cells, each a number, the third a temperature followed by its unit's letter, `F` or `C`, as
+/// the text export with a header row writes its `Temp.` column (`58.7F`). No other layout HPR Sim
+/// knows writes a unit's letter after a number in a row of numbers.
+pub(crate) fn is_headerless_row(line: &str) -> bool {
+    let cells: Vec<&str> = line.split('\t').map(str::trim).collect();
+    let plain = |cell: &str| cell.parse::<f64>().is_ok_and(f64::is_finite);
+    let [time, altitude, temperature, voltage] = cells[..] else {
+        return false;
+    };
+    plain(time)
+        && plain(altitude)
+        && plain(voltage)
+        && temperature_suffix(temperature).is_some()
+        && plain(&temperature[..temperature.len() - 1])
+}
+
 /// Reads one of the exports PerfectFlite's software writes from a flight: comma-separated, with a
 /// header row such as `Time,Altitude,Velocity,Temperature (F),Voltage`, or tab-separated, with a
 /// header row such as `Time`, `Altitude`, `Temp.`, `Voltage` and temperatures written with their unit,
 /// such as `58.7F`.
+///
+/// A tab-separated export may have no header row: its rows are then the four cells the text export
+/// writes under `Time`, `Altitude`, `Temp.`, `Voltage`, and a row is recognized by its temperature's
+/// unit letter ([`is_headerless_row`]). The record notes that the columns were taken so. Four of the
+/// project's sample logs are written this way; `cargo xtask logs` checks their altitudes' unit as it
+/// checks the other exports'.
 ///
 /// The units are a `.pf2`'s: seconds, feet, feet per second, and the temperature's stated unit.
 /// The header doesn't state the altitude's. `cargo xtask logs` bears out feet on the project's
@@ -352,11 +380,20 @@ pub fn read_export(text: &str) -> Result<FlightLog, LogError> {
             message: "the file is empty".to_owned(),
         });
     };
+    // A headerless export's first line is its first row, read under the columns it implies.
+    let headerless = export_separator(header).is_none() && is_headerless_row(header);
+    let first_row = headerless.then_some((header_line, header));
+    let (header_line, header) = if headerless {
+        (0, HEADERLESS_COLUMNS)
+    } else {
+        (header_line, header)
+    };
     let Some(separator) = export_separator(header) else {
         return Err(LogError::NotThisFormat {
             format: EXPORT_CSV,
             message: format!(
-                "its first line, {:?}, isn't a header row of `Time` then `Altitude`",
+                "its first line, {:?}, isn't a header row of `Time` then `Altitude`, nor a row \
+                 of a tab-separated export without one",
                 short(header)
             ),
         });
@@ -366,7 +403,9 @@ pub fn read_export(text: &str) -> Result<FlightLog, LogError> {
     } else {
         (LogFormat::PerfectFliteText, EXPORT_TEXT)
     };
-    let rows: Vec<(usize, Vec<&str>)> = lines
+    let rows: Vec<(usize, Vec<&str>)> = first_row
+        .into_iter()
+        .chain(lines)
         .map(|(number, line)| (number, line.split(separator).map(str::trim).collect()))
         .collect();
     if rows.is_empty() {
@@ -418,7 +457,14 @@ pub fn read_export(text: &str) -> Result<FlightLog, LogError> {
         battery_v: None,
         channels: Vec::new(),
         events: Vec::new(),
-        notes: Vec::new(),
+        notes: headerless
+            .then(|| {
+                "the file has no header row; its four columns are taken as a text export's, \
+                 `Time`, `Altitude`, `Temp.`, `Voltage`, by the unit letter of its temperatures"
+                    .to_owned()
+            })
+            .into_iter()
+            .collect(),
     };
     fill(&mut log, name, &columns, &values)?;
     log.notes.extend(notes.kept);
