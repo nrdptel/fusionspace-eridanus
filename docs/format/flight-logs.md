@@ -240,42 +240,53 @@ readings of [M7.2](../decisions-and-roadmap.md#m7-2) need an altitude this recor
 ### AltOS telemetry
 
 HPR Sim reads the telemetry an Altus Metrum flight computer sends by radio, as AltosUI, Altus
-Metrum's ground software, saves it, from the maker's published description of the packets; only
-the Rust library reads it so far. The board sends a 32-byte packet several times a second: its
-sensors, its GPS fix and satellites, its configuration and its calibration, each a packet type of
-its own. A TeleDongle receiver writes each packet it hears as a text line, `TELEM` and the bytes
-in hexadecimal, and AltosUI keeps them all in a `.telem` file (*AltOS Telemetry*, Bdale Garbee and
-Keith Packard, v1.9.22.2, 2025, §2–4; *The Altus Metrum System*, §12.1). The sample logs hold two,
-two flights of one team's rocket, one of them with AltosUI's export of the board's own log beside
-it.
+Metrum's ground software, saves it; only the Rust library reads it so far. It is checked on two
+sample files, two flights of one team's TeleMetrum, one of them with AltosUI's export (its CSV)
+of the board's own log of the same flight beside it, and it follows the maker's published
+description of the packets (*AltOS Telemetry*, Bdale Garbee and Keith Packard, v1.9.22.2, 2025,
+§2–4) but for one unit, the pressure's, which the files contradict.
 
-Each line holds a length byte, the packet, the signal strength (RSSI) and a link-quality byte the
-radio adds, and a checksum. The checksum is 0x5A plus every byte after the length byte, modulo 256:
-the document's table places the bytes one position early, and its formula as written fails its
-own example, while this reading passes it and every line of both files. A line that isn't such a
-packet, or fails its checksum, refuses the file, as damage to it. A packet whose link-quality byte
-says it failed the radio's CRC is noise and is left out, counted: 13.6% and 4.1% of the two files'.
+The board sends a 32-byte packet several times a second: its sensors, its GPS fix and
+satellites, its configuration and its calibration, each a packet type of its own. A TeleDongle,
+the ground station's receiver, writes each packet it hears as a text line, `TELEM` and the bytes
+in hexadecimal, and AltosUI keeps them all in a `.telem` file (*The Altus Metrum System*, §12.1).
+Each line holds a length byte, the packet, two bytes the radio adds, the signal strength (RSSI,
+in dBm as `RSSI / 2 − 74`) and a link-quality byte whose top bit says whether the packet passed
+the radio's CRC, its error check, and last a checksum: 0x5A plus every byte after the length byte
+up to, not including, the checksum, modulo 256. The document's table places the bytes one
+position early, and its formula as written fails its own example, while this reading passes it
+(a test reads the document's example line) and every line of both files. A line that isn't such a
+packet, or fails its checksum, refuses the file, as damage to it. A packet that failed the radio's
+CRC is noise and is left out, counted: 13.6% and 4.1% of the two files' packets
+([the survey's report](#how-it-was-checked)).
 
 - **The clock** is the board's tick, a hundredth of a second, which turns over every 655.36 s; each
   packet's tick goes on the turn nearest the latest so far, so a GPS packet, which carries the
   earlier tick of its fix, falls behind instead of a turn ahead. It counts from the first packet
   heard, not from liftoff.
-- **A board switched off and on** starts its tick again; one sample file holds three power-ons,
-  the first two on the pad. The record keeps the one that leaves the pad (or the last, if none
-  does), counts the others' packets in a note, and refuses a file in which two leave it.
-- **Pressure is in pascals,** though the document says tenths of a pascal: read its way, both pads
-  would be more than 15 km (9.3 mi) up. Read as pascals they are at the height above sea level the export
-  states, and the export's pressures equal the telemetry's at all 123 ticks where it holds a fresh
-  sample. The reader takes pascals only where the pad's pressure lies from 10 to 120 kPa so read,
-  and otherwise keeps the field as written.
+- **A board switched off and on** starts its tick again: each switching on is a power-on, and one
+  sample file holds three. The record keeps the one that leaves the pad, a state from `boost` to
+  `main` (or the last, if none does), counts the others' packets in a note, and refuses a file in
+  which two leave it. The tick alone can't tell every case: a radio silence of 327.68 s to
+  655.36 s reads as a power-on, a longer one as a turn shorter than it was, and a power-on whose
+  new tick lands ahead of the old one as a silence.
+- **Pressure is in pascals,** though the document says tenths of a pascal. A pressure that is a
+  launch site's in pascals is at most 12 kPa in tenths, a height of more than 15 km (9.3 mi), and
+  read as pascals both files' pads are at the height above sea level the export states. Of the
+  138 sensor packets at a tick the export also holds, 123 equal its pressure; at the other 15 the
+  export's row repeats the pressure of the row before it, and those are counted apart. The reader
+  takes pascals only where the pad's pressure lies from 10 to 120 kPa so read, and otherwise keeps
+  the field as written. Only one file can be held to an export, from one firmware.
 - **The board's own estimates**, its acceleration and speed in sixteenths of a m/s² and of a m/s,
   and its height in meters above the pad, are read in the document's units and checked against
-  each other in both files: the height's climb over the speed in the descent, and the speed's
-  change over the acceleration in the climb, each a median ratio, lie from 0.94 to 1.02, where a
-  wrong unit would be 3.28 or 16 times off. The highest height is 0.996 of the export's.
-- **The temperature**, in hundredths of a °C, agrees with the export within its print step, 0.05
-  K; **GPS** positions, in ten-millionths of a degree, within 0.000 06° of the export's, and its
-  altitude within 3 m (9.8 ft). A GPS packet without its valid bit holds no fix, and its position is a gap.
+  each other in both files. The median ratio of the height's climb to the speed after burnout runs
+  from 0.966 to 1.001, and of the speed's change to the acceleration in the climb from 0.939 to
+  1.021, where a wrong unit would be 3.28 or 16 times off; the survey fails a file outside 0.8 to
+  1.25. The highest height is 0.996 of the export's.
+- **The temperature**, in hundredths of a °C, agrees with the export within its print step,
+  0.05 K. **GPS** positions, in ten-millionths of a degree, agree within 0.000 06° at the 39
+  values compared, and altitudes within 3 m (9.8 ft); the survey fails a file past 0.01° or
+  100 m (328 ft). A GPS packet without its valid bit holds no fix, and its position is a gap.
 - **Kept as written:** the converters' counts (the raw accelerometer, battery and continuity
   readings, the calibration), which the document gives no conversion for, and the GPS date, the
   dilutions of precision, ground speed, climb rate and course, which nothing checks.
@@ -284,25 +295,39 @@ says it failed the radio's CRC is noise and is left out, counted: 13.6% and 4.1%
 
 Only the five packet types the sample files hold are decoded: the sensors and calibration of the
 TeleMetrum v2 and newer, the configuration, and the two GPS packets. The document lays out eleven
-more, for the TeleMega, TeleMini and older boards; with its pressure unit wrong where the files can
-check it, those aren't decoded until a sample holds one, and a packet of one is counted in a note. The
-record's [primary track](#the-record) is the board's height; every other field is a channel on
-its own packets' clock. The crate's tests read an invented file in which a board is switched on
-twice, a packet fails the radio's CRC, and a GPS packet's tick falls behind the sensor packet sent
-before it; one of its lines, a configuration packet:
+more, for the TeleMega, the TeleMini and older boards; with its pressure unit wrong where the files
+can check it, those aren't decoded until a sample holds one, and a packet of one is counted in a
+note. The record's [primary track](#the-record) is the board's height, its own estimate, which
+may lean on its accelerometer, not a conversion of the pressure alone; every other field is a
+channel on its own packets' clock. The crate's tests read an invented file in which a board is
+switched on twice, a packet fails the radio's CRC, and a GPS packet's tick falls behind the
+sensor packet sent before it. One of its lines, a configuration packet:
 
 ```text
 TELEM 22d2040001040b0300011b0000fa0000084e3043414c4c0000312e392e32320000f4a8c1
 ```
 
-That is serial 1234 (`d204`, its bytes low first), tick 256 (`0001`), type `04`, then flight 3,
-main deployment at 250 m (820 ft), `fa00`, call sign `N0CALL` and firmware `1.9.22`; `f4` is an RSSI of
-−12, so −80 dBm, and `a8` has the CRC bit set.
+| Bytes | Field | Value |
+|---|---|---|
+| `22` | length | 34: the packet and the radio's two bytes |
+| `d204` | serial number, low byte first | 1234 |
+| `0001` | tick | 256, so 2.56 s |
+| `04` | packet type | configuration |
+| `0b` | device type | 11 |
+| `0300` | flight | 3 |
+| `01` `1b` | configuration version | 1.27 |
+| `0000` | apogee delay | 0 s |
+| `fa00` | main deployment altitude | 250 m (820 ft) |
+| `0008` | flight log's size | 2,048 kB |
+| `4e3043414c4c0000` | call sign | `N0CALL` |
+| `312e392e32320000` | firmware | `1.9.22` |
+| `f4` | RSSI | −12, so −12 / 2 − 74 = −80 dBm |
+| `a8` | link quality | top bit set, the packet passed the CRC; 40 |
+| `c1` | checksum | 0x5A plus the 34 bytes from `d2` to `a8`, modulo 256 |
 
-Checked: both sample files read, and the survey holds the one with an export beside it to it,
-pressure by pressure ([how it was checked](#how-it-was-checked)). Left out: the eleven packet types
-no sample holds; the GPS fields nothing checks; and AltOS's on-board `.eeprom` files, which the
-document doesn't describe, for [M7.1c10](../decisions-and-roadmap.md#m7-1c10).
+Left out: the eleven packet types no sample holds; the GPS fields nothing checks; and AltOS's
+on-board `.eeprom` files, which the document doesn't describe, for
+[M7.1c10](../decisions-and-roadmap.md#m7-1c10).
 
 ## The record
 

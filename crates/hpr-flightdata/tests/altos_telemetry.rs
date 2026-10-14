@@ -1,5 +1,6 @@
 //! AltOS radio telemetry, as AltosUI saves a TeleDongle's packets to a `.telem` file, read through
 //! the importer from an invented file and pinned whole by a snapshot (M7.1c9): CR LF line ends,
+//! the configuration line the docs decode,
 //! an earlier power-on on the pad, then the flight's, its tick started again; a packet that failed
 //! the radio's CRC, a GPS packet before a fix and one after, whose tick is behind the sensor
 //! packet before it, and a TeleMega packet the reader doesn't decode.
@@ -24,6 +25,11 @@ fn channel<'a>(log: &'a FlightLog, column: &str) -> Option<&'a Channel> {
 #[test]
 fn the_telemetry_keeps_the_power_on_that_flies() {
     let bytes = include_bytes!("samples/altos-telemetry.telem");
+    // The configuration line the flight-log layouts page and the module's docs decode.
+    let text = String::from_utf8_lossy(bytes);
+    assert!(text.contains(
+        "TELEM 22d2040001040b0300011b0000fa0000084e3043414c4c0000312e392e32320000f4a8c1\r\n"
+    ));
     assert_eq!(import::detect(bytes), Some(LogFormat::AltosTelemetry));
     let log = import::read(bytes).unwrap();
     assert_eq!(log.format, LogFormat::AltosTelemetry);
@@ -64,7 +70,7 @@ fn the_telemetry_keeps_the_power_on_that_flies() {
     assert_eq!(latitude.time_s, [3.12, 4.05]);
     assert!(latitude.values[0].is_nan() && latitude.values[1] == 45.0);
     assert_eq!(channel(&log, "longitude").unwrap().values[1], -122.0);
-    assert_eq!(channel(&log, "gps_altitude").unwrap().values[1], 1302.0);
+    assert_eq!(channel(&log, "gps_altitude").unwrap().values[1], 1002.0);
     assert_eq!(channel(&log, "nsat").unwrap().values, [2.0, 7.0]);
     assert_eq!(channel(&log, "sat_channels").unwrap().values, [3.0]);
     assert_eq!(channel(&log, "svid_02").unwrap().values, [12.0]);

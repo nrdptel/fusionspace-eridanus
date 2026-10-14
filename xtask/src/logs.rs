@@ -924,25 +924,31 @@ fn raw_checks(samples: &[Sample]) -> BTreeMap<String, RawChecks> {
 }
 
 /// AltOS's radio telemetry against AltosUI's exports of the same flight, and its board's
-/// estimates against each other: of its files, how many have an AltOS CSV export beside them, in
-/// the same folder, that its reader reads, and how many of those agree with one of them; of the
-/// telemetry's pressures at a tick the export also has a row at, how many equal the export's
-/// there, and how many meet only rows that repeat the pressure of the row before them, the
-/// export's rows between its sensor samples; the worst difference in temperature, K, at the
-/// pressures equal, and in GPS latitude or longitude, degrees, and altitude, m, at the ticks
-/// both hold a fix; the least and greatest ratio of the telemetry's highest `height` to the
-/// export's; and, over every file, the least and greatest median ratio of `height`'s climb to
-/// `speed` in the descent and of `speed`'s change to `acceleration` in the climb ([`scales`]).
-/// The files with an export beside them that none agrees with, and those whose ratios fall
-/// outside [`SCALE_BAND`], by id.
+/// estimates against each other: each file's packets ([`TelemetryFile`]); of the files, how many
+/// have an AltOS CSV export beside them, in the same folder, that its reader reads, and how many
+/// of those agree with one of them; of those files' sensor packets, how many there are and how
+/// many fall at a tick the export also has a row at; of those, how many equal the export's
+/// pressure there, and how many meet only rows that repeat the pressure of the row before them;
+/// the worst difference in temperature, K, at the pressures equal; how many GPS values (a
+/// latitude, a longitude or an altitude) meet a fix in the export at their tick, and the worst
+/// difference in latitude or longitude, degrees, and in altitude, m; the least and greatest
+/// ratio of the telemetry's highest `height` to the export's; and, over every file, the least
+/// and greatest median ratio of `height`'s climb to `speed` after burnout and of `speed`'s change
+/// to `acceleration` in the climb ([`scales`]). The files with an export beside them that none
+/// agrees with, those whose ratios fall outside [`SCALE_BAND`], and those with too few fast
+/// packets for a ratio, by id.
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
 struct TelemetryChecks {
+    per_file: Vec<TelemetryFile>,
     files: usize,
     with_an_export_beside: usize,
     agreeing_with_an_export: usize,
+    sensor_packets_beside_an_export: usize,
+    at_the_exports_ticks: usize,
     pressures_equal: usize,
     pressures_at_repeated_rows: usize,
     worst_temperature_k: f64,
+    gps_values_compared: usize,
     worst_position_deg: f64,
     worst_gps_altitude_m: f64,
     height_over_export: Option<[f64; 2]>,
@@ -950,6 +956,45 @@ struct TelemetryChecks {
     speed_change_over_acceleration: Option<[f64; 2]>,
     differing: Vec<String>,
     inconsistent: Vec<String>,
+    unchecked: Vec<String>,
+}
+
+/// One AltOS telemetry file's packets, as its record's notes count them: its id, the packets
+/// heard, those that failed the radio's CRC, the board's power-ons, and whether its pressure was
+/// read in pascals.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct TelemetryFile {
+    id: String,
+    packets_heard: usize,
+    failing_the_crc: usize,
+    power_ons: usize,
+    pressure_in_pascals: bool,
+}
+
+impl TelemetryFile {
+    /// The counts from a record's notes, as `hpr_flightdata::altos_telem` writes them: `N packets
+    /// heard: M failed the radio's CRC …` and `the board's tick starts again K times …`.
+    fn of(id: String, log: &hpr_flightdata::log::FlightLog) -> Self {
+        let number_before = |note: &str, marker: &str| -> Option<usize> {
+            note.split_once(marker)?.0.rsplit(' ').next()?.parse().ok()
+        };
+        let mut file = Self {
+            id,
+            power_ons: 1,
+            pressure_in_pascals: log.channels.iter().any(|c| c.column == "pressure"),
+            ..Self::default()
+        };
+        for note in &log.notes {
+            if let Some((heard, rest)) = note.split_once(" packets heard: ") {
+                file.packets_heard = heard.parse().unwrap_or(0);
+                file.failing_the_crc = number_before(rest, " failed").unwrap_or(0);
+            }
+            if let Some(restarts) = number_before(note, " times, a power-on each") {
+                file.power_ons = restarts + 1;
+            }
+        }
+        file
+    }
 }
 
 /// What the export prints AltOS's temperature to, a tenth of a °C: the telemetry's, in
@@ -961,8 +1006,8 @@ const TEMPERATURE_AGREES_K: f64 = 0.05 + 1e-9;
 /// would move a position by tens of degrees.
 const POSITION_AGREES_DEG: f64 = 0.01;
 
-/// The same for the GPS altitude: 100 m, where feet read as meters would move a pad near
-/// 1,300 m by 2,900 m.
+/// The same for the GPS altitude: 100 m, where feet read as meters would move a pad at 1,000 m
+/// above sea level by 2,280 m.
 const GPS_ALTITUDE_AGREES_M: f64 = 100.0;
 
 /// How near 1 the ratios of [`scales`] and of the highest heights must be: well inside a factor
@@ -970,10 +1015,12 @@ const GPS_ALTITUDE_AGREES_M: f64 = 100.0;
 const SCALE_BAND: std::ops::RangeInclusive<f64> = 0.8..=1.25;
 
 /// The median ratio of `height`'s climb to `speed`, over pairs of consecutive sensor packets
-/// from 0.05 to 0.25 s apart, both in the descent (states 5 to 7, coast to main) at more than
+/// from 0.05 to 0.25 s apart, both after burnout (states 5 to 7, coast to main) at more than
 /// 20 m/s; and of `speed`'s change to `acceleration`, the same but in the climb (states 3 and 4,
 /// boost and fast) at more than 20 m/s². Each is 1 if the three are in the units the reader
-/// takes; `None` where no pair qualifies.
+/// takes; `None` where no pair qualifies. The board sends a sensor packet ten times a second in
+/// the climb and once a second in the descent (*AltOS Telemetry*, §2.4), so the first ratio's
+/// pairs come from the coast, the climb after burnout.
 fn scales(log: &hpr_flightdata::log::FlightLog) -> (Option<f64>, Option<f64>) {
     let values = |column: &str| {
         log.channels
@@ -1077,7 +1124,10 @@ fn compare_telemetry(
     if own_temperature.time_s != own.time_s || temperature.time_s != clock.time_s {
         return None;
     }
-    let mut out = TelemetryCompared::default();
+    let mut out = TelemetryCompared {
+        sensor_packets: own.values.len(),
+        ..TelemetryCompared::default()
+    };
     for (k, (time, value)) in own.time_s.iter().zip(&own.values).enumerate() {
         let Some(at) = rows.get(&(ticks(*time) - offset)) else {
             continue;
@@ -1132,14 +1182,16 @@ fn compare_telemetry(
         if theirs.time_s != clock.time_s {
             return None;
         }
+        // AltOS writes its sentinel, 2,147,483,647, where it has no fix.
+        let fix = |value: f64| value.is_finite() && value.abs() < 1e9;
+        let mut compared = 0;
         for (time, value) in own.time_s.iter().zip(&own.values) {
             let Some(at) = rows.get(&(ticks(*time) - offset)) else {
                 continue;
             };
             for &i in at {
-                // AltOS writes its sentinel, 2,147,483,647, where it has no fix.
                 let their = theirs.values[i];
-                if !value.is_finite() || !their.is_finite() || their.abs() > 1e9 {
+                if !fix(*value) || !fix(their) {
                     continue;
                 }
                 let difference = (their - value).abs();
@@ -1147,8 +1199,17 @@ fn compare_telemetry(
                     return None;
                 }
                 *worst = worst.max(difference);
+                compared += 1;
             }
         }
+        // Fixes on both sides that never meet at a tick compare nothing: no pass.
+        if compared == 0
+            && own.values.iter().any(|v| fix(*v))
+            && theirs.values.iter().any(|v| fix(*v))
+        {
+            return None;
+        }
+        out.gps_values_compared += compared;
     }
     let highest = |channel: Option<&hpr_flightdata::log::Channel>| {
         channel?
@@ -1168,6 +1229,8 @@ fn compare_telemetry(
 /// What [`compare_telemetry`] found, where nothing differs.
 #[derive(Debug, Default, PartialEq)]
 struct TelemetryCompared {
+    sensor_packets: usize,
+    gps_values_compared: usize,
     pressures_equal: usize,
     pressures_at_repeated_rows: usize,
     worst_temperature_k: f64,
@@ -1189,8 +1252,11 @@ fn telemetry_checks(samples: &[Sample]) -> TelemetryChecks {
         };
         checks.files += 1;
         let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
+        checks
+            .per_file
+            .push(TelemetryFile::of(id.clone(), &telemetry));
         let (climb, change) = scales(&telemetry);
-        let mut consistent = climb.is_some() && change.is_some();
+        let mut consistent = true;
         for (ratio, range) in [
             (climb, &mut checks.climb_over_speed),
             (change, &mut checks.speed_change_over_acceleration),
@@ -1200,7 +1266,9 @@ fn telemetry_checks(samples: &[Sample]) -> TelemetryChecks {
                 consistent &= SCALE_BAND.contains(&ratio);
             }
         }
-        if !consistent {
+        if climb.is_none() || change.is_none() {
+            checks.unchecked.push(id.clone());
+        } else if !consistent {
             checks.inconsistent.push(id.clone());
         }
         let folder = sample.path.parent();
@@ -1222,6 +1290,10 @@ fn telemetry_checks(samples: &[Sample]) -> TelemetryChecks {
         {
             Some(compared) => {
                 checks.agreeing_with_an_export += 1;
+                checks.sensor_packets_beside_an_export += compared.sensor_packets;
+                checks.at_the_exports_ticks +=
+                    compared.pressures_equal + compared.pressures_at_repeated_rows;
+                checks.gps_values_compared += compared.gps_values_compared;
                 checks.pressures_equal += compared.pressures_equal;
                 checks.pressures_at_repeated_rows += compared.pressures_at_repeated_rows;
                 checks.worst_temperature_k =
@@ -1250,6 +1322,8 @@ fn telemetry_checks(samples: &[Sample]) -> TelemetryChecks {
     }
     checks.differing.sort();
     checks.inconsistent.sort();
+    checks.unchecked.sort();
+    checks.per_file.sort_by(|a, b| a.id.cmp(&b.id));
     checks
 }
 
@@ -1903,6 +1977,12 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
              the export's, aren't in one another's units"
         ));
     }
+    for id in &report.telemetry_checks.unchecked {
+        unread.push(format!(
+            "  {id} (altos-telem): too few fast packets to check its board's height, speed and \
+             acceleration against each other"
+        ));
+    }
     // A summary whose lengths agree with the file beside it only as meters contradicts the feet
     // it writes.
     for (logger, checks) in &report.summary_checks {
@@ -2191,6 +2271,25 @@ fn markdown(report: &Report) -> String {
     }
     let telemetry = &report.telemetry_checks;
     if telemetry.files > 0 {
+        let files: String = telemetry
+            .per_file
+            .iter()
+            .map(|file| {
+                format!(
+                    "| {} | {} | {} | {:.1}% | {} | {} |\n",
+                    file.id,
+                    file.packets_heard,
+                    file.failing_the_crc,
+                    100.0 * file.failing_the_crc as f64 / file.packets_heard.max(1) as f64,
+                    file.power_ons,
+                    if file.pressure_in_pascals {
+                        "yes"
+                    } else {
+                        "no"
+                    }
+                )
+            })
+            .collect();
         let range = |range: &Option<[f64; 2]>| match range {
             Some([least, greatest]) => format!("{least:.4} to {greatest:.4}"),
             None => "none".to_owned(),
@@ -2203,36 +2302,46 @@ fn markdown(report: &Report) -> String {
             }
         };
         out += &format!(
-            "\nAltOS's radio telemetry against AltosUI's exports of the same flight, an export \
-             being an AltOS CSV beside the telemetry, in its folder, that its reader reads. The \
-             two clocks are the board's tick, which turns over every 655.36 s; their `boost` \
-             states say by how many turns they differ. At each tick both hold, the telemetry's \
-             pressure must equal the export's, but where the export's rows there repeat the \
-             pressure of the row before them, rows between its sensor samples, which are counted \
-             apart; at the pressures equal, the temperatures must agree within 0.05 K, half the \
-             export's step, and at every tick both hold a GPS fix, the positions within 0.01° \
-             and the GPS altitudes within 100 m, the export's row carrying its last fix. Of {} \
-             telemetry files, {} have an export beside them and {} agree with one: {} pressures \
-             equal, {} at repeated rows; worst temperature {:.3} K, position {:.5}°, GPS \
-             altitude {:.0} m; differing: {}.\n\n\
+            "\nAltOS's radio telemetry, each file's packets as its record counts them:\n\n\
+             | File | Packets heard | Failing the radio's CRC | Share | Power-ons | Pressure \
+             in pascals |\n|---|---:|---:|---:|---:|---|\n{}\n\
+             Against AltosUI's exports of the same flight, an export being an AltOS CSV beside \
+             the telemetry, in its folder, that its reader reads. The two clocks are the \
+             board's tick, which turns over every 655.36 s; their `boost` states say by how many \
+             turns they differ. At each tick both hold, the telemetry's pressure must equal the \
+             export's, but where the export's rows there repeat the pressure of the row before \
+             them, which are counted apart; at the pressures equal, the temperatures must agree \
+             within 0.05 K, half the export's step, and at every tick both hold a GPS fix, the \
+             positions within 0.01° and the GPS altitudes within 100 m, the export's row \
+             carrying its last fix; fixes on both sides that never meet fail. Of {} telemetry \
+             files, {} have an export beside them and {} agree with one: of their {} sensor \
+             packets, {} fall at a tick the export holds, {} pressures equal and {} at repeated \
+             rows; worst temperature {:.3} K; {} GPS values compared, worst position {:.5}°, \
+             GPS altitude {:.0} m; differing: {}.\n\n\
              The board's own estimates, sent in its telemetry, against each other: the median \
-             ratio of `height`'s climb to `speed` in the descent, from {}, and of `speed`'s \
+             ratio of `height`'s climb to `speed` after burnout, from {}, and of `speed`'s \
              change to `acceleration` in the climb, from {}; and the telemetry's highest \
              `height` over the export's, from {}. Each is 1 if the three are in the units read, \
-             and must lie from 0.8 to 1.25; outside: {}.\n",
+             and must lie from 0.8 to 1.25; outside: {}; too few fast packets for a ratio: \
+             {}.\n",
+            files,
             telemetry.files,
             telemetry.with_an_export_beside,
             telemetry.agreeing_with_an_export,
+            telemetry.sensor_packets_beside_an_export,
+            telemetry.at_the_exports_ticks,
             telemetry.pressures_equal,
             telemetry.pressures_at_repeated_rows,
             telemetry.worst_temperature_k,
+            telemetry.gps_values_compared,
             telemetry.worst_position_deg,
             telemetry.worst_gps_altitude_m,
             ids(&telemetry.differing),
             range(&telemetry.climb_over_speed),
             range(&telemetry.speed_change_over_acceleration),
             range(&telemetry.height_over_export),
-            ids(&telemetry.inconsistent)
+            ids(&telemetry.inconsistent),
+            ids(&telemetry.unchecked)
         );
     }
     if !report.unit_decisions.is_empty() {
@@ -3167,6 +3276,23 @@ mod tests {
             (13, 0)
         );
         assert!(checks.worst_temperature_k < 1e-9);
+        assert_eq!(
+            (
+                checks.sensor_packets_beside_an_export,
+                checks.at_the_exports_ticks
+            ),
+            (13, 13)
+        );
+        let file = &checks.per_file[0];
+        assert_eq!(
+            (
+                file.packets_heard,
+                file.failing_the_crc,
+                file.power_ons,
+                file.pressure_in_pascals
+            ),
+            (13, 0, 1, true)
+        );
         for range in [
             checks.height_over_export,
             checks.climb_over_speed,
@@ -3214,8 +3340,16 @@ mod tests {
             "{unread:?}"
         );
 
-        // 16 times too slow: the descent's speed falls under 20 m/s, so no ratio, and no pass.
-        let (report, _) = run(telemetry(16.0), export(None, None));
-        assert_eq!(report.telemetry_checks.inconsistent.len(), 1);
+        // 16 times too slow: the speed after burnout falls under 20 m/s, so no ratio, and no
+        // pass, counted apart from a unit mismatch.
+        let (report, unread) = run(telemetry(16.0), export(None, None));
+        let checks = &report.telemetry_checks;
+        assert_eq!((checks.unchecked.len(), checks.inconsistent.len()), (1, 0));
+        assert!(
+            unread
+                .iter()
+                .any(|line| line.contains("too few fast packets")),
+            "{unread:?}"
+        );
     }
 }

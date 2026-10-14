@@ -16,8 +16,8 @@
 //!
 //! **A line.** Every line that isn't blank must be such a packet, 36 bytes: the length byte 34
 //! (the 32-byte packet and the two bytes the radio adds), the packet, the RSSI, the link-quality
-//! byte and the checksum, which is 0x5A plus every byte after the length byte up to it, modulo
-//! 256. The document's table puts its byte positions one place early, and its formula taken as
+//! byte and the checksum, which is 0x5A plus every byte after the length byte up to, not
+//! including, the checksum, modulo 256. The document's table puts its byte positions one place early, and its formula taken as
 //! written fails its own example; summing from the byte after the length through the
 //! link-quality byte passes the example and every line of both sample files. A line that isn't a
 //! packet, has another length, or fails its checksum refuses the file ([`LogError::Syntax`]):
@@ -41,10 +41,13 @@
 //! turn of the first packet heard, not from boost: how long the board had run before is unknown.
 //! A board switched off and on again restarts its tick, so a packet whose tick falls behind the
 //! last one of its own type starts a new power-on (within one, each type's ticks never fall
-//! back). The record holds one power-on: the one whose sensor packets leave the pad, or, where
-//! none does, the last; packets of the others are left out and counted in a note, and a file in
-//! which two power-ons leave the pad is refused. A silence of more than 327.68 s, half a turn,
-//! reads as a step back, and so as a power-on.
+//! back). The record holds one power-on: the one whose sensor packets leave the pad (a state
+//! from `boost` to `main`), or, where none does, the last; packets of the others are left out and
+//! counted in a note, and a file in which two power-ons leave the pad is refused. The tick alone
+//! can't tell everything apart: a silence of 327.68 s to 655.36 s, half a turn to a whole one,
+//! reads as a step back, and so as a power-on; a longer one reads as a turn less than it was;
+//! and a restart whose new tick lands ahead of the last, as when a board had run for more than
+//! half a turn before it, reads as a silence, the two power-ons one record.
 //!
 //! **What is read.** The two sample files hold five packet types, and only those are decoded;
 //! the document lays out eleven more, for other boards, and a packet of one is counted in a note
@@ -87,8 +90,10 @@
 //! names, and another number is `state N`. The board's estimates, `acceleration`, `speed` and
 //! `height`, are checked in the survey against each other and against the export.
 //!
-//! **The primary track.** [`FlightLog::altitude_m`] is `height` on the sensor packets' clock,
-//! and [`FlightLog::temperature_k`] the temperature; the vertical speed is absent, as the board's
+//! **The primary track.** [`FlightLog::altitude_m`] is `height` on the sensor packets' clock:
+//! the board's own estimate of its height above the pad, which the telemetry sends in place of
+//! a barometric altitude and which may lean on its accelerometer as its `speed` does; the document
+//! doesn't say how it is formed. [`FlightLog::temperature_k`] is the temperature; the vertical speed is absent, as the board's
 //! `speed` leans on its accelerometer (as for [AltOS's CSV](crate::altos)). Every other field is
 //! a channel on its own packets' clock.
 //!
@@ -148,6 +153,11 @@ const STATES: [(u8, &str); 7] = [
 /// The pad's state number.
 const PAD: u8 = 2;
 
+/// The states of a flight, boost to main: a power-on in one of them has left the pad. `landed`
+/// isn't among them, so a power-on heard only after landing, such as one that starts after a
+/// silence, isn't taken for a second flight.
+const FLOWN: std::ops::RangeInclusive<u8> = 3..=7;
+
 /// How many distinct configurations a note quotes.
 const QUOTED_CONFIGURATIONS: usize = 8;
 
@@ -157,6 +167,16 @@ const CALIBRATION: u8 = 0x0b;
 const CONFIGURATION: u8 = 0x04;
 const LOCATION: u8 = 0x05;
 const SATELLITES: u8 = 0x06;
+
+/// The satellite packet's twelve entries' channels: each satellite's id and its signal.
+const SVID: [&str; 12] = [
+    "svid_01", "svid_02", "svid_03", "svid_04", "svid_05", "svid_06", "svid_07", "svid_08",
+    "svid_09", "svid_10", "svid_11", "svid_12",
+];
+const C_N: [&str; 12] = [
+    "c_n_01", "c_n_02", "c_n_03", "c_n_04", "c_n_05", "c_n_06", "c_n_07", "c_n_08", "c_n_09",
+    "c_n_10", "c_n_11", "c_n_12",
+];
 
 /// The types the document lays out that the reader doesn't decode, with the document's names.
 const NOT_READ: [(u8, &str); 11] = [
@@ -249,12 +269,15 @@ struct Channels {
 
 impl Channels {
     fn push(&mut self, name: &str, quantity: Quantity, time_s: f64, value: f64) {
-        let entry = self.data.entry(name.to_owned()).or_insert_with(|| {
-            self.order.push((name.to_owned(), quantity));
-            (Vec::new(), Vec::new())
-        });
-        entry.0.push(time_s);
-        entry.1.push(value);
+        // Names are allocated on a channel's first sample only.
+        if let Some((times, values)) = self.data.get_mut(name) {
+            times.push(time_s);
+            values.push(value);
+            return;
+        }
+        self.order.push((name.to_owned(), quantity));
+        self.data
+            .insert(name.to_owned(), (vec![time_s], vec![value]));
     }
 
     fn values(&self, name: &str) -> Option<&[f64]> {
@@ -320,7 +343,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
         .filter(|&k| {
             session(k)
                 .iter()
-                .any(|packet| packet.kind == SENSOR && packet.bytes[5] > PAD)
+                .any(|packet| packet.kind == SENSOR && FLOWN.contains(&packet.bytes[5]))
         })
         .collect();
     let chosen = match flown.as_slice() {
@@ -377,6 +400,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     let mut flight_number: Option<u16> = None;
     let mut flight_numbers_differ = false;
     let mut firmware: Option<String> = None;
+    let mut firmware_differs = false;
     let mut no_fix = 0usize;
     for (packet, &time) in packets.iter().zip(&times) {
         let read = matches!(
@@ -441,7 +465,10 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
                 flight_number.get_or_insert(flight);
                 let version = packet.text(24, 8);
                 if !version.is_empty() {
-                    firmware = Some(version.clone());
+                    if firmware.as_ref().is_some_and(|first| *first != version) {
+                        firmware_differs = true;
+                    }
+                    firmware.get_or_insert_with(|| version.clone());
                 }
                 let configuration = format!(
                     "device type {}, flight {flight}, configuration {}.{}, apogee delay {} s, \
@@ -506,11 +533,9 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
             }
             SATELLITES => {
                 channels.push("sat_channels", Quantity::Number, time, packet.u8(5));
-                for k in 0..12 {
-                    let svid = format!("svid_{:02}", k + 1);
-                    channels.push(&svid, Quantity::Number, time, packet.u8(6 + 2 * k));
-                    let c_n = format!("c_n_{:02}", k + 1);
-                    channels.push(&c_n, Quantity::Number, time, packet.u8(7 + 2 * k));
+                for (k, (svid, c_n)) in SVID.iter().zip(C_N).enumerate() {
+                    channels.push(svid, Quantity::Number, time, packet.u8(6 + 2 * k));
+                    channels.push(c_n, Quantity::Number, time, packet.u8(7 + 2 * k));
                 }
             }
             _ => {}
@@ -606,6 +631,13 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     if flight_numbers_differ {
         notes.push(
             "the configuration packets name more than one flight number: the record's is the \
+             first"
+                .to_owned(),
+        );
+    }
+    if firmware_differs {
+        notes.push(
+            "the configuration packets name more than one firmware version: the record's is the \
              first"
                 .to_owned(),
         );
@@ -975,7 +1007,7 @@ mod tests {
     #[test]
     fn the_ticks_turns_are_unwound() {
         let mut gps = vec![0x10 | 7];
-        gps.extend(1300i16.to_le_bytes());
+        gps.extend(1000i16.to_le_bytes());
         gps.extend(450_000_000i32.to_le_bytes());
         gps.extend((-1_220_000_000i32).to_le_bytes());
         let text = file(&[
@@ -1004,7 +1036,7 @@ mod tests {
         assert!((latitude.time_s[0] - 655.26).abs() < 1e-9);
         assert!((latitude.values[0] - 45.0).abs() < 1e-12);
         assert!((channel(&log, "longitude").unwrap().values[0] + 122.0).abs() < 1e-12);
-        assert_eq!(channel(&log, "gps_altitude").unwrap().values[0], 1300.0);
+        assert_eq!(channel(&log, "gps_altitude").unwrap().values[0], 1000.0);
         assert_eq!(channel(&log, "nsat").unwrap().values[0], 7.0);
 
         // A step of 32,750 ticks after a GPS packet 40 behind: forward from the latest tick, so
@@ -1021,7 +1053,7 @@ mod tests {
     #[test]
     fn a_position_without_a_fix_is_a_gap() {
         let mut gps = vec![0x20 | 3];
-        gps.extend(1300i16.to_le_bytes());
+        gps.extend(1000i16.to_le_bytes());
         gps.extend(450_000_000i32.to_le_bytes());
         let log = read(&file(&[line(100, LOCATION, &gps)])).unwrap();
         assert!(channel(&log, "latitude").unwrap().values[0].is_nan());
@@ -1111,6 +1143,81 @@ mod tests {
         // A file of only unread types holds nothing to read.
         let text = file(&[line(101, 0x08, &[0; 27])]);
         assert!(matches!(read(&text), Err(LogError::NoData { .. })));
+    }
+
+    /// The document's own example line (*AltOS Telemetry*, §4, p. 10), not built by this file's
+    /// helpers: its checksum passes as the reader sums it, and read little-endian it is a GPS
+    /// fix from serial 335 at 45.4696816° N, 122.7376450° W, six satellites, the valid bit set,
+    /// its RSSI byte 0x3F, 63, so −42.5 dBm, the CRC bit set.
+    #[test]
+    fn the_documents_example_line_reads() {
+        const EXAMPLE: &str =
+            "TELEM 224f01080b05765e00701f1a1bbeb8d7b60b070605140c000600000000000000003fa988";
+        let log = read(EXAMPLE).unwrap();
+        assert_eq!(log.serial_number.as_deref(), Some("335"));
+        let value = |column: &str| channel(&log, column).unwrap().values[0];
+        assert!((value("latitude") - 45.469_681_6).abs() < 1e-12);
+        assert!((value("longitude") + 122.737_645_0).abs() < 1e-12);
+        assert_eq!(value("gps_altitude"), 94.0);
+        assert_eq!(value("nsat"), 6.0);
+        assert_eq!(value("gps_flags"), f64::from(0x76u8));
+        assert_eq!(value("rssi"), -42.5);
+        assert_eq!(value("lqi"), f64::from(0xa9u8 & 0x7f));
+        // The clock: tick 0x0b08, 2,824.
+        assert_eq!(channel(&log, "latitude").unwrap().time_s[0], 28.24);
+        // Summed from the length byte, as the document's formula reads, the line fails.
+        let hex = EXAMPLE.strip_prefix("TELEM ").unwrap();
+        let bytes: Vec<u8> = (0..hex.len() / 2)
+            .map(|k| u8::from_str_radix(&hex[2 * k..2 * k + 2], 16).unwrap())
+            .collect();
+        let from_length = bytes[..35]
+            .iter()
+            .fold(CHECKSUM_BASE, |sum, b| sum.wrapping_add(*b));
+        assert_ne!(from_length, bytes[35]);
+    }
+
+    /// A power-on heard only in the `landed` state, as after a silence once the rocket is down,
+    /// isn't a second flight: the one that flew is kept.
+    #[test]
+    fn a_power_on_heard_only_landed_is_no_second_flight() {
+        let text = file(&[
+            sensor(500, 2, 98_000, 0, 0, 0, 0),
+            sensor(510, 3, 97_000, 0, 0, 0, 10),
+            sensor(520, 7, 97_500, 0, 0, 0, 5),
+            // A step back of 25,536 ticks after a silence of 400 s: read as a power-on.
+            sensor(40_600, 8, 98_000, 0, 0, 0, 0),
+        ]);
+        let log = read(&text).unwrap();
+        assert_eq!(log.time_s, [5.0, 5.1, 5.2]);
+        assert!(
+            log.notes
+                .iter()
+                .any(|n| n.contains("power-on 1 of 2 (the one that leaves the pad)"))
+        );
+    }
+
+    /// Configuration packets naming two firmware versions keep the first, with a note.
+    #[test]
+    fn differing_firmware_keeps_the_first() {
+        let config = |version: &[u8; 8]| {
+            let mut data = vec![0x0b];
+            data.extend(3u16.to_le_bytes());
+            data.extend([1, 27, 0, 0, 250, 0, 0, 8]);
+            data.extend(b"N0CALL\0\0");
+            data.extend(version);
+            data
+        };
+        let text = file(&[
+            line(100, CONFIGURATION, &config(b"1.9.22\0\0")),
+            line(200, CONFIGURATION, &config(b"1.9.23\0\0")),
+        ]);
+        let log = read(&text).unwrap();
+        assert_eq!(log.firmware.as_deref(), Some("1.9.22"));
+        assert!(
+            log.notes
+                .iter()
+                .any(|n| n.starts_with("the configuration packets name more than one firmware"))
+        );
     }
 
     /// The step between two ticks is on the nearest turn.

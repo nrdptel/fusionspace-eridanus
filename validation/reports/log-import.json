@@ -737,12 +737,31 @@
     }
   },
   "telemetry_checks": {
+    "per_file": [
+      {
+        "id": "73115a1066a7294d",
+        "packets_heard": 18870,
+        "failing_the_crc": 2561,
+        "power_ons": 1,
+        "pressure_in_pascals": true
+      },
+      {
+        "id": "a238a3c22470953a",
+        "packets_heard": 12131,
+        "failing_the_crc": 498,
+        "power_ons": 3,
+        "pressure_in_pascals": true
+      }
+    ],
     "files": 2,
     "with_an_export_beside": 1,
     "agreeing_with_an_export": 1,
+    "sensor_packets_beside_an_export": 3927,
+    "at_the_exports_ticks": 138,
     "pressures_equal": 123,
     "pressures_at_repeated_rows": 15,
     "worst_temperature_k": 0.05000000000001137,
+    "gps_values_compared": 39,
     "worst_position_deg": 0.00006069999999880338,
     "worst_gps_altitude_m": 3.0,
     "height_over_export": [
@@ -758,7 +777,8 @@
       1.0212774386051322
     ],
     "differing": [],
-    "inconsistent": []
+    "inconsistent": [],
+    "unchecked": []
   },
   "unit_decisions": {
     "aerospacenu-fcb-csv": {

@@ -195,9 +195,16 @@ The Featherweight summaries against the files of samples exported beside each, i
 | Featherweight Blue Raven | 39 | 36 | 36 | 35 | 0.9698 to 1.0091 | 35 | 0.9770 to 1.0032 | cd1bfe19ff70e17d | none |
 | Featherweight GPS tracker | 12 | 11 | 5 | 5 | 0.9995 to 1.0000 | 10 | 0.9766 to 0.9999 | 413de085a44f4872 | none |
 
-AltOS's radio telemetry against AltosUI's exports of the same flight, an export being an AltOS CSV beside the telemetry, in its folder, that its reader reads. The two clocks are the board's tick, which turns over every 655.36 s; their `boost` states say by how many turns they differ. At each tick both hold, the telemetry's pressure must equal the export's, but where the export's rows there repeat the pressure of the row before them, rows between its sensor samples, which are counted apart; at the pressures equal, the temperatures must agree within 0.05 K, half the export's step, and at every tick both hold a GPS fix, the positions within 0.01° and the GPS altitudes within 100 m, the export's row carrying its last fix. Of 2 telemetry files, 1 have an export beside them and 1 agree with one: 123 pressures equal, 15 at repeated rows; worst temperature 0.050 K, position 0.00006°, GPS altitude 3 m; differing: none.
+AltOS's radio telemetry, each file's packets as its record counts them:
 
-The board's own estimates, sent in its telemetry, against each other: the median ratio of `height`'s climb to `speed` in the descent, from 0.9659 to 1.0006, and of `speed`'s change to `acceleration` in the climb, from 0.9393 to 1.0213; and the telemetry's highest `height` over the export's, from 0.9962 to 0.9962. Each is 1 if the three are in the units read, and must lie from 0.8 to 1.25; outside: none.
+| File | Packets heard | Failing the radio's CRC | Share | Power-ons | Pressure in pascals |
+|---|---:|---:|---:|---:|---|
+| 73115a1066a7294d | 18870 | 2561 | 13.6% | 1 | yes |
+| a238a3c22470953a | 12131 | 498 | 4.1% | 3 | yes |
+
+Against AltosUI's exports of the same flight, an export being an AltOS CSV beside the telemetry, in its folder, that its reader reads. The two clocks are the board's tick, which turns over every 655.36 s; their `boost` states say by how many turns they differ. At each tick both hold, the telemetry's pressure must equal the export's, but where the export's rows there repeat the pressure of the row before them, which are counted apart; at the pressures equal, the temperatures must agree within 0.05 K, half the export's step, and at every tick both hold a GPS fix, the positions within 0.01° and the GPS altitudes within 100 m, the export's row carrying its last fix; fixes on both sides that never meet fail. Of 2 telemetry files, 1 have an export beside them and 1 agree with one: of their 3927 sensor packets, 138 fall at a tick the export holds, 123 pressures equal and 15 at repeated rows; worst temperature 0.050 K; 39 GPS values compared, worst position 0.00006°, GPS altitude 3 m; differing: none.
+
+The board's own estimates, sent in its telemetry, against each other: the median ratio of `height`'s climb to `speed` after burnout, from 0.9659 to 1.0006, and of `speed`'s change to `acceleration` in the climb, from 0.9393 to 1.0213; and the telemetry's highest `height` over the export's, from 0.9962 to 0.9962. Each is 1 if the three are in the units read, and must lie from 0.8 to 1.25; outside: none; too few fast packets for a ratio: none.
 
 Units no header states, as each file's reader decided them, or kept the column as written, and noted:
 
