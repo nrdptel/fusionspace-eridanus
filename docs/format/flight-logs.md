@@ -180,71 +180,53 @@ isn't known, so they aren't read as a Blue Raven's; they wait for the column map
 
 ### R-DAS raw text
 
-The R-DAS, a flight computer AED Electronics sold in the early 2000s, records its accelerometer
-and its barometer, and as its owner chooses four digital inputs and six analog inputs from an
-expansion port, each through a 10-bit converter over 0 to 5 V, up to 200 times a second. It
-keeps the 2 s before liftoff and stores from there (*R-DAS User Manual*, V1.5, AED Electronics,
-2001, p. 6, p. 7, p. 14). Its Windows software exports a flight to text either raw or converted
-with calibration values set in the software. Only the raw export is among the sample logs: 54
-files from a college course's flights in 2008, 28 recorded on board at 200 Hz and 26 at 10 Hz,
-the course's telemetry records of the same flights by their names.
+The R-DAS, a flight computer AED Electronics sold in the early 2000s, reads its accelerometer, its
+barometer and, as its owner chooses, four digital and six analog inputs, each through a 10-bit
+converter over 0 to 5 V, up to 200 times a second, keeping the 2 s before liftoff (*R-DAS User
+Manual*, V1.5, 2001, p. 6, p. 7, p. 14). Its Windows software exports a flight as text, raw or
+converted with calibration values held in the software. The sample logs hold the raw export only:
+54 files from a college course's flights in 2008, 28 recorded on board at 200 Hz and 26 at 10 Hz,
+by their names the course's telemetry records.
 
-The raw file opens with a summary of the configuration, then a table of the converters'
-counts, 0 to 1,023, each step 4.883 mV, "for conversion to real-world data" with the
-calibration values (p. 14). The file holds none of those values, so HPR Sim converts nothing:
+The raw file opens with a summary of the configuration, then a table of counts, 0 to 1,023, each
+step 4.883 mV, to be converted "with the calibration values" (p. 14). The file holds none, so
+HPR Sim converts nothing:
 
-- **`Time`** counts seconds from the trigger. Every sample file starts at −2.000, the 2 s before
-  liftoff the manual describes. That the clock is in seconds rests on the configuration's
-  `Data is sampled at N Hz.`: the clock's average step must be that rate's interval within 1%,
-  or the file is refused. In every sample file it is the interval exactly, 0.005 s or 0.1 s.
-- **`Acc`, `Prs` and `ADC0` to `ADC5`** are kept as written, as numbers in no unit HPR Sim
-  knows. The manual's R-DAS has an Analog Devices ADXL150 accelerometer (±50 g) and a Motorola
-  MPXS4100A barometer (20 to 105 kPa, a count about 0.09 kPa) (p. 7), but the file states
-  neither the calibration values nor which board and sensors wrote it, and others have been
-  fitted to the R-DAS (a college course's
-  [pressure lab](https://pages.hmc.edu/spjut/NewE80/PresTempLab.html) names an MPXH6115A on its
-  R-DAS), so the counts aren't taken through that sensor's data sheet. The analog inputs are whatever the owner wired to them.
-- **`Dig`** is read as a hexadecimal word, such as `00B0`, and kept as its number. The manual
-  says it holds the four digital inputs and the flight's phase (before liftoff, flight, drogue,
-  main), and that a bit is set when the timed recovery was used (p. 14, p. 22), but doesn't give
-  the bits' values. In every on-board sample file the word reads `0000`, then `0010` within
-  0.25 s after the zero, then `0020` and `0030`: likely the phases in order, but that rests on
-  the files, so no event is taken from it yet.
+- **`Time`** counts seconds from the trigger; every sample file starts at −2.000. The seconds
+  rest on the configuration's `Data is sampled at N Hz.`: the clock's average step must be that
+  interval within 1%, or the file is refused. In every sample file it is exact.
+- **`Acc`, `Prs` and `ADC0` to `ADC5`** are kept as written, in no unit HPR Sim knows. The
+  manual's R-DAS has an ADXL150 accelerometer (±50 g) and an MPXS4100A barometer (a count about
+  0.09 kPa) (p. 7), but the file doesn't say which board or sensors wrote it, and others have been
+  fitted (a college course's
+  [pressure lab](https://pages.hmc.edu/spjut/NewE80/PresTempLab.html) names an MPXH6115A), so no
+  data sheet is applied.
+- **`Dig`** is read as a hexadecimal word, such as `00B0` (176), and kept as its number. The
+  manual says it holds the digital inputs and the flight's phase, and a bit for the timed recovery
+  (p. 14, p. 22), without the bits' values. In every on-board sample file it reads `0000`, then
+  `0010` within 0.25 s after the zero, then `0020` and `0030`, likely the phases in order; no event
+  is taken from it until a document says so.
 
-The configuration must say the sample rate and list the inputs, and the table's header must
-name those inputs in that order (`Acceleration` as `Acc`, `Pressure` as `Prs`, `the digital
-inputs` as `Dig`); a file that doesn't is refused. Its lines, the trigger and the recovery
-settings among them, are kept in a note as written, and a firmware version, where one is
-stated, is the record's firmware. With no altitude in the file, the record's
-[primary track](#the-record) is empty, as for the Raven's `.FIPa`, and every column is a
-channel on the file's clock.
-
-A worked example, two rows of an invented file of eleven at 10 Hz:
+The configuration must state the rate and list the inputs, and the table's header must name them
+in order (`Acceleration` as `Acc`, `Pressure` as `Prs`, `the digital inputs` as `Dig`), or the
+file is refused. Its lines are kept in a note, and its firmware version is the record's. With no
+altitude, the record's [primary track](#the-record) is empty, as for the Raven's `.FIPa`, and
+every column is a channel. For example, in an invented file at 10 Hz:
 
 ```text
-*** Configuration ***
-
-Trigger: G-switch.
 Data is sampled at 10 Hz.
 Inputs that were sampled: Acceleration, Pressure, the digital inputs, ADC0, ADC1.
-
 *** Raw data ***
-
    Time  Acc  Prs  Dig ADC0 ADC1
   0.100  700  799 0010  505  252
-  …
-  0.600  512  793 00B0  503  257
 ```
 
-The row at 0.1 s reads `Acc` 700 and `Prs` 799, both counts; `Dig` `0010` is 16 and `00B0` is
-176. The clock's note says `Time` was read in seconds because its step, 0.1 on average over the
-whole file, is the 10 Hz rate's interval.
+that row is `Acc` 700 and `Prs` 799 counts and `Dig` 16, at 0.1 s; the note says `Time` is in
+seconds because its average step over all eleven rows is 0.1, the 10 Hz interval.
 
-Checked: all 54 sample files read, each clock against its stated rate, and the readings are
-pinned by the [survey](#how-it-was-checked). Left out: converting the counts, which needs the
-calibration values the software held, and reading events from `Dig`, until a document gives its
-bits; the readings of [M7.2](../decisions-and-roadmap.md#m7-2) can't use a record with no
-altitude.
+Checked: all 54 sample files read, pinned by the [survey](#how-it-was-checked). Left out:
+converting the counts, which needs the software's calibration values, and events from `Dig`; the
+readings of [M7.2](../decisions-and-roadmap.md#m7-2) need an altitude this record doesn't hold.
 
 ## The record
 

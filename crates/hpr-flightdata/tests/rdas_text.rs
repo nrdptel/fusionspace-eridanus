@@ -15,10 +15,9 @@ fn note<'a>(log: &'a FlightLog, start: &str) -> &'a str {
 
 /// The channel of a column.
 fn channel<'a>(log: &'a FlightLog, column: &str) -> &'a Channel {
-    log.channels
-        .iter()
-        .find(|c| c.column == column)
-        .unwrap_or_else(|| panic!("no `{column}` channel"))
+    let found = log.channels.iter().find(|c| c.column == column);
+    assert!(found.is_some(), "no `{column}` channel");
+    found.unwrap()
 }
 
 /// Every column a channel on the file's clock, counts as written, `Dig` read in hexadecimal; no
