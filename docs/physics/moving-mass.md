@@ -305,6 +305,7 @@ The decision record is [ADR-087][adr-087].
   $$
   s = h\left[\frac{\theta}{\beta} - \frac{1}{2\pi}\sin\frac{2\pi\theta}{\beta}\right].
   $$
+
 - The equations of motion this adds to: the RocketPy technical documentation, "Equations of
   Motion" v0 and v1 ([Rigid-body flight](flight.md)).
 

@@ -166,6 +166,7 @@ $$
   $$
   \left(\frac{r_e^2}{4} + n_k^2,\ \frac{r_e^2}{4} + n_k^2,\ \frac{r_e^2}{2}\right)
   $$
+
   - RocketPy 1.13.0's code (`rocket.py:984-985`, `evaluate_nozzle_gyration_tensor`) uses
     $0.25\, n^2$ for the transverse distance term instead of $n^2$. Its $n$ is measured from the center
     of dry mass, not from the nose tip, so the entries can't be compared directly. The RocketPy
