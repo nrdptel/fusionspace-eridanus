@@ -287,16 +287,27 @@ pub(crate) fn typeset(markdown: &str, converter: &LatexToMathML) -> Result<Strin
 
 /// MathML with every character Markdown would still read written as a character reference: the
 /// MathML is raw HTML, but mdBook reads the text between its tags as Markdown, so a `|` would
-/// end a table's cell, a pair of `*` or `_` would turn into emphasis and a backslash would
-/// escape what follows. None of these is in math-core's tag or attribute names or values.
+/// end a table's cell, a pair of `*` or `_` would turn into emphasis, a backslash would escape
+/// what follows, and its smart punctuation would curl the quotes and turn `--` into a dash in a
+/// `\text{}`. Only text between tags is touched; a tag and its attributes are written as
+/// math-core wrote them.
 fn inert(mathml: &str) -> String {
     let mut out = String::with_capacity(mathml.len());
+    let mut in_tag = false;
     for c in mathml.chars() {
         match c {
-            '|' | '*' | '_' | '`' | '[' | ']' | '~' | '\\' | '$' | '!' => {
-                out.push_str(&format!("&#{};", u32::from(c)));
-            }
-            _ => out.push(c),
+            '<' => in_tag = true,
+            '>' => in_tag = false,
+            _ => {}
+        }
+        let markdown = matches!(
+            c,
+            '|' | '*' | '_' | '`' | '[' | ']' | '~' | '\\' | '$' | '!' | '\'' | '"' | '-'
+        );
+        if markdown && !in_tag {
+            out.push_str(&format!("&#{};", u32::from(c)));
+        } else {
+            out.push(c);
         }
     }
     out
@@ -314,24 +325,31 @@ fn find(markdown: &str) -> (Vec<Formula>, Vec<String>) {
     let mut formulas = Vec::new();
     let mut problems = Vec::new();
     let mut in_heading = false;
+    let mut in_image = false;
     // Each open paragraph: the events seen in it so far, and its display equations.
     let mut paragraph: Option<(usize, Vec<usize>)> = None;
     for (event, range) in Parser::new_ext(markdown, options).into_offset_iter() {
         match event {
             Event::Start(Tag::Heading { .. }) => in_heading = true,
             Event::End(TagEnd::Heading(_)) => in_heading = false,
+            Event::Start(Tag::Image { .. }) => in_image = true,
+            Event::End(TagEnd::Image) => in_image = false,
             Event::Start(Tag::Paragraph) => paragraph = Some((0, Vec::new())),
             Event::End(TagEnd::Paragraph) => {
                 if let Some((events, displays)) = paragraph.take()
                     && !displays.is_empty()
-                    && events != 1
                 {
-                    for start in displays {
-                        problems.push(format!(
-                            "{}: a display equation (`$$…$$`) stands alone as its own \
-                             paragraph, a blank line above and below",
-                            line_of(markdown, start)
-                        ));
+                    // A display becomes a line opening `<div`, a raw HTML block that runs to the
+                    // next blank line: a line right under it, a list item say, would be shown as
+                    // raw text. So it needs its paragraph to itself and a blank line below.
+                    if events != 1 || !blank_line_below(markdown, range.end) {
+                        for start in displays {
+                            problems.push(format!(
+                                "{}: a display equation (`$$…$$`) stands alone as its own \
+                                 paragraph, a blank line above and below",
+                                line_of(markdown, start)
+                            ));
+                        }
                     }
                 }
             }
@@ -341,6 +359,13 @@ fn find(markdown: &str) -> (Vec<Formula>, Vec<String>) {
                     Event::InlineMath(latex) => (latex, false),
                     _ => unreachable!("matched as math just above"),
                 };
+                if in_image {
+                    problems.push(format!(
+                        "{}: an image's description has math in it, which a screen reader \
+                         would read out as markup: write it in words",
+                        line_of(markdown, range.start)
+                    ));
+                }
                 if in_heading {
                     problems.push(format!(
                         "{}: a heading has math in it; the sidebar and the anchor would \
@@ -375,6 +400,19 @@ fn find(markdown: &str) -> (Vec<Formula>, Vec<String>) {
         }
     }
     (formulas, problems)
+}
+
+/// Whether the line after the one holding byte `end - 1` is blank, or there is none: a quote
+/// block's `>` alone counts as blank.
+fn blank_line_below(markdown: &str, end: usize) -> bool {
+    let from = end.saturating_sub(1).min(markdown.len());
+    let Some(newline) = markdown[from..].find('\n') else {
+        return true;
+    };
+    markdown[from + newline + 1..]
+        .lines()
+        .next()
+        .is_none_or(|line| line.trim_start_matches([' ', '\t', '>']).trim().is_empty())
 }
 
 /// The 1-based line of a byte offset.
@@ -436,6 +474,10 @@ mod tests {
             row.contains("&#124;") && row.contains("a&#42;b&#42;c"),
             "{out}"
         );
+        let text = typeset_ok("$\\text{it's \"x\" -- y}$\n");
+        // math-core sets the quotes as TeX does; the dashes stay two hyphens, as written.
+        assert!(text.contains("&#45;&#45;"), "{text}");
+        assert!(text.starts_with("<math>"), "{text}");
     }
 
     #[test]
@@ -484,6 +526,27 @@ mod tests {
     fn a_display_equation_inside_a_sentence_fails() {
         let problems = typeset_err("The equation\n$$a = b$$\nholds.\n");
         assert!(problems[0].contains("stands alone"), "{problems:?}");
+    }
+
+    #[test]
+    fn a_line_right_under_a_display_equation_fails() {
+        let problems = typeset_err("- a\n\n  $$x$$\n  - b\n");
+        assert!(
+            problems[0].starts_with("3: a display equation"),
+            "{problems:?}"
+        );
+        let problems = typeset_err("$$x$$\n- b\n");
+        assert!(problems[0].contains("stands alone"), "{problems:?}");
+        let ok = typeset_ok("- a\n\n  $$x$$\n\n  - b\n");
+        assert!(ok.contains("</div>\n\n  - b"), "{ok}");
+        let quoted = typeset_ok("> $$x$$\n>\n> after\n");
+        assert!(quoted.contains("</div>\n>\n> after"), "{quoted}");
+    }
+
+    #[test]
+    fn math_in_an_image_description_fails() {
+        let problems = typeset_err("![The force $F$](f.svg)\n");
+        assert!(problems[0].contains("image's description"), "{problems:?}");
     }
 
     #[test]

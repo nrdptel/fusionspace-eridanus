@@ -57,7 +57,9 @@ temperature $T_M$ ([USSA] Table 4):
 |---|--:|--:|--:|--:|--:|--:|--:|---|
 | $L_{M,b}$ (K/km′) | −6.5 | 0 | +1.0 | +2.8 | 0 | −2.8 | −2.0 | |
 
-Eqs. (18) and (23) give the geopotential altitude and the layer's temperature:
+Eqs. (18) and (23) give the geopotential altitude $H$ from the geometric altitude $Z$, with $r_0$
+the Earth's effective radius (below), and the temperature from the layer's base values $H_b$ and
+$T_{M,b}$:
 
 $$
 \begin{aligned}
@@ -67,11 +69,7 @@ T_M &= T_{M,b} + L_{M,b}\, (H - H_b)
 $$
 
 Pressure follows eq. (33a) where $L_{M,b} \ne 0$ and eq. (33b) where $L_{M,b} = 0$, with the
-exponent
-
-$$
-n = \frac{g_0' M_0}{R^* L_{M,b}}:
-$$
+exponent $n = g_0' M_0/(R^* L_{M,b})$:
 
 $$
 \begin{aligned}

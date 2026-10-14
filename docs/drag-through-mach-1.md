@@ -28,7 +28,7 @@ Drag is the air holding a rocket back along its path. It grows with the
 would exert if it were brought to rest, which grows with the air's density and the square of the speed. A
 simulator turns it into a force with the rocket's
 [drag coefficient](glossary.md#drag-coefficient) $C_D$ and its
-[reference area](glossary.md#reference-area) $A$, the body's cross-section:
+[reference area](glossary.md#reference-area) $A$, the body's cross-section, into the drag $D$:
 
 $$
 \begin{aligned}

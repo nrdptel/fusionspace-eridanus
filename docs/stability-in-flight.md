@@ -42,8 +42,9 @@ x_{\mathrm{CP}} &= \frac{\sum_i C_{N\alpha,i}\, x_i}{\sum_i C_{N\alpha,i}}, \\
 \end{aligned}
 $$
 
-with $x_i$ each part's own center of pressure, measured back from the nose tip, and $d$ the
-body's diameter. So anything that makes one part push harder than the others moves the CP toward
+with $x_{\mathrm{CP}}$ and $x_{\mathrm{CG}}$ the rocket's center of pressure and center of
+gravity, $x_i$ each part's own center of pressure, all measured back from the nose tip, $i$
+running over the parts, and $d$ the body's diameter. So anything that makes one part push harder than the others moves the CP toward
 that part, and so does anything that moves a part's own center of pressure. The margin HPR Sim
 prints as `static margin` is the one this gives at low speed, with the air straight along the
 rocket: the number [Barrowman's method](glossary.md#barrowmans-method) gives by hand.

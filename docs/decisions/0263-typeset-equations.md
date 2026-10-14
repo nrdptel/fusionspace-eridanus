@@ -23,7 +23,8 @@ The research (2026-10-13) found:
   offline rule; `mdbook-katex` runs KaTeX in a JavaScript engine whose builds its README limits
   to some platforms, and writes HTML without MathML by default; client-side KaTeX, Temml or
   MathJax 4 need a script on every page. math-core 0.8 converts LaTeX to MathML Core in Rust, is
-  MIT, and is the converter rustdoc's accepted math RFC (3958) builds on. MathML Core is drawn by
+  MIT, and is the converter rustdoc's accepted math RFC builds on
+  ([RFC 3958](https://rust-lang.github.io/rfcs/3958-rustdoc-texmath.html)). MathML Core is drawn by
   every current browser (Chrome and Edge since 109).
 - **MathML doesn't break a line.** A long equation is written on several lines with `aligned`, as
   print does when a display is wider than the measure.
@@ -65,6 +66,18 @@ The research (2026-10-13) found:
    block, still fail.
 6. **Rustdoc stays Unicode** until rustdoc's own math lands; its pages are read in editors and
    terminals as often as in a browser.
+
+**How far to trust it.**
+
+- **Checked:** every page's formulas convert (`cargo xtask site`); the page check passes at 41
+  widths from 320 to 1,920 px with math held to its column, its face and 12 px, in both themes;
+  the vitals stay within their bounds on a throttled phone. Each page's converted equations were
+  compared with the plain text they replaced, term by term, by a review that read the diff of
+  every page (no equation's meaning changed, no number moved); the subset was compared pixel for
+  pixel with the whole font on a page of stretched brackets, radicals, integrals, sums and cases.
+- **Not checked:** a screen reader reading the MathML aloud; Firefox and Safari (the page check
+  runs Chrome; both draw MathML Core, Safari with known small misplacements of some accents);
+  the print layout of long displays.
 
 **Consequences.** Every page's equations are drawn as a textbook draws them, on GitHub as on the
 site. A page with math downloads the 324 KB face once. Writing a long equation takes more care: it

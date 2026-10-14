@@ -634,20 +634,80 @@ enum Kind {
     InlineCode,
 }
 
-/// The numbers with a decimal point in a formula's LaTeX, each a value the formula quotes: `1.8`
-/// in `V_f = 1.8\,a`. Its integers are its form, not quotes.
+/// The numbers a formula quotes, each with its sign: every number in its LaTeX but those that
+/// are its form, an exponent or a subscript (`v^2`, `x_{12}`, `^{1.5}`) and the digits of a
+/// fraction of numbers (`\tfrac12`, `\frac{1}{2}`). `$h = 3048$` quotes 3048, `$C_m = -0.25$`
+/// quotes -0.25, and `$q = \tfrac12 \rho v^2$` quotes nothing.
 fn formula_quotes(latex: &str) -> Vec<String> {
+    let chars: Vec<char> = latex.chars().collect();
     let mut quotes = Vec::new();
-    let mut number = String::new();
-    for c in latex.chars().chain(std::iter::once(' ')) {
-        if c.is_ascii_digit() || (c == '.' && !number.is_empty() && !number.contains('.')) {
-            number.push(c);
-        } else {
-            if number.contains('.') && !number.ends_with('.') {
-                quotes.push(number.clone());
+    // The depths of the open braces that are a script's or a fraction's, the brace depth, and
+    // how many of the next arguments are a script's or a fraction's own.
+    let mut form_depth: Vec<usize> = Vec::new();
+    let mut depth = 0usize;
+    let mut next_is_form = 0usize;
+    let mut at = 0;
+    while at < chars.len() {
+        let c = chars[at];
+        if c == '\\' {
+            let name: String = chars[at + 1..]
+                .iter()
+                .take_while(|c| c.is_ascii_alphabetic())
+                .collect();
+            if matches!(name.as_str(), "frac" | "tfrac" | "dfrac") {
+                next_is_form = 2;
             }
-            number.clear();
+            at += 1 + name.chars().count().max(1);
+            continue;
         }
+        if c.is_ascii_digit() {
+            if !form_depth.is_empty() {
+                // Inside a script's or a fraction's braces: its form.
+                at += 1;
+                continue;
+            }
+            if next_is_form > 0 {
+                // An unbraced script or fraction takes one digit each: `v^2`, `\tfrac12`.
+                next_is_form -= 1;
+                at += 1;
+                continue;
+            }
+            let start = at;
+            while at < chars.len()
+                && (chars[at].is_ascii_digit()
+                    || (chars[at] == '.' && chars.get(at + 1).is_some_and(char::is_ascii_digit)))
+            {
+                at += 1;
+            }
+            let before = chars[..start].iter().rev().find(|c| !c.is_whitespace());
+            let sign = if matches!(before, Some('-' | '−')) {
+                "-"
+            } else {
+                ""
+            };
+            let digits: String = chars[start..at].iter().collect();
+            quotes.push(format!("{sign}{digits}"));
+            continue;
+        }
+        match c {
+            '^' | '_' => next_is_form = 1,
+            '{' => {
+                depth += 1;
+                if next_is_form > 0 {
+                    form_depth.push(depth);
+                    next_is_form -= 1;
+                }
+            }
+            '}' => {
+                if form_depth.last() == Some(&depth) {
+                    form_depth.pop();
+                }
+                depth = depth.saturating_sub(1);
+            }
+            c if c.is_whitespace() => {}
+            _ => next_is_form = 0,
+        }
+        at += 1;
     }
     quotes
 }
@@ -1421,16 +1481,20 @@ fn draw_misses(reports: &Reports) -> Result<String, String> {
 mod tests {
 
     #[test]
-    fn a_formula_quotes_its_decimals_not_its_integers() {
+    fn a_formula_quotes_its_numbers_but_not_its_form() {
+        let none = Vec::<String>::new();
+        assert_eq!(formula_quotes("q = \\tfrac12 \\rho v^2"), none);
         assert_eq!(
-            formula_quotes("q = \\tfrac12 \\rho v^2"),
-            Vec::<String>::new()
+            formula_quotes("\\frac{1}{2} x_{12} + y^{1.5} + C_{D0}"),
+            none
         );
+        assert_eq!(formula_quotes("h = 3048"), ["3048"]);
+        assert_eq!(formula_quotes("C_m = -0.25"), ["-0.25"]);
         assert_eq!(
-            formula_quotes("V_f = 1.8\\,a, 24\\,\\varepsilon, 0.25"),
-            ["1.8", "0.25"]
+            formula_quotes("V_f = 1.8\\,a, 24\\,\\varepsilon"),
+            ["1.8", "24"]
         );
-        assert_eq!(formula_quotes("x_{1.} = 3."), Vec::<String>::new());
+        assert_eq!(formula_quotes("v^2 + 3"), ["3"]);
     }
 
     #[test]

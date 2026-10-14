@@ -151,7 +151,7 @@ correlation, the curve fitted to measurements that gives its drag coefficient:
   \end{aligned}
   $$
 
-  with $\rho_m$
+  with $C_{Dm}$ the streamer's drag coefficient on $S$, $\rho_m$
   the fabric's mass per square meter (Appendix C, eq. C.6, printed page 117). It was fitted to
   model-rocket streamers ($w$ 0.01 to 0.09 m (0.033 to 0.30 ft), $l$ 0.2 to 1.0 m (0.66 to 3.3 ft), 10 to 80 g/m², 6 to 12 m/s (20 to 39 ft/s)), with a
   stated 12 to 27% error on an independent set. It is the only one of the two that uses the
@@ -436,7 +436,7 @@ $\mathbf{g}$ [normal gravity](../glossary.md#normal-gravity), $\mathbf{a}_{\math
 $$
 \begin{aligned}
 m\, \mathbf{a}_{\mathrm{cg}} &= -\tfrac12 \rho\, (C_D S)(t)\, \lvert \mathbf{v}_{\mathrm{cg}} - \mathbf{w} \rvert \\
-&\quad \times (\mathbf{v}_{\mathrm{cg}} - \mathbf{w}) \\
+&\quad (\mathbf{v}_{\mathrm{cg}} - \mathbf{w}) \\
 &\quad + m\, (\mathbf{g} + \mathbf{a}_{\mathrm{Coriolis}}) + \mathbf{T}
 \end{aligned}
 $$
@@ -529,8 +529,8 @@ This section describes the unpowered case, and the booster's descent after a pow
 
   $$
   \begin{aligned}
-  m\, \mathbf{a} &= -\tfrac12 \rho\, (C_D S)(t) \\
-  &\quad \times \lvert \mathbf{v} - \mathbf{w} \rvert\, (\mathbf{v} - \mathbf{w}) \\
+  m\, \mathbf{a} &= -\tfrac12 \rho\, (C_D S)(t)\, \lvert \mathbf{v} - \mathbf{w} \rvert \\
+  &\quad (\mathbf{v} - \mathbf{w}) \\
   &\quad + m\, (\mathbf{g} + \mathbf{a}_{\mathrm{Coriolis}})
   \end{aligned}
   $$
