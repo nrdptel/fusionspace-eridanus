@@ -290,6 +290,7 @@ until someone rewrites it in plainer words.
 | [ADR-259: M7.1c5 in two: the Raven's `.FIPa` and the RRC3's `.rff` raw downloads first, each checked against its maker's export; the rest to M7.1c6][adr-259] | After [M7.1c4](#m7-1c4), 23 families of sample logs, 376 files, were left to [M7.1c5](#m7-1c5), 374 of them read by no reader. [M7.1c5](#m7-1c5) now reads the two raw downloads whose makers' exports of the same flights sit beside them, 63 files: the Featherweight Raven's `.FIPa` (57) and Missile Works' RRC3 `.rff` (6). Each raw file with an export beside it must match that export in every sample of every channel the two share, and the survey fails on one that doesn't: all 55 such `.FIPa` files and the one such `.rff` match, 6,019,645 raw samples, with no value off by any step. The rest, ARTS2's raw data and `.odf`, the RTx's files and the families [ADR-258][adr-258] listed, moves to [M7.1c6](#m7-1c6) with the parent's *done when*. |  |
 | [ADR-260: M7.1c6 in two: Featherweight's summaries first, each checked against the file beside it; the rest to M7.1c7][adr-260] | After [M7.1c5](#m7-1c5), 21 families of sample logs, 312 files, were left to [M7.1c6](#m7-1c6), 310 of them read by no reader. [M7.1c6](#m7-1c6) now reads the Featherweight app's summaries of a Blue Raven's or a GPS tracker's flight, 48 files: every row is kept as a figure, in SI only where the unit it writes is one its name allows, and each summary's stated maximum and pad altitude are checked against the file of samples beside it. 31 files that aren't flight logs are filed as such: Debrief's made-up flights, which say so, teams' checklists, a Blue Raven's settings sheets and a flyer's own program's reading of a log. The rest goes to [M7.1c7](#m7-1c7). |  |
 | [ADR-261: M7.1c7 in two: zip archives and two readers' variants first; the rest to M7.1c8][adr-261] | After [M7.1c6](#m7-1c6), 233 sample logs in 16 families were left to [M7.1c7](#m7-1c7), 231 of them read by no reader. [M7.1c7](#m7-1c7) now unpacks the 8 zip archives, in memory and within a bound, and reads each file inside as a file of its own: 19 files no other source holds, 11 of them a Blue Raven's files and summaries. It reads PerfectFlite's text export written with no header row (4 files) and a CSV export that names its temperature `Temp` (1), and a Blue Raven high-rate file with no date (1). It files 16 more files as not logs, and one hand-edited Blue Raven file as damaged. The rest goes to [M7.1c8](#m7-1c8). |  |
+| [ADR-262: M7.1c8 in two: the R-DAS's raw text first; the rest to M7.1c9][adr-262] | After [M7.1c7](#m7-1c7), 209 sample logs were left to [M7.1c8](#m7-1c8), in families that each need a decoder or the column mapper. The largest, 54 files, is one layout: the raw text AED Electronics' R-DAS flight computer's Windows software exports, a configuration summary and then a table of the converters' counts. [M7.1c8](#m7-1c8) now reads it. The file holds no calibration, so every count is kept as written and the record holds no altitude; the clock is held to the configuration's stated rate. The rest goes to [M7.1c9](#m7-1c9). |  |
 
 ## The roadmap
 
@@ -690,7 +691,8 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1c5"></a>[M7.1c5][done-5] | Raw downloads, checked against their makers' exports | done |
 | <a id="m7-1c6"></a>[M7.1c6][done-5] | Featherweight's summaries | done |
 | <a id="m7-1c7"></a>[M7.1c7][done-5] | Archives and two readers' variants | done |
-| <a id="m7-1c8"></a>[M7.1c8][phase-5] | The rest | not yet done |
+| <a id="m7-1c8"></a>[M7.1c8][done-5] | The R-DAS's raw text | done |
+| <a id="m7-1c9"></a>[M7.1c9][phase-5] | The rest | not yet done |
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
@@ -1106,6 +1108,7 @@ is the milestone that added or will add that test.
 [adr-259]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0259-raw-downloads-against-their-makers-exports-first.md
 [adr-260]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0260-featherweight-summaries-before-the-rest.md
 [adr-261]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0261-archives-and-two-readers-variants-before-the-rest.md
+[adr-262]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0262-the-r-das-raw-text-before-the-rest.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

@@ -256,6 +256,9 @@ pub enum LogFormat {
     /// tracker's flight beside its data: one `name,value` row a figure, such as `Max
     /// Altitude,2500.25 feet`, and no samples.
     FeatherweightSummaryCsv,
+    /// AED Electronics' R-DAS raw data, as its Windows software exports a flight to text: a
+    /// `*** Configuration ***` section, then a table of the converters' counts.
+    RdasText,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -367,7 +370,8 @@ impl LogFormat {
     /// among the sample files: whole feet in Featherweight's older tracker log, whole meters in
     /// Missile Works' and Big Red Bee's KML, and a tenth of a meter in NMEA's `GGA`. A receiver's
     /// own error is far larger. A Featherweight summary has no track: its maximum altitude is
-    /// written to the hundredth of a foot.
+    /// written to the hundredth of a foot. An R-DAS's raw text has no altitude either, only its
+    /// barometer's counts: one is 0.09 kPa in its maker's manual, 7.49 m near sea level.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -394,6 +398,7 @@ impl LogFormat {
             Self::RavenFipa => RAVEN_PRESSURE_STEP_ATM * 101_325.0 * ONE_PASCAL_M,
             Self::Rrc3Rff => RRC3_PRESSURE_STEP_PA * ONE_PASCAL_M,
             Self::FeatherweightSummaryCsv => 0.01 * crate::perfectflite::FOOT_M,
+            Self::RdasText => crate::rdas::ALTITUDE_STEP_M,
         }
     }
 
@@ -419,7 +424,8 @@ impl LogFormat {
             | Self::Nmea0183
             | Self::EggtimerText
             | Self::SillyGooseText
-            | Self::AerospaceNuGroundStationText => ".txt",
+            | Self::AerospaceNuGroundStationText
+            | Self::RdasText => ".txt",
             Self::EggtimerRtf => ".rtf",
             Self::RavenFipa => ".FIPa",
             Self::Rrc3Rff => ".rff",
@@ -456,6 +462,7 @@ impl LogFormat {
             Self::RavenFipa => "Raven .FIPa",
             Self::Rrc3Rff => "RRC3 .rff",
             Self::FeatherweightSummaryCsv => "Featherweight summary CSV",
+            Self::RdasText => "R-DAS text",
         }
     }
 }
@@ -543,6 +550,7 @@ mod tests {
             (LogFormat::SillyGooseText, 0.01),
             (LogFormat::FluctusCsv, 1.0),
             (LogFormat::Arts2Csv, 8.805_672),
+            (LogFormat::RdasText, 7.491_793),
         ];
         for (format, expected) in cases {
             let resolution = format.altitude_resolution_m();

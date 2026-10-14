@@ -13,16 +13,16 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 |---|---|---:|---:|---|
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
-| aerospacenu-sillygoose-gs-csv | M7.1c8 | 1 | 0 | 1 unrecognized |
+| aerospacenu-sillygoose-gs-csv | M7.1c9 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
 | altos-csv-damaged | damaged | 1 | 0 | 1 syntax |
-| altos-eeprom | M7.1c8 | 14 | 0 | 14 unrecognized |
-| altos-telem | M7.1c8 | 2 | 0 | 2 unrecognized |
+| altos-eeprom | M7.1c9 | 14 | 0 | 14 unrecognized |
+| altos-telem | M7.1c9 | 2 | 0 | 2 unrecognized |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
-| arts2-raw-csv | M7.1c8 | 3 | 0 | 3 unrecognized |
-| binary | M7.1c8 | 4 | 0 | 4 unrecognized |
+| arts2-raw-csv | M7.1c9 | 3 | 0 | 3 unrecognized |
+| binary | M7.1c9 | 4 | 0 | 4 unrecognized |
 | blueraven-csv | M7.1b | 89 | 89 | none |
 | blueraven-csv-damaged | damaged | 1 | 0 | 1 unrecognized |
 | blueraven-events-txt | not a log | 17 | 0 | 17 unrecognized |
@@ -30,15 +30,15 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | blueraven-settings-xlsx | not a log | 10 | 0 | 10 archive |
 | blueraven-summary-csv | M7.1c6 | 26 | 26 | none |
 | checklist | not a log | 4 | 0 | 4 archive |
-| csv | M7.1c8 | 67 | 2 | 1 syntax, 64 unrecognized |
+| csv | M7.1c9 | 67 | 2 | 1 syntax, 64 unrecognized |
 | debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
-| e80-imu-txt | M7.1c8 | 54 | 0 | 54 unrecognized |
+| e80-imu-txt | M7.1c8 | 54 | 54 | none |
 | eggtimer-csv | M7.1b | 43 | 43 | none |
 | eggtimer-rtf | M7.1c4 | 1 | 1 | none |
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c8 | 2 | 0 | 2 unrecognized |
+| entacore-xtra | M7.1c9 | 2 | 0 | 2 unrecognized |
 | featherweight-summary-csv | M7.1c6 | 25 | 25 | none |
 | flight-computer-params-csv | not a log | 3 | 0 | 3 unrecognized |
 | fluctus-csv | M7.1c3 | 6 | 6 | none |
@@ -46,9 +46,9 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | jpeg | not a log | 1 | 0 | 1 unrecognized |
 | kml | M7.1c1 | 43 | 43 | none |
 | kml-map | not a log | 1 | 1 | none |
-| missileworks-rtx | M7.1c8 | 5 | 0 | 5 unrecognized |
+| missileworks-rtx | M7.1c9 | 5 | 0 | 5 unrecognized |
 | nmea | M7.1c1 | 12 | 12 | none |
-| odf | M7.1c8 | 3 | 0 | 3 unrecognized |
+| odf | M7.1c9 | 3 | 0 | 3 unrecognized |
 | openrocket-simulation-csv | not a log | 1 | 0 | 1 unrecognized |
 | pdf | not a log | 1 | 0 | 1 unrecognized |
 | perfectflite-csv | M7.1a | 15 | 15 | none |
@@ -62,14 +62,14 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | rocket-parameters | not a log | 4 | 0 | 4 unrecognized |
 | rrc3-csv | M7.1b | 51 | 51 | none |
 | rrc3-rff | M7.1c5 | 6 | 6 | none |
-| telemetry-rtf | M7.1c8 | 2 | 0 | 2 not-this-format |
-| txt | M7.1c8 | 26 | 0 | 26 unrecognized |
+| telemetry-rtf | M7.1c9 | 2 | 0 | 2 not-this-format |
+| txt | M7.1c9 | 26 | 0 | 26 unrecognized |
 | wind-profile-csv | not a log | 1 | 0 | 1 unrecognized |
-| xls | M7.1c8 | 1 | 0 | 1 unrecognized |
-| xlsx | M7.1c8 | 23 | 0 | 23 archive |
-| xml | M7.1c8 | 2 | 0 | 2 unrecognized |
+| xls | M7.1c9 | 1 | 0 | 1 unrecognized |
+| xlsx | M7.1c9 | 23 | 0 | 23 archive |
+| xml | M7.1c9 | 2 | 0 | 2 unrecognized |
 | zip | M7.1c7 | 8 | 8 | none |
-| **All** | | 1122 | 857 | |
+| **All** | | 1122 | 911 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
@@ -338,6 +338,9 @@ Units no header states, as each file's reader decided them, or kept the column a
 | blueraven-summary-csv | `Main chute descent rate` kept as written, in a unit that isn't a speed | 26 |
 | blueraven-summary-csv | `Pad Hi-G accel` kept as written, in a unit no source states | 26 |
 | blueraven-summary-csv | `Pad Low-G Accel` kept as written, in a unit no source states | 26 |
+| e80-imu-txt | `Acc`, `Prs`, `ADC0`, `ADC1`, `ADC2`, `ADC3`, `ADC4`, `ADC5` kept as written | 54 |
+| e80-imu-txt | `Dig` read in hexadecimal and kept as its number | 54 |
+| e80-imu-txt | `Time` read in seconds | 54 |
 | eggtimer-csv | `AltAccel` read in feet, from the manual | 4 |
 | eggtimer-csv | `Alt` read in feet, from the manual | 43 |
 | eggtimer-csv | `FAccelAlt` read in feet, from the manual | 4 |
@@ -471,6 +474,7 @@ The files read, by the logger each names:
 
 | Logger | Files |
 |---|---:|
+| AED Electronics R-DAS | 54 |
 | AerospaceNU SillyGoose | 13 |
 | AerospaceNU flight computer board | 20 |
 | AerospaceNU flight computer board, by its ground station | 4 |

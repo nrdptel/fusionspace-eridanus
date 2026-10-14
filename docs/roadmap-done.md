@@ -304,6 +304,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c5 Raw downloads: the Raven's `.FIPa` and the RRC3's `.rff` ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c6 Featherweight's summaries ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c7 Archives and two readers' variants ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c8 The R-DAS's raw text ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1525,6 +1526,13 @@ One line per milestone or increment, in the order it was archived within its pha
       no source holds has a family by id, and the survey stops on one without; the new exports'
       altitude unit is checked as the others' are and reported; and files that aren't logs are
       filed by family.
+    - [x] **M7.1c8 The R-DAS's raw text** (ADR-262): AED Electronics' R-DAS, its converters'
+      counts as its Windows software exports them. *Done when:* every R-DAS raw text file in refs
+      reads (`cargo xtask logs --check` fails on one not); the clock is checked against the
+      configuration's stated rate, and a file off it by more than 1%, or stating none, is refused
+      (tests); every count is kept as written and `Dig` as its hexadecimal word's number; a
+      configuration whose inputs aren't the table's columns is refused (tests); and the docs say
+      what the manual gives and what is left out.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

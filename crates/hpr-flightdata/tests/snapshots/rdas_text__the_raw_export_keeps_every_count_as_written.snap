@@ -1,0 +1,182 @@
+---
+source: crates/hpr-flightdata/tests/rdas_text.rs
+expression: log
+---
+{
+  "format": "rdas_text",
+  "logger": "AED Electronics R-DAS",
+  "serial_number": null,
+  "firmware": "4.1",
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "Acc",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.3,
+        -0.2,
+        -0.1,
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7
+      ],
+      "values": [
+        510.0,
+        511.0,
+        510.0,
+        640.0,
+        700.0,
+        690.0,
+        450.0,
+        470.0,
+        505.0,
+        512.0,
+        511.0
+      ]
+    },
+    {
+      "column": "Prs",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.3,
+        -0.2,
+        -0.1,
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7
+      ],
+      "values": [
+        800.0,
+        800.0,
+        801.0,
+        800.0,
+        799.0,
+        797.0,
+        795.0,
+        794.0,
+        793.0,
+        793.0,
+        794.0
+      ]
+    },
+    {
+      "column": "Dig",
+      "quantity": "number",
+      "time_s": [
+        -0.3,
+        -0.2,
+        -0.1,
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        32.0,
+        48.0,
+        176.0,
+        32944.0
+      ]
+    },
+    {
+      "column": "ADC0",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.3,
+        -0.2,
+        -0.1,
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7
+      ],
+      "values": [
+        500.0,
+        501.0,
+        500.0,
+        502.0,
+        505.0,
+        507.0,
+        506.0,
+        504.0,
+        503.0,
+        503.0,
+        502.0
+      ]
+    },
+    {
+      "column": "ADC1",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.3,
+        -0.2,
+        -0.1,
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7
+      ],
+      "values": [
+        250.0,
+        250.0,
+        251.0,
+        250.0,
+        252.0,
+        null,
+        255.0,
+        256.0,
+        256.0,
+        257.0,
+        257.0
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "`Time` read in seconds: it steps by 0.100000 on average, the 10 Hz line 6 states within 1% (1.0000 times its 0.100000 s)",
+    "`Acc`, `Prs`, `ADC0`, `ADC1` kept as written: the converters' counts, which the file states no calibration for",
+    "`Dig` read in hexadecimal and kept as its number: the digital inputs and the flight's phase, which the file doesn't name bit by bit",
+    "1 cell that isn't a number read as a gap, on line 22",
+    "the configuration, as written: Trigger: G-switch. | Smart Recovery option enabled with pressure delta of 20. | Timed recovery set at 9 sec (drogue). | Data is sampled at 10 Hz. | Inputs that were sampled: Acceleration, Pressure, the digital inputs, ADC0, ADC1. | Transmitter enabled. | This data was generated with version 4.1 of the RDAS windows software, | and downloaded from an RDAS board with firmware version 4.1",
+    "the file holds counts and no altitude, so the record's primary track is empty: every column is a channel on the file's clock"
+  ]
+}
