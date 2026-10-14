@@ -165,16 +165,20 @@
       value = base;
       if (!holdsPage(el)) {
         const x = s.overflowX, y = s.overflowY;
-        const clipsX = x !== 'visible', clipsY = y !== 'visible';
+        // Paint containment clips a box's contents as `overflow: clip` would, out to its clip margin.
+        const paints = /\b(paint|strict|content)\b/.test(s.contain) || s.contentVisibility === 'auto';
+        const clipsX = x !== 'visible' || paints, clipsY = y !== 'visible' || paints;
+        const margin = paints && x === 'visible' && y === 'visible'
+          ? parseFloat(s.overflowClipMargin) || 0 : 0;
         const cut = s.clip && s.clip !== 'auto';
         if (clipsX || clipsY || cut) {
           const r = el.getBoundingClientRect();
           const left = r.left + el.clientLeft, top = r.top + el.clientTop;
           const box = {
-            x0: clipsX || cut ? left : -Infinity,
-            x1: clipsX || cut ? left + (cut ? r.width : el.clientWidth) : Infinity,
-            y0: clipsY || cut ? top : -Infinity,
-            y1: clipsY || cut ? top + (cut ? r.height : el.clientHeight) : Infinity,
+            x0: clipsX || cut ? left - margin : -Infinity,
+            x1: clipsX || cut ? left + (cut ? r.width : el.clientWidth) + margin : Infinity,
+            y0: clipsY || cut ? top - margin : -Infinity,
+            y1: clipsY || cut ? top + (cut ? r.height : el.clientHeight) + margin : Infinity,
           };
           const tiny = (clipsX || cut) && box.x1 - box.x0 <= HIDDEN_BOX_PX
             || (clipsY || cut) && box.y1 - box.y0 <= HIDDEN_BOX_PX;
@@ -358,6 +362,7 @@
         });
       }
     }
+
 
     return {
       client_width: view,
@@ -1120,6 +1125,28 @@
       if (!ok) {
         note('focus', ring, null, 'outline', s.outlineWidth + ' ' + s.outlineStyle + ' '
           + s.outlineColor + ', offset ' + s.outlineOffset);
+      }
+      // The ring drawn whole by any box that contains its paint (`contain`, or
+      // `content-visibility: auto`), which clips what it holds at its padding and clip margin.
+      // A box that scrolls on the way decides what of the ring shows, as the reader scrolls it.
+      const out = parseFloat(s.outlineOffset) + parseFloat(s.outlineWidth);
+      const rr = ring.getBoundingClientRect();
+      for (let a = ring.parentElement; a && a !== doc.body; a = a.parentElement) {
+        const as = win.getComputedStyle(a);
+        if (/^(auto|scroll)$/.test(as.overflowX) || /^(auto|scroll)$/.test(as.overflowY)) break;
+        const paints = /\b(paint|strict|content)\b/.test(as.contain)
+          || as.contentVisibility === 'auto';
+        if (!paints) continue;
+        const b = a.getBoundingClientRect();
+        const m = parseFloat(as.overflowClipMargin) || 0;
+        const x0 = b.left + a.clientLeft - m, y0 = b.top + a.clientTop - m;
+        const x1 = b.left + a.clientLeft + a.clientWidth + m;
+        const y1 = b.top + a.clientTop + a.clientHeight + m;
+        if (rr.left - out < x0 - 0.5 || rr.right + out > x1 + 0.5
+          || rr.top - out < y0 - 0.5 || rr.bottom + out > y1 + 0.5) {
+          note('focus', ring, null, 'outline', 'cut by the edge of ' + selector(a));
+          break;
+        }
       }
     }
     if (doc.activeElement && doc.activeElement !== before) doc.activeElement.blur();
@@ -2395,6 +2422,9 @@
     }
   }
 
+  // The mark on a box the check draws though `content-visibility: auto` would skip it.
+  const SHOWN = 'data-hpr-shown';
+
   // `printed`: whether this width reads the page on paper too.
   function check(page, width, height, printed) {
     return new Promise(function (resolve) {
@@ -2423,12 +2453,15 @@
           if (!doc || !doc.body) throw new Error('the frame has no document');
           // A box with `content-visibility: auto` skips laying out its contents while it is off
           // screen, which would leave them unmeasured: each is drawn as it is once on screen,
-          // shown, with the layout, style and paint containment `auto` keeps.
+          // shown, with the layout, style and paint containment `auto` keeps. A screen rule, so
+          // the page read with paper's rules drops it with the page's own.
           for (const el of doc.querySelectorAll('*')) {
-            if (win.getComputedStyle(el).contentVisibility !== 'auto') continue;
-            el.style.setProperty('content-visibility', 'visible', 'important');
-            el.style.setProperty('contain', 'layout style paint', 'important');
+            if (win.getComputedStyle(el).contentVisibility === 'auto') el.setAttribute(SHOWN, '');
           }
+          const shownRule = doc.createElement('style');
+          shownRule.textContent = '@media screen { [' + SHOWN + '] { content-visibility: visible '
+            + '!important; contain: layout style paint !important; } }';
+          doc.head.appendChild(shownRule);
           // Every face the page declares, loaded before measuring: `font-display: swap` draws
           // a fallback until a face is asked for and arrives, and `fonts.ready` right after the
           // load can resolve before layout has asked.
