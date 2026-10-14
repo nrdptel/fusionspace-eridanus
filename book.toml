@@ -62,3 +62,9 @@ heading-split-level = 3
 "releasing.md" = { enable = false }
 "VALIDATION.md" = { enable = false }
 "plan.md" = { enable = false }
+
+# The equations (`xtask/src/site/math.rs`): each `$…$` and `$$…$$` becomes MathML before mdBook
+# renders the page, so the browser draws it in the math face with no script. `cargo xtask site`
+# runs the build's own xtask in place of this command; `mdbook serve` runs this one.
+[preprocessor.math]
+command = "cargo xtask site-math"

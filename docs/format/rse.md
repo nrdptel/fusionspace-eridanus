@@ -85,10 +85,10 @@ children [P p.2]. Observed in 715 of 715 engines:
 | `avgThrust` | yes | N | Average thrust |
 | `peakThrust` | yes | N | Peak thrust |
 | `burn-time` | yes | s | Burn duration |
-| `auto-calc-mass` | no | flag | `1`: RockSim computes mass as m(t) = initMass − (propMass / burnTime)·t [P p.2] |
+| `auto-calc-mass` | no | flag | `1`: RockSim computes mass as $m(t) = \text{initMass} - k\,t$, with $k = \text{propMass}/\text{burnTime}$ [P p.2] |
 | `auto-calc-cg` | no | flag | `1`: "CG is fixed at engine center" [P p.2] |
-| `massFrac` | n/a | % | Not in spec. Observed: 100·m₀/initWt (703 of 710), where m₀ is the first point's `m` |
-| `Isp` | n/a | s | [Specific impulse](../glossary.md#specific-impulse). Not in spec. Observed: Itot / (m₀[kg]·9.80665), within ±0.006 in 696 of 710 |
+| `massFrac` | n/a | % | Not in spec. Observed: $100\,m_0/\text{initWt}$ (703 of 710), where $m_0$ is the first point's `m` |
+| `Isp` | n/a | s | [Specific impulse](../glossary.md#specific-impulse). Not in spec. Observed: $\text{Itot}/(m_0 \cdot 9.80665)$, $m_0$ in kg, within ±0.006 in 696 of 710 |
 | `throatDia`, `exitDia` | n/a | mm? | Nozzle throat and exit diameters. Not in spec. Always `0.` |
 | `tDiv tStep tFix FDiv FStep FFix mDiv mStep mFix cgDiv cgStep cgFix` | no | n/a | "Rendering attributes … control how graphs are drawn" [P p.2]. Always Div `10`, Step `-1.`, Fix `1` |
 
@@ -106,7 +106,7 @@ The smallest `initWt` is a 1.2 g micro motor.
 |------|-----|------|---------|
 | `t` | yes | s | Time since ignition [P p.1] |
 | `f` | yes | N | Thrust [P p.1] |
-| `m` | no | g | "Mass … over time", needed if auto-calc is off [P p.1]. **Observed:** propellant mass *remaining*. m₀ = `propWt` in 696 of 715; last `m` = 0 in 715 of 715. In 698 of the 700 set engines with m₀ > 0, m(t) = m₀·(1 − I(t)/I_total), with I the trapezoidal impulse, to 1e-3 relative (median 1.3e-6). That is *not* the spec's linear auto-calc formula. |
+| `m` | no | g | "Mass … over time", needed if auto-calc is off [P p.1]. **Observed:** propellant mass *remaining*. $m_0$ = `propWt` in 696 of 715; last `m` = 0 in 715 of 715. In 698 of the 700 set engines with $m_0 > 0$, $m(t) = m_0\,(1 - I(t)/I_{\mathrm{total}})$, with $I$ the trapezoidal impulse, to 1e-3 relative (median 1.3e-6). That is *not* the spec's linear auto-calc formula. |
 | `cg` | no | mm | Motor CG over time [P p.1], [S]. **Observed:** constant = `len`/2 in 685 of 715. The datum (forward or aft end) is stated nowhere: **unverified**. |
 
 With every observed file setting both auto-calc flags to `1`, RockSim may ignore `m` and `cg`
@@ -141,8 +141,8 @@ What else real files do, and what the reader and writer do with each case.
   order is either RockSim's (490) or alphabetical (220); XML gives order no meaning. 6 of 19 files
   use CRLF, and many lack a final newline. `<comments>` spans lines in 197 engines; 2 use CDATA, one
   holding a raw `&`. There are no entity references, and everything is ASCII.
-- **Bad values:** `propWt` 10× `m₀` (a typo), and `cg` 0.1 × len/2. Five engines (four hybrids)
-  have every `m` and `cg` = 0, so m₀ = 0 cannot mean "no propellant".
+- **Bad values:** `propWt` 10× $m_0$ (a typo), and `cg` 0.1 × len/2. Five engines (four hybrids)
+  have every `m` and `cg` = 0, so $m_0 = 0$ cannot mean "no propellant".
 
 ### Reader policy (lenient, with diagnostics)
 
@@ -214,11 +214,11 @@ Round-trip stable: a file the simulator writes reads back to exactly the values 
   | `peakThrust` | the largest `f` | all but 9 |
   | `burn-time` | the last `t` | the last `t`, or in 281 of 715 a rounding of it |
   | `avgThrust` | `Itot` / `burn-time` | within 0.1% in 712 |
-  | `m` | m₀ (1 − I(t)/`Itot`), m₀ = `propWt` | m₀ = `propWt` in 696 of 715; the shape in 698 of 700 |
+  | `m` | $m_0\,(1 - I(t)/\text{Itot})$, $m_0$ = `propWt` | $m_0$ = `propWt` in 696 of 715; the shape in 698 of 700 |
   | `cg` | `len`/2 | 685 of 715 |
   | `auto-calc-mass`, `auto-calc-cg` | `1` | every file |
-  | `massFrac` | 100 m₀/`initWt` | 703 of 710 |
-  | `Isp` | `Itot`/(m₀ in kg × 9.80665) | 696 of 710 |
+  | `massFrac` | $100\,m_0/\text{initWt}$ | 703 of 710 |
+  | `Isp` | $\text{Itot}/(m_0 \times 9.80665)$, $m_0$ in kg | 696 of 710 |
   | `Type` | `unspecified`, as the guide requires one [P p.1] | one of the values seen |
 
   Delays trade `-` for `,` and `P` for `1000`. Masses move from kg to g by moving the decimal

@@ -232,9 +232,18 @@
         if (lost > 1) {
           cut.push({ selector: selector(parent), text: snippet(node.data), lost: Math.round(lost) });
         }
-        const shown = intersect(seen, { x0: 0, x1: view, y0: -Infinity, y1: Infinity });
+        let shown = intersect(seen, { x0: 0, x1: view, y0: -Infinity, y1: Infinity });
+        // Math: a text's box is its font's ascent and descent, which a script's reaches past the
+        // box MathML lays the formula out in from the font's math table, and inside one formula
+        // a script sits over its base by design. So a formula's text is measured inside the
+        // formula's own box, and against other text only.
+        const math = parent.closest('math');
+        if (math) {
+          const m = math.getBoundingClientRect();
+          shown = intersect(shown, { x0: m.left, x1: m.right, y0: m.top, y1: m.bottom });
+        }
         if (shown.x1 - shown.x0 <= SLACK_PX || shown.y1 - shown.y0 <= SLACK_PX) continue;
-        rects.push({ box: shown, top: r.top, height: r.height, node: index, text: node.data });
+        rects.push({ box: shown, top: r.top, height: r.height, node: index, text: node.data, math: math });
       }
     }
 
@@ -287,6 +296,7 @@
       for (const o of open) {
         // Pieces of one text on one line (an ellipsis is a piece of its own) are one run.
         if (o.node === r.node && Math.abs(o.top - r.top) < 1) continue;
+        if (o.math && o.math === r.math) continue;
         const wide = Math.min(o.box.x1, r.box.x1) - Math.max(o.box.x0, r.box.x0);
         const tall = Math.min(o.box.y1, r.box.y1) - Math.max(o.box.y0, r.box.y0);
         if (wide > OVERLAP_MIN_WIDTH_PX && tall > OVERLAP_MIN_HEIGHT_SHARE * Math.min(o.height, r.height)) {
@@ -1319,6 +1329,8 @@
   const CAPITALS = RULES.type.capitals.map(function (t) { return [t[1], t[2], t[3]]; });
   // No text smaller than this on screen, in pixels (`foundations.md`, *Type*).
   const SMALLEST_PX = RULES.type.smallest_px;
+  // The math face's family name (the system's `fonts.css`).
+  const MATH_FACE = 'NewCM Math Subset';
   // The gutters, in pixels: 16 on a phone, 32 from 720 px (`foundations.md`, *Width*).
   const GUTTER_PX = RULES.width.gutter_px;
   const GUTTER_WIDE_PX = RULES.width.gutter_wide_px;
@@ -1353,7 +1365,8 @@
   function probeFrame(win, doc) {
     const reading = readingFactor(win, doc);
     const found = {
-      type: [], type_count: 0, narrow: [], narrow_count: 0, column: [], column_count: 0,
+      type: [], type_count: 0, narrow: [], narrow_count: 0, math: [], math_count: 0,
+      column: [], column_count: 0,
       gutter: [], gutter_count: 0,
       squeezed: [], squeezed_count: 0, note: [], note_count: 0, icon: [], icon_count: 0,
       header: [], header_count: 0, title_block: [], title_block_count: 0,
@@ -1396,7 +1409,12 @@
         const size = parseFloat(s.fontSize);
         const line = s.lineHeight === 'normal' ? NaN : parseFloat(s.lineHeight);
         const shown = size + 'px/' + s.lineHeight + ' ' + family;
-        if (family !== 'Archivo' && family !== 'Cascadia Mono') {
+        // Math is in the math face (`foundations.md`, *Type*), sized as TeX sizes it: 1.1 em of
+        // the text around it, its scripts smaller, never under 12 px.
+        const inMath = el.closest('math');
+        if (inMath) {
+          if (family !== MATH_FACE) note('type', sel, 'font-family', s.fontFamily);
+        } else if (family !== 'Archivo' && family !== 'Cascadia Mono') {
           note('type', sel, 'font-family', s.fontFamily);
         } else {
           // The family's metric-matched fallback second (the system's `fonts.css`), so text
@@ -1405,7 +1423,7 @@
           if (second !== family + ' Fallback') note('type', sel, 'font-family', s.fontFamily);
         }
         // A superscript or subscript sits outside the line's scale, but never below 12 px.
-        if (el.closest('sup, sub')) {
+        if (inMath || el.closest('sup, sub')) {
           if (size < SMALLEST_PX - 0.05) note('type', sel, 'font-size', shown);
         } else if (!SCALE.some(function (t) {
           const k = factorOf(el, reading);
@@ -1451,6 +1469,11 @@
       for (const n of FS.narrow(win, main)) {
         note('narrow', selector(n.block), 'prose held to ' + round(n.width) + ' px',
           'in a box of ' + round(n.room) + ' px');
+      }
+      // A formula wider than its box (the system's `equations`): MathML doesn't break a line.
+      for (const m of FS.equations(win, main)) {
+        note('math', selector(m.math), 'a formula ' + round(m.width) + ' px wide',
+          'in a box of ' + round(m.room) + ' px');
       }
       // What the system's counter reads of the prose, for the run's summary, not a rule: the
       // median line (null under 20 lines) and the longest, in characters.

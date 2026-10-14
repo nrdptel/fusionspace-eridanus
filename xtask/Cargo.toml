@@ -27,6 +27,8 @@ hpr-sim.workspace = true
 # The HPR design format's documents checked against its committed schema (M3.3a).
 jsonschema.workspace = true
 pulldown-cmark.workspace = true
+# The site's equations, typeset when it builds (`cargo xtask site-math`).
+math-core.workspace = true
 # The figure check reads each SVG under docs/ and each --plot figure (M0.7a1).
 roxmltree.workspace = true
 serde.workspace = true

@@ -29,13 +29,14 @@
 //!   TeleMetrum v1, as AltosUI does ("Those ancient versions didn't report the log format, so just
 //!   use the product name instead", the manual's release notes for version 1.4, §H.43.2, p. 128);
 //!   any other product refuses it. Format 1's text prints its four field bytes as two 16-bit words.
-//! - *Checksum.* In the JSON form, every record's bytes sum, with 0x5A, to 0 modulo 256 (the seed
-//!   the TeleDongle's line checksum uses, *AltOS Telemetry* §4, p. 10): every record of the seven
-//!   JSON sample files passes, and fewer than 5% of chunks of a wrong size do. One that fails
-//!   refuses the file ([`LogError::Binary`]). The text form prints no checksum.
+//! - *Checksum.* In the JSON form, every record's bytes sum, with 0x5A, to 0 modulo 256, the seed
+//!   of the line checksum of the TeleDongle, the radio receiver AltosUI listens through (*AltOS
+//!   Telemetry* §4, p. 10): every record of the seven JSON sample files passes (the survey's
+//!   report counts them). One that fails refuses the file ([`LogError::Binary`]). The text form
+//!   prints no checksum.
 //! - *Erased memory.* A record of all 0xFF bytes is erased flash, after the flight's last record,
 //!   and is skipped and counted; a data record after one refuses the file, as the memory's order
-//!   is then unknown.
+//!   is then unknown. Memory that ends partway through a record is refused, erased or not.
 //! - *A malformed line* in the text form's records refuses the file, but the last line of a file
 //!   that ends without a line break, as a download cut short does, is left out with a note: it may
 //!   be cut mid-value however well it reads.
@@ -47,11 +48,11 @@
 //! Appendix F's 100 samples a second) and turns over every 655.36 s. Each record's tick goes on
 //! the turn nearest the latest tick so far. The file's order isn't time order: the samples from
 //! before boost, kept in a ring buffer, are written after the flight record, a state record ahead
-//! of sensor records with earlier ticks, and a GPS record carries its fix's tick, up to 0.96 s
-//! behind; so the records are put in tick order, the file's order kept among equal ticks. A record
-//! more than 10 s from the latest tick, a silence no logging rate leaves, ends the flight: it and
-//! every record after it are left out, counted in a note (one sample file ends with another
-//! session's records, 332 s on). Records repeated exactly, the same bytes at the same tick, as
+//! of sensor records with earlier ticks, and a GPS record carries its fix's earlier tick; so the
+//! records are put in tick order, the file's order kept among equal ticks. A record more than
+//! 10 s from the latest tick, a silence no logging rate leaves, ends the flight: it and every
+//! record after it are left out, counted in a note (one sample file ends with another session's
+//! records, more than 10 s later). Records repeated exactly, the same bytes at the same tick, as
 //! old firmware wrote some, are dropped and counted. Time zero is the flight record's tick, the
 //! board's detection of boost, as in AltosUI's exports: the samples from the pad have negative
 //! times. A file needs exactly one flight record (`F`), or it is refused.
@@ -62,13 +63,13 @@
 //!
 //! | Board (format) | Field | Channel | As read |
 //! |---|---|---|---|
-//! | all with an MS5607 (6, 7, 14, 15, 16, 22) | the barometer's D1 and D2 | `pressure`, `temperature` | Pa and K, by the data sheet's compensation (below); `d1`, `d2` as written without its constants |
+//! | all with an MS5607, the barometer chip (6, 7, 14, 15, 16, 22) | the barometer's D1 and D2 | `pressure`, `temperature` | Pa and K, by the data sheet's compensation (below); `d1`, `d2` as written without its constants |
 //! | TeleMetrum v1 (1) | pressure count | `pressure` | Pa, by the MP3H6115A's transfer function (below) |
-//! | all but EasyMini | the high-g accelerometer's count | `acceleration` | m/s² along the board's axis, from the file's own calibration (below); `accel` as written without one |
-//! | TeleMega, EasyMega (15, 16, 22) | pyro battery, igniters A–D, apogee and main senses | `pyro`, `igniter_a` … `igniter_d`, `drogue_voltage`, `main_voltage` | V, as *AltOS Telemetry* converts a Mega's: count / 4095 × 3.3 V × 127 / 27 (p. 3) |
+//! | all but EasyMini | the high-g accelerometer's count | `acceleration` | m/s² along the flight path, from the file's own calibration (below); `accel` as written without one |
+//! | TeleMega v4.0 and v6.0, EasyMega v2.0 (15, 16, 22) | pyro battery, igniters A–D, apogee and main senses (the voltages across the pyro channels that show continuity) | `pyro`, `igniter_a` … `igniter_d`, `drogue_voltage`, `main_voltage` | V, as *AltOS Telemetry* converts a 15 V Mega's: count / 4095 × 3.3 V × 127 / 27 (p. 3); as written on any other Mega |
 //! | every board | battery and other senses | `v_batt`, `sense_a`, `sense_m` | as written: the factors that fit the exports have no source |
-//! | TeleMetrum v1 (1) | the CC1111's die temperature | `temp` | as written: the data sheet's constants miss AltosUI's export by up to 0.10 K |
-//! | EasyMega v2, TeleMega v6 (16, 22) | the IMU's nine words | `imu_accel_0` … `imu_mag_2` | as written: their scales fit the exports but have no source |
+//! | TeleMetrum v1 (1) | the die temperature of the CC1111, the radio microcontroller whose converter reads the board's sensors | `temp` | as written: no document gives the conversion AltosUI uses, and the CC1111 data sheet's constants don't reproduce its export |
+//! | EasyMega v2, TeleMega v6 (16, 22) | the nine words of the IMU, the inertial unit's accelerometer, gyroscope and magnetometer | `imu_accel_0` … `imu_mag_2` | as written: their scales fit the exports but have no source |
 //! | every board | state | `state` | as written; each change an [`Event`] |
 //! | boards with GPS | latitude, longitude | `latitude`, `longitude` | degrees, from ten-millionths, as *AltOS Telemetry*'s GPS packet (Table 15, pp. 6–7); a gap without a valid fix |
 //! | | altitude | `gps_altitude` | m, as the GPS packet's; with the configuration's `altitude-32`, its high 16 bits too |
@@ -77,11 +78,12 @@
 //! *Pressure and temperature, MS5607.* The data sheet's first-order compensation and, below
 //! 20 °C, its second order (TE Connectivity, *MS5607-02BA03*, 03/2024, Figure 2, p. 8, and Figure
 //! 3, p. 9), in integers, each division by 2ⁿ a floor (an arithmetic shift): truncating instead
-//! misses the exports by 1 Pa at 6 of one cold flight's samples. Second check: the pad's pressure
-//! (the median of the samples before boost, or the first sample's) must lie from 10 to 120 kPa and
-//! within 1% of the flight record's ground pressure, or the file is refused: either failing means
-//! misread bytes. A board without the constants, or whose JSON marks an MS5611, keeps `d1` and `d2`
-//! as written.
+//! gives different pressures below 20 °C, and a unit test pins the floor. Second checks: the pad's
+//! pressure (the median of the samples before boost, or the first sample's) must lie from 10 to
+//! 120 kPa and within 1% of the flight record's ground pressure, the pad's temperature within the
+//! sensor's operating range, −40 to 85 °C (p. 8), and on a board with an accelerometer the climb
+//! check below must pass, or the file is refused: any failing means misread bytes. A board
+//! without the constants, or whose JSON marks an MS5611, keeps `d1` and `d2` as written.
 //!
 //! *Pressure, TeleMetrum v1.* The MP3H6115A's output is `Vout = Vs (0.009 P − 0.095)`, P in kPa
 //! (Freescale, *MP3H6115A*, rev. 5.1, 2012, "Transfer Function", p. 5), read by the CC1111's
@@ -89,19 +91,36 @@
 //! held in the top bits of its two result registers (TI, *CC1110Fx/CC1111Fx*, SWRS033H,
 //! §12.10.2.6, p. 143, and `ADCH`/`ADCL`, p. 144): full scale is 2,047 × 16 = 32,752. So
 //! `P = (count / 32,752 + 0.095) / 0.009` kPa, the converter's reference being the sensor's own
-//! supply (the board's design, which no document states). Second check: the pad's pressure must
-//! lie from 10 to 120 kPa, or the file is refused; the export of the same flight agrees within
-//! half its 0.01 Pa print step (the survey's report).
+//! supply (the board's design, which no document states). Second checks: the pad's pressure must
+//! lie from 10 to 120 kPa, or the file is refused, and the climb check below must pass, or the
+//! counts are kept as written, `pres`, the band alone rejecting almost no count; the export of the
+//! same flight agrees within half its 0.01 Pa print step (the survey's report).
 //!
 //! *Acceleration.* AltosUI calibrates the accelerometer with the board's antenna end up, then down
 //! (the manual, §12.6.20, p. 42), giving its counts at +1 g and −1 g (`accel_cal_plus`,
 //! `accel_cal_minus`, or the text form's `Accel cal +1g: P -1g: M`). The record's
 //! `acceleration` is `(ground − count) / ((minus − plus) / 2) × 9.806 65` m/s², `ground` the
 //! flight record's reading on the pad, 9.806 65 m/s² standard gravity (CGPM, 1901): 0 on the pad,
-//! up the board's axis positive, gravity out. A board mounted antenna down keeps a flipped
-//! calibration (the JSON's `_cooked` values) whose span is the same, so the result doesn't depend
-//! on which pair is read. Without a calibration, with a span that isn't positive or without a
-//! ground reading, the counts are kept as written, `accel`.
+//! positive forward along the flight path, gravity out. A board mounted antenna down logs flipped
+//! counts and keeps a flipped calibration (the JSON's `_cooked` values) whose span is the same, so
+//! the result doesn't depend on which pair is read, as long as both counts come from one pair;
+//! the configuration's `pad_orientation` is a stated figure. Without a calibration, with one
+//! outside a 16-bit count's range, with a span that isn't positive, without a ground reading or
+//! without a pressure in pascals to check it against, or failing the climb check below, the counts
+//! are kept as written, `accel`.
+//!
+//! *The climb check.* On a board with an accelerometer, the climb over the first second after
+//! boost by the pressure, its pressure altitude in the U.S. Standard Atmosphere, 1976 (ISO
+//! 2533:1975's below 32 km), must agree with the climb by the acceleration integrated twice from
+//! rest on the pad: their ratio from 0.6 to 5/3. Outside it, or where the samples don't cover that
+//! second or leave a gap in it of more than 0.1 s, neither unit is borne out: the acceleration's
+//! counts are kept as written, and a TeleMetrum v1's pressure's, which has no other check, too (an
+//! MS5607 board's pressure keeps its flight record's check). On 11 of the 12 sample files with an
+//! accelerometer the ratio runs from 0.859 to 1.400; the twelfth reads about 2, so its counts are
+//! kept (the survey's report prints each). The band catches swapped or misplaced fields, a wrong
+//! sign, and a calibration off by 2 or more on a flight whose ratio is near 1. Without a
+//! calibration an MS5607 board's pressure's second checks are the pad's alone, and a TeleMetrum
+//! v1's pressure is kept as written.
 //!
 //! *Not read.* The TeleMega v4's IMU (format 15): its one sample file's IMU never ran, so its
 //! layout is unconfirmed. Any Mega whose flight record's IMU fields are all zero: its records'
@@ -109,16 +128,17 @@
 //! record before (the tails of state, sense, GPS and satellite records) are never read. A record
 //! type the board's layout doesn't hold is counted in a note.
 //!
-//! *The flight's states.* AltosUI's exports write each state's number beside its name, and in
-//! all 9 sample exports 2 is `pad`, 3 `boost`, 4 `fast`, 5 `coast`, 6 `drogue`, 7 `main`, 8
-//! `landed`; the events take those names, another number `state N`.
+//! *The flight's states.* AltosUI's exports write each state's number beside its name; the
+//! events take the exports' names, 2 `pad`, 3 `boost`, 4 `fast`, 5 `coast`, 6 `drogue`, 7 `main`,
+//! 8 `landed`, and another number `state N`.
 //!
 //! **What the file says about itself.** [`FlightLog::serial_number`] and
 //! [`FlightLog::firmware`] are the configuration's; [`FlightLog::flight_number`] is the flight
 //! record's, not the JSON's `stored_flight` or `flights`, which needn't name the flight the file
 //! holds. [`Stated::figures`] holds the flight record's ground pressure (Pa) and ground
-//! accelerometer reading, the calibration, the IMU's pad readings and the configuration's main
-//! deployment height and apogee delay, as written, in SI where the text form names the unit.
+//! accelerometer reading, the calibration, the pad orientation, the IMU's pad readings and the
+//! configuration's main deployment height and apogee delay, as written, in SI where the text form
+//! names the unit.
 //!
 //! **The primary track.** The file holds no altitude, so [`FlightLog::time_s`] and
 //! [`FlightLog::altitude_m`] are empty, as for the Raven's raw `.FIPa`; every field is a channel
@@ -132,7 +152,8 @@
 //! 46 90 64 01 03 00 19 00 d0 7e 01 00 00 00 00 00
 //! ```
 //!
-//! The same record in the text form, its checksum not printed:
+//! The same record in the text form, its checksum not printed and its tick printed as one
+//! hexadecimal number, `164`, while the other bytes keep their order:
 //!
 //! ```text
 //! F 164 03 00 19 00 d0 7e 01 00 00 00 00 00
@@ -162,11 +183,16 @@ const TURN: i64 = 1 << 16;
 const TICKS_PER_S: f64 = 100.0;
 
 /// The farthest a record's tick may lie from the latest so far, ticks: 10 s. The slowest logging
-/// rate is 10 a second (Appendix F) and a GPS record's tick lags at most 0.96 s in the samples.
+/// rate is 10 a second (Appendix F), so a silence a hundred times longer isn't the board logging
+/// a flight.
 const SILENCE_TICKS: i64 = 1_000;
 
 /// Standard gravity, m/s² (CGPM, 1901).
 const STANDARD_GRAVITY: f64 = 9.806_65;
+
+/// A 16-bit count's range, signed or not: the records hold the accelerometer's count in 16 bits,
+/// so a calibration outside it isn't one of its counts.
+const SIXTEEN_BITS: std::ops::RangeInclusive<i64> = -32_768..=65_535;
 
 /// The pressures a launch site's pad can have, Pa.
 const PAD_PRESSURE_PA: std::ops::RangeInclusive<f64> = 10_000.0..=120_000.0;
@@ -174,18 +200,50 @@ const PAD_PRESSURE_PA: std::ops::RangeInclusive<f64> = 10_000.0..=120_000.0;
 /// How far the pad's pressure may lie from the flight record's ground pressure, as a share of it.
 const GROUND_AGREES: f64 = 0.01;
 
+/// The temperatures the MS5607 works in, K: −40 to 85 °C (*MS5607-02BA03*, operating range,
+/// p. 8 of the 03/2024 issue's specifications). A pad reading outside them is misread bytes.
+const MS5607_OPERATING_K: std::ops::RangeInclusive<f64> = 233.15..=358.15;
+
+/// The climb check's window, ticks: from boost to 1 s after it, early in the motor's burn, where
+/// the rocket is slower and the barometer's ports read nearer the air's pressure than later.
+const CLIMB_WINDOW_TICKS: i64 = 100;
+
+/// The longest gap between two samples the climb check integrates across, ticks: 0.1 s, the
+/// slowest logging rate (Appendix F's 10 a second). A longer one leaves the window unmeasured.
+const CLIMB_GAP_TICKS: i64 = 10;
+
+/// Half the span, ticks, of the samples whose median pressure ends the climb check's window: the
+/// samples within 0.05 s of its last one, so that one noisy sample doesn't decide it.
+const CLIMB_END_TICKS: i64 = 5;
+
+/// The ratios of the climb by the pressure to the climb by the acceleration that the climb check
+/// accepts: 0.6 to 5/3, symmetric about 1 in log terms. On 11 of the 12 sample files with an
+/// accelerometer the ratio lies from 0.859 to 1.400 (the survey's report prints each file's): the
+/// barometer reads the pressure at its ports, which the airflow past them can lower in the climb,
+/// and a high-g accelerometer counts few steps a g. The band leaves those a fifth to spare on
+/// either side, and the twelfth, at about 2, outside: its two sensors disagree by a factor no
+/// port or step explains, so neither unit is taken on trust there.
+const CLIMB_RATIO: std::ops::RangeInclusive<f64> = 0.6..=(5.0 / 3.0);
+
 /// The CC1111's full-scale count, its 12-bit result's 2,047 in the top bits of 16 (SWRS033H,
 /// p. 143, p. 144).
 const CC1111_FULL_SCALE: f64 = 32_752.0;
 
-/// A Mega's sense divider and converter: 12 bits over 3.3 V, behind 100 kΩ over 27 kΩ (*AltOS
-/// Telemetry*, p. 3).
+/// A Mega's sense divider and converter on a board whose pyro channels take up to 15 V: 12 bits
+/// over 3.3 V, behind 100 kΩ over 27 kΩ (*AltOS Telemetry*, p. 3). The same page gives 100 kΩ
+/// over 12 kΩ for the 30 V boards, so the factor is used only for [`MEGA_15_V_PRODUCTS`].
 const MEGA_SENSE_V: f64 = 3.3 / 4095.0 * (100.0 + 27.0) / 27.0;
 
+/// The Mega products whose senses [`MEGA_SENSE_V`] converts: those whose AltosUI exports among the
+/// sample logs bear the 100 kΩ over 27 kΩ divider out. A later TeleMega takes 30 V on its pyro
+/// channels (the manual's release notes for 1.9.20, TeleMega v7.0), so any other product's senses
+/// are kept as written.
+const MEGA_15_V_PRODUCTS: [&str; 3] = ["TeleMega-v4.0", "TeleMega-v6.0", "EasyMega-v2.0"];
+
 /// The format's resolution ([`LogFormat::altitude_resolution_m`]): the file writes no altitude,
-/// and its coarsest pressure is a TeleMetrum v1's, whose counts move by 4 in the sample files:
-/// 4 / 32,752 / 0.009 kPa, 13.6 Pa, or 1.13 m near sea level (`Δh = Δp / (ρ₀ g₀)`). An MS5607
-/// board's moves by a whole pascal.
+/// and its coarsest pressure is a TeleMetrum v1's, whose counts step by 4 in the sample files (the
+/// survey's report prints each file's smallest pressure step): 4 / 32,752 / 0.009 kPa, 13.6 Pa,
+/// or 1.13 m near sea level (`Δh = Δp / (ρ₀ g₀)`). An MS5607 board's steps by a whole pascal.
 pub const ALTITUDE_STEP_M: f64 =
     4.0 / CC1111_FULL_SCALE / 0.009 * 1000.0 / (1.225 * STANDARD_GRAVITY);
 
@@ -318,6 +376,7 @@ struct Config {
     ms5611: bool,
     accel_plus: Option<i64>,
     accel_minus: Option<i64>,
+    pad_orientation: Option<Figure>,
     altitude_32: bool,
     main_deploy: Option<Figure>,
     apogee_delay: Option<Figure>,
@@ -366,10 +425,20 @@ fn value_of<'a>(line: &'a str, key: &str) -> Option<&'a str> {
 ///
 /// # Errors
 ///
-/// [`LogError::NotThisFormat`] for a file in neither form; [`LogError::Syntax`] for a log format
-/// the reader doesn't know (named by number), a malformed line, a configuration whose copies
-/// differ, a file with no flight record or two; [`LogError::Binary`] for a JSON record whose
-/// checksum fails, a record after erased memory, or a pad pressure that isn't a launch site's.
+/// - [`LogError::NotThisFormat`] for a file in neither form.
+/// - [`LogError::NoData`] for a file with no records: none after the configuration, or in the
+///   JSON form only erased memory.
+/// - [`LogError::Syntax`], with the line, for a fault in the text form or in the JSON form's head:
+///   a log format the reader doesn't know (named by number) or none for a product other than a
+///   TeleMetrum v1, a malformed line, a configuration whose copies differ, a token in the memory
+///   that isn't two hexadecimal digits.
+/// - [`LogError::Binary`], with the byte, for a fault in the JSON form's memory: a record whose
+///   checksum fails, a record after erased memory, memory that ends partway through a record.
+/// - For a fault in the records themselves, either, at the record (a line of the text form, a
+///   byte of the JSON form's memory): no flight record or two; the pad's pressure outside a
+///   launch site's or away from the flight record's; the pad's temperature outside the
+///   barometer's operating range; the climb by the pressure and the climb by the acceleration out
+///   of each other's band; or a first second after boost too short to measure the climb over.
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
     if !recognizes(text) {
         return Err(LogError::NotThisFormat {
@@ -420,7 +489,7 @@ fn format_of(config: &Config, at: At) -> Result<(i64, Board, usize, bool), LogEr
                 format!(
                     "the configuration states no log format, and its product, {:?}, isn't a \
                      TeleMetrum v1, whose firmware before 1.0 logged format 1",
-                    config.product.as_deref().unwrap_or("none")
+                    cut(config.product.as_deref().unwrap_or("none"))
                 ),
             ));
         }
@@ -461,8 +530,14 @@ fn json_form(text: &str) -> Result<Raw, LogError> {
             .get("version")
             .and_then(Value::as_str)
             .map(str::to_owned),
-        accel_plus: int("accel_cal_plus").or(int("accel_cal_plus_cooked")),
-        accel_minus: int("accel_cal_minus").or(int("accel_cal_minus_cooked")),
+        pad_orientation: int("pad_orientation").map(|value| {
+            Figure::new(
+                "pad_orientation",
+                value.to_string(),
+                Some(Quantity::Number),
+                vec![value as f64],
+            )
+        }),
         altitude_32: int("altitude_32") == Some(1),
         main_deploy: int("main_deploy").map(|value| {
             Figure::new(
@@ -482,6 +557,15 @@ fn json_form(text: &str) -> Result<Raw, LogError> {
         }),
         ..Config::default()
     };
+    // The calibration's two counts from one pair, both as calibrated or both flipped for a board
+    // mounted antenna down, never one of each.
+    if let (Some(plus), Some(minus)) = (int("accel_cal_plus"), int("accel_cal_minus")) {
+        (config.accel_plus, config.accel_minus) = (Some(plus), Some(minus));
+    } else if let (Some(plus), Some(minus)) =
+        (int("accel_cal_plus_cooked"), int("accel_cal_minus_cooked"))
+    {
+        (config.accel_plus, config.accel_minus) = (Some(plus), Some(minus));
+    }
     if let Some(Value::Object(ms5607)) = head.get("ms5607") {
         config.ms5611 = ms5607.get("ms5611").and_then(Value::as_bool) == Some(true);
         let constant = |key: &str| {
@@ -503,7 +587,8 @@ fn json_form(text: &str) -> Result<Raw, LogError> {
     let mut bytes = Vec::with_capacity((text.len() - end) / 3);
     for (k, line) in text[end..].split('\n').enumerate() {
         for token in line.split_ascii_whitespace() {
-            let byte = (token.len() == 2)
+            // Two hexadecimal digits exactly: `from_str_radix` alone would take a sign, `+6`.
+            let byte = (token.len() == 2 && token.bytes().all(|b| b.is_ascii_hexdigit()))
                 .then(|| u8::from_str_radix(token, 16).ok())
                 .flatten()
                 .ok_or_else(|| {
@@ -523,11 +608,7 @@ fn json_form(text: &str) -> Result<Raw, LogError> {
     let mut first_erased: Option<usize> = None;
     for (k, chunk) in bytes.chunks(size).enumerate() {
         let offset = k * size;
-        if chunk.iter().all(|byte| *byte == 0xff) {
-            erased += 1;
-            first_erased.get_or_insert(offset);
-            continue;
-        }
+        // A short chunk is refused even if erased: memory is a whole number of records.
         if chunk.len() < size {
             return Err(refuse(
                 At::Offset(offset),
@@ -536,6 +617,11 @@ fn json_form(text: &str) -> Result<Raw, LogError> {
                     chunk.len()
                 ),
             ));
+        }
+        if chunk.iter().all(|byte| *byte == 0xff) {
+            erased += 1;
+            first_erased.get_or_insert(offset);
+            continue;
         }
         if let Some(erased_at) = first_erased {
             return Err(refuse(
@@ -648,7 +734,9 @@ fn text_form(text: &str) -> Result<Raw, LogError> {
                     At::Line(number),
                     format!(
                         "the configuration is printed more than once, and its {key} here, \
-                         {value:?}, differs from line {at}'s, {first:?}"
+                         {:?}, differs from line {at}'s, {:?}",
+                        cut(&value),
+                        cut(first)
                     ),
                 )),
                 Some(_) => Ok(false),
@@ -668,10 +756,12 @@ fn text_form(text: &str) -> Result<Raw, LogError> {
             }
         } else if let Some(value) = value_of(line, "log-format") {
             if agree("log format", value.to_owned())? {
-                config.log_format =
-                    Some(value.parse().map_err(|_| {
-                        refuse(At::Line(number), format!("a log format of {value:?}"))
-                    })?);
+                config.log_format = Some(value.parse().map_err(|_| {
+                    refuse(
+                        At::Line(number),
+                        format!("a log format of {:?}", cut(value)),
+                    )
+                })?);
             }
         } else if let Some(value) = value_of(line, "software-version") {
             if agree("firmware", value.to_owned())? {
@@ -698,6 +788,23 @@ fn text_form(text: &str) -> Result<Raw, LogError> {
                 && agree(PROM_KEYS[index].1, value.to_owned())?
             {
                 prom[index] = value.parse().ok().filter(|c| (0..=0xffff).contains(c));
+            }
+        } else if let Some(rest) = line.strip_prefix("Pad orientation:") {
+            let written = rest.trim();
+            if agree("pad orientation", written.to_owned())? {
+                let value = written
+                    .split_whitespace()
+                    .next()
+                    .and_then(|word| word.parse::<i64>().ok());
+                config.pad_orientation = Some(match value {
+                    Some(value) => Figure::new(
+                        "pad_orientation",
+                        cut(written),
+                        Some(Quantity::Number),
+                        vec![value as f64],
+                    ),
+                    None => Figure::new("pad_orientation", cut(written), None, Vec::new()),
+                });
             }
         } else if let Some(rest) = line.strip_prefix("Main deploy:")
             && config.main_deploy.is_none()
@@ -915,6 +1022,9 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
         erased,
         last_line_cut,
     } = raw;
+    if records.is_empty() {
+        return Err(LogError::NoData { format: FORMAT });
+    }
     let read_in_file = records.len();
     let (ticks, kept) = unwind(&records);
     let after_silence = read_in_file - kept;
@@ -984,6 +1094,13 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
         },
     };
 
+    let prom = match board {
+        Board::TeleMetrumV1 => None,
+        _ if config.ms5611 => None,
+        _ => config.prom,
+    };
+    // The pressure in pascals, which the climb check holds the acceleration to.
+    let pascals = board == Board::TeleMetrumV1 || prom.is_some();
     let accel = match (
         board,
         config.accel_plus,
@@ -991,19 +1108,29 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
         flight.ground_accel,
     ) {
         (Board::EasyMini, ..) => Accel::AsWritten("the board has no accelerometer"),
-        (_, Some(plus), Some(minus), Some(ground)) if minus > plus => Accel::Converted {
-            zero: ground as f64,
-            per_g: (minus - plus) as f64 / 2.0,
+        (_, Some(plus), Some(minus), Some(_))
+            if !SIXTEEN_BITS.contains(&plus) || !SIXTEEN_BITS.contains(&minus) =>
+        {
+            Accel::AsWritten("the calibration lies outside a 16-bit count's range")
+        }
+        (_, Some(plus), Some(minus), Some(ground)) => match minus.checked_sub(plus) {
+            Some(span) if span > 0 && pascals => Accel::Converted {
+                zero: ground as f64,
+                per_g: span as f64 / 2.0,
+            },
+            Some(span) if span > 0 => Accel::AsWritten(
+                "no pressure in pascals to hold it to, so its unit has no second check",
+            ),
+            _ => Accel::AsWritten("the calibration's span isn't positive"),
         },
-        (_, Some(_), Some(_), Some(_)) => Accel::AsWritten("the calibration's span isn't positive"),
         (_, _, _, Some(_)) => Accel::AsWritten("the calibration isn't set"),
         _ => Accel::AsWritten("the flight record holds no ground reading"),
     };
-    let prom = match board {
-        Board::TeleMetrumV1 => None,
-        _ if config.ms5611 => None,
-        _ => config.prom,
-    };
+    // A Mega's senses in volts only where the product's divider is the one converted by.
+    let mega_volts = config
+        .product
+        .as_deref()
+        .is_some_and(|product| MEGA_15_V_PRODUCTS.contains(&product));
     let imu_read = match board {
         Board::Mega => {
             log_format != 15 && (flight.imu_accel != [0; 3] || flight.gyro_sums != [0; 3])
@@ -1023,6 +1150,87 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
         .map(|&k| ticks[k])
         .collect();
 
+    // The second check of the acceleration's unit and, on a TeleMetrum v1, of the pressure's:
+    // their climbs over the first second after boost agree. Where they don't, or can't be
+    // measured, both are kept as written: neither unit is borne out.
+    let (accel, v1_pascals, climb_note) = match accel {
+        Accel::Converted { zero, per_g } => {
+            let samples: Vec<(i64, f64, f64)> = order
+                .iter()
+                .filter_map(|&k| {
+                    let (pa, count) = climb_sample(board, &records[k], prom.as_ref())?;
+                    let along = (zero - count as f64) / per_g * STANDARD_GRAVITY;
+                    Some((ticks[k] - zero_tick, pa, along))
+                })
+                .collect();
+            let v1 = if board == Board::TeleMetrumV1 {
+                ", and the TeleMetrum v1's `pressure`, which has no other check, too"
+            } else {
+                ""
+            };
+            match climb_over_the_window(&samples) {
+                // Both climbs upward, and in the band: two downward climbs make a ratio in it too.
+                Ok(measured)
+                    if measured.by_acceleration_m > 0.0
+                        && CLIMB_RATIO.contains(&measured.ratio) =>
+                {
+                    let note = format!(
+                        "`pressure` and `acceleration` held to each other: over the first second \
+                         after boost the rocket climbs {:.1} m by the pressure in the standard \
+                         atmosphere and {:.1} m by the acceleration integrated twice from rest on \
+                         the pad, a ratio of {:.3}, within 0.6 to 5/3",
+                        measured.by_pressure_m, measured.by_acceleration_m, measured.ratio
+                    );
+                    (accel, true, Some(note))
+                }
+                Ok(measured) => {
+                    let note = format!(
+                        "over the first second after boost the rocket climbs {:.1} m by the \
+                         pressure and {:.1} m by the acceleration, a ratio of {:.3}, outside 0.6 \
+                         to 5/3: the two disagree, so the acceleration's counts are kept as \
+                         written{v1}",
+                        measured.by_pressure_m, measured.by_acceleration_m, measured.ratio
+                    );
+                    (
+                        Accel::AsWritten("its climb disagrees with the pressure's"),
+                        false,
+                        Some(note),
+                    )
+                }
+                Err(why) => {
+                    let note = format!(
+                        "the climb over the first second after boost can't be measured ({why}), \
+                         so the acceleration's counts are kept as written{v1}"
+                    );
+                    (
+                        Accel::AsWritten("its climb can't be measured"),
+                        false,
+                        Some(note),
+                    )
+                }
+            }
+        }
+        Accel::AsWritten(why) => {
+            let note = if board == Board::TeleMetrumV1 {
+                Some(
+                    "`pres` kept as written: with the acceleration kept as written there is no \
+                     climb to hold the TeleMetrum v1's pressure to, and the pad's band alone \
+                     rejects almost no count"
+                        .to_owned(),
+                )
+            } else if board != Board::EasyMini && prom.is_some() {
+                Some(
+                    "`pressure`'s second check is the pad's alone: the acceleration, kept as \
+                     written, gives no climb to hold it to"
+                        .to_owned(),
+                )
+            } else {
+                None
+            };
+            (Accel::AsWritten(why), false, note)
+        }
+    };
+
     let mut channels = Channels::default();
     let mut events: Vec<Event> = Vec::new();
     let mut state: Option<u16> = None;
@@ -1031,6 +1239,10 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
     let mut sense_counts_off = 0usize;
     let mut satellites_cut = 0usize;
     let mut before_boost = 0usize;
+    let along = |count: i64| match &accel {
+        Accel::Converted { zero, per_g } => Some((zero - count as f64) / per_g * STANDARD_GRAVITY),
+        Accel::AsWritten(_) => None,
+    };
     for &k in &order {
         let record = &records[k];
         let time = (ticks[k] - zero_tick) as f64 / TICKS_PER_S;
@@ -1040,14 +1252,11 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
         let mut push = |name: &str, quantity: Quantity, value: f64| {
             channels.push(name, quantity, time, value);
         };
-        let accelerometer = |push: &mut dyn FnMut(&str, Quantity, f64), count: i64| match &accel {
-            Accel::Converted { zero, per_g } => push(
-                "acceleration",
-                Quantity::Acceleration,
-                (zero - count as f64) / per_g * STANDARD_GRAVITY,
-            ),
-            Accel::AsWritten(_) => push("accel", Quantity::Unrecognized, count as f64),
-        };
+        let accelerometer =
+            |push: &mut dyn FnMut(&str, Quantity, f64), count: i64| match along(count) {
+                Some(value) => push("acceleration", Quantity::Acceleration, value),
+                None => push("accel", Quantity::Unrecognized, count as f64),
+            };
         let barometer = |push: &mut dyn FnMut(&str, Quantity, f64), d1: u32, d2: u32| match &prom {
             Some(prom) => {
                 let (pa, centi) = ms5607(d1, d2, prom);
@@ -1103,8 +1312,13 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
                 push("state", Quantity::Number, f64::from(now));
             }
             (Board::TeleMetrumV1, b'A') => {
-                accelerometer(&mut push, i64::from(record.i16(4)));
-                push("pressure", Quantity::Pressure, mp3h6115a_pa(record.i16(6)));
+                let (count, pres) = (i64::from(record.i16(4)), record.i16(6));
+                accelerometer(&mut push, count);
+                if v1_pascals {
+                    push("pressure", Quantity::Pressure, mp3h6115a_pa(pres));
+                } else {
+                    push("pres", Quantity::Unrecognized, f64::from(pres));
+                }
             }
             (Board::TeleMetrumV1, b'T') => {
                 push("temp", Quantity::Unrecognized, f64::from(record.i16(4)));
@@ -1156,8 +1370,9 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
                 push("v_batt", Quantity::Unrecognized, f64::from(record.u16(14)));
             }
             (Board::TeleMetrumV2, b'A') => {
-                barometer(&mut push, record.u32(4), record.u32(8));
-                accelerometer(&mut push, i64::from(record.i16(12)));
+                let (d1, d2, count) = (record.u32(4), record.u32(8), i64::from(record.i16(12)));
+                barometer(&mut push, d1, d2);
+                accelerometer(&mut push, count);
             }
             (Board::TeleMetrumV2, b'T') => {
                 push("v_batt", Quantity::Unrecognized, f64::from(record.i16(4)));
@@ -1187,7 +1402,8 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
                 }
             }
             (Board::Mega, b'A') => {
-                barometer(&mut push, record.u32(4), record.u32(8));
+                let (d1, d2) = (record.u32(4), record.u32(8));
+                barometer(&mut push, d1, d2);
                 if imu_read {
                     const IMU: [&str; 9] = [
                         "imu_accel_0",
@@ -1208,15 +1424,20 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
                         );
                     }
                 }
-                accelerometer(&mut push, i64::from(record.i16(30)));
+                let count = i64::from(record.i16(30));
+                accelerometer(&mut push, count);
             }
             (Board::Mega, b'T') => {
                 push("v_batt", Quantity::Unrecognized, f64::from(record.i16(4)));
-                push(
-                    "pyro",
-                    Quantity::Voltage,
-                    f64::from(record.i16(6)) * MEGA_SENSE_V,
-                );
+                let volts = |count: i16| {
+                    if mega_volts {
+                        (Quantity::Voltage, f64::from(count) * MEGA_SENSE_V)
+                    } else {
+                        (Quantity::Unrecognized, f64::from(count))
+                    }
+                };
+                let (quantity, value) = volts(record.i16(6));
+                push("pyro", quantity, value);
                 let senses = record.i16(8);
                 push("n_sense", Quantity::Number, f64::from(senses));
                 if senses == 6 {
@@ -1229,11 +1450,8 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
                         "main_voltage",
                     ];
                     for (j, name) in SENSES.into_iter().enumerate() {
-                        push(
-                            name,
-                            Quantity::Voltage,
-                            f64::from(record.i16(10 + 2 * j)) * MEGA_SENSE_V,
-                        );
+                        let (quantity, value) = volts(record.i16(10 + 2 * j));
+                        push(name, quantity, value);
                     }
                 } else {
                     sense_counts_off += 1;
@@ -1341,6 +1559,29 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
         }
     }
 
+    // The pad's temperature, an MS5607's: within the sensor's operating range.
+    let pad_temperature = channels.get("temperature").and_then(|(times, values)| {
+        let mut before: Vec<f64> = times
+            .iter()
+            .zip(values)
+            .filter(|(time, value)| **time < 0.0 && value.is_finite())
+            .map(|(_, value)| *value)
+            .collect();
+        crate::filter::median(&mut before).or_else(|| values.first().copied())
+    });
+    if let Some(kelvin) = pad_temperature
+        && !MS5607_OPERATING_K.contains(&kelvin)
+    {
+        return Err(refuse(
+            f.at,
+            format!(
+                "the pad's temperature reads {:.1} °C, outside the MS5607's operating range, −40 \
+                 to 85 °C: the records are misread or damaged",
+                kelvin - 273.15
+            ),
+        ));
+    }
+
     let mut notes = Vec::new();
     notes.push(if json {
         format!(
@@ -1389,6 +1630,15 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
          before boost, at negative times"
     ));
     if let Some(note) = pad_note {
+        notes.push(note);
+    }
+    if let Some(kelvin) = pad_temperature {
+        notes.push(format!(
+            "`temperature` on the pad, {:.1} °C, within the MS5607's operating range, −40 to 85 °C",
+            kelvin - 273.15
+        ));
+    }
+    if let Some(note) = climb_note {
         notes.push(note);
     }
     if prom.is_none() && board != Board::TeleMetrumV1 {
@@ -1443,11 +1693,18 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
         ));
     }
     if channels.get("pyro").is_some() {
-        notes.push(
+        notes.push(if mega_volts {
             "`pyro`, the igniters' and the apogee and main senses in V, as AltOS Telemetry \
              converts a 15 V Mega's: count / 4095 × 3.3 V × 127 / 27"
-                .to_owned(),
-        );
+                .to_owned()
+        } else {
+            format!(
+                "`pyro`, the igniters' and the apogee and main senses kept as written: the \
+                 product, {}, isn't one whose divider the sample exports bear out, and a 30 V \
+                 board's isn't a 15 V board's",
+                cut(config.product.as_deref().unwrap_or("not stated"))
+            )
+        });
     }
     if sense_counts_off > 0 {
         notes.push(format!(
@@ -1544,6 +1801,7 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
             gyro,
         ));
     }
+    figures.extend(config.pad_orientation);
     figures.extend(config.main_deploy);
     figures.extend(config.apogee_delay);
 
@@ -1568,6 +1826,108 @@ fn decode(raw: Raw) -> Result<FlightLog, LogError> {
         channels: channels.into_channels(),
         events,
         notes,
+    })
+}
+
+/// What the climb check measured: the climb over the first second after boost by the pressure and
+/// by the acceleration, m, and the first over the second.
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct Climb {
+    by_pressure_m: f64,
+    by_acceleration_m: f64,
+    ratio: f64,
+}
+
+/// A sensor record's pressure in pascals and its along-axis acceleration count, for the climb
+/// check: the TeleMetrum v1's by its sensor's transfer function, an MS5607 board's by the data
+/// sheet's compensation; `None` for any other record, or an MS5607 board without its calibration.
+fn climb_sample(board: Board, record: &Record, prom: Option<&Prom>) -> Option<(f64, i64)> {
+    if record.kind() != b'A' {
+        return None;
+    }
+    match board {
+        Board::TeleMetrumV1 => Some((mp3h6115a_pa(record.i16(6)), i64::from(record.i16(4)))),
+        Board::TeleMetrumV2 => {
+            let (pa, _) = ms5607(record.u32(4), record.u32(8), prom?);
+            Some((pa as f64, i64::from(record.i16(12))))
+        }
+        Board::Mega => {
+            let (pa, _) = ms5607(record.u32(4), record.u32(8), prom?);
+            Some((pa as f64, i64::from(record.i16(30))))
+        }
+        Board::EasyMini => None,
+    }
+}
+
+/// The climb check's measurement over the samples holding both a pressure, Pa, and an
+/// acceleration along the board's axis, m/s², each with its tick from the flight record's, in tick
+/// order; `Err` saying why the window can't be measured.
+///
+/// The climb by the pressure is the pressure altitude, in the U.S. Standard Atmosphere, 1976
+/// ([`hpr_atmos::ussa76`]; ISO 2533:1975's below 32 km), at the window's end less the pad's: the
+/// median pressure of the samples within [`CLIMB_END_TICKS`] of the window's last sample, and of
+/// the samples before boost. The climb by the acceleration is the acceleration integrated twice by
+/// the trapezoid rule from the first sample before boost, at rest: zero speed, and zero
+/// acceleration on the pad by the reading's own zero. The window must start before boost, run to
+/// [`CLIMB_WINDOW_TICKS`] after it, and hold no gap over [`CLIMB_GAP_TICKS`].
+fn climb_over_the_window(samples: &[(i64, f64, f64)]) -> Result<Climb, String> {
+    let seconds = |ticks: i64| ticks as f64 / TICKS_PER_S;
+    let mut pad: Vec<f64> = samples
+        .iter()
+        .filter(|(tick, ..)| *tick < 0)
+        .map(|(_, pa, _)| *pa)
+        .collect();
+    let pad_pa =
+        crate::filter::median(&mut pad).ok_or("no sample before boost to start from at rest")?;
+    let last = samples.last().map_or(i64::MIN, |(tick, ..)| *tick);
+    if last < CLIMB_WINDOW_TICKS {
+        return Err(format!(
+            "the samples end {:.2} s after boost, before the window's 1 s",
+            seconds(last)
+        ));
+    }
+    let mut window = Vec::new();
+    for pair in samples.windows(2) {
+        let [(from, ..), (to, ..)] = [pair[0], pair[1]];
+        if to - from > CLIMB_GAP_TICKS {
+            return Err(format!(
+                "no sample for {:.2} s after the one at {:.2} s, more than the slowest logging \
+                 rate's 0.1 s",
+                seconds(to - from),
+                seconds(from)
+            ));
+        }
+        window.push(pair);
+        if to >= CLIMB_WINDOW_TICKS {
+            break;
+        }
+    }
+    let mut end = samples.first().map_or(0, |(tick, ..)| *tick);
+    let (mut speed, mut climb_by_acceleration) = (0.0, 0.0);
+    for pair in window {
+        let [(from, _, a0), (to, _, a1)] = [pair[0], pair[1]];
+        if to > CLIMB_WINDOW_TICKS {
+            break;
+        }
+        let dt = seconds(to - from);
+        let next = speed + (a0 + a1) / 2.0 * dt;
+        climb_by_acceleration += (speed + next) / 2.0 * dt;
+        speed = next;
+        end = to;
+    }
+    let mut near: Vec<f64> = samples
+        .iter()
+        .filter(|(tick, ..)| (tick - end).abs() <= CLIMB_END_TICKS)
+        .map(|(_, pa, _)| *pa)
+        .collect();
+    let end_pa = crate::filter::median(&mut near).unwrap_or(f64::NAN);
+    let atmosphere = hpr_atmos::ussa76::Ussa76::standard();
+    let height = |pa: f64| atmosphere.pressure_altitude_m(pa).unwrap_or(f64::NAN);
+    let by_pressure_m = height(end_pa) - height(pad_pa);
+    Ok(Climb {
+        by_pressure_m,
+        by_acceleration_m: climb_by_acceleration,
+        ratio: by_pressure_m / climb_by_acceleration,
     })
 }
 
@@ -1716,10 +2076,53 @@ mod tests {
         out
     }
 
+    /// The pressure, Pa, at a pressure altitude, m, in the standard atmosphere's troposphere: the
+    /// altimeter formula `H = 44,330.8 m [1 − (P / 101,325 Pa)^0.190263]`
+    /// ([`hpr_atmos::ussa76::Ussa76::pressure_altitude_m`]'s), turned round.
+    fn pressure_at(altitude_m: f64) -> f64 {
+        101_325.0 * (1.0 - altitude_m / 44_330.8).powf(1.0 / 0.190_263)
+    }
+
+    /// The pressure altitude, m, of a pressure, Pa, by the same formula.
+    fn altitude_of(pressure_pa: f64) -> f64 {
+        44_330.8 * (1.0 - (pressure_pa / 101_325.0).powf(0.190_263))
+    }
+
+    /// The height, m, the invented flights reach `t` s after boost at 5 g: `x = a t² / 2`.
+    fn climbed_m(t: f64) -> f64 {
+        0.5 * 5.0 * STANDARD_GRAVITY * t * t
+    }
+
+    /// The MS5607's D1 that reads `pa` with the data sheet's example constants and D2 (20.00 °C,
+    /// first order only, OFF 5,764,707,214 and SENS 3,039,050,829, p. 8): the least D1 with
+    /// `((D1 SENS) >> 21 − OFF) >> 15 = pa`.
+    fn d1_for(pa: f64) -> u32 {
+        let (off, sens) = (5_764_707_214_i128, 3_039_050_829_i128);
+        let wanted = pa.round() as i128;
+        let d1 = ((((wanted << 15) + off) << 21) + sens - 1) / sens;
+        let d1 = u32::try_from(d1).unwrap();
+        assert_eq!(ms5607(d1, EXAMPLE_D2, &EXAMPLE_PROM).0, wanted);
+        d1
+    }
+
+    /// A TeleMetrum v2's climb from boost at tick `zero` to 1.1 s after it, a sample every
+    /// 0.1 s: 5 g, 100 counts below the ground reading of 1,000 at 20 counts a g, and the
+    /// pressure the standard atmosphere gives the height that reaches, from 110,002 Pa on the pad.
+    fn climb_v2(zero: u16) -> Vec<Vec<u8>> {
+        let pad_m = altitude_of(110_002.0);
+        (1..=11u16)
+            .map(|k| {
+                let pa = pressure_at(pad_m + climbed_m(f64::from(k) / 10.0));
+                a7(zero.wrapping_add(10 * k), d1_for(pa), EXAMPLE_D2, 900)
+            })
+            .collect()
+    }
+
     /// An invented flight: the pad's samples written after the flight record, a state record
-    /// ahead of the samples it follows, a climb.
+    /// ahead of the samples it follows, the first hundredths of a climb, then the climb a sample
+    /// every 0.1 s to 1.1 s after boost, for the climb check.
     fn flight_v2() -> Vec<Vec<u8>> {
-        vec![
+        let mut records = vec![
             f7(200, 3, 1000, 110_002),
             a7(198, EXAMPLE_D1, EXAMPLE_D2, 1000),
             a7(199, EXAMPLE_D1, EXAMPLE_D2, 1001),
@@ -1727,7 +2130,47 @@ mod tests {
             a7(200, EXAMPLE_D1, EXAMPLE_D2, 960),
             a7(201, EXAMPLE_D1 - 1000, EXAMPLE_D2, 900),
             a7(202, EXAMPLE_D1 - 2000, EXAMPLE_D2, 1040),
-        ]
+        ];
+        records.extend(climb_v2(200));
+        records
+    }
+
+    /// The records in [`flight_v2`] before its climb every 0.1 s.
+    const HEAD_RECORDS: usize = 7;
+
+    /// A TeleMetrum v1's sample: the accelerometer's count, then the pressure's.
+    fn a1(tick: u16, accel: i16, pressure: i16) -> Vec<u8> {
+        let mut fields = accel.to_le_bytes().to_vec();
+        fields.extend(pressure.to_le_bytes());
+        record(8, b'A', tick, &fields)
+    }
+
+    /// The MP3H6115A's count for a pressure, Pa: the transfer function turned round.
+    fn mp3h6115a_count(pa: f64) -> i16 {
+        ((pa / 1000.0 * 0.009 - 0.095) * CC1111_FULL_SCALE).round() as i16
+    }
+
+    /// A TeleMetrum v1's configuration in the JSON form, its calibration 250 counts a g.
+    const HEAD_V1: &str = r#"{"log_format": 1, "product": "TeleMetrum-v1.2", "serial": 77,
+        "accel_cal_plus": 16000, "accel_cal_minus": 16500}"#;
+
+    /// A TeleMetrum v1's flight, 8-byte records: the flight record at tick 100 with a ground
+    /// reading of 16,000, three samples at `pad_count`, two at rest and one at boost, then 5 g, 1,250 counts below it at
+    /// 250 counts a g, a sample every 0.1 s to 1.1 s after boost, the pressure the standard
+    /// atmosphere gives the height reached.
+    fn flight_v1(pad_count: i16) -> Vec<Vec<u8>> {
+        let pad_m = altitude_of(mp3h6115a_pa(pad_count));
+        let mut records = vec![
+            record(8, b'F', 100, &[0x80, 0x3e, 3, 0]),
+            a1(98, 16_000, pad_count),
+            a1(99, 16_000, pad_count),
+            a1(100, 14_750, pad_count),
+        ];
+        for k in 1..=11u16 {
+            let pa = pressure_at(pad_m + climbed_m(f64::from(k) / 10.0));
+            records.push(a1(100 + 10 * k, 14_750, mp3h6115a_count(pa)));
+        }
+        records
     }
 
     fn channel<'a>(log: &'a FlightLog, column: &str) -> Option<&'a Channel> {
@@ -1858,7 +2301,8 @@ mod tests {
         assert!(log.time_s.is_empty() && log.altitude_m.is_empty());
         let pressure = channel(&log, "pressure").unwrap();
         assert_eq!(pressure.quantity, Quantity::Pressure);
-        assert_eq!(pressure.time_s, [-0.02, -0.01, 0.0, 0.01, 0.02]);
+        assert_eq!(pressure.time_s[..5], [-0.02, -0.01, 0.0, 0.01, 0.02]);
+        assert_eq!(pressure.time_s[5..7], [0.1, 0.2]);
         assert_eq!(pressure.values[..3], [110_002.0; 3]);
         assert!(pressure.values[3] < pressure.values[2]);
         assert!((values(&log, "temperature")[0] - 293.15).abs() < 1e-9);
@@ -1883,12 +2327,14 @@ mod tests {
         assert_eq!(figure("main_deploy").quantity, Some(Quantity::Unrecognized));
         assert!(has_note(
             &log,
-            "7 records of 16 bytes, log format 7, from the JSON form"
+            "18 records of 16 bytes, log format 7, from the JSON form"
         ));
         assert!(has_note(
             &log,
             "the clock is the board's tick, 10 ms, from the flight record's at tick 200"
         ));
+        let figure = |name: &str| log.stated.figures.iter().find(|f| f.name == name);
+        assert!(figure("pad_orientation").is_none(), "the head states none");
     }
 
     /// The text form of the same records reads to the same channels and events.
@@ -1903,7 +2349,7 @@ mod tests {
         assert_eq!(from_json.firmware, from_text.firmware);
         assert!(has_note(
             &from_text,
-            "7 records of 16 bytes, log format 7, from the text form"
+            "18 records of 16 bytes, log format 7, from the text form"
         ));
         // The text form names its settings' units, so they are in SI.
         let main = from_text
@@ -1986,17 +2432,15 @@ mod tests {
             }
             other => panic!("{other:?}"),
         }
-        let head_v1 = r#"{"log_format": 2147483647, "product": "TeleMetrum-v1.0", "accel_cal_plus": 16000, "accel_cal_minus": 16500}"#;
-        let records = [
-            record(8, b'F', 100, &[0x80, 0x3e, 3, 0]),
-            record(8, b'A', 100, &[0x80, 0x3e, 0xc0, 0x5d]),
-        ];
-        let log = read(&json(head_v1, &records)).unwrap();
+        let head_v1 = HEAD_V1
+            .replace("\"log_format\": 1", "\"log_format\": 2147483647")
+            .replace("TeleMetrum-v1.2", "TeleMetrum-v1.0");
+        let log = read(&json(&head_v1, &flight_v1(24_000))).unwrap();
         assert!(has_note(
             &log,
             "the configuration states no log format, as firmware before 1.0"
         ));
-        assert!(has_note(&log, "2 records of 8 bytes, log format 1"));
+        assert!(has_note(&log, "15 records of 8 bytes, log format 1"));
     }
 
     /// Erased memory after the last record is counted; a record after it refuses the file.
@@ -2015,17 +2459,57 @@ mod tests {
             Err(LogError::Binary {
                 offset, message, ..
             }) => {
-                assert_eq!(offset, 9 * 16);
+                assert_eq!(offset, 20 * 16);
                 assert!(
-                    message.starts_with("a record after the erased memory from byte 112"),
+                    message.starts_with("a record after the erased memory from byte 288"),
                     "{message}"
                 );
             }
             other => panic!("{other:?}"),
         }
-        // A token that isn't a byte refuses the file, naming its line.
-        let damaged = json(HEAD_V2, &flight_v2()).replacen("\n46 ", "\n4g ", 1);
-        assert!(matches!(read(&damaged), Err(LogError::Syntax { .. })));
+        // A token that isn't a byte refuses the file, naming its line; so does a sign, which
+        // `from_str_radix` alone would take.
+        for token in ["4g", "+6"] {
+            let damaged = json(HEAD_V2, &flight_v2()).replacen("\n46 ", &format!("\n{token} "), 1);
+            match read(&damaged) {
+                Err(LogError::Syntax { message, .. }) => assert!(
+                    message.starts_with(&format!("\"{token}\" where the memory's bytes")),
+                    "{message}"
+                ),
+                other => panic!("{token}: {other:?}"),
+            }
+        }
+        // A short chunk of erased bytes at the end is a record cut short, not erased memory.
+        let mut short = json(HEAD_V2, &flight_v2());
+        short.push_str("ff ff ff ff\n");
+        match read(&short) {
+            Err(LogError::Binary {
+                offset, message, ..
+            }) => {
+                assert_eq!(offset, 18 * 16);
+                assert!(
+                    message.starts_with("the memory ends in 4 bytes, part of a 16-byte record"),
+                    "{message}"
+                );
+            }
+            other => panic!("{other:?}"),
+        }
+    }
+
+    /// A file with no records, in either form, holds no data: no memory, only erased memory, or
+    /// only a last line cut short.
+    #[test]
+    fn a_file_with_no_records_holds_no_data() {
+        let empty = json(HEAD_V2, &[]);
+        let erased = json(HEAD_V2, &[vec![0xff; 16], vec![0xff; 16]]);
+        let cut = text(TEXT_HEAD_V2, &flight_v2()[..1]);
+        for file in [empty, erased, cut.trim_end().to_owned()] {
+            assert!(
+                matches!(read(&file), Err(LogError::NoData { .. })),
+                "{:?}",
+                read(&file)
+            );
+        }
     }
 
     /// The last line of a text file that ends without a line break is left out, however well it
@@ -2039,10 +2523,10 @@ mod tests {
             &log,
             "the file ends without a line break, so its last line may be cut short"
         ));
-        assert_eq!(values(&log, "pressure").len(), 4);
+        assert_eq!(values(&log, "pressure").len(), 15);
         // Cut at the line's end, the last record still reads as one, and is still left out.
         let log = read(whole.trim_end_matches('\n')).unwrap();
-        assert_eq!(values(&log, "pressure").len(), 4);
+        assert_eq!(values(&log, "pressure").len(), 15);
         // A short line before the last refuses the file.
         let mut lines: Vec<&str> = whole.lines().collect();
         let short = "A c8 64 a7 62 00";
@@ -2064,7 +2548,7 @@ mod tests {
     /// so file order across the turn differs from tick order, and the records are sorted.
     #[test]
     fn the_ticks_turns_are_unwound_and_the_records_sorted() {
-        let records = vec![
+        let mut records = vec![
             // The flight record just before the turn, the pad's samples written after it.
             f7(65_534, 3, 1000, 110_002),
             a7(65_533, EXAMPLE_D1, EXAMPLE_D2, 1000),
@@ -2077,9 +2561,10 @@ mod tests {
             record(16, b'G', 65_500, &[12, 0, 1, 0x10 | 6, 26, 10, 14, 40]),
             a7(2, EXAMPLE_D1, EXAMPLE_D2, 970),
         ];
+        records.extend(climb_v2(65_534));
         let log = read(&json(HEAD_V2, &records)).unwrap();
         let pressure = channel(&log, "pressure").unwrap();
-        assert_eq!(pressure.time_s, [-0.01, 0.01, 0.02, 0.03, 0.04]);
+        assert_eq!(pressure.time_s[..6], [-0.01, 0.01, 0.02, 0.03, 0.04, 0.1]);
         let acceleration = values(&log, "acceleration");
         assert_eq!(acceleration[..2], [0.0, 0.0]);
         assert!((acceleration[2] - 0.5 * STANDARD_GRAVITY).abs() < 1e-12);
@@ -2096,6 +2581,31 @@ mod tests {
         );
     }
 
+    /// The records are put in tick order, the file's order kept among records of one tick: a
+    /// sample written ahead of one with an earlier tick comes after it, and two samples at one
+    /// tick keep the file's order. Without the sort, or with an unstable one that swaps them, the
+    /// times or the accelerations come out in another order.
+    #[test]
+    fn records_are_sorted_by_tick_and_stable_among_equal_ticks() {
+        let mut records = flight_v2();
+        let late = [
+            a7(205, EXAMPLE_D1 - 3000, EXAMPLE_D2, 950),
+            a7(203, EXAMPLE_D1 - 2500, EXAMPLE_D2, 940),
+            a7(204, EXAMPLE_D1 - 2600, EXAMPLE_D2, 930),
+            a7(204, EXAMPLE_D1 - 2700, EXAMPLE_D2, 920),
+        ];
+        records.splice(HEAD_RECORDS..HEAD_RECORDS, late);
+        let log = read(&json(HEAD_V2, &records)).unwrap();
+        let pressure = channel(&log, "pressure").unwrap();
+        assert_eq!(pressure.time_s[4..10], [0.02, 0.03, 0.04, 0.04, 0.05, 0.1]);
+        // 20 counts a g below 1,000: 940 is 3 g, 930 3.5 g, 920 4 g, 950 2.5 g.
+        let g = STANDARD_GRAVITY;
+        let acceleration = values(&log, "acceleration");
+        for (got, want) in acceleration[5..9].iter().zip([3.0, 3.5, 4.0, 2.5]) {
+            assert!((got - want * g).abs() < 1e-12, "{acceleration:?}");
+        }
+    }
+
     /// A record more than 10 s from the latest tick ends the flight: it and every record after
     /// it are left out. Exactly 10 s is kept.
     #[test]
@@ -2107,7 +2617,7 @@ mod tests {
         records.push(s(16, 2_203, 2));
         records.push(a7(2_204, EXAMPLE_D1, EXAMPLE_D2, 1000));
         let log = read(&json(HEAD_V2, &records)).unwrap();
-        assert_eq!(values(&log, "pressure").len(), 5);
+        assert_eq!(values(&log, "pressure").len(), 16);
         assert!(has_note(
             &log,
             "2 records from the first more than 10 s from the latest tick on are left out"
@@ -2128,7 +2638,7 @@ mod tests {
         records.push(s(16, 203, 3));
         let log = read(&text(TEXT_HEAD_V2, &records)).unwrap();
         assert!(has_note(&log, "1 records repeated exactly"));
-        assert_eq!(values(&log, "pressure").len(), 5);
+        assert_eq!(values(&log, "pressure").len(), 16);
         assert_eq!(values(&log, "state"), [3.0, 3.0]);
     }
 
@@ -2140,7 +2650,7 @@ mod tests {
             Err(LogError::Binary {
                 offset, message, ..
             }) => {
-                assert_eq!(offset, 7 * 16);
+                assert_eq!(offset, 18 * 16);
                 assert!(
                     message.starts_with("a second flight record, after the one at byte 0"),
                     "{message}"
@@ -2161,17 +2671,7 @@ mod tests {
     /// 1% of its flight record's ground pressure; otherwise the bytes are misread.
     #[test]
     fn the_pads_pressure_is_held_to_a_launch_site_and_the_flight_record() {
-        let v1 = |count: i16| {
-            let head = r#"{"log_format": 1, "product": "TeleMetrum-v1.2", "accel_cal_plus": 16000, "accel_cal_minus": 16500}"#;
-            let [lo, hi] = count.to_le_bytes();
-            read(&json(
-                head,
-                &[
-                    record(8, b'F', 100, &[0x80, 0x3e, 3, 0]),
-                    record(8, b'A', 99, &[0x80, 0x3e, lo, hi]),
-                ],
-            ))
-        };
+        let v1 = |count: i16| read(&json(HEAD_V1, &flight_v1(count)));
         // −163 counts is 10.002 kPa, −164 is 9.999; 32,260 is 119.998, 32,261 is 120.001.
         assert!(v1(-163).is_ok() && v1(32_260).is_ok());
         for count in [-164, 32_261] {
@@ -2224,20 +2724,68 @@ mod tests {
         );
 
         let v1 = |plus: i64, minus: i64| {
-            let head = format!(
-                r#"{{"log_format": 1, "product": "TeleMetrum-v1.2", "accel_cal_plus": {plus}, "accel_cal_minus": {minus}}}"#
-            );
-            // Ground reading 16,000; a sample at 15,500.
-            let records = [
-                record(8, b'F', 100, &[0x80, 0x3e, 3, 0]),
-                record(8, b'A', 100, &[0x8c, 0x3c, 0xc0, 0x5d]),
-            ];
-            read(&json(&head, &records)).unwrap()
+            let head = HEAD_V1
+                .replace("16000", &plus.to_string())
+                .replace("16500", &minus.to_string());
+            // Ground reading 16,000; the climb at 14,750.
+            read(&json(&head, &flight_v1(24_000))).unwrap()
         };
         let upright = values(&v1(16_000, 16_500), "acceleration");
         let down = values(&v1(32_767 - 16_500, 32_767 - 16_000), "acceleration");
         assert_eq!(upright, down);
-        assert!((upright[0] - 2.0 * STANDARD_GRAVITY).abs() < 1e-12);
+        assert_eq!(upright[0], 0.0);
+        assert!((upright[3] - 5.0 * STANDARD_GRAVITY).abs() < 1e-12);
+
+        // The two counts come from one pair: a raw +1 g with no raw −1 g takes the flipped pair
+        // whole, never the raw +1 g beside the flipped −1 g, whose span would be negative.
+        let mixed = cooked.replace("\"accel_cal_plus\": 2147483647", "\"accel_cal_plus\": 1000");
+        let log = read(&json(&mixed, &flight_v2())).unwrap();
+        assert_eq!(values(&log, "acceleration"), values(&raw, "acceleration"));
+        assert!(has_note(
+            &log,
+            "`acceleration` along the board's axis, m/s², from the high-g accelerometer's counts: \
+             0 at the flight record's ground reading, 1000, and 20 counts a g from the \
+             calibration's +1 g and −1 g, -1040 and -1000"
+        ));
+    }
+
+    /// A calibration outside a 16-bit count's range, even one whose span would overflow, keeps
+    /// the counts as written.
+    #[test]
+    fn a_calibration_outside_sixteen_bits_keeps_the_counts_as_written() {
+        for (plus, minus) in [
+            (i64::MIN.to_string(), i64::MAX.to_string()),
+            ("-40000".to_owned(), "1040".to_owned()),
+            ("1000".to_owned(), "65536".to_owned()),
+        ] {
+            let head = HEAD_V2
+                .replace(
+                    "\"accel_cal_plus\": 1000",
+                    &format!("\"accel_cal_plus\": {plus}"),
+                )
+                .replace(
+                    "\"accel_cal_minus\": 1040",
+                    &format!("\"accel_cal_minus\": {minus}"),
+                );
+            let log = read(&json(&head, &flight_v2())).unwrap();
+            assert!(channel(&log, "acceleration").is_none(), "{plus} {minus}");
+            assert!(has_note(
+                &log,
+                "`accel` kept as written: the calibration lies outside a 16-bit count's range"
+            ));
+        }
+        // The range's ends are counts: the calibration is taken, and its span, 49,151.5 counts a
+        // g, makes the climb's 100 counts almost no acceleration, which the climb check finds
+        // disagreeing with the pressure, so the counts are kept as written after all.
+        let head = HEAD_V2
+            .replace("\"accel_cal_plus\": 1000", "\"accel_cal_plus\": -32768")
+            .replace("\"accel_cal_minus\": 1040", "\"accel_cal_minus\": 65535");
+        let log = read(&json(&head, &flight_v2())).unwrap();
+        assert!(channel(&log, "acceleration").is_none());
+        assert!(has_note(
+            &log,
+            "`accel` kept as written: its climb disagrees"
+        ));
     }
 
     /// Without a calibration, or with a span that isn't positive, the counts are kept as written.
@@ -2248,17 +2796,303 @@ mod tests {
         assert!(channel(&log, "acceleration").is_none());
         let accel = channel(&log, "accel").unwrap();
         assert_eq!(accel.quantity, Quantity::Unrecognized);
-        assert_eq!(accel.values, [1000.0, 1001.0, 960.0, 900.0, 1040.0]);
+        assert_eq!(accel.values[..5], [1000.0, 1001.0, 960.0, 900.0, 1040.0]);
         assert!(has_note(
             &log,
             "`accel` kept as written: the calibration isn't set"
         ));
+        // No climb to hold the pressure to: its checks are the pad's, and a file too short for
+        // the climb check reads.
+        assert!(has_note(
+            &log,
+            "`pressure`'s second check is the pad's alone"
+        ));
+        let short = &flight_v2()[..HEAD_RECORDS];
+        assert!(read(&json(&unset, short)).is_ok());
         let reversed = HEAD_V2.replace("\"accel_cal_minus\": 1040", "\"accel_cal_minus\": 1000");
         let log = read(&json(&reversed, &flight_v2())).unwrap();
         assert!(has_note(
             &log,
             "`accel` kept as written: the calibration's span isn't positive"
         ));
+    }
+
+    /// The climb check's measurement: a sample every tick at a steady 5 g from boost, at rest
+    /// before it, and the pressures, in whole pascals, the standard atmosphere gives the height
+    /// reached, 24.52 m at 1 s. The trapezoid spreads the step to 5 g at boost over the tick
+    /// before it, which adds a quarter of a meter by 1 s; the ratio is 1 within 2%.
+    #[test]
+    fn the_climb_check_integrates_from_rest_and_reads_the_standard_atmosphere() {
+        let pad_m = altitude_of(101_325.0);
+        let a = 5.0 * STANDARD_GRAVITY;
+        let samples: Vec<(i64, f64, f64)> = (-30..=120)
+            .map(|tick: i64| {
+                let t = tick as f64 / 100.0;
+                let (x, accel) = if tick < 0 {
+                    (0.0, 0.0)
+                } else {
+                    (climbed_m(t), a)
+                };
+                (tick, pressure_at(pad_m + x).round(), accel)
+            })
+            .collect();
+        let climb = climb_over_the_window(&samples).unwrap();
+        let step = a * 0.01 / 2.0 * 1.0;
+        assert!(
+            (climb.by_acceleration_m - climbed_m(1.0) - step).abs() < 0.01,
+            "{climb:?}"
+        );
+        assert!(
+            (climb.by_pressure_m - climbed_m(1.0)).abs() < 0.1,
+            "{climb:?}"
+        );
+        assert!((climb.ratio - 1.0).abs() < 0.02, "{climb:?}");
+        // No sample before boost, samples that end before 1 s, a gap over 0.1 s: unmeasured.
+        let fault = |samples: &[(i64, f64, f64)]| climb_over_the_window(samples).unwrap_err();
+        assert!(fault(&samples[30..]).starts_with("no sample before boost"));
+        assert!(fault(&samples[..125]).starts_with("the samples end 0.94 s after boost"));
+        let mut gapped = samples.clone();
+        gapped.retain(|(tick, ..)| !(41..=51).contains(tick));
+        assert!(
+            fault(&gapped).starts_with("no sample for 0.12 s after the one at 0.40 s"),
+            "{}",
+            fault(&gapped)
+        );
+        // A gap of exactly 0.1 s, the slowest logging rate, is integrated across.
+        let mut slow = samples.clone();
+        slow.retain(|(tick, ..)| *tick < 0 || tick % 10 == 0);
+        assert!(climb_over_the_window(&slow).is_ok());
+    }
+
+    /// A consistent flight passes the climb check and says so; the pressure and the acceleration
+    /// out of each other's band keep the acceleration's counts as written, and a TeleMetrum v1's
+    /// pressure's too: the two words swapped, or a calibration off by 2 or 4 either way.
+    #[test]
+    fn the_climb_by_the_pressure_must_agree_with_the_climb_by_the_acceleration() {
+        let log = read(&json(HEAD_V1, &flight_v1(24_000))).unwrap();
+        let note = log
+            .notes
+            .iter()
+            .find(|n| n.starts_with("`pressure` and `acceleration` held to each other"))
+            .unwrap();
+        let ratio: f64 = note
+            .split("a ratio of ")
+            .nth(1)
+            .and_then(|rest| rest.split(',').next())
+            .and_then(|n| n.parse().ok())
+            .unwrap();
+        assert!((0.95..=1.05).contains(&ratio), "{note}");
+        let log = read(&json(HEAD_V2, &flight_v2())).unwrap();
+        assert!(has_note(
+            &log,
+            "`pressure` and `acceleration` held to each other"
+        ));
+
+        // The file reads, its acceleration as counts, and the note gives the two climbs.
+        let refused = |file: &str| -> String {
+            let log = read(file).unwrap();
+            assert!(channel(&log, "acceleration").is_none());
+            assert!(channel(&log, "accel").is_some());
+            log.notes
+                .iter()
+                .find(|n| n.starts_with("over the first second after boost"))
+                .cloned()
+                .unwrap_or_else(|| panic!("{:?}", log.notes))
+        };
+        // The TeleMetrum v1's words swapped: the pressure from the accelerometer's counts is
+        // still a launch site's, 64.9 kPa, but the climbs disagree.
+        let swapped: Vec<Vec<u8>> = flight_v1(24_000)
+            .into_iter()
+            .map(|mut bytes| {
+                if bytes[0] == b'A' {
+                    let (accel, pressure) = ([bytes[4], bytes[5]], [bytes[6], bytes[7]]);
+                    bytes[4..6].copy_from_slice(&pressure);
+                    bytes[6..8].copy_from_slice(&accel);
+                }
+                bytes
+            })
+            .collect();
+        let message = refused(&json(HEAD_V1, &swapped));
+        assert!(
+            message.contains("by the acceleration, a ratio of")
+                && message.ends_with("which has no other check, too"),
+            "{message}"
+        );
+        let log = read(&json(HEAD_V1, &swapped)).unwrap();
+        assert!(channel(&log, "pressure").is_none() && channel(&log, "pres").is_some());
+        // A calibration of 5 or 10 counts a g, a quarter or half the true 20, or 40 or 80, twice
+        // or four times it.
+        for (minus, ratio) in [(1010, 0.25), (1020, 0.5), (1080, 2.0), (1160, 4.0)] {
+            let head = HEAD_V2.replace("1040", &minus.to_string());
+            let message = refused(&json(&head, &flight_v2()));
+            let read_ratio: f64 = message
+                .split("a ratio of ")
+                .nth(1)
+                .and_then(|rest| rest.split(',').next())
+                .and_then(|n| n.parse().ok())
+                .unwrap();
+            assert!(
+                (read_ratio / ratio - 1.0).abs() < 0.15,
+                "{minus}: {message}"
+            );
+            assert!(message.contains("outside 0.6 to 5/3"), "{message}");
+        }
+        // The accelerometer's counts mirrored about the ground reading, the acceleration's sign
+        // flipped: the climb by it is downward.
+        let flipped: Vec<Vec<u8>> = flight_v2()
+            .into_iter()
+            .map(|bytes| {
+                if bytes[0] == b'A' {
+                    let count = i16::from_le_bytes([bytes[12], bytes[13]]);
+                    let d1 = u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]);
+                    a7(
+                        u16::from_le_bytes([bytes[2], bytes[3]]),
+                        d1,
+                        EXAMPLE_D2,
+                        2000 - count,
+                    )
+                } else {
+                    bytes
+                }
+            })
+            .collect();
+        let message = refused(&json(HEAD_V2, &flipped));
+        assert!(message.contains(" m by the pressure and -"), "{message}");
+        // The pressures mirrored about the pad's too: both climbs downward, their ratio near 1,
+        // still refused.
+        let both: Vec<Vec<u8>> = flipped
+            .into_iter()
+            .map(|bytes| {
+                if bytes[0] == b'A' {
+                    let count = i16::from_le_bytes([bytes[12], bytes[13]]);
+                    let d1 = u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]);
+                    let tick = u16::from_le_bytes([bytes[2], bytes[3]]);
+                    a7(tick, 2 * EXAMPLE_D1 - d1, EXAMPLE_D2, count)
+                } else {
+                    bytes
+                }
+            })
+            .collect();
+        let message = refused(&json(HEAD_V2, &both));
+        assert!(message.contains("m by the pressure and -"), "{message}");
+        assert!(
+            message.contains("by the acceleration, a ratio of 1."),
+            "{message}"
+        );
+
+        // Too short to measure: the climb's samples every 0.1 s left out.
+        let short = &flight_v2()[..HEAD_RECORDS];
+        let log = read(&json(HEAD_V2, short)).unwrap();
+        assert!(channel(&log, "acceleration").is_none() && channel(&log, "accel").is_some());
+        assert!(
+            has_note(
+                &log,
+                "the climb over the first second after boost can't be measured (the samples end \
+                 0.02 s"
+            ),
+            "{:?}",
+            log.notes
+        );
+    }
+
+    /// An MS5607's pad temperature must lie in its operating range, −40 to 85 °C.
+    #[test]
+    fn the_pads_temperature_is_held_to_the_barometers_operating_range() {
+        // D2 raised so the first order reads past 85 °C, the ground pressure set to what the
+        // compensation then gives, so the pressure's checks pass and the temperature's decides.
+        let pad = |d2: u32| {
+            // The D1 that reads near 100 kPa at this D2, by bisection: the pressure rises with D1.
+            let (mut low, mut high) = (0u32, 16_000_000u32);
+            while high - low > 1 {
+                let mid = low + (high - low) / 2;
+                if ms5607(mid, d2, &EXAMPLE_PROM).0 < 100_000 {
+                    low = mid;
+                } else {
+                    high = mid;
+                }
+            }
+            let (pa, centi) = ms5607(high, d2, &EXAMPLE_PROM);
+            let records = [
+                f7(200, 3, 1000, u32::try_from(pa).unwrap()),
+                a7(198, high, d2, 1000),
+                a7(199, high, d2, 1000),
+            ];
+            (centi, read(&json(HEAD_V2, &records)))
+        };
+        let (hot, refused) = pad(EXAMPLE_D2 + 1_940_000);
+        assert!(hot > 8_500, "{hot}");
+        match refused {
+            Err(LogError::Binary { message, .. }) => assert!(
+                message.contains("outside the MS5607's operating range, −40 to 85 °C"),
+                "{message}"
+            ),
+            other => panic!("{other:?}"),
+        }
+        // Just inside: the temperature passes, and the file reads, its climb unmeasured (the
+        // pad's records only), so its acceleration kept as written.
+        let (warm, read_warm) = pad(EXAMPLE_D2 + 1_930_000);
+        assert!((8_000..=8_500).contains(&warm), "{warm}");
+        let log = read_warm.unwrap();
+        assert!(channel(&log, "acceleration").is_none());
+        assert!(has_note(
+            &log,
+            "the climb over the first second after boost can't be measured"
+        ));
+        let log = read(&json(HEAD_V2, &flight_v2())).unwrap();
+        assert!(has_note(
+            &log,
+            "`temperature` on the pad, 20.0 °C, within the MS5607's operating range"
+        ));
+    }
+
+    /// The configuration's pad orientation is a stated figure, in either form; text quoted in an
+    /// error is cut to 80 characters.
+    #[test]
+    fn the_pad_orientation_is_stated_and_quoted_text_is_cut() {
+        let head = HEAD_V2.replace("\"main_deploy\"", "\"pad_orientation\": 1, \"main_deploy\"");
+        let log = read(&json(&head, &flight_v2())).unwrap();
+        let figure = |log: &FlightLog| {
+            log.stated
+                .figures
+                .iter()
+                .find(|f| f.name == "pad_orientation")
+                .map(|f| (f.written.clone(), f.quantity, f.values.clone()))
+        };
+        assert_eq!(
+            figure(&log),
+            Some(("1".to_owned(), Some(Quantity::Number), vec![1.0]))
+        );
+        let mut lines = TEXT_HEAD_V2.to_vec();
+        lines.insert(5, "Pad orientation: 0");
+        let log = read(&text(&lines, &flight_v2())).unwrap();
+        assert_eq!(
+            figure(&log),
+            Some(("0".to_owned(), Some(Quantity::Number), vec![0.0]))
+        );
+
+        let long = "X".repeat(200);
+        let unstated = HEAD_V2
+            .replace("\"log_format\": 7,", "\"log_format\": 2147483647,")
+            .replace("TeleMetrum-v2.0", &long);
+        match read(&json(&unstated, &flight_v2())) {
+            Err(LogError::Syntax { message, .. }) => {
+                assert!(
+                    message.contains(&format!("\"{}\"", "X".repeat(80))),
+                    "{message}"
+                );
+                assert!(!message.contains(&"X".repeat(81)), "{message}");
+            }
+            other => panic!("{other:?}"),
+        }
+        let mut lines = TEXT_HEAD_V2.to_vec();
+        let twice = format!("product          {long}");
+        lines.push(&twice);
+        match read(&text(&lines, &flight_v2())) {
+            Err(LogError::Syntax { message, .. }) => {
+                assert!(!message.contains(&"X".repeat(81)), "{message}")
+            }
+            other => panic!("{other:?}"),
+        }
     }
 
     /// No MS5607 constants, or an MS5611: D1 and D2 kept as written, and no pad check.
@@ -2272,6 +3106,12 @@ mod tests {
             &log,
             "`d1` and `d2` kept as written: the configuration marks the barometer an MS5611"
         ));
+        // Nor is the acceleration converted: without a pressure in pascals it has no second check.
+        assert!(channel(&log, "acceleration").is_none());
+        assert!(has_note(
+            &log,
+            "`accel` kept as written: no pressure in pascals to hold it to"
+        ));
         let no_tref = HEAD_V2.replace("\"tref\": 31553", "\"tref\": 70000");
         let log = read(&json(&no_tref, &flight_v2())).unwrap();
         assert!(has_note(
@@ -2280,39 +3120,53 @@ mod tests {
         ));
     }
 
+    /// A Mega's flight in 32-byte records, as `product` logs it in `format`: the flight record at
+    /// tick 100 (ground reading 1,000, IMU pad reading `imu`), a sample on the pad at 1 g and
+    /// one at boost at 0, a sense record, then 5 g a sample every 0.1 s to 1.1 s after boost, the pressure the standard
+    /// atmosphere gives the height reached.
+    fn flight_mega(product: &str, format: u32, imu: i16) -> Result<FlightLog, LogError> {
+        let head = HEAD_V2
+            .replace("\"log_format\": 7", &format!("\"log_format\": {format}"))
+            .replace("TeleMetrum-v2.0", product);
+        let mut flight = 3u16.to_le_bytes().to_vec();
+        flight.extend(1000i16.to_le_bytes());
+        flight.extend(110_002u32.to_le_bytes());
+        flight.extend([imu, 0, 0].iter().flat_map(|v| v.to_le_bytes()));
+        let sample = |d1: u32, accel: i16| {
+            let mut fields = d1.to_le_bytes().to_vec();
+            fields.extend(EXAMPLE_D2.to_le_bytes());
+            fields.extend((1..=9i16).flat_map(|v| v.to_le_bytes()));
+            fields.extend(accel.to_le_bytes());
+            fields
+        };
+        let mut sense = 2000i16.to_le_bytes().to_vec();
+        sense.extend(4095i16.to_le_bytes());
+        sense.extend(6i16.to_le_bytes());
+        sense.extend(
+            [0i16, 4095, 0, 0, 1000, 0]
+                .iter()
+                .flat_map(|v| v.to_le_bytes()),
+        );
+        let mut records = vec![
+            record(32, b'F', 100, &flight),
+            record(32, b'A', 99, &sample(EXAMPLE_D1, 980)),
+            record(32, b'A', 100, &sample(EXAMPLE_D1, 1000)),
+            record(32, b'T', 101, &sense),
+        ];
+        let pad_m = altitude_of(110_002.0);
+        for k in 1..=11u16 {
+            let pa = pressure_at(pad_m + climbed_m(f64::from(k) / 10.0));
+            records.push(record(32, b'A', 100 + 10 * k, &sample(d1_for(pa), 900)));
+        }
+        read(&json(&head, &records))
+    }
+
     /// A Mega's IMU: read on format 16 and 22 where the flight record's IMU fields aren't all zero;
     /// not on format 15, nor where they are.
     #[test]
     fn a_megas_imu_is_read_only_where_its_layout_is_confirmed() {
-        let mega = |format: u32, imu: i16| {
-            let head = HEAD_V2
-                .replace("\"log_format\": 7", &format!("\"log_format\": {format}"))
-                .replace("TeleMetrum-v2.0", "TeleMega-v6.0");
-            let mut flight = 3u16.to_le_bytes().to_vec();
-            flight.extend(1000i16.to_le_bytes());
-            flight.extend(110_002u32.to_le_bytes());
-            flight.extend([imu, 0, 0].iter().flat_map(|v| v.to_le_bytes()));
-            let mut sample = EXAMPLE_D1.to_le_bytes().to_vec();
-            sample.extend(EXAMPLE_D2.to_le_bytes());
-            sample.extend((1..=9i16).flat_map(|v| v.to_le_bytes()));
-            sample.extend(980i16.to_le_bytes());
-            let mut sense = 2000i16.to_le_bytes().to_vec();
-            sense.extend(4095i16.to_le_bytes());
-            sense.extend(6i16.to_le_bytes());
-            sense.extend(
-                [0i16, 4095, 0, 0, 1000, 0]
-                    .iter()
-                    .flat_map(|v| v.to_le_bytes()),
-            );
-            let records = [
-                record(32, b'F', 100, &flight),
-                record(32, b'A', 99, &sample),
-                record(32, b'T', 101, &sense),
-            ];
-            read(&json(&head, &records)).unwrap()
-        };
-        let log = mega(16, 5);
-        assert_eq!(values(&log, "imu_gyro_0"), [4.0]);
+        let log = flight_mega("TeleMega-v6.0", 16, 5).unwrap();
+        assert_eq!(values(&log, "imu_gyro_0")[0], 4.0);
         assert_eq!(
             channel(&log, "imu_mag_2").unwrap().quantity,
             Quantity::Unrecognized
@@ -2325,17 +3179,48 @@ mod tests {
         assert_eq!(channel(&log, "pyro").unwrap().quantity, Quantity::Voltage);
         assert_eq!(values(&log, "v_batt"), [2000.0]);
         assert!(values(&log, "drogue_voltage")[0] > 0.0);
-        let log = mega(15, 5);
+        let log = flight_mega("TeleMega-v4.0", 15, 5).unwrap();
         assert!(channel(&log, "imu_accel_0").is_none());
         assert!(has_note(
             &log,
             "the IMU not read: format 15's layout of it is unconfirmed"
         ));
-        let log = mega(22, 0);
+        let log = flight_mega("TeleMega-v6.0", 22, 0).unwrap();
         assert!(channel(&log, "imu_accel_0").is_none());
         assert!(has_note(
             &log,
             "the IMU not read: the flight record's IMU fields are all zero"
+        ));
+    }
+
+    /// A Mega's senses become volts only for the products whose divider the exports bear out; a
+    /// TeleMega v7.0, a 30 V board, keeps its counts as written.
+    #[test]
+    fn a_megas_senses_are_volts_only_for_the_15_v_products() {
+        for product in MEGA_15_V_PRODUCTS {
+            let log = flight_mega(product, 22, 5).unwrap();
+            assert_eq!(channel(&log, "pyro").unwrap().quantity, Quantity::Voltage);
+        }
+        let log = flight_mega("TeleMega-v7.0", 22, 5).unwrap();
+        for name in [
+            "pyro",
+            "igniter_a",
+            "igniter_d",
+            "drogue_voltage",
+            "main_voltage",
+        ] {
+            assert_eq!(
+                channel(&log, name).unwrap().quantity,
+                Quantity::Unrecognized,
+                "{name}"
+            );
+        }
+        assert_eq!(values(&log, "pyro"), [4095.0]);
+        assert_eq!(values(&log, "drogue_voltage"), [1000.0]);
+        assert!(has_note(
+            &log,
+            "`pyro`, the igniters' and the apogee and main senses kept as written: the product, \
+             TeleMega-v7.0, isn't one"
         ));
     }
 

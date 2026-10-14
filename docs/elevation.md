@@ -122,22 +122,22 @@ December 2010 and January 2015 (handbook, page 30); the lake has fallen since.
 
 A flight's launch site takes its height above the [WGS 84](glossary.md#wgs-84) ellipsoid instead
 (its [ellipsoidal height](glossary.md#ellipsoidal-height)). The two differ by the *geoid undulation*
-`N`, the height of sea level above the ellipsoid there: between about −107 m (−351 ft) and
-+86 m (+282 ft) around the world. The simulator has no model of `N`; a geoid calculator gives it
+$N$, the height of sea level above the ellipsoid there: between about −107 m (−351 ft) and
++86 m (+282 ft) around the world. The simulator has no model of $N$; a geoid calculator gives it
 for a place, such as [GeographicLib's GeoidEval](https://geographiclib.sourceforge.io/cgi-bin/GeoidEval),
 which gives EGM2008's −23.85 m (−78.2 ft) at Spaceport America (32.99° N, 106.97° W). Then:
 
-- **If you know `N`,** place the site with `Geodetic::from_degrees(latitude, longitude, H + N)`,
-  where `H` is the height from this page, and give the flight's environment `N` with
+- **If you know $N$,** place the site with `Geodetic::from_degrees(latitude, longitude, H + N)`,
+  where $H$ is the height from this page, and give the flight's environment $N$ with
   `Environment::standard(site)?.with_geoid_undulation_m(N)`. At Spaceport America,
-  `H` = 1,400 m (4,593 ft) and `N` = −23.85 m (−78.2 ft), so the site's ellipsoidal height is
+  $H$ = 1,400 m (4,593 ft) and $N$ = −23.85 m (−78.2 ft), so the site's ellipsoidal height is
   1,376.15 m (4,514.9 ft).
-- **If you don't,** place the site at `H` and leave `N` at 0, as the example below does. The
+- **If you don't,** place the site at $H$ and leave $N$ at 0, as the example below does. The
   atmosphere still sees the right height above sea level, so the air, the drag and the flight are
-  right. The site's place in space is off by `N`, which moves gravity by about 3×10⁻⁴ m/s² per
+  right. The site's place in space is off by $N$, which moves gravity by about 3×10⁻⁴ m/s² per
   100 m (328 ft), 0.003% (normal gravity's [height term](physics/gravity.md#formulas)). A flight
   exported as KML keeps its heights above sea level, which stay right; the GeoJSON export's heights
-  are above the ellipsoid, and are off by `N`.
+  are above the ellipsoid, and are off by $N$.
 
 ## An example
 
@@ -216,7 +216,7 @@ range's edges, and refuses each kind of broken answer above.
 - **No command.** The command line has no elevation command yet, and `hpr sim` doesn't look a
   site up; a program calls the library and passes the height on.
 - **No geoid model.** The height is above sea level, and turning it into a height above the
-  ellipsoid needs the undulation `N`, which you give (above).
+  ellipsoid needs the undulation $N$, which you give (above).
 - **No accuracy check.** Nothing compares the model's heights with surveyed ones; the 4 m (13 ft) is the
   makers' statement.
 - **A surface, not the ground.** Over a tree line or buildings the height can sit meters above the
@@ -296,10 +296,10 @@ Check two things in `info()`, the first one first:
 
 EGM2008 is a model of the [geoid](#what-the-height-means). NAVD88 was defined by leveling, and
 the US National Geodetic Survey puts it about half a meter off the best geoid models, tilted by
-about a meter from coast to coast ([NGS, new datums](https://geodesy.noaa.gov/datums/newdatums/index.shtml)): a meter or two at most. The simulator takes a height above either as the `H` of
+about a meter from coast to coast ([NGS, new datums](https://geodesy.noaa.gov/datums/newdatums/index.shtml)): a meter or two at most. The simulator takes a height above either as the $H$ of
 [What the height means](#what-the-height-means): the height above sea level the air is looked up
 by. A meter's difference changes the air's density by about 0.01%. That section also shows how to
-place a flight's site from `H` and the geoid undulation `N`.
+place a flight's site from $H$ and the geoid undulation $N$.
 
 ### An example with a file
 

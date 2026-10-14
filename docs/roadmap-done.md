@@ -86,6 +86,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.8a2 Python in the tour ([Phase 0](#phase-0-foundations))
 - M0.8a3 Compared with ([Phase 0](#phase-0-foundations))
 - M0.8a4 The maintainer's read ([Phase 0](#phase-0-foundations))
+- M0.12 Typeset equations ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -306,6 +307,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c7 Archives and two readers' variants ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c8 The R-DAS's raw text ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c9 AltOS telemetry ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c10 AltOS raw downloads ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -577,6 +579,12 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M0.8a3 Compared with** (ADR-247, ADR-248). *Done when:* the section meets ADR-209 §8.
     - [x] **M0.8a4 The maintainer's read** (ADR-247). *Done when:* Neer
       has read the landing page and the tour.
+- [x] **M0.12 Typeset equations** (ADR-264; Neer, 2026-10-13). *Done when:* the site's pages write
+  their equations in LaTeX, which the build turns into MathML drawn in the product system's math
+  face (Rev E), with no script and nothing from another server; the build fails on a formula the
+  converter can't read, math in a heading, a display sharing its paragraph and an arrow accent, a
+  test each; the page check fails math text off the math face or under 12 px and a formula wider
+  than its box, with a canary; `docs/writing.md` has the rules.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and
@@ -1547,6 +1555,18 @@ One line per milestone or increment, in the order it was archived within its pha
       but for export rows that repeat the row before's pressure, counted (the survey's report;
       a differing file fails `--check`); and the docs say what the document gives and what is
       left out.
+    - [x] **M7.1c10 AltOS raw downloads** (ADR-265): the `.eeprom` files AltosUI saves when it
+      pulls a flight off the board, decoded from the files and the exports beside them.
+      *Done when:* every AltOS `.eeprom` file in refs reads, in its JSON and its older text form
+      (`cargo xtask logs --check` fails on one that doesn't); every JSON record's checksum is
+      checked and one that fails refuses the file, and a log format the samples don't show is
+      refused by number (tests); the 16-bit tick's wraps are unwound and the records put in tick
+      order (a test); pressure and temperature are read in SI by their sensors' datasheets and
+      the along-axis acceleration by the file's own calibration, each where a second check bears
+      it out, and counts with no cited conversion are kept as written (tests); where an AltosUI
+      export of the same flight lies beside a file, every pressure equals the export's at the
+      same tick within its print step (the survey's report; a differing file fails `--check`);
+      and the docs say what was learned from the files, what is left out and how far to trust it.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

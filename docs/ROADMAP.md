@@ -372,18 +372,6 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
   Formats without samples are listed in the docs as needing samples.
   - [ ] **M7.1c The other importers** (ADR-254, ADR-255, ADR-256, ADR-258, ADR-259, ADR-260,
     ADR-261, ADR-262, ADR-263, ADR-265): in eleven.
-    - [ ] **M7.1c10 AltOS raw downloads** (ADR-265): the `.eeprom` files AltosUI saves when it
-      pulls a flight off the board, decoded from the files and the exports beside them.
-      *Done when:* every AltOS `.eeprom` file in refs reads, in its JSON and its older text form
-      (`cargo xtask logs --check` fails on one that doesn't); every JSON record's checksum is
-      checked and one that fails refuses the file, and a log format the samples don't show is
-      refused by number (tests); the 16-bit tick's wraps are unwound and the records put in tick
-      order (a test); pressure and temperature are read in SI by their sensors' datasheets and
-      the along-axis acceleration by the file's own calibration, each where a second check bears
-      it out, and counts with no cited conversion are kept as written (tests); where an AltosUI
-      export of the same flight lies beside a file, every pressure equals the export's at the
-      same tick within its print step (the survey's report; a differing file fails `--check`);
-      and the docs say what was learned from the files, what is left out and how far to trust it.
     - [ ] **M7.1c11 The rest:** Blue Raven's other files, Entacore AIM XTRA, spreadsheets, CATS;
       EuRoC/Juno CSV; generic CSV with column mapping; unit detection (and `telemetry-rtf`,
       ADR-258; ARTS2 raw and `.odf`, RTx, ADR-259).

@@ -75,12 +75,12 @@ When each motor lights and how a stage drops away under power, with a worked exa
 ### When a motor lights
 
 Each motor in a [configuration](../glossary.md#configuration) has an `ignition`
-([`Ignition`][ignition]). The flight's clock starts at launch (`t = 0`). Each motor burns on its own
+([`Ignition`][ignition]). The flight's clock starts at launch ($t = 0$). Each motor burns on its own
 clock from its ignition, so its thrust curve and its mass are its own curve shifted to that time.
 
 | `ignition` | lights at | example in a design file |
 |---|---|---|
-| `launch` (the default) | `t = 0` | nothing written |
+| `launch` (the default) | $t = 0$ | nothing written |
 | `time` | a time after launch | `"ignition": {"time": {"time_s": 4.0}}` |
 | `burnout` | a delay after the motor in another mount burns out | `"ignition": {"burnout": {"mount": "booster-motor-mount", "delay_s": 1.0}}` |
 | `separation` | a delay after the separation that drops the stages behind this motor's stage | `"ignition": {"separation": {"delay_s": 0.5}}` |
@@ -145,13 +145,13 @@ changes is the rocket they belong to:
 
 The integrator restarts at the separation, because the mass steps there.
 
-**Momentum.** Nothing pushes the parts apart. Write `m` for a mass, `v` for the velocity of a
-center of mass, and `s`, `b` for the sustainer and the booster. The sustainer keeps the nose tip's
-velocity `v_O` and rotation `ω`. The booster leaves with the velocity its own center of mass
-already had, `v_O + ω × r`, where `r` runs from the nose tip to that center. So the two momenta add
-up to the stack's, `m v = m_s v_s + m_b v_b`. A test checks this to 1e-9 of the stack's momentum
+**Momentum.** Nothing pushes the parts apart. Write $m$ for a mass, $\mathbf{v}$ for the velocity of a
+center of mass, and $s$, $b$ for the sustainer and the booster. The sustainer keeps the nose tip's
+velocity $\mathbf{v}_O$ and rotation $\boldsymbol{\omega}$. The booster leaves with the velocity its own center of mass
+already had, $\mathbf{v}_O + \boldsymbol{\omega} \times \mathbf{r}$, where $\mathbf{r}$ runs from the nose tip to that center. So the two momenta add
+up to the stack's, $m\mathbf{v} = m_s\mathbf{v}_s + m_b\mathbf{v}_b$. A test checks this to 1e-9 of the stack's momentum
 on a flight launched 10° off vertical, whose sustainer is not yet lit. With the sustainer burning,
-`m v` is not simply additive, because the center of mass also moves inside the body as propellant
+$m\mathbf{v}$ is not simply additive, because the center of mass also moves inside the body as propellant
 burns, so the simulator makes no claim for that case.
 
 **Events.** Along with the separation, the flight records an `Ignition` event for each motor lit
@@ -263,8 +263,8 @@ decision record is [ADR-160][adr-160] (several powered separations).
 `with_separation` is a list of one, and a flight with one separation flies as it did before, to the
 bit.
 
-- **The order.** Each separation's stage boundary is forward of the one before. Separation `k`
-  makes body `k + 1`: the stages from its boundary back to the boundary before it, or back to the
+- **The order.** Each separation's stage boundary is forward of the one before. Separation $k$
+  makes body $k + 1$: the stages from its boundary back to the boundary before it, or back to the
   tail. Body 0 keeps the nose. On a three-stage rocket the booster is body 1 and the middle stage
   body 2 (`Separation::body_of` and `Separation::stages_of_body` give the numbering).
 - **Each split hands the flight on.** With more than one separation, each must leave the body
@@ -295,9 +295,9 @@ rocket* drops its booster at the booster's burnout, as the middle stage lights. 
 middle stage at that stage's own burnout, as the sustainer lights. Each configuration is written
 sustainer first: [A8-5; B6-0; B6-0] is an A8-5 in the sustainer above B6-0s in the middle stage
 and the booster. `cargo xtask ork-flights` flies each configuration on OpenRocket's own thrust
-curves, matched by their digests. Δ is HPR Sim less OpenRocket, in per cent of OpenRocket's:
+curves, matched by their digests. $\Delta$ is HPR Sim less OpenRocket, in per cent of OpenRocket's:
 
-| motors | apogee, OpenRocket (m) | Δ apogee | Δ largest speed | separations, OpenRocket / HPR Sim (s) | notes |
+| motors | apogee, OpenRocket (m) | $\Delta$ apogee | $\Delta$ largest speed | separations, OpenRocket / HPR Sim (s) | notes |
 |---|---:|---:|---:|---|---|
 | A8-5, B6-0, B6-0 | 277.1 | −1.37% | +0.25% | 0.857 / 0.857; 1.714 / 1.714 | nothing deployed |
 | C6-5, B6-0, B6-0 | 505.4 | −0.95% | +1.51% | 0.857 / 0.857; 1.714 / 1.714 | nothing deployed |
@@ -391,7 +391,7 @@ charge, 4.86 s after launch. In HPR Sim's flight, from
 (0.254 m) parachute, set to `lowerstageseparation` in the file, opens at that instant, and the
 payload climbs 3.3 m (11 ft) more, to 233.7 m (767 ft) above the site at 5.44 s. That height is the center of
 mass's, which starts 0.4 m (1.3 ft) above the site; from where it starts, as the table below compares, it
-is 233.3 m (765 ft). Coasting with no drag, it would have risen 27.6² / (2 × 9.81) = 38.8 m more
+is 233.3 m (765 ft). Coasting with no drag, it would have risen $27.6^2 / (2 \times 9.81) = 38.8$ m more
 instead.
 
 **Against OpenRocket.** All six configurations of the *Deployable payload* and the *ARC payload
@@ -399,10 +399,10 @@ rocket* separate at OpenRocket's times. The payload's apogee is within 1.1% of O
 record, measured from where each tool's flight starts, and every descent meets the targets of
 [Recovery](recovery.md#from-an-openrocket-file). Two of the six separate before apogee:
 
-Each Δ is taken from the report's unrounded heights, so it can differ in the last digit from
+Each $\Delta$ is taken from the report's unrounded heights, so it can differ in the last digit from
 the rounded ones shown.
 
-| motors | split (s) | payload's apogee, OpenRocket / HPR Sim (m) | Δ | coasting with no drag: OpenRocket's free payload / HPR Sim (m) | Δ |
+| motors | split (s) | payload's apogee, OpenRocket / HPR Sim (m) | $\Delta$ | coasting with no drag: OpenRocket's free payload / HPR Sim (m) | $\Delta$ |
 |---|---:|--:|---:|--:|---:|
 | C6-3 | 4.86 | 233.2 / 233.3 | +0.04% | 258.5 / 268.8 | +4.00% |
 | C6-5 | 6.86 | 265.3 / 264.4 | −0.32% | 266.6 / 265.4 | −0.43% |
@@ -426,7 +426,7 @@ dropped booster does in the simulator. Their own flight after the split is not v
 and landing are likely too low and too close to the pad
 ([#179](https://github.com/nrdptel/fusionspace-eridanus/issues/179)).
 
-- **Which separation drops them.** A separation after stage *k* drops every stage after *k*, so
+- **Which separation drops them.** A separation after stage $k$ drops every stage after $k$, so
   a parallel stage is dropped by the separation after the stage it hangs on, together with
   whatever hangs on it. A separation that would drop boosters hung on a stage the nose keeps
   together with an axial booster behind them is refused; drop the axial booster first.
@@ -452,7 +452,7 @@ configuration under OpenRocket's stored conditions instead (a 1 m (3.3 ft) rod, 
 [flights report](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/reports/openrocket-flights.md),
 recovery as saved:
 
-| motors | split (s), OpenRocket / HPR Sim | apogee, OpenRocket / HPR Sim (m) | Δ | largest speed Δ |
+| motors | split (s), OpenRocket / HPR Sim | apogee, OpenRocket / HPR Sim (m) | $\Delta$ | largest speed $\Delta$ |
 |---|---|--:|---:|---:|
 | I115W-10 and 2× E12-0 | 2.44 / 2.44 | 1123.6 / 1137.5 | +1.23% | +3.25% |
 | I115W-10, boosters empty | none / none | 851.8 / 857.6 | +0.68% | +1.56% |
@@ -525,9 +525,9 @@ HPR Sim turns them into its own:
 
 | the file says | HPR Sim flies |
 |---|---|
-| a motor lit at `launch`, or `automatic` in the bottom stage, plus a delay `d` | lit at `t = d`: an air start when `d` is not 0 |
-| a motor lit at `burnout` of the stage below, plus `d` | lit `d` after the stage below's first burnout: the first of its motors to burn out, by each one's ignition and curve, in whichever mount ([ADR-172][adr-172]) |
-| `ejectioncharge`, or `automatic` in a stage above | lit at the stage below's ejection charge: its burnout plus its ejection delay, plus `d` |
+| a motor lit at `launch`, or `automatic` in the bottom stage, plus a delay $d$ | lit at $t = d$: an air start when $d$ is not 0 |
+| a motor lit at `burnout` of the stage below, plus $d$ | lit $d$ after the stage below's first burnout: the first of its motors to burn out, by each one's ignition and curve, in whichever mount ([ADR-172][adr-172]) |
+| `ejectioncharge`, or `automatic` in a stage above | lit at the stage below's ejection charge: its burnout plus its ejection delay, plus $d$ |
 | `never`; `burnout` or `ejectioncharge` in the bottom stage; `ejectioncharge` or `automatic` over a plugged motor; or a motor lit by one of these | never lit: carried loaded, with no thrust |
 | a stage separating at `launch` plus a delay, at its motor's `ignition`, `burnout` or `ejection`, or at the `upperignition` of the stage above | a separation at that instant, plus its delay, if at that moment a motor ahead of it is burning or has yet to light (one timed before the rocket leaves the rod fires as it leaves, [#231](https://github.com/nrdptel/fusionspace-eridanus/issues/231)) |
 | a stage separating at `apogee`, or at a height on the way down (`altitudedescending`) | no separation: it belongs to the descent, which HPR Sim's flights of a `.ork` don't fly yet, so the configuration flies whole |
@@ -579,9 +579,9 @@ flew for this comparison, committed as
 [`openrocket-flights.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/ork/openrocket-flights.json).
 It holds the flight of the part that keeps the nose, so both numbers are the sustainer's.
 
-**The result.** Δ is HPR Sim less OpenRocket, in per cent of OpenRocket's.
+**The result.** $\Delta$ is HPR Sim less OpenRocket, in per cent of OpenRocket's.
 
-| OpenRocket's example | motors | apogee, OpenRocket (m) | Δ apogee | Δ largest speed | notes |
+| OpenRocket's example | motors | apogee, OpenRocket (m) | $\Delta$ apogee | $\Delta$ largest speed | notes |
 |---|---|---:|---:|---:|---|
 | Two stage high power rocket | H148R-0, then H148R-0 | 678.5 | −1.79% | −0.54% | separates at 1.535 s in both |
 | Two stage high power rocket | I357T-14, then I59WN-P | 1,384.2 | −0.13% | −0.04% | separates at 1.515 s in both |

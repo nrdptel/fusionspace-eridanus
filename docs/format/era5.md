@@ -144,7 +144,7 @@ temperature and the wind's east and north parts (`u` and `v`) at every grid poin
   does it, and HPR Sim follows its formula (RocketPy is MIT-licensed).
 - **At the launch time,** HPR Sim weighs the two hours on either side by how close each is. At 13:12
   it takes 80% of 13:00 and 20% of 14:00; on the hour it takes that hour alone.
-- **Heights.** Geopotential divided by `g₀ = 9.80665 m/s²` is geopotential height. HPR Sim turns
+- **Heights.** Geopotential divided by $g_0 = 9.80665\,\mathrm{m/s^2}$ is geopotential height. HPR Sim turns
   that into height above sea level with the World Meteorological Organization's formula for the
   site's latitude, as for any [sounding](../physics/atmosphere.md#sounding-and-forecast-profiles).
   ERA5 itself stores no height in meters; the next section compares the two ways to get one.
@@ -164,20 +164,20 @@ NDRT's day from today's Data Store. RocketPy 1.13 reads the same files.
 | | HPR Sim | RocketPy 1.13 | measured difference |
 |---|---|---|---|
 | Temperature, wind and geopotential at each level, on the hour | bilinear | bilinear | the same to 12 digits (5 readings, 14 or 37 levels each) |
-| Height of a level | WMO's formula, with gravity at the site's latitude | ECMWF's formula, with `g₀` at every latitude | −0.0158% at Bella Lui, 47.21° N (−0.69 m (−2.3 ft) at 4.4 km (2.7 mi)); +0.0343% at NDRT, 41.78° N (+1.45 m (4.8 ft) at 4.2 km (2.6 mi)) |
+| Height of a level | WMO's formula, with gravity at the site's latitude | ECMWF's formula, with $g_0$ at every latitude | −0.0158% at Bella Lui, 47.21° N (−0.69 m (−2.3 ft) at 4.4 km (2.7 mi)); +0.0343% at NDRT, 41.78° N (+1.45 m (4.8 ft) at 4.2 km (2.6 mi)) |
 | Launch between two of the file's hours | both hours, weighted by time | the nearer hour | HPR Sim's value is the weighted mean of RocketPy's two readings, to 12 digits |
 | Pressure between levels | hydrostatic | straight line in height | not measured yet |
 | Above the top level | the standard atmosphere, continued | the top level's values, held | not measured yet; Bella Lui's file stops at 4.4 km (2.7 mi) |
 
 Both height readings are approximations, and neither is exact. Geopotential measures the work of
 lifting air against gravity, so turning it into meters needs gravity on the way up. ECMWF's
-knowledge base gives `h = R·Z/(R − Z)`, with `R` the Earth's radius and `Z` the geopotential
+knowledge base gives $h = RZ/(R - Z)$, with $R$ the Earth's radius and $Z$ the geopotential
 height, and says it neglects gravity's change across the Earth. RocketPy uses it. HPR Sim uses
 the World Meteorological Organization's formula, which takes gravity at the site's latitude: at sea
 level it is 9.780 m/s² at the equator and 9.832 m/s² at the poles.
 
 How far off each is depends on how ERA5's model builds the geopotential of its own ground, which
-ECMWF doesn't say. Taking it as `g₀` times the ground's height, HPR Sim's reading is off by a fixed
+ECMWF doesn't say. Taking it as $g_0$ times the ground's height, HPR Sim's reading is off by a fixed
 amount at every height and ECMWF's by an amount that grows with height above the ground. With
 RocketPy's Earth radius in ECMWF's formula (the WGS 84 ellipsoid's distance from the Earth's
 center at the site), neither is always the smaller:

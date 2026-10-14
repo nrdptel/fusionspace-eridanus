@@ -1337,11 +1337,16 @@ fn telemetry_checks(samples: &[Sample]) -> TelemetryChecks {
 /// the same folder (an AltosUI CSV whose `serial` and `flight` are the file's), and how many of
 /// those agree with it; those whose export set its acceleration's zero at the +1 g calibration,
 /// by id; how many have the board's radio telemetry beside them (a `.telem` of the same serial
-/// number) and how many agree with it; and the files that differ from either, by id.
+/// number) and how many agree with it; the files that differ from either, by id; and the least
+/// and greatest of the climb ratios inside the reader's band, with how many files have one, and
+/// the files whose ratio falls outside it, by id and ratio, their counts kept as written.
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
 struct EepromChecks {
     per_file: Vec<EepromFile>,
     files: usize,
+    with_a_climb_ratio: usize,
+    climb_ratios: Option<[f64; 2]>,
+    climb_outside_the_band: Vec<String>,
     with_an_export_beside: usize,
     agreeing_with_an_export: usize,
     zeroed_at_the_plus_calibration: Vec<String>,
@@ -1350,15 +1355,23 @@ struct EepromChecks {
     differing: Vec<String>,
 }
 
-/// One AltOS `.eeprom` file: its id, form and log format; its records, the checksums checked (the
-/// JSON form's; one failing refuses the file, so none here fails), the erased records, the records
-/// repeated exactly and dropped, those after a silence and left out, and whether its last line
-/// was cut short; and what the export and the telemetry beside it showed.
+/// One AltOS `.eeprom` file: its id, form and log format, and whether the format came from the
+/// product, the configuration stating none; its records, the checksums checked (the JSON form's;
+/// one failing refuses the file, so none here fails), the erased records, the records repeated
+/// exactly and dropped, those after a silence and left out, and whether its last line was cut
+/// short; the smallest step between two of its pressures, Pa; the ratio of the climb by the
+/// pressure to the climb by the acceleration over the first second after boost, the reader's
+/// climb check, and whether it falls outside the reader's band, the acceleration's counts kept as
+/// written; and what the export and the telemetry beside it showed.
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
 struct EepromFile {
     id: String,
     form: String,
     log_format: u32,
+    format_from_product: bool,
+    smallest_pressure_step_pa: Option<f64>,
+    climb_ratio: Option<f64>,
+    climb_outside_the_band: bool,
     records: usize,
     checksums_checked: usize,
     erased: usize,
@@ -1371,9 +1384,10 @@ struct EepromFile {
 
 /// A `.eeprom` file against the export of its flight, where every value compared agrees: how many
 /// of its pressures, temperatures, accelerations and Mega voltages met a row of the export at
-/// their tick, and the worst difference of each; and whether the export's acceleration is zeroed
-/// at the +1 g calibration, not at the flight record's ground reading, the worst then being the
-/// difference from that offset.
+/// their tick, and the worst difference of each; whether the export's acceleration is zeroed at
+/// the +1 g calibration, not at the flight record's ground reading, the worst then being the
+/// difference from that offset; and the export's rows, and those at a tick where the file holds no
+/// sample of any channel, which must be none.
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
 struct EepromAgainstExport {
     pressures: usize,
@@ -1386,6 +1400,8 @@ struct EepromAgainstExport {
     zeroed_at_the_plus_calibration: bool,
     voltages: usize,
     worst_voltage_v: f64,
+    rows: usize,
+    rows_without_a_sample: usize,
 }
 
 /// A `.eeprom` file against the board's radio telemetry of the same flight: how many of its
@@ -1431,7 +1447,33 @@ impl EepromFile {
                 file.after_a_silence = leading(note);
             } else if note.starts_with("the file ends without a line break") {
                 file.last_line_cut = true;
+            } else if note.starts_with("the configuration states no log format") {
+                file.format_from_product = true;
+            } else if note.starts_with("`pressure` and `acceleration` held to each other")
+                || note.starts_with("over the first second after boost the rocket climbs")
+            {
+                file.climb_outside_the_band = !note.starts_with("`pressure`");
+                file.climb_ratio = note
+                    .split_once("a ratio of ")
+                    .and_then(|(_, rest)| rest.split(',').next())
+                    .and_then(|ratio| ratio.parse().ok());
             }
+        }
+        if let Some(pressure) = log.channels.iter().find(|c| {
+            c.column == "pressure" && c.quantity == hpr_flightdata::log::Quantity::Pressure
+        }) {
+            let mut values: Vec<f64> = pressure
+                .values
+                .iter()
+                .copied()
+                .filter(|v| v.is_finite())
+                .collect();
+            values.sort_by(f64::total_cmp);
+            file.smallest_pressure_step_pa = values
+                .windows(2)
+                .map(|pair| pair[1] - pair[0])
+                .filter(|step| *step > 1e-9)
+                .min_by(f64::total_cmp);
         }
         file
     }
@@ -1524,10 +1566,13 @@ const EEPROM_VOLTAGES: [&str; 7] = [
 /// of its flight, `Err` naming the first value that differs.
 ///
 /// The two line up by tick. The export's `time` is the tick from the flight record's, in seconds,
-/// as the record's clock is; but an export whose `time` equals its `clock` at every row, as one
-/// AltosUI of 2014 writes, counts from the tick itself, the record's clock note giving the flight
-/// record's. At each of the record's samples, the export's last row at that hundredth must agree
-/// within half the export's print step; a gap or not-set value there is no comparison.
+/// as the record's clock is; but an export whose `time` equals its `clock` at every row counts
+/// from the tick itself, the record's clock note giving the flight record's. Among the sample
+/// logs only one export does, beside file 219767cba01f7d9d, the export the report also files as
+/// `altos-csv-damaged`, and it alone zeroes the acceleration at the +1 g calibration. At each of
+/// the record's samples, the export's last row at that hundredth must agree within half the
+/// export's print step; a gap or not-set value there is no comparison. The other way, every row of
+/// the export must fall at a tick the file holds a sample at, of any channel.
 fn compare_eeprom(
     eeprom: &FlightLog,
     export: &AltosUiExport,
@@ -1645,6 +1690,26 @@ fn compare_eeprom(
     }
     if out.pressures == 0 {
         return Err("no pressure met a row of the export".to_owned());
+    }
+    // The other way: every row of the export at a tick the file holds a sample at, of any channel.
+    let own: BTreeSet<i64> = eeprom
+        .channels
+        .iter()
+        .flat_map(|channel| channel.time_s.iter().map(|seconds| key(*seconds)))
+        .collect();
+    for row in 0..export.rows.len() {
+        if let Some(seconds) = export.value(row, time) {
+            out.rows += 1;
+            if !own.contains(&((seconds * 100.0).round() as i64)) {
+                out.rows_without_a_sample += 1;
+            }
+        }
+    }
+    if out.rows_without_a_sample > 0 {
+        return Err(format!(
+            "{} of the export's {} rows fall at a tick the file holds no sample at",
+            out.rows_without_a_sample, out.rows
+        ));
     }
     Ok(Some(out))
 }
@@ -1785,6 +1850,28 @@ fn eeprom_checks(samples: &[Sample]) -> EepromChecks {
     checks.differing.sort();
     checks.zeroed_at_the_plus_calibration.sort();
     checks.per_file.sort_by(|a, b| a.id.cmp(&b.id));
+    let ratios: Vec<f64> = checks
+        .per_file
+        .iter()
+        .filter(|file| !file.climb_outside_the_band)
+        .filter_map(|file| file.climb_ratio)
+        .collect();
+    checks.climb_outside_the_band = checks
+        .per_file
+        .iter()
+        .filter(|file| file.climb_outside_the_band)
+        .map(|file| match file.climb_ratio {
+            Some(ratio) => format!("{} ({ratio:.3})", file.id),
+            None => file.id.clone(),
+        })
+        .collect();
+    checks.with_a_climb_ratio = ratios.len();
+    checks.climb_ratios = ratios
+        .iter()
+        .copied()
+        .min_by(f64::total_cmp)
+        .zip(ratios.iter().copied().max_by(f64::total_cmp))
+        .map(|(least, greatest)| [least, greatest]);
     checks
 }
 
@@ -2827,7 +2914,7 @@ fn markdown(report: &Report) -> String {
             .per_file
             .iter()
             .map(|file| {
-                let (pressure, temperature, acceleration, voltage) = match &file.export {
+                let (pressure, temperature, acceleration, voltage, rows) = match &file.export {
                     Some(e) => (
                         pair(e.pressures, e.worst_pressure_pa, "Pa", 4),
                         pair(e.temperatures, e.worst_temperature_k, "K", 3),
@@ -2841,8 +2928,10 @@ fn markdown(report: &Report) -> String {
                             }
                         ),
                         pair(e.voltages, e.worst_voltage_v, "V", 4),
+                        format!("{}, {} without", e.rows, e.rows_without_a_sample),
                     ),
                     None => (
+                        "–".to_owned(),
                         "–".to_owned(),
                         "–".to_owned(),
                         "–".to_owned(),
@@ -2854,11 +2943,16 @@ fn markdown(report: &Report) -> String {
                     None => "–".to_owned(),
                 };
                 format!(
-                    "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {pressure} | {temperature} | \
-                     {acceleration} | {voltage} | {telemetry} |\n",
+                    "| {} | {} | {}{} | {} | {} | {} | {} | {} | {} | {} | {} | {pressure} | \
+                     {temperature} | {acceleration} | {voltage} | {rows} | {telemetry} |\n",
                     file.id,
                     file.form,
                     file.log_format,
+                    if file.format_from_product {
+                        " (from the product)"
+                    } else {
+                        ""
+                    },
                     file.records,
                     if file.form == "JSON" {
                         format!("{}, 0 failing", file.checksums_checked)
@@ -2869,6 +2963,10 @@ fn markdown(report: &Report) -> String {
                     file.duplicates_dropped,
                     file.after_a_silence,
                     if file.last_line_cut { "yes" } else { "no" },
+                    file.smallest_pressure_step_pa
+                        .map_or("–".to_owned(), |step| format!("{step:.2} Pa")),
+                    file.climb_ratio
+                        .map_or("–".to_owned(), |ratio| format!("{ratio:.3}")),
                 )
             })
             .collect();
@@ -2884,9 +2982,10 @@ fn markdown(report: &Report) -> String {
              and against AltosUI's export and the board's radio telemetry of the same flight \
              where they lie beside it:\n\n\
              | File | Form | Log format | Records | Checksums | Erased | Repeats dropped | After \
-             a silence | Last line cut | Pressures vs export | Temperatures | Accelerations | \
-             Mega voltages | Pressures vs telemetry |\n\
-             |---|---|---:|---:|---|---:|---:|---:|---|---|---|---|---|---|\n{}\n\
+             a silence | Last line cut | Pressure step | Climb ratio | Pressures vs export | \
+             Temperatures | Accelerations | Mega voltages | Export rows, without a sample | \
+             Pressures vs telemetry |\n\
+             |---|---|---|---:|---|---:|---:|---:|---|---:|---:|---|---|---|---|---|---|\n{}\n\
              An export of the same flight is an AltosUI CSV in the file's folder whose `serial` \
              and `flight` are the file's, read by its header's names apart from HPR Sim's AltOS \
              CSV reader. The two line up by tick, the export's `time` counting from the flight \
@@ -2897,12 +2996,28 @@ fn markdown(report: &Report) -> String {
              acceleration, and a Mega's pyro, igniter, apogee and main voltages. An export whose \
              acceleration differs from the file's by one constant, the zero AltosUI may set at \
              the +1 g calibration instead of the flight record's ground reading, within half a \
-             step, is counted apart. The telemetry is the board's `.telem` of the same serial \
-             number, its clock lined up by whole turns from the two `boost` events; every \
-             pressure at a tick a sensor packet holds must equal it. Of {} files, {} have an \
-             export beside them and {} agree with it; zeroed at the +1 g calibration: {}; {} \
-             have telemetry beside them and {} agree with it; differing: {}.\n",
+             step, is counted apart. The other way, every row of the export must fall at a tick \
+             where the file holds a sample of some channel. The telemetry is the board's `.telem` \
+             of the same serial number, its clock lined up by whole turns from the two `boost` \
+             events; every pressure at a tick a sensor packet holds must equal it. The pressure \
+             step is the smallest difference between two of the file's pressures. The climb \
+             ratio is the reader's climb check on a board with an accelerometer: the climb over \
+             the first second after boost by the pressure in the standard atmosphere over the \
+             climb by the acceleration integrated twice from rest, which the reader holds from \
+             0.6 to 5/3, keeping the acceleration's counts as written outside it, and a \
+             TeleMetrum v1's pressure's too; inside it, over {} files, it lies from {}; outside: \
+             {}. A log format from \
+             the product is format 1 for a TeleMetrum v1 whose configuration states none. Of {} \
+             files, {} have an export beside them and {} agree with it; zeroed at the +1 g \
+             calibration: {}; {} have telemetry beside them and {} agree with it; differing: \
+             {}.\n",
             files,
+            eeprom.with_a_climb_ratio,
+            match eeprom.climb_ratios {
+                Some([least, greatest]) => format!("{least:.3} to {greatest:.3}"),
+                None => "none".to_owned(),
+            },
+            ids(&eeprom.climb_outside_the_band),
             eeprom.files,
             eeprom.with_an_export_beside,
             eeprom.agreeing_with_an_export,
@@ -3917,6 +4032,235 @@ mod tests {
             unread
                 .iter()
                 .any(|line| line.contains("too few fast packets")),
+            "{unread:?}"
+        );
+    }
+
+    /// AltosUI's export of a `.eeprom` record's flight, as rows `(tick, state, pressure Pa,
+    /// temperature °C, acceleration m/s²)`: a row at each tick the record holds a pressure at
+    /// or after, each column its latest value there, as an export holds the last sample.
+    fn eeprom_export_rows(log: &FlightLog) -> Vec<(i64, f64, f64, f64, f64)> {
+        let channel = |name: &str| {
+            let c = log.channels.iter().find(|c| c.column == name).unwrap();
+            let ticks: Vec<i64> = c
+                .time_s
+                .iter()
+                .map(|t| (t * 100.0).round() as i64)
+                .collect();
+            (ticks, c.values.clone())
+        };
+        let latest = |(ticks, values): &(Vec<i64>, Vec<f64>), at: i64, before: f64| {
+            ticks
+                .iter()
+                .zip(values)
+                .rfind(|(tick, _)| **tick <= at)
+                .map_or(before, |(_, value)| *value)
+        };
+        let (state, pressure) = (channel("state"), channel("pressure"));
+        let (temperature, acceleration) = (channel("temperature"), channel("acceleration"));
+        let first = pressure.0[0];
+        let ticks: BTreeSet<i64> = log
+            .channels
+            .iter()
+            .flat_map(|c| c.time_s.iter().map(|t| (t * 100.0).round() as i64))
+            .filter(|tick| *tick >= first)
+            .collect();
+        ticks
+            .into_iter()
+            .map(|tick| {
+                (
+                    tick,
+                    latest(&state, tick, 2.0),
+                    latest(&pressure, tick, f64::NAN),
+                    latest(&temperature, tick, f64::NAN) - 273.15,
+                    latest(&acceleration, tick, f64::NAN),
+                )
+            })
+            .collect()
+    }
+
+    /// The export's text: serial and flight, `time` from the flight record's tick (65,530) and
+    /// `clock` from the tick itself, each value to two decimals.
+    fn eeprom_export(serial: u32, rows: &[(i64, f64, f64, f64, f64)]) -> Vec<u8> {
+        let names = [(2, "pad"), (3, "boost"), (5, "coast"), (6, "drogue")];
+        let mut csv = String::from(
+            "#version,serial,flight,time,clock,state,state_name,acceleration,pressure,height,\
+             temperature\n",
+        );
+        let pad = rows[0].2;
+        for (tick, state, pressure, temperature, acceleration) in rows {
+            let name = names
+                .iter()
+                .find(|(n, _)| f64::from(*n) == *state)
+                .unwrap()
+                .1;
+            let height = 44_330.8
+                * ((pad / 101_325.0).powf(0.190_263) - (pressure / 101_325.0).powf(0.190_263));
+            csv += &format!(
+                "5,{serial},3,{:.2},{:.2},{state},{name},{acceleration:.2},{pressure:.2},\
+                 {height:.2},{temperature:.2}\n",
+                *tick as f64 / 100.0,
+                (*tick + 65_530) as f64 / 100.0
+            );
+        }
+        csv.into_bytes()
+    }
+
+    /// A `.eeprom` file against the AltosUI export and the radio telemetry beside it: a matched
+    /// export agrees; a pressure one print step off, an export row at a tick the file holds no
+    /// sample at, or an acceleration off by a constant other than the +1 g zero's, differs; the
+    /// +1 g zero's own constant is counted apart; a telemetry pressure that differs is caught.
+    #[test]
+    fn an_eeprom_file_is_checked_against_the_export_and_telemetry_beside_it() {
+        let original: &[u8] = include_bytes!(
+            "../../crates/hpr-flightdata/tests/samples/altos-eeprom-telemetrum-v2.eeprom"
+        );
+        let sample = |name: &str, family: &str, bytes: Vec<u8>| Sample {
+            path: PathBuf::from("flight").join(name),
+            source: "test",
+            family: family.to_owned(),
+            bytes,
+        };
+        let id = |bytes: &[u8]| hex(&Sha256::digest(bytes))[..16].to_owned();
+        let run = |eeprom: &[u8], beside: Vec<Sample>| {
+            let mut samples = vec![sample("flight.eeprom", "altos-eeprom", eeprom.to_vec())];
+            samples.extend(beside);
+            let (report, unread) = survey(&samples, Vec::new());
+            let ours: Vec<String> = unread
+                .into_iter()
+                .filter(|line| line.contains(&id(eeprom)))
+                .collect();
+            (report.eeprom_checks, ours)
+        };
+        let log = hpr_flightdata::import::read(original).unwrap();
+        let rows = eeprom_export_rows(&log);
+        let with_export = |eeprom: &[u8], rows: &[(i64, f64, f64, f64, f64)]| {
+            run(
+                eeprom,
+                vec![sample("flight.csv", "altos-csv", eeprom_export(1234, rows))],
+            )
+        };
+
+        // The matched pair agrees, both ways.
+        let (checks, unread) = with_export(original, &rows);
+        assert!(unread.is_empty(), "{unread:?}");
+        assert_eq!(
+            (
+                checks.files,
+                checks.with_an_export_beside,
+                checks.agreeing_with_an_export
+            ),
+            (1, 1, 1)
+        );
+        assert!(checks.differing.is_empty() && checks.zeroed_at_the_plus_calibration.is_empty());
+        let file = &checks.per_file[0];
+        let export = file.export.as_ref().unwrap();
+        assert_eq!((export.pressures, export.accelerations), (21, 21));
+        assert_eq!(export.rows_without_a_sample, 0);
+        assert!(export.worst_pressure_pa < 1e-9 && export.worst_acceleration_m_s2 <= 0.005);
+        assert_eq!(
+            (file.records, file.log_format, file.form.as_str()),
+            (32, 7, "JSON")
+        );
+        assert!(file.climb_ratio.is_some_and(|r| (r - 1.0).abs() < 0.01));
+        assert_eq!(checks.climb_ratios.map(|r| r[0]), file.climb_ratio);
+        assert_eq!(file.smallest_pressure_step_pa, Some(1.0));
+
+        // A pressure one print step, 0.01 Pa, off at one row: the file differs, and is unread.
+        let mut moved = rows.clone();
+        let row = moved.iter().position(|row| row.0 == 50).unwrap();
+        moved[row].2 += 0.01;
+        let (checks, unread) = with_export(original, &moved);
+        assert_eq!(checks.differing, [id(original)]);
+        assert_eq!(checks.agreeing_with_an_export, 0);
+        assert!(
+            unread
+                .iter()
+                .any(|line| line.contains("differs from the AltosUI export")),
+            "{unread:?}"
+        );
+
+        // A row at a tick the file holds no sample at, 0.15 s: the export differs.
+        let mut extra = rows.clone();
+        let at = extra.iter().position(|row| row.0 > 15).unwrap();
+        let held = extra[at - 1];
+        extra.insert(at, (15, held.1, held.2, held.3, held.4));
+        let (checks, _) = with_export(original, &extra);
+        assert_eq!(checks.differing, [id(original)]);
+
+        // The +1 g zero: a calibration of 990 and 1,030 puts +1 g 10 counts, half a g, below the
+        // ground reading of 1,000. An export whose acceleration is the file's less half a g is
+        // counted apart; less 0.6 g, it differs.
+        let text = String::from_utf8_lossy(original)
+            .replace("\"accel_cal_minus\": 1040", "\"accel_cal_minus\": 1030")
+            .replace("\"accel_cal_plus\": 1000", "\"accel_cal_plus\": 990")
+            .into_bytes();
+        let offset = |g: f64| {
+            let mut rows = rows.clone();
+            for row in &mut rows {
+                row.4 -= g * 9.806_65;
+            }
+            rows
+        };
+        let (checks, unread) = with_export(&text, &offset(0.5));
+        assert!(unread.is_empty(), "{unread:?}");
+        assert_eq!(checks.zeroed_at_the_plus_calibration, [id(&text)]);
+        assert!(checks.differing.is_empty());
+        assert!(
+            checks.per_file[0]
+                .export
+                .as_ref()
+                .unwrap()
+                .zeroed_at_the_plus_calibration
+        );
+        let (checks, _) = with_export(&text, &offset(0.6));
+        assert_eq!(checks.differing, [id(&text)]);
+        assert!(checks.zeroed_at_the_plus_calibration.is_empty());
+        // Nor is a constant offset the +1 g zero where the calibration puts +1 g at the ground
+        // reading, as the original's does.
+        let (checks, _) = with_export(original, &offset(0.5));
+        assert_eq!(checks.differing, [id(original)]);
+
+        // The board's telemetry, serial 7: a packet on the pad, then one at each of the file's
+        // samples from boost on, with its pressure. All equal agrees; one 5 Pa off differs.
+        let seven = String::from_utf8_lossy(original)
+            .replace("\"serial\": 1234", "\"serial\": 7")
+            .into_bytes();
+        let telemetry = |off: i32| {
+            let mut text = telemetry_line(65_500, 2, 110_002, 2_000, 0, 0, 0);
+            for (tick, state, pressure, ..) in rows.iter().filter(|row| row.0 >= 1) {
+                let state = if *state < 3.0 { 3 } else { *state as u8 };
+                let pres = *pressure as i32 + if *tick == 50 { off } else { 0 };
+                let tick = ((65_530 + tick) % 65_536) as u16;
+                text += &telemetry_line(tick, state, pres, 2_000, 0, 0, 0);
+            }
+            text.into_bytes()
+        };
+        let (checks, unread) = run(
+            &seven,
+            vec![sample("flight.telem", "altos-telem", telemetry(0))],
+        );
+        assert!(unread.is_empty(), "{unread:?}");
+        assert_eq!(
+            (checks.with_telemetry_beside, checks.agreeing_with_telemetry),
+            (1, 1)
+        );
+        let telemetry_check = checks.per_file[0].telemetry.as_ref().unwrap();
+        assert_eq!(
+            (
+                telemetry_check.ticks_shared,
+                telemetry_check.pressures_equal
+            ),
+            (17, 17)
+        );
+        let (checks, unread) = run(
+            &seven,
+            vec![sample("flight.telem", "altos-telem", telemetry(5))],
+        );
+        assert_eq!(checks.agreeing_with_telemetry, 0);
+        assert_eq!(checks.differing, [id(&seven)]);
+        assert!(
+            unread.iter().any(|line| line.contains("or the telemetry")),
             "{unread:?}"
         );
     }

@@ -97,6 +97,7 @@ Commands:
 {SCOREBOARD}
 {CLI}
 {SITE}
+{SITE_MATH}
 {SPELLING}
 {EXAMPLES}
 {FIGURES}
@@ -128,6 +129,7 @@ fn usage() -> String {
         .replace("{SCOREBOARD}", scoreboard::USAGE)
         .replace("{CLI}", cli::USAGE)
         .replace("{SITE}", site::USAGE)
+        .replace("{SITE_MATH}", site::math::USAGE)
         .replace("{SPELLING}", spelling::USAGE)
         .replace("{EXAMPLES}", examples::USAGE)
         .replace("{FIGURES}", figures::USAGE)
@@ -161,6 +163,7 @@ fn main() -> ExitCode {
         Some("scoreboard") => scoreboard::run(&args.collect::<Vec<_>>()),
         Some("cli") => cli::run(&args.collect::<Vec<_>>()),
         Some("site") => site::run(&args.collect::<Vec<_>>()),
+        Some("site-math") => site::math::run(&args.collect::<Vec<_>>()),
         Some("spelling") => spelling::run(&args.collect::<Vec<_>>()),
         Some("examples") => examples::run(&args.collect::<Vec<_>>()),
         Some("figures") => figures::run(&args.collect::<Vec<_>>()),

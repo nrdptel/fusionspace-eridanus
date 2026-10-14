@@ -37,11 +37,11 @@ Martin reduced the theory of a wing that bends and twists to a few numbers from 
 outline, and checked it against the flutter record of missiles and wind-tunnel models
 ([The criterion][criterion]). His flutter speed is
 
-```text
-V_f = a · √(G_E / D)
-```
+$$
+V_f = a \sqrt{\frac{G_E}{D}}
+$$
 
-with `a` the speed of sound, `G_E` the fin's shear modulus, and `D` a denominator that holds the
+with $a$ the speed of sound, $G_E$ the fin's shear modulus, and $D$ a denominator that holds the
 rest: the air's pressure and the fin's shape. Read in words:
 
 - **Thickness counts most.** The flutter speed grows as the thickness ratio (thickness over root
@@ -82,14 +82,14 @@ will fail. For the flutter speed to reach the airspeed at max q, the plywood wou
 4.2 mm (0.166 in) thick.
 
 The `hpr` command doesn't print these yet; in code, HPR Sim's
-[`FlutterPanel`][flutter-panel] gives the flutter speed and the ratio `V_f / V` at max q
+[`FlutterPanel`][flutter-panel] gives the flutter speed and the ratio $V_f/V$ at max q
 ([A rocket's fins][rocket-fins] has a worked example that CI runs).
 
 ## Two readings
 
-The ratio `V_f / V` is the first reading. The second is Martin's own check: where the fin plots on
+The ratio $V_f/V$ is the first reading. The second is Martin's own check: where the fin plots on
 his chart against the line his data draw. His chart gives each wing one number, the denominator
-`D` over its shear modulus `G_E`: the higher it is, the less stiff the wing for the air it flies
+$D$ over its shear modulus $G_E$: the higher it is, the less stiff the wing for the air it flies
 in. Wings that fluttered or failed lie above a
 band, and wings that flew to at least Mach 1.3 without known failure lie below it. The band runs
 at a ratio of 0.25 to 0.31, a flutter speed 1.8 to 2.0 times the speed of sound

@@ -46,6 +46,14 @@ expression: log
         ]
       },
       {
+        "name": "pad_orientation",
+        "written": "0",
+        "quantity": "number",
+        "values": [
+          0.0
+        ]
+      },
+      {
         "name": "main_deploy",
         "written": "250",
         "quantity": "unrecognized",
@@ -275,20 +283,40 @@ expression: log
         0.06,
         0.08,
         0.09,
-        0.1
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        1.0,
+        1.1
       ],
       "values": [
         110002.0,
         110002.0,
         110002.0,
         110002.0,
-        109913.0,
-        109780.0,
-        109602.0,
-        109380.0,
-        109114.0,
-        108848.0,
-        108892.0
+        110002.0,
+        110002.0,
+        109999.0,
+        109998.0,
+        109996.0,
+        109994.0,
+        109993.0,
+        109974.0,
+        109948.0,
+        109917.0,
+        109879.0,
+        109835.0,
+        109785.0,
+        109728.0,
+        109666.0,
+        109596.0,
+        109521.0
       ]
     },
     {
@@ -305,7 +333,17 @@ expression: log
         0.06,
         0.08,
         0.09,
-        0.1
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        1.0,
+        1.1
       ],
       "values": [
         293.15,
@@ -315,6 +353,16 @@ expression: log
         293.14,
         293.14,
         293.14,
+        293.13,
+        293.13,
+        293.13,
+        293.13,
+        293.13,
+        293.13,
+        293.13,
+        293.13,
+        293.13,
+        293.13,
         293.13,
         293.13,
         293.13,
@@ -335,7 +383,17 @@ expression: log
         0.06,
         0.08,
         0.09,
-        0.1
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        1.0,
+        1.1
       ],
       "values": [
         -0.4903325,
@@ -346,9 +404,19 @@ expression: log
         196.13299999999998,
         171.61637499999998,
         98.06649999999999,
-        -49.033249999999995,
-        -19.6133,
-        -9.80665
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995
       ]
     },
     {
@@ -356,8 +424,8 @@ expression: log
       "quantity": "number",
       "time_s": [
         0.01,
-        0.09,
-        0.1
+        1.11,
+        1.12
       ],
       "values": [
         3.0,
@@ -402,19 +470,21 @@ expression: log
       "name": "boost"
     },
     {
-      "time_s": 0.09,
+      "time_s": 1.11,
       "name": "coast"
     },
     {
-      "time_s": 0.1,
+      "time_s": 1.12,
       "name": "drogue"
     }
   ],
   "notes": [
-    "22 records of 16 bytes, log format 7, from the JSON form: every record's checksum checked, all pass",
+    "32 records of 16 bytes, log format 7, from the JSON form: every record's checksum checked, all pass",
     "2 erased records (every byte 0xFF) after the last, skipped",
     "the clock is the board's tick, 10 ms, from the flight record's at tick 65530 (boost detection), each tick on the turn nearest the latest so far, from the file's first record; the records in tick order, as the file's isn't; 7 records before boost, at negative times",
     "`pressure` and `temperature` from the MS5607's counts by its data sheet's compensation, first and second order: the pad's pressure, 110002 Pa, lies from 10 to 120 kPa and within 0.00% of the flight record's ground pressure, 110002 Pa",
+    "`temperature` on the pad, 20.0 °C, within the MS5607's operating range, −40 to 85 °C",
+    "`pressure` and `acceleration` held to each other: over the first second after boost the rocket climbs 31.7 m by the pressure in the standard atmosphere and 31.6 m by the acceleration integrated twice from rest on the pad, a ratio of 1.001, within 0.6 to 5/3",
     "`acceleration` along the board's axis, m/s², from the high-g accelerometer's counts: 0 at the flight record's ground reading, 1000, and 20 counts a g from the calibration's +1 g and −1 g, 1000 and 1040",
     "kept as written, counts with no cited conversion: `v_batt`, `sense_a`, `sense_m`, `gps_byte_11` (a dilution in some firmware, a stale byte in others)",
     "GPS: the time, date (two digits, and not reliably the flight's), dilutions (ten times their value), course, speed, climb, satellite counts and signals kept as written",

@@ -208,24 +208,24 @@ The board's own estimates, sent in its telemetry, against each other: the median
 
 AltOS's raw downloads, `.eeprom`, each file's records as its record counts them, and against AltosUI's export and the board's radio telemetry of the same flight where they lie beside it:
 
-| File | Form | Log format | Records | Checksums | Erased | Repeats dropped | After a silence | Last line cut | Pressures vs export | Temperatures | Accelerations | Mega voltages | Pressures vs telemetry |
-|---|---|---:|---:|---|---:|---:|---:|---|---|---|---|---|---|
-| 01f1e77df7e18bc1 | JSON | 1 | 4088 | 4088, 0 failing | 8 | 0 | 0 | no | 2206, 0.0035 Pa | – | 2206, 0.0050 m/s² | – | – |
-| 0bc0d96357b9eb10 | text | 1 | 5750 | none printed | 0 | 4 | 0 | yes | 5029, 0.0050 Pa | – | 5029, 0.0050 m/s² | – | – |
-| 0ef41688774d1d2a | text | 7 | 5238 | none printed | 0 | 0 | 0 | no | – | – | – | – | – |
-| 2084c9945938a5e7 | text | 7 | 2182 | none printed | 0 | 0 | 0 | no | – | – | – | – | – |
-| 219767cba01f7d9d | text | 7 | 7231 | none printed | 0 | 0 | 0 | no | 5799, 0.0000 Pa | 5799, 0.050 K | 5799, 0.0049 m/s² (zeroed at +1 g) | – | – |
-| 56da61ddf4935294 | JSON | 6 | 2389 | 2389, 0 failing | 11 | 0 | 0 | no | 2384, 0.0000 Pa | 2384, 0.050 K | – | – | – |
-| 67417925a3f2a144 | JSON | 22 | 6877 | 6877, 0 failing | 3 | 0 | 0 | no | 5228, 0.0000 Pa | 5228, 0.050 K | 5228, 0.0050 m/s² | 7000, 0.0050 V | – |
-| 9611014e6dae139c | JSON | 7 | 7483 | 7483, 0 failing | 5 | 0 | 0 | no | – | – | – | – | 108 of 108 |
-| 9e001801c8f2b8e1 | text | 7 | 13123 | none printed | 0 | 0 | 0 | no | 10262, 0.0000 Pa | 10262, 0.050 K | 10262, 0.0050 m/s² | – | 123 of 123 |
-| a24b048cc7f450cf | JSON | 16 | 1777 | 1777, 0 failing | 7 | 0 | 0 | no | 1592, 0.0000 Pa | 1592, 0.050 K | 1592, 0.0050 m/s² | 1253, 0.0049 V | – |
-| ae3260cae4174bc2 | JSON | 15 | 3388 | 3388, 0 failing | 4 | 0 | 0 | no | 2979, 0.0000 Pa | 2979, 0.050 K | 2979, 0.0050 m/s² | 1715, 0.0050 V | – |
-| b122d4bddf7a8a89 | text | 1 | 9848 | none printed | 0 | 15 | 14 | no | – | – | – | – | – |
-| e5b35cdd0836c39e | text | 7 | 4027 | none printed | 0 | 0 | 0 | no | – | – | – | – | – |
-| f44c03b81cb9cf81 | JSON | 14 | 3435 | 3435, 0 failing | 5 | 0 | 0 | no | 3429, 0.0000 Pa | 3429, 0.050 K | – | – | – |
+| File | Form | Log format | Records | Checksums | Erased | Repeats dropped | After a silence | Last line cut | Pressure step | Climb ratio | Pressures vs export | Temperatures | Accelerations | Mega voltages | Export rows, without a sample | Pressures vs telemetry |
+|---|---|---|---:|---|---:|---:|---:|---|---:|---:|---|---|---|---|---|---|
+| 01f1e77df7e18bc1 | JSON | 1 | 4088 | 4088, 0 failing | 8 | 0 | 0 | no | 13.57 Pa | 0.859 | 2206, 0.0035 Pa | – | 2206, 0.0050 m/s² | – | 4118, 0 without | – |
+| 0bc0d96357b9eb10 | text | 1 (from the product) | 5750 | none printed | 0 | 4 | 0 | yes | 13.57 Pa | 0.902 | 5029, 0.0050 Pa | – | 5029, 0.0050 m/s² | – | 5045, 0 without | – |
+| 0ef41688774d1d2a | text | 7 | 5238 | none printed | 0 | 0 | 0 | no | 1.00 Pa | 1.221 | – | – | – | – | – | – |
+| 2084c9945938a5e7 | text | 7 | 2182 | none printed | 0 | 0 | 0 | no | 1.00 Pa | 1.211 | – | – | – | – | – | – |
+| 219767cba01f7d9d | text | 7 | 7231 | none printed | 0 | 0 | 0 | no | 1.00 Pa | 1.400 | 5799, 0.0000 Pa | 5799, 0.050 K | 5799, 0.0049 m/s² (zeroed at +1 g) | – | 7230, 0 without | – |
+| 56da61ddf4935294 | JSON | 6 | 2389 | 2389, 0 failing | 11 | 0 | 0 | no | 1.00 Pa | – | 2384, 0.0000 Pa | 2384, 0.050 K | – | – | 2403, 0 without | – |
+| 67417925a3f2a144 | JSON | 22 | 6877 | 6877, 0 failing | 3 | 0 | 0 | no | 1.00 Pa | 1.125 | 5228, 0.0000 Pa | 5228, 0.050 K | 5228, 0.0050 m/s² | 7000, 0.0050 V | 6907, 0 without | – |
+| 9611014e6dae139c | JSON | 7 | 7483 | 7483, 0 failing | 5 | 0 | 0 | no | 1.00 Pa | 0.884 | – | – | – | – | – | 108 of 108 |
+| 9e001801c8f2b8e1 | text | 7 | 13123 | none printed | 0 | 0 | 0 | no | 1.00 Pa | 1.340 | 10262, 0.0000 Pa | 10262, 0.050 K | 10262, 0.0050 m/s² | – | 13122, 0 without | 123 of 123 |
+| a24b048cc7f450cf | JSON | 16 | 1777 | 1777, 0 failing | 7 | 0 | 0 | no | 1.00 Pa | 0.971 | 1592, 0.0000 Pa | 1592, 0.050 K | 1592, 0.0050 m/s² | 1253, 0.0049 V | 1807, 0 without | – |
+| ae3260cae4174bc2 | JSON | 15 | 3388 | 3388, 0 failing | 4 | 0 | 0 | no | 1.00 Pa | 0.907 | 2979, 0.0000 Pa | 2979, 0.050 K | 2979, 0.0050 m/s² | 1715, 0.0050 V | 3418, 0 without | – |
+| b122d4bddf7a8a89 | text | 1 (from the product) | 9848 | none printed | 0 | 15 | 14 | no | – | 1.988 | – | – | – | – | – | – |
+| e5b35cdd0836c39e | text | 7 | 4027 | none printed | 0 | 0 | 0 | no | 1.00 Pa | 1.068 | – | – | – | – | – | – |
+| f44c03b81cb9cf81 | JSON | 14 | 3435 | 3435, 0 failing | 5 | 0 | 0 | no | 1.00 Pa | – | 3429, 0.0000 Pa | 3429, 0.050 K | – | – | 3497, 0 without | – |
 
-An export of the same flight is an AltosUI CSV in the file's folder whose `serial` and `flight` are the file's, read by its header's names apart from HPR Sim's AltOS CSV reader. The two line up by tick, the export's `time` counting from the flight record's tick, or, where it equals its `clock` at every row, from the tick itself. At each of the file's samples the export's last row at that hundredth must agree within half the export's print step (each cell above: the values compared and the worst difference): the pressure, the temperature where an MS5607 gives it, the acceleration, and a Mega's pyro, igniter, apogee and main voltages. An export whose acceleration differs from the file's by one constant, the zero AltosUI may set at the +1 g calibration instead of the flight record's ground reading, within half a step, is counted apart. The telemetry is the board's `.telem` of the same serial number, its clock lined up by whole turns from the two `boost` events; every pressure at a tick a sensor packet holds must equal it. Of 14 files, 9 have an export beside them and 9 agree with it; zeroed at the +1 g calibration: 219767cba01f7d9d; 2 have telemetry beside them and 2 agree with it; differing: none.
+An export of the same flight is an AltosUI CSV in the file's folder whose `serial` and `flight` are the file's, read by its header's names apart from HPR Sim's AltOS CSV reader. The two line up by tick, the export's `time` counting from the flight record's tick, or, where it equals its `clock` at every row, from the tick itself. At each of the file's samples the export's last row at that hundredth must agree within half the export's print step (each cell above: the values compared and the worst difference): the pressure, the temperature where an MS5607 gives it, the acceleration, and a Mega's pyro, igniter, apogee and main voltages. An export whose acceleration differs from the file's by one constant, the zero AltosUI may set at the +1 g calibration instead of the flight record's ground reading, within half a step, is counted apart. The other way, every row of the export must fall at a tick where the file holds a sample of some channel. The telemetry is the board's `.telem` of the same serial number, its clock lined up by whole turns from the two `boost` events; every pressure at a tick a sensor packet holds must equal it. The pressure step is the smallest difference between two of the file's pressures. The climb ratio is the reader's climb check on a board with an accelerometer: the climb over the first second after boost by the pressure in the standard atmosphere over the climb by the acceleration integrated twice from rest, which the reader holds from 0.6 to 5/3, keeping the acceleration's counts as written outside it, and a TeleMetrum v1's pressure's too; inside it, over 11 files, it lies from 0.859 to 1.400; outside: b122d4bddf7a8a89 (1.988). A log format from the product is format 1 for a TeleMetrum v1 whose configuration states none. Of 14 files, 9 have an export beside them and 9 agree with it; zeroed at the +1 g calibration: 219767cba01f7d9d; 2 have telemetry beside them and 2 agree with it; differing: none.
 
 Units no header states, as each file's reader decided them, or kept the column as written, and noted:
 
@@ -351,6 +351,7 @@ Units no header states, as each file's reader decided them, or kept the column a
 | altimetercloud-csv | `pitch`, `roll`, `yaw` and `tilt` read in degrees, from the Nano V1 manual | 7 |
 | altimetercloud-csv | `pitch`, `roll`, `yaw` and `tilt` read in degrees, from the Nano V1 manual, whose layout has the same columns | 4 |
 | altimetercloud-csv | `target_alt` kept as written | 4 |
+| altos-eeprom | `accel` kept as written | 1 |
 | altos-telem | `accel`, `v_batt`, `sense_d` and `sense_m` kept as written | 2 |
 | altos-telem | `ground_accel`, `accel_plus_g` and `accel_minus_g` kept as written | 2 |
 | altos-telem | `pres` read in pascals, not the document's tenths of a pascal | 2 |

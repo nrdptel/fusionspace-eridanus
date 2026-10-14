@@ -53,10 +53,10 @@ how to fetch and check it):
   rocket's velocity minus this. Mean wind (the steady wind, without gusts) is horizontal, so its up
   part is zero.
 - **Direction:** [meteorological](../glossary.md#wind-direction): the direction the wind blows
-  **from**, clockwise from true north, in radians. For a wind of speed `V` from direction `θ`, the
-  east and north parts are `v_E = −V sin θ` and `v_N = −V cos θ`. A wind from the west (`3π/2`,
-  270°) blows toward the east, `+E`. RocketPy's *heading* is the direction the wind blows toward,
-  `θ + π`.
+  **from**, clockwise from true north, in radians. For a wind of speed $V$ from direction $\theta$, the
+  east and north parts are $v_E = -V \sin\theta$ and $v_N = -V \cos\theta$. A wind from the west ($3\pi/2$,
+  270°) blows toward the east, $+E$. RocketPy's *heading* is the direction the wind blows toward,
+  $\theta + \pi$.
 - **Height:** a flight asks every model for the wind at a height above mean sea level, as it asks
   the [atmosphere](atmosphere.md#height-datum). Some models are built from heights above the
   ground instead: [Which height?](#which-height) says which.
@@ -81,40 +81,45 @@ one.
 
 ### Models
 
-In the laws below, `V` is the wind speed at height `z` above the ground, and `V_ref` the speed
-measured at a reference height `z_ref` above the ground, such as the 10 m (33 ft) mast of a weather
+In the laws below, $V$ is the wind speed at height $z$ above the ground, and $V_{\mathrm{ref}}$ the speed
+measured at a reference height $z_{\mathrm{ref}}$ above the ground, such as the 10 m (33 ft) mast of a weather
 station. Each law blows from one direction at every height.
 
 - **`ConstantWind`:** one velocity at every height.
-- **`PowerLawWind`:** the speed grows as a power of height, `V = V_ref (z/z_ref)^α` for `z > 0`,
+- **`PowerLawWind`:** the speed grows as a power of height, $V = V_{\mathrm{ref}}\, (z/z_{\mathrm{ref}})^\alpha$ for $z > 0$,
   and is zero at and below the ground. A height below the ground is [flagged](#conventions).
-  - `α` is the exponent: the larger it is, the faster the wind grows with height.
-  - [TM] eq. 2.1 gives the law for peak winds below 150 m (492 ft), with `z_ref = 18.3 m`. A peak wind is
+  - $\alpha$ is the exponent: the larger it is, the faster the wind grows with height.
+  - [TM] eq. 2.1 gives the law for peak winds below 150 m (492 ft), with $z_{\mathrm{ref}} = 18.3\,\mathrm{m}$. A peak wind is
     the strongest speed over a period, gusts included, not the steady mean wind the simulator flies.
-  - [TM] Table 2-1: `α = 0.2` for 7–22 m/s (23–72 ft/s) and 0.14 above 22 m/s (72 ft/s). Eq. 2.22 gives `1/7` with
-    `z_ref = 10 m` for strong 10 m (33 ft) winds.
+  - [TM] Table 2-1: $\alpha = 0.2$ for 7–22 m/s (23–72 ft/s) and 0.14 above 22 m/s (72 ft/s). Eq. 2.22 gives $1/7$ with
+    $z_{\mathrm{ref}} = 10\,\mathrm{m}$ for strong 10 m (33 ft) winds.
   - Those exponents describe profiles of peak winds, and of strong 10 m (33 ft) winds. No single value
     fits mean winds everywhere, so treat any exponent as a starting point, not a measurement of
     your field.
-  - [The example](#an-example-of-each) uses `α = 1/7` (about 0.14) with a 10 m (33 ft) reference height,
+  - [The example](#an-example-of-each) uses $\alpha = 1/7$ (about 0.14) with a 10 m (33 ft) reference height,
     the pairing of [TM] eq. 2.22. Its *power law* column shows what that does to a 5.0 m/s (16 ft/s) wind at
     10 m (33 ft): 4.0 m/s (13 ft/s) at 2 m (6.6 ft), 6.9 m/s (23 ft/s) at 100 m (328 ft), and 10.7 m/s (35 ft/s) at 2,000 m (6,562 ft), where it is still growing.
   - The law describes the surface layer: the air nearest the ground, where friction with the
     ground sets how fast the wind grows with height ([TM] fits it below 150 m (492 ft)). Above that layer the
     law keeps growing, so pair it with measured winds aloft.
 - **`LogLawWind`:** the speed grows with the logarithm of height,
-  `V = V_ref ln(z/z₀)/ln(z_ref/z₀)` for `z > z₀`, and is zero from the ground up to `z₀`.
-  - `z₀` is the roughness length: the height at which the law's wind falls to zero. It is set by
+
+  $$
+  V = V_{\mathrm{ref}}\, \frac{\ln(z/z_0)}{\ln(z_{\mathrm{ref}}/z_0)}
+  $$
+
+  for $z > z_0$, and is zero from the ground up to $z_0$.
+  - $z_0$ is the roughness length: the height at which the law's wind falls to zero. It is set by
     how rough the ground is (see the values below).
-  - This is the neutral surface-layer law `V = (u*/κ) ln(z/z₀)` ([WMO] ch. 5 annex; [TM] eq.
-    2.8 with `Ψ = 0`), written through a reference wind. There `u*` is the friction velocity, a
-    speed that measures how hard the wind drags on the ground, and `κ` is the von Kármán
-    constant, a fixed number of the theory. Writing the law through the wind measured at `z_ref`
+  - This is the neutral surface-layer law $V = (u_*/\kappa) \ln(z/z_0)$ ([WMO] ch. 5 annex; [TM] eq.
+    2.8 with $\Psi = 0$), written through a reference wind. There $u_*$ is the friction velocity, a
+    speed that measures how hard the wind drags on the ground, and $\kappa$ is the von Kármán
+    constant, a fixed number of the theory. Writing the law through the wind measured at $z_{\mathrm{ref}}$
     cancels both, so the simulator needs neither.
-  - `Ψ` in [TM] eq. 2.8 corrects for the air's stability: air warmed from below mixes more, and
-    air cooled from below mixes less, which changes how the wind grows with height. `Ψ = 0` is
+  - $\Psi$ in [TM] eq. 2.8 corrects for the air's stability: air warmed from below mixes more, and
+    air cooled from below mixes less, which changes how the wind grows with height. $\Psi = 0$ is
     neutral air, where neither happens. The simulator has only the neutral law.
-  - [8785C] §3.7.3.2 uses it with `z_ref = 20 ft`.
+  - [8785C] §3.7.3.2 uses it with $z_{\mathrm{ref}} = 20\,\mathrm{ft}$.
   - Roughness lengths: 0.03 m (0.098 ft) for open flat terrain with grass ([WMO]; this is class 3 of the
     Davenport–Wieringa classification there, which gives a roughness length for each kind of
     terrain); 0.001–0.01 m (0.0033–0.033 ft) for mown grass and 0.01–0.04 m (0.033–0.13 ft) for low grass or steppe ([TM] Table
@@ -183,16 +188,16 @@ level's 12.0 m/s (39 ft/s) from 300° from 100 m (328 ft) up. Above that, every 
 [ellipsoidal height](../glossary.md#ellipsoidal-height): height above the
 [WGS 84](../glossary.md#wgs-84) ellipsoid, the smooth shape the simulator gives the Earth. A field's
 elevation, as a map gives it, is height above sea level instead. The two differ by the geoid
-undulation `N`, the height of sea level above the ellipsoid at that place, which can be up to
-about 100 m (328 ft). The simulator has no map of `N`, so there are two ways to set up a site:
+undulation $N$, the height of sea level above the ellipsoid at that place, which can be up to
+about 100 m (328 ft). The simulator has no map of $N$, so there are two ways to set up a site:
 
 - **The simple way, which the examples take.** Enter your field's elevation above sea level as
-  the site's height, and leave `N` at 0, as `Environment::standard` sets it. The air and the wind
+  the site's height, and leave $N$ at 0, as `Environment::standard` sets it. The air and the wind
   are then looked up at the right heights above sea level. What is off is the height above the
-  ellipsoid, by your field's `N`. A flight uses that only to work out gravity, which changes by
+  ellipsoid, by your field's $N$. A flight uses that only to work out gravity, which changes by
   about 0.003% over 100 m (328 ft) of height.
-- **The exact way, if you know `N` at your field.** Enter the elevation plus `N` as the site's
-  height, and give the environment `N` with `with_geoid_undulation_m`
+- **The exact way, if you know $N$ at your field.** Enter the elevation plus $N$ as the site's
+  height, and give the environment $N$ with `with_geoid_undulation_m`
   ([`Environment`](../api/hpr_sim/environment/struct.Environment.html)).
 
 Either way, the ground is the site's `height_m` less the environment's `geoid_undulation_m` above
@@ -474,7 +479,7 @@ levels aloft. The planned weather milestone ([M5.2](../decisions-and-roadmap.md#
   and **`wind_grows_out_of_calm_without_turning`**.
 - **`layered_wind_holds_and_flags_beyond_its_levels`**.
 - **`meteorological_direction_convention`**, plus the power and log laws through their
-  references, below ground, and at `z₀`.
+  references, below ground, and at $z_0$.
 - **`invalid_inputs_are_rejected`**, and **`wind_models_round_trip_through_json`**: each model
   written to JSON and read back gives the same wind.
 - **Against RocketPy**, in the recovery test `descent_matches_rocketpy_examples`
