@@ -371,10 +371,10 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
   snapshot-tested, and the crate builds with no dependency on `hpr-sim` (`cargo xtask wasm-check`).
   Formats without samples are listed in the docs as needing samples.
   - [ ] **M7.1c The other importers** (ADR-254, ADR-255, ADR-256, ADR-258, ADR-259, ADR-260,
-    ADR-261, ADR-262, ADR-263): in ten.
-    - [ ] **M7.1c10 The rest:** AltOS eeprom, Blue Raven's other files, Entacore AIM XTRA,
-      spreadsheets, CATS; EuRoC/Juno CSV; generic CSV with column mapping; unit detection (and
-      `telemetry-rtf`, ADR-258; ARTS2 raw and `.odf`, RTx, ADR-259).
+    ADR-261, ADR-262, ADR-263, ADR-265): in eleven.
+    - [ ] **M7.1c11 The rest:** Blue Raven's other files, Entacore AIM XTRA, spreadsheets, CATS;
+      EuRoC/Juno CSV; generic CSV with column mapping; unit detection (and `telemetry-rtf`,
+      ADR-258; ARTS2 raw and `.odf`, RTx, ADR-259).
       *Done when:* the parent's.
 - [ ] **M7.2 Readings, reconstruction and ghost data.**
   - The readings a flight gives (apogee, maximum velocity and acceleration, burnout, descent

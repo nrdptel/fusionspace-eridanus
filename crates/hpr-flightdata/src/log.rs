@@ -262,6 +262,10 @@ pub enum LogFormat {
     /// AltOS radio telemetry, as AltosUI saves the packets a TeleDongle hears to a `.telem`
     /// file: one `TELEM` line a packet, its bytes in hexadecimal.
     AltosTelemetry,
+    /// AltOS's raw flight download, as AltosUI saves a flight computer's memory to an `.eeprom`
+    /// file: a JSON object of the board's configuration then the memory in hexadecimal, or, from
+    /// older versions, the configuration as the board prints it then one record a line.
+    AltosEeprom,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -375,7 +379,9 @@ impl LogFormat {
     /// own error is far larger. A Featherweight summary has no track: its maximum altitude is
     /// written to the hundredth of a foot. An R-DAS's raw text has no altitude either, only its
     /// barometer's counts: one is 0.09 kPa in its maker's manual, 7.49 m near sea level. AltOS's
-    /// telemetry sends the board's height above the pad in whole meters.
+    /// telemetry sends the board's height above the pad in whole meters. An AltOS `.eeprom` file
+    /// holds no altitude either: its coarsest pressure is a TeleMetrum v1's, whose counts move by
+    /// 4 in the sample files, 13.6 Pa, 1.13 m near sea level.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -404,6 +410,7 @@ impl LogFormat {
             Self::FeatherweightSummaryCsv => 0.01 * crate::perfectflite::FOOT_M,
             Self::RdasText => crate::rdas::ALTITUDE_STEP_M,
             Self::AltosTelemetry => 1.0,
+            Self::AltosEeprom => crate::altos_eeprom::ALTITUDE_STEP_M,
         }
     }
 
@@ -437,6 +444,7 @@ impl LogFormat {
             Self::PerfectFlitePfa => ".pfa",
             Self::Kml => ".kml",
             Self::AltosTelemetry => ".telem",
+            Self::AltosEeprom => ".eeprom",
         }
     }
 
@@ -470,6 +478,7 @@ impl LogFormat {
             Self::FeatherweightSummaryCsv => "Featherweight summary CSV",
             Self::RdasText => "R-DAS text",
             Self::AltosTelemetry => "AltOS telemetry",
+            Self::AltosEeprom => "AltOS .eeprom",
         }
     }
 }
@@ -558,6 +567,7 @@ mod tests {
             (LogFormat::FluctusCsv, 1.0),
             (LogFormat::Arts2Csv, 8.805_672),
             (LogFormat::RdasText, 7.491_793),
+            (LogFormat::AltosEeprom, 1.129_595),
         ];
         for (format, expected) in cases {
             let resolution = format.altitude_resolution_m();

@@ -22,6 +22,7 @@
 //! | [RRC3 CSV](crate::rrc3) | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages` |
 //! | [AltimeterCloud CSV](crate::altimetercloud) | a header within the first 65 lines whose first name is `Time(ms)`, in any case, and which also names `acceleration_total(mG)` and `tilt` |
 //! | [Entacore AIM CSV](crate::entacore) | the first line starts with a `time` column, names at least two, and names one of the AIM's own channels, such as `Pressure AGL` |
+//! | [AltOS `.eeprom`](crate::altos_eeprom) | a JSON object naming `log_format` and `product`; or, within the first 1,000 lines, a `Config version:` line and a `manufacturer altusmetrum.org` line |
 //! | [AltOS telemetry](crate::altos_telem) | the first line that isn't blank is `TELEM`, a space, and an even number of hexadecimal digits |
 //! | [R-DAS text](crate::rdas) | the first line that isn't blank is `*** Configuration ***`, and a `*** Raw data ***` line comes within the first 200 |
 //! | [ARTS2 CSV](crate::arts2) | a first line of `#` and the names `MET Acc Vel iAlt pAlt`, by spaces, tabs or commas, in any case; tried before AltOS's `#` comments |
@@ -49,9 +50,9 @@ use std::borrow::Cow;
 use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
 use crate::{
-    aerospacenu_fcb, aerospacenu_gs, altimetercloud, altos, altos_telem, archive, arts2, blueraven,
-    eggtimer, entacore, fluctus, fwgps, fwsummary, kml, nmea, perfectflite, phone_launch, raven,
-    raven_fipa, rdas, rrc3, rrc3_rff, sillygoose,
+    aerospacenu_fcb, aerospacenu_gs, altimetercloud, altos, altos_eeprom, altos_telem, archive,
+    arts2, blueraven, eggtimer, entacore, fluctus, fwgps, fwsummary, kml, nmea, perfectflite,
+    phone_launch, raven, raven_fipa, rdas, rrc3, rrc3_rff, sillygoose,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
@@ -65,6 +66,7 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::FeatherweightGpsCsv,
     LogFormat::FeatherweightSummaryCsv,
     LogFormat::RdasText,
+    LogFormat::AltosEeprom,
     LogFormat::AltosTelemetry,
     LogFormat::Arts2Csv,
     LogFormat::PerfectFlitePf2,
@@ -161,6 +163,9 @@ fn detect_text(text: &str) -> Option<LogFormat> {
     }
     if rdas::recognizes(text) {
         return Some(LogFormat::RdasText);
+    }
+    if altos_eeprom::recognizes(text) {
+        return Some(LogFormat::AltosEeprom);
     }
     if altos_telem::recognizes(text) {
         return Some(LogFormat::AltosTelemetry);
@@ -278,6 +283,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::FeatherweightSummaryCsv) => fwsummary::read(&text),
         Some(LogFormat::RdasText) => rdas::read(&text),
         Some(LogFormat::AltosTelemetry) => altos_telem::read(&text),
+        Some(LogFormat::AltosEeprom) => altos_eeprom::read(&text),
         None => {
             let known: Vec<&str> = FORMATS.iter().map(|format| format.name()).collect();
             Err(LogError::Unrecognized {
@@ -421,6 +427,16 @@ mod tests {
                 Some(LogFormat::FeatherweightGpsCsv),
             ),
             ("TRACKER,DATE,TIME,RSSI\n", None),
+            (
+                "{\"log_format\": 14, \"product\": \"EasyMini-v2.0\"}\n46 00",
+                Some(LogFormat::AltosEeprom),
+            ),
+            ("{\"product\": \"EasyMini-v2.0\"}\n", None),
+            (
+                "~\nConfig version: 1.27\nmanufacturer     altusmetrum.org\nA 1 00 00\n",
+                Some(LogFormat::AltosEeprom),
+            ),
+            ("Config version: 1.27\nA 1 00 00\n", None),
             ("", None),
         ];
         for (text, format) in cases {

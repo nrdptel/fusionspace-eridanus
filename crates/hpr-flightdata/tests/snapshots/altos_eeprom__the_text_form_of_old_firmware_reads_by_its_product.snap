@@ -1,0 +1,332 @@
+---
+source: crates/hpr-flightdata/tests/altos_eeprom.rs
+expression: log
+---
+{
+  "format": "altos_eeprom",
+  "logger": "AltOS TeleMetrum-v1.0",
+  "serial_number": "1234",
+  "firmware": "0.6+00+g0000000",
+  "flight_number": 3,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null,
+    "figures": [
+      {
+        "name": "ground_accel",
+        "written": "16000",
+        "quantity": "unrecognized",
+        "values": [
+          16000.0
+        ]
+      },
+      {
+        "name": "accel_cal_plus",
+        "written": "16000",
+        "quantity": "unrecognized",
+        "values": [
+          16000.0
+        ]
+      },
+      {
+        "name": "accel_cal_minus",
+        "written": "16500",
+        "quantity": "unrecognized",
+        "values": [
+          16500.0
+        ]
+      },
+      {
+        "name": "main_deploy",
+        "written": "250 meters (820 feet)",
+        "quantity": "altitude_above_ground",
+        "values": [
+          250.0
+        ]
+      },
+      {
+        "name": "apogee_delay",
+        "written": "0 seconds",
+        "quantity": "duration",
+        "values": [
+          0.0
+        ]
+      }
+    ]
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "hour",
+      "quantity": "number",
+      "time_s": [
+        -0.1
+      ],
+      "values": [
+        18.0
+      ]
+    },
+    {
+      "column": "minute",
+      "quantity": "number",
+      "time_s": [
+        -0.1
+      ],
+      "values": [
+        30.0
+      ]
+    },
+    {
+      "column": "second",
+      "quantity": "number",
+      "time_s": [
+        -0.1
+      ],
+      "values": [
+        5.0
+      ]
+    },
+    {
+      "column": "gps_flags",
+      "quantity": "number",
+      "time_s": [
+        -0.1
+      ],
+      "values": [
+        22.0
+      ]
+    },
+    {
+      "column": "nsat",
+      "quantity": "number",
+      "time_s": [
+        -0.1
+      ],
+      "values": [
+        6.0
+      ]
+    },
+    {
+      "column": "latitude",
+      "quantity": "latitude",
+      "time_s": [
+        -0.1
+      ],
+      "values": [
+        45.0
+      ]
+    },
+    {
+      "column": "longitude",
+      "quantity": "longitude",
+      "time_s": [
+        -0.1
+      ],
+      "values": [
+        -122.0
+      ]
+    },
+    {
+      "column": "gps_altitude",
+      "quantity": "gnss_altitude",
+      "time_s": [
+        -0.1
+      ],
+      "values": [
+        1250.0
+      ]
+    },
+    {
+      "column": "svid",
+      "quantity": "number",
+      "time_s": [
+        -0.1,
+        -0.1
+      ],
+      "values": [
+        5.0,
+        9.0
+      ]
+    },
+    {
+      "column": "c_n",
+      "quantity": "number",
+      "time_s": [
+        -0.1,
+        -0.1
+      ],
+      "values": [
+        41.0,
+        37.0
+      ]
+    },
+    {
+      "column": "acceleration",
+      "quantity": "acceleration",
+      "time_s": [
+        -0.02,
+        -0.01,
+        0.0,
+        0.01,
+        0.02,
+        0.03,
+        0.04,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        1.0,
+        1.1
+      ],
+      "values": [
+        -0.0392266,
+        0.0392266,
+        19.6133,
+        23.53596,
+        22.751427999999997,
+        15.69064,
+        3.92266,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995
+      ]
+    },
+    {
+      "column": "pressure",
+      "quantity": "pressure",
+      "time_s": [
+        -0.02,
+        -0.01,
+        0.0,
+        0.01,
+        0.02,
+        0.03,
+        0.04,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        1.0,
+        1.1
+      ],
+      "values": [
+        85190.52271617,
+        85190.52271617,
+        85190.52271617,
+        85190.52271617,
+        85190.52271617,
+        85190.52271617,
+        85190.52271617,
+        85190.52271617,
+        85183.7377191554,
+        85173.5602236335,
+        85159.9902296043,
+        85139.6352385605,
+        85112.49525050209,
+        85081.96276393639,
+        85044.64528035608,
+        85003.93529826848,
+        84959.83281767357,
+        84908.94534006406
+      ]
+    },
+    {
+      "column": "state",
+      "quantity": "number",
+      "time_s": [
+        0.01,
+        1.11
+      ],
+      "values": [
+        3.0,
+        5.0
+      ]
+    },
+    {
+      "column": "temp",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.02
+      ],
+      "values": [
+        21000.0
+      ]
+    },
+    {
+      "column": "v_batt",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.02
+      ],
+      "values": [
+        25000.0
+      ]
+    },
+    {
+      "column": "sense_a",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.02
+      ],
+      "values": [
+        9000.0
+      ]
+    },
+    {
+      "column": "sense_m",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.02
+      ],
+      "values": [
+        9100.0
+      ]
+    }
+  ],
+  "events": [
+    {
+      "time_s": 0.01,
+      "name": "boost"
+    },
+    {
+      "time_s": 1.11,
+      "name": "coast"
+    }
+  ],
+  "notes": [
+    "32 records of 8 bytes, log format 1, from the text form, which prints no checksum",
+    "the configuration states no log format, as firmware before 1.0 didn't: format 1, from its product, TeleMetrum-v1.0",
+    "the file ends without a line break, so its last line may be cut short: left out",
+    "2 records from the first more than 10 s from the latest tick on are left out: a silence no logging rate leaves, so not this flight's",
+    "1 records repeated exactly, the same bytes at the same tick, dropped",
+    "the clock is the board's tick, 10 ms, from the flight record's at tick 7000 (boost detection), each tick on the turn nearest the latest so far, from the file's first record; the records in tick order, as the file's isn't; 8 records before boost, at negative times",
+    "`pressure` from the MP3H6115A's transfer function over the CC1111's full scale, 32,752: the pad's pressure, 85191 Pa, lies from 10 to 120 kPa",
+    "`pressure` and `acceleration` held to each other: over the first second after boost the rocket climbs 22.1 m by the pressure in the standard atmosphere and 22.2 m by the acceleration integrated twice from rest on the pad, a ratio of 0.998, within 0.6 to 5/3",
+    "`acceleration` along the board's axis, m/s², from the high-g accelerometer's counts: 0 at the flight record's ground reading, 16000, and 250 counts a g from the calibration's +1 g and −1 g, 16000 and 16500",
+    "kept as written, counts with no cited conversion: `v_batt`, `sense_a`, `sense_m`, `temp` (the CC1111's die temperature)",
+    "GPS: the time, date (two digits, and not reliably the flight's), dilutions (ten times their value), course, speed, climb, satellite counts and signals kept as written"
+  ]
+}

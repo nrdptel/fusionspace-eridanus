@@ -1,0 +1,493 @@
+---
+source: crates/hpr-flightdata/tests/altos_eeprom.rs
+expression: log
+---
+{
+  "format": "altos_eeprom",
+  "logger": "AltOS TeleMetrum-v2.0",
+  "serial_number": "1234",
+  "firmware": "1.9.22",
+  "flight_number": 3,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null,
+    "figures": [
+      {
+        "name": "ground_pressure",
+        "written": "110002",
+        "quantity": "pressure",
+        "values": [
+          110002.0
+        ]
+      },
+      {
+        "name": "ground_accel",
+        "written": "1000",
+        "quantity": "unrecognized",
+        "values": [
+          1000.0
+        ]
+      },
+      {
+        "name": "accel_cal_plus",
+        "written": "1000",
+        "quantity": "unrecognized",
+        "values": [
+          1000.0
+        ]
+      },
+      {
+        "name": "accel_cal_minus",
+        "written": "1040",
+        "quantity": "unrecognized",
+        "values": [
+          1040.0
+        ]
+      },
+      {
+        "name": "pad_orientation",
+        "written": "0",
+        "quantity": "number",
+        "values": [
+          0.0
+        ]
+      },
+      {
+        "name": "main_deploy",
+        "written": "250",
+        "quantity": "unrecognized",
+        "values": [
+          250.0
+        ]
+      },
+      {
+        "name": "apogee_delay",
+        "written": "1",
+        "quantity": "unrecognized",
+        "values": [
+          1.0
+        ]
+      }
+    ]
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "latitude",
+      "quantity": "latitude",
+      "time_s": [
+        -0.1,
+        0.11
+      ],
+      "values": [
+        45.0,
+        null
+      ]
+    },
+    {
+      "column": "longitude",
+      "quantity": "longitude",
+      "time_s": [
+        -0.1,
+        0.11
+      ],
+      "values": [
+        -122.0,
+        null
+      ]
+    },
+    {
+      "column": "gps_altitude",
+      "quantity": "gnss_altitude",
+      "time_s": [
+        -0.1,
+        0.11
+      ],
+      "values": [
+        4464.0,
+        null
+      ]
+    },
+    {
+      "column": "hour",
+      "quantity": "number",
+      "time_s": [
+        -0.1,
+        0.11
+      ],
+      "values": [
+        18.0,
+        18.0
+      ]
+    },
+    {
+      "column": "minute",
+      "quantity": "number",
+      "time_s": [
+        -0.1,
+        0.11
+      ],
+      "values": [
+        30.0,
+        30.0
+      ]
+    },
+    {
+      "column": "second",
+      "quantity": "number",
+      "time_s": [
+        -0.1,
+        0.11
+      ],
+      "values": [
+        5.0,
+        6.0
+      ]
+    },
+    {
+      "column": "gps_flags",
+      "quantity": "number",
+      "time_s": [
+        -0.1,
+        0.11
+      ],
+      "values": [
+        23.0,
+        34.0
+      ]
+    },
+    {
+      "column": "nsat",
+      "quantity": "number",
+      "time_s": [
+        -0.1,
+        0.11
+      ],
+      "values": [
+        7.0,
+        2.0
+      ]
+    },
+    {
+      "column": "year",
+      "quantity": "number",
+      "time_s": [
+        -0.1,
+        0.11
+      ],
+      "values": [
+        26.0,
+        26.0
+      ]
+    },
+    {
+      "column": "month",
+      "quantity": "number",
+      "time_s": [
+        -0.1,
+        0.11
+      ],
+      "values": [
+        5.0,
+        5.0
+      ]
+    },
+    {
+      "column": "day",
+      "quantity": "number",
+      "time_s": [
+        -0.1,
+        0.11
+      ],
+      "values": [
+        16.0,
+        16.0
+      ]
+    },
+    {
+      "column": "gps_byte_11",
+      "quantity": "unrecognized",
+      "time_s": [
+        -0.1,
+        0.11
+      ],
+      "values": [
+        22.0,
+        99.0
+      ]
+    },
+    {
+      "column": "sat_count",
+      "quantity": "number",
+      "time_s": [
+        -0.1,
+        -0.1
+      ],
+      "values": [
+        4.0,
+        1.0
+      ]
+    },
+    {
+      "column": "svid",
+      "quantity": "number",
+      "time_s": [
+        -0.1,
+        -0.1,
+        -0.1,
+        -0.1,
+        -0.1
+      ],
+      "values": [
+        3.0,
+        7.0,
+        12.0,
+        19.0,
+        24.0
+      ]
+    },
+    {
+      "column": "c_n",
+      "quantity": "number",
+      "time_s": [
+        -0.1,
+        -0.1,
+        -0.1,
+        -0.1,
+        -0.1
+      ],
+      "values": [
+        40.0,
+        38.0,
+        31.0,
+        44.0,
+        29.0
+      ]
+    },
+    {
+      "column": "pressure",
+      "quantity": "pressure",
+      "time_s": [
+        -0.03,
+        -0.02,
+        -0.01,
+        0.0,
+        0.01,
+        0.02,
+        0.05,
+        0.06,
+        0.08,
+        0.09,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        1.0,
+        1.1
+      ],
+      "values": [
+        110002.0,
+        110002.0,
+        110002.0,
+        110002.0,
+        110002.0,
+        110002.0,
+        109999.0,
+        109998.0,
+        109996.0,
+        109994.0,
+        109993.0,
+        109974.0,
+        109948.0,
+        109917.0,
+        109879.0,
+        109835.0,
+        109785.0,
+        109728.0,
+        109666.0,
+        109596.0,
+        109521.0
+      ]
+    },
+    {
+      "column": "temperature",
+      "quantity": "temperature",
+      "time_s": [
+        -0.03,
+        -0.02,
+        -0.01,
+        0.0,
+        0.01,
+        0.02,
+        0.05,
+        0.06,
+        0.08,
+        0.09,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        1.0,
+        1.1
+      ],
+      "values": [
+        293.15,
+        293.15,
+        293.15,
+        293.15,
+        293.14,
+        293.14,
+        293.14,
+        293.13,
+        293.13,
+        293.13,
+        293.13,
+        293.13,
+        293.13,
+        293.13,
+        293.13,
+        293.13,
+        293.13,
+        293.13,
+        293.13,
+        293.13,
+        293.13
+      ]
+    },
+    {
+      "column": "acceleration",
+      "quantity": "acceleration",
+      "time_s": [
+        -0.03,
+        -0.02,
+        -0.01,
+        0.0,
+        0.01,
+        0.02,
+        0.05,
+        0.06,
+        0.08,
+        0.09,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        1.0,
+        1.1
+      ],
+      "values": [
+        -0.4903325,
+        0.4903325,
+        0.0,
+        49.033249999999995,
+        147.09975,
+        196.13299999999998,
+        171.61637499999998,
+        98.06649999999999,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995,
+        49.033249999999995
+      ]
+    },
+    {
+      "column": "state",
+      "quantity": "number",
+      "time_s": [
+        0.01,
+        1.11,
+        1.12
+      ],
+      "values": [
+        3.0,
+        5.0,
+        6.0
+      ]
+    },
+    {
+      "column": "v_batt",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.07
+      ],
+      "values": [
+        3000.0
+      ]
+    },
+    {
+      "column": "sense_a",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.07
+      ],
+      "values": [
+        1500.0
+      ]
+    },
+    {
+      "column": "sense_m",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.07
+      ],
+      "values": [
+        1490.0
+      ]
+    }
+  ],
+  "events": [
+    {
+      "time_s": 0.01,
+      "name": "boost"
+    },
+    {
+      "time_s": 1.11,
+      "name": "coast"
+    },
+    {
+      "time_s": 1.12,
+      "name": "drogue"
+    }
+  ],
+  "notes": [
+    "32 records of 16 bytes, log format 7, from the JSON form: every record's checksum checked, all pass",
+    "2 erased records (every byte 0xFF) after the last, skipped",
+    "the clock is the board's tick, 10 ms, from the flight record's at tick 65530 (boost detection), each tick on the turn nearest the latest so far, from the file's first record; the records in tick order, as the file's isn't; 7 records before boost, at negative times",
+    "`pressure` and `temperature` from the MS5607's counts by its data sheet's compensation, first and second order: the pad's pressure, 110002 Pa, lies from 10 to 120 kPa and within 0.00% of the flight record's ground pressure, 110002 Pa",
+    "`temperature` on the pad, 20.0 °C, within the MS5607's operating range, −40 to 85 °C",
+    "`pressure` and `acceleration` held to each other: over the first second after boost the rocket climbs 31.7 m by the pressure in the standard atmosphere and 31.6 m by the acceleration integrated twice from rest on the pad, a ratio of 1.001, within 0.6 to 5/3",
+    "`acceleration` along the board's axis, m/s², from the high-g accelerometer's counts: 0 at the flight record's ground reading, 1000, and 20 counts a g from the calibration's +1 g and −1 g, 1000 and 1040",
+    "kept as written, counts with no cited conversion: `v_batt`, `sense_a`, `sense_m`, `gps_byte_11` (a dilution in some firmware, a stale byte in others)",
+    "GPS: the time, date (two digits, and not reliably the flight's), dilutions (ten times their value), course, speed, climb, satellite counts and signals kept as written",
+    "1 GPS position records without a valid fix: their positions read as gaps"
+  ]
+}
