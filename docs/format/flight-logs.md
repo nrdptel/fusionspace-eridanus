@@ -124,6 +124,44 @@ saved as RTF, are refused today, most as *unrecognized*; they come with
 [M7.1c8](../decisions-and-roadmap.md#m7-1c8), and the [survey's report](#how-it-was-checked)
 counts them by layout.
 
+### Zip archives
+
+Flyers often share a flight as one zip archive: a Blue Raven's high-rate and low-rate files with
+the app's summary, or a folder of everything the flight left behind. An archive isn't a log, so
+`hpr_flightdata::import::read` refuses one with a reason that says so. Instead
+`hpr_flightdata::archive::unpack` takes its files out, in memory, each a name and its bytes, and
+each is read as it would be on its own. Nothing is written to disk, so a file's name, folders
+and all, is only a label. An archive inside an archive is one of its files, and isn't opened.
+
+```rust,ignore
+let bytes = std::fs::read("flight.zip")?;
+for member in hpr_flightdata::archive::unpack(&bytes)? {
+    match hpr_flightdata::import::read(&member.bytes) {
+        Ok(log) => println!("{}: {} ({} channels)", member.name, log.format.name(), log.channels.len()),
+        Err(error) => println!("{}: not read, {error}", member.name),
+    }
+}
+```
+
+An archive comes from someone else, and a small one can be built to unpack to far more than
+memory holds (a *zip bomb*). So at most 256 MiB come out of one archive, eight times the largest
+sample (32 MB), counted as the bytes decompress, never taken from the sizes the archive states.
+An archive is refused, with its reason, when two of its files share a name (the zip reader would
+silently keep one), when a file is a symbolic link, is encrypted, is compressed by a method other
+than the two zip archives of logs use (stored and deflated), or fails its checksum. The tests
+build such archives, and a property test feeds damaged ones to the reader to show it refuses
+them or stays within the bound, never crashes.
+
+The 8 archives among the sample logs hold 29 files. 10 are byte-for-byte copies of files already
+among the samples. The other 19 are 8 Blue Raven high-rate and low-rate files, 3 of the app's
+summaries, a GPS tracker's KML track, and 7 files that aren't logs; every one of the 12 logs
+reads. The 3 summaries are checked against the Blue Raven files in their archive, as the others
+are ([checked against the files beside](#checked-against-the-files-beside)), and all 3 agree.
+Two CSV files in one archive name other altimeters' formats in their file names and use the Blue
+Raven's column names, but their values differ from the Blue Raven's at the same moments by
+hundreds of feet: they hold other loggers' data under borrowed names, and aren't read as a Blue
+Raven's. They wait for the column mapping of [M7.1c8](../decisions-and-roadmap.md#m7-1c8).
+
 ## The record
 
 Every reader fills the same record, `FlightLog`, in SI units:
@@ -993,44 +1031,6 @@ drops that mark, so the export reads as [RRC3 CSV](#the-layouts-read).
 Two `.FIPa` files and five `.rff` files have no export beside them. They are decoded by the same
 rules, and pass the checks each file carries (every frame's checksum, the RRC3's clock check),
 but no export checks their values.
-
-## Zip archives
-
-Flyers often share a flight as one zip archive: a Blue Raven's high-rate and low-rate files with
-the app's summary, or a folder of everything the flight left behind. An archive isn't a log, so
-`hpr_flightdata::import::read` refuses one with a reason that says so. Instead
-`hpr_flightdata::archive::unpack` takes its files out, in memory, each a name and its bytes, and
-each is read as it would be on its own. Nothing is written to disk, so a file's name, folders
-and all, is only a label. An archive inside an archive is one of its files, and isn't opened.
-
-```rust,ignore
-let bytes = std::fs::read("flight.zip")?;
-for member in hpr_flightdata::archive::unpack(&bytes)? {
-    match hpr_flightdata::import::read(&member.bytes) {
-        Ok(log) => println!("{}: {} ({} channels)", member.name, log.format.name(), log.channels.len()),
-        Err(error) => println!("{}: not read, {error}", member.name),
-    }
-}
-```
-
-An archive comes from someone else, and a small one can be built to unpack to far more than
-memory holds (a *zip bomb*). So at most 256 MiB come out of one archive, eight times the largest
-sample (32 MB), counted as the bytes decompress, never taken from the sizes the archive states.
-An archive is refused, with its reason, when two of its files share a name (the zip reader would
-silently keep one), when a file is a symbolic link, is encrypted, is compressed by a method other
-than the two zip archives of logs use (stored and deflated), or fails its checksum. The tests
-build such archives, and a property test feeds damaged ones to the reader to show it refuses
-them or stays within the bound, never crashes.
-
-The 8 archives among the sample logs hold 29 files. 10 are byte-for-byte copies of files already
-among the samples. The other 19 are 8 Blue Raven high-rate and low-rate files, 3 of the app's
-summaries, a GPS tracker's KML track, and 7 files that aren't logs; every one of the 12 logs
-reads. The 3 summaries are checked against the Blue Raven files in their archive, as the others
-are ([checked against the files beside](#checked-against-the-files-beside)), and all 3 agree.
-Two CSV files in one archive name other altimeters' formats in their file names and use the Blue
-Raven's column names, but their values differ from the Blue Raven's at the same moments by
-hundreds of feet: they hold other loggers' data under borrowed names, and aren't read as a Blue
-Raven's. They wait for the column mapping of [M7.1c8](../decisions-and-roadmap.md#m7-1c8).
 
 ## How it was checked
 
