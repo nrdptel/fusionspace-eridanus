@@ -75,15 +75,17 @@ The research (2026-10-13) found:
   compared with the plain text they replaced, term by term, by a review that read the diff of
   every page (no equation's meaning changed, no number moved); the subset was compared pixel for
   pixel with the whole font on a page of stretched brackets, radicals, integrals, sums and cases.
-- **Not checked:** a screen reader reading the MathML aloud; Firefox and Safari (the page check
-  runs Chrome; both draw MathML Core, Safari with known small misplacements of some accents);
-  the print layout of long displays.
+- **Seen in Safari on a phone:** after the merge, the maintainer read *Fin flutter* on an iPhone;
+  its table of symbols, stacked and aligned displays and inline math drew as intended.
+- **Not checked:** a screen reader reading the MathML aloud; Firefox, and Safari on a desktop (the
+  page check runs Chrome; both draw MathML Core, Safari with known small misplacements of some
+  accents); the print layout of long displays.
 
 **Consequences.** Every page's equations are drawn as a textbook draws them, on GitHub as on the
 site. A page with math downloads the 324 KB face once. Writing a long equation takes more care: it
 must fit a phone, on several lines if need be. math-core is pinned exactly (`=0.8.2`); a newer
 version is a deliberate update, its output checked by the site's checks. The face's license is
-not the SIL Open Font License of the other two faces, a choice made without the maintainer that
-the design repository's *Status* lists for his review. The design audit reopens at Rev E: it
+not the SIL Open Font License of the other two faces; the maintainer accepted the face and its
+license on 2026-10-14, and the design repository's *Status* records it. The design audit reopens at Rev E: it
 changed `foundations.md`'s *Type*, `web.md`'s *Documentation sites* and `README.md`'s *Status*,
 which are read again; every other row reviewed at `d372afa` carries over.
