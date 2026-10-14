@@ -90,6 +90,24 @@
     };
   }
 
+  // How far past its padding box a box with paint containment draws, from its computed
+  // `overflow-clip-margin` (an optional box and a length): the length, less the padding for
+  // `content-box` and more the border for `border-box`, the least of the four sides taken, so a
+  // margin read wrongly can only make the clip tighter.
+  function clipMarginPx(s) {
+    const text = s.overflowClipMargin || '';
+    const length = /(-?[\d.]+)px/.exec(text);
+    const px = function (list) { return list.map(function (v) { return parseFloat(v) || 0; }); };
+    let grow = length ? parseFloat(length[1]) : 0;
+    if (/content-box/.test(text)) {
+      grow -= Math.max.apply(null, px([s.paddingTop, s.paddingRight, s.paddingBottom, s.paddingLeft]));
+    } else if (/border-box/.test(text)) {
+      grow += Math.min.apply(null, px([s.borderTopWidth, s.borderRightWidth, s.borderBottomWidth,
+        s.borderLeftWidth]));
+    }
+    return grow;
+  }
+
   function measure(win, doc) {
     const root = doc.documentElement;
     const body = doc.body;
@@ -165,16 +183,24 @@
       value = base;
       if (!holdsPage(el)) {
         const x = s.overflowX, y = s.overflowY;
-        const clipsX = x !== 'visible', clipsY = y !== 'visible';
+        // Paint containment (`contain: paint`, and `content-visibility: auto`, which implies it,
+        // as the guide's sheets have) cuts both ways at the box's overflow clip edge: its padding
+        // box grown by `overflow-clip-margin`. An axis whose overflow isn't visible is cut at the
+        // padding box itself, as below.
+        const contained = /\b(paint|content|strict)\b/.test(s.contain)
+          || s.contentVisibility === 'auto' || s.contentVisibility === 'hidden';
+        const grow = contained ? clipMarginPx(s) : 0;
+        const clipsX = x !== 'visible' || contained, clipsY = y !== 'visible' || contained;
         const cut = s.clip && s.clip !== 'auto';
         if (clipsX || clipsY || cut) {
           const r = el.getBoundingClientRect();
           const left = r.left + el.clientLeft, top = r.top + el.clientTop;
+          const growX = x === 'visible' && !cut ? grow : 0, growY = y === 'visible' && !cut ? grow : 0;
           const box = {
-            x0: clipsX || cut ? left : -Infinity,
-            x1: clipsX || cut ? left + (cut ? r.width : el.clientWidth) : Infinity,
-            y0: clipsY || cut ? top : -Infinity,
-            y1: clipsY || cut ? top + (cut ? r.height : el.clientHeight) : Infinity,
+            x0: clipsX || cut ? left - growX : -Infinity,
+            x1: clipsX || cut ? left + (cut ? r.width : el.clientWidth) + growX : Infinity,
+            y0: clipsY || cut ? top - growY : -Infinity,
+            y1: clipsY || cut ? top + (cut ? r.height : el.clientHeight) + growY : Infinity,
           };
           const tiny = (clipsX || cut) && box.x1 - box.x0 <= HIDDEN_BOX_PX
             || (clipsY || cut) && box.y1 - box.y0 <= HIDDEN_BOX_PX;
@@ -2396,6 +2422,26 @@
   }
 
   // `printed`: whether this width reads the page on paper too.
+  // A box with `content-visibility: auto` (the guide's sheets, #504) isn't laid out or drawn while
+  // it is off screen: it keeps the size it stands in with, while a script that asks where its
+  // contents are gets them laid out at their own size, so they would read as cut by it. Each is
+  // drawn here as it is once a reader scrolls to it: laid out, with the layout, style and paint
+  // containment `auto` keeps, which the clip model reads ([`measure`]'s `clipOf`). Screen only,
+  // as the page's own rule is, so the reading on paper sees what paper draws.
+  function drawSkipped(win, doc) {
+    let any = false;
+    for (const el of Array.from(doc.querySelectorAll('*'))) {
+      if (win.getComputedStyle(el).contentVisibility !== 'auto') continue;
+      el.setAttribute('data-hpr-drawn', '');
+      any = true;
+    }
+    if (!any) return;
+    const style = doc.createElement('style');
+    style.textContent = '@media screen { [data-hpr-drawn] { content-visibility: visible !important; '
+      + 'contain: layout style paint !important; } }';
+    (doc.head || doc.documentElement).appendChild(style);
+  }
+
   function check(page, width, height, printed) {
     return new Promise(function (resolve) {
       const frame = document.createElement('iframe');
@@ -2421,6 +2467,7 @@
           const win = frame.contentWindow;
           const doc = frame.contentDocument;
           if (!doc || !doc.body) throw new Error('the frame has no document');
+          drawSkipped(win, doc);
           // Every face the page declares, loaded before measuring: `font-display: swap` draws
           // a fallback until a face is asked for and arrives, and `fonts.ready` right after the
           // load can resolve before layout has asked.

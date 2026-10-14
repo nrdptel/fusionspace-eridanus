@@ -3,6 +3,38 @@
 Measured numbers only, newest first within each section. Record the machine, the toolchain, and
 the command, so a later run can be compared like for like.
 
+## A long page's menu tap, its sheets skipped off screen (#504)
+
+- **What this is.** The vitals check's slowest input on the long pages was the phone's tap on
+  the menu button: under 10 ms waiting and in handlers, the rest to the next frame. A trace of
+  the tap on `physics/aero.html` (14,815 elements, 6,694 of them MathML; 27,000 layout objects)
+  put 55 to 95 ms of each tap's frame, at a 20 times slowdown, in two of Chrome's passes over
+  the whole page, compositing inputs and pre-paint, whatever the tap changed; the same passes ran
+  when only the menu bar turned sticky or the page moved over, and taking out the page's slide
+  and the sticky bar together (a probe, not shipped) left the tap as slow. Since #504 each sheet
+  is `content-visibility: auto` (`theme/hpr.css`), so those passes cover the sheets near the
+  window: in the same trace they fell to 4 to 12 ms a tap.
+- **Measured** on an Apple M5, Chrome 155, headless with `--disable-gpu`, as the check loads a
+  page (412 px, slow 4G, cache off, Tab then two taps, Event Timing), the old stylesheet and the
+  new loaded in turn, eight loads each (median, then the largest):
+
+  | page | slowed 20× before | after | slowed 30× before | after |
+  |---|---|---|---|---|
+  | `physics/aero.html` | 120 (192) | 48 (56) | 192 (304) | 80 (88) |
+  | `decisions-and-roadmap.html` | 96 (112) | 56 (80) | 160 (176) | 80 (136) |
+  | `format/ork.html` | 80 (80) | 56 (64) | 120 (184) | 80 (96) |
+
+  A short page at 30×, six loads: `getting-started.html` 80 ms before and 72 after, `404.html`
+  56 both.
+  The decisions page keeps one sheet 80,000 px tall at 412 px (a table of every record), drawn
+  whole when it is on screen, so it gains least.
+- **Layout.** No box moved: every page of the guide at 320, 412, 720, 1,000, 1,240, 1,480 and
+  1,920 px, each box in `main` to six levels and the page's height, with the sheets drawn
+  contained against the old stylesheet, differed by 0 px (a throwaway script; the trailing
+  margins `theme/hpr.css` zeroes under 880 px are what it took).
+- **Not measured here:** CI's runners, which read 264 to 424 ms on `physics/aero.html` before
+  (CPU slowed 7 to 15 times); the check's verdict on them is the test of #504.
+
 ## The site's layout check on six tabs (#469)
 
 - **What this is.** `cargo xtask site` lays out every page at every checked width in Chrome, one

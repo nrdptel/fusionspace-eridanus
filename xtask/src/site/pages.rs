@@ -17,8 +17,13 @@
 //!   figure wider than the column, to the box around it, which is measured in turn. Only
 //!   boxes within `main`, a code block or a table's wrapper, may scroll sideways.
 //! - **Text cut off.** Text that a box which doesn't scroll (`overflow: hidden` or `clip`,
-//!   `text-overflow: ellipsis`) cuts by more than 1 px, so part of it can never be seen. Boxes of
-//!   2 px or less hide their text on purpose, for screen readers only, and are skipped.
+//!   `text-overflow: ellipsis`, or paint containment: `contain: paint` and `content-visibility:
+//!   auto`, which cut at the padding box grown by `overflow-clip-margin`) cuts by more than 1 px,
+//!   so part of it can never be seen. Boxes of 2 px or less hide their text on purpose, for
+//!   screen readers only, and are skipped. A box skipped while off screen
+//!   (`content-visibility: auto`, the guide's sheets, #504) is drawn before the page is measured,
+//!   as it is once a reader scrolls to it, its containment kept: skipped, it keeps the size it
+//!   stands in with, and what it holds would read as cut by it.
 //! - **Text over text.** Two runs of visible text whose rectangles overlap more than 2 px sideways
 //!   and more than a quarter of the shorter one's height: a label drawn over another. Two lines of
 //!   a tight line height, or two runs that touch, don't count.
@@ -1071,7 +1076,7 @@ macro_rules! switch_frame {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 173] = [
+const CANARIES: [Canary; 177] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1099,6 +1104,46 @@ const CANARIES: [Canary; 173] = [
         expect: &[Kind::Wide, Kind::Cut],
         inside: "<div style=\"overflow-x: clip\"><p>A label \
                  <span style=\"position: relative; left: 2000px\">moved out</span></p></div>",
+        after: "",
+    },
+    Canary {
+        file: "canary-past-contained.html",
+        what: "a label moved past the right edge inside a box with paint containment, which \
+               cuts it as overflow does",
+        expect: &[Kind::Wide, Kind::Cut],
+        inside: "<div style=\"contain: paint\"><p>A label \
+                 <span style=\"position: relative; left: 2000px\">moved out</span></p></div>",
+        after: "",
+    },
+    Canary {
+        file: "canary-skipped-cut.html",
+        what: "a label wider than its box, in a box skipped while off screen \
+               (`content-visibility: auto`) far down the page",
+        expect: &[Kind::Cut],
+        inside: "<div style=\"height: 4000px\"></div>\
+                 <div style=\"content-visibility: auto; contain-intrinsic-size: auto 20px; \
+                 width: 6em; overflow-clip-margin: 0px; white-space: nowrap\">\
+                 A label much longer than its box</div>",
+        after: "",
+    },
+    Canary {
+        file: "canary-skipped-tall.html",
+        what: "lines in a box skipped while off screen, taller than the 20 px it stands in with, \
+               which must pass: drawn, the box holds them",
+        expect: &[],
+        inside: "<div style=\"height: 4000px\"></div>\
+                 <div style=\"content-visibility: auto; contain-intrinsic-size: auto 20px\">\
+                 <div>A first line</div><div>A second line</div><div>A third line</div>\
+                 <div>A fourth line</div></div>",
+        after: "",
+    },
+    Canary {
+        file: "canary-contained-margin.html",
+        what: "a label past a contained box's edge, but inside the 40 px its \
+               `overflow-clip-margin` lets it draw, which must pass",
+        expect: &[],
+        inside: "<div style=\"contain: paint; overflow-clip-margin: 40px; width: 100px; \
+                 white-space: nowrap\"><span style=\"padding-left: 80px\">Label</span></div>",
         after: "",
     },
     Canary {

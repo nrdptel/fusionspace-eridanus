@@ -272,8 +272,10 @@ has the rules in full):
   the shorter one's height; two lines set tightly, or two runs that touch, pass.
 - **No page wider than the window.** `cargo xtask site` opens every page in headless Chrome at
   each width from 320 to 1,920 px, 40 px apart. A page fails if it scrolls sideways, if text or a
-  box passes the window's left or right edge, or if a box cuts its own text short. A code block
-  or a table may scroll sideways inside its own box.
+  box passes the window's left or right edge, or if a box cuts its own text short, including a
+  box that draws nothing outside itself, as a page's sections do (see
+  [How fast the pages load](#how-fast-the-pages-load)). A code block or a table may scroll
+  sideways inside its own box.
 
 CI runs the figure check in the tests on every system, and `cargo xtask site` in its `site` job;
 `scripts/gate.sh test site` runs both locally. A failure names the page or figure, the widths,
@@ -569,6 +571,22 @@ one stylesheet instead of ten, asked for first with mdBook's sidebar script; fou
 for early so that text doesn't move when they arrive, two more than the product system allows
 (with its two, CLS reached 0.17 on two pages); the theme switch placed before
 the page is first drawn; and the print page's cover.
+
+Long pages answer the menu button quickly since
+[#504](https://github.com/nrdptel/fusionspace-eridanus/issues/504). A tap on it made the browser go
+over every box of the page, however little the tap changed, so the longest pages waited on boxes off
+screen: on CI's runners [*Aerodynamics*](physics/aero.md), with its 912 formulas, measured 264 to
+424 ms and failed the check on some runners and not others. Now each section of a page, a sheet, is
+laid out and drawn only as it nears the window (`content-visibility: auto`). With the processor
+slowed 30 times on a Mac, *Aerodynamics* answers in 80 ms instead of 192, and the two other pages
+that failed, the [decisions and roadmap](decisions-and-roadmap.md) and the [`.ork`
+format](format/ork.md), in 80 ms instead of 160 and 120 (medians of eight loads; a short page takes
+56 to 72 ms). A sheet so drawn draws nothing outside its box, so its box is widened by 16 px each
+way for drawing, and a sheet holding the focus is drawn whole, so no focus ring at its edge is cut;
+the layout check counts what a sheet's edge cuts. No box on any page moved. Browsers without
+`overflow-clip-margin`, the property that widens the box, draw every sheet as before.
+[`docs/perf.md`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/perf.md) has the
+measurements.
 
 ## Measured, not gated
 
