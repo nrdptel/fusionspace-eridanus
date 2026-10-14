@@ -54,8 +54,10 @@ second eccentricity $e'$ and eqs. B-18, B-19, B-20, B-24, B-25 and B-26:
 $$
 \begin{aligned}
 e' &= E/b, \\
-q_0 &= \tfrac12 \left[ \left(1 + \frac{3}{e'^2}\right) \arctan e' - \frac{3}{e'} \right], \\
-q_0' &= 3 \left(1 + \frac{1}{e'^2}\right) \left(1 - \frac{\arctan e'}{e'}\right) - 1, \\
+q_0 &= \tfrac12 \biggl[ \left(1 + \frac{3}{e'^2}\right) \arctan e' \\
+&\qquad - \frac{3}{e'} \biggr], \\
+q_0' &= 3 \left(1 + \frac{1}{e'^2}\right) \\
+&\quad \times \left(1 - \frac{\arctan e'}{e'}\right) - 1, \\
 m &= \frac{\omega^2 a^2 b}{GM}, \\
 \gamma_e &= \frac{GM}{ab} \left(1 - m - \frac{m e' q_0'}{6 q_0}\right), \\
 \gamma_p &= \frac{GM}{a^2} \left(1 + \frac{m e' q_0'}{3 q_0}\right), \\
@@ -101,7 +103,8 @@ $$
 
   $$
   \begin{aligned}
-  \frac{\gamma_h}{\gamma} &= 1 - \frac{2}{a} \left(1 + f + m - 2f \sin^2\varphi\right) h \\
+  \frac{\gamma_h}{\gamma} &= 1 - \frac{2}{a} \bigl(1 + f + m \\
+  &\qquad - 2f \sin^2\varphi\bigr) h \\
   &\quad + \frac{3}{a^2}\, h^2
   \end{aligned}
   $$

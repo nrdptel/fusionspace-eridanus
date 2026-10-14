@@ -529,8 +529,9 @@ This section describes the unpowered case, and the booster's descent after a pow
 
   $$
   \begin{aligned}
-  m\, \mathbf{a} &= -\tfrac12 \rho\, (C_D S)(t)\, \lvert \mathbf{v} - \mathbf{w} \rvert \\
-  &\quad \times (\mathbf{v} - \mathbf{w}) + m\, (\mathbf{g} + \mathbf{a}_{\mathrm{Coriolis}})
+  m\, \mathbf{a} &= -\tfrac12 \rho\, (C_D S)(t) \\
+  &\quad \times \lvert \mathbf{v} - \mathbf{w} \rvert\, (\mathbf{v} - \mathbf{w}) \\
+  &\quad + m\, (\mathbf{g} + \mathbf{a}_{\mathrm{Coriolis}})
   \end{aligned}
   $$
 

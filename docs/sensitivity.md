@@ -126,7 +126,10 @@ Two test functions have Sobol' indices known in closed form
 - **Ishigami and Homma's function**,
 
   $$
-  y = \sin x_1 + 7 \sin^2 x_2 + 0.1\, x_3^4 \sin x_1,
+  \begin{aligned}
+  y &= \sin x_1 + 7 \sin^2 x_2 \\
+  &\quad + 0.1\, x_3^4 \sin x_1,
+  \end{aligned}
   $$
 
   each $x$ from $-\pi$ to $\pi$. $x_3$ does nothing alone ($S_3 = 0$), yet it is part of a quarter of the variance, through

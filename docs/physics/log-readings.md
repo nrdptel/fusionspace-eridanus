@@ -82,7 +82,7 @@ Two properties make it the right tool here:
      $(\lceil K/2 \rceil + \tfrac12)\, \Delta t$ from the true peak in time.
   3. At apogee the vertical speed is zero, so drag has no vertical part and only gravity curves
      the path. In that time the height falls at most $g\, ((\lceil K/2 \rceil + \tfrac12)\, \Delta t)^2/2$.
-  4. With $K = 3$ and $\Delta t = 0.05\,\mathrm{s}$: $9.80665 \times 0.125^2/2 = 0.077\,\mathrm{m}$.
+  4. With $K = 3$ and $\Delta t = 0.05\,\mathrm{s}$, that is $9.80665 \times 0.125^2/2$, or $0.077\,\mathrm{m}$.
 
   A property test checks this for every $K$ from 1 to 6 and every place the peak can fall between
   samples.

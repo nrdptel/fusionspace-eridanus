@@ -48,7 +48,9 @@ pub(crate) fn run(args: &[String]) -> Result<(), String> {
             if renderer == "html" {
                 Ok(())
             } else {
-                Err(format!("the math preprocessor draws only HTML, not `{renderer}`"))
+                Err(format!(
+                    "the math preprocessor draws only HTML, not `{renderer}`"
+                ))
             }
         }
         [] => {
@@ -78,8 +80,8 @@ fn check_pages(pages: &[String]) -> Result<(), String> {
     let converter = converter()?;
     let mut problems = Vec::new();
     for page in pages {
-        let markdown = std::fs::read_to_string(page)
-            .map_err(|err| format!("could not read {page}: {err}"))?;
+        let markdown =
+            std::fs::read_to_string(page).map_err(|err| format!("could not read {page}: {err}"))?;
         if let Err(found) = typeset(&markdown, &converter) {
             problems.extend(found.into_iter().map(|p| format!("{page}:{p}")));
         }
@@ -96,7 +98,11 @@ fn check_pages(pages: &[String]) -> Result<(), String> {
             } else {
                 formula.latex.chars().count()
             };
-            let limit = if formula.display { LONG_DISPLAY_LINE } else { LONG_INLINE };
+            let limit = if formula.display {
+                LONG_DISPLAY_LINE
+            } else {
+                LONG_INLINE
+            };
             if longest > limit {
                 println!(
                     "note: {page}:{line}: a {} formula {longest} characters long; check it at \
@@ -121,8 +127,8 @@ fn check_pages(pages: &[String]) -> Result<(), String> {
 /// Converts mdBook's `[context, book]` JSON and returns the book's JSON, every chapter's math
 /// typeset, or every problem found across the book.
 fn preprocess(input: &str) -> Result<String, String> {
-    let value: Value = serde_json::from_str(input)
-        .map_err(|err| format!("mdBook's input isn't JSON: {err}"))?;
+    let value: Value =
+        serde_json::from_str(input).map_err(|err| format!("mdBook's input isn't JSON: {err}"))?;
     let Value::Array(mut pair) = value else {
         return Err("mdBook's input isn't a [context, book] pair".to_owned());
     };
@@ -257,13 +263,11 @@ pub(crate) fn typeset(markdown: &str, converter: &LatexToMathML) -> Result<Strin
                     continue;
                 }
                 out.push_str(&markdown[at..formula.range.start]);
+                let mathml = inert(&result.mathml);
                 if formula.display {
-                    out.push_str(&format!(
-                        "<div class=\"{EQUATION_CLASS}\">{}</div>",
-                        result.mathml
-                    ));
+                    out.push_str(&format!("<div class=\"{EQUATION_CLASS}\">{mathml}</div>"));
                 } else {
-                    out.push_str(&result.mathml);
+                    out.push_str(&mathml);
                 }
                 at = formula.range.end;
             }
@@ -279,6 +283,23 @@ pub(crate) fn typeset(markdown: &str, converter: &LatexToMathML) -> Result<Strin
     } else {
         Err(problems)
     }
+}
+
+/// MathML with every character Markdown would still read written as a character reference: the
+/// MathML is raw HTML, but mdBook reads the text between its tags as Markdown, so a `|` would
+/// end a table's cell, a pair of `*` or `_` would turn into emphasis and a backslash would
+/// escape what follows. None of these is in math-core's tag or attribute names or values.
+fn inert(mathml: &str) -> String {
+    let mut out = String::with_capacity(mathml.len());
+    for c in mathml.chars() {
+        match c {
+            '|' | '*' | '_' | '`' | '[' | ']' | '~' | '\\' | '$' | '!' => {
+                out.push_str(&format!("&#{};", u32::from(c)));
+            }
+            _ => out.push(c),
+        }
+    }
+    out
 }
 
 /// Finds a page's formulas in source order, with the problems of where they stand.
@@ -388,7 +409,9 @@ mod tests {
 
     #[test]
     fn a_display_equation_becomes_one_block_line() {
-        let out = typeset_ok("Above.\n\n$$\n\\begin{aligned} a &= b \\\\ c &= d \\end{aligned}\n$$\n\nBelow.\n");
+        let out = typeset_ok(
+            "Above.\n\n$$\n\\begin{aligned} a &= b \\\\ c &= d \\end{aligned}\n$$\n\nBelow.\n",
+        );
         let line = out.lines().nth(2).expect("the equation's line");
         assert!(
             line.starts_with("<div class=\"fs-equation\"><math display=\"block\">"),
@@ -402,6 +425,17 @@ mod tests {
     fn dollars_in_code_stay_as_written() {
         let page = "Run `echo $HOME` and\n\n```sh\nprice=$5 $x$\n```\n";
         assert_eq!(typeset_ok(page), page);
+    }
+
+    #[test]
+    fn markdown_characters_in_math_are_inert() {
+        let out = typeset_ok("| a | b |\n|---|---|\n| x | $\\lvert x \\rvert + \\text{a*b*c}$ |\n");
+        let row = out.lines().nth(2).expect("the row");
+        assert_eq!(row.matches('|').count(), 3, "{out}");
+        assert!(
+            row.contains("&#124;") && row.contains("a&#42;b&#42;c"),
+            "{out}"
+        );
     }
 
     #[test]
@@ -434,7 +468,10 @@ mod tests {
     fn an_unknown_command_fails_with_its_line() {
         let problems = typeset_err("One.\n\nTwo $\\notacommand{x}$.\n");
         assert_eq!(problems.len(), 1, "{problems:?}");
-        assert!(problems[0].starts_with("3: `\\notacommand{x}`"), "{problems:?}");
+        assert!(
+            problems[0].starts_with("3: `\\notacommand{x}`"),
+            "{problems:?}"
+        );
     }
 
     #[test]
@@ -467,12 +504,20 @@ mod tests {
     #[test]
     fn the_book_round_trips_with_its_chapters_converted() {
         let input = r#"[{"root":"."},{"items":[{"Chapter":{"name":"A","content":"x $a^2$","source_path":"a.md","sub_items":[{"Chapter":{"name":"B","content":"$b$","source_path":"b.md","sub_items":[]}}]}},"Separator"]}]"#;
-        let out: Value = serde_json::from_str(&preprocess(input).expect("converts"))
-            .expect("JSON out");
+        let out: Value =
+            serde_json::from_str(&preprocess(input).expect("converts")).expect("JSON out");
         let a = &out["items"][0]["Chapter"];
-        assert!(a["content"].as_str().is_some_and(|c| c.starts_with("x <math>")));
+        assert!(
+            a["content"]
+                .as_str()
+                .is_some_and(|c| c.starts_with("x <math>"))
+        );
         let b = &a["sub_items"][0]["Chapter"];
-        assert!(b["content"].as_str().is_some_and(|c| c.starts_with("<math>")));
+        assert!(
+            b["content"]
+                .as_str()
+                .is_some_and(|c| c.starts_with("<math>"))
+        );
         assert_eq!(out["items"][1], "Separator");
     }
 

@@ -48,8 +48,8 @@ $$
 \begin{aligned}
 \Phi_u(\Omega) &= \frac{2L_u}{\pi}\, \frac{\sigma_u^2}{1 + (L_u \Omega)^2}, \\
 \Phi_v(\Omega) &= \frac{L_v}{\pi}\, \frac{\sigma_v^2 \left(1 + 3(L_v \Omega)^2\right)}{\left(1 + (L_v \Omega)^2\right)^2}, \\
-R_u(\xi) &= \sigma_u^2\, e^{-\lvert\xi\rvert/L_u}, \\
-R_v(\xi) &= \sigma_v^2\, e^{-\lvert\xi\rvert/L_v} \left(1 - \frac{\lvert\xi\rvert}{2L_v}\right)
+R_u(\xi) &= \sigma_u^2 \exp(-\lvert\xi\rvert/L_u), \\
+R_v(\xi) &= \sigma_v^2 \exp(-\lvert\xi\rvert/L_v) \left(1 - \frac{\lvert\xi\rvert}{2L_v}\right)
 \end{aligned}
 $$
 
@@ -69,14 +69,14 @@ uses [8785C]'s form and lengths throughout.
 ### Parameters
 
 - **Low altitude** ([8785C] §3.7.3.4, Figs. 10–11). With $h$ the height above terrain in ft,
-  the lengths in ft, and $u_{20}$ the mean wind at 20 ft:
+  the lengths in ft, $u_{20}$ the mean wind at 20 ft, and $k = 0.177 + 0.000823\,h$:
 
   $$
   \begin{aligned}
-  L_u = L_v &= \frac{h}{(0.177 + 0.000823\,h)^{1.2}}, \\
+  L_u = L_v &= \frac{h}{k^{1.2}}, \\
   L_w &= h, \\
   \sigma_w &= 0.1\,u_{20}, \\
-  \sigma_u = \sigma_v &= \frac{\sigma_w}{(0.177 + 0.000823\,h)^{0.4}}
+  \sigma_u = \sigma_v &= \frac{\sigma_w}{k^{0.4}}
   \end{aligned}
   $$
 
@@ -114,7 +114,10 @@ Exact discretization, so step length never changes the statistics.
   $\mathrm{d}x_2/\mathrm{d}s = (x_1 - x_2)/L$, with output
 
   $$
-  y = \frac{\sigma}{\sqrt{2}} \left(\sqrt{3}\, x_1 + (1 - \sqrt{3})\, x_2\right).
+  \begin{aligned}
+  y &= \frac{\sigma}{\sqrt{2}} \bigl(\sqrt{3}\, x_1 \\
+  &\quad + (1 - \sqrt{3})\, x_2\bigr).
+  \end{aligned}
   $$
 
   - The stationary covariance is the same for every $L$:
@@ -131,7 +134,9 @@ Exact discretization, so step length never changes the statistics.
     $$
     \begin{aligned}
     \Phi(r) &= e^{-r} \begin{pmatrix} 1 & 0 \\ r & 1 \end{pmatrix}, \\
-    Q &= \begin{pmatrix} P(1,2r) & \tfrac12 P(2,2r) \\ \tfrac12 P(2,2r) & \tfrac12 P(3,2r) \end{pmatrix}, \\
+    Q_{11} &= P(1,2r), \\
+    Q_{12} = Q_{21} &= \tfrac12 P(2,2r), \\
+    Q_{22} &= \tfrac12 P(3,2r), \\
     P(n,x) &= \frac{\gamma(n,x)}{\Gamma(n)}
     \end{aligned}
     $$
@@ -179,7 +184,10 @@ repeatedly and on rejected steps.
   - The variance of a band's mean ratio is
 
     $$
-    \frac{1}{nK} \left[1 + 2\rho_1^2\, \frac{n-1}{n} + 2\rho_2^2\, \frac{n-2}{n}\right]
+    \begin{aligned}
+    &\frac{1}{nK} \Bigl[1 + 2\rho_1^2\, \frac{n-1}{n} \\
+    &\quad + 2\rho_2^2\, \frac{n-2}{n}\Bigr]
+    \end{aligned}
     $$
 
     for $n$ bins
@@ -196,8 +204,13 @@ repeatedly and on rejected steps.
   - `two_steps_compose_into_one`, to 1e-12 relative, down to $r = 10^{-9}$:
 
     $$
-    Q(a+b) = \Phi(b)\, Q(a)\, \Phi(b)^{\mathsf{T}} + Q(b)
+    \begin{aligned}
+    Q(a+b) &= \Phi\, Q(a)\, \Phi^{\mathsf{T}} \\
+    &\quad + Q(b)
+    \end{aligned}
     $$
+
+    with $\Phi = \Phi(b)$.
 
   - `transverse_output_has_the_dryden_autocorrelation`.
   - `regularized_gamma_matches_independent_references`.

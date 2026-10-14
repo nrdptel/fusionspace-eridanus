@@ -89,8 +89,8 @@ The two integration methods, how a step lands on a set time, how events are foun
 
   $$
   \begin{aligned}
-  h = \min\Bigl(&100\, h_0, \\
-  &\left(\frac{0.01}{\max(\lVert f_0 \rVert, \lVert y'' \rVert)}\right)^{1/5}\Bigr)
+  h &= \min\left(100\, h_0,\ \left(\frac{0.01}{D}\right)^{1/5}\right), \\
+  D &= \max(\lVert f_0 \rVert, \lVert y'' \rVert)
   \end{aligned}
   $$
 

@@ -337,7 +337,10 @@ lists it.
   ([SP] glossary p. 96: $I = \int F\,\mathrm{d}t$),
 
   $$
-  I = \sum_i \frac{1}{2} \left(F_i + F_{i+1}\right) \left(t_{i+1} - t_i\right).
+  \begin{aligned}
+  I &= \sum_i \frac{1}{2} \left(F_i + F_{i+1}\right) \\
+  &\quad \times \left(t_{i+1} - t_i\right).
+  \end{aligned}
   $$
 
   $I(t)$ is the same sum up to $t$, with the partial interval.
@@ -409,7 +412,7 @@ $$
     doesn't describe, and neither does RocketPy's.
   - Facing ends burn even with no gap, as in [RP].
   - Every burning surface recedes by the same depth $x$, the web burned so far (the web is the
-    thickness of propellant between the burning surfaces). The first line holds with the ends
+    thickness of propellant between the burning surfaces). The first formula holds with the ends
     burning, for $x \le \min(R - r_0, h_0/2)$; the second with the ends inhibited, for
     $x \le R - r_0$:
 
@@ -417,9 +420,15 @@ $$
   \begin{aligned}
   V(x) &= \pi \left(R^2 - (r_0 + x)^2\right) \\
   &\quad \times (h_0 - 2x), \\
-  V(x) &= \pi \left(R^2 - (r_0 + x)^2\right) h_0, \\
-  N \rho\, V(x) &= m_p(t)
+  V(x) &= \pi \left(R^2 - (r_0 + x)^2\right) \\
+  &\quad \times h_0,
   \end{aligned}
+  $$
+
+  and
+
+  $$
+  N \rho\, V(x) = m_p(t)
   $$
 
   Here $V$ is one grain's volume and $\rho$ the propellant's density, so the last line says the $N$
@@ -437,8 +446,10 @@ $$
     $$
     \begin{aligned}
     I_a &= \frac{1}{2} m_p \left(R^2 + r^2\right), \\
-    I_t &= m_p \left(\frac{R^2 + r^2}{4} + \frac{h^2}{12}\right) \\
-    &\quad + \frac{m_p}{N} (h_0 + s)^2\, \frac{N (N^2 - 1)}{12}
+    I_t &= m_p \frac{R^2 + r^2}{4} \\
+    &\quad + m_p \frac{h^2}{12} \\
+    &\quad + \frac{m_p}{N} (h_0 + s)^2 \\
+    &\quad \times \frac{N (N^2 - 1)}{12}
     \end{aligned}
     $$
 

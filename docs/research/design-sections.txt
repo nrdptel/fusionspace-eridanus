@@ -1,4 +1,4 @@
-# The ## sections of the FusionSpace product system's 14 files under product/, at 8b5ee1dbc9f1cc7f05b9f4db91ebf8779519b983,
+# The ## sections of the FusionSpace product system's 14 files under product/, at 2495dec19f175b406ee6d3e0565961f4e03ae06c,
 # in reading order: the rows docs/research/design-conformance.md must have (ADR-205 §2).
 # xtask/src/conformance.rs compares this list with the pinned files where refs/ is present.
 README.md: Read in this order

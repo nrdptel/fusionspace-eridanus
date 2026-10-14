@@ -66,11 +66,16 @@ T_M &= T_{M,b} + L_{M,b}\, (H - H_b)
 \end{aligned}
 $$
 
-Pressure follows eq. (33a) where $L_{M,b} \ne 0$ and eq. (33b) where $L_{M,b} = 0$:
+Pressure follows eq. (33a) where $L_{M,b} \ne 0$ and eq. (33b) where $L_{M,b} = 0$, with the
+exponent
+
+$$
+n = \frac{g_0' M_0}{R^* L_{M,b}}:
+$$
 
 $$
 \begin{aligned}
-P &= P_b \left(\frac{T_{M,b}}{T_M}\right)^{g_0' M_0 / (R^* L_{M,b})}, \\
+P &= P_b \left(\frac{T_{M,b}}{T_M}\right)^{n}, \\
 P &= P_b \exp\left(-\frac{g_0' M_0 (H - H_b)}{R^* T_{M,b}}\right)
 \end{aligned}
 $$
@@ -137,12 +142,12 @@ so HPR Sim can read its own flight the way a logged flight was read
 ([Accuracy: real flights](../accuracy.md#real-flights)).
 
 It inverts eqs. 33a and 33b in the layer whose base pressures bracket $P$, the first line where
-$L_{M,b} \ne 0$ and the second where $L_{M,b} = 0$:
+$L_{M,b} \ne 0$ and the second where $L_{M,b} = 0$, with $n$ the exponent above:
 
 $$
 \begin{aligned}
 H &= H_b + \frac{T_{M,b}}{L_{M,b}} \\
-&\quad \times \left[\left(\frac{P}{P_b}\right)^{-R^* L_{M,b} / (g_0' M_0)} - 1\right], \\
+&\quad \times \left[\left(\frac{P}{P_b}\right)^{-1/n} - 1\right], \\
 H &= H_b - \frac{R^* T_{M,b}}{g_0' M_0} \ln\frac{P}{P_b}
 \end{aligned}
 $$
@@ -231,7 +236,8 @@ catches hPa entered as Pa.
     $$
     \begin{aligned}
     \ln P &= \ln P_i \\
-    &\quad + \ln\frac{P_{i+1}}{P_i} \cdot \frac{\ln(T/T_i)}{\ln(T_{i+1}/T_i)},
+    &\quad + \ln\frac{P_{i+1}}{P_i} \\
+    &\qquad \cdot \frac{\ln(T/T_i)}{\ln(T_{i+1}/T_i)},
     \end{aligned}
     $$
 

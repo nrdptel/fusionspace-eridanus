@@ -262,15 +262,20 @@ Three directions, 0°, 60° and 120°, give each sum's $a$, $b$ and $c$. The cen
 is foremost where
 
 $$
+P \sin 2\varphi + Q \cos 2\varphi + R = 0,
+$$
+
+with
+
+$$
 \begin{aligned}
-P \sin 2\varphi + Q \cos 2\varphi + R &= 0, \\
 P &= m_0 s_1 - m_1 s_0, \\
 Q &= m_2 s_0 - m_0 s_2, \\
 R &= m_2 s_1 - m_1 s_2
 \end{aligned}
 $$
 
-with $m$ and $s$ the coefficients of $M$ and $S$. The margin's conditioning (below) is checked at
+and $m$ and $s$ the coefficients of $M$ and $S$. The margin's conditioning (below) is checked at
 its own worst direction the same way. Each root and the 0° direction are evaluated through the
 model, and a direction where no margin can be given wins over any number.
 

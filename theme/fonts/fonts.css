@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 · Copyright 2026 Neer Patel */
 /* The documentation site's fonts, served from the site itself so no page asks another server for
    anything (ADR-164). mdBook links this file from every page in place of its own fonts. Its
-   `@font-face``@font-face` rules are the product system's `product/web/fonts.css` at 8b5ee1d, each with the
+   `@font-face``@font-face` rules are the product system's `product/web/fonts.css` at 2495dec, each with the
    `fonts/` folder dropped from its address, as mdBook serves this file beside the fonts: the WOFF2
    subsets with their `unicode-range`, the metric-matched fallback faces, and the math face that
    draws the equations. `cargo xtask site` checks the rules against the pinned file. Archivo and

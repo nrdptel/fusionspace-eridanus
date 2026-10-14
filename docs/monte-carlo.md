@@ -177,7 +177,7 @@ along its long and its short direction.
    along each axis holds the share
 
    $$
-   p = 1 - e^{-k^2/2}
+   p = 1 - \exp(-k^2/2)
    $$
 
    of them. So the ellipse of level $p$ has

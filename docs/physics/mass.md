@@ -99,7 +99,15 @@ properties.
 ### Standard solids ([MK])
 
 - **Hollow cylinder**, radii $R \ge r$, length $L$: $I_{\mathrm{axis}} = m(R^2 + r^2)/2$ and
-  $I_{\mathrm{across}} = m((R^2 + r^2)/4 + L^2/12)$. This covers body tubes, inner tubes and couplers, centering
+
+  $$
+  \begin{aligned}
+  I_{\mathrm{across}} &= m \frac{R^2 + r^2}{4} \\
+  &\quad + m \frac{L^2}{12}.
+  \end{aligned}
+  $$
+
+  This covers body tubes, inner tubes and couplers, centering
   rings, bulkheads ($r = 0$), launch lugs, tube fins, and shoulders.
   - $r = R$ is allowed, and is a tube of **no wall**: mass $\pi(R^2 - r^2)L\rho$ is exactly zero, and so
     is the tensor. That is a real thing for a design to say: an imported `.ork` says it of twelve
@@ -180,7 +188,7 @@ properties.
 
     - Its maximum is $1.0003\,t$ at $\xi = 0.2998$.
     - Its moments $10\int \xi^k P$ = 0.685083, 0.288033, 0.158919 hold term by term, and
-      $1000\int P^3 = 0.4728895$ comes from mpmath.
+      mpmath gives $0.4728895$ for $1000\int P^3$.
     - An airfoiled fin weighs 68.5% of the square slab, with its centroid at 42% chord.
     - A hand-sanded "airfoil" is between the two; [TD] doesn't define the section.
 - **Integrals.** Per fin, over the span $h$ with $r = R_b + h$, and chordwise moments
@@ -189,9 +197,12 @@ properties.
   $$
   \begin{aligned}
   V &= \int M_0, \\
-  \int r &= \int r M_0, \quad \int r^2 = \int r^2 M_0, \\
-  \int x &= \int M_1, \quad \int x^2 = \int M_2, \\
-  \int r x &= \int r M_1, \quad \int \tau^2 = \int T.
+  \int r &= \int r M_0, \\
+  \int r^2 &= \int r^2 M_0, \\
+  \int x &= \int M_1, \\
+  \int x^2 &= \int M_2, \\
+  \int r x &= \int r M_1, \\
+  \int \tau^2 &= \int T.
   \end{aligned}
   $$
 

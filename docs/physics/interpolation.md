@@ -39,8 +39,10 @@ Inside $[x_0, x_{n-1}]$, with $t = (x - x_i)/h_i$ on interval $i$:
 
   $$
   \begin{aligned}
-  y &= h_{00}(t)\, y_i + h_{10}(t)\, h_i s_i \\
-    &\quad + h_{01}(t)\, y_{i+1} + h_{11}(t)\, h_i s_{i+1}, \\
+  y &= h_{00}(t)\, y_i \\
+    &\quad + h_{10}(t)\, h_i s_i \\
+    &\quad + h_{01}(t)\, y_{i+1} \\
+    &\quad + h_{11}(t)\, h_i s_{i+1}, \\
   h_{00} &= (1 + 2t)(1 - t)^2, \\
   h_{10} &= t(1 - t)^2, \\
   h_{01} &= t^2(3 - 2t), \\
@@ -61,7 +63,8 @@ Inside $[x_0, x_{n-1}]$, with $t = (x - x_i)/h_i$ on interval $i$:
 
   $$
   \begin{aligned}
-  &h_i s_{i-1} + 2(h_{i-1} + h_i)\, s_i + h_{i-1} s_{i+1} \\
+  &h_i s_{i-1} + 2(h_{i-1} + h_i)\, s_i \\
+  &\quad + h_{i-1} s_{i+1} \\
   &\quad = 3(h_i \delta_{i-1} + h_{i-1} \delta_i)
   \end{aligned}
   $$

@@ -34,7 +34,7 @@ routine `qk15` has the rule's nodes and weights to 33 digits.
   of $K$ when the integrand is smooth.
 - **Global adaptivity** ([QP] `QAG`, §2.2 and §3.3):
   - Keep every subinterval with its estimates.
-  - While the summed error of some component exceeds $\max(\text{absolute}, \text{relative} \cdot \lvert \sum K \rvert)$, bisect the
+  - While the summed error of some component exceeds the larger of $\text{absolute}$ and $\text{relative} \cdot \lvert \sum K \rvert$, bisect the
     subinterval that contributes most to the worst component.
   - Stop with `QuadratureDidNotConverge` at the subinterval budget, or when a bisection point can
     no longer be represented.

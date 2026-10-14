@@ -206,9 +206,18 @@
       const box = p.getBoundingClientRect();
       const left = box.left + p.clientLeft + num(ps.paddingLeft);
       const right = left + p.clientWidth - num(ps.paddingLeft) - num(ps.paddingRight);
-      const r = math.getBoundingClientRect();
-      if (r.left < left - 1 || r.right > right + 1) {
-        out.push({ math: math, width: r.width, room: right - left });
+      // The formula's extent, not only its box: a too-wide display keeps its <math> box at the
+      // column's width and lets its rows run past it.
+      let x0 = Infinity;
+      let x1 = -Infinity;
+      for (const e of [math].concat(Array.from(math.querySelectorAll('*')))) {
+        const r = e.getBoundingClientRect();
+        if (r.width <= 0) continue;
+        x0 = Math.min(x0, r.left);
+        x1 = Math.max(x1, r.right);
+      }
+      if (x0 < left - 1 || x1 > right + 1) {
+        out.push({ math: math, width: x1 - x0, room: right - left });
       }
     }
     return out;

@@ -101,11 +101,14 @@ way [WMM] section 1.2 sets out:
 
    $$
    \begin{aligned}
-   X' &= -\sum_n \left(\frac{a}{r}\right)^{n+2} \sum_m \frac{\mathrm{d}\breve{P}(\sin\varphi')}{\mathrm{d}\varphi'} \\
+   X' &= -\sum_n \left(\frac{a}{r}\right)^{n+2} \\
+   &\qquad \times \sum_m \frac{\mathrm{d}\breve{P}(\sin\varphi')}{\mathrm{d}\varphi'} \\
    &\qquad \times (g \cos m\lambda + h \sin m\lambda), \\
-   Y' &= \sum_n \left(\frac{a}{r}\right)^{n+2} \sum_m \frac{m\, \breve{P}(\sin\varphi')}{\cos\varphi'} \\
+   Y' &= \sum_n \left(\frac{a}{r}\right)^{n+2} \\
+   &\qquad \times \sum_m \frac{m\, \breve{P}(\sin\varphi')}{\cos\varphi'} \\
    &\qquad \times (g \sin m\lambda - h \cos m\lambda), \\
-   Z' &= -\sum_n (n+1) \left(\frac{a}{r}\right)^{n+2} \sum_m \breve{P}(\sin\varphi') \\
+   Z' &= -\sum_n (n+1) \left(\frac{a}{r}\right)^{n+2} \\
+   &\qquad \times \sum_m \breve{P}(\sin\varphi') \\
    &\qquad \times (g \cos m\lambda + h \sin m\lambda)
    \end{aligned}
    $$

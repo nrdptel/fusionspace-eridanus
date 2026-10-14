@@ -1422,14 +1422,23 @@ mod tests {
 
     #[test]
     fn a_formula_quotes_its_decimals_not_its_integers() {
-        assert_eq!(formula_quotes("q = \\tfrac12 \\rho v^2"), Vec::<String>::new());
-        assert_eq!(formula_quotes("V_f = 1.8\\,a, 24\\,\\varepsilon, 0.25"), ["1.8", "0.25"]);
+        assert_eq!(
+            formula_quotes("q = \\tfrac12 \\rho v^2"),
+            Vec::<String>::new()
+        );
+        assert_eq!(
+            formula_quotes("V_f = 1.8\\,a, 24\\,\\varepsilon, 0.25"),
+            ["1.8", "0.25"]
+        );
         assert_eq!(formula_quotes("x_{1.} = 3."), Vec::<String>::new());
     }
 
     #[test]
     fn a_decimal_in_a_formula_is_read_as_a_quote() {
-        let read = prose("docs/x.md", "The ratio $V_f/a = 1.8$ and $q = \\tfrac12 \\rho v^2$.\n");
+        let read = prose(
+            "docs/x.md",
+            "The ratio $V_f/a = 1.8$ and $q = \\tfrac12 \\rho v^2$.\n",
+        );
         let quotes: Vec<&str> = read
             .blocks
             .iter()

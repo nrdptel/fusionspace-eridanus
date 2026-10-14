@@ -1773,7 +1773,8 @@ set to zero and rearranged,
 $$
 \begin{aligned}
 \sin(\delta_1 + \theta) &= \frac{\Omega_1}{\Omega_2(\theta)} \\
-&\quad \times \left(\sin\delta_1 + \frac{r\,(\partial p/\partial s)_1}{B_1}\right),
+&\quad \times \biggl(\sin\delta_1 \\
+&\qquad + \frac{r\,(\partial p/\partial s)_1}{B_1}\biggr),
 \end{aligned}
 $$
 
@@ -2724,8 +2725,10 @@ fin-count factor, the sum over fins and $K_T(B)$ apply as above.
 
 $$
 \begin{aligned}
-M_s = \max(&1.2,\ 1/\cos\Gamma_L,\ 1/\cos\Gamma_T, \\
-&\sqrt{1 + 1/\mathrm{AR}^2},\ \sqrt{1 + (c_t/2s)^2}),
+M_s = \max\bigl(&1.2,\ 1/\cos\Gamma_L, \\
+&1/\cos\Gamma_T, \\
+&\sqrt{1 + 1/\mathrm{AR}^2}, \\
+&\sqrt{1 + (c_t/2s)^2}\bigr),
 \end{aligned}
 $$
 
@@ -2844,7 +2847,7 @@ distance from the root.
 $$
 \begin{aligned}
 C_l &= -N C_{l\delta}\, k_T(B)\, \delta \\
-&\quad + N C_{lp}\, k_R(B)\, (p d/2V)
+&\quad + N C_{lp}\, k_R(B)\, (p d/(2V))
 \end{aligned}
 $$
 
@@ -3149,7 +3152,10 @@ and neither code's roll is compared.
   moment would trim the rocket at about
 
   $$
-  \frac{0.0445 \cdot 0.04}{12.65 \cdot 0.054} = 0.0026\,\mathrm{rad} = 0.15^\circ.
+  \begin{aligned}
+  \frac{0.0445 \cdot 0.04}{12.65 \cdot 0.054} &= 0.0026\,\mathrm{rad} \\
+  &= 0.15^\circ.
+  \end{aligned}
   $$
 
   Which way that moves the flight turns with the pod's side against the wind and the rail's tilt,
@@ -3897,7 +3903,7 @@ A nose's or shoulder's pressure-drag coefficient, on the area it adds, has three
 | step up in radius, or a bare front face | a flat face: $0.85\,q_{\mathrm{stag}}/q$, at every Mach number | n/a | [N09] eq. B.1–B.2 |
 | cone | $\sin\varepsilon$ at Mach 1 with slope $4/(\gamma + 1)(1 - \sin\varepsilon/2)$; $2.1\sin^2\varepsilon + 0.5\sin\varepsilon/\sqrt{M^2 - 1}$ from Mach 1.3; a cubic between, meeting both ends' values and slopes; $\tan\varepsilon = 1/(2f)$ | 1 | [N09] eq. B.3–B.6 |
 | ogive | the cone of the same length and diameter, times $0.72\,(\kappa - \tfrac12)^2 + 0.82$, $\kappa$ the tangent ogive's arc radius over this one's (0 for a cone, 1 for a tangent ogive) | 1 | [N09] eq. B.8 |
-| power series, parabolic series, Haack series | Stoney's measured curve at fineness 3, $C_3(M)$, scaled to the nose's fineness by $C_0\,(C_3/C_0)^{\log_4(f + 1)}$, with $C_0$ the flat face's $0.85\,q_{\mathrm{stag}}/q$ | 0.8 | [N09] eq. B.7, B.9; [S61] Fig. 12 |
+| power series, parabolic series, Haack series | Stoney's measured curve at fineness 3, $C_3(M)$, scaled to the nose's fineness by $C_0\,(C_3/C_0)^n$, $n = \log_4(f + 1)$, with $C_0$ the flat face's $0.85\,q_{\mathrm{stag}}/q$ | 0.8 | [N09] eq. B.7, B.9; [S61] Fig. 12 |
 | elliptical | below Mach 0.8, Hoerner's low-speed forebody drag, interpolated in fineness; from Mach 1.2, Stoney's ellipsoid scaled as above; a straight line between ([blunt ellipsoids](#blunt-ellipsoids-below-mach-08), below) | none: its own curve throughout | [H65] p. 3-12, Fig. 20; [N09] eq. B.9; [S61] Fig. 12; [ADR-173][adr-173] |
 
 Here $\gamma = 1.4$ is the ratio of specific heats of air, $q_{\mathrm{stag}}/q$ the stagnation-pressure ratio of

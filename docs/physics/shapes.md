@@ -152,12 +152,12 @@ parallel-axis theorem. $S$ excludes the end faces.
     $$
     \begin{aligned}
     r_i(x) &= \max(0,\ m), \\
-    m &= \min_{\lvert s - x\rvert \le t} \Bigl[y(s) \\
-    &\qquad - \sqrt{t^2 - (x - s)^2}\,\Bigr]
+    m &= \min_{s} \bigl[y(s) - d(s)\bigr], \\
+    d(s) &= \sqrt{t^2 - (x - s)^2}
     \end{aligned}
     $$
 
-    The surface is the profile over its own length, ends included, with no extension past a cut
+    with the minimum taken over the $s$ where $\lvert s - x\rvert \le t$. The surface is the profile over its own length, ends included, with no extension past a cut
     end.
   - The envelope is exact for any continuous profile. A point above the lower half of some
     surface point's circle has the profile crossing its height closer than $t$, so it is in the
@@ -192,8 +192,13 @@ parallel-axis theorem. $S$ excludes the end faces.
   - Power series: $V = \pi R^2 L/(2n+1)$, $\bar{x} = L(2n+1)/(2n+2)$, and the paraboloid's $S$.
   - Power series and parabolic series: $A_p$ and $x_p$ too; parabolic series by polynomial
     integrals.
-  - Haack: $V = \pi R^2 L\,(\tfrac12 + 3C/16)$ and $\bar{x} = L(11 + 3C)/(2(8 + 3C))$, integrated
-    in $\theta$.
+  - Haack: $V = \pi R^2 L\,(\tfrac12 + 3C/16)$ and
+
+    $$
+    \bar{x} = \frac{L(11 + 3C)}{2(8 + 3C)},
+    $$
+
+    integrated in $\theta$.
   - Loft's tangent-ogive value, $R = 0.04\,\mathrm{m}$, $L = 0.25\,\mathrm{m}$ gives 6.7509e-4 m³
     ([Loft lesson L91](../decisions-and-roadmap.md#l91)).
 - **mpmath references** (`solids::tests::filled_solids_match_the_mpmath_references`):
