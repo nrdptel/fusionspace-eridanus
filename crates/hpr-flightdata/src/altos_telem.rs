@@ -1006,6 +1006,15 @@ mod tests {
         assert!((channel(&log, "longitude").unwrap().values[0] + 122.0).abs() < 1e-12);
         assert_eq!(channel(&log, "gps_altitude").unwrap().values[0], 1300.0);
         assert_eq!(channel(&log, "nsat").unwrap().values[0], 7.0);
+
+        // A step of 32,750 ticks after a GPS packet 40 behind: forward from the latest tick, so
+        // within half a turn, though 32,790 from the GPS packet's would read as a step back.
+        let text = file(&[
+            sensor(1_000, 2, 98_000, 0, 0, 0, 0),
+            line(960, LOCATION, &gps),
+            sensor(33_750, 2, 98_000, 0, 0, 0, 0),
+        ]);
+        assert_eq!(read(&text).unwrap().time_s, [10.0, 337.5]);
     }
 
     /// A GPS packet without the valid bit has its position read as gaps, counted.

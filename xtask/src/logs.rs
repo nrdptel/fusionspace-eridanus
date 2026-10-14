@@ -3101,7 +3101,9 @@ mod tests {
         };
         let telemetry = |speed_scale: f64| telemetry_with(speed_scale, false);
         let names = [(2, "pad"), (3, "boost"), (6, "drogue")];
-        let export = |change: Option<(usize, f64)>, repeat_at: Option<u16>| {
+        // The export's clock `turns` turns of the tick ahead of the telemetry's, as when the
+        // two start counting at different turns.
+        let export_turned = |change: Option<(usize, f64)>, repeat_at: Option<u16>, turns: f64| {
             let mut csv = String::from(
                 "#version,serial,flight,time,clock,state,state_name,pressure,height,temperature\n",
             );
@@ -3125,11 +3127,12 @@ mod tests {
                 csv += &format!(
                     "5,7,1,{:.2},{:.2},{state},{name},{pres:.2},{height:.2},21.5\n",
                     (f64::from(tick) - 1_000.0) / 100.0,
-                    f64::from(tick) / 100.0
+                    (f64::from(tick) + turns * 65_536.0) / 100.0
                 );
             }
             csv.into_bytes()
         };
+        let export = |change, repeat_at| export_turned(change, repeat_at, 0.0);
         let sample = |name: &str, family: &str, bytes: Vec<u8>| Sample {
             path: PathBuf::from("flight").join(name),
             source: "test",
@@ -3191,14 +3194,28 @@ mod tests {
             "{unread:?}"
         );
 
-        // The board's speed in m/s rather than sixteenths: 16 times too slow for its height.
-        let (report, unread) = run(telemetry(16.0), export(None, None));
-        assert_eq!(report.telemetry_checks.inconsistent.len(), 1);
+        // The export's clock three turns ahead: the `boost` events line the two up.
+        let (report, unread) = run(telemetry(1.0), export_turned(None, None, 3.0));
+        assert_eq!(report.telemetry_checks.pressures_equal, 13);
+        assert!(unread.is_empty(), "{unread:?}");
+
+        // The board's speed twice what its height and acceleration bear out: both ratios exist
+        // and fall outside the band.
+        let (report, unread) = run(telemetry(0.5), export(None, None));
+        let checks = &report.telemetry_checks;
+        let climb = checks.climb_over_speed.unwrap();
+        let change = checks.speed_change_over_acceleration.unwrap();
+        assert!((climb[0] - 0.5).abs() < 1e-9 && (change[0] - 2.0).abs() < 1e-9);
+        assert_eq!(checks.inconsistent.len(), 1);
         assert!(
             unread
                 .iter()
                 .any(|line| line.contains("aren't in one another's units")),
             "{unread:?}"
         );
+
+        // 16 times too slow: the descent's speed falls under 20 m/s, so no ratio, and no pass.
+        let (report, _) = run(telemetry(16.0), export(None, None));
+        assert_eq!(report.telemetry_checks.inconsistent.len(), 1);
     }
 }
