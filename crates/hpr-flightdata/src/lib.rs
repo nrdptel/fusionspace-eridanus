@@ -32,14 +32,16 @@
 //! 57 `.FIPa` files, 1 of the 6 `.rff`), the R-DAS's raw text, its counts kept as written
 //! ([`rdas`]), AltOS's radio telemetry as AltosUI saves it ([`altos_telem`]), AltOS's raw
 //! downloads, the board's own log as AltosUI saves it to an `.eeprom` file, checked against
-//! AltosUI's export of the same flight in all 9 samples that have one ([`altos_eeprom`]), and
+//! AltosUI's export of the same flight in all 9 samples that have one ([`altos_eeprom`]), the
+//! ARTS2's `.odf` and its raw CSV export, the `.odf` in units held to the interpreted export of the
+//! same flight ([`arts2_raw`]), and
 //! three GPS logs: Featherweight's
 //! tracker and ground-station CSV ([`fwgps`]), KML ([`kml`]) and NMEA 0183 ([`nmea`]), every
 //! column kept as a channel on its own clock. A zip archive of a flight's files is unpacked in
 //! memory, within a bound, and each file read on its own ([`archive`]). [`readings`] takes a first set of readings from the
 //! record: liftoff, apogee, the top speed, landing and the descent, set and tested on PerfectFlite
 //! logs. The guide's [reading a flight log][guide-log] page shows them on a log, and [the layouts read][guide-layouts] lists what each reader keeps. The other loggers'
-//! formats, spreadsheets and plain CSV are planned for milestone [M7.1c11][roadmap] of the roadmap,
+//! formats, spreadsheets and plain CSV are planned for milestone [M7.1c12][roadmap] of the roadmap,
 //! and the rest of the readings, smoothing and reconstruction for [M7.2][roadmap].
 //!
 //! [guide-layouts]: https://hpr.fusionspace.co/format/flight-logs.html
@@ -70,6 +72,7 @@ pub mod altos_eeprom;
 pub mod altos_telem;
 pub mod archive;
 pub mod arts2;
+pub mod arts2_raw;
 pub mod blueraven;
 pub mod eggtimer;
 pub mod entacore;
