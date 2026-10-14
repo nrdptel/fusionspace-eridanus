@@ -957,7 +957,7 @@ struct TelemetryChecks {
 const TEMPERATURE_AGREES_K: f64 = 0.05 + 1e-9;
 
 /// How far a GPS fix in the telemetry may be from the export's row at its tick, which carries
-/// its last fix, perhaps a few seconds older: 0.01° is about a kilometre, where a misread scale
+/// its last fix, perhaps a few seconds older: 0.01° is about a kilometer, where a misread scale
 /// would move a position by tens of degrees.
 const POSITION_AGREES_DEG: f64 = 0.01;
 

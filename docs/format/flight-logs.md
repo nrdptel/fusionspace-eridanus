@@ -264,7 +264,7 @@ says it failed the radio's CRC is noise and is left out, counted: 13.6% and 4.1%
   the first two on the pad. The record keeps the one that leaves the pad (or the last, if none
   does), counts the others' packets in a note, and refuses a file in which two leave it.
 - **Pressure is in pascals,** though the document says tenths of a pascal: read its way, both pads
-  would be more than 15 km up. Read as pascals they are at the height above sea level the export
+  would be more than 15 km (9.3 mi) up. Read as pascals they are at the height above sea level the export
   states, and the export's pressures equal the telemetry's at all 123 ticks where it holds a fresh
   sample. The reader takes pascals only where the pad's pressure lies from 10 to 120 kPa so read,
   and otherwise keeps the field as written.
@@ -275,7 +275,7 @@ says it failed the radio's CRC is noise and is left out, counted: 13.6% and 4.1%
   wrong unit would be 3.28 or 16 times off. The highest height is 0.996 of the export's.
 - **The temperature**, in hundredths of a °C, agrees with the export within its print step, 0.05
   K; **GPS** positions, in ten-millionths of a degree, within 0.000 06° of the export's, and its
-  altitude within 3 m. A GPS packet without its valid bit holds no fix, and its position is a gap.
+  altitude within 3 m (9.8 ft). A GPS packet without its valid bit holds no fix, and its position is a gap.
 - **Kept as written:** the converters' counts (the raw accelerometer, battery and continuity
   readings, the calibration), which the document gives no conversion for, and the GPS date, the
   dilutions of precision, ground speed, climb rate and course, which nothing checks.
@@ -296,7 +296,7 @@ TELEM 22d2040001040b0300011b0000fa0000084e3043414c4c0000312e392e32320000f4a8c1
 ```
 
 That is serial 1234 (`d204`, its bytes low first), tick 256 (`0001`), type `04`, then flight 3,
-main deployment at 250 m (`fa00`), call sign `N0CALL` and firmware `1.9.22`; `f4` is an RSSI of
+main deployment at 250 m (820 ft), `fa00`, call sign `N0CALL` and firmware `1.9.22`; `f4` is an RSSI of
 −12, so −80 dBm, and `a8` has the CRC bit set.
 
 Checked: both sample files read, and the survey holds the one with an export beside it to it,
