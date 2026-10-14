@@ -1407,7 +1407,7 @@ The MS5607 boards' pressures match their exports exactly; the TeleMetrum v1's, a
 within half the export's 0.01 Pa print step. One export, the damaged one the survey's report
 files as `altos-csv-damaged`, zeroes the acceleration at the +1 g calibration instead of the
 pad's reading, so it differs from the file by one constant; the survey finds that constant
-within half a step and counts the file apart. The same export alone counts its time from the tick
+within half a step and counts the file apart. The same export counts its time from the tick
 itself. Per file, by an anonymized id, the [survey's report](#how-it-was-checked) prints each
 count and each climb ratio.
 

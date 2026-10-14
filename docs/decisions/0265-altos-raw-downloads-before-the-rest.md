@@ -70,7 +70,7 @@ not read, nor was any port of them. What the files show:
    **The climb check:** on every board with an accelerometer, the climb over the first second
    after boost by the pressure (its pressure altitude in the U.S. Standard Atmosphere, 1976) over
    the climb by the acceleration integrated twice from rest must lie from 0.6 to 5/3, a band
-   symmetric about 1 in log terms leaving the 11 agreeing files a fifth to spare on either side.
+   symmetric about 1 in log terms leaving the 11 agreeing files at least a fifth to spare on either side.
    Outside it, or where the samples don't cover that second or leave a gap in it over 0.1 s (the
    slowest logging rate), neither unit is borne out: the acceleration's counts are kept as
    written, and so are a TeleMetrum v1's pressure's, which have no other check; an MS5607 board's

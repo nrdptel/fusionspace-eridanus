@@ -81,8 +81,9 @@
 //! gives different pressures below 20 °C, and a unit test pins the floor. Second checks: the pad's
 //! pressure (the median of the samples before boost, or the first sample's) must lie from 10 to
 //! 120 kPa and within 1% of the flight record's ground pressure, the pad's temperature within the
-//! sensor's operating range, −40 to 85 °C (p. 8), and on a board with an accelerometer the climb
-//! check below must pass, or the file is refused: any failing means misread bytes. A board
+//! sensor's operating range, −40 to 85 °C (p. 8), or the file is refused: any failing means
+//! misread bytes. On a board with an accelerometer the climb check below holds the pressure and
+//! the acceleration to each other too; failing it keeps the acceleration as counts. A board
 //! without the constants, or whose JSON marks an MS5611, keeps `d1` and `d2` as written.
 //!
 //! *Pressure, TeleMetrum v1.* The MP3H6115A's output is `Vout = Vs (0.009 P − 0.095)`, P in kPa
@@ -220,9 +221,9 @@ const CLIMB_END_TICKS: i64 = 5;
 /// accepts: 0.6 to 5/3, symmetric about 1 in log terms. On 11 of the 12 sample files with an
 /// accelerometer the ratio lies from 0.859 to 1.400 (the survey's report prints each file's): the
 /// barometer reads the pressure at its ports, which the airflow past them can lower in the climb,
-/// and a high-g accelerometer counts few steps a g. The band leaves those a fifth to spare on
-/// either side, and the twelfth, at about 2, outside: its two sensors disagree by a factor no
-/// port or step explains, so neither unit is taken on trust there.
+/// and a high-g accelerometer counts few steps a g. The band leaves those at least a fifth to
+/// spare on either side, and the twelfth, at about 2, outside: its two sensors disagree by a
+/// factor no port or step explains, so neither unit is taken on trust there.
 const CLIMB_RATIO: std::ops::RangeInclusive<f64> = 0.6..=(5.0 / 3.0);
 
 /// The CC1111's full-scale count, its 12-bit result's 2,047 in the top bits of 16 (SWRS033H,
@@ -437,8 +438,9 @@ fn value_of<'a>(line: &'a str, key: &str) -> Option<&'a str> {
 /// - For a fault in the records themselves, either, at the record (a line of the text form, a
 ///   byte of the JSON form's memory): no flight record or two; the pad's pressure outside a
 ///   launch site's or away from the flight record's; the pad's temperature outside the
-///   barometer's operating range; the climb by the pressure and the climb by the acceleration out
-///   of each other's band; or a first second after boost too short to measure the climb over.
+///   barometer's operating range. The climb check never refuses a file: failing it, or a first
+///   second after boost too short to measure, keeps the acceleration's counts as written (and a
+///   TeleMetrum v1's pressure's), with a note.
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
     if !recognizes(text) {
         return Err(LogError::NotThisFormat {
