@@ -47,6 +47,56 @@ fn the_text_export_takes_its_temperature_unit_from_the_cells() {
 }
 
 #[test]
+fn a_text_export_with_no_header_row_reads_as_one_with_it() {
+    let headed = import::read(include_bytes!("samples/perfectflite-export.txt")).unwrap();
+    let bytes = include_bytes!("samples/perfectflite-export-headerless.txt");
+    assert_eq!(import::detect(bytes), Some(LogFormat::PerfectFliteText));
+    let log = import::read(bytes).unwrap();
+    assert_eq!(log.format, LogFormat::PerfectFliteText);
+    // Every sample as the same rows under the header read, the first row among them.
+    assert_eq!(log.time_s, headed.time_s);
+    assert_eq!(log.altitude_m, headed.altitude_m);
+    assert_eq!(log.temperature_k, headed.temperature_k);
+    assert_eq!(log.channels, headed.channels);
+    // And one note more, first: the columns were taken, not read.
+    assert_eq!(log.notes.len(), headed.notes.len() + 1);
+    assert!(log.notes[0].contains("no header row"), "{}", log.notes[0]);
+    insta::assert_json_snapshot!(log);
+}
+
+#[test]
+fn a_row_of_another_shape_is_no_headerless_export() {
+    for text in [
+        // The temperature with no unit letter: any table of four numbers.
+        "0.00\t0\t21.5\t8.9\n0.50\t0\t21.5\t8.9\n",
+        // A fifth cell.
+        "0.00\t0\t21.5C\t8.9\t1\n",
+        // Commas: the headerless export is the text one, tab-separated.
+        "0.00,0,21.5C,8.9\n",
+    ] {
+        assert_eq!(import::detect(text.as_bytes()), None, "{text:?}");
+        assert!(import::read(text.as_bytes()).is_err(), "{text:?}");
+    }
+    // A later row whose temperature is in another unit than the first's is refused.
+    let mixed = "0.00\t0\t21.5C\t8.9\n0.50\t0\t70.7F\t8.9\n";
+    assert!(import::read(mixed.as_bytes()).is_err());
+}
+
+#[test]
+fn a_csv_export_may_name_its_temperature_temp() {
+    let log = import::read(include_bytes!("samples/perfectflite-export-temp.csv")).unwrap();
+    assert_eq!(log.format, LogFormat::PerfectFliteCsv);
+    let temperature = log.temperature_k.as_ref().unwrap();
+    assert!(
+        (temperature[0] - (17.5 + 273.15)).abs() < 1e-9,
+        "{}",
+        temperature[0]
+    );
+    assert_eq!(log.altitude_m[4], 38.0 * 0.3048);
+    insta::assert_json_snapshot!(log);
+}
+
+#[test]
 fn the_committed_pf2_reads_into_channels() {
     let bytes = include_bytes!("../../../validation/fixtures/logs/synthetic-pnut.pf2");
     let log = import::read(bytes).unwrap();

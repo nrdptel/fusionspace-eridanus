@@ -15,10 +15,10 @@
 //! | [Featherweight summary CSV](crate::fwsummary) | the first line names `Rocket Name`, and one of the first 200 names `Max Altitude` or `Launch time UTC` |
 //! | [PerfectFlite `.pf2`](crate::perfectflite) | names PerfectFlite, such as `PerfectFlite Pnut`, in a file with no `**!!Data:` line (a `.pfa`'s) |
 //! | [PerfectFlite `.pfa`](crate::perfectflite::read_pfa) | names PerfectFlite, such as `PerfectFlite Alt15K/WD`, and has a `**!!Data:` line |
-//! | [PerfectFlite CSV and text](crate::perfectflite::read_export) | `Time`, `Altitude` and more of an export's names, by commas or tabs |
+//! | [PerfectFlite CSV and text](crate::perfectflite::read_export) | `Time`, `Altitude` and more of an export's names, by commas or tabs; or, with no header row, four tab-separated numbers, the third a temperature ending in `F` or `C`, in either case |
 //! | [AltOS CSV](crate::altos) | starts `#version,`, or opens with `#` comments before a `#version,` or `version,serial,` header |
 //! | [Raven FIP CSV](crate::raven) | opens with a time column and holds the Raven's `Axial Accel (Gs)` channel |
-//! | [Blue Raven CSV](crate::blueraven) | opens `Year,Month,Day,Time,Flight_Time_(s),Sync,` |
+//! | [Blue Raven CSV](crate::blueraven) | opens `Year,Month,Day,Time,Flight_Time_(s),Sync,`, or `Flight_Time_(s),Sync,` in a file with no date |
 //! | [RRC3 CSV](crate::rrc3) | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages` |
 //! | [AltimeterCloud CSV](crate::altimetercloud) | a header within the first 65 lines whose first name is `Time(ms)`, in any case, and which also names `acceleration_total(mG)` and `tilt` |
 //! | [Entacore AIM CSV](crate::entacore) | the first line starts with a `time` column, names at least two, and names one of the AIM's own channels, such as `Pressure AGL` |
@@ -47,9 +47,9 @@ use std::borrow::Cow;
 use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
 use crate::{
-    aerospacenu_fcb, aerospacenu_gs, altimetercloud, altos, arts2, blueraven, eggtimer, entacore,
-    fluctus, fwgps, fwsummary, kml, nmea, perfectflite, phone_launch, raven, raven_fipa, rrc3,
-    rrc3_rff, sillygoose,
+    aerospacenu_fcb, aerospacenu_gs, altimetercloud, altos, archive, arts2, blueraven, eggtimer,
+    entacore, fluctus, fwgps, fwsummary, kml, nmea, perfectflite, phone_launch, raven, raven_fipa,
+    rrc3, rrc3_rff, sillygoose,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
@@ -206,6 +206,8 @@ fn detect_text(text: &str) -> Option<LogFormat> {
         Some(LogFormat::EggtimerText)
     } else if eggtimer::recognizes(text) {
         Some(LogFormat::EggtimerCsv)
+    } else if perfectflite::is_headerless_row(first) {
+        Some(LogFormat::PerfectFliteText)
     } else {
         match perfectflite::export_separator(first)? {
             ',' => Some(LogFormat::PerfectFliteCsv),
@@ -218,9 +220,18 @@ fn detect_text(text: &str) -> Option<LogFormat> {
 ///
 /// # Errors
 ///
+/// [`LogError::Archive`] for a zip archive, whose files [`archive::unpack`] takes out;
 /// [`LogError::Unrecognized`] for a layout HPR Sim doesn't read, naming those it does; otherwise
 /// whatever the format's reader refuses.
 pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
+    if archive::is_archive(bytes) {
+        return Err(LogError::Archive {
+            message: "the file is a zip archive, which holds files rather than a log, or a format \
+                      built on one, such as a spreadsheet's `.xlsx`: an archive's files are read \
+                      one by one once unpacked (`archive::unpack`)"
+                .to_owned(),
+        });
+    }
     // A binary file isn't decoded as text: its bytes are the reader's.
     let binary = detect_binary(bytes);
     let text = if binary.is_some() {
@@ -272,6 +283,18 @@ mod tests {
     use super::*;
 
     #[test]
+    fn an_archive_is_refused_as_one_to_unpack() {
+        for bytes in [&b"PK\x03\x04 the rest"[..], b"PK\x05\x06"] {
+            match read(bytes) {
+                Err(LogError::Archive { message }) => {
+                    assert!(message.contains("archive::unpack"), "{message}");
+                }
+                other => panic!("expected an archive refusal, got {other:?}"),
+            }
+        }
+    }
+
+    #[test]
     fn each_format_is_recognized_by_its_marks() {
         let cases = [
             ("PerfectFlite Pnut\n", Some(LogFormat::PerfectFlitePf2)),
@@ -291,6 +314,21 @@ mod tests {
                 Some(LogFormat::FluctusCsv),
             ),
             ("T;Alt;Veloc;FAlt\n", None),
+            ("0.00\t3\t71.5F\t9.2\n", Some(LogFormat::PerfectFliteText)),
+            ("0.00\t3\t21.9C\t9.2\n", Some(LogFormat::PerfectFliteText)),
+            ("0.00\t3\t71.5\t9.2\n", None),
+            ("0.00\t3\t71.5F\t9.2\t1\n", None),
+            ("0.00\t3\tF\t9.2\n", None),
+            (
+                "Time,Altitude,Temp,Voltage\n",
+                Some(LogFormat::PerfectFliteCsv),
+            ),
+            (
+                "Flight_Time_(s),Sync,Gyro_X\n",
+                Some(LogFormat::BlueRavenCsv),
+            ),
+            ("Flight_Time_(s),Sync\n", None),
+            ("Sync,Flight_Time_(s),Gyro_X\n", None),
             (
                 "timestampMs\tpressurePa\ttempK\taltitudeM\n",
                 Some(LogFormat::SillyGooseText),

@@ -13,7 +13,8 @@
 //! ```
 //!
 //! A file is the app's when its first line that isn't blank opens with the six columns
-//! `Year,Month,Day,Time,Flight_Time_(s),Sync`, as both files do. The high-rate file has 18 columns,
+//! `Year,Month,Day,Time,Flight_Time_(s),Sync`, as both files do, or with `Flight_Time_(s),Sync`
+//! alone: one of the project's sample high-rate files holds no date, and the record notes so. The high-rate file has 18 columns,
 //! the low-rate file 101; columns are mapped by name, not by place, so the low-rate file's
 //! variants read alike (in some, `Axial Accel (Gs),Lateral Accel (Gs)` stand where others have
 //! `3rd_Volts,4th_Volts`, and one names the fifth FER column `Apo_FER_H  ex`, with two spaces).
@@ -163,6 +164,9 @@ const LEAD: [&str; 6] = ["Year", "Month", "Day", "Time", "Flight_Time_(s)", "Syn
 /// The place of the clock, `Flight_Time_(s)`, among [`LEAD`]'s columns (0-based).
 const CLOCK_INDEX: usize = 4;
 
+/// [`LEAD`] without its date and time of day, as a file holding no date opens.
+const SHORT_LEAD: [&str; 2] = ["Flight_Time_(s)", "Sync"];
+
 /// Pascals in a standard atmosphere, exactly (ISO 2533).
 const ATM_PA: f64 = 101_325.0;
 
@@ -179,18 +183,30 @@ const WRAP_STEP_FT: f64 = 32_768.0;
 const PAD_ROWS: usize = 50;
 
 /// Whether the text is in this reader's layout, judged from its header, never the file's name:
-/// its first line that isn't blank opens with [`LEAD`]'s six columns and names more.
+/// its first line that isn't blank opens with [`LEAD`]'s six columns, or [`SHORT_LEAD`]'s two,
+/// and names more.
 pub(crate) fn recognizes(text: &str) -> bool {
     numbered_lines(text)
         .map(|(_, line)| line)
         .find(|line| !line.trim().is_empty())
-        .is_some_and(opens_with_lead)
+        .and_then(clock_index)
+        .is_some()
 }
 
-/// Whether a header line opens with [`LEAD`]'s columns and names at least one more.
-fn opens_with_lead(header: &str) -> bool {
-    let mut cells = header.split(',').map(str::trim);
-    LEAD.iter().all(|name| cells.next() == Some(*name)) && cells.next().is_some()
+/// The place of the clock in a header line that opens with [`LEAD`]'s columns ([`CLOCK_INDEX`])
+/// or [`SHORT_LEAD`]'s (0) and names at least one more; `None` for any other line.
+fn clock_index(header: &str) -> Option<usize> {
+    let opens_with = |lead: &[&str]| {
+        let mut cells = header.split(',').map(str::trim);
+        lead.iter().all(|name| cells.next() == Some(*name)) && cells.next().is_some()
+    };
+    if opens_with(&LEAD) {
+        Some(CLOCK_INDEX)
+    } else if opens_with(&SHORT_LEAD) {
+        Some(0)
+    } else {
+        None
+    }
 }
 
 /// How a value becomes SI.
@@ -235,7 +251,7 @@ fn key(name: &str) -> String {
 }
 
 /// What a column is, and which decided kind it falls under; `None` for a name the reader doesn't
-/// know. The clock is matched only in its place ([`CLOCK_INDEX`]).
+/// know. The clock is matched only in its place ([`clock_index`]).
 fn role(name: &str) -> Option<(Role, Option<Decided>)> {
     use Quantity as Q;
     let key = key(name);
@@ -320,20 +336,29 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
             message: "the file is empty".to_owned(),
         });
     };
-    if !opens_with_lead(header) {
+    let Some(clock) = clock_index(header) else {
         return Err(LogError::NotThisFormat {
             format: FORMAT,
             message: format!(
-                "its first line, {:?}, isn't the app's header, which opens `{}`",
+                "its first line, {:?}, isn't the app's header, which opens `{}`, or `{}` in a \
+                 file with no date",
                 short(header),
-                LEAD.join(",")
+                LEAD.join(","),
+                SHORT_LEAD.join(",")
             ),
         });
-    }
+    };
     // Notes about single columns, capped; notes about the whole file, one each at most.
     let mut notes = Notes::default();
     let mut file_notes = Vec::new();
-    let mut columns = header_columns(header, header_line, &mut notes, &mut file_notes)?;
+    if clock == 0 {
+        file_notes.push(format!(
+            "the header opens `{}`, without the app's `Year,Month,Day,Time`: the file holds no \
+             date or time of day",
+            SHORT_LEAD.join(",")
+        ));
+    }
+    let mut columns = header_columns(header, header_line, clock, &mut notes, &mut file_notes)?;
 
     let mut time_s: Vec<f64> = Vec::new();
     let mut events: Vec<Event> = Vec::new();
@@ -380,6 +405,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
 fn header_columns(
     header: &str,
     line: usize,
+    clock: usize,
     notes: &mut Notes,
     file_notes: &mut Vec<String>,
 ) -> Result<Vec<Column>, LogError> {
@@ -392,7 +418,7 @@ fn header_columns(
                 format!("the header's column {} has no name", index + 1),
             ));
         }
-        let (role, decided) = if index == CLOCK_INDEX {
+        let (role, decided) = if index == clock {
             (Role::Clock, None)
         } else if key(name).starts_with("reserved") {
             reserved += 1;

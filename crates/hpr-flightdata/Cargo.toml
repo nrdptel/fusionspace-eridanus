@@ -32,6 +32,10 @@ hpr-atmos.workspace = true
 roxmltree.workspace = true
 serde.workspace = true
 thiserror.workspace = true
+# Zip archives of a flight's files (M7.1c7), unpacked in memory within a bound; deflate only.
+zip.workspace = true
+# Only to choose the zip reader's deflate backend: the pure-Rust one, so wasm32 still builds.
+flate2.workspace = true
 
 [dev-dependencies]
 insta.workspace = true

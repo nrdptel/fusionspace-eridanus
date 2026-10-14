@@ -299,6 +299,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c4 AerospaceNU's board, a phone app's CSV, Eggtimer RTF ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c5 Raw downloads: the Raven's `.FIPa` and the RRC3's `.rff` ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c6 Featherweight's summaries ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c7 Archives and two readers' variants ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1491,6 +1492,15 @@ One line per milestone or increment, in the order it was archived within its pha
       written in a note the survey counts; each stated maximum and pad altitude is compared with
       the file beside it, counted by the survey, and `--check` fails on one that agrees only as
       meters; a value a conversion makes infinite is refused.
+    - [x] **M7.1c7 Archives and two readers' variants** (ADR-261): zip archives unpacked in
+      memory, each file read on its own; PerfectFlite exports with no header row or `Temp`; Blue
+      Raven files with no date. *Done when:* every zip archive in refs unpacks and every file
+      moved to a read family reads (`cargo xtask logs --check` fails on one not); an archive is
+      held to 256 MiB counted as it decompresses, and two files of one name, links, encryption,
+      other methods and damaged files are refused (tests on hostile archives); an archived file
+      no source holds has a family by id, and the survey stops on one without; the new exports'
+      altitude unit is checked as the others' are and reported; and files that aren't logs are
+      filed by family.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

@@ -47,6 +47,13 @@ pub enum LogError {
         /// What is wrong.
         message: String,
     },
+    /// A zip archive can't be unpacked, or holds more than the bounds allow
+    /// ([`archive`](crate::archive)).
+    #[error("zip archive: {message}")]
+    Archive {
+        /// What is wrong.
+        message: String,
+    },
     /// The file states its values in a unit the reader doesn't know, such as a PerfectFlite file
     /// whose stated apogee carries no foot mark.
     #[error("{format} line {line}: {message}")]

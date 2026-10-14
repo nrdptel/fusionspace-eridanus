@@ -73,6 +73,26 @@ fn the_variant_with_axial_acceleration_reads_alike() {
     insta::assert_json_snapshot!(log);
 }
 
+/// A high-rate file whose header opens `Flight_Time_(s),Sync`: the same channels, but the date's.
+#[test]
+fn a_high_rate_file_with_no_date_reads_as_one_with_it() {
+    let dated = import::read(include_bytes!("samples/blueraven-high-rate.csv")).unwrap();
+    let bytes = include_bytes!("samples/blueraven-high-rate-undated.csv");
+    assert_eq!(import::detect(bytes), Some(LogFormat::BlueRavenCsv));
+    let log = import::read(bytes).unwrap();
+    // The dated file's channels but `Year`, `Month`, `Day` and `Time`, the first four.
+    assert_eq!(log.channels[..], dated.channels[4..]);
+    let note = "the file holds no date or time of day";
+    assert_eq!(
+        log.notes.iter().filter(|n| n.contains(note)).count(),
+        1,
+        "{:?}",
+        log.notes
+    );
+    assert_eq!(log.notes.len(), dated.notes.len() + 1);
+    insta::assert_json_snapshot!(log);
+}
+
 /// The high-rate file: an empty primary track, and the gyro, acceleration, quaternion, voltage
 /// and current columns as channels, each kind's unit decided with a note but the current's, which
 /// no source states.
