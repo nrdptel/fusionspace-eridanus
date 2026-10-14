@@ -259,6 +259,9 @@ pub enum LogFormat {
     /// AED Electronics' R-DAS raw data, as its Windows software exports a flight to text: a
     /// `*** Configuration ***` section, then a table of the converters' counts.
     RdasText,
+    /// AltOS radio telemetry, as AltosUI saves the packets a TeleDongle hears to a `.telem`
+    /// file: one `TELEM` line a packet, its bytes in hexadecimal.
+    AltosTelemetry,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -371,7 +374,8 @@ impl LogFormat {
     /// Missile Works' and Big Red Bee's KML, and a tenth of a meter in NMEA's `GGA`. A receiver's
     /// own error is far larger. A Featherweight summary has no track: its maximum altitude is
     /// written to the hundredth of a foot. An R-DAS's raw text has no altitude either, only its
-    /// barometer's counts: one is 0.09 kPa in its maker's manual, 7.49 m near sea level.
+    /// barometer's counts: one is 0.09 kPa in its maker's manual, 7.49 m near sea level. AltOS's
+    /// telemetry sends the board's height above the pad in whole meters.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -399,6 +403,7 @@ impl LogFormat {
             Self::Rrc3Rff => RRC3_PRESSURE_STEP_PA * ONE_PASCAL_M,
             Self::FeatherweightSummaryCsv => 0.01 * crate::perfectflite::FOOT_M,
             Self::RdasText => crate::rdas::ALTITUDE_STEP_M,
+            Self::AltosTelemetry => 1.0,
         }
     }
 
@@ -431,6 +436,7 @@ impl LogFormat {
             Self::Rrc3Rff => ".rff",
             Self::PerfectFlitePfa => ".pfa",
             Self::Kml => ".kml",
+            Self::AltosTelemetry => ".telem",
         }
     }
 
@@ -463,6 +469,7 @@ impl LogFormat {
             Self::Rrc3Rff => "RRC3 .rff",
             Self::FeatherweightSummaryCsv => "Featherweight summary CSV",
             Self::RdasText => "R-DAS text",
+            Self::AltosTelemetry => "AltOS telemetry",
         }
     }
 }

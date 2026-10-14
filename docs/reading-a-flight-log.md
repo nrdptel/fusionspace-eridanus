@@ -19,7 +19,7 @@ RRC3's `.rff` raw downloads, the Featherweight app's flight summaries (figures, 
 R-DAS's raw text (its counts kept as written), and GPS tracks from Featherweight's GPS tracker, KML and NMEA files, into the same record ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its
 readings from those with [M7.2](decisions-and-roadmap.md#m7-2), which validates them on other
 loggers. Other loggers come with
-[M7.1c9, the rest of the importers](decisions-and-roadmap.md#m7-1c9).
+[M7.1c10, the rest of the importers](decisions-and-roadmap.md#m7-1c10).
 
 > **How far to trust it.** Readings of the altimeter's own log, not a simulation. On an invented flight whose every number is known, the apogee comes
 > within a quarter of a meter and one sample of the truth, and liftoff within a tenth of a second.
@@ -201,7 +201,7 @@ speed is `max_speed` in both.
 
 ## What it doesn't do yet
 
-- Read other loggers' files ([M7.1c9, the rest of the importers](decisions-and-roadmap.md#m7-1c9)), or take readings from
+- Read other loggers' files ([M7.1c10, the rest of the importers](decisions-and-roadmap.md#m7-1c10)), or take readings from
   the logs the library already reads beside PerfectFlite's
   ([M7.2](decisions-and-roadmap.md#m7-2)).
 - Split the descent into the drogue's and the main's rates, find the deployments, or give the

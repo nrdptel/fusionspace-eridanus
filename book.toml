@@ -54,11 +54,14 @@ heading-split-level = 3
 # 10.02 MB, with the simulator's comparison page: the validation plan (`VALIDATION.md`), the
 # maintainers' inventory of references and test layers, is left out too, still in the sidebar and
 # linked from *Accuracy* and *Checking a claim*, whose reader-facing answers the index keeps.
+# And in M7.1c9, at 10.03 MB, with the AltOS telemetry section: the release plan (`plan.md`), what
+# each release will hold, is left out too, still in the sidebar and linked from the start page.
 [output.html.search.chapter]
 "decisions-and-roadmap.md" = { enable = false }
 "writing.md" = { enable = false }
 "releasing.md" = { enable = false }
 "VALIDATION.md" = { enable = false }
+"plan.md" = { enable = false }
 
 # The equations (`xtask/src/site/math.rs`): each `$…$` and `$$…$$` becomes MathML before mdBook
 # renders the page, so the browser draws it in the math face with no script. `cargo xtask site`
