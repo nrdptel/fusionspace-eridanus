@@ -38,11 +38,13 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.6d2 The crates' words ([Phase 0](#phase-0-foundations))
 - M0.6d3 The crates' em dashes ([Phase 0](#phase-0-foundations))
 - M0.6e US names ([Phase 0](#phase-0-foundations))
+- M0.7a The format and four guides ([Phase 0](#phase-0-foundations))
 - M0.7a1 The no-clipping checks ([Phase 0](#phase-0-foundations))
 - M0.7a2 The format and the trust guide ([Phase 0](#phase-0-foundations))
 - M0.7a3 Stability ([Phase 0](#phase-0-foundations))
 - M0.7a4 Fin flutter ([Phase 0](#phase-0-foundations))
 - M0.7a5 Drag through Mach 1 ([Phase 0](#phase-0-foundations))
+- M0.7a6 The maintainer's read ([Phase 0](#phase-0-foundations))
 - M0.9a The name everywhere ([Phase 0](#phase-0-foundations))
 - M0.9a1 The packages' text ([Phase 0](#phase-0-foundations))
 - M0.9a2 The site's pages ([Phase 0](#phase-0-foundations))
@@ -79,9 +81,11 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.9e The words to the design ([Phase 0](#phase-0-foundations))
 - M0.10 The scoreboard ([Phase 0](#phase-0-foundations))
 - M0.11 Steps to a first answer ([Phase 0](#phase-0-foundations))
+- M0.8a The simulator's guide ([Phase 0](#phase-0-foundations))
 - M0.8a1 The landing page and the CLI tour ([Phase 0](#phase-0-foundations))
 - M0.8a2 Python in the tour ([Phase 0](#phase-0-foundations))
 - M0.8a3 Compared with ([Phase 0](#phase-0-foundations))
+- M0.8a4 The maintainer's read ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -405,7 +409,16 @@ One line per milestone or increment, in the order it was archived within its pha
   - [x] **M0.6e US names.** *Done when:* no public Rust, Python, JSON or schema name holds a word on
     d's list, and design files written with the old keys still read (a test).
 - **M0.7** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
-  - **M0.7a** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+  - [x] **M0.7a The format and four guides:** stability (the center of pressure moving with Mach
+    and angle of attack), fin flutter, drag through Mach 1, how far to trust a simulation.
+    *Done when:* each meets the format and ADR-195 §7, read cold in a docs review and by Neer;
+    every number in a guide's prose sits in a block `xtask cli --check` regenerates or is read
+    from the committed report by a test, a mutation probe each; each flattering-side mark is tied
+    to its model's direction test; an `xtask` check fails when a figure's text, marks, strokes or
+    markers (transforms resolved, a conservative glyph width) leave its viewBox, and a headless
+    page check fails when `scrollWidth > clientWidth` from 320 to 1,920 px in 40 px steps, each
+    with a test that moves one label out and fails; a third fails on text over text, with a test
+    that overlaps two labels; all three also run on the site's other pages and `--plot` (ADR-198).
     - [x] **M0.7a1 The no-clipping checks** (ADR-204). *Done when:* M0.7a's three checks fail as
       stated, each with its test; CI runs them on every SVG under `docs/`, each `--plot` that
       `xtask cli` writes and every page of the site; all pass, fixed by layout, not cropping.
@@ -416,6 +429,8 @@ One line per milestone or increment, in the order it was archived within its pha
       when:* as M0.7a2.
     - [x] **M0.7a4 Fin flutter.** *Done when:* as M0.7a2.
     - [x] **M0.7a5 Drag through Mach 1** (ADR-245). *Done when:* as M0.7a2.
+    - [x] **M0.7a6 The maintainer's read** (ADR-245). *Done when:* Neer
+      has read all four guides.
 - **M0.9** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
   - [x] **M0.9a The name everywhere,** before 0.1 publishes. *Done when:* `cargo xtask names` fails
     on `hpr-sim` (any case, U+2011 too), or a lowercase `hpr` outside code formatting, on every
@@ -543,7 +558,14 @@ One line per milestone or increment, in the order it was archived within its pha
   task a tool can't do marked so), with versions and dates, in the scoreboard.
 
 - **M0.8** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
-  - **M0.8a** is open; its entry: [roadmap](ROADMAP.md#phase-0-foundations).
+  - [x] **M0.8a The simulator's guide** (library, CLI, Python), after M0.7a. *Done when:* its
+    landing page and tour meet all of M0.7a's bullets and ADR-195 §7, read cold in a docs
+    review and by Neer; the tour ends on a flight from `validation/reports/real-flights.md`,
+    named by case id, its measured numbers read from that report by a test and shown beside
+    the report's spread over every flight, no measured trace
+    drawn without a license entry, ERA5 drawings with Copernicus's credit; the tour has CLI
+    terminal figures and Python output, each regenerated by `xtask cli --check` or its docs
+    test and failing when stale (a test each); its *Compared with* section meets ADR-209 §8.
     - [x] **M0.8a1 The landing page and the CLI tour** (ADR-247). *Done when:* both meet M0.7a's
       bullets but Neer's read, read cold in a docs review; the tour ends on the report's median
       flight, by case id, its logged numbers read by a test beside the spread over every flight;
@@ -551,6 +573,8 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M0.8a2 Python in the tour** (ADR-247). *Done when:* the tour flies the same rocket from
       Python, its output regenerated by the docs test, failing when stale (a test).
     - [x] **M0.8a3 Compared with** (ADR-247, ADR-248). *Done when:* the section meets ADR-209 §8.
+    - [x] **M0.8a4 The maintainer's read** (ADR-247). *Done when:* Neer
+      has read the landing page and the tour.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and
