@@ -13,16 +13,16 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 |---|---|---:|---:|---|
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
-| aerospacenu-sillygoose-gs-csv | M7.1c9 | 1 | 0 | 1 unrecognized |
+| aerospacenu-sillygoose-gs-csv | M7.1c10 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
 | altos-csv-damaged | damaged | 1 | 0 | 1 syntax |
-| altos-eeprom | M7.1c9 | 14 | 0 | 14 unrecognized |
-| altos-telem | M7.1c9 | 2 | 0 | 2 unrecognized |
+| altos-eeprom | M7.1c10 | 14 | 0 | 14 unrecognized |
+| altos-telem | M7.1c9 | 2 | 2 | none |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
-| arts2-raw-csv | M7.1c9 | 3 | 0 | 3 unrecognized |
-| binary | M7.1c9 | 4 | 0 | 4 unrecognized |
+| arts2-raw-csv | M7.1c10 | 3 | 0 | 3 unrecognized |
+| binary | M7.1c10 | 4 | 0 | 4 unrecognized |
 | blueraven-csv | M7.1b | 89 | 89 | none |
 | blueraven-csv-damaged | damaged | 1 | 0 | 1 unrecognized |
 | blueraven-events-txt | not a log | 17 | 0 | 17 unrecognized |
@@ -30,7 +30,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | blueraven-settings-xlsx | not a log | 10 | 0 | 10 archive |
 | blueraven-summary-csv | M7.1c6 | 26 | 26 | none |
 | checklist | not a log | 4 | 0 | 4 archive |
-| csv | M7.1c9 | 67 | 2 | 1 syntax, 64 unrecognized |
+| csv | M7.1c10 | 67 | 2 | 1 syntax, 64 unrecognized |
 | debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
 | e80-imu-txt | M7.1c8 | 54 | 54 | none |
 | eggtimer-csv | M7.1b | 43 | 43 | none |
@@ -38,7 +38,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c9 | 2 | 0 | 2 unrecognized |
+| entacore-xtra | M7.1c10 | 2 | 0 | 2 unrecognized |
 | featherweight-summary-csv | M7.1c6 | 25 | 25 | none |
 | flight-computer-params-csv | not a log | 3 | 0 | 3 unrecognized |
 | fluctus-csv | M7.1c3 | 6 | 6 | none |
@@ -46,9 +46,9 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | jpeg | not a log | 1 | 0 | 1 unrecognized |
 | kml | M7.1c1 | 43 | 43 | none |
 | kml-map | not a log | 1 | 1 | none |
-| missileworks-rtx | M7.1c9 | 5 | 0 | 5 unrecognized |
+| missileworks-rtx | M7.1c10 | 5 | 0 | 5 unrecognized |
 | nmea | M7.1c1 | 12 | 12 | none |
-| odf | M7.1c9 | 3 | 0 | 3 unrecognized |
+| odf | M7.1c10 | 3 | 0 | 3 unrecognized |
 | openrocket-simulation-csv | not a log | 1 | 0 | 1 unrecognized |
 | pdf | not a log | 1 | 0 | 1 unrecognized |
 | perfectflite-csv | M7.1a | 15 | 15 | none |
@@ -62,14 +62,14 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | rocket-parameters | not a log | 4 | 0 | 4 unrecognized |
 | rrc3-csv | M7.1b | 51 | 51 | none |
 | rrc3-rff | M7.1c5 | 6 | 6 | none |
-| telemetry-rtf | M7.1c9 | 2 | 0 | 2 not-this-format |
-| txt | M7.1c9 | 26 | 0 | 26 unrecognized |
+| telemetry-rtf | M7.1c10 | 2 | 0 | 2 not-this-format |
+| txt | M7.1c10 | 26 | 0 | 26 unrecognized |
 | wind-profile-csv | not a log | 1 | 0 | 1 unrecognized |
-| xls | M7.1c9 | 1 | 0 | 1 unrecognized |
-| xlsx | M7.1c9 | 23 | 0 | 23 archive |
-| xml | M7.1c9 | 2 | 0 | 2 unrecognized |
+| xls | M7.1c10 | 1 | 0 | 1 unrecognized |
+| xlsx | M7.1c10 | 23 | 0 | 23 archive |
+| xml | M7.1c10 | 2 | 0 | 2 unrecognized |
 | zip | M7.1c7 | 8 | 8 | none |
-| **All** | | 1122 | 911 | |
+| **All** | | 1122 | 913 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
@@ -195,6 +195,10 @@ The Featherweight summaries against the files of samples exported beside each, i
 | Featherweight Blue Raven | 39 | 36 | 36 | 35 | 0.9698 to 1.0091 | 35 | 0.9770 to 1.0032 | cd1bfe19ff70e17d | none |
 | Featherweight GPS tracker | 12 | 11 | 5 | 5 | 0.9995 to 1.0000 | 10 | 0.9766 to 0.9999 | 413de085a44f4872 | none |
 
+AltOS's radio telemetry against AltosUI's exports of the same flight, an export being an AltOS CSV beside the telemetry, in its folder, that its reader reads. The two clocks are the board's tick, which turns over every 655.36 s; their `boost` states say by how many turns they differ. At each tick both hold, the telemetry's pressure must equal the export's, but where the export's rows there repeat the pressure of the row before them, rows between its sensor samples, which are counted apart; at the pressures equal, the temperatures must agree within 0.05 K, half the export's step, and at every tick both hold a GPS fix, the positions within 0.01° and the GPS altitudes within 100 m, the export's row carrying its last fix. Of 2 telemetry files, 1 have an export beside them and 1 agree with one: 123 pressures equal, 15 at repeated rows; worst temperature 0.050 K, position 0.00006°, GPS altitude 3 m; differing: none.
+
+The board's own estimates, sent in its telemetry, against each other: the median ratio of `height`'s climb to `speed` in the descent, from 0.9659 to 1.0006, and of `speed`'s change to `acceleration` in the climb, from 0.9393 to 1.0213; and the telemetry's highest `height` over the export's, from 0.9962 to 0.9962. Each is 1 if the three are in the units read, and must lie from 0.8 to 1.25; outside: none.
+
 Units no header states, as each file's reader decided them, or kept the column as written, and noted:
 
 | Family | Decision | Files |
@@ -319,6 +323,9 @@ Units no header states, as each file's reader decided them, or kept the column a
 | altimetercloud-csv | `pitch`, `roll`, `yaw` and `tilt` read in degrees, from the Nano V1 manual | 7 |
 | altimetercloud-csv | `pitch`, `roll`, `yaw` and `tilt` read in degrees, from the Nano V1 manual, whose layout has the same columns | 4 |
 | altimetercloud-csv | `target_alt` kept as written | 4 |
+| altos-telem | `accel`, `v_batt`, `sense_d` and `sense_m` kept as written | 2 |
+| altos-telem | `ground_accel`, `accel_plus_g` and `accel_minus_g` kept as written | 2 |
+| altos-telem | `pres` read in pascals, not the document's tenths of a pascal | 2 |
 | arts2-csv | `Acc` read in meters per second squared, from `Vel` | 1 |
 | arts2-csv | `Acc` read in standard gravities, 9.806 65 m/s², from `Vel` | 3 |
 | arts2-csv | `MET` read in seconds, from the apogee | 4 |
@@ -482,6 +489,7 @@ The files read, by the logger each names:
 | AltOS TeleGPS-v1.0 | 3 |
 | AltOS TeleGPS-v2.0 | 4 |
 | AltOS TeleMetrum | 1 |
+| AltOS TeleMetrum v2 or newer | 2 |
 | AltOS TeleMetrum-v2.0 | 1 |
 | Big Red Bee BeeLine | 2 |
 | Eggtimer | 43 |

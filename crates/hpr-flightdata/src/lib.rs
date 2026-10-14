@@ -30,13 +30,14 @@
 //! downloads, the Raven's `.FIPa` ([`raven_fipa`]) and the RRC3's `.rff` ([`rrc3_rff`]), each
 //! checked against its maker's export of the same flight where the sample logs hold one (55 of the
 //! 57 `.FIPa` files, 1 of the 6 `.rff`), the R-DAS's raw text, its counts kept as written
-//! ([`rdas`]), and three GPS logs: Featherweight's
+//! ([`rdas`]), AltOS's radio telemetry as AltosUI saves it ([`altos_telem`]), and three GPS
+//! logs: Featherweight's
 //! tracker and ground-station CSV ([`fwgps`]), KML ([`kml`]) and NMEA 0183 ([`nmea`]), every
 //! column kept as a channel on its own clock. A zip archive of a flight's files is unpacked in
 //! memory, within a bound, and each file read on its own ([`archive`]). [`readings`] takes a first set of readings from the
 //! record: liftoff, apogee, the top speed, landing and the descent, set and tested on PerfectFlite
 //! logs. The guide's [reading a flight log][guide-log] page shows them on a log, and [the layouts read][guide-layouts] lists what each reader keeps. The other loggers'
-//! formats, spreadsheets and plain CSV are planned for milestone [M7.1c9][roadmap] of the roadmap,
+//! formats, spreadsheets and plain CSV are planned for milestone [M7.1c10][roadmap] of the roadmap,
 //! and the rest of the readings, smoothing and reconstruction for [M7.2][roadmap].
 //!
 //! [guide-layouts]: https://hpr.fusionspace.co/format/flight-logs.html
@@ -63,6 +64,7 @@ pub mod aerospacenu_fcb;
 pub mod aerospacenu_gs;
 pub mod altimetercloud;
 pub mod altos;
+pub mod altos_telem;
 pub mod archive;
 pub mod arts2;
 pub mod blueraven;

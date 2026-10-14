@@ -305,6 +305,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c6 Featherweight's summaries ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c7 Archives and two readers' variants ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c8 The R-DAS's raw text ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c9 AltOS telemetry ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1533,6 +1534,19 @@ One line per milestone or increment, in the order it was archived within its pha
       (tests); every count is kept as written and `Dig` as its hexadecimal word's number; a
       configuration whose inputs aren't the table's columns is refused (tests); and the docs say
       what the manual gives and what is left out.
+    - [x] **M7.1c9 AltOS telemetry** (ADR-263): the `.telem` files AltosUI saves of the packets a
+      TeleDongle hears, decoded from Altus Metrum's published telemetry document.
+      *Done when:* every AltOS `.telem` file in refs reads (`cargo xtask logs --check` fails on one
+      that doesn't); every line's checksum is checked and a line that fails it, or isn't a
+      packet, refuses the file, while a packet the radio flags as failing its CRC is left out and
+      counted (tests); each field of the packet types the sample files hold is read in SI where a
+      second check bears its unit out, and kept as written otherwise, and the other types the
+      document lays out are counted, not decoded (tests);
+      the 16-bit tick's wraps are unwound (a test); where an AltosUI export of the same flight
+      lies beside a file, every sensor packet's pressure equals the export's at the same tick,
+      but for export rows that repeat the row before's pressure, counted (the survey's report;
+      a differing file fails `--check`); and the docs say what the document gives and what is
+      left out.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

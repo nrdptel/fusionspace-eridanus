@@ -39,7 +39,7 @@
     },
     {
       "family": "aerospacenu-sillygoose-gs-csv",
-      "increment": "M7.1c9",
+      "increment": "M7.1c10",
       "files": 1,
       "read": 0,
       "refused": {
@@ -78,7 +78,7 @@
     },
     {
       "family": "altos-eeprom",
-      "increment": "M7.1c9",
+      "increment": "M7.1c10",
       "files": 14,
       "read": 0,
       "refused": {
@@ -89,10 +89,8 @@
       "family": "altos-telem",
       "increment": "M7.1c9",
       "files": 2,
-      "read": 0,
-      "refused": {
-        "unrecognized": 2
-      }
+      "read": 2,
+      "refused": {}
     },
     {
       "family": "arts2-csv",
@@ -103,7 +101,7 @@
     },
     {
       "family": "arts2-raw-csv",
-      "increment": "M7.1c9",
+      "increment": "M7.1c10",
       "files": 3,
       "read": 0,
       "refused": {
@@ -112,7 +110,7 @@
     },
     {
       "family": "binary",
-      "increment": "M7.1c9",
+      "increment": "M7.1c10",
       "files": 4,
       "read": 0,
       "refused": {
@@ -180,7 +178,7 @@
     },
     {
       "family": "csv",
-      "increment": "M7.1c9",
+      "increment": "M7.1c10",
       "files": 67,
       "read": 2,
       "refused": {
@@ -243,7 +241,7 @@
     },
     {
       "family": "entacore-xtra",
-      "increment": "M7.1c9",
+      "increment": "M7.1c10",
       "files": 2,
       "read": 0,
       "refused": {
@@ -305,7 +303,7 @@
     },
     {
       "family": "missileworks-rtx",
-      "increment": "M7.1c9",
+      "increment": "M7.1c10",
       "files": 5,
       "read": 0,
       "refused": {
@@ -321,7 +319,7 @@
     },
     {
       "family": "odf",
-      "increment": "M7.1c9",
+      "increment": "M7.1c10",
       "files": 3,
       "read": 0,
       "refused": {
@@ -429,7 +427,7 @@
     },
     {
       "family": "telemetry-rtf",
-      "increment": "M7.1c9",
+      "increment": "M7.1c10",
       "files": 2,
       "read": 0,
       "refused": {
@@ -438,7 +436,7 @@
     },
     {
       "family": "txt",
-      "increment": "M7.1c9",
+      "increment": "M7.1c10",
       "files": 26,
       "read": 0,
       "refused": {
@@ -456,7 +454,7 @@
     },
     {
       "family": "xls",
-      "increment": "M7.1c9",
+      "increment": "M7.1c10",
       "files": 1,
       "read": 0,
       "refused": {
@@ -465,7 +463,7 @@
     },
     {
       "family": "xlsx",
-      "increment": "M7.1c9",
+      "increment": "M7.1c10",
       "files": 23,
       "read": 0,
       "refused": {
@@ -474,7 +472,7 @@
     },
     {
       "family": "xml",
-      "increment": "M7.1c9",
+      "increment": "M7.1c10",
       "files": 2,
       "read": 0,
       "refused": {
@@ -602,6 +600,7 @@
     "AltOS TeleGPS-v1.0": 3,
     "AltOS TeleGPS-v2.0": 4,
     "AltOS TeleMetrum": 1,
+    "AltOS TeleMetrum v2 or newer": 2,
     "AltOS TeleMetrum-v2.0": 1,
     "Big Red Bee BeeLine": 2,
     "Eggtimer": 43,
@@ -737,6 +736,30 @@
       "contradicted": []
     }
   },
+  "telemetry_checks": {
+    "files": 2,
+    "with_an_export_beside": 1,
+    "agreeing_with_an_export": 1,
+    "pressures_equal": 123,
+    "pressures_at_repeated_rows": 15,
+    "worst_temperature_k": 0.05000000000001137,
+    "worst_position_deg": 0.00006069999999880338,
+    "worst_gps_altitude_m": 3.0,
+    "height_over_export": [
+      0.9961559215121993,
+      0.9961559215121993
+    ],
+    "climb_over_speed": [
+      0.9659431967152483,
+      1.0006253908747538
+    ],
+    "speed_change_over_acceleration": [
+      0.9393191452678221,
+      1.0212774386051322
+    ],
+    "differing": [],
+    "inconsistent": []
+  },
   "unit_decisions": {
     "aerospacenu-fcb-csv": {
       "`acc_x`, `acc_y` and `acc_z` read in meters per second squared, from the pad's gravity and the climb": 19,
@@ -865,6 +888,11 @@
       "`pitch`, `roll`, `yaw` and `tilt` read in degrees, from the Nano V1 manual": 7,
       "`pitch`, `roll`, `yaw` and `tilt` read in degrees, from the Nano V1 manual, whose layout has the same columns": 4,
       "`target_alt` kept as written": 4
+    },
+    "altos-telem": {
+      "`accel`, `v_batt`, `sense_d` and `sense_m` kept as written": 2,
+      "`ground_accel`, `accel_plus_g` and `accel_minus_g` kept as written": 2,
+      "`pres` read in pascals, not the document's tenths of a pascal": 2
     },
     "arts2-csv": {
       "`Acc` read in meters per second squared, from `Vel`": 1,
@@ -1550,7 +1578,7 @@
     "7291224ae0edb2f4 fwgps-csv collection FeatherweightGpsCsv ae92ab8b2c491a67",
     "72f1a07d5577b744 nmea collection Nmea0183 10a285d6032ee2c9",
     "72fe76198973cf34 e80-imu-txt collection RdasText 0a25bb0ce0cd67b9",
-    "73115a1066a7294d altos-telem collection refused:unrecognized -",
+    "73115a1066a7294d altos-telem collection AltosTelemetry 75ff59647ab9b720",
     "73304debd898b712 csv collection refused:unrecognized -",
     "73820946d69ed259 blueraven-csv collection BlueRavenCsv 47f7241e0c4fa4c7",
     "74201deabc8b669a txt collection refused:unrecognized -",
@@ -1750,7 +1778,7 @@
     "a17f2b2ce493086f perfectflite-csv collection PerfectFliteCsv 0e6daa00ef3eb0df",
     "a18dd4fa3f9a3379 blueraven-csv archives BlueRavenCsv 9b768768b4cb64d8",
     "a21249d193f1b400 rrc3-csv collection Rrc3Csv 1b2cb2e57384ba4d",
-    "a238a3c22470953a altos-telem collection refused:unrecognized -",
+    "a238a3c22470953a altos-telem collection AltosTelemetry d130b34a508b1518",
     "a24b048cc7f450cf altos-eeprom collection refused:unrecognized -",
     "a2a4f23d8c6c6941 pf2 collection PerfectFlitePf2 362b7723b7476dc7",
     "a2b3278557274126 raven-fipa collection RavenFipa ba4f21a88930ae82",
