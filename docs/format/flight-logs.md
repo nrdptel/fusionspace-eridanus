@@ -81,7 +81,7 @@ decided.
 |---|---|---|---|
 | PerfectFlite `.pf2` | Pnut, StratoLogger, StratoLoggerCF | names PerfectFlite | [`.pf2` files](pf2.md) |
 | PerfectFlite CSV export | the same, through PerfectFlite's software | `Time,Altitude,` and more of the export's own column names | [below](#perfectflites-exports) |
-| PerfectFlite text export | the same | the same names, separated by tabs; or, with no header row, rows of four tab-separated numbers, the third a temperature followed by its unit's letter, such as `71.5F` | [below](#perfectflites-exports) |
+| PerfectFlite text export | the same | the same names, separated by tabs; or, with no header row, rows of four tab-separated numbers, the third a temperature followed by its unit's letter, `F` or `C`, such as `71.5F` | [below](#perfectflites-exports) |
 | PerfectFlite `.pfa` | Alt15K/WD, an older PerfectFlite altimeter, through PerfectFlite's DataCap program (AltCapWD on the Mac) | names PerfectFlite and has a `**!!Data:` line | [below](#perfectflites-older-pfa) |
 | AltOS CSV | Altus Metrum's TeleMetrum, TeleMega, EasyMega, EasyMini, through AltosUI (Altus Metrum's ground software) | `#version,serial,flight,`, or `#` comment lines and then that header or `version,serial,flight,` | `hpr_flightdata::altos` |
 | Raven FIP CSV | Featherweight Raven, through the Featherweight Interface Program | opens with a time column and holds the Raven's `Axial Accel (Gs)` channel | `hpr_flightdata::raven` |
@@ -144,13 +144,22 @@ for member in hpr_flightdata::archive::unpack(&bytes)? {
 ```
 
 An archive comes from someone else, and a small one can be built to unpack to far more than
-memory holds (a *zip bomb*). So at most 256 MiB come out of one archive, eight times the largest
-sample (32 MB), counted as the bytes decompress, never taken from the sizes the archive states.
-An archive is refused, with its reason, when two of its files share a name (the zip reader would
-silently keep one), when a file is a symbolic link, is encrypted, is compressed by a method other
-than the two zip archives of logs use (stored and deflated), or fails its checksum. The tests
-build such archives, and a property test feeds damaged ones to the reader to show it refuses
-them or stays within the bound, never crashes.
+memory holds (a *zip bomb*). So at most 256 MiB (268 MB) come out of one archive, about eight
+times the largest sample archive, which unpacks to 32 MB, counted as the bytes decompress, never
+taken from the sizes the archive states. An archive is refused whole, with its reason, and none of
+its files is read, when:
+
+- two of its files share a name (the `zip` library HPR Sim uses would silently keep only one);
+- a file is a symbolic link, or a folder's entry holds bytes;
+- a file is encrypted;
+- a file is compressed by a method other than the two that archives of logs use, *stored* (not
+  compressed) and *deflated* (zip's usual compression);
+- a file fails its CRC-32, the checksum every zip file carries to catch damage.
+
+The crate's tests build an archive of each kind and check its refusal, and two property tests
+feed random and damaged archives to the reader to show it refuses them or stays within the
+bound, and never crashes. Only the Rust library opens archives so far: `hpr analyze` reads a
+`.pf2` file, not a zip.
 
 The 8 archives among the sample logs hold 29 files. 10 are byte-for-byte copies of files already
 among the samples. The other 19 are 8 Blue Raven high-rate and low-rate files, 3 of the app's
@@ -158,9 +167,10 @@ summaries, a GPS tracker's KML track, and 7 files that aren't logs; every one of
 reads. The 3 summaries are checked against the Blue Raven files in their archive, as the others
 are ([checked against the files beside](#checked-against-the-files-beside)), and all 3 agree.
 Two CSV files in one archive name other altimeters' formats in their file names and use the Blue
-Raven's column names, but their values differ from the Blue Raven's at the same moments by
-hundreds of feet: they hold other loggers' data under borrowed names, and aren't read as a Blue
-Raven's. They wait for the column mapping of [M7.1c8](../decisions-and-roadmap.md#m7-1c8).
+Raven's column names, but their values aren't the Blue Raven's: at the same moments, their
+altitudes differ from its low-rate file's by up to several hundred feet. Which logger wrote them
+isn't known, so they aren't read as a Blue Raven's; they wait for the column mapping of
+[M7.1c8](../decisions-and-roadmap.md#m7-1c8).
 
 ## The record
 
@@ -844,19 +854,24 @@ sometimes with `Acceleration (calculated)` after them, or as tab-separated text,
 `Altitude`, `Temp.`, `Voltage`, whose temperatures carry their unit letter, such as `58.7F`. One
 sample CSV export names its temperature `Temp`, without the dot, and is read alike. Some text
 exports have no header row at all: rows of four tab-separated numbers, the third a temperature
-with its unit letter (`0.05`, `3`, `71.5F`, `9.2`). No other layout HPR Sim knows writes a unit's
-letter after a number in a row of numbers, so such a row is read as the text export's four
-columns, and the record notes that its columns were taken, not read.
+with its unit letter, `F` or `C` (`0.05`, `3`, `71.5F`, `9.2`). No other layout HPR Sim reads
+writes a unit's letter after a number in such a row, and among the sample logs only PerfectFlite's
+text exports do, so such a row is read as the text export's four columns, and the record's notes
+say that its columns were taken, not read. That is a guess at which column is which, made from
+the layout alone.
 
 The units are a `.pf2`'s: seconds, feet and feet per second. The header doesn't state the
 altitude's unit, and the sample logs bear out feet. Of the 21 exports among them, 16 peak at
 exactly the height of the `.pf2` saved beside them, which states feet. Read in feet, those 16
 climb in 0.94 to 1.05 times as long as a fall in vacuum from their peak would take. The other 5
 climb in 0.63 to 1.07 times, read in feet, and would climb in 0.35 to 0.59 times read in meters
-([the survey's report](#how-it-was-checked) prints these). The 0.63 is a headerless file with no
-`.pf2` beside it, whose altitude is ragged near its peak; why it climbs so fast isn't measured,
-but feet is the nearer reading on it, as on every other. An export doesn't name the altimeter's
-model, so its logger reads `PerfectFlite`.
+([the survey's report](#how-it-was-checked) prints these). Of the 4 headerless exports, 3 have a
+`.pf2` beside them and peak at exactly its height, one of them with its temperatures in °C: the
+headerless layout writes feet, as the others do. The fourth has no `.pf2` beside it, and its climb
+settles nothing: 0.63 read in feet and 0.35 in meters both fall outside the other exports' 0.94
+to 1.07, and its altitude is ragged near its peak. Its feet rest on the layout's convention
+alone; check its altitude against another source before trusting it. An export doesn't name the
+altimeter's model, so its logger reads `PerfectFlite`.
 
 A header with any other name, or these names in another case, isn't read as PerfectFlite's: the
 RRC3's `Time,Altitude,Pressure,…` is the RRC3's, and a bare `time,altitude` says nothing of its
@@ -1047,7 +1062,8 @@ compares with the files of samples beside it ([above](#checked-against-the-files
 per file an anonymized id (the start of a hash of the file, which says nothing of its contents)
 with a digest, a hash, of the record read from it. The files inside the zip archives among them
 are unpacked and counted too, each once: of the 29 in the 8 archives, 19 are in no other source
-([zip archives](#zip-archives)). Of the 1,122 files it holds today, 857 are read.
+([zip archives](#zip-archives)). Of the 1,122 files it holds today, 857 are read, the 8 archives
+counted as read when they unpack.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
 reason printed: one is a spreadsheet's re-save of an AltOS export, its header edited, which is

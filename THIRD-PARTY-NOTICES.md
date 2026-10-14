@@ -455,7 +455,7 @@ crates that use them named by folder (`hpr-core` is the package `fusionspace-hpr
 | `toml` | MIT OR Apache-2.0 | `xtask` | reads `validation/refs.lock.toml` |
 | `tempfile` | MIT OR Apache-2.0 | `xtask`, `hpr-cli` (tests only) | temporary directories for the `refs` tests and `hpr motors show`'s files |
 | `unicode-normalization` | MIT OR Apache-2.0 | `hpr-format` | compares a `.hprz` container's attachment names in canonical decomposition (NFD), as macOS does, so two spellings of one accented letter are refused as one name; pure Rust, no I/O, builds for wasm32 (its one dependency, `tinyvec`, is Zlib OR Apache-2.0 OR MIT) |
-| `zip` | MIT | `hpr-io`, `hpr-format`, `hpr-flightdata`, `xtask` | reads the zip archive a `.ork` design is packed in, and the example designs inside the OpenRocket jar; writes and reads the `.hprz` design container; unpacks zip archives of a flight's logs, in memory. Read-only, with only the deflate method OpenRocket writes: the default features would pull bzip2, lzma, zstd and AES |
+| `zip` | MIT | `hpr-io`, `hpr-format`, `hpr-flightdata`, `xtask` | reads the zip archive a `.ork` design is packed in, and the example designs inside the OpenRocket jar; writes and reads the `.hprz` design container; unpacks zip archives of a flight's logs, in memory. Stored and deflated files only, the methods OpenRocket and the sample logs' archives use: the default features would pull bzip2, lzma, zstd and AES |
 
 ## Documentation site tools
 

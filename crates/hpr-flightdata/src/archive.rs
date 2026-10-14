@@ -6,9 +6,10 @@
 //! its files like any other, and is not opened. Nothing is written anywhere, so a file's name is
 //! kept as the archive gives it, folders and all, and is only a label.
 //!
-//! An archive comes from someone else, so it is held to bounds before it can fill memory: at most
-//! [`MAX_UNPACKED_BYTES`] come out of one, counted as the bytes are decompressed rather than as
-//! the archive states them, and two files of one name, which the zip reader would silently keep
+//! An archive comes from someone else, so what comes out of it is bounded: at most
+//! [`MAX_UNPACKED_BYTES`] of decompressed bytes, counted as they come out rather than as the
+//! archive states them. (The zip reader's own record of the archive's directory, a few times the
+//! directory's size, is on top.) Two files of one name, which the zip reader would silently keep
 //! one of, are refused. A file is read with only the methods zip archives use for flight logs,
 //! stored and deflated; an encrypted file, another method or a damaged file is refused with its
 //! reason. The zip format is PKWARE's *APPNOTE.TXT*, version 6.3.10.
@@ -37,9 +38,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::LogError;
 
-/// The most bytes [`unpack`] takes out of one archive, 256 MiB: eight times the largest of the
-/// project's sample archives (32 MB unpacked), and the limit the `.hprz` design container holds
-/// to.
+/// The most bytes [`unpack`] takes out of one archive, 256 MiB (268 MB): about eight times the
+/// largest of the project's sample archives, which unpacks to 32 MB, and the limit the `.hprz`
+/// design container holds to.
 pub const MAX_UNPACKED_BYTES: u64 = 256 * 1024 * 1024;
 
 /// The format's name in errors.
@@ -47,6 +48,7 @@ const FORMAT: &str = "zip archive";
 
 /// One file taken out of an archive.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub struct Member {
     /// The file's name as the archive gives it, folders before it separated by `/`.
     pub name: String,
@@ -108,17 +110,6 @@ pub fn unpack_within(bytes: &[u8], max_unpacked_bytes: u64) -> Result<Vec<Member
             .by_index(index)
             .map_err(|error| refused(format!("entry {index} can't be opened: {error}")))?;
         let name = entry.name().to_owned();
-        if entry.is_dir() {
-            // A folder's entry holds nothing: one that holds bytes would be lost.
-            if entry.size() > 0 {
-                return Err(refused(format!(
-                    "entry {index}, {:?}, is a folder's entry that holds {} bytes",
-                    shortened(&name),
-                    entry.size()
-                )));
-            }
-            continue;
-        }
         if entry.is_symlink() {
             return Err(refused(format!(
                 "entry {index}, {:?}, is a symbolic link, not a file",
@@ -147,6 +138,19 @@ pub fn unpack_within(bytes: &[u8], max_unpacked_bytes: u64) -> Result<Vec<Member
             )));
         }
         used += content.len() as u64;
+        if entry.is_dir() {
+            // A folder's entry holds nothing: one that holds bytes, whatever size it states,
+            // would be lost.
+            if entry.size() > 0 || !content.is_empty() {
+                return Err(refused(format!(
+                    "entry {index}, {:?}, is a folder's entry that holds bytes",
+                    shortened(&name)
+                )));
+            }
+            continue;
+        }
+        // `read_to_end` grows by doubling: the slack goes back before the bytes are kept.
+        content.shrink_to_fit();
         members.push(Member {
             name,
             bytes: content,
@@ -258,11 +262,8 @@ mod tests {
             .expect("the archive has a central directory");
         bytes[central + 24..central + 28].copy_from_slice(&10u32.to_le_bytes());
         bytes[22..26].copy_from_slice(&10u32.to_le_bytes());
-        match unpack_within(&bytes, 1000) {
-            Ok(members) => assert!(members.iter().all(|member| member.bytes.len() <= 1000)),
-            Err(LogError::Archive { .. }) => {}
-            Err(other) => panic!("expected an archive refusal, got {other:?}"),
-        }
+        let refusal = message(unpack_within(&bytes, 1000));
+        assert!(refusal.contains("more than 1000 bytes"), "{refusal}");
     }
 
     #[test]
@@ -284,14 +285,88 @@ mod tests {
         assert!(refusal.contains("same name"), "{refusal}");
     }
 
+    /// An archive of one file stored, not compressed.
+    fn stored(name: &str, bytes: &[u8]) -> Vec<u8> {
+        let mut zip = zip::ZipWriter::new(Cursor::new(Vec::new()));
+        let options =
+            SimpleFileOptions::default().compression_method(zip::CompressionMethod::Stored);
+        zip.start_file(name, options)
+            .expect("a stored file is written");
+        zip.write_all(bytes).expect("an in-memory write succeeds");
+        zip.finish().expect("finished").into_inner()
+    }
+
+    /// The offset of the central directory's first record.
+    fn central(bytes: &[u8]) -> usize {
+        bytes
+            .windows(4)
+            .position(|window| window == b"PK\x01\x02")
+            .expect("the archive has a central directory")
+    }
+
     #[test]
     fn a_damaged_file_is_refused_by_its_checksum() {
-        let mut bytes = archive(&[("a.csv", b"Time,Altitude\n0,0\n")]);
-        // Stored files' data follow the 30-byte local header and the 5-byte name; deflated ones'
-        // too, so a flipped byte there breaks the CRC-32 or the deflate stream.
-        bytes[30 + 5] ^= 0xff;
+        // A stored file's bytes follow the 30-byte local header and the 5-byte name as they are,
+        // so a flipped byte there reaches the CRC-32 and nothing else.
+        let mut bytes = stored("a.csv", b"Time,Altitude\n0,0\n");
+        bytes[30 + 5] ^= 0x01;
         let refusal = message(unpack(&bytes));
         assert!(refusal.contains("can't be decompressed"), "{refusal}");
+        assert!(refusal.to_lowercase().contains("checksum"), "{refusal}");
+    }
+
+    #[test]
+    fn a_symbolic_link_is_refused() {
+        let mut zip = zip::ZipWriter::new(Cursor::new(Vec::new()));
+        zip.add_symlink("link.csv", "/etc/passwd", SimpleFileOptions::default())
+            .expect("a link is written");
+        let bytes = zip.finish().expect("finished").into_inner();
+        let refusal = message(unpack(&bytes));
+        assert!(refusal.contains("symbolic link"), "{refusal}");
+    }
+
+    #[test]
+    fn an_encrypted_file_is_refused() {
+        // Bit 0 of the general-purpose flags, at offset 6 of the local header and 8 of the
+        // central record, marks a file encrypted (APPNOTE.TXT 4.4.4).
+        let mut bytes = stored("a.csv", b"0,0\n");
+        let at = central(&bytes);
+        bytes[6] |= 1;
+        bytes[at + 8] |= 1;
+        let refusal = message(unpack(&bytes));
+        assert!(refusal.contains("assword"), "{refusal}");
+    }
+
+    #[test]
+    fn a_method_other_than_stored_or_deflated_is_refused() {
+        // The method, at offset 8 of the local header and 10 of the central record, set to 12,
+        // bzip2 (APPNOTE.TXT 4.4.5), which the zip reader is built without.
+        let mut bytes = stored("a.csv", b"0,0\n");
+        let at = central(&bytes);
+        bytes[8..10].copy_from_slice(&12u16.to_le_bytes());
+        bytes[at + 10..at + 12].copy_from_slice(&12u16.to_le_bytes());
+        let refusal = message(unpack(&bytes));
+        assert!(refusal.contains("not supported"), "{refusal}");
+    }
+
+    #[test]
+    fn a_folder_entry_that_holds_bytes_is_refused_whatever_size_it_states() {
+        let mut zip = zip::ZipWriter::new(Cursor::new(Vec::new()));
+        zip.start_file("dd/", SimpleFileOptions::default())
+            .expect("an entry named as a folder is written");
+        zip.write_all(&[b'x'; 500])
+            .expect("an in-memory write succeeds");
+        let mut bytes = zip.finish().expect("finished").into_inner();
+        // As written, it states its 500 bytes.
+        assert!(message(unpack(&bytes)).contains("folder's entry that holds bytes"));
+        // With its stated size, at offset 24 of the central record, set to 0, it still holds them.
+        let at = central(&bytes);
+        bytes[at + 24..at + 28].copy_from_slice(&0u32.to_le_bytes());
+        let refusal = message(unpack(&bytes));
+        assert!(
+            refusal.contains("folder's entry that holds bytes"),
+            "{refusal}"
+        );
     }
 
     #[test]

@@ -24,9 +24,9 @@ already written nearly read, and one container:
   computer's saved state (one row), an OpenRocket simulation's export, a wind profile, and a Blue
   Raven's settings as CSV or a spreadsheet.
 - Two CSV files beside one archive's Blue Raven files are named after other altimeters'
-  formats and use the Blue Raven's column names, but their values differ from the Blue Raven's
-  at the same times by hundreds of feet: they hold other loggers' data under borrowed names.
-  They are left to M7.1c8's column mapping, not read as a Blue Raven's.
+  formats and use the Blue Raven's column names, but their altitudes differ from the Blue
+  Raven's low-rate file's at the same times by up to several hundred feet. Which logger wrote
+  them isn't known; they are left to M7.1c8's column mapping, not read as a Blue Raven's.
 
 The rest, 209 files, needs decoding work or the column mapper: AltOS eeprom and telemetry, the
 RDAS, ARTS2 raw and `.odf`, RTx, spreadsheets, the generic CSVs and text.
@@ -50,22 +50,24 @@ RDAS, ARTS2 raw and `.odf`, RTx, spreadsheets, the generic CSVs and text.
 3. **Bounds as the design container's.** At most 256 MiB comes out of one archive
    (`MAX_UNPACKED_BYTES`, as `.hprz`'s), counted as bytes decompress, never from the sizes the
    archive states; a central directory with more records than the zip reader keeps (two files
-   of one name) is refused, as are links, encrypted files, methods other than stored and
-   deflated, and a file whose CRC-32 fails. Names are kept as written and never used as paths:
+   of one name) is refused, as are links, a folder's entry holding bytes, encrypted files,
+   methods other than stored and deflated, and a file whose CRC-32 fails, each by a test. Names are kept as written and never used as paths:
    nothing is written to disk.
 4. **The survey unpacks after every source.** An archive's file that a source holds byte for byte
    is that source's; the others are samples of the source `archives`, each family from a table
    by id (`ARCHIVED`), decided as the catalog's are, never by HPR Sim's recognition. A file
    missing from the table, or an entry not met, stops the survey.
 5. **The headerless export is recognized by its temperatures' unit letter.** Four
-   tab-separated numbers, the third ending in `F` or `C`: no other layout HPR Sim knows writes a
-   unit's letter after a number in a row of numbers. Its columns are taken as the text export's,
-   with a note in the record. Its altitude is in feet, as every export's, and checked as theirs
-   are: of the 21 exports now read, 16 peak at exactly the height of a `.pf2` beside them; of the
-   other 5, read in feet the climb takes 0.63 to 1.07 times as long as a fall in vacuum from the
-   peak, and read in meters 0.35 to 0.59 times. The one at 0.63, which has no `.pf2` beside it, is
-   a new headerless file whose altitude is ragged near the peak; the survey doesn't show why it
-   climbs so fast, but feet is the nearer reading on every file.
+   tab-separated numbers, the third ending in `F` or `C`: no other layout HPR Sim reads writes a
+   unit's letter after a number in such a row, and among the sample logs only PerfectFlite's
+   text exports do. Its columns are taken as the text export's, with a note in the record. Its
+   altitude is checked as every export's is: of the 21 exports now read, 16 peak at exactly the
+   height of a `.pf2` beside them, 3 of the 4 headerless ones among them (one with its
+   temperatures in °C), so the headerless layout writes feet. Of the other 5, read in feet the
+   climb takes 0.63 to 1.07 times as long as a fall in vacuum from the peak, and read in meters
+   0.35 to 0.59 times. The one at 0.63 is the fourth headerless file, with no `.pf2` beside it and
+   an altitude ragged near its peak: its climb tells feet from meters no better than the other
+   (0.35), so its unit rests on the layout's convention alone, and the docs say so.
 6. **A Blue Raven file may open `Flight_Time_(s),Sync`.** The clock is found at the start of
    the header rather than fifth, and the record notes that the file holds no date. The
    hand-edited low-rate file is filed as damaged: the reader refuses a column with no name, and

@@ -324,7 +324,8 @@ pub(crate) fn export_separator(header: &str) -> Option<char> {
 const HEADERLESS_COLUMNS: &str = "Time\tAltitude\tTemp.\tVoltage";
 
 /// Whether a line is the first row of a tab-separated export written with no header row: four
-/// cells, each a number, the third a temperature followed by its unit's letter, `F` or `C`, as
+/// cells, each a number, the third a temperature followed by its unit's letter, `F` or `C` in
+/// either case, as
 /// the text export with a header row writes its `Temp.` column (`58.7F`). No other layout HPR Sim
 /// knows writes a unit's letter after a number in a row of numbers.
 pub(crate) fn is_headerless_row(line: &str) -> bool {

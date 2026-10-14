@@ -15,7 +15,7 @@
 //! | [Featherweight summary CSV](crate::fwsummary) | the first line names `Rocket Name`, and one of the first 200 names `Max Altitude` or `Launch time UTC` |
 //! | [PerfectFlite `.pf2`](crate::perfectflite) | names PerfectFlite, such as `PerfectFlite Pnut`, in a file with no `**!!Data:` line (a `.pfa`'s) |
 //! | [PerfectFlite `.pfa`](crate::perfectflite::read_pfa) | names PerfectFlite, such as `PerfectFlite Alt15K/WD`, and has a `**!!Data:` line |
-//! | [PerfectFlite CSV and text](crate::perfectflite::read_export) | `Time`, `Altitude` and more of an export's names, by commas or tabs; or, with no header row, four tab-separated numbers, the third a temperature ending in `F` or `C` |
+//! | [PerfectFlite CSV and text](crate::perfectflite::read_export) | `Time`, `Altitude` and more of an export's names, by commas or tabs; or, with no header row, four tab-separated numbers, the third a temperature ending in `F` or `C`, in either case |
 //! | [AltOS CSV](crate::altos) | starts `#version,`, or opens with `#` comments before a `#version,` or `version,serial,` header |
 //! | [Raven FIP CSV](crate::raven) | opens with a time column and holds the Raven's `Axial Accel (Gs)` channel |
 //! | [Blue Raven CSV](crate::blueraven) | opens `Year,Month,Day,Time,Flight_Time_(s),Sync,`, or `Flight_Time_(s),Sync,` in a file with no date |
@@ -281,6 +281,18 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn an_archive_is_refused_as_one_to_unpack() {
+        for bytes in [&b"PK\x03\x04 the rest"[..], b"PK\x05\x06"] {
+            match read(bytes) {
+                Err(LogError::Archive { message }) => {
+                    assert!(message.contains("archive::unpack"), "{message}");
+                }
+                other => panic!("expected an archive refusal, got {other:?}"),
+            }
+        }
+    }
 
     #[test]
     fn each_format_is_recognized_by_its_marks() {

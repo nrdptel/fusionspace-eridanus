@@ -73,9 +73,7 @@ fn the_variant_with_axial_acceleration_reads_alike() {
     insta::assert_json_snapshot!(log);
 }
 
-/// The high-rate file: an empty primary track, and the gyro, acceleration, quaternion, voltage
-/// and current columns as channels, each kind's unit decided with a note but the current's, which
-/// no source states.
+/// A high-rate file whose header opens `Flight_Time_(s),Sync`: the same channels, but the date's.
 #[test]
 fn a_high_rate_file_with_no_date_reads_as_one_with_it() {
     let dated = import::read(include_bytes!("samples/blueraven-high-rate.csv")).unwrap();
@@ -95,6 +93,9 @@ fn a_high_rate_file_with_no_date_reads_as_one_with_it() {
     insta::assert_json_snapshot!(log);
 }
 
+/// The high-rate file: an empty primary track, and the gyro, acceleration, quaternion, voltage
+/// and current columns as channels, each kind's unit decided with a note but the current's, which
+/// no source states.
 #[test]
 fn a_high_rate_file_reads_with_an_empty_track() {
     let log = import::read(include_bytes!("samples/blueraven-high-rate.csv")).unwrap();

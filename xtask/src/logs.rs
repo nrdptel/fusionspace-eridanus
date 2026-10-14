@@ -1238,16 +1238,15 @@ fn samples(root: &Path) -> Result<(Vec<Sample>, Vec<SourceCount>), String> {
         }
     }
     // The archives' files, after every source, so that a file an archive shares with a source
-    // is that source's. An archive that doesn't unpack is the survey's to report.
+    // is that source's.
     let mut files = 0;
     let mut archived = Vec::new();
     for archive in samples
         .iter()
         .filter(|sample| sample.family == ARCHIVE_FAMILY)
     {
-        let Ok(members) = hpr_flightdata::archive::unpack(&archive.bytes) else {
-            continue;
-        };
+        let members = hpr_flightdata::archive::unpack(&archive.bytes)
+            .map_err(|error| format!("{}: {error}", archive.path.display()))?;
         for member in members {
             files += 1;
             let hash = hex(&Sha256::digest(&member.bytes));
@@ -1262,8 +1261,17 @@ fn samples(root: &Path) -> Result<(Vec<Sample>, Vec<SourceCount>), String> {
                 ));
             };
             met.insert(hash[..16].to_owned());
+            // Under the archive's own path, folders and all, but never outside it: the checks
+            // that look beside a file look only among the archive's files.
+            let mut path = archive.path.clone();
+            path.extend(
+                member
+                    .name
+                    .split(['/', '\\'])
+                    .filter(|part| !matches!(*part, "" | "." | "..")),
+            );
             archived.push(Sample {
-                path: archive.path.join(&member.name),
+                path,
                 source: "archives",
                 family: (*family).to_owned(),
                 bytes: member.bytes,
