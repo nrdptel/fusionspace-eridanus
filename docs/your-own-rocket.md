@@ -591,8 +591,8 @@ It has eight steps.
      `dry_mass_properties()` is the rocket with every motor spent.
    - Each gives a mass, a CG and the moments of inertia (how hard the rocket is to turn), which
      the flight needs. The CG, `cg_m`, is in the
-     [body frame](glossary.md#body-frame), whose origin is the nose tip and whose `z` axis points
-     forward, out through the nose. So a point `s` meters aft of the tip has `z = −s`, and the CG's
+     [body frame](glossary.md#body-frame), whose origin is the nose tip and whose $z$ axis points
+     forward, out through the nose. So a point $s$ meters aft of the tip has $z = -s$, and the CG's
      station is `−cg_m.z`.
    - [`AeroModel::new`](api/hpr_aero/model/struct.AeroModel.html#method.new) builds the
      aerodynamic model from the placed parts. Its
@@ -775,7 +775,7 @@ What the example can't do yet, and where to go from here.
 - **Two nose shapes have no drag of the simulator's own**, on a nose cone or on a transition that
   widens, because no drag data covers them: a bulged secant ogive (`NoseShape::Ogive` with a
   `radius_ratio` below 1, which bulges wider than the body just ahead of its base) and a Haack
-  shape whose parameter `C` is above 1/3, past the LV-Haack ([Shapes](physics/shapes.md#profiles)).
+  shape whose parameter $C$ is above 1/3, past the LV-Haack ([Shapes](physics/shapes.md#profiles)).
   Since [M1.8b1](decisions-and-roadmap.md#m1-8b1), the drag through Mach 1, the drag buildup
   refuses them, naming the part. The CP still works, and so does a flight on a drag table from
   another tool; a flight on the simulator's own drag stops with that error.

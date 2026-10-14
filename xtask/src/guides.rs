@@ -634,6 +634,24 @@ enum Kind {
     InlineCode,
 }
 
+/// The numbers with a decimal point in a formula's LaTeX, each a value the formula quotes: `1.8`
+/// in `V_f = 1.8\,a`. Its integers are its form, not quotes.
+fn formula_quotes(latex: &str) -> Vec<String> {
+    let mut quotes = Vec::new();
+    let mut number = String::new();
+    for c in latex.chars().chain(std::iter::once(' ')) {
+        if c.is_ascii_digit() || (c == '.' && !number.is_empty() && !number.contains('.')) {
+            number.push(c);
+        } else {
+            if number.contains('.') && !number.ends_with('.') {
+                quotes.push(number.clone());
+            }
+            number.clear();
+        }
+    }
+    quotes
+}
+
 /// A block of a page: its line, its words and what it is.
 struct Block {
     line: usize,
@@ -691,7 +709,9 @@ fn without_comments(html: &str) -> Option<String> {
 /// `page` as a reader reads it ([module docs](self)), block by block, each block's spaces
 /// collapsed. Every block-level element starts a new block, so a nested item's words never run
 /// into its parent's. Inline code stands as `\u{FFFC}` in its block, so no quote runs across it,
-/// and is a block of its own when it holds a digit.
+/// and is a block of its own when it holds a digit. A formula stands as `\u{FFFC}` too: its
+/// integers are its form (an exponent, the 2 of ½, a count of terms), and each number with a
+/// decimal point in it is a quote, read as prose is ([`formula_quotes`]).
 fn prose(name: &str, page: &str) -> Read {
     // The comparison table's markers count on its own page only (`features.rs`).
     let tables_allowed = name == crate::features::PAGE;
@@ -699,7 +719,8 @@ fn prose(name: &str, page: &str) -> Read {
         | Options::ENABLE_FOOTNOTES
         | Options::ENABLE_STRIKETHROUGH
         | Options::ENABLE_TASKLISTS
-        | Options::ENABLE_GFM;
+        | Options::ENABLE_GFM
+        | Options::ENABLE_MATH;
     let line = |offset: usize| 1 + page[..offset].matches('\n').count();
     let mut blocks = Vec::new();
     let mut regenerated = String::new();
@@ -761,6 +782,18 @@ fn prose(name: &str, page: &str) -> Read {
                     text.push_str(&words);
                 }
             },
+            Event::InlineMath(latex) | Event::DisplayMath(latex) => {
+                start.get_or_insert(range.start);
+                text.push('\u{FFFC}');
+                let quotes = formula_quotes(&latex);
+                if !quotes.is_empty() {
+                    blocks.push(Block {
+                        line: line(range.start),
+                        text: quotes.join(" "),
+                        kind: Kind::Prose,
+                    });
+                }
+            }
             Event::Code(span) => {
                 start.get_or_insert(range.start);
                 text.push('\u{FFFC}');
@@ -1386,6 +1419,26 @@ fn draw_misses(reports: &Reports) -> Result<String, String> {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn a_formula_quotes_its_decimals_not_its_integers() {
+        assert_eq!(formula_quotes("q = \\tfrac12 \\rho v^2"), Vec::<String>::new());
+        assert_eq!(formula_quotes("V_f = 1.8\\,a, 24\\,\\varepsilon, 0.25"), ["1.8", "0.25"]);
+        assert_eq!(formula_quotes("x_{1.} = 3."), Vec::<String>::new());
+    }
+
+    #[test]
+    fn a_decimal_in_a_formula_is_read_as_a_quote() {
+        let read = prose("docs/x.md", "The ratio $V_f/a = 1.8$ and $q = \\tfrac12 \\rho v^2$.\n");
+        let quotes: Vec<&str> = read
+            .blocks
+            .iter()
+            .filter(|b| matches!(b.kind, Kind::Prose) && b.text.contains("1.8"))
+            .map(|b| b.text.as_str())
+            .collect();
+        assert_eq!(quotes, ["1.8"]);
+        assert!(read.blocks.iter().all(|b| !b.text.contains("12")));
+    }
     use super::*;
 
     fn reports() -> (std::path::PathBuf, Reports) {

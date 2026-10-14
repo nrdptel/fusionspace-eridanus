@@ -424,10 +424,16 @@ and the tests that pin it.
 Sources are cited by a short key in square brackets, such as **[N09]** for Niskanen's 2009 thesis
 on model rocket simulation, with the full reference near the top of the page.
 
-Equations are written in plain text, so they read the same here, on GitHub and in the code's
-documentation. For example, once its drag balances its weight, a rocket under a parachute falls
-at the steady speed `v_e = √(2 m g / (ρ C_D S))`, where `m` is its mass, `g` gravity, `ρ` the air's density and
-`C_D S` the parachute's [drag area](glossary.md#drag-area)
+Equations are typeset, as a textbook sets them, here and on GitHub; the code's documentation
+writes them in plain text. For example, once its drag balances its weight, a rocket under a
+parachute falls at the steady speed
+
+$$
+v_e = \sqrt{\frac{2 m g}{\rho\, C_D S}}
+$$
+
+where $m$ is its mass, $g$ gravity, $\rho$ the air's density and
+$C_D S$ the parachute's [drag area](glossary.md#drag-area)
 ([Recovery](physics/recovery.md#the-descent)).
 
 Terms are defined in the [Glossary](glossary.md), and

@@ -132,8 +132,8 @@ them.
 
 `mass_properties(t)` gives the mass, CG and inertia `t` seconds after the motor lights.
 `margin(t, mach)` gives the CP and the margin, and `static_margin_cal(t, mach)` the margin alone.
-The CG is in the [body frame](glossary.md#body-frame), whose `z` axis points to the nose, so a
-point 0.671 m (26.4 in) behind the nose tip is at `z = −0.671`. The CP is a station, meters aft
+The CG is in the [body frame](glossary.md#body-frame), whose $z$ axis points to the nose, so a
+point 0.671 m (26.4 in) behind the nose tip is at $z = -0.671$. The CP is a station, meters aft
 of the tip, so the example prints it as it comes and the CG with its sign turned. Weighing runs the same
 checks on the design as a flight does, so a motor wider than its tube is refused by both.
 
@@ -329,8 +329,8 @@ in [Shapes](physics/shapes.md):
 | Left unsaid | The builder's choice | OpenRocket's |
 |---|---|---|
 | An ogive's shape | tangent | the same |
-| A parabola's parameter `K′` | 1 | the same |
-| A Haack series' `C` | 0, the von Kármán | the same |
+| A parabola's parameter $K'$ | 1 | the same |
+| A Haack series' $C$ | 0, the von Kármán | the same |
 | A power series' exponent | ½ | the same |
 | Whether a transition is clipped | yes for elliptical, Haack and power series | the same |
 | A filled part's shoulder | solid | the same |
@@ -372,7 +372,7 @@ Where the masses differ, the test checks each cause:
   OpenRocket weighs.
 - **Two walls.** HPR Sim's wall is every point within its thickness of the outer surface.
   OpenRocket's masses follow a wall measured across each [station](glossary.md#station) instead,
-  whose inner radius is `r − t √(1 + r′²)` (`r` the radius, `t` the thickness, `r′` the slope). The
+  whose inner radius is $r - t\sqrt{1 + r'^2}$ ($r$ the radius, $t$ the thickness, $r'$ the slope). The
   test works out both on its own. All 185 hollow parts' OpenRocket centers agree with the
   station-wise wall to 1.1e-4 of the length, and their masses to 2.5e-4, on the 111 that state no
   mass (a stated mass is OpenRocket's whatever the wall). HPR Sim's 113 hollow conical,

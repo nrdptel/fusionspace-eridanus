@@ -183,7 +183,7 @@ as it burns.
 
 The speed is over the ground, so it includes the drift. At apogee the rocket is still moving
 sideways at 6.4 m/s (21 ft/s). At landing it falls at 6.4 m/s (21 ft/s) while the 5 m/s (11 mph)
-wind carries it east, 8.1 m/s (27 ft/s) in all (√(6.4² + 5²) ≈ 8.1).
+wind carries it east, 8.1 m/s (27 ft/s) in all ($\sqrt{6.4^2 + 5^2} \approx 8.1$).
 
 Below the table:
 

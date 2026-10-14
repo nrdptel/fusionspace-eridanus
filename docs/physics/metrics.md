@@ -163,7 +163,7 @@ much: the watcher's peak matches the hand value from the motor and the masses wi
 |---|---|
 | Top speed | The center of mass's speed relative to the ground, after liftoff |
 | Top Mach number | The airspeed over the local speed of sound |
-| Max q | The largest dynamic pressure, ½ρv² on the airspeed |
+| Max q | The largest dynamic pressure, $\tfrac12 \rho v^2$ on the airspeed |
 | Boost acceleration | The largest acceleration of the nose tip, from liftoff until a recovery device opens |
 | Opening shock | The largest acceleration while a device is open, the [opening load](../glossary.md#opening-load) over the mass. It follows the simulator's inflation model ([Recovery](recovery.md)) |
 
@@ -185,13 +185,16 @@ unstable under power.
 ### Stability margins
 
 The margin is how far the [center of pressure](../glossary.md#center-of-pressure-cp) lies behind
-the center of mass, in [calibers](../glossary.md#caliber) of the reference diameter `d`:
+the center of mass, in [calibers](../glossary.md#caliber) of the reference diameter $d$:
 
-```text
-margin = (x_cp − x_cg) / d,    x_cp = Σ C_Nα,i x_i / Σ C_Nα,i
-```
+$$
+\begin{aligned}
+\text{margin} &= \frac{x_{\mathrm{cp}} - x_{\mathrm{cg}}}{d}, \\
+x_{\mathrm{cp}} &= \frac{\sum_i C_{N\alpha,i}\, x_i}{\sum_i C_{N\alpha,i}}
+\end{aligned}
+$$
 
-Here `x` is a station measured aft of the nose tip, and `C_Nα,i` is component `i`'s
+Here $x$ is a station measured aft of the nose tip, and $C_{N\alpha,i}$ is component $i$'s
 [normal-force slope](../glossary.md#normal-force-slope). The simulator gives two margins at each
 instant:
 
@@ -230,8 +233,8 @@ instant:
 
 **Both margins are the weakest direction's.** The air can cross a rocket from any direction around
 its axis, and for most rockets the margin is the same in every one. A fin set of one or two fins
-breaks that: it carries `Σ sin²(φ − θ_k)` of its force in the plane at roll angle `φ`, for fins at
-angles `θ_k` (Niskanen 2009, eq. 3.51, as in [Fins](aero.md#fins)). So a rocket with one has a margin for
+breaks that: it carries $\sum_k \sin^2(\varphi - \theta_k)$ of its force in the plane at roll angle $\varphi$, for fins at
+angles $\theta_k$ (Niskanen 2009, eq. 3.51, as in [Fins](aero.md#fins)). So a rocket with one has a margin for
 each direction, and the simulator gives the least, the direction it was found in as `roll_rad`.
 Until [#329](https://github.com/nrdptel/fusionspace-eridanus/issues/329), the simulator's margins were the 0°
 direction's alone, which can be the strongest. A rocket whose fin sets each have three or more fins,
@@ -242,7 +245,7 @@ a single fin at 0° and a two-fin strake set at 90°. At Mach 0.2, after the boo
 margin is +1.86 calibers with the air crossing at 0°, where the single fin lies edge-on and the
 strakes carry the force. At 45° it is +0.17. At 90° the strakes lie edge-on and only the single
 fin works: −3.44, unstable. OpenRocket 24.12, asked for that sustainer at 90° in a scratch run (not
-committed), puts its center of pressure at 0.2954 m (0.969 ft) with `C_Nα` 3.49; HPR Sim's are 0.2993 m (0.982 ft) and
+committed), puts its center of pressure at 0.2954 m (0.969 ft) with $C_{N\alpha}$ 3.49; HPR Sim's are 0.2993 m (0.982 ft) and
 3.47. For one of its staged configurations, `[C6-7; B6-0]`, `hpr sim`'s least margin was +1.56
 calibers and is now −4.21, at 0.86 s. That is the sustainer's margin at the split itself, the moment
 the booster drops, with its own motor just lit and still full and the air at Mach 0.07; the −3.44 is
@@ -254,15 +257,20 @@ equator, nothing tips HPR Sim's flight: it stays upright and reaches 251.3 m (82
 
 The simulator finds the least in closed form, not by a scan
 ([`weakest_margin`](../api/hpr_sim/metrics/fn.weakest_margin.html)). Each part's slope varies as
-`a + b cos 2φ + c sin 2φ`, so the net slope `S(φ)` and its moment `M(φ) = Σ C_Nα,i x_i` do too.
-Three directions, 0°, 60° and 120°, give each sum's `a`, `b` and `c`. The center of pressure `M/S`
+$a + b \cos 2\varphi + c \sin 2\varphi$, so the net slope $S(\varphi)$ and its moment $M(\varphi) = \sum_i C_{N\alpha,i}\, x_i$ do too.
+Three directions, 0°, 60° and 120°, give each sum's $a$, $b$ and $c$. The center of pressure $M/S$
 is foremost where
 
-```text
-P sin 2φ + Q cos 2φ + R = 0,   P = m₀s₁ − m₁s₀,   Q = m₂s₀ − m₀s₂,   R = m₂s₁ − m₁s₂
-```
+$$
+\begin{aligned}
+P \sin 2\varphi + Q \cos 2\varphi + R &= 0, \\
+P &= m_0 s_1 - m_1 s_0, \\
+Q &= m_2 s_0 - m_0 s_2, \\
+R &= m_2 s_1 - m_1 s_2
+\end{aligned}
+$$
 
-with `m` and `s` the coefficients of `M` and `S`. The margin's conditioning (below) is checked at
+with $m$ and $s$ the coefficients of $M$ and $S$. The margin's conditioning (below) is checked at
 its own worst direction the same way. Each root and the 0° direction are evaluated through the
 model, and a direction where no margin can be given wins over any number.
 
@@ -300,48 +308,51 @@ entries in the series: the stack's, then the sustainer's.
 
 #### When there is no margin
 
-As the net slope `Σ C_Nα,i` goes to zero, the air's loads become a pure couple: a turning moment
-with no line of action. The quotient `x_cp` then runs away. That is how Loft came to publish
+As the net slope $\sum_i C_{N\alpha,i}$ goes to zero, the air's loads become a pure couple: a turning moment
+with no line of action. The quotient $x_{\mathrm{cp}}$ then runs away. That is how Loft came to publish
 margins of ±12 to 15 calibers.
 
 The simulator judges the net slope against the sum of its terms' sizes:
 
-```text
-κ = Σ |C_Nα,i| / Σ C_Nα,i
-```
+$$
+\kappa = \frac{\sum_i \lvert C_{N\alpha,i} \rvert}{\sum_i C_{N\alpha,i}}
+$$
 
-Each part the model adds up acts at a station `x_i` on the rocket, within its length `L`. The
-center of pressure then lies within `κ L` of every station. So a fractional error `ε` in one
-part's slope moves the center of pressure by at most about `ε κ² L` (to first order). A part that
-is a pure couple on its own (below) has no station, and `κ` doesn't count it.
+Each part the model adds up acts at a station $x_i$ on the rocket, within its length $L$. The
+center of pressure then lies within $\kappa L$ of every station. So a fractional error $\varepsilon$ in one
+part's slope moves the center of pressure by at most about $\varepsilon \kappa^2 L$ (to first order). A part that
+is a pure couple on its own (below) has no station, and $\kappa$ doesn't count it.
 
-- A rocket whose parts all push the same way has `κ = 1`, and a 1% error moves its center of
+- A rocket whose parts all push the same way has $\kappa = 1$, and a 1% error moves its center of
   pressure by at most 1% of its length. All 13 designs in
   [`validation/designs/`](https://github.com/nrdptel/fusionspace-eridanus/tree/main/validation/designs) stay
   below 1.5 at Mach 0, 0.3, 0.8, 1.2 and 2 and at angles of attack of 0°, 5°, 10° and 20°.
-- At `κ = √10 = 3.16`, a 1% error in one slope can move the center of pressure by a tenth of the
+- At $\kappa = \sqrt{10} = 3.16$, a 1% error in one slope can move the center of pressure by a tenth of the
   rocket. Past that, or when the net slope is not positive, the simulator gives no margin and no
   center of pressure: `None`. The limit is a chosen bound on that sensitivity, not a measurement.
 
 The pitch-moment slope about the center of mass is always given, because it stays finite:
 
-```text
-C_mα = −(Σ C_Nα,i x_i − x_cg Σ C_Nα,i) / d
-```
+$$
+\begin{aligned}
+C_{m\alpha} = -\frac{1}{d} \Bigl(&\sum_i C_{N\alpha,i}\, x_i \\
+&- x_{\mathrm{cg}} \sum_i C_{N\alpha,i}\Bigr)
+\end{aligned}
+$$
 
-A negative `C_mα` turns the nose back into the wind. With a margin defined, `C_mα = −C_Nα · margin`.
+A negative $C_{m\alpha}$ turns the nose back into the wind. With a margin defined, $C_{m\alpha} = -C_{N\alpha} \cdot \text{margin}$.
 
 A worked case, with no fins, pinned by a test:
 
-- The rocket is a conical nose 0.3 m (0.98 ft) long of radius `R` = 0.05 m, a 0.5 m (1.6 ft) tube, and a conical
-  boattail 0.4 m (1.3 ft) long, narrowing to a radius `r`. So `d` = 0.1 m.
-- Barrowman gives the nose a slope of 2 at 0.2 m (0.66 ft). The boattail gets `2((r/R)² − 1)`, at
-  `0.8 + (0.4/3)(1 + 1/(1 + R/r))` m.
-- So `κ = 2/ρ² − 1`, with `ρ = r/R`. The margin is given for `ρ ≥ 0.6932`, an aft radius of
+- The rocket is a conical nose 0.3 m (0.98 ft) long of radius $R$ = 0.05 m, a 0.5 m (1.6 ft) tube, and a conical
+  boattail 0.4 m (1.3 ft) long, narrowing to a radius $r$. So $d$ = 0.1 m.
+- Barrowman gives the nose a slope of 2 at 0.2 m (0.66 ft). The boattail gets $2((r/R)^2 - 1)$, at
+  $0.8 + (0.4/3)(1 + 1/(1 + R/r))$ m.
+- So $\kappa = 2/\rho^2 - 1$, with $\rho = r/R$. The margin is given for $\rho \ge 0.6932$, an aft radius of
   34.66 mm (1.4 in) or more.
 - The center of mass is at 0.5 m (1.6 ft).
 
-| Boattail's aft radius | Net slope | `κ` | Margin | `C_mα` |
+| Boattail's aft radius | Net slope | $\kappa$ | Margin | $C_{m\alpha}$ |
 |--:|--:|--:|---|--:|
 | 40 mm (1.6 in) | 1.28 | 2.13 | −7.46 cal | +9.55 |
 | 35 mm (1.4 in) | 0.98 | 3.08 | −11.2 cal | +10.98 |
@@ -350,11 +361,11 @@ A worked case, with no fins, pinned by a test:
 | 5 mm (0.20 in) | 0.020 | 199 | none (the quotient: −741 cal) | +14.82 |
 
 With no fins, every one of these rockets is unstable: its center of pressure lies ahead of its
-center of mass, and `C_mα` is positive. The cut is not about how large the margin is. The 35 mm (1.4 in) and
+center of mass, and $C_{m\alpha}$ is positive. The cut is not about how large the margin is. The 35 mm (1.4 in) and
 34.5 mm (1.4 in) rows have margins near −11 calibers; what differs is whether the quotient can be trusted.
 
 A component can be a pure couple on its own. A step down in radius followed by a flare back up
-cancels its own slope and still turns the rocket. `C_mα` keeps its moment, which a test also
+cancels its own slope and still turns the rocket. $C_{m\alpha}$ keeps its moment, which a test also
 checks.
 
 ### The largest angle of attack
@@ -369,8 +380,13 @@ it, in radians, over the span the envelope's high-angle flag watches
 - to apogee or the first deployment, the span of the least margins above;
 - only at instants where a 15° angle would give a
   [normal force](../glossary.md#normal-force) of at least a fifth of the rocket's weight:
-  `q (π d²/4) |C_Nα| · 15° ≥ 0.2 m g`, with `q` the
-  [dynamic pressure](../glossary.md#dynamic-pressure), `d` the reference diameter and `C_Nα` the
+
+  $$
+  q\, \frac{\pi d^2}{4}\, \lvert C_{N\alpha} \rvert \cdot 15^\circ \ge 0.2\, m g
+  $$
+
+  with $q$ the
+  [dynamic pressure](../glossary.md#dynamic-pressure), $d$ the reference diameter and $C_{N\alpha}$ the
   flight margin's normal-force slope.
 
 The angle is read at each step's start, middle and end, without the search between them that the
@@ -402,7 +418,7 @@ at most one of the two flags.
 - `unstable_under_power`: the static margin falls below zero while a motor burns. The center of
   pressure is then ahead of the center of mass.
 - `unstable_without_margin`: where the simulator can give no static margin while a motor burns
-  ([When there is no margin](#when-there-is-no-margin)), the pitching moment's slope `C_mα` is
+  ([When there is no margin](#when-there-is-no-margin)), the pitching moment's slope $C_{m\alpha}$ is
   above zero. It is raised only when the first flag isn't.
 
 `min_powered_static_margin_cal` is the margin the first flag reads. It is the least static margin,
@@ -417,15 +433,15 @@ nothing; any margin below it does.
 slopes nearly cancel, or their sum is not positive, the simulator gives no margin, since the center
 of pressure would be noise. The moment about the center of mass is still well defined there:
 
-```text
-C_mα = −(Σ C_Nα,i x_i − C_Nα x_cg) / d
-```
+$$
+C_{m\alpha} = -\frac{\sum_i C_{N\alpha,i}\, x_i - C_{N\alpha}\, x_{\mathrm{cg}}}{d}
+$$
 
-with `C_Nα,i` and `x_i` the normal-force slope and station of part `i`, `C_Nα` their sum, `x_cg`
-the center of mass, every station aft of the nose tip, and `d` the reference diameter. A negative
-`C_mα` turns the rocket back toward its path; a positive one turns it away. The simulator keeps the
-largest `C_mα` at each powered step's start, middle and end where the margin is undefined, without
-searching between them. A `C_mα` of exactly zero raises nothing; any above it does. Without this
+with $C_{N\alpha,i}$ and $x_i$ the normal-force slope and station of part $i$, $C_{N\alpha}$ their sum, $x_{\mathrm{cg}}$
+the center of mass, every station aft of the nose tip, and $d$ the reference diameter. A negative
+$C_{m\alpha}$ turns the rocket back toward its path; a positive one turns it away. The simulator keeps the
+largest $C_{m\alpha}$ at each powered step's start, middle and end where the margin is undefined, without
+searching between them. A $C_{m\alpha}$ of exactly zero raises nothing; any above it does. Without this
 flag, a rocket so unstable that its margin is undefined would raise no warning at all, while a
 milder one would.
 
@@ -447,7 +463,7 @@ warning: unstable: the static margin falls to -4.21 calibers at 0.86 s while a m
 
 For the second flag, take RocketPy's Valetudo with its fins taken off and a conical tail that
 narrows from the body's 40.45 mm (1.6 in) radius to 22 mm (0.87 in) over 0.08 m (0.26 ft). At the rail exit its net slope is
-0.59 per radian against a sum of sizes of 3.41, too small for a margin, but `C_mα` is +43.9 per
+0.59 per radian against a sum of sizes of 3.41, too small for a margin, but $C_{m\alpha}$ is +43.9 per
 radian:
 
 ```text
@@ -469,8 +485,8 @@ count.
 What it leaves out:
 
 - A rocket unstable only after its motors burn out raises no flag, as above.
-- It reads the static margin and `C_mα` at Mach 0, not at the flight's Mach number.
-- `C_mα` is read only at each step's start, middle and end, not searched between: a moment
+- It reads the static margin and $C_{m\alpha}$ at Mach 0, not at the flight's Mach number.
+- $C_{m\alpha}$ is read only at each step's start, middle and end, not searched between: a moment
   slope above zero for less than half a step, with no margin, can pass unseen.
 - A flight that tips over above 15° raises the high-angle flag
   ([The largest angle of attack](#the-largest-angle-of-attack)) as well; a stable rocket in a
@@ -482,7 +498,7 @@ The tests `the_powered_margin_counts_only_while_a_motor_burns`,
 `the_stability_flag_starts_just_below_a_zero_margin` and
 `the_moment_flag_starts_just_above_zero_and_only_without_the_margin_flag` (in `envelope.rs`) pin
 it: a margin of −2⁻³⁰ calibers at a burnout raises the flag, +2⁻³⁰ doesn't, nor does −1 caliber
-in the coast that follows; with no margin, a `C_mα` of +2⁻³⁰ per radian under power raises the
+in the coast that follows; with no margin, a $C_{m\alpha}$ of +2⁻³⁰ per radian under power raises the
 second flag, −2⁻³⁰ doesn't, nor does +2⁻³⁰ after the burnout. In `hpr-cli`,
 `sim_flags_a_rocket_unstable_where_it_has_no_margin` flies the Valetudo example above.
 
@@ -530,9 +546,9 @@ In `crates/hpr-sim/src/metrics.rs`, unless named otherwise:
 | Test | What it pins |
 |---|---|
 | `static_margin_undefined_when_cn_alpha_near_zero` | The boattail table above, against Barrowman by hand, to 1e-9 relative, on both sides of the limit ([L33](../decisions-and-roadmap.md#l33)) |
-| `ordinary_rockets_keep_their_margin` | All 13 validation designs keep their margin at Mach 0, 0.3, 0.8, 1.2 and 2 and at 0°, 5°, 10° and 20°, with `κ` below 1.5 |
-| `a_pure_couple_keeps_its_moment` | The step and flare above: `C_mα` against the hand value, to 1e-9 |
-| `a_normal_force_table_gives_its_own_margin` | A table's margin and `C_mα` against its own numbers |
+| `ordinary_rockets_keep_their_margin` | All 13 validation designs keep their margin at Mach 0, 0.3, 0.8, 1.2 and 2 and at 0°, 5°, 10° and 20°, with $\kappa$ below 1.5 |
+| `a_pure_couple_keeps_its_moment` | The step and flare above: $C_{m\alpha}$ against the hand value, to 1e-9 |
+| `a_normal_force_table_gives_its_own_margin` | A table's margin and $C_{m\alpha}$ against its own numbers |
 | `the_least_margin_is_the_weakest_plane_s` | Six layouts of a single fin and a two-fin set, at Mach 0.1, 0.6 and 1.5 and three centers of mass: the least margin is never above any of 3,600 scanned planes', and within 1e-5 calibers of the scan's least, including where the weakest plane lies between the fins' planes; fin sets of three or more fins keep the margin along the axis, bit for bit |
 | `peak_acceleration_is_analytic_and_excludes_opening_shock` | The boost's peak in a vacuum against the hand value, to 1e-6; a 100 Hz finite difference reads it more than 1% low; an opening shock over three times the boost's is kept apart ([L34](../decisions-and-roadmap.md#l34)) |
 | `unlanded_flight_has_no_ground_hit_speed_and_outputs_name_datum` | `None` and `null` for an unlanded flight; the launch height against the rail's geometry, to 1e-9 relative ([L35](../decisions-and-roadmap.md#l35)) |
@@ -541,10 +557,10 @@ In `crates/hpr-sim/src/metrics.rs`, unless named otherwise:
 | `landings_are_placed_on_the_ellipsoid` | A landing more than 100 m (328 ft) downwind, against the radii of curvature at the site, to second order |
 | `stability_is_kept_from_rail_exit_to_apogee` | The series' ends; the static margin at the rail exit and, in a crosswind, the flight margin at the flight's Mach number, against the model and the masses directly, to 1e-12; the least flight margin is at or below every entry |
 | `least_margins_do_not_depend_on_where_steps_end` | Valetudo in calm air off a vertical and an 84° rail and in a crosswind, and Prometheus: both leasts are at the rail exit, and agree with steps of at most 1 ms to 1e-6 calibers |
-| `a_least_margin_between_step_ends_is_found` | A margin of `2 + (t − 0.37)²` across a step: the search finds 2 at 0.37 s; a margin falling across the step, or undefined in its middle, is not searched |
+| `a_least_margin_between_step_ends_is_found` | A margin of $2 + (t - 0.37)^2$ across a step: the search finds 2 at 0.37 s; a margin falling across the step, or undefined in its middle, is not searched |
 | `a_summary_needs_the_flight_it_watched` | A watcher refuses a flight when it missed some of its steps or also watched another flight, naming the steps it saw, and sums up one that ended without a step; a flight started in the air has no launch height, and one started on its way down keeps no stability |
 | `the_powered_margin_counts_only_while_a_motor_burns` | A margin falling 1 caliber a second across a burnout at 1 s: −2⁻³⁰ calibers at the burnout raises the flag, +2⁻³⁰ doesn't, nor does −1 in the coast after; a least inside a powered step is found by the search; a NaN under power is kept, one in the coast isn't; a margin of −10⁻¹³ replaces +10⁻¹³ though the two are closer than the tie |
-| `a_moment_slope_without_a_margin_counts_only_while_a_motor_burns` | With no margin, a `C_mα` of +2⁻³⁰ per radian under power raises `unstable_without_margin`, −2⁻³⁰ doesn't, nor does +2⁻³⁰ after the burnout at 1 s; a NaN under power is kept; a slope where the margin is defined doesn't count; a margin below zero as well raises only `unstable_under_power` |
+| `a_moment_slope_without_a_margin_counts_only_while_a_motor_burns` | With no margin, a $C_{m\alpha}$ of +2⁻³⁰ per radian under power raises `unstable_without_margin`, −2⁻³⁰ doesn't, nor does +2⁻³⁰ after the burnout at 1 s; a NaN under power is kept; a slope where the margin is defined doesn't count; a margin below zero as well raises only `unstable_under_power` |
 | `a_rocket_without_fins_is_unstable_under_power` | Valetudo with its fins taken off raises `unstable_under_power` at or before its burnout; stock, its least margin under power is above 1 caliber and it raises nothing |
 | `envelope::tests::the_stability_flag_starts_just_below_a_zero_margin` | The flag from the least negative `f64` down; none at 0, −0 or above |
 | `envelope::tests::the_moment_flag_starts_just_above_zero_and_only_without_the_margin_flag` | `unstable_without_margin` from the least positive `f64` up, and for a NaN; none at 0, −0 or below; never beside `unstable_under_power` |

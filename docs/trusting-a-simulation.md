@@ -38,9 +38,9 @@ pressure, not the height ([Reading a flight log](reading-a-flight-log.md)).
 A miss is the simulated apogee less the logged one, as a share of the logged one. A positive miss
 means the simulator said higher than the rocket flew:
 
-```text
-miss = (simulated apogee − logged apogee) / logged apogee
-```
+$$
+\text{miss} = \frac{\text{simulated} - \text{logged}}{\text{logged}}
+$$
 
 For example, the public flight of Cavour, Politecnico di Torino, EuRoC 2023 read 2,789 m
 (9,150 ft) on its altimeter at the top, and an altimeter riding HPR Sim's flight of its design

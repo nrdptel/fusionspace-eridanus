@@ -82,15 +82,15 @@ flight and stop another that leaves the rail later; time it from the burnout or 
 
 **The motion.** A part doesn't jump from one place to the next. It follows a cycloid, the curve a
 cam designer calls cycloidal motion. It starts at rest, speeds up, and slows to rest again. Its
-acceleration is zero at both ends, so neither its speed nor its acceleration jumps. With `τ` the
-fraction of the move's time gone, the part is `s(τ)` of the way along:
+acceleration is zero at both ends, so neither its speed nor its acceleration jumps. With $\tau$ the
+fraction of the move's time gone, the part is $s(\tau)$ of the way along:
 
-```text
-s(τ) = τ − sin(2πτ) / 2π,     0 ≤ τ ≤ 1
-```
+$$
+s(\tau) = \tau - \frac{\sin(2\pi\tau)}{2\pi}, \qquad 0 \le \tau \le 1
+$$
 
-At `τ = ½` it is exactly halfway, moving fastest, at twice the average speed. Its acceleration
-peaks at `2π × travel / T²` for a move taking `T`. A move shorter than 10 ms is refused: the peak
+At $\tau = \tfrac12$ it is exactly halfway, moving fastest, at twice the average speed. Its acceleration
+peaks at $2\pi \times \text{travel}/T^2$ for a move taking $T$. A move shorter than 10 ms is refused: the peak
 there is 63 km/s² for each meter of travel, which is closer to an impact than a motion.
 
 The move's time is cut into 16 equal parts by [stop times](../glossary.md#stop-time), so the
@@ -101,83 +101,94 @@ step.
 ### What the rocket's mass properties do
 
 Moving a part inside the rocket doesn't change the rocket's mass. It moves the center of mass
-the same way as the part, by the part's share of the mass. With `M` the rocket's mass, `m` the
-part's and `Δ` how far it has moved:
+the same way as the part, by the part's share of the mass. With $M$ the rocket's mass, $m$ the
+part's and $\Delta$ how far it has moved:
 
-```text
-center of mass moves by  m Δ / M
-```
+$$
+\text{center of mass moves by}\quad \frac{m\,\Delta}{M}
+$$
 
 The inertia changes as well. The simulator takes the part's contribution out where it was and puts
 it back where it is, both about the new center of mass, by the parallel-axis theorem. The part's own
-inertia about its own center goes with it unchanged. Write `c₀` for the part's center where the
-design puts it, `δ` for the move, `cg_new` for the rocket's new center, `I_new` for its inertia
-about that center, and `J(v) = |v|² E − v vᵀ` (with `E` the unit matrix):
+inertia about its own center goes with it unchanged. Write $\mathbf{c}_0$ for the part's center where the
+design puts it, $\boldsymbol{\delta}$ for the move, $\mathbf{cg}_{\mathrm{new}}$ for the rocket's new center, $I_{\mathrm{new}}$ for its inertia
+about that center, $I_{\mathrm{was}}$ for the rocket's inertia with the part where it was, taken
+about $\mathbf{cg}_{\mathrm{new}}$, and $J(\mathbf{v}) = \lvert\mathbf{v}\rvert^2 E - \mathbf{v}\mathbf{v}^{\mathrm{T}}$ (with $E$ the unit matrix):
 
-```text
-I_new = (the rocket's inertia with the part where it was, taken about cg_new)
-        + m [ J(c₀ + δ − cg_new) − J(c₀ − cg_new) ]
-```
+$$
+\begin{aligned}
+I_{\mathrm{new}} &= I_{\mathrm{was}} \\
+&\quad + m\,J(\mathbf{c}_0 + \boldsymbol{\delta} - \mathbf{cg}_{\mathrm{new}}) \\
+&\quad - m\,J(\mathbf{c}_0 - \mathbf{cg}_{\mathrm{new}})
+\end{aligned}
+$$
 
 As a check by hand, think of the rocket as two bodies: the part and everything else. About the
-center of mass, the rocket's inertia is the sum of the two bodies' own inertias plus `μ J(L)`. Here `μ = m (M − m) / M` is the
-reduced mass and `L` is the line from the rest's center to the part's. Moving the part changes
-only `L`. The tests check the simulator's inertia against this formula.
+center of mass, the rocket's inertia is the sum of the two bodies' own inertias plus $\mu\,J(\mathbf{L})$. Here $\mu = m(M - m)/M$ is the
+reduced mass and $\mathbf{L}$ is the line from the rest's center to the part's. Moving the part changes
+only $\mathbf{L}$. The tests check the simulator's inertia against this formula.
 
 **The stability margin.** The static margin is the distance from the center of mass back to the
 [center of pressure](../glossary.md#center-of-pressure-cp), in calibers of the rocket's diameter
-`d` ([Flight metrics: stability margins](metrics.md#stability-margins)). It takes the center of
+$d$ ([Flight metrics: stability margins](metrics.md#stability-margins)). It takes the center of
 pressure with the air along the axis at Mach 0, which doesn't depend on where the mass is. So a
-part moving `Δ` toward the tail changes it by:
+part moving $\Delta$ toward the tail changes it by:
 
-```text
-change in static margin = − m Δ / (M d)
-```
+$$
+\text{change in static margin} = -\frac{m\,\Delta}{M d}
+$$
 
 The flight margin, at the flight's own Mach number, moves by the same amount at any one instant,
 since only its center of pressure differs.
 
 ### What the equations of motion add
 
-The equations of motion ([Rigid-body flight](flight.md)) are written about the nose tip, `O`, a
-point fixed in the airframe, in body axes. `ω` is the airframe's rate of turn and `r` the center
-of mass seen from `O`. The equations already allow for a center of mass that moves through the
+The equations of motion ([Rigid-body flight](flight.md)) are written about the nose tip, $O$, a
+point fixed in the airframe, in body axes. $\boldsymbol{\omega}$ is the airframe's rate of turn and $\mathbf{r}$ the center
+of mass seen from $O$. The equations already allow for a center of mass that moves through the
 airframe and an inertia that changes, because burning propellant does both. Primes there, as
-below, mean how fast something changes with time as seen from the airframe: `r′` and `r″` are the
-center of mass's velocity and acceleration through the airframe, and `I′` how fast the inertia
-about `O` changes. A part that moves adds to those terms, and adds one term more.
+below, mean how fast something changes with time as seen from the airframe: $\mathbf{r}'$ and $\mathbf{r}''$ are the
+center of mass's velocity and acceleration through the airframe, and $I'$ how fast the inertia
+about $O$ changes. A part that moves adds to those terms, and adds one term more.
 
 Sum Newton's law over every particle of the rocket. Each particle's acceleration is the nose
 tip's acceleration, plus the airframe's rotation, plus its own motion inside the airframe. In the
-force equation, the particles' motion inside the airframe gives the `r′` and `r″` terms, with
-nothing more. In the moment equation it gives `I′ ω`, and also this term:
+force equation, the particles' motion inside the airframe gives the $\mathbf{r}'$ and $\mathbf{r}''$ terms, with
+nothing more. In the moment equation it gives $I'\boldsymbol{\omega}$, and also this term:
 
-```text
-ω × h + h′,     h = Σ m ρ × ρ′
-```
+$$
+\begin{aligned}
+&\boldsymbol{\omega} \times \mathbf{h} + \mathbf{h}', \\
+&\mathbf{h} = \sum m\,\boldsymbol{\rho} \times \boldsymbol{\rho}'
+\end{aligned}
+$$
 
-`h` is the moving parts' angular momentum about the nose tip, relative to the airframe. `ρ` is a
-part's center and `ρ′` its velocity inside the airframe. A part only slides, so every point of it
-moves at the same `ρ′`. When the part is on the axis, `ρ` and `ρ′` both lie along the axis and `h`
-is zero. When it is off the axis, `h` is not zero, and the simulator carries it. The sum is over the
-parts that move, each with its own `m`, `ρ` and `ρ′`. On the Rigid-body flight page, `T21` is the
+$\mathbf{h}$ is the moving parts' angular momentum about the nose tip, relative to the airframe. $\boldsymbol{\rho}$ is a
+part's center and $\boldsymbol{\rho}'$ its velocity inside the airframe. A part only slides, so every point of it
+moves at the same $\boldsymbol{\rho}'$. When the part is on the axis, $\boldsymbol{\rho}$ and $\boldsymbol{\rho}'$ both lie along the axis and $\mathbf{h}$
+is zero. When it is off the axis, $\mathbf{h}$ is not zero, and the simulator carries it. The sum is over the
+parts that move, each with its own $m$, $\boldsymbol{\rho}$ and $\boldsymbol{\rho}'$. On the Rigid-body flight page, $\mathbf{T}_{21}$ is the
 name the equations (from RocketPy's documentation) give the sum of the moments about the nose tip;
-it subtracts `ω × h + h′`.
+it subtracts $\boldsymbol{\omega} \times \mathbf{h} + \mathbf{h}'$.
 
 The simulator works out how fast the center of mass and the inertia change exactly, from the
 cycloid. For a burning motor it still estimates them from points 0.1 ms apart. The two add, so a
 part can move while the motor burns:
 
-```text
-r′ = r_a′ + Σ m (δ′/M − δ M′/M²)
-r″ = r_a″ + Σ m (δ″/M − 2 δ′ M′/M² + δ (2 M′²/M³ − M″/M²))
-I′ = I_a′ + Σ m (2 (c · δ′) E − δ′ cᵀ − c δ′ᵀ)
-```
+$$
+\begin{aligned}
+\mathbf{r}' &= \mathbf{r}_a' + \sum m \left(\frac{\boldsymbol{\delta}'}{M} - \frac{\boldsymbol{\delta} M'}{M^2}\right), \\
+\mathbf{r}'' &= \mathbf{r}_a'' + \sum m \Bigl(\frac{\boldsymbol{\delta}''}{M} - \frac{2\boldsymbol{\delta}' M'}{M^2} \\
+&\qquad + \boldsymbol{\delta}\left(\frac{2M'^2}{M^3} - \frac{M''}{M^2}\right)\Bigr), \\
+I' &= I_a' + \sum m \bigl(2(\mathbf{c}\cdot\boldsymbol{\delta}')\,E \\
+&\qquad - \boldsymbol{\delta}'\mathbf{c}^{\mathrm{T}} - \mathbf{c}\,{\boldsymbol{\delta}'}^{\mathrm{T}}\bigr)
+\end{aligned}
+$$
 
-The sums are over the parts that move, each with its own `m`, `δ` and `c`. Here `r_a` and `I_a`
-are the rocket's with every part where the design puts it, `M′` and `M″`
-are how fast its mass changes and how fast that changes (both zero once the motor is out), `δ′`
-and `δ″` are the part's velocity and acceleration along its move, and `c = c₀ + δ` is the
+The sums are over the parts that move, each with its own $m$, $\boldsymbol{\delta}$ and $\mathbf{c}$. Here $\mathbf{r}_a$ and $I_a$
+are the rocket's with every part where the design puts it, $M'$ and $M''$
+are how fast its mass changes and how fast that changes (both zero once the motor is out), $\boldsymbol{\delta}'$
+and $\boldsymbol{\delta}''$ are the part's velocity and acceleration along its move, and $\mathbf{c} = \mathbf{c}_0 + \boldsymbol{\delta}$ is the
 part's center now.
 
 ## A worked example
@@ -199,19 +210,37 @@ the rocket through its center of mass, the one it pitches about):
 | 5.75 | 0.8188 | 0.7347 | 0.07483 |
 | 7.00 | 0.8188 | 0.7414 | 0.07399 |
 
-By hand, the center of mass moves `0.2 × 0.3 / 0.8188 = 0.0733` m aft. At 5.5 s, halfway through
+By hand, the center of mass moves $0.2 \times 0.3 / 0.8188 = 0.0733$ m aft. At 5.5 s, halfway through
 the move, it has gone exactly half of that. The transverse inertia falls because the ballast ends
 up near the center of mass. The two-body check gives the change too:
 
-- `μ = 0.2 × 0.6188 / 0.8188 = 0.1511` kg.
-- The rest of the rocket, 0.6188 kg, has its center at `(0.8188 × 0.6681 − 0.2 × 0.375) / 0.6188
-  = 0.7628` m aft of the tip.
+- $\mu = 0.2 \times 0.6188 / 0.8188$ $= 0.1511$ kg.
+- The rest of the rocket, 0.6188 kg, has its center at
+
+  $$
+  \begin{aligned}
+  &(0.8188 \times 0.6681 \\
+  &\quad - 0.2 \times 0.375) / 0.6188 \\
+  &\quad = 0.7628\,\mathrm{m}
+  \end{aligned}
+  $$
+
+  aft of the tip.
 - The ballast's center moves from 0.375 m (1.23 ft) to 0.675 m (2.21 ft), so its distance from the rest's center
   shrinks from 0.3878 m (1.272 ft) to 0.0878 m (0.288 ft).
-- The inertia changes by `0.1511 × (0.0878² − 0.3878²) = −0.0216` kg·m², as the table shows.
+- The inertia changes by
+
+  $$
+  \begin{aligned}
+  &0.1511 \times (0.0878^2 - 0.3878^2) \\
+  &\quad = -0.0216\,\mathrm{kg\cdot m^2},
+  \end{aligned}
+  $$
+
+  as the table shows.
 
 The static margin falls from 4.297 calibers to 2.996, a change of −1.302 from the unrounded
-values. By hand it is `−0.0733 / 0.0563 = −1.302`, with `d = 0.0563` m. The apogee barely moves:
+values. By hand it is $-0.0733 / 0.0563 = -1.302$, with $d = 0.0563$ m. The apogee barely moves:
 1749.8 m (5,741 ft) with the ballast moving, 1749.9 m (5,741 ft) with it held still.
 
 ## Checks, limits and sources
@@ -227,15 +256,15 @@ measured, where it records it, and in brackets the bound it holds the code to.
 |---|---|---|
 | `a_part_moved_inside_a_body_gives_the_hand_computed_whole` | a point moved inside a cube matches a hand calculation, and the whole rebuilt with the point moved | exact (1e-15) |
 | `mass_properties_before_during_and_after_a_shift_match_the_hand_calculation` | the example's rocket before, halfway and after, against the two-body formula | (1e-15 m and kg·m²) |
-| `a_moving_mass_shifts_the_static_margin_by_the_hand_calculation` | the static margin at every coast sample of the flight equals `−m Δ s(τ)/(M d)` from its start | (1e-12 calibers) |
+| `a_moving_mass_shifts_the_static_margin_by_the_hand_calculation` | the static margin at every coast sample of the flight equals $-m\,\Delta\,s(\tau)/(M d)$ from its start | (1e-12 calibers) |
 | `a_part_moving_off_the_axis_keeps_both_momenta_in_free_space` | no air or gravity, the rocket turning about all three axes, the ballast 1 cm (0.39 in) off the axis: the angular momentum about the center and the center's velocity stay constant | 6.9e-12 of the angular momentum (1e-10), 2.6e-12 m/s (1e-10) |
-| `a_shift_s_rates_are_the_derivatives_of_its_mass_properties` | the exact rates against differences of the mass properties, during the burn and after it | `r′` 2e-11 m/s (1e-9), `r″` 3e-8 of itself (1e-7) |
+| `a_shift_s_rates_are_the_derivatives_of_its_mass_properties` | the exact rates against differences of the mass properties, during the burn and after it | $\mathbf{r}'$ 2e-11 m/s (1e-9), $\mathbf{r}''$ 3e-8 of itself (1e-7) |
 | `a_fixed_step_follows_a_short_shift_in_its_stops` | the free-flight case with RK4 at 10 ms steps and a 10 ms move: 16 steps across it | 1.2e-4 m/s (3e-4) |
 | `a_canopy_that_opens_while_the_ballast_moves_keeps_the_center_s_velocity` | in a vacuum, a drogue opening halfway through a move keeps the center's velocity, and from then on the center falls freely while the ballast finishes its move | (1e-12 m/s at the opening, 1e-9 m/s after) |
 | `a_shift_the_flight_starts_gets_its_stops_too` | a move started at apogee gets its 16 stop times when it starts | exactly 16 steps |
 | `a_shift_starts_at_apogee_or_at_its_height_on_the_way_down` | the triggers the flight watches for start the move at the apogee, and at 200 m (656 ft) on the way down | (1e-6 m) |
 
-The free-flight test is the one that checks the new term. Without `ω × h + h′`, its error would be
+The free-flight test is the one that checks the new term. Without $\boldsymbol{\omega} \times \mathbf{h} + \mathbf{h}'$, its error would be
 the size of the ballast's own angular momentum relative to the airframe, which peaks at 1.8% of
 the rocket's angular momentum. It measures 6.9e-12.
 
@@ -270,8 +299,12 @@ The decision record is [ADR-087][adr-087].
   of systems of particles: the force and moment equations summed over particles, and angular
   momentum about a moving point) and appendix B (the parallel-axis theorem and the inertia
   tensor).
-- **[N]** R. L. Norton, *Design of Machinery*, the chapter on cam design (cycloidal displacement:
-  `s = h [θ/β − sin(2πθ/β)/2π]`).
+- **[N]** R. L. Norton, *Design of Machinery*, the chapter on cam design, with the cycloidal
+  displacement
+
+  $$
+  s = h\left[\frac{\theta}{\beta} - \frac{1}{2\pi}\sin\frac{2\pi\theta}{\beta}\right].
+  $$
 - The equations of motion this adds to: the RocketPy technical documentation, "Equations of
   Motion" v0 and v1 ([Rigid-body flight](flight.md)).
 

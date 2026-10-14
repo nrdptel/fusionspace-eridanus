@@ -63,7 +63,7 @@ its page and line.
   misplace (the build refuses it). A script inside a script would be under 12 px: write $C_{D0}$,
   not `C_{D_0}`.
 - **Not math:** code, field names, file names, command lines and program output stay in code,
-  `mass_kg`, `hpr sim`; a quoted reading keeps its unit in words, "a top speed of 355 m/s". Doc
+  `mass_kg`, `hpr sim`; a quoted reading keeps its unit in words, "a top speed of 355 m/s (1,165 ft/s)". Doc
   comments and terminal output keep plain Unicode, `F = ½ ρ v² C_D A`, which reads better there
   than LaTeX source. A dollar sign that isn't math is written `\$`.
 

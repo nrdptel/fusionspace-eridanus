@@ -65,9 +65,9 @@ A motor lit in flight, some time after launch, rather than on the pad. It can be
 
 ### Angle of attack
 
-The angle between the rocket's axis and the airflow it meets. In HPR Sim it is the total angle `α`
+The angle between the rocket's axis and the airflow it meets. In HPR Sim it is the total angle $\alpha$
 between the body axis, pointing to the nose, and the rocket's velocity relative to the air, from 0
-to π (180°). The simulator's aerodynamics are small-angle models, so results at large angles, off
+to $\pi$ (180°). The simulator's aerodynamics are small-angle models, so results at large angles, off
 the rail in a strong crosswind and near apogee, are the least trustworthy. See
 [Frames](physics/frames.md#aerodynamic-angles) and
 [Aerodynamics](physics/aero.md#validity-and-open-questions).
@@ -118,7 +118,7 @@ six-fin Recruiter's slope is 2.87% high. See [Aerodynamics](physics/aero.md#veri
 
 ### Base drag
 
-The drag on a rocket's flat aft end, its base. HPR Sim works it out on the base's area, with a coefficient of `0.12 + 0.13 M²` below Mach 1 and `0.25/M` above it (`M` the [Mach number](#mach-number)). While a motor burns, the simulator subtracts the burning motors' cross-section from that area ([power-on drag](#power-on-and-power-off-drag)), following Niskanen, who takes from Fleeman that a base the size of the motor has no base drag. OpenRocket keeps the whole base's drag, and HPR Sim can fly that rule for a comparison ([Aerodynamics](physics/aero.md#drag)). Neither rule has been checked against a measured flight. On one private design's supersonic flight, `C06/1`, the choice moves HPR Sim's apogee difference from OpenRocket's by about 24 percentage points, more than any other known cause ([#222](https://github.com/nrdptel/fusionspace-eridanus/issues/222)). Behind a [boattail](#boattail), faster than sound, the base's pressure is higher and the simulator lowers the base drag to match ([Boattails faster than sound](physics/aero.md#boattails-faster-than-sound)). See [Aerodynamics](physics/aero.md#drag).
+The drag on a rocket's flat aft end, its base. HPR Sim works it out on the base's area, with a coefficient of $0.12 + 0.13\,M^2$ below Mach 1 and $0.25/M$ above it ($M$ the [Mach number](#mach-number)). While a motor burns, the simulator subtracts the burning motors' cross-section from that area ([power-on drag](#power-on-and-power-off-drag)), following Niskanen, who takes from Fleeman that a base the size of the motor has no base drag. OpenRocket keeps the whole base's drag, and HPR Sim can fly that rule for a comparison ([Aerodynamics](physics/aero.md#drag)). Neither rule has been checked against a measured flight. On one private design's supersonic flight, `C06/1`, the choice moves HPR Sim's apogee difference from OpenRocket's by about 24 percentage points, more than any other known cause ([#222](https://github.com/nrdptel/fusionspace-eridanus/issues/222)). Behind a [boattail](#boattail), faster than sound, the base's pressure is higher and the simulator lowers the base drag to match ([Boattails faster than sound](physics/aero.md#boattails-faster-than-sound)). See [Aerodynamics](physics/aero.md#drag).
 
 ### BATES grain
 
@@ -143,9 +143,9 @@ A transition at the tail that narrows toward the aft end. Its normal-force slope
 
 ### Body frame
 
-The axes fixed to the rocket. The origin is the nose tip, on the axis. `z_B` points along the axis
-toward the nose, `x_B` is the design's zero direction around the body (the one fins and rail
-buttons are placed from), and `y_B` completes a right-handed set, so every part lies at `z_B ≤ 0`.
+The axes fixed to the rocket. The origin is the nose tip, on the axis. $z_B$ points along the axis
+toward the nose, $x_B$ is the design's zero direction around the body (the one fins and rail
+buttons are placed from), and $y_B$ completes a right-handed set, so every part lies at $z_B \le 0$.
 See [Frames](physics/frames.md#body-frame-b).
 
 
@@ -207,7 +207,7 @@ A fin set near the nose, ahead of the main fins. Its normal force acts well forw
 
 The small angle at which fins are set to the rocket's axis, turning each about its own span so that
 the air pushes it sideways and the rocket spins. HPR Sim measures it in radians, positive turning
-fin 0's leading edge (fin 0 is the one along `+x_B`) toward `−y_B` ([Body frame](#body-frame)); a
+fin 0's leading edge (fin 0 is the one along $+x_B$) toward $-y_B$ ([Body frame](#body-frame)); a
 positive cant spins the rocket clockwise seen from ahead of the nose, looking aft. See
 [Roll: forcing and damping](physics/aero.md#roll-forcing-and-damping).
 
@@ -269,8 +269,8 @@ One choice of motors for a rocket design, at most one in each motor mount, named
 
 ### Coriolis acceleration
 
-The sideways acceleration that anything moving over the rotating Earth appears to have, `−2Ω × v`,
-with `Ω` the Earth's rotation (7.292115e-5 rad/s) and `v` the velocity in the Earth-fixed launch
+The sideways acceleration that anything moving over the rotating Earth appears to have, $-2\boldsymbol{\Omega} \times \mathbf{v}$,
+with $\boldsymbol{\Omega}$ the Earth's rotation (7.292115e-5 rad/s) and $\mathbf{v}$ the velocity in the Earth-fixed launch
 frame. It is the only rotating-Earth term HPR Sim adds, since the centrifugal part is already inside
 [normal gravity](#normal-gravity), and it is on by default. It is small: in one test it moves the
 landing point of a 3 km (9,843 ft) parachute descent 0.37 m (1.2 ft) east. See
@@ -341,9 +341,15 @@ switches the rocket to the descent, as a point mass. See
 ### Descent rate
 
 How fast a rocket falls under its recovery device, in m/s. Once drag balances weight it settles at
-the equilibrium descent speed `v_e = √(2 m g / (ρ C_D S))`, with `m` the mass, `g` gravity, `ρ` the
-air density and `C_D S` the [drag area](#drag-area). A 1.1 kg rocket under a 1 m (39 in) flat canopy
-with `C_D` 0.8, in air of 1.225 kg/m³, falls at 5.294 m/s (17.37 ft/s). See
+the equilibrium descent speed
+
+$$
+v_e = \sqrt{\frac{2 m g}{\rho C_D S}},
+$$
+
+with $m$ the mass, $g$ gravity, $\rho$ the
+air density and $C_D S$ the [drag area](#drag-area). A 1.1 kg rocket under a 1 m (39 in) flat canopy
+with $C_D$ 0.8, in air of 1.225 kg/m³, falls at 5.294 m/s (17.37 ft/s). See
 [Recovery](physics/recovery.md#the-descent).
 
 
@@ -371,7 +377,7 @@ method, takes steps of a fixed size. See [Time integration](physics/integration.
 
 ### Drag area
 
-A recovery device's drag coefficient times the area that coefficient is measured on, `C_D S`, in m².
+A recovery device's drag coefficient times the area that coefficient is measured on, $C_D S$, in m².
 The drag force is the [dynamic pressure](#dynamic-pressure) times it. HPR Sim takes it directly
 (RocketPy's `cd_s`) or from a canopy's diameter and its coefficient on the
 [nominal area](#nominal-area), and adds up the drag areas of every open device. See
@@ -381,10 +387,10 @@ The drag force is the [dynamic pressure](#dynamic-pressure) times it. HPR Sim ta
 ### Drag coefficient
 
 Drag divided by [dynamic pressure](#dynamic-pressure) and an area: a number without units that says
-how draggy a shape is. For the rocket, `C_D0` is the coefficient at zero
+how draggy a shape is. For the rocket, $C_{D0}$ is the coefficient at zero
 [angle of attack](#angle-of-attack) on the [reference area](#reference-area), built up from skin
 friction, pressure, base and fin terms, or read from a table instead. For a parachute, Knacke's
-`C_D0` is on the canopy's [nominal area](#nominal-area), a different convention. See
+$C_{D0}$ is on the canopy's [nominal area](#nominal-area), a different convention. See
 [Aerodynamics](physics/aero.md#drag) and [Recovery](physics/recovery.md#drag-area), and
 [Drag through the speed of sound](drag-through-mach-1.md) for how it changes with speed.
 
@@ -413,17 +419,17 @@ drogue of 1.0 m² [drag area](#drag-area) and a 10 m² main that opens at 800 m 
 
 ### Dynamic pressure
 
-The pressure of the oncoming air due to its motion, `q = ½ ρ V²`, with `ρ` the air density and `V`
-the airspeed, in pascals (Pa). Every aerodynamic force is `q` times a reference area times a
-coefficient, so forces grow with the square of airspeed. Near apogee, where the rocket is slow, `q`
+The pressure of the oncoming air due to its motion, $q = \tfrac12 \rho V^2$, with $\rho$ the air density and $V$
+the airspeed, in pascals (Pa). Every aerodynamic force is $q$ times a reference area times a
+coefficient, so forces grow with the square of airspeed. Near apogee, where the rocket is slow, $q$
 is small. See [Frames](physics/frames.md#aerodynamic-angles) and
 [Rigid-body flight](physics/flight.md#aerodynamics-in-flight).
 
 
 ### ECEF (Earth-centered, Earth-fixed)
 
-The x, y, z frame that turns with the Earth. Its origin is the Earth's center of mass, `+Z` points
-along the rotation axis to the north pole, `+X` through the prime meridian at the equator, and `+Y`
+The $x$, $y$, $z$ frame that turns with the Earth. Its origin is the Earth's center of mass, $+Z$ points
+along the rotation axis to the north pole, $+X$ through the prime meridian at the equator, and $+Y$
 to 90° E. HPR Sim converts between it and latitude, longitude and height on the [WGS 84](#wgs-84)
 ellipsoid. See [Frames](physics/frames.md#earth-centered-earth-fixed-ecef) and
 [Geodesy](physics/geodesy.md).
@@ -431,9 +437,9 @@ ellipsoid. See [Frames](physics/frames.md#earth-centered-earth-fixed-ecef) and
 
 ### Effective exhaust velocity
 
-A motor's thrust divided by its propellant mass flow, `c = F/ṁ`, in m/s. HPR Sim holds it constant
-through the burn, `c = I/m_p` (total impulse over propellant mass), so propellant burns in
-proportion to the impulse delivered. It also refuses a motor whose `c` falls outside 200 to
+A motor's thrust divided by its propellant mass flow, $c = F/\dot{m}$, in m/s. HPR Sim holds it constant
+through the burn, $c = I/m_p$ (total impulse over propellant mass), so propellant burns in
+proportion to the impulse delivered. It also refuses a motor whose $c$ falls outside 200 to
 5,000 m/s (656 to 16,404 ft/s), which catches a propellant mass given in the wrong unit, such as grams for
 kilograms; ThrustCurve.org's catalog has a median of 1,867 m/s (6,125 ft/s). See
 [Solid motors](physics/motor.md#propellant-consumption).
@@ -463,7 +469,7 @@ its trigger. See [Solid motors](physics/motor.md#delays) and
 
 ### Elementary effect
 
-In [Morris's screening](#sensitivity-analysis), the change in a result when one input steps part of its range with the others held, scaled to the input's whole range. The mean of their sizes, `μ*`, ranks the inputs. See [Sensitivity analysis](sensitivity.md#morris-screening).
+In [Morris's screening](#sensitivity-analysis), the change in a result when one input steps part of its range with the others held, scaled to the input's whole range. The mean of their sizes, $\mu^*$, ranks the inputs. See [Sensitivity analysis](sensitivity.md#morris-screening).
 
 ### Ellipsoidal height
 
@@ -611,8 +617,8 @@ the surface it runs from 9.780 m/s² at the equator to 9.832 m/s² at the poles.
 ### Geopotential height
 
 A height measured by the work done lifting a unit of mass against gravity, divided by standard
-gravity `g₀ = 9.80665 m/s²`, in geopotential meters. Weather data give heights this way. Where
-gravity is stronger than `g₀`, a geopotential meter is a little shorter than a meter; HPR Sim turns
+gravity $g_0 = 9.80665\,\mathrm{m/s^2}$, in geopotential meters. Weather data give heights this way. Where
+gravity is stronger than $g_0$, a geopotential meter is a little shorter than a meter; HPR Sim turns
 it into height above sea level with the site's own gravity. See
 [Atmosphere](physics/atmosphere.md#sounding-and-forecast-profiles) and
 [ERA5 weather files](format/era5.md#how-the-simulator-reads-it).
@@ -642,8 +648,8 @@ site, weighting each more as the site nears it (bilinear interpolation). See
 
 Height above mean sea level, as field elevations and soundings give it. HPR Sim queries the
 atmosphere and the wind with it, and gets it from [ellipsoidal height](#ellipsoidal-height) by
-subtracting the geoid undulation `N`, the height of sea level above the ellipsoid, up to about
-100 m (328 ft). The simulator has no geoid model, so a flight takes `N` at the site as an input. See
+subtracting the geoid undulation $N$, the height of sea level above the ellipsoid, up to about
+100 m (328 ft). The simulator has no geoid model, so a flight takes $N$ at the site as an input. See
 [Atmosphere](physics/atmosphere.md#height-datum) and
 [Frames](physics/frames.md#earth-centered-earth-fixed-ecef).
 
@@ -651,9 +657,15 @@ subtracting the geoid undulation `N`, the height of sea level above the ellipsoi
 ### Hypsometric equation
 
 How thick a layer of air is between two pressures: the [geopotential](#geopotential-height)
-thickness is `(R_d T̄_v / g₀) ln(p_bottom / p_top)`, with `p_bottom` and `p_top` the pressures
-at its bottom and top, `R_d` dry air's gas constant (287.05 J/(kg·K)), `g₀` standard gravity and
-`T̄_v` the layer's mean [virtual temperature](#virtual-temperature) (WMO-No. 8, the *Guide to
+thickness is
+
+$$
+\frac{R_d \bar{T}_v}{g_0} \ln\frac{p_{\mathrm{bottom}}}{p_{\mathrm{top}}},
+$$
+
+with $p_{\mathrm{bottom}}$ and $p_{\mathrm{top}}$ the pressures
+at its bottom and top, $R_d$ dry air's gas constant (287.05 J/(kg·K)), $g_0$ standard gravity and
+$\bar{T}_v$ the layer's mean [virtual temperature](#virtual-temperature) (WMO-No. 8, the *Guide to
 Instruments and Methods of Observation*, eqs. 12.17 and 12.18). Warm air makes a thicker layer.
 HPR Sim checks each row of a weather-balloon sounding against it; see
 [Weather-balloon soundings](soundings.md#how-the-answer-becomes-a-sounding).
@@ -668,8 +680,8 @@ limits are inclusive. See [Solid motors](physics/motor.md#thrust-curve).
 ### Inflation and filling time
 
 How a parachute opens: from [deployment](#deployment), its drag area grows over the filling time
-`t_f` to its full value. HPR Sim can open it at once (RocketPy's model), over a fixed time, or over
-Knacke's `t_f = n D₀/v`, with `n` the canopy's fill constant, `D₀` its nominal diameter and `v` the
+$t_f$ to its full value. HPR Sim can open it at once (RocketPy's model), over a fixed time, or over
+Knacke's $t_f = n D_0/v$, with $n$ the canopy's fill constant, $D_0$ its nominal diameter and $v$ the
 airspeed. The simulator leaves out the drag's overshoot as a canopy fills, and opening at once it
 ignores how a light rocket slows while the canopy fills, so the opening load it reports is no safe
 bound either way. See [Recovery](physics/recovery.md#inflation).
@@ -697,10 +709,10 @@ An ellipse on the ground drawn around the landings of a [Monte Carlo](#monte-car
 
 ### Launch frame (ENU)
 
-The frame fixed at the launch pad, which the flight's position and velocity are kept in: `x_L`
-east, `y_L` north and `z_L` up along the ellipsoid's normal at the pad, hence East-North-Up (ENU).
+The frame fixed at the launch pad, which the flight's position and velocity are kept in: $x_L$
+east, $y_L$ north and $z_L$ up along the ellipsoid's normal at the pad, hence East-North-Up (ENU).
 It turns with the Earth, so the equations add the
-[Coriolis acceleration](#coriolis-acceleration). It is a flat plane, so `z_L` is not altitude:
+[Coriolis acceleration](#coriolis-acceleration). It is a flat plane, so $z_L$ is not altitude:
 10 km (6.2 mi) from the pad the plane is 7.8 m (26 ft) above the ellipsoid. See
 [Frames](physics/frames.md#launch-frame-l-east-north-up).
 
@@ -734,7 +746,7 @@ air, so HPR Sim takes its drag away there and gives it no normal force faster th
 ### Mach cone
 
 Faster than sound, a disturbance, such as a fin's tip, can only affect the air downstream of it
-inside a cone that opens backward at the Mach angle, `atan(1/√(M² − 1))`: 30° at Mach 2. HPR Sim
+inside a cone that opens backward at the Mach angle, $\arctan\left(1/\sqrt{M^2 - 1}\right)$: 30° at Mach 2. HPR Sim
 halves the fin's lift inside the cone from each tip. See
 [Aerodynamics](physics/aero.md#fins-through-mach-1).
 
@@ -751,7 +763,7 @@ reads high at most speeds; the drag was also checked at Mach 0.3 against other p
 
 ### Mean aerodynamic chord (MAC)
 
-An average of a fin's chords (its lengths along the airflow, root to tip), weighted so that the long chords count more: `c̄ = (1/A)∫c² dy` over the span, `A` being one fin's area. HPR Sim puts each fin set's [center of pressure](#center-of-pressure-cp) a quarter of the way back along it up to Mach 0.8, and moves it aft from there to the center of the load supersonic linear theory gives. See [Aerodynamics](physics/aero.md#fins-through-mach-1).
+An average of a fin's chords (its lengths along the airflow, root to tip), weighted so that the long chords count more: $\bar{c} = (1/A)\int c^2\,\mathrm{d}y$ over the span, $A$ being one fin's area. HPR Sim puts each fin set's [center of pressure](#center-of-pressure-cp) a quarter of the way back along it up to Mach 0.8, and moves it aft from there to the center of the load supersonic linear theory gives. See [Aerodynamics](physics/aero.md#fins-through-mach-1).
 
 ### Metric
 
@@ -798,7 +810,7 @@ converted first. See [ERA5 weather files](format/era5.md#the-netcdf-reader).
 
 A simple rule for the pressure on the front of a body in fast flow: the air hits the surface and
 loses the speed it had toward it, so the pressure rises with the square of the sine of the angle
-between the surface and the wind, `C_p = C_p,max sin²δ`. `C_p,max` is the pressure coefficient
+between the surface and the wind, $C_p = C_{p,\max} \sin^2\delta$. $C_{p,\max}$ is the pressure coefficient
 at the nose's stagnation point, where the air comes to rest behind a normal shock. It suits the steep, blunt front of a body
 better than its shallow sides. HPR Sim uses it on the cap of a blunt or vertical nose tip faster
 than sound, ahead of the shock-expansion method. See
@@ -810,7 +822,7 @@ The US National Fire Protection Association's code for making model and high-pow
 
 ### Nominal area
 
-A parachute canopy's reference area, `S₀ = π D₀²/4`, from its nominal diameter `D₀`; it includes
+A parachute canopy's reference area, $S_0 = \pi D_0^2/4$, from its nominal diameter $D_0$; it includes
 the vent and every other opening. Knacke's canopy drag coefficients, which HPR Sim uses, are on this
 area: 0.75 to 0.80 for a flat circular canopy, whose middle, 0.775, is HPR Sim's default. RocketPy's
 default parachute coefficient of 1.4 is on a different area, so the two can't be compared directly.
@@ -825,7 +837,7 @@ The bell-shaped spread of a quantity that is the sum of many small, independent 
 
 The sideways aerodynamic force on a rocket flying at an [angle of attack](#angle-of-attack), square
 to its axis and in the plane of the airflow. It acts at the
-[center of pressure](#center-of-pressure-cp), and its coefficient `C_N` is positive in the
+[center of pressure](#center-of-pressure-cp), and its coefficient $C_N$ is positive in the
 direction the crossing air pushes the body. It is what makes a stable rocket
 [weathercock](#weathercocking). See [Aerodynamics](physics/aero.md#conventions) and
 [Frames](physics/frames.md#aerodynamic-angles).
@@ -843,7 +855,7 @@ convention, not a model of local gravity. See [Gravity](physics/gravity.md#what-
 ### Normal-force slope
 
 How fast the [normal force](#normal-force) coefficient grows with
-[angle of attack](#angle-of-attack) at small angles, `C_Nα`, per radian. Each nose, transition and
+[angle of attack](#angle-of-attack) at small angles, $C_{N\alpha}$, per radian. Each nose, transition and
 fin set has its own, and the rocket's is their sum; a pointed nose cone's is 2. The
 [center of pressure](#center-of-pressure-cp) is the components' positions averaged with these
 slopes as weights. See [Aerodynamics](physics/aero.md#conventions).
@@ -859,7 +871,7 @@ A range of frequencies, or of wavelengths, whose top is twice its bottom. The tu
 
 ### Opening load
 
-The peak force a parachute puts on the rocket as it opens. Knacke writes it as `F = (C_D S) q C_x X1`: the steady drag at the [dynamic pressure](#dynamic-pressure) `q` at line stretch, times `C_x` for the canopy's overshoot when the load doesn't slow (1.7 for a flat circular canopy), times `X1` for how much the rocket slows while the canopy fills. HPR Sim leaves out the overshoot. With a filling time it already includes the slowing, so `X1` must not be applied on top; a canopy that opens at once has none. So the opening load it reports is no safe bound either way: don't size recovery hardware from it. See [Recovery](physics/recovery.md#the-opening-load).
+The peak force a parachute puts on the rocket as it opens. Knacke writes it as $F = (C_D S)\, q\, C_x X_1$: the steady drag at the [dynamic pressure](#dynamic-pressure) $q$ at line stretch, times $C_x$ for the canopy's overshoot when the load doesn't slow (1.7 for a flat circular canopy), times $X_1$ for how much the rocket slows while the canopy fills. HPR Sim leaves out the overshoot. With a filling time it already includes the slowing, so $X_1$ must not be applied on top; a canopy that opens at once has none. So the opening load it reports is no safe bound either way: don't size recovery hardware from it. See [Recovery](physics/recovery.md#the-opening-load).
 
 ### OpenRocket
 
@@ -961,7 +973,7 @@ with one part. The project's probe designs for OpenRocket are written by scripts
 
 ### Product of inertia
 
-An off-diagonal term of the inertia tensor, such as `I_yz = −∫ y z dm`. It is zero when the mass is balanced about the axes, as in a rocket that is symmetric about its center line, and not zero when mass sits off the axis on one side, like a single side pod. Its sign follows the positive convention in [Mass properties](physics/mass.md). A rocket with products of inertia turns a little about one axis when pushed about another.
+An off-diagonal term of the inertia tensor, such as $I_{yz} = -\int y z\,\mathrm{d}m$. It is zero when the mass is balanced about the axes, as in a rocket that is symmetric about its center line, and not zero when mass sits off the axis on one side, like a single side pod. Its sign follows the positive convention in [Mass properties](physics/mass.md). A rocket with products of inertia turns a little about one axis when pushed about another.
 
 ### Property test
 
@@ -1014,8 +1026,8 @@ weather everywhere, not just where it was measured. [ERA5](#era5) is one. See
 
 ### Reference area
 
-The area every aerodynamic coefficient of the rocket is divided by, `A_ref = π d²/4`. By default
-`d` is the largest body diameter; it can be set to the nose's base diameter or to a given value,
+The area every aerodynamic coefficient of the rocket is divided by, $A_{\mathrm{ref}} = \pi d^2/4$. By default
+$d$ is the largest body diameter; it can be set to the nose's base diameter or to a given value,
 and a drag table with its own reference diameter is rescaled to the rocket's. A drag model of your
 own is not ([Models of your own](custom-models.md)). Coefficients from two programs compare only on
 the same reference area. See
@@ -1038,9 +1050,9 @@ Two ways to say how far a result is from its reference. An absolute difference c
 
 ### Reynolds number
 
-The ratio of the air's inertia to its viscosity over a length, `R = V L/ν` (often written Re),
-without units, with `V` the airspeed, `L` a length and `ν` the air's kinematic viscosity. For skin
-friction HPR Sim takes `L` as the whole rocket, nose tip to the aft end of the last body component,
+The ratio of the air's inertia to its viscosity over a length, $R = VL/\nu$ (often written $\mathrm{Re}$),
+without units, with $V$ the airspeed, $L$ a length and $\nu$ the air's kinematic viscosity. For skin
+friction HPR Sim takes $L$ as the whole rocket, nose tip to the aft end of the last body component,
 and treats the flow as fully turbulent. See [Aerodynamics](physics/aero.md#drag).
 
 
@@ -1059,7 +1071,7 @@ airspeed. See [Roll: forcing and damping](physics/aero.md#roll-forcing-and-dampi
 
 ### Roughness length
 
-The height above the ground at which the logarithmic wind law's wind falls to zero, written `z₀`. Rougher ground has a larger one: 0.03 m (1.2 in) for open flat terrain with grass, and 0.001–0.01 m (0.04–0.39 in) for mown grass. HPR Sim's `LogLawWind` takes it as `roughness_length_m`. See [Wind](physics/wind.md#models).
+The height above the ground at which the logarithmic wind law's wind falls to zero, written $z_0$. Rougher ground has a larger one: 0.03 m (1.2 in) for open flat terrain with grass, and 0.001–0.01 m (0.04–0.39 in) for mown grass. HPR Sim's `LogLawWind` takes it as `roughness_length_m`. See [Wind](physics/wind.md#models).
 
 ### Running median
 
@@ -1082,7 +1094,7 @@ known to be right, so those results are held to a [target, not a gate](#gate-and
 
 ### Scientific notation
 
-Writing a very small or very large number as a power of ten, the way programs print it. The number after the `e` says how many places the decimal point moves, to the left when it is negative: 1e-12 is a millionth of a millionth, and 1e6 is a million. 2²⁰ is 2 multiplied by itself 20 times, about a million. See [Accuracy](accuracy.md#how-to-read-the-numbers).
+Writing a very small or very large number as a power of ten, the way programs print it. The number after the `e` says how many places the decimal point moves, to the left when it is negative: 1e-12 is a millionth of a millionth, and 1e6 is a million. $2^{20}$ is 2 multiplied by itself 20 times, about a million. See [Accuracy](accuracy.md#how-to-read-the-numbers).
 
 ### Seed
 
@@ -1104,7 +1116,7 @@ leaving at any other joint is an [ejection](#ejection). See
 
 ### Shear modulus
 
-How hard a material resists being twisted or sheared, `G`, in pascals (Pa): the shear stress over
+How hard a material resists being twisted or sheared, $G$, in pascals (Pa): the shear stress over
 the shear strain it causes. Aluminum's is about 26 GPa, birch plywood's 0.75 GPa. A fin twists in
 its own plane, so its flutter speed needs the shear modulus in that plane. See
 [Fin flutter](physics/flutter.md#shear-moduli).
@@ -1121,7 +1133,7 @@ The International System of Units: meters, kilograms and seconds, and units buil
 
 A way to work out the air's forces on a long, thin body from how fast its cross-section grows
 along its length. It gives a nose as wide as the reference a normal-force slope of 2 per radian whatever its shape, a
-transition `2ΔA/A_ref`, and a plain tube nothing, at any Mach number. Barrowman's method uses it
+transition $2\Delta A/A_{\mathrm{ref}}$, and a plain tube nothing, at any Mach number. Barrowman's method uses it
 for every body part. HPR Sim uses it below Mach 1.2, and at every speed for bodies the
 shock-expansion method can't take (steps; a widening shape that isn't a cone, isn't flush with the
 part ahead of it, or rides in a boattail's wake; a nose too blunt for its cap); NASA's wind tunnel
@@ -1144,8 +1156,8 @@ the way up. See [Atmosphere](physics/atmosphere.md#sounding-and-forecast-profile
 
 ### Specific impulse
 
-Impulse per unit weight of propellant, `I_sp = I/(m_p g₀)`, in seconds, with `g₀ = 9.80665 m/s²`:
-the [effective exhaust velocity](#effective-exhaust-velocity) divided by `g₀`. RockSim `.rse` files
+Impulse per unit weight of propellant, $I_{\mathrm{sp}} = I/(m_p g_0)$, in seconds, with $g_0 = 9.80665\,\mathrm{m/s^2}$:
+the [effective exhaust velocity](#effective-exhaust-velocity) divided by $g_0$. RockSim `.rse` files
 carry it as `Isp`; HPR Sim works with the exhaust velocity instead. See
 [Solid motors](physics/motor.md#propellant-consumption) and
 [RockSim `.rse` files](format/rse.md#engine-attributes).
@@ -1198,7 +1210,7 @@ The scatter expected by chance in an average taken from a random sample; it shri
 ### Station
 
 A position along the rocket, in meters aft of the nose tip, the way design files give positions.
-Station `s` is `z_B = −s` in the [body frame](#body-frame). See
+Station $s$ is $z_B = -s$ in the [body frame](#body-frame). See
 [The design tree](physics/design.md#stations-and-the-body-origin).
 
 
@@ -1234,8 +1246,8 @@ pleated one. See [Recovery](physics/recovery.md#streamers).
 
 ### Supersonic linear theory
 
-The small-angle theory of thin surfaces faster than sound: a flat plate at an angle `α` feels a
-pressure proportional to `α/√(M² − 1)`, the same all along its chord. HPR Sim uses it for fins from
+The small-angle theory of thin surfaces faster than sound: a flat plate at an angle $\alpha$ feels a
+pressure proportional to $\alpha/\sqrt{M^2 - 1}$, the same all along its chord. HPR Sim uses it for fins from
 the speed where it holds (about Mach 1.2 or later, set by each fin's sweep and shape). See
 [Aerodynamics](physics/aero.md#fins-through-mach-1).
 
@@ -1312,7 +1324,7 @@ much error each [adaptive time step](#adaptive-time-step) may make. See the
 
 ### Total impulse
 
-A motor's total push, the area under its [thrust curve](#thrust-curve), `I = ∫ F dt`, in
+A motor's total push, the area under its [thrust curve](#thrust-curve), $I = \int F\,\mathrm{d}t$, in
 newton-seconds (N·s). It sets the [impulse class](#impulse-class). HPR Sim integrates the
 straight-line curve exactly. See [Solid motors](physics/motor.md#thrust-curve).
 
@@ -1395,9 +1407,14 @@ as [heights above sea level](#height-above-sea-level-msl); an
 ### Virtual temperature
 
 The temperature dry air would need to have the density of a humid parcel at the same pressure:
-`T_v = T / (1 − (e/p)(1 − M_v/M₀))`, with `e` the water vapor's pressure and `M_v/M₀ ≈ 0.622`
+
+$$
+T_v = \frac{T}{1 - (e/p)(1 - M_v/M_0)},
+$$
+
+with $e$ the water vapor's pressure and $M_v/M_0 \approx 0.622$
 the ratio of the molar masses of water and dry air (WMO-No. 8, eq. 12.18). Water vapor is
-lighter than air, so `T_v` is a little above `T`: about 1.6% at 30 °C, saturation and sea-level
+lighter than air, so $T_v$ is a little above $T$: about 1.6% at 30 °C, saturation and sea-level
 pressure. See
 [Atmosphere](physics/atmosphere.md).
 
@@ -1427,7 +1444,7 @@ wind from the west puts Valetudo's apogee 86 m (282 ft) upwind. See
 ### WGS 84
 
 The World Geodetic System 1984: the model of the Earth's shape and gravity that GPS uses. Its
-ellipsoid has an equatorial radius `a = 6378137.0 m` and a flattening `1/f = 298.257223563`.
+ellipsoid has an equatorial radius $a = 6378137.0\,\mathrm{m}$ and a flattening $1/f = 298.257223563$.
 HPR Sim's latitudes, heights and [normal gravity](#normal-gravity) are all on it. See
 [Geodesy](physics/geodesy.md#wgs-84-ellipsoid).
 
@@ -1435,7 +1452,7 @@ HPR Sim's latitudes, heights and [normal gravity](#normal-gravity) are all on it
 ### Wind direction
 
 HPR Sim gives the wind's direction the meteorological way: where it blows *from*, clockwise from
-true north, so a wind from the west (3π/2 rad, 270°) blows toward the east. RocketPy's wind heading
+true north, so a wind from the west ($3\pi/2$ rad, 270°) blows toward the east. RocketPy's wind heading
 is where it blows *toward*, 180° from this. The wind itself is the air's velocity in the
 [launch frame](#launch-frame-enu)'s east and north axes. See [Wind](physics/wind.md#conventions).
 

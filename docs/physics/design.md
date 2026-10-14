@@ -89,13 +89,13 @@ How parts are placed in the tree, sized from their neighbors, overridden and mea
 
 ### Stations and the body origin
 
-- A **[station](../glossary.md#station)** `s` is a distance aft of the nose tip, the way design
+- A **[station](../glossary.md#station)** $s$ is a distance aft of the nose tip, the way design
   files give positions.
-- The [body frame](../glossary.md#body-frame)'s origin is the nose tip, on the axis: `z_ref = 0` in
-  [Frames](frames.md). Its `z` axis points along the rocket toward the nose, so station `s` is body
-  `z = −s`, and the rocket lies at `z ≤ 0`.
-- A part's own frame has its origin at its forward end ([Mass properties](mass.md)). A part placed at station `s` is
-  translated by `(0, 0, −s)`. Radial offsets and roll angles stay as the part states them, always
+- The [body frame](../glossary.md#body-frame)'s origin is the nose tip, on the axis: $z_{\mathrm{ref}} = 0$ in
+  [Frames](frames.md). Its $z$ axis points along the rocket toward the nose, so station $s$ is body
+  $z = -s$, and the rocket lies at $z \le 0$.
+- A part's own frame has its origin at its forward end ([Mass properties](mass.md)). A part placed at station $s$ is
+  translated by $(0, 0, -s)$. Radial offsets and roll angles stay as the part states them, always
   measured from the body axis.
 
 ### The tree
@@ -114,13 +114,13 @@ Each [`Stage`](../api/hpr_design/tree/struct.Stage.html) lists **body components
 | a pod's body | nose cone, body tube, transition | children of a pod set; they stack along the pod ([Pods](#pods)) |
 | internal | inner tube, centering ring, mass component, parachute, streamer, shock cord | children of a body component or an inner tube |
 
-- **Stacking.** Body components start at `s = 0` and follow one another through every stage, forward
+- **Stacking.** Body components start at $s = 0$ and follow one another through every stage, forward
   to aft. Each one's extent is its length without shoulders (the sleeves of a nose or transition
   that slide into the next tube).
 - **Axial extent** of an attached part:
   - a fin set's root chord;
   - a row of lugs or buttons from the first one's forward end to the last one's aft end,
-    `(n − 1)·spacing + length` (for a button, its diameter);
+    $(n - 1) \cdot \text{spacing} + \text{length}$ (for a button, its diameter);
   - a packed part's packed length;
   - a pod set's pod, its body components' lengths added;
   - otherwise the part's length.
@@ -132,11 +132,11 @@ Each [`Stage`](../api/hpr_design/tree/struct.Stage.html) lists **body components
 - A fin set may sit on a nose cone or a transition when its root follows the surface
   ([ADR-166](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0166-a-fin-root-that-follows-the-body.md)).
   The root is a freeform outline's `root_m` points and its ends, each within a micron of the
-  surface (`FinSet::ROOT_ON_SURFACE_M`): with `r(x)` the body's radius `x` along it and `x_LE`
-  the root's leading edge, a point `[x, h]` is on it when `h = r(x_LE + x) − r(x_LE)`. The straight
+  surface (`FinSet::ROOT_ON_SURFACE_M`): with $r(x)$ the body's radius $x$ along it and $x_{\mathrm{LE}}$
+  the root's leading edge, a point $[x, h]$ is on it when $h = r(x_{\mathrm{LE}} + x) - r(x_{\mathrm{LE}})$. The straight
   pieces between the points may cut off or add at most 0.1% of the fin's area
   (`FinSet::ROOT_SLIVER_SHARE`). The set must stay on the body's length and carry no tab or
-  fillet. Its body radius is `r(x_LE)`. Anything else there is
+  fillet. Its body radius is $r(x_{\mathrm{LE}})$. Anything else there is
   `DesignError::Geometry`, and on a body tube a fin's root must be level. Lugs, buttons and tube
   fins still attach to a body tube only.
 - **Counts.** A fin set has 1 to 64 fins and a tube fin set 1 to 64 tubes, as a pod set has 1 to
@@ -151,15 +151,15 @@ Each [`Stage`](../api/hpr_design/tree/struct.Stage.html) lists **body components
 
 ### Positions
 
-An attached part of extent `L` in a parent spanning stations `[p, p + P]`, with offset `a`
+An attached part of extent $L$ in a parent spanning stations $[p, p + P]$, with offset $a$
 (positive aft):
 
 | `from` | forward end at |
 |---|---|
-| `top` | `p + a` |
-| `middle` | `p + (P − L)/2 + a` |
-| `bottom` | `p + P − L + a` |
-| `after` | the previous sibling's aft end `+ a`, or `p + a` for the first child |
+| `top` | $p + a$ |
+| `middle` | $p + (P - L)/2 + a$ |
+| `bottom` | $p + P - L + a$ |
+| `after` | the previous sibling's aft end $+\,a$, or $p + a$ for the first child |
 | `absolute` | `station_m` |
 
 ### Automatic dimensions
@@ -178,7 +178,7 @@ An `auto` list names dimensions that the tree resolves. The part's stored value 
   before laying the design out
   ([when an automatic radius has nothing to take](../format/ork.md#when-an-automatic-radius-has-nothing-to-take)).
   The tree itself never invents a radius.
-- **Shoulders** take the inner radius (`R − t`, outer radius less wall thickness) of the adjoining
+- **Shoulders** take the inner radius ($R - t$, outer radius less wall thickness) of the adjoining
   body tube: behind a nose; ahead of a transition for its forward shoulder, behind it for its aft
   one.
 - **Centering rings:** the outer radius is the parent's inner radius. The inner radius is the
@@ -186,31 +186,31 @@ An `auto` list names dimensions that the tree resolves. The part's stored value 
   (by a positive length). With none, it is zero: a bulkhead.
 - **Packed parts** (mass components and recovery parts) take the parent tube's inner radius, less
   the distance from the parent's axis to the part's axis. An offset outside the bore is refused.
-- **Tube fin sets:** the outer radius `r` is the one at which the tubes close the ring around the
-  body tube of radius `R` they sit on, each touching the body and its two neighbors. For `N ≥ 3`
-  tubes, `r = R sin(π/N) / (1 − sin(π/N))`; one or two tubes take the body's radius. Six tubes on
-  a 50 mm (2.0 in) body are 50 mm (2.0 in); four are 120.7 mm (4.8 in). A wall thicker than `r` is cut to it. This is the
+- **Tube fin sets:** the outer radius $r$ is the one at which the tubes close the ring around the
+  body tube of radius $R$ they sit on, each touching the body and its two neighbors. For $N \ge 3$
+  tubes, $r = R\sin(\pi/N)/(1 - \sin(\pi/N))$; one or two tubes take the body's radius. Six tubes on
+  a 50 mm (2.0 in) body are 50 mm (2.0 in); four are 120.7 mm (4.8 in). A wall thicker than $r$ is cut to it. This is the
   radius OpenRocket 24.12 gives, measured on probes
   ([`.ork` design files](../format/ork.md#tube-fins-sized-from-the-body)).
 
 ### Overrides
 
 [`Overrides`](../api/hpr_design/tree/struct.Overrides.html) replace computed mass properties with
-measured ones: the mass `m`, the center of mass `c` and the inertia tensor `I` (the 3×3 table of
+measured ones: the mass $m$, the center of mass $\mathbf{c}$ and the inertia tensor $I$ (the 3×3 table of
 moments and products of inertia; see [Mass properties](mass.md)). Primes mark the new values.
 They apply in this order:
 
-1. **Mass** `m′`: `I′ = I m′/m`, same center. The body keeps its shape. A body with `m = 0` becomes
-   a point mass `m′` at `c`. A packed part (a mass component, parachute, streamer or shock cord)
-   with `m = 0` instead becomes a solid cylinder of `m′` filling its packing, as OpenRocket's does
+1. **Mass** $m'$: $I' = I\,m'/m$, same center. The body keeps its shape. A body with $m = 0$ becomes
+   a point mass $m'$ at $\mathbf{c}$. A packed part (a mass component, parachute, streamer or shock cord)
+   with $m = 0$ instead becomes a solid cylinder of $m'$ filling its packing, as OpenRocket's does
    ([Packed parts](mass.md#packed-parts)).
-2. **Center** `a` (`cg_aft_m`): `c′_z = −(s_fore + a)`, with `s_fore` the station of the
+2. **Center** $a$ (`cg_aft_m`): $c'_z = -(s_{\mathrm{fore}} + a)$, with $s_{\mathrm{fore}}$ the station of the
    component's own forward end (a stage's for a stage, and never a shoulder's), whether or not the
    children are covered.
-   `cg_xy_m` sets `c′_x` and `c′_y`; without it they are kept. The tensor about the center is
+   `cg_xy_m` sets $c'_x$ and $c'_y$; without it they are kept. The tensor about the center is
    unchanged.
 3. **Inertia**: the tensor about the center is replaced. `InertiaOverride` gives its six entries
-   with the sign convention of [Mass properties](mass.md) (`I_xy = −∫ x y dm`); the off-diagonal ones default to zero.
+   with the sign convention of [Mass properties](mass.md) ($I_{xy} = -\int x y\,\mathrm{d}m$); the off-diagonal ones default to zero.
 
 The result must pass `MassProperties::validate`, which also refuses inertia on a body with no mass.
 Errors inside a stage or component name it (`DesignError::InComponent`).
@@ -223,7 +223,7 @@ Errors inside a stage or component name it (`DesignError::InComponent`).
   ([A part's stated drag coefficient](aero.md#a-parts-stated-drag-coefficient)).
 - **Precedence.** Deeper overrides apply first. A child's override is inside its parent's subtree
   total, and the stage override applies last.
-- Scaling the tensor with the mass keeps the radii of gyration (`√(I/m)`: how far out, on
+- Scaling the tensor with the mass keeps the radii of gyration ($\sqrt{I/m}$: how far out, on
   average, the mass sits). That is the natural reading of
   "this part weighs more than its geometry says".
 - OpenRocket differs in two ways, which HPR Sim keeps as measured departures: it scales only the
@@ -243,7 +243,7 @@ Errors inside a stage or component name it (`DesignError::InComponent`).
 - `nose_base`: the first nose cone's base diameter.
 - `custom`: a given diameter.
 
-The reference area is `π d²/4`.
+The reference area is $\pi d^2/4$.
 
 ## Motors, pods and stages
 
@@ -262,19 +262,19 @@ How motors, clusters, pods and parallel stages join the rocket.
   [`ignition`](../api/hpr_design/config/enum.Ignition.html): at launch unless told otherwise
   ([Staging](staging.md#when-a-motor-lights)).
 - **Placement.** The motor's axis runs forward from the nozzle exit ([Solid motors](motor.md)).
-  With `s_aft` the station of the mount's aft end, the nozzle exit is at station
-  `s_aft + overhang`, on the mount's axis: for an inner tube offset `r` from the body axis at
-  angle `θ` (from `x_B` toward `y_B`), at `(r cos θ, r sin θ)`; otherwise on the body axis. A motor
-  element at `z_m` along the motor's own axis is at body `z = −(s_aft + overhang) + z_m`.
-- **Composition** at time `t`:
+  With $s_{\mathrm{aft}}$ the station of the mount's aft end, the nozzle exit is at station
+  $s_{\mathrm{aft}} + \text{overhang}$, on the mount's axis: for an inner tube offset $r$ from the body axis at
+  angle $\theta$ (from $x_B$ toward $y_B$), at $(r\cos\theta, r\sin\theta)$; otherwise on the body axis. A motor
+  element at $z_m$ along the motor's own axis is at body $z = -(s_{\mathrm{aft}} + \text{overhang}) + z_m$.
+- **Composition** at time $t$:
   [`Assembly::mass_properties`](../api/hpr_design/config/struct.Assembly.html#method.mass_properties)`(t)`
   combines the structure with each motor's `SolidMotor::state(t).total` ([MK]), every motor lit at
-  `t = 0`.
+  $t = 0$.
   [`Assembly::mass_properties_lit`](../api/hpr_design/config/struct.Assembly.html#method.mass_properties_lit)
-  takes each motor's own ignition time: a motor burns on its own clock, `t − t_ignition`, and one
+  takes each motor's own ignition time: a motor burns on its own clock, $t - t_{\mathrm{ignition}}$, and one
   not yet lit is loaded. The dry assembly uses each motor's dry element.
 - **More than one motor.** In a flight, each burning motor's thrust points along the rocket's axis
-  (`z_B`) and acts at its own nozzle exit, and the thrusts and their moments are summed
+  ($z_B$) and acts at its own nozzle exit, and the thrusts and their moments are summed
   ([Rigid-body flight](flight.md#equations-of-motion)):
   - A cluster is flown, whether its motors share one mount ([below](#clusters)) or each has its
     own, and a motor off the body axis adds a turning moment.
@@ -308,7 +308,7 @@ these two fields (the rest of the inner tube and the mounted motor as usual):
 
 
 - **Mass.** The tube weighs all its copies, each with its own
-  [parallel-axis](../glossary.md#parallel-axis-theorem) term `m d²`. Whatever the tube holds (an
+  [parallel-axis](../glossary.md#parallel-axis-theorem) term $m d^2$. Whatever the tube holds (an
   engine block, a mass) is repeated in every tube the same way. A mass override on the cluster
   sets the whole cluster's mass; one on a part inside it (its mass, center or inertia) sets each
   copy's, as OpenRocket does for the mass.
@@ -330,27 +330,36 @@ these two fields (the rest of the inner tube and the mounted motor as usual):
 
 **Worked example.** The tests' single-stage rocket
 ([`synthetic-54mm-three-fin`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/synthetic-54mm-three-fin.json)),
-with its mount made a ring of three tubes `A = 0.02` m from the axis, at 0°, 120° and 240°
-(measured from the body's `x` axis toward its `y` axis, as in [frames](frames.md)), and a Cesaroni
+with its mount made a ring of three tubes $A = 0.02$ m from the axis, at 0°, 120° and 240°
+(measured from the body's $x$ axis toward its $y$ axis, as in [frames](frames.md)), and a Cesaroni
 411I175-14A in each. It is an equation check, not a buildable rocket: three 38 mm motors don't fit
 a 54 mm (2.1 in) body, and the design checks say so. It is held at rest in a vacuum, so no air and no motion
 add anything to the motors' push. With the motor at 0° out, 1 s into the burn:
 
 | quantity | value |
 |---|--:|
-| each lit motor's thrust `T`, in a vacuum | 193.98 N |
+| each lit motor's thrust $T$, in a vacuum | 193.98 N |
 | the loaded motor, and each lit one at 1 s | 0.4375 kg, 0.3332 kg |
-| the rocket's mass `m` | 1.584 kg |
-| center of mass across the axis, `c_x` (the loaded motor pulls it toward itself) | 1.33 mm (0.052 in) |
-| pitch moment `M = T (A + 2 c_x)` about the center of mass | 4.396 N m |
-| pitch inertia `I_yy` about the center of mass | 0.1052 kg m² |
-| pitch acceleration `M / I_yy`, at rest | 41.80 rad/s² |
+| the rocket's mass $m$ | 1.584 kg |
+| center of mass across the axis, $c_x$ (the loaded motor pulls it toward itself) | 1.33 mm (0.052 in) |
+| pitch moment $M = T(A + 2c_x)$ about the center of mass | 4.396 N m |
+| pitch inertia $I_{yy}$ about the center of mass | 0.1052 kg m² |
+| pitch acceleration $M/I_{yy}$, at rest | 41.80 rad/s² |
 
-The center of mass moves toward the loaded motor: `(0.4375 × 20 − 2 × 0.3332 × 10) mm / 1.584`
+The center of mass moves toward the loaded motor:
+
+$$
+\begin{aligned}
+&(0.4375 \times 20 \\
+&\quad - 2 \times 0.3332 \times 10)\,\mathrm{mm} \\
+&\quad / 1.584
+\end{aligned}
+$$
+
 is 1.32 mm (0.052 in), and the structure's own center, 0.10 mm (0.0039 in) off the axis from its rail buttons, adds the
-rest. The two lit motors sit at `x = −A/2` each, so about the center of mass their thrust has the
-lever `A/2 + c_x` twice. The flight's equations give the same angular acceleration to 3.7e-7 (the
-full inertia tensor, not only `I_yy`, turns the moment into a turn); the difference is the
+rest. The two lit motors sit at $x = -A/2$ each, so about the center of mass their thrust has the
+lever $A/2 + c_x$ twice. The flight's equations give the same angular acceleration to 3.7e-7 (the
+full inertia tensor, not only $I_{yy}$, turns the moment into a turn); the difference is the
 mass-flow terms (the center of mass moving as two motors burn and one doesn't, and the jets). With
 all three lit, the thrusts balance, and the rocket turns 225 times slower (0.186 rad/s²), from its
 center of mass sitting 0.033 mm (0.0013 in) off the axis. The numbers are pinned by the test
@@ -369,10 +378,11 @@ own normal force and drag, once per pod ([aerodynamics: Pods](aero.md#pods),
 the layout and weight, and [ADR-092][adr-092] for the aerodynamics.
 
 - **Where the pods sit.** `count` pods, 1 to 64, spaced evenly around the body's axis at
-  `radial_offset_m` from it, the first at `angle_rad` from the body's `x` axis toward its `y` axis
-  ([frames](frames.md)): pod `k` is at `r (cos φ_k, sin φ_k)`, `φ_k = angle + 2π k / count`.
+  `radial_offset_m` from it, the first at `angle_rad` from the body's $x$ axis toward its $y$ axis
+  ([frames](frames.md)): pod $k$ is at $r(\cos\varphi_k, \sin\varphi_k)$, with
+  $\varphi_k = \text{angle} + 2\pi k/\text{count}$.
 - **Each pod is the first one turned.** The pod written in the tree is one pod on the body's axis.
-  Pod `k` is that pod turned by `φ_k` about the body's axis, then moved out, as a fin set's fins
+  Pod $k$ is that pod turned by $\varphi_k$ about the body's axis, then moved out, as a fin set's fins
   are. So whatever it holds keeps its place relative to the airframe: a fin that points away from
   the airframe on one pod points away on every pod, and a symmetric pod set keeps its center of
   mass on the axis.
@@ -461,29 +471,29 @@ about its own axis and center:
 
 | quantity | value |
 |---|---|
-| the tube's mass `ρ π (r_o² − r_i²) L` | 17.125 g |
-| one pod's mass `m` (tube and mass) | 67.125 g |
+| the tube's mass $\rho\pi(r_o^2 - r_i^2)L$ | 17.125 g |
+| one pod's mass $m$ (tube and mass) | 67.125 g |
 | its center, from the tube's at station 0.45 m (1.5 ft) and the mass's at 0.37 m (1.2 ft) | station 0.39041 m (1.2809 ft) |
-| its roll inertia, the two cylinders' `m (r_o² + r_i²)/2` and `m r²/2` added | 3.869e-6 kg m² |
-| its pitch inertia, each cylinder's `m (3 (r_o² + r_i²) + L²)/12` and its own `m Δz²` | 2.53675e-4 kg m² |
+| its roll inertia, the two cylinders' $m(r_o^2 + r_i^2)/2$ and $m r^2/2$ added | 3.869e-6 kg m² |
+| its pitch inertia, each cylinder's $m(3(r_o^2 + r_i^2) + L^2)/12$ and its own $m\,\Delta z^2$ | 2.53675e-4 kg m² |
 
-Each pod's axis is `d = 0.05` m off the body's. A pod's parallel-axis term about a line through
-the body's axis is `m` times the square of the pod's distance from that line. Both pods lie on the
-`x` axis, so they add nothing about it, and `m d²` = 1.6781e-4 kg m² each about the `y` and `z`
+Each pod's axis is $d = 0.05$ m off the body's. A pod's parallel-axis term about a line through
+the body's axis is $m$ times the square of the pod's distance from that line. Both pods lie on the
+$x$ axis, so they add nothing about it, and $m d^2$ = 1.6781e-4 kg m² each about the $y$ and $z$
 axes:
 
 | quantity (the two pods about their joint center, on the axis) | value |
 |---|--:|
 | mass | 134.25 g |
-| `I_xx`: no `m d²` | 2 × 2.53675e-4 ≈ 5.0735e-4 kg m² |
-| `I_yy` | 2 × (2.53675e-4 + 1.6781e-4) ≈ 8.4298e-4 kg m² |
-| `I_zz` (roll) | 2 × (3.869e-6 + 1.6781e-4) ≈ 3.4336e-4 kg m² |
+| $I_{xx}$: no $m d^2$ | 2 × 2.53675e-4 ≈ 5.0735e-4 kg m² |
+| $I_{yy}$ | 2 × (2.53675e-4 + 1.6781e-4) ≈ 8.4298e-4 kg m² |
+| $I_{zz}$ (roll) | 2 × (3.869e-6 + 1.6781e-4) ≈ 3.4336e-4 kg m² |
 
 The pods' roll inertia is 44 times what it would be with both on the axis: nearly all of it is the
 parallel-axis term. The test `a_pod_is_its_stack_repeated_with_its_parallel_axis_term` in
-`hpr-design` pins these to 1e-15. It also pins a single pod at 90° (`y = d`). About the nose tip,
-where its center is at `z = −0.39041` m, the pod's
-[product of inertia](../glossary.md#product-of-inertia) is `I_yz = −m y z` = 0.067125 × 0.05 ×
+`hpr-design` pins these to 1e-15. It also pins a single pod at 90° ($y = d$). About the nose tip,
+where its center is at $z = -0.39041$ m, the pod's
+[product of inertia](../glossary.md#product-of-inertia) is $I_{yz} = -m y z$ = 0.067125 × 0.05 ×
 0.39041 = 1.3103e-3 kg m².
 
 ### Parallel stages
@@ -507,7 +517,7 @@ shipped it.
   [`PlacedStage::hung_on`](../api/hpr_design/tree/struct.PlacedStage.html#structfield.hung_on)
   names the stage it hangs on. The rocket's mass, center and inertia are the same as with the same
   pods hung on the tube.
-- **Dropping it.** A separation after stage *k* drops every stage after *k*, so the stages it
+- **Dropping it.** A separation after stage $k$ drops every stage after $k$, so the stages it
   drops must hang together: each one's carrier, its `hung_on` stage or the axial stage before it,
   is among them, or it is the first dropped. A parallel stage hung on a stage the nose keeps can't
   go with an axial booster behind it; drop the booster first, then the parallel stage
@@ -671,8 +681,8 @@ of gravity forward and raises the stability margin.
   that room, an error once it is out. A mass on the axis at a cone's tip warns, since the room
   closes to nothing there and the mass's center is on the axis; off the axis it is an error.
 - **How the wall is measured.** The wall is the thickness the design states, normal to the
-  surface, so the outer radius less the wall overstates the room on a slope `θ` by
-  `t (1/cos θ − 1)`: 1% of the wall at 8°, 0.1 mm (0.0039 in) of a 3 mm (0.12 in) wall at 15°. An automatic radius in a
+  surface, so the outer radius less the wall overstates the room on a slope $\theta$ by
+  $t\,(1/\cos\theta - 1)$: 1% of the wall at 8°, 0.1 mm (0.0039 in) of a 3 mm (0.12 in) wall at 15°. An automatic radius in a
   profile is already its room at the part's narrower end ([ADR-096][adr-096], automatic radii in
   a profile), so it fits.
 - **Why the ends decide.** Every profile the simulator draws is concave: its radius never dips
@@ -683,7 +693,7 @@ of gravity forward and raises the stability margin.
   before; `internal_part_past_parent_end` already names it.
 
 **A worked example.** A conical nose 200 mm (7.9 in) long and 27 mm (1.1 in) in radius at its base, with a 2 mm (0.079 in)
-wall, has `0.135 x − 0.002` m of room at `x` m from its tip. A tube 24.5 mm (0.96 in) in radius over its
+wall, has $0.135\,x - 0.002$ m of room at $x$ m from its tip. A tube 24.5 mm (0.96 in) in radius over its
 aft 100 mm (3.9 in) has 25.0 mm (0.98 in) of room at the base and 11.5 mm (0.45 in) at its forward end, 13 mm (0.51 in) too little:
 wedged, a warning: far past the 0.5 mm (0.020 in) tolerance of the 23 mm (0.91 in) bore at its forward end. At
 26.5 mm (1.0 in) the same tube is 1.5 mm (0.059 in) too wide even at the base, past the 0.8 mm (0.031 in) tolerance of a 50 mm (2.0 in)
@@ -704,17 +714,17 @@ tight-fit, 33 wedged and 240 packed-part warnings.
 own inertia; on the one OpenRocket example that has one, that moves the apogee by 12 µm at most.
 
 A mass component, parachute, streamer or shock cord is a *packed part*
-([Packed parts](mass.md#packed-parts)): the simulator takes its mass `m` as stated, and its packed
-length `L` and [station](#stations-and-the-body-origin) say where that mass sits. Its packed radius
-`r` enters the flight in one place, the part's own moment of inertia, that of a solid cylinder:
-`m r²/2` about its axis and `m (3r² + L²)/12` across it, about its center.
+([Packed parts](mass.md#packed-parts)): the simulator takes its mass $m$ as stated, and its packed
+length $L$ and [station](#stations-and-the-body-origin) say where that mass sits. Its packed radius
+$r$ enters the flight in one place, the part's own moment of inertia, that of a solid cylinder:
+$m r^2/2$ about its axis and $m(3r^2 + L^2)/12$ across it, about its center.
 
 - **The warning.** A packed part that reaches past its parent's bore is
   `packed_part_wider_than_parent`, by any amount, while its center is inside the bore: its
   radial offset from the parent's axis is no more than the bore's radius. It can't go in as
   drawn, and HPR Sim flies it as drawn, as OpenRocket does. Packed into the room it has, radius
-  `r_room`, at the same mass, length and station, it would change the rocket's moments of inertia
-  by `m (r² − r_room²)/2` about its axis and `m (r² − r_room²)/4` across it, and nothing else.
+  $r_{\mathrm{room}}$, at the same mass, length and station, it would change the rocket's moments of inertia
+  by $m(r^2 - r_{\mathrm{room}}^2)/2$ about its axis and $m(r^2 - r_{\mathrm{room}}^2)/4$ across it, and nothing else.
 - **No limit.** The warning has no upper limit. A part typed far too wide, such as ballast 400 mm (16 in)
   across in a 54 mm (2.1 in) nose cone, adds inertia that packing it would not, and that changes how the
   rocket turns. Read the warning, and fix the part's diameter if it is a slip.
@@ -727,7 +737,7 @@ length `L` and [station](#stations-and-the-body-origin) say where that mass sits
 
 **A worked example.** OpenRocket's *Deployable payload* packs its payload, 14.2 g, and its
 parachute 25 mm (0.98 in) across into a 21 mm (0.83 in) bore: each reaches 12.5 mm (0.49 in) from the axis, with 10.5 mm (0.41 in) of
-room. Packing the payload into its room would take `0.0142 × (0.0125² − 0.0105²) / 4` =
+room. Packing the payload into its room would take $0.0142 \times (0.0125^2 - 0.0105^2)/4$ =
 1.6e-7 kg m² off the rocket's inertia across its axis; the parachute adds a term of its own.
 Flown both ways, with both parts narrowed in a copy of the file, the five configurations' apogees
 differ by 12 µm at most, 7.5e-8 of the apogee, and their landing times agree to 1 ms
@@ -778,7 +788,7 @@ unless the caller sets
     parts placed at hand-worked stations and combined, to 1e-13.
   - `config::tests`: the placed motor's nozzle station, and the rocket's mass, center and inertia
     at loaded, burning and burnt out, by the parallel-axis theorem, to 1e-12; an off-axis mount's
-    `I_yz = −m y z`.
+    $I_{yz} = -m y z$.
 
 - **Clusters by hand:**
   - `parts::tests::a_cluster_is_its_tubes_each_with_its_parallel_axis_term`: four tubes' mass,
@@ -786,7 +796,7 @@ unless the caller sets
   - `tree::tests::a_cluster_repeats_what_it_holds_in_every_tube`: an engine block in every tube of
     a 3-ring, the structure gaining two tubes and two blocks, and the checks' warnings.
   - `config::tests`: a motor in a 3-ring is three motors at their tubes, the rocket's roll inertia
-    gaining each one's `m d²`; a failed tube stays loaded and unlit, a tube the mount lacks is
+    gaining each one's $m d^2$; a failed tube stays loaded and unlit, a tube the mount lacks is
     refused; a sustainer lit by a clustered booster's burnout lights with one booster motor out.
   - `hpr_sim::staging::tests`: three motors' thrust and mass summed, and the motor out above
     (`cluster_motor_out_produces_pitch_moment`, [Loft lesson L31](../decisions-and-roadmap.md#l31));

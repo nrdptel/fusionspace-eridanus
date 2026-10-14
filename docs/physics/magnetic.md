@@ -57,21 +57,21 @@ sites.
 
 A compass needle lines up with the horizontal part of the Earth's magnetic field. That points to
 magnetic north, which is not true north (the direction of the North Pole along the ground). The
-angle from true north to magnetic north is the **declination** `D`. It is positive when magnetic
+angle from true north to magnetic north is the **declination** $D$. It is positive when magnetic
 north is east of true north.
 
 So a bearing read off a compass becomes a true bearing by adding the declination:
 
-```text
-true bearing = magnetic bearing + D
-```
+$$
+\text{true bearing} = \text{magnetic bearing} + D
+$$
 
-At Spaceport America in mid-2026, `D` is +7.75°: a rail aimed at a compass's north points 7.75°
+At Spaceport America in mid-2026, $D$ is +7.75°: a rail aimed at a compass's north points 7.75°
 east of true north. The simulator's flight engine takes headings as true bearings (clockwise from
 true north, see [Frames](frames.md)), so a heading measured with a compass needs this correction
 first.
 
-The field also dips into the ground. The field's **inclination** `I` (not the rail's inclination)
+The field also dips into the ground. The field's **inclination** $I$ (not the rail's inclination)
 is that dip, positive downward: about 60° across the southern United States, and 90° at a
 magnetic pole, where a compass has nothing horizontal to follow.
 
@@ -80,59 +80,64 @@ Field strengths are in nanoteslas (nT). The Earth's field is 20,000 to 70,000 nT
 ### The model
 
 The WMM writes the field as a sum of **spherical harmonics**: patterns over the globe that get
-finer as their **degree** `n` rises, from 1 (one north and one south pole, like a bar magnet) to
-12, each split into **orders** `m` from 0 to `n`. That makes 90 terms. Each has two **Gauss
-coefficients**, `g` and `h` in nT (`h` is zero where `m = 0`), which set how strong the pattern
-is. Each coefficient changes linearly in time from its 2025.0 value, at the rate `ġ` or `ḣ`
+finer as their **degree** $n$ rises, from 1 (one north and one south pole, like a bar magnet) to
+12, each split into **orders** $m$ from 0 to $n$. That makes 90 terms. Each has two **Gauss
+coefficients**, $g$ and $h$ in nT ($h$ is zero where $m = 0$), which set how strong the pattern
+is. Each coefficient changes linearly in time from its 2025.0 value, at the rate $\dot{g}$ or $\dot{h}$
 ([WMM] eq. 9):
 
-```text
-g(t) = g(2025.0) + (t − 2025.0) ġ
-```
+$$
+g(t) = g(2025.0) + (t - 2025.0)\, \dot{g}
+$$
 
-where `t` is the decimal year (2026.5 is the middle of 2026). The simulator computes the field the
+where $t$ is the decimal year (2026.5 is the middle of 2026). The simulator computes the field the
 way [WMM] section 1.2 sets out:
 
-1. **To geocentric coordinates** (eqs. 7, 8): the site's latitude `φ`, longitude `λ` and height
-   above the WGS 84 ellipsoid become a radius `r` and a geocentric latitude `φ′`, the angle seen
+1. **To geocentric coordinates** (eqs. 7, 8): the site's latitude $\varphi$, longitude $\lambda$ and height
+   above the WGS 84 ellipsoid become a radius $r$ and a geocentric latitude $\varphi'$, the angle seen
    from the Earth's center.
-2. **The field's three parts there** (eqs. 10 to 12), north `X′`, east `Y′` and down `Z′`, as sums
-   over degree `n` and order `m`, with `a = 6,371,200 m`:
+2. **The field's three parts there** (eqs. 10 to 12), north $X'$, east $Y'$ and down $Z'$, as sums
+   over degree $n$ and order $m$, with $a = 6{,}371{,}200\,\mathrm{m}$:
 
-   ```text
-   X′ = −Σ (a/r)^(n+2) Σ (g cos mλ + h sin mλ) dP̆(sin φ′)/dφ′
-   Y′ =  Σ (a/r)^(n+2) Σ m (g sin mλ − h cos mλ) P̆(sin φ′) / cos φ′
-   Z′ = −Σ (n+1)(a/r)^(n+2) Σ (g cos mλ + h sin mλ) P̆(sin φ′)
-   ```
+   $$
+   \begin{aligned}
+   X' &= -\sum_n \left(\frac{a}{r}\right)^{n+2} \sum_m \frac{\mathrm{d}\breve{P}(\sin\varphi')}{\mathrm{d}\varphi'} \\
+   &\qquad \times (g \cos m\lambda + h \sin m\lambda), \\
+   Y' &= \sum_n \left(\frac{a}{r}\right)^{n+2} \sum_m \frac{m\, \breve{P}(\sin\varphi')}{\cos\varphi'} \\
+   &\qquad \times (g \sin m\lambda - h \cos m\lambda), \\
+   Z' &= -\sum_n (n+1) \left(\frac{a}{r}\right)^{n+2} \sum_m \breve{P}(\sin\varphi') \\
+   &\qquad \times (g \cos m\lambda + h \sin m\lambda)
+   \end{aligned}
+   $$
 
-   `P̆` are the Schmidt semi-normalized associated Legendre functions ([WMM] eq. 5).
-3. **Turned into the local frame** (eq. 17) by the angle `φ′ − φ` between the two latitudes, which
-   gives `X`, `Y`, `Z` in the site's north, east and down directions.
-4. **The elements** (eq. 19): horizontal intensity `H = √(X² + Y²)`, total intensity
-   `F = √(H² + Z²)`, inclination `I = atan2(Z, H)` and declination `D = atan2(Y, X)`.
+   $\breve{P}$ are the Schmidt semi-normalized associated Legendre functions ([WMM] eq. 5).
+3. **Turned into the local frame** (eq. 17) by the angle $\varphi' - \varphi$ between the two latitudes, which
+   gives $X$, $Y$, $Z$ in the site's north, east and down directions.
+4. **The elements** (eq. 19): horizontal intensity $H = \sqrt{X^2 + Y^2}$, total intensity
+   $F = \sqrt{H^2 + Z^2}$, inclination $I = \operatorname{atan2}(Z, H)$ and declination $D = \operatorname{atan2}(Y, X)$.
 
-The same sums over the coefficients' rates `ġ` and `ḣ` give how fast each part changes per year
-(eqs. 13 to 15, 18 and 20), written with a dot: `Ẋ`, `Ḋ` and so on (`dD` in the example).
+The same sums over the coefficients' rates $\dot{g}$ and $\dot{h}$ give how fast each part changes per year
+(eqs. 13 to 15, 18 and 20), written with a dot: $\dot{X}$, $\dot{D}$ and so on (`dD` in the example).
 
 Two details differ from the report's printed text, and NOAA's test values settle both:
 
-- **The poles.** Equation 11 and the derivative in equation 16 divide by `cos φ′`, which is zero
-  at a pole. The simulator writes each function as `cosᵐφ′` times a polynomial in `sin φ′`, so the
+- **The poles.** Equation 11 and the derivative in equation 16 divide by $\cos\varphi'$, which is zero
+  at a pole. The simulator writes each function as $\cos^m\varphi'$ times a polynomial in $\sin\varphi'$, so the
   division cancels exactly and the field at a pole is the limit along the meridian given ([WMM]
   section 1.4). A test checks the report's printed field over each pole.
-- **A sign in equation 15.** The rate of `Z′` is printed with `ġ cos mλ − ḣ sin mλ`. The potential
-  gives `+`, as in equation 12, and only `+` reproduces NOAA's rates.
+- **A sign in equation 15.** The rate of $Z'$ is printed with $\dot{g} \cos m\lambda - \dot{h} \sin m\lambda$. The potential
+  gives $+$, as in equation 12, and only $+$ reproduces NOAA's rates.
 
 #### Grid variation
 
 Near the geographic poles, declination swings with every step east or west, so polar navigators
 use **grid variation** instead ([WMM] eq. 1): the angle from a map grid's north, that of the polar
-stereographic grid (Table 6's note), to magnetic north. It is `D − λ` north of 55° N, and `D + λ`
+stereographic grid (Table 6's note), to magnetic north. It is $D - \lambda$ north of 55° N, and $D + \lambda$
 south of 55° S. Elsewhere the simulator gives none (`None`), as the test values print `NaN`.
 
 #### How far a compass can be trusted
 
-The report marks a **blackout zone** around each magnetic pole, where the horizontal intensity `H`
+The report marks a **blackout zone** around each magnetic pole, where the horizontal intensity $H$
 is under 2,000 nT and declination can be wrong by up to 180°, and a **caution zone** around it,
 under 6,000 nT, where declination errors exceed 1° ([WMM] section 1.8).
 `MagneticField::compass_zone` says which applies: `Reliable`, `Caution` or `Blackout`. The report
@@ -140,11 +145,11 @@ draws the zones on the ground; the simulator uses the field at the height asked,
 weaker higher up, so its zones there are a little wider.
 
 The report's error model ([WMM] eq. 43) gives the declination's expected error, one standard
-deviation, in degrees:
+deviation, in degrees, with $H$ in nT:
 
-```text
-δD = √(0.26² + (5417 / H)²)      H in nT
-```
+$$
+\delta D = \sqrt{0.26^2 + (5417/H)^2}
+$$
 
 That is 0.29° where the horizontal field is strongest and grows without bound toward a magnetic
 pole. `MagneticField::declination_uncertainty_rad` returns it. It covers the coefficients'
@@ -186,37 +191,37 @@ The checks the model passes, and where it stops applying.
 | check | points | what is compared | worst difference | held to |
 |---|---|---|---|---|
 | the coefficient table | 90 rows | every coefficient against `WMM2025.COF` | none | equal |
-| the report's Table 6 | 12 | `X`, `Y`, `Z`, `H`, `F`, their rates; `I`, `D`, grid variation, their rates | half the last digit | 0.05 nT, 0.005° |
-| the report's Table 3b | 1 | `φ′`, `r`, the coefficients, `X′`, `Y′`, `Z′`, `X` … `Ḋ`, printed to 10 decimals | 5.0e-11 nT on `X′` | half the last digit, plus 8 units in the last place |
-| the report's poles (section 1.4) | 2 | `X`, `Y`, `Z` over each pole at `r = a` | inside 0.05 nT | 0.05 nT |
-| NCEI's high-precision file, printed to 1e-6 nT and angles to 0.01° | 100 | `Y`, `D`, `I`, and the rates of `Y`, `Z`, `D`, `I` | half the last digit | 5e-7 nT, 0.005° |
-| the same file | 100 | `X`, `H`, `F` | 7.18e-4 nT | 7.2e-4 nT, the measured worst |
-| the same file | 100 | `Z`; the rates of `X`, `H`, `F` | 2.2e-6 nT; 1.5e-6 nT/yr | the measured worst |
-| the potential, by differences | 100 | HPR Sim's `X′` and `Ẋ′` | 1.3e-7 nT; `Ẋ′` within the rounding allowance (under 1e-9 nT/yr) | 1e-6 nT; 1e-6 nT/yr |
+| the report's Table 6 | 12 | $X$, $Y$, $Z$, $H$, $F$, their rates; $I$, $D$, grid variation, their rates | half the last digit | 0.05 nT, 0.005° |
+| the report's Table 3b | 1 | $\varphi'$, $r$, the coefficients, $X'$, $Y'$, $Z'$, $X$ … $\dot{D}$, printed to 10 decimals | 5.0e-11 nT on $X'$ | half the last digit, plus 8 units in the last place |
+| the report's poles (section 1.4) | 2 | $X$, $Y$, $Z$ over each pole at $r = a$ | inside 0.05 nT | 0.05 nT |
+| NCEI's high-precision file, printed to 1e-6 nT and angles to 0.01° | 100 | $Y$, $D$, $I$, and the rates of $Y$, $Z$, $D$, $I$ | half the last digit | 5e-7 nT, 0.005° |
+| the same file | 100 | $X$, $H$, $F$ | 7.18e-4 nT | 7.2e-4 nT, the measured worst |
+| the same file | 100 | $Z$; the rates of $X$, $H$, $F$ | 2.2e-6 nT; 1.5e-6 nT/yr | the measured worst |
+| the potential, by differences | 100 | HPR Sim's $X'$ and $\dot{X}'$ | 1.3e-7 nT; $\dot{X}'$ within the rounding allowance (under 1e-9 nT/yr) | 1e-6 nT; 1e-6 nT/yr |
 
-Rows are counted from 0. The north component `X` in NCEI's file differs from HPR Sim's at 97 of its
+Rows are counted from 0. The north component $X$ in NCEI's file differs from HPR Sim's at 97 of its
 100 points, by up to 7.18e-4 nT (row 35: 2026.5, 12 km (7.5 mi), 33° N, 145° W). That is at most 2.11e-8
 of the total field, and 140 times smaller than the 0.1 nT the report allows for single precision
 (the note under its Table 6).
 
 The tests show where the difference comes from:
 
-- **It lies in one quantity, the geocentric `X′`.** If the file's `X′` is off by an amount `e`,
-  its `X` moves by `e cos(φ′ − φ)` and its `Z` by `e sin(φ′ − φ)`. Taking `e` from each point's `X`
-  and applying it to `Z` brings the file's `Z` to within 4.9e-7 nT of HPR Sim's, inside its
+- **It lies in one quantity, the geocentric $X'$.** If the file's $X'$ is off by an amount $e$,
+  its $X$ moves by $e \cos(\varphi' - \varphi)$ and its $Z$ by $e \sin(\varphi' - \varphi)$. Taking $e$ from each point's $X$
+  and applying it to $Z$ brings the file's $Z$ to within 4.9e-7 nT of HPR Sim's, inside its
   printing.
-- **HPR Sim's `X′` is right.** The tests take the potential's derivative in latitude by differences,
-  independently of HPR Sim's formula for it: its `X′` matches to 1.3e-7 nT at all 100 points. The
-  report's own ten-decimal `X′` (Table 3b) matches to 5e-11 nT.
+- **HPR Sim's $X'$ is right.** The tests take the potential's derivative in latitude by differences,
+  independently of HPR Sim's formula for it: its $X'$ matches to 1.3e-7 nT at all 100 points. The
+  report's own ten-decimal $X'$ (Table 3b) matches to 5e-11 nT.
 - **A second program agrees with HPR Sim.** pygeomag 1.1.0 (MIT), a port of NOAA's own `geomag`
-  program, run once by hand on two of the points (rows 3 and 35, not in CI), gives HPR Sim's `X` to
+  program, run once by hand on two of the points (rows 3 and 35, not in CI), gives HPR Sim's $X$ to
   7e-7 nT, so it differs from the file by the same amount.
 
-The rate of `X` differs too, by up to 9.5e-7 nT a year at 24 points: a second, smaller residue
-whose cause is not known. HPR Sim's `Ẋ′` passes the same derivative check. The rates of `H` and `F`
-follow from `X` and its rate.
+The rate of $X$ differs too, by up to 9.5e-7 nT a year at 24 points: a second, smaller residue
+whose cause is not known. HPR Sim's $\dot{X}'$ passes the same derivative check. The rates of $H$ and $F$
+follow from $X$ and its rate.
 
-So the file's `X`, `H`, `F` and `Z`, and the rates of `X`, `H` and `F`, are held to the measured
+So the file's $X$, $H$, $F$ and $Z$, and the rates of $X$, $H$ and $F$, are held to the measured
 differences, not to the file's printing. [ADR-125][adr-125] records the decision. For a flight
 the difference is immaterial: 7.18e-4 nT turns the declination by about a millionth of a degree.
 
@@ -224,8 +229,8 @@ Every comparison with Table 6 and NCEI's file first allows 64 units in the last 
 point's total field, about 7e-10 nT, for the rounding in both programs' sums: about 700 times
 below half the finest printed digit.
 
-A property test also checks, at random places and times, that `H`, `F`, `I` and `D` agree with
-`X`, `Y`, `Z` by their definitions, and that `F` lies between 20,000 and 70,000 nT. The report's
+A property test also checks, at random places and times, that $H$, $F$, $I$ and $D$ agree with
+$X$, $Y$, $Z$ by their definitions, and that $F$ lies between 20,000 and 70,000 nT. The report's
 Table 1 rounds the surface range to 23,000 to 67,000 nT, but the model itself falls to about
 21,900 nT over South America by 2030, which a test pins at 26° S, 61° W.
 

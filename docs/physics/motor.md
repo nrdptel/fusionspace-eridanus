@@ -247,7 +247,7 @@ reaches 151.7 m (498 ft) above the pad at 6.09 s. These flight numbers are not v
 A design file holds configurations in the same form, as JSON, with the motor written out in full:
 see the `configurations` list at the end of
 [the Valetudo design](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/designs/rocketpy-valetudo.json).
-Every motor lights at launch, `t = 0`, unless its `ignition` says otherwise: at a time, after
+Every motor lights at launch, $t = 0$, unless its `ignition` says otherwise: at a time, after
 another motor's burnout, or after its stage separates ([Staging](staging.md)). It then burns on its
 own clock from that moment.
 
@@ -284,12 +284,12 @@ Line numbers below, such as "lines 40–91", link to those lines of the source.
 
 ### Conventions
 
-- **Time** `t` is seconds from ignition.
+- **Time** $t$ is seconds from ignition.
 - **Motor axis:** positions are meters along the motor's axis **from the nozzle exit plane (where
-  the exhaust leaves) toward the forward closure (the motor's front end)**, so `+z` points toward
+  the exhaust leaves) toward the forward closure (the motor's front end)**, so $+z$ points toward
   the nose like the body frame ([Frames](frames.md)). The design model (from [M1.4](../decisions-and-roadmap.md#m1-4), the
   design and mass-properties milestone) places the motor's nozzle exit in the body frame.
-- **Inertia:** every part is symmetric about the axis. `I_a` is about the axis and `I_t` about a
+- **Inertia:** every part is symmetric about the axis. $I_a$ is about the axis and $I_t$ about a
   transverse axis, both through the part's own center of mass (RocketPy's `I_33` and `I_11`).
 - Motor files keep their own units (mm, kg or g). The model is SI: meters, kilograms and seconds.
 
@@ -302,17 +302,17 @@ How a motor's thrust, propellant, mass, altitude effect and delay are worked out
 A [thrust curve](../glossary.md#thrust-curve) is the motor's thrust against time, as its file
 lists it.
 
-- Samples `(t_i, F_i)` joined by straight lines, as [RP] reads them (`interpolation_method`
-  `"linear"`). Before the first sample the curve starts from `(0, 0)` when `t_0 > 0`, as the RASP
+- Samples $(t_i, F_i)$ joined by straight lines, as [RP] reads them (`interpolation_method`
+  `"linear"`). Before the first sample the curve starts from $(0, 0)$ when $t_0 > 0$, as the RASP
   format specifies ([`.eng` files](../format/eng.md#thrust-curve-r-data-r-problems)) and [TC-A]
-  integrates. From the last sample on `F = 0`, that instant included: like any step, the end
+  integrates. From the last sample on $F = 0$, that instant included: like any step, the end
   takes the later value, so at burnout the thrust, the mass flow and the propellant left are all
   zero together.
 - Equal consecutive times are a **step**: the later value holds from that time on. Real files use
   them for an abrupt burnout. Decreasing times and negative thrust are rejected, and so is a curve
   with no impulse or no burn time (defined below).
 - A sample is **delivered** when it starts or ends a stretch of the curve that lasts some time
-  (`t_i < t_{i+1}` or `t_{i−1} < t_i`). The thrust then really takes its value: at its own instant
+  ($t_i < t_{i+1}$ or $t_{i-1} < t_i$). The thrust then really takes its value: at its own instant
   when it starts a stretch, or ever closer to it as time runs up to its instant when it ends one. A
   sample strictly inside a run of three or more equal times is never delivered: the step jumps
   straight past it. Nor is the first sample of a step at the curve's start, or the last of a step
@@ -333,8 +333,14 @@ lists it.
   held 1712 solid-motor files when surveyed. On the 1710 of them that read, the two agree to 1e-9
   except 17 with repeated times, where they differ by up to 1.1% in average thrust. HPR Sim keeps the
   step because a vertical drop is what the file draws.
-- **Total impulse:** the exact integral of the lines, `I = Σ ½ (F_i + F_{i+1}) (t_{i+1} − t_i)`
-  ([SP] glossary p. 96: `I = ∫F dt`). `I(t)` is the same sum up to `t`, with the partial interval.
+- **Total impulse:** the exact integral of the lines
+  ([SP] glossary p. 96: $I = \int F\,\mathrm{d}t$),
+
+  $$
+  I = \sum_i \frac{1}{2} \left(F_i + F_{i+1}\right) \left(t_{i+1} - t_i\right).
+  $$
+
+  $I(t)$ is the same sum up to $t$, with the partial interval.
 - **Burn time**, by the rule of [NFPA 1125](../glossary.md#nfpa-1125), the US National Fire
   Protection Association's code for making model and high-power rocket motors, as ThrustCurve.org
   applies it: from the moment the thrust first reaches 5% of peak to the moment it last falls to
@@ -348,27 +354,31 @@ lists it.
     ([data notes](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/thrustcurve-data.md)).
     HPR Sim follows the glossary and the site's code.
 - **Impulse class:** each letter covers twice the total impulse of the one before. `A` goes up to
-  2.5 N·s, `B` to 5, `C` to 10, and so on: `upper(k) = 1.25 · 2^k N·s`, from `1/8A` (`k = −2`) to
-  `O` (`k = 15`), and on to `Z` by doubling. **Upper limits are inclusive:** [NAR] states `C` as
+  2.5 N·s, `B` to 5, `C` to 10, and so on: $\mathrm{upper}(k) = 1.25 \cdot 2^k\,\mathrm{N\,s}$, from `1/8A` ($k = -2$) to
+  `O` ($k = 15$), and on to `Z` by doubling. **Upper limits are inclusive:** [NAR] states `C` as
   "5.01 to 10.0 N-sec". Loft gave `B` for 2.5 N·s ([Loft lesson L38](../decisions-and-roadmap.md#l38)).
 
 ### Propellant consumption
 
-The [effective exhaust velocity](../glossary.md#effective-exhaust-velocity) `c` is the thrust
-divided by the rate at which propellant mass leaves, `c = F/ṁ` ([SP] glossary p. 95). **Held
+The [effective exhaust velocity](../glossary.md#effective-exhaust-velocity) $c$ is the thrust
+divided by the rate at which propellant mass leaves, $c = F/\dot{m}$ ([SP] glossary p. 95). **Held
 constant** through the burn, it makes the propellant burned proportional to the impulse delivered
-so far: when half the impulse has been delivered, half the propellant is gone. With `I` the total
-impulse, `I(t)` the impulse delivered by time `t`, and `m_p0` the propellant at ignition:
+so far: when half the impulse has been delivered, half the propellant is gone. With $I$ the total
+impulse, $I(t)$ the impulse delivered by time $t$, and $m_{p0}$ the propellant at ignition:
 
-```text
-c = I / m_p0,    ṁ(t) = F(t) / c,    m_p(t) = m_p0 (1 − I(t)/I)
-```
+$$
+\begin{aligned}
+c &= \frac{I}{m_{p0}}, \\
+\dot{m}(t) &= \frac{F(t)}{c}, \\
+m_p(t) &= m_{p0} \left(1 - \frac{I(t)}{I}\right)
+\end{aligned}
+$$
 
 - This is [RP] `SolidMotor` ([`solid_motor.py:401-418`][rp-401]; [`motor.py:483-524`][rp-483]).
   ThrustCurve's `.rse` files tabulate their mass column the same way
   ([`.rse` files](../format/rse.md)).
-- **It is an approximation.** [SP] defines `c` only instantaneously. Measured
-  [specific impulse](../glossary.md#specific-impulse) (`I_sp`, the same quantity divided by
+- **It is an approximation.** [SP] defines $c$ only instantaneously. Measured
+  [specific impulse](../glossary.md#specific-impulse) ($I_{\mathrm{sp}}$, the same quantity divided by
   standard gravity) drifts during a burn, as the pressure inside the motor changes and the nozzle
   erodes ([SP] p. 14), so real consumption is not exactly proportional. No data published for
   commercial motors resolves the difference.
@@ -377,46 +387,62 @@ c = I / m_p0,    ṁ(t) = F(t) / c,    m_p(t) = m_p0 (1 − I(t)/I)
 
 ### Where the propellant is
 
-- **Column** (`Propellant::Column`): a hollow cylinder `(R, r, L)` (outer radius, inner radius,
+- **Column** (`Propellant::Column`): a hollow cylinder $(R, r, L)$ (outer radius, inner radius,
   length) at a fixed center. It keeps its shape and loses density as it burns, so
-  `I_a = ½ m_p (R² + r²)` and `I_t = m_p ((R² + r²)/4 + L²/12)`. This is [RP] `GenericMotor`'s
+
+  $$
+  \begin{aligned}
+  I_a &= \frac{1}{2} m_p \left(R^2 + r^2\right), \\
+  I_t &= m_p \left(\frac{R^2 + r^2}{4} + \frac{L^2}{12}\right)
+  \end{aligned}
+  $$
+
+  This is [RP] `GenericMotor`'s
   model ([`motor.py:1580-1648`][rp-1580], a solid cylinder).
-- **BATES grains** (`Propellant::Grains`): `N` identical [BATES grains](../glossary.md#bates-grain)
-  `(R, r₀, h₀)` (outer radius, starting bore radius, starting height), spaced `h₀ + s` apart, with
-  a gap `s` between them. Each burns on its bore, the hole along its axis, and on both ends unless
+- **BATES grains** (`Propellant::Grains`): $N$ identical [BATES grains](../glossary.md#bates-grain)
+  $(R, r_0, h_0)$ (outer radius, starting bore radius, starting height), spaced $h_0 + s$ apart, with
+  a gap $s$ between them. Each burns on its bore, the hole along its axis, and on both ends unless
   the ends are inhibited: coated so that they can't burn ([RP]
   [`solid_motor.py:487-632`][rp-487]).
-  - Every grain needs a bore (`r₀ > 0`). A solid end burner, a grain with no hole that burns only
+  - Every grain needs a bore ($r_0 > 0$). A solid end burner, a grain with no hole that burns only
     on one face, shortens without widening, which this regression (the way the grain burns back)
     doesn't describe, and neither does RocketPy's.
   - Facing ends burn even with no gap, as in [RP].
-  - Every burning surface recedes by the same depth `x`, the web burned so far (the web is the
-    thickness of propellant between the burning surfaces):
+  - Every burning surface recedes by the same depth $x$, the web burned so far (the web is the
+    thickness of propellant between the burning surfaces). The first line holds with the ends
+    burning, for $x \le \min(R - r_0, h_0/2)$; the second with the ends inhibited, for
+    $x \le R - r_0$:
 
-  ```text
-  V(x) = π (R² − (r₀ + x)²) (h₀ − 2x)     ends burning,   x ≤ min(R − r₀, h₀/2)
-  V(x) = π (R² − (r₀ + x)²) h₀            ends inhibited, x ≤ R − r₀
-  N ρ V(x) = m_p(t)
-  ```
+  $$
+  \begin{aligned}
+  V(x) &= \pi \left(R^2 - (r_0 + x)^2\right) \\
+  &\quad \times (h_0 - 2x), \\
+  V(x) &= \pi \left(R^2 - (r_0 + x)^2\right) h_0, \\
+  N \rho\, V(x) &= m_p(t)
+  \end{aligned}
+  $$
 
-  Here `V` is one grain's volume and `ρ` the propellant's density, so the last line says the `N`
+  Here $V$ is one grain's volume and $\rho$ the propellant's density, so the last line says the $N$
   grains hold the propellant left.
 
-  - [RP] integrates `ṙ = −V̇/A_b`, `ḣ = −2ṙ` in time, with `A_b` the burning area, using LSODA: a
+  - [RP] integrates $\dot{r} = -\dot{V}/A_b$, $\dot{h} = -2\dot{r}$ in time, with $A_b$ the burning area, using LSODA: a
     general-purpose solver for ordinary differential equations (ODEs), from the Python library
-    SciPy. Because `dV/dx = −A_b`, that ODE is the relation above. HPR Sim solves it for `x` by
+    SciPy. Because $\mathrm{d}V/\mathrm{d}x = -A_b$, that ODE is the relation above. HPR Sim solves it for $x$ by
     safeguarded Newton iteration, exactly at any time. That is Newton's method, which improves a
     guess using the slope, kept inside an interval known to hold the answer: a step that would
     leave the interval halves it instead.
-  - `m_p0 = N ρ V(0)` comes from the geometry, as in [RP].
+  - $m_{p0} = N \rho\, V(0)$ comes from the geometry, as in [RP].
   - About the stack's center, which doesn't move:
 
-    ```text
-    I_a = ½ m_p (R² + r²)
-    I_t = m_p ((R² + r²)/4 + h²/12) + (m_p/N) (h₀ + s)² N (N² − 1)/12
-    ```
+    $$
+    \begin{aligned}
+    I_a &= \frac{1}{2} m_p \left(R^2 + r^2\right), \\
+    I_t &= m_p \left(\frac{R^2 + r^2}{4} + \frac{h^2}{12}\right) \\
+    &\quad + \frac{m_p}{N} (h_0 + s)^2\, \frac{N (N^2 - 1)}{12}
+    \end{aligned}
+    $$
 
-    The last term sums `m_g d_k²` over the grain offsets ([RP] [`solid_motor.py:724-740`][rp-724],
+    The last term sums $m_g d_k^2$ over the grain offsets ([RP] [`solid_motor.py:724-740`][rp-724],
     [`784-789`][rp-784]).
 
 ### The whole motor
@@ -426,23 +452,32 @@ c = I / m_p0,    ṁ(t) = F(t) / c,    m_p(t) = m_p0 (1 − I(t)/I)
   as a retainer (the cap or clip that holds the motor in its mount). It must be positive: at
   burnout it is the whole motor, and with no mass it has no center.
 - The motor is the dry mass and the propellant combined about the instantaneous center with the
-  [parallel-axis theorem](../glossary.md#parallel-axis-theorem): `z = Σ m_k z_k / m`,
-  `I_a = Σ I_a,k`, `I_t = Σ (I_t,k + m_k (z_k − z)²)`. This is [RP] `Motor.I_11`
+  [parallel-axis theorem](../glossary.md#parallel-axis-theorem):
+
+  $$
+  \begin{aligned}
+  z &= \frac{1}{m} \sum_k m_k z_k, \\
+  I_a &= \sum_k I_{a,k}, \\
+  I_t &= \sum_k \left(I_{t,k} + m_k (z_k - z)^2\right)
+  \end{aligned}
+  $$
+
+  This is [RP] `Motor.I_11`
   ([`motor.py:585-666`][rp-585]).
 - **Envelope default** (`SolidMotor::from_envelope`), when only the motor's size and masses are
   known, as from a catalog entry or a motor file's header:
-  - the propellant is a solid column of radius `D/2` filling the length, centered at `L/2`;
-  - the dry mass (loaded minus propellant) is a thin tube, `I_a = m r²` and
-    `I_t = m (r²/2 + L²/12)`, also centered at `L/2`.
+  - the propellant is a solid column of radius $D/2$ filling the length, centered at $L/2$;
+  - the dry mass (loaded minus propellant) is a thin tube, $I_a = m r^2$ and
+    $I_t = m (r^2/2 + L^2/12)$, also centered at $L/2$.
 
-  **These are crude:** the center of mass stays at `L/2` throughout. Loft fixed the CG at the
+  **These are crude:** the center of mass stays at $L/2$ throughout. Loft fixed the CG at the
   midpoint with no inertia of its own ([Loft lesson L40](../decisions-and-roadmap.md#l40)); HPR Sim gives
   the parts inertia, and moves the CG as soon as the dry and propellant centers differ.
   - ThrustCurve's loaded mass includes the reusable case ([TC-G] "Total Weight": "propellant and
     case").
   - [RP] `GenericMotor.load_from_eng` sets its chamber radius to the motor **diameter**
-    ([`motor.py:1759-1761`][rp-1759]), which quadruples the `r²` inertia terms (and the default
-    nozzle area it derives from that radius). HPR Sim uses `D/2`.
+    ([`motor.py:1759-1761`][rp-1759]), which quadruples the $r^2$ inertia terms (and the default
+    nozzle area it derives from that radius). HPR Sim uses $D/2$.
 - **Catalog envelope:** diameter, length and masses are the curve file's header values;
   `cargo xtask motor-catalog` refuses a reload whose case names another diameter than its header
   ([Loft lesson L43](../decisions-and-roadmap.md#l43): one header listed a 54 mm motor as a 75 mm motor).
@@ -451,16 +486,16 @@ c = I / m_p0,    ṁ(t) = F(t) / c,    m_p(t) = m_p0 (1 − I(t)/I)
 #### The effective exhaust velocity is a units check
 
 Both constructors, `SolidMotor::new` and `SolidMotor::from_envelope`, refuse a motor whose curve
-and propellant mass imply an effective exhaust velocity `c = I/m_p` outside **200 to 5,000 m/s (656 to 16,404 ft/s)**.
+and propellant mass imply an effective exhaust velocity $c = I/m_p$ outside **200 to 5,000 m/s (656 to 16,404 ft/s)**.
 It is a guard against a slip in the units of the propellant mass, not a filter on propellant:
 
 - **What it catches.** A propellant mass in grams typed where kilograms belong, such as a `.rse`
-  file's `propellant_mass_g` passed unconverted, which moves `c` by a factor of 1,000. Nothing
+  file's `propellant_mass_g` passed unconverted, which moves $c$ by a factor of 1,000. Nothing
   else in the API notices: the 411I175's envelope typed in millimeters and grams,
   `from_envelope(curve, 38.0, 245.0, 228.9, 437.5)`, has positive, finite dimensions and a
   propellant mass below the loaded mass, and an exhaust velocity of 1.8 m/s (5.9 ft/s). It is the grams that
   give it away.
-- **What it can't catch.** A size in the wrong unit. `c` doesn't depend on the diameter or the
+- **What it can't catch.** A size in the wrong unit. $c$ doesn't depend on the diameter or the
   length, and the motor accepts any positive size: the example's I377 with its size left in
   millimeters, `from_envelope(curve, 38.0, 292.0, 0.250, 0.560)`, is accepted, at the same
   2103 m/s (6,900 ft/s). Only the design checks see a size, and only the one given to the `MountedMotor`
@@ -468,7 +503,7 @@ It is a guard against a slip in the units of the propellant mass, not a filter o
   `motor_wider_than_mount`, and the flight refuses to start; within a nominal size's slack for its
   narrower case it only warns, `motor_tight_in_mount`. A case that runs forward past the
   mount's top is only a warning, `motor_past_mount_top`, so a length slip alone still flies.
-  Nor does `c` involve the loaded mass, so a loaded mass in grams passes too.
+  Nor does $c$ involve the loaded mass, so a loaded mass in grams passes too.
 - **What it lets through.** Every real motor checked. The 1,708 ThrustCurve.org files with a
   catalog propellant mass run from 236 to 3,031 m/s (774 to 9,944 ft/s), with a median of 1,867 and 90% of them
   between 928 and 2,210. The 32 bundled motors, with their files' own propellant masses, run
@@ -478,36 +513,45 @@ It is a guard against a slip in the units of the propellant mass, not a filter o
   read low; [issue #11](https://github.com/nrdptel/fusionspace-eridanus/issues/11) records the fallback if one
   ever falls below 200 m/s (656 ft/s).
 
-`I` here is the curve's own impulse, uncorrected for air pressure. The reasoning in full, the
+$I$ here is the curve's own impulse, uncorrected for air pressure. The reasoning in full, the
 table of percentiles, and two figures that were once got wrong are in
 [the exhaust-velocity note](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/exhaust-velocity-guard.md).
 
 ### Thrust at altitude
 
 A motor pushes harder in thinner air. Its thrust has two parts: the momentum of the exhaust, and a
-pressure term, the exhaust's pressure at the nozzle exit less the air's, times the exit area:
-`F = ṁ u_e + (p_e − p_a) A_e` ([SP] eq. 2, p. 3; SP-8039's unit constant `g_c` is 1 in SI). Here
-`ṁ` is the mass flow, `u_e` the exhaust speed at the exit, `p_e` the exit pressure, `p_a` the
-ambient (air) pressure and `A_e` the exit area. With the flow unchanged, a curve measured at
-reference pressure `p_ref` gives, at ambient `p_a`,
+pressure term, the exhaust's pressure at the nozzle exit less the air's, times the exit area
+([SP] eq. 2, p. 3; SP-8039's unit constant $g_c$ is 1 in SI):
 
-```text
-F(p_a) = F_curve + (p_ref − p_a) A_e,    A_e = π r_e²
-```
+$$
+F = \dot{m}\, u_e + (p_e - p_a)\, A_e
+$$
+
+Here
+$\dot{m}$ is the mass flow, $u_e$ the exhaust speed at the exit, $p_e$ the exit pressure, $p_a$ the
+ambient (air) pressure and $A_e$ the exit area. With the flow unchanged, a curve measured at
+reference pressure $p_{\mathrm{ref}}$ gives, at ambient $p_a$,
+
+$$
+\begin{aligned}
+F(p_a) &= F_{\mathrm{curve}} + (p_{\mathrm{ref}} - p_a)\, A_e, \\
+A_e &= \pi r_e^2
+\end{aligned}
+$$
 
 - [SP] doesn't print this conversion; it follows from eq. 2. [RP] `Motor.pressure_thrust`
   ([`motor.py:1173-1191`][rp-1173]) applies the same term.
-- `p_ref` is the air pressure at the static test site, where the motor was fired on a test stand
+- $p_{\mathrm{ref}}$ is the air pressure at the static test site, where the motor was fired on a test stand
   to measure its curve. It is stored with the nozzle (`Nozzle::reference_pressure_pa`). Motor
   files and catalogs don't record it, so a design gives it, or gives none (below). Standard
   sea-level pressure (101 325 Pa) suits a motor tested near sea level, but it is a guess: for a
   test at 1500 m (4,921 ft) elevation (84.6 kPa in the 1976
-  [standard atmosphere](../glossary.md#standard-atmosphere)), it makes the term 16.8 kPa × `A_e`
+  [standard atmosphere](../glossary.md#standard-atmosphere)), it makes the term 16.8 kPa × $A_e$
   too large at every altitude.
 - It holds while the exhaust fills the nozzle to its exit. A nozzle made for high altitude, tested
   at sea level, can have its flow come away from the nozzle wall (separate), and then it doesn't
   ([SP] pp. 32–34).
-- HPR Sim applies it strictly inside the burn, `0 < t < t_end` (`t_end` the curve's last time), as
+- HPR Sim applies it strictly inside the burn, $0 < t < t_{\mathrm{end}}$ ($t_{\mathrm{end}}$ the curve's last time), as
   RocketPy's flight does ([`simulation/flight.py:1936-1956`][rp-flight]), but only where the
   curve's thrust is positive (RocketPy also adds it inside zero-thrust gaps, where nothing flows),
   and never lets thrust go negative. Without a known nozzle it returns the curve. Commercial motor
@@ -525,7 +569,7 @@ F(p_a) = F_curve + (p_ref − p_a) A_e,    A_e = π r_e²
   leaving it out is an error rather than a silent choice. The unit test
   `hpr_motor::motor::tests::pressure_correction_uses_the_exit_area` pins both forms and the
   missing key.
-- **Limits.** The full-flow term steps in just after ignition and steps to zero at `t_end` (the
+- **Limits.** The full-flow term steps in just after ignition and steps to zero at $t_{\mathrm{end}}$ (the
   integrator should treat both as [events](../glossary.md#event)). In the ignition transient (the
   first moments, while the pressure inside the motor builds) and the tail-off (the end of the
   burn, while it falls), the real exit pressure is far from its full-flow value, so the term
@@ -609,7 +653,7 @@ The tests that pin the motor model, and the whole example program.
   writes
   [`validation/fixtures/motor/rocketpy-solid-motor.json`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/validation/fixtures/motor/rocketpy-solid-motor.json),
   and regenerates it byte for byte.
-  - On 203 times per motor, total mass, `I_t` and `I_a` agree with RocketPy within 7.9e-5 of
+  - On 203 times per motor, total mass, $I_t$ and $I_a$ agree with RocketPy within 7.9e-5 of
     RocketPy's own values, and the center of mass within 5.8e-6 of the motor length.
   - Quantities that go to zero are compared against a fixed scale: propellant mass and inertias
     against their ignition values, grain height against its initial height, centers against the
@@ -622,7 +666,7 @@ The tests that pin the motor model, and the whole example program.
   ([`.rse` files](../format/rse.md#checked-against-real-files)).
 - **Unit and property tests** (property tests check a rule on many random inputs): exact impulse
   integration, burn windows, grain volume inversion, the parallel-axis theorem, and the
-  impulse-fraction flow integrating to `m_p0`.
+  impulse-fraction flow integrating to $m_{p0}$.
 
 ### The example program
 

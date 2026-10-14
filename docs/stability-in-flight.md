@@ -33,14 +33,16 @@ the rocket further off, and it tumbles.
 The [stability margin](glossary.md#stability-margin) is the distance from the CG back to the CP,
 in body diameters, called [calibers](glossary.md#caliber). Each part of the rocket pushes on its
 own: the nose near the front, the fins at the back. The CP is the average of the parts' stations,
-each weighted by how hard that part pushes per unit of angle, its normal-force slope `C_Nα`:
+each weighted by how hard that part pushes per unit of angle, its normal-force slope $C_{N\alpha}$:
 
-```text
-x_CP   = Σ (C_Nα,i · x_i) / Σ C_Nα,i
-margin = (x_CP − x_CG) / d
-```
+$$
+\begin{aligned}
+x_{\mathrm{CP}} &= \frac{\sum_i C_{N\alpha,i}\, x_i}{\sum_i C_{N\alpha,i}}, \\
+\mathrm{margin} &= \frac{x_{\mathrm{CP}} - x_{\mathrm{CG}}}{d}
+\end{aligned}
+$$
 
-with `x_i` each part's own center of pressure, measured back from the nose tip, and `d` the
+with $x_i$ each part's own center of pressure, measured back from the nose tip, and $d$ the
 body's diameter. So anything that makes one part push harder than the others moves the CP toward
 that part, and so does anything that moves a part's own center of pressure. The margin HPR Sim
 prints as `static margin` is the one this gives at low speed, with the air straight along the

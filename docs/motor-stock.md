@@ -83,7 +83,7 @@ motor several times, for different delays or pack sizes. Each motor in stock als
 cheapest offer, by the price of one motor.
 
 Prices are whole cents. The price of one motor is the sticker price over the pack size, to the
-nearest cent: a $38.49 two-pack is $19.25 a motor (the 263 of the 3,685 listings that fall on a
+nearest cent: a \$38.49 two-pack is \$19.25 a motor (the 263 of the 3,685 listings that fall on a
 half cent all round up).
 
 ### What the simulator refuses
@@ -250,8 +250,8 @@ CI checks that it still prints this (`cargo xtask examples --check`). The first 
 the site asks for, with its caution; show it wherever a price or stock is shown. `Fetched` and
 `Stale` say where an answer came from
 ([how long a copy stays fresh](online-data.md#how-long-a-copy-stays-fresh)). `vendors` is how many
-vendors had the motor in stock. On that morning no L motor in stock cost $150 or less: the
-cheapest was $260.99.
+vendors had the motor in stock. On that morning no L motor in stock cost \$150 or less: the
+cheapest was \$260.99.
 
 The last lines come from ThrustCurve.org, under its own credit line, except the records: the 297
 are the stand-in searches ([above](#matching-motors-to-thrustcurveorg)), so the count is theirs,

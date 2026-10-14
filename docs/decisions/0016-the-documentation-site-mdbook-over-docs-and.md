@@ -1,6 +1,6 @@
 # ADR-016: The documentation site: mdBook over `docs/`, and checks for links, labels and equations (2026-09-18)
 
-- **Status:** accepted
+- **Status:** accepted; its rule that equations are written in Unicode is superseded by [ADR-263](0263-typeset-equations.md), which typesets them
 - **Summary:** The documentation site: mdBook over `docs/`, and checks for links, labels and equations
 
 **Context.** M0.4 asks for one searchable site that a hobby rocketeer can read (VISION V15, and the

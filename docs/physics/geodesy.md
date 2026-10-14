@@ -47,66 +47,98 @@ and the local axes.
 
 ### WGS 84 ellipsoid
 
-- **Defining parameters ([NGA] Table 3.1):** `a = 6378137.0 m` and `1/f = 298.257223563`.
-- **Derived values:** `b = a(1 − f)`, `e² = f(2 − f)` and `E = a e`.
+- **Defining parameters ([NGA] Table 3.1):** $a = 6378137.0\,\mathrm{m}$ and $1/f = 298.257223563$.
+- **Derived values:** $b = a(1 - f)$, $e^2 = f(2 - f)$ and $E = a e$.
 - **Check:** these reproduce [NGA] Table 3.5 to its printed digits
   (`wgs84_derived_geometry_matches_table_3_5`):
 
   | quantity | value |
   |---|--:|
-  | `b` | 6356752.3142 m (20,855,486.595 ft) |
-  | `e²` | 6.694379990141e-3 |
-  | `E` | 5.2185400842339e5 m |
+  | $b$ | 6356752.3142 m (20,855,486.595 ft) |
+  | $e^2$ | 6.694379990141e-3 |
+  | $E$ | 5.2185400842339e5 m |
 
 ### Geodetic to ECEF ([NGA] eqs. 4-14, 4-15)
 
-```text
-N = a / √(1 − e² sin²φ)
-X = (N + h) cos φ cos λ,   Y = (N + h) cos φ sin λ,   Z = ((b²/a²) N + h) sin φ
-```
+$$
+\begin{aligned}
+N &= \frac{a}{\sqrt{1 - e^2 \sin^2\varphi}}, \\
+X &= (N + h) \cos\varphi \cos\lambda, \\
+Y &= (N + h) \cos\varphi \sin\lambda, \\
+Z &= \left(\frac{b^2}{a^2} N + h\right) \sin\varphi
+\end{aligned}
+$$
 
-The code writes `b²/a²` as `1 − e²`.
+The code writes $b^2/a^2$ as $1 - e^2$.
 
 ### ECEF to geodetic ([Karney] appendix B)
 
 This is Vermeille's closed form, which Karney extended to cover points near the Earth's center.
 
-**Setup.** Let `R = √(X² + Y²)`, `x = R/a` and `y = √(1 − e²) Z/a`. The geodetic latitude
-follows from the largest real root `κ` of
+**Setup.** Let $R = \sqrt{X^2 + Y^2}$, $x = R/a$ and $y = \sqrt{1 - e^2}\, Z/a$. The geodetic latitude
+follows from the largest real root $\kappa$ of (B1):
 
-```text
-κ⁴ + 2e²κ³ − (x² + y² − e⁴)κ² − 2e²y²κ − e⁴y² = 0                          (B1)
-```
+$$
+\begin{aligned}
+&\kappa^4 + 2e^2\kappa^3 - (x^2 + y^2 - e^4)\,\kappa^2 \\
+&\quad - 2e^2 y^2 \kappa - e^4 y^2 = 0
+\end{aligned}
+$$
 
-**Solving for `u`.**
+**Solving for $u$.**
 
-```text
-r = (x² + y² − e⁴)/6,   S = e⁴x²y²/4,   d = S(S + 2r³)
-d ≥ 0:  T = (S + r³ ± √d)^(1/3), sign of √d = sign of S + r³, real cube root
-        u = r + T + r²/T   (u = 0 if T = 0)
-d < 0:  ψ = ph(−S − r³ + i√(−d)),   u = r(1 + 2 cos(ψ/3))
-```
+$$
+\begin{aligned}
+r &= \frac{x^2 + y^2 - e^4}{6}, \\
+S &= \frac{e^4 x^2 y^2}{4}, \\
+d &= S\,(S + 2r^3)
+\end{aligned}
+$$
 
-**Solving for `κ`.**
+If $d \ge 0$, with $T$ the real cube root and $\sqrt{d}$ given the sign of $S + r^3$
+($u = 0$ if $T = 0$):
 
-```text
-v = √(u² + e⁴y²)
-v + u = e⁴y²/(v − u) when u < 0   (avoids cancellation)
-w = ((v + u) − y²) e²/(2v)
-κ = (v + u) / (√((v + u) + w²) + w)                                          (B5)
-```
+$$
+\begin{aligned}
+T &= \left(S + r^3 \pm \sqrt{d}\right)^{1/3}, \\
+u &= r + T + \frac{r^2}{T}
+\end{aligned}
+$$
 
-**Latitude, height and longitude.**
+If $d < 0$:
 
-```text
-φ = ph(R/(κ + e²) + iZ/κ)                                                    (B2)
-h = (1 − (1 − e²)/κ) √(D² + Z²),   D = κR/(κ + e²)                            (B3)
-λ = ph(X + iY)
-```
+$$
+\begin{aligned}
+\psi &= \operatorname{ph}\left(-S - r^3 + i\sqrt{-d}\right), \\
+u &= r\left(1 + 2\cos\frac{\psi}{3}\right)
+\end{aligned}
+$$
 
-`ph` is the argument, computed with `atan2`; `λ = 0` on the axis.
+**Solving for $\kappa$.** The last line is (B5); when $u < 0$, the code takes
+$v + u = e^4y^2/(v - u)$, which avoids cancellation.
 
-The closed form fails only in the equatorial plane within `a e²` (42.7 km (27 mi)) of the center. There
+$$
+\begin{aligned}
+v &= \sqrt{u^2 + e^4 y^2}, \\
+w &= \frac{\left((v + u) - y^2\right) e^2}{2v}, \\
+\kappa &= \frac{v + u}{\sqrt{(v + u) + w^2} + w}
+\end{aligned}
+$$
+
+**Latitude, height and longitude.** The first line is (B2); the next two are (B3).
+
+$$
+\begin{aligned}
+\varphi &= \operatorname{ph}\left(\frac{R}{\kappa + e^2} + \frac{iZ}{\kappa}\right), \\
+h &= \left(1 - \frac{1 - e^2}{\kappa}\right) \sqrt{D^2 + Z^2}, \\
+D &= \frac{\kappa R}{\kappa + e^2}, \\
+\lambda &= \operatorname{ph}(X + iY)
+\end{aligned}
+$$
+
+$\operatorname{ph}$ is the argument, computed with `atan2`; $\lambda = 0$ on the axis.
+
+The closed form fails only in the equatorial plane within $a e^2$ (42.7 km (27 mi)) of the center. There
 the paper needs its limiting forms (B6)–(B7); the code returns `CoreError::Domain` instead.
 
 **Measured accuracy** (property tests, 256 cases each per run):
@@ -117,8 +149,8 @@ the paper needs its limiting forms (B6)–(B7); the code returns `CoreError::Dom
 
 ### Local ENU axes
 
-`ecef_from_enu_rotation(φ, λ)` has columns `ê`, `n̂` and `û` ([Frames](frames.md)). A test checks that `û`
-equals the normalized gradient of `x²/a² + y²/a² + z²/b²` at the foot point, i.e. the ellipsoid
+`ecef_from_enu_rotation(φ, λ)` has columns $\hat{\mathbf{e}}$, $\hat{\mathbf{n}}$ and $\hat{\mathbf{u}}$ ([Frames](frames.md)). A test checks that $\hat{\mathbf{u}}$
+equals the normalized gradient of $x^2/a^2 + y^2/a^2 + z^2/b^2$ at the foot point, i.e. the ellipsoid
 normal.
 
 ## Distance and bearing: geodesics
@@ -130,22 +162,22 @@ ellipsoid's surface. Its length is the distance, and its direction where it leav
 words mean the same. `hpr_core::geodesic` solves the two classic problems
 ([API reference](https://hpr.fusionspace.co/api/hpr_core/geodesic/index.html)):
 
-- **Inverse** (`Ellipsoid::geodesic_inverse`): from two places, the distance `s₁₂` and the
-  azimuths `α₁` (leaving the first) and `α₂` (arriving at the second).
-- **Direct** (`Ellipsoid::geodesic_direct`): from a place, a bearing `α₁` and a distance, the
-  latitude and longitude you reach and the azimuth `α₂` there.
+- **Inverse** (`Ellipsoid::geodesic_inverse`): from two places, the distance $s_{12}$ and the
+  azimuths $\alpha_1$ (leaving the first) and $\alpha_2$ (arriving at the second).
+- **Direct** (`Ellipsoid::geodesic_direct`): from a place, a bearing $\alpha_1$ and a distance, the
+  latitude and longitude you reach and the azimuth $\alpha_2$ there.
 
-Azimuths are clockwise from true north, in radians from −π to π, so due west is −π/2. For the 0°
-to 360° a compass uses, take `.to_degrees().rem_euclid(360.0)`. `α₂` is the direction of travel
-on arrival, so the bearing back to the start is `α₂ ± π`; over a long path it differs from
-`α₁ ± π` because meridians converge. Heights are ignored: the path runs on the ellipsoid's
+Azimuths are clockwise from true north, in radians from $-\pi$ to $\pi$, so due west is $-\pi/2$. For the 0°
+to 360° a compass uses, take `.to_degrees().rem_euclid(360.0)`. $\alpha_2$ is the direction of travel
+on arrival, so the bearing back to the start is $\alpha_2 \pm \pi$; over a long path it differs from
+$\alpha_1 \pm \pi$ because meridians converge. Heights are ignored: the path runs on the ellipsoid's
 surface, and the direct problem's end has no height until you give it one.
 
 **Method.** The code is Karney's GeographicLib, as georust's `geographiclib-rs` 0.2.7 (MIT) ports
 it. The simulator uses the crate rather than a port of its own, so the code is Karney's line for
 line ([ADR-127 decision record][adr-127]). [Karney2013] maps the ellipsoid onto an auxiliary sphere,
 where a geodesic is a great circle (the sphere's shortest path), and corrects distance and
-longitude with series in the flattening to sixth order (§2). The inverse finds `α₁` by Newton's
+longitude with series in the flattening to sixth order (§2). The inverse finds $\alpha_1$ by Newton's
 method (§4), from a starting guess (§5). Karney states that round-off stays under 15 nm in both
 problems on WGS 84 (§7, page 10), and that up to a flattening of 1/150 the series' truncation is
 smaller still (page 9). Past 1/150 the series lose accuracy, so the simulator refuses such an
@@ -157,9 +189,9 @@ its inverse sometimes fails to converge (§7).
 
 | quantity | value |
 |---|--:|
-| distance `s₁₂` | 1,249.614 m (4,099.78 ft) |
-| bearing from the pad `α₁` | 31.567° |
-| azimuth on arrival `α₂` | 31.571° |
+| distance $s_{12}$ | 1,249.614 m (4,099.78 ft) |
+| bearing from the pad $\alpha_1$ | 31.567° |
+| azimuth on arrival $\alpha_2$ | 31.571° |
 
 The other way round, 2 km (1.2 mi) from the same pad on a bearing of 60° reaches 32.999415° N,
 106.956466° W, heading 60.010°. At this range a flat map gives the same distance, if it uses
@@ -179,22 +211,22 @@ ways and measures five errors, each held to Karney's 15 nm on every line:
 
 | error | what it is | largest |
 |---|---|---|
-| inverse distance | the computed `s₁₂` against the set's | 11.18 nm |
-| inverse landing | solve the direct problem with the inverse's own `α₁` and `s₁₂`, and measure how far it lands from the second place | 11.26 nm |
-| inverse azimuths × `m₁₂` | each azimuth's error times the *reduced length* `m₁₂`, how far the far end moves sideways per radian the start's bearing turns: the sideways miss the error stands for | 8.49 nm |
+| inverse distance | the computed $s_{12}$ against the set's | 11.18 nm |
+| inverse landing | solve the direct problem with the inverse's own $\alpha_1$ and $s_{12}$, and measure how far it lands from the second place | 11.26 nm |
+| inverse azimuths × $m_{12}$ | each azimuth's error times the *reduced length* $m_{12}$, how far the far end moves sideways per radian the start's bearing turns: the sideways miss the error stands for | 8.49 nm |
 | direct end point | the computed end against the set's, in Earth-centered coordinates | 14.02 nm |
-| direct heading × `a` | the angle between the computed and the set's direction of travel at the end, as directions in space, times the Earth's radius `a` | 13.99 nm |
+| direct heading × $a$ | the angle between the computed and the set's direction of travel at the end, as directions in space, times the Earth's radius $a$ | 13.99 nm |
 
-The inverse's azimuths can't be checked on the 50,000 "between vertices" lines: there `m₁₂` is
+The inverse's azimuths can't be checked on the 50,000 "between vertices" lines: there $m_{12}$ is
 at most 1e-13 m, so any azimuth error reads as no miss. Their distance and landing are checked.
 
 **Mirror lines: two paths of the same length.** When the second place's latitude is exactly the
-first's negated (`φ₂ = −φ₁`) and the two azimuths differ (`α₁ ≠ α₂`), two geodesics of the same
-length join the places, one the mirror of the other, and the second has `α₁` and `α₂` swapped
+first's negated ($\varphi_2 = -\varphi_1$) and the two azimuths differ ($\alpha_1 \ne \alpha_2$), two geodesics of the same
+length join the places, one the mirror of the other, and the second has $\alpha_1$ and $\alpha_2$ swapped
 (GeographicLib's `GeodSolve` manual, *Multiple solutions*). Either answer is right. Where
-`α₁ = α₂`, as on the between-vertices lines, the geodesic is unique. The set has 21 mirror lines
+$\alpha_1 = \alpha_2$, as on the between-vertices lines, the geodesic is unique. The set has 21 mirror lines
 once its numbers are read as `f64` (the 64-bit floating-point numbers the simulator computes in).
-They are all nearly antipodal, with `m₁₂` under a centimeter, so their azimuths are nearly
+They are all nearly antipodal, with $m_{12}$ under a centimeter, so their azimuths are nearly
 undetermined. On these lines the test scores the simulator's answer against whichever pair it is
 nearer to, and that error is within 15 nm on all 21; on 4 the nearer pair is the swapped one.
 

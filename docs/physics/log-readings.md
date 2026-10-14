@@ -55,37 +55,42 @@ swing, and each reading has a rule that says when the log can't support it.
 
 ### The running median
 
-The running median replaces each sample with the median of the samples within `K` places of it,
-the window cut short at either end of the log. The code sets `K` from the log's own sample interval
-`Δt` so that the window spans 0.3 s: at a PerfectFlite's 20 samples a second, `K = 3`, seven
+The running median replaces each sample with the median of the samples within $K$ places of it,
+the window cut short at either end of the log. The code sets $K$ from the log's own sample interval
+$\Delta t$ so that the window spans 0.3 s: at a PerfectFlite's 20 samples a second, $K = 3$, seven
 samples.
 
-Pearson and colleagues define the Hampel filter by the window's median `m_k` and its scale
-`S_k = 1.4826 × median |x_(k−j) − m_k|`: a sample more than `t·S_k` from `m_k` is replaced by `m_k`.
-At `t = 0` every sample is replaced, and the filter is the running median (§2, eqs. 1 and 2).
+Pearson and colleagues define the Hampel filter by the window's median $m_k$ and its scale
+
+$$
+S_k = 1.4826 \times \operatorname{median} \lvert x_{k-j} - m_k \rvert
+$$
+
+A sample more than $t \cdot S_k$ from $m_k$ is replaced by $m_k$.
+At $t = 0$ every sample is replaced, and the filter is the running median (§2, eqs. 1 and 2).
 
 Two properties make it the right tool here:
 
-- **It removes any pulse up to `K` samples wide.** Such a pulse holds at most `K` of the window's
-  `2K + 1` samples, so the median is never one of them. On the public log below, the ejection
+- **It removes any pulse up to $K$ samples wide.** Such a pulse holds at most $K$ of the window's
+  $2K + 1$ samples, so the median is never one of them. On the public log below, the ejection
   pulse's high side is two samples wide.
 - **It reads a clean peak a little low, and never high.** At 20 samples a second, the apogee of a
   noise-free trace reads at most **0.077 m (0.25 ft)** low. The steps behind that number:
-  1. At the highest sample, `K + 1` of the window's `2K + 1` samples lie within `⌈K/2⌉` places of
-     it (`⌈K/2⌉` is `K/2` rounded up). So the median is no lower than the altitude that far away.
+  1. At the highest sample, $K + 1$ of the window's $2K + 1$ samples lie within $\lceil K/2 \rceil$ places of
+     it ($\lceil K/2 \rceil$ is $K/2$ rounded up). So the median is no lower than the altitude that far away.
   2. The true peak lies within half a sample of the highest sample, so that altitude is at most
-     `(⌈K/2⌉ + ½) Δt` from the true peak in time.
+     $(\lceil K/2 \rceil + \tfrac12)\, \Delta t$ from the true peak in time.
   3. At apogee the vertical speed is zero, so drag has no vertical part and only gravity curves
-     the path. In that time the height falls at most `g ((⌈K/2⌉ + ½) Δt)² / 2`.
-  4. With `K = 3` and `Δt = 0.05 s`: 9.80665 × 0.125² / 2 = 0.077 m.
+     the path. In that time the height falls at most $g\, ((\lceil K/2 \rceil + \tfrac12)\, \Delta t)^2/2$.
+  4. With $K = 3$ and $\Delta t = 0.05\,\mathrm{s}$: $9.80665 \times 0.125^2/2 = 0.077\,\mathrm{m}$.
 
-  A property test checks this for every `K` from 1 to 6 and every place the peak can fall between
+  A property test checks this for every $K$ from 1 to 6 and every place the peak can fall between
   samples.
 
-Debrief uses the Hampel filter at `t = 4` over the same window. FusionSpace HPR doesn't, because of
+Debrief uses the Hampel filter at $t = 4$ over the same window. FusionSpace HPR doesn't, because of
 what the public Pnut log shows. Around its ejection pulse the trace dips below itself just before
 the pulse and stays lower after it. Those samples sit in the pulse's own window and widen its scale
-`S_k`, and the Hampel filter keeps the pulse: its highest value is the pulse's 1,028 ft, against
+$S_k$, and the Hampel filter keeps the pulse: its highest value is the pulse's 1,028 ft, against
 the 1,009 ft the altimeter states. After the running median, the apogee reads 1,010 ft. The
 invented flight below repeats that shape, so the tests show the difference where anyone can run
 them.
@@ -119,7 +124,7 @@ Splitting it into each leg's own rate is [M7.2](../decisions-and-roadmap.md#m7-2
 
 The top acceleration is withheld rather than worked out from the altitude. Differencing twice
 turns the altitude's one-foot steps into spikes: at 20 samples a second, one step differenced
-twice is 0.3048 / 0.05² = 122 m/s², over 12 g.
+twice is $0.3048/0.05^2 = 122\,\mathrm{m/s^2}$, over 12 g.
 
 ### When a reading is withheld
 
@@ -134,7 +139,7 @@ time.
 | `no_climb` | the filtered altitude never climbs 3 m (9.8 ft) above where the log starts | all |
 | `starts_off_the_pad` | the pad is more than 3 m (9.8 ft) from the logger's zero | liftoff, and so the top speed and landing |
 | `ends_before_landing` | the log ends before the altitude comes within 2 m (6.6 ft) of the pad and stays under 5 m (16 ft) for a second | landing |
-| `faster_than_free_fall` | the altitude comes down to the landing sample sooner after apogee than a fall from rest in vacuum could lose that height, `√(2h/g)`, allowing one step of the altitude's rounding in `h` and a sample for the apogee's time | landing |
+| `faster_than_free_fall` | the altitude comes down to the landing sample sooner after apogee than a fall from rest in vacuum could lose that height, $\sqrt{2h/g}$, allowing one step of the altitude's rounding in $h$ and a sample for the apogee's time | landing |
 | `no_speed_column` | the log has no speed column | the top speed |
 | `implausible_speed` | the speed column peaks above 4,000 m/s (13,123 ft/s), Debrief's ceiling | the top speed |
 | `noisy_speed` | from liftoff to apogee the speed swings below zero by more than 20% of its top | the top speed |
@@ -248,7 +253,7 @@ The tests that pin the readings, and the sources they follow.
   foot and its liftoff between samples, and one at 1.3 g is refused. A clock too fine for the
   window is refused at its edge. A jitter in the first samples leaves the pad where it is, a log that
   starts just before liftoff keeps its pad, and a pad between two feet takes half a foot either
-  way. A property test holds the median's peak bound for every `K` from 1
+  way. A property test holds the median's peak bound for every $K$ from 1
   to 6 and every place the peak can fall between samples.
 - `hpr_flightdata::filter`: a pulse removed, a ramp untouched, the Hampel filter at zero equal to
   the median, and property tests that every output lies within its window and that the sliding

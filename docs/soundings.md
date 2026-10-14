@@ -103,13 +103,13 @@ at 10 km (33,000 ft), and 2.5 m (8.2 ft) at 30 km (98,000 ft); the example's bal
 humidity. The [hypsometric equation](glossary.md#hypsometric-equation) turns that into how thick
 each layer between two pressures must be, in geopotential meters:
 
-```text
-thickness = (R_d T̄_v / g₀) ln(p_bottom / p_top)
-```
+$$
+\text{thickness} = \frac{R_d \bar{T}_v}{g_0} \ln\frac{p_{\mathrm{bottom}}}{p_{\mathrm{top}}}
+$$
 
-Here `p_bottom` and `p_top` are the pressures at the layer's bottom and top, `R_d` is dry air's
-gas constant (287.05 J/(kg·K)), `g₀` standard gravity (9.80665 m/s²) and
-`T̄_v` the mean of the two rows' [virtual temperatures](glossary.md#virtual-temperature): the
+Here $p_{\mathrm{bottom}}$ and $p_{\mathrm{top}}$ are the pressures at the layer's bottom and top, $R_d$ is dry air's
+gas constant (287.05 J/(kg·K)), $g_0$ standard gravity (9.80665 m/s²) and
+$\bar{T}_v$ the mean of the two rows' [virtual temperatures](glossary.md#virtual-temperature): the
 temperature, raised a little for the humidity (WMO-No. 8, eqs. 12.17 and 12.18). In the three
 recorded soundings, across the 13 layers between the standard levels from 850 to 10 hPa, the
 recorded thicknesses match that to 0.01% to 0.03% on average; single layers are off by 0.05% to
@@ -127,7 +127,7 @@ level.
 | | value |
 |---|---|
 | virtual temperatures | 272.24 K and 271.42 K (−1.7 °C and −2.5 °C, 79% and 81% humidity) |
-| `R_d T̄_v / g₀` | 7,956.8 m (26,105 ft) |
+| $R_d \bar{T}_v / g_0$ | 7,956.8 m (26,105 ft) |
 | thickness | 7,956.8 m × ln(557/549) = 115.1 m |
 | recorded | 5,151 m − 5,035 m = 116 m, a miss of 0.9 m (3.0 ft) |
 | allowance | 5% of 115.1 m + 14.4 m (rounding each pressure by 0.5 hPa) + 30 m = 50.1 m |

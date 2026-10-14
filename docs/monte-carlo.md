@@ -112,7 +112,7 @@ How to read it:
   twenty higher than the 95% value. So nine flights in ten reached between about 1,040 m (3,412 ft)
   and 1,200 m (3,937 ft).
 - **The mean is not the nominal flight.** The mean apogee is 6.5 m (21 ft) above the nominal one.
-  With 200 flights the mean itself is uncertain by about 47.4 / √200 = 3.4 m (its
+  With 200 flights the mean itself is uncertain by about $47.4/\sqrt{200} = 3.4$ m (its
   [standard error](glossary.md#standard-error)), so 6.5 m (21 ft) is 1.9 standard errors: chance
   can account for most of it. Part is that the apogee doesn't respond evenly: 5% less drag gains
   29 m (95 ft) and 5% more loses 27 m (89 ft), so an even spread of drag lifts the mean apogee by
@@ -173,15 +173,26 @@ along its long and its short direction.
    round, because the wind's uncertain heading (15°) spreads the landings sideways about as much as
    its uncertain speed (25%) spreads them downwind.
 3. **The size.** If the landings follow a two-dimensional [normal
-   distribution](glossary.md#normal-distribution), the ellipse reaching `k` standard deviations
-   along each axis holds the share `p = 1 − e^(−k²/2)` of them. So the ellipse of level `p` has
-   `k = √(−2 ln(1 − p))`:
+   distribution](glossary.md#normal-distribution), the ellipse reaching $k$ standard deviations
+   along each axis holds the share
 
-   | Level `p` | 50% | 90% | 95% | 99% |
+   $$
+   p = 1 - e^{-k^2/2}
+   $$
+
+   of them. So the ellipse of level $p$ has
+
+   $$
+   k = \sqrt{-2 \ln(1 - p)}
+   $$
+
+
+   | Level $p$ | 50% | 90% | 95% | 99% |
    |---|--:|--:|--:|--:|
-   | Scale `k` | 1.177 | 2.146 | 2.448 | 3.035 |
+   | Scale $k$ | 1.177 | 2.146 | 2.448 | 3.035 |
 
-   The 95% ellipse's semi-axes are 2.448 × 214.6 m = 525 m and 2.448 × 203.0 m = 497 m.
+   The 95% ellipse's semi-axes are $2.448 \times 214.6\,\mathrm{m} = 525\,\mathrm{m}$ and
+   $2.448 \times 203.0\,\mathrm{m} = 497\,\mathrm{m}$.
 
 In two dimensions it takes more standard deviations to hold 95% than in one (2.448 against 1.960),
 because a landing can stray in two directions at once.
@@ -193,15 +204,21 @@ then reports 90°, east.
 
 **The next flight.** The mean and covariance of 200 flights are only estimates, so an ellipse
 drawn from them holds a little less than its level of the flights still to come. For normal
-landings [`Scatter::prediction_ellipse`] allows for that exactly. Its `k` comes from Hotelling's
-`T²` distribution, the one that accounts for the mean and the spread both being estimated from the
-same flights: `k² = ((n² − 1)/n)((1 − p)^(−2/(n − 2)) − 1)` for `n` landings. With
+landings [`Scatter::prediction_ellipse`] allows for that exactly. Its $k$ comes from Hotelling's
+$T^2$ distribution, the one that accounts for the mean and the spread both being estimated from the
+same flights, for $n$ landings:
+
+$$
+k^2 = \frac{n^2 - 1}{n}\left[(1 - p)^{-2/(n - 2)} - 1\right]
+$$
+
+With
 200 landings its axes are 1.3% longer, 532 m (1,745 ft) against 525 m (1,722 ft); with 10 they would
 be 36% longer. Use it to answer "will my next flight land in the field?".
 
 **Landings inside** counts the run's landings each ellipse really holds
 ([`Scatter::share_inside`]). Here they are 48.0%, 94.5% and 95.5%. Those are within the
-[standard error](glossary.md#standard-error) of a share `p` from a run of 200, `√(p(1 − p)/200)`:
+[standard error](glossary.md#standard-error) of a share $p$ from a run of 200, $\sqrt{p(1 - p)/200}$:
 about 3.5 percentage points at 50%, 1.5 at 95%. So the landings are consistent with a normal
 spread, though that doesn't prove it. With few landings the shares run high, because the ellipse is fitted to the
 same points: with three landings, even the 50% ellipse holds all three. If the share is far from
@@ -230,29 +247,29 @@ for the lower bound and inside for the upper ([Failed flights are counted](#fail
 ## What each dispersion does
 
 Each dispersion is a standard deviation: zero, the default, leaves its input at the nominal value.
-For each flight the simulator draws a standard normal number `z` (mean 0, standard deviation 1) for
-each input and moves the input by `σ z`, with `σ` the standard deviation you gave. A rocket built of
+For each flight the simulator draws a standard normal number $z$ (mean 0, standard deviation 1) for
+each input and moves the input by $\sigma z$, with $\sigma$ the standard deviation you gave. A rocket built of
 more than one stage gets a draw for each stage, whether its stages fly together or separate; each
 motor and each parachute gets its own draw too.
 
 | Field | What each flight flies |
 |---|---|
-| `dry_mass_sd_fraction` | Each stage's mass without motors times `1 + σ z`. Its moments of inertia scale with it. |
-| `cg_sd_m` | Each stage's [center of mass](glossary.md#center-of-gravity-cg) moved `σ z` meters towards the tail (towards the nose when negative). |
-| `drag_sd_fraction` | The rocket's zero-lift [drag coefficient](glossary.md#drag-coefficient) times `1 + σ z`, whether HPR Sim's own, a drag table's or a [drag model's](custom-models.md). |
-| `impulse_sd_fraction` | Each motor's thrust and propellant mass, both times `1 + σ z`. Its [total impulse](glossary.md#total-impulse) changes and its specific impulse doesn't, as for a motor that holds a little more or less of the same propellant. |
-| `burn_time_sd_fraction` | Each motor's thrust curve stretched in time by `1 + σ z` and its thrust divided by the same: a longer, softer burn of the same impulse. |
-| `ejection_delay_sd_s` | Each motor's [ejection delay](glossary.md#ejection-delay) plus `σ z` seconds, never below zero. |
-| `wind_speed_sd_fraction` | The wind at every height times `1 + σ z`, never below calm. A calm forecast stays calm. |
-| `wind_heading_sd_rad` | The wind at every height turned `σ z` clockwise: the forecast's direction, give or take. |
-| `rail_elevation_sd_rad` | The rail's angle above the horizon plus `σ z`. Past vertical, it leans the other way. |
-| `rail_azimuth_sd_rad` | The rail's heading plus `σ z`, clockwise. |
-| `deployment_lag_sd_s` | Each recovery device's lag after its trigger plus `σ z` seconds, never below zero. A part's [tumble](glossary.md#tumble-recovery), which the simulator adds to a separated part with no device open, starts at the split and has no lag to scatter. |
+| `dry_mass_sd_fraction` | Each stage's mass without motors times $1 + \sigma z$. Its moments of inertia scale with it. |
+| `cg_sd_m` | Each stage's [center of mass](glossary.md#center-of-gravity-cg) moved $\sigma z$ meters towards the tail (towards the nose when negative). |
+| `drag_sd_fraction` | The rocket's zero-lift [drag coefficient](glossary.md#drag-coefficient) times $1 + \sigma z$, whether HPR Sim's own, a drag table's or a [drag model's](custom-models.md). |
+| `impulse_sd_fraction` | Each motor's thrust and propellant mass, both times $1 + \sigma z$. Its [total impulse](glossary.md#total-impulse) changes and its specific impulse doesn't, as for a motor that holds a little more or less of the same propellant. |
+| `burn_time_sd_fraction` | Each motor's thrust curve stretched in time by $1 + \sigma z$ and its thrust divided by the same: a longer, softer burn of the same impulse. |
+| `ejection_delay_sd_s` | Each motor's [ejection delay](glossary.md#ejection-delay) plus $\sigma z$ seconds, never below zero. |
+| `wind_speed_sd_fraction` | The wind at every height times $1 + \sigma z$, never below calm. A calm forecast stays calm. |
+| `wind_heading_sd_rad` | The wind at every height turned $\sigma z$ clockwise: the forecast's direction, give or take. |
+| `rail_elevation_sd_rad` | The rail's angle above the horizon plus $\sigma z$. Past vertical, it leans the other way. |
+| `rail_azimuth_sd_rad` | The rail's heading plus $\sigma z$, clockwise. |
+| `deployment_lag_sd_s` | Each recovery device's lag after its trigger plus $\sigma z$ seconds, never below zero. A part's [tumble](glossary.md#tumble-recovery), which the simulator adds to a separated part with no device open, starts at the split and has no lag to scatter. |
 
 Four cases need a word:
 
 - **A draw that makes an input impossible fails that flight.** With a 60% mass spread, a draw of
-  `z` below −1.67 gives a negative mass; a rail drawn below the horizon is another. That flight is
+  $z$ below −1.67 gives a negative mass; a rail drawn below the horizon is another. That flight is
   kept in the run as failed, with its reason, and counted (next section). The two delays and the
   wind's speed are the exceptions: a charge can't fire before its event and a wind can't blow at
   less than calm, so a draw below zero is flown as zero.

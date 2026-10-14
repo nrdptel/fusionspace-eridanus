@@ -24,18 +24,20 @@ the guides in *Rocketry explained*, which explain the physics behind the numbers
 ## What drag is made of
 
 Drag is the air holding a rocket back along its path. It grows with the
-[dynamic pressure](glossary.md#dynamic-pressure) `q`, at low speed the pressure the oncoming air
+[dynamic pressure](glossary.md#dynamic-pressure) $q$, at low speed the pressure the oncoming air
 would exert if it were brought to rest, which grows with the air's density and the square of the speed. A
 simulator turns it into a force with the rocket's
-[drag coefficient](glossary.md#drag-coefficient) `C_D` and its
-[reference area](glossary.md#reference-area) `A`, the body's cross-section:
+[drag coefficient](glossary.md#drag-coefficient) $C_D$ and its
+[reference area](glossary.md#reference-area) $A$, the body's cross-section:
 
-```text
-q = ½ ρ v²
-D = q · C_D · A
-```
+$$
+\begin{aligned}
+q &= \tfrac12 \rho v^2, \\
+D &= q\, C_D A
+\end{aligned}
+$$
 
-with `ρ` the air's density and `v` the airspeed. The drag coefficient is how draggy the shape is,
+with $\rho$ the air's density and $v$ the airspeed. The drag coefficient is how draggy the shape is,
 whatever its size; it changes with speed, given here as a [Mach number](glossary.md#mach-number),
 the airspeed over the speed of sound. It is the sum of three parts:
 

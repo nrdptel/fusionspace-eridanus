@@ -543,7 +543,7 @@ sample logs:
     LSM9DS1's gyroscope sensitivities.
   - *Heights and speed, in meters and m/s:* `pos_z`, the board's filtered altitude above the pad
     and the record's altitude, and the other heights must climb within 25% of the pressure's
-    climb and within a factor of 1.8 of the accelerometer's (1.8² is 3.24, under the 3.28 between
+    climb and within a factor of 1.8 of the accelerometer's ($1.8^2$ is 3.24, under the 3.28 between
     meters and feet). `vel_z` must match `pos_z`'s rate and the accelerometer's speed. A GPS
     may write 0, or hold an old value, until its first fix, so `gps_alt` is checked only at its
     fresh fixes (a new value other than 0), each check a line fitted with its own offset, so that
@@ -603,7 +603,7 @@ sample logs:
   - *Rates of turn, in rad/s:* by the board's turning against the accelerometer's, and by its
     tilt from vertical, which can change no faster than the board turns. Read so in 3; kept as
     written in 1, whose accelerometer isn't read.
-  - *Positions, in degrees:* most fixes pass ±π/2 or ±π, which radians can't, and most have a
+  - *Positions, in degrees:* most fixes pass $\pm\pi/2$ or $\pm\pi$, which radians can't, and most have a
     fraction of a degree of 0.6 or more, which degrees and minutes run together can't; one stray
     fix decides nothing.
   - *Clock:* the board's `time_stamp_ms`, in milliseconds by its name, must advance 0.8 to
@@ -631,13 +631,13 @@ sample logs:
     1,100 hPa.
   - *Barometric altitude, the record's altitude, in meters:* it must be the pressure altitude of
     `hPa` in the standard atmosphere, which in feet would be 3.28 times as large. And in the
-    coast before apogee it must slow at 0.7 g to 0.7 × 3.28 g, as gravity and drag slow a coasting
+    coast before apogee it must slow at 0.7 g to $0.7 \times 3.28$ g, as gravity and drag slow a coasting
     rocket by at least 1 g, which an altitude written in feet can't. Read so in 7 of the 8 newer
     files. The barometric speeds are read in m/s by the altitude's rate and the same coast.
   - *Accelerations, in g:* the pad reads 1, and the boost's integral matches the barometric climb
     rate. The older files have no barometer for the second check, so their accelerations are
     kept as written: read in g in 6 files, kept in 21.
-  - *Attitude, in radians:* each angle by its range (within ±π, the pitch ±π/2), and by its
+  - *Attitude, in radians:* each angle by its range (within $\pm\pi$, the pitch $\pm\pi/2$), and by its
     direction against a sensor that needs no unit, on rows where the phone is still: the pitch
     and roll against gravity's direction in the accelerometer, the yaw against magnetic north in
     the magnetometer, as Android's `SensorManager.getOrientation` defines the three. Read so: the
@@ -645,18 +645,18 @@ sample logs:
     doesn't follow the magnetometer, so it is kept as written).
   - *Rates of turn, in rad/s:* the gyroscope by the attitude's turn, where all three angles are
     read, and by a full scale a phone's gyroscope offers. Read so in 7 files, kept as written in 20.
-  - *Heading, in degrees:* by its range (0 to 360, some reading past 2π) and by its period:
+  - *Heading, in degrees:* by its range (0 to 360, some reading past $2\pi$) and by its period:
     crossing north it jumps by 360 less its turn, where gradians would jump by 400 less it.
   - *Position, in degrees:* the latitude and longitude together, both or neither, by the
-    latitude's largest reading (past π/2, within 90) and the longitude's (past π, within 180).
+    latitude's largest reading (past $\pi/2$, within 90) and the longitude's (past $\pi$, within 180).
     That rules out radians, scaled integers and NMEA's degrees and minutes run together, the last
     for any site on land. No range can tell degrees from gradians (0.9°); degrees are taken as
     phones' location services give them.
   - *Time stamp:* a Unix time in milliseconds, its steps the clock's and its date in this century.
   - *GPS altitude, kept as written in all 27:* only one check reaches it, its gain against the
     pressure altitude. Fixes once a second can't show the coast. On the pad, the weather on record
-    moves a pressure altitude across a band 1,840 m (6,037 ft) wide, and a GPS reading `N` read in meters and
-    in feet differs by 0.695 `N` m, so the pad separates the two only where `N` tops about 2,650:
+    moves a pressure altitude across a band 1,840 m (6,037 ft) wide, and a GPS reading $N$ read in meters and
+    in feet differs by $0.695\,N$ m, so the pad separates the two only where $N$ tops about 2,650:
     a pad above about 2,650 m (8,694 ft) if the column is in meters, 810 m (2,657 ft) if in feet. No sample
     file's pad is that high.
 - **An Eggtimer's download saved as RTF, unwrapped.** One sample file is an Eggtimer TRS's
@@ -747,10 +747,10 @@ lists every figure:
 
 | Figures | Read as | Unit the file writes |
 |---|---|---|
-| `Max Altitude`, `Main chute deploy altitude` | altitude above the pad, m | `feet` or `ft`, × 0.3048 |
-| `Pad altitude ASL` (a Blue Raven's), `Pad altitude` (a tracker's) | altitude above sea level, m | `feet` or `ft`, × 0.3048 |
-| `Max velocity`, `Drogue descent rate`, a tracker's velocities | speed, m/s | `feet/sec` or `ft/sec`, × 0.3048 |
-| `Max motor burn acceleration`, `Peak drag deceleration`, each deployment output's maximum (`Apo channel max accel` and the like), `Max landing accel` | acceleration, m/s² | `Gs`, × 9.806 65 |
+| `Max Altitude`, `Main chute deploy altitude` | altitude above the pad, m | `feet` or `ft`, $\times 0.3048$ |
+| `Pad altitude ASL` (a Blue Raven's), `Pad altitude` (a tracker's) | altitude above sea level, m | `feet` or `ft`, $\times 0.3048$ |
+| `Max velocity`, `Drogue descent rate`, a tracker's velocities | speed, m/s | `feet/sec` or `ft/sec`, $\times 0.3048$ |
+| `Max motor burn acceleration`, `Peak drag deceleration`, each deployment output's maximum (`Apo channel max accel` and the like), `Max landing accel` | acceleration, m/s² | `Gs`, $\times 9.806\,65$ |
 | `Temperature on pad`, `Max Temperature`, `Min Temperature` | temperature, K | `F`, degrees Fahrenheit |
 | `Time to first burnout`, each deployment output's firing time | time, s | `sec` |
 | `Thrust tilt efficiency` | a fraction | `%`, ÷ 100 |
@@ -783,9 +783,9 @@ refused, as is a name stated twice, and a value too large for its unit's convers
 **A worked example**, from the invented Blue Raven summary that the crate's test
 `tests/featherweight_summary.rs` reads and checks:
 
-- `Max Altitude,2500.25 feet` gives the stated apogee, 2500.25 × 0.3048 = 762.08 m.
+- `Max Altitude,2500.25 feet` gives the stated apogee, $2500.25 \times 0.3048 = 762.08$ m.
 - `Max velocity,500.50 feet/sec` is a speed of 152.55 m/s (500.50 ft/s).
-- `Max motor burn acceleration,12.0 Gs` is 12.0 × 9.806 65 = 117.68 m/s².
+- `Max motor burn acceleration,12.0 Gs` is $12.0 \times 9.806\,65 = 117.68$ m/s².
 - `Temperature on pad,77.0 F` is 298.15 K (77.0 °F).
 - `Thrust tilt efficiency,98.50%` is the fraction 0.985.
 - `Main chute descent rate,-20.0 feet` stays −20.0 as written, with the note
@@ -896,10 +896,10 @@ $GPGGA,123519.000,4807.0380,N,01131.0000,E,1,08,0.9,545.4,M,46.9,M,,0000*59
 $GPRMC,123519.000,A,4807.0380,N,01131.0000,E,022.4,084.4,230394,,,A*62
 ```
 
-The latitude `4807.0380,N` is 48 degrees and 7.038 minutes north, 48 + 7.038/60 = 48.1173°; the
+The latitude `4807.0380,N` is 48 degrees and 7.038 minutes north, $48 + 7.038/60 = 48.1173$°; the
 longitude `01131.0000,E` is 11 degrees and 31 minutes east, 11.5167°. The altitude is 545.4 m
 (1,789 ft) above mean sea level, in the unit the sentence names (`M`). The speed of 22.4 knots
-reads as 22.4 × 1852/3600 = 11.52 m/s (37.8 ft/s), and the course is 84.4° from true north. The
+reads as $22.4 \times 1852/3600 = 11.52$ m/s (37.8 ft/s), and the course is 84.4° from true north. The
 record's zero is the first sentence's time, 12:35:19 UTC on 23 March 1994.
 
 ## PerfectFlite's other files
@@ -976,7 +976,7 @@ Two things in the file aren't what they look like:
 
 A worked example: in the invented sample `perfectflite-alt15k.pfa` (read by the test
 `tests/perfectflite_pfa.rs`), the eighth height, `00088`, is the sample at 0.7 s, the first at
-80 ft or more, and reads as 88 × 0.3048 = 26.82 m above the pad.
+80 ft or more, and reads as $88 \times 0.3048 = 26.82$ m above the pad.
 
 DataCap's help also says a `NumSamps:` of 2,200 (a revision 2 altimeter) or 2,400 (the original)
 likely means the altimeter lost power in flight, and that older flights then follow this one in
@@ -1035,11 +1035,16 @@ accelerometer has one axis (one sample file), the lateral bits, as `lateral coun
 Raven calibrates no lateral axis. A frame whose checksum fails is refused, naming its byte.
 
 **A worked example**, with invented numbers, which the crate's test `tests/raven_fipa.rs` reads
-and checks. The axial accelerometer reads in g as (trunc(X1 × (a − Z1) / 1000) + F3) / 100, where
-`a` is the count; the settings block gives the gain X1, the zero Z1, and the offset F3 in
+and checks. The axial accelerometer reads in g as
+
+$$
+\frac{1}{100}\left[\operatorname{trunc}\left(\frac{\mathrm{X1}\,(a - \mathrm{Z1})}{1000}\right) + \mathrm{F3}\right],
+$$
+
+where $a$ is the count; the settings block gives the gain X1, the zero Z1, and the offset F3 in
 hundredths of a g; trunc drops the fraction. Take a gain of 8,200, a zero of 1,000 counts and an
-offset of 5 hundredths. A count of 1,025 is 25 above the zero. The FIP works X1 / 1000 in
-double-precision floating point, where 8.2 is stored a hair below 8.2, so 8.2 × 25 comes to
+offset of 5 hundredths. A count of 1,025 is 25 above the zero. The FIP works $\mathrm{X1}/1000$ in
+double-precision floating point, where 8.2 is stored a hair below 8.2, so $8.2 \times 25$ comes to
 204.999… and truncates to 204. Adding the offset gives 209 hundredths: 2.09 g, or 20.50 m/s².
 Exact whole-number arithmetic would give 205 and 2.10 g. The reader works as the FIP does.
 
