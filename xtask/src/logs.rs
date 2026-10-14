@@ -590,7 +590,7 @@ struct Report {
 /// The evidence that PerfectFlite's exports are in feet: how many peak at exactly the height of
 /// a `.pf2` beside them, which is in feet, and the climb's time over `√(2h/g₀)`, a fall in vacuum
 /// from the peak `h`, least and greatest: for those, read in feet, and for the others, read in
-/// feet and in meters.
+/// feet and in meters, and each of the others by id, `id feet meters`.
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct ExportUnits {
     files: usize,
@@ -598,6 +598,7 @@ struct ExportUnits {
     climb_over_fall_beside_a_pf2_in_feet: [f64; 2],
     climb_over_fall_others_in_feet: [f64; 2],
     climb_over_fall_others_in_meters: [f64; 2],
+    climb_over_fall_others_by_id: Vec<String>,
 }
 
 /// What the `.pfa` samples show of the rate and unit their reader takes from PerfectFlite's
@@ -1580,6 +1581,7 @@ fn export_units(samples: &[Sample]) -> ExportUnits {
     let mut files = 0;
     let mut matched = 0;
     let (mut matched_feet, mut feet, mut meters) = (Vec::new(), Vec::new(), Vec::new());
+    let mut by_id = Vec::new();
     for sample in samples {
         if !matches!(
             sample.family.as_str(),
@@ -1620,10 +1622,16 @@ fn export_units(samples: &[Sample]) -> ExportUnits {
         if beside {
             matched_feet.push(in_feet);
         } else {
+            let in_meters = climb / (2.0 * top / hpr_flightdata::perfectflite::FOOT_M / G0).sqrt();
             feet.push(in_feet);
-            meters.push(climb / (2.0 * top / hpr_flightdata::perfectflite::FOOT_M / G0).sqrt());
+            meters.push(in_meters);
+            by_id.push(format!(
+                "{} {in_feet:.2} {in_meters:.2}",
+                &hex(&Sha256::digest(&sample.bytes))[..16]
+            ));
         }
     }
+    by_id.sort();
     let range = |values: &[f64]| {
         let round = |value: f64| (value * 100.0).round() / 100.0;
         [
@@ -1637,6 +1645,7 @@ fn export_units(samples: &[Sample]) -> ExportUnits {
         climb_over_fall_beside_a_pf2_in_feet: range(&matched_feet),
         climb_over_fall_others_in_feet: range(&feet),
         climb_over_fall_others_in_meters: range(&meters),
+        climb_over_fall_others_by_id: by_id,
     }
 }
 
@@ -1718,6 +1727,26 @@ fn markdown(report: &Report) -> String {
         ratio(units.climb_over_fall_others_in_feet),
         ratio(units.climb_over_fall_others_in_meters)
     );
+    if !units.climb_over_fall_others_by_id.is_empty() {
+        let each: Vec<String> = units
+            .climb_over_fall_others_by_id
+            .iter()
+            .filter_map(|line| {
+                let mut parts = line.split(' ');
+                Some(format!(
+                    "`{}` {} and {}",
+                    parts.next()?,
+                    parts.next()?,
+                    parts.next()?
+                ))
+            })
+            .collect();
+        out += &format!(
+            "By id, those {}, in feet and in meters: {}.\n",
+            each.len(),
+            each.join("; ")
+        );
+    }
     let pfa = &report.pfa_checks;
     out += &format!(
         "\nA `.pfa` states neither its rate nor its unit; its reader takes 10 samples a second, in \

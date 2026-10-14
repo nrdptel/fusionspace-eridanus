@@ -865,12 +865,15 @@ altitude's unit, and the sample logs bear out feet. Of the 21 exports among them
 exactly the height of the `.pf2` saved beside them, which states feet. Read in feet, those 16
 climb in 0.94 to 1.05 times as long as a fall in vacuum from their peak would take. The other 5
 climb in 0.63 to 1.07 times, read in feet, and would climb in 0.35 to 0.59 times read in meters
-([the survey's report](#how-it-was-checked) prints these). Of the 4 headerless exports, 3 have a
-`.pf2` beside them and peak at exactly its height, one of them with its temperatures in °C: the
-headerless layout writes feet, as the others do. The fourth has no `.pf2` beside it, and its climb
-settles nothing: 0.63 read in feet and 0.35 in meters both fall outside the other exports' 0.94
-to 1.07, and its altitude is ragged near its peak. Its feet rest on the layout's convention
-alone; check its altitude against another source before trusting it. An export doesn't name the
+([the survey's report](#how-it-was-checked) prints these, and each of the 5 by id). Of the 4
+headerless exports, 2 are one flight, exported once with its temperatures in °F and once in °C,
+and both peak at exactly the height of the `.pf2` beside them: the headerless layout writes feet,
+whatever its temperature unit. A third climbs in 0.99 times a fall in vacuum read in feet, among
+the matched exports' 0.94 to 1.05, and in 0.55 times read in meters; the `.pf2` files beside it
+are other flights'. The fourth has no `.pf2` beside it, and its climb settles nothing: 0.63 read
+in feet and 0.35 in meters both fall outside that band, and its altitude is ragged near its peak.
+Its feet rest on the layout's convention alone; check its altitude against another source before
+trusting it. An export doesn't name the
 altimeter's model, so its logger reads `PerfectFlite`.
 
 A header with any other name, or these names in another case, isn't read as PerfectFlite's: the

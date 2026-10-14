@@ -177,6 +177,7 @@ Files whose catalog family isn't their layout, moved to their layout's:
 - `35d8b51bbba48517 csv -> openrocket-simulation-csv`: an OpenRocket simulation's export, `# Simulation` comment lines then simulated values: a simulation, not a flight
 
 PerfectFlite's exports state no unit for their altitude. Of the 21 read, 16 peak at exactly the height of a `.pf2` beside them, which is in feet; read in feet, their climbs take 0.94 to 1.05 times as long as a fall in vacuum from the peak. The other 5 take 0.63 to 1.07 times, read in feet, and would take 0.35 to 0.59 times read in meters.
+By id, those 5, in feet and in meters: `0ed0a85f84b31849` 0.63 and 0.35; `1341d296b3f6b676` 1.07 and 0.59; `376b9bbc13b11ab7` 0.93 and 0.51; `6b9406226516e391` 0.93 and 0.51; `77e28512645441b1` 0.99 and 0.55.
 
 A `.pfa` states neither its rate nor its unit; its reader takes 10 samples a second, in feet, from PerfectFlite's documents. Of the 25 read, 25 hold as many heights as `NumSamps:` states and 25 state an `Apogee:` equal to their highest; 17 first reach 80 ft, the height that sets off launch detection, at their eighth sample, 0.7 s, and 8 first reach 40 ft, the least it can be set to, there.
 

@@ -645,6 +645,13 @@
     "climb_over_fall_others_in_meters": [
       0.35,
       0.59
+    ],
+    "climb_over_fall_others_by_id": [
+      "0ed0a85f84b31849 0.63 0.35",
+      "1341d296b3f6b676 1.07 0.59",
+      "376b9bbc13b11ab7 0.93 0.51",
+      "6b9406226516e391 0.93 0.51",
+      "77e28512645441b1 0.99 0.55"
     ]
   },
   "pfa_checks": {
