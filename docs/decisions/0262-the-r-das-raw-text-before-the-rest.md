@@ -20,15 +20,16 @@ This data was generated with version 4.1 of the RDAS windows software, …
    Time  Acc  Prs  Dig ADC0 ADC1 ADC2 ADC3 ADC4 ADC5
 ```
 
-28 are recorded on board at 200 Hz, and 26 at 10 Hz, whose configuration names no trigger and no
-firmware: by their names, the course's telemetry records of the same flights. The *R-DAS User
+28 are recorded on board at 200 Hz, and 26 at 10 Hz, whose configuration's `Trigger:` line is
+blank and which name no firmware: by their names, the course's telemetry records of the same flights. The *R-DAS User
 Manual* (V1.5, AED Electronics, 2001) says the raw export's header summarizes the configuration
 and its values are the converters' counts, 5 V / 1,024 a step, to be converted with calibration
 values set in the software (p. 14); that the R-DAS keeps the 2 s before liftoff (p. 6); that the
 digital byte holds four digital inputs and, in its other four bits, the flight's phase (p. 14),
-with a bit set when the timed recovery was used (p. 22); and that its sensors are an ADXL150
-accelerometer and an MPXS4100A barometer (p. 7). It doesn't show the file, name its columns,
-give the digital byte's bits, or give the counts' conversion; the course's own pressure lab names
+and that "bit 3 is set when timed recovery was used" (p. 22); that liftoff is `t = 0`, the
+g-switch firing 0.25 s later (p. 10); and that its sensors are an ADXL150 accelerometer and an
+MPXS4100A barometer (p. 7). It doesn't show the file, name its columns, give the phases' values,
+or give the counts' conversion; the course's own pressure lab names
 another barometer on its R-DAS.
 
 **Decision.**
@@ -51,14 +52,17 @@ another barometer on its R-DAS.
    Hz.` is required; the clock's average step over the file must be its interval within 1%, and
    the note gives both. Every sample file's step is the interval exactly, and every first row is
    at −2.000 s, the 2 s before liftoff the manual describes.
-4. **`Dig` is kept, not read into events.** In every on-board sample file the word goes `0000`,
-   `0010` within 0.25 s after the zero, `0020`, `0030`, which looks like the manual's four
-   phases in order; but the bits' values are in no document, so the word is kept as its number
-   (`Quantity::Number`), read as hexadecimal since the files write letters (`00B0`), and no
-   event is taken from it.
+4. **`Dig` is kept, not read into events.** In 27 of the 28 on-board sample files the word goes
+   `0000`, `0010` within 0.25 s after the zero, `0020`, `0030` and, near the end, `8030`; the
+   28th writes `00B0` and `80B0` for the last two. The low byte's high bits look like the
+   manual's four phases in order, but their values are in no document, and the files write a
+   16-bit word that never sets bit 3 of either byte, the one bit the manual names. So the word
+   is kept as its number (`Quantity::Number`), read as hexadecimal since the files write
+   letters (`00B0`), and no event is taken from it.
 5. **The configuration is held to the table.** The inputs line must be present, every input it
-   names one the reader knows (`Acceleration`, `Pressure`, `the digital inputs`, `ADC0`–`ADC5`),
-   and the header must name their columns in order; its lines are kept in a note, at most 40 of
+   names one the reader knows (`Acceleration`, `Pressure`, `the digital inputs`, `ADC0`–`ADC5`)
+   and none twice, and the header must name their columns in order; a count that is a number must
+   be a whole one from 0 to 1,023, so that a file of converted values isn't read as counts; its lines are kept in a note, at most 40 of
    200 characters, and a firmware version is the record's firmware.
 
 **Consequences.** `hpr-flightdata` gains the `rdas` module and `LogFormat::RdasText`; the survey

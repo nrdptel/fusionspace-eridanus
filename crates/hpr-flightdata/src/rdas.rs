@@ -12,8 +12,8 @@
 //! for the reader to convert with the calibration values (p. 14). The manual shows no file and
 //! names no column. The sample logs hold the raw export only, 54 files from a college course's
 //! flights in 2008: 28 recorded on board at 200 Hz, and 26 at 10 Hz, by their names the course's
-//! telemetry records of the same flights, in the same layout but for a configuration that names
-//! no trigger and no firmware.
+//! telemetry records of the same flights, in the same layout but for a configuration whose
+//! `Trigger:` line is blank and which names no firmware.
 //!
 //! **Recognition.** The first line that isn't blank is `*** Configuration ***`, and a line
 //! `*** Raw data ***` comes within the file's first 200 lines; no other layout HPR Sim reads opens
@@ -24,8 +24,8 @@
 //! `Inputs that were sampled: …`, which says what the table's columns hold: `Acceleration` is
 //! `Acc`, `Pressure` is `Prs`, `the digital inputs` is `Dig`, and `ADC0` to `ADC5` are
 //! themselves. The table's header, after `Time`, must name those columns in that order, and a
-//! list naming an input the reader doesn't know is refused ([`LogError::Syntax`]). A line ending
-//! `with firmware version N` gives [`FlightLog::firmware`]. Every line of the configuration that
+//! list naming an input the reader doesn't know, or one twice, is refused ([`LogError::Syntax`]).
+//! A line holding `with firmware version N` gives [`FlightLog::firmware`], the last if several do. Every line of the configuration that
 //! isn't blank, its trigger and recovery settings among them, is kept in a note as written, at
 //! most 40 lines of 200 characters.
 //!
@@ -34,8 +34,8 @@
 //!
 //! | Column | Quantity | As read |
 //! |---|---|---|
-//! | `Time` | the clock, s | from the trigger: checked against the stated rate (below) |
-//! | `Acc`, `Prs`, `ADC0` … `ADC5` | [`Quantity::Unrecognized`] | the converter's counts, 0 to 1,023, as written |
+//! | `Time` | the clock, s | from liftoff: checked against the stated rate (below) |
+//! | `Acc`, `Prs`, `ADC0` … `ADC5` | [`Quantity::Unrecognized`] | the converter's counts, whole numbers 0 to 1,023, as written |
 //! | `Dig` | [`Quantity::Number`] | a hexadecimal word, kept as its number |
 //!
 //! `Acc` is the accelerometer, an Analog Devices ADXL150 for ±50 g, and `Prs` the barometer, a
@@ -44,16 +44,19 @@
 //! fitted to the R-DAS (a college course's pressure lab names an MPXH6115A on its R-DAS: *E80
 //! Pressure and Temperature Lab*, Harvey Mudd College,
 //! <https://pages.hmc.edu/spjut/NewE80/PresTempLab.html>, section 2), so the counts aren't taken
-//! through that sensor's data sheet. The manual says the digital byte holds
-//! the four digital inputs and, in its other four bits, the flight's phase: before liftoff, flight,
-//! drogue and main (p. 14), and that a bit is set when the timed recovery was used (p. 22); it
-//! doesn't give the bits' values. The files write four hexadecimal digits, `00B0` among them. In
-//! every on-board sample file the word reads `0000` from the first row, `0010` from within 0.25 s
-//! after the zero, then `0020` and `0030`: likely the phases in order, but that rests on the files,
-//! not a document, so the word is kept as written and no event is taken from it.
+//! through that sensor's data sheet. The manual says the digital byte holds the four digital
+//! inputs and, in its other four bits, the flight's phase: before liftoff, flight, drogue and main
+//! (p. 14), and, of firmware 2.2, that "bit 3 is set when timed recovery was used" (p. 22); it gives
+//! no other bit. The files write a word of four hexadecimal digits, not a byte, and never set bit 3
+//! of either byte: they set `0x80` and `0x8000`. In 27 of the 28 on-board sample files the word
+//! reads `0000` from the first row, `0010` from within 0.25 s after the zero, then `0020`, `0030`
+//! and, near the file's end, `8030`; the 28th writes `00B0` and `80B0` in place of the last two.
+//! The low byte's high bits look like the phases in order, but that rests on the files, not a
+//! document, so the word is kept as written and no event is taken from it.
 //!
-//! **The clock.** `Time` counts from the R-DAS's trigger: every sample file's first row is at
-//! −2.000, the 2 s before liftoff the manual says it keeps. That it counts seconds rests on the
+//! **The clock.** `Time` counts from liftoff, `t = 0` in the manual's figure 2.2, the g-switch, 2.5 g
+//! held for 0.25 s, firing at 0.25 s (p. 10, p. 11): every sample file's first row is at −2.000,
+//! the 2 s before liftoff the manual says it keeps. That it counts seconds rests on the
 //! stated rate: the clock's average step, from the first row to the last, must be the stated
 //! rate's interval within 1%, or the file is refused ([`LogError::Unit`]); a note gives both. In
 //! every sample file the step is the interval exactly, 0.005 s at 200 Hz and 0.1 s at 10 Hz. A
@@ -63,10 +66,12 @@
 //! [`FlightLog::altitude_m`] are empty, as for the Raven's raw `.FIPa`, and every column is a
 //! channel on the file's clock.
 //!
-//! **Cells.** Every row must hold as many cells as the header names, and its `Time` a number
-//! greater than the row before's; otherwise the file is refused, naming the line. Any other cell
-//! that isn't a number, or for `Dig` a hexadecimal word, is a gap (`NaN`), counted in a note.
-//! Lines may end in LF or CR LF.
+//! **Cells.** Every row must hold as many cells as the header names, its `Time` a number greater
+//! than the row before's, and every count that is a number a whole one from 0 to 1,023, which
+//! keeps a file of converted values from passing for counts; otherwise the file is refused,
+//! naming the line. Any other cell that isn't a number, or for `Dig` a word of hexadecimal digits,
+//! is a gap (`NaN`), counted in a note. Lines may end in LF or CR LF; a file whose lines end in a
+//! lone CR isn't recognized.
 //!
 //! An invented file, in the layout the sample files share:
 //!
@@ -114,6 +119,9 @@ const CONFIGURATION_LINES: usize = 200;
 /// [`LogFormat::altitude_resolution_m`] takes it). A board with another sensor steps otherwise.
 pub const ALTITUDE_STEP_M: f64 = 90.0 / (1.225 * 9.806_65);
 
+/// The largest count of the R-DAS's 10-bit converter.
+const MAX_COUNT: f64 = 1_023.0;
+
 /// How far the clock's average step may lie from the stated rate's, as a share of it.
 const CLOCK_MARGIN: f64 = 0.01;
 
@@ -152,11 +160,9 @@ fn column_of(input: &str) -> Option<String> {
         "Acceleration" => Some("Acc".to_owned()),
         "Pressure" => Some("Prs".to_owned()),
         "the digital inputs" => Some("Dig".to_owned()),
-        _ => {
-            let digits = input.strip_prefix("ADC")?;
-            (!digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit()))
-                .then(|| input.to_owned())
-        }
+        // The six analog inputs of the expansion port (manual, p. 7, p. 14).
+        "ADC0" | "ADC1" | "ADC2" | "ADC3" | "ADC4" | "ADC5" => Some(input.to_owned()),
+        _ => None,
     }
 }
 
@@ -203,6 +209,13 @@ fn configuration<'a>(
                     })
                 })
                 .collect::<Result<Vec<_>, _>>()?;
+            if let Some(twice) = columns
+                .iter()
+                .enumerate()
+                .find_map(|(k, column)| columns[..k].contains(column).then_some(column))
+            {
+                return Err(syntax(number, format!("an input listed twice: `{twice}`")));
+            }
             if configuration.inputs.replace((columns, number)).is_some() {
                 return Err(syntax(number, "a second list of inputs".to_owned()));
             }
@@ -223,9 +236,10 @@ fn configuration<'a>(
 /// - [`LogError::NotThisFormat`] if the file doesn't open with `*** Configuration ***` and a
 ///   `*** Raw data ***` line within its first 200 lines.
 /// - [`LogError::Syntax`] for a configuration line the reader can't take (a sample rate that
-///   isn't a positive number, an input it doesn't know, either stated twice), a table header
-///   that doesn't open with `Time` or doesn't name the inputs the configuration lists, a row
-///   not as wide as the header, or a `Time` that isn't a number greater than the row before's.
+///   isn't a positive number, an input it doesn't know or listed twice, a rate or a list stated
+///   twice), a table header that doesn't open with `Time` or doesn't name the inputs the
+///   configuration lists, a row not as wide as the header, a `Time` that isn't a number greater
+///   than the row before's, or a count that is a number but not a whole one from 0 to 1,023.
 /// - [`LogError::NoData`] without a row.
 /// - [`LogError::Unit`] where the configuration states no sample rate or lists no inputs, the
 ///   file holds a single row, or the clock's average step isn't the stated rate's within 1%:
@@ -323,9 +337,28 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
         time_s.push(time);
         for (k, cell) in cells[1..].iter().enumerate() {
             let value = if Some(k) == digital {
-                u32::from_str_radix(cell, 16).ok().map(f64::from)
+                // Hexadecimal digits only: `from_str_radix` would also take a sign.
+                cell.bytes()
+                    .all(|b| b.is_ascii_hexdigit())
+                    .then(|| u32::from_str_radix(cell, 16).ok())
+                    .flatten()
+                    .map(f64::from)
             } else {
-                cell.parse::<f64>().ok().filter(|value| value.is_finite())
+                let value = cell.parse::<f64>().ok().filter(|value| value.is_finite());
+                if let Some(value) = value
+                    && !(value.fract() == 0.0 && (0.0..=MAX_COUNT).contains(&value))
+                {
+                    return Err(syntax(
+                        number,
+                        format!(
+                            "`{}` holds {:?}, not a count of the 10-bit converter, a whole \
+                             number from 0 to 1,023: a file of converted values isn't read",
+                            names[k],
+                            cut(cell)
+                        ),
+                    ));
+                }
+                value
             };
             values[k].push(value.unwrap_or_else(|| {
                 gaps[k] += 1;
@@ -654,6 +687,30 @@ mod tests {
             message.contains("an input the reader doesn't know: \"Gyro\""),
             "{message}"
         );
+        // The port's six analog inputs are ADC0 to ADC5.
+        let analog = "Inputs that were sampled: ADC0, ADC5.";
+        let ok = file(&[RATE, analog], "Time ADC0 ADC5", &["0 1 1", "0.01 1 1"]);
+        assert_eq!(read(&ok).unwrap().channels.len(), 2);
+        for input in ["ADC6", "ADC00", "ADC"] {
+            let inputs = format!("Inputs that were sampled: ADC0, {input}.");
+            let header = format!("Time ADC0 {input}");
+            let text = file(&[RATE, &inputs], &header, &["0 1 1", "0.01 1 1"]);
+            let message = refusal(&text, "syntax");
+            let expected = format!("an input the reader doesn't know: \"{input}\"");
+            assert!(message.contains(&expected), "{message}");
+        }
+        // An input listed twice would make two columns of one name.
+        let twice = "Inputs that were sampled: the digital inputs, the digital inputs.";
+        let text = file(
+            &[RATE, twice],
+            "Time Dig Dig",
+            &["0 0010 0010", "0.01 0010 0010"],
+        );
+        let message = refusal(&text, "syntax");
+        assert!(
+            message.contains("an input listed twice: `Dig`"),
+            "{message}"
+        );
     }
 
     #[test]
@@ -718,14 +775,29 @@ mod tests {
         let text = file(
             &[RATE, INPUTS],
             HEADER,
-            &["0 1 1 0", "0.01 x 1 G", "0.02 1 1e400 0"],
+            &["0 1 1 0", "0.01 x 1 G", "0.02 1 1e400 +10"],
         );
         let log = read(&text).unwrap();
         assert!(log.channels[0].values[1].is_nan() && log.channels[2].values[1].is_nan());
-        assert!(log.channels[1].values[2].is_nan());
+        // A sign isn't a hexadecimal digit.
+        assert!(log.channels[1].values[2].is_nan() && log.channels[2].values[2].is_nan());
         assert!(log.notes.contains(
-            &"3 cells that aren't numbers read as gaps, the first on line 10".to_owned()
+            &"4 cells that aren't numbers read as gaps, the first on line 10".to_owned()
         ));
+    }
+
+    #[test]
+    fn a_count_must_be_a_whole_number_the_converter_can_write() {
+        let ok = file(&[RATE, INPUTS], HEADER, &["0 0 1023 0", "0.01 1 1 0"]);
+        assert!(read(&ok).is_ok());
+        for cell in ["1024", "-1", "1.5", "101.3"] {
+            let row = format!("0.01 {cell} 1 0");
+            let message = refusal(&file(&[RATE, INPUTS], HEADER, &["0 1 1 0", &row]), "syntax");
+            assert!(
+                message.starts_with(&format!("line 10: `Acc` holds \"{cell}\", not a count")),
+                "{message}"
+            );
+        }
     }
 
     #[test]

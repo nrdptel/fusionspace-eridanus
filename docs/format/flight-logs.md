@@ -109,7 +109,7 @@ decided.
 | Featherweight GPS CSV | Featherweight's GPS tracker: its own log, and its ground station's log of every tracker it hears | a first line opening `UTCTIME,UNIXTIME,` or `TRACKER,DATE,TIME,` that names the latitude and longitude (`LAT` and `LON`, or `TRACKER Lat` and `TRACKER Lon`) | [below](#gps-logs) |
 | KML | GPS tracks as AltOS, Missile Works' RTx, Big Red Bee's BeeLine, fw2kml (a converter of Featherweight's logs), GPS Visualizer and others write them for Google Earth | the document's root element is `kml` | [below](#gps-logs) |
 | NMEA 0183 | a GPS receiver's own sentences, written to a file as it sends them | at least 3 of the first 50 lines open with a sentence whose checksum checks out, such as `$GPGGA,…*hh`, or, in a shorter file, every line does | [below](#gps-logs) |
-| R-DAS raw text | AED Electronics R-DAS, its raw data as its Windows software exports a flight | a first line that isn't blank of `*** Configuration ***`, and a `*** Raw data ***` line within the first 200 | `hpr_flightdata::rdas` ([below](#r-das-raw-text)) |
+| R-DAS raw text | AED Electronics R-DAS, its raw data as its Windows software exports a flight | a first line that isn't blank reading `*** Configuration ***`, and a `*** Raw data ***` line within the first 200 | `hpr_flightdata::rdas` ([below](#r-das-raw-text)) |
 | Zip archive | not a log: a flight's files, zipped to share them | its bytes open `PK` then 3, 4 | `hpr_flightdata::archive` ([below](#zip-archives)) |
 
 The Blue Raven app writes each flight as a low-rate file, logged 50 times a second, and a
@@ -180,38 +180,42 @@ isn't known, so they aren't read as a Blue Raven's; they wait for the column map
 
 ### R-DAS raw text
 
-The R-DAS, a flight computer AED Electronics sold in the early 2000s, reads its accelerometer, its
-barometer and, as its owner chooses, four digital and six analog inputs, each through a 10-bit
-converter over 0 to 5 V, up to 200 times a second, keeping the 2 s before liftoff (*R-DAS User
-Manual*, V1.5, 2001, p. 6, p. 7, p. 14). Its Windows software exports a flight as text, raw or
-converted with calibration values held in the software. The sample logs hold the raw export only:
-54 files from a college course's flights in 2008, 28 recorded on board at 200 Hz and 26 at 10 Hz,
-by their names the course's telemetry records.
+HPR Sim reads the R-DAS's raw export but converts nothing in it: the record holds the file's
+counts, no altitude and no events, and only the Rust library reads it so far. The R-DAS, a
+flight computer AED Electronics sold in the early 2000s, reads its accelerometer, its barometer
+and, as its owner chooses, four digital and six analog inputs, up to 200 times a second, keeping
+the 2 s before liftoff (*R-DAS User Manual*, V1.5, 2001, p. 6, p. 7, p. 14). Its Windows software
+exports a flight as text, raw or converted with calibration values held in the software. The
+sample logs hold the raw export only: 54 files from a college course's flights in 2008, 28
+recorded on board at 200 Hz and 26 at 10 Hz, by their names the course's telemetry records.
 
-The raw file opens with a summary of the configuration, then a table of counts, 0 to 1,023, each
-step 4.883 mV, to be converted "with the calibration values" (p. 14). The file holds none, so
-HPR Sim converts nothing:
+The raw file opens with a summary of the configuration, then a table of counts: each a 10-bit
+converter's whole-number reading of 0 to 5 V, 0 to 1,023, a step 4.883 mV, to be converted "with
+the calibration values" (p. 14). The file holds none:
 
-- **`Time`** counts seconds from the trigger; every sample file starts at −2.000. The seconds
-  rest on the configuration's `Data is sampled at N Hz.`: the clock's average step must be that
-  interval within 1%, or the file is refused. In every sample file it is exact.
-- **`Acc`, `Prs` and `ADC0` to `ADC5`** are kept as written, in no unit HPR Sim knows. The
-  manual's R-DAS has an ADXL150 accelerometer (±50 g) and an MPXS4100A barometer (a count about
-  0.09 kPa) (p. 7), but the file doesn't say which board or sensors wrote it, and others have been
-  fitted (a college course's
-  [pressure lab](https://pages.hmc.edu/spjut/NewE80/PresTempLab.html) names an MPXH6115A), so no
-  data sheet is applied.
+- **`Time`** counts seconds from liftoff (the manual's figure 2.2, p. 10); every sample file
+  starts at −2.000. The seconds rest on the configuration's `Data is sampled at N Hz.`: the
+  clock's average step must be that interval within 1%, or the file is refused. In every sample
+  file it is exact.
+- **`Acc`, `Prs` and `ADC0` to `ADC5`** are kept as written, in no unit HPR Sim knows; a value
+  that isn't a whole count refuses the file, as a converted export would. The manual's R-DAS has an
+  ADXL150 accelerometer (±50 g) and an MPXS4100A barometer, resolved to 0.09 kPa (p. 7), but the
+  file doesn't say which board or sensors wrote it, and others have been fitted (a college
+  course's [pressure lab](https://pages.hmc.edu/spjut/NewE80/PresTempLab.html) names an
+  MPXH6115A), so no data sheet is applied.
 - **`Dig`** is read as a hexadecimal word, such as `00B0` (176), and kept as its number. The
-  manual says it holds the digital inputs and the flight's phase, and a bit for the timed recovery
-  (p. 14, p. 22), without the bits' values. In every on-board sample file it reads `0000`, then
-  `0010` within 0.25 s after the zero, then `0020` and `0030`, likely the phases in order; no event
-  is taken from it until a document says so.
+  manual says it holds the digital inputs and the flight's phase, and that "bit 3 is set when
+  timed recovery was used" (p. 14, p. 22), but the files write a 16-bit word that never sets bit
+  3 of either byte. In 27 of the 28 on-board sample files it reads `0000`, then `0010` within
+  0.25 s after the zero, `0020`, `0030` and, near the end, `8030`; the 28th has `00B0` and `80B0`
+  for the last two. Unconfirmed as the phases, no event is taken from it.
 
-The configuration must state the rate and list the inputs, and the table's header must name them
-in order (`Acceleration` as `Acc`, `Pressure` as `Prs`, `the digital inputs` as `Dig`), or the
-file is refused. Its lines are kept in a note, and its firmware version is the record's. With no
-altitude, the record's [primary track](#the-record) is empty, as for the Raven's `.FIPa`, and
-every column is a channel. For example, in an invented file at 10 Hz:
+The configuration must state the rate and list the inputs once each, and the table's header must
+name them in order (`Acceleration` as `Acc`, `Pressure` as `Prs`, `the digital inputs` as `Dig`),
+or the file is refused. Its lines are kept in a note, and its firmware version is the record's.
+The record's [primary track](#the-record) is empty, as for the Raven's `.FIPa`, and every column
+is a channel. For example, the file the crate's tests read, invented, eleven rows at 10 Hz from
+−0.3 s, one of them shown:
 
 ```text
 Data is sampled at 10 Hz.
@@ -221,8 +225,8 @@ Inputs that were sampled: Acceleration, Pressure, the digital inputs, ADC0, ADC1
   0.100  700  799 0010  505  252
 ```
 
-that row is `Acc` 700 and `Prs` 799 counts and `Dig` 16, at 0.1 s; the note says `Time` is in
-seconds because its average step over all eleven rows is 0.1, the 10 Hz interval.
+That row is `Acc` 700 and `Prs` 799 counts and `Dig` 16, at 0.1 s; the note says `Time` is in
+seconds because its average step, from −0.3 s to 0.7 s over ten steps, is 0.1, the 10 Hz interval.
 
 Checked: all 54 sample files read, pinned by the [survey](#how-it-was-checked). Left out:
 converting the counts, which needs the software's calibration values, and events from `Dig`; the
