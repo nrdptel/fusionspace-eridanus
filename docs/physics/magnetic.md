@@ -63,7 +63,10 @@ north is east of true north.
 So a bearing read off a compass becomes a true bearing by adding the declination:
 
 $$
-\text{true bearing} = \text{magnetic bearing} + D
+\begin{aligned}
+&\text{true bearing} \\
+&\quad = \text{magnetic bearing} + D
+\end{aligned}
 $$
 
 At Spaceport America in mid-2026, $D$ is +7.75°: a rail aimed at a compass's north points 7.75°
@@ -103,13 +106,16 @@ way [WMM] section 1.2 sets out:
    \begin{aligned}
    X' &= -\sum_n \left(\frac{a}{r}\right)^{n+2} \\
    &\qquad \times \sum_m \frac{\mathrm{d}\breve{P}(\sin\varphi')}{\mathrm{d}\varphi'} \\
-   &\qquad \times (g \cos m\lambda + h \sin m\lambda), \\
+   &\qquad \times (g \cos m\lambda \\
+   &\qquad\quad + h \sin m\lambda), \\
    Y' &= \sum_n \left(\frac{a}{r}\right)^{n+2} \\
    &\qquad \times \sum_m \frac{m\, \breve{P}(\sin\varphi')}{\cos\varphi'} \\
-   &\qquad \times (g \sin m\lambda - h \cos m\lambda), \\
+   &\qquad \times (g \sin m\lambda \\
+   &\qquad\quad - h \cos m\lambda), \\
    Z' &= -\sum_n (n+1) \left(\frac{a}{r}\right)^{n+2} \\
    &\qquad \times \sum_m \breve{P}(\sin\varphi') \\
-   &\qquad \times (g \cos m\lambda + h \sin m\lambda)
+   &\qquad \times (g \cos m\lambda \\
+   &\qquad\quad + h \sin m\lambda)
    \end{aligned}
    $$
 

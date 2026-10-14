@@ -301,8 +301,12 @@ The phases a flight passes through, the events that end them, and the integrator
   - It stays until the force along the rail, $\mathbf{T}_{20} \cdot \mathbf{z}_B$ with $\boldsymbol{\omega} = 0$, exceeds friction
     $\mu \lvert \mathbf{T}_{20\perp} \rvert$ (the liftoff event). $\mathbf{T}_{20\perp}$ is the rail's reaction: the weight, the aerodynamic
     force and the mass terms across the axis.
-- **Rail.**
-  - One degree of freedom: $a = (\mathbf{T}_{20} \cdot \mathbf{z}_B - \mu \lvert \mathbf{T}_{20\perp} \rvert)/m$ along the rail, with no rotation.
+- **Rail.** One degree of freedom, along the rail, with no rotation:
+
+  $$
+  a = \frac{\mathbf{T}_{20} \cdot \mathbf{z}_B - \mu \lvert \mathbf{T}_{20\perp} \rvert}{m}
+  $$
+
   - It ends when the aft edge of the aft-most rail button or launch lug passes the top of the
     rail, or the aft end with no guides (Rail geometry, below).
   - If the speed along the rail falls to zero, the rocket returns to the pad phase, at rest where

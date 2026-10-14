@@ -85,7 +85,17 @@ properties.
   tensor about the center of mass. The tensor is taken with the positive products-of-inertia
   convention: $I = \int (\lvert\mathbf{r}\rvert^2 E - \mathbf{r}\mathbf{r}^{\mathrm{T}})\,\mathrm{d}m$, so $I_{xy} = -\int x y\,\mathrm{d}m$.
 - **Operations** ([MK]):
-  - Parallel axis: $I_p = I_{\mathrm{cg}} + m(\lvert\mathbf{d}\rvert^2 E - \mathbf{d}\mathbf{d}^{\mathrm{T}})$, with $\mathbf{d} = \mathbf{cg} - \mathbf{p}$.
+  - Parallel axis:
+
+    $$
+    \begin{aligned}
+    I_p &= I_{\mathrm{cg}} \\
+    &\quad + m(\lvert\mathbf{d}\rvert^2 E \\
+    &\qquad - \mathbf{d}\mathbf{d}^{\mathrm{T}}),
+    \end{aligned}
+    $$
+
+    with $\mathbf{d} = \mathbf{cg} - \mathbf{p}$.
   - Rotation: $\mathbf{cg}' = R\,\mathbf{cg}$, $I' = R I R^{\mathrm{T}}$.
   - Combination: sum the masses, mass-weight the centers, and sum each tensor moved to the common
     center.
@@ -180,8 +190,10 @@ properties.
 
     $$
     \begin{aligned}
-    P &= 0.2969\sqrt{\xi} - 0.1260\xi \\
-    &\quad - 0.3516\xi^2 + 0.2843\xi^3 \\
+    P &= 0.2969\sqrt{\xi} \\
+    &\quad - 0.1260\xi \\
+    &\quad - 0.3516\xi^2 \\
+    &\quad + 0.2843\xi^3 \\
     &\quad - 0.1015\xi^4.
     \end{aligned}
     $$
@@ -940,7 +952,7 @@ and Java 17), and `cargo test -p hpr-validate openrocket` checks them.
 
 - **By hand:**
   - `mass::tests`: two boxes make one box; point masses give the products of inertia; rolling
-    swaps and mixes axes as $I'_{xy} = (I_{xx} - I_{yy})\sin\theta\cos\theta$; rotation keeps the principal
+    swaps and mixes axes, so $I'_{xy}$ is $(I_{xx} - I_{yy})\sin\theta\cos\theta$; rotation keeps the principal
     moments; motor elements land on the axis.
   - `tests::composite_rocket_inertia_matches_hand_calculation` (crate root) combines a filled cone, a tube,
     four fins and an off-axis payload. Each part's moments come from its own formula and the six

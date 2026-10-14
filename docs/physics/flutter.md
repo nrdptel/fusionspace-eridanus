@@ -70,7 +70,10 @@ $$
 Martin prints the constant in pounds per square inch (psi) at sea-level pressure $p_0$,
 
 $$
-24 \cdot 0.25 \cdot \frac{1.4}{\pi} \cdot 14.696\,\mathrm{psi} = 39.29\,\mathrm{psi},
+\begin{aligned}
+&24 \cdot 0.25 \cdot \frac{1.4}{\pi} \cdot 14.696\,\mathrm{psi} \\
+&\quad = 39.29\,\mathrm{psi},
+\end{aligned}
 $$
 
 which he rounds to 39.3. His $X$ (eq. 19) is $39.3\,K$ psi, and $D = X \cdot (\lambda + 1)/2 \cdot p/p_0$. The constant is derived, not fitted. Stiffer or

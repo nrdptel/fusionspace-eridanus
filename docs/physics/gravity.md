@@ -45,7 +45,7 @@ The four defining parameters ([NGA] Table 3.1) are:
 
 - $a = 6378137.0\,\mathrm{m}$
 - $1/f = 298.257223563$
-- $GM = 3.986004418\times10^{14}\,\mathrm{m^3/s^2}$
+- $GM$ is $3.986004418\times10^{14}\,\mathrm{m^3/s^2}$
 - $\omega = 7.292115\times10^{-5}\,\mathrm{rad/s}$
 
 Everything else is derived from them ([NGA] appendix B). The lines below are, in order, the
@@ -113,9 +113,14 @@ $$
   against the exact field is 1e-8 relative at 1.4 km (0.87 mi), 3e-7 at 30 km (19 mi), 1.4e-5 at 100 km (62 mi) and 1.1e-4
   at 200 km (124 mi, fixture values below).
 - **Exact field (eqs. 4-5 to 4-13):** ellipsoidal-harmonic coordinates $(u, \beta)$ give the components
-  $\gamma_u$ and $\gamma_\beta$. The code rotates them into ECEF with $R_1$ (eq. 4-18).
-  - Eq. 4-8 is used in the equivalent form $u^2 = \tfrac12 \left[s + \sqrt{s^2 + 4E^2z^2}\right]$, with
-    $s = x^2 + y^2 + z^2 - E^2$, which never divides by $s$.
+  $\gamma_u$ and $\gamma_\beta$. The code rotates them into ECEF with $R_1$ (eq. 4-18). Eq. 4-8 is
+  used in the equivalent form
+
+  $$
+  u^2 = \tfrac12 \left[s + \sqrt{s^2 + 4E^2z^2}\right],
+  $$
+
+  with $s = x^2 + y^2 + z^2 - E^2$, which never divides by $s$.
   - $\beta$ comes from `atan2`, so every quadrant works.
   - The field is undefined on the focal disc ($u = 0$, the equatorial plane within 522 km (324 mi) of the
     center); the code returns an error there.

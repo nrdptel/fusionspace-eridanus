@@ -49,7 +49,8 @@ $$
 \Phi_u(\Omega) &= \frac{2L_u}{\pi}\, \frac{\sigma_u^2}{1 + (L_u \Omega)^2}, \\
 \Phi_v(\Omega) &= \frac{L_v}{\pi}\, \frac{\sigma_v^2 \left(1 + 3(L_v \Omega)^2\right)}{\left(1 + (L_v \Omega)^2\right)^2}, \\
 R_u(\xi) &= \sigma_u^2 \exp(-\lvert\xi\rvert/L_u), \\
-R_v(\xi) &= \sigma_v^2 \exp(-\lvert\xi\rvert/L_v) \left(1 - \frac{\lvert\xi\rvert}{2L_v}\right)
+R_v(\xi) &= \sigma_v^2 \exp(-\lvert\xi\rvert/L_v) \\
+&\quad \left(1 - \frac{\lvert\xi\rvert}{2L_v}\right)
 \end{aligned}
 $$
 
@@ -126,7 +127,7 @@ Exact discretization, so step length never changes the statistics.
     P = \begin{pmatrix} 1 & \tfrac12 \\ \tfrac12 & \tfrac12 \end{pmatrix}
     $$
 
-  - The output's autocorrelation is exactly $R_v$. Algebra: $c\,\Phi(r)\,P\,c^{\mathsf{T}} = 2e^{-r}(1 - r/2)$
+  - The output's autocorrelation is exactly $R_v$. Algebra: $c\,\Phi(r)\,P\,c^{\mathsf{T}}$ is $2e^{-r}(1 - r/2)$
     with $c = (\sqrt{3}, 1 - \sqrt{3})$.
   - Over $r = \Delta s/L$, the transition is $\Phi(r)$, plus Gaussian noise of
     covariance $Q = P - \Phi P \Phi^{\mathsf{T}}$:
@@ -135,7 +136,8 @@ Exact discretization, so step length never changes the statistics.
     \begin{aligned}
     \Phi(r) &= e^{-r} \begin{pmatrix} 1 & 0 \\ r & 1 \end{pmatrix}, \\
     Q_{11} &= P(1,2r), \\
-    Q_{12} = Q_{21} &= \tfrac12 P(2,2r), \\
+    Q_{12} &= \tfrac12 P(2,2r), \\
+    Q_{21} &= Q_{12}, \\
     Q_{22} &= \tfrac12 P(3,2r), \\
     P(n,x) &= \frac{\gamma(n,x)}{\Gamma(n)}
     \end{aligned}

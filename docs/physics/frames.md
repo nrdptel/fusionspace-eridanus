@@ -155,7 +155,12 @@ z_B \text{ in } L &= \begin{pmatrix} \sin A \cos E \\ \cos A \cos E \\ \sin E \e
 $$
 
 - **Zero roll.** $x_B$ is horizontal, to the right of the heading: $(\cos A, -\sin A, 0)$ in $L$.
-  $y_B$ is $(\sin E \sin A, \sin E \cos A, -\cos E)$.
+  $y_B$ is
+
+  $$
+  \begin{pmatrix} \sin E \sin A \\ \sin E \cos A \\ -\cos E \end{pmatrix}
+  $$
+
 - **Vertical singularity.** At $E = \pm\pi/2$, $A$ and $\varphi$ turn about the same axis.
   `LaunchAngles::from_quaternion` then reports $A = 0$ and puts the whole turn into $\varphi$. This is
   for reporting only: the state is always the quaternion.

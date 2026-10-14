@@ -2567,8 +2567,9 @@ One fin ([B67] eq. 3-4–3-6, [N09] eq. 3.38–3.40):
 
 $$
 \begin{aligned}
-(C_{N\alpha})_1 &= \frac{2\pi\, s^2/A_{\mathrm{ref}}}{1 + \sqrt{1 + \left(\dfrac{\beta s^2}{A_{\mathrm{fin}}\cos\Gamma_c}\right)^2}}, \\
-\beta &= \sqrt{1 - M^2}
+&(C_{N\alpha})_1 \\
+&\quad = \frac{2\pi\, s^2/A_{\mathrm{ref}}}{1 + \sqrt{1 + \left(\dfrac{\beta s^2}{A_{\mathrm{fin}}\cos\Gamma_c}\right)^2}}, \\
+&\beta = \sqrt{1 - M^2}
 \end{aligned}
 $$
 
@@ -2605,7 +2606,10 @@ $$
 - **Ellipses** on the root chord. $\Gamma_c = 0$, $\bar{c} = 8c_r/(3\pi)$, $y_{\mathrm{MAC}} = 4s/(3\pi)$ and
 
   $$
-  X_f = \left(\frac12 - \frac{2}{3\pi}\right) c_r = 0.28779\, c_r
+  \begin{aligned}
+  X_f &= \left(\frac12 - \frac{2}{3\pi}\right) c_r \\
+  &= 0.28779\, c_r
+  \end{aligned}
   $$
 
   Loft replaced the ellipse with an equal-area trapezoid, whose sweep made the slope 1.3% low ([Loft lesson L10](../decisions-and-roadmap.md#l10)).

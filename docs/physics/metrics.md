@@ -351,8 +351,13 @@ A worked case, with no fins, pinned by a test:
 
 - The rocket is a conical nose 0.3 m (0.98 ft) long of radius $R$ = 0.05 m, a 0.5 m (1.6 ft) tube, and a conical
   boattail 0.4 m (1.3 ft) long, narrowing to a radius $r$. So $d$ = 0.1 m.
-- Barrowman gives the nose a slope of 2 at 0.2 m (0.66 ft). The boattail gets $2((r/R)^2 - 1)$, at
-  $0.8 + (0.4/3)(1 + 1/(1 + R/r))$ m.
+- Barrowman gives the nose a slope of 2 at 0.2 m (0.66 ft). The boattail gets $2((r/R)^2 - 1)$, at a distance
+  in meters of
+
+  $$
+  0.8 + \frac{0.4}{3}\left(1 + \frac{1}{1 + R/r}\right).
+  $$
+
 - So $\kappa = 2/\rho^2 - 1$, with $\rho = r/R$. The margin is given for $\rho \ge 0.6932$, an aft radius of
   34.66 mm (1.4 in) or more.
 - The center of mass is at 0.5 m (1.6 ft).

@@ -352,7 +352,10 @@ A canopy doesn't reach its full drag area at line stretch: it grows over a filli
 device that has deployed and is not released contributes
 
 $$
-(C_D S)(t) = (C_D S)_0 \cdot \min\left(1, \frac{t - t_d}{t_f}\right)^j
+\begin{aligned}
+(C_D S)(t) &= (C_D S)_0 \\
+&\quad \cdot \min\left(1, \frac{t - t_d}{t_f}\right)^j
+\end{aligned}
 $$
 
 with $(C_D S)_0$ its full drag area, $t_d$ its deployment, $t_f$ its filling time and $j$ its growth

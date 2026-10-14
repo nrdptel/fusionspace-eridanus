@@ -65,13 +65,14 @@ $$
   - Values below 1 bulge past $R$ before the base.
   - The arc reaches the tip only while its center is not above the axis, which needs
     $\rho \ge (L^2 + R^2)/(2L)$.
-  - The center is computed on the chord's perpendicular bisector and the height as
 
-    $$
-    y = \frac{x\,(2x_c - x)}{\sqrt{\rho^2 - (x - x_c)^2} - y_c},
-    $$
+  The center is computed on the chord's perpendicular bisector and the height as
 
-    which avoids the cancellation near the tip of a slender ogive.
+  $$
+  y = \frac{x\,(2x_c - x)}{\sqrt{\rho^2 - (x - x_c)^2} - y_c},
+  $$
+
+  which avoids the cancellation near the tip of a slender ogive.
 - **OpenRocket's ogive parameter is not adopted.** [TD] contradicts itself about it:
   - A.3 defines it as $\kappa = \rho_t/\rho$.
   - A.4–A.5 describe the first $L$ of a tangent ogive of length $L/\kappa$, which at $L = 4$, $R = 1$,
@@ -105,7 +106,14 @@ A transition runs from fore radius $R_f$ to aft radius $R_a$ over $L$.
 
 - **Orientation.** The shape's tip lies at the **smaller** end. Growing aft,
   $r = R_f + (R_a - R_f)\,g(x/L)$. A boattail is the mirror image,
-  $r = R_a + (R_f - R_a)\,g(1 - x/L)$.
+
+  $$
+  \begin{aligned}
+  r &= R_a \\
+  &\quad + (R_f - R_a) g(1 - x/L).
+  \end{aligned}
+  $$
+
   [TD] doesn't say how a shrinking transition is oriented; this choice keeps both ends' radii
   exact and the profile monotone ([Loft lesson L49](../decisions-and-roadmap.md#l49)).
 - **Clipped** ([TD] §A.7): cut a whole nose cone of base radius $\max(R_f, R_a)$ where its radius
@@ -143,22 +151,21 @@ parallel-axis theorem. $S$ excludes the end faces.
   the normalized distance from that end. The substitution removes the $u^{-1/2}$ singularity of a
   blunt tip's surface integrand, and measuring from the end keeps the tip exact. The integrals use
   `hpr_core::quadrature` ([Quadrature](quadrature.md)) at a relative tolerance of 1e-12.
-- **Walls** ([ADR-006][adr-006], component geometry and mass properties).
-  - A wall of thickness $t$ is the part of the solid within $t$ of the outer surface, so $t$ is
-    measured normal to the surface, which is how molded and laid-up shells are made.
-  - Its inner radius is the lower envelope of circles of radius $t$ on the profile, over
-    $s \in [0, L]$:
+- **Walls** ([ADR-006][adr-006], component geometry and mass properties). A wall of thickness
+  $t$ is the part of the solid within $t$ of the outer surface, so $t$ is measured normal to the
+  surface, which is how molded and laid-up shells are made. Its inner radius is the lower envelope
+  of circles of radius $t$ on the profile, over $s \in [0, L]$:
 
-    $$
-    \begin{aligned}
-    r_i(x) &= \max(0,\ m), \\
-    m &= \min_{s} \bigl[y(s) - d(s)\bigr], \\
-    d(s) &= \sqrt{t^2 - (x - s)^2}
-    \end{aligned}
-    $$
+  $$
+  \begin{aligned}
+  r_i(x) &= \max(0,\ m), \\
+  m &= \min_{s} \bigl[y(s) - d(s)\bigr], \\
+  d(s) &= \sqrt{t^2 - (x - s)^2}
+  \end{aligned}
+  $$
 
-    with the minimum taken over the $s$ where $\lvert s - x\rvert \le t$. The surface is the profile over its own length, ends included, with no extension past a cut
-    end.
+  with the minimum taken over the $s$ where $\lvert s - x\rvert \le t$. The surface is the profile
+  over its own length, ends included, with no extension past a cut end.
   - The envelope is exact for any continuous profile. A point above the lower half of some
     surface point's circle has the profile crossing its height closer than $t$, so it is in the
     wall anyway.

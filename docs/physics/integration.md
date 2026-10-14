@@ -55,7 +55,8 @@ The two integration methods, how a step lands on a set time, how events are foun
   \begin{aligned}
   \lVert \mathrm{err} \rVert &= \sqrt{\frac{1}{N} \sum_i \left(\frac{\mathrm{err}_i}{\mathrm{sc}_i}\right)^2}, \\
   \mathrm{sc}_i &= w_i\, \mathrm{atol} \\
-  &\quad + \mathrm{rtol} \cdot \max(\lvert y_{0,i} \rvert, \lvert y_{1,i} \rvert)
+  &\quad + \mathrm{rtol} \\
+  &\qquad \cdot \max(\lvert y_{0,i} \rvert, \lvert y_{1,i} \rvert)
   \end{aligned}
   $$
 
@@ -78,8 +79,9 @@ The two integration methods, how a step lands on a set time, how events are foun
     (negative mass, a Mach number past a table's end). The failure is reported only once the step
     can't shrink further. A failure at the step's first stage is reported at once, and so is any
     failure under RK4.
-  - A final interval within the rounding of $t$ ($0.1\,h \le \max(\lvert t \rvert, 1) \cdot \mathrm{uround}$) counts as
-    reached, instead of failing as too small.
+  - A final interval within the rounding of $t$, where $0.1\,h$ is at most
+    $\max(\lvert t \rvert, 1) \cdot \mathrm{uround}$, counts as reached, instead of failing as too
+    small.
   - After a step shortened to land on a stop time, the next call starts from the larger of the
     controller's proposal and the step the controller wanted before shortening.
   - The step size overflowing to infinity (a problem with zero error and no stop) is an error.
@@ -89,7 +91,8 @@ The two integration methods, how a step lands on a set time, how events are foun
 
   $$
   \begin{aligned}
-  h &= \min\left(100\, h_0,\ \left(\frac{0.01}{D}\right)^{1/5}\right), \\
+  h &= \min\biggl(100\, h_0, \\
+  &\qquad \left(\frac{0.01}{D}\right)^{1/5}\biggr), \\
   D &= \max(\lVert f_0 \rVert, \lVert y'' \rVert)
   \end{aligned}
   $$

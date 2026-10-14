@@ -120,7 +120,7 @@ Each [`Stage`](../api/hpr_design/tree/struct.Stage.html) lists **body components
 - **Axial extent** of an attached part:
   - a fin set's root chord;
   - a row of lugs or buttons from the first one's forward end to the last one's aft end,
-    $(n - 1) \cdot \text{spacing} + \text{length}$ (for a button, its diameter);
+    $(n - 1)\,\text{spacing} + \text{length}$ (for a button, its diameter);
   - a packed part's packed length;
   - a pod set's pod, its body components' lengths added;
   - otherwise the part's length.
@@ -188,7 +188,13 @@ An `auto` list names dimensions that the tree resolves. The part's stored value 
   the distance from the parent's axis to the part's axis. An offset outside the bore is refused.
 - **Tube fin sets:** the outer radius $r$ is the one at which the tubes close the ring around the
   body tube of radius $R$ they sit on, each touching the body and its two neighbors. For $N \ge 3$
-  tubes, $r = R\sin(\pi/N)/(1 - \sin(\pi/N))$; one or two tubes take the body's radius. Six tubes on
+  tubes,
+
+  $$
+  r = \frac{R\sin(\pi/N)}{1 - \sin(\pi/N)};
+  $$
+
+  one or two tubes take the body's radius. Six tubes on
   a 50 mm (2.0 in) body are 50 mm (2.0 in); four are 120.7 mm (4.8 in). A wall thicker than $r$ is cut to it. This is the
   radius OpenRocket 24.12 gives, measured on probes
   ([`.ork` design files](../format/ork.md#tube-fins-sized-from-the-body)).
