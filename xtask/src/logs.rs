@@ -51,8 +51,8 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The other families'
-/// files are M7.1c10's.
-pub const READ: [(&str, LogFormat, &str); 28] = [
+/// files are M7.1c11's.
+pub const READ: [(&str, LogFormat, &str); 29] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -104,6 +104,7 @@ pub const READ: [(&str, LogFormat, &str); 28] = [
     // The catalog names R-DAS text after the course whose flights it holds.
     ("e80-imu-txt", LogFormat::RdasText, "M7.1c8"),
     ("altos-telem", LogFormat::AltosTelemetry, "M7.1c9"),
+    ("altos-eeprom", LogFormat::AltosEeprom, "M7.1c10"),
 ];
 
 /// The family of zip archives, read when they unpack ([`ARCHIVE_INCREMENT`]): each of their files
@@ -584,6 +585,9 @@ struct Report {
     /// AltOS's radio telemetry against AltosUI's exports of the same flight.
     #[serde(default)]
     telemetry_checks: TelemetryChecks,
+    /// AltOS's raw downloads against AltosUI's exports of the same flight and its telemetry.
+    #[serde(default)]
+    eeprom_checks: EepromChecks,
     /// How the readers decided the units no header states, by family: each decision, the part of
     /// a record's note before its first `: `, such as `` `Altitude` read in feet, from the
     /// pressure ``, with the number of files whose record carries it.
@@ -1327,6 +1331,463 @@ fn telemetry_checks(samples: &[Sample]) -> TelemetryChecks {
     checks
 }
 
+/// AltOS's raw downloads, `.eeprom`, against AltosUI's exports of the same flight and its radio
+/// telemetry: each file's records as its record's notes count them, with what it was compared
+/// with ([`EepromFile`]); of the files, how many have an export of the same flight beside them, in
+/// the same folder (an AltosUI CSV whose `serial` and `flight` are the file's), and how many of
+/// those agree with it; those whose export set its acceleration's zero at the +1 g calibration,
+/// by id; how many have the board's radio telemetry beside them (a `.telem` of the same serial
+/// number) and how many agree with it; and the files that differ from either, by id.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct EepromChecks {
+    per_file: Vec<EepromFile>,
+    files: usize,
+    with_an_export_beside: usize,
+    agreeing_with_an_export: usize,
+    zeroed_at_the_plus_calibration: Vec<String>,
+    with_telemetry_beside: usize,
+    agreeing_with_telemetry: usize,
+    differing: Vec<String>,
+}
+
+/// One AltOS `.eeprom` file: its id, form and log format; its records, the checksums checked (the
+/// JSON form's; one failing refuses the file, so none here fails), the erased records, the records
+/// repeated exactly and dropped, those after a silence and left out, and whether its last line
+/// was cut short; and what the export and the telemetry beside it showed.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct EepromFile {
+    id: String,
+    form: String,
+    log_format: u32,
+    records: usize,
+    checksums_checked: usize,
+    erased: usize,
+    duplicates_dropped: usize,
+    after_a_silence: usize,
+    last_line_cut: bool,
+    export: Option<EepromAgainstExport>,
+    telemetry: Option<EepromAgainstTelemetry>,
+}
+
+/// A `.eeprom` file against the export of its flight, where every value compared agrees: how many
+/// of its pressures, temperatures, accelerations and Mega voltages met a row of the export at
+/// their tick, and the worst difference of each; and whether the export's acceleration is zeroed
+/// at the +1 g calibration, not at the flight record's ground reading, the worst then being the
+/// difference from that offset.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct EepromAgainstExport {
+    pressures: usize,
+    worst_pressure_pa: f64,
+    pressure_step_pa: f64,
+    temperatures: usize,
+    worst_temperature_k: f64,
+    accelerations: usize,
+    worst_acceleration_m_s2: f64,
+    zeroed_at_the_plus_calibration: bool,
+    voltages: usize,
+    worst_voltage_v: f64,
+}
+
+/// A `.eeprom` file against the board's radio telemetry of the same flight: how many of its
+/// pressures fall at a tick a telemetry sensor packet holds, and how many of those equal it.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct EepromAgainstTelemetry {
+    ticks_shared: usize,
+    pressures_equal: usize,
+}
+
+impl EepromFile {
+    /// The counts from a record's notes, as `hpr_flightdata::altos_eeprom` writes them.
+    fn of(id: String, log: &FlightLog) -> Self {
+        let leading = |note: &str| -> usize {
+            note.split(' ')
+                .next()
+                .and_then(|n| n.parse().ok())
+                .unwrap_or(0)
+        };
+        let mut file = Self {
+            id,
+            ..Self::default()
+        };
+        for note in &log.notes {
+            if let Some((records, rest)) = note.split_once(" records of ") {
+                file.records = records.parse().unwrap_or(0);
+                file.log_format = rest
+                    .split_once("log format ")
+                    .and_then(|(_, after)| after.split(',').next())
+                    .and_then(|n| n.parse().ok())
+                    .unwrap_or(0);
+                if rest.contains("from the JSON form") {
+                    file.form = "JSON".to_owned();
+                    file.checksums_checked = file.records;
+                } else {
+                    file.form = "text".to_owned();
+                }
+            } else if note.contains(" erased records ") {
+                file.erased = leading(note);
+            } else if note.contains(" records repeated exactly") {
+                file.duplicates_dropped = leading(note);
+            } else if note.contains(" records from the first more than 10 s") {
+                file.after_a_silence = leading(note);
+            } else if note.starts_with("the file ends without a line break") {
+                file.last_line_cut = true;
+            }
+        }
+        file
+    }
+}
+
+/// The tick of a `.eeprom` record's zero, the flight record's, from its clock note.
+fn eeprom_zero_tick(log: &FlightLog) -> Option<i64> {
+    log.notes.iter().find_map(|note| {
+        note.split_once("from the flight record's at tick ")?
+            .1
+            .split(' ')
+            .next()?
+            .parse()
+            .ok()
+    })
+}
+
+/// An AltosUI export as text, read by its header's names, apart from HPR Sim's AltOS CSV reader so
+/// that the check stands on its own: the header, `#version,…` or `version,serial,…` within the
+/// first 100 lines, and the rows after it, each split at its commas. Only columns named before
+/// any damage to the header line up, so the check reads `time`, `clock`, `serial`, `flight`, the
+/// pressure, temperature and acceleration, and a Mega's voltages, which come first.
+struct AltosUiExport {
+    columns: Vec<String>,
+    rows: Vec<Vec<String>>,
+}
+
+impl AltosUiExport {
+    fn read(bytes: &[u8]) -> Option<Self> {
+        let text = String::from_utf8_lossy(bytes);
+        let mut lines = text.lines();
+        let header = lines.by_ref().take(100).find(|line| {
+            let line = line.trim();
+            line.starts_with("#version,") || line.starts_with("version,serial,")
+        })?;
+        let columns = header
+            .trim()
+            .trim_start_matches('#')
+            .split(',')
+            .map(|name| name.trim().to_owned())
+            .collect();
+        let rows = lines
+            .map(str::trim)
+            .filter(|line| !line.is_empty() && !line.starts_with('#'))
+            .map(|line| line.split(',').map(|cell| cell.trim().to_owned()).collect())
+            .collect();
+        Some(Self { columns, rows })
+    }
+
+    fn column(&self, name: &str) -> Option<usize> {
+        self.columns.iter().position(|column| column == name)
+    }
+
+    /// A row's number in a column; `None` for a gap or AltOS's not-set value, 2,147,483,647.
+    fn value(&self, row: usize, column: usize) -> Option<f64> {
+        let value: f64 = self.rows.get(row)?.get(column)?.parse().ok()?;
+        (value.is_finite() && value.abs() < 1e9).then_some(value)
+    }
+
+    /// The step a column is printed to: a unit of its last decimal.
+    fn step(&self, column: usize) -> f64 {
+        let decimals = self
+            .rows
+            .iter()
+            .filter_map(|row| row.get(column))
+            .filter_map(|cell| cell.split_once('.').map(|(_, decimals)| decimals.len()))
+            .max()
+            .unwrap_or(0);
+        10f64.powi(-(decimals as i32))
+    }
+
+    /// The first row's cell in a column, as text.
+    fn first(&self, name: &str) -> Option<&str> {
+        Some(self.rows.first()?.get(self.column(name)?)?.as_str())
+    }
+}
+
+/// A Mega's voltages, as both name them.
+const EEPROM_VOLTAGES: [&str; 7] = [
+    "pyro",
+    "igniter_a",
+    "igniter_b",
+    "igniter_c",
+    "igniter_d",
+    "drogue_voltage",
+    "main_voltage",
+];
+
+/// A `.eeprom` record against an export ([`EepromAgainstExport`]): `Ok(None)` if the export isn't
+/// of its flight, `Err` naming the first value that differs.
+///
+/// The two line up by tick. The export's `time` is the tick from the flight record's, in seconds,
+/// as the record's clock is; but an export whose `time` equals its `clock` at every row, as one
+/// AltosUI of 2014 writes, counts from the tick itself, the record's clock note giving the flight
+/// record's. At each of the record's samples, the export's last row at that hundredth must agree
+/// within half the export's print step; a gap or not-set value there is no comparison.
+fn compare_eeprom(
+    eeprom: &FlightLog,
+    export: &AltosUiExport,
+) -> Result<Option<EepromAgainstExport>, String> {
+    use hpr_flightdata::log::Quantity;
+    let same = export.first("serial") == eeprom.serial_number.as_deref()
+        && export.first("flight").and_then(|f| f.parse::<u32>().ok()) == eeprom.flight_number;
+    if !same {
+        return Ok(None);
+    }
+    let zero = eeprom_zero_tick(eeprom).ok_or("no clock note")?;
+    let time = export.column("time").ok_or("no time column")?;
+    let clock = export.column("clock");
+    let from_tick = clock.is_some_and(|clock| {
+        (0..export.rows.len()).all(|row| {
+            export.value(row, clock).is_some()
+                && export.value(row, clock) == export.value(row, time)
+        })
+    });
+    let mut rows: BTreeMap<i64, usize> = BTreeMap::new();
+    for row in 0..export.rows.len() {
+        if let Some(seconds) = export.value(row, time) {
+            rows.insert((seconds * 100.0).round() as i64, row);
+        }
+    }
+    let key = |seconds: f64| (seconds * 100.0).round() as i64 + if from_tick { zero } else { 0 };
+    let figure = |name: &str| {
+        eeprom
+            .stated
+            .figures
+            .iter()
+            .find(|f| f.name == name)
+            .and_then(|f| f.values.first().copied())
+    };
+    let mut out = EepromAgainstExport::default();
+    let mut columns: Vec<(&str, Quantity)> = vec![
+        ("pressure", Quantity::Pressure),
+        ("temperature", Quantity::Temperature),
+        ("acceleration", Quantity::Acceleration),
+    ];
+    columns.extend(
+        EEPROM_VOLTAGES
+            .iter()
+            .map(|name| (*name, Quantity::Voltage)),
+    );
+    for (name, quantity) in columns {
+        let (Some(own), Some(column)) = (
+            eeprom
+                .channels
+                .iter()
+                .find(|c| c.column == name && c.quantity == quantity),
+            export.column(name),
+        ) else {
+            continue;
+        };
+        let step = export.step(column);
+        let half = step / 2.0 + 1e-9;
+        let mut differences = Vec::new();
+        for (seconds, value) in own.time_s.iter().zip(&own.values) {
+            let Some(&row) = rows.get(&key(*seconds)) else {
+                continue;
+            };
+            let (Some(theirs), true) = (export.value(row, column), value.is_finite()) else {
+                continue;
+            };
+            let theirs = if quantity == Quantity::Temperature {
+                theirs + 273.15
+            } else {
+                theirs
+            };
+            differences.push(value - theirs);
+        }
+        let worst = |offset: f64| {
+            differences
+                .iter()
+                .map(|d| (d - offset).abs())
+                .fold(0.0, f64::max)
+        };
+        let mut worst_seen = worst(0.0);
+        if worst_seen > half && quantity == Quantity::Acceleration {
+            // AltosUI may zero the acceleration at the +1 g calibration, not at the flight
+            // record's ground reading: a constant offset of (ground − plus) / span × g.
+            if let (Some(ground), Some(plus), Some(minus)) = (
+                figure("ground_accel"),
+                figure("accel_cal_plus"),
+                figure("accel_cal_minus"),
+            ) {
+                let offset = (ground - plus) / ((minus - plus) / 2.0) * 9.806_65;
+                if worst(offset) <= half {
+                    out.zeroed_at_the_plus_calibration = true;
+                    worst_seen = worst(offset);
+                }
+            }
+        }
+        if worst_seen > half {
+            return Err(format!(
+                "{name} differs by {worst_seen}, past half its step {step}"
+            ));
+        }
+        let n = differences.len();
+        match quantity {
+            Quantity::Pressure => {
+                (out.pressures, out.worst_pressure_pa, out.pressure_step_pa) =
+                    (n, worst_seen, step);
+            }
+            Quantity::Temperature => (out.temperatures, out.worst_temperature_k) = (n, worst_seen),
+            Quantity::Acceleration => {
+                (out.accelerations, out.worst_acceleration_m_s2) = (n, worst_seen);
+            }
+            _ => {
+                out.voltages += n;
+                out.worst_voltage_v = out.worst_voltage_v.max(worst_seen);
+            }
+        }
+    }
+    if out.pressures == 0 {
+        return Err("no pressure met a row of the export".to_owned());
+    }
+    Ok(Some(out))
+}
+
+/// A `.eeprom` record against the board's radio telemetry ([`EepromAgainstTelemetry`]): `Err` if
+/// a pressure differs or none meets a sensor packet. The telemetry's clock is the tick from its
+/// first packet's turn, the record's the tick from its flight record's: the two differ by whole
+/// turns, as many as lie nearest between their `boost` events.
+fn compare_eeprom_telemetry(
+    eeprom: &FlightLog,
+    telemetry: &FlightLog,
+) -> Result<EepromAgainstTelemetry, String> {
+    let zero = eeprom_zero_tick(eeprom).ok_or("no clock note")?;
+    let ticks = |seconds: f64| (seconds * 100.0).round() as i64;
+    let boost = |log: &FlightLog| {
+        log.events
+            .iter()
+            .find(|event| event.name == "boost")
+            .map(|event| ticks(event.time_s))
+    };
+    let (Some(theirs), Some(ours)) = (boost(telemetry), boost(eeprom)) else {
+        return Err("no boost to line the clocks up by".to_owned());
+    };
+    let turns = ((theirs - (ours + zero)) as f64 / ALTOS_TURN as f64).round() as i64;
+    fn pascals(log: &FlightLog) -> Option<&Channel> {
+        log.channels.iter().find(|c| {
+            c.column == "pressure" && c.quantity == hpr_flightdata::log::Quantity::Pressure
+        })
+    }
+    let (Some(own), Some(packets)) = (pascals(eeprom), pascals(telemetry)) else {
+        return Err("no pressure in pascals on both sides".to_owned());
+    };
+    let mut at: BTreeMap<i64, Vec<f64>> = BTreeMap::new();
+    for (seconds, value) in packets.time_s.iter().zip(&packets.values) {
+        at.entry(ticks(*seconds)).or_default().push(*value);
+    }
+    let mut out = EepromAgainstTelemetry::default();
+    for (seconds, value) in own.time_s.iter().zip(&own.values) {
+        let Some(sent) = at.get(&(ticks(*seconds) + zero + turns * ALTOS_TURN)) else {
+            continue;
+        };
+        out.ticks_shared += 1;
+        if sent.iter().all(|pa| (pa - value).abs() < 0.5) {
+            out.pressures_equal += 1;
+        } else {
+            return Err(format!(
+                "a pressure of {value} where the telemetry sent {sent:?}"
+            ));
+        }
+    }
+    if out.ticks_shared == 0 {
+        return Err("no pressure falls at a telemetry packet's tick".to_owned());
+    }
+    Ok(out)
+}
+
+/// [`EepromChecks`] over the samples: each AltOS `.eeprom` file against the AltosUI exports and the
+/// telemetry in its folder.
+fn eeprom_checks(samples: &[Sample]) -> EepromChecks {
+    let mut checks = EepromChecks::default();
+    for sample in samples
+        .iter()
+        .filter(|sample| sample.family == "altos-eeprom")
+    {
+        let Ok(eeprom) = hpr_flightdata::import::read(&sample.bytes) else {
+            continue;
+        };
+        checks.files += 1;
+        let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
+        let mut file = EepromFile::of(id.clone(), &eeprom);
+        let folder = sample.path.parent();
+        let beside = || {
+            samples
+                .iter()
+                .filter(move |other| other.path.parent() == folder && other.path != sample.path)
+        };
+        let mut differs = false;
+        let mut exports = 0;
+        for export in beside().filter_map(|other| AltosUiExport::read(&other.bytes)) {
+            match compare_eeprom(&eeprom, &export) {
+                Ok(None) => {}
+                Ok(Some(compared)) => {
+                    exports += 1;
+                    if file.export.is_none() {
+                        file.export = Some(compared);
+                    }
+                }
+                Err(_) => {
+                    exports += 1;
+                    differs = true;
+                }
+            }
+        }
+        if exports > 0 {
+            checks.with_an_export_beside += 1;
+            if !differs {
+                checks.agreeing_with_an_export += 1;
+            }
+        }
+        if file
+            .export
+            .as_ref()
+            .is_some_and(|export| export.zeroed_at_the_plus_calibration)
+        {
+            checks.zeroed_at_the_plus_calibration.push(id.clone());
+        }
+        let telemetry: Vec<FlightLog> = beside()
+            .filter(|other| {
+                hpr_flightdata::import::detect(&other.bytes) == Some(LogFormat::AltosTelemetry)
+            })
+            .filter_map(|other| hpr_flightdata::import::read(&other.bytes).ok())
+            .filter(|log| log.serial_number == eeprom.serial_number)
+            .collect();
+        if !telemetry.is_empty() {
+            checks.with_telemetry_beside += 1;
+            let mut agrees = true;
+            for log in &telemetry {
+                match compare_eeprom_telemetry(&eeprom, log) {
+                    Ok(compared) => {
+                        if file.telemetry.is_none() {
+                            file.telemetry = Some(compared);
+                        }
+                    }
+                    Err(_) => agrees = false,
+                }
+            }
+            if agrees {
+                checks.agreeing_with_telemetry += 1;
+            } else {
+                differs = true;
+            }
+        }
+        if differs {
+            checks.differing.push(id);
+        }
+        checks.per_file.push(file);
+    }
+    checks.differing.sort();
+    checks.zeroed_at_the_plus_calibration.sort();
+    checks.per_file.sort_by(|a, b| a.id.cmp(&b.id));
+    checks
+}
+
 /// A Featherweight summary's logger, as its record names it, with the format of the file of
 /// samples the app exports beside it and the columns of that file whose start is the pad's
 /// altitude above sea level, the first the file has: a Blue Raven's barometric altitude, or a
@@ -1529,7 +1990,7 @@ struct SourceCount {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct FamilyRow {
     family: String,
-    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1` … `M7.1c9`), `M7.1c10` for
+    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1` … `M7.1c10`), `M7.1c11` for
     /// one not yet read, `damaged`, or `not a log`.
     increment: String,
     files: usize,
@@ -1836,7 +2297,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
             "not a log"
         } else {
-            "M7.1c10"
+            "M7.1c11"
         };
         let row = families
             .entry(sample.family.clone())
@@ -1948,6 +2409,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         raw_checks: raw_checks(samples),
         summary_checks: summary_checks(samples),
         telemetry_checks: telemetry_checks(samples),
+        eeprom_checks: eeprom_checks(samples),
         reclassified: RECLASSIFIED
             .iter()
             .map(|(id, from, to, why)| format!("{id} {from} -> {to}: {why}"))
@@ -1981,6 +2443,14 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         unread.push(format!(
             "  {id} (altos-telem): too few fast packets to check its board's height, speed and \
              acceleration against each other"
+        ));
+    }
+    // A raw download that differs from AltosUI's export or the telemetry of its flight is as
+    // unread as a refusal.
+    for id in &report.eeprom_checks.differing {
+        unread.push(format!(
+            "  {id} (altos-eeprom): differs from the AltosUI export or the telemetry of its \
+             flight beside it"
         ));
     }
     // A summary whose lengths agree with the file beside it only as meters contradicts the feet
@@ -2342,6 +2812,104 @@ fn markdown(report: &Report) -> String {
             range(&telemetry.height_over_export),
             ids(&telemetry.inconsistent),
             ids(&telemetry.unchecked)
+        );
+    }
+    let eeprom = &report.eeprom_checks;
+    if eeprom.files > 0 {
+        let pair = |n: usize, worst: f64, unit: &str, digits: usize| {
+            if n == 0 {
+                "–".to_owned()
+            } else {
+                format!("{n}, {worst:.digits$} {unit}")
+            }
+        };
+        let files: String = eeprom
+            .per_file
+            .iter()
+            .map(|file| {
+                let (pressure, temperature, acceleration, voltage) = match &file.export {
+                    Some(e) => (
+                        pair(e.pressures, e.worst_pressure_pa, "Pa", 4),
+                        pair(e.temperatures, e.worst_temperature_k, "K", 3),
+                        format!(
+                            "{}{}",
+                            pair(e.accelerations, e.worst_acceleration_m_s2, "m/s²", 4),
+                            if e.zeroed_at_the_plus_calibration {
+                                " (zeroed at +1 g)"
+                            } else {
+                                ""
+                            }
+                        ),
+                        pair(e.voltages, e.worst_voltage_v, "V", 4),
+                    ),
+                    None => (
+                        "–".to_owned(),
+                        "–".to_owned(),
+                        "–".to_owned(),
+                        "–".to_owned(),
+                    ),
+                };
+                let telemetry = match &file.telemetry {
+                    Some(t) => format!("{} of {}", t.pressures_equal, t.ticks_shared),
+                    None => "–".to_owned(),
+                };
+                format!(
+                    "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {pressure} | {temperature} | \
+                     {acceleration} | {voltage} | {telemetry} |\n",
+                    file.id,
+                    file.form,
+                    file.log_format,
+                    file.records,
+                    if file.form == "JSON" {
+                        format!("{}, 0 failing", file.checksums_checked)
+                    } else {
+                        "none printed".to_owned()
+                    },
+                    file.erased,
+                    file.duplicates_dropped,
+                    file.after_a_silence,
+                    if file.last_line_cut { "yes" } else { "no" },
+                )
+            })
+            .collect();
+        let ids = |ids: &[String]| {
+            if ids.is_empty() {
+                "none".to_owned()
+            } else {
+                ids.join(", ")
+            }
+        };
+        out += &format!(
+            "\nAltOS's raw downloads, `.eeprom`, each file's records as its record counts them, \
+             and against AltosUI's export and the board's radio telemetry of the same flight \
+             where they lie beside it:\n\n\
+             | File | Form | Log format | Records | Checksums | Erased | Repeats dropped | After \
+             a silence | Last line cut | Pressures vs export | Temperatures | Accelerations | \
+             Mega voltages | Pressures vs telemetry |\n\
+             |---|---|---:|---:|---|---:|---:|---:|---|---|---|---|---|---|\n{}\n\
+             An export of the same flight is an AltosUI CSV in the file's folder whose `serial` \
+             and `flight` are the file's, read by its header's names apart from HPR Sim's AltOS \
+             CSV reader. The two line up by tick, the export's `time` counting from the flight \
+             record's tick, or, where it equals its `clock` at every row, from the tick itself. \
+             At each of the file's samples the export's last row at that hundredth must agree \
+             within half the export's print step (each cell above: the values compared and the \
+             worst difference): the pressure, the temperature where an MS5607 gives it, the \
+             acceleration, and a Mega's pyro, igniter, apogee and main voltages. An export whose \
+             acceleration differs from the file's by one constant, the zero AltosUI may set at \
+             the +1 g calibration instead of the flight record's ground reading, within half a \
+             step, is counted apart. The telemetry is the board's `.telem` of the same serial \
+             number, its clock lined up by whole turns from the two `boost` events; every \
+             pressure at a tick a sensor packet holds must equal it. Of {} files, {} have an \
+             export beside them and {} agree with it; zeroed at the +1 g calibration: {}; {} \
+             have telemetry beside them and {} agree with it; differing: {}.\n",
+            files,
+            eeprom.files,
+            eeprom.with_an_export_beside,
+            eeprom.agreeing_with_an_export,
+            ids(&eeprom.zeroed_at_the_plus_calibration),
+            eeprom.with_telemetry_beside,
+            eeprom.agreeing_with_telemetry,
+            ids(&eeprom.differing)
         );
     }
     if !report.unit_decisions.is_empty() {

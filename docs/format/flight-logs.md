@@ -33,8 +33,12 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > [M7.1c9](../decisions-and-roadmap.md#m7-1c9), follows Altus Metrum's published document,
 > but for its pressure unit, which the files contradict; every unit converted is checked a second
 > way, and the one sample file with an AltosUI export beside it matches it
-> ([AltOS telemetry](#altos-telemetry)). Other layouts are refused, not guessed at; they come
-> with [M7.1c10](../decisions-and-roadmap.md#m7-1c10), the other loggers' formats.
+> ([AltOS telemetry](#altos-telemetry)). AltOS's raw downloads, the `.eeprom` files read since
+> [M7.1c10](../decisions-and-roadmap.md#m7-1c10), follow a layout worked out from the files; each
+> unit converted rests on a data sheet and a second check, and all 9 sample files with an AltosUI
+> export beside them match it ([AltOS's `.eeprom`](#altoss-eeprom)). Other layouts are refused,
+> not guessed at; they come with [M7.1c11](../decisions-and-roadmap.md#m7-1c11), the other
+> loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -82,6 +86,10 @@ with no header row and Blue Raven files with no date), as
 [ADR-261](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0261-archives-and-two-readers-variants-before-the-rest.md)
 decided, and [M7.1c8](../decisions-and-roadmap.md#m7-1c8) (the R-DAS's raw text), as
 [ADR-262](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0262-the-r-das-raw-text-before-the-rest.md)
+decided, and [M7.1c9](../decisions-and-roadmap.md#m7-1c9) (AltOS's radio telemetry), as
+[ADR-263](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0263-altos-telemetry-before-the-rest.md)
+decided, and [M7.1c10](../decisions-and-roadmap.md#m7-1c10) (AltOS's `.eeprom` downloads), as
+[ADR-265](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0265-altos-raw-downloads-before-the-rest.md)
 decided.
 
 ## The layouts read
@@ -115,6 +123,7 @@ decided.
 | NMEA 0183 | a GPS receiver's own sentences, written to a file as it sends them | at least 3 of the first 50 lines open with a sentence whose checksum checks out, such as `$GPGGA,…*hh`, or, in a shorter file, every line does | [below](#gps-logs) |
 | R-DAS raw text | AED Electronics R-DAS, its raw data as its Windows software exports a flight | a first line that isn't blank reading `*** Configuration ***`, and a `*** Raw data ***` line within the first 200 | `hpr_flightdata::rdas` ([below](#r-das-raw-text)) |
 | AltOS telemetry | Altus Metrum's TeleMetrum v2 and newer, the packets a TeleDongle receiver hears, as AltosUI saves them to a `.telem` file | a first line that isn't blank reading `TELEM`, a space and an even number of hexadecimal digits | `hpr_flightdata::altos_telem` ([below](#altos-telemetry)) |
+| AltOS `.eeprom` | Altus Metrum's TeleMetrum, TeleMega, EasyMega and EasyMini, the board's own log as AltosUI downloads it | a JSON object naming `log_format` and `product`; or, within the first 1,000 lines, a `Config version:` line and a `manufacturer altusmetrum.org` line | `hpr_flightdata::altos_eeprom` ([below](#altoss-eeprom)) |
 | Zip archive | not a log: a flight's files, zipped to share them | its bytes open `PK` then 3, 4 | `hpr_flightdata::archive` ([below](#zip-archives)) |
 
 The Blue Raven app writes each flight as a low-rate file, logged 50 times a second, and a
@@ -130,9 +139,9 @@ flight; a Blue Raven's deployment settings saved as spreadsheets or CSV; the eve
 flyer's own program wrote from a Blue Raven's low-rate file, and the descriptions of a rocket
 such programs read; a team flight computer's saved state, one row; an OpenRocket simulation's
 export; and a wind profile. The other layouts in the sample logs, among
-them AltOS's `.eeprom`, an ARTS2's raw sensor counts, spreadsheets and a radio telemetry stream
+them an ARTS2's raw sensor counts, spreadsheets and a radio telemetry stream
 saved as RTF, are refused today, most as *unrecognized*; they come with
-[M7.1c10](../decisions-and-roadmap.md#m7-1c10), and the [survey's report](#how-it-was-checked)
+[M7.1c11](../decisions-and-roadmap.md#m7-1c11), and the [survey's report](#how-it-was-checked)
 counts them by layout.
 
 ### Zip archives
@@ -181,7 +190,7 @@ Two CSV files in one archive name other altimeters' formats in their file names 
 Raven's column names, but their values aren't the Blue Raven's: at the same moments, their
 altitudes differ from its low-rate file's by up to several hundred feet. Which logger wrote them
 isn't known, so they aren't read as a Blue Raven's; they wait for the column mapping of
-[M7.1c10](../decisions-and-roadmap.md#m7-1c10).
+[M7.1c11](../decisions-and-roadmap.md#m7-1c11).
 
 ### R-DAS raw text
 
@@ -322,9 +331,9 @@ TELEM 22d2040001040b0300011b0000fa0000084e3043414c4c0000312e392e32320000f4a8c1
 | `a8` | link quality | top bit set, the packet passed the CRC; 40 |
 | `c1` | checksum | 0x5A plus the 34 bytes from `d2` to `a8`, modulo 256 |
 
-Left out: the eleven packet types no sample holds; the GPS fields nothing checks; and AltOS's
-on-board `.eeprom` files, which the document doesn't describe, for
-[M7.1c10](../decisions-and-roadmap.md#m7-1c10).
+Left out: the eleven packet types no sample holds; and the GPS fields nothing checks. The
+board's own log, which the document doesn't describe, is read from AltosUI's `.eeprom` files
+([AltOS's `.eeprom`](#altoss-eeprom)).
 
 ## The record
 
@@ -764,7 +773,7 @@ sample logs:
   altitude's change, are kept as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
   knows. An RTF document holding anything else is refused as not an Eggtimer's, among them the
   radio telemetry stream in two other sample files, which comes with
-  [M7.1c10](../decisions-and-roadmap.md#m7-1c10).
+  [M7.1c11](../decisions-and-roadmap.md#m7-1c11).
 
 The record's readings withhold on all these layouts, as on every logger's but PerfectFlite's
 `.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
@@ -916,7 +925,7 @@ apogee runs up to 3% below its low-rate file's highest altitude
 §4). The summaries with no file of samples beside them are read by the same rules, unchecked. No
 other figure is checked. Summaries inside zip archives are read and checked as the others are,
 against the files of samples in the same archive ([zip archives](#zip-archives)); those inside
-spreadsheets wait for [M7.1c10](../decisions-and-roadmap.md#m7-1c10).
+spreadsheets wait for [M7.1c11](../decisions-and-roadmap.md#m7-1c11).
 
 ## GPS logs
 
@@ -1081,8 +1090,9 @@ every line is a step of 0.1 s, so one left out would move every time after it.
 ## Raw downloads
 
 A raw download is an altimeter's memory as its maker's program copies it to a computer, before
-that program turns it into an export with columns and units. HPR Sim reads two: the Featherweight
-Raven's `.FIPa` and Missile Works' RRC3 `.rff`. Each holds the sensors' readings as whole numbers,
+that program turns it into an export with columns and units. HPR Sim reads three: the
+Featherweight Raven's `.FIPa` and Missile Works' RRC3 `.rff`, described first, and AltOS's
+`.eeprom`, which has [its own section](#altoss-eeprom) below. Each holds the sensors' readings as whole numbers,
 *counts*, which the reader turns into SI by the maker's own arithmetic. Neither holds an altitude.
 
 > **How far to trust it.** The logger's own readings, decoded from layouts no maker publishes, and
@@ -1204,6 +1214,134 @@ Two `.FIPa` files and five `.rff` files have no export beside them. They are dec
 rules, and pass the checks each file carries (every frame's checksum, the RRC3's clock check),
 but no export checks their values.
 
+### AltOS's `.eeprom`
+
+HPR Sim reads the log an Altus Metrum flight computer keeps in its own memory, as AltosUI, Altus
+Metrum's ground software, downloads it and saves it to an `.eeprom` file; only the Rust library
+reads it so far. Altus Metrum publishes no layout for these records, so the reader's layout was
+worked out from the 14 sample files and the AltosUI exports (CSV) of the same flights beside 9 of
+them, without AltOS's or AltosUI's source code. Each unit it converts rests on a sensor's data
+sheet and a second check. All 9 exports agree with their files at every value both hold, within
+half the export's print step, and the 2 files with the board's radio
+[telemetry](#altos-telemetry) beside them agree with it at every pressure both hold. The other 4
+files are decoded by the same rules, unchecked by either.
+
+The board logs its sensors 100 times a second in the climb and 10 times a second in the descent,
+in records of 8 bytes (TeleMetrum v1), 16 (TeleMetrum v2 and newer, EasyMini) or 32 (TeleMega,
+EasyMega) (*The Altus Metrum System*, Bdale Garbee and Keith Packard, v1.9.22.2, 2025, Appendix F,
+Table 11, p. 77). Each record is a type letter, a checksum byte, the board's 16-bit tick and the
+type's fields: `F` the flight (its number, the accelerometer's and the barometer's readings on the
+pad), `A` the sensors, `S` a change of state, and on a board with GPS, records of its fix and
+its satellites. A file comes in one of two forms:
+
+- **JSON**, as AltosUI writes today: the board's configuration as a JSON object naming
+  `log_format` and `product`, then the memory's bytes in hexadecimal. Every record's bytes sum,
+  with 0x5A, to 0 modulo 256, the seed of the TeleDongle's line checksum (*AltOS Telemetry*,
+  v1.9.22.2, §4, p. 10); a record that fails refuses the file. All 29,437 records of the 7 JSON
+  sample files pass. Erased memory, every byte 0xFF, ends the log and is counted in a note.
+- **Text**, as older AltosUI and a serial console wrote: the configuration as the board prints it
+  (`Config version:`, `manufacturer altusmetrum.org` and the rest), then one record a line, its
+  checksum left out. A last line with no line break, as a download cut short leaves, is left out
+  with a note.
+
+The record size follows the configuration's log format: 8 bytes for format 1; 16 for 6, 7 and 14;
+32 for 15, 16 and 22. Any other number refuses the file, as misaligned bytes would read as a
+plausible flight. Firmware before 1.0 states no log format; a TeleMetrum v1's file is then format
+1, as the manual's release notes for version 1.4 say AltosUI does (§H.43.2, p. 128), and any other
+product's is refused.
+
+- **The clock** is the board's tick, a hundredth of a second (*AltOS Companion Port*, v1.9.22.2,
+  Table 1), which turns over every 655.36 s; each record goes on the turn nearest the latest tick
+  so far. The records aren't written in time order: the pad's samples, held in a ring buffer, come
+  after the flight record, and a GPS record carries its fix's earlier tick. So they are sorted by
+  tick, the file's order kept among equal ticks. Time zero is the flight record's tick, the
+  board's detection of boost, as in AltosUI's exports, so the pad's samples have negative times. A
+  record more than 10 s from the latest tick ends the flight, and it and those after it are
+  counted in a note: one sample file ends with 14 records of another session, 332 s on. Records
+  repeated exactly, the same bytes at the same tick, as old firmware wrote some, are dropped and
+  counted. A file needs exactly one `F` record.
+- **Pressure and temperature, MS5607** (every board but the TeleMetrum v1): the data sheet's
+  compensation of its two counts, D1 and D2, by the six constants the configuration lists, with its
+  second order below 20 °C (TE Connectivity, *MS5607-02BA03*, Figures 2 and 3, pp. 8–9). Each
+  division by a power of 2 is a floor, as an arithmetic shift is: truncating toward zero instead
+  misses the exports by 1 Pa at 6 samples of one cold flight. Second check: the pad's pressure must
+  lie from 10 to 120 kPa and within 1% of the flight record's, or the file is refused.
+- **Pressure, TeleMetrum v1:** its MP3H6115A's output is `Vout = Vs (0.009 P − 0.095)`, P in kPa
+  (Freescale, *MP3H6115A*, rev. 5.1, p. 5), read by the CC1111's converter, whose single-ended
+  result reaches 2,047 at its reference and sits in the top bits of its 16-bit result, 2,047 × 16
+  = 32,752 at full scale (TI, *CC1110Fx/CC1111Fx*, SWRS033H, §12.10.2.6, p. 143, and p. 144). That
+  the converter's reference is the sensor's own supply is the board's design, which no document
+  states; the second check is the pad's pressure, from 10 to 120 kPa, and the exports, which
+  agree. The counts move by 4, a step of 13.6 Pa, about 1.13 m (3.7 ft) of height at sea level.
+- **Acceleration**, along the board's axis: AltosUI calibrates the accelerometer antenna up, then
+  down (the manual, §12.6.20, p. 42), and the configuration keeps its counts at +1 g and −1 g.
+  The record's value is `(ground − count) / ((minus − plus) / 2) × 9.806 65` m/s², `ground` the
+  flight record's count on the pad: 0 at rest on the pad, up the board positive. Without a
+  calibration the counts are kept as written.
+- **A TeleMega's or EasyMega's pyro battery, igniter, apogee and main senses** become volts by
+  the dividers *AltOS Telemetry* gives (p. 3); the exports agree.
+- **GPS** latitude and longitude are in ten-millionths of a degree and altitude in meters, as
+  in the telemetry's GPS packet (*AltOS Telemetry*, Table 15, pp. 6–7); a record without a valid
+  fix is a gap.
+- **States** become events, named as AltosUI's exports name the numbers: 2 `pad`, 3 `boost`,
+  4 `fast`, 5 `coast`, 6 `drogue`, 7 `main`, 8 `landed`.
+- **Kept as written:** the battery and other senses and the IMU's words, whose factors fit the
+  exports but have no source; the TeleMetrum v1's chip temperature, which the data sheet's
+  constants turn into a value up to 0.10 K off the export's; the GPS's other fields. Not
+  read: the TeleMega v4's IMU, which its one sample file never ran, and a Mega's IMU when the
+  flight record's IMU fields are all zero.
+
+The file holds no altitude: the record's [primary track](#the-record) is empty, as for the other
+[raw downloads](#raw-downloads), and every field is a channel. The configuration gives the serial
+number and firmware, the `F` record the flight's number, and the record's stated figures hold the
+pad's readings, the calibration, the main deployment height and the apogee delay.
+
+**A worked example**, invented. A TeleMetrum v2's flight record, flight 3, in the JSON form:
+
+```text
+46 90 64 01 03 00 19 00 d0 7e 01 00 00 00 00 00
+```
+
+| Bytes | Field | Value |
+|---|---|---|
+| `46` | type | `F`, the flight record |
+| `90` | checksum | 0x5A and all 16 bytes sum to 0x300, 0 modulo 256 |
+| `6401` | tick, low byte first | 356; this record's tick is time zero |
+| `0300` | flight | 3 |
+| `1900` | accelerometer on the pad | 25 counts |
+| `d07e0100` | pressure on the pad | 98,000 Pa |
+| `00000000` | unused | |
+
+The text form prints the same record as `F 164 03 00 19 00 d0 7e 01 00 00 00 00 00`. Take a
+calibration of 16,000 counts at +1 g and 16,800 at −1 g: 400 counts a g. With 16,010 on the
+pad, a count of 12,010 in the climb is (16,010 − 12,010) / 400 = 10 g, 98.07 m/s² above rest.
+The MS5607 data sheet's own example counts, D1 6,465,444 and D2 8,077,636, read 110,002 Pa at
+20.00 °C, which a test pins.
+
+**Checked.** `cargo xtask logs` pairs each file with an AltosUI export in its folder of the same
+serial number and flight, read by the export's column names, and lines the two up by tick. At each
+of the file's samples, the export's row at that hundredth must agree within half the export's
+print step; and with the board's `.telem` file of the same serial number, each pressure at a
+tick both hold must be equal. `cargo xtask logs --check` fails on any file that differs. Of the
+14 files:
+
+| Compared | Files | Values | Worst difference | Half the print step |
+|---|---:|---:|---:|---:|
+| Pressure, against the export | 9 | 38,908 | 0.005 Pa | 0.005 Pa |
+| Temperature, against the export | 7 | 31,673 | 0.05 K | 0.05 K |
+| Acceleration, against the export | 7 | 33,095 | 0.005 m/s² | 0.005 m/s² |
+| A Mega's voltages, against the export | 3 | 9,968 | 0.005 V | 0.005 V |
+| Pressure, against the telemetry | 2 | 231 | 0 Pa | |
+
+The MS5607 boards' pressures match their exports exactly; the TeleMetrum v1's, a conversion,
+within half the export's 0.01 Pa print step. One export zeroes the acceleration at the +1 g
+calibration instead of the pad's reading, so it differs from the file by one constant; the survey
+finds that constant within half a step and counts the file apart. Per file, by an anonymized id,
+the [survey's report](#how-it-was-checked) prints each count.
+
+Left out: the TeleMega v4's IMU and the fields kept as written, until a source or a second check
+bears their units out; and any log format not listed above, which no sample holds.
+
 ## How it was checked
 
 `cargo xtask logs`, a command of the project's own build tool, reads every sample log the project
@@ -1217,11 +1355,12 @@ decided each unit their headers leave out, and how; how each raw download compar
 maker's export ([above](#checked-against-the-makers-exports)); how each Featherweight summary
 compares with the files of samples beside it ([above](#checked-against-the-files-beside)); how
 AltOS's telemetry compares with AltosUI's export beside it, and its board's estimates with each
-other ([above](#altos-telemetry)); and
+other ([above](#altos-telemetry)); how each AltOS `.eeprom` file compares with the export and the
+telemetry beside it ([above](#altoss-eeprom)); and
 per file an anonymized id (the start of a hash of the file, which says nothing of its contents)
 with a digest, a hash, of the record read from it. The files inside the zip archives among them
 are unpacked and counted too, each once: of the 29 in the 8 archives, 19 are in no other source
-([zip archives](#zip-archives)). Of the 1,122 files it holds today, 913 are read, the 8 archives
+([zip archives](#zip-archives)). Of the 1,122 files it holds today, 927 are read, the 8 archives
 counted as read when they unpack.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
@@ -1234,7 +1373,7 @@ their extension, are in AltimeterCloud's layout (10), Entacore AIM's (15), a Flu
 ARTS2's interpreted data (4) or the phone app's `launch` CSV (27), and are held to those readers.
 Of the 3 RTF files the catalog files as not a log, by their extension, one is an Eggtimer's
 download, held to its reader, and two a radio telemetry stream, refused until
-[M7.1c10](../decisions-and-roadmap.md#m7-1c10). Five files filed as generic CSV or text are
+[M7.1c11](../decisions-and-roadmap.md#m7-1c11). Five files filed as generic CSV or text are
 PerfectFlite's exports: four with no header row and one that names its temperature `Temp`. A
 Blue Raven high-rate file with no date is held to the Blue Raven's reader; its low-rate partner,
 which a person edited in a spreadsheet (a column with no name, two columns named in words the

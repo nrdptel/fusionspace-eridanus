@@ -292,6 +292,7 @@ until someone rewrites it in plainer words.
 | [ADR-261: M7.1c7 in two: zip archives and two readers' variants first; the rest to M7.1c8][adr-261] | After [M7.1c6](#m7-1c6), 233 sample logs in 16 families were left to [M7.1c7](#m7-1c7), 231 of them read by no reader. [M7.1c7](#m7-1c7) now unpacks the 8 zip archives, in memory and within a bound, and reads each file inside as a file of its own: 19 files no other source holds, 11 of them a Blue Raven's files and summaries. It reads PerfectFlite's text export written with no header row (4 files) and a CSV export that names its temperature `Temp` (1), and a Blue Raven high-rate file with no date (1). It files 16 more files as not logs, and one hand-edited Blue Raven file as damaged. The rest goes to [M7.1c8](#m7-1c8). |  |
 | [ADR-262: M7.1c8 in two: the R-DAS's raw text first; the rest to M7.1c9][adr-262] | After [M7.1c7](#m7-1c7), 209 sample logs were left to [M7.1c8](#m7-1c8), in families that each need a decoder or the column mapper. The largest, 54 files, is one layout: the raw text AED Electronics' R-DAS flight computer's Windows software exports, a configuration summary and then a table of the converters' counts. [M7.1c8](#m7-1c8) now reads it. The file holds no calibration, so every count is kept as written and the record holds no altitude; the clock is held to the configuration's stated rate. The rest goes to [M7.1c9](#m7-1c9). |  |
 | [ADR-263: M7.1c9 in two: AltOS telemetry first; the rest to M7.1c10][adr-263] | After [M7.1c8](#m7-1c8), 155 sample logs were left to [M7.1c9](#m7-1c9). Two of them are AltOS radio telemetry, the `.telem` files AltosUI saves of the packets a TeleDongle hears, and Altus Metrum publishes their layout. [M7.1c9](#m7-1c9) now reads them from that document, with every unit it converts held to a second check, and the rest goes to [M7.1c10](#m7-1c10). The document's pressure unit is contradicted by the files, which hold pascals, not tenths. |  |
+| [ADR-265: M7.1c10 in two: AltOS raw downloads first; the rest to M7.1c11][adr-265] | After [M7.1c9](#m7-1c9), 153 sample logs were left to [M7.1c10](#m7-1c10). Fourteen of them are AltOS's `.eeprom` files, the board's own log as AltosUI downloads it, and nine have AltosUI's export of the same flight beside them. [M7.1c10](#m7-1c10) now reads them, their layout worked out from the files and held to those exports, every unit converted resting on a sensor's data sheet and a second check; the rest goes to [M7.1c11](#m7-1c11). |  |
 
 ## The roadmap
 
@@ -694,7 +695,8 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1c7"></a>[M7.1c7][done-5] | Archives and two readers' variants | done |
 | <a id="m7-1c8"></a>[M7.1c8][done-5] | The R-DAS's raw text | done |
 | <a id="m7-1c9"></a>[M7.1c9][done-5] | AltOS telemetry | done |
-| <a id="m7-1c10"></a>[M7.1c10][phase-5] | The rest | not yet done |
+| <a id="m7-1c10"></a>[M7.1c10][phase-5] | AltOS raw downloads | not yet done |
+| <a id="m7-1c11"></a>[M7.1c11][phase-5] | The rest | not yet done |
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
@@ -1112,6 +1114,7 @@ is the milestone that added or will add that test.
 [adr-261]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0261-archives-and-two-readers-variants-before-the-rest.md
 [adr-262]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0262-the-r-das-raw-text-before-the-rest.md
 [adr-263]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0263-altos-telemetry-before-the-rest.md
+[adr-265]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0265-altos-raw-downloads-before-the-rest.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

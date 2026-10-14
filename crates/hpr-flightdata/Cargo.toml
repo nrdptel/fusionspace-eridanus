@@ -31,6 +31,8 @@ hpr-atmos.workspace = true
 # KML's XML (M7.1c1); it refuses a document type declaration, so no entity can expand.
 roxmltree.workspace = true
 serde.workspace = true
+# The JSON head of AltOS's `.eeprom` downloads (M7.1c10).
+serde_json.workspace = true
 thiserror.workspace = true
 # Zip archives of a flight's files (M7.1c7), unpacked in memory within a bound; deflate only.
 zip.workspace = true
@@ -40,4 +42,3 @@ flate2.workspace = true
 [dev-dependencies]
 insta.workspace = true
 proptest.workspace = true
-serde_json.workspace = true

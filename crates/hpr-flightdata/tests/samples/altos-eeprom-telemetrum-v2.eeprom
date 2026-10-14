@@ -1,0 +1,43 @@
+{
+	"accel_cal_adjusted": true,
+	"accel_cal_minus": 1040,
+	"accel_cal_minus_cooked": 1040,
+	"accel_cal_plus": 1000,
+	"accel_cal_plus_cooked": 1000,
+	"altitude_32": 1,
+	"apogee_delay": 1,
+	"callsign": "N0CALL",
+	"flight": 4,
+	"flights": [9],
+	"log_format": 7,
+	"main_deploy": 250,
+	"manufacturer": "altusmetrum.org",
+	"ms5607": {
+		"crc": 0,
+		"ms5611": false,
+		"off": 43981,
+		"reserved": 0,
+		"sens": 46372,
+		"tco": 27842,
+		"tcs": 29059,
+		"tempsens": 28165,
+		"tref": 31553
+	},
+	"pad_orientation": 0,
+	"product": "TeleMetrum-v2.0",
+	"serial": 1234,
+	"stored_flight": 9,
+	"version": "1.9.22"
+}
+46 19 fa ff 03 00 e8 03 b2 ad 01 00 00 00 00 00 41 d6 f7 ff a4 a7 62 00 44 41 7b 00 e9 03 00 00
+41 d7 f8 ff a4 a7 62 00 44 41 7b 00 e7 03 00 00 41 d5 f9 ff a4 a7 62 00 44 41 7b 00 e8 03 00 00
+53 56 fb ff 03 00 00 00 00 00 00 00 00 00 00 00 41 38 fa ff a4 a7 62 00 44 41 7b 00 84 03 00 00
+41 3d fb ff d4 9f 62 00 e0 40 7b 00 bc 02 00 00 41 c7 fc ff 1c 94 62 00 7c 40 7b 00 58 02 00 00
+41 a6 ff ff 7c 84 62 00 18 40 7b 00 8a 02 00 00 41 0e 00 00 f4 70 62 00 b4 3f 7b 00 20 03 00 00
+54 d6 01 00 b8 0b dc 05 d2 05 00 00 00 00 00 00 50 c0 f0 ff 80 74 d2 1a 00 47 48 b7 70 11 00 00
+47 df f0 ff 12 1e 05 17 1a 05 10 16 00 00 00 00 56 9a f0 ff 04 01 03 28 07 26 0c 1f 13 2c 00 00
+56 2b f0 ff 01 00 18 1d 00 00 00 00 00 00 00 00 41 ca 02 00 84 59 62 00 50 3f 7b 00 4c 04 00 00
+53 4b 03 00 05 00 00 00 00 00 00 00 00 00 00 00 41 f1 03 00 14 42 62 00 ec 3e 7b 00 10 04 00 00
+50 51 05 00 00 00 00 00 00 00 00 00 00 00 00 00 47 70 05 00 12 1e 06 22 1a 05 10 63 00 00 00 00
+53 49 04 00 06 00 00 00 00 00 00 00 00 00 00 00 41 1a 04 00 fc 45 62 00 ec 3e 7b 00 fc 03 00 00
+ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff

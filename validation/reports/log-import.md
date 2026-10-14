@@ -13,16 +13,16 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 |---|---|---:|---:|---|
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
-| aerospacenu-sillygoose-gs-csv | M7.1c10 | 1 | 0 | 1 unrecognized |
+| aerospacenu-sillygoose-gs-csv | M7.1c11 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
 | altos-csv-damaged | damaged | 1 | 0 | 1 syntax |
-| altos-eeprom | M7.1c10 | 14 | 0 | 14 unrecognized |
+| altos-eeprom | M7.1c10 | 14 | 14 | none |
 | altos-telem | M7.1c9 | 2 | 2 | none |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
-| arts2-raw-csv | M7.1c10 | 3 | 0 | 3 unrecognized |
-| binary | M7.1c10 | 4 | 0 | 4 unrecognized |
+| arts2-raw-csv | M7.1c11 | 3 | 0 | 3 unrecognized |
+| binary | M7.1c11 | 4 | 0 | 4 unrecognized |
 | blueraven-csv | M7.1b | 89 | 89 | none |
 | blueraven-csv-damaged | damaged | 1 | 0 | 1 unrecognized |
 | blueraven-events-txt | not a log | 17 | 0 | 17 unrecognized |
@@ -30,7 +30,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | blueraven-settings-xlsx | not a log | 10 | 0 | 10 archive |
 | blueraven-summary-csv | M7.1c6 | 26 | 26 | none |
 | checklist | not a log | 4 | 0 | 4 archive |
-| csv | M7.1c10 | 67 | 2 | 1 syntax, 64 unrecognized |
+| csv | M7.1c11 | 67 | 2 | 1 syntax, 64 unrecognized |
 | debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
 | e80-imu-txt | M7.1c8 | 54 | 54 | none |
 | eggtimer-csv | M7.1b | 43 | 43 | none |
@@ -38,7 +38,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c10 | 2 | 0 | 2 unrecognized |
+| entacore-xtra | M7.1c11 | 2 | 0 | 2 unrecognized |
 | featherweight-summary-csv | M7.1c6 | 25 | 25 | none |
 | flight-computer-params-csv | not a log | 3 | 0 | 3 unrecognized |
 | fluctus-csv | M7.1c3 | 6 | 6 | none |
@@ -46,9 +46,9 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | jpeg | not a log | 1 | 0 | 1 unrecognized |
 | kml | M7.1c1 | 43 | 43 | none |
 | kml-map | not a log | 1 | 1 | none |
-| missileworks-rtx | M7.1c10 | 5 | 0 | 5 unrecognized |
+| missileworks-rtx | M7.1c11 | 5 | 0 | 5 unrecognized |
 | nmea | M7.1c1 | 12 | 12 | none |
-| odf | M7.1c10 | 3 | 0 | 3 unrecognized |
+| odf | M7.1c11 | 3 | 0 | 3 unrecognized |
 | openrocket-simulation-csv | not a log | 1 | 0 | 1 unrecognized |
 | pdf | not a log | 1 | 0 | 1 unrecognized |
 | perfectflite-csv | M7.1a | 15 | 15 | none |
@@ -62,14 +62,14 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | rocket-parameters | not a log | 4 | 0 | 4 unrecognized |
 | rrc3-csv | M7.1b | 51 | 51 | none |
 | rrc3-rff | M7.1c5 | 6 | 6 | none |
-| telemetry-rtf | M7.1c10 | 2 | 0 | 2 not-this-format |
-| txt | M7.1c10 | 26 | 0 | 26 unrecognized |
+| telemetry-rtf | M7.1c11 | 2 | 0 | 2 not-this-format |
+| txt | M7.1c11 | 26 | 0 | 26 unrecognized |
 | wind-profile-csv | not a log | 1 | 0 | 1 unrecognized |
-| xls | M7.1c10 | 1 | 0 | 1 unrecognized |
-| xlsx | M7.1c10 | 23 | 0 | 23 archive |
-| xml | M7.1c10 | 2 | 0 | 2 unrecognized |
+| xls | M7.1c11 | 1 | 0 | 1 unrecognized |
+| xlsx | M7.1c11 | 23 | 0 | 23 archive |
+| xml | M7.1c11 | 2 | 0 | 2 unrecognized |
 | zip | M7.1c7 | 8 | 8 | none |
-| **All** | | 1122 | 913 | |
+| **All** | | 1122 | 927 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
@@ -205,6 +205,27 @@ AltOS's radio telemetry, each file's packets as its record counts them:
 Against AltosUI's exports of the same flight, an export being an AltOS CSV beside the telemetry, in its folder, that its reader reads. The two clocks are the board's tick, which turns over every 655.36 s; their `boost` states say by how many turns they differ. At each tick both hold, the telemetry's pressure must equal the export's, but where the export's rows there repeat the pressure of the row before them, which are counted apart; at the pressures equal, the temperatures must agree within 0.05 K, half the export's step, and at every tick both hold a GPS fix, the positions within 0.01° and the GPS altitudes within 100 m, the export's row carrying its last fix; fixes on both sides that never meet fail. Of 2 telemetry files, 1 have an export beside them and 1 agree with one: of their 3927 sensor packets, 138 fall at a tick the export holds, 123 pressures equal and 15 at repeated rows; worst temperature 0.050 K; 39 GPS values compared, worst position 0.00006°, GPS altitude 3 m; differing: none.
 
 The board's own estimates, sent in its telemetry, against each other: the median ratio of `height`'s climb to `speed` after burnout, from 0.9659 to 1.0006, and of `speed`'s change to `acceleration` in the climb, from 0.9393 to 1.0213; and the telemetry's highest `height` over the export's, from 0.9962 to 0.9962. Each is 1 if the three are in the units read, and must lie from 0.8 to 1.25; outside: none; too few fast packets for a ratio: none.
+
+AltOS's raw downloads, `.eeprom`, each file's records as its record counts them, and against AltosUI's export and the board's radio telemetry of the same flight where they lie beside it:
+
+| File | Form | Log format | Records | Checksums | Erased | Repeats dropped | After a silence | Last line cut | Pressures vs export | Temperatures | Accelerations | Mega voltages | Pressures vs telemetry |
+|---|---|---:|---:|---|---:|---:|---:|---|---|---|---|---|---|
+| 01f1e77df7e18bc1 | JSON | 1 | 4088 | 4088, 0 failing | 8 | 0 | 0 | no | 2206, 0.0035 Pa | – | 2206, 0.0050 m/s² | – | – |
+| 0bc0d96357b9eb10 | text | 1 | 5750 | none printed | 0 | 4 | 0 | yes | 5029, 0.0050 Pa | – | 5029, 0.0050 m/s² | – | – |
+| 0ef41688774d1d2a | text | 7 | 5238 | none printed | 0 | 0 | 0 | no | – | – | – | – | – |
+| 2084c9945938a5e7 | text | 7 | 2182 | none printed | 0 | 0 | 0 | no | – | – | – | – | – |
+| 219767cba01f7d9d | text | 7 | 7231 | none printed | 0 | 0 | 0 | no | 5799, 0.0000 Pa | 5799, 0.050 K | 5799, 0.0049 m/s² (zeroed at +1 g) | – | – |
+| 56da61ddf4935294 | JSON | 6 | 2389 | 2389, 0 failing | 11 | 0 | 0 | no | 2384, 0.0000 Pa | 2384, 0.050 K | – | – | – |
+| 67417925a3f2a144 | JSON | 22 | 6877 | 6877, 0 failing | 3 | 0 | 0 | no | 5228, 0.0000 Pa | 5228, 0.050 K | 5228, 0.0050 m/s² | 7000, 0.0050 V | – |
+| 9611014e6dae139c | JSON | 7 | 7483 | 7483, 0 failing | 5 | 0 | 0 | no | – | – | – | – | 108 of 108 |
+| 9e001801c8f2b8e1 | text | 7 | 13123 | none printed | 0 | 0 | 0 | no | 10262, 0.0000 Pa | 10262, 0.050 K | 10262, 0.0050 m/s² | – | 123 of 123 |
+| a24b048cc7f450cf | JSON | 16 | 1777 | 1777, 0 failing | 7 | 0 | 0 | no | 1592, 0.0000 Pa | 1592, 0.050 K | 1592, 0.0050 m/s² | 1253, 0.0049 V | – |
+| ae3260cae4174bc2 | JSON | 15 | 3388 | 3388, 0 failing | 4 | 0 | 0 | no | 2979, 0.0000 Pa | 2979, 0.050 K | 2979, 0.0050 m/s² | 1715, 0.0050 V | – |
+| b122d4bddf7a8a89 | text | 1 | 9848 | none printed | 0 | 15 | 14 | no | – | – | – | – | – |
+| e5b35cdd0836c39e | text | 7 | 4027 | none printed | 0 | 0 | 0 | no | – | – | – | – | – |
+| f44c03b81cb9cf81 | JSON | 14 | 3435 | 3435, 0 failing | 5 | 0 | 0 | no | 3429, 0.0000 Pa | 3429, 0.050 K | – | – | – |
+
+An export of the same flight is an AltosUI CSV in the file's folder whose `serial` and `flight` are the file's, read by its header's names apart from HPR Sim's AltOS CSV reader. The two line up by tick, the export's `time` counting from the flight record's tick, or, where it equals its `clock` at every row, from the tick itself. At each of the file's samples the export's last row at that hundredth must agree within half the export's print step (each cell above: the values compared and the worst difference): the pressure, the temperature where an MS5607 gives it, the acceleration, and a Mega's pyro, igniter, apogee and main voltages. An export whose acceleration differs from the file's by one constant, the zero AltosUI may set at the +1 g calibration instead of the flight record's ground reading, within half a step, is counted apart. The telemetry is the board's `.telem` of the same serial number, its clock lined up by whole turns from the two `boost` events; every pressure at a tick a sensor packet holds must equal it. Of 14 files, 9 have an export beside them and 9 agree with it; zeroed at the +1 g calibration: 219767cba01f7d9d; 2 have telemetry beside them and 2 agree with it; differing: none.
 
 Units no header states, as each file's reader decided them, or kept the column as written, and noted:
 
@@ -493,11 +514,19 @@ The files read, by the logger each names:
 | AerospaceNU flight computer board | 20 |
 | AerospaceNU flight computer board, by its ground station | 4 |
 | AltOS | 52 |
+| AltOS EasyMega-v2.0 | 1 |
+| AltOS EasyMini-v1.0 | 1 |
+| AltOS EasyMini-v2.0 | 1 |
 | AltOS TeleGPS-v1.0 | 3 |
 | AltOS TeleGPS-v2.0 | 4 |
+| AltOS TeleMega-v4.0 | 1 |
+| AltOS TeleMega-v6.0 | 1 |
 | AltOS TeleMetrum | 1 |
 | AltOS TeleMetrum v2 or newer | 2 |
-| AltOS TeleMetrum-v2.0 | 1 |
+| AltOS TeleMetrum-v1.0 | 2 |
+| AltOS TeleMetrum-v1.2 | 1 |
+| AltOS TeleMetrum-v2.0 | 6 |
+| AltOS TeleMetrum-v4.0 | 1 |
 | Big Red Bee BeeLine | 2 |
 | Eggtimer | 43 |
 | Eggtimer Build_1.52 | 1 |
