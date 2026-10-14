@@ -1447,12 +1447,15 @@ CSV carries none, so its counts are kept as written.
 > - **Checked:** all 3 sample `.odf` files. Their raw CSVs hold the same 48,614 records word for
 >   word, 0.02 s apart. Against DataAnalyzer's interpreted exports, the acceleration agrees within
 >   0.080 of a count on all 48,611 records after the first, and each export's barometric altitude
->   follows the pressure in order. The climb check's ratios are 0.754, 1.032 and 1.145, where the
->   reader accepts 0.6 to 5/3.
-> - **Assumed:** the rate, 50 records a second, which DataAnalyzer gives all three files; where the
->   file keeps it isn't known, so it rests on the climb check. The pressure is the sensor's
->   nominal conversion, rated to ±1.56 kPa; an AltOS board flown with each flight reads a pad
->   pressure 0.42 to 1.08 kPa above the ARTS2's.
+>   follows the pressure in order. The climb check, the climb over the first 2 s by the pressure
+>   over the climb by the acceleration, gives ratios of 0.754, 1.032 and 1.145, where the reader
+>   accepts 0.6 to 5/3.
+> - **Assumed:** the rate, 50 records a second, which DataAnalyzer gives all three files. Where the
+>   file keeps it isn't known: the reader refuses a file whose likeliest word for it isn't the
+>   sample files' 2, and the climb check catches a clock off by more than about a third, and
+>   only loosely below that. The pressure is the sensor's nominal conversion, with an error band of
+>   ±1.5 kPa; an AltOS board flown with each flight reads a pad pressure 0.42 to 1.08 kPa above
+>   the ARTS2's.
 > - **Not read:** the meaning of most of the flags byte, the board's state codes and the
 >   deployment settings.
 
@@ -1471,7 +1474,10 @@ exactly its parts':
 | 305 | 8 `n` | the records |
 | 305 + 8 `n` | 124 | DataAnalyzer's own settings; not read |
 
-Of the settings block, the reader takes three things. At its offset 10 is the barometer's count
+Of the settings block, the reader takes four things, each a 16-bit little-endian word. At its
+offset 8 is a word that is 2 in every sample file, the likeliest place for the recording rate,
+which the owner sets (pp. 6–7); a file where it is anything else is refused, as its clock would
+be unknown. At 10 is the barometer's count
 on the pad, the "Zero Altitude baseline" the board averages on entering flight mode (p. 17). At 12
 is eight times the accelerometer's count on the pad, its "Zero G baseline" (p. 16), so it keeps an
 eighth of a count. At 20, 22 and 24 are three sums of 64 accelerometer readings, taken when the
@@ -1488,8 +1494,9 @@ the flight's first row, at time 0, and so does the reader.
 What the reader does with the records:
 
 - **The clock.** The records are 0.02 s apart, 50 a second, from the first: the rate DataAnalyzer
-  gives every sample file in both its exports. Where the file keeps the rate isn't known, so the
-  climb check below bears it out.
+  gives every sample file in both its exports. Where the file keeps the rate isn't known: the
+  sample files are all at one rate, so no byte can be shown to change with it. The reader refuses
+  a file whose settings word at 8 isn't 2, and the climb check below bounds the clock otherwise.
 - **Acceleration**, along the board's axis, toward its forward end, from the file's own
   calibration. The two end sums are 2 g apart, so a g is a 128th of their difference, in counts:
   64 readings in each sum, over 2 g. The pad's reading is taken out, as DataAnalyzer's export
@@ -1500,7 +1507,9 @@ What the reader does with the records:
   a = \pm\frac{c - c_{\mathrm{pad}}}{k}\, g_0,
   $$
 
-  the sign set by which end sum the pad's reading lies near, as the rocket stands nose up. The
+  the sign set by the pad: standing nose up, the board reads +1 g along its axis, so the pad's
+  reading lies near one end sum, and a count moving further toward that end is an acceleration
+  forward, positive. The
   ADXL78's data sheet must bear the calibration out (*ADXL78*, Rev. B, Analog Devices, 2010, p. 3,
   for ±50 g): a g from 36.1 to 39.9 mV, 7.39 to 8.17 counts on the board's 5 V supply; the side's
   reading within 150 mV, 30.72 counts, of half the supply and between the two ends; and the pad's
@@ -1518,15 +1527,17 @@ What the reader does with the records:
   $$
 
   One count is 92.2 Pa, about 7.7 m (25 ft) of height near sea level. The pad's pressure must lie
-  in the sensor's rated 20 to 105 kPa (p. 3), or the file is refused. The sensor is rated to
-  ±1.8% of its 4.59 V span, ±1.56 kPa (p. 3).
+  in the sensor's rated 20 to 105 kPa (p. 3), or the file is refused. The sensor's error band is
+  ±1.5 kPa over that range from 0 to 85 °C (p. 6).
 - **The climb check** holds the clock and both units to each other, as for
   [AltOS's `.eeprom`](#altoss-eeprom). Over the first 2 s from the first record, the climb by the
   pressure, its pressure altitude in the U.S. Standard Atmosphere, 1976, must agree with the climb
   by the acceleration, integrated twice from rest: their ratio must lie from 0.6 to 5/3. The
   window is twice AltOS's 1 s because this barometer is coarse: over 1 s, one sample flight
-  climbs less than two counts. A clock off by a factor of 1.3 or more fails the check, as the
-  climb by the acceleration goes as the square of the time step.
+  climbs less than two counts. The check bounds the clock only loosely: the climb by the
+  acceleration goes as the square of the time step, so with a flight's ratio $r$ on its true
+  clock, a step $k$ times the true one passes for $k$ from $\sqrt{r/(5/3)}$ to $\sqrt{r/0.6}$,
+  0.67 to 1.12 for the sample file of the least ratio and 0.83 to 1.38 for the greatest's.
 - **A file that fails the climb check is refused.** AltOS's reader keeps such a file's counts as
   written; this one can't, because a count kept as written still needs a clock, and nothing else
   in the file bears one out.
@@ -1569,21 +1580,22 @@ or the file is refused, naming the line. For values in units, read the flight's 
 raw CSV must hold its records word for word, 0.02 s apart. DataAnalyzer's interpreted export must
 agree in `Acc` within half a count on every record after the first, and read zero in `Acc` and
 `pAlt` at its first row and at any row after the records. Its `pAlt` is compared by order only:
-it must rise as the pressure one record earlier falls, each pressure meeting one value.
+zero at the pad's pressure and above, it must rise as the pressure one record earlier falls below
+it, each pressure meeting one value, and no row's `pAlt` may be missing.
 `cargo xtask logs --check` fails on a file that differs. Of the 3 `.odf` files:
 
 | Compared | Files | Values | Result |
 |---|---:|---:|---|
 | Records, against the raw CSV | 3 | 48,614 | every word equal |
 | `Acc`, against the interpreted export | 3 | 48,611 | within 0.080 of a count |
-| `pAlt`'s order, against the pressure | 3 | 419, 406 and 443 pressures | no pressure meeting two values; none out of order |
+| `pAlt`'s order, against the pressure | 3 | 48,611 | no pressure meeting two values; none out of order; no gap |
 | The climb check | 3 | | ratios 0.754, 1.032 and 1.145 |
 
 Reported, not checked: two exports' `pAlt` lies within 3.3 m (11 ft) of the standard
 atmosphere's pressure altitude from the `.odf`'s pressure, and the third's departs by up to
 151 m (496 ft), worked by some other formula. An AltOS board flew beside the ARTS2 on each
 flight: the ARTS2's pad pressure reads 0.42 to 1.08 kPa below it, and its least pressure from
-0.48 kPa below to 0.11 kPa above, inside the MPX4100A's rated ±1.56 kPa. The
+0.48 kPa below to 0.11 kPa above, inside the MPX4100A's ±1.5 kPa error band. The
 [survey's report](#how-it-was-checked) prints each file's counts and climb ratio under an
 anonymized id, and
 [ADR-266, the ARTS2's raw data](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0266-arts2-raw-data-before-the-rest.md)
@@ -1613,8 +1625,9 @@ per file an anonymized id (the start of a hash of the file, which says nothing o
 with a digest, a hash, of the record read from it. The files inside the zip archives among them
 are unpacked and counted too, each once: of the 29 in the 8 archives, 19 are in no other source
 ([zip archives](#zip-archives)). Of the 1,122 files it holds today, 933 are read, the 8 archives
-counted as read when they unpack. The report labels 131 files, of layouts no reader knows yet,
-for [M7.1c12](../decisions-and-roadmap.md#m7-1c12), the rest of the importers.
+counted as read when they unpack. The report labels 133 files for
+[M7.1c12](../decisions-and-roadmap.md#m7-1c12), the rest of the importers; 131 of them, of
+layouts no reader knows yet, are unread.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
 reason printed: one is a spreadsheet's re-save of an AltOS export, its header edited, which is

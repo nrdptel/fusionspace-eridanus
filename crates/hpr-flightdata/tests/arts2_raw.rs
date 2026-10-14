@@ -270,8 +270,8 @@ fn a_first_record_that_isnt_the_baselines_is_refused() {
     );
 }
 
-/// A pad pressure outside the sensor's rated 20 to 105 kPa is refused: count 983 is 104.98 kPa
-/// and 984 is 105.07.
+/// A pad pressure outside the sensor's rated 20 to 105 kPa is refused: count 61 is 19.96 kPa,
+/// 62 is 20.05, 983 is 104.98 and 984 is 105.07.
 #[test]
 fn a_pad_pressure_outside_the_sensors_range_is_refused() {
     let pad = |count: u16| {
@@ -293,6 +293,30 @@ fn a_pad_pressure_outside_the_sensors_range_is_refused() {
     // start, is then far more than the acceleration's.
     let error = pad(983).unwrap_err().to_string();
     assert!(error.contains("not both upward"), "{error}");
+    let error = pad(61).unwrap_err().to_string();
+    assert!(
+        error.contains("outside the MPX4100A's 20 to 105 kPa"),
+        "{error}"
+    );
+    // 62 passes the band; the pressure then rises from the pad, so the climb check fails.
+    let error = pad(62).unwrap_err().to_string();
+    assert!(!error.contains("20 to 105 kPa"), "{error}");
+    assert!(error.contains("climb"), "{error}");
+}
+
+/// A settings word other than 2 where every sample file keeps its rate is refused, since the
+/// clock is taken from those files.
+#[test]
+fn a_rate_word_other_than_the_sample_files_is_refused() {
+    for word in [0, 1, 3] {
+        let (offset, message) = refusal(&with_word(BLOCK_AT + 8, word));
+        assert_eq!(offset, BLOCK_AT + 8);
+        assert!(message.contains("rate's likely place"), "{message}");
+        assert!(
+            message.contains(&format!("settings word {word}")),
+            "{message}"
+        );
+    }
 }
 
 /// A calibration the ADXL78's data sheet doesn't bear out is refused at the sums.
@@ -393,6 +417,10 @@ fn a_raw_csv_row_that_cant_be_a_record_is_refused() {
 fn the_raw_csv_is_recognized_by_its_header() {
     assert!(arts2_raw::recognizes_csv(
         "\n MET, Acc(HI) ,Acc/Baro(LO),Baro(HI),State\r\n"
+    ));
+    // A byte-order mark, and lines ended by a carriage return alone.
+    assert!(arts2_raw::recognizes_csv(
+        "\u{feff}MET,Acc(HI),Acc/Baro(LO),Baro(HI),State\r0.00,512,0,800,0\r"
     ));
     assert!(!arts2_raw::recognizes_csv(
         "met,acc(hi),acc/baro(lo),baro(hi),state\n"

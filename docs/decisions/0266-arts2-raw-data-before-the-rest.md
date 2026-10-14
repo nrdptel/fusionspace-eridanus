@@ -27,12 +27,15 @@ source read:
   every record after the first agrees within 0.080 of a count. Its
   `pAlt` is a falling function of the barometer's count one record earlier, in all three files
   with no count meeting two values.
-- **One count of the barometer** is 92 Pa, about 9.5 m at the sample files' pads, so over a 1 s
-  window one flight climbs less than two counts.
+- **One count of the barometer** is 92 Pa, about 7.7 m near sea level and more at a higher
+  site, so over a 1 s window one flight climbs less than two counts.
 - **An AltOS board flew with each**: the ARTS2's pad pressure lies 0.42 to 1.08 kPa below the
   AltOS board's and its least pressure from 0.48 below to 0.11 kPa above, within the MPX4100A's
-  rated ±1.8% of its 4.59 V span, ±1.56 kPa (*MPX4100A*, Rev 9, Freescale, 2009, p. 3).
-- **Unknown:** where the file keeps the recording rate, the deployment settings' layout, the
+  error band, ±1.5 kPa from 20 to 105 kPa at 0 to 85 °C (*MPX4100A*, Rev 9, Freescale, 2009,
+  p. 6).
+- **Unknown:** where the file keeps the recording rate, which the owner sets (the manual,
+  pp. 6–7); all the sample files are at one rate, and the settings block's word at offset 8, 2 in
+  each, is the likeliest place. Unknown too: the deployment settings' layout, the
   meaning of the flags byte's bits beyond the barometer's two low bits it repeats, and the
   state codes, which step 0, 1, 2, 3, 5, 6, 7 through the flights in order.
 
@@ -58,30 +61,34 @@ source read:
    and the state are kept as written; no event is taken from the state. The raw CSV holds no
    calibration, so its counts are kept as written, its time DataAnalyzer's `MET`.
 4. **The clock and the climb check.** The records are 50 a second, the rate DataAnalyzer gives
-   all three. Each unit's second check, and the clock's, is the climb check of
+   all three, and a file whose settings word at offset 8 isn't their 2 is refused, failing closed
+   on the rate's likeliest place. Each unit's second check, and the clock's, is the climb check of
    [ADR-265](0265-altos-raw-downloads-before-the-rest.md) over a 2 s window from the first record
    rather than 1 s, for the coarser barometer: the climb by the pressure over the climb by the
-   acceleration from rest, from 0.6 to 5/3. A clock off by 1.3 or more fails it, as the climb by
-   the acceleration goes as the square of the time step. Unlike the AltOS reader, which keeps a
+   acceleration from rest, from 0.6 to 5/3. It bounds the clock only loosely: the climb by the
+   acceleration goes as the square of the time step, so a step `k` times the true one passes for
+   `k` from `√(r / (5/3))` to `√(r / 0.6)`, `r` the flight's ratio on its true clock, 0.67 to 1.12
+   and 0.83 to 1.38 at the sample files' least and greatest ratios; every record notes that its
+   clock is assumed. Unlike the AltOS reader, which keeps a
    failing file's counts as written, this reader refuses it: a count kept as written still
    needs a clock, and nothing else in the file bears one out.
 5. **The survey checks each `.odf` against what lies beside it**, in its folder: a raw CSV must
    hold its records word for word, 0.02 s apart; an interpreted export must agree in `Acc` within
    half a count on every record after the first, read zero in `Acc` and `pAlt` at the first row
    and at any row after the records, and order its `pAlt` as the pressure one record earlier,
-   with no pressure meeting two values and none falling as the pressure falls but at the pad's
-   zero. A differing file fails `cargo xtask logs --check`. The report prints each file's
+   with no pressure meeting two values, none falling as the pressure falls but at the pad's
+   zero, and no `pAlt` missing. A differing file fails `cargo xtask logs --check`. The report prints each file's
    climb ratio and, reported only, `pAlt`'s largest difference from the standard atmosphere's
    pressure altitude, and the pad's and least pressures less an AltOS board's beside it, as
    differences only.
 
 **Consequences.** All 6 files read. The 3 raw CSVs hold their `.odf`'s 48,614 records word for
 word; against the 3 interpreted exports, 48,611 accelerations agree within 0.080 of a count and
-the exports' `pAlt` meets 419, 406 and 443 pressures with no clash and no inversion. The climb
+the exports' `pAlt` has no gap, no clash and no inversion. The climb
 ratios are 0.754, 1.032 and 1.145. Two exports' `pAlt` lies within 3.3 m of the standard
 atmosphere's pressure altitude from the `.odf`'s pressure; the third's departs by up to 151 m by
 another formula, which the survey reports and doesn't check. The survey reads 933 of its 1,122
-files and labels the families not yet read M7.1c12, 131 files.
+files and labels 133 files M7.1c12, 131 of them unread.
 
 **Done when (M7.1c11):** every ARTS2 `.odf` and raw CSV in refs reads (`cargo xtask logs
 --check` fails on one that doesn't); an `.odf` with a layout fault, a first record that isn't its

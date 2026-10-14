@@ -2122,11 +2122,13 @@ struct Arts2File {
 /// first compared, each at the export's row at its time; the largest difference in `Acc`, in the
 /// accelerometer's counts; whether the export's first row, the baselines', reads zero in `Acc`
 /// and `pAlt`, the columns its reader keeps as written there; its rows after the records, and
-/// whether they all read zero in those; the distinct pressures `pAlt` meets one record later,
-/// those that meet two values of it (clashes), and the steps from one pressure to the next lower
-/// that don't raise it but at the pad's zero (inversions); and, reported only, the
-/// largest difference of `pAlt` from the pressure altitude in the U.S. Standard Atmosphere,
-/// 1976, above the pad's, none below it, m.
+/// whether they all read zero in those; the rows whose `pAlt` is a gap; how many pressures `pAlt`
+/// meets one record later meet two values of it (clashes); and how many break its order
+/// (inversions): from the highest pressure down, `pAlt` is zero at the pad's pressure and above,
+/// which DataAnalyzer writes no height below, and rises at every lower one. Reported only: the
+/// largest difference of `pAlt` from the pressure altitude in the U.S. Standard Atmosphere, 1976,
+/// above the pad's, none below it, m. The number of pressures isn't kept: with a count's step it
+/// would give a private flight's apogee.
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
 struct Arts2Export {
     rows_compared: usize,
@@ -2134,10 +2136,26 @@ struct Arts2Export {
     first_row_zero: bool,
     rows_after: usize,
     rows_after_zero: bool,
-    pressures: usize,
+    gaps: usize,
     clashes: usize,
     inversions: usize,
     worst_from_the_standard_m: f64,
+}
+
+/// Whether an `.odf` differs from the files of its flight beside it: a raw CSV whose words differ,
+/// or an interpreted export off by more than half a count in `Acc`, not zero where it must be,
+/// with a gap in `pAlt`, or with a clash or an inversion in its order.
+fn arts2_differs(file: &Arts2File) -> bool {
+    file.raw_csv_matches == Some(false)
+        || file.export.as_ref().is_some_and(|e| {
+            e.worst_acceleration_counts.is_nan()
+                || e.worst_acceleration_counts > 0.5
+                || !e.first_row_zero
+                || !e.rows_after_zero
+                || e.gaps > 0
+                || e.clashes > 0
+                || e.inversions > 0
+        })
 }
 
 /// The `.odf`'s records' four words, decoded from its bytes as the reader's module docs lay them
@@ -2160,9 +2178,13 @@ fn arts2_checks(samples: &[Sample]) -> Arts2Checks {
     use hpr_flightdata::log::Quantity;
     let mut checks = Arts2Checks::default();
     for sample in samples.iter().filter(|sample| sample.family == "odf") {
+        // Only a file read as an `.odf` has the layout its bytes are decoded by here.
         let Ok(odf) = hpr_flightdata::import::read(&sample.bytes) else {
             continue;
         };
+        if odf.format != LogFormat::Arts2Odf {
+            continue;
+        }
         let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
         let records = odf_records(&sample.bytes);
         let beside = |format: LogFormat| -> Vec<FlightLog> {
@@ -2250,17 +2272,6 @@ fn arts2_checks(samples: &[Sample]) -> Arts2Checks {
             ),
             _ => (None, None),
         };
-        let differs = raw_csv_matches == Some(false)
-            || export.as_ref().is_some_and(|e| {
-                e.worst_acceleration_counts > 0.5
-                    || !e.first_row_zero
-                    || !e.rows_after_zero
-                    || e.clashes > 0
-                    || e.inversions > 0
-            });
-        if differs {
-            checks.differing.push(id.clone());
-        }
         checks.per_file.push(Arts2File {
             id,
             records: records.len(),
@@ -2271,6 +2282,12 @@ fn arts2_checks(samples: &[Sample]) -> Arts2Checks {
             altos_least_kpa,
         });
     }
+    checks.differing = checks
+        .per_file
+        .iter()
+        .filter(|file| arts2_differs(file))
+        .map(|file| file.id.clone())
+        .collect();
     checks.per_file.sort_by(|a, b| a.id.cmp(&b.id));
     checks.differing.sort();
     checks
@@ -2325,6 +2342,10 @@ fn arts2_against_export(
         } else {
             result.worst_acceleration_counts.max(off)
         };
+        if p_alt.is_nan() {
+            result.gaps += 1;
+            continue;
+        }
         // Positive floats' bits sort as their values do.
         by_pressure
             .entry(pressure[k - 1].to_bits())
@@ -2336,22 +2357,26 @@ fn arts2_against_export(
             .worst_from_the_standard_m
             .max((standard - p_alt).abs());
     }
-    result.pressures = by_pressure.len();
     result.clashes = by_pressure
         .values()
         .filter(|values| values.len() > 1)
         .count();
-    // From the highest pressure down, `pAlt` rises, or stays at the pad's zero.
-    let mut previous = f64::NEG_INFINITY;
-    for values in by_pressure.values().rev() {
+    // From the highest pressure down: zero at the pad's pressure and above, then rising.
+    let mut previous = 0.0;
+    for (bits, values) in by_pressure.iter().rev() {
         let value = values
             .iter()
             .map(|bits| f64::from_bits(*bits))
             .fold(f64::NAN, f64::max);
-        if value < previous || (value == previous && value != 0.0) {
+        let in_order = if f64::from_bits(*bits) >= pad_pa {
+            value == 0.0
+        } else {
+            value > previous
+        };
+        if !in_order {
             result.inversions += 1;
         }
-        previous = value;
+        previous = previous.max(value);
     }
     result
 }
@@ -3326,7 +3351,7 @@ fn markdown(report: &Report) -> String {
                         } else {
                             ", not zero"
                         },
-                        e.pressures,
+                        e.gaps,
                         e.clashes,
                         e.inversions,
                         e.worst_from_the_standard_m
@@ -3354,11 +3379,12 @@ fn markdown(report: &Report) -> String {
              word for word; DataAnalyzer's interpreted export, `Acc` in the accelerometer's counts \
              on every record after the first, and `pAlt` against the pressure one record \
              earlier, as DataAnalyzer takes it, by order only (each pressure meeting one `pAlt`, \
-             which rises as the pressure falls), its difference from the standard atmosphere's \
+             zero at the pad's pressure and above and rising as the pressure falls below it, and \
+             no `pAlt` a gap), its difference from the standard atmosphere's \
              reported only, as one export takes its altitude otherwise; and the pad's and the \
              least pressure less an AltOS board's flown with it, kPa, reported only:\n\n\
              | File | Records | Climb ratio | Raw CSV | Rows compared | Worst `Acc`, counts | \
-             First row zero | Rows after | Pressures | Clashes | Inversions | `pAlt` from the \
+             First row zero | Rows after | `pAlt` gaps | Clashes | Inversions | `pAlt` from the \
              standard, m | Pad less AltOS, kPa | Least less AltOS, kPa |\n\
              |---|---:|---:|---|---:|---:|---|---|---:|---:|---:|---:|---:|---:|\n{rows}\n\
              Differing: {}.\n",
@@ -4705,5 +4731,102 @@ mod tests {
                 .worst_acceleration_counts
                 .is_infinite()
         );
+
+        // A `pAlt` of zeros everywhere is out of order below the pad, and one that is a gap is
+        // counted.
+        let against = |export: &FlightLog| {
+            arts2_against_export(export, &acceleration, &pressure, 100_000.0, 8.0)
+        };
+        let mut zeros = export.clone();
+        zeros.altitude_m = vec![0.0; rows];
+        assert!(against(&zeros).inversions > 0);
+        let mut gap = export.clone();
+        gap.altitude_m[top] = f64::NAN;
+        assert_eq!(against(&gap).gaps, 1);
+    }
+
+    /// An `.odf` differs at half a count and a hair, with a `pAlt` gap, a clash, an inversion, a
+    /// first row or a row after the records not zero, or a raw CSV that differs; and not
+    /// otherwise.
+    #[test]
+    fn what_makes_an_odf_differ() {
+        let agreeing = || Arts2Export {
+            rows_compared: 10,
+            worst_acceleration_counts: 0.49,
+            first_row_zero: true,
+            rows_after_zero: true,
+            ..Arts2Export::default()
+        };
+        let file = |export: Arts2Export, raw: Option<bool>| Arts2File {
+            raw_csv_matches: raw,
+            export: Some(export),
+            ..Arts2File::default()
+        };
+        assert!(!arts2_differs(&file(agreeing(), Some(true))));
+        assert!(!arts2_differs(&Arts2File::default()));
+        assert!(arts2_differs(&file(agreeing(), Some(false))));
+        let cases = [
+            Arts2Export {
+                worst_acceleration_counts: 0.51,
+                ..agreeing()
+            },
+            Arts2Export {
+                worst_acceleration_counts: f64::NAN,
+                ..agreeing()
+            },
+            Arts2Export {
+                first_row_zero: false,
+                ..agreeing()
+            },
+            Arts2Export {
+                rows_after_zero: false,
+                ..agreeing()
+            },
+            Arts2Export {
+                gaps: 1,
+                ..agreeing()
+            },
+            Arts2Export {
+                clashes: 1,
+                ..agreeing()
+            },
+            Arts2Export {
+                inversions: 1,
+                ..agreeing()
+            },
+        ];
+        for export in cases {
+            let shown = format!("{export:?}");
+            assert!(arts2_differs(&file(export, None)), "{shown}");
+        }
+    }
+
+    /// An interpreted export beside an `.odf` that doesn't match it, here one on another clock,
+    /// leaves the `.odf` unread.
+    #[test]
+    fn an_odf_differing_from_the_export_beside_it_is_unread() {
+        let odf: &[u8] = include_bytes!("../../crates/hpr-flightdata/tests/samples/arts2-raw.odf");
+        let export: &[u8] =
+            include_bytes!("../../crates/hpr-flightdata/tests/samples/arts2-metric.csv");
+        let id = hex(&Sha256::digest(odf))[..16].to_owned();
+        let sample = |name: &str, family: &str, bytes: &[u8]| Sample {
+            path: PathBuf::from("flight").join(name),
+            source: "test",
+            family: family.to_owned(),
+            bytes: bytes.to_vec(),
+        };
+        let samples = vec![
+            sample("flight.odf", "odf", odf),
+            sample("export.csv", "arts2-csv", export),
+        ];
+        let (report, unread) = survey(&samples, Vec::new());
+        let file = &report.arts2_checks.per_file[0];
+        assert!(
+            file.export
+                .as_ref()
+                .is_some_and(|e| e.worst_acceleration_counts.is_infinite())
+        );
+        assert_eq!(report.arts2_checks.differing, std::slice::from_ref(&id));
+        assert!(unread.iter().any(|line| line.contains(&id)), "{unread:?}");
     }
 }

@@ -35,7 +35,9 @@
 //!   when calibrated on its side and on either end, "at +1g, −1g, and 0", which "are sent along
 //!   with flight data" (p. 16). In every sample file the middle one is the reading on its side.
 //!
-//! Its other bytes, among them the deployment settings, aren't decoded. Each record is four
+//! And at 8, a 16-bit word that is 2 in every sample file, all recorded at 50 a second; a file
+//! whose word isn't 2 is refused (the clock, below). Its other bytes, among them the two flight
+//! profiles' deployment settings, aren't decoded. Each record is four
 //! 16-bit words, in the order of the raw export's columns (below): the accelerometer's count, a
 //! byte of flags and low bits, the barometer's count and the board's state.
 //!
@@ -45,9 +47,16 @@
 //! software exports it as the flight's first row, at time 0, and so does the reader.
 //!
 //! **The clock.** The records are 0.02 s apart (50 a second), from the first: the rate DataAnalyzer
-//! gives every sample file's records in both its exports. Where the file keeps the rate isn't
-//! known, so it rests on the climb check (below), which a clock off by a factor of 1.3 or more
-//! fails, as the climb by the acceleration goes as the square of the time step.
+//! gives every sample file's records in both its exports. The owner sets the rate, in each of the
+//! board's two flight profiles (pp. 6–7), and where the file keeps it isn't known: the sample files
+//! are all at one rate, so no byte can be shown to change with it. The reader fails closed on the
+//! one candidate, the settings word at 8, small and the same in every sample file: a file whose
+//! word isn't 2 is refused. If the rate is kept elsewhere, a file recorded at another rate is
+//! caught only by the climb check (below), loosely: a clock whose step is `k` times the true one
+//! makes the climb by the acceleration `k²` times larger over the same records, so the check
+//! passes a `k` from `√(r / (5/3))` to `√(r / 0.6)`, `r` the flight's ratio on its true clock: 0.67
+//! to 1.12 at the sample files' least ratio, 0.754, and 0.83 to 1.38 at their greatest, 1.145.
+//! Every record says so in a note.
 //!
 //! **Units.**
 //!
@@ -63,7 +72,12 @@
 //! *The acceleration.* The ±1 g sums are 2 g apart, so a g is a 128th of their difference, in
 //! counts; the reading on the pad, nose up, lies near the end sum on the forward end's side, which
 //! sets the sign: `a = ±(count − pad) / per_g × g₀`. As the software's interpreted export does,
-//! the pad's reading is taken out, so the acceleration on the pad reads zero, gravity with it. The
+//! the pad's reading is taken out, so the acceleration on the pad reads zero, gravity with it.
+//! That takes out gravity exactly only while the board points as it did on the pad: once the
+//! rocket tips over in the coast, the reading runs below the acceleration along the axis by
+//! `g₀ (cos θ_pad − cos θ)`, `θ` the board's angle from the vertical, up to a g. The first
+//! record, the baselines', reads the pad's whole count less its eighth-count baseline, up to
+//! 7/8 of a count below zero, not zero. The
 //! calibration is refused unless the ADXL78's data sheet bears it out (*ADXL78*, Rev. B, Analog
 //! Devices, 2010, Specifications, AD22280 for ±50 g, p. 3; the output is ratiometric to its
 //! 5 V supply, which the converter reads against, so a count is 5 V / 1,024): a g from 36.1 to
@@ -74,8 +88,8 @@
 //! *The pressure.* `P = (count / 1,024 + 0.1518) / 0.010 59` kPa, the sensor's nominal transfer
 //! function, `V_out = V_S (0.010 59 P − 0.1518)` (*MPX4100A*, Rev 9, Freescale, 2009, p. 5,
 //! p. 6), read against the supply as the converter's full scale. The pad's count must give a
-//! pressure in the sensor's rated 20 to 105 kPa (p. 3). The sensor is rated to ±1.8% of its 4.59 V
-//! span from 0 to 85 °C (p. 3), ±1.56 kPa.
+//! pressure in the sensor's rated 20 to 105 kPa (p. 3). The sensor's error band is ±1.5 kPa over
+//! that range from 0 to 85 °C (p. 6).
 //!
 //! **The climb check** is each unit's second check, and the clock's: over the first 2 s from the
 //! first record, the climb by the pressure, its pressure altitude in the U.S. Standard
@@ -83,8 +97,9 @@
 //! the pad's, over the climb by the acceleration integrated twice by the trapezoid rule from rest
 //! at the first record, must lie from 0.6 to 5/3, as for an AltOS raw download
 //! ([`crate::altos_eeprom`]), and the rocket must climb by both. The window is twice AltOS's 1 s:
-//! one count of this barometer is 92 Pa, about 9.5 m at the sample files' pads, so a 1 s window
-//! held two counts of one sample file's climb; 2 s holds at least 10 in each. A file whose climb
+//! one count of this barometer is 92 Pa, 7.7 m of height near sea level and more at a higher
+//! site, so a 1 s window held two counts of one sample file's climb; 2 s holds at least 10 in
+//! each. A file whose climb
 //! can't be measured, or falls outside the band, is refused: its clock rests on that check as
 //! much as its units do, and a count kept as written can't be put on a clock nothing bears out.
 //!
@@ -159,6 +174,11 @@ const PAD_BARO: usize = 10;
 const PAD_ACC_EIGHTHS: usize = 12;
 const CALIBRATION_SUMS: usize = 20;
 
+/// The settings word that may hold the rate, and its value in every sample file (module docs,
+/// *The clock*).
+const RATE_WORD: usize = 8;
+const RATE_CODE: u16 = 2;
+
 /// How many readings each calibration sum adds up (Appendix A, p. 16).
 const SUMMED: f64 = 64.0;
 
@@ -205,9 +225,12 @@ pub fn recognizes_odf(bytes: &[u8]) -> bool {
     bytes.starts_with(MAGIC)
 }
 
-/// Whether a file's text is the raw CSV: its first line that isn't blank is the header.
+/// Whether a file's text is the raw CSV: its first line that isn't blank is the header, its lines
+/// ending in CR, LF or both.
 pub fn recognizes_csv(text: &str) -> bool {
-    text.lines()
+    text.strip_prefix('\u{feff}')
+        .unwrap_or(text)
+        .split(['\r', '\n'])
         .find(|line| !line.trim().is_empty())
         .is_some_and(is_header)
 }
@@ -344,8 +367,9 @@ fn fault(offset: usize, message: impl Into<String>) -> LogError {
 /// # Errors
 ///
 /// [`LogError::NotThisFormat`] if the bytes don't open as an `.odf`'s; [`LogError::Binary`] if
-/// they aren't laid out as the module docs say, the calibration or the pad's pressure isn't
-/// borne out by the sensors' data sheets, or the climb check fails or can't be measured;
+/// they aren't laid out as the module docs say, the settings word that may hold the rate isn't
+/// the sample files', the calibration or the pad's pressure isn't borne out by the sensors' data
+/// sheets, or the climb check fails or can't be measured;
 /// [`LogError::NoData`] if the file holds no record after the baselines.
 pub fn read_odf(bytes: &[u8]) -> Result<FlightLog, LogError> {
     if !recognizes_odf(bytes) {
@@ -423,6 +447,17 @@ pub fn read_odf(bytes: &[u8]) -> Result<FlightLog, LogError> {
     }
     if records.len() < 2 {
         return Err(LogError::NoData { format: ODF });
+    }
+    let rate_code = block(RATE_WORD);
+    if rate_code != RATE_CODE {
+        return Err(fault(
+            BLOCK_AT + RATE_WORD,
+            format!(
+                "the settings word {rate_code} at the rate's likely place isn't the {RATE_CODE} of \
+                 every sample file, all at 50 records a second: another rate may be set, which the \
+                 reader can't yet read"
+            ),
+        ));
     }
     let pad_pa = pressure_pa(calibration.pad_baro);
     if !MPX4100A_PA.contains(&pad_pa) {
@@ -513,12 +548,15 @@ pub fn read_odf(bytes: &[u8]) -> Result<FlightLog, LogError> {
         ),
         "`Acc/Baro(LO)` and `State` kept as written: no document names their bits or codes"
             .to_owned(),
+        "the clock is 50 records a second, the rate of every sample file: the file states none \
+         the reader can read, and the climb check bounds it only loosely"
+            .to_owned(),
         "the first record is the pad's baselines, as the software's exports place it at time 0"
             .to_owned(),
         format!(
             "not read: the settings block's {} other bytes, and the software's {TRAILER_LEN} \
              after the records",
-            BLOCK_LEN - 10
+            BLOCK_LEN - 12
         ),
     ];
     Ok(FlightLog {
