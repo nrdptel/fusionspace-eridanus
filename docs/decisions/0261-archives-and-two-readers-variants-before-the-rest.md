@@ -62,12 +62,14 @@ RDAS, ARTS2 raw and `.odf`, RTx, spreadsheets, the generic CSVs and text.
    unit's letter after a number in such a row, and among the sample logs only PerfectFlite's
    text exports do. Its columns are taken as the text export's, with a note in the record. Its
    altitude is checked as every export's is: of the 21 exports now read, 16 peak at exactly the
-   height of a `.pf2` beside them, 3 of the 4 headerless ones among them (one with its
-   temperatures in °C), so the headerless layout writes feet. Of the other 5, read in feet the
-   climb takes 0.63 to 1.07 times as long as a fall in vacuum from the peak, and read in meters
-   0.35 to 0.59 times. The one at 0.63 is the fourth headerless file, with no `.pf2` beside it and
-   an altitude ragged near its peak: its climb tells feet from meters no better than the other
-   (0.35), so its unit rests on the layout's convention alone, and the docs say so.
+   height of a `.pf2` beside them, 2 of the 4 headerless ones among them (one flight, exported
+   with its temperatures in °F and in °C), so the headerless layout writes feet. Of the other 5,
+   read in feet the climb takes 0.63 to 1.07 times as long as a fall in vacuum from the peak, and
+   read in meters 0.35 to 0.59 times; the survey now prints each by id. A third headerless file,
+   whose `.pf2` neighbours are other flights', climbs in 0.99 read in feet, among the matched
+   exports' 0.94 to 1.05, and 0.55 in meters. The fourth, with no `.pf2` beside it and an altitude
+   ragged near its peak, climbs in 0.63 or 0.35: neither reading fits, so its unit rests on the
+   layout's convention alone, and the docs say so.
 6. **A Blue Raven file may open `Flight_Time_(s),Sync`.** The clock is found at the start of
    the header rather than fifth, and the record notes that the file holds no date. The
    hand-edited low-rate file is filed as damaged: the reader refuses a column with no name, and
