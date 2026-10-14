@@ -15,8 +15,9 @@
 //!   in prose, tables, headings, inline code, raw HTML and image alt text. Fenced code blocks are
 //!   exempt: they quote files and output verbatim. A link inside a heading fails
 //!   too, since mdBook makes every heading a link.
-//! - **Equations** are written in Unicode, which reads the same on GitHub, on the site and in
-//!   rustdoc. `$x$`, `$$` and ```` ```math ```` render as math on GitHub only, so they fail.
+//! - **Equations** are LaTeX between dollar signs, `$x$` in a sentence and `$$…$$` as a display
+//!   equation, which the site typesets ([`math`]) and GitHub renders too. GitHub's other two
+//!   forms, `` $`x`$ `` and a ```` ```math ```` block, the site would show as code, so they fail.
 //! - **Coverage.** Every page under `docs/physics/` and `docs/format/` is in the summary.
 //! - **In short** (M0.4b). Every model page, one per file under `docs/physics/`, opens with a
 //!   `## In short` section right under its title: a bulleted list of four items, each opening with
@@ -97,6 +98,7 @@ mod bundle;
 mod cdp;
 mod chrome;
 mod frame;
+pub(crate) mod math;
 mod notes;
 mod numbers;
 mod pages;
@@ -442,6 +444,7 @@ fn mdbook_build(root: &Path) -> Result<(), String> {
     // mdBook's log level comes from the environment; a quieter one would hide the warnings.
     let output = Command::new("mdbook")
         .args(["build", "--dest-dir", OUTPUT])
+        .env(math::COMMAND_ENV, math_command()?)
         .env_remove("MDBOOK_LOG")
         .env_remove("RUST_LOG")
         .current_dir(root)
@@ -460,6 +463,24 @@ fn mdbook_build(root: &Path) -> Result<(), String> {
         return Err(format!("`mdbook build` failed or warned:\n{log}"));
     }
     Ok(())
+}
+
+/// The command mdBook runs for the site's equations: this `xtask` itself, so the build doesn't
+/// compile it again through `book.toml`'s `cargo xtask site-math`. mdBook splits the command as
+/// a POSIX shell does (the `shlex` crate, on every platform), so the path goes in single quotes,
+/// which keep a Windows path's backslashes as written.
+fn math_command() -> Result<String, String> {
+    let exe = std::env::current_exe()
+        .map_err(|err| format!("could not find the running xtask for mdBook: {err}"))?;
+    let exe = exe
+        .to_str()
+        .ok_or_else(|| format!("xtask's path {} isn't UTF-8", exe.display()))?;
+    if exe.contains('\'') {
+        return Err(format!(
+            "xtask's path {exe} has a single quote, which mdBook's command would misread"
+        ));
+    }
+    Ok(format!("'{exe}' site-math"))
 }
 
 /// Builds the rustdoc of every library in the workspace and copies it to `dest`, under the site,
@@ -1063,17 +1084,19 @@ struct Page {
     problems: Vec<(usize, String)>,
 }
 
-/// The Markdown extensions that both GitHub and mdBook render.
+/// The Markdown extensions that both GitHub and the site render; the site's math through its
+/// preprocessor ([`math`]), so a formula is never read as prose.
 fn options() -> Options {
     Options::ENABLE_TABLES
         | Options::ENABLE_FOOTNOTES
         | Options::ENABLE_STRIKETHROUGH
         | Options::ENABLE_TASKLISTS
         | Options::ENABLE_GFM
+        | Options::ENABLE_MATH
 }
 
-const MATH: &str = "GitHub renders this math and the site doesn't: write the equation in Unicode, \
-                    in a ```text block (ADR-016)";
+const MATH: &str = "GitHub renders this math and the site doesn't: write it as `$…$` in a \
+                    sentence or `$$…$$` on its own, which the site typesets (ADR-263)";
 
 /// Reads a page: its anchors, its links and images, and what is wrong on it by itself.
 fn read_page(text: &str) -> Page {
@@ -1112,7 +1135,9 @@ fn read_page(text: &str) -> Page {
                 scan(&prose, line(prose_at), &mut page.problems);
                 prose.clear();
             }
-            if dollar_code {
+            // With math on, the parser may read `` $`x^2`$ `` as math whose text is a code span.
+            let math_code = matches!(&event, Event::InlineMath(m) if m.starts_with('`'));
+            if dollar_code || math_code {
                 page.problems.push((line(range.start), MATH.to_owned()));
             }
             match event {
@@ -2896,29 +2921,9 @@ fn anchor_ids(html: &str) -> Vec<String> {
     ids
 }
 
-/// Scans prose (text outside links and code) for bare labels and for math only GitHub renders.
+/// Scans prose (text outside links, code and math) for bare labels.
 fn scan(text: &str, line: usize, problems: &mut Vec<(usize, String)>) {
     scan_labels(text, line, problems);
-    if text.contains("$$") || has_inline_math(text) {
-        problems.push((line, MATH.to_owned()));
-    }
-}
-
-/// Whether `text` holds GitHub's inline math, `$x$`: a `$` before a non-space, closed by a later
-/// `$` after a non-space and not before a digit. Two prices, "$5 and $10", are not math.
-fn has_inline_math(text: &str) -> bool {
-    let chars: Vec<char> = text.chars().collect();
-    chars.iter().enumerate().any(|(open, &c)| {
-        c == '$'
-            && chars
-                .get(open + 1)
-                .is_some_and(|next| !next.is_whitespace() && *next != '$')
-            && (open + 2..chars.len()).any(|close| {
-                chars[close] == '$'
-                    && !chars[close - 1].is_whitespace()
-                    && !chars.get(close + 1).is_some_and(char::is_ascii_digit)
-            })
-    })
 }
 
 fn scan_labels(text: &str, line: usize, problems: &mut Vec<(usize, String)>) {
@@ -3975,7 +3980,7 @@ mod tests {
     }
 
     #[test]
-    fn math_that_only_github_renders_fails() {
+    fn math_that_only_github_renders_fails_and_dollar_math_passes() {
         let page = "# Start here\n\n$$x = 1$$\n\nInline $\\alpha$ too.\n\n```math\nx\n```\n\n\
                     Unicode `γ = GM/r²`, a price of $5, and $5 and $10 and $5-$10 are fine.\n\n\
                     But $F = ma$ is math,\n\nand so is $`x^2`$ and $\\{x\\}$.\n";
@@ -3989,14 +3994,9 @@ mod tests {
             .collect();
         assert_eq!(
             lines,
-            [
-                "docs/start-here.md:3",
-                "docs/start-here.md:5",
-                "docs/start-here.md:7",
-                "docs/start-here.md:13",
-                "docs/start-here.md:15",
-                "docs/start-here.md:15",
-            ]
+            // The ```` ```math ```` block and `` $`x^2`$ ``; `$$`, `$\\alpha$`, `$F = ma$` and
+            // `$\\{x\\}$` are the site's own math, and the prices are prose.
+            ["docs/start-here.md:7", "docs/start-here.md:15"]
         );
     }
 

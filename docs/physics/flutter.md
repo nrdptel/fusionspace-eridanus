@@ -45,38 +45,46 @@ thickness, how stiff its material is in shear, and the air it flies through.
 
 Martin starts from Theodorsen and Garrick's flutter speed for a wing that bends and twists (his
 eq. 1, from their NACA Report 685 of 1940). He reduces it to a few numbers from one fin's outline.
-For a trapezoidal fin with root chord `c_r`, tip chord `c_t`, span `s` and thickness `t`:
+For a trapezoidal fin with root chord $c_r$, tip chord $c_t$, span $s$ and thickness $t$:
 
 | Symbol | Meaning | For a trapezoid |
 |---|---|---|
-| `A` | Panel aspect ratio: span over the chord halfway out | `2s / (c_r + c_t)` |
-| `λ` | Taper ratio: tip chord over root chord, 0 to 1 | `c_t / c_r` |
-| `t/c` | Thickness ratio | `t / c_r` |
-| `G_E` | The fin's effective shear modulus, Pa | the material's ([Shear moduli](#shear-moduli)) |
-| `p`, `a` | The air's static pressure and speed of sound | from the atmosphere |
-| `ε` | Where the section's mass sits: this fraction of the chord behind the quarter chord | 0.25, at mid-chord |
-| `γ` | Air's ratio of specific heats | 1.4 |
+| $A$ | Panel aspect ratio: span over the chord halfway out | $2s/(c_r + c_t)$ |
+| $\lambda$ | Taper ratio: tip chord over root chord, 0 to 1 | $c_t/c_r$ |
+| $t/c$ | Thickness ratio | $t/c_r$ |
+| $G_E$ | The fin's effective shear modulus, Pa | the material's ([Shear moduli](#shear-moduli)) |
+| $p$, $a$ | The air's static pressure and speed of sound | from the atmosphere |
+| $\varepsilon$ | Where the section's mass sits: this fraction of the chord behind the quarter chord | 0.25, at mid-chord |
+| $\gamma$ | Air's ratio of specific heats | 1.4 |
 
-Eq. 18 gives a flutter speed `V_f` through a denominator `D`, in pascals:
+Eq. 18 gives a flutter speed $V_f$ through a denominator $D$, in pascals:
 
-```text
-(V_f / a)² = G_E / D,    D = (24 ε γ / π) · p · K · (λ + 1)/2,    K = A³ / ((t/c)³ (A + 2))
-```
+$$
+\begin{aligned}
+\left(\frac{V_f}{a}\right)^2 &= \frac{G_E}{D}, \\
+D &= \frac{24\,\varepsilon\gamma}{\pi}\, p\, K\, \frac{\lambda + 1}{2}, \\
+K &= \frac{A^3}{(t/c)^3\,(A + 2)}
+\end{aligned}
+$$
 
-Martin prints the constant in pounds per square inch (psi) at sea-level pressure `p₀`:
-`24 · 0.25 · 1.4 / π · 14.696 psi = 39.29 psi`, which he rounds to 39.3. His `X` (eq. 19) is
-`39.3 K` psi, and `D = X · (λ + 1)/2 · p/p₀`. The constant is derived, not fitted. Stiffer or
-thicker fins flutter faster: `V_f` grows as `√G_E` and as `(t/c)^1.5`. At a fixed speed of sound,
-thinner air raises it as `1/√p`.
+Martin prints the constant in pounds per square inch (psi) at sea-level pressure $p_0$,
 
-**A flutter dynamic pressure.** The air enters only through `ρ a² = γ p`, and the dynamic pressure
-is `q = ½ ρ V²`. So the criterion fixes a dynamic pressure at `V_f`, the same at every height:
+$$
+24 \cdot 0.25 \cdot \frac{1.4}{\pi} \cdot 14.696\,\mathrm{psi} = 39.29\,\mathrm{psi},
+$$
 
-```text
-q_f = π G_E / (24 ε K (λ + 1))
-```
+which he rounds to 39.3. His $X$ (eq. 19) is $39.3\,K$ psi, and $D = X \cdot (\lambda + 1)/2 \cdot p/p_0$. The constant is derived, not fitted. Stiffer or
+thicker fins flutter faster: $V_f$ grows as $\sqrt{G_E}$ and as $(t/c)^{1.5}$. At a fixed speed of sound,
+thinner air raises it as $1/\sqrt{p}$.
 
-A fin flying at dynamic pressure `q` is below `V_f` by the ratio `V_f / V = √(q_f / q)`. That makes
+**A flutter dynamic pressure.** The air enters only through $\rho a^2 = \gamma p$, and the dynamic pressure
+is $q = \tfrac12 \rho V^2$. So the criterion fixes a dynamic pressure at $V_f$, the same at every height:
+
+$$
+q_f = \frac{\pi\, G_E}{24\,\varepsilon K\,(\lambda + 1)}
+$$
+
+A fin flying at dynamic pressure $q$ is below $V_f$ by the ratio $V_f/V = \sqrt{q_f/q}$. That makes
 the flight's least ratio the one at its peak dynamic pressure, "max q", which
 [Flight metrics](metrics.md#peaks) already finds between the integrator's steps.
 
