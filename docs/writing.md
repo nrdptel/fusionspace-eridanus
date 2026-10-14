@@ -43,7 +43,7 @@ reads a page once and knows what it says and how far to trust it.
 
 Equations are typeset, as a textbook sets them: written in LaTeX between dollar signs, they become
 MathML when the site builds, drawn in New Computer Modern Math, the face of LaTeX's own textbooks
-(the product system's *Type* rule; [the decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0263-typeset-equations.md)).
+(the product system's *Type* rule; [the decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0264-typeset-equations.md)).
 GitHub shows the same source as math too. A formula the converter can't read fails the build, with
 its page and line; `cargo xtask site-math --check docs/<page>.md` converts a page's formulas as the
 build does and notes any long enough to risk a phone's column.

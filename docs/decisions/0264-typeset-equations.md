@@ -1,4 +1,4 @@
-# ADR-263: Typeset equations, from the product system's Rev E (2026-10-13)
+# ADR-264: Typeset equations, from the product system's Rev E (2026-10-13)
 
 - **Status:** accepted; supersedes [ADR-016](0016-the-documentation-site-mdbook-over-docs-and.md)'s rule that equations are written in Unicode; moves the product system's pin from Rev D (`d372afa`) to Rev E, as [ADR-164](0164-the-fusionspace-product-system.md) lets a deliberate update do; reopens the design audit at the new pin ([ADR-208](0208-the-design-audit.md)); carries out M0.12
 - **Summary:** The site's equations were plain Unicode text, in code blocks and code spans, which reads like a formula typed into a chat. The maintainer asked for equations set as a textbook sets them. Pages now write LaTeX between dollar signs; an mdBook preprocessor in `xtask` turns each formula into MathML when the site builds, with the math-core converter (MIT, pure Rust); the browser draws it in New Computer Modern Math, the face of LaTeX's textbooks, served from the site. No script runs and nothing loads from another server. A formula the converter can't read fails the build, and the page check fails one wider than its box.

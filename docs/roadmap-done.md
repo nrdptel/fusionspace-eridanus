@@ -577,7 +577,7 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M0.8a3 Compared with** (ADR-247, ADR-248). *Done when:* the section meets ADR-209 §8.
     - [x] **M0.8a4 The maintainer's read** (ADR-247). *Done when:* Neer
       has read the landing page and the tour.
-- [x] **M0.12 Typeset equations** (ADR-263; Neer, 2026-10-13). *Done when:* the site's pages write
+- [x] **M0.12 Typeset equations** (ADR-264; Neer, 2026-10-13). *Done when:* the site's pages write
   their equations in LaTeX, which the build turns into MathML drawn in the product system's math
   face (Rev E), with no script and nothing from another server; the build fails on a formula the
   converter can't read, math in a heading, a display sharing its paragraph and an arrow accent, a

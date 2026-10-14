@@ -1096,7 +1096,7 @@ fn options() -> Options {
 }
 
 const MATH: &str = "GitHub renders this math and the site doesn't: write it as `$…$` in a \
-                    sentence or `$$…$$` on its own, which the site typesets (ADR-263)";
+                    sentence or `$$…$$` on its own, which the site typesets (ADR-264)";
 
 /// Reads a page: its anchors, its links and images, and what is wrong on it by itself.
 fn read_page(text: &str) -> Page {
