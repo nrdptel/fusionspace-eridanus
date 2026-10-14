@@ -86,6 +86,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M0.8a2 Python in the tour ([Phase 0](#phase-0-foundations))
 - M0.8a3 Compared with ([Phase 0](#phase-0-foundations))
 - M0.8a4 The maintainer's read ([Phase 0](#phase-0-foundations))
+- M0.12 Typeset equations ([Phase 0](#phase-0-foundations))
 - M1.1 Core math, frames, Earth ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.2 Atmosphere and wind ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
 - M1.3 Solid motors ([Phase 1](#phase-1-physics-core-the-heart-with-validation-interleaved))
@@ -577,6 +578,12 @@ One line per milestone or increment, in the order it was archived within its pha
     - [x] **M0.8a3 Compared with** (ADR-247, ADR-248). *Done when:* the section meets ADR-209 §8.
     - [x] **M0.8a4 The maintainer's read** (ADR-247). *Done when:* Neer
       has read the landing page and the tour.
+- [x] **M0.12 Typeset equations** (ADR-264; Neer, 2026-10-13). *Done when:* the site's pages write
+  their equations in LaTeX, which the build turns into MathML drawn in the product system's math
+  face (Rev E), with no script and nothing from another server; the build fails on a formula the
+  converter can't read, math in a heading, a display sharing its paragraph and an arrow accent, a
+  test each; the page check fails math text off the math face or under 12 px and a formula wider
+  than its box, with a canary; `docs/writing.md` has the rules.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - [x] **M1.1 Core math, frames, Earth.** `hpr-core`: vectors and quaternions (glam f64) and

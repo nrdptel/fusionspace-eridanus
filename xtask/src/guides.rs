@@ -634,6 +634,84 @@ enum Kind {
     InlineCode,
 }
 
+/// The numbers a formula quotes, each with its sign: every number in its LaTeX but those that
+/// are its form, an exponent or a subscript (`v^2`, `x_{12}`, `^{1.5}`) and the digits of a
+/// fraction of numbers (`\tfrac12`, `\frac{1}{2}`). `$h = 3048$` quotes 3048, `$C_m = -0.25$`
+/// quotes -0.25, and `$q = \tfrac12 \rho v^2$` quotes nothing.
+fn formula_quotes(latex: &str) -> Vec<String> {
+    let chars: Vec<char> = latex.chars().collect();
+    let mut quotes = Vec::new();
+    // The depths of the open braces that are a script's or a fraction's, the brace depth, and
+    // how many of the next arguments are a script's or a fraction's own.
+    let mut form_depth: Vec<usize> = Vec::new();
+    let mut depth = 0usize;
+    let mut next_is_form = 0usize;
+    let mut at = 0;
+    while at < chars.len() {
+        let c = chars[at];
+        if c == '\\' {
+            let name: String = chars[at + 1..]
+                .iter()
+                .take_while(|c| c.is_ascii_alphabetic())
+                .collect();
+            if matches!(name.as_str(), "frac" | "tfrac" | "dfrac") {
+                next_is_form = 2;
+            }
+            at += 1 + name.chars().count().max(1);
+            continue;
+        }
+        if c.is_ascii_digit() {
+            if !form_depth.is_empty() {
+                // Inside a script's or a fraction's braces: its form.
+                at += 1;
+                continue;
+            }
+            if next_is_form > 0 {
+                // An unbraced script or fraction takes one digit each: `v^2`, `\tfrac12`.
+                next_is_form -= 1;
+                at += 1;
+                continue;
+            }
+            let start = at;
+            while at < chars.len()
+                && (chars[at].is_ascii_digit()
+                    || (chars[at] == '.' && chars.get(at + 1).is_some_and(char::is_ascii_digit)))
+            {
+                at += 1;
+            }
+            let before = chars[..start].iter().rev().find(|c| !c.is_whitespace());
+            let sign = if matches!(before, Some('-' | '−')) {
+                "-"
+            } else {
+                ""
+            };
+            let digits: String = chars[start..at].iter().collect();
+            quotes.push(format!("{sign}{digits}"));
+            continue;
+        }
+        match c {
+            '^' | '_' => next_is_form = 1,
+            '{' => {
+                depth += 1;
+                if next_is_form > 0 {
+                    form_depth.push(depth);
+                    next_is_form -= 1;
+                }
+            }
+            '}' => {
+                if form_depth.last() == Some(&depth) {
+                    form_depth.pop();
+                }
+                depth = depth.saturating_sub(1);
+            }
+            c if c.is_whitespace() => {}
+            _ => next_is_form = 0,
+        }
+        at += 1;
+    }
+    quotes
+}
+
 /// A block of a page: its line, its words and what it is.
 struct Block {
     line: usize,
@@ -691,7 +769,9 @@ fn without_comments(html: &str) -> Option<String> {
 /// `page` as a reader reads it ([module docs](self)), block by block, each block's spaces
 /// collapsed. Every block-level element starts a new block, so a nested item's words never run
 /// into its parent's. Inline code stands as `\u{FFFC}` in its block, so no quote runs across it,
-/// and is a block of its own when it holds a digit.
+/// and is a block of its own when it holds a digit. A formula stands as `\u{FFFC}` too: its
+/// integers are its form (an exponent, the 2 of ½, a count of terms), and each number with a
+/// decimal point in it is a quote, read as prose is ([`formula_quotes`]).
 fn prose(name: &str, page: &str) -> Read {
     // The comparison table's markers count on its own page only (`features.rs`).
     let tables_allowed = name == crate::features::PAGE;
@@ -699,7 +779,8 @@ fn prose(name: &str, page: &str) -> Read {
         | Options::ENABLE_FOOTNOTES
         | Options::ENABLE_STRIKETHROUGH
         | Options::ENABLE_TASKLISTS
-        | Options::ENABLE_GFM;
+        | Options::ENABLE_GFM
+        | Options::ENABLE_MATH;
     let line = |offset: usize| 1 + page[..offset].matches('\n').count();
     let mut blocks = Vec::new();
     let mut regenerated = String::new();
@@ -761,6 +842,18 @@ fn prose(name: &str, page: &str) -> Read {
                     text.push_str(&words);
                 }
             },
+            Event::InlineMath(latex) | Event::DisplayMath(latex) => {
+                start.get_or_insert(range.start);
+                text.push('\u{FFFC}');
+                let quotes = formula_quotes(&latex);
+                if !quotes.is_empty() {
+                    blocks.push(Block {
+                        line: line(range.start),
+                        text: quotes.join(" "),
+                        kind: Kind::Prose,
+                    });
+                }
+            }
             Event::Code(span) => {
                 start.get_or_insert(range.start);
                 text.push('\u{FFFC}');
@@ -1386,6 +1479,39 @@ fn draw_misses(reports: &Reports) -> Result<String, String> {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn a_formula_quotes_its_numbers_but_not_its_form() {
+        let none = Vec::<String>::new();
+        assert_eq!(formula_quotes("q = \\tfrac12 \\rho v^2"), none);
+        assert_eq!(
+            formula_quotes("\\frac{1}{2} x_{12} + y^{1.5} + C_{D0}"),
+            none
+        );
+        assert_eq!(formula_quotes("h = 3048"), ["3048"]);
+        assert_eq!(formula_quotes("C_m = -0.25"), ["-0.25"]);
+        assert_eq!(
+            formula_quotes("V_f = 1.8\\,a, 24\\,\\varepsilon"),
+            ["1.8", "24"]
+        );
+        assert_eq!(formula_quotes("v^2 + 3"), ["3"]);
+    }
+
+    #[test]
+    fn a_decimal_in_a_formula_is_read_as_a_quote() {
+        let read = prose(
+            "docs/x.md",
+            "The ratio $V_f/a = 1.8$ and $q = \\tfrac12 \\rho v^2$.\n",
+        );
+        let quotes: Vec<&str> = read
+            .blocks
+            .iter()
+            .filter(|b| matches!(b.kind, Kind::Prose) && b.text.contains("1.8"))
+            .map(|b| b.text.as_str())
+            .collect();
+        assert_eq!(quotes, ["1.8"]);
+        assert!(read.blocks.iter().all(|b| !b.text.contains("12")));
+    }
     use super::*;
 
     fn reports() -> (std::path::PathBuf, Reports) {

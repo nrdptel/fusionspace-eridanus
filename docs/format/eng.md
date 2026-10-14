@@ -122,7 +122,7 @@ What real files do, and what the reader and writer do with each case.
   are descending (`14-12-10-8-6`). 27 contain `100` or `1000`. Checked against ThrustCurve search
   metadata, `100`/`1000` mean plugged in 14 of 14 cases, and `0` means plugged in 120 of 149, against
   the spec's "no delay" ([Loft lesson L37](../decisions-and-roadmap.md#l37): Loft read `100` and `1000` as seconds).
-- **Curve:** 32 entries have an explicit first point at t = 0 with nonzero thrust. Loft's bundle
+- **Curve:** 32 entries have an explicit first point at $t = 0$ with nonzero thrust. Loft's bundle
   also had an explicit (0, 0). 4 entries don't end at zero thrust. 4 have equal consecutive
   times (a vertical drop to zero, or rounded times). 69 have more than 32 points. None have
   decreasing time, negative thrust or an interior zero.
@@ -142,15 +142,15 @@ What real files do, and what the reader and writer do with each case.
    starts a new entry, with a warning about the missing separator. Anything else is an error, with
    its line number.
 4. The header needs 7 or more fields. With more than 7, join fields 7 onward with single spaces
-   as the manufacturer, and warn. Dia and len must be finite and > 0, and the masses finite and
-   ≥ 0; warn if prop ≥ total. Keep file units (mm, kg) in the file model, in fields named for them
+   as the manufacturer, and warn. Dia and len must be finite and $> 0$, and the masses finite and
+   $\ge 0$; warn if prop ≥ total. Keep file units (mm, kg) in the file model, in fields named for them
    (`diameter_mm`). Convert to SI only when building the physical motor: mm → m → mm is not
    bit-exact (`502.1 / 1000 * 1000 != 502.1`; with `* 1e-3` and `* 1e3`, 30 of 290 distinct
    header lengths fail).
 5. Numbers: Rust `str::parse::<f64>` accepts `.5`, `5.`, `068.8`, `+1` and `1e3`, **but also
    `inf`, `infinity` and `NaN`**. Reject every non-finite value.
 6. Points are kept verbatim; no implicit origin is inserted into the file model. Errors: no points,
-   negative time, time decreasing. Warnings, on the header's line: last thrust ≠ 0, negative
+   negative time, time decreasing. Warnings, on the header's line: last thrust $\ne 0$, negative
    thrust, and delay pieces the delay reader drops or flags. Equal consecutive times are accepted
    (a step in the physical curve). The RASP 32-point limit is not enforced.
 7. Delays: keep the raw token verbatim. The derived view splits on `-` or `,`, drops empty pieces
@@ -176,7 +176,7 @@ What real files do, and what the reader and writer do with each case.
    still ends the entry before it.
 
 Conversion to a physical curve (`EngEntry::thrust_curve`, not part of the file model): prepend
-(0, 0) when the first time is > 0. A leading (0, F) stays a step at ignition. Negative thrust is
+(0, 0) when the first time is $> 0$. A leading $(0, F)$ stays a step at ignition. Negative thrust is
 an error there.
 
 ### Writer policy (strict, round-trip stable)

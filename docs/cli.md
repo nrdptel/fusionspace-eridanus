@@ -406,7 +406,7 @@ What each part says:
 | `launched at ...` | the site, the rail and the wind, [below](#the-launch) |
 | `note:` | what the flight leaves out of the design, and which numbers that spoils |
 | `warning:` | what the simulator's `.ork` or motor-file reader accepted with a caveat, such as a part it left out, and what the [design's checks](physics/design.md#checks) found unusual but buildable, each in a sentence naming the parts; the same words about several parts of one name are printed once, with a count such as `(×2)` |
-| `warning: unstable:` | the rocket is unstable while a motor burns, before apogee or the first deployment, and the `apogee` figure says it is not a prediction ([Flight metrics: unstable under power](physics/metrics.md#unstable-under-power)). Either the static margin falls below zero, or, where the simulator can give no margin, the pitching moment's slope `C_mα` is above zero; a flight prints one of the two. A `help:` line links that page. In the JSON, `flags` lists the first as `unstable_under_power`, its `peak` the least margin under power in calibers, which the summary also has as `min_powered_static_margin_cal`; and the second as `unstable_without_margin`, its `peak` the largest `C_mα` per radian where the margin is undefined under power, which the summary also has as `max_powered_moment_slope_per_rad` |
+| `warning: unstable:` | the rocket is unstable while a motor burns, before apogee or the first deployment, and the `apogee` figure says it is not a prediction ([Flight metrics: unstable under power](physics/metrics.md#unstable-under-power)). Either the static margin falls below zero, or, where the simulator can give no margin, the pitching moment's slope $C_{m\alpha}$ is above zero; a flight prints one of the two. A `help:` line links that page. In the JSON, `flags` lists the first as `unstable_under_power`, its `peak` the least margin under power in calibers, which the summary also has as `min_powered_static_margin_cal`; and the second as `unstable_without_margin`, its `peak` the largest $C_{m\alpha}$ per radian where the margin is undefined under power, which the summary also has as `max_powered_moment_slope_per_rad` |
 | `warning: envelope:` | a flag of the [operating envelope](VALIDATION.md#operating-envelope): the flight went faster than any public flight the simulator has been compared with a reference on (currently Mach 1.15; it rises as references are added), past the core band (Mach 2.5) or the envelope (Mach 3.5), or flew above 15° angle of attack while the air was strong enough to matter. Each says when, and a `help:` line links the page. A flag changes no number. In the JSON, `flags` lists them, each with its `flag`, the `peak` that raised it (its `value`, a Mach number or an angle in radians, with its `time_s` and height, as every peak has) and its `message` |
 | `warning: drag:`, `warning: stability:`, `warning: flight:` | a known error in the simulator's drag (#18, #67, #68, #70, #72, #73 or #222), in a separated part's drag (#179 or #354, [when they warn](VALIDATION.md#the-separated-parts-warnings)), in the stability margin (#64, #87, #120, #121, #172, #325 or #326) or in the flight's path (#8, #106, #213 or #219, [when they warn](VALIDATION.md#the-flight-path-warnings)) that the flight meets, by its issue number ([the list, with each one's condition](VALIDATION.md#operating-envelope)). Each says which way its numbers lean. A flight on a drag table of your own prints no drag warning except #179 and #354, which concern a separated part and not your table, and keeps the stability and flight warnings; a normal-force table of its own prints no stability warning. In the JSON, `issues` lists them, each with its `issue` number, its `kind` (`drag`, `stability` or `flight`), `url`, the flight's `max_mach` peak, the `parts` that meet it (their ids; none for #8, #18, #68, #121, #172, #179, #219 or #354) and its `message` |
 | the events | each [event](glossary.md#event)'s time, the height of the [center of gravity](glossary.md#center-of-gravity-cg) above the launch site, and the speed over the ground; the height at liftoff isn't zero, as the rocket stands on the rail |
@@ -1296,7 +1296,7 @@ values, which the site repeats ([Credit and terms](motor-stock.md#credit-and-ter
 output carries both in `attribution`. Keep them wherever you show the list.
 
 This reads the list of motors in stock that the tests use, recorded at 07:07 UTC on 1 October 2026,
-and keeps the L motors in stock at up to $300 each:
+and keeps the L motors in stock at up to \$300 each:
 
 <!-- cli: example `hpr motors search --in-stock --class L --max-price 300 --from crates/hpr-net/tests/fixtures/replay/motor-finder-in-stock.json`; written by `cargo xtask cli`; do not edit -->
 
@@ -1319,7 +1319,7 @@ L850W        AeroTech  L        75 (2.95)       3646.2   850.0    4.42  282.74  
 `each $` is the price of one motor and `pack` how many come in the pack, both at the vendor named
 last. A motor out of stock shows `-` for both and `out of stock` for the vendor; a vendor that
 shows no price gives `-` under `each $`; a price in another currency names it, such as
-`282.74 CAD`. The full product page is in the JSON output (`cheapest_in_stock.url`). At $150, the same
+`282.74 CAD`. The full product page is in the JSON output (`cheapest_in_stock.url`). At \$150, the same
 recording lists nothing:
 
 <!-- cli: example `hpr motors search --in-stock --class L --max-price 150 --from crates/hpr-net/tests/fixtures/replay/motor-finder-in-stock.json`; written by `cargo xtask cli`; do not edit -->
@@ -1342,7 +1342,7 @@ None costs $150.00 or less: of the 20 motors in stock the other filters pass, th
 > run it offline on the recorded lists, from the file and from the cache, and check every motor
 > it lists, and their order, against the recording's own JSON, filtered by the test itself, not by
 > the simulator's code. With
-> one L motor's price edited to $149.99 in a copy, the `--max-price 150` search lists exactly that
+> one L motor's price edited to \$149.99 in a copy, the `--max-price 150` search lists exactly that
 > motor. Fetching online is not tested automatically. Whether a vendor really has a motor at that
 > price is the vendor's to say. A list fetched now, or read from a copy under an hour old, can be
 > up to two hours behind the vendors' pages. A list read with `--offline`, with `--from`, or after a failed fetch is as old as the
@@ -1485,7 +1485,7 @@ would round: `0.0041` kg times 1000 is `4.1000000000000005` in a computer's arit
 moving the point gives `4.1`. A mass written with 16 or 17 digits may still change in its last
 digit; a warning says so. A flight turns a `.rse` file's grams into kilograms by dividing by
 1000, and the catalog's by multiplying by 0.001, so the same motor flown from a `.eng` file and from its converted `.rse` can differ in a mass's
-last digit, a part in 10¹⁶.
+last digit, a part in $10^{16}$.
 
 Some things come back written differently, though they mean the same:
 

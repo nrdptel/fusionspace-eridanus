@@ -18,7 +18,7 @@ It needs some Rust, and follows on from [Monte Carlo dispersion](monte-carlo.md)
 > - **Tested:** both methods match the known answers of two standard test functions within four
 >   of their own [standard errors](glossary.md#standard-error). Repeated with 500 to 1,000
 >   different seeds, the error an analysis reports is the scatter the repeats really show: for
->   every Sobol' index of Ishigami's function, and for the Sobol' indices and Morris `μ*`s of a
+>   every Sobol' index of Ishigami's function, and for the Sobol' indices and Morris $\mu^*$s of a
 >   four-factor g function. The same
 >   [seed](glossary.md#seed) gives the same numbers, bit for bit
 >   ([`tests/sensitivity.rs`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-analysis/tests/sensitivity.rs)).
@@ -48,44 +48,44 @@ Morris's screening ranks the factors cheaply; Sobol' indices split the output's 
 ### Morris screening
 
 Morris's method nudges one factor at a time and watches the output move. It works on a grid: each
-factor's range is cut into `p` evenly spaced *levels* (4 is usual). A step moves one factor `p/2`
-levels (two of four), which is a fraction `Δ = p / (2(p − 1))` of its range: 2/3 for four
+factor's range is cut into $p$ evenly spaced *levels* (4 is usual). A step moves one factor $p/2$
+levels (two of four), which is a fraction $\Delta = p/[2(p - 1)]$ of its range: 2/3 for four
 levels.
 
-The change in the output over one step, divided by `Δ`, is an
+The change in the output over one step, divided by $\Delta$, is an
 [elementary effect](glossary.md#elementary-effect). It is the change the factor would cause across
 its whole range, at the slope measured over the step. A *path* starts at a random grid point and
-steps each factor once, in a random order, so `k` factors take `k + 1` runs per path. Each step
-gives one effect. After `r` paths, each factor has `r` effects, and the screening reports three
+steps each factor once, in a random order, so $k$ factors take $k + 1$ runs per path. Each step
+gives one effect. After $r$ paths, each factor has $r$ effects, and the screening reports three
 numbers for each factor ([`ElementaryEffects`]):
 
 | Number | What it is | What it says |
 |---|---|---|
-| `μ*` (`mean_absolute`) | the mean of the effects' sizes | how much the factor matters: the ranking |
-| `σ` (`standard_deviation`) | how much the effects vary | a large `σ` means the factor's effect bends, or depends on other factors |
-| `μ` (`mean`) | the mean of the effects, with their signs | effects of opposite sign cancel here, so use `μ*` to rank |
+| $\mu^*$ (`mean_absolute`) | the mean of the effects' sizes | how much the factor matters: the ranking |
+| $\sigma$ (`standard_deviation`) | how much the effects vary | a large $\sigma$ means the factor's effect bends, or depends on other factors |
+| $\mu$ (`mean`) | the mean of the effects, with their signs | effects of opposite sign cancel here, so use $\mu^*$ to rank |
 
-A factor with `μ*` near zero can be left at its planned value. The screening also gives `μ*`'s
-standard error, which shrinks as `1/√r`: ten paths are usually enough to rank, and the cost is
-`r (k + 1)` runs.
+A factor with $\mu^*$ near zero can be left at its planned value. The screening also gives $\mu^*$'s
+standard error, which shrinks as $1/\sqrt{r}$: ten paths are usually enough to rank, and the cost is
+$r(k + 1)$ runs.
 
-For example, Ishigami's test function (below) has `a sin² x₂` as a term, with `a` = 7. On a
-four-level grid from −π to π, a step of `x₂` moves `sin²` by exactly 3/4, up or down, so every
-effect of `x₂` is `± (3/4)(7)/(2/3) = ± 7.875`. The example's screening finds `μ* = 7.875` with no
-error, and `μ` near zero.
+For example, Ishigami's test function (below) has $a \sin^2 x_2$ as a term, with $a = 7$. On a
+four-level grid from $-\pi$ to $\pi$, a step of $x_2$ moves $\sin^2$ by exactly 3/4, up or down, so every
+effect of $x_2$ is $\pm(3/4)(7)/(2/3) = \pm 7.875$. The example's screening finds $\mu^* = 7.875$ with no
+error, and $\mu$ near zero.
 
 M. D. Morris, "Factorial sampling plans for preliminary computational experiments",
 *Technometrics* 33(2), 161–174, 1991, defines the effects, the grid and the paths. F. Campolongo,
 J. Cariboni and A. Saltelli, "An effective screening design for sensitivity analysis of large
-models", *Environmental Modelling & Software* 22, 1509–1518, 2007, add `μ*`. They found, by
+models", *Environmental Modelling & Software* 22, 1509–1518, 2007, add $\mu^*$. They found, by
 experiment rather than proof, that it ranks factors in the same order as the total Sobol' index.
 
 That is usual, not certain. A step spans about half of each range, so it can miss a response
-that repeats over about half the range. Ishigami's `sin² x₂` repeats every π, half of its range
-from −π to π. At four levels, Morris puts `x₂` first (`μ*` 7.875 against 7.704 for `x₁`), while
-the total index puts `x₁` first (0.558 against 0.442). At six levels or more, Morris puts `x₂`
+that repeats over about half the range. Ishigami's $\sin^2 x_2$ repeats every $\pi$, half of its range
+from $-\pi$ to $\pi$. At four levels, Morris puts $x_2$ first ($\mu^*$ 7.875 against 7.704 for $x_1$), while
+the total index puts $x_1$ first (0.558 against 0.442). At six levels or more, Morris puts $x_2$
 last (2.687 at six levels), though it causes the largest share of the variance alone. A rocket's
-outputs rarely repeat like that, but treat factors whose `μ*`s are close as tied, and use Sobol'
+outputs rarely repeat like that, but treat factors whose $\mu^*$s are close as tied, and use Sobol'
 indices to settle an order that matters.
 
 [`hpr_analysis::sensitivity::morris`](api/hpr_analysis/sensitivity/morris/index.html) gives the
@@ -97,20 +97,20 @@ Sobol's method splits the output's [variance](glossary.md#variance) (the square 
 [standard deviation](glossary.md#standard-deviation)) among the factors. It reports two shares for
 each factor ([`SobolIndex`]):
 
-- The **first-order index** `Sᵢ` is the share of the variance the factor causes alone. If you
+- The **first-order index** $S_i$ is the share of the variance the factor causes alone. If you
   could pin the factor to its true value, the variance would drop by this share, on average.
-- The **total index** `S_Tᵢ` is the share it has any part in, alone or together with others. If
+- The **total index** $S_{Ti}$ is the share it has any part in, alone or together with others. If
   you pinned every *other* factor, this share of the variance would remain, on average.
 
-`Sᵢ ≤ S_Tᵢ`. The gap is how much the factor acts through others. A factor with a total index near
+$S_i \le S_{Ti}$. The gap is how much the factor acts through others. A factor with a total index near
 zero can be left at its planned value.
 
-The analysis draws two independent tables, `A` and `B`, each of `N` rows with every factor spread
-over its range. Then, for each factor `i`, it builds a third table: `A` with factor `i`'s column
-taken from `B`. Comparing the outputs of the three tables row by row gives both indices. A.
+The analysis draws two independent tables, $A$ and $B$, each of $N$ rows with every factor spread
+over its range. Then, for each factor $i$, it builds a third table: $A$ with factor $i$'s column
+taken from $B$. Comparing the outputs of the three tables row by row gives both indices. A.
 Saltelli and others ("Variance based sensitivity analysis of model output", *Computer Physics
 Communications* 181, 259–270, 2010) give the estimates used here, the best of those they compared.
-The cost is `N (k + 2)` runs, and the error shrinks as `1/√N`: with `N` = 8,192, an index comes
+The cost is $N(k + 2)$ runs, and the error shrinks as $1/\sqrt{N}$: with $N = 8{,}192$, an index comes
 out to about ±0.01.
 
 Each index comes with its standard error, found by the
@@ -123,13 +123,21 @@ formulas.
 Two test functions have Sobol' indices known in closed form
 ([`hpr_analysis::sensitivity::benchmark`](api/hpr_analysis/sensitivity/benchmark/index.html)):
 
-- **Ishigami and Homma's function**, `y = sin x₁ + 7 sin² x₂ + 0.1 x₃⁴ sin x₁`, each `x` from −π
-  to π. `x₃` does nothing alone (`S₃ = 0`), yet it is part of a quarter of the variance, through
-  `x₁`. The closed forms are I. M. Sobol' and Y. L. Levitan's (*Computer Physics Communications*
+- **Ishigami and Homma's function**,
+
+  $$
+  \begin{aligned}
+  y &= \sin x_1 + 7 \sin^2 x_2 \\
+  &\quad + 0.1\, x_3^4 \sin x_1,
+  \end{aligned}
+  $$
+
+  each $x$ from $-\pi$ to $\pi$. $x_3$ does nothing alone ($S_3 = 0$), yet it is part of a quarter of the variance, through
+  $x_1$. The closed forms are I. M. Sobol' and Y. L. Levitan's (*Computer Physics Communications*
   117, 1999, p. 57).
-- **Sobol's g function**, a product of one term per factor, each with a weight `aᵢ`: the factor
-  matters most at `aᵢ = 0` and hardly at all at 99. The closed forms are Saltelli and others' (2010,
-  p. 268). The tests use `aᵢ` = 0, 1, 4.5, 9 and four 99s, spanning the four classes Marrel and
+- **Sobol's g function**, a product of one term per factor, each with a weight $a_i$: the factor
+  matters most at $a_i = 0$ and hardly at all at 99. The closed forms are Saltelli and others' (2010,
+  p. 268). The tests use $a_i$ = 0, 1, 4.5, 9 and four 99s, spanning the four classes Marrel and
   others (2008) name, as the
   [SFU library of test functions](https://www.sfu.ca/~ssurjano/gfunc.html) quotes them: very
   important at 0, relatively important at 1, non-important at 9 and non-significant at 99.
@@ -145,11 +153,11 @@ check four things:
 
 - Every Sobol' index of both functions, from 32,768 and 16,384 rows, lies within four standard
   errors of its closed form.
-- Every Morris `μ*`, from 1,000 paths, lies within four standard errors of the exact one.
+- Every Morris $\mu^*$, from 1,000 paths, lies within four standard errors of the exact one.
 - The standard errors are honest. Take each estimate's distance from the known answer, divided by
-  its standard error. Over `n` seeds, these have a mean within `4/√n` of 0 and a standard
-  deviation within `4/√(2n)` of 1. This holds for every Sobol' index of Ishigami's function
-  (1,000 seeds) and of the g function's first four factors (500 seeds), and for Morris's `μ*` of
+  its standard error. Over $n$ seeds, these have a mean within $4/\sqrt{n}$ of 0 and a standard
+  deviation within $4/\sqrt{2n}$ of 1. This holds for every Sobol' index of Ishigami's function
+  (1,000 seeds) and of the g function's first four factors (500 seeds), and for Morris's $\mu^*$ of
   those four (1,000 seeds). The same test checks that standard errors 15% too small would fail.
   A separate unit test computes each Sobol' standard error a second way, from the raw row means.
 - On the g function, twenty Morris paths rank the four factors that matter in the order of their
@@ -258,22 +266,22 @@ rail angle (°)              68.4 ±   3.1    9.9                      350.2 ± 
 How to read it:
 
 - **The test functions** land within 1.4 standard errors of the known answers, from the printed
-  digits. `S₃` comes out slightly below zero: the estimate of a share that is really zero
+  digits. $S_3$ comes out slightly below zero: the estimate of a share that is really zero
   scatters around zero. The g function's `x5` shows "± 0.0000" because its error is below
   0.00005.
 - **Ishigami's Morris screening** at 400 runs puts `x2`, `x1`, `x3` in the whole grid's order, but
-  the gaps are only about one standard error, so at 100 paths they aren't really ranked. Its `σ`s
-  are as large as its `μ*`s, the sign of a function that bends or whose factors act together.
+  the gaps are only about one standard error, so at 100 paths they aren't really ranked. Its $\sigma$s
+  are as large as its $\mu^*$s, the sign of a function that bends or whose factors act together.
 - **The rocket's apogee** moves most with the motor's impulse, 118 m (387 ft) across ±6%, and the
   drag, 113 m (371 ft) across ±10%; then the rail's angle, 68 m (223 ft) across 80° to 90°, the
   wind's speed, 50 m (164 ft), and the dry mass, 36 m (118 ft) across ±5%. The wind's direction
-  hardly matters, 4 m (13 ft). The `σ`s are small beside the `μ*`s: each input acts nearly in a
-  straight line and alone. The exception is the wind's direction, whose `σ`, 5.4 m (18 ft),
-  exceeds its `μ*`, 4.4 m (14 ft): its effects differ in size or sign from path to path. The
+  hardly matters, 4 m (13 ft). The $\sigma$s are small beside the $\mu^*$s: each input acts nearly in a
+  straight line and alone. The exception is the wind's direction, whose $\sigma$, 5.4 m (18 ft),
+  exceeds its $\mu^*$, 4.4 m (14 ft): its effects differ in size or sign from path to path. The
   impulse and the drag are 1.4 combined standard errors apart: ten paths don't settle which comes
   first.
 - **The landing** is the wind's: 1,418 m (4,652 ft) across calm to 8 m/s (18 mph), then the rail's
-  angle, 350 m (1,148 ft). Here the `σ`s are large, so these effects bend or depend on the other
+  angle, 350 m (1,148 ft). Here the $\sigma$s are large, so these effects bend or depend on the other
   inputs.
 
 The ranges are made up for the example. With your own rocket, use the ranges your measurements
@@ -284,9 +292,9 @@ support; a factor's effect grows with its range.
 - **Levels:** four, an even number as the method needs. More levels let a path start from more
   places in each range, at the same cost per path, but the step stays about half the range, so
   more levels don't help with a response that repeats (see [Morris screening](#morris-screening)).
-- **Paths:** ten to twenty to rank. Check `μ*`'s standard error: two factors whose `μ*`s differ
+- **Paths:** ten to twenty to rank. Check $\mu^*$'s standard error: two factors whose $\mu^*$s differ
   by less than a couple of errors aren't ranked yet.
-- **Rows:** a Sobol' analysis needs about 8,000 rows, each `k + 2` runs, to pin an index to about
+- **Rows:** a Sobol' analysis needs about 8,000 rows, each $k + 2$ runs, to pin an index to about
   ±0.01 to ±0.015 (one standard error). Use Morris first to find the few factors that matter, then
   Sobol' on those if you need the shares or the order of two close ones.
 - **Normal inputs:** give each one the same multiple of its standard deviation, such as ±2, so

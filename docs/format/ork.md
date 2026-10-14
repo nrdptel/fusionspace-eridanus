@@ -33,7 +33,7 @@ coast with no drag after its split.
 >
 > - **The shape is cross-checked.** The airframe's key geometry was compared with a second program
 >   that reads `.ork` files, RocketSerializer, and with OpenRocket itself. That geometry is the nose
->   cone, the transitions, the fin sets, where each sits, and the body radius. Over 71 designs in the current scratch-excluding survey, HPR Sim's value is within the survey's 1-in-10⁹ comparison tolerance of
+>   cone, the transitions, the fin sets, where each sits, and the body radius. Over 71 designs in the current scratch-excluding survey, HPR Sim's value is within the survey's 1-in-$10^9$ comparison tolerance of
 >   OpenRocket's for all 1,171 numbers. The survey found 75 files, 73 readable and 72 with a design
 >   that lays out; four readable designs are not opened by OpenRocket. Where parts sit is checked against OpenRocket alone; mass
 >   and the center of gravity are checked in [Mass properties](../physics/mass.md#checked-against-openrocket)
@@ -525,7 +525,7 @@ RocketSerializer's *extractors*, the functions it uses to pull each part out of 
 design. It also asks OpenRocket 24.12, loaded on the same file, for each of the same numbers. It
 writes what both programs read to a JSON file, the *record*. `cargo xtask ork` then compares
 HPR Sim's reading with the record. Two numbers count as the same when they differ by less than 1
-part in 10⁹:
+part in $10^9$:
 
 - If HPR Sim's number is RocketSerializer's, they **agree**.
 - If it is not, but it is OpenRocket's, then **RocketSerializer differs**.
@@ -595,7 +595,7 @@ numbers:
   the record, RocketSerializer's included, comes from the settled design.
 
 - **A canted fin.** OpenRocket turns a canted fin about the middle of its root chord. That moves
-  the front of the root aft by half the chord times (1 − cos δ), where δ is the cant: 38 µm for a
+  the front of the root aft by half the chord times $(1 - \cos\delta)$, where $\delta$ is the cant: 38 µm for a
   0.495 m (1.62 ft) root at 1°, as in the OpenRocket jar's *Simulation extensions* example. The file places the root before it is turned, and so does HPR Sim. So the script
   reads OpenRocket's station with the cant set to zero, then puts the cant back. It keeps the
   turned station too. For all 10 canted fin sets, the turned station is aft of the unturned one by
@@ -677,9 +677,9 @@ the radius it sits in is automatic; judging the wall against a radius that is no
 it away, which is half of [Loft lesson L61](../decisions-and-roadmap.md#l61).
 
 **The shape parameter is not the same number.** OpenRocket writes the ogive's parameter as
-`κ = ρ_tangent/ρ` (a tangent ogive's radius of curvature over this one's), so `κ = 1` is a tangent
-ogive and `κ = 0` an infinite radius, which is a cone. `hpr-design` states the same shape the other
-way up, as `ρ/ρ_tangent`, so the two are reciprocals: reading one as the other turns every secant
+$\kappa = \rho_{\mathrm{tangent}}/\rho$ (a tangent ogive's radius of curvature over this one's), so $\kappa = 1$ is a tangent
+ogive and $\kappa = 0$ an infinite radius, which is a cone. `hpr-design` states the same shape the other
+way up, as $\rho/\rho_{\mathrm{tangent}}$, so the two are reciprocals: reading one as the other turns every secant
 ogive into a bulged one. The power, parabolic and Haack parameters carry over unchanged. All four
 are Niskanen's appendix A, equations A.3 and A.7 to A.9.
 
@@ -694,7 +694,7 @@ weigh nothing, as in OpenRocket 24.12, measured in [M2.2b1](../decisions-and-roa
 | what the file says | how it is read | why it is in doubt |
 | --- | --- | --- |
 | no `shapeclipped` on a transition | clipped | it is the shape that reaches both radii; only 1 of the 21 transitions in the corpus states it |
-| an angle, **which way it turns** | the same way HPR Sim's own frames turn | HPR Sim measures a roll angle right-handed about an axis pointing at the **nose**; OpenRocket's technical documentation puts its own `x` axis along the centerline pointing **aft** and leaves the rest unstated. If it means what that implies, every angle read here is mirrored; see [below](#which-way-round) |
+| an angle, **which way it turns** | the same way HPR Sim's own frames turn | HPR Sim measures a roll angle right-handed about an axis pointing at the **nose**; OpenRocket's technical documentation puts its own $x$ axis along the centerline pointing **aft** and leaves the rest unstated. If it means what that implies, every angle read here is mirrored; see [below](#which-way-round) |
 | a `polished` finish | 2 µm | the number is the author's, from 2013; a newer OpenRocket may have moved it ([below](#the-surface-finish)) |
 
 **Measured on the reference library** (`cargo xtask ork`, 73 readable files): 72 designs' spines lay
@@ -785,7 +785,7 @@ meters, so it is easy to read one as radians, which would make `<angleoffset>180
 more than twenty-eight turns instead of half of one.
 
 **Observed:** of the **993** angles the corpus writes, **188** are not zero, and **178 of those are
-larger than 2π**, more than a whole turn, which no component is written at. The values themselves
+larger than $2\pi$**, more than a whole turn, which no component is written at. The values themselves
 are 180, 90, 45, 30 and 120, carrying the float dust (`119.99999999999999`) of a conversion that
 went through radians and came back. `cargo xtask ork` prints all three counts, and
 `hpr_io::ork::tests::angles_are_degrees_not_radians` holds the reading.
@@ -823,10 +823,10 @@ puts its pods in the same places whichever of its three frame words the file wri
 from the pod or from the rocket has not been tested against OpenRocket.
 
 **Which *direction* the angle turns is assumed, and is not settled.** HPR Sim measures a roll angle
-from `x_B` toward `y_B`, right-handed about `+z_B`, which points at the nose
+from $x_B$ toward $y_B$, right-handed about $+z_B$, which points at the nose
 ([frames](../physics/frames.md)). OpenRocket's [technical documentation][techdoc] (§3.1.4) puts its
-own `x` axis along the centerline pointing **aft**, and says nothing about the other two. A
-right-handed angle about an aft-pointing axis is a left-handed one about HPR Sim's `+z_B`, so if
+own $x$ axis along the centerline pointing **aft**, and says nothing about the other two. A
+right-handed angle about an aft-pointing axis is a left-handed one about HPR Sim's $+z_B$, so if
 that is what OpenRocket means, every angle read here is **mirrored**: a mass object at 90° sits on
 the other side of the airframe, and a canted fin set rolls the other way. Nothing in the reference
 library can settle it, because a mirrored design is still a perfectly valid design; one
@@ -871,8 +871,8 @@ along the nose. Since [M2.2e7](../decisions-and-roadmap.md#m2-2e7) HPR Sim takes
 
 For example, take a conical nose cone 200 mm (7.9 in) long, 50 mm (2.0 in) in radius at its base, with a 2 mm (0.079 in) wall,
 and a coupler 30 mm (1.2 in) long whose aft end sits at the nose's base. Its narrower end is its forward end,
-30 mm (1.2 in) ahead of the base, where the cone's radius is `50 × 170/200` = 42.5 mm. So its outer radius
-is 42.5 − 2 = 40.5 mm.
+30 mm (1.2 in) ahead of the base, where the cone's radius is $50 \times 170/200 = 42.5$ mm. So its outer radius
+is $42.5 - 2 = 40.5$ mm.
 
 **An inner tube written `auto` keeps 9.5 mm (0.37 in).** OpenRocket 24.12 does not work out an automatic
 radius for an `innertube`, the tag a motor mount is usually written with. It keeps the 9.5 mm (0.37 in) it
@@ -914,12 +914,15 @@ automatic radius). Before, HPR Sim left such a set out with a `Skipped` warning
 **The rule.** With three tubes or more, each tube touches the body and its two neighbors, so the
 ring closes:
 
-- The tubes' axes sit on a circle of radius `R + r` around the airframe's axis, where `R` is the
-  body tube's outer radius and `r` the tubes' radius.
-- Neighboring axes are `2π/N` apart around that circle, for `N` tubes, so the straight line
-  between them (the chord) is `2(R + r) sin(π/N)` long.
-- Two tubes of radius `r` touch when their axes are `2r` apart. Setting the chord to `2r` gives
-  `r = R sin(π/N) / (1 − sin(π/N))`.
+- The tubes' axes sit on a circle of radius $R + r$ around the airframe's axis, where $R$ is the
+  body tube's outer radius and $r$ the tubes' radius.
+- Neighboring axes are $2\pi/N$ apart around that circle, for $N$ tubes, so the straight line
+  between them (the chord) is $2(R + r)\sin(\pi/N)$ long.
+- Two tubes of radius $r$ touch when their axes are $2r$ apart. Setting the chord to $2r$ gives
+
+  $$
+  r = \frac{R \sin(\pi/N)}{1 - \sin(\pi/N)}.
+  $$
 
 One or two tubes can't close a ring. For those, OpenRocket gives the tubes the body's radius, and
 so does HPR Sim. The rule is
@@ -927,9 +930,9 @@ so does HPR Sim. The rule is
 HPR Sim applies it when it lays the design out, the step that works out every automatic dimension
 ([Automatic dimensions](../physics/design.md#automatic-dimensions)).
 
-For example, take four tubes on a body of 50 mm (2.0 in) radius. `sin(π/4)` is 0.7071, so
-`r = 50 × 0.7071 / 0.2929` = 120.7 mm. The axes then sit 170.7 mm (6.7 in) from the airframe's axis, and
-neighbors are `2 × 170.7 × 0.7071` = 241.4 mm apart, which is `2r`: they touch. Fewer tubes
+For example, take four tubes on a body of 50 mm (2.0 in) radius. $\sin(\pi/4)$ is 0.7071, so
+$r = 50 \times 0.7071/0.2929 = 120.7$ mm. The axes then sit 170.7 mm (6.7 in) from the airframe's axis, and
+neighbors are $2 \times 170.7 \times 0.7071 = 241.4$ mm apart, which is $2r$: they touch. Fewer tubes
 must be wider to close the ring. Three to five tubes come out wider than the body, six exactly as
 wide, and more than six narrower:
 
@@ -1005,7 +1008,7 @@ against measured flights, so HPR Sim's probably reads low
 
 #### The surface finish
 
-A surface finish is a **roughness height** `R_s`, the size of the bumps a painted or bare surface
+A surface finish is a **roughness height** $R_s$, the size of the bumps a painted or bare surface
 leaves, which is what sets skin friction ([drag](../physics/aero.md)). OpenRocket writes one of
 five words for it; what each is worth in micrometers is **not in the file format documentation**,
 and these are the only numbers on this page that come from neither the documentation nor the
@@ -1041,7 +1044,7 @@ and a later version could reasonably have moved it. Rocketry-forum posts from 20
 finishes rather than five, which suggests the list has indeed changed, though neither the 23.09 nor
 the 24.12 release notes mention it.
 
-What it would cost: skin friction in the fully-rough branch goes as `R_s^0.2`
+What it would cost: skin friction in the fully-rough branch goes as $R_s^{0.2}$
 ([drag](../physics/aero.md)), so 0.5 µm instead of 2 µm is a **1.32×** change in the skin-friction
 coefficient of whatever part says `polished`: **14 components** in the corpus. No file in the
 corpus writes any word but the five, so nothing here can settle it; the
@@ -1065,7 +1068,7 @@ motor in it becomes one motor per tube ([Clusters](../physics/design.md#clusters
 
 No published document gives the patterns, so OpenRocket 24.12 was asked, run as an outside program
 through its public interface (`validation/oracles/openrocket/clusters.py`, [ADR-075][adr-075]).
-Each pattern is a figure of points `pₖ`, one per tube, in units of `2 R s` (defined below):
+Each pattern is a figure of points $\mathbf{p}_k$, one per tube, in units of $2Rs$ (defined below):
 
 | pattern | tubes | figure |
 |---|--:|---|
@@ -1077,16 +1080,18 @@ Each pattern is a figure of points `pₖ`, one per tube, in units of `2 R s` (de
 | `9-grid` | 9 | a 3 × 3 grid, 1.4 apart |
 | `9-star` | 9 | a center tube and eight on a ring of radius 1.4 |
 
-The unit is `2 R s`, for the tube's outer radius `R` and the scale `s`: at scale 1 neighboring
+The unit is $2Rs$, for the tube's outer radius $R$ and the scale $s$: at scale 1 neighboring
 tubes touch, except in `9-grid`, whose rows and columns are 1.4 diameters apart, and `9-star`,
 whose ring is 1.4 diameters from its center tube. The pattern is
-turned by the tube's roll angle `θ` less the rotation `ρ` (`Rot` turns a point by that angle):
+turned by the tube's roll angle $\theta$ less the rotation $\rho$ ($\mathrm{Rot}$ turns a point by that angle):
 
-`[x, y]ₖ = 2 R s · Rot(θ − ρ) · pₖ`
+$$
+[x, y]_k = 2Rs \cdot \mathrm{Rot}(\theta - \rho) \cdot \mathbf{p}_k
+$$
 
 measured from the tube's own radial offset. For example, a `3-ring` of 40 mm (1.6 in) tubes at scale 1 puts
-the three axes 23.09 mm (0.91 in) from the center (`40 mm / √3`). OpenRocket's `(y, z)` are read as HPR Sim's
-`(x, y)`, the same assumption as for every roll angle ([above](#which-way-round)).
+the three axes 23.09 mm (0.91 in) from the center ($40\,\mathrm{mm}/\sqrt{3}$). OpenRocket's $(y, z)$ are read as HPR Sim's
+$(x, y)$, the same assumption as for every roll angle ([above](#which-way-round)).
 On 25 probes (every pattern, a scale, a rotation, a radial offset, and all three at once) HPR Sim
 puts every tube within 1e-15 m of where OpenRocket does (the test
 `every_tube_of_a_cluster_is_where_openrocket_puts_it` in `hpr-validate`). A pattern name OpenRocket
@@ -1156,7 +1161,7 @@ The **pod radius** is the widest of the pod's own parts. One probe has a stated 
 10 mm (0.39 in) tube, a 15 mm (0.59 in) tube and another 10 mm (0.39 in) tube, and OpenRocket puts the pod at the 15 mm (0.59 in) radius:
 not the first part's, the first tube's or the last part's. HPR Sim's test
 (`every_pod_is_where_openrocket_puts_it`, in `hpr-validate`) holds every part in every pod to
-OpenRocket's place, to 10⁻¹⁵ m. An automatic radius inside a pod can only take a radius stated in
+OpenRocket's place, to $10^{-15}$ m. An automatic radius inside a pod can only take a radius stated in
 the pod, so HPR Sim takes the widest stated one.
 
 HPR Sim fixes each pod's distance when it reads the file, so it cannot work out an automatic tube
@@ -1189,7 +1194,7 @@ OpenRocket 24.12 agrees on six probes:
   with its pod;
 - a lug turned to 180°, and two at 0°.
 
-Each fin's root and each lug's axis is where OpenRocket puts it, to 10⁻¹⁵ m (the test
+Each fin's root and each lug's axis is where OpenRocket puts it, to $10^{-15}$ m (the test
 `every_pod_is_where_openrocket_puts_it`, in `hpr-validate`).
 
 **A pod set that holds nothing** is read too, and weighs nothing, in OpenRocket as in HPR Sim. A
@@ -1201,26 +1206,26 @@ OpenRocket on every probe:
 
 | quantity | how close to OpenRocket |
 | --- | --- |
-| each tube, fin set and lug in a pod: mass and center | 2 parts in 10¹⁵ |
-| a pod's nose cone: mass, center | 8.3 parts in 10⁸, 4.0 parts in 10⁹ |
-| the whole rocket: mass | 1.2 parts in 10⁷ |
-| the whole rocket: center of mass | 1.10 parts in 10⁷ with pods that have a length, 1.13 parts in 10⁷ with pods of no length |
-| roll inertia, with OpenRocket's fin shortcut in place of HPR Sim's | 2 parts in 10⁹ |
-| pitch inertia about `x_B`, with no fins in the pods | 6.1 parts in 10⁷ |
+| each tube, fin set and lug in a pod: mass and center | 2 parts in $10^{15}$ |
+| a pod's nose cone: mass, center | 8.3 parts in $10^8$, 4.0 parts in $10^9$ |
+| the whole rocket: mass | 1.2 parts in $10^7$ |
+| the whole rocket: center of mass | 1.10 parts in $10^7$ with pods that have a length, 1.13 parts in $10^7$ with pods of no length |
+| roll inertia, with OpenRocket's fin shortcut in place of HPR Sim's | 2 parts in $10^9$ |
+| pitch inertia about $x_B$, with no fins in the pods | 6.1 parts in $10^7$ |
 
 OpenRocket weighs a nose cone a little differently from HPR Sim. The probes' own nose, on the
-airframe, is 5.1 parts in 10⁷ apart in mass, and that alone puts the bare airframe 1.17 parts in
-10⁷ from OpenRocket's. No probe with pods is further from OpenRocket than that.
+airframe, is 5.1 parts in $10^7$ apart in mass, and that alone puts the bare airframe 1.17 parts in
+$10^7$ from OpenRocket's. No probe with pods is further from OpenRocket than that.
 
 HPR Sim works out a fin's roll inertia exactly, and OpenRocket takes a shortcut: the two differ by
 up to 5% on a fin set ([mass: fins](../physics/mass.md#fins-rail-buttons-and-roll-inertia)).
-The 2 parts in 10⁹ holds only once OpenRocket's shortcut is swapped in for HPR Sim's
+The 2 parts in $10^9$ holds only once OpenRocket's shortcut is swapped in for HPR Sim's
 ([ADR-062][adr-062]: why fin roll inertia differs). OpenRocket's rule for a fin's pitch inertia is
-not known, so where the pods hold fins the pitch gap is only pinned: 2.6 parts in 10⁷ to 3.4 parts
-in 10⁵.
+not known, so where the pods hold fins the pitch gap is only pinned: 2.6 parts in $10^7$ to 3.4 parts
+in $10^5$.
 
 OpenRocket gives one pitch inertia for both pitch axes. With one or two pods the rocket is not the
-same both ways, so HPR Sim's inertia about `y_B` differs from that one number, by 0.3% to 1.1% on
+same both ways, so HPR Sim's inertia about $y_B$ differs from that one number, by 0.3% to 1.1% on
 the probes of pods that have a length ([M1.13b1](../decisions-and-roadmap.md#m1-13b1)). HPR Sim's is
 the true inertia about that axis.
 With three pods the two agree.
@@ -1301,7 +1306,7 @@ A configuration is named by its motors, stage by stage with the sustainer first,
 separated by `;`: `[I115W-10; 2× E12-0]` is an I115W-10 in the core above two E12-0s in the
 boosters, and `None` is a stage with no motor.
 
-| configuration | apogee, OpenRocket / HPR Sim (m) | Δ | largest speed Δ |
+| configuration | apogee, OpenRocket / HPR Sim (m) | $\Delta$ | largest speed $\Delta$ |
 |---|--:|---:|---:|
 | `[I115W-10; 2× E12-0]` | 1123.6 / 1137.5 | +1.23% | +3.25% |
 | `[I115W-10; None]` | 851.8 / 857.6 | +0.68% | +1.56% |
@@ -1336,9 +1341,9 @@ This covers how HPR Sim reads a fin set that sits on a nose cone or a transition
 surface is not level along the fin's root (the edge where the fin meets the body). It is checked
 on one fin on one design, against OpenRocket only, and no measured flight checks it.
 
-OpenRocket gives a fin's outline as points `(x, h)`: `x` aft of the root's leading edge and `h`
+OpenRocket gives a fin's outline as points $(x, h)$: $x$ aft of the root's leading edge and $h$
 out from the body's surface there. The root runs along the surface. On a body tube the surface is
-a straight line at `h = 0`; on a nose cone it curves. The cockpit of OpenRocket's *Pods--airframes
+a straight line at $h = 0$; on a nose cone it curves. The cockpit of OpenRocket's *Pods--airframes
 and winglets* is a single fin on the last 50 mm (2.0 in) of a
 [tangent ogive](../glossary.md#tangent-ogive) nose. Its outline is `(0, 0)`, `(9.35, 6.96)` and
 `(50, 2.23)` mm: the last point is 2.23 mm (0.088 in) up because the ogive's surface rises 2.23 mm (0.088 in) over those
@@ -1437,7 +1442,7 @@ and no file in the library has one ([Mass properties](../physics/mass.md#what-a-
 OpenRocket 24.12, at least; older releases may differ, as the note below explains). That makes
 an oracle for the resolution rules that needs no OpenRocket, and `cargo xtask ork` runs it over the
 corpus: on every automatic dimension that caches a number and sits on a component the file gives
-an `<id>`. On 2026-09-27, with pods read, **71 of 75 agree** to a part in 10⁹; the 4 added since
+an `<id>`. On 2026-09-27, with pods read, **71 of 75 agree** to a part in $10^9$; the 4 added since
 2026-09-23 are the pods' nose cones, and all 4 agree. Of the 4 that disagree, the 2 body radii are settled in HPR Sim's favor
 [below](#openrocket-settles-it); the 2 packed radii follow the bore of that tube, so they are settled
 with it by the bore rule, not measured (the oracle reads body radii only).
@@ -1770,7 +1775,7 @@ reference library have one.
 A configuration's own `<ignitionconfiguration>` replaces the mount's event and delay one at a time:
 whichever it leaves out, the mount's own value stands.
 
-HPR Sim flies each motor's ignition as the file says it. Here `d` is the ignition delay, and a
+HPR Sim flies each motor's ignition as the file says it. Here $d$ is the ignition delay, and a
 missing delay is 0. "The stage below" is the next stage aft on the axis, since a parallel stage
 hangs beside its stage, not below it. Its burnout is its first motor's: the first of its motors to
 burn out, by each one's ignition time plus its curve's burn time, whichever mount holds it, and the
@@ -1779,16 +1784,16 @@ first in the file on a tie. The rules are also in the
 
 | the file says | HPR Sim lights the motor |
 |---|---|
-| `launch` plus `d` | `d` seconds after launch |
-| `automatic` plus `d`, in the bottom stage | `d` seconds after launch (an [air start](../glossary.md#air-start) when `d` is more than 0) |
-| `automatic` plus `d`, in a stage above | as `ejectioncharge` |
-| `ejectioncharge` plus `d` | at the burnout of the stage below's motor, plus that motor's ejection delay, plus `d`; refused when the stage below has motors in more than one mount |
-| `burnout` plus `d` | `d` seconds after the stage below's first burnout: the first of its motors to burn out, by each one's ignition and curve |
+| `launch` plus $d$ | $d$ seconds after launch |
+| `automatic` plus $d$, in the bottom stage | $d$ seconds after launch (an [air start](../glossary.md#air-start) when $d$ is more than 0) |
+| `automatic` plus $d$, in a stage above | as `ejectioncharge` |
+| `ejectioncharge` plus $d$ | at the burnout of the stage below's motor, plus that motor's ejection delay, plus $d$; refused when the stage below has motors in more than one mount |
+| `burnout` plus $d$ | $d$ seconds after the stage below's first burnout: the first of its motors to burn out, by each one's ignition and curve |
 | `never` | never: the motor rides loaded, with no thrust |
 | `burnout` or `ejectioncharge`, in the bottom stage | never, since it has no stage below |
 | `ejectioncharge` or `automatic`, when the stage below's motor is plugged | never, since a plugged motor fires no charge |
-| `automatic` plus `d`, in a [parallel stage](#parallel-stages) hung on the last stage on the axis | `d` seconds after launch, as OpenRocket lights the E12s of its *Parallel booster staging* with the I115W at 0 s |
-| `launch` plus `d` or `never`, in a parallel stage | as written |
+| `automatic` plus $d$, in a [parallel stage](#parallel-stages) hung on the last stage on the axis | $d$ seconds after launch, as OpenRocket lights the E12s of its *Parallel booster staging* with the I115W at 0 s |
+| `launch` plus $d$ or `never`, in a parallel stage | as written |
 | any other event in a parallel stage | refused by name: HPR Sim has no reading for it |
 
 A motor that never lights is flown as OpenRocket flies it: carried with all its propellant, giving
@@ -2181,7 +2186,7 @@ checked against OpenRocket alone, not against a real flight. [Recovery](../physi
 has the model and the full results; the decision record on flying a `.ork`'s recovery,
 [ADR-153][adr-153], has the reasoning.
 
-- **How.** The drag is the file's `C_D`, or OpenRocket's own for `auto`: 0.8 on a parachute's
+- **How.** The drag is the file's $C_D$, or OpenRocket's own for `auto`: 0.8 on a parachute's
   canopy, and appendix C's estimate for a streamer. Each device opens fully at once, the file's
   delay after its event, and the descent is a point mass under the open devices' drag alone, as
   in OpenRocket. `apogee`, `altitude`, `ejection` and `launch` fly; `never`, and `ejection` on a
@@ -2369,7 +2374,7 @@ flight's, so it is not a reference, which leaves 56 complete flights. The record
 `validation/fixtures/ork/openrocket-flights.json`, keeps each word beside the quantities of
 OpenRocket's own time series (its stored steps) that the word could mean. The test
 [`stored_metric_definitions_are_per_tool_and_version`](https://github.com/nrdptel/fusionspace-eridanus/blob/main/crates/hpr-validate/src/tests.rs)
-holds each defined word to its quantity on all 56, to 1 part in 10⁹. Nine of the ten words are
+holds each defined word to its quantity on all 56, to 1 part in $10^9$. Nine of the ten words are
 defined; the tenth, `optimumdelay`, is withheld, with the flights that rule out its two obvious
 readings.
 
@@ -2832,7 +2837,7 @@ sample at its separation event, the whole stack's center of mass. The second is 
 row. It is met when both separate at the same time and each value is within 5% of OpenRocket's,
 the band an apogee gets before it needs a written cause ([ADR-172][adr-172]):
 
-| | OpenRocket | HPR Sim | Δ |
+| | OpenRocket | HPR Sim | $\Delta$ |
 |---|---:|---:|---:|
 | separation, s | 0.86 | 0.86 | 0 |
 | height at the separation, m | 22.44 | 22.18 | −1.17% |
@@ -3154,7 +3159,7 @@ and part on the coast, where drag matters most.
 - `C12`, launched from a tilted rod, reads +0.0125 to +0.0366 calibers, nearly all from its CP.
   OpenRocket's rocket clears the rod at an angle of attack, as on
   [the probes](#a-tilted-launch-rod). With HPR Sim's CP taken at that angle (the report's *at OR's
-  α*), `C12` reads +0.0033 to +0.0074, so most of its gap is the angle each program looks at.
+  $\alpha$*), `C12` reads +0.0033 to +0.0074, so most of its gap is the angle each program looks at.
 - HPR Sim's [design checks](../physics/design.md#checks) find errors on 8 of the flights. On
   `C07/1`, `C11`'s two and `C12`'s three, an inner part is wider than its parent's bore by more
   than the fit tolerance; on `C06/1` a motor's case can't fit its mount; on `C08/1` a fin is off
@@ -3227,7 +3232,7 @@ also gets a written breakdown, held by a test ([ADR-097][adr-097], the decision 
 The report also flies HPR Sim's own drag with OpenRocket's base rule alone, through
 `Simulation::with_full_base_drag_under_power` ([Aerodynamics](../physics/aero.md#drag)):
 
-| `C06/1`, flown by HPR Sim on | apogee Δ | largest speed Δ |
+| `C06/1`, flown by HPR Sim on | apogee $\Delta$ | largest speed $\Delta$ |
 |---|---:|---:|
 | its own drag | +13.60% | +7.98% |
 | OpenRocket's drag coefficient | +1.11% | +1.04% |

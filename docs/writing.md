@@ -39,6 +39,53 @@ reads a page once and knows what it says and how far to trust it.
    accuracy number comes from the committed validation report
    ([Checking a claim](checking-a-claim.md)).
 
+### Equations
+
+Equations are typeset, as a textbook sets them: written in LaTeX between dollar signs, they become
+MathML when the site builds, drawn in New Computer Modern Math, the face of LaTeX's own textbooks
+(the product system's *Type* rule; [the decision](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0264-typeset-equations.md)).
+GitHub shows the same source as math too. A formula the converter can't read fails the build, with
+its page and line; `cargo xtask site-math --check docs/<page>.md` converts a page's formulas as the
+build does and notes any long enough to risk a phone's column.
+
+- **In a sentence,** `$…$`: "the drag force $F_D$ grows as $v^2$". A symbol the text names is
+  math too, so the sentence and the equation match: $\rho$, not ρ or `rho`. Keep an inline
+  formula short, a few symbols: it can't wrap, and one wider than a phone's column fails the page
+  check. Inline, write a fraction with a slash, $(\lambda + 1)/2$; only a number's fraction is
+  stacked, $\tfrac12$.
+- **On its own,** `$$…$$` as its own paragraph, a blank line above and below, for an equation the
+  page is about or anything longer than a few symbols. It is centered, unnumbered; the text names
+  it. It must fit a 320 px phone, about 30 characters of math: write a longer one on several
+  lines with `\begin{aligned}`, each line broken before `=` or an operator and aligned at `&=`; a
+  product written side by side breaks with no operator, never an invented `\times`. Never shrink
+  or scroll one. In a list item, indent the `$$` lines to the item's text; a line right under a
+  display fails the build, since it would show as raw text.
+
+  ```text
+  $$
+  \begin{aligned}
+  q &= \tfrac12 \rho v^2, \\
+  D &= q\, C_D A
+  \end{aligned}
+  $$
+  ```
+
+- **Notation,** after ISO 80000-2: one-letter variables italic (the default); words, names of more
+  than one letter, units and the differential d upright, `\mathrm{Re}`, `\mathrm{d}t`,
+  `9.81\,\mathrm{m/s^2}`; vectors bold, `\mathbf{v}`, never `\vec`, whose arrow browsers
+  misplace (the build refuses it). A one-letter subscript that labels stays italic, as these
+  pages have always written it ($C_D$, $c_r$); a word or an abbreviation is upright
+  ($T_{\mathrm{base}}$, $x_{\mathrm{CG}}$). A script inside a script would be under 12 px: write
+  $C_{D0}$, not `C_{D_0}`, and $\exp(-x^2/2)$, not `e^{-x^2/2}`.
+- **Numbers:** a value tied to a symbol goes in the math, its unit upright, $g = 9.81\,\mathrm{m/s^2}$;
+  a value in a sentence stays in words and plain units, as every other number does. A power of
+  ten is $10^{-6}$ in math, and 1e-6 only where a program reads or prints it.
+- **Never in a heading** or an image's description: the build refuses math there.
+- **Not math:** code, field names, file names, command lines and program output stay in code,
+  `mass_kg`, `hpr sim`; a quoted reading keeps its unit in words, "a top speed of 355 m/s
+  (1,165 ft/s)". Doc comments and terminal output keep plain Unicode, `F = ½ ρ v² C_D A`, which
+  reads better there than LaTeX source. A dollar sign that isn't math is written `\$`.
+
 ## The FusionSpace rules
 
 FusionSpace HPR · Sim is a FusionSpace product, `FS-ACHERNAR · SW · TOOL 001` (Achernar, a star of project

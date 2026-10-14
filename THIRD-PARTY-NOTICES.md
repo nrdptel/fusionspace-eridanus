@@ -28,7 +28,7 @@ adds a source.
 
 - **The FusionSpace copy icon** (`docs/images/copy.svg`, the documentation site's copy button):
   `product/icons/copy.svg` of [fusionspace-design](https://github.com/nrdptel/fusionspace-design)
-  at `d372afa` (product system Rev D), its `currentColor` stroke set to `#0B0F1C` (Void, the system's darkest ink). Like the
+  at `2495dec` (product system Rev E), its `currentColor` stroke set to `#0B0F1C` (Void, the system's darkest ink). Like the
   brand files above, it is the project owner's, Neer Patel's, under fusionspace-design's `LICENSE`:
   all rights reserved, and **not** covered by this repository's MIT or Apache-2.0 license. A fork
   that isn't a FusionSpace project removes it or draws its own (ADR-164).
@@ -37,7 +37,7 @@ adds a source.
   site's menu bar, page arrows, search field, code buttons and status chips; `theme/favicon.svg` and
   `theme/favicon.png`, its favicon): `product/icons/` and `kit/web/favicon.svg` and
   `kit/web/favicon-32.png` of [fusionspace-design](https://github.com/nrdptel/fusionspace-design)
-  at `d372afa` (product system Rev D), unchanged, compared with that revision by `cargo xtask site`
+  at `2495dec` (product system Rev E), unchanged, compared with that revision by `cargo xtask site`
   when `refs/fusionspace-design` is checked out (ADR-228). Like the brand files above, they are the
   project owner's, Neer Patel's, under fusionspace-design's `LICENSE`: all rights reserved, and
   **not** covered by this repository's MIT or Apache-2.0 license. A fork that isn't a FusionSpace
@@ -47,7 +47,7 @@ adds a source.
 - **The FusionSpace lockup and mark** (`theme/logo/fusion-space-horizontal-void.svg` and
   `theme/logo/fusion-space-mark-void.svg`, whose paths the documentation site draws inline, in the
   text's color, in every page's header and title block): `kit/logo/svg/` of
-  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `d372afa`, unchanged,
+  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `2495dec`, unchanged,
   compared with that revision by `cargo xtask site` when `refs/fusionspace-design` is checked out
   (ADR-229). They are the FusionSpace trademarks, the project owner's, Neer Patel's, under
   fusionspace-design's `LICENSE` and `TRADEMARKS.md`: all rights reserved, and **not** covered by
@@ -57,16 +57,16 @@ adds a source.
 
 - **The FusionSpace mdBook theme** (`theme/fusionspace-mdbook.css`, served by the documentation
   site): `product/web/mdbook/fusionspace-mdbook.css` of
-  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `d372afa` (product system
-  Rev D), unchanged, with its `SPDX-License-Identifier: Apache-2.0` line. Copyright 2026 Neer
+  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `2495dec` (product system
+  Rev E), unchanged, with its `SPDX-License-Identifier: Apache-2.0` line. Copyright 2026 Neer
   Patel, Apache-2.0 alone inside this MIT-or-Apache-2.0 project; the license grants no rights to
   the FusionSpace name or logo. `cargo xtask site` compares it with the pinned revision when
   `refs/fusionspace-design` is checked out (ADR-164).
 
 - **The FusionSpace page check** (`xtask/src/site/fusionspace-check.js`, which the documentation
   site's page check runs, not shipped): `product/web/check/fusionspace-check.js` of
-  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `d372afa` (product system
-  Rev D), unchanged, with its `SPDX-License-Identifier: Apache-2.0` line: the numbers the system's
+  [fusionspace-design](https://github.com/nrdptel/fusionspace-design) at `2495dec` (product system
+  Rev E), unchanged, with its `SPDX-License-Identifier: Apache-2.0` line: the numbers the system's
   web rules set (the type scale, the reading scale, the widths) and the code that measures
   them. Copyright 2026 Neer Patel, Apache-2.0 alone inside this MIT-or-Apache-2.0
   project. `cargo xtask site` compares it with the pinned revision when `refs/fusionspace-design`
@@ -74,18 +74,27 @@ adds a source.
 
 - **The FusionSpace terminal styles** (`crates/hpr-cli/src/fs_style.rs`, compiled into `hpr`):
   `product/cli/fs_style.rs` of [fusionspace-design](https://github.com/nrdptel/fusionspace-design)
-  at `d372afa` (product system Rev D), unchanged, with its `SPDX-License-Identifier: Apache-2.0`
+  at `2495dec` (product system Rev E), unchanged, with its `SPDX-License-Identifier: Apache-2.0`
   line. Copyright 2026 Neer Patel, Apache-2.0 alone inside this MIT-or-Apache-2.0 project; the
   license grants no rights to the FusionSpace name or logo. A test in `crates/hpr-cli/tests/style.rs`
   compares it with the pinned revision when `refs/fusionspace-design` is checked out (ADR-174).
 
 - **Archivo and Cascadia Mono** (`theme/fonts/*.woff2`, served by the documentation site): the
-  product system's WOFF2 subsets from `product/web/fonts/` at `d372afa`, unchanged, under the SIL
+  product system's WOFF2 subsets from `product/web/fonts/` at `2495dec`, unchanged, under the SIL
   Open Font License 1.1, whose texts sit beside them (`OFL-Archivo.txt`: The Archivo Project
   Authors; `OFL-CascadiaMono.txt`: Microsoft Corporation, Reserved Font Name Cascadia Code). The
   `@font-face` rules in `theme/fonts/fonts.css` are the product system's `product/web/fonts.css`
-  at `d372afa` (Apache-2.0), each address without its `fonts/` folder, as mdBook serves the file
+  at `2495dec` (Apache-2.0), each address without its `fonts/` folder, as mdBook serves the file
   beside the fonts.
+
+- **New Computer Modern Math, subset** (`theme/fonts/NewCMMathSubset-Book.woff2`, served by the
+  documentation site to draw its equations): the product system's WOFF2 subset from
+  `product/web/fonts/` at `2495dec`, unchanged, of New Computer Modern Math Book 8.1.1 by Antonis
+  Tsolomitis (CTAN `fonts/newcomputermodern`). It is under the GUST Font License, which is the
+  LaTeX Project Public License 1.3c; both texts sit beside it (`GUST-FONT-LICENSE-NewCMMath.txt`,
+  `LPPL-1.3c.txt`). The subset keeps fewer characters and maps each prime to its script-size
+  glyph, outlines unchanged, and is renamed *NewCM Math Subset*, as the license asks of a changed
+  font; the font's own name table says what changed and where the original is.
 
 - **ThrustCurve.org thrust curves** (`crates/hpr-motor/data/thrustcurve/curves/`, compiled into
   `hpr-motor`): 32 files that ThrustCurve.org marks public domain (license `PD`), unchanged. The
@@ -509,7 +518,7 @@ same license and mode.
 | `openrocket-database` | `openrocket/openrocket-database` (`.orc` parts) | Apache-2.0 | fetched | its 16 `.orc` files are bundled unchanged (see Bundled, M5.5a). `validation/fixtures/ork/openrocket-automatic-radius.json` records the four radii OpenRocket resolves in its `ork/parachutes.ork`, and nothing else from the file |
 | `fusionspace-loft` | `nrdptel/fusionspace-loft` (the project owner's own) | MIT | fetched | ported with a note; its seven `fixtures/demo-*.ork` designs are committed as test data (below) |
 | `fusionspace-debrief` | `nrdptel/fusionspace-debrief` (the project owner's own) | MIT | fetched | ported with a note; the flight-log format knowledge behind Phase 5. Its twelve public flight-log fixtures come from publicly shared flights whose upstream terms are unrecorded, so none is committed; a test reads its Pnut log where it is fetched (ADR-108) |
-| `fusionspace-design` | `nrdptel/fusionspace-design` (the project owner's own), product system Rev D | Apache-2.0 (code-like files); brand files all rights reserved | fetched | the design rules HPR Sim's CLI, docs site, plots and apps follow (ADR-164); its Apache-2.0 files (tokens, stylesheets, CLI styles) may be copied in with their SPDX lines and a row under Bundled; its brand files only as listed under Bundled |
+| `fusionspace-design` | `nrdptel/fusionspace-design` (the project owner's own), product system Rev E | Apache-2.0 (code-like files); brand files all rights reserved | fetched | the design rules HPR Sim's CLI, docs site, plots and apps follow (ADR-164); its Apache-2.0 files (tokens, stylesheets, CLI styles) may be copied in with their SPDX lines and a row under Bundled; its brand files only as listed under Bundled |
 | `hpr-sim-fixtures` | `nrdptel/hpr-sim-fixtures` | private; third-party designs paired with flight logs | fetched | never committed; only aggregate statistics are published, crediting the sources collectively (its `LICENSING.md`). Its flight ids carry the rocket's name, so they are not anonymised case ids. Its ERA5 files are Copernicus data under the CDS licence: anything derived from them carries the Copernicus attribution and the ERA5 citation its `LICENSING.md` gives (ADR-151). Since M2.3c4 it also holds, under `imported/`, byte-exact copies of the two older private repositories, `nrdptel/loft-fixtures` (third-party design files) and `nrdptel/debrief-fixtures` (third-party flight logs), whose terms carry over unchanged: never committed; only derived statistics and anonymised case ids are published. |
 | `openrocket-jar` | OpenRocket 24.12 (needs Java 17; it refuses 21) | GPL-3.0 | run-only | second oracle; its source is never read. M3.1b4's probe (`validation/oracles/openrocket/automatic_radius.py`, through JPype) commits what the program *output* — the radii it resolved and wrote back for fifteen designs written by the probe, the body radii it resolved in the jar's 17 example designs (numbers only, no design content), and one refusal message — in `validation/fixtures/ork/openrocket-automatic-radius.json` (ADR-054). M3.1c2's probe (`validation/oracles/openrocket/events.py`) commits the words the program writes for each event value and the short labels it shows for them, two drag coefficients and three computed for streamers, and the heights at which one example's parachute opened in two runs, in `validation/fixtures/ork/openrocket-events.json` (ADR-056); M3.1c3's (`validation/oracles/openrocket/conditions.py`) commits the text it writes for a set of launch conditions and the values it holds for them, where one example lands from two rod directions and in two winds, the rod direction written when launching into the wind, and eight values of one stored row beside the same values held, in `validation/fixtures/ork/openrocket-conditions.json` (ADR-057) M2.2a's `validation/oracles/openrocket/mass.py` commits the structure mass, centre of mass and inertias, and the per-part breakdown, OpenRocket computes for Loft's six public designs it opens and for a probe tube (`validation/fixtures/ork/openrocket-mass-loft-demo.json`, ADR-060). M2.2b1's `validation/oracles/openrocket/conventions.py` commits the same numbers for 32 probe designs the script writes itself, and the names and densities of the four default materials the program gives a part that names none (`validation/fixtures/ork/openrocket-conventions.json`, ADR-061). M1.9b's `validation/oracles/openrocket/clusters.py` commits the places the program gives each tube of a cluster for 25 probe designs the script writes itself (its 14 patterns among them), with their mass, centre of mass and inertias (`validation/fixtures/ork/openrocket-clusters.json`, ADR-075). M2.2c1's `validation/oracles/openrocket/motors.py` commits what the program reads out of the 32 public-domain ThrustCurve.org curve files this repository already carries — each one's designation, common name, digest, envelope, masses, standard delays, point count and first and last time, and the total impulse, average and maximum thrust and burn times it computes — in `validation/fixtures/motor/openrocket-curve-stats.json` (ADR-066), and no motor data of the jar's own is committed. M2.2c2's `validation/oracles/openrocket/motor_database.py` does read the jar's own motor database, as the program loads it (curves from ThrustCurve.org, whose terms are unstated), and the program's reading of the curves the private designs embed; that record is written only to the gitignored `corpus-out/`, `cargo xtask ork` publishes counts from it, and nothing from it is committed (ADR-067). M2.2d1's `validation/oracles/openrocket/flights.py` commits what the program outputs when it flies every motor configuration of the jar's 17 example designs and Loft's public demos in calm air, and one example with its parachute disabled — its ten summary figures, a few values of each flight's time series (peaks, the rows either side of each event, and the stability margin with the centres of pressure and mass at rod clearance), the launch conditions used, and each configuration's name as the design gives it, usually its motor designations — in `validation/fixtures/ork/openrocket-flights.json` (ADR-068); no design content is committed. M2.2e7's `validation/oracles/openrocket/base_drag.py` commits, for every motor configuration of the jar's 17 example designs flown with nothing deployed, the program's base drag coefficient over the whole base's (its smallest and largest with thrust and without) and the burning motors' share of the reference area, in `validation/fixtures/ork/openrocket-base-drag.json` (ADR-097); its `drag_curves.py` writes the drag coefficient along each flight of the private designs only to the gitignored `corpus-out/`; M2.2e9 commits the same record for the jar's 17 example designs, the drag coefficient against Mach number along each calm flight with nothing deployed, in `validation/fixtures/ork/openrocket-drag-curves.json` (ADR-099). M2.2e10's `validation/oracles/openrocket/unlit_motors.py` commits, for eight flights of the jar's *Two stage high power rocket* example with its motors' ignitions and its booster's separation changed through the public setters, the events OpenRocket logged with their times, its branch count, the mass at launch and at apogee, the largest altitude, and each motor's designation, ignition event, ejection delay and launch and burnout mass, in `validation/fixtures/ork/openrocket-unlit-motors.json` (ADR-100); no design content is committed. M2.2f's `validation/oracles/openrocket/tube_fin_aero.py` commits, for 14 probe designs the script writes and the jar's *Tube fin rocket* example, the normal-force slope and centre of pressure the program outputs for each component at five Mach numbers, with the tube fin sets' resolved radii, lengths and leading edges, in `validation/fixtures/ork/openrocket-tube-fin-aero.json` (ADR-102); of the example, only its file path and hash, its components' names and ids, and those numbers are committed. |
 | `barrowman-1967-thesis` | J. S. Barrowman, The Practical Calculation of the Aerodynamic Characteristics of Slender Finned Vehicles, MS thesis, 1967 (NASA/TM-2001-209983) | US government work | fetched | cited; M1.8c reads the Basic Finner's dimensions (Fig. 5-6) and its plotted roll damping (Fig. 5-7) into `validation/fixtures/aero/basic-finner-roll-damping.json`, with figure and page |

@@ -146,23 +146,38 @@ true north only along one line of longitude, 95° W. Elsewhere the lines of long
 the map's center, so the map's "up" is turned from true north by an angle that grows with the
 distance from 95° W:
 
-```text
-θ = n (λ − λ₀),   n = sin 25°,   λ₀ = 265° (95° W)
-```
+$$
+\begin{aligned}
+\theta &= n\,(\lambda - \lambda_0), \\
+n &= \sin 25^\circ, \\
+\lambda_0 &= 265^\circ\ (95^\circ\,\mathrm{W})
+\end{aligned}
+$$
 
-Here `λ` is the site's longitude, and 25° N is where RAP's cone touches the Earth. At Spaceport
-America, 106.97° W (253.03° E), `θ = 0.4226 × (253.03° − 265°) = −5.06°`: the map's "up" points
-5.06° west of true north. The simulator turns the wind by that angle, with `u` and `v` the
+Here $\lambda$ is the site's longitude, and 25° N is where RAP's cone touches the Earth. At Spaceport
+America, 106.97° W (253.03° E),
+
+$$
+\begin{aligned}
+\theta &= 0.4226 \times (253.03^\circ - 265^\circ) \\
+&= -5.06^\circ,
+\end{aligned}
+$$
+
+so the map's "up" points
+5.06° west of true north. The simulator turns the wind by that angle, with $u$ and $v$ the
 components along the map's rows and columns:
 
-```text
-east  =  u cos θ + v sin θ
-north = −u sin θ + v cos θ
-```
+$$
+\begin{aligned}
+\mathrm{east} &= u \cos\theta + v \sin\theta, \\
+\mathrm{north} &= -u \sin\theta + v \cos\theta
+\end{aligned}
+$$
 
 Left unturned, a 20 m/s (45 mph) wind would be about 1.8 m/s (4.0 mph) off sideways (20 m/s × sin
 5.06°). The components are blended between grid points first and turned once, at the site; across
-one 13 km (8.1 mi) cell `θ` changes by about 0.06°. GFS gives its winds east and north already.
+one 13 km (8.1 mi) cell $\theta$ changes by about 0.06°. GFS gives its winds east and north already.
 
 **Humidity** is taken as relative to liquid water, as for Open-Meteo. Whether NCEP's models give
 it relative to ice at cold levels is not settled here; if they do, the density there moves by
@@ -338,13 +353,13 @@ Linux and Windows.
 - **Every value.** Each of the 147 GFS messages (9 grid points each) and 192 RAP messages (25 grid
   points each) names the same variable, level and times as ecCodes, and all 6,123 values are within
   2.2e-16 of ecCodes', relatively (bound 2.5e-16). That is one rounding: ecCodes multiplies by an
-  inexact `10^−D` where HPR Sim divides by an exact `10^D`. It uses only basic arithmetic, which is
+  inexact $10^{-D}$ where HPR Sim divides by an exact $10^{D}$. It uses only basic arithmetic, which is
   the same on every platform.
 - **Every grid point's position** is within 5.7e-14° of ecCodes' (bound 1e-12°, since
   other platforms' maths libraries can differ in the last digits). The four points' weights add
   up to 1, and the blend of their positions is the site, to 1e-5°.
-- **RAP's wind turn** is `sin 25° × (λ − 265°)`, −5.06° at the site. ecCodes' own positions of two
-  neighboring grid points show the map's rows bearing 90° + θ from north, to 2.2e-6° (bound
+- **RAP's wind turn** is $\sin 25^\circ \times (\lambda - 265^\circ)$, −5.06° at the site. ecCodes' own positions of two
+  neighboring grid points show the map's rows bearing $90^\circ + \theta$ from north, to 2.2e-6° (bound
   3e-6°), which pins the sign. GFS's winds are not turned.
 - **The profile.** The sounding is sampled at the ground and every kept level's height. It gives
   back ecCodes' values interpolated to the site: the pressure within a relative 1e-13, the

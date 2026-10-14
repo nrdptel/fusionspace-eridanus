@@ -454,6 +454,10 @@ enum Kind {
     /// Prose held narrower than the box that holds it, by a max-width, a width or margins set to
     /// auto (#384, ADR-250).
     Narrow,
+    /// A formula wider than the box that holds it (`foundations.md`, *Type*, the system's
+    /// `equations`): MathML doesn't break a line, so it runs past its column or hides in a box
+    /// that scrolls.
+    Math,
     /// A column (`main`) allowed wider or narrower than the system's widest content, 1,120 px
     /// (ADR-250).
     Column,
@@ -517,7 +521,7 @@ enum Kind {
 }
 
 impl Kind {
-    const ALL: [Kind; 26] = [
+    const ALL: [Kind; 27] = [
         Kind::Wide,
         Kind::Cut,
         Kind::Overlap,
@@ -527,6 +531,7 @@ impl Kind {
         Kind::Motion,
         Kind::Type,
         Kind::Narrow,
+        Kind::Math,
         Kind::Column,
         Kind::Gutter,
         Kind::Squeezed,
@@ -557,6 +562,7 @@ impl Kind {
             Kind::Motion => "motion off the system's durations",
             Kind::Type => "type off the system's scale",
             Kind::Narrow => "prose narrower than its column",
+            Kind::Math => "a formula wider than its box",
             Kind::Column => "a column off the system's width",
             Kind::Gutter => "gutters off the system's",
             Kind::Squeezed => "a code block or table held narrower than the column",
@@ -1065,7 +1071,7 @@ macro_rules! switch_frame {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 172] = [
+const CANARIES: [Canary; 173] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1378,6 +1384,15 @@ const CANARIES: [Canary; 172] = [
         what: "a superscript at 11 px, below the system's smallest",
         expect: &[Kind::Type],
         inside: "<p>An area in m<sup style=\"font-size: 11px\">2</sup></p>",
+        after: "",
+    },
+    Canary {
+        file: "canary-math-wide.html",
+        what: "a formula wider than any column, in a box that scrolls sideways, which hides its \
+               end from the window's check",
+        expect: &[Kind::Math],
+        inside: "<div style=\"overflow-x: auto\"><p>The sum <math><mi>a</mi><mo>+</mo>\
+                 <mspace width=\"1400px\"></mspace><mi>b</mi></math> grows.</p></div>",
         after: "",
     },
     Canary {
@@ -2859,6 +2874,7 @@ h1 {{ font: 600 28px/32px 'Cascadia Mono', 'Cascadia Mono Fallback', monospace; 
 .scroll, pre {{ overflow-x: auto; }}
 td {{ white-space: nowrap; padding: 0 12px; }}
 .word {{ overflow-wrap: anywhere; }}
+math {{ font-family: 'NewCM Math Subset', math; font-size: 1.1em; }}
 .sidebar {{ position: fixed; left: 0; top: 0; bottom: 0; width: 300px; transform: translateX(-100%); }}
 @media print {{ .sidebar {{ display: none; }} tr {{ break-inside: avoid; }} }}
 </style></head><body>
@@ -2866,8 +2882,9 @@ td {{ white-space: nowrap; padding: 0 12px; }}
 <div class=\"content\"><main>
 <h1>An ordinary page, with a title long enough to wrap in a narrow window</h1>
 <p>Paragraphs wrap to the window. This one holds <code>inline code</code>, an area in
-m<sup>2</sup>, a drag coefficient C<sub>D</sub> and a <a href=\"#\">link</a>, and runs on for a
-few lines so that it wraps at every width the check tries.</p>
+m<sup>2</sup>, a drag coefficient C<sub>D</sub>, a formula <math><msub><mi>F</mi><mi>D</mi></msub>\
+<mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mi>ρ</mi><msup><mi>v</mi><mn>2</mn></msup></math> and a \
+<a href=\"#\">link</a>, and runs on for a few lines so that it wraps at every width the check tries.</p>
 <div class=\"scroll\"><table>{rows}</table></div>
 <pre><code>{code}</code></pre>
 <p class=\"word\">{word}</p>
@@ -3043,6 +3060,10 @@ struct Measured {
     #[serde(default)]
     narrow_count: usize,
     #[serde(default)]
+    math: Vec<Style>,
+    #[serde(default)]
+    math_count: usize,
+    #[serde(default)]
     column: Vec<Style>,
     #[serde(default)]
     column_count: usize,
@@ -3136,6 +3157,7 @@ impl Measured {
             Kind::Motion => self.motion_count > 0,
             Kind::Type => self.type_count > 0,
             Kind::Narrow => self.narrow_count > 0,
+            Kind::Math => self.math_count > 0,
             Kind::Column => self.column_count > 0,
             Kind::Gutter => self.gutter_count > 0,
             Kind::Squeezed => self.squeezed_count > 0,
@@ -3217,6 +3239,7 @@ impl Measured {
             Kind::Motion => Style::list(&self.motion),
             Kind::Type => Style::list(&self.r#type),
             Kind::Narrow => Style::list(&self.narrow),
+            Kind::Math => Style::list(&self.math),
             Kind::Column => Style::list(&self.column),
             Kind::Gutter => Style::list(&self.gutter),
             Kind::Squeezed => Style::list(&self.squeezed),
@@ -4426,6 +4449,7 @@ mod tests {
         for kind in [
             Kind::Type,
             Kind::Narrow,
+            Kind::Math,
             Kind::Column,
             Kind::Gutter,
             Kind::Squeezed,

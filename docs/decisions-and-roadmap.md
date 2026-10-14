@@ -292,6 +292,7 @@ until someone rewrites it in plainer words.
 | [ADR-261: M7.1c7 in two: zip archives and two readers' variants first; the rest to M7.1c8][adr-261] | After [M7.1c6](#m7-1c6), 233 sample logs in 16 families were left to [M7.1c7](#m7-1c7), 231 of them read by no reader. [M7.1c7](#m7-1c7) now unpacks the 8 zip archives, in memory and within a bound, and reads each file inside as a file of its own: 19 files no other source holds, 11 of them a Blue Raven's files and summaries. It reads PerfectFlite's text export written with no header row (4 files) and a CSV export that names its temperature `Temp` (1), and a Blue Raven high-rate file with no date (1). It files 16 more files as not logs, and one hand-edited Blue Raven file as damaged. The rest goes to [M7.1c8](#m7-1c8). |  |
 | [ADR-262: M7.1c8 in two: the R-DAS's raw text first; the rest to M7.1c9][adr-262] | After [M7.1c7](#m7-1c7), 209 sample logs were left to [M7.1c8](#m7-1c8), in families that each need a decoder or the column mapper. The largest, 54 files, is one layout: the raw text AED Electronics' R-DAS flight computer's Windows software exports, a configuration summary and then a table of the converters' counts. [M7.1c8](#m7-1c8) now reads it. The file holds no calibration, so every count is kept as written and the record holds no altitude; the clock is held to the configuration's stated rate. The rest goes to [M7.1c9](#m7-1c9). |  |
 | [ADR-263: M7.1c9 in two: AltOS telemetry first; the rest to M7.1c10][adr-263] | After [M7.1c8](#m7-1c8), 155 sample logs were left to [M7.1c9](#m7-1c9). Two of them are AltOS radio telemetry, the `.telem` files AltosUI saves of the packets a TeleDongle hears, and Altus Metrum publishes their layout. [M7.1c9](#m7-1c9) now reads them from that document, with every unit it converts held to a second check, and the rest goes to [M7.1c10](#m7-1c10). The document's pressure unit is contradicted by the files, which hold pascals, not tenths. |  |
+| [ADR-264: Typeset equations, from the product system's Rev E][adr-264] | The site's equations were plain Unicode text, in code blocks and code spans, which reads like a formula typed into a chat. The maintainer asked for equations set as a textbook sets them. Pages now write LaTeX between dollar signs; an mdBook preprocessor in `xtask` turns each formula into MathML when the site builds, with the math-core converter (MIT, pure Rust); the browser draws it in New Computer Modern Math, the face of LaTeX's textbooks, served from the site. No script runs and nothing loads from another server. A formula the converter can't read fails the build, and the page check fails one wider than its box. |  |
 
 ## The roadmap
 
@@ -436,6 +437,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m0-9f"></a>[M0.9f][phase-0] | The rest of the words | not yet done |
 | <a id="m0-10"></a>[M0.10][done-0] | The scoreboard | done |
 | <a id="m0-11"></a>[M0.11][done-0] | Steps to a first answer | done |
+| <a id="m0-12"></a>[M0.12][done-0] | Typeset equations | done |
 | <a id="m1-1"></a>[M1.1][done-1] | Vectors and rotations, frames, the Earth's shape and gravity | done |
 | <a id="m1-2"></a>[M1.2][done-1] | The atmosphere and wind | done |
 | <a id="m1-3"></a>[M1.3][done-1] | Solid motors: thrust curves, motor files, and mass through the burn | done |
@@ -1112,6 +1114,7 @@ is the milestone that added or will add that test.
 [adr-261]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0261-archives-and-two-readers-variants-before-the-rest.md
 [adr-262]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0262-the-r-das-raw-text-before-the-rest.md
 [adr-263]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0263-altos-telemetry-before-the-rest.md
+[adr-264]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0264-typeset-equations.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

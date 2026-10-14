@@ -29,7 +29,7 @@ pub(crate) const DESIGN_REFS: &str = "refs/fusionspace-design";
 /// The revision of the product system the copied files come from (Rev D), as ADR-164 pins it
 /// (moved by ADR-198 and ADR-250).
 /// `refs.lock.toml`'s pin must start with it.
-pub(crate) const DESIGN_REV: &str = "d372afa";
+pub(crate) const DESIGN_REV: &str = "2495dec";
 /// The lock file that pins the `refs/` checkouts, relative to the workspace root.
 pub(crate) const REFS_LOCK: &str = "validation/refs.lock.toml";
 /// The product system's name in [`REFS_LOCK`].
@@ -54,7 +54,7 @@ pub(crate) const CHECK_JS: (&str, &str) = (
 /// chrome, and `ok` and `info`, which `sheets.rs` draws in each page's status chip; the favicon is the system's web kit's, its PNG the 32 px one; the lockup and the mark
 /// are the brand kit's one-color files, which `frame.rs` draws in each page's header and title
 /// block.
-pub(crate) const COPIED: [(&str, &str); 26] = [
+pub(crate) const COPIED: [(&str, &str); 29] = [
     (
         "fusionspace-mdbook.css",
         "product/web/mdbook/fusionspace-mdbook.css",
@@ -84,6 +84,15 @@ pub(crate) const COPIED: [(&str, &str); 26] = [
         "fonts/OFL-CascadiaMono.txt",
         "product/web/fonts/OFL-CascadiaMono.txt",
     ),
+    (
+        "fonts/NewCMMathSubset-Book.woff2",
+        "product/web/fonts/NewCMMathSubset-Book.woff2",
+    ),
+    (
+        "fonts/GUST-FONT-LICENSE-NewCMMath.txt",
+        "product/web/fonts/GUST-FONT-LICENSE-NewCMMath.txt",
+    ),
+    ("fonts/LPPL-1.3c.txt", "product/web/fonts/LPPL-1.3c.txt"),
     ("favicon.svg", "kit/web/favicon.svg"),
     ("favicon.png", "kit/web/favicon-32.png"),
     ("icons/chevron.svg", "product/icons/chevron.svg"),
@@ -430,15 +439,29 @@ fn fonts_without_license(theme: &Path) -> Result<Vec<String>, String> {
             continue;
         };
         let family = stem.split_once('-').map_or(stem, |(family, _)| family);
-        if !fonts.join(format!("OFL-{family}.txt")).is_file() {
-            problems.push(format!(
-                "{THEME}/fonts/{name}: no `OFL-{family}.txt` beside it; the SIL Open Font \
-                 License travels with the font"
-            ));
+        let licenses = match NON_OFL_FONTS.iter().find(|(face, _)| *face == family) {
+            Some((_, licenses)) => licenses.iter().map(|l| (*l).to_owned()).collect(),
+            None => vec![format!("OFL-{family}.txt")],
+        };
+        for license in licenses {
+            if !fonts.join(&license).is_file() {
+                problems.push(format!(
+                    "{THEME}/fonts/{name}: no `{license}` beside it; a font's license travels \
+                     with the font"
+                ));
+            }
         }
     }
     Ok(problems)
 }
+
+/// The faces under a license other than the SIL Open Font License, each with the files its
+/// license asks to travel with it: the math face, a renamed subset of New Computer Modern Math
+/// under the GUST Font License, which is the LPPL 1.3c with a request to rename a changed font.
+const NON_OFL_FONTS: [(&str, &[&str]); 1] = [(
+    "NewCMMathSubset",
+    &["GUST-FONT-LICENSE-NewCMMath.txt", "LPPL-1.3c.txt"],
+)];
 
 /// The addresses a stylesheet names in `url(...)` and `@import`, unquoted.
 fn css_urls(css: &str) -> Vec<String> {

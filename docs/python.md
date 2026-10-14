@@ -273,15 +273,15 @@ a comparison between two codes, not with a real flight.
 
 Three options make it RocketPy's flight:
 
-- **A drag table.** `DragTable` holds a zero-lift drag coefficient `C_D0` against Mach number, as
+- **A drag table.** `DragTable` holds a zero-lift drag coefficient $C_{D0}$ against Mach number, as
   RocketPy's `power_off_drag` and `power_on_drag` do. Its power-on curve is flown while the motor
   burns, its power-off curve the rest of the time. Pass it to a flight as `drag_table=`; it
   replaces the simulator's own drag, and nothing else. `DragTable.from_csv` reads RocketPy's
   two-column drag files.
 - **RocketPy's gravity.** `Environment(..., gravity="vertical_taylor")` uses RocketPy's formula
   for gravity instead of HPR Sim's default. Near the ground the two differ in size by about one part
-  in 10⁸, but HPR Sim's default also turns with the rocket's position over the ground. On this
-  flight the switch moves the apogee by 2 parts in 10⁷ and the landing point by 0.3 m
+  in $10^8$, but HPR Sim's default also turns with the rocket's position over the ground. On this
+  flight the switch moves the apogee by 2 parts in $10^7$ and the landing point by 0.3 m
   (1.0 ft); see [Gravity](physics/gravity.md).
 - **One parachute at a time.** RocketPy flies only the last parachute to open, and HPR Sim adds
   together every one that is open. `released_by` is another parachute's number, counted from 0
@@ -372,7 +372,7 @@ the masses and the atmosphere. They are the Python side of the Rust library's
 
 | Given as | Called as | Returns |
 | --- | --- | --- |
-| `Flight(..., drag=f)` | `f(mach, thrusting)`, with `thrusting` true while a motor burns | the whole rocket's zero-lift [drag coefficient](glossary.md#drag-coefficient) `C_D0`, on its reference area (the largest body diameter's circle) |
+| `Flight(..., drag=f)` | `f(mach, thrusting)`, with `thrusting` true while a motor burns | the whole rocket's zero-lift [drag coefficient](glossary.md#drag-coefficient) $C_{D0}$, on its reference area (the largest body diameter's circle) |
 | `Environment(..., wind=f)` | `f(height_m)`, the height above sea level in meters, not above the launch site | the air's velocity `(east_m_s, north_m_s)`, as a tuple, list or array |
 
 Three things about the drag number, as for a Rust drag model:
@@ -566,7 +566,7 @@ underscore:
 
 | argument | the choices |
 |---|---|
-| a nose's or transition's `shape` | `"conical"`, `"ogive"`, `"elliptical"`, `"power_series"`, `"parabolic_series"`, `"haack"` ([Shapes](physics/shapes.md)). `parameter` is an ogive's radius ratio (1, a tangent ogive, by default), a Haack series' `C` (0, the von Kármán, by default), and a power series' exponent or a parabolic series' `K`, which those two need |
+| a nose's or transition's `shape` | `"conical"`, `"ogive"`, `"elliptical"`, `"power_series"`, `"parabolic_series"`, `"haack"` ([Shapes](physics/shapes.md)). `parameter` is an ogive's radius ratio (1, a tangent ogive, by default), a Haack series' $C$ (0, the von Kármán, by default), and a power series' exponent or a parabolic series' $K$, which those two need |
 | fins' `cross_section` | `"square"` (the default), `"rounded"`, `"airfoil"` |
 | a part's `position` | `"top"`, `"middle"`, `"bottom"` or `"after"` the tube it is in, then `offset_m` aft of that. A mass is at the top by default; fins and a motor tube sit flush with the tube's aft end |
 | a parachute's `trigger` | `"apogee"` (the default); `"altitude"` with `altitude_m`, on the way down past that height above the pad; `"time"` with `time_s` after launch; `"motor_delay"` with `motor`, the motor's number (0, the first, by default) |
