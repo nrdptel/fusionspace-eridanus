@@ -345,11 +345,11 @@ pub(crate) fn is_headerless_row(line: &str) -> bool {
 /// header row such as `Time`, `Altitude`, `Temp.`, `Voltage` and temperatures written with their unit,
 /// such as `58.7F`.
 ///
-/// A tab-separated export may have no header row: its rows are then the four cells the text export
-/// writes under `Time`, `Altitude`, `Temp.`, `Voltage`, and a row is recognized by its temperature's
-/// unit letter ([`is_headerless_row`]). The record notes that the columns were taken so. Four of the
-/// project's sample logs are written this way; `cargo xtask logs` checks their altitudes' unit as it
-/// checks the other exports'.
+/// A tab-separated export may have no header row: its rows are then the four cells the text
+/// export writes under `Time`, `Altitude`, `Temp.`, `Voltage`, and a row is recognized by its
+/// temperature's unit letter, as no other layout HPR Sim knows writes one. The record notes that
+/// the columns were taken so. Four of the project's sample logs are written this way; `cargo
+/// xtask logs` checks their altitudes' unit as it checks the other exports'.
 ///
 /// The units are a `.pf2`'s: seconds, feet, feet per second, and the temperature's stated unit.
 /// The header doesn't state the altitude's. `cargo xtask logs` bears out feet on the project's
