@@ -12,6 +12,7 @@
 //! | [KML](crate::kml) | its root element is `kml`, after any XML declaration and comments |
 //! | [NMEA 0183](crate::nmea) | at least 3 of its first 50 lines that aren't blank open with a sentence whose checksum checks out, such as `$GPGGA,…*hh` |
 //! | [Featherweight GPS CSV](crate::fwgps) | the first line opens `UTCTIME,UNIXTIME,` or `TRACKER,DATE,TIME,` and names the latitude and longitude |
+//! | [Featherweight summary CSV](crate::fwsummary) | the first line names `Rocket Name`, and one of the first 200 names `Max Altitude` or `Launch time UTC` |
 //! | [PerfectFlite `.pf2`](crate::perfectflite) | names PerfectFlite, such as `PerfectFlite Pnut`, in a file with no `**!!Data:` line (a `.pfa`'s) |
 //! | [PerfectFlite `.pfa`](crate::perfectflite::read_pfa) | names PerfectFlite, such as `PerfectFlite Alt15K/WD`, and has a `**!!Data:` line |
 //! | [PerfectFlite CSV and text](crate::perfectflite::read_export) | `Time`, `Altitude` and more of an export's names, by commas or tabs |
@@ -47,8 +48,8 @@ use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
 use crate::{
     aerospacenu_fcb, aerospacenu_gs, altimetercloud, altos, arts2, blueraven, eggtimer, entacore,
-    fluctus, fwgps, kml, nmea, perfectflite, phone_launch, raven, raven_fipa, rrc3, rrc3_rff,
-    sillygoose,
+    fluctus, fwgps, fwsummary, kml, nmea, perfectflite, phone_launch, raven, raven_fipa, rrc3,
+    rrc3_rff, sillygoose,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
@@ -60,6 +61,7 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::Kml,
     LogFormat::Nmea0183,
     LogFormat::FeatherweightGpsCsv,
+    LogFormat::FeatherweightSummaryCsv,
     LogFormat::Arts2Csv,
     LogFormat::PerfectFlitePf2,
     LogFormat::PerfectFlitePfa,
@@ -149,6 +151,9 @@ fn detect_text(text: &str) -> Option<LogFormat> {
     }
     if fwgps::recognizes(text) {
         return Some(LogFormat::FeatherweightGpsCsv);
+    }
+    if fwsummary::recognizes(text) {
+        return Some(LogFormat::FeatherweightSummaryCsv);
     }
     let altos_header =
         |line: &str| line.starts_with("#version,") || line.starts_with("version,serial,");
@@ -249,6 +254,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::EggtimerRtf) => eggtimer::read_rtf(&text),
         Some(LogFormat::RavenFipa) => raven_fipa::read(bytes),
         Some(LogFormat::Rrc3Rff) => rrc3_rff::read(bytes),
+        Some(LogFormat::FeatherweightSummaryCsv) => fwsummary::read(&text),
         None => {
             let known: Vec<&str> = FORMATS.iter().map(|format| format.name()).collect();
             Err(LogError::Unrecognized {

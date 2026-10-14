@@ -12,38 +12,39 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 |---|---|---:|---:|---|
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
-| aerospacenu-sillygoose-gs-csv | M7.1c6 | 1 | 0 | 1 unrecognized |
+| aerospacenu-sillygoose-gs-csv | M7.1c7 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
 | altos-csv-damaged | damaged | 1 | 0 | 1 syntax |
-| altos-eeprom | M7.1c6 | 14 | 0 | 14 unrecognized |
-| altos-telem | M7.1c6 | 2 | 0 | 2 unrecognized |
+| altos-eeprom | M7.1c7 | 14 | 0 | 14 unrecognized |
+| altos-telem | M7.1c7 | 2 | 0 | 2 unrecognized |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
-| arts2-raw-csv | M7.1c6 | 3 | 0 | 3 unrecognized |
-| binary | M7.1c6 | 4 | 0 | 4 unrecognized |
+| arts2-raw-csv | M7.1c7 | 3 | 0 | 3 unrecognized |
+| binary | M7.1c7 | 4 | 0 | 4 unrecognized |
 | blueraven-csv | M7.1b | 80 | 80 | none |
-| blueraven-events-txt | M7.1c6 | 12 | 0 | 12 unrecognized |
-| blueraven-summary-csv | M7.1c6 | 23 | 0 | 23 unrecognized |
-| csv | M7.1c6 | 75 | 2 | 1 syntax, 72 unrecognized |
-| debrief-synthetic-csv | M7.1c6 | 6 | 0 | 6 unrecognized |
-| e80-imu-txt | M7.1c6 | 54 | 0 | 54 unrecognized |
+| blueraven-events-txt | not a log | 12 | 0 | 12 unrecognized |
+| blueraven-settings-xlsx | not a log | 9 | 0 | 9 unrecognized |
+| blueraven-summary-csv | M7.1c6 | 23 | 23 | none |
+| checklist | not a log | 4 | 0 | 4 unrecognized |
+| csv | M7.1c7 | 75 | 2 | 1 syntax, 72 unrecognized |
+| debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
+| e80-imu-txt | M7.1c7 | 54 | 0 | 54 unrecognized |
 | eggtimer-csv | M7.1b | 43 | 43 | none |
 | eggtimer-rtf | M7.1c4 | 1 | 1 | none |
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c6 | 2 | 0 | 2 unrecognized |
-| featherweight-summary-csv | M7.1c6 | 25 | 0 | 25 unrecognized |
+| entacore-xtra | M7.1c7 | 2 | 0 | 2 unrecognized |
+| featherweight-summary-csv | M7.1c6 | 25 | 25 | none |
 | fluctus-csv | M7.1c3 | 6 | 6 | none |
 | fwgps-csv | M7.1c1 | 40 | 40 | none |
 | jpeg | not a log | 1 | 0 | 1 unrecognized |
 | kml | M7.1c1 | 42 | 42 | none |
 | kml-map | not a log | 1 | 1 | none |
-| missileworks-rtx | M7.1c6 | 5 | 0 | 5 unrecognized |
+| missileworks-rtx | M7.1c7 | 5 | 0 | 5 unrecognized |
 | nmea | M7.1c1 | 12 | 12 | none |
-| odf | M7.1c6 | 3 | 0 | 3 unrecognized |
-| ods | M7.1c6 | 4 | 0 | 4 unrecognized |
+| odf | M7.1c7 | 3 | 0 | 3 unrecognized |
 | pdf | not a log | 1 | 0 | 1 unrecognized |
 | perfectflite-csv | M7.1a | 14 | 14 | none |
 | perfectflite-txt | M7.1a | 2 | 2 | none |
@@ -55,13 +56,13 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | raven-fipa | M7.1c5 | 57 | 57 | none |
 | rrc3-csv | M7.1b | 51 | 51 | none |
 | rrc3-rff | M7.1c5 | 6 | 6 | none |
-| telemetry-rtf | M7.1c6 | 2 | 0 | 2 not-this-format |
-| txt | M7.1c6 | 34 | 0 | 34 unrecognized |
-| xls | M7.1c6 | 1 | 0 | 1 unrecognized |
-| xlsx | M7.1c6 | 32 | 0 | 32 unrecognized |
-| xml | M7.1c6 | 2 | 0 | 2 unrecognized |
-| zip | M7.1c6 | 8 | 0 | 8 unrecognized |
-| **All** | | 1103 | 783 | |
+| telemetry-rtf | M7.1c7 | 2 | 0 | 2 not-this-format |
+| txt | M7.1c7 | 34 | 0 | 34 unrecognized |
+| xls | M7.1c7 | 1 | 0 | 1 unrecognized |
+| xlsx | M7.1c7 | 23 | 0 | 23 unrecognized |
+| xml | M7.1c7 | 2 | 0 | 2 unrecognized |
+| zip | M7.1c7 | 8 | 0 | 8 unrecognized |
+| **All** | | 1103 | 831 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
@@ -138,6 +139,19 @@ Files whose catalog family isn't their layout, moved to their layout's:
 - `70415b30a59d4411 rtf -> eggtimer-rtf`: an Eggtimer TRS's terminal download, its settings, summary and `T,Alt,…` table, saved inside an RTF document; filed as RTF, not a log, by its extension
 - `8720c50cdeaf8ad3 rtf -> telemetry-rtf`: a radio telemetry stream, lines such as `255,T,…` in a layout no maker's document names yet, saved inside an RTF document; filed as RTF, not a log, by its extension
 - `88f33383ccf621a0 aerospacenu-sillygoose-txt -> aerospacenu-sillygoose-gs-csv`: a SillyGoose flight as a ground station's conversion wrote it: a `CONFIG` line, then 28 comma-separated columns with no header, in another order than the board's own log, so nothing in the file says which column is which; for the column mapper
+- `0ad26ad4cfc8539b ods -> checklist`: a team's checklist for preparing a flight, its steps in a spreadsheet's cells and no measurement; not a log
+- `34affe179ab66e72 ods -> checklist`: a team's checklist for preparing a flight, its steps in a spreadsheet's cells and no measurement; not a log
+- `8e23a8dc0c55248b ods -> checklist`: a team's checklist for preparing a flight, its steps in a spreadsheet's cells and no measurement; not a log
+- `c560a04cf2a5dccf ods -> checklist`: a team's checklist for preparing a flight, its steps in a spreadsheet's cells and no measurement; not a log
+- `0f9a81a6d3406353 xlsx -> blueraven-settings-xlsx`: a Blue Raven's deployment settings saved as a spreadsheet, a `Hardware_Channel:` row naming its outputs (`Apo_Pri`, `Apo_Sec`, …) and their conditions; an altimeter's settings, not a flight's data
+- `1887d4ff0c2ac130 xlsx -> blueraven-settings-xlsx`: a Blue Raven's deployment settings saved as a spreadsheet, a `Hardware_Channel:` row naming its outputs (`Apo_Pri`, `Apo_Sec`, …) and their conditions; an altimeter's settings, not a flight's data
+- `40d01ca400d6085a xlsx -> blueraven-settings-xlsx`: a Blue Raven's deployment settings saved as a spreadsheet, a `Hardware_Channel:` row naming its outputs (`Apo_Pri`, `Apo_Sec`, …) and their conditions; an altimeter's settings, not a flight's data
+- `526a2e2c94f25728 xlsx -> blueraven-settings-xlsx`: a Blue Raven's deployment settings saved as a spreadsheet, a `Hardware_Channel:` row naming its outputs (`Apo_Pri`, `Apo_Sec`, …) and their conditions; an altimeter's settings, not a flight's data
+- `63543ab201ee2fbd xlsx -> blueraven-settings-xlsx`: a Blue Raven's deployment settings saved as a spreadsheet, a `Hardware_Channel:` row naming its outputs (`Apo_Pri`, `Apo_Sec`, …) and their conditions; an altimeter's settings, not a flight's data
+- `936ac194735a318a xlsx -> blueraven-settings-xlsx`: a Blue Raven's deployment settings saved as a spreadsheet, a `Hardware_Channel:` row naming its outputs (`Apo_Pri`, `Apo_Sec`, …) and their conditions; an altimeter's settings, not a flight's data
+- `afcf758d866f6e78 xlsx -> blueraven-settings-xlsx`: a Blue Raven's deployment settings saved as a spreadsheet, a `Hardware_Channel:` row naming its outputs (`Apo_Pri`, `Apo_Sec`, …) and their conditions; an altimeter's settings, not a flight's data
+- `d2a7db8b9da843ef xlsx -> blueraven-settings-xlsx`: a Blue Raven's deployment settings saved as a spreadsheet, a `Hardware_Channel:` row naming its outputs (`Apo_Pri`, `Apo_Sec`, …) and their conditions; an altimeter's settings, not a flight's data
+- `d3354f2054b6b18c xlsx -> blueraven-settings-xlsx`: a Blue Raven's deployment settings saved as a spreadsheet, a `Hardware_Channel:` row naming its outputs (`Apo_Pri`, `Apo_Sec`, …) and their conditions; an altimeter's settings, not a flight's data
 
 PerfectFlite's exports state no unit for their altitude. Of the 16 read, 13 peak at exactly the height of a `.pf2` beside them, which is in feet; read in feet, their climbs take 0.94 to 1.05 times as long as a fall in vacuum from the peak. The other 3 take 0.93 to 1.07 times, read in feet, and would take 0.51 to 0.59 times read in meters.
 
@@ -149,6 +163,13 @@ The raw downloads against their makers' exports of the same flight, an export be
 |---|---:|---:|---:|---:|---:|---:|---:|---|---|
 | raven-fipa | 57 | 55 | 55 | 6016104 | 140865 | 5.0e-4 | 0.000 | `LiftOff` (1), `[Altitude (Accel-Ft)]` (38), `[Altitude (Baro-Ft-AGL)]` (55), `[Altitude (Baro-Ft-ASL)]` (55), `[Velocity (Accel-Ft/Sec)]` (38), `[Velocity (Accel-MPH)]` (38), `bILBA` (37) | none |
 | rrc3-rff | 6 | 1 | 1 | 3541 | 0 | 1.0e-2 | 0.000 | `Altitude` (1), `Temperature` (1), `Velocity` (1), `Voltages` (1) | none |
+
+The Featherweight summaries against the files of samples exported beside each, in its folder, that their reader reads: a Blue Raven's low-rate CSV, a GPS tracker's CSV, each holding an altitude. The stated maximum altitude is compared with a file's highest altitude above the pad (for a tracker, its highest GNSS altitude less the pad altitude the summary states), and the stated pad altitude with the median of a file's first 20 altitudes above sea level, each in SI; a figure agrees within 10%, and its ratio, summary over file, is the one nearest 1. A folder may hold other flights' files, so a summary may agree with none; one that would agree only were its feet meters contradicts its unit and fails the check:
+
+| Logger | Summaries | With a file beside | Stating an apogee | Apogee agrees | Its ratios | Pad agrees | Its ratios | Agreeing in neither | Contradicted |
+|---|---:|---:|---:|---:|---|---:|---|---|---|
+| Featherweight Blue Raven | 36 | 33 | 33 | 32 | 0.9698 to 1.0091 | 32 | 0.9770 to 1.0032 | cd1bfe19ff70e17d | none |
+| Featherweight GPS tracker | 12 | 11 | 5 | 5 | 0.9995 to 1.0000 | 10 | 0.9766 to 0.9999 | 413de085a44f4872 | none |
 
 Units no header states, as each file's reader decided them, or kept the column as written, and noted:
 
@@ -288,6 +309,11 @@ Units no header states, as each file's reader decided them, or kept the column a
 | blueraven-csv | `Gyro_X`, `Gyro_Y` and `Gyro_Z` read in degrees per second, from the manual and the summary | 35 |
 | blueraven-csv | `Inertial_Altitude`, `Inertial_DR_Position` and `Inertial_CR_position` read in feet, from the manual and the summary | 45 |
 | blueraven-csv | `Velocity_Up`, `Velocity_DR` and `Velocity_CR` read in feet per second, from the manual and the summary | 45 |
+| blueraven-summary-csv | `Hi-G accel pad offset` kept as written, in a unit no source states | 23 |
+| blueraven-summary-csv | `Low-G accel pad offset` kept as written, in a unit no source states | 23 |
+| blueraven-summary-csv | `Main chute descent rate` kept as written, in a unit that isn't a speed | 23 |
+| blueraven-summary-csv | `Pad Hi-G accel` kept as written, in a unit no source states | 23 |
+| blueraven-summary-csv | `Pad Low-G Accel` kept as written, in a unit no source states | 23 |
 | eggtimer-csv | `AltAccel` read in feet, from the manual | 4 |
 | eggtimer-csv | `Alt` read in feet, from the manual | 43 |
 | eggtimer-csv | `FAccelAlt` read in feet, from the manual | 4 |
@@ -334,6 +360,13 @@ Units no header states, as each file's reader decided them, or kept the column a
 | entacore-aim-csv | `pressure` read in pascals, from the values | 16 |
 | entacore-aim-csv | `temperature` read in degrees Celsius, from the heights' unit and the manual, p33 | 16 |
 | entacore-aim-csv | `time` read in seconds, from `GPS Time of Week` | 16 |
+| featherweight-summary-csv | `Hi-G accel pad offset` kept as written, in a unit no source states | 13 |
+| featherweight-summary-csv | `Low-G accel pad offset` kept as written, in a unit no source states | 13 |
+| featherweight-summary-csv | `Main chute descent rate` kept as written, in a unit that isn't a speed | 13 |
+| featherweight-summary-csv | `Pad Hi-G Accel` kept as written, in a unit no source states | 1 |
+| featherweight-summary-csv | `Pad Hi-G accel` kept as written, in a unit no source states | 12 |
+| featherweight-summary-csv | `Pad Low-G Accel` kept as written, in a unit no source states | 12 |
+| featherweight-summary-csv | `Pad low-G Accel` kept as written, in a unit no source states | 1 |
 | fluctus-csv | `gpsAltMSL` kept as written, in a unit no source states | 6 |
 | fluctus-csv | `gpsLat` read in degrees, from the manual and the values | 6 |
 | fluctus-csv | `gpsLng` read in degrees, from the manual and the values | 6 |
@@ -427,9 +460,9 @@ The files read, by the logger each names:
 | Eggtimer Build_1.52 | 1 |
 | Eggtimer TRS | 2 |
 | Entacore AIM | 16 |
-| Featherweight Blue Raven | 80 |
+| Featherweight Blue Raven | 116 |
 | Featherweight GPS ground station | 12 |
-| Featherweight GPS tracker | 28 |
+| Featherweight GPS tracker | 40 |
 | Featherweight Raven | 137 |
 | GPS Visualizer | 1 |
 | KML | 3 |

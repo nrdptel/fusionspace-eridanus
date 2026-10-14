@@ -381,6 +381,9 @@ adds a source.
   RRC3 `.rff`'s list of 16-bit words found by its member reference and size, the `0x4000`
   threshold between pressures and auxiliary words, the 500 mbar floor that finds the first reading,
   and the check of the 20 Hz clock against the once-a-second pairs, in `hpr_flightdata::rrc3_rff`.
+  Also `lib/parsers/deviceSummary.ts` at the same commit: the names of a Featherweight summary's
+  figures, and keeping the main's descent rate out of the speeds, agree with it, in
+  `hpr_flightdata::fwsummary`; the layout comes from the files and the Blue Raven's manual.
   No code was copied; no flight file of Debrief's is committed.
 - **DOPRI5** (BSD-2-Clause), E. Hairer and G. Wanner's `dopri5.f`, version of 2004: the
   Dormand–Prince coefficients, the error norm, the PI step-size controller, the starting-step
