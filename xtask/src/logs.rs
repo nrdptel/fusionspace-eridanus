@@ -51,8 +51,8 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The other families'
-/// files are M7.1c8's.
-pub const READ: [(&str, LogFormat, &str); 26] = [
+/// files are M7.1c9's.
+pub const READ: [(&str, LogFormat, &str); 27] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -101,6 +101,8 @@ pub const READ: [(&str, LogFormat, &str); 26] = [
         LogFormat::FeatherweightSummaryCsv,
         "M7.1c6",
     ),
+    // The catalog names R-DAS text after the course whose flights it holds.
+    ("e80-imu-txt", LogFormat::RdasText, "M7.1c8"),
 ];
 
 /// The family of zip archives, read when they unpack ([`ARCHIVE_INCREMENT`]): each of their files
@@ -1119,7 +1121,7 @@ struct SourceCount {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct FamilyRow {
     family: String,
-    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1` … `M7.1c7`), `M7.1c8` for
+    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1` … `M7.1c8`), `M7.1c9` for
     /// one not yet read, `damaged`, or `not a log`.
     increment: String,
     files: usize,
@@ -1426,7 +1428,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
             "not a log"
         } else {
-            "M7.1c8"
+            "M7.1c9"
         };
         let row = families
             .entry(sample.family.clone())

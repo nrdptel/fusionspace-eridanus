@@ -26,8 +26,11 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > only their maximum and pad altitudes are checked, against the files of samples beside them
 > ([Featherweight's summaries](#featherweights-summaries)). A zip archive of a flight's files,
 > unpacked since [M7.1c7](../decisions-and-roadmap.md#m7-1c7), is read file by file, each as if
-> it lay on its own ([zip archives](#zip-archives)). Other layouts are refused, not guessed at;
-> they come with [M7.1c8](../decisions-and-roadmap.md#m7-1c8), the other loggers' formats.
+> it lay on its own ([zip archives](#zip-archives)). The R-DAS's raw text, read since
+> [M7.1c8](../decisions-and-roadmap.md#m7-1c8), holds the counts of its converters and no
+> calibration, so every count is kept as written and the record holds no altitude
+> ([R-DAS raw text](#r-das-raw-text)). Other layouts are refused, not guessed at; they come
+> with [M7.1c9](../decisions-and-roadmap.md#m7-1c9), the other loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -73,6 +76,8 @@ files filed as not logs), as
 decided, and [M7.1c7](../decisions-and-roadmap.md#m7-1c7) (zip archives, PerfectFlite's exports
 with no header row and Blue Raven files with no date), as
 [ADR-261](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0261-archives-and-two-readers-variants-before-the-rest.md)
+decided, and [M7.1c8](../decisions-and-roadmap.md#m7-1c8) (the R-DAS's raw text), as
+[ADR-262](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0262-the-r-das-raw-text-before-the-rest.md)
 decided.
 
 ## The layouts read
@@ -104,6 +109,7 @@ decided.
 | Featherweight GPS CSV | Featherweight's GPS tracker: its own log, and its ground station's log of every tracker it hears | a first line opening `UTCTIME,UNIXTIME,` or `TRACKER,DATE,TIME,` that names the latitude and longitude (`LAT` and `LON`, or `TRACKER Lat` and `TRACKER Lon`) | [below](#gps-logs) |
 | KML | GPS tracks as AltOS, Missile Works' RTx, Big Red Bee's BeeLine, fw2kml (a converter of Featherweight's logs), GPS Visualizer and others write them for Google Earth | the document's root element is `kml` | [below](#gps-logs) |
 | NMEA 0183 | a GPS receiver's own sentences, written to a file as it sends them | at least 3 of the first 50 lines open with a sentence whose checksum checks out, such as `$GPGGA,…*hh`, or, in a shorter file, every line does | [below](#gps-logs) |
+| R-DAS raw text | AED Electronics R-DAS, its raw data as its Windows software exports a flight | a first line that isn't blank of `*** Configuration ***`, and a `*** Raw data ***` line within the first 200 | `hpr_flightdata::rdas` ([below](#r-das-raw-text)) |
 | Zip archive | not a log: a flight's files, zipped to share them | its bytes open `PK` then 3, 4 | `hpr_flightdata::archive` ([below](#zip-archives)) |
 
 The Blue Raven app writes each flight as a low-rate file, logged 50 times a second, and a
@@ -121,7 +127,7 @@ such programs read; a team flight computer's saved state, one row; an OpenRocket
 export; and a wind profile. The other layouts in the sample logs, among
 them AltOS's `.eeprom`, an ARTS2's raw sensor counts, spreadsheets and a radio telemetry stream
 saved as RTF, are refused today, most as *unrecognized*; they come with
-[M7.1c8](../decisions-and-roadmap.md#m7-1c8), and the [survey's report](#how-it-was-checked)
+[M7.1c9](../decisions-and-roadmap.md#m7-1c9), and the [survey's report](#how-it-was-checked)
 counts them by layout.
 
 ### Zip archives
@@ -170,7 +176,7 @@ Two CSV files in one archive name other altimeters' formats in their file names 
 Raven's column names, but their values aren't the Blue Raven's: at the same moments, their
 altitudes differ from its low-rate file's by up to several hundred feet. Which logger wrote them
 isn't known, so they aren't read as a Blue Raven's; they wait for the column mapping of
-[M7.1c8](../decisions-and-roadmap.md#m7-1c8).
+[M7.1c9](../decisions-and-roadmap.md#m7-1c9).
 
 ## The record
 
@@ -610,7 +616,7 @@ sample logs:
   altitude's change, are kept as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
   knows. An RTF document holding anything else is refused as not an Eggtimer's, among them the
   radio telemetry stream in two other sample files, which comes with
-  [M7.1c8](../decisions-and-roadmap.md#m7-1c8).
+  [M7.1c9](../decisions-and-roadmap.md#m7-1c9).
 
 The record's readings withhold on all these layouts, as on every logger's but PerfectFlite's
 `.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
@@ -762,7 +768,7 @@ apogee runs up to 3% below its low-rate file's highest altitude
 §4). The summaries with no file of samples beside them are read by the same rules, unchecked. No
 other figure is checked. Summaries inside zip archives are read and checked as the others are,
 against the files of samples in the same archive ([zip archives](#zip-archives)); those inside
-spreadsheets wait for [M7.1c8](../decisions-and-roadmap.md#m7-1c8).
+spreadsheets wait for [M7.1c9](../decisions-and-roadmap.md#m7-1c9).
 
 ## GPS logs
 
@@ -1050,6 +1056,74 @@ Two `.FIPa` files and five `.rff` files have no export beside them. They are dec
 rules, and pass the checks each file carries (every frame's checksum, the RRC3's clock check),
 but no export checks their values.
 
+## R-DAS raw text
+
+The R-DAS, a flight computer AED Electronics sold in the early 2000s, records its accelerometer
+and its barometer, and as its owner chooses four digital inputs and six analog inputs from an
+expansion port, each through a 10-bit converter over 0 to 5 V, up to 200 times a second. It
+keeps the 2 s before liftoff and stores from there (*R-DAS User Manual*, V1.5, AED Electronics,
+2001, p. 6, p. 7, p. 14). Its Windows software exports a flight to text either raw or converted
+with calibration values set in the software. Only the raw export is among the sample logs: 54
+files from a college course's flights in 2008, 28 recorded on board at 200 Hz and 26 at 10 Hz,
+the course's telemetry records of the same flights by their names.
+
+The raw file opens with a summary of the configuration, then a table of the converters'
+counts, 0 to 1,023, each step 4.883 mV, "for conversion to real-world data" with the
+calibration values (p. 14). The file holds none of those values, so HPR Sim converts nothing:
+
+- **`Time`** counts seconds from the trigger. Every sample file starts at −2.000, the 2 s before
+  liftoff the manual describes. That the clock is in seconds rests on the configuration's
+  `Data is sampled at N Hz.`: the clock's average step must be that rate's interval within 1%,
+  or the file is refused. In every sample file it is the interval exactly, 0.005 s or 0.1 s.
+- **`Acc`, `Prs` and `ADC0` to `ADC5`** are kept as written, as numbers in no unit HPR Sim
+  knows. The manual's R-DAS has an Analog Devices ADXL150 accelerometer (±50 g) and a Motorola
+  MPXS4100A barometer (20 to 105 kPa, a count about 0.09 kPa) (p. 7), but the file states
+  neither the calibration values nor which board and sensors wrote it, and others have been
+  fitted to the R-DAS (a college course's
+  [pressure lab](https://pages.hmc.edu/spjut/NewE80/PresTempLab.html) names an MPXH6115A on its
+  R-DAS), so the counts aren't taken through that sensor's data sheet. The analog inputs are whatever the owner wired to them.
+- **`Dig`** is read as a hexadecimal word, such as `00B0`, and kept as its number. The manual
+  says it holds the four digital inputs and the flight's phase (before liftoff, flight, drogue,
+  main), and that a bit is set when the timed recovery was used (p. 14, p. 22), but doesn't give
+  the bits' values. In every on-board sample file the word reads `0000`, then `0010` within
+  0.25 s after the zero, then `0020` and `0030`: likely the phases in order, but that rests on
+  the files, so no event is taken from it yet.
+
+The configuration must say the sample rate and list the inputs, and the table's header must
+name those inputs in that order (`Acceleration` as `Acc`, `Pressure` as `Prs`, `the digital
+inputs` as `Dig`); a file that doesn't is refused. Its lines, the trigger and the recovery
+settings among them, are kept in a note as written, and a firmware version, where one is
+stated, is the record's firmware. With no altitude in the file, the record's
+[primary track](#the-record) is empty, as for the Raven's `.FIPa`, and every column is a
+channel on the file's clock.
+
+A worked example, two rows of an invented file of eleven at 10 Hz:
+
+```text
+*** Configuration ***
+
+Trigger: G-switch.
+Data is sampled at 10 Hz.
+Inputs that were sampled: Acceleration, Pressure, the digital inputs, ADC0, ADC1.
+
+*** Raw data ***
+
+   Time  Acc  Prs  Dig ADC0 ADC1
+  0.100  700  799 0010  505  252
+  …
+  0.600  512  793 00B0  503  257
+```
+
+The row at 0.1 s reads `Acc` 700 and `Prs` 799, both counts; `Dig` `0010` is 16 and `00B0` is
+176. The clock's note says `Time` was read in seconds because its step, 0.1 on average over the
+whole file, is the 10 Hz rate's interval.
+
+Checked: all 54 sample files read, each clock against its stated rate, and the readings are
+pinned by the [survey](#how-it-was-checked). Left out: converting the counts, which needs the
+calibration values the software held, and reading events from `Dig`, until a document gives its
+bits; the readings of [M7.2](../decisions-and-roadmap.md#m7-2) can't use a record with no
+altitude.
+
 ## How it was checked
 
 `cargo xtask logs`, a command of the project's own build tool, reads every sample log the project
@@ -1065,7 +1139,7 @@ compares with the files of samples beside it ([above](#checked-against-the-files
 per file an anonymized id (the start of a hash of the file, which says nothing of its contents)
 with a digest, a hash, of the record read from it. The files inside the zip archives among them
 are unpacked and counted too, each once: of the 29 in the 8 archives, 19 are in no other source
-([zip archives](#zip-archives)). Of the 1,122 files it holds today, 857 are read, the 8 archives
+([zip archives](#zip-archives)). Of the 1,122 files it holds today, 911 are read, the 8 archives
 counted as read when they unpack.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
@@ -1078,7 +1152,7 @@ their extension, are in AltimeterCloud's layout (10), Entacore AIM's (15), a Flu
 ARTS2's interpreted data (4) or the phone app's `launch` CSV (27), and are held to those readers.
 Of the 3 RTF files the catalog files as not a log, by their extension, one is an Eggtimer's
 download, held to its reader, and two a radio telemetry stream, refused until
-[M7.1c8](../decisions-and-roadmap.md#m7-1c8). Five files filed as generic CSV or text are
+[M7.1c9](../decisions-and-roadmap.md#m7-1c9). Five files filed as generic CSV or text are
 PerfectFlite's exports: four with no header row and one that names its temperature `Temp`. A
 Blue Raven high-rate file with no date is held to the Blue Raven's reader; its low-rate partner,
 which a person edited in a spreadsheet (a column with no name, two columns named in words the

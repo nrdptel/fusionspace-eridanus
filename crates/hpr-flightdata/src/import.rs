@@ -22,6 +22,7 @@
 //! | [RRC3 CSV](crate::rrc3) | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages` |
 //! | [AltimeterCloud CSV](crate::altimetercloud) | a header within the first 65 lines whose first name is `Time(ms)`, in any case, and which also names `acceleration_total(mG)` and `tilt` |
 //! | [Entacore AIM CSV](crate::entacore) | the first line starts with a `time` column, names at least two, and names one of the AIM's own channels, such as `Pressure AGL` |
+//! | [R-DAS text](crate::rdas) | the first line that isn't blank is `*** Configuration ***`, and a `*** Raw data ***` line comes within the first 200 |
 //! | [ARTS2 CSV](crate::arts2) | a first line of `#` and the names `MET Acc Vel iAlt pAlt`, by spaces, tabs or commas, in any case; tried before AltOS's `#` comments |
 //! | [SillyGoose text](crate::sillygoose) | the first line, or the one after a `CONFIG` line, starts with `timestampMs` and names `pressurePa` and `altitudeM` |
 //! | [Silicdyne Fluctus CSV](crate::fluctus) | a `sep=` line, or none, then a header starting `time` that names `deltaTime` and `baro-altitude` |
@@ -49,7 +50,7 @@ use crate::log::{FlightLog, LogFormat};
 use crate::{
     aerospacenu_fcb, aerospacenu_gs, altimetercloud, altos, archive, arts2, blueraven, eggtimer,
     entacore, fluctus, fwgps, fwsummary, kml, nmea, perfectflite, phone_launch, raven, raven_fipa,
-    rrc3, rrc3_rff, sillygoose,
+    rdas, rrc3, rrc3_rff, sillygoose,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
@@ -62,6 +63,7 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::Nmea0183,
     LogFormat::FeatherweightGpsCsv,
     LogFormat::FeatherweightSummaryCsv,
+    LogFormat::RdasText,
     LogFormat::Arts2Csv,
     LogFormat::PerfectFlitePf2,
     LogFormat::PerfectFlitePfa,
@@ -154,6 +156,9 @@ fn detect_text(text: &str) -> Option<LogFormat> {
     }
     if fwsummary::recognizes(text) {
         return Some(LogFormat::FeatherweightSummaryCsv);
+    }
+    if rdas::recognizes(text) {
+        return Some(LogFormat::RdasText);
     }
     let altos_header =
         |line: &str| line.starts_with("#version,") || line.starts_with("version,serial,");
@@ -266,6 +271,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::RavenFipa) => raven_fipa::read(bytes),
         Some(LogFormat::Rrc3Rff) => rrc3_rff::read(bytes),
         Some(LogFormat::FeatherweightSummaryCsv) => fwsummary::read(&text),
+        Some(LogFormat::RdasText) => rdas::read(&text),
         None => {
             let known: Vec<&str> = FORMATS.iter().map(|format| format.name()).collect();
             Err(LogError::Unrecognized {
