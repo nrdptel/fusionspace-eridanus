@@ -113,12 +113,6 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     its unit by a breaking space, and a lead note or table cell over 120 words; number columns'
     heads give a label and a unit; a test fails on an `hpr sim` warning sentence over 40 words;
     each over-precise figure #476 names is cut to what is known; the audit's rows name the checks.
-- [x] **M0.12 Typeset equations** (ADR-263; Neer, 2026-10-13). *Done when:* the site's pages write
-  their equations in LaTeX, which the build turns into MathML drawn in the product system's math
-  face (Rev E), with no script and nothing from another server; the build fails on a formula the
-  converter can't read, math in a heading, a display sharing its paragraph and an arrow accent, a
-  test each; the page check fails math text off the math face or under 12 px and a formula wider
-  than its box, with a canary; `docs/writing.md` has the rules.
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - **M1.8** is done; its entry: [archive](roadmap-done.md#phase-1-physics-core-the-heart-with-validation-interleaved).
