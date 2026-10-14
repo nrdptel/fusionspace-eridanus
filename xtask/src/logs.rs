@@ -51,8 +51,8 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The other families'
-/// files are M7.1c11's.
-pub const READ: [(&str, LogFormat, &str); 29] = [
+/// files are M7.1c12's.
+pub const READ: [(&str, LogFormat, &str); 31] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -105,6 +105,8 @@ pub const READ: [(&str, LogFormat, &str); 29] = [
     ("e80-imu-txt", LogFormat::RdasText, "M7.1c8"),
     ("altos-telem", LogFormat::AltosTelemetry, "M7.1c9"),
     ("altos-eeprom", LogFormat::AltosEeprom, "M7.1c10"),
+    ("arts2-raw-csv", LogFormat::Arts2RawCsv, "M7.1c11"),
+    ("odf", LogFormat::Arts2Odf, "M7.1c11"),
 ];
 
 /// The family of zip archives, read when they unpack ([`ARCHIVE_INCREMENT`]): each of their files
@@ -214,10 +216,10 @@ const FLUCTUS: &str = "Silicdyne Fluctus's CSV, a `sep=;` line then a semicolon-
 /// Why a file the catalog files as generic CSV is an ARTS2's interpreted data.
 const ARTS2: &str = "Ozark Aerospace ARTS2's interpreted data, a `# MET Acc Vel iAlt pAlt` \
     header then comma-separated rows, filed as generic CSV by its extension";
-/// Why a file the catalog files as generic CSV is an ARTS2's raw data, for M7.1c7.
+/// Why a file the catalog files as generic CSV is an ARTS2's raw data.
 const ARTS2_RAW: &str = "Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),\
     State` header then the sensors' counts with no calibration in the file, filed as generic CSV \
-    by its extension; read with the ARTS2's own `.odf` files";
+    by its extension; the flight's `.odf` holds the same records with the calibration";
 /// Why a file the catalog files as generic CSV is the phone app's.
 const PHONE_LAUNCH: &str = "a phone app's `launch….csv`, a header opening \
     `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension";
@@ -588,6 +590,10 @@ struct Report {
     /// AltOS's raw downloads against AltosUI's exports of the same flight and its telemetry.
     #[serde(default)]
     eeprom_checks: EepromChecks,
+    /// ARTS2's `.odf` files against the raw CSV, the interpreted export and an AltOS board's CSV of
+    /// the same flight.
+    #[serde(default)]
+    arts2_checks: Arts2Checks,
     /// How the readers decided the units no header states, by family: each decision, the part of
     /// a record's note before its first `: `, such as `` `Altitude` read in feet, from the
     /// pressure ``, with the number of files whose record carries it.
@@ -2077,13 +2083,277 @@ struct SourceCount {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct FamilyRow {
     family: String,
-    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1` … `M7.1c10`), `M7.1c11` for
+    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1` … `M7.1c11`), `M7.1c12` for
     /// one not yet read, `damaged`, or `not a log`.
     increment: String,
     files: usize,
     read: usize,
     /// Refusals by kind.
     refused: BTreeMap<String, usize>,
+}
+
+/// ARTS2's `.odf` files against the files of the same flight beside them, in their folder, a file
+/// each ([`Arts2File`]), and the files that differ from a raw CSV or an interpreted export beside
+/// them, by id.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct Arts2Checks {
+    per_file: Vec<Arts2File>,
+    differing: Vec<String>,
+}
+
+/// One `.odf`: its id; its records, decoded here from the bytes apart from the reader; its climb
+/// check's ratio, from its record's note; whether the raw CSV beside it holds the same records,
+/// word for word and 0.02 s apart (`None` with none beside it); how it compares with the
+/// interpreted export beside it ([`Arts2Export`]); and, where an AltOS board's CSV or `.eeprom`
+/// lies beside it, the ARTS2's pad and least pressures less the AltOS board's, kPa: differences
+/// only, as the pressures themselves would give a private flight's site and apogee.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct Arts2File {
+    id: String,
+    records: usize,
+    climb_ratio: Option<f64>,
+    raw_csv_matches: Option<bool>,
+    export: Option<Arts2Export>,
+    altos_pad_kpa: Option<f64>,
+    altos_least_kpa: Option<f64>,
+}
+
+/// An `.odf` against DataAnalyzer's interpreted export of the same flight: the records after the
+/// first compared, each at the export's row at its time; the largest difference in `Acc`, in the
+/// accelerometer's counts; whether the export's first row, the baselines', reads zero in `Acc`
+/// and `pAlt`, the columns its reader keeps as written there; its rows after the records, and
+/// whether they all read zero in those; the distinct pressures `pAlt` meets one record later,
+/// those that meet two values of it (clashes), and the steps from one pressure to the next lower
+/// that don't raise it but at the pad's zero (inversions); and, reported only, the
+/// largest difference of `pAlt` from the pressure altitude in the U.S. Standard Atmosphere,
+/// 1976, above the pad's, none below it, m.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct Arts2Export {
+    rows_compared: usize,
+    worst_acceleration_counts: f64,
+    first_row_zero: bool,
+    rows_after: usize,
+    rows_after_zero: bool,
+    pressures: usize,
+    clashes: usize,
+    inversions: usize,
+    worst_from_the_standard_m: f64,
+}
+
+/// The `.odf`'s records' four words, decoded from its bytes as the reader's module docs lay them
+/// out: the count at byte 289, the records from byte 305, eight bytes each.
+fn odf_records(bytes: &[u8]) -> Vec<[u16; 4]> {
+    let word = |at: usize| u16::from_le_bytes([bytes[at], bytes[at + 1]]);
+    let n = u32::from_le_bytes([bytes[289], bytes[290], bytes[291], bytes[292]]) as usize;
+    (0..n)
+        .map(|k| [0, 2, 4, 6].map(|w| word(305 + 8 * k + w)))
+        .collect()
+}
+
+/// The records' time, s: 50 a second from the first.
+fn odf_time(k: usize) -> f64 {
+    k as f64 / 50.0
+}
+
+/// [`Arts2Checks`] over the samples.
+fn arts2_checks(samples: &[Sample]) -> Arts2Checks {
+    use hpr_flightdata::log::Quantity;
+    let mut checks = Arts2Checks::default();
+    for sample in samples.iter().filter(|sample| sample.family == "odf") {
+        let Ok(odf) = hpr_flightdata::import::read(&sample.bytes) else {
+            continue;
+        };
+        let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
+        let records = odf_records(&sample.bytes);
+        let beside = |format: LogFormat| -> Vec<FlightLog> {
+            samples
+                .iter()
+                .filter(|other| other.path.parent() == sample.path.parent())
+                .filter(|other| hpr_flightdata::import::detect(&other.bytes) == Some(format))
+                .filter_map(|other| hpr_flightdata::import::read(&other.bytes).ok())
+                .collect()
+        };
+        let column = |log: &FlightLog, name: &str| -> Option<Channel> {
+            log.channels.iter().find(|c| c.column == name).cloned()
+        };
+        let climb_ratio = odf.notes.iter().find_map(|note| {
+            let (_, rest) = note.split_once("a ratio of ")?;
+            rest.split(',').next()?.trim().parse().ok()
+        });
+        let raw_csvs = beside(LogFormat::Arts2RawCsv);
+        let raw_csv_matches = (!raw_csvs.is_empty()).then(|| {
+            raw_csvs.iter().any(|csv| {
+                let words: Vec<Option<Channel>> = ["Acc(HI)", "Acc/Baro(LO)", "Baro(HI)", "State"]
+                    .iter()
+                    .map(|name| column(csv, name))
+                    .collect();
+                words.iter().all(|channel| {
+                    channel.as_ref().is_some_and(|c| {
+                        c.values.len() == records.len()
+                            && c.time_s
+                                .iter()
+                                .enumerate()
+                                .all(|(k, t)| (t - odf_time(k)).abs() < 1e-9)
+                    })
+                }) && records.iter().enumerate().all(|(k, record)| {
+                    (0..4).all(|w| {
+                        words[w].as_ref().map(|c| c.values[k]) == Some(f64::from(record[w]))
+                    })
+                })
+            })
+        });
+        // A g in counts, from the calibration sums the record states.
+        let per_g = odf
+            .stated
+            .figures
+            .iter()
+            .find(|figure| figure.name == "calibration sums")
+            .map(|figure| (figure.values[2] - figure.values[0]).abs() / 128.0);
+        let acceleration = column(&odf, "Acc(HI)");
+        let pressure = column(&odf, "Baro(HI)");
+        let pad_pa = odf
+            .stated
+            .figures
+            .iter()
+            .find(|figure| figure.name == "Zero Altitude baseline")
+            .map(|figure| figure.values[0]);
+        let export = match (per_g, &acceleration, &pressure, pad_pa) {
+            (Some(per_g), Some(acceleration), Some(pressure), Some(pad_pa)) => {
+                beside(LogFormat::Arts2Csv)
+                    .iter()
+                    .map(|export| {
+                        arts2_against_export(
+                            export,
+                            &acceleration.values,
+                            &pressure.values,
+                            pad_pa,
+                            per_g,
+                        )
+                    })
+                    .min_by(|a, b| {
+                        a.worst_acceleration_counts
+                            .total_cmp(&b.worst_acceleration_counts)
+                    })
+            }
+            _ => None,
+        };
+        // AltosUI's export, or the board's raw download where the export doesn't read.
+        let altos_pressure = [LogFormat::AltosCsv, LogFormat::AltosEeprom]
+            .into_iter()
+            .flat_map(beside)
+            .find_map(|log| log.channels_of(Quantity::Pressure).next().cloned());
+        let least = |values: &[f64]| values.iter().copied().fold(f64::INFINITY, f64::min);
+        let (altos_pad_kpa, altos_least_kpa) = match (&altos_pressure, &pressure, pad_pa) {
+            (Some(altos), Some(ours), Some(pad_pa)) => (
+                altos.values.first().map(|first| (pad_pa - first) / 1_000.0),
+                Some((least(&ours.values[1..]) - least(&altos.values)) / 1_000.0),
+            ),
+            _ => (None, None),
+        };
+        let differs = raw_csv_matches == Some(false)
+            || export.as_ref().is_some_and(|e| {
+                e.worst_acceleration_counts > 0.5
+                    || !e.first_row_zero
+                    || !e.rows_after_zero
+                    || e.clashes > 0
+                    || e.inversions > 0
+            });
+        if differs {
+            checks.differing.push(id.clone());
+        }
+        checks.per_file.push(Arts2File {
+            id,
+            records: records.len(),
+            climb_ratio,
+            raw_csv_matches,
+            export,
+            altos_pad_kpa,
+            altos_least_kpa,
+        });
+    }
+    checks.per_file.sort_by(|a, b| a.id.cmp(&b.id));
+    checks.differing.sort();
+    checks
+}
+
+/// An `.odf`'s acceleration, m/s², and pressure, Pa, one value a record, against an interpreted
+/// export's ([`Arts2Export`]); `pad_pa` the pad's pressure and `per_g` a g in counts.
+fn arts2_against_export(
+    export: &FlightLog,
+    acceleration: &[f64],
+    pressure: &[f64],
+    pad_pa: f64,
+    per_g: f64,
+) -> Arts2Export {
+    use hpr_flightdata::log::Quantity;
+    let export_acceleration = export.channels_of(Quantity::Acceleration).next();
+    // The two columns the export's reader keeps as written: it marks `Vel`'s and `iAlt`'s
+    // closing zeros gaps.
+    let zero_at = |k: usize| {
+        export_acceleration.and_then(|c| c.values.get(k)) == Some(&0.0)
+            && export.altitude_m.get(k) == Some(&0.0)
+    };
+    let rows = export.time_s.len();
+    let mut result = Arts2Export {
+        first_row_zero: zero_at(0),
+        rows_after: rows.saturating_sub(pressure.len()),
+        rows_after_zero: (pressure.len()..rows).all(zero_at),
+        ..Arts2Export::default()
+    };
+    let count = 9.806_65 / per_g;
+    let atmosphere = hpr_atmos::ussa76::Ussa76::standard();
+    let height = |pa: f64| atmosphere.pressure_altitude_m(pa).unwrap_or(f64::NAN);
+    let mut by_pressure: BTreeMap<u64, BTreeSet<u64>> = BTreeMap::new();
+    for k in 1..pressure.len() {
+        // A record the export holds no row for, at its time, can't match it.
+        let (Some(&t), Some(&p_alt)) = (export.time_s.get(k), export.altitude_m.get(k)) else {
+            result.worst_acceleration_counts = f64::INFINITY;
+            break;
+        };
+        if (t - odf_time(k)).abs() > 1e-9 {
+            result.worst_acceleration_counts = f64::INFINITY;
+            break;
+        }
+        result.rows_compared += 1;
+        let theirs = export_acceleration
+            .and_then(|c| c.values.get(k))
+            .copied()
+            .unwrap_or(f64::NAN);
+        let off = ((acceleration[k] - theirs) / count).abs();
+        result.worst_acceleration_counts = if off.is_nan() {
+            f64::INFINITY
+        } else {
+            result.worst_acceleration_counts.max(off)
+        };
+        // Positive floats' bits sort as their values do.
+        by_pressure
+            .entry(pressure[k - 1].to_bits())
+            .or_default()
+            .insert(p_alt.to_bits());
+        // DataAnalyzer writes no `pAlt` below the pad's.
+        let standard = (height(pressure[k - 1]) - height(pad_pa)).max(0.0);
+        result.worst_from_the_standard_m = result
+            .worst_from_the_standard_m
+            .max((standard - p_alt).abs());
+    }
+    result.pressures = by_pressure.len();
+    result.clashes = by_pressure
+        .values()
+        .filter(|values| values.len() > 1)
+        .count();
+    // From the highest pressure down, `pAlt` rises, or stays at the pad's zero.
+    let mut previous = f64::NEG_INFINITY;
+    for values in by_pressure.values().rev() {
+        let value = values
+            .iter()
+            .map(|bits| f64::from_bits(*bits))
+            .fold(f64::NAN, f64::max);
+        if value < previous || (value == previous && value != 0.0) {
+            result.inversions += 1;
+        }
+        previous = value;
+    }
+    result
 }
 
 /// One distinct file.
@@ -2384,7 +2654,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
             "not a log"
         } else {
-            "M7.1c11"
+            "M7.1c12"
         };
         let row = families
             .entry(sample.family.clone())
@@ -2497,6 +2767,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         summary_checks: summary_checks(samples),
         telemetry_checks: telemetry_checks(samples),
         eeprom_checks: eeprom_checks(samples),
+        arts2_checks: arts2_checks(samples),
         reclassified: RECLASSIFIED
             .iter()
             .map(|(id, from, to, why)| format!("{id} {from} -> {to}: {why}"))
@@ -2538,6 +2809,13 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         unread.push(format!(
             "  {id} (altos-eeprom): differs from the AltosUI export or the telemetry of its \
              flight beside it"
+        ));
+    }
+    // An `.odf` that differs from the raw CSV or the interpreted export of its flight is as
+    // unread as a refusal.
+    for id in &report.arts2_checks.differing {
+        unread.push(format!(
+            "  {id} (odf): differs from the raw CSV or the interpreted export of its flight beside it"
         ));
     }
     // A summary whose lengths agree with the file beside it only as meters contradicts the feet
@@ -3025,6 +3303,70 @@ fn markdown(report: &Report) -> String {
             eeprom.with_telemetry_beside,
             eeprom.agreeing_with_telemetry,
             ids(&eeprom.differing)
+        );
+    }
+    let arts2 = &report.arts2_checks;
+    if !arts2.per_file.is_empty() {
+        let kpa = |difference: Option<f64>| {
+            difference.map_or("–".to_owned(), |difference| format!("{difference:+.2}"))
+        };
+        let rows: String = arts2
+            .per_file
+            .iter()
+            .map(|file| {
+                let export = match &file.export {
+                    Some(e) => format!(
+                        "{} | {:.3} | {} | {}{} | {} | {} | {} | {:.1}",
+                        e.rows_compared,
+                        e.worst_acceleration_counts,
+                        if e.first_row_zero { "yes" } else { "no" },
+                        e.rows_after,
+                        if e.rows_after_zero {
+                            ", zero"
+                        } else {
+                            ", not zero"
+                        },
+                        e.pressures,
+                        e.clashes,
+                        e.inversions,
+                        e.worst_from_the_standard_m
+                    ),
+                    None => "– | – | – | – | – | – | – | –".to_owned(),
+                };
+                format!(
+                    "| {} | {} | {} | {} | {export} | {} | {} |\n",
+                    file.id,
+                    file.records,
+                    file.climb_ratio
+                        .map_or("–".to_owned(), |ratio| format!("{ratio:.3}")),
+                    match file.raw_csv_matches {
+                        Some(true) => "same",
+                        Some(false) => "differs",
+                        None => "–",
+                    },
+                    kpa(file.altos_pad_kpa),
+                    kpa(file.altos_least_kpa)
+                )
+            })
+            .collect();
+        out += &format!(
+            "\nARTS2's `.odf` files, each against the files of its flight beside it: its raw CSV, \
+             word for word; DataAnalyzer's interpreted export, `Acc` in the accelerometer's counts \
+             on every record after the first, and `pAlt` against the pressure one record \
+             earlier, as DataAnalyzer takes it, by order only (each pressure meeting one `pAlt`, \
+             which rises as the pressure falls), its difference from the standard atmosphere's \
+             reported only, as one export takes its altitude otherwise; and the pad's and the \
+             least pressure less an AltOS board's flown with it, kPa, reported only:\n\n\
+             | File | Records | Climb ratio | Raw CSV | Rows compared | Worst `Acc`, counts | \
+             First row zero | Rows after | Pressures | Clashes | Inversions | `pAlt` from the \
+             standard, m | Pad less AltOS, kPa | Least less AltOS, kPa |\n\
+             |---|---:|---:|---|---:|---:|---|---|---:|---:|---:|---:|---:|---:|\n{rows}\n\
+             Differing: {}.\n",
+            if arts2.differing.is_empty() {
+                "none".to_owned()
+            } else {
+                arts2.differing.join(", ")
+            }
         );
     }
     if !report.unit_decisions.is_empty() {
@@ -4262,6 +4604,106 @@ mod tests {
         assert!(
             unread.iter().any(|line| line.contains("or the telemetry")),
             "{unread:?}"
+        );
+    }
+
+    /// An `.odf` against the raw CSV beside it: the invented pair matches, word for word; one
+    /// state changed in the CSV differs, and leaves the `.odf` unread.
+    #[test]
+    fn an_odf_is_checked_against_the_raw_csv_beside_it() {
+        let odf: &[u8] = include_bytes!("../../crates/hpr-flightdata/tests/samples/arts2-raw.odf");
+        let csv = include_str!("../../crates/hpr-flightdata/tests/samples/arts2-raw.csv");
+        let id = hex(&Sha256::digest(odf))[..16].to_owned();
+        let run = |csv: &str| {
+            let sample = |name: &str, family: &str, bytes: Vec<u8>| Sample {
+                path: PathBuf::from("flight").join(name),
+                source: "test",
+                family: family.to_owned(),
+                bytes,
+            };
+            let samples = vec![
+                sample("flight.odf", "odf", odf.to_vec()),
+                sample("flight.csv", "arts2-raw-csv", csv.as_bytes().to_vec()),
+            ];
+            let (report, unread) = survey(&samples, Vec::new());
+            let ours: Vec<String> = unread.into_iter().filter(|l| l.contains(&id)).collect();
+            (report.arts2_checks, ours)
+        };
+        let (checks, unread) = run(csv);
+        assert!(unread.is_empty(), "{unread:?}");
+        let file = &checks.per_file[0];
+        assert_eq!(file.records, 150);
+        assert_eq!(file.raw_csv_matches, Some(true));
+        assert_eq!(file.climb_ratio, Some(1.012));
+        assert!(file.export.is_none() && file.altos_pad_kpa.is_none());
+
+        let row = csv.lines().find(|l| l.starts_with("0.060,")).unwrap();
+        let changed = csv.replacen(row, &format!("{}9", &row[..row.len() - 1]), 1);
+        assert_ne!(changed, csv);
+        let (checks, unread) = run(&changed);
+        assert_eq!(checks.per_file[0].raw_csv_matches, Some(false));
+        assert_eq!(checks.differing, [id]);
+        assert_eq!(unread.len(), 1, "{unread:?}");
+    }
+
+    /// An `.odf`'s values against an interpreted export: the invented export, put on the
+    /// `.odf`'s clock, against an acceleration equal to its own and pressures falling as its
+    /// `pAlt` one row later rises, agrees; an acceleration 0.6 counts off, a pressure meeting two
+    /// `pAlt`s, and a lower pressure meeting a lower `pAlt` are each caught.
+    #[test]
+    fn an_odf_is_checked_against_an_interpreted_export() {
+        use hpr_flightdata::log::Quantity;
+        let mut export = hpr_flightdata::import::read(include_bytes!(
+            "../../crates/hpr-flightdata/tests/samples/arts2-metric.csv"
+        ))
+        .unwrap();
+        let rows = export.time_s.len();
+        export.time_s = (0..rows).map(odf_time).collect();
+        let acceleration = export
+            .channels_of(Quantity::Acceleration)
+            .next()
+            .unwrap()
+            .values
+            .clone();
+        // A g of 8 counts: one count is 9.806 65 / 8 m/s².
+        let count = 9.806_65 / 8.0;
+        let pressure: Vec<f64> = (0..rows)
+            .map(|k| 100_000.0 - 10.0 * export.altitude_m.get(k + 1).copied().unwrap_or(0.0))
+            .collect();
+        let check = |acceleration: &[f64], pressure: &[f64]| {
+            arts2_against_export(&export, acceleration, pressure, 100_000.0, 8.0)
+        };
+        let agreed = check(&acceleration, &pressure);
+        assert_eq!(
+            (agreed.rows_compared, agreed.worst_acceleration_counts),
+            (rows - 1, 0.0)
+        );
+        assert!(agreed.first_row_zero && agreed.rows_after == 0 && agreed.rows_after_zero);
+        assert_eq!((agreed.clashes, agreed.inversions), (0, 0));
+
+        let mut off = acceleration.clone();
+        off[5] += 0.6 * count;
+        assert!((check(&off, &pressure).worst_acceleration_counts - 0.6).abs() < 1e-9);
+        // The pressure before the highest `pAlt` given to a row whose `pAlt` differs.
+        let top = (1..rows)
+            .max_by(|a, b| export.altitude_m[*a].total_cmp(&export.altitude_m[*b]))
+            .unwrap();
+        let mut clash = pressure.clone();
+        clash[1] = clash[top - 1];
+        assert_eq!(check(&acceleration, &clash).clashes, 1);
+        // The same row's pressure made lower than the top's, its `pAlt` lower too.
+        let mut inverted = pressure.clone();
+        inverted[1] = clash[top - 1] - 1.0;
+        assert!(check(&acceleration, &inverted).inversions > 0);
+        // An export a row short of the records can't match.
+        let mut longer = pressure.clone();
+        longer.push(90_000.0);
+        let mut more = acceleration.clone();
+        more.push(0.0);
+        assert!(
+            check(&more, &longer)
+                .worst_acceleration_counts
+                .is_infinite()
         );
     }
 }

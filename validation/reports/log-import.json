@@ -39,7 +39,7 @@
     },
     {
       "family": "aerospacenu-sillygoose-gs-csv",
-      "increment": "M7.1c11",
+      "increment": "M7.1c12",
       "files": 1,
       "read": 0,
       "refused": {
@@ -101,14 +101,12 @@
       "family": "arts2-raw-csv",
       "increment": "M7.1c11",
       "files": 3,
-      "read": 0,
-      "refused": {
-        "unrecognized": 3
-      }
+      "read": 3,
+      "refused": {}
     },
     {
       "family": "binary",
-      "increment": "M7.1c11",
+      "increment": "M7.1c12",
       "files": 4,
       "read": 0,
       "refused": {
@@ -176,7 +174,7 @@
     },
     {
       "family": "csv",
-      "increment": "M7.1c11",
+      "increment": "M7.1c12",
       "files": 67,
       "read": 2,
       "refused": {
@@ -239,7 +237,7 @@
     },
     {
       "family": "entacore-xtra",
-      "increment": "M7.1c11",
+      "increment": "M7.1c12",
       "files": 2,
       "read": 0,
       "refused": {
@@ -301,7 +299,7 @@
     },
     {
       "family": "missileworks-rtx",
-      "increment": "M7.1c11",
+      "increment": "M7.1c12",
       "files": 5,
       "read": 0,
       "refused": {
@@ -319,10 +317,8 @@
       "family": "odf",
       "increment": "M7.1c11",
       "files": 3,
-      "read": 0,
-      "refused": {
-        "unrecognized": 3
-      }
+      "read": 3,
+      "refused": {}
     },
     {
       "family": "openrocket-simulation-csv",
@@ -425,7 +421,7 @@
     },
     {
       "family": "telemetry-rtf",
-      "increment": "M7.1c11",
+      "increment": "M7.1c12",
       "files": 2,
       "read": 0,
       "refused": {
@@ -434,7 +430,7 @@
     },
     {
       "family": "txt",
-      "increment": "M7.1c11",
+      "increment": "M7.1c12",
       "files": 26,
       "read": 0,
       "refused": {
@@ -452,7 +448,7 @@
     },
     {
       "family": "xls",
-      "increment": "M7.1c11",
+      "increment": "M7.1c12",
       "files": 1,
       "read": 0,
       "refused": {
@@ -461,7 +457,7 @@
     },
     {
       "family": "xlsx",
-      "increment": "M7.1c11",
+      "increment": "M7.1c12",
       "files": 23,
       "read": 0,
       "refused": {
@@ -470,7 +466,7 @@
     },
     {
       "family": "xml",
-      "increment": "M7.1c11",
+      "increment": "M7.1c12",
       "files": 2,
       "read": 0,
       "refused": {
@@ -525,9 +521,9 @@
     "9559781b880bbec8 csv -> arts2-csv: Ozark Aerospace ARTS2's interpreted data, a `# MET Acc Vel iAlt pAlt` header then comma-separated rows, filed as generic CSV by its extension",
     "e5f252c299d9dbe5 csv -> arts2-csv: Ozark Aerospace ARTS2's interpreted data, a `# MET Acc Vel iAlt pAlt` header then comma-separated rows, filed as generic CSV by its extension",
     "f3e56b3adb3d1581 csv -> arts2-csv: Ozark Aerospace ARTS2's interpreted data, a `# MET Acc Vel iAlt pAlt` header then comma-separated rows, filed as generic CSV by its extension",
-    "b4f7a3949e33ca0d csv -> arts2-raw-csv: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; read with the ARTS2's own `.odf` files",
-    "c392977fab8558c2 csv -> arts2-raw-csv: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; read with the ARTS2's own `.odf` files",
-    "eda453d88e88e9c5 csv -> arts2-raw-csv: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; read with the ARTS2's own `.odf` files",
+    "b4f7a3949e33ca0d csv -> arts2-raw-csv: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; the flight's `.odf` holds the same records with the calibration",
+    "c392977fab8558c2 csv -> arts2-raw-csv: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; the flight's `.odf` holds the same records with the calibration",
+    "eda453d88e88e9c5 csv -> arts2-raw-csv: Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header then the sensors' counts with no calibration in the file, filed as generic CSV by its extension; the flight's `.odf` holds the same records with the calibration",
     "1a5db9dc7064aff9 csv -> phone-launch-csv: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension",
     "1b9914f2b095a2ca csv -> phone-launch-csv: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension",
     "292cd2cbeeb151d1 csv -> phone-launch-csv: a phone app's `launch….csv`, a header opening `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension",
@@ -622,7 +618,7 @@
     "Missile Works RRC3": 57,
     "Missile Works RTx": 12,
     "NMEA 0183 receiver (talker GP)": 12,
-    "Ozark Aerospace ARTS2": 4,
+    "Ozark Aerospace ARTS2": 10,
     "PerfectFlite": 21,
     "PerfectFlite Alt15K/WD": 25,
     "PerfectFlite Pnut": 39,
@@ -1168,6 +1164,68 @@
     "agreeing_with_telemetry": 2,
     "differing": []
   },
+  "arts2_checks": {
+    "per_file": [
+      {
+        "id": "206193a3811c8bc0",
+        "records": 16384,
+        "climb_ratio": 0.754,
+        "raw_csv_matches": true,
+        "export": {
+          "rows_compared": 16383,
+          "worst_acceleration_counts": 0.07578125000000413,
+          "first_row_zero": true,
+          "rows_after": 1,
+          "rows_after_zero": true,
+          "pressures": 419,
+          "clashes": 0,
+          "inversions": 0,
+          "worst_from_the_standard_m": 151.1653495303799
+        },
+        "altos_pad_kpa": -1.0774328328612028,
+        "altos_least_kpa": -0.47964477809255185
+      },
+      {
+        "id": "2074af0d10ad080f",
+        "records": 16115,
+        "climb_ratio": 1.032,
+        "raw_csv_matches": true,
+        "export": {
+          "rows_compared": 16114,
+          "worst_acceleration_counts": 0.08000000000001728,
+          "first_row_zero": true,
+          "rows_after": 0,
+          "rows_after_zero": true,
+          "pressures": 406,
+          "clashes": 0,
+          "inversions": 0,
+          "worst_from_the_standard_m": 3.1459812309676636
+        },
+        "altos_pad_kpa": -0.42160623229462363,
+        "altos_least_kpa": 0.01892988668554608
+      },
+      {
+        "id": "a34c382592dfd50d",
+        "records": 16115,
+        "climb_ratio": 1.145,
+        "raw_csv_matches": true,
+        "export": {
+          "rows_compared": 16114,
+          "worst_acceleration_counts": 0.07578125000000413,
+          "first_row_zero": true,
+          "rows_after": 0,
+          "rows_after_zero": true,
+          "pressures": 443,
+          "clashes": 0,
+          "inversions": 0,
+          "worst_from_the_standard_m": 3.328404079710708
+        },
+        "altos_pad_kpa": -0.44333050047214784,
+        "altos_least_kpa": 0.11461921624173556
+      }
+    ],
+    "differing": []
+  },
   "unit_decisions": {
     "aerospacenu-fcb-csv": {
       "`acc_x`, `acc_y` and `acc_z` read in meters per second squared, from the pad's gravity and the climb": 19,
@@ -1316,6 +1374,10 @@
       "`pAlt` read in feet, from its step and `Vel`": 3,
       "`pAlt` read in meters, from its step and `Vel`": 1
     },
+    "arts2-raw-csv": {
+      "`Acc(HI)` and `Baro(HI)` kept as written": 3,
+      "`Acc/Baro(LO)` and `State` kept as written": 3
+    },
     "blueraven-csv": {
       "`Accel_X`, `Accel_Y` and `Accel_Z` read in standard gravities, from the manual and the pad": 40,
       "`Current` kept as written, in a unit no source states": 40,
@@ -1435,6 +1497,11 @@
     "nmea": {
       "`GSA` and `GSV` read in the time of the `GGA` or `RMC` before them, from the sentence order": 12,
       "`RMC date` read in UTC days, from status-`A` sentences only": 12
+    },
+    "odf": {
+      "`Acc(HI)` read in m/s², along the board's axis with the pad's reading taken out": 3,
+      "`Acc/Baro(LO)` and `State` kept as written": 3,
+      "`Baro(HI)` read in pascals, by the MPX4100A's nominal transfer function": 3
     },
     "pfa": {
       "`Data` read in feet, 0.1 s apart, from the manual": 25
@@ -1634,8 +1701,8 @@
     "1ef3cb99e6146737 pf2 collection PerfectFlitePf2 47ad60701d6f0e7c",
     "1f983c0e90fd286b raven-fipa collection RavenFipa 9793ac767f22ae8b",
     "205588199bc2d3d6 raven-csv collection RavenFipCsv 2ccf4322347bec46",
-    "206193a3811c8bc0 odf collection refused:unrecognized -",
-    "2074af0d10ad080f odf collection refused:unrecognized -",
+    "206193a3811c8bc0 odf collection Arts2Odf df54f4d52bdc1ac2",
+    "2074af0d10ad080f odf collection Arts2Odf ad3ed98d37bb62ce",
     "2084c9945938a5e7 altos-eeprom collection AltosEeprom e5f5e62f7fa945b2",
     "219767cba01f7d9d altos-eeprom collection AltosEeprom 7c0075b4ee8061d2",
     "21a5580cd68fad8e blueraven-csv collection BlueRavenCsv d2c82bb8748c2af2",
@@ -2194,7 +2261,7 @@
     "a2a4f23d8c6c6941 pf2 collection PerfectFlitePf2 362b7723b7476dc7",
     "a2b3278557274126 raven-fipa collection RavenFipa ba4f21a88930ae82",
     "a2e27390c0aa8181 kml collection Kml 6c0215b85723bcf7",
-    "a34c382592dfd50d odf collection refused:unrecognized -",
+    "a34c382592dfd50d odf collection Arts2Odf 97daa639b671d2f5",
     "a355b6ffffeda8da fwgps-csv collection FeatherweightGpsCsv 90a73c268d5feb6e",
     "a364c6cbafd6ad4a raven-csv collection RavenFipCsv 5973713f3fecb5d8",
     "a39eb686e97b5997 entacore-aim-csv collection EntacoreAimCsv 84f05252ef0ca5e9",
@@ -2278,7 +2345,7 @@
     "b37412cd21322410 pfa collection PerfectFlitePfa a048daa2f583fc58",
     "b3a0b7c497a7e637 fwgps-csv collection FeatherweightGpsCsv 6704adb1b5fe2063",
     "b4235128d1b200ce csv collection refused:unrecognized -",
-    "b4f7a3949e33ca0d arts2-raw-csv collection refused:unrecognized -",
+    "b4f7a3949e33ca0d arts2-raw-csv collection Arts2RawCsv cf31723560691ac7",
     "b52cbd2c0f3ce88f raven-fipa collection RavenFipa 7257d7e884ea007f",
     "b5a2bc642ce5ddd9 fwgps-csv collection FeatherweightGpsCsv aa35ea8a962aaae4",
     "b5cbd8707ee4f886 pfa collection PerfectFlitePfa 63e1925086d99ccd",
@@ -2341,7 +2408,7 @@
     "c2d7919a5823b4b7 pf2 collection PerfectFlitePf2 8e861fe8fa78de76",
     "c34428a0bff32b60 xlsx collection refused:archive -",
     "c37ddfebf0d0c30b pf2 collection PerfectFlitePf2 78a4f6bafc07cf85",
-    "c392977fab8558c2 arts2-raw-csv collection refused:unrecognized -",
+    "c392977fab8558c2 arts2-raw-csv collection Arts2RawCsv 56621937b560896d",
     "c3c39be0c57bca58 perfectflite-csv collection PerfectFliteCsv 7ac4c9a24129d1c6",
     "c3d55c649e1eff1a pf2 collection PerfectFlitePf2 693aafbc6809c259",
     "c3e5272b33d0ecdb xlsx collection refused:archive -",
@@ -2535,7 +2602,7 @@
     "ed276d4d5d20cb60 kml collection Kml a7ff677bf7354294",
     "ed2d786ccaebe8a4 pf2 collection PerfectFlitePf2 52ba6ace4c7dabc6",
     "ed52881471e95969 blueraven-csv debrief BlueRavenCsv efd58c0426ab983b",
-    "eda453d88e88e9c5 arts2-raw-csv collection refused:unrecognized -",
+    "eda453d88e88e9c5 arts2-raw-csv collection Arts2RawCsv bb6965ae924c08df",
     "edd3ebd94375dcb7 pf2 collection PerfectFlitePf2 ad9e7facdf3e9972",
     "ee1ca578b1f7c6f2 pf2 collection PerfectFlitePf2 9e4d7f660f523718",
     "ee725a7e0b36471d blueraven-events-txt archives refused:unrecognized -",

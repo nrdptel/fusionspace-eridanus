@@ -9,6 +9,7 @@
 //! |---|---|
 //! | [Raven `.FIPa`](crate::raven_fipa) | its bytes: they open `#Component=Raven`, and a `#den` line within the first 4,096 is followed by a frame's `:`; told before the file is decoded as text |
 //! | [RRC3 `.rff`](crate::rrc3_rff) | its bytes: an MS-NRBF serialization header, version 1.0, and mDACS's `mDACS.AnalysisSupport+FlightRecord` class name within the first 4,096; told before the file is decoded as text |
+//! | [ARTS2 `.odf`](crate::arts2_raw) | its bytes: the length 9, then `Ozark.odf`; told before the file is decoded as text |
 //! | [KML](crate::kml) | its root element is `kml`, after any XML declaration and comments |
 //! | [NMEA 0183](crate::nmea) | at least 3 of its first 50 lines that aren't blank open with a sentence whose checksum checks out, such as `$GPGGA,…*hh` |
 //! | [Featherweight GPS CSV](crate::fwgps) | the first line opens `UTCTIME,UNIXTIME,` or `TRACKER,DATE,TIME,` and names the latitude and longitude |
@@ -26,6 +27,7 @@
 //! | [AltOS telemetry](crate::altos_telem) | the first line that isn't blank is `TELEM`, a space, and an even number of hexadecimal digits |
 //! | [R-DAS text](crate::rdas) | the first line that isn't blank is `*** Configuration ***`, and a `*** Raw data ***` line comes within the first 200 |
 //! | [ARTS2 CSV](crate::arts2) | a first line of `#` and the names `MET Acc Vel iAlt pAlt`, by spaces, tabs or commas, in any case; tried before AltOS's `#` comments |
+//! | [ARTS2 raw CSV](crate::arts2_raw::read_csv) | the first line that isn't blank is `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State`, the names as written |
 //! | [SillyGoose text](crate::sillygoose) | the first line, or the one after a `CONFIG` line, starts with `timestampMs` and names `pressurePa` and `altitudeM` |
 //! | [Silicdyne Fluctus CSV](crate::fluctus) | a `sep=` line, or none, then a header starting `time` that names `deltaTime` and `baro-altitude` |
 //! | [Eggtimer text](crate::eggtimer::read_text) | an `Eggtimer … Flight Settings` title before an Eggtimer CSV header, within the first 200 lines that aren't blank |
@@ -51,14 +53,15 @@ use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
 use crate::{
     aerospacenu_fcb, aerospacenu_gs, altimetercloud, altos, altos_eeprom, altos_telem, archive,
-    arts2, blueraven, eggtimer, entacore, fluctus, fwgps, fwsummary, kml, nmea, perfectflite,
-    phone_launch, raven, raven_fipa, rdas, rrc3, rrc3_rff, sillygoose,
+    arts2, arts2_raw, blueraven, eggtimer, entacore, fluctus, fwgps, fwsummary, kml, nmea,
+    perfectflite, phone_launch, raven, raven_fipa, rdas, rrc3, rrc3_rff, sillygoose,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
 pub const FORMATS: &[LogFormat] = &[
     LogFormat::RavenFipa,
     LogFormat::Rrc3Rff,
+    LogFormat::Arts2Odf,
     LogFormat::EggtimerRtf,
     LogFormat::AerospaceNuGroundStationText,
     LogFormat::Kml,
@@ -69,6 +72,7 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::AltosEeprom,
     LogFormat::AltosTelemetry,
     LogFormat::Arts2Csv,
+    LogFormat::Arts2RawCsv,
     LogFormat::PerfectFlitePf2,
     LogFormat::PerfectFlitePfa,
     LogFormat::AltosCsv,
@@ -128,6 +132,8 @@ fn detect_binary(bytes: &[u8]) -> Option<LogFormat> {
         Some(LogFormat::RavenFipa)
     } else if rrc3_rff::recognizes(bytes) {
         Some(LogFormat::Rrc3Rff)
+    } else if arts2_raw::recognizes_odf(bytes) {
+        Some(LogFormat::Arts2Odf)
     } else {
         None
     }
@@ -175,6 +181,9 @@ fn detect_text(text: &str) -> Option<LogFormat> {
     // ARTS2's header opens with `#`, which would otherwise be taken for AltOS's comments.
     if arts2::recognizes(text) {
         return Some(LogFormat::Arts2Csv);
+    }
+    if arts2_raw::recognizes_csv(text) {
+        return Some(LogFormat::Arts2RawCsv);
     }
     if first.to_ascii_lowercase().contains("perfectflite") {
         // A `.pfa` names PerfectFlite too, but writes its samples after a `**!!Data:` line, one
@@ -271,6 +280,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::SillyGooseText) => sillygoose::read(&text),
         Some(LogFormat::FluctusCsv) => fluctus::read(&text),
         Some(LogFormat::Arts2Csv) => arts2::read(&text),
+        Some(LogFormat::Arts2RawCsv) => arts2_raw::read_csv(&text),
         Some(LogFormat::FeatherweightGpsCsv) => fwgps::read(&text),
         Some(LogFormat::Kml) => kml::read(&text),
         Some(LogFormat::Nmea0183) => nmea::read(&text),
@@ -280,6 +290,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::EggtimerRtf) => eggtimer::read_rtf(&text),
         Some(LogFormat::RavenFipa) => raven_fipa::read(bytes),
         Some(LogFormat::Rrc3Rff) => rrc3_rff::read(bytes),
+        Some(LogFormat::Arts2Odf) => arts2_raw::read_odf(bytes),
         Some(LogFormat::FeatherweightSummaryCsv) => fwsummary::read(&text),
         Some(LogFormat::RdasText) => rdas::read(&text),
         Some(LogFormat::AltosTelemetry) => altos_telem::read(&text),
@@ -326,7 +337,13 @@ mod tests {
             ),
             ("#Component=Raven\n", None),
             ("# MET Acc Vel iAlt pAlt\n", Some(LogFormat::Arts2Csv)),
-            ("MET,Acc(HI),Acc/Baro(LO),Baro(HI),State\n", None),
+            (
+                "MET,Acc(HI),Acc/Baro(LO),Baro(HI),State\n",
+                Some(LogFormat::Arts2RawCsv),
+            ),
+            ("MET,Acc,Baro,State\n", None),
+            ("\x09\x00\x00\x00Ozark.odf", Some(LogFormat::Arts2Odf)),
+            ("\x09\x00\x00\x00Ozark.od", None),
             (
                 "sep=;\ntime (ms);deltaTime (ms);status;baro-altitude (m)\n",
                 Some(LogFormat::FluctusCsv),

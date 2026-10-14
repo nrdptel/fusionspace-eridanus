@@ -1,0 +1,124 @@
+---
+source: crates/hpr-flightdata/tests/arts2_raw.rs
+expression: log
+---
+{
+  "format": "arts2_odf",
+  "logger": "Ozark Aerospace ARTS2",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": 150,
+    "figures": [
+      {
+        "name": "Zero Altitude baseline",
+        "written": "800",
+        "quantity": "pressure",
+        "values": [
+          88106.70443814919
+        ]
+      },
+      {
+        "name": "Zero G baseline",
+        "written": "4100",
+        "quantity": "unrecognized",
+        "values": [
+          512.5
+        ]
+      },
+      {
+        "name": "calibration sums",
+        "written": "31744,32250,32768",
+        "quantity": "unrecognized",
+        "values": [
+          31744.0,
+          32250.0,
+          32768.0
+        ]
+      }
+    ]
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "Acc(HI)",
+      "quantity": "acceleration",
+      "time_s": [
+        0.0,
+        0.02,
+        0.04,
+        0.06
+      ],
+      "values": [
+        -0.612915625,
+        77.840284375,
+        77.840284375,
+        77.840284375
+      ]
+    },
+    {
+      "column": "Acc/Baro(LO)",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0,
+        0.02,
+        0.04,
+        0.06
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Baro(HI)",
+      "quantity": "pressure",
+      "time_s": [
+        0.0,
+        0.02,
+        0.04,
+        0.06
+      ],
+      "values": [
+        88106.70443814919,
+        88106.70443814919,
+        88106.70443814919,
+        88106.70443814919
+      ]
+    },
+    {
+      "column": "State",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.02,
+        0.04,
+        0.06
+      ],
+      "values": [
+        64.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "`Acc(HI)` read in m/s², along the board's axis with the pad's reading taken out: the calibration's ends, 496.00 and 512.00 counts, make a g 8.0000 counts (39.06 mV, within the ADXL78's 36.1 to 39.9), its side 503.91 counts, and the pad's baseline 512.500 counts",
+    "`Baro(HI)` read in pascals, by the MPX4100A's nominal transfer function: the pad's count 800 is 88107 Pa",
+    "`Acc(HI)` and `Baro(HI)` held to each other, and the clock at 50 records a second: over the first 2 s the rocket climbs 155.9 m by the pressure in the standard atmosphere and 154.1 m by the acceleration integrated twice from rest, a ratio of 1.012, within 0.6 to 5/3",
+    "`Acc/Baro(LO)` and `State` kept as written: no document names their bits or codes",
+    "the first record is the pad's baselines, as the software's exports place it at time 0",
+    "not read: the settings block's 246 other bytes, and the software's 124 after the records"
+  ]
+}

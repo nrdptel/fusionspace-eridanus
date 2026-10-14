@@ -1,0 +1,93 @@
+---
+source: crates/hpr-flightdata/tests/arts2_raw.rs
+expression: log
+---
+{
+  "format": "arts2_raw_csv",
+  "logger": "Ozark Aerospace ARTS2",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "Acc(HI)",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0,
+        0.02,
+        0.04,
+        0.06
+      ],
+      "values": [
+        512.0,
+        576.0,
+        576.0,
+        576.0
+      ]
+    },
+    {
+      "column": "Acc/Baro(LO)",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0,
+        0.02,
+        0.04,
+        0.06
+      ],
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "column": "Baro(HI)",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0,
+        0.02,
+        0.04,
+        0.06
+      ],
+      "values": [
+        800.0,
+        800.0,
+        800.0,
+        800.0
+      ]
+    },
+    {
+      "column": "State",
+      "quantity": "number",
+      "time_s": [
+        0.0,
+        0.02,
+        0.04,
+        0.06
+      ],
+      "values": [
+        64.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "`Acc(HI)` and `Baro(HI)` kept as written: the export holds the converter's counts and no calibration; the flight's `.odf` holds the same records with the board's, and reads in units",
+    "`Acc/Baro(LO)` and `State` kept as written: no document names their bits or codes",
+    "the first row is the pad's baselines, as whole counts, not a sample"
+  ]
+}

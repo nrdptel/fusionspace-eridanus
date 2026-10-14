@@ -266,6 +266,12 @@ pub enum LogFormat {
     /// file: a JSON object of the board's configuration then the memory in hexadecimal, or, from
     /// older versions, the configuration as the board prints it then one record a line.
     AltosEeprom,
+    /// Ozark Aerospace ARTS2's flight as its PC software saves it to an `.odf` file: the board's
+    /// settings and calibration, then the sensors' counts.
+    Arts2Odf,
+    /// Ozark Aerospace ARTS2's raw data, as its PC software exports a flight: a
+    /// `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header, then the sensors' counts.
+    Arts2RawCsv,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -381,7 +387,8 @@ impl LogFormat {
     /// barometer's counts: one is 0.09 kPa in its maker's manual, 7.49 m near sea level. AltOS's
     /// telemetry sends the board's height above the pad in whole meters. An AltOS `.eeprom` file
     /// holds no altitude either: its coarsest pressure is a TeleMetrum v1's, whose counts move by
-    /// 4 in the sample files, 13.6 Pa, 1.13 m near sea level.
+    /// 4 in the sample files, 13.6 Pa, 1.13 m near sea level. Nor does an ARTS2's `.odf` or raw
+    /// CSV: its barometer's count is 92.2 Pa, 7.68 m near sea level.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -411,6 +418,7 @@ impl LogFormat {
             Self::RdasText => crate::rdas::ALTITUDE_STEP_M,
             Self::AltosTelemetry => 1.0,
             Self::AltosEeprom => crate::altos_eeprom::ALTITUDE_STEP_M,
+            Self::Arts2Odf | Self::Arts2RawCsv => crate::arts2_raw::ALTITUDE_STEP_M,
         }
     }
 
@@ -431,7 +439,8 @@ impl LogFormat {
             | Self::Arts2Csv
             | Self::AerospaceNuFcbCsv
             | Self::PhoneLaunchCsv
-            | Self::FeatherweightSummaryCsv => ".csv",
+            | Self::FeatherweightSummaryCsv
+            | Self::Arts2RawCsv => ".csv",
             Self::PerfectFliteText
             | Self::Nmea0183
             | Self::EggtimerText
@@ -445,6 +454,7 @@ impl LogFormat {
             Self::Kml => ".kml",
             Self::AltosTelemetry => ".telem",
             Self::AltosEeprom => ".eeprom",
+            Self::Arts2Odf => ".odf",
         }
     }
 
@@ -479,6 +489,8 @@ impl LogFormat {
             Self::RdasText => "R-DAS text",
             Self::AltosTelemetry => "AltOS telemetry",
             Self::AltosEeprom => "AltOS .eeprom",
+            Self::Arts2Odf => "ARTS2 .odf",
+            Self::Arts2RawCsv => "ARTS2 raw CSV",
         }
     }
 }
@@ -544,7 +556,8 @@ mod tests {
 
     /// Each format's resolution against a hand computation: 1 / (1.225 × 9.806 65) =
     /// 0.083 242 m for a pascal, 4 × 10⁻⁵ × 101 325 = 4.053 Pa for the Raven's step,
-    /// 2 × 10⁻⁵ × 101 325 = 2.0265 Pa for the Blue Raven's, and 10 Pa for an RRC3's.
+    /// 2 × 10⁻⁵ × 101 325 = 2.0265 Pa for the Blue Raven's, 10 Pa for an RRC3's, and
+    /// 1,000 / (1,024 × 0.010 59) = 92.2165 Pa for an ARTS2's count.
     #[test]
     fn each_formats_altitude_resolution_is_its_step() {
         let cases = [
@@ -568,6 +581,8 @@ mod tests {
             (LogFormat::Arts2Csv, 8.805_672),
             (LogFormat::RdasText, 7.491_793),
             (LogFormat::AltosEeprom, 1.129_595),
+            (LogFormat::Arts2Odf, 7.676_218),
+            (LogFormat::Arts2RawCsv, 7.676_218),
         ];
         for (format, expected) in cases {
             let resolution = format.altitude_resolution_m();
