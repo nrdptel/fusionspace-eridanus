@@ -246,8 +246,8 @@ of the board's own log of the same flight beside it, and it follows the maker's 
 description of the packets (*AltOS Telemetry*, Bdale Garbee and Keith Packard, v1.9.22.2, 2025,
 §2–4) but for one unit, the pressure's, which the files contradict.
 
-The board sends a 32-byte packet several times a second: its sensors, its GPS fix and
-satellites, its configuration and its calibration, each a packet type of its own. A TeleDongle,
+The board sends a 32-byte packet several times a second, each of a type: sensors, GPS fix,
+satellites, configuration, calibration. A TeleDongle,
 the ground station's receiver, writes each packet it hears as a text line, `TELEM` and the bytes
 in hexadecimal, and AltosUI keeps them all in a `.telem` file (*The Altus Metrum System*, §12.1).
 Each line holds a length byte, the packet, two bytes the radio adds, the signal strength (RSSI,
@@ -270,26 +270,23 @@ CRC is noise and is left out, counted: 13.6% and 4.1% of the two files' packets
   which two leave it. The tick alone can't tell every case: a radio silence of 327.68 s to
   655.36 s reads as a power-on, a longer one as a turn shorter than it was, and a power-on whose
   new tick lands ahead of the old one as a silence.
-- **Pressure is in pascals,** though the document says tenths of a pascal. A pressure that is a
-  launch site's in pascals is at most 12 kPa in tenths, a height of more than 15 km (9.3 mi), and
-  read as pascals both files' pads are at the height above sea level the export states. Of the
-  138 sensor packets at a tick the export also holds, 123 equal its pressure; at the other 15 the
-  export's row repeats the pressure of the row before it, and those are counted apart. The reader
-  takes pascals only where the pad's pressure lies from 10 to 120 kPa so read, and otherwise keeps
-  the field as written. Only one file can be held to an export, from one firmware.
-- **The board's own estimates**, its acceleration and speed in sixteenths of a m/s² and of a m/s,
-  and its height in meters above the pad, are read in the document's units and checked against
-  each other in both files. The median ratio of the height's climb to the speed after burnout runs
-  from 0.966 to 1.001, and of the speed's change to the acceleration in the climb from 0.939 to
-  1.021, where a wrong unit would be 3.28 or 16 times off; the survey fails a file outside 0.8 to
-  1.25. The highest height is 0.996 of the export's.
+- **Pressure is in pascals,** not the document's tenths: a launch site's pressure in pascals is
+  at most 12 kPa in tenths, more than 15 km (9.3 mi) up. Of the 138 sensor packets at a tick the
+  export also holds, 123 equal its pressure; at the other 15 the export's row repeats the row
+  before it, counted apart. Pascals are taken only where the pad's pressure lies from 10 to
+  120 kPa so read; otherwise the field is kept as written. One file, from one firmware, has an
+  export to hold it to.
+- **The board's own estimates**, acceleration and speed in sixteenths of a m/s² and of a m/s,
+  height in meters above the pad, are checked against each other: the median ratio of the
+  height's climb to the speed after burnout is 0.966 to 1.001, of the speed's change to the
+  acceleration in the climb 0.939 to 1.021 (a wrong unit would be 3.28 or 16 times off; the survey
+  fails a file outside 0.8 to 1.25). The highest height is 0.996 of the export's.
 - **The temperature**, in hundredths of a °C, agrees with the export within its print step,
   0.05 K. **GPS** positions, in ten-millionths of a degree, agree within 0.000 06° at the 39
   values compared, and altitudes within 3 m (9.8 ft); the survey fails a file past 0.01° or
   100 m (328 ft). A GPS packet without its valid bit holds no fix, and its position is a gap.
-- **Kept as written:** the converters' counts (the raw accelerometer, battery and continuity
-  readings, the calibration), which the document gives no conversion for, and the GPS date, the
-  dilutions of precision, ground speed, climb rate and course, which nothing checks.
+- **Kept as written:** the converters' counts (raw accelerometer, battery, continuity,
+  calibration), which the document gives no conversion for, and the GPS fields nothing checks.
 - **States** become events, named as AltosUI's exports name the numbers (2 is `pad`, 3 `boost`, 4
   `fast`, 5 `coast`, 6 `drogue`, 7 `main`, 8 `landed`), which the document doesn't give.
 
@@ -319,8 +316,8 @@ TELEM 22d2040001040b0300011b0000fa0000084e3043414c4c0000312e392e32320000f4a8c1
 | `0000` | apogee delay | 0 s |
 | `fa00` | main deployment altitude | 250 m (820 ft) |
 | `0008` | flight log's size | 2,048 kB |
-| `4e3043414c4c0000` | call sign | `N0CALL` |
-| `312e392e32320000` | firmware | `1.9.22` |
+| the next 8 bytes | call sign, in ASCII | `N0CALL` |
+| the 8 after them | firmware, in ASCII | `1.9.22` |
 | `f4` | RSSI | −12, so −12 / 2 − 74 = −80 dBm |
 | `a8` | link quality | top bit set, the packet passed the CRC; 40 |
 | `c1` | checksum | 0x5A plus the 34 bytes from `d2` to `a8`, modulo 256 |
