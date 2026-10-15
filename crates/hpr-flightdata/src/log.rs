@@ -290,6 +290,13 @@ pub enum LogFormat {
     /// header row naming the columns, the units in the names, such as `Time (s),Alt AGL (ft)`,
     /// then one row a sample ([`crate::generic`]); or read by a column mapping the caller gives.
     GenericTable,
+    /// A file of binary records end to end, each a run of fields, read by a layout the caller
+    /// states, since the file states none ([`crate::records`]).
+    BinaryRecords,
+    /// A serial console's capture of a flight computer's shell, its memory dumped as base64
+    /// between marker lines such as `----++++//[[( data start )]]\\++++----`, each block's
+    /// records read by a layout the caller states ([`crate::capture`]).
+    ConsoleCapture,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -408,7 +415,8 @@ impl LogFormat {
     /// 4 in the sample files, 13.6 Pa, 1.13 m near sea level. Nor does an ARTS2's `.odf` or raw
     /// CSV: its barometer's count is 92.2 Pa, 7.68 m near sea level. Missile Works' RTx writes its
     /// GPS altitude in whole meters in its `.rtx` file and in whole feet in its exports. A table read by
-    /// its header has no track, and no step: 0.
+    /// its header has no track, and no step: 0; nor do binary records read by a stated layout, or a
+    /// console capture's, which are read as such a table.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -441,7 +449,7 @@ impl LogFormat {
             Self::Arts2Odf | Self::Arts2RawCsv => crate::arts2_raw::ALTITUDE_STEP_M,
             Self::RtxRaw => crate::rtx::ALTITUDE_STEP_M,
             Self::RtxCsv | Self::RtxText => crate::rtx::EXPORT_ALTITUDE_STEP_M,
-            Self::GenericTable => 0.0,
+            Self::GenericTable | Self::BinaryRecords | Self::ConsoleCapture => 0.0,
         }
     }
 
@@ -482,6 +490,8 @@ impl LogFormat {
             Self::AltosEeprom => ".eeprom",
             Self::Arts2Odf => ".odf",
             Self::RtxRaw => ".rtx",
+            Self::BinaryRecords => ".bin",
+            Self::ConsoleCapture => ".cap",
         }
     }
 
@@ -522,6 +532,8 @@ impl LogFormat {
             Self::RtxCsv => "RTx CSV",
             Self::RtxText => "RTx text",
             Self::GenericTable => "a table read by its header",
+            Self::BinaryRecords => "binary records by a stated layout",
+            Self::ConsoleCapture => "console capture of base64 records",
         }
     }
 }

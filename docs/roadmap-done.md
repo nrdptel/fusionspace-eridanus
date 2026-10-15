@@ -313,6 +313,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c13 Tables read by their headers ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c14 Excel workbooks ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c15 EuRoC exports and mappings a publisher states ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c16 Binary records by a stated layout ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1630,6 +1631,18 @@ One line per milestone or increment, in the order it was archived within its pha
       doesn't name or a file a reader reads (tests); `cargo xtask logs --check` fails on a file of
       these that doesn't read; the survey's report prints the filtered-altitude factor's range;
       the guide's flight-log page says what is read and how.
+    - [x] **M7.1c16 Binary records by a stated layout** (ADR-271): a team flight computer's
+      records, read by a layout the caller states, from a raw file or a console capture's base64.
+      *Done when:* the 3 console captures and 2 raw files in refs read by the layouts
+      `validation/log-layouts.json` states (`xtask logs --check` fails on one that doesn't, whose
+      fields, decoded apart from the reader, differ from its team's table beside it in a record,
+      or whose record holds other channels than that table read by its header); erased records,
+      every byte 0xFF, at a file's end and erased bytes past its last record dropped and counted,
+      other bytes past it refused at the first (tests); a layout of no field or too many, a name
+      empty, repeated or holding a separator, or names stating no clock refused by name (tests);
+      base64 outside RFC 4648's alphabet or form, a block that never ends and a marker inside a
+      block refused at their line (tests); `import::read` refuses a capture for its layout (test);
+      the report counts each file's records, erased records and fields compared; docs.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

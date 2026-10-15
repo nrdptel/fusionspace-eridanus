@@ -39,7 +39,7 @@
     },
     {
       "family": "aerospacenu-sillygoose-gs-csv",
-      "increment": "M7.1c16",
+      "increment": "M7.1c17",
       "files": 1,
       "read": 0,
       "refused": {
@@ -106,11 +106,11 @@
     },
     {
       "family": "binary",
-      "increment": "M7.1c16",
-      "files": 4,
+      "increment": "M7.1c17",
+      "files": 2,
       "read": 0,
       "refused": {
-        "unrecognized": 4
+        "unrecognized": 2
       }
     },
     {
@@ -164,8 +164,15 @@
       }
     },
     {
-      "family": "csv",
+      "family": "console-capture",
       "increment": "M7.1c16",
+      "files": 3,
+      "read": 3,
+      "refused": {}
+    },
+    {
+      "family": "csv",
+      "increment": "M7.1c17",
       "files": 23,
       "read": 2,
       "refused": {
@@ -237,7 +244,7 @@
     },
     {
       "family": "entacore-xtra",
-      "increment": "M7.1c16",
+      "increment": "M7.1c17",
       "files": 2,
       "read": 0,
       "refused": {
@@ -411,6 +418,13 @@
       "refused": {}
     },
     {
+      "family": "record-dump",
+      "increment": "M7.1c16",
+      "files": 2,
+      "read": 2,
+      "refused": {}
+    },
+    {
       "family": "rocket-parameters",
       "increment": "not a log",
       "files": 4,
@@ -465,7 +479,7 @@
     },
     {
       "family": "telemetry-rtf",
-      "increment": "M7.1c16",
+      "increment": "M7.1c17",
       "files": 2,
       "read": 0,
       "refused": {
@@ -474,11 +488,11 @@
     },
     {
       "family": "txt",
-      "increment": "M7.1c16",
-      "files": 22,
+      "increment": "M7.1c17",
+      "files": 19,
       "read": 0,
       "refused": {
-        "unrecognized": 22
+        "unrecognized": 19
       }
     },
     {
@@ -499,7 +513,7 @@
     },
     {
       "family": "xls",
-      "increment": "M7.1c16",
+      "increment": "M7.1c17",
       "files": 1,
       "read": 0,
       "refused": {
@@ -508,7 +522,7 @@
     },
     {
       "family": "xlsx",
-      "increment": "M7.1c16",
+      "increment": "M7.1c17",
       "files": 4,
       "read": 0,
       "refused": {
@@ -517,7 +531,7 @@
     },
     {
       "family": "xml",
-      "increment": "M7.1c16",
+      "increment": "M7.1c17",
       "files": 2,
       "read": 0,
       "refused": {
@@ -533,6 +547,11 @@
     }
   ],
   "reclassified": [
+    "5c15ad3db182065c txt -> console-capture: a serial console's capture of a team flight computer's shell dumping its memory, base64 blocks between `----++++//[[( name start )]]\\\\++++----` marker lines, read by the record layout stated for it (`validation/log-layouts.json`); filed as text by its extension",
+    "a964e00316c378d9 txt -> console-capture: a serial console's capture of a team flight computer's shell dumping its memory, base64 blocks between `----++++//[[( name start )]]\\\\++++----` marker lines, read by the record layout stated for it (`validation/log-layouts.json`); filed as text by its extension",
+    "d304c5e63044e3e3 txt -> console-capture: a serial console's capture of a team flight computer's shell dumping its memory, base64 blocks between `----++++//[[( name start )]]\\\\++++----` marker lines, read by the record layout stated for it (`validation/log-layouts.json`); filed as text by its extension",
+    "67f97f55050a505f binary -> record-dump: a team flight computer's raw file of fixed-size binary records end to end, with no header or marks, read by the record layout stated for it (`validation/log-layouts.json`); filed as binary",
+    "8f291cf155079b3d binary -> record-dump: a team flight computer's raw file of fixed-size binary records end to end, with no header or marks, read by the record layout stated for it (`validation/log-layouts.json`); filed as binary",
     "045f5b9ed473b800 csv -> mapped-table-csv: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension",
     "0c7808a84fb39c83 csv -> mapped-table-csv: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension",
     "a9cf47fe2b2e5be0 csv -> mapped-table-csv: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension",
@@ -748,7 +767,7 @@
     "SillyGooseV2": 1,
     "fw2kml": 15,
     "phone app": 27,
-    "unknown": 47
+    "unknown": 52
   },
   "perfectflite_exports": {
     "files": 21,
@@ -1926,6 +1945,78 @@
       "kept": 2
     }
   ],
+  "layout_checks": [
+    {
+      "id": "5c15ad3db182065c",
+      "family": "console-capture",
+      "source": "a team's flight computer, its shell's dump of flash; the team's table beside it names 25 columns, the first a clock in ms",
+      "record_bytes": 100,
+      "records": 13655,
+      "erased": 12222,
+      "fields_written": 35825,
+      "rows_beside": 13655,
+      "rows_misshapen": 0,
+      "cells_compared": 341375,
+      "cells_differing": 0,
+      "same_channels": true
+    },
+    {
+      "id": "67f97f55050a505f",
+      "family": "record-dump",
+      "source": "a team's flight computer's raw file, a ground recording; the team's table beside it names 3 columns, the first a clock in ms",
+      "record_bytes": 12,
+      "records": 9000,
+      "erased": 0,
+      "fields_written": 27000,
+      "rows_beside": 9000,
+      "rows_misshapen": 0,
+      "cells_compared": 27000,
+      "cells_differing": 0,
+      "same_channels": true
+    },
+    {
+      "id": "8f291cf155079b3d",
+      "family": "record-dump",
+      "source": "a team's flight computer's raw file; the team's table beside it names 23 columns, the first a clock in ms",
+      "record_bytes": 92,
+      "records": 9000,
+      "erased": 0,
+      "fields_written": 207000,
+      "rows_beside": 9000,
+      "rows_misshapen": 0,
+      "cells_compared": 207000,
+      "cells_differing": 0,
+      "same_channels": true
+    },
+    {
+      "id": "a964e00316c378d9",
+      "family": "console-capture",
+      "source": "a team's flight computer, its shell's dump of flash; the team's table beside it names 25 columns, the first a clock in ms",
+      "record_bytes": 100,
+      "records": 13644,
+      "erased": 0,
+      "fields_written": 341100,
+      "rows_beside": 13644,
+      "rows_misshapen": 0,
+      "cells_compared": 341100,
+      "cells_differing": 0,
+      "same_channels": true
+    },
+    {
+      "id": "d304c5e63044e3e3",
+      "family": "console-capture",
+      "source": "a team's flight computer, its shell's dump of flash; the team's table beside it names 25 columns, the first a clock in ms",
+      "record_bytes": 100,
+      "records": 12838,
+      "erased": 0,
+      "fields_written": 320950,
+      "rows_beside": 12838,
+      "rows_misshapen": 0,
+      "cells_compared": 320950,
+      "cells_differing": 0,
+      "same_channels": true
+    }
+  ],
   "filter_scales": {
     "files": 44,
     "least": [
@@ -2813,7 +2904,7 @@
     "5b23fe50d01ac639 raven-fipa collection RavenFipa b16d8c0afa292473",
     "5ba6e0636251a849 e80-imu-txt collection RdasText 5e9ee096732379e8",
     "5bd0816693dfac7c eggtimer-csv collection EggtimerCsv d07a22f9b91a7136",
-    "5c15ad3db182065c txt collection refused:unrecognized -",
+    "5c15ad3db182065c console-capture collection ConsoleCapture 7dc397890c892ce1",
     "5c3d9d9e93068f88 raven-fipa collection RavenFipa 3ff0b7d39cc04c79",
     "5c69a5aa0300ccd2 rrc3-rff collection Rrc3Rff a2578639c6cd4a10",
     "5cb271496c8e5623 table-csv collection GenericTable 663c3142c0c0f1c3",
@@ -2859,7 +2950,7 @@
     "67417925a3f2a144 altos-eeprom collection AltosEeprom cdae59c4ab9c34ec",
     "674bda7e175e02c9 pf2 collection PerfectFlitePf2 eedb8de031b13de2",
     "67ecb39cf060fdb1 blueraven-csv collection BlueRavenCsv de0c0667db7bc459",
-    "67f97f55050a505f binary collection refused:unrecognized -",
+    "67f97f55050a505f record-dump collection BinaryRecords a4cefbd6292b4f9f",
     "67fe4200832a39ad table-csv collection GenericTable f35c077bf89e7b30",
     "6821b3c5c90eeaf3 table-csv collection GenericTable e1c72a56bc6f9ab7",
     "6822e089f873d55b pf2 collection PerfectFlitePf2 0d645f5868f8bc6f",
@@ -3036,7 +3127,7 @@
     "8e234dc4a78fcd61 altimetercloud-csv collection AltimeterCloudCsv 57c51de0eb8dd6bb",
     "8e23a8dc0c55248b checklist collection refused:archive -",
     "8f17426dcfa80a6a kml collection Kml 0956193770e43a97",
-    "8f291cf155079b3d binary collection refused:unrecognized -",
+    "8f291cf155079b3d record-dump collection BinaryRecords 89e4d0b900eff453",
     "8f3b3c3c24a8b32c eggtimer-csv collection EggtimerCsv d3fd764fb5074600",
     "8f97c13ad53f5d02 altos-csv collection AltosCsv 2df70528141ade45",
     "8fa4ed379d65bae6 raven-csv collection RavenFipCsv 30456941a7b5a6ce",
@@ -3141,7 +3232,7 @@
     "a8fcd1ae56f8d97f raven-csv collection RavenFipCsv d9210de2238ada63",
     "a929d8e30f6da2ff pf2 collection PerfectFlitePf2 3da0b5091c3a6a28",
     "a95023350df4d9f4 pf2 collection PerfectFlitePf2 87d24bafc445bc74",
-    "a964e00316c378d9 txt collection refused:unrecognized -",
+    "a964e00316c378d9 console-capture collection ConsoleCapture 73d2a07560a05723",
     "a9c52e7618e24af3 nmea collection Nmea0183 9071bb6ca86d1e6c",
     "a9c693adac127305 csv collection refused:unrecognized -",
     "a9cf47fe2b2e5be0 mapped-table-csv collection GenericTable 1a6f6d57937095dd",
@@ -3343,7 +3434,7 @@
     "d1da0707d6023367 phone-launch-csv collection PhoneLaunchCsv b6ad387a0d6f8dd6",
     "d21437764a14c64b workbook-xlsx collection Workbook:1 9b54734883748b79",
     "d2a7db8b9da843ef blueraven-settings-xlsx collection refused:archive -",
-    "d304c5e63044e3e3 txt collection refused:unrecognized -",
+    "d304c5e63044e3e3 console-capture collection ConsoleCapture 9f2cb4d8bf0d7229",
     "d306250ba73ea7f4 rrc3-csv collection Rrc3Csv 650d04b5f27c784a",
     "d3354f2054b6b18c blueraven-settings-xlsx collection refused:archive -",
     "d384af1bebcdd989 blueraven-csv collection BlueRavenCsv 1a76fdb5288ec729",

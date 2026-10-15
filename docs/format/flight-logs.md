@@ -62,13 +62,20 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > stated mappings), the survey reads six team tables by the mapping RocketPy's example notebooks
 > read them with; `import::read` alone still refuses them
 > ([mappings a publisher states](#mappings-a-publisher-states)).
+> A team flight computer's binary records, from a raw file or a console capture's base64, are read
+> by a layout the caller states, since [M7.1c16](../decisions-and-roadmap.md#m7-1c16); in the 5
+> sample files every field matches the team's own decoded table
+> ([binary records by a stated layout](#binary-records-by-a-stated-layout)).
 > Other layouts are refused, not guessed at; they come with
-> [M7.1c16](../decisions-and-roadmap.md#m7-1c16), the other loggers' formats.
+> [M7.1c17](../decisions-and-roadmap.md#m7-1c17), the other loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
 ([API reference](../api/hpr_flightdata/import/index.html)). It recognizes the layout from the
-file's content, never its name, and reads it or refuses it, naming the layouts it knows:
+file's content, never its name, and reads it or refuses it, naming the layouts it knows. A file
+of binary records has no layout to recognize: read it with `records::read`, or a console capture
+of them with `capture::read`, by the layout you state
+([below](#binary-records-by-a-stated-layout)):
 
 ```rust,ignore
 let bytes = std::fs::read("flight.csv")?;
@@ -126,6 +133,9 @@ decided, and [M7.1c14](../decisions-and-roadmap.md#m7-1c14) (Excel workbooks), a
 decided, and [M7.1c15](../decisions-and-roadmap.md#m7-1c15) (European-locale exports and
 mappings a publisher states), as
 [ADR-270](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0270-euroc-exports-and-stated-mappings-before-the-rest.md)
+decided, and [M7.1c16](../decisions-and-roadmap.md#m7-1c16) (binary records by a stated
+layout), as
+[ADR-271](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0271-binary-records-by-a-stated-layout-before-the-rest.md)
 decided.
 
 ## The layouts read
@@ -167,6 +177,8 @@ decided.
 | Table read by its header | a logger no other reader knows: a team's flight computer, a logging script, a spreadsheet saved as CSV | tried after every other layout: a header row naming a clock with a unit of time, such as `Time (s)` or `time__us`, then a row with a number there | `hpr_flightdata::generic` ([below](#tables-read-by-their-headers)) |
 | Excel workbook, `.xlsx` | a flyer saving a log, or several, as a spreadsheet | not by `import::read`, which refuses an archive: `workbook::read` opens it, then each sheet is recognized as a file of its own | `hpr_flightdata::workbook` ([below](#excel-workbooks)) |
 | Zip archive | not a log: a flight's files, zipped to share them | its bytes open `PK` then 3, 4 | `hpr_flightdata::archive` ([below](#zip-archives)) |
+| Binary records | a team's flight computer saving each sample as a fixed run of bytes, with no header | not recognized: read by the record layout you state | `hpr_flightdata::records` ([below](#binary-records-by-a-stated-layout)) |
+| Console capture | the same records, dumped as base64 by the flight computer's shell and saved by a terminal program | a start marker line, `----++++//[[( name start )]]\\++++----`, in its first 1,000 lines; `import::read` refuses it as stating no layout | `hpr_flightdata::capture` ([below](#binary-records-by-a-stated-layout)) |
 
 The Blue Raven app writes each flight as a low-rate file, logged 50 times a second, and a
 high-rate file, 500 times a second (*Blue Raven User's Guide*, 2026-05-12, p18); each is read on its own, as a record of its own, not joined
@@ -184,7 +196,7 @@ such programs read; a team flight computer's saved state, one row; an OpenRocket
 export; and a wind profile. The other layouts in the sample logs, among
 them an older `.xls` spreadsheet and a radio telemetry stream
 saved as RTF, are refused today, most as *unrecognized*; they come with
-[M7.1c16](../decisions-and-roadmap.md#m7-1c16), and the [survey's report](#how-it-was-checked)
+[M7.1c17](../decisions-and-roadmap.md#m7-1c17), and the [survey's report](#how-it-was-checked)
 counts them by layout.
 
 ### Zip archives
@@ -316,7 +328,7 @@ workbooks (`validation/oracles/xlsx/cells.py`): every one of the 5,743,747 cells
 hold a value agrees, 147,958 of them dates and times. That checks the copying, not the layouts:
 each sheet's columns and units are only as right as the reader it goes to. A probe run when the
 check was built, not committed, moved the reader's calendar by one day, and 27,103 cells
-disagreed. Not read yet, with [M7.1c16](../decisions-and-roadmap.md#m7-1c16): four workbooks (a
+disagreed. Not read yet, with [M7.1c17](../decisions-and-roadmap.md#m7-1c17): four workbooks (a
 PerfectFlite export with a person's notes beside it, a state estimator's output whose clock names
 no unit, and two tables with no header row) and an older `.xls` file, a different binary format.
 Three more workbooks are flyers' summaries of flights, not logs.
@@ -539,7 +551,7 @@ so far.
 **What is left out.** No [primary track](#the-record): which column is a barometric altitude
 above the pad isn't stated. Most of the 21 files filed as generic CSV that are still refused have
 a clock with no unit or no header row, and no publisher states their mapping; they wait, with
-[M7.1c16](../decisions-and-roadmap.md#m7-1c16). A table saved in an Excel workbook is read the
+[M7.1c17](../decisions-and-roadmap.md#m7-1c17). A table saved in an Excel workbook is read the
 same way, once its cells are written out ([Excel workbooks](#excel-workbooks)).
 
 ### Mappings a publisher states
@@ -572,6 +584,77 @@ on a file a reader reads on its own (a mapping can't stand in for a reader that 
 and for a file of this family with none stated. A mapping is only as right as its publisher's statement: the
 values' check catches a unit far off, a pressure over 110 kPa or a length beyond 150 km (93 mi), not feet
 read as meters. A seventh RocketPy table, a GPS log, is loaded by no notebook and is left unread.
+
+### Binary records by a stated layout
+
+Some teams' flight computers save each sample as a fixed run of bytes, such as a 4-byte clock in
+milliseconds then 24 four-byte floats, and nothing in the file says so: no header, no names, no
+marks. Such a file can't be recognized, only read by a layout someone states. The library reads it
+by the layout you give, each field's name and type in the record's order
+([`records::RecordLayout`](../api/hpr_flightdata/records/struct.RecordLayout.html)), and never
+guesses one. A type is an integer of 8, 16, 32 or 64 bits, signed or not, or a 32-bit or 64-bit
+IEEE 754 float (binary32 or binary64, the standard's names for them), little-endian (the least
+significant byte first, as most microcontrollers store numbers) unless you say big. The
+records are written out as a table, the names its header and one row a record, and read by the
+[header reader](#tables-read-by-their-headers): name a field with its unit, such as
+`pressure__kpa` or `Time (ms)`, and it is read in that unit if its values bear it out; a field
+whose name states none is kept as written. A layout whose names state no clock with a unit of
+time is refused; `records::table` gives the table for reading it by a
+[column mapping](#mappings-a-publisher-states) instead
+([ADR-271](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0271-binary-records-by-a-stated-layout-before-the-rest.md),
+which decided it).
+
+A 32-bit float is widened to 64 bits exactly and written as the shortest decimal that reads back
+to it, so a pressure stored as the float nearest 101.3 kPa is read as 101.30000305175781 kPa, the
+value the bytes hold, not as 101.3. A float that isn't a number or is infinite becomes a gap, and a
+note (one of the record's [notes](#the-record) on what the reader worked around) counts them.
+
+```rust,ignore
+use hpr_flightdata::records::{Field, FieldKind, RecordLayout};
+let layout = RecordLayout::new(vec![
+    Field::new("Time (ms)", FieldKind::U32),
+    Field::new("pressure__kpa", FieldKind::F32),
+]);
+let log = hpr_flightdata::records::read(&std::fs::read("flight.bin")?, &layout)?;
+```
+
+A logger saving to flash leaves the memory it never wrote erased, every byte `0xFF`, and a dump of
+its memory may run on into it. Records that are wholly `0xFF` at the end of the file are dropped as
+that erased memory, as are erased bytes past the last whole record, and a note counts both. Any
+other bytes past the last whole record are refused, as a sign the layout doesn't fit. An erased
+record with written ones after it isn't dropped, so a logger's fault stays visible: its integers
+read at their largest (−1 if signed) and its floats as gaps. With a float clock that record has
+no time, and the reading is refused, naming the record by its number and where it starts; with
+an integer clock it is read, and a column whose values that record contradicts is kept as written.
+
+The same records may come as a **console capture**: what a terminal program saves when a flight
+computer's USB shell is asked to dump its memory, the commands typed at it and then each
+dump as base64 lines (bytes written as text, 3 bytes to 4 characters) between two marker lines the firmware prints,
+`----++++//[[( data start )]]\\++++----` and `----++++//[[( data end )]]\\++++----`.
+`import::read` recognizes a capture by a start marker in its first 1,000 lines, and refuses it,
+naming its first blocks, as the capture doesn't state its records' layout.
+[`capture::read`](../api/hpr_flightdata/capture/fn.read.html) reads a named block by the layout
+you give, as `records::read` reads a file. The base64 is decoded strictly (RFC 4648's standard alphabet); a
+character outside it, padding out of place or over bits that aren't zero, a block that never ends,
+a marker inside a block or two blocks of one name are refused, naming the line.
+
+> **How far to trust it.** The reading is exact for the bytes and types you state; whether they
+> are the logger's is your statement, so rely on the logger's own code or decoded table for the
+> layout. The sample logs hold 5 such files, 3 console captures and 2 raw files, each beside the
+> table its team decoded from the same records. The survey reads each by the types
+> `validation/log-layouts.json` states for it, its names from that table, then decodes every
+> record's fields itself from the file's bytes, apart from the reader's records, and compares them
+> with the table field by field (a wrong base64 decoding would fail it too): all 931,875 fields of
+> the 45,915 records written agree, and each record read holds the same channels as the team's
+> table read by its header. One capture's last 12,222 records are erased memory, which the team's
+> table writes as rows of `4294967295` and `nan` and the reader drops; their fields agree with
+> the table too, 1,237,425 fields in all.
+
+**What is left out.** No [primary track](#the-record), as for any table read by its header.
+`hpr analyze` and the Python package don't read these files yet: the Rust library does. A
+record's layout can't be found from its bytes alone: a file whose layout no one states stays
+unread. A capture's other blocks, such as the saved state a `params` block holds, are decoded but
+not read.
 
 ## The record
 
@@ -1046,7 +1129,7 @@ sample logs:
   altitude's change, are kept as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
   knows. An RTF document holding anything else is refused as not an Eggtimer's, among them the
   radio telemetry stream in two other sample files, which comes with
-  [M7.1c16](../decisions-and-roadmap.md#m7-1c16).
+  [M7.1c17](../decisions-and-roadmap.md#m7-1c17).
 
 The record's readings withhold on all these layouts, as on every logger's but PerfectFlite's
 `.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
@@ -2006,10 +2089,11 @@ are unpacked and counted too, each once: of the 29 in the 8 archives, 19 are in 
 ([zip archives](#zip-archives)), and each Excel workbook's sheets by the layout each reads as
 ([Excel workbooks](#excel-workbooks)), each table read by a mapping its publisher states
 ([above](#mappings-a-publisher-states)), and the range of the Eggtimer files' filtered-altitude
-multiplier ([above](#units-the-file-decides)). Of the 1,122 files it holds today, 1,001 are read, the 8
-archives counted as read when they unpack and the 16 workbooks when a sheet of each reads. The
-report labels 61 files for [M7.1c16](../decisions-and-roadmap.md#m7-1c16), the rest of the
-importers; 59 of them, of layouts no reader knows yet, are unread.
+multiplier ([above](#units-the-file-decides)), and each file of binary records against its
+team's table ([above](#binary-records-by-a-stated-layout)). Of the 1,122 files it holds today,
+1,006 are read, the 8 archives counted as read when they unpack and the 16 workbooks when a sheet
+of each reads. The report labels 56 files for [M7.1c17](../decisions-and-roadmap.md#m7-1c17), the
+rest of the importers; 54 of them, of layouts no reader knows yet, are unread.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
 reason printed: one is a spreadsheet's re-save of an AltOS export, its header edited, which is
@@ -2025,8 +2109,10 @@ tables whose publisher states their mapping ([above](#mappings-a-publisher-state
 an RRC3 export counted as damaged ([above](#units-the-file-decides)).
 Of the 3 RTF files the catalog files as not a log, by their extension, one is an Eggtimer's
 download, held to its reader, and two a radio telemetry stream, refused until
-[M7.1c16](../decisions-and-roadmap.md#m7-1c16). Sixteen spreadsheets are workbooks of flights'
-logs, held to the workbook reader. Five files filed as generic CSV or text are
+[M7.1c17](../decisions-and-roadmap.md#m7-1c17). Sixteen spreadsheets are workbooks of flights'
+logs, held to the workbook reader. Three files filed as text are console captures and two filed
+as binary are files of records, each read by the layout stated for it
+([above](#binary-records-by-a-stated-layout)). Five files filed as generic CSV or text are
 PerfectFlite's exports: four with no header row and one that names its temperature `Temp`. A
 Blue Raven high-rate file with no date is held to the Blue Raven's reader; its low-rate partner,
 which a person edited in a spreadsheet (a column with no name, two columns named in words the

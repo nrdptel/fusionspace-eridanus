@@ -294,7 +294,11 @@ out.
   invented files), and, in the survey, six team tables read by the column mapping RocketPy states
   for them
   ([M7.1c15](decisions-and-roadmap.md#m7-1c15),
-  [the mappings](format/flight-logs.md#mappings-a-publisher-states)); in the four layouts
+  [the mappings](format/flight-logs.md#mappings-a-publisher-states)), and a team flight
+  computer's binary records, from a raw file or a console capture's base64, read by a layout the
+  caller states, every field of the 5 sample files matching the team's own decoded table
+  ([M7.1c16](decisions-and-roadmap.md#m7-1c16),
+  [the layout](format/flight-logs.md#binary-records-by-a-stated-layout)); in the four layouts
   [M7.1c4](decisions-and-roadmap.md#m7-1c4) added (the board's, its ground station's, the phone
   app's and the Eggtimer's RTF), every unit a file doesn't state is decided by two checks or kept
   as written, and the two raw downloads [M7.1c5](decisions-and-roadmap.md#m7-1c5) added match
@@ -304,7 +308,7 @@ out.
   [M7.1b](decisions-and-roadmap.md#m7-1b), [M7.1c1](decisions-and-roadmap.md#m7-1c1),
   [M7.1c2](decisions-and-roadmap.md#m7-1c2), [M7.1c3](decisions-and-roadmap.md#m7-1c3),
   [M7.1c4](decisions-and-roadmap.md#m7-1c4), [M7.1c5](decisions-and-roadmap.md#m7-1c5)). The
-  other loggers come with [M7.1c16, the rest of the importers](decisions-and-roadmap.md#m7-1c16):
+  other loggers come with [M7.1c17, the rest of the importers](decisions-and-roadmap.md#m7-1c17):
   the Blue Raven's other files, Entacore AIM XTRA's own files, older `.xls` spreadsheets,
   CATS, Juno CSV, and tables whose headers state too little and whose publisher states no mapping. The rest of the readings, such
   as burnout and each leg of the descent, come with [M7.2](decisions-and-roadmap.md#m7-2), and

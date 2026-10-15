@@ -13,7 +13,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 |---|---|---:|---:|---|
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
-| aerospacenu-sillygoose-gs-csv | M7.1c16 | 1 | 0 | 1 unrecognized |
+| aerospacenu-sillygoose-gs-csv | M7.1c17 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
@@ -22,14 +22,15 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | altos-telem | M7.1c9 | 2 | 2 | none |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
 | arts2-raw-csv | M7.1c11 | 3 | 3 | none |
-| binary | M7.1c16 | 4 | 0 | 4 unrecognized |
+| binary | M7.1c17 | 2 | 0 | 2 unrecognized |
 | blueraven-csv | M7.1b | 89 | 89 | none |
 | blueraven-events-txt | not a log | 17 | 0 | 17 unrecognized |
 | blueraven-settings-csv | not a log | 1 | 0 | 1 unrecognized |
 | blueraven-settings-xlsx | not a log | 10 | 0 | 10 archive |
 | blueraven-summary-csv | M7.1c6 | 26 | 26 | none |
 | checklist | not a log | 4 | 0 | 4 archive |
-| csv | M7.1c16 | 23 | 2 | 1 syntax, 20 unrecognized |
+| console-capture | M7.1c16 | 3 | 3 | none |
+| csv | M7.1c17 | 23 | 2 | 1 syntax, 20 unrecognized |
 | debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
 | e80-imu-txt | M7.1c8 | 54 | 54 | none |
 | eggtimer-csv | M7.1b | 44 | 44 | none |
@@ -38,7 +39,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c16 | 2 | 0 | 2 unrecognized |
+| entacore-xtra | M7.1c17 | 2 | 0 | 2 unrecognized |
 | featherweight-summary-csv | M7.1c6 | 25 | 25 | none |
 | flight-computer-params-csv | not a log | 3 | 0 | 3 unit |
 | flight-summary-xlsx | not a log | 3 | 0 | 3 archive |
@@ -61,6 +62,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | png | not a log | 6 | 0 | 6 unrecognized |
 | raven-csv | M7.1a | 80 | 80 | none |
 | raven-fipa | M7.1c5 | 57 | 57 | none |
+| record-dump | M7.1c16 | 2 | 2 | none |
 | rocket-parameters | not a log | 4 | 0 | 4 unrecognized |
 | rrc3-csv | M7.1b | 51 | 51 | none |
 | rrc3-csv-damaged | damaged | 1 | 0 | 1 syntax |
@@ -68,18 +70,23 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | rtx-csv | M7.1c12 | 5 | 5 | none |
 | rtx-txt | M7.1c12 | 4 | 4 | none |
 | table-csv | M7.1c13 | 31 | 31 | none |
-| telemetry-rtf | M7.1c16 | 2 | 0 | 2 not-this-format |
-| txt | M7.1c16 | 22 | 0 | 22 unrecognized |
+| telemetry-rtf | M7.1c17 | 2 | 0 | 2 not-this-format |
+| txt | M7.1c17 | 19 | 0 | 19 unrecognized |
 | wind-profile-csv | not a log | 1 | 0 | 1 unrecognized |
 | workbook-xlsx | M7.1c14 | 16 | 16 | none |
-| xls | M7.1c16 | 1 | 0 | 1 unrecognized |
-| xlsx | M7.1c16 | 4 | 0 | 4 archive |
-| xml | M7.1c16 | 2 | 0 | 2 unrecognized |
+| xls | M7.1c17 | 1 | 0 | 1 unrecognized |
+| xlsx | M7.1c17 | 4 | 0 | 4 archive |
+| xml | M7.1c17 | 2 | 0 | 2 unrecognized |
 | zip | M7.1c7 | 8 | 8 | none |
-| **All** | | 1122 | 1001 | |
+| **All** | | 1122 | 1006 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
+- `5c15ad3db182065c txt -> console-capture`: a serial console's capture of a team flight computer's shell dumping its memory, base64 blocks between `----++++//[[( name start )]]\\++++----` marker lines, read by the record layout stated for it (`validation/log-layouts.json`); filed as text by its extension
+- `a964e00316c378d9 txt -> console-capture`: a serial console's capture of a team flight computer's shell dumping its memory, base64 blocks between `----++++//[[( name start )]]\\++++----` marker lines, read by the record layout stated for it (`validation/log-layouts.json`); filed as text by its extension
+- `d304c5e63044e3e3 txt -> console-capture`: a serial console's capture of a team flight computer's shell dumping its memory, base64 blocks between `----++++//[[( name start )]]\\++++----` marker lines, read by the record layout stated for it (`validation/log-layouts.json`); filed as text by its extension
+- `67f97f55050a505f binary -> record-dump`: a team flight computer's raw file of fixed-size binary records end to end, with no header or marks, read by the record layout stated for it (`validation/log-layouts.json`); filed as binary
+- `8f291cf155079b3d binary -> record-dump`: a team flight computer's raw file of fixed-size binary records end to end, with no header or marks, read by the record layout stated for it (`validation/log-layouts.json`); filed as binary
 - `045f5b9ed473b800 csv -> mapped-table-csv`: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension
 - `0c7808a84fb39c83 csv -> mapped-table-csv`: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension
 - `a9cf47fe2b2e5be0 csv -> mapped-table-csv`: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension
@@ -371,6 +378,16 @@ The 6 tables read by the column mapping their publisher states (M7.1c15, `valida
 | `d88a7fc53cbd55d1` | 17933 | 3 | `s` | 2 | 0 | 0 | RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {"ts": "time", "filtered_altitude_AGL": "altitude", "filtered_acceleration": "az"}, units=None |
 | `dd5287b375e84be8` | 64 | 4 | `s` | 1 | 2 | 0 | RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {"t": "time", "alt": "altitude"}, units=None |
 | `f912724676eea0ca` | 404 | 5 | `s` | 2 | 2 | 0 | RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {"ts": "time", "altitude[m]": "altitude", "velocity[m/s]": "vz"}, units=None |
+
+The 5 files of binary records (M7.1c16), each read by the record layout stated for it (`validation/log-layouts.json`), the fields' names from the table its team decoded from the same records, beside it: each record's fields, decoded here from the file's bytes (a capture's block as the reader decodes its base64) apart from the reader's records, against that table's row, field for field (both NaN counting as equal), a row a record; and the record read, against the team's table read by its header, cut to the records not erased, channel for channel. *Erased* counts the records at the end that are erased memory, every byte 0xFF, which the reader drops; *Fields written* counts the fields of the others, the samples the record read holds (a float that isn't finite a gap among them); *Misshapen* counts the table's rows of a cell count other than the layout's fields.
+
+| File | Family | What it is | Record, bytes | Records | Erased | Fields written | Table rows | Misshapen | Fields compared | Differing | Same channels |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| `5c15ad3db182065c` | console-capture | a team's flight computer, its shell's dump of flash; the team's table beside it names 25 columns, the first a clock in ms | 100 | 13655 | 12222 | 35825 | 13655 | 0 | 341375 | 0 | yes |
+| `67f97f55050a505f` | record-dump | a team's flight computer's raw file, a ground recording; the team's table beside it names 3 columns, the first a clock in ms | 12 | 9000 | 0 | 27000 | 9000 | 0 | 27000 | 0 | yes |
+| `8f291cf155079b3d` | record-dump | a team's flight computer's raw file; the team's table beside it names 23 columns, the first a clock in ms | 92 | 9000 | 0 | 207000 | 9000 | 0 | 207000 | 0 | yes |
+| `a964e00316c378d9` | console-capture | a team's flight computer, its shell's dump of flash; the team's table beside it names 25 columns, the first a clock in ms | 100 | 13644 | 0 | 341100 | 13644 | 0 | 341100 | 0 | yes |
+| `d304c5e63044e3e3` | console-capture | a team's flight computer, its shell's dump of flash; the team's table beside it names 25 columns, the first a clock in ms | 100 | 12838 | 0 | 320950 | 12838 | 0 | 320950 | 0 | yes |
 
 The 16 Excel workbooks (M7.1c14): each sheet's cells written out as text, as the workbook stores them, and read as a file of its own; a sheet's outcome is the layout it reads as, or why it doesn't (*no-data* for a sheet with no value, such as one holding only a chart). In all, 28 sheets: 6 Blue Raven CSV, 1 Eggtimer CSV, 2 Featherweight GPS CSV, 2 Featherweight summary CSV, 10 a table read by its header, 3 no-data, 1 syntax, 3 unrecognized.
 
@@ -735,4 +752,4 @@ The files read, by the logger each names:
 | SillyGooseV2 | 1 |
 | fw2kml | 15 |
 | phone app | 27 |
-| unknown | 47 |
+| unknown | 52 |

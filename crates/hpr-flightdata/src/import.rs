@@ -25,6 +25,7 @@
 //! | [AltimeterCloud CSV](crate::altimetercloud) | a header within the first 65 lines whose first name is `Time(ms)`, in any case, and which also names `acceleration_total(mG)` and `tilt` |
 //! | [Entacore AIM CSV](crate::entacore) | the first line starts with a `time` column, names at least two, and names one of the AIM's own channels, such as `Pressure AGL` |
 //! | [AltOS `.eeprom`](crate::altos_eeprom) | a JSON object naming `log_format` and `product`; or, within the first 1,000 lines, a `Config version:` line and a `manufacturer altusmetrum.org` line |
+//! | [Console capture](crate::capture) | a start marker, such as `----++++//[[( data start )]]\\++++----`, on a line of its own within the first 1,000; refused, naming its blocks, as its records need the caller's layout ([`capture::read`]) |
 //! | [AltOS telemetry](crate::altos_telem) | the first line that isn't blank is `TELEM`, a space, and an even number of hexadecimal digits |
 //! | [R-DAS text](crate::rdas) | the first line that isn't blank is `*** Configuration ***`, and a `*** Raw data ***` line comes within the first 200 |
 //! | [ARTS2 CSV](crate::arts2) | a first line of `#` and the names `MET Acc Vel iAlt pAlt`, by spaces, tabs or commas, in any case; tried before AltOS's `#` comments |
@@ -56,8 +57,9 @@ use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
 use crate::{
     aerospacenu_fcb, aerospacenu_gs, altimetercloud, altos, altos_eeprom, altos_telem, archive,
-    arts2, arts2_raw, blueraven, eggtimer, entacore, fluctus, fwgps, fwsummary, generic, kml, nmea,
-    perfectflite, phone_launch, raven, raven_fipa, rdas, rrc3, rrc3_rff, rtx, sillygoose,
+    arts2, arts2_raw, blueraven, capture, eggtimer, entacore, fluctus, fwgps, fwsummary, generic,
+    kml, nmea, perfectflite, phone_launch, raven, raven_fipa, rdas, rrc3, rrc3_rff, rtx,
+    sillygoose,
 };
 
 /// The formats [`read`] recognizes, in the order it tries them.
@@ -68,6 +70,7 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::RtxRaw,
     LogFormat::EggtimerRtf,
     LogFormat::AerospaceNuGroundStationText,
+    LogFormat::ConsoleCapture,
     LogFormat::Kml,
     LogFormat::Nmea0183,
     LogFormat::FeatherweightGpsCsv,
@@ -161,6 +164,10 @@ fn detect_text(text: &str) -> Option<LogFormat> {
     }
     if aerospacenu_gs::recognizes(text) {
         return Some(LogFormat::AerospaceNuGroundStationText);
+    }
+    // A console capture is told by its block markers, past the shell's own lines.
+    if capture::recognizes(text) {
+        return Some(LogFormat::ConsoleCapture);
     }
     // A GPS log is told by its own marks, which need not be on its first line: an NMEA file may
     // open with the receiver's power-up noise, a KML file with an XML declaration.
@@ -315,6 +322,14 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::AltosTelemetry) => altos_telem::read(&text),
         Some(LogFormat::AltosEeprom) => altos_eeprom::read(&text),
         Some(LogFormat::GenericTable) => generic::read(&text),
+        // A capture states no layout for its records: the caller's is needed.
+        Some(LogFormat::ConsoleCapture) => Err(capture::needs_a_layout(&text)),
+        // Never recognized: a file of records has no marks of its own.
+        Some(LogFormat::BinaryRecords) => Err(LogError::Layout {
+            message: "a file of binary records is read by a layout the caller states \
+                      (`records::read`)"
+                .to_owned(),
+        }),
         None => {
             let known: Vec<&str> = FORMATS.iter().map(|format| format.name()).collect();
             Err(LogError::Unrecognized {
