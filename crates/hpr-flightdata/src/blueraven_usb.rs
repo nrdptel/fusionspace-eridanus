@@ -27,8 +27,9 @@
 //!
 //! - *Its CRC.* The piece closes with `CRC:` and four hexadecimal digits, the CRC-16 the manual
 //!   calls Buypass (polynomial `0x8005`, starting at 0, no reflection, no final XOR; its check value
-//!   on `123456789` is `0xFEE8`) of the piece's text from its `@` to its last character before
-//!   `CRC:`, the spaces between them left out. The manual says the CRC is "for line of text" but
+//!   on `123456789` is `0xFEE8`) of the piece's text from its `@` to its last character that
+//!   isn't a space before `CRC:`: the spaces inside the line count, and only the run of spaces
+//!   just before `CRC:` is left out. The example lines' CRCs are `7730` and `F7EB`. The manual says the CRC is "for line of text" but
 //!   not which characters it starts and ends at; this span is the one under which every CRC in
 //!   the sample files checks.
 //! - *Its length.* The number after the mnemonic must be the piece's length in bytes, from `@`
@@ -42,7 +43,8 @@
 //! anything else wrong in it refuses the file ([`LogError::Syntax`]), naming its line: a stated
 //! length that isn't its own, a mnemonic other than these two, a date or time that can't be one, a
 //! value that isn't a whole number (or, in `FER:`, hexadecimal digits), more than
-//! [`MAX_VALUES`] values, or a layout unlike the first record's, its kind or its groups and their
+//! [`MAX_VALUES`] values or [`MAX_GROUPS`] groups, a label longer than [`MAX_LABEL_BYTES`], or a
+//! layout unlike the first record's, its kind or its groups and their
 //! counts, so that a file holding both downloads is refused too.
 //!
 //! **The clock.** Each record states the logger's date and time of day to the millisecond, `2026
@@ -119,6 +121,13 @@ const RECOGNITION_LINES: usize = 1_000;
 /// logs' low-rate record; a file past it isn't a Blue Raven's.
 pub const MAX_VALUES: usize = 256;
 
+/// The most groups a low-rate record may hold, over twice the manual's 6, and the longest a
+/// group's label may be, bytes, four times the manual's longest, `Vel:`: so that a record's
+/// labels can't fill its columns' names, its notes or the time spent checking them.
+pub const MAX_GROUPS: usize = 16;
+/// See [`MAX_GROUPS`].
+pub const MAX_LABEL_BYTES: usize = 16;
+
 /// What opens every record.
 const OPENING: &str = "@ LOG_";
 
@@ -134,7 +143,7 @@ const REGISTERS: &str = "FER:";
 
 /// The CRC-16 the manual calls Buypass (also CRC-16/UMTS): polynomial `0x8005`, initial value 0,
 /// no reflection, no final XOR.
-pub fn crc16_buypass(bytes: &[u8]) -> u16 {
+pub(crate) fn crc16_buypass(bytes: &[u8]) -> u16 {
     let mut crc: u16 = 0;
     for &byte in bytes {
         crc ^= u16::from(byte) << 8;
@@ -500,6 +509,16 @@ fn record(text: &str, line: usize) -> Result<Record, LogError> {
     }
     for &token in &tokens[8..] {
         if token.ends_with(':') && kind == LOW_RATE {
+            if token.len() > MAX_LABEL_BYTES || layout.len() >= MAX_GROUPS {
+                return Err(syntax(
+                    line,
+                    format!(
+                        "the record's group `{}` is past the {MAX_GROUPS} groups of at most \
+                         {MAX_LABEL_BYTES} bytes a label a record may hold",
+                        short(token)
+                    ),
+                ));
+            }
             if layout
                 .iter()
                 .any(|(label, _)| label.as_deref() == Some(token))
@@ -534,7 +553,7 @@ fn record(text: &str, line: usize) -> Result<Record, LogError> {
                     short(token),
                     label
                         .as_deref()
-                        .map(|label| format!(" in `{label}`"))
+                        .map(|label| format!(" in `{}`", short(label)))
                         .unwrap_or_default(),
                     if label.as_deref() == Some(REGISTERS) {
                         "a register in hexadecimal"
@@ -1088,6 +1107,24 @@ mod tests {
         ));
         assert!(
             message.contains("before its first group's label"),
+            "{message}"
+        );
+        let labels: String = (0..=MAX_GROUPS).map(|k| format!(" g{k}: 1")).collect();
+        let (_, message) = refusal(&line(
+            "LOG_LOW",
+            &format!("2026  5 23 10:15:00.140  40{labels}"),
+        ));
+        assert!(
+            message.contains("`g16:` is past the 16 groups"),
+            "{message}"
+        );
+        let long = format!("{}:", "x".repeat(MAX_LABEL_BYTES));
+        let (_, message) = refusal(&line(
+            "LOG_LOW",
+            &format!("2026  5 23 10:15:00.140  40 {long} 1"),
+        ));
+        assert!(
+            message.contains("past the 16 groups of at most 16 bytes"),
             "{message}"
         );
         let (_, message) = refusal(&line("LOG_LOW", "2026  5 23 10:15:00.140  40 FER: 60g"));

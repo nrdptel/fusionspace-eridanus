@@ -1,12 +1,12 @@
 # ADR-272: M7.1c17 in two: the Blue Raven's USB download first; the rest to M7.1c18 (2026-10-15)
 
 - **Status:** accepted; narrows M7.1c17 to a first increment and moves the rest, with M7.1c17's old entry and *done when* (the parent's), to M7.1c18; follows [ADR-271](0271-binary-records-by-a-stated-layout-before-the-rest.md)
-- **Summary:** After M7.1c16, 54 sample logs were left unread. Two of them are a Blue Raven's flight data as its USB port downloads it to a terminal, one line a sample, each closed by a CRC, in a layout the maker's manual describes. M7.1c17 reads these, keeping only the records whose CRC checks, each held to its stated length, and reads each field by the manual where the record holds what the manual lists. All 354,284 values of the 19,636 records read agree with the survey's own decoding. A third file is filed as a flyer's copy of a summary, not a log. The rest goes to M7.1c18.
+- **Summary:** After M7.1c16, 54 sample logs were left unread. Two of them are a Blue Raven's recording as its USB port downloads it to a terminal, one line a sample, each closed by a CRC, in a layout the maker's manual describes. M7.1c17 reads these, keeping only the records whose CRC checks, each held to its stated length, and reads each field by the manual where the record holds what the manual lists. All 354,284 values of the 19,636 records read agree with the survey's own decoding. A third file is filed as a flyer's copy of a summary, not a log. The rest goes to M7.1c18.
 
 **Context.** ADR-271 sorted the 54 files left after M7.1c16 into five groups: a course's Teensy
 logger (8), one team's radio packets (4), altimeters' other text (8), proprietary files (7), and
 tables a mapping settles or files to refile (27). In the altimeters' group, three files belong to
-the Blue Raven. Two are a team's terminal captures of one flight's USB download, its high-rate and
+the Blue Raven. Two are a team's terminal captures of one USB download, its high-rate and
 low-rate sets: lines such as `@ LOG_HIR  139 <date> <time> <sync> … CRC: XXXX`. The third,
 filed by a flyer beside a Blue Raven's summary CSV, is that summary's 48 rows written as a table of
 cells between `|`, by the same flyer's program that wrote the events file beside it, which the
@@ -75,8 +75,13 @@ on the manual's scales alone: each high-rate quaternion's norm
 **Consequences.** The survey reads 1,008 of its 1,122 files. The 2 downloads hold 19,636 records,
 17,930 high-rate and 1,706 low-rate, every one whose CRC checks; 354,284 values compared with the
 survey's own decoding, none differing. The quaternion's norm runs from 29,998.25 to 30,000.00; the
-pad pressure is 0.9977 of the TeleMega's; the liftoff bit sets 0.024 s after the climb begins.
-Over the whole file the Blue Raven's pressure moves by 0.16 % of its pad's, while the TeleMega's
-falls to 0.773 of its pad's: the logger's barometer saw almost none of the climb. The file doesn't say why,
-so the reading keeps the values as written, and the report prints both ratios. 51 files are left to
-M7.1c18.
+pad pressure is 0.9977 of the TeleMega's; the liftoff bit sets 0.024 s after the high-rate file's
+first acceleration above 3 g.
+
+The download records no flight. Its acceleration stays above 3 g for at most 0.056 s at a time, and
+its greatest mean over 1 s is 1.68 g, where the TeleMega in the same rocket records a boost. Its pressure moves by 0.16 % of its pad's over the whole file,
+while the TeleMega's falls to 0.773 of its pad's. So the liftoff bit was set by a short spike, not
+a launch, and none of the download's channels, the inertial ones included, describes the
+TeleMega's flight. The files don't say why. The liftoff check holds only that the reader finds the
+bit at the spike the high-rate file records; it is no check of a launch. The reading keeps the
+values as written, and the report prints these measures. 51 files are left to M7.1c18.

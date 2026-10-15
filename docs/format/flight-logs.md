@@ -66,8 +66,9 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > by a layout the caller states, since [M7.1c16](../decisions-and-roadmap.md#m7-1c16); in the 5
 > sample files every field matches the team's own decoded table
 > ([binary records by a stated layout](#binary-records-by-a-stated-layout)).
-> A Blue Raven's USB download, read since [M7.1c17](../decisions-and-roadmap.md#m7-1c17), keeps
-> only the lines whose CRC and stated length check and reads them by the maker's manual; every
+> A Blue Raven's USB download, read since [M7.1c17](../decisions-and-roadmap.md#m7-1c17) (its
+> reader), keeps only the records whose CRC checks, each held to its stated length, and reads them
+> by the maker's manual; every
 > value in the 2 sample files equals the survey's own decoding, and values the manual doesn't
 > list are kept as written ([the Blue Raven's USB download](#the-blue-ravens-usb-download)).
 > Other layouts are refused, not guessed at; they come with
@@ -692,9 +693,12 @@ The manual describes the download (*Blue Raven User's Guide*, Featherweight, upd
 Appendix A, p22–24). Typed at the logger, `<download l>` sends the low-rate set, recorded 50 times
 a second, and `<download h>` the high-rate set, 500 times a second. Each line opens with its
 mnemonic, `@ LOG_LOW` or `@ LOG_HIR`, then its length, the logger's date and time of day, a sync
-code and the data, and closes with `CRC:` and four hexadecimal digits, a check value worked out
-from the line's text: the manual names it for the low-rate line (p23), and the sample files' high-rate
-lines carry one of the same kind. `import::read` recognizes a download by a line among its first
+code and the data, and closes with `CRC:` and four hexadecimal digits. The sync code is "a
+millisecond counter recorded in both the low-rate and high-rate data so that the two data sets can
+be aligned", rolling over every 250 ms (p23). The CRC, a cyclic redundancy check, is a check value
+worked out from the line's text, so a line that lost or changed a character no longer matches it:
+the manual names it for the low-rate line (p23), and the sample files' high-rate lines carry one
+of the same kind. `import::read` recognizes a download by a line among its first
 1,000 that opens with either mnemonic, holds no other `@ LOG_`, and whose CRC checks, and reads it with `hpr_flightdata::blueraven_usb`
 ([ADR-272, reading the Blue Raven's USB download](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0272-the-blue-ravens-usb-download-before-the-rest.md),
 which decided it). Each set is a record of its own, as the app's two files are.
@@ -715,8 +719,10 @@ own:
 > parts of the reading to the files ([below](#how-the-usb-download-was-checked)), and the other
 > fields rest on the manual's scales alone. The sample files' firmware writes more or fewer values
 > than the manual lists in some places;
-> those values are kept as written, not guessed at. The low-rate file's barometer barely moved in
-> its flight, which the file doesn't explain: don't take an altitude from its pressure.
+> those values are kept as written, not guessed at. The 2 sample files record no flight: neither
+> their pressure nor their acceleration shows a launch, though the TeleMega in the same rocket
+> records one, and the files don't say why. So they check how the download is read, not how
+> a Blue Raven's channels follow a flight.
 
 **Each line's two checks.** A terminal saves what the port sends, and a capture can lose part of
 it: in one sample file, a record whose `CRC:` and line end were lost runs on into the next record,
@@ -756,10 +762,14 @@ in which no record's CRC checks.
 The gyro rates are "raw data in the sensor axis", and the velocities and positions are in
 "ground-relative inertial coordinates (rather than rocket axes)" (p23–24). The accelerations come
 from the ±32 g accelerometers below 32 g and from the high-range one above it. The manual says the
-download writes the quaternion "with the rotation axis first and the magnitude term fourth" (p24).
-The app's high-rate CSV doesn't: as of 2026-10-15, in each such file among the sample logs whose
-first row holds numbers, `Quat_1` is the largest term there, about 1 on the pad, so the CSV writes the magnitude term first. Both keep the
-quaternion's terms as numbers, so neither order changes a value read.
+download writes the quaternion, four numbers the logger keeps its attitude in (a unit quaternion,
+whose four terms' squares sum to 1), "with the rotation axis first and the magnitude term fourth"
+(p24). The app's high-rate CSV doesn't: in each such file among the sample logs whose first row
+holds numbers, `Quat_1` is the largest term there, about 1 on the pad, so the CSV writes the
+magnitude term first (checked by hand on 2026-10-15). Both keep the quaternion's terms as numbers,
+so neither order changes a value read. A flight event register is a set of bits, "one bit for each
+event" (p24), such as apogee detected; the rocket's records the events that affect every output,
+and each output's its own.
 
 **Counts unlike the manual's.** A logger's firmware need not write what the manual of the day
 lists. The sample files' firmware writes other counts: a high-rate record holds 12
@@ -835,12 +845,16 @@ failed one would be counted as unread:
   a TeleMega (an Altus Metrum board) in the same rocket logged; the check allows 2% either way.
 - The first register's lowest bit, the one the app's files call `Liftoff`, first sets 0.024 s
   after the three axes' acceleration in the high-rate file first passes 3 g; the check allows
-  0.1 s.
+  0.1 s. This holds the two files' clocks and the register's first value to each other; it
+  doesn't show a launch, as the next paragraph says.
 
-One thing the files don't explain. Over the whole low-rate file, the Blue Raven's pressure moves
-by only 0.16% of its pressure on the pad, while the TeleMega's falls to 0.773 of its own: the Blue
-Raven's barometer saw almost none of the climb. Nothing in the file says why, so the reading keeps
-the values as written, and the [survey's report](#how-it-was-checked) prints both ratios.
+The download records no flight. The high-rate file's acceleration stays above 3 g for at most
+0.056 s at a time, and its greatest mean over any 1 s is 1.68 g: the bit was set by a short spike,
+not a boost. Over the whole low-rate file the Blue Raven's pressure moves by only 0.16% of its
+pressure on the pad, while the TeleMega's falls to 0.773 of its own. So none of the download's
+channels, the gyroscopes' and accelerometers' included, describes the TeleMega's flight. Nothing in the files says
+why, so the reading keeps the values as written, and the [survey's
+report](#how-it-was-checked) prints these measures.
 
 **What is left out.** No altitude is made from the pressure, and the two sets aren't joined by
 their sync code. `hpr analyze` and the Python package don't read these files yet: the Rust library

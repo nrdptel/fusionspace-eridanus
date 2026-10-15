@@ -3176,9 +3176,11 @@ const BLUERAVEN_USB_FAMILY: &str = "blueraven-usb-txt";
 const BLUERAVEN_USB_FLIGHTS: [(&str, &str, &str); 1] =
     [("a106c197fc5f6dec", "455ecee4a48bd98e", "e56325370ab76ab8")];
 
-/// How near the AltOS board's the low-rate download's pressure on the pad must be, as a ratio: two
-/// barometers in one rocket agree within a few hundred pascals, under 1 %; the manual's other
-/// scale for the pressure, atm × 10,000 in the live status line (p22), would be 5 times off.
+/// How near the AltOS board's the low-rate download's pressure on the pad must be, as a ratio. The
+/// band tells the manual's scale from a wrong one: its other scale for the pressure, atm × 10,000
+/// in the live status line (p22), would be 5 times off. It doesn't tell atm from bar, 1.3 % apart;
+/// the manual states atm. Nor is it a check of the barometer: the two files' days aren't known to
+/// be the same, as the Blue Raven's date may be its firmware's build date.
 const USB_PAD_BAND: std::ops::RangeInclusive<f64> = 0.98..=1.02;
 
 /// How long after the high-rate download's first acceleration above 3 g the low-rate download's
@@ -3192,7 +3194,7 @@ const QUATERNION_NORM_BAND: std::ops::RangeInclusive<f64> = 29_998.0..=30_002.0;
 
 /// A Blue Raven USB download against what the file itself states, each record decoded here apart
 /// from the reader (M7.1c17).
-#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 struct UsbFile {
     id: String,
     /// `high-rate` or `low-rate`.
@@ -3216,6 +3218,17 @@ struct UsbFile {
     /// The least and greatest norm of the high-rate records' quaternion, the 7th to the 10th
     /// value, as written.
     quaternion_norm: Option<[f64; 2]>,
+    /// The high-rate records whose quaternion's norm was taken: each record whose CRC checks must
+    /// have one.
+    quaternions: usize,
+    /// Whether the reader's channels are the ones decoded here, by name and in order.
+    same_columns: bool,
+    /// The high-rate download's longest run of samples whose acceleration, the three axes'
+    /// magnitude, is above 3 g, s from its first sample to its last; and the greatest mean of that
+    /// magnitude over the samples of any 1 s, g. A motor's boost holds several g for a second or
+    /// more.
+    longest_above_3g_s: Option<f64>,
+    greatest_mean_1s_g: Option<f64>,
     /// The low-rate download's pressure on the pad over the AltOS board's of the same flight,
     /// each the median of its first [`PAD_SAMPLES`].
     pad_pressure_over_altos: Option<f64>,
@@ -3305,11 +3318,13 @@ fn usb_values(tokens: &[&str]) -> Option<Vec<(String, f64)>> {
     let seconds = s.parse::<f64>().ok()?;
     let time = (h.parse::<f64>().ok()? * 60.0 + m.parse::<f64>().ok()?) * 60.0 + seconds;
     let mut values: Vec<(String, f64)> = Vec::new();
-    for (name, index) in [("Year", 3), ("Month", 4), ("Day", 5), ("Sync", 7)] {
+    for (name, index) in [("Year", 3), ("Month", 4), ("Day", 5)] {
         values.push((name.to_owned(), tokens.get(index)?.parse().ok()?));
     }
-    // The reader works the time of day out in whole milliseconds.
+    // The reader works the time of day out in whole milliseconds; the line gives it before the
+    // sync code.
     values.push(("Time".to_owned(), (time * 1_000.0).round() / 1_000.0));
+    values.push(("Sync".to_owned(), tokens.get(7)?.parse().ok()?));
     let mut groups: Vec<(String, Vec<&str>)> = Vec::new();
     if kind == "LOG_HIR" {
         groups.push(("LOG_HIR".to_owned(), Vec::new()));
@@ -3379,6 +3394,8 @@ fn usb_checks(samples: &[Sample]) -> Vec<UsbFile> {
                 file.pieces += 1;
                 let end = starts.get(k + 1).copied().unwrap_or(line.len());
                 let piece = line[start..end].trim_end();
+                // Stricter than the reader, which also takes `CRC:XXXX` and more spaces: a piece
+                // the reader keeps and this doesn't shows as a count that differs.
                 let Some(at) = piece.rfind(" CRC: ") else {
                     continue;
                 };
@@ -3417,6 +3434,7 @@ fn usb_checks(samples: &[Sample]) -> Vec<UsbFile> {
                 }
             }
         }
+        file.quaternions = norms.len();
         file.quaternion_norm = norms.iter().fold(None, |range, &norm| {
             Some(range.map_or([norm, norm], |[least, most]: [f64; 2]| {
                 [least.min(norm), most.max(norm)]
@@ -3435,6 +3453,17 @@ fn usb_checks(samples: &[Sample]) -> Vec<UsbFile> {
                         file.values_differing += 1;
                     }
                 }
+            }
+            let names: Vec<&str> = log.channels.iter().map(|c| c.column.as_str()).collect();
+            file.same_columns = decoded.first().is_some_and(|record| {
+                record
+                    .iter()
+                    .map(|(name, _)| name.as_str())
+                    .collect::<Vec<_>>()
+                    == names
+            });
+            if file.kind == "high-rate" {
+                (file.longest_above_3g_s, file.greatest_mean_1s_g) = boost(log);
             }
             logs.insert(id.clone(), log.clone());
         }
@@ -3501,10 +3530,56 @@ fn usb_checks(samples: &[Sample]) -> Vec<UsbFile> {
     files
 }
 
+/// A high-rate download's longest run above 3 g, s, and its greatest mean acceleration over 1 s,
+/// g, from the reader's `Accel X`, `Accel Y` and `Accel Z`; `None` without them.
+fn boost(log: &FlightLog) -> (Option<f64>, Option<f64>) {
+    const G: f64 = 9.806_65;
+    let axes: Vec<&Channel> = ["Accel X", "Accel Y", "Accel Z"]
+        .iter()
+        .filter_map(|name| log.channels.iter().find(|c| c.column == *name))
+        .collect();
+    let [x, y, z] = axes.as_slice() else {
+        return (None, None);
+    };
+    let g: Vec<f64> = (0..x.values.len())
+        .map(|k| (x.values[k].powi(2) + y.values[k].powi(2) + z.values[k].powi(2)).sqrt() / G)
+        .collect();
+    let time = &x.time_s;
+    let (mut longest, mut start) = (0.0_f64, None);
+    for (k, &a) in g.iter().enumerate() {
+        match (a > 3.0, start) {
+            (true, None) => start = Some(k),
+            (false, Some(first)) => {
+                longest = longest.max(time[k - 1] - time[first]);
+                start = None;
+            }
+            _ => {}
+        }
+    }
+    if let Some(first) = start {
+        longest = longest.max(time[g.len() - 1] - time[first]);
+    }
+    // Each sample's mean over the samples from it to 1 s later.
+    let (mut sum, mut end, mut greatest) = (0.0, 0, None::<f64>);
+    for begin in 0..g.len() {
+        while end < g.len() && time[end] < time[begin] + 1.0 {
+            sum += g[end];
+            end += 1;
+        }
+        if time[g.len() - 1] >= time[begin] + 1.0 - 1e-9 {
+            let mean = sum / (end - begin) as f64;
+            greatest = Some(greatest.map_or(mean, |most| most.max(mean)));
+        }
+        sum -= g[begin];
+    }
+    (Some(longest), greatest)
+}
+
 /// The USB downloads that fail a check, as lines of the unread list: a record the reader kept
 /// other than the ones whose CRC checks here, a stated length not its own, a value differing from
-/// this decoding, a quaternion's norm off 30,000, or, by flight, a pad pressure off the AltOS
-/// board's or a liftoff bit set before the climb or late.
+/// this decoding, channels other than the ones decoded here, a high-rate record with no quaternion
+/// or one whose norm is off 30,000, or, by flight, a pad pressure off the AltOS board's or a
+/// liftoff bit set before the first acceleration above 3 g or late.
 fn usb_unread(files: &[UsbFile]) -> Vec<String> {
     files
         .iter()
@@ -3513,9 +3588,14 @@ fn usb_unread(files: &[UsbFile]) -> Vec<String> {
                 || f.length_agrees != f.crc_checks
                 || f.values_differing > 0
                 || f.values_compared == 0
-                || f.quaternion_norm.is_some_and(|[least, most]| {
-                    !QUATERNION_NORM_BAND.contains(&least) || !QUATERNION_NORM_BAND.contains(&most)
-                })
+                || !f.same_columns
+                || (f.kind != "high-rate" && f.kind != "low-rate")
+                || (f.kind == "high-rate"
+                    && (f.quaternions != f.crc_checks
+                        || !f.quaternion_norm.is_some_and(|[least, most]| {
+                            QUATERNION_NORM_BAND.contains(&least)
+                                && QUATERNION_NORM_BAND.contains(&most)
+                        })))
                 || (f.kind == "low-rate"
                     && (!f
                         .pad_pressure_over_altos
@@ -3527,14 +3607,17 @@ fn usb_unread(files: &[UsbFile]) -> Vec<String> {
         .map(|f| {
             format!(
                 "  {} ({BLUERAVEN_USB_FAMILY}): fails its checks: {} records read of {} whose CRC \
-                 checks, {} lengths agree, {} of {} values differ, quaternion norm {:?}, pad \
-                 pressure over the AltOS board's {:?}, liftoff lag {:?} s",
+                 checks, {} lengths agree, {} of {} values differ, the same columns: {}, {} \
+                 quaternions, norm {:?}, pad pressure over the AltOS board's {:?}, liftoff lag \
+                 {:?} s",
                 f.id,
                 f.records,
                 f.crc_checks,
                 f.length_agrees,
                 f.values_differing,
                 f.values_compared,
+                f.same_columns,
+                f.quaternions,
                 f.quaternion_norm,
                 f.pad_pressure_over_altos,
                 f.liftoff_lag_s
@@ -5484,6 +5567,16 @@ fn markdown(report: &Report) -> String {
                     .map_or("–".to_owned(), |lag| format!("{lag:.3}")),
             );
         }
+        let boosts: Vec<String> = files
+            .iter()
+            .filter_map(|file| {
+                Some(format!(
+                    "`{}`'s acceleration, the three axes' magnitude, stays above 3 g for at most \
+                     {:.3} s at a time, and its greatest mean over 1 s is {:.2} g",
+                    file.id, file.longest_above_3g_s?, file.greatest_mean_1s_g?
+                ))
+            })
+            .collect();
         let flat: Vec<String> = files
             .iter()
             .filter_map(|file| {
@@ -5512,11 +5605,16 @@ fn markdown(report: &Report) -> String {
              *Liftoff lag* the time from the high-rate file's first acceleration, the three axes' \
              magnitude, above 3 g to the \
              first low-rate record whose first register has its lowest bit set, the bit the app's \
-             files call `Liftoff`. {}.\n\n\
+             files call `Liftoff`. {}. {}.\n\n\
              | File | Kind | Pieces | CRC differs | CRC checks | Length agrees | Read | Values \
              compared | Differing | Quaternion norm | Pad over AltOS | Liftoff lag, s |\n\
              |---|---|---:|---:|---:|---:|---:|---:|---:|---|---:|---:|\n{rows}",
             files.len(),
+            if boosts.is_empty() {
+                "No high-rate download's acceleration is measured".to_owned()
+            } else {
+                boosts.join("; ")
+            },
             if flat.is_empty() {
                 "No AltOS board's pressure is compared".to_owned()
             } else {
@@ -7389,5 +7487,113 @@ mod tests {
         assert!(!rtx_cut(106.975_720, truth));
         assert!(rtx_cut(32.983_539, 32.983_539_000_000_1));
         assert!(!rtx_cut(32.983_540, 32.983_539_4));
+    }
+
+    /// A download passes the survey's checks only inside every band, and fails closed where a
+    /// check has nothing to measure.
+    #[test]
+    fn usb_downloads_fail_outside_each_band_or_with_nothing_measured() {
+        let high = UsbFile {
+            id: "high".to_owned(),
+            kind: "high-rate".to_owned(),
+            pieces: 3,
+            crc_checks: 3,
+            length_agrees: 3,
+            records: 3,
+            values_compared: 51,
+            quaternion_norm: Some([29_998.0, 30_002.0]),
+            quaternions: 3,
+            same_columns: true,
+            ..UsbFile::default()
+        };
+        let low = UsbFile {
+            id: "low".to_owned(),
+            kind: "low-rate".to_owned(),
+            quaternion_norm: None,
+            quaternions: 0,
+            pad_pressure_over_altos: Some(0.98),
+            liftoff_lag_s: Some(0.1),
+            ..high.clone()
+        };
+        assert!(usb_unread(&[high.clone(), low.clone()]).is_empty());
+        let fails = |file: UsbFile| usb_unread(&[file]).len() == 1;
+        for (norm, quaternions) in [
+            (None, 3),
+            (Some([29_997.9, 30_000.0]), 3),
+            (Some([29_999.0, 30_002.1]), 3),
+            (Some([29_999.0, 30_000.0]), 2),
+        ] {
+            assert!(fails(UsbFile {
+                quaternion_norm: norm,
+                quaternions,
+                ..high.clone()
+            }));
+        }
+        for (pad, lag) in [
+            (None, Some(0.02)),
+            (Some(0.979), Some(0.02)),
+            (Some(1.021), Some(0.02)),
+            (Some(1.0), None),
+            (Some(1.0), Some(-0.001)),
+            (Some(1.0), Some(0.101)),
+        ] {
+            assert!(fails(UsbFile {
+                pad_pressure_over_altos: pad,
+                liftoff_lag_s: lag,
+                ..low.clone()
+            }));
+        }
+        for broken in [
+            UsbFile {
+                records: 2,
+                ..high.clone()
+            },
+            UsbFile {
+                length_agrees: 2,
+                ..high.clone()
+            },
+            UsbFile {
+                values_differing: 1,
+                ..high.clone()
+            },
+            UsbFile {
+                values_compared: 0,
+                ..high.clone()
+            },
+            UsbFile {
+                same_columns: false,
+                ..high.clone()
+            },
+            UsbFile {
+                kind: "other".to_owned(),
+                ..high.clone()
+            },
+        ] {
+            assert!(fails(broken));
+        }
+    }
+
+    /// The boost measures on an invented download: 1.2 s at 5 g between 1 g on the pad.
+    #[test]
+    fn a_boost_is_measured_from_the_accelerations() {
+        let time: Vec<f64> = (0..2_000).map(|k| f64::from(k) * 0.002).collect();
+        let g = |t: f64| if (1.0..2.2).contains(&t) { 5.0 } else { 1.0 };
+        let mut log = hpr_flightdata::import::read(include_bytes!(
+            "../../crates/hpr-flightdata/tests/samples/blueraven-usb-high-rate.txt"
+        ))
+        .unwrap();
+        for (column, scale) in [("Accel X", 0.6), ("Accel Y", 0.0), ("Accel Z", 0.8)] {
+            let axis = log
+                .channels
+                .iter_mut()
+                .find(|c| c.column == column)
+                .unwrap();
+            axis.time_s = time.clone();
+            axis.values = time.iter().map(|&t| g(t) * scale * 9.806_65).collect();
+        }
+        let (longest, greatest) = boost(&log);
+        let longest = longest.unwrap();
+        assert!((longest - 1.198).abs() < 1e-9, "{longest}");
+        assert!((greatest.unwrap() - 5.0).abs() < 1e-9);
     }
 }
