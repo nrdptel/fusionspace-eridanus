@@ -21,6 +21,8 @@ fn layout(log: &FlightLog) -> Vec<(&str, Quantity)> {
         .collect()
 }
 
+/// The values of a column's channel.
+#[cfg(test)]
 fn values<'a>(log: &'a FlightLog, column: &str) -> &'a [f64] {
     &log.channels
         .iter()
