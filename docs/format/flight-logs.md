@@ -1514,15 +1514,15 @@ What the reader does with the records:
   for ±50 g): a g from 36.1 to 39.9 mV, 7.39 to 8.17 counts on the board's 5 V supply; the side's
   reading within 150 mV, 30.72 counts, of half the supply and between the two ends; and the pad's
   reading nearer an end than the side's. Otherwise the file is refused.
-- **Pressure**, by the MPX4100A's nominal transfer function, the first line below, with $P$ in
-  kPa and $V_S$ the supply (*MPX4100A*, Rev 9, Freescale, 2009, p. 5). The converter reads the
-  output against the supply as its full scale, so $V_{\mathrm{out}}/V_S$ is $c/1024$, which gives
-  the second:
+- **Pressure**, by the MPX4100A's nominal transfer function, the first line below, with $V$ the
+  sensor's output, $V_S$ its supply and $P$ in kPa (*MPX4100A*, Rev 9, Freescale, 2009, p. 5).
+  The converter reads the output against the supply as its full scale, so $V/V_S$ is $c/1024$,
+  which gives the second:
 
   $$
   \begin{aligned}
-  V_{\mathrm{out}} &= V_S\,(0.010\,59\,P - 0.1518), \\
-  P &= \frac{c/1024 + 0.1518}{0.010\,59}\ \mathrm{kPa}.
+  V &= V_S\,(0.010\,59\,P - 0.1518) \\
+  P &= \frac{c/1024 + 0.1518}{0.010\,59}
   \end{aligned}
   $$
 
