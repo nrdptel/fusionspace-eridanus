@@ -15,25 +15,30 @@ the command, so a later run can be compared like for like.
   depends on the time alone, so nothing it returns changes.
 - **Measured** on an Apple M5 (10 cores), rustc 1.98.1, main 6537d2c9 against the change,
   alternating, two runs each of `cargo bench -p fusionspace-hpr --features parallel --bench
-  ten_thousand` (each figure the fastest of three; Spotlight indexing on one core throughout):
+  ten_thousand` (each figure the fastest of three):
 
   | measurement | before | after |
   |---|---|---|
-  | Valetudo: 10,000 flights on 10 threads | 3.04 / 3.06 s | 2.71 / 2.74 s (−10 to −11%) |
-  | Valetudo: a flight on one thread | 1.930 / 1.921 ms | 1.724 / 1.724 ms (−10 to −11%) |
-  | K940: 10,000 flights on 10 threads | 9.47 / 9.79 s | 8.30 / 8.52 s (−12 to −13%) |
-  | K940: a flight on one thread | 5.855 / 5.841 ms | 5.069 / 5.082 ms (−13%) |
+  | Valetudo: 10,000 flights on 10 threads | 3.02 / 3.07 s | 2.59 / 2.72 s (−11 to −14%) |
+  | Valetudo: a flight on one thread | 1.920 / 1.980 ms | 1.649 / 1.649 ms (−14 to −17%) |
+  | K940: 10,000 flights on 10 threads | 9.46 / 9.97 s | 8.12 / 8.38 s (−14 to −16%) |
+  | K940: a flight on one thread | 5.821 / 5.866 ms | 4.864 / 4.861 ms (−16 to −17%) |
 
   A new criterion bench carries the observer, which "Valetudo K400C to the ground" doesn't:
-  "Valetudo K400C with its flight metrics" read 2.375 ms before and 2.128 ms after (−10%;
-  `cargo bench -p fusionspace-hpr-sim --bench flight`).
+  "Valetudo K400C with its flight metrics" read 2.347 / 2.354 ms before and 2.036 / 2.030 ms after
+  (−13 to −14%; `cargo bench -p fusionspace-hpr-sim --bench flight`). The 47% is from one
+  profile, not committed: macOS `sample` for 18 s over dispersed K940 flights on one thread.
+  Each slot is a `OnceCell` read in place: a first version that copied the four slots in and out
+  of a `Cell` on every call gained 10 to 13%.
 - **What moves.** No output bit. `shared_step_evaluations_change_no_output_bit`
-  (`crates/hpr-sim/src/tests.rs`) flies a supersonic rocket and Valetudo to the ground in a
-  crosswind both ways (a test-only switch evaluates every instant afresh) and compares the
+  (`crates/hpr-sim/src/tests.rs`) flies five flights both ways (a test-only switch evaluates every
+  instant afresh): past Mach 1, Valetudo, Valetudo under a drogue and a main that open over time,
+  Valetudo on the fixed-step RK4, and a two-stage stack, all in a crosswind. It compares the
   metrics, the summary and every channel recorded at 10 ms bit for bit. Two mutations fail it:
-  reusing the integrator's evaluation without matching the state, and returning another time's
-  evaluation. The committed reports reproduce byte for byte (the gate's `validate`, `examples`
-  and `refs` checks).
+  taking a canopy's drag area at the step's start, and answering from another time's slot. The
+  state compared before reusing the integrator's evaluation decides nothing today (that
+  evaluation is always the step's end), so removing it passes; the time compared does decide. The
+  committed reports reproduce byte for byte (the gate's `validate`, `examples` and `refs` checks).
 
 ## The site's layout check on six tabs (#469)
 

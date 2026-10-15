@@ -1321,27 +1321,34 @@ fn canted_fins_spin_to_the_analytic_balance() {
 /// The observers' evaluations, shared within a step (each time evaluated once, and the end state
 /// taken from the integrator's last evaluation when it is that state), change no output bit: the
 /// flight metrics and every recorded channel at 10 ms match the path that evaluates every instant
-/// afresh. Flown past Mach 1 and to the ground under its parachutes, in a crosswind.
+/// afresh. Flown in a crosswind past Mach 1; to the ground under a drogue and a main that open
+/// over time, so a canopy's drag changes within a step; on the fixed-step RK4, whose dense output
+/// is cubic; and as a two-stage stack.
 #[test]
 fn shared_step_evaluations_change_no_output_bit() {
     use crate::flight::STEP_MEMO_OFF;
     use crate::metrics::FlightMetrics;
-    let fly = |name: &str, motor: &str, fresh: bool| -> (String, String, Vec<u64>) {
-        STEP_MEMO_OFF.with(|off| off.set(fresh));
-        let sim = Simulation::new(
-            &design(name),
-            motor,
-            windy_environment(ConstantWind::new(6.0, 4.0).unwrap()),
-            Rail::vertical(3.0),
-            FlightSettings::default(),
-        )
-        .unwrap();
+    use crate::recovery::{CanopyType, Device, DeviceDrag, Inflation};
+    use crate::{Method, Trigger};
+    /// Turns the shared path off for its life, and back on even if the flight panics.
+    struct Fresh;
+    impl Fresh {
+        fn new() -> Self {
+            STEP_MEMO_OFF.with(|off| off.set(true));
+            Fresh
+        }
+    }
+    impl Drop for Fresh {
+        fn drop(&mut self) {
+            STEP_MEMO_OFF.with(|off| off.set(false));
+        }
+    }
+    let read = |sim: &Simulation| -> (String, String, Vec<u64>) {
         let mut metrics = FlightMetrics::new();
         let result = sim.run(&mut metrics).unwrap();
         let summary = metrics.summary(&result, sim.environment()).unwrap();
         let mut recorder = Recorder::new(Channel::ALL.to_vec(), Some(0.01)).unwrap();
         sim.run(&mut recorder).unwrap();
-        STEP_MEMO_OFF.with(|off| off.set(false));
         let bits = recorder
             .rows()
             .iter()
@@ -1350,12 +1357,70 @@ fn shared_step_evaluations_change_no_output_bit() {
             .collect();
         (format!("{metrics:?}"), format!("{summary:?}"), bits)
     };
-    for (name, motor) in [
-        ("synthetic-54mm-three-fin", "i175"),
-        ("rocketpy-valetudo", "example"),
-    ] {
-        let shared = fly(name, motor, false);
-        let fresh = fly(name, motor, true);
+    let flight = |name: &str, motor: &str, method: Method| {
+        Simulation::new(
+            &design(name),
+            motor,
+            windy_environment(ConstantWind::new(6.0, 4.0).unwrap()),
+            Rail::vertical(3.0),
+            FlightSettings {
+                method,
+                ..FlightSettings::default()
+            },
+        )
+        .unwrap()
+    };
+    let canopy = |name: &str, diameter_m: f64, trigger: Trigger, lag_s: f64| {
+        Device::new(
+            name,
+            DeviceDrag::canopy(CanopyType::FlatCircular, diameter_m),
+            trigger,
+        )
+        .with_lag_s(lag_s)
+        .with_inflation(Inflation::knacke(CanopyType::FlatCircular).unwrap())
+    };
+    let recovered = flight("rocketpy-valetudo", "example", Method::default())
+        .with_recovery(vec![
+            canopy("drogue", 0.6, Trigger::Apogee, 0.5).with_release_by(1),
+            canopy(
+                "main",
+                2.4,
+                Trigger::Altitude {
+                    height_above_ground_m: 150.0,
+                },
+                1.0,
+            ),
+        ])
+        .unwrap();
+    let flights = [
+        (
+            "past Mach 1",
+            flight("synthetic-54mm-three-fin", "i175", Method::default()),
+        ),
+        (
+            "Valetudo",
+            flight("rocketpy-valetudo", "example", Method::default()),
+        ),
+        ("opening canopies", recovered),
+        (
+            "RK4",
+            flight("rocketpy-valetudo", "example", Method::Rk4 { step_s: 0.01 }),
+        ),
+        (
+            "two stages",
+            flight(
+                "synthetic-two-stage-75mm-54mm",
+                "j760-i175",
+                Method::default(),
+            ),
+        ),
+    ];
+    for (name, sim) in &flights {
+        let shared = read(sim);
+        let fresh = {
+            let _fresh = Fresh::new();
+            read(sim)
+        };
         assert!(!shared.2.is_empty(), "{name}: nothing recorded");
         assert_eq!(shared.0, fresh.0, "{name}: metrics");
         assert_eq!(shared.1, fresh.1, "{name}: summary");

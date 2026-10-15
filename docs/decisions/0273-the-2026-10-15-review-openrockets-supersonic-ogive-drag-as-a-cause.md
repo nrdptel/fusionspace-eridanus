@@ -40,13 +40,16 @@ be measured, not assumed.
 
 - The fixture report's drag part splits off, as its own line, the pressure drag of
   tangent-ogive noses above Mach 1. It is measured by swapping OpenRocket's per-component nose
-  pressure drag, as its public interface reports it, into HPR Sim's flight. The line gives, as
-  aggregates over the collection's flights past Mach 1 with a tangent-ogive nose, the share of
-  the HPR Sim less OpenRocket apogee gap that the swap accounts for, with its sign and the
-  flights' count (zero is a result, stated).
+  pressure drag, as its public interface reports it, into HPR Sim's flight. The flights are those
+  whose HPR Sim flight passes Mach 1 with a tangent-ogive nose (HPR Sim's peak decides, since
+  OpenRocket's low nose drag would push its own flights faster). The line gives, as aggregates
+  over them, the share of the HPR Sim less OpenRocket apogee gap that the swap accounts for, with
+  its sign. Each such flight is counted as swapped or skipped, each skip with its reason, and
+  #222's flight is among those swapped or an ADR says why not, so the line can't be met on no
+  flights.
 - A public probe, an invented rocket with a fineness-3 tangent-ogive nose, records OpenRocket
-  24.12's nose pressure drag coefficient at Mach 1.3, 1.5 and 2.0 beside HPR Sim's and the
-  equivalent-cone value above. It cites #3391, and a test pins HPR Sim's value at each Mach number.
+  24.12's nose pressure drag coefficient (pressure only, friction apart, on the nose's base area)
+  at Mach 1.3, 1.5 and 2.0 beside HPR Sim's and the equivalent-cone value above. It cites #3391, and a test pins HPR Sim's value at each Mach number.
 
 These two requirements are the whole change; the roadmap entry states both.
 

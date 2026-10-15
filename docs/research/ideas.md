@@ -143,10 +143,12 @@ and [competitions](ideas-competitions-and-clubs.md).
   minimum-diameter rocket past Mach 1, where the nose is most of the pressure drag. Workflow: the
   aerodynamics validation report scores HPR Sim's nose pressure drag against a published
   wind-tunnel measurement of ogive-cylinders, the half of [#222][i-222] that the OpenRocket
-  comparison can't settle. Moves: a supersonic drag row in `validation/reports/latest.md` and,
-  through it, `accuracy.supersonic`. *Done when:* the report gives the error and its sign at three
-  or more Mach numbers from 1.3 to 3 on at least two fineness ratios, each cited to its table or
-  figure, and a test pins each case.
+  comparison can't settle. Moves: a new supersonic nose-drag row in `validation/reports/latest.md`
+  (none today); `accuracy.supersonic` only if a model change follows. *Done when:* the report gives
+  the error and its sign at three or more Mach numbers from 1.3 to 3 (to 2.5 the core band, past
+  it the extended) on at least two fineness ratios, at zero angle of attack on the base area, each
+  against a pressure-only reference (integrated surface pressures, or forebody drag with its
+  friction correction stated) cited to its table or figure, and a test pins each case.
 
 ## MAINTAINER'S CALL (money, outreach)
 

@@ -3563,7 +3563,7 @@ impl OdeSystem<STATE_LEN> for PhaseSystem<'_> {
             window: self.window,
             canopies: self.canopies,
             step,
-            memo: std::cell::Cell::new([None; 4]),
+            memo: Default::default(),
             held: self.cache.as_ref(),
         };
         match self.observer.step(&view) {
@@ -3592,10 +3592,14 @@ struct StepView<'a> {
     canopies: Canopies<'a>,
     step: &'a Step<STATE_LEN>,
     /// The step's evaluations by time, so a sample and a stability at one instant share one:
-    /// within a step the evaluation is a function of the time alone. The first three times
-    /// asked (the observers' start, middle and end) keep their slots; later ones share the last.
-    memo: std::cell::Cell<[Option<(u64, Evaluation)>; 4]>,
-    /// The integrator's last evaluation, used when a time's state is the one it holds.
+    /// within a step the evaluation is a function of the time alone. The first four times asked
+    /// (the observers ask for three: the step's start, middle and end) are kept; later ones are
+    /// evaluated afresh. Read in place, as an evaluation is a few hundred bytes.
+    memo: [std::cell::OnceCell<(u64, Evaluation)>; 4],
+    /// The integrator's last evaluation, used when a time and its state are bit for bit the
+    /// ones it holds: a step's end, which the integrator evaluates before the events there. With
+    /// both integrators it always holds the step's end, so today the time alone decides; the state
+    /// is compared too, so a change to the integrator can't hand over another state's evaluation.
     held: Option<&'a (f64, [f64; STATE_LEN], Evaluation)>,
 }
 
@@ -3604,25 +3608,27 @@ impl StepView<'_> {
     fn evaluation(&self, t_s: f64) -> Result<Evaluation, SimError> {
         let key = t_s.to_bits();
         #[cfg(test)]
-        if STEP_MEMO_OFF.with(std::cell::Cell::get) {
-            let y = self.step.state_at(t_s);
-            let drag_area_m2 = self.canopies.drag_area_m2(t_s);
-            return self.simulation.evaluate(
-                self.vehicle,
-                self.phase,
-                self.window,
-                t_s,
-                &y,
-                drag_area_m2,
-            );
-        }
-        let mut memo = self.memo.get();
-        if let Some((_, e)) = memo.iter().flatten().find(|(k, _)| *k == key) {
-            return Ok(*e);
+        let shared = !STEP_MEMO_OFF.with(std::cell::Cell::get);
+        #[cfg(not(test))]
+        let shared = true;
+        let mut free = None;
+        if shared {
+            for slot in &self.memo {
+                match slot.get() {
+                    Some((k, e)) if *k == key => return Ok(*e),
+                    Some(_) => {}
+                    None => {
+                        free = Some(slot);
+                        break;
+                    }
+                }
+            }
         }
         let y = self.step.state_at(t_s);
+        let same =
+            |held: &[f64; STATE_LEN]| held.iter().zip(&y).all(|(a, b)| a.to_bits() == b.to_bits());
         let e = match self.held {
-            Some((ht, hy, he)) if ht.to_bits() == key && *hy == y => *he,
+            Some((ht, hy, he)) if shared && ht.to_bits() == key && same(hy) => *he,
             _ => self.simulation.evaluate(
                 self.vehicle,
                 self.phase,
@@ -3632,12 +3638,10 @@ impl StepView<'_> {
                 self.canopies.drag_area_m2(t_s),
             )?,
         };
-        let slot = memo
-            .iter()
-            .position(Option::is_none)
-            .unwrap_or(memo.len() - 1);
-        memo[slot] = Some((key, e));
-        self.memo.set(memo);
+        if let Some(slot) = free {
+            // Empty when found, and nothing else fills it in between: the set can't fail.
+            let _ = slot.set((key, e));
+        }
         Ok(e)
     }
 }

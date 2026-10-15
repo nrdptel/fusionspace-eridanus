@@ -145,10 +145,13 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     - [ ] **M2.3c6 The gap to OpenRocket, by cause** (ADR-226, ADR-273). *Done when:* the fixture
       report gives, as aggregates, the hpr-less-OpenRocket apogee split into thrust, mass and drag
       parts, each input swapped for OpenRocket's in that order, the rest named as other, the parts
-      tested to sum to the whole. The drag part splits off tangent-ogive noses' pressure drag above
-      Mach 1 (ADR-273: OpenRocket's #3391), its share of the gap given with its sign and the
-      flights' count (zero stated) over the flights past Mach 1, and a public fineness-3 probe sets
-      both codes' nose drag at Mach 1.3, 1.5 and 2 beside the equivalent cone's, citing #3391, a
+      tested to sum to the whole. The drag part splits off the pressure drag of tangent-ogive noses
+      above Mach 1 (ADR-273: OpenRocket's #3391), by swapping in OpenRocket's per-component nose
+      pressure drag as its public interface reports it: its share of the gap, with its sign, over
+      the flights whose hpr flight passes Mach 1 with a tangent-ogive nose, each such flight counted
+      as swapped or skipped with its reason, #222's flight among those swapped or an ADR saying why
+      not; and a public fineness-3 probe sets OpenRocket 24.12's and hpr's nose pressure drag, on
+      the nose's base area, at Mach 1.3, 1.5 and 2 beside the equivalent cone's, citing #3391, a
       test pinning hpr's at each. Moves: accuracy.
     - [ ] **M2.3c7 Faster than sound: published flights** (ADR-236). *Done when:* the
       real-flights report scores every COTS-motor flight on RASAero II's published comparison
