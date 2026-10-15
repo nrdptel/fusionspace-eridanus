@@ -344,8 +344,6 @@ const UNIT_TABLE: &[(&str, Unit)] = &[
     ("m", Unit::new(Dimension::Length, 1.0, 1.0)),
     ("meter", Unit::new(Dimension::Length, 1.0, 1.0)),
     ("meters", Unit::new(Dimension::Length, 1.0, 1.0)),
-    ("metre", Unit::new(Dimension::Length, 1.0, 1.0)),
-    ("metres", Unit::new(Dimension::Length, 1.0, 1.0)),
     ("ft", Unit::new(Dimension::Length, FOOT_M, 1.0)),
     ("feet", Unit::new(Dimension::Length, FOOT_M, 1.0)),
     ("foot", Unit::new(Dimension::Length, FOOT_M, 1.0)),
