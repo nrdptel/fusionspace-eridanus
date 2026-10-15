@@ -13,7 +13,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 |---|---|---:|---:|---|
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
-| aerospacenu-sillygoose-gs-csv | M7.1c13 | 1 | 0 | 1 unrecognized |
+| aerospacenu-sillygoose-gs-csv | M7.1c14 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
@@ -22,15 +22,14 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | altos-telem | M7.1c9 | 2 | 2 | none |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
 | arts2-raw-csv | M7.1c11 | 3 | 3 | none |
-| binary | M7.1c13 | 4 | 0 | 4 unrecognized |
+| binary | M7.1c14 | 4 | 0 | 4 unrecognized |
 | blueraven-csv | M7.1b | 89 | 89 | none |
-| blueraven-csv-damaged | damaged | 1 | 0 | 1 unrecognized |
 | blueraven-events-txt | not a log | 17 | 0 | 17 unrecognized |
 | blueraven-settings-csv | not a log | 1 | 0 | 1 unrecognized |
 | blueraven-settings-xlsx | not a log | 10 | 0 | 10 archive |
 | blueraven-summary-csv | M7.1c6 | 26 | 26 | none |
 | checklist | not a log | 4 | 0 | 4 archive |
-| csv | M7.1c13 | 62 | 2 | 1 syntax, 59 unrecognized |
+| csv | M7.1c14 | 32 | 2 | 1 syntax, 29 unrecognized |
 | debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
 | e80-imu-txt | M7.1c8 | 54 | 54 | none |
 | eggtimer-csv | M7.1b | 43 | 43 | none |
@@ -38,9 +37,9 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c13 | 2 | 0 | 2 unrecognized |
+| entacore-xtra | M7.1c14 | 2 | 0 | 2 unrecognized |
 | featherweight-summary-csv | M7.1c6 | 25 | 25 | none |
-| flight-computer-params-csv | not a log | 3 | 0 | 3 unrecognized |
+| flight-computer-params-csv | not a log | 3 | 0 | 3 unit |
 | fluctus-csv | M7.1c3 | 6 | 6 | none |
 | fwgps-csv | M7.1c1 | 40 | 40 | none |
 | jpeg | not a log | 1 | 0 | 1 unrecognized |
@@ -64,17 +63,48 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | rrc3-rff | M7.1c5 | 6 | 6 | none |
 | rtx-csv | M7.1c12 | 5 | 5 | none |
 | rtx-txt | M7.1c12 | 4 | 4 | none |
-| telemetry-rtf | M7.1c13 | 2 | 0 | 2 not-this-format |
-| txt | M7.1c13 | 22 | 0 | 22 unrecognized |
+| table-csv | M7.1c13 | 31 | 31 | none |
+| telemetry-rtf | M7.1c14 | 2 | 0 | 2 not-this-format |
+| txt | M7.1c14 | 22 | 0 | 22 unrecognized |
 | wind-profile-csv | not a log | 1 | 0 | 1 unrecognized |
-| xls | M7.1c13 | 1 | 0 | 1 unrecognized |
-| xlsx | M7.1c13 | 23 | 0 | 23 archive |
-| xml | M7.1c13 | 2 | 0 | 2 unrecognized |
+| xls | M7.1c14 | 1 | 0 | 1 unrecognized |
+| xlsx | M7.1c14 | 23 | 0 | 23 archive |
+| xml | M7.1c14 | 2 | 0 | 2 unrecognized |
 | zip | M7.1c7 | 8 | 8 | none |
-| **All** | | 1122 | 947 | |
+| **All** | | 1122 | 978 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
+- `ccf8bcecd91d5b91 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `061c084cf2d6155c csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `065306f8cf7fc60c csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `0e2537156abd776a csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `111209c05b9be47d csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `32deb5cb173b5983 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `4243bc06d5f49f2a csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `469c003f029e47b4 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `4eef930c2b534a42 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `5428e790bc55cec5 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `5cb271496c8e5623 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `67fe4200832a39ad csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `6821b3c5c90eeaf3 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `6bc2c4836a5a3504 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `76dad6a7c38d259b csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `7e7df671ac0ab9ad csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `82ebfd0a31998e39 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `89e3cfd45c66aa71 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `956ff350f72097d1 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `9c6ffdeffee7488a csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `b348b373dbe7073f csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `bdd32fb1d19bf31e csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `cf949df321940506 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `cface22527bb390b csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `dab6728a9ab22228 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `e79347ccfd0bd43b csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `eafaeb9b290d7529 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `ebd3b757555b564c csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `ec3a7fcc83121635 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `fd61caa7235b81b6 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
 - `096375243584d110 csv -> rtx-csv`: Missile Works mDACS's CSV export of an RTx GPS tracker's fixes, a `UTC Time,Latitude,Longitude,Altitude,…` header then one row a fix, filed as generic CSV by its extension
 - `1d34c9a2ea3264f0 csv -> rtx-csv`: Missile Works mDACS's CSV export of an RTx GPS tracker's fixes, a `UTC Time,Latitude,Longitude,Altitude,…` header then one row a fix, filed as generic CSV by its extension
 - `2920bddb383455de csv -> rtx-csv`: Missile Works mDACS's CSV export of an RTx GPS tracker's fixes, a `UTC Time,Latitude,Longitude,Altitude,…` header then one row a fix, filed as generic CSV by its extension
@@ -176,7 +206,7 @@ Files whose catalog family isn't their layout, moved to their layout's:
 - `06ba9b8df63e90ca txt -> perfectflite-txt`: a PerfectFlite text export with no header row, its temperatures in °C
 - `a0f814e69afe42b6 csv -> perfectflite-csv`: a PerfectFlite CSV export whose header names its temperature `Temp`, without the text export's dot, each temperature written with its unit's letter
 - `6ad288f13a3ec6d8 csv -> blueraven-csv`: a Blue Raven high-rate file whose header opens `Flight_Time_(s),Sync`, with no date or time of day
-- `ff3ad892e63f060d csv -> blueraven-csv-damaged`: a Blue Raven low-rate file a person edited in a spreadsheet: no date or time of day, a column with no name, and two columns named in words the app doesn't write
+- `ff3ad892e63f060d csv -> table-csv`: a Blue Raven low-rate file a person edited in a spreadsheet: no date or time of day, a column with no name, and two columns named in words the app doesn't write; its names state their units, so it reads as a table by its header
 - `12fd94ba690475b8 txt -> blueraven-events-txt`: a flyer's own program's events read from a Blue Raven's low-rate file, titled with the file it read
 - `4aae566440b3f002 txt -> blueraven-events-txt`: a flyer's own program's events read from a Blue Raven's low-rate file, titled with the file it read
 - `b26cc0ad79d74a7b txt -> rocket-parameters`: a flyer's own program's description of a rocket and its motor, `# Name = value` lines
@@ -259,6 +289,42 @@ Missile Works RTx's `.rtx` files, each decoded here from its bytes apart from th
 | b1a16428685d2881 | 2949 | yes | RTx CSV: 2948 rows, every record but the last, 0.83 × 10⁻⁶°, altitude as written; RTx text: 2948 rows, every record but the last, 0.83 × 10⁻⁶°, altitude as written; KML: 2948 rows, every record but the last, 0.83 × 10⁻⁶°, altitude as written | 3.66 | 4.7 | 0.995 |
 
 Differing: none.
+
+The 31 tables read by their headers (M7.1c13): each column but the clock read in the unit its name states, kept as written by its header (no unit the reader knows, a name that says another quantity, an error or a difference, or a length, a time or a unit that may stand for another under a name that doesn't say what it measures), kept as written because a value contradicts its unit, or text; *Two units* is the largest difference, in SI, between two channels of one quantity under one name in two units. In all, 224 columns read in a stated unit, 364 kept by their headers, 5 by their values, 11 of text.
+
+| File | Rows | Columns | Clock | Read | Kept by header | Contradicted | Text | Events | Two units |
+|---|---:|---:|---|---:|---:|---:|---:|---:|---:|
+| `061c084cf2d6155c` | 26336 | 26 | `s` | 12 | 13 | 0 | 0 | 0 | – |
+| `065306f8cf7fc60c` | 13644 | 25 | `ms` | 11 | 13 | 0 | 0 | 0 | – |
+| `0e2537156abd776a` | 1047 | 5 | `ms` | 1 | 2 | 1 | 0 | 0 | – |
+| `111209c05b9be47d` | 12925 | 39 | `seconds` | 18 | 19 | 0 | 1 | 5 | – |
+| `32deb5cb173b5983` | 370 | 38 | `s` | 14 | 22 | 1 | 0 | 0 | – |
+| `4243bc06d5f49f2a` | 9000 | 3 | `ms` | 0 | 2 | 0 | 0 | 0 | – |
+| `469c003f029e47b4` | 1195 | 7 | `s` | 6 | 0 | 0 | 0 | 0 | – |
+| `4eef930c2b534a42` | 12838 | 25 | `ms` | 11 | 13 | 0 | 0 | 0 | – |
+| `5428e790bc55cec5` | 634 | 4 | `s` | 1 | 2 | 0 | 0 | 0 | – |
+| `5cb271496c8e5623` | 18904 | 17 | `s` | 5 | 10 | 0 | 1 | 6 | – |
+| `67fe4200832a39ad` | 7646 | 34 | `seconds` | 14 | 18 | 0 | 1 | 5 | – |
+| `6821b3c5c90eeaf3` | 9750 | 50 | `ms` | 23 | 26 | 0 | 0 | 0 | – |
+| `6bc2c4836a5a3504` | 9000 | 23 | `ms` | 0 | 22 | 0 | 0 | 0 | – |
+| `76dad6a7c38d259b` | 2401 | 4 | `s` | 3 | 0 | 0 | 0 | 0 | – |
+| `7e7df671ac0ab9ad` | 530 | 38 | `s` | 13 | 23 | 1 | 0 | 0 | – |
+| `82ebfd0a31998e39` | 2932 | 7 | `s` | 4 | 0 | 0 | 2 | 8 | – |
+| `89e3cfd45c66aa71` | 3928 | 4 | `s` | 1 | 1 | 0 | 1 | 0 | – |
+| `956ff350f72097d1` | 10965 | 34 | `seconds` | 14 | 18 | 0 | 1 | 5 | – |
+| `9c6ffdeffee7488a` | 401 | 4 | `ms` | 3 | 0 | 0 | 0 | 0 | – |
+| `b348b373dbe7073f` | 366 | 19 | `s` | 0 | 15 | 0 | 3 | 0 | – |
+| `bdd32fb1d19bf31e` | 191 | 38 | `s` | 13 | 23 | 1 | 0 | 0 | – |
+| `ccf8bcecd91d5b91` | 768 | 5 | `s` | 1 | 3 | 0 | 0 | 0 | – |
+| `cf949df321940506` | 6616 | 37 | `seconds` | 17 | 18 | 0 | 1 | 5 | – |
+| `cface22527bb390b` | 2601 | 4 | `s` | 3 | 0 | 0 | 0 | 0 | – |
+| `dab6728a9ab22228` | 2201 | 4 | `s` | 3 | 0 | 0 | 0 | 0 | – |
+| `e79347ccfd0bd43b` | 160 | 5 | `ms` | 1 | 2 | 1 | 0 | 0 | – |
+| `eafaeb9b290d7529` | 815 | 3 | `s` | 1 | 1 | 0 | 0 | 0 | – |
+| `ebd3b757555b564c` | 1139 | 5 | `s` | 4 | 0 | 0 | 0 | 0 | 4.55e-13 |
+| `ec3a7fcc83121635` | 2401 | 4 | `s` | 3 | 0 | 0 | 0 | 0 | – |
+| `fd61caa7235b81b6` | 13655 | 25 | `ms` | 11 | 13 | 0 | 0 | 0 | – |
+| `ff3ad892e63f060d` | 36700 | 99 | `s` | 13 | 85 | 0 | 0 | 0 | – |
 
 Units no header states, as each file's reader decided them, or kept the column as written, and noted:
 
@@ -602,3 +668,4 @@ The files read, by the logger each names:
 | SillyGooseV2 | 1 |
 | fw2kml | 15 |
 | phone app | 27 |
+| unknown | 31 |

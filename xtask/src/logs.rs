@@ -51,8 +51,8 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The other families'
-/// files are M7.1c13's.
-pub const READ: [(&str, LogFormat, &str); 34] = [
+/// files are M7.1c14's.
+pub const READ: [(&str, LogFormat, &str); 35] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -110,6 +110,7 @@ pub const READ: [(&str, LogFormat, &str); 34] = [
     ("missileworks-rtx", LogFormat::RtxRaw, "M7.1c12"),
     ("rtx-csv", LogFormat::RtxCsv, "M7.1c12"),
     ("rtx-txt", LogFormat::RtxText, "M7.1c12"),
+    ("table-csv", LogFormat::GenericTable, "M7.1c13"),
 ];
 
 /// The family of zip archives, read when they unpack ([`ARCHIVE_INCREMENT`]): each of their files
@@ -230,6 +231,9 @@ const PHONE_LAUNCH: &str = "a phone app's `launch….csv`, a header opening \
 const RTX_CSV: &str = "Missile Works mDACS's CSV export of an RTx GPS tracker's fixes, a \
     `UTC Time,Latitude,Longitude,Altitude,…` header then one row a fix, filed as generic CSV by \
     its extension";
+/// Why a file the catalog files as generic CSV is read as a table by its header.
+const TABLE_CSV: &str = "a table no other reader takes, a header row naming its clock with a \
+    unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension";
 /// Why a file the catalog files as text is an RTx's text export.
 const RTX_TXT: &str = "Missile Works mDACS's text export of an RTx GPS tracker's fixes, a \
     tab-separated `UTC Lat Lon Alt …` header then one row a fix, filed as text by its extension";
@@ -251,7 +255,37 @@ const BLUERAVEN_SETTINGS: &str = "a Blue Raven's deployment settings saved as a 
 
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 111] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 141] = [
+    ("ccf8bcecd91d5b91", "csv", "table-csv", TABLE_CSV),
+    ("061c084cf2d6155c", "csv", "table-csv", TABLE_CSV),
+    ("065306f8cf7fc60c", "csv", "table-csv", TABLE_CSV),
+    ("0e2537156abd776a", "csv", "table-csv", TABLE_CSV),
+    ("111209c05b9be47d", "csv", "table-csv", TABLE_CSV),
+    ("32deb5cb173b5983", "csv", "table-csv", TABLE_CSV),
+    ("4243bc06d5f49f2a", "csv", "table-csv", TABLE_CSV),
+    ("469c003f029e47b4", "csv", "table-csv", TABLE_CSV),
+    ("4eef930c2b534a42", "csv", "table-csv", TABLE_CSV),
+    ("5428e790bc55cec5", "csv", "table-csv", TABLE_CSV),
+    ("5cb271496c8e5623", "csv", "table-csv", TABLE_CSV),
+    ("67fe4200832a39ad", "csv", "table-csv", TABLE_CSV),
+    ("6821b3c5c90eeaf3", "csv", "table-csv", TABLE_CSV),
+    ("6bc2c4836a5a3504", "csv", "table-csv", TABLE_CSV),
+    ("76dad6a7c38d259b", "csv", "table-csv", TABLE_CSV),
+    ("7e7df671ac0ab9ad", "csv", "table-csv", TABLE_CSV),
+    ("82ebfd0a31998e39", "csv", "table-csv", TABLE_CSV),
+    ("89e3cfd45c66aa71", "csv", "table-csv", TABLE_CSV),
+    ("956ff350f72097d1", "csv", "table-csv", TABLE_CSV),
+    ("9c6ffdeffee7488a", "csv", "table-csv", TABLE_CSV),
+    ("b348b373dbe7073f", "csv", "table-csv", TABLE_CSV),
+    ("bdd32fb1d19bf31e", "csv", "table-csv", TABLE_CSV),
+    ("cf949df321940506", "csv", "table-csv", TABLE_CSV),
+    ("cface22527bb390b", "csv", "table-csv", TABLE_CSV),
+    ("dab6728a9ab22228", "csv", "table-csv", TABLE_CSV),
+    ("e79347ccfd0bd43b", "csv", "table-csv", TABLE_CSV),
+    ("eafaeb9b290d7529", "csv", "table-csv", TABLE_CSV),
+    ("ebd3b757555b564c", "csv", "table-csv", TABLE_CSV),
+    ("ec3a7fcc83121635", "csv", "table-csv", TABLE_CSV),
+    ("fd61caa7235b81b6", "csv", "table-csv", TABLE_CSV),
     ("096375243584d110", "csv", "rtx-csv", RTX_CSV),
     ("1d34c9a2ea3264f0", "csv", "rtx-csv", RTX_CSV),
     ("2920bddb383455de", "csv", "rtx-csv", RTX_CSV),
@@ -518,9 +552,10 @@ const RECLASSIFIED: [(&str, &str, &str, &str); 111] = [
     (
         "ff3ad892e63f060d",
         "csv",
-        "blueraven-csv-damaged",
+        "table-csv",
         "a Blue Raven low-rate file a person edited in a spreadsheet: no date or time of day, a \
-         column with no name, and two columns named in words the app doesn't write",
+         column with no name, and two columns named in words the app doesn't write; its names \
+         state their units, so it reads as a table by its header",
     ),
     (
         "12fd94ba690475b8",
@@ -617,6 +652,9 @@ struct Report {
     /// flight beside them.
     #[serde(default)]
     rtx_checks: RtxChecks,
+    /// The tables read by their headers, each column's decision counted.
+    #[serde(default)]
+    table_checks: Vec<TableFile>,
     /// How the readers decided the units no header states, by family: each decision, the part of
     /// a record's note before its first `: `, such as `` `Altitude` read in feet, from the
     /// pressure ``, with the number of files whose record carries it.
@@ -2106,7 +2144,7 @@ struct SourceCount {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct FamilyRow {
     family: String,
-    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1` … `M7.1c12`), `M7.1c13` for
+    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1` … `M7.1c12`), `M7.1c14` for
     /// one not yet read, `damaged`, or `not a log`.
     increment: String,
     files: usize,
@@ -2411,6 +2449,108 @@ fn arts2_against_export(
 struct RtxChecks {
     per_file: Vec<RtxFile>,
     differing: Vec<String>,
+}
+
+/// A table read by its header ([`hpr_flightdata::generic`]): its id, rows and columns, the
+/// clock's unit, and its other columns counted by what the reader made of them: read in the unit
+/// its name states; kept as written by the header (no unit the reader knows, a name that says
+/// another quantity, an error or a difference, or a length, a time or a unit that may stand for
+/// another under a name that doesn't say what it measures); kept as written
+/// because a value contradicts the unit; and text, no channel (`events` counts the events taken
+/// from it). Where two channels measure the same quantity under the same name in two units, such
+/// as `alt(ft)` and `alt(m)`, `two_units_differ` is the largest difference between them, in SI,
+/// over the rows where both have a value. Counts only: the public report names no column a
+/// private file writes.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct TableFile {
+    id: String,
+    rows: usize,
+    columns: usize,
+    clock_unit: String,
+    read: usize,
+    kept_by_header: usize,
+    contradicted: usize,
+    text: usize,
+    events: usize,
+    two_units_differ: Option<f64>,
+}
+
+/// Each table read by its header, as [`TableFile`] counts it.
+fn table_checks(samples: &[Sample]) -> Vec<TableFile> {
+    use hpr_flightdata::generic;
+    use hpr_flightdata::log::Quantity;
+    let mut files = Vec::new();
+    for sample in samples {
+        let Ok(log) = hpr_flightdata::import::read(&sample.bytes) else {
+            continue;
+        };
+        if log.format != LogFormat::GenericTable {
+            continue;
+        }
+        let text = hpr_flightdata::import::decode(&sample.bytes);
+        let Ok(mapping) = generic::mapping(&text) else {
+            continue;
+        };
+        let mut file = TableFile {
+            id: hex(&Sha256::digest(&sample.bytes))[..16].to_owned(),
+            rows: log.channels.first().map_or(0, |c| c.values.len()),
+            columns: mapping.columns.len(),
+            clock_unit: mapping
+                .columns
+                .get(mapping.clock)
+                .and_then(|c| c.unit.clone())
+                .unwrap_or_default(),
+            events: log.events.len(),
+            ..TableFile::default()
+        };
+        // The channels follow the columns in order, the clock and the text columns left out.
+        let mut channels = log.channels.iter().peekable();
+        for (index, column) in mapping.columns.iter().enumerate() {
+            if index == mapping.clock {
+                continue;
+            }
+            match channels.peek() {
+                Some(channel) if channel.column == column.name => {
+                    match (column.unit.is_some(), channel.quantity) {
+                        (true, Quantity::Unrecognized) => file.contradicted += 1,
+                        (true, _) => file.read += 1,
+                        (false, _) => file.kept_by_header += 1,
+                    }
+                    channels.next();
+                }
+                _ => file.text += 1,
+            }
+        }
+        let base = |name: &str| {
+            name.split(['(', '['])
+                .next()
+                .unwrap_or_default()
+                .trim()
+                .to_lowercase()
+        };
+        for (i, a) in log.channels.iter().enumerate() {
+            for b in &log.channels[i + 1..] {
+                if a.quantity != b.quantity
+                    || a.quantity == Quantity::Unrecognized
+                    || a.column == b.column
+                    || base(&a.column) != base(&b.column)
+                {
+                    continue;
+                }
+                let largest = a
+                    .values
+                    .iter()
+                    .zip(&b.values)
+                    .filter(|(x, y)| x.is_finite() && y.is_finite())
+                    .map(|(x, y)| (x - y).abs())
+                    .fold(0.0_f64, f64::max);
+                file.two_units_differ = Some(file.two_units_differ.unwrap_or(0.0).max(largest));
+            }
+        }
+        files.push(file);
+    }
+    files.sort_by(|a, b| a.id.cmp(&b.id));
+    files
 }
 
 /// One `.rtx`: its id; its records, decoded here from the bytes apart from the reader; whether the
@@ -3070,7 +3210,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
             "not a log"
         } else {
-            "M7.1c13"
+            "M7.1c14"
         };
         let row = families
             .entry(sample.family.clone())
@@ -3116,7 +3256,14 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         let (outcome, record) = match hpr_flightdata::import::read(&sample.bytes) {
             Ok(log) => {
                 row.read += 1;
-                if expected.is_some_and(|format| format != log.format) || increment == "damaged" {
+                // The table reader is tried last and takes any table naming a clock: a file it
+                // reads whose family isn't listed as one, a not-a-log file among them, is flagged.
+                let stray_table = log.format == LogFormat::GenericTable
+                    && expected != Some(LogFormat::GenericTable);
+                if expected.is_some_and(|format| format != log.format)
+                    || increment == "damaged"
+                    || stray_table
+                {
                     unread.push(format!(
                         "  {} ({}, {id}): read as {}, where its family {}",
                         sample.path.display(),
@@ -3124,7 +3271,10 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                         log.format.name(),
                         match expected {
                             Some(format) => format!("reads as {}", format.name()),
-                            None => "is listed as damaged, so the list is stale".to_owned(),
+                            None if increment == "damaged" => {
+                                "is listed as damaged, so the list is stale".to_owned()
+                            }
+                            None => format!("is listed as {increment}, not as a table"),
                         }
                     ));
                 }
@@ -3185,6 +3335,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         eeprom_checks: eeprom_checks(samples),
         arts2_checks: arts2_checks(samples),
         rtx_checks: rtx_checks(samples),
+        table_checks: table_checks(samples),
         reclassified: RECLASSIFIED
             .iter()
             .map(|(id, from, to, why)| format!("{id} {from} -> {to}: {why}"))
@@ -3864,6 +4015,46 @@ fn markdown(report: &Report) -> String {
             } else {
                 rtx.differing.join(", ")
             }
+        );
+    }
+    if !report.table_checks.is_empty() {
+        let tables = &report.table_checks;
+        let sum = |field: fn(&TableFile) -> usize| tables.iter().map(field).sum::<usize>();
+        let mut rows = String::new();
+        for table in tables {
+            rows += &format!(
+                "| `{}` | {} | {} | `{}` | {} | {} | {} | {} | {} | {} |\n",
+                table.id,
+                table.rows,
+                table.columns,
+                table.clock_unit,
+                table.read,
+                table.kept_by_header,
+                table.contradicted,
+                table.text,
+                table.events,
+                table
+                    .two_units_differ
+                    .map_or_else(|| "–".to_owned(), |d| format!("{d:.2e}"))
+            );
+        }
+        out += &format!(
+            "\nThe {} tables read by their headers (M7.1c13): each column but the clock read in the \
+             unit its name states, kept as written by its header (no unit the reader knows, a name \
+             that says another quantity, an error or a difference, or a length, a time or a unit \
+             that may stand for another under a name that doesn't say what it measures), kept as \
+             written because a value contradicts its unit, or text; *Two units* is \
+             the largest difference, in SI, between two channels of one quantity under one name in \
+             two units. In all, {} columns read in a stated unit, {} kept by their headers, {} by \
+             their values, {} of text.\n\n\
+             | File | Rows | Columns | Clock | Read | Kept by header | Contradicted | Text | \
+             Events | Two units |\n\
+             |---|---:|---:|---|---:|---:|---:|---:|---:|---:|\n{rows}",
+            tables.len(),
+            sum(|t| t.read),
+            sum(|t| t.kept_by_header),
+            sum(|t| t.contradicted),
+            sum(|t| t.text),
         );
     }
     if !report.unit_decisions.is_empty() {

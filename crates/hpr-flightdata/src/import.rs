@@ -34,6 +34,7 @@
 //! | [Silicdyne Fluctus CSV](crate::fluctus) | a `sep=` line, or none, then a header starting `time` that names `deltaTime` and `baro-altitude` |
 //! | [Eggtimer text](crate::eggtimer::read_text) | an `Eggtimer … Flight Settings` title before an Eggtimer CSV header, within the first 200 lines that aren't blank |
 //! | [Eggtimer CSV](crate::eggtimer) | `T,Alt,` and more of Eggtimer's column names |
+//! | [A table read by its header](crate::generic) | tried last: a header row within the first 64 lines, past blank lines, `#` comments and a `sep=` line, that names a clock with a unit of time, such as `Time (s)` or `timestamp__ms`, followed by a row with a number in the clock's cell |
 //!
 //! Text is read as UTF-8, or as UTF-16 after its byte-order mark ([`decode`]), with any byte-order
 //! mark dropped; a byte that isn't UTF-8 becomes U+FFFD, as a `.pf2`'s comments may be in another
@@ -55,7 +56,7 @@ use crate::error::LogError;
 use crate::log::{FlightLog, LogFormat};
 use crate::{
     aerospacenu_fcb, aerospacenu_gs, altimetercloud, altos, altos_eeprom, altos_telem, archive,
-    arts2, arts2_raw, blueraven, eggtimer, entacore, fluctus, fwgps, fwsummary, kml, nmea,
+    arts2, arts2_raw, blueraven, eggtimer, entacore, fluctus, fwgps, fwsummary, generic, kml, nmea,
     perfectflite, phone_launch, raven, raven_fipa, rdas, rrc3, rrc3_rff, rtx, sillygoose,
 };
 
@@ -94,6 +95,7 @@ pub const FORMATS: &[LogFormat] = &[
     LogFormat::EggtimerCsv,
     LogFormat::PerfectFliteCsv,
     LogFormat::PerfectFliteText,
+    LogFormat::GenericTable,
 ];
 
 /// A file's bytes as text: UTF-8, or UTF-16 if the file opens with UTF-16's byte-order mark, as
@@ -243,11 +245,15 @@ fn detect_text(text: &str) -> Option<LogFormat> {
     } else if perfectflite::is_headerless_row(first) {
         Some(LogFormat::PerfectFliteText)
     } else {
-        match perfectflite::export_separator(first)? {
-            ',' => Some(LogFormat::PerfectFliteCsv),
-            _ => Some(LogFormat::PerfectFliteText),
+        match perfectflite::export_separator(first) {
+            Some(',') => Some(LogFormat::PerfectFliteCsv),
+            Some(_) => Some(LogFormat::PerfectFliteText),
+            None => None,
         }
     }
+    // A table read by its header is tried after every other layout, so that it never takes a
+    // file another reader knows.
+    .or_else(|| generic::recognizes(text).then_some(LogFormat::GenericTable))
 }
 
 /// Reads a flight log in any format HPR Sim reads.
@@ -307,6 +313,7 @@ pub fn read(bytes: &[u8]) -> Result<FlightLog, LogError> {
         Some(LogFormat::RdasText) => rdas::read(&text),
         Some(LogFormat::AltosTelemetry) => altos_telem::read(&text),
         Some(LogFormat::AltosEeprom) => altos_eeprom::read(&text),
+        Some(LogFormat::GenericTable) => generic::read(&text),
         None => {
             let known: Vec<&str> = FORMATS.iter().map(|format| format.name()).collect();
             Err(LogError::Unrecognized {
