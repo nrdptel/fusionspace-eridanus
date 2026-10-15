@@ -314,6 +314,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c14 Excel workbooks ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c15 EuRoC exports and mappings a publisher states ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c16 Binary records by a stated layout ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c17 The Blue Raven's USB download ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1643,6 +1644,13 @@ One line per milestone or increment, in the order it was archived within its pha
       base64 outside RFC 4648's alphabet or form, a block that never ends and a marker inside a
       block refused at their line (tests); `import::read` refuses a capture for its layout (test);
       the report counts each file's records, erased records and fields compared; docs.
+    - [x] **M7.1c17 The Blue Raven's USB download** (ADR-272): its `@ LOG_HIR` and `@ LOG_LOW`
+      lines, read by the manual's layout, each record held to its CRC and stated length.
+      *Done when:* the survey reads the sample logs' 2 USB downloads, keeping exactly the
+      records whose CRC-16/BUYPASS checks, each of its stated length; each value equals the
+      survey's own decoding; each high-rate quaternion's norm is within 2 of 30,000; the pad
+      pressure is within 2 % of the TeleMega's in the same rocket; the liftoff bit sets within
+      0.1 s after 3 g.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

@@ -711,7 +711,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1c14"></a>[M7.1c14][done-5] | Excel workbooks | done |
 | <a id="m7-1c15"></a>[M7.1c15][done-5] | EuRoC exports and mappings a publisher states | done |
 | <a id="m7-1c16"></a>[M7.1c16][done-5] | Binary records by a stated layout | done |
-| <a id="m7-1c17"></a>[M7.1c17][phase-5] | The Blue Raven's USB download | not yet done |
+| <a id="m7-1c17"></a>[M7.1c17][done-5] | The Blue Raven's USB download | done |
 | <a id="m7-1c18"></a>[M7.1c18][phase-5] | The rest | not yet done |
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |
