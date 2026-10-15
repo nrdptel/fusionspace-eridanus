@@ -272,6 +272,16 @@ pub enum LogFormat {
     /// Ozark Aerospace ARTS2's raw data, as its PC software exports a flight: a
     /// `MET,Acc(HI),Acc/Baro(LO),Baro(HI),State` header, then the sensors' counts.
     Arts2RawCsv,
+    /// Missile Works' RTx/GPS tracker's fixes, as mDACS saves a download to an `.rtx` file: a
+    /// .NET `BinaryFormatter` stream of one `List<Int32>`, each slot a 16-bit word mapped modulo
+    /// 10⁹. Positions only.
+    RtxRaw,
+    /// The RTx's fixes as mDACS exports them to CSV: a `UTC Time,Latitude,Longitude,Altitude,…`
+    /// header, then one row a fix. Positions only.
+    RtxCsv,
+    /// The RTx's fixes as mDACS exports them to text: a tab-separated `UTC Lat Lon Alt …` header,
+    /// then one row a fix. Positions only.
+    RtxText,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -388,7 +398,8 @@ impl LogFormat {
     /// telemetry sends the board's height above the pad in whole meters. An AltOS `.eeprom` file
     /// holds no altitude either: its coarsest pressure is a TeleMetrum v1's, whose counts move by
     /// 4 in the sample files, 13.6 Pa, 1.13 m near sea level. Nor does an ARTS2's `.odf` or raw
-    /// CSV: its barometer's count is 92.2 Pa, 7.68 m near sea level.
+    /// CSV: its barometer's count is 92.2 Pa, 7.68 m near sea level. Missile Works' RTx writes its
+    /// GPS altitude in whole meters in its `.rtx` file and in whole feet in its exports.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -419,6 +430,8 @@ impl LogFormat {
             Self::AltosTelemetry => 1.0,
             Self::AltosEeprom => crate::altos_eeprom::ALTITUDE_STEP_M,
             Self::Arts2Odf | Self::Arts2RawCsv => crate::arts2_raw::ALTITUDE_STEP_M,
+            Self::RtxRaw => crate::rtx::ALTITUDE_STEP_M,
+            Self::RtxCsv | Self::RtxText => crate::rtx::EXPORT_ALTITUDE_STEP_M,
         }
     }
 
@@ -440,13 +453,15 @@ impl LogFormat {
             | Self::AerospaceNuFcbCsv
             | Self::PhoneLaunchCsv
             | Self::FeatherweightSummaryCsv
-            | Self::Arts2RawCsv => ".csv",
+            | Self::Arts2RawCsv
+            | Self::RtxCsv => ".csv",
             Self::PerfectFliteText
             | Self::Nmea0183
             | Self::EggtimerText
             | Self::SillyGooseText
             | Self::AerospaceNuGroundStationText
-            | Self::RdasText => ".txt",
+            | Self::RdasText
+            | Self::RtxText => ".txt",
             Self::EggtimerRtf => ".rtf",
             Self::RavenFipa => ".FIPa",
             Self::Rrc3Rff => ".rff",
@@ -455,6 +470,7 @@ impl LogFormat {
             Self::AltosTelemetry => ".telem",
             Self::AltosEeprom => ".eeprom",
             Self::Arts2Odf => ".odf",
+            Self::RtxRaw => ".rtx",
         }
     }
 
@@ -491,6 +507,9 @@ impl LogFormat {
             Self::AltosEeprom => "AltOS .eeprom",
             Self::Arts2Odf => "ARTS2 .odf",
             Self::Arts2RawCsv => "ARTS2 raw CSV",
+            Self::RtxRaw => "RTx .rtx",
+            Self::RtxCsv => "RTx CSV",
+            Self::RtxText => "RTx text",
         }
     }
 }
@@ -583,6 +602,9 @@ mod tests {
             (LogFormat::AltosEeprom, 1.129_595),
             (LogFormat::Arts2Odf, 7.676_218),
             (LogFormat::Arts2RawCsv, 7.676_218),
+            (LogFormat::RtxRaw, 1.0),
+            (LogFormat::RtxCsv, 0.3048),
+            (LogFormat::RtxText, 0.3048),
         ];
         for (format, expected) in cases {
             let resolution = format.altitude_resolution_m();

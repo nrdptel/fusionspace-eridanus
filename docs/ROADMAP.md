@@ -371,10 +371,23 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
   snapshot-tested, and the crate builds with no dependency on `hpr-sim` (`cargo xtask wasm-check`).
   Formats without samples are listed in the docs as needing samples.
   - [ ] **M7.1c The other importers** (ADR-254, ADR-255, ADR-256, ADR-258, ADR-259, ADR-260,
-    ADR-261, ADR-262, ADR-263, ADR-265, ADR-266): in twelve.
-    - [ ] **M7.1c12 The rest:** Blue Raven's other files, Entacore AIM XTRA, spreadsheets, CATS;
+    ADR-261, ADR-262, ADR-263, ADR-265, ADR-266, ADR-267): in thirteen.
+    - [ ] **M7.1c12 Missile Works' RTx** (ADR-267): the `.rtx` file mDACS saves from an RTx GPS
+      tracker and its CSV and text exports, decoded from the files and the exports beside them.
+      *Done when:* every RTx `.rtx`, CSV and text export in refs reads (`cargo xtask logs
+      --check` fails on one that doesn't); an `.rtx` that isn't the list's shape, whose `_size`
+      isn't a whole number of records within its slots, a slot in use of which isn't a word
+      under the mapping, or a slot past `_size` of which isn't 0, is refused at its byte, each by
+      its own message, and an export's row of other than ten cells or a cell that isn't its
+      field's by its line (tests); the time of day, the positions in degrees, the altitude in
+      meters and the course in degrees are read, and the velocity and speed over ground kept as
+      written (tests); each `.rtx` with a CSV, text or KML export beside it agrees with it on
+      every record but the last, field for field, a position to its written digit (the survey's
+      report; a differing file fails `--check`); and the docs say what was learned from the
+      files, what is left out and how far to trust it.
+    - [ ] **M7.1c13 The rest:** Blue Raven's other files, Entacore AIM XTRA, spreadsheets, CATS;
       EuRoC/Juno CSV; generic CSV with column mapping; unit detection (and `telemetry-rtf`,
-      ADR-258; RTx, ADR-259).
+      ADR-258).
       *Done when:* the parent's.
 - [ ] **M7.2 Readings, reconstruction and ghost data.**
   - The readings a flight gives (apogee, maximum velocity and acceleration, burnout, descent

@@ -51,8 +51,8 @@ const AEROSPACENU: &str = "refs/research/aerospacenu-flights";
 
 /// The families read so far, each with the format its files must read as and the increment that
 /// wrote its reader: every file of these must import, and in that format. The other families'
-/// files are M7.1c12's.
-pub const READ: [(&str, LogFormat, &str); 31] = [
+/// files are M7.1c13's.
+pub const READ: [(&str, LogFormat, &str); 34] = [
     ("pf2", LogFormat::PerfectFlitePf2, "M7.1a"),
     ("perfectflite-csv", LogFormat::PerfectFliteCsv, "M7.1a"),
     ("perfectflite-txt", LogFormat::PerfectFliteText, "M7.1a"),
@@ -107,6 +107,9 @@ pub const READ: [(&str, LogFormat, &str); 31] = [
     ("altos-eeprom", LogFormat::AltosEeprom, "M7.1c10"),
     ("arts2-raw-csv", LogFormat::Arts2RawCsv, "M7.1c11"),
     ("odf", LogFormat::Arts2Odf, "M7.1c11"),
+    ("missileworks-rtx", LogFormat::RtxRaw, "M7.1c12"),
+    ("rtx-csv", LogFormat::RtxCsv, "M7.1c12"),
+    ("rtx-txt", LogFormat::RtxText, "M7.1c12"),
 ];
 
 /// The family of zip archives, read when they unpack ([`ARCHIVE_INCREMENT`]): each of their files
@@ -223,6 +226,13 @@ const ARTS2_RAW: &str = "Ozark Aerospace ARTS2's raw data, a `MET,Acc(HI),Acc/Ba
 /// Why a file the catalog files as generic CSV is the phone app's.
 const PHONE_LAUNCH: &str = "a phone app's `launch….csv`, a header opening \
     `Seconds,Timestamp,AltitudeMSLGPS` then one row a sample, filed as generic CSV by its extension";
+/// Why a file the catalog files as generic CSV is an RTx's CSV export.
+const RTX_CSV: &str = "Missile Works mDACS's CSV export of an RTx GPS tracker's fixes, a \
+    `UTC Time,Latitude,Longitude,Altitude,…` header then one row a fix, filed as generic CSV by \
+    its extension";
+/// Why a file the catalog files as text is an RTx's text export.
+const RTX_TXT: &str = "Missile Works mDACS's text export of an RTx GPS tracker's fixes, a \
+    tab-separated `UTC Lat Lon Alt …` header then one row a fix, filed as text by its extension";
 /// Why a file the catalog files as RTF is a radio telemetry stream, for M7.1c7.
 const TELEMETRY_RTF: &str = "a radio telemetry stream, lines such as `255,T,…` in a layout no \
     maker's document names yet, saved inside an RTF document; filed as RTF, not a log, by its \
@@ -241,7 +251,16 @@ const BLUERAVEN_SETTINGS: &str = "a Blue Raven's deployment settings saved as a 
 
 /// Files whose catalog family isn't their layout, by id: the family each is, and why. An entry
 /// the survey doesn't meet stops it, so the table can't outlive its files.
-const RECLASSIFIED: [(&str, &str, &str, &str); 102] = [
+const RECLASSIFIED: [(&str, &str, &str, &str); 111] = [
+    ("096375243584d110", "csv", "rtx-csv", RTX_CSV),
+    ("1d34c9a2ea3264f0", "csv", "rtx-csv", RTX_CSV),
+    ("2920bddb383455de", "csv", "rtx-csv", RTX_CSV),
+    ("3d1d6c4ef87ce0da", "csv", "rtx-csv", RTX_CSV),
+    ("fc937944649779db", "csv", "rtx-csv", RTX_CSV),
+    ("0cfb74a4c988654b", "txt", "rtx-txt", RTX_TXT),
+    ("74201deabc8b669a", "txt", "rtx-txt", RTX_TXT),
+    ("8b482eb6ae9af583", "txt", "rtx-txt", RTX_TXT),
+    ("a65103199f08052b", "txt", "rtx-txt", RTX_TXT),
     (
         "d306250ba73ea7f4",
         "txt",
@@ -594,6 +613,10 @@ struct Report {
     /// the same flight.
     #[serde(default)]
     arts2_checks: Arts2Checks,
+    /// Missile Works RTx's `.rtx` files against the reader's record and the exports of the same
+    /// flight beside them.
+    #[serde(default)]
+    rtx_checks: RtxChecks,
     /// How the readers decided the units no header states, by family: each decision, the part of
     /// a record's note before its first `: `, such as `` `Altitude` read in feet, from the
     /// pressure ``, with the number of files whose record carries it.
@@ -2083,7 +2106,7 @@ struct SourceCount {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct FamilyRow {
     family: String,
-    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1` … `M7.1c11`), `M7.1c12` for
+    /// The increment whose reader reads it (`M7.1a`, `M7.1b`, `M7.1c1` … `M7.1c12`), `M7.1c13` for
     /// one not yet read, `damaged`, or `not a log`.
     increment: String,
     files: usize,
@@ -2379,6 +2402,352 @@ fn arts2_against_export(
         previous = previous.max(value);
     }
     result
+}
+
+/// Missile Works RTx's `.rtx` files against the files of the same flight beside them, in their
+/// folder, a file each ([`RtxFile`]), and the files that differ from the reader's record or an
+/// export beside them, by id.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct RtxChecks {
+    per_file: Vec<RtxFile>,
+    differing: Vec<String>,
+}
+
+/// One `.rtx`: its id; its records, decoded here from the bytes apart from the reader; whether the
+/// reader's record holds the same fields, record for record; each CSV or text export beside it
+/// ([`RtxExport`]); the KML beside it, if any ([`RtxExport`], its feet unchecked); and, reported
+/// only, `SOG` over the speed between the fixes a second either side of it, and `COG` less the
+/// bearing between them, the medians over the fixes where `SOG` is at least 15, and the climb from
+/// the lowest of the 120 fixes before the highest to the highest over the highest altitude of a
+/// PerfectFlite log beside it: ratios and differences only, as the figures themselves would give
+/// a private flight's site and apogee.
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct RtxFile {
+    id: String,
+    records: usize,
+    reader_matches: bool,
+    exports: Vec<RtxExport>,
+    kml: Option<RtxExport>,
+    sog_over_speed: Option<f64>,
+    cog_less_bearing_deg: Option<f64>,
+    climb_over_barometric: Option<f64>,
+}
+
+/// An export against its `.rtx`: its format's name; its rows; whether they are every record but
+/// the last, in order, each row's time and numbers the record's and its position the record's or,
+/// written in degrees, the record's cut toward zero at the sixth decimal, short of it by less than
+/// 10⁻⁶°; the largest difference in a position, degrees; and whether every row's altitude is the
+/// record's meters × 3.280 84 rounded down to a foot (for the KML, its meters as written).
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
+struct RtxExport {
+    format: String,
+    rows: usize,
+    every_record_but_the_last: bool,
+    worst_position_deg: f64,
+    altitude_as_written: bool,
+}
+
+/// Whether an `.rtx` differs from the reader's record of it or a file beside it.
+fn rtx_differs(file: &RtxFile) -> bool {
+    !file.reader_matches
+        || file
+            .exports
+            .iter()
+            .chain(&file.kml)
+            .any(|e| !e.every_record_but_the_last || !e.altitude_as_written)
+}
+
+/// The `.rtx`'s records' 16 words, decoded from its bytes as the reader's module docs lay them
+/// out: `_size` at byte 186, the slots from byte 204, each slot times 513,180,409 modulo 10⁹.
+fn rtx_records(bytes: &[u8]) -> Vec<[u64; 16]> {
+    let int =
+        |at: usize| i32::from_le_bytes([bytes[at], bytes[at + 1], bytes[at + 2], bytes[at + 3]]);
+    let size = usize::try_from(int(186)).unwrap_or(0);
+    (0..size / 16)
+        .map(|r| {
+            let mut words = [0u64; 16];
+            for (w, word) in words.iter_mut().enumerate() {
+                let slot = u64::try_from(int(204 + 4 * (16 * r + w))).unwrap_or(u64::MAX);
+                *word = slot.wrapping_mul(513_180_409) % 1_000_000_000;
+            }
+            words
+        })
+        .collect()
+}
+
+/// A record's fields as the RTx's software exports them, in the export's units: the time of day,
+/// s, `NaN` if it isn't one; the latitude and longitude, degrees; then the altitude, m, `Velocity`, `VDOP`, `NavStatus`,
+/// `Sats`, `SOG` and `COG`.
+fn rtx_fields(words: &[u64; 16]) -> [f64; 10] {
+    let hhmmss = words[1] * 65_536 + words[0];
+    // A time that isn't a time of day, as a garbled record's, is a gap.
+    let (hours, minutes, seconds) = (hhmmss / 10_000, hhmmss / 100 % 100, hhmmss % 100);
+    let of_day = if hours < 24 && minutes < 60 && seconds <= 60 {
+        (hours * 3_600 + minutes * 60 + seconds) as f64
+    } else {
+        f64::NAN
+    };
+    let degrees = |dm: u64, lo: u64, hi: u64, negative: bool| {
+        // The decimals' leading 1 taken off before they are scaled, as the reader does.
+        let minutes = (dm % 100) as f64 + (hi * 65_536 + lo).wrapping_sub(100_000) as f64 / 1e5;
+        let value = (dm / 100) as f64 + minutes / 60.0;
+        if negative { -value } else { value }
+    };
+    [
+        of_day,
+        degrees(
+            words[2],
+            words[3],
+            words[4],
+            words[11] & 0xff == u64::from(b'S'),
+        ),
+        degrees(
+            words[5],
+            words[6],
+            words[7],
+            words[11] >> 8 == u64::from(b'W'),
+        ),
+        words[8] as f64,
+        words[9] as f64,
+        words[10] as f64,
+        (words[12] & 0xff) as f64,
+        (words[12] >> 8) as f64,
+        words[13] as f64,
+        words[14] as f64,
+    ]
+}
+
+/// [`RtxChecks`] over the samples.
+fn rtx_checks(samples: &[Sample]) -> RtxChecks {
+    let mut checks = RtxChecks::default();
+    for sample in samples.iter().filter(|s| s.family == "missileworks-rtx") {
+        // Only a file read as an `.rtx` has the layout its bytes are decoded by here.
+        let Ok(log) = hpr_flightdata::import::read(&sample.bytes) else {
+            continue;
+        };
+        if log.format != LogFormat::RtxRaw {
+            continue;
+        }
+        let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();
+        let records: Vec<[f64; 10]> = rtx_records(&sample.bytes).iter().map(rtx_fields).collect();
+        let beside = |formats: &[LogFormat]| -> Vec<FlightLog> {
+            samples
+                .iter()
+                .filter(|other| other.path.parent() == sample.path.parent())
+                .filter(|other| {
+                    hpr_flightdata::import::detect(&other.bytes)
+                        .is_some_and(|format| formats.contains(&format))
+                })
+                .filter_map(|other| hpr_flightdata::import::read(&other.bytes).ok())
+                .collect()
+        };
+        // The log's clock counts from the first record's time of day.
+        let zero = records
+            .iter()
+            .map(|r| r[0])
+            .find(|t| !t.is_nan())
+            .unwrap_or(f64::NAN);
+        let reader_matches = rtx_matches(&log, &records, zero, records.len(), false).is_some();
+        let exports = beside(&[LogFormat::RtxCsv, LogFormat::RtxText])
+            .iter()
+            .map(|export| {
+                let worst = rtx_matches(
+                    export,
+                    &records,
+                    zero,
+                    records.len().saturating_sub(1),
+                    true,
+                );
+                RtxExport {
+                    format: export.format.name().to_owned(),
+                    rows: export.stated.samples.unwrap_or(0),
+                    every_record_but_the_last: worst.is_some(),
+                    worst_position_deg: worst.unwrap_or(f64::NAN),
+                    altitude_as_written: rtx_feet(export, &records),
+                }
+            })
+            .collect();
+        let kml = beside(&[LogFormat::Kml])
+            .iter()
+            .find(|kml| kml.logger == "Missile Works RTx")
+            .map(|kml| rtx_against_kml(kml, &records));
+        let (sog_over_speed, cog_less_bearing_deg) = rtx_motion(&records);
+        let barometric = beside(&[LogFormat::PerfectFlitePf2])
+            .iter()
+            .flat_map(|pf2| pf2.altitude_m.clone())
+            .fold(f64::NAN, f64::max);
+        let climb_over_barometric = (barometric > 0.0).then(|| {
+            let (peak_at, peak) = records
+                .iter()
+                .enumerate()
+                .map(|(k, r)| (k, r[3]))
+                .fold((0, f64::NEG_INFINITY), |a, b| if b.1 > a.1 { b } else { a });
+            let pad = records[peak_at.saturating_sub(120)..=peak_at]
+                .iter()
+                .map(|r| r[3])
+                .fold(f64::INFINITY, f64::min);
+            (peak - pad) / barometric
+        });
+        checks.per_file.push(RtxFile {
+            id,
+            records: records.len(),
+            reader_matches,
+            exports,
+            kml,
+            sog_over_speed,
+            cog_less_bearing_deg,
+            climb_over_barometric,
+        });
+    }
+    checks.differing = checks
+        .per_file
+        .iter()
+        .filter(|file| rtx_differs(file))
+        .map(|file| file.id.clone())
+        .collect();
+    checks.per_file.sort_by(|a, b| a.id.cmp(&b.id));
+    for file in &mut checks.per_file {
+        file.exports.sort_by(|a, b| a.format.cmp(&b.format));
+    }
+    checks.differing.sort();
+    checks
+}
+
+/// The largest difference in a position, degrees, if a record holds the first `n` of the `.rtx`'s
+/// records and no more, each field as decoded here: the time from `zero`, a gap where the
+/// record's is, the numbers exactly, and the altitude and the positions exactly; or, for an
+/// `export`, the altitude unchecked ([`rtx_feet`] checks its feet) and a position the record's
+/// or the record's cut toward zero at the sixth decimal ([`rtx_cut`]). A time of day after
+/// midnight isn't in the sample files and isn't checked here.
+fn rtx_matches(
+    log: &FlightLog,
+    records: &[[f64; 10]],
+    zero: f64,
+    n: usize,
+    export: bool,
+) -> Option<f64> {
+    use hpr_flightdata::log::Quantity;
+    let by_quantity = |quantity: Quantity, k: usize| log.channels_of(quantity).nth(k);
+    // Each field's channel, by the order the readers write them in.
+    let fields = [
+        (by_quantity(Quantity::Latitude, 0), 1),
+        (by_quantity(Quantity::Longitude, 0), 2),
+        (by_quantity(Quantity::Unrecognized, 0), 4),
+        (by_quantity(Quantity::Number, 0), 5),
+        (by_quantity(Quantity::Number, 1), 6),
+        (by_quantity(Quantity::Number, 2), 7),
+        (by_quantity(Quantity::Unrecognized, 1), 8),
+        (by_quantity(Quantity::Angle, 0), 9),
+    ];
+    let altitude = by_quantity(Quantity::GnssAltitude, 0);
+    let time = altitude.map(|c| &c.time_s)?;
+    if time.len() != n || records.len() < n {
+        return None;
+    }
+    let mut worst: f64 = 0.0;
+    let close = |a: f64, b: f64, k: usize, worst: &mut f64| {
+        if k == 1 || k == 2 {
+            *worst = worst.max((a - b).abs());
+            a == b || (export && rtx_cut(a, b))
+        } else {
+            (a - b).abs() <= 1e-9
+        }
+    };
+    let matches = (0..n).all(|r| {
+        let record = &records[r];
+        let t = record[0] - zero;
+        (time[r] == t || (time[r] - t).abs() < 1e-9 || (time[r].is_nan() && t.is_nan()))
+            && (export || altitude.is_some_and(|c| c.values[r] == record[3]))
+            && fields.iter().all(|(channel, k)| {
+                channel.is_some_and(|c| {
+                    c.values.len() == n && close(c.values[r], record[*k], *k, &mut worst)
+                })
+            })
+    });
+    matches.then_some(worst)
+}
+
+/// Whether a position written in degrees is the true one cut toward zero at the sixth decimal:
+/// short of it, away from zero's side, by less than 10⁻⁶°, within 10⁻⁹° for the reading's
+/// rounding.
+fn rtx_cut(written: f64, truth: f64) -> bool {
+    let short = truth.abs() - written.abs();
+    written.signum() == truth.signum() && (-1e-9..1e-6 + 1e-9).contains(&short)
+}
+
+/// Whether every row of an export writes its record's altitude as its meters × 3.280 84 rounded
+/// down to a foot.
+fn rtx_feet(export: &FlightLog, records: &[[f64; 10]]) -> bool {
+    use hpr_flightdata::log::Quantity;
+    export
+        .channels_of(Quantity::GnssAltitude)
+        .next()
+        .is_some_and(|c| {
+            c.values
+                .iter()
+                .zip(records)
+                .all(|(m, record)| (m / 0.3048 - (record[3] * 3.280_84).floor()).abs() < 1e-6)
+        })
+}
+
+/// The RTx's KML against its `.rtx`: its points every record but the last, its positions the
+/// record's cut toward zero at the sixth decimal ([`rtx_cut`]), and its altitude the record's
+/// meters as written.
+fn rtx_against_kml(kml: &FlightLog, records: &[[f64; 10]]) -> RtxExport {
+    use hpr_flightdata::log::Quantity;
+    let column = |quantity: Quantity| kml.channels_of(quantity).next().map(|c| c.values.clone());
+    let (latitude, longitude, altitude) = (
+        column(Quantity::Latitude).unwrap_or_default(),
+        column(Quantity::Longitude).unwrap_or_default(),
+        column(Quantity::GnssAltitude).unwrap_or_default(),
+    );
+    let rows = latitude.len();
+    let n = records.len().saturating_sub(1);
+    let worst_position_deg = (0..n.min(rows).min(longitude.len()))
+        .map(|r| {
+            (latitude[r] - records[r][1])
+                .abs()
+                .max((longitude[r] - records[r][2]).abs())
+        })
+        .fold(0.0, f64::max);
+    RtxExport {
+        format: LogFormat::Kml.name().to_owned(),
+        rows,
+        every_record_but_the_last: rows == n
+            && longitude.len() == n
+            && (0..n).all(|r| {
+                rtx_cut(latitude[r], records[r][1]) && rtx_cut(longitude[r], records[r][2])
+            }),
+        worst_position_deg,
+        altitude_as_written: altitude.len() == n && (0..n).all(|r| altitude[r] == records[r][3]),
+    }
+}
+
+/// `SOG` over the speed between the fixes either side of it, m/s, and `COG` less the bearing
+/// between them, degrees: the medians over the fixes where `SOG` is at least 15 and the fixes
+/// either side are 2 s apart, on a sphere of 6,371 km; `None` with none.
+fn rtx_motion(records: &[[f64; 10]]) -> (Option<f64>, Option<f64>) {
+    let (mut ratios, mut offsets) = (Vec::new(), Vec::new());
+    for k in 1..records.len().saturating_sub(1) {
+        let (before, here, after) = (&records[k - 1], &records[k], &records[k + 1]);
+        if here[8] < 15.0 || (after[0] - before[0] - 2.0).abs() > 1e-9 {
+            continue;
+        }
+        let meters_per_degree = 6_371_000.0 * std::f64::consts::PI / 180.0;
+        let north = (after[1] - before[1]) * meters_per_degree;
+        let east = (after[2] - before[2]) * meters_per_degree * before[1].to_radians().cos();
+        let speed = north.hypot(east) / 2.0;
+        if speed > 0.0 {
+            ratios.push(here[8] / speed);
+            let bearing = east.atan2(north).to_degrees().rem_euclid(360.0);
+            offsets.push((here[9] - bearing + 180.0).rem_euclid(360.0) - 180.0);
+        }
+    }
+    let median = |mut values: Vec<f64>| {
+        values.sort_by(f64::total_cmp);
+        (!values.is_empty()).then(|| values[values.len() / 2])
+    };
+    (median(ratios), median(offsets))
 }
 
 /// One distinct file.
@@ -2679,7 +3048,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         } else if NOT_LOGS.contains(&sample.family.as_str()) {
             "not a log"
         } else {
-            "M7.1c12"
+            "M7.1c13"
         };
         let row = families
             .entry(sample.family.clone())
@@ -2793,6 +3162,7 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         telemetry_checks: telemetry_checks(samples),
         eeprom_checks: eeprom_checks(samples),
         arts2_checks: arts2_checks(samples),
+        rtx_checks: rtx_checks(samples),
         reclassified: RECLASSIFIED
             .iter()
             .map(|(id, from, to, why)| format!("{id} {from} -> {to}: {why}"))
@@ -2841,6 +3211,14 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
     for id in &report.arts2_checks.differing {
         unread.push(format!(
             "  {id} (odf): differs from the raw CSV or the interpreted export of its flight beside it"
+        ));
+    }
+    // An `.rtx` that differs from its reader's record or the exports of its flight is as unread
+    // as a refusal.
+    for id in &report.rtx_checks.differing {
+        unread.push(format!(
+            "  {id} (missileworks-rtx): differs from its record, or from an export of its flight \
+             beside it"
         ));
     }
     // A summary whose lengths agree with the file beside it only as meters contradicts the feet
@@ -3392,6 +3770,77 @@ fn markdown(report: &Report) -> String {
                 "none".to_owned()
             } else {
                 arts2.differing.join(", ")
+            }
+        );
+    }
+    let rtx = &report.rtx_checks;
+    if !rtx.per_file.is_empty() {
+        let figure = |value: Option<f64>, digits: usize| {
+            value.map_or("–".to_owned(), |value| format!("{value:.digits$}"))
+        };
+        let yes = |value: bool| if value { "yes" } else { "no" };
+        let rows: String = rtx
+            .per_file
+            .iter()
+            .map(|file| {
+                let exports: Vec<String> = file
+                    .exports
+                    .iter()
+                    .chain(&file.kml)
+                    .map(|e| {
+                        format!(
+                            "{}: {} rows, {}, {:.2} × 10⁻⁶°, altitude {}",
+                            e.format,
+                            e.rows,
+                            if e.every_record_but_the_last {
+                                "every record but the last"
+                            } else {
+                                "differs"
+                            },
+                            e.worst_position_deg * 1e6,
+                            if e.altitude_as_written {
+                                "as written"
+                            } else {
+                                "differs"
+                            }
+                        )
+                    })
+                    .collect();
+                format!(
+                    "| {} | {} | {} | {} | {} | {} | {} |\n",
+                    file.id,
+                    file.records,
+                    yes(file.reader_matches),
+                    if exports.is_empty() {
+                        "–".to_owned()
+                    } else {
+                        exports.join("; ")
+                    },
+                    figure(file.sog_over_speed, 2),
+                    figure(file.cog_less_bearing_deg, 1),
+                    figure(file.climb_over_barometric, 3)
+                )
+            })
+            .collect();
+        out += &format!(
+            "\nMissile Works RTx's `.rtx` files, each decoded here from its bytes apart from the \
+             reader and held to the reader's record, field for field, and to the exports of its \
+             flight beside it: the CSV and text exports' rows and the KML's points every record \
+             but the last, their times and numbers equal, their positions equal or, written in \
+             degrees, cut toward zero at the sixth decimal (the largest difference given), their \
+             altitude the record's meters × 3.280 84 rounded down to a foot (the KML's, its \
+             meters as written). Reported only, the medians over the fixes where `SOG` is at \
+             least 15 of `SOG` over the speed between the fixes either side, m/s, and of `COG` \
+             less the bearing between them, degrees; and the climb from the lowest of the 120 \
+             fixes before the highest to the highest, over the highest altitude of a PerfectFlite \
+             log flown beside the tracker:\n\n\
+             | File | Records | Reader's record | Exports beside it | `SOG` over speed | `COG` \
+             less bearing, ° | Climb over barometric |\n\
+             |---|---:|---|---|---:|---:|---:|\n{rows}\nDiffering: {}.\n",
+            if rtx.differing.is_empty() {
+                "none".to_owned()
+            } else {
+                rtx.differing.join(", ")
             }
         );
     }
@@ -4834,5 +5283,115 @@ mod tests {
         );
         assert_eq!(report.arts2_checks.differing, std::slice::from_ref(&id));
         assert!(unread.iter().any(|line| line.contains(&id)), "{unread:?}");
+    }
+
+    /// The invented `.rtx` and its exports.
+    fn rtx_samples(csv: &str) -> Vec<Sample> {
+        let sample = |name: &str, family: &str, bytes: &[u8]| Sample {
+            path: PathBuf::from("flight").join(name),
+            source: "test",
+            family: family.to_owned(),
+            bytes: bytes.to_vec(),
+        };
+        vec![
+            sample(
+                "flight.rtx",
+                "missileworks-rtx",
+                include_bytes!("../../crates/hpr-flightdata/tests/samples/rtx.rtx"),
+            ),
+            sample("export.csv", "rtx-csv", csv.as_bytes()),
+            sample(
+                "export.txt",
+                "rtx-txt",
+                include_bytes!("../../crates/hpr-flightdata/tests/samples/rtx.txt"),
+            ),
+        ]
+    }
+
+    const RTX_CSV: &str = include_str!("../../crates/hpr-flightdata/tests/samples/rtx.csv");
+
+    /// The invented `.rtx` agrees with its record and both exports: every fix but the last, the
+    /// CSV's positions exactly, the text file's cut at the sixth decimal, the feet rounded down.
+    #[test]
+    fn an_rtx_agrees_with_the_exports_beside_it() {
+        let (report, unread) = survey(&rtx_samples(RTX_CSV), Vec::new());
+        let checks = &report.rtx_checks;
+        assert!(checks.differing.is_empty(), "{checks:?}");
+        assert!(unread.is_empty(), "{unread:?}");
+        let file = &checks.per_file[0];
+        assert_eq!(file.records, 30);
+        assert!(file.reader_matches);
+        let formats: Vec<(&str, usize, bool, bool)> = file
+            .exports
+            .iter()
+            .map(|e| {
+                (
+                    e.format.as_str(),
+                    e.rows,
+                    e.every_record_but_the_last,
+                    e.altitude_as_written,
+                )
+            })
+            .collect();
+        assert_eq!(
+            formats,
+            [("RTx CSV", 29, true, true), ("RTx text", 29, true, true)]
+        );
+        assert_eq!(file.exports[0].worst_position_deg, 0.0);
+        assert!(file.exports[1].worst_position_deg > 0.0);
+        assert!(file.exports[1].worst_position_deg < 1e-6);
+        assert_eq!(file.kml, None);
+        assert_eq!(file.climb_over_barometric, None);
+    }
+
+    /// An export that differs from its `.rtx`, in a number, a foot or a row too many, leaves the
+    /// `.rtx` unread.
+    #[test]
+    fn an_rtx_differing_from_an_export_is_unread() {
+        let lines: Vec<&str> = RTX_CSV.split("\r\n").collect();
+        let id = hex(&Sha256::digest(include_bytes!(
+            "../../crates/hpr-flightdata/tests/samples/rtx.rtx"
+        )))[..16]
+            .to_owned();
+        let edit = |row: usize, cell: usize, value: &str| {
+            let mut lines = lines.clone();
+            let mut cells: Vec<String> = lines[row].split(',').map(str::to_owned).collect();
+            cells[cell] = value.to_owned();
+            let edited = cells.join(",");
+            lines[row] = &edited;
+            lines.join("\r\n")
+        };
+        // A course one degree off, a foot rounded up rather than down, and the last fix written.
+        let mut with_last = RTX_CSV.to_owned();
+        with_last += "180027,3259.01321N,10658.54263W,4593,0,2,148,0,16,127\r\n";
+        for (csv, every, feet) in [
+            (edit(5, 9, "53"), false, true),
+            (edit(1, 3, "4594"), true, false),
+            (with_last, false, true),
+        ] {
+            let (report, unread) = survey(&rtx_samples(&csv), Vec::new());
+            let export = &report.rtx_checks.per_file[0].exports[0];
+            assert_eq!(
+                (export.every_record_but_the_last, export.altitude_as_written),
+                (every, feet),
+                "{csv}"
+            );
+            assert_eq!(report.rtx_checks.differing, std::slice::from_ref(&id));
+            assert!(unread.iter().any(|line| line.contains(&id)), "{unread:?}");
+        }
+    }
+
+    /// A position cut toward zero passes; rounded away from it, short by a whole digit, or on the
+    /// other side of zero, it doesn't.
+    #[test]
+    fn an_rtx_position_must_be_cut_toward_zero() {
+        let truth = -106.975_720_166_666_7;
+        assert!(rtx_cut(-106.975_720, truth));
+        assert!(rtx_cut(truth, truth));
+        assert!(!rtx_cut(-106.975_721, truth));
+        assert!(!rtx_cut(-106.975_719, truth));
+        assert!(!rtx_cut(106.975_720, truth));
+        assert!(rtx_cut(32.983_539, 32.983_539_000_000_1));
+        assert!(!rtx_cut(32.983_540, 32.983_539_4));
     }
 }
