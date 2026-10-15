@@ -60,7 +60,7 @@
 //! the rotation axis first and the magnitude term fourth", "scaled up by a factor of 30,000 to fit
 //! into signed 16-bit integers".
 //!
-//! **The low-rate record** holds labelled groups (p23):
+//! **The low-rate record** holds labeled groups (p23):
 //!
 //! | Group | The manual's fields, in its order | Read as |
 //! |---|---|---|
@@ -875,7 +875,7 @@ mod tests {
 
     #[test]
     fn the_crc_is_buypass() {
-        // The catalogued check value of CRC-16/UMTS, also called BUYPASS.
+        // The cataloged check value of CRC-16/UMTS, also called BUYPASS.
         assert_eq!(crc16_buypass(b"123456789"), 0xFEE8);
     }
 
