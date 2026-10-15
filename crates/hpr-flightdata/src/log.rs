@@ -103,6 +103,9 @@ pub enum Quantity {
     GnssAltitude,
     /// An altitude the logger integrated from its accelerometer, above its zero, m.
     InertialAltitude,
+    /// An altitude whose sensor or zero the file doesn't state, m: a table read by its header
+    /// ([`LogFormat::GenericTable`]) names an altitude and its unit, and often no more.
+    Altitude,
     /// Air pressure, Pa.
     Pressure,
     /// A speed or velocity the logger computed, m/s; its column says from which sensor and along
@@ -148,6 +151,7 @@ impl Quantity {
             | Self::AltitudeMsl
             | Self::GnssAltitude
             | Self::InertialAltitude
+            | Self::Altitude
             | Self::Distance => "m",
             Self::Pressure => "Pa",
             Self::Speed => "m/s",
@@ -282,6 +286,10 @@ pub enum LogFormat {
     /// The RTx's fixes as mDACS exports them to text: a tab-separated `UTC Lat Lon Alt …` header,
     /// then one row a fix. Positions only.
     RtxText,
+    /// A table of samples from a logger no other reader knows, read by what its header states: a
+    /// header row naming the columns, the units in the names, such as `Time (s),Alt AGL (ft)`,
+    /// then one row a sample ([`crate::generic`]); or read by a column mapping the caller gives.
+    GenericTable,
 }
 
 /// Serde for a list of values whose gaps are `NaN`: each gap written as `null`, and a `null` read
@@ -399,7 +407,8 @@ impl LogFormat {
     /// holds no altitude either: its coarsest pressure is a TeleMetrum v1's, whose counts move by
     /// 4 in the sample files, 13.6 Pa, 1.13 m near sea level. Nor does an ARTS2's `.odf` or raw
     /// CSV: its barometer's count is 92.2 Pa, 7.68 m near sea level. Missile Works' RTx writes its
-    /// GPS altitude in whole meters in its `.rtx` file and in whole feet in its exports.
+    /// GPS altitude in whole meters in its `.rtx` file and in whole feet in its exports. A table read by
+    /// its header has no track, and no step: 0.
     pub fn altitude_resolution_m(self) -> f64 {
         match self {
             Self::PerfectFlitePf2 | Self::PerfectFliteCsv | Self::PerfectFliteText => {
@@ -432,6 +441,7 @@ impl LogFormat {
             Self::Arts2Odf | Self::Arts2RawCsv => crate::arts2_raw::ALTITUDE_STEP_M,
             Self::RtxRaw => crate::rtx::ALTITUDE_STEP_M,
             Self::RtxCsv | Self::RtxText => crate::rtx::EXPORT_ALTITUDE_STEP_M,
+            Self::GenericTable => 0.0,
         }
     }
 
@@ -454,7 +464,8 @@ impl LogFormat {
             | Self::PhoneLaunchCsv
             | Self::FeatherweightSummaryCsv
             | Self::Arts2RawCsv
-            | Self::RtxCsv => ".csv",
+            | Self::RtxCsv
+            | Self::GenericTable => ".csv",
             Self::PerfectFliteText
             | Self::Nmea0183
             | Self::EggtimerText
@@ -510,6 +521,7 @@ impl LogFormat {
             Self::RtxRaw => "RTx .rtx",
             Self::RtxCsv => "RTx CSV",
             Self::RtxText => "RTx text",
+            Self::GenericTable => "a table read by its header",
         }
     }
 }
@@ -605,6 +617,7 @@ mod tests {
             (LogFormat::RtxRaw, 1.0),
             (LogFormat::RtxCsv, 0.3048),
             (LogFormat::RtxText, 0.3048),
+            (LogFormat::GenericTable, 0.0),
         ];
         for (format, expected) in cases {
             let resolution = format.altitude_resolution_m();

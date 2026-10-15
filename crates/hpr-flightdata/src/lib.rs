@@ -38,11 +38,13 @@
 //! four GPS logs: Featherweight's
 //! tracker and ground-station CSV ([`fwgps`]), KML ([`kml`]), NMEA 0183 ([`nmea`]) and Missile
 //! Works' RTx tracker's `.rtx` file and its CSV and text exports ([`rtx`]), every column kept as a
-//! channel on its own clock. A zip archive of a flight's files is unpacked in
+//! channel on its own clock. A table from a logger no other reader knows is read by the units its
+//! header states, each held to the column's name and values, or by a column mapping the caller
+//! gives ([`generic`]). A zip archive of a flight's files is unpacked in
 //! memory, within a bound, and each file read on its own ([`archive`]). [`readings`] takes a first set of readings from the
 //! record: liftoff, apogee, the top speed, landing and the descent, set and tested on PerfectFlite
 //! logs. The guide's [reading a flight log][guide-log] page shows them on a log, and [the layouts read][guide-layouts] lists what each reader keeps. The other loggers'
-//! formats, spreadsheets and plain CSV are planned for milestone [M7.1c13][roadmap] of the roadmap,
+//! formats, spreadsheets and the tables whose headers state too little are planned for milestone [M7.1c14][roadmap] of the roadmap,
 //! and the rest of the readings, smoothing and reconstruction for [M7.2][roadmap].
 //!
 //! [guide-layouts]: https://hpr.fusionspace.co/format/flight-logs.html
@@ -82,6 +84,7 @@ pub mod filter;
 pub mod fluctus;
 pub mod fwgps;
 pub mod fwsummary;
+pub mod generic;
 pub mod import;
 pub mod kml;
 pub mod log;

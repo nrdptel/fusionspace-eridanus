@@ -46,8 +46,13 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > layout worked out from the files, and all 5 sample files agree with mDACS's exports beside them
 > on every fix the exports hold; its velocity and speed over ground are kept as written
 > ([Missile Works' RTx](#missile-works-rtx)).
+> A table from a logger no other reader knows, read since
+> [M7.1c13](../decisions-and-roadmap.md#m7-1c13), is read only as far as its header states its
+> units, each unit held to the column's name and values; no maker stands behind those units, and
+> a header that states a wrong one is read in it
+> ([tables read by their headers](#tables-read-by-their-headers)).
 > Other layouts are refused, not guessed at; they come with
-> [M7.1c13](../decisions-and-roadmap.md#m7-1c13), the other loggers' formats.
+> [M7.1c14](../decisions-and-roadmap.md#m7-1c14), the other loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -101,6 +106,10 @@ decided, and [M7.1c10](../decisions-and-roadmap.md#m7-1c10) (AltOS's `.eeprom` d
 [ADR-265](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0265-altos-raw-downloads-before-the-rest.md)
 decided, and [M7.1c11](../decisions-and-roadmap.md#m7-1c11) (the ARTS2's `.odf` and raw CSV), as
 [ADR-266](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0266-arts2-raw-data-before-the-rest.md)
+decided, and [M7.1c12](../decisions-and-roadmap.md#m7-1c12) (Missile Works' RTx), as
+[ADR-267](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0267-missile-works-rtx-before-the-rest.md)
+decided, and [M7.1c13](../decisions-and-roadmap.md#m7-1c13) (tables read by their headers), as
+[ADR-268](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0268-tables-read-by-their-headers-before-the-rest.md)
 decided.
 
 ## The layouts read
@@ -139,6 +148,7 @@ decided.
 | AltOS `.eeprom` | Altus Metrum's TeleMetrum, TeleMega, EasyMega and EasyMini, the board's own log as AltosUI downloads it | a JSON object naming `log_format` and `product`; or, within the first 1,000 lines, a `Config version:` line and a `manufacturer altusmetrum.org` line | `hpr_flightdata::altos_eeprom` ([below](#altoss-eeprom)) |
 | RTx `.rtx` | Missile Works' RTx GPS tracker, its fixes as mDACS (Missile Works' program) saves a download | a .NET serialization header (MS-NRBF, version 1.0), then the class record of a list of 32-bit integers | `hpr_flightdata::rtx` ([below](#missile-works-rtx)) |
 | RTx CSV and text | the same fixes, as mDACS exports them | a first line that isn't blank reading `UTC Time,Latitude,Longitude,Altitude,Velocity,VDOP,NavStatus,Sats,SOG,COG`, or the text file's tab-separated `UTC`, `Lat`, an empty name, `Lon`, an empty name, `Alt`, `Vel`, `VDOP`, `Nav`, `Sats`, `SOG`, `COG` | `hpr_flightdata::rtx` ([below](#missile-works-rtx)) |
+| Table read by its header | a logger no other reader knows: a team's flight computer, a logging script, a spreadsheet's export | tried after every other layout: a header row naming a clock with a unit of time, such as `Time (s)` or `timestamp__ms`, then a row with a number there | `hpr_flightdata::generic` ([below](#tables-read-by-their-headers)) |
 | Zip archive | not a log: a flight's files, zipped to share them | its bytes open `PK` then 3, 4 | `hpr_flightdata::archive` ([below](#zip-archives)) |
 
 The Blue Raven app writes each flight as a low-rate file, logged 50 times a second, and a
@@ -156,7 +166,7 @@ such programs read; a team flight computer's saved state, one row; an OpenRocket
 export; and a wind profile. The other layouts in the sample logs, among
 them spreadsheets and a radio telemetry stream
 saved as RTF, are refused today, most as *unrecognized*; they come with
-[M7.1c13](../decisions-and-roadmap.md#m7-1c13), and the [survey's report](#how-it-was-checked)
+[M7.1c14](../decisions-and-roadmap.md#m7-1c14), and the [survey's report](#how-it-was-checked)
 counts them by layout.
 
 ### Zip archives
@@ -204,8 +214,10 @@ are ([checked against the files beside](#checked-against-the-files-beside)), and
 Two CSV files in one archive name other altimeters' formats in their file names and use the Blue
 Raven's column names, but their values aren't the Blue Raven's: at the same moments, their
 altitudes differ from its low-rate file's by up to several hundred feet. Which logger wrote them
-isn't known, so they aren't read as a Blue Raven's; they wait for the column mapping of
-[M7.1c13](../decisions-and-roadmap.md#m7-1c13).
+isn't known, so they aren't read as a Blue Raven's; since
+[M7.1c13](../decisions-and-roadmap.md#m7-1c13) they are read as
+[tables by their headers](#tables-read-by-their-headers), their altitude in the feet the header
+states and the rest of their columns as written.
 
 ### R-DAS raw text
 
@@ -349,6 +361,107 @@ TELEM 22d2040001040b0300011b0000fa0000084e3043414c4c0000312e392e32320000f4a8c1
 Left out: the eleven packet types no sample holds; and the GPS fields nothing checks. The
 board's own log, which the document doesn't describe, is read from AltosUI's `.eeprom` files
 ([AltOS's `.eeprom`](#altoss-eeprom)).
+
+### Tables read by their headers
+
+Teams' own flight computers, data-logging scripts and spreadsheet exports write their flights as
+tables no maker documents: a header row naming the columns, then one row a sample, each team in
+its own words. When the header states the units, `hpr_flightdata::generic` reads such a table by
+what the header says and no more
+([ADR-268, tables read by their headers before the rest](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0268-tables-read-by-their-headers-before-the-rest.md)).
+It is tried after every other layout, so it never takes a file another reader knows.
+
+> **How far to trust it.** All 31 such tables among the sample logs are read: 224 of their
+> columns in a unit the header states, 364 kept as written by their headers (no unit the reader
+> knows, a name that says another quantity, or a length with no altitude's name), 5 kept as
+> written because their values contradict their unit, and 11 columns of text. No maker stands
+> behind any of these units: the reader checks that a column's name and values allow the unit,
+> but a header that states a wrong unit, with values inside the bounds below, is read in it. The
+> one table that writes its altitude and speed in both feet and meters agrees with itself to
+> 4.6 × 10⁻¹³ m. These records have no primary track, so no readings are taken from them until
+> [M7.2](../decisions-and-roadmap.md#m7-2).
+
+**The header.** Within the first 64 lines, past blank lines, `#` comments and a `sep=` line, the
+first line is the header. Its separator is whichever of a comma, a semicolon, a tab or `|` splits
+it into the most cells, at least two, none of them a number. One column must be the clock: a name
+with a time word in it (`time`, `t`, `ts`, `timestamp`, `uptime`) and a unit of time stated. The
+next row must have a number in the clock's cell.
+
+**A unit in a name** is read from brackets at its end, `Alt AGL (ft)`, `Temperature [deg C]`,
+`Alt (m ASL)` (the unit is the first word; `ASL` is kept with the name), or from an underscored
+ending, `Time_s`, `temp__C`, `accel_x__m_s2`, `body_rate_x_deg_per_s`, in any case. The
+reader knows the usual units of time, length, speed, acceleration (`g`, and `mG` for thousandths
+of a g), angle, rate of turn, temperature, voltage, current and pressure; the
+[API reference](../api/hpr_flightdata/generic/index.html) lists every spelling.
+
+**What a column is.** The unit says what the column measures; the name's words say what it may
+be. A column is read in its unit when the two agree or the name says nothing, and kept as written
+when they disagree: `vz_filtered_ms` has a speed's name and a time's unit. A length is read only
+under an altitude's name, and a time only under a time's: `z (m)` may be a height or a distance,
+so it stays as written. A length is a GNSS altitude if the name says `gps`, a barometric altitude
+above ground or sea level if it says `baro` and `agl`, or `baro` and `msl` or `asl`, and otherwise
+an *altitude* whose sensor or zero the file doesn't state. A column of words is an
+[event](#the-record) at each change of its word if its name says a state, phase, status, event
+or mode, and is left out, with a note, otherwise.
+
+**The values' check.** A unit is the header's word; the values are the second check. A column is
+kept as written if any value, converted, lies outside what a flight logger can read:
+
+| Quantity | Allowed | Why |
+|---|---|---|
+| pressure | 0 to 110 kPa | a little over the highest sea-level pressure on record, 108.38 kPa (Agata, 1968, WMO's archive of weather extremes) |
+| temperature | −100 °C to 150 °C | past the −40 °C to 125 °C most electronics are rated for |
+| length | within 150 km (93 mi) | above any hobby rocket's flight |
+| speed | within 3,000 m/s (9,843 ft/s) | more than twice the envelope's Mach 3.5 |
+| acceleration | within 1,000 g | |
+| rate of turn | within 50,000 °/s | |
+| voltage, current | within 100 V, 100 A | |
+| latitude, longitude | within 90°, 180° | |
+
+Among the sample tables, in two a column headed as a pressure in pascals reads more on the pad
+than any sea-level pressure on record, and in three a column headed as a current in amperes
+reads past 100 A, milliamperes by its size: all five stay as written. The clock is checked by its step: the median step forward must lie from 0.1 ms
+to 60 s, or the file is refused, as is a clock that never steps forward, such as a file of one
+row. The check can only keep a column as written; it never changes a unit.
+
+**A worked example.** An invented table:
+
+```text
+Time (s),Alt AGL (ft),Pressure (hPa),Velocity,Phase
+0.00,0,1001.2,0,PAD
+0.05,12,1000.8,45,BOOST
+```
+
+`Time (s)` is the clock. `Alt AGL (ft)` is a length under an altitude's name, an *altitude* (the
+name says above ground but not by which sensor): 12 ft is $12 \times 0.3048 = 3.6576$ m.
+`Pressure (hPa)` reads 1000.8 hPa as 100,080 Pa, inside 0 to 110 kPa. `Velocity` states no unit,
+so it keeps its 45 as written. `Phase` holds words under a phase's name: two events, `PAD` at
+0 s and `BOOST` at 0.05 s.
+
+**A column mapping.** `generic::mapping` returns what the reader takes from a header as a
+`Mapping`, which serializes to JSON, and `generic::read_with` reads a file by one, with the same
+checks. A person or a program can state a unit the header leaves out, keep a column as written,
+or name the columns of a file with no header row; a unit that doesn't measure its column's
+quantity, such as `kPa` for a speed, is refused. The mapping above, with the velocity stated in
+feet a second:
+
+```json
+{"header_line": 1, "separator": ",", "decimal_comma": false, "clock": 0,
+ "columns": [{"name": "Time (s)", "quantity": null, "unit": "s"},
+             {"name": "Alt AGL (ft)", "quantity": "altitude", "unit": "ft"},
+             {"name": "Pressure (hPa)", "quantity": "pressure", "unit": "hpa"},
+             {"name": "Velocity", "quantity": "speed", "unit": "ft/s"},
+             {"name": "Phase", "quantity": null, "unit": null}]}
+```
+
+Only the Rust library reads these tables so far.
+
+**What is left out.** The record keeps every column as a channel on the clock and has no
+[primary track](#the-record): which column is a barometric altitude above the pad isn't stated.
+Most of the 30 files filed as generic CSV that are still refused are tables whose clock states
+no unit (`time`, `ts`, `t`) or that have no header row; they wait for someone to state their
+mapping, and spreadsheets for a reader of their own, both with
+[M7.1c14](../decisions-and-roadmap.md#m7-1c14).
 
 ## The record
 
@@ -789,7 +902,7 @@ sample logs:
   altitude's change, are kept as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
   knows. An RTF document holding anything else is refused as not an Eggtimer's, among them the
   radio telemetry stream in two other sample files, which comes with
-  [M7.1c13](../decisions-and-roadmap.md#m7-1c13).
+  [M7.1c14](../decisions-and-roadmap.md#m7-1c14).
 
 The record's readings withhold on all these layouts, as on every logger's but PerfectFlite's
 `.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
@@ -941,7 +1054,7 @@ apogee runs up to 3% below its low-rate file's highest altitude
 §4). The summaries with no file of samples beside them are read by the same rules, unchecked. No
 other figure is checked. Summaries inside zip archives are read and checked as the others are,
 against the files of samples in the same archive ([zip archives](#zip-archives)); those inside
-spreadsheets wait for [M7.1c13](../decisions-and-roadmap.md#m7-1c13).
+spreadsheets wait for [M7.1c14](../decisions-and-roadmap.md#m7-1c14).
 
 ## GPS logs
 
@@ -1740,13 +1853,14 @@ AltOS's telemetry compares with AltosUI's export beside it, and its board's esti
 other ([above](#altos-telemetry)); how each AltOS `.eeprom` file compares with the export and the
 telemetry beside it ([above](#altoss-eeprom)); how each ARTS2 `.odf` compares with the raw CSV
 and the interpreted export beside it ([above](#the-arts2s-raw-data)); how each RTx `.rtx`
-compares with the CSV, text and KML exports beside it ([above](#missile-works-rtx)); and
+compares with the CSV, text and KML exports beside it ([above](#missile-works-rtx)); how each
+table read by its header had its columns decided, as counts ([above](#tables-read-by-their-headers)); and
 per file an anonymized id (the start of a hash of the file, which says nothing of its contents)
 with a digest, a hash, of the record read from it. The files inside the zip archives among them
 are unpacked and counted too, each once: of the 29 in the 8 archives, 19 are in no other source
-([zip archives](#zip-archives)). Of the 1,122 files it holds today, 947 are read, the 8 archives
-counted as read when they unpack. The report labels 119 files for
-[M7.1c13](../decisions-and-roadmap.md#m7-1c13), the rest of the importers; 117 of them, of
+([zip archives](#zip-archives)). Of the 1,122 files it holds today, 978 are read, the 8 archives
+counted as read when they unpack. The report labels 89 files for
+[M7.1c14](../decisions-and-roadmap.md#m7-1c14), the rest of the importers; 87 of them, of
 layouts no reader knows yet, are unread.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
@@ -1759,11 +1873,13 @@ their extension, are in AltimeterCloud's layout (10), Entacore AIM's (15), a Flu
 ARTS2's interpreted data (4) or the phone app's `launch` CSV (27), and are held to those readers.
 Of the 3 RTF files the catalog files as not a log, by their extension, one is an Eggtimer's
 download, held to its reader, and two a radio telemetry stream, refused until
-[M7.1c13](../decisions-and-roadmap.md#m7-1c13). Five files filed as generic CSV or text are
+[M7.1c14](../decisions-and-roadmap.md#m7-1c14). Five files filed as generic CSV or text are
 PerfectFlite's exports: four with no header row and one that names its temperature `Temp`. A
 Blue Raven high-rate file with no date is held to the Blue Raven's reader; its low-rate partner,
 which a person edited in a spreadsheet (a column with no name, two columns named in words the
-app doesn't write), is refused, counted as damaged. Three more are an ARTS2's raw CSV, held to
+app doesn't write), was counted as damaged until
+[M7.1c13](../decisions-and-roadmap.md#m7-1c13), and is now read as a
+[table by its header](#tables-read-by-their-headers), with 30 more files filed as generic CSV. Three more are an ARTS2's raw CSV, held to
 its reader. Nine are mDACS's exports of an RTx's fixes, five CSV and four text, held to their
 reader. One more is moved to a layout not read yet: a ground station's conversion of a
 SillyGoose flight, its columns in another order under no header.

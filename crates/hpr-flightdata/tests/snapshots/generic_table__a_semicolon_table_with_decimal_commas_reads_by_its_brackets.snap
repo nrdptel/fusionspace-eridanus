@@ -1,0 +1,93 @@
+---
+source: crates/hpr-flightdata/tests/generic_table.rs
+expression: log
+---
+{
+  "format": "generic_table",
+  "logger": "unknown",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "Altitude (m ASL)",
+      "quantity": "altitude",
+      "time_s": [
+        0.0,
+        0.5,
+        1.0,
+        1.5
+      ],
+      "values": [
+        1500.0,
+        1512.5,
+        1545.0,
+        1590.0
+      ]
+    },
+    {
+      "column": "Temp [K]",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0,
+        0.5,
+        1.0,
+        1.5
+      ],
+      "values": [
+        22.5,
+        22.4,
+        22.4,
+        22.3
+      ]
+    },
+    {
+      "column": "Speed; up (m/s)",
+      "quantity": "speed",
+      "time_s": [
+        0.0,
+        0.5,
+        1.0,
+        1.5
+      ],
+      "values": [
+        0.0,
+        48.0,
+        81.5,
+        60.0
+      ]
+    },
+    {
+      "column": "Lat (deg)",
+      "quantity": "latitude",
+      "time_s": [
+        0.0,
+        0.5,
+        1.0,
+        1.5
+      ],
+      "values": [
+        32.99,
+        32.99,
+        32.99,
+        32.99
+      ]
+    }
+  ],
+  "events": [],
+  "notes": [
+    "the column \"Remark\" states no unit the reader knows: kept as written",
+    "the column \"Temp [K]\"'s values contradict its unit, k: 22.5 on line 3 lies outside 173.14999999999998 to 423.15 K once converted; kept as written",
+    "the column \"Remark\" holds text, not numbers, such as \"on the pad\": left out"
+  ]
+}

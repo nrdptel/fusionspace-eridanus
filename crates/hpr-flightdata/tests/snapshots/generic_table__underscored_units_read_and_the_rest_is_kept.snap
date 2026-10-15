@@ -1,0 +1,191 @@
+---
+source: crates/hpr-flightdata/tests/generic_table.rs
+expression: log
+---
+{
+  "format": "generic_table",
+  "logger": "unknown",
+  "serial_number": null,
+  "firmware": null,
+  "flight_number": null,
+  "stated": {
+    "apogee_m": null,
+    "ground_elevation_msl_m": null,
+    "samples": null
+  },
+  "time_s": [],
+  "altitude_m": [],
+  "vertical_speed_m_s": null,
+  "temperature_k": null,
+  "battery_v": null,
+  "channels": [
+    {
+      "column": "alt_baro_agl_ft",
+      "quantity": "altitude_above_ground",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7
+      ],
+      "values": [
+        0.0,
+        0.6096,
+        2.7432000000000003,
+        6.4008,
+        11.5824,
+        15.8496,
+        18.5928,
+        19.5072
+      ]
+    },
+    {
+      "column": "pressure__kpa",
+      "quantity": "pressure",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7
+      ],
+      "values": [
+        98500.0,
+        98490.0,
+        98470.0,
+        98430.0,
+        98370.0,
+        98330.0,
+        98300.0,
+        98290.0
+      ]
+    },
+    {
+      "column": "accel_z_g",
+      "quantity": "acceleration",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7
+      ],
+      "values": [
+        9.80665,
+        60.80123,
+        62.76256,
+        61.78189499999999,
+        -10.787315,
+        -8.825985,
+        -7.84532,
+        -0.980665
+      ]
+    },
+    {
+      "column": "vz_filtered_ms",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7
+      ],
+      "values": [
+        0.0,
+        1.0,
+        8.0,
+        15.0,
+        21.0,
+        18.0,
+        12.0,
+        4.0
+      ]
+    },
+    {
+      "column": "batt_v",
+      "quantity": "voltage",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7
+      ],
+      "values": [
+        8.1,
+        8.1,
+        8.0,
+        8.0,
+        8.0,
+        8.0,
+        8.0,
+        8.0
+      ]
+    },
+    {
+      "column": "Velocity_Up",
+      "quantity": "unrecognized",
+      "time_s": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7
+      ],
+      "values": [
+        0.0,
+        3.0,
+        14.0,
+        27.0,
+        24.0,
+        null,
+        11.0,
+        1.0
+      ]
+    }
+  ],
+  "events": [
+    {
+      "time_s": 0.0,
+      "name": "PAD"
+    },
+    {
+      "time_s": 0.2,
+      "name": "BOOST"
+    },
+    {
+      "time_s": 0.4,
+      "name": "COAST"
+    },
+    {
+      "time_s": 0.7,
+      "name": "APOGEE"
+    }
+  ],
+  "notes": [
+    "the column \"vz_filtered_ms\"'s name says a speed and its unit, ms, a time: kept as written",
+    "the column \"phase\" states no unit the reader knows: kept as written",
+    "the column \"Velocity_Up\" states no unit the reader knows: kept as written",
+    "the column \"Velocity_Up\" holds 1 cells that aren't numbers, such as \"nan\": gaps"
+  ]
+}

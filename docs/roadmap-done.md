@@ -310,6 +310,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c10 AltOS raw downloads ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c11 ARTS2 raw data ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c12 Missile Works' RTx ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c13 Tables read by their headers ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1595,6 +1596,19 @@ One line per milestone or increment, in the order it was archived within its pha
       every record but the last, field for field, a position to its written digit (the survey's
       report; a differing file fails `--check`); and the docs say what was learned from the
       files, what is left out and how far to trust it.
+    - [x] **M7.1c13 Tables read by their headers** (ADR-268): a table from a logger no other
+      reader knows, read by the units its header's names state, each held to the column's name
+      and values; and a caller's column mapping for a file whose header states too little.
+      *Done when:* every file of the `table-csv` family in refs reads (`cargo xtask logs
+      --check` fails on one that doesn't); a column is read in a unit only where its name
+      states one the reader knows and its words don't say another quantity, a length or a time
+      only under an altitude's or a time's name, and is kept as written otherwise, with a note
+      (tests); a column whose values contradict its unit is kept as written, and a clock whose
+      median step contradicts its unit, or that never steps forward, is refused (tests); a
+      caller's mapping reads a file with no header row, and a mapping whose unit doesn't
+      measure its quantity is refused (tests); the survey's report counts each table's columns
+      by decision, naming none; and the docs say what is read, what is left out and how far to
+      trust it.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)
