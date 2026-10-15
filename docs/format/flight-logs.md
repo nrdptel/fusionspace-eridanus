@@ -381,11 +381,10 @@ It is tried after every other layout, so it never takes a file another reader kn
 > 4.6 × 10⁻¹³ m. These records have no primary track, so no readings are taken from them until
 > [M7.2](../decisions-and-roadmap.md#m7-2).
 
-**The header.** Within the first 64 lines, past blank lines, `#` comments and a `sep=` line, the
-first line is the header. Its separator is whichever of a comma, a semicolon, a tab or `|` splits
-it into the most cells, at least two, none of them a number. One column must be the clock: a name
-with a time word in it (`time`, `t`, `ts`, `timestamp`, `uptime`) and a unit of time stated. The
-next row must have a number in the clock's cell.
+**The header** is the first line within the first 64 that isn't blank, a `#` comment or a `sep=`
+line. It is split at a comma, a semicolon, a tab or `|`, whichever gives the most cells, none a
+number. One column must be the clock: a time word (`time`, `t`, `ts`, `timestamp`, `uptime`)
+with a unit of time.
 
 **A unit in a name** is read from brackets at its end, `Alt AGL (ft)`, `Temperature [deg C]`,
 `Alt (m ASL)` (the unit is the first word; `ASL` is kept with the name), or from an underscored
@@ -440,21 +439,9 @@ so it keeps its 45 as written. `Phase` holds words under a phase's name: two eve
 
 **A column mapping.** `generic::mapping` returns what the reader takes from a header as a
 `Mapping`, which serializes to JSON, and `generic::read_with` reads a file by one, with the same
-checks. A person or a program can state a unit the header leaves out, keep a column as written,
-or name the columns of a file with no header row; a unit that doesn't measure its column's
-quantity, such as `kPa` for a speed, is refused. The mapping above, with the velocity stated in
-feet a second:
-
-```json
-{"header_line": 1, "separator": ",", "decimal_comma": false, "clock": 0,
- "columns": [{"name": "Time (s)", "quantity": null, "unit": "s"},
-             {"name": "Alt AGL (ft)", "quantity": "altitude", "unit": "ft"},
-             {"name": "Pressure (hPa)", "quantity": "pressure", "unit": "hpa"},
-             {"name": "Velocity", "quantity": "speed", "unit": "ft/s"},
-             {"name": "Phase", "quantity": null, "unit": null}]}
-```
-
-Only the Rust library reads these tables so far.
+checks: a person or a program can state a unit the header leaves out, keep a column as written,
+or name the columns of a file with no header row. A unit that doesn't measure its column's
+quantity, such as `kPa` for a speed, is refused. Only the Rust library reads these tables so far.
 
 **What is left out.** The record keeps every column as a channel on the clock and has no
 [primary track](#the-record): which column is a barometric altitude above the pad isn't stated.
