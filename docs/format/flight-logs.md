@@ -1113,8 +1113,8 @@ writes the fix as
 
 its altitude $\lfloor 1400 \times 3.280\,84 \rfloor = 4593$ ft, read back as
 $4593 \times 0.3048 = 1399.95$ m. The text export writes the longitude in degrees, `-106.975720°`,
-where the `.rtx` holds $-(106 + 58.54321/60) = -106.975\,720\,17$°: cut, not rounded, at the
-sixth decimal.
+where the `.rtx` holds $-(106 + 58.54321/60)$, which is $-106.975\,720\,17$°: cut, not
+rounded, at the sixth decimal.
 
 ## PerfectFlite's other files
 
