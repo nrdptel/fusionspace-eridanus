@@ -1794,7 +1794,6 @@ mod tests {
             events,
             [(0.0, "PAD"), (0.0, "A"), (1.0, "BOOST"), (2.0, "B")]
         );
-        // A name that only starts with an event word holds no events: its text is left out.
         // Past the cap, changes are counted, not kept.
         let rows: String = (0..200).map(|i| format!("{i},{}\n", i % 2)).collect();
         let log = read(&format!(
@@ -1804,6 +1803,7 @@ mod tests {
         .expect("reads");
         assert_eq!(log.events.len(), MAX_EVENTS_PER_COLUMN);
         assert!(log.notes.iter().any(|n| n.contains("136 more times")));
+        // A name that only starts with an event word holds no events: its text is left out.
         let text = "Time (s),Model\n0,EasyMini\n1,EasyMini\n";
         let log = read(text).expect("reads");
         assert!(log.events.is_empty());
