@@ -85,8 +85,14 @@ fn the_named_layout_reads_each_field_in_its_stated_unit() {
     let xm = channel(&log, "ICM xm");
     assert_eq!((xm.quantity, xm.values[0]), (Quantity::Unrecognized, 30.15));
     let vol = channel(&log, "VOL V");
-    assert_eq!((vol.quantity, vol.values[0]), (Quantity::Unrecognized, 4.105));
-    note(&log, "VOL's values kept as written: no units line states its units");
+    assert_eq!(
+        (vol.quantity, vol.values[0]),
+        (Quantity::Unrecognized, 4.105)
+    );
+    note(
+        &log,
+        "VOL's values kept as written: no units line states its units",
+    );
     let units = note(&log, "kept as written, in a unit stated");
     assert!(units.contains("`ICM zm`, in milli-T"), "{units}");
     insta::assert_json_snapshot!(log);
