@@ -94,7 +94,7 @@ fn the_low_rate_download_keeps_only_records_whose_crc_checks() {
     assert_eq!(channel(&log, "V: 1").unwrap().values[0], 4_105.0);
     assert_eq!(
         channel(&log, "FER: rocket").unwrap().values,
-        [1536.0, 1536.0, 1537.0, 1537.0, 1537.0]
+        [1024.0, 1024.0, 1025.0, 1025.0, 1025.0]
     );
     note(&log, "1 piece that opens `@ LOG_` but closes with no CRC");
     note(&log, "1 piece whose CRC differs from its text, dropped");

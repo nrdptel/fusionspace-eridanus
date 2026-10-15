@@ -7,16 +7,18 @@
 //! sends either set to a serial terminal on a command, `<download l>` or `<download h>`, and the
 //! manual describes the lines it sends (Appendix A, p23–24). Each line "starts with the mnemonic
 //! `@ LOG_LOW` followed by the length of the string, and the time and date of the flight", then
-//! the sync code and the data, and closes with a "16b Buypass CRC code for line of text":
+//! the sync code and the data. The manual ends the low-rate line with a "16b Buypass CRC code for
+//! line of text" (p23) and lists none for the high-rate line (p24), but the high-rate lines in the
+//! sample logs close with a CRC too, of the same kind:
 //!
 //! ```text
 //! @ LOG_HIR  139 2026  5 23 10:15:00.120   20    -15     42     -7     -1      3     98  -3000   1500    -40  29812      0      0 CRC: 7730
-//! @ LOG_LOW  211 2026  5 23 10:15:00.140  40 Bo:  7212 49655 V:  4105    15    14    14    14 Vel:     0     0     0 Pos:     0     0     0 ang:   12   -3    0 FER:  600  8c1   c9   c1   c9   0   0   0 CRC: AF56
+//! @ LOG_LOW  211 2026  5 23 10:15:00.140  40 Bo:  7212 49655 V:  4105    22    21    20    23 Vel:     0     0     0 Pos:     0     0     0 ang:   12    5    0 FER:  400  1c1   c3   c1   c3   0   0   0 CRC: F7EB
 //! ```
 //!
 //! **Recognition.** A file is a download when one of its first 1,000 lines opens with `@ LOG_HIR`
-//! or `@ LOG_LOW` and closes with a CRC that checks (below); no other layout HPR Sim reads holds
-//! such a line.
+//! or `@ LOG_LOW`, holds no other `@ LOG_`, and closes with a CRC that checks (below); no other
+//! layout HPR Sim reads opens a line so.
 //!
 //! **Records and their checks.** A terminal saves what the port sends, and the sample logs show
 //! what that costs: a record whose `CRC: XXXX` and line end were lost runs on into the next one, on
@@ -26,8 +28,9 @@
 //! - *Its CRC.* The piece closes with `CRC:` and four hexadecimal digits, the CRC-16 the manual
 //!   calls Buypass (polynomial `0x8005`, starting at 0, no reflection, no final XOR; its check value
 //!   on `123456789` is `0xFEE8`) of the piece's text from its `@` to its last character before
-//!   `CRC:`, the spaces between them left out. The manual names the CRC but not the text it covers;
-//!   that span is the one under which every CRC in the sample files checks.
+//!   `CRC:`, the spaces between them left out. The manual says the CRC is "for line of text" but
+//!   not which characters it starts and ends at; this span is the one under which every CRC in
+//!   the sample files checks.
 //! - *Its length.* The number after the mnemonic must be the piece's length in bytes, from `@`
 //!   through the CRC's last digit, plus 2 for the line end the logger sends: `139` for a high-rate
 //!   line of 137 characters.
@@ -40,8 +43,7 @@
 //! length that isn't its own, a mnemonic other than these two, a date or time that can't be one, a
 //! value that isn't a whole number (or, in `FER:`, hexadecimal digits), more than
 //! [`MAX_VALUES`] values, or a layout unlike the first record's, its kind or its groups and their
-//! counts, so that a file holding both downloads is refused too. A file in which no record checks
-//! is refused ([`LogError::NotThisFormat`]).
+//! counts, so that a file holding both downloads is refused too.
 //!
 //! **The clock.** Each record states the logger's date and time of day to the millisecond, `2026
 //! 5 23 10:15:00.120`; the record's clock counts from the first record's, and a time that doesn't
@@ -77,8 +79,7 @@
 //! from them.
 //!
 //! **Counts unlike the manual's.** A logger's firmware need not write what the manual of the day
-//! lists: in the sample logs, from firmware older than the manual, a high-rate record holds 12 values where the
-//! manual lists 10, `V:` holds 5 where it lists 6, and `FER:` 8 where it lists 5. One rule takes
+//! lists: in the sample logs, a high-rate record holds 12 values where the manual lists 10, `V:` holds 5 where it lists 6, and `FER:` 8 where it lists 5. One rule takes
 //! them: a group holding at least the manual's count is read by the manual, in its order, and the
 //! values past it are kept as written, [`Quantity::Unrecognized`] (in `FER:`, registers of unknown
 //! meaning, [`Quantity::Number`]); a group holding fewer is kept as written whole, as nothing says
@@ -89,12 +90,13 @@
 //! *Blue Raven development thread*, rocketryforum.com, 2023-03-31), but not their order, so the
 //! high-rate record's 11th and 12th values stay as written.
 //!
-//! The rule is borne out on the sample logs, whose survey (`cargo xtask logs`) checks each
-//! reading against the file itself: every high-rate record's quaternion read from the 7th to the
-//! 10th value has a norm within 2 of 30,000, as a unit quaternion cut to whole numbers must; the
-//! first `FER:` value's lowest bit, the one the app's files call `Liftoff`, sets within a few
-//! hundredths of a second of the first acceleration above 3 g; and the pressure on the pad is
-//! within a percent of the TeleMega's in the same rocket.
+//! The sample logs' survey (`cargo xtask logs`) holds three parts of the reading to the file and
+//! the same flight's other files: every high-rate record's quaternion, read from the 7th to the
+//! 10th value, has a norm within 2 of 30,000, as a unit quaternion cut to whole numbers must; the
+//! first `FER:` value's lowest bit, the one the app's files call `Liftoff`, first sets within 0.1 s
+//! after the three axes' acceleration first passes 3 g; and the pressure on the pad is within 2 %
+//! of the TeleMega's in the same rocket. The gyro rates, velocities, positions, angles and
+//! voltages are read by the manual's scales with no such check.
 //!
 //! The record has no barometric track, as the download writes the pressure, not an altitude:
 //! [`FlightLog::time_s`] and [`FlightLog::altitude_m`] are empty, as for the Raven's raw `.FIPa`,
@@ -113,8 +115,8 @@ const FORMAT: &str = "Blue Raven USB download";
 /// How many of a file's first lines are searched for a record whose CRC checks.
 const RECOGNITION_LINES: usize = 1_000;
 
-/// The most values a record may hold after its sync code: twice the low-rate record's 26 values
-/// in the sample logs would be plenty; a file past it isn't a Blue Raven's.
+/// The most values a record may hold after its sync code, over ten times the 24 of the sample
+/// logs' low-rate record; a file past it isn't a Blue Raven's.
 pub const MAX_VALUES: usize = 256;
 
 /// What opens every record.
@@ -628,9 +630,9 @@ fn columns(kind: &str, layout: &Layout) -> (Vec<Column>, Vec<String>) {
 ///
 /// # Errors
 ///
-/// [`LogError::Unrecognized`] if no line among the first 1,000 is a record whose
-/// CRC checks; [`LogError::NotThisFormat`] if no record's does; [`LogError::Syntax`] for a record
-/// whose CRC checks but which can't be read (see the module's docs).
+/// [`LogError::Unrecognized`] if no line among the first 1,000 is a record whose CRC checks;
+/// [`LogError::Syntax`] for a record whose CRC checks but which can't be read (see the module's
+/// docs).
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
     if !recognizes(text) {
         return Err(LogError::Unrecognized {
@@ -708,6 +710,8 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
             other_lines += 1;
         }
     }
+    // Recognition found a record whose CRC checks, which the loop reads or refuses, so a first
+    // record is always there; refused rather than unwrapped all the same.
     let Some(first) = first else {
         return Err(LogError::NotThisFormat {
             format: FORMAT,
@@ -848,8 +852,8 @@ mod tests {
                         @ LOG_HIR  139 2026  5 23 10:15:00.122   22    -12     40     -6     -2      4     99  -3001   1500    -41  29811      0      0 CRC: A68A\r\n";
 
     /// Two invented low-rate records, laid out as the sample logs' firmware writes them.
-    const LOW: &str = "@ LOG_LOW  211 2026  5 23 10:15:00.140  40 Bo:  7212 49655 V:  4105    15    14    14    14 Vel:     0     0     0 Pos:     0     0     0 ang:   12   -3    0 FER:  600  8c1   c9   c1   c9   0   0   0 CRC: AF56\r\n\
-                       @ LOG_LOW  211 2026  5 23 10:15:00.160  60 Bo:  7212 49654 V:  4105    15    14    14    14 Vel:     1     0     0 Pos:     0     0     0 ang:   12   -3    0 FER:  600  8c1   c9   c1   c9   0   0   0 CRC: A955\r\n";
+    const LOW: &str = "@ LOG_LOW  211 2026  5 23 10:15:00.140  40 Bo:  7212 49655 V:  4105    22    21    20    23 Vel:     0     0     0 Pos:     0     0     0 ang:   12    5    0 FER:  400  1c1   c3   c1   c3   0   0   0 CRC: F7EB\r\n\
+                       @ LOG_LOW  211 2026  5 23 10:15:00.160  60 Bo:  7212 49654 V:  4105    22    21    20    23 Vel:     1     0     0 Pos:     0     0     0 ang:   12    5    0 FER:  400  1c1   c3   c1   c3   0   0   0 CRC: F1E8\r\n";
 
     /// A record of `kind` holding `rest`, its length and CRC worked out by this reader's CRC.
     fn line(kind: &str, rest: &str) -> String {
@@ -940,12 +944,12 @@ mod tests {
             Quantity::InertialAltitude
         );
         assert!(close(channel(&log, "ang: tilt").values[0], 1.2));
-        assert!(close(channel(&log, "ang: roll").values[0], -3.0));
+        assert!(close(channel(&log, "ang: roll").values[0], 5.0));
         // Eight registers where the manual lists five: its five, then three kept.
         let rocket = channel(&log, "FER: rocket");
         assert_eq!(rocket.quantity, Quantity::Number);
-        assert_eq!(rocket.values[0], f64::from(0x600));
-        assert_eq!(channel(&log, "FER: Apo").values[0], f64::from(0x8c1));
+        assert_eq!(rocket.values[0], f64::from(0x400));
+        assert_eq!(channel(&log, "FER: Apo").values[0], f64::from(0x1c1));
         assert_eq!(channel(&log, "FER: 8").quantity, Quantity::Number);
         assert!(
             log.channels

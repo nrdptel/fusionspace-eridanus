@@ -1,7 +1,7 @@
 # ADR-272: M7.1c17 in two: the Blue Raven's USB download first; the rest to M7.1c18 (2026-10-15)
 
 - **Status:** accepted; narrows M7.1c17 to a first increment and moves the rest, with M7.1c17's old entry and *done when* (the parent's), to M7.1c18; follows [ADR-271](0271-binary-records-by-a-stated-layout-before-the-rest.md)
-- **Summary:** After M7.1c16, 54 sample logs were left unread. Two of them are a Blue Raven's flight data as its USB port downloads it to a terminal, one line a sample, each closed by a CRC, in a layout the maker's manual describes. M7.1c17 reads these, keeping only the records whose CRC and stated length check, and reads each field by the manual where the record holds what the manual lists. All 354,284 values of the 19,636 records read agree with the survey's own decoding. A third file is filed as a flyer's copy of a summary, not a log. The rest goes to M7.1c18.
+- **Summary:** After M7.1c16, 54 sample logs were left unread. Two of them are a Blue Raven's flight data as its USB port downloads it to a terminal, one line a sample, each closed by a CRC, in a layout the maker's manual describes. M7.1c17 reads these, keeping only the records whose CRC checks, each held to its stated length, and reads each field by the manual where the record holds what the manual lists. All 354,284 values of the 19,636 records read agree with the survey's own decoding. A third file is filed as a flyer's copy of a summary, not a log. The rest goes to M7.1c18.
 
 **Context.** ADR-271 sorted the 54 files left after M7.1c16 into five groups: a course's Teensy
 logger (8), one team's radio packets (4), altimeters' other text (8), proprietary files (7), and
@@ -10,7 +10,7 @@ the Blue Raven. Two are a team's terminal captures of one flight's USB download,
 low-rate sets: lines such as `@ LOG_HIR  139 <date> <time> <sync> … CRC: XXXX`. The third,
 filed by a flyer beside a Blue Raven's summary CSV, is that summary's 48 rows written as a table of
 cells between `|`, by the same flyer's program that wrote the events file beside it, which the
-survey already files as a reading, not a log; every cell equals the CSV's.
+survey already files as a reading, not a log; compared by hand, it holds the CSV's cells.
 
 The *Blue Raven User's Guide* (Featherweight, updated May 12 2026, Appendix A, p22–24) describes
 the download: each line opens with its mnemonic, "the length of the string, and the time and date
@@ -20,14 +20,14 @@ accelerations in g × 100, the quaternion × 30,000, pressure in atm × 50,000, 
 velocities in ft/s, positions in ft, tilt in degrees × 10. It doesn't say which text the CRC
 covers. In the two files, CRC-16/BUYPASS (polynomial `0x8005`, starting at 0, no reflection, no
 final XOR) over the text from `@` to the last character before `CRC:`, the spaces between left out,
-checks on every record that has a CRC: 17,930 of 17,930 high-rate lines, and 1,706 low-rate
-records. The stated length is the line's length with its CR and LF in every one.
+checks on every piece that closes with one: 17,930 of 17,930 high-rate lines, and 1,706 low-rate
+records, of 1,861 pieces of which 155 close with no CRC. The stated length is the line's length with its CR and LF in every one.
 
-The capture lost some records. On 51 of the low-rate file's lines, two to four records run
-together, each but the last having lost its `CRC: XXXX` and its line end; with fragments, 155
-pieces that open `@ LOG_` close with no CRC.
+The capture lost some records. On some of the low-rate file's lines, records run together, each
+but the last having lost its `CRC: XXXX` and its line end; with fragments, 155 pieces that open
+`@ LOG_` close with no CRC, and none closes with one that differs.
 
-The files come from firmware older than the manual. A high-rate record holds 12 values
+The files' firmware writes other counts than the manual lists. A high-rate record holds 12 values
 after the sync code where the manual lists 10, `V:` holds 5 where it lists 6, and `FER:` 8 where it
 lists 5. The maker's forum names two 500 Hz fields beyond the manual's, the output current and the
 aux voltage, but not their order (Featherweight, *Blue Raven development thread*,
@@ -60,7 +60,8 @@ unit.
 6. **The check.** For each download, the survey works out each piece's CRC and length itself and
    decodes each checked record by its own copy of the manual's table and rule; the reader must keep
    exactly the records that check, and each of their values, the clock's included, must equal the
-   reader's. Three physical checks bear out the rule on the files: each high-rate quaternion's norm
+   reader's. Three physical checks hold parts of the reading to the files, the other fields resting
+on the manual's scales alone: each high-rate quaternion's norm
    must be within 2 of 30,000, as a unit quaternion × 30,000 cut to whole numbers is; the low-rate
    pressure on the pad, the median of the first 20 records, must be within 2 % of the TeleMega's in
    the same rocket; and the first register's lowest bit, the one the app's files call `Liftoff`,

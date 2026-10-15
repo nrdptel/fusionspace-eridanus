@@ -3199,7 +3199,10 @@ struct UsbFile {
     kind: String,
     /// Pieces of the file's lines that open `@ LOG_`, each up to the next or the line's end.
     pieces: usize,
-    /// Of those, the ones whose CRC-16/BUYPASS, worked out here, checks.
+    /// Of those, the ones that close with `CRC:` and four hexadecimal digits whose CRC-16/BUYPASS,
+    /// worked out here, differs from their text.
+    crc_differs: usize,
+    /// Of those that close with a CRC, the ones whose CRC-16/BUYPASS, worked out here, checks.
     crc_checks: usize,
     /// Of those, the ones whose stated length is their own, with the line end the logger sends.
     length_agrees: usize,
@@ -3380,9 +3383,11 @@ fn usb_checks(samples: &[Sample]) -> Vec<UsbFile> {
                     continue;
                 };
                 let stated = u16::from_str_radix(&piece[at + 6..], 16).ok();
-                if piece.len() != at + 10
-                    || stated != Some(buypass(piece[..at].trim_end().as_bytes()))
-                {
+                if piece.len() != at + 10 || stated.is_none() {
+                    continue;
+                }
+                if stated != Some(buypass(piece[..at].trim_end().as_bytes())) {
+                    file.crc_differs += 1;
                     continue;
                 }
                 file.crc_checks += 1;
@@ -5462,10 +5467,11 @@ fn markdown(report: &Report) -> String {
         let mut rows = String::new();
         for file in files {
             rows += &format!(
-                "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
+                "| `{}` | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
                 file.id,
                 file.kind,
                 file.pieces,
+                file.crc_differs,
                 file.crc_checks,
                 file.length_agrees,
                 file.records,
@@ -5493,20 +5499,23 @@ fn markdown(report: &Report) -> String {
         out += &format!(
             "\nThe {} Blue Raven USB downloads (M7.1c17), each checked here apart from the reader: \
              *Pieces* counts the parts of its lines that open `@ LOG_`, each up to the next or \
-             the line's end; *CRC checks* those whose CRC-16/BUYPASS, worked out here, checks; \
-             *Length agrees* those whose stated length is their own, with the line end the \
-             logger sends; *Read* the records the reader keeps, which must be those. Each \
+             the line's end; *CRC differs* those that close with `CRC:` and four hexadecimal \
+             digits whose CRC-16/BUYPASS, worked out here, differs from their text, and *CRC \
+             checks* those whose CRC checks; *Length agrees* those of these whose stated length \
+             is their own, with the line end the logger sends; *Read* the records the reader \
+             keeps, which must be the ones whose CRC checks. Each \
              checked record's values, decoded here by the manual's table, are compared with the \
              reader's channels. *Quaternion norm* is the least and greatest norm of a high-rate \
              record's 7th to 10th values, which a unit quaternion × 30,000 cut to whole numbers \
              keeps within 2 of 30,000; *Pad over AltOS* the low-rate pressure on the pad, the \
              median of the first {PAD_SAMPLES}, over the AltOS board's in the same rocket; \
-             *Liftoff lag* the time from the high-rate file's first acceleration above 3 g to the \
+             *Liftoff lag* the time from the high-rate file's first acceleration, the three axes' \
+             magnitude, above 3 g to the \
              first low-rate record whose first register has its lowest bit set, the bit the app's \
              files call `Liftoff`. {}.\n\n\
-             | File | Kind | Pieces | CRC checks | Length agrees | Read | Values compared | \
-             Differing | Quaternion norm | Pad over AltOS | Liftoff lag, s |\n\
-             |---|---|---:|---:|---:|---:|---:|---:|---|---:|---:|\n{rows}",
+             | File | Kind | Pieces | CRC differs | CRC checks | Length agrees | Read | Values \
+             compared | Differing | Quaternion norm | Pad over AltOS | Liftoff lag, s |\n\
+             |---|---|---:|---:|---:|---:|---:|---:|---:|---|---:|---:|\n{rows}",
             files.len(),
             if flat.is_empty() {
                 "No AltOS board's pressure is compared".to_owned()

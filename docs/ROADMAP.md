@@ -375,10 +375,11 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
     ADR-272): in eighteen.
     - [ ] **M7.1c17 The Blue Raven's USB download** (ADR-272): its `@ LOG_HIR` and `@ LOG_LOW`
       lines, read by the manual's layout, each record held to its CRC and stated length.
-      *Done when:* the survey reads the sample logs' 2 USB downloads, keeping exactly the records
-      whose CRC-16/BUYPASS and stated length check; each value equals the survey's own decoding;
-      each high-rate quaternion's norm is within 2 of 30,000; the pad pressure is within 2 % of
-      the TeleMega's in the same rocket, and the liftoff bit sets within 0.1 s after 3 g.
+      *Done when:* the survey reads the sample logs' 2 USB downloads, keeping exactly the
+      records whose CRC-16/BUYPASS checks, each of its stated length; each value equals the
+      survey's own decoding; each high-rate quaternion's norm is within 2 of 30,000; the pad
+      pressure is within 2 % of the TeleMega's in the same rocket; the liftoff bit sets within
+      0.1 s after 3 g.
     - [ ] **M7.1c18 The rest:** Blue Raven's other files, Entacore AIM XTRA, spreadsheets, CATS;
       EuRoC/Juno CSV; generic CSV with column mapping; unit detection (and `telemetry-rtf`,
       ADR-258).
