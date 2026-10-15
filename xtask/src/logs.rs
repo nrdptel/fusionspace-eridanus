@@ -2748,8 +2748,11 @@ fn rtx_motion(records: &[[f64; 10]]) -> (Option<f64>, Option<f64>) {
     let (mut ratios, mut offsets) = (Vec::new(), Vec::new());
     for k in 1..records.len().saturating_sub(1) {
         let (before, here, after) = (&records[k - 1], &records[k], &records[k + 1]);
-        // A gap's `NaN` time fails the test, as it must: `!(NaN <= x)`.
-        if here[8] < 15.0 || !((after[0] - before[0] - 2.0).abs() <= 1e-9) {
+        // A gap's `NaN` time is no time of day: the fixes around it are skipped.
+        if here[8] < 15.0
+            || !(before[0].is_finite() && after[0].is_finite())
+            || (after[0] - before[0] - 2.0).abs() > 1e-9
+        {
             continue;
         }
         let meters_per_degree = 6_371_000.0 * std::f64::consts::PI / 180.0;
