@@ -912,7 +912,7 @@ because physical checks confirm them:
 
 `Alt MSL` is a pressure altitude: the height at which the standard atmosphere's pressure equals
 the one measured, counted from where it would be 101,325 Pa. It isn't a height above the sea. In
-the line above, 95,000 Pa gives 540.4176 m by the formula, written as 540.42.
+the line above, 95,000 Pa gives 540.4176 m (1,773.02 ft) by the formula, written as 540.42.
 
 The rest is kept as written, as a number with no unit:
 
@@ -966,11 +966,11 @@ in the older layout and 1 in the newer, a 100 s cut from a longer recording. The
 that failed one would be counted as unread:
 
 - **`Alt MSL` against the BMP180's formula,** worked out from `Alt P` in 64-bit floats. On all
-  305,340 `Alt` lines it differs by at most 0.0054 m. The check allows 0.0103 m: half the
+  305,340 `Alt` lines it differs by at most 0.0054 m (0.21 in). The check allows 0.0103 m (0.41 in): half the
   hundredth of a meter `MSL` is written to, plus the formula's rounding in 32-bit floats, as a
   microcontroller works it out, 44,330 × 2⁻²³ m. On 21,540 lines the gap is more than the half
   step alone, and it is greatest at the same pressure in every file, as such rounding is. The
-  standard atmosphere's own constants would put `MSL` 0.09 to 0.20 m off.
+  standard atmosphere's own constants would put `MSL` 0.09 to 0.20 m (3.5 to 7.9 in) off.
 - **The accelerometer at rest.** Its magnitude on the pad, the median over the 5 s ending 1 s
   before liftoff, is 0.984 to 0.989 g. After landing, over the last 2 s, it is 0.998 to 1.007 g.
   The check allows 3% either way; read in another unit, such as g or ft/s², it would be 3 or more
