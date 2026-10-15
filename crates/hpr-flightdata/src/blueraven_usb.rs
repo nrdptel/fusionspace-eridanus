@@ -628,7 +628,7 @@ fn columns(kind: &str, layout: &Layout) -> (Vec<Column>, Vec<String>) {
 ///
 /// # Errors
 ///
-/// [`LogError::Unrecognized`] if no line among the first [`RECOGNITION_LINES`] is a record whose
+/// [`LogError::Unrecognized`] if no line among the first 1,000 is a record whose
 /// CRC checks; [`LogError::NotThisFormat`] if no record's does; [`LogError::Syntax`] for a record
 /// whose CRC checks but which can't be read (see the module's docs).
 pub fn read(text: &str) -> Result<FlightLog, LogError> {
