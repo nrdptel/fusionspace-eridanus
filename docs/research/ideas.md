@@ -28,25 +28,19 @@ safety number has a test pinning which way it errs.
 
 ## Theme notes
 
-- [Pad, range and recovery hardware](ideas-pad-and-recovery.md)
-- [Avionics](ideas-avionics.md)
-- [Design, build, physics and trust](ideas-design-and-physics.md)
-- [Flight data](ideas-flight-data.md)
-- [Competitions, certification and club operations](ideas-competitions-and-clubs.md)
-- [Developer ecosystem, UI and moonshots](ideas-ecosystem-and-ui.md)
+[Pad, range and recovery hardware](ideas-pad-and-recovery.md); [avionics](ideas-avionics.md);
+[design, build, physics and trust](ideas-design-and-physics.md); [flight data](ideas-flight-data.md);
+[competitions, certification and club operations](ideas-competitions-and-clubs.md); [developer
+ecosystem, UI and moonshots](ideas-ecosystem-and-ui.md).
 
-## The suite's new lines (Neer, 2026-10-04)
+## The suite's new lines and the second pass (2026-10-04)
 
 PROMOTED to the roadmap's Phase 9, after release 1.0 ([ADR-162, the suite and its
 releases][adr-162]): a motor designer, a recovery designer for custom parachutes, and avionics.
 Their research: [propulsion](suite-propulsion.md), [parachutes](suite-parachutes.md),
-[avionics](suite-avionics.md).
-
-## Promoted by the second pass (2026-10-04)
-
-PROMOTED by [ADR-163, the second pass][adr-163]: Student Launch and IREC submission packs, a
-declared apogee with its bound and a ballast solver (M6.6); ejection-charge sizing (M6.7); Monte
-Carlo from the CLI and Python (M4.6); pad day on a phone (M9.4).
+[avionics](suite-avionics.md). PROMOTED by [ADR-163, the second pass][adr-163]: Student Launch and
+IREC submission packs, a declared apogee with its bound and a ballast solver (M6.6); ejection-charge
+sizing (M6.7); Monte Carlo from the CLI and Python (M4.6); pad day on a phone (M9.4).
 
 ## In scope, low priority (Neer's scope call, 2026-10-03)
 
@@ -116,41 +110,43 @@ Placed by [ADR-197, the parts catalog][adr-197]; research in [parts catalog](par
 - LATER: live prices through `hpr-net`, cached and dated.
 - LATER: regional vendors (Klima, Wizard Rockets); parts that fit `.orc` offered upstream.
 
-## Earlier planning reviews (2026-10-08 to 2026-10-12)
+## Earlier planning reviews (2026-10-08 to 2026-10-13)
 
 PROMOTED: OpenRocket's newest release as the bar ([M2.3c3][m2-3c3], ADR-212), the gap to it by
 cause (M2.3c6, [ADR-226][adr-226]), apogees past Mach 1 ([M2.3c7][m2-3c7], [ADR-236][adr-236]),
-Student Launch's limits by requirement number ([M6.3][m6-3], [ADR-246][adr-246]). The rest moved
+Student Launch's limits by requirement number ([M6.3][m6-3], [ADR-246][adr-246]), the
+post-flight comparison ([M7.2][m7-2], [M7.3][m7-3], [ADR-257][adr-257]). The rest moved
 to the theme notes on [avionics](ideas-avionics.md), [flight data](ideas-flight-data.md),
 [pad and recovery](ideas-pad-and-recovery.md), [design and physics](ideas-design-and-physics.md)
 and [competitions](ideas-competitions-and-clubs.md).
 
-## The 2026-10-13 planning review
+## The 2026-10-15 planning review
 
-- PROMOTED into [M7.2][m7-2] and [M7.3][m7-3] ([ADR-257][adr-257]): the post-flight comparison.
-  User: a Student Launch team after a flight; its 2027 handbook asks for the predicted and actual
-  flight compared, the drag coefficient estimated from launch data and a post-flight simulation
-  (pp. 26 and 32). Workflow: one `hpr` command draws predicted and logged altitude and velocity,
-  as designed and under launch-day conditions. Moves: a new row, `accuracy.from-boost`, apogee
-  predicted from the log up to burnout. *Done when:* M7.3's.
-- SOON: the American Rocketry Challenge's expected score. User: an ARC team tuning a design to the
-  2027 rules (at most 650 g and 80 N·s, two eggs, an 800 ft qualifying goal, 37 to 40 s;
-  [rules][arc27] 4.3 to 4.6). Workflow: `hpr mc` with an ARC preset prints the score's 50% and 90%
-  ranges, as rules 4.5 and 4.6 score it. Moves: a new steps row, `steps.arc-score`, each tool's by
-  its docs. *Done when:* tests pin the score at both edges of the duration window and either side
-  of the altitude goal, the row is in `validation/steps/`, and the scoreboard shows it.
-- SOON: an altimeter's events checked against its flight. User: a flyer whose charge fired at the
-  wrong time, such as an apogee charge long after a tilt lockout tripped near liftoff
-  ([a forum thread][tilt-thread], October 2026). Workflow: `hpr analyze` lists each event the
-  logger recorded (launch, tilt lockout, burnout, apogee, deployments) beside the time the log's
-  own motion puts it, and flags each disagreement. Moves: a new row, the share of logged events
-  checked. *Done when:* a synthetic log with a lockout near liftoff is flagged and a clean one
-  isn't (a missed flag, the flattering side, has its own test); the reports count events checked
-  and flagged on the public logs and, as aggregates, the collection's.
-- SOON: HPR Sim's speed cell before [M2.9][m2-9]'s. User: someone choosing a tool by speed.
-  Workflow: `cargo xtask scoreboard` reads the one-flight benchmark ([performance](../perf.md))
-  from a committed record. Moves: `speed.flight` for HPR Sim, 14 to 15 of 51 cells. *Done when:*
-  the cell names machine, toolchain and commit; `--check` fails on a record older than the code.
+- PROMOTED into [M2.3c6][m2-3c6] ([ADR-273][adr-273]): OpenRocket's supersonic drag on a tangent
+  ogive, as its own cause. User: a flyer comparing the two simulators on a rocket past Mach 1.
+  OpenRocket's issue [#3391][or-3391] (2026-10-14) reports that 24.12 gives a tangent ogive's
+  nose almost no pressure drag above Mach 1, where its own technical documentation's method gives
+  about 0.13 at Mach 1.5 on a fineness-3 nose; our [#222][i-222] found the same gap on a private
+  design. Workflow: the gap-by-cause report names that term on its own line. Moves: the part of
+  the `accuracy.collection` gap to OpenRocket with a cited cause. *Done when:* M2.3c6's.
+- SOON: the 2027 IREC altitude score. User: an IREC team choosing a motor and a ballast for its
+  target apogee. Workflow: `hpr mc` with an IREC preset prints the altitude score's 50% and 90%
+  ranges as the [2027 rules][irec27] score it (p. 25: 350 points times one less the miss over 30%
+  of the target, none past 30%), and the predictions the rules ask for on p. 18 (thrust to weight,
+  rail exit speed, least static margin, peak acceleration and speed, flutter speed, apogee).
+  Moves: a new steps row, `steps.irec-score`, each tool's by its docs. *Done when:* tests pin the
+  score at the target (350), 10% short (233.3) and either side of the 30% edge; the preset cites
+  the rules' date and a stale-after date; the table's eight entries each come from a tested
+  output; the scoreboard shows the row.
+- SOON: an altimeter's apogee corrected for the day's air. User: a flyer whose barometric
+  altimeter reads a cold or hot day's apogee through the standard atmosphere. Workflow: `hpr
+  analyze` with the day's weather prints the altimeter's apogee and the height the day's
+  temperature profile gives, each labelled; the real-flights report scores both. Moves:
+  `accuracy.public` and `bias.public` for HPR Sim, whose logged apogees are barometric (a ground
+  at −9 to 0 °C reads 2 to 9% high, [UND's flights][und]). *Done when:* on synthetic logs 15 K
+  either side of standard, the corrected apogee is within 0.1% of the hypsometric closed form; a
+  log with no confirmed temperature prints the band, not one number; the report gives each public
+  flight's correction and both errors.
 
 ## MAINTAINER'S CALL (money, outreach)
 
@@ -195,6 +191,9 @@ and [competitions](ideas-competitions-and-clubs.md).
 [adr-257]: ../decisions/0257-the-2026-10-13-review-calibrated-intervals-and-the-post-flight-comparison.md
 [m7-2]: ../decisions-and-roadmap.md#m7-2
 [m7-3]: ../decisions-and-roadmap.md#m7-3
-[m2-9]: ../decisions-and-roadmap.md#m2-9
-[arc27]: https://www.rocketrychallenge.org/wp-content/uploads/2027_AmericanRocketryChallenge_Rules.pdf
-[tilt-thread]: https://www.rocketryforum.com/threads/emergency-deployment-option-for-unstable-flights.194466/
+[m2-3c6]: ../decisions-and-roadmap.md#m2-3c6
+[adr-273]: ../decisions/0273-the-2026-10-15-review-openrockets-supersonic-ogive-drag-as-a-cause.md
+[or-3391]: https://github.com/openrocket/openrocket/issues/3391
+[i-222]: https://github.com/nrdptel/fusionspace-eridanus/issues/222
+[irec27]: https://www.esrarocket.org/s/IREC-2027-Rules-and-Requirments-v10.pdf
+[und]: und-flight-configs.md

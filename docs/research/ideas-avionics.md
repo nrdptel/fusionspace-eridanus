@@ -34,6 +34,14 @@ Part of the [ideas backlog](ideas.md) (2026-10-03). One line each, with its tier
   window and threshold are inputs. Moves: honest uncertainty, and the features the scoreboard
   counts. *Done when:* `hpr mc` prints both; crossings are found on the continuous solution, not
   at output samples; a test pins that a run touching the threshold counts, with a mutation probe.
+- SOON: an altimeter's events checked against its flight. User: a flyer whose charge fired at the
+  wrong time, such as an apogee charge long after a tilt lockout tripped near liftoff
+  ([a forum thread][tilt-thread], October 2026). Workflow: `hpr analyze` lists each event the
+  logger recorded (launch, tilt lockout, burnout, apogee, deployments) beside the time the log's
+  own motion puts it, and flags each disagreement. Moves: a new row, the share of logged events
+  checked. *Done when:* a synthetic log with a lockout near liftoff is flagged and a clean one
+  isn't (a missed flag, the flattering side, has its own test); the reports count events checked
+  and flagged on the public logs and, as aggregates, the collection's.
 
 [m6-4]: ../decisions-and-roadmap.md#m6-4
 [m7-1]: ../decisions-and-roadmap.md#m7-1

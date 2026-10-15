@@ -51,6 +51,18 @@ fn benches(c: &mut Criterion) {
             })
         },
     );
+    // The observer every `hpr sim` and Monte Carlo flight carries: peaks, events and the stability
+    // margin, sampled at each step's start, middle and end.
+    c.bench_function(
+        "Simulation::run, Valetudo K400C with its flight metrics",
+        |b| {
+            b.iter(|| {
+                let mut metrics = hpr_sim::metrics::FlightMetrics::new();
+                black_box(&simulation).run(&mut metrics).unwrap();
+                metrics
+            })
+        },
+    );
 
     // The same flight on a normal-force table of hpr's own at 0°, 2° and 4° and every Mach 0.01,
     // the shape of a RASAero II export (M1.8d): each component is evaluated twice.

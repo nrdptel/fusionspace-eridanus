@@ -3563,6 +3563,8 @@ impl OdeSystem<STATE_LEN> for PhaseSystem<'_> {
             window: self.window,
             canopies: self.canopies,
             step,
+            memo: std::cell::Cell::new([None; 4]),
+            held: self.cache.as_ref(),
         };
         match self.observer.step(&view) {
             Ok(()) => ControlFlow::Continue(()),
@@ -3574,6 +3576,13 @@ impl OdeSystem<STATE_LEN> for PhaseSystem<'_> {
     }
 }
 
+#[cfg(test)]
+thread_local! {
+    /// Set by tests to evaluate every instant afresh, as before the step's memo, so a test can
+    /// compare the two paths bit for bit.
+    pub(crate) static STEP_MEMO_OFF: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
 /// An accepted step as the observer sees it.
 struct StepView<'a> {
     simulation: &'a Simulation,
@@ -3582,6 +3591,55 @@ struct StepView<'a> {
     window: (f64, f64),
     canopies: Canopies<'a>,
     step: &'a Step<STATE_LEN>,
+    /// The step's evaluations by time, so a sample and a stability at one instant share one:
+    /// within a step the evaluation is a function of the time alone. The first three times
+    /// asked (the observers' start, middle and end) keep their slots; later ones share the last.
+    memo: std::cell::Cell<[Option<(u64, Evaluation)>; 4]>,
+    /// The integrator's last evaluation, used when a time's state is the one it holds.
+    held: Option<&'a (f64, [f64; STATE_LEN], Evaluation)>,
+}
+
+impl StepView<'_> {
+    /// The vehicle's evaluation at `t_s` on this step's dense output, from the memo if it has one.
+    fn evaluation(&self, t_s: f64) -> Result<Evaluation, SimError> {
+        let key = t_s.to_bits();
+        #[cfg(test)]
+        if STEP_MEMO_OFF.with(std::cell::Cell::get) {
+            let y = self.step.state_at(t_s);
+            let drag_area_m2 = self.canopies.drag_area_m2(t_s);
+            return self.simulation.evaluate(
+                self.vehicle,
+                self.phase,
+                self.window,
+                t_s,
+                &y,
+                drag_area_m2,
+            );
+        }
+        let mut memo = self.memo.get();
+        if let Some((_, e)) = memo.iter().flatten().find(|(k, _)| *k == key) {
+            return Ok(*e);
+        }
+        let y = self.step.state_at(t_s);
+        let e = match self.held {
+            Some((ht, hy, he)) if ht.to_bits() == key && *hy == y => *he,
+            _ => self.simulation.evaluate(
+                self.vehicle,
+                self.phase,
+                self.window,
+                t_s,
+                &y,
+                self.canopies.drag_area_m2(t_s),
+            )?,
+        };
+        let slot = memo
+            .iter()
+            .position(Option::is_none)
+            .unwrap_or(memo.len() - 1);
+        memo[slot] = Some((key, e));
+        self.memo.set(memo);
+        Ok(e)
+    }
 }
 
 impl FlightStep for StepView<'_> {
@@ -3602,25 +3660,17 @@ impl FlightStep for StepView<'_> {
     }
 
     fn sample(&self, t_s: f64) -> Result<Sample, SimError> {
-        self.simulation.sample(
-            self.vehicle,
+        let evaluation = self.evaluation(t_s)?;
+        Ok(sample_of(
             self.phase,
-            self.window,
             t_s,
             &self.step.state_at(t_s),
-            self.canopies.drag_area_m2(t_s),
-        )
+            &evaluation,
+        ))
     }
 
     fn stability(&self, t_s: f64) -> Result<Stability, SimError> {
-        let e = self.simulation.evaluate(
-            self.vehicle,
-            self.phase,
-            self.window,
-            t_s,
-            &self.step.state_at(t_s),
-            self.canopies.drag_area_m2(t_s),
-        )?;
+        let e = self.evaluation(t_s)?;
         crate::metrics::stability(
             &self.vehicle.aero,
             t_s,

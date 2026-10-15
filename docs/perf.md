@@ -3,6 +3,38 @@
 Measured numbers only, newest first within each section. Record the machine, the toolchain, and
 the command, so a later run can be compared like for like.
 
+## A step's evaluations shared by its observers (2026-10-15)
+
+- **What this is.** Every `hpr sim` and Monte Carlo flight carries `FlightMetrics`, which tracks
+  the peaks, the events and the stability margin. It reads the vehicle's state at each accepted
+  step's start, middle and end, once for the sample and again for the margin, and the end is
+  usually the state the integrator has just evaluated. A profile of the K940's dispersed flights
+  (macOS `sample`, 13,003 samples) put 47% of a flight's time in that observer. A step now keeps
+  each time's evaluation (`StepView::evaluation` in `crates/hpr-sim/src/flight.rs`), and takes the
+  end's from the integrator when its time and state match exactly. Within a step, an evaluation
+  depends on the time alone, so nothing it returns changes.
+- **Measured** on an Apple M5 (10 cores), rustc 1.98.1, main 6537d2c9 against the change,
+  alternating, two runs each of `cargo bench -p fusionspace-hpr --features parallel --bench
+  ten_thousand` (each figure the fastest of three; Spotlight indexing on one core throughout):
+
+  | measurement | before | after |
+  |---|---|---|
+  | Valetudo: 10,000 flights on 10 threads | 3.04 / 3.06 s | 2.71 / 2.74 s (−11%) |
+  | Valetudo: a flight on one thread | 1.930 / 1.921 ms | 1.724 / 1.724 ms (−10%) |
+  | K940: 10,000 flights on 10 threads | 9.47 / 9.79 s | 8.30 / 8.52 s (−12%) |
+  | K940: a flight on one thread | 5.855 / 5.841 ms | 5.069 / 5.082 ms (−13%) |
+
+  A new criterion bench carries the observer, which "Valetudo K400C to the ground" doesn't:
+  "Valetudo K400C with its flight metrics" read 2.375 ms before and 2.128 ms after (−10%;
+  `cargo bench -p fusionspace-hpr-sim --bench flight`).
+- **What moves.** No output bit. `shared_step_evaluations_change_no_output_bit`
+  (`crates/hpr-sim/src/tests.rs`) flies a supersonic rocket and Valetudo to the ground in a
+  crosswind both ways (a test-only switch evaluates every instant afresh) and compares the
+  metrics, the summary and every channel recorded at 10 ms bit for bit. Two mutations fail it:
+  reusing the integrator's evaluation without matching the state, and returning another time's
+  evaluation. The committed reports reproduce byte for byte (the gate's `validate`, `examples`
+  and `refs` checks).
+
 ## The site's layout check on six tabs (#469)
 
 - **What this is.** `cargo xtask site` lays out every page at every checked width in Chrome, one
