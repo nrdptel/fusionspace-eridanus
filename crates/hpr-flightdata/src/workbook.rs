@@ -3,7 +3,7 @@
 //!
 //! A workbook isn't a layout of its own. [`sheets`] writes each worksheet's cells out as
 //! comma-separated text, one line a row, and [`read`] gives each sheet's text to
-//! [`import::read`](crate::import::read), which recognizes it as it would the file the sheet
+//! [`import::read`], which recognizes it as it would the file the sheet
 //! came from: a Blue Raven's CSV, an Eggtimer's, a Featherweight tracker's, or a table read by
 //! the units its header states ([`generic`](crate::generic)). One workbook can give several logs.
 //!
@@ -152,7 +152,7 @@ pub struct SheetLog {
 }
 
 /// Each worksheet of an `.xlsx` workbook, read as a log on its own by
-/// [`import::read`](crate::import::read), in the workbook's order of sheets.
+/// [`import::read`], in the workbook's order of sheets.
 ///
 /// # Errors
 ///

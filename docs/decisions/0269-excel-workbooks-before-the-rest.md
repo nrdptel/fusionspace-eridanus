@@ -63,7 +63,10 @@ moving the 1900 epoch by one day makes 27,103 disagree. The survey reads 994 of 
 and labels 70 M7.1c15, 68 unread. Left in M7.1c15: a PerfectFlite export with a person's notes
 beside the table, a state estimator's output whose clock names no unit, two tables with no
 header, and the `.xls` (a bare BIFF stream). A date-formatted number is only as right as its
-format: a seconds clock a person formatted as a time is read as a time of day.
+format: a seconds clock a person formatted as a time is read as a time of day. The docs site's search
+index passed mdBook's 10 MB warning with the workbooks' section (10.02 MB), and every page left
+in it is one a reader needs, so a search now lands on a page's `##` section rather than its
+`###` one (`book.toml`, 9.06 MB); #414, a search that grows without that limit, stays open.
 
 **Done when (M7.1c14):** every file of the `workbook-xlsx` family in refs reads, a sheet of it
 read as a log (`cargo xtask logs --check` fails on one that doesn't); a cell is written as the
