@@ -9,6 +9,9 @@
 //! - **No request leaves the site.** No built page loads a stylesheet, script, image or frame from
 //!   another server, and no built stylesheet names one in `url()` or `@import`; every `url()` the
 //!   theme's stylesheets give resolves to a file the site serves.
+//! - **Every brace closes.** A stylesheet of the theme with a `}` that closes nothing, or a `{`
+//!   left open, fails: a browser drops the rule after a stray `}` without a word, as it dropped
+//!   rules added at the end of `hpr.css` until 2026-10-14.
 //! - **The strip and the fonts on every page.** Every page of the guide links the theme, whose
 //!   `body::before` draws the gradient strip, and `fonts/fonts.css`.
 //! - **A title block ends the landing page**, with its fields from ISO 7200 as the system's
@@ -26,10 +29,10 @@ use super::{attributes, html_files, is_web, unescape};
 const THEME: &str = "theme";
 /// The product system's repository, checked out under `refs/` by `cargo xtask refs`.
 pub(crate) const DESIGN_REFS: &str = "refs/fusionspace-design";
-/// The revision of the product system the copied files come from (Rev D), as ADR-164 pins it
-/// (moved by ADR-198 and ADR-250).
+/// The revision of the product system the copied files come from (Rev E with its fix of
+/// 2026-10-14), as ADR-164 pins it (moved by ADR-198, ADR-250 and each revision since).
 /// `refs.lock.toml`'s pin must start with it.
-pub(crate) const DESIGN_REV: &str = "2495dec";
+pub(crate) const DESIGN_REV: &str = "1b88597";
 /// The lock file that pins the `refs/` checkouts, relative to the workspace root.
 pub(crate) const REFS_LOCK: &str = "validation/refs.lock.toml";
 /// The product system's name in [`REFS_LOCK`].
@@ -283,6 +286,11 @@ pub(super) fn check_sources(root: &Path, source: &Path) -> Result<Sources, Strin
     }
     let faces = font_faces(&read(&theme.join(FONTS_CSS))?);
     for file in ["fusionspace-mdbook.css", "hpr.css"] {
+        if let Some(why) = brace_problem(&read(&theme.join(file))?) {
+            problems.push(format!(
+                "{THEME}/{file}: {why}, so a browser drops the rules it swallows"
+            ));
+        }
         for family in first_families(&read(&theme.join(file))?) {
             if !faces.contains(&family) {
                 problems.push(format!(
@@ -331,6 +339,54 @@ pub(crate) fn committed_file(design: &Path, commit: &str, path: &str) -> Result<
         return Err(String::from_utf8_lossy(&output.stderr).trim().to_owned());
     }
     Ok(output.stdout)
+}
+
+/// Where a stylesheet's braces don't pair, outside comments and quoted strings: the line of the
+/// first `}` that closes nothing, or how many `{` are left open at its end.
+fn brace_problem(css: &str) -> Option<String> {
+    let mut depth = 0usize;
+    let mut line = 1;
+    let mut chars = css.chars().peekable();
+    while let Some(c) = chars.next() {
+        match c {
+            '\n' => line += 1,
+            '/' if chars.peek() == Some(&'*') => {
+                chars.next();
+                let mut star = false;
+                for c in chars.by_ref() {
+                    if c == '\n' {
+                        line += 1;
+                    }
+                    if star && c == '/' {
+                        break;
+                    }
+                    star = c == '*';
+                }
+            }
+            '"' | '\'' => {
+                while let Some(d) = chars.next() {
+                    match d {
+                        '\\' => {
+                            chars.next();
+                        }
+                        '\n' => {
+                            line += 1;
+                            break;
+                        }
+                        _ if d == c => break,
+                        _ => {}
+                    }
+                }
+            }
+            '{' => depth += 1,
+            '}' if depth == 0 => {
+                return Some(format!("line {line} has a `}}` that closes nothing"));
+            }
+            '}' => depth -= 1,
+            _ => {}
+        }
+    }
+    (depth > 0).then(|| format!("{depth} `{{` left open at its end"))
 }
 
 /// The font each `font-family` declaration of a stylesheet asks for first, its others being the
@@ -882,6 +938,21 @@ fn css_files(dir: &Path, prefix: &str, out: &mut Vec<String>) -> Result<(), Stri
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_brace_that_closes_nothing_or_one_left_open_fails() {
+        let ok = "a { b: c; }\n@media print { a { b: '}'; } }\n/* } { */ d { e: \"{\"; }\n";
+        assert_eq!(brace_problem(ok), None);
+        assert_eq!(
+            brace_problem("a { b: c; }\n  d { e: f; }\n}\ng { h: i; }\n").as_deref(),
+            Some("line 3 has a `}` that closes nothing")
+        );
+        assert_eq!(
+            brace_problem("@container (x) {\n a { b: c; }\n").as_deref(),
+            Some("1 `{` left open at its end")
+        );
+        assert_eq!(brace_problem("/* a\n} */ b { c: 'd\\'}'; }\n"), None);
+    }
 
     /// A title block as the landing page writes it, for version 1.2.3 and a catalog captured on
     /// 2026-01-02, followed by a link definition.

@@ -166,14 +166,14 @@ pre > .buttons .fa-svg svg { width: 24px; height: 24px; }
         .content main .fs-sheet:has(.checkbox-img:checked) { content-visibility: visible; }
     }
 }
-.content main .fs-sheet-rail { display: grid; gap: 8px; margin-bottom: 16px; }
+.content main .fs-sheet-rail { display: grid; gap: 8px; align-content: start; margin-bottom: 0; }
 /* The system's mdBook theme draws the sheet's edge on the `h2` itself; here the sheet draws it. */
 .content main .fs-sheet-rail > h2 { margin: 0; padding-top: 0; border-top: 0; }
 .fs-sheet-no { font: 400 var(--fs-12)/var(--fs-16) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fs-ink-muted); }
 .content { container-type: inline-size; }
 @container (min-width: 880px) {
     .content main .fs-sheet { display: flow-root; }
-    .content main .fs-sheet-rail { float: left; width: 184px; margin: 0 32px 16px 0; }
+    .content main .fs-sheet-rail { float: left; width: 184px; margin: 0 32px 0 0; }
     .content main .fs-sheet-body { margin-inline-start: 216px; }
     .content main .fs-sheet-body > p:has(> .checkbox-label) { clear: left; margin-inline-start: -216px; }
     .content main .fs-sheet-body > p > .checkbox-label::before { content: ""; flex: 0 100000 216px; min-width: 0; }
@@ -238,5 +238,3 @@ html:not(.js) #mdbook-theme-list.fs-seg { display: none !important; }
 html:not(.js) #hpr-print { display: none; }
 #hpr-print-cover .fs-btn { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 44px; margin: 0; padding: 0 16px; font: 600 var(--fs-14)/var(--fs-20) 'Cascadia Mono', 'Cascadia Mono Fallback', ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0; white-space: nowrap; cursor: pointer; color: var(--fs-canvas); background: var(--fs-ink); border: 2px solid var(--fs-ink); border-radius: 0; transition: background-color 100ms cubic-bezier(0.2, 0, 0, 1), border-color 100ms cubic-bezier(0.2, 0, 0, 1); }
 #hpr-print-cover .fs-btn:hover { color: var(--fs-on-action); background: var(--fs-action); border-color: var(--fs-action); }
-    .content main .fs-sheet-rail { align-content: start; margin-bottom: 0; }
-}

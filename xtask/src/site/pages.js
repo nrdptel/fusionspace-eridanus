@@ -421,6 +421,9 @@
   const CLEAR_SPACE = 0.25;
   const INKS = ['rgb(11, 15, 28)', 'rgb(243, 244, 247)'];
   const SIDEBAR_OPEN_FROM_PX = 720;
+  // What an open search field leaves between it and the page (`web.md`, *Page anatomy*), so its
+  // focus ring, 2 px wide and 2 px out, never touches the page's first line.
+  const SEARCH_GAP_PX = 16;
   const TITLE_BLOCK_BORDER_PX = 2;
   // The page arrows' least height (`web.md`, *Page anatomy*), the system's touch target.
   const ARROW_MIN_PX = 44;
@@ -1792,6 +1795,49 @@
     }
   }
 
+  // The search field, opened as its button opens it (`web.md`, *Page anatomy*): drawn in the
+  // column, its edges on `main`'s, and ending `SEARCH_GAP_PX` or more above the first thing drawn
+  // in `main`, at every width. mdBook's own draws it across the page's padding with nothing under
+  // it, its focus ring over the designation tag. Returns what is wrong, as the header's examples.
+  async function probeSearch(win, doc) {
+    const found = [];
+    const wrap = doc.getElementById('mdbook-search-wrapper');
+    const bar = doc.getElementById('mdbook-searchbar');
+    const main = doc.querySelector('main');
+    if (!wrap || !bar || !main) return found;
+    const add = function (value) {
+      found.push({ selector: selector(bar), property: 'search', theme: win.innerWidth + ' px',
+        value: value });
+    };
+    const closed = wrap.classList.contains('hidden');
+    wrap.classList.remove('hidden');
+    try {
+      await nextFrames(win);
+      if (!drawn(win, bar)) {
+        add('the search field is not drawn when opened');
+        return found;
+      }
+      const b = bar.getBoundingClientRect();
+      const m = main.getBoundingClientRect();
+      const top = Array.from(main.children).filter(function (el) { return drawn(win, el); })
+        .reduce(function (least, el) { return Math.min(least, el.getBoundingClientRect().top); },
+          m.top);
+      const gap = top - b.bottom;
+      if (gap < SEARCH_GAP_PX - SLACK_PX) {
+        add('the page starts ' + Math.round(gap) + ' px under the open search field, not '
+          + SEARCH_GAP_PX);
+      }
+      if (Math.abs(b.left - m.left) > SLACK_PX || Math.abs(b.right - m.right) > SLACK_PX) {
+        add('the open search field spans ' + Math.round(b.left) + ' to ' + Math.round(b.right)
+          + ' px, the column ' + Math.round(m.left) + ' to ' + Math.round(m.right));
+      }
+    } finally {
+      if (closed) wrap.classList.add('hidden');
+      await nextFrames(win);
+    }
+    return found;
+  }
+
   // The sidebar after a window under 720 px widens past it (#384): the frame is widened to
   // `SIDEBAR_WIDENED_PX` and, once the sidebar's slide has run, the sidebar must be drawn and
   // reached, and no menu button drawn. Returns what is wrong, as the header's examples.
@@ -2495,6 +2541,10 @@
           if (printed) await probeSwitchPress(win, doc, result);
           if (printed) await probeSwitchRetired(win, doc, result);
           result.printed = printed;
+          for (const off of await probeSearch(win, doc)) {
+            result.header_count++;
+            if (result.header.length < EXAMPLES) result.header.push(off);
+          }
           // Last, as it changes the frame's width.
           for (const widened of await probeWidened(frame, win, doc)) {
             result.header_count++;

@@ -113,8 +113,10 @@
 //!     the window's left) and, pressed again, bring it back; and a drag of the handle to the
 //!     window's side must put it away (`web.md`, *Site patterns*, Docs), with nothing stored for
 //!     the pages loaded beside it. A page with the site's header and no sidebar or menu button
-//!     fails. That every page has the header, its lockup, the sidebar and the menu button is the
-//!     file check's (`frame.rs`);
+//!     fails. At every width, the search field, opened as its button opens it, must stand in the
+//!     column, its edges on `main`'s, and end 16 px or more above the first thing drawn in
+//!     `main`, so its focus ring never touches the page. That every page has the header, its
+//!     lockup, the sidebar and the menu button is the file check's (`frame.rs`);
 //!   - **page arrows off the system's** (`web.md`, *Page anatomy*): each link of the arrows
 //!     under the page, drawn under the text and inside the column, the previous at `main`'s left
 //!     edge and the next at its right, at least 44 px tall, naming its page in text, not an
@@ -209,7 +211,9 @@
 //! on the action role opaque, a page's frame drawn as the system's, which must pass, a lockup
 //! 20 px tall, one in the action role, one cut by its box, one with the product's name inside
 //! its clear space, no menu button at any width, a sidebar its menu button and a drag put away
-//! and bring back, which must pass, a menu button and a drag that leave it drawn, page arrows
+//! and bring back, which must pass, a menu button and a drag that leave it drawn, a search field
+//! that opens in the column 16 px above the page, which must pass, one with nothing under it and
+//! one wider than the column, page arrows
 //! lined up with the column and naming their pages, which must pass, arrows at the window's
 //! sides and arrows naming no page, a sidebar drawn and hidden from screen
 //! readers, one drawn with its link out of the tab order, one put away and still read, one put
@@ -490,7 +494,8 @@ enum Kind {
     /// A header off the system's: a lockup not 24 px tall in the ink role, cut, or without its
     /// clear space; no menu button; a sidebar put away from 720 px on a first visit, one the menu
     /// button or a drag to the window's side doesn't put away, or one a screen reader or the
-    /// keyboard reaches while put away, or can't while drawn (#384).
+    /// keyboard reaches while put away, or can't while drawn (#384); a search field that opens
+    /// off the column or less than 16 px above the page.
     Header,
     /// A title block off the system's: not inside a 2 px ink border, its entries not in Cascadia
     /// Mono, its edges off the column's, or something drawn below it (#384).
@@ -846,6 +851,26 @@ macro_rules! arrows {
     };
 }
 
+/// A closed search field as mdBook's, with `$style` added, moved by its script to stand before
+/// `$before`, for the search canaries: the page check opens it as its button does. The page's
+/// first line starts at `main`'s top, as the site's designation tag does.
+macro_rules! search {
+    ($style:expr, $before:expr) => {
+        concat!(
+            "<style>.hidden { display: none; } main > :first-child { margin-top: 0; } \
+             #mdbook-search-wrapper { max-width: 1120px; \
+             margin-inline: auto; padding-bottom: 16px; } #mdbook-searchbar { display: block; \
+             box-sizing: border-box; width: 100%; margin: 5px 0 0; padding: 10px 16px; font: \
+             inherit; border: 1px solid #566079; }</style>",
+            $style,
+            "<div id=\"mdbook-search-wrapper\" class=\"hidden\"><input id=\"mdbook-searchbar\" \
+             type=\"search\" aria-label=\"Search\"></div><script>document.querySelector('",
+            $before,
+            "').before(document.getElementById('mdbook-search-wrapper'));</script>"
+        )
+    };
+}
+
 /// A page's frame with `$style` added, `$lockup` in its header and `$sidebar` after it, then the
 /// title block and `$after`; its root marked `js`, as the site's script marks it, and mdBook's
 /// sidebar box, for the reading with scripts off.
@@ -1071,7 +1096,7 @@ macro_rules! switch_frame {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 173] = [
+const CANARIES: [Canary; 176] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1958,6 +1983,33 @@ const CANARIES: [Canary; 173] = [
         expect: &[Kind::Header],
         inside: "",
         after: frame!("", lockup!(), put_away!("true", "false"), ""),
+    },
+    Canary {
+        file: "canary-search.html",
+        what: "a search field that opens in the column, 16 px above the page, which must pass",
+        expect: &[],
+        inside: "",
+        after: search!("", "main"),
+    },
+    Canary {
+        file: "canary-search-touching.html",
+        what: "a search field that opens with nothing between it and the page, as mdBook's",
+        expect: &[Kind::Header],
+        inside: "",
+        after: search!(
+            "<style>#mdbook-search-wrapper { padding-bottom: 0; }</style>",
+            "main"
+        ),
+    },
+    Canary {
+        file: "canary-search-wide.html",
+        what: "a search field that opens across the page's padding, wider than the column",
+        expect: &[Kind::Header],
+        inside: "",
+        after: search!(
+            "<style>#mdbook-search-wrapper { max-width: none; }</style>",
+            ".content"
+        ),
     },
     Canary {
         file: "canary-arrows.html",
@@ -4365,7 +4417,7 @@ mod tests {
     fn the_header_and_the_title_block_have_canaries_both_ways() {
         // Each kind has canaries that must show it alone, and the frame drawn as the system's
         // must pass.
-        for (kind, least) in [(Kind::Header, 11), (Kind::TitleBlock, 4)] {
+        for (kind, least) in [(Kind::Header, 13), (Kind::TitleBlock, 4)] {
             let failing = CANARIES
                 .iter()
                 .filter(|canary| canary.expect == [kind])
@@ -4377,6 +4429,11 @@ mod tests {
                 && canary.expect.is_empty()
                 && canary.after.contains("class=\"fs-lockup\"")
                 && canary.after.contains("<footer class=\"fs-titleblock\"")
+        }));
+        assert!(CANARIES.iter().any(|canary| {
+            canary.file == "canary-search.html"
+                && canary.expect.is_empty()
+                && canary.after.contains("id=\"mdbook-searchbar\"")
         }));
         assert_eq!(Kind::Header.describe(), "a header off the system's");
         assert_eq!(
