@@ -1,7 +1,7 @@
 //! A serial console's capture holding binary records as base64: what a flight computer prints when
 //! asked, over its USB serial shell, to dump its memory, as a terminal program saves it.
 //!
-//! The capture is the session's text: the shell's prompts and the commands typed, then each dump
+//! The capture is the terminal's text: the commands typed at the shell, then each dump
 //! as a block of base64 lines between two marker lines that name it:
 //!
 //! ```text

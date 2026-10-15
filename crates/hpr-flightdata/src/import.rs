@@ -165,7 +165,7 @@ fn detect_text(text: &str) -> Option<LogFormat> {
     if aerospacenu_gs::recognizes(text) {
         return Some(LogFormat::AerospaceNuGroundStationText);
     }
-    // A console capture is told by its block markers, past the shell's prompts.
+    // A console capture is told by its block markers, past the shell's own lines.
     if capture::recognizes(text) {
         return Some(LogFormat::ConsoleCapture);
     }
