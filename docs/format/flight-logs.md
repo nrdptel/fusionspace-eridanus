@@ -66,8 +66,13 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > by a layout the caller states, since [M7.1c16](../decisions-and-roadmap.md#m7-1c16); in the 5
 > sample files every field matches the team's own decoded table
 > ([binary records by a stated layout](#binary-records-by-a-stated-layout)).
+> A Blue Raven's USB download, read since [M7.1c17](../decisions-and-roadmap.md#m7-1c17) (its
+> reader), keeps only the records whose CRC checks, each held to its stated length, and reads them
+> by the maker's manual; every
+> value in the 2 sample files equals the survey's own decoding, and values the manual doesn't
+> list are kept as written ([the Blue Raven's USB download](#the-blue-ravens-usb-download)).
 > Other layouts are refused, not guessed at; they come with
-> [M7.1c17](../decisions-and-roadmap.md#m7-1c17), the other loggers' formats.
+> [M7.1c18](../decisions-and-roadmap.md#m7-1c18), the other loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -136,6 +141,8 @@ mappings a publisher states), as
 decided, and [M7.1c16](../decisions-and-roadmap.md#m7-1c16) (binary records by a stated
 layout), as
 [ADR-271](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0271-binary-records-by-a-stated-layout-before-the-rest.md)
+decided, and [M7.1c17](../decisions-and-roadmap.md#m7-1c17) (the Blue Raven's USB download), as
+[ADR-272](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0272-the-blue-ravens-usb-download-before-the-rest.md)
 decided.
 
 ## The layouts read
@@ -150,6 +157,7 @@ decided.
 | Raven FIP CSV | Featherweight Raven, through the Featherweight Interface Program | opens with a time column and holds the Raven's `Axial Accel (Gs)` channel | `hpr_flightdata::raven` |
 | Raven `.FIPa` | Featherweight Raven, its memory as the Featherweight Interface Program downloads it, before any export | opens `#Component=Raven`, and its text lines end, within the first 4,096 bytes, in a `#den` line followed by a frame's `:` | `hpr_flightdata::raven_fipa` ([below](#raw-downloads)) |
 | Blue Raven CSV | Featherweight Blue Raven, through its phone app: a low-rate file (barometer, inertial figures, flags) and a high-rate file (gyroscopes, accelerometers, attitude) | `Year,Month,Day,Time,Flight_Time_(s),Sync,`, or `Flight_Time_(s),Sync,` in a file with no date | `hpr_flightdata::blueraven` |
+| Blue Raven USB download | Featherweight Blue Raven, its low-rate or high-rate set as its USB port sends it to a serial terminal, one line a sample | a line among the first 1,000 that opens `@ LOG_HIR` or `@ LOG_LOW` and closes with a CRC that checks | `hpr_flightdata::blueraven_usb` ([below](#the-blue-ravens-usb-download)) |
 | RRC3 CSV | Missile Works RRC3, through mDACS, Missile Works' program that downloads its flights | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages`, perhaps with units in brackets; separated by commas, or by semicolons, a European locale's, perhaps ending each line | `hpr_flightdata::rrc3` |
 | RRC3 `.rff` | Missile Works RRC3, its memory as mDACS downloads it, before any export | a .NET serialization header (MS-NRBF, version 1.0) and, within the first 4,096 bytes, mDACS's class name `mDACS.AnalysisSupport+FlightRecord` | `hpr_flightdata::rrc3_rff` ([below](#raw-downloads)) |
 | Eggtimer CSV | Eggtimer Classic, TRS, Quantum and Proton, through Eggtimer's download | `T,Alt,` and more of Eggtimer's column names, or the same separated by semicolons, as a European locale's spreadsheet saves it | `hpr_flightdata::eggtimer` ([below](#units-the-file-decides)) |
@@ -191,12 +199,12 @@ Some files among the sample logs aren't flight logs, and are counted apart as su
 made-up sample flights, which say so in their first row; a team's checklists for preparing a
 flight; a Blue Raven's deployment settings saved as spreadsheets or CSV; a flyer's summaries of
 flights in spreadsheets; the events files a
-flyer's own program wrote from a Blue Raven's low-rate file, and the descriptions of a rocket
-such programs read; a team flight computer's saved state, one row; an OpenRocket simulation's
+flyer's own program wrote from a Blue Raven's low-rate file, the same program's copy of a Blue
+Raven's summary, and the descriptions of a rocket such programs read; a team flight computer's saved state, one row; an OpenRocket simulation's
 export; and a wind profile. The other layouts in the sample logs, among
 them an older `.xls` spreadsheet and a radio telemetry stream
 saved as RTF, are refused today, most as *unrecognized*; they come with
-[M7.1c17](../decisions-and-roadmap.md#m7-1c17), and the [survey's report](#how-it-was-checked)
+[M7.1c18](../decisions-and-roadmap.md#m7-1c18), and the [survey's report](#how-it-was-checked)
 counts them by layout.
 
 ### Zip archives
@@ -328,7 +336,7 @@ workbooks (`validation/oracles/xlsx/cells.py`): every one of the 5,743,747 cells
 hold a value agrees, 147,958 of them dates and times. That checks the copying, not the layouts:
 each sheet's columns and units are only as right as the reader it goes to. A probe run when the
 check was built, not committed, moved the reader's calendar by one day, and 27,103 cells
-disagreed. Not read yet, with [M7.1c17](../decisions-and-roadmap.md#m7-1c17): four workbooks (a
+disagreed. Not read yet, with [M7.1c18](../decisions-and-roadmap.md#m7-1c18): four workbooks (a
 PerfectFlite export with a person's notes beside it, a state estimator's output whose clock names
 no unit, and two tables with no header row) and an older `.xls` file, a different binary format.
 Three more workbooks are flyers' summaries of flights, not logs.
@@ -551,7 +559,7 @@ so far.
 **What is left out.** No [primary track](#the-record): which column is a barometric altitude
 above the pad isn't stated. Most of the 21 files filed as generic CSV that are still refused have
 a clock with no unit or no header row, and no publisher states their mapping; they wait, with
-[M7.1c17](../decisions-and-roadmap.md#m7-1c17). A table saved in an Excel workbook is read the
+[M7.1c18](../decisions-and-roadmap.md#m7-1c18). A table saved in an Excel workbook is read the
 same way, once its cells are written out ([Excel workbooks](#excel-workbooks)).
 
 ### Mappings a publisher states
@@ -674,6 +682,183 @@ a marker inside a block or two blocks of one name are refused, naming the line.
 record's layout can't be found from its bytes alone: a file whose layout no one states stays
 unread. A capture's other blocks, such as the saved state a `params` block holds, are decoded but
 not read.
+
+### The Blue Raven's USB download
+
+A Blue Raven can also send its flight data out of its USB port as text, one line a sample, which
+a terminal program saves. HPR Sim keeps only the lines whose own check value shows them whole, and
+reads their fields by the maker's manual wherever a line holds what the manual lists.
+
+The manual describes the download (*Blue Raven User's Guide*, Featherweight, updated May 12, 2026,
+Appendix A, p22–24). Typed at the logger, `<download l>` sends the low-rate set, recorded 50 times
+a second, and `<download h>` the high-rate set, 500 times a second. Each line opens with its
+mnemonic, `@ LOG_LOW` or `@ LOG_HIR`, then its length, the logger's date and time of day, a sync
+code and the data, and closes with `CRC:` and four hexadecimal digits. The sync code is "a
+millisecond counter recorded in both the low-rate and high-rate data so that the two data sets can
+be aligned", rolling over every 250 ms (p23). The CRC, a cyclic redundancy check, is a check value
+worked out from the line's text, so a line that lost or changed a character no longer matches it:
+the manual names it for the low-rate line (p23), and the sample files' high-rate lines carry one
+of the same kind. `import::read` recognizes a download by a line among its first
+1,000 that opens with either mnemonic, holds no other `@ LOG_`, and whose CRC checks, and reads it with `hpr_flightdata::blueraven_usb`
+([ADR-272, reading the Blue Raven's USB download](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0272-the-blue-ravens-usb-download-before-the-rest.md),
+which decided it). Each set is a record of its own, as the app's two files are.
+
+Two invented records, one of each kind, as the crate's tests read them, each from a file of its
+own:
+
+```text
+@ LOG_HIR  139 2026  5 23 10:15:00.120   20    -15     42     -7     -1      3     98  -3000   1500    -40  29812      0      0 CRC: 7730
+```
+
+```text
+@ LOG_LOW  211 2026  5 23 10:15:00.140  40 Bo:  7212 49655 V:  4105    22    21    20    23 Vel:     0     0     0 Pos:     0     0     0 ang:   12    5    0 FER:  400  1c1   c3   c1   c3   0   0   0 CRC: F7EB
+```
+
+> **How far to trust it.** The layout and the units are the maker's, from its manual, and every
+> value in the 2 sample files equals the survey's own decoding of them; three physical checks hold
+> parts of the reading to the files ([below](#how-the-usb-download-was-checked)), and the other
+> fields rest on the manual's scales alone. The sample files' firmware writes more or fewer values
+> than the manual lists in some places;
+> those values are kept as written, not guessed at. The 2 sample files record no flight: neither
+> their pressure nor their acceleration shows a launch, though the TeleMega in the same rocket
+> records one, and the files don't say why. So they check how the download is read, not how
+> a Blue Raven's channels follow a flight.
+
+**Each line's two checks.** A terminal saves what the port sends, and a capture can lose part of
+it: in one sample file, a record whose `CRC:` and line end were lost runs on into the next record,
+on one line. So the reader cuts every line before each `@ LOG_`, and keeps a piece only if two
+things the logger wrote for it agree with it:
+
+- *Its CRC*: CRC-16/BUYPASS, as the manual names it (polynomial `0x8005`, starting from 0, with no
+  reflection and no final XOR; its value for the text `123456789` is `0xFEE8`). It covers the text
+  from `@` to the last character before `CRC:`, the spaces before `CRC:` left out. The manual
+  says the CRC is "for line of text" but not which characters it starts and ends at; this is the
+  span under which every CRC in the sample files checks.
+- *Its length*: the number after the mnemonic is the piece's length in bytes, from `@` through the
+  CRC's last digit, plus 2 for the CR and LF the logger sends. The high-rate line above is 137
+  characters long and states `139`.
+
+A piece with no CRC, or whose CRC differs from its text, is dropped, as it can't be told from a
+record the capture damaged; a note counts each kind. A line with no record is skipped and counted
+too, such as the status line, `@ BLR_STAT`, which the port sends five times a second (p22). A
+piece whose CRC checks is the logger's own, so anything else wrong with it refuses the whole file,
+naming its line: a length that isn't its own, another mnemonic, a date or time that can't be one, a
+value that isn't a whole number (or, in `FER:`, hexadecimal digits), more than 256 values, or a
+layout unlike the first record's. So a file holding both kinds of record is refused, and so is one
+in which no record's CRC checks.
+
+**The fields.** After the sync code, each value is a whole number, scaled as the manual says:
+
+| Record or group | The manual's fields, in its order | Read as |
+|---|---|---|
+| high-rate record | gyro X, Y and Z in deg/s × 100; acceleration X, Y and Z in g × 100; the quaternion's X, Y and Z terms and its magnitude term, each × 30,000 | `Gyro X`, `Gyro Y`, `Gyro Z` in degrees per second; `Accel X`, `Accel Y`, `Accel Z` in m/s², 1 g being 9.806 65 m/s²; `Quaternion X`, `Quaternion Y`, `Quaternion Z`, `Quaternion magnitude` as numbers with no unit |
+| `Bo:` | the baro sensor's temperature; the pressure in atm × 50,000 | `Bo: temperature` kept as written; `Bo: pressure` in Pa, 1 atm being 101 325 Pa |
+| `V:` | the battery's and the Apo, Main, 3rd and 4th outputs' voltages, mV; the outputs' current, mA | `V: battery`, `V: Apo`, `V: Main`, `V: 3rd`, `V: 4th` in V; `V: current` in A |
+| `Vel:` | upward, down-range and cross-range velocity, ft/s | `Vel: up`, `Vel: down-range`, `Vel: cross-range` in m/s |
+| `Pos:` | inertial altitude, down-range and cross-range position, ft | `Pos: altitude`, an inertial altitude, and `Pos: down-range`, `Pos: cross-range`, distances, in m |
+| `ang:` | tilt angle, deg × 10; roll angle, deg; future tilt angle, deg × 10 | `ang: tilt`, `ang: roll`, `ang: future tilt` in degrees |
+| `FER:` | the flight event register of the rocket, then of the Apo, Main, 3rd and 4th outputs, in hexadecimal | `FER: rocket`, `FER: Apo`, `FER: Main`, `FER: 3rd`, `FER: 4th`, each register's value as a number |
+
+The gyro rates are "raw data in the sensor axis", and the velocities and positions are in
+"ground-relative inertial coordinates (rather than rocket axes)" (p23–24). The accelerations come
+from the ±32 g accelerometers below 32 g and from the high-range one above it. The manual says the
+download writes the quaternion, four numbers the logger keeps its attitude in (a unit quaternion,
+whose four terms' squares sum to 1), "with the rotation axis first and the magnitude term fourth"
+(p24). The app's high-rate CSV doesn't: in each such file among the sample logs whose first row
+holds numbers, `Quat_1` is the largest term there, about 1 on the pad, so the CSV writes the
+magnitude term first (checked by hand on 2026-10-15). Both keep the quaternion's terms as numbers,
+so neither order changes a value read. A flight event register is a set of bits, "one bit for each
+event" (p24), such as apogee detected; the rocket's records the events that affect every output,
+and each output's its own.
+
+**Counts unlike the manual's.** A logger's firmware need not write what the manual of the day
+lists. The sample files' firmware writes other counts: a high-rate record holds 12
+values where the manual lists 10, `V:` holds 5 where it lists 6, and `FER:` holds 8 where it lists
+5. One rule takes all three:
+
+- A group holding at least the manual's count is read by the manual, in its order, and the values
+  past it are kept as written: the high-rate record's 11th and 12th values, and `FER:`'s 6th to
+  8th, registers of unknown meaning kept as numbers.
+- A group holding fewer than the manual's count is kept as written whole, as nothing says which
+  value is missing: `V:`'s 5 values aren't read as voltages.
+- A group the manual doesn't list is kept as written.
+
+A value kept as written is named by its group and its place there, counted from 1, such as `V: 3`
+or `LOG_HIR 11`, and a note says so for each group. The maker's forum describes two 500 Hz fields
+the manual doesn't, the "deployment output current" and the "aux analog voltage" (Featherweight,
+*Blue Raven development thread*, rocketryforum.com, March 31, 2023), but not their order, so the
+high-rate record's 11th and 12th values stay as written.
+
+**The clock.** Each record states the logger's date and time of day to the millisecond, such as
+`2026  5 23 10:15:00.120`. The record's clock counts from the first record's, in seconds, and a
+time that doesn't come after the one before refuses the file, naming its line. The date need not
+be the flight's: the manual says the date stamp "starts with the build time/date and increments
+from there", the firmware's build date, unless the phone app has set it (p22). So a note gives the
+first record's date and time as written, and the record claims no date for the flight. `Year`,
+`Month`, `Day` and `Sync` are kept as numbers and `Time` as a time of day, as the app's CSV keeps
+them. The sync code is "a millisecond counter recorded in both the low-rate and high-rate data so
+that the two data sets can be aligned", which "rolls over every 250 msec" (p23); the reader keeps
+it but doesn't join the two sets.
+
+**What is kept as written, and why.**
+
+- *The baro sensor's temperature*, `Bo: temperature`: the manual states no unit for it in the
+  download, and a note says so.
+- *The registers' bits*: the manual says the registers are "hex-encoded binary values that use one
+  bit for each event" (p24), but not which bit is which event, so no event is taken from them.
+- *No [primary track](#the-record)*: the download writes the pressure, not an altitude, so the
+  record's time and altitude are empty, as for the [Raven's `.FIPa`](#the-ravens-fipa), and every
+  value is a channel.
+
+**A worked example**, the two invented records above. In the high-rate record, `20` is the sync
+code and `-15` the first gyro rate, so `Gyro X` is −0.15 degrees per second. The sixth value, `98`,
+makes `Accel Z` 0.98 g, 9.611 m/s². The quaternion's four terms, `-3000`, `1500`, `-40` and
+`29812`, read as −0.1, 0.05, −0.001 33 and 0.993 73; the four whole numbers' norm is 30,000.12,
+within 2 of 30,000, as a unit quaternion's must be after the scaling cuts it to whole numbers. The
+last two values, `0` and `0`, are `LOG_HIR 11` and `LOG_HIR 12`, kept as written. In the low-rate
+record, `Bo:  7212 49655` gives `Bo: temperature` 7,212, as written, and `Bo: pressure` 49,655 /
+50,000 atm, 100,626 Pa. `V:` holds 5 values, so they are `V: 1` to `V: 5`, kept as written.
+`ang:   12    5    0` is a tilt of 1.2°, a roll of 5° and a future tilt of 0°. `FER:  400  1c1`
+makes `FER: rocket` 1,024 and `FER: Apo` 449, and the last three registers are `FER: 6`, `FER: 7`
+and `FER: 8`.
+
+<a id="how-the-usb-download-was-checked"></a>**How it was checked.** The sample logs hold 2
+downloads, a team's high-rate and low-rate sets from one rocket's logs. The survey,
+[`cargo xtask logs`](#how-it-was-checked), works out each piece's CRC and length itself, apart from
+the reader, and decodes each record that checks by its own copy of the manual's table and rule.
+The reader must keep exactly the records that check, and each of their values, the clock's
+included, must equal the survey's:
+
+| File | Pieces | CRC checks | Records read | Values compared | Differing |
+|---|---:|---:|---:|---:|---:|
+| high-rate | 17,930 | 17,930 | 17,930 | 304,810 | 0 |
+| low-rate | 1,861 | 1,706 | 1,706 | 49,474 | 0 |
+
+Every record whose CRC checks states its own length too. The low-rate file's other 155 pieces
+close with no CRC, records the capture ran together, and are dropped. Three physical checks hold
+parts of the reading, and of the rule for counts unlike the manual's, to the files; a file that
+failed one would be counted as unread:
+
+- Each high-rate quaternion, read from the 7th to the 10th value, has a norm from 29,998.25 to
+  30,000.00, within 2 of 30,000 as it must be.
+- The low-rate pressure on the pad, the median of the first 20 records, is 0.9977 of the pressure
+  a TeleMega (an Altus Metrum board) in the same rocket logged; the check allows 2% either way.
+- The first register's lowest bit, the one the app's files call `Liftoff`, first sets 0.024 s
+  after the three axes' acceleration in the high-rate file first passes 3 g; the check allows
+  0.1 s. This holds the two files' clocks and the register's first value to each other; it
+  doesn't show a launch, as the next paragraph says.
+
+The download records no flight. The high-rate file's acceleration stays above 3 g for at most
+0.056 s at a time, and its greatest mean over any 1 s is 1.68 g: the bit was set by a short spike,
+not a boost. Over the whole low-rate file the Blue Raven's pressure moves by only 0.16% of its
+pressure on the pad, while the TeleMega's falls to 0.773 of its own. So none of the download's
+channels, the gyroscopes' and accelerometers' included, describes the TeleMega's flight. Nothing
+in the files says why, so the reading keeps the values as written, and the
+[survey's report](#how-it-was-checked) prints these measures.
+
+**What is left out.** No altitude is made from the pressure, and the two sets aren't joined by
+their sync code. `hpr analyze` and the Python package don't read these files yet: the Rust library
+does.
 
 ## The record
 
@@ -839,8 +1024,9 @@ sample logs:
   semicolon-separated: one with decimal points, read; the other with none at all, as a
   spreadsheet took them out, refused (above). Decimal commas are tested on invented files only.
 - **A Blue Raven's speeds, inertial positions, rates of turn and accelerations, from the
-  manual.** The manual gives their units for the logger's USB download: feet per second, feet,
-  degrees per second and g (*Blue Raven User's Guide*, 2026-05-12, p23). The app's own files
+  manual.** The manual gives their units for the logger's USB download, which HPR Sim reads too
+  ([below](#the-blue-ravens-usb-download)): feet per second, feet, degrees per second and g
+  (*Blue Raven User's Guide*, 2026-05-12, p23). The app's own files
   agree: its summary of a flight states the top speed in feet per second and the inertial
   altitude in feet, and its accelerometers read 1 g at rest on the pad. A file that disagreed
   would still be read in these units; its note would show the disagreement.
@@ -1148,7 +1334,7 @@ sample logs:
   altitude's change, are kept as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
   knows. An RTF document holding anything else is refused as not an Eggtimer's, among them the
   radio telemetry stream in two other sample files, which comes with
-  [M7.1c17](../decisions-and-roadmap.md#m7-1c17).
+  [M7.1c18](../decisions-and-roadmap.md#m7-1c18).
 
 The record's readings withhold on all these layouts, as on every logger's but PerfectFlite's
 `.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
@@ -2109,10 +2295,12 @@ are unpacked and counted too, each once: of the 29 in the 8 archives, 19 are in 
 ([Excel workbooks](#excel-workbooks)), each table read by a mapping its publisher states
 ([above](#mappings-a-publisher-states)), and the range of the Eggtimer files' filtered-altitude
 multiplier ([above](#units-the-file-decides)), and each file of binary records against its
-team's table ([above](#binary-records-by-a-stated-layout)). Of the 1,122 files it holds today,
-1,006 are read, the 8 archives counted as read when they unpack and the 16 workbooks when a sheet
-of each reads. The report labels 56 files for [M7.1c17](../decisions-and-roadmap.md#m7-1c17), the
-rest of the importers; 54 of them, of layouts no reader knows yet, are unread.
+team's table ([above](#binary-records-by-a-stated-layout)), and each Blue Raven USB download
+against the survey's own decoding of it ([above](#the-blue-ravens-usb-download)). Of the 1,122
+files it holds today, 1,008 are read, the 8 archives counted as read when they unpack and the 16
+workbooks when a sheet of each reads. The report labels 53 files for
+[M7.1c18](../decisions-and-roadmap.md#m7-1c18), the rest of the importers; 51 of them, of layouts
+no reader knows yet, are unread.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
 reason printed: one is a spreadsheet's re-save of an AltOS export, its header edited, which is
@@ -2128,10 +2316,12 @@ tables whose publisher states their mapping ([above](#mappings-a-publisher-state
 an RRC3 export counted as damaged ([above](#units-the-file-decides)).
 Of the 3 RTF files the catalog files as not a log, by their extension, one is an Eggtimer's
 download, held to its reader, and two a radio telemetry stream, refused until
-[M7.1c17](../decisions-and-roadmap.md#m7-1c17). Sixteen spreadsheets are workbooks of flights'
+[M7.1c18](../decisions-and-roadmap.md#m7-1c18). Sixteen spreadsheets are workbooks of flights'
 logs, held to the workbook reader. Three files filed as text are console captures and two filed
 as binary are files of records, each read by the layout stated for it
-([above](#binary-records-by-a-stated-layout)). Five files filed as generic CSV or text are
+([above](#binary-records-by-a-stated-layout)). Two more filed as text are a Blue Raven's USB
+downloads, held to their reader ([above](#the-blue-ravens-usb-download)). Five files filed as
+generic CSV or text are
 PerfectFlite's exports: four with no header row and one that names its temperature `Temp`. A
 Blue Raven high-rate file with no date is held to the Blue Raven's reader; its low-rate partner,
 which a person edited in a spreadsheet (a column with no name, two columns named in words the
@@ -2148,7 +2338,10 @@ nine spreadsheets of a Blue Raven's deployment settings, a `Hardware_Channel:` r
 outputs, and three spreadsheets of a flyer's summary of flights, a few rows of figures by flight
 or by launch and no samples. By family: Debrief's six made-up sample flights, whose first row says each isn't a
 recording of anything, and twelve text files a flyer's own program wrote from a Blue Raven's
-low-rate file, titled as that file's events. By id, since
+low-rate file, titled as that file's events. By family too, since
+[M7.1c17](../decisions-and-roadmap.md#m7-1c17): one text file the same flyer's program wrote
+from a Blue Raven's summary CSV beside it, the summary's rows as cells between `|`: a copy, every
+cell equal to the CSV's, and the CSV is read. By id, since
 [M7.1c7](../decisions-and-roadmap.md#m7-1c7): two more of those events files, and three
 descriptions of a rocket written for a flyer's or a team's own program; three one-row files of a
 team flight computer's saved state (a boot count, gyro biases, the pressure before boost); and an

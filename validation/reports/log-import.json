@@ -39,7 +39,7 @@
     },
     {
       "family": "aerospacenu-sillygoose-gs-csv",
-      "increment": "M7.1c17",
+      "increment": "M7.1c18",
       "files": 1,
       "read": 0,
       "refused": {
@@ -106,7 +106,7 @@
     },
     {
       "family": "binary",
-      "increment": "M7.1c17",
+      "increment": "M7.1c18",
       "files": 2,
       "read": 0,
       "refused": {
@@ -148,10 +148,26 @@
       }
     },
     {
+      "family": "blueraven-summary-copy-txt",
+      "increment": "not a log",
+      "files": 1,
+      "read": 0,
+      "refused": {
+        "unrecognized": 1
+      }
+    },
+    {
       "family": "blueraven-summary-csv",
       "increment": "M7.1c6",
       "files": 26,
       "read": 26,
+      "refused": {}
+    },
+    {
+      "family": "blueraven-usb-txt",
+      "increment": "M7.1c17",
+      "files": 2,
+      "read": 2,
       "refused": {}
     },
     {
@@ -172,7 +188,7 @@
     },
     {
       "family": "csv",
-      "increment": "M7.1c17",
+      "increment": "M7.1c18",
       "files": 23,
       "read": 2,
       "refused": {
@@ -244,7 +260,7 @@
     },
     {
       "family": "entacore-xtra",
-      "increment": "M7.1c17",
+      "increment": "M7.1c18",
       "files": 2,
       "read": 0,
       "refused": {
@@ -479,7 +495,7 @@
     },
     {
       "family": "telemetry-rtf",
-      "increment": "M7.1c17",
+      "increment": "M7.1c18",
       "files": 2,
       "read": 0,
       "refused": {
@@ -488,11 +504,11 @@
     },
     {
       "family": "txt",
-      "increment": "M7.1c17",
-      "files": 19,
+      "increment": "M7.1c18",
+      "files": 16,
       "read": 0,
       "refused": {
-        "unrecognized": 19
+        "unrecognized": 16
       }
     },
     {
@@ -513,7 +529,7 @@
     },
     {
       "family": "xls",
-      "increment": "M7.1c17",
+      "increment": "M7.1c18",
       "files": 1,
       "read": 0,
       "refused": {
@@ -522,7 +538,7 @@
     },
     {
       "family": "xlsx",
-      "increment": "M7.1c17",
+      "increment": "M7.1c18",
       "files": 4,
       "read": 0,
       "refused": {
@@ -531,7 +547,7 @@
     },
     {
       "family": "xml",
-      "increment": "M7.1c17",
+      "increment": "M7.1c18",
       "files": 2,
       "read": 0,
       "refused": {
@@ -547,6 +563,9 @@
     }
   ],
   "reclassified": [
+    "455ecee4a48bd98e txt -> blueraven-usb-txt: a Blue Raven's flight data as its USB port downloads it to a serial terminal, `@ LOG_HIR` or `@ LOG_LOW` lines each closed by a CRC, in the layout its manual describes",
+    "a106c197fc5f6dec txt -> blueraven-usb-txt: a Blue Raven's flight data as its USB port downloads it to a serial terminal, `@ LOG_HIR` or `@ LOG_LOW` lines each closed by a CRC, in the layout its manual describes",
+    "4ee1c37b025e6a9f txt -> blueraven-summary-copy-txt: a flyer's own program's copy of the Blue Raven summary CSV beside it, its rows written as a table of cells between `|`: a copy, as the program's events file beside it is a reading; the CSV reads",
     "5c15ad3db182065c txt -> console-capture: a serial console's capture of a team flight computer's shell dumping its memory, base64 blocks between `----++++//[[( name start )]]\\\\++++----` marker lines, read by the record layout stated for it (`validation/log-layouts.json`); filed as text by its extension",
     "a964e00316c378d9 txt -> console-capture: a serial console's capture of a team flight computer's shell dumping its memory, base64 blocks between `----++++//[[( name start )]]\\\\++++----` marker lines, read by the record layout stated for it (`validation/log-layouts.json`); filed as text by its extension",
     "d304c5e63044e3e3 txt -> console-capture: a serial console's capture of a team flight computer's shell dumping its memory, base64 blocks between `----++++//[[( name start )]]\\\\++++----` marker lines, read by the record layout stated for it (`validation/log-layouts.json`); filed as text by its extension",
@@ -746,7 +765,7 @@
     "Eggtimer Build_1.52": 1,
     "Eggtimer TRS": 2,
     "Entacore AIM": 16,
-    "Featherweight Blue Raven": 136,
+    "Featherweight Blue Raven": 138,
     "Featherweight GPS ground station": 14,
     "Featherweight GPS tracker": 40,
     "Featherweight Raven": 137,
@@ -2017,6 +2036,51 @@
       "same_channels": true
     }
   ],
+  "usb_checks": [
+    {
+      "id": "455ecee4a48bd98e",
+      "kind": "high-rate",
+      "pieces": 17930,
+      "crc_differs": 0,
+      "crc_checks": 17930,
+      "length_agrees": 17930,
+      "records": 17930,
+      "values_compared": 304810,
+      "values_differing": 0,
+      "quaternion_norm": [
+        29998.251182360615,
+        30000.001199999977
+      ],
+      "quaternions": 17930,
+      "same_columns": true,
+      "longest_above_3g_s": 0.05600000000000005,
+      "greatest_mean_1s_g": 1.6770929008916937,
+      "pad_pressure_over_altos": null,
+      "pressure_span_over_pad": null,
+      "altos_least_over_pad": null,
+      "liftoff_lag_s": null
+    },
+    {
+      "id": "a106c197fc5f6dec",
+      "kind": "low-rate",
+      "pieces": 1861,
+      "crc_differs": 0,
+      "crc_checks": 1706,
+      "length_agrees": 1706,
+      "records": 1706,
+      "values_compared": 49474,
+      "values_differing": 0,
+      "quaternion_norm": null,
+      "quaternions": 0,
+      "same_columns": true,
+      "longest_above_3g_s": null,
+      "greatest_mean_1s_g": null,
+      "pad_pressure_over_altos": 0.9977191531466206,
+      "pressure_span_over_pad": 0.0015545896190233702,
+      "altos_least_over_pad": 0.7728028037100819,
+      "liftoff_lag_s": 0.024
+    }
+  ],
   "filter_scales": {
     "files": 44,
     "least": [
@@ -2811,7 +2875,7 @@
     "44a479aaaf2812ce workbook-xlsx collection Workbook:3 9d43d4a58b9cd887",
     "4502367d2e45c611 blueraven-events-txt collection refused:unrecognized -",
     "452244148c08416c e80-imu-txt collection RdasText 9374a346ec1d1e19",
-    "455ecee4a48bd98e txt collection refused:unrecognized -",
+    "455ecee4a48bd98e blueraven-usb-txt collection BlueRavenUsb 8326581e1cb9ee49",
     "45962e8e9ce929e9 e80-imu-txt collection RdasText a01198163c5630b6",
     "45a9f00b64b80c5f kml collection Kml 0f4d37b64fe7049e",
     "45df38a00638c4ae flight-computer-params-csv collection refused:unit -",
@@ -2851,7 +2915,7 @@
     "4ea3b7a8a4d4119c csv collection refused:unrecognized -",
     "4ea68d160c884f50 aerospacenu-fcb-csv aerospacenu AerospaceNuFcbCsv c36efdc08aea00c5",
     "4ed6012a31b4a214 raven-csv collection RavenFipCsv 1a0ada7e9646df68",
-    "4ee1c37b025e6a9f txt collection refused:unrecognized -",
+    "4ee1c37b025e6a9f blueraven-summary-copy-txt collection refused:unrecognized -",
     "4eef930c2b534a42 table-csv collection GenericTable 693db39ee24168c3",
     "4f314119a7d7fe8f rrc3-csv collection Rrc3Csv d58fe13fa7a57827",
     "4f322068b3b5eba2 raven-fipa collection RavenFipa 7b3473cc9faa19b9",
@@ -3194,7 +3258,7 @@
     "9fe8d17a25e79442 altos-csv collection AltosCsv 2e616ea4a5ad276a",
     "a0f814e69afe42b6 perfectflite-csv collection PerfectFliteCsv ddeb5c0b8650ed17",
     "a10560cbf44516e5 txt collection refused:unrecognized -",
-    "a106c197fc5f6dec txt collection refused:unrecognized -",
+    "a106c197fc5f6dec blueraven-usb-txt collection BlueRavenUsb 4c2216a3010ecd0a",
     "a11e6d7e0f4054de raven-fipa collection RavenFipa 6cffe9d35be599d0",
     "a17f2b2ce493086f perfectflite-csv collection PerfectFliteCsv 0e6daa00ef3eb0df",
     "a18dd4fa3f9a3379 blueraven-csv archives BlueRavenCsv 9b768768b4cb64d8",
