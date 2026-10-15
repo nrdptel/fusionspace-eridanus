@@ -46,10 +46,10 @@ had counted those rows as matching without noticing that they aren't samples.
    decimal that reads back to it, so the table's number is the field's value. A float that isn't
    finite is a gap, counted in a note. A layout of fewer than 2 fields or more than 512, a name
    empty, over 256 characters, repeated, a number, or holding a separator (a comma, a semicolon or
-   `|`), a quotation mark, a control character or spaces at its ends, a first name opening with `#`
-   or `sep=`, or names stating no clock with a unit of time, is refused (`LogError::Layout`); so is
-   a table past 256 MiB of text. `records::table` gives the text for a caller who would rather read
-   it by a column mapping.
+   `|`), a quotation mark, a control character or spaces at its ends, a first name opening with `#`,
+   `sep=` or a byte order mark, or names stating no clock with a unit of time, is refused
+   (`LogError::Layout`); so is a table past 256 MiB of text. `records::table` gives the text for a
+   caller who would rather read it by a column mapping.
 3. **Erased flash.** A run of records each wholly `0xFF` at the file's end is memory never written:
    dropped, and a note counts it. So are bytes past the last whole record if all are `0xFF`, as a
    dump in 48-byte lines leaves them. Other bytes past the last record are refused at the first

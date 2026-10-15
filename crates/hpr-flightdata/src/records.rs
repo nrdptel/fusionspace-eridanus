@@ -220,9 +220,11 @@ fn check(layout: &RecordLayout) -> Result<(), LogError> {
                 quoted(name)
             ))
         } else if index == 0
-            && (name.starts_with('#') || name.to_ascii_lowercase().starts_with("sep="))
+            && (name.starts_with(['#', '\u{FEFF}'])
+                || name.to_ascii_lowercase().starts_with("sep="))
         {
-            // The table reader skips a `#` comment, and takes `sep=` for the separator's line.
+            // The table reader skips a `#` comment, takes `sep=` for the separator's line and
+            // drops a byte order mark opening the text.
             Some(format!(
                 "is named {}, which a table's first line can't open with",
                 quoted(name)
@@ -374,7 +376,8 @@ pub fn table_within(
     let fewest = written.saturating_mul(layout.fields.len());
     if fewest > max_text_bytes {
         return Err(layout_error(format!(
-            "the records, written out as a table, would pass {max_text_bytes} bytes"
+            "the records, written out as a table, would pass {max_text_bytes} bytes: its \
+             {written} records write {fewest} at least"
         )));
     }
     let names: Vec<&str> = layout.fields.iter().map(|f| f.name.as_str()).collect();
@@ -720,6 +723,7 @@ mod tests {
                 "field 1 of the layout is named `#t (ms)`, which a table's first line can't open with",
             ),
             (first("SEP=x"), "can't open with"),
+            (first("\u{FEFF}t (ms)"), "can't open with"),
             (
                 named("t (ms)"),
                 "field 2 of the layout is named `t (ms)`, as an earlier",
@@ -782,7 +786,12 @@ mod tests {
         let bytes = vec![0u8; 2 * 1000];
         let layout = layout(&[("t (ms)", FieldKind::U8), ("a", FieldKind::U8)]);
         match table_within(&bytes, &layout, 1999) {
-            Err(LogError::Layout { message }) => assert!(message.contains("would pass 1999 bytes")),
+            Err(LogError::Layout { message }) => {
+                assert!(
+                    message
+                        .ends_with("would pass 1999 bytes: its 1000 records write 2000 at least")
+                )
+            }
             other => panic!("expected the bound, got {other:?}"),
         }
     }
