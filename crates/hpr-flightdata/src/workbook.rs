@@ -593,6 +593,10 @@ fn format_kind(code: &str) -> Option<DateKind> {
                 while chars.get(at).is_some_and(|&c| c != ']') {
                     at += 1;
                 }
+                // An unclosed bracket isn't a code a spreadsheet writes: a number, kept as stored.
+                if at >= chars.len() {
+                    return None;
+                }
                 let inner: String = chars[start..at.min(chars.len())]
                     .iter()
                     .map(char::to_ascii_lowercase)
@@ -1549,6 +1553,58 @@ two</t></si>"#,
             ("a/p h", Some(DateKind::Time)),
         ] {
             assert_eq!(format_kind(code), kind, "{code}");
+        }
+    }
+
+    #[test]
+    fn hostile_codes_and_numbers_are_kept_as_stored() {
+        // Unclosed quotes and brackets, an empty code, a long name with emoji: never a date, and
+        // never a panic.
+        let long = "🚀".repeat(130);
+        for code in [
+            "",
+            "\"",
+            "[",
+            "[h",
+            "\"yyyy",
+            "\\",
+            "_",
+            "*",
+            "\u{1b}[0m",
+            long.as_str(),
+        ] {
+            assert_eq!(format_kind(code), None, "{code:?}");
+        }
+        // A number under a date format that no date can be is kept as stored, by the caller.
+        for serial in [
+            f64::NAN,
+            f64::INFINITY,
+            -1.0,
+            1e300,
+            2_958_466.0,
+            f64::MIN_POSITIVE,
+        ] {
+            assert_eq!(date_text(serial, DateKind::Date, false), None, "{serial}");
+        }
+        // −0 is serial 0: a time of midnight, and in the 1904 system its first day.
+        assert_eq!(
+            date_text(-0.0, DateKind::Time, false).as_deref(),
+            Some("00:00:00")
+        );
+        assert_eq!(
+            date_text(-0.0, DateKind::Date, true).as_deref(),
+            Some("1904-01-01")
+        );
+        // Text that isn't a number, NaN and infinity among it, is refused in a number's cell.
+        for text in ["NaN", "inf", "-inf", "0x10", ""] {
+            let data = format!(
+                r#"<row r="1"><c r="A1" t="n"><v>{text}</v></c><c r="B1"><v>1</v></c></row>"#
+            );
+            match sheets(&Book::one(&data).bytes()) {
+                Ok(sheets) if text.is_empty() => assert_eq!(sheets[0].text, ",1\n"),
+                Err(LogError::Workbook { message }) => assert!(message.contains("not a number")),
+                other => panic!("{text:?}: {other:?}"),
+            }
         }
     }
 
