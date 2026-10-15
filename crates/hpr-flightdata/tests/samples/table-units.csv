@@ -1,5 +1,5 @@
 # An invented flight, 10 rows a second from the pad
-time_ms,alt_baro_agl_ft,pressure__kpa,accel_z_g,vz_filtered_ms,batt_v,phase,Velocity_Up
+time_ms,alt_baro_agl_ft,baro__kpa,accel_z_g,vz_filtered_ms,batt_v,phase,Velocity_Up
 0,0,98.50,1.00,0,8.1,PAD,0
 100,2,98.49,6.20,1,8.1,PAD,3
 200,9,98.47,6.40,8,8.0,BOOST,14

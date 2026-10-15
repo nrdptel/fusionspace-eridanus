@@ -75,36 +75,36 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
-- `ccf8bcecd91d5b91 csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `061c084cf2d6155c csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `065306f8cf7fc60c csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `0e2537156abd776a csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `111209c05b9be47d csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `32deb5cb173b5983 csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `4243bc06d5f49f2a csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `469c003f029e47b4 csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `4eef930c2b534a42 csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `5428e790bc55cec5 csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `5cb271496c8e5623 csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `67fe4200832a39ad csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `6821b3c5c90eeaf3 csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `6bc2c4836a5a3504 csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `76dad6a7c38d259b csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `7e7df671ac0ab9ad csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `82ebfd0a31998e39 csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `89e3cfd45c66aa71 csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `956ff350f72097d1 csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `9c6ffdeffee7488a csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `b348b373dbe7073f csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `bdd32fb1d19bf31e csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `cf949df321940506 csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `cface22527bb390b csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `dab6728a9ab22228 csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `e79347ccfd0bd43b csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `eafaeb9b290d7529 csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `ebd3b757555b564c csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `ec3a7fcc83121635 csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
-- `fd61caa7235b81b6 csv -> table-csv`: a table from a logger no other reader knows, a header row whose names state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `ccf8bcecd91d5b91 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `061c084cf2d6155c csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `065306f8cf7fc60c csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `0e2537156abd776a csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `111209c05b9be47d csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `32deb5cb173b5983 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `4243bc06d5f49f2a csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `469c003f029e47b4 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `4eef930c2b534a42 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `5428e790bc55cec5 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `5cb271496c8e5623 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `67fe4200832a39ad csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `6821b3c5c90eeaf3 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `6bc2c4836a5a3504 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `76dad6a7c38d259b csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `7e7df671ac0ab9ad csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `82ebfd0a31998e39 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `89e3cfd45c66aa71 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `956ff350f72097d1 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `9c6ffdeffee7488a csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `b348b373dbe7073f csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `bdd32fb1d19bf31e csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `cf949df321940506 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `cface22527bb390b csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `dab6728a9ab22228 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `e79347ccfd0bd43b csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `eafaeb9b290d7529 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `ebd3b757555b564c csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `ec3a7fcc83121635 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
+- `fd61caa7235b81b6 csv -> table-csv`: a table no other reader takes, a header row naming its clock with a unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension
 - `096375243584d110 csv -> rtx-csv`: Missile Works mDACS's CSV export of an RTx GPS tracker's fixes, a `UTC Time,Latitude,Longitude,Altitude,…` header then one row a fix, filed as generic CSV by its extension
 - `1d34c9a2ea3264f0 csv -> rtx-csv`: Missile Works mDACS's CSV export of an RTx GPS tracker's fixes, a `UTC Time,Latitude,Longitude,Altitude,…` header then one row a fix, filed as generic CSV by its extension
 - `2920bddb383455de csv -> rtx-csv`: Missile Works mDACS's CSV export of an RTx GPS tracker's fixes, a `UTC Time,Latitude,Longitude,Altitude,…` header then one row a fix, filed as generic CSV by its extension
@@ -290,7 +290,7 @@ Missile Works RTx's `.rtx` files, each decoded here from its bytes apart from th
 
 Differing: none.
 
-The 31 tables read by their headers (M7.1c13): each column but the clock read in the unit its name states, kept as written by its header (no unit the reader knows, a name that says another quantity, or a length or time whose name says no altitude or time), kept as written because a value contradicts its unit, or text; *Two units* is the largest difference, in SI, between two channels of one quantity under one name in two units. In all, 224 columns read in a stated unit, 364 kept by their headers, 5 by their values, 11 of text.
+The 31 tables read by their headers (M7.1c13): each column but the clock read in the unit its name states, kept as written by its header (no unit the reader knows, a name that says another quantity, an error or a difference, or a length, a time or a unit that may stand for another under a name that doesn't say what it measures), kept as written because a value contradicts its unit, or text; *Two units* is the largest difference, in SI, between two channels of one quantity under one name in two units. In all, 224 columns read in a stated unit, 364 kept by their headers, 5 by their values, 11 of text.
 
 | File | Rows | Columns | Clock | Read | Kept by header | Contradicted | Text | Events | Two units |
 |---|---:|---:|---|---:|---:|---:|---:|---:|---:|

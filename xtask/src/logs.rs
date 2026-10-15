@@ -232,9 +232,8 @@ const RTX_CSV: &str = "Missile Works mDACS's CSV export of an RTx GPS tracker's 
     `UTC Time,Latitude,Longitude,Altitude,…` header then one row a fix, filed as generic CSV by \
     its extension";
 /// Why a file the catalog files as generic CSV is read as a table by its header.
-const TABLE_CSV: &str = "a table from a logger no other reader knows, a header row whose names \
-    state their units, such as `Time (s)`, then one row a sample, filed as generic CSV by its \
-    extension";
+const TABLE_CSV: &str = "a table no other reader takes, a header row naming its clock with a \
+    unit, such as `Time (s)`, then one row a sample, filed as generic CSV by its extension";
 /// Why a file the catalog files as text is an RTx's text export.
 const RTX_TXT: &str = "Missile Works mDACS's text export of an RTx GPS tracker's fixes, a \
     tab-separated `UTC Lat Lon Alt …` header then one row a fix, filed as text by its extension";
@@ -2455,7 +2454,8 @@ struct RtxChecks {
 /// A table read by its header ([`hpr_flightdata::generic`]): its id, rows and columns, the
 /// clock's unit, and its other columns counted by what the reader made of them: read in the unit
 /// its name states; kept as written by the header (no unit the reader knows, a name that says
-/// another quantity, or a length or time whose name says no altitude or time); kept as written
+/// another quantity, an error or a difference, or a length, a time or a unit that may stand for
+/// another under a name that doesn't say what it measures); kept as written
 /// because a value contradicts the unit; and text, no channel (`events` counts the events taken
 /// from it). Where two channels measure the same quantity under the same name in two units, such
 /// as `alt(ft)` and `alt(m)`, `two_units_differ` is the largest difference between them, in SI,
@@ -3256,7 +3256,14 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
         let (outcome, record) = match hpr_flightdata::import::read(&sample.bytes) {
             Ok(log) => {
                 row.read += 1;
-                if expected.is_some_and(|format| format != log.format) || increment == "damaged" {
+                // The table reader is tried last and takes any table naming a clock: a file it
+                // reads whose family isn't listed as one, a not-a-log file among them, is flagged.
+                let stray_table = log.format == LogFormat::GenericTable
+                    && expected != Some(LogFormat::GenericTable);
+                if expected.is_some_and(|format| format != log.format)
+                    || increment == "damaged"
+                    || stray_table
+                {
                     unread.push(format!(
                         "  {} ({}, {id}): read as {}, where its family {}",
                         sample.path.display(),
@@ -3264,7 +3271,10 @@ fn survey(samples: &[Sample], sources: Vec<SourceCount>) -> (Report, Vec<String>
                         log.format.name(),
                         match expected {
                             Some(format) => format!("reads as {}", format.name()),
-                            None => "is listed as damaged, so the list is stale".to_owned(),
+                            None if increment == "damaged" => {
+                                "is listed as damaged, so the list is stale".to_owned()
+                            }
+                            None => format!("is listed as {increment}, not as a table"),
                         }
                     ));
                 }
@@ -4031,8 +4041,9 @@ fn markdown(report: &Report) -> String {
         out += &format!(
             "\nThe {} tables read by their headers (M7.1c13): each column but the clock read in the \
              unit its name states, kept as written by its header (no unit the reader knows, a name \
-             that says another quantity, or a length or time whose name says no altitude or \
-             time), kept as written because a value contradicts its unit, or text; *Two units* is \
+             that says another quantity, an error or a difference, or a length, a time or a unit \
+             that may stand for another under a name that doesn't say what it measures), kept as \
+             written because a value contradicts its unit, or text; *Two units* is \
              the largest difference, in SI, between two channels of one quantity under one name in \
              two units. In all, {} columns read in a stated unit, {} kept by their headers, {} by \
              their values, {} of text.\n\n\

@@ -8,7 +8,7 @@
 //!
 //! ```text
 //! Time (s),Acc (g),Alt AGL (ft),Temp (F)
-//! time__ms,pressure__kpa,temp__C,accel_z__m_s2,gyro_z__dps
+//! time__us,baro__kpa,temp_c,acc_y__m_s2,gyro_y__rad_s
 //! Time [s],Battery [V],Altitude [m],Accel X [m/s^2]
 //! ```
 //!
@@ -30,8 +30,8 @@
 //! **Units in a name.** The unit is read from brackets at the name's end, `Alt AGL (ft)` or
 //! `Altitude [m]`: their whole content, spaces taken out, as `[deg C]`, or else its first word,
 //! the rest a qualifier, as `(m ASL)` or `(° dec)`. With no brackets, it is read from the name's
-//! last one to four words joined by underscores, as `Time_s`, `temp__C`, `accel_x__m_s2` or
-//! `body_rate_x_deg_per_s`; a single-letter unit counts there only if it is `s`, `m`, `g`,
+//! last one to four words joined by underscores, as `Time_s`, `temp_c`, `acc_y__m_s2` or
+//! `pitch_rate_deg_per_s`; a single-letter unit counts there only if it is `s`, `m`, `g`,
 //! `c`, `f` or `v`, so that a name such as `flag_a` isn't read as amperes. Units are compared
 //! without regard to case. The units known, by what they measure ([`unit_spellings`] lists
 //! every spelling):
@@ -62,9 +62,14 @@
 //! (`lat`, `lon`, `lng`, `long`, `heading`, `angle`, `tilt`, `roll`, `pitch`, `yaw`, `course`,
 //! `bearing`, `cog`) or a time (`time…`, `t`, `ts`, `uptime`). A column is read in its unit when
 //! the name's words allow what the unit measures, or name nothing; it is kept as written when
-//! they disagree, as `vz_filtered_ms` (a speed's name, a time's unit), and when it has a length or
-//! a time and the name says no altitude or time, as `z (m)`, which may be a height or a distance.
-//! Then:
+//! they disagree, as `vz_filtered_ms` (a speed's name, a time's unit), or say a rate of turn over
+//! an angle's unit, as `Roll rate (deg)`; when the name says an estimate's error or a difference
+//! (`accuracy`, `error`, `err`, `std`, `stdev`, `stddev`, `sigma`, `var`, `variance`,
+//! `uncertainty`, `diff`, `differential`, `dynamic`, `dyn`, `pitot`, `delta`), as `Alt error (m)`
+//! or a pitot tube's `Diff press (Pa)`; when it has a length or a time and the name says no
+//! altitude or time, as `z (m)`, which may be a height or a distance; and when its unit may stand
+//! for one the reader doesn't know (`g`, `gs` and `mg`, also grams and gauss; `c`, `f`, `v`, `k`
+//! and `a`) and the name doesn't say what it measures, as `Mag X (G)` or `pyro_c`. Then:
 //!
 //! | The unit measures | The channel's quantity |
 //! |---|---|
@@ -82,19 +87,24 @@
 //! values, converted, lies outside what that quantity can be on a flight logger: a pressure below
 //! 0 or above 110 kPa, a little over the highest air pressure measured at sea level, 108.38 kPa
 //! (Agata, Siberia, 1968; WMO's archive of weather extremes); a temperature below −100 °C or
-//! above 150 °C, past the −40 °C to 125 °C most electronics are rated for; a length beyond
-//! 150 km; a speed beyond 3,000 m/s, more than twice the envelope's Mach 3.5; an acceleration
+//! above 150 °C, past −40 °C to 125 °C, the automotive grade 1 range (AEC-Q100); a length beyond
+//! 150 km; a speed beyond 3,000 m/s, more than twice Mach 3.5, the simulator's limit; an acceleration
 //! beyond 1,000 g; a rate of turn beyond 50,000 °/s; a voltage or a current beyond 100; a
 //! latitude beyond 90° or a longitude beyond 180°. Angles but those and times aren't checked.
 //! The clock's unit is checked by its step: the median step forward, converted, must lie from
 //! 0.1 ms to 60 s, from 10,000 samples a second to one a minute; a clock outside it, or that
-//! never steps forward, as a file of one row, is refused.
-//! The check can only keep a column as written; it never changes a unit.
+//! never steps forward, as a file of one row, is refused. Milliseconds headed as seconds pass
+//! when the logger writes more than about 17 rows a second, a step of 60 ms or less, and then
+//! the flight's times come out a thousand times too long; so do microseconds headed as
+//! milliseconds. The check can only keep a column as written; it never changes a unit.
 //!
 //! **Rows.** Lines end in CR, LF or both. A cell is trimmed of spaces, and of double quotes
-//! around it (a quoted cell may hold the separator; `""` in it is one quote). A number is
-//! written with a point, or, in a file whose separator isn't a comma, with a comma
-//! (`table::number`). A row must have as many cells as the header names, and a number in the
+//! around it (a quoted cell may hold the separator; `""` in it is one quote). The file's decimal
+//! mark is settled once: a point, unless the separator isn't a comma, no number below the header
+//! is written with a point, and one is written with a comma before other than three digits, as
+//! `0,05`, which no thousands separator is. A cell in the other mark, such as `1,250` in a file
+//! of points or in one whose commas all stand before three digits, isn't a number: a gap,
+//! counted in a note, so a thousands separator is never read as a decimal mark. A row must have as many cells as the header names, and a number in the
 //! clock's cell: a row that doesn't is refused on its line. Blank lines and lines starting `#`
 //! are skipped. The clock may step back, as a logger's clock does when it restarts; a note counts
 //! the steps back, and every channel keeps the rows in the file's order.
@@ -141,13 +151,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::LogError;
 use crate::log::{Channel, Event, FlightLog, LogFormat, Quantity, Stated};
-use crate::table::{self, Notes, numbered_lines, short};
+use crate::table::{self, numbered_lines, short};
 
 /// The format's name in messages.
 const FORMAT: &str = "table read by its header";
 
 /// The most columns a header or a mapping may name: the widest table among the project's sample
-/// logs names 94.
+/// logs names 99.
 pub const MAX_COLUMNS: usize = 512;
 
 /// How many lines from the file's start the header may lie within.
@@ -155,6 +165,32 @@ const HEAD_LINES: usize = 64;
 
 /// The separators a header may use, in the order a tie is settled.
 const SEPARATORS: [char; 4] = [',', ';', '\t', '|'];
+
+/// Words that make a column something other than the quantity its unit measures: an estimate's
+/// error, or a difference such as a pitot tube's pressure (module docs, *What a column is*).
+const NOT_THE_QUANTITY: [&str; 16] = [
+    "accuracy",
+    "error",
+    "err",
+    "std",
+    "stdev",
+    "stddev",
+    "sigma",
+    "var",
+    "variance",
+    "uncertainty",
+    "diff",
+    "differential",
+    "dynamic",
+    "dyn",
+    "pitot",
+    "delta",
+];
+
+/// Units whose spelling also names a unit the reader doesn't know, read only under a name that
+/// says what they measure: `g` and `mg` for grams or gauss, a single letter for many things
+/// (module docs, *What a column is*).
+const AMBIGUOUS_UNITS: [&str; 8] = ["g", "gs", "mg", "c", "f", "v", "k", "a"];
 
 /// The single-letter units a name's underscored ending may state (module docs, *Units in a
 /// name*).
@@ -171,7 +207,7 @@ pub struct Mapping {
     /// The character between cells.
     pub separator: char,
     /// Whether a comma in a cell is the decimal mark, as `1,5` for 1.5; only where the separator
-    /// isn't a comma.
+    /// isn't a comma. Either way, a cell in the other mark is no number (module docs, *Rows*).
     pub decimal_comma: bool,
     /// The clock's column, from 0. Its [`ColumnMapping::unit`] must be a unit of time.
     pub clock: usize,
@@ -673,12 +709,37 @@ fn infer(written: &str) -> (ColumnMapping, Option<String>) {
             quoted(written)
         ));
     };
+    if let Some(word) = words
+        .iter()
+        .find(|w| NOT_THE_QUANTITY.contains(&w.as_str()))
+    {
+        return kept(format!(
+            "the column {}'s name says {word:?}, an estimate's error or a difference, not the \
+             quantity itself: kept as written",
+            quoted(written)
+        ));
+    }
     let hints = hints(&words);
     if hints.is_empty() && matches!(unit.dimension, Dimension::Length | Dimension::Time) {
         return kept(format!(
             "the column {} is {} whose name says no altitude or time: kept as written",
             quoted(written),
             unit.dimension.word()
+        ));
+    }
+    if hints.is_empty() && AMBIGUOUS_UNITS.contains(&unit_key.as_str()) {
+        return kept(format!(
+            "the column {}'s unit, {unit_key}, may stand for something other than {}, and its \
+             name doesn't say which: kept as written",
+            quoted(written),
+            unit.dimension.word()
+        ));
+    }
+    if unit.dimension == Dimension::Angle && hints.contains(&Dimension::AngularRate) {
+        return kept(format!(
+            "the column {}'s name says a rate of turn and its unit, {unit_key}, an angle: kept as \
+             written",
+            quoted(written)
         ));
     }
     if !hints.is_empty() && !hints.contains(&unit.dimension) {
@@ -704,11 +765,13 @@ fn quoted(name: &str) -> String {
     format!("{:?}", short(name))
 }
 
-/// A line's cells, split at the separator outside double quotes, each trimmed and unquoted.
-fn cells(line: &str, separator: char) -> Vec<Cow<'_, str>> {
+/// A line's cells, split at the separator outside double quotes, each trimmed and unquoted; at
+/// most `limit` of them, so a hostile line of separators isn't split whole before it is refused.
+fn cells(line: &str, separator: char, limit: usize) -> Vec<Cow<'_, str>> {
     if !line.contains('"') {
         return line
             .split(separator)
+            .take(limit)
             .map(|c| Cow::Borrowed(c.trim()))
             .collect();
     }
@@ -733,6 +796,9 @@ fn cells(line: &str, separator: char) -> Vec<Cow<'_, str>> {
             quoted = true;
         } else if c == separator {
             cells.push(Cow::Owned(cell.trim().to_owned()));
+            if cells.len() == limit {
+                return cells;
+            }
             cell.clear();
         } else {
             cell.push(c);
@@ -740,6 +806,39 @@ fn cells(line: &str, separator: char) -> Vec<Cow<'_, str>> {
     }
     cells.push(Cow::Owned(cell.trim().to_owned()));
     cells
+}
+
+/// A cell as a number in the file's decimal mark, `None` if it isn't one. With a decimal comma, a
+/// cell holding a point isn't a number; with a point, one holding a comma isn't: either is a
+/// thousands separator or a mix the reader can't settle, never a decimal mark (module docs,
+/// *Rows*).
+fn number(cell: &str, decimal_comma: bool) -> Option<f64> {
+    if decimal_comma && cell.contains('.') {
+        return None;
+    }
+    table::number(cell, decimal_comma)
+}
+
+/// Whether the file's numbers are written with a decimal comma: only where the separator isn't a
+/// comma, no number below the header is written with a point, and one is written with a comma
+/// followed by other than three digits, which no thousands separator is (module docs, *Rows*).
+fn decimal_comma(text: &str, header_line: usize, separator: char) -> bool {
+    if separator == ',' {
+        return false;
+    }
+    let mut shown = false;
+    for (_, line) in numbered_lines(text).filter(|(n, l)| *n > header_line && !skipped(l)) {
+        for cell in cells(line, separator, MAX_COLUMNS + 1) {
+            if cell.contains('.') && table::number(&cell, false).is_some() {
+                return false;
+            }
+            shown |= table::number(&cell, true).is_some()
+                && cell.split_once(',').is_some_and(|(_, decimals)| {
+                    decimals.len() != 3 || !decimals.bytes().all(|b| b.is_ascii_digit())
+                });
+        }
+    }
+    shown
 }
 
 /// Whether a line is skipped: blank, or a `#` comment.
@@ -778,21 +877,20 @@ fn find_header(text: &str) -> Option<(Mapping, Vec<String>)> {
     let separator = named.unwrap_or_else(|| {
         let mut best = (SEPARATORS[0], 0);
         for separator in SEPARATORS {
-            let count = cells(header, separator).len();
+            let count = cells(header, separator, MAX_COLUMNS + 1).len();
             if count > best.1 {
                 best = (separator, count);
             }
         }
         best.0
     });
-    let names = cells(header, separator);
+    let names = cells(header, separator, MAX_COLUMNS + 1);
     if names.len() < 2 || names.len() > MAX_COLUMNS {
         return None;
     }
-    let decimal_comma = separator != ',';
     if names
         .iter()
-        .any(|name| table::number(name, decimal_comma).is_some())
+        .any(|name| table::number(name, separator != ',').is_some())
     {
         return None;
     }
@@ -820,8 +918,9 @@ fn find_header(text: &str) -> Option<(Mapping, Vec<String>)> {
     let (_, first) = numbered_lines(text)
         .skip_while(|(number, _)| *number <= line)
         .find(|(_, l)| !skipped(l))?;
-    let first = cells(first, separator);
-    table::number(first.get(clock)?, decimal_comma)?;
+    let decimal_comma = decimal_comma(text, line, separator);
+    let first = cells(first, separator, MAX_COLUMNS + 1);
+    number(first.get(clock)?, decimal_comma)?;
     if let Some(column) = columns.get_mut(clock) {
         column.quantity = None;
     }
@@ -859,7 +958,7 @@ fn not_this_format() -> LogError {
         format: FORMAT,
         message: format!(
             "within its first {HEAD_LINES} lines there is no header naming a clock with a unit of \
-             time, such as `Time (s)` or `timestamp__ms`, followed by a row with a number there"
+             time, such as `Time (s)` or `time__us`, followed by a row with a number there"
         ),
     }
 }
@@ -900,6 +999,17 @@ fn units(mapping: &Mapping) -> Result<(Unit, Vec<Option<Unit>>), LogError> {
             "a mapping names from 1 to {MAX_COLUMNS} columns; this one names {width}"
         )));
     }
+    if !SEPARATORS.contains(&mapping.separator) && mapping.separator != ' ' {
+        return Err(mapping_error(format!(
+            "the separator {:?} isn't one of `,`, `;`, a tab, `|` or a space",
+            mapping.separator
+        )));
+    }
+    if mapping.decimal_comma && mapping.separator == ',' {
+        return Err(mapping_error(
+            "a decimal comma needs a separator other than a comma".to_owned(),
+        ));
+    }
     let Some(clock) = mapping.columns.get(mapping.clock) else {
         return Err(mapping_error(format!(
             "the clock is column {}, of {width}",
@@ -930,16 +1040,18 @@ fn units(mapping: &Mapping) -> Result<(Unit, Vec<Option<Unit>>), LogError> {
                 Some(unit) if unit.dimension == dimension => Some(unit),
                 Some(unit) => {
                     return Err(mapping_error(format!(
-                        "the column {} is mapped to {} in {written}, which measures {}",
+                        "the column {} is mapped to {} in {}, which measures {}",
                         quoted(&column.name),
                         dimension.word(),
+                        quoted(written),
                         unit.dimension.word()
                     )));
                 }
                 None => {
                     return Err(mapping_error(format!(
-                        "the column {}'s unit, {written:?}, isn't one the reader knows",
-                        quoted(&column.name)
+                        "the column {}'s unit, {}, isn't one the reader knows",
+                        quoted(&column.name),
+                        quoted(written)
                     )));
                 }
             },
@@ -952,8 +1064,9 @@ fn units(mapping: &Mapping) -> Result<(Unit, Vec<Option<Unit>>), LogError> {
             }
             (Some(written), None) => {
                 return Err(mapping_error(format!(
-                    "the column {} states a unit, {written:?}, for a quantity that has none",
-                    quoted(&column.name)
+                    "the column {} states a unit, {}, for a quantity that has none",
+                    quoted(&column.name),
+                    quoted(written)
                 )));
             }
         };
@@ -967,8 +1080,11 @@ struct Rows {
     lines: Vec<usize>,
     clock: Vec<f64>,
     values: Vec<Vec<f64>>,
-    /// Each column's words, for the columns that hold no number: the row's index and the word.
-    words: Vec<Vec<(usize, String)>>,
+    /// Each column's cells that aren't numbers: how many, and the first, as a note quotes it.
+    text: Vec<(usize, Option<String>)>,
+    /// For each column whose name says it holds events, its word at each change: the row's index
+    /// and the word. Only changes are kept, so a column of words costs no more than its events.
+    changes: Vec<Vec<(usize, String)>>,
 }
 
 fn read_rows(text: &str, mapping: &Mapping) -> Result<Rows, LogError> {
@@ -982,12 +1098,18 @@ fn read_rows(text: &str, mapping: &Mapping) -> Result<Rows, LogError> {
         lines: Vec::new(),
         clock: Vec::new(),
         values: vec![Vec::new(); width],
-        words: vec![Vec::new(); width],
+        text: vec![(0, None); width],
+        changes: vec![Vec::new(); width],
     };
+    let event_columns: Vec<bool> = mapping
+        .columns
+        .iter()
+        .map(|c| is_event_name(&c.name))
+        .collect();
     let start = mapping.header_line.unwrap_or(0);
     let mut header_skipped = false;
-    for (number, line) in numbered_lines(text) {
-        if number <= start || skipped(line) {
+    for (line_number, line) in numbered_lines(text) {
+        if line_number <= start || skipped(line) {
             continue;
         }
         if !header_skipped && mapping.header_line.is_none() && sep_line(line).is_some() {
@@ -995,13 +1117,17 @@ fn read_rows(text: &str, mapping: &Mapping) -> Result<Rows, LogError> {
             continue;
         }
         header_skipped = true;
-        let cells = cells(line, mapping.separator);
+        let cells = cells(line, mapping.separator, width + 1);
         if cells.len() != width {
             return Err(syntax(
-                number,
+                line_number,
                 format!(
                     "the row has {} cells, where the {} names {width}",
-                    cells.len(),
+                    if cells.len() > width {
+                        "more".to_owned()
+                    } else {
+                        cells.len().to_string()
+                    },
                     if mapping.header_line.is_some() {
                         "header"
                     } else {
@@ -1011,21 +1137,32 @@ fn read_rows(text: &str, mapping: &Mapping) -> Result<Rows, LogError> {
             ));
         }
         let clock_cell = cells.get(mapping.clock).map_or("", |c| c.as_ref());
-        let Some(time) = table::number(clock_cell, mapping.decimal_comma) else {
+        let Some(time) = number(clock_cell, mapping.decimal_comma) else {
             return Err(syntax(
-                number,
+                line_number,
                 format!("the clock's cell {} isn't a number", quoted(clock_cell)),
             ));
         };
         let row = rows.clock.len();
         for (index, cell) in cells.iter().enumerate() {
-            let value = table::number(cell, mapping.decimal_comma);
+            let value = number(cell, mapping.decimal_comma);
             if value.is_none() && !cell.is_empty() {
-                rows.words[index].push((row, short(cell)));
+                let (count, first) = &mut rows.text[index];
+                *count += 1;
+                if first.is_none() {
+                    *first = Some(short(cell));
+                }
+                if event_columns[index] {
+                    let word = short(cell);
+                    let changes = &mut rows.changes[index];
+                    if changes.last().is_none_or(|(_, last)| *last != word) {
+                        changes.push((row, word));
+                    }
+                }
             }
             rows.values[index].push(value.unwrap_or(f64::NAN));
         }
-        rows.lines.push(number);
+        rows.lines.push(line_number);
         rows.clock.push(time);
     }
     Ok(rows)
@@ -1045,12 +1182,13 @@ fn median_step(clock: &[f64]) -> Option<f64> {
     steps.get(steps.len() / 2).copied()
 }
 
-/// Whether a column's words name what an event column holds.
+/// Whether a column's words name what an event column holds: a word that is one of them, its
+/// plural, or ends in one, as `flightstate`; not one that only starts with one, as `model`.
 fn is_event_name(name: &str) -> bool {
     words(name).iter().any(|w| {
         ["state", "phase", "status", "event", "mode"]
             .iter()
-            .any(|word| w.starts_with(word) || w.ends_with(word))
+            .any(|word| w.ends_with(word) || w.strip_suffix('s') == Some(word))
     })
 }
 
@@ -1101,10 +1239,9 @@ fn read_mapped(
             clock_name,
         )?);
     }
-    let mut notes = Notes::default();
-    for note in header_notes {
-        notes.push(note);
-    }
+    // One note at most for each column, and one for the clock: bounded by `MAX_COLUMNS`, so all
+    // are kept, unlike notes about single lines.
+    let mut notes = header_notes;
     let back = rows.clock.windows(2).filter(|p| p[1] < p[0]).count();
     if back > 0 {
         notes.push(format!(
@@ -1113,45 +1250,34 @@ fn read_mapped(
         ));
     }
     let mut channels = Vec::new();
-    let mut events: Vec<Event> = Vec::new();
+    let mut changes: Vec<(usize, &str)> = Vec::new();
     for (index, column) in mapping.columns.iter().enumerate() {
         if index == mapping.clock {
             continue;
         }
         let values = &rows.values[index];
+        let (text, first) = &rows.text[index];
+        let first = quoted(first.as_deref().unwrap_or_default());
         if values.iter().all(|v| v.is_nan()) {
-            let words = &rows.words[index];
-            if words.is_empty() {
+            if *text == 0 {
                 notes.push(format!(
                     "the column {} holds no value: left out",
                     quoted(&column.name)
                 ));
             } else if is_event_name(&column.name) {
-                let mut last: Option<&str> = None;
-                for (row, word) in words {
-                    if last != Some(word.as_str()) {
-                        events.push(Event {
-                            time_s: time_s[*row],
-                            name: word.clone(),
-                        });
-                        last = Some(word);
-                    }
-                }
+                changes.extend(rows.changes[index].iter().map(|(r, w)| (*r, w.as_str())));
             } else {
                 notes.push(format!(
-                    "the column {} holds text, not numbers, such as {}: left out",
-                    quoted(&column.name),
-                    quoted(&words[0].1)
+                    "the column {} holds text, not numbers, such as {first}: left out",
+                    quoted(&column.name)
                 ));
             }
             continue;
         }
-        let words = rows.words[index].len();
-        if words > 0 {
+        if *text > 0 {
             notes.push(format!(
-                "the column {} holds {words} cells that aren't numbers, such as {}: gaps",
-                quoted(&column.name),
-                quoted(&rows.words[index][0].1)
+                "the column {} holds {text} cells that aren't numbers, such as {first}: gaps",
+                quoted(&column.name)
             ));
         }
         let quantity = column.quantity.unwrap_or(Quantity::Unrecognized);
@@ -1198,6 +1324,15 @@ fn read_mapped(
             values,
         });
     }
+    // In the file's order: by row, and a row's events in its columns' order (a stable sort).
+    changes.sort_by_key(|(row, _)| *row);
+    let events = changes
+        .into_iter()
+        .map(|(row, word)| Event {
+            time_s: time_s[row],
+            name: word.to_owned(),
+        })
+        .collect();
     Ok(FlightLog {
         format: LogFormat::GenericTable,
         logger: "unknown".to_owned(),
@@ -1212,7 +1347,7 @@ fn read_mapped(
         battery_v: None,
         channels,
         events,
-        notes: notes.into_vec(),
+        notes,
     })
 }
 
@@ -1294,11 +1429,11 @@ mod tests {
                 "Baro_Altitude_AGL",
                 Some("feet"),
             ),
-            ("timestamp__ms", "timestamp", Some("ms")),
-            ("accel_x__m_s2", "accel_x", Some("m_s2")),
-            ("body_rate_x_deg_per_s", "body_rate_x", Some("deg_per_s")),
-            ("vel_up_meters_per_s", "vel_up", Some("meters_per_s")),
-            ("Xacc_g", "Xacc", Some("g")),
+            ("time__us", "time", Some("us")),
+            ("acc_y__m_s2", "acc_y", Some("m_s2")),
+            ("pitch_rate_deg_per_s", "pitch_rate", Some("deg_per_s")),
+            ("vel_north_meters_per_s", "vel_north", Some("meters_per_s")),
+            ("Yacc_g", "Yacc", Some("g")),
             ("time(raw)", "time(raw)", None),
             ("flag_a", "flag_a", None),
             ("Load (grams)", "Load (grams)", None),
@@ -1317,7 +1452,7 @@ mod tests {
 
     #[test]
     fn a_column_is_read_only_where_name_and_unit_agree() {
-        let cases: [(&str, Option<Quantity>); 16] = [
+        let cases: [(&str, Option<Quantity>); 28] = [
             ("Alt AGL (ft)", Some(Quantity::Altitude)),
             (
                 "Baro_Altitude_AGL_(feet)",
@@ -1326,17 +1461,33 @@ mod tests {
             ("alt_gps_m", Some(Quantity::GnssAltitude)),
             ("Lat (° dec)", Some(Quantity::Latitude)),
             ("Lon (° dec)", Some(Quantity::Longitude)),
-            ("Fin Position (deg)", Some(Quantity::Angle)),
-            ("pressure__kpa", Some(Quantity::Pressure)),
+            ("Tilt (deg)", Some(Quantity::Angle)),
+            ("baro__kpa", Some(Quantity::Pressure)),
             ("Baro (Pa)", Some(Quantity::Pressure)),
             ("speed_baro(m/s)", Some(Quantity::Speed)),
-            ("gyro_x__dps", Some(Quantity::AngularRate)),
+            ("gyro_y__rad_s", Some(Quantity::AngularRate)),
             ("servo_current_milliamps", Some(Quantity::Current)),
             ("Temp (F)", Some(Quantity::Temperature)),
             ("vz_filtered_ms", None),
             ("z (m)", None),
             ("sensor_read_us", None),
             ("battery_voltage", None),
+            // A unit that may be another one, under a name that says nothing: gauss, grams,
+            // flags. A unit that can be only one thing reads under any name but a length's.
+            ("Fin Position (deg)", Some(Quantity::Angle)),
+            ("Apo_Volts", Some(Quantity::Voltage)),
+            ("Mag X (G)", None),
+            ("Load (g)", None),
+            ("kalman_v", None),
+            ("pyro_c", None),
+            // A rate of turn's name over an angle's unit.
+            ("Roll rate (deg)", None),
+            // An estimate's error, or a difference, not the quantity itself.
+            ("Alt error (m)", None),
+            ("Altitude accuracy (m)", None),
+            ("Diff press (Pa)", None),
+            ("Baro pitot (Pa)", None),
+            ("Alt AGL std (ft)", None),
         ];
         for (written, quantity) in cases {
             assert_eq!(infer(written).0.quantity, quantity, "{written}");
@@ -1345,7 +1496,7 @@ mod tests {
 
     #[test]
     fn quoted_cells_hold_the_separator() {
-        let got: Vec<String> = cells(r#" 1, "a,b" ,"say ""hi""","" "#, ',')
+        let got: Vec<String> = cells(r#" 1, "a,b" ,"say ""hi""","" "#, ',', usize::MAX)
             .into_iter()
             .map(Cow::into_owned)
             .collect();
@@ -1414,7 +1565,8 @@ mod tests {
 
     #[test]
     fn a_clock_whose_step_contradicts_its_unit_is_refused() {
-        // Milliseconds written as seconds: a 20 s step at 50 Hz.
+        // Milliseconds headed as seconds at 50 Hz, a 20 s step, pass: the check can't tell them
+        // from a slow logger (module docs, *The values' check*).
         let text = "Time (s),Alt (m)\n0,0\n20,1\n40,3\n";
         assert!(read(text).is_ok());
         let text = "Time (s),Alt (m)\n0,0\n61,1\n122,3\n";
@@ -1444,7 +1596,7 @@ mod tests {
         match read(text) {
             Err(LogError::Syntax { line, message, .. }) => {
                 assert_eq!(line, 3);
-                assert!(message.contains("3 cells"), "{message}");
+                assert!(message.contains("has more cells"), "{message}");
             }
             other => panic!("expected a syntax refusal, got {other:?}"),
         }
@@ -1468,7 +1620,7 @@ mod tests {
             "1,2,3\n4,5,6\n",
             "Time (s),Alt (m)\nnot a number,0\n",
             "Time (s),Alt (m)\n",
-            "Burnout time (ms),1832,Apogee meters,209\n",
+            "Burnout time (ms),1500,Apogee meters,300\n",
         ] {
             assert!(!recognizes(text), "{text:?}");
             assert!(matches!(read(text), Err(LogError::NotThisFormat { .. })));
@@ -1509,24 +1661,122 @@ mod tests {
             }
             other => panic!("expected a mapping refusal, got {other:?}"),
         }
+        let refusal = |wrong: &Mapping| match read_with(text, wrong) {
+            Err(LogError::Mapping { message }) => message,
+            other => panic!("expected a mapping refusal, got {other:?}"),
+        };
         let mut wrong = mapping.clone();
         wrong.columns[0].unit = Some("m".to_owned());
-        assert!(matches!(
-            read_with(text, &wrong),
-            Err(LogError::Mapping { .. })
-        ));
+        assert!(refusal(&wrong).contains("no unit of time"));
         let mut wrong = mapping.clone();
         wrong.clock = 2;
-        assert!(matches!(
-            read_with(text, &wrong),
-            Err(LogError::Mapping { .. })
-        ));
-        let mut wrong = mapping;
-        wrong.columns[1].unit = Some("furlongs".to_owned());
-        assert!(matches!(
-            read_with(text, &wrong),
-            Err(LogError::Mapping { .. })
-        ));
+        assert!(refusal(&wrong).contains("the clock is column 2, of 2"));
+        let mut wrong = mapping.clone();
+        wrong.columns[1].unit = Some(format!("furlongs{}", " ".repeat(10_000)));
+        let message = refusal(&wrong);
+        assert!(message.contains("isn't one the reader knows") && message.len() < 200);
+        let mut wrong = mapping.clone();
+        wrong.separator = '.';
+        assert!(refusal(&wrong).contains("isn't one of"));
+        let mut wrong = mapping.clone();
+        wrong.decimal_comma = true;
+        assert!(refusal(&wrong).contains("a decimal comma needs"));
+        // A headerless file may open with a `sep=` line, which isn't a row.
+        let mut semicolons = mapping;
+        semicolons.separator = ';';
+        let log = read_with("sep=;\n0;100\n1;90\n", &semicolons).expect("reads");
+        assert_eq!(channel(&log, "pressure").values, [100_000.0, 90_000.0]);
+    }
+
+    /// A thousands separator is never read as a decimal mark: the file's mark is settled once,
+    /// and a cell in the other is a gap.
+    #[test]
+    fn a_thousands_separator_is_never_a_decimal_mark() {
+        // Tabs, a point in the clock: `1,250` is no number.
+        let text = "Time (s)\tAlt (ft)\n0.00\t0\n0.05\t1,250\n0.10\t980\n";
+        let altitude = channel(&read(text).expect("reads"), "Alt (ft)")
+            .values
+            .clone();
+        assert!(altitude[1].is_nan());
+        assert_eq!(altitude[2], 980.0 * FOOT_M);
+        // No point anywhere, and every comma before three digits: as likely thousands, so a gap.
+        let text = "Time (ms);Alt (ft)\n0;0\n50;1,250\n100;2,500\n";
+        let log = read(text).expect("reads");
+        assert!(
+            channel(&log, "Alt (ft)").values[1..]
+                .iter()
+                .all(|v| v.is_nan())
+        );
+        assert!(log.notes.iter().any(|n| n.contains("\"1,250\": gaps")));
+        // A comma before other than three digits shows a decimal comma.
+        let text = "Time (s);Alt (ft)\n0;0\n0,05;1250\n0,10;2,5\n";
+        let mut by_header = mapping(text).expect("a header");
+        assert!(by_header.decimal_comma);
+        let altitude = channel(&read(text).expect("reads"), "Alt (ft)")
+            .values
+            .clone();
+        assert_eq!(altitude[1..], [1250.0 * FOOT_M, 2.5 * FOOT_M]);
+        // With a decimal comma, a point is no number: `1.250` is a gap, not 1.25.
+        let text = "Time (s);Alt (ft)\n0;0\n0,05;1.250\n0,10;2,5\n";
+        assert!(matches!(read(text), Err(LogError::Syntax { line: 3, .. })));
+        by_header.header_line = Some(1);
+        let altitude = channel(&read_with(text, &by_header).expect("reads"), "Alt (ft)")
+            .values
+            .clone();
+        assert!(altitude[1].is_nan());
+        assert_eq!(altitude[2], 2.5 * FOOT_M);
+        // A comma-separated file reads points only; a quoted `"1,250"` is no number.
+        let text = "Time (s),Alt (ft)\n0,0\n1,\"1,250\"\n";
+        assert!(channel(&read(text).expect("reads"), "Alt (ft)").values[1].is_nan());
+    }
+
+    /// Every column's note is kept, however wide the table: the cap on notes about single lines
+    /// doesn't apply to them.
+    #[test]
+    fn every_columns_note_is_kept() {
+        let names: Vec<String> = (1..=30).map(|i| format!("c{i}")).collect();
+        let text = format!(
+            "Time (s),{},Pressure (Pa)\n0,{}101000\n1,{}150000\n",
+            names.join(","),
+            "1,".repeat(30),
+            "2,".repeat(30)
+        );
+        let log = read(&text).expect("reads");
+        for name in &names {
+            assert!(
+                log.notes
+                    .iter()
+                    .any(|n| n.contains(&format!("{name:?} states no unit"))),
+                "{name}"
+            );
+        }
+        assert!(
+            log.notes
+                .iter()
+                .any(|n| n.contains("\"Pressure (Pa)\"'s values contradict"))
+        );
+        assert!(!log.notes.iter().any(|n| n.contains("more notes")));
+    }
+
+    /// Events from two columns come out in the file's order, by row.
+    #[test]
+    fn events_from_two_columns_are_in_the_files_order() {
+        let text = "Time (s),State,Mode\n0,PAD,A\n1,BOOST,A\n2,BOOST,B\n3,BOOST,B\n";
+        let log = read(text).expect("reads");
+        let events: Vec<(f64, &str)> = log
+            .events
+            .iter()
+            .map(|e| (e.time_s, e.name.as_str()))
+            .collect();
+        assert_eq!(
+            events,
+            [(0.0, "PAD"), (0.0, "A"), (1.0, "BOOST"), (2.0, "B")]
+        );
+        // A name that only starts with an event word holds no events: its text is left out.
+        let text = "Time (s),Model\n0,EasyMini\n1,EasyMini\n";
+        let log = read(text).expect("reads");
+        assert!(log.events.is_empty());
+        assert!(log.notes.iter().any(|n| n.contains("\"Model\" holds text")));
     }
 
     proptest::proptest! {

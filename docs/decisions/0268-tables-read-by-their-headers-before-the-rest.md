@@ -10,10 +10,10 @@ SillyGoose flight). Most of the CSV files are tables no maker documents: a team'
 computer, a data-logging script or a spreadsheet export writes a header row and one row a sample,
 each in its own words. In 30 of them, and in a Blue Raven low-rate file a person edited in a
 spreadsheet, counted as damaged since M7.1c7, the header names a clock with a unit of time, such
-as `Time (s)`, `time_ms`, `timestamp__ms` or `Flight_Time_(s)`, and states the units of many of
-the other columns in the same way: in brackets at the name's end, `Alt AGL (ft)`, `Pressure
-[hPa]`, or in an underscored ending, `pressure__kpa`, `accel_x__m_s2`,
-`body_rate_x_deg_per_s`. The rest state no unit, or have no header row.
+as `Time (s)`, `time_ms`, `time__us` or `Flight_Time_(s)`, and most state the units of other
+columns in the same way: in brackets at the name's end, `Alt AGL (ft)`, `Pressure
+[hPa]`, or in an underscored ending, `baro__kpa`, `acc_y__m_s2`,
+`pitch_rate_deg_per_s`. The rest state no unit, or have no header row.
 
 [ADR-258](0258-aerospacenus-board-and-a-phone-apps-csv-before-the-rest.md) asks two checks of a
 unit no header states, and keeps a column as written when they disagree. A unit a header states
@@ -36,9 +36,14 @@ size.
    `#` comment or a `sep=` line, has at least two cells and no number among them, and names a
    clock: a time word with a unit of time. The next row must hold a number there.
 3. **A unit rests on the header and one more check.** A column is read in its unit only where the
-   name states one the reader knows and the name's words don't say another quantity; a length or
-   a time only under a name that says an altitude or a time, since `z (m)` may be a height or a
-   distance. Every other column is kept as written, with a note. A column read in a unit is
+   name states one the reader knows and the name's words don't say another quantity, an
+   estimate's error or a difference (`Alt error (m)`, a pitot tube's `Diff press (Pa)`); a length
+   or a time only under a name that says an altitude or a time, since `z (m)` may be a height or a
+   distance; and a unit that may stand for one the reader doesn't know, `g` or `mg` for grams or
+   gauss, or a single letter, only under a name that says what it measures. Every other column is
+   kept as written, with a note of its own. The file's decimal mark is settled once, a comma only
+   where one stands before other than three digits and no number has a point, and a cell in the
+   other mark is a gap, so a thousands separator is never read as a decimal mark. A column read in a unit is
    kept as written instead if any value, converted, lies outside what the quantity can be on a
    flight logger (pressure 0 to 110 kPa, temperature −100 °C to 150 °C, length 150 km, speed
    3,000 m/s, acceleration 1,000 g, rate of turn 50,000 °/s, voltage and current 100,
@@ -57,7 +62,7 @@ size.
 
 **Consequences.** All 31 read: 224 columns in a stated unit, 364 kept as written by their headers,
 5 by their values, 11 of text; 6 files give events. The one file that writes its altitude and
-speed in both feet and meters agrees with itself to 4.6 × 10⁻¹³ m. The survey reads 978 of its
+speed in both feet and meters agrees with itself to 4.5 × 10⁻¹³ m. The survey reads 978 of its
 1,122 files and labels 89 M7.1c14, 87 of them unread. Three one-row files of a team computer's
 saved state, not logs, are refused by the clock's check. A table's numbers are only as right as
 its header's units: a header that states the wrong unit, inside the bounds, is read in it.

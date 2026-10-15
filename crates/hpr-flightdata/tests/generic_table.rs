@@ -1,6 +1,6 @@
 //! Tables read by their headers, through the importer, from two invented files pinned whole by
 //! snapshots (M7.1c13). The first is a made-up flight at 10 rows a second, its units in
-//! underscored endings (`time_ms`, `pressure__kpa`, `accel_z_g`), a flight phase in words, a speed
+//! underscored endings (`time_ms`, `baro__kpa`, `accel_z_g`), a flight phase in words, a speed
 //! whose name and unit disagree (`vz_filtered_ms`) and one with no unit. The second has a `sep=;`
 //! line, a byte-order mark, CR LF line ends, decimal commas, units in brackets, a quoted name
 //! holding the separator, a temperature whose values contradict its unit, and a column of remarks.
@@ -41,7 +41,7 @@ fn underscored_units_read_and_the_rest_is_kept() {
         layout(&log),
         [
             ("alt_baro_agl_ft", Quantity::AltitudeAboveGround),
-            ("pressure__kpa", Quantity::Pressure),
+            ("baro__kpa", Quantity::Pressure),
             ("accel_z_g", Quantity::Acceleration),
             ("vz_filtered_ms", Quantity::Unrecognized),
             ("batt_v", Quantity::Voltage),
@@ -53,7 +53,7 @@ fn underscored_units_read_and_the_rest_is_kept() {
     assert_eq!(clock[7], 0.7);
     // 64 ft × 0.3048; 98.50 kPa; 6.20 g × 9.806 65.
     assert!((values(&log, "alt_baro_agl_ft")[7] - 19.5072).abs() < 1e-12);
-    assert_eq!(values(&log, "pressure__kpa")[0], 98_500.0);
+    assert_eq!(values(&log, "baro__kpa")[0], 98_500.0);
     assert!((values(&log, "accel_z_g")[1] - 60.801_23).abs() < 1e-9);
     // Kept as written: the speed whose unit is a time's, and the one with no unit.
     assert_eq!(values(&log, "vz_filtered_ms")[3], 15.0);

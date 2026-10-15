@@ -148,7 +148,7 @@ decided.
 | AltOS `.eeprom` | Altus Metrum's TeleMetrum, TeleMega, EasyMega and EasyMini, the board's own log as AltosUI downloads it | a JSON object naming `log_format` and `product`; or, within the first 1,000 lines, a `Config version:` line and a `manufacturer altusmetrum.org` line | `hpr_flightdata::altos_eeprom` ([below](#altoss-eeprom)) |
 | RTx `.rtx` | Missile Works' RTx GPS tracker, its fixes as mDACS (Missile Works' program) saves a download | a .NET serialization header (MS-NRBF, version 1.0), then the class record of a list of 32-bit integers | `hpr_flightdata::rtx` ([below](#missile-works-rtx)) |
 | RTx CSV and text | the same fixes, as mDACS exports them | a first line that isn't blank reading `UTC Time,Latitude,Longitude,Altitude,Velocity,VDOP,NavStatus,Sats,SOG,COG`, or the text file's tab-separated `UTC`, `Lat`, an empty name, `Lon`, an empty name, `Alt`, `Vel`, `VDOP`, `Nav`, `Sats`, `SOG`, `COG` | `hpr_flightdata::rtx` ([below](#missile-works-rtx)) |
-| Table read by its header | a logger no other reader knows: a team's flight computer, a logging script, a spreadsheet's export | tried after every other layout: a header row naming a clock with a unit of time, such as `Time (s)` or `timestamp__ms`, then a row with a number there | `hpr_flightdata::generic` ([below](#tables-read-by-their-headers)) |
+| Table read by its header | a logger no other reader knows: a team's flight computer, a logging script, a spreadsheet saved as CSV | tried after every other layout: a header row naming a clock with a unit of time, such as `Time (s)` or `time__us`, then a row with a number there | `hpr_flightdata::generic` ([below](#tables-read-by-their-headers)) |
 | Zip archive | not a log: a flight's files, zipped to share them | its bytes open `PK` then 3, 4 | `hpr_flightdata::archive` ([below](#zip-archives)) |
 
 The Blue Raven app writes each flight as a low-rate file, logged 50 times a second, and a
@@ -364,8 +364,8 @@ board's own log, which the document doesn't describe, is read from AltosUI's `.e
 
 ### Tables read by their headers
 
-Teams' own flight computers, data-logging scripts and spreadsheet exports write their flights as
-tables no maker documents: a header row naming the columns, then one row a sample, each team in
+Teams' own flight computers, data-logging scripts and spreadsheets saved as CSV write their
+flights as tables no maker documents: a header row naming the columns, then one row a sample, each team in
 its own words. When the header states the units, `hpr_flightdata::generic` reads such a table by
 what the header says and no more
 ([ADR-268, tables read by their headers before the rest](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0268-tables-read-by-their-headers-before-the-rest.md)).
@@ -373,33 +373,40 @@ It is tried after every other layout, so it never takes a file another reader kn
 
 > **How far to trust it.** All 31 such tables among the sample logs are read: 224 of their
 > columns in a unit the header states, 364 kept as written by their headers (no unit the reader
-> knows, a name that says another quantity, or a length with no altitude's name), 5 kept as
-> written because their values contradict their unit, and 11 columns of text. No maker stands
+> knows, or a name that doesn't bear the unit out), 5 kept as written because their values
+> contradict their unit, and 11 columns of text, besides each table's clock. No maker stands
 > behind any of these units: the reader checks that a column's name and values allow the unit,
-> but a header that states a wrong unit, with values inside the bounds below, is read in it. The
+> but a header that states a wrong unit, with values inside the bounds below, is read in it, and
+> milliseconds headed as seconds pass the clock's check above about 17 rows a second. The
 > one table that writes its altitude and speed in both feet and meters agrees with itself to
-> 4.6 × 10⁻¹³ m. These records have no primary track, so no readings are taken from them until
+> 4.5 × 10⁻¹³ m. These records have no primary track, so no readings are taken from them until
 > [M7.2](../decisions-and-roadmap.md#m7-2).
 
 **The header** is the first line within the first 64 that isn't blank, a `#` comment or a `sep=`
 line. It is split at a comma, a semicolon, a tab or `|`, whichever gives the most cells, none a
 number. One column must be the clock: a time word (`time`, `t`, `ts`, `timestamp`, `uptime`)
-with a unit of time.
+with a unit of time. Numbers are written with a point, or with a comma where the separator isn't
+one and some comma stands before other than three digits (`0,05`); a cell in the other mark, such
+as `1,250` among points, is a gap, so a thousands separator is never read as a decimal mark.
 
 **A unit in a name** is read from brackets at its end, `Alt AGL (ft)`, `Temperature [deg C]`,
 `Alt (m ASL)` (the unit is the first word; `ASL` is kept with the name), or from an underscored
-ending, `Time_s`, `temp__C`, `accel_x__m_s2`, `body_rate_x_deg_per_s`, in any case. The
-reader knows the usual units of time, length, speed, acceleration (`g`, and `mG` for thousandths
+ending, `Time_s`, `temp_c`, `acc_y__m_s2`, `pitch_rate_deg_per_s`, in any case. The
+reader knows the usual units of time, length, speed, acceleration (`g`, and `mg` for thousandths
 of a g), angle, rate of turn, temperature, voltage, current and pressure; the
 [API reference](../api/hpr_flightdata/generic/index.html) lists every spelling.
 
 **What a column is.** The unit says what the column measures; the name's words say what it may
-be. A column is read in its unit when the two agree or the name says nothing, and kept as written
-when they disagree: `vz_filtered_ms` has a speed's name and a time's unit. A length is read only
-under an altitude's name, and a time only under a time's: `z (m)` may be a height or a distance,
-so it stays as written. A length is a GNSS altitude if the name says `gps`, a barometric altitude
-above ground or sea level if it says `baro` and `agl`, or `baro` and `msl` or `asl`, and otherwise
-an *altitude* whose sensor or zero the file doesn't state. A column of words is an
+be. A column is kept as written, with a note in the record saying why, when the two disagree
+(`vz_filtered_ms` has a speed's name and a time's unit), when the name says an error or a
+difference (`Alt error (m)`, a pitot tube's `Diff press (Pa)`), and when a length, a time, or a
+unit that may stand for another (`g` is also grams and gauss; a single letter such as `c` or `v`)
+sits under a name that doesn't say what it measures: `z (m)` may be a height or a distance. A
+length is a GNSS altitude if the name says `gps` or `gnss` and not `agl`; a barometric altitude
+above ground ([AGL](../glossary.md#agl-above-ground-level)) or
+[sea level](../glossary.md#height-above-sea-level-msl) if it says `baro` and `agl`, or `baro` and
+`msl` or `asl`; an inertial altitude if it says `inertial`; and otherwise an *altitude* whose
+sensor or zero the file doesn't state. A column of words is an
 [event](#the-record) at each change of its word if its name says a state, phase, status, event
 or mode, and is left out, with a note, otherwise.
 
@@ -409,19 +416,20 @@ kept as written if any value, converted, lies outside what a flight logger can r
 | Quantity | Allowed | Why |
 |---|---|---|
 | pressure | 0 to 110 kPa | a little over the highest sea-level pressure on record, 108.38 kPa (Agata, 1968, WMO's archive of weather extremes) |
-| temperature | −100 °C to 150 °C | past the −40 °C to 125 °C most electronics are rated for |
+| temperature | −100 °C to 150 °C | past −40 °C to 125 °C, the automotive grade 1 range (AEC-Q100) |
 | length | within 150 km (93 mi) | above any hobby rocket's flight |
-| speed | within 3,000 m/s (9,843 ft/s) | more than twice the envelope's Mach 3.5 |
-| acceleration | within 1,000 g | |
-| rate of turn | within 50,000 °/s | |
-| voltage, current | within 100 V, 100 A | |
-| latitude, longitude | within 90°, 180° | |
+| speed | within 3,000 m/s (9,843 ft/s) | more than twice Mach 3.5, the simulator's limit |
+| acceleration | within 1,000 g | a generous bound, no source |
+| rate of turn | within 50,000 °/s | a generous bound, no source |
+| voltage, current | within 100 V, 100 A | a generous bound, no source |
+| latitude, longitude | within 90°, 180° | the globe's |
 
-Among the sample tables, in two a column headed as a pressure in pascals reads more on the pad
-than any sea-level pressure on record, and in three a column headed as a current in amperes
-reads past 100 A, milliamperes by its size: all five stay as written. The clock is checked by its step: the median step forward must lie from 0.1 ms
-to 60 s, or the file is refused, as is a clock that never steps forward, such as a file of one
-row. The check can only keep a column as written; it never changes a unit.
+Five sample columns failed this check and stay as written: two headed in pascals read above
+110 kPa on the pad, and three headed in amperes read above 100 A, milliamperes by their size.
+
+The clock is checked by its step: the median step forward must lie from 0.1 ms to 60 s, or the
+file is refused, as is a clock that never steps forward, such as a file of one row. The check can
+only keep a column as written; it never changes a unit.
 
 **A worked example.** An invented table:
 
@@ -1866,7 +1874,7 @@ Blue Raven high-rate file with no date is held to the Blue Raven's reader; its l
 which a person edited in a spreadsheet (a column with no name, two columns named in words the
 app doesn't write), was counted as damaged until
 [M7.1c13](../decisions-and-roadmap.md#m7-1c13), and is now read as a
-[table by its header](#tables-read-by-their-headers), with 30 more files filed as generic CSV. Three more are an ARTS2's raw CSV, held to
+[table by its header](#tables-read-by-their-headers), and 30 other files filed as generic CSV. Three more are an ARTS2's raw CSV, held to
 its reader. Nine are mDACS's exports of an RTx's fixes, five CSV and four text, held to their
 reader. One more is moved to a layout not read yet: a ground station's conversion of a
 SillyGoose flight, its columns in another order under no header.

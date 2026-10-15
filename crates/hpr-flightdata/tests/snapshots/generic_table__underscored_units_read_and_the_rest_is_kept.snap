@@ -44,7 +44,7 @@ expression: log
       ]
     },
     {
-      "column": "pressure__kpa",
+      "column": "baro__kpa",
       "quantity": "pressure",
       "time_s": [
         0.0,
