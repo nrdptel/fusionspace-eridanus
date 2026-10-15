@@ -9,7 +9,8 @@ record, the same for every logger, so that what comes after (the readings, and l
 comparison with a simulation) doesn't depend on which altimeter flew.
 
 > **How far to trust it.** Every sample log the project holds of the layouts below is read but
-> one AltOS export whose header line is damaged, which is refused
+> one AltOS export whose header line is damaged, which is refused, and 4 sheets inside the sample
+> Excel workbooks ([Excel workbooks](#excel-workbooks))
 > ([how it was checked](#how-it-was-checked)). No maker publishes a specification of these
 > layouts, so each reader follows what the files show, the makers' manuals and the notes of
 > Debrief, the project owner's earlier flight-log analyzer, with each unit checked where the
@@ -52,8 +53,9 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > a header that states a wrong one is read in it
 > ([tables read by their headers](#tables-read-by-their-headers)).
 > An Excel workbook, read since [M7.1c14](../decisions-and-roadmap.md#m7-1c14), is read sheet by
-> sheet, each cell as the workbook stores it, every cell of the samples matching an independent
-> reader's ([Excel workbooks](#excel-workbooks)).
+> sheet, each cell as the workbook stores it; every cell of the 16 sample workbooks that read
+> matches an independent reader's, and 4 of their 28 sheets are refused
+> ([Excel workbooks](#excel-workbooks)).
 > Other layouts are refused, not guessed at; they come with
 > [M7.1c15](../decisions-and-roadmap.md#m7-1c15), the other loggers' formats.
 
@@ -227,12 +229,15 @@ states and the rest of their columns as written.
 ### Excel workbooks
 
 Some flyers keep a flight's log in an Excel workbook (`.xlsx`): the Blue Raven app's files pasted
-side by side as sheets, or a table whose header names its units. A workbook is a zip archive of
-XML parts (ECMA-376, *Office Open XML*, Part 1, §18), so `hpr_flightdata::import::read` refuses
-one, as it does any archive. Instead, `hpr_flightdata::workbook::read` writes each worksheet's
-cells out as comma-separated text, one line a row, and reads each sheet as the file it came from:
-a Blue Raven's CSV, an Eggtimer's, a Featherweight tracker's, or a
+side by side as sheets, or a table whose header names its units. Only the Rust library reads
+workbooks so far; `hpr analyze` and the Python package don't open them. A workbook is a zip
+archive of XML parts (ECMA-376, *Office Open XML*, Part 1, §18), so
+`hpr_flightdata::import::read` refuses one, as it does any archive. Instead,
+`hpr_flightdata::workbook::read` writes each worksheet's cells out as comma-separated text, one
+line a row, and reads each sheet as the file it came from: a Blue Raven's CSV or its app's
+summary, an Eggtimer's CSV, a Featherweight tracker's, or a
 [table read by its header](#tables-read-by-their-headers). One workbook can give several logs.
+A sheet that doesn't read is reported with its reason, and the other sheets are still read.
 
 ```rust,ignore
 let bytes = std::fs::read("flight.xlsx")?;
@@ -248,41 +253,62 @@ for sheet in hpr_flightdata::workbook::read(&bytes)? {
 displays it, so no digit is lost or invented: a number as its stored digits (`0.10000000000000001`
 stays so, though Excel shows `0.1`), a string as its text, a formula as the value saved with it,
 `TRUE` or `FALSE` for a truth value. An error such as `#DIV/0!`, or a formula with no value saved,
-is a gap, counted in a note. A line break inside a cell, as in a header wrapped onto two lines,
-becomes a space. Every row is written as wide as the sheet's widest, so short rows get empty
-cells; a row with no value is left out.
+is left empty, and the log's notes count them. A line break inside a cell, as in a header wrapped
+onto two lines, becomes a space. Every row is written as wide as the sheet's widest, so short rows
+get empty cells; a row with no value is left out.
 
 **Dates.** A spreadsheet stores a date as a count of days, a *serial number*, and shows it as a
-date only through the cell's number format. A number under a format that shows a date is written
-as one: serial 45,000.75 under `m/d/yy h:mm` is `2023-03-15 18:00:00` (45,000 days after
-1899-12-30, then three quarters of a day). A time of day is written `18:00:00`, an elapsed time
-such as `[h]:mm:ss` counts its hours past 24 (`36:00:00`), and seconds are rounded to the
-millisecond. A workbook that counts from 1904, as old Mac workbooks may, is read from 1904. A
-date before 1900-03-01, where Excel's calendar has a 29 February 1900 that never was, is kept as
-the number stored, with a note. Every other number is kept as stored, so a clock a logger wrote
-in seconds stays a number.
+date only through the cell's *number format*, the display pattern attached to it, such as
+`m/d/yy h:mm`. A number under a format that shows a date is written as one: serial 45,000.75
+under `m/d/yy h:mm` is `2023-03-15 18:00:00`, 45,000 days after 1899-12-30 and then three
+quarters of a day. Under a format that shows only a time, a number under 1 is written as a time of
+day, `18:00:00`; one that also holds a day is written as a date and a time. An elapsed time, such
+as `[h]:mm:ss`, counts its hours past 24 (`36:00:00`). Seconds are rounded to the millisecond. A
+workbook that counts from 1904, as old Mac workbooks may, is read from 1904; no sample workbook
+does, so that path is checked by the crate's tests alone. A date before 1900-03-01, where Excel's
+calendar holds a 29 February 1900 that never was, or after 9999-12-31, is kept as the number
+stored, and the notes count it. Every other number is kept as stored, so a clock a logger wrote in
+seconds stays a number.
 
 **Bounds.** A workbook comes from someone else. Its parts come out within the
-[archive bound](#zip-archives), and at most 256 MiB of text is written from one workbook, counted
-as each cell is read, so a small file of one long string repeated in every cell is refused, not
-written out. The sheets are read as a stream: the largest sample sheet is 60 MB of XML. A
-workbook is refused, with its reason, when a part it names is missing or isn't well-formed XML, a
-part declares a document type or names an entity of its own, cells or rows come out of order or
-past Excel's last cell, `XFD1048576`, a cell holds what its type says it can't (a number that
-isn't one, a string that isn't in the list), or two sheets share one part. The crate's tests
-check each refusal and the bound, and a property test writes random cells and reads them back.
+[archive bound](#zip-archives), and at most 256 MiB of text is kept from one workbook, its list of
+shared strings (the text cells share, stored once) and the text written, each byte counted before
+it is kept. So a small file of one long string repeated in every cell is refused, not written
+out. The sheets are read as a stream: the largest sample sheet is 60 MB of XML. A workbook is
+refused, with its reason, when:
 
-**How it was checked.** The 16 sample workbooks of flights' logs hold 28 sheets: 21 read (6 as a
-Blue Raven's CSV, 2 as its app's summaries, 2 as a Featherweight tracker's CSV, 1 as an Eggtimer's,
-10 as tables read by their headers), 3 hold no value (charts), and 4 are refused, among them an
-Eggtimer table a person added a column with no name to. Every cell of the 16 was read again by
-openpyxl 3.1.5, an independent Python reader (`validation/oracles/xlsx/cells.py`), and all
-5,743,747 cells that hold a value agree, 147,958 of them dates and times; shifting the reader's
-calendar by one day makes 27,103 disagree. Not read yet, with
-[M7.1c15](../decisions-and-roadmap.md#m7-1c15): four workbooks (a PerfectFlite export with a
-person's notes beside it, a state estimator's output whose clock names no unit, and two tables
-with no header row) and an older `.xls` file. Three more workbooks are flyers' summaries of
-flights, not logs. Only the Rust library reads workbooks so far.
+- a part it names is missing or isn't well-formed XML;
+- a part declares a document type or names an entity of its own (a way to make a small file
+  expand);
+- cells or rows come out of order, past Excel's last cell, `XFD1048576`, or a cell holds two
+  values;
+- a cell holds what its type says it can't, such as a number that isn't one;
+- two sheets share one part.
+
+The crate's tests check each refusal and the bound, and a property test writes random cells and
+reads them back.
+
+**How it was checked.** The 16 sample workbooks of flights' logs hold 28 sheets:
+
+| Outcome | Sheets |
+|---|---:|
+| read as a Blue Raven's CSV | 6 |
+| read as the Featherweight app's summary of a Blue Raven's flight | 2 |
+| read as a Featherweight tracker's CSV | 2 |
+| read as an Eggtimer's CSV | 1 |
+| read as a table by its header | 10 |
+| no value, only a chart | 3 |
+| refused: an Eggtimer table a person added a column with no name to, a sheet of the flight's peak figures, an OpenRocket simulation's export, and a simulation set beside the flight | 4 |
+
+The workbook reader's text was checked against openpyxl 3.1.5, an independent Python reader of
+workbooks (`validation/oracles/xlsx/cells.py`): every one of the 5,743,747 cells of the 16 that
+hold a value agrees, 147,958 of them dates and times. That checks the copying, not the layouts:
+each sheet's columns and units are only as right as the reader it goes to. A probe run when the
+check was built, not committed, moved the reader's calendar by one day, and 27,103 cells
+disagreed. Not read yet, with [M7.1c15](../decisions-and-roadmap.md#m7-1c15): four workbooks (a
+PerfectFlite export with a person's notes beside it, a state estimator's output whose clock names
+no unit, and two tables with no header row) and an older `.xls` file, a different binary format.
+Three more workbooks are flyers' summaries of flights, not logs.
 
 ### R-DAS raw text
 

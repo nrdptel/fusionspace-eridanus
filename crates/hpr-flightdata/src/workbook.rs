@@ -35,13 +35,15 @@
 //! shows both `2023-03-15 18:00:00`, and under an elapsed-time format such as `[h]:mm:ss`, which
 //! counts hours past 24, `36:00:00`. The seconds are rounded to the millisecond and their fraction
 //! written only when it isn't zero, as `09.375`; a serial's double holds a time of day in 2023 to
-//! about a microsecond. Days count from 1899-12-30 (so serial 1 is 1900-01-01, past Excel's
-//! 1900-02-29, a day that never was), or from 1904-01-01 in a workbook that says so
-//! (`date1904`, §18.2.28). A date before 1900-03-01, where the two calendars disagree, or past
-//! 9999-12-31 is kept as the number stored, with a note. A format shows a date when its first
+//! about a microsecond. Days count from 1899-12-30, so serial 61 is 1900-03-01, as in Excel from
+//! there on (Excel counts a 1900-02-29 that never was), or from 1904-01-01 in a workbook that
+//! says so (`date1904`, §18.2.28). A date before 1900-03-01, where the two calendars disagree,
+//! or past 9999-12-31 once rounded, is kept as the number stored, with a note. Under a format
+//! that shows only a time, a number under 1 is its time of day; one that also holds a day is
+//! written as a date and a time, or, before 1900-03-01, kept as the number stored. A format shows a date when its first
 //! section, outside quotes, brackets and escapes, holds a `y`, a `d` or an `m` for the month, and
 //! a time when it holds an `h`, an `s` or an `m` for the minute: an `m` right after an `h` or
-//! right before an `s` is the minute (§18.8.31). Every other number is kept as stored, so a time
+//! right before an `s` is the minute, and one in brackets, as `[mm]`, elapsed minutes (§18.8.31). Every other number is kept as stored, so a time
 //! a logger wrote as seconds stays a number.
 //!
 //! **Rows and columns.** Cells are placed by their references (`B12`). Every row is written as
@@ -51,7 +53,8 @@
 //! Chart sheets hold no cells and aren't listed.
 //!
 //! **Bounds.** A workbook comes from someone else, so its text is bounded: at most
-//! [`MAX_TEXT_BYTES`] of written text from one workbook, counted as each cell is read, and at
+//! [`MAX_TEXT_BYTES`] from one workbook, its shared strings (each counted 4 bytes more, for
+//! where it ends) and the text written, each byte counted before it is kept, and at
 //! most [`MAX_SMALL_PART_BYTES`] in each part read whole (relationships, the workbook's list of
 //! sheets, the styles). The sheets and shared strings, which grow with the data, are read as a
 //! stream (the largest sample sheet is 60 MB of XML). A document type declaration is refused, so
@@ -101,8 +104,9 @@ use crate::error::LogError;
 use crate::import;
 use crate::log::FlightLog;
 
-/// The most text [`sheets`] writes from one workbook, 256 MiB (268 MB), counted as each cell is
-/// read: the bound [`archive::MAX_UNPACKED_BYTES`] puts on the parts it is written from.
+/// The most text [`sheets`] keeps from one workbook, 256 MiB (268 MB): its shared strings, 4 bytes
+/// more each, and the sheets' text, counted before it is kept; the bound
+/// [`archive::MAX_UNPACKED_BYTES`] puts on the parts it is written from.
 pub const MAX_TEXT_BYTES: usize = 256 * 1024 * 1024;
 
 /// The most bytes in a part read whole as a tree, 16 MiB (17 MB): the relationships, the
@@ -192,8 +196,9 @@ pub fn sheets(bytes: &[u8]) -> Result<Vec<Sheet>, LogError> {
     sheets_within(bytes, MAX_TEXT_BYTES)
 }
 
-/// Each worksheet of an `.xlsx` workbook as text, in the workbook's order of sheets, writing at
-/// most `max_text_bytes` from the whole workbook.
+/// Each worksheet of an `.xlsx` workbook as text, in the workbook's order of sheets, keeping at
+/// most `max_text_bytes` from the whole workbook: its shared strings, 4 bytes more each, and the
+/// sheets' text.
 ///
 /// # Errors
 ///
@@ -203,7 +208,8 @@ pub fn sheets(bytes: &[u8]) -> Result<Vec<Sheet>, LogError> {
 /// well-formed XML, holds a document type declaration or a reference to an entity, cells or rows
 /// come out of order or past `XFD1048576`, a cell's value isn't what its type says (a number that
 /// isn't one, a shared string that isn't there), two sheets share a part, a part read whole is
-/// larger than [`MAX_SMALL_PART_BYTES`], or the text would pass `max_text_bytes`.
+/// larger than [`MAX_SMALL_PART_BYTES`], a cell holds two values, or the shared strings and text
+/// would pass `max_text_bytes`.
 pub fn sheets_within(bytes: &[u8], max_text_bytes: usize) -> Result<Vec<Sheet>, LogError> {
     if !archive::is_archive(bytes) {
         return Err(LogError::NotThisFormat {
@@ -221,11 +227,11 @@ pub fn sheets_within(bytes: &[u8], max_text_bytes: usize) -> Result<Vec<Sheet>, 
             message: "the archive's relationships (`_rels/.rels`) name no office document"
                 .to_owned(),
         })?;
-    let book = Book::read(&package, &main.target)?;
     let mut budget = Budget {
         left: max_text_bytes,
         most: max_text_bytes,
     };
+    let book = Book::read(&package, &main.target, &mut budget)?;
     let mut used_parts = HashSet::new();
     let mut out = Vec::new();
     for (name, target) in &book.sheets {
@@ -338,9 +344,11 @@ impl Package {
         };
         let doc = tree(&xml, &rels)?;
         let mut out = Vec::new();
-        for node in doc.root_element().children().filter(|node| {
-            node.has_tag_name("Relationship") || node.tag_name().name() == "Relationship"
-        }) {
+        for node in doc
+            .root_element()
+            .children()
+            .filter(|node| node.tag_name().name() == "Relationship")
+        {
             let (Some(id), Some(kind), Some(target)) = (
                 node.attribute("Id"),
                 node.attribute("Type"),
@@ -409,14 +417,14 @@ fn tree<'a>(xml: &'a str, name: &str) -> Result<roxmltree::Document<'a>, LogErro
 struct Book {
     /// Each worksheet's name and part, in the workbook's order.
     sheets: Vec<(String, String)>,
-    strings: Vec<String>,
+    strings: Strings,
     /// Each cell format's date kind (`cellXfs`, §18.8.10), by the index a cell's `s` names.
     styles: Vec<Option<DateKind>>,
     date1904: bool,
 }
 
 impl Book {
-    fn read(package: &Package, part: &str) -> Result<Self, LogError> {
+    fn read(package: &Package, part: &str, budget: &mut Budget) -> Result<Self, LogError> {
         let xml = package.small(part)?.ok_or_else(|| {
             refused(format!(
                 "the workbook part {:?} is missing",
@@ -485,8 +493,8 @@ impl Book {
                 .map(|rel| rel.target.as_str())
         };
         let strings = match internal("sharedStrings") {
-            Some(target) => shared_strings(&package.text(target)?, target)?,
-            None => Vec::new(),
+            Some(target) => shared_strings(&package.text(target)?, target, budget)?,
+            None => Strings::default(),
         };
         let styles = match internal("styles") {
             Some(target) => match package.small(target)? {
@@ -515,20 +523,22 @@ fn date_styles(doc: &roxmltree::Document<'_>) -> Vec<Option<DateKind>> {
         .filter(|node| node.tag_name().name() == "numFmt")
         .filter_map(|node| Some((node.attribute("numFmtId")?, node.attribute("formatCode")?)))
         .collect();
+    // Each format's kind once, however many cell formats name it.
+    let mut kinds: HashMap<&str, Option<DateKind>> = HashMap::new();
     root.children()
         .filter(|node| node.tag_name().name() == "cellXfs")
         .flat_map(|node| node.children())
         .filter(|node| node.tag_name().name() == "xf")
         .map(|xf| {
             let id = xf.attribute("numFmtId").unwrap_or("0");
-            match custom.get(id) {
+            *kinds.entry(id).or_insert_with(|| match custom.get(id) {
                 Some(code) => format_kind(code),
                 None => id
                     .parse::<u32>()
                     .ok()
                     .and_then(|id| BUILT_IN_DATES.iter().find(|(built_in, _)| *built_in == id))
                     .and_then(|(_, code)| format_kind(code)),
-            }
+            })
         })
         .collect()
 }
@@ -597,30 +607,31 @@ fn format_kind(code: &str) -> Option<DateKind> {
                 if at >= chars.len() {
                     return None;
                 }
-                let inner: String = chars[start..at.min(chars.len())]
-                    .iter()
-                    .map(char::to_ascii_lowercase)
-                    .collect();
+                let inner = &chars[start..at];
                 at += 1;
-                // `[h]`, `[mm]`, `[ss]`: an elapsed time. Colors, conditions and locales aren't.
-                if let Some(first) = inner.chars().next()
+                // `[h]`, `[mm]`, `[ss]`: an elapsed time, its letter a time's whatever it is (an
+                // `m` in brackets is minutes). Colors, conditions and locales aren't.
+                if let Some(first) = inner.first().map(char::to_ascii_lowercase)
                     && matches!(first, 'h' | 'm' | 's')
-                    && inner.chars().all(|c| c == first)
+                    && inner.iter().all(|c| c.to_ascii_lowercase() == first)
                 {
                     elapsed = true;
-                    push(first, &mut letters);
+                    push(if first == 'h' { 'h' } else { 's' }, &mut letters);
                 }
             }
             _ => {
                 let lower = c.to_ascii_lowercase();
-                let rest: String = chars[at - 1..]
-                    .iter()
-                    .take(5)
-                    .map(char::to_ascii_lowercase)
-                    .collect();
-                if rest.starts_with("am/pm") {
+                let rest = &chars[at - 1..];
+                let opens = |word: &str| {
+                    word.chars().count() <= rest.len()
+                        && word
+                            .chars()
+                            .zip(rest)
+                            .all(|(w, c)| c.to_ascii_lowercase() == w)
+                };
+                if opens("am/pm") {
                     at += 4;
-                } else if rest.starts_with("a/p") {
+                } else if opens("a/p") {
                     at += 2;
                 } else if matches!(lower, 'y' | 'd' | 'h' | 'm' | 's') {
                     push(lower, &mut letters);
@@ -683,12 +694,17 @@ fn date_text(serial: f64, kind: DateKind, date1904: bool) -> Option<String> {
             return None;
         }
         let epoch = if date1904 { EPOCH_1904 } else { EPOCH_1900 };
+        // Past 9999-12-31, in either system, once rounded: the last day Excel shows.
+        if epoch + days > EPOCH_1900 + LAST_SERIAL {
+            return None;
+        }
         let (year, month, day) = civil_from_days(epoch + days);
         Some(format!("{year:04}-{month:02}-{day:02}"))
     };
     match kind {
         DateKind::Elapsed => Some(clock(ms)),
-        DateKind::Time if days == 0 => Some(clock(of_day)),
+        // A time of day under a day long, rounded up to midnight at its end as a clock shows it.
+        DateKind::Time if serial < 1.0 => Some(clock(of_day)),
         DateKind::Date if of_day == 0 => date(),
         // A time of day that also holds a date, or a date that holds a time, keeps both.
         DateKind::Time | DateKind::Date | DateKind::DateTime => {
@@ -819,9 +835,9 @@ impl<'a> Events<'a> {
 
 /// The shared strings (`sst`, §18.4.9), each `si`'s text: its `t`, or every run's `t`, a
 /// phonetic guide's (`rPh`) left out.
-fn shared_strings(xml: &str, part: &str) -> Result<Vec<String>, LogError> {
+fn shared_strings(xml: &str, part: &str, budget: &mut Budget) -> Result<Strings, LogError> {
     let mut events = Events::new(xml, part);
-    let mut strings = Vec::new();
+    let mut strings = Strings::default();
     let mut current: Option<String> = None;
     let mut in_text = false;
     let mut phonetic = 0usize;
@@ -835,10 +851,14 @@ fn shared_strings(xml: &str, part: &str) -> Result<Vec<String>, LogError> {
                 _ => {}
             },
             Event::Empty(element) if element.local_name().as_ref() == "si" => {
-                strings.push(String::new());
+                strings.push("", budget)?;
             }
             Event::End(element) => match element.local_name().as_ref() {
-                "si" => strings.extend(current.take()),
+                "si" => {
+                    if let Some(text) = current.take() {
+                        strings.push(&text, budget)?;
+                    }
+                }
                 "rPh" => phonetic = phonetic.saturating_sub(1),
                 "t" => in_text = false,
                 _ => {}
@@ -855,6 +875,37 @@ fn shared_strings(xml: &str, part: &str) -> Result<Vec<String>, LogError> {
         }
     }
     Ok(strings)
+}
+
+/// The shared strings, one after another in one buffer, each's end kept: 4 bytes a string, not
+/// a `String`'s 24, so a part of empty strings can't grow memory past the budget's bytes.
+#[derive(Default)]
+struct Strings {
+    text: String,
+    ends: Vec<u32>,
+}
+
+impl Strings {
+    /// Adds a string, charging its bytes and its end's 4 to the budget.
+    fn push(&mut self, text: &str, budget: &mut Budget) -> Result<(), LogError> {
+        budget.take(text.len() + 4)?;
+        self.text.push_str(text);
+        // Under the budget's 256 MiB, far below `u32::MAX`.
+        self.ends.push(
+            u32::try_from(self.text.len())
+                .map_err(|_| refused("its shared strings pass 4 GiB".to_owned()))?,
+        );
+        Ok(())
+    }
+
+    fn get(&self, index: usize) -> Option<&str> {
+        let end = *self.ends.get(index)? as usize;
+        let start = match index {
+            0 => 0,
+            _ => self.ends[index - 1] as usize,
+        };
+        self.text.get(start..end)
+    }
 }
 
 /// A cell being read: where it is, its type and style, and its value's text so far.
@@ -924,18 +975,15 @@ impl Lines<'_> {
 
     /// Writes a cell's text in its column, after the commas before it, gaps included.
     fn cell(&mut self, column: u32, value: &str) -> Result<(), LogError> {
-        let before = self.body.len();
         // Columns ascend, checked as each cell is placed.
         let separators = (column - self.next) as usize + usize::from(self.next > 1);
-        self.budget.take(separators)?;
+        let value = escaped(value);
+        // Charged before it is written, so nothing past the bound is ever held.
+        self.budget.take(separators + value.len())?;
         for _ in 0..separators {
             self.body.push(',');
         }
-        push_cell(&mut self.body, value);
-        // The value's own bytes were counted as it was read: only its quotes are new.
-        let written = self.body.len() - before;
-        self.budget
-            .take(written.saturating_sub(separators + value.len()))?;
+        self.body.push_str(&value);
         self.next = column + 1;
         Ok(())
     }
@@ -992,6 +1040,7 @@ fn read_sheet(
     let mut cell: Option<Cell> = None;
     let mut in_data = false;
     let mut in_value = false;
+    let mut in_is = false;
     let mut in_inline = false;
     let mut phonetic = 0usize;
     let mut counts = Counts::default();
@@ -1090,22 +1139,27 @@ fn read_sheet(
                             cell.formula = true;
                         }
                     }
-                    "v" if !empty => {
+                    "v" | "is" => {
                         if let Some(cell) = cell.as_mut() {
-                            in_value = true;
-                            cell.value.get_or_insert_with(String::new);
-                        }
-                    }
-                    "is" if !empty => {
-                        if let Some(cell) = cell.as_mut() {
-                            cell.inline.get_or_insert_with(String::new);
+                            // One value a cell (§18.3.1.4): a second would be joined to the first.
+                            if cell.value.is_some() || cell.inline.is_some() {
+                                return Err(refused(format!(
+                                    "the cell in row {}, column {}, of {part:?} holds two values",
+                                    cell.row, cell.column
+                                )));
+                            }
+                            let slot = if element.local_name().as_ref() == "v" {
+                                in_value = !empty;
+                                &mut cell.value
+                            } else {
+                                in_is = !empty;
+                                &mut cell.inline
+                            };
+                            *slot = Some(String::new());
                         }
                     }
                     "rPh" if !empty => phonetic += 1,
-                    "t" if !empty => {
-                        in_inline = phonetic == 0
-                            && cell.as_ref().is_some_and(|cell| cell.inline.is_some());
-                    }
+                    "t" if !empty => in_inline = in_is && phonetic == 0,
                     _ => {}
                 }
             }
@@ -1121,6 +1175,7 @@ fn read_sheet(
                     }
                 }
                 "v" => in_value = false,
+                "is" => in_is = false,
                 "t" => in_inline = false,
                 "rPh" => phonetic = phonetic.saturating_sub(1),
                 _ => {}
@@ -1136,7 +1191,6 @@ fn read_sheet(
                     } else {
                         cell.inline.get_or_insert_with(String::new)
                     };
-                    lines.budget.take(text.len())?;
                     target.push_str(&text);
                 }
             }
@@ -1183,10 +1237,7 @@ fn finish_cell(
                     .style
                     .and_then(|style| book.styles.get(style).copied().flatten());
                 match kind.map(|kind| date_text(number, kind, book.date1904)) {
-                    Some(Some(date)) => {
-                        lines.budget.take(date.len())?;
-                        Some(Cow::Owned(date))
-                    }
+                    Some(Some(date)) => Some(Cow::Owned(date)),
                     Some(None) => {
                         counts.dates_kept += 1;
                         Some(Cow::Borrowed(value))
@@ -1209,8 +1260,7 @@ fn finish_cell(
                             shortened(value)
                         ))
                     })?;
-                lines.budget.take(string.len())?;
-                Some(Cow::Borrowed(string.as_str()))
+                Some(Cow::Borrowed(string))
             }
         },
         "inlineStr" => cell
@@ -1270,20 +1320,18 @@ fn cell_reference(reference: &str) -> Option<(u32, u32)> {
     Some((column, row))
 }
 
-/// A cell's text in a comma-separated line: quoted if it holds a comma or a double quote, its
-/// quotes doubled; a line break becomes a space.
-fn push_cell(out: &mut String, value: &str) {
+/// A cell's text as a comma-separated line holds it: quoted if it holds a comma or a double
+/// quote, its quotes doubled; a line break becomes a space.
+fn escaped(value: &str) -> Cow<'_, str> {
     let value: Cow<'_, str> = if value.contains(['\r', '\n']) {
         Cow::Owned(value.replace("\r\n", " ").replace(['\r', '\n'], " "))
     } else {
         Cow::Borrowed(value)
     };
     if value.contains([',', '"']) {
-        out.push('"');
-        out.push_str(&value.replace('"', "\"\""));
-        out.push('"');
+        Cow::Owned(format!("\"{}\"", value.replace('"', "\"\"")))
     } else {
-        out.push_str(&value);
+        value
     }
 }
 
@@ -1547,6 +1595,9 @@ two</t></si>"#,
             ("yyyy-mm-dd\\ hh:mm:ss", Some(DateKind::DateTime)),
             ("[h]:mm:ss", Some(DateKind::Elapsed)),
             ("[mm]:ss", Some(DateKind::Elapsed)),
+            ("[mm]", Some(DateKind::Elapsed)),
+            ("[m]", Some(DateKind::Elapsed)),
+            ("[ss].00", Some(DateKind::Elapsed)),
             ("[$-F800]dddd, mmmm dd, yyyy", Some(DateKind::Date)),
             ("0.00;hh:mm", None),
             ("\"d\"0", None),
@@ -1606,6 +1657,90 @@ two</t></si>"#,
                 other => panic!("{text:?}: {other:?}"),
             }
         }
+    }
+
+    #[test]
+    fn every_byte_written_is_counted() {
+        // 40 truth values, each 1 byte stored and 4 or 5 written: 40 × 4 + 39 commas + 1.
+        let cells: String = (1..=40)
+            .map(|n| format!(r#"<c r="{}1" t="b"><v>1</v></c>"#, column_name(n)))
+            .collect();
+        let bytes = Book::one(&format!(r#"<row r="1">{cells}</row>"#)).bytes();
+        assert_eq!(sheets_within(&bytes, 200).unwrap()[0].text.len(), 200);
+        assert!(sheets_within(&bytes, 199).is_err());
+        // Shared strings are kept whole while the sheets are read: 1,000 empty ones are 4,000
+        // bytes of their ends, whether or not a cell names them.
+        let strings = "<si/>".repeat(1000);
+        let book = Book {
+            strings: Some(&strings),
+            ..Book::one("")
+        };
+        assert!(sheets_within(&book.bytes(), 4_000).is_ok());
+        assert!(sheets_within(&book.bytes(), 3_999).is_err());
+    }
+
+    /// A column's letters, from 1: `A`, …, `Z`, `AA`.
+    fn column_name(mut n: u32) -> String {
+        let mut letters = Vec::new();
+        while n > 0 {
+            letters.push(char::from(b'A' + u8::try_from((n - 1) % 26).unwrap()));
+            n = (n - 1) / 26;
+        }
+        letters.iter().rev().collect()
+    }
+
+    #[test]
+    fn a_cell_holds_one_value() {
+        let message = refusal(&Book::one(
+            r#"<row r="1"><c r="A1"><v>1</v><v>2</v></c></row>"#,
+        ));
+        assert!(message.contains("two values"), "{message}");
+        // A `t` outside the inline string, such as in an extension, isn't its text.
+        let text = text_of(&Book::one(
+            r#"<row r="1"><c r="A1" t="inlineStr"><is><t>a</t></is><extLst><t>b</t></extLst></c></row>"#,
+        ));
+        assert_eq!(text, "a\n");
+    }
+
+    #[test]
+    fn many_cell_formats_classify_one_code_once() {
+        // 20,000 cell formats naming one 20,000-character code: classified once, not 20,000
+        // times (which took seconds before, and hours at the part's bound).
+        let code = "0".repeat(20_000);
+        let xfs = r#"<xf numFmtId="164"/>"#.repeat(20_000);
+        let styles = format!(
+            r#"<numFmts><numFmt numFmtId="164" formatCode="{code}"/></numFmts><cellXfs>{xfs}</cellXfs>"#
+        );
+        let book = Book {
+            styles: Some(&styles),
+            ..Book::one(r#"<row r="1"><c r="A1" s="19999"><v>45000</v></c></row>"#)
+        };
+        assert_eq!(text_of(&book), "45000\n");
+    }
+
+    #[test]
+    fn the_last_day_is_the_last_in_either_system() {
+        // 9999-12-31 is serial 2,958,465 from 1900 and 2,957,003 (1,462 fewer) from 1904.
+        assert_eq!(
+            date_text(2_957_003.0, DateKind::Date, true).as_deref(),
+            Some("9999-12-31")
+        );
+        assert_eq!(date_text(2_957_004.0, DateKind::Date, true), None);
+        assert_eq!(date_text(2_958_000.0, DateKind::Date, true), None);
+        // A time that rounds past the last day's end is past it too.
+        assert_eq!(
+            date_text(2_958_465.999_999_995, DateKind::DateTime, false),
+            None
+        );
+        assert_eq!(
+            date_text(2_958_465.5, DateKind::DateTime, false).as_deref(),
+            Some("9999-12-31 12:00:00")
+        );
+        // A time of day a breath short of midnight rounds to it, and stays a time of day.
+        assert_eq!(
+            date_text(0.999_999_999_9, DateKind::Time, false).as_deref(),
+            Some("00:00:00")
+        );
     }
 
     #[test]
@@ -1711,7 +1846,8 @@ two</t></si>"#,
 
     #[test]
     fn the_text_is_bounded() {
-        // 40 cells of one 1,000-byte shared string: 40,000 bytes of text from 2 KB of XML.
+        // 40 cells of one 1,000-byte shared string: 40,000 bytes of text from 2 KB of XML, and
+        // 40 line ends; the string itself and its end's 4 bytes are counted once, as it's kept.
         let long = "x".repeat(1000);
         let strings = format!("<si><t>{long}</t></si>");
         let cells: String = (1..=40)
@@ -1722,7 +1858,8 @@ two</t></si>"#,
             ..Book::one(&cells)
         };
         let bytes = book.bytes();
-        assert_eq!(sheets_within(&bytes, 41_000).unwrap()[0].text.len(), 40_040);
+        assert_eq!(sheets_within(&bytes, 41_044).unwrap()[0].text.len(), 40_040);
+        assert!(sheets_within(&bytes, 41_043).is_err());
         match sheets_within(&bytes, 39_000) {
             Err(LogError::Workbook { message }) => assert!(message.contains("39000"), "{message}"),
             other => panic!("expected the bound, got {other:?}"),

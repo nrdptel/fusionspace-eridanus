@@ -42,13 +42,15 @@ a stream.
    from 1899-12-30, or from 1904-01-01 under `date1904`; a date before 1900-03-01, where Excel's
    1900 calendar holds a day that never was, or past 9999-12-31, keeps the number, with a note.
    Seconds are rounded to the millisecond.
-5. **Bounds.** The parts come out within the archive's 256 MiB; at most 256 MiB of text is
-   written from one workbook, counted as each cell is read, so a shared string repeated in every
-   cell can't grow without end; parts read whole (relationships, workbook, styles) are at most
+5. **Bounds.** The parts come out within the archive's 256 MiB; at most 256 MiB is kept from
+   one workbook, its shared strings (held in one buffer, 4 bytes more each for where each ends)
+   and the text written, each byte counted before it is kept, so a shared string repeated in
+   every cell can't grow without end; each number format is classified once, however many cell
+   formats name it; parts read whole (relationships, workbook, styles) are at most
    16 MiB; sheets and shared strings are streamed with `quick-xml` (MIT, no default features,
    no entity but XML's own). A document type declaration, an unknown entity, cells or rows out
-   of order or past `XFD1048576`, a value its type can't hold, and two sheets on one part are
-   refused.
+   of order or past `XFD1048576`, a cell with two values, a value its type can't hold, and two
+   sheets on one part are refused.
 6. **The survey** files the 16 workbooks that read as `workbook-xlsx`, by id, read when a sheet
    of each reads, and counts each workbook's sheets by outcome; 3 workbooks that are a flyer's
    summary of flights are filed as not logs (`flight-summary-xlsx`). `cargo xtask logs --sheets

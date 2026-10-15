@@ -1592,7 +1592,7 @@ PerfectFlite's exports and older `.pfa`, AltimeterCloud's and Entacore AIM's CSV
 SillyGoose logs and its flight computer board's CSV and ground station text, Silicdyne Fluctus's
 CSV, the ARTS2's interpreted data, a phone app's `launch` CSV, an Eggtimer's download saved as RTF,
 the Raven's `.FIPa` and the RRC3's `.rff` raw downloads, the Featherweight app's flight
-summaries, the R-DAS's raw text, AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, Missile Works' RTx tracker's `.rtx` file and exports, tables whose headers state their units, the sheets of an Excel workbook, and GPS tracks too ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its readings from them with
+summaries, the R-DAS's raw text, AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, Missile Works' RTx tracker's `.rtx` file and exports, tables whose headers state their units, the sheets of an Excel workbook (the library, not `hpr analyze`), and GPS tracks too ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its readings from them with
 [M7.2](decisions-and-roadmap.md#m7-2), which validates the readings on other loggers, and the
 other loggers' files come with
 [M7.1c15, the rest of the importers](decisions-and-roadmap.md#m7-1c15). It has no

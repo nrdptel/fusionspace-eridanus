@@ -16,7 +16,7 @@ AltimeterCloud's and Entacore AIM's CSV, AerospaceNU's SillyGoose logs and its f
 board's CSV and ground station text, Silicdyne Fluctus's CSV, the ARTS2's interpreted data, a
 phone app's `launch` CSV, an Eggtimer's download saved as RTF, the Raven's `.FIPa` and the
 RRC3's `.rff` raw downloads, the Featherweight app's flight summaries (figures, no samples), the
-R-DAS's raw text (its counts kept as written), AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, and GPS tracks from Featherweight's GPS tracker, KML and NMEA files and Missile Works' RTx tracker's `.rtx` file and its exports, and tables from loggers no other reader knows, by the units their headers state, each also read from an Excel workbook's sheets, into the same record ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its
+R-DAS's raw text (its counts kept as written), AltOS's radio telemetry and its `.eeprom` raw downloads, the ARTS2's `.odf` and raw CSV, and GPS tracks from Featherweight's GPS tracker, KML and NMEA files and Missile Works' RTx tracker's `.rtx` file and its exports, and tables from loggers no other reader knows, by the units their headers state, into the same record, those in a CSV layout also from the sheets of an Excel workbook (the library only, not `hpr analyze`) ([the layouts read](format/flight-logs.md)); `hpr analyze` takes its
 readings from those with [M7.2](decisions-and-roadmap.md#m7-2), which validates them on other
 loggers. Other loggers come with
 [M7.1c15, the rest of the importers](decisions-and-roadmap.md#m7-1c15).

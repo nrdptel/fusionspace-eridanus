@@ -2531,7 +2531,6 @@ struct TableFile {
     two_units_differ: Option<f64>,
 }
 
-/// Each table read by its header, as [`TableFile`] counts it.
 /// One Excel workbook's sheets: how many, and each sheet's outcome, the format it read as or the
 /// kind of its refusal (`no-data` for a sheet with no value, such as one holding only a chart).
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -2566,6 +2565,7 @@ fn workbook_checks(samples: &[Sample]) -> Vec<WorkbookFile> {
     out
 }
 
+/// Each table read by its header, as [`TableFile`] counts it.
 fn table_checks(samples: &[Sample]) -> Vec<TableFile> {
     use hpr_flightdata::generic;
     use hpr_flightdata::log::Quantity;
@@ -3074,6 +3074,13 @@ pub fn run(args: &[String]) -> Result<(), String> {
 /// Each workbook sample as `<id>.xlsx` in `dir`, and its sheets' text as `<id>/<n>.csv`, `n`
 /// from 0 in the workbook's order, for an outside reader to check the text against.
 fn write_sheets(samples: &[Sample], dir: &Path) -> Result<(), String> {
+    // The sheets are other people's data: only under `refs/`, which git ignores.
+    if !dir.starts_with("refs") && !dir.starts_with(crate::designs::root()?.join("refs")) {
+        return Err(format!(
+            "--sheets writes private data: give a folder under refs/, not {}",
+            dir.display()
+        ));
+    }
     let mut books = 0;
     for sample in samples.iter().filter(|s| s.family == WORKBOOK_FAMILY) {
         let id = hex(&Sha256::digest(&sample.bytes))[..16].to_owned();

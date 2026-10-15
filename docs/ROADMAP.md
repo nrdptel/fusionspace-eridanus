@@ -372,7 +372,7 @@ simulation. Formats, methods and log corpus come from Debrief (`docs/research/`)
   Formats without samples are listed in the docs as needing samples.
   - [ ] **M7.1c The other importers** (ADR-254, ADR-255, ADR-256, ADR-258, ADR-259, ADR-260,
     ADR-261, ADR-262, ADR-263, ADR-265, ADR-266, ADR-267, ADR-268, ADR-269): in fifteen.
-    - [ ] **M7.1c15 The rest:** Blue Raven's other files, Entacore AIM XTRA, `.xls`, CATS;
+    - [ ] **M7.1c15 The rest:** Blue Raven's other files, Entacore AIM XTRA, spreadsheets, CATS;
       EuRoC/Juno CSV; generic CSV with column mapping; unit detection (and `telemetry-rtf`,
       ADR-258).
       *Done when:* the parent's.
