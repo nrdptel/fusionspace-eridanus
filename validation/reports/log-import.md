@@ -13,7 +13,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 |---|---|---:|---:|---|
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
-| aerospacenu-sillygoose-gs-csv | M7.1c15 | 1 | 0 | 1 unrecognized |
+| aerospacenu-sillygoose-gs-csv | M7.1c16 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
@@ -22,22 +22,22 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | altos-telem | M7.1c9 | 2 | 2 | none |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
 | arts2-raw-csv | M7.1c11 | 3 | 3 | none |
-| binary | M7.1c15 | 4 | 0 | 4 unrecognized |
+| binary | M7.1c16 | 4 | 0 | 4 unrecognized |
 | blueraven-csv | M7.1b | 89 | 89 | none |
 | blueraven-events-txt | not a log | 17 | 0 | 17 unrecognized |
 | blueraven-settings-csv | not a log | 1 | 0 | 1 unrecognized |
 | blueraven-settings-xlsx | not a log | 10 | 0 | 10 archive |
 | blueraven-summary-csv | M7.1c6 | 26 | 26 | none |
 | checklist | not a log | 4 | 0 | 4 archive |
-| csv | M7.1c15 | 32 | 2 | 1 syntax, 29 unrecognized |
+| csv | M7.1c16 | 23 | 2 | 1 syntax, 20 unrecognized |
 | debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
 | e80-imu-txt | M7.1c8 | 54 | 54 | none |
-| eggtimer-csv | M7.1b | 43 | 43 | none |
+| eggtimer-csv | M7.1b | 45 | 45 | none |
 | eggtimer-rtf | M7.1c4 | 1 | 1 | none |
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c15 | 2 | 0 | 2 unrecognized |
+| entacore-xtra | M7.1c16 | 2 | 0 | 2 unrecognized |
 | featherweight-summary-csv | M7.1c6 | 25 | 25 | none |
 | flight-computer-params-csv | not a log | 3 | 0 | 3 unit |
 | flight-summary-xlsx | not a log | 3 | 0 | 3 archive |
@@ -46,6 +46,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | jpeg | not a log | 1 | 0 | 1 unrecognized |
 | kml | M7.1c1 | 43 | 43 | none |
 | kml-map | not a log | 1 | 1 | none |
+| mapped-table-csv | M7.1c15 | 6 | 6 | none |
 | missileworks-rtx | M7.1c12 | 5 | 5 | none |
 | nmea | M7.1c1 | 12 | 12 | none |
 | odf | M7.1c11 | 3 | 3 | none |
@@ -61,22 +62,32 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | raven-fipa | M7.1c5 | 57 | 57 | none |
 | rocket-parameters | not a log | 4 | 0 | 4 unrecognized |
 | rrc3-csv | M7.1b | 51 | 51 | none |
+| rrc3-csv-damaged | damaged | 1 | 0 | 1 syntax |
 | rrc3-rff | M7.1c5 | 6 | 6 | none |
 | rtx-csv | M7.1c12 | 5 | 5 | none |
 | rtx-txt | M7.1c12 | 4 | 4 | none |
 | table-csv | M7.1c13 | 31 | 31 | none |
-| telemetry-rtf | M7.1c15 | 2 | 0 | 2 not-this-format |
-| txt | M7.1c15 | 22 | 0 | 22 unrecognized |
+| telemetry-rtf | M7.1c16 | 2 | 0 | 2 not-this-format |
+| txt | M7.1c16 | 22 | 0 | 22 unrecognized |
 | wind-profile-csv | not a log | 1 | 0 | 1 unrecognized |
 | workbook-xlsx | M7.1c14 | 16 | 16 | none |
-| xls | M7.1c15 | 1 | 0 | 1 unrecognized |
-| xlsx | M7.1c15 | 4 | 0 | 4 archive |
-| xml | M7.1c15 | 2 | 0 | 2 unrecognized |
+| xls | M7.1c16 | 1 | 0 | 1 unrecognized |
+| xlsx | M7.1c16 | 4 | 0 | 4 archive |
+| xml | M7.1c16 | 2 | 0 | 2 unrecognized |
 | zip | M7.1c7 | 8 | 8 | none |
-| **All** | | 1122 | 994 | |
+| **All** | | 1122 | 1002 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
+- `045f5b9ed473b800 csv -> mapped-table-csv`: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension
+- `0c7808a84fb39c83 csv -> mapped-table-csv`: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension
+- `a9cf47fe2b2e5be0 csv -> mapped-table-csv`: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension
+- `d88a7fc53cbd55d1 csv -> mapped-table-csv`: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension
+- `dd5287b375e84be8 csv -> mapped-table-csv`: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension
+- `f912724676eea0ca csv -> mapped-table-csv`: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension
+- `7a71bfeb7d7b1ee4 csv -> eggtimer-csv`: an Eggtimer's CSV download, `T;Alt;Veloc;…`, saved with semicolons between its cells, as a European locale's spreadsheet writes it; filed as generic CSV by its extension
+- `cda3fcdb9d634cd0 csv -> eggtimer-csv`: an Eggtimer's CSV download, `T;Alt;Veloc;…`, saved with semicolons between its cells, as a European locale's spreadsheet writes it; filed as generic CSV by its extension
+- `bc062b34affee518 csv -> rrc3-csv-damaged`: an RRC3's mDACS export in a European locale's form, semicolons and decimal commas, whose rows a spreadsheet sorted by their time's text, `10,05` before `2`; put in order by value, they step 0.05 s from 0 with none missing, but the reader keeps the file's order and refuses a time that goes back, naming the line
 - `02cf95e874f824f7 xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
 - `084653fe77f2ca50 xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
 - `229efb1695f3277f xlsx -> workbook-xlsx`: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet
@@ -347,6 +358,17 @@ The 31 tables read by their headers (M7.1c13): each column but the clock read in
 | `fd61caa7235b81b6` | 13655 | 25 | `ms` | 11 | 13 | 0 | 0 | 0 | – |
 | `ff3ad892e63f060d` | 36700 | 99 | `s` | 13 | 85 | 0 | 0 | 0 | – |
 
+The 6 tables read by the column mapping their publisher states (M7.1c15, `validation/log-mappings.json`, which says where each is stated): each column but the clock read in the unit the mapping states, kept as written where it states none, or kept as written because a value contradicts the unit stated.
+
+| File | Rows | Columns | Clock | Read | Kept | Contradicted | Stated by |
+|---|---:|---:|---|---:|---:|---:|---|
+| `045f5b9ed473b800` | 746 | 2 | `s` | 1 | 0 | 0 | RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {"t": "time", "alt": "altitude"}, units=None |
+| `0c7808a84fb39c83` | 12578 | 2 | `s` | 1 | 0 | 0 | RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {"time": "time", "altitude": "altitude"}, units=None |
+| `a9cf47fe2b2e5be0` | 44454 | 3 | `s` | 2 | 0 | 0 | RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {"ts": "time", "filtered_altitude_AGL": "altitude", "filtered_acceleration": "az"}, units=None |
+| `d88a7fc53cbd55d1` | 17933 | 3 | `s` | 2 | 0 | 0 | RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {"ts": "time", "filtered_altitude_AGL": "altitude", "filtered_acceleration": "az"}, units=None |
+| `dd5287b375e84be8` | 64 | 4 | `s` | 1 | 2 | 0 | RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {"t": "time", "alt": "altitude"}, units=None |
+| `f912724676eea0ca` | 404 | 5 | `s` | 2 | 2 | 0 | RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {"ts": "time", "altitude[m]": "altitude", "velocity[m/s]": "vz"}, units=None |
+
 The 16 Excel workbooks (M7.1c14): each sheet's cells written out as text, as the workbook stores them, and read as a file of its own; a sheet's outcome is the layout it reads as, or why it doesn't (*no-data* for a sheet with no value, such as one holding only a chart). In all, 28 sheets: 6 Blue Raven CSV, 1 Eggtimer CSV, 2 Featherweight GPS CSV, 2 Featherweight summary CSV, 10 a table read by its header, 3 no-data, 1 syntax, 3 unrecognized.
 
 | File | Sheets | Outcomes |
@@ -521,16 +543,19 @@ Units no header states, as each file's reader decided them, or kept the column a
 | e80-imu-txt | `Dig` read in hexadecimal and kept as its number | 54 |
 | e80-imu-txt | `Time` read in seconds | 54 |
 | eggtimer-csv | `AltAccel` read in feet, from the manual | 4 |
-| eggtimer-csv | `Alt` read in feet, from the manual | 43 |
+| eggtimer-csv | `Alt` read in feet, from the manual | 45 |
 | eggtimer-csv | `FAccelAlt` read in feet, from the manual | 4 |
 | eggtimer-csv | `FAccelVel` read in feet per second, from the manual | 4 |
 | eggtimer-csv | `FAlt` read in feet, from the manual | 38 |
-| eggtimer-csv | `FVeloc` read in feet per second, from the manual | 43 |
-| eggtimer-csv | `Filt_Alt` read in feet, from the manual | 5 |
-| eggtimer-csv | `T` read in milliseconds, from the step | 3 |
+| eggtimer-csv | `FVeloc` kept as written, not read as a speed | 1 |
+| eggtimer-csv | `FVeloc` read in feet per second, from the manual | 44 |
+| eggtimer-csv | `Filt_Alt` kept as written, not read as a height | 1 |
+| eggtimer-csv | `Filt_Alt` read in feet, from the manual | 6 |
+| eggtimer-csv | `T` read in milliseconds, from the step | 5 |
 | eggtimer-csv | `T` read in seconds, from the step | 40 |
 | eggtimer-csv | `VAccel` read in feet per second, from the manual | 4 |
-| eggtimer-csv | `Veloc` read in feet per second, from the manual | 40 |
+| eggtimer-csv | `Veloc` kept as written, not read as a speed | 1 |
+| eggtimer-csv | `Veloc` read in feet per second, from the manual | 41 |
 | eggtimer-rtf | `ASL Alt.` kept as written, with no unit mark the reader knows | 1 |
 | eggtimer-rtf | `Alt` read in feet, from the manual and the coast | 1 |
 | eggtimer-rtf | `Apogee` kept as written, with no unit mark the reader knows | 1 |
@@ -685,7 +710,7 @@ The files read, by the logger each names:
 | AltOS TeleMetrum-v2.0 | 6 |
 | AltOS TeleMetrum-v4.0 | 1 |
 | Big Red Bee BeeLine | 2 |
-| Eggtimer | 44 |
+| Eggtimer | 46 |
 | Eggtimer Build_1.52 | 1 |
 | Eggtimer TRS | 2 |
 | Entacore AIM | 16 |
@@ -710,4 +735,4 @@ The files read, by the logger each names:
 | SillyGooseV2 | 1 |
 | fw2kml | 15 |
 | phone app | 27 |
-| unknown | 41 |
+| unknown | 47 |

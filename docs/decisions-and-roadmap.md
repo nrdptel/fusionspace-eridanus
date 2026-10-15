@@ -298,6 +298,7 @@ until someone rewrites it in plainer words.
 | [ADR-267: M7.1c12 in two: Missile Works' RTx first; the rest to M7.1c13][adr-267] | After [M7.1c11](#m7-1c11), 131 sample logs were left unread. Fourteen are a Missile Works RTx GPS tracker's: five `.rtx` files, as mDACS saves a download, and nine CSV and text exports, eight of them beside an `.rtx` with the KML export of the same fixes. [M7.1c12](#m7-1c12) now reads them, the `.rtx`'s words decoded from the files and held to every export beside them; the rest goes to [M7.1c13](#m7-1c13). |  |
 | [ADR-268: M7.1c13 in two: tables read by their headers first; the rest to M7.1c14][adr-268] | After [M7.1c12](#m7-1c12), 117 sample logs were left unread, most of them tables from teams' own flight computers and scripts, each in its own words. Thirty-one of them, among them a Blue Raven file a person edited, name their units in their headers; [M7.1c13](#m7-1c13) now reads such a table by what its header states, holds each unit to the column's name and values, and takes a caller's column mapping for the rest; spreadsheets and the other layouts go to [M7.1c14](#m7-1c14). |  |
 | [ADR-269: M7.1c14 in two: Excel workbooks first; the rest to M7.1c15][adr-269] | After [M7.1c13](#m7-1c13), 87 sample logs were left unread. The largest group one change can read is the 23 `.xlsx` workbooks: written out sheet by sheet, each cell as the workbook stores it, 16 of them read through the readers that exist; [M7.1c14](#m7-1c14) now reads them, every cell held to an independent reader, and the rest goes to [M7.1c15](#m7-1c15). |  |
+| [ADR-270: M7.1c15 in two: EuRoC exports and mappings a publisher states first; the rest to M7.1c16][adr-270] | After [M7.1c14](#m7-1c14), 68 sample logs were left unread, in 19 layouts, the largest 7 files. Nine of them need little new code: three exports of known loggers saved by a European locale's spreadsheet, and six tables whose publisher, RocketPy, states each column's meaning and unit. [M7.1c15](#m7-1c15) now reads them, adds a check that keeps a filtered altitude written in the wrong scale out of the record, and leaves the rest to [M7.1c16](#m7-1c16). |  |
 
 ## The roadmap
 
@@ -705,8 +706,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1c11"></a>[M7.1c11][done-5] | ARTS2 raw data | done |
 | <a id="m7-1c12"></a>[M7.1c12][done-5] | Missile Works' RTx GPS tracker | done |
 | <a id="m7-1c13"></a>[M7.1c13][done-5] | Tables read by their headers | done |
-| <a id="m7-1c14"></a>[M7.1c14][done-5] | The rest | done |
-| <a id="m7-1c15"></a>[M7.1c15][phase-5] | The rest | not yet done |
+| <a id="m7-1c14"></a>[M7.1c14][done-5] | Excel workbooks | done |
+| <a id="m7-1c15"></a>[M7.1c15][done-5] | EuRoC exports and mappings a publisher states | done |
+| <a id="m7-1c16"></a>[M7.1c16][phase-5] | The rest | not yet done |
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
@@ -1130,6 +1132,7 @@ is the milestone that added or will add that test.
 [adr-267]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0267-missile-works-rtx-before-the-rest.md
 [adr-268]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0268-tables-read-by-their-headers-before-the-rest.md
 [adr-269]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0269-excel-workbooks-before-the-rest.md
+[adr-270]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0270-euroc-exports-and-stated-mappings-before-the-rest.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats

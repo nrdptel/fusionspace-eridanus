@@ -39,7 +39,7 @@
     },
     {
       "family": "aerospacenu-sillygoose-gs-csv",
-      "increment": "M7.1c15",
+      "increment": "M7.1c16",
       "files": 1,
       "read": 0,
       "refused": {
@@ -106,7 +106,7 @@
     },
     {
       "family": "binary",
-      "increment": "M7.1c15",
+      "increment": "M7.1c16",
       "files": 4,
       "read": 0,
       "refused": {
@@ -165,12 +165,12 @@
     },
     {
       "family": "csv",
-      "increment": "M7.1c15",
-      "files": 32,
+      "increment": "M7.1c16",
+      "files": 23,
       "read": 2,
       "refused": {
         "syntax": 1,
-        "unrecognized": 29
+        "unrecognized": 20
       }
     },
     {
@@ -192,8 +192,8 @@
     {
       "family": "eggtimer-csv",
       "increment": "M7.1b",
-      "files": 43,
-      "read": 43,
+      "files": 45,
+      "read": 45,
       "refused": {}
     },
     {
@@ -228,7 +228,7 @@
     },
     {
       "family": "entacore-xtra",
-      "increment": "M7.1c15",
+      "increment": "M7.1c16",
       "files": 2,
       "read": 0,
       "refused": {
@@ -295,6 +295,13 @@
       "increment": "not a log",
       "files": 1,
       "read": 1,
+      "refused": {}
+    },
+    {
+      "family": "mapped-table-csv",
+      "increment": "M7.1c15",
+      "files": 6,
+      "read": 6,
       "refused": {}
     },
     {
@@ -411,6 +418,15 @@
       "refused": {}
     },
     {
+      "family": "rrc3-csv-damaged",
+      "increment": "damaged",
+      "files": 1,
+      "read": 0,
+      "refused": {
+        "syntax": 1
+      }
+    },
+    {
       "family": "rrc3-rff",
       "increment": "M7.1c5",
       "files": 6,
@@ -440,7 +456,7 @@
     },
     {
       "family": "telemetry-rtf",
-      "increment": "M7.1c15",
+      "increment": "M7.1c16",
       "files": 2,
       "read": 0,
       "refused": {
@@ -449,7 +465,7 @@
     },
     {
       "family": "txt",
-      "increment": "M7.1c15",
+      "increment": "M7.1c16",
       "files": 22,
       "read": 0,
       "refused": {
@@ -474,7 +490,7 @@
     },
     {
       "family": "xls",
-      "increment": "M7.1c15",
+      "increment": "M7.1c16",
       "files": 1,
       "read": 0,
       "refused": {
@@ -483,7 +499,7 @@
     },
     {
       "family": "xlsx",
-      "increment": "M7.1c15",
+      "increment": "M7.1c16",
       "files": 4,
       "read": 0,
       "refused": {
@@ -492,7 +508,7 @@
     },
     {
       "family": "xml",
-      "increment": "M7.1c15",
+      "increment": "M7.1c16",
       "files": 2,
       "read": 0,
       "refused": {
@@ -508,6 +524,15 @@
     }
   ],
   "reclassified": [
+    "045f5b9ed473b800 csv -> mapped-table-csv: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension",
+    "0c7808a84fb39c83 csv -> mapped-table-csv: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension",
+    "a9cf47fe2b2e5be0 csv -> mapped-table-csv: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension",
+    "d88a7fc53cbd55d1 csv -> mapped-table-csv: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension",
+    "dd5287b375e84be8 csv -> mapped-table-csv: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension",
+    "f912724676eea0ca csv -> mapped-table-csv: a table whose header names its clock with no unit, `t`, `ts` or `time`, read by the column mapping its publisher states (`validation/log-mappings.json`); filed as generic CSV by its extension",
+    "7a71bfeb7d7b1ee4 csv -> eggtimer-csv: an Eggtimer's CSV download, `T;Alt;Veloc;…`, saved with semicolons between its cells, as a European locale's spreadsheet writes it; filed as generic CSV by its extension",
+    "cda3fcdb9d634cd0 csv -> eggtimer-csv: an Eggtimer's CSV download, `T;Alt;Veloc;…`, saved with semicolons between its cells, as a European locale's spreadsheet writes it; filed as generic CSV by its extension",
+    "bc062b34affee518 csv -> rrc3-csv-damaged: an RRC3's mDACS export in a European locale's form, semicolons and decimal commas, whose rows a spreadsheet sorted by their time's text, `10,05` before `2`; put in order by value, they step 0.05 s from 0 with none missing, but the reader keeps the file's order and refuses a time that goes back, naming the line",
     "02cf95e874f824f7 xlsx -> workbook-xlsx: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet",
     "084653fe77f2ca50 xlsx -> workbook-xlsx: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet",
     "229efb1695f3277f xlsx -> workbook-xlsx: an Excel workbook, `.xlsx`, of a flight's log: a sheet or several, each a table a reader takes once the cells are written out as text, such as a Blue Raven's high-rate and low-rate files side by side or a table naming its units; filed as a spreadsheet",
@@ -689,7 +714,7 @@
     "AltOS TeleMetrum-v2.0": 6,
     "AltOS TeleMetrum-v4.0": 1,
     "Big Red Bee BeeLine": 2,
-    "Eggtimer": 44,
+    "Eggtimer": 46,
     "Eggtimer Build_1.52": 1,
     "Eggtimer TRS": 2,
     "Entacore AIM": 16,
@@ -714,7 +739,7 @@
     "SillyGooseV2": 1,
     "fw2kml": 15,
     "phone app": 27,
-    "unknown": 41
+    "unknown": 47
   },
   "perfectflite_exports": {
     "files": 21,
@@ -1830,6 +1855,68 @@
       "two_units_differ": null
     }
   ],
+  "mapped_checks": [
+    {
+      "id": "045f5b9ed473b800",
+      "source": "RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {\"t\": \"time\", \"alt\": \"altitude\"}, units=None",
+      "rows": 746,
+      "columns": 2,
+      "clock_unit": "s",
+      "read": 1,
+      "contradicted": 0,
+      "kept": 0
+    },
+    {
+      "id": "0c7808a84fb39c83",
+      "source": "RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {\"time\": \"time\", \"altitude\": \"altitude\"}, units=None",
+      "rows": 12578,
+      "columns": 2,
+      "clock_unit": "s",
+      "read": 1,
+      "contradicted": 0,
+      "kept": 0
+    },
+    {
+      "id": "a9cf47fe2b2e5be0",
+      "source": "RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {\"ts\": \"time\", \"filtered_altitude_AGL\": \"altitude\", \"filtered_acceleration\": \"az\"}, units=None",
+      "rows": 44454,
+      "columns": 3,
+      "clock_unit": "s",
+      "read": 2,
+      "contradicted": 0,
+      "kept": 0
+    },
+    {
+      "id": "d88a7fc53cbd55d1",
+      "source": "RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {\"ts\": \"time\", \"filtered_altitude_AGL\": \"altitude\", \"filtered_acceleration\": \"az\"}, units=None",
+      "rows": 17933,
+      "columns": 3,
+      "clock_unit": "s",
+      "read": 2,
+      "contradicted": 0,
+      "kept": 0
+    },
+    {
+      "id": "dd5287b375e84be8",
+      "source": "RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {\"t\": \"time\", \"alt\": \"altitude\"}, units=None",
+      "rows": 64,
+      "columns": 4,
+      "clock_unit": "s",
+      "read": 1,
+      "contradicted": 0,
+      "kept": 2
+    },
+    {
+      "id": "f912724676eea0ca",
+      "source": "RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {\"ts\": \"time\", \"altitude[m]\": \"altitude\", \"velocity[m/s]\": \"vz\"}, units=None",
+      "rows": 404,
+      "columns": 5,
+      "clock_unit": "s",
+      "read": 2,
+      "contradicted": 0,
+      "kept": 2
+    }
+  ],
   "workbook_checks": [
     {
       "id": "02cf95e874f824f7",
@@ -2125,16 +2212,19 @@
     },
     "eggtimer-csv": {
       "`AltAccel` read in feet, from the manual": 4,
-      "`Alt` read in feet, from the manual": 43,
+      "`Alt` read in feet, from the manual": 45,
       "`FAccelAlt` read in feet, from the manual": 4,
       "`FAccelVel` read in feet per second, from the manual": 4,
       "`FAlt` read in feet, from the manual": 38,
-      "`FVeloc` read in feet per second, from the manual": 43,
-      "`Filt_Alt` read in feet, from the manual": 5,
-      "`T` read in milliseconds, from the step": 3,
+      "`FVeloc` kept as written, not read as a speed": 1,
+      "`FVeloc` read in feet per second, from the manual": 44,
+      "`Filt_Alt` kept as written, not read as a height": 1,
+      "`Filt_Alt` read in feet, from the manual": 6,
+      "`T` read in milliseconds, from the step": 5,
       "`T` read in seconds, from the step": 40,
       "`VAccel` read in feet per second, from the manual": 4,
-      "`Veloc` read in feet per second, from the manual": 40
+      "`Veloc` kept as written, not read as a speed": 1,
+      "`Veloc` read in feet per second, from the manual": 41
     },
     "eggtimer-rtf": {
       "`ASL Alt.` kept as written, with no unit mark the reader knows": 1,
@@ -2319,7 +2409,7 @@
     "03adc04683e2884f csv collection refused:unrecognized -",
     "03ae604968d190f0 raven-csv collection RavenFipCsv a96bdc7fee4c7ef7",
     "04000ab9da2c8490 pf2 collection PerfectFlitePf2 26deb4ea4430ea92",
-    "045f5b9ed473b800 csv collection refused:unrecognized -",
+    "045f5b9ed473b800 mapped-table-csv collection GenericTable 102c443ee8475e47",
     "04de3cd8df2ab428 raven-csv collection RavenFipCsv 43b61b5ba10bd211",
     "055206ce7e9a2fae txt aerospacenu refused:unrecognized -",
     "0593220770e9c74a aerospacenu-sillygoose-txt aerospacenu SillyGooseText 8e19404b483905cf",
@@ -2362,7 +2452,7 @@
     "0bc847e6d3d9a9ee fluctus-csv collection FluctusCsv d45175512e660a50",
     "0be1279f886d0e5c pf2 collection PerfectFlitePf2 70d6ad865281b170",
     "0c037a948815bb46 blueraven-summary-csv collection FeatherweightSummaryCsv 180b3910c467be9f",
-    "0c7808a84fb39c83 csv collection refused:unrecognized -",
+    "0c7808a84fb39c83 mapped-table-csv collection GenericTable 1ee48725098196d7",
     "0c83c686fdf3fa80 pf2 collection PerfectFlitePf2 c0cff6d1f3849c87",
     "0cfb74a4c988654b rtx-txt collection RtxText ada49cbec0add363",
     "0d64071eb442ceaf e80-imu-txt collection RdasText e7c33ff9ddf16014",
@@ -2834,7 +2924,7 @@
     "796239f2befcc353 pf2 collection PerfectFlitePf2 bd4f1820a180d912",
     "7984b7845a06c799 fwgps-csv collection FeatherweightGpsCsv 77072074b361e6a0",
     "79c25ec319bcc146 blueraven-csv collection BlueRavenCsv fc3254bcaf6706be",
-    "7a71bfeb7d7b1ee4 csv collection refused:unrecognized -",
+    "7a71bfeb7d7b1ee4 eggtimer-csv collection EggtimerCsv 3a4c6d6a3f34e0be",
     "7a8df8733b27957a featherweight-summary-csv collection FeatherweightSummaryCsv 3577d03ccd0ab708",
     "7aa4d14482f6bb3c kml collection Kml c8c948ae34cf9f0a",
     "7af1c2029b0c81ce raven-csv collection RavenFipCsv c0e27f47a8fafc7f",
@@ -3034,7 +3124,7 @@
     "a964e00316c378d9 txt collection refused:unrecognized -",
     "a9c52e7618e24af3 nmea collection Nmea0183 9071bb6ca86d1e6c",
     "a9c693adac127305 csv collection refused:unrecognized -",
-    "a9cf47fe2b2e5be0 csv collection refused:unrecognized -",
+    "a9cf47fe2b2e5be0 mapped-table-csv collection GenericTable bd3a049a7364895b",
     "aa024f71d157990d rrc3-csv collection Rrc3Csv e410c1c7b944bd5b",
     "aa38a65020f9996d raven-fipa collection RavenFipa df114d255571ae15",
     "aa4c605aea1edb93 blueraven-csv collection BlueRavenCsv 6f4c1c3f1d675ce4",
@@ -3116,7 +3206,7 @@
     "bb3cb42f9669e0c8 kml collection Kml 6868e192b389f9e0",
     "bb87ba43bbcc9455 rrc3-csv collection Rrc3Csv e011e26b73755592",
     "bbb47dca55d547ec raven-csv collection RavenFipCsv f3f13513e59105fb",
-    "bc062b34affee518 csv collection refused:unrecognized -",
+    "bc062b34affee518 rrc3-csv-damaged collection refused:syntax -",
     "bc1333f444ce47e3 rrc3-rff collection Rrc3Rff 47f046db7a8108b2",
     "bc7d96697d1315e1 pf2 aerospacenu PerfectFlitePf2 d4eea7dd3161078e",
     "bcbd7e1b6e8cb431 e80-imu-txt collection RdasText 37767390c531f43d",
@@ -3214,7 +3304,7 @@
     "cd6f44ad29c505e6 txt collection refused:unrecognized -",
     "cd96deb13f603b2e pf2 collection PerfectFlitePf2 c89aae33e706f2af",
     "cda2bf071822fc79 pfa collection PerfectFlitePfa 549d7df0d5346904",
-    "cda3fcdb9d634cd0 csv collection refused:unrecognized -",
+    "cda3fcdb9d634cd0 eggtimer-csv collection EggtimerCsv 6a0521aaad813605",
     "cdeeafea7fded642 pf2 collection PerfectFlitePf2 e8d4597bf8f53034",
     "cef591ad90663948 e80-imu-txt collection RdasText 2ede4d85ac4dd7ba",
     "cf76d668a16dc648 perfectflite-csv collection PerfectFliteCsv 9efbc72c527fcbb1",
@@ -3254,7 +3344,7 @@
     "d7fbea3d8003a974 nmea collection Nmea0183 9bed7a2e0da0e537",
     "d7fc4d9a0646c515 pf2 collection PerfectFlitePf2 bdf753b2ed255c2d",
     "d84456bf34670cb8 eggtimer-txt collection EggtimerText 92e67ad4916a8a48",
-    "d88a7fc53cbd55d1 csv collection refused:unrecognized -",
+    "d88a7fc53cbd55d1 mapped-table-csv collection GenericTable 8a85e59c221ed50d",
     "d8d1386cb121ba22 debrief-synthetic-csv debrief refused:unrecognized -",
     "d90f2f7ab60ccd0c pf2 collection PerfectFlitePf2 a3a142d7284cfcb7",
     "d97725676853d9e6 pf2 collection PerfectFlitePf2 08f4a4921069248c",
@@ -3277,7 +3367,7 @@
     "dc8dae5302ef0dcf e80-imu-txt collection RdasText d0c792a547b2cf52",
     "dcd13155284e2941 aerospacenu-sillygoose-txt aerospacenu SillyGooseText 7ed42bc0e2c8bee6",
     "dd2ec06ec4267dff blueraven-csv collection BlueRavenCsv f054a3b6a08d7c78",
-    "dd5287b375e84be8 csv collection refused:unrecognized -",
+    "dd5287b375e84be8 mapped-table-csv collection GenericTable f90f63c504a6e3d8",
     "ddbbe5d296ecd986 featherweight-summary-csv collection FeatherweightSummaryCsv df96a98941c31cb5",
     "ddda56b53a2ce48c pfa collection PerfectFlitePfa dd346a1f16399308",
     "dde7f47bc8fcd97e raven-csv collection RavenFipCsv 995a83117a6eaf9f",
@@ -3394,7 +3484,7 @@
     "f8e9810e1afa3074 pf2 collection PerfectFlitePf2 26ac2598bebeacda",
     "f8f94ddd5185f9a9 eggtimer-csv collection EggtimerCsv fe6ed185d29d7a4d",
     "f90adc5b6f7f534d e80-imu-txt collection RdasText dfac008ee17bebda",
-    "f912724676eea0ca csv collection refused:unrecognized -",
+    "f912724676eea0ca mapped-table-csv collection GenericTable 5433cbd80498e9ad",
     "f91551323804f812 fwgps-csv collection FeatherweightGpsCsv ae91eff2951cc9a0",
     "f931f58145df29ef altos-csv collection AltosCsv 3f269a3396ddaa61",
     "f9382038fa6dc682 aerospacenu-sillygoose-txt aerospacenu SillyGooseText 63c3ee8cd27e1de6",

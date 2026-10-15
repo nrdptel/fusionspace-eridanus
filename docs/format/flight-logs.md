@@ -56,8 +56,11 @@ comparison with a simulation) doesn't depend on which altimeter flew.
 > sheet, each cell as the workbook stores it; every cell of the 16 sample workbooks matches an
 > independent reader's, and 4 of their 28 sheets are refused
 > ([Excel workbooks](#excel-workbooks)).
+> A table whose header names its clock with no unit is read only by a column mapping its
+> publisher states, since [M7.1c15](../decisions-and-roadmap.md#m7-1c15): six of RocketPy's
+> tables ([mappings a publisher states](#mappings-a-publisher-states)).
 > Other layouts are refused, not guessed at; they come with
-> [M7.1c15](../decisions-and-roadmap.md#m7-1c15), the other loggers' formats.
+> [M7.1c16](../decisions-and-roadmap.md#m7-1c16), the other loggers' formats.
 
 **To read a flight** from these layouts today, use the Rust library: give the file's bytes to
 `hpr_flightdata::import::read`
@@ -129,9 +132,9 @@ decided.
 | Raven FIP CSV | Featherweight Raven, through the Featherweight Interface Program | opens with a time column and holds the Raven's `Axial Accel (Gs)` channel | `hpr_flightdata::raven` |
 | Raven `.FIPa` | Featherweight Raven, its memory as the Featherweight Interface Program downloads it, before any export | opens `#Component=Raven`, and its text lines end, within the first 4,096 bytes, in a `#den` line followed by a frame's `:` | `hpr_flightdata::raven_fipa` ([below](#raw-downloads)) |
 | Blue Raven CSV | Featherweight Blue Raven, through its phone app: a low-rate file (barometer, inertial figures, flags) and a high-rate file (gyroscopes, accelerometers, attitude) | `Year,Month,Day,Time,Flight_Time_(s),Sync,`, or `Flight_Time_(s),Sync,` in a file with no date | `hpr_flightdata::blueraven` |
-| RRC3 CSV | Missile Works RRC3, through mDACS, Missile Works' program that downloads its flights | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages`, perhaps with units in brackets | `hpr_flightdata::rrc3` |
+| RRC3 CSV | Missile Works RRC3, through mDACS, Missile Works' program that downloads its flights | `Time`, `Altitude`, `Pressure`, `Velocity`, then any of `Temperature`, `Events`, `Voltages`, perhaps with units in brackets; separated by commas, or by semicolons, a European locale's, perhaps ending each line | `hpr_flightdata::rrc3` |
 | RRC3 `.rff` | Missile Works RRC3, its memory as mDACS downloads it, before any export | a .NET serialization header (MS-NRBF, version 1.0) and, within the first 4,096 bytes, mDACS's class name `mDACS.AnalysisSupport+FlightRecord` | `hpr_flightdata::rrc3_rff` ([below](#raw-downloads)) |
-| Eggtimer CSV | Eggtimer Classic, TRS, Quantum and Proton, through Eggtimer's download | `T,Alt,` and more of Eggtimer's column names | `hpr_flightdata::eggtimer` |
+| Eggtimer CSV | Eggtimer Classic, TRS, Quantum and Proton, through Eggtimer's download | `T,Alt,` and more of Eggtimer's column names, or the same separated by semicolons, as a European locale's spreadsheet saves it | `hpr_flightdata::eggtimer` ([below](#units-the-file-decides)) |
 | Eggtimer text | Eggtimer TRS, its download captured by a terminal program | a title `Eggtimer <model> <firmware> … Flight Settings`, then Eggtimer's header row `T,Alt,…` | `hpr_flightdata::eggtimer` ([below](#units-the-file-decides)) |
 | Eggtimer RTF | the same terminal download, saved by a text editor as an RTF document | opens with `{\rtf`, and its text holds the terminal download's title and header row | `hpr_flightdata::eggtimer` ([below](#units-the-file-decides)) |
 | AltimeterCloud CSV | Rocketry Ltd Nano V1 and Mercury, as a flight page on altimetercloud.com hands the log back | a header within the first 65 lines whose first name is `Time(ms)` (in any case) and which also names `acceleration_total(mG)` and `tilt` | `hpr_flightdata::altimetercloud` ([below](#units-the-file-decides)) |
@@ -173,7 +176,7 @@ such programs read; a team flight computer's saved state, one row; an OpenRocket
 export; and a wind profile. The other layouts in the sample logs, among
 them an older `.xls` spreadsheet and a radio telemetry stream
 saved as RTF, are refused today, most as *unrecognized*; they come with
-[M7.1c15](../decisions-and-roadmap.md#m7-1c15), and the [survey's report](#how-it-was-checked)
+[M7.1c16](../decisions-and-roadmap.md#m7-1c16), and the [survey's report](#how-it-was-checked)
 counts them by layout.
 
 ### Zip archives
@@ -305,7 +308,7 @@ workbooks (`validation/oracles/xlsx/cells.py`): every one of the 5,743,747 cells
 hold a value agrees, 147,958 of them dates and times. That checks the copying, not the layouts:
 each sheet's columns and units are only as right as the reader it goes to. A probe run when the
 check was built, not committed, moved the reader's calendar by one day, and 27,103 cells
-disagreed. Not read yet, with [M7.1c15](../decisions-and-roadmap.md#m7-1c15): four workbooks (a
+disagreed. Not read yet, with [M7.1c16](../decisions-and-roadmap.md#m7-1c16): four workbooks (a
 PerfectFlite export with a person's notes beside it, a state estimator's output whose clock names
 no unit, and two tables with no header row) and an older `.xls` file, a different binary format.
 Three more workbooks are flyers' summaries of flights, not logs.
@@ -526,10 +529,34 @@ that doesn't measure its column's quantity is refused. Only the Rust library rea
 so far.
 
 **What is left out.** No [primary track](#the-record): which column is a barometric altitude
-above the pad isn't stated. Most of the 30 files filed as generic CSV that are still refused have
-a clock with no unit or no header row; they wait for a mapping, with
-[M7.1c15](../decisions-and-roadmap.md#m7-1c15). A table saved in an Excel workbook is read the
+above the pad isn't stated. Most of the 21 files filed as generic CSV that are still refused have
+a clock with no unit or no header row, and no publisher states their mapping; they wait, with
+[M7.1c16](../decisions-and-roadmap.md#m7-1c16). A table saved in an Excel workbook is read the
 same way, once its cells are written out ([Excel workbooks](#excel-workbooks)).
+
+### Mappings a publisher states
+
+Some tables name their clock `t`, `ts` or `time` with no unit, and their columns with no unit
+either, so the header reader can't take them. When the people who publish such a file state what
+each column holds and in what unit, the survey of the sample logs reads the file by that
+statement: `validation/log-mappings.json` holds, for each file by its id, the `Mapping` as
+`generic::read_with` takes it and where the publisher states it
+([ADR-270](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0270-euroc-exports-and-stated-mappings-before-the-rest.md), which decided it).
+
+Six of the sample logs are teams' flights that RocketPy, the open-source simulator, keeps in its
+repository. RocketPy's example notebook for each flight reads the file with its
+`FlightDataImporter`, naming the columns (`"ts": "time"`, `"filtered_altitude_AGL":
+"altitude"`, `"filtered_acceleration": "az"`) and passing `units=None`, which the importer's own
+documentation defines as every column in SI. So each file's clock is read in seconds, its
+altitude above the ground in meters, a vertical speed in m/s and a vertical acceleration in m/s²;
+a column the notebook doesn't map, such as a latitude, is kept as written. Each unit still goes
+through the values' check above, and none of the six files' columns fails it.
+
+The survey refuses a mapping on a file whose header doesn't name the mapping's columns in order,
+on a file a reader takes on its own (a mapping can't overrule a maker's layout), and for a file
+of this family with none stated. A mapping is only as right as its publisher's statement: the
+values' check catches a unit far off, a pressure over 110 kPa or a length beyond 150 km (93 mi), not feet
+read as meters. A seventh RocketPy table, a GPS log, is loaded by no notebook and is left unread.
 
 ## The record
 
@@ -651,15 +678,30 @@ sample logs:
 - **An Eggtimer's clock, worked out from the file.** The Classic and TRS write their time in
   milliseconds, the Quantum and Proton in seconds, under the same `T`. The reader takes
   milliseconds when the median step is above 5: the manuals' rates, 1 to 33 samples a second, put
-  a step between 0.03 and 1 in seconds and between 30 and 1,000 in milliseconds. Of the 43
-  Eggtimer files, 3 are read in milliseconds and 40 in seconds.
+  a step between 0.03 and 1 in seconds and between 30 and 1,000 in milliseconds. Of the 45
+  Eggtimer files, 5 are read in milliseconds and 40 in seconds.
 - **An Eggtimer's heights and speeds, from the manuals.** The Classic and TRS manuals state feet
   and feet per second. The Quantum and Proton manuals state no unit for the download, but give
   every height in feet, and no Eggtimer manual offers meters; the heights are read in feet for
   every model, and in a terminal download, plain or saved as RTF, only where the coast before
   apogee also slows at about g in feet (below). A speed is read in feet per second only where it matches the altitude's change
   over the step on at least 90% of rows (on the sample logs, 95.9% or more); otherwise it is kept
-  as written.
+  as written. A filtered altitude is read in feet only where it scales to `Alt` as a filter of it
+  can: the factor a least-squares fit through zero gives, from `Alt` to the filtered altitude,
+  must lie from 0.1 to 2. A filter lags the altitude, under it going up and over it coming down,
+  and a lag $\tau$ at a speed $v$ over a height $H$ moves the factor by about $1.5\,v\tau/H$; a
+  decimal place lost writes a value 10 times over. On 44 of the sample files the factor is 0.900
+  to 1.000. On the 45th, a download a spreadsheet saved with its decimal points taken out (`12.34`
+  written `1234`), it is 99.9: its `Filt_Alt` and `FVeloc` are kept as written, as is its
+  `Veloc`, by the speed check, and its `Alt`, whole feet, is read.
+- **An Eggtimer download saved by a European locale.** A spreadsheet set to a European locale
+  saves the CSV download with semicolons between the cells, and may write its numbers with a
+  decimal comma. The reader splits a header holding a semicolon on semicolons and settles the
+  decimal mark once for the file: a comma only if no number is written with a point and one is
+  written with a comma before other than three digits. A cell in the other mark isn't a number,
+  and the file is refused on its line, so `1.250` is never read as 1.25 thousand or as 1.25. Two
+  of the sample downloads, from the European Rocketry Challenge, are semicolon-separated, both
+  with decimal points.
 - **A Blue Raven's speeds, inertial positions, rates of turn and accelerations, from the
   manual.** The manual gives their units for the logger's USB download: feet per second, feet,
   degrees per second and g (*Blue Raven User's Guide*, 2026-05-12, p23). The app's own files
@@ -970,7 +1012,7 @@ sample logs:
   altitude's change, are kept as written, as are the summary's apogee and site elevation, which carry no unit mark the reader
   knows. An RTF document holding anything else is refused as not an Eggtimer's, among them the
   radio telemetry stream in two other sample files, which comes with
-  [M7.1c15](../decisions-and-roadmap.md#m7-1c15).
+  [M7.1c16](../decisions-and-roadmap.md#m7-1c16).
 
 The record's readings withhold on all these layouts, as on every logger's but PerfectFlite's
 `.pf2`, until [M7.2](../decisions-and-roadmap.md#m7-2).
@@ -1927,10 +1969,11 @@ per file an anonymized id (the start of a hash of the file, which says nothing o
 with a digest, a hash, of the record read from it. The files inside the zip archives among them
 are unpacked and counted too, each once: of the 29 in the 8 archives, 19 are in no other source
 ([zip archives](#zip-archives)), and each Excel workbook's sheets by the layout each reads as
-([Excel workbooks](#excel-workbooks)). Of the 1,122 files it holds today, 994 are read, the 8
+([Excel workbooks](#excel-workbooks)), and each table read by a mapping its publisher states
+([above](#mappings-a-publisher-states)). Of the 1,122 files it holds today, 1,002 are read, the 8
 archives counted as read when they unpack and the 16 workbooks when a sheet of each reads. The
-report labels 70 files for [M7.1c15](../decisions-and-roadmap.md#m7-1c15), the rest of the
-importers; 68 of them, of layouts no reader knows yet, are unread.
+report labels 61 files for [M7.1c16](../decisions-and-roadmap.md#m7-1c16), the rest of the
+importers; 59 of them, of layouts no reader knows yet, are unread.
 
 A file the collection's catalog files under a layout it doesn't have is moved, by id, with the
 reason printed: one is a spreadsheet's re-save of an AltOS export, its header edited, which is
@@ -1939,10 +1982,16 @@ together, which no reader can line up with its rows and which is refused; a thir
 a map of a flight made in a map program, its predicted tracks with the pad and landing spot
 pinned, read but counted apart as not a log. And 62 files the catalog files as generic CSV, by
 their extension, are in AltimeterCloud's layout (10), Entacore AIM's (15), a Fluctus's (6), an
-ARTS2's interpreted data (4) or the phone app's `launch` CSV (27), and are held to those readers.
+ARTS2's interpreted data (4) or the phone app's `launch` CSV (27), and are held to those readers;
+2 more are Eggtimer downloads saved with semicolons, held to the Eggtimer's reader, and 6 are
+tables whose publisher states their mapping ([above](#mappings-a-publisher-states)). One more is
+an RRC3 export a European locale saved, its lines ending in semicolons, whose rows a spreadsheet
+sorted by their time's text, `10,05` before `2`: put in order they step 0.05 s with none
+missing, but the reader keeps a file's order, so it is refused on the line where its time goes
+back, and counted as damaged.
 Of the 3 RTF files the catalog files as not a log, by their extension, one is an Eggtimer's
 download, held to its reader, and two a radio telemetry stream, refused until
-[M7.1c15](../decisions-and-roadmap.md#m7-1c15). Sixteen spreadsheets are workbooks of flights'
+[M7.1c16](../decisions-and-roadmap.md#m7-1c16). Sixteen spreadsheets are workbooks of flights'
 logs, held to the workbook reader. Five files filed as generic CSV or text are
 PerfectFlite's exports: four with no header row and one that names its temperature `Temp`. A
 Blue Raven high-rate file with no date is held to the Blue Raven's reader; its low-rate partner,

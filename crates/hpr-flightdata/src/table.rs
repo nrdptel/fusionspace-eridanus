@@ -52,6 +52,34 @@ pub(crate) fn number(cell: &str, decimal_comma: bool) -> Option<f64> {
     parsed.ok().filter(|value| value.is_finite())
 }
 
+/// A cell as a number in a file's settled decimal mark, `None` if it isn't one. With a decimal
+/// comma, a cell holding a point isn't a number; with a point, one holding a comma isn't: either
+/// is a thousands separator or a mix that can't be settled, never a decimal mark.
+pub(crate) fn number_in_mark(cell: &str, decimal_comma: bool) -> Option<f64> {
+    if decimal_comma && cell.contains('.') {
+        return None;
+    }
+    number(cell, decimal_comma)
+}
+
+/// Whether a file's cells, those below its header, are written with a decimal comma: none is a
+/// number written with a point, and one is written with a comma followed by other than three
+/// digits, which no thousands separator is. Only for a file whose separator isn't a comma.
+pub(crate) fn decimal_comma_shown<S: AsRef<str>>(cells: impl IntoIterator<Item = S>) -> bool {
+    let mut shown = false;
+    for cell in cells {
+        let cell = cell.as_ref();
+        if cell.contains('.') && number(cell, false).is_some() {
+            return false;
+        }
+        shown |= number(cell, true).is_some()
+            && cell.split_once(',').is_some_and(|(_, decimals)| {
+                decimals.len() != 3 || !decimals.bytes().all(|b| b.is_ascii_digit())
+            });
+    }
+    shown
+}
+
 /// A value after its unit conversion, refused if the conversion made it infinite: a finite cell
 /// near the largest `f64`, such as `1.7e308` g, overflows when it is scaled to SI, and a channel
 /// holds SI values or `NaN` gaps, nothing else ([ADR-258][adr-258] §3). `NaN`, a gap, passes.

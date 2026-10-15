@@ -23,7 +23,10 @@
 //! describe a European-locale export, semicolon-separated with decimal commas
 //! (`lib/parsers/missileworksRrc3.ts`, MIT, the project owner's own; see
 //! `THIRD-PARTY-NOTICES.md`). As of 2026-10-12, every one of the 50 RRC3 files among the
-//! project's sample logs is comma-separated.
+//! project's sample logs is comma-separated. One more, filed until 2026-10-15 as generic CSV, is
+//! such an export, and ends every line, the header's too, with a semicolon: under a header that
+//! does, a row's last cell, empty, after the semicolon it ends with, is dropped. Its rows were
+//! sorted by their time's text, `10,05` before `2`, so it is refused where the time goes back.
 //!
 //! **Units.** Most exports name none; some name each in brackets, as `Time [s],Altitude
 //! [ft],Pressure [mbar],Velocity [ft/s],Temperature [F],Events,Voltages [V]`. A bracketed unit is
@@ -275,11 +278,18 @@ fn separator(header: &str) -> char {
     }
 }
 
-/// The header's separator and columns, if it is an RRC3 export's (module docs, *Recognition*).
-fn header_columns(header: &str) -> Option<(char, Vec<Column>)> {
+/// The header's separator, whether it ends with one, and its columns, if it is an RRC3 export's
+/// (module docs, *Recognition*).
+fn header_columns(header: &str) -> Option<(char, bool, Vec<Column>)> {
     let separator = separator(header);
+    // A European locale's export ends each line with a semicolon (module docs, *Recognition*).
+    let trimmed = header.trim_end();
+    let (names, trailing) = match trimmed.strip_suffix(';') {
+        Some(names) if separator == ';' => (names, true),
+        _ => (trimmed, false),
+    };
     let mut columns: Vec<Column> = Vec::new();
-    for cell in header.split(separator) {
+    for cell in names.split(separator) {
         let (name, unit) = split_name(cell);
         let kind = Kind::from_name(name)?;
         if columns.iter().any(|column| column.kind == kind) {
@@ -296,7 +306,7 @@ fn header_columns(header: &str) -> Option<(char, Vec<Column>)> {
             unit: unit.map(str::to_owned),
         });
     }
-    (columns.len() >= 4).then_some((separator, columns))
+    (columns.len() >= 4).then_some((separator, trailing, columns))
 }
 
 /// Whether the text is in this reader's layout, judged from its first line that isn't blank,
@@ -443,7 +453,7 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
             message: "the file is empty".to_owned(),
         });
     };
-    let Some((separator, columns)) = header_columns(header) else {
+    let Some((separator, trailing, columns)) = header_columns(header) else {
         return Err(LogError::NotThisFormat {
             format: FORMAT,
             message: format!(
@@ -455,17 +465,20 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     };
     let units = header_units(&columns, header_line)?;
     let mut notes = Notes::default();
-    let rows = read_rows(lines, separator, &columns, &mut notes)?;
+    let rows = read_rows(lines, separator, trailing, &columns, &mut notes)?;
     if rows.time_s.is_empty() {
         return Err(LogError::NoData { format: FORMAT });
     }
     build(&columns, &units, rows, header_line, notes)
 }
 
-/// Reads the data rows (module docs, *Short rows*).
+/// Reads the data rows (module docs, *Short rows*). Under a header that ends with its separator
+/// (`trailing`), a row's last cell is dropped when it is empty and the row has one cell more than
+/// the header names.
 fn read_rows<'a>(
     lines: impl Iterator<Item = (usize, &'a str)>,
     separator: char,
+    trailing: bool,
     columns: &[Column],
     notes: &mut Notes,
 ) -> Result<Rows, LogError> {
@@ -487,7 +500,10 @@ fn read_rows<'a>(
     };
     let mut placed: Vec<Option<&str>> = vec![None; width];
     for (number, line) in lines {
-        let cells: Vec<&str> = line.split(separator).map(str::trim).collect();
+        let mut cells: Vec<&str> = line.split(separator).map(str::trim).collect();
+        if trailing && cells.len() == width + 1 && cells.last().is_some_and(|c| c.is_empty()) {
+            cells.pop();
+        }
         let empty_from = |from: usize| {
             cells
                 .get(from..)
@@ -1456,6 +1472,56 @@ mod tests {
                 format!("RRC3 CSV {refusal} a value too large for its unit's conversion to SI")
             );
         }
+    }
+
+    /// The flight as a European locale's export writes it: semicolons, decimal commas, and a
+    /// semicolon ending every line.
+    fn european(text: &str) -> String {
+        text.lines()
+            .map(|line| format!("{};\n", line.replace(',', ";").replace('.', ",")))
+            .collect()
+    }
+
+    #[test]
+    fn a_european_export_ending_its_lines_in_semicolons_reads_alike() {
+        let text = flight(300.0, 60.0, FOOT_M, 3.2808, 0);
+        let plain = read(&text).unwrap();
+        let semicolons = read(&european(&text)).unwrap();
+        assert_eq!(semicolons.time_s, plain.time_s);
+        assert_eq!(semicolons.altitude_m, plain.altitude_m);
+        assert_eq!(semicolons.channels, plain.channels);
+        assert_eq!(semicolons.events, plain.events);
+        // A row of empty cells at the end, as one sample ends, is skipped as the plain file's is.
+        let with_blank = format!("{};;;;;;;\n", european(&text));
+        assert_eq!(read(&with_blank).unwrap().time_s, plain.time_s);
+        // A row with a cell more than the header names, its last not empty, is refused.
+        let extra = european(&text).replacen(";9,20;\n", ";9,20;1\n", 1);
+        assert!(matches!(
+            read(&extra),
+            Err(LogError::Syntax { line: 2, .. })
+        ));
+    }
+
+    #[test]
+    fn rows_sorted_as_text_are_refused_where_the_time_goes_back() {
+        // A spreadsheet sorting the rows by the time's text puts `10,5` before `2`.
+        let text = european(&flight(300.0, 60.0, FOOT_M, 3.2808, 0));
+        let mut lines: Vec<&str> = text.lines().collect();
+        let header = lines.remove(0);
+        lines.sort_unstable();
+        let sorted = format!("{header}\n{}\n", lines.join("\n"));
+        let back = lines
+            .windows(2)
+            .position(|pair| {
+                let time = |line: &str| line.split(';').next().unwrap().replace(',', ".");
+                time(pair[1]).parse::<f64>().unwrap() <= time(pair[0]).parse::<f64>().unwrap()
+            })
+            .unwrap();
+        assert!(matches!(
+            read(&sorted),
+            Err(LogError::Syntax { line, ref message, .. })
+                if line == back + 3 && message.contains("doesn't come after the one above it")
+        ));
     }
 
     #[test]

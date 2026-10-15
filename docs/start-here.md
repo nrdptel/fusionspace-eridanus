@@ -299,7 +299,7 @@ out.
   [M7.1b](decisions-and-roadmap.md#m7-1b), [M7.1c1](decisions-and-roadmap.md#m7-1c1),
   [M7.1c2](decisions-and-roadmap.md#m7-1c2), [M7.1c3](decisions-and-roadmap.md#m7-1c3),
   [M7.1c4](decisions-and-roadmap.md#m7-1c4), [M7.1c5](decisions-and-roadmap.md#m7-1c5)). The
-  other loggers come with [M7.1c15, the rest of the importers](decisions-and-roadmap.md#m7-1c15):
+  other loggers come with [M7.1c16, the rest of the importers](decisions-and-roadmap.md#m7-1c16):
   the Blue Raven's other files, Entacore AIM XTRA's own files, older `.xls` spreadsheets,
   CATS, EuRoC and Juno CSV, and tables whose headers state too little, by a stated column mapping. The rest of the readings, such
   as burnout and each leg of the descent, come with [M7.2](decisions-and-roadmap.md#m7-2), and
