@@ -3718,7 +3718,10 @@ struct TeensyFile {
 
 /// A line of a Teensy data logger's file as the survey decodes it: the tag, the clock in µs, and
 /// each value's column and value as written.
-fn teensy_line(line: &str, named: bool) -> Option<(String, u64, Vec<(String, f64)>)> {
+type TeensyLine = (String, u64, Vec<(String, f64)>);
+
+/// Decodes a line of a Teensy data logger's file ([`TeensyLine`]).
+fn teensy_line(line: &str, named: bool) -> Option<TeensyLine> {
     let fields: Vec<&str> = if named {
         line.split(',').map(str::trim).collect()
     } else {

@@ -9,16 +9,16 @@
 //! to a physical check ([ADR-274][adr-274]).
 //!
 //! **The tab-separated layout** ([`LogFormat::TeensyTabs`]) writes a tag, the clock, then the
-//! values, each field after a tab:
+//! values, each field after a tab, shown here as spaces:
 //!
 //! ```text
-//! A	2347	0.31	1.39	9.83
-//! G	2347	2.34	1.39	-2.14
-//! M	2347	19.05	-2.25	18.45
-//! Alt	49743	P	92082	MSL	799.61
-//! HG	52443	-2.39	4.79	15.80
-//! ADC Pin-35	52510	0.0089631490
-//! ADC Pin-36	52556	0.0103227282
+//! A  2347  0.31  1.39  9.83
+//! G  2347  2.34  1.39  -2.14
+//! M  2347  19.05  -2.25  18.45
+//! Alt  49743  P  92082  MSL  799.61
+//! HG  52443  -2.39  4.79  15.80
+//! ADC Pin-35  52510  0.0089631490
+//! ADC Pin-36  52556  0.0103227282
 //! ```
 //!
 //! No line states a unit. Three of the values are read in SI, each held by the survey to the
@@ -170,22 +170,22 @@ fn values<'a>(fields: &[&'a str]) -> Result<(Vec<Option<&'a str>>, Vec<f64>), St
         }
         return Ok((vec![None; numbers.len()], numbers));
     }
-    if fields.len() % 2 != 0 {
+    if !fields.len().is_multiple_of(2) {
         return Err("values neither all numbers nor in name–number pairs".to_owned());
     }
     let mut names = Vec::with_capacity(fields.len() / 2);
     let mut numbers = Vec::with_capacity(fields.len() / 2);
-    for pair in fields.chunks_exact(2) {
-        let field = name(pair[0])?;
+    let (pairs, _) = fields.as_chunks::<2>();
+    for [field, value] in pairs {
+        let field = name(field)?;
         if names.contains(&Some(field)) {
             return Err(format!("the name {field} twice on one line"));
         }
         names.push(Some(field));
-        numbers.push(
-            number(pair[1], false).ok_or_else(|| {
-                format!("{field}'s value, {}, that isn't a number", short(pair[1]))
-            })?,
-        );
+        numbers
+            .push(number(value, false).ok_or_else(|| {
+                format!("{field}'s value, {}, that isn't a number", short(value))
+            })?);
     }
     Ok((names, numbers))
 }
@@ -307,17 +307,18 @@ fn lines<'a>(
     let mut dropped_last = false;
     while let Some((number, text)) = numbered.next() {
         let last = numbered.peek().is_none();
-        if with_units && tags.is_empty() {
-            if let Some((tag, stated)) = units_line(text) {
-                if units.iter().any(|(t, _, _)| *t == tag) {
-                    return Err(syntax(number, format!("a second units line for {tag}")));
-                }
-                if units.len() == MAX_TAGS {
-                    return Err(syntax(number, format!("more than {MAX_TAGS} units lines")));
-                }
-                units.push((tag, stated, number));
-                continue;
+        if with_units
+            && tags.is_empty()
+            && let Some((tag, stated)) = units_line(text)
+        {
+            if units.iter().any(|(t, _, _)| *t == tag) {
+                return Err(syntax(number, format!("a second units line for {tag}")));
             }
+            if units.len() == MAX_TAGS {
+                return Err(syntax(number, format!("more than {MAX_TAGS} units lines")));
+            }
+            units.push((tag, stated, number));
+            continue;
         }
         let checked =
             parse(text).and_then(
@@ -477,8 +478,11 @@ pub fn read(text: &str) -> Result<FlightLog, LogError> {
     Ok(record(LogFormat::TeensyTabs, channels, notes))
 }
 
+/// A conversion to SI.
+type ToSi = fn(f64) -> f64;
+
 /// A stated unit HPR Sim reads: its quantity and its conversion to SI.
-fn stated_unit(unit: &str) -> Option<(Quantity, fn(f64) -> f64)> {
+fn stated_unit(unit: &str) -> Option<(Quantity, ToSi)> {
     Some(match unit {
         "milli-g" => (Quantity::Acceleration, |v| {
             v * STANDARD_GRAVITY_MPS2 / 1_000.0

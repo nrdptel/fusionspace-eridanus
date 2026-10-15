@@ -13,11 +13,8 @@ fn note<'a>(log: &'a FlightLog, start: &str) -> &'a str {
 }
 
 /// The channel of a column.
-fn channel<'a>(log: &'a FlightLog, column: &str) -> &'a Channel {
-    log.channels
-        .iter()
-        .find(|c| c.column == column)
-        .unwrap_or_else(|| panic!("no {column}"))
+fn channel<'a>(log: &'a FlightLog, column: &str) -> Option<&'a Channel> {
+    log.channels.iter().find(|c| c.column == column)
 }
 
 /// Each tag on its own clock, `A`, `P` and `MSL` in SI as written, the rest kept as written, and
@@ -56,13 +53,13 @@ fn the_tab_separated_layout_reads_each_tag_on_its_own_clock() {
             ("ADC Pin-36 1", kept),
         ]
     );
-    let a = channel(&log, "A 3");
+    let a = channel(&log, "A 3").unwrap();
     assert_eq!(a.time_s, [0.002, 0.025]);
     assert_eq!(a.values, [9.75, 9.80]);
-    let msl = channel(&log, "Alt MSL");
+    let msl = channel(&log, "Alt MSL").unwrap();
     assert_eq!(msl.time_s, [0.0031, 0.0261]);
     assert_eq!(msl.values, [540.42, 541.47]);
-    assert_eq!(channel(&log, "HG 3").values, [10.5337, 10.0549]);
+    assert_eq!(channel(&log, "HG 3").unwrap().values, [10.5337, 10.0549]);
     note(&log, "the last line, which ends the file with no line end");
     insta::assert_json_snapshot!(log);
 }
@@ -73,18 +70,24 @@ fn the_named_layout_reads_each_field_in_its_stated_unit() {
     let bytes = include_bytes!("samples/teensy-named.txt");
     assert_eq!(import::detect(bytes), Some(LogFormat::TeensyNamed));
     let log = import::read(bytes).unwrap();
-    let za = channel(&log, "ICM za");
+    let za = channel(&log, "ICM za").unwrap();
     assert_eq!(za.quantity, Quantity::Acceleration);
     assert_eq!(za.time_s, [500.0005, 500.0015]);
     assert_eq!(za.values[0], 998.40 * 9.806_65 / 1_000.0);
-    assert_eq!(channel(&log, "LIS zh").values[1], 9.806_65);
-    assert_eq!(channel(&log, "ICM xg").quantity, Quantity::AngularRate);
-    assert_eq!(channel(&log, "ICM T").values[0], 24.50 + 273.15);
-    assert_eq!(channel(&log, "MS5 P").values, [95_000.0, 94_998.0]);
-    assert_eq!(channel(&log, "ADC T1").quantity, Quantity::Temperature);
-    let xm = channel(&log, "ICM xm");
+    assert_eq!(channel(&log, "LIS zh").unwrap().values[1], 9.806_65);
+    assert_eq!(
+        channel(&log, "ICM xg").unwrap().quantity,
+        Quantity::AngularRate
+    );
+    assert_eq!(channel(&log, "ICM T").unwrap().values[0], 24.50 + 273.15);
+    assert_eq!(channel(&log, "MS5 P").unwrap().values, [95_000.0, 94_998.0]);
+    assert_eq!(
+        channel(&log, "ADC T1").unwrap().quantity,
+        Quantity::Temperature
+    );
+    let xm = channel(&log, "ICM xm").unwrap();
     assert_eq!((xm.quantity, xm.values[0]), (Quantity::Unrecognized, 30.15));
-    let vol = channel(&log, "VOL V");
+    let vol = channel(&log, "VOL V").unwrap();
     assert_eq!(
         (vol.quantity, vol.values[0]),
         (Quantity::Unrecognized, 4.105)

@@ -302,7 +302,8 @@ pub enum LogFormat {
     /// ([`crate::blueraven_usb`]).
     BlueRavenUsb,
     /// A course's Teensy data logger, tab-separated: a sensor's tag, the clock in microseconds,
-    /// then its values, such as `Alt	49743	P	92082	MSL	799.61` ([`crate::teensy`]).
+    /// then its values, such as `Alt`, the clock, `P` and a pressure, `MSL` and an altitude
+    /// ([`crate::teensy`]).
     TeensyTabs,
     /// A course's Teensy data logger with named fields: units lines such as `MS5 data in us, deg
     /// C, Pa`, then lines such as `MS5, t, 1330004120, T, 32.90, P, 92185` ([`crate::teensy`]).
