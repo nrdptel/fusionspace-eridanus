@@ -1052,7 +1052,7 @@ program's source read
 - *The words.* Each record is one fix:
 
   | Words | Field | Read as |
-  |---|---|---|
+  |---:|---|---|
   | 0, 1 | the time, `HHMMSS` | word 1 × 65,536 + word 0 |
   | 2 | the latitude's degrees and whole minutes, `DDMM` | |
   | 3, 4 | the minutes' five decimals, after a leading 1 | word 4 × 65,536 + word 3 − 100,000 |
@@ -1069,8 +1069,8 @@ program's source read
 - *The exports.* The CSV and the tab-separated text file hold every fix of their `.rtx` but the
   last, in the same order: the time as `HHMMSS`; a position as `DDMM.mmmmm` and its hemisphere's
   letter, or, in 5 of the 9 sample exports, in signed degrees cut toward zero at the sixth
-  decimal and a degree sign; the altitude in whole feet, the meters × 3.280 84 rounded down, read
-  as 0.3048 m a foot; and the rest as the `.rtx` holds them. The text file's header names two
+  decimal and a degree sign; the altitude in whole feet, the meters × 3.280 84 rounded down, which
+  the reader converts back to meters; and the rest as the `.rtx` holds them. The text file's header names two
   empty columns its rows don't have.
 - *Units.* The altitude is in meters: the manual says the GPS altitude "is always expressed as
   Mean Sea Level" (p13); the KML export beside each sample file writes the word as meters, and
