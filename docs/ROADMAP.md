@@ -30,53 +30,54 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
 3. M7.3 A flight against its simulation
 4. M0.9f The rest of the words
 5. M10.2 Release 0.2: the flight analyzer
-6. M2.3c2 Logged traces
-7. M2.3c3 OpenRocket's newest release
-8. M2.3c6 The gap to OpenRocket, by cause
-9. M2.7 Held-out flights, predictions first
-10. M2.8 Honest uncertainty
-11. M2.6 An open benchmark
-12. M1.14 Accuracy inside the envelope
-13. M7.4 Fault diagnosis
-14. M7.5 The bias every simulator shares
-15. M10.3 Release 0.3: accuracy and diagnosis
-16. M2.3c7 Faster than sound: published flights
-17. M6.3 Challenge specs and presets
-18. M6.4 Airbrakes
-19. M6.2e Robust mode
-20. M6.6 Submission packs
-21. M6.7 Ejection charges
-22. M3.5 RASAero `.CDX1` import/export
-23. M3.6 RocketPy interop
-24. M2.9 The other tools' cells
-25. M6.8 Field kit: checklists, the settings check and the ground-test log
-26. M0.7b Rocketry explained: recovery, wind and motors
-27. M10.4 Release 0.4: the competition kit
-28. M4.4 C ABI and WASM
-29. M9.0 UI architecture ADR plus a spike
-30. M9.2 3D flight replay with a ghost
-31. M10.5 Release 0.5: the app preview
-32. M0.7c Rocketry explained: live figures
-33. M5.6a A catalog of hpr's own: format, search and a parts list
-34. M8.2 Edit model for UIs
-35. M9.1 Desktop app shell
-36. M5.6b Parachutes and recovery hardware
-37. M8.1 Design assistant
-38. M5.6c Motor hardware and rail buttons
-39. M5.6d More makers and electronics
-40. M3.4 RockSim `.rkt` import/export
-41. M9.3 Web PWA
-42. M10.6 Release 1.0: the app
-43. M0.7d Rocketry explained: the rest of the hobby
-44. M11.1 A motor of your own
-45. M11.2 Experimental solids
-46. M12.1 Parachute gores
-47. M12.2 Opening loads
-48. M9.4 Mobile
-49. M9.6 The four web tools, rebuilt
-50. M6.5 Roll control: tail-fin tabs and canards
-51. M13.3 Flight computer logic
-52. M13.1 Ground station
+6. M0.13 Awareness and care on the sites
+7. M2.3c2 Logged traces
+8. M2.3c3 OpenRocket's newest release
+9. M2.3c6 The gap to OpenRocket, by cause
+10. M2.7 Held-out flights, predictions first
+11. M2.8 Honest uncertainty
+12. M2.6 An open benchmark
+13. M1.14 Accuracy inside the envelope
+14. M7.4 Fault diagnosis
+15. M7.5 The bias every simulator shares
+16. M10.3 Release 0.3: accuracy and diagnosis
+17. M2.3c7 Faster than sound: published flights
+18. M6.3 Challenge specs and presets
+19. M6.4 Airbrakes
+20. M6.2e Robust mode
+21. M6.6 Submission packs
+22. M6.7 Ejection charges
+23. M3.5 RASAero `.CDX1` import/export
+24. M3.6 RocketPy interop
+25. M2.9 The other tools' cells
+26. M6.8 Field kit: checklists, the settings check and the ground-test log
+27. M0.7b Rocketry explained: recovery, wind and motors
+28. M10.4 Release 0.4: the competition kit
+29. M4.4 C ABI and WASM
+30. M9.0 UI architecture ADR plus a spike
+31. M9.2 3D flight replay with a ghost
+32. M10.5 Release 0.5: the app preview
+33. M0.7c Rocketry explained: live figures
+34. M5.6a A catalog of hpr's own: format, search and a parts list
+35. M8.2 Edit model for UIs
+36. M9.1 Desktop app shell
+37. M5.6b Parachutes and recovery hardware
+38. M8.1 Design assistant
+39. M5.6c Motor hardware and rail buttons
+40. M5.6d More makers and electronics
+41. M3.4 RockSim `.rkt` import/export
+42. M9.3 Web PWA
+43. M10.6 Release 1.0: the app
+44. M0.7d Rocketry explained: the rest of the hobby
+45. M11.1 A motor of your own
+46. M11.2 Experimental solids
+47. M12.1 Parachute gores
+48. M12.2 Opening loads
+49. M9.4 Mobile
+50. M9.6 The four web tools, rebuilt
+51. M6.5 Roll control: tail-fin tabs and canards
+52. M13.3 Flight computer logic
+53. M13.1 Ground station
 
 ## Phase 0: Foundations
 
@@ -113,6 +114,22 @@ The order of work after the `P-critical` issues (ADR-144 §2, ADR-162, ADR-163):
     its unit by a breaking space, and a lead note or table cell over 120 words; number columns'
     heads give a label and a unit; a test fails on an `hpr sim` warning sentence over 40 words;
     each over-precise figure #476 names is cut to what is known; the audit's rows name the checks.
+- [ ] **M0.13 Awareness and care on the sites** (ADR-268; Neer, 2026-10-14; VISION V53). A thin
+  banner and a footer line that change through the year (heritage and awareness months, health,
+  access, science and space days, rocketry safety), from a dated, sourced table
+  ([calendar](research/awareness-calendar.md), [practice](research/awareness-practice.md)).
+  - [ ] **M0.13a The banner, the footer line and the help page.** *Done when:* the pattern is in
+    the product system first; the docs site and fusionspace.co show at most one banner and one
+    footer line, picked in the reader's browser by ADR-268's rule, with no location lookup and
+    nothing with scripts off; a test fails a row with no organizer's page, past its stale-after
+    date, an unparsed window or a banner over 90 characters; the page check, on a date in each
+    month, fails a clipped, overlapping or unlabeled banner at every width in both themes; a help
+    page lists checked crisis lines with their date; Neer has used it.
+  - [ ] **M0.13b Beyond the banner.** *Done when:* a code of conduct with a way to reach the
+    maintainer, a page on getting involved (youth programs, clubs, mentoring, each linked to its
+    organizer), and an issue template for a barrier to access are in the repository and linked from
+    the site's landing page.
+
 ## Phase 1: Physics core (the heart), with validation interleaved
 
 - **M1.8** is done; its entry: [archive](roadmap-done.md#phase-1-physics-core-the-heart-with-validation-interleaved).
