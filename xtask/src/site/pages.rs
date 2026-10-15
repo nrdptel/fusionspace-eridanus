@@ -115,7 +115,8 @@
 //!     the pages loaded beside it. A page with the site's header and no sidebar or menu button
 //!     fails. At every width, the search field, opened as its button opens it, must stand in the
 //!     column, its edges on `main`'s, and end 16 px or more above the first thing drawn in
-//!     `main`, so its focus ring never touches the page. That every page has the header, its
+//!     `main`, so its focus ring never touches the page; a search button with no field to open
+//!     fails. That every page has the header, its
 //!     lockup, the sidebar and the menu button is the file check's (`frame.rs`);
 //!   - **page arrows off the system's** (`web.md`, *Page anatomy*): each link of the arrows
 //!     under the page, drawn under the text and inside the column, the previous at `main`'s left
@@ -212,8 +213,9 @@
 //! 20 px tall, one in the action role, one cut by its box, one with the product's name inside
 //! its clear space, no menu button at any width, a sidebar its menu button and a drag put away
 //! and bring back, which must pass, a menu button and a drag that leave it drawn, a search field
-//! that opens in the column 16 px above the page, which must pass, one with nothing under it and
-//! one wider than the column, page arrows
+//! that opens in the column 16 px above the page, which must pass, one with nothing under it, one
+//! 12 px above the page, one that stays hidden when opened and one wider than the column, page
+//! arrows
 //! lined up with the column and naming their pages, which must pass, arrows at the window's
 //! sides and arrows naming no page, a sidebar drawn and hidden from screen
 //! readers, one drawn with its link out of the tab order, one put away and still read, one put
@@ -853,11 +855,12 @@ macro_rules! arrows {
 
 /// A closed search field as mdBook's, with `$style` added, moved by its script to stand before
 /// `$before`, for the search canaries: the page check opens it as its button does. The page's
-/// first line starts at `main`'s top, as the site's designation tag does.
+/// first line starts at `main`'s top, as the site's designation tag does, after a first child
+/// that isn't drawn, which the check must pass over.
 macro_rules! search {
     ($style:expr, $before:expr) => {
         concat!(
-            "<style>.hidden { display: none; } main > :first-child { margin-top: 0; } \
+            "<style>.hidden { display: none; } main h1 { margin-top: 0; } \
              #mdbook-search-wrapper { max-width: 1120px; \
              margin-inline: auto; padding-bottom: 16px; } #mdbook-searchbar { display: block; \
              box-sizing: border-box; width: 100%; margin: 5px 0 0; padding: 10px 16px; font: \
@@ -866,7 +869,8 @@ macro_rules! search {
             "<div id=\"mdbook-search-wrapper\" class=\"hidden\"><input id=\"mdbook-searchbar\" \
              type=\"search\" aria-label=\"Search\"></div><script>document.querySelector('",
             $before,
-            "').before(document.getElementById('mdbook-search-wrapper'));</script>"
+            "').before(document.getElementById('mdbook-search-wrapper')); \
+             document.querySelector('main').prepend(document.createElement('style'));</script>"
         )
     };
 }
@@ -1096,7 +1100,7 @@ macro_rules! switch_frame {
 }
 
 /// The canaries ([`Canary`]), loaded on every run before the site's pages.
-const CANARIES: [Canary; 176] = [
+const CANARIES: [Canary; 178] = [
     Canary {
         file: "canary-ordinary.html",
         what: "an ordinary page, which must pass",
@@ -1998,6 +2002,26 @@ const CANARIES: [Canary; 176] = [
         inside: "",
         after: search!(
             "<style>#mdbook-search-wrapper { padding-bottom: 0; }</style>",
+            "main"
+        ),
+    },
+    Canary {
+        file: "canary-search-close.html",
+        what: "a search field that opens 12 px above the page",
+        expect: &[Kind::Header],
+        inside: "",
+        after: search!(
+            "<style>#mdbook-search-wrapper { padding-bottom: 12px; }</style>",
+            "main"
+        ),
+    },
+    Canary {
+        file: "canary-search-undrawn.html",
+        what: "a search field that stays hidden when its button opens it",
+        expect: &[Kind::Header],
+        inside: "",
+        after: search!(
+            "<style>#mdbook-search-wrapper:not(.hidden) { display: none; }</style>",
             "main"
         ),
     },
@@ -4417,7 +4441,7 @@ mod tests {
     fn the_header_and_the_title_block_have_canaries_both_ways() {
         // Each kind has canaries that must show it alone, and the frame drawn as the system's
         // must pass.
-        for (kind, least) in [(Kind::Header, 13), (Kind::TitleBlock, 4)] {
+        for (kind, least) in [(Kind::Header, 15), (Kind::TitleBlock, 4)] {
             let failing = CANARIES
                 .iter()
                 .filter(|canary| canary.expect == [kind])

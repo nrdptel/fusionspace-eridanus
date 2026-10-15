@@ -1804,11 +1804,16 @@
     const wrap = doc.getElementById('mdbook-search-wrapper');
     const bar = doc.getElementById('mdbook-searchbar');
     const main = doc.querySelector('main');
-    if (!wrap || !bar || !main) return found;
+    const toggle = doc.getElementById('mdbook-search-toggle');
     const add = function (value) {
-      found.push({ selector: selector(bar), property: 'search', theme: win.innerWidth + ' px',
-        value: value });
+      found.push({ selector: selector(bar || toggle), property: 'search',
+        theme: win.innerWidth + ' px', value: value });
     };
+    if (!wrap || !bar || !main) {
+      // A search button with no field to open: mdBook renamed its ids, or the page lost them.
+      if (toggle && drawn(win, toggle)) add('the search button has no search field to open');
+      return found;
+    }
     const closed = wrap.classList.contains('hidden');
     wrap.classList.remove('hidden');
     try {

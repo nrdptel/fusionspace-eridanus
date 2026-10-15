@@ -9,9 +9,10 @@
 //! - **No request leaves the site.** No built page loads a stylesheet, script, image or frame from
 //!   another server, and no built stylesheet names one in `url()` or `@import`; every `url()` the
 //!   theme's stylesheets give resolves to a file the site serves.
-//! - **Every brace closes.** A stylesheet of the theme with a `}` that closes nothing, or a `{`
-//!   left open, fails: a browser drops the rule after a stray `}` without a word, as it dropped
-//!   rules added at the end of `hpr.css` until 2026-10-14.
+//! - **Every brace closes.** A stylesheet of the theme with a `}` that closes nothing, a `{` left
+//!   open, or a comment or string that never ends, fails: a browser drops the rules after it
+//!   without a word, as it would have dropped any rule added after the stray `}` that ended
+//!   `hpr.css` until 2026-10-14.
 //! - **The strip and the fonts on every page.** Every page of the guide links the theme, whose
 //!   `body::before` draws the gradient strip, and `fonts/fonts.css`.
 //! - **A title block ends the landing page**, with its fields from ISO 7200 as the system's
@@ -342,7 +343,8 @@ pub(crate) fn committed_file(design: &Path, commit: &str, path: &str) -> Result<
 }
 
 /// Where a stylesheet's braces don't pair, outside comments and quoted strings: the line of the
-/// first `}` that closes nothing, or how many `{` are left open at its end.
+/// first `}` that closes nothing, of a comment or string that never ends, or how many `{` are
+/// left open at its end. A backslash escapes the character after it, in a string or out.
 fn brace_problem(css: &str) -> Option<String> {
     let mut depth = 0usize;
     let mut line = 1;
@@ -350,32 +352,54 @@ fn brace_problem(css: &str) -> Option<String> {
     while let Some(c) = chars.next() {
         match c {
             '\n' => line += 1,
+            '\\' => {
+                if chars.next() == Some('\n') {
+                    line += 1;
+                }
+            }
             '/' if chars.peek() == Some(&'*') => {
                 chars.next();
+                let from = line;
                 let mut star = false;
+                let mut closed = false;
                 for c in chars.by_ref() {
                     if c == '\n' {
                         line += 1;
                     }
                     if star && c == '/' {
+                        closed = true;
                         break;
                     }
                     star = c == '*';
                 }
+                if !closed {
+                    return Some(format!("line {from} opens a comment that never ends"));
+                }
             }
             '"' | '\'' => {
+                let from = line;
+                let mut closed = false;
                 while let Some(d) = chars.next() {
                     match d {
                         '\\' => {
-                            chars.next();
+                            if chars.next() == Some('\n') {
+                                line += 1;
+                            }
                         }
                         '\n' => {
                             line += 1;
+                            closed = true;
                             break;
                         }
-                        _ if d == c => break,
+                        _ if d == c => {
+                            closed = true;
+                            break;
+                        }
                         _ => {}
                     }
+                }
+                if !closed {
+                    return Some(format!("line {from} opens a string that never ends"));
                 }
             }
             '{' => depth += 1,
@@ -952,6 +976,19 @@ mod tests {
             Some("1 `{` left open at its end")
         );
         assert_eq!(brace_problem("/* a\n} */ b { c: 'd\\'}'; }\n"), None);
+        assert_eq!(brace_problem(".a\\} { b: c; }\n"), None);
+        assert_eq!(
+            brace_problem("a {}\n/* a note\nb { c: d; }\n").as_deref(),
+            Some("line 2 opens a comment that never ends")
+        );
+        assert_eq!(
+            brace_problem("a { b: c; }\nd { e: 'f; }").as_deref(),
+            Some("line 2 opens a string that never ends")
+        );
+        assert_eq!(
+            brace_problem("a { b: 'c\\\nd'; }\n}\n").as_deref(),
+            Some("line 3 has a `}` that closes nothing")
+        );
     }
 
     /// A title block as the landing page writes it, for version 1.2.3 and a catalog captured on
