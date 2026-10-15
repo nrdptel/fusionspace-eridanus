@@ -701,7 +701,7 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1c9"></a>[M7.1c9][done-5] | AltOS telemetry | done |
 | <a id="m7-1c10"></a>[M7.1c10][done-5] | AltOS raw downloads | done |
 | <a id="m7-1c11"></a>[M7.1c11][done-5] | ARTS2 raw data | done |
-| <a id="m7-1c12"></a>[M7.1c12][phase-5] | Missile Works' RTx GPS tracker | not yet done |
+| <a id="m7-1c12"></a>[M7.1c12][done-5] | Missile Works' RTx GPS tracker | done |
 | <a id="m7-1c13"></a>[M7.1c13][phase-5] | The rest | not yet done |
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |
