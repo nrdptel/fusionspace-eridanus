@@ -312,6 +312,7 @@ One line per milestone or increment, in the order it was archived within its pha
 - M7.1c12 Missile Works' RTx ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c13 Tables read by their headers ([Phase 5](#phase-5-flight-data-and-forensics))
 - M7.1c14 Excel workbooks ([Phase 5](#phase-5-flight-data-and-forensics))
+- M7.1c15 EuRoC exports and mappings a publisher states ([Phase 5](#phase-5-flight-data-and-forensics))
 - M9.8 fusionspace.co, rebuilt ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8a The page and its checks ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
 - M9.8b The maintainer's use ([Phase 7](#phase-7-ui-3d-web-mobile-after-release-04-adr-162))
@@ -1615,6 +1616,20 @@ One line per milestone or increment, in the order it was archived within its pha
       stored, dates by one format rule, both date systems (tests); disorder, a DTD or entity, or
       text past the bound refused (tests); every sample cell agrees with openpyxl
       (`validation/oracles/xlsx/cells.py`); the report counts sheets by outcome; docs.
+    - [x] **M7.1c15 EuRoC exports and mappings a publisher states** (ADR-270): Eggtimer and RRC3
+      exports saved by a European locale; tables read by the column mapping their publisher states.
+      *Done when:* the two semicolon-separated Eggtimer exports in refs are recognized as
+      Eggtimer CSV, in either decimal mark settled once a file (tests): one reads, and the one
+      whose decimal points were taken out is refused, as its filtered altitude's least-squares
+      factor on `Alt` lies outside 0.1 to 2 (tests at both edges, a mutation probe), and filed as
+      damaged; a CSV download whose median clock step fits neither seconds nor milliseconds is
+      refused (tests); the RRC3 export whose lines end in a semicolon is recognized and refused
+      where its time goes back (filed as damaged), and such an export with short rows reads
+      (tests); the 6 tables whose publisher, RocketPy, states their column mapping read by it
+      (`validation/log-mappings.json`, each citing where), a mapping refused on a header it
+      doesn't name or a file a reader reads (tests); `cargo xtask logs --check` fails on a file of
+      these that doesn't read; the survey's report prints the filtered-altitude factor's range;
+      the guide's flight-log page says what is read and how.
 ## Phase 6: Design experience (library level)
 
 ## Phase 7: UI, 3D, web, mobile (after release 0.4, ADR-162)

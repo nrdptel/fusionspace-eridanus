@@ -1,0 +1,172 @@
+{
+  "about": "Column mappings the publishers of some sample tables state, read by `cargo xtask logs` through `hpr_flightdata::generic::read_with` (M7.1c15, ADR-270). Each maps a file, by id (the first 16 hex digits of its SHA-256), whose header names its clock with no unit; a column the publisher doesn't map is kept as written. RocketPy (MIT) reads each of these files in the example notebook for its flight (`docs/examples/`, commit 9bd6ad3) with FlightDataImporter, whose docstring defines units=None as every column in SI (`rocketpy/simulation/flight_data_importer.py`); its altitude is above ground level (`Flight.altitude`), from a sensor it doesn't state, so it is mapped as `altitude`, not as a barometric height; its vz and az are the vertical velocity and acceleration of the rocket's motion in the inertial frame (`Flight.vz`, `Flight.az`), az about 0 at rest on the pad and about -9.8 m/s^2 in free fall.",
+  "mappings": [
+    {
+      "id": "045f5b9ed473b800",
+      "source": "RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {\"t\": \"time\", \"alt\": \"altitude\"}, units=None",
+      "mapping": {
+        "header_line": 1,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 1,
+        "columns": [
+          {
+            "name": "alt",
+            "quantity": "altitude",
+            "unit": "m"
+          },
+          {
+            "name": "t",
+            "quantity": null,
+            "unit": "s"
+          }
+        ]
+      }
+    },
+    {
+      "id": "0c7808a84fb39c83",
+      "source": "RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {\"time\": \"time\", \"altitude\": \"altitude\"}, units=None",
+      "mapping": {
+        "header_line": 1,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "time",
+            "quantity": null,
+            "unit": "s"
+          },
+          {
+            "name": "altitude",
+            "quantity": "altitude",
+            "unit": "m"
+          }
+        ]
+      }
+    },
+    {
+      "id": "a9cf47fe2b2e5be0",
+      "source": "RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {\"ts\": \"time\", \"filtered_altitude_AGL\": \"altitude\", \"filtered_acceleration\": \"az\"}, units=None",
+      "mapping": {
+        "header_line": 1,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "ts",
+            "quantity": null,
+            "unit": "s"
+          },
+          {
+            "name": "filtered_altitude_AGL",
+            "quantity": "altitude",
+            "unit": "m"
+          },
+          {
+            "name": "filtered_acceleration",
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          }
+        ]
+      }
+    },
+    {
+      "id": "d88a7fc53cbd55d1",
+      "source": "RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {\"ts\": \"time\", \"filtered_altitude_AGL\": \"altitude\", \"filtered_acceleration\": \"az\"}, units=None",
+      "mapping": {
+        "header_line": 1,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "ts",
+            "quantity": null,
+            "unit": "s"
+          },
+          {
+            "name": "filtered_altitude_AGL",
+            "quantity": "altitude",
+            "unit": "m"
+          },
+          {
+            "name": "filtered_acceleration",
+            "quantity": "acceleration",
+            "unit": "m/s^2"
+          }
+        ]
+      }
+    },
+    {
+      "id": "dd5287b375e84be8",
+      "source": "RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {\"t\": \"time\", \"alt\": \"altitude\"}, units=None",
+      "mapping": {
+        "header_line": 1,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "t",
+            "quantity": null,
+            "unit": "s"
+          },
+          {
+            "name": "alt",
+            "quantity": "altitude",
+            "unit": "m"
+          },
+          {
+            "name": "lat",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "lon",
+            "quantity": null,
+            "unit": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "f912724676eea0ca",
+      "source": "RocketPy 9bd6ad3, its example notebook's FlightDataImporter: columns_map {\"ts\": \"time\", \"altitude[m]\": \"altitude\", \"velocity[m/s]\": \"vz\"}, units=None",
+      "mapping": {
+        "header_line": 1,
+        "separator": ",",
+        "decimal_comma": false,
+        "clock": 0,
+        "columns": [
+          {
+            "name": "ts",
+            "quantity": null,
+            "unit": "s"
+          },
+          {
+            "name": "altitude[m]",
+            "quantity": "altitude",
+            "unit": "m"
+          },
+          {
+            "name": "velocity[m/s]",
+            "quantity": "speed",
+            "unit": "m/s"
+          },
+          {
+            "name": "latitude",
+            "quantity": null,
+            "unit": null
+          },
+          {
+            "name": "longitude",
+            "quantity": null,
+            "unit": null
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -813,15 +813,9 @@ fn cells(line: &str, separator: char, limit: usize) -> Vec<Cow<'_, str>> {
     cells
 }
 
-/// A cell as a number in the file's decimal mark, `None` if it isn't one. With a decimal comma, a
-/// cell holding a point isn't a number; with a point, one holding a comma isn't: either is a
-/// thousands separator or a mix the reader can't settle, never a decimal mark (module docs,
-/// *Rows*).
+/// A cell as a number in the file's decimal mark, `None` if it isn't one (module docs, *Rows*).
 fn number(cell: &str, decimal_comma: bool) -> Option<f64> {
-    if decimal_comma && cell.contains('.') {
-        return None;
-    }
-    table::number(cell, decimal_comma)
+    table::number_in_mark(cell, decimal_comma)
 }
 
 /// Whether the file's numbers are written with a decimal comma: only where the separator isn't a
@@ -831,19 +825,11 @@ fn decimal_comma(text: &str, header_line: usize, separator: char) -> bool {
     if separator == ',' {
         return false;
     }
-    let mut shown = false;
-    for (_, line) in numbered_lines(text).filter(|(n, l)| *n > header_line && !skipped(l)) {
-        for cell in cells(line, separator, MAX_COLUMNS + 1) {
-            if cell.contains('.') && table::number(&cell, false).is_some() {
-                return false;
-            }
-            shown |= table::number(&cell, true).is_some()
-                && cell.split_once(',').is_some_and(|(_, decimals)| {
-                    decimals.len() != 3 || !decimals.bytes().all(|b| b.is_ascii_digit())
-                });
-        }
-    }
-    shown
+    table::decimal_comma_shown(
+        numbered_lines(text)
+            .filter(|(n, l)| *n > header_line && !skipped(l))
+            .flat_map(|(_, line)| cells(line, separator, MAX_COLUMNS + 1)),
+    )
 }
 
 /// Whether a line is skipped: blank, or a `#` comment.

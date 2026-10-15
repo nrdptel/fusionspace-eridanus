@@ -378,7 +378,7 @@ mod tests {
                 "sep=;\ntime (ms);deltaTime (ms);status;baro-altitude (m)\n",
                 Some(LogFormat::FluctusCsv),
             ),
-            ("T;Alt;Veloc;FAlt\n", None),
+            ("T;Alt;Veloc;FAlt\n", Some(LogFormat::EggtimerCsv)),
             ("0.00\t3\t71.5F\t9.2\n", Some(LogFormat::PerfectFliteText)),
             ("0.00\t3\t21.9C\t9.2\n", Some(LogFormat::PerfectFliteText)),
             ("0.00\t3\t71.5\t9.2\n", None),

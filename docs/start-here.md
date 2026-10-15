@@ -289,7 +289,12 @@ out.
   KML and NMEA files, every column kept on its own clock, and unpacks a zip archive of a flight's files to read each one
   ([M7.1c7](decisions-and-roadmap.md#m7-1c7)), and an Excel workbook's sheets, each read as a file,
   every cell of the 16 sample workbooks agreeing with an independent reader's
-  ([M7.1c14](decisions-and-roadmap.md#m7-1c14), [the layout](format/flight-logs.md#excel-workbooks)); in the four layouts
+  ([M7.1c14](decisions-and-roadmap.md#m7-1c14), [the layout](format/flight-logs.md#excel-workbooks)),
+  Eggtimer and RRC3 exports saved by a European locale's spreadsheet (decimal commas tested on
+  invented files), and, in the survey, six team tables read by the column mapping RocketPy states
+  for them
+  ([M7.1c15](decisions-and-roadmap.md#m7-1c15),
+  [the mappings](format/flight-logs.md#mappings-a-publisher-states)); in the four layouts
   [M7.1c4](decisions-and-roadmap.md#m7-1c4) added (the board's, its ground station's, the phone
   app's and the Eggtimer's RTF), every unit a file doesn't state is decided by two checks or kept
   as written, and the two raw downloads [M7.1c5](decisions-and-roadmap.md#m7-1c5) added match
@@ -299,9 +304,9 @@ out.
   [M7.1b](decisions-and-roadmap.md#m7-1b), [M7.1c1](decisions-and-roadmap.md#m7-1c1),
   [M7.1c2](decisions-and-roadmap.md#m7-1c2), [M7.1c3](decisions-and-roadmap.md#m7-1c3),
   [M7.1c4](decisions-and-roadmap.md#m7-1c4), [M7.1c5](decisions-and-roadmap.md#m7-1c5)). The
-  other loggers come with [M7.1c15, the rest of the importers](decisions-and-roadmap.md#m7-1c15):
+  other loggers come with [M7.1c16, the rest of the importers](decisions-and-roadmap.md#m7-1c16):
   the Blue Raven's other files, Entacore AIM XTRA's own files, older `.xls` spreadsheets,
-  CATS, EuRoC and Juno CSV, and tables whose headers state too little, by a stated column mapping. The rest of the readings, such
+  CATS, Juno CSV, and tables whose headers state too little and whose publisher states no mapping. The rest of the readings, such
   as burnout and each leg of the descent, come with [M7.2](decisions-and-roadmap.md#m7-2), and
   comparing a flight with a simulation of it with [M7.3](decisions-and-roadmap.md#m7-3).
 
