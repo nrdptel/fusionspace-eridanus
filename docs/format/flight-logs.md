@@ -1094,7 +1094,8 @@ track (see [GPS logs](#gps-logs)).
     clamped there: in 4 of the 5 sample files, from pads near sea level, most fixes read exactly
     0. A note counts them; each means 0 m or lower.
   - *Course, degrees.* It lies 1.7° to 6.9° from the bearing between the fixes either side of
-    it, the median difference either way in each file, while the tracker moves.
+    it, the median difference either way in each file, over the fixes whose speed over ground
+    reads at least 15 in the file's own numbers.
   - *Speed over ground and velocity, as written.* The speed over ground runs 3.5 to 4.0 times
     the speed between fixes in m/s, by file, as km/h would, one of the two speed units the
     tracker's display offers (p12), but nothing says which unit the file holds, and feet a

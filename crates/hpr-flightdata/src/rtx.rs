@@ -73,7 +73,7 @@
 //! log's zero is the first record's time; each time takes the day that puts it nearest the one
 //! before it, so a time more than 12 hours before the one before is read as the next day's, and
 //! one more than 12 hours after it, as a repeated pair written across midnight would be, as the
-//! day before's. Records keep the file's order, so a time may go back: in 3 of the 5
+//! day before's; a log that truly skips more than 12 hours would be read a day off. Records keep the file's order, so a time may go back: in 3 of the 5
 //! sample files a pair of records repeats the pair before it a second back, as `t`, `t + 1`, `t`,
 //! `t + 1`. A note counts how often times go back. A time that isn't a time of day, such as the
 //! record in one sample file whose word 1 reads 65,282 where every other reads 2, as a garbled
