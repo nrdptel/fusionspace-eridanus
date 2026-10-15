@@ -30,6 +30,12 @@ rules templates carry a source date, a stale-after date and "not legal advice".
   limit's reading against it, at both ballasts and four winds. Moves: a new steps row for that
   task, `steps.student-launch`, with each tool's count or *can't* by its docs. *Done when:* the row
   is in `validation/steps/`, HPR Sim's file is run by a test, and the scoreboard shows it.
+- SOON: the American Rocketry Challenge's expected score. User: an ARC team tuning a design to the
+  2027 rules (at most 650 g and 80 N·s, two eggs, an 800 ft qualifying goal, 37 to 40 s;
+  [rules][arc27] 4.3 to 4.6). Workflow: `hpr mc` with an ARC preset prints the score's 50% and 90%
+  ranges, as rules 4.5 and 4.6 score it. Moves: a new steps row, `steps.arc-score`, each tool's by
+  its docs. *Done when:* tests pin the score at both edges of the duration window and either side
+  of the altitude goal, the row is in `validation/steps/`, and the scoreboard shows it.
 
 ## Club operations (LATER)
 
@@ -55,5 +61,5 @@ From the 2026-10-09 planning review:
   run reports each state's 90% apogee range with Wilks bounds, each state cited to its rulebook
   with a source date and a stale-after date.
 
-
 [m6-3]: ../decisions-and-roadmap.md#m6-3
+[arc27]: https://www.rocketrychallenge.org/wp-content/uploads/2027_AmericanRocketryChallenge_Rules.pdf

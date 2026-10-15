@@ -25,6 +25,10 @@ never write numbers or make safety calls: every number comes from the engine.
 - LATER: an OBS (streaming software) overlay.
 - SOON: import on-site wind soundings.
 - LATER: the MCP server as an AI design benchmark (RocketBench, [arXiv 2504.19394](https://arxiv.org/abs/2504.19394)).
+- SOON: HPR Sim's speed cell before [M2.9][m2-9]'s. User: someone choosing a tool by speed.
+  Workflow: `cargo xtask scoreboard` reads the one-flight benchmark ([performance](../perf.md))
+  from a committed record. Moves: `speed.flight` for HPR Sim, 14 to 15 of 51 cells. *Done when:*
+  the cell names machine, toolchain and commit; `--check` fails on a record older than the code.
 
 ## UI and experience (the UI phase)
 
@@ -73,3 +77,4 @@ never write numbers or make safety calls: every number comes from the engine.
 
 [m1-14g]: ../decisions-and-roadmap.md#m1-14g
 [m4-5e]: ../decisions-and-roadmap.md#m4-5e
+[m2-9]: ../decisions-and-roadmap.md#m2-9
