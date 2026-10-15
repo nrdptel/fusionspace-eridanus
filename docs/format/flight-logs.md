@@ -597,9 +597,11 @@ IEEE 754 float (binary32 or binary64, the standard's names for single and double
 little-endian (the least significant byte first, as most microcontrollers store numbers) unless
 the layout's `byte_order` says
 [`ByteOrder::Big`](../api/hpr_flightdata/records/enum.ByteOrder.html). A layout has 2 to 512
-fields, a clock and at least one more, each name of 1 to 256 characters, no two alike, and none
-a number or holding a comma, a semicolon, `|`, a quotation mark or a line break; a layout outside
-these is refused (`LogError::Layout`), naming the field and why. The
+fields, a clock and at least one more, each name of 1 to 256 characters, no two alike, none a
+number, holding a comma, a semicolon, `|`, a quotation mark or a control character (a line break
+or a tab among them), or with spaces at its ends, and the first not opening with `#`, `sep=` or a
+byte order mark; a layout outside these is refused (`LogError::Layout`), naming the field and
+why. The
 records are written out as a table, the names its header and one row a record, and read by the
 [header reader](#tables-read-by-their-headers): name a field with its unit, such as
 `pressure__kpa` or `Time (ms)`, and it is read in that unit if its values bear it out; a field
