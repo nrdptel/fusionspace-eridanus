@@ -80,8 +80,9 @@
 //!
 //! A column with no unit is kept as written. A column with no number in it, such as a flight
 //! phase written as words, is no channel: if its name says `state`, `phase`, `status`, `event`
-//! or `mode`, each change of its word is an [`Event`] at the row's time; otherwise it is left
-//! out, with a note.
+//! or `mode`, each change of its word is an [`Event`] at the row's time, up to
+//! [`MAX_EVENTS_PER_COLUMN`] a column, the rest counted in a note; otherwise it is left out, with
+//! a note.
 //!
 //! **The values' check.** A column read in a unit is kept as written instead if any of its
 //! values, converted, lies outside what that quantity can be on a flight logger: a pressure below
@@ -159,6 +160,10 @@ const FORMAT: &str = "table read by its header";
 /// The most columns a header or a mapping may name: the widest table among the project's sample
 /// logs names 99.
 pub const MAX_COLUMNS: usize = 512;
+
+/// The most events one column of words gives; past it, its changes are counted in a note, so a
+/// hostile file whose word changes every row can't fill memory with events.
+pub const MAX_EVENTS_PER_COLUMN: usize = 64;
 
 /// How many lines from the file's start the header may lie within.
 const HEAD_LINES: usize = 64;
@@ -1083,8 +1088,10 @@ struct Rows {
     /// Each column's cells that aren't numbers: how many, and the first, as a note quotes it.
     text: Vec<(usize, Option<String>)>,
     /// For each column whose name says it holds events, its word at each change: the row's index
-    /// and the word. Only changes are kept, so a column of words costs no more than its events.
+    /// and the word, the first [`MAX_EVENTS_PER_COLUMN`] of them.
     changes: Vec<Vec<(usize, String)>>,
+    /// For each such column, its last word, and how many changes past the kept ones it makes.
+    last_word: Vec<(Option<String>, usize)>,
 }
 
 fn read_rows(text: &str, mapping: &Mapping) -> Result<Rows, LogError> {
@@ -1100,6 +1107,7 @@ fn read_rows(text: &str, mapping: &Mapping) -> Result<Rows, LogError> {
         values: vec![Vec::new(); width],
         text: vec![(0, None); width],
         changes: vec![Vec::new(); width],
+        last_word: vec![(None, 0); width],
     };
     let event_columns: Vec<bool> = mapping
         .columns
@@ -1154,9 +1162,15 @@ fn read_rows(text: &str, mapping: &Mapping) -> Result<Rows, LogError> {
                 }
                 if event_columns[index] {
                     let word = short(cell);
-                    let changes = &mut rows.changes[index];
-                    if changes.last().is_none_or(|(_, last)| *last != word) {
-                        changes.push((row, word));
+                    let (last, left_out) = &mut rows.last_word[index];
+                    if last.as_ref() != Some(&word) {
+                        let changes = &mut rows.changes[index];
+                        if changes.len() < MAX_EVENTS_PER_COLUMN {
+                            changes.push((row, word.clone()));
+                        } else {
+                            *left_out += 1;
+                        }
+                        *last = Some(word);
                     }
                 }
             }
@@ -1266,6 +1280,14 @@ fn read_mapped(
                 ));
             } else if is_event_name(&column.name) {
                 changes.extend(rows.changes[index].iter().map(|(r, w)| (*r, w.as_str())));
+                let left_out = rows.last_word[index].1;
+                if left_out > 0 {
+                    notes.push(format!(
+                        "the column {} changes its word {left_out} more times than the \
+                         {MAX_EVENTS_PER_COLUMN} kept as events",
+                        quoted(&column.name)
+                    ));
+                }
             } else {
                 notes.push(format!(
                     "the column {} holds text, not numbers, such as {first}: left out",
@@ -1773,6 +1795,15 @@ mod tests {
             [(0.0, "PAD"), (0.0, "A"), (1.0, "BOOST"), (2.0, "B")]
         );
         // A name that only starts with an event word holds no events: its text is left out.
+        // Past the cap, changes are counted, not kept.
+        let rows: String = (0..200).map(|i| format!("{i},{}\n", i % 2)).collect();
+        let log = read(&format!(
+            "Time (s),Mode\n{}",
+            rows.replace(",0\n", ",A\n").replace(",1\n", ",B\n")
+        ))
+        .expect("reads");
+        assert_eq!(log.events.len(), MAX_EVENTS_PER_COLUMN);
+        assert!(log.notes.iter().any(|n| n.contains("136 more times")));
         let text = "Time (s),Model\n0,EasyMini\n1,EasyMini\n";
         let log = read(text).expect("reads");
         assert!(log.events.is_empty());
