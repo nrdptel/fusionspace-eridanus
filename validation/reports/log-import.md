@@ -13,7 +13,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 |---|---|---:|---:|---|
 | aerospacenu-fcb-csv | M7.1c4 | 20 | 20 | none |
 | aerospacenu-gs-txt | M7.1c4 | 4 | 4 | none |
-| aerospacenu-sillygoose-gs-csv | M7.1c12 | 1 | 0 | 1 unrecognized |
+| aerospacenu-sillygoose-gs-csv | M7.1c13 | 1 | 0 | 1 unrecognized |
 | aerospacenu-sillygoose-txt | M7.1c3 | 14 | 14 | none |
 | altimetercloud-csv | M7.1c2 | 11 | 11 | none |
 | altos-csv | M7.1a | 48 | 48 | none |
@@ -22,7 +22,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | altos-telem | M7.1c9 | 2 | 2 | none |
 | arts2-csv | M7.1c3 | 4 | 4 | none |
 | arts2-raw-csv | M7.1c11 | 3 | 3 | none |
-| binary | M7.1c12 | 4 | 0 | 4 unrecognized |
+| binary | M7.1c13 | 4 | 0 | 4 unrecognized |
 | blueraven-csv | M7.1b | 89 | 89 | none |
 | blueraven-csv-damaged | damaged | 1 | 0 | 1 unrecognized |
 | blueraven-events-txt | not a log | 17 | 0 | 17 unrecognized |
@@ -30,7 +30,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | blueraven-settings-xlsx | not a log | 10 | 0 | 10 archive |
 | blueraven-summary-csv | M7.1c6 | 26 | 26 | none |
 | checklist | not a log | 4 | 0 | 4 archive |
-| csv | M7.1c12 | 67 | 2 | 1 syntax, 64 unrecognized |
+| csv | M7.1c13 | 62 | 2 | 1 syntax, 59 unrecognized |
 | debrief-synthetic-csv | not a log | 6 | 0 | 6 unrecognized |
 | e80-imu-txt | M7.1c8 | 54 | 54 | none |
 | eggtimer-csv | M7.1b | 43 | 43 | none |
@@ -38,7 +38,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | eggtimer-txt | M7.1c2 | 2 | 2 | none |
 | empty | not a log | 1 | 0 | 1 unrecognized |
 | entacore-aim-csv | M7.1c2 | 16 | 16 | none |
-| entacore-xtra | M7.1c12 | 2 | 0 | 2 unrecognized |
+| entacore-xtra | M7.1c13 | 2 | 0 | 2 unrecognized |
 | featherweight-summary-csv | M7.1c6 | 25 | 25 | none |
 | flight-computer-params-csv | not a log | 3 | 0 | 3 unrecognized |
 | fluctus-csv | M7.1c3 | 6 | 6 | none |
@@ -46,7 +46,7 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | jpeg | not a log | 1 | 0 | 1 unrecognized |
 | kml | M7.1c1 | 43 | 43 | none |
 | kml-map | not a log | 1 | 1 | none |
-| missileworks-rtx | M7.1c12 | 5 | 0 | 5 unrecognized |
+| missileworks-rtx | M7.1c12 | 5 | 5 | none |
 | nmea | M7.1c1 | 12 | 12 | none |
 | odf | M7.1c11 | 3 | 3 | none |
 | openrocket-simulation-csv | not a log | 1 | 0 | 1 unrecognized |
@@ -62,17 +62,28 @@ Written by `cargo xtask logs` from `log-import.json`; don't edit. Every flight-l
 | rocket-parameters | not a log | 4 | 0 | 4 unrecognized |
 | rrc3-csv | M7.1b | 51 | 51 | none |
 | rrc3-rff | M7.1c5 | 6 | 6 | none |
-| telemetry-rtf | M7.1c12 | 2 | 0 | 2 not-this-format |
-| txt | M7.1c12 | 26 | 0 | 26 unrecognized |
+| rtx-csv | M7.1c12 | 5 | 5 | none |
+| rtx-txt | M7.1c12 | 4 | 4 | none |
+| telemetry-rtf | M7.1c13 | 2 | 0 | 2 not-this-format |
+| txt | M7.1c13 | 22 | 0 | 22 unrecognized |
 | wind-profile-csv | not a log | 1 | 0 | 1 unrecognized |
-| xls | M7.1c12 | 1 | 0 | 1 unrecognized |
-| xlsx | M7.1c12 | 23 | 0 | 23 archive |
-| xml | M7.1c12 | 2 | 0 | 2 unrecognized |
+| xls | M7.1c13 | 1 | 0 | 1 unrecognized |
+| xlsx | M7.1c13 | 23 | 0 | 23 archive |
+| xml | M7.1c13 | 2 | 0 | 2 unrecognized |
 | zip | M7.1c7 | 8 | 8 | none |
-| **All** | | 1122 | 933 | |
+| **All** | | 1122 | 947 | |
 
 Files whose catalog family isn't their layout, moved to their layout's:
 
+- `096375243584d110 csv -> rtx-csv`: Missile Works mDACS's CSV export of an RTx GPS tracker's fixes, a `UTC Time,Latitude,Longitude,Altitude,…` header then one row a fix, filed as generic CSV by its extension
+- `1d34c9a2ea3264f0 csv -> rtx-csv`: Missile Works mDACS's CSV export of an RTx GPS tracker's fixes, a `UTC Time,Latitude,Longitude,Altitude,…` header then one row a fix, filed as generic CSV by its extension
+- `2920bddb383455de csv -> rtx-csv`: Missile Works mDACS's CSV export of an RTx GPS tracker's fixes, a `UTC Time,Latitude,Longitude,Altitude,…` header then one row a fix, filed as generic CSV by its extension
+- `3d1d6c4ef87ce0da csv -> rtx-csv`: Missile Works mDACS's CSV export of an RTx GPS tracker's fixes, a `UTC Time,Latitude,Longitude,Altitude,…` header then one row a fix, filed as generic CSV by its extension
+- `fc937944649779db csv -> rtx-csv`: Missile Works mDACS's CSV export of an RTx GPS tracker's fixes, a `UTC Time,Latitude,Longitude,Altitude,…` header then one row a fix, filed as generic CSV by its extension
+- `0cfb74a4c988654b txt -> rtx-txt`: Missile Works mDACS's text export of an RTx GPS tracker's fixes, a tab-separated `UTC Lat Lon Alt …` header then one row a fix, filed as text by its extension
+- `74201deabc8b669a txt -> rtx-txt`: Missile Works mDACS's text export of an RTx GPS tracker's fixes, a tab-separated `UTC Lat Lon Alt …` header then one row a fix, filed as text by its extension
+- `8b482eb6ae9af583 txt -> rtx-txt`: Missile Works mDACS's text export of an RTx GPS tracker's fixes, a tab-separated `UTC Lat Lon Alt …` header then one row a fix, filed as text by its extension
+- `a65103199f08052b txt -> rtx-txt`: Missile Works mDACS's text export of an RTx GPS tracker's fixes, a tab-separated `UTC Lat Lon Alt …` header then one row a fix, filed as text by its extension
 - `d306250ba73ea7f4 txt -> rrc3-csv`: an mDACS export of an RRC3's flight, tab-separated and in UTF-16, opening after its UTF-16 byte-order mark with a UTF-8 mark written as three UTF-16 characters; filed as text by its extension
 - `9c5017ab68168088 altos-csv -> csv`: a spreadsheet's re-save of an AltOS export, no longer AltosUI's layout: its header edited to carry units, its `height` column deleted, and three columns holding formulas
 - `76a7d8937258e946 csv -> altos-csv-damaged`: an AltosUI export whose header line is damaged: it names 25 columns, two of them run together, where its rows hold other counts, so no reader can tell which cell is which; refused
@@ -234,6 +245,18 @@ ARTS2's `.odf` files, each against the files of its flight beside it: its raw CS
 | 206193a3811c8bc0 | 16384 | 0.754 | same | 16383 | 0.076 | yes | 1, zero | 0 | 0 | 0 | 151.2 | -1.08 | -0.48 |
 | 2074af0d10ad080f | 16115 | 1.032 | same | 16114 | 0.080 | yes | 0, zero | 0 | 0 | 0 | 3.1 | -0.42 | +0.02 |
 | a34c382592dfd50d | 16115 | 1.145 | same | 16114 | 0.076 | yes | 0, zero | 0 | 0 | 0 | 3.3 | -0.44 | +0.11 |
+
+Differing: none.
+
+Missile Works RTx's `.rtx` files, each decoded here from its bytes apart from the reader and held to the reader's record, field for field, and to the exports of its flight beside it: the CSV and text exports' rows and the KML's points every record but the last, their times and numbers equal, their positions equal or, written in degrees, cut toward zero at the sixth decimal (the largest difference given), their altitude the record's meters × 3.280 84 rounded down to a foot (the KML's, its meters as written). Reported only, the medians over the fixes where `SOG` is at least 15 of `SOG` over the speed between the fixes either side, m/s, and of how far `COG` lies from the bearing between them, degrees, either way; and the climb from the lowest of the 120 fixes before the highest to the highest, over the highest altitude of a PerfectFlite log flown beside the tracker:
+
+| File | Records | Reader's record | Exports beside it | `SOG` over speed | `COG` off bearing, ° | Climb over barometric |
+|---|---:|---|---|---:|---:|---:|
+| 0ef081627f173419 | 2254 | yes | RTx CSV: 2253 rows, every record but the last, 0.00 × 10⁻⁶°, altitude as written; RTx text: 2253 rows, every record but the last, 0.00 × 10⁻⁶°, altitude as written; KML: 2253 rows, every record but the last, 0.83 × 10⁻⁶°, altitude as written | 4.00 | 3.8 | 0.979 |
+| 338d96e93ea3dc64 | 4096 | yes | RTx CSV: 4095 rows, every record but the last, 0.00 × 10⁻⁶°, altitude as written; RTx text: 4095 rows, every record but the last, 0.00 × 10⁻⁶°, altitude as written; KML: 4095 rows, every record but the last, 0.83 × 10⁻⁶°, altitude as written | 3.54 | 4.3 | 1.071 |
+| 4228b05ebc899f6d | 3126 | yes | RTx CSV: 3125 rows, every record but the last, 0.83 × 10⁻⁶°, altitude as written; RTx text: 3125 rows, every record but the last, 0.83 × 10⁻⁶°, altitude as written; KML: 3125 rows, every record but the last, 0.83 × 10⁻⁶°, altitude as written | 3.61 | 6.9 | 1.150 |
+| 7636132a8ee49d52 | 4096 | yes | KML: 4095 rows, every record but the last, 0.83 × 10⁻⁶°, altitude as written | 3.48 | 1.7 | 0.003 |
+| b1a16428685d2881 | 2949 | yes | RTx CSV: 2948 rows, every record but the last, 0.83 × 10⁻⁶°, altitude as written; RTx text: 2948 rows, every record but the last, 0.83 × 10⁻⁶°, altitude as written; KML: 2948 rows, every record but the last, 0.83 × 10⁻⁶°, altitude as written | 3.66 | 4.7 | 0.995 |
 
 Differing: none.
 
@@ -468,6 +491,10 @@ Units no header states, as each file's reader decided them, or kept the column a
 | kml | `time` read in seconds, from the steps between points | 3 |
 | kml | `when` read in UTC, from the KML standard | 2 |
 | kml-map | `coordinates` kept as written, in a track whose altitude mode tells a viewer to ignore its altitude | 1 |
+| missileworks-rtx | `Altitude` read in meters, from the manual and the exports | 5 |
+| missileworks-rtx | `COG` read in degrees, from the positions | 5 |
+| missileworks-rtx | `Velocity` and `SOG` kept as written, in units no document states | 5 |
+| missileworks-rtx | `word 15` kept as written, a word the exports leave out | 5 |
 | nmea | `GSA` and `GSV` read in the time of the `GGA` or `RMC` before them, from the sentence order | 12 |
 | nmea | `RMC date` read in UTC days, from status-`A` sentences only | 12 |
 | odf | `Acc(HI)` read in m/s², along the board's axis with the pad's reading taken out | 3 |
@@ -520,6 +547,12 @@ Units no header states, as each file's reader decided them, or kept the column a
 | rrc3-csv | `Velocity` read in feet per second, from the altitude | 36 |
 | rrc3-csv | `Velocity` read in miles per hour, from the altitude | 9 |
 | rrc3-csv | `Voltages` read in volts, assumed | 43 |
+| rtx-csv | `Altitude` read in feet, from the `.rtx` files beside the sample exports | 5 |
+| rtx-csv | `COG` read in degrees, from the positions | 5 |
+| rtx-csv | `Velocity` and `SOG` kept as written, in units no document states | 5 |
+| rtx-txt | `Alt` read in feet, from the `.rtx` files beside the sample exports | 4 |
+| rtx-txt | `COG` read in degrees, from the positions | 4 |
+| rtx-txt | `Vel` and `SOG` kept as written, in units no document states | 4 |
 
 The files read, by the logger each names:
 
@@ -555,7 +588,7 @@ The files read, by the logger each names:
 | GPS Visualizer | 1 |
 | KML | 3 |
 | Missile Works RRC3 | 57 |
-| Missile Works RTx | 12 |
+| Missile Works RTx | 26 |
 | NMEA 0183 receiver (talker GP) | 12 |
 | Ozark Aerospace ARTS2 | 10 |
 | PerfectFlite | 21 |

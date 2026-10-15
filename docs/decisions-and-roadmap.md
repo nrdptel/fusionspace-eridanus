@@ -295,6 +295,7 @@ until someone rewrites it in plainer words.
 | [ADR-264: Typeset equations, from the product system's Rev E][adr-264] | The site's equations were plain Unicode text, in code blocks and code spans, which reads like a formula typed into a chat. The maintainer asked for equations set as a textbook sets them. Pages now write LaTeX between dollar signs; an mdBook preprocessor in `xtask` turns each formula into MathML when the site builds, with the math-core converter (MIT, pure Rust); the browser draws it in New Computer Modern Math, the face of LaTeX's textbooks, served from the site. No script runs and nothing loads from another server. A formula the converter can't read fails the build, and the page check fails one wider than its box. |  |
 | [ADR-265: M7.1c10 in two: AltOS raw downloads first; the rest to M7.1c11][adr-265] | After [M7.1c9](#m7-1c9), 153 sample logs were left to [M7.1c10](#m7-1c10). Fourteen of them are AltOS's `.eeprom` files, the board's own log as AltosUI downloads it, and nine have AltosUI's export of the same flight beside them. [M7.1c10](#m7-1c10) now reads them, their layout worked out from the files and held to those exports, every unit converted resting on a sensor's data sheet and a second check; the rest goes to [M7.1c11](#m7-1c11). |  |
 | [ADR-266: M7.1c11 in two: ARTS2's raw data first; the rest to M7.1c12][adr-266] | After [M7.1c10](#m7-1c10), 137 sample logs were left to [M7.1c11](#m7-1c11). Six of them are an Ozark Aerospace ARTS2's raw data: three `.odf` files, as its software DataAnalyzer saves a flight, and three raw CSV exports of the same records, each flight with DataAnalyzer's interpreted export and an AltOS board's log beside it. [M7.1c11](#m7-1c11) now reads them, the `.odf` in units from the calibration it carries, held to its sensors' data sheets and to a climb check, and to the files beside it; the rest goes to [M7.1c12](#m7-1c12). |  |
+| [ADR-267: M7.1c12 in two: Missile Works' RTx first; the rest to M7.1c13][adr-267] | After [M7.1c11](#m7-1c11), 131 sample logs were left unread. Fourteen are a Missile Works RTx GPS tracker's: five `.rtx` files, as mDACS saves a download, and nine CSV and text exports, eight of them beside an `.rtx` with the KML export of the same fixes. [M7.1c12](#m7-1c12) now reads them, the `.rtx`'s words decoded from the files and held to every export beside them; the rest goes to [M7.1c13](#m7-1c13). |  |
 
 ## The roadmap
 
@@ -699,8 +700,9 @@ the site check fails if a row is missing or its status disagrees.
 | <a id="m7-1c8"></a>[M7.1c8][done-5] | The R-DAS's raw text | done |
 | <a id="m7-1c9"></a>[M7.1c9][done-5] | AltOS telemetry | done |
 | <a id="m7-1c10"></a>[M7.1c10][done-5] | AltOS raw downloads | done |
-| <a id="m7-1c11"></a>[M7.1c11][done-5] | The rest | done |
-| <a id="m7-1c12"></a>[M7.1c12][phase-5] | The rest | not yet done |
+| <a id="m7-1c11"></a>[M7.1c11][done-5] | ARTS2 raw data | done |
+| <a id="m7-1c12"></a>[M7.1c12][done-5] | Missile Works' RTx GPS tracker | done |
+| <a id="m7-1c13"></a>[M7.1c13][phase-5] | The rest | not yet done |
 | <a id="m7-2"></a>[M7.2][phase-5] | The readings a flight gives, each with where it came from, and reconstructing the flight from its log | not yet done |
 | <a id="m7-3"></a>[M7.3][phase-5] | A flight against its simulation: residuals, and fitting drag, mass, impulse and wind to the log | not yet done |
 | <a id="m7-4"></a>[M7.4][phase-5] | Diagnosing what went wrong in a flight | not yet done |
@@ -1121,6 +1123,7 @@ is the milestone that added or will add that test.
 [adr-264]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0264-typeset-equations.md
 [adr-265]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0265-altos-raw-downloads-before-the-rest.md
 [adr-266]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0266-arts2-raw-data-before-the-rest.md
+[adr-267]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0267-missile-works-rtx-before-the-rest.md
 [decisions]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/DECISIONS.md
 [lessons]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md
 [lessons-formats]: https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/research/loft-lessons.md#file-formats
