@@ -364,54 +364,41 @@ board's own log, which the document doesn't describe, is read from AltosUI's `.e
 
 ### Tables read by their headers
 
-Teams' own flight computers, data-logging scripts and spreadsheets saved as CSV write their
-flights as tables no maker documents: a header row naming the columns, then one row a sample, each team in
-its own words. When the header states the units, `hpr_flightdata::generic` reads such a table by
-what the header says and no more
-([ADR-268, tables read by their headers before the rest](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0268-tables-read-by-their-headers-before-the-rest.md)).
-It is tried after every other layout, so it never takes a file another reader knows.
+Teams' own flight computers, logging scripts and spreadsheets saved as CSV write tables no maker
+documents: a header row naming the columns, then one row a sample. `hpr_flightdata::generic`
+reads such a table by what its header states and no more, after every other layout has passed
+on it
+([ADR-268, tables read by their headers](https://github.com/nrdptel/fusionspace-eridanus/blob/main/docs/decisions/0268-tables-read-by-their-headers-before-the-rest.md)).
 
-> **How far to trust it.** All 31 such tables among the sample logs are read: 224 of their
-> columns in a unit the header states, 364 kept as written by their headers (no unit the reader
-> knows, or a name that doesn't bear the unit out), 5 kept as written because their values
-> contradict their unit, and 11 columns of text, besides each table's clock. No maker stands
-> behind any of these units: the reader checks that a column's name and values allow the unit,
-> but a header that states a wrong unit, with values inside the bounds below, is read in it, and
-> milliseconds headed as seconds pass the clock's check above about 17 rows a second. The
-> one table that writes its altitude and speed in both feet and meters agrees with itself to
-> 4.5 × 10⁻¹³ m. These records have no primary track, so no readings are taken from them until
+> **How far to trust it.** All 31 such sample tables are read: besides the clocks, 224 columns
+> in a unit the header states, 364 kept as written by their headers, 5 kept as written by their
+> values and 11 of text. No maker stands behind these units: a wrong unit whose values stay
+> inside the bounds below is read in it, and milliseconds headed as seconds pass the clock's
+> check above about 17 rows a second. The table that writes its altitude and speed in both feet
+> and meters agrees with itself to 4.5 × 10⁻¹³ m. No readings are taken from these records until
 > [M7.2](../decisions-and-roadmap.md#m7-2).
 
-**The header** is the first line within the first 64 that isn't blank, a `#` comment or a `sep=`
-line. It is split at a comma, a semicolon, a tab or `|`, whichever gives the most cells, none a
-number. One column must be the clock: a time word (`time`, `t`, `ts`, `timestamp`, `uptime`)
-with a unit of time. Numbers are written with a point, or with a comma where the separator isn't
-one and some comma stands before other than three digits (`0,05`); a cell in the other mark, such
-as `1,250` among points, is a gap, so a thousands separator is never read as a decimal mark.
+**The header** is the first line within 64 that isn't blank, a `#` comment or `sep=`, split at
+`,`, `;`, a tab or `|`, whichever gives the most cells. One column must be the clock: a time word
+such as `time` or `t` with a unit of time. A unit is read from brackets at a name's end,
+`Alt AGL (ft)`, or from an underscored ending, `acc_y__m_s2`; the
+[API reference](../api/hpr_flightdata/generic/index.html) lists every spelling. A decimal comma
+is read only where the separator isn't a comma, no number has a point, and some comma stands
+before other than three digits (`0,05`); a cell in the other mark, as `1,250` among points, is a
+gap, never a number a thousand times too small.
 
-**A unit in a name** is read from brackets at its end, `Alt AGL (ft)`, `Temperature [deg C]`,
-`Alt (m ASL)` (the unit is the first word; `ASL` is kept with the name), or from an underscored
-ending, `Time_s`, `temp_c`, `acc_y__m_s2`, `pitch_rate_deg_per_s`, in any case. The
-reader knows the usual units of time, length, speed, acceleration (`g`, and `mg` for thousandths
-of a g), angle, rate of turn, temperature, voltage, current and pressure; the
-[API reference](../api/hpr_flightdata/generic/index.html) lists every spelling.
+**What a column is.** A column is kept as written, with a note saying why, when its name says
+another quantity than its unit does (`vz_filtered_ms`: a speed's name, a time's unit), an error or
+a difference (`Alt error (m)`, `Diff press (Pa)`), or nothing at all over a length, a time or a
+unit that may stand for another (`g` is also grams and gauss; single letters): `z (m)` may be a
+height or a distance. A length is a GNSS, barometric
+([AGL](../glossary.md#agl-above-ground-level) or [MSL](../glossary.md#height-above-sea-level-msl))
+or inertial altitude where the name says which, and otherwise an *altitude* of unstated sensor and
+zero. A column of words whose name says a state, phase, status, event or mode gives an
+[event](#the-record) at each change.
 
-**What a column is.** The unit says what the column measures; the name's words say what it may
-be. A column is kept as written, with a note in the record saying why, when the two disagree
-(`vz_filtered_ms` has a speed's name and a time's unit), when the name says an error or a
-difference (`Alt error (m)`, a pitot tube's `Diff press (Pa)`), and when a length, a time, or a
-unit that may stand for another (`g` is also grams and gauss; a single letter such as `c` or `v`)
-sits under a name that doesn't say what it measures: `z (m)` may be a height or a distance. A
-length is a GNSS altitude if the name says `gps` or `gnss` and not `agl`; a barometric altitude
-above ground ([AGL](../glossary.md#agl-above-ground-level)) or
-[sea level](../glossary.md#height-above-sea-level-msl) if it says `baro` and `agl`, or `baro` and
-`msl` or `asl`; an inertial altitude if it says `inertial`; and otherwise an *altitude* whose
-sensor or zero the file doesn't state. A column of words is an
-[event](#the-record) at each change of its word if its name says a state, phase, status, event
-or mode, and is left out, with a note, otherwise.
-
-**The values' check.** A unit is the header's word; the values are the second check. A column is
-kept as written if any value, converted, lies outside what a flight logger can read:
+**The values' check.** A column is also kept as written if any value, converted, lies outside
+what a flight logger can read:
 
 | Quantity | Allowed | Why |
 |---|---|---|
@@ -424,12 +411,9 @@ kept as written if any value, converted, lies outside what a flight logger can r
 | voltage, current | within 100 V, 100 A | a generous bound, no source |
 | latitude, longitude | within 90°, 180° | the globe's |
 
-Five sample columns failed this check and stay as written: two headed in pascals read above
-110 kPa on the pad, and three headed in amperes read above 100 A, milliamperes by their size.
-
-The clock is checked by its step: the median step forward must lie from 0.1 ms to 60 s, or the
-file is refused, as is a clock that never steps forward, such as a file of one row. The check can
-only keep a column as written; it never changes a unit.
+Five sample columns failed it: two headed in pascals read above 110 kPa on the pad, and three
+headed in amperes above 100 A, milliamperes by their size. The clock's median step must lie from
+0.1 ms to 60 s, and it must step forward, or the file is refused.
 
 **A worked example.** An invented table:
 
@@ -439,24 +423,21 @@ Time (s),Alt AGL (ft),Pressure (hPa),Velocity,Phase
 0.05,12,1000.8,45,BOOST
 ```
 
-`Time (s)` is the clock. `Alt AGL (ft)` is a length under an altitude's name, an *altitude* (the
-name says above ground but not by which sensor): 12 ft is $12 \times 0.3048 = 3.6576$ m.
-`Pressure (hPa)` reads 1000.8 hPa as 100,080 Pa, inside 0 to 110 kPa. `Velocity` states no unit,
-so it keeps its 45 as written. `Phase` holds words under a phase's name: two events, `PAD` at
-0 s and `BOOST` at 0.05 s.
+`Time (s)` is the clock. `Alt AGL (ft)` is an *altitude* (above ground, but no sensor named):
+12 ft is $12 \times 0.3048 = 3.6576$ m. 1000.8 hPa is 100,080 Pa, inside the bounds. `Velocity`
+states no unit, so its 45 stays as written. `Phase` gives two events, `PAD` at 0 s and `BOOST` at
+0.05 s.
 
-**A column mapping.** `generic::mapping` returns what the reader takes from a header as a
-`Mapping`, which serializes to JSON, and `generic::read_with` reads a file by one, with the same
-checks: a person or a program can state a unit the header leaves out, keep a column as written,
-or name the columns of a file with no header row. A unit that doesn't measure its column's
-quantity, such as `kPa` for a speed, is refused. Only the Rust library reads these tables so far.
+**A column mapping.** `generic::mapping` returns the header's reading as a `Mapping`, which
+serializes to JSON; `generic::read_with` reads a file by one, with the same checks, so a person
+can state a unit the header leaves out or name the columns of a file with no header row. A unit
+that doesn't measure its column's quantity is refused. Only the Rust library reads these tables
+so far.
 
-**What is left out.** The record keeps every column as a channel on the clock and has no
-[primary track](#the-record): which column is a barometric altitude above the pad isn't stated.
-Most of the 30 files filed as generic CSV that are still refused are tables whose clock states
-no unit (`time`, `ts`, `t`) or that have no header row; they wait for someone to state their
-mapping, and spreadsheets for a reader of their own, both with
-[M7.1c14](../decisions-and-roadmap.md#m7-1c14).
+**What is left out.** No [primary track](#the-record): which column is a barometric altitude
+above the pad isn't stated. Most of the 30 files filed as generic CSV that are still refused have
+a clock with no unit or no header row; they wait for a mapping, and spreadsheets for a reader,
+with [M7.1c14](../decisions-and-roadmap.md#m7-1c14).
 
 ## The record
 
